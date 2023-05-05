@@ -3,14 +3,15 @@ package front
 import (
 	"context"
 	"encoding/json"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type OAuthToken struct {
@@ -37,10 +38,10 @@ func OAuth(ctx context.Context, code string, currentOAuth *OAuthToken) (*OAuthTo
 	)
 
 	if FrontClientID, ok = os.LookupEnv("FRONT_CLIENT_ID"); !ok || FrontClientID == "" {
-		return nil, e.New("FRONT_CLIENT_ID not set")
+		return nil, errors.New("FRONT_CLIENT_ID not set")
 	}
 	if FrontClientSecret, ok = os.LookupEnv("FRONT_CLIENT_SECRET"); !ok || FrontClientSecret == "" {
-		return nil, e.New("FRONT_CLIENT_SECRET not set")
+		return nil, errors.New("FRONT_CLIENT_SECRET not set")
 	}
 
 	form := url.Values{}
@@ -56,7 +57,7 @@ func OAuth(ctx context.Context, code string, currentOAuth *OAuthToken) (*OAuthTo
 
 	req, err := http.NewRequest("POST", "https://app.frontapp.com/oauth/token", strings.NewReader(form.Encode()))
 	if err != nil {
-		return nil, e.Wrap(err, "failed to create front oauth http request")
+		return nil, err
 	}
 	req.SetBasicAuth(FrontClientID, FrontClientSecret)
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
@@ -64,7 +65,7 @@ func OAuth(ctx context.Context, code string, currentOAuth *OAuthToken) (*OAuthTo
 	c := &http.Client{}
 	resp, err := c.Do(req)
 	if err != nil {
-		return nil, e.Wrap(err, "failed to send front oauth http request")
+		return nil, err
 	}
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
@@ -75,12 +76,12 @@ func OAuth(ctx context.Context, code string, currentOAuth *OAuthToken) (*OAuthTo
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, e.Wrap(err, "failed to read front oauth http request")
+		return nil, err
 	}
 
 	var response OAuthToken
 	if err := json.Unmarshal(data, &response); err != nil {
-		return nil, e.Wrap(err, "failed to json unmarshal front oauth http request")
+		return nil, err
 	}
 
 	return &response, nil

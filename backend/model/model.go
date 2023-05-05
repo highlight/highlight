@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -36,8 +37,6 @@ import (
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 
-	"github.com/pkg/errors"
-	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -454,7 +453,7 @@ func (u *Workspace) IntegratedSlackChannels() ([]SlackChannel, error) {
 	if u.SlackChannels != nil {
 		err := json.Unmarshal([]byte(*u.SlackChannels), &parsedChannels)
 		if err != nil {
-			return nil, e.Wrap(err, "error parsing details json")
+			return nil, err
 		}
 	} else {
 		return parsedChannels, nil
@@ -496,12 +495,12 @@ func FromVerboseID(verboseId string) (int, error) {
 	// Otherwise, decode with HashID library
 	if ints, err := HashID.DecodeWithError(verboseId); err == nil {
 		if len(ints) != 1 {
-			return 1, e.Errorf("An unsupported verboseID was used: %s", verboseId)
+			return 1, fmt.Errorf("An unsupported verboseID was used: %s", verboseId)
 		}
 		return ints[0], nil
 	}
 
-	return 0, e.New(fmt.Sprintf("failed to decode %s", verboseId))
+	return 0, fmt.Errorf("failed to decode %s", verboseId)
 }
 
 func (u *Project) BeforeCreate(tx *gorm.DB) (err error) {
@@ -675,13 +674,13 @@ type EventChunk struct {
 // a and b MUST be pointers, otherwise this won't work
 func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 	if reflect.TypeOf(a) != reflect.TypeOf(b) {
-		return false, nil, e.New("interfaces to compare aren't the same time")
+		return false, nil, errors.New("interfaces to compare aren't the same time")
 	}
 
 	aReflection := reflect.ValueOf(a)
 	// Check if the passed interface is a pointer
 	if aReflection.Type().Kind() != reflect.Ptr {
-		return false, nil, e.New("`a` is not a pointer")
+		return false, nil, errors.New("`a` is not a pointer")
 	}
 	// 'dereference' with Elem() and get the field by name
 	aModelField := aReflection.Elem().FieldByName("Model")
@@ -690,7 +689,7 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 	bReflection := reflect.ValueOf(b)
 	// Check if the passed interface is a pointer
 	if bReflection.Type().Kind() != reflect.Ptr {
-		return false, nil, e.New("`b` is not a pointer")
+		return false, nil, errors.New("`b` is not a pointer")
 	}
 	// 'dereference' with Elem() and get the field by name
 	bModelField := bReflection.Elem().FieldByName("Model")
@@ -701,7 +700,7 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 		bModelField.Set(aModelField)
 	} else if aModelField.IsValid() || bModelField.IsValid() {
 		// return error if one has a model and the other doesn't
-		return false, nil, e.New("one interface has a model and the other doesn't")
+		return false, nil, errors.New("one interface has a model and the other doesn't")
 	}
 
 	if aSecureIDField.IsValid() && bSecureIDField.IsValid() {
@@ -709,7 +708,7 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 		bSecureIDField.Set(aSecureIDField)
 	} else if aSecureIDField.IsValid() || bSecureIDField.IsValid() {
 		// return error if one has a SecureID and the other doesn't
-		return false, nil, e.New("one interface has a SecureID and the other doesn't")
+		return false, nil, errors.New("one interface has a SecureID and the other doesn't")
 	}
 
 	// get diff
@@ -1255,7 +1254,7 @@ func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {
 	if ok {
 		re, err := regexp.Compile(`(?m)^(?:postgres://)([^:]*)(?::)([^@]*)(?:@)([^:]*)(?::)([^/]*)(?:/)(.*)`)
 		if err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "failed to compile regex"))
+			log.WithContext(ctx).Error(err)
 		} else {
 			matched := re.FindAllStringSubmatch(databaseURL, -1)
 			if len(matched) > 0 && len(matched[0]) > 5 {
@@ -1293,12 +1292,12 @@ func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {
 	})
 
 	if err != nil {
-		return nil, e.Wrap(err, "Failed to connect to database")
+		return nil, err
 	}
 
 	sqlDB, err := DB.DB()
 	if err != nil {
-		return nil, e.Wrap(err, "error retrieving underlying sql db")
+		return nil, err
 	}
 	sqlDB.SetMaxOpenConns(15)
 
@@ -1309,7 +1308,7 @@ func SetupDB(ctx context.Context, dbName string) (*gorm.DB, error) {
 func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	log.WithContext(ctx).Printf("Running DB migrations... \n")
 	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
-		return false, e.Wrap(err, "Error installing pgcrypto")
+		return false, err
 	}
 
 	// Unguessable, cryptographically random url-safe ID for users to share links
@@ -1323,18 +1322,18 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		END;
 		$$ LANGUAGE PLPGSQL;
 	`).Error; err != nil {
-		return false, e.Wrap(err, "Error creating secure_id_generator")
+		return false, err
 	}
 
 	// allows using postgres native UUID functions
 	if err := DB.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error; err != nil {
-		return false, e.Wrap(err, "failed to configure uuid extension")
+		return false, err
 	}
 
 	if err := DB.AutoMigrate(
 		Models...,
 	); err != nil {
-		return false, e.Wrap(err, "Error migrating db")
+		return false, err
 	}
 
 	// Drop the null constraint on error_fingerprints.error_group_id
@@ -1351,7 +1350,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 			END IF;
 		END $$;
 	`).Error; err != nil {
-		return false, e.Wrap(err, "Error dropping null constraint on error_fingerprints.error_group_id")
+		return false, err
 	}
 
 	if err := DB.Exec(`
@@ -1364,7 +1363,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 			AND created_at > now() - interval '3 months'
 			GROUP BY 1, 2;
 	`).Error; err != nil {
-		return false, e.Wrap(err, "Error creating daily_session_counts_view")
+		return false, err
 	}
 
 	if err := DB.Exec(`
@@ -1377,7 +1376,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 			END IF;
 		END $$;
 	`).Error; err != nil {
-		return false, e.Wrap(err, "Error creating idx_daily_session_counts_view_project_id_date")
+		return false, err
 	}
 
 	if err := DB.Exec(`
@@ -1387,7 +1386,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 			WHERE created_at > now() - interval '3 months'
 			GROUP BY 1, 2;
 	`).Error; err != nil {
-		return false, e.Wrap(err, "Error creating daily_error_counts_view")
+		return false, err
 	}
 
 	if err := DB.Exec(`
@@ -1400,7 +1399,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 			END IF;
 		END $$;
 	`).Error; err != nil {
-		return false, e.Wrap(err, "Error creating idx_daily_error_counts_view_project_id_date")
+		return false, err
 	}
 
 	// Create unique conditional index for billing email history
@@ -1414,7 +1413,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 			END IF;
 		END $$;
 	`).Error; err != nil {
-		return false, e.Wrap(err, "Error creating email_history_active_workspace_type_idx")
+		return false, err
 	}
 
 	if err := DB.Exec(fmt.Sprintf(`
@@ -1434,7 +1433,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 				END;
 			END $$;
 	`, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ, METRIC_GROUPS_NAME_SESSION_UNIQ)).Error; err != nil {
-		return false, e.Wrap(err, "Error adding unique constraint on metric_groups")
+		return false, err
 	}
 
 	if err := DB.Exec(fmt.Sprintf(`
@@ -1467,14 +1466,14 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 			END;
 		END $$;
 	`, DASHBOARD_METRIC_FILTERS_UNIQ, DASHBOARD_METRIC_FILTERS_UNIQ, DASHBOARD_METRIC_FILTERS_UNIQ)).Error; err != nil {
-		return false, e.Wrap(err, "Error adding unique constraint on dashboard_metric_filters")
+		return false, err
 	}
 
 	if err := DB.Exec(`
 		CREATE INDEX CONCURRENTLY IF NOT EXISTS error_fields_md5_idx
 		ON error_fields (project_id, name, CAST(md5(value) AS uuid));
 	`).Error; err != nil {
-		return false, e.Wrap(err, "Error creating error_fields_md5_idx")
+		return false, err
 	}
 
 	// If sessions_id_seq is not greater than 30000000, set it
@@ -1486,7 +1485,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 			ELSE 0
 		END;
 	`, PARTITION_SESSION_ID, PARTITION_SESSION_ID).Error; err != nil {
-		return false, e.Wrap(err, "Error setting session id sequence to 30000000")
+		return false, err
 	}
 
 	// Create sequence for session_fields.id manually. This started as a join
@@ -1502,7 +1501,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 				END IF;
 		END $$;
 	`).Error; err != nil {
-		return false, e.Wrap(err, "Error creating session_fields_id_seq")
+		return false, err
 	}
 
 	if err := DB.Exec(`
@@ -1515,7 +1514,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 				END IF;
 		END $$;
 	`).Error; err != nil {
-		return false, e.Wrap(err, "Error creating session_fields.id column")
+		return false, err
 	}
 
 	if err := DB.Exec(`
@@ -1528,7 +1527,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 				END IF;
 		END $$;
 	`).Error; err != nil {
-		return false, e.Wrap(err, "Error assigning default to session_fields.id")
+		return false, err
 	}
 
 	// default case, should only exist in main highlight prod
@@ -1599,15 +1598,15 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 		}
 		decoder, err := mapstructure.NewDecoder(cfg)
 		if err != nil {
-			return nil, e.Wrap(err, "error creating decoder")
+			return nil, err
 		}
 		err = decoder.Decode(param)
 		if err != nil {
-			return nil, e.Wrap(err, "error decoding")
+			return nil, err
 		}
 		// If we've already seen the key, throw an error.
 		if val := keys[output.Action]; val {
-			return nil, e.Errorf("repeated param '%v' not supported", val)
+			return nil, fmt.Errorf("repeated param '%v' not supported", val)
 		}
 		keys[output.Action] = true
 		ps = append(ps, output)
@@ -1618,7 +1617,7 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 func (s *Session) SetUserProperties(userProperties map[string]string) error {
 	user, err := json.Marshal(userProperties)
 	if err != nil {
-		return e.Wrapf(err, "[project_id: %d] error marshalling user properties map into bytes", s.ProjectID)
+		return err
 	}
 	s.UserProperties = string(user)
 	return nil
@@ -1732,7 +1731,7 @@ func (s *Session) GetSlackAttachment(attachment *slack.Attachment) error {
 func (s *Session) GetUserProperties() (map[string]string, error) {
 	var userProperties map[string]string
 	if err := json.Unmarshal([]byte(s.UserProperties), &userProperties); err != nil {
-		return nil, e.Wrapf(err, "[project_id: %d] error unmarshalling user properties map into bytes", s.ProjectID)
+		return nil, err
 	}
 	return userProperties, nil
 }
@@ -1806,7 +1805,7 @@ func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *send
 			AND eoo.category IN ('All', 'Billing')
 		)
 	`, workspace.ID).Scan(&toAddrs).Error; err != nil {
-		return e.Wrap(err, "error querying recipient emails")
+		return err
 	}
 
 	history := BillingEmailHistory{
@@ -1823,19 +1822,19 @@ func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *send
 				return nil
 			}
 		}
-		return e.Wrap(err, "error creating BillingEmailHistory")
+		return err
 	}
 
-	errors := []string{}
+	billingErrors := []string{}
 	for _, toAddr := range toAddrs {
 		err := Email.SendBillingNotificationEmail(ctx, mailClient, emailType, workspace.ID, workspace.Name, toAddr.Email, toAddr.AdminID)
 		if err != nil {
-			errors = append(errors, err.Error())
+			billingErrors = append(billingErrors, err.Error())
 		}
 	}
 
-	if len(errors) > 0 {
-		return e.New(strings.Join(errors, "\n"))
+	if len(billingErrors) > 0 {
+		return errors.New(strings.Join(billingErrors, "\n"))
 	}
 
 	return nil
@@ -1990,7 +1989,7 @@ func (obj *LogAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *se
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
 	if obj == nil {
-		return nil, e.New("empty session alert object for excluded environments")
+		return nil, errors.New("empty session alert object for excluded environments")
 	}
 	excludedString := "[]"
 	if obj.ExcludedEnvironments != nil {
@@ -1998,14 +1997,14 @@ func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
 	}
 	var sanitizedExcludedEnvironments []*string
 	if err := json.Unmarshal([]byte(excludedString), &sanitizedExcludedEnvironments); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized excluded environments")
+		return nil, err
 	}
 	return sanitizedExcludedEnvironments, nil
 }
 
 func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
 	if obj == nil {
-		return nil, e.New("empty session alert object for channels to notify")
+		return nil, errors.New("empty session alert object for channels to notify")
 	}
 	channelString := "[]"
 	if obj.ChannelsToNotify != nil {
@@ -2013,14 +2012,14 @@ func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, e
 	}
 	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
 	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels")
+		return nil, err
 	}
 	return sanitizedChannels, nil
 }
 
 func (obj *Alert) GetEmailsToNotify() ([]*string, error) {
 	if obj == nil {
-		return nil, e.New("empty session alert object for emails to notify")
+		return nil, errors.New("empty session alert object for emails to notify")
 	}
 
 	emailsToNotify, err := GetEmailsToNotify(obj.EmailsToNotify)
@@ -2045,7 +2044,7 @@ func (obj *Alert) GetDailyFrequency(db *gorm.DB, id int) ([]*int64, error) {
 		GROUP BY d.date
 		ORDER BY d.date;
 	`, obj.Type, id, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
-		return nil, e.Wrap(err, "error querying daily alert frequency")
+		return nil, err
 	}
 
 	return dailyAlerts, nil
@@ -2058,7 +2057,7 @@ func GetEmailsToNotify(emails *string) ([]*string, error) {
 	}
 	var emailsToNotify []*string
 	if err := json.Unmarshal([]byte(emailString), &emailsToNotify); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling emails")
+		return nil, err
 	}
 	return emailsToNotify, nil
 
@@ -2066,7 +2065,7 @@ func GetEmailsToNotify(emails *string) ([]*string, error) {
 
 func (obj *MetricMonitor) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
 	if obj == nil {
-		return nil, e.New("empty metric monitor object for channels to notify")
+		return nil, errors.New("empty metric monitor object for channels to notify")
 	}
 	channelString := "[]"
 	if obj.ChannelsToNotify != nil {
@@ -2074,14 +2073,14 @@ func (obj *MetricMonitor) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackCh
 	}
 	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
 	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels")
+		return nil, err
 	}
 	return sanitizedChannels, nil
 }
 
 func (obj *SessionAlert) GetTrackProperties() ([]*TrackProperty, error) {
 	if obj == nil {
-		return nil, e.New("empty session alert object for track properties")
+		return nil, errors.New("empty session alert object for track properties")
 	}
 	propertyString := "[]"
 	if obj.TrackProperties != nil {
@@ -2089,14 +2088,14 @@ func (obj *SessionAlert) GetTrackProperties() ([]*TrackProperty, error) {
 	}
 	var sanitizedProperties []*TrackProperty
 	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized track properties")
+		return nil, err
 	}
 	return sanitizedProperties, nil
 }
 
 func (obj *SessionAlert) GetUserProperties() ([]*UserProperty, error) {
 	if obj == nil {
-		return nil, e.New("empty session alert object for user properties")
+		return nil, errors.New("empty session alert object for user properties")
 	}
 	propertyString := "[]"
 	if obj.UserProperties != nil {
@@ -2104,14 +2103,14 @@ func (obj *SessionAlert) GetUserProperties() ([]*UserProperty, error) {
 	}
 	var sanitizedProperties []*UserProperty
 	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized user properties")
+		return nil, err
 	}
 	return sanitizedProperties, nil
 }
 
 func (obj *SessionAlert) GetExcludeRules() ([]*string, error) {
 	if obj == nil {
-		return nil, e.New("empty session alert object for exclude rules")
+		return nil, errors.New("empty session alert object for exclude rules")
 	}
 	excludeRulesString := "[]"
 	if obj.ExcludeRules != nil {
@@ -2119,7 +2118,7 @@ func (obj *SessionAlert) GetExcludeRules() ([]*string, error) {
 	}
 	var sanitizedExcludeRules []*string
 	if err := json.Unmarshal([]byte(excludeRulesString), &sanitizedExcludeRules); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized exclude rules")
+		return nil, err
 	}
 	return sanitizedExcludeRules, nil
 }
@@ -2151,25 +2150,25 @@ type DeleteSessionsTask struct {
 
 func (obj *Alert) SendWelcomeSlackMessage(ctx context.Context, input *SendWelcomeSlackMessageInput) error {
 	if obj == nil {
-		return e.New("Alert needs to be defined.")
+		return errors.New("Alert needs to be defined.")
 	}
 	if input.Workspace == nil {
-		return e.New("Workspace needs to be defined.")
+		return errors.New("Workspace needs to be defined.")
 	}
 	if input.Admin == nil {
-		return e.New("Admin needs to be defined.")
+		return errors.New("Admin needs to be defined.")
 	}
 	if input.Project == nil {
-		return e.New("Project needs to be defined.")
+		return errors.New("Project needs to be defined.")
 	}
 	if input.AlertID == nil {
-		return e.New("AlertID needs to be defined.")
+		return errors.New("AlertID needs to be defined.")
 	}
 
 	// get alerts channels
 	channels, err := obj.GetChannelsToNotify()
 	if err != nil {
-		return e.Wrap(err, "error getting channels to notify welcome slack message")
+		return err
 	}
 	if len(channels) <= 0 {
 		return nil
@@ -2177,7 +2176,7 @@ func (obj *Alert) SendWelcomeSlackMessage(ctx context.Context, input *SendWelcom
 	// get project's channels
 	integratedSlackChannels, err := input.Workspace.IntegratedSlackChannels()
 	if err != nil {
-		return e.Wrap(err, "error getting slack webhook url for alert")
+		return err
 	}
 	if len(integratedSlackChannels) <= 0 {
 		return nil
@@ -2234,7 +2233,7 @@ func (obj *Alert) SendWelcomeSlackMessage(ctx context.Context, input *SendWelcom
 					if strings.Contains(slackChannelName, "#") {
 						_, _, _, err := slackClient.JoinConversation(slackChannelId)
 						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+							log.WithContext(ctx).Error(err)
 						}
 					}
 					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2243,7 +2242,7 @@ func (obj *Alert) SendWelcomeSlackMessage(ctx context.Context, input *SendWelcom
 					)
 					if err != nil {
 						log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
-							Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
+							Error(err)
 					}
 
 				} else {
@@ -2268,25 +2267,25 @@ type SendWelcomeSlackMessageForMetricMonitorInput struct {
 
 func (obj *MetricMonitor) SendWelcomeSlackMessage(ctx context.Context, input *SendWelcomeSlackMessageForMetricMonitorInput) error {
 	if obj == nil {
-		return e.New("metric monitor needs to be defined.")
+		return errors.New("metric monitor needs to be defined.")
 	}
 	if input.Workspace == nil {
-		return e.New("Workspace needs to be defined.")
+		return errors.New("Workspace needs to be defined.")
 	}
 	if input.Admin == nil {
-		return e.New("Admin needs to be defined.")
+		return errors.New("Admin needs to be defined.")
 	}
 	if input.Project == nil {
-		return e.New("Project needs to be defined.")
+		return errors.New("Project needs to be defined.")
 	}
 	if input.MonitorID == nil {
-		return e.New("AlertID needs to be defined.")
+		return errors.New("AlertID needs to be defined.")
 	}
 
 	// get alerts channels
 	channels, err := obj.GetChannelsToNotify()
 	if err != nil {
-		return e.Wrap(err, "error getting channels to notify welcome slack message")
+		return err
 	}
 	if len(channels) <= 0 {
 		return nil
@@ -2294,7 +2293,7 @@ func (obj *MetricMonitor) SendWelcomeSlackMessage(ctx context.Context, input *Se
 	// get project's channels
 	integratedSlackChannels, err := input.Workspace.IntegratedSlackChannels()
 	if err != nil {
-		return e.Wrap(err, "error getting slack webhook url for alert")
+		return err
 	}
 	if len(integratedSlackChannels) <= 0 {
 		return nil
@@ -2351,7 +2350,7 @@ func (obj *MetricMonitor) SendWelcomeSlackMessage(ctx context.Context, input *Se
 					if strings.Contains(slackChannelName, "#") {
 						_, _, _, err := slackClient.JoinConversation(slackChannelId)
 						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+							log.WithContext(ctx).Error(err)
 						}
 					}
 					_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2360,7 +2359,7 @@ func (obj *MetricMonitor) SendWelcomeSlackMessage(ctx context.Context, input *Se
 					)
 					if err != nil {
 						log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
-							Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
+							Error(err)
 					}
 
 				} else {
@@ -2380,15 +2379,15 @@ type SendSlackAlertForMetricMonitorInput struct {
 
 func (obj *MetricMonitor) SendSlackAlert(ctx context.Context, input *SendSlackAlertForMetricMonitorInput) error {
 	if obj == nil {
-		return e.New("metric monitor needs to be defined.")
+		return errors.New("metric monitor needs to be defined.")
 	}
 	if input.Workspace == nil {
-		return e.New("workspace needs to be defined.")
+		return errors.New("workspace needs to be defined.")
 	}
 
 	channels, err := obj.GetChannelsToNotify()
 	if err != nil {
-		return e.Wrap(err, "error getting channels to send MetricMonitor Slack Alert")
+		return err
 	}
 	if len(channels) <= 0 {
 		return nil
@@ -2417,7 +2416,7 @@ func (obj *MetricMonitor) SendSlackAlert(ctx context.Context, input *SendSlackAl
 				if strings.Contains(slackChannelName, "#") {
 					_, _, _, err := slackClient.JoinConversation(slackChannelId)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+						log.WithContext(ctx).Error(err)
 					}
 				}
 				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2426,7 +2425,7 @@ func (obj *MetricMonitor) SendSlackAlert(ctx context.Context, input *SendSlackAl
 				)
 				if err != nil {
 					log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
-						Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
+						Error(err)
 				}
 
 			} else {
@@ -2447,15 +2446,15 @@ type SendSlackAlertForLogAlertInput struct {
 
 func (obj *LogAlert) SendSlackAlert(ctx context.Context, input *SendSlackAlertForLogAlertInput) error {
 	if obj == nil {
-		return e.New("log alert needs to be defined.")
+		return errors.New("log alert needs to be defined.")
 	}
 	if input.Workspace == nil {
-		return e.New("workspace needs to be defined.")
+		return errors.New("workspace needs to be defined.")
 	}
 
 	channels, err := obj.GetChannelsToNotify()
 	if err != nil {
-		return e.Wrap(err, "error getting channels to send Slack log alert")
+		return err
 	}
 	if len(channels) <= 0 {
 		return nil
@@ -2483,7 +2482,7 @@ func (obj *LogAlert) SendSlackAlert(ctx context.Context, input *SendSlackAlertFo
 				if strings.Contains(slackChannelName, "#") {
 					_, _, _, err := slackClient.JoinConversation(slackChannelId)
 					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel while sending welcome message"))
+						log.WithContext(ctx).Error(err)
 					}
 				}
 				_, _, err := slackClient.PostMessage(slackChannelId, slack.MsgOptionText(message, false),
@@ -2492,7 +2491,7 @@ func (obj *LogAlert) SendSlackAlert(ctx context.Context, input *SendSlackAlertFo
 				)
 				if err != nil {
 					log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", message)}).
-						Error(e.Wrap(err, "error sending slack msg via bot api for welcome message"))
+						Error(err)
 				}
 
 			} else {
@@ -2577,12 +2576,12 @@ func getUserPropertiesBlock(identifier string, userProperties map[string]string)
 func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, input *SendSlackAlertInput) error {
 	// TODO: combine `error_alerts` and `session_alerts` tables and create composite index on (project_id, type)
 	if obj == nil {
-		return e.New("alert is nil")
+		return errors.New("alert is nil")
 	}
 	// get alerts channels
 	channels, err := obj.GetChannelsToNotify()
 	if err != nil {
-		return e.Wrap(err, "error getting channels to notify from user properties alert")
+		return err
 	}
 	if len(channels) <= 0 {
 		return nil
@@ -2590,7 +2589,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 	// get project's channels
 	integratedSlackChannels, err := input.Workspace.IntegratedSlackChannels()
 	if err != nil {
-		return e.Wrap(err, "error getting slack webhook url for alert")
+		return err
 	}
 	if len(integratedSlackChannels) <= 0 {
 		return nil
@@ -2830,7 +2829,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 					)
 					if err != nil {
 						log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "slack_webhook_url": slackWebhookURL, "message": fmt.Sprintf("%+v", msg)}).
-							Error(e.Wrap(err, "error sending slack msg via webhook"))
+							Error(err)
 						return
 					}
 				} else if slackClient != nil {
@@ -2838,7 +2837,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 					if strings.Contains(slackChannelName, "#") {
 						_, _, _, err := slackClient.JoinConversation(slackChannelId)
 						if err != nil {
-							log.WithContext(ctx).Error(e.Wrap(err, "failed to join slack channel"))
+							log.WithContext(ctx).Error(err)
 							return
 						}
 					}
@@ -2848,7 +2847,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 					)
 					if err != nil {
 						log.WithContext(ctx).WithFields(log.Fields{"workspace_id": input.Workspace.ID, "message": fmt.Sprintf("%+v", msg)}).
-							Error(e.Wrap(err, "error sending slack msg via bot api"))
+							Error(err)
 						return
 					}
 				} else {
@@ -2856,7 +2855,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 					return
 				}
 				if err := db.Create(alertEvent).Error; err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "error creating alert event"))
+					log.WithContext(ctx).Error(err)
 				}
 			}()
 		}

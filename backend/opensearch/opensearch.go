@@ -3,8 +3,8 @@ package opensearch
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"gorm.io/gorm"
 	"io"
 	"net/http"
 	"os"
@@ -12,10 +12,11 @@ import (
 	"strings"
 	"time"
 
+	"gorm.io/gorm"
+
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/retryables"
 	"github.com/openlyinc/pointy"
-	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/opensearch-project/opensearch-go"
@@ -200,7 +201,7 @@ func NewOpensearchClient(db *gorm.DB) (*Client, error) {
 		Password:  OpensearchPassword,
 	})
 	if err != nil {
-		return nil, e.Wrap(err, "OPENSEARCH_ERROR failed to initialize opensearch client")
+		return nil, err
 	}
 
 	readClient, err := opensearch.NewClient(opensearch.Config{
@@ -210,7 +211,7 @@ func NewOpensearchClient(db *gorm.DB) (*Client, error) {
 		Password:  OpensearchPassword,
 	})
 	if err != nil {
-		return nil, e.Wrap(err, "OPENSEARCH_ERROR failed to initialize opensearch read replica client")
+		return nil, err
 	}
 
 	indexer, err := opensearchutil.NewBulkIndexer(opensearchutil.BulkIndexerConfig{
@@ -219,11 +220,11 @@ func NewOpensearchClient(db *gorm.DB) (*Client, error) {
 		FlushBytes:    5e+6,             // The flush threshold in bytes. Defaults to 5MB.
 		FlushInterval: 10 * time.Second, // The flush threshold as duration. Defaults to 30sec.
 		OnError: func(ctx context.Context, err error) {
-			log.WithContext(ctx).Error(e.Wrap(err, "OPENSEARCH_ERROR bulk indexer error"))
+			log.WithContext(ctx).Error(err)
 		},
 	})
 	if err != nil {
-		return nil, e.Wrap(err, "OPENSEARCH_ERROR failed to initialize opensearch bulk indexer")
+		return nil, err
 	}
 
 	var rClient retryables.Client = &retryables.DummyClient{}
@@ -248,7 +249,7 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 
 	b, err := json.Marshal(obj)
 	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error marshalling map for update")
+		return err
 	}
 	body := strings.NewReader(fmt.Sprintf("{ \"doc\" : %s }", string(b)))
 
@@ -275,7 +276,7 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 	}
 
 	if err := c.BulkIndexer.Add(context.Background(), item); err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error adding bulk indexer item for update")
+		return err
 	}
 
 	return nil
@@ -290,7 +291,7 @@ func (c *Client) UpdateSynchronous(index Index, id int, obj map[string]interface
 
 	b, err := json.Marshal(obj)
 	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error marshalling map for update")
+		return err
 	}
 
 	body := strings.NewReader(fmt.Sprintf("{ \"doc\" : %s }", string(b)))
@@ -306,20 +307,12 @@ func (c *Client) UpdateSynchronous(index Index, id int, obj map[string]interface
 
 	res, err := req.Do(context.Background(), c.Client)
 	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error updating document")
+		return err
 	}
 
 	if res.IsError() {
 		c.RetryableClient.ReportError(context.Background(), model.RetryableOpensearchError, indexStr, documentId, map[string]interface{}{"id": id, "obj": obj, "res": res}, nil)
-		return e.New(
-			fmt.Sprintf(
-				"OPENSEARCH_ERROR (%s : %s) [%d] %s",
-				indexStr,
-				documentId,
-				res.StatusCode,
-				res.String(),
-			),
-		)
+		return fmt.Errorf("OPENSEARCH_ERROR (%s : %s) [%d] %s", indexStr, documentId, res.StatusCode, res.String())
 	}
 
 	// log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
@@ -353,7 +346,7 @@ func (c *Client) Delete(index Index, id int) error {
 	}
 
 	if err := c.BulkIndexer.Add(context.Background(), item); err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error adding bulk indexer item for delete")
+		return err
 	}
 
 	return nil
@@ -381,7 +374,7 @@ func (c *Client) Index(index Index, id int64, parentId *int, obj interface{}) er
 
 	b, err := json.Marshal(obj)
 	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error marshalling map for index")
+		return err
 	}
 	bodyStr := string(b)
 
@@ -414,7 +407,7 @@ func (c *Client) Index(index Index, id int64, parentId *int, obj interface{}) er
 	}
 
 	if err := c.BulkIndexer.Add(context.Background(), item); err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error adding bulk indexer item for index")
+		return err
 	}
 
 	return nil
@@ -434,7 +427,7 @@ func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fie
 
 	b, err := json.Marshal(fields)
 	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error marshalling fields")
+		return err
 	}
 	body := strings.NewReader(fmt.Sprintf(`{"script" : {"id": "%s", "params" : {"toAppend" : %s, "fieldName": "%s"}}}`, GetScript(ScriptAppendFields), string(b), fieldName))
 
@@ -461,7 +454,7 @@ func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fie
 	}
 
 	if err := c.BulkIndexer.Add(context.Background(), item); err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error adding bulk indexer item for update (append session fields)")
+		return err
 	}
 
 	return nil
@@ -477,7 +470,7 @@ func (c *Client) IndexSynchronous(ctx context.Context, index Index, id int, obj 
 
 	b, err := json.Marshal(obj)
 	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error marshalling map for index")
+		return err
 	}
 	body := strings.NewReader(string(b))
 
@@ -491,11 +484,11 @@ func (c *Client) IndexSynchronous(ctx context.Context, index Index, id int, obj 
 
 	response, err := req.Do(ctx, c.Client)
 	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error indexing document")
+		return err
 	}
 
 	if response.IsError() {
-		return e.New("OPENSEARCH_ERROR error indexing document: " + response.String())
+		return errors.New("OPENSEARCH_ERROR error indexing document: " + response.String())
 	}
 
 	// log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
@@ -529,7 +522,7 @@ func getAggregationResults(buckets []aggregateBucket) []AggregationResult {
 
 func (c *Client) Search(indexes []Index, projectID int, query string, options SearchOptions, results interface{}) (resultCount int64, aggregateResults []AggregationResult, err error) {
 	if err := json.Unmarshal([]byte(query), &struct{}{}); err != nil {
-		return 0, nil, e.Wrap(err, "query is not valid JSON")
+		return 0, nil, err
 	}
 
 	q := query
@@ -619,16 +612,16 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 
 	searchResponse, err := search.Do(context.Background(), c.ReadClient)
 	if err != nil {
-		return 0, nil, e.Wrap(err, "failed to search index")
+		return 0, nil, err
 	}
 
 	res, err := io.ReadAll(searchResponse.Body)
 	if err != nil {
-		return 0, nil, e.Wrap(err, "failed to read search response")
+		return 0, nil, err
 	}
 
 	if err := searchResponse.Body.Close(); err != nil {
-		return 0, nil, e.Wrap(err, "failed to close search response")
+		return 0, nil, err
 	}
 
 	var response struct {
@@ -643,7 +636,7 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 	}
 
 	if err := json.Unmarshal(res, &response); err != nil {
-		return 0, nil, e.Wrap(err, "failed to unmarshal response")
+		return 0, nil, err
 	}
 
 	sources := []interface{}{}
@@ -653,11 +646,11 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 
 	marshalled, err := json.Marshal(sources)
 	if err != nil {
-		return 0, nil, e.Wrap(err, "failed to re-marshal sources")
+		return 0, nil, err
 	}
 
 	if err := json.Unmarshal(marshalled, results); err != nil {
-		return 0, nil, e.Wrap(err, "failed to unmarshal sources")
+		return 0, nil, err
 	}
 
 	var aggregate struct {
@@ -671,7 +664,7 @@ func (c *Client) Search(indexes []Index, projectID int, query string, options Se
 	var aggregationResults []AggregationResult
 	if options.Aggregation != nil {
 		if err := json.Unmarshal(res, &aggregate); err != nil {
-			return 0, nil, e.Wrap(err, "failed to unmarshal aggregations")
+			return 0, nil, err
 		}
 		aggregationResults = getAggregationResults(aggregate.Aggregations.Aggregate.Buckets)
 	}
@@ -688,16 +681,16 @@ func (c *Client) RawSearch(index Index, query string) ([]byte, error) {
 
 	searchResponse, err := search.Do(context.Background(), c.ReadClient)
 	if err != nil {
-		return nil, e.Wrap(err, "failed to search index")
+		return nil, err
 	}
 
 	res, err := io.ReadAll(searchResponse.Body)
 	if err != nil {
-		return nil, e.Wrap(err, "failed to read search response")
+		return nil, err
 	}
 
 	if err := searchResponse.Body.Close(); err != nil {
-		return nil, e.Wrap(err, "failed to close search response")
+		return nil, err
 	}
 
 	return res, nil
@@ -714,7 +707,7 @@ func (c *Client) PutMapping(ctx context.Context, index Index, bodyStr string) er
 
 	createResponse, err := createRequest.Do(context.Background(), c.Client)
 	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error creating index")
+		return err
 	}
 
 	log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s) [%d] index created", indexStr, createResponse.StatusCode)
@@ -726,7 +719,7 @@ func (c *Client) PutMapping(ctx context.Context, index Index, bodyStr string) er
 
 	mappingResponse, err := mappingRequest.Do(context.Background(), c.Client)
 	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error creating mapping")
+		return err
 	}
 
 	log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s) [%d] mapping created", indexStr, mappingResponse.StatusCode)
@@ -745,7 +738,7 @@ func (c *Client) PutScript(ctx context.Context, script Script, bodyStr string) e
 
 	createResponse, err := putRequest.Do(context.Background(), c.Client)
 	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error upserting script")
+		return err
 	}
 
 	log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s) [%d] script created", scriptStr, createResponse.StatusCode)

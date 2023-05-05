@@ -5,6 +5,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/go-oauth2/oauth2/v4"
 	"github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/go-oauth2/oauth2/v4/generates"
@@ -17,12 +21,8 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	hredis "github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/util"
-	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
-	"net/http"
-	"strings"
-	"time"
 )
 
 const CookieName = "highlightOAuth"
@@ -95,7 +95,7 @@ func CreateServer(ctx context.Context, db *gorm.DB) (*Server, error) {
 	clientStore := store.NewClientStore()
 	var clients []*model.OAuthClientStore
 	if err := db.Model(&model.OAuthClientStore{}).Scan(&clients).Error; err != nil {
-		return nil, e.Wrap(err, "failed to get oauth client store from db")
+		return nil, err
 	}
 	for _, client := range clients {
 		for _, uri := range client.Domains {
@@ -106,7 +106,7 @@ func CreateServer(ctx context.Context, db *gorm.DB) (*Server, error) {
 				Domain: uri,
 			})
 			if err != nil {
-				return nil, e.Wrapf(err, "failed to set oauth client store entry %s", client.ID)
+				return nil, err
 			}
 		}
 	}

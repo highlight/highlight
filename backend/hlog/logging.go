@@ -5,13 +5,14 @@ import (
 
 	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/highlight-run/highlight/backend/util"
-	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
 func logIfError(name string, err error) {
 	if err != nil && !util.IsDevOrTestEnv() && !util.IsOnPrem() {
-		log.Error(e.Wrap(err, "dd error tracking: "+name))
+		log.WithFields(log.Fields{
+			name: name,
+		}).Error(err)
 	}
 }
 

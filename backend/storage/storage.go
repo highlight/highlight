@@ -8,14 +8,15 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/go-chi/chi"
-	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-chi/chi"
+	"github.com/samber/lo"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
@@ -31,7 +32,6 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -129,13 +129,13 @@ func (f *FilesystemClient) GetRawData(ctx context.Context, sessionId, projectId 
 			var result []redis.Z
 			buf, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%s", prefix, object))
 			if err != nil {
-				errs <- errors.Wrap(err, "error retrieving object from fs")
+				errs <- err
 				return
 			}
 
 			decoder := gob.NewDecoder(buf)
 			if err := decoder.Decode(&result); err != nil {
-				errs <- errors.Wrap(err, "error decoding gob")
+				errs <- err
 				return
 			}
 
@@ -146,7 +146,7 @@ func (f *FilesystemClient) GetRawData(ctx context.Context, sessionId, projectId 
 	wg.Wait()
 	select {
 	case err := <-errs:
-		return nil, errors.Wrap(err, "error in task retrieving object from fs")
+		return nil, err
 	default:
 	}
 
@@ -202,7 +202,7 @@ func (f *FilesystemClient) GetSourcemapVersions(ctx context.Context, projectId i
 func (f *FilesystemClient) PushCompressedFile(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType) (*int64, error) {
 	_, err := file.Seek(0, io.SeekStart)
 	if err != nil {
-		return nil, errors.Wrap(err, "error seeking to beginning of file")
+		return nil, err
 	}
 	key := fmt.Sprintf("%s/%d/%d/%v", f.fsRoot, projectId, sessionId, payloadType)
 	size, err := f.writeFSBytes(ctx, key, file)
@@ -215,12 +215,12 @@ func (f *FilesystemClient) PushFiles(ctx context.Context, sessionId, projectId i
 		file := payloadManager.GetFile(fileType)
 		_, err := file.Seek(0, io.SeekStart)
 		if err != nil {
-			return 0, errors.Wrap(err, "error seeking to beginning of file")
+			return 0, err
 		}
 		size, err := f.PushCompressedFile(ctx, sessionId, projectId, file, payloadType)
 
 		if err != nil {
-			return 0, errors.Wrapf(err, "error pushing %s payload to s3", string(payloadType))
+			return 0, err
 		}
 
 		if size != nil {
@@ -235,7 +235,7 @@ func (f *FilesystemClient) PushRawEvents(ctx context.Context, sessionId, project
 	buf := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buf)
 	if err := encoder.Encode(events); err != nil {
-		return errors.Wrap(err, "error encoding gob")
+		return err
 	}
 
 	key := fmt.Sprintf("%s/raw-events/%d/%d/%v-%s", f.fsRoot, sessionId, projectId, payloadType, uuid.New().String())
@@ -247,7 +247,7 @@ func (f *FilesystemClient) PushSourceMapFile(ctx context.Context, projectId int,
 	buf := new(bytes.Buffer)
 	_, err := buf.Read(fileBytes)
 	if err != nil {
-		return nil, errors.Wrap(err, "error reading from memory buffer")
+		return nil, err
 	}
 	if n, err := f.writeFSBytes(ctx, fmt.Sprintf("%s/%d/%s/%s", f.fsRoot, projectId, *version, fileName), buf); err != nil {
 		return pointy.Int64(0), err
@@ -317,11 +317,11 @@ func (f *FilesystemClient) readCompressed(ctx context.Context, sessionId int, pr
 	}
 	buf, err = decompress(buf)
 	if err != nil {
-		return errors.Wrap(err, "error decompressing compressed buffer from fs")
+		return err
 	}
 
 	if err := json.Unmarshal(buf.Bytes(), results); err != nil {
-		return errors.Wrap(err, "error decoding data")
+		return err
 	}
 	return nil
 }
@@ -338,7 +338,7 @@ func (f *FilesystemClient) handleUploadSourcemap(ctx context.Context, key string
 func (f *FilesystemClient) readFSBytes(ctx context.Context, key string) (*bytes.Buffer, error) {
 	file, err := os.Open(key)
 	if err != nil {
-		return nil, errors.Wrap(err, "error opening fs file")
+		return nil, err
 	}
 
 	defer func(file *os.File) {
@@ -351,7 +351,7 @@ func (f *FilesystemClient) readFSBytes(ctx context.Context, key string) (*bytes.
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(file)
 	if err != nil {
-		return nil, errors.Wrap(err, "error reading from fs buffer")
+		return nil, err
 	}
 	return buf, nil
 }
@@ -419,7 +419,7 @@ type S3Client struct {
 func NewS3Client(ctx context.Context) (*S3Client, error) {
 	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion("us-west-2"))
 	if err != nil {
-		return nil, errors.Wrap(err, "error loading default from config")
+		return nil, err
 	}
 	// Create Amazon S3 API client using path style addressing.
 	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
@@ -430,7 +430,7 @@ func NewS3Client(ctx context.Context) (*S3Client, error) {
 	// Eventually, the us-west-2 s3 client should be deprecated
 	cfgEast2, err := config.LoadDefaultConfig(ctx, config.WithRegion(model.AWS_REGION_US_EAST_2))
 	if err != nil {
-		return nil, errors.Wrap(err, "error loading default from config")
+		return nil, err
 	}
 	// Create Amazon S3 API client using path style addressing.
 	clientEast2 := s3.NewFromConfig(cfgEast2, func(o *s3.Options) {
@@ -479,7 +479,7 @@ func (s *S3Client) getSessionClientAndBucket(sessionId int) (*s3.Client, *string
 func (s *S3Client) pushFileToS3WithOptions(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType, options s3.PutObjectInput) (*int64, error) {
 	_, err := file.Seek(0, io.SeekStart)
 	if err != nil {
-		return nil, errors.Wrap(err, "error seeking to beginning of file")
+		return nil, err
 	}
 
 	key := bucketKey(sessionId, projectId, payloadType)
@@ -500,7 +500,7 @@ func (s *S3Client) pushFileToS3WithOptions(ctx context.Context, sessionId, proje
 
 	result, err := client.HeadObject(ctx, &headObj)
 	if err != nil {
-		return nil, errors.New("error retrieving head object")
+		return nil, err
 	}
 
 	return &result.ContentLength, nil
@@ -519,7 +519,7 @@ func (s *S3Client) PushRawEvents(ctx context.Context, sessionId, projectId int, 
 	buf := new(bytes.Buffer)
 	encoder := gob.NewEncoder(buf)
 	if err := encoder.Encode(events); err != nil {
-		return errors.Wrap(err, "error encoding gob")
+		return err
 	}
 
 	// Adding to a separate raw-events folder so these can be expired by prefix with an S3 expiration rule.
@@ -532,7 +532,7 @@ func (s *S3Client) PushRawEvents(ctx context.Context, sessionId, projectId int, 
 	}
 	_, err := s.S3ClientEast2.PutObject(ctx, &options)
 	if err != nil {
-		return errors.Wrap(err, "error uploading raw events to S3")
+		return err
 	}
 
 	return nil
@@ -549,7 +549,7 @@ func (s *S3Client) GetRawData(ctx context.Context, sessionId, projectId int, pay
 
 	output, err := s.S3ClientEast2.ListObjectsV2(ctx, &options)
 	if err != nil {
-		return nil, errors.Wrap(err, "error listing objects in S3")
+		return nil, err
 	}
 
 	var g errgroup.Group
@@ -564,18 +564,18 @@ func (s *S3Client) GetRawData(ctx context.Context, sessionId, projectId int, pay
 				Key:    object.Key,
 			})
 			if err != nil {
-				return errors.Wrap(err, "error retrieving object from S3")
+				return err
 			}
 
 			buf := new(bytes.Buffer)
 			_, err = buf.ReadFrom(output.Body)
 			if err != nil {
-				return errors.Wrap(err, "error reading from s3 buffer")
+				return err
 			}
 
 			decoder := gob.NewDecoder(buf)
 			if err := decoder.Decode(&result); err != nil {
-				return errors.Wrap(err, "error decoding gob")
+				return err
 			}
 
 			results[idx] = result
@@ -584,7 +584,7 @@ func (s *S3Client) GetRawData(ctx context.Context, sessionId, projectId int, pay
 	}
 
 	if err := g.Wait(); err != nil {
-		return nil, errors.Wrap(err, "error in task retrieving object from S3")
+		return nil, err
 	}
 
 	eventRows := map[int]string{}
@@ -613,7 +613,7 @@ func (s *S3Client) PushFiles(ctx context.Context, sessionId, projectId int, payl
 		size, err := s.PushCompressedFile(ctx, sessionId, projectId, payloadManager.GetFile(fileType), payloadType)
 
 		if err != nil {
-			return 0, errors.Wrapf(err, "error pushing %s payload to s3", string(payloadType))
+			return 0, err
 		}
 
 		if size != nil {
@@ -646,16 +646,16 @@ func (s *S3Client) ReadResources(ctx context.Context, sessionId int, projectId i
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(output.Body)
 	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
+		return nil, err
 	}
 	buf, err = decompress(buf)
 	if err != nil {
-		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
+		return nil, err
 	}
 
 	var resources []interface{}
 	if err := json.Unmarshal(buf.Bytes(), &resources); err != nil {
-		return nil, errors.Wrap(err, "error decoding resource data")
+		return nil, err
 	}
 	return resources, nil
 }
@@ -666,12 +666,12 @@ func (s *S3Client) ReadUncompressedResourcesFromS3(ctx context.Context, sessionI
 	output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: bucket,
 		Key: bucketKey(sessionId, projectId, NetworkResources)})
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting object from s3")
+		return nil, err
 	}
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(output.Body)
 	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
+		return nil, err
 	}
 	type resources struct {
 		Resources []interface{}
@@ -684,7 +684,7 @@ func (s *S3Client) ReadUncompressedResourcesFromS3(ctx context.Context, sessionI
 		}
 		var tempResources resources
 		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
-			return nil, errors.Wrap(err, "error decoding resource data")
+			return nil, err
 		}
 		retResources = append(retResources, tempResources.Resources...)
 	}
@@ -706,16 +706,16 @@ func (s *S3Client) ReadMessages(ctx context.Context, sessionId int, projectId in
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(output.Body)
 	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
+		return nil, err
 	}
 	buf, err = decompress(buf)
 	if err != nil {
-		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
+		return nil, err
 	}
 
 	var messages []interface{}
 	if err := json.Unmarshal(buf.Bytes(), &messages); err != nil {
-		return nil, errors.Wrap(err, "error decoding message data")
+		return nil, err
 	}
 	return messages, nil
 }
@@ -726,12 +726,12 @@ func (s *S3Client) ReadUncompressedMessagesFromS3(ctx context.Context, sessionId
 	output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: bucket,
 		Key: bucketKey(sessionId, projectId, ConsoleMessages)})
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting object from s3")
+		return nil, err
 	}
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(output.Body)
 	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
+		return nil, err
 	}
 	type messages struct {
 		Messages []interface{}
@@ -744,7 +744,7 @@ func (s *S3Client) ReadUncompressedMessagesFromS3(ctx context.Context, sessionId
 		}
 		var tempResources messages
 		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
-			return nil, errors.Wrap(err, "error decoding message data")
+			return nil, err
 		}
 		retMessages = append(retMessages, tempResources.Messages...)
 	}
@@ -765,22 +765,22 @@ func (s *S3Client) ReadTimelineIndicatorEvents(ctx context.Context, sessionId in
 		if strings.Contains(err.Error(), "NoSuchKey") {
 			return events, nil
 		}
-		return nil, errors.Wrap(err, "error getting object from s3")
+		return nil, err
 	}
 
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(output.Body)
 	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
+		return nil, err
 	}
 
 	buf, err = decompress(buf)
 	if err != nil {
-		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
+		return nil, err
 	}
 
 	if err := json.Unmarshal(buf.Bytes(), &events); err != nil {
-		return nil, errors.Wrap(err, "error decoding event data")
+		return nil, err
 	}
 	return events, nil
 }
@@ -815,7 +815,7 @@ func (s *S3Client) PushSourceMapFileReaderToS3(ctx context.Context, projectId in
 		Bucket: pointy.String(S3SourceMapBucketNameNew), Key: key, Body: file,
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "error 'put'ing sourcemap file in s3 bucket")
+		return nil, err
 	}
 	headObj := s3.HeadObjectInput{
 		Bucket: pointy.String(S3SourceMapBucketNameNew),
@@ -823,7 +823,7 @@ func (s *S3Client) PushSourceMapFileReaderToS3(ctx context.Context, projectId in
 	}
 	result, err := s.S3ClientEast2.HeadObject(ctx, &headObj)
 	if err != nil {
-		return nil, errors.New("error retrieving head object")
+		return nil, err
 	}
 	return &result.ContentLength, nil
 }
@@ -837,12 +837,12 @@ func (s *S3Client) ReadSourceMapFile(ctx context.Context, projectId int, version
 	output, err := s.S3ClientEast2.GetObject(ctx, &s3.GetObjectInput{Bucket: pointy.String(S3SourceMapBucketNameNew),
 		Key: s.sourceMapBucketKey(projectId, version, fileName)})
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting object from s3")
+		return nil, err
 	}
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(output.Body)
 	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
+		return nil, err
 	}
 	return buf.Bytes(), nil
 }
@@ -861,7 +861,7 @@ func (s *S3Client) GetDirectDownloadURL(_ context.Context, projectId int, sessio
 	}
 	signedURL, err := s.URLSigner.Sign(unsignedURL, time.Now().Add(15*time.Minute))
 	if err != nil {
-		return nil, errors.Wrap(err, "error signing URL")
+		return nil, err
 	}
 
 	return &signedURL, nil
@@ -875,7 +875,7 @@ func (s *S3Client) GetSourceMapUploadUrl(ctx context.Context, key string) (strin
 
 	resp, err := s.S3PresignClient.PresignPutObject(ctx, &input)
 	if err != nil {
-		return "", errors.Wrap(err, "error signing s3 asset URL")
+		return "", err
 	}
 
 	return resp.URL, nil
@@ -893,7 +893,7 @@ func (s *S3Client) UploadAsset(ctx context.Context, uuid string, contentType str
 		v4.SwapComputePayloadSHA256ForUnsignedPayloadMiddleware,
 	))
 	if err != nil {
-		return errors.Wrap(err, "error calling PutObject")
+		return err
 	}
 	return nil
 }
@@ -906,7 +906,7 @@ func (s *S3Client) GetAssetURL(ctx context.Context, projectId string, hashVal st
 
 	resp, err := s.S3PresignClient.PresignGetObject(ctx, &input)
 	if err != nil {
-		return "", errors.Wrap(err, "error signing s3 asset URL")
+		return "", err
 	}
 
 	return resp.URL, nil
@@ -924,7 +924,7 @@ func (s *S3Client) GetSourcemapFiles(ctx context.Context, projectId int, version
 	})
 
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting sourcemaps from s3")
+		return nil, err
 	}
 
 	return output.Contents, nil
@@ -938,7 +938,7 @@ func (s *S3Client) GetSourcemapVersions(ctx context.Context, projectId int) ([]s
 	})
 
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting sourcemap app versions from s3")
+		return nil, err
 	}
 
 	return lo.Map(output.CommonPrefixes, func(t s3Types.CommonPrefix, i int) string {

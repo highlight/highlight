@@ -7,7 +7,6 @@ import (
 	"os"
 	"testing"
 
-	e "github.com/pkg/errors"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -18,7 +17,7 @@ func RunTestWithDBWipe(t *testing.T, name string, db *gorm.DB, f func(t *testing
 	defer func(db *gorm.DB) {
 		err := ClearTablesInDB(db)
 		if err != nil {
-			t.Fatal(e.Wrap(err, "error clearing database"))
+			t.Fatal(err)
 		}
 	}(db)
 	t.Run(name, f)
@@ -34,30 +33,30 @@ func CreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	// Open the database object without an actual db_name.
 	db, err := gorm.Open(postgres.Open(psqlConf))
 	if err != nil {
-		return nil, e.Wrap(err, "error opening test db")
+		return nil, err
 	}
 	sqlDB, err := db.DB()
 	if err != nil {
-		return nil, e.Wrap(err, "error retrieving test db")
+		return nil, err
 	}
 	defer sqlDB.Close()
 	// drop db if exists
 	if err := db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %v;", dbName)).Error; err != nil {
-		return nil, e.Wrap(err, "error dropping db")
+		return nil, err
 	}
 	// Attempt to create the database.
 	if err := db.Exec(fmt.Sprintf("CREATE DATABASE %v;", dbName)).Error; err != nil {
-		return nil, e.Wrap(err, "error creating db")
+		return nil, err
 	}
 	// Setup database
 	db, err = model.SetupDB(context.TODO(), dbName)
 	if err != nil {
-		return nil, e.Wrap(err, "error setting up test db")
+		return nil, err
 	}
 	// Migrate database
 	_, err = model.MigrateDB(context.TODO(), db)
 	if err != nil {
-		return nil, e.Wrap(err, "error migrating test db")
+		return nil, err
 	}
 	return db, nil
 }
@@ -65,7 +64,7 @@ func CreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 func ClearTablesInDB(db *gorm.DB) error {
 	for _, m := range model.Models {
 		if err := db.Unscoped().Where("1=1").Delete(m).Error; err != nil {
-			return e.Wrap(err, "error deleting table in db")
+			return err
 		}
 	}
 	return nil

@@ -1,10 +1,10 @@
 package discord
 
 import (
+	"errors"
 	"os"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/pkg/errors"
 )
 
 type Bot struct {
@@ -24,7 +24,7 @@ func NewDiscordBot(guildId string) (*Bot, error) {
 	session, err := discordgo.New("Bot " + DiscordBotSecret)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "error creating Discord session")
+		return nil, err
 	}
 
 	return &Bot{

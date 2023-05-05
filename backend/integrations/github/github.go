@@ -2,14 +2,15 @@ package github
 
 import (
 	"context"
-	"github.com/bradleyfalzon/ghinstallation/v2"
-	"github.com/google/go-github/v50/github"
-	"github.com/openlyinc/pointy"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	"errors"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/bradleyfalzon/ghinstallation/v2"
+	"github.com/google/go-github/v50/github"
+	"github.com/openlyinc/pointy"
+	log "github.com/sirupsen/logrus"
 )
 
 type Config struct {

@@ -3,12 +3,14 @@ package redis
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"os"
 	"sort"
 	"strconv"
 	"time"
+
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"github.com/go-redis/cache/v8"
 	"github.com/go-redis/redis/v8"
@@ -17,7 +19,6 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
-	"github.com/pkg/errors"
 )
 
 const CacheKeyHubspotCompanies = "hubspot-companies"
@@ -124,7 +125,7 @@ func NewClient() *Client {
 func (r *Client) RemoveValues(ctx context.Context, sessionId int, valuesToRemove []interface{}) error {
 	cmd := r.redisClient.ZRem(ctx, EventsKey(sessionId), valuesToRemove...)
 	if cmd.Err() != nil {
-		return errors.Wrap(cmd.Err(), "error removing values from Redis")
+		return cmd.Err()
 	}
 	return nil
 }
@@ -137,7 +138,7 @@ func (r *Client) GetRawZRange(ctx context.Context, sessionId int, nextPayloadId 
 		Max: maxScore,
 	}).Result()
 	if err != nil {
-		return nil, errors.Wrap(err, "error retrieving prior events from Redis")
+		return nil, err
 	}
 
 	return vals, nil
@@ -164,7 +165,7 @@ func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType 
 		Max: "+inf",
 	}).Result()
 	if err != nil {
-		return nil, errors.Wrap(err, "error retrieving events from Redis")
+		return nil, err
 	}
 
 	for idx, z := range vals {
@@ -220,7 +221,7 @@ func (r *Client) GetEventObjects(ctx context.Context, s *model.Session, cursor m
 		Max: "+inf",
 	}).Result()
 	if err != nil {
-		return nil, errors.Wrap(err, "error retrieving events from Redis"), nil
+		return nil, err, nil
 	}
 
 	for idx, z := range vals {
@@ -270,7 +271,7 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 
 	eventsObjects, err, newCursor := r.GetEventObjects(ctx, s, cursor, events)
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting events objects"), nil
+		return nil, err, nil
 	}
 
 	if len(eventsObjects) == 0 {
@@ -280,7 +281,7 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 	for _, obj := range eventsObjects {
 		subEvents := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(obj.Events), &subEvents); err != nil {
-			return nil, errors.Wrap(err, "error decoding event data"), nil
+			return nil, err, nil
 		}
 		allEvents = append(allEvents, subEvents["events"]...)
 	}
@@ -316,7 +317,7 @@ func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, p
 	cmd := zAddAndExpire.Run(ctx, r.redisClient, keys, values...)
 
 	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
-		return errors.Wrap(err, "error adding events payload in Redis")
+		return err
 	}
 	return nil
 }
@@ -328,7 +329,7 @@ func (r *Client) getString(ctx context.Context, key string) (string, error) {
 	if err == redis.Nil {
 		return "", nil
 	} else if err != nil {
-		return "", errors.Wrap(err, "error getting string from Redis")
+		return "", err
 	}
 	return val, nil
 }
@@ -336,7 +337,7 @@ func (r *Client) getString(ctx context.Context, key string) (string, error) {
 func (r *Client) setFlag(ctx context.Context, key string, value bool, exp time.Duration) error {
 	cmd := r.redisClient.Set(ctx, key, value, exp)
 	if cmd.Err() != nil {
-		return errors.Wrap(cmd.Err(), "error setting flag from Redis")
+		return cmd.Err()
 	}
 	return nil
 }
@@ -348,7 +349,7 @@ func (r *Client) getFlag(ctx context.Context, key string) (bool, error) {
 	if err == redis.Nil {
 		return false, nil
 	} else if err != nil {
-		return false, errors.Wrap(err, "error getting flag from Redis")
+		return false, err
 	}
 	return val == "1" || val == "true", nil
 }
@@ -402,7 +403,7 @@ func (r *Client) SetLastLogTimestamp(ctx context.Context, projectId int, timesta
 	cmd := setIfGreater.Run(ctx, r.redisClient, keys, values...)
 
 	if err := cmd.Err(); err != nil && !errors.Is(err, redis.Nil) {
-		return errors.Wrap(err, "error setting last log timestamp")
+		return err
 	}
 	return nil
 }

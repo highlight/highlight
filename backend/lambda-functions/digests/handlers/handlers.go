@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -14,7 +15,6 @@ import (
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/lambda-functions/digests/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"gorm.io/gorm"
@@ -42,7 +42,7 @@ func NewHandlers() *handlers {
 	ctx := context.TODO()
 	db, err := model.SetupDB(ctx, os.Getenv("PSQL_DB"))
 	if err != nil {
-		log.WithContext(ctx).Fatal(errors.Wrap(err, "error setting up DB"))
+		log.WithContext(ctx).Fatal(err)
 	}
 
 	sendgridClient := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
@@ -66,7 +66,7 @@ func (h *handlers) GetProjectIds(ctx context.Context, input utils.DigestsInput) 
 		GROUP BY s.project_id
 		HAVING count(*) >= 50
 	`, start, end).Scan(&projectIds).Error; err != nil {
-		return nil, errors.Wrap(err, "error getting project ids")
+		return nil, err
 	}
 
 	response := []utils.ProjectIdResponse{}
@@ -90,7 +90,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		FROM projects p
 		WHERE p.id = ?
 	`, input.ProjectId).Scan(&projectName).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying project name")
+		return nil, err
 	}
 
 	var curUsers int
@@ -103,7 +103,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND NOT s.excluded
 		AND s.processed
 	`, input.ProjectId, input.Start, input.End).Scan(&curUsers).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying current user count")
+		return nil, err
 	}
 
 	var prevUsers int
@@ -116,7 +116,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND NOT s.excluded
 		AND s.processed
 	`, input.ProjectId, input.Prior, input.Start).Scan(&prevUsers).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying previous user count")
+		return nil, err
 	}
 
 	var curSessions int
@@ -129,7 +129,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND NOT s.excluded
 		AND s.processed
 	`, input.ProjectId, input.Start, input.End).Scan(&curSessions).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying current session count")
+		return nil, err
 	}
 
 	var prevSessions int
@@ -142,7 +142,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND NOT s.excluded
 		AND s.processed
 	`, input.ProjectId, input.Prior, input.Start).Scan(&prevSessions).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying previous session count")
+		return nil, err
 	}
 
 	var curErrors int
@@ -156,7 +156,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND eo.created_at < ?
 		AND eg.state <> 'IGNORED'
 	`, input.ProjectId, input.Start, input.End).Scan(&curErrors).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying current error count")
+		return nil, err
 	}
 
 	var prevErrors int
@@ -170,7 +170,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND eo.created_at < ?
 		AND eg.state <> 'IGNORED'
 	`, input.ProjectId, input.Prior, input.Start).Scan(&prevErrors).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying previous error count")
+		return nil, err
 	}
 
 	var curActivity float64
@@ -183,7 +183,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND NOT s.excluded
 		AND s.processed
 	`, input.ProjectId, input.Start, input.End).Scan(&curActivity).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying current activity")
+		return nil, err
 	}
 
 	var prevActivity float64
@@ -196,7 +196,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		AND NOT s.excluded
 		AND s.processed
 	`, input.ProjectId, input.Prior, input.Start).Scan(&prevActivity).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying previous activity")
+		return nil, err
 	}
 
 	var activeSessionsSql []utils.ActiveSessionSql
@@ -211,7 +211,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		ORDER BY s.active_length desc
 		LIMIT 5
 	`, input.ProjectId, input.Start, input.End).Scan(&activeSessionsSql).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying active sessions")
+		return nil, err
 	}
 
 	activeSessions := []utils.ActiveSession{}
@@ -239,7 +239,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		ORDER BY count(*) desc
 		LIMIT 5
 	`, input.ProjectId, input.Start, input.End).Scan(&errorSessionsSql).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying error sessions")
+		return nil, err
 	}
 
 	errorSessions := []utils.ErrorSession{}
@@ -268,7 +268,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		ORDER BY count(distinct coalesce(s.identifier, s.client_id)) desc
 		LIMIT 5
 	`, input.ProjectId, input.Start, input.End).Scan(&newErrorsSql).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying new errors")
+		return nil, err
 	}
 
 	newErrors := []utils.NewError{}
@@ -294,7 +294,7 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 		ORDER BY sum(case when eo.created_at >= ? then 1 else 0 end) desc
 		LIMIT 5
 	`, input.Start, input.Start, input.ProjectId, input.Prior, input.End, input.Start).Scan(&frequentErrorsSql).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying frequent errors")
+		return nil, err
 	}
 
 	frequentErrors := []utils.FrequentError{}
@@ -462,16 +462,16 @@ func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataR
 			AND eoo.category IN ('All', 'Digests')
 		)
 	`, input.ProjectId).Scan(&toAddrs).Error; err != nil {
-		return errors.Wrap(err, "error querying recipient emails")
+		return err
 	}
 
 	marshalled, err := json.Marshal(input)
 	if err != nil {
-		return errors.Wrap(err, "error marshalling input")
+		return err
 	}
 	var templateData map[string]interface{}
 	if err := json.Unmarshal(marshalled, &templateData); err != nil {
-		return errors.Wrap(err, "error unmarshalling marshalled input")
+		return err
 	}
 
 	if input.DryRun {

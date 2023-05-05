@@ -13,7 +13,6 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/huandu/go-sqlbuilder"
 	flat "github.com/nqd/flat"
-	e "github.com/pkg/errors"
 )
 
 const LogsTable = "logs"
@@ -25,7 +24,7 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", LogsTable))
 
 	if err != nil {
-		return e.Wrap(err, "failed to create logs batch")
+		return err
 	}
 
 	for _, logRow := range logRows {

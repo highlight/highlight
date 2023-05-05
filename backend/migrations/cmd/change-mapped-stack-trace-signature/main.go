@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"os"
 
-	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -21,7 +20,7 @@ func main() {
 	}
 	var errorGroups []model.ErrorGroup
 	if err := db.Debug().Model(&model.ErrorGroup{}).Where("mapped_stack_trace IS NOT NULL").Scan(&errorGroups).Error; err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "error fetching error groups"))
+		log.WithContext(ctx).Error(err)
 		return
 	}
 	for i := range errorGroups {
@@ -35,7 +34,7 @@ func main() {
 			ColumnNumber *int    `json:"column_number"`
 		}
 		if err := json.Unmarshal([]byte(*errorGroups[i].MappedStackTrace), &oldStackTrace); err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "project_id": errorGroups[i].ProjectID}).Error(e.Wrapf(err, "error unmarshalling MappedStackTrace"))
+			log.WithContext(ctx).WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "project_id": errorGroups[i].ProjectID}).Error(err)
 			continue
 		}
 		var newStackTrace []*modelInputs.ErrorTrace
@@ -50,12 +49,12 @@ func main() {
 		}
 		newStackTraceBytes, err := json.Marshal(&newStackTrace)
 		if err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "project_id": errorGroups[i].ProjectID}).Error(e.Wrapf(err, "error marshalling MappedStackTrace"))
+			log.WithContext(ctx).WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "project_id": errorGroups[i].ProjectID}).Error(err)
 			continue
 		}
 		newStackTraceString := string(newStackTraceBytes)
 		if err := db.Debug().Where(&model.ErrorGroup{Model: model.Model{ID: errorGroups[i].ID}}).Updates(&model.ErrorGroup{MappedStackTrace: &newStackTraceString}).Error; err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "project_id": errorGroups[i].ProjectID}).Error(e.Wrapf(err, "error saving MappedStackTrace"))
+			log.WithContext(ctx).WithFields(log.Fields{"error_group_id": errorGroups[i].ID, "project_id": errorGroups[i].ProjectID}).Error(err)
 			continue
 		}
 	}
