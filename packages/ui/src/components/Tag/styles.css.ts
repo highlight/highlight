@@ -87,9 +87,9 @@ export const variants = recipe({
 			basic: {},
 		},
 		size: {
-			small: { minHeight: 12 },
-			medium: { minHeight: 16 },
-			large: { minHeight: 20 },
+			small: { minHeight: 16 },
+			medium: { minHeight: 20 },
+			large: { minHeight: 24 },
 		},
 	},
 

@@ -111,19 +111,28 @@ export const SessionComment = ({
 									</Text>
 								)}
 							</Box>
-							<Box display="flex" gap="4" flexDirection="row">
+							<Box
+								display="flex"
+								gap="4"
+								flexDirection="row"
+								alignItems="center"
+							>
 								{comment.attachments?.length > 0 && (
 									<AttachmentList
 										attachments={comment.attachments}
 									/>
 								)}
-								<Tag
-									kind="secondary"
-									shape="basic"
-									size="small"
-								>
-									<Text>{commentTime}</Text>
-								</Tag>
+								<Box display="flex">
+									<Tag
+										kind="secondary"
+										shape="basic"
+										size="small"
+									>
+										<Text size="xxSmall" weight="regular">
+											{commentTime}
+										</Text>
+									</Tag>
+								</Box>
 							</Box>
 						</Stack>
 					)}
