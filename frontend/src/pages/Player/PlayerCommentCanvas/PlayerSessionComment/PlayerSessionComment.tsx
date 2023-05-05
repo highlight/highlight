@@ -121,7 +121,6 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 						border="divider"
 						borderRadius="8"
 						boxShadow="medium"
-						p="4"
 						style={{ width: 350 }}
 						ref={commentCardParentRef}
 					>

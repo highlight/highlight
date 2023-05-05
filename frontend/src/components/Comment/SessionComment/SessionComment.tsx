@@ -8,6 +8,7 @@ import { ParsedSessionComment } from '@pages/Player/ReplayerContext'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 
+import { useNavigateToComment } from '@/components/Comment/utils/utils'
 import { formatTimeAsHMS } from '@/util/time'
 
 import CommentTextBody from '../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
@@ -49,70 +50,94 @@ export const SessionComment = ({
 	parentRef,
 	isReply,
 	showReplies,
-	onClose,
 }: Props & { isReply?: boolean }) => {
+	const navigateToComment = useNavigateToComment(comment)
 	const isSelected = deepLinkedCommentId === comment.id
 	const commentTime = formatTimeAsHMS(comment.timestamp || 0)
+	const isClickable = !isReply && !showReplies
 
 	return (
-		<Stack gap="4" direction="column">
-			<Box
-				backgroundColor={
-					isSelected
-						? { default: 'secondarySelected' }
-						: { default: 'white', hover: 'secondaryHover' }
-				}
-				boxShadow={isSelected ? 'innerSecondary' : undefined}
-				paddingTop="8"
-				paddingBottom="10"
-				px="8"
-				borderRadius="6"
-				display="flex"
-				flexDirection="column"
-				gap="4"
-			>
-				<SessionCommentHeader
-					key={comment.id}
-					comment={comment}
-					onClose={onClose}
-					isReply={isReply}
-				/>
-				<CommentTextBody commentText={comment.text} />
-				<Stack direction="row" gap="8" justifyContent="space-between">
-					<Stack direction="row" gap="4" alignItems="center">
-						{comment.replies?.length > 0 && (
-							<>
-								<IconSolidReply size={14} />
-								<Text>{comment.replies?.length}</Text>
-							</>
-						)}
-					</Stack>
-					<Box display="flex">
-						{comment.attachments?.length > 0 && (
-							<AttachmentList attachments={comment.attachments} />
-						)}
-						{!isReply && (
-							<Tag kind="secondary" shape="basic" size="small">
-								{commentTime}
-							</Tag>
-						)}
-					</Box>
-				</Stack>
+		<>
+			<Box p={isReply ? undefined : '4'}>
+				<Box
+					backgroundColor={
+						isSelected
+							? { default: 'secondarySelected' }
+							: { default: 'white', hover: 'secondaryHover' }
+					}
+					boxShadow={isSelected ? 'innerSecondary' : undefined}
+					cursor={isClickable ? 'pointer' : undefined}
+					paddingTop="8"
+					paddingBottom="10"
+					px="8"
+					borderRadius="6"
+					display="flex"
+					flexDirection="column"
+					gap="8"
+					onClick={() => {
+						if (isClickable) {
+							navigateToComment()
+						}
+					}}
+				>
+					<SessionCommentHeader
+						key={comment.id}
+						comment={comment}
+						isReply={isReply}
+					/>
+					<CommentTextBody commentText={comment.text} />
+					{comment.replies?.length > 0 ||
+						(comment.attachments?.length > 0 && (
+							<Stack
+								direction="row"
+								gap="8"
+								justifyContent="space-between"
+							>
+								<Stack
+									direction="row"
+									gap="4"
+									alignItems="center"
+								>
+									{comment.replies?.length > 0 && (
+										<>
+											<IconSolidReply size={14} />
+											<Text>
+												{comment.replies?.length}
+											</Text>
+										</>
+									)}
+								</Stack>
+								<Box display="flex" gap="4" flexDirection="row">
+									{comment.attachments?.length > 0 && (
+										<AttachmentList
+											attachments={comment.attachments}
+										/>
+									)}
+									{!isReply && (
+										<Tag
+											kind="secondary"
+											shape="basic"
+											size="small"
+										>
+											{commentTime}
+										</Tag>
+									)}
+								</Box>
+							</Stack>
+						))}
+				</Box>
+				{showReplies && comment.replies?.length > 0 && (
+					<ReplyList replies={comment.replies} />
+				)}
 			</Box>
 			{showReplies && (
-				<>
-					{comment.replies?.length > 0 && (
-						<ReplyList replies={comment.replies} />
-					)}
-
-					<CommentReplyForm<SessionCommentReplyAction>
-						action={new SessionCommentReplyAction()}
-						commentID={comment.id}
-						parentRef={parentRef}
-					/>
-				</>
+				<CommentReplyForm<SessionCommentReplyAction>
+					action={new SessionCommentReplyAction()}
+					commentID={comment.id}
+					parentRef={parentRef}
+				/>
 			)}
-		</Stack>
+		</>
 	)
 }
 

@@ -1,6 +1,4 @@
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
-import { useDeleteSessionCommentMutation } from '@graph/hooks'
-import { namedOperations } from '@graph/operations'
 import { IntegrationType, SessionCommentType } from '@graph/schemas'
 import {
 	Box,
@@ -25,15 +23,15 @@ import {
 } from '@pages/Player/ReplayerContext'
 import { onGetLinkWithTimestamp } from '@pages/Player/SessionShareButton/utils/utils'
 import analytics from '@util/analytics'
-import { getFeedbackCommentSessionTimestamp } from '@util/comment/util'
-import { delayedRefetch } from '@util/gql'
-import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import moment from 'moment'
 import React, { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 
 import { AdminAvatar, Avatar } from '@/components/Avatar/Avatar'
+import {
+	useDeleteComment,
+	useNavigateToComment,
+} from '@/components/Comment/utils/utils'
 
 interface Props {
 	comment: ParsedSessionComment
@@ -41,16 +39,9 @@ interface Props {
 }
 
 const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
-	const { pause, session, sessionMetadata } = useReplayerContext()
-	const navigate = useNavigate()
-
-	const [deleteSessionComment] = useDeleteSessionCommentMutation({
-		refetchQueries: [
-			namedOperations.Query.GetSessionComments,
-			namedOperations.Query.GetSessionsOpenSearch,
-		],
-		onQueryUpdated: delayedRefetch,
-	})
+	const { session } = useReplayerContext()
+	const navigateToComment = useNavigateToComment(comment)
+	const deleteComment = useDeleteComment(comment)
 
 	const { isLinearIntegratedWithProject } = useLinearIntegration()
 	const { isIntegrated: isClickupIntegrated } = useIsProjectIntegratedWith(
@@ -101,34 +92,6 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 		</>
 	)
 
-	const handleGotoClick = () => {
-		const urlSearchParams = new URLSearchParams()
-		urlSearchParams.append(PlayerSearchParameters.commentId, comment?.id)
-
-		navigate(`${location.pathname}?${urlSearchParams.toString()}`, {
-			replace: true,
-		})
-
-		let commentTimestamp = comment.timestamp || 0
-
-		if (comment.type === SessionCommentType.Feedback) {
-			const sessionStartTime = sessionMetadata.startTime
-
-			if (sessionStartTime) {
-				commentTimestamp = getFeedbackCommentSessionTimestamp(
-					comment,
-					sessionStartTime,
-				)
-			}
-		}
-		pause(commentTimestamp)
-		message.success(
-			`Changed player time to where comment was created at ${MillisToMinutesAndSeconds(
-				commentTimestamp,
-			)}.`,
-		)
-	}
-
 	const getCommentLink = () => {
 		const url = onGetLinkWithTimestamp(comment.timestamp || 0)
 		url.searchParams.set(PlayerSearchParameters.commentId, comment.id)
@@ -171,10 +134,10 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 							size={20}
 						/>
 					)}
-					<Text size="small" color="strong">
+					<Text size="small" color="strong" lines="1">
 						{authorName}
 					</Text>
-					<Text size="small" color="moderate">
+					<Text size="small" color="moderate" lines="1">
 						{timeAgo}
 					</Text>
 				</Stack>
@@ -219,18 +182,10 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 											Copy feedback email
 										</Menu.Item>
 									)}
-								<Menu.Item onClick={handleGotoClick}>
+								<Menu.Item onClick={navigateToComment}>
 									Goto
 								</Menu.Item>
-								<Menu.Item
-									onClick={() => {
-										deleteSessionComment({
-											variables: {
-												id: comment.id,
-											},
-										})
-									}}
-								>
+								<Menu.Item onClick={deleteComment}>
 									Delete comment
 								</Menu.Item>
 								{session && createIssueMenuItems}

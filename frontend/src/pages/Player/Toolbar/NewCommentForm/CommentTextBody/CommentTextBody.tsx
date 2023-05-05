@@ -27,8 +27,8 @@ interface Props {
 	suggestions?: AdminSuggestion[]
 	onDisplayTransformHandler?: (_id: string, display: string) => string
 	suggestionsPortalHost?: Element
-
 	newInput?: boolean
+	inputRef?: React.RefObject<HTMLTextAreaElement>
 }
 
 const CommentTextBody = ({
@@ -38,8 +38,8 @@ const CommentTextBody = ({
 	suggestions = [],
 	onDisplayTransformHandler,
 	suggestionsPortalHost,
-
 	newInput,
+	inputRef,
 }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
@@ -110,6 +110,7 @@ const CommentTextBody = ({
 
 	return (
 		<MentionsInput
+			inputRef={inputRef}
 			value={commentText}
 			className="mentions"
 			classNames={mentionsClassNames}

@@ -1,15 +1,6 @@
-import { useAuthContext } from '@authentication/AuthContext'
-import CloseButton from '@components/CloseButton/CloseButton'
-import { Admin, SanitizedAdminInput, SessionCommentType } from '@graph/schemas'
+import { Admin, SanitizedAdminInput } from '@graph/schemas'
 import { CommentSuggestion } from '@util/comment/util'
-import clsx from 'clsx'
-import React, { PropsWithChildren } from 'react'
 import { SuggestionDataItem } from 'react-mentions'
-
-import { AdminAvatar, Avatar } from '../Avatar/Avatar'
-import DotsMenu from '../DotsMenu/DotsMenu'
-import RelativeTime from '../RelativeTime/RelativeTime'
-import styles from './CommentHeader.module.scss'
 
 export interface AdminSuggestion extends SuggestionDataItem {
 	email?: string
@@ -51,103 +42,5 @@ export const parseAdminSuggestions = (
 					name: suggestion?.name,
 				}
 			})
-	)
-}
-
-export const CommentHeader = ({
-	comment,
-	moreMenu,
-	children,
-	footer,
-	gotoButton,
-	onClose,
-	small,
-	errorComment,
-}: PropsWithChildren<{
-	comment: any
-	moreMenu?: JSX.Element
-	gotoButton?: JSX.Element
-	onClose?: () => void
-	footer?: React.ReactNode
-	small?: boolean
-	errorComment?: boolean
-}>) => {
-	const { isLoggedIn } = useAuthContext()
-
-	return (
-		<>
-			{!small && (
-				<div
-					className={clsx(styles.topBar, {
-						[styles.errorTopBar]: errorComment,
-					})}
-				>
-					<span className={styles.startActions}>
-						{moreMenu && (
-							<DotsMenu
-								menu={moreMenu}
-								trackingId="CommentsHeader"
-							/>
-						)}
-					</span>
-					<span className={styles.endActions}>
-						{isLoggedIn && !small && (
-							<>
-								{gotoButton!}
-								{onClose && (
-									<CloseButton
-										onClick={onClose}
-										trackingId="CommentsClose"
-									/>
-								)}
-							</>
-						)}
-					</span>
-				</div>
-			)}
-			<div
-				className={clsx(styles.commentHeader, {
-					[styles.small]: !!small,
-				})}
-			>
-				{comment?.type === SessionCommentType.Feedback ? (
-					<Avatar
-						seed={
-							comment?.metadata?.name ||
-							comment?.metadata?.email ||
-							'Anonymous'
-						}
-						style={{ height: 30, width: 30 }}
-					/>
-				) : (
-					<AdminAvatar adminInfo={comment.author} size={30} />
-				)}
-				<div
-					className={clsx(styles.textContainer, {
-						[styles.small]: !!small,
-					})}
-				>
-					<p className={styles.commentAuthor}>
-						{comment?.type === SessionCommentType.Feedback
-							? comment?.metadata?.name ||
-							  comment?.metadata?.email?.split('@')[0] ||
-							  'Anonymous'
-							: comment.author.name ||
-							  comment.author.email.split('@')[0]}
-					</p>
-					<span className={styles.commentUpdatedTime}>
-						<RelativeTime datetime={comment.updated_at} />
-					</span>
-				</div>
-				<div
-					className={clsx(styles.childrenContainer, {
-						[styles.small]: !!small,
-					})}
-				>
-					{children}
-				</div>
-				{footer && <div className={styles.footer}>{footer}</div>}
-			</div>
-		</>
 	)
 }
