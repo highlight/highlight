@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -374,10 +375,37 @@ var srcTagNames = map[string]bool{
 	"video":  true,
 }
 
+var excludedMediaURLQueryParams = map[string]bool{
+	"expires":              true,
+	"signature":            true,
+	"x-amz-security-token": true,
+}
+
 // If a url was already created for this resource in the past day, return that
 // Else, fetch the resource, generate a new url for it, and save to S3
 func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB) (replacements map[string]string, err error) {
-	deduped := lo.Uniq(originalUrls)
+	deduped := lo.Uniq(lo.Map(originalUrls, func(u string, i int) string {
+		parsedUrl, err := url.Parse(u)
+		if err != nil {
+			return u
+		}
+
+		var parts []string
+		for k, values := range parsedUrl.Query() {
+			if excludedMediaURLQueryParams[strings.ToLower(k)] {
+				continue
+			}
+			for _, v := range values {
+				parts = append(parts, fmt.Sprintf("%s=%s", k, v))
+			}
+		}
+
+		parsedUrl.RawQuery = strings.Join(parts, "&")
+		parsedUrl.Fragment = ""
+		uri := parsedUrl.String()
+
+		return uri
+	}))
 
 	dateTrunc := time.Now().UTC().Format("2006-01-02")
 	var results []model.SavedAsset
