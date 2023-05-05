@@ -1,10 +1,5 @@
-import {
-	defineProperties,
-	createSprinkles,
-	createMapValueFn,
-} from '@vanilla-extract/sprinkles'
+import { defineProperties, createSprinkles } from '@vanilla-extract/sprinkles'
 import { borders } from './borders'
-import { Breakpoint } from './breakpoints'
 import { colors } from './colors'
 import { vars } from './vars'
 

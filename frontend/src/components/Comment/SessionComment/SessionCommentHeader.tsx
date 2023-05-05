@@ -38,14 +38,9 @@ import { AdminAvatar, Avatar } from '@/components/Avatar/Avatar'
 interface Props {
 	comment: ParsedSessionComment
 	isReply?: boolean
-	onClose?: () => void
 }
 
-const SessionCommentHeader: React.FC<Props> = ({
-	comment,
-	isReply,
-	onClose,
-}) => {
+const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 	const { pause, session, sessionMetadata } = useReplayerContext()
 	const navigate = useNavigate()
 

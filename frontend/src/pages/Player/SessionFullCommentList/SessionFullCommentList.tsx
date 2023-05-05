@@ -1,6 +1,5 @@
 import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment'
 import { Box, Text } from '@highlight-run/ui'
-import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import React, { useEffect, useRef, useState } from 'react'
 
 import { useGetSessionCommentsQuery } from '@/graph/generated/hooks'
@@ -18,7 +17,6 @@ const SessionFullCommentList = ({}: {}) => {
 		},
 		skip: !session_secure_id,
 	})
-	const { sessionMetadata } = useReplayerContext()
 	const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
 		new URLSearchParams(location.search).get(
 			PlayerSearchParameters.commentId,
