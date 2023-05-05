@@ -225,6 +225,19 @@ mutation EditProject(
 	}
 }
 
+mutation EditProjectFilterSettings(
+	$projectId: ID!
+	$filterSessionsWithoutError: Boolean!
+) {
+	editProjectFilterSettings(
+		projectId: $projectId
+		filterSessionsWithoutError: $filterSessionsWithoutError
+	) {
+		id
+		filterSessionsWithoutError
+	}
+}
+
 mutation DeleteProject($id: ID!) {
 	deleteProject(id: $id)
 }
