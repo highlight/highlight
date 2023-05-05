@@ -1,12 +1,16 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import { LoadingBar } from '@components/Loading/Loading'
 import Switch from '@components/Switch/Switch'
-import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Box } from '@highlight-run/ui'
-import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { useEffect, useState } from 'react'
+
+import {
+	useEditProjectFilterSettingsMutation,
+	useGetProjectFilterSettingsQuery,
+} from '@/graph/generated/hooks'
+import { useProjectId } from '@/hooks/useProjectId'
 
 const OptInRow = (
 	key: string,
@@ -29,34 +33,30 @@ const OptInRow = (
 	)
 }
 
-export const FilterExtensionForm = () => {
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
+export const FilterSessionsWithoutErrorForm = () => {
+	const { projectId } = useProjectId()
 
-	const [filterChromeExtension, setfilterChromeExtension] =
+	const [filterSessionsWithoutError, setFilterSessionsWithoutError] =
 		useState<boolean>(false)
-	const { data, loading } = useGetProjectQuery({
+	const { data, loading } = useGetProjectFilterSettingsQuery({
 		variables: {
-			id: project_id!,
+			projectId,
 		},
-		skip: !project_id,
 	})
 
-	const [editProject] = useEditProjectMutation({
-		refetchQueries: [
-			namedOperations.Query.GetProjects,
-			namedOperations.Query.GetProject,
-		],
-	})
+	const [editProjectFilterSettingsMutation] =
+		useEditProjectFilterSettingsMutation({
+			refetchQueries: [namedOperations.Query.GetProjectFilterSettings],
+		})
 
 	useEffect(() => {
 		if (!loading) {
-			setfilterChromeExtension(
-				data?.project?.filter_chrome_extension || false,
+			setFilterSessionsWithoutError(
+				data?.projectFilterSettings?.filterSessionsWithoutError ??
+					false,
 			)
 		}
-	}, [data?.project?.filter_chrome_extension, loading])
+	}, [data?.projectFilterSettings?.filterSessionsWithoutError, loading])
 
 	if (loading) {
 		return <LoadingBar />
@@ -64,13 +64,13 @@ export const FilterExtensionForm = () => {
 
 	const categories = [
 		{
-			key: 'Filter errors thrown by Chrome extensions.',
-			message: 'Filter Chrome extensions ',
+			key: 'Filter sessions without an error',
+			message: 'Filter sessions without an error',
 			label: (
 				<p>
-					Filter errors thrown by Chrome extensions (read the{' '}
+					Filter sessions without an error (read the{' '}
 					<a
-						href="https://www.highlight.io/docs/general/product-features/error-monitoring/ignoring-errors#ignore-errors-emitted-by-chrome-extensions"
+						href="https://www.highlight.io/docs/general/product-features/session-replay/ignoring-sessions#ignore-sessions-without-an-error"
 						target="_blank"
 						rel="noreferrer"
 					>
@@ -79,7 +79,7 @@ export const FilterExtensionForm = () => {
 					).
 				</p>
 			),
-			checked: filterChromeExtension,
+			checked: filterSessionsWithoutError,
 		},
 	]
 
@@ -88,10 +88,10 @@ export const FilterExtensionForm = () => {
 			<p>
 				{categories.map((c) =>
 					OptInRow(c.key, c.label, c.checked, (isOptIn: boolean) => {
-						editProject({
+						editProjectFilterSettingsMutation({
 							variables: {
-								id: project_id!,
-								filter_chrome_extension: isOptIn,
+								projectId,
+								filterSessionsWithoutError: isOptIn,
 							},
 						})
 							.then(() => {
