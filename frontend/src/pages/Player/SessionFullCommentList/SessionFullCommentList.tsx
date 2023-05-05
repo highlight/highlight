@@ -1,12 +1,11 @@
 import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment'
 import { Box, Text } from '@highlight-run/ui'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useRef } from 'react'
 
 import { useGetSessionCommentsQuery } from '@/graph/generated/hooks'
 import { useParams } from '@/util/react-router/useParams'
 
 import FullCommentList from '../../../components/FullCommentList/FullCommentList'
-import { PlayerSearchParameters } from '../PlayerHook/utils'
 
 const SessionFullCommentList = ({}: {}) => {
 	const sessionCommentsRef = useRef(null)
@@ -17,19 +16,6 @@ const SessionFullCommentList = ({}: {}) => {
 		},
 		skip: !session_secure_id,
 	})
-	const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
-		new URLSearchParams(location.search).get(
-			PlayerSearchParameters.commentId,
-		),
-	)
-
-	useEffect(() => {
-		const commentId = new URLSearchParams(location.search).get(
-			PlayerSearchParameters.commentId,
-		)
-		setDeepLinkedCommentId(commentId)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [location.search])
 
 	return (
 		<Box ref={sessionCommentsRef} height="full">
@@ -44,7 +30,6 @@ const SessionFullCommentList = ({}: {}) => {
 				commentRender={(comment) => (
 					<SessionCommentCard
 						parentRef={sessionCommentsRef}
-						deepLinkedCommentId={deepLinkedCommentId}
 						comment={comment}
 					/>
 				)}

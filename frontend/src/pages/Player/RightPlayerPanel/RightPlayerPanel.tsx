@@ -40,9 +40,9 @@ const RightPlayerPanel = () => {
 
 		if (commentId) {
 			setShowRightPanel(true)
-			setSelectedRightPanelTab('Threads')
+			setRightPanelView(RightPanelView.Comments)
 		}
-	}, [setSelectedRightPanelTab, setShowRightPanel])
+	}, [setRightPanelView, setSelectedRightPanelTab, setShowRightPanel])
 
 	const content = useMemo(() => {
 		if (!session) {

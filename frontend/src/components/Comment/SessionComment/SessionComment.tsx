@@ -8,7 +8,10 @@ import { ParsedSessionComment } from '@pages/Player/ReplayerContext'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 
-import { useNavigateToComment } from '@/components/Comment/utils/utils'
+import {
+	getDeepLinkedCommentId,
+	useNavigateToComment,
+} from '@/components/Comment/utils/utils'
 import { formatTimeAsHMS } from '@/util/time'
 
 import CommentTextBody from '../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
@@ -17,7 +20,6 @@ import SessionCommentHeader from './SessionCommentHeader'
 
 interface Props {
 	comment: ParsedSessionComment
-	deepLinkedCommentId?: string | null
 	hasShadow?: boolean
 	parentRef?: React.RefObject<HTMLDivElement>
 	showReplies?: boolean
@@ -25,14 +27,12 @@ interface Props {
 
 export const SessionCommentCard = ({
 	comment,
-	deepLinkedCommentId,
 	parentRef,
 	showReplies,
 }: Props) => {
 	return (
 		<SessionComment
 			comment={comment}
-			deepLinkedCommentId={deepLinkedCommentId}
 			parentRef={parentRef}
 			showReplies={showReplies}
 		/>
@@ -41,15 +41,18 @@ export const SessionCommentCard = ({
 
 export const SessionComment = ({
 	comment,
-	deepLinkedCommentId,
 	parentRef,
 	isReply,
 	showReplies,
 }: Props & { isReply?: boolean }) => {
 	const navigateToComment = useNavigateToComment(comment)
-	const isSelected = deepLinkedCommentId === comment.id
+	const deepLinkedCommentId = getDeepLinkedCommentId()
+	const isSelected =
+		deepLinkedCommentId === comment.id &&
+		comment.__typename === 'SessionComment'
 	const commentTime = formatTimeAsHMS(comment.timestamp || 0)
 	const isClickable = !isReply && !showReplies
+	console.log('::: isSelected', isSelected, deepLinkedCommentId, comment)
 
 	return (
 		<>
@@ -84,45 +87,46 @@ export const SessionComment = ({
 						isReply={isReply}
 					/>
 					<CommentTextBody commentText={comment.text} />
-					{comment.replies?.length > 0 ||
-						(comment.attachments?.length > 0 && (
-							<Stack
-								direction="row"
-								gap="8"
-								justifyContent="space-between"
-							>
-								<Stack
-									direction="row"
-									gap="4"
-									alignItems="center"
-								>
-									{comment.replies?.length > 0 && (
-										<>
-											<IconSolidReply size={14} />
-											<Text>
-												{comment.replies?.length}
-											</Text>
-										</>
-									)}
-								</Stack>
-								<Box display="flex" gap="4" flexDirection="row">
-									{comment.attachments?.length > 0 && (
-										<AttachmentList
-											attachments={comment.attachments}
-										/>
-									)}
-									{!isReply && (
-										<Tag
-											kind="secondary"
-											shape="basic"
-											size="small"
+					{!isReply && (
+						<Stack
+							direction="row"
+							gap="8"
+							justifyContent="space-between"
+							align="center"
+						>
+							<Box>
+								{comment.replies?.length > 0 && (
+									<Text
+										size="xSmall"
+										color="secondaryContentText"
+									>
+										<Stack
+											direction="row"
+											gap="4"
+											align="center"
 										>
-											{commentTime}
-										</Tag>
-									)}
-								</Box>
-							</Stack>
-						))}
+											<IconSolidReply size={14} />
+											{comment.replies?.length}
+										</Stack>
+									</Text>
+								)}
+							</Box>
+							<Box display="flex" gap="4" flexDirection="row">
+								{comment.attachments?.length > 0 && (
+									<AttachmentList
+										attachments={comment.attachments}
+									/>
+								)}
+								<Tag
+									kind="secondary"
+									shape="basic"
+									size="small"
+								>
+									<Text>{commentTime}</Text>
+								</Tag>
+							</Box>
+						</Stack>
+					)}
 				</Box>
 				{showReplies && comment.replies?.length > 0 && (
 					<ReplyList replies={comment.replies} />

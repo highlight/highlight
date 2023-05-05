@@ -1,6 +1,7 @@
 import { ExternalAttachment, IntegrationType, Maybe } from '@graph/schemas'
 import {
 	IconSolidClickUp,
+	IconSolidExternalLink,
 	IconSolidGithub,
 	IconSolidHeight,
 	IconSolidLinear,
@@ -62,7 +63,8 @@ const AttachmentList: React.FC<
 					size="small"
 					kind="secondary"
 					emphasis="low"
-					icon={attachment.icon}
+					iconLeft={attachment.icon}
+					iconRight={<IconSolidExternalLink />}
 					onClick={() => window.open(attachment.url, '_blank')}
 				>
 					{attachment.title}

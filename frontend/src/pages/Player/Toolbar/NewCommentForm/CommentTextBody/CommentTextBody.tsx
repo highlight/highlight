@@ -75,13 +75,18 @@ const CommentTextBody = ({
 		for (const { matched, value } of splitTaggedUsers(commentText)) {
 			if (matched) {
 				pieces.push(
-					<Box as="span" cssClass={styles.commentLink}>
+					<Box
+						as="span"
+						cssClass={styles.commentLink}
+						key={pieces.length}
+					>
 						{value}
 					</Box>,
 				)
 			} else {
 				pieces.push(
 					<Linkify
+						key={pieces.length}
 						componentDecorator={(
 							decoratedHref: string,
 							decoratedText: string,
@@ -105,11 +110,9 @@ const CommentTextBody = ({
 		}
 
 		return (
-			<Box py="4">
-				<Text size="small" color="moderate">
-					{pieces}
-				</Text>
-			</Box>
+			<Text size="small" color="moderate">
+				{pieces}
+			</Text>
 		)
 	}
 

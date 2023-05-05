@@ -5,6 +5,8 @@ import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
+import { getDeepLinkedCommentId } from '@/components/Comment/utils/utils'
+
 import TransparentPopover from '../../../../components/Popover/TransparentPopover'
 import {
 	Maybe,
@@ -44,13 +46,13 @@ interface Props {
 				>
 			}
 	>
-	deepLinkedCommentId: string | null
 }
 
 /**
  * A comment that is rendered onto the Player relative to where the comment was made.
  */
-const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
+const PlayerSessionComment = ({ comment }: Props) => {
+	const deepLinkedCommentId = getDeepLinkedCommentId()
 	const { pause } = useReplayerContext()
 	const [visible, setVisible] = useState(deepLinkedCommentId === comment?.id)
 	const [clicked, setClicked] = useState(deepLinkedCommentId === comment?.id)
@@ -149,7 +151,6 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 						<SessionCommentCard
 							parentRef={commentCardParentRef}
 							comment={comment}
-							deepLinkedCommentId={deepLinkedCommentId}
 							showReplies
 						/>
 					</Box>

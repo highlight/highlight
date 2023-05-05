@@ -12,7 +12,7 @@ export enum RightPanelView {
 	Event = 'EVENT',
 }
 
-export type RightPlayerTab = 'Events' | 'Threads' | 'Metadata'
+export type RightPlayerTab = 'Events' | 'Metadata'
 interface PlayerUIContext {
 	isPlayerFullscreen: boolean
 	setIsPlayerFullscreen: React.Dispatch<React.SetStateAction<boolean>>

@@ -120,3 +120,9 @@ export const useDeleteComment = (comment: ParsedSessionComment) => {
 		message.success('Comment deleted.')
 	}
 }
+
+export const getDeepLinkedCommentId = () => {
+	return new URLSearchParams(location.search).get(
+		PlayerSearchParameters.commentId,
+	)
+}

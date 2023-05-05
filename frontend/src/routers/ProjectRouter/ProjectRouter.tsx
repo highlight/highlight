@@ -16,6 +16,7 @@ import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
 import {
 	PlayerUIContextProvider,
 	RightPanelView,
+	RightPlayerTab,
 } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
@@ -154,9 +155,11 @@ export const ProjectRouter = () => {
 		NetworkResource | undefined
 	>(undefined)
 
-	const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
-		'Events' | 'Threads' | 'Metadata'
-	>('tabs-PlayerRightPanel-active-tab', 'Events')
+	const [selectedRightPanelTab, setSelectedRightPanelTab] =
+		useLocalStorage<RightPlayerTab>(
+			'tabs-PlayerRightPanel-active-tab',
+			'Events',
+		)
 
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
