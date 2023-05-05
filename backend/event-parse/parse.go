@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -445,27 +446,43 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 				} else if response.ContentLength > MaxAssetSize {
 					hashVal = ErrAssetTooLarge
 				} else {
-					res, err := io.ReadAll(response.Body)
+					dir, err := os.MkdirTemp("", "asset-*")
 					if err != nil {
-						return errors.Wrap(err, "failed to read response body")
+						return errors.Wrap(err, "failed to create temp directory")
+					}
+					assetTmpPath := filepath.Join(dir, "asset")
+
+					file, err := os.Create(assetTmpPath)
+					defer func(file *os.File) {
+						_ = file.Close()
+						_ = os.Remove(assetTmpPath)
+					}(file)
+					_, err = io.Copy(file, response.Body)
+					if err != nil {
+						return errors.Wrap(err, "failed to write asset to file")
 					}
 
-					r := bytes.NewReader(res)
+					_, err = file.Seek(0, io.SeekStart)
+					if err != nil {
+						return errors.Wrap(err, "failed to seek asset file")
+					}
+
 					hasher := sha256.New()
-					if _, err := io.Copy(hasher, r); err != nil {
+					if _, err := io.Copy(hasher, file); err != nil {
 						return errors.Wrap(err, "error hashing response body")
 					}
 
-					_, err = r.Seek(0, 0)
+					_, err = file.Seek(0, io.SeekStart)
 					if err != nil {
-						return errors.Wrap(err, "error seeking to beginning of reader")
+						return errors.Wrap(err, "failed to seek asset file")
 					}
+
 					hashVal = base64.StdEncoding.EncodeToString(hasher.Sum(nil))
 					hashVal = strings.ReplaceAll(hashVal, "/", "-")
 					hashVal = strings.ReplaceAll(hashVal, "+", "_")
 					hashVal = strings.ReplaceAll(hashVal, "=", "~")
 					contentType := response.Header.Get("Content-Type")
-					err = s.UploadAsset(ctx, strconv.Itoa(projectId)+"/"+hashVal, contentType, r)
+					err = s.UploadAsset(ctx, strconv.Itoa(projectId)+"/"+hashVal, contentType, file)
 					if err != nil {
 						return errors.Wrap(err, "error uploading asset")
 					}
