@@ -11200,7 +11200,7 @@ __metadata:
     subscriptions-transport-ws: ^0.11.0
     tailwindcss: ^3.1.8
     typed-scss-modules: ^3.4.0
-    typescript: ^4.8.2
+    typescript: 5.1.0-dev.20230502
     use-query-params: ^2.2.0
     validator: 13.7.0
     vite: ^4.0.4
@@ -34373,6 +34373,7 @@ __metadata:
     pretty-quick: ^3.1.3
     readdirp: ^3.6.0
     turbo: ^1.9.1
+    typescript: 5.1.0-dev.20230502
   languageName: unknown
   linkType: soft
 
@@ -52973,6 +52974,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript@npm:5.1.0-dev.20230502":
+  version: 5.1.0-dev.20230502
+  resolution: "typescript@npm:5.1.0-dev.20230502"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: c28e6fd09a2b0ea90dd7417147517e9b14a5188d05f7dd6b9428a8ded7f974268255ee4a30046db741f02eb1a0278ce37617e6bea3becc2434796fa1042b3cac
+  languageName: node
+  linkType: hard
+
 "typescript@npm:^4.0.3, typescript@npm:^4.1.3":
   version: 4.1.3
   resolution: "typescript@npm:4.1.3"
@@ -53020,6 +53031,16 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: ab417a2f398380c90a6cf5a5f74badd17866adf57f1165617d6a551f059c3ba0a3e4da0d147b3ac5681db9ac76a303c5876394b13b3de75fdd5b1eaa06181c9d
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@5.1.0-dev.20230502#~builtin<compat/typescript>":
+  version: 5.1.0-dev.20230502
+  resolution: "typescript@patch:typescript@npm%3A5.1.0-dev.20230502#~builtin<compat/typescript>::version=5.1.0-dev.20230502&hash=85af82"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: af5c31d852836d61e7197e43e4802f634856487d2accf5b85c2cd0fa08876b499c224d9dcb95e8a6df958c7dafb62695c575135d6cd5b967bcbd16145f0cc6cb
   languageName: node
   linkType: hard
 
