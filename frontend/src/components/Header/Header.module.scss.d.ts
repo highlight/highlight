@@ -1,3 +1,4 @@
+export const button: string
 export const demoLink: string
 export const error: string
 export const homeLink: string
