@@ -452,6 +452,10 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 					}
 
 					file, err := os.Create(filepath.Join(dir, "asset"))
+					if err != nil {
+						return errors.Wrap(err, "failed to create asset file")
+					}
+
 					defer func(file *os.File) {
 						_ = file.Close()
 						_ = os.RemoveAll(dir)
