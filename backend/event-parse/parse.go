@@ -450,12 +450,11 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 					if err != nil {
 						return errors.Wrap(err, "failed to create temp directory")
 					}
-					assetTmpPath := filepath.Join(dir, "asset")
 
-					file, err := os.Create(assetTmpPath)
+					file, err := os.Create(filepath.Join(dir, "asset"))
 					defer func(file *os.File) {
 						_ = file.Close()
-						_ = os.Remove(assetTmpPath)
+						_ = os.RemoveAll(dir)
 					}(file)
 					_, err = io.Copy(file, response.Body)
 					if err != nil {
