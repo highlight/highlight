@@ -19,18 +19,20 @@ import {
 	SessionAlertType,
 	WebhookDestination,
 } from '@graph/schemas'
+import { useSlackSync } from '@hooks/useSlackSync'
 import alertConfigurationCardStyles from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard.module.scss'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
-import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
-import { Divider, Form, message } from 'antd'
+import { Form, message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { Link, useLocation } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
+
+import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 
 import Button from '../../../components/Button/Button/Button'
 import InputNumber from '../../../components/InputNumber/InputNumber'
@@ -74,10 +76,10 @@ export const AlertConfigurationCard = ({
 	environmentOptions,
 	channelSuggestions,
 	discordChannelSuggestions,
-	slackUrl,
 	onDeleteHandler,
 	isCreatingNewAlert = false,
 	isSlackIntegrated,
+	slackUrl,
 	isDiscordIntegrated,
 	emailSuggestions,
 }: Props) => {
@@ -87,6 +89,8 @@ export const AlertConfigurationCard = ({
 	const [frequency, setFrequency] = useState(
 		getFrequencyOption(alert?.Frequency).value,
 	)
+
+	const { slackLoading, syncSlack } = useSlackSync()
 	const [isDisabled, setIsDisabled] = useState(alert?.disabled || false)
 	const [emailsToNotify, setEmailsToNotify] = useState<string[]>(
 		alert?.EmailsToNotify || [],
@@ -780,6 +784,7 @@ export const AlertConfigurationCard = ({
 											className={styles.channelSelect}
 											options={channels}
 											mode="multiple"
+											onFocus={syncSlack}
 											onSearch={(value) => {
 												setSearchQuery(value)
 											}}
@@ -799,55 +804,18 @@ export const AlertConfigurationCard = ({
 											placeholder={`Select a channel(s) or person(s) to send ${defaultName} to.`}
 											onChange={onChannelsChange}
 											notFoundContent={
-												<SyncWithSlackButton
+												<SlackLoadOrConnect
+													searchQuery={searchQuery}
+													isLoading={slackLoading}
 													isSlackIntegrated={
 														isSlackIntegrated
 													}
 													slackUrl={slackUrl}
-													refetchQueries={[
-														namedOperations.Query
-															.GetAlertsPagePayload,
-													]}
 												/>
 											}
 											defaultValue={alert?.ChannelsToNotify?.map(
 												(channel: any) =>
 													channel.webhook_channel_id,
-											)}
-											dropdownRender={(menu) => (
-												<div>
-													{menu}
-													{searchQuery.length === 0 &&
-														channelSuggestions.length >
-															0 && (
-															<>
-																<Divider
-																	style={{
-																		margin: '4px 0',
-																	}}
-																/>
-																<div
-																	className={
-																		styles.addContainer
-																	}
-																>
-																	<SyncWithSlackButton
-																		isSlackIntegrated={
-																			isSlackIntegrated
-																		}
-																		slackUrl={
-																			slackUrl
-																		}
-																		refetchQueries={[
-																			namedOperations
-																				.Query
-																				.GetAlertsPagePayload,
-																		]}
-																	/>
-																</div>
-															</>
-														)}
-												</div>
 											)}
 										/>
 									)}
