@@ -6,6 +6,7 @@ import {
 	IconSolidHeight,
 	IconSolidLinear,
 	Tag,
+	Text,
 } from '@highlight-run/ui'
 import React from 'react'
 
@@ -66,8 +67,9 @@ const AttachmentList: React.FC<
 					iconLeft={attachment.icon}
 					iconRight={<IconSolidExternalLink />}
 					onClick={() => window.open(attachment.url, '_blank')}
+					style={{ maxWidth: 115, overflow: 'hidden' }}
 				>
-					{attachment.title}
+					<Text lines="1">{attachment.title}</Text>
 				</Tag>
 			))}
 		</>

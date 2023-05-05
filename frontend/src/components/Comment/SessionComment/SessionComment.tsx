@@ -122,7 +122,7 @@ export const SessionComment = ({
 										attachments={comment.attachments}
 									/>
 								)}
-								<Box display="flex">
+								<Box display="flex" flexShrink={0}>
 									<Tag
 										kind="secondary"
 										shape="basic"
