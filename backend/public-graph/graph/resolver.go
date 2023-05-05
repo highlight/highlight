@@ -2311,7 +2311,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	// Filter out empty errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
-		if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
+		if isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
 			continue
 		}
 		filteredErrors = append(filteredErrors, errorObject)
@@ -2804,7 +2804,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		// filter out empty errors
 		seenEvents := map[string]*publicModel.ErrorObjectInput{}
 		for _, errorObject := range errors {
-			if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
+			if isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
 				continue
 			}
 			seenEvents[errorObject.Event] = errorObject
@@ -3023,7 +3023,7 @@ func (r *Resolver) isSessionUserExcluded(ctx context.Context, s *model.Session) 
 	return false
 }
 
-func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {
+func isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {
 	if errorEvent == "[{}]" {
 		log.WithContext(ctx).
 			WithField("project_id", projectID).

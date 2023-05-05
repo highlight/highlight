@@ -3,13 +3,14 @@ package graph
 import (
 	"context"
 	"encoding/json"
-	"github.com/highlight-run/highlight/backend/timeseries"
-	"github.com/highlight-run/workerpool"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/timeseries"
+	"github.com/highlight-run/workerpool"
+	"github.com/stretchr/testify/assert"
 
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -230,9 +231,8 @@ func TestHandleErrorAndGroup(t *testing.T) {
 }
 
 func TestResolver_isExcludedError(t *testing.T) {
-	r := &Resolver{}
-	assert.False(t, r.isExcludedError(context.Background(), []string{}, "", 1))
-	assert.True(t, r.isExcludedError(context.Background(), []string{}, "[{}]", 2))
-	assert.True(t, r.isExcludedError(context.Background(), []string{".*a+.*"}, "foo bar baz", 3))
-	assert.False(t, r.isExcludedError(context.Background(), []string{"("}, "foo bar baz", 4))
+	assert.False(t, isExcludedError(context.Background(), []string{}, "", 1))
+	assert.True(t, isExcludedError(context.Background(), []string{}, "[{}]", 2))
+	assert.True(t, isExcludedError(context.Background(), []string{".*a+.*"}, "foo bar baz", 3))
+	assert.False(t, isExcludedError(context.Background(), []string{"("}, "foo bar baz", 4))
 }
