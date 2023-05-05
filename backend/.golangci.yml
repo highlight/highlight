@@ -26,18 +26,8 @@ linters:
 
 # all available settings of specific linters
 linters-settings:
-    gosimple:
-        go: '1.19'
-
     staticcheck:
-        go: '1.19'
         checks: ['all']
-
-    stylecheck:
-        go: '1.19'
-
-    unused:
-        go: '1.19'
 
     exhaustruct:
         include:
