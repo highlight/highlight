@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"golang.org/x/sync/errgroup"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm/clause"
 	"io"
 	"net/http"
@@ -585,7 +586,10 @@ lexerLoop:
 
 func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, db *gorm.DB) error {
 	urls := getAssetUrlsFromTree(ctx, projectId, s.data, map[string]string{})
+	span, _ := tracer.StartSpanFromContext(ctx, "event-parse.parse.ReplaceAssets", tracer.ResourceName("getOrCreateUrls"), tracer.Tag("project_id", projectId))
+	span.SetTag("numberOfURLs", len(urls))
 	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, db)
+	span.Finish(tracer.WithError(err))
 	if err != nil {
 		return errors.Wrap(err, "error creating replacement urls")
 	}

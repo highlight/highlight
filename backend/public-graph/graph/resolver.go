@@ -2719,7 +2719,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					// Replace any static resources with our own, hosted in S3
 					if projectID == 1 || projectID == 1344 || projectID == 5403 {
 						assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID))
+							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID), tracer.Tag("session_secure_id", sessionSecureID))
 						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB)
 						assetsSpan.Finish()
 						if err != nil {
