@@ -1,0 +1,1 @@
+var i={container:"_container_1m9ig_1",hasShadow:"_hasShadow_1m9ig_19",deepLinkedComment:"_deepLinkedComment_1m9ig_38",footer:"_footer_1m9ig_42",actions:"_actions_1m9ig_47",iconLabel:"_iconLabel_1m9ig_52",actionButton:"_actionButton_1m9ig_58",tagsContainer:"_tagsContainer_1m9ig_65"};export{i as default};
