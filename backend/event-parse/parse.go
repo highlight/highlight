@@ -7,6 +7,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/sync/errgroup"
+	"gorm.io/gorm/clause"
 	"io"
 	"net/http"
 	"net/url"
@@ -23,7 +25,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tdewolff/parse/css"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 type EventType int
@@ -383,7 +384,7 @@ var excludedMediaURLQueryParams = map[string]bool{
 
 // If a url was already created for this resource in the past day, return that
 // Else, fetch the resource, generate a new url for it, and save to S3
-func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB) (replacements map[string]string, err error) {
+func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB) (map[string]string, error) {
 	deduped := lo.Uniq(lo.Map(originalUrls, func(u string, i int) string {
 		parsedUrl, err := url.Parse(u)
 		if err != nil {
@@ -425,69 +426,84 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 		return lo.Entry[string, model.SavedAsset]{Key: asset.OriginalUrl, Value: asset}
 	}))
 
-	var newResults []model.SavedAsset
-	replacements = map[string]string{}
-	for _, url := range deduped {
-		var hashVal string
-		result, ok := resultMap[url]
-		if ok {
-			hashVal = result.HashVal
-		} else {
-			response, err := http.Get(url)
-			if err != nil {
-				hashVal = ErrFailedToFetch
-			} else if response.ContentLength > MaxAssetSize {
-				hashVal = ErrAssetTooLarge
+	var eg errgroup.Group
+	assetChan := make(chan struct {
+		OriginalURL string
+		NewURL      string
+	}, len(deduped))
+	lo.ForEach(deduped, func(u string, i int) {
+		eg.Go(func() error {
+			var hashVal string
+			result, ok := resultMap[u]
+			if ok {
+				hashVal = result.HashVal
 			} else {
-				res, err := io.ReadAll(response.Body)
+				response, err := http.Get(u)
 				if err != nil {
-					return nil, errors.Wrap(err, "failed to read response body")
-				}
+					hashVal = ErrFailedToFetch
+				} else if response.ContentLength > MaxAssetSize {
+					hashVal = ErrAssetTooLarge
+				} else {
+					res, err := io.ReadAll(response.Body)
+					if err != nil {
+						return errors.Wrap(err, "failed to read response body")
+					}
 
-				r := bytes.NewReader(res)
-				hasher := sha256.New()
-				if _, err := io.Copy(hasher, r); err != nil {
-					return nil, errors.Wrap(err, "error hashing response body")
-				}
+					r := bytes.NewReader(res)
+					hasher := sha256.New()
+					if _, err := io.Copy(hasher, r); err != nil {
+						return errors.Wrap(err, "error hashing response body")
+					}
 
-				_, err = r.Seek(0, 0)
-				if err != nil {
-					return nil, errors.Wrap(err, "error seeking to beginning of reader")
+					_, err = r.Seek(0, 0)
+					if err != nil {
+						return errors.Wrap(err, "error seeking to beginning of reader")
+					}
+					hashVal = base64.StdEncoding.EncodeToString(hasher.Sum(nil))
+					hashVal = strings.ReplaceAll(hashVal, "/", "-")
+					hashVal = strings.ReplaceAll(hashVal, "+", "_")
+					hashVal = strings.ReplaceAll(hashVal, "=", "~")
+					contentType := response.Header.Get("Content-Type")
+					err = s.UploadAsset(ctx, strconv.Itoa(projectId)+"/"+hashVal, contentType, r)
+					if err != nil {
+						return errors.Wrap(err, "error uploading asset")
+					}
+					result = model.SavedAsset{
+						ProjectID:   projectId,
+						OriginalUrl: u,
+						Date:        dateTrunc,
+						HashVal:     hashVal,
+					}
+					if err := db.Clauses(clause.OnConflict{DoNothing: true}).Create(&result).Error; err != nil {
+						return errors.Wrap(err, "error saving asset metadata")
+					}
 				}
-				hashVal = base64.StdEncoding.EncodeToString(hasher.Sum(nil))
-				hashVal = strings.ReplaceAll(hashVal, "/", "-")
-				hashVal = strings.ReplaceAll(hashVal, "+", "_")
-				hashVal = strings.ReplaceAll(hashVal, "=", "~")
-				contentType := response.Header.Get("Content-Type")
-				err = s.UploadAsset(ctx, strconv.Itoa(projectId)+"/"+hashVal, contentType, r)
-				if err != nil {
-					return nil, errors.Wrap(err, "error uploading asset")
-				}
-				newResults = append(newResults, model.SavedAsset{
-					ProjectID:   projectId,
-					OriginalUrl: url,
-					Date:        dateTrunc,
-					HashVal:     hashVal,
-				})
 			}
-		}
 
-		if len(newResults) != 0 {
-			if err := db.Clauses(clause.OnConflict{DoNothing: true}).Create(&newResults).Error; err != nil {
-				return nil, errors.Wrap(err, "error saving asset metadata")
+			var newUrl string
+			if hashVal == ErrAssetTooLarge || hashVal == ErrAssetSizeUnknown || hashVal == ErrFailedToFetch {
+				newUrl = hashVal
+			} else {
+				newUrl = fmt.Sprintf("%s/assets/%d/%s", PrivateGraphBasePath, projectId, hashVal)
 			}
-		}
+			assetChan <- struct {
+				OriginalURL string
+				NewURL      string
+			}{OriginalURL: u, NewURL: newUrl}
+			return nil
+		})
+	})
 
-		var newUrl string
-		if hashVal == ErrAssetTooLarge || hashVal == ErrAssetSizeUnknown || hashVal == ErrFailedToFetch {
-			newUrl = hashVal
-		} else {
-			newUrl = fmt.Sprintf("%s/assets/%d/%s", PrivateGraphBasePath, projectId, hashVal)
-		}
-		replacements[url] = newUrl
+	if err := eg.Wait(); err != nil {
+		return nil, err
 	}
+	close(assetChan)
 
-	return
+	replacements := map[string]string{}
+	for v := range assetChan {
+		replacements[v.OriginalURL] = v.NewURL
+	}
+	return replacements, nil
 }
 
 func getUrlsInSrcset(projectId int, srcsetText string, replacements map[string]string) (newText string, urls []string) {

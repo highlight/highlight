@@ -249,6 +249,6 @@ func TestSnapshot_ReplaceAssets(t *testing.T) {
 				break
 			}
 		}
-		assert.True(t, matched, "no asset matched", exp)
+		assert.True(t, matched, "no asset matched %s", exp)
 	}
 }
