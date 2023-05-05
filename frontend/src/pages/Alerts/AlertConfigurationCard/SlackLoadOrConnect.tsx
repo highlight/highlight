@@ -1,8 +1,7 @@
 import { CircularSpinner } from '@components/Loading/Loading'
+import { Box } from '@highlight-run/ui'
 import clsx from 'clsx'
 import { Link } from 'react-router-dom'
-
-import { Box } from '@/../../packages/ui/src'
 
 import styles from './SlackLoadOrConnect.module.scss'
 
