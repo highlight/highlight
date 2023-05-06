@@ -13,11 +13,11 @@ import { vars } from '@highlight-run/ui/src/css/vars'
 import { generateRandomColor } from '@util/color'
 import { DEMO_PROJECT_NAME } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
 import { useProjectId } from '@/hooks/useProjectId'
-import { isSettingsPath } from '@/pages/SettingsRouter/SettingsRouter'
 
 import { useApplicationContext } from '../../../../routers/ProjectRouter/context/ApplicationContext'
 
@@ -26,9 +26,7 @@ const ProjectPicker = () => {
 		useApplicationContext()
 	const { workspace_id } = useParams<{ workspace_id: string }>()
 	const { projectId } = useProjectId()
-	const { pathname } = useLocation()
-	const parts = pathname.split('/')
-	const isSettings = isSettingsPath(parts)
+	const { isSettings } = useIsSettingsPath()
 	const isWorkspaceLevel = workspace_id !== undefined
 	const navigate = useNavigate()
 	const isInDemoProject = projectId === DEMO_WORKSPACE_PROXY_APPLICATION_ID

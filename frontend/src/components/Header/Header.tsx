@@ -61,7 +61,7 @@ import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
-import { isSettingsPath } from '@/pages/SettingsRouter/SettingsRouter'
+import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
 
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.scss'
@@ -81,7 +81,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const parts = pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
 	const isSetup = parts.indexOf('setup') !== -1
-	const isSettings = isSettingsPath(parts)
+	const { isSettings } = useIsSettingsPath()
 
 	const { toggleShowKeyboardShortcutsGuide, commandBarDialog } =
 		useGlobalContext()
@@ -113,7 +113,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 			<CommandBar />
 			<CommandBarV1 />
 			<Box background="n2" borderBottom="secondary">
-				{!!projectId && getBanner(projectId, isSetup)}
+				{!!projectId && !isSettings && getBanner(projectId, isSetup)}
 				<Box
 					display="flex"
 					alignItems="center"

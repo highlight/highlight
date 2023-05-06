@@ -4,7 +4,7 @@ import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
-import React, { Suspense, useEffect } from 'react'
+import React, { Suspense, useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import {
 	NavLink,
@@ -15,7 +15,9 @@ import {
 	useNavigate,
 } from 'react-router-dom'
 
+import { WorkspaceSettingsTab } from '@/hooks/useIsSettingsPath'
 import { EmailOptOutPanel } from '@/pages/EmailOptOut/EmailOptOut'
+import { ProjectColorLabel } from '@/pages/ProjectSettings/ProjectColorLabel/ProjectColorLabel'
 import ProjectSettings from '@/pages/ProjectSettings/ProjectSettings'
 import Auth from '@/pages/UserSettings/Auth/Auth'
 import { PlayerForm } from '@/pages/UserSettings/PlayerForm/PlayerForm'
@@ -25,27 +27,6 @@ import { auth } from '@/util/auth'
 import * as styles from './SettingsRouter.css'
 
 const BillingPage = React.lazy(() => import('../Billing/Billing'))
-
-export type SettingGroups = 'account' | 'project'
-
-export type WorkspaceSettingsTab =
-	| 'team'
-	| 'settings'
-	| 'current-plan'
-	| 'upgrade-plan'
-
-export const isSettingsPath = (path: string[]) => {
-	const settingsPaths: (WorkspaceSettingsTab | SettingGroups)[] = [
-		'settings',
-		'account',
-		'team',
-		'current-plan',
-		'upgrade-plan',
-	]
-	return settingsPaths.some(
-		(settingsPath) => path.indexOf(settingsPath) !== -1,
-	)
-}
 
 const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 	switch (tab) {
@@ -143,12 +124,16 @@ export const SettingsRouter = () => {
 		],
 	]
 
-	const projectSettingTabs = allProjects
-		? allProjects.map((project) => ({
-				key: project?.id,
-				title: project?.name,
-		  }))
-		: []
+	const projectSettingTabs = useMemo(
+		() =>
+			allProjects
+				? allProjects.map((project) => ({
+						key: project?.id,
+						title: project?.name,
+				  }))
+				: [],
+		[allProjects],
+	)
 
 	useEffect(() => {
 		analytics.page()
@@ -160,7 +145,7 @@ export const SettingsRouter = () => {
 	return (
 		<>
 			<Helmet key={pageId}>
-				<title>Workspace {getTitle(pageId)}</title>
+				<title>{getTitle(pageId)} Settings</title>
 			</Helmet>
 			<Box
 				display="flex"
@@ -168,32 +153,21 @@ export const SettingsRouter = () => {
 				flexGrow={1}
 				backgroundColor="raised"
 			>
-				<Stack p="8">
+				<Box
+					p="8"
+					gap="12"
+					display="flex"
+					flexDirection="column"
+					borderRight="secondary"
+					position="relative"
+				>
 					<Stack gap="0">
-						<Box mt="12" mb="10" ml="8">
-							<Text size="xxSmall" color="secondaryContentText">
-								Workspace Settings
-							</Text>
-						</Box>
-						{workspaceSettingTabs.map((tab) => (
-							<NavLink
-								key={tab.key}
-								to={`/w/${workspaceId}/${tab.key}`}
-								className={({ isActive }) =>
-									clsx(styles.menuItem, {
-										[styles.menuItemActive]: isActive,
-									})
-								}
+						<Box mt="12" mb="4" ml="8">
+							<Text
+								size="xxSmall"
+								color="secondaryContentText"
+								cssClass={styles.menuTitle}
 							>
-								<Stack direction="row" align="center" gap="4">
-									<Text>{tab.title}</Text>
-								</Stack>
-							</NavLink>
-						))}
-					</Stack>
-					<Stack gap="0">
-						<Box mt="12" mb="10" ml="8">
-							<Text size="xxSmall" color="secondaryContentText">
 								Account Settings
 							</Text>
 						</Box>
@@ -214,8 +188,38 @@ export const SettingsRouter = () => {
 						))}
 					</Stack>
 					<Stack gap="0">
-						<Box mt="12" mb="10" ml="8">
-							<Text size="xxSmall" color="secondaryContentText">
+						<Box mt="12" mb="4" ml="8">
+							<Text
+								size="xxSmall"
+								color="secondaryContentText"
+								cssClass={styles.menuTitle}
+							>
+								Workspace Settings
+							</Text>
+						</Box>
+						{workspaceSettingTabs.map((tab) => (
+							<NavLink
+								key={tab.key}
+								to={`/w/${workspaceId}/${tab.key}`}
+								className={({ isActive }) =>
+									clsx(styles.menuItem, {
+										[styles.menuItemActive]: isActive,
+									})
+								}
+							>
+								<Stack direction="row" align="center" gap="4">
+									<Text>{tab.title}</Text>
+								</Stack>
+							</NavLink>
+						))}
+					</Stack>
+					<Stack gap="0">
+						<Box mt="12" mb="4" ml="8">
+							<Text
+								size="xxSmall"
+								color="secondaryContentText"
+								cssClass={styles.menuTitle}
+							>
 								Project Settings
 							</Text>
 						</Box>
@@ -229,17 +233,19 @@ export const SettingsRouter = () => {
 								})}
 							>
 								<Stack direction="row" align="center" gap="4">
+									<ProjectColorLabel
+										seed={project.title || ''}
+										size={8}
+									/>
 									<Text>{project.title}</Text>
 								</Stack>
 							</NavLink>
 						))}
 					</Stack>
-				</Stack>
+				</Box>
 				<Box flexGrow={1} display="flex" flexDirection="column">
 					<Box
-						mt="8"
-						mr="8"
-						mb="8"
+						m="8"
 						backgroundColor="white"
 						border="secondary"
 						borderRadius="6"
