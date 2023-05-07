@@ -43,15 +43,16 @@ import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
+import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import * as styles from './styles.css'
 
-type Props = { integrated: boolean }
 type Params = { project_id: string; error_secure_id: string }
 
-export default function ErrorsV2({ integrated }: Props) {
+export default function ErrorsV2() {
 	const { project_id, error_secure_id } = useParams<Params>()
 	const { isLoggedIn } = useAuthContext()
+	const [{ integrated }] = useIntegratedLocalStorage(project_id!, 'server')
 
 	const { data, loading, errorQueryingErrorGroup } = useErrorGroup()
 
@@ -117,7 +118,7 @@ export default function ErrorsV2({ integrated }: Props) {
 				<title>Errors</title>
 			</Helmet>
 
-			<Box cssClass={styles.container} borderTop="dividerWeak">
+			<Box cssClass={styles.container}>
 				{!isBlocked && <SearchPanel />}
 
 				<div

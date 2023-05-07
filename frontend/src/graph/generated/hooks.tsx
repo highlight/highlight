@@ -1361,6 +1361,64 @@ export type EditProjectMutationOptions = Apollo.BaseMutationOptions<
 	Types.EditProjectMutation,
 	Types.EditProjectMutationVariables
 >
+export const EditProjectFilterSettingsDocument = gql`
+	mutation EditProjectFilterSettings(
+		$projectId: ID!
+		$filterSessionsWithoutError: Boolean!
+	) {
+		editProjectFilterSettings(
+			projectId: $projectId
+			filterSessionsWithoutError: $filterSessionsWithoutError
+		) {
+			id
+			filterSessionsWithoutError
+		}
+	}
+`
+export type EditProjectFilterSettingsMutationFn = Apollo.MutationFunction<
+	Types.EditProjectFilterSettingsMutation,
+	Types.EditProjectFilterSettingsMutationVariables
+>
+
+/**
+ * __useEditProjectFilterSettingsMutation__
+ *
+ * To run a mutation, you first call `useEditProjectFilterSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditProjectFilterSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [editProjectFilterSettingsMutation, { data, loading, error }] = useEditProjectFilterSettingsMutation({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      filterSessionsWithoutError: // value for 'filterSessionsWithoutError'
+ *   },
+ * });
+ */
+export function useEditProjectFilterSettingsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.EditProjectFilterSettingsMutation,
+		Types.EditProjectFilterSettingsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.EditProjectFilterSettingsMutation,
+		Types.EditProjectFilterSettingsMutationVariables
+	>(EditProjectFilterSettingsDocument, baseOptions)
+}
+export type EditProjectFilterSettingsMutationHookResult = ReturnType<
+	typeof useEditProjectFilterSettingsMutation
+>
+export type EditProjectFilterSettingsMutationResult =
+	Apollo.MutationResult<Types.EditProjectFilterSettingsMutation>
+export type EditProjectFilterSettingsMutationOptions =
+	Apollo.BaseMutationOptions<
+		Types.EditProjectFilterSettingsMutation,
+		Types.EditProjectFilterSettingsMutationVariables
+	>
 export const DeleteProjectDocument = gql`
 	mutation DeleteProject($id: ID!) {
 		deleteProject(id: $id)
@@ -5297,90 +5355,6 @@ export type GetSessionCommentsQueryResult = Apollo.QueryResult<
 	Types.GetSessionCommentsQuery,
 	Types.GetSessionCommentsQueryVariables
 >
-export const GetNotificationsDocument = gql`
-	query GetNotifications($project_id: ID!) {
-		session_comments_for_project(project_id: $project_id) {
-			id
-			timestamp
-			updated_at
-			session_id
-			session_secure_id
-			text
-			author {
-				id
-				name
-				email
-				photo_url
-			}
-			type
-			metadata
-			tags
-		}
-		error_comments_for_project(project_id: $project_id) {
-			id
-			updated_at
-			project_id
-			text
-			error_id
-			error_secure_id
-			author {
-				id
-				name
-				email
-				photo_url
-			}
-		}
-	}
-`
-
-/**
- * __useGetNotificationsQuery__
- *
- * To run a query within a React component, call `useGetNotificationsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetNotificationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetNotificationsQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *   },
- * });
- */
-export function useGetNotificationsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetNotificationsQuery,
-		Types.GetNotificationsQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetNotificationsQuery,
-		Types.GetNotificationsQueryVariables
-	>(GetNotificationsDocument, baseOptions)
-}
-export function useGetNotificationsLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetNotificationsQuery,
-		Types.GetNotificationsQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetNotificationsQuery,
-		Types.GetNotificationsQueryVariables
-	>(GetNotificationsDocument, baseOptions)
-}
-export type GetNotificationsQueryHookResult = ReturnType<
-	typeof useGetNotificationsQuery
->
-export type GetNotificationsLazyQueryHookResult = ReturnType<
-	typeof useGetNotificationsLazyQuery
->
-export type GetNotificationsQueryResult = Apollo.QueryResult<
-	Types.GetNotificationsQuery,
-	Types.GetNotificationsQueryVariables
->
 export const GetSessionCommentsForAdminDocument = gql`
 	query GetSessionCommentsForAdmin {
 		session_comments_for_admin {
@@ -6412,6 +6386,8 @@ export const GetSessionsOpenSearchDocument = gql`
 				user_properties
 				event_counts
 				last_user_interaction_time
+				is_public
+				excluded
 			}
 			totalCount
 		}
@@ -12666,4 +12642,61 @@ export type GetLogsErrorObjectsLazyQueryHookResult = ReturnType<
 export type GetLogsErrorObjectsQueryResult = Apollo.QueryResult<
 	Types.GetLogsErrorObjectsQuery,
 	Types.GetLogsErrorObjectsQueryVariables
+>
+export const GetProjectFilterSettingsDocument = gql`
+	query GetProjectFilterSettings($projectId: ID!) {
+		projectFilterSettings(projectId: $projectId) {
+			id
+			filterSessionsWithoutError
+		}
+	}
+`
+
+/**
+ * __useGetProjectFilterSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetProjectFilterSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectFilterSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectFilterSettingsQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *   },
+ * });
+ */
+export function useGetProjectFilterSettingsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetProjectFilterSettingsQuery,
+		Types.GetProjectFilterSettingsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetProjectFilterSettingsQuery,
+		Types.GetProjectFilterSettingsQueryVariables
+	>(GetProjectFilterSettingsDocument, baseOptions)
+}
+export function useGetProjectFilterSettingsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetProjectFilterSettingsQuery,
+		Types.GetProjectFilterSettingsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetProjectFilterSettingsQuery,
+		Types.GetProjectFilterSettingsQueryVariables
+	>(GetProjectFilterSettingsDocument, baseOptions)
+}
+export type GetProjectFilterSettingsQueryHookResult = ReturnType<
+	typeof useGetProjectFilterSettingsQuery
+>
+export type GetProjectFilterSettingsLazyQueryHookResult = ReturnType<
+	typeof useGetProjectFilterSettingsLazyQuery
+>
+export type GetProjectFilterSettingsQueryResult = Apollo.QueryResult<
+	Types.GetProjectFilterSettingsQuery,
+	Types.GetProjectFilterSettingsQueryVariables
 >

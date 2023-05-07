@@ -627,14 +627,12 @@ export const changeSession = (
 	session: Session | null,
 	successMessageText?: string,
 ) => {
-	const projectIdRemapped = projectId === '0' ? 'demo' : projectId
-
 	if (!session) {
 		message.success('No more sessions to play.')
 		return
 	}
 
-	navigate(`/${projectIdRemapped}/sessions/${session.secure_id}`)
+	navigate(`/${projectId}/sessions/${session.secure_id}`)
 	if (successMessageText?.length) {
 		message.success(successMessageText)
 	}

@@ -169,7 +169,9 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 
 	wSpan.Finish()
 
-	k.KafkaQueue.Commit(ctx, lastMsg.KafkaMessage)
+	if lastMsg != nil {
+		k.KafkaQueue.Commit(ctx, lastMsg.KafkaMessage)
+	}
 	k.BatchBuffer.lastMessage = nil
 }
 

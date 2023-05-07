@@ -334,7 +334,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
 			task.PushPayload.HighlightLogs,
 			task.PushPayload.PayloadID); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process ProcessPayload task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.InitializeSession:
@@ -348,7 +348,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		}
 		hlog.Incr("worker.initializeSession.count", tags, 1)
 		if err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process InitializeSession task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.IdentifySession:
@@ -356,7 +356,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionSecureID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process IdentifySession task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.AddTrackProperties:
@@ -368,7 +368,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			return err
 		}
 		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, sessionID, task.AddTrackProperties.PropertiesObject); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process AddTrackProperties task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.AddSessionProperties:
@@ -380,7 +380,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			return err
 		}
 		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, sessionID, task.AddSessionProperties.PropertiesObject); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process AddSessionProperties task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.PushBackendPayload:
@@ -393,7 +393,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionSecureID, task.PushMetrics.Metrics); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process PushMetricsImpl task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.MarkBackendSetup:
@@ -401,7 +401,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.MarkBackendSetupImpl(ctx, task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SessionSecureID, task.MarkBackendSetup.ProjectID, task.MarkBackendSetup.Type); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process MarkBackendSetup task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.AddSessionFeedback:
@@ -409,7 +409,58 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.AddSessionFeedbackImpl(ctx, task.AddSessionFeedback); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process AddSessionFeedback task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			return err
+		}
+	case kafkaqueue.HubSpotCreateContactForAdmin:
+		if task.HubSpotCreateContactForAdmin == nil {
+			break
+		}
+		if _, err := w.PublicResolver.HubspotApi.CreateContactForAdminImpl(ctx,
+			task.HubSpotCreateContactForAdmin.AdminID,
+			task.HubSpotCreateContactForAdmin.Email,
+			task.HubSpotCreateContactForAdmin.UserDefinedRole,
+			task.HubSpotCreateContactForAdmin.UserDefinedPersona,
+			task.HubSpotCreateContactForAdmin.First,
+			task.HubSpotCreateContactForAdmin.Last,
+			task.HubSpotCreateContactForAdmin.Phone,
+			task.HubSpotCreateContactForAdmin.Referral,
+		); err != nil {
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			return err
+		}
+	case kafkaqueue.HubSpotCreateCompanyForWorkspace:
+		if task.HubSpotCreateCompanyForWorkspace == nil {
+			break
+		}
+		if _, err := w.PublicResolver.HubspotApi.CreateCompanyForWorkspaceImpl(ctx,
+			task.HubSpotCreateCompanyForWorkspace.WorkspaceID,
+			task.HubSpotCreateCompanyForWorkspace.AdminEmail,
+			task.HubSpotCreateCompanyForWorkspace.Name,
+		); err != nil {
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			return err
+		}
+	case kafkaqueue.HubSpotUpdateContactProperty:
+		if task.HubSpotUpdateContactProperty == nil {
+			break
+		}
+		if err := w.PublicResolver.HubspotApi.UpdateContactPropertyImpl(ctx,
+			task.HubSpotUpdateContactProperty.AdminID,
+			task.HubSpotUpdateContactProperty.Properties,
+		); err != nil {
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			return err
+		}
+	case kafkaqueue.HubSpotUpdateCompanyProperty:
+		if task.HubSpotUpdateCompanyProperty == nil {
+			break
+		}
+		if err := w.PublicResolver.HubspotApi.UpdateCompanyPropertyImpl(ctx,
+			task.HubSpotUpdateCompanyProperty.WorkspaceID,
+			task.HubSpotUpdateCompanyProperty.Properties,
+		); err != nil {
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.HealthCheck:
@@ -965,7 +1016,7 @@ func (w *Worker) Start(ctx context.Context) {
 	lockPeriod := 30            // time in minutes
 
 	if util.IsDevEnv() {
-		payloadLookbackPeriod = 16
+		payloadLookbackPeriod = 8
 		lockPeriod = 1
 	}
 
@@ -1070,7 +1121,7 @@ func (w *Worker) Start(ctx context.Context) {
 					vmStat, _ = mem.VirtualMemory()
 				}
 
-				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
+				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("project_id", session.ProjectID), tracer.Tag("session_secure_id", session.SecureID))
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
 					var excluded bool
@@ -1270,7 +1321,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 				Name:     "highlight_error_count",
 				Property: "highlight_error_count",
 				Value:    c.ErrorCount,
-			}}, w.Resolver.DB); err != nil {
+			}}); err != nil {
 				log.WithContext(ctx).WithFields(log.Fields{
 					"workspace_id":  c.WorkspaceID,
 					"session_count": c.SessionCount,

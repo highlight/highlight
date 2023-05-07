@@ -11,10 +11,12 @@ updatedAt: 2022-06-27T03:34:47.000Z
 ## Ignore sessions by user identifier
 In some cases, you may want to ignore sessions from a specific user. You can do this by adding the user identifier to the "Excluded Sessions" input under the "Session Replay" tab in your [project settings](https://app.highlight.io/settings). Please note that we use the `identifier` (or first argument) sent in your `H.identify` method to ignore against (SDK docs [here](../../../sdk/client.md)).
 
-## Excluding sessions using custom logic
-If you'd like to ignore sessions based on custom logic (e.g. Ignore sessions from users who have not logged in), we suggest that you use our `manualStart` flag in your `H.init` method (SDK docs [here](../../../sdk/client.md)). This will allow you to start and stop a session at your discretion. 
+## Ignoring sessions without an error
+If you're using Highlight mostly for error monitoring, enable the "Filter sessions without an error" in your [project settings](https://app.highlight.io/settings) to only record sessions with an error.
 
-An example of what your `H.init` method should look like is as follows:
+## Ignoring sessions using custom logic
+If you'd like to ignore sessions based on custom logic (e.g. ignoring sessions from users who have not logged in), use the [`manualStart` flag](https://www.highlight.io/docs/sdk/client#manualStart) in your `H.init` configuration. This will allow you to start and stop a session at your discretion. 
+
 ```js
 H.init({
   manualStart: true,
@@ -22,7 +24,8 @@ H.init({
 })
 ```
 
-And a good example of manually starting a session in a `useEffect` in `react` is as follows:
+Then you can manually start a session by calling `H.start`:
+
 ```js
 useEffect(() => {
   if (userIsLoggedIn) {

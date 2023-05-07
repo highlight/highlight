@@ -8,8 +8,6 @@ import {
 	vars,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import React from 'react'
-const { DEMO_ERROR_URL } = import.meta.env
 
 export const CompleteSetup = () => {
 	const { projectId } = useProjectId()
@@ -42,22 +40,23 @@ export const CompleteSetup = () => {
 			>
 				<Box display="flex" flexDirection="column" gap="16">
 					<Text color="moderate">
-						View your app's errors by completing the setup process.
+						View your app's backend errors by completing the setup
+						process.
 					</Text>
 					<Stack gap="6" direction="row">
 						<LinkButton
-							to={`/${projectId}/setup`}
+							to={`/${projectId}/setup/backend`}
 							trackingId="finish-setup-errors"
 						>
 							Finish setup
 						</LinkButton>
 						<LinkButton
-							to={DEMO_ERROR_URL}
+							to="/demo/errors"
 							trackingId="view-demo-error"
 							kind="secondary"
 							emphasis="low"
 						>
-							View demo error
+							View demo errors
 						</LinkButton>
 					</Stack>
 				</Box>

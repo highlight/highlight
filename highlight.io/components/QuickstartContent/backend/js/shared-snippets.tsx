@@ -46,7 +46,7 @@ export const verifyError: (name: string, code?: string) => QuickStartStep = (
 	title: 'Verify that your SDK is reporting errors.',
 	content:
 		`You'll want to throw an exception in one of your ${name} handlers. ` +
-		`Access the API handler and make sure the error shows up in [Highlight](https://app.highlight.run/errors).`,
+		`Access the API handler and make sure the error shows up in [Highlight](https://app.highlight.io/errors).`,
 	...(code
 		? {
 				code: {

@@ -25,7 +25,7 @@
 			"jsx": true
 		}
 	},
-	"ignorePatterns": "src/graph/generated/*",
+	"ignorePatterns": ["src/graph/generated/*", "src/__generated/*"],
 	"rules": {
 		"@typescript-eslint/explicit-module-boundary-types": "off",
 		"react/no-unescaped-entities": "off",

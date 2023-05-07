@@ -1,0 +1,1 @@
+import{a as t}from"../../chunk-ZIVUDSZS.js";import{b as r}from"../../chunk-NLMHZ7JJ.js";var a=r(t(),1),m="mquqy90",n=(0,a.createRuntimeFn)({defaultClassName:"",variantClassNames:{kind:{primary:"mquqy91",secondary:"mquqy92"}},defaultVariants:{kind:"primary"},compoundVariants:[]});export{m as button,n as variants};

@@ -1,0 +1,1 @@
+var o={label:"_label_oj421_1",checked:"_checked_oj421_9",red:"_red_oj421_12",spaceBetween:"_spaceBetween_oj421_15",noMarginAroundSwitch:"_noMarginAroundSwitch_oj421_19",setMarginForAnimation:"_setMarginForAnimation_oj421_22",switchStyles:"_switchStyles_oj421_26"};export{o as default};
