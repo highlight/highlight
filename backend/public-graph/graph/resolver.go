@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"go.opentelemetry.io/otel/attribute"
 
@@ -2921,9 +2920,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	defer updateSpan.Finish()
 
 	excluded, reason := r.isSessionExcluded(ctx, sessionObj, sessionHasErrors)
-	if excluded {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": sessionObj.ID, "project_id": sessionObj.ProjectID, "reason": *reason}).Infof("excluding session")
-	}
 
 	// Update only if any of these fields are changing
 	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
@@ -2959,6 +2955,18 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				return err
 			}
 		}
+	} else if excluded {
+		if sessionObj.ExcludedReason != reason {
+			updates := model.Session{
+				ExcludedReason: reason,
+			}
+			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+				Select("ExcludedReason").
+				Updates(updates).Error; err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "error updating session excluded reason"))
+				return err
+			}
+		}
 	}
 
 	// If the session was previously marked as processed, clear this
@@ -2987,22 +2995,22 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	return nil
 }
 
-func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *string) {
+func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, privateModel.SessionExcludedReason) {
 	var project model.Project
 	if err := r.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
-		return false, nil
+		return false, ""
 	}
 
 	if r.isSessionUserExcluded(ctx, s, project) {
-		return true, ptr.String("excluded user matches")
+		return true, privateModel.SessionExcludedReasonIgnoredUser
 	}
 
 	if r.isSessionExcludedForNoError(ctx, s, project, sessionHasErrors) {
-		return true, ptr.String("no associated error")
+		return true, privateModel.SessionExcludedReasonNoError
 	}
 
-	return false, nil
+	return false, ""
 
 }
 

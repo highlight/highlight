@@ -8277,6 +8277,13 @@ type Field {
 	type: String
 }
 
+enum SessionExcludedReason {
+	NoActivity
+	NoUserInteractionEvents
+	NoError
+	IgnoredUser
+}
+
 type Session {
 	id: ID!
 	secure_id: String!
