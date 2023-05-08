@@ -4091,55 +4091,14 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 	}
 
 	errorObject := model.ErrorObject{}
-	errorObjectQuery := r.DB.
-		Model(&model.ErrorObject{}).
-		Where("error_group_id = ?", errorGroup.ID).
-		Where("created_at > ?", retentionDate).
-		Order("id desc")
+	errorObjectQuery := r.DB.Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID})
 
 	if errorObjectID == nil {
-		var sessionIds []int
-		if err := r.DB.Model(&errorObject).
-			Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).
-			Where("session_id is not null").
-			Where("created_at > ?", retentionDate).
-			Limit(100).
-			Pluck("session_id", &sessionIds).
-			Error; err != nil {
-			return nil, e.Wrap(err, "error reading session ids")
-		}
-
-		var processedSessions []int
-		// find all processed sessions
-		if err := r.DB.Model(&model.Session{}).
-			Where("id IN (?) AND processed = ? AND excluded = ?", sessionIds, true, false).
-			Where("created_at > ?", retentionDate).
-			Pluck("id", &processedSessions).
-			Error; err != nil {
-			return nil, e.Wrap(err, "error querying processed sessions")
-		}
-
-		if len(processedSessions) == 0 {
-			if err := errorObjectQuery.Limit(1).Find(&errorObject).Error; err != nil {
-				return nil, e.Wrap(err, "error reading error object for instance")
-			}
-		} else {
-			// find the most recent object from the processed session
-			if err := errorObjectQuery.
-				Where("session_id IN ?", processedSessions).
-				Limit(1).
-				Find(&errorObject).
-				Error; err != nil {
-				return nil, e.Wrap(err, "error reading error object for instance")
-			}
+		if err := errorObjectQuery.Last(&errorObject).Error; err != nil {
+			return nil, e.Wrap(err, "error reading error object for instance")
 		}
 	} else {
-		if err := errorObjectQuery.
-			Where(&model.ErrorObject{Model: model.Model{ID: *errorObjectID}}).
-			Where("created_at > ?", retentionDate).
-			Limit(1).
-			Find(&errorObject).
-			Error; err != nil {
+		if err := errorObjectQuery.Where(&model.ErrorObject{Model: model.Model{ID: *errorObjectID}}).First(&errorObject).Error; err != nil {
 			return nil, e.Wrap(err, "error reading error object for instance")
 		}
 	}
@@ -4167,16 +4126,6 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		Limit(1).
 		Pluck("id", &previousID).Error; err != nil {
 		return nil, e.Wrap(err, "error reading previous error object in group")
-	}
-
-	if errorObject.SessionID != nil {
-		var session model.Session
-		if err := r.DB.Model(&session).Where("id = ?", *errorObject.SessionID).Find(&session).Error; err != nil {
-			return nil, e.Wrap(err, "error reading error group session")
-		}
-		if session.Excluded {
-			errorObject.SessionID = nil
-		}
 	}
 
 	errorInstance := model.ErrorInstance{

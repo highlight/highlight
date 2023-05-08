@@ -61,6 +61,8 @@ import { FaDiscord, FaGithub } from 'react-icons/fa'
 import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
+import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
+
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.scss'
 
@@ -79,6 +81,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const parts = pathname.split('/')
 	const currentPage = parts.length >= 3 ? parts[2] : undefined
 	const isSetup = parts.indexOf('setup') !== -1
+	const { isSettings } = useIsSettingsPath()
 
 	const { toggleShowKeyboardShortcutsGuide, commandBarDialog } =
 		useGlobalContext()
@@ -110,7 +113,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 			<CommandBar />
 			<CommandBarV1 />
 			<Box background="n2" borderBottom="secondary">
-				{!!projectId && getBanner(projectId, isSetup)}
+				{!!projectId && !isSettings && getBanner(projectId, isSetup)}
 				<Box
 					display="flex"
 					alignItems="center"
@@ -148,7 +151,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							width="full"
 						>
 							<ProjectPicker />
-							{projectId && (
+							{projectId && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
 									{pages.map((p) => {
 										return (
@@ -340,26 +343,29 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 							style={{ zIndex: 20000 }}
 							width="full"
 						>
-							{!!projectId && !fullyIntegrated && !isSetup && (
-								<LinkButton
-									to={`/${projectId}/setup`}
-									state={{
-										previousPath: location.pathname,
-									}}
-									trackingId="header_setup-cta"
-									emphasis="low"
-								>
-									<Stack
-										direction="row"
-										align="center"
-										gap="4"
+							{!!projectId &&
+								!fullyIntegrated &&
+								!isSetup &&
+								!isSettings && (
+									<LinkButton
+										to={`/${projectId}/setup`}
+										state={{
+											previousPath: location.pathname,
+										}}
+										trackingId="header_setup-cta"
+										emphasis="low"
 									>
-										<Text>Finish setup </Text>
-										<IconSolidArrowSmRight />
-									</Stack>
-								</LinkButton>
-							)}
-							{!isSetup && (
+										<Stack
+											direction="row"
+											align="center"
+											gap="4"
+										>
+											<Text>Finish setup </Text>
+											<IconSolidArrowSmRight />
+										</Stack>
+									</LinkButton>
+								)}
+							{!isSetup && !isSettings && (
 								<Box display="flex" alignItems="center" gap="4">
 									{!!projectId && (
 										<Button

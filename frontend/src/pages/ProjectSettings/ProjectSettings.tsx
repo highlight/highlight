@@ -1,4 +1,3 @@
-import LeadAlignLayout from '@components/layout/LeadAlignLayout'
 import Tabs from '@components/Tabs/Tabs'
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm'
 import { ErrorFiltersForm } from '@pages/ProjectSettings/ErrorFiltersForm/ErrorFiltersForm'
@@ -13,6 +12,7 @@ import React from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 
+import LeadAlignLayout from '@/components/layout/LeadAlignLayout'
 import { FilterSessionsWithoutErrorForm } from '@/pages/ProjectSettings/FilterSessionsWithoutErrorForm/FilterSessionsWithoutErrorForm'
 
 import styles from './ProjectSettings.module.scss'
