@@ -1,0 +1,1 @@
+var a={keyPerformanceIndicator:"_keyPerformanceIndicator_mpv8j_1",value:"_value_mpv8j_1",label:"_label_mpv8j_4",tooltip:"_tooltip_mpv8j_7",labelContainer:"_labelContainer_mpv8j_13"};export{a as default};

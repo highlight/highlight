@@ -1382,7 +1382,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 	)
 
 	const selectSegment = useCallback(
-		(segment?: Partial<Segment>) => {
+		(segment?: Pick<Segment, 'id' | 'name'>) => {
 			if (segment && segment.id && segment.name) {
 				const segmentParameters = normalizeParams(
 					gqlSanitize(

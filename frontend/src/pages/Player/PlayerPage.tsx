@@ -511,7 +511,6 @@ const PlayerPage = () => {
 						height="full"
 						width="full"
 						overflow="hidden"
-						borderTop="dividerWeak"
 					>
 						<Box
 							cssClass={clsx(style.playerLeftPanel, {

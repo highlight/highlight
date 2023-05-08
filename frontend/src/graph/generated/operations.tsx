@@ -266,6 +266,20 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type EditProjectFilterSettingsMutationVariables = Types.Exact<{
+	projectId: Types.Scalars['ID']
+	filterSessionsWithoutError: Types.Scalars['Boolean']
+}>
+
+export type EditProjectFilterSettingsMutation = { __typename?: 'Mutation' } & {
+	editProjectFilterSettings?: Types.Maybe<
+		{ __typename?: 'ProjectFilterSettings' } & Pick<
+			Types.ProjectFilterSettings,
+			'id' | 'filterSessionsWithoutError'
+		>
+	>
+}
+
 export type DeleteProjectMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 }>
@@ -1739,54 +1753,6 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
 									>
 								}
 						>
-					>
-				}
-		>
-	>
-}
-
-export type GetNotificationsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type GetNotificationsQuery = { __typename?: 'Query' } & {
-	session_comments_for_project: Array<
-		Types.Maybe<
-			{ __typename?: 'SessionComment' } & Pick<
-				Types.SessionComment,
-				| 'id'
-				| 'timestamp'
-				| 'updated_at'
-				| 'session_id'
-				| 'session_secure_id'
-				| 'text'
-				| 'type'
-				| 'metadata'
-				| 'tags'
-			> & {
-					author?: Types.Maybe<
-						{ __typename?: 'SanitizedAdmin' } & Pick<
-							Types.SanitizedAdmin,
-							'id' | 'name' | 'email' | 'photo_url'
-						>
-					>
-				}
-		>
-	>
-	error_comments_for_project: Array<
-		Types.Maybe<
-			{ __typename?: 'ErrorComment' } & Pick<
-				Types.ErrorComment,
-				| 'id'
-				| 'updated_at'
-				| 'project_id'
-				| 'text'
-				| 'error_id'
-				| 'error_secure_id'
-			> & {
-					author: { __typename?: 'SanitizedAdmin' } & Pick<
-						Types.SanitizedAdmin,
-						'id' | 'name' | 'email' | 'photo_url'
 					>
 				}
 		>
@@ -4330,6 +4296,19 @@ export type GetLogsErrorObjectsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetProjectFilterSettingsQueryVariables = Types.Exact<{
+	projectId: Types.Scalars['ID']
+}>
+
+export type GetProjectFilterSettingsQuery = { __typename?: 'Query' } & {
+	projectFilterSettings?: Types.Maybe<
+		{ __typename?: 'ProjectFilterSettings' } & Pick<
+			Types.ProjectFilterSettings,
+			'id' | 'filterSessionsWithoutError'
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4343,7 +4322,6 @@ export const namedOperations = {
 		GetWorkspaceAdminsByProjectId: 'GetWorkspaceAdminsByProjectId' as const,
 		GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,
 		GetSessionComments: 'GetSessionComments' as const,
-		GetNotifications: 'GetNotifications' as const,
 		GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
 		isSessionPending: 'isSessionPending' as const,
 		GetAccounts: 'GetAccounts' as const,
@@ -4459,6 +4437,7 @@ export const namedOperations = {
 		GetLogsKeys: 'GetLogsKeys' as const,
 		GetLogsKeyValues: 'GetLogsKeyValues' as const,
 		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
+		GetProjectFilterSettings: 'GetProjectFilterSettings' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -4486,6 +4465,7 @@ export const namedOperations = {
 		CreateAdmin: 'CreateAdmin' as const,
 		CreateWorkspace: 'CreateWorkspace' as const,
 		EditProject: 'EditProject' as const,
+		EditProjectFilterSettings: 'EditProjectFilterSettings' as const,
 		DeleteProject: 'DeleteProject' as const,
 		EditWorkspace: 'EditWorkspace' as const,
 		DeleteSegment: 'DeleteSegment' as const,

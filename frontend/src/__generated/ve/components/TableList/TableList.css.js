@@ -1,0 +1,1 @@
+import{a}from"../../chunk-LMWHBVI4.js";var s=a({defaultClassName:"_1ubqgtn0",variantClassNames:{json:{false:"_1ubqgtn1",true:"_1ubqgtn2"}},defaultVariants:{},compoundVariants:[]});export{s as sessionAttributeRow};

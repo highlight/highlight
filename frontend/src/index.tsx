@@ -50,6 +50,8 @@ import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
+document.body.className = 'highlight-light-theme'
+
 analytics.initialize()
 const dev = import.meta.env.DEV
 const options: HighlightOptions = {
