@@ -2934,26 +2934,28 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	if doUpdate && !excluded {
 		fieldsToUpdate := model.Session{
-			PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, DirectDownloadEnabled: false, Chunked: &model.F, Excluded: false,
+			PayloadUpdatedAt:      &now,
+			BeaconTime:            beaconTime,
+			HasUnloaded:           hasSessionUnloaded,
+			Processed:             &model.F,
+			ObjectStorageEnabled:  &model.F,
+			DirectDownloadEnabled: false,
+			Chunked:               &model.F,
+			Excluded:              false,
+			ExcludedReason:        "",
+			HasErrors:             &sessionHasErrors,
 		}
 
-		// We only want to update the `HasErrors` field if the session has errors.
-		if sessionHasErrors {
-			fieldsToUpdate.HasErrors = &model.T
+		// By default, GORM will not update non-zero fields. This is undesirable for boolean columns.
+		// By explicitly specifying the columns to update, we can override the behavior.
+		// See https://gorm.io/docs/update.html#Updates-multiple-columns
+		columnsToUpdate := []string{"PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded", "ExcludedReason", "HasErrors"}
 
-			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded", "HasErrors").
-				Updates(&fieldsToUpdate).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
-				return err
-			}
-		} else {
-			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded").
-				Updates(&fieldsToUpdate).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error updating session payload time and beacon time"))
-				return err
-			}
+		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+			Select(columnsToUpdate).
+			Updates(&fieldsToUpdate).Error; err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error updating session"))
+			return err
 		}
 	} else if excluded {
 		if sessionObj.ExcludedReason != reason {
