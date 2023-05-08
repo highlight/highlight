@@ -42,6 +42,7 @@ import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
@@ -76,10 +77,21 @@ export default function ErrorsV2() {
 	}, [logCursor, navigation])
 
 	useEffect(() => {
-		if (!isLoggedIn && !data?.error_group?.is_public && !loading) {
+		if (
+			!isLoggedIn &&
+			project_id !== DEMO_PROJECT_ID &&
+			!data?.error_group?.is_public &&
+			!loading
+		) {
 			navigate(SIGN_IN_ROUTE, { replace: true })
 		}
-	}, [data?.error_group?.is_public, isLoggedIn, loading, navigate])
+	}, [
+		data?.error_group?.is_public,
+		isLoggedIn,
+		loading,
+		navigate,
+		project_id,
+	])
 
 	useEffect(() => {
 		const urlParams = new URLSearchParams(location.search)
@@ -139,6 +151,7 @@ export default function ErrorsV2() {
 						<TopBar
 							isLoggedIn={isLoggedIn}
 							isBlocked={isBlocked}
+							projectId={project_id}
 							navigation={navigation}
 						/>
 
@@ -164,8 +177,9 @@ type TopBarProps = {
 	isLoggedIn: boolean
 	isBlocked: boolean
 	navigation: ReturnType<typeof useNavigation>
+	projectId?: string
 }
-function TopBar({ isLoggedIn, isBlocked, navigation }: TopBarProps) {
+function TopBar({ isLoggedIn, isBlocked, projectId, navigation }: TopBarProps) {
 	const {
 		showLeftPanel,
 		setShowLeftPanel,
@@ -175,7 +189,7 @@ function TopBar({ isLoggedIn, isBlocked, navigation }: TopBarProps) {
 		previousSecureId,
 		goToErrorGroup,
 	} = navigation
-	return isLoggedIn && !isBlocked ? (
+	return (isLoggedIn || projectId === DEMO_PROJECT_ID) && !isBlocked ? (
 		<Box display="flex" alignItems="center" borderBottom="secondary" p="6">
 			<Box display="flex" gap="8">
 				{!showLeftPanel && (
@@ -418,9 +432,14 @@ function useIsBlocked({
 		const canJoin = data?.joinable_workspaces?.some((w) =>
 			w?.projects.map((p) => p?.id).includes(projectId),
 		)
+		const isDemo = projectId === DEMO_PROJECT_ID
 
 		return (
-			!isPublic && !loading && !canJoin && currentProjectId !== projectId
+			!isPublic &&
+			!isDemo &&
+			!loading &&
+			!canJoin &&
+			currentProjectId !== projectId
 		)
 	}, [data, isPublic, loading, projectId])
 

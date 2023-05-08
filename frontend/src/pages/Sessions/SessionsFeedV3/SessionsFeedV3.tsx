@@ -178,7 +178,7 @@ export const SessionFeedV3 = React.memo(() => {
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: project_id! },
-		skip: !project_id,
+		skip: !project_id || project_id === DEMO_PROJECT_ID,
 	})
 
 	// Used to determine if we need to show the loading skeleton.

@@ -261,7 +261,9 @@ export const AppRouter = () => {
 				<Route
 					path="/*"
 					element={
-						projectId && Number.isInteger(Number(projectId)) ? (
+						projectId &&
+						(Number.isInteger(Number(projectId)) ||
+							projectId === DEMO_PROJECT_ID) ? (
 							<ProjectRouter />
 						) : isLoggedIn ? (
 							<ProjectRedirectionRouter />

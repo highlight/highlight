@@ -14,12 +14,15 @@ import { usePreloadErrors, usePreloadSessions } from '@util/preload'
 import React, { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
+import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { useNumericProjectId } from '@/hooks/useProjectId'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
 
 const ApplicationRouter: React.FC = () => {
+	const { projectId } = useNumericProjectId()
 	const { page, backendSearchQuery } = useSearchContext()
 	const { page: errorPage, backendSearchQuery: errorBackendSearchQuery } =
 		useErrorSearchContext()
@@ -42,7 +45,7 @@ const ApplicationRouter: React.FC = () => {
 				element={<ErrorsV2 />}
 			/>
 
-			{isLoggedIn ? (
+			{isLoggedIn || projectId === DEMO_PROJECT_ID ? (
 				<>
 					<Route path="logs/:log_cursor?" element={<LogsPage />} />
 					<Route path="settings/*" element={<SettingsRouter />} />

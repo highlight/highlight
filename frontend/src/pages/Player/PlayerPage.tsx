@@ -57,6 +57,7 @@ import { Helmet } from 'react-helmet'
 import useResizeAware from 'react-resize-aware'
 import { useNavigate } from 'react-router-dom'
 
+import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import WaitingAnimation from '../../lottie/waiting.json'
@@ -91,6 +92,7 @@ const PlayerPage = () => {
 	useEffect(() => {
 		if (
 			!isLoggedIn &&
+			project_id !== DEMO_PROJECT_ID &&
 			sessionViewability === SessionViewability.VIEWABLE &&
 			((session && !session?.is_public) || !session_secure_id)
 		) {
@@ -99,6 +101,7 @@ const PlayerPage = () => {
 	}, [
 		isLoggedIn,
 		navigate,
+		project_id,
 		session,
 		session?.is_public,
 		sessionViewability,
@@ -247,7 +250,7 @@ const PlayerPage = () => {
 	const showLeftPanel =
 		showLeftPanelPreference &&
 		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA &&
-		isLoggedIn
+		(isLoggedIn || project_id === DEMO_PROJECT_ID)
 
 	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
 	const controllerWidth = centerColumnSize.width

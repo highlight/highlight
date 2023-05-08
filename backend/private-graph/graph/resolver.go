@@ -959,6 +959,9 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id st
 	if session != nil && session.IsPublic {
 		return session, nil
 	}
+	if session.ProjectID == r.demoProjectID(ctx) {
+		return session, nil
+	}
 	return nil, err
 }
 
