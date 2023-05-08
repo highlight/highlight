@@ -207,16 +207,19 @@ const DevToolsWindowV2: React.FC<
 				>
 					<Box
 						ref={handleRef}
-						my="4"
-						style={{
-							backgroundColor: themeVars.static.divider.weak,
-							borderRadius: 10,
-							cursor: 'grab',
-							height: 4,
-							width: 36,
-							zIndex: 1,
-						}}
-					/>
+						p="4"
+						style={{ cursor: 'grab', width: 'auto' }}
+					>
+						<Box
+							style={{
+								backgroundColor: themeVars.static.divider.weak,
+								borderRadius: 10,
+								height: 4,
+								width: 36,
+								zIndex: 1,
+							}}
+						/>
+					</Box>
 					<Tabs<Tab>
 						tab={selectedDevToolsTab}
 						setTab={(t: Tab) => {
