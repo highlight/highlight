@@ -118,12 +118,15 @@ type ComplexityRoot struct {
 	}
 
 	BillingDetails struct {
-		ErrorsMeter        func(childComplexity int) int
-		LogsMeter          func(childComplexity int) int
-		MembersMeter       func(childComplexity int) int
-		Meter              func(childComplexity int) int
-		Plan               func(childComplexity int) int
-		SessionsOutOfQuota func(childComplexity int) int
+		ErrorsDailyAverage   func(childComplexity int) int
+		ErrorsMeter          func(childComplexity int) int
+		LogsDailyAverage     func(childComplexity int) int
+		LogsMeter            func(childComplexity int) int
+		MembersMeter         func(childComplexity int) int
+		Meter                func(childComplexity int) int
+		Plan                 func(childComplexity int) int
+		SessionsDailyAverage func(childComplexity int) int
+		SessionsOutOfQuota   func(childComplexity int) int
 	}
 
 	CategoryHistogramBucket struct {
@@ -654,6 +657,7 @@ type ComplexityRoot struct {
 		ReplyToErrorComment              func(childComplexity int, commentID int, text string, textForEmail string, errorURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		ReplyToSessionComment            func(childComplexity int, commentID int, text string, textForEmail string, sessionURL string, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput) int
 		RequestAccess                    func(childComplexity int, projectID int) int
+		SaveBillingPlan                  func(childComplexity int, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod) int
 		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
 		SubmitRegistrationForm           func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
 		SyncSlackIntegration             func(childComplexity int, projectID int) int
@@ -1152,13 +1156,17 @@ type ComplexityRoot struct {
 		BillingPeriodEnd            func(childComplexity int) int
 		ClearbitEnabled             func(childComplexity int) int
 		EligibleForTrialExtension   func(childComplexity int) int
+		ErrorsMaxCents              func(childComplexity int) int
+		ErrorsRetentionPeriod       func(childComplexity int) int
 		ID                          func(childComplexity int) int
+		LogsMaxCents                func(childComplexity int) int
 		Name                        func(childComplexity int) int
 		NextInvoiceDate             func(childComplexity int) int
 		PlanTier                    func(childComplexity int) int
 		Projects                    func(childComplexity int) int
 		RetentionPeriod             func(childComplexity int) int
 		Secret                      func(childComplexity int) int
+		SessionsMaxCents            func(childComplexity int) int
 		SlackChannels               func(childComplexity int) int
 		SlackWebhookChannel         func(childComplexity int) int
 		TrialEndDate                func(childComplexity int) int
@@ -1270,6 +1278,7 @@ type MutationResolver interface {
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateOrUpdateStripeSubscription(ctx context.Context, workspaceID int, planType model.PlanType, interval model.SubscriptionInterval, retentionPeriod model.RetentionPeriod) (*string, error)
 	UpdateBillingDetails(ctx context.Context, workspaceID int) (*bool, error)
+	SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention model.RetentionPeriod, errorsLimitCents *int, errorsRetention model.RetentionPeriod, logsLimitCents *int, logsRetention model.RetentionPeriod) (*bool, error)
 	CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*model.SanitizedAdminInput, taggedSlackUsers []*model.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType, tags []*model.SessionCommentTagInput, additionalContext *string) (*model1.SessionComment, error)
 	CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*model.IntegrationType) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
@@ -1782,12 +1791,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.AverageSessionLength.Length(childComplexity), true
 
+	case "BillingDetails.errorsDailyAverage":
+		if e.complexity.BillingDetails.ErrorsDailyAverage == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.ErrorsDailyAverage(childComplexity), true
+
 	case "BillingDetails.errorsMeter":
 		if e.complexity.BillingDetails.ErrorsMeter == nil {
 			break
 		}
 
 		return e.complexity.BillingDetails.ErrorsMeter(childComplexity), true
+
+	case "BillingDetails.logsDailyAverage":
+		if e.complexity.BillingDetails.LogsDailyAverage == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.LogsDailyAverage(childComplexity), true
 
 	case "BillingDetails.logsMeter":
 		if e.complexity.BillingDetails.LogsMeter == nil {
@@ -1816,6 +1839,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BillingDetails.Plan(childComplexity), true
+
+	case "BillingDetails.sessionsDailyAverage":
+		if e.complexity.BillingDetails.SessionsDailyAverage == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.SessionsDailyAverage(childComplexity), true
 
 	case "BillingDetails.sessionsOutOfQuota":
 		if e.complexity.BillingDetails.SessionsOutOfQuota == nil {
@@ -4513,6 +4543,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RequestAccess(childComplexity, args["project_id"].(int)), true
+
+	case "Mutation.saveBillingPlan":
+		if e.complexity.Mutation.SaveBillingPlan == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_saveBillingPlan_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.SaveBillingPlan(childComplexity, args["workspace_id"].(int), args["sessionsLimitCents"].(*int), args["sessionsRetention"].(model.RetentionPeriod), args["errorsLimitCents"].(*int), args["errorsRetention"].(model.RetentionPeriod), args["logsLimitCents"].(*int), args["logsRetention"].(model.RetentionPeriod)), true
 
 	case "Mutation.sendAdminWorkspaceInvite":
 		if e.complexity.Mutation.SendAdminWorkspaceInvite == nil {
@@ -7926,12 +7968,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Workspace.EligibleForTrialExtension(childComplexity), true
 
+	case "Workspace.errors_max_cents":
+		if e.complexity.Workspace.ErrorsMaxCents == nil {
+			break
+		}
+
+		return e.complexity.Workspace.ErrorsMaxCents(childComplexity), true
+
+	case "Workspace.errors_retention_period":
+		if e.complexity.Workspace.ErrorsRetentionPeriod == nil {
+			break
+		}
+
+		return e.complexity.Workspace.ErrorsRetentionPeriod(childComplexity), true
+
 	case "Workspace.id":
 		if e.complexity.Workspace.ID == nil {
 			break
 		}
 
 		return e.complexity.Workspace.ID(childComplexity), true
+
+	case "Workspace.logs_max_cents":
+		if e.complexity.Workspace.LogsMaxCents == nil {
+			break
+		}
+
+		return e.complexity.Workspace.LogsMaxCents(childComplexity), true
 
 	case "Workspace.name":
 		if e.complexity.Workspace.Name == nil {
@@ -7974,6 +8037,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Workspace.Secret(childComplexity), true
+
+	case "Workspace.sessions_max_cents":
+		if e.complexity.Workspace.SessionsMaxCents == nil {
+			break
+		}
+
+		return e.complexity.Workspace.SessionsMaxCents(childComplexity), true
 
 	case "Workspace.slack_channels":
 		if e.complexity.Workspace.SlackChannels == nil {
@@ -8320,6 +8390,9 @@ type BillingDetails {
 	sessionsOutOfQuota: Int64!
 	errorsMeter: Int64!
 	logsMeter: Int64!
+	sessionsDailyAverage: Float!
+	errorsDailyAverage: Float!
+	logsDailyAverage: Float!
 }
 
 type Invoice {
@@ -8368,6 +8441,7 @@ enum SubscriptionInterval {
 }
 
 enum RetentionPeriod {
+	ThirtyDays
 	ThreeMonths
 	SixMonths
 	TwelveMonths
@@ -8615,6 +8689,10 @@ type Workspace {
 	trial_extension_enabled: Boolean!
 	clearbit_enabled: Boolean!
 	retention_period: RetentionPeriod
+	errors_retention_period: RetentionPeriod
+	sessions_max_cents: Int
+	errors_max_cents: Int
+	logs_max_cents: Int
 }
 
 type Segment {
@@ -9895,6 +9973,15 @@ type Mutation {
 		retention_period: RetentionPeriod!
 	): String
 	updateBillingDetails(workspace_id: ID!): Boolean
+	saveBillingPlan(
+		workspace_id: ID!
+		sessionsLimitCents: Int
+		sessionsRetention: RetentionPeriod!
+		errorsLimitCents: Int
+		errorsRetention: RetentionPeriod!
+		logsLimitCents: Int
+		logsRetention: RetentionPeriod!
+	): Boolean
 	createSessionComment(
 		project_id: ID!
 		session_secure_id: String!
@@ -12003,6 +12090,75 @@ func (ec *executionContext) field_Mutation_requestAccess_args(ctx context.Contex
 		}
 	}
 	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_saveBillingPlan_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["sessionsLimitCents"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sessionsLimitCents"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sessionsLimitCents"] = arg1
+	var arg2 model.RetentionPeriod
+	if tmp, ok := rawArgs["sessionsRetention"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sessionsRetention"))
+		arg2, err = ec.unmarshalNRetentionPeriod2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sessionsRetention"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["errorsLimitCents"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorsLimitCents"))
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["errorsLimitCents"] = arg3
+	var arg4 model.RetentionPeriod
+	if tmp, ok := rawArgs["errorsRetention"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorsRetention"))
+		arg4, err = ec.unmarshalNRetentionPeriod2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["errorsRetention"] = arg4
+	var arg5 *int
+	if tmp, ok := rawArgs["logsLimitCents"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("logsLimitCents"))
+		arg5, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["logsLimitCents"] = arg5
+	var arg6 model.RetentionPeriod
+	if tmp, ok := rawArgs["logsRetention"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("logsRetention"))
+		arg6, err = ec.unmarshalNRetentionPeriod2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["logsRetention"] = arg6
 	return args, nil
 }
 
@@ -17534,6 +17690,138 @@ func (ec *executionContext) fieldContext_BillingDetails_logsMeter(ctx context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int64 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BillingDetails_sessionsDailyAverage(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BillingDetails_sessionsDailyAverage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionsDailyAverage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BillingDetails_sessionsDailyAverage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BillingDetails_errorsDailyAverage(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BillingDetails_errorsDailyAverage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorsDailyAverage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BillingDetails_errorsDailyAverage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _BillingDetails_logsDailyAverage(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_BillingDetails_logsDailyAverage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogsDailyAverage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_BillingDetails_logsDailyAverage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -31402,6 +31690,14 @@ func (ec *executionContext) fieldContext_Mutation_createWorkspace(ctx context.Co
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
 			case "retention_period":
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
+			case "errors_retention_period":
+				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "sessions_max_cents":
+				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
+			case "errors_max_cents":
+				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
+			case "logs_max_cents":
+				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -31570,6 +31866,14 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspace(ctx context.Cont
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
 			case "retention_period":
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
+			case "errors_retention_period":
+				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "sessions_max_cents":
+				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
+			case "errors_max_cents":
+				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
+			case "logs_max_cents":
+				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -32963,6 +33267,57 @@ func (ec *executionContext) fieldContext_Mutation_updateBillingDetails(ctx conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateBillingDetails_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_saveBillingPlan(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_saveBillingPlan(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SaveBillingPlan(rctx, fc.Args["workspace_id"].(int), fc.Args["sessionsLimitCents"].(*int), fc.Args["sessionsRetention"].(model.RetentionPeriod), fc.Args["errorsLimitCents"].(*int), fc.Args["errorsRetention"].(model.RetentionPeriod), fc.Args["logsLimitCents"].(*int), fc.Args["logsRetention"].(model.RetentionPeriod))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_saveBillingPlan(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_saveBillingPlan_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -35607,6 +35962,14 @@ func (ec *executionContext) fieldContext_Mutation_updateAllowMeterOverage(ctx co
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
 			case "retention_period":
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
+			case "errors_retention_period":
+				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "sessions_max_cents":
+				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
+			case "errors_max_cents":
+				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
+			case "logs_max_cents":
+				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -41280,6 +41643,12 @@ func (ec *executionContext) fieldContext_Query_billingDetailsForProject(ctx cont
 				return ec.fieldContext_BillingDetails_errorsMeter(ctx, field)
 			case "logsMeter":
 				return ec.fieldContext_BillingDetails_logsMeter(ctx, field)
+			case "sessionsDailyAverage":
+				return ec.fieldContext_BillingDetails_sessionsDailyAverage(ctx, field)
+			case "errorsDailyAverage":
+				return ec.fieldContext_BillingDetails_errorsDailyAverage(ctx, field)
+			case "logsDailyAverage":
+				return ec.fieldContext_BillingDetails_logsDailyAverage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type BillingDetails", field.Name)
 		},
@@ -41348,6 +41717,12 @@ func (ec *executionContext) fieldContext_Query_billingDetails(ctx context.Contex
 				return ec.fieldContext_BillingDetails_errorsMeter(ctx, field)
 			case "logsMeter":
 				return ec.fieldContext_BillingDetails_logsMeter(ctx, field)
+			case "sessionsDailyAverage":
+				return ec.fieldContext_BillingDetails_sessionsDailyAverage(ctx, field)
+			case "errorsDailyAverage":
+				return ec.fieldContext_BillingDetails_errorsDailyAverage(ctx, field)
+			case "logsDailyAverage":
+				return ec.fieldContext_BillingDetails_logsDailyAverage(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type BillingDetails", field.Name)
 		},
@@ -41686,6 +42061,14 @@ func (ec *executionContext) fieldContext_Query_workspaces(ctx context.Context, f
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
 			case "retention_period":
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
+			case "errors_retention_period":
+				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "sessions_max_cents":
+				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
+			case "errors_max_cents":
+				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
+			case "logs_max_cents":
+				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -41805,6 +42188,14 @@ func (ec *executionContext) fieldContext_Query_joinable_workspaces(ctx context.C
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
 			case "retention_period":
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
+			case "errors_retention_period":
+				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "sessions_max_cents":
+				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
+			case "errors_max_cents":
+				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
+			case "logs_max_cents":
+				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -42757,6 +43148,14 @@ func (ec *executionContext) fieldContext_Query_workspaceSuggestion(ctx context.C
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
 			case "retention_period":
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
+			case "errors_retention_period":
+				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "sessions_max_cents":
+				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
+			case "errors_max_cents":
+				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
+			case "logs_max_cents":
+				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -44154,6 +44553,14 @@ func (ec *executionContext) fieldContext_Query_workspace(ctx context.Context, fi
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
 			case "retention_period":
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
+			case "errors_retention_period":
+				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "sessions_max_cents":
+				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
+			case "errors_max_cents":
+				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
+			case "logs_max_cents":
+				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -44375,6 +44782,14 @@ func (ec *executionContext) fieldContext_Query_workspace_for_project(ctx context
 				return ec.fieldContext_Workspace_clearbit_enabled(ctx, field)
 			case "retention_period":
 				return ec.fieldContext_Workspace_retention_period(ctx, field)
+			case "errors_retention_period":
+				return ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+			case "sessions_max_cents":
+				return ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
+			case "errors_max_cents":
+				return ec.fieldContext_Workspace_errors_max_cents(ctx, field)
+			case "logs_max_cents":
+				return ec.fieldContext_Workspace_logs_max_cents(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Workspace", field.Name)
 		},
@@ -55620,6 +56035,170 @@ func (ec *executionContext) fieldContext_Workspace_retention_period(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _Workspace_errors_retention_period(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Workspace_errors_retention_period(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorsRetentionPeriod, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.RetentionPeriod)
+	fc.Result = res
+	return ec.marshalORetentionPeriod2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐRetentionPeriod(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Workspace_errors_retention_period(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type RetentionPeriod does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Workspace_sessions_max_cents(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Workspace_sessions_max_cents(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionsMaxCents, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Workspace_sessions_max_cents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Workspace_errors_max_cents(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Workspace_errors_max_cents(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorsMaxCents, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Workspace_errors_max_cents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Workspace_logs_max_cents(ctx context.Context, field graphql.CollectedField, obj *model1.Workspace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Workspace_logs_max_cents(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LogsMaxCents, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Workspace_logs_max_cents(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Workspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _WorkspaceAdminRole_admin(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceAdminRole) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_WorkspaceAdminRole_admin(ctx, field)
 	if err != nil {
@@ -60068,6 +60647,27 @@ func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "sessionsDailyAverage":
+
+			out.Values[i] = ec._BillingDetails_sessionsDailyAverage(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "errorsDailyAverage":
+
+			out.Values[i] = ec._BillingDetails_errorsDailyAverage(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "logsDailyAverage":
+
+			out.Values[i] = ec._BillingDetails_logsDailyAverage(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -63683,6 +64283,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateBillingDetails(ctx, field)
+			})
+
+		case "saveBillingPlan":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_saveBillingPlan(ctx, field)
 			})
 
 		case "createSessionComment":
@@ -69031,6 +69637,22 @@ func (ec *executionContext) _Workspace(ctx context.Context, sel ast.SelectionSet
 		case "retention_period":
 
 			out.Values[i] = ec._Workspace_retention_period(ctx, field, obj)
+
+		case "errors_retention_period":
+
+			out.Values[i] = ec._Workspace_errors_retention_period(ctx, field, obj)
+
+		case "sessions_max_cents":
+
+			out.Values[i] = ec._Workspace_sessions_max_cents(ctx, field, obj)
+
+		case "errors_max_cents":
+
+			out.Values[i] = ec._Workspace_errors_max_cents(ctx, field, obj)
+
+		case "logs_max_cents":
+
+			out.Values[i] = ec._Workspace_logs_max_cents(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

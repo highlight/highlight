@@ -6,8 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	github2 "github.com/google/go-github/v50/github"
-	"github.com/highlight-run/highlight/backend/integrations/github"
 	"io"
 	"math/big"
 	"net/http"
@@ -16,6 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	github2 "github.com/google/go-github/v50/github"
+	"github.com/highlight-run/highlight/backend/integrations/github"
 
 	"gorm.io/gorm/clause"
 

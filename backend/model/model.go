@@ -270,6 +270,9 @@ type Workspace struct {
 	MonthlyLogsLimit            *int
 	RetentionPeriod             *modelInputs.RetentionPeriod
 	ErrorsRetentionPeriod       *modelInputs.RetentionPeriod
+	SessionsMaxCents            *int
+	ErrorsMaxCents              *int
+	LogsMaxCents                *int
 	TrialEndDate                *time.Time `json:"trial_end_date"`
 	AllowMeterOverage           bool       `gorm:"default:true"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`

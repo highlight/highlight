@@ -1339,6 +1339,28 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 	return &model.T, nil
 }
 
+// SaveBillingPlan is the resolver for the saveBillingPlan field.
+func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention modelInputs.RetentionPeriod, errorsLimitCents *int, errorsRetention modelInputs.RetentionPeriod, logsLimitCents *int, logsRetention modelInputs.RetentionPeriod) (*bool, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in workspace")
+	}
+
+	if err := r.DB.Model(&workspace).
+		Select("sessions_max_cents", "retention_period", "errors_max_cents", "errors_retention_period", "logs_max_cents").
+		Updates(&model.Workspace{
+			SessionsMaxCents:      sessionsLimitCents,
+			RetentionPeriod:       &sessionsRetention,
+			ErrorsMaxCents:        errorsLimitCents,
+			ErrorsRetentionPeriod: &errorsRetention,
+			LogsMaxCents:          logsLimitCents,
+		}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating workspace")
+	}
+
+	return pointy.Bool(true), nil
+}
+
 // CreateSessionComment is the resolver for the createSessionComment field.
 func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID int, sessionSecureID string, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, sessionURL string, time float64, authorName string, sessionImage *string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType, tags []*modelInputs.SessionCommentTagInput, additionalContext *string) (*model.SessionComment, error) {
 	admin, isGuest := r.getCurrentAdminOrGuest(ctx)
@@ -3961,7 +3983,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 	}
 	errorGroupsOpensearchSearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("resolver.errorGroupsOpensearchSearchQuery"), tracer.Tag("project_id", projectID))
-	q := FormatErrorGroupsQuery(query, GetRetentionDate(workspace.RetentionPeriod))
+	q := FormatErrorGroupsQuery(query, GetRetentionDate(workspace.ErrorsRetentionPeriod))
 	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, q, options, &results)
 	errorGroupsOpensearchSearchSpan.Finish()
 
@@ -4013,7 +4035,7 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 		Aggregation:       GetDateHistogramAggregation(histogramOptions, "timestamp", nil),
 	}
 
-	q := FormatErrorInstancesQuery(query, GetRetentionDate(workspace.RetentionPeriod))
+	q := FormatErrorInstancesQuery(query, GetRetentionDate(workspace.ErrorsRetentionPeriod))
 	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
@@ -5485,6 +5507,9 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	var membersMeter int64
 	var errorsMeter int64
 	var logsMeter int64
+	var sessionsAvg float64
+	var errorsAvg float64
+	var logsAvg float64
 
 	g.Go(func() error {
 		sessionsMeter, err = pricing.GetWorkspaceSessionsMeter(ctx, r.DB, r.ClickhouseClient, workspace)
@@ -5516,6 +5541,21 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 			return e.Wrap(err, "error querying logs meter")
 		}
 		return nil
+	})
+
+	g.Go(func() error {
+		sessionsAvg, err = pricing.GetSessions7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
+	})
+
+	g.Go(func() error {
+		errorsAvg, err = pricing.GetErrors7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
+	})
+
+	g.Go(func() error {
+		logsAvg, err = pricing.GetLogs7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
 	})
 
 	// Waits for all goroutines to finish, then returns the first non-nil error (if any).
@@ -5555,10 +5595,13 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 			ErrorsLimit:  errorsLimit,
 			LogsLimit:    logsLimit,
 		},
-		Meter:        sessionsMeter,
-		MembersMeter: membersMeter,
-		ErrorsMeter:  errorsMeter,
-		LogsMeter:    logsMeter,
+		Meter:                sessionsMeter,
+		MembersMeter:         membersMeter,
+		ErrorsMeter:          errorsMeter,
+		LogsMeter:            logsMeter,
+		SessionsDailyAverage: sessionsAvg,
+		ErrorsDailyAverage:   errorsAvg,
+		LogsDailyAverage:     logsAvg,
 	}
 
 	return details, nil

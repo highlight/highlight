@@ -48,7 +48,7 @@ import { BILLING_PLANS } from './BillingPlanCard/BillingConfig'
 import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard'
 import { didUpgradePlan } from './utils/utils'
 
-const tryCastDate = (date: Maybe<string> | undefined) => {
+export const tryCastDate = (date: Maybe<string> | undefined) => {
 	if (date) {
 		return new Date(date)
 	} else {
@@ -113,7 +113,7 @@ export const useBillingHook = ({
 	}
 }
 
-const getStripePromiseOrNull = () => {
+export const getStripePromiseOrNull = () => {
 	const stripe_publishable_key = import.meta.env.REACT_APP_STRIPE_API_PK
 	if (stripe_publishable_key) {
 		return loadStripe(stripe_publishable_key)

@@ -985,6 +985,9 @@ query GetBillingDetails($workspace_id: ID!) {
 		membersMeter
 		errorsMeter
 		logsMeter
+		sessionsDailyAverage
+		errorsDailyAverage
+		logsDailyAverage
 	}
 	workspace(id: $workspace_id) {
 		id
@@ -994,6 +997,10 @@ query GetBillingDetails($workspace_id: ID!) {
 		allow_meter_overage
 		eligible_for_trial_extension
 		retention_period
+		errors_retention_period
+		sessions_max_cents
+		errors_max_cents
+		logs_max_cents
 	}
 }
 

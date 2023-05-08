@@ -111,11 +111,14 @@ export type AverageSessionLength = {
 
 export type BillingDetails = {
 	__typename?: 'BillingDetails'
+	errorsDailyAverage: Scalars['Float']
 	errorsMeter: Scalars['Int64']
+	logsDailyAverage: Scalars['Float']
 	logsMeter: Scalars['Int64']
 	membersMeter: Scalars['Int64']
 	meter: Scalars['Int64']
 	plan: Plan
+	sessionsDailyAverage: Scalars['Float']
 	sessionsOutOfQuota: Scalars['Int64']
 }
 
@@ -910,6 +913,7 @@ export type Mutation = {
 	replyToErrorComment?: Maybe<CommentReply>
 	replyToSessionComment?: Maybe<CommentReply>
 	requestAccess?: Maybe<Scalars['Boolean']>
+	saveBillingPlan?: Maybe<Scalars['Boolean']>
 	sendAdminWorkspaceInvite?: Maybe<Scalars['String']>
 	submitRegistrationForm?: Maybe<Scalars['Boolean']>
 	syncSlackIntegration: SlackSyncResponse
@@ -1252,6 +1256,16 @@ export type MutationReplyToSessionCommentArgs = {
 
 export type MutationRequestAccessArgs = {
 	project_id: Scalars['ID']
+}
+
+export type MutationSaveBillingPlanArgs = {
+	errorsLimitCents?: InputMaybe<Scalars['Int']>
+	errorsRetention: RetentionPeriod
+	logsLimitCents?: InputMaybe<Scalars['Int']>
+	logsRetention: RetentionPeriod
+	sessionsLimitCents?: InputMaybe<Scalars['Int']>
+	sessionsRetention: RetentionPeriod
+	workspace_id: Scalars['ID']
 }
 
 export type MutationSendAdminWorkspaceInviteArgs = {
@@ -2682,13 +2696,17 @@ export type Workspace = {
 	billing_period_end?: Maybe<Scalars['Timestamp']>
 	clearbit_enabled: Scalars['Boolean']
 	eligible_for_trial_extension: Scalars['Boolean']
+	errors_max_cents?: Maybe<Scalars['Int']>
+	errors_retention_period?: Maybe<RetentionPeriod>
 	id: Scalars['ID']
+	logs_max_cents?: Maybe<Scalars['Int']>
 	name: Scalars['String']
 	next_invoice_date?: Maybe<Scalars['Timestamp']>
 	plan_tier: Scalars['String']
 	projects: Array<Maybe<Project>>
 	retention_period?: Maybe<RetentionPeriod>
 	secret?: Maybe<Scalars['String']>
+	sessions_max_cents?: Maybe<Scalars['Int']>
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>
 	trial_end_date?: Maybe<Scalars['Timestamp']>

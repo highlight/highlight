@@ -361,6 +361,75 @@ export type CreateOrUpdateStripeSubscriptionMutationOptions =
 		Types.CreateOrUpdateStripeSubscriptionMutation,
 		Types.CreateOrUpdateStripeSubscriptionMutationVariables
 	>
+export const SaveBillingPlanDocument = gql`
+	mutation SaveBillingPlan(
+		$workspace_id: ID!
+		$sessionsLimitCents: Int
+		$sessionsRetention: RetentionPeriod!
+		$errorsLimitCents: Int
+		$errorsRetention: RetentionPeriod!
+		$logsLimitCents: Int
+		$logsRetention: RetentionPeriod!
+	) {
+		saveBillingPlan(
+			workspace_id: $workspace_id
+			sessionsLimitCents: $sessionsLimitCents
+			sessionsRetention: $sessionsRetention
+			errorsLimitCents: $errorsLimitCents
+			errorsRetention: $errorsRetention
+			logsLimitCents: $logsLimitCents
+			logsRetention: $logsRetention
+		)
+	}
+`
+export type SaveBillingPlanMutationFn = Apollo.MutationFunction<
+	Types.SaveBillingPlanMutation,
+	Types.SaveBillingPlanMutationVariables
+>
+
+/**
+ * __useSaveBillingPlanMutation__
+ *
+ * To run a mutation, you first call `useSaveBillingPlanMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSaveBillingPlanMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [saveBillingPlanMutation, { data, loading, error }] = useSaveBillingPlanMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      sessionsLimitCents: // value for 'sessionsLimitCents'
+ *      sessionsRetention: // value for 'sessionsRetention'
+ *      errorsLimitCents: // value for 'errorsLimitCents'
+ *      errorsRetention: // value for 'errorsRetention'
+ *      logsLimitCents: // value for 'logsLimitCents'
+ *      logsRetention: // value for 'logsRetention'
+ *   },
+ * });
+ */
+export function useSaveBillingPlanMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.SaveBillingPlanMutation,
+		Types.SaveBillingPlanMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.SaveBillingPlanMutation,
+		Types.SaveBillingPlanMutationVariables
+	>(SaveBillingPlanDocument, baseOptions)
+}
+export type SaveBillingPlanMutationHookResult = ReturnType<
+	typeof useSaveBillingPlanMutation
+>
+export type SaveBillingPlanMutationResult =
+	Apollo.MutationResult<Types.SaveBillingPlanMutation>
+export type SaveBillingPlanMutationOptions = Apollo.BaseMutationOptions<
+	Types.SaveBillingPlanMutation,
+	Types.SaveBillingPlanMutationVariables
+>
 export const UpdateBillingDetailsDocument = gql`
 	mutation UpdateBillingDetails($workspace_id: ID!) {
 		updateBillingDetails(workspace_id: $workspace_id)
@@ -7699,6 +7768,9 @@ export const GetBillingDetailsDocument = gql`
 			membersMeter
 			errorsMeter
 			logsMeter
+			sessionsDailyAverage
+			errorsDailyAverage
+			logsDailyAverage
 		}
 		workspace(id: $workspace_id) {
 			id
@@ -7708,6 +7780,10 @@ export const GetBillingDetailsDocument = gql`
 			allow_meter_overage
 			eligible_for_trial_extension
 			retention_period
+			errors_retention_period
+			sessions_max_cents
+			errors_max_cents
+			logs_max_cents
 		}
 	}
 `

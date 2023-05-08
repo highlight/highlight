@@ -24,3 +24,15 @@ export const progressBar = style({
 export const progressBarOverage = style({
 	backgroundColor: vars.color.y11,
 })
+
+export const productSelections = style({
+	width: 344,
+})
+
+export const predictedCost = style({
+	width: 216,
+})
+
+export const costBreakdown = style({
+	backgroundColor: vars.color.n2,
+})

@@ -49,12 +49,26 @@ func GetWorkspaceMembersMeter(DB *gorm.DB, workspaceID int) int64 {
 	return DB.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Association("Admins").Count()
 }
 
+func GetSessions7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (float64, error) {
+	var avg float64
+	if err := DB.Raw(`
+			SELECT COALESCE(AVG(count), 0) as trailingAvg
+			FROM daily_session_counts_view
+			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=?)
+			AND date >= now() - INTERVAL '8 days'
+			AND date < now() - INTERVAL '1 day'`, workspace.ID).
+		Scan(&avg).Error; err != nil {
+		return 0, e.Wrap(err, "error querying for session meter")
+	}
+	return avg, nil
+}
+
 func GetWorkspaceSessionsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
 	var meter int64
 	if err := DB.Raw(`
 			SELECT COALESCE(SUM(count), 0) as currentPeriodSessionCount
 			FROM daily_session_counts_view
-			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=? AND free_tier = false)
+			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=?)
 			AND date >= (
 				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
 				FROM workspaces
@@ -69,12 +83,26 @@ func GetWorkspaceSessionsMeter(ctx context.Context, DB *gorm.DB, ccClient *click
 	return meter, nil
 }
 
+func GetErrors7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (float64, error) {
+	var avg float64
+	if err := DB.Raw(`
+			SELECT COALESCE(AVG(count), 0) as trailingAvg
+			FROM daily_error_counts_view
+			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=?)
+			AND date >= now() - INTERVAL '8 days'
+			AND date < now() - INTERVAL '1 day'`, workspace.ID).
+		Scan(&avg).Error; err != nil {
+		return 0, e.Wrap(err, "error querying for session meter")
+	}
+	return avg, nil
+}
+
 func GetWorkspaceErrorsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
 	var meter int64
 	if err := DB.Raw(`
 			SELECT COALESCE(SUM(count), 0) as currentPeriodErrorsCount
 			FROM daily_error_counts_view
-			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=? AND free_tier = false)
+			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=?)
 			AND date >= (
 				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
 				FROM workspaces
@@ -87,6 +115,16 @@ func GetWorkspaceErrorsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickho
 		return 0, e.Wrap(err, "error querying for session meter")
 	}
 	return meter, nil
+}
+
+func GetLogs7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (float64, error) {
+	startDate := time.Now().AddDate(0, 0, -8)
+	endDate := time.Now().AddDate(0, 0, -1)
+	projectIds := lo.Map(workspace.Projects, func(p model.Project, _ int) int {
+		return p.ID
+	})
+
+	return ccClient.ReadLogsDailyAverage(ctx, projectIds, backend.DateRangeRequiredInput{StartDate: startDate, EndDate: endDate})
 }
 
 func GetWorkspaceLogsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
@@ -114,7 +152,7 @@ func GetWorkspaceLogsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhous
 		return p.ID
 	})
 
-	count, err := ccClient.ReadLogsDailyCount(ctx, projectIds, backend.DateRangeRequiredInput{StartDate: startDate, EndDate: endDate})
+	count, err := ccClient.ReadLogsDailySum(ctx, projectIds, backend.DateRangeRequiredInput{StartDate: startDate, EndDate: endDate})
 	if err != nil {
 		return 0, err
 	}
