@@ -4687,7 +4687,6 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 		return nil, e.Wrap(err, "error querying error setup event")
 	}
 
-	fmt.Printf("setupEvent: %+v\n", setupEvent)
 	if setupEvent.ID != 0 {
 		integration.Integrated = true
 		integration.CreatedAt = &setupEvent.CreatedAt
