@@ -1083,7 +1083,7 @@ func (w *Worker) Start(ctx context.Context) {
 			sessionsSpan.Finish()
 			continue
 		}
-		rand.Seed(time.Now().UnixNano())
+		rand.New(rand.NewSource(time.Now().UnixNano()))
 		rand.Shuffle(len(sessions), func(i, j int) {
 			sessions[i], sessions[j] = sessions[j], sessions[i]
 		})

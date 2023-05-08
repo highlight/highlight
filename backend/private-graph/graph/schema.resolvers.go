@@ -4832,7 +4832,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 
 	if projectID == 0 {
 		// Make error distribution random for demo org so it looks pretty
-		rand.Seed(int64(errGroup.ID))
+		rand.New(rand.NewSource(int64(errGroup.ID)))
 		var dists []int64
 		for i := 0; i <= dateOffset; i++ {
 			t := int64(rand.Intn(10) + 1)
@@ -4856,7 +4856,7 @@ func (r *queryResolver) ErrorDistribution(ctx context.Context, projectID int, er
 
 	if projectID == 0 {
 		// Make error distribution random for demo org so it looks pretty
-		rand.Seed(int64(errGroup.ID))
+		rand.New(rand.NewSource(int64(errGroup.ID)))
 		dists := []*modelInputs.ErrorDistributionItem{}
 		for i := 0; i <= 3; i++ {
 			t := int64(rand.Intn(10) + 1)
