@@ -27,7 +27,7 @@ const FullCommentList = ({
 
 	const loading = isLoadingComments || isLoadingSlack
 	return (
-		<Box display="flex" flexDirection="column" height="full" p="8">
+		<Box display="flex" flexDirection="column" height="full">
 			{loading && <LoadingBox />}
 			{!loading && comments.length === 0 ? (
 				<div className={styles.noCommentsContainer}>
@@ -40,12 +40,21 @@ const FullCommentList = ({
 			) : (
 				<>
 					<Virtuoso
+						className={styledVerticalScrollbar}
 						ref={virtuoso}
 						overscan={500}
 						data={comments}
-						className={styledVerticalScrollbar}
 						itemContent={(index, comment: any) => (
-							<Box key={comment.id || index}>
+							<Box
+								key={comment.id || index}
+								px="8"
+								mt={index === 0 ? '8' : undefined}
+								mb={
+									index === comments.length - 1
+										? '8'
+										: undefined
+								}
+							>
 								{commentRender(comment)}
 							</Box>
 						)}
