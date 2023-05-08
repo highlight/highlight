@@ -364,6 +364,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			`missing required profile image for blog '${data.post.slug}', author: ${data.post.author?.profilePhoto?.url}.`,
 		)
 	}
+	console.log(data.post.richcontent.markdown)
 
 	return {
 		props: {
