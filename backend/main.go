@@ -218,7 +218,7 @@ func validateOrigin(_ *http.Request, origin string) bool {
 var defaultPort = "8082"
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	ctx := context.TODO()
 
 	// setup highlight
