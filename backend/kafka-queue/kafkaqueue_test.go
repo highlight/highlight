@@ -25,7 +25,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 	log.SetLevel(log.DebugLevel)
 	log.WithContext(ctx).Infof("Starting benchmark")
 
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	writer := New(ctx, "dev", Producer)
 	reader := New(ctx, "dev", Consumer)
