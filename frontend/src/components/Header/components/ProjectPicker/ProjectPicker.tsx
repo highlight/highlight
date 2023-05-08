@@ -98,50 +98,52 @@ const ProjectPicker = () => {
 					>
 						<Text lines="1">{headerDisplayValue}</Text>
 					</Menu.Button>
-					<Menu.List>
-						{projectOptions}
-						{projectId && !isInDemoProject && (
-							<>
-								<Menu.Divider />
-								<Link
-									to={`/w/${currentWorkspace?.id}/new`}
-									className={linkStyle}
-								>
-									<Menu.Item>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
-										>
-											<IconSolidPlusSm
-												size={14}
-												color={vars.color.n9}
-											/>
-											Create new project
-										</Box>
-									</Menu.Item>
-								</Link>
-								<Link
-									to={`/${projectId}/settings`}
-									className={linkStyle}
-								>
-									<Menu.Item>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
-										>
-											<IconSolidCog
-												size={14}
-												color={vars.color.n9}
-											/>
-											Project settings
-										</Box>
-									</Menu.Item>
-								</Link>
-							</>
-						)}
-					</Menu.List>
+					{!isInDemoProject && (
+						<Menu.List>
+							{projectOptions}
+							{projectId && (
+								<>
+									<Menu.Divider />
+									<Link
+										to={`/w/${currentWorkspace?.id}/new`}
+										className={linkStyle}
+									>
+										<Menu.Item>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconSolidPlusSm
+													size={14}
+													color={vars.color.n9}
+												/>
+												Create new project
+											</Box>
+										</Menu.Item>
+									</Link>
+									<Link
+										to={`/${projectId}/settings`}
+										className={linkStyle}
+									>
+										<Menu.Item>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconSolidCog
+													size={14}
+													color={vars.color.n9}
+												/>
+												Project settings
+											</Box>
+										</Menu.Item>
+									</Link>
+								</>
+							)}
+						</Menu.List>
+					)}
 				</Menu>
 			</div>
 		</div>
