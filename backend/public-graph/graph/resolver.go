@@ -2963,7 +2963,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
 				Select("ExcludedReason").
 				Updates(updates).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error updating session excluded reason"))
 				return err
 			}
 		}
