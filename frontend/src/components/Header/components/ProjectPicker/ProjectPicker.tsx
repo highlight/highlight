@@ -16,6 +16,7 @@ import { useParams } from '@util/react-router/useParams'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
 import { useProjectId } from '@/hooks/useProjectId'
 
 import { useApplicationContext } from '../../../../routers/ProjectRouter/context/ApplicationContext'
@@ -25,6 +26,7 @@ const ProjectPicker = () => {
 		useApplicationContext()
 	const { workspace_id } = useParams<{ workspace_id: string }>()
 	const { projectId } = useProjectId()
+	const { isSettings } = useIsSettingsPath()
 	const isWorkspaceLevel = workspace_id !== undefined
 	const navigate = useNavigate()
 	const isInDemoProject = projectId === DEMO_WORKSPACE_PROXY_APPLICATION_ID
@@ -74,11 +76,12 @@ const ProjectPicker = () => {
 		  })
 		: []
 
-	const headerDisplayValue = isWorkspaceLevel
-		? 'Back to Project'
-		: isInDemoProject
-		? DEMO_PROJECT_NAME
-		: currentProject?.name
+	const headerDisplayValue =
+		isWorkspaceLevel || isSettings
+			? 'Back to Project'
+			: isInDemoProject
+			? DEMO_PROJECT_NAME
+			: currentProject?.name
 
 	return (
 		<div>
@@ -89,7 +92,7 @@ const ProjectPicker = () => {
 						emphasis="medium"
 						size="small"
 						iconLeft={
-							isWorkspaceLevel ? (
+							isWorkspaceLevel || isSettings ? (
 								<IconSolidArrowSmLeft size={14} />
 							) : (
 								<IconSolidBriefcase size={14} />
@@ -100,7 +103,7 @@ const ProjectPicker = () => {
 					</Menu.Button>
 					<Menu.List>
 						{projectOptions}
-						{projectId && !isInDemoProject && (
+						{projectId && !isInDemoProject && !isSettings && (
 							<>
 								<Menu.Divider />
 								<Link
@@ -122,7 +125,7 @@ const ProjectPicker = () => {
 									</Menu.Item>
 								</Link>
 								<Link
-									to={`/${projectId}/settings`}
+									to={`/${projectId}/settings/recording`}
 									className={linkStyle}
 								>
 									<Menu.Item>

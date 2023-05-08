@@ -8,12 +8,13 @@ import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
 import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
 import LogsPage from '@pages/LogsPage/LogsPage'
 import PlayerPage from '@pages/Player/PlayerPage'
-import ProjectSettings from '@pages/ProjectSettings/ProjectSettings'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { SetupRouter } from '@pages/Setup/SetupRouter/SetupRouter'
 import { usePreloadErrors, usePreloadSessions } from '@util/preload'
 import React, { Suspense } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+
+import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
 
 const Buttons = React.lazy(() => import('../../pages/Buttons/Buttons'))
 const HitTargets = React.lazy(() => import('../../pages/Buttons/HitTargets'))
@@ -44,10 +45,7 @@ const ApplicationRouter: React.FC = () => {
 			{isLoggedIn ? (
 				<>
 					<Route path="logs/:log_cursor?" element={<LogsPage />} />
-					<Route
-						path="settings/:tab?"
-						element={<ProjectSettings />}
-					/>
+					<Route path="settings/*" element={<SettingsRouter />} />
 					<Route path="alerts/*" element={<AlertsRouter />} />
 					<Route path="alerts/logs/*" element={<LogAlertsRouter />} />
 
