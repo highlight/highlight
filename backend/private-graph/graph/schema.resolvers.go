@@ -5889,9 +5889,9 @@ func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int,
 		func(key string, idx int) bool { return len(key) > 0 }), nil
 }
 
-// We intentionally don't allow access to this in demo to not leak our Slack channels.
 // SlackChannelSuggestion is the resolver for the slack_channel_suggestion field.
 func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, projectID int) ([]*modelInputs.SanitizedSlackChannel, error) {
+	// We intentionally don't allow access to this in demo to not leak our Slack channels.
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting project")
