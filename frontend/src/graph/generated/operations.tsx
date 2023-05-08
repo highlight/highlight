@@ -2741,61 +2741,88 @@ export type GetErrorObjectForLogQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
+	Types.ErrorObject,
+	| 'id'
+	| 'created_at'
+	| 'project_id'
+	| 'session_id'
+	| 'trace_id'
+	| 'span_id'
+	| 'log_cursor'
+	| 'error_group_id'
+	| 'error_group_secure_id'
+	| 'event'
+	| 'type'
+	| 'url'
+	| 'source'
+	| 'lineNumber'
+	| 'columnNumber'
+	| 'stack_trace'
+	| 'timestamp'
+	| 'payload'
+	| 'request_id'
+	| 'os'
+	| 'browser'
+	| 'environment'
+> & {
+		session?: Types.Maybe<
+			{ __typename?: 'Session' } & Pick<
+				Types.Session,
+				| 'identifier'
+				| 'fingerprint'
+				| 'secure_id'
+				| 'city'
+				| 'state'
+				| 'country'
+				| 'user_properties'
+				| 'processed'
+				| 'excluded'
+			>
+		>
+		structured_stack_trace: Array<
+			Types.Maybe<
+				{ __typename?: 'ErrorTrace' } & Pick<
+					Types.ErrorTrace,
+					| 'fileName'
+					| 'lineNumber'
+					| 'functionName'
+					| 'columnNumber'
+					| 'lineContent'
+					| 'linesBefore'
+					| 'linesAfter'
+					| 'error'
+				> & {
+						sourceMappingErrorMetadata?: Types.Maybe<
+							{ __typename?: 'SourceMappingError' } & Pick<
+								Types.SourceMappingError,
+								| 'errorCode'
+								| 'stackTraceFileURL'
+								| 'sourcemapFetchStrategy'
+								| 'sourceMapURL'
+								| 'minifiedFetchStrategy'
+								| 'actualMinifiedFetchedPath'
+								| 'minifiedLineNumber'
+								| 'minifiedColumnNumber'
+								| 'actualSourcemapFetchedPath'
+								| 'sourcemapFileSize'
+								| 'minifiedFileSize'
+								| 'mappedLineNumber'
+								| 'mappedColumnNumber'
+							>
+						>
+					}
+			>
+		>
+	}
+
 export type GetErrorObjectQueryVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 }>
 
 export type GetErrorObjectQuery = { __typename?: 'Query' } & {
 	error_object?: Types.Maybe<
-		{ __typename?: 'ErrorObject' } & Pick<
-			Types.ErrorObject,
-			| 'id'
-			| 'created_at'
-			| 'project_id'
-			| 'error_group_id'
-			| 'error_group_secure_id'
-			| 'event'
-			| 'type'
-			| 'url'
-			| 'source'
-			| 'lineNumber'
-			| 'columnNumber'
-			| 'stack_trace'
-			| 'timestamp'
-			| 'payload'
-			| 'request_id'
-			| 'os'
-			| 'browser'
-			| 'environment'
-		> & {
-				session?: Types.Maybe<
-					{ __typename?: 'Session' } & Pick<
-						Types.Session,
-						| 'identifier'
-						| 'fingerprint'
-						| 'secure_id'
-						| 'city'
-						| 'state'
-						| 'country'
-						| 'user_properties'
-					>
-				>
-				structured_stack_trace: Array<
-					Types.Maybe<
-						{ __typename?: 'ErrorTrace' } & Pick<
-							Types.ErrorTrace,
-							| 'fileName'
-							| 'lineNumber'
-							| 'functionName'
-							| 'columnNumber'
-							| 'lineContent'
-							| 'linesBefore'
-							| 'linesAfter'
-							| 'error'
-						>
-					>
-				>
-			}
+		{ __typename?: 'ErrorObject' } & ErrorObjectFragment
 	>
 }
 
@@ -2810,80 +2837,9 @@ export type GetErrorInstanceQuery = { __typename?: 'Query' } & {
 			Types.ErrorInstance,
 			'next_id' | 'previous_id'
 		> & {
-				error_object: { __typename?: 'ErrorObject' } & Pick<
-					Types.ErrorObject,
-					| 'id'
-					| 'created_at'
-					| 'project_id'
-					| 'session_id'
-					| 'trace_id'
-					| 'span_id'
-					| 'log_cursor'
-					| 'error_group_id'
-					| 'error_group_secure_id'
-					| 'event'
-					| 'type'
-					| 'url'
-					| 'source'
-					| 'lineNumber'
-					| 'columnNumber'
-					| 'stack_trace'
-					| 'timestamp'
-					| 'payload'
-					| 'request_id'
-					| 'os'
-					| 'browser'
-					| 'environment'
-				> & {
-						session?: Types.Maybe<
-							{ __typename?: 'Session' } & Pick<
-								Types.Session,
-								| 'identifier'
-								| 'fingerprint'
-								| 'secure_id'
-								| 'city'
-								| 'state'
-								| 'country'
-								| 'user_properties'
-							>
-						>
-						structured_stack_trace: Array<
-							Types.Maybe<
-								{ __typename?: 'ErrorTrace' } & Pick<
-									Types.ErrorTrace,
-									| 'fileName'
-									| 'lineNumber'
-									| 'functionName'
-									| 'columnNumber'
-									| 'lineContent'
-									| 'linesBefore'
-									| 'linesAfter'
-									| 'error'
-								> & {
-										sourceMappingErrorMetadata?: Types.Maybe<
-											{
-												__typename?: 'SourceMappingError'
-											} & Pick<
-												Types.SourceMappingError,
-												| 'errorCode'
-												| 'stackTraceFileURL'
-												| 'sourcemapFetchStrategy'
-												| 'sourceMapURL'
-												| 'minifiedFetchStrategy'
-												| 'actualMinifiedFetchedPath'
-												| 'minifiedLineNumber'
-												| 'minifiedColumnNumber'
-												| 'actualSourcemapFetchedPath'
-												| 'sourcemapFileSize'
-												| 'minifiedFileSize'
-												| 'mappedLineNumber'
-												| 'mappedColumnNumber'
-											>
-										>
-									}
-							>
-						>
-					}
+				error_object: {
+					__typename?: 'ErrorObject'
+				} & ErrorObjectFragment
 			}
 	>
 }
@@ -4525,5 +4481,6 @@ export const namedOperations = {
 		SessionPayloadFragment: 'SessionPayloadFragment' as const,
 		SessionAlertFragment: 'SessionAlertFragment' as const,
 		DiscordChannelFragment: 'DiscordChannelFragment' as const,
+		ErrorObject: 'ErrorObject' as const,
 	},
 }
