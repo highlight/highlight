@@ -5,7 +5,7 @@ export const installSdk: QuickStartStep = {
 	title: 'Install the Highlight Ruby SDK.',
 	content: 'Add Highlight to your Gemfile and install with Bundler.',
 	code: {
-		text: `gem "highlight_io"
+		text: `gem "highlight"
 
 bundle install`,
 		language: 'bash',
