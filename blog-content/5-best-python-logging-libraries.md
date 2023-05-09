@@ -1,3 +1,19 @@
+---
+title: The 5 Best Logging Libraries for Python
+createdAt: 2023-04-04T12:00:00Z
+readingTime: 8
+authorFirstName: Vadim
+authorLastName: Korolik
+authorTitle: CTO @ Highlight 
+authorTwitter: 'https://twitter.com/vkorolik'
+authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
+authorGithub: 'https://github.com/Vadman97'
+authorWebsite: 'https://vadweb.us'
+authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
+tags: Developer Tooling
+metaTitle: The 5 Best Logging Libraries for Python
+---
+
 When a deployed application fails unexpectedly in production, it can be difficult to pinpoint where, when, or why the problem occurred. To remedy this, you can configure logging in to your application to keep track of activities in files or send them to a [monitoring tool](https://www.highlight.io/blog/what-is-frontend-monitoring). These logs function as an audit trail that can tell developers the state of application before the an issue arose, making it easier to debug the issue. In addition, logging also gives product teams insights into how users are using the application, which can help them make better decisions for the application's user experience.
 
 Python ships with a logging library, and the community also offers third-party libraries that you can use for logging.

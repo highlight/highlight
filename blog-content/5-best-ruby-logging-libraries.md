@@ -1,3 +1,19 @@
+---
+title: The 5 Best Logging Libraries for Ruby
+createdAt: 2023-04-04T12:00:00Z
+readingTime: 8
+authorFirstName: Vadim
+authorLastName: Korolik
+authorTitle: CTO @ Highlight 
+authorTwitter: 'https://twitter.com/vkorolik'
+authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
+authorGithub: 'https://github.com/Vadman97'
+authorWebsite: 'https://vadweb.us'
+authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
+tags: Developer Tooling
+metaTitle: The 5 Best Logging Libraries for Ruby
+---
+
 Logging allows you to record important activities on your application to persisting storages, such as files, emails, or a [monitoring tool](https://www.highlight.io/blog/what-is-frontend-monitoring). This creates an audit trail that documents the state of your application before something goes wrong. The logs can help developers during debugging or even product teams to learn how users are using the application to create better experiences.
 
 [Ruby](https://www.ruby-lang.org/en/) has a built-in logging library, as well as a plethora of third-party logging libraries to choose from.
