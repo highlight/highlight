@@ -86,7 +86,12 @@
 		"backend/payload/*": true,
 		"**/yarn-error.log": true
 	},
-	"cSpell.words": ["autoinject", "Autoinjected", "Blocklist", "interactable"],
+	"cSpell.words": [
+		"autoinject",
+		"Autoinjected",
+		"Blocklist",
+		"interactable"
+	],
 	"[yaml]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
@@ -103,5 +108,6 @@
 	"editor.wordWrap": "wordWrapColumn",
 	"[css]": {
 		"editor.defaultFormatter": "vscode.css-language-features"
-	}
+	},
+	"typescript.tsdk": "node_modules/typescript/lib"
 }

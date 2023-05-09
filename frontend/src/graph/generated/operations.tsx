@@ -266,6 +266,20 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type EditProjectFilterSettingsMutationVariables = Types.Exact<{
+	projectId: Types.Scalars['ID']
+	filterSessionsWithoutError: Types.Scalars['Boolean']
+}>
+
+export type EditProjectFilterSettingsMutation = { __typename?: 'Mutation' } & {
+	editProjectFilterSettings?: Types.Maybe<
+		{ __typename?: 'ProjectFilterSettings' } & Pick<
+			Types.ProjectFilterSettings,
+			'id' | 'filterSessionsWithoutError'
+		>
+	>
+}
+
 export type DeleteProjectMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 }>
@@ -1745,54 +1759,6 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetNotificationsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type GetNotificationsQuery = { __typename?: 'Query' } & {
-	session_comments_for_project: Array<
-		Types.Maybe<
-			{ __typename?: 'SessionComment' } & Pick<
-				Types.SessionComment,
-				| 'id'
-				| 'timestamp'
-				| 'updated_at'
-				| 'session_id'
-				| 'session_secure_id'
-				| 'text'
-				| 'type'
-				| 'metadata'
-				| 'tags'
-			> & {
-					author?: Types.Maybe<
-						{ __typename?: 'SanitizedAdmin' } & Pick<
-							Types.SanitizedAdmin,
-							'id' | 'name' | 'email' | 'photo_url'
-						>
-					>
-				}
-		>
-	>
-	error_comments_for_project: Array<
-		Types.Maybe<
-			{ __typename?: 'ErrorComment' } & Pick<
-				Types.ErrorComment,
-				| 'id'
-				| 'updated_at'
-				| 'project_id'
-				| 'text'
-				| 'error_id'
-				| 'error_secure_id'
-			> & {
-					author: { __typename?: 'SanitizedAdmin' } & Pick<
-						Types.SanitizedAdmin,
-						'id' | 'name' | 'email' | 'photo_url'
-					>
-				}
-		>
-	>
-}
-
 export type GetSessionCommentsForAdminQueryVariables = Types.Exact<{
 	[key: string]: never
 }>
@@ -2775,61 +2741,88 @@ export type GetErrorObjectForLogQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
+	Types.ErrorObject,
+	| 'id'
+	| 'created_at'
+	| 'project_id'
+	| 'session_id'
+	| 'trace_id'
+	| 'span_id'
+	| 'log_cursor'
+	| 'error_group_id'
+	| 'error_group_secure_id'
+	| 'event'
+	| 'type'
+	| 'url'
+	| 'source'
+	| 'lineNumber'
+	| 'columnNumber'
+	| 'stack_trace'
+	| 'timestamp'
+	| 'payload'
+	| 'request_id'
+	| 'os'
+	| 'browser'
+	| 'environment'
+> & {
+		session?: Types.Maybe<
+			{ __typename?: 'Session' } & Pick<
+				Types.Session,
+				| 'identifier'
+				| 'fingerprint'
+				| 'secure_id'
+				| 'city'
+				| 'state'
+				| 'country'
+				| 'user_properties'
+				| 'processed'
+				| 'excluded'
+			>
+		>
+		structured_stack_trace: Array<
+			Types.Maybe<
+				{ __typename?: 'ErrorTrace' } & Pick<
+					Types.ErrorTrace,
+					| 'fileName'
+					| 'lineNumber'
+					| 'functionName'
+					| 'columnNumber'
+					| 'lineContent'
+					| 'linesBefore'
+					| 'linesAfter'
+					| 'error'
+				> & {
+						sourceMappingErrorMetadata?: Types.Maybe<
+							{ __typename?: 'SourceMappingError' } & Pick<
+								Types.SourceMappingError,
+								| 'errorCode'
+								| 'stackTraceFileURL'
+								| 'sourcemapFetchStrategy'
+								| 'sourceMapURL'
+								| 'minifiedFetchStrategy'
+								| 'actualMinifiedFetchedPath'
+								| 'minifiedLineNumber'
+								| 'minifiedColumnNumber'
+								| 'actualSourcemapFetchedPath'
+								| 'sourcemapFileSize'
+								| 'minifiedFileSize'
+								| 'mappedLineNumber'
+								| 'mappedColumnNumber'
+							>
+						>
+					}
+			>
+		>
+	}
+
 export type GetErrorObjectQueryVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 }>
 
 export type GetErrorObjectQuery = { __typename?: 'Query' } & {
 	error_object?: Types.Maybe<
-		{ __typename?: 'ErrorObject' } & Pick<
-			Types.ErrorObject,
-			| 'id'
-			| 'created_at'
-			| 'project_id'
-			| 'error_group_id'
-			| 'error_group_secure_id'
-			| 'event'
-			| 'type'
-			| 'url'
-			| 'source'
-			| 'lineNumber'
-			| 'columnNumber'
-			| 'stack_trace'
-			| 'timestamp'
-			| 'payload'
-			| 'request_id'
-			| 'os'
-			| 'browser'
-			| 'environment'
-		> & {
-				session?: Types.Maybe<
-					{ __typename?: 'Session' } & Pick<
-						Types.Session,
-						| 'identifier'
-						| 'fingerprint'
-						| 'secure_id'
-						| 'city'
-						| 'state'
-						| 'country'
-						| 'user_properties'
-					>
-				>
-				structured_stack_trace: Array<
-					Types.Maybe<
-						{ __typename?: 'ErrorTrace' } & Pick<
-							Types.ErrorTrace,
-							| 'fileName'
-							| 'lineNumber'
-							| 'functionName'
-							| 'columnNumber'
-							| 'lineContent'
-							| 'linesBefore'
-							| 'linesAfter'
-							| 'error'
-						>
-					>
-				>
-			}
+		{ __typename?: 'ErrorObject' } & ErrorObjectFragment
 	>
 }
 
@@ -2844,80 +2837,9 @@ export type GetErrorInstanceQuery = { __typename?: 'Query' } & {
 			Types.ErrorInstance,
 			'next_id' | 'previous_id'
 		> & {
-				error_object: { __typename?: 'ErrorObject' } & Pick<
-					Types.ErrorObject,
-					| 'id'
-					| 'created_at'
-					| 'project_id'
-					| 'session_id'
-					| 'trace_id'
-					| 'span_id'
-					| 'log_cursor'
-					| 'error_group_id'
-					| 'error_group_secure_id'
-					| 'event'
-					| 'type'
-					| 'url'
-					| 'source'
-					| 'lineNumber'
-					| 'columnNumber'
-					| 'stack_trace'
-					| 'timestamp'
-					| 'payload'
-					| 'request_id'
-					| 'os'
-					| 'browser'
-					| 'environment'
-				> & {
-						session?: Types.Maybe<
-							{ __typename?: 'Session' } & Pick<
-								Types.Session,
-								| 'identifier'
-								| 'fingerprint'
-								| 'secure_id'
-								| 'city'
-								| 'state'
-								| 'country'
-								| 'user_properties'
-							>
-						>
-						structured_stack_trace: Array<
-							Types.Maybe<
-								{ __typename?: 'ErrorTrace' } & Pick<
-									Types.ErrorTrace,
-									| 'fileName'
-									| 'lineNumber'
-									| 'functionName'
-									| 'columnNumber'
-									| 'lineContent'
-									| 'linesBefore'
-									| 'linesAfter'
-									| 'error'
-								> & {
-										sourceMappingErrorMetadata?: Types.Maybe<
-											{
-												__typename?: 'SourceMappingError'
-											} & Pick<
-												Types.SourceMappingError,
-												| 'errorCode'
-												| 'stackTraceFileURL'
-												| 'sourcemapFetchStrategy'
-												| 'sourceMapURL'
-												| 'minifiedFetchStrategy'
-												| 'actualMinifiedFetchedPath'
-												| 'minifiedLineNumber'
-												| 'minifiedColumnNumber'
-												| 'actualSourcemapFetchedPath'
-												| 'sourcemapFileSize'
-												| 'minifiedFileSize'
-												| 'mappedLineNumber'
-												| 'mappedColumnNumber'
-											>
-										>
-									}
-							>
-						>
-					}
+				error_object: {
+					__typename?: 'ErrorObject'
+				} & ErrorObjectFragment
 			}
 	>
 }
@@ -4330,6 +4252,19 @@ export type GetLogsErrorObjectsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetProjectFilterSettingsQueryVariables = Types.Exact<{
+	projectId: Types.Scalars['ID']
+}>
+
+export type GetProjectFilterSettingsQuery = { __typename?: 'Query' } & {
+	projectFilterSettings?: Types.Maybe<
+		{ __typename?: 'ProjectFilterSettings' } & Pick<
+			Types.ProjectFilterSettings,
+			'id' | 'filterSessionsWithoutError'
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4343,7 +4278,6 @@ export const namedOperations = {
 		GetWorkspaceAdminsByProjectId: 'GetWorkspaceAdminsByProjectId' as const,
 		GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,
 		GetSessionComments: 'GetSessionComments' as const,
-		GetNotifications: 'GetNotifications' as const,
 		GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
 		isSessionPending: 'isSessionPending' as const,
 		GetAccounts: 'GetAccounts' as const,
@@ -4459,6 +4393,7 @@ export const namedOperations = {
 		GetLogsKeys: 'GetLogsKeys' as const,
 		GetLogsKeyValues: 'GetLogsKeyValues' as const,
 		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
+		GetProjectFilterSettings: 'GetProjectFilterSettings' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -4486,6 +4421,7 @@ export const namedOperations = {
 		CreateAdmin: 'CreateAdmin' as const,
 		CreateWorkspace: 'CreateWorkspace' as const,
 		EditProject: 'EditProject' as const,
+		EditProjectFilterSettings: 'EditProjectFilterSettings' as const,
 		DeleteProject: 'DeleteProject' as const,
 		EditWorkspace: 'EditWorkspace' as const,
 		DeleteSegment: 'DeleteSegment' as const,
@@ -4545,5 +4481,6 @@ export const namedOperations = {
 		SessionPayloadFragment: 'SessionPayloadFragment' as const,
 		SessionAlertFragment: 'SessionAlertFragment' as const,
 		DiscordChannelFragment: 'DiscordChannelFragment' as const,
+		ErrorObject: 'ErrorObject' as const,
 	},
 }

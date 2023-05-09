@@ -1,6 +1,6 @@
 import BarChartV2 from '@components/BarChartV2/BarCharV2'
 import {
-	DEMO_WORKSPACE_APPLICATION_ID,
+	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import {
@@ -37,7 +37,7 @@ export const SessionCountGraph = ({
 		project_id: string
 	}>()
 	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
+		project_id === DEMO_PROJECT_ID
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
@@ -131,7 +131,7 @@ export const ErrorCountGraph = ({
 		project_id: string
 	}>()
 	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
+		project_id === DEMO_PROJECT_ID
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 

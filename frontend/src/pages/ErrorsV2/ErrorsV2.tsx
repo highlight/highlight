@@ -42,16 +42,18 @@ import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
 
+import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
+import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import * as styles from './styles.css'
 
-type Props = { integrated: boolean }
 type Params = { project_id: string; error_secure_id: string }
 
-export default function ErrorsV2({ integrated }: Props) {
+export default function ErrorsV2() {
 	const { project_id, error_secure_id } = useParams<Params>()
 	const { isLoggedIn } = useAuthContext()
+	const [{ integrated }] = useIntegratedLocalStorage(project_id!, 'server')
 
 	const { data, loading, errorQueryingErrorGroup } = useErrorGroup()
 
@@ -75,10 +77,21 @@ export default function ErrorsV2({ integrated }: Props) {
 	}, [logCursor, navigation])
 
 	useEffect(() => {
-		if (!isLoggedIn && !data?.error_group?.is_public && !loading) {
+		if (
+			!isLoggedIn &&
+			project_id !== DEMO_PROJECT_ID &&
+			!data?.error_group?.is_public &&
+			!loading
+		) {
 			navigate(SIGN_IN_ROUTE, { replace: true })
 		}
-	}, [data?.error_group?.is_public, isLoggedIn, loading, navigate])
+	}, [
+		data?.error_group?.is_public,
+		isLoggedIn,
+		loading,
+		navigate,
+		project_id,
+	])
 
 	useEffect(() => {
 		const urlParams = new URLSearchParams(location.search)
@@ -117,7 +130,7 @@ export default function ErrorsV2({ integrated }: Props) {
 				<title>Errors</title>
 			</Helmet>
 
-			<Box cssClass={styles.container} borderTop="dividerWeak">
+			<Box cssClass={styles.container}>
 				{!isBlocked && <SearchPanel />}
 
 				<div
@@ -138,6 +151,7 @@ export default function ErrorsV2({ integrated }: Props) {
 						<TopBar
 							isLoggedIn={isLoggedIn}
 							isBlocked={isBlocked}
+							projectId={project_id}
 							navigation={navigation}
 						/>
 
@@ -163,8 +177,9 @@ type TopBarProps = {
 	isLoggedIn: boolean
 	isBlocked: boolean
 	navigation: ReturnType<typeof useNavigation>
+	projectId?: string
 }
-function TopBar({ isLoggedIn, isBlocked, navigation }: TopBarProps) {
+function TopBar({ isLoggedIn, isBlocked, projectId, navigation }: TopBarProps) {
 	const {
 		showLeftPanel,
 		setShowLeftPanel,
@@ -174,7 +189,7 @@ function TopBar({ isLoggedIn, isBlocked, navigation }: TopBarProps) {
 		previousSecureId,
 		goToErrorGroup,
 	} = navigation
-	return isLoggedIn && !isBlocked ? (
+	return (isLoggedIn || projectId === DEMO_PROJECT_ID) && !isBlocked ? (
 		<Box display="flex" alignItems="center" borderBottom="secondary" p="6">
 			<Box display="flex" gap="8">
 				{!showLeftPanel && (
@@ -417,9 +432,14 @@ function useIsBlocked({
 		const canJoin = data?.joinable_workspaces?.some((w) =>
 			w?.projects.map((p) => p?.id).includes(projectId),
 		)
+		const isDemo = projectId === DEMO_PROJECT_ID
 
 		return (
-			!isPublic && !loading && !canJoin && currentProjectId !== projectId
+			!isPublic &&
+			!isDemo &&
+			!loading &&
+			!canJoin &&
+			currentProjectId !== projectId
 		)
 	}, [data, isPublic, loading, projectId])
 

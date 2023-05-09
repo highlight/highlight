@@ -1016,7 +1016,7 @@ func (w *Worker) Start(ctx context.Context) {
 	lockPeriod := 30            // time in minutes
 
 	if util.IsDevEnv() {
-		payloadLookbackPeriod = 16
+		payloadLookbackPeriod = 8
 		lockPeriod = 1
 	}
 
@@ -1083,7 +1083,7 @@ func (w *Worker) Start(ctx context.Context) {
 			sessionsSpan.Finish()
 			continue
 		}
-		rand.Seed(time.Now().UnixNano())
+		rand.New(rand.NewSource(time.Now().UnixNano()))
 		rand.Shuffle(len(sessions), func(i, j int) {
 			sessions[i], sessions[j] = sessions[j], sessions[i]
 		})
@@ -1121,7 +1121,7 @@ func (w *Worker) Start(ctx context.Context) {
 					vmStat, _ = mem.VirtualMemory()
 				}
 
-				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
+				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("project_id", session.ProjectID), tracer.Tag("session_secure_id", session.SecureID))
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
 					var excluded bool

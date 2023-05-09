@@ -1,5 +1,5 @@
 import {
-	DEMO_WORKSPACE_APPLICATION_ID,
+	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import {
@@ -178,7 +178,7 @@ export const SessionFeedV3 = React.memo(() => {
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: project_id! },
-		skip: !project_id,
+		skip: !project_id || project_id === DEMO_PROJECT_ID,
 	})
 
 	// Used to determine if we need to show the loading skeleton.
@@ -262,7 +262,7 @@ export const SessionFeedV3 = React.memo(() => {
 		if (
 			billingDetails?.billingDetailsForProject &&
 			integrated &&
-			project_id !== DEMO_WORKSPACE_APPLICATION_ID &&
+			project_id !== DEMO_PROJECT_ID &&
 			project_id !== DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
 			!showLiveSessions(searchParams)
 		) {

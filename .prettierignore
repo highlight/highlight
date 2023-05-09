@@ -17,3 +17,4 @@ scripts/venv
 **/launch.json
 **/.eslintrc.json
 .yarnrc.yml
+__generated

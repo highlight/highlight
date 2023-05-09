@@ -333,8 +333,7 @@ export class Highlight {
 		this.inlineImages = options.inlineImages ?? this._isOnLocalHost
 		this.inlineStylesheet = options.inlineStylesheet ?? this._isOnLocalHost
 		this.samplingStrategy = {
-			canvas: 5,
-			canvasQuality: 'low',
+			canvas: 1,
 			canvasFactor: 0.5,
 			canvasMaxSnapshotDimension: 360,
 			...(options.samplingStrategy ?? {}),
@@ -685,6 +684,18 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			emit.bind(this)
 
 			if (!this._recordStop) {
+				let logger = undefined
+				if (
+					(typeof this.options.debug === 'boolean' &&
+						this.options.debug) ||
+					(typeof this.options.debug === 'object' &&
+						this.options.debug.domRecording)
+				) {
+					logger = {
+						debug: this.logger.log,
+						warn: HighlightWarning,
+					}
+				}
 				this._recordStop = record({
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
@@ -697,8 +708,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					sampling: {
 						canvas: {
 							fps: this.samplingStrategy.canvas,
-							resizeQuality: this.samplingStrategy.canvasQuality,
 							resizeFactor: this.samplingStrategy.canvasFactor,
+							dataURLOptions: {
+								type: 'image/webp',
+								quality: 0.9,
+							},
 							maxSnapshotDimension:
 								this.samplingStrategy
 									.canvasMaxSnapshotDimension,
@@ -710,6 +724,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					inlineImages: this.inlineImages,
 					inlineStylesheet: this.inlineStylesheet,
 					plugins: [getRecordSequentialIdPlugin()],
+					logger,
 				})
 				// recordStop is not part of listeners because we do not actually want to stop rrweb
 				// rrweb has some bugs that make the stop -> restart workflow broken (eg iframe listeners)
