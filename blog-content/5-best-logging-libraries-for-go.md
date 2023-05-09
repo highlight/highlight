@@ -4,7 +4,7 @@ createdAt: 2023-04-04T12:00:00Z
 readingTime: 8
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: Software Engineer @ Highlight 
+authorTitle: CTO @ Highlight 
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
@@ -676,7 +676,7 @@ The output will look the following when you run the file:
 
 In the output, the message with the `DEBUG` level is omitted. This is because Logrus defaults to a minimum level of `INFO`. You can customize this with the `SetLevel()` method:
 
-```golang
+```go
 package main
 
 import (

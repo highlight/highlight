@@ -62,6 +62,26 @@ const components = {
 	h3: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
 	h4: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
 	h5: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
+	ul: (props) => {
+		// check if the type of props.children is an array.
+		return (
+			<>
+				{Array.isArray(props.children) &&
+					props?.children?.map((c: any, i: number) => {
+						return (
+							c.props &&
+							c.props.children && (
+								<li style={{ marginLeft: 20 }} key={i}>
+									{c.props.children.map
+										? c?.props?.children?.map((e: any) => e)
+										: c?.props?.children}
+								</li>
+							)
+						)
+					})}
+			</>
+		)
+	},
 	code: (props) => {
 		if (
 			typeof props.children === 'string' &&
