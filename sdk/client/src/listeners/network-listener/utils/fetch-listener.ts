@@ -66,6 +66,7 @@ export const FetchListener = (
 			request.body = getBodyThatShouldBeRecorded(
 				init?.body,
 				bodyKeysToRecord,
+				init?.headers,
 			)
 		}
 
@@ -167,6 +168,7 @@ const logRequest = (
 						text = getBodyThatShouldBeRecorded(
 							text,
 							bodyKeysToRecord,
+							response.headers,
 						)
 					} else {
 						text = ''

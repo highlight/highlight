@@ -9,10 +9,12 @@ import (
 	"encoding/pem"
 	"fmt"
 	"github.com/go-chi/chi"
+	"github.com/rs/cors"
 	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -380,21 +382,37 @@ func (f *FilesystemClient) writeFSBytes(ctx context.Context, fp string, data io.
 }
 
 func (f *FilesystemClient) SetupHTTPSListener(r chi.Router) {
-	r.Get("/direct/assets/{project-id}/{hash-val}", func(w http.ResponseWriter, r *http.Request) {
+	r.Use(cors.New(cors.Options{
+		AllowCredentials: true,
+		AllowedOrigins:   []string{"localhost:3000"},
+		AllowedHeaders:   []string{"*"},
+	}).Handler)
+
+	serveAsset := func(w http.ResponseWriter, r *http.Request) {
 		projectId := chi.URLParam(r, "project-id")
 		hashVal := chi.URLParam(r, "hash-val")
 		fp := fmt.Sprintf("%s/assets/%s/%s", f.fsRoot, projectId, hashVal)
 		http.ServeFile(w, r, fp)
-	})
-	r.Get("/direct/{project-id}/{session-id}/{payload-type}", func(w http.ResponseWriter, r *http.Request) {
+	}
+	r.Head("/direct/assets/{project-id}/{hash-val}", serveAsset)
+	r.Get("/direct/assets/{project-id}/{hash-val}", serveAsset)
+	servePayload := func(w http.ResponseWriter, r *http.Request) {
 		projectId := chi.URLParam(r, "project-id")
 		sessionId := chi.URLParam(r, "session-id")
 		payloadType := chi.URLParam(r, "payload-type")
 		fp := fmt.Sprintf("%s/%s/%s/%v", f.fsRoot, projectId, sessionId, payloadType)
+		stat, err := os.Stat(fp)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
 		w.Header().Add("Content-Type", MIME_TYPE_JSON)
 		w.Header().Add("Content-Encoding", CONTENT_ENCODING_BROTLI)
+		w.Header().Add("Content-Length", strconv.FormatInt(stat.Size(), 10))
 		http.ServeFile(w, r, fp)
-	})
+	}
+	r.Head("/direct/{project-id}/{session-id}/{payload-type}", servePayload)
+	r.Get("/direct/{project-id}/{session-id}/{payload-type}", servePayload)
 	r.Put("/sourcemap-upload/{key}", func(w http.ResponseWriter, r *http.Request) {
 		key := chi.URLParam(r, "key")
 		if err := f.handleUploadSourcemap(r.Context(), key, r.Body); err != nil {

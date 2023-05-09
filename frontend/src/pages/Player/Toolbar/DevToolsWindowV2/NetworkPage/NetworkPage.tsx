@@ -1,12 +1,24 @@
 import LoadingBox from '@components/LoadingBox'
-import { Box, IconSolidArrowCircleRight, Tag, Text } from '@highlight-run/ui'
+import {
+	Box,
+	Callout,
+	IconSolidArrowCircleRight,
+	IconSolidCubeTransparent,
+	IconSolidExclamation,
+	Stack,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
 import {
 	RightPanelView,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
+import {
+	ResourceLoadingError,
+	useResourcesContext,
+} from '@pages/Player/ResourcesContext/ResourcesContext'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import {
 	findLastActiveEventIndex,
@@ -33,6 +45,8 @@ import TextHighlighter from '../../../../../components/TextHighlighter/TextHighl
 import Tooltip from '../../../../../components/Tooltip/Tooltip'
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
+import { Button } from '@components/Button'
+import { showIntercom } from '@util/window'
 
 export const NetworkPage = ({
 	time,
@@ -83,6 +97,7 @@ export const NetworkPage = ({
 		resources: parsedResources,
 		loadResources,
 		resourcesLoading: loading,
+		error: resourceLoadingError,
 	} = useResourcesContext()
 	useEffect(() => {
 		loadResources()
@@ -284,7 +299,9 @@ export const NetworkPage = ({
 
 	return (
 		<Box className={styles.container}>
-			{!isPlayerReady || loading || !session ? (
+			{resourceLoadingError ? (
+				<ResourceLoadingErrorCallout error={resourceLoadingError} />
+			) : !isPlayerReady || loading || !session ? (
 				<LoadingBox />
 			) : resourcesToRender.length > 0 ? (
 				<Box className={styles.container}>
@@ -551,5 +568,52 @@ export const UnknownRequestStatusCode = ({
 		>
 			Unknown
 		</Tooltip>
+	)
+}
+
+const ResourceLoadingErrorCallout = function ({
+	error,
+}: {
+	error: ResourceLoadingError
+}) {
+	return (
+		<Box
+			height="full"
+			width="full"
+			display="flex"
+			alignItems="center"
+			justifyContent="center"
+		>
+			<Callout
+				border
+				title={`Failed to load session network resources: ${error}`}
+				icon={() => (
+					<Box
+						borderRadius="5"
+						style={{
+							alignItems: 'center',
+							backgroundColor: '#E9E9E9',
+							display: 'flex',
+							height: 22,
+							justifyContent: 'center',
+							textAlign: 'center',
+							width: 22,
+						}}
+					>
+						<IconSolidExclamation size={14} color="#777777" />
+					</Box>
+				)}
+			>
+				<Stack direction="row" gap="8">
+					<Button
+						kind="secondary"
+						onClick={() => showIntercom()}
+						trackingId="devToolsResourcesShowIntercom"
+					>
+						Contact Us
+					</Button>
+				</Stack>
+			</Callout>
+		</Box>
 	)
 }
