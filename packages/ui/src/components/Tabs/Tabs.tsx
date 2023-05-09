@@ -50,8 +50,7 @@ export const Tabs = function <T extends string>({
 							display="flex"
 							flexDirection="column"
 							justifyContent="center"
-							paddingTop="4"
-							gap="4"
+							gap="2"
 							key={t}
 							cssClass={styles.controlBarButton}
 							onMouseEnter={() => setHoveredTab(t)}
