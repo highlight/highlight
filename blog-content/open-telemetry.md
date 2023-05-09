@@ -4,7 +4,7 @@ createdAt: 2023-04-04T12:00:00Z
 readingTime: 8
 authorFirstName: Vadim
 authorLastName: Korolik
-authorTitle: Software Engineer @ Highlight 
+authorTitle: CTO @ Highlight 
 authorTwitter: 'https://twitter.com/vkorolik'
 authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
