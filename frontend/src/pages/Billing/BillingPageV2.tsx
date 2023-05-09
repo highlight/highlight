@@ -1,11 +1,12 @@
 import { USD } from '@dinero.js/currencies'
 import {
+	Badge,
 	Box,
 	Heading,
 	IconProps,
 	IconSolidArrowSmRight,
 	IconSolidCheveronRight,
-	IconSolidInformationCircle,
+	IconSolidExclamation,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
@@ -17,6 +18,7 @@ import moment from 'moment'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
+import InfoTooltip from '@/components/InfoTooltip/InfoTooltip'
 import {
 	useGetBillingDetailsQuery,
 	useGetCustomerPortalUrlLazyQuery,
@@ -59,41 +61,61 @@ const UsageCard = ({
 
 	const costFormatted =
 		'$' + toDecimal(dinero({ amount: costCents, currency: USD }))
-	const limitFormatted = billingLimitCents
-		? '$' + toDecimal(dinero({ amount: billingLimitCents, currency: USD }))
-		: undefined
-	const usageRatio = billingLimitCents && costCents / billingLimitCents
+	const limitFormatted =
+		billingLimitCents !== undefined
+			? '$' +
+			  toDecimal(dinero({ amount: billingLimitCents, currency: USD }))
+			: undefined
+	const usageRatio = usageLimitAmount && usageAmount / usageLimitAmount
 	const isOverage = usageRatio ? usageRatio >= 1 : false
 
 	return (
 		<Box px="12" display="flex" gap="12" flexDirection="column">
 			<Box display="flex" gap="4" flexDirection="column">
 				<Box display="flex" justifyContent="space-between">
-					<Box display="flex" gap="4">
+					<Box display="flex" gap="4" alignItems="center">
 						{productIcon}
-						{productType}
+						<Text color="n12">{productType}</Text>
 					</Box>
-					<Box>{costFormatted}</Box>
+					<Text color="n12">{costFormatted}</Text>
 				</Box>
 				<Box display="flex" gap="4">
-					<Tag
+					<Badge
 						size="medium"
 						shape="basic"
 						kind="secondary"
-						emphasis="medium"
-						iconRight={<IconSolidInformationCircle />}
-					>
-						Retention: {RETENTION_PERIOD_LABELS[retentionPeriod]}
-					</Tag>
-					<Tag
+						label={`Retention: ${RETENTION_PERIOD_LABELS[retentionPeriod]}`}
+						iconEnd={
+							<Box
+								display="flex"
+								alignItems="center"
+								style={{ width: 12, height: 12 }}
+							>
+								<InfoTooltip
+									title={`${productType} recorded before this date will not be accessible.`}
+								/>
+							</Box>
+						}
+					></Badge>
+					<Badge
 						size="medium"
 						shape="basic"
 						kind="secondary"
-						emphasis="medium"
-						iconRight={<IconSolidInformationCircle />}
-					>
-						Billing Limit: {limitFormatted ?? 'Unlimited'}
-					</Tag>
+						label={`Billing Limit: ${
+							limitFormatted ?? 'Unlimited'
+						}`}
+						iconEnd={
+							<Box
+								display="flex"
+								alignItems="center"
+								style={{ width: 12, height: 12 }}
+							>
+								<InfoTooltip
+									title={`${productType} will not be recorded once this spending limit is reached.`}
+								/>
+							</Box>
+						}
+					></Badge>
 					<Tag
 						iconRight={<IconSolidCheveronRight />}
 						kind="secondary"
@@ -108,6 +130,19 @@ const UsageCard = ({
 				</Box>
 			</Box>
 			<Box display="flex" flexDirection="column" gap="4">
+				<Box
+					color={isOverage ? 'caution' : undefined}
+					alignItems="center"
+					display="flex"
+					gap="4"
+				>
+					<Text size="xSmall">
+						{formatNumberWithDelimiters(usageAmount)} /{' '}
+						{formatNumberWithDelimiters(usageLimitAmount) ??
+							'Unlimited'}
+					</Text>
+					{isOverage && <IconSolidExclamation />}
+				</Box>
 				<Box cssClass={style.progressBarBackground}>
 					<Box
 						cssClass={
@@ -119,11 +154,6 @@ const UsageCard = ({
 						style={{ width: `${(usageRatio ?? 0) * 100}%` }}
 					/>
 				</Box>
-				<Text color={isOverage ? 'caution' : undefined}>
-					{formatNumberWithDelimiters(usageAmount)} /{' '}
-					{formatNumberWithDelimiters(usageLimitAmount) ??
-						'Unlimited'}
-				</Text>
 			</Box>
 		</Box>
 	)
@@ -195,22 +225,24 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 				cssClass={style.pageWrapper}
 				display="flex"
 				flexDirection="column"
-				gap="12"
+				gap="16"
 			>
-				<Heading level="h4">Billing plans</Heading>
-				<Box>
-					<Text size="small" weight="medium">
-						Prices are usage based and flexible with your needs.
-						Need a custom quote or want to commit to a minimum
-						spend?{' '}
-						<a href="mailto:sales@highlight.run">
-							Reach out to sales <IconSolidArrowSmRight />
-						</a>
-					</Text>
+				<Box display="flex" flexDirection="column" gap="16">
+					<Heading level="h4">Billing plans</Heading>
+					<Box>
+						<Text size="small" weight="medium">
+							Prices are usage based and flexible with your needs.
+							Need a custom quote or want to commit to a minimum
+							spend?{' '}
+							<a href="mailto:sales@highlight.run">
+								Reach out to sales <IconSolidArrowSmRight />
+							</a>
+						</Text>
+					</Box>
 				</Box>
 				<Box display="flex" justifyContent="space-between">
 					<Box display="flex" alignItems="center">
-						<Text size="large" weight="bold">
+						<Text size="large" weight="bold" color="n12">
 							Current plan details
 						</Text>
 					</Box>
@@ -288,12 +320,14 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 				>
 					<Box display="flex" justifyContent="space-between">
 						<Box display="flex" gap="4">
-							<Text>Total per month </Text>
+							<Text color="n12">Total</Text>
 							<Text>
 								Due {moment(nextBillingDate).format('MM/DD/YY')}
 							</Text>
 						</Box>
-						<Text>{totalFormatted}</Text>
+						<Text color="p11" weight="bold">
+							{totalFormatted}
+						</Text>
 					</Box>
 				</Box>
 			</Box>

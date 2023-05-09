@@ -70,6 +70,18 @@ const BASE_UNIT_COST_CENTS: { readonly [k in ProductType]: number } = {
 	Logs: 150,
 }
 
+const UNIT_QUANTITY: { readonly [k in ProductType]: number } = {
+	Sessions: 1_000,
+	Errors: 1_000,
+	Logs: 1_000_000,
+}
+
+const INCLUDED_QUANTITY: { readonly [k in ProductType]: number } = {
+	Sessions: 500,
+	Errors: 1_000,
+	Logs: 1_000_000,
+}
+
 export const getCostCents = (
 	productType: ProductType,
 	retentionPeriod: RetentionPeriod,
@@ -78,7 +90,7 @@ export const getCostCents = (
 	const a = Math.floor(
 		(BASE_UNIT_COST_CENTS[productType] *
 			RETENTION_MULTIPLIER[retentionPeriod] *
-			quantity) /
+			Math.max(quantity - INCLUDED_QUANTITY[productType], 0)) /
 			UNIT_QUANTITY[productType],
 	)
 	return a
@@ -96,7 +108,8 @@ export const getQuantity = (
 	return Math.floor(
 		(totalCents * UNIT_QUANTITY[productType]) /
 			(BASE_UNIT_COST_CENTS[productType] *
-				RETENTION_MULTIPLIER[retentionPeriod]),
+				RETENTION_MULTIPLIER[retentionPeriod]) +
+			INCLUDED_QUANTITY[productType],
 	)
 }
 
@@ -113,12 +126,6 @@ export const getNextBillingDate = (
 	} else {
 		return moment().add(1, 'M').toDate()
 	}
-}
-
-const UNIT_QUANTITY: { readonly [k in ProductType]: number } = {
-	Sessions: 1_000,
-	Errors: 1_000,
-	Logs: 1_000_000,
 }
 
 type ProductCardProps = {
@@ -164,7 +171,9 @@ const LimitButton = ({
 						value={limitCents / 100}
 						onChange={(e) => {
 							setLimitCents(
-								Math.round(parseFloat(e.target.value) * 100),
+								Math.round(
+									parseFloat(e.target.value ?? '0') * 100,
+								),
 							)
 						}}
 					/>
@@ -215,15 +224,19 @@ const ProductCard = ({
 	const unitCostFormatted =
 		'$' + toDecimal(dinero({ amount: unitCostCents, currency: USD }))
 
+	const includedQuantity = INCLUDED_QUANTITY[productType]
+	const netUsageAmount = Math.max(predictedUsageAmount - includedQuantity, 0)
+
 	const predictedCostCents = getCostCents(
 		productType,
 		retentionPeriod,
 		predictedUsageAmount,
 	)
 
-	const totalCostCents = limitCents
-		? Math.min(predictedCostCents, limitCents)
-		: predictedCostCents
+	const totalCostCents =
+		limitCents !== undefined
+			? Math.min(predictedCostCents, limitCents)
+			: predictedCostCents
 
 	const totalCostFormatted =
 		'$' + toDecimal(dinero({ amount: totalCostCents, currency: USD }))
@@ -314,6 +327,26 @@ const ProductCard = ({
 						<Text>{productType}</Text>
 						<Text>
 							{formatNumberWithDelimiters(predictedUsageAmount)}
+						</Text>
+					</Box>
+					<Box
+						display="flex"
+						flexDirection="row"
+						justifyContent="space-between"
+					>
+						<Text>- Included</Text>
+						<Text>
+							{formatNumberWithDelimiters(includedQuantity)}
+						</Text>
+					</Box>
+					<Box
+						display="flex"
+						flexDirection="row"
+						justifyContent="space-between"
+					>
+						<Text>= Net</Text>
+						<Text>
+							{formatNumberWithDelimiters(netUsageAmount)}
 						</Text>
 					</Box>
 					<Box borderBottom="divider" />
