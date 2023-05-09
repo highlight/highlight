@@ -134,7 +134,7 @@ func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, re
 		LogCursor:       logCursor,
 		Event:           excMessage,
 		Type:            excType,
-		Source:          host,
+		Source:          source.String(),
 		StackTrace:      stackTrace,
 		Timestamp:       ts,
 		Payload:         pointy.String(string(payloadBytes)),
@@ -259,7 +259,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	for sessionID, errors := range traceErrors {
 		var backendError = false
 		for _, err := range errors {
-			if err.Type == modelInputs.LogSourceBackend.String() {
+			if err.Source == modelInputs.LogSourceBackend.String() {
 				backendError = true
 			}
 		}
@@ -294,7 +294,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	for projectID, errors := range projectErrors {
 		var backendError = false
 		for _, err := range errors {
-			if err.Type == modelInputs.LogSourceBackend.String() {
+			if err.Source == modelInputs.LogSourceBackend.String() {
 				backendError = true
 			}
 		}
