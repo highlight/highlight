@@ -1245,6 +1245,35 @@ enum QueryBuilderMode {
 	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
 }
 
+const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
+const now = moment()
+const presetOptions = [
+	{
+		label: 'Last 15 minutes',
+		startDate: new Date(now.subtract(15, 'minutes').format(FORMAT)),
+	},
+	{
+		label: 'Last 60 minutes',
+		startDate: new Date(now.subtract(60, 'minutes').format(FORMAT)),
+	},
+	{
+		label: 'Last 4 hours',
+		startDate: new Date(now.subtract(4, 'hours').format(FORMAT)),
+	},
+	{
+		label: 'Last 24 hours',
+		startDate: new Date(now.subtract(24, 'hours').format(FORMAT)),
+	},
+	{
+		label: 'Last 7 days',
+		startDate: new Date(now.subtract(7, 'days').format(FORMAT)),
+	},
+	{
+		label: 'Last 30 days',
+		startDate: new Date(now.subtract(30, 'days').format(FORMAT)),
+	},
+]
+
 function QueryBuilder(props: QueryBuilderProps) {
 	const {
 		searchContext,
@@ -1558,10 +1587,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 	})
 
 	const [currentRule, setCurrentRule] = useState<RuleProps | undefined>()
+	const [dateRange, setDateRange] = useState<Date[]>([
+		presetOptions[5].startDate, // Start at 30days
+		new Date(now.format(FORMAT)),
+	])
 	const defaultTimeRangeRule: RuleProps = useMemo(() => {
 		const period = {
-			label: 'Last 30 days',
-			value: '30 days',
+			label: presetOptions[5].label, // Start at 30 days
+			value: `${presetOptions[5].startDate}_${now.format(FORMAT)}`, // Start at 30 days
 		}
 
 		return {
@@ -1716,6 +1749,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		const timeRange = rules.find(
 			(rule) => rule.field?.value === timeRangeField.value,
 		)
+		console.log('timeRange', timeRange)
 		if (!timeRange) {
 			addRule(defaultTimeRangeRule)
 			return defaultTimeRangeRule
@@ -2258,53 +2292,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [addFilterButton, areRulesValid, mode, selectedSegment?.name])
 
-	const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
-
-	const presetOptions = useMemo(
-		() => [
-			{
-				label: 'Last 15 minutes',
-				startDate: new Date(
-					moment().subtract(15, 'minutes').format(FORMAT),
-				),
-			},
-			{
-				label: 'Last 60 minutes',
-				startDate: new Date(
-					moment().subtract(60, 'minutes').format(FORMAT),
-				),
-			},
-			{
-				label: 'Last 4 hours',
-				startDate: new Date(
-					moment().subtract(4, 'hours').format(FORMAT),
-				),
-			},
-			{
-				label: 'Last 24 hours',
-				startDate: new Date(
-					moment().subtract(24, 'hours').format(FORMAT),
-				),
-			},
-			{
-				label: 'Last 7 days',
-				startDate: new Date(
-					moment().subtract(7, 'days').format(FORMAT),
-				),
-			},
-			{
-				label: 'Last 30 days',
-				startDate: new Date(
-					moment().subtract(30, 'days').format(FORMAT),
-				),
-			},
-		],
-		[],
-	)
-
-	const [dateRange, setDateRange] = useState<Date[]>([
-		presetOptions[0].startDate,
-	])
 	const controlBar = useMemo(() => {
 		return (
 			<Box
@@ -2325,7 +2312,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 								kind: 'multi',
 								options: [
 									{
-										label: presetOptions[0].label,
+										label: 'Date Range',
 										value: `${moment(dates[0]).format(
 											FORMAT,
 										)}_${moment(dates[1]).format(FORMAT)}`,

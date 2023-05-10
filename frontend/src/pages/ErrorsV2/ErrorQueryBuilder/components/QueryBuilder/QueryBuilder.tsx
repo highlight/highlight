@@ -1253,6 +1253,35 @@ enum QueryBuilderMode {
 	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
 }
 
+const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
+
+const presetOptions = [
+	{
+		label: 'Last 15 minutes',
+		startDate: new Date(moment().subtract(15, 'minutes').format(FORMAT)),
+	},
+	{
+		label: 'Last 60 minutes',
+		startDate: new Date(moment().subtract(60, 'minutes').format(FORMAT)),
+	},
+	{
+		label: 'Last 4 hours',
+		startDate: new Date(moment().subtract(4, 'hours').format(FORMAT)),
+	},
+	{
+		label: 'Last 24 hours',
+		startDate: new Date(moment().subtract(24, 'hours').format(FORMAT)),
+	},
+	{
+		label: 'Last 7 days',
+		startDate: new Date(moment().subtract(7, 'days').format(FORMAT)),
+	},
+	{
+		label: 'Last 30 days',
+		startDate: new Date(moment().subtract(30, 'days').format(FORMAT)),
+	},
+]
+
 function QueryBuilder(props: QueryBuilderProps) {
 	const {
 		searchContext,
@@ -2246,50 +2275,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 				)
 		}
 	}, [addFilterButton, areRulesValid, mode, selectedSegment?.name])
-
-	const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
-
-	const presetOptions = useMemo(
-		() => [
-			{
-				label: 'Last 15 minutes',
-				startDate: new Date(
-					moment().subtract(15, 'minutes').format(FORMAT),
-				),
-			},
-			{
-				label: 'Last 60 minutes',
-				startDate: new Date(
-					moment().subtract(60, 'minutes').format(FORMAT),
-				),
-			},
-			{
-				label: 'Last 4 hours',
-				startDate: new Date(
-					moment().subtract(4, 'hours').format(FORMAT),
-				),
-			},
-			{
-				label: 'Last 24 hours',
-				startDate: new Date(
-					moment().subtract(24, 'hours').format(FORMAT),
-				),
-			},
-			{
-				label: 'Last 7 days',
-				startDate: new Date(
-					moment().subtract(7, 'days').format(FORMAT),
-				),
-			},
-			{
-				label: 'Last 30 days',
-				startDate: new Date(
-					moment().subtract(30, 'days').format(FORMAT),
-				),
-			},
-		],
-		[],
-	)
 
 	const [dateRange, setDateRange] = useState<Date[]>([
 		presetOptions[0].startDate,
