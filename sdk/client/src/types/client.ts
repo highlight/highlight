@@ -50,8 +50,8 @@ export declare type NetworkRecordingOptions = {
 	networkHeadersToRedact?: string[]
 	/**
 	 * Specifies the keys for request/response JSON body that should not be recorded.
-   * The body value is replaced with '[REDACTED]'.
-   * These keys are case-insensitive.
+	 * The body value is replaced with '[REDACTED]'.
+	 * These keys are case-insensitive.
 	 * `enabled` and `recordHeadersAndBody` need to be `true`. Otherwise this option will be ignored.
 	 * @example bodyKeysToRedact: ['secret-token', 'plain-text-password']
 	 * // Only `body.id` and `body.pageNumber` will be recorded.
@@ -62,7 +62,7 @@ export declare type NetworkRecordingOptions = {
 	 * 'plain-text-password': 'password123',
 	 * }
 	 */
-  networkBodyKeysToRedact?: string[]
+	networkBodyKeysToRedact?: string[]
 	/**
 	 * URLs to not record headers and bodies for.
 	 * To disable recording headers and bodies for all URLs, set `recordHeadersAndBody` to `false`.
@@ -85,7 +85,7 @@ export declare type NetworkRecordingOptions = {
 	headerKeysToRecord?: string[]
 	/**
 	 * Specifies the keys for request/response JSON body to record.
-   * This option will override `networkBodyKeysToRedact` if specified.
+	 * This option will override `networkBodyKeysToRedact` if specified.
 	 * `enabled` and `recordHeadersAndBody` need to be `true`. Otherwise this option will be ignored.
 	 * @example bodyKeysToRecord: ['id', 'pageNumber']
 	 * // Only `body.id` and `body.pageNumber` will be recorded.
