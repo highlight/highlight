@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/otel"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"go.opentelemetry.io/otel/attribute"
@@ -520,26 +519,26 @@ func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*
 	return newMappedStackTraceString, mappedStackTrace, nil
 }
 
-func normalizeStackTraceString(stackTraceString string) string {
+func stackTraceToStackFrames(stackTraceString string) []*publicModel.StackFrameInput {
+	var normalizedStackFrameInput []*publicModel.StackFrameInput
 	var stackTraceSlice []string
 	if err := json.Unmarshal([]byte(stackTraceString), &stackTraceSlice); err != nil {
-		return ""
+		return normalizedStackFrameInput
 	}
 
 	// TODO: maintain a list of potential error types so we can handle different stack trace formats
-	var normalizedStackFrameInput []*publicModel.StackFrameInput
 	for _, frame := range stackTraceSlice {
 		frameExtracted := regexp.MustCompile(`(?m)(.*) (.*):(.*)`).FindAllStringSubmatch(frame, -1)
 		if len(frameExtracted) != 1 {
-			return ""
+			return normalizedStackFrameInput
 		}
 		if len(frameExtracted[0]) != 4 {
-			return ""
+			return normalizedStackFrameInput
 		}
 
 		lineNumber, err := strconv.Atoi(frameExtracted[0][3])
 		if err != nil {
-			return ""
+			return normalizedStackFrameInput
 		}
 		normalizedStackFrameInput = append(normalizedStackFrameInput, &publicModel.StackFrameInput{
 			FunctionName: &frameExtracted[0][1],
@@ -548,11 +547,7 @@ func normalizeStackTraceString(stackTraceString string) string {
 		})
 	}
 
-	stackTraceBytes, err := json.Marshal(&normalizedStackFrameInput)
-	if err != nil {
-		return ""
-	}
-	return string(stackTraceBytes)
+	return normalizedStackFrameInput
 }
 
 func joinStringPtrs(ptrs ...*string) string {
@@ -741,7 +736,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 }
 
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
-func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, stackTrace []*publicModel.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
+func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, stackFrames []*publicModel.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
 	if errorObj == nil {
 		return nil, e.New("error object was nil")
 	}
@@ -803,15 +798,11 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 
 	stackTraceString := ""
-	if len(stackTrace) > 0 {
-		if stackTrace[0] != nil && stackTrace[0].Source != nil && (strings.Contains(*stackTrace[0].Source, "https://static.highlight.run/index.js") || strings.Contains(*stackTrace[0].Source, "https://static.highlight.io")) {
-			// Forward these errors to another project that Highlight owns to help debug: https://app.highlight.run/715/errors
-			errorObj.ProjectID = 715
+	if len(stackFrames) > 0 {
+		if len(stackFrames) > stacktraces.ERROR_STACK_MAX_FRAME_COUNT {
+			stackFrames = stackFrames[:stacktraces.ERROR_STACK_MAX_FRAME_COUNT]
 		}
-		if len(stackTrace) > stacktraces.ERROR_STACK_MAX_FRAME_COUNT {
-			stackTrace = stackTrace[:stacktraces.ERROR_STACK_MAX_FRAME_COUNT]
-		}
-		firstFrameBytes, err := json.Marshal(stackTrace)
+		firstFrameBytes, err := json.Marshal(stackFrames)
 		if err != nil {
 			return nil, e.Wrap(err, "Error marshalling first frame")
 		}
@@ -823,10 +814,10 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	newFrameString := stackTraceString
 	var newMappedStackTraceString *string
 	fingerprints := []*model.ErrorFingerprint{}
-	if stackTrace != nil {
+	if stackFrames != nil {
 		var err error
 		var mappedStackTrace []privateModel.ErrorTrace
-		newMappedStackTraceString, mappedStackTrace, err = r.getMappedStackTraceString(ctx, stackTrace, projectID, errorObj)
+		newMappedStackTraceString, mappedStackTrace, err = r.getMappedStackTraceString(ctx, stackFrames, projectID, errorObj)
 		if err != nil {
 			return nil, e.Wrap(err, "Error mapping stack trace string")
 		}
@@ -2362,9 +2353,10 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			RequestID:   v.RequestID,
 		}
 
-		structuredStackTrace := otel.FormatStructureStackTrace(v.StackTrace)
+		structuredStackTrace := stacktraces.FormatStructureStackTrace(ctx, v.StackTrace)
+		stackFrames := stackTraceToStackFrames(structuredStackTrace)
 
-		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, nil, extractErrorFields(session, errorToInsert), projectID)
+		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, stackFrames, extractErrorFields(session, errorToInsert), projectID)
 		if err != nil {
 			if e.Is(err, ErrNoisyError) {
 				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
