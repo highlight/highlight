@@ -248,11 +248,13 @@ export const getBodyThatShouldBeRecorded = (
 	if (headers) {
 		let contentType: string = ''
 		if (typeof headers['get'] === 'function') {
-			contentType = headers.get('content-type')
+			contentType = headers.get('content-type') ?? ''
 		} else {
-			contentType = headers['content-type']
+			contentType = headers['content-type'] ?? ''
 		}
-		contentType = contentType.split(';')[0]
+		try {
+			contentType = contentType.split(';')[0]
+		} catch {}
 		bodyLimit =
 			BODY_SIZE_LIMITS[contentType as keyof typeof BODY_SIZE_LIMITS] ??
 			DEFAULT_BODY_LIMIT
