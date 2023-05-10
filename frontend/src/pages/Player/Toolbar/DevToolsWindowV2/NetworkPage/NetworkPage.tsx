@@ -1,3 +1,4 @@
+import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
 import {
 	Box,
@@ -33,6 +34,7 @@ import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
+import { showIntercom } from '@util/window'
 import { message } from 'antd'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -44,8 +46,6 @@ import TextHighlighter from '../../../../../components/TextHighlighter/TextHighl
 import Tooltip from '../../../../../components/Tooltip/Tooltip'
 import { ReplayerState, useReplayerContext } from '../../../ReplayerContext'
 import * as styles from './style.css'
-import { Button } from '@components/Button'
-import { showIntercom } from '@util/window'
 
 export const NetworkPage = ({
 	time,
