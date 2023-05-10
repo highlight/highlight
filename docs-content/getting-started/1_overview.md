@@ -56,6 +56,9 @@ Highlight.io also supports reporting errors from your backend and mapping these 
     <DocsCard title="Ruby" href="./4_backend-sdk/ruby/1_overview.md">
         {"Get started with error monitoring in Ruby"}
     </DocsCard>
+    <DocsCard title="Java" href="./4_backend-sdk/java/1_overview.md">
+        {"Get started with error monitoring in Java"}
+    </DocsCard>
 </DocsCardGroup>
 
 ## For your Backend: Logging
@@ -65,36 +68,39 @@ Highlight.io also supports logging from your backend and mapping these to corres
 ### Application Logging
 
 <DocsCardGroup>
-    <DocsCard title="Go" href="./backend-logging/1_go/1_overview.md">
+    <DocsCard title="Go" href="./backend-logging/01_go/1_overview.md">
         {"Get started with logging in Go"}
     </DocsCard>
-    <DocsCard title="JS / TS" href="./backend-logging/2_js/1_overview.md">
+    <DocsCard title="JS / TS" href="./backend-logging/02_js/1_overview.md">
         {"Get started with logging in Javascript"}
     </DocsCard>
-    <DocsCard title="Python" href="./backend-logging/3_python/1_overview.md">
+    <DocsCard title="Python" href="./backend-logging/03_python/1_overview.md">
         {"Get started with logging in Python"}
     </DocsCard>
-    <DocsCard title="Ruby" href="./backend-logging/4_ruby/1_overview.md">
+    <DocsCard title="Ruby" href="./backend-logging/04_ruby/1_overview.md">
         {"Get started with logging in Ruby"}
+    </DocsCard>
+    <DocsCard title="Java" href="./backend-logging/05_java/1_overview.md">
+        {"Get started with logging in Java"}
     </DocsCard>
 </DocsCardGroup>
 
 ### Hosting Platform Logging
 
 <DocsCardGroup>
-    <DocsCard title="Cloud" href="./backend-logging/5_hosting/1_overview.md">
+    <DocsCard title="Cloud" href="./backend-logging/06_hosting/1_overview.md">
         {"Log from your Cloud Hosting Environment"}
     </DocsCard>
-    <DocsCard title="curl" href="./backend-logging/6_http.md">
+    <DocsCard title="curl" href="./backend-logging/07_http.md">
         {"Send logs over HTTPS"}
     </DocsCard>
-    <DocsCard title="Docker" href="./backend-logging/7_docker.md">
+    <DocsCard title="Docker" href="./backend-logging/08_docker.md">
         {"Stream Docker logs"}
     </DocsCard>
-    <DocsCard title="Fluent Forward" href="./backend-logging/9_fluentforward.md">
+    <DocsCard title="Fluent Forward" href="./backend-logging/10_fluentforward.md">
         {"Send Fluent Forward (Fluentd / Fluent Bit) logs"}
     </DocsCard>
-    <DocsCard title="File" href="./backend-logging/8_file.md">
+    <DocsCard title="File" href="./backend-logging/09_file.md">
         {"Stream any log file"}
     </DocsCard>
 </DocsCardGroup>
