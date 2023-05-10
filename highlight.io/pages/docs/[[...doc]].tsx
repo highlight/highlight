@@ -991,7 +991,7 @@ const DocPage = ({
 												h2: (props) => {
 													const id =
 														generateIdFromProps(
-															props.children as string,
+															props.children,
 														)
 													return (
 														<Link
