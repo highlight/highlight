@@ -56,6 +56,8 @@ Out of the box, Highlight will not record these URLs:
 
 If you are dealing with sensitive data or want to go the allowlist approach then you can configure `networkRecording.headerKeysToRecord` and `networkRecording.bodyKeysToRecord`. Using these 2 configs, you'll be able to explicitly define which header/body keys to record.
 
+You can also redact specific headers by using `networkRecording.networkHeadersToRedact` and `networkRecoding.networkBodyKeysToRedact`.
+
 This configuration is only available for `highlight.run` versions newer than `4.1.0`.
 
 ## API

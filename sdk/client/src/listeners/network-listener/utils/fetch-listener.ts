@@ -27,6 +27,7 @@ export const FetchListener = (
 	tracingOrigins: boolean | (string | RegExp)[],
 	urlBlocklist: string[],
 	sessionSecureID: string,
+  bodyKeysToRedact?: string[],
 	bodyKeysToRecord?: string[],
 ) => {
 	const originalFetch = window._fetchProxy
@@ -65,6 +66,7 @@ export const FetchListener = (
 			)
 			request.body = getBodyThatShouldBeRecorded(
 				init?.body,
+        bodyKeysToRedact,
 				bodyKeysToRecord,
 				init?.headers,
 			)
@@ -76,6 +78,7 @@ export const FetchListener = (
 			request,
 			callback,
 			shouldRecordHeaderAndBody,
+      bodyKeysToRedact,
 			bodyKeysToRecord,
 		)
 		return responsePromise
@@ -117,6 +120,7 @@ const logRequest = (
 	requestPayload: HighlightRequest,
 	callback: NetworkListenerCallback,
 	shouldRecordHeaderAndBody: boolean,
+  bodyKeysToRedact?: string[],
 	bodyKeysToRecord?: string[],
 ) => {
 	const onPromiseResolveHandler = async (response: Response | Error) => {
@@ -167,6 +171,7 @@ const logRequest = (
 						text = result
 						text = getBodyThatShouldBeRecorded(
 							text,
+              bodyKeysToRedact,
 							bodyKeysToRecord,
 							response.headers,
 						)
