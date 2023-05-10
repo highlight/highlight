@@ -181,7 +181,7 @@ const CompetitorComparisonPage = ({
 					<div className="max-w-[880px] mx-auto my-28">
 						<h4 className="mb-8">What makes us different?</h4>
 						<div className="flex flex-col gap-8">
-							{competitor.paragraphs.map((paragraph, index) => (
+							{competitor.paragraphs?.map((paragraph, index) => (
 								<div
 									key={index}
 									className="flex flex-col gap-3"
