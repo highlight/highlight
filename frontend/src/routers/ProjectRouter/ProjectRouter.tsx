@@ -25,6 +25,7 @@ import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalCont
 import WithErrorSearchContext from '@routers/ProjectRouter/WithErrorSearchContext'
 import WithSessionSearchContext from '@routers/ProjectRouter/WithSessionSearchContext'
 import { auth } from '@util/auth'
+import { setIndexedDBEnabled } from '@util/db'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useDialogState } from 'ariakit/dialog'
 import clsx from 'clsx'
@@ -64,6 +65,13 @@ export const ProjectRouter = () => {
 		clientIntegration.integrated &&
 		serverIntegration.integrated &&
 		logsIntegration.integrated
+
+	// disable indexedDB for 5403
+	useEffect(() => {
+		if (projectId === '5403') {
+			setIndexedDBEnabled(false)
+		}
+	}, [projectId])
 
 	useEffect(() => {
 		const uri =
