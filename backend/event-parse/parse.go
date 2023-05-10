@@ -126,12 +126,14 @@ func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
 }
 
 func replaceRelativePaths(body []byte, href string) []byte {
+	const PROXY_URL string = "https://replay-cors-proxy.highlightrun.workers.dev"
+
 	u, err := url.Parse(href)
 
 	if err == nil {
 		base := u.Scheme + "://" + u.Host
 
-		return regexp.MustCompile(`url\(['"]\./`).ReplaceAll(body, []byte("url('"+base+"/"))
+		return regexp.MustCompile(`url\(['"]\./`).ReplaceAll(body, []byte("url('"+PROXY_URL+"?url="+base+"/"))
 	} else {
 		return body
 	}
