@@ -1550,6 +1550,7 @@ func (e SessionCommentType) MarshalGQL(w io.Writer) {
 type SessionExcludedReason string
 
 const (
+	SessionExcludedReasonInitializing            SessionExcludedReason = "Initializing"
 	SessionExcludedReasonNoActivity              SessionExcludedReason = "NoActivity"
 	SessionExcludedReasonNoUserInteractionEvents SessionExcludedReason = "NoUserInteractionEvents"
 	SessionExcludedReasonNoError                 SessionExcludedReason = "NoError"
@@ -1557,6 +1558,7 @@ const (
 )
 
 var AllSessionExcludedReason = []SessionExcludedReason{
+	SessionExcludedReasonInitializing,
 	SessionExcludedReasonNoActivity,
 	SessionExcludedReasonNoUserInteractionEvents,
 	SessionExcludedReasonNoError,
@@ -1565,7 +1567,7 @@ var AllSessionExcludedReason = []SessionExcludedReason{
 
 func (e SessionExcludedReason) IsValid() bool {
 	switch e {
-	case SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoError, SessionExcludedReasonIgnoredUser:
+	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoError, SessionExcludedReasonIgnoredUser:
 		return true
 	}
 	return false

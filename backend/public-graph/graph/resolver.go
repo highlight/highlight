@@ -1194,6 +1194,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	deviceDetails := GetDeviceDetails(input.UserAgent)
 	n := time.Now()
+	excludedReason := privateModel.SessionExcludedReasonInitializing
 	session := &model.Session{
 		SecureID: input.SessionSecureID,
 		Model: model.Model{
@@ -1223,6 +1224,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ViewedByAdmins:                 []model.Admin{},
 		ClientID:                       input.ClientID,
 		Excluded:                       true, // A session is excluded by default until it receives events
+		ExcludedReason:                 &excludedReason,
 		ProcessWithRedis:               true,
 		AvoidPostgresStorage:           true,
 	}
@@ -2992,6 +2994,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 }
 
 func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *privateModel.SessionExcludedReason) {
+	var excluded bool
 	var reason privateModel.SessionExcludedReason
 
 	var project model.Project
@@ -3001,15 +3004,16 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 	}
 
 	if r.isSessionUserExcluded(ctx, s, project) {
+		excluded = true
 		reason = privateModel.SessionExcludedReasonIgnoredUser
 	}
 
 	if r.isSessionExcludedForNoError(ctx, s, project, sessionHasErrors) {
+		excluded = true
 		reason = privateModel.SessionExcludedReasonNoError
 	}
 
-	return true, &reason
-
+	return excluded, &reason
 }
 
 func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
