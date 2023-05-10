@@ -11,9 +11,10 @@ export const JSWinstonHTTPJSONLogContent: QuickStartContent = {
 			content:
 				'The Winston HTTP transport will send JSON logs to highlight.io',
 			code: {
-				text: `import winston from 'winston'
+				text: `import {createLogger, format, transports} from 'winston';
 
-const highlightTransport = new winston.transports.Http({
+
+const highlightTransport = new transports.Http({
     host: 'pub.highlight.run',
     path: "/v1/logs/json",
     ssl: true,
@@ -23,15 +24,15 @@ const highlightTransport = new winston.transports.Http({
     },
 })
 
-export const logger = winston.createLogger({
+export const logger = createLogger({
     level: 'info',
-    format: winston.format.combine(
-        winston.format.json(),
-        winston.format.errors({ stack: true }),
-        winston.format.timestamp(),
-        winston.format.prettyPrint(),
+    format: format.combine(
+        format.json(),
+        format.errors({ stack: true }),
+        format.timestamp(),
+        format.prettyPrint(),
     ),
-    transports: [new winston.transports.Console(), highlightTransport],
+    transports: [new transports.Console(), highlightTransport],
 })`,
 				language: 'js',
 			},
