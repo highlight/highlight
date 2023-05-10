@@ -620,8 +620,24 @@ export const NewCommentForm = ({
 									</Menu.Item>
 								</Menu.List>
 							</Menu>
+							{/* TODO: Add mention button */}
 							<Stack direction="row" align="center" gap="4">
-								{/* TODO: Grab mention button */}
+								{issueServiceDetail && (
+									<Button
+										trackingId="new-comment-form_edit-issue"
+										size="xSmall"
+										kind="secondary"
+										emphasis="low"
+										iconLeft={<issueServiceDetail.Icon />}
+										onClick={() => {
+											setSection(
+												CommentFormSection.NewIssueForm,
+											)
+										}}
+									>
+										{issueServiceDetail.name}
+									</Button>
+								)}
 								<ButtonIcon
 									kind="primary"
 									emphasis="high"
