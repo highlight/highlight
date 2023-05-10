@@ -188,7 +188,7 @@ export class FirstLoadListeners {
 
 			sThis.networkBodyKeysToRecord =
 				options.networkRecording?.bodyKeysToRecord
-			// `headerKeysToRecord` override `networkHeadersToRedact`.
+			// `bodyKeysToRecord` override `networkBodyKeysToRedact`.
 			if (sThis.networkBodyKeysToRecord) {
         sThis.networkBodyKeysToRedact = []
 				sThis.networkBodyKeysToRecord =

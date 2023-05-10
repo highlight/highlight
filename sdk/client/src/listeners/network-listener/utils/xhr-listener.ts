@@ -25,7 +25,7 @@ export const XHRListener = (
 	tracingOrigins: boolean | (string | RegExp)[],
 	urlBlocklist: string[],
 	sessionSecureID: string,
-  bodyKeysToRedact?: string[],
+	bodyKeysToRedact?: string[],
 	bodyKeysToRecord?: string[],
 ) => {
 	const XHR = XMLHttpRequest.prototype
@@ -95,7 +95,7 @@ export const XHRListener = (
 				if (bodyData) {
 					requestModel['body'] = getBodyThatShouldBeRecorded(
 						bodyData,
-            bodyKeysToRedact,
+						bodyKeysToRedact,
 						bodyKeysToRecord,
 						requestModel.headers,
 					)
@@ -133,7 +133,7 @@ export const XHRListener = (
 					if (bodyData) {
 						requestModel['body'] = getBodyThatShouldBeRecorded(
 							bodyData,
-              bodyKeysToRedact,
+							bodyKeysToRedact,
 							bodyKeysToRecord,
 							responseModel.headers,
 						)
@@ -143,7 +143,7 @@ export const XHRListener = (
 				if (this.responseType === '' || this.responseType === 'text') {
 					responseModel['body'] = getBodyThatShouldBeRecorded(
 						this.responseText,
-            bodyKeysToRedact,
+						bodyKeysToRedact,
 						bodyKeysToRecord,
 						responseModel.headers,
 					)
@@ -154,7 +154,7 @@ export const XHRListener = (
 					const response = await blob.text()
 					responseModel['body'] = getBodyThatShouldBeRecorded(
 						response,
-            bodyKeysToRedact,
+						bodyKeysToRedact,
 						bodyKeysToRecord,
 						responseModel.headers,
 					)
@@ -163,7 +163,7 @@ export const XHRListener = (
 					try {
 						responseModel['body'] = getBodyThatShouldBeRecorded(
 							this.response,
-              bodyKeysToRedact,
+							bodyKeysToRedact,
 							bodyKeysToRecord,
 							responseModel.headers,
 						)
@@ -247,7 +247,7 @@ const BODY_SIZE_LIMITS = {
 
 export const getBodyThatShouldBeRecorded = (
 	bodyData: any,
-  bodyKeysToRedact?: string[],
+	bodyKeysToRedact?: string[],
 	bodyKeysToRecord?: string[],
 	headers?: Headers | { [key: string]: string },
 ) => {
@@ -267,35 +267,35 @@ export const getBodyThatShouldBeRecorded = (
 			DEFAULT_BODY_LIMIT
 	}
 
-  if (bodyData) {
-    if (bodyKeysToRedact) {
-      try {
-        const json = JSON.parse(bodyData)
+	if (bodyData) {
+		if (bodyKeysToRedact) {
+			try {
+				const json = JSON.parse(bodyData)
 
-        Object.keys(json).forEach((key) => {
-          if (bodyKeysToRedact.includes(key.toLocaleLowerCase())) {
-            json[key] = '[REDACTED]'
-          }
-        })
+				Object.keys(json).forEach((key) => {
+					if (bodyKeysToRedact.includes(key.toLocaleLowerCase())) {
+						json[key] = '[REDACTED]'
+					}
+				})
 
-        bodyData = JSON.stringify(json)
-      } catch {}
-    }
-    
-    if (bodyKeysToRecord) {
-      try {
-        const json = JSON.parse(bodyData)
+				bodyData = JSON.stringify(json)
+			} catch {}
+		}
+		
+		if (bodyKeysToRecord) {
+			try {
+				const json = JSON.parse(bodyData)
 
-        Object.keys(json).forEach((key) => {
-          if (!bodyKeysToRecord.includes(key.toLocaleLowerCase())) {
-            json[key] = '[REDACTED]'
-          }
-        })
+				Object.keys(json).forEach((key) => {
+					if (!bodyKeysToRecord.includes(key.toLocaleLowerCase())) {
+						json[key] = '[REDACTED]'
+					}
+				})
 
-        bodyData = JSON.stringify(json)
-      } catch {}
-    }
-  }
+				bodyData = JSON.stringify(json)
+			} catch {}
+		}
+	}
 
 	try {
 		bodyData = bodyData.slice(0, bodyLimit)
