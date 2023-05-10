@@ -29,15 +29,12 @@
 			"type": "expression",
 			"value": "Reflame.gitCommitSha"
 		},
-		"REACT_APP_PRIVATE_GRAPH_URI": "https://pri.highlight.run",
+		"REACT_APP_PRIVATE_GRAPH_URI": "https://localhost:8082/private",
 		"REACT_APP_ONPREM": false,
-		"REACT_APP_FRONTEND_URI": {
-			"type": "expression",
-			"value": "window.location.origin"
-		},
-		"REACT_APP_FRONTEND_ORG": 1,
-		"REACT_APP_PUBLIC_GRAPH_URI": "https://pub.highlight.run",
-		"REACT_APP_AUTH_MODE": null,
+		"REACT_APP_FRONTEND_URI": "https://localhost:3000",
+		"REACT_APP_FRONTEND_ORG": "1",
+		"REACT_APP_PUBLIC_GRAPH_URI": "https://localhost:8082/public",
+		"REACT_APP_AUTH_MODE": "simple",
 		"SLACK_CLIENT_ID": null,
 		"REACT_APP_STRIPE_API_PK": null,
 		"DEMO_ERROR_URL": null,
