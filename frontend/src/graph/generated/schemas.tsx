@@ -2488,6 +2488,13 @@ export enum SessionCommentType {
 	Feedback = 'FEEDBACK',
 }
 
+export enum SessionExcludedReason {
+	IgnoredUser = 'IgnoredUser',
+	NoActivity = 'NoActivity',
+	NoError = 'NoError',
+	NoUserInteractionEvents = 'NoUserInteractionEvents',
+}
+
 export type SessionInterval = {
 	__typename?: 'SessionInterval'
 	active: Scalars['Boolean']

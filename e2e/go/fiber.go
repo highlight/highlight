@@ -1,22 +1,23 @@
 package main
 
 import (
+	"math/rand"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	H "github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightFiber "github.com/highlight/highlight/sdk/highlight-go/middleware/fiber"
 	e "github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"math/rand"
 )
 
 func main() {
-	H.SetProjectID("1jdkoe52")
-	H.SetGraphqlClientAddress("https://localhost:8082/public")
-	H.SetOTLPEndpoint("http://localhost:4318")
-	H.Start()
-	defer H.Stop()
+	highlight.SetProjectID("1jdkoe52")
+	highlight.SetGraphqlClientAddress("https://localhost:8082/public")
+	highlight.SetOTLPEndpoint("http://localhost:4318")
+	highlight.Start()
+	defer highlight.Stop()
 	hlog.Init()
 
 	app := fiber.New()

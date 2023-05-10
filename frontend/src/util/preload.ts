@@ -57,6 +57,12 @@ export const usePreloadSessions = function ({
 			if (!backendSearchQuery?.searchQuery) {
 				return false
 			}
+
+			// disable preloading for this project due to larger session / network payloads
+			if (project_id === '5403') {
+				return false
+			}
+
 			log('preload.ts', 'sessions query', {
 				searchQuery: backendSearchQuery?.searchQuery,
 			})

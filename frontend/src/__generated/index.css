@@ -12170,24 +12170,6 @@ span:last-child ._ruleItem_1yzqu_148 {
   pointer-events: none;
 }
 
-/* temp_stylePlugin:ni:sha-256;1PQ3LY5EYKez_qPENxTV2ofQnMJZ-XwkeJtNHFKmkis */
-a._connectHighlightWithSlackButton_395st_1 {
-  align-items: center;
-  border: 0;
-  border-radius: var(--size-xSmall);
-  column-gap: var(--size-xSmall);
-  display: flex;
-  height: 32px;
-  padding-bottom: var(--size-xxSmall) !important;
-  padding-top: var(--size-xxSmall) !important;
-  width: fit-content;
-}
-a._connectHighlightWithSlackButton_395st_1:hover,
-a._connectHighlightWithSlackButton_395st_1:active,
-a._connectHighlightWithSlackButton_395st_1:focus {
-  border: 0;
-}
-
 /* temp_stylePlugin:ni:sha-256;DWGkn8RJXsdfPtIDGCZe-CsLtRphLcJu7yzY1a-Kqhg */
 ._channelSelect_ejzcm_1 {
   margin-bottom: var(--size-medium);
@@ -16911,7 +16893,7 @@ a._connectHighlightWithSlackButton_395st_1:focus {
   margin: var(--size-medium) 0;
 }
 
-/* vanilla-extract-css-ns:src/pages/SettingsRouter/SettingsRouter.css.ts.vanilla.css?source=Ll80cWR5Y3YwIHsKICBoZWlnaHQ6IDEycHg7Cn0KLl80cWR5Y3YxIHsKICBib3JkZXItcmFkaXVzOiA0cHg7CiAgY29sb3I6IHZhcigtLV8xcHlxa2E5eSk7CiAgY3Vyc29yOiBwb2ludGVyOwogIHBhZGRpbmc6IDhweCA4cHg7CiAgd2lkdGg6IDMyNXB4OwogIGhlaWdodDogMjhweDsKICBkaXNwbGF5OiBmbGV4Owp9Ci5fNHFkeWN2MTpob3ZlciB7CiAgYmFja2dyb3VuZC1jb2xvcjogdmFyKC0tXzFweXFrYTkxeCk7CiAgY29sb3I6IHZhcigtLV8xcHlxa2E5dyk7Cn0KLl80cWR5Y3YyIHsKICBiYWNrZ3JvdW5kLWNvbG9yOiB2YXIoLS1fMXB5cWthOTF5KTsKICBjb2xvcjogdmFyKC0tXzFweXFrYTl3KTsKfQouXzRxZHljdjMgewogIGJhY2tncm91bmQtY29sb3I6IHZhcigtLV8xcHlxa2E5MXopOwogIGNvbG9yOiB2YXIoLS1fMXB5cWthOXgpOwogIGN1cnNvcjogbm90LWFsbG93ZWQ7Cn0KLl80cWR5Y3YzOmhvdmVyIHsKICBiYWNrZ3JvdW5kLWNvbG9yOiB2YXIoLS1fMXB5cWthOTF6KTsKICBjb2xvcjogdmFyKC0tXzFweXFrYTl4KTsKfQ== */
+/* vanilla-extract-css-ns:src/pages/SettingsRouter/SettingsRouter.css.ts.vanilla.css?source=Ll80cWR5Y3YwIHsKICBoZWlnaHQ6IDEycHg7Cn0KLl80cWR5Y3YxIHsKICBib3JkZXItcmFkaXVzOiA0cHg7CiAgY29sb3I6IHZhcigtLV8xcHlxa2E5eSk7CiAgY3Vyc29yOiBwb2ludGVyOwogIHBhZGRpbmc6IDhweCA4cHg7CiAgd2lkdGg6IDMyNXB4OwogIGhlaWdodDogMjhweDsKICBkaXNwbGF5OiBmbGV4Owp9Ci5fNHFkeWN2MTpob3ZlciB7CiAgYmFja2dyb3VuZC1jb2xvcjogdmFyKC0tXzFweXFrYTkxeCk7CiAgY29sb3I6IHZhcigtLV8xcHlxa2E5dyk7Cn0KLl80cWR5Y3YyIHsKICBiYWNrZ3JvdW5kLWNvbG9yOiB2YXIoLS1fMXB5cWthOTF5KTsKICBjb2xvcjogdmFyKC0tXzFweXFrYTl3KTsKfQouXzRxZHljdjMgewogIGJhY2tncm91bmQtY29sb3I6IHZhcigtLV8xcHlxa2E5MXopOwogIGNvbG9yOiB2YXIoLS1fMXB5cWthOXgpOwogIGN1cnNvcjogbm90LWFsbG93ZWQ7Cn0KLl80cWR5Y3YzOmhvdmVyIHsKICBiYWNrZ3JvdW5kLWNvbG9yOiB2YXIoLS1fMXB5cWthOTF6KTsKICBjb2xvcjogdmFyKC0tXzFweXFrYTl4KTsKfQouXzRxZHljdjUgKyAuXzRxZHljdjUgewogIGJvcmRlci10b3A6IHZhcigtLV8xcHlxa2E5MW8pIHNvbGlkIDFweDsKfQ== */
 ._4qdycv0 {
   height: 12px;
 }
@@ -16940,6 +16922,9 @@ a._connectHighlightWithSlackButton_395st_1:focus {
 ._4qdycv3:hover {
   background-color: var(--_1pyqka91z);
   color: var(--_1pyqka9x);
+}
+._4qdycv5 + ._4qdycv5 {
+  border-top: var(--_1pyqka91o) solid 1px;
 }
 
 /* temp_stylePlugin:ni:sha-256;ZFk_xjnWGFe21cp_fK7vfFmDsVLWwbdZf3z2aG2YpW4 */

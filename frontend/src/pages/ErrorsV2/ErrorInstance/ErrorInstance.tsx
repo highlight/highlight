@@ -218,12 +218,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 					</Box>
 				</Box>
 
-				<Box
-					display="flex"
-					flexDirection={{ desktop: 'row', mobile: 'column' }}
-					mb="40"
-					gap="40"
-				>
+				<Box display="flex" flexDirection="row" mb="40" gap="40">
 					<div style={{ flexBasis: 0, flexGrow: 1 }}>
 						<Box>
 							<Box bb="secondary" pb="20" my="12">
@@ -339,12 +334,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				</Box>
 			</Box>
 
-			<Box
-				display="flex"
-				flexDirection={{ desktop: 'row', mobile: 'column' }}
-				mb="40"
-				gap="40"
-			>
+			<Box display="flex" flexDirection="column" mb="40" gap="40">
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
 					<Metadata errorObject={errorInstance.error_object} />
 				</div>

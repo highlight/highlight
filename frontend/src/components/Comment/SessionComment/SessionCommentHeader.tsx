@@ -1,16 +1,17 @@
-import GoToButton from '@components/Button/GoToButton'
-import { CommentHeader } from '@components/Comment/CommentHeader'
-import MenuItem from '@components/Menu/MenuItem'
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
-import { useDeleteSessionCommentMutation } from '@graph/hooks'
-import { namedOperations } from '@graph/operations'
 import { IntegrationType, SessionCommentType } from '@graph/schemas'
-import SvgBallotBoxIcon from '@icons/BallotBoxIcon'
-import SvgClipboardIcon from '@icons/ClipboardIcon'
-import SvgCopyIcon from '@icons/CopyIcon'
-import SvgFileText2Icon from '@icons/FileText2Icon'
-import SvgReferrer from '@icons/Referrer'
-import SvgTrashIcon from '@icons/TrashIcon'
+import {
+	Box,
+	IconSolidArrowCircleRight,
+	IconSolidDotsHorizontal,
+	IconSolidExternalLink,
+	IconSolidLink,
+	IconSolidTrash,
+	Menu,
+	Stack,
+	Text,
+} from '@highlight-run/ui'
+import { vars } from '@highlight-run/ui/src/css/vars'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import {
@@ -26,60 +27,38 @@ import {
 } from '@pages/Player/ReplayerContext'
 import { onGetLinkWithTimestamp } from '@pages/Player/SessionShareButton/utils/utils'
 import analytics from '@util/analytics'
-import { getFeedbackCommentSessionTimestamp } from '@util/comment/util'
-import { delayedRefetch } from '@util/gql'
-import { MillisToMinutesAndSeconds } from '@util/time'
-import { Menu, message } from 'antd'
-import React, { PropsWithChildren, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { message } from 'antd'
+import moment from 'moment'
+import React, { useMemo, useState } from 'react'
+
+import { AdminAvatar, Avatar } from '@/components/Avatar/Avatar'
+import { getAttachmentUrl } from '@/components/Comment/AttachmentList/AttachmentList'
+import {
+	useDeleteComment,
+	useNavigateToComment,
+} from '@/components/Comment/utils/utils'
 
 interface Props {
 	comment: ParsedSessionComment
-	menuItems?: CommentHeaderMenuItem[]
-	footer?: React.ReactNode
-	onClose?: () => void
+	isReply?: boolean
 }
 
-export interface CommentHeaderMenuItem {
-	label: string
-	onClick: () => void
-}
+const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
+	const { session } = useReplayerContext()
+	const navigateToComment = useNavigateToComment(comment)
+	const deleteComment = useDeleteComment(comment)
 
-const SessionCommentHeader = ({
-	comment,
-	children,
-	menuItems,
-	onClose,
-	footer,
-}: PropsWithChildren<Props>) => {
-	const { pause, session, sessionMetadata } = useReplayerContext()
-	const [deleteSessionComment] = useDeleteSessionCommentMutation({
-		refetchQueries: [
-			namedOperations.Query.GetSessionComments,
-			namedOperations.Query.GetSessionsOpenSearch,
-		],
-		onQueryUpdated: delayedRefetch,
-	})
-	const navigate = useNavigate()
-
-	const { isLinearIntegratedWithProject, loading: isLoadingLinear } =
-		useLinearIntegration()
-
-	const { isIntegrated: isClickupIntegrated, loading: isLoadingClickUp } =
-		useIsProjectIntegratedWith(IntegrationType.ClickUp)
-
-	const { isIntegrated: isHeightIntegrated, loading: isLoadingHeight } =
-		useIsProjectIntegratedWith(IntegrationType.Height)
+	const { isLinearIntegratedWithProject } = useLinearIntegration()
+	const { isIntegrated: isClickupIntegrated } = useIsProjectIntegratedWith(
+		IntegrationType.ClickUp,
+	)
+	const { isIntegrated: isHeightIntegrated } = useIsProjectIntegratedWith(
+		IntegrationType.Height,
+	)
 
 	const [showNewIssueModal, setShowNewIssueModal] = useState<
 		IssueTrackerIntegration | undefined
 	>()
-
-	const getCommentLink = () => {
-		const url = onGetLinkWithTimestamp(comment.timestamp || 0)
-		url.searchParams.set(PlayerSearchParameters.commentId, comment.id)
-		return url
-	}
 
 	const defaultIssueTitle = useMemo(() => {
 		if (session?.identifier) {
@@ -101,167 +80,157 @@ const SessionCommentHeader = ({
 		<>
 			{issueTrackers.map((item) => {
 				const [isIntegrated, integration] = item
+				const existingAttachment = comment.attachments?.find(
+					(attachment) =>
+						attachment?.integration_type === integration.name,
+				)
+
 				return isIntegrated ? (
-					<MenuItem
+					<Menu.Item
 						key={integration.name}
-						icon={<SvgFileText2Icon />}
 						onClick={() => {
-							analytics.track(
-								`Create ${integration.name} Issue from Comment`,
-							)
+							existingAttachment
+								? window.open(
+										getAttachmentUrl(existingAttachment),
+										'_blank',
+								  )
+								: analytics.track(
+										`Create ${integration.name} Issue from Comment`,
+								  )
 							setShowNewIssueModal(integration)
 						}}
 					>
-						Create {integration.name} Issue
-					</MenuItem>
+						<Stack gap="4" direction="row" align="center">
+							<integration.Icon />
+							{existingAttachment ? (
+								<>
+									View {existingAttachment.title}{' '}
+									<IconSolidExternalLink /> {}
+								</>
+							) : (
+								<>Create {integration.name} issue</>
+							)}
+						</Stack>
+					</Menu.Item>
 				) : null
 			})}
 		</>
 	)
 
-	const handleGotoClick = () => {
-		const urlSearchParams = new URLSearchParams()
-		urlSearchParams.append(PlayerSearchParameters.commentId, comment?.id)
-
-		navigate(`${location.pathname}?${urlSearchParams.toString()}`, {
-			replace: true,
-		})
-
-		let commentTimestamp = comment.timestamp || 0
-
-		if (comment.type === SessionCommentType.Feedback) {
-			const sessionStartTime = sessionMetadata.startTime
-
-			if (sessionStartTime) {
-				commentTimestamp = getFeedbackCommentSessionTimestamp(
-					comment,
-					sessionStartTime,
-				)
-			}
-		}
-		pause(commentTimestamp)
-		message.success(
-			`Changed player time to where comment was created at ${MillisToMinutesAndSeconds(
-				commentTimestamp,
-			)}.`,
-		)
+	const getCommentLink = () => {
+		const url = onGetLinkWithTimestamp(comment.timestamp || 0)
+		url.searchParams.set(PlayerSearchParameters.commentId, comment.id)
+		return url
 	}
 
-	const moreMenu = (
-		<Menu>
-			<MenuItem
-				icon={<SvgCopyIcon />}
-				onClick={() => {
-					const url = getCommentLink()
-					message.success('Copied link!')
-					navigator.clipboard.writeText(url.href)
-				}}
-			>
-				Copy link
-			</MenuItem>
-			{comment.type === SessionCommentType.Feedback &&
-				comment?.metadata?.email && (
-					<MenuItem
-						icon={<SvgClipboardIcon />}
-						onClick={() => {
-							message.success(
-								"Copied the feedback provider's email!",
-							)
-							navigator.clipboard.writeText(
-								comment.metadata?.email as string,
-							)
-						}}
-					>
-						Copy feedback email
-					</MenuItem>
-				)}
-			<MenuItem icon={<SvgReferrer />} onClick={handleGotoClick}>
-				Goto
-			</MenuItem>
-			<MenuItem
-				icon={<SvgTrashIcon />}
-				onClick={() => {
-					deleteSessionComment({
-						variables: {
-							id: comment.id,
-						},
-					})
-				}}
-			>
-				Delete comment
-			</MenuItem>
-			{session && createIssueMenuItems}
-			{menuItems?.map((menuItem, index) => (
-				<MenuItem onClick={menuItem.onClick} key={index} icon={<></>}>
-					{menuItem.label}
-				</MenuItem>
-			))}
-		</Menu>
-	)
+	const authorName =
+		comment.type === SessionCommentType.Feedback
+			? comment.metadata?.name ||
+			  comment.metadata?.email?.split('@')[0] ||
+			  'Anonymous'
+			: comment.author?.name || comment.author?.email.split('@')[0]
 
-	const shareMenu = (
-		<Menu>
-			{session && createIssueMenuItems}
-			<MenuItem
-				icon={<SvgBallotBoxIcon />}
-				onClick={() => {
-					window.open(
-						'https://highlight.canny.io/feature-requests/p/jira-integration',
-						'_blank',
-					)
-				}}
-			>
-				Vote on Jira Integration
-			</MenuItem>
-			<MenuItem
-				icon={<SvgBallotBoxIcon />}
-				onClick={() => {
-					window.open(
-						'https://highlight.canny.io/feature-requests/p/mondaycom-integration',
-						'_blank',
-					)
-				}}
-			>
-				Vote on Monday Integration
-			</MenuItem>
-			<MenuItem
-				icon={<SvgBallotBoxIcon />}
-				onClick={() => {
-					window.open(
-						'https://highlight.canny.io/feature-requests/p/asana-integration',
-						'_blank',
-					)
-				}}
-			>
-				Vote on Asana Integration
-			</MenuItem>
-			<MenuItem
-				icon={<SvgBallotBoxIcon />}
-				onClick={() => {
-					window.open(
-						'https://highlight.canny.io/feature-requests?',
-						'_blank',
-					)
-				}}
-			>
-				Suggest an Integration
-			</MenuItem>
-		</Menu>
-	)
+	const timeAgo = moment(comment.created_at).fromNow()
 
 	return (
-		<CommentHeader
-			comment={comment}
-			moreMenu={moreMenu}
-			footer={footer}
-			shareMenu={shareMenu}
-			gotoButton={<GoToButton small onClick={handleGotoClick} />}
-			onClose={onClose}
-			isSharingDisabled={
-				isLoadingLinear || isLoadingClickUp || isLoadingHeight
-			}
-		>
-			{children}
+		<Box>
+			<Box
+				display="flex"
+				alignItems="center"
+				justifyContent="space-between"
+			>
+				<Stack direction="row" gap="4" alignItems="center">
+					{comment.type === SessionCommentType.Feedback ? (
+						<Avatar
+							seed={
+								comment.metadata?.name ||
+								comment.metadata?.email ||
+								'Anonymous'
+							}
+							style={{ height: 20, width: 20 }}
+						/>
+					) : (
+						<AdminAvatar
+							adminInfo={{
+								name: comment.author?.name ?? undefined,
+								photo_url: comment.author?.photo_url,
+								email: comment.author?.email,
+							}}
+							size={20}
+						/>
+					)}
+					<Text size="small" color="strong" lines="1">
+						{authorName}
+					</Text>
+					<Text size="small" color="moderate" lines="1">
+						{timeAgo}
+					</Text>
+				</Stack>
+
+				{!isReply && (
+					<Box>
+						<Menu placement="bottom-end">
+							<Menu.Button
+								onClick={(
+									e: React.MouseEvent<HTMLButtonElement>,
+								) => {
+									e.stopPropagation()
+								}}
+								icon={
+									<IconSolidDotsHorizontal
+										size={14}
+										color={vars.color.n11}
+									/>
+								}
+								emphasis="low"
+								kind="secondary"
+								size="xSmall"
+							/>
+							<Menu.List>
+								<Menu.Item onClick={navigateToComment}>
+									<Stack
+										gap="4"
+										direction="row"
+										align="center"
+									>
+										<IconSolidArrowCircleRight />
+										Go to timestamp
+									</Stack>
+								</Menu.Item>
+								<Menu.Item
+									onClick={() => {
+										const url = getCommentLink()
+										message.success('Copied link!')
+										navigator.clipboard.writeText(url.href)
+									}}
+								>
+									<Stack
+										gap="4"
+										direction="row"
+										align="center"
+									>
+										<IconSolidLink />
+										Copy link
+									</Stack>
+								</Menu.Item>
+								<Menu.Item onClick={deleteComment}>
+									<Stack
+										gap="4"
+										direction="row"
+										align="center"
+									>
+										<IconSolidTrash />
+										Delete comment
+									</Stack>
+								</Menu.Item>
+								<Menu.Divider />
+								{session && createIssueMenuItems}
+							</Menu.List>
+						</Menu>
+					</Box>
+				)}
+			</Box>
+
 			<NewIssueModal
 				selectedIntegration={showNewIssueModal ?? LINEAR_INTEGRATION}
 				visible={!!showNewIssueModal}
@@ -274,7 +243,7 @@ const SessionCommentHeader = ({
 				commentType="SessionComment"
 				defaultIssueTitle={defaultIssueTitle}
 			/>
-		</CommentHeader>
+		</Box>
 	)
 }
 

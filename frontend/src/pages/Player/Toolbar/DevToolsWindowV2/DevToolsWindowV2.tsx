@@ -12,6 +12,7 @@ import {
 	Text,
 	useFormState,
 } from '@highlight-run/ui'
+import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import { useProjectId } from '@hooks/useProjectId'
 import { useWindowSize } from '@hooks/useWindowSize'
 import { getLogsURLForSession } from '@pages/LogsPage/SearchForm/utils'
@@ -204,8 +205,22 @@ const DevToolsWindowV2: React.FC<
 					ref={panelRef}
 					style={{ width: props.width }}
 				>
+					<Box
+						ref={handleRef}
+						p="4"
+						style={{ cursor: 'grab', width: 'auto' }}
+					>
+						<Box
+							style={{
+								backgroundColor: themeVars.static.divider.weak,
+								borderRadius: 10,
+								height: 4,
+								width: 36,
+								zIndex: 1,
+							}}
+						/>
+					</Box>
 					<Tabs<Tab>
-						handleRef={handleRef}
 						tab={selectedDevToolsTab}
 						setTab={(t: Tab) => {
 							setSelectedDevToolsTab(t)
