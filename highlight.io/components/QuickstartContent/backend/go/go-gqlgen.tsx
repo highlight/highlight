@@ -20,12 +20,12 @@ export const GoGqlgenContent: QuickStartContent = {
 		{
 			title: 'Add the Highlight gqlgen error handler.',
 			content:
-				'`H.NewGraphqlTracer` provides a middleware you can add to your [GraphQL](https://gqlgen.com/getting-started/) handler to automatically record and send GraphQL resolver errors to Highlight. ' +
+				'`highlight.NewGraphqlTracer` provides a middleware you can add to your [GraphQL](https://gqlgen.com/getting-started/) handler to automatically record and send GraphQL resolver errors to Highlight. ' +
 				'Calling `.WithRequestFieldLogging()` will also emit highlight logs for each graphql operation, giving you a way' +
 				'to search across all graphql requests to your backend.',
 			code: {
 				text: `import (
-  H "github.com/highlight/highlight/sdk/highlight-go"
+  "github.com/highlight/highlight/sdk/highlight-go"
 )
 
 func main() {
@@ -33,11 +33,11 @@ func main() {
   server := handler.New(...)
   // call with WithRequestFieldLogging() to emit highlight logs for each graphql operation
   // useful for tracing which graphql operations are called as part of which frontend sessions
-  server.Use(H.NewGraphqlTracer("your-backend-service-name").WithRequestFieldLogging())
+  server.Use(highlight.NewGraphqlTracer("your-backend-service-name").WithRequestFieldLogging())
   // capture panics emitted by graphql handlers in highlight
-  server.SetRecoverFunc(H.GraphQLRecoverFunc())
+  server.SetRecoverFunc(highlight.GraphQLRecoverFunc())
   // format logs on errors thrown by your graphql handlers
-  server.SetErrorPresenter(H.GraphQLErrorPresenter("my-gql-service"))
+  server.SetErrorPresenter(highlight.GraphQLErrorPresenter("my-gql-service"))
   // ...
 }`,
 				language: 'go',
