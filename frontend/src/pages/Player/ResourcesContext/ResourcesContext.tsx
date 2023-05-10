@@ -15,6 +15,7 @@ const RESOURCE_FILE_SIZE_LIMIT_MB = 16
 
 export enum ResourceLoadingError {
 	NetworkResourcesTooLarge = 'payload too large.',
+	NetworkResourcesFetchFailed = 'failed to fetch.',
 }
 
 interface ResourcesContext {
@@ -60,6 +61,7 @@ export const useResources = (
 
 	const [resources, setResources] = useState<NetworkResourceWithID[]>([])
 	useEffect(() => {
+		setError(undefined)
 		setResources(
 			(
 				data?.resources?.map((r, i) => {
@@ -131,6 +133,7 @@ export const useResources = (
 					response
 						.json()
 						.then((data) => {
+							setError(undefined)
 							setResources(
 								(
 									(data as any[] | undefined)?.map((r, i) => {
@@ -153,6 +156,9 @@ export const useResources = (
 							)
 						})
 						.catch((e) => {
+							setError(
+								ResourceLoadingError.NetworkResourcesFetchFailed,
+							)
 							setResources([])
 							H.consumeError(
 								e,
