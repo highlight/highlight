@@ -8,6 +8,7 @@ export interface AdminSuggestion extends SuggestionDataItem {
 	name?: string
 }
 
+// TODO: Can/should we (re)move this?
 export const parseAdminSuggestions = (
 	/** A list of all admins in the project. */
 	suggestions: CommentSuggestion[],

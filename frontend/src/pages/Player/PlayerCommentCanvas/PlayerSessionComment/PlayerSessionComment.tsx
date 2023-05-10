@@ -6,6 +6,7 @@ import clsx from 'clsx'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 import { getDeepLinkedCommentId } from '@/components/Comment/utils/utils'
+import { CommentIndicator } from '@/pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
 
 import TransparentPopover from '../../../../components/Popover/TransparentPopover'
 import {
@@ -14,7 +15,6 @@ import {
 	SessionComment as SessionCommentModelType,
 	SessionCommentType,
 } from '../../../../graph/generated/schemas'
-import CommentPinIcon from '../../../../static/comment-pin.png'
 import { useReplayerContext } from '../../ReplayerContext'
 import commentButtonStyles from '../PlayerCommentCanvas.module.scss'
 import styles from './PlayerSessionComment.module.scss'
@@ -117,12 +117,10 @@ const PlayerSessionComment = ({ comment }: Props) => {
 			key={comment.id}
 			className={styles.comment}
 			style={{
-				left: `calc(${
-					comment.x_coordinate * 100
-				}% - (var(--comment-indicator-width) / 2))`,
+				left: `calc(${comment.x_coordinate * 100}%)`,
 				top: `calc(${
 					comment.y_coordinate * 100
-				}% - var(--comment-indicator-height) + 2px)`,
+				}% - var(--comment-indicator-width))`,
 			}}
 			onClick={(e) => {
 				e.stopPropagation()
@@ -187,7 +185,13 @@ const PlayerSessionComment = ({ comment }: Props) => {
 						styles.commentPinButton,
 					)}
 				>
-					<img src={CommentPinIcon} alt="comment pin icon" />
+					<CommentIndicator
+						seed={
+							comment.author?.name ??
+							comment.author?.email ??
+							'Anonymous'
+						}
+					/>
 				</button>
 			</TransparentPopover>
 		</div>

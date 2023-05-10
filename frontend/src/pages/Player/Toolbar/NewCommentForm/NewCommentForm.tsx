@@ -451,7 +451,7 @@ export const NewCommentForm = ({
 			>
 				{section === CommentFormSection.NewIssueForm && (
 					<Box backgroundColor="white" borderRadius="8">
-						<Box px="12" py="4" borderBottom="divider">
+						<Box pl="12" pr="6" py="4" borderBottom="divider">
 							<Stack
 								direction="row"
 								align="center"
@@ -477,11 +477,11 @@ export const NewCommentForm = ({
 									size="xSmall"
 									kind="secondary"
 									emphasis="low"
-									icon={<IconSolidX />}
+									icon={<IconSolidX size={14} />}
 								/>
 							</Stack>
 						</Box>
-						<Stack direction="column" gap="8" p="12">
+						<Stack direction="column" gap="12" p="12">
 							{issueServiceDetail?.containerSelection({
 								setSelectionId: setContainerId,
 							})}
@@ -504,7 +504,7 @@ export const NewCommentForm = ({
 							borderBottomLeftRadius="8"
 							borderBottomRightRadius="8"
 							borderTop="divider"
-							p="4"
+							p="6"
 							gap="4"
 						>
 							<Button
@@ -540,7 +540,7 @@ export const NewCommentForm = ({
 				)}
 
 				{section === CommentFormSection.CommentForm && (
-					<Box p="4">
+					<Box p="6">
 						<Box>
 							<CommentTextBody
 								newInput
@@ -555,72 +555,71 @@ export const NewCommentForm = ({
 							/>
 						</Box>
 						<Stack
+							my="2"
 							direction="row"
 							justify="space-between"
 							align="center"
 						>
-							<Box>
-								<Menu>
-									<Menu.Button
-										kind="secondary"
-										emphasis="high"
-										size="xSmall"
-										icon={<IconSolidPlus />}
-									/>
-									<Menu.List>
-										{issueIntegrationsOptions.map(
-											({ displayValue, id, value }) => (
-												<Menu.Item
-													key={id}
-													onClick={() => {
+							<Menu>
+								<Menu.Button
+									kind="secondary"
+									emphasis="high"
+									size="xSmall"
+									icon={<IconSolidPlus />}
+								/>
+								<Menu.List>
+									{issueIntegrationsOptions.map(
+										({ displayValue, id, value }) => (
+											<Menu.Item
+												key={id}
+												onClick={() => {
+													formState.setValue(
+														'issueTitle',
+														defaultIssueTitle,
+													)
+
+													if (
+														!formState.getValue(
+															'issueDescription',
+														)
+													) {
 														formState.setValue(
-															'issueTitle',
-															defaultIssueTitle,
+															'issueDescription',
+															commentTextForEmail,
 														)
+													}
 
-														if (
-															!formState.getValue(
-																'issueDescription',
-															)
-														) {
-															formState.setValue(
-																'issueDescription',
-																commentTextForEmail,
-															)
-														}
-
-														setSelectedIssueService(
-															value,
-														)
-														setSection(
-															CommentFormSection.NewIssueForm,
-														)
-													}}
-												>
-													{displayValue}
-												</Menu.Item>
-											),
-										)}
-										<Menu.Divider />
-										<Menu.Item
-											onClick={() => {
-												navigate(
-													`/${project_id}/integrations`,
-												)
-											}}
-										>
-											<Stack
-												direction="row"
-												gap="4"
-												align="center"
+													setSelectedIssueService(
+														value,
+													)
+													setSection(
+														CommentFormSection.NewIssueForm,
+													)
+												}}
 											>
-												<IconSolidViewGridAdd />
-												Add new integration
-											</Stack>
-										</Menu.Item>
-									</Menu.List>
-								</Menu>
-							</Box>
+												{displayValue}
+											</Menu.Item>
+										),
+									)}
+									<Menu.Divider />
+									<Menu.Item
+										onClick={() => {
+											navigate(
+												`/${project_id}/integrations`,
+											)
+										}}
+									>
+										<Stack
+											direction="row"
+											gap="4"
+											align="center"
+										>
+											<IconSolidViewGridAdd />
+											Add new integration
+										</Stack>
+									</Menu.Item>
+								</Menu.List>
+							</Menu>
 							<Stack direction="row" align="center" gap="4">
 								{/* TODO: Grab mention button */}
 								<ButtonIcon
@@ -654,6 +653,9 @@ const getNewCommentPlaceholderText = (
 	adminSuggestions?: AdminSuggestion[],
 	admin?: Admin,
 ) => {
+	// Only show users, not channels.
+	adminSuggestions = adminSuggestions?.filter((s) => s.name?.startsWith('@'))
+
 	const randomMessage =
 		RANDOM_COMMENT_MESSAGES[
 			Math.floor(Math.random() * RANDOM_COMMENT_MESSAGES.length)

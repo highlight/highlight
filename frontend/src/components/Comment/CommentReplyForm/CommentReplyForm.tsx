@@ -223,16 +223,15 @@ function CommentReplyForm<T extends CommentReplyAction>({
 							}, 0)
 						}}
 					/>
-					<Box>
-						<ButtonIcon
-							disabled={commentText.length === 0 || isReplying}
-							onClick={submitReply}
-							kind="primary"
-							emphasis="high"
-							icon={<IconSolidPaperAirplane />}
-							size="xSmall"
-						/>
-					</Box>
+
+					<ButtonIcon
+						disabled={commentText.length === 0 || isReplying}
+						onClick={submitReply}
+						kind="primary"
+						emphasis="high"
+						icon={<IconSolidPaperAirplane />}
+						size="xSmall"
+					/>
 				</Stack>
 			</Form>
 		</Box>
