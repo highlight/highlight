@@ -12170,24 +12170,6 @@ span:last-child ._ruleItem_1yzqu_148 {
   pointer-events: none;
 }
 
-/* temp_stylePlugin:ni:sha-256;1PQ3LY5EYKez_qPENxTV2ofQnMJZ-XwkeJtNHFKmkis */
-a._connectHighlightWithSlackButton_395st_1 {
-  align-items: center;
-  border: 0;
-  border-radius: var(--size-xSmall);
-  column-gap: var(--size-xSmall);
-  display: flex;
-  height: 32px;
-  padding-bottom: var(--size-xxSmall) !important;
-  padding-top: var(--size-xxSmall) !important;
-  width: fit-content;
-}
-a._connectHighlightWithSlackButton_395st_1:hover,
-a._connectHighlightWithSlackButton_395st_1:active,
-a._connectHighlightWithSlackButton_395st_1:focus {
-  border: 0;
-}
-
 /* temp_stylePlugin:ni:sha-256;DWGkn8RJXsdfPtIDGCZe-CsLtRphLcJu7yzY1a-Kqhg */
 ._channelSelect_ejzcm_1 {
   margin-bottom: var(--size-medium);
@@ -16356,26 +16338,15 @@ a._connectHighlightWithSlackButton_395st_1:focus {
   height: 20px;
 }
 
-/* temp_stylePlugin:ni:sha-256;itJbWmGsrcE5JqO9CitRyoQRpSceLA-gNVWjhjxB36Q */
-._tagSelect_1xcff_1 .ant-select-selection-overflow {
-  row-gap: var(--size-xSmall);
+/* vanilla-extract-css-ns:src/pages/Player/Toolbar/NewCommentModal/styles.css.ts.vanilla.css?source=LmhncDMxZTAgLmFudC1tb2RhbC1jb250ZW50IHsKICBiYWNrZ3JvdW5kLWNvbG9yOiB2YXIoLS1fMXB5cWthOTIpOwogIGJvcmRlci1yYWRpdXM6IDhweCAhaW1wb3J0YW50OwogIGJvcmRlcjogdmFyKC0tXzFweXFrYTlqKSBzb2xpZCAxcHg7CiAgYm94LXNoYWRvdzogMCA2cHggMTJweCAtMnB4IHJnYmEoNTksIDU5LCA1OSwgMC4xMik7Cn0KLmhncDMxZTAgLmFudC1tb2RhbC1ib2R5IHsKICBwYWRkaW5nOiAwOwp9 */
+.hgp31e0 .ant-modal-content {
+  background-color: var(--_1pyqka92);
+  border-radius: 8px !important;
+  border: var(--_1pyqka9j) solid 1px;
+  box-shadow: 0 6px 12px -2px rgba(59, 59, 59, 0.12);
 }
-._customTag_1xcff_5 {
-  align-items: center;
-  background: var(--color-gray-300);
-  border-radius: var(--size-large);
-  column-gap: var(--size-xxSmall);
-  display: flex;
-  font-size: 12px;
-  margin-right: var(--size-xSmall);
-  padding: var(--size-xxSmall) var(--size-small);
-}
-
-/* temp_stylePlugin:ni:sha-256;nzbENI6JIA-3dfIuhKvKGUabJ46i_Q61gDPJT0-Adyk */
-._commentModal_5vkya_1 > div {
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--size-xSmall);
-  box-shadow: var(--box-shadow);
+.hgp31e0 .ant-modal-body {
+  padding: 0;
 }
 
 /* vanilla-extract-css-ns:src/pages/Sessions/SessionsFeedV3/SessionFeedV3.css.ts.vanilla.css?source=LnR6dnhwcDAgewogIHdpZHRoOiAzNDBweDsKICBwb3NpdGlvbjogZml4ZWQ7CiAgaGVpZ2h0OiBjYWxjKDEwMHZoIC0gdmFyKC0taGVhZGVyLWhlaWdodCkpOwp9Ci50enZ4cHAxIHsKICBoZWlnaHQ6IGNhbGMoMTAwdmggLSB2YXIoLS1oZWFkZXItaGVpZ2h0KSAtIHZhcigtLWJhbm5lci1oZWlnaHQpKTsKfQoudHp2eHBwMiB7CiAgcG9zaXRpb246IGZpeGVkOwogIHRyYW5zZm9ybTogdHJhbnNsYXRlWCgtMzQwcHgpOwp9 */
