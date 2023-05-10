@@ -19,6 +19,7 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/openlyinc/pointy"
@@ -124,7 +125,7 @@ func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, re
 		lg(ctx, &projectID, &sessionID, &requestID, &source, resourceAttributes, spanAttributes, eventAttributes).Warn("otel received exception with no stacktrace")
 		stackTrace = ""
 	}
-	stackTrace = formatStructureStackTrace(ctx, stackTrace)
+	stackTrace = stacktraces.FormatStructureStackTrace(ctx, stackTrace)
 	payloadBytes, _ := json.Marshal(clickhouse.GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, false))
 	err := &model.BackendErrorObjectInput{
 		SessionSecureID: &sessionID,

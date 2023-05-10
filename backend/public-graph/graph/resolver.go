@@ -17,6 +17,7 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/phonehome"
+	"github.com/highlight-run/highlight/backend/stacktraces"
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/PaesslerAG/jsonpath"
@@ -36,7 +37,6 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
-	"github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	highlightHubspot "github.com/highlight-run/highlight/backend/hubspot"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -505,7 +505,7 @@ func (r *Resolver) GetErrorAppVersion(errorObj *model.ErrorObject) *string {
 func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []privateModel.ErrorTrace, error) {
 	version := r.GetErrorAppVersion(errorObj)
 	var newMappedStackTraceString *string
-	mappedStackTrace, err := errors.EnhanceStackTrace(ctx, stackTrace, projectID, version, r.StorageClient)
+	mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, stackTrace, projectID, version, r.StorageClient)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "error object: %+v", errorObj))
 	} else {
@@ -809,8 +809,8 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			// Forward these errors to another project that Highlight owns to help debug: https://app.highlight.run/715/errors
 			errorObj.ProjectID = 715
 		}
-		if len(stackTrace) > errors.ERROR_STACK_MAX_FRAME_COUNT {
-			stackTrace = stackTrace[:errors.ERROR_STACK_MAX_FRAME_COUNT]
+		if len(stackTrace) > stacktraces.ERROR_STACK_MAX_FRAME_COUNT {
+			stackTrace = stackTrace[:stacktraces.ERROR_STACK_MAX_FRAME_COUNT]
 		}
 		firstFrameBytes, err := json.Marshal(stackTrace)
 		if err != nil {
