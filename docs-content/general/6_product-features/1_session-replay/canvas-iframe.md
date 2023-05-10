@@ -5,7 +5,7 @@ slug: canvas-iframe
 
 ## Recording `canvas` elements
 
-[highlight.io](https://highlight.io) supports recording canvas (and therefore WebGL) elements, although due to the nature of `canvas`, there are caveats regarding the quality/fidelity of the recording. Read more about how to get started with this in our [getting started docs](../../../getting-started/3_client-sdk/7_replay-configuration/canvas.md). Below is a video demo of what the video recording looks like:
+[highlight.io](https://highlight.io) supports recording canvas (and therefore WebGL) elements, although due to the nature of `canvas`, there are caveats regarding the quality/fidelity of the recording. Read more about how to get started with this in our [canvas configuration docs](../../../getting-started/3_client-sdk/7_replay-configuration/canvas.md). Below is a video demo of what the video recording looks like:
 
 <br/>
 

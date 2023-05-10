@@ -37,7 +37,13 @@ Enabling canvas recording should not have any impact on the performance your app
 
 ## WebGL Recording
 
-Highlight is able to record websites that use WebGL in the `<canvas>` element. To enable WebGL recording, enable canvas recording by following the steps above.
+Highlight is able to record websites that use WebGL in the `<canvas>` element. Below is a short demo of what a canvas experience in Highlight.io looks like:
+
+<div style={{position: "relative", paddingBottom: "64.90384615384616%", height: 0 }}>
+    <iframe src="https://www.loom.com/embed/87dd1ea89efc46f294b64363ea58cc02" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%"}}></iframe>
+</div>
+
+To enable WebGL recording, enable canvas recording by following the steps above.
 
 ## Webcam Recording and Inlining Video Resources
 
