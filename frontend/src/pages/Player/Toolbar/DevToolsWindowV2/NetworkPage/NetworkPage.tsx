@@ -3,7 +3,6 @@ import {
 	Box,
 	Callout,
 	IconSolidArrowCircleRight,
-	IconSolidCubeTransparent,
 	IconSolidExclamation,
 	Stack,
 	Tag,
