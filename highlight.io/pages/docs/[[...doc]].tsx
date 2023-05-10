@@ -598,10 +598,10 @@ const PageRightBar = ({
 								(heading: HTMLHeadingElement) => (
 									<li
 										key={heading.id}
-										className={
+										className={classNames(
 											heading.id === activeId &&
-											styles.active
-										}
+												styles.active,
+										)}
 										style={{ padding: '2px 4px' }}
 									>
 										<Link
@@ -822,7 +822,7 @@ const DocPage = ({
 
 	useEffect(() => {
 		const storedScrollPosition = parseInt(
-			sessionStorage.getItem('scrollPosition'),
+			sessionStorage.getItem('scrollPosition') ?? '0',
 		)
 
 		if (storedScrollPosition) {
