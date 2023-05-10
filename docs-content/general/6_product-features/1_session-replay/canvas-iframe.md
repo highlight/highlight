@@ -3,12 +3,16 @@ title: Canvas & Iframe
 slug: canvas-iframe
 ---
 
-Highlight.io supports recording canvas elements (and therefore anything related to WebGL) as well as recording cross-origin iframes. Below is a video recording of what this looks like in action:
-
-
 ## Recording `canvas` elements
 
-[highlight.io](https://highlight.io) supports recording canvas (and therefore WebGL) elements, although due to the nature of `canvas`, there are caveats regarding the quality/fidelity of the recording. Read more about how to get started with this in our [getting started docs](../../../getting-started/3_client-sdk/7_replay-configuration/canvas.md).
+[highlight.io](https://highlight.io) supports recording canvas (and therefore WebGL) elements, although due to the nature of `canvas`, there are caveats regarding the quality/fidelity of the recording. Read more about how to get started with this in our [getting started docs](../../../getting-started/3_client-sdk/7_replay-configuration/canvas.md). Below is a video demo of what the video recording looks like:
+
+<br/>
+
+<div style={{position: "relative", paddingBottom: "64.90384615384616%", height: 0 }}>
+    <iframe src="https://www.loom.com/embed/87dd1ea89efc46f294b64363ea58cc02" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%"}}></iframe>
+</div>
+
 
 ## Installing highlight.io in an `iframe`
 
