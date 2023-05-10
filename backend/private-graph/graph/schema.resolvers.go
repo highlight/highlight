@@ -1691,7 +1691,7 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	}
 
 	var commentCount int64
-	if err := r.DB.Where(&model.SessionComment{SessionSecureId: sessionComment.SessionSecureId}).Count(&commentCount).Error; err != nil {
+	if err := r.DB.Table("session_comments").Where(&model.SessionComment{SessionSecureId: sessionComment.SessionSecureId}).Count(&commentCount).Error; err != nil {
 		return nil, e.Wrap(err, "error counting session comments")
 	}
 
