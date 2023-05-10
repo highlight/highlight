@@ -403,10 +403,13 @@ var excludedMediaURLQueryParams = map[string]bool{
 // If a url was already created for this resource in the past day, return that
 // Else, fetch the resource, generate a new url for it, and save to S3
 func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB) (map[string]string, error) {
-	deduped := lo.Uniq(lo.Map(originalUrls, func(u string, i int) string {
+	// maps a long url to the minimal version of the url. ie https://foo.com/example?key=value&signature=bar -> https://foo.com/example?key=value
+	urlMap := make(map[string]string)
+	for _, u := range lo.Uniq(originalUrls) {
 		parsedUrl, err := url.Parse(u)
 		if err != nil {
-			return u
+			urlMap[u] = u
+			continue
 		}
 
 		var parts []string
@@ -421,15 +424,13 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 
 		parsedUrl.RawQuery = strings.Join(parts, "&")
 		parsedUrl.Fragment = ""
-		uri := parsedUrl.String()
-
-		return uri
-	}))
+		urlMap[u] = parsedUrl.String()
+	}
 
 	dateTrunc := time.Now().UTC().Format("2006-01-02")
 	var results []model.SavedAsset
 
-	keys := lo.Map(originalUrls, func(url string, idx int) []any {
+	keys := lo.Map(lo.Values(urlMap), func(url string, idx int) []any {
 		return []any{
 			projectId,
 			url,
@@ -448,15 +449,15 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 	assetChan := make(chan struct {
 		OriginalURL string
 		NewURL      string
-	}, len(deduped))
-	lo.ForEach(deduped, func(u string, i int) {
+	}, len(urlMap))
+	lo.ForEach(lo.Entries(urlMap), func(u lo.Entry[string, string], i int) {
 		eg.Go(func() error {
 			var hashVal string
-			result, ok := resultMap[u]
+			result, ok := resultMap[u.Value]
 			if ok {
 				hashVal = result.HashVal
 			} else {
-				response, err := http.Get(u)
+				response, err := http.Get(u.Key)
 				if err != nil {
 					hashVal = ErrFailedToFetch
 				} else if response.ContentLength > MaxAssetSize {
@@ -507,7 +508,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 					}
 					result = model.SavedAsset{
 						ProjectID:   projectId,
-						OriginalUrl: u,
+						OriginalUrl: u.Value,
 						Date:        dateTrunc,
 						HashVal:     hashVal,
 					}
@@ -526,7 +527,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 			assetChan <- struct {
 				OriginalURL string
 				NewURL      string
-			}{OriginalURL: u, NewURL: newUrl}
+			}{OriginalURL: u.Key, NewURL: newUrl}
 			return nil
 		})
 	})
