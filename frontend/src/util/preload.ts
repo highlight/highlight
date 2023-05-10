@@ -46,6 +46,11 @@ export const usePreloadSessions = function ({
 	// const pageToLoad = page ?? 1
 	const pageToLoad = 1
 
+	// disable preloading for this project due to larger session / network payloads
+	if (project_id === '5403') {
+		return
+	}
+
 	useEffect(() => {
 		;(async () => {
 			if (
