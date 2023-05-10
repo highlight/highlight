@@ -50,7 +50,7 @@ import (
 	"github.com/highlight-run/highlight/backend/worker"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
-	H "github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	"github.com/leonelquinteros/hubspot"
@@ -222,18 +222,18 @@ func main() {
 	ctx := context.TODO()
 
 	// setup highlight
-	H.SetProjectID("1jdkoe52")
+	highlight.SetProjectID("1jdkoe52")
 	if !util.IsOnPrem() && util.IsDevOrTestEnv() {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql / otlp client address...")
-		H.SetGraphqlClientAddress("https://localhost:8082/public")
-		H.SetOTLPEndpoint("http://localhost:4318")
+		highlight.SetGraphqlClientAddress("https://localhost:8082/public")
+		highlight.SetOTLPEndpoint("http://localhost:4318")
 		if util.IsBackendInDocker() {
-			H.SetOTLPEndpoint("http://collector:4318")
+			highlight.SetOTLPEndpoint("http://collector:4318")
 		}
 	}
-	H.Start()
-	defer H.Stop()
-	H.SetDebugMode(log.StandardLogger())
+	highlight.Start()
+	defer highlight.Stop()
+	highlight.SetDebugMode(log.StandardLogger())
 
 	// setup highlight logrus hook
 	hlog.Init()
@@ -451,9 +451,9 @@ func main() {
 			})
 
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
-			privateServer.Use(H.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
-			privateServer.SetErrorPresenter(H.GraphQLErrorPresenter(string(util.PrivateGraph)))
-			privateServer.SetRecoverFunc(H.GraphQLRecoverFunc())
+			privateServer.Use(highlight.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
+			privateServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PrivateGraph)))
+			privateServer.SetRecoverFunc(highlight.GraphQLRecoverFunc())
 			r.Handle("/",
 				privateServer,
 			)
@@ -495,9 +495,9 @@ func main() {
 					Resolvers: publicResolver,
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
-			publicServer.Use(H.NewGraphqlTracer(string(util.PublicGraph)))
-			publicServer.SetErrorPresenter(H.GraphQLErrorPresenter(string(util.PublicGraph)))
-			publicServer.SetRecoverFunc(H.GraphQLRecoverFunc())
+			publicServer.Use(highlight.NewGraphqlTracer(string(util.PublicGraph)))
+			publicServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PublicGraph)))
+			publicServer.SetRecoverFunc(highlight.GraphQLRecoverFunc())
 			r.Handle("/",
 				publicServer,
 			)

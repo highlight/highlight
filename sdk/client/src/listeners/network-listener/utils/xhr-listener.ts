@@ -95,6 +95,7 @@ export const XHRListener = (
 					requestModel['body'] = getBodyThatShouldBeRecorded(
 						bodyData,
 						bodyKeysToRecord,
+						requestModel.headers,
 					)
 				}
 			}
@@ -109,16 +110,6 @@ export const XHRListener = (
 			}
 
 			if (shouldRecordHeaderAndBody) {
-				if (postData) {
-					const bodyData = getBodyData(postData, requestModel.url)
-					if (bodyData) {
-						requestModel['body'] = getBodyThatShouldBeRecorded(
-							bodyData,
-							bodyKeysToRecord,
-						)
-					}
-				}
-
 				const responseHeaders = this.getAllResponseHeaders()
 				// Convert the header string into an array
 				// of individual headers
@@ -135,10 +126,22 @@ export const XHRListener = (
 				})
 				responseModel.headers = headerMap
 
+				if (postData) {
+					const bodyData = getBodyData(postData, requestModel.url)
+					if (bodyData) {
+						requestModel['body'] = getBodyThatShouldBeRecorded(
+							bodyData,
+							bodyKeysToRecord,
+							responseModel.headers,
+						)
+					}
+				}
+
 				if (this.responseType === '' || this.responseType === 'text') {
 					responseModel['body'] = getBodyThatShouldBeRecorded(
 						this.responseText,
 						bodyKeysToRecord,
+						responseModel.headers,
 					)
 					// Each character is 8 bytes, total size is number of characters multiplied by 8.
 					responseModel['size'] = this.responseText.length * 8
@@ -148,6 +151,7 @@ export const XHRListener = (
 					responseModel['body'] = getBodyThatShouldBeRecorded(
 						response,
 						bodyKeysToRecord,
+						responseModel.headers,
 					)
 					responseModel['size'] = blob.size
 				} else {
@@ -155,6 +159,7 @@ export const XHRListener = (
 						responseModel['body'] = getBodyThatShouldBeRecorded(
 							this.response,
 							bodyKeysToRecord,
+							responseModel.headers,
 						)
 					} catch {}
 				}
@@ -228,24 +233,49 @@ const getBodyData = (postData: any, url: string | undefined) => {
 	return null
 }
 
+const DEFAULT_BODY_LIMIT = 64 * 1024 // KB
+const BODY_SIZE_LIMITS = {
+	'application/json': 64 * 1024 * 1024, // MB
+	'text/plain': 64 * 1024 * 1024, // MB
+} as const
+
 export const getBodyThatShouldBeRecorded = (
 	bodyData: any,
 	bodyKeysToRecord?: string[],
+	headers?: Headers | { [key: string]: string },
 ) => {
-	if (!bodyKeysToRecord || !bodyData) {
-		return bodyData
+	let bodyLimit: number = DEFAULT_BODY_LIMIT
+	if (headers) {
+		let contentType: string = ''
+		if (typeof headers['get'] === 'function') {
+			contentType = headers.get('content-type') ?? ''
+		} else {
+			contentType = headers['content-type'] ?? ''
+		}
+		try {
+			contentType = contentType.split(';')[0]
+		} catch {}
+		bodyLimit =
+			BODY_SIZE_LIMITS[contentType as keyof typeof BODY_SIZE_LIMITS] ??
+			DEFAULT_BODY_LIMIT
+	}
+
+	if (bodyKeysToRecord && bodyData) {
+		try {
+			const json = JSON.parse(bodyData)
+
+			Object.keys(json).forEach((header) => {
+				if (!bodyKeysToRecord.includes(header.toLocaleLowerCase())) {
+					json[header] = '[REDACTED]'
+				}
+			})
+
+			bodyData = JSON.stringify(json)
+		} catch {}
 	}
 
 	try {
-		const json = JSON.parse(bodyData)
-
-		Object.keys(json).forEach((header) => {
-			if (!bodyKeysToRecord.includes(header.toLocaleLowerCase())) {
-				json[header] = '[REDACTED]'
-			}
-		})
-
-		return JSON.stringify(json)
+		bodyData = bodyData.slice(0, bodyLimit)
 	} catch {}
 
 	return bodyData

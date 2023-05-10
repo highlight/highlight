@@ -160,6 +160,7 @@ export const SettingsRouter = () => {
 					flexDirection="column"
 					borderRight="secondary"
 					position="relative"
+					cssClass={styles.sidebarScroll}
 				>
 					<Stack gap="0">
 						<Box mt="12" mb="4" ml="8">

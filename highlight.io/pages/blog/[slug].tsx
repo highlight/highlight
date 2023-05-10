@@ -52,6 +52,7 @@ export async function getGithubPostBySlug(slug: string) {
 }
 
 const components = {
+	BlogCallToAction,
 	p: (props) => {
 		return <p className={styles.blogText} {...props}></p>
 	},
@@ -62,6 +63,40 @@ const components = {
 	h3: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
 	h4: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
 	h5: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
+	ul: (props) => {
+		// check if the type of props.children is an array.
+		return (
+			<>
+				{Array.isArray(props.children) &&
+					props?.children?.map((c: any, i: number) => {
+						return (
+							c.props &&
+							c.props.children && (
+								<ul
+									style={{
+										paddingLeft: 40,
+									}}
+								>
+									<li
+										style={{
+											listStyleType: 'disc',
+											listStylePosition: 'outside',
+										}}
+										key={i}
+									>
+										{c.props.children.map
+											? c?.props?.children?.map(
+													(e: any) => e,
+											  )
+											: c?.props?.children}
+									</li>
+								</ul>
+							)
+						)
+					})}
+			</>
+		)
+	},
 	code: (props) => {
 		if (
 			typeof props.children === 'string' &&

@@ -64,7 +64,7 @@ import (
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
-	H "github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 )
 
 // This file will not be regenerated automatically.
@@ -334,7 +334,7 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	defer authSpan.Finish()
 	start := time.Now()
 	defer func() {
-		H.RecordMetric(
+		highlight.RecordMetric(
 			ctx, "resolver.internal.auth.isAdminInProjectOrDemoProject", time.Since(start).Seconds(),
 		)
 	}()
@@ -358,7 +358,7 @@ func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, worksp
 	defer authSpan.Finish()
 	start := time.Now()
 	defer func() {
-		H.RecordMetric(
+		highlight.RecordMetric(
 			ctx, "resolver.internal.auth.isAdminInWorkspaceOrDemoWorkspace", time.Since(start).Seconds(),
 		)
 	}()

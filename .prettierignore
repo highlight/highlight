@@ -1,6 +1,6 @@
 *.md
 .yarn
-backend/errors/test-files
+backend/stacktraces/test-files
 build
 data
 dist

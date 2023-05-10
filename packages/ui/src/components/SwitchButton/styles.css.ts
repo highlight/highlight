@@ -7,10 +7,9 @@ export const variants = recipe({
 	base: [
 		{
 			alignItems: 'center',
+			boxShadow: 'none',
 			display: 'inline-flex',
 			justifyContent: 'center',
-			boxShadow: 'none',
-			border: 'none',
 			padding: 4,
 		},
 		sprinkles({ borderRadius: '6' }),
@@ -41,6 +40,7 @@ export const variants = recipe({
 		variant: {
 			checked: {
 				background: vars.theme.interactive.fill.primary.enabled,
+				border: 0,
 				color: vars.color.white,
 				boxShadow: shadows.primary,
 				selectors: {
@@ -59,24 +59,28 @@ export const variants = recipe({
 				},
 			},
 			unchecked: {
-				background: vars.theme.interactive.fill.secondary.enabled,
-				boxShadow: shadows.grey,
+				background: vars.theme.interactive.overlay.secondary.enabled,
+				border: vars.border.secondary,
 				color: vars.theme.interactive.fill.secondary.content.text,
 				selectors: {
 					'&:hover': {
-						background: vars.theme.interactive.fill.secondary.hover,
+						background:
+							vars.theme.interactive.overlay.secondary.hover,
+						border: vars.border.secondaryHover,
 						color: vars.theme.interactive.fill.secondary.content
 							.text,
 					},
 					'&:active': {
 						background:
-							vars.theme.interactive.fill.secondary.pressed,
+							vars.theme.interactive.overlay.secondary.pressed,
+						border: vars.border.secondaryPressed,
 						color: vars.theme.interactive.fill.secondary.content
 							.text,
 					},
 					'&:disabled': {
 						background:
-							vars.theme.interactive.fill.secondary.disabled,
+							vars.theme.interactive.overlay.secondary.disabled,
+						border: vars.border.secondaryDisabled,
 						color: vars.theme.interactive.fill.secondary.content
 							.onDisabled,
 					},

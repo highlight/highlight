@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/alerts"
-	highlightErrors "github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
@@ -29,6 +28,7 @@ import (
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	pubgraph "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
@@ -546,8 +546,9 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 	}
 }
 
-func (w *Worker) excludeSession(ctx context.Context, s *model.Session) error {
+func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason backend.SessionExcludedReason) error {
 	s.Excluded = true
+	s.ExcludedReason = &reason
 	s.Processed = &model.T
 	if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
@@ -692,8 +693,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	userInteractionEvents := accumulator.UserInteractionEvents
 	if len(userInteractionEvents) == 0 {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Infof("excluding session due to no user interaction events")
-		return w.excludeSession(ctx, s)
+		return w.excludeSession(ctx, s, backend.SessionExcludedReasonNoUserInteractionEvents)
 	}
 
 	userInteractionEvents = append(userInteractionEvents, []*parse.ReplayEvent{{
@@ -818,9 +818,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
 	if accumulator.ActiveDuration == 0 {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-			"session_obj": s}).Warnf("excluding session with 0ms length active duration (session_id=%d, identifier=%s)", s.ID, s.Identifier)
-		return w.excludeSession(ctx, s)
+		return w.excludeSession(ctx, s, backend.SessionExcludedReasonNoActivity)
 	}
 
 	visitFields := []model.Field{}
@@ -1372,7 +1370,7 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 			}
 
 			version := w.PublicResolver.GetErrorAppVersion(modelObj)
-			mappedStackTrace, err := highlightErrors.EnhanceStackTrace(ctx, inputs, modelObj.ProjectID, version, w.Resolver.StorageClient)
+			mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, inputs, modelObj.ProjectID, version, w.Resolver.StorageClient)
 			if err != nil {
 				log.WithContext(ctx).Errorf("error getting stack trace string: %+v", err)
 				return

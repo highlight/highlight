@@ -8,6 +8,7 @@ on:
         paths:
             - 'highlight.io/**'
             - 'docs-content/**'
+            - 'blog-content/**'
             - '.github/workflows/highlight-io-preview.yml'
             - 'turbo.json'
             - 'yarn.lock'
