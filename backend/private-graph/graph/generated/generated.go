@@ -8278,6 +8278,7 @@ type Field {
 }
 
 enum SessionExcludedReason {
+	Initializing
 	NoActivity
 	NoUserInteractionEvents
 	NoError
