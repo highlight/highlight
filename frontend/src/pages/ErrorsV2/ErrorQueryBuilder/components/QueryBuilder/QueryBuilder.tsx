@@ -30,7 +30,6 @@ import {
 	Box,
 	ButtonIcon,
 	IconSolidCheveronDown,
-	IconSolidClock,
 	IconSolidCloudUpload,
 	IconSolidDocumentDuplicate,
 	IconSolidLogout,
@@ -43,6 +42,7 @@ import {
 	IconSolidTrash,
 	IconSolidX,
 	Menu,
+	PreviousDateRangePicker,
 	Tag,
 	Text,
 	Tooltip,
@@ -905,68 +905,6 @@ const QueryRule = ({
 					iconRight={<IconSolidX size={12} />}
 				/>
 			)}
-		</Box>
-	)
-}
-
-export const TimeRangeFilter = ({
-	rule,
-	onChangeValue,
-	onReset,
-}: {
-	rule: RuleProps
-	onChangeValue: OnChange
-	onReset?: () => void
-}) => {
-	const { val: value } = rule
-	const [visible, setVisible] = useState(!value)
-	const onSetVisible = (val: boolean) => {
-		setVisible(val)
-	}
-
-	return (
-		<Box display="flex" gap="8" alignItems="center">
-			<Popover
-				showArrow={false}
-				trigger="click"
-				content={
-					<PopoutContent
-						value={value}
-						setVisible={onSetVisible}
-						type="date_range"
-						onChange={onChangeValue}
-						loadOptions={() => Promise.resolve([])}
-					/>
-				}
-				placement="bottomLeft"
-				contentContainerClassName={styles.contentContainer}
-				popoverClassName={styles.popoverContainer}
-				onVisibleChange={(isVisible) => {
-					setVisible(isVisible)
-				}}
-				visible={visible}
-				destroyTooltipOnHide
-			>
-				<Button
-					kind="secondary"
-					size="small"
-					emphasis="high"
-					iconLeft={<IconSolidClock size={14} />}
-					iconRight={<IconSolidCheveronDown size={14} />}
-					trackingId="searchTimeRangeFilterTooltipToggle"
-				/>
-			</Popover>
-			<Tag
-				kind="secondary"
-				emphasis="low"
-				shape="basic"
-				iconRight={!!onReset ? <IconSolidX size={12} /> : undefined}
-				onIconRightClick={!!onReset ? onReset : undefined}
-				onClick={() => setVisible((visible) => !visible)}
-				lines="1"
-			>
-				{value && value.options.length === 1 && value.options[0].label}
-			</Tag>
 		</Box>
 	)
 }
@@ -2309,6 +2247,54 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [addFilterButton, areRulesValid, mode, selectedSegment?.name])
 
+	const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
+
+	const presetOptions = useMemo(
+		() => [
+			{
+				label: 'Last 15 minutes',
+				startDate: new Date(
+					moment().subtract(15, 'minutes').format(FORMAT),
+				),
+			},
+			{
+				label: 'Last 60 minutes',
+				startDate: new Date(
+					moment().subtract(60, 'minutes').format(FORMAT),
+				),
+			},
+			{
+				label: 'Last 4 hours',
+				startDate: new Date(
+					moment().subtract(4, 'hours').format(FORMAT),
+				),
+			},
+			{
+				label: 'Last 24 hours',
+				startDate: new Date(
+					moment().subtract(24, 'hours').format(FORMAT),
+				),
+			},
+			{
+				label: 'Last 7 days',
+				startDate: new Date(
+					moment().subtract(7, 'days').format(FORMAT),
+				),
+			},
+			{
+				label: 'Last 30 days',
+				startDate: new Date(
+					moment().subtract(30, 'days').format(FORMAT),
+				),
+			},
+		],
+		[],
+	)
+
+	const [dateRange, setDateRange] = useState<Date[]>([
+		presetOptions[0].startDate,
+	])
+
 	const controlBar = useMemo(() => {
 		return (
 			<Box
@@ -2318,19 +2304,26 @@ function QueryBuilder(props: QueryBuilderProps) {
 				borderBottom="secondary"
 				cssClass={styles.controlBar}
 			>
-				<TimeRangeFilter
-					rule={timeRangeRule}
-					onChangeValue={(val) => updateRule(timeRangeRule, { val })}
-					onReset={
-						!readonly &&
-						timeRangeRule.val?.options[0].value !==
-							defaultTimeRangeRule.val?.options[0].value
-							? () =>
-									updateRule(timeRangeRule, {
-										val: defaultTimeRangeRule.val,
-									})
-							: undefined
-					}
+				<PreviousDateRangePicker
+					presets={presetOptions}
+					selectedDates={dateRange}
+					minDate={moment().subtract(90, 'days').toDate()}
+					onDatesChange={(dates: Date[]) => {
+						setDateRange(dates)
+						updateRule(timeRangeRule, {
+							val: {
+								kind: 'multi',
+								options: [
+									{
+										label: presetOptions[0].label,
+										value: `${moment(dates[0]).format(
+											FORMAT,
+										)}_${moment(dates[1]).format(FORMAT)}`,
+									},
+								],
+							} as MultiselectOption,
+						})
+					}}
 				/>
 				<Box marginLeft="auto" display="flex" gap="4">
 					{!readonly &&
@@ -2383,7 +2376,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 			</Box>
 		)
 	}, [
-		defaultTimeRangeRule.val,
 		isAnd,
 		readonly,
 		rules,
@@ -2393,6 +2385,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		timeRangeRule,
 		updateRule,
 		updateSerializedQuery,
+		dateRange,
 	])
 
 	const alteredSegmentSettings = useMemo(() => {
