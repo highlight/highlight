@@ -3,6 +3,7 @@ import '@highlight-run/rrweb/dist/rrweb.min.css'
 import '@fontsource/poppins'
 import './index.scss'
 import './style/tailwind.css'
+import './public.css'
 
 import { ApolloError, ApolloProvider } from '@apollo/client'
 import {

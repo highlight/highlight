@@ -1,5 +1,5 @@
-import { Box, Callout } from '@highlight-run/ui'
 import { BoxProps } from '@highlight-run/ui/src/components/Box/Box'
+import { Box, Callout } from '@highlight-run/ui2'
 import React from 'react'
 
 type Props = React.PropsWithChildren & {

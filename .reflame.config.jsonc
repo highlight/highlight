@@ -3,13 +3,13 @@
 	// It's basically JSON, with the addition of comments, and looser syntax
 	// (trailing commas!).
 	// Reflame uses this to identify your app.
-	"appId": "01GVH35S71FJP26W72V3K7CB2N", // prod
+	// "appId": "01GVH35S71FJP26W72V3K7CB2N", // prod
 	// "appId": "01GSXZYQT1W0TZDJAG94P9S4BZ", // prod fork
-	// "appId": "01GR550WASJY2G2NSYZ4P54JJV", // dev
+	"appId": "01GR550WASJY2G2NSYZ4P54JJV", // dev
 	// This is what shows up in the browser's tab bar.
 	"title": "Reflame App",
 	// This is the description that shows up in Google search.
-	"description": "A new Reflame app.",
+	"description": "A new Reflame app.!145",
 	// Reflame will watch this directory for your React source code and ship changes
 	// instantly.
 	"sourceDirectory": "frontend/src",
@@ -57,8 +57,8 @@
 	],
 	"stylesheets": [
 		"https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap",
-		"https://unpkg.com/@highlight-run/rrweb@0.9.27/dist/index.css",
-		"/public.css"
+		"https://unpkg.com/@highlight-run/rrweb@0.9.27/dist/index.css"
+		// "/public.css"
 	],
 	"nodejsCompatibility": {
 		"omitModuleExtension": true,
