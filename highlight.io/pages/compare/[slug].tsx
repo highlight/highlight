@@ -258,11 +258,12 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
 	const sources = []
 
-	for (let i = 0; i < competitor.paragraphs.length; i++) {
-		let paragraph = competitor.paragraphs[i]
-		const mdxSource = await serialize(paragraph.body)
-		sources.push(mdxSource)
-	}
+	if (competitor.paragraphs)
+		for (let i = 0; i < competitor.paragraphs.length; i++) {
+			let paragraph = competitor.paragraphs[i]
+			const mdxSource = await serialize(paragraph.body)
+			sources.push(mdxSource)
+		}
 
 	return {
 		props: {
