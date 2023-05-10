@@ -52,6 +52,7 @@ export async function getGithubPostBySlug(slug: string) {
 }
 
 const components = {
+	BlogCallToAction,
 	p: (props) => {
 		return <p className={styles.blogText} {...props}></p>
 	},

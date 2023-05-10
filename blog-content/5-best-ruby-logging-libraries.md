@@ -272,6 +272,8 @@ The log messages are now structured and machines can easily parse them.
 
 Now that you have an idea of how to use the Semantic Logger, you can continue learning about it in the [documentation](https://logger.rocketjob.io/).
 
+<BlogCallToAction/>
+
 ### #2 Logger Class
 
 The Ruby standard library ships with a sophisticated [Logging library](https://ruby-doc.org/stdlib-2.7.0/libdoc/logger/rdoc/Logger.html) that contains a lot of useful features that can make logging easier. It has good documentation and a simple API in comparison to loggers in other programming languages.

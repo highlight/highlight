@@ -398,6 +398,8 @@ When you run the file, it creates an `app.log` file with the following contents:
 
 Now that you have an idea of what Zerolog, is capable of doing, the [documentation](https://github.com/rs/zerolog) covers a lot more other cool features.
 
+<BlogCallToAction/>
+
 ## 3 Slog
 
 Go ships with a logging module `log` in its standard library, which has a lot of limitations. For one, it lacks log levels, and for another, it has no support for structured logging. In October 2022, a [proposal](https://github.com/golang/go/issues/56345) was made for a logging library with support for structured logging and levels called [Slog](https://pkg.go.dev/golang.org/x/exp/slog). The proposal was accepted and it will be included in [Go 1.21](https://github.com/golang/go/wiki/Resources-for-slog). The preliminary implementation is at [https://pkg.go.dev/golang.org/x/exp/slog](https://pkg.go.dev/golang.org/x/exp/slog), and you can use it with the recent versions of Go. Once implemented in Go, you will be able to access it from `log/slog`.

@@ -473,6 +473,8 @@ After running the file, you will find the `app.log` file created in the director
 
 We have barely scratched the surface of what the `logging` module is capable of doing. If you want to learn more, visit the [Python documentation](https://docs.python.org/3/library/logging.html).
 
+<BlogCallToAction/>
+
 ## #3 LogBook
 
 Another logging library to consider is the [LogBook](http://logbook.readthedocs.org/) module, which at the time of writing has about 1.4K stars on GitHub. The developers built it as a replacement for the standard library's logging module.
