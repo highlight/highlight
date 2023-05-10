@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/otel"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"go.opentelemetry.io/otel/attribute"
@@ -740,9 +741,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 }
 
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
-// The input can include the stack trace as a string or []*StackFrameInput
-// If stackTrace is non-nil, it will be marshalled into a string and saved with the ErrorObject
-func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, stackTraceString string, stackTrace []*publicModel.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
+func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, stackTrace []*publicModel.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
 	if errorObj == nil {
 		return nil, e.New("error object was nil")
 	}
@@ -803,9 +802,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		errorObj.Event = strings.Repeat(errorObj.Event[:ERROR_EVENT_MAX_LENGTH], 1)
 	}
 
-	// stackTrace slice is set when we have a structured stacktrace input coming from ProcessPayload (frontend error)
-	// stackTraceString is set when we have a string input coming from ProcessBackendPayload (backend error)
-	// If there was no stackTraceString passed in, marshal it as a JSON string from stackTrace
+	stackTraceString := ""
 	if len(stackTrace) > 0 {
 		if stackTrace[0] != nil && stackTrace[0].Source != nil && (strings.Contains(*stackTrace[0].Source, "https://static.highlight.run/index.js") || strings.Contains(*stackTrace[0].Source, "https://static.highlight.io")) {
 			// Forward these errors to another project that Highlight owns to help debug: https://app.highlight.run/715/errors
@@ -820,11 +817,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}
 
 		stackTraceString = string(firstFrameBytes)
-	} else {
-		// If stackTraceString was passed in, try to normalize it
-		if t := normalizeStackTraceString(stackTraceString); t != "" {
-			stackTraceString = t
-		}
 	}
 
 	// If stackTrace is non-nil, do the source mapping; else, MappedStackTrace will not be set on the ErrorObject
@@ -2370,7 +2362,9 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			RequestID:   v.RequestID,
 		}
 
-		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, v.StackTrace, nil, extractErrorFields(session, errorToInsert), projectID)
+		structuredStackTrace := otel.FormatStructureStackTrace(v.StackTrace)
+
+		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, nil, extractErrorFields(session, errorToInsert), projectID)
 		if err != nil {
 			if e.Is(err, ErrNoisyError) {
 				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
@@ -2858,7 +2852,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				IsBeacon:     isBeacon,
 			}
 
-			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, "", v.StackTrace, extractErrorFields(sessionObj, errorToInsert), projectID)
+			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, v.StackTrace, extractErrorFields(sessionObj, errorToInsert), projectID)
 			if err != nil {
 				if e.Is(err, ErrNoisyError) {
 					log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
