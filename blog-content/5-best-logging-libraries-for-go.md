@@ -14,7 +14,7 @@ tags: Developer Tooling
 metaTitle: The 5 Best Logging Libraries for Go
 ---
 
-When you deploy an application in production, you must monitor it to ensure that is working as intended, and observe any issues that arise. One of the tools you can use is Logging, which records activities on the application and forwards them to persisting storages, such as files, sockets, or a [monitoring tool](https://www.highlight.io/blog/what-is-frontend-monitoring). If the application has an issue, you can go through the logs to analyze the state of the application before the problem emerged. Goods logs tell you the severity of the log messages, the date the log entries were created, and they are usually in a format that is human and machine-readable.
+When you deploy an application in production, you must monitor it to ensure that is working as intended, and observe any issues that arise. One of the tools you can use is Logging, which records activities on the application and forwards them to persisting storages, such as files, sockets, or a [monitoring tool](https://www.highlight.io/blog/what-is-frontend-monitoring). If the application has an issue, you can go through the logs to analyze the state of the application before the problem emerged. Good logs tell you the severity of the log messages, the date the log entries were created, and are usually in a format that is human and machine-readable.
 
 Knowing the right tools to use for logging can help you create good logs without putting much effort. [Go](https://go.dev/) ships with a logging library, and has access to over [50 logging](https://github.com/avelino/awesome-go#logging) libraries.
 
