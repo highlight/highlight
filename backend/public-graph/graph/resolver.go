@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"go.opentelemetry.io/otel/attribute"
@@ -2924,9 +2923,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	defer updateSpan.Finish()
 
 	excluded, reason := r.isSessionExcluded(ctx, sessionObj, sessionHasErrors)
-	if excluded {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": sessionObj.ID, "project_id": sessionObj.ProjectID, "reason": *reason}).Infof("excluding session")
-	}
 
 	// Update only if any of these fields are changing
 	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
@@ -2940,25 +2936,30 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
 
 	if doUpdate && !excluded {
-		fieldsToUpdate := model.Session{
-			PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, DirectDownloadEnabled: false, Chunked: &model.F, Excluded: false,
+		// By default, GORM will not update non-zero fields. This is undesirable for boolean columns.
+		// By explicitly specifying the columns to update, we can override the behavior.
+		// See https://gorm.io/docs/update.html#Updates-multiple-columns
+		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded", "ExcludedReason", "HasErrors").
+			Updates(&model.Session{
+				PayloadUpdatedAt:      &now,
+				BeaconTime:            beaconTime,
+				HasUnloaded:           hasSessionUnloaded,
+				Processed:             &model.F,
+				ObjectStorageEnabled:  &model.F,
+				DirectDownloadEnabled: false,
+				Chunked:               &model.F,
+				Excluded:              false,
+				ExcludedReason:        nil,
+				HasErrors:             &sessionHasErrors,
+			}).Error; err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error updating session"))
+			return err
 		}
-
-		// We only want to update the `HasErrors` field if the session has errors.
-		if sessionHasErrors {
-			fieldsToUpdate.HasErrors = &model.T
-
-			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded", "HasErrors").
-				Updates(&fieldsToUpdate).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
-				return err
-			}
-		} else {
-			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded").
-				Updates(&fieldsToUpdate).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error updating session payload time and beacon time"))
+	} else if excluded {
+		// Only update the excluded reason if it has changed
+		if sessionObj.ExcludedReason != reason {
+			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ExcludedReason", reason).Error; err != nil {
 				return err
 			}
 		}
@@ -2990,7 +2991,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	return nil
 }
 
-func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *string) {
+func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *privateModel.SessionExcludedReason) {
+	var reason privateModel.SessionExcludedReason
+
 	var project model.Project
 	if err := r.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
@@ -2998,14 +3001,14 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 	}
 
 	if r.isSessionUserExcluded(ctx, s, project) {
-		return true, ptr.String("excluded user matches")
+		reason = privateModel.SessionExcludedReasonIgnoredUser
 	}
 
 	if r.isSessionExcludedForNoError(ctx, s, project, sessionHasErrors) {
-		return true, ptr.String("no associated error")
+		reason = privateModel.SessionExcludedReasonNoError
 	}
 
-	return false, nil
+	return true, &reason
 
 }
 
