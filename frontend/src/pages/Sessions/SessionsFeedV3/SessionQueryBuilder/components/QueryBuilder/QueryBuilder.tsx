@@ -1749,7 +1749,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		const timeRange = rules.find(
 			(rule) => rule.field?.value === timeRangeField.value,
 		)
-		console.log('timeRange', timeRange)
 		if (!timeRange) {
 			addRule(defaultTimeRangeRule)
 			return defaultTimeRangeRule
