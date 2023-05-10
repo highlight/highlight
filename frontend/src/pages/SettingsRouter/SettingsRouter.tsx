@@ -113,12 +113,12 @@ export const SettingsRouter = () => {
 		...[
 			{
 				key: 'email-settings',
-				title: 'Email Settings',
+				title: 'Notifications',
 				panelContent: <EmailOptOutPanel />,
 			},
 			{
 				key: 'player-settings',
-				title: 'Player Settings',
+				title: 'Player settings',
 				panelContent: <PlayerForm />,
 			},
 		],

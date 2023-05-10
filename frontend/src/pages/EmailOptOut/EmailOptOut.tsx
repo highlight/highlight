@@ -1,5 +1,3 @@
-import { Header } from '@components/Header/Header'
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Switch from '@components/Switch/Switch'
 import {
 	AppLoadingState,
@@ -11,7 +9,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
-import { Box } from '@highlight-run/ui'
+import { Box, Heading, Stack, Text } from '@highlight-run/ui'
 import { ApplicationContextProvider } from '@routers/ProjectRouter/context/ApplicationContext'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
@@ -20,9 +18,7 @@ import { H } from 'highlight.run'
 import { useEffect } from 'react'
 import { StringParam, useQueryParams } from 'use-query-params'
 
-import { FieldsBox } from '@/components/FieldsBox/FieldsBox'
-
-import styles from './EmailOptOut.module.scss'
+import { Header } from '@/components/Header/Header'
 
 const OptInRow = (
 	label: string,
@@ -32,25 +28,30 @@ const OptInRow = (
 	disabled: boolean,
 ) => {
 	return (
-		<Switch
+		<Box
+			border="dividerWeak"
+			borderRadius="8"
+			p="8"
+			pr="12"
+			display="flex"
+			justifyContent="space-between"
+			alignItems="center"
 			key={label}
-			label={
-				<Box display="flex" alignItems="center" gap="2">
+		>
+			<Stack gap="8" direction="column" my="6">
+				<Text weight="bold" size="small" color="strong">
 					{label}
-					{info && (
-						<InfoTooltip
-							placement="right"
-							size="medium"
-							title={info}
-						/>
-					)}
-				</Box>
-			}
-			trackingId={`switch-${label}`}
-			checked={checked}
-			onChange={setState}
-			disabled={disabled}
-		/>
+				</Text>
+				{info && <Text color="moderate">{info}</Text>}
+			</Stack>
+			<Switch
+				trackingId={`switch-${label}`}
+				checked={checked}
+				onChange={setState}
+				disabled={disabled}
+				size="default"
+			/>
+		</Box>
 	)
 }
 
@@ -134,46 +135,41 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 		}
 
 		return (
-			<>
-				<h1>Email Settings</h1>
-				<FieldsBox id="email-settings">
-					<p>
-						<p>I would like to receive the following emails:</p>
-						<p>
-							{categories.map((c) =>
-								OptInRow(
-									c.label,
-									c.info,
-									!optOuts.has(c.type),
-									(isOptIn: boolean) => {
-										updateEmailOptOut({
-											variables: {
-												token,
-												admin_id,
-												category: c.type,
-												is_opt_out: !isOptIn,
-											},
-										})
-											.then(() => {
-												message.success(
-													`Opted ${
-														isOptIn
-															? 'in to'
-															: 'out of'
-													} ${c.type} emails.`,
-												)
-											})
-											.catch((reason: any) => {
-												message.error(String(reason))
-											})
+			<Stack gap="24" direction="column">
+				<Heading mt="16" level="h4">
+					Notifications
+				</Heading>
+				<Stack gap="12" direction="column">
+					{categories.map((c) =>
+						OptInRow(
+							c.label,
+							c.info,
+							!optOuts.has(c.type),
+							(isOptIn: boolean) => {
+								updateEmailOptOut({
+									variables: {
+										token,
+										admin_id,
+										category: c.type,
+										is_opt_out: !isOptIn,
 									},
-									optOutAll,
-								),
-							)}
-						</p>
-					</p>
-				</FieldsBox>
-			</>
+								})
+									.then(() => {
+										message.success(
+											`Opted ${
+												isOptIn ? 'in to' : 'out of'
+											} ${c.type} emails.`,
+										)
+									})
+									.catch((reason: any) => {
+										message.error(String(reason))
+									})
+							},
+							optOutAll,
+						),
+					)}
+				</Stack>
+			</Stack>
 		)
 	}
 }
@@ -206,7 +202,7 @@ export const EmailOptOutPage = () => {
 			>
 				<div>
 					<Header />
-					<div className={styles.contentContainer}>
+					<div>
 						<h1>Email Settings</h1>
 						<EmailOptOutPanel token={token} admin_id={admin_id} />
 					</div>
