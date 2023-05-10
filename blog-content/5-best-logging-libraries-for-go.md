@@ -271,7 +271,7 @@ We have barely scratched the surface of what Zap is capable of doing, visit [the
 
 Zerolog has the following features to consider:
 
-- a fast performance
+- high performance
 - can [integrate](https://github.com/rs/zerolog#integration-with-nethttp) with `net/http`
 - [Binary encoding](https://github.com/rs/zerolog#binary-encoding) with JSON or CBOR encoding formats
 - log sampling
