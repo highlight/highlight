@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/alerts"
-	highlightErrors "github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
@@ -29,6 +28,7 @@ import (
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	pubgraph "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
@@ -1372,7 +1372,7 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 			}
 
 			version := w.PublicResolver.GetErrorAppVersion(modelObj)
-			mappedStackTrace, err := highlightErrors.EnhanceStackTrace(ctx, inputs, modelObj.ProjectID, version, w.Resolver.StorageClient)
+			mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, inputs, modelObj.ProjectID, version, w.Resolver.StorageClient)
 			if err != nil {
 				log.WithContext(ctx).Errorf("error getting stack trace string: %+v", err)
 				return

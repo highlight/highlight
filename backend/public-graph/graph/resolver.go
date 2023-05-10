@@ -17,6 +17,7 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/phonehome"
+	"github.com/highlight-run/highlight/backend/stacktraces"
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/PaesslerAG/jsonpath"
@@ -505,7 +506,7 @@ func (r *Resolver) GetErrorAppVersion(errorObj *model.ErrorObject) *string {
 func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []privateModel.ErrorTrace, error) {
 	version := r.GetErrorAppVersion(errorObj)
 	var newMappedStackTraceString *string
-	mappedStackTrace, err := errors.EnhanceStackTrace(ctx, stackTrace, projectID, version, r.StorageClient)
+	mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, stackTrace, projectID, version, r.StorageClient)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "error object: %+v", errorObj))
 	} else {
