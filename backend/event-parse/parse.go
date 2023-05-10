@@ -7,17 +7,19 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/sync/errgroup"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/gorm/clause"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/sync/errgroup"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm/clause"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/storage"
@@ -76,6 +78,7 @@ const (
 
 const (
 	ScriptPlaceholder = "SCRIPT_PLACEHOLDER"
+	ProxyURL          = "https://replay-cors-proxy.highlightrun.workers.dev"
 )
 
 var DisallowedTagPrefixes = []string{
@@ -117,8 +120,22 @@ func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
 		return nil, errors.Wrap(err, "error reading styles")
 	}
 
+	body = replaceRelativePaths(body, href)
 	body = append([]byte("/*highlight-inject*/\n"), body...)
+
 	return body, nil
+}
+
+func replaceRelativePaths(body []byte, href string) []byte {
+	u, err := url.Parse(href)
+
+	if err == nil {
+		base := u.Scheme + "://" + u.Host
+
+		return regexp.MustCompile(`url\(['"]\./`).ReplaceAll(body, []byte(fmt.Sprintf("url('%s?url=%s/", ProxyURL, base)))
+	} else {
+		return body
+	}
 }
 
 var fetch fetcher
@@ -337,7 +354,6 @@ func (s *Snapshot) InjectStylesheets() error {
 		if !ok || tagName != "link" {
 			continue
 		}
-
 		attrs, ok := subNode["attributes"].(map[string]interface{})
 		if !ok {
 			continue
