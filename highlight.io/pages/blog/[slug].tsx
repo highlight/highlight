@@ -71,11 +71,25 @@ const components = {
 						return (
 							c.props &&
 							c.props.children && (
-								<li style={{ marginLeft: 20 }} key={i}>
-									{c.props.children.map
-										? c?.props?.children?.map((e: any) => e)
-										: c?.props?.children}
-								</li>
+								<ul
+									style={{
+										paddingLeft: 40,
+									}}
+								>
+									<li
+										style={{
+											listStyleType: 'disc',
+											listStylePosition: 'outside',
+										}}
+										key={i}
+									>
+										{c.props.children.map
+											? c?.props?.children?.map(
+													(e: any) => e,
+											  )
+											: c?.props?.children}
+									</li>
+								</ul>
 							)
 						)
 					})}
