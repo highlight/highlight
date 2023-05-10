@@ -19,6 +19,7 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/openlyinc/pointy"
@@ -124,7 +125,7 @@ func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, re
 		lg(ctx, &projectID, &sessionID, &requestID, &source, resourceAttributes, spanAttributes, eventAttributes).Warn("otel received exception with no stacktrace")
 		stackTrace = ""
 	}
-	stackTrace = formatStructureStackTrace(ctx, stackTrace)
+	stackTrace = stacktraces.FormatStructureStackTrace(ctx, stackTrace)
 	payloadBytes, _ := json.Marshal(clickhouse.GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, false))
 	err := &model.BackendErrorObjectInput{
 		SessionSecureID: &sessionID,
@@ -134,7 +135,7 @@ func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, re
 		LogCursor:       logCursor,
 		Event:           excMessage,
 		Type:            excType,
-		Source:          host,
+		Source:          source.String(),
 		StackTrace:      stackTrace,
 		Timestamp:       ts,
 		Payload:         pointy.String(string(payloadBytes)),
@@ -259,7 +260,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	for sessionID, errors := range traceErrors {
 		var backendError = false
 		for _, err := range errors {
-			if err.Type == modelInputs.LogSourceBackend.String() {
+			if err.Source == modelInputs.LogSourceBackend.String() {
 				backendError = true
 			}
 		}
@@ -294,7 +295,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	for projectID, errors := range projectErrors {
 		var backendError = false
 		for _, err := range errors {
-			if err.Type == modelInputs.LogSourceBackend.String() {
+			if err.Source == modelInputs.LogSourceBackend.String() {
 				backendError = true
 			}
 		}

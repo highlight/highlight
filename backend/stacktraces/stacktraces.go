@@ -1,14 +1,15 @@
-package otel
+package stacktraces
 
 import (
 	"context"
 	"encoding/json"
-	model3 "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/openlyinc/pointy"
-	log "github.com/sirupsen/logrus"
 	"regexp"
 	"strconv"
 	"strings"
+
+	model3 "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/openlyinc/pointy"
+	log "github.com/sirupsen/logrus"
 )
 
 func structureStackTrace(stackTrace string) ([]*model3.ErrorTrace, error) {
@@ -98,7 +99,7 @@ func structureStackTrace(stackTrace string) ([]*model3.ErrorTrace, error) {
 	return frames, nil
 }
 
-func formatStructureStackTrace(ctx context.Context, stackTrace string) string {
+func FormatStructureStackTrace(ctx context.Context, stackTrace string) string {
 	frames, err := structureStackTrace(stackTrace)
 	if err != nil {
 		log.WithContext(ctx).WithField("StackTrace", stackTrace).WithError(err).Warnf("otel failed to structure stacktrace")

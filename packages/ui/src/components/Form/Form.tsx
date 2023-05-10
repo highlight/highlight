@@ -29,6 +29,7 @@ type FormComponent = React.FC<Props> & {
 	Submit: typeof Submit
 	Field: typeof Field
 	NamedSection: typeof NamedSection
+	useFormState: typeof useAriaKitFormState
 }
 
 interface LabelProps {
@@ -205,3 +206,4 @@ Form.NamedSection = NamedSection
 
 export declare type FormState<T> = AriaKitFormState<T>
 export const useFormState = useAriaKitFormState
+Form.useFormState = useFormState

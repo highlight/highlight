@@ -30,7 +30,7 @@ import (
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
-	highlightErrors "github.com/highlight-run/highlight/backend/errors"
+	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/integrations/height"
@@ -1691,7 +1691,7 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	}
 
 	var commentCount int64
-	if err := r.DB.Where(&model.SessionComment{SessionSecureId: sessionComment.SessionSecureId}).Count(&commentCount).Error; err != nil {
+	if err := r.DB.Table("session_comments").Where(&model.SessionComment{SessionSecureId: sessionComment.SessionSecureId}).Count(&commentCount).Error; err != nil {
 		return nil, e.Wrap(err, "error counting session comments")
 	}
 
@@ -4913,12 +4913,12 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID s
 		return nil, err
 	}
 
-	var aggregations highlightErrors.TagsAggregations
+	var aggregations errorgroups.TagsAggregations
 	if err := json.Unmarshal(res, &aggregations); err != nil {
 		return nil, e.Wrap(err, "failed to unmarshal aggregations")
 	}
 
-	return highlightErrors.BuildAggregations(aggregations), nil
+	return errorgroups.BuildAggregations(aggregations), nil
 }
 
 // Referrers is the resolver for the referrers field.

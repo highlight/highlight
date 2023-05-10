@@ -1,6 +1,6 @@
 {
 	"name": "highlight.run",
-	"version": "6.1.0",
+	"version": "6.2.0",
 	"scripts": {
 		"build": "node scripts/version.mjs && rollup -c",
 		"dev": "node scripts/version.mjs && rollup -c -w",

@@ -101,7 +101,7 @@ const ProjectPicker = () => {
 					>
 						<Text lines="1">{headerDisplayValue}</Text>
 					</Menu.Button>
-					{!isInDemoProject && (
+					{(!isInDemoProject || isSettings) && (
 						<Menu.List>
 							{projectOptions}
 							{projectId && !isSettings && (

@@ -54,11 +54,6 @@ const PlayerCommentCanvas = ({
 	const location = useLocation()
 	const navigate = useNavigate()
 
-	const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
-		new URLSearchParams(location.search).get(
-			PlayerSearchParameters.commentId,
-		),
-	)
 	const buttonRef = useRef<HTMLButtonElement>(null)
 	const [indicatorLocation, setIndicatorLocation] = useState<
 		Coordinates2D | undefined
@@ -71,7 +66,6 @@ const PlayerCommentCanvas = ({
 		const commentId = searchParams.get(PlayerSearchParameters.commentId)
 
 		if (commentId) {
-			setDeepLinkedCommentId(commentId)
 			// Show comments on the timeline indicators if deep linked.
 			if (!selectedTimelineAnnotationTypes.includes('Comments')) {
 				setSelectedTimelineAnnotationTypes([
@@ -183,7 +177,6 @@ const PlayerCommentCanvas = ({
 						<PlayerSessionComment
 							key={comment.id}
 							comment={comment}
-							deepLinkedCommentId={deepLinkedCommentId}
 						/>
 					),
 			)}

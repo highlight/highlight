@@ -18,7 +18,10 @@ import {
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useProjectId } from '@hooks/useProjectId'
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import {
+	RightPanelView,
+	usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext'
 import { changeSession } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
@@ -34,6 +37,8 @@ import { useNavigate } from 'react-router-dom'
 
 import SessionShareButtonV2 from '../SessionShareButton/SessionShareButtonV2'
 import * as styles from './SessionLevelBarV2.css'
+
+const DEFAULT_RIGHT_PANEL_VIEWS = [RightPanelView.Event, RightPanelView.Session]
 
 export const SessionLevelBarV2: React.FC<
 	React.PropsWithChildren & {
@@ -57,8 +62,7 @@ export const SessionLevelBarV2: React.FC<
 		showRightPanel,
 		setShowRightPanel,
 	} = usePlayerConfiguration()
-	const { selectedRightPanelTab, setSelectedRightPanelTab } =
-		usePlayerUIContext()
+	const { rightPanelView, setRightPanelView } = usePlayerUIContext()
 	const { data } = useGetSessionsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
@@ -70,6 +74,7 @@ export const SessionLevelBarV2: React.FC<
 		fetchPolicy: 'cache-first',
 		skip: !projectId || !backendSearchQuery?.searchQuery,
 	})
+	const isDefaultView = DEFAULT_RIGHT_PANEL_VIEWS.includes(rightPanelView)
 
 	const sessionIdx = sessionResults.sessions.findIndex(
 		(s) => s.secure_id === session_secure_id,
@@ -303,43 +308,41 @@ export const SessionLevelBarV2: React.FC<
 									<SwitchButton
 										size="small"
 										onChange={() => {
-											if (
-												selectedRightPanelTab !==
-												'Threads'
-											) {
-												setSelectedRightPanelTab(
-													'Threads',
-												)
-											}
+											setRightPanelView(
+												RightPanelView.Comments,
+											)
+
 											setShowRightPanel(
 												!showRightPanel ||
-													selectedRightPanelTab !==
-														'Threads',
+													rightPanelView !==
+														RightPanelView.Comments,
 											)
 										}}
 										checked={
 											showRightPanel &&
-											selectedRightPanelTab === 'Threads'
+											rightPanelView ===
+												RightPanelView.Comments
 										}
 										iconLeft={
 											<IconSolidChatAlt_2 size={14} />
 										}
 									/>
 								</ExplanatoryPopover>
-								<ButtonIcon
-									kind="secondary"
+								<SwitchButton
 									size="small"
-									shape="square"
-									emphasis={showRightPanel ? 'high' : 'low'}
-									cssClass={
-										showRightPanel
-											? styles.rightPanelButtonShown
-											: styles.rightPanelButtonHidden
-									}
-									icon={<IconSolidMenuAlt_3 />}
-									onClick={() => {
-										setShowRightPanel(!showRightPanel)
+									onChange={() => {
+										if (!isDefaultView) {
+											setRightPanelView(
+												RightPanelView.Event,
+											)
+										}
+
+										setShowRightPanel(
+											!showRightPanel || !isDefaultView,
+										)
 									}}
+									checked={showRightPanel && isDefaultView}
+									iconLeft={<IconSolidMenuAlt_3 size={14} />}
 								/>
 							</Box>
 						</>

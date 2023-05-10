@@ -7,6 +7,7 @@ import {
 	MentionsInput,
 	OnChangeHandlerFunc,
 } from '@highlight-run/react-mentions'
+import { Box, Text } from '@highlight-run/ui'
 import { useSlackSync } from '@hooks/useSlackSync'
 import { useParams } from '@util/react-router/useParams'
 import { splitTaggedUsers } from '@util/string'
@@ -27,8 +28,8 @@ interface Props {
 	suggestions?: AdminSuggestion[]
 	onDisplayTransformHandler?: (_id: string, display: string) => string
 	suggestionsPortalHost?: Element
-
 	newInput?: boolean
+	inputRef?: React.RefObject<HTMLTextAreaElement>
 }
 
 const CommentTextBody = ({
@@ -38,8 +39,8 @@ const CommentTextBody = ({
 	suggestions = [],
 	onDisplayTransformHandler,
 	suggestionsPortalHost,
-
 	newInput,
+	inputRef,
 }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
@@ -74,38 +75,50 @@ const CommentTextBody = ({
 		for (const { matched, value } of splitTaggedUsers(commentText)) {
 			if (matched) {
 				pieces.push(
-					<span className={styles.mentionedUser}>{value}</span>,
+					<Box
+						as="span"
+						cssClass={styles.commentLink}
+						key={pieces.length}
+					>
+						{value}
+					</Box>,
 				)
 			} else {
 				pieces.push(
-					<span className={styles.commentText}>
-						<Linkify
-							componentDecorator={(
-								decoratedHref: string,
-								decoratedText: string,
-								key: number,
-							) => (
-								<a
-									target="_blank"
-									rel="noreferrer"
-									href={decoratedHref}
-									key={key}
-								>
-									{decoratedText}
-								</a>
-							)}
-						>
-							{value}
-						</Linkify>
-					</span>,
+					<Linkify
+						key={pieces.length}
+						componentDecorator={(
+							decoratedHref: string,
+							decoratedText: string,
+							key: number,
+						) => (
+							<a
+								target="_blank"
+								rel="noreferrer"
+								href={decoratedHref}
+								key={key}
+								className={styles.commentLink}
+							>
+								{decoratedText}
+							</a>
+						)}
+					>
+						{value}
+					</Linkify>,
 				)
 			}
 		}
-		return <>{pieces}</>
+
+		return (
+			<Text size="small" color="moderate">
+				{pieces}
+			</Text>
+		)
 	}
 
 	return (
 		<MentionsInput
+			inputRef={inputRef}
 			value={commentText}
 			className="mentions"
 			classNames={mentionsClassNames}
