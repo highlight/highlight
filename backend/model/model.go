@@ -642,7 +642,7 @@ type Session struct {
 
 	// Excluded will be true when we would typically have deleted the session
 	Excluded       bool `gorm:"default:false"`
-	ExcludedReason modelInputs.SessionExcludedReason
+	ExcludedReason *modelInputs.SessionExcludedReason
 
 	// Lock is the timestamp at which a session was locked
 	// - when selecting sessions, ignore Locks that are > 10 minutes old

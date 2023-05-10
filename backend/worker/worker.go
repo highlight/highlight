@@ -548,7 +548,7 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 
 func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason backend.SessionExcludedReason) error {
 	s.Excluded = true
-	s.ExcludedReason = reason
+	s.ExcludedReason = &reason
 	s.Processed = &model.T
 	if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,

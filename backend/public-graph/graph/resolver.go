@@ -2947,7 +2947,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				DirectDownloadEnabled: false,
 				Chunked:               &model.F,
 				Excluded:              false,
-				ExcludedReason:        "",
+				ExcludedReason:        nil,
 				HasErrors:             &sessionHasErrors,
 			}).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error updating session"))
@@ -2988,22 +2988,24 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	return nil
 }
 
-func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, privateModel.SessionExcludedReason) {
+func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *privateModel.SessionExcludedReason) {
+	var reason privateModel.SessionExcludedReason
+
 	var project model.Project
 	if err := r.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
-		return false, ""
+		return false, nil
 	}
 
 	if r.isSessionUserExcluded(ctx, s, project) {
-		return true, privateModel.SessionExcludedReasonIgnoredUser
+		reason = privateModel.SessionExcludedReasonIgnoredUser
 	}
 
 	if r.isSessionExcludedForNoError(ctx, s, project, sessionHasErrors) {
-		return true, privateModel.SessionExcludedReasonNoError
+		reason = privateModel.SessionExcludedReasonNoError
 	}
 
-	return false, ""
+	return true, &reason
 
 }
 
