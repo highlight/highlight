@@ -384,7 +384,7 @@ func (f *FilesystemClient) writeFSBytes(ctx context.Context, fp string, data io.
 func (f *FilesystemClient) SetupHTTPSListener(r chi.Router) {
 	r.Use(cors.New(cors.Options{
 		AllowCredentials: true,
-		AllowedOrigins:   []string{"localhost:3000"},
+		AllowedOrigins:   []string{f.origin},
 		AllowedHeaders:   []string{"*"},
 	}).Handler)
 
