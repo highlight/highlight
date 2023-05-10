@@ -32,7 +32,7 @@ const FullCommentList = ({
 			{!loading && comments.length === 0 ? (
 				<div className={styles.noCommentsContainer}>
 					<div className={styles.noCommentsTextContainer}>
-						<h2>There are no comments yet</h2>
+						<h2>There are little to no comments yet</h2>
 						<p>{noCommentsMessage}</p>
 					</div>
 					<ConnectHighlightWithSlackButton />
