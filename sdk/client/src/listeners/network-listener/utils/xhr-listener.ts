@@ -259,24 +259,23 @@ export const getBodyThatShouldBeRecorded = (
 			BODY_SIZE_LIMITS[contentType as keyof typeof BODY_SIZE_LIMITS] ??
 			DEFAULT_BODY_LIMIT
 	}
-	try {
-		bodyData = bodyData.slice(0, bodyLimit)
-	} catch {}
 
-	if (!bodyKeysToRecord || !bodyData) {
-		return bodyData
+	if (bodyKeysToRecord && bodyData) {
+		try {
+			const json = JSON.parse(bodyData)
+
+			Object.keys(json).forEach((header) => {
+				if (!bodyKeysToRecord.includes(header.toLocaleLowerCase())) {
+					json[header] = '[REDACTED]'
+				}
+			})
+
+			bodyData = JSON.stringify(json)
+		} catch {}
 	}
 
 	try {
-		const json = JSON.parse(bodyData)
-
-		Object.keys(json).forEach((header) => {
-			if (!bodyKeysToRecord.includes(header.toLocaleLowerCase())) {
-				json[header] = '[REDACTED]'
-			}
-		})
-
-		return JSON.stringify(json)
+		bodyData = bodyData.slice(0, bodyLimit)
 	} catch {}
 
 	return bodyData
