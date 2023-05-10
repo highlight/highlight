@@ -78,7 +78,7 @@ const (
 
 const (
 	ScriptPlaceholder = "SCRIPT_PLACEHOLDER"
-	PROXY_URL         = "https://replay-cors-proxy.highlightrun.workers.dev"
+	ProxyURL          = "https://replay-cors-proxy.highlightrun.workers.dev"
 )
 
 var DisallowedTagPrefixes = []string{
@@ -132,7 +132,7 @@ func replaceRelativePaths(body []byte, href string) []byte {
 	if err == nil {
 		base := u.Scheme + "://" + u.Host
 
-		return regexp.MustCompile(`url\(['"]\./`).ReplaceAll(body, []byte(fmt.Sprintf("url('%s?url=%s/", PROXY_URL, base)))
+		return regexp.MustCompile(`url\(['"]\./`).ReplaceAll(body, []byte(fmt.Sprintf("url('%s?url=%s/", ProxyURL, base)))
 	} else {
 		return body
 	}
