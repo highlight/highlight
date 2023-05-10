@@ -1,16 +1,17 @@
-package otel
+package stacktraces
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func FuzzFormatStructureStackTrace(f *testing.F) {
 	f.Fuzz(func(t *testing.T, stackTrace string) {
-		output := formatStructureStackTrace(context.TODO(), stackTrace)
+		output := FormatStructureStackTrace(context.TODO(), stackTrace)
 		if stackTrace != "" && output == "" {
 			t.Fatalf("expected to get an output")
 		}
