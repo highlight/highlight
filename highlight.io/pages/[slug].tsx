@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { GetStaticPaths, GetStaticProps } from 'next'
-import Image from 'next/image'
+import Image, { StaticImageData } from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { MdKeyboardReturn } from 'react-icons/md'
@@ -46,7 +46,7 @@ const IMAGE_MAP = {
 	[loggingscreenshotKey]: loggingscreenshot,
 	[monitoringscreenshotKey]: monitoringscreenshot,
 	[sessionscreenshotKey]: sessionscreenshot,
-} as const
+} as Record<string, StaticImageData>
 
 const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 	const [imageLoaded, setImageLoaded] = useState(false)
