@@ -162,7 +162,7 @@ export class FirstLoadListeners {
 				options.networkRecording?.networkHeadersToRedact?.map(
 					(header) => header.toLowerCase(),
 				) || []
-				sThis.networkBodyKeysToRedact =
+			sThis.networkBodyKeysToRedact =
 				options.networkRecording?.networkBodyKeysToRedact?.map(
 					(bodyKey) => bodyKey.toLowerCase(),
 				) || []
@@ -190,7 +190,7 @@ export class FirstLoadListeners {
 				options.networkRecording?.bodyKeysToRecord
 			// `bodyKeysToRecord` override `networkBodyKeysToRedact`.
 			if (sThis.networkBodyKeysToRecord) {
-        sThis.networkBodyKeysToRedact = []
+				sThis.networkBodyKeysToRedact = []
 				sThis.networkBodyKeysToRecord =
 					sThis.networkBodyKeysToRecord.map((key) =>
 						key.toLocaleLowerCase(),

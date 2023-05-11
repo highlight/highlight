@@ -281,7 +281,7 @@ export const getBodyThatShouldBeRecorded = (
 				bodyData = JSON.stringify(json)
 			} catch {}
 		}
-		
+
 		if (bodyKeysToRecord) {
 			try {
 				const json = JSON.parse(bodyData)
