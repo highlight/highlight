@@ -1,6 +1,7 @@
 backend/private-graph/graph/schema.resolvers.go linguist-generated=false
 backend/public-graph/graph/schema.resolvers.go linguist-generated=false
 frontend/src/graph/generated/* linguist-generated=true
+frontend/src/__generated/* linguist-generated=true
 client/src/graph/generated/* linguist-generated=true
 go.sum linguist-generated=true
 go.mod linguist-generated=true

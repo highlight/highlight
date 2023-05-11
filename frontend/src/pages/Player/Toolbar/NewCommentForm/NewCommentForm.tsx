@@ -96,6 +96,7 @@ export const NewCommentForm = ({
 	const { admin, isLoggedIn } = useAuthContext()
 	const { project_id } = useParams<{ project_id: string }>()
 	const [commentText, setCommentText] = useState('')
+	const inputRef = React.useRef<HTMLTextAreaElement>(null)
 	const navigate = useNavigate()
 	/**
 	 * commentTextForEmail is the comment text without the formatting.
@@ -438,6 +439,13 @@ export const NewCommentForm = ({
 		}
 	}, [modalHeader, issueIntegrationsOptions])
 
+	useEffect(() => {
+		if (inputRef.current) {
+			// Focuses the comment box when the modal is opened
+			inputRef.current.focus()
+		}
+	}, [])
+
 	const integrationName = issueServiceDetail?.name ?? ''
 	const issueLabel = issueServiceDetail?.issueLabel ?? ''
 
@@ -545,6 +553,7 @@ export const NewCommentForm = ({
 						<Box>
 							<CommentTextBody
 								newInput
+								inputRef={inputRef}
 								commentText={commentText}
 								onChangeHandler={onChangeHandler}
 								placeholder={placeholder}

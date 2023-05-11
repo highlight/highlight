@@ -2,7 +2,7 @@ import {
 	useGetSessionCommentsQuery,
 	useMuteSessionCommentThreadMutation,
 } from '@graph/hooks'
-import { Box, vars } from '@highlight-run/ui'
+import { Box } from '@highlight-run/ui'
 import PlayerSessionComment from '@pages/Player/PlayerCommentCanvas/PlayerSessionComment/PlayerSessionComment'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -14,7 +14,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
-import { Avatar } from '@/components/Avatar/Avatar'
+import { CommentIndicator } from '@/components/Comment/CommentIndicator'
 
 import styles from './PlayerCommentCanvas.module.scss'
 
@@ -169,12 +169,13 @@ const PlayerCommentCanvas = ({
 					cssClass={styles.commentIndicator}
 					position="absolute"
 					style={{
-						left: `calc(${indicatorLocation.x}px`,
+						left: `calc(${indicatorLocation.x}px - 10px)`,
 						top: `calc(${indicatorLocation.y}px - var(--comment-indicator-width))`,
 					}}
 				>
 					<CommentIndicator
 						seed={admin?.name ?? admin?.email ?? 'Anonymous'}
+						customImage={admin?.photo_url}
 					/>
 				</Box>
 			)}
@@ -195,34 +196,3 @@ const PlayerCommentCanvas = ({
 }
 
 export default PlayerCommentCanvas
-
-export const CommentIndicator: React.FC<{
-	seed: string
-}> = ({ seed }) => {
-	return (
-		<Box
-			backgroundColor="contentInformative"
-			style={{
-				borderRadius: 20,
-				borderBottomLeftRadius: 4,
-				height: 'var(--comment-indicator-width)',
-				position: 'absolute',
-				width: 'var(--comment-indicator-width)',
-			}}
-		>
-			<Avatar
-				shape="circle"
-				seed={seed ?? 'session-comment'}
-				style={{
-					backgroundColor:
-						vars.theme.static.surface.sentiment.informative,
-					height: 16,
-					width: 16,
-					position: 'absolute',
-					top: 4,
-					left: 4,
-				}}
-			/>
-		</Box>
-	)
-}

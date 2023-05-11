@@ -5,8 +5,8 @@ import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 
+import { CommentIndicator } from '@/components/Comment/CommentIndicator'
 import { getDeepLinkedCommentId } from '@/components/Comment/utils/utils'
-import { CommentIndicator } from '@/pages/Player/PlayerCommentCanvas/PlayerCommentCanvas'
 
 import TransparentPopover from '../../../../components/Popover/TransparentPopover'
 import {
@@ -191,6 +191,7 @@ const PlayerSessionComment = ({ comment }: Props) => {
 							comment.author?.email ??
 							'Anonymous'
 						}
+						customImage={comment.author?.photo_url}
 					/>
 				</button>
 			</TransparentPopover>
