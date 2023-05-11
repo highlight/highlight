@@ -1,13 +1,26 @@
 import { Box, Callout, Text } from '@highlight-run/ui'
 
 import { LinkButton } from '@/components/LinkButton'
-import { Maybe, SessionExcludedReason } from '@/graph/generated/schemas'
+import { ErrorObjectFragment } from '@/graph/generated/operations'
+import { SessionExcludedReason } from '@/graph/generated/schemas'
+import { useProjectId } from '@/hooks/useProjectId'
 
 type Props = {
-	excludedReason: Maybe<SessionExcludedReason> | undefined
+	errorObject?: ErrorObjectFragment
 }
 
-const getLearnMoreLink = ({ excludedReason }: Props) => {
+const getSession = ({ errorObject }: Props) => {
+	return errorObject?.session
+}
+
+const getLearnMoreLink = ({ errorObject }: Props) => {
+	const session = getSession({ errorObject })
+	if (!session) {
+		return 'https://www.highlight.io/docs/getting-started/frontend-backend-mapping'
+	}
+
+	const excludedReason = session.excluded_reason
+
 	switch (excludedReason) {
 		case SessionExcludedReason.NoError: {
 			return 'https://www.highlight.io/docs/general/product-features/session-replay/ignoring-sessions#ignoring-sessions-without-an-error'
@@ -20,7 +33,14 @@ const getLearnMoreLink = ({ excludedReason }: Props) => {
 	}
 }
 
-const getReason = ({ excludedReason }: Props) => {
+const getReason = ({ errorObject }: Props) => {
+	const session = getSession({ errorObject })
+	if (!session) {
+		return "We weren't able to match this error to a session. This error was either thrown in isolation or you aren't mapping errors to sessions."
+	}
+
+	const excludedReason = session.excluded_reason
+
 	switch (excludedReason) {
 		case SessionExcludedReason.Initializing:
 		case SessionExcludedReason.NoActivity:
@@ -38,18 +58,30 @@ const getReason = ({ excludedReason }: Props) => {
 	}
 }
 
-export const ErrorSessionExcluded = ({ excludedReason }: Props) => {
-	const learnMoreLink = getLearnMoreLink({ excludedReason })
+export const ErrorSessionExcluded = ({ errorObject }: Props) => {
+	const session = getSession({ errorObject })
+	const learnMoreLink = getLearnMoreLink({ errorObject })
+	const { projectId } = useProjectId()
 
 	return (
 		<>
 			<Callout title="We didn't find a session for this error">
 				<Box>
 					<Text size="small" weight="medium" color="moderate">
-						{getReason({ excludedReason })}
+						{getReason({ errorObject })}
 					</Text>
 				</Box>
 				<Box display="flex">
+					{!session && (
+						<LinkButton
+							kind="secondary"
+							to={`/${projectId}/setup/backend`}
+							trackingId="error-mapping-setup"
+							target="_blank"
+						>
+							Backend SDK setup
+						</LinkButton>
+					)}
 					{learnMoreLink && (
 						<LinkButton
 							kind="secondary"

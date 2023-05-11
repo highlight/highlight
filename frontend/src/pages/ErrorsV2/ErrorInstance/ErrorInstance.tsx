@@ -15,7 +15,6 @@ import { ErrorObjectFragment, GetErrorGroupQuery } from '@graph/operations'
 import { Maybe, ReservedLogKey } from '@graph/schemas'
 import {
 	Box,
-	Callout,
 	Heading,
 	IconSolidExternalLink,
 	IconSolidLogs,
@@ -46,6 +45,7 @@ import { createSearchParams, useNavigate } from 'react-router-dom'
 
 import { ErrorSessionExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionExcluded'
 import { ShowSessionButton } from '@/pages/ErrorsV2/ErrorInstance/ShowSessionButton'
+import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
 
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
@@ -489,55 +489,20 @@ const User: React.FC<{
 		</Box>
 	)
 
-	if (!errorObject?.session) {
+	if (!isSessionAvailable(errorObject)) {
 		return (
 			<Box width="full">
 				{userDetailsBox}
-				<Callout title="We didn't find a session for this error">
-					<Box>
-						<Text size="small" weight="medium" color="moderate">
-							We weren't able to match this error to a session.
-							This error was either thrown in isolation or you
-							aren't mapping errors to sessions.
-						</Text>
-					</Box>
-					<Box display="flex">
-						<LinkButton
-							kind="secondary"
-							to={`/${projectId}/setup/backend`}
-							trackingId="error-mapping-setup"
-							target="_blank"
-						>
-							Backend SDK setup
-						</LinkButton>
-						<LinkButton
-							kind="secondary"
-							to="https://www.highlight.io/docs/getting-started/frontend-backend-mapping"
-							trackingId="error-mapping-docs"
-							emphasis="low"
-							target="_blank"
-						>
-							Learn more
-						</LinkButton>
-					</Box>
-				</Callout>
-			</Box>
-		)
-	} else if (errorObject.session.excluded) {
-		return (
-			<Box width="full">
-				{userDetailsBox}
-				<ErrorSessionExcluded
-					excludedReason={errorObject.session.excluded_reason}
-				/>
+				<ErrorSessionExcluded errorObject={errorObject} />
 			</Box>
 		)
 	}
 
-	const { session } = errorObject
-	const userProperties = getUserProperties(session?.user_properties)
-	const [displayName, field] = getDisplayNameAndField(session)
-	const avatarImage = getIdentifiedUserProfileImage(session)
+	const userProperties = getUserProperties(
+		errorObject?.session?.user_properties,
+	)
+	const [displayName, field] = getDisplayNameAndField(errorObject?.session)
+	const avatarImage = getIdentifiedUserProfileImage(errorObject?.session)
 	const userDisplayPropertyKeys = Object.keys(userProperties)
 		.filter((k) => k !== 'avatar')
 		.slice(
@@ -549,7 +514,11 @@ const User: React.FC<{
 
 	const truncateable =
 		Object.keys(userProperties).length > MAX_USER_PROPERTIES
-	const location = [session?.city, session?.state, session?.country]
+	const location = [
+		errorObject?.session?.city,
+		errorObject?.session?.state,
+		errorObject?.session?.country,
+	]
 		.filter(Boolean)
 		.join(', ')
 
@@ -587,11 +556,14 @@ const User: React.FC<{
 								}
 
 								const searchParams: any = {}
-								if (session.identifier && field !== null) {
+								if (
+									errorObject?.session?.identifier &&
+									field !== null
+								) {
 									searchParams[`user_${field}`] = displayName
-								} else if (session?.fingerprint) {
+								} else if (errorObject?.session?.fingerprint) {
 									searchParams.device_id = String(
-										session.fingerprint,
+										errorObject?.session.fingerprint,
 									)
 								}
 
