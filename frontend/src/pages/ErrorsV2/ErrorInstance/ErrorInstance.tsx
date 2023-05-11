@@ -44,6 +44,7 @@ import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { createSearchParams, useNavigate } from 'react-router-dom'
 
+import { ErrorSessionExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionExcluded'
 import { ShowSessionButton } from '@/pages/ErrorsV2/ErrorInstance/ShowSessionButton'
 
 const MAX_USER_PROPERTIES = 4
@@ -480,14 +481,18 @@ const User: React.FC<{
 	const { isLoggedIn } = useAuthContext()
 	const [truncated, setTruncated] = useState(true)
 
+	const userDetailsBox = (
+		<Box pb="20" mt="12">
+			<Text weight="bold" size="large">
+				User details
+			</Text>
+		</Box>
+	)
+
 	if (!errorObject?.session) {
 		return (
 			<Box width="full">
-				<Box pb="20" mt="12">
-					<Text weight="bold" size="large">
-						User details
-					</Text>
-				</Box>
+				{userDetailsBox}
 				<Callout title="We didn't find a session for this error">
 					<Box>
 						<Text size="small" weight="medium" color="moderate">
@@ -521,31 +526,10 @@ const User: React.FC<{
 	} else if (errorObject.session.excluded) {
 		return (
 			<Box width="full">
-				<Box pb="20" mt="12">
-					<Text weight="bold" size="large">
-						User details
-					</Text>
-				</Box>
-				<Callout title="We didn't find a session for this error">
-					<Box>
-						<Text size="small" weight="medium" color="moderate">
-							We weren't able to match this error to a session.
-							This can happen when a session has no activity or it
-							has been ignored.
-						</Text>
-					</Box>
-					<Box display="flex">
-						<LinkButton
-							kind="secondary"
-							to="https://www.highlight.io/docs/general/product-features/session-replay/ignoring-sessions"
-							trackingId="session-ignoring-docs"
-							emphasis="low"
-							target="_blank"
-						>
-							Learn more
-						</LinkButton>
-					</Box>
-				</Callout>
+				{userDetailsBox}
+				<ErrorSessionExcluded
+					excludedReason={errorObject.session.excluded_reason}
+				/>
 			</Box>
 		)
 	}
@@ -571,11 +555,7 @@ const User: React.FC<{
 
 	return (
 		<Box width="full">
-			<Box pb="20" mt="12">
-				<Text weight="bold" size="large">
-					User details
-				</Text>
-			</Box>
+			{userDetailsBox}
 			<Box border="secondary" borderRadius="6">
 				<Box
 					bb="secondary"
