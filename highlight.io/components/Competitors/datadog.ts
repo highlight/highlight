@@ -1,5 +1,5 @@
-import inspectletlogofull from '../../public/images/inspectletlogofull.png'
-import inspectletlogosmall from '../../public/images/inspectletlogosmall.png'
+import datadogsmall from '../../public/images/datadog-small.png'
+import datadogfull from '../../public/images/datadog.png'
 import { Competitor } from './competitors'
 import {
 	HighlightIsOpenAndTransparent,
@@ -10,9 +10,9 @@ export const DatadogSpec: Competitor = {
 	name: 'Datadog',
 	header: 'The Open Source Datadog Alternative.',
 	subheader:
-		'Replay of your frontend application, fullstack error monitoring, and logging.',
-	logoDesktop: inspectletlogofull,
-	logoMobile: inspectletlogosmall,
+		'Session replay of your frontend, fullstack error monitoring, and powerful logging.',
+	logoDesktop: datadogfull,
+	logoMobile: datadogsmall,
 	sections: [
 		{
 			title: 'General',
@@ -160,7 +160,7 @@ export const DatadogSpec: Competitor = {
             `,
 		},
 		{
-			header: 'Agent-less Arcitecture',
+			header: 'Agent-less Architecture',
 			body: `Datadog's architecture requires you to install an agent on your server. This can be a pain to install and maintain. Highlight.io's architecture is agent-less and requires no installation, but in the case that you want to install an agent long-term, we have an open-source agent/collector that you can install on your servers.`,
 		},
 	],
