@@ -15,6 +15,7 @@ import { Stack } from '../Stack/Stack'
 import { Box } from '../Box/Box'
 import { colors } from '../../css/colors'
 import { TimeInput } from './TimeInput'
+import { subtractDays, subtractHours } from './utils'
 
 const TIME_INPUT_FORMAT = 'HH:mm a'
 const TIME_INPUT_FORMAT_NO_SPACE = 'HH:mma'
@@ -30,6 +31,27 @@ const TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_SPACE = 'ha'
 const TIME_INPUT_FORMAT_HOURS_NO_MINUTES_NO_AM_PM_24_HOUR = 'HH'
 
 const TIME_DISPLAY_FORMAT = 'hh:mm a'
+
+const now = new Date()
+
+export const makeDefaultPresets = (date = now): Preset[] => [
+	{
+		label: 'Last 4 hours',
+		startDate: subtractHours(date, 4),
+	},
+	{
+		label: 'Last 12 hours',
+		startDate: subtractHours(date, 12),
+	},
+	{
+		label: 'Last 24 hours',
+		startDate: subtractHours(date, 24),
+	},
+	{
+		label: 'Last 3 days',
+		startDate: subtractDays(date, 3),
+	},
+]
 
 export type Preset = {
 	label: string
@@ -131,7 +153,7 @@ const getTimeStringFromDate = (date: Date): string => {
  */
 const formatDisplayedDate = (date: Date) => {
 	return new Date(date).toLocaleDateString('en-US', {
-		month: 'long',
+		month: 'short',
 		day: 'numeric',
 		year: 'numeric',
 	})
@@ -164,8 +186,6 @@ export const getLabel = ({
 
 	return ''
 }
-
-const now = new Date()
 
 type Props = {
 	selectedDates: Date[]
