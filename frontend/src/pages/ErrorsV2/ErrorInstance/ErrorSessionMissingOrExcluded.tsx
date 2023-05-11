@@ -66,7 +66,7 @@ const getReason = ({ errorObject }: Props) => {
 	}
 }
 
-export const ErrorSessionExcluded = ({ errorObject }: Props) => {
+export const ErrorSessionMissingOrExcluded = ({ errorObject }: Props) => {
 	const session = getSession({ errorObject })
 	const learnMoreLink = getLearnMoreLink({ errorObject })
 	const { projectId } = useProjectId()

@@ -43,7 +43,7 @@ import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { createSearchParams, useNavigate } from 'react-router-dom'
 
-import { ErrorSessionExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionExcluded'
+import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionMissingOrExcluded'
 import { ShowSessionButton } from '@/pages/ErrorsV2/ErrorInstance/ShowSessionButton'
 import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
 
@@ -493,7 +493,7 @@ const User: React.FC<{
 		return (
 			<Box width="full">
 				{userDetailsBox}
-				<ErrorSessionExcluded errorObject={errorObject} />
+				<ErrorSessionMissingOrExcluded errorObject={errorObject} />
 			</Box>
 		)
 	}
