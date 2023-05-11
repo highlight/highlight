@@ -429,36 +429,24 @@ func (r *Client) GetHubspotCompanies(ctx context.Context, companies interface{})
 
 func (r *Client) AcquireLock(ctx context.Context, key string, timeout time.Duration) (err error) {
 	start := time.Now()
-	held := true
-	for held {
+	for {
 		if time.Since(start) > timeout {
 			break
 		}
-		if err := r.Cache.Get(ctx, key, &held); err != nil {
-			if err == cache.ErrCacheMiss {
-				held = false
-			} else {
-				return err
-			}
+		cmd := r.redisClient.SetArgs(ctx, key, "1", redis.SetArgs{
+			TTL:  timeout,
+			Mode: "NX",
+			Get:  true,
+		})
+		// error means value is not set
+		if cmd.Err() != nil {
+			return nil
 		}
-		if held {
-			time.Sleep(LockPollDuration)
-		}
+		time.Sleep(LockPollDuration)
 	}
-	if held {
-		return errors.New("timed out acquiring lock")
-	}
-	if err := r.Cache.Set(&cache.Item{
-		Ctx:   ctx,
-		Key:   key,
-		Value: true,
-		TTL:   timeout,
-	}); err != nil {
-		return err
-	}
-	return nil
+	return errors.New("timed out acquiring lock")
 }
 
 func (r *Client) ReleaseLock(ctx context.Context, key string) (err error) {
-	return r.Cache.Delete(ctx, key)
+	return r.redisClient.Del(ctx, key).Err()
 }
