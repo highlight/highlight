@@ -113,6 +113,7 @@ export const useResources = (
 						limit: limit.sizeLimit.toString(),
 						sessionSecureID: session?.secure_id,
 					})
+					return
 				}
 				let response
 				for await (const r of indexedDBFetch(session.resources_url)) {
