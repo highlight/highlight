@@ -1,4 +1,5 @@
 import { StaticImageData } from 'next/image'
+import { DatadogSpec } from './datadog'
 import { FullstorySpec } from './fullstory'
 import { HotjarSpec } from './hotjar'
 import { InspectletSpec } from './inspectlet'
@@ -40,4 +41,5 @@ export const COMPETITORS: { [k: string]: Competitor } = {
 	'highlight-vs-fullstory': FullstorySpec,
 	'highlight-vs-smartlook': SmartlookSpec,
 	'highlight-vs-inspectlet': InspectletSpec,
+	'highlight-vs-datadog': DatadogSpec,
 }
