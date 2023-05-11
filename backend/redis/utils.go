@@ -27,7 +27,7 @@ type Client struct {
 	Cache       *cache.Cache
 }
 
-const LockPollDuration = 100 * time.Millisecond
+const LockPollInterval = 100 * time.Millisecond
 
 var (
 	ServerAddr = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
@@ -442,7 +442,7 @@ func (r *Client) AcquireLock(ctx context.Context, key string, timeout time.Durat
 		if cmd.Err() != nil {
 			return nil
 		}
-		time.Sleep(LockPollDuration)
+		time.Sleep(LockPollInterval)
 	}
 	return errors.New("timed out acquiring lock")
 }
