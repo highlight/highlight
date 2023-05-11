@@ -1,5 +1,13 @@
+import { vars } from '@highlight-run/ui'
+import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
 import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import { style } from '@vanilla-extract/css'
+
+import { styledVerticalScrollbar } from '@/style/common.css'
+
+export const menuTitle = style({
+	height: 12,
+})
 
 export const menuItem = style({
 	borderRadius: 4,
@@ -33,3 +41,18 @@ export const menuItemDisabled = style({
 		},
 	},
 })
+
+export const sidebarScroll = style([
+	sprinkles({
+		overflowY: 'auto',
+		overflowX: 'hidden',
+	}),
+	styledVerticalScrollbar,
+	{
+		selectors: {
+			'& + &': {
+				borderTop: vars.border.secondary,
+			},
+		},
+	},
+])

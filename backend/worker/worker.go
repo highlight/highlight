@@ -5,8 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
+	"math/rand"
+	"os"
+	"sort"
+	"strconv"
+	"sync"
+	"time"
+
 	"github.com/highlight-run/highlight/backend/alerts"
-	highlightErrors "github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
@@ -21,6 +28,7 @@ import (
 	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	pubgraph "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
@@ -35,14 +43,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
-	"math"
-	"math/rand"
-	"os"
-	"regexp"
-	"sort"
-	"strconv"
-	"sync"
-	"time"
 )
 
 // Worker is a job runner that parses sessions
@@ -334,7 +334,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
 			task.PushPayload.HighlightLogs,
 			task.PushPayload.PayloadID); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process ProcessPayload task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.InitializeSession:
@@ -348,7 +348,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 		}
 		hlog.Incr("worker.initializeSession.count", tags, 1)
 		if err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process InitializeSession task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.IdentifySession:
@@ -356,7 +356,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.IdentifySessionImpl(ctx, task.IdentifySession.SessionSecureID, task.IdentifySession.UserIdentifier, task.IdentifySession.UserObject, false); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process IdentifySession task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.AddTrackProperties:
@@ -368,7 +368,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			return err
 		}
 		if err := w.PublicResolver.AddTrackPropertiesImpl(ctx, sessionID, task.AddTrackProperties.PropertiesObject); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process AddTrackProperties task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.AddSessionProperties:
@@ -380,7 +380,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			return err
 		}
 		if err := w.PublicResolver.AddSessionPropertiesImpl(ctx, sessionID, task.AddSessionProperties.PropertiesObject); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process AddSessionProperties task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.PushBackendPayload:
@@ -393,7 +393,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionSecureID, task.PushMetrics.Metrics); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process PushMetricsImpl task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.MarkBackendSetup:
@@ -401,7 +401,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.MarkBackendSetupImpl(ctx, task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SessionSecureID, task.MarkBackendSetup.ProjectID, task.MarkBackendSetup.Type); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process MarkBackendSetup task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.AddSessionFeedback:
@@ -409,7 +409,58 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.AddSessionFeedbackImpl(ctx, task.AddSessionFeedback); err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "failed to process AddSessionFeedback task"))
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			return err
+		}
+	case kafkaqueue.HubSpotCreateContactForAdmin:
+		if task.HubSpotCreateContactForAdmin == nil {
+			break
+		}
+		if _, err := w.PublicResolver.HubspotApi.CreateContactForAdminImpl(ctx,
+			task.HubSpotCreateContactForAdmin.AdminID,
+			task.HubSpotCreateContactForAdmin.Email,
+			task.HubSpotCreateContactForAdmin.UserDefinedRole,
+			task.HubSpotCreateContactForAdmin.UserDefinedPersona,
+			task.HubSpotCreateContactForAdmin.First,
+			task.HubSpotCreateContactForAdmin.Last,
+			task.HubSpotCreateContactForAdmin.Phone,
+			task.HubSpotCreateContactForAdmin.Referral,
+		); err != nil {
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			return err
+		}
+	case kafkaqueue.HubSpotCreateCompanyForWorkspace:
+		if task.HubSpotCreateCompanyForWorkspace == nil {
+			break
+		}
+		if _, err := w.PublicResolver.HubspotApi.CreateCompanyForWorkspaceImpl(ctx,
+			task.HubSpotCreateCompanyForWorkspace.WorkspaceID,
+			task.HubSpotCreateCompanyForWorkspace.AdminEmail,
+			task.HubSpotCreateCompanyForWorkspace.Name,
+		); err != nil {
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			return err
+		}
+	case kafkaqueue.HubSpotUpdateContactProperty:
+		if task.HubSpotUpdateContactProperty == nil {
+			break
+		}
+		if err := w.PublicResolver.HubspotApi.UpdateContactPropertyImpl(ctx,
+			task.HubSpotUpdateContactProperty.AdminID,
+			task.HubSpotUpdateContactProperty.Properties,
+		); err != nil {
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			return err
+		}
+	case kafkaqueue.HubSpotUpdateCompanyProperty:
+		if task.HubSpotUpdateCompanyProperty == nil {
+			break
+		}
+		if err := w.PublicResolver.HubspotApi.UpdateCompanyPropertyImpl(ctx,
+			task.HubSpotUpdateCompanyProperty.WorkspaceID,
+			task.HubSpotUpdateCompanyProperty.Properties,
+		); err != nil {
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
 	case kafkaqueue.HealthCheck:
@@ -495,8 +546,9 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 	}
 }
 
-func (w *Worker) excludeSession(ctx context.Context, s *model.Session) error {
-	s.Excluded = &model.T
+func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason backend.SessionExcludedReason) error {
+	s.Excluded = true
+	s.ExcludedReason = &reason
 	s.Processed = &model.T
 	if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
@@ -511,43 +563,6 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session) error {
 	}
 
 	return nil
-}
-
-func (w *Worker) isSessionUserExcluded(ctx context.Context, s *model.Session) bool {
-	var project model.Project
-	if err := w.Resolver.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
-		return false
-	}
-	if project.ExcludedUsers == nil {
-		return false
-	}
-	var email string
-	if s.UserProperties != "" {
-		encodedProperties := []byte(s.UserProperties)
-		decodedProperties := map[string]string{}
-		err := json.Unmarshal(encodedProperties, &decodedProperties)
-		if err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s, error: %v", s.UserProperties, err)
-			return false
-		}
-		email = decodedProperties["email"]
-	}
-	for _, value := range []string{s.Identifier, email} {
-		if value == "" {
-			continue
-		}
-		for _, excludedExpr := range project.ExcludedUsers {
-			matched, err := regexp.MatchString(excludedExpr, value)
-			if err != nil {
-				log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s, error: %v", excludedExpr, value, err.Error())
-				return false
-			} else if matched {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
@@ -611,7 +626,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if len(accumulator.EventsForTimelineIndicator) == 0 && s.Length <= 0 {
 		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
 			"session_obj": s}).Warnf("excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
-		s.Excluded = &model.T
+		s.Excluded = true
 		s.Processed = &model.T
 		if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
@@ -678,8 +693,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	userInteractionEvents := accumulator.UserInteractionEvents
 	if len(userInteractionEvents) == 0 {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Infof("excluding session due to no user interaction events")
-		return w.excludeSession(ctx, s)
+		return w.excludeSession(ctx, s, backend.SessionExcludedReasonNoUserInteractionEvents)
 	}
 
 	userInteractionEvents = append(userInteractionEvents, []*parse.ReplayEvent{{
@@ -804,14 +818,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
 	if accumulator.ActiveDuration == 0 {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-			"session_obj": s}).Warnf("excluding session with 0ms length active duration (session_id=%d, identifier=%s)", s.ID, s.Identifier)
-		return w.excludeSession(ctx, s)
-	}
-
-	if w.isSessionUserExcluded(ctx, s) {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Infof("excluding session due to excluded identifier")
-		return w.excludeSession(ctx, s)
+		return w.excludeSession(ctx, s, backend.SessionExcludedReasonNoActivity)
 	}
 
 	visitFields := []model.Field{}
@@ -1007,7 +1014,7 @@ func (w *Worker) Start(ctx context.Context) {
 	lockPeriod := 30            // time in minutes
 
 	if util.IsDevEnv() {
-		payloadLookbackPeriod = 16
+		payloadLookbackPeriod = 8
 		lockPeriod = 1
 	}
 
@@ -1074,7 +1081,7 @@ func (w *Worker) Start(ctx context.Context) {
 			sessionsSpan.Finish()
 			continue
 		}
-		rand.Seed(time.Now().UnixNano())
+		rand.New(rand.NewSource(time.Now().UnixNano()))
 		rand.Shuffle(len(sessions), func(i, j int) {
 			sessions[i], sessions[j] = sessions[j], sessions[i]
 		})
@@ -1112,12 +1119,12 @@ func (w *Worker) Start(ctx context.Context) {
 					vmStat, _ = mem.VirtualMemory()
 				}
 
-				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"))
+				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("project_id", session.ProjectID), tracer.Tag("session_secure_id", session.SecureID))
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
-					var excluded *bool
+					var excluded bool
 					if nextCount >= MAX_RETRIES {
-						excluded = &model.T
+						excluded = true
 					}
 
 					if err := w.Resolver.DB.Model(&model.Session{}).
@@ -1126,7 +1133,7 @@ func (w *Worker) Start(ctx context.Context) {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error incrementing retry count"))
 					}
 
-					if excluded != nil && *excluded {
+					if excluded {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Warn(e.Wrap(err, "session has reached the max retry count and will be excluded"))
 						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
@@ -1312,7 +1319,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 				Name:     "highlight_error_count",
 				Property: "highlight_error_count",
 				Value:    c.ErrorCount,
-			}}, w.Resolver.DB); err != nil {
+			}}); err != nil {
 				log.WithContext(ctx).WithFields(log.Fields{
 					"workspace_id":  c.WorkspaceID,
 					"session_count": c.SessionCount,
@@ -1363,7 +1370,7 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 			}
 
 			version := w.PublicResolver.GetErrorAppVersion(modelObj)
-			mappedStackTrace, err := highlightErrors.EnhanceStackTrace(ctx, inputs, modelObj.ProjectID, version, w.Resolver.StorageClient)
+			mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, inputs, modelObj.ProjectID, version, w.Resolver.StorageClient)
 			if err != nil {
 				log.WithContext(ctx).Errorf("error getting stack trace string: %+v", err)
 				return

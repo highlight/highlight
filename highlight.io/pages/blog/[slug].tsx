@@ -1,8 +1,12 @@
 import classNames from 'classnames'
+import { promises as fsp } from 'fs'
 import { gql } from 'graphql-request'
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
+import { serialize } from 'next-mdx-remote/serialize'
 import Image from 'next/legacy/image'
 import { GetStaticPaths, GetStaticProps } from 'next/types'
 import YouTube from 'react-youtube'
+import { getBlogPaths, loadPostsFromGithub } from '.'
 import styles from '../../components/Blog/Blog.module.scss'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
@@ -35,6 +39,87 @@ interface Content {
 	code?: boolean
 	italic?: boolean
 	bold?: boolean
+}
+
+export async function getGithubPostBySlug(slug: string) {
+	const posts = await loadPostsFromGithub()
+
+	const post = posts.find((p) => p.slug === slug)
+	if (!post) {
+		throw new Error(`Could not find post with slug ${slug}`)
+	}
+	return post
+}
+
+const components = {
+	BlogCallToAction,
+	p: (props) => {
+		return <p className={styles.blogText} {...props}></p>
+	},
+	h1: (props) => <h4 className={styles.blogText}>{props.children}</h4>,
+	h2: (props) => {
+		return <h2 className={styles.blogText}>{props.children}</h2>
+	},
+	h3: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
+	h4: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
+	h5: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
+	ul: (props) => {
+		// check if the type of props.children is an array.
+		return (
+			<>
+				{Array.isArray(props.children) &&
+					props?.children?.map((c: any, i: number) => {
+						return (
+							c.props &&
+							c.props.children && (
+								<ul
+									style={{
+										paddingLeft: 40,
+									}}
+								>
+									<li
+										style={{
+											listStyleType: 'disc',
+											listStylePosition: 'outside',
+										}}
+										key={i}
+									>
+										{c.props.children.map
+											? c?.props?.children?.map(
+													(e: any) => e,
+											  )
+											: c?.props?.children}
+									</li>
+								</ul>
+							)
+						)
+					})}
+			</>
+		)
+	},
+	code: (props) => {
+		if (
+			typeof props.children === 'string' &&
+			(props.children.match(/\n/g) || []).length
+		) {
+			return (
+				<HighlightCodeBlock
+					language={
+						props.className
+							? props.className.split('language-').pop() ?? 'js'
+							: 'js'
+					}
+					text={props.children}
+					showLineNumbers={false}
+				/>
+			)
+		}
+		return (
+			<code className={classNames(styles.codeInline, styles.postBody)}>
+				{props.children}
+			</code>
+		)
+	},
 }
 
 const getBlogTypographyRenderer = (type: string) => {
@@ -104,12 +189,23 @@ export const getStaticPaths: GetStaticPaths = async () => {
 			}
 		}
 	`
+
+	let paths = []
+
 	const { posts } = await GraphQLRequest<{ posts: Post[] }>(QUERY)
+	posts.forEach((post) => {
+		if (post.slug) {
+			paths.push({ params: { slug: post.slug } })
+		}
+	})
+
+	let p = await getBlogPaths(fsp, '')
+	p.forEach((path) => {
+		paths.push({ params: { slug: path.simple_path } })
+	})
 
 	return {
-		paths: posts.map((p: { slug: string }) => ({
-			params: { slug: p.slug },
-		})),
+		paths: paths,
 		fallback: 'blocking',
 	}
 }
@@ -183,26 +279,45 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
           }
       }
   `
+
 	const data = await GraphQLRequest<{ post?: Post }>(QUERY, { slug: slug })
 	const { posts } = await GraphQLRequest<{ posts: Post[] }>(POSTS_QUERY)
-
-	// Handle event slugs which don't exist in our CMS
-	if (!data.post) {
-		return {
-			notFound: true,
-		}
-	}
-
-	const otherPosts = posts.filter((post: any) => post.slug !== slug)
+	const githubPosts = await loadPostsFromGithub()
+	let allPosts = [...posts, ...githubPosts]
+	const otherPosts = allPosts.filter((post: any) => post.slug !== slug)
 	const suggestedPosts = []
 	// suggest N random posts that are not the current post
-	for (let i = 0; i < Math.min(NUM_SUGGESTED_POSTS, posts.length - 1); i++) {
+	for (
+		let i = 0;
+		i < Math.min(NUM_SUGGESTED_POSTS, allPosts.length - 1);
+		i++
+	) {
 		suggestedPosts.push(
 			otherPosts.splice(
 				Math.floor(Math.random() * otherPosts.length),
 				1,
 			)[0],
 		)
+	}
+
+	if (!data.post) {
+		// lookup should be done by the file name, not the `slug` parameter.
+		const githubPost = await getGithubPostBySlug(slug)
+		if (!githubPost) {
+			return {
+				notFound: true,
+			}
+		}
+		const mdxSource = await serialize(githubPost.richcontent.markdown)
+		console.log(githubPost.richcontent.markdown)
+		return {
+			props: {
+				suggestedPosts,
+				source: mdxSource,
+				post: githubPost,
+			},
+			revalidate: 60 * 60, // Cache response for 1 hour (60 seconds * 60 minutes)
+		}
 	}
 
 	const postSections: PostSection[] = []
@@ -309,10 +424,12 @@ const PostPage = ({
 	post,
 	postSections,
 	suggestedPosts,
+	source,
 }: {
 	post: Post
 	postSections: PostSection[]
 	suggestedPosts: Post[]
+	source: MDXRemoteSerializeResult
 }) => {
 	const blogBody = useRef<HTMLDivElement>(null)
 	const [endPosition, setEndPosition] = useState(0)
@@ -432,11 +549,21 @@ const PostPage = ({
 							styles.postBody,
 							styles.postBodyTop,
 							styles.blogSection,
+							'text-start',
 						)}
 					>
-						{postSections?.map((p, idx) => (
-							<PostSection key={idx} idx={idx} p={p} />
-						))}
+						{postSections &&
+							postSections?.map((p, idx) => (
+								<PostSection key={idx} idx={idx} p={p} />
+							))}
+						{source && (
+							<div className={classNames(styles.blogText)}>
+								<MDXRemote
+									{...source}
+									components={components}
+								/>
+							</div>
+						)}
 					</div>
 				</Section>
 				<Section>
@@ -458,6 +585,7 @@ const PostPage = ({
 						{suggestedPosts.map((p, i) => (
 							<SuggestedBlogPost {...p} key={i} />
 						))}
+						{}
 					</div>
 				</Section>
 			</main>

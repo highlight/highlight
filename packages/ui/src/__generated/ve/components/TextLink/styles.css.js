@@ -1,0 +1,1 @@
+import{a as r}from"../../chunk-ZIVUDSZS.js";import{b as n}from"../../chunk-NLMHZ7JJ.js";var a=n(r(),1),e=(0,a.createRuntimeFn)({defaultClassName:"hqr510",variantClassNames:{underline:{none:"hqr511",solid:"hqr512"},color:{none:"hqr513",default:"hqr514"}},defaultVariants:{underline:"none"},compoundVariants:[]});export{e as variants};

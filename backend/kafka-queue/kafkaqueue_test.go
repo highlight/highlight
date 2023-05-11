@@ -2,6 +2,7 @@ package kafka_queue
 
 import (
 	"context"
+	cryptorand "crypto/rand"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -24,7 +25,7 @@ func BenchmarkQueue_Submit(b *testing.B) {
 	log.SetLevel(log.DebugLevel)
 	log.WithContext(ctx).Infof("Starting benchmark")
 
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	writer := New(ctx, "dev", Producer)
 	reader := New(ctx, "dev", Consumer)
@@ -40,8 +41,12 @@ func BenchmarkQueue_Submit(b *testing.B) {
 		go func(w int) {
 			dataBytes := make([]byte, msgSizeBytes)
 			for j := 0; j < submitsPerWorker; j++ {
-				rand.Read(dataBytes)
-				err := writer.Submit(ctx, &Message{
+				_, err := cryptorand.Read(dataBytes)
+				if err != nil {
+					log.WithContext(ctx).Error(err)
+				}
+
+				err = writer.Submit(ctx, &Message{
 					Type: PushPayload,
 					PushPayload: &PushPayloadArgs{
 						Events: model.ReplayEventsInput{

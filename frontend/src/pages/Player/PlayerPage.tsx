@@ -57,19 +57,20 @@ import { Helmet } from 'react-helmet'
 import useResizeAware from 'react-resize-aware'
 import { useNavigate } from 'react-router-dom'
 
+import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { useIntegratedLocalStorage } from '@/util/integrated'
+
 import WaitingAnimation from '../../lottie/waiting.json'
 import * as style from './styles.css'
 
-interface Props {
-	integrated: boolean
-}
-
-const PlayerPage = ({ integrated }: Props) => {
+const PlayerPage = () => {
 	const { isLoggedIn } = useAuthContext()
 	const { currentWorkspace } = useApplicationContext()
-	const { session_secure_id } = useParams<{
+	const { project_id, session_secure_id } = useParams<{
+		project_id: string
 		session_secure_id: string
 	}>()
+	const [{ integrated }] = useIntegratedLocalStorage(project_id!, 'client')
 
 	const [resizeListener, sizes] = useResizeAware()
 	const { width } = useWindowSize()
@@ -91,6 +92,7 @@ const PlayerPage = ({ integrated }: Props) => {
 	useEffect(() => {
 		if (
 			!isLoggedIn &&
+			project_id !== DEMO_PROJECT_ID &&
 			sessionViewability === SessionViewability.VIEWABLE &&
 			((session && !session?.is_public) || !session_secure_id)
 		) {
@@ -99,6 +101,7 @@ const PlayerPage = ({ integrated }: Props) => {
 	}, [
 		isLoggedIn,
 		navigate,
+		project_id,
 		session,
 		session?.is_public,
 		sessionViewability,
@@ -247,7 +250,7 @@ const PlayerPage = ({ integrated }: Props) => {
 	const showLeftPanel =
 		showLeftPanelPreference &&
 		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA &&
-		isLoggedIn
+		(isLoggedIn || project_id === DEMO_PROJECT_ID)
 
 	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
 	const controllerWidth = centerColumnSize.width
@@ -508,7 +511,6 @@ const PlayerPage = ({ integrated }: Props) => {
 						height="full"
 						width="full"
 						overflow="hidden"
-						borderTop="dividerWeak"
 					>
 						<Box
 							cssClass={clsx(style.playerLeftPanel, {

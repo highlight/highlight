@@ -1,0 +1,1 @@
+var n={actionsContainer:"_actionsContainer_1w0mw_1",button:"_button_1w0mw_9",description:"_description_1w0mw_13",name:"_name_1w0mw_18",submitRow:"_submitRow_1w0mw_23",section:"_section_1w0mw_31"};export{n as default};

@@ -1,0 +1,1 @@
+var t={box:"_box_14vj7_1",title:"_title_14vj7_9",subTitle:"_subTitle_14vj7_14",switchWorkspace:"_switchWorkspace_14vj7_21",button:"_button_14vj7_26",workspaceCount:"_workspaceCount_14vj7_31",cardForm:"_cardForm_14vj7_39",inputLabel:"_inputLabel_14vj7_43",promoCodeToggle:"_promoCodeToggle_14vj7_51"};export{t as default};

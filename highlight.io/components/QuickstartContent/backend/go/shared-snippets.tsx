@@ -13,17 +13,17 @@ export const goGetSnippet: QuickStartStep = {
 export const initializeGoSdk: QuickStartStep = {
 	title: 'Initialize the Highlight Go SDK.',
 	content:
-		"`H.Start` starts a goroutine for recording and sending backend errors. Setting your project id lets Highlight record errors for background tasks and processes that aren't associated with a frontend session.",
+		"`highlight.Start` starts a goroutine for recording and sending backend errors. Setting your project id lets Highlight record errors for background tasks and processes that aren't associated with a frontend session.",
 	code: {
 		text: `import (
-  H "github.com/highlight/highlight/sdk/highlight-go"
+  "github.com/highlight/highlight/sdk/highlight-go"
 )
 
 func main() {
   // ...
-  H.SetProjectID("<YOUR_PROJECT_ID>")
-  H.Start()
-  defer H.Stop()
+  highlight.SetProjectID("<YOUR_PROJECT_ID>")
+  highlight.Start()
+  defer highlight.Stop()
   // ...
 }`,
 		language: 'go',
@@ -33,9 +33,9 @@ func main() {
 export const customGoError: QuickStartStep = {
 	title: 'Record custom errors. (optional)',
 	content:
-		'If you want to explicitly send an error to Highlight, you can use the `H.RecordError` method.',
+		'If you want to explicitly send an error to Highlight, you can use the `highlight.RecordError` method.',
 	code: {
-		text: `H.RecordError(ctx, err, attribute.String("key", "value"))`,
+		text: `highlight.RecordError(ctx, err, attribute.String("key", "value"))`,
 		language: 'go',
 	},
 }
@@ -49,10 +49,10 @@ export const verifyGoErrors: QuickStartStep = {
 export const verifyCustomError: QuickStartStep = {
 	title: 'Verify your errors are being recorded.',
 	content:
-		'Make a call to `H.RecordError` to see the resulting error in Highlight.',
+		'Make a call to `highlight.RecordError` to see the resulting error in Highlight.',
 	code: {
 		text: `func TestErrorHandler(w http.ResponseWriter, r *http.Request) {
-  H.RecordError(r.Context(), errors.New("a test error is being thrown!"))
+  highlight.RecordError(r.Context(), errors.New("a test error is being thrown!"))
 }`,
 		language: 'go',
 	},

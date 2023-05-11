@@ -14,6 +14,14 @@ type Field {
 	type: String
 }
 
+enum SessionExcludedReason {
+	Initializing
+	NoActivity
+	NoUserInteractionEvents
+	NoError
+	IgnoredUser
+}
+
 type Session {
 	id: ID!
 	secure_id: String!
@@ -45,7 +53,7 @@ type Session {
 	viewed: Boolean
 	starred: Boolean
 	processed: Boolean
-	excluded: Boolean
+	excluded: Boolean!
 	has_rage_clicks: Boolean
 	has_errors: Boolean
 	first_time: Boolean
@@ -55,7 +63,7 @@ type Session {
 	object_storage_enabled: Boolean
 	payload_size: Int64
 	within_billing_quota: Boolean
-	is_public: Boolean
+	is_public: Boolean!
 	event_counts: String
 	direct_download_url: String
 	resources_url: String
@@ -337,6 +345,11 @@ type Project {
 	rage_click_count: Int
 	backend_domains: StringArray
 	filter_chrome_extension: Boolean
+}
+
+type ProjectFilterSettings {
+	id: ID!
+	filterSessionsWithoutError: Boolean!
 }
 
 type Account {
@@ -1529,6 +1542,7 @@ type Query {
 	github_repos(workspace_id: ID!): [GitHubRepo!]
 	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
+	projectFilterSettings(projectId: ID!): ProjectFilterSettings
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
@@ -1612,6 +1626,10 @@ type Mutation {
 		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 	): Project
+	editProjectFilterSettings(
+		projectId: ID!
+		filterSessionsWithoutError: Boolean!
+	): ProjectFilterSettings
 	editWorkspace(id: ID!, name: String): Workspace
 	markErrorGroupAsViewed(
 		error_secure_id: String!

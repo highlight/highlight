@@ -100,3 +100,16 @@
 .demoLink:hover {
 	color: var(--color-gray-400) !important;
 }
+
+.button {
+	&:first-of-type {
+		border-top-right-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+
+	&:not(:first-of-type) {
+		border-top-left-radius: 0;
+		border-bottom-left-radius: 0;
+		border-left: 1px solid #dcdbdd;
+	}
+}

@@ -16,6 +16,7 @@ import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
 import {
 	PlayerUIContextProvider,
 	RightPanelView,
+	RightPlayerTab,
 } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
@@ -25,6 +26,7 @@ import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalCont
 import WithErrorSearchContext from '@routers/ProjectRouter/WithErrorSearchContext'
 import WithSessionSearchContext from '@routers/ProjectRouter/WithSessionSearchContext'
 import { auth } from '@util/auth'
+import { setIndexedDBEnabled } from '@util/db'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useDialogState } from 'ariakit/dialog'
 import clsx from 'clsx'
@@ -64,6 +66,13 @@ export const ProjectRouter = () => {
 		clientIntegration.integrated &&
 		serverIntegration.integrated &&
 		logsIntegration.integrated
+
+	// disable indexedDB for 5403
+	useEffect(() => {
+		if (projectId === '5403') {
+			setIndexedDBEnabled(false)
+		}
+	}, [projectId])
 
 	useEffect(() => {
 		const uri =
@@ -154,9 +163,11 @@ export const ProjectRouter = () => {
 		NetworkResource | undefined
 	>(undefined)
 
-	const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
-		'Events' | 'Threads' | 'Metadata'
-	>('tabs-PlayerRightPanel-active-tab', 'Events')
+	const [selectedRightPanelTab, setSelectedRightPanelTab] =
+		useLocalStorage<RightPlayerTab>(
+			'tabs-PlayerRightPanel-active-tab',
+			'Events',
+		)
 
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
@@ -266,13 +277,6 @@ function ApplicationOrError({
 	error: ApolloError | undefined
 	joinableWorkspace: JoinableWorkspace | undefined
 }) {
-	const clientIntegration = useClientIntegration()
-	const serverIntegration = useServerIntegration()
-	const logsIntegration = useLogsIntegration()
-	const integrated =
-		clientIntegration.integrated ||
-		serverIntegration.integrated ||
-		logsIntegration.integrated
 	const { isLoggedIn } = useAuthContext()
 
 	// Edge case: shareable links will still direct to this error page if you are logged in on a different project
@@ -300,6 +304,6 @@ function ApplicationOrError({
 			)
 
 		default:
-			return <ApplicationRouter integrated={integrated} />
+			return <ApplicationRouter />
 	}
 }

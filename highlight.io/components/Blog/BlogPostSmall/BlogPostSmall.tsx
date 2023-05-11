@@ -1,15 +1,16 @@
-import styles from '../Blog.module.scss'
 import Image from 'next/legacy/image'
 import Link from 'next/link'
-import { Post } from '../BlogPost/BlogPost'
 import { Typography } from '../../common/Typography/Typography'
+import styles from '../Blog.module.scss'
+import { Post } from '../BlogPost/BlogPost'
+import { Tag } from '../Tag'
 
 export const BlogPostSmall = ({
 	slug,
 	image,
 	title,
 	publishedAt,
-	tags,
+	tags_relations,
 	readingTime,
 }: Post) => {
 	return (
@@ -41,15 +42,15 @@ export const BlogPostSmall = ({
 					{title}
 				</Typography>
 				<div className={styles.tagDiv}>
-					{tags.map((tag: string) => (
+					{tags_relations.map((tag: Tag) => (
 						<Link
-							key={tag}
-							href={`/blog?tag=${tag}`}
+							key={tag.name}
+							href={`/blog?tag=${tag.slug}`}
 							passHref={true}
 							legacyBehavior
 						>
 							<div>
-								<Typography type="copy3">{tag}</Typography>
+								<Typography type="copy3">{tag.name}</Typography>
 							</div>
 						</Link>
 					))}

@@ -1547,6 +1547,53 @@ func (e SessionCommentType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type SessionExcludedReason string
+
+const (
+	SessionExcludedReasonInitializing            SessionExcludedReason = "Initializing"
+	SessionExcludedReasonNoActivity              SessionExcludedReason = "NoActivity"
+	SessionExcludedReasonNoUserInteractionEvents SessionExcludedReason = "NoUserInteractionEvents"
+	SessionExcludedReasonNoError                 SessionExcludedReason = "NoError"
+	SessionExcludedReasonIgnoredUser             SessionExcludedReason = "IgnoredUser"
+)
+
+var AllSessionExcludedReason = []SessionExcludedReason{
+	SessionExcludedReasonInitializing,
+	SessionExcludedReasonNoActivity,
+	SessionExcludedReasonNoUserInteractionEvents,
+	SessionExcludedReasonNoError,
+	SessionExcludedReasonIgnoredUser,
+}
+
+func (e SessionExcludedReason) IsValid() bool {
+	switch e {
+	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoError, SessionExcludedReasonIgnoredUser:
+		return true
+	}
+	return false
+}
+
+func (e SessionExcludedReason) String() string {
+	return string(e)
+}
+
+func (e *SessionExcludedReason) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SessionExcludedReason(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SessionExcludedReason", str)
+	}
+	return nil
+}
+
+func (e SessionExcludedReason) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type SessionLifecycle string
 
 const (

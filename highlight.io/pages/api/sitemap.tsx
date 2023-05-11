@@ -1,8 +1,10 @@
+import { promises as fsp } from 'fs'
 import { gql, GraphQLClient } from 'graphql-request'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { COMPETITORS } from '../../components/Competitors/competitors'
 import { FEATURES, iFeature } from '../../components/Features/features'
 import { iProduct, PRODUCTS } from '../../components/Products/products'
+import { getBlogPaths } from '../blog'
 import { getGithubDocsPaths } from './docs/github'
 
 async function generateXML(): Promise<string> {
@@ -16,32 +18,39 @@ async function generateXML(): Promise<string> {
 	)
 
 	const start = global.performance.now()
-	const [{ posts }, { customers }, { changelogs }, docs] = await Promise.all([
-		await graphcms.request(gql`
+	const [{ posts }, { customers }, { changelogs }, docs, githubBlogPosts] =
+		await Promise.all([
+			await graphcms.request(gql`
 	      query GetPosts() {
 	        posts(orderBy: publishedAt_DESC) {
 	          slug
 	        }
 	      }
 	    `),
-		await graphcms.request(gql`
+			await graphcms.request(gql`
 	      query GetCustomers() {
 	        customers() {
 	          slug
 	        }
 	      }
 	    `),
-		await graphcms.request(gql`
+			await graphcms.request(gql`
 	      query GetChangelogs() {
 	        changelogs() {
 	          slug
 	        }
 	      }
 	    `),
-		await getGithubDocsPaths(),
-	])
+			await getGithubDocsPaths(),
+			await getBlogPaths(fsp, ''),
+		])
 
 	const blogPages = posts.map((post: any) => `blog/${post.slug}`)
+
+	const githubBlogPages = githubBlogPosts.map(
+		(path) => `blog/${path.simple_path}`,
+	)
+
 	const customerPages = customers.map(
 		(customer: { slug: string }) => `customers/${customer.slug}`,
 	)
@@ -70,6 +79,7 @@ async function generateXML(): Promise<string> {
 	const pages = [
 		...staticPages,
 		...blogPages,
+		...githubBlogPages,
 		...customerPages,
 		...changelogPages,
 		...docsPages,

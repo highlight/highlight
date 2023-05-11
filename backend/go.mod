@@ -1,6 +1,6 @@
 module github.com/highlight-run/highlight/backend
 
-go 1.19
+go 1.20
 
 replace github.com/opensearch-project/opensearch-go => github.com/highlight-run/opensearch-go v1.0.1
 
@@ -87,7 +87,7 @@ require (
 	go.opentelemetry.io/otel v1.13.0
 	go.opentelemetry.io/otel/trace v1.13.0
 	golang.org/x/oauth2 v0.6.0
-	golang.org/x/sync v0.1.0
+	golang.org/x/sync v0.2.0
 	golang.org/x/text v0.8.0
 	google.golang.org/api v0.110.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.43.1
