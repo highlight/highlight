@@ -1,9 +1,9 @@
 .footer {
 	padding: calc(30 * var(--space-unit)) var(--size-xxLarge);
-	max-width: var(--max-width);
+	max-width: 1400px;
 	margin: 0 auto;
 	display: grid;
-	grid-template-columns: 300px repeat(4, 1fr);
+	grid-template-columns: 300px repeat(5, 1fr);
 	justify-content: space-between;
 
 	& > * {

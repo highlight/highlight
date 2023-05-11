@@ -1,29 +1,26 @@
-import hotjarlogofull from '../../public/images/hotjarlogofull.png'
-import hotjarlogosmall from '../../public/images/hotjarlogosmall.png'
+import datadogsmall from '../../public/images/datadog-small.png'
+import datadogfull from '../../public/images/datadog.png'
 import { Competitor } from './competitors'
 import {
-	EngineersVsMarketers,
 	HighlightIsOpenAndTransparent,
 	HighlightShipsNewFeatures,
 } from './shared-snippets'
 
-export const HotjarSpec: Competitor = {
-	name: 'Hotjar',
-	header: 'The Open Source Hotjar Alternative.',
+export const DatadogSpec: Competitor = {
+	name: 'Datadog',
+	header: 'The Open Source Datadog Alternative.',
 	subheader:
-		'Pixel-perfect video replay of your frontend web application. Step into the shoes of your users.',
-	logoDesktop: hotjarlogofull,
-	logoMobile: hotjarlogosmall,
+		'Session replay of your frontend, fullstack error monitoring, and powerful logging.',
+	logoDesktop: datadogfull,
+	logoMobile: datadogsmall,
 	sections: [
 		{
 			title: 'General',
 			rows: [
 				{
 					feature: 'Unlimited Team Members',
-					tooltip:
-						'LogRocket only allows 5 team members on their free plan.',
 					highlight: 1,
-					competitor: 0,
+					competitor: 1,
 				},
 				{
 					feature: 'Support Ticket Integrations',
@@ -47,7 +44,7 @@ export const HotjarSpec: Competitor = {
 				{
 					feature: 'Self-serve Setup',
 					highlight: 1,
-					competitor: 1,
+					competitor: 0,
 				},
 			],
 		},
@@ -64,14 +61,14 @@ export const HotjarSpec: Competitor = {
 				{
 					feature: 'Heatmaps',
 					highlight: 0,
-					competitor: 1,
+					competitor: 0,
 				},
 				{
 					feature: 'Session Sharing',
 					tooltip:
 						'Ability to share sessions across your team and with customers.',
 					highlight: 1,
-					competitor: 1,
+					competitor: 0,
 				},
 				{
 					feature: 'Privacy SDKs',
@@ -115,6 +112,11 @@ export const HotjarSpec: Competitor = {
 				{
 					feature: 'Support for Backend SDKs',
 					highlight: 1,
+					competitor: 1,
+				},
+				{
+					feature: 'Agent-less architecture',
+					highlight: 1,
 					competitor: 0,
 				},
 			],
@@ -125,15 +127,20 @@ export const HotjarSpec: Competitor = {
 				{
 					feature: 'Frontend logging',
 					highlight: 1,
-					competitor: 0,
+					competitor: 1,
 				},
 				{
 					feature: 'Backend logging',
 					highlight: 1,
-					competitor: 0,
+					competitor: 1,
 				},
 				{
 					feature: 'Embedded replay and stacktraces',
+					highlight: 1,
+					competitor: 0,
+				},
+				{
+					feature: 'Agent-less architecture',
 					highlight: 1,
 					competitor: 0,
 				},
@@ -141,17 +148,20 @@ export const HotjarSpec: Competitor = {
 		},
 	],
 	paragraphs: [
-		HighlightIsOpenAndTransparent('Hotjar'),
+		HighlightIsOpenAndTransparent('Datadog'),
 		HighlightShipsNewFeatures,
-		EngineersVsMarketers('Hotjar'),
 		{
-			header: 'We focus on cohesion, not just session replay',
-			body: 'While Hotjar is mainly focused on session replay, Highlight.io provides a **full-stack** solution that encompasses session replay, logs, and error monitoring. Along with recording user sessions, Highlight.io also captures logs and errors, providing developers with a comprehensive view of their entire stack. In contrast, Hotjar primarily focuses on heatmaps and conversion optimization, which can be more useful to product and marketing teams.',
+			header: 'Full-stack Observability',
+			body: 'While Datadog provides a comprehensive set of separate features for observability, it does not support full-stack observability. [Highlight.io](https://highlight.io) enables teams to monitor and optimize their entire tech stack, pariging server-side infrastructure with your frontend web application. This makes Highlight.io a more comprehensive solution for developers who need to monitor their entire tech stack, in a simple, easy to implement solution.',
 		},
 		{
 			header: 'Pricing',
-			body: `Hotjar provides a limited free plan that allows you to record up to 35 daily sessions with access to only 20 form analysis views. With Highlight, users can start for free and get their first 500 sessions and 1,000 errors per month for free. The tool also provides unlimited seats for all plans, including the free plan. The choice between Hotjar and Highlight for free trials will depend on the specific usage needs and budget of your project.
+			body: `Datadog's pricing structure is based on the number of hosts you have, the amount of data you ingest, and the amount of data you retain. This can make it difficult to predict your monthly bill. Highlight.io's pricing is strictly based on retention + usage and you find more details on our [pricing page](https://highlight.io/pricing).
             `,
+		},
+		{
+			header: 'Agent-less Architecture',
+			body: `Datadog's architecture requires you to install an agent on your server. This can be a pain to install and maintain. Highlight.io's architecture is agent-less and requires no installation, but in the case that you want to install an agent long-term, we have an open-source agent/collector that you can install on your servers.`,
 		},
 	],
 }
