@@ -1,11 +1,9 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import {
 	AdminSuggestion,
-	parseAdminSuggestions,
-} from '@components/Comment/CommentHeader'
-import {
 	filterMentionedAdmins,
 	filterMentionedSlackUsers,
+	parseAdminSuggestions,
 } from '@components/Comment/utils/utils'
 import {
 	useGetCommentMentionSuggestionsQuery,

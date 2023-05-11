@@ -1,9 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import {
-	AdminSuggestion,
-	parseAdminSuggestions,
-} from '@components/Comment/CommentHeader'
-import {
 	useCreateErrorCommentMutation,
 	useCreateSessionCommentMutation,
 	useGetCommentMentionSuggestionsQuery,
@@ -51,6 +47,10 @@ import { OnChangeHandlerFunc } from 'react-mentions'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
+import {
+	AdminSuggestion,
+	parseAdminSuggestions,
+} from '@/components/Comment/utils/utils'
 
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas'
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration'
