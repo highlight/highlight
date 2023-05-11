@@ -2681,7 +2681,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					if projectID == 1 || projectID == 1344 || projectID == 5403 {
 						assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
 							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID), tracer.Tag("session_secure_id", sessionSecureID))
-						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB)
+						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB, r.Redis)
 						assetsSpan.Finish()
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
