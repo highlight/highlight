@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/phonehome"
-	"go.opentelemetry.io/otel/attribute"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -16,6 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/phonehome"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/highlight-run/go-resthooks"
@@ -840,15 +841,13 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, pricing.ProductTypeErrors, workspace, time.Now())
 	go func() {
 		defer util.Recover()
-		if workspace.PlanTier != privateModel.PlanTypeFree.String() && workspace.AllowMeterOverage {
-			if quotaPercent >= 1 {
-				if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage100Percent, workspace); err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
-				}
-			} else if quotaPercent >= .8 {
-				if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage80Percent, workspace); err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
-				}
+		if quotaPercent >= 1 {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage100Percent, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+			}
+		} else if quotaPercent >= .8 {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage80Percent, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		}
 	}()
@@ -1403,15 +1402,13 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 			return
 		}
 
-		if workspace.PlanTier != privateModel.PlanTypeFree.String() && workspace.AllowMeterOverage {
-			if quotaPercent >= 1 {
-				if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace); err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
-				}
-			} else if quotaPercent >= .8 {
-				if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage80Percent, workspace); err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
-				}
+		if quotaPercent >= 1 {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+			}
+		} else if quotaPercent >= .8 {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage80Percent, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		}
 
@@ -1959,24 +1956,36 @@ func (r *Resolver) getProject(projectID int) (*model.Project, error) {
 }
 
 var productTypeToQuotaConfig = map[pricing.ProductType]struct {
-	planLimit     func(privateModel.PlanType) int
-	limitOverride func(*model.Workspace) *int
-	meter         func(context.Context, *gorm.DB, *clickhouse.Client, *model.Workspace) (int64, error)
+	maxCostCents    func(*model.Workspace) *int
+	meter           func(context.Context, *gorm.DB, *clickhouse.Client, *model.Workspace) (int64, error)
+	retentionPeriod func(*model.Workspace) privateModel.RetentionPeriod
 }{
 	pricing.ProductTypeSessions: {
-		pricing.TypeToSessionsLimit,
-		func(w *model.Workspace) *int { return w.MonthlySessionLimit },
+		func(w *model.Workspace) *int { return w.SessionsMaxCents },
 		pricing.GetWorkspaceSessionsMeter,
+		func(w *model.Workspace) privateModel.RetentionPeriod {
+			if w.RetentionPeriod == nil {
+				return privateModel.RetentionPeriodThreeMonths
+			}
+			return *w.RetentionPeriod
+		},
 	},
 	pricing.ProductTypeErrors: {
-		pricing.TypeToErrorsLimit,
-		func(w *model.Workspace) *int { return w.MonthlyErrorsLimit },
+		func(w *model.Workspace) *int { return w.ErrorsMaxCents },
 		pricing.GetWorkspaceSessionsMeter,
+		func(w *model.Workspace) privateModel.RetentionPeriod {
+			if w.ErrorsRetentionPeriod == nil {
+				return privateModel.RetentionPeriodThreeMonths
+			}
+			return *w.ErrorsRetentionPeriod
+		},
 	},
 	pricing.ProductTypeLogs: {
-		pricing.TypeToLogsLimit,
-		func(w *model.Workspace) *int { return w.MonthlyLogsLimit },
+		func(w *model.Workspace) *int { return w.LogsMaxCents },
 		pricing.GetWorkspaceLogsMeter,
+		func(w *model.Workspace) privateModel.RetentionPeriod {
+			return privateModel.RetentionPeriodThirtyDays
+		},
 	},
 }
 
@@ -1988,15 +1997,17 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.Produc
 		return true, 0
 	}
 
+	stripePlan := privateModel.PlanType(workspace.PlanTier)
+
 	cfg := productTypeToQuotaConfig[productType]
 
-	var quota int
-	stripePlan := privateModel.PlanType(workspace.PlanTier)
-	override := cfg.limitOverride(workspace)
-	if override != nil && *override > 0 {
-		quota = *override
-	} else {
-		quota = cfg.planLimit(stripePlan)
+	maxCostCents := cfg.maxCostCents(workspace)
+	if stripePlan == privateModel.PlanTypeFree {
+		maxCostCents = pointy.Int(0)
+	}
+
+	if maxCostCents == nil {
+		return true, 0
 	}
 
 	meter, err := cfg.meter(ctx, r.DB, r.Clickhouse, workspace)
@@ -2004,13 +2015,20 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.Produc
 		log.WithContext(ctx).Warn(fmt.Sprintf("error getting %s meter for workspace %d", productType, workspace.ID))
 	}
 
-	quotaPercent := float64(meter) / float64(quota)
-	// If the workspace is not on the free plan and overage is allowed
-	if stripePlan != privateModel.PlanTypeFree && workspace.AllowMeterOverage {
-		return true, quotaPercent
+	includedQuantity := pricing.ProductToIncludedQuantity(productType)
+	if includedQuantity >= meter {
+		return true, 0
 	}
 
-	return quotaPercent < 1, quotaPercent
+	if *maxCostCents == 0 {
+		return false, 1
+	}
+
+	retentionPeriod := cfg.retentionPeriod(workspace)
+	overage := meter - includedQuantity
+	cost := float64(overage) * pricing.ProductToBasePriceCents(productType) * pricing.RetentionMultiplier(retentionPeriod)
+
+	return cost >= float64(*maxCostCents), cost / float64(*maxCostCents)
 }
 
 func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorObject *model.ErrorObject, visitedUrl string) {

@@ -7,29 +7,40 @@ import {
 	IconProps,
 	IconSolidArrowSmRight,
 	IconSolidCheveronRight,
+	IconSolidCog,
+	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
 	IconSolidPlus,
 	IconSolidX,
 	Input,
+	Stack,
 	Tag,
 	Text,
+	Tooltip,
 	useFormState,
 } from '@highlight-run/ui'
+import { loadStripe } from '@stripe/stripe-js'
 import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
 import {
+	useCreateOrUpdateStripeSubscriptionMutation,
 	useGetBillingDetailsQuery,
 	useGetCustomerPortalUrlLazyQuery,
 	useSaveBillingPlanMutation,
 } from '@/graph/generated/hooks'
 import { namedOperations } from '@/graph/generated/operations'
-import { RetentionPeriod } from '@/graph/generated/schemas'
+import {
+	PlanType,
+	RetentionPeriod,
+	SubscriptionInterval,
+} from '@/graph/generated/schemas'
 import { RETENTION_PERIOD_LABELS, tryCastDate } from '@/pages/Billing/Billing'
 import { formatNumber, formatNumberWithDelimiters } from '@/util/numbers'
 import { useParams } from '@/util/react-router/useParams'
@@ -76,7 +87,7 @@ const UNIT_QUANTITY: { readonly [k in ProductType]: number } = {
 	Logs: 1_000_000,
 }
 
-const INCLUDED_QUANTITY: { readonly [k in ProductType]: number } = {
+export const INCLUDED_QUANTITY: { readonly [k in ProductType]: number } = {
 	Sessions: 500,
 	Errors: 1_000,
 	Logs: 1_000_000,
@@ -114,19 +125,30 @@ export const getQuantity = (
 }
 
 export const getNextBillingDate = (
+	isPaying: boolean,
 	nextInvoiceDate: Date | undefined,
 	billingPeriodEnd: Date | undefined,
 ) => {
-	if (nextInvoiceDate && billingPeriodEnd) {
+	if (isPaying && nextInvoiceDate && billingPeriodEnd) {
 		return nextInvoiceDate < billingPeriodEnd
 			? nextInvoiceDate
 			: billingPeriodEnd
-	} else if (billingPeriodEnd) {
+	} else if (isPaying && billingPeriodEnd) {
 		return billingPeriodEnd
 	} else {
 		return moment().add(1, 'M').toDate()
 	}
 }
+
+export const getStripePromiseOrNull = () => {
+	const stripe_publishable_key = import.meta.env.REACT_APP_STRIPE_API_PK
+	if (stripe_publishable_key) {
+		return loadStripe(stripe_publishable_key)
+	}
+	return null
+}
+
+const stripePromiseOrNull = getStripePromiseOrNull()
 
 type ProductCardProps = {
 	productIcon: React.ReactElement<IconProps>
@@ -135,6 +157,7 @@ type ProductCardProps = {
 	setRetentionPeriod: (rp: RetentionPeriod) => void
 	limitCents: number | undefined
 	setLimitCents: (limit: number | undefined) => void
+	usageAmount: number
 	predictedUsageAmount: number
 }
 
@@ -167,15 +190,15 @@ const LimitButton = ({
 						name="input"
 						type="number"
 						min="0"
-						step=".01"
 						value={limitCents / 100}
 						onChange={(e) => {
 							setLimitCents(
 								Math.round(
-									parseFloat(e.target.value ?? '0') * 100,
+									parseFloat(e.target.value || '0') * 100,
 								),
 							)
 						}}
+						style={{ marginTop: -4 }}
 					/>
 					<Button
 						trackingId="UpdatePlanClose"
@@ -212,6 +235,7 @@ const ProductCard = ({
 	setRetentionPeriod,
 	limitCents,
 	setLimitCents,
+	usageAmount,
 	predictedUsageAmount,
 }: ProductCardProps) => {
 	const unitCostCents =
@@ -222,7 +246,7 @@ const ProductCard = ({
 	const quantityFormatted = formatNumber(unitQuantity)
 
 	const unitCostFormatted =
-		'$' + toDecimal(dinero({ amount: unitCostCents, currency: USD }))
+		'$ ' + toDecimal(dinero({ amount: unitCostCents, currency: USD }))
 
 	const includedQuantity = INCLUDED_QUANTITY[productType]
 	const netUsageAmount = Math.max(predictedUsageAmount - includedQuantity, 0)
@@ -233,13 +257,22 @@ const ProductCard = ({
 		predictedUsageAmount,
 	)
 
+	const currentCostCents = getCostCents(
+		productType,
+		retentionPeriod,
+		usageAmount,
+	)
+
 	const totalCostCents =
 		limitCents !== undefined
-			? Math.min(predictedCostCents, limitCents)
+			? Math.max(
+					Math.min(predictedCostCents, limitCents),
+					currentCostCents,
+			  )
 			: predictedCostCents
 
 	const totalCostFormatted =
-		'$' + toDecimal(dinero({ amount: totalCostCents, currency: USD }))
+		'est. $ ' + toDecimal(dinero({ amount: totalCostCents, currency: USD }))
 
 	return (
 		<Box
@@ -253,44 +286,50 @@ const ProductCard = ({
 				flexDirection="column"
 				cssClass={style.productSelections}
 			>
-				<Box display="flex" gap="4">
+				<Box display="flex" gap="4" alignItems="center">
 					{productIcon}
 					{productType}
 				</Box>
-				<Form.NamedSection label="Retention" name="Retention">
-					<Box display="flex" gap="4">
-						{RETENTION_OPTIONS[productType].map((r) => {
-							return (
-								<Button
-									key={r}
-									trackingId={`Retention${r}`}
-									kind={
-										retentionPeriod === r
-											? 'primary'
-											: 'secondary'
-									}
-									emphasis={
-										retentionPeriod === r ? 'high' : 'low'
-									}
-									onClick={() => {
-										setRetentionPeriod(r)
-									}}
-								>
-									{RETENTION_PERIOD_LABELS[r]}
-								</Button>
-							)
-						})}
-					</Box>
-				</Form.NamedSection>
-				<Form.NamedSection label="Limit" name="Limit">
-					<Box display="flex">
-						<LimitButton
-							limitCents={limitCents}
-							setLimitCents={setLimitCents}
-							defaultLimit={1.3 * predictedCostCents}
-						/>
-					</Box>
-				</Form.NamedSection>
+				<Box cssClass={style.formSection}>
+					<Form.NamedSection label="Retention" name="Retention">
+						<Box display="flex" gap="4">
+							{RETENTION_OPTIONS[productType].map((r) => {
+								return (
+									<Button
+										key={r}
+										trackingId={`Retention${r}`}
+										kind={
+											retentionPeriod === r
+												? 'primary'
+												: 'secondary'
+										}
+										emphasis={
+											retentionPeriod === r
+												? 'high'
+												: 'low'
+										}
+										onClick={() => {
+											setRetentionPeriod(r)
+										}}
+									>
+										{RETENTION_PERIOD_LABELS[r]}
+									</Button>
+								)
+							})}
+						</Box>
+					</Form.NamedSection>
+				</Box>
+				<Box cssClass={style.formSection}>
+					<Form.NamedSection label="Limit" name="Limit">
+						<Box display="flex">
+							<LimitButton
+								limitCents={limitCents}
+								setLimitCents={setLimitCents}
+								defaultLimit={1.3 * predictedCostCents}
+							/>
+						</Box>
+					</Form.NamedSection>
+				</Box>
 			</Box>
 			<Box
 				display="flex"
@@ -313,19 +352,25 @@ const ProductCard = ({
 						display="flex"
 						flexDirection="row"
 						justifyContent="space-between"
+						alignItems="center"
+						cssClass={style.costLineItem}
 					>
-						<Text>
+						<Text color="weak" size="xSmall">
 							Price / {quantityFormatted} {productType}
 						</Text>
-						<Text>{unitCostFormatted}</Text>
+						<Text size="xSmall">{unitCostFormatted}</Text>
 					</Box>
 					<Box
 						display="flex"
 						flexDirection="row"
 						justifyContent="space-between"
+						alignItems="center"
+						cssClass={style.costLineItem}
 					>
-						<Text>{productType}</Text>
-						<Text>
+						<Text color="weak" size="xSmall">
+							{productType}
+						</Text>
+						<Text size="xSmall">
 							{formatNumberWithDelimiters(predictedUsageAmount)}
 						</Text>
 					</Box>
@@ -333,9 +378,13 @@ const ProductCard = ({
 						display="flex"
 						flexDirection="row"
 						justifyContent="space-between"
+						alignItems="center"
+						cssClass={style.costLineItem}
 					>
-						<Text>- Included</Text>
-						<Text>
+						<Text color="weak" size="xSmall">
+							- Included
+						</Text>
+						<Text size="xSmall">
 							{formatNumberWithDelimiters(includedQuantity)}
 						</Text>
 					</Box>
@@ -343,9 +392,13 @@ const ProductCard = ({
 						display="flex"
 						flexDirection="row"
 						justifyContent="space-between"
+						alignItems="center"
+						cssClass={style.costLineItem}
 					>
-						<Text>= Net</Text>
-						<Text>
+						<Text color="weak" size="xSmall">
+							= Net
+						</Text>
+						<Text size="xSmall">
 							{formatNumberWithDelimiters(netUsageAmount)}
 						</Text>
 					</Box>
@@ -354,9 +407,28 @@ const ProductCard = ({
 						display="flex"
 						flexDirection="row"
 						justifyContent="space-between"
+						alignItems="center"
+						cssClass={style.costLineItem}
 					>
-						<Text>Total</Text>
-						<Text>{totalCostFormatted}</Text>
+						<Text color="weak" size="xSmall">
+							Total
+						</Text>
+						<Badge
+							size="medium"
+							shape="basic"
+							variant="gray"
+							label={totalCostFormatted}
+							iconEnd={
+								<Tooltip
+									trigger={
+										<IconSolidInformationCircle size={12} />
+									}
+								>
+									Estimated cost based on trailing 7 day
+									usage.
+								</Tooltip>
+							}
+						></Badge>
 					</Box>
 				</Box>
 			</Box>
@@ -384,9 +456,10 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 		},
 	})
 
-	const [saveBillingPlan] = useSaveBillingPlanMutation({
-		refetchQueries: [namedOperations.Query.GetBillingDetails],
-	})
+	const [saveBillingPlan, { loading: billingPlanLoading }] =
+		useSaveBillingPlanMutation({
+			refetchQueries: [namedOperations.Query.GetBillingDetails],
+		})
 
 	const { data, loading } = useGetBillingDetailsQuery({
 		variables: {
@@ -421,13 +494,66 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			},
 		})
 
+	const [
+		createOrUpdateStripeSubscription,
+		{ data: stripeData, loading: stripeLoading },
+	] = useCreateOrUpdateStripeSubscriptionMutation({ fetchPolicy: 'no-cache' })
+
+	const [checkoutRedirectFailedMessage, setCheckoutRedirectFailedMessage] =
+		useState<string>('')
+
+	useEffect(() => {
+		// const response = pathname.split('/')[4] ?? ''
+		// if (response === 'success') {
+		// 	updateBillingDetails({
+		// 		variables: { workspace_id: workspaceId! },
+		// 	}).then(() => {
+		// 		message.success('Billing change applied!', 5)
+		// 		refetch()
+		// 		refetchSubscription()
+		// 	})
+		// }
+		if (checkoutRedirectFailedMessage) {
+			message.error(checkoutRedirectFailedMessage, 5)
+		}
+		// if (billingError) {
+		// 	message.error(billingError.message, 5)
+		// }
+	}, [checkoutRedirectFailedMessage])
+
+	if (stripeData?.createOrUpdateStripeSubscription && stripePromiseOrNull) {
+		;(async function () {
+			const stripe = await stripePromiseOrNull
+			const result = stripe
+				? await stripe.redirectToCheckout({
+						sessionId:
+							stripeData.createOrUpdateStripeSubscription ?? '',
+				  })
+				: { error: 'Error: could not load stripe client.' }
+
+			if (result.error) {
+				// result.error is either a string message or a StripeError,
+				// which contains a message localized for the user.
+				setCheckoutRedirectFailedMessage(
+					typeof result.error === 'string'
+						? result.error
+						: typeof result.error.message === 'string'
+						? result.error.message
+						: 'Redirect to checkout failed. This is most likely a network or browser error.',
+				)
+			}
+		})()
+	}
+
 	if (loading) {
 		return null
 	}
 
+	const isPaying = data?.billingDetails.plan.type !== PlanType.Free
 	const nextInvoiceDate = tryCastDate(data?.workspace?.next_invoice_date)
 	const billingPeriodEnd = tryCastDate(data?.workspace?.billing_period_end)
 	const nextBillingDate = getNextBillingDate(
+		isPaying,
 		nextInvoiceDate,
 		billingPeriodEnd,
 	)
@@ -435,8 +561,9 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 		(nextBillingDate.getTime() - Date.now()) / (1000 * 3600 * 24),
 	)
 
+	const sessionsUsage = isPaying ? data?.billingDetails.meter ?? 0 : 0
 	const predictedSessionsUsage = Math.ceil(
-		(data?.billingDetails.meter ?? 0) +
+		sessionsUsage +
 			daysUntilNextBillingDate *
 				(data?.billingDetails.sessionsDailyAverage ?? 0),
 	)
@@ -445,15 +572,22 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 		formState.values.sessionsRetention,
 		predictedSessionsUsage,
 	)
+	const actualSessionsCost = getCostCents(
+		'Sessions',
+		formState.values.sessionsRetention,
+		sessionsUsage,
+	)
 	if (formState.values.sessionsLimitCents !== undefined) {
 		predictedSessionsCost = Math.min(
 			predictedSessionsCost,
 			formState.values.sessionsLimitCents,
 		)
 	}
+	predictedSessionsCost = Math.max(predictedSessionsCost, actualSessionsCost)
 
+	const errorsUsage = isPaying ? data?.billingDetails.errorsMeter ?? 0 : 0
 	const predictedErrorsUsage = Math.ceil(
-		(data?.billingDetails.errorsMeter ?? 0) +
+		errorsUsage +
 			daysUntilNextBillingDate *
 				(data?.billingDetails.errorsDailyAverage ?? 0),
 	)
@@ -462,15 +596,22 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 		formState.values.errorsRetention,
 		predictedErrorsUsage,
 	)
+	const actualErrorsCost = getCostCents(
+		'Errors',
+		formState.values.errorsRetention,
+		errorsUsage,
+	)
 	if (formState.values.errorsLimitCents !== undefined) {
 		predictedErrorsCost = Math.min(
 			predictedErrorsCost,
 			formState.values.errorsLimitCents,
 		)
 	}
+	predictedErrorsCost = Math.max(predictedErrorsCost, actualErrorsCost)
 
+	const logsUsage = isPaying ? data?.billingDetails.logsMeter ?? 0 : 0
 	const predictedLogsUsage = Math.ceil(
-		(data?.billingDetails.logsMeter ?? 0) +
+		logsUsage +
 			daysUntilNextBillingDate *
 				(data?.billingDetails.logsDailyAverage ?? 0),
 	)
@@ -479,18 +620,25 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 		formState.values.logsRetention,
 		predictedLogsUsage,
 	)
+	const actualLogsCost = getCostCents(
+		'Logs',
+		formState.values.logsRetention,
+		logsUsage,
+	)
 	if (formState.values.logsLimitCents !== undefined) {
 		predictedLogsCost = Math.min(
 			predictedLogsCost,
 			formState.values.logsLimitCents,
 		)
 	}
+	predictedLogsCost = Math.max(predictedLogsCost, actualLogsCost)
 
 	const predictedTotalCents =
 		predictedSessionsCost + predictedErrorsCost + predictedLogsCost
 
 	const predictedTotalFormatted =
-		'$' + toDecimal(dinero({ amount: predictedTotalCents, currency: USD }))
+		'est. $ ' +
+		toDecimal(dinero({ amount: predictedTotalCents, currency: USD }))
 
 	return (
 		<Box
@@ -513,7 +661,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 					kind="secondary"
 					emphasis="low"
 					onClick={() => {
-						navigate('../billing-plans')
+						navigate('../current-plan')
 					}}
 				>
 					<IconSolidX />
@@ -528,6 +676,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 						onClick={() => {
 							getCustomerPortalUrl()
 						}}
+						iconLeft={<IconSolidCog color="n11" />}
 					>
 						Payment Settings
 					</Button>
@@ -550,13 +699,35 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 									logsRetention:
 										formState.values.logsRetention,
 								},
-							}).then(() => {
-								message.success('Saved billing plan')
-								navigate('../billing-plans')
 							})
+								.then(() => {
+									if (!isPaying) {
+										createOrUpdateStripeSubscription({
+											variables: {
+												workspace_id: workspace_id!,
+												plan_type: PlanType.UsageBased,
+												interval:
+													SubscriptionInterval.Monthly,
+												retention_period:
+													RetentionPeriod.ThreeMonths,
+											},
+										})
+									} else {
+										message.success('Billing plan saved!')
+										navigate('../current-plan')
+									}
+								})
+								.catch(() => {
+									message.error(
+										'Failed to save billing plan details',
+									)
+								})
 						}}
+						disabled={billingPlanLoading || stripeLoading}
 					>
-						Save billing plan
+						{isPaying
+							? 'Save billing plan'
+							: 'Enter payment details'}
 					</Button>
 				</Box>
 			</Box>
@@ -566,14 +737,45 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 					cssClass={style.pageWrapper}
 					display="flex"
 					flexDirection="column"
-					gap="12"
 				>
+					{!isPaying && (
+						<Box mb="24" display="flex" gap="4">
+							<Box
+								border="secondary"
+								borderRadius="6"
+								cssClass={style.step}
+								textAlign="center"
+								flex="stretch"
+								display="flex"
+								alignItems="center"
+								justifyContent="center"
+								color="p11"
+								borderColor="p6"
+							>
+								<Text>1. Update plan</Text>
+							</Box>
+							<Box
+								border="secondary"
+								borderRadius="6"
+								cssClass={style.step}
+								textAlign="center"
+								flex="stretch"
+								display="flex"
+								alignItems="center"
+								justifyContent="center"
+								color="n8"
+								borderColor="n3"
+							>
+								<Text>2. Enter payment details</Text>
+							</Box>
+						</Box>
+					)}
 					<Box display="flex" alignItems="center">
 						<Tag
 							kind="secondary"
 							shape="basic"
 							onClick={() => {
-								navigate('../billing-plans')
+								navigate('../current-plan')
 							}}
 						>
 							Billing plans
@@ -586,21 +788,34 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							size="medium"
 						/>
 					</Box>
-					<Box>
-						<Heading level="h4">Update plan details</Heading>
-					</Box>
-					<Box>
-						<Text size="small" weight="medium">
-							Prices are usage based and flexible with your needs.
-							Need a custom quote or want to commit to a minimum
-							spend?{' '}
-							<a href="mailto:sales@highlight.run">
-								Reach out to sales <IconSolidArrowSmRight />
-							</a>
-						</Text>
-					</Box>
+					<Stack mt="12">
+						<Box>
+							<Heading level="h4">Update plan details</Heading>
+						</Box>
+						<Box>
+							<Text size="small" weight="medium">
+								Prices are usage based and flexible with your
+								needs. Need a custom quote or want to commit to
+								a minimum spend?{' '}
+								<a href="mailto:sales@highlight.run">
+									<Box
+										display="inline-flex"
+										alignItems="center"
+									>
+										Reach out to sales{' '}
+										<IconSolidArrowSmRight />
+									</Box>
+								</a>
+							</Text>
+						</Box>
+					</Stack>
 					<Form state={formState}>
-						<Box display="flex" flexDirection="column" gap="16">
+						<Box
+							display="flex"
+							flexDirection="column"
+							gap="16"
+							mt="24"
+						>
 							<ProductCard
 								productIcon={<IconSolidPlayCircle />}
 								productType="Sessions"
@@ -620,6 +835,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 										l,
 									)
 								}
+								usageAmount={sessionsUsage}
 								predictedUsageAmount={predictedSessionsUsage}
 							/>
 							<Box borderBottom="divider" />
@@ -642,6 +858,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 										l,
 									)
 								}
+								usageAmount={errorsUsage}
 								predictedUsageAmount={predictedErrorsUsage}
 							/>
 							<Box borderBottom="divider" />
@@ -662,12 +879,11 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 										l,
 									)
 								}
+								usageAmount={logsUsage}
 								predictedUsageAmount={predictedLogsUsage}
 							/>
 							<Box borderBottom="divider" />
 							<Box
-								display="flex"
-								flexDirection="column"
 								border="secondary"
 								borderRadius="8"
 								p="12"
@@ -678,7 +894,9 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 									justifyContent="space-between"
 								>
 									<Box display="flex" gap="4">
-										<Text>Total per month </Text>
+										<Text color="n12">
+											Total this month
+										</Text>
 										<Text>
 											Due{' '}
 											{moment(nextBillingDate).format(
@@ -686,7 +904,26 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 											)}
 										</Text>
 									</Box>
-									<Text>{predictedTotalFormatted}</Text>
+									<Box
+										display="flex"
+										alignItems="center"
+										color="p11"
+										gap="4"
+									>
+										<Text color="p11" weight="bold">
+											{predictedTotalFormatted}
+										</Text>
+										<Tooltip
+											trigger={
+												<IconSolidInformationCircle
+													size={12}
+												/>
+											}
+										>
+											Estimated cost based on trailing 7
+											day usage.
+										</Tooltip>
+									</Box>
 								</Box>
 							</Box>
 						</Box>

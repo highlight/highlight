@@ -2,8 +2,9 @@ import { vars } from '@highlight-run/ui'
 import { style } from '@vanilla-extract/css'
 
 export const pageWrapper = style({
-	width: 540,
+	width: 560,
 	marginTop: 36,
+	marginBottom: 12,
 })
 
 export const progressBarBackground = style({
@@ -19,4 +20,16 @@ export const progressBar = style({
 
 export const progressBarOverage = style({
 	backgroundColor: vars.color.y11,
+})
+
+export const progressAmount = style({
+	height: 14,
+})
+
+export const usageTitle = style({
+	height: 20,
+})
+
+export const totalBox = style({
+	height: 20,
 })

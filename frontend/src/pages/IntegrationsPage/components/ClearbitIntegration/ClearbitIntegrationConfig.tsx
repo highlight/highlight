@@ -79,7 +79,7 @@ const ClearbitIntegrationConfig: React.FC<
 		)
 	}
 	if (redirectToBilling) {
-		return <Navigate replace to={`/w/${workspaceID}/upgrade-plan`} />
+		return <Navigate replace to={`/w/${workspaceID}/current-plan`} />
 	}
 
 	return (

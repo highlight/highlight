@@ -7772,6 +7772,19 @@ export const GetBillingDetailsDocument = gql`
 			errorsDailyAverage
 			logsDailyAverage
 		}
+		subscription_details(workspace_id: $workspace_id) {
+			baseAmount
+			discountAmount
+			discountPercent
+			lastInvoice {
+				amountDue
+				amountPaid
+				attemptCount
+				date
+				url
+				status
+			}
+		}
 		workspace(id: $workspace_id) {
 			id
 			trial_end_date

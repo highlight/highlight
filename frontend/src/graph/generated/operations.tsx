@@ -2685,6 +2685,22 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 				| 'logsLimit'
 			>
 		}
+	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
+		Types.SubscriptionDetails,
+		'baseAmount' | 'discountAmount' | 'discountPercent'
+	> & {
+			lastInvoice?: Types.Maybe<
+				{ __typename?: 'Invoice' } & Pick<
+					Types.Invoice,
+					| 'amountDue'
+					| 'amountPaid'
+					| 'attemptCount'
+					| 'date'
+					| 'url'
+					| 'status'
+				>
+			>
+		}
 	workspace?: Types.Maybe<
 		{ __typename?: 'Workspace' } & Pick<
 			Types.Workspace,

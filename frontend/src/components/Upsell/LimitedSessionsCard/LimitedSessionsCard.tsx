@@ -54,7 +54,7 @@ const LimitedSessionCard = () => {
 					</Text>
 					<ButtonLink
 						className={styles.center}
-						to={`/w/${data?.workspace_for_project?.id}/upgrade-plan`}
+						to={`/w/${data?.workspace_for_project?.id}/current-plan`}
 						trackingId="LimitedSessionsCardUpgradePlan"
 					>
 						Upgrade Plan

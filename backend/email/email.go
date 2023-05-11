@@ -9,8 +9,6 @@ import (
 	"time"
 
 	e "github.com/pkg/errors"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -30,6 +28,7 @@ var (
 	SendGridOutboundEmail                = "gm@runhighlight.com"
 	SessionCommentMentionsAsmId          = 20950
 	ErrorCommentMentionsAsmId            = 20994
+	frontendUri                          = os.Getenv("FRONTEND_URI")
 )
 
 type EmailType string
@@ -92,57 +91,19 @@ func GetSubscriptionUrl(adminId int, previous bool) string {
 	return fmt.Sprintf("%s/subscriptions?admin_id=%d&token=%s", os.Getenv("FRONTEND_URI"), adminId, token)
 }
 
-func formatNumber(input int) string {
-	p := message.NewPrinter(language.English)
-	return p.Sprintf("%d", input)
-}
-
-var overageCents = map[string]map[modelInputs.RetentionPeriod]int{
-	"session": {
-		modelInputs.RetentionPeriodThreeMonths:  750,
-		modelInputs.RetentionPeriodSixMonths:    750,
-		modelInputs.RetentionPeriodTwelveMonths: 1000,
-		modelInputs.RetentionPeriodTwoYears:     1250,
-	},
-	"error": {
-		modelInputs.RetentionPeriodThreeMonths:  20,
-		modelInputs.RetentionPeriodSixMonths:    30,
-		modelInputs.RetentionPeriodTwelveMonths: 40,
-		modelInputs.RetentionPeriodTwoYears:     50,
-	},
-	"log": {
-		modelInputs.RetentionPeriodThreeMonths:  150,
-		modelInputs.RetentionPeriodSixMonths:    150,
-		modelInputs.RetentionPeriodTwelveMonths: 150,
-		modelInputs.RetentionPeriodTwoYears:     150,
-	},
-}
-
-var overageQuantity = map[string]int{
-	"session": 1_000,
-	"error":   1_000,
-	"log":     1_000_000,
-}
-
-func getApproachingLimitMessage(productType string, workspaceId int, retentionPeriod modelInputs.RetentionPeriod) string {
-	dollars := float64(overageCents[productType][retentionPeriod]) / 100
-	quantityStr := formatNumber(overageQuantity[productType])
-
+func getApproachingLimitMessage(productType string, workspaceId int) string {
 	return fmt.Sprintf(`Your %s usage has exceeded 80&#37; of your monthly limit.<br>
-		Once this limit is exceeded, extra %ss will be charged at $%.2f per %s %ss.<br>
+		Once this limit is exceeded, extra %ss will not be recorded.<br>
 		If you would like to switch to a plan with a higher limit,
-		you can upgrade your subscription <a href="https://app.highlight.io/w/%d/upgrade-plan">here</a>.`,
-		productType, productType, dollars, quantityStr, productType, workspaceId)
+		you can upgrade your subscription <a href="%s/w/%d/current-plan">here</a>.`,
+		productType, productType, frontendUri, workspaceId)
 }
 
-func getExceededLimitMessage(productType string, workspaceId int, retentionPeriod modelInputs.RetentionPeriod) string {
-	dollars := float64(overageCents[productType][retentionPeriod]) / 100
-	quantityStr := formatNumber(overageQuantity[productType])
-
-	return fmt.Sprintf(`Your %s usage has exceeded your monthly limit - extra %ss are charged at $%.2f per %s %ss.<br>
+func getExceededLimitMessage(productType string, workspaceId int) string {
+	return fmt.Sprintf(`Your %s usage has exceeded your monthly limit - extra %ss will not be recorded.<br>
 		If you would like to switch to a plan with a higher limit,
-		you can upgrade your subscription <a href="https://app.highlight.io/w/%d/upgrade-plan">here</a>.`,
-		productType, productType, dollars, quantityStr, productType, workspaceId)
+		you can upgrade your subscription <a href="%s/w/%d/current-plan">here</a>.`,
+		productType, productType, frontendUri, workspaceId)
 }
 
 func getBillingNotificationMessage(workspaceId int, retentionPeriod modelInputs.RetentionPeriod, emailType EmailType) string {
@@ -151,39 +112,39 @@ func getBillingNotificationMessage(workspaceId int, retentionPeriod modelInputs.
 		return fmt.Sprintf(`
 			We hope you've been enjoying Highlight!<br>
 			Your free trial is ending in 7 days.<br>
-			Once it has ended, you will be on the free tier with a limit of 500 sessions per month.<br>
-			You can upgrade to a paid subscription <a href="https://app.highlight.io/w/%d/upgrade-plan">here</a>.`, workspaceId)
+			Once it has ended, you will be on the free tier with monthly limits for sessions, errors, and logs.<br>
+			You can upgrade to a paid subscription <a href="%s/w/%d/current-plan">here</a>.`, frontendUri, workspaceId)
 	case BillingHighlightTrialEnded:
 		return fmt.Sprintf(`
 			We hope you've been enjoying Highlight!<br>
-			Your free trial has ended - you are now on the free tier with a limit of 500 sessions per month.<br>
-			You can upgrade to a paid subscription <a href="https://app.highlight.io/w/%d/upgrade-plan">here</a>.`, workspaceId)
+			Your free trial has ended - you are now on the free tier with monthly limits for sessions, errors, and logs.<br>
+			You can upgrade to a paid subscription <a href="%s/w/%d/current-plan">here</a>.`, frontendUri, workspaceId)
 	case BillingStripeTrial7Days:
 		return fmt.Sprintf(`
 			We hope you've been enjoying Highlight!<br>
 			Your free trial is ending in 7 days.<br>
 			Once the trial has ended, the card on file will be charged for the plan you have selected.<br>
 			If you would like to switch to a different plan or cancel your subscription, 
-			you can update your billing settings <a href="https://app.highlight.io/w/%d/current-plan">here</a>.`, workspaceId)
+			you can update your billing settings <a href="%s/w/%d/current-plan">here</a>.`, frontendUri, workspaceId)
 	case BillingStripeTrial3Days:
 		return fmt.Sprintf(`
 			We hope you've been enjoying Highlight!<br>
 			Your free trial is ending in 3 days.<br>
 			Once the trial has ended, the card on file will be charged for the plan you have selected.<br>
 			If you would like to switch to a different plan or cancel your subscription, 
-			you can update your billing settings <a href="https://app.highlight.io/w/%d/current-plan">here</a>.`, workspaceId)
+			you can update your billing settings <a href="%s/w/%d/current-plan">here</a>.`, frontendUri, workspaceId)
 	case BillingSessionUsage80Percent:
-		return getApproachingLimitMessage("session", workspaceId, retentionPeriod)
+		return getApproachingLimitMessage("session", workspaceId)
 	case BillingSessionUsage100Percent:
-		return getExceededLimitMessage("session", workspaceId, retentionPeriod)
+		return getExceededLimitMessage("session", workspaceId)
 	case BillingErrorsUsage80Percent:
-		return getApproachingLimitMessage("error", workspaceId, retentionPeriod)
+		return getApproachingLimitMessage("error", workspaceId)
 	case BillingErrorsUsage100Percent:
-		return getExceededLimitMessage("error", workspaceId, retentionPeriod)
+		return getExceededLimitMessage("error", workspaceId)
 	case BillingLogsUsage80Percent:
-		return getApproachingLimitMessage("log", workspaceId, retentionPeriod)
+		return getApproachingLimitMessage("log", workspaceId)
 	case BillingLogsUsage100Percent:
-		return getExceededLimitMessage("log", workspaceId, retentionPeriod)
+		return getExceededLimitMessage("log", workspaceId)
 	default:
 		return ""
 	}

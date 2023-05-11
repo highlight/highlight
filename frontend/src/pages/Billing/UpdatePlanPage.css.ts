@@ -2,8 +2,9 @@ import { vars } from '@highlight-run/ui'
 import { style } from '@vanilla-extract/css'
 
 export const pageWrapper = style({
-	width: 540,
+	width: 560,
 	marginTop: 24,
+	marginBottom: 12,
 })
 
 export const pageHeader = style({
@@ -35,4 +36,16 @@ export const predictedCost = style({
 
 export const costBreakdown = style({
 	backgroundColor: vars.color.n2,
+})
+
+export const costLineItem = style({
+	height: 16,
+})
+
+export const formSection = style({
+	paddingTop: 8,
+})
+
+export const step = style({
+	height: 28,
 })

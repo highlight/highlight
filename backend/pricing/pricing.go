@@ -174,6 +174,49 @@ func GetProjectQuotaOverflow(ctx context.Context, DB *gorm.DB, projectID int) (i
 	return queriedSessionsOverQuota, nil
 }
 
+func ProductToIncludedQuantity(productType ProductType) int64 {
+	switch productType {
+	case ProductTypeSessions:
+		return 500
+	case ProductTypeErrors:
+		return 1_000
+	case ProductTypeLogs:
+		return 1_000_000
+	default:
+		return 0
+	}
+}
+
+func ProductToBasePriceCents(productType ProductType) float64 {
+	switch productType {
+	case ProductTypeSessions:
+		return 2
+	case ProductTypeErrors:
+		return .02
+	case ProductTypeLogs:
+		return .00015
+	default:
+		return 0
+	}
+}
+
+func RetentionMultiplier(retentionPeriod backend.RetentionPeriod) float64 {
+	switch retentionPeriod {
+	case backend.RetentionPeriodThirtyDays:
+		return 1
+	case backend.RetentionPeriodThreeMonths:
+		return 1
+	case backend.RetentionPeriodSixMonths:
+		return 1.5
+	case backend.RetentionPeriodTwelveMonths:
+		return 2
+	case backend.RetentionPeriodTwoYears:
+		return 2.5
+	default:
+		return 1
+	}
+}
+
 func TypeToMemberLimit(planType backend.PlanType, unlimitedMembers bool) *int {
 	if unlimitedMembers {
 		return nil
@@ -264,8 +307,11 @@ func MustUpgradeForClearbit(tier string) bool {
 }
 
 // Returns a Stripe lookup key which maps to a single Stripe Price
-func GetLookupKey(productType ProductType, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (result string) {
-	result = fmt.Sprintf("%s|%s|%s", string(productType), string(productTier), string(interval))
+func GetBaseLookupKey(productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (result string) {
+	if productTier == backend.PlanTypeUsageBased {
+		return fmt.Sprintf("%s|%s", ProductTypeBase, backend.PlanTypeUsageBased)
+	}
+	result = fmt.Sprintf("%s|%s|%s", ProductTypeBase, string(productTier), string(interval))
 	if unlimitedMembers {
 		result += "|UNLIMITED_MEMBERS"
 	}
@@ -275,12 +321,15 @@ func GetLookupKey(productType ProductType, productTier backend.PlanType, interva
 	return
 }
 
-func GetOverageKey(productType ProductType, retentionPeriod backend.RetentionPeriod) string {
-	if retentionPeriod == backend.RetentionPeriodThreeMonths {
-		return string(productType)
-	} else {
-		return string(productType) + "|" + string(retentionPeriod)
+func GetOverageKey(productType ProductType, retentionPeriod backend.RetentionPeriod, planType backend.PlanType) string {
+	result := string(productType)
+	if retentionPeriod != backend.RetentionPeriodThreeMonths {
+		result += "|" + string(retentionPeriod)
 	}
+	if productType == ProductTypeSessions && planType == backend.PlanTypeUsageBased {
+		result += "|UsageBased"
+	}
+	return result
 }
 
 // Returns the Highlight ProductType, Tier, and Interval for the Stripe Price
@@ -364,11 +413,11 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 	if retentionPeriod != nil {
 		rp = *retentionPeriod
 	}
-	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval, unlimitedMembers, rp)
+	baseLookupKey := GetBaseLookupKey(productTier, interval, unlimitedMembers, rp)
 
-	sessionsLookupKey := GetOverageKey(ProductTypeSessions, rp)
+	sessionsLookupKey := GetOverageKey(ProductTypeSessions, rp, productTier)
 	membersLookupKey := string(ProductTypeMembers)
-	errorsLookupKey := GetOverageKey(ProductTypeErrors, rp)
+	errorsLookupKey := GetOverageKey(ProductTypeErrors, rp, productTier)
 	logsLookupKey := string(ProductTypeLogs)
 
 	priceListParams := stripe.PriceListParams{}

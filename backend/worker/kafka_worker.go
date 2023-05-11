@@ -16,7 +16,6 @@ import (
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
-	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -167,31 +166,43 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	// check if that workspace is within the logs quota,
 	// and write the result to redis.
 	for _, projectId := range projectsToQuery {
-		workspace, err := k.Worker.Resolver.Query().WorkspaceForProject(ctxW, int(projectId))
-		if err != nil || workspace == nil {
+		var project model.Project
+		if err := k.Worker.Resolver.DB.Model(&project).
+			Where("id = ?", projectId).Find(&project).Error; err != nil {
+			log.WithContext(ctxW).Error(e.Wrap(err, "error querying project"))
+			continue
+		}
+
+		var workspace model.Workspace
+		if err := k.Worker.Resolver.DB.Model(&workspace).
+			Where("id = ?", project.WorkspaceID).Find(&workspace).Error; err != nil {
 			log.WithContext(ctxW).Error(e.Wrap(err, "error querying workspace"))
 			continue
 		}
 
-		withinBillingQuota, quotaPercent := k.Worker.PublicResolver.IsWithinQuota(ctxW, pricing.ProductTypeLogs, workspace, time.Now())
+		projects := []model.Project{}
+		if err := k.Worker.Resolver.DB.Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
+			log.WithContext(ctxW).Error(e.Wrap(err, "error querying associated projects"))
+			continue
+		}
+		workspace.Projects = projects
+
+		withinBillingQuota, quotaPercent := k.Worker.PublicResolver.IsWithinQuota(ctxW, pricing.ProductTypeLogs, &workspace, time.Now())
 		quotaExceededByProject[projectId] = !withinBillingQuota
-		err = k.Worker.Resolver.Redis.SetBillingQuotaExceeded(ctxW, int(projectId), pricing.ProductTypeLogs, !withinBillingQuota)
-		if err != nil {
+		if err := k.Worker.Resolver.Redis.SetBillingQuotaExceeded(ctxW, int(projectId), pricing.ProductTypeLogs, !withinBillingQuota); err != nil {
 			log.WithContext(ctxW).Error(err)
 		}
 
 		// Send alert emails if above the relevant thresholds
 		go func() {
 			defer util.Recover()
-			if workspace.PlanTier != privateModel.PlanTypeFree.String() && workspace.AllowMeterOverage {
-				if quotaPercent >= 1 {
-					if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, email.BillingLogsUsage100Percent, workspace); err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
-					}
-				} else if quotaPercent >= .8 {
-					if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, email.BillingLogsUsage80Percent, workspace); err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
-					}
+			if quotaPercent >= 1 {
+				if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, email.BillingLogsUsage100Percent, &workspace); err != nil {
+					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+				}
+			} else if quotaPercent >= .8 {
+				if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, email.BillingLogsUsage80Percent, &workspace); err != nil {
+					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 				}
 			}
 		}()

@@ -32,7 +32,6 @@ export type WorkspaceSettingsTab =
 	| 'settings'
 	| 'current-plan'
 	| 'upgrade-plan'
-	| 'billing-plans'
 	| SettingGroups
 
 const getTitle = (tab: WorkspaceSettingsTab | string): string => {
@@ -42,11 +41,9 @@ const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 		case 'settings':
 			return 'Properties'
 		case 'current-plan':
-			return 'Current plan'
+			return 'Billing plans'
 		case 'upgrade-plan':
 			return 'Upgrade plan'
-		case 'billing-plans':
-			return 'Billing plans'
 		default:
 			return ''
 	}
@@ -90,8 +87,8 @@ export const SettingsRouter = () => {
 			panelContent: <WorkspaceSettings />,
 		},
 		{
-			key: 'billing-plans',
-			title: getTitle('billing-plans'),
+			key: 'current-plan',
+			title: getTitle('current-plan'),
 			panelContent: billingContent,
 		},
 	]
@@ -207,12 +204,12 @@ export const SettingsRouter = () => {
 									/>
 								))}
 								<Route
-									path="billing-plans/update-plan"
-									element={updatePlanContent}
+									path="current-plan/success"
+									element={billingContent}
 								/>
 								<Route
-									path="current-plan"
-									element={billingContent}
+									path="current-plan/update-plan"
+									element={updatePlanContent}
 								/>
 								<Route
 									path="upgrade-plan"
