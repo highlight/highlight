@@ -1111,15 +1111,15 @@ const DocPage = ({
 																						.props
 																						.children
 																						.map
-																						? c?.props?.children?.map(
+																						? c.props.children.map(
 																								(
 																									e: any,
 																								) =>
 																									e,
 																						  )
 																						: c
-																								?.props
-																								?.children}
+																								.props
+																								.children}
 																				</li>
 																			)
 																		)
