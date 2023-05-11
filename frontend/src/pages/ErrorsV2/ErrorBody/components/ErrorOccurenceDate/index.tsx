@@ -1,6 +1,5 @@
-import { Box, Text } from '@highlight-run/ui'
 import { ErrorGroup, Maybe } from '@graph/schemas'
-
+import { Box, Text } from '@highlight-run/ui'
 import moment from 'moment'
 
 interface Props {
