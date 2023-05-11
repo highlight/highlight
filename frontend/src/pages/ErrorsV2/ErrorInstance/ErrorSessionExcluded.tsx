@@ -7,9 +7,7 @@ type Props = {
 	excludedReason: Maybe<SessionExcludedReason> | undefined
 }
 
-const getLearnMoreLink = (
-	excludedReason: Maybe<SessionExcludedReason> | undefined,
-) => {
+const getLearnMoreLink = ({ excludedReason }: Props) => {
 	switch (excludedReason) {
 		case SessionExcludedReason.NoError: {
 			return 'https://www.highlight.io/docs/general/product-features/session-replay/ignoring-sessions#ignoring-sessions-without-an-error'
@@ -22,9 +20,7 @@ const getLearnMoreLink = (
 	}
 }
 
-const getReason = (
-	excludedReason: Maybe<SessionExcludedReason> | undefined,
-) => {
+const getReason = ({ excludedReason }: Props) => {
 	switch (excludedReason) {
 		case SessionExcludedReason.Initializing:
 		case SessionExcludedReason.NoActivity:
@@ -43,14 +39,14 @@ const getReason = (
 }
 
 export const ErrorSessionExcluded = ({ excludedReason }: Props) => {
-	const learnMoreLink = getLearnMoreLink(excludedReason)
+	const learnMoreLink = getLearnMoreLink({ excludedReason })
 
 	return (
 		<>
 			<Callout title="We didn't find a session for this error">
 				<Box>
 					<Text size="small" weight="medium" color="moderate">
-						{getReason(excludedReason)}
+						{getReason({ excludedReason })}
 					</Text>
 				</Box>
 				<Box display="flex">
