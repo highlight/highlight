@@ -152,11 +152,11 @@ export const DatadogSpec: Competitor = {
 		HighlightShipsNewFeatures,
 		{
 			header: 'Full-stack Observability',
-			body: 'While Datadog provides a comprehensive set of separate features for observability, it does not support full-stack observability. [Highlight.io](https://highlight.io) enables teams to monitor and optimize their entire tech stack, pariging server-side infrastructure with your frontend web application. This makes Highlight.io a more comprehensive solution for developers who need to monitor their entire tech stack, in a simple, easy to implement solution.',
+			body: 'While Datadog provides a comprehensive set of separate features for observability, it does not support full-stack observability. [Highlight.io](https://highlight.io) enables teams to monitor and optimize their entire tech stack, pairing server-side infrastructure with your frontend web application. This makes Highlight.io a more comprehensive solution for developers who need to monitor their entire tech stack, in a simple, easy to implement solution.',
 		},
 		{
 			header: 'Pricing',
-			body: `Datadog's pricing structure is based on the number of hosts you have, the amount of data you ingest, and the amount of data you retain. This can make it difficult to predict your monthly bill. Highlight.io's pricing is strictly based on retention + usage and you find more details on our [pricing page](https://highlight.io/pricing).
+			body: `Datadog's pricing structure is based on the number of hosts you have, the amount of data you ingest, and the amount of data you retain. This can make it difficult to predict your monthly bill. Highlight.io's pricing is based entirely on your usage with a straightforward retention multiplier, and you can find more details on our [pricing page](https://highlight.io/pricing).
             `,
 		},
 		{
