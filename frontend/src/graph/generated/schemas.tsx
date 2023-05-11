@@ -2490,6 +2490,7 @@ export enum SessionCommentType {
 
 export enum SessionExcludedReason {
 	IgnoredUser = 'IgnoredUser',
+	Initializing = 'Initializing',
 	NoActivity = 'NoActivity',
 	NoError = 'NoError',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',

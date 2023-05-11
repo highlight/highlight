@@ -31,6 +31,7 @@ import {
 	getCommentsInSessionIntervalsRelative,
 	getEventsForTimelineIndicator,
 	getSessionIntervals,
+	loadiFrameResources,
 	toHighlightEvents,
 } from '@pages/Player/PlayerHook/utils'
 import {
@@ -688,6 +689,9 @@ const replayerAction = (
 					s.replayer.play(desiredTime)
 				} else {
 					return s
+				}
+				if (s.replayer) {
+					loadiFrameResources(s.replayer, s.project_id)
 				}
 			} catch (e: any) {
 				console.error(
