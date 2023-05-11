@@ -159,7 +159,9 @@ export const parseAdminSuggestions = (
 					!mentionedAdmins.some(
 						(mentionedAdmin) =>
 							mentionedAdmin.id === suggestion?.id,
-					),
+					) &&
+					// 3. Non-user results
+					suggestion.name?.startsWith('@'),
 			)
 			.map((suggestion) => {
 				return {

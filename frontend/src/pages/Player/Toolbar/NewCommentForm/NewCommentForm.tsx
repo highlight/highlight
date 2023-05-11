@@ -679,9 +679,6 @@ const getNewCommentPlaceholderText = (
 	adminSuggestions?: AdminSuggestion[],
 	admin?: Admin,
 ) => {
-	// Only show users, not channels.
-	adminSuggestions = adminSuggestions?.filter((s) => s.name?.startsWith('@'))
-
 	const randomMessage =
 		RANDOM_COMMENT_MESSAGES[
 			Math.floor(Math.random() * RANDOM_COMMENT_MESSAGES.length)
