@@ -26,6 +26,7 @@ const getReason = (
 	excludedReason: Maybe<SessionExcludedReason> | undefined,
 ) => {
 	switch (excludedReason) {
+		case SessionExcludedReason.Initializing:
 		case SessionExcludedReason.NoActivity:
 		case SessionExcludedReason.NoUserInteractionEvents: {
 			return 'There was no activity for this session.'
@@ -34,7 +35,7 @@ const getReason = (
 			return 'There was no error for this session.'
 		}
 		case SessionExcludedReason.IgnoredUser: {
-			return 'This session was ignored due to an exclusion rule.'
+			return 'This session was ignored since the user was excluded.'
 		}
 		default:
 			return "We weren't able to match this error to a session."
