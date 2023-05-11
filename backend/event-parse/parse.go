@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/redis"
 	"io"
 	"net/http"
 	"net/url"
@@ -402,7 +403,7 @@ var excludedMediaURLQueryParams = map[string]bool{
 
 // If a url was already created for this resource in the past day, return that
 // Else, fetch the resource, generate a new url for it, and save to S3
-func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB) (map[string]string, error) {
+func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB, redis *redis.Client) (map[string]string, error) {
 	// maps a long url to the minimal version of the url. ie https://foo.com/example?key=value&signature=bar -> https://foo.com/example?key=value
 	urlMap := make(map[string]string)
 	for _, u := range lo.Uniq(originalUrls) {
@@ -452,6 +453,15 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 	}, len(urlMap))
 	lo.ForEach(lo.Entries(urlMap), func(u lo.Entry[string, string], i int) {
 		eg.Go(func() error {
+			if err := redis.AcquireLock(ctx, u.Value, 3*time.Minute); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("url", u.Value).Error("failed to acquire asset lock")
+			} else {
+				defer func() {
+					if err := redis.ReleaseLock(ctx, u.Value); err != nil {
+						log.WithContext(ctx).WithError(err).WithField("url", u.Value).Error("failed to release asset lock")
+					}
+				}()
+			}
 			var hashVal string
 			result, ok := resultMap[u.Value]
 			if ok {
@@ -621,11 +631,11 @@ lexerLoop:
 	return
 }
 
-func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, db *gorm.DB) error {
+func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, db *gorm.DB, redis *redis.Client) error {
 	urls := getAssetUrlsFromTree(ctx, projectId, s.data, map[string]string{})
 	span, _ := tracer.StartSpanFromContext(ctx, "event-parse.parse.ReplaceAssets", tracer.ResourceName("getOrCreateUrls"), tracer.Tag("project_id", projectId))
 	span.SetTag("numberOfURLs", len(urls))
-	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, db)
+	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, db, redis)
 	span.Finish(tracer.WithError(err))
 	if err != nil {
 		return errors.Wrap(err, "error creating replacement urls")

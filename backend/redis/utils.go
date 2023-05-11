@@ -24,16 +24,14 @@ const CacheKeyHubspotCompanies = "hubspot-companies"
 
 type Client struct {
 	redisClient redis.Cmdable
-	redisCache  *cache.Cache
+	Cache       *cache.Cache
 }
+
+const LockPollDuration = 100 * time.Millisecond
 
 var (
 	ServerAddr = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
 )
-
-func UseRedis(projectId int, sessionSecureId string) bool {
-	return true
-}
 
 func EventsKey(sessionId int) string {
 	return fmt.Sprintf("events-%d", sessionId)
@@ -75,7 +73,7 @@ func NewClient() *Client {
 
 		return &Client{
 			redisClient: client,
-			redisCache: cache.New(&cache.Options{
+			Cache: cache.New(&cache.Options{
 				Redis:      client,
 				LocalCache: cache.NewTinyLFU(1000, time.Minute),
 			}),
@@ -113,7 +111,7 @@ func NewClient() *Client {
 		}()
 		return &Client{
 			redisClient: c,
-			redisCache: cache.New(&cache.Options{
+			Cache: cache.New(&cache.Options{
 				Redis:      c,
 				LocalCache: cache.NewTinyLFU(1000, time.Minute),
 			}),
@@ -410,7 +408,7 @@ func (r *Client) SetLastLogTimestamp(ctx context.Context, projectId int, timesta
 func (r *Client) SetHubspotCompanies(ctx context.Context, companies interface{}) error {
 	span, _ := tracer.StartSpanFromContext(ctx, "redis.cache.SetHubspotCompanies")
 	defer span.Finish()
-	if err := r.redisCache.Set(&cache.Item{
+	if err := r.Cache.Set(&cache.Item{
 		Ctx:   ctx,
 		Key:   CacheKeyHubspotCompanies,
 		Value: companies,
@@ -424,7 +422,43 @@ func (r *Client) SetHubspotCompanies(ctx context.Context, companies interface{})
 
 func (r *Client) GetHubspotCompanies(ctx context.Context, companies interface{}) (err error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "redis.cache.GetHubspotCompanies")
-	err = r.redisCache.Get(ctx, CacheKeyHubspotCompanies, companies)
+	err = r.Cache.Get(ctx, CacheKeyHubspotCompanies, companies)
 	span.Finish(tracer.WithError(err))
 	return
+}
+
+func (r *Client) AcquireLock(ctx context.Context, key string, timeout time.Duration) (err error) {
+	start := time.Now()
+	held := true
+	for held {
+		if time.Since(start) > timeout {
+			break
+		}
+		if err := r.Cache.Get(ctx, key, &held); err != nil {
+			if err == cache.ErrCacheMiss {
+				held = false
+			} else {
+				return err
+			}
+		}
+		if held {
+			time.Sleep(LockPollDuration)
+		}
+	}
+	if held {
+		return errors.New("timed out acquiring lock")
+	}
+	if err := r.Cache.Set(&cache.Item{
+		Ctx:   ctx,
+		Key:   key,
+		Value: true,
+		TTL:   timeout,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *Client) ReleaseLock(ctx context.Context, key string) (err error) {
+	return r.Cache.Delete(ctx, key)
 }
