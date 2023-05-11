@@ -1,44 +1,44 @@
-import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
-import { GetStaticPaths, GetStaticProps } from 'next/types'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { BiChevronLeft, BiChevronRight } from 'react-icons/bi'
 import { FaDiscord, FaGithub, FaTwitter } from 'react-icons/fa'
-import { Roadmap, RoadmapItem } from '../../components/common/Roadmap/Roadmap'
-import {
-	QuickStartContent,
-	quickStartContent,
-	QuickStartStep,
-} from '../../components/QuickstartContent/QuickstartContent'
+import { GetStaticPaths, GetStaticProps } from 'next/types'
 import {
 	IGNORED_DOCS_PATHS,
 	processDocPath,
 	removeOrderingPrefix,
 } from '../api/docs/github'
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
+import {
+	QuickStartContent,
+	QuickStartStep,
+	quickStartContent,
+} from '../../components/QuickstartContent/QuickstartContent'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { Roadmap, RoadmapItem } from '../../components/common/Roadmap/Roadmap'
 
+import { Callout } from '../../components/Docs/Callout/Callout'
+import ChevronDown from '../../public/images/ChevronDownIcon'
+import { Collapse } from 'react-collapse'
+import { DocSection } from '../../components/Docs/DocLayout/DocLayout'
+import DocSelect from '../../components/Docs/DocSelect/DocSelect'
+import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
+import Link from 'next/link'
+import Markdown from 'markdown-to-jsx'
+import { Meta } from '../../components/common/Head/Meta'
+import Minus from '../../public/images/MinusIcon'
+import Navbar from '../../components/common/Navbar/Navbar'
+import { Typography } from '../../components/common/Typography/Typography'
 import classNames from 'classnames'
 import { promises as fsp } from 'fs'
-import matter from 'gray-matter'
-import yaml from 'js-yaml'
-import Markdown from 'markdown-to-jsx'
-import { serialize } from 'next-mdx-remote/serialize'
-import Link from 'next/link'
-import { useRouter } from 'next/router'
-import path from 'path'
-import { Collapse } from 'react-collapse'
-import remarkGfm from 'remark-gfm'
-import { Meta } from '../../components/common/Head/Meta'
-import Navbar from '../../components/common/Navbar/Navbar'
-import { roadmapFetcher } from '../../components/common/Roadmap/RoadmapUtils'
-import { Typography } from '../../components/common/Typography/Typography'
-import { Callout } from '../../components/Docs/Callout/Callout'
-import { DocSection } from '../../components/Docs/DocLayout/DocLayout'
-import styles from '../../components/Docs/Docs.module.scss'
-import DocSelect from '../../components/Docs/DocSelect/DocSelect'
 import { generateIdFromProps } from '../../components/Docs/DocsTypographyRenderer/DocsTypographyRenderer'
-import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
+import matter from 'gray-matter'
+import path from 'path'
+import remarkGfm from 'remark-gfm'
+import { roadmapFetcher } from '../../components/common/Roadmap/RoadmapUtils'
+import { serialize } from 'next-mdx-remote/serialize'
+import styles from '../../components/Docs/Docs.module.scss'
 import { useMediaQuery } from '../../components/MediaQuery/MediaQuery'
-import ChevronDown from '../../public/images/ChevronDownIcon'
-import Minus from '../../public/images/MinusIcon'
+import { useRouter } from 'next/router'
+import yaml from 'js-yaml'
 
 const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
 const DOCS_GITUB_LINK = `https://github.com/highlight/highlight/blob/main/docs-content`
@@ -1098,11 +1098,7 @@ const DocPage = ({
 																			c.props &&
 																			c
 																				.props
-																				.children &&
-																			c
-																				.props
-																				.children
-																				.map && (
+																				.children && (
 																				<li
 																					className={
 																						styles.listItem
@@ -1111,12 +1107,19 @@ const DocPage = ({
 																						i
 																					}
 																				>
-																					{c?.props?.children?.map(
-																						(
-																							e: any,
-																						) =>
-																							e,
-																					)}
+																					{c
+																						.props
+																						.children
+																						.map
+																						? c?.props?.children?.map(
+																								(
+																									e: any,
+																								) =>
+																									e,
+																						  )
+																						: c
+																								?.props
+																								?.children}
 																				</li>
 																			)
 																		)

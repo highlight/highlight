@@ -119,7 +119,7 @@ export const CanvasPage = function () {
 						preload="metadata"
 						autoPlay={true}
 						crossOrigin="anonymous"
-						src="https://static.highlight.io/dev/BigBuckBunny.mp4"
+						src="https://static.highlight.io/dev/BigBuckBunny.mp4?expires=123&signature=a1b2c3&x-amz-security-token=foo&bar=baz"
 					></video>
 				</Box>
 				<Box border="dividerStrong">

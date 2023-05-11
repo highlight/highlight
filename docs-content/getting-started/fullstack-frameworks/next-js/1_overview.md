@@ -68,6 +68,11 @@ If you want to configure source map uploads during your production builds and en
 import { withHighlightConfig } from '@highlight-run/next'
 export default withHighlightConfig({
   // your next.config.js options here
+
+  // Note, withHighlightConfig works for Next version 
+  // >= v12.1.0. withHighlightConfig returns a promise, 
+  // which may be incompatible with other Next.js 
+  // config generators that have not been well maintained.
 })
 ```
 
