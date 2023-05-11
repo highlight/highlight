@@ -222,7 +222,7 @@ func main() {
 	ctx := context.TODO()
 
 	// setup highlight
-	highlight.SetProjectID("31epjenr")
+	highlight.SetProjectID("1jdkoe52")
 	if !util.IsOnPrem() && util.IsDevOrTestEnv() {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql / otlp client address...")
 		highlight.SetGraphqlClientAddress("https://localhost:8082/public")
