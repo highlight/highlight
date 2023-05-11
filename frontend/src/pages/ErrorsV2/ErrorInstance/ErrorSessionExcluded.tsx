@@ -13,6 +13,14 @@ const getSession = ({ errorObject }: Props) => {
 	return errorObject?.session
 }
 
+const showProjectSettingsButton = ({ errorObject }: Props) => {
+	return (
+		errorObject?.session?.excluded_reason ===
+			SessionExcludedReason.IgnoredUser ||
+		errorObject?.session?.excluded_reason === SessionExcludedReason.NoError
+	)
+}
+
 const getLearnMoreLink = ({ errorObject }: Props) => {
 	const session = getSession({ errorObject })
 	if (!session) {
@@ -48,10 +56,10 @@ const getReason = ({ errorObject }: Props) => {
 			return 'There was no activity for this session.'
 		}
 		case SessionExcludedReason.NoError: {
-			return 'There was no error for this session.'
+			return 'There was no error for this session and was filtered out by your project settings.'
 		}
 		case SessionExcludedReason.IgnoredUser: {
-			return 'This session was ignored since the user was excluded.'
+			return 'This session was ignored since the user was excluded by your project settings.'
 		}
 		default:
 			return "We weren't able to match this error to a session."
@@ -63,6 +71,28 @@ export const ErrorSessionExcluded = ({ errorObject }: Props) => {
 	const learnMoreLink = getLearnMoreLink({ errorObject })
 	const { projectId } = useProjectId()
 
+	const backendSDKSetupButton = (
+		<LinkButton
+			kind="secondary"
+			to={`/${projectId}/setup/backend`}
+			trackingId="error-mapping-setup"
+			target="_blank"
+		>
+			Backend SDK setup
+		</LinkButton>
+	)
+
+	const projectSettings = (
+		<LinkButton
+			kind="secondary"
+			to={`/${projectId}/settings/sessions`}
+			trackingId="project-settings"
+			target="_blank"
+		>
+			Project Settings
+		</LinkButton>
+	)
+
 	return (
 		<>
 			<Callout title="We didn't find a session for this error">
@@ -72,16 +102,9 @@ export const ErrorSessionExcluded = ({ errorObject }: Props) => {
 					</Text>
 				</Box>
 				<Box display="flex">
-					{!session && (
-						<LinkButton
-							kind="secondary"
-							to={`/${projectId}/setup/backend`}
-							trackingId="error-mapping-setup"
-							target="_blank"
-						>
-							Backend SDK setup
-						</LinkButton>
-					)}
+					{!session && backendSDKSetupButton}
+					{showProjectSettingsButton({ errorObject }) &&
+						projectSettings}
 					{learnMoreLink && (
 						<LinkButton
 							kind="secondary"
