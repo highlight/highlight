@@ -47,6 +47,7 @@ import (
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
+	"github.com/highlight-run/highlight/backend/webrtc"
 	"github.com/highlight-run/highlight/backend/worker"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
@@ -510,6 +511,7 @@ func main() {
 		otelHandler.Listen(r)
 		vercel.Listen(r)
 		highlightHttp.Listen(r)
+		webrtc.Listen(r)
 	}
 
 	/*
