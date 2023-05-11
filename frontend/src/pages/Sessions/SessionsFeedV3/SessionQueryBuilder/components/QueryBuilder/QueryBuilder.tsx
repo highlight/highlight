@@ -1245,34 +1245,37 @@ enum QueryBuilderMode {
 	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
 }
 
-const FORMAT = 'YYYY-MM-DDTHH:mm:00.000000000Z'
 const now = moment()
+const defaultMinDate = now.clone().subtract(90, 'days').toDate()
+
 const presetOptions = [
 	{
 		label: 'Last 15 minutes',
-		startDate: new Date(now.subtract(15, 'minutes').format(FORMAT)),
+		startDate: now.clone().subtract(15, 'minutes').toDate(),
 	},
 	{
 		label: 'Last 60 minutes',
-		startDate: new Date(now.subtract(60, 'minutes').format(FORMAT)),
+		startDate: now.clone().subtract(60, 'minutes').toDate(),
 	},
 	{
 		label: 'Last 4 hours',
-		startDate: new Date(now.subtract(4, 'hours').format(FORMAT)),
+		startDate: now.clone().subtract(4, 'hours').toDate(),
 	},
 	{
 		label: 'Last 24 hours',
-		startDate: new Date(now.subtract(24, 'hours').format(FORMAT)),
+		startDate: now.clone().subtract(24, 'hours').toDate(),
 	},
 	{
 		label: 'Last 7 days',
-		startDate: new Date(now.subtract(7, 'days').format(FORMAT)),
+		startDate: now.clone().subtract(7, 'days').toDate(),
 	},
 	{
 		label: 'Last 30 days',
-		startDate: new Date(now.subtract(30, 'days').format(FORMAT)),
+		startDate: now.clone().subtract(30, 'days').toDate(),
 	},
 ]
+
+const defaultPreset = presetOptions[5]
 
 function QueryBuilder(props: QueryBuilderProps) {
 	const {
@@ -1588,13 +1591,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const [currentRule, setCurrentRule] = useState<RuleProps | undefined>()
 	const [dateRange, setDateRange] = useState<Date[]>([
-		presetOptions[5].startDate, // Start at 30days
-		new Date(now.format(FORMAT)),
+		defaultPreset.startDate, // Start at 30days
+		new Date(now.toISOString()),
 	])
 	const defaultTimeRangeRule: RuleProps = useMemo(() => {
 		const period = {
-			label: presetOptions[5].label, // Start at 30 days
-			value: `${presetOptions[5].startDate}_${now.format(FORMAT)}`, // Start at 30 days
+			label: defaultPreset.label, // Start at 30 days
+			value: `${defaultPreset.startDate.toISOString()}_${now.toISOString()}`, // Start at 30 days
 		}
 
 		return {
@@ -2303,7 +2306,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				<PreviousDateRangePicker
 					presets={presetOptions}
 					selectedDates={dateRange}
-					minDate={moment().subtract(90, 'days').toDate()}
+					minDate={defaultMinDate}
 					onDatesChange={(dates: Date[]) => {
 						setDateRange(dates)
 						updateRule(timeRangeRule, {
@@ -2312,9 +2315,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 								options: [
 									{
 										label: 'Date Range',
-										value: `${moment(dates[0]).format(
-											FORMAT,
-										)}_${moment(dates[1]).format(FORMAT)}`,
+										value: `${dates[0].toISOString()}_${dates[1].toISOString()}`,
 									},
 								],
 							} as MultiselectOption,
