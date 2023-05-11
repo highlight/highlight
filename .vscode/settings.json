@@ -109,6 +109,11 @@
 	"[css]": {
 		"editor.defaultFormatter": "vscode.css-language-features"
 	},
-	"typescript.preferences.autoImportFileExcludePatterns": ["**/packages/ui"],
-	"typescript.tsdk": "node_modules/typescript/lib"
+	"typescript.preferences.autoImportFileExcludePatterns": [
+		"**/packages/ui"
+	],
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"[typescript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	}
 }

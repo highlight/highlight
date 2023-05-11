@@ -234,7 +234,7 @@ We recommend shipping your sourcemaps to your production server. Your client-sid
 
 Shipping sourcemaps to production with Next.js is as easy as setting `productionBrowserSourceMaps: true` in your `nextConfig`.
 
-Alternatively, you can upload sourcemaps directly to Highlight using our `withHighlightConfig` function. See [Next.js Overview](https://www.highlight.io/docs/getting-started/fullstack-frameworks/next-js/overview) for more details.
+Alternatively, you can upload sourcemaps directly to Highlight using our `withHighlightConfig` function. See [Next.js Overview](https://www.highlight.io/docs/getting-started/fullstack-frameworks/next-js.md) for more details.
 
 Make sure to implement `nextConfig.generateBuildId` so that our sourcemap uploader can version your sourcemaps correctly. Make sure to omit `productionBrowserSourceMaps` or set it to false to enable the sourcemap uploader.
 

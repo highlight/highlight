@@ -1,17 +1,26 @@
 ---
-title: Next.js Walkthrough
-slug: nextjs-walkthrough
+title: Next.js
+slug: next-js
 heading: Next.js Walkthrough
 createdAt: 2023-05-10T00:00:00.000Z
 updatedAt: 2023-05-10T00:00:00.000Z
 ---
 
-# Highlight Installation
-
 ## Limitations 
 
-- ⚠️ We are working on App Directory support. App Directory has not reached feature-parity with standard Next, so we're waiting for a stable release to lock down our integration. We're capturing App Directory API errors, but we've been unable to capture server-side errors from App Directory routes.
-- ⚠️ Sourcemaps do not work in development mode. Run `yarn build && yarn start` to test compiled sourcemaps in Highlight.
+⚠️ We are working on App Directory support. App Directory has not reached feature-parity with standard Next, so we're waiting for a stable release to lock down our integration. We're capturing App Directory API errors, but we've been unable to capture server-side errors from App Directory routes.
+
+⚠️ Sourcemaps do not work in development mode. Run `yarn build && yarn start` to test compiled sourcemaps in Highlight.
+
+## Installation
+
+```shell
+# with npm
+npm install @highlight-run/next @highlight-run/react highlight.run
+
+# with yarn
+yarn add @highlight-run/next @highlight-run/react highlight.run
+```
 
 ## Environment Configuration (Very optional)
 
@@ -22,11 +31,11 @@ updatedAt: 2023-05-10T00:00:00.000Z
 
 ```bash
 # .env.local
-
 NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID='1jdkoe52'
-NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT='http://localhost:4318'
-NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL='https://localhost:8082/public'
 
+# omit to send data to app.highlight.io
+NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT='http://localhost:4318' 
+NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL='https://localhost:8082/public'
 ```
 
 3. Feed your environment variables into the application with a constants file. We're using `zod` for this example, because it creates a validated, typed `CONSTANTS` object that plays nicely with TypeScript.
@@ -104,12 +113,11 @@ export default withHighlight(function handler(
 		throw new Error('Error: /api/app-directory-test')
 	}
 })
-
 ```
 
 ## Instrument the server
 
-Next.js comes out of the box instrumented for Open Telemetry. This example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configue Open Telemetry on our Next.js server. There are probably other ways to configure Open Telemetry with Next... but this is our favorite.
+Next.js comes out of the box instrumented for Open Telemetry. Our example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on our Next.js server. There are probably other ways to configure Open Telemetry with Next... but this is our favorite.
 
 
 1. Install `next-build-id` with `npm install next-build-id`.
@@ -127,7 +135,7 @@ const nextConfig = {
 		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: true,
-	transpilePackages: ['@highlight-run/next/HighlightInit'],
+	transpilePackages: ['@highlight-run/next/HighlightInit'], // Necessary for <HighlightInit>
 }
 
 module.exports = nextConfig
@@ -214,6 +222,42 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
+### Trouble importing `<HighlightInit>`
+You may see a compilation error like following:
+
+```shell
+error - ../../sdk/highlight-next/HighlightInit.tsx
+Module parse failed: The keyword 'interface' is reserved (7:0)
+
+You may need an appropriate loader to handle this file type, 
+currently no loaders are configured to process this file. 
+See https://webpack.js.org/concepts#loaders
+```
+
+You can either add `transpilePackages: ['@highlight-run/next/HighlightInit']` to your `next.config.js`, or you can copy/paste the `<HighlightInit/>` component into your own codebase. You can find that component here [in our GitHub repo](https://github.com/highlight/highlight/tree/main/sdk/highlight-next).
+
+It Looks something like this:
+
+```javascript
+'use client'
+
+import { H, HighlightOptions } from 'highlight.run'
+
+import { useEffect } from 'react'
+
+interface Props extends HighlightOptions {
+	projectId?: string
+}
+
+export function HighlightInit({ projectId, ...highlightOptions }: Props) {
+	useEffect(() => {
+		projectId && H.init(projectId, highlightOptions)
+	}, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+	return null
+}
+```
+
 ## Configure `tracingOrigins` and `networkRecording`
 
 See [Fullstack Mapping](https://www.highlight.io/docs/getting-started/frontend-backend-mapping#how-can-i-start-using-this) for details.
@@ -226,7 +270,7 @@ We recommend shipping your sourcemaps to your production server. Your client-sid
 
 Shipping sourcemaps to production with Next.js is as easy as setting `productionBrowserSourceMaps: true` in your `nextConfig`.
 
-Alternatively, you can upload sourcemaps directly to Highlight using our `withHighlightConfig` function. See [Next.js Overview](https://www.highlight.io/docs/getting-started/fullstack-frameworks/next-js/overview) for more details.
+Alternatively, you can upload sourcemaps directly to Highlight using our `withHighlightConfig` function.
 
 Make sure to implement `nextConfig.generateBuildId` so that our sourcemap uploader can version your sourcemaps correctly. Make sure to omit `productionBrowserSourceMaps` or set it to false to enable the sourcemap uploader.
 
@@ -251,7 +295,7 @@ module.exports = withHighlightConfig(nextConfig)
 
 You must export your `HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY` to your build process. If you're building and deploying with Vercel, try our [Highlight Vercel Integration](https://vercel.com/integrations/highlight) to inject `HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY` automatically.
 
-[Sourcemap upload api key](https://user-images.githubusercontent.com/878947/235971066-def65bcb-1580-4e8a-9d69-3e5556d51b27.webm)
+<AutoplayVideo description="Sourcemap upload api key" src="https://user-images.githubusercontent.com/878947/235971066-def65bcb-1580-4e8a-9d69-3e5556d51b27.webm" />
 
 ## Vercel Log Drain
 
