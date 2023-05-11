@@ -10,11 +10,7 @@ We respect our competitors. In fact, we're not in the business of trying to conv
 ## Session Replay Competitors
 
 <DocsCardGroup>
-<<<<<<< HEAD
     <DocsCard title="LogRocket" href="https://highlight.io/compare/highlight-vs-logrocket">
-=======
-    <DocsCard title="Logrocket" href="https://highlight.io/compare/highlight-vs-logrocket">
->>>>>>> jay-khatri-dd-sentry-openreplay
         {"Learn more about how we compare to LogRocket."}
     </DocsCard>
     <DocsCard title="Hotjar" href="https://highlight.io/compare/highlight-vs-hotjar">
