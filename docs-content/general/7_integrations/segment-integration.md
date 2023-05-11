@@ -33,3 +33,9 @@ H.init('<YOUR_PROJECT_ID>', {
 })
 analytics.addSourceMiddleware(HighlightSegmentMiddleware)
 ```
+
+## Searching for segment events
+
+Searching for segment events is as easy as using the `segment-event` filter in the session search UI. This is what it looks like. 
+
+![](/images/segment-search.png)
