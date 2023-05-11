@@ -104,28 +104,15 @@ export const Submit = ({ ...props }: ButtonProps) => {
 	return <Button type="submit" {...props} />
 }
 
-export type InputProps = Omit<AriaKitFormInputProps, 'as' | 'size'> &
+export type InputProps = Omit<AriaKitFormInputProps, 'size'> &
 	Variants &
 	HasLabel & {
-		// Shouldn't need to override the `as` types. Should see if we can remove
-		// them in a future PR.
-		as?: 'input' | 'textarea'
 		cssClass?: ClassValue | ClassValue[]
 	}
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
 	(
-		{
-			label,
-			cssClass,
-			size,
-			collapsed,
-			truncate,
-			outline,
-			name,
-			as = 'input',
-			...props
-		},
+		{ label, cssClass, size, collapsed, truncate, outline, name, ...props },
 		ref,
 	) => {
 		const _ref = useRef<HTMLInputElement>(null)
@@ -142,7 +129,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 		return (
 			<NamedSection label={label} name={name}>
 				<AriaKitFormInput
-					as={as}
 					ref={ref}
 					name={name}
 					className={clsx(

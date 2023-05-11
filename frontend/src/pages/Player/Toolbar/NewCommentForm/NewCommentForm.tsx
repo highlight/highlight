@@ -493,6 +493,7 @@ export const NewCommentForm = ({
 							<Form.Input
 								name="issueDescription"
 								label="Description"
+								// @ts-expect-error
 								as="textarea"
 							/>
 						</Stack>
