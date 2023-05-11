@@ -17,7 +17,7 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20230115.0",
-		"@opentelemetry/core": "^1.9.1",
+		"@opentelemetry/core": "^1.12.0",
 		"tsup": "^6.6.2"
 	}
 }
