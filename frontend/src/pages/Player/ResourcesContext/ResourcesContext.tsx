@@ -4,14 +4,11 @@ import { RequestResponsePair } from '@highlight-run/client'
 import { getGraphQLResolverName } from '@pages/Player/utils/utils'
 import { createContext } from '@util/context/context'
 import { indexedDBFetch } from '@util/db'
+import { checkResourceLimit } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import { useCallback, useEffect, useState } from 'react'
 import { BooleanParam, useQueryParam } from 'use-query-params'
-
-// Max brotlied resource file allowed. Note that a brotli file with some binary data
-// has a compression ratio of >5x, so unbrotlied this file will take up much more memory.
-const RESOURCE_FILE_SIZE_LIMIT_MB = 16
 
 export enum ResourceLoadingError {
 	NetworkResourcesTooLarge = 'payload too large.',
@@ -108,24 +105,16 @@ export const useResources = (
 			setResourcesLoading(true)
 			;(async () => {
 				if (!session.resources_url) return
-				let response
-				const r = await fetch(session.resources_url, {
-					method: 'HEAD',
-				})
-				const fileSizeMB =
-					Number(r.headers.get('Content-Length')) / 1024 / 1024
-				if (fileSizeMB > RESOURCE_FILE_SIZE_LIMIT_MB) {
+				const limit = await checkResourceLimit(session.resources_url)
+				if (limit) {
 					setError(ResourceLoadingError.NetworkResourcesTooLarge)
-					H.consumeError(
-						new Error(`network payload too large`),
-						undefined,
-						{
-							fileSizeMB: fileSizeMB.toString(),
-							sessionSecureID: session?.secure_id,
-						},
-					)
-					return
+					H.consumeError(new Error(limit.error), undefined, {
+						fileSize: limit.fileSize.toString(),
+						limit: limit.sizeLimit.toString(),
+						sessionSecureID: session?.secure_id,
+					})
 				}
+				let response
 				for await (const r of indexedDBFetch(session.resources_url)) {
 					response = r
 				}
