@@ -528,14 +528,19 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 	}
 
 	errorGroup := &model.ErrorGroup{}
+
 	if match == nil {
+		environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
+
 		newErrorGroup := &model.ErrorGroup{
-			ProjectID:  errorObj.ProjectID,
-			Event:      errorObj.Event,
-			StackTrace: *errorObj.StackTrace,
-			Type:       errorObj.Type,
-			State:      privateModel.ErrorStateOpen.String(),
-			Fields:     []*model.ErrorField{},
+			ProjectID:        errorObj.ProjectID,
+			Event:            errorObj.Event,
+			StackTrace:       *errorObj.StackTrace,
+			MappedStackTrace: errorObj.MappedStackTrace,
+			Type:             errorObj.Type,
+			State:            privateModel.ErrorStateOpen.String(),
+			Fields:           []*model.ErrorField{},
+			Environments:     environmentsString,
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
@@ -560,6 +565,21 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			Model: model.Model{ID: *match},
 		}).First(&errorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "error retrieving top matched error group")
+		}
+
+		var filename *string
+		if errorObj.MappedStackTrace != nil {
+			filename = model.GetFirstFilename(*errorObj.MappedStackTrace)
+		} else {
+			filename = model.GetFirstFilename(*errorObj.StackTrace)
+		}
+
+		if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
+			"filename":   filename,
+			"updated_at": time.Now(),
+			"Event":      errorObj.Event,
+		}); err != nil {
+			return nil, e.Wrap(err, "error updating error group in opensearch")
 		}
 	}
 
@@ -816,8 +836,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
-	environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
-
 	if err := r.AppendErrorFields(fields, errorGroup); err != nil {
 		return nil, e.Wrap(err, "error appending error fields")
 	}
@@ -855,39 +873,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil
 	}); err != nil {
 		return nil, e.Wrap(err, "error replacing error group fingerprints")
-	}
-
-	// Don't save errors that come from rrweb at record time.
-	if errorObj.MappedStackTrace != nil && strings.Contains(*errorObj.MappedStackTrace, "rrweb") {
-		var now = time.Now()
-		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{Model: model.Model{DeletedAt: &now}}).Error; err != nil {
-			return nil, e.Wrap(err, "Error soft deleting rrweb error group.")
-		}
-
-	} else {
-		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{
-			StackTrace:       *errorObj.StackTrace,
-			MappedStackTrace: errorObj.MappedStackTrace,
-			Environments:     environmentsString,
-			Event:            errorObj.Event,
-		}).Error; err != nil {
-			return nil, e.Wrap(err, "Error updating error group metadata log or environments")
-		}
-	}
-
-	var filename *string
-	if errorObj.MappedStackTrace != nil {
-		filename = model.GetFirstFilename(*errorObj.MappedStackTrace)
-	} else {
-		filename = model.GetFirstFilename(*errorObj.StackTrace)
-	}
-
-	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
-		"filename":   filename,
-		"updated_at": time.Now(),
-		"Event":      errorObj.Event,
-	}); err != nil {
-		return nil, e.Wrap(err, "error updating error group in opensearch")
 	}
 
 	return errorGroup, nil
