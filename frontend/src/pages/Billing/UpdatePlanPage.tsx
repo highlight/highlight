@@ -25,7 +25,6 @@ import { loadStripe } from '@stripe/stripe-js'
 import { message } from 'antd'
 import { dinero, toDecimal } from 'dinero.js'
 import moment from 'moment'
-import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
@@ -87,21 +86,16 @@ const UNIT_QUANTITY: { readonly [k in ProductType]: number } = {
 	Logs: 1_000_000,
 }
 
-export const INCLUDED_QUANTITY: { readonly [k in ProductType]: number } = {
-	Sessions: 500,
-	Errors: 1_000,
-	Logs: 1_000_000,
-}
-
 export const getCostCents = (
 	productType: ProductType,
 	retentionPeriod: RetentionPeriod,
 	quantity: number,
+	includedQuantity: number,
 ): number => {
 	const a = Math.floor(
 		(BASE_UNIT_COST_CENTS[productType] *
 			RETENTION_MULTIPLIER[retentionPeriod] *
-			Math.max(quantity - INCLUDED_QUANTITY[productType], 0)) /
+			Math.max(quantity - includedQuantity, 0)) /
 			UNIT_QUANTITY[productType],
 	)
 	return a
@@ -111,6 +105,7 @@ export const getQuantity = (
 	productType: ProductType,
 	retentionPeriod: RetentionPeriod,
 	totalCents: number | undefined,
+	includedQuantity: number,
 ): number | undefined => {
 	if (totalCents === undefined) {
 		return undefined
@@ -120,7 +115,7 @@ export const getQuantity = (
 		(totalCents * UNIT_QUANTITY[productType]) /
 			(BASE_UNIT_COST_CENTS[productType] *
 				RETENTION_MULTIPLIER[retentionPeriod]) +
-			INCLUDED_QUANTITY[productType],
+			includedQuantity,
 	)
 }
 
@@ -157,6 +152,7 @@ type ProductCardProps = {
 	setRetentionPeriod: (rp: RetentionPeriod) => void
 	limitCents: number | undefined
 	setLimitCents: (limit: number | undefined) => void
+	includedQuantity: number
 	usageAmount: number
 	predictedUsageAmount: number
 }
@@ -235,6 +231,7 @@ const ProductCard = ({
 	setRetentionPeriod,
 	limitCents,
 	setLimitCents,
+	includedQuantity,
 	usageAmount,
 	predictedUsageAmount,
 }: ProductCardProps) => {
@@ -248,19 +245,20 @@ const ProductCard = ({
 	const unitCostFormatted =
 		'$ ' + toDecimal(dinero({ amount: unitCostCents, currency: USD }))
 
-	const includedQuantity = INCLUDED_QUANTITY[productType]
 	const netUsageAmount = Math.max(predictedUsageAmount - includedQuantity, 0)
 
 	const predictedCostCents = getCostCents(
 		productType,
 		retentionPeriod,
 		predictedUsageAmount,
+		includedQuantity,
 	)
 
 	const currentCostCents = getCostCents(
 		productType,
 		retentionPeriod,
 		usageAmount,
+		includedQuantity,
 	)
 
 	const totalCostCents =
@@ -499,49 +497,15 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 		{ data: stripeData, loading: stripeLoading },
 	] = useCreateOrUpdateStripeSubscriptionMutation({ fetchPolicy: 'no-cache' })
 
-	const [checkoutRedirectFailedMessage, setCheckoutRedirectFailedMessage] =
-		useState<string>('')
-
-	useEffect(() => {
-		// const response = pathname.split('/')[4] ?? ''
-		// if (response === 'success') {
-		// 	updateBillingDetails({
-		// 		variables: { workspace_id: workspaceId! },
-		// 	}).then(() => {
-		// 		message.success('Billing change applied!', 5)
-		// 		refetch()
-		// 		refetchSubscription()
-		// 	})
-		// }
-		if (checkoutRedirectFailedMessage) {
-			message.error(checkoutRedirectFailedMessage, 5)
-		}
-		// if (billingError) {
-		// 	message.error(billingError.message, 5)
-		// }
-	}, [checkoutRedirectFailedMessage])
-
 	if (stripeData?.createOrUpdateStripeSubscription && stripePromiseOrNull) {
 		;(async function () {
 			const stripe = await stripePromiseOrNull
-			const result = stripe
+			stripe
 				? await stripe.redirectToCheckout({
 						sessionId:
 							stripeData.createOrUpdateStripeSubscription ?? '',
 				  })
 				: { error: 'Error: could not load stripe client.' }
-
-			if (result.error) {
-				// result.error is either a string message or a StripeError,
-				// which contains a message localized for the user.
-				setCheckoutRedirectFailedMessage(
-					typeof result.error === 'string'
-						? result.error
-						: typeof result.error.message === 'string'
-						? result.error.message
-						: 'Redirect to checkout failed. This is most likely a network or browser error.',
-				)
-			}
 		})()
 	}
 
@@ -567,15 +531,18 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			daysUntilNextBillingDate *
 				(data?.billingDetails.sessionsDailyAverage ?? 0),
 	)
+	const includedSessions = data?.billingDetails.plan.quota ?? 0
 	let predictedSessionsCost = getCostCents(
 		'Sessions',
 		formState.values.sessionsRetention,
 		predictedSessionsUsage,
+		includedSessions,
 	)
 	const actualSessionsCost = getCostCents(
 		'Sessions',
 		formState.values.sessionsRetention,
 		sessionsUsage,
+		includedSessions,
 	)
 	if (formState.values.sessionsLimitCents !== undefined) {
 		predictedSessionsCost = Math.min(
@@ -591,15 +558,18 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			daysUntilNextBillingDate *
 				(data?.billingDetails.errorsDailyAverage ?? 0),
 	)
+	const includedErrors = data?.billingDetails.plan.errorsLimit ?? 0
 	let predictedErrorsCost = getCostCents(
 		'Errors',
 		formState.values.errorsRetention,
 		predictedErrorsUsage,
+		includedErrors,
 	)
 	const actualErrorsCost = getCostCents(
 		'Errors',
 		formState.values.errorsRetention,
 		errorsUsage,
+		includedErrors,
 	)
 	if (formState.values.errorsLimitCents !== undefined) {
 		predictedErrorsCost = Math.min(
@@ -615,15 +585,18 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			daysUntilNextBillingDate *
 				(data?.billingDetails.logsDailyAverage ?? 0),
 	)
+	const includedLogs = data?.billingDetails.plan.logsLimit ?? 0
 	let predictedLogsCost = getCostCents(
 		'Logs',
 		formState.values.logsRetention,
 		predictedLogsUsage,
+		includedLogs,
 	)
 	const actualLogsCost = getCostCents(
 		'Logs',
 		formState.values.logsRetention,
 		logsUsage,
+		includedLogs,
 	)
 	if (formState.values.logsLimitCents !== undefined) {
 		predictedLogsCost = Math.min(
@@ -633,12 +606,32 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 	}
 	predictedLogsCost = Math.max(predictedLogsCost, actualLogsCost)
 
-	const predictedTotalCents =
+	const baseAmount = data?.subscription_details.baseAmount ?? 0
+	const discountPercent = data?.subscription_details.discountPercent ?? 0
+	const discountAmount = data?.subscription_details.discountAmount ?? 0
+
+	const productSubtotal =
 		predictedSessionsCost + predictedErrorsCost + predictedLogsCost
+
+	const discountRatio = (100 - discountPercent) / 100
+
+	const predictedTotalCents = Math.max(
+		Math.floor(
+			(productSubtotal + baseAmount) * discountRatio - discountAmount,
+		),
+		0,
+	)
 
 	const predictedTotalFormatted =
 		'est. $ ' +
 		toDecimal(dinero({ amount: predictedTotalCents, currency: USD }))
+
+	const hasExtras =
+		baseAmount !== 0 || discountAmount !== 0 || discountPercent !== 0
+	const baseAmountFormatted =
+		'$' + toDecimal(dinero({ amount: baseAmount, currency: USD }))
+	const discountAmountFormatted =
+		'$' + toDecimal(dinero({ amount: discountAmount, currency: USD }))
 
 	return (
 		<Box
@@ -837,6 +830,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 								}
 								usageAmount={sessionsUsage}
 								predictedUsageAmount={predictedSessionsUsage}
+								includedQuantity={includedSessions}
 							/>
 							<Box borderBottom="divider" />
 							<ProductCard
@@ -860,6 +854,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 								}
 								usageAmount={errorsUsage}
 								predictedUsageAmount={predictedErrorsUsage}
+								includedQuantity={includedErrors}
 							/>
 							<Box borderBottom="divider" />
 							<ProductCard
@@ -881,6 +876,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 								}
 								usageAmount={logsUsage}
 								predictedUsageAmount={predictedLogsUsage}
+								includedQuantity={includedLogs}
 							/>
 							<Box borderBottom="divider" />
 							<Box
@@ -922,6 +918,21 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 										>
 											Estimated cost based on trailing 7
 											day usage.
+											{hasExtras && (
+												<>
+													{' '}
+													Includes a monthly
+													commitment of{' '}
+													{baseAmountFormatted}
+													{discountPercent
+														? ` with a ${discountPercent}% discount`
+														: ''}
+													{discountAmount
+														? ` with a ${discountAmountFormatted} discount`
+														: ''}
+													.
+												</>
+											)}
 										</Tooltip>
 									</Box>
 								</Box>

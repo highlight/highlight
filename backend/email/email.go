@@ -106,7 +106,34 @@ func getExceededLimitMessage(productType string, workspaceId int) string {
 		productType, productType, frontendUri, workspaceId)
 }
 
-func getBillingNotificationMessage(workspaceId int, retentionPeriod modelInputs.RetentionPeriod, emailType EmailType) string {
+func getBillingNotificationSubject(emailType EmailType) string {
+	switch emailType {
+	case BillingHighlightTrial7Days:
+		return "Your Highlight trial ends in 7 days"
+	case BillingStripeTrial7Days:
+		return "Your Highlight trial ends in 7 days"
+	case BillingStripeTrial3Days:
+		return "Your Highlight trial ends in 3 days"
+	case BillingHighlightTrialEnded:
+		return "Your Highlight trial has ended"
+	case BillingSessionUsage80Percent:
+		return "[Highlight] You've hit 80% of your session usage"
+	case BillingSessionUsage100Percent:
+		return "[Highlight] You've hit 100% of your session usage"
+	case BillingErrorsUsage80Percent:
+		return "[Highlight] You've hit 80% of your errors usage"
+	case BillingErrorsUsage100Percent:
+		return "[Highlight] You've hit 100% of your errors usage"
+	case BillingLogsUsage80Percent:
+		return "[Highlight] You've hit 80% of your logs usage"
+	case BillingLogsUsage100Percent:
+		return "[Highlight] You've hit 100% of your logs usage"
+	default:
+		return ""
+	}
+}
+
+func getBillingNotificationMessage(workspaceId int, emailType EmailType) string {
 	switch emailType {
 	case BillingHighlightTrial7Days:
 		return fmt.Sprintf(`
@@ -157,17 +184,13 @@ func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Clie
 	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
 	m.SetFrom(from)
 	m.SetTemplateID(BillingNotificationTemplateID)
+	m.Subject = getBillingNotificationSubject(emailType)
 
 	p := mail.NewPersonalization()
 	p.AddTos(to)
 	curData := map[string]interface{}{}
 
-	retentionPeriodOrDefault := modelInputs.RetentionPeriodSixMonths
-	if retentionPeriod != nil {
-		retentionPeriodOrDefault = *retentionPeriod
-	}
-
-	curData["message"] = getBillingNotificationMessage(workspaceId, retentionPeriodOrDefault, emailType)
+	curData["message"] = getBillingNotificationMessage(workspaceId, emailType)
 	curData["toEmail"] = toEmail
 	curData["workspaceName"] = workspaceName
 	curData["unsubscribeUrl"] = GetSubscriptionUrl(adminId, false)

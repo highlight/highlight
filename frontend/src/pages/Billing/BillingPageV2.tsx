@@ -51,6 +51,7 @@ type UsageCardProps = {
 	retentionPeriod: RetentionPeriod
 	billingLimitCents: number | undefined
 	usageAmount: number
+	includedQuantity: number
 	isPaying: boolean
 }
 
@@ -60,17 +61,28 @@ const UsageCard = ({
 	retentionPeriod,
 	billingLimitCents,
 	usageAmount,
+	includedQuantity,
 	isPaying,
 }: UsageCardProps) => {
+	const { workspace_id } = useParams<{
+		workspace_id: string
+	}>()
+
 	const navigate = useNavigate()
 
 	const costCents = isPaying
-		? getCostCents(productType, retentionPeriod, usageAmount)
+		? getCostCents(
+				productType,
+				retentionPeriod,
+				usageAmount,
+				includedQuantity,
+		  )
 		: 0
 	const usageLimitAmount = getQuantity(
 		productType,
 		retentionPeriod,
 		billingLimitCents,
+		includedQuantity,
 	)
 
 	const costFormatted =
@@ -144,7 +156,9 @@ const UsageCard = ({
 						emphasis="low"
 						shape="basic"
 						onClick={() => {
-							navigate('update-plan')
+							navigate(
+								`/w/${workspace_id}/current-plan/update-plan`,
+							)
 						}}
 					>
 						Update
@@ -197,7 +211,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const navigate = useNavigate()
 	const location = useLocation()
 
-	const { data, loading } = useGetBillingDetailsQuery({
+	const { data, loading, refetch } = useGetBillingDetailsQuery({
 		variables: {
 			workspace_id: workspace_id!,
 		},
@@ -223,14 +237,19 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 		const response = location.pathname.split('/')[4] ?? ''
 		if (response === 'success') {
 			updateBillingDetails().then(() => {
+				refetch()
 				message.success('Billing plan saved!')
 			})
 		}
-	}, [location.pathname, updateBillingDetails])
+	}, [location.pathname, refetch, updateBillingDetails])
 
 	if (loading) {
 		return null
 	}
+
+	const baseAmount = data?.subscription_details.baseAmount ?? 0
+	const discountPercent = data?.subscription_details.discountPercent ?? 0
+	const discountAmount = data?.subscription_details.discountAmount ?? 0
 
 	const isPaying = data?.billingDetails.plan.type !== PlanType.Free
 
@@ -254,10 +273,35 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const errorsUsage = data?.billingDetails.errorsMeter ?? 0
 	const logsUsage = data?.billingDetails.logsMeter ?? 0
 
+	const includedSessions = data?.billingDetails.plan.quota ?? 0
+	const includedErrors = data?.billingDetails.plan.errorsLimit ?? 0
+	const includedLogs = data?.billingDetails.plan.logsLimit ?? 0
+
+	const productSubtotal =
+		getCostCents(
+			ProductType.Sessions,
+			sessionsRetention,
+			sessionsUsage,
+			includedSessions,
+		) +
+		getCostCents(
+			ProductType.Errors,
+			errorsRetention,
+			errorsUsage,
+			includedErrors,
+		) +
+		getCostCents(ProductType.Logs, logsRetention, logsUsage, includedLogs)
+
+	const discountRatio = (100 - discountPercent) / 100
+
 	const totalCents = isPaying
-		? getCostCents(ProductType.Sessions, sessionsRetention, sessionsUsage) +
-		  getCostCents(ProductType.Errors, errorsRetention, errorsUsage) +
-		  getCostCents(ProductType.Logs, logsRetention, logsUsage)
+		? Math.max(
+				Math.floor(
+					(productSubtotal + baseAmount) * discountRatio -
+						discountAmount,
+				),
+				0,
+		  )
 		: 0
 
 	const totalFormatted =
@@ -274,6 +318,13 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const logsLimit = isPaying
 		? data?.workspace?.logs_max_cents ?? undefined
 		: 0
+
+	const hasExtras =
+		baseAmount !== 0 || discountAmount !== 0 || discountPercent !== 0
+	const baseAmountFormatted =
+		'$' + toDecimal(dinero({ amount: baseAmount, currency: USD }))
+	const discountAmountFormatted =
+		'$' + toDecimal(dinero({ amount: discountAmount, currency: USD }))
 
 	return (
 		<Box width="full" display="flex" justifyContent="center">
@@ -319,7 +370,9 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 							emphasis="high"
 							kind="primary"
 							onClick={() => {
-								navigate('update-plan')
+								navigate(
+									`/w/${workspace_id}/current-plan/update-plan`,
+								)
 							}}
 						>
 							{isPaying ? 'Update Plan Details' : 'Upgrade plan'}
@@ -341,6 +394,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={sessionsRetention}
 						billingLimitCents={sessionsLimit}
 						usageAmount={sessionsUsage}
+						includedQuantity={includedSessions}
 						isPaying={isPaying}
 					/>
 					<Box borderTop="secondary" />
@@ -350,6 +404,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={errorsRetention}
 						billingLimitCents={errorsLimit}
 						usageAmount={errorsUsage}
+						includedQuantity={includedErrors}
 						isPaying={isPaying}
 					/>
 					<Box borderTop="secondary" />
@@ -359,6 +414,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						retentionPeriod={logsRetention}
 						billingLimitCents={logsLimit}
 						usageAmount={logsUsage}
+						includedQuantity={includedLogs}
 						isPaying={isPaying}
 					/>
 				</Box>
@@ -387,9 +443,33 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 								</Text>
 							)}
 						</Box>
-						<Text color="p11" weight="bold">
-							{totalFormatted}
-						</Text>
+						<Box
+							display="flex"
+							alignItems="center"
+							color="p11"
+							gap="4"
+						>
+							<Text color="p11" weight="bold">
+								{totalFormatted}
+							</Text>
+							{hasExtras && (
+								<Tooltip
+									trigger={
+										<IconSolidInformationCircle size={12} />
+									}
+								>
+									Includes a monthly commitment of{' '}
+									{baseAmountFormatted}
+									{discountPercent
+										? ` with a ${discountPercent}% discount`
+										: ''}
+									{discountAmount
+										? ` with a ${discountAmountFormatted} discount`
+										: ''}
+									.
+								</Tooltip>
+							)}
+						</Box>
 					</Box>
 				</Stack>
 			</Stack>
