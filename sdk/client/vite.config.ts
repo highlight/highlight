@@ -25,6 +25,7 @@ export default defineConfig({
 			},
 		},
 		minify: 'terser',
+		emptyOutDir: false,
 		sourcemap: true,
 	},
 	define: {
