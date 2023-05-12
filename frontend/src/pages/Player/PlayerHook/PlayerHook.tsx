@@ -145,6 +145,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 		skip: !session_secure_id,
 		fetchPolicy: 'network-only',
 	})
+	// Fetches events from Redis. Skipped if no session or we are in live mode.
+	// !!direct_download_url is a proxy for checking if we are in live mode.
+	// Could possibly check session.processed instead.
 	const { data: sessionPayload, subscribeToMore: subscribeToSessionPayload } =
 		useGetSessionPayloadQuery({
 			fetchPolicy: 'no-cache',
@@ -1090,8 +1093,13 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.scale !== 1 &&
 			state.sessionViewability === SessionViewability.VIEWABLE,
 		setIsLiveMode: (isLiveMode) => {
-			const events = getEvents(chunkEventsRef.current)
+			analytics.track('Session live mode toggled', {
+				isLiveMode: isLiveMode.toString(),
+			})
+
 			if (isLiveMode) {
+				const events = getEvents(chunkEventsRef.current)
+
 				dispatch({
 					type: PlayerActionType.addLiveEvents,
 					lastActiveTimestamp: state.lastActiveTimestamp,

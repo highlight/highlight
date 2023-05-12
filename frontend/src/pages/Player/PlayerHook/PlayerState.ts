@@ -395,6 +395,7 @@ export const PlayerReducer = (
 						project_id: s.project_id,
 						is_guest: !s.isLoggedIn,
 						is_live: s.isLiveMode,
+						session_processed: !s.session?.processed,
 						secure_id: s.session_secure_id,
 					})
 				}
