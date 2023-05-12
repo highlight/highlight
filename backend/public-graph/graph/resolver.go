@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"go.opentelemetry.io/otel/attribute"
@@ -848,30 +849,9 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		if err != nil {
 			return nil, e.Wrap(err, "Error mapping stack trace string")
 		}
-		for idx, frame := range mappedStackTrace {
-			codeVal := joinStringPtrs(frame.LinesBefore, frame.LineContent, frame.LinesAfter)
-			if codeVal != "" {
-				code := model.ErrorFingerprint{
-					ProjectID: projectID,
-					Type:      model.Fingerprint.StackFrameCode,
-					Value:     codeVal,
-					Index:     idx,
-				}
-				fingerprints = append(fingerprints, &code)
-			}
 
-			metaVal := joinStringPtrs(frame.FileName, frame.FunctionName) +
-				joinIntPtrs(frame.LineNumber, frame.ColumnNumber)
-			if metaVal != "" {
-				meta := model.ErrorFingerprint{
-					ProjectID: projectID,
-					Type:      model.Fingerprint.StackFrameMetadata,
-					Value:     metaVal,
-					Index:     idx,
-				}
-				fingerprints = append(fingerprints, &meta)
-			}
-		}
+		fingerprints = append(fingerprints, errorgroups.GetFingerprints(projectID, stackTrace, mappedStackTrace)...)
+
 		errorObj.MappedStackTrace = newMappedStackTraceString
 	}
 
@@ -885,7 +865,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			if err := r.DB.Where("id = ?", projectID).First(&project).Error; err != nil {
 				return nil, e.Wrap(err, "error querying project")
 			}
-
 			for _, path := range project.ErrorJsonPaths {
 				value, err := jsonpath.Get(path, errorAsJson)
 				if err == nil {
