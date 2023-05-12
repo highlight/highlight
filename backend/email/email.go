@@ -94,14 +94,14 @@ func GetSubscriptionUrl(adminId int, previous bool) string {
 func getApproachingLimitMessage(productType string, workspaceId int) string {
 	return fmt.Sprintf(`Your %s usage has exceeded 80&#37; of your monthly limit.<br>
 		Once this limit is exceeded, extra %ss will not be recorded.<br>
-		If you would like to switch to a plan with a higher limit,
+		If you would like to increase your billing limit,
 		you can upgrade your subscription <a href="%s/w/%d/current-plan">here</a>.`,
 		productType, productType, frontendUri, workspaceId)
 }
 
 func getExceededLimitMessage(productType string, workspaceId int) string {
 	return fmt.Sprintf(`Your %s usage has exceeded your monthly limit - extra %ss will not be recorded.<br>
-		If you would like to switch to a plan with a higher limit,
+		If you would like to increase your billing limit,
 		you can upgrade your subscription <a href="%s/w/%d/current-plan">here</a>.`,
 		productType, productType, frontendUri, workspaceId)
 }
@@ -117,19 +117,19 @@ func getBillingNotificationSubject(emailType EmailType) string {
 	case BillingHighlightTrialEnded:
 		return "Your Highlight trial has ended"
 	case BillingSessionUsage80Percent:
-		return "[Highlight] You've hit 80% of your session usage"
+		return "[Highlight] billing limits - 80% of your session usage"
 	case BillingSessionUsage100Percent:
-		return "[Highlight] You've hit 100% of your session usage"
+		return "[Highlight] billing limits - 100% of your session usage"
 	case BillingErrorsUsage80Percent:
-		return "[Highlight] You've hit 80% of your errors usage"
+		return "[Highlight] billing limits - 80% of your errors usage"
 	case BillingErrorsUsage100Percent:
-		return "[Highlight] You've hit 100% of your errors usage"
+		return "[Highlight] billing limits - 100% of your errors usage"
 	case BillingLogsUsage80Percent:
-		return "[Highlight] You've hit 80% of your logs usage"
+		return "[Highlight] billing limits - 80% of your logs usage"
 	case BillingLogsUsage100Percent:
-		return "[Highlight] You've hit 100% of your logs usage"
+		return "[Highlight] billing limits - 100% of your logs usage"
 	default:
-		return ""
+		return "Highlight Billing Notification"
 	}
 }
 
@@ -184,7 +184,6 @@ func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Clie
 	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
 	m.SetFrom(from)
 	m.SetTemplateID(BillingNotificationTemplateID)
-	m.Subject = getBillingNotificationSubject(emailType)
 
 	p := mail.NewPersonalization()
 	p.AddTos(to)
@@ -194,6 +193,7 @@ func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Clie
 	curData["toEmail"] = toEmail
 	curData["workspaceName"] = workspaceName
 	curData["unsubscribeUrl"] = GetSubscriptionUrl(adminId, false)
+	curData["subject"] = getBillingNotificationSubject(emailType)
 
 	p.DynamicTemplateData = curData
 
