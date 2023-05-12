@@ -12,11 +12,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func StructureStackTrace(stackTrace string) ([]publicModel.ErrorTrace, error) {
+func StructureStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, error) {
 	var language string
 	var errMsg string
-	var frames []publicModel.ErrorTrace
-	var frame publicModel.ErrorTrace
+	var frames []*publicModel.ErrorTrace
+	var frame *publicModel.ErrorTrace
 	var jsonStr string
 	if err := json.Unmarshal([]byte(stackTrace), &jsonStr); err == nil {
 		stackTrace = jsonStr
@@ -44,8 +44,10 @@ func StructureStackTrace(stackTrace string) ([]publicModel.ErrorTrace, error) {
 		if errMsg == "" {
 			errMsg = line
 		}
-		frame = publicModel.ErrorTrace{
-			Error: &errMsg,
+		if frame == nil {
+			frame = &publicModel.ErrorTrace{
+				Error: &errMsg,
+			}
 		}
 		jsPattern := regexp.MustCompile(` {4}at ((.+) )?\(?(.+):(\d+):(\d+)\)?`)
 		jsAnonPattern := regexp.MustCompile(` {4}at (.+) \((.+)\)`)
@@ -92,6 +94,7 @@ func StructureStackTrace(stackTrace string) ([]publicModel.ErrorTrace, error) {
 			}
 		}
 		frames = append(frames, frame)
+		frame = nil
 	}
 	return frames, nil
 }

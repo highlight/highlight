@@ -160,12 +160,11 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					Event:            "error",
-					ProjectID:        1,
-					StackTrace:       shortTraceStr,
-					State:            model.ErrorGroupStates.OPEN,
-					Environments:     `{}`,
-					MappedStackTrace: util.MakeStringPointer("null"),
+					Event:        "error",
+					ProjectID:    1,
+					StackTrace:   shortTraceStr,
+					State:        model.ErrorGroupStates.OPEN,
+					Environments: `{}`,
 				},
 			},
 		},
@@ -186,43 +185,16 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					Event:            "error",
-					ProjectID:        1,
-					StackTrace:       longTraceStr,
-					Environments:     `{}`,
-					State:            model.ErrorGroupStates.OPEN,
-					MappedStackTrace: util.MakeStringPointer("null"),
-				},
-			},
-		},
-		"test same stacktraces, different error events": {
-			errorsToInsert: []model.ErrorObject{
-				{
-					Event:      "error 1",
-					ProjectID:  1,
-					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
-					StackTrace: &shortTraceStr,
-				},
-				{
-					Event:      "error 2",
-					ProjectID:  1,
-					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
-					StackTrace: &shortTraceStr,
-				},
-			},
-			expectedErrorGroups: []model.ErrorGroup{
-				{
-					Event:            "error 2",
-					ProjectID:        1,
-					StackTrace:       shortTraceStr,
-					Environments:     `{}`,
-					State:            model.ErrorGroupStates.OPEN,
-					MappedStackTrace: util.MakeStringPointer("null"),
+					Event:        "error",
+					ProjectID:    1,
+					StackTrace:   longTraceStr,
+					Environments: `{}`,
+					State:        model.ErrorGroupStates.OPEN,
 				},
 			},
 		},
 	}
-	// run tests
+	//run tests
 	for name, tc := range tests {
 		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
 			r := &Resolver{DB: DB}
@@ -234,7 +206,13 @@ func TestHandleErrorAndGroup(t *testing.T) {
 						t.Fatal(e.Wrap(err, "error unmarshalling error stack trace frames"))
 					}
 				}
-				errorGroup, err := r.HandleErrorAndGroup(context.TODO(), &errorObj, "", frames, nil, 1)
+
+				_, structuredStackTrace, err := r.getMappedStackTraceString(context.Background(), frames, 1, &errorObj)
+				if err != nil {
+					t.Fatal(e.Wrap(err, "error making mapped stacktrace"))
+				}
+
+				errorGroup, err := r.HandleErrorAndGroup(context.TODO(), &errorObj, structuredStackTrace, nil, 1)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error handling error and group"))
 				}
