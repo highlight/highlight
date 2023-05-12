@@ -2376,7 +2376,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	workspace, err := r.getWorkspace(project.WorkspaceID)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
-		return
+		workspace = &model.Workspace{}
 	}
 
 	// Filter out empty errors
