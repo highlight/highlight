@@ -9,16 +9,18 @@ import (
 	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 )
 
-func GetFingerprints(projectID int, stackFrames []*publicModel.StackFrameInput, mappedStackTrace []privateModel.ErrorTrace) []*model.ErrorFingerprint {
+func GetFingerprints(projectID int, stackFrames []*publicModel.StackFrameInput, errorTraces []privateModel.ErrorTrace) []*model.ErrorFingerprint {
 	fingerprints := []*model.ErrorFingerprint{}
-	if len(mappedStackTrace) == 0 {
-		fingerprints = append(fingerprints, getStackTraceFingerprints(projectID, stackFrames)...)
+	if len(errorTraces) == 0 {
+		// Has no source map
+		fingerprints = append(fingerprints, getStackFramesFingerprints(projectID, stackFrames)...)
 	} else {
-		fingerprints = append(fingerprints, getMappedStackTraceFingerprints(projectID, mappedStackTrace)...)
+		// Has a source map
+		fingerprints = append(fingerprints, getErrorTracesFingerprints(projectID, errorTraces)...)
 	}
 	return fingerprints
 }
-func getStackTraceFingerprints(projectID int, stackFrames []*publicModel.StackFrameInput) []*model.ErrorFingerprint {
+func getStackFramesFingerprints(projectID int, stackFrames []*publicModel.StackFrameInput) []*model.ErrorFingerprint {
 	fingerprints := []*model.ErrorFingerprint{}
 	for idx, frame := range stackFrames {
 		codeVal := joinStringPtrs(frame.FunctionName, frame.FileName, frame.Source) + joinIntPtrs(frame.LineNumber, frame.ColumnNumber)
@@ -37,10 +39,10 @@ func getStackTraceFingerprints(projectID int, stackFrames []*publicModel.StackFr
 	return fingerprints
 }
 
-func getMappedStackTraceFingerprints(projectID int, mappedStackTrace []privateModel.ErrorTrace) []*model.ErrorFingerprint {
+func getErrorTracesFingerprints(projectID int, errorTraces []privateModel.ErrorTrace) []*model.ErrorFingerprint {
 	fingerprints := []*model.ErrorFingerprint{}
 
-	for idx, frame := range mappedStackTrace {
+	for idx, frame := range errorTraces {
 		codeVal := joinStringPtrs(frame.LinesBefore, frame.LineContent, frame.LinesAfter)
 		if codeVal != "" {
 			code := model.ErrorFingerprint{
