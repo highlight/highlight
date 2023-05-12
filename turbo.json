@@ -84,7 +84,8 @@
 		},
 		"dev": {
 			"dependsOn": ["^build"],
-			"cache": false
+			"cache": false,
+			"persistent": true
 		},
 		"enforce-size": {
 			"dependsOn": ["build"]
