@@ -97,9 +97,10 @@ const CompetitorComparisonPage = ({
 					<div className="lg:w-[60%] flex justify-center mt-10">
 						<div className="flex flex-col max-w-4xl gap-8 text-center lg:text-left">
 							<h2 className="text-white">
-								The Open Source{' '}
+								{competitor.headerPartOne || 'The Open Source '}
 								<br className="hidden 2xl:flex" />
-								{competitor.name} alternative
+								{competitor.headerPartTwo ||
+									`${competitor.name} alternative`}
 							</h2>
 
 							<Typography

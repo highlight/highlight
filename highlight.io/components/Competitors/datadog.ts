@@ -8,7 +8,7 @@ import {
 
 export const DatadogSpec: Competitor = {
 	name: 'Datadog',
-	header: 'The Open Source Datadog Alternative.',
+	type: 'session-replay',
 	subheader:
 		'Session replay of your frontend, fullstack error monitoring, and powerful logging.',
 	logoDesktop: datadogfull,

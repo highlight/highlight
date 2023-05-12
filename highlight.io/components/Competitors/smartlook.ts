@@ -9,7 +9,6 @@ import {
 
 export const SmartlookSpec: Competitor = {
 	name: 'Smartlook',
-	header: 'The Open Source Smartlook Alternative.',
 	logoDesktop: smartlooklogofull,
 	logoMobile: smartlooklogosmall,
 	subheader:
