@@ -96,6 +96,7 @@ const (
 	ErrAssetTooLarge    = "ErrAssetTooLarge"
 	ErrAssetSizeUnknown = "ErrAssetSizeUnknown"
 	ErrFailedToFetch    = "ErrFailedToFetch"
+	ErrFetchNotOk       = "ErrFetchNotOk"
 	MaxAssetSize        = 10 * 1024 * 1e6
 )
 
@@ -468,8 +469,13 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 			} else {
 				response, err := http.Get(u.Key)
 				if err != nil {
+					log.WithContext(ctx).WithField("url", u.Key).WithError(err).Warn("asset replacement: failed to fetch")
 					hashVal = ErrFailedToFetch
+				} else if response.StatusCode < 200 || response.StatusCode >= 400 {
+					log.WithContext(ctx).WithField("url", u.Key).WithField("status", response.StatusCode).Warn("asset replacement: not ok")
+					hashVal = ErrFetchNotOk
 				} else if response.ContentLength > MaxAssetSize {
+					log.WithContext(ctx).WithField("url", u.Key).WithField("content-length", response.ContentLength).Warn("asset replacement: too large")
 					hashVal = ErrAssetTooLarge
 				} else {
 					dir, err := os.MkdirTemp("", "asset-*")
