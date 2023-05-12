@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"reflect"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/go-test/deep"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/workerpool"
 	"github.com/stretchr/testify/assert"
@@ -193,6 +195,32 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				},
 			},
 		},
+		"test same stacktraces, different error events": {
+			errorsToInsert: []model.ErrorObject{
+				{
+					Event:      "error 1",
+					ProjectID:  1,
+					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+					StackTrace: &shortTraceStr,
+				},
+				{
+					Event:      "error 2",
+					ProjectID:  1,
+					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					StackTrace: &shortTraceStr,
+				},
+			},
+			expectedErrorGroups: []model.ErrorGroup{
+				{
+					Event:            "error 2",
+					ProjectID:        1,
+					StackTrace:       shortTraceStr,
+					Environments:     `{}`,
+					State:            model.ErrorGroupStates.OPEN,
+					MappedStackTrace: util.MakeStringPointer("null"),
+				},
+			},
+		},
 	}
 	// run tests
 	for name, tc := range tests {
@@ -217,7 +245,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			}
 			var i int
 			for _, errorGroup := range receivedErrorGroups {
-				isEqual, diff, err := model.AreModelsWeaklyEqual(&errorGroup, &tc.expectedErrorGroups[i])
+				isEqual, diff, err := areErrorGroupsEqual(&errorGroup, &tc.expectedErrorGroups[i])
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error comparing two error groups"))
 				}
@@ -235,4 +263,52 @@ func TestResolver_isExcludedError(t *testing.T) {
 	assert.True(t, isExcludedError(context.Background(), []string{}, "[{}]", 2))
 	assert.True(t, isExcludedError(context.Background(), []string{".*a+.*"}, "foo bar baz", 3))
 	assert.False(t, isExcludedError(context.Background(), []string{"("}, "foo bar baz", 4))
+}
+
+// areErrorGroupsEqual compares two error objects while ignoring the Model and SecureID field
+// a and b MUST be pointers, otherwise this won't work
+func areErrorGroupsEqual(a *model.ErrorGroup, b *model.ErrorGroup) (bool, []string, error) {
+	if reflect.TypeOf(a) != reflect.TypeOf(b) {
+		return false, nil, e.New("interfaces to compare aren't the same time")
+	}
+
+	aReflection := reflect.ValueOf(a)
+	// Check if the passed interface is a pointer
+	if aReflection.Type().Kind() != reflect.Ptr {
+		return false, nil, e.New("`a` is not a pointer")
+	}
+	// 'dereference' with Elem() and get the field by name
+	aModelField := aReflection.Elem().FieldByName("Model")
+	aSecureIDField := aReflection.Elem().FieldByName("SecureID")
+
+	bReflection := reflect.ValueOf(b)
+	// Check if the passed interface is a pointer
+	if bReflection.Type().Kind() != reflect.Ptr {
+		return false, nil, e.New("`b` is not a pointer")
+	}
+	// 'dereference' with Elem() and get the field by name
+	bModelField := bReflection.Elem().FieldByName("Model")
+	bSecureIDField := bReflection.Elem().FieldByName("SecureID")
+
+	if aModelField.IsValid() && bModelField.IsValid() {
+		// override Model on b with a's model
+		bModelField.Set(aModelField)
+	} else if aModelField.IsValid() || bModelField.IsValid() {
+		// return error if one has a model and the other doesn't
+		return false, nil, e.New("one interface has a model and the other doesn't")
+	}
+
+	if aSecureIDField.IsValid() && bSecureIDField.IsValid() {
+		// override SecureID on b with a's SecureID
+		bSecureIDField.Set(aSecureIDField)
+	} else if aSecureIDField.IsValid() || bSecureIDField.IsValid() {
+		// return error if one has a SecureID and the other doesn't
+		return false, nil, e.New("one interface has a SecureID and the other doesn't")
+	}
+
+	// get diff
+	diff := deep.Equal(aReflection.Interface(), bReflection.Interface())
+	isEqual := len(diff) == 0
+
+	return isEqual, diff, nil
 }
