@@ -1,3 +1,4 @@
+import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
 import { useAuthContext } from '@authentication/AuthContext'
 import {
 	AdminSuggestion,
@@ -196,30 +197,10 @@ function CommentReplyForm<T extends CommentReplyAction>({
 					/>
 				</Box>
 				<Stack direction="row" justifyContent="space-between">
-					<ButtonIcon
-						size="xSmall"
-						kind="secondary"
-						emphasis="low"
-						icon={<IconSolidAtSymbol />}
-						onClick={() => {
-							const textarea = inputRef.current
-							textarea?.focus()
-
-							const cursorIndex = textarea?.selectionStart
-							const cIndex = cursorIndex
-								? cursorIndex + 1
-								: commentText.length + 1
-							const newCommentText = `${commentText.slice(
-								0,
-								cursorIndex,
-							)}@${commentText.slice(cursorIndex)}`
-
-							setCommentText(newCommentText)
-
-							setTimeout(() => {
-								textarea?.setSelectionRange(cIndex, cIndex)
-							}, 0)
-						}}
+					<CommentMentionButton
+						commentText={commentText}
+						inputRef={inputRef}
+						setCommentText={setCommentText}
 					/>
 
 					<ButtonIcon

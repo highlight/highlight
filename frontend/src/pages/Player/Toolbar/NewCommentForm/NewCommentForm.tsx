@@ -54,6 +54,7 @@ import {
 
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas'
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration'
+import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
 
 interface Props {
 	commentTime: number
@@ -570,66 +571,74 @@ export const NewCommentForm = ({
 							justify="space-between"
 							align="center"
 						>
-							<Menu>
-								<Menu.Button
-									kind="secondary"
-									emphasis="high"
-									size="xSmall"
-									icon={<IconSolidPlus />}
-								/>
-								<Menu.List>
-									{issueIntegrationsOptions.map(
-										({ displayValue, id, value }) => (
-											<Menu.Item
-												key={id}
-												onClick={() => {
-													formState.setValue(
-														'issueTitle',
-														defaultIssueTitle,
-													)
-
-													if (
-														!formState.getValue(
-															'issueDescription',
-														)
-													) {
+							<Stack direction="row" gap="4" align="center">
+								<Menu>
+									<Menu.Button
+										kind="secondary"
+										emphasis="high"
+										size="xSmall"
+										icon={<IconSolidPlus />}
+									/>
+									<Menu.List>
+										{issueIntegrationsOptions.map(
+											({ displayValue, id, value }) => (
+												<Menu.Item
+													key={id}
+													onClick={() => {
 														formState.setValue(
-															'issueDescription',
-															commentTextForEmail,
+															'issueTitle',
+															defaultIssueTitle,
 														)
-													}
 
-													setSelectedIssueService(
-														value,
-													)
-													setSection(
-														CommentFormSection.NewIssueForm,
-													)
-												}}
-											>
-												{displayValue}
-											</Menu.Item>
-										),
-									)}
-									<Menu.Divider />
-									<Menu.Item
-										onClick={() => {
-											navigate(
-												`/${project_id}/integrations`,
-											)
-										}}
-									>
-										<Stack
-											direction="row"
-											gap="4"
-											align="center"
+														if (
+															!formState.getValue(
+																'issueDescription',
+															)
+														) {
+															formState.setValue(
+																'issueDescription',
+																commentTextForEmail,
+															)
+														}
+
+														setSelectedIssueService(
+															value,
+														)
+														setSection(
+															CommentFormSection.NewIssueForm,
+														)
+													}}
+												>
+													{displayValue}
+												</Menu.Item>
+											),
+										)}
+										<Menu.Divider />
+										<Menu.Item
+											onClick={() => {
+												navigate(
+													`/${project_id}/integrations`,
+												)
+											}}
 										>
-											<IconSolidViewGridAdd />
-											Add new integration
-										</Stack>
-									</Menu.Item>
-								</Menu.List>
-							</Menu>
+											<Stack
+												direction="row"
+												gap="4"
+												align="center"
+											>
+												<IconSolidViewGridAdd />
+												Add new integration
+											</Stack>
+										</Menu.Item>
+									</Menu.List>
+								</Menu>
+
+								<CommentMentionButton
+									commentText={commentText}
+									inputRef={inputRef}
+									setCommentText={setCommentText}
+								/>
+							</Stack>
 							{/* TODO: Add mention button */}
 							<Stack direction="row" align="center" gap="4">
 								{issueServiceDetail && (
