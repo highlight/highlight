@@ -560,28 +560,6 @@ func normalizeStackTraceString(stackTraceString string) string {
 	return string(stackTraceBytes)
 }
 
-func joinStringPtrs(ptrs ...*string) string {
-	var sb strings.Builder
-	for _, ptr := range ptrs {
-		if ptr != nil {
-			sb.WriteString(*ptr)
-			sb.WriteString(";")
-		}
-	}
-	return sb.String()
-}
-
-func joinIntPtrs(ptrs ...*int) string {
-	var sb strings.Builder
-	for _, ptr := range ptrs {
-		if ptr != nil {
-			sb.WriteString(strconv.Itoa(*ptr))
-			sb.WriteString(";")
-		}
-	}
-	return sb.String()
-}
-
 func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, fingerprints []*model.ErrorFingerprint, stackTraceString string) (*model.ErrorGroup, error) {
 	match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
 	if err != nil {
