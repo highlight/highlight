@@ -16,9 +16,9 @@ See [PRD: Session/Error Feeds ClickHouse Migration](../prds/002-feed-clickhouse-
 ## Proposed Implementation
 
 The migration from OpenSearch to ClickHouse will happen in a few phases:
-1. Replace the Session feed queries with ClickHouse
-2. Replace the Error feed queries with ClickHouse
-3. Replace the Error Group metrics with ClickHouse
+1. Replace the Error feed queries with ClickHouse
+2. Replace the Error Group metrics with ClickHouse
+3. Replace the Session feed queries with ClickHouse
 4. Implement CommandBar improvements using ClickHouse
 
 ## Database modeling
@@ -27,8 +27,8 @@ As a starting point, the database schema can be similar to the current postgres 
 However, we'll need to benchmark the performance of different approaches for querying sessions and errors in ClickHouse. 
 Ie.
 1. having 3 separate tables matching what’s stored in Postgres and join them at query time
-2. denormalize fields and save a copy of their values with each session (as we do with OpenSearch)
-3. treat queryable session columns as fields too and denormalize with a format like (field_type, field_name, field_value, session_id), then look up the full session objects in postgres after getting ids from clickhouse
+2. denormalize fields and save a copy of their values with each session/error (as we do with OpenSearch)
+3. treat queryable session/error columns as fields too and denormalize with a format like (field_type, field_name, field_value, id), then look up the full session/error objects in postgres after getting ids from clickhouse
 
 Migrating data should be straightforward with a ClickHouse query as per [this blog](https://clickhouse.com/blog/migrating-data-between-clickhouse-postgres).
 We can start by copying the current PostgreSQL schema and determining what the ClickHouse SQL queries replacing the OpenSearch queries will look like.
@@ -58,4 +58,4 @@ Since ClickHouse [does not support high-volume updates](https://clickhouse.com/d
 
 1. Migrate sessions and error groups from PostgreSQL to ClickHouse by using the [cross-db insert workflow](https://clickhouse.com/blog/migrating-data-between-clickhouse-postgres).
    1. Define a schema that would make sense for the features described in the [PRD](../prds/002-feed-clickhouse-migration.md).
-2. asdf
+
