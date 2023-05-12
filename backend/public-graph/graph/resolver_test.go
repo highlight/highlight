@@ -256,6 +256,7 @@ func TestMatchErrorsWithSameTracesDifferentBodies(t *testing.T) {
 
 		errorObject := model.ErrorObject{
 			Event:      "error 1",
+			ProjectID:  1,
 			StackTrace: &stacktrace,
 		}
 
@@ -264,6 +265,7 @@ func TestMatchErrorsWithSameTracesDifferentBodies(t *testing.T) {
 
 		errorObject = model.ErrorObject{
 			Event:      "error 2",
+			ProjectID:  1,
 			StackTrace: &stacktrace,
 		}
 
