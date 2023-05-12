@@ -3,7 +3,7 @@ import Footer from '../components/common/Footer/Footer'
 import Navbar from '../components/common/Navbar/Navbar'
 import { Typography } from '../components/common/Typography/Typography'
 
-export default function Highlight404() {
+export default function DemoConfirmation() {
 	return (
 		<>
 			<Navbar />
