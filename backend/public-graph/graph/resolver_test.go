@@ -80,12 +80,14 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					ProjectID:   1,
 					Environment: "dev",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+					StackTrace:  &shortTraceStr,
 				},
 				{
 					Event:       "error",
 					ProjectID:   1,
 					Environment: "dEv",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					StackTrace:  &shortTraceStr,
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
@@ -104,12 +106,14 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					ProjectID:   1,
 					Environment: "dev",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+					StackTrace:  &shortTraceStr,
 				},
 				{
 					Event:       "error",
 					ProjectID:   1,
 					Environment: "prod",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					StackTrace:  &shortTraceStr,
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
@@ -128,6 +132,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					Environment: "dev",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					Event:       "error",
+					StackTrace:  &shortTraceStr,
 				},
 				{
 					Event:     "error",
@@ -202,7 +207,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
 			for _, errorObj := range tc.errorsToInsert {
 				var frames []*publicModelInput.StackFrameInput
-				if errorObj.StackTrace != nil {
+				if errorObj.StackTrace != nil && *errorObj.StackTrace != "" {
 					if err := json.Unmarshal([]byte(*errorObj.StackTrace), &frames); err != nil {
 						t.Fatal(e.Wrap(err, "error unmarshalling error stack trace frames"))
 					}
@@ -291,6 +296,7 @@ func areErrorGroupsEqual(a *model.ErrorGroup, b *model.ErrorGroup) (bool, []stri
 	// 'dereference' with Elem() and get the field by name
 	aModelField := aReflection.Elem().FieldByName("Model")
 	aSecureIDField := aReflection.Elem().FieldByName("SecureID")
+	aStackTraceField := aReflection.Elem().FieldByName("StackTrace")
 
 	bReflection := reflect.ValueOf(b)
 	// Check if the passed interface is a pointer
@@ -300,6 +306,7 @@ func areErrorGroupsEqual(a *model.ErrorGroup, b *model.ErrorGroup) (bool, []stri
 	// 'dereference' with Elem() and get the field by name
 	bModelField := bReflection.Elem().FieldByName("Model")
 	bSecureIDField := bReflection.Elem().FieldByName("SecureID")
+	bStackTraceField := bReflection.Elem().FieldByName("StackTrace")
 
 	if aModelField.IsValid() && bModelField.IsValid() {
 		// override Model on b with a's model
@@ -315,6 +322,14 @@ func areErrorGroupsEqual(a *model.ErrorGroup, b *model.ErrorGroup) (bool, []stri
 	} else if aSecureIDField.IsValid() || bSecureIDField.IsValid() {
 		// return error if one has a SecureID and the other doesn't
 		return false, nil, e.New("one interface has a SecureID and the other doesn't")
+	}
+
+	if aStackTraceField.IsValid() && bStackTraceField.IsValid() {
+		// override StackTrace on b with a's StackTrace
+		bStackTraceField.Set(aStackTraceField)
+	} else if aStackTraceField.IsValid() || bStackTraceField.IsValid() {
+		// return error if one has a StackTrace and the other doesn't
+		return false, nil, e.New("one interface has a StackTrace and the other doesn't")
 	}
 
 	// get diff
