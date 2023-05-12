@@ -16,6 +16,8 @@ import { Box } from '../Box/Box'
 import { colors } from '../../css/colors'
 import { TimeInput } from './TimeInput'
 
+export { getDefaultPresets } from './utils'
+
 const TIME_INPUT_FORMAT = 'HH:mm a'
 const TIME_INPUT_FORMAT_NO_SPACE = 'HH:mma'
 
