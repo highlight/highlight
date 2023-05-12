@@ -1,7 +1,3 @@
-import {
-	DEMO_WORKSPACE_APPLICATION_ID,
-	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
-} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { linkStyle } from '@components/Header/styles.css'
 import {
 	Box,
@@ -17,30 +13,27 @@ import { vars } from '@highlight-run/ui/src/css/vars'
 import { generateRandomColor } from '@util/color'
 import { DEMO_PROJECT_NAME } from '@util/constants/constants'
 import { useParams } from '@util/react-router/useParams'
-import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+
+import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
+import { useProjectId } from '@/hooks/useProjectId'
 
 import { useApplicationContext } from '../../../../routers/ProjectRouter/context/ApplicationContext'
 
 const ProjectPicker = () => {
 	const { allProjects, currentProject, currentWorkspace } =
 		useApplicationContext()
-	const { workspace_id, project_id } = useParams<{
-		workspace_id: string
-		project_id: string
-	}>()
-	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
-			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
-			: project_id
+	const { workspace_id } = useParams<{ workspace_id: string }>()
+	const { projectId } = useProjectId()
+	const { isSettings } = useIsSettingsPath()
 	const isWorkspaceLevel = workspace_id !== undefined
 	const navigate = useNavigate()
-	const isInDemoProject =
-		projectIdRemapped === DEMO_WORKSPACE_PROXY_APPLICATION_ID
+	const isInDemoProject = projectId === DEMO_WORKSPACE_PROXY_APPLICATION_ID
 
 	const projectOptions = allProjects
 		? allProjects.map((project) => {
-				const isSelected = project_id === project?.id
+				const isSelected = projectId === project?.id
 				return (
 					<Menu.Item
 						key={project?.id}
@@ -57,6 +50,7 @@ const ProjectPicker = () => {
 					>
 						<Box display="flex" alignItems="center" gap="4">
 							<Box
+								flexShrink={0}
 								margin="4"
 								style={{
 									height: 8,
@@ -82,11 +76,12 @@ const ProjectPicker = () => {
 		  })
 		: []
 
-	const headerDisplayValue = isWorkspaceLevel
-		? 'Back to Project'
-		: isInDemoProject
-		? DEMO_PROJECT_NAME
-		: currentProject?.name
+	const headerDisplayValue =
+		isWorkspaceLevel || isSettings
+			? 'Back to Project'
+			: isInDemoProject
+			? DEMO_PROJECT_NAME
+			: currentProject?.name
 
 	return (
 		<div>
@@ -94,10 +89,10 @@ const ProjectPicker = () => {
 				<Menu>
 					<Menu.Button
 						kind="secondary"
-						emphasis="high"
+						emphasis="medium"
 						size="small"
 						iconLeft={
-							isWorkspaceLevel ? (
+							isWorkspaceLevel || isSettings ? (
 								<IconSolidArrowSmLeft size={14} />
 							) : (
 								<IconSolidBriefcase size={14} />
@@ -106,50 +101,52 @@ const ProjectPicker = () => {
 					>
 						<Text lines="1">{headerDisplayValue}</Text>
 					</Menu.Button>
-					<Menu.List>
-						{projectOptions}
-						{project_id && project_id !== '0' && (
-							<>
-								<Menu.Divider />
-								<Link
-									to={`/w/${currentWorkspace?.id}/new`}
-									className={linkStyle}
-								>
-									<Menu.Item>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
-										>
-											<IconSolidPlusSm
-												size={14}
-												color={vars.color.n9}
-											/>
-											Create new project
-										</Box>
-									</Menu.Item>
-								</Link>
-								<Link
-									to={`/${project_id}/settings`}
-									className={linkStyle}
-								>
-									<Menu.Item>
-										<Box
-											display="flex"
-											alignItems="center"
-											gap="4"
-										>
-											<IconSolidCog
-												size={14}
-												color={vars.color.n9}
-											/>
-											Project settings
-										</Box>
-									</Menu.Item>
-								</Link>
-							</>
-						)}
-					</Menu.List>
+					{(!isInDemoProject || isSettings) && (
+						<Menu.List>
+							{projectOptions}
+							{projectId && !isSettings && (
+								<>
+									<Menu.Divider />
+									<Link
+										to={`/w/${currentWorkspace?.id}/new`}
+										className={linkStyle}
+									>
+										<Menu.Item>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconSolidPlusSm
+													size={14}
+													color={vars.color.n9}
+												/>
+												Create new project
+											</Box>
+										</Menu.Item>
+									</Link>
+									<Link
+										to={`/${projectId}/settings/recording`}
+										className={linkStyle}
+									>
+										<Menu.Item>
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+											>
+												<IconSolidCog
+													size={14}
+													color={vars.color.n9}
+												/>
+												Project settings
+											</Box>
+										</Menu.Item>
+									</Link>
+								</>
+							)}
+						</Menu.List>
+					)}
 				</Menu>
 			</div>
 		</div>

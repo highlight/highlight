@@ -1,8 +1,11 @@
 import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment'
+import { Box } from '@highlight-run/ui'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import clsx from 'clsx'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+
+import { getDeepLinkedCommentId } from '@/components/Comment/utils/utils'
 
 import TransparentPopover from '../../../../components/Popover/TransparentPopover'
 import {
@@ -43,13 +46,13 @@ interface Props {
 				>
 			}
 	>
-	deepLinkedCommentId: string | null
 }
 
 /**
  * A comment that is rendered onto the Player relative to where the comment was made.
  */
-const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
+const PlayerSessionComment = ({ comment }: Props) => {
+	const deepLinkedCommentId = getDeepLinkedCommentId()
 	const { pause } = useReplayerContext()
 	const [visible, setVisible] = useState(deepLinkedCommentId === comment?.id)
 	const [clicked, setClicked] = useState(deepLinkedCommentId === comment?.id)
@@ -72,6 +75,28 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 			window.removeEventListener('keydown', onKeyDown)
 		}
 	}, [])
+
+	const handleClick: EventListener = useCallback(
+		(e) => {
+			if (!visible) {
+				return
+			}
+
+			if (!commentCardParentRef.current?.contains(e.target as Node)) {
+				setVisible(false)
+			}
+		},
+		[visible],
+	)
+
+	useEffect(() => {
+		window.removeEventListener('click', handleClick)
+		window.addEventListener('click', handleClick)
+
+		return () => {
+			window.removeEventListener('click', handleClick)
+		}
+	}, [visible, handleClick])
 
 	if (!comment) {
 		return null
@@ -107,7 +132,7 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 				setVisible(true)
 			}}
 			onMouseLeave={() => {
-				if (!clicked) {
+				if (!clicked && comment.id !== deepLinkedCommentId) {
 					setVisible(false)
 				}
 			}}
@@ -115,19 +140,20 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 			<TransparentPopover
 				placement="right"
 				content={
-					<div
-						className={styles.sessionCommentCardContainer}
+					<Box
+						backgroundColor="white"
+						border="divider"
+						borderRadius="8"
+						boxShadow="medium"
+						style={{ width: 350 }}
 						ref={commentCardParentRef}
 					>
 						<SessionCommentCard
 							parentRef={commentCardParentRef}
 							comment={comment}
-							onClose={() => setVisible(false)}
-							deepLinkedCommentId={deepLinkedCommentId}
-							scrollReplies
-							hasShadow
+							showReplies
 						/>
-					</div>
+					</Box>
 				}
 				align={{ offset: [0, 12] }}
 				visible={visible}

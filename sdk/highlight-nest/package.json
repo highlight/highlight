@@ -32,7 +32,7 @@
 		"cache-manager": "^5.1.7",
 		"class-transformer": "^0.5.1",
 		"class-validator": "^0.14.0",
-		"eslint": "^8.36.0",
+		"eslint": "^8.39.0",
 		"reflect-metadata": "^0.1.13",
 		"rxjs": "^7.8.0",
 		"tsup": "^6.6.3",

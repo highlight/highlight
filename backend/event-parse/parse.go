@@ -9,18 +9,24 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
+	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/lukasbob/srcset"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/tdewolff/parse/css"
+	"golang.org/x/sync/errgroup"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -72,6 +78,7 @@ const (
 
 const (
 	ScriptPlaceholder = "SCRIPT_PLACEHOLDER"
+	ProxyURL          = "https://replay-cors-proxy.highlightrun.workers.dev"
 )
 
 var DisallowedTagPrefixes = []string{
@@ -89,6 +96,7 @@ const (
 	ErrAssetTooLarge    = "ErrAssetTooLarge"
 	ErrAssetSizeUnknown = "ErrAssetSizeUnknown"
 	ErrFailedToFetch    = "ErrFailedToFetch"
+	MaxAssetSize        = 10 * 1024 * 1e6
 )
 
 type fetcher interface {
@@ -112,8 +120,22 @@ func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
 		return nil, errors.Wrap(err, "error reading styles")
 	}
 
+	body = replaceRelativePaths(body, href)
 	body = append([]byte("/*highlight-inject*/\n"), body...)
+
 	return body, nil
+}
+
+func replaceRelativePaths(body []byte, href string) []byte {
+	u, err := url.Parse(href)
+
+	if err == nil {
+		base := u.Scheme + "://" + u.Host
+
+		return regexp.MustCompile(`url\(['"]\./`).ReplaceAll(body, []byte(fmt.Sprintf("url('%s?url=%s/", ProxyURL, base)))
+	} else {
+		return body
+	}
 }
 
 var fetch fetcher
@@ -332,7 +354,6 @@ func (s *Snapshot) InjectStylesheets() error {
 		if !ok || tagName != "link" {
 			continue
 		}
-
 		attrs, ok := subNode["attributes"].(map[string]interface{})
 		if !ok {
 			continue
@@ -373,15 +394,43 @@ var srcTagNames = map[string]bool{
 	"video":  true,
 }
 
+var excludedMediaURLQueryParams = map[string]bool{
+	"expires":              true,
+	"signature":            true,
+	"x-amz-security-token": true,
+}
+
 // If a url was already created for this resource in the past day, return that
 // Else, fetch the resource, generate a new url for it, and save to S3
-func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB) (replacements map[string]string, err error) {
-	deduped := lo.Uniq(originalUrls)
+func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB, redis *redis.Client) (map[string]string, error) {
+	// maps a long url to the minimal version of the url. ie https://foo.com/example?key=value&signature=bar -> https://foo.com/example?key=value
+	urlMap := make(map[string]string)
+	for _, u := range lo.Uniq(originalUrls) {
+		parsedUrl, err := url.Parse(u)
+		if err != nil {
+			urlMap[u] = u
+			continue
+		}
+
+		var parts []string
+		for k, values := range parsedUrl.Query() {
+			if excludedMediaURLQueryParams[strings.ToLower(k)] {
+				continue
+			}
+			for _, v := range values {
+				parts = append(parts, fmt.Sprintf("%s=%s", k, v))
+			}
+		}
+
+		parsedUrl.RawQuery = strings.Join(parts, "&")
+		parsedUrl.Fragment = ""
+		urlMap[u] = parsedUrl.String()
+	}
 
 	dateTrunc := time.Now().UTC().Format("2006-01-02")
 	var results []model.SavedAsset
 
-	keys := lo.Map(originalUrls, func(url string, idx int) []any {
+	keys := lo.Map(lo.Values(urlMap), func(url string, idx int) []any {
 		return []any{
 			projectId,
 			url,
@@ -396,69 +445,112 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 		return lo.Entry[string, model.SavedAsset]{Key: asset.OriginalUrl, Value: asset}
 	}))
 
-	var newResults []model.SavedAsset
-	replacements = map[string]string{}
-	for _, url := range deduped {
-		var hashVal string
-		result, ok := resultMap[url]
-		if ok {
-			hashVal = result.HashVal
-		} else {
-			response, err := http.Get(url)
-			if err != nil {
-				hashVal = ErrFailedToFetch
-			} else if response.ContentLength > 30e6 {
-				hashVal = ErrAssetTooLarge
+	var eg errgroup.Group
+	assetChan := make(chan struct {
+		OriginalURL string
+		NewURL      string
+	}, len(urlMap))
+	lo.ForEach(lo.Entries(urlMap), func(u lo.Entry[string, string], i int) {
+		eg.Go(func() error {
+			if err := redis.AcquireLock(ctx, u.Value, 3*time.Minute); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("url", u.Value).Error("failed to acquire asset lock")
 			} else {
-				res, err := io.ReadAll(response.Body)
-				if err != nil {
-					return nil, errors.Wrap(err, "failed to read response body")
-				}
-
-				r := bytes.NewReader(res)
-				hasher := sha256.New()
-				if _, err := io.Copy(hasher, r); err != nil {
-					return nil, errors.Wrap(err, "error hashing response body")
-				}
-
-				_, err = r.Seek(0, 0)
-				if err != nil {
-					return nil, errors.Wrap(err, "error seeking to beginning of reader")
-				}
-				hashVal = base64.StdEncoding.EncodeToString(hasher.Sum(nil))
-				hashVal = strings.ReplaceAll(hashVal, "/", "-")
-				hashVal = strings.ReplaceAll(hashVal, "+", "_")
-				hashVal = strings.ReplaceAll(hashVal, "=", "~")
-				contentType := response.Header.Get("Content-Type")
-				err = s.UploadAsset(ctx, strconv.Itoa(projectId)+"/"+hashVal, contentType, r)
-				if err != nil {
-					return nil, errors.Wrap(err, "error uploading asset")
-				}
-				newResults = append(newResults, model.SavedAsset{
-					ProjectID:   projectId,
-					OriginalUrl: url,
-					Date:        dateTrunc,
-					HashVal:     hashVal,
-				})
+				defer func() {
+					if err := redis.ReleaseLock(ctx, u.Value); err != nil {
+						log.WithContext(ctx).WithError(err).WithField("url", u.Value).Error("failed to release asset lock")
+					}
+				}()
 			}
-		}
+			var hashVal string
+			result, ok := resultMap[u.Value]
+			if ok {
+				hashVal = result.HashVal
+			} else {
+				response, err := http.Get(u.Key)
+				if err != nil {
+					hashVal = ErrFailedToFetch
+				} else if response.ContentLength > MaxAssetSize {
+					hashVal = ErrAssetTooLarge
+				} else {
+					dir, err := os.MkdirTemp("", "asset-*")
+					if err != nil {
+						return errors.Wrap(err, "failed to create temp directory")
+					}
 
-		if len(newResults) != 0 {
-			if err := db.Clauses(clause.OnConflict{DoNothing: true}).Create(&newResults).Error; err != nil {
-				return nil, errors.Wrap(err, "error saving asset metadata")
+					file, err := os.Create(filepath.Join(dir, "asset"))
+					if err != nil {
+						return errors.Wrap(err, "failed to create asset file")
+					}
+
+					defer func(file *os.File) {
+						_ = file.Close()
+						_ = os.RemoveAll(dir)
+					}(file)
+					_, err = io.Copy(file, response.Body)
+					if err != nil {
+						return errors.Wrap(err, "failed to write asset to file")
+					}
+
+					_, err = file.Seek(0, io.SeekStart)
+					if err != nil {
+						return errors.Wrap(err, "failed to seek asset file")
+					}
+
+					hasher := sha256.New()
+					if _, err := io.Copy(hasher, file); err != nil {
+						return errors.Wrap(err, "error hashing response body")
+					}
+
+					_, err = file.Seek(0, io.SeekStart)
+					if err != nil {
+						return errors.Wrap(err, "failed to seek asset file")
+					}
+
+					hashVal = base64.StdEncoding.EncodeToString(hasher.Sum(nil))
+					hashVal = strings.ReplaceAll(hashVal, "/", "-")
+					hashVal = strings.ReplaceAll(hashVal, "+", "_")
+					hashVal = strings.ReplaceAll(hashVal, "=", "~")
+					contentType := response.Header.Get("Content-Type")
+					err = s.UploadAsset(ctx, strconv.Itoa(projectId)+"/"+hashVal, contentType, file)
+					if err != nil {
+						return errors.Wrap(err, "error uploading asset")
+					}
+					result = model.SavedAsset{
+						ProjectID:   projectId,
+						OriginalUrl: u.Value,
+						Date:        dateTrunc,
+						HashVal:     hashVal,
+					}
+					if err := db.Clauses(clause.OnConflict{DoNothing: true}).Create(&result).Error; err != nil {
+						return errors.Wrap(err, "error saving asset metadata")
+					}
+				}
 			}
-		}
 
-		var newUrl string
-		if hashVal == ErrAssetTooLarge || hashVal == ErrAssetSizeUnknown || hashVal == ErrFailedToFetch {
-			newUrl = hashVal
-		} else {
-			newUrl = fmt.Sprintf("%s/assets/%d/%s", PrivateGraphBasePath, projectId, hashVal)
-		}
-		replacements[url] = newUrl
+			var newUrl string
+			if hashVal == ErrAssetTooLarge || hashVal == ErrAssetSizeUnknown || hashVal == ErrFailedToFetch {
+				newUrl = hashVal
+			} else {
+				newUrl = fmt.Sprintf("%s/assets/%d/%s", PrivateGraphBasePath, projectId, hashVal)
+			}
+			assetChan <- struct {
+				OriginalURL string
+				NewURL      string
+			}{OriginalURL: u.Key, NewURL: newUrl}
+			return nil
+		})
+	})
+
+	if err := eg.Wait(); err != nil {
+		return nil, err
 	}
+	close(assetChan)
 
-	return
+	replacements := map[string]string{}
+	for v := range assetChan {
+		replacements[v.OriginalURL] = v.NewURL
+	}
+	return replacements, nil
 }
 
 func getUrlsInSrcset(projectId int, srcsetText string, replacements map[string]string) (newText string, urls []string) {
@@ -538,9 +630,12 @@ lexerLoop:
 	return
 }
 
-func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, db *gorm.DB) error {
+func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, db *gorm.DB, redis *redis.Client) error {
 	urls := getAssetUrlsFromTree(ctx, projectId, s.data, map[string]string{})
-	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, db)
+	span, _ := tracer.StartSpanFromContext(ctx, "event-parse.parse.ReplaceAssets", tracer.ResourceName("getOrCreateUrls"), tracer.Tag("project_id", projectId))
+	span.SetTag("numberOfURLs", len(urls))
+	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, db, redis)
+	span.Finish(tracer.WithError(err))
 	if err != nil {
 		return errors.Wrap(err, "error creating replacement urls")
 	}

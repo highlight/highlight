@@ -1,5 +1,6 @@
 import 'firebase/compat/auth'
 
+import { ApolloError } from '@apollo/client'
 import { useAuthContext } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { Header } from '@components/Header/Header'
@@ -9,12 +10,13 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
-import { ErrorObject } from '@graph/schemas'
+import { ErrorObject, Maybe, Project, Workspace } from '@graph/schemas'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
 import {
 	PlayerUIContextProvider,
 	RightPanelView,
+	RightPlayerTab,
 } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
@@ -24,10 +26,11 @@ import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalCont
 import WithErrorSearchContext from '@routers/ProjectRouter/WithErrorSearchContext'
 import WithSessionSearchContext from '@routers/ProjectRouter/WithSessionSearchContext'
 import { auth } from '@util/auth'
+import { setIndexedDBEnabled } from '@util/db'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useDialogState } from 'ariakit/dialog'
 import clsx from 'clsx'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
@@ -59,14 +62,17 @@ export const ProjectRouter = () => {
 	const clientIntegration = useClientIntegration()
 	const serverIntegration = useServerIntegration()
 	const logsIntegration = useLogsIntegration()
-	const integrated =
-		clientIntegration.integrated ||
-		serverIntegration.integrated ||
-		logsIntegration.integrated
 	const fullyIntegrated =
 		clientIntegration.integrated &&
 		serverIntegration.integrated &&
 		logsIntegration.integrated
+
+	// disable indexedDB for 5403
+	useEffect(() => {
+		if (projectId === '5403') {
+			setIndexedDBEnabled(false)
+		}
+	}, [projectId])
 
 	useEffect(() => {
 		const uri =
@@ -157,9 +163,11 @@ export const ProjectRouter = () => {
 		NetworkResource | undefined
 	>(undefined)
 
-	const [selectedRightPanelTab, setSelectedRightPanelTab] = useLocalStorage<
-		'Events' | 'Threads' | 'Metadata'
-	>('tabs-PlayerRightPanel-active-tab', 'Events')
+	const [selectedRightPanelTab, setSelectedRightPanelTab] =
+		useLocalStorage<RightPlayerTab>(
+			'tabs-PlayerRightPanel-active-tab',
+			'Events',
+		)
 
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
@@ -231,32 +239,12 @@ export const ProjectRouter = () => {
 													},
 												)}
 											>
-												{/* Edge case: shareable links will still direct to this error page if you are logged in on a different project */}
-												{isLoggedIn &&
-												joinableWorkspace ? (
-													<ErrorState
-														shownWithHeader
-														joinableWorkspace={
-															joinableWorkspace
-														}
-													/>
-												) : isLoggedIn &&
-												  (error || !data?.project) ? (
-													<ErrorState
-														title="Enter this Workspace?"
-														message={
-															`Sadly, you don’t have access to the workspace 😢 ` +
-															`Request access and we'll shoot an email to your workspace admin. ` +
-															`Alternatively, feel free to make an account!`
-														}
-														shownWithHeader
-														showRequestAccess
-													/>
-												) : (
-													<ApplicationRouter
-														integrated={integrated}
-													/>
-												)}
+												<ApplicationOrError
+													error={error}
+													joinableWorkspace={
+														joinableWorkspace
+													}
+												/>
 											</div>
 										</>
 									}
@@ -268,4 +256,54 @@ export const ProjectRouter = () => {
 			</ApplicationContextProvider>
 		</GlobalContextProvider>
 	)
+}
+
+type JoinableWorkspace = Maybe<
+	{
+		__typename?: 'Workspace' | undefined
+	} & Pick<Workspace, 'id' | 'name'> & {
+			projects: Maybe<
+				{
+					__typename?: 'Project' | undefined
+				} & Pick<Project, 'id'>
+			>[]
+		}
+>
+
+function ApplicationOrError({
+	joinableWorkspace,
+	error,
+}: {
+	error: ApolloError | undefined
+	joinableWorkspace: JoinableWorkspace | undefined
+}) {
+	const { isLoggedIn } = useAuthContext()
+
+	// Edge case: shareable links will still direct to this error page if you are logged in on a different project
+	switch (true) {
+		case isLoggedIn && !!joinableWorkspace:
+			return (
+				<ErrorState
+					shownWithHeader
+					joinableWorkspace={joinableWorkspace}
+				/>
+			)
+
+		case isLoggedIn && !!error:
+			return (
+				<ErrorState
+					title="Enter this Workspace?"
+					message={
+						`Sadly, you don’t have access to the workspace 😢 ` +
+						`Request access and we'll shoot an email to your workspace admin. ` +
+						`Alternatively, feel free to make an account!`
+					}
+					shownWithHeader
+					showRequestAccess
+				/>
+			)
+
+		default:
+			return <ApplicationRouter />
+	}
 }

@@ -39,7 +39,7 @@ export const uploadSourcemaps = async ({
     api_key: apiKey,
   };
 
-  const res = await fetch("https://pri.highlight.run", {
+  const res = await fetch("https://pri.highlight.io", {
     method: "post",
     headers: {
       "Content-Type": "application/json",
@@ -85,7 +85,7 @@ export const uploadSourcemaps = async ({
     getS3Key(organizationId, appVersion, basePath, name)
   );
 
-  const urlRes = await fetch("https://pri.highlight.run", {
+  const urlRes = await fetch("https://pri.highlight.io", {
     method: "post",
     headers: {
       "Content-Type": "application/json",

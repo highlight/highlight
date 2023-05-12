@@ -5,7 +5,10 @@ import { DatePicker } from './Calendar/DatePicker'
 import { Text } from '../Text/Text'
 import { Stack } from '../Stack/Stack'
 import { Box } from '../Box/Box'
-import { Preset, PreviousDateRangePicker } from './PreviousDateRangePicker'
+import {
+	PreviousDateRangePicker,
+	makeDefaultPresets,
+} from './PreviousDateRangePicker'
 import { subtractDays, subtractHours } from './utils'
 
 export default {
@@ -15,24 +18,9 @@ export default {
 
 const now = new Date()
 
-const presets: Preset[] = [
-	{
-		label: 'Last 4 hours',
-		startDate: subtractHours(now, 4),
-	},
-	{
-		label: 'Last 12 hours',
-		startDate: subtractHours(now, 12),
-	},
-	{
-		label: 'Last 24 hours',
-		startDate: subtractHours(now, 24),
-	},
-	{
-		label: 'Last 3 days',
-		startDate: subtractDays(now, 3),
-	},
-]
+const defaultPresets = makeDefaultPresets(now)
+
+export { subtractDays, subtractHours } from './utils'
 
 export const Basic = () => {
 	const [selectedDates, onDatesChange] = useState<Date[]>([
@@ -59,7 +47,7 @@ export const Basic = () => {
 			<PreviousDateRangePicker
 				selectedDates={selectedDates}
 				onDatesChange={onDatesChange}
-				presets={presets}
+				presets={defaultPresets}
 				minDate={subtractDays(now, 90)}
 			/>
 		</div>

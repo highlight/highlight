@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/phonehome"
+	"github.com/highlight-run/highlight/backend/stacktraces"
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/PaesslerAG/jsonpath"
@@ -35,8 +36,8 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	"github.com/highlight-run/highlight/backend/email"
-	"github.com/highlight-run/highlight/backend/errors"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
+	stats "github.com/highlight-run/highlight/backend/hlog"
 	highlightHubspot "github.com/highlight-run/highlight/backend/hubspot"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
@@ -465,7 +466,7 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 	return nil
 }
 
-func (r *Resolver) getIncrementedEnvironmentCount(ctx context.Context, errorGroup *model.ErrorGroup, errorObj *model.ErrorObject) string {
+func getIncrementedEnvironmentCount(ctx context.Context, errorGroup *model.ErrorGroup, errorObj *model.ErrorObject) string {
 	environmentsMap := make(map[string]int)
 	if errorGroup.Environments != "" {
 		err := json.Unmarshal([]byte(errorGroup.Environments), &environmentsMap)
@@ -505,7 +506,7 @@ func (r *Resolver) GetErrorAppVersion(errorObj *model.ErrorObject) *string {
 func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []privateModel.ErrorTrace, error) {
 	version := r.GetErrorAppVersion(errorObj)
 	var newMappedStackTraceString *string
-	mappedStackTrace, err := errors.EnhanceStackTrace(ctx, stackTrace, projectID, version, r.StorageClient)
+	mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, stackTrace, projectID, version, r.StorageClient)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "error object: %+v", errorObj))
 	} else {
@@ -519,7 +520,7 @@ func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*
 	return newMappedStackTraceString, mappedStackTrace, nil
 }
 
-func (r *Resolver) normalizeStackTraceString(stackTraceString string) string {
+func normalizeStackTraceString(stackTraceString string) string {
 	var stackTraceSlice []string
 	if err := json.Unmarshal([]byte(stackTraceString), &stackTraceSlice); err != nil {
 		return ""
@@ -576,48 +577,7 @@ func joinIntPtrs(ptrs ...*int) string {
 	return sb.String()
 }
 
-func (r *Resolver) GetOrCreateErrorGroupOld(errorObj *model.ErrorObject, stackTraceString string) (*model.ErrorGroup, error) {
-	errorGroup := &model.ErrorGroup{}
-
-	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
-	// If it doesn't exist, we create a new error group.
-	if err := r.DB.Where(&model.ErrorGroup{
-		ProjectID: errorObj.ProjectID,
-		Event:     errorObj.Event,
-		Type:      errorObj.Type,
-	}).First(&errorGroup).Error; err != nil {
-		newErrorGroup := &model.ErrorGroup{
-			ProjectID:  errorObj.ProjectID,
-			Event:      errorObj.Event,
-			StackTrace: stackTraceString,
-			Type:       errorObj.Type,
-			State:      privateModel.ErrorStateOpen.String(),
-			Fields:     []*model.ErrorField{},
-		}
-		if err := r.DB.Create(newErrorGroup).Error; err != nil {
-			return nil, e.Wrap(err, "Error creating new error group")
-		}
-
-		opensearchErrorGroup := &model.ErrorGroup{
-			Model:     newErrorGroup.Model,
-			SecureID:  newErrorGroup.SecureID,
-			ProjectID: errorObj.ProjectID,
-			Event:     errorObj.Event,
-			Type:      errorObj.Type,
-			State:     privateModel.ErrorStateOpen.String(),
-			Fields:    []*model.ErrorField{},
-		}
-		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(newErrorGroup.ID), pointy.Int(0), opensearchErrorGroup); err != nil {
-			return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
-		}
-
-		errorGroup = newErrorGroup
-	}
-
-	return errorGroup, nil
-}
-
-func (r *Resolver) GetOrCreateErrorGroup(errorObj *model.ErrorObject, fingerprints []*model.ErrorFingerprint, stackTraceString string) (*model.ErrorGroup, error) {
+func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, fingerprints []*model.ErrorFingerprint, stackTraceString string) (*model.ErrorGroup, error) {
 	match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
 	if err != nil {
 		return nil, e.Wrap(err, "Error getting top error group match")
@@ -646,7 +606,7 @@ func (r *Resolver) GetOrCreateErrorGroup(errorObj *model.ErrorObject, fingerprin
 			State:     privateModel.ErrorStateOpen.String(),
 			Fields:    []*model.ErrorField{},
 		}
-		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(newErrorGroup.ID), pointy.Int(0), opensearchErrorGroup); err != nil {
+		if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexErrorsCombined, newErrorGroup.ID, opensearchErrorGroup); err != nil {
 			return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 		}
 
@@ -706,6 +666,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 	if projectID == 356 {
 		return nil, nil
 	}
+	start := time.Now()
 	if err := r.DB.Raw(`
 		WITH json_results AS (
 			SELECT CAST(value as VARCHAR), (2 ^ ordinality) * 1000 as score
@@ -765,6 +726,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
 	}
+	stats.Histogram("GetTopErrorGroupMatch.groupSQL.durationMs", float64(time.Since(start).Milliseconds()), nil, 1)
 
 	minScore := 10 + len(restMeta) - 1
 	if len(restCode) > len(restMeta) {
@@ -785,8 +747,8 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	if errorObj == nil {
 		return nil, e.New("error object was nil")
 	}
-	if errorObj.Event == "" || errorObj.Event == "<nil>" {
-		return nil, e.New("error object event was nil or empty")
+	if errorObj.Event == "" {
+		return nil, e.New("error object event was empty")
 	}
 
 	if projectID == 1 {
@@ -867,8 +829,8 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			// Forward these errors to another project that Highlight owns to help debug: https://app.highlight.run/715/errors
 			errorObj.ProjectID = 715
 		}
-		if len(stackTrace) > errors.ERROR_STACK_MAX_FRAME_COUNT {
-			stackTrace = stackTrace[:errors.ERROR_STACK_MAX_FRAME_COUNT]
+		if len(stackTrace) > stacktraces.ERROR_STACK_MAX_FRAME_COUNT {
+			stackTrace = stackTrace[:stacktraces.ERROR_STACK_MAX_FRAME_COUNT]
 		}
 		firstFrameBytes, err := json.Marshal(stackTrace)
 		if err != nil {
@@ -876,13 +838,11 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}
 
 		stackTraceString = string(firstFrameBytes)
-	} else if stackTraceString != "<nil>" {
+	} else {
 		// If stackTraceString was passed in, try to normalize it
-		if t := r.normalizeStackTraceString(stackTraceString); t != "" {
+		if t := normalizeStackTraceString(stackTraceString); t != "" {
 			stackTraceString = t
 		}
-	} else if stackTraceString == "<nil>" {
-		return nil, e.New(`stackTrace slice was empty and stack trace string was equal to "<nil>"`)
 	}
 
 	// If stackTrace is non-nil, do the source mapping; else, MappedStackTrace will not be set on the ErrorObject
@@ -953,8 +913,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 
 	var errorGroup *model.ErrorGroup
 	var err error
-	// New error grouping logic is gated by project_id 1 for now
-	errorGroup, err = r.GetOrCreateErrorGroup(errorObj, fingerprints, stackTraceString)
+	errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, fingerprints, stackTraceString)
 	if err != nil {
 		return nil, e.Wrap(err, "Error getting top error group match")
 	}
@@ -975,7 +934,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
-	environmentsString := r.getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
+	environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
 
 	if err := r.AppendErrorFields(fields, errorGroup); err != nil {
 		return nil, e.Wrap(err, "error appending error fields")
@@ -1253,6 +1212,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	deviceDetails := GetDeviceDetails(input.UserAgent)
 	n := time.Now()
+	excludedReason := privateModel.SessionExcludedReasonInitializing
 	session := &model.Session{
 		SecureID: input.SessionSecureID,
 		Model: model.Model{
@@ -1281,7 +1241,8 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		LastUserInteractionTime:        time.Now(),
 		ViewedByAdmins:                 []model.Admin{},
 		ClientID:                       input.ClientID,
-		Excluded:                       &model.T, // A session is excluded by default until it receives events
+		Excluded:                       true, // A session is excluded by default until it receives events
+		ExcludedReason:                 &excludedReason,
 		ProcessWithRedis:               true,
 		AvoidPostgresStorage:           true,
 	}
@@ -1547,7 +1508,7 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *s
 						Name:     "backend_setup",
 						Property: "backend_setup",
 						Value:    true,
-					}}, r.DB); err != nil {
+					}}); err != nil {
 						log.WithContext(ctx).Errorf("failed to update hubspot")
 					}
 				}
@@ -2421,7 +2382,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	// Filter out empty errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
-		if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
+		if isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
 			continue
 		}
 		filteredErrors = append(filteredErrors, errorObject)
@@ -2784,12 +2745,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						log.WithContext(ctx).Error(e.Wrap(err, "Error escaping snapshot javascript"))
 					}
 
-					// Gated for projectID == 1, replace any static resources with our own, hosted in S3
-					// This gate will be removed in the future
-					if projectID == 1 {
+					// Replace any static resources with our own, hosted in S3
+					if projectID == 1 || projectID == 1031 || projectID == 1344 || projectID == 5378 || projectID == 5403 {
 						assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
-							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID))
-						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB)
+							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID), tracer.Tag("session_secure_id", sessionSecureID))
+						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB, r.Redis)
 						assetsSpan.Finish()
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
@@ -2921,7 +2881,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		// filter out empty errors
 		seenEvents := map[string]*publicModel.ErrorObjectInput{}
 		for _, errorObject := range errors {
-			if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
+			if isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
 				continue
 			}
 			seenEvents[errorObject.Event] = errorObject
@@ -3037,6 +2997,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	updateSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
 	defer updateSpan.Finish()
+
+	excluded, reason := r.isSessionExcluded(ctx, sessionObj, sessionHasErrors)
+
 	// Update only if any of these fields are changing
 	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
 	doUpdate := sessionObj.PayloadUpdatedAt == nil ||
@@ -3046,29 +3009,33 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		(sessionObj.Processed != nil && *sessionObj.Processed) ||
 		(sessionObj.ObjectStorageEnabled != nil && *sessionObj.ObjectStorageEnabled) ||
 		(sessionObj.Chunked != nil && *sessionObj.Chunked) ||
-		(sessionObj.Excluded != nil && *sessionObj.Excluded) ||
 		(sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors))
 
-	if doUpdate {
-		fieldsToUpdate := model.Session{
-			PayloadUpdatedAt: &now, BeaconTime: beaconTime, HasUnloaded: hasSessionUnloaded, Processed: &model.F, ObjectStorageEnabled: &model.F, DirectDownloadEnabled: false, Chunked: &model.F, Excluded: &model.F,
+	if doUpdate && !excluded {
+		// By default, GORM will not update non-zero fields. This is undesirable for boolean columns.
+		// By explicitly specifying the columns to update, we can override the behavior.
+		// See https://gorm.io/docs/update.html#Updates-multiple-columns
+		if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+			Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded", "ExcludedReason", "HasErrors").
+			Updates(&model.Session{
+				PayloadUpdatedAt:      &now,
+				BeaconTime:            beaconTime,
+				HasUnloaded:           hasSessionUnloaded,
+				Processed:             &model.F,
+				ObjectStorageEnabled:  &model.F,
+				DirectDownloadEnabled: false,
+				Chunked:               &model.F,
+				Excluded:              false,
+				ExcludedReason:        nil,
+				HasErrors:             &sessionHasErrors,
+			}).Error; err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error updating session"))
+			return err
 		}
-
-		// We only want to update the `HasErrors` field if the session has errors.
-		if sessionHasErrors {
-			fieldsToUpdate.HasErrors = &model.T
-
-			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded", "HasErrors").
-				Updates(&fieldsToUpdate).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error updating session payload time and beacon time with errors"))
-				return err
-			}
-		} else {
-			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
-				Select("PayloadUpdatedAt", "BeaconTime", "HasUnloaded", "Processed", "ObjectStorageEnabled", "Chunked", "DirectDownloadEnabled", "Excluded").
-				Updates(&fieldsToUpdate).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error updating session payload time and beacon time"))
+	} else if excluded {
+		// Only update the excluded reason if it has changed
+		if sessionObj.ExcludedReason != reason {
+			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ExcludedReason", reason).Error; err != nil {
 				return err
 			}
 		}
@@ -3078,8 +3045,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// in OpenSearch so that it's treated as a live session again.
 	// If the session was previously excluded (as we do with new sessions by default),
 	// clear it so it is shown as live in OpenSearch since we now have data for it.
-	if (sessionObj.Processed != nil && *sessionObj.Processed) ||
-		(sessionObj.Excluded != nil && *sessionObj.Excluded) {
+	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
 		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"processed":  false,
 			"Excluded":   false,
@@ -3101,7 +3067,74 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	return nil
 }
 
-func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {
+func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sessionHasErrors bool) (bool, *privateModel.SessionExcludedReason) {
+	var excluded bool
+	var reason privateModel.SessionExcludedReason
+
+	var project model.Project
+	if err := r.DB.Raw("SELECT * FROM projects WHERE id = ?;", s.ProjectID).Scan(&project).Error; err != nil {
+		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier}).Errorf("error fetching project for session: %v", err)
+		return false, nil
+	}
+
+	if r.isSessionUserExcluded(ctx, s, project) {
+		excluded = true
+		reason = privateModel.SessionExcludedReasonIgnoredUser
+	}
+
+	if r.isSessionExcludedForNoError(ctx, s, project, sessionHasErrors) {
+		excluded = true
+		reason = privateModel.SessionExcludedReasonNoError
+	}
+
+	return excluded, &reason
+}
+
+func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
+	projectFilterSettings := model.ProjectFilterSettings{}
+
+	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
+
+	if projectFilterSettings.FilterSessionsWithoutError {
+		return !sessionHasErrors
+	}
+
+	return false
+}
+
+func (r *Resolver) isSessionUserExcluded(ctx context.Context, s *model.Session, project model.Project) bool {
+	if project.ExcludedUsers == nil {
+		return false
+	}
+	var email string
+	if s.UserProperties != "" {
+		encodedProperties := []byte(s.UserProperties)
+		decodedProperties := map[string]string{}
+		err := json.Unmarshal(encodedProperties, &decodedProperties)
+		if err != nil {
+			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("Could not unmarshal user properties: %s, error: %v", s.UserProperties, err)
+			return false
+		}
+		email = decodedProperties["email"]
+	}
+	for _, value := range []string{s.Identifier, email} {
+		if value == "" {
+			continue
+		}
+		for _, excludedExpr := range project.ExcludedUsers {
+			matched, err := regexp.MatchString(excludedExpr, value)
+			if err != nil {
+				log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Errorf("error running regexp for excluded users: %s with value: %s, error: %v", excludedExpr, value, err.Error())
+				return false
+			} else if matched {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {
 	if errorEvent == "[{}]" {
 		log.WithContext(ctx).
 			WithField("project_id", projectID).

@@ -6,7 +6,7 @@ updatedAt: 2022-01-27T19:51:23.000Z
 ---
 
 ```hint
-Proxying is only available starting on our [Startup tier](https://www.highlight.run/pricing). If you would like use this, you will need to reach out to <support@highlight.run>.
+Proxying is only available starting on our [Startup tier](https://www.highlight.io/pricing). If you would like use this, you will need to reach out to <support@highlight.run>.
 
 
 ```
@@ -17,7 +17,7 @@ One way we can avoid this is by setting up proxy from your domain to Highlight. 
 
 ## Setting up the proxy
 
-1.  Upgrade to the Startup Tier [https://www.highlight.run/pricing](https://www.highlight.run/pricing)
+1.  Upgrade to the Startup Tier [https://www.highlight.io/pricing](https://www.highlight.io/pricing)
 
 2.  On your domain, add a `CNAME` record that points `highlight.<YOUR_DOMAIN>` to `pub.highlight.run`
 

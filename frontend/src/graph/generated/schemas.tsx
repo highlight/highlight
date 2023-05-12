@@ -897,6 +897,7 @@ export type Mutation = {
 	deleteSessions: Scalars['Boolean']
 	editErrorSegment?: Maybe<Scalars['Boolean']>
 	editProject?: Maybe<Project>
+	editProjectFilterSettings?: Maybe<ProjectFilterSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
 	editWorkspace?: Maybe<Workspace>
 	emailSignup: Scalars['String']
@@ -1170,6 +1171,11 @@ export type MutationEditProjectArgs = {
 	rage_click_count?: InputMaybe<Scalars['Int']>
 	rage_click_radius_pixels?: InputMaybe<Scalars['Int']>
 	rage_click_window_seconds?: InputMaybe<Scalars['Int']>
+}
+
+export type MutationEditProjectFilterSettingsArgs = {
+	filterSessionsWithoutError: Scalars['Boolean']
+	projectId: Scalars['ID']
 }
 
 export type MutationEditSegmentArgs = {
@@ -1521,6 +1527,12 @@ export type Project = {
 	workspace_id: Scalars['ID']
 }
 
+export type ProjectFilterSettings = {
+	__typename?: 'ProjectFilterSettings'
+	filterSessionsWithoutError: Scalars['Boolean']
+	id: Scalars['ID']
+}
+
 export type Query = {
 	__typename?: 'Query'
 	account_details: AccountDetails
@@ -1610,6 +1622,7 @@ export type Query = {
 	new_user_alerts?: Maybe<Array<Maybe<SessionAlert>>>
 	oauth_client_metadata?: Maybe<OAuthClient>
 	project?: Maybe<Project>
+	projectFilterSettings?: Maybe<ProjectFilterSettings>
 	projectHasViewedASession?: Maybe<Session>
 	projectSuggestion: Array<Maybe<Project>>
 	projects?: Maybe<Array<Maybe<Project>>>
@@ -2046,6 +2059,10 @@ export type QueryProjectArgs = {
 	id: Scalars['ID']
 }
 
+export type QueryProjectFilterSettingsArgs = {
+	projectId: Scalars['ID']
+}
+
 export type QueryProjectHasViewedASessionArgs = {
 	project_id: Scalars['ID']
 }
@@ -2371,7 +2388,7 @@ export type Session = {
 	enable_strict_privacy?: Maybe<Scalars['Boolean']>
 	environment?: Maybe<Scalars['String']>
 	event_counts?: Maybe<Scalars['String']>
-	excluded?: Maybe<Scalars['Boolean']>
+	excluded: Scalars['Boolean']
 	field_group?: Maybe<Scalars['String']>
 	fields?: Maybe<Array<Maybe<Field>>>
 	fingerprint?: Maybe<Scalars['Int']>
@@ -2382,7 +2399,7 @@ export type Session = {
 	id: Scalars['ID']
 	identified: Scalars['Boolean']
 	identifier: Scalars['String']
-	is_public?: Maybe<Scalars['Boolean']>
+	is_public: Scalars['Boolean']
 	language: Scalars['String']
 	last_user_interaction_time: Scalars['Timestamp']
 	length?: Maybe<Scalars['Int']>
@@ -2485,6 +2502,14 @@ export type SessionCommentTagInput = {
 export enum SessionCommentType {
 	Admin = 'Admin',
 	Feedback = 'FEEDBACK',
+}
+
+export enum SessionExcludedReason {
+	IgnoredUser = 'IgnoredUser',
+	Initializing = 'Initializing',
+	NoActivity = 'NoActivity',
+	NoError = 'NoError',
+	NoUserInteractionEvents = 'NoUserInteractionEvents',
 }
 
 export type SessionInterval = {

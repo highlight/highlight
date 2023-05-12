@@ -25,16 +25,14 @@ const CacheKeyHubspotCompanies = "hubspot-companies"
 
 type Client struct {
 	redisClient redis.Cmdable
-	redisCache  *cache.Cache
+	Cache       *cache.Cache
 }
+
+const LockPollInterval = 100 * time.Millisecond
 
 var (
 	ServerAddr = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
 )
-
-func UseRedis(projectId int, sessionSecureId string) bool {
-	return true
-}
 
 func EventsKey(sessionId int) string {
 	return fmt.Sprintf("events-%d", sessionId)
@@ -76,7 +74,7 @@ func NewClient() *Client {
 
 		return &Client{
 			redisClient: client,
-			redisCache: cache.New(&cache.Options{
+			Cache: cache.New(&cache.Options{
 				Redis:      client,
 				LocalCache: cache.NewTinyLFU(1000, time.Minute),
 			}),
@@ -114,7 +112,7 @@ func NewClient() *Client {
 		}()
 		return &Client{
 			redisClient: c,
-			redisCache: cache.New(&cache.Options{
+			Cache: cache.New(&cache.Options{
 				Redis:      c,
 				LocalCache: cache.NewTinyLFU(1000, time.Minute),
 			}),
@@ -423,11 +421,11 @@ func (r *Client) SetLastLogTimestamp(ctx context.Context, projectId int, timesta
 func (r *Client) SetHubspotCompanies(ctx context.Context, companies interface{}) error {
 	span, _ := tracer.StartSpanFromContext(ctx, "redis.cache.SetHubspotCompanies")
 	defer span.Finish()
-	if err := r.redisCache.Set(&cache.Item{
+	if err := r.Cache.Set(&cache.Item{
 		Ctx:   ctx,
 		Key:   CacheKeyHubspotCompanies,
 		Value: companies,
-		TTL:   5 * time.Minute,
+		TTL:   time.Minute,
 	}); err != nil {
 		span.Finish(tracer.WithError(err))
 		return err
@@ -437,7 +435,31 @@ func (r *Client) SetHubspotCompanies(ctx context.Context, companies interface{})
 
 func (r *Client) GetHubspotCompanies(ctx context.Context, companies interface{}) (err error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "redis.cache.GetHubspotCompanies")
-	err = r.redisCache.Get(ctx, CacheKeyHubspotCompanies, companies)
+	err = r.Cache.Get(ctx, CacheKeyHubspotCompanies, companies)
 	span.Finish(tracer.WithError(err))
 	return
+}
+
+func (r *Client) AcquireLock(ctx context.Context, key string, timeout time.Duration) (err error) {
+	start := time.Now()
+	for {
+		if time.Since(start) > timeout {
+			break
+		}
+		cmd := r.redisClient.SetArgs(ctx, key, "1", redis.SetArgs{
+			TTL:  timeout,
+			Mode: "NX",
+			Get:  true,
+		})
+		// error means value is not set
+		if cmd.Err() != nil {
+			return nil
+		}
+		time.Sleep(LockPollInterval)
+	}
+	return errors.New("timed out acquiring lock")
+}
+
+func (r *Client) ReleaseLock(ctx context.Context, key string) (err error) {
+	return r.redisClient.Del(ctx, key).Err()
 }

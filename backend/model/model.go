@@ -191,6 +191,7 @@ var Models = []interface{}{
 	&SessionAdminsView{},
 	&ErrorGroupAdminsView{},
 	&LogAdminsView{},
+	&ProjectFilterSettings{},
 }
 
 func init() {
@@ -366,6 +367,12 @@ type SetupEvent struct {
 	CreatedAt time.Time            `json:"created_at" deep:"-"`
 	ProjectID int                  `gorm:"uniqueIndex:idx_project_id_type"`
 	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
+}
+type ProjectFilterSettings struct {
+	Model
+	Project                    *Project
+	ProjectID                  int
+	FilterSessionsWithoutError bool `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -565,14 +572,14 @@ type Session struct {
 	// The ID used publicly for the URL on the client; used for sharing
 	SecureID string `json:"secure_id" gorm:"uniqueIndex;not null;default:secure_id_generator()"`
 	// For associating unidentified sessions with a user after identification
-	ClientID string `json:"client_id" gorm:"index:idx_client_project,option:CONCURRENTLY;not null;default:''"`
+	ClientID string `json:"client_id" gorm:"not null;default:''"`
 	// Whether a session has been identified.
 	Identified  bool `json:"identified" gorm:"default:false;not null"`
 	Fingerprint int  `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
 	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
-	ProjectID      int    `json:"project_id" gorm:"index:idx_client_project,option:CONCURRENTLY"`
+	ProjectID      int    `json:"project_id"`
 	// Location data based off user ip (see InitializeSession)
 	City      string  `json:"city"`
 	State     string  `json:"state"`
@@ -600,7 +607,7 @@ type Session struct {
 	ActiveLength   int64    `json:"active_length"`
 	Fields         []*Field `json:"fields" gorm:"many2many:session_fields;"`
 	Environment    string   `json:"environment"`
-	AppVersion     *string  `json:"app_version" gorm:"index"`
+	AppVersion     *string  `json:"app_version"`
 	UserObject     JSONB    `json:"user_object" sql:"type:jsonb"`
 	UserProperties string   `json:"user_properties"`
 	// Whether this is the first session created by this user.
@@ -616,15 +623,15 @@ type Session struct {
 	EnableStrictPrivacy            *bool   `json:"enable_strict_privacy"`
 	EnableRecordingNetworkContents *bool   `json:"enable_recording_network_contents"`
 	// The version of Highlight's Client.
-	ClientVersion string `json:"client_version" gorm:"index"`
+	ClientVersion string `json:"client_version"`
 	// The version of Highlight's Firstload.
-	FirstloadVersion string `json:"firstload_version" gorm:"index"`
+	FirstloadVersion string `json:"firstload_version"`
 	// The client configuration that the end-user sets up. This is used for debugging purposes.
 	ClientConfig *string `json:"client_config" sql:"type:jsonb"`
 	// Determines whether this session should be viewable. This enforces billing.
-	WithinBillingQuota *bool `json:"within_billing_quota" gorm:"index;default:true"` // index? probably.
+	WithinBillingQuota *bool `json:"within_billing_quota" gorm:"default:true"`
 	// Used for shareable links. No authentication is needed if IsPublic is true
-	IsPublic *bool `json:"is_public" gorm:"default:false"`
+	IsPublic bool `json:"is_public" gorm:"default:false"`
 	// EventCounts is a len()=100 slice that contains the count of events for the session normalized over 100 points
 	EventCounts *string
 	// Number of pages visited during a session
@@ -638,7 +645,8 @@ type Session struct {
 	VerboseID             string  `json:"verbose_id"`
 
 	// Excluded will be true when we would typically have deleted the session
-	Excluded *bool `gorm:"default:false"`
+	Excluded       bool `gorm:"default:false"`
+	ExcludedReason *modelInputs.SessionExcludedReason
 
 	// Lock is the timestamp at which a session was locked
 	// - when selecting sessions, ignore Locks that are > 10 minutes old

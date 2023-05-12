@@ -4,6 +4,8 @@ import { isProjectWithinTrial } from '@util/billing/billing'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 
+import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+
 import ButtonLink from '../../Button/ButtonLink/ButtonLink'
 import styles from './LimitedSessionsCard.module.scss'
 
@@ -13,7 +15,7 @@ const LimitedSessionCard = () => {
 	}>()
 	const { data } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: project_id! },
-		skip: !project_id,
+		skip: !project_id || project_id === DEMO_PROJECT_ID,
 	})
 
 	/** Show upsell when the current usage is 80% of the project's plan. */

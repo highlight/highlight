@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { FaGithub, FaLinkedinIn, FaTwitter } from 'react-icons/fa'
+import { COMPETITORS } from '../../Competitors/competitors'
 import { PRODUCTS } from '../../Products/products'
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo'
 import { Typography } from '../Typography/Typography'
@@ -71,6 +72,27 @@ const Footer = () => {
 				<div>
 					<div className={styles.footerTitle}>
 						<Typography type="copy2" emphasis={true}>
+							Competitors
+						</Typography>
+					</div>
+					<Typography type="copy3">
+						<ul className={styles.footerList}>
+							{Object.keys(COMPETITORS).map((key) => {
+								const val = COMPETITORS[key]
+								return (
+									<li key={key}>
+										<Link href={`/compare/${key}`}>
+											{val.name}
+										</Link>
+									</li>
+								)
+							})}
+						</ul>
+					</Typography>
+				</div>
+				<div>
+					<div className={styles.footerTitle}>
+						<Typography type="copy2" emphasis={true}>
 							Developers
 						</Typography>
 					</div>
@@ -122,7 +144,7 @@ const Footer = () => {
 								<Link href="/privacy">Privacy Policy</Link>
 							</li>
 							<li>
-								<a href="https://careers.highlight.run/">
+								<a href="https://careers.highlight.io/">
 									Careers
 								</a>
 							</li>

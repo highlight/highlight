@@ -1,9 +1,11 @@
 {
 	"name": "highlight.run",
-	"version": "6.0.3",
+	"version": "6.3.0",
 	"scripts": {
-		"build": "rollup -c",
-		"dev": "rollup -c -w",
+		"build": "node scripts/version.mjs && rollup -c",
+		"dev": "node scripts/version.mjs && rollup -c -w",
+		"reflame": "node scripts/version.mjs",
+		"reflame-build": "node scripts/version.mjs",
 		"enforce-size": "size-limit",
 		"test": "vitest --run",
 		"typegen": "tsc && node scripts/replace-client-imports.mjs"
@@ -19,7 +21,7 @@
 		"@rollup/plugin-replace": "^4.0.0",
 		"@size-limit/file": "^8.1.0",
 		"@types/chrome": "^0.0.144",
-		"esbuild": "^0.16.17",
+		"esbuild": "0.17.17",
 		"readdirp": "^3.6.0",
 		"rollup": "^2.79.1",
 		"rollup-plugin-consts": "^1.1.0",

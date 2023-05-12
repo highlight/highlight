@@ -339,40 +339,6 @@ query GetSessionComments($session_secure_id: String!) {
 	}
 }
 
-query GetNotifications($project_id: ID!) {
-	session_comments_for_project(project_id: $project_id) {
-		id
-		timestamp
-		updated_at
-		session_id
-		session_secure_id
-		text
-		author {
-			id
-			name
-			email
-			photo_url
-		}
-		type
-		metadata
-		tags
-	}
-	error_comments_for_project(project_id: $project_id) {
-		id
-		updated_at
-		project_id
-		text
-		error_id
-		error_secure_id
-		author {
-			id
-			name
-			email
-			photo_url
-		}
-	}
-}
-
 query GetSessionCommentsForAdmin {
 	session_comments_for_admin {
 		id
@@ -649,6 +615,8 @@ query GetSessionsOpenSearch(
 			user_properties
 			event_counts
 			last_user_interaction_time
+			is_public
+			excluded
 		}
 		totalCount
 	}
@@ -1081,45 +1049,70 @@ query GetErrorObjectForLog($log_cursor: String!) {
 	}
 }
 
+fragment ErrorObject on ErrorObject {
+	id
+	created_at
+	project_id
+	session_id
+	trace_id
+	span_id
+	log_cursor
+	session {
+		identifier
+		fingerprint
+		secure_id
+		city
+		state
+		country
+		user_properties
+		processed
+		excluded
+	}
+	error_group_id
+	error_group_secure_id
+	event
+	type
+	url
+	source
+	lineNumber
+	columnNumber
+	stack_trace
+	structured_stack_trace {
+		fileName
+		lineNumber
+		functionName
+		columnNumber
+		lineContent
+		linesBefore
+		linesAfter
+		error
+		sourceMappingErrorMetadata {
+			errorCode
+			stackTraceFileURL
+			sourcemapFetchStrategy
+			sourceMapURL
+			minifiedFetchStrategy
+			actualMinifiedFetchedPath
+			minifiedLineNumber
+			minifiedColumnNumber
+			actualSourcemapFetchedPath
+			sourcemapFileSize
+			minifiedFileSize
+			mappedLineNumber
+			mappedColumnNumber
+		}
+	}
+	timestamp
+	payload
+	request_id
+	os
+	browser
+	environment
+}
+
 query GetErrorObject($id: ID!) {
 	error_object(id: $id) {
-		id
-		created_at
-		project_id
-		session {
-			identifier
-			fingerprint
-			secure_id
-			city
-			state
-			country
-			user_properties
-		}
-		error_group_id
-		error_group_secure_id
-		event
-		type
-		url
-		source
-		lineNumber
-		columnNumber
-		stack_trace
-		structured_stack_trace {
-			fileName
-			lineNumber
-			functionName
-			columnNumber
-			lineContent
-			linesBefore
-			linesAfter
-			error
-		}
-		timestamp
-		payload
-		request_id
-		os
-		browser
-		environment
+		...ErrorObject
 	}
 }
 
@@ -1129,62 +1122,7 @@ query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
 		error_object_id: $error_object_id
 	) {
 		error_object {
-			id
-			created_at
-			project_id
-			session_id
-			trace_id
-			span_id
-			log_cursor
-			session {
-				identifier
-				fingerprint
-				secure_id
-				city
-				state
-				country
-				user_properties
-			}
-			error_group_id
-			error_group_secure_id
-			event
-			type
-			url
-			source
-			lineNumber
-			columnNumber
-			stack_trace
-			structured_stack_trace {
-				fileName
-				lineNumber
-				functionName
-				columnNumber
-				lineContent
-				linesBefore
-				linesAfter
-				error
-				sourceMappingErrorMetadata {
-					errorCode
-					stackTraceFileURL
-					sourcemapFetchStrategy
-					sourceMapURL
-					minifiedFetchStrategy
-					actualMinifiedFetchedPath
-					minifiedLineNumber
-					minifiedColumnNumber
-					actualSourcemapFetchedPath
-					sourcemapFileSize
-					minifiedFileSize
-					mappedLineNumber
-					mappedColumnNumber
-				}
-			}
-			timestamp
-			payload
-			request_id
-			os
-			browser
-			environment
+			...ErrorObject
 		}
 		next_id
 		previous_id
@@ -2121,5 +2059,12 @@ query GetLogsErrorObjects($log_cursors: [String!]!) {
 		log_cursor
 		error_group_secure_id
 		id
+	}
+}
+
+query GetProjectFilterSettings($projectId: ID!) {
+	projectFilterSettings(projectId: $projectId) {
+		id
+		filterSessionsWithoutError
 	}
 }

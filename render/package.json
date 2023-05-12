@@ -71,7 +71,7 @@
 	"devDependencies": {
 		"@typescript-eslint/eslint-plugin": "^5.20.0",
 		"@typescript-eslint/parser": "^5.20.0",
-		"eslint": "^8.13.0",
+		"eslint": "^8.39.0",
 		"nodemon": "^2.0.15",
 		"puppeteer": "^13.6.0"
 	},

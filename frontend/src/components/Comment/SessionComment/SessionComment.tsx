@@ -1,99 +1,153 @@
-import { useAuthContext } from '@authentication/AuthContext'
-import Button from '@components/Button/Button/Button'
 import AttachmentList from '@components/Comment/AttachmentList/AttachmentList'
 import CommentReplyForm, {
 	SessionCommentReplyAction,
 } from '@components/Comment/CommentReplyForm/CommentReplyForm'
 import ReplyList from '@components/Comment/ReplyList/ReplyList'
-import SplitButton from '@components/SplitButton/SplitButton'
-import Tag from '@components/Tag/Tag'
-import SvgHeartIcon from '@icons/HeartIcon'
-import SvgSpeechBubbleIcon from '@icons/SpeechBubbleIcon'
+import { Box, IconSolidReply, Stack, Tag, Text } from '@highlight-run/ui'
 import { ParsedSessionComment } from '@pages/Player/ReplayerContext'
-import { message } from 'antd'
-import Menu from 'antd/es/menu'
-import clsx from 'clsx'
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 
+import {
+	getDeepLinkedCommentId,
+	useNavigateToComment,
+} from '@/components/Comment/utils/utils'
+import { formatTimeAsHMS } from '@/util/time'
+
 import CommentTextBody from '../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import styles from './SessionComment.module.scss'
-import SessionCommentHeader, {
-	CommentHeaderMenuItem,
-} from './SessionCommentHeader'
+import SessionCommentHeader from './SessionCommentHeader'
 
 interface Props {
 	comment: ParsedSessionComment
-	deepLinkedCommentId?: string | null
 	hasShadow?: boolean
-	menuItems?: CommentHeaderMenuItem[]
-	onClose?: () => void
-	footer?: React.ReactNode
 	parentRef?: React.RefObject<HTMLDivElement>
-	scrollReplies?: boolean
+	showReplies?: boolean
 }
 
 export const SessionCommentCard = ({
 	comment,
-	deepLinkedCommentId,
-	hasShadow,
-	menuItems,
-	onClose,
-	footer,
 	parentRef,
-	scrollReplies,
+	showReplies,
 }: Props) => {
 	return (
-		<div
-			className={clsx(styles.container, {
-				[styles.deepLinkedComment]: deepLinkedCommentId === comment.id,
-				[styles.hasShadow]: hasShadow,
-			})}
-		>
-			<SessionComment
-				comment={comment}
-				deepLinkedCommentId={deepLinkedCommentId}
-				menuItems={menuItems}
-				onClose={onClose}
-				footer={footer}
-				parentRef={parentRef}
-				scrollReplies={scrollReplies}
-			/>
-		</div>
+		<SessionComment
+			comment={comment}
+			parentRef={parentRef}
+			showReplies={showReplies}
+		/>
 	)
 }
 
 export const SessionComment = ({
 	comment,
-	menuItems,
-	onClose,
 	parentRef,
-	scrollReplies,
-}: Props) => {
+	isReply,
+	showReplies,
+}: Props & { isReply?: boolean }) => {
+	const navigateToComment = useNavigateToComment(comment)
+	const deepLinkedCommentId = getDeepLinkedCommentId()
+	const isSelected =
+		deepLinkedCommentId === comment.id &&
+		comment.__typename === 'SessionComment'
+	const commentTime = formatTimeAsHMS(comment.timestamp || 0)
+	const isClickable = !isReply && !showReplies
+	console.log('::: isSelected', isSelected, deepLinkedCommentId, comment)
+
 	return (
 		<>
-			<SessionCommentHeader
-				key={comment.id}
-				comment={comment}
-				menuItems={menuItems}
-				onClose={onClose}
-			>
-				<SessionCommentTextBody comment={comment} />
-			</SessionCommentHeader>
-			{comment?.attachments?.length > 0 && (
-				<AttachmentList attachments={comment.attachments} />
-			)}
-			{comment?.replies?.length > 0 && (
-				<ReplyList
-					replies={comment.replies}
-					scrollReplies={scrollReplies}
+			<Box p={isReply || !showReplies ? undefined : '4'}>
+				<Box
+					backgroundColor={
+						isSelected
+							? { default: 'secondarySelected' }
+							: {
+									default: 'white',
+									hover: 'secondarySelectedHover',
+							  }
+					}
+					boxShadow={isSelected ? 'innerSecondary' : undefined}
+					cursor={isClickable ? 'pointer' : undefined}
+					paddingTop="8"
+					paddingBottom="10"
+					px="8"
+					borderRadius="6"
+					display="flex"
+					flexDirection="column"
+					gap="8"
+					onClick={() => {
+						if (isClickable) {
+							navigateToComment()
+						}
+					}}
+				>
+					<SessionCommentHeader
+						key={comment.id}
+						comment={comment}
+						isReply={isReply}
+					/>
+					<CommentTextBody commentText={comment.text} />
+					{!isReply && (
+						<Stack
+							direction="row"
+							gap="8"
+							justifyContent="space-between"
+							align="center"
+						>
+							<Box>
+								{comment.replies?.length > 0 && (
+									<Text
+										size="xSmall"
+										color="secondaryContentText"
+									>
+										<Stack
+											direction="row"
+											gap="4"
+											align="center"
+										>
+											<IconSolidReply size={14} />
+											{comment.replies?.length}
+										</Stack>
+									</Text>
+								)}
+							</Box>
+							<Box
+								display="flex"
+								gap="4"
+								flexDirection="row"
+								alignItems="center"
+							>
+								{comment.attachments?.length > 0 && (
+									<AttachmentList
+										attachments={comment.attachments}
+									/>
+								)}
+								<Box display="flex" flexShrink={0}>
+									<Tag
+										kind="secondary"
+										shape="basic"
+										size="small"
+									>
+										<Text size="xxSmall" weight="regular">
+											{commentTime}
+										</Text>
+									</Tag>
+								</Box>
+							</Box>
+						</Stack>
+					)}
+				</Box>
+				{showReplies && comment.replies?.length > 0 && (
+					<ReplyList replies={comment.replies} />
+				)}
+			</Box>
+			{showReplies && (
+				<CommentReplyForm<SessionCommentReplyAction>
+					action={new SessionCommentReplyAction()}
+					commentID={comment.id}
+					parentRef={parentRef}
 				/>
 			)}
-			<CommentReplyForm<SessionCommentReplyAction>
-				action={new SessionCommentReplyAction()}
-				commentID={comment.id}
-				parentRef={parentRef}
-			/>
 		</>
 	)
 }
@@ -122,90 +176,11 @@ export const SessionCommentTextBody = ({
 			{tags.length > 0 && (
 				<div className={styles.tagsContainer}>
 					{tags.map((tag) => (
-						<Tag key={tag} autoColorsText={tag}>
-							{tag}
-						</Tag>
+						<Tag key={tag}>{tag}</Tag>
 					))}
 				</div>
 			)}
 		</>
-	)
-}
-
-interface SessionCommentFooterProps {
-	a?: any
-}
-
-export const ExperimentalSessionCommentFooter: React.FC<
-	React.PropsWithChildren<SessionCommentFooterProps>
-> = ({ children }) => {
-	const { admin } = useAuthContext()
-
-	return (
-		<footer className={styles.footer}>
-			<div className={styles.actions}>
-				<SplitButton
-					buttonLabel={
-						<span className={styles.iconLabel}>
-							<SvgHeartIcon /> Like
-						</span>
-					}
-					trackingId="SessionCommentReact"
-					overlay={
-						<Menu>
-							<Menu.Item
-								icon={<SvgHeartIcon />}
-								className={styles.iconLabel}
-								onClick={() => {
-									message.success(
-										`Hi ${
-											admin?.name.split(' ')[0]
-										}, this doesn't do anything yet.`,
-									)
-								}}
-							>
-								Thumbs Up
-							</Menu.Item>
-							<Menu.Item
-								icon={<SvgHeartIcon />}
-								className={styles.iconLabel}
-								onClick={() => {
-									message.success(
-										`Hi ${
-											admin?.name.split(' ')[0]
-										}, this doesn't do anything yet.`,
-									)
-								}}
-							>
-								Thumbs Down
-							</Menu.Item>
-						</Menu>
-					}
-					onClick={() => {
-						message.success(
-							`Hi ${
-								admin?.name.split(' ')[0]
-							}, this doesn't do anything yet.`,
-						)
-					}}
-				/>
-				<Button
-					trackingId="SessionCommentReply"
-					type="text"
-					className={clsx(styles.iconLabel, styles.actionButton)}
-					onClick={() => {
-						message.success(
-							`Hi ${
-								admin?.name.split(' ')[0]
-							}, this doesn't do anything yet.`,
-						)
-					}}
-				>
-					<SvgSpeechBubbleIcon /> Reply
-				</Button>
-			</div>
-			{children}
-		</footer>
 	)
 }
 

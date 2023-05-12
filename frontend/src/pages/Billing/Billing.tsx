@@ -40,7 +40,7 @@ import Skeleton from 'react-loading-skeleton'
 import { useLocation, useMatch } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
-import { WorkspaceSettingsTab } from '@/pages/SettingsRouter/SettingsRouter'
+import { WorkspaceSettingsTab } from '@/hooks/useIsSettingsPath'
 
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 import styles from './Billing.module.scss'

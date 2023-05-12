@@ -363,6 +363,42 @@
 								"type": 2
 							},
 							{
+								"attributes": {
+									"src": "https://static.highlight.io/dev/BigBuckBunny.mp4?AWSAccessKeyId=asdffdsa1234",
+									"autoplay": true,
+									"crossorigin": "anonymous",
+									"preload=": "metadata"
+								},
+								"childNodes": [],
+								"id": 55555,
+								"tagName": "video",
+								"type": 2
+							},
+							{
+								"attributes": {
+									"src": "https://static.highlight.io/dev/test.mp4?AWSAccessKeyId=asdffdsa1234&Signature=c%2F%2BCuVPNfRldO2qFGliECCC0R7A%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEAEaCXVzLWVhc3QtMSJHMEUCIQDB%2FFE5eMBLpRgsOiCn%2Bud5S16cnzxm5b3hPmISSFsmLgIgS6YuPEatrTdf45C%2BNzxAKF1vt7vmmWSoRiegGU%2BCba0qgQUIGhACGgw0NzU3MjMyNDA4MzAiDGlc0ZNEJGWjspla3ireBDf2Cm3Zl2dxONxeR2H3fniBrwJHWGsCOxpc%2BQtyEHe2Q%2F7aES19r%2B%2BpBqI60FndLawE3Oi9BtsLop7ANGBd8S4SfgXddOXBAwhxgePdFT58nm2Ap70ztkO6sBGjs58zG5b%2B2fHeqE%2B6EHUlMeAipRALvXWrurEa7k811jHfrwlFifFz9AjK%2B9rqsnAG1tBaskDita3xGPGol45INyZhRGAQqAHhqDMFKWg8%2Bg1i7xbPPPTDsYJk1N5AIPsXF4YpwmlBHR%2B%2BxZwVflVLfsBL3pPn4gZOfHlq19RGjiT1zPfY8XUpbJvJeqcrfhpeagn%2FL7x70u9WacKSCGzfaWDxzNJxpSkKA%2FsHtfNmg1Sg%2FM1EzWafAs3%2FakVKDjEJiHC8ruaLK66NbsIcvH27K%2BtKlMSbFPHKLcz2Lzj9GSqd2HqL5bg4egLYUbUabkJkL%2FP4kFFSCOV04Yk2BVjQDi4ReYLr02EiXERDNG8nreDP47B5A1CjN85TvOe%2FsmeCJpzK3olBvnyczMAYiNKhEYhkgbP2hBTu75ZbvMWtNRD5tcKltIM8FxK560rHb9NCdZmpDoZbQkWQ%2Flym9DvW5pB5ENoSGqULWLyJOwaRWQDbWgTX7I7XXERqO9fsTmAzglaFssMIeew7nx4p9T8uzDGFxK1EfUghC7ibjTPMerxRoHGR7fPYxJCDG1W9lUz17b%2FplGCtw4myt1WVzAr4VjK00AdvNn1mQ0oh%2B2ocbvqtQIkCUd43%2FhMn1arpf0wDa11CoKTCFGLPU3irqd9dRWPWu%2BBK2M8QvDgZJAYSUUxa7TDm7NSiBjqaAdRiIWPgQpInj8bXcQCwVwg%2F9hFT0O0HYUGyBPGON5EX1CuW%2FuZoC%2FzIvHkFSbzCsTPkX3kU8jPHjmb%2FYlf4x2n8c8HSosZ1ikZfTAZo8SKpGHFxGBPbk3h3hdv4u13SrFTtgJrle5UIJ%2BvkVAo6sKnJsZGJQfRjc2dneExKCC2UHIn87auTo%2FEFZoQA%2BqIJMlfoawmYS5OqMhc%3D&Expires=1683313388",
+									"autoplay": true,
+									"crossorigin": "anonymous",
+									"preload=": "metadata"
+								},
+								"childNodes": [],
+								"id": 55556,
+								"tagName": "video",
+								"type": 2
+							},
+							{
+								"attributes": {
+									"src": "https://static.highlight.io/dev/BigBuckBunny.mp4?AWSAccessKeyId=asdffdsa1234&Signature=c%2F%2BCuVPNfRldO2qFGliECCC0R7A%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEAEaCXVzLWVhc3QtMSJHMEUCIQDB%2FFE5eMBLpRgsOiCn%2Bud5S16cnzxm5b3hPmISSFsmLgIgS6YuPEatrTdf45C%2BNzxAKF1vt7vmmWSoRiegGU%2BCba0qgQUIGhACGgw0NzU3MjMyNDA4MzAiDGlc0ZNEJGWjspla3ireBDf2Cm3Zl2dxONxeR2H3fniBrwJHWGsCOxpc%2BQtyEHe2Q%2F7aES19r%2B%2BpBqI60FndLawE3Oi9BtsLop7ANGBd8S4SfgXddOXBAwhxgePdFT58nm2Ap70ztkO6sBGjs58zG5b%2B2fHeqE%2B6EHUlMeAipRALvXWrurEa7k811jHfrwlFifFz9AjK%2B9rqsnAG1tBaskDita3xGPGol45INyZhRGAQqAHhqDMFKWg8%2Bg1i7xbPPPTDsYJk1N5AIPsXF4YpwmlBHR%2B%2BxZwVflVLfsBL3pPn4gZOfHlq19RGjiT1zPfY8XUpbJvJeqcrfhpeagn%2FL7x70u9WacKSCGzfaWDxzNJxpSkKA%2FsHtfNmg1Sg%2FM1EzWafAs3%2FakVKDjEJiHC8ruaLK66NbsIcvH27K%2BtKlMSbFPHKLcz2Lzj9GSqd2HqL5bg4egLYUbUabkJkL%2FP4kFFSCOV04Yk2BVjQDi4ReYLr02EiXERDNG8nreDP47B5A1CjN85TvOe%2FsmeCJpzK3olBvnyczMAYiNKhEYhkgbP2hBTu75ZbvMWtNRD5tcKltIM8FxK560rHb9NCdZmpDoZbQkWQ%2Flym9DvW5pB5ENoSGqULWLyJOwaRWQDbWgTX7I7XXERqO9fsTmAzglaFssMIeew7nx4p9T8uzDGFxK1EfUghC7ibjTPMerxRoHGR7fPYxJCDG1W9lUz17b%2FplGCtw4myt1WVzAr4VjK00AdvNn1mQ0oh%2B2ocbvqtQIkCUd43%2FhMn1arpf0wDa11CoKTCFGLPU3irqd9dRWPWu%2BBK2M8QvDgZJAYSUUxa7TDm7NSiBjqaAdRiIWPgQpInj8bXcQCwVwg%2F9hFT0O0HYUGyBPGON5EX1CuW%2FuZoC%2FzIvHkFSbzCsTPkX3kU8jPHjmb%2FYlf4x2n8c8HSosZ1ikZfTAZo8SKpGHFxGBPbk3h3hdv4u13SrFTtgJrle5UIJ%2BvkVAo6sKnJsZGJQfRjc2dneExKCC2UHIn87auTo%2FEFZoQA%2BqIJMlfoawmYS5OqMhc%3D&Expires=1683313388",
+									"autoplay": true,
+									"crossorigin": "anonymous",
+									"preload=": "metadata"
+								},
+								"childNodes": [],
+								"id": 55557,
+								"tagName": "video",
+								"type": 2
+							},
+							{
 								"id": 54,
 								"textContent": "\n        ",
 								"type": 3

@@ -172,3 +172,16 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Patch Changes
 
 - Packages the web-vitals library as part of the highlight.io client bundle.
+
+## 6.2.0
+
+### Minor Changes
+
+- Supports recording inlined `<video>` elements such as webcams or `src="blob://...`.
+- Limits the size of network request bodies recorded to prevent replay-time crashes.
+
+## 6.3.0
+
+### Minor Changes
+
+- Support the option to redact specific request/response body keys while recording all others.

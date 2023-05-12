@@ -396,8 +396,25 @@
 // Custom font styles for blog-specific text!!!
 
 .blogText {
+	p {
+		padding: var(--size-small) 0 !important;
+		margin: 0 !important;
+	}
+
 	b {
 		font-weight: 600 !important;
+	}
+
+	strong {
+		font-weight: 600 !important;
+	}
+
+	img {
+		margin: 12px 0;
+		border-radius: 8px;
+		border: solid #30294e 1px;
+		overflow: hidden;
+		display: flex;
 	}
 }
 

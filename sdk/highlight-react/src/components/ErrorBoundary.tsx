@@ -9,7 +9,7 @@ export type FallbackRender = (errorData: {
 
 export type ErrorBoundaryProps = {
 	children?: React.ReactNode
-	/** If a Highlight report dialog should be rendered on error */
+	/** If a Highlight report dialog should be rendered on error. Defaults to true. */
 	showDialog?: boolean
 	/** A custom dialog that you can provide to be shown when the ErrorBoundary is shown. */
 	customDialog?: React.ReactNode
@@ -67,11 +67,11 @@ export class ErrorBoundary extends React.Component<
 		if (beforeCapture) {
 			beforeCapture(error, errorInfo.componentStack)
 		}
-		captureReactErrorBoundaryError(error, errorInfo.componentStack)
+		captureReactErrorBoundaryError(error, errorInfo)
 		if (onError) {
 			onError(error, errorInfo.componentStack)
 		}
-		if (showDialog) {
+		if (showDialog !== false) {
 			this.setState({ ...this.state, showingDialog: true })
 		}
 
@@ -106,10 +106,12 @@ export class ErrorBoundary extends React.Component<
 
 	hideDialog: () => void = () => {
 		this.setState({ ...this.state, showingDialog: false })
-
-		if (this.props.onAfterReportDialogCancelHandler) {
-			this.props.onAfterReportDialogCancelHandler()
-		}
+		;(
+			this.props.onAfterReportDialogCancelHandler ||
+			(() => {
+				window.location.href = window.location.origin
+			})
+		)()
 	}
 
 	onReportDialogSubmitHandler: () => void = () => {
@@ -183,29 +185,20 @@ export class ErrorBoundary extends React.Component<
  * Logs react error boundary errors to Highlight.
  *
  * @param error An error captured by React Error Boundary
- * @param componentStack The component stacktrace
+ * @param errorInfo The error details
  */
 function captureReactErrorBoundaryError(
 	error: Error,
-	componentStack: string,
+	errorInfo: ErrorInfo,
 ): void {
-	const errorBoundaryError = new Error(` ${error.message}`)
-	errorBoundaryError.name = `React ErrorBoundary ${error.name}`
-	//   errorBoundaryError.stack = `${componentStack}`;
-	errorBoundaryError.stack = error.stack
-
-	const componentName = getComponentNameFromStack(componentStack)
-
+	const component = getComponentNameFromStack(errorInfo.componentStack)
 	if (!window.H) {
-		console.warn('You need to install highlight.run as a npm dependency.')
+		console.warn('You need to install highlight.run.')
 	} else {
 		window.H.consumeError(
-			errorBoundaryError,
-			`${
-				componentName
-					? `ErrorBoundary ${componentName}`
-					: 'HighlightErrorBoundary'
-			}`,
+			error,
+			undefined,
+			component ? { component } : undefined,
 		)
 	}
 }

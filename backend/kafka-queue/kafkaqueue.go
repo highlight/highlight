@@ -240,6 +240,9 @@ func (p *Queue) Stop(ctx context.Context) {
 
 func (p *Queue) Submit(ctx context.Context, msg *Message, partitionKey string) error {
 	start := time.Now()
+	if partitionKey == "" {
+		partitionKey = util.GenerateRandomString(32)
+	}
 	msg.MaxRetries = taskRetries
 	msgBytes, err := p.serializeMessage(msg)
 	if err != nil {

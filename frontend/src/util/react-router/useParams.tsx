@@ -1,4 +1,7 @@
-import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
+import {
+	DEMO_PROJECT_ID,
+	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 // This is the implementation for our custom useParams, exempting from rule
 // eslint-disable-next-line no-restricted-imports
 import { useParams as ReactRouterUseParams } from 'react-router-dom'
@@ -9,7 +12,7 @@ import validator from 'validator'
  * Use this instead of using react-router's.
  *
  * Handles the following:
- * 1. If the project_id is `'demo'`, then we set the `project_id` to `'0'`. `'0'` is used in our backend to serve/handle the demo project.
+ * 1. If the project_id is `'demo'`, then we set the `project_id` to `DEMO_PROJECT_ID`.
  */
 // @ts-expect-error
 export const useParams: typeof ReactRouterUseParams = () => {
@@ -20,7 +23,7 @@ export const useParams: typeof ReactRouterUseParams = () => {
 		if (matches.project_id === DEMO_WORKSPACE_PROXY_APPLICATION_ID) {
 			return {
 				...matches,
-				project_id: '0',
+				project_id: DEMO_PROJECT_ID,
 			} as const
 		}
 		if (!validator.isNumeric(matches.project_id)) {

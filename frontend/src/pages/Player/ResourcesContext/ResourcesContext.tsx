@@ -4,15 +4,22 @@ import { RequestResponsePair } from '@highlight-run/client'
 import { getGraphQLResolverName } from '@pages/Player/utils/utils'
 import { createContext } from '@util/context/context'
 import { indexedDBFetch } from '@util/db'
+import { checkResourceLimit } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import { useCallback, useEffect, useState } from 'react'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
+export enum ResourceLoadingError {
+	NetworkResourcesTooLarge = 'payload too large.',
+	NetworkResourcesFetchFailed = 'failed to fetch.',
+}
+
 interface ResourcesContext {
 	resourcesLoading: boolean
 	loadResources: () => void
 	resources: NetworkResourceWithID[]
+	error?: ResourceLoadingError
 }
 
 export type NetworkResourceWithID = PerformanceResourceTiming & {
@@ -26,6 +33,7 @@ export const useResources = (
 ): ResourcesContext => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const [sessionSecureId, setSessionSecureId] = useState<string>()
+	const [error, setError] = useState<ResourceLoadingError>()
 	const [downloadResources] = useQueryParam('downloadresources', BooleanParam)
 
 	const [resourcesLoading, setResourcesLoading] = useState(false)
@@ -50,6 +58,7 @@ export const useResources = (
 
 	const [resources, setResources] = useState<NetworkResourceWithID[]>([])
 	useEffect(() => {
+		setError(undefined)
 		setResources(
 			(
 				data?.resources?.map((r, i) => {
@@ -96,6 +105,16 @@ export const useResources = (
 			setResourcesLoading(true)
 			;(async () => {
 				if (!session.resources_url) return
+				const limit = await checkResourceLimit(session.resources_url)
+				if (limit) {
+					setError(ResourceLoadingError.NetworkResourcesTooLarge)
+					H.consumeError(new Error(limit.error), undefined, {
+						fileSize: limit.fileSize.toString(),
+						limit: limit.sizeLimit.toString(),
+						sessionSecureID: session?.secure_id,
+					})
+					return
+				}
 				let response
 				for await (const r of indexedDBFetch(session.resources_url)) {
 					response = r
@@ -104,6 +123,7 @@ export const useResources = (
 					response
 						.json()
 						.then((data) => {
+							setError(undefined)
 							setResources(
 								(
 									(data as any[] | undefined)?.map((r, i) => {
@@ -126,6 +146,9 @@ export const useResources = (
 							)
 						})
 						.catch((e) => {
+							setError(
+								ResourceLoadingError.NetworkResourcesFetchFailed,
+							)
 							setResources([])
 							H.consumeError(
 								e,
@@ -147,6 +170,7 @@ export const useResources = (
 		loadResources,
 		resources,
 		resourcesLoading,
+		error,
 	}
 }
 

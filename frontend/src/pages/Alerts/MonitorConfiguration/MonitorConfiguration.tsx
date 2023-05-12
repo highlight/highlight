@@ -6,15 +6,14 @@ import Select from '@components/Select/Select'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
 import { useGetMetricsTimelineQuery, useGetMetricTagsQuery } from '@graph/hooks'
-import { namedOperations } from '@graph/operations'
 import {
 	DiscordChannel,
 	MetricAggregator,
 	MetricTagFilter,
 	WebhookDestination,
 } from '@graph/schemas'
+import { useSlackSync } from '@hooks/useSlackSync'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
-import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
 import { UNIT_OPTIONS } from '@pages/Dashboards/components/DashboardCard/DashboardCard'
 import {
 	MetricSelector,
@@ -22,10 +21,12 @@ import {
 } from '@pages/Dashboards/components/EditMetricModal/EditMetricModal'
 import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
-import { Divider, Slider } from 'antd'
+import { Slider } from 'antd'
 import moment from 'moment'
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+
+import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 
 import alertConfigurationCardStyles from '../AlertConfigurationCard/AlertConfigurationCard.module.scss'
 import styles from './MonitorConfiguration.module.scss'
@@ -117,6 +118,7 @@ const MonitorConfiguration = ({
 	}>()
 	const { currentWorkspace } = useApplicationContext()
 	const [searchQuery, setSearchQuery] = useState('')
+	const { slackLoading, syncSlack } = useSlackSync()
 	const [endDate] = React.useState<moment.Moment>(moment(new Date()))
 	const { data, loading: metricPreviewLoading } = useGetMetricsTimelineQuery({
 		variables: {
@@ -438,6 +440,7 @@ const MonitorConfiguration = ({
 						className={alertConfigurationCardStyles.channelSelect}
 						options={channels}
 						mode="multiple"
+						onFocus={syncSlack}
 						onSearch={(value) => {
 							setSearchQuery(value)
 						}}
@@ -454,45 +457,13 @@ const MonitorConfiguration = ({
 						}}
 						placeholder="Select a channel(s) or person(s) to send the alert to."
 						notFoundContent={
-							<SyncWithSlackButton
+							<SlackLoadOrConnect
+								isLoading={slackLoading}
+								searchQuery={searchQuery}
 								isSlackIntegrated={isSlackIntegrated}
 								slackUrl={slackUrl}
-								refetchQueries={[
-									namedOperations.Query.GetAlertsPagePayload,
-								]}
 							/>
 						}
-						dropdownRender={(menu) => (
-							<div>
-								{menu}
-								{searchQuery.length === 0 &&
-									channelSuggestions.length > 0 && (
-										<>
-											<Divider
-												style={{
-													margin: '4px 0',
-												}}
-											/>
-											<div
-												className={
-													alertConfigurationCardStyles.addContainer
-												}
-											>
-												<SyncWithSlackButton
-													isSlackIntegrated={
-														isSlackIntegrated
-													}
-													slackUrl={slackUrl}
-													refetchQueries={[
-														namedOperations.Query
-															.GetAlertsPagePayload,
-													]}
-												/>
-											</div>
-										</>
-									)}
-							</div>
-						)}
 					/>
 				</section>
 

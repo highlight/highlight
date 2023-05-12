@@ -29,6 +29,7 @@ type FormComponent = React.FC<Props> & {
 	Submit: typeof Submit
 	Field: typeof Field
 	NamedSection: typeof NamedSection
+	useFormState: typeof useAriaKitFormState
 }
 
 interface LabelProps {
@@ -103,7 +104,7 @@ export const Submit = ({ ...props }: ButtonProps) => {
 	return <Button type="submit" {...props} />
 }
 
-type InputProps = Omit<AriaKitFormInputProps, 'size'> &
+export type InputProps = Omit<AriaKitFormInputProps, 'size'> &
 	Variants &
 	HasLabel & {
 		cssClass?: ClassValue | ClassValue[]
@@ -191,3 +192,4 @@ Form.NamedSection = NamedSection
 
 export declare type FormState<T> = AriaKitFormState<T>
 export const useFormState = useAriaKitFormState
+Form.useFormState = useFormState

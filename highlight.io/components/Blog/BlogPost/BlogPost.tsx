@@ -1,7 +1,7 @@
-import styles from '../Blog.module.scss'
 import Image from 'next/legacy/image'
 import Link from 'next/link'
 import { Typography } from '../../common/Typography/Typography'
+import styles from '../Blog.module.scss'
 import { Tag } from '../Tag'
 
 export interface Author {
@@ -16,7 +16,6 @@ export interface Author {
 }
 
 export interface Post {
-	slug: string
 	description: string
 	youtubeVideoId?: string
 	metaDescription?: string
@@ -31,15 +30,17 @@ export interface Post {
 		name: string
 		picture: string
 	}
-	richcontent: {
-		markdown: string
-		raw: any
-	}
-	featured: boolean
-	tags: Array<string>
 	tags_relations: Tag[]
 	readingTime?: number
 	author?: Author
+	richcontent: {
+		markdown: string
+		raw?: any
+	}
+	// to delete once we fire hygraph
+	slug?: string
+	// tags?: Array<string>
+	featured?: boolean
 }
 
 export const BlogPost = ({
@@ -48,7 +49,7 @@ export const BlogPost = ({
 	image,
 	title,
 	publishedAt,
-	tags,
+	tags_relations,
 	readingTime,
 }: Post) => {
 	return (
@@ -84,15 +85,17 @@ export const BlogPost = ({
 					</div>
 					<h3>{title}</h3>
 					<div className={styles.tagDiv}>
-						{tags.map((tag: string) => (
+						{tags_relations.map((tag: Tag) => (
 							<Link
-								key={tag}
-								href={`/blog?tag=${tag}`}
+								key={tag.name}
+								href={`/blog?tag=${tag.slug}`}
 								passHref={true}
 								legacyBehavior
 							>
 								<div>
-									<Typography type="copy3">{tag}</Typography>
+									<Typography type="copy3">
+										{tag.name}
+									</Typography>
 								</div>
 							</Link>
 						))}
@@ -101,4 +104,19 @@ export const BlogPost = ({
 			</div>
 		</Link>
 	)
+}
+
+//get unique tags and prefer tags that have a description
+export function getUniqueTags(tags: Tag[]): Tag[] {
+	const uniqueTags: { [key: string]: Tag } = {}
+	for (const tag of tags) {
+		if (
+			!uniqueTags[tag.slug] ||
+			(!uniqueTags[tag.slug].description &&
+				uniqueTags[tag.slug].description != null)
+		) {
+			uniqueTags[tag.slug] = tag
+		}
+	}
+	return Object.values(uniqueTags)
 }

@@ -64,7 +64,7 @@ import (
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
-	H "github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 )
 
 // This file will not be regenerated automatically.
@@ -78,6 +78,7 @@ const SessionProcessedMetricName = "sessionProcessed"
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
+	FrontendURI     = os.Getenv("FRONTEND_URI")
 )
 
 var BytesConversion = map[string]int64{
@@ -230,11 +231,11 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 }
 
 type HubspotApiInterface interface {
-	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (*int, error)
-	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string, db *gorm.DB) (*int, error)
-	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int, db *gorm.DB) error
-	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property, db *gorm.DB) error
-	UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property, db *gorm.DB) error
+	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) error
+	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) error
+	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error
+	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error
+	UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -299,12 +300,28 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	return isAdmin || uid == WhitelistedUID || isDockerDefaultAccount
 }
 
-func (r *Resolver) isDemoProject(project_id int) bool {
-	return project_id == 0
+func (r *Resolver) isDemoProject(ctx context.Context, project_id int) bool {
+	return project_id == r.demoProjectID(ctx)
 }
 
 func (r *Resolver) isDemoWorkspace(workspace_id int) bool {
 	return workspace_id == 0
+}
+
+func (r *Resolver) demoProjectID(ctx context.Context) int {
+	demoProjectString := os.Getenv("DEMO_PROJECT_ID")
+
+	// Demo project is disabled if the env var is not set.
+	if demoProjectString == "" {
+		return 0
+	}
+
+	if demoProjectID, err := strconv.Atoi(demoProjectString); err != nil {
+		log.WithContext(ctx).Error(err, "error converting DemoProjectID to int")
+		return 0
+	} else {
+		return demoProjectID
+	}
 }
 
 // These are authentication methods used to make sure that data is secured.
@@ -317,14 +334,14 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	defer authSpan.Finish()
 	start := time.Now()
 	defer func() {
-		H.RecordMetric(
+		highlight.RecordMetric(
 			ctx, "resolver.internal.auth.isAdminInProjectOrDemoProject", time.Since(start).Seconds(),
 		)
 	}()
 	var project *model.Project
 	var err error
-	if r.isDemoProject(project_id) {
-		if err = r.DB.Model(&model.Project{}).Where("id = ?", 0).First(&project).Error; err != nil {
+	if r.isDemoProject(ctx, project_id) {
+		if err = r.DB.Model(&model.Project{}).Where("id = ?", r.demoProjectID(ctx)).First(&project).Error; err != nil {
 			return nil, e.Wrap(err, "error querying demo project")
 		}
 	} else {
@@ -341,7 +358,7 @@ func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, worksp
 	defer authSpan.Finish()
 	start := time.Now()
 	defer func() {
-		H.RecordMetric(
+		highlight.RecordMetric(
 			ctx, "resolver.internal.auth.isAdminInWorkspaceOrDemoWorkspace", time.Since(start).Seconds(),
 		)
 	}()
@@ -939,7 +956,10 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id st
 	if err == nil && isOwner {
 		return session, nil
 	}
-	if session != nil && *session.IsPublic {
+	if session != nil && session.IsPublic {
+		return session, nil
+	}
+	if session.ProjectID == r.demoProjectID(ctx) {
 		return session, nil
 	}
 	return nil, err
@@ -1999,7 +2019,7 @@ func (r *Resolver) AddSlackToWorkspace(ctx context.Context, workspace *model.Wor
 		SLACK_CLIENT_SECRET = tempSlackClientSecret
 	}
 
-	redirect := os.Getenv("FRONTEND_URI") + "/callback/slack"
+	redirect := FrontendURI + "/callback/slack"
 
 	resp, err := slack.
 		GetOAuthV2Response(
@@ -2211,7 +2231,7 @@ func (r *Resolver) AddLinearToWorkspace(workspace *model.Workspace, code string)
 		LINEAR_CLIENT_SECRET = tempLinearClientSecret
 	}
 
-	redirect := os.Getenv("FRONTEND_URI") + "/callback/linear"
+	redirect := FrontendURI + "/callback/linear"
 
 	res, err := r.GetLinearAccessToken(code, redirect, LINEAR_CLIENT_ID, LINEAR_CLIENT_SECRET)
 	if err != nil {

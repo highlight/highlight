@@ -1,0 +1,1 @@
+var n={noCommentsContainer:"_noCommentsContainer_1vmpu_1",noCommentsTextContainer:"_noCommentsTextContainer_1vmpu_10",timestamp:"_timestamp_1vmpu_28",skeleton:"_skeleton_1vmpu_33"};export{n as default};

@@ -1,6 +1,6 @@
 *.md
 .yarn
-backend/errors/test-files
+backend/stacktraces/test-files
 build
 data
 dist
@@ -10,3 +10,11 @@ rrweb/packages/rrweb-snapshot/test
 rrweb/packages/rrweb/test
 scripts/venv
 **/.next
+**/.vercel
+**/*.css
+**/settings.json
+**/tsconfig.json
+**/launch.json
+**/.eslintrc.json
+.yarnrc.yml
+__generated
