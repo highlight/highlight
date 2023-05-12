@@ -1951,6 +1951,9 @@ var productTypeToQuotaConfig = map[pricing.ProductType]struct {
 }
 
 func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.ProductType, workspace *model.Workspace, now time.Time) (bool, float64) {
+	if workspace == nil {
+		return true, 0
+	}
 	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(now) {
 		return true, 0
 	}
@@ -2376,7 +2379,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	workspace, err := r.getWorkspace(project.WorkspaceID)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
-		workspace = &model.Workspace{}
 	}
 
 	// Filter out empty errors
