@@ -650,7 +650,8 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 	    SELECT id, sum(score) FROM (
 			SELECT id, 100 AS score, 0
 			FROM error_groups
-			WHERE id IS NOT NULL
+			WHERE event = @event
+			AND id IS NOT NULL
 			AND project_id = @projectID
 			UNION ALL
 			(SELECT DISTINCT ef.error_group_id, jr.score, 0
