@@ -7,7 +7,7 @@ import { linkStyle } from '@components/Header/styles.css'
 import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
-import { Maybe, ProductType, Project } from '@graph/schemas'
+import { Maybe, PlanType, ProductType, Project } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -720,7 +720,10 @@ const BillingBanner: React.FC = () => {
 	if (productsOverQuota.length > 0) {
 		bannerMessage += `You've reached your monthly limit for ${productsToString(
 			productsOverQuota,
-		)}. New data won't be recorded.`
+		)}.`
+		if (data?.billingDetailsForProject?.plan.type === PlanType.Free) {
+			bannerMessage += ` New data won't be recorded.`
+		}
 	}
 	if (productsApproachingQuota.length > 0) {
 		bannerMessage += ` You're approaching your monthly limit for ${productsToString(
