@@ -145,9 +145,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		skip: !session_secure_id,
 		fetchPolicy: 'network-only',
 	})
-	// Fetches events from Redis. Skipped if no session or we are in live mode.
-	// !!direct_download_url is a proxy for checking if we are in live mode.
-	// Could possibly check session.processed instead.
 	const { data: sessionPayload, subscribeToMore: subscribeToSessionPayload } =
 		useGetSessionPayloadQuery({
 			fetchPolicy: 'no-cache',
