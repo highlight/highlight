@@ -1,10 +1,23 @@
 import { Popover } from '@headlessui/react'
 import { ArrowRightCircleIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import classNames from 'classnames'
+import { useRouter } from 'next/router'
+import { useEffect } from 'react'
 import { InlineWidget } from 'react-calendly'
 import { Typography } from '../common/Typography/Typography'
 
 export const CalendlyPopover = () => {
+	const router = useRouter()
+
+	useEffect(() => {
+		window.addEventListener('message', (message) => {
+			const { event } = message.data
+
+			if (event === 'calendly.event_scheduled')
+				router.push('/demo-confirmation')
+		})
+	}, [router])
+
 	return (
 		<Popover className="relative inline-flex flex-col items-center">
 			{({ open, close }) => (
