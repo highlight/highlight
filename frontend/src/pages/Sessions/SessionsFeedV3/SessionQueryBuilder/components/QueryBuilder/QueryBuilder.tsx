@@ -22,6 +22,7 @@ import { Exact, Field, SearchParamsInput, Segment } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
+	getDefaultPresets,
 	IconSolidCheveronDown,
 	IconSolidCloudUpload,
 	IconSolidDocumentDuplicate,
@@ -36,7 +37,6 @@ import {
 	IconSolidX,
 	Menu,
 	PreviousDateRangePicker,
-	getDefaultPresets,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
