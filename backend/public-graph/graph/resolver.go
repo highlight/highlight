@@ -504,7 +504,7 @@ func (r *Resolver) GetErrorAppVersion(errorObj *model.ErrorObject) *string {
 	return session.AppVersion
 }
 
-func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []privateModel.ErrorTrace, error) {
+func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []*privateModel.ErrorTrace, error) {
 	version := r.GetErrorAppVersion(errorObj)
 	var newMappedStackTraceString *string
 	mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, stackTrace, projectID, version, r.StorageClient)
@@ -685,12 +685,16 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 }
 
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
-func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, structuredStackTrace []privateModel.ErrorTrace, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
+func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
 	if errorObj == nil {
 		return nil, e.New("error object was nil")
 	}
 	if errorObj.Event == "" {
 		return nil, e.New("error object event was empty")
+	}
+
+	if errorObj.StackTrace == nil {
+		errorObj.StackTrace = ptr.String("")
 	}
 
 	if projectID == 1 {
@@ -2248,13 +2252,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		SessionObj *model.Session
 	})
 	for _, v := range errorObjects {
-		traceBytes, err := json.Marshal(v.StackTrace)
+		_, err := json.Marshal(v.StackTrace)
 		if err != nil {
 			log.WithContext(ctx).Errorf("Error marshaling trace: %v", v.StackTrace)
 			continue
 		}
-
-		traceString := string(traceBytes)
 
 		errorToInsert := &model.ErrorObject{
 			ProjectID:   projectID,
@@ -2275,12 +2277,15 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			RequestID:   v.RequestID,
 		}
 
-		log.WithContext(ctx).Warn(traceString)
+		var structuredStackTrace []*privateModel.ErrorTrace
 
-		structuredStackTrace, err := stacktraces.StructureStackTrace(v.StackTrace)
-
+		err = json.Unmarshal([]byte(v.StackTrace), &structuredStackTrace)
 		if err != nil {
-			log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
+
+			structuredStackTrace, err = stacktraces.StructureStackTrace(v.StackTrace)
+			if err != nil {
+				log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
+			}
 		}
 
 		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID)

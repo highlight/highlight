@@ -8,7 +8,7 @@ import (
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
-func GetFingerprints(projectID int, errorTraces []privateModel.ErrorTrace) []*model.ErrorFingerprint {
+func GetFingerprints(projectID int, errorTraces []*privateModel.ErrorTrace) []*model.ErrorFingerprint {
 	fingerprints := []*model.ErrorFingerprint{}
 
 	for idx, frame := range errorTraces {
