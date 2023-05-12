@@ -20,6 +20,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModelInput "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 )
@@ -234,6 +235,38 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestMatchErrorsWithSameTracesDifferentBodies(t *testing.T) {
+	stacktrace := `[{"fileName":"/Users/ericthomas/code/highlight/backend/private-graph/graph/schema.resolvers.go","lineNumber":6517,"functionName":"Admin","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/backend/private-graph/graph/resolver.go","lineNumber":216,"functionName":"getCurrentAdmin","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/backend/private-graph/graph/schema.resolvers.go","lineNumber":6609,"functionName":"AdminRoleByProject","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/backend/private-graph/graph/generated/generated.go","lineNumber":44838,"functionName":"func2","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/go-workspace/pkg/mod/github.com/99designs/gqlgen@v0.17.24/graphql/executor/extensions.go","lineNumber":72,"functionName":"func4","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/go-workspace/pkg/mod/github.com/99designs/gqlgen@v0.17.24/graphql/executor/extensions.go","lineNumber":110,"functionName":"1","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/sdk/highlight-go/tracer.go","lineNumber":59,"functionName":"InterceptField","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/go-workspace/pkg/mod/github.com/99designs/gqlgen@v0.17.24/graphql/executor/extensions.go","lineNumber":109,"functionName":"func8","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/go-workspace/pkg/mod/github.com/99designs/gqlgen@v0.17.24/graphql/executor/extensions.go","lineNumber":110,"functionName":"1","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/backend/util/tracer.go","lineNumber":45,"functionName":"InterceptField","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/go-workspace/pkg/mod/github.com/99designs/gqlgen@v0.17.24/graphql/executor/extensions.go","lineNumber":109,"functionName":"func8","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/backend/private-graph/graph/generated/generated.go","lineNumber":44836,"functionName":"_Query_admin_role_by_project","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/backend/private-graph/graph/generated/generated.go","lineNumber":66748,"functionName":"func316","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/go-workspace/pkg/mod/github.com/99designs/gqlgen@v0.17.24/graphql/executor/extensions.go","lineNumber":69,"functionName":"func3","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/backend/private-graph/graph/generated/generated.go","lineNumber":66753,"functionName":"func317","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null}]`
+
+	var structuredStackTrace []*privateModel.ErrorTrace
+	err := json.Unmarshal([]byte(stacktrace), &structuredStackTrace)
+	if err != nil {
+		t.Fatal("failed to generate structured stacktrace")
+	}
+
+	util.RunTestWithDBWipe(t, "error matching", DB, func(t *testing.T) {
+		r := &Resolver{AlertWorkerPool: workerpool.New(1), DB: DB, TDB: timeseries.New(context.TODO())}
+
+		errorObject := model.ErrorObject{
+			Event:      "error 1",
+			StackTrace: &stacktrace,
+		}
+
+		errorGroup1, err := r.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, 1)
+		assert.NoError(t, err)
+
+		errorObject = model.ErrorObject{
+			Event:      "error 2",
+			StackTrace: &stacktrace,
+		}
+
+		errorGroup2, err := r.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, 1)
+		assert.NoError(t, err)
+
+		assert.Equal(t, errorGroup1.ID, errorGroup2.ID, "should return the same error group id")
+	})
 }
 
 func TestResolver_isExcludedError(t *testing.T) {
