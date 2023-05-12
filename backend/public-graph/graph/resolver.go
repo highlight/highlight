@@ -577,6 +577,17 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			return nil, e.Wrap(err, "error retrieving top matched error group")
 		}
 
+		environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
+
+		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{
+			StackTrace:       *errorObj.StackTrace,
+			MappedStackTrace: errorObj.MappedStackTrace,
+			Environments:     environmentsString,
+			Event:            errorObj.Event,
+		}).Error; err != nil {
+			return nil, e.Wrap(err, "Error updating error group")
+		}
+
 		var filename *string
 		if errorObj.MappedStackTrace != nil {
 			filename = model.GetFirstFilename(*errorObj.MappedStackTrace)
