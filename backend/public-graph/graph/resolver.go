@@ -753,13 +753,13 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	if len(structuredStackTrace) > 0 {
 		if len(structuredStackTrace) > stacktraces.ERROR_STACK_MAX_FRAME_COUNT {
 			structuredStackTrace = structuredStackTrace[:stacktraces.ERROR_STACK_MAX_FRAME_COUNT]
-		}
-		firstFrameBytes, err := json.Marshal(structuredStackTrace)
-		if err != nil {
-			return nil, e.Wrap(err, "Error marshalling first frame")
-		}
+			firstFrameBytes, err := json.Marshal(structuredStackTrace)
+			if err != nil {
+				return nil, e.Wrap(err, "Error marshalling first frame")
+			}
 
-		errorObj.StackTrace = ptr.String(string(firstFrameBytes))
+			errorObj.StackTrace = ptr.String(string(firstFrameBytes))
+		}
 	}
 
 	fingerprints := []*model.ErrorFingerprint{}
@@ -2281,7 +2281,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		err = json.Unmarshal([]byte(v.StackTrace), &structuredStackTrace)
 		if err != nil {
-
 			structuredStackTrace, err = stacktraces.StructureStackTrace(v.StackTrace)
 			if err != nil {
 				log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
