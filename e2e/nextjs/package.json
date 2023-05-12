@@ -3,26 +3,29 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "next dev --port 3005",
+		"dev": "next dev -p 3005",
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint"
 	},
 	"dependencies": {
 		"@highlight-run/next": "workspace:*",
+		"@highlight-run/node": "workspace:^",
 		"@highlight-run/react": "workspace:*",
-		"@next/font": "13.1.6",
-		"@types/node": "18.11.18",
-		"@types/react": "18.0.27",
-		"@types/react-dom": "18.0.10",
-		"eslint": "8.33.0",
-		"eslint-config-next": "13.1.6",
+		"@next/env": "^13.3.4",
+		"@types/node": "18.15.11",
+		"@types/react": "18.0.35",
+		"@types/react-dom": "18.0.11",
+		"classnames": "^2.3.2",
+		"eslint": "8.39.0",
+		"eslint-config-next": "13.3.4",
 		"highlight.run": "workspace:*",
-		"next": "13.1.6",
+		"next": "13.3.4",
 		"next-build-id": "^3.0.0",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
-		"typescript": "4.9.5",
-		"winston": "^3.8.2"
+		"typescript": "5.0.4",
+		"winston": "^3.8.2",
+		"zod": "^3.21.4"
 	}
 }

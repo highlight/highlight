@@ -1,10 +1,11 @@
-import { NextApiHandler } from 'next'
 import {
-	H as NodeH,
 	HIGHLIGHT_REQUEST_HEADER,
+	H as NodeH,
 	NodeOptions,
 } from '@highlight-run/node'
+
 import { IncomingHttpHeaders } from 'http'
+import { NextApiHandler } from 'next'
 
 interface RequestMetadata {
 	secureSessionId: string
@@ -56,9 +57,9 @@ export const H: HighlightInterface = {
 	},
 }
 
-declare type HasHeaders = { headers: IncomingHttpHeaders }
-declare type HasStatus = { statusCode: number; statusMessage: string }
-declare type ApiHandler<T extends HasHeaders, S extends HasStatus> = (
+export declare type HasHeaders = { headers: IncomingHttpHeaders }
+export declare type HasStatus = { statusCode: number; statusMessage: string }
+export declare type ApiHandler<T extends HasHeaders, S extends HasStatus> = (
 	req: T,
 	res: S,
 ) => unknown | Promise<unknown>

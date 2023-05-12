@@ -34,6 +34,7 @@ export class FirstLoadListeners {
 	fetchNetworkContents!: RequestResponsePair[]
 	tracingOrigins!: boolean | (string | RegExp)[]
 	networkHeadersToRedact!: string[]
+	networkBodyKeysToRedact: string[] | undefined
 	networkBodyKeysToRecord: string[] | undefined
 	networkHeaderKeysToRecord: string[] | undefined
 	urlBlocklist!: string[]
@@ -138,6 +139,7 @@ export class FirstLoadListeners {
 			sThis.disableNetworkRecording = options?.disableNetworkRecording
 			sThis.enableRecordingNetworkContents = false
 			sThis.networkHeadersToRedact = []
+			sThis.networkBodyKeysToRedact = []
 			sThis.urlBlocklist = []
 			sThis.networkBodyKeysToRecord = []
 			sThis.networkBodyKeysToRecord = []
@@ -145,6 +147,7 @@ export class FirstLoadListeners {
 			sThis.disableNetworkRecording = !options.networkRecording
 			sThis.enableRecordingNetworkContents = false
 			sThis.networkHeadersToRedact = []
+			sThis.networkBodyKeysToRedact = []
 			sThis.urlBlocklist = []
 		} else {
 			if (options.networkRecording?.enabled !== undefined) {
@@ -158,6 +161,10 @@ export class FirstLoadListeners {
 			sThis.networkHeadersToRedact =
 				options.networkRecording?.networkHeadersToRedact?.map(
 					(header) => header.toLowerCase(),
+				) || []
+			sThis.networkBodyKeysToRedact =
+				options.networkRecording?.networkBodyKeysToRedact?.map(
+					(bodyKey) => bodyKey.toLowerCase(),
 				) || []
 			sThis.urlBlocklist =
 				options.networkRecording?.urlBlocklist?.map((url) =>
@@ -181,8 +188,9 @@ export class FirstLoadListeners {
 
 			sThis.networkBodyKeysToRecord =
 				options.networkRecording?.bodyKeysToRecord
-
+			// `bodyKeysToRecord` override `networkBodyKeysToRedact`.
 			if (sThis.networkBodyKeysToRecord) {
+				sThis.networkBodyKeysToRedact = []
 				sThis.networkBodyKeysToRecord =
 					sThis.networkBodyKeysToRecord.map((key) =>
 						key.toLocaleLowerCase(),
@@ -203,6 +211,7 @@ export class FirstLoadListeners {
 						sThis.fetchNetworkContents.push(requestResponsePair)
 					},
 					headersToRedact: sThis.networkHeadersToRedact,
+					bodyKeysToRedact: sThis.networkBodyKeysToRedact,
 					backendUrl: sThis._backendUrl,
 					tracingOrigins: sThis.tracingOrigins,
 					urlBlocklist: sThis.urlBlocklist,

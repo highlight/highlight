@@ -1,20 +1,29 @@
 {
 	"name": "@highlight-run/next",
-	"version": "2.2.6",
+	"version": "3.0.0",
 	"description": "Client for interfacing with Highlight in next.js",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
+			"edge": "./dist/index.edge.js",
+			"edge-light": "./dist/index.edge.js",
+			"browser": "./dist/index.edge.js",
+			"worker": "./dist/index.edge.js",
+			"workerd": "./dist/index.edge.js",
 			"require": "./dist/index.js",
 			"import": "./dist/index.mjs",
 			"types": "./dist/index.d.ts"
+		},
+		"./HighlightInit": {
+			"import": "./HighlightInit.tsx"
 		}
 	},
 	"scripts": {
-		"typegen": "tsup src/index.ts --dts-only",
-		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"typegen": "tsup src/index.ts --dts-only && tsup src/index.edge.ts --dts-only",
+		"dev": "yarn build --watch",
+		"build": "tsup src/index.edge.ts --format cjs,esm --dts && tsup src/index.ts --format cjs,esm --dts",
 		"test": "jest"
 	},
 	"author": "",
@@ -25,15 +34,15 @@
 	"dependencies": {
 		"@highlight-run/node": "workspace:*",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
+		"@opentelemetry/api": "^1.4.1",
 		"npm-run-all": "4.1.5"
 	},
 	"devDependencies": {
 		"@trpc/server": "^9.27.4",
 		"@types/jest": "27.4.1",
-		"@types/node": "17.0.23",
-		"eslint": "8.12.0",
+		"eslint": "8.39.0",
 		"jest": "^29.2.0",
-		"next": ">=12",
+		"next": "^13.3.4",
 		"ts-jest": "^29.0.3",
 		"tsup": "^6.2.3",
 		"typescript": "^4.8.2"
