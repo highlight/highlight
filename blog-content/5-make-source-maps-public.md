@@ -30,7 +30,7 @@ An attacker can easily use source maps to view the code in its original, un-tran
 
 Check out our unobfuscated source code on `https://www.highlight.io`!
 
-\<Insert image of unobfuscated source code>
+![unobfuscated-source-code](https://github.com/highlight/highlight/assets/878947/84775c15-360a-4648-9cb3-987341ee309d)
 
 ## Why private source maps don't matter
 
@@ -40,11 +40,11 @@ Chrome Dev Tools makes deconstructing your JavaScript application relatively eas
 
 For instance, You can open up the Network tab and watch each request and response.
 
-\<network tab image>
+![network-tab](https://github.com/highlight/highlight/assets/878947/fbf16a8c-b3b4-45bb-9226-d815b0f9b281)
 
 The Application tab surfaces the data your site is saving locally.
 
-\<application tab image>
+![application-tab](https://github.com/highlight/highlight/assets/878947/bfa9af40-be66-4774-9a73-bf19d2e04383)
 
 Who cares how the code is written if the results, in both data and network, are readily visible?
 
@@ -54,11 +54,11 @@ Dev Tools will even allow an attacker to reformat the code and use breakpoints t
 
 ChatGPT struggles with long code snippets, so it's not yet a silver bullet for decompilation.
 
-\<chatgpt fail image>
+![chat-gpt-fail](https://github.com/highlight/highlight/assets/878947/bfb4c9e7-1486-4e36-8624-8a3eb951b9a1)
 
 But ChatGPT can de-compile shorter code snippets quite effectively.
 
-\<ChatGPT success image>
+![chat-gpt-success](https://github.com/highlight/highlight/assets/878947/ffb9b402-e90c-4501-879f-ab0196be5a01)
 
 # Benefits of public source maps
 
@@ -68,7 +68,7 @@ Dev Tools will automatically recognize and apply public source maps to your code
 
 Debugging production issues will be much, much easier, especially if you see errors in your console. With public source maps, Dev Tools can link your errors directly to the de-compiled code. It's magical.
 
-\<debugger image>
+![dev-tools-debugger](https://github.com/highlight/highlight/assets/878947/804d1f89-8939-45e2-9b98-a1f6124ae823)
 
 ## Highlight automatically recognizes public source maps
 
