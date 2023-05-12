@@ -18,7 +18,7 @@ Source maps are critical for web development in today's JavaScript environment.
 
 All of our build tools—Rollup, Vite, WebPack, ESBuild—transpile and bundle our JavaScript and CSS.
 
-Debugging errors in production with transpiled code is neigh impossible. So our tooling creates source maps.
+Debugging errors in production with transpiled code is nigh impossible. So our tooling creates source maps.
 
 See [What are source maps? by Jecelyn Yeen](https://web.dev/source-maps/) for all of the details.
 
