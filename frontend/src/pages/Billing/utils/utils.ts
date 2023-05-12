@@ -2,7 +2,12 @@ import moment from 'moment'
 
 import { GetBillingDetailsForProjectQuery } from '@/graph/generated/operations'
 
-import { PlanType, ProductType } from '../../../graph/generated/schemas'
+import {
+	Maybe,
+	PlanType,
+	ProductType,
+	RetentionPeriod,
+} from '../../../graph/generated/schemas'
 
 /**
  * Returns whether the change from the previousPlan to the newPlan was an upgrade.
@@ -35,6 +40,7 @@ export const didUpgradePlan = (
 		case PlanType.Enterprise:
 			return true
 	}
+	return false
 }
 
 export const getTrialEndDateMessage = (trialEndDate: any): string => {
@@ -57,4 +63,20 @@ export const getQuotaPercents = (
 		[ProductType.Errors, errorsMeter / errorsQuota],
 		[ProductType.Logs, logsMeter / logsQuota],
 	]
+}
+
+export const RETENTION_PERIOD_LABELS = {
+	[RetentionPeriod.ThirtyDays]: '30 days',
+	[RetentionPeriod.ThreeMonths]: '3 months',
+	[RetentionPeriod.SixMonths]: '6 months',
+	[RetentionPeriod.TwelveMonths]: '12 months',
+	[RetentionPeriod.TwoYears]: '2 years',
+}
+
+export const tryCastDate = (date: Maybe<string> | undefined) => {
+	if (date) {
+		return new Date(date)
+	} else {
+		return undefined
+	}
 }

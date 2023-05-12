@@ -34,12 +34,15 @@ import {
 	ProductType,
 	RetentionPeriod,
 } from '@/graph/generated/schemas'
-import { RETENTION_PERIOD_LABELS, tryCastDate } from '@/pages/Billing/Billing'
 import {
 	getCostCents,
 	getNextBillingDate,
 	getQuantity,
 } from '@/pages/Billing/UpdatePlanPage'
+import {
+	RETENTION_PERIOD_LABELS,
+	tryCastDate,
+} from '@/pages/Billing/utils/utils'
 import { formatNumberWithDelimiters } from '@/util/numbers'
 import { useParams } from '@/util/react-router/useParams'
 
