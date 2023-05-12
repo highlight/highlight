@@ -555,6 +555,9 @@ export const PlayerReducer = (
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)
 			s = initReplayer(s, events, !!s.replayer?.config.mouseTail)
+			analytics.track('Session live mode toggled', {
+				isLiveMode: s.isLiveMode,
+			})
 			break
 		case PlayerActionType.setCurrentEvent:
 			s.currentEvent = handleSetStateAction(

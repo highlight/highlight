@@ -1090,10 +1090,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.scale !== 1 &&
 			state.sessionViewability === SessionViewability.VIEWABLE,
 		setIsLiveMode: (isLiveMode) => {
-			analytics.track('Session live mode toggled', {
-				isLiveMode: isLiveMode.toString(),
-			})
-
 			if (isLiveMode) {
 				const events = getEvents(chunkEventsRef.current)
 
