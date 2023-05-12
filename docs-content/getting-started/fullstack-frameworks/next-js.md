@@ -135,7 +135,6 @@ const nextConfig = {
 		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: true,
-	transpilePackages: ['@highlight-run/next/HighlightInit'], // Necessary for <HighlightInit>
 }
 
 module.exports = nextConfig
@@ -222,42 +221,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-### Trouble importing `<HighlightInit>`
-You may see a compilation error like following:
-
-```shell
-error - ../../sdk/highlight-next/HighlightInit.tsx
-Module parse failed: The keyword 'interface' is reserved (7:0)
-
-You may need an appropriate loader to handle this file type, 
-currently no loaders are configured to process this file. 
-See https://webpack.js.org/concepts#loaders
-```
-
-You can either add `transpilePackages: ['@highlight-run/next/HighlightInit']` to your `next.config.js`, or you can copy/paste the `<HighlightInit/>` component into your own codebase. You can find that component here [in our GitHub repo](https://github.com/highlight/highlight/tree/main/sdk/highlight-next).
-
-It Looks something like this:
-
-```javascript
-'use client'
-
-import { H, HighlightOptions } from 'highlight.run'
-
-import { useEffect } from 'react'
-
-interface Props extends HighlightOptions {
-	projectId?: string
-}
-
-export function HighlightInit({ projectId, ...highlightOptions }: Props) {
-	useEffect(() => {
-		projectId && H.init(projectId, highlightOptions)
-	}, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-	return null
-}
-```
-
 ## Configure `tracingOrigins` and `networkRecording`
 
 See [Fullstack Mapping](https://www.highlight.io/docs/getting-started/frontend-backend-mapping#how-can-i-start-using-this) for details.
@@ -286,8 +249,7 @@ const nextConfig = {
 		appDir: true,
 		instrumentationHook: true,
 	},
-	productionBrowserSourceMaps: false,
-	transpilePackages: ['@highlight-run/next/HighlightInit'],
+	productionBrowserSourceMaps: false
 }
 
 module.exports = withHighlightConfig(nextConfig)

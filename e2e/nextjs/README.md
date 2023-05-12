@@ -135,7 +135,6 @@ const nextConfig = {
 		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: true,
-	transpilePackages: ['@highlight-run/next/HighlightInit'],
 }
 
 module.exports = nextConfig
@@ -251,7 +250,6 @@ const nextConfig = {
 		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: false,
-	transpilePackages: ['@highlight-run/next/HighlightInit'],
 }
 
 module.exports = withHighlightConfig(nextConfig)
