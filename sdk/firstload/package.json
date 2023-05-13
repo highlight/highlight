@@ -13,6 +13,9 @@
 	"main": "./dist/index.umd.js",
 	"module": "./dist/index.mjs",
 	"types": "./dist/firstload/src/index.d.ts",
+	"files": [
+		"dist"
+	],
 	"exports": {
 		".": {
 			"types": "./dist/firstload/src/index.d.ts",
@@ -20,9 +23,6 @@
 			"default": "./dist/index.mjs"
 		}
 	},
-	"files": [
-		"dist"
-	],
 	"license": "MIT",
 	"devDependencies": {
 		"@size-limit/file": "^8.1.0",
