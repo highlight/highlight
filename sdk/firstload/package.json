@@ -10,19 +10,13 @@
 		"test": "vitest --run",
 		"typegen": "tsc && node scripts/replace-client-imports.mjs"
 	},
-	"main": "./dist/index.umd.js",
-	"module": "./dist/index.mjs",
+	"type": "module",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
 	"types": "./dist/firstload/src/index.d.ts",
 	"files": [
 		"dist"
 	],
-	"exports": {
-		".": {
-			"types": "./dist/firstload/src/index.d.ts",
-			"browser": "./dist/index.umd.js",
-			"default": "./dist/index.mjs"
-		}
-	},
 	"license": "MIT",
 	"devDependencies": {
 		"@size-limit/file": "^8.1.0",
