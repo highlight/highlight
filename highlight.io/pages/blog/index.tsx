@@ -115,14 +115,16 @@ export function markdownToPost(
 ): Post {
 	let tags: Tag[] = []
 
-	data.tags.split(',').forEach((tag: string) => {
-		const tempTag: Tag = {
-			name: tag.trim(),
-			slug: tag.toLowerCase().trim().replaceAll(' ', '-'),
-		}
+	if (data.tags) {
+		data.tags.split(',').forEach((tag: string) => {
+			const tempTag: Tag = {
+				name: tag.trim(),
+				slug: tag.toLowerCase().trim().replaceAll(' ', '-'),
+			}
 
-		tags.push(tempTag)
-	})
+			tags.push(tempTag)
+		})
+	}
 
 	let post: Post = {
 		title: data.title,
@@ -228,8 +230,8 @@ export const getBlogPaths = async (
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-	const hygraphPosts = await loadPostsFromHygraph()
-	const hygraphTags = await loadTagsFromHygraph()
+	const hygraphPosts = [] //await loadPostsFromHygraph()
+	const hygraphTags = [] //await loadTagsFromHygraph()
 	const githubPosts = await loadPostsFromGithub()
 	const githubTags = await loadTagsFromGithub(githubPosts)
 
