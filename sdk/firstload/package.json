@@ -10,32 +10,29 @@
 		"test": "vitest --run",
 		"typegen": "tsc && node scripts/replace-client-imports.mjs"
 	},
-	"type": "module",
-	"files": [
-		"dist"
-	],
-	"main": "./dist/index.umd.cjs",
-	"module": "./dist/index.js",
+	"main": "./dist/index.umd.js",
+	"module": "./dist/index.mjs",
 	"types": "./dist/firstload/src/index.d.ts",
 	"exports": {
 		".": {
-			"require": "./dist/index.umd.cjs",
-			"import": "./dist/index.js",
 			"types": "./dist/firstload/src/index.d.ts",
-			"default": "./dist/index.js"
+			"browser": "./dist/index.umd.js",
+			"default": "./dist/index.mjs"
 		}
 	},
+	"files": [
+		"dist"
+	],
 	"license": "MIT",
 	"devDependencies": {
 		"@size-limit/file": "^8.1.0",
 		"@types/chrome": "^0.0.144",
-		"esbuild": "0.17.17",
 		"readdirp": "^3.6.0",
 		"size-limit": "^8.1.0",
 		"tslib": "^2.4.0",
-		"typescript": "^4.0.3",
+		"typescript": "^5.0.4",
 		"vite": "^4.3.5",
-		"vitest": "^0.23.4"
+		"vitest": "^0.31.0"
 	},
 	"size-limit": [
 		{

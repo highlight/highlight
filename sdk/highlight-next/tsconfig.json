@@ -3,6 +3,7 @@
 		"allowSyntheticDefaultImports": true,
 		"declaration": true,
 		"declarationDir": "dist",
+		"emitDeclarationOnly": true,
 		"forceConsistentCasingInFileNames": true,
 		"jsx": "react",
 		"module": "ESNext",

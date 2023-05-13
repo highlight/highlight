@@ -11,7 +11,7 @@ import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
 import type {
 	Highlight,
 	HighlightClassOptions,
-} from '@highlight-run/client/src/index'
+} from '@highlight-run/client/src'
 import type {
 	HighlightOptions,
 	HighlightPublicInterface,
@@ -19,7 +19,7 @@ import type {
 	Metric,
 	SessionDetails,
 } from '@highlight-run/client/src/types/types'
-import HighlightSegmentMiddleware from './integrations/segment'
+import { HighlightSegmentMiddleware } from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
 import firstloadVersion from './__generated/version'
 
@@ -395,5 +395,6 @@ if (typeof window !== 'undefined') {
 
 listenToChromeExtensionMessage()
 
-export { HighlightSegmentMiddleware, configureElectronHighlight }
 export type { HighlightOptions }
+export { HighlightSegmentMiddleware }
+export { configureElectronHighlight }
