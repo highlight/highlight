@@ -144,6 +144,7 @@ export function markdownToPost(
 		image: {
 			url: data.image || null,
 		},
+		youtubeVideoId: data.youtubeVideoId || null,
 		author: {
 			firstName: data.authorFirstName,
 			lastName: data.authorLastName,
