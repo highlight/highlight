@@ -8,10 +8,16 @@ export default defineConfig({
 		lib: {
 			formats: ['es', 'cjs'],
 			entry: resolve(__dirname, 'src/index.tsx'),
+			name: 'H',
 			fileName: 'index',
 		},
 		minify: 'terser',
 		emptyOutDir: false,
 		sourcemap: true,
+		rollupOptions: {
+			output: {
+				exports: 'named',
+			},
+		},
 	},
 })
