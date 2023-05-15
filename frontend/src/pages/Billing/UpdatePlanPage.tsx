@@ -7,7 +7,6 @@ import {
 	IconProps,
 	IconSolidArrowSmRight,
 	IconSolidCheveronRight,
-	IconSolidCog,
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
@@ -31,7 +30,6 @@ import { Button } from '@/components/Button'
 import {
 	useCreateOrUpdateStripeSubscriptionMutation,
 	useGetBillingDetailsQuery,
-	useGetCustomerPortalUrlLazyQuery,
 	useSaveBillingPlanMutation,
 } from '@/graph/generated/hooks'
 import { namedOperations } from '@/graph/generated/operations'
@@ -511,18 +509,6 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 		},
 	})
 
-	const [getCustomerPortalUrl, { loading: loadingCustomerPortal }] =
-		useGetCustomerPortalUrlLazyQuery({
-			variables: {
-				workspace_id: workspace_id!,
-			},
-			onCompleted: (data) => {
-				if (data?.customer_portal_url) {
-					window.open(data?.customer_portal_url, '_self')
-				}
-			},
-		})
-
 	const [
 		createOrUpdateStripeSubscription,
 		{ data: stripeData, loading: stripeLoading },
@@ -687,6 +673,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 				justifyContent="space-between"
 				width="full"
 				borderBottom="divider"
+				position="absolute"
 			>
 				<Button
 					trackingId="UpdatePlanClose"
@@ -699,19 +686,6 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 					<IconSolidX />
 				</Button>
 				<Box display="flex" flexDirection="row" gap="6">
-					<Button
-						trackingId="UpdatePlanPaymentSettings"
-						size="small"
-						emphasis="low"
-						kind="secondary"
-						disabled={loadingCustomerPortal}
-						onClick={() => {
-							getCustomerPortalUrl()
-						}}
-						iconLeft={<IconSolidCog color="n11" />}
-					>
-						Payment Settings
-					</Button>
 					<Button
 						trackingId="UpdatePlanSave"
 						onClick={() => {
