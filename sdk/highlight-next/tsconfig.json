@@ -19,13 +19,7 @@
 			"jest"
 		]
 	},
-	"include": ["src/**/*"],
-	"references": [
-		{
-			"path": "../highlight-node"
-		},
-		{
-			"path": "../../sourcemap-uploader"
-		}
+	"include": [
+		"src/**/*"
 	]
 }
