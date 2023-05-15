@@ -1920,6 +1920,7 @@ var productTypeToQuotaConfig = map[pricing.ProductType]struct {
 	maxCostCents    func(*model.Workspace) *int
 	meter           func(context.Context, *gorm.DB, *clickhouse.Client, *model.Workspace) (int64, error)
 	retentionPeriod func(*model.Workspace) privateModel.RetentionPeriod
+	included        func(*model.Workspace) int64
 }{
 	pricing.ProductTypeSessions: {
 		func(w *model.Workspace) *int { return w.SessionsMaxCents },
@@ -1929,6 +1930,13 @@ var productTypeToQuotaConfig = map[pricing.ProductType]struct {
 				return privateModel.RetentionPeriodThreeMonths
 			}
 			return *w.RetentionPeriod
+		},
+		func(w *model.Workspace) int64 {
+			limit := pricing.TypeToSessionsLimit(privateModel.PlanType(w.PlanTier))
+			if w.MonthlySessionLimit != nil {
+				limit = *w.MonthlySessionLimit
+			}
+			return int64(limit)
 		},
 	},
 	pricing.ProductTypeErrors: {
@@ -1940,12 +1948,26 @@ var productTypeToQuotaConfig = map[pricing.ProductType]struct {
 			}
 			return *w.ErrorsRetentionPeriod
 		},
+		func(w *model.Workspace) int64 {
+			limit := pricing.TypeToErrorsLimit(privateModel.PlanType(w.PlanTier))
+			if w.MonthlyErrorsLimit != nil {
+				limit = *w.MonthlyErrorsLimit
+			}
+			return int64(limit)
+		},
 	},
 	pricing.ProductTypeLogs: {
 		func(w *model.Workspace) *int { return w.LogsMaxCents },
 		pricing.GetWorkspaceLogsMeter,
 		func(w *model.Workspace) privateModel.RetentionPeriod {
 			return privateModel.RetentionPeriodThirtyDays
+		},
+		func(w *model.Workspace) int64 {
+			limit := pricing.TypeToLogsLimit(privateModel.PlanType(w.PlanTier))
+			if w.MonthlyLogsLimit != nil {
+				limit = *w.MonthlyLogsLimit
+			}
+			return int64(limit)
 		},
 	},
 }
@@ -1979,7 +2001,7 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.Produc
 		log.WithContext(ctx).Warn(fmt.Sprintf("error getting %s meter for workspace %d", productType, workspace.ID))
 	}
 
-	includedQuantity := pricing.ProductToIncludedQuantity(productType)
+	includedQuantity := cfg.included(workspace)
 	if includedQuantity >= meter {
 		return true, 0
 	}
@@ -1990,7 +2012,9 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.Produc
 
 	retentionPeriod := cfg.retentionPeriod(workspace)
 	overage := meter - includedQuantity
-	cost := float64(overage) * pricing.ProductToBasePriceCents(productType) * pricing.RetentionMultiplier(retentionPeriod)
+	cost := float64(overage) *
+		pricing.ProductToBasePriceCents(productType) *
+		pricing.RetentionMultiplier(retentionPeriod)
 
 	return cost >= float64(*maxCostCents), cost / float64(*maxCostCents)
 }

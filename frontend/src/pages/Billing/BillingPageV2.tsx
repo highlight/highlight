@@ -52,6 +52,7 @@ type UsageCardProps = {
 	productIcon: React.ReactElement<IconProps>
 	productType: ProductType
 	retentionPeriod: RetentionPeriod
+	planType: PlanType
 	billingLimitCents: number | undefined
 	usageAmount: number
 	includedQuantity: number
@@ -62,6 +63,7 @@ const UsageCard = ({
 	productIcon,
 	productType,
 	retentionPeriod,
+	planType,
 	billingLimitCents,
 	usageAmount,
 	includedQuantity,
@@ -79,6 +81,7 @@ const UsageCard = ({
 				retentionPeriod,
 				usageAmount,
 				includedQuantity,
+				planType,
 		  )
 		: 0
 	const usageLimitAmount = getQuantity(
@@ -86,6 +89,7 @@ const UsageCard = ({
 		retentionPeriod,
 		billingLimitCents,
 		includedQuantity,
+		planType,
 	)
 
 	const costFormatted =
@@ -280,20 +284,30 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	const includedErrors = data?.billingDetails.plan.errorsLimit ?? 0
 	const includedLogs = data?.billingDetails.plan.logsLimit ?? 0
 
+	const planType = data?.billingDetails.plan.type ?? PlanType.Free
+
 	const productSubtotal =
 		getCostCents(
 			ProductType.Sessions,
 			sessionsRetention,
 			sessionsUsage,
 			includedSessions,
+			planType,
 		) +
 		getCostCents(
 			ProductType.Errors,
 			errorsRetention,
 			errorsUsage,
 			includedErrors,
+			planType,
 		) +
-		getCostCents(ProductType.Logs, logsRetention, logsUsage, includedLogs)
+		getCostCents(
+			ProductType.Logs,
+			logsRetention,
+			logsUsage,
+			includedLogs,
+			planType,
+		)
 
 	const discountRatio = (100 - discountPercent) / 100
 
@@ -399,6 +413,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						usageAmount={sessionsUsage}
 						includedQuantity={includedSessions}
 						isPaying={isPaying}
+						planType={planType}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
@@ -409,6 +424,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						usageAmount={errorsUsage}
 						includedQuantity={includedErrors}
 						isPaying={isPaying}
+						planType={planType}
 					/>
 					<Box borderTop="secondary" />
 					<UsageCard
@@ -419,6 +435,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						usageAmount={logsUsage}
 						includedQuantity={includedLogs}
 						isPaying={isPaying}
+						planType={planType}
 					/>
 				</Box>
 				<Stack

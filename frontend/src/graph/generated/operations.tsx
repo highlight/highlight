@@ -2601,7 +2601,9 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 			| 'membersMeter'
 			| 'errorsMeter'
 			| 'logsMeter'
-			| 'sessionsOutOfQuota'
+			| 'sessionsBillingLimit'
+			| 'errorsBillingLimit'
+			| 'logsBillingLimit'
 		> & {
 				plan: { __typename?: 'Plan' } & Pick<
 					Types.Plan,
@@ -2639,6 +2641,9 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 		| 'membersMeter'
 		| 'errorsMeter'
 		| 'logsMeter'
+		| 'sessionsBillingLimit'
+		| 'errorsBillingLimit'
+		| 'logsBillingLimit'
 		| 'sessionsDailyAverage'
 		| 'errorsDailyAverage'
 		| 'logsDailyAverage'

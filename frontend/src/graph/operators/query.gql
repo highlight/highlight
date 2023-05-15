@@ -926,7 +926,9 @@ query GetBillingDetailsForProject($project_id: ID!) {
 		membersMeter
 		errorsMeter
 		logsMeter
-		sessionsOutOfQuota
+		sessionsBillingLimit
+		errorsBillingLimit
+		logsBillingLimit
 	}
 	workspace_for_project(project_id: $project_id) {
 		id
@@ -953,6 +955,9 @@ query GetBillingDetails($workspace_id: ID!) {
 		membersMeter
 		errorsMeter
 		logsMeter
+		sessionsBillingLimit
+		errorsBillingLimit
+		logsBillingLimit
 		sessionsDailyAverage
 		errorsDailyAverage
 		logsDailyAverage

@@ -16,7 +16,6 @@ import {
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import SearchPagination from '@components/SearchPagination/SearchPagination'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
-import LimitedSessionCard from '@components/Upsell/LimitedSessionsCard/LimitedSessionsCard'
 import {
 	useGetBillingDetailsForProjectQuery,
 	useGetSessionsHistogramQuery,
@@ -347,7 +346,6 @@ export const SessionFeedV3 = React.memo(() => {
 								)
 							) : (
 								<>
-									<LimitedSessionCard />
 									{filteredSessions?.map(
 										(s: Maybe<Session>, ind: number) =>
 											s && (

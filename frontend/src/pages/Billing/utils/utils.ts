@@ -53,11 +53,12 @@ export const getQuotaPercents = (
 	data: GetBillingDetailsForProjectQuery,
 ): [ProductType, number][] => {
 	const sessionsMeter = data.billingDetailsForProject?.meter ?? 0
-	const sessionsQuota = data.billingDetailsForProject?.plan.quota ?? 1
+	const sessionsQuota =
+		data.billingDetailsForProject?.sessionsBillingLimit ?? 1
 	const errorsMeter = data.billingDetailsForProject?.errorsMeter ?? 0
-	const errorsQuota = data.billingDetailsForProject?.plan.errorsLimit ?? 1
+	const errorsQuota = data.billingDetailsForProject?.errorsBillingLimit ?? 1
 	const logsMeter = data.billingDetailsForProject?.logsMeter ?? 0
-	const logsQuota = data.billingDetailsForProject?.plan.logsLimit ?? 1
+	const logsQuota = data.billingDetailsForProject?.logsBillingLimit ?? 1
 	return [
 		[ProductType.Sessions, sessionsMeter / sessionsQuota],
 		[ProductType.Errors, errorsMeter / errorsQuota],

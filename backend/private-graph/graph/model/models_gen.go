@@ -72,12 +72,14 @@ type BillingDetails struct {
 	Plan                 *Plan   `json:"plan"`
 	Meter                int64   `json:"meter"`
 	MembersMeter         int64   `json:"membersMeter"`
-	SessionsOutOfQuota   int64   `json:"sessionsOutOfQuota"`
 	ErrorsMeter          int64   `json:"errorsMeter"`
 	LogsMeter            int64   `json:"logsMeter"`
 	SessionsDailyAverage float64 `json:"sessionsDailyAverage"`
 	ErrorsDailyAverage   float64 `json:"errorsDailyAverage"`
 	LogsDailyAverage     float64 `json:"logsDailyAverage"`
+	SessionsBillingLimit *int64  `json:"sessionsBillingLimit"`
+	ErrorsBillingLimit   *int64  `json:"errorsBillingLimit"`
+	LogsBillingLimit     *int64  `json:"logsBillingLimit"`
 }
 
 type CategoryHistogramBucket struct {

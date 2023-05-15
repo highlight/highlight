@@ -5420,32 +5420,7 @@ func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID 
 		return nil, nil
 	}
 
-	var g errgroup.Group
-	var queriedSessionsOutOfQuota int64
-	g.Go(func() error {
-		queriedSessionsOutOfQuota, err = pricing.GetProjectQuotaOverflow(ctx, r.DB, projectID)
-		if err != nil {
-			return e.Wrap(err, "error from get quota overflow")
-		}
-		return nil
-	})
-
-	var billingDetails *modelInputs.BillingDetails
-	g.Go(func() error {
-		billingDetails, err = r.BillingDetails(ctx, project.WorkspaceID)
-		if err != nil {
-			return e.Wrap(err, "error from get quota")
-		}
-		return nil
-	})
-
-	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
-	if err := g.Wait(); err != nil {
-		return nil, e.Wrap(err, "error querying session data for billing details")
-	}
-
-	billingDetails.SessionsOutOfQuota = queriedSessionsOutOfQuota
-	return billingDetails, nil
+	return r.BillingDetails(ctx, project.WorkspaceID)
 }
 
 // BillingDetails is the resolver for the billingDetails field.
@@ -5530,10 +5505,10 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		return nil, e.Wrap(err, "error querying session data for billing details")
 	}
 
-	sessionLimit := pricing.TypeToSessionsLimit(planType)
+	sessionsIncluded := pricing.TypeToSessionsLimit(planType)
 	// use monthly session limit if it exists
 	if workspace.MonthlySessionLimit != nil {
-		sessionLimit = *workspace.MonthlySessionLimit
+		sessionsIncluded = *workspace.MonthlySessionLimit
 	}
 
 	membersLimit := pricing.TypeToMemberLimit(planType, workspace.UnlimitedMembers)
@@ -5541,26 +5516,35 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		membersLimit = workspace.MonthlyMembersLimit
 	}
 
-	errorsLimit := pricing.TypeToErrorsLimit(planType)
+	errorsIncluded := pricing.TypeToErrorsLimit(planType)
 	// use monthly session limit if it exists
 	if workspace.MonthlyErrorsLimit != nil {
-		errorsLimit = *workspace.MonthlyErrorsLimit
+		errorsIncluded = *workspace.MonthlyErrorsLimit
 	}
 
-	logsLimit := pricing.TypeToLogsLimit(planType)
+	logsIncluded := pricing.TypeToLogsLimit(planType)
 	// use monthly session limit if it exists
 	if workspace.MonthlyLogsLimit != nil {
-		logsLimit = *workspace.MonthlyLogsLimit
+		logsIncluded = *workspace.MonthlyLogsLimit
 	}
+
+	retentionPeriod := modelInputs.RetentionPeriodSixMonths
+	if workspace.RetentionPeriod != nil {
+		retentionPeriod = *workspace.RetentionPeriod
+	}
+
+	sessionsLimit := pricing.GetLimitAmount(workspace.SessionsMaxCents, pricing.ProductTypeSessions, planType, retentionPeriod)
+	errorsLimit := pricing.GetLimitAmount(workspace.ErrorsMaxCents, pricing.ProductTypeErrors, planType, retentionPeriod)
+	logsLimit := pricing.GetLimitAmount(workspace.LogsMaxCents, pricing.ProductTypeLogs, planType, retentionPeriod)
 
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:         modelInputs.PlanType(planType.String()),
-			Quota:        sessionLimit,
+			Quota:        sessionsIncluded,
 			Interval:     interval,
 			MembersLimit: membersLimit,
-			ErrorsLimit:  errorsLimit,
-			LogsLimit:    logsLimit,
+			ErrorsLimit:  errorsIncluded,
+			LogsLimit:    logsIncluded,
 		},
 		Meter:                sessionsMeter,
 		MembersMeter:         membersMeter,
@@ -5569,6 +5553,9 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		SessionsDailyAverage: sessionsAvg,
 		ErrorsDailyAverage:   errorsAvg,
 		LogsDailyAverage:     logsAvg,
+		SessionsBillingLimit: sessionsLimit,
+		ErrorsBillingLimit:   errorsLimit,
+		LogsBillingLimit:     logsLimit,
 	}
 
 	return details, nil

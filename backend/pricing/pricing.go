@@ -17,7 +17,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
 
@@ -160,28 +159,29 @@ func GetWorkspaceLogsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhous
 	return int64(count), nil
 }
 
-func GetProjectQuotaOverflow(ctx context.Context, DB *gorm.DB, projectID int) (int64, error) {
-	var queriedSessionsOverQuota int64
-	sessionsOverQuotaCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.sessionsOverQuotaCountQuery"), tracer.Tag("project_id", projectID))
-	defer sessionsOverQuotaCountSpan.Finish()
-	if err := DB.Model(&model.Session{}).
-		Where(`project_id = ?
-			AND within_billing_quota = false`, projectID).
-		Count(&queriedSessionsOverQuota).Error; err != nil {
-		return 0, e.Wrap(err, "error querying sessions over quota count")
+func GetLimitAmount(limitCostCents *int, productType ProductType, planType backend.PlanType, retentionPeriod backend.RetentionPeriod) *int64 {
+	if limitCostCents == nil {
+		return nil
 	}
-	return queriedSessionsOverQuota, nil
+	basePrice := ProductToBasePriceCents(productType)
+	if planType != backend.PlanTypeUsageBased {
+		basePrice = ProductToBasePriceCentsNonUsageBased(productType)
+	}
+	included := float64(IncludedAmount(planType, productType))
+	retentionMultiplier := RetentionMultiplier(retentionPeriod)
+
+	return pointy.Int64(int64(
+		float64(*limitCostCents)/basePrice/retentionMultiplier + included))
 }
 
-func ProductToIncludedQuantity(productType ProductType) int64 {
+func ProductToBasePriceCentsNonUsageBased(productType ProductType) float64 {
 	switch productType {
 	case ProductTypeSessions:
-		return 500
+		return .5
 	case ProductTypeErrors:
-		return 1_000
+		return .02
 	case ProductTypeLogs:
-		return 1_000_000
+		return .00015
 	default:
 		return 0
 	}
@@ -232,6 +232,19 @@ func TypeToMemberLimit(planType backend.PlanType, unlimitedMembers bool) *int {
 		return pointy.Int(15)
 	default:
 		return pointy.Int(2)
+	}
+}
+
+func IncludedAmount(planType backend.PlanType, productType ProductType) int {
+	switch productType {
+	case ProductTypeSessions:
+		return TypeToSessionsLimit(planType)
+	case ProductTypeErrors:
+		return TypeToErrorsLimit(planType)
+	case ProductTypeLogs:
+		return TypeToLogsLimit(planType)
+	default:
+		return 0
 	}
 }
 

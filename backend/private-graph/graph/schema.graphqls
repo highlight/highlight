@@ -109,12 +109,14 @@ type BillingDetails {
 	plan: Plan!
 	meter: Int64!
 	membersMeter: Int64!
-	sessionsOutOfQuota: Int64!
 	errorsMeter: Int64!
 	logsMeter: Int64!
 	sessionsDailyAverage: Float!
 	errorsDailyAverage: Float!
 	logsDailyAverage: Float!
+	sessionsBillingLimit: Int64
+	errorsBillingLimit: Int64
+	logsBillingLimit: Int64
 }
 
 type Invoice {

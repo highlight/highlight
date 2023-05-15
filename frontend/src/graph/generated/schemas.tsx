@@ -111,15 +111,17 @@ export type AverageSessionLength = {
 
 export type BillingDetails = {
 	__typename?: 'BillingDetails'
+	errorsBillingLimit?: Maybe<Scalars['Int64']>
 	errorsDailyAverage: Scalars['Float']
 	errorsMeter: Scalars['Int64']
+	logsBillingLimit?: Maybe<Scalars['Int64']>
 	logsDailyAverage: Scalars['Float']
 	logsMeter: Scalars['Int64']
 	membersMeter: Scalars['Int64']
 	meter: Scalars['Int64']
 	plan: Plan
+	sessionsBillingLimit?: Maybe<Scalars['Int64']>
 	sessionsDailyAverage: Scalars['Float']
-	sessionsOutOfQuota: Scalars['Int64']
 }
 
 export type CategoryHistogramBucket = {

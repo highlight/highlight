@@ -7729,7 +7729,9 @@ export const GetBillingDetailsForProjectDocument = gql`
 			membersMeter
 			errorsMeter
 			logsMeter
-			sessionsOutOfQuota
+			sessionsBillingLimit
+			errorsBillingLimit
+			logsBillingLimit
 		}
 		workspace_for_project(project_id: $project_id) {
 			id
@@ -7806,6 +7808,9 @@ export const GetBillingDetailsDocument = gql`
 			membersMeter
 			errorsMeter
 			logsMeter
+			sessionsBillingLimit
+			errorsBillingLimit
+			logsBillingLimit
 			sessionsDailyAverage
 			errorsDailyAverage
 			logsDailyAverage
