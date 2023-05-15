@@ -21,10 +21,7 @@
 	"themeColor": "#5629c6",
 	"filesIgnored": ["**/**.css.ts", "**/**.scss"],
 	"environment": {
-		"REACT_APP_FIREBASE_CONFIG_OBJECT": {
-			"type": "expression",
-			"value": "JSON.stringify({apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',authDomain: 'auth.highlight.run',databaseURL: 'https://highlight-f5c5b.firebaseio.com',projectId: 'highlight-f5c5b',storageBucket: 'highlight-f5c5b.appspot.com',messagingSenderId: '263184175068',appId: '1:263184175068:web:f8190c20320087d1c6c919',})"
-		},
+		"REACT_APP_FIREBASE_CONFIG_OBJECT": "{apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',authDomain: 'auth.highlight.run',databaseURL: 'https://highlight-f5c5b.firebaseio.com',projectId: 'highlight-f5c5b',storageBucket: 'highlight-f5c5b.appspot.com',messagingSenderId: '263184175068',appId: '1:263184175068:web:f8190c20320087d1c6c919',}",
 		"REACT_APP_COMMIT_SHA": {
 			"type": "expression",
 			"value": "Reflame.gitCommitSha"
@@ -35,7 +32,7 @@
 			"type": "expression",
 			"value": "window.location.origin"
 		},
-		"REACT_APP_FRONTEND_ORG": 1,
+		"REACT_APP_FRONTEND_ORG": "1",
 		"REACT_APP_PUBLIC_GRAPH_URI": "https://pub.highlight.run",
 		"REACT_APP_AUTH_MODE": null,
 		"SLACK_CLIENT_ID": null,
