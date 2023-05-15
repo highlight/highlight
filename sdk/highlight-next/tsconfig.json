@@ -6,7 +6,7 @@
 		"forceConsistentCasingInFileNames": true,
 		"jsx": "react",
 		"module": "ESNext",
-		"moduleResolution": "node16",
+		"moduleResolution": "node",
 		"outDir": "dist",
 		"removeComments": true,
 		"resolveJsonModule": true,
