@@ -135,9 +135,10 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					StackTrace:  &shortTraceStr,
 				},
 				{
-					Event:     "error",
-					ProjectID: 1,
-					Model:     model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					Event:      "error",
+					ProjectID:  1,
+					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					StackTrace: &shortTraceStr,
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
