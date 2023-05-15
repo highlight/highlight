@@ -10,12 +10,13 @@ const result = jsoncParser.applyEdits(
 		configText,
 		['environment'],
 		{
-			REACT_APP_FIREBASE_CONFIG_OBJECT: process.env
-				.REACT_APP_FIREBASE_CONFIG_OBJECT ?? {
-				type: 'expression',
-				value: "JSON.stringify({apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',authDomain: 'auth.highlight.run',databaseURL: 'https://highlight-f5c5b.firebaseio.com',projectId: 'highlight-f5c5b',storageBucket: 'highlight-f5c5b.appspot.com',messagingSenderId: '263184175068',appId: '1:263184175068:web:f8190c20320087d1c6c919',})",
-			},
-			REACT_APP_COMMIT_SHA: process.env.REACT_APP_COMMIT_SHA ?? {
+			REACT_APP_FIREBASE_CONFIG_OBJECT:
+				process.env.REACT_APP_FIREBASE_CONFIG_OBJECT?.replaceAll(
+					'\n',
+					'',
+				) ??
+				"{apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',authDomain: 'auth.highlight.run',databaseURL: 'https://highlight-f5c5b.firebaseio.com',projectId: 'highlight-f5c5b',storageBucket: 'highlight-f5c5b.appspot.com',messagingSenderId: '263184175068',appId: '1:263184175068:web:f8190c20320087d1c6c919',}",
+			REACT_APP_COMMIT_SHA: {
 				type: 'expression',
 				value: 'Reflame.gitCommitSha',
 			},
@@ -23,11 +24,11 @@ const result = jsoncParser.applyEdits(
 				process.env.REACT_APP_PRIVATE_GRAPH_URI ??
 				'https://pri.highlight.run',
 			REACT_APP_ONPREM: process.env.REACT_APP_ONPREM ?? false,
-			REACT_APP_FRONTEND_URI: process.env.REACT_APP_FRONTEND_URI ?? {
+			REACT_APP_FRONTEND_URI: {
 				type: 'expression',
 				value: 'window.location.origin',
 			},
-			REACT_APP_FRONTEND_ORG: process.env.REACT_APP_FRONTEND_ORG ?? 1,
+			REACT_APP_FRONTEND_ORG: process.env.REACT_APP_FRONTEND_ORG ?? '1',
 			REACT_APP_PUBLIC_GRAPH_URI:
 				process.env.REACT_APP_PUBLIC_GRAPH_URI ??
 				'https://pub.highlight.run',
