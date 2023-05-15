@@ -231,8 +231,8 @@ export const getBlogPaths = async (
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-	const hygraphPosts = await loadPostsFromHygraph()
-	const hygraphTags = await loadTagsFromHygraph()
+	const hygraphPosts = [] //await loadPostsFromHygraph()
+	const hygraphTags = [] //await loadTagsFromHygraph()
 	const githubPosts = await loadPostsFromGithub()
 	const githubTags = await loadTagsFromGithub(githubPosts)
 

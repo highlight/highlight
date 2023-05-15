@@ -4,7 +4,7 @@ import type {
 	GetStaticProps,
 } from 'next/types'
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
-import { ReactNode, createElement, useEffect, useRef, useState } from 'react'
+import { createElement, ReactNode, useEffect, useRef, useState } from 'react'
 import { getBlogPaths, loadPostsFromGithub } from '.'
 
 import { BlogCallToAction } from '../../components/common/CallToAction/BlogCallToAction'
@@ -13,8 +13,6 @@ import { Comments } from '../../components/Comments/Comments'
 import { ElementNode } from '@graphcms/rich-text-types'
 import Footer from '../../components/common/Footer/Footer'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
-import { GraphQLRequest } from '../../utils/graphql'
-import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
 import Image from 'next/legacy/image'
 import { Meta } from '../../components/common/Head/Meta'
 import { Post } from '../../components/Blog/BlogPost/BlogPost'
@@ -31,6 +29,7 @@ import { gql } from 'graphql-request'
 import homeStyles from '../../components/Home/Home.module.scss'
 import { serialize } from 'next-mdx-remote/serialize'
 import styles from '../../components/Blog/Blog.module.scss'
+import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
 
 const NUM_SUGGESTED_POSTS = 3
 
@@ -45,8 +44,8 @@ interface Content {
 	bold?: boolean
 }
 
-export async function getGithubPostBySlug(slug: string) {
-	const posts = await loadPostsFromGithub()
+export async function getGithubPostBySlug(slug: string, githubPosts?: Post[]) {
+	const posts = githubPosts || (await loadPostsFromGithub())
 
 	const post = posts.find((p) => p.slug === slug)
 	if (!post) {
@@ -199,12 +198,14 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 	let paths: GetStaticPathsResult['paths'] = []
 
+	/*
 	const { posts } = await GraphQLRequest<{ posts: Post[] }>(QUERY)
 	posts.forEach((post) => {
 		if (post.slug) {
 			paths.push({ params: { slug: post.slug } })
 		}
 	})
+  */
 
 	let p = await getBlogPaths(fsp, '')
 	p.forEach((path) => {
@@ -287,16 +288,16 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
       }
   `
 
-	const data = await GraphQLRequest<{ post?: Post }>(QUERY, { slug: slug })
-	const { posts } = await GraphQLRequest<{ posts: Post[] }>(POSTS_QUERY)
+	// const data = await GraphQLRequest<{ post?: Post }>(QUERY, { slug: slug })
+	// const { posts } = await GraphQLRequest<{ posts: Post[] }>(POSTS_QUERY)
 	const githubPosts = await loadPostsFromGithub()
-	let allPosts = [...posts, ...githubPosts]
-	const otherPosts = allPosts.filter((post: any) => post.slug !== slug)
+	//let allPosts = [...posts, ...githubPosts]
+	const otherPosts = githubPosts.filter((post: any) => post.slug !== slug)
 	const suggestedPosts = []
 	// suggest N random posts that are not the current post
 	for (
 		let i = 0;
-		i < Math.min(NUM_SUGGESTED_POSTS, allPosts.length - 1);
+		i < Math.min(NUM_SUGGESTED_POSTS, githubPosts.length - 1);
 		i++
 	) {
 		suggestedPosts.push(
@@ -307,26 +308,23 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		)
 	}
 
-	if (!data.post) {
-		// lookup should be done by the file name, not the `slug` parameter.
-		const githubPost = await getGithubPostBySlug(slug)
-		if (!githubPost) {
-			return {
-				notFound: true,
-			}
-		}
-		const mdxSource = await serialize(githubPost.richcontent.markdown)
-
+	const githubPost = await getGithubPostBySlug(slug, githubPosts)
+	if (!githubPost) {
 		return {
-			props: {
-				suggestedPosts,
-				source: mdxSource,
-				post: githubPost,
-			},
-			revalidate: 60 * 60, // Cache response for 1 hour (60 seconds * 60 minutes)
+			notFound: true,
 		}
 	}
+	const mdxSource = await serialize(githubPost.richcontent.markdown)
+	return {
+		props: {
+			suggestedPosts,
+			source: mdxSource,
+			post: githubPost,
+		},
+		revalidate: 60 * 60, // Cache response for 1 hour (60 seconds * 60 minutes)
+	}
 
+	/*
 	const postSections: PostSection[] = []
 	let currentBlock: ElementNode[] = []
 	for (const r of data.post.richcontent.raw.children) {
@@ -374,6 +372,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		},
 		revalidate: 60 * 60, // Cache response for 1 hour (60 seconds * 60 minutes)
 	}
+  */
 }
 
 interface PostSection {
