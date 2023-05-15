@@ -173,7 +173,7 @@ const Faqs: { question: string; answer: string; icon: string }[] = [
 	},
 	{
 		question: 'Can I deploy Highlight on-premise?',
-		answer: `Yes! To get a glimpse at how our hobby deployment process looks, take a look <a href="${docsUrl}/general/company/open-source/self-host-hobby">here</a>. To get a license key for a production deployment, contacts at <a href="mailto:sales@highlight.io">sales@highlight.io</a>.`,
+		answer: `Yes! To get a glimpse at how our hobby deployment process looks, take a look <a href="${docsUrl}/general/company/open-source/hosting/self-host-hobby">here</a>. To get a license key for a production deployment, contacts at <a href="mailto:sales@highlight.io">sales@highlight.io</a>.`,
 		icon: Globe,
 	},
 	{
@@ -209,10 +209,10 @@ const Faqs: { question: string; answer: string; icon: string }[] = [
 ]
 
 const billingPeriodOptions = ['Monthly', 'Annual'] as const
-type BillingPeriod = typeof billingPeriodOptions[number]
+type BillingPeriod = (typeof billingPeriodOptions)[number]
 
 const retentionOptions = ['3 months', '6 months', '1 year', '2 years'] as const
-type Retention = typeof retentionOptions[number]
+type Retention = (typeof retentionOptions)[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'3 months': 1,
 	'6 months': 1.5,
@@ -221,7 +221,7 @@ const retentionMultipliers: Record<Retention, number> = {
 } as const
 
 const tierOptions = ['Free', 'Basic', 'Essentials', 'Startup'] as const
-type TierName = typeof tierOptions[number]
+type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	basePrice: number
