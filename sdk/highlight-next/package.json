@@ -1,10 +1,12 @@
 {
 	"name": "@highlight-run/next",
-	"version": "3.0.0",
+	"version": "3.0.1",
 	"description": "Client for interfacing with Highlight in next.js",
-	"main": "./dist/index.js",
-	"module": "./dist/index.mjs",
-	"types": "./dist/index.d.ts",
+	"files": [
+		"dist",
+		"highlight-init.d.ts",
+		"index.d.ts"
+	],
 	"exports": {
 		".": {
 			"edge": "./dist/index.edge.js",
@@ -16,20 +18,27 @@
 			"import": "./dist/index.mjs",
 			"types": "./dist/index.d.ts"
 		},
-		"./HighlightInit": {
-			"import": "./HighlightInit.tsx"
+		"./highlight-init": {
+			"types": "./dist/HighlightInit.d.ts",
+			"import": "./dist/HighlightInit.mjs",
+			"require": "./dist/HighlightInit.js"
 		}
 	},
 	"scripts": {
 		"typegen": "tsup src/index.ts --dts-only && tsup src/index.edge.ts --dts-only",
 		"dev": "yarn build --watch",
-		"build": "tsup src/index.edge.ts --format cjs,esm --dts && tsup src/index.ts --format cjs,esm --dts",
+		"build": "yarn build:edge && yarn build:node && yarn build:init",
+		"build:edge": "tsup src/index.edge.ts --format cjs,esm --dts",
+		"build:node": "tsup src/index.ts --format cjs,esm --dts",
+		"build:init": "tsup src/HighlightInit.tsx --format cjs,esm --dts && sh ./bin/clean-highlight-init.sh",
 		"test": "jest"
 	},
 	"author": "",
 	"license": "ISC",
 	"peerDependencies": {
-		"next": ">=12"
+		"highlight.run": ">=3.0.0",
+		"next": ">=12",
+		"react": ">=17"
 	},
 	"dependencies": {
 		"@highlight-run/node": "workspace:*",
