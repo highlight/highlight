@@ -734,10 +734,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil, e.New("error object event was empty")
 	}
 
-	if errorObj.StackTrace == nil {
-		errorObj.StackTrace = ptr.String("")
-	}
-
 	if projectID == 1 {
 		if errorObj.Event == `input: initializeSession BillingQuotaExceeded` ||
 			errorObj.Event == `BillingQuotaExceeded` ||
