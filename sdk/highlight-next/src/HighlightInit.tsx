@@ -10,7 +10,6 @@ interface Props extends HighlightOptions {
 
 export function HighlightInit({ projectId, ...highlightOptions }: Props) {
 	useEffect(() => {
-		console.log({ projectId })
 		projectId && H.init(projectId, highlightOptions)
 	}, []) // eslint-disable-line react-hooks/exhaustive-deps
 

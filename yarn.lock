@@ -11328,6 +11328,7 @@ __metadata:
     "@trpc/server": ^9.27.4
     "@types/jest": 27.4.1
     eslint: 8.39.0
+    highlight.run: "workspace:^"
     jest: ^29.2.0
     next: ^13.3.4
     npm-run-all: 4.1.5
@@ -11336,6 +11337,7 @@ __metadata:
     typescript: ^4.8.2
   peerDependencies:
     next: ">=12"
+    react: ">=17"
   languageName: unknown
   linkType: soft
 
@@ -34091,7 +34093,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highlight.run@workspace:*, highlight.run@workspace:sdk/firstload":
+"highlight.run@workspace:*, highlight.run@workspace:^, highlight.run@workspace:sdk/firstload":
   version: 0.0.0-use.local
   resolution: "highlight.run@workspace:sdk/firstload"
   dependencies:
