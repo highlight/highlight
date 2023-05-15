@@ -83,7 +83,7 @@
 			]
 		},
 		"dev": {
-			"dependsOn": ["^build"],
+			"dependsOn": ["typegen", "^build"],
 			"cache": false,
 			"persistent": true
 		},
@@ -110,5 +110,5 @@
 		}
 	},
 	"globalEnv": ["DOPPLER_TOKEN"],
-	"globalDependencies": ["package.json", "yarn.lock"]
+	"globalDependencies": ["package.json", "yarn.lock", "tsconfig.json"]
 }

@@ -11,8 +11,7 @@
 		"typegen": "tsc && node scripts/replace-client-imports.mjs"
 	},
 	"type": "module",
-	"main": "./dist/index.cjs",
-	"module": "./dist/index.js",
+	"main": "./dist/index.js",
 	"types": "./dist/firstload/src/index.d.ts",
 	"files": [
 		"dist"
