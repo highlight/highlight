@@ -44,7 +44,8 @@
 			"REACT_APP_FRONT_INTEGRATION_CLIENT_ID": null,
 			"HEIGHT_CLIENT_ID": null,
 			"DEMO_SESSION_URL": null,
-			"LINEAR_CLIENT_ID": null
+			"LINEAR_CLIENT_ID": null,
+			"DEMO_PROJECT_ID": "2"
 		},
 		"docker": {
 			"REACT_APP_FIREBASE_CONFIG_OBJECT": "{apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',authDomain: 'auth.highlight.run',databaseURL: 'https://highlight-f5c5b.firebaseio.com',projectId: 'highlight-f5c5b',storageBucket: 'highlight-f5c5b.appspot.com',messagingSenderId: '263184175068',appId: '1:263184175068:web:f8190c20320087d1c6c919',}",
@@ -69,7 +70,8 @@
 			"REACT_APP_FRONT_INTEGRATION_CLIENT_ID": null,
 			"HEIGHT_CLIENT_ID": null,
 			"DEMO_SESSION_URL": null,
-			"LINEAR_CLIENT_ID": null
+			"LINEAR_CLIENT_ID": null,
+			"DEMO_PROJECT_ID": "2"
 		}
 	},
 	"environment": "production",

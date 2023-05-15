@@ -9,14 +9,14 @@
 	],
 	"exports": {
 		".": {
+			"types": "./dist/index.d.ts",
 			"edge": "./dist/index.edge.js",
 			"edge-light": "./dist/index.edge.js",
 			"browser": "./dist/index.edge.js",
 			"worker": "./dist/index.edge.js",
 			"workerd": "./dist/index.edge.js",
 			"require": "./dist/index.js",
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.ts"
+			"import": "./dist/index.mjs"
 		},
 		"./highlight-init": {
 			"types": "./dist/HighlightInit.d.ts",
@@ -25,12 +25,9 @@
 		}
 	},
 	"scripts": {
-		"typegen": "tsup src/index.ts --dts-only && tsup src/index.edge.ts --dts-only",
+		"typegen": "tsup --dts-only",
 		"dev": "yarn build --watch",
-		"build": "yarn build:edge && yarn build:node && yarn build:init",
-		"build:edge": "tsup src/index.edge.ts --format cjs,esm --dts",
-		"build:node": "tsup src/index.ts --format cjs,esm --dts",
-		"build:init": "tsup src/HighlightInit.tsx --format cjs,esm --dts && sh ./bin/clean-highlight-init.sh",
+		"build": "tsup && sh ./bin/clean-highlight-init.sh",
 		"test": "jest"
 	},
 	"author": "",
@@ -44,6 +41,7 @@
 		"@highlight-run/node": "workspace:*",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
 		"@opentelemetry/api": "^1.4.1",
+		"highlight.run": "workspace:*",
 		"npm-run-all": "4.1.5"
 	},
 	"devDependencies": {
@@ -53,7 +51,7 @@
 		"jest": "^29.2.0",
 		"next": "^13.3.4",
 		"ts-jest": "^29.0.3",
-		"tsup": "^6.2.3",
-		"typescript": "^4.8.2"
+		"tsup": "^6.7.0",
+		"typescript": "^5.0.4"
 	}
 }

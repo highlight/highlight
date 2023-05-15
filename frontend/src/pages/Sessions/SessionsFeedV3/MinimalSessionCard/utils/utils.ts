@@ -3,7 +3,7 @@ import { H } from 'highlight.run'
 import validator from 'validator'
 
 export const getIdentifiedUserProfileImage = (
-	session: Maybe<Partial<Session>>,
+	session?: Maybe<Partial<Session>>,
 ): string | undefined => {
 	if (!session || !session.user_properties) {
 		return undefined

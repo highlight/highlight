@@ -50,6 +50,7 @@ const result = jsoncParser.applyEdits(
 			HEIGHT_CLIENT_ID: process.env.HEIGHT_CLIENT_ID ?? null,
 			DEMO_SESSION_URL: process.env.DEMO_SESSION_URL ?? null,
 			LINEAR_CLIENT_ID: process.env.LINEAR_CLIENT_ID ?? null,
+			DEMO_PROJECT_ID: process.env.DEMO_PROJECT_ID ?? '2',
 		},
 		{ formattingOptions: { insertSpaces: false } },
 	),
