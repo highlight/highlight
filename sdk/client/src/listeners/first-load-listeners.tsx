@@ -13,7 +13,6 @@ import {
 	matchPerformanceTimingsWithRequestResponsePair,
 	shouldNetworkRequestBeRecorded,
 } from './network-listener/utils/utils'
-import publicGraphURI from 'consts:publicGraphURI'
 
 // Note: This class is used by both firstload and client. When constructed in client, it will match the current
 // codebase. When constructed in firstload, it will match the codebase at the time the npm package was published.
@@ -126,7 +125,9 @@ export class FirstLoadListeners {
 		options: HighlightClassOptions,
 	): void {
 		sThis._backendUrl =
-			options?.backendUrl || publicGraphURI || 'https://pub.highlight.run'
+			options?.backendUrl ||
+			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ||
+			'https://pub.highlight.run'
 
 		sThis.xhrNetworkContents = []
 		sThis.fetchNetworkContents = []

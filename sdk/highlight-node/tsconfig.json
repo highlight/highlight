@@ -1,20 +1,18 @@
 {
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
-		"composite": false,
 		"declaration": true,
 		"declarationDir": "dist",
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"jsx": "react",
 		"lib": ["dom", "dom.iterable", "esnext"],
-		"module": "ES6",
+		"module": "ESNext",
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"strict": true,
-		"target": "ES6",
-		"types": ["node", "jest"]
+		"target": "ESNext"
 	},
-	"include": ["src/**/*"]
+	"include": ["src"]
 }

@@ -37,7 +37,8 @@
 		"REACT_APP_FRONT_INTEGRATION_CLIENT_ID": "e77eb8f15b02423c9525",
 		"HEIGHT_CLIENT_ID": "N58AdgpuOi2AmSeG2wKc8Osayo8WIU0UoQGwACiYqyI",
 		"DEMO_SESSION_URL": "/1/sessions/SGKFqG4mE8au2UmHjT0BhjO5Q15f",
-		"LINEAR_CLIENT_ID": "f60ff43c7376d0aceaa1e111db39e60d"
+		"LINEAR_CLIENT_ID": "f60ff43c7376d0aceaa1e111db39e60d",
+		"DEMO_PROJECT_ID": "2"
 	},
 	"scripts": [
 		"/intercom.js",
