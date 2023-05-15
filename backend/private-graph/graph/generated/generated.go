@@ -955,6 +955,7 @@ type ComplexityRoot struct {
 		Environment                    func(childComplexity int) int
 		EventCounts                    func(childComplexity int) int
 		Excluded                       func(childComplexity int) int
+		ExcludedReason                 func(childComplexity int) int
 		FieldGroup                     func(childComplexity int) int
 		Fields                         func(childComplexity int) int
 		Fingerprint                    func(childComplexity int) int
@@ -7023,6 +7024,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Excluded(childComplexity), true
 
+	case "Session.excluded_reason":
+		if e.complexity.Session.ExcludedReason == nil {
+			break
+		}
+
+		return e.complexity.Session.ExcludedReason(childComplexity), true
+
 	case "Session.field_group":
 		if e.complexity.Session.FieldGroup == nil {
 			break
@@ -8317,6 +8325,7 @@ type Session {
 	starred: Boolean
 	processed: Boolean
 	excluded: Boolean!
+	excluded_reason: SessionExcludedReason
 	has_rage_clicks: Boolean
 	has_errors: Boolean
 	first_time: Boolean
@@ -25264,6 +25273,8 @@ func (ec *executionContext) fieldContext_ErrorObject_session(ctx context.Context
 				return ec.fieldContext_Session_processed(ctx, field)
 			case "excluded":
 				return ec.fieldContext_Session_excluded(ctx, field)
+			case "excluded_reason":
+				return ec.fieldContext_Session_excluded_reason(ctx, field)
 			case "has_rage_clicks":
 				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
 			case "has_errors":
@@ -31940,6 +31951,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsViewed(ctx contex
 				return ec.fieldContext_Session_processed(ctx, field)
 			case "excluded":
 				return ec.fieldContext_Session_excluded(ctx, field)
+			case "excluded_reason":
+				return ec.fieldContext_Session_excluded_reason(ctx, field)
 			case "has_rage_clicks":
 				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
 			case "has_errors":
@@ -32089,6 +32102,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsStarred(ctx conte
 				return ec.fieldContext_Session_processed(ctx, field)
 			case "excluded":
 				return ec.fieldContext_Session_excluded(ctx, field)
+			case "excluded_reason":
+				return ec.fieldContext_Session_excluded_reason(ctx, field)
 			case "has_rage_clicks":
 				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
 			case "has_errors":
@@ -35551,6 +35566,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionIsPublic(ctx cont
 				return ec.fieldContext_Session_processed(ctx, field)
 			case "excluded":
 				return ec.fieldContext_Session_excluded(ctx, field)
+			case "excluded_reason":
+				return ec.fieldContext_Session_excluded_reason(ctx, field)
 			case "has_rage_clicks":
 				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
 			case "has_errors":
@@ -37932,6 +37949,8 @@ func (ec *executionContext) fieldContext_Query_session(ctx context.Context, fiel
 				return ec.fieldContext_Session_processed(ctx, field)
 			case "excluded":
 				return ec.fieldContext_Session_excluded(ctx, field)
+			case "excluded_reason":
+				return ec.fieldContext_Session_excluded_reason(ctx, field)
 			case "has_rage_clicks":
 				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
 			case "has_errors":
@@ -40410,6 +40429,8 @@ func (ec *executionContext) fieldContext_Query_projectHasViewedASession(ctx cont
 				return ec.fieldContext_Session_processed(ctx, field)
 			case "excluded":
 				return ec.fieldContext_Session_excluded(ctx, field)
+			case "excluded_reason":
+				return ec.fieldContext_Session_excluded_reason(ctx, field)
 			case "has_rage_clicks":
 				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
 			case "has_errors":
@@ -49834,6 +49855,47 @@ func (ec *executionContext) fieldContext_Session_excluded(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Session_excluded_reason(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Session_excluded_reason(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExcludedReason, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.SessionExcludedReason)
+	fc.Result = res
+	return ec.marshalOSessionExcludedReason2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionExcludedReason(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Session_excluded_reason(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SessionExcludedReason does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Session_has_rage_clicks(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Session_has_rage_clicks(ctx, field)
 	if err != nil {
@@ -52712,6 +52774,8 @@ func (ec *executionContext) fieldContext_SessionResults_sessions(ctx context.Con
 				return ec.fieldContext_Session_processed(ctx, field)
 			case "excluded":
 				return ec.fieldContext_Session_excluded(ctx, field)
+			case "excluded_reason":
+				return ec.fieldContext_Session_excluded_reason(ctx, field)
 			case "has_rage_clicks":
 				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
 			case "has_errors":
@@ -67920,6 +67984,10 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "excluded_reason":
+
+			out.Values[i] = ec._Session_excluded_reason(ctx, field, obj)
+
 		case "has_rage_clicks":
 
 			out.Values[i] = ec._Session_has_rage_clicks(ctx, field, obj)
@@ -75731,6 +75799,22 @@ func (ec *executionContext) unmarshalOSessionCommentTagInput2ᚖgithubᚗcomᚋh
 	}
 	res, err := ec.unmarshalInputSessionCommentTagInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOSessionExcludedReason2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionExcludedReason(ctx context.Context, v interface{}) (*model.SessionExcludedReason, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.SessionExcludedReason)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSessionExcludedReason2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionExcludedReason(ctx context.Context, sel ast.SelectionSet, v *model.SessionExcludedReason) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOSessionPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionPayload(ctx context.Context, sel ast.SelectionSet, v *model1.SessionPayload) graphql.Marshaler {
