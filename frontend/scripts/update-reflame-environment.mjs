@@ -4,11 +4,17 @@ import * as fs from 'node:fs'
 const configPath = '../.reflame.config.jsonc'
 const configText = fs.readFileSync(configPath, 'utf8')
 
+const name = process.argv[2]
+
+if (!name) {
+	throw new Error('missing environment name')
+}
+
 const result = jsoncParser.applyEdits(
 	configText,
 	jsoncParser.modify(
 		configText,
-		['environment'],
+		['environments', name],
 		{
 			REACT_APP_FIREBASE_CONFIG_OBJECT:
 				process.env.REACT_APP_FIREBASE_CONFIG_OBJECT?.replaceAll(
@@ -50,6 +56,6 @@ const result = jsoncParser.applyEdits(
 )
 
 if (result !== configText) {
-	console.log('updating Reflame config with new env vars')
+	console.log(`updating Reflame config with '${name}' environment`)
 	fs.writeFileSync(configPath, result)
 }
