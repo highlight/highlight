@@ -10,7 +10,7 @@ updatedAt: 2023-05-10T00:00:00.000Z
 
 ⚠️ We are working on App Directory support. App Directory has not reached feature-parity with standard Next, so we're waiting for a stable release to lock down our integration. We're capturing App Directory API errors, but we've been unable to capture server-side errors from App Directory routes.
 
-⚠️ Sourcemaps do not work in development mode. Run `yarn build && yarn start` to test compiled sourcemaps in Highlight.
+⚠️ Sourcemaps do not work in development mode. Run `yarn build && yarn start` to test compiled source maps in Highlight.
 
 ## Installation
 
@@ -121,7 +121,7 @@ Next.js comes out of the box instrumented for Open Telemetry. Our example Highli
 
 
 1. Install `next-build-id` with `npm install next-build-id`.
-2.  Turn on `instrumentationHook`. We've also turned on `productionBrowserSourceMaps` because Highlight is much easier to use with sourcemaps. Notice that we're transpiling the `@highlight-run/next/HighlightInit` package.
+2.  Turn on `instrumentationHook`. We've also turned on `productionBrowserSourceMaps` because Highlight is much easier to use with source maps.
 
 ```javascript
 // next.config.js
@@ -156,6 +156,8 @@ export async function register() {
 ```
 
 ## Instrument the client
+
+This implementation requires React 17 or greater. If you're behind on React versions, follow our [React.js docs](../3_client-sdk/1_reactjs.md)
 
 1. For the `/pages` directory, you'll want to add `HighlightInit` to `_app.tsx`.
 
@@ -227,15 +229,15 @@ See [Fullstack Mapping](https://www.highlight.io/docs/getting-started/frontend-b
 
 You likely want to associate your back-end errors to client sessions.
 
-## Test sourcemaps
+## Test source maps
 
-We recommend shipping your sourcemaps to your production server. Your client-side JavaScript is always public, and code decompilation tools are so powerful that obscuring your source code may not be helpful.
+We recommend shipping your source maps to your production server. Your client-side JavaScript is always public, and code decompilation tools are so powerful that obscuring your source code may not be helpful.
 
-Shipping sourcemaps to production with Next.js is as easy as setting `productionBrowserSourceMaps: true` in your `nextConfig`.
+Shipping source maps to production with Next.js is as easy as setting `productionBrowserSourceMaps: true` in your `nextConfig`.
 
-Alternatively, you can upload sourcemaps directly to Highlight using our `withHighlightConfig` function.
+Alternatively, you can upload source maps directly to Highlight using our `withHighlightConfig` function.
 
-Make sure to implement `nextConfig.generateBuildId` so that our sourcemap uploader can version your sourcemaps correctly. Make sure to omit `productionBrowserSourceMaps` or set it to false to enable the sourcemap uploader.
+Make sure to implement `nextConfig.generateBuildId` so that our source map uploader can version your source maps correctly. Make sure to omit `productionBrowserSourceMaps` or set it to false to enable the source map uploader.
 
 ```javascript
 // next.config.js
