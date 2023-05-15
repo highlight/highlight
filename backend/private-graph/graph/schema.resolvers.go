@@ -3989,7 +3989,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 
 	asErrorGroups := []*model.ErrorGroup{}
 	for _, result := range results {
-		asErrorGroups = append(asErrorGroups, result.ToErrorGroup())
+		asErrorGroups = append(asErrorGroups, result.ErrorGroup)
 	}
 
 	errorFrequencyInfluxSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
