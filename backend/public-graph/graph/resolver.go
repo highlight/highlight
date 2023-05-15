@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"hash/fnv"
 	"io"
@@ -732,6 +733,10 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 	if errorObj.Event == "" {
 		return nil, e.New("error object event was empty")
+	}
+
+	if errorObj.StackTrace == nil {
+		return nil, errors.New("error object stacktrace was empty")
 	}
 
 	if projectID == 1 {
