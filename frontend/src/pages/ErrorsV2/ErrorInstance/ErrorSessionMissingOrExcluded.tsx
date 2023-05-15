@@ -16,8 +16,7 @@ const getSession = ({ errorObject }: Props) => {
 const showProjectSettingsButton = ({ errorObject }: Props) => {
 	return (
 		errorObject?.session?.excluded_reason ===
-			SessionExcludedReason.IgnoredUser ||
-		errorObject?.session?.excluded_reason === SessionExcludedReason.NoError
+		SessionExcludedReason.IgnoredUser
 	)
 }
 
@@ -30,9 +29,6 @@ const getLearnMoreLink = ({ errorObject }: Props) => {
 	const excludedReason = session.excluded_reason
 
 	switch (excludedReason) {
-		case SessionExcludedReason.NoError: {
-			return 'https://www.highlight.io/docs/general/product-features/session-replay/ignoring-sessions#ignoring-sessions-without-an-error'
-		}
 		case SessionExcludedReason.IgnoredUser: {
 			return 'https://www.highlight.io/docs/general/product-features/session-replay/ignoring-sessions#ignore-sessions-by-user-identifier'
 		}
@@ -50,19 +46,11 @@ const getReason = ({ errorObject }: Props) => {
 	const excludedReason = session.excluded_reason
 
 	switch (excludedReason) {
-		case SessionExcludedReason.Initializing:
-		case SessionExcludedReason.NoActivity:
-		case SessionExcludedReason.NoUserInteractionEvents: {
-			return 'There was no activity for this session.'
-		}
-		case SessionExcludedReason.NoError: {
-			return 'There was no error for this session and was filtered out by your project settings.'
-		}
 		case SessionExcludedReason.IgnoredUser: {
 			return 'This session was ignored since the user was excluded by your project settings.'
 		}
 		default:
-			return "We weren't able to match this error to a session."
+			return null
 	}
 }
 
@@ -93,14 +81,18 @@ export const ErrorSessionMissingOrExcluded = ({ errorObject }: Props) => {
 		</LinkButton>
 	)
 
+	const reason = getReason({ errorObject })
+
 	return (
 		<>
 			<Callout title="We didn't find a session for this error">
-				<Box>
-					<Text size="small" weight="medium" color="moderate">
-						{getReason({ errorObject })}
-					</Text>
-				</Box>
+				{reason && (
+					<Box>
+						<Text size="small" weight="medium" color="moderate">
+							{reason}
+						</Text>
+					</Box>
+				)}
 				<Box display="flex">
 					{!session && backendSDKSetupButton}
 					{showProjectSettingsButton({ errorObject }) &&
