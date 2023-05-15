@@ -6,9 +6,9 @@ export default defineConfig({
 	envPrefix: ['REACT_APP_'],
 	build: {
 		lib: {
-			formats: ['es', 'cjs'],
+			formats: ['es', 'cjs', 'umd'],
 			entry: resolve(__dirname, 'src/index.tsx'),
-			name: 'H',
+			name: 'highlight',
 			fileName: 'index',
 		},
 		minify: 'terser',
