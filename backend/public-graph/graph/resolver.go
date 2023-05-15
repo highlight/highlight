@@ -409,7 +409,12 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 	})
 
 	for _, field := range newFields {
-		if err := r.OpenSearch.Index(opensearch.IndexFields, field.ID, nil, field); err != nil {
+		if err := r.OpenSearch.Index(ctx,
+			opensearch.IndexParams{
+				Index:  opensearch.IndexFields,
+				ID:     field.ID,
+				Object: field,
+			}); err != nil {
 			return e.Wrap(err, "error indexing new field")
 		}
 	}
@@ -605,7 +610,12 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			State:     privateModel.ErrorStateOpen.String(),
 			Fields:    []*model.ErrorField{},
 		}
-		if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexErrorsCombined, newErrorGroup.ID, opensearchErrorGroup); err != nil {
+		if err := r.OpenSearch.IndexSynchronous(ctx,
+			opensearch.IndexParams{
+				Index:    opensearch.IndexErrorsCombined,
+				ID:       int64(newErrorGroup.ID),
+				ParentID: pointy.Int(0),
+				Object:   opensearchErrorGroup}); err != nil {
 			return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 		}
 
@@ -912,13 +922,18 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		Timestamp:   errorObj.Timestamp,
 		Environment: errorObj.Environment,
 	}
-	if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(errorObj.ID), pointy.Int(errorGroup.ID), opensearchErrorObject); err != nil {
+	if err := r.OpenSearch.Index(ctx, opensearch.IndexParams{
+		Index:    opensearch.IndexErrorsCombined,
+		ID:       int64(errorObj.ID),
+		ParentID: pointy.Int(errorGroup.ID),
+		Object:   opensearchErrorObject,
+	}); err != nil {
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
 	environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
 
-	if err := r.AppendErrorFields(fields, errorGroup); err != nil {
+	if err := r.AppendErrorFields(ctx, fields, errorGroup); err != nil {
 		return nil, e.Wrap(err, "error appending error fields")
 	}
 
@@ -988,7 +1003,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	return errorGroup, nil
 }
 
-func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *model.ErrorGroup) error {
+func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorField, errorGroup *model.ErrorGroup) error {
 	fieldsToAppend := []*model.ErrorField{}
 	for _, f := range fields {
 		field := &model.ErrorField{}
@@ -1004,7 +1019,11 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
-			if err := r.OpenSearch.Index(opensearch.IndexErrorFields, int64(f.ID), nil, f); err != nil {
+			if err := r.OpenSearch.Index(ctx, opensearch.IndexParams{
+				Index:  opensearch.IndexErrorFields,
+				ID:     int64(f.ID),
+				Object: f,
+			}); err != nil {
 				return e.Wrap(err, "error indexing new error field")
 			}
 			fieldsToAppend = append(fieldsToAppend, f)
@@ -1122,7 +1141,13 @@ func (r *Resolver) getExistingSession(ctx context.Context, projectID int, secure
 func (r *Resolver) IndexSessionOpensearch(ctx context.Context, session *model.Session) error {
 	osSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.OSIndex"))
 	defer osSpan.Finish()
-	if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexSessions, session.ID, session); err != nil {
+	if err := r.OpenSearch.IndexSynchronous(ctx,
+		opensearch.IndexParams{
+			Index:    opensearch.IndexSessions,
+			ID:       int64(session.ID),
+			ParentID: nil,
+			Object:   session,
+		}); err != nil {
 		return e.Wrap(err, "error indexing new session in opensearch")
 	}
 
