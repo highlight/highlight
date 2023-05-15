@@ -44,7 +44,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
 import {
-	getQuotaPercents,
+	getMeterAmounts,
 	getTrialEndDateMessage,
 } from '@pages/Billing/utils/utils'
 import useLocalStorage from '@rehooks/local-storage'
@@ -754,7 +754,7 @@ const BillingBanner: React.FC = () => {
 	let bannerMessage: string | React.ReactNode = ''
 	const hasTrial = isProjectWithinTrial(data?.workspace_for_project)
 
-	const records = getQuotaPercents(data)
+	const records = getMeterAmounts(data)
 
 	const productsApproachingQuota = records
 		.filter((r) => r[1] > APPROACHING_QUOTA_THRESHOLD && r[1] <= 1)

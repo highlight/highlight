@@ -26,6 +26,7 @@ import {
 	DateHistogramBucketSize,
 	Maybe,
 	PlanType,
+	ProductType,
 	Session,
 } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
@@ -44,6 +45,7 @@ import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import clsx from 'clsx'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 
+import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration'
@@ -316,6 +318,7 @@ export const SessionFeedV3 = React.memo(() => {
 						/>
 					</Box>
 				)}
+				{true && <OverageCard productType={ProductType.Sessions} />}
 				<Box
 					padding="8"
 					overflowX="hidden"

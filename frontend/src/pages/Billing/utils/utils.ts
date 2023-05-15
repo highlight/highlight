@@ -2,12 +2,7 @@ import moment from 'moment'
 
 import { GetBillingDetailsForProjectQuery } from '@/graph/generated/operations'
 
-import {
-	Maybe,
-	PlanType,
-	ProductType,
-	RetentionPeriod,
-} from '../../../graph/generated/schemas'
+import { Maybe, PlanType, ProductType } from '../../../graph/generated/schemas'
 
 /**
  * Returns whether the change from the previousPlan to the newPlan was an upgrade.
@@ -49,9 +44,17 @@ export const getTrialEndDateMessage = (trialEndDate: any): string => {
 	)}. After this trial, you will be on the free tier.`
 }
 
-export const getQuotaPercents = (
+export const tryCastDate = (date: Maybe<string> | undefined) => {
+	if (date) {
+		return new Date(date)
+	} else {
+		return undefined
+	}
+}
+
+export const getMeterAmounts = (
 	data: GetBillingDetailsForProjectQuery,
-): [ProductType, number][] => {
+): [ProductType, number, number][] => {
 	const sessionsMeter = data.billingDetailsForProject?.meter ?? 0
 	const sessionsQuota =
 		data.billingDetailsForProject?.sessionsBillingLimit ?? 1
@@ -60,24 +63,14 @@ export const getQuotaPercents = (
 	const logsMeter = data.billingDetailsForProject?.logsMeter ?? 0
 	const logsQuota = data.billingDetailsForProject?.logsBillingLimit ?? 1
 	return [
-		[ProductType.Sessions, sessionsMeter / sessionsQuota],
-		[ProductType.Errors, errorsMeter / errorsQuota],
-		[ProductType.Logs, logsMeter / logsQuota],
+		[ProductType.Sessions, sessionsMeter, sessionsQuota],
+		[ProductType.Errors, errorsMeter, errorsQuota],
+		[ProductType.Logs, logsMeter, logsQuota],
 	]
 }
 
-export const RETENTION_PERIOD_LABELS = {
-	[RetentionPeriod.ThirtyDays]: '30 days',
-	[RetentionPeriod.ThreeMonths]: '3 months',
-	[RetentionPeriod.SixMonths]: '6 months',
-	[RetentionPeriod.TwelveMonths]: '12 months',
-	[RetentionPeriod.TwoYears]: '2 years',
-}
-
-export const tryCastDate = (date: Maybe<string> | undefined) => {
-	if (date) {
-		return new Date(date)
-	} else {
-		return undefined
-	}
+export const getQuotaPercents = (
+	data: GetBillingDetailsForProjectQuery,
+): [ProductType, number][] => {
+	return getMeterAmounts(data).map((r) => [r[0], r[1] / r[2]])
 }
