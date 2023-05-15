@@ -165,7 +165,7 @@ This implementation requires React 17 or greater. If you're behind on React vers
 // pages/_app.tsx
 import { AppProps } from 'next/app'
 import CONSTANTS from '@/app/constants'
-import { HighlightInit } from '@highlight-run/next/HighlightInit'
+import { HighlightInit } from '@highlight-run/next/highlight-init'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
 	return (
@@ -194,7 +194,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 import './globals.css'
 
 import CONSTANTS from '@/app/constants'
-import { HighlightInit } from '@highlight-run/next/HighlightInit'
+import { HighlightInit } from '@highlight-run/next/highlight-init'
 
 export const metadata = {
 	title: 'Highlight Next Demo',

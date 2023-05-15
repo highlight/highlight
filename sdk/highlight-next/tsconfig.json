@@ -6,7 +6,7 @@
 		"forceConsistentCasingInFileNames": true,
 		"jsx": "react",
 		"module": "ESNext",
-		"moduleResolution": "node",
+		"moduleResolution": "node16",
 		"outDir": "dist",
 		"removeComments": true,
 		"resolveJsonModule": true,
@@ -19,13 +19,7 @@
 			"jest"
 		]
 	},
-	"include": ["src/**/*"],
-	"references": [
-		{
-			"path": "../highlight-node"
-		},
-		{
-			"path": "../../sourcemap-uploader"
-		}
+	"include": [
+		"src/**/*"
 	]
 }

@@ -2,9 +2,11 @@
 	"name": "@highlight-run/next",
 	"version": "3.0.0",
 	"description": "Client for interfacing with Highlight in next.js",
-	"main": "./dist/index.js",
-	"module": "./dist/index.mjs",
-	"types": "./dist/index.d.ts",
+	"files": [
+		"dist",
+		"highlight-init.d.ts",
+		"index.d.ts"
+	],
 	"exports": {
 		".": {
 			"edge": "./dist/index.edge.js",
@@ -16,7 +18,8 @@
 			"import": "./dist/index.mjs",
 			"types": "./dist/index.d.ts"
 		},
-		"./HighlightInit": {
+		"./highlight-init": {
+			"types": "./dist/HighlightInit.d.ts",
 			"import": "./dist/HighlightInit.mjs",
 			"require": "./dist/HighlightInit.js"
 		}
