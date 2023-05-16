@@ -1,6 +1,29 @@
 {
 	"name": "highlight.run",
-	"version": "6.4.0",
+	"version": "6.4.1",
+	"description": "Open source, fullstack monitoring. Capture frontend errors, record server side logs, and visualize what broke with session replay.",
+	"keywords": [
+		"highlight",
+		"session replay",
+		"error monitoring",
+		"logging",
+		"debugging",
+		"observability",
+		"browser",
+		"library"
+	],
+	"homepage": "https://github.com/highlight/highlight#readme",
+	"bugs": {
+		"url": "https://github.com/highlight/highlight/issues",
+		"email": "support@highlight.io"
+	},
+	"license": "Apache-2.0",
+	"repository": {
+		"repository": {
+			"type": "git",
+			"url": "https://github.com/highlight/highlight.git"
+		}
+	},
 	"scripts": {
 		"build": "node scripts/version.mjs && yarn typegen && vite build",
 		"dev": "node scripts/version.mjs && vite dev",
@@ -12,6 +35,7 @@
 	},
 	"type": "module",
 	"main": "./dist/index.js",
+	"browser": "./dist/index.umd.cjs",
 	"types": "./dist/firstload/src/index.d.ts",
 	"exports": {
 		"types": "./dist/firstload/src/index.d.ts",
@@ -23,7 +47,6 @@
 	"files": [
 		"dist"
 	],
-	"license": "MIT",
 	"devDependencies": {
 		"@size-limit/file": "^8.1.0",
 		"@types/chrome": "^0.0.144",
