@@ -16,7 +16,7 @@ metaTitle: Your Source Maps Should Be Public
 
 Source maps are critical for web development in today's JavaScript environment.
 
-All of our build tools—Rollup, Vite, WebPack, ESBuild—transpile and bundle our JavaScript and CSS.
+In fact, all of our build tools—Rollup, Vite, WebPack, ESBuild—transpile and bundle our JavaScript and support source maps out of the box.
 
 Debugging errors in production with transpiled code is nigh impossible. So our tooling creates source maps.
 
@@ -26,9 +26,9 @@ See [What are source maps? by Jecelyn Yeen](https://web.dev/source-maps/) for al
 
 Private source maps make it harder for an attacker to understand your front-end application.
 
-An attacker can easily use source maps to view the code in its original, un-transpiled state. The same source maps that make debugging easier make attacking your application easier.
+An attacker can easily use public source maps to view the code in its original, un-transpiled state. The same source maps that make debugging easier make attacking your application easier.
 
-Check out our unobfuscated source code on `https://www.highlight.io`!
+Check out our unobfuscated source code on `https://www.highlight.io`! It's readable, public and easy to ingest for developer tools like Highlight. Our `vite` bundler generates these source maps with a [single flag](https://vitejs.dev/config/build-options.html#build-sourcemap).
 
 ![unobfuscated-source-code](https://github.com/highlight/highlight/assets/878947/84775c15-360a-4648-9cb3-987341ee309d)
 
@@ -36,7 +36,7 @@ Check out our unobfuscated source code on `https://www.highlight.io`!
 
 Guess what!
 
-Chrome Dev Tools makes deconstructing your JavaScript application relatively easy.
+With or without source maps, Chrome Dev Tools makes deconstructing your JavaScript application relatively easy.
 
 For instance, You can open up the Network tab and watch each request and response.
 
@@ -50,7 +50,9 @@ Who cares how the code is written if the results, in both data and network, are 
 
 Dev Tools will even allow an attacker to reformat the code and use breakpoints to step through it!
 
-## ChatGPT as de-compiler
+And then there's ChatGPT...
+
+### ChatGPT as de-compiler
 
 ChatGPT struggles with long code snippets, so it's not yet a silver bullet for decompilation.
 
@@ -74,7 +76,7 @@ Debugging production issues will be much, much easier, especially if you see err
 
 Highlight does support private source maps. We even publish a [source map uploader](https://www.npmjs.com/package/@highlight-run/sourcemap-uploader) on NPM that will send your private source maps directly to our servers.
 
-Our source map uploader works fine, but it's tricky for users to implement and is a constant source of bugs. Frankly, we struggle to create a universal solution that can't be broken by unique build pipelines.
+Our source map uploader works well, but depending on a team's setup, it can be tricky for users to implement and can become a constant source of bugs due to unique build pipelines and machine types.
 
 However, if you make your source maps public, you don't have to do any of that work. And you automatically get production source maps for your own debugging in Dev Tools.
 
