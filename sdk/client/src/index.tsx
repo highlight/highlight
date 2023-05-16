@@ -1097,12 +1097,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
 		}
 		this.state = 'NotRecording'
-		// we don't stop rrweb because rrweb doesn't clean up fully (ie. canvas listeners)
 		// stop rrweb recording mutation observers
-		// if (manual && this._recordStop) {
-		// 	this._recordStop()
-		// 	this._recordStop = undefined
-		// }
+		if (manual && this._recordStop) {
+			this._recordStop()
+			this._recordStop = undefined
+		}
 		// stop all other event listeners, to be restarted on initialize()
 		this.listeners.forEach((stop) => stop())
 		this.listeners = []
