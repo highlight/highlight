@@ -30,6 +30,7 @@ export const run = async () => {
 		const result = await esbuild
 			.build({
 				entryPoints: [path],
+				sourcemap: false,
 				outExtension: { '.js': '.scss.js' },
 				absWorkingDir: workingDirectory,
 				bundle: true,

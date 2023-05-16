@@ -2,6 +2,7 @@ import { vanillaExtractPlugin } from '@vanilla-extract/esbuild-plugin'
 import chokidar from 'chokidar'
 import esbuild from 'esbuild'
 import * as path_ from 'node:path'
+import * as fs from 'node:fs'
 import readdirp from 'readdirp'
 
 const args = process.argv.slice(2)
@@ -17,6 +18,10 @@ const inputGlobs = ['**/**.ts', '**/**.tsx']
 const rootDirectory = process.cwd()
 const workingDirectory = path_.join(rootDirectory, './src')
 const outputDirectory = path_.join(workingDirectory, '__generated/ve')
+
+const packageJson = JSON.parse(
+	fs.readFileSync(path_.join(rootDirectory, 'package.json')),
+)
 
 // uncomment for cleanup
 // await fs.promises.rm(outputDirectory, { recursive: true, force: true })
@@ -36,7 +41,7 @@ const build = async (path) => {
 		entryPoints: Object.values(entryPoints),
 		bundle: true,
 		// TODO: support user supplied sourcemaps
-		// sourcemap: true,
+		sourcemap: false,
 		format: 'esm',
 		platform: 'browser',
 		outdir: outputDirectory,
@@ -54,7 +59,12 @@ const build = async (path) => {
 				identifiers: 'short',
 			}),
 		],
-		external: [],
+		external: [
+			...Object.keys(packageJson.dependencies).flatMap((pkg) => [
+				pkg,
+				`${pkg}/*`,
+			]),
+		],
 		logLevel: 'warning',
 	})
 	console.log(new Date(), 'built vanilla extract entry points')

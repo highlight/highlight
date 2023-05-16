@@ -43,6 +43,7 @@ export const run = async () => {
 			bundle: true,
 			// TODO: support user supplied sourcemaps
 			// sourcemap: true,
+			sourcemap: false,
 			format: 'esm',
 			platform: 'browser',
 			outdir: outputDirectory,

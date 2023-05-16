@@ -50,6 +50,7 @@ export const run = async () => {
 
 	const context = await esbuild.context({
 		entryPoints: [path_.join(workingDirectory, 'index.tsx')],
+		sourcemap: false,
 		bundle: true,
 		absWorkingDir: rootDirectory,
 		format: 'esm',

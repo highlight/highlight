@@ -194,6 +194,16 @@
 						"/form",
 						"/checkbox"
 					]
+				},
+				"@vanilla-extract/sprinkles": {
+					"entryPoints": [
+						"/createRuntimeSprinkles"
+					]
+				},
+				"@vanilla-extract/recipes": {
+					"entryPoints": [
+						"/createRuntimeFn"
+					]
 				}
 			},
 			"nodejsCompatibility": {
