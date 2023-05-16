@@ -110,6 +110,7 @@ export const ErrorObjectFragmentDoc = gql`
 			user_properties
 			processed
 			excluded
+			excluded_reason
 		}
 		error_group_id
 		error_group_secure_id

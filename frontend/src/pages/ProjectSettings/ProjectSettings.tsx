@@ -31,7 +31,7 @@ const ProjectSettings = () => {
 				<h2>Project Settings</h2>
 				<div className={styles.tabsContainer}>
 					<Tabs
-						activeKeyOverride={params.tab ?? 'recording'}
+						activeKeyOverride={params.tab ?? 'sessions'}
 						onChange={(key) => {
 							navigate(`/${params.project_id}/settings/${key}`)
 						}}
@@ -40,7 +40,7 @@ const ProjectSettings = () => {
 						id="settingsTabs"
 						tabs={[
 							{
-								key: 'recording',
+								key: 'sessions',
 								title: 'Session Replay',
 								panelContent: (
 									<>

@@ -3,6 +3,7 @@
 		"allowSyntheticDefaultImports": true,
 		"declaration": true,
 		"declarationDir": "dist",
+		"emitDeclarationOnly": true,
 		"forceConsistentCasingInFileNames": true,
 		"jsx": "react",
 		"module": "ESNext",
@@ -19,13 +20,7 @@
 			"jest"
 		]
 	},
-	"include": ["src/**/*"],
-	"references": [
-		{
-			"path": "../highlight-node"
-		},
-		{
-			"path": "../../sourcemap-uploader"
-		}
+	"include": [
+		"src/**/*"
 	]
 }

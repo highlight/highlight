@@ -107,12 +107,6 @@ func (w *Worker) IndexErrorGroups(ctx context.Context, isUpdate bool) {
 		if err := w.Resolver.DB.ScanRows(rows, &eg); err != nil {
 			log.WithContext(ctx).Errorf("OPENSEARCH_ERROR error scanning rows: %+v", err)
 		}
-		var filename *string
-		if eg.MappedStackTrace != nil {
-			filename = model.GetFirstFilename(*eg.MappedStackTrace)
-		} else {
-			filename = model.GetFirstFilename(eg.StackTrace)
-		}
 		eg.FieldGroup = nil
 		eg.Fields = nil
 		eg.Environments = ""
@@ -121,7 +115,6 @@ func (w *Worker) IndexErrorGroups(ctx context.Context, isUpdate bool) {
 		os := opensearch.OpenSearchError{
 			ErrorGroup: &eg,
 			Fields:     nil,
-			Filename:   filename,
 		}
 		if err := w.Resolver.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(eg.ID), pointy.Int(0), os); err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "OPENSEARCH_ERROR error adding error group to the indexer (combined)"))

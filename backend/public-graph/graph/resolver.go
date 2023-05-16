@@ -576,7 +576,7 @@ func joinIntPtrs(ptrs ...*int) string {
 	return sb.String()
 }
 
-func (r *Resolver) GetOrCreateErrorGroup(errorObj *model.ErrorObject, fingerprints []*model.ErrorFingerprint, stackTraceString string) (*model.ErrorGroup, error) {
+func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, fingerprints []*model.ErrorFingerprint, stackTraceString string) (*model.ErrorGroup, error) {
 	match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
 	if err != nil {
 		return nil, e.Wrap(err, "Error getting top error group match")
@@ -605,7 +605,7 @@ func (r *Resolver) GetOrCreateErrorGroup(errorObj *model.ErrorObject, fingerprin
 			State:     privateModel.ErrorStateOpen.String(),
 			Fields:    []*model.ErrorField{},
 		}
-		if err := r.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(newErrorGroup.ID), pointy.Int(0), opensearchErrorGroup); err != nil {
+		if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexErrorsCombined, newErrorGroup.ID, opensearchErrorGroup); err != nil {
 			return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 		}
 
@@ -895,7 +895,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 
 	var errorGroup *model.ErrorGroup
 	var err error
-	errorGroup, err = r.GetOrCreateErrorGroup(errorObj, fingerprints, stackTraceString)
+	errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, fingerprints, stackTraceString)
 	if err != nil {
 		return nil, e.Wrap(err, "Error getting top error group match")
 	}
@@ -968,21 +968,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString, Event: errorObj.Event}).Error; err != nil {
 			return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 		}
-	}
-
-	var filename *string
-	if newMappedStackTraceString != nil {
-		filename = model.GetFirstFilename(*newMappedStackTraceString)
-	} else {
-		filename = model.GetFirstFilename(newFrameString)
-	}
-
-	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
-		"filename":   filename,
-		"updated_at": time.Now(),
-		"Event":      errorObj.Event,
-	}); err != nil {
-		return nil, e.Wrap(err, "error updating error group in opensearch")
 	}
 
 	return errorGroup, nil

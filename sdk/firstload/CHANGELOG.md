@@ -185,3 +185,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Minor Changes
 
 - Support the option to redact specific request/response body keys while recording all others.
+
+## 6.4.0
+
+### Minor Changes
+
+- Moves bundling from rollup to vite.
