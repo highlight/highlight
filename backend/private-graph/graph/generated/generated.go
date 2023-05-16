@@ -970,7 +970,6 @@ type ComplexityRoot struct {
 		Language                       func(childComplexity int) int
 		LastUserInteractionTime        func(childComplexity int) int
 		Length                         func(childComplexity int) int
-		MessagesURL                    func(childComplexity int) int
 		OSName                         func(childComplexity int) int
 		OSVersion                      func(childComplexity int) int
 		ObjectStorageEnabled           func(childComplexity int) int
@@ -982,6 +981,7 @@ type ComplexityRoot struct {
 		SecureID                       func(childComplexity int) int
 		Starred                        func(childComplexity int) int
 		State                          func(childComplexity int) int
+		TimelineIndicatorsURL          func(childComplexity int) int
 		UserObject                     func(childComplexity int) int
 		UserProperties                 func(childComplexity int) int
 		Viewed                         func(childComplexity int) int
@@ -1468,7 +1468,7 @@ type SessionResolver interface {
 
 	DirectDownloadURL(ctx context.Context, obj *model1.Session) (*string, error)
 	ResourcesURL(ctx context.Context, obj *model1.Session) (*string, error)
-	MessagesURL(ctx context.Context, obj *model1.Session) (*string, error)
+	TimelineIndicatorsURL(ctx context.Context, obj *model1.Session) (*string, error)
 	DeviceMemory(ctx context.Context, obj *model1.Session) (*int, error)
 }
 type SessionAlertResolver interface {
@@ -7129,13 +7129,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Length(childComplexity), true
 
-	case "Session.messages_url":
-		if e.complexity.Session.MessagesURL == nil {
-			break
-		}
-
-		return e.complexity.Session.MessagesURL(childComplexity), true
-
 	case "Session.os_name":
 		if e.complexity.Session.OSName == nil {
 			break
@@ -7212,6 +7205,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Session.State(childComplexity), true
+
+	case "Session.timeline_indicators_url":
+		if e.complexity.Session.TimelineIndicatorsURL == nil {
+			break
+		}
+
+		return e.complexity.Session.TimelineIndicatorsURL(childComplexity), true
 
 	case "Session.user_object":
 		if e.complexity.Session.UserObject == nil {
@@ -8339,7 +8339,7 @@ type Session {
 	event_counts: String
 	direct_download_url: String
 	resources_url: String
-	messages_url: String
+	timeline_indicators_url: String
 	deviceMemory: Int
 	last_user_interaction_time: Timestamp!
 	chunked: Boolean
@@ -25301,8 +25301,8 @@ func (ec *executionContext) fieldContext_ErrorObject_session(ctx context.Context
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "messages_url":
-				return ec.fieldContext_Session_messages_url(ctx, field)
+			case "timeline_indicators_url":
+				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
 				return ec.fieldContext_Session_deviceMemory(ctx, field)
 			case "last_user_interaction_time":
@@ -31979,8 +31979,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsViewed(ctx contex
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "messages_url":
-				return ec.fieldContext_Session_messages_url(ctx, field)
+			case "timeline_indicators_url":
+				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
 				return ec.fieldContext_Session_deviceMemory(ctx, field)
 			case "last_user_interaction_time":
@@ -32130,8 +32130,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsStarred(ctx conte
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "messages_url":
-				return ec.fieldContext_Session_messages_url(ctx, field)
+			case "timeline_indicators_url":
+				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
 				return ec.fieldContext_Session_deviceMemory(ctx, field)
 			case "last_user_interaction_time":
@@ -35594,8 +35594,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionIsPublic(ctx cont
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "messages_url":
-				return ec.fieldContext_Session_messages_url(ctx, field)
+			case "timeline_indicators_url":
+				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
 				return ec.fieldContext_Session_deviceMemory(ctx, field)
 			case "last_user_interaction_time":
@@ -37977,8 +37977,8 @@ func (ec *executionContext) fieldContext_Query_session(ctx context.Context, fiel
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "messages_url":
-				return ec.fieldContext_Session_messages_url(ctx, field)
+			case "timeline_indicators_url":
+				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
 				return ec.fieldContext_Session_deviceMemory(ctx, field)
 			case "last_user_interaction_time":
@@ -40457,8 +40457,8 @@ func (ec *executionContext) fieldContext_Query_projectHasViewedASession(ctx cont
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "messages_url":
-				return ec.fieldContext_Session_messages_url(ctx, field)
+			case "timeline_indicators_url":
+				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
 				return ec.fieldContext_Session_deviceMemory(ctx, field)
 			case "last_user_interaction_time":
@@ -50432,8 +50432,8 @@ func (ec *executionContext) fieldContext_Session_resources_url(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Session_messages_url(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Session_messages_url(ctx, field)
+func (ec *executionContext) _Session_timeline_indicators_url(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -50446,7 +50446,7 @@ func (ec *executionContext) _Session_messages_url(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Session().MessagesURL(rctx, obj)
+		return ec.resolvers.Session().TimelineIndicatorsURL(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -50460,7 +50460,7 @@ func (ec *executionContext) _Session_messages_url(ctx context.Context, field gra
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Session_messages_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Session_timeline_indicators_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Session",
 		Field:      field,
@@ -52802,8 +52802,8 @@ func (ec *executionContext) fieldContext_SessionResults_sessions(ctx context.Con
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "messages_url":
-				return ec.fieldContext_Session_messages_url(ctx, field)
+			case "timeline_indicators_url":
+				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
 				return ec.fieldContext_Session_deviceMemory(ctx, field)
 			case "last_user_interaction_time":
@@ -68069,7 +68069,7 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
-		case "messages_url":
+		case "timeline_indicators_url":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -68078,7 +68078,7 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Session_messages_url(ctx, field, obj)
+				res = ec._Session_timeline_indicators_url(ctx, field, obj)
 				return res
 			}
 

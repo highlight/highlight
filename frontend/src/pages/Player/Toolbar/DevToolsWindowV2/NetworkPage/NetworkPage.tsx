@@ -16,7 +16,7 @@ import {
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
-	ResourceLoadingError,
+	LoadingError,
 	useResourcesContext,
 } from '@pages/Player/ResourcesContext/ResourcesContext'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
@@ -573,7 +573,7 @@ export const UnknownRequestStatusCode = ({
 const ResourceLoadingErrorCallout = function ({
 	error,
 }: {
-	error: ResourceLoadingError
+	error: LoadingError
 }) {
 	return (
 		<Box
