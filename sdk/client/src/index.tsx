@@ -512,11 +512,6 @@ export class Highlight {
 				return
 			}
 
-			if (options?.forceNew) {
-				await this._reset()
-				return
-			}
-
 			if (this.feedbackWidgetOptions.enabled) {
 				const { onToggleFeedbackFormVisibility } =
 					initializeFeedbackWidget(this.feedbackWidgetOptions)
@@ -604,12 +599,6 @@ export class Highlight {
 				this.sessionData.projectID = parseInt(
 					gr?.initializeSession?.project_id || '0',
 				)
-				if (this.sessionData.userIdentifier) {
-					this.identify(
-						this.sessionData.userIdentifier,
-						this.sessionData.userObject,
-					)
-				}
 
 				if (
 					!this.sessionData.projectID ||
@@ -643,6 +632,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
 				this.sessionData.sessionSecureID,
 			)
+
+			if (this.sessionData.userIdentifier) {
+				this.identify(
+					this.sessionData.userIdentifier,
+					this.sessionData.userObject,
+				)
+			}
+
 			if (!this._firstLoadListeners.isListening()) {
 				this._firstLoadListeners.startListening()
 			} else if (!this._firstLoadListeners.hasNetworkRecording) {

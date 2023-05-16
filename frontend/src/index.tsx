@@ -55,7 +55,7 @@ document.body.className = 'highlight-light-theme'
 analytics.initialize()
 const dev = import.meta.env.DEV
 const options: HighlightOptions = {
-	debug: { clientInteractions: true, domRecording: true },
+	// debug: { clientInteractions: true, domRecording: true },
 	manualStart: true,
 	enableStrictPrivacy: Math.floor(Math.random() * 8) === 0,
 	networkRecording: {
