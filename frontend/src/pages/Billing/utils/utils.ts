@@ -2,7 +2,12 @@ import moment from 'moment'
 
 import { GetBillingDetailsForProjectQuery } from '@/graph/generated/operations'
 
-import { Maybe, PlanType, ProductType } from '../../../graph/generated/schemas'
+import {
+	Maybe,
+	PlanType,
+	ProductType,
+	RetentionPeriod,
+} from '../../../graph/generated/schemas'
 
 /**
  * Returns whether the change from the previousPlan to the newPlan was an upgrade.
@@ -52,25 +57,52 @@ export const tryCastDate = (date: Maybe<string> | undefined) => {
 	}
 }
 
+export const RETENTION_PERIOD_LABELS: { [K in RetentionPeriod]: string } = {
+	[RetentionPeriod.ThirtyDays]: '30 days',
+	[RetentionPeriod.ThreeMonths]: '3 months',
+	[RetentionPeriod.SixMonths]: '6 months',
+	[RetentionPeriod.TwelveMonths]: '12 months',
+	[RetentionPeriod.TwoYears]: '2 years',
+}
+
 export const getMeterAmounts = (
 	data: GetBillingDetailsForProjectQuery,
-): [ProductType, number, number][] => {
+): { [K in ProductType]: [number, number | undefined] } => {
 	const sessionsMeter = data.billingDetailsForProject?.meter ?? 0
 	const sessionsQuota =
-		data.billingDetailsForProject?.sessionsBillingLimit ?? 1
+		data.billingDetailsForProject?.sessionsBillingLimit ?? undefined
 	const errorsMeter = data.billingDetailsForProject?.errorsMeter ?? 0
-	const errorsQuota = data.billingDetailsForProject?.errorsBillingLimit ?? 1
+	const errorsQuota =
+		data.billingDetailsForProject?.errorsBillingLimit ?? undefined
 	const logsMeter = data.billingDetailsForProject?.logsMeter ?? 0
-	const logsQuota = data.billingDetailsForProject?.logsBillingLimit ?? 1
-	return [
-		[ProductType.Sessions, sessionsMeter, sessionsQuota],
-		[ProductType.Errors, errorsMeter, errorsQuota],
-		[ProductType.Logs, logsMeter, logsQuota],
-	]
+	const logsQuota =
+		data.billingDetailsForProject?.logsBillingLimit ?? undefined
+	return {
+		[ProductType.Sessions]: [sessionsMeter, sessionsQuota],
+		[ProductType.Errors]: [errorsMeter, errorsQuota],
+		[ProductType.Logs]: [logsMeter, logsQuota],
+	}
 }
 
 export const getQuotaPercents = (
 	data: GetBillingDetailsForProjectQuery,
 ): [ProductType, number][] => {
-	return getMeterAmounts(data).map((r) => [r[0], r[1] / r[2]])
+	const amts = getMeterAmounts(data)
+	const sessionAmts = amts[ProductType.Sessions]
+	const errorAmts = amts[ProductType.Errors]
+	const logAmts = amts[ProductType.Logs]
+	return [
+		[
+			ProductType.Sessions,
+			sessionAmts[1] === undefined ? 0 : sessionAmts[0] / sessionAmts[1],
+		],
+		[
+			ProductType.Errors,
+			errorAmts[1] === undefined ? 0 : errorAmts[0] / errorAmts[1],
+		],
+		[
+			ProductType.Logs,
+			logAmts[1] === undefined ? 0 : logAmts[0] / logAmts[1],
+		],
+	]
 }

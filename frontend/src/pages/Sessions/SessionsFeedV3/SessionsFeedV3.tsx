@@ -318,7 +318,6 @@ export const SessionFeedV3 = React.memo(() => {
 						/>
 					</Box>
 				)}
-				{true && <OverageCard productType={ProductType.Sessions} />}
 				<Box
 					padding="8"
 					overflowX="hidden"
@@ -330,6 +329,7 @@ export const SessionFeedV3 = React.memo(() => {
 						<LoadingBox />
 					) : (
 						<>
+							<OverageCard productType={ProductType.Sessions} />
 							{searchResultsCount === 0 ? (
 								showStarredSessions ? (
 									<SearchEmptyState
