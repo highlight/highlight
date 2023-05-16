@@ -970,21 +970,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}
 	}
 
-	var filename *string
-	if newMappedStackTraceString != nil {
-		filename = model.GetFirstFilename(*newMappedStackTraceString)
-	} else {
-		filename = model.GetFirstFilename(newFrameString)
-	}
-
-	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
-		"filename":   filename,
-		"updated_at": time.Now(),
-		"Event":      errorObj.Event,
-	}); err != nil {
-		return nil, e.Wrap(err, "error updating error group in opensearch")
-	}
-
 	return errorGroup, nil
 }
 
