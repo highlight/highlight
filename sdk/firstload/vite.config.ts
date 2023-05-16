@@ -13,7 +13,8 @@ export default defineConfig({
 		},
 		minify: 'terser',
 		emptyOutDir: false,
-		sourcemap: true,
+		// sourcemaps are not published to reduce package size
+		sourcemap: false,
 		rollupOptions: {
 			output: {
 				exports: 'named',

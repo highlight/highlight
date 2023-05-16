@@ -191,3 +191,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Minor Changes
 
 - Moves bundling from rollup to vite.
+
+## 6.4.1
+
+### Patch Changes
+
+- Switch to umd default output.
