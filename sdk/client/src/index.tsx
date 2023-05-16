@@ -507,6 +507,13 @@ export class Highlight {
 
 			if (options?.forceNew) {
 				await this._reset()
+				// effectively 'restart' recording by starting the new payload with a full snapshot
+				this.takeFullSnapshot()
+				return
+			}
+
+			if (options?.forceNew) {
+				await this._reset()
 				return
 			}
 
@@ -1092,11 +1099,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
 		}
 		this.state = 'NotRecording'
+		// we don't stop rrweb because rrweb doesn't clean up fully (ie. canvas listeners)
 		// stop rrweb recording mutation observers
-		if (manual && this._recordStop) {
-			this._recordStop()
-			this._recordStop = undefined
-		}
+		// if (manual && this._recordStop) {
+		// 	this._recordStop()
+		// 	this._recordStop = undefined
+		// }
 		// stop all other event listeners, to be restarted on initialize()
 		this.listeners.forEach((stop) => stop())
 		this.listeners = []
@@ -1232,7 +1240,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		// if it is time to take a full snapshot,
 		// ensure the snapshot is at the beginning of the next payload
 		if (!isBeacon) {
-			const now = new Date().getTime()
 			// After snapshot thresholds have been met,
 			// take a full snapshot and reset the counters
 			const { bytes, time } = this.enableCanvasRecording
@@ -1240,11 +1247,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				: SNAPSHOT_SETTINGS.normal
 			if (
 				this._eventBytesSinceSnapshot >= bytes &&
-				now - this._lastSnapshotTime >= time
+				new Date().getTime() - this._lastSnapshotTime >= time
 			) {
-				record.takeFullSnapshot()
-				this._eventBytesSinceSnapshot = 0
-				this._lastSnapshotTime = now
+				this.takeFullSnapshot()
 			}
 		}
 
@@ -1305,6 +1310,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this._firstLoadListeners.errors.slice(errors.length)
 			clearHighlightLogs(highlightLogs)
 		}
+	}
+
+	private takeFullSnapshot() {
+		record.takeFullSnapshot()
+		this._eventBytesSinceSnapshot = 0
+		this._lastSnapshotTime = new Date().getTime()
 	}
 }
 
