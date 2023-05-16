@@ -18,6 +18,7 @@ export default defineConfig({
 		rollupOptions: {
 			output: {
 				exports: 'named',
+				entryFileNames: '[name].[format].js',
 			},
 		},
 	},
