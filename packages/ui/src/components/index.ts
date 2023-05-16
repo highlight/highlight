@@ -13,7 +13,7 @@ export * from './Combobox/Combobox'
 export { Container } from './Container/Container'
 export {
 	PreviousDateRangePicker,
-	makeDefaultPresets,
+	getDefaultPresets,
 } from './DatePicker/PreviousDateRangePicker'
 export type { Preset } from './DatePicker/PreviousDateRangePicker'
 export * from './Form/Form'
