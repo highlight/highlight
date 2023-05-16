@@ -1090,8 +1090,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.scale !== 1 &&
 			state.sessionViewability === SessionViewability.VIEWABLE,
 		setIsLiveMode: (isLiveMode) => {
-			const events = getEvents(chunkEventsRef.current)
 			if (isLiveMode) {
+				const events = getEvents(chunkEventsRef.current)
+
 				dispatch({
 					type: PlayerActionType.addLiveEvents,
 					lastActiveTimestamp: state.lastActiveTimestamp,
