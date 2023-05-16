@@ -8,7 +8,7 @@ export default defineConfig({
 		lib: {
 			formats: ['es', 'cjs', 'umd'],
 			entry: resolve(__dirname, 'src/index.tsx'),
-			name: 'highlight',
+			name: 'H',
 			fileName: 'index',
 		},
 		minify: 'terser',
