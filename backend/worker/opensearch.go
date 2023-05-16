@@ -21,7 +21,11 @@ func (w *Worker) indexItem(ctx context.Context, index opensearch.Index, item int
 	id := val.FieldByName("ID").Int()
 
 	// Add an item to the indexer
-	if err := w.Resolver.OpenSearch.Index(index, id, nil, item); err != nil {
+	if err := w.Resolver.OpenSearch.Index(ctx, opensearch.IndexParams{
+		Index:  index,
+		ID:     id,
+		Object: item,
+	}); err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "OPENSEARCH_ERROR error adding field to the indexer"))
 	}
 }
@@ -116,7 +120,12 @@ func (w *Worker) IndexErrorGroups(ctx context.Context, isUpdate bool) {
 			ErrorGroup: &eg,
 			Fields:     nil,
 		}
-		if err := w.Resolver.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(eg.ID), pointy.Int(0), os); err != nil {
+		if err := w.Resolver.OpenSearch.Index(ctx, opensearch.IndexParams{
+			Index:    opensearch.IndexErrorsCombined,
+			ID:       int64(eg.ID),
+			ParentID: pointy.Int(0),
+			Object:   os,
+		}); err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "OPENSEARCH_ERROR error adding error group to the indexer (combined)"))
 		}
 	}
@@ -170,7 +179,12 @@ func (w *Worker) IndexErrorObjects(ctx context.Context, isUpdate bool) {
 			Environment: eo.Environment,
 		}
 
-		if err := w.Resolver.OpenSearch.Index(opensearch.IndexErrorsCombined, int64(eo.ID), pointy.Int(eo.ErrorGroupID), os); err != nil {
+		if err := w.Resolver.OpenSearch.Index(ctx, opensearch.IndexParams{
+			Index:    opensearch.IndexErrorsCombined,
+			ID:       int64(eo.ID),
+			ParentID: pointy.Int(eo.ErrorGroupID),
+			Object:   os,
+		}); err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "OPENSEARCH_ERROR error adding error object to the indexer (combined)"))
 		}
 	}

@@ -173,7 +173,11 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
-		if err := osClient.IndexSynchronous(ctx, opensearch.IndexSessions, 0, struct{}{}); err != nil {
+		if err := osClient.IndexSynchronous(ctx, opensearch.IndexParams{
+			Index:  opensearch.IndexSessions,
+			ID:     0,
+			Object: struct{}{},
+		}); err != nil {
 			msg := fmt.Sprintf("failed to perform opensearch index: %s", err)
 			log.WithContext(ctx).Error(msg)
 			errors <- e.New(msg)
