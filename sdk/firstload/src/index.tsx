@@ -11,7 +11,7 @@ import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
 import type {
 	Highlight,
 	HighlightClassOptions,
-} from '@highlight-run/client/src/index'
+} from '@highlight-run/client/src'
 import type {
 	HighlightOptions,
 	HighlightPublicInterface,
@@ -19,13 +19,13 @@ import type {
 	Metric,
 	SessionDetails,
 } from '@highlight-run/client/src/types/types'
-import HighlightSegmentMiddleware from './integrations/segment'
+import { HighlightSegmentMiddleware } from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
 import firstloadVersion from './__generated/version'
 
 initializeFetchListener()
 
-export enum MetricCategory {
+enum MetricCategory {
 	Device = 'Device',
 	WebVital = 'WebVital',
 	Frontend = 'Frontend',
@@ -53,7 +53,7 @@ var script: HTMLScriptElement
 var highlight_obj: Highlight
 var first_load_listeners: FirstLoadListeners
 var init_called = false
-export const H: HighlightPublicInterface = {
+const H: HighlightPublicInterface = {
 	options: undefined,
 	init: (projectID?: string | number, options?: HighlightOptions) => {
 		try {
@@ -395,5 +395,10 @@ if (typeof window !== 'undefined') {
 
 listenToChromeExtensionMessage()
 
-export { HighlightSegmentMiddleware, configureElectronHighlight }
 export type { HighlightOptions }
+export {
+	H,
+	HighlightSegmentMiddleware,
+	MetricCategory,
+	configureElectronHighlight,
+}
