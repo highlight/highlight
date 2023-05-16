@@ -98,7 +98,7 @@
 		"build:reflame:ve": "node scripts/build-vanilla-extract.mjs",
 		"build:reflame:rrweb": "node scripts/build-rrweb.mjs",
 		"build:reflame:svgr": "node scripts/build-svgr.mjs",
-		"reflame-env": "which doppler && (doppler run -c prd --command='node scripts/update-reflame-environment.mjs production' && doppler run -c docker --command='node scripts/update-reflame-environment.mjs docker') || exit 0",
+		"reflame-env": "which doppler && (doppler run -c prod_aws_render --command='node scripts/update-reflame-environment.mjs production' && doppler run -c dev --command='node scripts/update-reflame-environment.mjs development') || exit 0",
 		"reflame": "yarn reflame-env && run-p --print-label --race 'dev:reflame:*'",
 		"reflame-build": "yarn reflame-env && run-p --print-label 'build:reflame:*'",
 		"lint": "eslint ./src",
