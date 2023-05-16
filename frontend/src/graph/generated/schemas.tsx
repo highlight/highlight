@@ -2373,6 +2373,7 @@ export type Session = {
 	environment?: Maybe<Scalars['String']>
 	event_counts?: Maybe<Scalars['String']>
 	excluded: Scalars['Boolean']
+	excluded_reason?: Maybe<SessionExcludedReason>
 	field_group?: Maybe<Scalars['String']>
 	fields?: Maybe<Array<Maybe<Field>>>
 	fingerprint?: Maybe<Scalars['Int']>
@@ -2490,6 +2491,7 @@ export enum SessionCommentType {
 
 export enum SessionExcludedReason {
 	IgnoredUser = 'IgnoredUser',
+	Initializing = 'Initializing',
 	NoActivity = 'NoActivity',
 	NoError = 'NoError',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',

@@ -7,7 +7,7 @@ import { linkStyle } from '@components/Header/styles.css'
 import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
 import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
-import { Maybe, ProductType, Project } from '@graph/schemas'
+import { Maybe, PlanType, ProductType, Project } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -51,7 +51,6 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { client } from '@util/graph'
-import { useParams } from '@util/react-router/useParams'
 import { titleCaseString } from '@util/string'
 import { showIntercom } from '@util/window'
 import clsx from 'clsx'
@@ -651,7 +650,8 @@ const BillingBanner: React.FC = () => {
 		false,
 	)
 	const { currentWorkspace } = useApplicationContext()
-	const { projectId } = useParams<{ projectId: string }>()
+	const { projectId } = useProjectId()
+
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: projectId! },
 		skip: !projectId,
@@ -721,6 +721,9 @@ const BillingBanner: React.FC = () => {
 		bannerMessage += `You've reached your monthly limit for ${productsToString(
 			productsOverQuota,
 		)}.`
+		if (data?.billingDetailsForProject?.plan.type === PlanType.Free) {
+			bannerMessage += ` New data won't be recorded.`
+		}
 	}
 	if (productsApproachingQuota.length > 0) {
 		bannerMessage += ` You're approaching your monthly limit for ${productsToString(

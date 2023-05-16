@@ -1,27 +1,26 @@
 {
 	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"declaration": true,
+		"declarationDir": "dist",
+		"emitDeclarationOnly": true,
+		"forceConsistentCasingInFileNames": true,
+		"jsx": "react",
+		"module": "ESNext",
+		"moduleResolution": "node",
+		"outDir": "dist",
+		"removeComments": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"target": "ESNext",
 		"types": [
 			"@highlight-run/sourcemap-uploader",
 			"@highlight-run/node",
 			"jest"
-		],
-		"target": "ES6",
-		"skipLibCheck": true,
-		"allowSyntheticDefaultImports": true,
-		"strict": true,
-		"forceConsistentCasingInFileNames": true,
-		"module": "ES6",
-		"outDir": "dist",
-		"removeComments": true,
-		"declaration": true,
-		"declarationDir": "dist",
-		"moduleResolution": "node",
-		"resolveJsonModule": true,
-		"jsx": "react"
+		]
 	},
-	"include": ["src/**/*"],
-	"references": [
-		{ "path": "../highlight-node" },
-		{ "path": "../../sourcemap-uploader" }
+	"include": [
+		"src/**/*"
 	]
 }

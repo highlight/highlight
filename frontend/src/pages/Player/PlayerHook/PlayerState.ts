@@ -31,6 +31,7 @@ import {
 	getCommentsInSessionIntervalsRelative,
 	getEventsForTimelineIndicator,
 	getSessionIntervals,
+	loadiFrameResources,
 	toHighlightEvents,
 } from '@pages/Player/PlayerHook/utils'
 import {
@@ -393,7 +394,7 @@ export const PlayerReducer = (
 					analytics.track('Viewed session', {
 						project_id: s.project_id,
 						is_guest: !s.isLoggedIn,
-						is_live: s.isLiveMode,
+						is_session_processed: !!s.session?.processed,
 						secure_id: s.session_secure_id,
 					})
 				}
@@ -554,6 +555,9 @@ export const PlayerReducer = (
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)
 			s = initReplayer(s, events, !!s.replayer?.config.mouseTail)
+			analytics.track('Session live mode toggled', {
+				isLiveMode: s.isLiveMode,
+			})
 			break
 		case PlayerActionType.setCurrentEvent:
 			s.currentEvent = handleSetStateAction(
@@ -688,6 +692,9 @@ const replayerAction = (
 					s.replayer.play(desiredTime)
 				} else {
 					return s
+				}
+				if (s.replayer) {
+					loadiFrameResources(s.replayer, s.project_id)
 				}
 			} catch (e: any) {
 				console.error(

@@ -47,6 +47,7 @@ import { OnChangeHandlerFunc } from 'react-mentions'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
+import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
 import {
 	AdminSuggestion,
 	parseAdminSuggestions,
@@ -54,7 +55,6 @@ import {
 
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas'
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration'
-import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
 
 interface Props {
 	commentTime: number

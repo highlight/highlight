@@ -4,8 +4,6 @@ on:
     workflow_dispatch:
     release:
         types: [published]
-    schedule:
-        - cron: '0 0 * * 5'
 
 jobs:
     publish-docker:
@@ -17,7 +15,7 @@ jobs:
         timeout-minutes: 30
         env:
             IMAGE_NAME: highlight-${{ matrix.container }}
-            IMAGE_TAG: ${{ github.sha }}
+            IMAGE_TAG: ${{ github.ref_name }}
             TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
             TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 

@@ -1,4 +1,3 @@
-import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
 import { useAuthContext } from '@authentication/AuthContext'
 import {
 	AdminSuggestion,
@@ -18,7 +17,6 @@ import {
 	Box,
 	ButtonIcon,
 	Form,
-	IconSolidAtSymbol,
 	IconSolidPaperAirplane,
 	Stack,
 } from '@highlight-run/ui'
@@ -29,6 +27,8 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
+
+import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
 
 interface CommentReplyFormProps {
 	commentID: string

@@ -13,7 +13,6 @@ import {
 	matchPerformanceTimingsWithRequestResponsePair,
 	shouldNetworkRequestBeRecorded,
 } from './network-listener/utils/utils'
-import publicGraphURI from 'consts:publicGraphURI'
 
 // Note: This class is used by both firstload and client. When constructed in client, it will match the current
 // codebase. When constructed in firstload, it will match the codebase at the time the npm package was published.
@@ -34,6 +33,7 @@ export class FirstLoadListeners {
 	fetchNetworkContents!: RequestResponsePair[]
 	tracingOrigins!: boolean | (string | RegExp)[]
 	networkHeadersToRedact!: string[]
+	networkBodyKeysToRedact: string[] | undefined
 	networkBodyKeysToRecord: string[] | undefined
 	networkHeaderKeysToRecord: string[] | undefined
 	urlBlocklist!: string[]
@@ -125,7 +125,9 @@ export class FirstLoadListeners {
 		options: HighlightClassOptions,
 	): void {
 		sThis._backendUrl =
-			options?.backendUrl || publicGraphURI || 'https://pub.highlight.run'
+			options?.backendUrl ||
+			import.meta.env.REACT_APP_PUBLIC_GRAPH_URI ||
+			'https://pub.highlight.run'
 
 		sThis.xhrNetworkContents = []
 		sThis.fetchNetworkContents = []
@@ -138,6 +140,7 @@ export class FirstLoadListeners {
 			sThis.disableNetworkRecording = options?.disableNetworkRecording
 			sThis.enableRecordingNetworkContents = false
 			sThis.networkHeadersToRedact = []
+			sThis.networkBodyKeysToRedact = []
 			sThis.urlBlocklist = []
 			sThis.networkBodyKeysToRecord = []
 			sThis.networkBodyKeysToRecord = []
@@ -145,6 +148,7 @@ export class FirstLoadListeners {
 			sThis.disableNetworkRecording = !options.networkRecording
 			sThis.enableRecordingNetworkContents = false
 			sThis.networkHeadersToRedact = []
+			sThis.networkBodyKeysToRedact = []
 			sThis.urlBlocklist = []
 		} else {
 			if (options.networkRecording?.enabled !== undefined) {
@@ -158,6 +162,10 @@ export class FirstLoadListeners {
 			sThis.networkHeadersToRedact =
 				options.networkRecording?.networkHeadersToRedact?.map(
 					(header) => header.toLowerCase(),
+				) || []
+			sThis.networkBodyKeysToRedact =
+				options.networkRecording?.networkBodyKeysToRedact?.map(
+					(bodyKey) => bodyKey.toLowerCase(),
 				) || []
 			sThis.urlBlocklist =
 				options.networkRecording?.urlBlocklist?.map((url) =>
@@ -181,8 +189,9 @@ export class FirstLoadListeners {
 
 			sThis.networkBodyKeysToRecord =
 				options.networkRecording?.bodyKeysToRecord
-
+			// `bodyKeysToRecord` override `networkBodyKeysToRedact`.
 			if (sThis.networkBodyKeysToRecord) {
+				sThis.networkBodyKeysToRedact = []
 				sThis.networkBodyKeysToRecord =
 					sThis.networkBodyKeysToRecord.map((key) =>
 						key.toLocaleLowerCase(),
@@ -203,6 +212,7 @@ export class FirstLoadListeners {
 						sThis.fetchNetworkContents.push(requestResponsePair)
 					},
 					headersToRedact: sThis.networkHeadersToRedact,
+					bodyKeysToRedact: sThis.networkBodyKeysToRedact,
 					backendUrl: sThis._backendUrl,
 					tracingOrigins: sThis.tracingOrigins,
 					urlBlocklist: sThis.urlBlocklist,
