@@ -35,7 +35,8 @@
 	},
 	"type": "module",
 	"main": "./dist/index.js",
-	"browser": "./dist/index.umd.cjs",
+	"unpkg": "./dist/index.umd.cjs",
+	"jsdelivr": "./dist/index.umd.cjs",
 	"types": "./dist/firstload/src/index.d.ts",
 	"exports": {
 		"types": "./dist/firstload/src/index.d.ts",
