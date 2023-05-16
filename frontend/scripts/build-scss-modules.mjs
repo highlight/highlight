@@ -9,8 +9,13 @@ export const run = async () => {
 	const args = process.argv.slice(2)
 	const watch = args.includes('--watch') || args.includes('-w')
 
-	const workingDirectory = path_.join(process.cwd(), './src')
+	const rootDirectory = process.cwd()
+	const workingDirectory = path_.join(rootDirectory, './src')
 	const outputDirectory = path_.join(workingDirectory, '__generated/scss')
+
+	const packageJson = JSON.parse(
+		fs.readFileSync(path_.join(rootDirectory, 'package.json')),
+	)
 
 	const watchedFiles = ['**/**.scss']
 
@@ -47,7 +52,12 @@ export const run = async () => {
 						},
 					}),
 				],
-				external: [],
+				external: [
+					...Object.keys(packageJson.dependencies).flatMap((pkg) => [
+						pkg,
+						`${pkg}/*`,
+					]),
+				],
 				write: false,
 				logLevel: 'warning',
 			})
