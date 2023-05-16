@@ -2969,9 +2969,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			return err
 		}
 	} else if excluded {
-		// Only update the excluded reason if it has changed
-		if sessionObj.ExcludedReason != reason {
-			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ExcludedReason", reason).Error; err != nil {
+		// Only update the excluded flag and reason if either have changed
+		if sessionObj.Excluded != excluded || sessionObj.ExcludedReason != reason {
+			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+				Select("Excluded", "ExcludedReason").Updates(&model.Session{
+				Excluded:       excluded,
+				ExcludedReason: reason,
+			}).Error; err != nil {
 				return err
 			}
 		}
