@@ -60,6 +60,7 @@ import {
 	SessionData,
 } from './utils/sessionStorage/highlightSession'
 import type { HighlightClientRequestWorker } from './workers/highlight-client-worker'
+import HighlightClientWorker from './workers/highlight-client-worker?worker&inline'
 import { getGraphQLRequestWrapper } from './utils/graph'
 import { ReplayEventsInput } from './graph/generated/schemas'
 import { MessageType, PropertyType, Source } from './workers/types'
@@ -71,11 +72,6 @@ import {
 	JankListener,
 	JankPayload,
 } from './listeners/jank-listener/jank-listener'
-
-// silence typescript warning in firstload build since firstload imports client code
-// but doesn't actually bundle the web-worker. also ensure this ends in .ts to import the code.
-// @ts-ignore
-import HighlightClientWorker from 'web-worker:./workers/highlight-client-worker.ts'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })

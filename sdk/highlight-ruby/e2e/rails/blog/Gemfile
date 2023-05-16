@@ -71,4 +71,4 @@ group :test do
   gem "webdrivers"
 end
 
-gem "highlight", path: "../../../highlight"
+gem "highlight_io", path: "../../../highlight"

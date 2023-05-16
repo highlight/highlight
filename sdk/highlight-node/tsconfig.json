@@ -1,19 +1,18 @@
 {
 	"compilerOptions": {
-		"target": "ES6",
-		"lib": ["dom", "dom.iterable", "esnext"],
-		"skipLibCheck": true,
-		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
-		"strict": true,
-		"forceConsistentCasingInFileNames": true,
-		"module": "ES6",
 		"declaration": true,
 		"declarationDir": "dist",
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"jsx": "react",
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"module": "ESNext",
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
-		"jsx": "react",
-		"types": ["node", "jest"]
+		"skipLibCheck": true,
+		"strict": true,
+		"target": "ESNext"
 	},
 	"include": ["src"]
 }

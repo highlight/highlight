@@ -1,13 +1,14 @@
+// next.config.js
 const nextBuildId = require('next-build-id')
-const { withHighlightConfig } = require('@highlight-run/next')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	generateBuildId: () => nextBuildId({ dir: __dirname }),
 	experimental: {
 		appDir: true,
+		instrumentationHook: true,
 	},
-	transpilePackages: ['@highlight-run/react'],
+	productionBrowserSourceMaps: true,
 }
 
-module.exports = withHighlightConfig(nextConfig, { uploadSourceMaps: true })
+module.exports = nextConfig

@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gorm.io/gorm"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/retryables"
@@ -778,8 +779,7 @@ type OpenSearchField struct {
 
 type OpenSearchError struct {
 	*model.ErrorGroup
-	Fields   []*OpenSearchErrorField `json:"fields"`
-	Filename *string                 `json:"filename"`
+	Fields []*OpenSearchErrorField `json:"fields"`
 }
 
 type OpenSearchErrorObject struct {
@@ -788,14 +788,6 @@ type OpenSearchErrorObject struct {
 	Browser     string    `json:"browser"`
 	Timestamp   time.Time `json:"timestamp"`
 	Environment string    `json:"environment"`
-}
-
-func (oe *OpenSearchError) ToErrorGroup() *model.ErrorGroup {
-	inner := oe.ErrorGroup
-	if oe.Filename != nil {
-		inner.StackTrace = fmt.Sprintf(`[{"fileName":"%s"}]`, *oe.Filename)
-	}
-	return inner
 }
 
 type OpenSearchErrorField struct {
