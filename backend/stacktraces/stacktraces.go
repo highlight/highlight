@@ -7,16 +7,16 @@ import (
 	"strconv"
 	"strings"
 
-	model3 "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	publicModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
 )
 
-func structureStackTrace(stackTrace string) ([]*model3.ErrorTrace, error) {
+func StructureStackTrace(stackTrace string) ([]publicModel.ErrorTrace, error) {
 	var language string
 	var errMsg string
-	var frames []*model3.ErrorTrace
-	var frame *model3.ErrorTrace
+	var frames []publicModel.ErrorTrace
+	var frame publicModel.ErrorTrace
 	var jsonStr string
 	if err := json.Unmarshal([]byte(stackTrace), &jsonStr); err == nil {
 		stackTrace = jsonStr
@@ -44,10 +44,8 @@ func structureStackTrace(stackTrace string) ([]*model3.ErrorTrace, error) {
 		if errMsg == "" {
 			errMsg = line
 		}
-		if frame == nil {
-			frame = &model3.ErrorTrace{
-				Error: &errMsg,
-			}
+		frame = publicModel.ErrorTrace{
+			Error: &errMsg,
 		}
 		jsPattern := regexp.MustCompile(` {4}at ((.+) )?\(?(.+):(\d+):(\d+)\)?`)
 		jsAnonPattern := regexp.MustCompile(` {4}at (.+) \((.+)\)`)
@@ -94,13 +92,12 @@ func structureStackTrace(stackTrace string) ([]*model3.ErrorTrace, error) {
 			}
 		}
 		frames = append(frames, frame)
-		frame = nil
 	}
 	return frames, nil
 }
 
 func FormatStructureStackTrace(ctx context.Context, stackTrace string) string {
-	frames, err := structureStackTrace(stackTrace)
+	frames, err := StructureStackTrace(stackTrace)
 	if err != nil {
 		log.WithContext(ctx).WithField("StackTrace", stackTrace).WithError(err).Warnf("otel failed to structure stacktrace")
 		return stackTrace
