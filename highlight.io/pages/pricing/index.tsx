@@ -211,29 +211,35 @@ const Faqs: { question: string; answer: string; icon: string }[] = [
 const billingPeriodOptions = ['Monthly', 'Annual'] as const
 type BillingPeriod = typeof billingPeriodOptions[number]
 
-const retentionOptions = ['3 months', '6 months', '1 year', '2 years'] as const
+const retentionOptions = [
+	'30 days',
+	'3 months',
+	'6 months',
+	'1 year',
+	'2 years',
+] as const
 type Retention = typeof retentionOptions[number]
 const retentionMultipliers: Record<Retention, number> = {
+	'30 days': 1,
 	'3 months': 1,
 	'6 months': 1.5,
 	'1 year': 2,
 	'2 years': 2.5,
 } as const
 
-const tierOptions = ['Free', 'Basic', 'Essentials', 'Startup'] as const
+const tierOptions = ['Free', 'UsageBased'] as const
 type TierName = typeof tierOptions[number]
 
 type PricingTier = {
 	basePrice: number
 	sessions: number
 	errors: number
+	logs: number
 }
 
 const priceTiers: Record<TierName, PricingTier> = {
-	Free: { basePrice: 0, sessions: 500, errors: 1000 },
-	Basic: { basePrice: 50, sessions: 2000, errors: 4000 },
-	Essentials: { basePrice: 150, sessions: 10000, errors: 20000 },
-	Startup: { basePrice: 400, sessions: 80000, errors: 160000 },
+	Free: { basePrice: 0, sessions: 500, errors: 1_000, logs: 1_000_000 },
+	UsageBased: { basePrice: 0, sessions: 500, errors: 1_000, logs: 1_000_000 },
 }
 
 function getBasePrice(
@@ -299,7 +305,7 @@ const PlanTier = ({
 	billingPeriod: BillingPeriod
 	retention: Retention
 }) => {
-	const { sessions, errors } = tier
+	const { sessions, errors, logs } = tier
 
 	return (
 		<div className="flex flex-col flex-grow border rounded-md min-[1190px]:min-w-[255px] basis-64 border-divider-on-dark">
@@ -334,9 +340,10 @@ const PlanTier = ({
 					</a>
 				</div>
 				<Typography type="copy3">
-					{sessions} monthly sessions
+					{formatNumberWithDelimiters(sessions)} monthly sessions
 				</Typography>
 				<Typography type="copy3">{errors} monthly errors</Typography>
+				<Typography type="copy3">{logs} monthly logs</Typography>
 				<Typography type="copy3">Unlimited seats</Typography>
 			</div>
 			<div className="p-5">
@@ -350,6 +357,8 @@ const PlanTier = ({
 		</div>
 	)
 }
+
+const formatNumber = (n: number) => n.toLocaleString()
 
 const formatPrice = (price: number) =>
 	price
