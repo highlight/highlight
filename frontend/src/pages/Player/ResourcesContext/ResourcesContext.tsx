@@ -10,7 +10,7 @@ import { H } from 'highlight.run'
 import { useCallback, useEffect, useState } from 'react'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
-export enum ResourceLoadingError {
+export enum LoadingError {
 	NetworkResourcesTooLarge = 'payload too large.',
 	NetworkResourcesFetchFailed = 'failed to fetch.',
 }
@@ -19,7 +19,7 @@ interface ResourcesContext {
 	resourcesLoading: boolean
 	loadResources: () => void
 	resources: NetworkResourceWithID[]
-	error?: ResourceLoadingError
+	error?: LoadingError
 }
 
 export type NetworkResourceWithID = PerformanceResourceTiming & {
@@ -33,7 +33,7 @@ export const useResources = (
 ): ResourcesContext => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const [sessionSecureId, setSessionSecureId] = useState<string>()
-	const [error, setError] = useState<ResourceLoadingError>()
+	const [error, setError] = useState<LoadingError>()
 	const [downloadResources] = useQueryParam('downloadresources', BooleanParam)
 
 	const [resourcesLoading, setResourcesLoading] = useState(false)
@@ -107,7 +107,7 @@ export const useResources = (
 				if (!session.resources_url) return
 				const limit = await checkResourceLimit(session.resources_url)
 				if (limit) {
-					setError(ResourceLoadingError.NetworkResourcesTooLarge)
+					setError(LoadingError.NetworkResourcesTooLarge)
 					H.consumeError(new Error(limit.error), undefined, {
 						fileSize: limit.fileSize.toString(),
 						limit: limit.sizeLimit.toString(),
@@ -146,9 +146,7 @@ export const useResources = (
 							)
 						})
 						.catch((e) => {
-							setError(
-								ResourceLoadingError.NetworkResourcesFetchFailed,
-							)
+							setError(LoadingError.NetworkResourcesFetchFailed)
 							setResources([])
 							H.consumeError(
 								e,

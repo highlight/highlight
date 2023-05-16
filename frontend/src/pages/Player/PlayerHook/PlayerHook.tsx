@@ -6,7 +6,6 @@ import {
 	useGetSessionIntervalsQuery,
 	useGetSessionPayloadQuery,
 	useGetSessionQuery,
-	useGetTimelineIndicatorEventsQuery,
 	useMarkSessionAsViewedMutation,
 } from '@graph/hooks'
 import { GetSessionQuery } from '@graph/operations'
@@ -28,6 +27,7 @@ import {
 	PlayerReducer,
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
+import { useTimelineIndicators } from '@pages/Player/TimelineIndicatorsContext/TimelineIndicatorsContext'
 import analytics from '@util/analytics'
 import { indexedDBFetch, indexedDBString } from '@util/db'
 import log from '@util/log'
@@ -114,13 +114,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			!project_id ||
 			CHUNKING_DISABLED_PROJECTS.includes(project_id),
 	})
-	const { data: timelineIndicatorEvents } =
-		useGetTimelineIndicatorEventsQuery({
-			variables: {
-				session_secure_id: session_secure_id!,
-			},
-			skip: !session_secure_id,
-		})
 	const { data: sessionData } = useGetSessionQuery({
 		variables: {
 			secure_id: session_secure_id!,
@@ -145,6 +138,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 		skip: !session_secure_id,
 		fetchPolicy: 'network-only',
 	})
+	const { timelineIndicatorEvents } = useTimelineIndicators(
+		sessionData?.session || undefined,
+	)
 	const { data: sessionPayload, subscribeToMore: subscribeToSessionPayload } =
 		useGetSessionPayloadQuery({
 			fetchPolicy: 'no-cache',

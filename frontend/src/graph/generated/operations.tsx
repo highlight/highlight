@@ -1632,7 +1632,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
 			| 'event_counts'
 			| 'direct_download_url'
 			| 'resources_url'
-			| 'messages_url'
+			| 'timeline_indicators_url'
 			| 'deviceMemory'
 			| 'last_user_interaction_time'
 			| 'length'
