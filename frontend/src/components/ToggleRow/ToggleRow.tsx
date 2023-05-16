@@ -4,7 +4,7 @@ import Switch from '@/components/Switch/Switch'
 
 export const ToggleRow = (
 	label: string,
-	info: string | undefined,
+	info: string,
 	checked: boolean,
 	setState: (n: boolean) => void,
 	disabled: boolean,
