@@ -84,6 +84,9 @@ export default defineConfig(({ mode }): UserConfig => {
 			hmr: {
 				clientPort: 3000,
 			},
+			watch: {
+				ignored: ['**/node_modules/**', '**/src/__generated/**'],
+			},
 		},
 		build: {
 			minify: 'esbuild',

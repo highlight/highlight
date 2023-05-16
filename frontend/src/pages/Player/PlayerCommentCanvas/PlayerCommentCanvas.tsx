@@ -2,6 +2,7 @@ import {
 	useGetSessionCommentsQuery,
 	useMuteSessionCommentThreadMutation,
 } from '@graph/hooks'
+import { Box } from '@highlight-run/ui'
 import PlayerSessionComment from '@pages/Player/PlayerCommentCanvas/PlayerSessionComment/PlayerSessionComment'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -12,7 +13,9 @@ import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import CommentPinIcon from '../../../static/comment-pin.png'
+import { useAuthContext } from '@/authentication/AuthContext'
+import { CommentIndicator } from '@/components/Comment/CommentIndicator'
+
 import styles from './PlayerCommentCanvas.module.scss'
 
 export interface Coordinates2D {
@@ -34,6 +37,7 @@ const PlayerCommentCanvas = ({
 	modalPosition,
 	setCommentPosition,
 }: Props) => {
+	const { admin } = useAuthContext()
 	const { session_secure_id } = useParams<{
 		session_secure_id: string
 	}>()
@@ -140,8 +144,8 @@ const PlayerCommentCanvas = ({
 					const xPercentage = x / rect.width
 					const yPercentage = y / rect.height
 
-					const xOffset = 24
-					let yOffset = -36
+					const xOffset = 34
+					let yOffset = -60
 
 					if (yPercentage > 0.9) {
 						yOffset -= 100
@@ -161,14 +165,19 @@ const PlayerCommentCanvas = ({
 			ref={buttonRef}
 		>
 			{indicatorLocation && (
-				<img
-					className={styles.commentIndicator}
+				<Box
+					cssClass={styles.commentIndicator}
+					position="absolute"
 					style={{
-						left: `calc(${indicatorLocation.x}px - (var(--comment-indicator-width) / 2))`,
-						top: `calc(${indicatorLocation.y}px - var(--comment-indicator-height) + 2px)`,
+						left: `calc(${indicatorLocation.x}px - 10px)`,
+						top: `calc(${indicatorLocation.y}px - var(--comment-indicator-width))`,
 					}}
-					src={CommentPinIcon}
-				/>
+				>
+					<CommentIndicator
+						seed={admin?.name ?? admin?.email ?? 'Anonymous'}
+						customImage={admin?.photo_url}
+					/>
+				</Box>
 			)}
 			{sessionCommentsData?.session_comments.map(
 				(comment) =>
