@@ -1,4 +1,4 @@
-import { Moment } from "moment"
+import { Moment } from 'moment'
 
 const subtractDays = (date: Date, days: number) => {
 	const offset = 24 * 60 * 60 * 1000 * days
