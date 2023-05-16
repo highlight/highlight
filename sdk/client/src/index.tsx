@@ -24,6 +24,7 @@ import {
 	Metric,
 	SamplingStrategy,
 	SessionDetails,
+	StartOptions,
 } from './types/types'
 import { PathListener } from './listeners/path-listener'
 import { GraphQLClient } from 'graphql-request'
@@ -485,7 +486,7 @@ export class Highlight {
 		})
 	}
 
-	async initialize(): Promise<undefined> {
+	async initialize(options?: StartOptions): Promise<undefined> {
 		if (
 			(navigator?.webdriver && !window.Cypress) ||
 			navigator?.userAgent?.includes('Googlebot') ||
@@ -502,6 +503,11 @@ export class Highlight {
 					this._firstLoadListeners?.stopListening()
 					return
 				}
+			}
+
+			if (options?.forceNew) {
+				await this._reset()
+				return
 			}
 
 			if (this.feedbackWidgetOptions.enabled) {
@@ -1086,6 +1092,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
 		}
 		this.state = 'NotRecording'
+		// stop rrweb recording mutation observers
+		if (manual && this._recordStop) {
+			this._recordStop()
+			this._recordStop = undefined
+		}
 		// stop all other event listeners, to be restarted on initialize()
 		this.listeners.forEach((stop) => stop())
 		this.listeners = []
