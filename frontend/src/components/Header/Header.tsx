@@ -45,7 +45,7 @@ import {
 	getTrialEndDateMessage,
 } from '@pages/Billing/utils/utils'
 import useLocalStorage from '@rehooks/local-storage'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'

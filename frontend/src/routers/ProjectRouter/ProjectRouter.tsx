@@ -42,7 +42,6 @@ import {
 
 import commonStyles from '../../Common.module.scss'
 import ApplicationRouter from './ApplicationRouter'
-import { ApplicationContextProvider } from './context/ApplicationContext'
 
 export const ProjectRouter = () => {
 	const { isLoggedIn } = useAuthContext()
@@ -53,7 +52,7 @@ export const ProjectRouter = () => {
 	const { projectId } = useNumericProjectId()
 	const { setLoadingState } = useAppLoadingContext()
 
-	const { data, loading, error } = useGetProjectDropdownOptionsQuery({
+	const { data, error } = useGetProjectDropdownOptionsQuery({
 		variables: { project_id: projectId! },
 		skip: !isLoggedIn || !projectId, // Higher level routers decide when guests are allowed to hit this router
 	})
@@ -127,20 +126,8 @@ export const ProjectRouter = () => {
 	}, [])
 
 	useEffect(() => {
-		if (!error) {
-			setLoadingState((previousLoadingState) => {
-				if (previousLoadingState !== AppLoadingState.EXTENDED_LOADING) {
-					return loading
-						? AppLoadingState.LOADING
-						: AppLoadingState.LOADED
-				}
-
-				return AppLoadingState.EXTENDED_LOADING
-			})
-		} else {
-			setLoadingState(AppLoadingState.LOADED)
-		}
-	}, [error, loading, setLoadingState])
+		setLoadingState(AppLoadingState.LOADED)
+	}, [setLoadingState])
 
 	// if the user can join this workspace, give them that option via the ErrorState
 	const joinableWorkspace = data?.joinable_workspaces
@@ -190,10 +177,6 @@ export const ProjectRouter = () => {
 
 	const commandBarDialog = useDialogState()
 
-	if (loading) {
-		return null
-	}
-
 	return (
 		<GlobalContextProvider
 			value={{
@@ -204,56 +187,45 @@ export const ProjectRouter = () => {
 				commandBarDialog,
 			}}
 		>
-			<ApplicationContextProvider
-				value={{
-					currentProject: data?.project ?? undefined,
-					allProjects: data?.workspace?.projects ?? [],
-					currentWorkspace: data?.workspace ?? undefined,
-					workspaces: data?.workspaces ?? [],
-				}}
-			>
-				<PlayerUIContextProvider value={playerUIContext}>
-					<WithSessionSearchContext>
-						<WithErrorSearchContext>
-							<Routes>
-								<Route
-									path=":project_id/front"
-									element={<FrontPlugin />}
-								/>
-								<Route
-									path=":project_id/*"
-									element={
-										<>
-											<Header
-												fullyIntegrated={
-													fullyIntegrated
+			<PlayerUIContextProvider value={playerUIContext}>
+				<WithSessionSearchContext>
+					<WithErrorSearchContext>
+						<Routes>
+							<Route
+								path=":project_id/front"
+								element={<FrontPlugin />}
+							/>
+							<Route
+								path=":project_id/*"
+								element={
+									<>
+										<Header
+											fullyIntegrated={fullyIntegrated}
+										/>
+										<KeyboardShortcutsEducation />
+										<div
+											className={clsx(
+												commonStyles.bodyWrapper,
+												{
+													[commonStyles.bannerShown]:
+														showBanner,
+												},
+											)}
+										>
+											<ApplicationOrError
+												error={error}
+												joinableWorkspace={
+													joinableWorkspace
 												}
 											/>
-											<KeyboardShortcutsEducation />
-											<div
-												className={clsx(
-													commonStyles.bodyWrapper,
-													{
-														[commonStyles.bannerShown]:
-															showBanner,
-													},
-												)}
-											>
-												<ApplicationOrError
-													error={error}
-													joinableWorkspace={
-														joinableWorkspace
-													}
-												/>
-											</div>
-										</>
-									}
-								/>
-							</Routes>
-						</WithErrorSearchContext>
-					</WithSessionSearchContext>
-				</PlayerUIContextProvider>
-			</ApplicationContextProvider>
+										</div>
+									</>
+								}
+							/>
+						</Routes>
+					</WithErrorSearchContext>
+				</WithSessionSearchContext>
+			</PlayerUIContextProvider>
 		</GlobalContextProvider>
 	)
 }

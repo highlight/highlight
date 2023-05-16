@@ -10,7 +10,7 @@ import {
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
 import { Box, Heading, Stack, Text } from '@highlight-run/ui'
-import { ApplicationContextProvider } from '@routers/ProjectRouter/context/ApplicationContext'
+import { ApplicationContextProvider } from '@routers/AppRouter/context/ApplicationContext'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
 import { useDialogState } from 'ariakit/dialog'

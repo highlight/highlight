@@ -23,7 +23,7 @@ import { Box } from '@highlight-run/ui'
 import BellRingingIcon from '@icons/BellRingingIcon'
 import SvgLogInIcon from '@icons/LogInIcon'
 import { BillingStatusCard } from '@pages/Billing/BillingStatusCard/BillingStatusCard'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { loadStripe } from '@stripe/stripe-js'
 import analytics from '@util/analytics'
 import {

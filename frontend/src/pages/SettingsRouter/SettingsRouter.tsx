@@ -21,7 +21,7 @@ import { ProjectColorLabel } from '@/pages/ProjectSettings/ProjectColorLabel/Pro
 import ProjectSettings from '@/pages/ProjectSettings/ProjectSettings'
 import Auth from '@/pages/UserSettings/Auth/Auth'
 import { PlayerForm } from '@/pages/UserSettings/PlayerForm/PlayerForm'
-import { useApplicationContext } from '@/routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { auth } from '@/util/auth'
 
 import * as styles from './SettingsRouter.css'

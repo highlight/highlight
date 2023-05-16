@@ -1,6 +1,6 @@
 import Button from '@components/Button/Button/Button'
 import SvgLogInIcon from '@icons/LogInIcon'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
