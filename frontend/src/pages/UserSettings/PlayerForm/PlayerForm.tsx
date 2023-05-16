@@ -1,5 +1,5 @@
-import { isIndexedDBEnabled, setIndexedDBEnabled } from '@util/db'
 import { Heading, Stack } from '@highlight-run/ui'
+import { isIndexedDBEnabled, setIndexedDBEnabled } from '@util/db'
 import React from 'react'
 
 import { ToggleRow } from '@/components/ToggleRow/ToggleRow'

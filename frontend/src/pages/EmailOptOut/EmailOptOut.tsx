@@ -1,4 +1,3 @@
-import Switch from '@components/Switch/Switch'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -9,7 +8,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
-import { Box, Heading, Stack, Text } from '@highlight-run/ui'
+import { Heading, Stack } from '@highlight-run/ui'
 import { ApplicationContextProvider } from '@routers/ProjectRouter/context/ApplicationContext'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
