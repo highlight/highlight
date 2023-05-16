@@ -197,3 +197,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Patch Changes
 
 - Switch to umd default output.
+
+## 6.4.3
+
+### Patch Changes
+
+- Fixes to umd format
