@@ -28,14 +28,14 @@
 				"value": "Reflame.gitCommitSha"
 			},
 			"REACT_APP_PRIVATE_GRAPH_URI": "https://pri.highlight.io",
-			"REACT_APP_ONPREM": "false",
+			"REACT_APP_ONPREM": false,
 			"REACT_APP_FRONTEND_URI": {
 				"type": "expression",
 				"value": "window.location.origin"
 			},
 			"REACT_APP_FRONTEND_ORG": "1jdkoe52",
 			"REACT_APP_PUBLIC_GRAPH_URI": "https://pub.highlight.run",
-			"REACT_APP_AUTH_MODE": null,
+			"REACT_APP_AUTH_MODE": "simple",
 			"SLACK_CLIENT_ID": "1354469824468.1868913469441",
 			"REACT_APP_STRIPE_API_PK": "pk_live_51Hlqh1Gz4ry65q42eza36EDSeIpFng39KpZVJzPpsYg5AM7h1rpysaCcZQHnC4J5uNmbjXP6rmSRuf9yr6rfGNOB00aZ73tU9f",
 			"DEMO_ERROR_URL": "/1/errors/RxxaYWFKZPsIa1lF1phmFqTQ04BO",
@@ -61,7 +61,7 @@
 			},
 			"REACT_APP_FRONTEND_ORG": "1",
 			"REACT_APP_PUBLIC_GRAPH_URI": "https://localhost:8082/public",
-			"REACT_APP_AUTH_MODE": null,
+			"REACT_APP_AUTH_MODE": "simple",
 			"SLACK_CLIENT_ID": "1354469824468.1868913469441",
 			"REACT_APP_STRIPE_API_PK": "pk_test_51Hlqh1Gz4ry65q42v4lYEnAGIB4Tq5rzWwE7PgpdCpQjqJjg1iVuosCzEGFbaJNTxDpo77F3YwOfrSlUp8g4wZYB00ojMQX0DP",
 			"DEMO_ERROR_URL": "/1/errors/RxxaYWFKZPsIa1lF1phmFqTQ04BO",
