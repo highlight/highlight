@@ -1,5 +1,6 @@
-import Switch from '@/components/Switch/Switch'
 import { Box, Stack, Text } from '@highlight-run/ui'
+
+import Switch from '@/components/Switch/Switch'
 
 export const ToggleRow = (
 	label: string,
