@@ -39,6 +39,7 @@ import (
 	"github.com/highlight-run/highlight/backend/phonehome"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
+	"github.com/highlight-run/highlight/backend/projectfilters"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -362,6 +363,7 @@ func main() {
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
+		Repositories:           initRepositories(db),
 	}
 	private.SetupAuthClient(ctx, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
@@ -628,5 +630,11 @@ func main() {
 		} else {
 			log.Fatal(http.ListenAndServe(":"+port, r))
 		}
+	}
+}
+
+func initRepositories(db *gorm.DB) *private.Repositories {
+	return &private.Repositories{
+		ProjectFilters: projectfilters.NewRepository(db),
 	}
 }

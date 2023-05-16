@@ -41,6 +41,7 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/projectfilters"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
@@ -50,6 +51,7 @@ import (
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
@@ -584,23 +586,16 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 }
 
 // EditProjectFilterSettings is the resolver for the editProjectFilterSettings field.
-func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projectID int, filterSessionsWithoutError bool) (*model.ProjectFilterSettings, error) {
+func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projectID int, filterSessionsWithoutError bool) (*projectfilters.ProjectFilterSettings, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
-
-	projectFilterSettings := model.ProjectFilterSettings{}
-
-	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).First(&projectFilterSettings)
-
-	projectFilterSettings.FilterSessionsWithoutError = filterSessionsWithoutError
-
-	if err := r.DB.Save(projectFilterSettings).Error; err != nil {
-		return nil, err
+	updates := projectfilters.ProjectFilterSettings{
+		FilterSessionsWithoutError: filterSessionsWithoutError,
 	}
 
-	return &projectFilterSettings, err
+	return r.Repositories.ProjectFilters.UpdateProjectFilters(project, updates)
 }
 
 // EditWorkspace is the resolver for the editWorkspace field.
@@ -6396,17 +6391,13 @@ func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, er
 }
 
 // ProjectFilterSettings is the resolver for the project_filter_settings field.
-func (r *queryResolver) ProjectFilterSettings(ctx context.Context, projectID int) (*model.ProjectFilterSettings, error) {
+func (r *queryResolver) ProjectFilterSettings(ctx context.Context, projectID int) (*projectfilters.ProjectFilterSettings, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	projectFilterSettings := model.ProjectFilterSettings{}
-
-	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
-
-	return &projectFilterSettings, err
+	return r.Repositories.ProjectFilters.GetProjectFilters(project), nil
 }
 
 // Workspace is the resolver for the workspace field.
@@ -7236,6 +7227,7 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 
 // Logs is the resolver for the logs field.
 func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string, direction modelInputs.LogDirection) (*modelInputs.LogsConnection, error) {
+	return nil, errors.New("chilly mcbilly")
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not logged in")

@@ -356,12 +356,6 @@ type SetupEvent struct {
 	ProjectID int                  `gorm:"uniqueIndex:idx_project_id_type"`
 	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
 }
-type ProjectFilterSettings struct {
-	Model
-	Project                    *Project
-	ProjectID                  int
-	FilterSessionsWithoutError bool `gorm:"default:false"`
-}
 
 type HasSecret interface {
 	GetSecret() *string
