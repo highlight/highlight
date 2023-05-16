@@ -552,24 +552,6 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			return nil, e.Wrap(err, "Error creating new error group")
 		}
 
-		opensearchErrorGroup := &model.ErrorGroup{
-			Model:     newErrorGroup.Model,
-			SecureID:  newErrorGroup.SecureID,
-			ProjectID: errorObj.ProjectID,
-			Event:     errorObj.Event,
-			Type:      errorObj.Type,
-			State:     privateModel.ErrorStateOpen.String(),
-			Fields:    []*model.ErrorField{},
-		}
-		if err := r.OpenSearch.IndexSynchronous(ctx,
-			opensearch.IndexParams{
-				Index:    opensearch.IndexErrorsCombined,
-				ID:       int64(newErrorGroup.ID),
-				ParentID: pointy.Int(0),
-				Object:   opensearchErrorGroup}); err != nil {
-			return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
-		}
-
 		errorGroup = newErrorGroup
 	} else {
 		if err := r.DB.Where(&model.ErrorGroup{
@@ -588,21 +570,24 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 		}).Error; err != nil {
 			return nil, e.Wrap(err, "Error updating error group")
 		}
+	}
 
-		var filename *string
-		if errorObj.MappedStackTrace != nil {
-			filename = model.GetFirstFilename(*errorObj.MappedStackTrace)
-		} else {
-			filename = model.GetFirstFilename(*errorObj.StackTrace)
-		}
-
-		if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
-			"filename":   filename,
-			"updated_at": time.Now(),
-			"Event":      errorObj.Event,
-		}); err != nil {
-			return nil, e.Wrap(err, "error updating error group in opensearch")
-		}
+	opensearchErrorGroup := &model.ErrorGroup{
+		Model:     errorGroup.Model,
+		SecureID:  errorGroup.SecureID,
+		ProjectID: errorObj.ProjectID,
+		Event:     errorObj.Event,
+		Type:      errorObj.Type,
+		State:     privateModel.ErrorStateOpen.String(),
+		Fields:    []*model.ErrorField{},
+	}
+	if err := r.OpenSearch.IndexSynchronous(ctx,
+		opensearch.IndexParams{
+			Index:    opensearch.IndexErrorsCombined,
+			ID:       int64(errorGroup.ID),
+			ParentID: pointy.Int(0),
+			Object:   opensearchErrorGroup}); err != nil {
+		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
 	return errorGroup, nil
