@@ -25,10 +25,8 @@
 		}
 	},
 	"scripts": {
-		"build": "node scripts/version.mjs && yarn typegen && vite build",
-		"dev": "node scripts/version.mjs && vite dev",
-		"reflame": "node scripts/version.mjs",
-		"reflame-build": "node scripts/version.mjs",
+		"build": "yarn typegen && vite build",
+		"dev": "vite dev",
 		"enforce-size": "size-limit",
 		"test": "vitest --run",
 		"typegen": "tsc && node scripts/replace-client-imports.mjs"
