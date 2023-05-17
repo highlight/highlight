@@ -2,16 +2,8 @@ import {
 	BatchSpanProcessor,
 	SpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
-import {
-	InputMaybe,
-	MetricInput,
-	PushMetricsMutationVariables,
-	Sdk,
-	getSdk,
-} from './graph/generated/operations'
 import { Tracer, trace } from '@opentelemetry/api'
 
-import { GraphQLClient } from 'graphql-request'
 import { NodeOptions } from './types.js'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
@@ -24,12 +16,7 @@ const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
 export class Highlight {
 	readonly FLUSH_TIMEOUT = 10
-	readonly BACKEND_SETUP_TIMEOUT = 15 * 60 * 1000
-	_graphqlSdk: Sdk
-	_backendUrl: string
 	_intervalFunction: ReturnType<typeof setInterval>
-	metrics: Array<InputMaybe<MetricInput>> = []
-	lastBackendSetupEvent: number = 0
 	_projectID: string
 	_debug: boolean
 	private otel: NodeSDK
@@ -39,16 +26,11 @@ export class Highlight {
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
 		this._projectID = options.projectID
-		this._backendUrl = options.backendUrl || 'https://pub.highlight.run'
 		if (!options.disableConsoleRecording) {
 			hookConsole(options.consoleMethodsToRecord, (c) => {
 				this.log(c.date, c.message, c.level, c.stack)
 			})
 		}
-		const client = new GraphQLClient(this._backendUrl, {
-			headers: {},
-		})
-		this._graphqlSdk = getSdk(client)
 
 		this.tracer = trace.getTracer('highlight-node')
 
@@ -78,16 +60,12 @@ export class Highlight {
 			this.FLUSH_TIMEOUT * 1000,
 		)
 
-		this._graphqlSdk
-			.MarkBackendSetup({
-				project_id: this._projectID,
+		for (const event of ['beforeExit', 'SIGTERM']) {
+			process.on(event, async () => {
+				await this.flush()
 			})
-			.then(() => {
-				this.lastBackendSetupEvent = Date.now()
-			})
-			.catch((e) => {
-				console.warn('highlight-node error: ', e)
-			})
+		}
+
 		this._log(`Initialized SDK for project ${this._projectID}`)
 	}
 
@@ -104,15 +82,27 @@ export class Highlight {
 		requestId?: string,
 		tags?: { name: string; value: string }[],
 	) {
-		this.metrics.push({
-			session_secure_id: secureSessionId,
-			group: requestId,
-			name: name,
-			value: value,
-			category: 'BACKEND',
-			timestamp: new Date().toISOString(),
-			tags: tags,
+		if (!this.tracer) return
+		const span = this.tracer.startSpan('highlight-ctx')
+		span.addEvent('metric', {
+			['highlight.project_id']: this._projectID,
+			['metric.name']: name,
+			['metric.value']: value,
+			...(secureSessionId
+				? {
+						['highlight.session_id']: secureSessionId,
+				  }
+				: {}),
+			...(requestId
+				? {
+						['highlight.trace_id']: requestId,
+				  }
+				: {}),
 		})
+		for (const t of tags || []) {
+			span.setAttribute(t.name, t.value)
+		}
+		span.end()
 	}
 
 	log(
@@ -155,12 +145,7 @@ export class Highlight {
 		secureSessionId: string | undefined,
 		requestId: string | undefined,
 	) {
-		let span = trace.getActiveSpan()
-		let spanCreated = false
-		if (!span) {
-			span = this.tracer.startSpan('highlight-ctx')
-			spanCreated = true
-		}
+		const span = this.tracer.startSpan('highlight-ctx')
 		span.recordException(error)
 		span.setAttributes({ ['highlight.project_id']: this._projectID })
 		if (secureSessionId) {
@@ -169,48 +154,11 @@ export class Highlight {
 		if (requestId) {
 			span.setAttributes({ ['highlight.trace_id']: requestId })
 		}
-		if (spanCreated) {
-			this._log('created error span', span)
-			span.end()
-		} else {
-			this._log('updated current span with error', span)
-		}
-	}
-
-	consumeCustomEvent(secureSessionId?: string) {
-		const sendBackendSetup =
-			Date.now() - this.lastBackendSetupEvent > this.BACKEND_SETUP_TIMEOUT
-		if (sendBackendSetup) {
-			this._graphqlSdk
-				.MarkBackendSetup({
-					project_id: this._projectID,
-					session_secure_id: secureSessionId,
-				})
-				.then(() => {
-					this.lastBackendSetupEvent = Date.now()
-				})
-				.catch((e) => {
-					console.warn('highlight-node error: ', e)
-				})
-		}
-	}
-
-	async flushMetrics() {
-		if (this.metrics.length === 0) {
-			return
-		}
-		const variables: PushMetricsMutationVariables = {
-			metrics: this.metrics,
-		}
-		this.metrics = []
-		try {
-			await this._graphqlSdk.PushMetrics(variables)
-		} catch (e) {
-			console.warn('highlight-node pushMetrics error: ', e)
-		}
+		this._log('created error span', span)
+		span.end()
 	}
 
 	async flush() {
-		await Promise.all([this.flushMetrics(), this.processor.forceFlush()])
+		await this.processor.forceFlush()
 	}
 }

@@ -16,7 +16,6 @@ export interface HighlightInterface {
 		secureSessionId?: string,
 		requestId?: string,
 	) => void
-	consumeEvent: (secureSessionId?: string) => void
 	recordMetric: (
 		secureSessionId: string,
 		name: string,
@@ -50,13 +49,6 @@ export const H: HighlightInterface = {
 			highlight_obj.consumeCustomError(error, secureSessionId, requestId)
 		} catch (e) {
 			console.warn('highlight-node consumeError error: ', e)
-		}
-	},
-	consumeEvent: (secureSessionId?: string) => {
-		try {
-			highlight_obj.consumeCustomEvent(secureSessionId)
-		} catch (e) {
-			console.warn('highlight-node consumeEvent error: ', e)
 		}
 	},
 	recordMetric: (
