@@ -820,24 +820,12 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID st
 
 // UpdateErrorGroupState is the resolver for the updateErrorGroupState field.
 func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state modelInputs.ErrorState, snoozedUntil *time.Time) (*model.ErrorGroup, error) {
-	errGroup, err := r.canAdminModifyErrorGroup(ctx, secureID)
+	errorGroup, err := r.canAdminModifyErrorGroup(ctx, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to modify error group")
 	}
 
-	errorGroup := &model.ErrorGroup{}
-	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errGroup.ID}}).First(&errorGroup).Updates(map[string]interface{}{
-		"State":        state,
-		"SnoozedUntil": snoozedUntil,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error writing errorGroup state")
-	}
-
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, errorGroup); err != nil {
-		return nil, e.Wrap(err, "error updating error group state in OpenSearch")
-	}
-
-	return errorGroup, nil
+	return r.Repositories.ErrorGroups.UpdateErrorGroupState(ctx, errorGroup, state, snoozedUntil)
 }
 
 // DeleteProject is the resolver for the deleteProject field.

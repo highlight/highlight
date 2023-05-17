@@ -549,7 +549,11 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 
 // Autoresolves error groups that have not had any recent instances
 func (w *Worker) AutoResolveStaleErrors(ctx context.Context) {
-	filtering.AutoResolveStaleErrors(ctx)
+	service := filtering.AutoResolverService{
+		FilteringRepository:   *w.Resolver.Repositories.Filtering,
+		ErrorGroupsRepository: *w.Resolver.Repositories.ErrorGroups,
+	}
+	service.AutoResolveStaleErrors(ctx)
 }
 
 func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason backend.SessionExcludedReason) error {

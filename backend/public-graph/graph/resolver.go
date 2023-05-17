@@ -18,8 +18,8 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/errorgroups"
-	"github.com/highlight-run/highlight/backend/filtering"
 	"github.com/highlight-run/highlight/backend/phonehome"
+	"github.com/highlight-run/highlight/backend/repositories"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"go.opentelemetry.io/otel/attribute"
 
@@ -64,10 +64,6 @@ import (
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
-type Repositories struct {
-	Filtering *filtering.FilteringRepository
-}
-
 type Resolver struct {
 	AlertWorkerPool *workerpool.WorkerPool
 	DB              *gorm.DB
@@ -81,7 +77,7 @@ type Resolver struct {
 	Redis           *redis.Client
 	Clickhouse      *clickhouse.Client
 	RH              *resthooks.Resthook
-	Repositories    *Repositories
+	Repositories    *repositories.Repositories
 }
 
 type Location struct {

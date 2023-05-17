@@ -27,6 +27,7 @@ import (
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	dd "github.com/highlight-run/highlight/backend/datadog"
+	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/filtering"
 	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
@@ -43,6 +44,7 @@ import (
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/repositories"
 	"github.com/highlight-run/highlight/backend/stepfunctions"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/timeseries"
@@ -363,7 +365,7 @@ func main() {
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
-		Repositories:           initPrivateRepositories(db),
+		Repositories:           initRepositories(db, opensearchClient),
 	}
 	private.SetupAuthClient(ctx, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
@@ -487,7 +489,7 @@ func main() {
 			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
 			Redis:           redisClient,
 			RH:              &rh,
-			Repositories:    initPublicRepositories(db),
+			Repositories:    initRepositories(db, opensearchClient),
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -634,14 +636,9 @@ func main() {
 	}
 }
 
-func initPublicRepositories(db *gorm.DB) *public.Repositories {
-	return &public.Repositories{
-		Filtering: filtering.NewRepository(db),
-	}
-}
-
-func initPrivateRepositories(db *gorm.DB) *private.Repositories {
-	return &private.Repositories{
-		Filtering: filtering.NewRepository(db),
+func initRepositories(db *gorm.DB, opensearch *opensearch.Client) *repositories.Repositories {
+	return &repositories.Repositories{
+		Filtering:   filtering.NewRepository(db),
+		ErrorGroups: errorgroups.NewRepository(db, opensearch),
 	}
 }

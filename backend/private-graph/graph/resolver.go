@@ -16,8 +16,8 @@ import (
 	"time"
 
 	github2 "github.com/google/go-github/v50/github"
-	"github.com/highlight-run/highlight/backend/filtering"
 	"github.com/highlight-run/highlight/backend/integrations/github"
+	"github.com/highlight-run/highlight/backend/repositories"
 
 	"gorm.io/gorm/clause"
 
@@ -111,11 +111,6 @@ var PromoCodes = map[string]PromoCode{
 	},
 }
 
-// Repositories contains all the repo structs
-type Repositories struct {
-	Filtering *filtering.FilteringRepository
-}
-
 type Resolver struct {
 	DB                     *gorm.DB
 	TDB                    timeseries.DB
@@ -134,7 +129,7 @@ type Resolver struct {
 	OAuthServer            *oauth.Server
 	IntegrationsClient     *integrations.Client
 	ClickhouseClient       *clickhouse.Client
-	Repositories           *Repositories
+	Repositories           *repositories.Repositories
 }
 
 func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {
