@@ -282,7 +282,7 @@ func (c *Client) Update(index Index, id int, obj map[string]interface{}) error {
 	return nil
 }
 
-func (c *Client) UpdateSynchronous(index Index, id int, obj map[string]interface{}) error {
+func (c *Client) UpdateSynchronous(index Index, id int, obj interface{}) error {
 	if c == nil || !c.isInitialized {
 		return nil
 	}

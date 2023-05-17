@@ -1651,7 +1651,7 @@ type Mutation {
 	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
 	updateErrorGroupState(
 		secure_id: String!
-		state: String!
+		state: ErrorState!
 		snoozed_until: Timestamp
 	): ErrorGroup
 	deleteProject(id: ID!): Boolean

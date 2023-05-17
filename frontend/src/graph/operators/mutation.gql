@@ -63,7 +63,7 @@ mutation UpdateBillingDetails($workspace_id: ID!) {
 
 mutation updateErrorGroupState(
 	$secure_id: String!
-	$state: String!
+	$state: ErrorState!
 	$snoozed_until: Timestamp
 ) {
 	updateErrorGroupState(

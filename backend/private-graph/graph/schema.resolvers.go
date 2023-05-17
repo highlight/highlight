@@ -193,20 +193,6 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 	return metadataLogs, nil
 }
 
-// State is the resolver for the state field.
-func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (modelInputs.ErrorState, error) {
-	switch obj.State {
-	case model.ErrorGroupStates.OPEN:
-		return modelInputs.ErrorStateOpen, nil
-	case model.ErrorGroupStates.RESOLVED:
-		return modelInputs.ErrorStateResolved, nil
-	case model.ErrorGroupStates.IGNORED:
-		return modelInputs.ErrorStateIgnored, nil
-	default:
-		return modelInputs.ErrorStateOpen, e.New("invalid error group state")
-	}
-}
-
 // ErrorGroupSecureID is the resolver for the error_group_secure_id field.
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
 	if obj != nil {
@@ -840,7 +826,7 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID st
 }
 
 // UpdateErrorGroupState is the resolver for the updateErrorGroupState field.
-func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state string, snoozedUntil *time.Time) (*model.ErrorGroup, error) {
+func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state modelInputs.ErrorState, snoozedUntil *time.Time) (*model.ErrorGroup, error) {
 	errGroup, err := r.canAdminModifyErrorGroup(ctx, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to modify error group")
@@ -854,10 +840,7 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
 
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
-		"state":         state,
-		"snoozed_until": snoozedUntil,
-	}); err != nil {
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, errorGroup); err != nil {
 		return nil, e.Wrap(err, "error updating error group state in OpenSearch")
 	}
 

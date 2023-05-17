@@ -1360,7 +1360,7 @@ export type MutationUpdateErrorGroupIsPublicArgs = {
 export type MutationUpdateErrorGroupStateArgs = {
 	secure_id: Scalars['String']
 	snoozed_until?: InputMaybe<Scalars['Timestamp']>
-	state: Scalars['String']
+	state: ErrorState
 }
 
 export type MutationUpdateIntegrationProjectMappingsArgs = {

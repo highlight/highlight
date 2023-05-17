@@ -85,7 +85,7 @@ export type UpdateBillingDetailsMutation = { __typename?: 'Mutation' } & Pick<
 
 export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
 	secure_id: Types.Scalars['String']
-	state: Types.Scalars['String']
+	state: Types.ErrorState
 	snoozed_until?: Types.Maybe<Types.Scalars['Timestamp']>
 }>
 
