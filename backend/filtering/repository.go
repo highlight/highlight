@@ -15,17 +15,17 @@ func NewRepository(db *gorm.DB) *ProjectFiltersRepository {
 	}
 }
 
-func (repo *ProjectFiltersRepository) GetProjectFilters(project *model.Project) *ProjectFilterSettings {
-	projectFilterSettings := ProjectFilterSettings{}
-	repo.db.Where(ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
+func (repo *ProjectFiltersRepository) GetProjectFilters(project *model.Project) *model.ProjectFilterSettings {
+	projectFilterSettings := model.ProjectFilterSettings{}
+	repo.db.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
 
 	return &projectFilterSettings
 }
 
-func (repo *ProjectFiltersRepository) UpdateProjectFilters(project *model.Project, updates ProjectFilterSettings) (*ProjectFilterSettings, error) {
-	projectFilterSettings := ProjectFilterSettings{}
+func (repo *ProjectFiltersRepository) UpdateProjectFilters(project *model.Project, updates model.ProjectFilterSettings) (*model.ProjectFilterSettings, error) {
+	projectFilterSettings := model.ProjectFilterSettings{}
 
-	repo.db.Where(ProjectFilterSettings{ProjectID: project.ID}).First(&projectFilterSettings)
+	repo.db.Where(model.ProjectFilterSettings{ProjectID: project.ID}).First(&projectFilterSettings)
 
 	projectFilterSettings.FilterSessionsWithoutError = updates.FilterSessionsWithoutError
 

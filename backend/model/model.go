@@ -18,7 +18,6 @@ import (
 	"golang.org/x/text/language"
 
 	Email "github.com/highlight-run/highlight/backend/email"
-	"github.com/highlight-run/highlight/backend/filtering"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
 
@@ -180,7 +179,7 @@ var Models = []interface{}{
 	&SessionAdminsView{},
 	&ErrorGroupAdminsView{},
 	&LogAdminsView{},
-	&filtering.ProjectFilterSettings{},
+	&ProjectFilterSettings{},
 }
 
 func init() {
@@ -356,6 +355,13 @@ type SetupEvent struct {
 	CreatedAt time.Time            `json:"created_at" deep:"-"`
 	ProjectID int                  `gorm:"uniqueIndex:idx_project_id_type"`
 	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
+}
+
+type ProjectFilterSettings struct {
+	Model
+	Project                    *Project
+	ProjectID                  int
+	FilterSessionsWithoutError bool `gorm:"default:false"`
 }
 
 type HasSecret interface {
