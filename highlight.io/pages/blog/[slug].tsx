@@ -577,7 +577,7 @@ const PostPage = ({
 					<div className={styles.postBodyDivider}></div>
 				</Section>
 				<Section>
-					<Comments slug={post.slug} />
+					<Comments slug={post.slug!} />
 				</Section>
 				<Section>
 					<div
