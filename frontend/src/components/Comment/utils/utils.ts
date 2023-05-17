@@ -4,7 +4,7 @@ import {
 	SanitizedSlackChannelInput,
 } from '@graph/schemas'
 import * as Types from '@graph/schemas'
-import { MentionItem } from '@highlight-run/react-mentions'
+import { MentionItem, SuggestionDataItem } from '@highlight-run/react-mentions'
 import { message } from 'antd'
 import { useNavigate } from 'react-router-dom'
 
@@ -15,7 +15,10 @@ import {
 	ParsedSessionComment,
 	useReplayerContext,
 } from '@/pages/Player/ReplayerContext'
-import { getFeedbackCommentSessionTimestamp } from '@/util/comment/util'
+import {
+	CommentSuggestion,
+	getFeedbackCommentSessionTimestamp,
+} from '@/util/comment/util'
 import { delayedRefetch } from '@/util/gql'
 
 export function filterMentionedAdmins(
@@ -124,5 +127,50 @@ export const useDeleteComment = (comment: ParsedSessionComment) => {
 export const getDeepLinkedCommentId = () => {
 	return new URLSearchParams(location.search).get(
 		PlayerSearchParameters.commentId,
+	)
+}
+
+export interface AdminSuggestion extends SuggestionDataItem {
+	email?: string
+	photoUrl?: string
+	name?: string
+}
+
+export const parseAdminSuggestions = (
+	/** A list of all admins in the project. */
+	suggestions: CommentSuggestion[],
+	/** The current logged in admin. */
+	currentAdmin: Types.Admin | undefined,
+	/** A list of admins that have already been mentioned. */
+	mentionedAdmins: Types.SanitizedAdminInput[],
+): AdminSuggestion[] => {
+	if (!currentAdmin) {
+		return []
+	}
+
+	return (
+		suggestions
+			// Filter out these admins
+			.filter(
+				(suggestion) =>
+					// 1. The admin that is creating the comment
+					suggestion?.email !== currentAdmin.email &&
+					// 2. Admins that are already mentioned
+					!mentionedAdmins.some(
+						(mentionedAdmin) =>
+							mentionedAdmin.id === suggestion?.id,
+					) &&
+					// 3. Non-user results
+					suggestion.name?.startsWith('@'),
+			)
+			.map((suggestion) => {
+				return {
+					id: suggestion!.id,
+					email: suggestion!.email,
+					photo_url: suggestion!.photoUrl,
+					display: suggestion?.name || suggestion!.email || '',
+					name: suggestion?.name,
+				}
+			})
 	)
 }

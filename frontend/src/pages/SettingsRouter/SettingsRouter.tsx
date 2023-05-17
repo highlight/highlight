@@ -118,7 +118,7 @@ export const SettingsRouter = () => {
 			},
 			{
 				key: 'player-settings',
-				title: 'Player settings',
+				title: 'App settings',
 				panelContent: <PlayerForm />,
 			},
 		],

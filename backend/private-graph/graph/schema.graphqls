@@ -68,7 +68,7 @@ type Session {
 	event_counts: String
 	direct_download_url: String
 	resources_url: String
-	messages_url: String
+	timeline_indicators_url: String
 	deviceMemory: Int
 	last_user_interaction_time: Timestamp!
 	chunked: Boolean
