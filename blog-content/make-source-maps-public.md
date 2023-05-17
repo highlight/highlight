@@ -42,7 +42,7 @@ For instance, You can open up the Network tab and watch each request and respons
 
 ![network-tab](/images/blog/make-source-maps-public/network-tab.webp)
 
-The Application tab surfaces the data your site is saving locally.
+The Application tab also surfaces the data your site is saving locally.
 
 ![application-tab](/images/blog/make-source-maps-public/application-tab.webp)
 
