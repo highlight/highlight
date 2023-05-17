@@ -586,16 +586,15 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 }
 
 // EditProjectFilterSettings is the resolver for the editProjectFilterSettings field.
-func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projectID int, filterSessionsWithoutError bool) (*filtering.ProjectFilterSettings, error) {
+func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projectID int, filterSessionsWithoutError bool) (*model.ProjectFilterSettings, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
-	updates := filtering.ProjectFilterSettings{
-		FilterSessionsWithoutError: filterSessionsWithoutError,
-	}
 
-	return r.Repositories.ProjectFilters.UpdateProjectFilters(project, updates)
+	return r.Repositories.ProjectFilters.UpdateProjectFilters(project, model.ProjectFilterSettings{
+		FilterSessionsWithoutError: filterSessionsWithoutError,
+	}), nil
 }
 
 // EditWorkspace is the resolver for the editWorkspace field.

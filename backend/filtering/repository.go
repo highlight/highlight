@@ -22,17 +22,13 @@ func (repo *ProjectFiltersRepository) GetProjectFilters(project *model.Project) 
 	return &projectFilterSettings
 }
 
-func (repo *ProjectFiltersRepository) UpdateProjectFilters(project *model.Project, updates model.ProjectFilterSettings) (*model.ProjectFilterSettings, error) {
+func (repo *ProjectFiltersRepository) UpdateProjectFilters(project *model.Project, updates model.ProjectFilterSettings) *model.ProjectFilterSettings {
 	projectFilterSettings := model.ProjectFilterSettings{}
 
-	repo.db.Where(model.ProjectFilterSettings{ProjectID: project.ID}).First(&projectFilterSettings)
+	repo.db.Where(model.ProjectFilterSettings{
+		ProjectID:                  project.ID,
+		FilterSessionsWithoutError: updates.FilterSessionsWithoutError,
+	}).FirstOrCreate(&projectFilterSettings)
 
-	projectFilterSettings.FilterSessionsWithoutError = updates.FilterSessionsWithoutError
-
-	if err := repo.db.Save(projectFilterSettings).Error; err != nil {
-		return nil, err
-	}
-
-	return &projectFilterSettings, nil
-
+	return &projectFilterSettings
 }
