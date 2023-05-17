@@ -8,9 +8,7 @@ export default defineConfig({
 		host: '0.0.0.0',
 		port: 8080,
 		strictPort: true,
-		hmr: {
-			clientPort: 8080,
-		},
+		hmr: false,
 	},
 	build: {
 		lib: {

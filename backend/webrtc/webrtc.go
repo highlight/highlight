@@ -1,19 +1,19 @@
 package webrtc
 
 import (
-	"bufio"
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/pion/webrtc/v3"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
 	"github.com/at-wat/ebml-go/webm"
@@ -25,30 +25,6 @@ import (
 
 // Allows compressing offer/answer to bypass terminal input limits.
 const compress = false
-
-// MustReadStdin blocks until input is received from stdin
-func MustReadStdin() string {
-	r := bufio.NewReader(os.Stdin)
-
-	var in string
-	for {
-		var err error
-		in, err = r.ReadString('\n')
-		if err != io.EOF {
-			if err != nil {
-				panic(err)
-			}
-		}
-		in = strings.TrimSpace(in)
-		if len(in) > 0 {
-			break
-		}
-	}
-
-	fmt.Println("")
-
-	return in
-}
 
 // Encode encodes the input in base64
 // It can optionally zip the input before encoding
@@ -118,10 +94,12 @@ func unzip(in []byte) []byte {
 	return res
 }
 
-func Listen(r chi.Router) {
-	go func() {
+func Listen(ctx context.Context, r chi.Router) {
+	log.WithContext(ctx).Info("webrtc.Listen")
+	r.Post("/webrtc/{offer}", func(writer http.ResponseWriter, request *http.Request) {
+		offer := chi.URLParam(request, "offer")
 		saver := newWebmSaver()
-		peerConnection := createWebRTCConn(saver)
+		peerConnection := createWebRTCConn(ctx, saver, offer)
 
 		closed := make(chan os.Signal, 1)
 		signal.Notify(closed, os.Interrupt)
@@ -130,8 +108,8 @@ func Listen(r chi.Router) {
 		if err := peerConnection.Close(); err != nil {
 			panic(err)
 		}
-		saver.Close()
-	}()
+		saver.Close(ctx)
+	})
 }
 
 type webmSaver struct {
@@ -147,8 +125,8 @@ func newWebmSaver() *webmSaver {
 	}
 }
 
-func (s *webmSaver) Close() {
-	fmt.Printf("Finalizing webm...\n")
+func (s *webmSaver) Close(ctx context.Context) {
+	log.WithContext(ctx).Infof("Finalizing webm...\n")
 	if s.audioWriter != nil {
 		if err := s.audioWriter.Close(); err != nil {
 			panic(err)
@@ -176,7 +154,7 @@ func (s *webmSaver) PushOpus(rtpPacket *rtp.Packet) {
 		}
 	}
 }
-func (s *webmSaver) PushVP8(rtpPacket *rtp.Packet) {
+func (s *webmSaver) PushVP8(ctx context.Context, rtpPacket *rtp.Packet) {
 	s.videoBuilder.Push(rtpPacket)
 
 	for {
@@ -194,7 +172,7 @@ func (s *webmSaver) PushVP8(rtpPacket *rtp.Packet) {
 
 			if s.videoWriter == nil || s.audioWriter == nil {
 				// Initialize WebM saver using received frame size.
-				s.InitWriter(width, height)
+				s.InitWriter(ctx, width, height)
 			}
 		}
 		if s.videoWriter != nil {
@@ -205,7 +183,7 @@ func (s *webmSaver) PushVP8(rtpPacket *rtp.Packet) {
 		}
 	}
 }
-func (s *webmSaver) InitWriter(width, height int) {
+func (s *webmSaver) InitWriter(ctx context.Context, width, height int) {
 	w, err := os.OpenFile("test.webm", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		panic(err)
@@ -240,12 +218,13 @@ func (s *webmSaver) InitWriter(width, height int) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("WebM saver has started with video width=%d, height=%d\n", width, height)
+	log.WithContext(ctx).Infof("WebM saver has started with video width=%d, height=%d\n", width, height)
 	s.audioWriter = ws[0]
 	s.videoWriter = ws[1]
 }
 
-func createWebRTCConn(saver *webmSaver) *webrtc.PeerConnection {
+func createWebRTCConn(ctx context.Context, saver *webmSaver, sdpOffer string) *webrtc.PeerConnection {
+	log.WithContext(ctx).Info("creating webrtc conn")
 	// Everything below is the pion-WebRTC API! Thanks for using it ❤️.
 
 	// Prepare the configuration
@@ -293,12 +272,12 @@ func createWebRTCConn(saver *webmSaver) *webrtc.PeerConnection {
 			for range ticker.C {
 				errSend := peerConnection.WriteRTCP([]rtcp.Packet{&rtcp.PictureLossIndication{MediaSSRC: uint32(track.SSRC())}})
 				if errSend != nil {
-					fmt.Println(errSend)
+					log.Info(errSend)
 				}
 			}
 		}()
 
-		fmt.Printf("Track has started, of type %d: %s \n", track.PayloadType(), track.Codec().RTPCodecCapability.MimeType)
+		log.WithContext(ctx).Infof("Track has started, of type %d: %s \n", track.PayloadType(), track.Codec().RTPCodecCapability.MimeType)
 		for {
 			// Read RTP packets being sent to Pion
 			rtp, _, readErr := track.ReadRTP()
@@ -312,19 +291,21 @@ func createWebRTCConn(saver *webmSaver) *webrtc.PeerConnection {
 			case webrtc.RTPCodecTypeAudio:
 				saver.PushOpus(rtp)
 			case webrtc.RTPCodecTypeVideo:
-				saver.PushVP8(rtp)
+				saver.PushVP8(ctx, rtp)
 			}
 		}
 	})
 	// Set the handler for ICE connection state
 	// This will notify you when the peer has connected/disconnected
 	peerConnection.OnICEConnectionStateChange(func(connectionState webrtc.ICEConnectionState) {
-		fmt.Printf("Connection State has changed %s \n", connectionState.String())
+		log.WithContext(ctx).Infof("Connection State has changed %s \n", connectionState.String())
 	})
+
+	return peerConnection
 
 	// Wait for the offer to be pasted
 	offer := webrtc.SessionDescription{}
-	Decode(MustReadStdin(), &offer)
+	Decode(sdpOffer, &offer)
 
 	// Set the remote SessionDescription
 	err = peerConnection.SetRemoteDescription(offer)
@@ -353,7 +334,7 @@ func createWebRTCConn(saver *webmSaver) *webrtc.PeerConnection {
 	<-gatherComplete
 
 	// Output the answer in base64 so we can paste it in browser
-	fmt.Println(Encode(*peerConnection.LocalDescription()))
+	log.WithContext(ctx).Info(Encode(*peerConnection.LocalDescription()))
 
 	return peerConnection
 }

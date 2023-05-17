@@ -711,10 +711,29 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						},
 					],
 				})
-				console.log('vadim', peer.iceConnectionState)
+				peer.onicecandidate = (event) => {
+					console.log('vadim', { event, desc: peer.localDescription })
+					if (event.candidate === null) {
+						// TODO(vkorolik) send pub.highlight.io the offer
+					}
+				}
+				peer.addEventListener('connectionstatechange', (event) => {
+					if (peer.connectionState === 'connected') {
+						console.log('vadim', 'horray!')
+					}
+				})
+				console.log('vadim started', {
+					state: peer.iceConnectionState,
+					peer,
+				})
+				peer.createOffer().then((init) => {
+					console.log('vadim', { init })
+					peer.setLocalDescription(init)
+					webRTCRecordPlugin.signalReceive(init)
+				})
 				const webRTCRecordPlugin = new RRWebPluginCanvasWebRTCRecord({
 					signalSendCallback: (msg: any) => {
-						console.log('vadim', msg)
+						console.log('vadim', { msg })
 					},
 					peer,
 				})
@@ -746,9 +765,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					inlineImages: this.inlineImages,
 					inlineStylesheet: this.inlineStylesheet,
 					plugins: [
-						getRecordSequentialIdPlugin(),
 						// TODO(vkorolik) if this.enableCanvasRecording
 						webRTCRecordPlugin.initPlugin(),
+						getRecordSequentialIdPlugin(),
 					],
 					logger,
 				})
