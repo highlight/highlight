@@ -85,16 +85,6 @@ var AdminRole = struct {
 	MEMBER: "MEMBER",
 }
 
-var ErrorGroupStates = struct {
-	OPEN     string
-	RESOLVED string
-	IGNORED  string
-}{
-	OPEN:     "OPEN",
-	RESOLVED: "RESOLVED",
-	IGNORED:  "IGNORED",
-}
-
 var SessionCommentTypes = struct {
 	// Comments created by a Highlight user on the Highlight app.
 	ADMIN string
@@ -918,9 +908,9 @@ type ErrorGroup struct {
 	Trace            string //DEPRECATED, USE STACKTRACE INSTEAD
 	StackTrace       string
 	MappedStackTrace *string
-	State            string        `json:"state" gorm:"default:OPEN"`
-	SnoozedUntil     *time.Time    `json:"snoozed_until"`
-	Fields           []*ErrorField `gorm:"many2many:error_group_fields;" json:"fields"`
+	State            modelInputs.ErrorState `json:"state" gorm:"default:OPEN"`
+	SnoozedUntil     *time.Time             `json:"snoozed_until"`
+	Fields           []*ErrorField          `gorm:"many2many:error_group_fields;" json:"fields"`
 	Fingerprints     []*ErrorFingerprint
 	FieldGroup       *string
 	Environments     string
@@ -2608,7 +2598,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		var actionBlock []slack.BlockElement
 		for _, action := range modelInputs.AllErrorState {
-			if input.Group.State == string(action) {
+			if input.Group.State == action {
 				continue
 			}
 

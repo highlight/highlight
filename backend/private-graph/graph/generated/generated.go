@@ -668,7 +668,7 @@ type ComplexityRoot struct {
 		UpdateErrorAlert                 func(childComplexity int, projectID int, name *string, errorAlertID int, countThreshold *int, thresholdWindow *int, slackChannels []*model.SanitizedSlackChannelInput, discordChannels []*model.DiscordChannelInput, webhookDestinations []*model.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency *int, disabled *bool) int
 		UpdateErrorAlertIsDisabled       func(childComplexity int, id int, projectID int, disabled bool) int
 		UpdateErrorGroupIsPublic         func(childComplexity int, errorGroupSecureID string, isPublic bool) int
-		UpdateErrorGroupState            func(childComplexity int, secureID string, state string, snoozedUntil *time.Time) int
+		UpdateErrorGroupState            func(childComplexity int, secureID string, state model.ErrorState, snoozedUntil *time.Time) int
 		UpdateIntegrationProjectMappings func(childComplexity int, workspaceID int, integrationType model.IntegrationType, projectMappings []*model.IntegrationProjectMappingInput) int
 		UpdateLogAlert                   func(childComplexity int, id int, input model.LogAlertInput) int
 		UpdateLogAlertIsDisabled         func(childComplexity int, id int, projectID int, disabled bool) int
@@ -1218,8 +1218,6 @@ type ErrorGroupResolver interface {
 	Event(ctx context.Context, obj *model1.ErrorGroup) ([]*string, error)
 	StructuredStackTrace(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorTrace, error)
 	MetadataLog(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorMetadata, error)
-
-	State(ctx context.Context, obj *model1.ErrorGroup) (model.ErrorState, error)
 }
 type ErrorObjectResolver interface {
 	ErrorGroupSecureID(ctx context.Context, obj *model1.ErrorObject) (string, error)
@@ -1261,7 +1259,7 @@ type MutationResolver interface {
 	MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model1.ErrorGroup, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
 	MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model1.Session, error)
-	UpdateErrorGroupState(ctx context.Context, secureID string, state string, snoozedUntil *time.Time) (*model1.ErrorGroup, error)
+	UpdateErrorGroupState(ctx context.Context, secureID string, state model.ErrorState, snoozedUntil *time.Time) (*model1.ErrorGroup, error)
 	DeleteProject(ctx context.Context, id int) (*bool, error)
 	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error)
 	AddAdminToWorkspace(ctx context.Context, workspaceID int, inviteID string) (*int, error)
@@ -4702,7 +4700,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateErrorGroupState(childComplexity, args["secure_id"].(string), args["state"].(string), args["snoozed_until"].(*time.Time)), true
+		return e.complexity.Mutation.UpdateErrorGroupState(childComplexity, args["secure_id"].(string), args["state"].(model.ErrorState), args["snoozed_until"].(*time.Time)), true
 
 	case "Mutation.updateIntegrationProjectMappings":
 		if e.complexity.Mutation.UpdateIntegrationProjectMappings == nil {
@@ -9911,7 +9909,7 @@ type Mutation {
 	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
 	updateErrorGroupState(
 		secure_id: String!
-		state: String!
+		state: ErrorState!
 		snoozed_until: Timestamp
 	): ErrorGroup
 	deleteProject(id: ID!): Boolean
@@ -12571,10 +12569,10 @@ func (ec *executionContext) field_Mutation_updateErrorGroupState_args(ctx contex
 		}
 	}
 	args["secure_id"] = arg0
-	var arg1 string
+	var arg1 model.ErrorState
 	if tmp, ok := rawArgs["state"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalNErrorState2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -22853,7 +22851,7 @@ func (ec *executionContext) _ErrorGroup_state(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ErrorGroup().State(rctx, obj)
+		return obj.State, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22874,8 +22872,8 @@ func (ec *executionContext) fieldContext_ErrorGroup_state(ctx context.Context, f
 	fc = &graphql.FieldContext{
 		Object:     "ErrorGroup",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ErrorState does not have child fields")
 		},
@@ -32170,7 +32168,7 @@ func (ec *executionContext) _Mutation_updateErrorGroupState(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateErrorGroupState(rctx, fc.Args["secure_id"].(string), fc.Args["state"].(string), fc.Args["snoozed_until"].(*time.Time))
+		return ec.resolvers.Mutation().UpdateErrorGroupState(rctx, fc.Args["secure_id"].(string), fc.Args["state"].(model.ErrorState), fc.Args["snoozed_until"].(*time.Time))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -61793,25 +61791,12 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._ErrorGroup_fields(ctx, field, obj)
 
 		case "state":
-			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ErrorGroup_state(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
+			out.Values[i] = ec._ErrorGroup_state(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
 			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "snoozed_until":
 
 			out.Values[i] = ec._ErrorGroup_snoozed_until(ctx, field, obj)
