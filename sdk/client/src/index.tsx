@@ -2,6 +2,7 @@ import {
 	addCustomEvent as rrwebAddCustomEvent,
 	getRecordSequentialIdPlugin,
 	record,
+	RRWebPluginCanvasWebRTCRecord,
 } from '@highlight-run/rrweb'
 import { eventWithTime, listenerHandler } from '@highlight-run/rrweb-types'
 import { FirstLoadListeners } from './listeners/first-load-listeners'
@@ -38,7 +39,6 @@ import {
 import StackTrace from 'stacktrace-js'
 import stringify from 'json-stringify-safe'
 import { print } from 'graphql'
-
 import { ViewportResizeListener } from './listeners/viewport-resize-listener'
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener'
 import { ClickListener } from './listeners/click-listener/click-listener'
@@ -703,6 +703,21 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						warn: HighlightWarning,
 					}
 				}
+
+				const peer = new RTCPeerConnection({
+					iceServers: [
+						{
+							urls: 'stun:stun.l.google.com:19302',
+						},
+					],
+				})
+				console.log('vadim', peer.iceConnectionState)
+				const webRTCRecordPlugin = new RRWebPluginCanvasWebRTCRecord({
+					signalSendCallback: (msg: any) => {
+						console.log('vadim', msg)
+					},
+					peer,
+				})
 				this._recordStop = record({
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
@@ -711,7 +726,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						this.options.recordCrossOriginIframe,
 					enableStrictPrivacy: this.enableStrictPrivacy,
 					maskAllInputs: this.enableStrictPrivacy,
-					recordCanvas: this.enableCanvasRecording,
+					recordCanvas: false,
 					sampling: {
 						canvas: {
 							fps: this.samplingStrategy.canvas,
@@ -730,7 +745,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					},
 					inlineImages: this.inlineImages,
 					inlineStylesheet: this.inlineStylesheet,
-					plugins: [getRecordSequentialIdPlugin()],
+					plugins: [
+						getRecordSequentialIdPlugin(),
+						// TODO(vkorolik) if this.enableCanvasRecording
+						webRTCRecordPlugin.initPlugin(),
+					],
 					logger,
 				})
 				// recordStop is not part of listeners because we do not actually want to stop rrweb
