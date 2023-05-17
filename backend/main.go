@@ -636,12 +636,12 @@ func main() {
 
 func initPublicRepositories(db *gorm.DB) *public.Repositories {
 	return &public.Repositories{
-		ProjectFilters: filtering.NewRepository(db),
+		Filtering: filtering.NewRepository(db),
 	}
 }
 
 func initPrivateRepositories(db *gorm.DB) *private.Repositories {
 	return &private.Repositories{
-		ProjectFilters: filtering.NewRepository(db),
+		Filtering: filtering.NewRepository(db),
 	}
 }

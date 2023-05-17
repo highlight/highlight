@@ -5,24 +5,24 @@ import (
 	"gorm.io/gorm"
 )
 
-type ProjectFiltersRepository struct {
+type FilteringRepository struct {
 	db *gorm.DB
 }
 
-func NewRepository(db *gorm.DB) *ProjectFiltersRepository {
-	return &ProjectFiltersRepository{
+func NewRepository(db *gorm.DB) *FilteringRepository {
+	return &FilteringRepository{
 		db: db,
 	}
 }
 
-func (repo *ProjectFiltersRepository) GetProjectFilters(project *model.Project) *model.ProjectFilterSettings {
+func (repo *FilteringRepository) GetProjectFilterSettings(project *model.Project) *model.ProjectFilterSettings {
 	projectFilterSettings := model.ProjectFilterSettings{}
 	repo.db.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
 
 	return &projectFilterSettings
 }
 
-func (repo *ProjectFiltersRepository) UpdateProjectFilters(project *model.Project, updates model.ProjectFilterSettings) *model.ProjectFilterSettings {
+func (repo *FilteringRepository) UpdateProjectFilterSettings(project *model.Project, updates model.ProjectFilterSettings) *model.ProjectFilterSettings {
 	projectFilterSettings := model.ProjectFilterSettings{}
 
 	repo.db.Where(model.ProjectFilterSettings{

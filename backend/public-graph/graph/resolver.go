@@ -65,7 +65,7 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Repositories struct {
-	ProjectFilters *filtering.ProjectFiltersRepository
+	Filtering *filtering.FilteringRepository
 }
 
 type Resolver struct {
@@ -3050,7 +3050,7 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 }
 
 func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
-	projectFilterSettings := r.Repositories.ProjectFilters.GetProjectFilters(&project)
+	projectFilterSettings := r.Repositories.Filtering.GetProjectFilterSettings(&project)
 
 	if projectFilterSettings.FilterSessionsWithoutError {
 		return !sessionHasErrors

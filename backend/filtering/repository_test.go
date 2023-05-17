@@ -16,10 +16,8 @@ import (
 )
 
 var db *gorm.DB
-var repo ProjectFiltersRepository
 
-// Gets run once; M.run() calls the tests in this file.
-func TestMain(m *testing.M) {
+func setupRepository() FilteringRepository {
 	dbName := "highlight_testing_db"
 	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
 	var err error
@@ -27,21 +25,21 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
-	repo = ProjectFiltersRepository{
+	return FilteringRepository{
 		db: db,
 	}
-	code := m.Run()
-	os.Exit(code)
 }
 
-func TestUpdateProjectFilters(t *testing.T) {
-	util.RunTestWithDBWipe(t, "UpdateProjectFilters", db, func(t *testing.T) {
+func TestUpdateProjectFilterSettings(t *testing.T) {
+	repo := setupRepository()
+
+	util.RunTestWithDBWipe(t, "UpdateProjectFilterSettings", repo.db, func(t *testing.T) {
 		project := model.Project{}
 		if err := db.Create(&project).Error; err != nil {
 			t.Fatal(e.Wrap(err, "error inserting project"))
 		}
 
-		updatedSettings := repo.UpdateProjectFilters(&project, model.ProjectFilterSettings{
+		updatedSettings := repo.UpdateProjectFilterSettings(&project, model.ProjectFilterSettings{
 			FilterSessionsWithoutError: true,
 		})
 

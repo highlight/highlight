@@ -15,6 +15,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/alerts"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/filtering"
 	"github.com/highlight-run/highlight/backend/hlog"
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
 	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
@@ -544,6 +545,11 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 		}
 		deleteSpan.Finish()
 	}
+}
+
+// Autoresolves error groups that have not had any recent instances
+func (w *Worker) AutoResolveStaleErrors(ctx context.Context) {
+	filtering.AutoResolveStaleErrors(ctx)
 }
 
 func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason backend.SessionExcludedReason) error {
@@ -1418,6 +1424,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 		return w.DeleteCompletedSessions
 	case "public-worker":
 		return w.PublicWorker
+	case "auto-resolve-stale-errors":
+		return w.AutoResolveStaleErrors
 	default:
 		log.WithContext(ctx).Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil

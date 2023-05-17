@@ -113,7 +113,7 @@ var PromoCodes = map[string]PromoCode{
 
 // Repositories contains all the repo structs
 type Repositories struct {
-	ProjectFilters *filtering.ProjectFiltersRepository
+	Filtering *filtering.FilteringRepository
 }
 
 type Resolver struct {
