@@ -5,27 +5,29 @@ import * as path_ from 'node:path'
 import * as fs from 'node:fs'
 import readdirp from 'readdirp'
 
+const randomString = () => Math.random().toString()
+
 export const run = async ({ rootDirectory, rootDirectoryFrontend }) => {
 	const args = process.argv.slice(2)
 	const watch = args.includes('--watch') || args.includes('-w')
-	
+
 	// We actually need to watch all .ts/.tsx files and rebuild everything
 	// since .css.ts can technically import from anywhere
 	// Should probably use them as entry points and use native esbuild watcher instead
 	// Blocked by https://github.com/evanw/esbuild/issues/1204#issuecomment-1483294233
 	const entryPointGlobs = ['**/**.css.ts']
 	const inputGlobs = ['**/**.ts', '**/**.tsx']
-	
+
 	const workingDirectory = path_.join(rootDirectory, './src')
 	const outputDirectory = path_.join(workingDirectory, '__generated/ve')
-	
+
 	const packageJson = JSON.parse(
 		fs.readFileSync(path_.join(rootDirectory, 'package.json')),
 	)
-	
+
 	// uncomment for cleanup
 	// await fs.promises.rm(outputDirectory, { recursive: true, force: true })
-	
+
 	let entryPoints = Object.fromEntries(
 		(
 			await readdirp.promise(workingDirectory, {
@@ -34,7 +36,7 @@ export const run = async ({ rootDirectory, rootDirectoryFrontend }) => {
 			})
 		).map(({ path }) => [path, path_.join(workingDirectory, path)]),
 	)
-	
+
 	const build = async () => {
 		console.log(new Date(), 'building vanilla extract entry points')
 		await esbuild.build({
@@ -70,13 +72,15 @@ export const run = async ({ rootDirectory, rootDirectoryFrontend }) => {
 		console.log(new Date(), 'built vanilla extract entry points')
 		return
 	}
-	
+
 	const isEntryPoint = (path) => path.endsWith('.css.ts')
-	
+
 	if (watch) {
+		let transactionIdLatest = randomString()
+
 		// No await here since we don't want to delay watcher and miss updates
-		build()
-	
+		let buildLatest = build()
+
 		chokidar
 			.watch(inputGlobs, {
 				cwd: workingDirectory,
@@ -87,7 +91,7 @@ export const run = async ({ rootDirectory, rootDirectoryFrontend }) => {
 					'**/**.d.ts',
 				],
 			})
-			.on('add', (path) => {
+			.on('add', async (path) => {
 				if (isEntryPoint(path)) {
 					console.log(
 						new Date(),
@@ -96,20 +100,31 @@ export const run = async ({ rootDirectory, rootDirectoryFrontend }) => {
 					)
 					entryPoints[path] = path_.join(workingDirectory, path)
 				}
-				// We'll probably run into race conditions with concurrent edits here...
-				// TODO: make it more robust with some debouncing + transaction tracking
-				build()
+				const transactionId = randomString()
+				transactionIdLatest = transactionId
+				await buildLatest
+				if (transactionId !== transactionIdLatest) return
+				buildLatest = build()
 			})
-			.on('change', () => build())
-			.on('unlink', (path) => {
+			.on('change', async () => {
+				const transactionId = randomString()
+				transactionIdLatest = transactionId
+				await buildLatest
+				if (transactionId !== transactionIdLatest) return
+				buildLatest = build()
+			})
+			.on('unlink', async (path) => {
 				if (isEntryPoint(path)) {
 					delete entryPoints[path]
 				}
-				build()
+				const transactionId = randomString()
+				transactionIdLatest = transactionId
+				await buildLatest
+				if (transactionId !== transactionIdLatest) return
+				buildLatest = build()
 			})
 			.on('ready', () => console.log(new Date(), 'ready'))
 	} else {
 		await build()
 	}
-	
 }

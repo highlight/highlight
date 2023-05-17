@@ -5,6 +5,8 @@ import * as fs from 'node:fs'
 import * as path_ from 'node:path'
 import readdirp from 'readdirp'
 
+const randomString = () => Math.random().toString()
+
 export const run = async ({ rootDirectory }) => {
 	const args = process.argv.slice(2)
 	const watch = args.includes('--watch') || args.includes('-w')
@@ -15,7 +17,7 @@ export const run = async ({ rootDirectory }) => {
 	// Blocked by https://github.com/evanw/esbuild/issues/1204#issuecomment-1483294233
 	const entryPointGlobs = ['**/**.css.ts']
 	const inputGlobs = ['**/**.ts', '**/**.tsx']
-	
+
 	const workingDirectory = path_.join(rootDirectory, './src')
 	const outputDirectory = path_.join(workingDirectory, '__generated/ve')
 
@@ -75,8 +77,10 @@ export const run = async ({ rootDirectory }) => {
 	const isEntryPoint = (path) => path.endsWith('.css.ts')
 
 	if (watch) {
+		let transactionIdLatest = randomString()
+
 		// No await here since we don't want to delay watcher and miss updates
-		build()
+		let buildLatest = build()
 
 		chokidar
 			.watch(inputGlobs, {
@@ -88,7 +92,7 @@ export const run = async ({ rootDirectory }) => {
 					'**/**.d.ts',
 				],
 			})
-			.on('add', (path) => {
+			.on('add', async (path) => {
 				if (isEntryPoint(path)) {
 					console.log(
 						new Date(),
@@ -97,16 +101,28 @@ export const run = async ({ rootDirectory }) => {
 					)
 					entryPoints[path] = path_.join(workingDirectory, path)
 				}
-				// We'll probably run into race conditions with concurrent edits here...
-				// TODO: make it more robust with some debouncing + transaction tracking
-				build()
+				const transactionId = randomString()
+				transactionIdLatest = transactionId
+				await buildLatest
+				if (transactionId !== transactionIdLatest) return
+				buildLatest = build()
 			})
-			.on('change', () => build())
-			.on('unlink', (path) => {
+			.on('change', async () => {
+				const transactionId = randomString()
+				transactionIdLatest = transactionId
+				await buildLatest
+				if (transactionId !== transactionIdLatest) return
+				buildLatest = build()
+			})
+			.on('unlink', async (path) => {
 				if (isEntryPoint(path)) {
 					delete entryPoints[path]
 				}
-				build()
+				const transactionId = randomString()
+				transactionIdLatest = transactionId
+				await buildLatest
+				if (transactionId !== transactionIdLatest) return
+				buildLatest = build()
 			})
 			.on('ready', () => console.log(new Date(), 'ready'))
 	} else {
