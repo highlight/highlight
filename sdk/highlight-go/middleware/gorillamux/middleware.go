@@ -20,12 +20,11 @@ func Middleware(next http.Handler) http.Handler {
 		ctx := highlight.InterceptRequest(r)
 		r = r.WithContext(ctx)
 
-		span, hCtx := highlight.StartTrace(ctx, "highlight/gorillamux")
+		span, _ := highlight.StartTrace(ctx, "highlight/gorillamux")
 		defer highlight.EndTrace(span)
 
 		next.ServeHTTP(w, r)
 
-		highlight.MarkBackendSetup(hCtx)
 		span.SetAttributes(attribute.String(highlight.SourceAttribute, "GoGorillaMuxMiddleware"))
 		span.SetAttributes(middleware.GetRequestAttributes(r)...)
 	}

@@ -3,10 +3,6 @@ package highlight
 import (
 	"context"
 	"fmt"
-	"net/url"
-	"reflect"
-	"strings"
-
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -16,6 +12,9 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
+	"net/url"
+	"reflect"
+	"strings"
 )
 
 const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
@@ -34,6 +33,10 @@ const SourceAttribute = "highlight.source"
 const LogEvent = "log"
 const LogSeverityAttribute = "log.severity"
 const LogMessageAttribute = "log.message"
+
+const MetricEvent = "metric"
+const MetricEventName = "metric.name"
+const MetricEventValue = "metric.value"
 
 var InternalAttributePrefixes = []string{
 	DeprecatedProjectIDAttribute,
@@ -134,6 +137,18 @@ func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (t
 
 func EndTrace(span trace.Span) {
 	span.End(trace.WithStackTrace(true))
+}
+
+// RecordMetric is used to record arbitrary metrics in your golang backend.
+// Highlight will process these metrics in the context of your session and expose them
+// through dashboards. For example, you may want to record the latency of a DB query
+// as a metric that you would like to graph and monitor. You'll be able to view the metric
+// in the context of the session and network request and recorded it.
+func RecordMetric(ctx context.Context, name string, value float64, tags ...attribute.KeyValue) {
+	span, ctx := StartTrace(ctx, "highlight-ctx", tags...)
+	defer EndTrace(span)
+	tags = append(tags, attribute.String(MetricEventName, name), attribute.Float64(MetricEventValue, value))
+	span.AddEvent(MetricEvent, trace.WithAttributes(tags...))
 }
 
 // RecordError processes `err` to be recorded as a part of the session or network request.
