@@ -34,7 +34,7 @@ With these settings, the canvas is serialized as a 480p video at 5FPS.
 `samplingStrategy.canvasMaxSnapshotDimension`: max recording resolution of the largest dimension of the canvas.
 
 ```hint
-[Privacy](../../../general/6_product-features/1_session-replay/privacy.md) controls do not apply to canvas recording at this time.
+[Privacy](../../../6_product-features/1_session-replay/privacy.md) controls do not apply to canvas recording at this time.
 ```
 
 Enabling canvas recording should not have any impact on the performance your application. We've recently changed our uploading client to use browser web-workers to ensure that data serialization cannot block the rendering of your application. If you run into any issues please [let us know](https://highlight.io/community)!

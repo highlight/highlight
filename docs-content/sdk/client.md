@@ -53,7 +53,7 @@ slug: client
         </aside>
         <aside className="parameter">
           <h5>environment <code>string</code> <code>optional</code></h5>
-          <p>Specifies the environment your application is running in. See [Environments](../general/6_product-features/3_general-features/environments.md) to see how setting the environment can help you move faster. The default value is production.</p>
+          <p>Specifies the environment your application is running in. See [Environments](../6_product-features/3_general-features/environments.md) to see how setting the environment can help you move faster. The default value is production.</p>
         </aside>
         <aside className="parameter">
           <h5>networkRecording <code>NetworkRecordingOptions</code> <code>optional</code></h5>
@@ -65,7 +65,7 @@ slug: client
         </aside>
         <aside className="parameter">
           <h5>enableStrictPrivacy <code>boolean</code> <code>optional</code></h5>
-          <p>Specifies whether Highlight should redact all text and image data during recording. This is useful to make sure you are not recording any personally identifiable information without having to manually add annotations to elements you don't want to be recorded. See [Privacy](../general/6_product-features/1_session-replay/privacy.md) to learn more about the privacy options. The default value is false.</p>
+          <p>Specifies whether Highlight should redact all text and image data during recording. This is useful to make sure you are not recording any personally identifiable information without having to manually add annotations to elements you don't want to be recorded. See [Privacy](../6_product-features/1_session-replay/privacy.md) to learn more about the privacy options. The default value is false.</p>
         </aside>
         <aside className="parameter">
           <h5>integrations <code>IntegrationOptions</code> <code>optional</code></h5>
