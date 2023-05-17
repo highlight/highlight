@@ -1,6 +1,8 @@
 package filtering
 
 import (
+	"context"
+
 	"github.com/highlight-run/highlight/backend/model"
 	"gorm.io/gorm"
 )
@@ -30,4 +32,10 @@ func (repo *FilteringRepository) UpdateProjectFilterSettings(project *model.Proj
 	}).Assign(updates).FirstOrCreate(&projectFilterSettings)
 
 	return &projectFilterSettings
+}
+
+func (repo *FilteringRepository) findProjectsWithAutoResolveSetting(ctx context.Context) []model.ProjectFilterSettings {
+	projectFilterSettings := []model.ProjectFilterSettings{}
+	repo.db.Where("auto_resolve_stale_errors_day_interval > ?", 0).Find(&projectFilterSettings)
+	return projectFilterSettings
 }

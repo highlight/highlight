@@ -50,7 +50,6 @@ import (
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
-	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
@@ -591,7 +590,7 @@ func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projec
 		return nil, err
 	}
 
-	return r.Repositories.ProjectFilters.UpdateProjectFilters(project, model.ProjectFilterSettings{
+	return r.Repositories.Filtering.UpdateProjectFilterSettings(project, model.ProjectFilterSettings{
 		FilterSessionsWithoutError: filterSessionsWithoutError,
 	}), nil
 }
@@ -6383,7 +6382,7 @@ func (r *queryResolver) ProjectFilterSettings(ctx context.Context, projectID int
 		return nil, err
 	}
 
-	return r.Repositories.ProjectFilters.GetProjectFilters(project), nil
+	return r.Repositories.Filtering.GetProjectFilterSettings(project), nil
 }
 
 // Workspace is the resolver for the workspace field.
@@ -7213,7 +7212,6 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 
 // Logs is the resolver for the logs field.
 func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string, direction modelInputs.LogDirection) (*modelInputs.LogsConnection, error) {
-	return nil, errors.New("chilly mcbilly")
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not logged in")

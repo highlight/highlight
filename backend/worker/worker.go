@@ -550,8 +550,8 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 // Autoresolves error groups that have not had any recent instances
 func (w *Worker) AutoResolveStaleErrors(ctx context.Context) {
 	service := filtering.AutoResolverService{
-		FilteringRepository:   *w.Resolver.Repositories.Filtering,
-		ErrorGroupsRepository: *w.Resolver.Repositories.ErrorGroups,
+		FilteringRepository:   w.Resolver.Repositories.Filtering,
+		ErrorGroupsRepository: w.Resolver.Repositories.ErrorGroups,
 	}
 	service.AutoResolveStaleErrors(ctx)
 }

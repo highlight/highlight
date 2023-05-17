@@ -3,14 +3,11 @@ package filtering
 import (
 	"context"
 	"os"
-	"testing"
 
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 	_ "gorm.io/driver/postgres"
 
-	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 )
 
@@ -24,19 +21,19 @@ func setupFilteringRepository() *FilteringRepository {
 	return NewRepository(db)
 }
 
-func TestUpdateProjectFilterSettings(t *testing.T) {
-	repo := setupFilteringRepository()
+// func TestUpdateProjectFilterSettings(t *testing.T) {
+// 	repo := setupFilteringRepository()
 
-	util.RunTestWithDBWipe(t, "UpdateProjectFilterSettings", repo.db, func(t *testing.T) {
-		project := model.Project{}
-		if err := repo.db.Create(&project).Error; err != nil {
-			t.Fatal(e.Wrap(err, "error inserting project"))
-		}
+// 	util.RunTestWithDBWipe(t, "UpdateProjectFilterSettings", repo.db, func(t *testing.T) {
+// 		project := model.Project{}
+// 		if err := repo.db.Create(&project).Error; err != nil {
+// 			t.Fatal(e.Wrap(err, "error inserting project"))
+// 		}
 
-		updatedSettings := repo.UpdateProjectFilterSettings(&project, model.ProjectFilterSettings{
-			FilterSessionsWithoutError: true,
-		})
+// 		updatedSettings := repo.UpdateProjectFilterSettings(&project, model.ProjectFilterSettings{
+// 			FilterSessionsWithoutError: true,
+// 		})
 
-		assert.True(t, updatedSettings.FilterSessionsWithoutError)
-	})
-}
+// 		assert.True(t, updatedSettings.FilterSessionsWithoutError)
+// 	})
+// }

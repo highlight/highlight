@@ -359,9 +359,10 @@ type SetupEvent struct {
 
 type ProjectFilterSettings struct {
 	Model
-	Project                    *Project
-	ProjectID                  int
-	FilterSessionsWithoutError bool `gorm:"default:false"`
+	Project                           *Project
+	ProjectID                         int
+	FilterSessionsWithoutError        bool `gorm:"default:false"`
+	AutoResolveStaleErrorsDayInterval int  `gorm:"default:0"`
 }
 
 type HasSecret interface {

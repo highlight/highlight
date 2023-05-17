@@ -12,7 +12,7 @@ import (
 )
 
 func setupErrorGroupsRepository() *errorgroups.ErrorGroupsRepository {
-	dbName := "highlight_testing_db"
+	dbName := "highlight_testing_db2"
 	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
 	db, err := util.CreateAndMigrateTestDB(dbName)
 	if err != nil {
