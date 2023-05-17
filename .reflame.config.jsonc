@@ -196,14 +196,10 @@
 					]
 				},
 				"@vanilla-extract/sprinkles": {
-					"entryPoints": [
-						"/createRuntimeSprinkles"
-					]
+					"entryPoints": ["/createRuntimeSprinkles"]
 				},
 				"@vanilla-extract/recipes": {
-					"entryPoints": [
-						"/createRuntimeFn"
-					]
+					"entryPoints": ["/createRuntimeFn"]
 				}
 			},
 			"nodejsCompatibility": {

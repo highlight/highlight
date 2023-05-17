@@ -6,8 +6,14 @@ export const run = async ({ rootDirectory }) => {
 	const args = process.argv.slice(2)
 	const watch = args.includes('--watch') || args.includes('-w')
 
-	const packageDirectory = path.join(rootDirectory, '../node_modules/@highlight-run/rrweb')
-	const packageDirectoryTypes = path.join(rootDirectory, '../node_modules/@highlight-run/rrweb-types')
+	const packageDirectory = path.join(
+		rootDirectory,
+		'../node_modules/@highlight-run/rrweb',
+	)
+	const packageDirectoryTypes = path.join(
+		rootDirectory,
+		'../node_modules/@highlight-run/rrweb-types',
+	)
 	const packageJson = JSON.parse(
 		fs.readFileSync(path.join(packageDirectory, 'package.json')),
 	)
