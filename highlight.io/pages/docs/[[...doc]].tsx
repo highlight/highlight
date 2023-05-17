@@ -827,7 +827,7 @@ export default function DocPage({
 
 	useEffect(() => {
 		const storedScrollPosition = parseInt(
-			sessionStorage.getItem('scrollPosition'),
+			sessionStorage.getItem('scrollPosition') ?? '0',
 		)
 
 		if (storedScrollPosition) {
@@ -998,7 +998,7 @@ export default function DocPage({
 												h2: (props) => {
 													const id =
 														generateIdFromProps(
-															props.children as string,
+															props.children,
 														)
 													return (
 														<Link

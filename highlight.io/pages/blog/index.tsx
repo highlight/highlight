@@ -100,7 +100,7 @@ export async function loadPostsFromGithub() {
 			BLOG_CONTENT_PATH + paths[index].rel_path,
 		)
 		const posty = markdownToPost(data.content, data.data)
-		posty.slug = paths[index].rel_path.split('/').at(-1).replace('.md', '')
+		posty.slug = paths[index].rel_path.split('/').at(-1)?.replace('.md', '')
 		posts.push(posty)
 	}
 

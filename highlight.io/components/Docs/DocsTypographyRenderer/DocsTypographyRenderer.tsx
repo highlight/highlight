@@ -34,12 +34,11 @@ export const getIdFromHeaderProps = (props: any) => {
 
 export const generateIdFromProps = (component: React.ReactNode) => {
 	const getNodeText = (node: React.ReactNode): string => {
-		if (['string'].includes(typeof node)) {
-			return node as string
-		}
-		if (node instanceof Array) return node.map(getNodeText).join('')
-		if (typeof node === 'object' && node)
+		if (typeof node === 'string') return node
+		if (Array.isArray(node)) return node.map(getNodeText).join('')
+		if (typeof node === 'object' && node != null)
 			return 'props' in node ? getNodeText(node.props.children) : ''
+		return String(node)
 	}
 	const text = getNodeText(component)
 	return text
