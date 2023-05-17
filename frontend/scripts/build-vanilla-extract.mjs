@@ -35,8 +35,8 @@ export const run = async ({ rootDirectory }) => {
 		).map(({ path }) => [path, path_.join(workingDirectory, path)]),
 	)
 
-	const build = async (path) => {
-		console.log(new Date(), 'building vanilla extract entry points', path)
+	const build = async () => {
+		console.log(new Date(), 'building vanilla extract entry points')
 		await esbuild.build({
 			entryPoints: Object.values(entryPoints),
 			bundle: true,
@@ -99,14 +99,14 @@ export const run = async ({ rootDirectory }) => {
 				}
 				// We'll probably run into race conditions with concurrent edits here...
 				// TODO: make it more robust with some debouncing + transaction tracking
-				build(path)
+				build()
 			})
-			.on('change', (path) => build(path))
+			.on('change', () => build())
 			.on('unlink', (path) => {
 				if (isEntryPoint(path)) {
 					delete entryPoints[path]
 				}
-				build(path)
+				build()
 			})
 			.on('ready', () => console.log(new Date(), 'ready'))
 	} else {
