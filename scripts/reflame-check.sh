@@ -1,4 +1,5 @@
-yarn reflame-build
+set -e
+yarn reflame-build --exclude-rrweb
 
 if [[ $(git ls-files -om --exclude-standard | wc -l) -gt 0 ]]
 then
