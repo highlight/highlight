@@ -26,9 +26,8 @@ func (repo *ProjectFiltersRepository) UpdateProjectFilters(project *model.Projec
 	projectFilterSettings := model.ProjectFilterSettings{}
 
 	repo.db.Where(model.ProjectFilterSettings{
-		ProjectID:                  project.ID,
-		FilterSessionsWithoutError: updates.FilterSessionsWithoutError,
-	}).FirstOrCreate(&projectFilterSettings)
+		ProjectID: project.ID,
+	}).Assign(updates).FirstOrCreate(&projectFilterSettings)
 
 	return &projectFilterSettings
 }
