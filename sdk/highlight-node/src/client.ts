@@ -60,7 +60,13 @@ export class Highlight {
 			this.FLUSH_TIMEOUT * 1000,
 		)
 
-		for (const event of ['beforeExit', 'SIGTERM']) {
+		for (const event of [
+			'beforeExit',
+			'exit',
+			'SIGABRT',
+			'SIGTERM',
+			'SIGINT',
+		]) {
 			process.on(event, async () => {
 				await this.flush()
 			})
