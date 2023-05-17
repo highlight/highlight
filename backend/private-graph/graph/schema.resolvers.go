@@ -870,41 +870,14 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		return nil, e.Wrap(err, "error querying admin")
 	}
 
-	existingInviteLink := &model.WorkspaceInviteLink{}
-	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: &email}).First(existingInviteLink).Error; err != nil {
-		if e.Is(err, gorm.ErrRecordNotFound) {
-			existingInviteLink = nil
-		} else {
-			return nil, e.Wrap(err, "error querying workspace invite link for admin")
-		}
+	inviteLink := r.CreateInviteLink(workspaceID, &email, role, false)
+
+	if err := r.DB.Create(inviteLink).Error; err != nil {
+		return nil, e.Wrap(err, "error creating new invite link")
 	}
 
-	// If there's an existing and expired invite link for the user then delete it.
-	if existingInviteLink != nil && r.IsInviteLinkExpired(existingInviteLink) {
-		if err := r.DB.Delete(existingInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error deleting expired invite link")
-		}
-		existingInviteLink = nil
-	}
-
-	// Delete the existing invite if the roles are different.
-	if existingInviteLink != nil && existingInviteLink.InviteeRole != nil && *existingInviteLink.InviteeRole != role {
-		if err := r.DB.Delete(existingInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error deleting different role invite link")
-		}
-		existingInviteLink = nil
-	}
-
-	if existingInviteLink == nil {
-		existingInviteLink = r.CreateInviteLink(workspaceID, &email, role, false)
-
-		if err := r.DB.Create(existingInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error creating new invite link")
-		}
-	}
-
-	inviteLink := baseURL + "/w/" + strconv.Itoa(workspaceID) + "/invite/" + *existingInviteLink.Secret
-	return r.SendAdminInviteImpl(*admin.Name, *workspace.Name, inviteLink, email)
+	inviteLinkUrl := baseURL + "/w/" + strconv.Itoa(workspaceID) + "/invite/" + *inviteLink.Secret
+	return r.SendAdminInviteImpl(*admin.Name, *workspace.Name, inviteLinkUrl, email)
 }
 
 // AddAdminToWorkspace is the resolver for the addAdminToWorkspace field.
@@ -6432,6 +6405,10 @@ func (r *queryResolver) WorkspaceForInviteLink(ctx context.Context, secret strin
 		return nil, e.Wrap(err, "error querying workspace invite link")
 	}
 
+	if r.IsInviteLinkExpired(&workspaceInviteLink) {
+		return nil, e.New("invite link expired")
+	}
+
 	var workspace model.Workspace
 	if err := r.DB.Model(&model.Workspace{}).Where("id = ?", *workspaceInviteLink.WorkspaceID).First(&workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace for invite link")
@@ -6476,9 +6453,6 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 
 	if r.IsInviteLinkExpired(workspaceInviteLink) && !shouldCreateNewInviteLink {
 		shouldCreateNewInviteLink = true
-		if err := r.DB.Delete(workspaceInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error while deleting expired invite link for workspace")
-		}
 	}
 
 	if workspaceInviteLink != nil && workspaceInviteLink.ExpirationDate != nil {
