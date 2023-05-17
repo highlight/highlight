@@ -17,6 +17,8 @@ import firebase from 'firebase/compat/app'
 import React, { useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
+import { SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
+
 type Props = {
 	setResolver: React.Dispatch<
 		React.SetStateAction<firebase.auth.MultiFactorResolver | undefined>
@@ -98,7 +100,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						<Text>
 							New here?{' '}
 							<Link
-								to="/sign_up"
+								to={SIGN_UP_ROUTE}
 								state={{ email: formState.values.email }}
 							>
 								Create an account

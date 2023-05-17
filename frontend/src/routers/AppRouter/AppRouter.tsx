@@ -5,7 +5,11 @@ import { Box } from '@highlight-run/ui'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import { AccountsPage } from '@pages/Accounts/Accounts'
 import { AdminForm } from '@pages/Auth/AdminForm'
-import { AuthRouter, SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
+import {
+	AuthRouter,
+	SIGN_IN_ROUTE,
+	SIGN_UP_ROUTE,
+} from '@pages/Auth/AuthRouter'
 import { JoinWorkspace } from '@pages/Auth/JoinWorkspace'
 import { VerifyEmail } from '@pages/Auth/VerifyEmail'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
@@ -199,7 +203,7 @@ export const AppRouter = () => {
 						isLoggedIn ? (
 							<JoinWorkspace />
 						) : (
-							<Navigate to="/sign_up" />
+							<Navigate to={SIGN_UP_ROUTE} />
 						)
 					}
 				/>
