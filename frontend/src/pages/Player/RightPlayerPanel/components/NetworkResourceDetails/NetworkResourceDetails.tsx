@@ -1,7 +1,3 @@
-import CollapsibleSection from '@components/CollapsibleSection'
-import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
-import { TableList, TableListItem } from '@components/TableList/TableList'
-import { ErrorObject } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -13,24 +9,29 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
-import RequestMetrics from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/components/RequestMetrics/RequestMetrics'
-import { UnknownRequestStatusCode } from '@pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
+import { MillisToMinutesAndSeconds, formatTime } from '@util/time'
 import {
+	NetworkResource,
 	formatSize,
 	getNetworkResourcesDisplayName,
-	NetworkResource,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { REQUEST_INITIATOR_TYPES } from '@pages/Player/utils/utils'
+import React, { useMemo, useState } from 'react'
+import { TableList, TableListItem } from '@components/TableList/TableList'
+
 import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
+import CollapsibleSection from '@components/CollapsibleSection'
+import { ErrorObject } from '@graph/schemas'
+import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
+import { REQUEST_INITIATOR_TYPES } from '@pages/Player/utils/utils'
+import RequestMetrics from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/components/RequestMetrics/RequestMetrics'
+import { UnknownRequestStatusCode } from '@pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
-import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
-import React, { useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import { useReplayerContext } from '@pages/Player/ReplayerContext'
+import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
 
 const NetworkResourceDetails = React.memo(
 	({ resource }: { resource: NetworkResource }) => {
@@ -198,13 +199,13 @@ enum NetworkResourceMeta {
 	ResponsePayload = 'Response Payload',
 }
 
-const NetworkResourceData = ({
+function NetworkResourceData({
 	selectedNetworkResource,
 	networkRecordingEnabledForSession,
 }: {
 	selectedNetworkResource?: NetworkResource
 	networkRecordingEnabledForSession: boolean
-}) => {
+}) {
 	const requestHeadersData: TableListItem[] = []
 	const requestPayloadData: TableListItem[] = []
 	const responseHeadersData: TableListItem[] = []
@@ -524,7 +525,11 @@ const NetworkResourceData = ({
 							<TableList
 								data={value}
 								noDataMessage={
-									<NetworkRecordingEducationMessage />
+									networkRecordingEnabledForSession ? (
+										<NoRecordingMessage />
+									) : (
+										<NetworkRecordingEducationMessage />
+									)
 								}
 							/>
 						</Box>
@@ -535,24 +540,36 @@ const NetworkResourceData = ({
 	)
 }
 
-const NetworkRecordingEducationMessage = () => (
-	<Box width="full" display="flex" flexDirection="column" gap="12" pb="4">
-		<Text size="small" color="moderate" weight="medium">
-			<code>recordHeadersAndBody</code> is disabled. If you would like to
-			see XHR/Fetch headers and bodies you will need to enable{' '}
-			<code>recordHeadersAndBody</code>.
-		</Text>
-		<Text size="small" color="moderate" weight="medium">
-			You can learn more about this and about the security/privacy
-			implications{' '}
-			<a
-				target="_blank"
-				rel="noreferrer"
-				href="https://docs.highlight.run/recording-network-requests-and-responses"
-			>
-				here
-			</a>
-			.
-		</Text>
-	</Box>
-)
+function NoRecordingMessage() {
+	return (
+		<Box width="full" display="flex" flexDirection="column" gap="12" pb="4">
+			<Text size="small" color="moderate" weight="medium">
+				No data recorded.
+			</Text>
+		</Box>
+	)
+}
+
+function NetworkRecordingEducationMessage() {
+	return (
+		<Box width="full" display="flex" flexDirection="column" gap="12" pb="4">
+			<Text size="small" color="moderate" weight="medium">
+				<code>recordHeadersAndBody</code> is disabled. If you would like
+				to see XHR/Fetch headers and bodies you will need to enable{' '}
+				<code>recordHeadersAndBody</code>.
+			</Text>
+			<Text size="small" color="moderate" weight="medium">
+				You can learn more about this and about the security/privacy
+				implications{' '}
+				<a
+					target="_blank"
+					rel="noreferrer"
+					href="https://docs.highlight.run/recording-network-requests-and-responses"
+				>
+					here
+				</a>
+				.
+			</Text>
+		</Box>
+	)
+}
