@@ -18,6 +18,7 @@ import (
 	"golang.org/x/text/language"
 
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/filtering"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
 
@@ -179,7 +180,7 @@ var Models = []interface{}{
 	&SessionAdminsView{},
 	&ErrorGroupAdminsView{},
 	&LogAdminsView{},
-	&ProjectFilterSettings{},
+	&filtering.ProjectFilterSettings{},
 }
 
 func init() {

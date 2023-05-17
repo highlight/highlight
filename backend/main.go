@@ -363,7 +363,7 @@ func main() {
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
-		Repositories:           initRepositories(db),
+		Repositories:           initPrivateRepositories(db),
 	}
 	private.SetupAuthClient(ctx, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
@@ -487,6 +487,7 @@ func main() {
 			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
 			Redis:           redisClient,
 			RH:              &rh,
+			Repositories:    initPublicRepositories(db),
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -633,7 +634,13 @@ func main() {
 	}
 }
 
-func initRepositories(db *gorm.DB) *private.Repositories {
+func initPublicRepositories(db *gorm.DB) *public.Repositories {
+	return &public.Repositories{
+		ProjectFilters: filtering.NewRepository(db),
+	}
+}
+
+func initPrivateRepositories(db *gorm.DB) *private.Repositories {
 	return &private.Repositories{
 		ProjectFilters: filtering.NewRepository(db),
 	}

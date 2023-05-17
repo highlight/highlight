@@ -18,6 +18,7 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/errorgroups"
+	"github.com/highlight-run/highlight/backend/filtering"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"go.opentelemetry.io/otel/attribute"
@@ -63,6 +64,10 @@ import (
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
+type Repositories struct {
+	ProjectFilters *filtering.ProjectFiltersRepository
+}
+
 type Resolver struct {
 	AlertWorkerPool *workerpool.WorkerPool
 	DB              *gorm.DB
@@ -76,6 +81,7 @@ type Resolver struct {
 	Redis           *redis.Client
 	Clickhouse      *clickhouse.Client
 	RH              *resthooks.Resthook
+	Repositories    *Repositories
 }
 
 type Location struct {
@@ -3044,9 +3050,7 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 }
 
 func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
-	projectFilterSettings := model.ProjectFilterSettings{}
-
-	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
+	projectFilterSettings := r.Repositories.ProjectFilters.GetProjectFilters(&project)
 
 	if projectFilterSettings.FilterSessionsWithoutError {
 		return !sessionHasErrors
