@@ -1,3 +1,9 @@
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
+import { GetStaticPaths, GetStaticProps } from 'next/types'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { BiChevronLeft, BiChevronRight } from 'react-icons/bi'
+import { FaDiscord, FaGithub, FaTwitter } from 'react-icons/fa'
+import { Roadmap, RoadmapItem } from '../../components/common/Roadmap/Roadmap'
 import {
 	AutoplayVideo,
 	DocsCard,
@@ -6,45 +12,39 @@ import {
 	MissingFrameworkCopy,
 	QuickStart,
 } from '../../components/MDXRemote'
-import { BiChevronLeft, BiChevronRight } from 'react-icons/bi'
-import { FaDiscord, FaGithub, FaTwitter } from 'react-icons/fa'
-import { GetStaticPaths, GetStaticProps } from 'next/types'
+import {
+	QuickStartContent,
+	quickStartContent,
+} from '../../components/QuickstartContent/QuickstartContent'
 import {
 	IGNORED_DOCS_PATHS,
 	processDocPath,
 	removeOrderingPrefix,
 } from '../api/docs/github'
-import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
-import {
-	QuickStartContent,
-	quickStartContent,
-} from '../../components/QuickstartContent/QuickstartContent'
-import { Roadmap, RoadmapItem } from '../../components/common/Roadmap/Roadmap'
-import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { Callout } from '../../components/Docs/Callout/Callout'
-import ChevronDown from '../../public/images/ChevronDownIcon'
-import { Collapse } from 'react-collapse'
-import { DocSection } from '../../components/Docs/DocLayout/DocLayout'
-import DocSelect from '../../components/Docs/DocSelect/DocSelect'
-import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
-import Link from 'next/link'
-import { Meta } from '../../components/common/Head/Meta'
-import Minus from '../../public/images/MinusIcon'
-import Navbar from '../../components/common/Navbar/Navbar'
-import { Typography } from '../../components/common/Typography/Typography'
 import classNames from 'classnames'
 import { promises as fsp } from 'fs'
-import { generateIdFromProps } from '../../components/Docs/DocsTypographyRenderer/DocsTypographyRenderer'
 import matter from 'gray-matter'
-import path from 'path'
-import remarkGfm from 'remark-gfm'
-import { roadmapFetcher } from '../../components/common/Roadmap/RoadmapUtils'
-import { serialize } from 'next-mdx-remote/serialize'
-import styles from '../../components/Docs/Docs.module.scss'
-import { useMediaQuery } from '../../components/MediaQuery/MediaQuery'
-import { useRouter } from 'next/router'
 import yaml from 'js-yaml'
+import { serialize } from 'next-mdx-remote/serialize'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+import path from 'path'
+import { Collapse } from 'react-collapse'
+import remarkGfm from 'remark-gfm'
+import { Meta } from '../../components/common/Head/Meta'
+import Navbar from '../../components/common/Navbar/Navbar'
+import { roadmapFetcher } from '../../components/common/Roadmap/RoadmapUtils'
+import { Typography } from '../../components/common/Typography/Typography'
+import { Callout } from '../../components/Docs/Callout/Callout'
+import { DocSection } from '../../components/Docs/DocLayout/DocLayout'
+import styles from '../../components/Docs/Docs.module.scss'
+import DocSelect from '../../components/Docs/DocSelect/DocSelect'
+import { generateIdFromProps } from '../../components/Docs/DocsTypographyRenderer/DocsTypographyRenderer'
+import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
+import { useMediaQuery } from '../../components/MediaQuery/MediaQuery'
+import ChevronDown from '../../public/images/ChevronDownIcon'
+import Minus from '../../public/images/MinusIcon'
 
 const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
 const DOCS_GITUB_LINK = `https://github.com/highlight/highlight/blob/main/docs-content`
@@ -822,7 +822,7 @@ export default function DocPage({
 		.join(' ')
 
 	useEffect(() => {
-		if (redirect) router.push(redirect)
+		if (redirect) router.replace(redirect)
 	}, [redirect, router])
 
 	useEffect(() => {
@@ -1112,7 +1112,7 @@ export default function DocPage({
 															<img
 																{...props}
 																alt={props.alt}
-																className="border-divider-on-dark border rounded-lg"
+																className="border rounded-lg border-divider-on-dark"
 															/>
 														</picture>
 													)
