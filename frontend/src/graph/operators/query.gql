@@ -251,7 +251,7 @@ query GetSession($secure_id: String!) {
 		event_counts
 		direct_download_url
 		resources_url
-		messages_url
+		timeline_indicators_url
 		deviceMemory
 		last_user_interaction_time
 		length
@@ -1072,6 +1072,7 @@ fragment ErrorObject on ErrorObject {
 		user_properties
 		processed
 		excluded
+		excluded_reason
 	}
 	error_group_id
 	error_group_secure_id

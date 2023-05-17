@@ -961,6 +961,7 @@ type ComplexityRoot struct {
 		Environment                    func(childComplexity int) int
 		EventCounts                    func(childComplexity int) int
 		Excluded                       func(childComplexity int) int
+		ExcludedReason                 func(childComplexity int) int
 		FieldGroup                     func(childComplexity int) int
 		Fields                         func(childComplexity int) int
 		Fingerprint                    func(childComplexity int) int
@@ -975,7 +976,6 @@ type ComplexityRoot struct {
 		Language                       func(childComplexity int) int
 		LastUserInteractionTime        func(childComplexity int) int
 		Length                         func(childComplexity int) int
-		MessagesURL                    func(childComplexity int) int
 		OSName                         func(childComplexity int) int
 		OSVersion                      func(childComplexity int) int
 		ObjectStorageEnabled           func(childComplexity int) int
@@ -987,6 +987,7 @@ type ComplexityRoot struct {
 		SecureID                       func(childComplexity int) int
 		Starred                        func(childComplexity int) int
 		State                          func(childComplexity int) int
+		TimelineIndicatorsURL          func(childComplexity int) int
 		UserObject                     func(childComplexity int) int
 		UserProperties                 func(childComplexity int) int
 		Viewed                         func(childComplexity int) int
@@ -1478,7 +1479,7 @@ type SessionResolver interface {
 
 	DirectDownloadURL(ctx context.Context, obj *model1.Session) (*string, error)
 	ResourcesURL(ctx context.Context, obj *model1.Session) (*string, error)
-	MessagesURL(ctx context.Context, obj *model1.Session) (*string, error)
+	TimelineIndicatorsURL(ctx context.Context, obj *model1.Session) (*string, error)
 	DeviceMemory(ctx context.Context, obj *model1.Session) (*int, error)
 }
 type SessionAlertResolver interface {
@@ -7081,6 +7082,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Excluded(childComplexity), true
 
+	case "Session.excluded_reason":
+		if e.complexity.Session.ExcludedReason == nil {
+			break
+		}
+
+		return e.complexity.Session.ExcludedReason(childComplexity), true
+
 	case "Session.field_group":
 		if e.complexity.Session.FieldGroup == nil {
 			break
@@ -7179,13 +7187,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Length(childComplexity), true
 
-	case "Session.messages_url":
-		if e.complexity.Session.MessagesURL == nil {
-			break
-		}
-
-		return e.complexity.Session.MessagesURL(childComplexity), true
-
 	case "Session.os_name":
 		if e.complexity.Session.OSName == nil {
 			break
@@ -7262,6 +7263,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Session.State(childComplexity), true
+
+	case "Session.timeline_indicators_url":
+		if e.complexity.Session.TimelineIndicatorsURL == nil {
+			break
+		}
+
+		return e.complexity.Session.TimelineIndicatorsURL(childComplexity), true
 
 	case "Session.user_object":
 		if e.complexity.Session.UserObject == nil {
@@ -8403,6 +8411,7 @@ type Session {
 	starred: Boolean
 	processed: Boolean
 	excluded: Boolean!
+	excluded_reason: SessionExcludedReason
 	has_rage_clicks: Boolean
 	has_errors: Boolean
 	first_time: Boolean
@@ -8416,7 +8425,7 @@ type Session {
 	event_counts: String
 	direct_download_url: String
 	resources_url: String
-	messages_url: String
+	timeline_indicators_url: String
 	deviceMemory: Int
 	last_user_interaction_time: Timestamp!
 	chunked: Boolean
@@ -25650,6 +25659,8 @@ func (ec *executionContext) fieldContext_ErrorObject_session(ctx context.Context
 				return ec.fieldContext_Session_processed(ctx, field)
 			case "excluded":
 				return ec.fieldContext_Session_excluded(ctx, field)
+			case "excluded_reason":
+				return ec.fieldContext_Session_excluded_reason(ctx, field)
 			case "has_rage_clicks":
 				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
 			case "has_errors":
@@ -25676,8 +25687,8 @@ func (ec *executionContext) fieldContext_ErrorObject_session(ctx context.Context
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "messages_url":
-				return ec.fieldContext_Session_messages_url(ctx, field)
+			case "timeline_indicators_url":
+				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
 				return ec.fieldContext_Session_deviceMemory(ctx, field)
 			case "last_user_interaction_time":
@@ -32342,6 +32353,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsViewed(ctx contex
 				return ec.fieldContext_Session_processed(ctx, field)
 			case "excluded":
 				return ec.fieldContext_Session_excluded(ctx, field)
+			case "excluded_reason":
+				return ec.fieldContext_Session_excluded_reason(ctx, field)
 			case "has_rage_clicks":
 				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
 			case "has_errors":
@@ -32368,8 +32381,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsViewed(ctx contex
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "messages_url":
-				return ec.fieldContext_Session_messages_url(ctx, field)
+			case "timeline_indicators_url":
+				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
 				return ec.fieldContext_Session_deviceMemory(ctx, field)
 			case "last_user_interaction_time":
@@ -32491,6 +32504,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsStarred(ctx conte
 				return ec.fieldContext_Session_processed(ctx, field)
 			case "excluded":
 				return ec.fieldContext_Session_excluded(ctx, field)
+			case "excluded_reason":
+				return ec.fieldContext_Session_excluded_reason(ctx, field)
 			case "has_rage_clicks":
 				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
 			case "has_errors":
@@ -32517,8 +32532,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsStarred(ctx conte
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "messages_url":
-				return ec.fieldContext_Session_messages_url(ctx, field)
+			case "timeline_indicators_url":
+				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
 				return ec.fieldContext_Session_deviceMemory(ctx, field)
 			case "last_user_interaction_time":
@@ -36004,6 +36019,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionIsPublic(ctx cont
 				return ec.fieldContext_Session_processed(ctx, field)
 			case "excluded":
 				return ec.fieldContext_Session_excluded(ctx, field)
+			case "excluded_reason":
+				return ec.fieldContext_Session_excluded_reason(ctx, field)
 			case "has_rage_clicks":
 				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
 			case "has_errors":
@@ -36030,8 +36047,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionIsPublic(ctx cont
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "messages_url":
-				return ec.fieldContext_Session_messages_url(ctx, field)
+			case "timeline_indicators_url":
+				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
 				return ec.fieldContext_Session_deviceMemory(ctx, field)
 			case "last_user_interaction_time":
@@ -38393,6 +38410,8 @@ func (ec *executionContext) fieldContext_Query_session(ctx context.Context, fiel
 				return ec.fieldContext_Session_processed(ctx, field)
 			case "excluded":
 				return ec.fieldContext_Session_excluded(ctx, field)
+			case "excluded_reason":
+				return ec.fieldContext_Session_excluded_reason(ctx, field)
 			case "has_rage_clicks":
 				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
 			case "has_errors":
@@ -38419,8 +38438,8 @@ func (ec *executionContext) fieldContext_Query_session(ctx context.Context, fiel
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "messages_url":
-				return ec.fieldContext_Session_messages_url(ctx, field)
+			case "timeline_indicators_url":
+				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
 				return ec.fieldContext_Session_deviceMemory(ctx, field)
 			case "last_user_interaction_time":
@@ -40871,6 +40890,8 @@ func (ec *executionContext) fieldContext_Query_projectHasViewedASession(ctx cont
 				return ec.fieldContext_Session_processed(ctx, field)
 			case "excluded":
 				return ec.fieldContext_Session_excluded(ctx, field)
+			case "excluded_reason":
+				return ec.fieldContext_Session_excluded_reason(ctx, field)
 			case "has_rage_clicks":
 				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
 			case "has_errors":
@@ -40897,8 +40918,8 @@ func (ec *executionContext) fieldContext_Query_projectHasViewedASession(ctx cont
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "messages_url":
-				return ec.fieldContext_Session_messages_url(ctx, field)
+			case "timeline_indicators_url":
+				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
 				return ec.fieldContext_Session_deviceMemory(ctx, field)
 			case "last_user_interaction_time":
@@ -50355,6 +50376,47 @@ func (ec *executionContext) fieldContext_Session_excluded(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Session_excluded_reason(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Session_excluded_reason(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExcludedReason, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.SessionExcludedReason)
+	fc.Result = res
+	return ec.marshalOSessionExcludedReason2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionExcludedReason(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Session_excluded_reason(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type SessionExcludedReason does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Session_has_rage_clicks(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Session_has_rage_clicks(ctx, field)
 	if err != nil {
@@ -50891,8 +50953,8 @@ func (ec *executionContext) fieldContext_Session_resources_url(ctx context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _Session_messages_url(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Session_messages_url(ctx, field)
+func (ec *executionContext) _Session_timeline_indicators_url(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -50905,7 +50967,7 @@ func (ec *executionContext) _Session_messages_url(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Session().MessagesURL(rctx, obj)
+		return ec.resolvers.Session().TimelineIndicatorsURL(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -50919,7 +50981,7 @@ func (ec *executionContext) _Session_messages_url(ctx context.Context, field gra
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Session_messages_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Session_timeline_indicators_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Session",
 		Field:      field,
@@ -53233,6 +53295,8 @@ func (ec *executionContext) fieldContext_SessionResults_sessions(ctx context.Con
 				return ec.fieldContext_Session_processed(ctx, field)
 			case "excluded":
 				return ec.fieldContext_Session_excluded(ctx, field)
+			case "excluded_reason":
+				return ec.fieldContext_Session_excluded_reason(ctx, field)
 			case "has_rage_clicks":
 				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
 			case "has_errors":
@@ -53259,8 +53323,8 @@ func (ec *executionContext) fieldContext_SessionResults_sessions(ctx context.Con
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "messages_url":
-				return ec.fieldContext_Session_messages_url(ctx, field)
+			case "timeline_indicators_url":
+				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
 				return ec.fieldContext_Session_deviceMemory(ctx, field)
 			case "last_user_interaction_time":
@@ -68637,6 +68701,10 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "excluded_reason":
+
+			out.Values[i] = ec._Session_excluded_reason(ctx, field, obj)
+
 		case "has_rage_clicks":
 
 			out.Values[i] = ec._Session_has_rage_clicks(ctx, field, obj)
@@ -68718,7 +68786,7 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
-		case "messages_url":
+		case "timeline_indicators_url":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -68727,7 +68795,7 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Session_messages_url(ctx, field, obj)
+				res = ec._Session_timeline_indicators_url(ctx, field, obj)
 				return res
 			}
 
@@ -76464,6 +76532,22 @@ func (ec *executionContext) unmarshalOSessionCommentTagInput2ᚖgithubᚗcomᚋh
 	}
 	res, err := ec.unmarshalInputSessionCommentTagInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOSessionExcludedReason2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionExcludedReason(ctx context.Context, v interface{}) (*model.SessionExcludedReason, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.SessionExcludedReason)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSessionExcludedReason2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionExcludedReason(ctx context.Context, sel ast.SelectionSet, v *model.SessionExcludedReason) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOSessionPayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionPayload(ctx context.Context, sel ast.SelectionSet, v *model1.SessionPayload) graphql.Marshaler {

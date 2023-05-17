@@ -118,7 +118,7 @@ export const SettingsRouter = () => {
 			},
 			{
 				key: 'player-settings',
-				title: 'Player settings',
+				title: 'App settings',
 				panelContent: <PlayerForm />,
 			},
 		],
@@ -227,7 +227,7 @@ export const SettingsRouter = () => {
 						{projectSettingTabs.map((project) => (
 							<NavLink
 								key={project.key}
-								to={`/${project.key}/settings/recording`}
+								to={`/${project.key}/settings/sessions`}
 								className={clsx(styles.menuItem, {
 									[styles.menuItemActive]:
 										projectId === project.key,

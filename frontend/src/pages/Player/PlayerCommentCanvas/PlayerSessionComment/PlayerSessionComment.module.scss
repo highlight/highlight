@@ -5,14 +5,10 @@
 	z-index: 9999;
 
 	.commentPinButton {
-		align-items: center;
 		background: none;
 		border: 0;
 		cursor: pointer;
-		display: flex;
-		justify-content: center;
 		outline: none;
-		padding-right: var(--size-medium);
 	}
 
 	> .commentPinButton {

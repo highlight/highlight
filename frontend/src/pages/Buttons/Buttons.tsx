@@ -252,6 +252,14 @@ export const Buttons = () => {
 					<button
 						className={commonStyles.submitButton}
 						onClick={() => {
+							H.start({ forceNew: true })
+						}}
+					>
+						H.Start force new session
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={() => {
 							H.track(
 								'therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues',
 							)

@@ -185,3 +185,27 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Minor Changes
 
 - Support the option to redact specific request/response body keys while recording all others.
+
+## 6.4.0
+
+### Minor Changes
+
+- Moves bundling from rollup to vite.
+
+## 6.4.1
+
+### Patch Changes
+
+- Switch to umd default output.
+
+## 6.4.3
+
+### Patch Changes
+
+- Fixes to umd format
+
+## 6.5.0
+
+### Minor Changes
+
+- Adds an `H.start({forceNew: true})` option that allows forcing the start of a new session recording.

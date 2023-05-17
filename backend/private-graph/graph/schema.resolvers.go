@@ -4011,7 +4011,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 
 	asErrorGroups := []*model.ErrorGroup{}
 	for _, result := range results {
-		asErrorGroups = append(asErrorGroups, result.ToErrorGroup())
+		asErrorGroups = append(asErrorGroups, result.ErrorGroup)
 	}
 
 	errorFrequencyInfluxSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
@@ -7430,16 +7430,16 @@ func (r *sessionResolver) ResourcesURL(ctx context.Context, obj *model.Session) 
 	return str, err
 }
 
-// MessagesURL is the resolver for the messages_url field.
-func (r *sessionResolver) MessagesURL(ctx context.Context, obj *model.Session) (*string, error) {
+// TimelineIndicatorsURL is the resolver for the timeline_indicators_url field.
+func (r *sessionResolver) TimelineIndicatorsURL(ctx context.Context, obj *model.Session) (*string, error) {
 	// Direct download only supported for clients that accept Brotli content encoding
 	if !obj.AllObjectsCompressed || !r.isBrotliAccepted(ctx) {
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(ctx, obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed, nil)
+	str, err := r.StorageClient.GetDirectDownloadURL(ctx, obj.ProjectID, obj.ID, storage.TimelineIndicatorEvents, nil)
 	if err != nil {
-		return nil, e.Wrap(err, "error getting messages URL")
+		return nil, e.Wrap(err, "error getting timeline indicators URL")
 	}
 
 	return str, err

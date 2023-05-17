@@ -1,42 +1,65 @@
 {
 	"name": "highlight.run",
-	"version": "6.3.0",
+	"version": "6.5.0",
+	"description": "Open source, fullstack monitoring. Capture frontend errors, record server side logs, and visualize what broke with session replay.",
+	"keywords": [
+		"highlight",
+		"session replay",
+		"error monitoring",
+		"logging",
+		"debugging",
+		"observability",
+		"browser",
+		"library"
+	],
+	"homepage": "https://github.com/highlight/highlight#readme",
+	"bugs": {
+		"url": "https://github.com/highlight/highlight/issues",
+		"email": "support@highlight.io"
+	},
+	"license": "Apache-2.0",
+	"repository": {
+		"repository": {
+			"type": "git",
+			"url": "https://github.com/highlight/highlight.git"
+		}
+	},
 	"scripts": {
-		"build": "node scripts/version.mjs && rollup -c",
-		"dev": "node scripts/version.mjs && rollup -c -w",
-		"reflame": "node scripts/version.mjs",
-		"reflame-build": "node scripts/version.mjs",
+		"build": "yarn typegen && vite build",
+		"dev": "vite dev",
 		"enforce-size": "size-limit",
 		"test": "vitest --run",
 		"typegen": "tsc && node scripts/replace-client-imports.mjs"
 	},
-	"main": "dist/index.js",
-	"module": "dist/indexESM.js",
-	"types": "dist/firstload/src/index.d.ts",
-	"license": "MIT",
+	"type": "module",
+	"main": "./dist/index.es.js",
+	"unpkg": "./dist/index.umd.js",
+	"jsdelivr": "./dist/index.umd.js",
+	"types": "./dist/firstload/src/index.d.ts",
+	"exports": {
+		"types": "./dist/firstload/src/index.d.ts",
+		"import": "./dist/index.es.js",
+		"require": "./dist/index.cjs.js",
+		"node": "./dist/index.cjs.js",
+		"default": "./dist/index.es.js"
+	},
+	"files": [
+		"dist"
+	],
 	"devDependencies": {
-		"@rollup/plugin-commonjs": "^22.0.1",
-		"@rollup/plugin-json": "^4.1.0",
-		"@rollup/plugin-node-resolve": "^15.0.1",
-		"@rollup/plugin-replace": "^4.0.0",
 		"@size-limit/file": "^8.1.0",
 		"@types/chrome": "^0.0.144",
-		"esbuild": "0.17.17",
 		"readdirp": "^3.6.0",
-		"rollup": "^2.79.1",
-		"rollup-plugin-consts": "^1.1.0",
-		"rollup-plugin-esbuild": "^4.9.1",
-		"rollup-plugin-filesize": "^9.1.2",
-		"rollup-plugin-web-worker-loader": "^1.6.1",
 		"size-limit": "^8.1.0",
 		"tslib": "^2.4.0",
-		"typescript": "^4.0.3",
-		"vitest": "^0.23.4"
+		"typescript": "^5.0.4",
+		"vite": "^4.3.5",
+		"vitest": "^0.31.0"
 	},
 	"size-limit": [
 		{
 			"path": "dist/**.js",
-			"limit": "32 kB",
+			"limit": "64 kB",
 			"brotli": true
 		}
 	]

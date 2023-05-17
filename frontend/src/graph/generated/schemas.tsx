@@ -2391,6 +2391,7 @@ export type Session = {
 	environment?: Maybe<Scalars['String']>
 	event_counts?: Maybe<Scalars['String']>
 	excluded: Scalars['Boolean']
+	excluded_reason?: Maybe<SessionExcludedReason>
 	field_group?: Maybe<Scalars['String']>
 	fields?: Maybe<Array<Maybe<Field>>>
 	fingerprint?: Maybe<Scalars['Int']>
@@ -2405,7 +2406,6 @@ export type Session = {
 	language: Scalars['String']
 	last_user_interaction_time: Scalars['Timestamp']
 	length?: Maybe<Scalars['Int']>
-	messages_url?: Maybe<Scalars['String']>
 	object_storage_enabled?: Maybe<Scalars['Boolean']>
 	os_name: Scalars['String']
 	os_version: Scalars['String']
@@ -2417,6 +2417,7 @@ export type Session = {
 	secure_id: Scalars['String']
 	starred?: Maybe<Scalars['Boolean']>
 	state: Scalars['String']
+	timeline_indicators_url?: Maybe<Scalars['String']>
 	user_object?: Maybe<Scalars['Any']>
 	user_properties?: Maybe<Scalars['String']>
 	viewed?: Maybe<Scalars['Boolean']>

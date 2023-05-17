@@ -110,6 +110,7 @@ export const ErrorObjectFragmentDoc = gql`
 			user_properties
 			processed
 			excluded
+			excluded_reason
 		}
 		error_group_id
 		error_group_secure_id
@@ -5201,7 +5202,7 @@ export const GetSessionDocument = gql`
 			event_counts
 			direct_download_url
 			resources_url
-			messages_url
+			timeline_indicators_url
 			deviceMemory
 			last_user_interaction_time
 			length

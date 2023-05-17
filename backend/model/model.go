@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"reflect"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -18,7 +17,6 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/go-test/deep"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
@@ -674,54 +672,6 @@ type EventChunk struct {
 	SessionID  int `gorm:"index"`
 	ChunkIndex int
 	Timestamp  int64
-}
-
-// AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field
-// a and b MUST be pointers, otherwise this won't work
-func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
-	if reflect.TypeOf(a) != reflect.TypeOf(b) {
-		return false, nil, e.New("interfaces to compare aren't the same time")
-	}
-
-	aReflection := reflect.ValueOf(a)
-	// Check if the passed interface is a pointer
-	if aReflection.Type().Kind() != reflect.Ptr {
-		return false, nil, e.New("`a` is not a pointer")
-	}
-	// 'dereference' with Elem() and get the field by name
-	aModelField := aReflection.Elem().FieldByName("Model")
-	aSecureIDField := aReflection.Elem().FieldByName("SecureID")
-
-	bReflection := reflect.ValueOf(b)
-	// Check if the passed interface is a pointer
-	if bReflection.Type().Kind() != reflect.Ptr {
-		return false, nil, e.New("`b` is not a pointer")
-	}
-	// 'dereference' with Elem() and get the field by name
-	bModelField := bReflection.Elem().FieldByName("Model")
-	bSecureIDField := bReflection.Elem().FieldByName("SecureID")
-
-	if aModelField.IsValid() && bModelField.IsValid() {
-		// override Model on b with a's model
-		bModelField.Set(aModelField)
-	} else if aModelField.IsValid() || bModelField.IsValid() {
-		// return error if one has a model and the other doesn't
-		return false, nil, e.New("one interface has a model and the other doesn't")
-	}
-
-	if aSecureIDField.IsValid() && bSecureIDField.IsValid() {
-		// override SecureID on b with a's SecureID
-		bSecureIDField.Set(aSecureIDField)
-	} else if aSecureIDField.IsValid() || bSecureIDField.IsValid() {
-		// return error if one has a SecureID and the other doesn't
-		return false, nil, e.New("one interface has a SecureID and the other doesn't")
-	}
-
-	// get diff
-	diff := deep.Equal(aReflection.Interface(), bReflection.Interface())
-	isEqual := len(diff) == 0
-
-	return isEqual, diff, nil
 }
 
 type Field struct {
@@ -2866,26 +2816,5 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 			}()
 		}
 	}
-	return nil
-}
-
-// Returns the first filename from a stack trace, or nil if
-// the stack trace cannot be unmarshalled or doesn't have a filename.
-func GetFirstFilename(stackTraceString string) *string {
-	var unmarshalled []*modelInputs.ErrorTrace
-	if err := json.Unmarshal([]byte(stackTraceString), &unmarshalled); err != nil {
-		// Stack trace may not be able to be unmarshalled as the format may differ,
-		// should not be treated as an error
-		return nil
-	}
-
-	// Return the first non empty frame's filename
-	empty := modelInputs.ErrorTrace{}
-	for _, frame := range unmarshalled {
-		if frame != nil && *frame != empty {
-			return frame.FileName
-		}
-	}
-
 	return nil
 }

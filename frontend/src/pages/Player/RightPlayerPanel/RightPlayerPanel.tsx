@@ -41,6 +41,8 @@ const RightPlayerPanel = () => {
 		if (commentId) {
 			setShowRightPanel(true)
 			setRightPanelView(RightPanelView.Comments)
+		} else {
+			setSelectedRightPanelTab('Events')
 		}
 	}, [setRightPanelView, setSelectedRightPanelTab, setShowRightPanel])
 
