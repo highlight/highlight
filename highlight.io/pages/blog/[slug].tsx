@@ -576,9 +576,11 @@ const PostPage = ({
 				<Section>
 					<div className={styles.postBodyDivider}></div>
 				</Section>
-				<Section>
-					<Comments slug={post.slug!} />
-				</Section>
+				{post.slug && (
+					<Section>
+						<Comments slug={post.slug} />
+					</Section>
+				)}
 				<Section>
 					<div
 						className={classNames(
