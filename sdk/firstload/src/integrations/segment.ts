@@ -6,7 +6,10 @@ interface SegmentContext {
 	integrations?: any
 }
 
-const HighlightSegmentMiddleware = ({ next, payload }: SegmentContext) => {
+export const HighlightSegmentMiddleware = ({
+	next,
+	payload,
+}: SegmentContext) => {
 	if (
 		typeof window !== 'undefined' &&
 		typeof document !== 'undefined' &&
@@ -29,8 +32,6 @@ const HighlightSegmentMiddleware = ({ next, payload }: SegmentContext) => {
 
 	next(payload)
 }
-
-export default HighlightSegmentMiddleware
 
 interface HighlightWindow extends Window {
 	H: HighlightPublicInterface

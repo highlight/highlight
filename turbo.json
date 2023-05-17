@@ -83,8 +83,9 @@
 			]
 		},
 		"dev": {
-			"dependsOn": ["^build"],
-			"cache": false
+			"dependsOn": ["typegen", "^build"],
+			"cache": false,
+			"persistent": true
 		},
 		"enforce-size": {
 			"dependsOn": ["build"]
@@ -109,5 +110,5 @@
 		}
 	},
 	"globalEnv": ["DOPPLER_TOKEN"],
-	"globalDependencies": ["package.json", "yarn.lock"]
+	"globalDependencies": ["package.json", "yarn.lock", "tsconfig.json"]
 }

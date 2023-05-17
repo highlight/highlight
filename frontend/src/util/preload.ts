@@ -18,7 +18,7 @@ import {
 	GetWebVitalsDocument,
 } from '@graph/hooks'
 import { ErrorInstance, OpenSearchCalendarInterval } from '@graph/schemas'
-import { ResourceLoadingError } from '@pages/Player/ResourcesContext/ResourcesContext'
+import { LoadingError } from '@pages/Player/ResourcesContext/ResourcesContext'
 import { indexedDBFetch, IndexedDBLink, isIndexedDBEnabled } from '@util/db'
 import { client } from '@util/graph'
 import log from '@util/log'
@@ -207,7 +207,7 @@ export const checkResourceLimit = async function (resources_url: string) {
 	const fileSize = Number(r.headers.get('Content-Length'))
 	if (fileSize > RESOURCE_FILE_SIZE_LIMIT_BYTES) {
 		return {
-			error: ResourceLoadingError.NetworkResourcesTooLarge,
+			error: LoadingError.NetworkResourcesTooLarge,
 			fileSize: fileSize,
 			sizeLimit: RESOURCE_FILE_SIZE_LIMIT_BYTES,
 		}
@@ -239,6 +239,15 @@ export const loadSession = async function (secureID: string) {
 			const limit = await checkResourceLimit(sess.resources_url)
 			if (!limit) {
 				for await (const _ of indexedDBFetch(sess.resources_url)) {
+				}
+			}
+		}
+		if (sess.timeline_indicators_url) {
+			const limit = await checkResourceLimit(sess.timeline_indicators_url)
+			if (!limit) {
+				for await (const _ of indexedDBFetch(
+					sess.timeline_indicators_url,
+				)) {
 				}
 			}
 		}

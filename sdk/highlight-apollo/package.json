@@ -26,6 +26,6 @@
 	},
 	"devDependencies": {
 		"tsup": "^6.6.3",
-		"typescript": "^4.9.5"
+		"typescript": "^5.0.4"
 	}
 }

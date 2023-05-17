@@ -29,8 +29,8 @@ import {
 import {
 	Box,
 	ButtonIcon,
+	getDefaultPresets,
 	IconSolidCheveronDown,
-	IconSolidClock,
 	IconSolidCloudUpload,
 	IconSolidDocumentDuplicate,
 	IconSolidLogout,
@@ -43,6 +43,7 @@ import {
 	IconSolidTrash,
 	IconSolidX,
 	Menu,
+	PreviousDateRangePicker,
 	Tag,
 	Text,
 	Tooltip,
@@ -909,68 +910,6 @@ const QueryRule = ({
 	)
 }
 
-export const TimeRangeFilter = ({
-	rule,
-	onChangeValue,
-	onReset,
-}: {
-	rule: RuleProps
-	onChangeValue: OnChange
-	onReset?: () => void
-}) => {
-	const { val: value } = rule
-	const [visible, setVisible] = useState(!value)
-	const onSetVisible = (val: boolean) => {
-		setVisible(val)
-	}
-
-	return (
-		<Box display="flex" gap="8" alignItems="center">
-			<Popover
-				showArrow={false}
-				trigger="click"
-				content={
-					<PopoutContent
-						value={value}
-						setVisible={onSetVisible}
-						type="date_range"
-						onChange={onChangeValue}
-						loadOptions={() => Promise.resolve([])}
-					/>
-				}
-				placement="bottomLeft"
-				contentContainerClassName={styles.contentContainer}
-				popoverClassName={styles.popoverContainer}
-				onVisibleChange={(isVisible) => {
-					setVisible(isVisible)
-				}}
-				visible={visible}
-				destroyTooltipOnHide
-			>
-				<Button
-					kind="secondary"
-					size="small"
-					emphasis="high"
-					iconLeft={<IconSolidClock size={14} />}
-					iconRight={<IconSolidCheveronDown size={14} />}
-					trackingId="searchTimeRangeFilterTooltipToggle"
-				/>
-			</Popover>
-			<Tag
-				kind="secondary"
-				emphasis="low"
-				shape="basic"
-				iconRight={!!onReset ? <IconSolidX size={12} /> : undefined}
-				onIconRightClick={!!onReset ? onReset : undefined}
-				onClick={() => setVisible((visible) => !visible)}
-				lines="1"
-			>
-				{value && value.options.length === 1 && value.options[0].label}
-			</Tag>
-		</Box>
-	)
-}
-
 const hasArguments = (op: Operator): boolean =>
 	!['exists', 'not_exists'].includes(op)
 
@@ -1315,6 +1254,12 @@ enum QueryBuilderMode {
 	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
 }
 
+const now = moment()
+const defaultMinDate = now.clone().subtract(90, 'days').toDate()
+const presetOptions = getDefaultPresets(now)
+
+const defaultPreset = presetOptions[5]
+
 function QueryBuilder(props: QueryBuilderProps) {
 	const {
 		searchContext,
@@ -1627,10 +1572,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 	})
 
 	const [currentRule, setCurrentRule] = useState<RuleProps | undefined>()
+	const [dateRange, setDateRange] = useState<Date[]>([
+		defaultPreset.startDate, // Start at 30days
+		new Date(now.toISOString()),
+	])
 	const defaultTimeRangeRule: RuleProps = useMemo(() => {
 		const period = {
-			label: 'Last 30 days',
-			value: '30 days',
+			label: defaultPreset.label, // Start at 30 days
+			value: `${defaultPreset.startDate.toISOString()}_${now.toISOString()}`, // Start at 30 days,
 		}
 
 		return {
@@ -2318,19 +2267,24 @@ function QueryBuilder(props: QueryBuilderProps) {
 				borderBottom="secondary"
 				cssClass={styles.controlBar}
 			>
-				<TimeRangeFilter
-					rule={timeRangeRule}
-					onChangeValue={(val) => updateRule(timeRangeRule, { val })}
-					onReset={
-						!readonly &&
-						timeRangeRule.val?.options[0].value !==
-							defaultTimeRangeRule.val?.options[0].value
-							? () =>
-									updateRule(timeRangeRule, {
-										val: defaultTimeRangeRule.val,
-									})
-							: undefined
-					}
+				<PreviousDateRangePicker
+					presets={presetOptions}
+					selectedDates={dateRange}
+					minDate={defaultMinDate}
+					onDatesChange={(dates: Date[]) => {
+						setDateRange(dates)
+						updateRule(timeRangeRule, {
+							val: {
+								kind: 'multi',
+								options: [
+									{
+										label: 'Date Range',
+										value: `${dates[0].toISOString()}_${dates[1].toISOString()}`,
+									},
+								],
+							} as MultiselectOption,
+						})
+					}}
 				/>
 				<Box marginLeft="auto" display="flex" gap="4">
 					{!readonly &&
@@ -2383,7 +2337,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 			</Box>
 		)
 	}, [
-		defaultTimeRangeRule.val,
 		isAnd,
 		readonly,
 		rules,
@@ -2393,6 +2346,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		timeRangeRule,
 		updateRule,
 		updateSerializedQuery,
+		dateRange,
 	])
 
 	const alteredSegmentSettings = useMemo(() => {

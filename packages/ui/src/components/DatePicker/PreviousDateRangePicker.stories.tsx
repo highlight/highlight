@@ -7,25 +7,26 @@ import { Stack } from '../Stack/Stack'
 import { Box } from '../Box/Box'
 import {
 	PreviousDateRangePicker,
-	makeDefaultPresets,
+	getDefaultPresets,
 } from './PreviousDateRangePicker'
 import { subtractDays, subtractHours } from './utils'
+import moment from 'moment'
 
 export default {
 	title: 'Components/DatePicker/PreviousDateRangePicker',
 	component: DatePicker,
 } as ComponentMeta<typeof DatePicker>
 
-const now = new Date()
+const now = moment()
 
-const defaultPresets = makeDefaultPresets(now)
+const defaultPresets = getDefaultPresets(now)
 
 export { subtractDays, subtractHours } from './utils'
 
 export const Basic = () => {
 	const [selectedDates, onDatesChange] = useState<Date[]>([
-		subtractHours(now, 4),
-		now,
+		subtractHours(now.toDate(), 4),
+		now.toDate(),
 	])
 
 	return (
@@ -48,7 +49,7 @@ export const Basic = () => {
 				selectedDates={selectedDates}
 				onDatesChange={onDatesChange}
 				presets={defaultPresets}
-				minDate={subtractDays(now, 90)}
+				minDate={subtractDays(now.toDate(), 90)}
 			/>
 		</div>
 	)

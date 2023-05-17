@@ -109,10 +109,9 @@ func (f *FilesystemClient) GetDirectDownloadURL(_ context.Context, projectId int
 }
 
 func (f *FilesystemClient) GetRawData(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType) (map[int]string, error) {
-	prefix := fmt.Sprintf("%s/raw-events/%d/%d", f.fsRoot, sessionId, projectId)
+	prefix := fmt.Sprintf("%s/raw-events/%d/%d", f.fsRoot, projectId, sessionId)
 	dir, err := os.ReadDir(prefix)
 	if err != nil {
-		log.WithContext(ctx).Warnf("error listing objects in fs: %s", err)
 		return make(map[int]string), nil
 	}
 	objects := lo.Filter(lo.Map(dir, func(t os.DirEntry, i int) string {
@@ -172,7 +171,7 @@ func (f *FilesystemClient) GetSourceMapUploadUrl(_ context.Context, key string) 
 	return fmt.Sprintf("%s/sourcemap-upload/%s", f.origin, key), nil
 }
 
-func (f *FilesystemClient) GetSourcemapFiles(ctx context.Context, projectId int, version *string) ([]s3Types.Object, error) {
+func (f *FilesystemClient) GetSourcemapFiles(_ context.Context, projectId int, version *string) ([]s3Types.Object, error) {
 	if version == nil || len(*version) == 0 {
 		// If no version is specified we put files in an "unversioned" directory.
 		version = pointy.String("unversioned")
@@ -180,7 +179,6 @@ func (f *FilesystemClient) GetSourcemapFiles(ctx context.Context, projectId int,
 
 	dir, err := os.ReadDir(fmt.Sprintf("%s/sourcemaps/%d/%s", f.fsRoot, projectId, *version))
 	if err != nil {
-		log.WithContext(ctx).Warnf("error listing objects in fs: %s", err)
 		return nil, nil
 	}
 	return lo.Map(dir, func(t os.DirEntry, i int) s3Types.Object {
@@ -190,10 +188,9 @@ func (f *FilesystemClient) GetSourcemapFiles(ctx context.Context, projectId int,
 	}), nil
 }
 
-func (f *FilesystemClient) GetSourcemapVersions(ctx context.Context, projectId int) ([]string, error) {
+func (f *FilesystemClient) GetSourcemapVersions(_ context.Context, projectId int) ([]string, error) {
 	dir, err := os.ReadDir(fmt.Sprintf("%s/sourcemaps/%d", f.fsRoot, projectId))
 	if err != nil {
-		log.WithContext(ctx).Warnf("error listing objects in fs: %s", err)
 		return nil, nil
 	}
 	return lo.Map(dir, func(t os.DirEntry, i int) string {
@@ -240,7 +237,7 @@ func (f *FilesystemClient) PushRawEvents(ctx context.Context, sessionId, project
 		return errors.Wrap(err, "error encoding gob")
 	}
 
-	key := fmt.Sprintf("%s/raw-events/%d/%d/%v-%s", f.fsRoot, sessionId, projectId, payloadType, uuid.New().String())
+	key := fmt.Sprintf("%s/raw-events/%d/%d/%v-%s", f.fsRoot, projectId, sessionId, payloadType, uuid.New().String())
 	_, err := f.writeFSBytes(ctx, key, buf)
 	return err
 }
@@ -307,7 +304,7 @@ func (f *FilesystemClient) UploadAsset(ctx context.Context, uuid, _ string, read
 }
 
 func (f *FilesystemClient) readCompressed(ctx context.Context, sessionId int, projectId int, t PayloadType, results interface{}) error {
-	key := fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, sessionId, projectId, t)
+	key := fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, projectId, sessionId, t)
 	if _, err := os.Stat(key); err != nil {
 		log.WithContext(ctx).Warnf("file %s does not exist", key)
 		return nil

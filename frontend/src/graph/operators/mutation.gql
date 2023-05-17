@@ -37,13 +37,33 @@ mutation CreateOrUpdateStripeSubscription(
 	)
 }
 
+mutation SaveBillingPlan(
+	$workspace_id: ID!
+	$sessionsLimitCents: Int
+	$sessionsRetention: RetentionPeriod!
+	$errorsLimitCents: Int
+	$errorsRetention: RetentionPeriod!
+	$logsLimitCents: Int
+	$logsRetention: RetentionPeriod!
+) {
+	saveBillingPlan(
+		workspace_id: $workspace_id
+		sessionsLimitCents: $sessionsLimitCents
+		sessionsRetention: $sessionsRetention
+		errorsLimitCents: $errorsLimitCents
+		errorsRetention: $errorsRetention
+		logsLimitCents: $logsLimitCents
+		logsRetention: $logsRetention
+	)
+}
+
 mutation UpdateBillingDetails($workspace_id: ID!) {
 	updateBillingDetails(workspace_id: $workspace_id)
 }
 
 mutation updateErrorGroupState(
 	$secure_id: String!
-	$state: String!
+	$state: ErrorState!
 	$snoozed_until: Timestamp
 ) {
 	updateErrorGroupState(

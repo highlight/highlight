@@ -126,7 +126,7 @@ const ProjectPicker = () => {
 										</Menu.Item>
 									</Link>
 									<Link
-										to={`/${projectId}/settings/recording`}
+										to={`/${projectId}/settings/sessions`}
 										className={linkStyle}
 									>
 										<Menu.Item>

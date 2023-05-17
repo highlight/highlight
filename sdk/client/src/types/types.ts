@@ -258,9 +258,13 @@ interface SessionFeedbackOptions {
 	timestampOverride?: string
 }
 
-interface StartOptions {
+export interface StartOptions {
 	/**
 	 * Specifies whether console warn messages should not be created.
 	 */
 	silent?: boolean
+	/**
+	 * Starts a new recording session even if one was stopped recently.
+	 */
+	forceNew?: boolean
 }
