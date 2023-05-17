@@ -2,12 +2,12 @@ import * as esbuild from 'esbuild'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 
-export const run = async () => {
+export const run = async ({ rootDirectory }) => {
 	const args = process.argv.slice(2)
 	const watch = args.includes('--watch') || args.includes('-w')
 
-	const packageDirectory = '../node_modules/@highlight-run/rrweb'
-	const packageDirectoryTypes = '../node_modules/@highlight-run/rrweb-types'
+	const packageDirectory = path.join(rootDirectory, '../node_modules/@highlight-run/rrweb')
+	const packageDirectoryTypes = path.join(rootDirectory, '../node_modules/@highlight-run/rrweb-types')
 	const packageJson = JSON.parse(
 		fs.readFileSync(path.join(packageDirectory, 'package.json')),
 	)
@@ -34,7 +34,7 @@ export const run = async () => {
 		sourcemap: false,
 		format: 'esm',
 		platform: 'browser',
-		outdir: 'src/__generated/rr',
+		outdir: path.join(rootDirectory, 'src/__generated/rr'),
 		minify: true,
 		target: 'esnext',
 		// external: Object.keys(packageJson.dependencies).concat(

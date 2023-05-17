@@ -4,13 +4,13 @@ import * as fs from 'node:fs'
 import * as path_ from 'node:path'
 import readdirp from 'readdirp'
 
-export const run = async () => {
+export const run = async ({ rootDirectory }) => {
 	const args = process.argv.slice(2)
 	const watch = args.includes('--watch') || args.includes('-w')
 
 	const watchedFiles = ['**/**.svg']
 
-	const workingDirectory = path_.join(process.cwd(), './src')
+	const workingDirectory = path_.join(rootDirectory, './src')
 	const outputDirectory = path_.join(workingDirectory, '__generated/svgr')
 
 	// uncomment for cleanup
