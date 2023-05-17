@@ -27,6 +27,7 @@ import (
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	dd "github.com/highlight-run/highlight/backend/datadog"
+	"github.com/highlight-run/highlight/backend/filtering"
 	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 	"github.com/highlight-run/highlight/backend/integrations"
@@ -39,7 +40,6 @@ import (
 	"github.com/highlight-run/highlight/backend/phonehome"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
-	"github.com/highlight-run/highlight/backend/projectfilters"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -635,6 +635,6 @@ func main() {
 
 func initRepositories(db *gorm.DB) *private.Repositories {
 	return &private.Repositories{
-		ProjectFilters: projectfilters.NewRepository(db),
+		ProjectFilters: filtering.NewRepository(db),
 	}
 }

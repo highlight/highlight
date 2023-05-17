@@ -16,8 +16,8 @@ import (
 	"time"
 
 	github2 "github.com/google/go-github/v50/github"
+	"github.com/highlight-run/highlight/backend/filtering"
 	"github.com/highlight-run/highlight/backend/integrations/github"
-	"github.com/highlight-run/highlight/backend/projectfilters"
 
 	"gorm.io/gorm/clause"
 
@@ -113,7 +113,7 @@ var PromoCodes = map[string]PromoCode{
 
 // Repositories contains all the repo structs
 type Repositories struct {
-	ProjectFilters *projectfilters.ProjectFiltersRepository
+	ProjectFilters *filtering.ProjectFiltersRepository
 }
 
 type Resolver struct {

@@ -31,6 +31,7 @@ import (
 	"github.com/highlight-run/highlight/backend/clickup"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/errorgroups"
+	"github.com/highlight-run/highlight/backend/filtering"
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/integrations/height"
@@ -41,7 +42,6 @@ import (
 	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/projectfilters"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
@@ -586,12 +586,12 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 }
 
 // EditProjectFilterSettings is the resolver for the editProjectFilterSettings field.
-func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projectID int, filterSessionsWithoutError bool) (*projectfilters.ProjectFilterSettings, error) {
+func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projectID int, filterSessionsWithoutError bool) (*filtering.ProjectFilterSettings, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
-	updates := projectfilters.ProjectFilterSettings{
+	updates := filtering.ProjectFilterSettings{
 		FilterSessionsWithoutError: filterSessionsWithoutError,
 	}
 
@@ -6391,7 +6391,7 @@ func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, er
 }
 
 // ProjectFilterSettings is the resolver for the project_filter_settings field.
-func (r *queryResolver) ProjectFilterSettings(ctx context.Context, projectID int) (*projectfilters.ProjectFilterSettings, error) {
+func (r *queryResolver) ProjectFilterSettings(ctx context.Context, projectID int) (*filtering.ProjectFilterSettings, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err

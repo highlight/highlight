@@ -1,4 +1,4 @@
-package projectfilters
+package filtering
 
 import (
 	"github.com/highlight-run/highlight/backend/model"
