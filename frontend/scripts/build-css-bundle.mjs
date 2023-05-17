@@ -98,6 +98,10 @@ export const run = async ({ rootDirectory }) => {
 				pkg,
 				`${pkg}/*`,
 			]),
+			...Object.keys(packageJson.devDependencies).flatMap((pkg) => [
+				pkg,
+				`${pkg}/*`,
+			]),
 		],
 		write: false,
 		logLevel: 'error',
