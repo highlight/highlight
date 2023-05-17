@@ -10,7 +10,6 @@ import {
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
 import { Box, Heading, Stack, Text } from '@highlight-run/ui'
-import { ApplicationContextProvider } from '@routers/AppRouter/context/ApplicationContext'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
 import { useDialogState } from 'ariakit/dialog'
@@ -19,6 +18,7 @@ import { useEffect } from 'react'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import { Header } from '@/components/Header/Header'
+import LeadAlignLayout from '@/components/layout/LeadAlignLayout'
 
 const OptInRow = (
 	label: string,
@@ -183,31 +183,20 @@ export const EmailOptOutPage = () => {
 	const commandBarDialog = useDialogState()
 
 	return (
-		<ApplicationContextProvider
+		<GlobalContextProvider
 			value={{
-				currentProject: undefined,
-				allProjects: [],
-				currentWorkspace: undefined,
-				workspaces: [],
+				showKeyboardShortcutsGuide: false,
+				toggleShowKeyboardShortcutsGuide: () => {},
+				showBanner: false,
+				toggleShowBanner: () => {},
+				commandBarDialog,
 			}}
 		>
-			<GlobalContextProvider
-				value={{
-					showKeyboardShortcutsGuide: false,
-					toggleShowKeyboardShortcutsGuide: () => {},
-					showBanner: false,
-					toggleShowBanner: () => {},
-					commandBarDialog,
-				}}
-			>
-				<div>
-					<Header />
-					<div>
-						<h1>Email Settings</h1>
-						<EmailOptOutPanel token={token} admin_id={admin_id} />
-					</div>
-				</div>
-			</GlobalContextProvider>
-		</ApplicationContextProvider>
+			<Header />
+			<LeadAlignLayout>
+				<h1>Email Settings</h1>
+				<EmailOptOutPanel token={token} admin_id={admin_id} />
+			</LeadAlignLayout>
+		</GlobalContextProvider>
 	)
 }

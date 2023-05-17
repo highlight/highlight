@@ -17,6 +17,7 @@ import RegistrationForm from '@pages/RegistrationForm/RegistrationForm'
 import SwitchProject from '@pages/SwitchProject/SwitchProject'
 import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace'
 import useLocalStorage from '@rehooks/local-storage'
+import { ApplicationContextProvider } from '@routers/AppRouter/context/ApplicationContext'
 import InternalRouter from '@routers/InternalRouter/InternalRouter'
 import { DefaultWorkspaceRouter } from '@routers/ProjectRouter/DefaultWorkspaceRouter'
 import { ProjectRedirectionRouter } from '@routers/ProjectRouter/ProjectRedirectionRouter'
@@ -40,7 +41,6 @@ import {
 	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { ApplicationContextProvider } from '@routers/AppRouter/context/ApplicationContext'
 import {
 	useGetProjectDropdownOptionsQuery,
 	useGetWorkspaceDropdownOptionsQuery,
@@ -83,14 +83,11 @@ export const AppRouter = () => {
 	useEffect(() => {
 		if (projectDropdownData) {
 			setProjectListData(projectDropdownData)
-		}
-	}, [projectDropdownData])
-
-	useEffect(() => {
-		if (workspaceDropdownData) {
+		} else if (workspaceDropdownData) {
 			setWorkspaceListData(workspaceDropdownData)
+			setProjectListData(undefined)
 		}
-	}, [workspaceDropdownData])
+	}, [workspaceDropdownData, projectDropdownData])
 
 	useEffect(() => {
 		if (workspaceInviteMatch?.params.invite) {
