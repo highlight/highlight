@@ -159,6 +159,7 @@ const ERROR_EVENT_MAX_LENGTH = 10000
 const SESSION_FIELD_MAX_LENGTH = 2000
 
 var ErrNoisyError = e.New("Filtering out noisy error")
+var ErrQuotaExceeded = e.New(string(publicModel.PublicGraphErrorBillingQuotaExceeded))
 
 // metrics that should be stored in postgres for session lookup
 var MetricCategoriesForDB = map[string]bool{"Device": true, "WebVital": true}
@@ -712,7 +713,7 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 }
 
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
-func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
+func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, fields []*model.ErrorField, projectID int, workspace *model.Workspace) (*model.ErrorGroup, error) {
 	if errorObj == nil {
 		return nil, e.New("error object was nil")
 	}
@@ -771,6 +772,23 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			errorObj.Event == `["\"Bad HTTP status: 0 \""]` {
 			return nil, ErrNoisyError
 		}
+	}
+
+	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, pricing.ProductTypeErrors, workspace, time.Now())
+	go func() {
+		defer util.Recover()
+		if quotaPercent >= 1 {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage100Percent, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+			}
+		} else if quotaPercent >= .8 {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage80Percent, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+			}
+		}
+	}()
+	if !withinBillingQuota {
+		return nil, ErrQuotaExceeded
 	}
 
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
@@ -1145,13 +1163,11 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	}
 
 	// determine if session is within billing quota
-	withinBillingQuota, quotaPercent := r.isWithinBillingQuota(ctx, project, workspace, time.Now())
+	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, pricing.ProductTypeSessions, workspace, *session.PayloadUpdatedAt)
 	setupSpan.Finish()
 
-	if !withinBillingQuota {
-		if err := r.Redis.SetBillingQuotaExceeded(ctx, projectID); err != nil {
-			return nil, e.Wrap(err, "error setting billing quota exceeded")
-		}
+	if err := r.Redis.SetBillingQuotaExceeded(ctx, projectID, pricing.ProductTypeSessions, !withinBillingQuota); err != nil {
+		return nil, e.Wrap(err, "error setting billing quota exceeded")
 	}
 
 	// Get the user's ip, get geolocation data
@@ -1257,15 +1273,13 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 			return
 		}
 
-		if workspace.PlanTier != privateModel.PlanTypeFree.String() && workspace.AllowMeterOverage {
-			if quotaPercent >= 1 {
-				if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace); err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
-				}
-			} else if quotaPercent >= .8 {
-				if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage80Percent, workspace); err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
-				}
+		if quotaPercent >= 1 {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+			}
+		} else if quotaPercent >= .8 {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage80Percent, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		}
 
@@ -1812,7 +1826,66 @@ func (r *Resolver) getProject(projectID int) (*model.Project, error) {
 	return &project, nil
 }
 
-func (r *Resolver) isWithinBillingQuota(ctx context.Context, project *model.Project, workspace *model.Workspace, now time.Time) (bool, float64) {
+var productTypeToQuotaConfig = map[pricing.ProductType]struct {
+	maxCostCents    func(*model.Workspace) *int
+	meter           func(context.Context, *gorm.DB, *clickhouse.Client, *model.Workspace) (int64, error)
+	retentionPeriod func(*model.Workspace) privateModel.RetentionPeriod
+	included        func(*model.Workspace) int64
+}{
+	pricing.ProductTypeSessions: {
+		func(w *model.Workspace) *int { return w.SessionsMaxCents },
+		pricing.GetWorkspaceSessionsMeter,
+		func(w *model.Workspace) privateModel.RetentionPeriod {
+			if w.RetentionPeriod == nil {
+				return privateModel.RetentionPeriodThreeMonths
+			}
+			return *w.RetentionPeriod
+		},
+		func(w *model.Workspace) int64 {
+			limit := pricing.TypeToSessionsLimit(privateModel.PlanType(w.PlanTier))
+			if w.MonthlySessionLimit != nil {
+				limit = *w.MonthlySessionLimit
+			}
+			return int64(limit)
+		},
+	},
+	pricing.ProductTypeErrors: {
+		func(w *model.Workspace) *int { return w.ErrorsMaxCents },
+		pricing.GetWorkspaceSessionsMeter,
+		func(w *model.Workspace) privateModel.RetentionPeriod {
+			if w.ErrorsRetentionPeriod == nil {
+				return privateModel.RetentionPeriodThreeMonths
+			}
+			return *w.ErrorsRetentionPeriod
+		},
+		func(w *model.Workspace) int64 {
+			limit := pricing.TypeToErrorsLimit(privateModel.PlanType(w.PlanTier))
+			if w.MonthlyErrorsLimit != nil {
+				limit = *w.MonthlyErrorsLimit
+			}
+			return int64(limit)
+		},
+	},
+	pricing.ProductTypeLogs: {
+		func(w *model.Workspace) *int { return w.LogsMaxCents },
+		pricing.GetWorkspaceLogsMeter,
+		func(w *model.Workspace) privateModel.RetentionPeriod {
+			return privateModel.RetentionPeriodThirtyDays
+		},
+		func(w *model.Workspace) int64 {
+			limit := pricing.TypeToLogsLimit(privateModel.PlanType(w.PlanTier))
+			if w.MonthlyLogsLimit != nil {
+				limit = *w.MonthlyLogsLimit
+			}
+			return int64(limit)
+		},
+	},
+}
+
+func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.ProductType, workspace *model.Workspace, now time.Time) (bool, float64) {
+	if workspace == nil {
+		return true, 0
+	}
 	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(now) {
 		return true, 0
 	}
@@ -1820,26 +1893,40 @@ func (r *Resolver) isWithinBillingQuota(ctx context.Context, project *model.Proj
 		return true, 0
 	}
 
-	var quota int
 	stripePlan := privateModel.PlanType(workspace.PlanTier)
-	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
-		quota = *workspace.MonthlySessionLimit
-	} else {
-		quota = pricing.TypeToSessionsLimit(stripePlan)
+
+	cfg := productTypeToQuotaConfig[productType]
+
+	maxCostCents := cfg.maxCostCents(workspace)
+	if stripePlan == privateModel.PlanTypeFree {
+		maxCostCents = pointy.Int(0)
 	}
 
-	monthToDateSessionCount, err := pricing.GetWorkspaceSessionsMeter(r.DB, workspace.ID)
+	if maxCostCents == nil {
+		return true, 0
+	}
+
+	meter, err := cfg.meter(ctx, r.DB, r.Clickhouse, workspace)
 	if err != nil {
-		log.WithContext(ctx).Warn(fmt.Sprintf("error getting sessions meter for workspace %d", workspace.ID))
+		log.WithContext(ctx).Warn(fmt.Sprintf("error getting %s meter for workspace %d", productType, workspace.ID))
 	}
 
-	quotaPercent := float64(monthToDateSessionCount) / float64(quota)
-	// If the workspace is not on the free plan and overage is allowed
-	if stripePlan != privateModel.PlanTypeFree && workspace.AllowMeterOverage {
-		return true, quotaPercent
+	includedQuantity := cfg.included(workspace)
+	if includedQuantity >= meter {
+		return true, 0
 	}
 
-	return quotaPercent < 1, quotaPercent
+	if *maxCostCents == 0 {
+		return false, 1
+	}
+
+	retentionPeriod := cfg.retentionPeriod(workspace)
+	overage := meter - includedQuantity
+	cost := float64(overage) *
+		pricing.ProductToBasePriceCents(productType) *
+		pricing.RetentionMultiplier(retentionPeriod)
+
+	return cost >= float64(*maxCostCents), cost / float64(*maxCostCents)
 }
 
 func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorObject *model.ErrorObject, visitedUrl string) {
@@ -2223,6 +2310,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).WithError(err).WithField("project", project).WithField("projectVerboseID", projectVerboseID).Error("failed to find project")
 	}
 
+	workspace, err := r.getWorkspace(project.WorkspaceID)
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
+	}
+
 	// Filter out empty errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
@@ -2292,9 +2384,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			}
 		}
 
-		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID)
+		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)
 		if err != nil {
 			if e.Is(err, ErrNoisyError) {
+				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
+			} else if e.Is(err, ErrQuotaExceeded) {
 				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
 			} else {
 				log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))
@@ -2718,6 +2812,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
 			return e.Wrap(err, "error querying project")
 		}
+		workspace, err := r.getWorkspace(project.WorkspaceID)
+		if err != nil {
+			return e.Wrap(err, "error querying workspace")
+		}
 
 		// filter out empty errors
 		seenEvents := map[string]*publicModel.ErrorObjectInput{}
@@ -2782,10 +2880,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 			errorToInsert.MappedStackTrace = mappedStackTrace
 
-			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(sessionObj, errorToInsert), projectID)
+			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(sessionObj, errorToInsert), projectID, workspace)
 
 			if err != nil {
 				if e.Is(err, ErrNoisyError) {
+					log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
+				} else if e.Is(err, ErrQuotaExceeded) {
 					log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
 				} else {
 					log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))

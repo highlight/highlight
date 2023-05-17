@@ -219,7 +219,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					t.Fatal(e.Wrap(err, "error making mapped stacktrace"))
 				}
 
-				errorGroup, err := r.HandleErrorAndGroup(context.TODO(), &errorObj, structuredStackTrace, nil, 1)
+				errorGroup, err := r.HandleErrorAndGroup(context.TODO(), &errorObj, structuredStackTrace, nil, 1, nil)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error handling error and group"))
 				}
@@ -261,7 +261,7 @@ func TestMatchErrorsWithSameTracesDifferentBodies(t *testing.T) {
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup1, err := r.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, 1)
+		errorGroup1, err := r.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, 1, nil)
 		assert.NoError(t, err)
 
 		errorObject = model.ErrorObject{
@@ -270,7 +270,7 @@ func TestMatchErrorsWithSameTracesDifferentBodies(t *testing.T) {
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup2, err := r.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, 1)
+		errorGroup2, err := r.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, 1, nil)
 		assert.NoError(t, err)
 
 		assert.Equal(t, errorGroup1.ID, errorGroup2.ID, "should return the same error group id")

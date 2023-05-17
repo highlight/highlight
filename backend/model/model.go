@@ -268,6 +268,10 @@ type Workspace struct {
 	MonthlyErrorsLimit          *int
 	MonthlyLogsLimit            *int
 	RetentionPeriod             *modelInputs.RetentionPeriod
+	ErrorsRetentionPeriod       *modelInputs.RetentionPeriod
+	SessionsMaxCents            *int
+	ErrorsMaxCents              *int
+	LogsMaxCents                *int
 	TrialEndDate                *time.Time `json:"trial_end_date"`
 	AllowMeterOverage           bool       `gorm:"default:true"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
@@ -1779,7 +1783,7 @@ func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *send
 
 	errors := []string{}
 	for _, toAddr := range toAddrs {
-		err := Email.SendBillingNotificationEmail(ctx, mailClient, emailType, workspace.ID, workspace.Name, toAddr.Email, toAddr.AdminID)
+		err := Email.SendBillingNotificationEmail(ctx, mailClient, workspace.ID, workspace.Name, workspace.RetentionPeriod, emailType, toAddr.Email, toAddr.AdminID)
 		if err != nil {
 			errors = append(errors, err.Error())
 		}

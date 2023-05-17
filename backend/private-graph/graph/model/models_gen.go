@@ -69,12 +69,17 @@ type AverageSessionLength struct {
 }
 
 type BillingDetails struct {
-	Plan               *Plan `json:"plan"`
-	Meter              int64 `json:"meter"`
-	MembersMeter       int64 `json:"membersMeter"`
-	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
-	ErrorsMeter        int64 `json:"errorsMeter"`
-	LogsMeter          int64 `json:"logsMeter"`
+	Plan                 *Plan   `json:"plan"`
+	Meter                int64   `json:"meter"`
+	MembersMeter         int64   `json:"membersMeter"`
+	ErrorsMeter          int64   `json:"errorsMeter"`
+	LogsMeter            int64   `json:"logsMeter"`
+	SessionsDailyAverage float64 `json:"sessionsDailyAverage"`
+	ErrorsDailyAverage   float64 `json:"errorsDailyAverage"`
+	LogsDailyAverage     float64 `json:"logsDailyAverage"`
+	SessionsBillingLimit *int64  `json:"sessionsBillingLimit"`
+	ErrorsBillingLimit   *int64  `json:"errorsBillingLimit"`
+	LogsBillingLimit     *int64  `json:"logsBillingLimit"`
 }
 
 type CategoryHistogramBucket struct {
@@ -1276,6 +1281,7 @@ const (
 	PlanTypeBasic      PlanType = "Basic"
 	PlanTypeStartup    PlanType = "Startup"
 	PlanTypeEnterprise PlanType = "Enterprise"
+	PlanTypeUsageBased PlanType = "UsageBased"
 )
 
 var AllPlanType = []PlanType{
@@ -1284,11 +1290,12 @@ var AllPlanType = []PlanType{
 	PlanTypeBasic,
 	PlanTypeStartup,
 	PlanTypeEnterprise,
+	PlanTypeUsageBased,
 }
 
 func (e PlanType) IsValid() bool {
 	switch e {
-	case PlanTypeFree, PlanTypeLite, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise:
+	case PlanTypeFree, PlanTypeLite, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise, PlanTypeUsageBased:
 		return true
 	}
 	return false
@@ -1413,6 +1420,7 @@ func (e ReservedLogKey) MarshalGQL(w io.Writer) {
 type RetentionPeriod string
 
 const (
+	RetentionPeriodThirtyDays   RetentionPeriod = "ThirtyDays"
 	RetentionPeriodThreeMonths  RetentionPeriod = "ThreeMonths"
 	RetentionPeriodSixMonths    RetentionPeriod = "SixMonths"
 	RetentionPeriodTwelveMonths RetentionPeriod = "TwelveMonths"
@@ -1420,6 +1428,7 @@ const (
 )
 
 var AllRetentionPeriod = []RetentionPeriod{
+	RetentionPeriodThirtyDays,
 	RetentionPeriodThreeMonths,
 	RetentionPeriodSixMonths,
 	RetentionPeriodTwelveMonths,
@@ -1428,7 +1437,7 @@ var AllRetentionPeriod = []RetentionPeriod{
 
 func (e RetentionPeriod) IsValid() bool {
 	switch e {
-	case RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears:
+	case RetentionPeriodThirtyDays, RetentionPeriodThreeMonths, RetentionPeriodSixMonths, RetentionPeriodTwelveMonths, RetentionPeriodTwoYears:
 		return true
 	}
 	return false

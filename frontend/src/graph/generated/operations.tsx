@@ -59,6 +59,21 @@ export type CreateOrUpdateStripeSubscriptionMutation = {
 	__typename?: 'Mutation'
 } & Pick<Types.Mutation, 'createOrUpdateStripeSubscription'>
 
+export type SaveBillingPlanMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	sessionsLimitCents?: Types.Maybe<Types.Scalars['Int']>
+	sessionsRetention: Types.RetentionPeriod
+	errorsLimitCents?: Types.Maybe<Types.Scalars['Int']>
+	errorsRetention: Types.RetentionPeriod
+	logsLimitCents?: Types.Maybe<Types.Scalars['Int']>
+	logsRetention: Types.RetentionPeriod
+}>
+
+export type SaveBillingPlanMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'saveBillingPlan'
+>
+
 export type UpdateBillingDetailsMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 }>
@@ -2586,7 +2601,9 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 			| 'membersMeter'
 			| 'errorsMeter'
 			| 'logsMeter'
-			| 'sessionsOutOfQuota'
+			| 'sessionsBillingLimit'
+			| 'errorsBillingLimit'
+			| 'logsBillingLimit'
 		> & {
 				plan: { __typename?: 'Plan' } & Pick<
 					Types.Plan,
@@ -2620,7 +2637,16 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 	billingDetails: { __typename?: 'BillingDetails' } & Pick<
 		Types.BillingDetails,
-		'meter' | 'membersMeter' | 'errorsMeter' | 'logsMeter'
+		| 'meter'
+		| 'membersMeter'
+		| 'errorsMeter'
+		| 'logsMeter'
+		| 'sessionsBillingLimit'
+		| 'errorsBillingLimit'
+		| 'logsBillingLimit'
+		| 'sessionsDailyAverage'
+		| 'errorsDailyAverage'
+		| 'logsDailyAverage'
 	> & {
 			plan: { __typename?: 'Plan' } & Pick<
 				Types.Plan,
@@ -2630,6 +2656,22 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 				| 'membersLimit'
 				| 'errorsLimit'
 				| 'logsLimit'
+			>
+		}
+	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
+		Types.SubscriptionDetails,
+		'baseAmount' | 'discountAmount' | 'discountPercent'
+	> & {
+			lastInvoice?: Types.Maybe<
+				{ __typename?: 'Invoice' } & Pick<
+					Types.Invoice,
+					| 'amountDue'
+					| 'amountPaid'
+					| 'attemptCount'
+					| 'date'
+					| 'url'
+					| 'status'
+				>
 			>
 		}
 	workspace?: Types.Maybe<
@@ -2642,6 +2684,10 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 			| 'allow_meter_overage'
 			| 'eligible_for_trial_extension'
 			| 'retention_period'
+			| 'errors_retention_period'
+			| 'sessions_max_cents'
+			| 'errors_max_cents'
+			| 'logs_max_cents'
 		>
 	>
 }
@@ -4403,6 +4449,7 @@ export const namedOperations = {
 		MuteSessionCommentThread: 'MuteSessionCommentThread' as const,
 		CreateOrUpdateStripeSubscription:
 			'CreateOrUpdateStripeSubscription' as const,
+		SaveBillingPlan: 'SaveBillingPlan' as const,
 		UpdateBillingDetails: 'UpdateBillingDetails' as const,
 		updateErrorGroupState: 'updateErrorGroupState' as const,
 		SendEmailSignup: 'SendEmailSignup' as const,

@@ -6,7 +6,11 @@ import ProjectPicker from '@components/Header/components/ProjectPicker/ProjectPi
 import { linkStyle } from '@components/Header/styles.css'
 import { OpenCommandBarShortcut } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import { LinkButton } from '@components/LinkButton'
-import { useGetBillingDetailsForProjectQuery } from '@graph/hooks'
+import {
+	useGetBillingDetailsForProjectQuery,
+	useGetProjectQuery,
+	useGetSubscriptionDetailsQuery,
+} from '@graph/hooks'
 import { Maybe, PlanType, ProductType, Project } from '@graph/schemas'
 import {
 	Badge,
@@ -39,7 +43,6 @@ import { vars } from '@highlight-run/ui/src/css/vars'
 import { useProjectId } from '@hooks/useProjectId'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
-import { useBillingHook } from '@pages/Billing/Billing'
 import {
 	getQuotaPercents,
 	getTrialEndDateMessage,
@@ -67,6 +70,47 @@ import styles from './Header.module.scss'
 
 type Props = {
 	fullyIntegrated?: boolean
+}
+
+export const useBillingHook = ({
+	workspace_id,
+	project_id,
+}: {
+	workspace_id?: string
+	project_id?: string
+}) => {
+	const { isAuthLoading, isLoggedIn } = useAuthContext()
+	const { data: projectData } = useGetProjectQuery({
+		variables: { id: project_id || '' },
+		skip: !project_id?.length || !!workspace_id?.length,
+	})
+
+	const {
+		loading: subscriptionLoading,
+		data: subscriptionData,
+		refetch: refetchSubscription,
+	} = useGetSubscriptionDetailsQuery({
+		variables: {
+			workspace_id: workspace_id || projectData?.workspace?.id || '',
+		},
+		skip:
+			isAuthLoading ||
+			!isLoggedIn ||
+			(!workspace_id?.length && !projectData?.workspace?.id),
+	})
+
+	return {
+		loading: subscriptionLoading,
+		subscriptionData: subscriptionData,
+		refetchSubscription: refetchSubscription,
+		issues:
+			!subscriptionLoading &&
+			subscriptionData?.subscription_details.lastInvoice?.status
+				?.length &&
+			!['paid', 'void', 'draft'].includes(
+				subscriptionData.subscription_details.lastInvoice.status,
+			),
+	}
 }
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
