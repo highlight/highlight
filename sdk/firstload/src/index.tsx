@@ -261,7 +261,7 @@ const H: HighlightPublicInterface = {
 			if (highlight_obj?.state === 'Recording') {
 				if (!options?.silent) {
 					console.warn(
-						'You cannot called `start()` again. The session is already being recorded.',
+						'Highlight is already recording. Please `H.stop()` the current session before starting a new one.',
 					)
 				}
 				return
@@ -270,7 +270,7 @@ const H: HighlightPublicInterface = {
 				var interval = setInterval(function () {
 					if (highlight_obj) {
 						clearInterval(interval)
-						highlight_obj.initialize()
+						highlight_obj.initialize(options)
 					}
 				}, 200)
 			}

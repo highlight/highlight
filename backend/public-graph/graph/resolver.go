@@ -1105,7 +1105,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	}
 
 	deviceDetails := GetDeviceDetails(input.UserAgent)
-	n := time.Now()
 	excludedReason := privateModel.SessionExcludedReasonInitializing
 	session := &model.Session{
 		SecureID: input.SessionSecureID,
@@ -1122,7 +1121,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		WithinBillingQuota:             &model.T,
 		Processed:                      &model.F,
 		Viewed:                         &model.F,
-		PayloadUpdatedAt:               &n,
 		EnableStrictPrivacy:            &input.EnableStrictPrivacy,
 		EnableRecordingNetworkContents: &input.EnableRecordingNetworkContents,
 		FirstloadVersion:               input.FirstloadVersion,
@@ -1147,7 +1145,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	}
 
 	// determine if session is within billing quota
-	withinBillingQuota, quotaPercent := r.isWithinBillingQuota(ctx, project, workspace, *session.PayloadUpdatedAt)
+	withinBillingQuota, quotaPercent := r.isWithinBillingQuota(ctx, project, workspace, time.Now())
 	setupSpan.Finish()
 
 	if !withinBillingQuota {
@@ -2330,13 +2328,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 	}
 	influxSpan.Finish()
-
-	now := time.Now()
-	if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", sessionSecureID).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "error updating session payload time"))
-		putErrorsToDBSpan.Finish(tracer.WithError(err))
-		return
-	}
 	putErrorsToDBSpan.Finish()
 }
 

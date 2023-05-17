@@ -203,3 +203,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Patch Changes
 
 - Fixes to umd format
+
+## 6.5.0
+
+### Minor Changes
+
+- Adds an `H.start({forceNew: true})` option that allows forcing the start of a new session recording.
