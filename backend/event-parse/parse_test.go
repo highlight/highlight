@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
@@ -228,7 +229,7 @@ func TestSnapshot_ReplaceAssets(t *testing.T) {
 	if storageClient, err = storage.NewFSClient(ctx, "https://test.highlight.io", "/tmp/test"); err != nil {
 		log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
 	}
-	if err := snapshot.ReplaceAssets(ctx, 1, storageClient, DB); err != nil {
+	if err := snapshot.ReplaceAssets(ctx, 1, storageClient, DB, redis.NewClient()); err != nil {
 		t.Fatalf("failed to replace assets %+v", err)
 	}
 
@@ -237,10 +238,12 @@ func TestSnapshot_ReplaceAssets(t *testing.T) {
 		t.Fatalf("failed to fetch assets %+v", err)
 	}
 
+	// broken asset "https://static.highlight.io/dev/test.mp4?AWSAccessKeyId=asdffdsa1234"
+	// should not be stored
 	assert.Equal(t, 2, len(assets))
 	for _, exp := range []string{
 		"https://static.highlight.io/dev/BigBuckBunny.mp4?AWSAccessKeyId=asdffdsa1234",
-		"https://static.highlight.io/dev/test.mp4?AWSAccessKeyId=asdffdsa1234",
+		"https://static.highlight.io/v6.2.0/index.js",
 	} {
 		matched := false
 		for _, asset := range assets {

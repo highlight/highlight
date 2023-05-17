@@ -280,6 +280,10 @@ slug: client
       <article className="innerParameterContainer">
         <aside className="innerParameterHeading">options properties</aside>
         <aside className="parameter">
+          <h5>forceNew <code>boolean</code> <code>optional</code></h5>
+          <p>Setting this option will start a new recording session.</p>
+        </aside>
+        <aside className="parameter">
           <h5>silent <code>boolean</code> <code>optional</code></h5>
           <p>Specifies whether console.warn messages created in this method should be skipped.</p>
         </aside>

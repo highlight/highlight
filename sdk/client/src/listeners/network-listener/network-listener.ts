@@ -12,6 +12,7 @@ type NetworkListenerArguments = {
 	xhrCallback: NetworkListenerCallback
 	fetchCallback: NetworkListenerCallback
 	headersToRedact: string[]
+	bodyKeysToRedact: string[]
 	backendUrl: string
 	tracingOrigins: boolean | (string | RegExp)[]
 	urlBlocklist: string[]
@@ -22,6 +23,7 @@ export const NetworkListener = ({
 	xhrCallback,
 	fetchCallback,
 	headersToRedact,
+	bodyKeysToRedact,
 	backendUrl,
 	tracingOrigins,
 	urlBlocklist,
@@ -43,6 +45,7 @@ export const NetworkListener = ({
 		tracingOrigins,
 		urlBlocklist,
 		sessionSecureID,
+		bodyKeysToRedact,
 		bodyKeysToRecord,
 	)
 	const removeFetchListener = FetchListener(
@@ -59,6 +62,7 @@ export const NetworkListener = ({
 		tracingOrigins,
 		urlBlocklist,
 		sessionSecureID,
+		bodyKeysToRedact,
 		bodyKeysToRecord,
 	)
 

@@ -11,7 +11,10 @@ export { Card } from './Card/Card'
 export { Column } from './Column/Column'
 export * from './Combobox/Combobox'
 export { Container } from './Container/Container'
-export { PreviousDateRangePicker } from './DatePicker/PreviousDateRangePicker'
+export {
+	PreviousDateRangePicker,
+	getDefaultPresets,
+} from './DatePicker/PreviousDateRangePicker'
 export type { Preset } from './DatePicker/PreviousDateRangePicker'
 export * from './Form/Form'
 export { Heading } from './Heading/Heading'

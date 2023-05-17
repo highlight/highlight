@@ -15,6 +15,7 @@ type Field {
 }
 
 enum SessionExcludedReason {
+	Initializing
 	NoActivity
 	NoUserInteractionEvents
 	NoError
@@ -53,6 +54,7 @@ type Session {
 	starred: Boolean
 	processed: Boolean
 	excluded: Boolean!
+	excluded_reason: SessionExcludedReason
 	has_rage_clicks: Boolean
 	has_errors: Boolean
 	first_time: Boolean
@@ -66,7 +68,7 @@ type Session {
 	event_counts: String
 	direct_download_url: String
 	resources_url: String
-	messages_url: String
+	timeline_indicators_url: String
 	deviceMemory: Int
 	last_user_interaction_time: Timestamp!
 	chunked: Boolean
@@ -108,9 +110,14 @@ type BillingDetails {
 	plan: Plan!
 	meter: Int64!
 	membersMeter: Int64!
-	sessionsOutOfQuota: Int64!
 	errorsMeter: Int64!
 	logsMeter: Int64!
+	sessionsDailyAverage: Float!
+	errorsDailyAverage: Float!
+	logsDailyAverage: Float!
+	sessionsBillingLimit: Int64
+	errorsBillingLimit: Int64
+	logsBillingLimit: Int64
 }
 
 type Invoice {
@@ -144,6 +151,7 @@ enum PlanType {
 	Basic
 	Startup
 	Enterprise
+	UsageBased
 }
 
 enum ProductType {
@@ -158,6 +166,7 @@ enum SubscriptionInterval {
 }
 
 enum RetentionPeriod {
+	ThirtyDays
 	ThreeMonths
 	SixMonths
 	TwelveMonths
@@ -410,6 +419,10 @@ type Workspace {
 	trial_extension_enabled: Boolean!
 	clearbit_enabled: Boolean!
 	retention_period: RetentionPeriod
+	errors_retention_period: RetentionPeriod
+	sessions_max_cents: Int
+	errors_max_cents: Int
+	logs_max_cents: Int
 }
 
 type Segment {
@@ -1695,6 +1708,15 @@ type Mutation {
 		retention_period: RetentionPeriod!
 	): String
 	updateBillingDetails(workspace_id: ID!): Boolean
+	saveBillingPlan(
+		workspace_id: ID!
+		sessionsLimitCents: Int
+		sessionsRetention: RetentionPeriod!
+		errorsLimitCents: Int
+		errorsRetention: RetentionPeriod!
+		logsLimitCents: Int
+		logsRetention: RetentionPeriod!
+	): Boolean
 	createSessionComment(
 		project_id: ID!
 		session_secure_id: String!

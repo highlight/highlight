@@ -6,7 +6,6 @@ import {
 	useGetSessionIntervalsQuery,
 	useGetSessionPayloadQuery,
 	useGetSessionQuery,
-	useGetTimelineIndicatorEventsQuery,
 	useMarkSessionAsViewedMutation,
 } from '@graph/hooks'
 import { GetSessionQuery } from '@graph/operations'
@@ -28,6 +27,7 @@ import {
 	PlayerReducer,
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
+import { useTimelineIndicators } from '@pages/Player/TimelineIndicatorsContext/TimelineIndicatorsContext'
 import analytics from '@util/analytics'
 import { indexedDBFetch, indexedDBString } from '@util/db'
 import log from '@util/log'
@@ -44,7 +44,6 @@ import { HighlightEvent } from '../HighlightEvent'
 import { ReplayerContextInterface, ReplayerState } from '../ReplayerContext'
 import {
 	findNextSessionInList,
-	loadiFrameResources,
 	PlayerSearchParameters,
 	toHighlightEvents,
 	useSetPlayerTimestampFromSearchParam,
@@ -115,13 +114,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			!project_id ||
 			CHUNKING_DISABLED_PROJECTS.includes(project_id),
 	})
-	const { data: timelineIndicatorEvents } =
-		useGetTimelineIndicatorEventsQuery({
-			variables: {
-				session_secure_id: session_secure_id!,
-			},
-			skip: !session_secure_id,
-		})
 	const { data: sessionData } = useGetSessionQuery({
 		variables: {
 			secure_id: session_secure_id!,
@@ -146,6 +138,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 		skip: !session_secure_id,
 		fetchPolicy: 'network-only',
 	})
+	const { timelineIndicatorEvents } = useTimelineIndicators(
+		sessionData?.session || undefined,
+	)
 	const { data: sessionPayload, subscribeToMore: subscribeToSessionPayload } =
 		useGetSessionPayloadQuery({
 			fetchPolicy: 'no-cache',
@@ -581,10 +576,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 				return Promise.resolve()
 			}
 
-			if (state.replayer) {
-				loadiFrameResources(state.replayer, state.project_id)
-			}
-
 			timerStart('timelineChangeTime')
 			dispatch({ type: PlayerActionType.setTime, time: newTime })
 			return new Promise<void>((r) =>
@@ -604,23 +595,13 @@ export const usePlayer = (): ReplayerContextInterface => {
 				}),
 			)
 		},
-		[
-			ensureChunksLoaded,
-			state.project_id,
-			state.replayer,
-			state.sessionEndTime,
-			state.session_secure_id,
-		],
+		[ensureChunksLoaded, state.sessionEndTime, state.session_secure_id],
 	)
 
 	const pause = useCallback(
 		(time?: number) => {
 			return new Promise<void>((r) => {
 				if (time !== undefined) {
-					if (state.replayer) {
-						loadiFrameResources(state.replayer, state.project_id)
-					}
-
 					timerStart('timelineChangeTime')
 					dispatch({ type: PlayerActionType.setTime, time })
 					ensureChunksLoaded(
@@ -644,12 +625,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 				}
 			})
 		},
-		[
-			ensureChunksLoaded,
-			state.project_id,
-			state.replayer,
-			state.session_secure_id,
-		],
+		[ensureChunksLoaded, state.session_secure_id],
 	)
 
 	const seek = useCallback(
@@ -737,7 +713,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 					getTimeFromReplayer(state.replayer, state.sessionMetadata) +
 					state.sessionMetadata.startTime,
 			})
-			loadiFrameResources(state.replayer, state.project_id)
 		}, FRAME_MS * 60),
 		[],
 	)
@@ -1111,8 +1086,9 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.scale !== 1 &&
 			state.sessionViewability === SessionViewability.VIEWABLE,
 		setIsLiveMode: (isLiveMode) => {
-			const events = getEvents(chunkEventsRef.current)
 			if (isLiveMode) {
+				const events = getEvents(chunkEventsRef.current)
+
 				dispatch({
 					type: PlayerActionType.addLiveEvents,
 					lastActiveTimestamp: state.lastActiveTimestamp,

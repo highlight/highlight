@@ -41,15 +41,15 @@ jobs:
             - name: Build and zip
               run: |
                   cd backend/
-                  go build ./lambda-functions/deleteSessions/getSessionIdsByQuery
+                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/getSessionIdsByQuery
                   zip getSessionIdsByQuery.zip getSessionIdsByQuery
-                  go build ./lambda-functions/deleteSessions/deleteSessionBatchFromPostgres
+                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromPostgres
                   zip deleteSessionBatchFromPostgres.zip deleteSessionBatchFromPostgres
-                  go build ./lambda-functions/deleteSessions/deleteSessionBatchFromOpenSearch
+                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromOpenSearch
                   zip deleteSessionBatchFromOpenSearch.zip deleteSessionBatchFromOpenSearch
-                  go build ./lambda-functions/deleteSessions/deleteSessionBatchFromS3
+                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromS3
                   zip deleteSessionBatchFromS3.zip deleteSessionBatchFromS3
-                  go build ./lambda-functions/deleteSessions/sendEmail
+                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/sendEmail
                   zip sendEmail.zip sendEmail
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v2
@@ -127,11 +127,11 @@ jobs:
             - name: Build and zip
               run: |
                   cd backend/
-                  go build ./lambda-functions/digests/getProjectIds
+                  CGO_ENABLED=0 go build ./lambda-functions/digests/getProjectIds
                   zip getProjectIds.zip getProjectIds
-                  go build ./lambda-functions/digests/getDigestData
+                  CGO_ENABLED=0 go build ./lambda-functions/digests/getDigestData
                   zip getDigestData.zip getDigestData
-                  go build ./lambda-functions/digests/sendDigestEmails
+                  CGO_ENABLED=0 go build ./lambda-functions/digests/sendDigestEmails
                   zip sendDigestEmails.zip sendDigestEmails
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v2

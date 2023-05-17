@@ -10,7 +10,9 @@
 	"go.useLanguageServer": true,
 	"go.autocompleteUnimportedPackages": true,
 	"go.lintTool": "golangci-lint",
-	"go.lintFlags": ["--fast"],
+	"go.lintFlags": [
+		"--fast"
+	],
 	"typescript.preferences.importModuleSpecifier": "non-relative",
 	"[go]": {
 		"editor.defaultFormatter": "golang.go"
@@ -32,7 +34,12 @@
 	"less.validate": false,
 	"scss.validate": false,
 	"stylelint.enable": true,
-	"stylelint.validate": ["css", "less", "postcss", "scss"],
+	"stylelint.validate": [
+		"css",
+		"less",
+		"postcss",
+		"scss"
+	],
 	"[graphql]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
@@ -42,7 +49,9 @@
 			"strings": true
 		},
 		"editor.suggest.insertMode": "replace",
-		"gitlens.codeLens.scopes": ["document"]
+		"gitlens.codeLens.scopes": [
+			"document"
+		]
 	},
 	"[less]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -77,7 +86,12 @@
 		"backend/payload/*": true,
 		"**/yarn-error.log": true
 	},
-	"cSpell.words": ["autoinject", "Autoinjected", "Blocklist", "interactable"],
+	"cSpell.words": [
+		"autoinject",
+		"Autoinjected",
+		"Blocklist",
+		"interactable"
+	],
 	"[yaml]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
@@ -90,8 +104,24 @@
 	"[markdown]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
+	"editor.wordWrapColumn": 120,
+	"editor.wordWrap": "wordWrapColumn",
 	"[css]": {
 		"editor.defaultFormatter": "vscode.css-language-features"
 	},
-	"typescript.tsdk": "node_modules/typescript/lib"
+	"typescript.preferences.autoImportFileExcludePatterns": [
+		"**/packages/ui"
+	],
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"[typescript]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+	},
+	"[jsonc]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+	"workbench.colorCustomizations": {
+		"activityBar.background": "#301e79",
+		"titleBar.activeBackground": "#0d0225",
+		"titleBar.activeForeground": "#bea8f1"
+	}
 }

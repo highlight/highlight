@@ -1,6 +1,3 @@
-import { Header } from '@components/Header/Header'
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
-import Switch from '@components/Switch/Switch'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -11,7 +8,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
-import { Box } from '@highlight-run/ui'
+import { Heading, Stack } from '@highlight-run/ui'
 import { ApplicationContextProvider } from '@routers/ProjectRouter/context/ApplicationContext'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
@@ -20,39 +17,8 @@ import { H } from 'highlight.run'
 import { useEffect } from 'react'
 import { StringParam, useQueryParams } from 'use-query-params'
 
-import { FieldsBox } from '@/components/FieldsBox/FieldsBox'
-
-import styles from './EmailOptOut.module.scss'
-
-const OptInRow = (
-	label: string,
-	info: string | undefined,
-	checked: boolean,
-	setState: (n: boolean) => void,
-	disabled: boolean,
-) => {
-	return (
-		<Switch
-			key={label}
-			label={
-				<Box display="flex" alignItems="center" gap="2">
-					{label}
-					{info && (
-						<InfoTooltip
-							placement="right"
-							size="medium"
-							title={info}
-						/>
-					)}
-				</Box>
-			}
-			trackingId={`switch-${label}`}
-			checked={checked}
-			onChange={setState}
-			disabled={disabled}
-		/>
-	)
-}
+import { Header } from '@/components/Header/Header'
+import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
 
 type Props = {
 	token?: string | null
@@ -134,46 +100,41 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 		}
 
 		return (
-			<>
-				<h1>Email Settings</h1>
-				<FieldsBox id="email-settings">
-					<p>
-						<p>I would like to receive the following emails:</p>
-						<p>
-							{categories.map((c) =>
-								OptInRow(
-									c.label,
-									c.info,
-									!optOuts.has(c.type),
-									(isOptIn: boolean) => {
-										updateEmailOptOut({
-											variables: {
-												token,
-												admin_id,
-												category: c.type,
-												is_opt_out: !isOptIn,
-											},
-										})
-											.then(() => {
-												message.success(
-													`Opted ${
-														isOptIn
-															? 'in to'
-															: 'out of'
-													} ${c.type} emails.`,
-												)
-											})
-											.catch((reason: any) => {
-												message.error(String(reason))
-											})
+			<Stack gap="24" direction="column">
+				<Heading mt="16" level="h4">
+					Notifications
+				</Heading>
+				<Stack gap="12" direction="column">
+					{categories.map((c) =>
+						ToggleRow(
+							c.label,
+							c.info,
+							!optOuts.has(c.type),
+							(isOptIn: boolean) => {
+								updateEmailOptOut({
+									variables: {
+										token,
+										admin_id,
+										category: c.type,
+										is_opt_out: !isOptIn,
 									},
-									optOutAll,
-								),
-							)}
-						</p>
-					</p>
-				</FieldsBox>
-			</>
+								})
+									.then(() => {
+										message.success(
+											`Opted ${
+												isOptIn ? 'in to' : 'out of'
+											} ${c.type} emails.`,
+										)
+									})
+									.catch((reason: any) => {
+										message.error(String(reason))
+									})
+							},
+							optOutAll,
+						),
+					)}
+				</Stack>
+			</Stack>
 		)
 	}
 }
@@ -206,7 +167,7 @@ export const EmailOptOutPage = () => {
 			>
 				<div>
 					<Header />
-					<div className={styles.contentContainer}>
+					<div>
 						<h1>Email Settings</h1>
 						<EmailOptOutPanel token={token} admin_id={admin_id} />
 					</div>

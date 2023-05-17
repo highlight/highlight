@@ -4,16 +4,13 @@ import { RequestResponsePair } from '@highlight-run/client'
 import { getGraphQLResolverName } from '@pages/Player/utils/utils'
 import { createContext } from '@util/context/context'
 import { indexedDBFetch } from '@util/db'
+import { checkResourceLimit } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
 import { H } from 'highlight.run'
 import { useCallback, useEffect, useState } from 'react'
 import { BooleanParam, useQueryParam } from 'use-query-params'
 
-// Max brotlied resource file allowed. Note that a brotli file with some binary data
-// has a compression ratio of >5x, so unbrotlied this file will take up much more memory.
-const RESOURCE_FILE_SIZE_LIMIT_MB = 16
-
-export enum ResourceLoadingError {
+export enum LoadingError {
 	NetworkResourcesTooLarge = 'payload too large.',
 	NetworkResourcesFetchFailed = 'failed to fetch.',
 }
@@ -22,7 +19,7 @@ interface ResourcesContext {
 	resourcesLoading: boolean
 	loadResources: () => void
 	resources: NetworkResourceWithID[]
-	error?: ResourceLoadingError
+	error?: LoadingError
 }
 
 export type NetworkResourceWithID = PerformanceResourceTiming & {
@@ -36,7 +33,7 @@ export const useResources = (
 ): ResourcesContext => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const [sessionSecureId, setSessionSecureId] = useState<string>()
-	const [error, setError] = useState<ResourceLoadingError>()
+	const [error, setError] = useState<LoadingError>()
 	const [downloadResources] = useQueryParam('downloadresources', BooleanParam)
 
 	const [resourcesLoading, setResourcesLoading] = useState(false)
@@ -108,24 +105,17 @@ export const useResources = (
 			setResourcesLoading(true)
 			;(async () => {
 				if (!session.resources_url) return
-				let response
-				const r = await fetch(session.resources_url, {
-					method: 'HEAD',
-				})
-				const fileSizeMB =
-					Number(r.headers.get('Content-Length')) / 1024 / 1024
-				if (fileSizeMB > RESOURCE_FILE_SIZE_LIMIT_MB) {
-					setError(ResourceLoadingError.NetworkResourcesTooLarge)
-					H.consumeError(
-						new Error(`network payload too large`),
-						undefined,
-						{
-							fileSizeMB: fileSizeMB.toString(),
-							sessionSecureID: session?.secure_id,
-						},
-					)
+				const limit = await checkResourceLimit(session.resources_url)
+				if (limit) {
+					setError(LoadingError.NetworkResourcesTooLarge)
+					H.consumeError(new Error(limit.error), undefined, {
+						fileSize: limit.fileSize.toString(),
+						limit: limit.sizeLimit.toString(),
+						sessionSecureID: session?.secure_id,
+					})
 					return
 				}
+				let response
 				for await (const r of indexedDBFetch(session.resources_url)) {
 					response = r
 				}
@@ -156,9 +146,7 @@ export const useResources = (
 							)
 						})
 						.catch((e) => {
-							setError(
-								ResourceLoadingError.NetworkResourcesFetchFailed,
-							)
+							setError(LoadingError.NetworkResourcesFetchFailed)
 							setResources([])
 							H.consumeError(
 								e,

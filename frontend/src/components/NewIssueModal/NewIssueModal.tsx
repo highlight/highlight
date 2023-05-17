@@ -16,6 +16,7 @@ import {
 	IconSolidClickUp,
 	IconSolidLinear,
 	IconSolidX,
+	Stack,
 	Text,
 	useFormState,
 } from '@highlight-run/ui'
@@ -183,33 +184,33 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 				<Box
 					display="flex"
 					alignItems="center"
-					gap="4"
-					flexShrink={0}
 					userSelect="none"
-					p="8"
+					px="8"
+					py="4"
 					bb="secondary"
-					style={{ height: 32 }}
+					justifyContent="space-between"
 				>
-					{integrationLogo}
-					<Text size="xxSmall" color="n11" weight="medium">
-						Create a new {selectedIntegration.name} issue
-					</Text>
-					<Box onClick={onClose} ml="auto">
-						<ButtonIcon
-							shape="square"
-							kind="secondary"
-							emphasis="none"
-							icon={
-								<IconSolidX
-									size={16}
-									color={
-										vars.theme.interactive.fill.secondary
-											.content.text
-									}
-								/>
-							}
-						/>
-					</Box>
+					<Stack direction="row" align="center" gap="4">
+						{integrationLogo}
+						<Text size="xxSmall" color="n11" weight="medium">
+							Create a new {selectedIntegration.name} issue
+						</Text>
+					</Stack>
+					<ButtonIcon
+						kind="secondary"
+						emphasis="none"
+						size="xSmall"
+						onClick={onClose}
+						icon={
+							<IconSolidX
+								size={14}
+								color={
+									vars.theme.interactive.fill.secondary
+										.content.text
+								}
+							/>
+						}
+					/>
 				</Box>
 			}
 			visible={visible}
@@ -242,7 +243,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							name={form.names.issueDescription}
 							label="Issue Description"
 							placeholder="Hey, check this out!"
-							/* @ts-ignore */
+							// @ts-expect-error
 							as="textarea"
 							outline
 							aria-multiline

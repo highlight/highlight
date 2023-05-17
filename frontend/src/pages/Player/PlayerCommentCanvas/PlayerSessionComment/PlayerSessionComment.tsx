@@ -1,8 +1,12 @@
 import { SessionCommentCard } from '@components/Comment/SessionComment/SessionComment'
+import { Box } from '@highlight-run/ui'
 import { MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import clsx from 'clsx'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+
+import { CommentIndicator } from '@/components/Comment/CommentIndicator'
+import { getDeepLinkedCommentId } from '@/components/Comment/utils/utils'
 
 import TransparentPopover from '../../../../components/Popover/TransparentPopover'
 import {
@@ -11,7 +15,6 @@ import {
 	SessionComment as SessionCommentModelType,
 	SessionCommentType,
 } from '../../../../graph/generated/schemas'
-import CommentPinIcon from '../../../../static/comment-pin.png'
 import { useReplayerContext } from '../../ReplayerContext'
 import commentButtonStyles from '../PlayerCommentCanvas.module.scss'
 import styles from './PlayerSessionComment.module.scss'
@@ -43,13 +46,13 @@ interface Props {
 				>
 			}
 	>
-	deepLinkedCommentId: string | null
 }
 
 /**
  * A comment that is rendered onto the Player relative to where the comment was made.
  */
-const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
+const PlayerSessionComment = ({ comment }: Props) => {
+	const deepLinkedCommentId = getDeepLinkedCommentId()
 	const { pause } = useReplayerContext()
 	const [visible, setVisible] = useState(deepLinkedCommentId === comment?.id)
 	const [clicked, setClicked] = useState(deepLinkedCommentId === comment?.id)
@@ -73,6 +76,28 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 		}
 	}, [])
 
+	const handleClick: EventListener = useCallback(
+		(e) => {
+			if (!visible) {
+				return
+			}
+
+			if (!commentCardParentRef.current?.contains(e.target as Node)) {
+				setVisible(false)
+			}
+		},
+		[visible],
+	)
+
+	useEffect(() => {
+		window.removeEventListener('click', handleClick)
+		window.addEventListener('click', handleClick)
+
+		return () => {
+			window.removeEventListener('click', handleClick)
+		}
+	}, [visible, handleClick])
+
 	if (!comment) {
 		return null
 	}
@@ -92,12 +117,10 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 			key={comment.id}
 			className={styles.comment}
 			style={{
-				left: `calc(${
-					comment.x_coordinate * 100
-				}% - (var(--comment-indicator-width) / 2))`,
+				left: `calc(${comment.x_coordinate * 100}%)`,
 				top: `calc(${
 					comment.y_coordinate * 100
-				}% - var(--comment-indicator-height) + 2px)`,
+				}% - var(--comment-indicator-width))`,
 			}}
 			onClick={(e) => {
 				e.stopPropagation()
@@ -107,7 +130,7 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 				setVisible(true)
 			}}
 			onMouseLeave={() => {
-				if (!clicked) {
+				if (!clicked && comment.id !== deepLinkedCommentId) {
 					setVisible(false)
 				}
 			}}
@@ -115,19 +138,20 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 			<TransparentPopover
 				placement="right"
 				content={
-					<div
-						className={styles.sessionCommentCardContainer}
+					<Box
+						backgroundColor="white"
+						border="divider"
+						borderRadius="8"
+						boxShadow="medium"
+						style={{ width: 350 }}
 						ref={commentCardParentRef}
 					>
 						<SessionCommentCard
 							parentRef={commentCardParentRef}
 							comment={comment}
-							onClose={() => setVisible(false)}
-							deepLinkedCommentId={deepLinkedCommentId}
-							scrollReplies
-							hasShadow
+							showReplies
 						/>
-					</div>
+					</Box>
 				}
 				align={{ offset: [0, 12] }}
 				visible={visible}
@@ -161,7 +185,14 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
 						styles.commentPinButton,
 					)}
 				>
-					<img src={CommentPinIcon} alt="comment pin icon" />
+					<CommentIndicator
+						seed={
+							comment.author?.name ??
+							comment.author?.email ??
+							'Anonymous'
+						}
+						customImage={comment.author?.photo_url}
+					/>
 				</button>
 			</TransparentPopover>
 		</div>

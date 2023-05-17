@@ -1,22 +1,24 @@
 import {
-	getSdk,
+	BatchSpanProcessor,
+	SpanProcessor,
+} from '@opentelemetry/sdk-trace-base'
+import {
 	InputMaybe,
 	MetricInput,
 	PushMetricsMutationVariables,
 	Sdk,
+	getSdk,
 } from './graph/generated/operations'
+import { Tracer, trace } from '@opentelemetry/api'
+
 import { GraphQLClient } from 'graphql-request'
 import { NodeOptions } from './types.js'
-import log from './log'
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { trace, Tracer } from '@opentelemetry/api'
-import { hookConsole } from './hooks'
-import {
-	BatchSpanProcessor,
-	SpanProcessor,
-} from '@opentelemetry/sdk-trace-base'
 import { NodeSDK } from '@opentelemetry/sdk-node'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import { Resource } from '@opentelemetry/resources'
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
+import { hookConsole } from './hooks'
+import log from './log'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -57,7 +59,14 @@ export class Highlight {
 		this.processor = new BatchSpanProcessor(exporter, {})
 		this.otel = new NodeSDK({
 			autoDetectResources: true,
-			defaultAttributes: { 'highlight.project_id': this._projectID },
+			resource: {
+				attributes: { 'highlight.project_id': this._projectID },
+				merge: (resource) =>
+					new Resource({
+						...(resource?.attributes ?? {}),
+						'highlight.project_id': this._projectID,
+					}),
+			},
 			spanProcessor: this.processor,
 			traceExporter: exporter,
 			instrumentations: [getNodeAutoInstrumentations()],

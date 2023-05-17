@@ -1,5 +1,6 @@
 import {
 	getFullScreenPopoverGetPopupContainer,
+	RightPanelView,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
 import {
@@ -58,7 +59,7 @@ export const usePlayerKeyboardShortcuts = () => {
 		sessionResults,
 		sessionMetadata,
 	} = useReplayerContext()
-	const { setIsPlayerFullscreen } = usePlayerUIContext()
+	const { setIsPlayerFullscreen, setRightPanelView } = usePlayerUIContext()
 	const {
 		setPlayerSpeedIdx,
 		playerSpeedIdx,
@@ -278,6 +279,8 @@ export const usePlayerKeyboardShortcuts = () => {
 		moveFocusToDocument(e)
 
 		setEnableInspectElement(false)
+		setShowRightPanel(true)
+		setRightPanelView(RightPanelView.Comments)
 		message.success(
 			'Commenting enabled, click anywhere on the video to create a comment.',
 		)

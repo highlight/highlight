@@ -1,45 +1,50 @@
-import { promises as fsp } from 'fs'
-import yaml from 'js-yaml'
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
-import { serialize } from 'next-mdx-remote/serialize'
 import { GetStaticPaths, GetStaticProps } from 'next/types'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Collapse } from 'react-collapse'
-import remarkGfm from 'remark-gfm'
-import styles from '../../components/Docs/Docs.module.scss'
-import ChevronDown from '../../public/images/ChevronDownIcon'
-import Minus from '../../public/images/MinusIcon'
-
-import path from 'path'
-import { FaDiscord, FaGithub, FaTwitter } from 'react-icons/fa'
-
-import classNames from 'classnames'
-import matter from 'gray-matter'
-import Markdown from 'markdown-to-jsx'
-import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { BiChevronLeft, BiChevronRight } from 'react-icons/bi'
-import { Meta } from '../../components/common/Head/Meta'
-import Navbar from '../../components/common/Navbar/Navbar'
+import { FaDiscord, FaGithub, FaTwitter } from 'react-icons/fa'
 import { Roadmap, RoadmapItem } from '../../components/common/Roadmap/Roadmap'
-import { roadmapFetcher } from '../../components/common/Roadmap/RoadmapUtils'
-import { Typography } from '../../components/common/Typography/Typography'
-import { Callout } from '../../components/Docs/Callout/Callout'
-import { DocSection } from '../../components/Docs/DocLayout/DocLayout'
-import DocSelect from '../../components/Docs/DocSelect/DocSelect'
-import { generateIdFromProps } from '../../components/Docs/DocsTypographyRenderer/DocsTypographyRenderer'
-import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
-import { useMediaQuery } from '../../components/MediaQuery/MediaQuery'
 import {
-	quickStartContent,
+	AutoplayVideo,
+	DocsCard,
+	DocsCardGroup,
+	MarkdownList,
+	MissingFrameworkCopy,
+	QuickStart,
+} from '../../components/MDXRemote'
+import {
 	QuickStartContent,
-	QuickStartStep,
+	quickStartContent,
 } from '../../components/QuickstartContent/QuickstartContent'
 import {
 	IGNORED_DOCS_PATHS,
 	processDocPath,
 	removeOrderingPrefix,
 } from '../api/docs/github'
+
+import classNames from 'classnames'
+import { promises as fsp } from 'fs'
+import matter from 'gray-matter'
+import yaml from 'js-yaml'
+import { serialize } from 'next-mdx-remote/serialize'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+import path from 'path'
+import { Collapse } from 'react-collapse'
+import remarkGfm from 'remark-gfm'
+import { Meta } from '../../components/common/Head/Meta'
+import Navbar from '../../components/common/Navbar/Navbar'
+import { roadmapFetcher } from '../../components/common/Roadmap/RoadmapUtils'
+import { Typography } from '../../components/common/Typography/Typography'
+import { Callout } from '../../components/Docs/Callout/Callout'
+import { DocSection } from '../../components/Docs/DocLayout/DocLayout'
+import styles from '../../components/Docs/Docs.module.scss'
+import DocSelect from '../../components/Docs/DocSelect/DocSelect'
+import { generateIdFromProps } from '../../components/Docs/DocsTypographyRenderer/DocsTypographyRenderer'
+import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
+import { useMediaQuery } from '../../components/MediaQuery/MediaQuery'
+import ChevronDown from '../../public/images/ChevronDownIcon'
+import Minus from '../../public/images/MinusIcon'
 
 const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
 const DOCS_GITUB_LINK = `https://github.com/highlight/highlight/blob/main/docs-content`
@@ -598,10 +603,10 @@ const PageRightBar = ({
 								(heading: HTMLHeadingElement) => (
 									<li
 										key={heading.id}
-										className={classNames(
-											heading.id === activeId &&
-												styles.active,
-										)}
+										className={classNames({
+											[styles.active]:
+												heading.id === activeId,
+										})}
 										style={{ padding: '2px 4px' }}
 									>
 										<Link
@@ -791,7 +796,7 @@ const getBreadcrumbs = (
 	return trail
 }
 
-const DocPage = ({
+export default function DocPage({
 	markdownText,
 	markdownTextOG,
 	relPath,
@@ -802,7 +807,7 @@ const DocPage = ({
 	redirect,
 	docOptions,
 	metadata,
-}: DocData) => {
+}: DocData) {
 	const blogBody = useRef<HTMLDivElement>(null)
 	const router = useRouter()
 	const [open, setOpen] = useState(false)
@@ -953,6 +958,7 @@ const DocPage = ({
 											<Link
 												href={breadcrumb.path}
 												legacyBehavior
+												key={i}
 											>
 												{breadcrumb.title}
 											</Link>
@@ -979,6 +985,7 @@ const DocPage = ({
 									{markdownText && (
 										<MDXRemote
 											components={{
+												AutoplayVideo,
 												MissingFrameworkCopy,
 												Roadmap,
 												RoadmapItem,
@@ -1082,49 +1089,8 @@ const DocPage = ({
 														</code>
 													)
 												},
-												ul: (props) => {
-													// check if the type of props.children is an array.
-													return (
-														<>
-															{Array.isArray(
-																props.children,
-															) &&
-																props?.children?.map(
-																	(
-																		c: any,
-																		i: number,
-																	) => {
-																		return (
-																			c.props &&
-																			c
-																				.props
-																				.children &&
-																			c
-																				.props
-																				.children
-																				.map && (
-																				<li
-																					className={
-																						styles.listItem
-																					}
-																					key={
-																						i
-																					}
-																				>
-																					{c?.props?.children?.map(
-																						(
-																							e: any,
-																						) =>
-																							e,
-																					)}
-																				</li>
-																			)
-																		)
-																	},
-																)}
-														</>
-													)
-												},
+												ul: MarkdownList,
+												ol: MarkdownList,
 												table: (props) => {
 													return (
 														<div
@@ -1146,7 +1112,7 @@ const DocPage = ({
 															<img
 																{...props}
 																alt={props.alt}
-																className="border-divider-on-dark border rounded-lg"
+																className="border rounded-lg border-divider-on-dark"
 															/>
 														</picture>
 													)
@@ -1269,115 +1235,3 @@ const resolveEmbeddedLink = (
 	const withDocs = path.join('/docs', absolutePath)
 	return withDocs
 }
-
-// component with children
-const DocsCardGroup = ({ children }: React.PropsWithChildren) => {
-	return <div className={styles.docsCardGroup}>{children}</div>
-}
-
-const DocsCard = ({
-	children,
-	title,
-	path,
-	href,
-}: React.PropsWithChildren<{ title: string; href: string; path: string }>) => {
-	return (
-		<Link href={href} className={styles.docsCard}>
-			<Typography type="copy2" emphasis>
-				{title}
-			</Typography>
-			<Typography type="copy2">{children}</Typography>
-		</Link>
-	)
-}
-
-const QuickStart = (content: { content: QuickStartContent }) => {
-	const { content: c } = content
-	return (
-		<div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
-			<Typography onDark type="copy1">
-				{c.subtitle}
-			</Typography>
-			<div style={{ borderTop: '1px solid #EBFF5E', width: 200 }} />
-			<div
-				style={{
-					display: 'flex',
-					flexDirection: 'column',
-					marginTop: 10,
-				}}
-			>
-				{c.entries.map((step: QuickStartStep, i: number) => {
-					if (step.hidden) return null
-					return (
-						<div key={JSON.stringify(step)} className="flex gap-6">
-							<div className="flex flex-col items-center flex-shrink-0 w-10">
-								<div className="grid flex-shrink-0 w-8 h-8 rounded-full bg-divider-on-dark place-items-center">
-									{i + 1}
-								</div>
-								<div className="w-0.5 flex-1 bg-divider-on-dark" />
-							</div>
-							<div className="grid gap-5 mb-[42px] flex-1 min-[1000px]:grid-cols-2 min-[1000px]:grid-flow-col">
-								<div
-									className={classNames(
-										' flex flex-col gap-2',
-										styles.quickStartSubtext,
-									)}
-								>
-									<Typography type="copy2" emphasis>
-										{step.title}
-									</Typography>
-									<Markdown
-										options={{
-											forceBlock: true,
-											overrides: {
-												code: (props) => {
-													return (
-														<code
-															className={
-																styles.inlineCodeBlock
-															}
-														>
-															{props.children}
-														</code>
-													)
-												},
-												ul: (props) => {
-													return <div>hellooooo</div>
-												},
-											},
-										}}
-									>
-										{step.content}
-									</Markdown>
-								</div>
-								<div className="min-w-0">
-									{step.code && (
-										<HighlightCodeBlock
-											style={{
-												position: 'sticky',
-												top: '80px',
-											}}
-											language={step.code.language}
-											text={step.code.text}
-											showLineNumbers={false}
-										/>
-									)}
-								</div>
-							</div>
-						</div>
-					)
-				})}
-			</div>
-		</div>
-	)
-}
-
-const MissingFrameworkCopy = ({}) => {
-	return (
-		<Callout
-			content={`If there's a framework that's missing, feel free to [create an issue](https://github.com/highlight/highlight/issues/new?assignees=&labels=external+bug+%2F+request&template=feature_request.md&title=) or message us on [discord](https://highlight.io/community).`}
-		/>
-	)
-}
-
-export default DocPage

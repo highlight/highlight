@@ -58,6 +58,7 @@ jobs:
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
                   GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
+                  NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
 
             - name: Configure AWS credentials
               if: steps.filter.outputs.npm-changed == 'true' && (github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main')

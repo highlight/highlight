@@ -114,12 +114,12 @@ func limitMaxSize(value *string) *string {
 * fetches the sourcemap from remote
 * maps the error info into slice
  */
-func EnhanceStackTrace(ctx context.Context, input []*publicModel.StackFrameInput, projectId int, version *string, storageClient storage.Client) ([]privateModel.ErrorTrace, error) {
+func EnhanceStackTrace(ctx context.Context, input []*publicModel.StackFrameInput, projectId int, version *string, storageClient storage.Client) ([]*privateModel.ErrorTrace, error) {
 	if input == nil {
 		return nil, e.New("stack trace input cannot be nil")
 	}
 
-	var mappedStackTrace []privateModel.ErrorTrace
+	var mappedStackTrace []*privateModel.ErrorTrace
 	for idx, stackFrame := range input {
 		if idx >= ERROR_STACK_MAX_FRAME_COUNT {
 			break
@@ -142,7 +142,7 @@ func EnhanceStackTrace(ctx context.Context, input []*publicModel.StackFrameInput
 			}
 		}
 		if mappedStackFrame != nil {
-			mappedStackTrace = append(mappedStackTrace, *mappedStackFrame)
+			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
 		}
 	}
 	return mappedStackTrace, nil

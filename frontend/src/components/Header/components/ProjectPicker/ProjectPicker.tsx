@@ -101,7 +101,7 @@ const ProjectPicker = () => {
 					>
 						<Text lines="1">{headerDisplayValue}</Text>
 					</Menu.Button>
-					{!isInDemoProject && (
+					{(!isInDemoProject || isSettings) && (
 						<Menu.List>
 							{projectOptions}
 							{projectId && !isSettings && (
@@ -126,7 +126,7 @@ const ProjectPicker = () => {
 										</Menu.Item>
 									</Link>
 									<Link
-										to={`/${projectId}/settings/recording`}
+										to={`/${projectId}/settings/sessions`}
 										className={linkStyle}
 									>
 										<Menu.Item>

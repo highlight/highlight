@@ -1,13 +1,9 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import { AdminAvatar } from '@components/Avatar/Avatar'
-import Button from '@components/Button/Button/Button'
 import {
 	AdminSuggestion,
-	parseAdminSuggestions,
-} from '@components/Comment/CommentHeader'
-import {
 	filterMentionedAdmins,
 	filterMentionedSlackUsers,
+	parseAdminSuggestions,
 } from '@components/Comment/utils/utils'
 import {
 	useGetCommentMentionSuggestionsQuery,
@@ -17,16 +13,22 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { SanitizedAdminInput, SanitizedSlackChannelInput } from '@graph/schemas'
-import SvgArrowRightIcon from '@icons/ArrowRightIcon'
+import {
+	Box,
+	ButtonIcon,
+	Form,
+	IconSolidPaperAirplane,
+	Stack,
+} from '@highlight-run/ui'
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'
 import { useParams } from '@util/react-router/useParams'
-import { Form, message } from 'antd'
+import { message } from 'antd'
 import React, { useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
 
-import styles from './CommentReplyForm.module.scss'
+import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
 
 interface CommentReplyFormProps {
 	commentID: string
@@ -57,10 +59,11 @@ function CommentReplyForm<T extends CommentReplyAction>({
 }: CommentReplyFormProps & { action: T }) {
 	const [reply] = action.mutation()
 
+	const inputRef = React.useRef<HTMLTextAreaElement>(null)
 	const [commentText, setCommentText] = useState('')
 	const [commentTextForEmail, setCommentTextForEmail] = useState('')
 	const [isReplying, setIsReplying] = React.useState(false)
-	const [form] = Form.useForm<{ commentText: string }>()
+	const formState = Form.useFormState({ defaultValues: { commentText: '' } })
 
 	const { project_id } = useParams<{ project_id: string }>()
 	const { admin } = useAuthContext()
@@ -102,28 +105,13 @@ function CommentReplyForm<T extends CommentReplyAction>({
 				refetchQueries: [action.query],
 				awaitRefetchQueries: true,
 			})
-			form.resetFields()
+			formState.reset()
 			setCommentText('')
 		} catch (_e) {
 			const e = _e as Error
 			analytics.track('Reply to Comment Failed', { error: e.toString() })
 			message.error(
-				<>
-					Failed to reply to the comment, please try again. If this
-					keeps failing please message us on{' '}
-					<span
-						className={styles.intercomLink}
-						onClick={() => {
-							window.Intercom(
-								'showNewMessage',
-								`I can't reply to a comment. This is the error I'm getting: "${e}"`,
-							)
-						}}
-					>
-						Intercom
-					</span>
-					.
-				</>,
+				<>Failed to reply to the comment, please try again.</>,
 			)
 		}
 		setIsReplying(false)
@@ -184,70 +172,48 @@ function CommentReplyForm<T extends CommentReplyAction>({
 	}
 
 	return (
-		<Form
-			name="newComment"
-			onFinish={submitReply}
-			form={form}
-			onKeyDown={onFormChangeHandler}
+		<Box
+			backgroundColor="raised"
+			borderTop="dividerWeak"
+			p="6"
+			borderBottomLeftRadius="8"
+			borderBottomRightRadius="8"
 		>
-			<div className={styles.commentAlignDiv}>
-				<AdminAvatar
-					size={30}
-					adminInfo={{
-						name: admin?.name,
-						email: admin?.email,
-						photo_url: admin?.photo_url ?? '',
-					}}
-				/>
-				<div className={styles.commentInputDiv}>
-					<Form.Item
-						name="commentText"
-						wrapperCol={{ span: 24 }}
-						style={{ margin: 0, flexGrow: 1 }}
-					>
-						<div className={styles.commentInputContainer}>
-							<CommentTextBody
-								newInput
-								commentText={commentText}
-								onChangeHandler={onChangeHandler}
-								placeholder="Add a reply..."
-								suggestions={adminSuggestions}
-								onDisplayTransformHandler={onDisplayTransform}
-								suggestionsPortalHost={
-									parentRef?.current as Element
-								}
-							/>
-						</div>
-					</Form.Item>
-					<Form.Item
-						shouldUpdate
-						wrapperCol={{ span: 24 }}
-						className={styles.actionButtonsContainer}
-						style={{ margin: 0 }}
-					>
-						{/* This Form.Item by default are optimized to not rerender the children. For this child however, we want to rerender on every form change to change the disabled state of the button. See https://ant.design/components/form/#shouldUpdate */}
-						{() => (
-							<div className={styles.actionButtons}>
-								<Button
-									trackingId="CreateCommentReply"
-									className={styles.createButton}
-									type="primary"
-									htmlType="submit"
-									disabled={commentText.length === 0}
-									loading={isReplying}
-								>
-									<SvgArrowRightIcon
-										width={16}
-										height={16}
-										transform="rotate(-90)"
-									/>
-								</Button>
-							</div>
-						)}
-					</Form.Item>
-				</div>
-			</div>
-		</Form>
+			<Form
+				onSubmit={submitReply}
+				state={formState}
+				onKeyDown={onFormChangeHandler}
+			>
+				<Box mb="4">
+					<CommentTextBody
+						newInput
+						inputRef={inputRef}
+						commentText={commentText}
+						onChangeHandler={onChangeHandler}
+						placeholder="Add a reply..."
+						suggestions={adminSuggestions}
+						onDisplayTransformHandler={onDisplayTransform}
+						suggestionsPortalHost={parentRef?.current as Element}
+					/>
+				</Box>
+				<Stack direction="row" justifyContent="space-between">
+					<CommentMentionButton
+						commentText={commentText}
+						inputRef={inputRef}
+						setCommentText={setCommentText}
+					/>
+
+					<ButtonIcon
+						disabled={commentText.length === 0 || isReplying}
+						onClick={submitReply}
+						kind="primary"
+						emphasis="high"
+						icon={<IconSolidPaperAirplane />}
+						size="xSmall"
+					/>
+				</Stack>
+			</Form>
+		</Box>
 	)
 }
 

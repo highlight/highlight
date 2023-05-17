@@ -7,26 +7,28 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/sync/errgroup"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/gorm/clause"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/lukasbob/srcset"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/tdewolff/parse/css"
+	"golang.org/x/sync/errgroup"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type EventType int
@@ -76,6 +78,7 @@ const (
 
 const (
 	ScriptPlaceholder = "SCRIPT_PLACEHOLDER"
+	ProxyURL          = "https://replay-cors-proxy.highlightrun.workers.dev"
 )
 
 var DisallowedTagPrefixes = []string{
@@ -93,6 +96,7 @@ const (
 	ErrAssetTooLarge    = "ErrAssetTooLarge"
 	ErrAssetSizeUnknown = "ErrAssetSizeUnknown"
 	ErrFailedToFetch    = "ErrFailedToFetch"
+	ErrFetchNotOk       = "ErrFetchNotOk"
 	MaxAssetSize        = 10 * 1024 * 1e6
 )
 
@@ -117,8 +121,22 @@ func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
 		return nil, errors.Wrap(err, "error reading styles")
 	}
 
+	body = replaceRelativePaths(body, href)
 	body = append([]byte("/*highlight-inject*/\n"), body...)
+
 	return body, nil
+}
+
+func replaceRelativePaths(body []byte, href string) []byte {
+	u, err := url.Parse(href)
+
+	if err == nil {
+		base := u.Scheme + "://" + u.Host
+
+		return regexp.MustCompile(`url\(['"]\./`).ReplaceAll(body, []byte(fmt.Sprintf("url('%s?url=%s/", ProxyURL, base)))
+	} else {
+		return body
+	}
 }
 
 var fetch fetcher
@@ -337,7 +355,6 @@ func (s *Snapshot) InjectStylesheets() error {
 		if !ok || tagName != "link" {
 			continue
 		}
-
 		attrs, ok := subNode["attributes"].(map[string]interface{})
 		if !ok {
 			continue
@@ -386,11 +403,14 @@ var excludedMediaURLQueryParams = map[string]bool{
 
 // If a url was already created for this resource in the past day, return that
 // Else, fetch the resource, generate a new url for it, and save to S3
-func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB) (map[string]string, error) {
-	deduped := lo.Uniq(lo.Map(originalUrls, func(u string, i int) string {
+func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, s storage.Client, db *gorm.DB, redis *redis.Client) (map[string]string, error) {
+	// maps a long url to the minimal version of the url. ie https://foo.com/example?key=value&signature=bar -> https://foo.com/example?key=value
+	urlMap := make(map[string]string)
+	for _, u := range lo.Uniq(originalUrls) {
 		parsedUrl, err := url.Parse(u)
 		if err != nil {
-			return u
+			urlMap[u] = u
+			continue
 		}
 
 		var parts []string
@@ -405,15 +425,13 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 
 		parsedUrl.RawQuery = strings.Join(parts, "&")
 		parsedUrl.Fragment = ""
-		uri := parsedUrl.String()
-
-		return uri
-	}))
+		urlMap[u] = parsedUrl.String()
+	}
 
 	dateTrunc := time.Now().UTC().Format("2006-01-02")
 	var results []model.SavedAsset
 
-	keys := lo.Map(originalUrls, func(url string, idx int) []any {
+	keys := lo.Map(lo.Values(urlMap), func(url string, idx int) []any {
 		return []any{
 			projectId,
 			url,
@@ -432,18 +450,32 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 	assetChan := make(chan struct {
 		OriginalURL string
 		NewURL      string
-	}, len(deduped))
-	lo.ForEach(deduped, func(u string, i int) {
+	}, len(urlMap))
+	lo.ForEach(lo.Entries(urlMap), func(u lo.Entry[string, string], i int) {
 		eg.Go(func() error {
+			if err := redis.AcquireLock(ctx, u.Value, 3*time.Minute); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("url", u.Value).Error("failed to acquire asset lock")
+			} else {
+				defer func() {
+					if err := redis.ReleaseLock(ctx, u.Value); err != nil {
+						log.WithContext(ctx).WithError(err).WithField("url", u.Value).Error("failed to release asset lock")
+					}
+				}()
+			}
 			var hashVal string
-			result, ok := resultMap[u]
+			result, ok := resultMap[u.Value]
 			if ok {
 				hashVal = result.HashVal
 			} else {
-				response, err := http.Get(u)
+				response, err := http.Get(u.Key)
 				if err != nil {
+					log.WithContext(ctx).WithField("url", u.Key).WithError(err).Warn("asset replacement: failed to fetch")
 					hashVal = ErrFailedToFetch
+				} else if response.StatusCode < 200 || response.StatusCode >= 400 {
+					log.WithContext(ctx).WithField("url", u.Key).WithField("status", response.StatusCode).Warn("asset replacement: not ok")
+					hashVal = ErrFetchNotOk
 				} else if response.ContentLength > MaxAssetSize {
+					log.WithContext(ctx).WithField("url", u.Key).WithField("content-length", response.ContentLength).Warn("asset replacement: too large")
 					hashVal = ErrAssetTooLarge
 				} else {
 					dir, err := os.MkdirTemp("", "asset-*")
@@ -491,7 +523,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 					}
 					result = model.SavedAsset{
 						ProjectID:   projectId,
-						OriginalUrl: u,
+						OriginalUrl: u.Value,
 						Date:        dateTrunc,
 						HashVal:     hashVal,
 					}
@@ -510,7 +542,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 			assetChan <- struct {
 				OriginalURL string
 				NewURL      string
-			}{OriginalURL: u, NewURL: newUrl}
+			}{OriginalURL: u.Key, NewURL: newUrl}
 			return nil
 		})
 	})
@@ -604,11 +636,11 @@ lexerLoop:
 	return
 }
 
-func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, db *gorm.DB) error {
+func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, db *gorm.DB, redis *redis.Client) error {
 	urls := getAssetUrlsFromTree(ctx, projectId, s.data, map[string]string{})
 	span, _ := tracer.StartSpanFromContext(ctx, "event-parse.parse.ReplaceAssets", tracer.ResourceName("getOrCreateUrls"), tracer.Tag("project_id", projectId))
 	span.SetTag("numberOfURLs", len(urls))
-	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, db)
+	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, db, redis)
 	span.Finish(tracer.WithError(err))
 	if err != nil {
 		return errors.Wrap(err, "error creating replacement urls")

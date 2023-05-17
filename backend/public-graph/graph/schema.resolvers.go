@@ -14,6 +14,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
 	generated1 "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/openlyinc/pointy"
@@ -63,9 +64,8 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 			err = r.Redis.SetIsPendingSession(ctx, sessionSecureID, true)
 		}
 		if err == nil {
-			var exceeded bool
-			exceeded, err = r.Redis.IsBillingQuotaExceeded(ctx, projectID)
-			if err == nil && exceeded {
+			exceeded, err := r.Redis.IsBillingQuotaExceeded(ctx, projectID, pricing.ProductTypeSessions)
+			if err == nil && exceeded != nil && *exceeded {
 				err = e.New(string(customModels.PublicGraphErrorBillingQuotaExceeded))
 			}
 		}
