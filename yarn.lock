@@ -19212,6 +19212,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/query-core@npm:4.29.7":
+  version: 4.29.7
+  resolution: "@tanstack/query-core@npm:4.29.7"
+  checksum: f28441a1fc17881d770ebacbe3a2fcf58bd065ac0cf58f8dc544d367f00d7f65213e09a1a1280e021eef25a50b307cac6884173b5acf32570e755baf29b741aa
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query@npm:^4.29.7":
+  version: 4.29.7
+  resolution: "@tanstack/react-query@npm:4.29.7"
+  dependencies:
+    "@tanstack/query-core": 4.29.7
+    use-sync-external-store: ^1.2.0
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-native: "*"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: 9db2fb78e18f299c0e58f3c177261f6010fdea63a5f950e4c93a7cf7a46da019aa3171c77759fa7b327e35763e3379f0a885c71dafd9aa99bf2ddda9f264de90
+  languageName: node
+  linkType: hard
+
 "@tanstack/react-table@npm:^8.5.22":
   version: 8.9.1
   resolution: "@tanstack/react-table@npm:8.9.1"
@@ -19362,10 +19388,56 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@trpc/client@npm:^10.26.0":
+  version: 10.26.0
+  resolution: "@trpc/client@npm:10.26.0"
+  peerDependencies:
+    "@trpc/server": 10.26.0
+  checksum: dbcfbb87ae89a1936200ef05afd9eb36a82ca87003027627ad63423e96df6e00bf39d85d9b545987add68ad8a69b6f702bacf18f998af922f4f06ff686922c0d
+  languageName: node
+  linkType: hard
+
+"@trpc/next@npm:^10.26.0":
+  version: 10.26.0
+  resolution: "@trpc/next@npm:10.26.0"
+  dependencies:
+    react-ssr-prepass: ^1.5.0
+  peerDependencies:
+    "@tanstack/react-query": ^4.18.0
+    "@trpc/client": 10.26.0
+    "@trpc/react-query": 10.26.0
+    "@trpc/server": 10.26.0
+    next: "*"
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: fe6bd2ac3a67c46a1ceff2554d5e9b3fc4556639818933bab22ae48ca4098ca240c08137fb3ed366524771c20d4f8f2ef359de1f41b504df3446d3a14d70ef74
+  languageName: node
+  linkType: hard
+
+"@trpc/react-query@npm:^10.26.0":
+  version: 10.26.0
+  resolution: "@trpc/react-query@npm:10.26.0"
+  peerDependencies:
+    "@tanstack/react-query": ^4.18.0
+    "@trpc/client": 10.26.0
+    "@trpc/server": 10.26.0
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: 93b80479b2ca3370b0357636205e6c577fe904af85abb88b65d0d1ad90325992b665f234ffd1ebd6c54e26b49cc83e7e3de409378050e1f7813f0c4322ed25e9
+  languageName: node
+  linkType: hard
+
 "@trpc/server@npm:^10.16.0":
   version: 10.16.0
   resolution: "@trpc/server@npm:10.16.0"
   checksum: 3bfef1d1574f6544ee20e959806631812f4e6770dd52c92eac39c94f4686db750585ffabccb1945cdfb577312d1d12075a2a2d9717a731990ac405d289711ab1
+  languageName: node
+  linkType: hard
+
+"@trpc/server@npm:^10.26.0":
+  version: 10.26.0
+  resolution: "@trpc/server@npm:10.26.0"
+  checksum: d5723fa28c686d47bf8ba07cad03debad02cb09644ac1eac5a00662379ed607fad719d517181f7cddb9237b078b88c48c36e4ae56417573514e0b47e536f28be
   languageName: node
   linkType: hard
 
@@ -40762,6 +40834,11 @@ __metadata:
     "@highlight-run/node": "workspace:^"
     "@highlight-run/react": "workspace:*"
     "@next/env": ^13.3.4
+    "@tanstack/react-query": ^4.29.7
+    "@trpc/client": ^10.26.0
+    "@trpc/next": ^10.26.0
+    "@trpc/react-query": ^10.26.0
+    "@trpc/server": ^10.26.0
     "@types/node": 18.15.11
     "@types/react": 18.0.35
     "@types/react-dom": 18.0.11
@@ -46163,6 +46240,15 @@ __metadata:
     react: ">= 16.8.0"
     react-dom: ">= 16.8.0"
   checksum: 4f306e30c3a425fd2b11c265ca0a7c261de0f63c0250fa6fa19eddd58c50fc9eaa463927571ee1dec39659a1bf619aaacf3352602b7724695da240ec0bc106cf
+  languageName: node
+  linkType: hard
+
+"react-ssr-prepass@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "react-ssr-prepass@npm:1.5.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: efe89b9f8b2053474613f56dfdbeb41d8ee2e572bf819a39377d95d3e4a9acf8a4a16e28d8d8034cb9ac2b316d11dc9e62217743e4322046d08175eb3b4fed3e
   languageName: node
   linkType: hard
 
@@ -52765,6 +52851,15 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 925d1922f9853e516eaad526b6fed1be38008073067274f0ecc3f56b17bb8ab63480140dd7c271f94150027c996cea4efe83d3e3525e8f3eda22055f6a39220b
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "use-sync-external-store@npm:1.2.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: 5c639e0f8da3521d605f59ce5be9e094ca772bd44a4ce7322b055a6f58eeed8dda3c94cabd90c7a41fb6fa852210092008afe48f7038792fd47501f33299116a
   languageName: node
   linkType: hard
 
