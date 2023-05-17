@@ -116,6 +116,9 @@
 	"[typescript]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
+	"[jsonc]": {
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
 	"workbench.colorCustomizations": {
 		"activityBar.background": "#301e79",
 		"titleBar.activeBackground": "#0d0225",

@@ -1,11 +1,9 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import {
 	AdminSuggestion,
-	parseAdminSuggestions,
-} from '@components/Comment/CommentHeader'
-import {
 	filterMentionedAdmins,
 	filterMentionedSlackUsers,
+	parseAdminSuggestions,
 } from '@components/Comment/utils/utils'
 import {
 	useGetCommentMentionSuggestionsQuery,
@@ -19,7 +17,6 @@ import {
 	Box,
 	ButtonIcon,
 	Form,
-	IconSolidAtSymbol,
 	IconSolidPaperAirplane,
 	Stack,
 } from '@highlight-run/ui'
@@ -30,6 +27,8 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useMemo, useState } from 'react'
 import { OnChangeHandlerFunc } from 'react-mentions'
+
+import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
 
 interface CommentReplyFormProps {
 	commentID: string
@@ -198,41 +197,20 @@ function CommentReplyForm<T extends CommentReplyAction>({
 					/>
 				</Box>
 				<Stack direction="row" justifyContent="space-between">
-					<ButtonIcon
-						size="xSmall"
-						kind="secondary"
-						emphasis="low"
-						icon={<IconSolidAtSymbol />}
-						onClick={() => {
-							const textarea = inputRef.current
-							textarea?.focus()
-
-							const cursorIndex = textarea?.selectionStart
-							const cIndex = cursorIndex
-								? cursorIndex + 1
-								: commentText.length + 1
-							const newCommentText = `${commentText.slice(
-								0,
-								cursorIndex,
-							)}@${commentText.slice(cursorIndex)}`
-
-							setCommentText(newCommentText)
-
-							setTimeout(() => {
-								textarea?.setSelectionRange(cIndex, cIndex)
-							}, 0)
-						}}
+					<CommentMentionButton
+						commentText={commentText}
+						inputRef={inputRef}
+						setCommentText={setCommentText}
 					/>
-					<Box>
-						<ButtonIcon
-							disabled={commentText.length === 0 || isReplying}
-							onClick={submitReply}
-							kind="primary"
-							emphasis="high"
-							icon={<IconSolidPaperAirplane />}
-							size="xSmall"
-						/>
-					</Box>
+
+					<ButtonIcon
+						disabled={commentText.length === 0 || isReplying}
+						onClick={submitReply}
+						kind="primary"
+						emphasis="high"
+						icon={<IconSolidPaperAirplane />}
+						size="xSmall"
+					/>
 				</Stack>
 			</Form>
 		</Box>

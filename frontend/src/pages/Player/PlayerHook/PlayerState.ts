@@ -3,13 +3,13 @@ import {
 	GetSessionIntervalsQuery,
 	GetSessionPayloadQuery,
 	GetSessionQuery,
-	GetTimelineIndicatorEventsQuery,
 } from '@graph/operations'
 import {
 	ErrorObject,
 	Session,
 	SessionComment,
 	SessionResults,
+	TimelineIndicatorEvent,
 } from '@graph/schemas'
 import { EventType, Replayer } from '@highlight-run/rrweb'
 import {
@@ -105,7 +105,12 @@ interface PlayerState {
 	onSessionPayloadLoadedPayload?: {
 		sessionIntervals: GetSessionIntervalsQuery | undefined
 		sessionPayload: GetSessionPayloadQuery | undefined
-		timelineIndicatorEvents: GetTimelineIndicatorEventsQuery | undefined
+		timelineIndicatorEvents:
+			| Pick<
+					TimelineIndicatorEvent,
+					'timestamp' | 'data' | 'type' | 'sid'
+			  >[]
+			| undefined
 	}
 	performancePayloads: Array<HighlightPerformancePayload>
 	project_id: string
@@ -249,7 +254,10 @@ interface onSessionPayloadLoaded {
 	type: PlayerActionType.onSessionPayloadLoaded
 	sessionPayload?: GetSessionPayloadQuery
 	sessionIntervals?: GetSessionIntervalsQuery
-	timelineIndicatorEvents?: GetTimelineIndicatorEventsQuery
+	timelineIndicatorEvents?: Pick<
+		TimelineIndicatorEvent,
+		'timestamp' | 'data' | 'type' | 'sid'
+	>[]
 }
 
 interface setLastActiveString {
@@ -394,7 +402,7 @@ export const PlayerReducer = (
 					analytics.track('Viewed session', {
 						project_id: s.project_id,
 						is_guest: !s.isLoggedIn,
-						is_live: s.isLiveMode,
+						is_session_processed: !!s.session?.processed,
 						secure_id: s.session_secure_id,
 					})
 				}
@@ -555,6 +563,9 @@ export const PlayerReducer = (
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)
 			s = initReplayer(s, events, !!s.replayer?.config.mouseTail)
+			analytics.track('Session live mode toggled', {
+				isLiveMode: s.isLiveMode,
+			})
 			break
 		case PlayerActionType.setCurrentEvent:
 			s.currentEvent = handleSetStateAction(
@@ -791,11 +802,9 @@ const processSessionMetadata = (
 
 	const parsedTimelineIndicatorEvents =
 		s.onSessionPayloadLoadedPayload.timelineIndicatorEvents &&
-		s.onSessionPayloadLoadedPayload.timelineIndicatorEvents
-			.timeline_indicator_events.length > 0
+		s.onSessionPayloadLoadedPayload.timelineIndicatorEvents.length > 0
 			? toHighlightEvents(
-					s.onSessionPayloadLoadedPayload.timelineIndicatorEvents
-						.timeline_indicator_events,
+					s.onSessionPayloadLoadedPayload.timelineIndicatorEvents,
 			  )
 			: events
 	s.sessionIntervals = getCommentsInSessionIntervalsRelative(

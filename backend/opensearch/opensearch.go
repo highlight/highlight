@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gorm.io/gorm"
 	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/retryables"
@@ -359,61 +360,37 @@ func (c *Client) Delete(index Index, id int) error {
 	return nil
 }
 
-func (c *Client) Index(index Index, id int64, parentId *int, obj interface{}) error {
+func (c *Client) Index(ctx context.Context, params IndexParams) error {
 	if c == nil || !c.isInitialized {
 		return nil
 	}
 
-	documentId := ""
-	joinClause := ""
-	routing := ""
-	if parentId != nil {
-		if *parentId > 0 {
-			// Parent/child document ids could collide - prepend child document ids with 'child_'
-			documentId += "child_"
-			joinClause = fmt.Sprintf(`,"join_type":{"name":"child","parent":"%d"},"routing":"%d"`, *parentId, *parentId)
-			routing = strconv.Itoa(*parentId)
-		} else {
-			joinClause = `,"join_type": {"name": "parent"}`
-		}
-	}
-	documentId += strconv.FormatInt(id, 10)
-
-	b, err := json.Marshal(obj)
+	req, err := makeIndexRequest(params)
 	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error marshalling map for index")
+		return err
 	}
-	bodyStr := string(b)
-
-	// If there's a join clause, splice it into the end of the body
-	if joinClause != "" {
-		bodyStr = fmt.Sprintf("%s%s}", bodyStr[:len(bodyStr)-1], joinClause)
-	}
-	body := strings.NewReader(bodyStr)
-
-	indexStr := GetIndex(index)
 
 	item := opensearchutil.BulkIndexerItem{
-		Index:      indexStr,
+		Index:      req.Index,
 		Action:     "index",
-		DocumentID: documentId,
-		Body:       body,
-		Routing:    routing,
+		DocumentID: req.DocumentID,
+		Body:       req.Body,
+		Routing:    req.Routing,
 		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
 			// log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
 		},
 		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
 			if err != nil {
 				c.RetryableClient.ReportError(ctx, model.RetryableOpensearchError, item.Index, item.DocumentID, map[string]interface{}{"item.Action": item.Action, "res": res}, err)
-				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
+				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s", req.Index, item.DocumentID, err)
 			} else {
 				c.RetryableClient.ReportError(ctx, model.RetryableOpensearchError, item.Index, item.DocumentID, map[string]interface{}{"item.Action": item.Action, "res": res}, nil)
-				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
+				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", req.Index, item.DocumentID, res.Error.Type, res.Error.Reason)
 			}
 		},
 	}
 
-	if err := c.BulkIndexer.Add(context.Background(), item); err != nil {
+	if err := c.BulkIndexer.Add(ctx, item); err != nil {
 		return e.Wrap(err, "OPENSEARCH_ERROR error adding bulk indexer item for index")
 	}
 
@@ -465,28 +442,23 @@ func (c *Client) AppendToField(index Index, sessionID int, fieldName string, fie
 	}
 
 	return nil
-
 }
 
-func (c *Client) IndexSynchronous(ctx context.Context, index Index, id int, obj interface{}) error {
+type IndexParams struct {
+	Index    Index
+	ID       int64
+	ParentID *int
+	Object   interface{}
+}
+
+func (c *Client) IndexSynchronous(ctx context.Context, params IndexParams) error {
 	if c == nil || !c.isInitialized {
 		return nil
 	}
 
-	documentId := strconv.Itoa(id)
-
-	b, err := json.Marshal(obj)
+	req, err := makeIndexRequest(params)
 	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error marshalling map for index")
-	}
-	body := strings.NewReader(string(b))
-
-	indexStr := GetIndex(index)
-
-	req := opensearchapi.IndexRequest{
-		Index:      indexStr,
-		DocumentID: documentId,
-		Body:       body,
+		return err
 	}
 
 	response, err := req.Do(ctx, c.Client)
@@ -498,9 +470,45 @@ func (c *Client) IndexSynchronous(ctx context.Context, index Index, id int, obj 
 		return e.New("OPENSEARCH_ERROR error indexing document: " + response.String())
 	}
 
-	// log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)
-
 	return nil
+}
+
+func makeIndexRequest(params IndexParams) (opensearchapi.IndexRequest, error) {
+	documentId := ""
+	joinClause := ""
+	routing := ""
+	if params.ParentID != nil {
+		if *params.ParentID > 0 {
+			// Parent/child document ids could collide - prepend child document ids with 'child_'
+			documentId += "child_"
+			joinClause = fmt.Sprintf(`,"join_type":{"name":"child","parent":"%d"},"routing":"%d"`, *params.ParentID, *params.ParentID)
+			routing = strconv.Itoa(*params.ParentID)
+		} else {
+			joinClause = `,"join_type": {"name": "parent"}`
+		}
+	}
+	documentId += strconv.FormatInt(params.ID, 10)
+
+	b, err := json.Marshal(params.Object)
+	if err != nil {
+		return opensearchapi.IndexRequest{}, e.Wrap(err, "OPENSEARCH_ERROR error marshalling map for index")
+	}
+	bodyStr := string(b)
+
+	// If there's a join clause, splice it into the end of the body
+	if joinClause != "" {
+		bodyStr = fmt.Sprintf("%s%s}", bodyStr[:len(bodyStr)-1], joinClause)
+	}
+	body := strings.NewReader(bodyStr)
+
+	indexStr := GetIndex(params.Index)
+
+	return opensearchapi.IndexRequest{
+		Index:      indexStr,
+		DocumentID: documentId,
+		Body:       body,
+		Routing:    routing,
+	}, nil
 }
 
 func getAggregationResults(buckets []aggregateBucket) []AggregationResult {
@@ -778,8 +786,7 @@ type OpenSearchField struct {
 
 type OpenSearchError struct {
 	*model.ErrorGroup
-	Fields   []*OpenSearchErrorField `json:"fields"`
-	Filename *string                 `json:"filename"`
+	Fields []*OpenSearchErrorField `json:"fields"`
 }
 
 type OpenSearchErrorObject struct {
@@ -788,14 +795,6 @@ type OpenSearchErrorObject struct {
 	Browser     string    `json:"browser"`
 	Timestamp   time.Time `json:"timestamp"`
 	Environment string    `json:"environment"`
-}
-
-func (oe *OpenSearchError) ToErrorGroup() *model.ErrorGroup {
-	inner := oe.ErrorGroup
-	if oe.Filename != nil {
-		inner.StackTrace = fmt.Sprintf(`[{"fileName":"%s"}]`, *oe.Filename)
-	}
-	return inner
 }
 
 type OpenSearchErrorField struct {

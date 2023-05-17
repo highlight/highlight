@@ -109,7 +109,7 @@ func (f *FilesystemClient) GetDirectDownloadURL(_ context.Context, projectId int
 }
 
 func (f *FilesystemClient) GetRawData(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType) (map[int]string, error) {
-	prefix := fmt.Sprintf("%s/raw-events/%d/%d", f.fsRoot, sessionId, projectId)
+	prefix := fmt.Sprintf("%s/raw-events/%d/%d", f.fsRoot, projectId, sessionId)
 	dir, err := os.ReadDir(prefix)
 	if err != nil {
 		log.WithContext(ctx).Warnf("error listing objects in fs: %s", err)
@@ -240,7 +240,7 @@ func (f *FilesystemClient) PushRawEvents(ctx context.Context, sessionId, project
 		return errors.Wrap(err, "error encoding gob")
 	}
 
-	key := fmt.Sprintf("%s/raw-events/%d/%d/%v-%s", f.fsRoot, sessionId, projectId, payloadType, uuid.New().String())
+	key := fmt.Sprintf("%s/raw-events/%d/%d/%v-%s", f.fsRoot, projectId, sessionId, payloadType, uuid.New().String())
 	_, err := f.writeFSBytes(ctx, key, buf)
 	return err
 }
@@ -307,7 +307,7 @@ func (f *FilesystemClient) UploadAsset(ctx context.Context, uuid, _ string, read
 }
 
 func (f *FilesystemClient) readCompressed(ctx context.Context, sessionId int, projectId int, t PayloadType, results interface{}) error {
-	key := fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, sessionId, projectId, t)
+	key := fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, projectId, sessionId, t)
 	if _, err := os.Stat(key); err != nil {
 		log.WithContext(ctx).Warnf("file %s does not exist", key)
 		return nil
