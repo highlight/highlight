@@ -20,7 +20,9 @@ func (service *AutoResolverService) AutoResolveStaleErrors(ctx context.Context) 
 
 	for _, errorGroup := range staleErrorGroups {
 		_, err := service.UpdateErrorGroupState(ctx, &errorGroup, privateModel.ErrorStateResolved, nil)
-		log.WithContext(ctx).Error(err)
+		if err != nil {
+			log.WithContext(ctx).Error(err)
+		}
 	}
 }
 

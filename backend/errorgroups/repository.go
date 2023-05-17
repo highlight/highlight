@@ -25,7 +25,11 @@ func NewRepository(db *gorm.DB, opensearch *opensearch.Client) *ErrorGroupsRepos
 
 func (repo *ErrorGroupsRepository) UpdateErrorGroupState(ctx context.Context, errorGroup *model.ErrorGroup,
 	state privateModel.ErrorState, snoozedUntil *time.Time) (*model.ErrorGroup, error) {
-	if err := repo.db.Where(&model.ErrorGroup{Model: model.Model{ID: errorGroup.ID}}).First(&errorGroup).Updates(map[string]interface{}{
+	if err := repo.db.Where(&model.ErrorGroup{
+		Model: model.Model{
+			ID: errorGroup.ID,
+		},
+	}).First(&errorGroup).Updates(map[string]interface{}{
 		"State":        state,
 		"SnoozedUntil": snoozedUntil,
 	}).Error; err != nil {
