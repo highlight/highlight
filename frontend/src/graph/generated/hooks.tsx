@@ -474,7 +474,7 @@ export type UpdateBillingDetailsMutationOptions = Apollo.BaseMutationOptions<
 export const UpdateErrorGroupStateDocument = gql`
 	mutation updateErrorGroupState(
 		$secure_id: String!
-		$state: String!
+		$state: ErrorState!
 		$snoozed_until: Timestamp
 	) {
 		updateErrorGroupState(

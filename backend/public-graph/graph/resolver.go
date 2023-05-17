@@ -544,7 +544,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			StackTrace:       *errorObj.StackTrace,
 			MappedStackTrace: errorObj.MappedStackTrace,
 			Type:             errorObj.Type,
-			State:            privateModel.ErrorStateOpen.String(),
+			State:            privateModel.ErrorStateOpen,
 			Fields:           []*model.ErrorField{},
 			Environments:     environmentsString,
 		}
@@ -578,7 +578,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 		ProjectID: errorObj.ProjectID,
 		Event:     errorObj.Event,
 		Type:      errorObj.Type,
-		State:     privateModel.ErrorStateOpen.String(),
+		State:     privateModel.ErrorStateOpen,
 		Fields:    []*model.ErrorField{},
 	}
 	if err := r.OpenSearch.IndexSynchronous(ctx,
@@ -1912,7 +1912,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 
 			// Suppress alerts if ignored or snoozed.
 			snoozed := group.SnoozedUntil != nil && group.SnoozedUntil.After(time.Now())
-			if group == nil || group.State == model.ErrorGroupStates.IGNORED || snoozed {
+			if group == nil || group.State == privateModel.ErrorStateIgnored || snoozed {
 				return
 			}
 
