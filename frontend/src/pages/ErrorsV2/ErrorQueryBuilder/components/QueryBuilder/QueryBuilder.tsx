@@ -1719,16 +1719,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 			setRules(rules.filter((rule) => rule !== targetRule)),
 		[rules],
 	)
-	const updateRule = useCallback(
-		(targetRule: RuleProps, newProps: any) => {
-			setRules(
-				rules.map((rule) =>
-					rule !== targetRule ? rule : { ...rule, ...newProps },
-				),
-			)
-		},
-		[rules],
-	)
+	const updateRule = (targetRule: RuleProps, newProps: any) => {
+		setRulesImpl((currentRules) =>
+			currentRules.map((rule) =>
+				rule !== targetRule ? rule : { ...rule, ...newProps },
+			),
+		)
+	}
 
 	const timeRangeRule = useMemo<RuleProps>(() => {
 		const timeRange = rules.find(
@@ -1965,6 +1962,18 @@ function QueryBuilder(props: QueryBuilderProps) {
 	useEffect(() => {
 		if (!!searchParams.query && searchParams.query !== qbState) {
 			const newState = JSON.parse(searchParams.query)
+			const deserializedRules = deserializeRules(newState.rules)
+
+			const defaultDateRange = deserializedRules?.find(
+				(rule) =>
+					rule.op === 'between_date' &&
+					rule.field?.value === 'custom_created_at',
+			)?.val?.options?.[0]?.value
+
+			if (defaultDateRange) {
+				const [from, to] = defaultDateRange.split('_')
+				setDateRange([new Date(from), new Date(to)])
+			}
 			toggleIsAnd(newState.isAnd)
 			setRules(deserializeRules(newState.rules))
 		}
@@ -2273,6 +2282,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 					minDate={defaultMinDate}
 					onDatesChange={(dates: Date[]) => {
 						setDateRange(dates)
+						if (!dates[0] || !dates[1]) {
+							return
+						}
 						updateRule(timeRangeRule, {
 							val: {
 								kind: 'multi',
@@ -2344,7 +2356,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		setShowLeftPanel,
 		syncButtonDisabled,
 		timeRangeRule,
-		updateRule,
 		updateSerializedQuery,
 		dateRange,
 	])
