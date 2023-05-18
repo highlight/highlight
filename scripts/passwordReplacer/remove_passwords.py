@@ -142,7 +142,7 @@ def lambda_handler(event, context):
     try:
         bucket = event['Records'][0]['s3']['bucket']['name']
         key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'], encoding='utf-8')
-        if 'session-contents-compressed-' not in key:
+        if 'session-contents-compressed-' not in key or '-old' in key:
             return
         response = s3.get_object(Bucket=bucket, Key=key)
         sus = get_sus(brotli.decompress(response['Body'].read()))
