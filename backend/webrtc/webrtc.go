@@ -100,6 +100,7 @@ type Message struct {
 }
 
 func Listen(ctx context.Context, r chi.Router) {
+	// TODO(vkorolik) build a connection map that associates a session, html element, id with the file and saver, and tracks the connection until it closes
 	saver := newWebmSaver()
 	pc, err := createConn(ctx, saver)
 	// TODO(vkorolik) multiplex connections

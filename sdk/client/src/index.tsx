@@ -720,15 +720,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					return !!canvases.length
 				}
 
-				// TODO(vkorolik) hostname
-				const webrtcWSURI = `wss://localhost:8082/webrtc`
+				const url = new URL(this._backendUrl)
+				const webrtcWSURI = `wss://${url.hostname}:${url.port}/webrtc`
 				this.webrtcWS = new WebSocket(webrtcWSURI)
 
 				const wsSend = async (msg: string) => {
-					console.log('vadim wsSend', {
-						readyState: this.webrtcWS.readyState,
-						msg,
-					})
 					if (this.webrtcWS.readyState === 1) {
 						this.webrtcWS.send(msg)
 					} else {
@@ -742,9 +738,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				peer.onicecandidate = async ({ candidate }) => {
 					if (candidate) {
 						await wsSend(JSON.stringify({ candidate }))
-						console.log('vadim onicecandidate sent', {
-							candidate,
-						})
 					}
 				}
 
@@ -756,32 +749,15 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 							description: peer.localDescription,
 						}),
 					)
-					console.log('vadim onnegotiationneeded sent', {
-						event,
-						desc: peer.localDescription,
-					})
 				}
 
 				const setup = window.setInterval(() => {
-					console.log('vadim setting up canvas streams', {
-						state: peer.iceConnectionState,
-						peer,
-					})
 					if (setupCanvasStreams()) {
-						console.log('vadim set up canvas streams', {
-							state: peer.iceConnectionState,
-							peer,
-						})
 						window.clearInterval(setup)
 					}
 				}, 1000)
-				console.log('vadim started', {
-					state: peer.iceConnectionState,
-					peer,
-				})
 
 				this.webrtcWS.onclose = () => {
-					console.log('vadim onclose')
 					this.webrtcWS = new WebSocket(webrtcWSURI)
 				}
 
@@ -789,7 +765,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					if (msg.data === 'ok') {
 						return
 					}
-					console.log('vadim onmessage', { body: msg.data })
 					try {
 						const { description, candidate } = JSON.parse(msg.data)
 						if (description) {
@@ -811,9 +786,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						if (candidate) {
 							await peer.addIceCandidate(candidate)
 						}
-					} catch (e) {
-						console.error('vadim onmessage', { body: msg.data, e })
-					}
+					} catch (e) {}
 				}
 
 				this._recordStop = record({
@@ -824,9 +797,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						this.options.recordCrossOriginIframe,
 					enableStrictPrivacy: this.enableStrictPrivacy,
 					maskAllInputs: this.enableStrictPrivacy,
-					recordCanvas: false,
-					// TODO(vkorolik) temp
-					// recordCanvas: this.enableCanvasRecording,
+					recordCanvas: this.enableCanvasRecording,
 					sampling: {
 						canvas: {
 							fps: this.samplingStrategy.canvas,
