@@ -2,7 +2,6 @@ package filtering
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -23,11 +22,8 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 
 	errorGroup1 := model.ErrorGroup{State: privateModel.ErrorStateOpen}
 	errorGroup2 := model.ErrorGroup{State: privateModel.ErrorStateOpen}
-	result1 := service.db.Create(&errorGroup1)
-	result2 := service.db.Create(&errorGroup2)
-
-	fmt.Println(result1)
-	fmt.Println(result2)
+	service.db.Create(&errorGroup1)
+	service.db.Create(&errorGroup2)
 
 	now := time.Now()
 	twentyThreeHoursAgo := now.Add(-time.Hour * 23)
