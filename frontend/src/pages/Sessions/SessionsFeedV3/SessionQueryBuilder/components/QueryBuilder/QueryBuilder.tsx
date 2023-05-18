@@ -2294,6 +2294,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 					minDate={defaultMinDate}
 					onDatesChange={(dates: Date[]) => {
 						setDateRange(dates)
+						if (!dates[0] || !dates[1]) {
+							return
+						}
 						updateRule(timeRangeRule, {
 							val: {
 								kind: 'multi',
@@ -2355,7 +2358,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		setShowLeftPanel,
 		syncButtonDisabled,
 		timeRangeRule,
-		updateRule,
 		updateSerializedQuery,
 		dateRange,
 	])
