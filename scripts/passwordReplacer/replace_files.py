@@ -51,9 +51,9 @@ if __name__ == "__main__":
             count = 0
             for obj in page['Items']:
                 v2_key = obj['key']['S']
+                if count == 0:
+                    print(v2_key)
                 items.append(v2_key)
                 count += 1
-                if count >= 2:
-                    break
             p.map(f, items)
             break
