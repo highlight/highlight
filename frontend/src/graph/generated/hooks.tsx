@@ -5192,6 +5192,7 @@ export const GetSessionDocument = gql`
 			payload_size
 			processed
 			excluded
+			excluded_reason
 			has_rage_clicks
 			has_errors
 			within_billing_quota

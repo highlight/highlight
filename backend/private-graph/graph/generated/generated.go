@@ -8375,6 +8375,8 @@ enum SessionExcludedReason {
 	NoUserInteractionEvents
 	NoError
 	IgnoredUser
+	BillingQuotaExceeded
+	RetentionPeriodExceeded
 }
 
 type Session {

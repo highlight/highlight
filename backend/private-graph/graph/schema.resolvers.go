@@ -3830,10 +3830,21 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 	}
 	sessionObj := &model.Session{}
 	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).
-		Where("created_at > ?", retentionDate).
 		First(&sessionObj).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from session")
 	}
+
+	var excludedReason modelInputs.SessionExcludedReason
+	if sessionObj.WithinBillingQuota != nil && !*sessionObj.WithinBillingQuota {
+		excludedReason = modelInputs.SessionExcludedReasonBillingQuotaExceeded
+		sessionObj.Excluded = true
+		sessionObj.ExcludedReason = &excludedReason
+	} else if sessionObj.CreatedAt.Before(retentionDate) {
+		excludedReason = modelInputs.SessionExcludedReasonRetentionPeriodExceeded
+		sessionObj.Excluded = true
+		sessionObj.ExcludedReason = &excludedReason
+	}
+
 	return sessionObj, nil
 }
 

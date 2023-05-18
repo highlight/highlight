@@ -2508,11 +2508,13 @@ export enum SessionCommentType {
 }
 
 export enum SessionExcludedReason {
+	BillingQuotaExceeded = 'BillingQuotaExceeded',
 	IgnoredUser = 'IgnoredUser',
 	Initializing = 'Initializing',
 	NoActivity = 'NoActivity',
 	NoError = 'NoError',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
+	RetentionPeriodExceeded = 'RetentionPeriodExceeded',
 }
 
 export type SessionInterval = {

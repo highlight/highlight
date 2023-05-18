@@ -1,9 +1,7 @@
 import 'rc-slider/assets/index.css'
 
 import { useAuthContext } from '@authentication/AuthContext'
-import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard'
-import FullBleedCard from '@components/FullBleedCard/FullBleedCard'
 import LoadingBox from '@components/LoadingBox'
 import { useIsSessionPendingQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
@@ -249,7 +247,6 @@ const PlayerPage = () => {
 
 	const showLeftPanel =
 		showLeftPanelPreference &&
-		sessionViewability !== SessionViewability.OVER_BILLING_QUOTA &&
 		(isLoggedIn || project_id === DEMO_PROJECT_ID)
 
 	const [centerColumnResizeListener, centerColumnSize] = useResizeAware()
@@ -365,30 +362,6 @@ const PlayerPage = () => {
 
 	const sessionFiller = useMemo(() => {
 		switch (sessionViewability) {
-			case SessionViewability.OVER_BILLING_QUOTA:
-				return (
-					<FullBleedCard
-						title="Session quota reached 😔"
-						animation={<Lottie animationData={WaitingAnimation} />}
-					>
-						<Box
-							display="flex"
-							alignItems="center"
-							flexDirection="column"
-						>
-							<p>
-								This session was recorded after you reached your
-								session quota. To view it, upgrade your plan.
-							</p>
-							<ButtonLink
-								to={`/w/${currentWorkspace?.id}/current-plan`}
-								trackingId="PlayerPageUpgradePlan"
-							>
-								Upgrade Plan
-							</ButtonLink>
-						</Box>
-					</FullBleedCard>
-				)
 			case SessionViewability.ERROR:
 				if (loading) {
 					return <LoadingBox />
@@ -410,14 +383,48 @@ const PlayerPage = () => {
 						</Box>
 					)
 				} else {
+					let reasonText: React.ReactNode
+					switch (session?.excluded_reason) {
+						case 'BillingQuotaExceeded':
+							reasonText = (
+								<>
+									This session was recorded after your billing
+									limit was reached. You can update your
+									billing limits{' '}
+									<a
+										href={`/w/${currentWorkspace?.id}/current-plan`}
+									>
+										here
+									</a>
+									.
+								</>
+							)
+							break
+						case 'RetentionPeriodExceeded':
+							reasonText = (
+								<>
+									This session is older than your plan's
+									retention date. You can update your plan's
+									retention settings{' '}
+									<a
+										href={`/w/${currentWorkspace?.id}/current-plan`}
+									>
+										here
+									</a>
+									.
+								</>
+							)
+							break
+						default:
+							reasonText =
+								'This session does not exist or has not been made public.'
+							break
+					}
 					return (
 						<Box m="auto" style={{ maxWidth: 300 }}>
 							<Callout kind="info" title="Can't load session">
 								<Box pb="6">
-									<Text>
-										This session does not exist or has not
-										been made public.
-									</Text>
+									<Text>{reasonText}</Text>
 								</Box>
 							</Callout>
 						</Box>
@@ -494,6 +501,7 @@ const PlayerPage = () => {
 		sessionViewability,
 		session_secure_id,
 		integrated,
+		session?.excluded_reason,
 	])
 
 	return (

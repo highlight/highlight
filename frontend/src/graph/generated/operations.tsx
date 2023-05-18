@@ -1637,6 +1637,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
 			| 'payload_size'
 			| 'processed'
 			| 'excluded'
+			| 'excluded_reason'
 			| 'has_rage_clicks'
 			| 'has_errors'
 			| 'within_billing_quota'

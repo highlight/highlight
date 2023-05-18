@@ -71,7 +71,6 @@ export const MAX_CHUNK_COUNT = 8
 export enum SessionViewability {
 	VIEWABLE,
 	EMPTY_SESSION,
-	OVER_BILLING_QUOTA,
 	ERROR,
 }
 
@@ -373,20 +372,12 @@ export const PlayerReducer = (
 				s.session = action.data?.session as Session
 				s.isLiveMode = false
 			}
-			if (action.data.session === null) {
+			if (!action.data.session || action.data.session.excluded) {
 				s.sessionViewability = SessionViewability.ERROR
 			} else if (
 				action.data.session?.within_billing_quota ||
 				s.isHighlightAdmin
 			) {
-				if (
-					!action.data.session?.within_billing_quota &&
-					s.isHighlightAdmin
-				) {
-					alert(
-						"btw this session is outside of the project's billing quota.",
-					)
-				}
 				if (action.data.session?.last_user_interaction_time) {
 					s.lastActiveTimestamp = new Date(
 						action.data.session?.last_user_interaction_time,
@@ -408,7 +399,7 @@ export const PlayerReducer = (
 				}
 				s.sessionViewability = SessionViewability.VIEWABLE
 			} else {
-				s.sessionViewability = SessionViewability.OVER_BILLING_QUOTA
+				s.sessionViewability = SessionViewability.ERROR
 			}
 			break
 		case PlayerActionType.reset:
@@ -466,9 +457,7 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.onChunksLoad:
-			if (
-				s.sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
-			) {
+			if (s.sessionViewability !== SessionViewability.ERROR) {
 				s.sessionViewability = SessionViewability.VIEWABLE
 			}
 
