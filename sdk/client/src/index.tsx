@@ -2,7 +2,6 @@ import {
 	addCustomEvent as rrwebAddCustomEvent,
 	getRecordSequentialIdPlugin,
 	record,
-	RRWebPluginCanvasWebRTCRecord,
 } from '@highlight-run/rrweb'
 import { eventWithTime, listenerHandler } from '@highlight-run/rrweb-types'
 import { FirstLoadListeners } from './listeners/first-load-listeners'
@@ -162,6 +161,7 @@ export class Highlight {
 	/** Verbose project ID that is exposed to users. Legacy users may still be using ints. */
 	organizationID!: string
 	graphqlSDK!: Sdk
+	webrtcWS!: WebSocket
 	events!: eventWithTime[]
 	sessionData!: SessionData
 	ready!: boolean
@@ -354,6 +354,7 @@ export class Highlight {
 					this.options?.sessionSecureID,
 			),
 		)
+
 		this.environment = options.environment ?? 'production'
 		this.appVersion = options.appVersion
 
@@ -705,38 +706,91 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				}
 
 				const peer = new RTCPeerConnection({
-					iceServers: [
-						{
-							urls: 'stun:stun.l.google.com:19302',
-						},
-					],
+					iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
 				})
-				peer.onicecandidate = (event) => {
-					console.log('vadim', { event, desc: peer.localDescription })
-					if (event.candidate === null) {
-						// TODO(vkorolik) send pub.highlight.io the offer
+
+				// TODO(vkorolik) hostname
+				const webrtcWSURI = `wss://localhost:8082/webrtc`
+				this.webrtcWS = new WebSocket(webrtcWSURI)
+
+				const wsSend = async (msg: string) => {
+					console.log('vadim wsSend', {
+						readyState: this.webrtcWS.readyState,
+						msg,
+					})
+					if (this.webrtcWS.readyState === 1) {
+						this.webrtcWS.send(msg)
+					} else {
+						await new Promise<void>((r) => {
+							setTimeout(async () => r(), 100)
+						})
+						await wsSend(msg)
 					}
 				}
-				peer.addEventListener('connectionstatechange', (event) => {
-					if (peer.connectionState === 'connected') {
-						console.log('vadim', 'horray!')
+
+				// TODO(vkorolik)
+				// this.webrtcWS.onclose = () => {
+				// 	console.log('vadim onclose')
+				// 	this.webrtcWS = new WebSocket(webrtcWSURI)
+				// }
+				this.webrtcWS.onmessage = async (msg) => {
+					console.log('vadim onmessage', { body: msg.data })
+					// TODO(vkorolik) onmessage
+				}
+				this.webrtcWS.onopen = async () => {
+					console.log('vadim onopen')
+					peer.onicecandidate = async ({ candidate }) => {
+						if (candidate) {
+							await wsSend(JSON.stringify({ candidate }))
+							console.log('vadim onicecandidate sent', {
+								candidate,
+							})
+						}
 					}
-				})
-				console.log('vadim started', {
-					state: peer.iceConnectionState,
-					peer,
-				})
-				peer.createOffer().then((init) => {
-					console.log('vadim', { init })
-					peer.setLocalDescription(init)
-					webRTCRecordPlugin.signalReceive(init)
-				})
-				const webRTCRecordPlugin = new RRWebPluginCanvasWebRTCRecord({
-					signalSendCallback: (msg: any) => {
-						console.log('vadim', { msg })
-					},
-					peer,
-				})
+					peer.onnegotiationneeded = async (event) => {
+						await peer.setLocalDescription(await peer.createOffer())
+						await wsSend(
+							JSON.stringify({
+								event,
+								description: peer.localDescription,
+							}),
+						)
+						console.log('vadim onnegotiationneeded sent', {
+							event,
+							desc: peer.localDescription,
+						})
+					}
+
+					const setupCanvasStreams = function () {
+						const canvases = document.querySelectorAll('canvas')
+						canvases.forEach((canvas) => {
+							const stream = canvas.captureStream()
+							for (const t of stream.getTracks()) {
+								peer.addTrack(t)
+							}
+						})
+						return !!canvases.length
+					}
+
+					const setup = window.setInterval(() => {
+						console.log('vadim setting up canvas streams', {
+							state: peer.iceConnectionState,
+							peer,
+						})
+						if (setupCanvasStreams()) {
+							console.log('vadim set up canvas streams', {
+								state: peer.iceConnectionState,
+								peer,
+							})
+							window.clearInterval(setup)
+						}
+					}, 1000)
+					console.log('vadim started', {
+						state: peer.iceConnectionState,
+						peer,
+					})
+				}
+
 				this._recordStop = record({
 					ignoreClass: 'highlight-ignore',
 					blockClass: 'highlight-block',
@@ -746,6 +800,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					enableStrictPrivacy: this.enableStrictPrivacy,
 					maskAllInputs: this.enableStrictPrivacy,
 					recordCanvas: false,
+					// TODO(vkorolik) temp
+					// recordCanvas: this.enableCanvasRecording,
 					sampling: {
 						canvas: {
 							fps: this.samplingStrategy.canvas,
@@ -764,11 +820,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					},
 					inlineImages: this.inlineImages,
 					inlineStylesheet: this.inlineStylesheet,
-					plugins: [
-						// TODO(vkorolik) if this.enableCanvasRecording
-						webRTCRecordPlugin.initPlugin(),
-						getRecordSequentialIdPlugin(),
-					],
+					plugins: [getRecordSequentialIdPlugin()],
 					logger,
 				})
 				// recordStop is not part of listeners because we do not actually want to stop rrweb

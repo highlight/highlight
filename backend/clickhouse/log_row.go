@@ -118,8 +118,8 @@ func WithBody(ctx context.Context, body string) LogRowOption {
 		if len(body) > LogAttributeValueLengthLimit {
 			log.WithContext(ctx).
 				WithField("ValueLength", len(body)).
-				WithField("ValueTrunc", body[:LogAttributeValueWarningLengthLimit]).
-				Warnf("log body value is too long %d", len(body))
+				WithField("ValueTrunc", body[:64]).
+				Warnf("log body too long")
 			body = body[:LogAttributeValueLengthLimit] + "..."
 		}
 		l.Body = body

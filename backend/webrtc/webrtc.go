@@ -13,10 +13,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"os/signal"
 	"time"
 
 	"github.com/at-wat/ebml-go/webm"
+	"github.com/olahol/melody"
 	"github.com/pion/rtcp"
 	"github.com/pion/rtp"
 	"github.com/pion/rtp/codecs"
@@ -94,21 +94,116 @@ func unzip(in []byte) []byte {
 	return res
 }
 
+type Message struct {
+	Candidate   *webrtc.ICECandidateInit   `json:"candidate,omitempty"`
+	Description *webrtc.SessionDescription `json:"description,omitempty"`
+}
+
 func Listen(ctx context.Context, r chi.Router) {
-	log.WithContext(ctx).Info("webrtc.Listen")
-	r.Post("/webrtc/{offer}", func(writer http.ResponseWriter, request *http.Request) {
-		offer := chi.URLParam(request, "offer")
-		saver := newWebmSaver()
-		peerConnection := createWebRTCConn(ctx, saver, offer)
+	saver := newWebmSaver()
+	pc, err := createConn(ctx, saver)
+	// TODO(vkorolik) multiplex connections
+	log.WithContext(ctx).WithError(err).Info("created 1 webrtc connection")
+	// TODO(vkorolik) defer to separate close event?
+	//if err := peerConnection.Close(); err != nil {
+	//	panic(err)
+	//}
+	//saver.Close(ctx)
+	m := melody.New()
+	// allow larger messages as the webrtc signaling data is large
+	m.Config.MaxMessageSize = 2 << 16
+	// TODO(vkorolik)
+	m.Upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 
-		closed := make(chan os.Signal, 1)
-		signal.Notify(closed, os.Interrupt)
-		<-closed
+	// Set the handler for ICE connection state
+	// This will notify you when the peer has connected/disconnected
+	pc.OnICEConnectionStateChange(func(connectionState webrtc.ICEConnectionState) {
+		log.WithContext(ctx).Infof("Connection State has changed %s", connectionState.String())
+	})
 
-		if err := peerConnection.Close(); err != nil {
-			panic(err)
+	pc.OnICECandidate(func(candidate *webrtc.ICECandidate) {
+		log.WithContext(ctx).Infof("OnICECandidate %+v", candidate)
+		if candidate == nil {
+			return
 		}
-		saver.Close(ctx)
+
+		init := candidate.ToJSON()
+		data, err := json.Marshal(Message{Candidate: &init})
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to marshal ICECandidate")
+			return
+		}
+		// TODO(vkorolik) this should be a send
+		err = m.Broadcast(data)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to send ICECandidate")
+			return
+		}
+	})
+
+	pc.OnNegotiationNeeded(func() {
+		desc, err := pc.CreateOffer(&webrtc.OfferOptions{})
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to create offer")
+			return
+		}
+		if err := pc.SetLocalDescription(desc); err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to set local description")
+			return
+		}
+		log.WithContext(ctx).Infof("OnNegotiationNeeded")
+
+		data, err := json.Marshal(Message{Description: pc.LocalDescription()})
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to marshal SessionDescription")
+			return
+		}
+		// TODO(vkorolik) this should be a send
+		err = m.Broadcast(data)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to send SessionDescription")
+			return
+		}
+	})
+
+	r.HandleFunc("/webrtc", func(w http.ResponseWriter, req *http.Request) {
+		log.WithContext(ctx).WithError(err).Info("got websocket connection")
+		if err := m.HandleRequest(w, req); err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to establish webrtc websocket connection")
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+
+	m.HandleMessage(func(s *melody.Session, msg []byte) {
+		log.WithContext(ctx).Infof("websocket message %s %+v", msg, s)
+		var message Message
+		if err := json.Unmarshal(msg, &message); err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to unmarshal")
+		}
+
+		if message.Candidate != nil {
+			if err = handleCandidate(ctx, pc, *message.Candidate); err != nil {
+				log.WithContext(ctx).WithError(err).Error("failed to handle webrtc candidate")
+			}
+		} else if message.Description != nil {
+			if err = handleDescription(ctx, pc, *message.Description); err != nil {
+				log.WithContext(ctx).WithError(err).Error("failed to handle webrtc description")
+			}
+
+			data, err := json.Marshal(Message{Description: pc.LocalDescription()})
+			if err != nil {
+				log.WithContext(ctx).WithError(err).Error("failed to marshal SessionDescription")
+				return
+			}
+			// TODO(vkorolik) this should be a send
+			err = m.Broadcast(data)
+			if err != nil {
+				log.WithContext(ctx).WithError(err).Error("failed to send SessionDescription")
+				return
+			}
+		}
+		// TODO(vkorolik) should be a send
+		_ = m.Broadcast([]byte("ok"))
 	})
 }
 
@@ -223,12 +318,12 @@ func (s *webmSaver) InitWriter(ctx context.Context, width, height int) {
 	s.videoWriter = ws[1]
 }
 
-func createWebRTCConn(ctx context.Context, saver *webmSaver, sdpOffer string) *webrtc.PeerConnection {
+func createConn(ctx context.Context, saver *webmSaver) (*webrtc.PeerConnection, error) {
 	log.WithContext(ctx).Info("creating webrtc conn")
-	// Everything below is the pion-WebRTC API! Thanks for using it ❤️.
 
 	// Prepare the configuration
 	config := webrtc.Configuration{
+		ICETransportPolicy: webrtc.ICETransportPolicyRelay,
 		ICEServers: []webrtc.ICEServer{
 			{
 				URLs: []string{"stun:stun.l.google.com:19302"},
@@ -245,13 +340,13 @@ func createWebRTCConn(ctx context.Context, saver *webmSaver, sdpOffer string) *w
 		RTPCodecCapability: webrtc.RTPCodecCapability{MimeType: "video/VP8", ClockRate: 90000, Channels: 0, SDPFmtpLine: "", RTCPFeedback: nil},
 		PayloadType:        96,
 	}, webrtc.RTPCodecTypeVideo); err != nil {
-		panic(err)
+		return nil, err
 	}
 	if err := m.RegisterCodec(webrtc.RTPCodecParameters{
 		RTPCodecCapability: webrtc.RTPCodecCapability{MimeType: "audio/opus", ClockRate: 48000, Channels: 0, SDPFmtpLine: "", RTCPFeedback: nil},
 		PayloadType:        111,
 	}, webrtc.RTPCodecTypeAudio); err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// Create the API object with the MediaEngine
@@ -260,7 +355,7 @@ func createWebRTCConn(ctx context.Context, saver *webmSaver, sdpOffer string) *w
 	// Create a new RTCPeerConnection
 	peerConnection, err := api.NewPeerConnection(config)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	// Set a handler for when a new remote track starts, this handler copies inbound RTP packets,
@@ -295,28 +390,28 @@ func createWebRTCConn(ctx context.Context, saver *webmSaver, sdpOffer string) *w
 			}
 		}
 	})
-	// Set the handler for ICE connection state
-	// This will notify you when the peer has connected/disconnected
-	peerConnection.OnICEConnectionStateChange(func(connectionState webrtc.ICEConnectionState) {
-		log.WithContext(ctx).Infof("Connection State has changed %s \n", connectionState.String())
-	})
 
-	return peerConnection
+	return peerConnection, nil
+}
 
-	// Wait for the offer to be pasted
-	offer := webrtc.SessionDescription{}
-	Decode(sdpOffer, &offer)
+func handleCandidate(ctx context.Context, peerConnection *webrtc.PeerConnection, candidate webrtc.ICECandidateInit) error {
+	if err := peerConnection.AddICECandidate(candidate); err != nil {
+		return err
+	}
+	return nil
+}
 
+func handleDescription(ctx context.Context, peerConnection *webrtc.PeerConnection, desc webrtc.SessionDescription) error {
 	// Set the remote SessionDescription
-	err = peerConnection.SetRemoteDescription(offer)
+	err := peerConnection.SetRemoteDescription(desc)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Create an answer
 	answer, err := peerConnection.CreateAnswer(nil)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Create channel that is blocked until ICE Gathering is complete
@@ -325,7 +420,7 @@ func createWebRTCConn(ctx context.Context, saver *webmSaver, sdpOffer string) *w
 	// Sets the LocalDescription, and starts our UDP listeners
 	err = peerConnection.SetLocalDescription(answer)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	// Block until ICE Gathering is complete, disabling trickle ICE
@@ -336,5 +431,5 @@ func createWebRTCConn(ctx context.Context, saver *webmSaver, sdpOffer string) *w
 	// Output the answer in base64 so we can paste it in browser
 	log.WithContext(ctx).Info(Encode(*peerConnection.LocalDescription()))
 
-	return peerConnection
+	return nil
 }

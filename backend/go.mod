@@ -69,6 +69,7 @@ require (
 	github.com/lukasbob/srcset v0.0.0-20190730101422-86b742e617f3
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/mssola/user_agent v0.5.3
+	github.com/olahol/melody v1.1.3
 	github.com/openlyinc/pointy v1.1.2
 	github.com/opensearch-project/opensearch-go v1.0.0
 	github.com/pion/rtcp v1.2.10
