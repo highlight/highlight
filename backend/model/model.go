@@ -180,6 +180,7 @@ var Models = []interface{}{
 	&ErrorGroupAdminsView{},
 	&LogAdminsView{},
 	&ProjectFilterSettings{},
+	&ErrorGroupActivityLog{},
 }
 
 func init() {
@@ -929,6 +930,22 @@ type ErrorGroup struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
 	Viewed         *bool   `json:"viewed"`
+}
+
+type ErrorGroupEventType string
+
+const (
+	ErrorGroupResolvedEvent ErrorGroupEventType = "ErrorGroupResolved"
+	ErrorGroupIgnoredEvent  ErrorGroupEventType = "ErrorGroupIgnored"
+	ErrorGroupOpenedEvent   ErrorGroupEventType = "ErrorGroupOpened"
+	ErrorGroupSnoozedEvent  ErrorGroupEventType = "ErrorGroupSnoozed"
+)
+
+type ErrorGroupActivityLog struct {
+	Model
+	AdminID   int // when this is 0, it means the system generated the event
+	Admin     *Admin
+	EventType ErrorGroupEventType
 }
 
 type ErrorGroupAdminsView struct {

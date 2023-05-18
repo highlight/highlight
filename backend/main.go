@@ -582,6 +582,7 @@ func main() {
 			Redis:           redisClient,
 			Clickhouse:      clickhouseClient,
 			RH:              &rh,
+			Repositories:    initRepositories(db, opensearchClient),
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
@@ -636,8 +637,8 @@ func main() {
 	}
 }
 
-func initRepositories(db *gorm.DB, opensearch *opensearch.Client) *repositories.Repositories {
-	return &repositories.Repositories{
+func initRepositories(db *gorm.DB, opensearch *opensearch.Client) repositories.Repositories {
+	return repositories.Repositories{
 		Filtering:   filtering.NewRepository(db),
 		ErrorGroups: errorgroups.NewRepository(db, opensearch),
 	}

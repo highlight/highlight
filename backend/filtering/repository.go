@@ -11,8 +11,8 @@ type FilteringRepository struct {
 	db *gorm.DB
 }
 
-func NewRepository(db *gorm.DB) *FilteringRepository {
-	return &FilteringRepository{
+func NewRepository(db *gorm.DB) FilteringRepository {
+	return FilteringRepository{
 		db: db,
 	}
 }

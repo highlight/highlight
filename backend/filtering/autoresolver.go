@@ -11,15 +11,18 @@ import (
 )
 
 type AutoResolverService struct {
-	*FilteringRepository
-	*errorgroups.ErrorGroupsRepository
+	FilteringRepository
+	errorgroups.ErrorGroupsRepository
 }
 
 func (service *AutoResolverService) AutoResolveStaleErrors(ctx context.Context) {
 	staleErrorGroups := service.findStaleErrors(ctx)
 
 	for _, errorGroup := range staleErrorGroups {
-		_, err := service.UpdateErrorGroupState(ctx, &errorGroup, privateModel.ErrorStateResolved, nil)
+		_, err := service.UpdateErrorGroupStateBySystem(ctx, errorgroups.UpdateErrorGroupParams{
+			ID:    errorGroup.ID,
+			State: privateModel.ErrorStateResolved,
+		})
 		if err != nil {
 			log.WithContext(ctx).Error(err)
 		}

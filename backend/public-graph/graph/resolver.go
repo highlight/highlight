@@ -77,7 +77,7 @@ type Resolver struct {
 	Redis           *redis.Client
 	Clickhouse      *clickhouse.Client
 	RH              *resthooks.Resthook
-	Repositories    *repositories.Repositories
+	Repositories    repositories.Repositories
 }
 
 type Location struct {

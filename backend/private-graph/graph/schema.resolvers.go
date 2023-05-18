@@ -825,8 +825,15 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to modify error group")
 	}
+	admin, err := r.getCurrentAdmin(ctx)
 
-	return r.Repositories.ErrorGroups.UpdateErrorGroupState(ctx, errorGroup, state, snoozedUntil)
+	updatedErrorGroup, err := r.Repositories.ErrorGroups.UpdateErrorGroupStateByAdmin(ctx, *admin, errorgroups.UpdateErrorGroupParams{
+		ID:           errorGroup.ID,
+		State:        state,
+		SnoozedUntil: snoozedUntil,
+	})
+
+	return &updatedErrorGroup, err
 }
 
 // DeleteProject is the resolver for the deleteProject field.

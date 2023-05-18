@@ -2,47 +2,82 @@ package errorgroups
 
 import (
 	"context"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/opensearch"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/util"
-	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
-func setupErrorGroupsRepository() *ErrorGroupsRepository {
-	dbName := "highlight_testing_db"
-	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
-	db, err := util.CreateAndMigrateTestDB(dbName)
-	if err != nil {
-		testLogger.Error("error creating testdb")
-	}
-
-	return NewRepository(db, &opensearch.Client{})
-}
-
-func TestUpdateErrorGroupState(t *testing.T) {
+func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 	repo := setupErrorGroupsRepository()
 
 	errorGroup := model.ErrorGroup{
 		State: privateModel.ErrorStateOpen,
 	}
 
-	updatedState := privateModel.ErrorStateIgnored
-	updatedSnoozeUntil := time.Now()
+	admin := model.Admin{}
+	repo.db.Create(&admin)
 
-	_, err := repo.UpdateErrorGroupState(context.TODO(), &errorGroup, updatedState, &updatedSnoozeUntil)
+	now := time.Now()
+	params := UpdateErrorGroupParams{
+		ID:           -1,
+		State:        privateModel.ErrorStateIgnored,
+		SnoozedUntil: &now,
+	}
+
+	_, err := repo.UpdateErrorGroupStateByAdmin(context.TODO(), admin, params)
 	assert.EqualError(t, err, "record not found")
 
 	repo.db.Create(&errorGroup)
 
-	updatedErrorGroup, err := repo.UpdateErrorGroupState(context.TODO(), &errorGroup, updatedState, &updatedSnoozeUntil)
+	params.ID = errorGroup.ID
+
+	updatedErrorGroup, err := repo.UpdateErrorGroupStateByAdmin(context.TODO(), admin, params)
 	assert.NoError(t, err)
 
-	assert.Equal(t, updatedErrorGroup.State, updatedState)
-	assert.Equal(t, updatedErrorGroup.SnoozedUntil, &updatedSnoozeUntil)
+	assert.Equal(t, updatedErrorGroup.State, params.State)
+	assert.Equal(t, updatedErrorGroup.SnoozedUntil, params.SnoozedUntil)
+
+	activityLog := model.ErrorGroupActivityLog{}
+	repo.db.Where(model.ErrorGroupActivityLog{
+		AdminID: admin.ID,
+	}).Find(&activityLog)
+
+	assert.Equal(t, activityLog.AdminID, admin.ID)
+}
+
+func TestUpdateErrorGroupStateBySystem(t *testing.T) {
+	repo := setupErrorGroupsRepository()
+
+	errorGroup := model.ErrorGroup{
+		State: privateModel.ErrorStateOpen,
+	}
+
+	now := time.Now()
+	params := UpdateErrorGroupParams{
+		ID:           -1,
+		State:        privateModel.ErrorStateIgnored,
+		SnoozedUntil: &now,
+	}
+
+	_, err := repo.UpdateErrorGroupStateBySystem(context.TODO(), params)
+	assert.EqualError(t, err, "record not found")
+
+	repo.db.Create(&errorGroup)
+
+	params.ID = errorGroup.ID
+
+	updatedErrorGroup, err := repo.UpdateErrorGroupStateBySystem(context.TODO(), params)
+	assert.NoError(t, err)
+
+	assert.Equal(t, updatedErrorGroup.State, params.State)
+	assert.Equal(t, updatedErrorGroup.SnoozedUntil, params.SnoozedUntil)
+
+	activityLogs := []model.ErrorGroupActivityLog{}
+	repo.db.Where(model.ErrorGroupActivityLog{}).Find(&activityLogs)
+
+	assert.Len(t, activityLogs, 1)
+	assert.Equal(t, activityLogs[0].AdminID, 0) // 0 means the system generated this
 }

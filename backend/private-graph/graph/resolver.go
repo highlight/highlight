@@ -129,7 +129,7 @@ type Resolver struct {
 	OAuthServer            *oauth.Server
 	IntegrationsClient     *integrations.Client
 	ClickhouseClient       *clickhouse.Client
-	Repositories           *repositories.Repositories
+	Repositories           repositories.Repositories
 }
 
 func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {

@@ -1,4 +1,4 @@
-package filtering
+package errorgroups
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
@@ -28,10 +27,6 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func setupErrorGroupsRepository() errorgroups.ErrorGroupsRepository {
-	return errorgroups.NewRepository(db, &opensearch.Client{})
-}
-
-func setupFilteringRepository() FilteringRepository {
-	return NewRepository(db)
+func setupErrorGroupsRepository() ErrorGroupsRepository {
+	return NewRepository(db, &opensearch.Client{})
 }

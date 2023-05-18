@@ -6,6 +6,6 @@ import (
 )
 
 type Repositories struct {
-	Filtering   *filtering.FilteringRepository
-	ErrorGroups *errorgroups.ErrorGroupsRepository
+	Filtering   filtering.FilteringRepository
+	ErrorGroups errorgroups.ErrorGroupsRepository
 }
