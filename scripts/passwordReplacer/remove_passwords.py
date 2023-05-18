@@ -147,17 +147,21 @@ def lambda_handler(event, context):
         response = s3.get_object(Bucket=bucket, Key=key)
         sus = get_sus(brotli.decompress(response['Body'].read()))
         if sus:
-            newKey = key.replace('session-contents-compressed-', 'session-contents-compressed-v2-')
             response = client.put_item(
                 TableName='password-chunks',
                 Item={
                     'key': {
-                        'S': newKey
+                        'S': key
+                    },
+                    'finished': {
+                        'BOOL': True
                     }
                 })
-            print('sus!', newKey)
+            print('sus!', key)
             compressed = brotli.compress(sus.encode(), quality=9)
-            s3.put_object(Body=compressed, Bucket=bucket, Key=newKey, ContentEncoding='br', ContentType='application/json')
+            s3.copy_object(
+                Bucket="highlight-session-data", CopySource="highlight-session-data/"+key, Key=key+"-old")
+            s3.put_object(Body=compressed, Bucket=bucket, Key=key, ContentEncoding='br', ContentType='application/json')
         return
     except Exception as e:
         print('error!', e)
