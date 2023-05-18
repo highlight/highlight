@@ -40,6 +40,7 @@
 		"dev:ui": "yarn turbo run dev --filter @highlight-run/ui...",
 		"reflame": "cd frontend && yarn reflame",
 		"reflame-build": "cd frontend && yarn reflame-build",
+		"reflame-check": "./scripts/reflame-check.sh",
 		"dev:redis": "redis-server",
 		"docker:frontend": "yarn turbo run dev --filter frontend --filter highlight.run --filter @highlight-run/client",
 		"e2e:nestjs": "yarn turbo run dev --filter nestjs",
