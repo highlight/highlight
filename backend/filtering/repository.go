@@ -17,21 +17,20 @@ func NewRepository(db *gorm.DB) *FilteringRepository {
 	}
 }
 
-func (repo *FilteringRepository) GetProjectFilterSettings(project *model.Project) *model.ProjectFilterSettings {
+func (repo *FilteringRepository) GetProjectFilterSettings(project model.Project) (model.ProjectFilterSettings, error) {
 	projectFilterSettings := model.ProjectFilterSettings{}
-	repo.db.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
-
-	return &projectFilterSettings
+	result := repo.db.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
+	return projectFilterSettings, result.Error
 }
 
-func (repo *FilteringRepository) UpdateProjectFilterSettings(project *model.Project, updates model.ProjectFilterSettings) *model.ProjectFilterSettings {
+func (repo *FilteringRepository) UpdateProjectFilterSettings(project model.Project, updates model.ProjectFilterSettings) (model.ProjectFilterSettings, error) {
 	projectFilterSettings := model.ProjectFilterSettings{}
 
-	repo.db.Where(model.ProjectFilterSettings{
+	result := repo.db.Where(model.ProjectFilterSettings{
 		ProjectID: project.ID,
 	}).Assign(updates).FirstOrCreate(&projectFilterSettings)
 
-	return &projectFilterSettings
+	return projectFilterSettings, result.Error
 }
 
 func (repo *FilteringRepository) findProjectsWithAutoResolveSetting(ctx context.Context) []model.ProjectFilterSettings {

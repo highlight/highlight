@@ -3046,7 +3046,7 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 }
 
 func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
-	projectFilterSettings := r.Repositories.Filtering.GetProjectFilterSettings(&project)
+	projectFilterSettings, _ := r.Repositories.Filtering.GetProjectFilterSettings(project)
 
 	if projectFilterSettings.FilterSessionsWithoutError {
 		return !sessionHasErrors

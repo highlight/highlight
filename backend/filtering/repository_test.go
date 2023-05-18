@@ -19,9 +19,10 @@ func TestUpdateProjectFilterSettings(t *testing.T) {
 			t.Fatal(e.Wrap(err, "error inserting project"))
 		}
 
-		updatedSettings := repo.UpdateProjectFilterSettings(&project, model.ProjectFilterSettings{
+		updatedSettings, err := repo.UpdateProjectFilterSettings(project, model.ProjectFilterSettings{
 			FilterSessionsWithoutError: true,
 		})
+		assert.NoError(t, err)
 
 		assert.True(t, updatedSettings.FilterSessionsWithoutError)
 	})

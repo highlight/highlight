@@ -590,9 +590,12 @@ func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projec
 		return nil, err
 	}
 
-	return r.Repositories.Filtering.UpdateProjectFilterSettings(project, model.ProjectFilterSettings{
+	updatedProjectFilterSettings, err := r.Repositories.Filtering.UpdateProjectFilterSettings(*project, model.ProjectFilterSettings{
 		FilterSessionsWithoutError: filterSessionsWithoutError,
-	}), nil
+	})
+
+	return &updatedProjectFilterSettings, err
+
 }
 
 // EditWorkspace is the resolver for the editWorkspace field.
@@ -6382,7 +6385,9 @@ func (r *queryResolver) ProjectFilterSettings(ctx context.Context, projectID int
 		return nil, err
 	}
 
-	return r.Repositories.Filtering.GetProjectFilterSettings(project), nil
+	projectFilterSettings, err := r.Repositories.Filtering.GetProjectFilterSettings(*project)
+
+	return &projectFilterSettings, err
 }
 
 // Workspace is the resolver for the workspace field.

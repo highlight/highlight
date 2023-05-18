@@ -7,7 +7,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/huandu/go-assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAutoResolveStaleErrors(t *testing.T) {
@@ -16,9 +16,10 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 	project := model.Project{}
 	service.db.Create(&project)
 
-	service.UpdateProjectFilterSettings(&project, model.ProjectFilterSettings{
+	_, err := service.UpdateProjectFilterSettings(project, model.ProjectFilterSettings{
 		AutoResolveStaleErrorsDayInterval: 1,
 	})
+	assert.NoError(t, err)
 
 	errorGroup1 := model.ErrorGroup{State: privateModel.ErrorStateOpen}
 	errorGroup2 := model.ErrorGroup{State: privateModel.ErrorStateOpen}
