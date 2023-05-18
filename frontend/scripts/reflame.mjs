@@ -10,10 +10,15 @@ import * as vanilla from './build-vanilla-extract.mjs'
 
 const rootDirectoryFrontend = process.cwd()
 
+const args = process.argv.slice(2)
+const excludeRrweb = args.includes('--exclude-rrweb')
+
 await Promise.all([
 	css.run({ rootDirectory: rootDirectoryFrontend }),
 	vanilla.run({ rootDirectory: rootDirectoryFrontend }),
-	rrweb.run({ rootDirectory: rootDirectoryFrontend }),
+	excludeRrweb
+		? Promise.resolve()
+		: rrweb.run({ rootDirectory: rootDirectoryFrontend }),
 	svgr.run({ rootDirectory: rootDirectoryFrontend }),
 	scss.run({ rootDirectory: rootDirectoryFrontend }),
 	vanillaUi.run({
