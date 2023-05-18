@@ -8,6 +8,15 @@ class HighlightDocument extends Document {
 		return (
 			<Html>
 				<Head>
+					<script>
+						{`
+	(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-PT4CCQ4');
+		`}
+					</script>
 					<link
 						rel="preconnect"
 						href="https://JGT9LI80J2-dsn.algolia.net"
@@ -33,11 +42,11 @@ class HighlightDocument extends Document {
 						strategy="afterInteractive"
 						src="//js.hs-scripts.com/20473940.js"
 					></Script>
-					<Script
+					{/* <Script
 						src="https://www.googletagmanager.com/gtag/js?id=AW-10833687189"
 						strategy="afterInteractive"
-					/>
-					<Script id="google-analytics" strategy="afterInteractive">
+					/> */}
+					{/* <Script id="google-analytics" strategy="afterInteractive">
 						{`
                         function gtag() {
                             (window.dataLayer || []).push(arguments);
@@ -50,7 +59,7 @@ class HighlightDocument extends Document {
                         gtag('config', 'AW-10833687189');
                         window.gtag = gtag
                     `}
-					</Script>
+					</Script> */}
 					<Script
 						type="text/javascript"
 						id="hs-script-loader"
@@ -61,6 +70,14 @@ class HighlightDocument extends Document {
 					<NextScript />
 				</Head>
 				<body style={{ overflowX: 'hidden' }}>
+					<noscript>
+						<iframe
+							src="https://www.googletagmanager.com/ns.html?id=GTM-PT4CCQ4"
+							height="0"
+							width="0"
+							style="display:none;visibility:hidden"
+						></iframe>
+					</noscript>
 					<Main />
 				</body>
 			</Html>
