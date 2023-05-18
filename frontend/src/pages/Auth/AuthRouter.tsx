@@ -9,7 +9,6 @@ import { ResetPassword } from '@pages/Auth/ResetPassword'
 import { SignIn } from '@pages/Auth/SignIn'
 import { SignUp } from '@pages/Auth/SignUp'
 import { Landing } from '@pages/Landing/Landing'
-import useLocalStorage from '@rehooks/local-storage'
 import firebase from 'firebase/compat/app'
 import React, { useEffect, useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
@@ -22,7 +21,6 @@ export const SIGN_UP_ROUTE = '/sign_up'
 export const AuthRouter: React.FC = () => {
 	const { isAuthLoading } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
-	const [inviteCode] = useLocalStorage('highlightInviteCode')
 
 	const [resolver, setResolver] =
 		useState<firebase.auth.MultiFactorResolver>()
@@ -53,12 +51,7 @@ export const AuthRouter: React.FC = () => {
 					<Route path="/reset_password" element={<ResetPassword />} />
 					<Route
 						path="/*"
-						element={
-							<Navigate
-								to={inviteCode ? SIGN_UP_ROUTE : SIGN_IN_ROUTE}
-								replace
-							/>
-						}
+						element={<Navigate to={SIGN_IN_ROUTE} replace />}
 					/>
 				</Routes>
 			</Box>

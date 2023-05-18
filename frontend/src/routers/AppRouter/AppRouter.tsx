@@ -257,7 +257,9 @@ export const AppRouter = () => {
 								<DefaultWorkspaceRouter />
 							)
 						) : (
-							<Navigate to={SIGN_IN_ROUTE} />
+							<Navigate
+								to={inviteCode ? SIGN_UP_ROUTE : SIGN_IN_ROUTE}
+							/>
 						)
 					}
 				/>
