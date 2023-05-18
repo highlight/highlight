@@ -55,7 +55,7 @@ export const AuthRouter: React.FC = () => {
 						path="/*"
 						element={
 							<Navigate
-								to={inviteCode ? SIGN_IN_ROUTE : SIGN_UP_ROUTE}
+								to={inviteCode ? SIGN_UP_ROUTE : SIGN_IN_ROUTE}
 								replace
 							/>
 						}
