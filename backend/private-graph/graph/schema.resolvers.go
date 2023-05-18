@@ -595,7 +595,6 @@ func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projec
 	})
 
 	return &updatedProjectFilterSettings, err
-
 }
 
 // EditWorkspace is the resolver for the editWorkspace field.
