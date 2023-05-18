@@ -709,6 +709,17 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
 				})
 
+				const setupCanvasStreams = function () {
+					const canvases = document.querySelectorAll('canvas')
+					canvases.forEach((canvas) => {
+						const stream = canvas.captureStream()
+						for (const t of stream.getTracks()) {
+							peer.addTrack(t)
+						}
+					})
+					return !!canvases.length
+				}
+
 				// TODO(vkorolik) hostname
 				const webrtcWSURI = `wss://localhost:8082/webrtc`
 				this.webrtcWS = new WebSocket(webrtcWSURI)
@@ -728,67 +739,81 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					}
 				}
 
-				// TODO(vkorolik)
-				// this.webrtcWS.onclose = () => {
-				// 	console.log('vadim onclose')
-				// 	this.webrtcWS = new WebSocket(webrtcWSURI)
-				// }
-				this.webrtcWS.onmessage = async (msg) => {
-					console.log('vadim onmessage', { body: msg.data })
-					// TODO(vkorolik) onmessage
+				peer.onicecandidate = async ({ candidate }) => {
+					if (candidate) {
+						await wsSend(JSON.stringify({ candidate }))
+						console.log('vadim onicecandidate sent', {
+							candidate,
+						})
+					}
 				}
-				this.webrtcWS.onopen = async () => {
-					console.log('vadim onopen')
-					peer.onicecandidate = async ({ candidate }) => {
-						if (candidate) {
-							await wsSend(JSON.stringify({ candidate }))
-							console.log('vadim onicecandidate sent', {
-								candidate,
-							})
-						}
-					}
-					peer.onnegotiationneeded = async (event) => {
-						await peer.setLocalDescription(await peer.createOffer())
-						await wsSend(
-							JSON.stringify({
-								event,
-								description: peer.localDescription,
-							}),
-						)
-						console.log('vadim onnegotiationneeded sent', {
+
+				peer.onnegotiationneeded = async (event) => {
+					await peer.setLocalDescription(await peer.createOffer())
+					await wsSend(
+						JSON.stringify({
 							event,
-							desc: peer.localDescription,
-						})
-					}
+							description: peer.localDescription,
+						}),
+					)
+					console.log('vadim onnegotiationneeded sent', {
+						event,
+						desc: peer.localDescription,
+					})
+				}
 
-					const setupCanvasStreams = function () {
-						const canvases = document.querySelectorAll('canvas')
-						canvases.forEach((canvas) => {
-							const stream = canvas.captureStream()
-							for (const t of stream.getTracks()) {
-								peer.addTrack(t)
-							}
-						})
-						return !!canvases.length
-					}
-
-					const setup = window.setInterval(() => {
-						console.log('vadim setting up canvas streams', {
-							state: peer.iceConnectionState,
-							peer,
-						})
-						if (setupCanvasStreams()) {
-							console.log('vadim set up canvas streams', {
-								state: peer.iceConnectionState,
-								peer,
-							})
-							window.clearInterval(setup)
-						}
-					}, 1000)
-					console.log('vadim started', {
+				const setup = window.setInterval(() => {
+					console.log('vadim setting up canvas streams', {
 						state: peer.iceConnectionState,
 						peer,
 					})
+					if (setupCanvasStreams()) {
+						console.log('vadim set up canvas streams', {
+							state: peer.iceConnectionState,
+							peer,
+						})
+						window.clearInterval(setup)
+					}
+				}, 1000)
+				console.log('vadim started', {
+					state: peer.iceConnectionState,
+					peer,
+				})
+
+				this.webrtcWS.onclose = () => {
+					console.log('vadim onclose')
+					this.webrtcWS = new WebSocket(webrtcWSURI)
+				}
+
+				this.webrtcWS.onmessage = async (msg) => {
+					if (msg.data === 'ok') {
+						return
+					}
+					console.log('vadim onmessage', { body: msg.data })
+					try {
+						const { description, candidate } = JSON.parse(msg.data)
+						if (description) {
+							await peer.setRemoteDescription(description)
+							if (description.type === 'offer') {
+								setupCanvasStreams()
+								await peer.setLocalDescription(
+									await peer.createAnswer(),
+								)
+								await wsSend(
+									JSON.stringify({
+										desc: peer.localDescription,
+									}),
+								)
+							} else {
+								console.log('Unsupported SDP type.')
+							}
+						}
+						if (candidate) {
+							await peer.addIceCandidate(candidate)
+						}
+					} catch (e) {
+						console.error('vadim onmessage', { body: msg.data, e })
+					}
 				}
 
 				this._recordStop = record({

@@ -258,7 +258,7 @@ func (s *webmSaver) PushVP8(ctx context.Context, rtpPacket *rtp.Packet) {
 			return
 		}
 		// Read VP8 header.
-		videoKeyframe := (sample.Data[0]&0x1 == 0)
+		videoKeyframe := sample.Data[0]&0x1 == 0
 		if videoKeyframe {
 			// Keyframe has frame information.
 			raw := uint(sample.Data[6]) | uint(sample.Data[7])<<8 | uint(sample.Data[8])<<16 | uint(sample.Data[9])<<24
@@ -323,7 +323,6 @@ func createConn(ctx context.Context, saver *webmSaver) (*webrtc.PeerConnection, 
 
 	// Prepare the configuration
 	config := webrtc.Configuration{
-		ICETransportPolicy: webrtc.ICETransportPolicyRelay,
 		ICEServers: []webrtc.ICEServer{
 			{
 				URLs: []string{"stun:stun.l.google.com:19302"},
@@ -408,6 +407,10 @@ func handleDescription(ctx context.Context, peerConnection *webrtc.PeerConnectio
 		return err
 	}
 
+	if desc.Type != webrtc.SDPTypeOffer {
+		return nil
+	}
+
 	// Create an answer
 	answer, err := peerConnection.CreateAnswer(nil)
 	if err != nil {
@@ -427,9 +430,6 @@ func handleDescription(ctx context.Context, peerConnection *webrtc.PeerConnectio
 	// we do this because we only can exchange one signaling message
 	// in a production application you should exchange ICE Candidates via OnICECandidate
 	<-gatherComplete
-
-	// Output the answer in base64 so we can paste it in browser
-	log.WithContext(ctx).Info(Encode(*peerConnection.LocalDescription()))
 
 	return nil
 }
