@@ -31,7 +31,7 @@ const nextConfig = {
 		return [
 			{
 				source: '/docs',
-				destination: '/docs/general/welcome',
+				destination: '/docs/welcome',
 				permanent: false,
 			},
 			{
@@ -41,7 +41,7 @@ const nextConfig = {
 			},
 			{
 				source: '/docs/general',
-				destination: '/docs/general/welcome',
+				destination: '/docs/welcome',
 				permanent: false,
 			},
 			{
