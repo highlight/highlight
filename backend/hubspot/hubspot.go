@@ -375,24 +375,17 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 	}
 
 	if companyID, err = pollHubspot(func() (*int, error) {
-		id, err := h.getCompany(ctx, name)
-		if err != nil {
-			return nil, err
-		}
-
+		return h.getCompany(ctx, name)
+	}); companyID != nil {
 		log.WithContext(ctx).
 			WithField("name", name).
-			Warnf("company already exists in Hubspot. updating")
+			Infof("company already exists in Hubspot. updating")
 
-		if id != nil {
-			_, err := h.hubspotClient.Companies().Update(*id, companyProperties)
-			if err != nil {
-				return nil, err
-			}
+		_, er := h.hubspotClient.Companies().Update(*companyID, companyProperties)
+		if er != nil {
+			return nil, er
 		}
 
-		return id, nil
-	}); companyID != nil {
 		return
 	}
 
