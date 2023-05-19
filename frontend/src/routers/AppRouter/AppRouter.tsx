@@ -12,6 +12,7 @@ import {
 } from '@pages/Auth/AuthRouter'
 import { JoinWorkspace } from '@pages/Auth/JoinWorkspace'
 import { VerifyEmail } from '@pages/Auth/VerifyEmail'
+import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import { Landing } from '@pages/Landing/Landing'
 import NewProjectPage from '@pages/NewProject/NewProjectPage'
@@ -219,14 +220,8 @@ export const AppRouter = () => {
 					/>
 
 					<Route
-						path="/invite/:invite_id"
-						element={
-							isLoggedIn ? (
-								<JoinWorkspace />
-							) : (
-								<Navigate to={SIGN_UP_ROUTE} />
-							)
-						}
+						path="/subscriptions"
+						element={<EmailOptOutPage />}
 					/>
 
 					<Route
@@ -237,13 +232,7 @@ export const AppRouter = () => {
 									<NewProjectPage />
 								</Landing>
 							) : (
-								<Navigate
-									to={
-										inviteCode
-											? SIGN_UP_ROUTE
-											: SIGN_IN_ROUTE
-									}
-								/>
+								<Navigate to={SIGN_IN_ROUTE} />
 							)
 						}
 					/>
@@ -267,7 +256,7 @@ export const AppRouter = () => {
 							isLoggedIn ? (
 								<JoinWorkspace />
 							) : (
-								<Navigate to="/sign_up" />
+								<Navigate to={SIGN_UP_ROUTE} />
 							)
 						}
 					/>
@@ -321,7 +310,13 @@ export const AppRouter = () => {
 									<DefaultWorkspaceRouter />
 								)
 							) : (
-								<Navigate to={SIGN_IN_ROUTE} />
+								<Navigate
+									to={
+										inviteCode
+											? SIGN_UP_ROUTE
+											: SIGN_IN_ROUTE
+									}
+								/>
 							)
 						}
 					/>
