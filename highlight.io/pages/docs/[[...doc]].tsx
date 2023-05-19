@@ -836,10 +836,6 @@ export default function DocPage({
 		}
 	}, [router])
 
-	const currentToc = toc?.children.find(
-		(c) => c.tocSlug === relPath?.split('/').filter((r) => r)[0],
-	)
-
 	const is400 = useMediaQuery(400)
 
 	return (
@@ -868,7 +864,7 @@ export default function DocPage({
 						{isSdkDoc ? (
 							<SdkTableOfContents />
 						) : (
-							currentToc?.children.map((t) => {
+							toc.children.map((t) => {
 								return (
 									<TableOfContents
 										openTopLevel={true}
