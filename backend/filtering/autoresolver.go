@@ -71,7 +71,6 @@ func (service *AutoResolverService) resolveStaleErrorsForProjectInBatches(ctx co
 			}
 
 			return nil
-
 		})
 
 	return result.Error
