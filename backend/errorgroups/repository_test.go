@@ -7,11 +7,13 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 	repo := setupErrorGroupsRepository()
+	defer util.ClearTablesInDB(repo.db) // nolint:errcheck
 
 	errorGroup := model.ErrorGroup{
 		State: privateModel.ErrorStateOpen,
@@ -51,6 +53,7 @@ func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 
 func TestUpdateErrorGroupStateBySystem(t *testing.T) {
 	repo := setupErrorGroupsRepository()
+	defer util.ClearTablesInDB(repo.db) // nolint:errcheck
 
 	errorGroup := model.ErrorGroup{
 		State: privateModel.ErrorStateOpen,

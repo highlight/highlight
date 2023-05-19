@@ -7,11 +7,13 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAutoResolveStaleErrors(t *testing.T) {
 	service := AutoResolverService{setupFilteringRepository(), setupErrorGroupsRepository()}
+	defer util.ClearTablesInDB(service.FilteringRepository.db) // nolint:errcheck
 
 	project := model.Project{}
 	service.db.Create(&project)
