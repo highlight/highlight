@@ -14,6 +14,7 @@ export default defineConfig({
 		},
 	},
 	build: {
+		target: 'es6',
 		lib: {
 			formats: ['umd'],
 			entry: resolve(__dirname, 'src/index.tsx'),
