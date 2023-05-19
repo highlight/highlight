@@ -8,4 +8,4 @@ services:
             - '--config=/etc/otel-collector-config.yaml'
         volumes:
             - ./otel-collector.yaml:/etc/otel-collector-config.yaml
-            - /Users/vkorolik/work/highlight/frontend.log:/var/log/test
+            - $EXAMPLE_LOG_FILE_PATH:/var/log/watch.log

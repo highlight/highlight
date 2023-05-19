@@ -1,6 +1,6 @@
 receivers:
     filelog:
-        include: [/var/log/test]
+        include: [/var/log/watch.log]
         start_at: beginning
 exporters:
     otlp:

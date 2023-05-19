@@ -100,9 +100,9 @@ func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, tra
 		return nil, err
 	}
 
-	t := time.Time{}
-	if ts == t {
-		t = time.Now()
+	// if the timestamp is zero, set time
+	if ts.Before(time.Unix(0, 1).UTC()) {
+		ts = time.Now()
 	}
 
 	return clickhouse.NewLogRow(
