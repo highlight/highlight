@@ -292,38 +292,6 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 	return allEvents, nil, newCursor
 }
 
-func (r *Client) GetResourceObjects(ctx context.Context, s *model.Session) ([]model.ResourcesObject, error) {
-	// TODO: Handle live mode + cursor
-
-	redisKey := NetworkResourcesKey(s.ID)
-	// redisData, err := r.redisClient.Get(ctx, redisKey).Result()
-	redisData, err := r.redisClient.ZRangeByScoreWithScores(ctx, redisKey, &redis.ZRangeBy{
-		Min: "-inf",
-		Max: "+inf",
-	}).Result()
-	if err != nil {
-		return nil, errors.Wrap(err, "error retrieving network resources from Redis")
-	}
-
-	resourceObjects := []model.ResourcesObject{}
-	for _, z := range redisData {
-		asBytes := []byte(z.Member.(string))
-
-		// Messages may be encoded with `snappy`.
-		// Try decoding them, but if decoding fails, use the original message.
-		decoded, err := snappy.Decode(nil, asBytes)
-		if err != nil {
-			decoded = asBytes
-		}
-
-		resourceObjects = append(resourceObjects, model.ResourcesObject{
-			Resources: string(decoded),
-		})
-	}
-
-	return resourceObjects, nil
-}
-
 func (r *Client) GetResources(ctx context.Context, s *model.Session) ([]interface{}, error) {
 	allResources := make([]interface{}, 0)
 
