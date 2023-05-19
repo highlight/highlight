@@ -60,6 +60,12 @@ func (service *AutoResolverService) resolveStaleErrorsForProjectInBatches(ctx co
 		Where("id NOT IN (?)", subQuery).
 		FindInBatches(&errorGroups, 100, func(tx *gorm.DB, batch int) error {
 			for _, errorGroup := range errorGroups {
+				log.WithContext(ctx).WithFields(
+					log.Fields{
+						"project_id":     project.ID,
+						"error_group_id": errorGroup.ID,
+					}).Info("Autoresolving error group")
+
 				_, err := service.UpdateErrorGroupStateBySystem(ctx, errorgroups.UpdateErrorGroupParams{
 					ID:    errorGroup.ID,
 					State: privateModel.ErrorStateResolved,
