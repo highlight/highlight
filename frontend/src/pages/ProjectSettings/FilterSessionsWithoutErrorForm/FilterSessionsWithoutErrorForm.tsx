@@ -1,16 +1,10 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import { LoadingBar } from '@components/Loading/Loading'
 import Switch from '@components/Switch/Switch'
-import { namedOperations } from '@graph/operations'
 import { Box } from '@highlight-run/ui'
-import { message } from 'antd'
 import { useEffect, useState } from 'react'
 
-import {
-	useEditProjectFilterSettingsMutation,
-	useGetProjectFilterSettingsQuery,
-} from '@/graph/generated/hooks'
-import { useProjectId } from '@/hooks/useProjectId'
+import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
 const OptInRow = (
 	key: string,
@@ -34,29 +28,21 @@ const OptInRow = (
 }
 
 export const FilterSessionsWithoutErrorForm = () => {
-	const { projectId } = useProjectId()
-
 	const [filterSessionsWithoutError, setFilterSessionsWithoutError] =
 		useState<boolean>(false)
-	const { data, loading } = useGetProjectFilterSettingsQuery({
-		variables: {
-			projectId,
-		},
-	})
-
-	const [editProjectFilterSettingsMutation] =
-		useEditProjectFilterSettingsMutation({
-			refetchQueries: [namedOperations.Query.GetProjectFilterSettings],
-		})
+	const {
+		allProjectSettings: data,
+		loading,
+		setAllProjectSettings,
+	} = useProjectSettingsContext()
 
 	useEffect(() => {
 		if (!loading) {
 			setFilterSessionsWithoutError(
-				data?.projectFilterSettings?.filterSessionsWithoutError ??
-					false,
+				data?.projectSettings?.filterSessionsWithoutError ?? false,
 			)
 		}
-	}, [data?.projectFilterSettings?.filterSessionsWithoutError, loading])
+	}, [data?.projectSettings?.filterSessionsWithoutError, loading])
 
 	if (loading) {
 		return <LoadingBar />
@@ -88,22 +74,17 @@ export const FilterSessionsWithoutErrorForm = () => {
 			<p>
 				{categories.map((c) =>
 					OptInRow(c.key, c.label, c.checked, (isOptIn: boolean) => {
-						editProjectFilterSettingsMutation({
-							variables: {
-								projectId,
-								filterSessionsWithoutError: isOptIn,
-							},
-						})
-							.then(() => {
-								message.success(
-									`${c.message} turned ${
-										isOptIn ? 'on' : 'off'
-									} successfully`,
-								)
-							})
-							.catch((reason: any) => {
-								message.error(String(reason))
-							})
+						setFilterSessionsWithoutError(isOptIn)
+						setAllProjectSettings((currentProjectSettings) =>
+							currentProjectSettings?.projectSettings
+								? {
+										projectSettings: {
+											...currentProjectSettings.projectSettings,
+											filterSessionsWithoutError: isOptIn,
+										},
+								  }
+								: currentProjectSettings,
+						)
 					}),
 				)}
 			</p>

@@ -280,6 +280,41 @@ export type EditProjectFilterSettingsMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type EditProjectSettingsMutationVariables = Types.Exact<{
+	projectId: Types.Scalars['ID']
+	name?: Types.Maybe<Types.Scalars['String']>
+	billing_email?: Types.Maybe<Types.Scalars['String']>
+	excluded_users?: Types.Maybe<Types.Scalars['StringArray']>
+	error_filters?: Types.Maybe<Types.Scalars['StringArray']>
+	error_json_paths?: Types.Maybe<Types.Scalars['StringArray']>
+	filter_chrome_extension?: Types.Maybe<Types.Scalars['Boolean']>
+	rage_click_window_seconds?: Types.Maybe<Types.Scalars['Int']>
+	rage_click_radius_pixels?: Types.Maybe<Types.Scalars['Int']>
+	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
+	backend_domains?: Types.Maybe<Types.Scalars['StringArray']>
+	filterSessionsWithoutError?: Types.Maybe<Types.Scalars['Boolean']>
+}>
+
+export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
+	editProjectSettings?: Types.Maybe<
+		{ __typename?: 'AllProjectSettings' } & Pick<
+			Types.AllProjectSettings,
+			| 'id'
+			| 'name'
+			| 'billing_email'
+			| 'excluded_users'
+			| 'error_filters'
+			| 'error_json_paths'
+			| 'filter_chrome_extension'
+			| 'rage_click_window_seconds'
+			| 'rage_click_radius_pixels'
+			| 'rage_click_count'
+			| 'backend_domains'
+			| 'filterSessionsWithoutError'
+		>
+	>
+}
+
 export type DeleteProjectMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 }>
@@ -4266,6 +4301,31 @@ export type GetProjectFilterSettingsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetProjectSettingsQueryVariables = Types.Exact<{
+	projectId: Types.Scalars['ID']
+}>
+
+export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
+	projectSettings?: Types.Maybe<
+		{ __typename?: 'AllProjectSettings' } & Pick<
+			Types.AllProjectSettings,
+			| 'id'
+			| 'name'
+			| 'verbose_id'
+			| 'billing_email'
+			| 'excluded_users'
+			| 'error_filters'
+			| 'error_json_paths'
+			| 'filter_chrome_extension'
+			| 'rage_click_window_seconds'
+			| 'rage_click_radius_pixels'
+			| 'rage_click_count'
+			| 'backend_domains'
+			| 'filterSessionsWithoutError'
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4395,6 +4455,7 @@ export const namedOperations = {
 		GetLogsKeyValues: 'GetLogsKeyValues' as const,
 		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
 		GetProjectFilterSettings: 'GetProjectFilterSettings' as const,
+		GetProjectSettings: 'GetProjectSettings' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -4423,6 +4484,7 @@ export const namedOperations = {
 		CreateWorkspace: 'CreateWorkspace' as const,
 		EditProject: 'EditProject' as const,
 		EditProjectFilterSettings: 'EditProjectFilterSettings' as const,
+		EditProjectSettings: 'EditProjectSettings' as const,
 		DeleteProject: 'DeleteProject' as const,
 		EditWorkspace: 'EditWorkspace' as const,
 		DeleteSegment: 'DeleteSegment' as const,

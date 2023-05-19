@@ -2049,3 +2049,21 @@ query GetProjectFilterSettings($projectId: ID!) {
 		filterSessionsWithoutError
 	}
 }
+
+query GetProjectSettings($projectId: ID!) {
+	projectSettings(projectId: $projectId) {
+		id
+		name
+		verbose_id
+		billing_email
+		excluded_users
+		error_filters
+		error_json_paths
+		filter_chrome_extension
+		rage_click_window_seconds
+		rage_click_radius_pixels
+		rage_click_count
+		backend_domains
+		filterSessionsWithoutError
+	}
+}

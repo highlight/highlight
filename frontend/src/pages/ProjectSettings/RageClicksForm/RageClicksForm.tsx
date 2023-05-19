@@ -1,16 +1,12 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import InputNumber from '@components/InputNumber/InputNumber'
-import { CircularSpinner, LoadingBar } from '@components/Loading/Loading'
-import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks'
-import { namedOperations } from '@graph/operations'
+import { LoadingBar } from '@components/Loading/Loading'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
-import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
-import commonStyles from '../../../Common.module.scss'
-import Button from '../../../components/Button/Button/Button'
+import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
+
 import styles from './RageClicksForm.module.scss'
 
 export const RageClicksForm = () => {
@@ -22,53 +18,26 @@ export const RageClicksForm = () => {
 	const [rageClickRadiusPixels, setRageClickRadiusPixels] =
 		useState<number>(0)
 	const [rageClickCount, setRageClickCount] = useState<number>(0)
-	const { data, loading } = useGetProjectQuery({
-		variables: {
-			id: project_id!,
-		},
-		skip: !project_id,
-	})
-
-	const [editProject, { loading: editProjectLoading }] =
-		useEditProjectMutation({
-			refetchQueries: [
-				namedOperations.Query.GetProjects,
-				namedOperations.Query.GetProject,
-			],
-			onCompleted: () => {
-				message.success('Updated rage clicks settings!', 5)
-			},
-		})
-
-	const onSubmit = (e: { preventDefault: () => void }) => {
-		e.preventDefault()
-		if (!project_id) {
-			return
-		}
-		editProject({
-			variables: {
-				id: project_id!,
-				rage_click_window_seconds: rageClickWindowSeconds,
-				rage_click_radius_pixels: rageClickRadiusPixels,
-				rage_click_count: rageClickCount,
-			},
-		})
-	}
+	const {
+		allProjectSettings: data,
+		loading,
+		setAllProjectSettings,
+	} = useProjectSettingsContext()
 
 	useEffect(() => {
 		if (!loading) {
 			setRageClickWindowSeconds(
-				data?.project?.rage_click_window_seconds ?? 0,
+				data?.projectSettings?.rage_click_window_seconds ?? 0,
 			)
 			setRageClickRadiusPixels(
-				data?.project?.rage_click_radius_pixels ?? 0,
+				data?.projectSettings?.rage_click_radius_pixels ?? 0,
 			)
-			setRageClickCount(data?.project?.rage_click_count ?? 0)
+			setRageClickCount(data?.projectSettings?.rage_click_count ?? 0)
 		}
 	}, [
-		data?.project?.rage_click_count,
-		data?.project?.rage_click_radius_pixels,
-		data?.project?.rage_click_window_seconds,
+		data?.projectSettings?.rage_click_count,
+		data?.projectSettings?.rage_click_radius_pixels,
+		data?.projectSettings?.rage_click_window_seconds,
 		loading,
 	])
 
@@ -79,7 +48,7 @@ export const RageClicksForm = () => {
 	return (
 		<FieldsBox id="rage">
 			<h3>Rage Clicks</h3>
-			<form onSubmit={onSubmit} key={project_id}>
+			<form key={project_id}>
 				<p>
 					Use these settings to adjust the sensitivity for detecting
 					rage clicks.
@@ -97,6 +66,17 @@ export const RageClicksForm = () => {
 						value={rageClickWindowSeconds}
 						onChange={(val) => {
 							setRageClickWindowSeconds(val as number)
+							setAllProjectSettings((currentProjectSettings) =>
+								currentProjectSettings?.projectSettings
+									? {
+											projectSettings: {
+												...currentProjectSettings.projectSettings,
+												rage_click_window_seconds:
+													val as number,
+											},
+									  }
+									: currentProjectSettings,
+							)
 						}}
 						min={1}
 					/>
@@ -114,6 +94,17 @@ export const RageClicksForm = () => {
 						value={rageClickRadiusPixels}
 						onChange={(val) => {
 							setRageClickRadiusPixels(val as number)
+							setAllProjectSettings((currentProjectSettings) =>
+								currentProjectSettings?.projectSettings
+									? {
+											projectSettings: {
+												...currentProjectSettings.projectSettings,
+												rage_click_radius_pixels:
+													val as number,
+											},
+									  }
+									: currentProjectSettings,
+							)
 						}}
 						min={1}
 					/>
@@ -131,34 +122,19 @@ export const RageClicksForm = () => {
 						value={rageClickCount}
 						onChange={(val) => {
 							setRageClickCount(val as number)
+							setAllProjectSettings((currentProjectSettings) =>
+								currentProjectSettings?.projectSettings
+									? {
+											projectSettings: {
+												...currentProjectSettings.projectSettings,
+												rage_click_count: val as number,
+											},
+									  }
+									: currentProjectSettings,
+							)
 						}}
 						min={1}
 					/>
-				</div>
-				<div className={styles.fieldRow}>
-					<div className={styles.fieldKey}></div>
-					<div className={styles.saveButton}>
-						<Button
-							trackingId="RageClickSettingsUpdate"
-							htmlType="submit"
-							type="primary"
-							className={clsx(
-								commonStyles.submitButton,
-								styles.saveButton,
-							)}
-						>
-							{editProjectLoading ? (
-								<CircularSpinner
-									style={{
-										fontSize: 18,
-										color: 'var(--text-primary-inverted)',
-									}}
-								/>
-							) : (
-								'Save'
-							)}
-						</Button>
-					</div>
 				</div>
 			</form>
 		</FieldsBox>
