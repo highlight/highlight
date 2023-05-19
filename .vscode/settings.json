@@ -90,7 +90,9 @@
 		"autoinject",
 		"Autoinjected",
 		"Blocklist",
-		"interactable"
+		"interactable",
+		"munge",
+		"unobfuscated"
 	],
 	"[yaml]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"

@@ -19,6 +19,7 @@ const nextConfig = {
 			'media.graphassets.com',
 			'lh3.googleusercontent.com',
 			'picsum.photos',
+			'firebasestorage.googleapis.com',
 		],
 	},
 	productionBrowserSourceMaps: true,
