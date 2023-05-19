@@ -231,15 +231,31 @@ const tierOptions = ['Free', 'UsageBased'] as const
 type TierName = typeof tierOptions[number]
 
 type PricingTier = {
+	label: string
 	basePrice: number
 	sessions: number
 	errors: number
 	logs: number
+	isMostPopular: boolean
 }
 
 const priceTiers: Record<TierName, PricingTier> = {
-	Free: { basePrice: 0, sessions: 500, errors: 1_000, logs: 1_000_000 },
-	UsageBased: { basePrice: 0, sessions: 500, errors: 1_000, logs: 1_000_000 },
+	Free: {
+		label: 'Free forever',
+		basePrice: 0,
+		sessions: 500,
+		errors: 1_000,
+		logs: 1_000_000,
+		isMostPopular: false,
+	},
+	UsageBased: {
+		label: 'Pay as you go',
+		basePrice: 0,
+		sessions: 500,
+		errors: 1_000,
+		logs: 1_000_000,
+		isMostPopular: true,
+	},
 }
 
 function getBasePrice(
@@ -311,21 +327,8 @@ const PlanTier = ({
 		<div className="flex flex-col flex-grow border rounded-md min-[1190px]:min-w-[255px] basis-64 border-divider-on-dark">
 			<div className="p-5 border-b border-divider-on-dark">
 				<Typography type="copy1" emphasis>
-					{name}
+					{tier.label}
 				</Typography>
-				<div className="flex items-end mt-2">
-					<Typography
-						type="copy3"
-						emphasis
-						className="self-start align-super"
-					>
-						$
-					</Typography>
-					<span className="mx-1 text-5xl font-semibold">
-						{getBasePrice(tier, billingPeriod, retention)}
-					</span>
-					<Typography type="copy3">/ mo</Typography>
-				</div>
 			</div>
 			<div className="p-5 flex flex-col gap-2.5 flex-grow">
 				<div className="flex items-center gap-1">
@@ -340,10 +343,14 @@ const PlanTier = ({
 					</a>
 				</div>
 				<Typography type="copy3">
-					{formatNumberWithDelimiters(sessions)} monthly sessions
+					{formatNumber(sessions)} monthly sessions
 				</Typography>
-				<Typography type="copy3">{errors} monthly errors</Typography>
-				<Typography type="copy3">{logs} monthly logs</Typography>
+				<Typography type="copy3">
+					{formatNumber(errors)} monthly errors
+				</Typography>
+				<Typography type="copy3">
+					{formatNumber(logs)} monthly logs
+				</Typography>
 				<Typography type="copy3">Unlimited seats</Typography>
 			</div>
 			<div className="p-5">
@@ -358,7 +365,10 @@ const PlanTier = ({
 	)
 }
 
-const formatNumber = (n: number) => n.toLocaleString()
+const formatNumber = (n: number) =>
+	n.toLocaleString(undefined, {
+		minimumFractionDigits: 0,
+	})
 
 const formatPrice = (price: number) =>
 	price
