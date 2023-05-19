@@ -53,14 +53,13 @@ func (service *AutoResolverService) resolveStaleErrorsForProjectInBatches(ctx co
 		Select("error_group_id").
 		Where("created_at >= ?", time.Now().AddDate(0, 0, -interval))
 
-	result := db.Where(model.ErrorGroup{
+	result := db.Debug().Where(model.ErrorGroup{
 		State:     privateModel.ErrorStateOpen,
 		ProjectID: project.ID,
 	}).
 		Where("id NOT IN (?)", subQuery).
 		FindInBatches(&errorGroups, 100, func(tx *gorm.DB, batch int) error {
 			for _, errorGroup := range errorGroups {
-				// batch processing found records
 				_, err := service.UpdateErrorGroupStateBySystem(ctx, errorgroups.UpdateErrorGroupParams{
 					ID:    errorGroup.ID,
 					State: privateModel.ErrorStateResolved,
