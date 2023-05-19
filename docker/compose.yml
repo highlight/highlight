@@ -113,7 +113,7 @@ services:
             - 4317:4317
             - 4318:4318
         container_name: collector
-        image: otel/opentelemetry-collector
+        image: otel/opentelemetry-collector-contrib
         command:
             - '--config=/etc/otel-collector-config.yaml'
         volumes:

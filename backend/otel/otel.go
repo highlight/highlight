@@ -100,6 +100,11 @@ func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, tra
 		return nil, err
 	}
 
+	t := time.Time{}
+	if ts == t {
+		t = time.Now()
+	}
+
 	return clickhouse.NewLogRow(
 		ts, uint32(projectIDInt),
 		clickhouse.WithTraceID(traceID),
