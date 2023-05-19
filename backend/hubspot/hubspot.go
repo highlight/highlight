@@ -345,15 +345,6 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 		return
 	}
 
-	if companyID, err = pollHubspot(func() (*int, error) {
-		return h.getCompany(ctx, name)
-	}); companyID != nil {
-		return
-	}
-
-	log.WithContext(ctx).
-		WithField("name", name).
-		Warnf("failed to get client-side hubspot company. creating")
 	if emailproviders.Exists(adminEmail) {
 		adminEmail = ""
 	}
@@ -363,7 +354,7 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 		domain = components[1]
 	}
 	hexLink := fmt.Sprintf("https://workspace-details.highlight.io?_workspace_id=%v", workspaceID)
-	resp, err := h.hubspotClient.Companies().Create(hubspot.CompaniesRequest{
+	companyProperties := hubspot.CompaniesRequest{
 		Properties: []hubspot.Property{
 			{
 				Property: "name",
@@ -381,7 +372,35 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 				Value:    hexLink,
 			},
 		},
-	})
+	}
+
+	if companyID, err = pollHubspot(func() (*int, error) {
+		id, err := h.getCompany(ctx, name)
+		if err != nil {
+			return nil, err
+		}
+
+		log.WithContext(ctx).
+			WithField("name", name).
+			Warnf("company already exists in Hubspot. updating")
+
+		if id != nil {
+			_, err := h.hubspotClient.Companies().Update(*id, companyProperties)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		return id, nil
+	}); companyID != nil {
+		return
+	}
+
+	log.WithContext(ctx).
+		WithField("name", name).
+		Warnf("failed to get client-side hubspot company. creating")
+
+	resp, err := h.hubspotClient.Companies().Create(companyProperties)
 	if err != nil {
 		return nil, err
 	}
