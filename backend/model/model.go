@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"reflect"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -18,7 +17,6 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/go-test/deep"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
@@ -85,16 +83,6 @@ var AdminRole = struct {
 }{
 	ADMIN:  "ADMIN",
 	MEMBER: "MEMBER",
-}
-
-var ErrorGroupStates = struct {
-	OPEN     string
-	RESOLVED string
-	IGNORED  string
-}{
-	OPEN:     "OPEN",
-	RESOLVED: "RESOLVED",
-	IGNORED:  "IGNORED",
 }
 
 var SessionCommentTypes = struct {
@@ -270,6 +258,10 @@ type Workspace struct {
 	MonthlyErrorsLimit          *int
 	MonthlyLogsLimit            *int
 	RetentionPeriod             *modelInputs.RetentionPeriod
+	ErrorsRetentionPeriod       *modelInputs.RetentionPeriod
+	SessionsMaxCents            *int
+	ErrorsMaxCents              *int
+	LogsMaxCents                *int
 	TrialEndDate                *time.Time `json:"trial_end_date"`
 	AllowMeterOverage           bool       `gorm:"default:true"`
 	AllowedAutoJoinEmailOrigins *string    `json:"allowed_auto_join_email_origins"`
@@ -672,54 +664,6 @@ type EventChunk struct {
 	Timestamp  int64
 }
 
-// AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model and SecureID field
-// a and b MUST be pointers, otherwise this won't work
-func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
-	if reflect.TypeOf(a) != reflect.TypeOf(b) {
-		return false, nil, e.New("interfaces to compare aren't the same time")
-	}
-
-	aReflection := reflect.ValueOf(a)
-	// Check if the passed interface is a pointer
-	if aReflection.Type().Kind() != reflect.Ptr {
-		return false, nil, e.New("`a` is not a pointer")
-	}
-	// 'dereference' with Elem() and get the field by name
-	aModelField := aReflection.Elem().FieldByName("Model")
-	aSecureIDField := aReflection.Elem().FieldByName("SecureID")
-
-	bReflection := reflect.ValueOf(b)
-	// Check if the passed interface is a pointer
-	if bReflection.Type().Kind() != reflect.Ptr {
-		return false, nil, e.New("`b` is not a pointer")
-	}
-	// 'dereference' with Elem() and get the field by name
-	bModelField := bReflection.Elem().FieldByName("Model")
-	bSecureIDField := bReflection.Elem().FieldByName("SecureID")
-
-	if aModelField.IsValid() && bModelField.IsValid() {
-		// override Model on b with a's model
-		bModelField.Set(aModelField)
-	} else if aModelField.IsValid() || bModelField.IsValid() {
-		// return error if one has a model and the other doesn't
-		return false, nil, e.New("one interface has a model and the other doesn't")
-	}
-
-	if aSecureIDField.IsValid() && bSecureIDField.IsValid() {
-		// override SecureID on b with a's SecureID
-		bSecureIDField.Set(aSecureIDField)
-	} else if aSecureIDField.IsValid() || bSecureIDField.IsValid() {
-		// return error if one has a SecureID and the other doesn't
-		return false, nil, e.New("one interface has a SecureID and the other doesn't")
-	}
-
-	// get diff
-	diff := deep.Equal(aReflection.Interface(), bReflection.Interface())
-	isEqual := len(diff) == 0
-
-	return isEqual, diff, nil
-}
-
 type Field struct {
 	Int64Model
 	// 'user_property', 'session_property'.
@@ -968,9 +912,9 @@ type ErrorGroup struct {
 	Trace            string //DEPRECATED, USE STACKTRACE INSTEAD
 	StackTrace       string
 	MappedStackTrace *string
-	State            string        `json:"state" gorm:"default:OPEN"`
-	SnoozedUntil     *time.Time    `json:"snoozed_until"`
-	Fields           []*ErrorField `gorm:"many2many:error_group_fields;" json:"fields"`
+	State            modelInputs.ErrorState `json:"state" gorm:"default:OPEN"`
+	SnoozedUntil     *time.Time             `json:"snoozed_until"`
+	Fields           []*ErrorField          `gorm:"many2many:error_group_fields;" json:"fields"`
 	Fingerprints     []*ErrorFingerprint
 	FieldGroup       *string
 	Environments     string
@@ -1829,7 +1773,7 @@ func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *send
 
 	errors := []string{}
 	for _, toAddr := range toAddrs {
-		err := Email.SendBillingNotificationEmail(ctx, mailClient, emailType, workspace.ID, workspace.Name, toAddr.Email, toAddr.AdminID)
+		err := Email.SendBillingNotificationEmail(ctx, mailClient, workspace.ID, workspace.Name, workspace.RetentionPeriod, emailType, toAddr.Email, toAddr.AdminID)
 		if err != nil {
 			errors = append(errors, err.Error())
 		}
@@ -2658,7 +2602,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		var actionBlock []slack.BlockElement
 		for _, action := range modelInputs.AllErrorState {
-			if input.Group.State == string(action) {
+			if input.Group.State == action {
 				continue
 			}
 

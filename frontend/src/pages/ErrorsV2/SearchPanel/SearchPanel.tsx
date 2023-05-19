@@ -8,7 +8,7 @@ import SearchPagination, {
 	START_PAGE,
 } from '@components/SearchPagination/SearchPagination'
 import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks'
-import { ErrorGroup, Maybe } from '@graph/schemas'
+import { ErrorGroup, Maybe, ProductType } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
@@ -21,6 +21,7 @@ import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
+import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import * as style from './SearchPanel.css'
@@ -117,6 +118,7 @@ const SearchPanel = () => {
 					<LoadingBox />
 				) : (
 					<>
+						<OverageCard productType={ProductType.Errors} />
 						{searchResultsCount === 0 || !errorGroups ? (
 							<EmptySearchResults
 								kind={SearchResultsKind.Errors}

@@ -1,1 +1,1 @@
-import{a as r}from"../../../chunk-ZIVUDSZS.js";import{b as e}from"../../../chunk-NLMHZ7JJ.js";var a=e(r(),1),s=(0,a.createRuntimeFn)({defaultClassName:"",variantClassNames:{lines:{1:"_15exe0r0",2:"_15exe0r1",3:"_15exe0r2",4:"_15exe0r3"}},defaultVariants:{},compoundVariants:[]});export{s as variants};
+import{createRuntimeFn as a}from"@vanilla-extract/recipes/createRuntimeFn";var r=a({defaultClassName:"",variantClassNames:{lines:{1:"_15exe0r0",2:"_15exe0r1",3:"_15exe0r2",4:"_15exe0r3"}},defaultVariants:{},compoundVariants:[]});export{r as variants};

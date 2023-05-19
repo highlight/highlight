@@ -1,32 +1,36 @@
+import type {
+	GetStaticPaths,
+	GetStaticPathsResult,
+	GetStaticProps,
+} from 'next/types'
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
+import { ReactNode, createElement, useEffect, useRef, useState } from 'react'
+import { getBlogPaths, loadPostsFromGithub } from '.'
+
+import { BlogCallToAction } from '../../components/common/CallToAction/BlogCallToAction'
+import BlogNavbar from '../../components/Blog/BlogNavbar/BlogNavbar'
+import { Comments } from '../../components/Comments/Comments'
+import { ElementNode } from '@graphcms/rich-text-types'
+import Footer from '../../components/common/Footer/Footer'
+import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
+import { GraphQLRequest } from '../../utils/graphql'
+import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
+import Image from 'next/legacy/image'
+import { Meta } from '../../components/common/Head/Meta'
+import { Post } from '../../components/Blog/BlogPost/BlogPost'
+import { PostAuthor } from '../../components/Blog/Author'
+import { PostTag } from '../../components/Blog/Tag'
+import { RichText } from '@graphcms/rich-text-react-renderer'
+import { Section } from '../../components/common/Section/Section'
+import { SuggestedBlogPost } from '../../components/Blog/SuggestedBlogPost/SuggestedBlogPost'
+import { Typography } from '../../components/common/Typography/Typography'
+import YouTube from 'react-youtube'
 import classNames from 'classnames'
 import { promises as fsp } from 'fs'
 import { gql } from 'graphql-request'
-import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
-import { serialize } from 'next-mdx-remote/serialize'
-import Image from 'next/legacy/image'
-import { GetStaticPaths, GetStaticProps } from 'next/types'
-import YouTube from 'react-youtube'
-import { getBlogPaths, loadPostsFromGithub } from '.'
-import styles from '../../components/Blog/Blog.module.scss'
-import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
-import Footer from '../../components/common/Footer/Footer'
-import { Section } from '../../components/common/Section/Section'
 import homeStyles from '../../components/Home/Home.module.scss'
-
-import { RichText } from '@graphcms/rich-text-react-renderer'
-import { ElementNode } from '@graphcms/rich-text-types'
-import { createElement, useEffect, useRef, useState } from 'react'
-import { PostAuthor } from '../../components/Blog/Author'
-import BlogNavbar from '../../components/Blog/BlogNavbar/BlogNavbar'
-import { Post } from '../../components/Blog/BlogPost/BlogPost'
-import { SuggestedBlogPost } from '../../components/Blog/SuggestedBlogPost/SuggestedBlogPost'
-import { PostTag } from '../../components/Blog/Tag'
-import { Comments } from '../../components/Comments/Comments'
-import { BlogCallToAction } from '../../components/common/CallToAction/BlogCallToAction'
-import { Meta } from '../../components/common/Head/Meta'
-import { Typography } from '../../components/common/Typography/Typography'
-import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
-import { GraphQLRequest } from '../../utils/graphql'
+import { serialize } from 'next-mdx-remote/serialize'
+import styles from '../../components/Blog/Blog.module.scss'
 
 const NUM_SUGGESTED_POSTS = 3
 
@@ -51,7 +55,10 @@ export async function getGithubPostBySlug(slug: string) {
 	return post
 }
 
-const components = {
+const components: Record<
+	string,
+	React.FunctionComponent<{ children: ReactNode; className?: string }>
+> = {
 	BlogCallToAction,
 	p: (props) => {
 		return <p className={styles.blogText} {...props}></p>
@@ -190,7 +197,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 		}
 	`
 
-	let paths = []
+	let paths: GetStaticPathsResult['paths'] = []
 
 	const { posts } = await GraphQLRequest<{ posts: Post[] }>(QUERY)
 	posts.forEach((post) => {
@@ -309,7 +316,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			}
 		}
 		const mdxSource = await serialize(githubPost.richcontent.markdown)
-		console.log(githubPost.richcontent.markdown)
+
 		return {
 			props: {
 				suggestedPosts,
@@ -569,9 +576,11 @@ const PostPage = ({
 				<Section>
 					<div className={styles.postBodyDivider}></div>
 				</Section>
-				<Section>
-					<Comments slug={post.slug} />
-				</Section>
+				{post.slug && (
+					<Section>
+						<Comments slug={post.slug} />
+					</Section>
+				)}
 				<Section>
 					<div
 						className={classNames(

@@ -203,3 +203,22 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Patch Changes
 
 - Fixes to umd format
+
+## 6.5.0
+
+### Minor Changes
+
+- Adds an `H.start({forceNew: true})` option that allows forcing the start of a new session recording.
+
+## 6.5.1
+
+### Patch Changes
+
+- Turn off client sourcemaps as they cause issues with next.js frontends.
+
+
+## 6.5.2
+
+### Patch Changes
+
+- Target ES6 for library build compatability.

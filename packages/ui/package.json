@@ -8,13 +8,9 @@
 	"scripts": {
 		"build": "run-p --print-label 'build:**'",
 		"build:vite": "vite build",
-		"build:reflame:ve": "node scripts/build-vanilla-extract.mjs",
 		"build-docs": "build-storybook",
 		"dev": "run-p --print-label --race 'dev:**'",
-		"dev:reflame:ve": "node scripts/build-vanilla-extract.mjs --watch",
 		"dev:storybook": "start-storybook -p 6006 --no-manager-cache",
-		"reflame": "run-p --print-label --race 'dev:reflame:*'",
-		"reflame-build": "run-p --print-label 'build:reflame:*'",
 		"icons:generate": "npx ts-node-esm ./scripts/generate-icons.ts",
 		"g": "hygen",
 		"lint": "eslint ./src",

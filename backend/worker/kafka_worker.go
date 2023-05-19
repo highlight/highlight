@@ -6,13 +6,16 @@ import (
 	"time"
 
 	"github.com/openlyinc/pointy"
+	e "github.com/pkg/errors"
 
 	"encoding/binary"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
+	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -121,30 +124,113 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 		}
 	}()
 
+	timestampByProject := map[uint32]time.Time{}
+	workspaceByProject := map[uint32]*model.Workspace{}
+	for _, row := range logRows {
+		if row.Timestamp.After(timestampByProject[row.ProjectId]) {
+			timestampByProject[row.ProjectId] = row.Timestamp
+			workspaceByProject[row.ProjectId] = nil
+		}
+	}
+
+	spanTs, ctxTs := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.setTimestamps"))
+	for projectId, timestamp := range timestampByProject {
+		err := k.Worker.Resolver.Redis.SetLastLogTimestamp(ctxTs, int(projectId), timestamp)
+		if err != nil {
+			log.WithContext(ctxTs).WithError(err).Errorf("failed to set last log timestamp for project %d", projectId)
+		}
+	}
+	spanTs.Finish()
+
+	spanW, ctxW := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.checkBillingQuotas"))
+
+	// If it's saved in Redis that a project has exceeded / not exceeded
+	// its quota, use that value. Else, add the projectId to a list of
+	// projects to query.
+	quotaExceededByProject := map[uint32]bool{}
+	projectsToQuery := []uint32{}
+	for projectId := range workspaceByProject {
+		exceeded, err := k.Worker.Resolver.Redis.IsBillingQuotaExceeded(ctxW, int(projectId), pricing.ProductTypeLogs)
+		if err != nil {
+			log.WithContext(ctxW).Error(err)
+			continue
+		}
+		if exceeded != nil {
+			quotaExceededByProject[projectId] = *exceeded
+		} else {
+			projectsToQuery = append(projectsToQuery, projectId)
+		}
+	}
+
+	// For any projects to query, get the associated workspace,
+	// check if that workspace is within the logs quota,
+	// and write the result to redis.
+	for _, projectId := range projectsToQuery {
+		var project model.Project
+		if err := k.Worker.Resolver.DB.Model(&project).
+			Where("id = ?", projectId).Find(&project).Error; err != nil {
+			log.WithContext(ctxW).Error(e.Wrap(err, "error querying project"))
+			continue
+		}
+
+		var workspace model.Workspace
+		if err := k.Worker.Resolver.DB.Model(&workspace).
+			Where("id = ?", project.WorkspaceID).Find(&workspace).Error; err != nil {
+			log.WithContext(ctxW).Error(e.Wrap(err, "error querying workspace"))
+			continue
+		}
+
+		projects := []model.Project{}
+		if err := k.Worker.Resolver.DB.Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
+			log.WithContext(ctxW).Error(e.Wrap(err, "error querying associated projects"))
+			continue
+		}
+		workspace.Projects = projects
+
+		withinBillingQuota, quotaPercent := k.Worker.PublicResolver.IsWithinQuota(ctxW, pricing.ProductTypeLogs, &workspace, time.Now())
+		quotaExceededByProject[projectId] = !withinBillingQuota
+		if err := k.Worker.Resolver.Redis.SetBillingQuotaExceeded(ctxW, int(projectId), pricing.ProductTypeLogs, !withinBillingQuota); err != nil {
+			log.WithContext(ctxW).Error(err)
+		}
+
+		// Send alert emails if above the relevant thresholds
+		go func() {
+			defer util.Recover()
+			if quotaPercent >= 1 {
+				if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, email.BillingLogsUsage100Percent, &workspace); err != nil {
+					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+				}
+			} else if quotaPercent >= .8 {
+				if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, email.BillingLogsUsage80Percent, &workspace); err != nil {
+					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+				}
+			}
+		}()
+	}
+
+	spanW.Finish()
+
+	// Filter out any log rows for projects where the log quota has been exceeded
+	var filteredRows []*clickhouse.LogRow
+	for _, logRow := range logRows {
+		if quotaExceededByProject[logRow.ProjectId] {
+			continue
+		}
+		filteredRows = append(filteredRows, logRow)
+	}
+
 	wSpan, wCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.process"))
 	wSpan.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
 
 	span, ctxT := tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.clickhouse"))
 	span.SetTag("NumLogRows", len(logRows))
+	span.SetTag("NumFilteredRows", len(filteredRows))
 	span.SetTag("PayloadSizeBytes", binary.Size(logRows))
-	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, logRows)
+	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, filteredRows)
 	if err != nil {
 		log.WithContext(ctxT).WithError(err).Error("failed to batch write to clickhouse")
 	}
 	span.Finish(tracer.WithError(err))
-
-	timestampByProject := map[uint32]time.Time{}
-	for _, row := range logRows {
-		if row.Timestamp.After(timestampByProject[row.ProjectId]) {
-			timestampByProject[row.ProjectId] = row.Timestamp
-		}
-	}
-	for projectId, timestamp := range timestampByProject {
-		err := k.Worker.Resolver.Redis.SetLastLogTimestamp(ctx, int(projectId), timestamp)
-		if err != nil {
-			log.WithContext(ctxT).WithError(err).Errorf("failed to set last log timestamp for project %d", projectId)
-		}
-	}
 
 	span, ctxT = tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.markBackend"))
 	span.SetTag("NumProjectRows", len(setupProjectIDs))

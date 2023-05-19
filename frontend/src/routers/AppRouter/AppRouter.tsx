@@ -5,10 +5,13 @@ import { Box } from '@highlight-run/ui'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import { AccountsPage } from '@pages/Accounts/Accounts'
 import { AdminForm } from '@pages/Auth/AdminForm'
-import { AuthRouter, SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
+import {
+	AuthRouter,
+	SIGN_IN_ROUTE,
+	SIGN_UP_ROUTE,
+} from '@pages/Auth/AuthRouter'
 import { JoinWorkspace } from '@pages/Auth/JoinWorkspace'
 import { VerifyEmail } from '@pages/Auth/VerifyEmail'
-import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
 import { Landing } from '@pages/Landing/Landing'
 import NewProjectPage from '@pages/NewProject/NewProjectPage'
@@ -216,8 +219,14 @@ export const AppRouter = () => {
 					/>
 
 					<Route
-						path="/subscriptions"
-						element={<EmailOptOutPage />}
+						path="/invite/:invite_id"
+						element={
+							isLoggedIn ? (
+								<JoinWorkspace />
+							) : (
+								<Navigate to={SIGN_UP_ROUTE} />
+							)
+						}
 					/>
 
 					<Route
@@ -228,7 +237,13 @@ export const AppRouter = () => {
 									<NewProjectPage />
 								</Landing>
 							) : (
-								<Navigate to={SIGN_IN_ROUTE} />
+								<Navigate
+									to={
+										inviteCode
+											? SIGN_UP_ROUTE
+											: SIGN_IN_ROUTE
+									}
+								/>
 							)
 						}
 					/>

@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"hash/fnv"
 	"io"
@@ -15,6 +16,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
+	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"go.opentelemetry.io/otel/attribute"
@@ -156,6 +159,7 @@ const ERROR_EVENT_MAX_LENGTH = 10000
 const SESSION_FIELD_MAX_LENGTH = 2000
 
 var ErrNoisyError = e.New("Filtering out noisy error")
+var ErrQuotaExceeded = e.New(string(publicModel.PublicGraphErrorBillingQuotaExceeded))
 
 // metrics that should be stored in postgres for session lookup
 var MetricCategoriesForDB = map[string]bool{"Device": true, "WebVital": true}
@@ -507,7 +511,7 @@ func (r *Resolver) GetErrorAppVersion(errorObj *model.ErrorObject) *string {
 	return session.AppVersion
 }
 
-func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []privateModel.ErrorTrace, error) {
+func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*publicModel.StackFrameInput, projectID int, errorObj *model.ErrorObject) (*string, []*privateModel.ErrorTrace, error) {
 	version := r.GetErrorAppVersion(errorObj)
 	var newMappedStackTraceString *string
 	mappedStackTrace, err := stacktraces.EnhanceStackTrace(ctx, stackTrace, projectID, version, r.StorageClient)
@@ -524,99 +528,29 @@ func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*
 	return newMappedStackTraceString, mappedStackTrace, nil
 }
 
-func normalizeStackTraceString(stackTraceString string) string {
-	var stackTraceSlice []string
-	if err := json.Unmarshal([]byte(stackTraceString), &stackTraceSlice); err != nil {
-		return ""
-	}
-
-	// TODO: maintain a list of potential error types so we can handle different stack trace formats
-	var normalizedStackFrameInput []*publicModel.StackFrameInput
-	for _, frame := range stackTraceSlice {
-		frameExtracted := regexp.MustCompile(`(?m)(.*) (.*):(.*)`).FindAllStringSubmatch(frame, -1)
-		if len(frameExtracted) != 1 {
-			return ""
-		}
-		if len(frameExtracted[0]) != 4 {
-			return ""
-		}
-
-		lineNumber, err := strconv.Atoi(frameExtracted[0][3])
-		if err != nil {
-			return ""
-		}
-		normalizedStackFrameInput = append(normalizedStackFrameInput, &publicModel.StackFrameInput{
-			FunctionName: &frameExtracted[0][1],
-			FileName:     &frameExtracted[0][2],
-			LineNumber:   &lineNumber,
-		})
-	}
-
-	stackTraceBytes, err := json.Marshal(&normalizedStackFrameInput)
-	if err != nil {
-		return ""
-	}
-	return string(stackTraceBytes)
-}
-
-func joinStringPtrs(ptrs ...*string) string {
-	var sb strings.Builder
-	for _, ptr := range ptrs {
-		if ptr != nil {
-			sb.WriteString(*ptr)
-			sb.WriteString(";")
-		}
-	}
-	return sb.String()
-}
-
-func joinIntPtrs(ptrs ...*int) string {
-	var sb strings.Builder
-	for _, ptr := range ptrs {
-		if ptr != nil {
-			sb.WriteString(strconv.Itoa(*ptr))
-			sb.WriteString(";")
-		}
-	}
-	return sb.String()
-}
-
-func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, fingerprints []*model.ErrorFingerprint, stackTraceString string) (*model.ErrorGroup, error) {
+func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, fingerprints []*model.ErrorFingerprint) (*model.ErrorGroup, error) {
 	match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
 	if err != nil {
 		return nil, e.Wrap(err, "Error getting top error group match")
 	}
 
 	errorGroup := &model.ErrorGroup{}
+
 	if match == nil {
+		environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
+
 		newErrorGroup := &model.ErrorGroup{
-			ProjectID:  errorObj.ProjectID,
-			Event:      errorObj.Event,
-			StackTrace: stackTraceString,
-			Type:       errorObj.Type,
-			State:      privateModel.ErrorStateOpen.String(),
-			Fields:     []*model.ErrorField{},
+			ProjectID:        errorObj.ProjectID,
+			Event:            errorObj.Event,
+			StackTrace:       *errorObj.StackTrace,
+			MappedStackTrace: errorObj.MappedStackTrace,
+			Type:             errorObj.Type,
+			State:            privateModel.ErrorStateOpen,
+			Fields:           []*model.ErrorField{},
+			Environments:     environmentsString,
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
-		}
-
-		opensearchErrorGroup := &model.ErrorGroup{
-			Model:     newErrorGroup.Model,
-			SecureID:  newErrorGroup.SecureID,
-			ProjectID: errorObj.ProjectID,
-			Event:     errorObj.Event,
-			Type:      errorObj.Type,
-			State:     privateModel.ErrorStateOpen.String(),
-			Fields:    []*model.ErrorField{},
-		}
-		if err := r.OpenSearch.IndexSynchronous(ctx,
-			opensearch.IndexParams{
-				Index:    opensearch.IndexErrorsCombined,
-				ID:       int64(newErrorGroup.ID),
-				ParentID: pointy.Int(0),
-				Object:   opensearchErrorGroup}); err != nil {
-			return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 		}
 
 		errorGroup = newErrorGroup
@@ -626,6 +560,35 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 		}).First(&errorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "error retrieving top matched error group")
 		}
+
+		environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
+
+		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{
+			StackTrace:       *errorObj.StackTrace,
+			MappedStackTrace: errorObj.MappedStackTrace,
+			Environments:     environmentsString,
+			Event:            errorObj.Event,
+		}).Error; err != nil {
+			return nil, e.Wrap(err, "Error updating error group")
+		}
+	}
+
+	opensearchErrorGroup := &model.ErrorGroup{
+		Model:     errorGroup.Model,
+		SecureID:  errorGroup.SecureID,
+		ProjectID: errorObj.ProjectID,
+		Event:     errorObj.Event,
+		Type:      errorObj.Type,
+		State:     privateModel.ErrorStateOpen,
+		Fields:    []*model.ErrorField{},
+	}
+	if err := r.OpenSearch.IndexSynchronous(ctx,
+		opensearch.IndexParams{
+			Index:    opensearch.IndexErrorsCombined,
+			ID:       int64(errorGroup.ID),
+			ParentID: pointy.Int(0),
+			Object:   opensearchErrorGroup}); err != nil {
+		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
 	return errorGroup, nil
@@ -750,14 +713,16 @@ func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprin
 }
 
 // Matches the ErrorObject with an existing ErrorGroup, or creates a new one if the group does not exist
-// The input can include the stack trace as a string or []*StackFrameInput
-// If stackTrace is non-nil, it will be marshalled into a string and saved with the ErrorObject
-func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, stackTraceString string, stackTrace []*publicModel.StackFrameInput, fields []*model.ErrorField, projectID int) (*model.ErrorGroup, error) {
+func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.ErrorObject, structuredStackTrace []*privateModel.ErrorTrace, fields []*model.ErrorField, projectID int, workspace *model.Workspace) (*model.ErrorGroup, error) {
 	if errorObj == nil {
 		return nil, e.New("error object was nil")
 	}
 	if errorObj.Event == "" {
 		return nil, e.New("error object event was empty")
+	}
+
+	if errorObj.StackTrace == nil {
+		return nil, errors.New("error object stacktrace was empty")
 	}
 
 	if projectID == 1 {
@@ -809,71 +774,43 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}
 	}
 
+	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, pricing.ProductTypeErrors, workspace, time.Now())
+	go func() {
+		defer util.Recover()
+		if quotaPercent >= 1 {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage100Percent, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+			}
+		} else if quotaPercent >= .8 {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingErrorsUsage80Percent, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+			}
+		}
+	}()
+	if !withinBillingQuota {
+		return nil, ErrQuotaExceeded
+	}
+
 	if len(errorObj.Event) > ERROR_EVENT_MAX_LENGTH {
 		errorObj.Event = strings.Repeat(errorObj.Event[:ERROR_EVENT_MAX_LENGTH], 1)
 	}
 
-	// stackTrace slice is set when we have a structured stacktrace input coming from ProcessPayload (frontend error)
-	// stackTraceString is set when we have a string input coming from ProcessBackendPayload (backend error)
-	// If there was no stackTraceString passed in, marshal it as a JSON string from stackTrace
-	if len(stackTrace) > 0 {
-		if stackTrace[0] != nil && stackTrace[0].Source != nil && (strings.Contains(*stackTrace[0].Source, "https://static.highlight.run/index.js") || strings.Contains(*stackTrace[0].Source, "https://static.highlight.io")) {
-			// Forward these errors to another project that Highlight owns to help debug: https://app.highlight.run/715/errors
-			errorObj.ProjectID = 715
-		}
-		if len(stackTrace) > stacktraces.ERROR_STACK_MAX_FRAME_COUNT {
-			stackTrace = stackTrace[:stacktraces.ERROR_STACK_MAX_FRAME_COUNT]
-		}
-		firstFrameBytes, err := json.Marshal(stackTrace)
-		if err != nil {
-			return nil, e.Wrap(err, "Error marshalling first frame")
-		}
+	if len(structuredStackTrace) > 0 {
+		if len(structuredStackTrace) > stacktraces.ERROR_STACK_MAX_FRAME_COUNT {
+			structuredStackTrace = structuredStackTrace[:stacktraces.ERROR_STACK_MAX_FRAME_COUNT]
+			firstFrameBytes, err := json.Marshal(structuredStackTrace)
+			if err != nil {
+				return nil, e.Wrap(err, "Error marshalling first frame")
+			}
 
-		stackTraceString = string(firstFrameBytes)
-	} else {
-		// If stackTraceString was passed in, try to normalize it
-		if t := normalizeStackTraceString(stackTraceString); t != "" {
-			stackTraceString = t
+			errorObj.StackTrace = ptr.String(string(firstFrameBytes))
 		}
 	}
 
-	// If stackTrace is non-nil, do the source mapping; else, MappedStackTrace will not be set on the ErrorObject
-	newFrameString := stackTraceString
-	var newMappedStackTraceString *string
 	fingerprints := []*model.ErrorFingerprint{}
-	if stackTrace != nil {
-		var err error
-		var mappedStackTrace []privateModel.ErrorTrace
-		newMappedStackTraceString, mappedStackTrace, err = r.getMappedStackTraceString(ctx, stackTrace, projectID, errorObj)
-		if err != nil {
-			return nil, e.Wrap(err, "Error mapping stack trace string")
-		}
-		for idx, frame := range mappedStackTrace {
-			codeVal := joinStringPtrs(frame.LinesBefore, frame.LineContent, frame.LinesAfter)
-			if codeVal != "" {
-				code := model.ErrorFingerprint{
-					ProjectID: projectID,
-					Type:      model.Fingerprint.StackFrameCode,
-					Value:     codeVal,
-					Index:     idx,
-				}
-				fingerprints = append(fingerprints, &code)
-			}
+	var err error
 
-			metaVal := joinStringPtrs(frame.FileName, frame.FunctionName) +
-				joinIntPtrs(frame.LineNumber, frame.ColumnNumber)
-			if metaVal != "" {
-				meta := model.ErrorFingerprint{
-					ProjectID: projectID,
-					Type:      model.Fingerprint.StackFrameMetadata,
-					Value:     metaVal,
-					Index:     idx,
-				}
-				fingerprints = append(fingerprints, &meta)
-			}
-		}
-		errorObj.MappedStackTrace = newMappedStackTraceString
-	}
+	fingerprints = append(fingerprints, errorgroups.GetFingerprints(projectID, structuredStackTrace)...)
 
 	// Try unmarshalling the Event to JSON.
 	// If this works, create an error fingerprint for each of the project's JSON paths.
@@ -885,7 +822,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			if err := r.DB.Where("id = ?", projectID).First(&project).Error; err != nil {
 				return nil, e.Wrap(err, "error querying project")
 			}
-
 			for _, path := range project.ErrorJsonPaths {
 				value, err := jsonpath.Get(path, errorAsJson)
 				if err == nil {
@@ -904,8 +840,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 
 	var errorGroup *model.ErrorGroup
-	var err error
-	errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, fingerprints, stackTraceString)
+	errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, fingerprints)
 	if err != nil {
 		return nil, e.Wrap(err, "Error getting top error group match")
 	}
@@ -930,8 +865,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}); err != nil {
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
-
-	environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
 
 	if err := r.AppendErrorFields(ctx, fields, errorGroup); err != nil {
 		return nil, e.Wrap(err, "error appending error fields")
@@ -970,19 +903,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil
 	}); err != nil {
 		return nil, e.Wrap(err, "error replacing error group fingerprints")
-	}
-
-	// Don't save errors that come from rrweb at record time.
-	if newMappedStackTraceString != nil && strings.Contains(*newMappedStackTraceString, "rrweb") {
-		var now = time.Now()
-		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{Model: model.Model{DeletedAt: &now}}).Error; err != nil {
-			return nil, e.Wrap(err, "Error soft deleting rrweb error group.")
-		}
-
-	} else {
-		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString, Event: errorObj.Event}).Error; err != nil {
-			return nil, e.Wrap(err, "Error updating error group metadata log or environments")
-		}
 	}
 
 	return errorGroup, nil
@@ -1203,7 +1123,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	}
 
 	deviceDetails := GetDeviceDetails(input.UserAgent)
-	n := time.Now()
 	excludedReason := privateModel.SessionExcludedReasonInitializing
 	session := &model.Session{
 		SecureID: input.SessionSecureID,
@@ -1220,7 +1139,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		WithinBillingQuota:             &model.T,
 		Processed:                      &model.F,
 		Viewed:                         &model.F,
-		PayloadUpdatedAt:               &n,
 		EnableStrictPrivacy:            &input.EnableStrictPrivacy,
 		EnableRecordingNetworkContents: &input.EnableRecordingNetworkContents,
 		FirstloadVersion:               input.FirstloadVersion,
@@ -1245,13 +1163,11 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	}
 
 	// determine if session is within billing quota
-	withinBillingQuota, quotaPercent := r.isWithinBillingQuota(ctx, project, workspace, *session.PayloadUpdatedAt)
+	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, pricing.ProductTypeSessions, workspace, time.Now())
 	setupSpan.Finish()
 
-	if !withinBillingQuota {
-		if err := r.Redis.SetBillingQuotaExceeded(ctx, projectID); err != nil {
-			return nil, e.Wrap(err, "error setting billing quota exceeded")
-		}
+	if err := r.Redis.SetBillingQuotaExceeded(ctx, projectID, pricing.ProductTypeSessions, !withinBillingQuota); err != nil {
+		return nil, e.Wrap(err, "error setting billing quota exceeded")
 	}
 
 	// Get the user's ip, get geolocation data
@@ -1357,15 +1273,13 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 			return
 		}
 
-		if workspace.PlanTier != privateModel.PlanTypeFree.String() && workspace.AllowMeterOverage {
-			if quotaPercent >= 1 {
-				if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace); err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
-				}
-			} else if quotaPercent >= .8 {
-				if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage80Percent, workspace); err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
-				}
+		if quotaPercent >= 1 {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+			}
+		} else if quotaPercent >= .8 {
+			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage80Percent, workspace); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		}
 
@@ -1912,7 +1826,66 @@ func (r *Resolver) getProject(projectID int) (*model.Project, error) {
 	return &project, nil
 }
 
-func (r *Resolver) isWithinBillingQuota(ctx context.Context, project *model.Project, workspace *model.Workspace, now time.Time) (bool, float64) {
+var productTypeToQuotaConfig = map[pricing.ProductType]struct {
+	maxCostCents    func(*model.Workspace) *int
+	meter           func(context.Context, *gorm.DB, *clickhouse.Client, *model.Workspace) (int64, error)
+	retentionPeriod func(*model.Workspace) privateModel.RetentionPeriod
+	included        func(*model.Workspace) int64
+}{
+	pricing.ProductTypeSessions: {
+		func(w *model.Workspace) *int { return w.SessionsMaxCents },
+		pricing.GetWorkspaceSessionsMeter,
+		func(w *model.Workspace) privateModel.RetentionPeriod {
+			if w.RetentionPeriod == nil {
+				return privateModel.RetentionPeriodThreeMonths
+			}
+			return *w.RetentionPeriod
+		},
+		func(w *model.Workspace) int64 {
+			limit := pricing.TypeToSessionsLimit(privateModel.PlanType(w.PlanTier))
+			if w.MonthlySessionLimit != nil {
+				limit = *w.MonthlySessionLimit
+			}
+			return int64(limit)
+		},
+	},
+	pricing.ProductTypeErrors: {
+		func(w *model.Workspace) *int { return w.ErrorsMaxCents },
+		pricing.GetWorkspaceSessionsMeter,
+		func(w *model.Workspace) privateModel.RetentionPeriod {
+			if w.ErrorsRetentionPeriod == nil {
+				return privateModel.RetentionPeriodThreeMonths
+			}
+			return *w.ErrorsRetentionPeriod
+		},
+		func(w *model.Workspace) int64 {
+			limit := pricing.TypeToErrorsLimit(privateModel.PlanType(w.PlanTier))
+			if w.MonthlyErrorsLimit != nil {
+				limit = *w.MonthlyErrorsLimit
+			}
+			return int64(limit)
+		},
+	},
+	pricing.ProductTypeLogs: {
+		func(w *model.Workspace) *int { return w.LogsMaxCents },
+		pricing.GetWorkspaceLogsMeter,
+		func(w *model.Workspace) privateModel.RetentionPeriod {
+			return privateModel.RetentionPeriodThirtyDays
+		},
+		func(w *model.Workspace) int64 {
+			limit := pricing.TypeToLogsLimit(privateModel.PlanType(w.PlanTier))
+			if w.MonthlyLogsLimit != nil {
+				limit = *w.MonthlyLogsLimit
+			}
+			return int64(limit)
+		},
+	},
+}
+
+func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.ProductType, workspace *model.Workspace, now time.Time) (bool, float64) {
+	if workspace == nil {
+		return true, 0
+	}
 	if workspace.TrialEndDate != nil && workspace.TrialEndDate.After(now) {
 		return true, 0
 	}
@@ -1920,26 +1893,40 @@ func (r *Resolver) isWithinBillingQuota(ctx context.Context, project *model.Proj
 		return true, 0
 	}
 
-	var quota int
 	stripePlan := privateModel.PlanType(workspace.PlanTier)
-	if workspace.MonthlySessionLimit != nil && *workspace.MonthlySessionLimit > 0 {
-		quota = *workspace.MonthlySessionLimit
-	} else {
-		quota = pricing.TypeToSessionsLimit(stripePlan)
+
+	cfg := productTypeToQuotaConfig[productType]
+
+	maxCostCents := cfg.maxCostCents(workspace)
+	if stripePlan == privateModel.PlanTypeFree {
+		maxCostCents = pointy.Int(0)
 	}
 
-	monthToDateSessionCount, err := pricing.GetWorkspaceSessionsMeter(r.DB, workspace.ID)
+	if maxCostCents == nil {
+		return true, 0
+	}
+
+	meter, err := cfg.meter(ctx, r.DB, r.Clickhouse, workspace)
 	if err != nil {
-		log.WithContext(ctx).Warn(fmt.Sprintf("error getting sessions meter for workspace %d", workspace.ID))
+		log.WithContext(ctx).Warn(fmt.Sprintf("error getting %s meter for workspace %d", productType, workspace.ID))
 	}
 
-	quotaPercent := float64(monthToDateSessionCount) / float64(quota)
-	// If the workspace is not on the free plan and overage is allowed
-	if stripePlan != privateModel.PlanTypeFree && workspace.AllowMeterOverage {
-		return true, quotaPercent
+	includedQuantity := cfg.included(workspace)
+	if includedQuantity >= meter {
+		return true, 0
 	}
 
-	return quotaPercent < 1, quotaPercent
+	if *maxCostCents == 0 {
+		return false, 1
+	}
+
+	retentionPeriod := cfg.retentionPeriod(workspace)
+	overage := meter - includedQuantity
+	cost := float64(overage) *
+		pricing.ProductToBasePriceCents(productType) *
+		pricing.RetentionMultiplier(retentionPeriod)
+
+	return cost >= float64(*maxCostCents), cost / float64(*maxCostCents)
 }
 
 func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorObject *model.ErrorObject, visitedUrl string) {
@@ -2010,7 +1997,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 
 			// Suppress alerts if ignored or snoozed.
 			snoozed := group.SnoozedUntil != nil && group.SnoozedUntil.After(time.Now())
-			if group == nil || group.State == model.ErrorGroupStates.IGNORED || snoozed {
+			if group == nil || group.State == privateModel.ErrorStateIgnored || snoozed {
 				return
 			}
 
@@ -2323,6 +2310,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).WithError(err).WithField("project", project).WithField("projectVerboseID", projectVerboseID).Error("failed to find project")
 	}
 
+	workspace, err := r.getWorkspace(project.WorkspaceID)
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
+	}
+
 	// Filter out empty errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
@@ -2382,9 +2374,21 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			RequestID:   v.RequestID,
 		}
 
-		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, v.StackTrace, nil, extractErrorFields(session, errorToInsert), projectID)
+		var structuredStackTrace []*privateModel.ErrorTrace
+
+		err = json.Unmarshal([]byte(v.StackTrace), &structuredStackTrace)
+		if err != nil {
+			structuredStackTrace, err = stacktraces.StructureStackTrace(v.StackTrace)
+			if err != nil {
+				log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
+			}
+		}
+
+		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)
 		if err != nil {
 			if e.Is(err, ErrNoisyError) {
+				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
+			} else if e.Is(err, ErrQuotaExceeded) {
 				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
 			} else {
 				log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))
@@ -2418,13 +2422,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 	}
 	influxSpan.Finish()
-
-	now := time.Now()
-	if err := r.DB.Model(&model.Session{}).Where("secure_id = ?", sessionSecureID).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "error updating session payload time"))
-		putErrorsToDBSpan.Finish(tracer.WithError(err))
-		return
-	}
 	putErrorsToDBSpan.Finish()
 }
 
@@ -2815,6 +2812,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
 			return e.Wrap(err, "error querying project")
 		}
+		workspace, err := r.getWorkspace(project.WorkspaceID)
+		if err != nil {
+			return e.Wrap(err, "error querying workspace")
+		}
 
 		// filter out empty errors
 		seenEvents := map[string]*publicModel.ErrorObjectInput{}
@@ -2870,9 +2871,21 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				IsBeacon:     isBeacon,
 			}
 
-			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, "", v.StackTrace, extractErrorFields(sessionObj, errorToInsert), projectID)
+			mappedStackTrace, structuredStackTrace, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)
+
+			if err != nil {
+				log.WithContext(ctx).Errorf("Error generating mapped stack trace: %v", v.StackTrace)
+				continue
+			}
+
+			errorToInsert.MappedStackTrace = mappedStackTrace
+
+			group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(sessionObj, errorToInsert), projectID, workspace)
+
 			if err != nil {
 				if e.Is(err, ErrNoisyError) {
+					log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
+				} else if e.Is(err, ErrQuotaExceeded) {
 					log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
 				} else {
 					log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))
@@ -2969,9 +2982,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			return err
 		}
 	} else if excluded {
-		// Only update the excluded reason if it has changed
-		if sessionObj.ExcludedReason != reason {
-			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Update("ExcludedReason", reason).Error; err != nil {
+		// Only update the excluded flag and reason if either have changed
+		if sessionObj.Excluded != excluded || sessionObj.ExcludedReason != reason {
+			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
+				Select("Excluded", "ExcludedReason").Updates(&model.Session{
+				Excluded:       excluded,
+				ExcludedReason: reason,
+			}).Error; err != nil {
 				return err
 			}
 		}

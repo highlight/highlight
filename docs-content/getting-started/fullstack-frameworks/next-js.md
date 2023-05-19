@@ -8,9 +8,9 @@ updatedAt: 2023-05-10T00:00:00.000Z
 
 ## Limitations 
 
-⚠️ We are working on App Directory support. App Directory has not reached feature-parity with standard Next, so we're waiting for a stable release to lock down our integration. We're capturing App Directory API errors, but we've been unable to capture server-side errors from App Directory routes.
+⚠️ App Directory support on Vercel is a work-in-progress. Session Replay, Vercel Log Drain and non-Vercel-deployed Error Monitoring are fully operational; however, Vercel's `edge` runtime is not yet compatible with OpenTelemetry. Vercel's `nodejs` runtime **is** instrumented for OpenTelemetry, but we're having trouble ingesting Server-side Rendering (SSR) errors. We expect to solve the `nodejs` runtime issues first. In the meantime, we're hoping to find an `edge` runtime-compatible version of OpenTelemetry.
 
-⚠️ Sourcemaps do not work in development mode. Run `yarn build && yarn start` to test compiled source maps in Highlight.
+⚠️ Source maps do not work in development mode. Run `yarn build && yarn start` to test compiled source maps in Highlight.
 
 ## Installation
 

@@ -34,7 +34,7 @@ func TestFormatStructureStackTrace(t *testing.T) {
 	}
 	for _, input := range inputs {
 		t.Run(input.language, func(t *testing.T) {
-			frames, err := structureStackTrace(input.stacktrace)
+			frames, err := StructureStackTrace(input.stacktrace)
 			str, _ := json.MarshalIndent(frames, "", "\t")
 			fmt.Printf("%s\n", str)
 			assert.NoErrorf(t, err, "unexpected error")

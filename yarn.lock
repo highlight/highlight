@@ -11073,6 +11073,7 @@ __metadata:
     "@rehooks/local-storage": ^2.4.0
     "@sentry/react": ^7.38.0
     "@sentry/tracing": ^7.38.0
+    "@stripe/react-stripe-js": ^2.1.0
     "@stripe/stripe-js": ^1.32.0
     "@svgr/cli": ^5.5.0
     "@svgr/core": ^7.0.0
@@ -18456,6 +18457,19 @@ __metadata:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
     react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
   checksum: 8b75290c65a6a2beb3db4157ed95ce74dab06d5499dc3fc7a848fa5c9fc0f506bf6533638bb50c3a1f27acfeaa6ade0acdde8beede2241eba8d577965d85d299
+  languageName: node
+  linkType: hard
+
+"@stripe/react-stripe-js@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "@stripe/react-stripe-js@npm:2.1.0"
+  dependencies:
+    prop-types: ^15.7.2
+  peerDependencies:
+    "@stripe/stripe-js": ^1.44.1
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: ae5a26e44bd43bcb36ea7d578a2fe0920e75eb46f6f942eae88c3758cb8328a70f891d3a492760d3e6021e7dd93b0d4e4e279ffe169cfa671049c690c210fba0
   languageName: node
   linkType: hard
 

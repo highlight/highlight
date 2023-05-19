@@ -237,6 +237,38 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 	return count, err
 }
 
+type number interface {
+	uint64 | float64
+}
+
+func (client *Client) ReadLogsDailySum(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (uint64, error) {
+	return readLogsDailyImpl[uint64](ctx, client, "sum", projectIds, dateRange)
+}
+
+func (client *Client) ReadLogsDailyAverage(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (float64, error) {
+	return readLogsDailyImpl[float64](ctx, client, "avg", projectIds, dateRange)
+}
+
+func readLogsDailyImpl[N number](ctx context.Context, client *Client, aggFn string, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (N, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select(fmt.Sprintf("COALESCE(%s(Count), 0) AS Count", aggFn)).
+		From("log_count_daily_mv").
+		Where(sb.In("ProjectId", projectIds)).
+		Where(sb.LessThan("toUInt64(Day)", uint64(dateRange.EndDate.Unix()))).
+		Where(sb.GreaterEqualThan("toUInt64(Day)", uint64(dateRange.StartDate.Unix())))
+
+	sql, args := sb.Build()
+
+	var out N
+	err := client.conn.QueryRow(
+		ctx,
+		sql,
+		args...,
+	).Scan(&out)
+
+	return out, err
+}
+
 func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, nBuckets int) (*modelInputs.LogsHistogram, error) {
 	startTimestamp := uint64(params.DateRange.StartDate.Unix())
 	endTimestamp := uint64(params.DateRange.EndDate.Unix())

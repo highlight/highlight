@@ -181,7 +181,7 @@ const CompetitorComparisonPage = ({
 					<div className="max-w-[880px] mx-auto my-28">
 						<h4 className="mb-8">What makes us different?</h4>
 						<div className="flex flex-col gap-8">
-							{competitor.paragraphs.map((paragraph, index) => (
+							{competitor.paragraphs?.map((paragraph, index) => (
 								<div
 									key={index}
 									className="flex flex-col gap-3"
@@ -258,11 +258,12 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
 	const sources = []
 
-	for (let i = 0; i < competitor.paragraphs.length; i++) {
-		let paragraph = competitor.paragraphs[i]
-		const mdxSource = await serialize(paragraph.body)
-		sources.push(mdxSource)
-	}
+	if (competitor.paragraphs)
+		for (let i = 0; i < competitor.paragraphs.length; i++) {
+			let paragraph = competitor.paragraphs[i]
+			const mdxSource = await serialize(paragraph.body)
+			sources.push(mdxSource)
+		}
 
 	return {
 		props: {

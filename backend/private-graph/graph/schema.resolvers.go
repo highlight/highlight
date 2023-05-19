@@ -193,20 +193,6 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 	return metadataLogs, nil
 }
 
-// State is the resolver for the state field.
-func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (modelInputs.ErrorState, error) {
-	switch obj.State {
-	case model.ErrorGroupStates.OPEN:
-		return modelInputs.ErrorStateOpen, nil
-	case model.ErrorGroupStates.RESOLVED:
-		return modelInputs.ErrorStateResolved, nil
-	case model.ErrorGroupStates.IGNORED:
-		return modelInputs.ErrorStateIgnored, nil
-	default:
-		return modelInputs.ErrorStateOpen, e.New("invalid error group state")
-	}
-}
-
 // ErrorGroupSecureID is the resolver for the error_group_secure_id field.
 func (r *errorObjectResolver) ErrorGroupSecureID(ctx context.Context, obj *model.ErrorObject) (string, error) {
 	if obj != nil {
@@ -840,7 +826,7 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID st
 }
 
 // UpdateErrorGroupState is the resolver for the updateErrorGroupState field.
-func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state string, snoozedUntil *time.Time) (*model.ErrorGroup, error) {
+func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state modelInputs.ErrorState, snoozedUntil *time.Time) (*model.ErrorGroup, error) {
 	errGroup, err := r.canAdminModifyErrorGroup(ctx, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to modify error group")
@@ -854,10 +840,7 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
 
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
-		"state":         state,
-		"snoozed_until": snoozedUntil,
-	}); err != nil {
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, errorGroup); err != nil {
 		return nil, e.Wrap(err, "error updating error group state in OpenSearch")
 	}
 
@@ -887,41 +870,14 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		return nil, e.Wrap(err, "error querying admin")
 	}
 
-	existingInviteLink := &model.WorkspaceInviteLink{}
-	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: &email}).First(existingInviteLink).Error; err != nil {
-		if e.Is(err, gorm.ErrRecordNotFound) {
-			existingInviteLink = nil
-		} else {
-			return nil, e.Wrap(err, "error querying workspace invite link for admin")
-		}
+	inviteLink := r.CreateInviteLink(workspaceID, &email, role, false)
+
+	if err := r.DB.Create(inviteLink).Error; err != nil {
+		return nil, e.Wrap(err, "error creating new invite link")
 	}
 
-	// If there's an existing and expired invite link for the user then delete it.
-	if existingInviteLink != nil && r.IsInviteLinkExpired(existingInviteLink) {
-		if err := r.DB.Delete(existingInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error deleting expired invite link")
-		}
-		existingInviteLink = nil
-	}
-
-	// Delete the existing invite if the roles are different.
-	if existingInviteLink != nil && existingInviteLink.InviteeRole != nil && *existingInviteLink.InviteeRole != role {
-		if err := r.DB.Delete(existingInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error deleting different role invite link")
-		}
-		existingInviteLink = nil
-	}
-
-	if existingInviteLink == nil {
-		existingInviteLink = r.CreateInviteLink(workspaceID, &email, role, false)
-
-		if err := r.DB.Create(existingInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error creating new invite link")
-		}
-	}
-
-	inviteLink := baseURL + "/w/" + strconv.Itoa(workspaceID) + "/invite/" + *existingInviteLink.Secret
-	return r.SendAdminInviteImpl(*admin.Name, *workspace.Name, inviteLink, email)
+	inviteLinkUrl := baseURL + "/w/" + strconv.Itoa(workspaceID) + "/invite/" + *inviteLink.Secret
+	return r.SendAdminInviteImpl(*admin.Name, *workspace.Name, inviteLinkUrl, email)
 }
 
 // AddAdminToWorkspace is the resolver for the addAdminToWorkspace field.
@@ -1316,8 +1272,8 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 	// If there's no existing subscription, we create a checkout.
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/upgrade-plan/success"),
-		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/upgrade-plan/checkoutCanceled"),
+		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/success"),
+		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/update-plan"),
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
@@ -1355,6 +1311,28 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 	}
 
 	return &model.T, nil
+}
+
+// SaveBillingPlan is the resolver for the saveBillingPlan field.
+func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention modelInputs.RetentionPeriod, errorsLimitCents *int, errorsRetention modelInputs.RetentionPeriod, logsLimitCents *int, logsRetention modelInputs.RetentionPeriod) (*bool, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in workspace")
+	}
+
+	if err := r.DB.Model(&workspace).
+		Select("sessions_max_cents", "retention_period", "errors_max_cents", "errors_retention_period", "logs_max_cents").
+		Updates(&model.Workspace{
+			SessionsMaxCents:      sessionsLimitCents,
+			RetentionPeriod:       &sessionsRetention,
+			ErrorsMaxCents:        errorsLimitCents,
+			ErrorsRetentionPeriod: &errorsRetention,
+			LogsMaxCents:          logsLimitCents,
+		}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating workspace")
+	}
+
+	return pointy.Bool(true), nil
 }
 
 // CreateSessionComment is the resolver for the createSessionComment field.
@@ -3979,7 +3957,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 	}
 	errorGroupsOpensearchSearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("resolver.errorGroupsOpensearchSearchQuery"), tracer.Tag("project_id", projectID))
-	q := FormatErrorGroupsQuery(query, GetRetentionDate(workspace.RetentionPeriod))
+	q := FormatErrorGroupsQuery(query, GetRetentionDate(workspace.ErrorsRetentionPeriod))
 	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, q, options, &results)
 	errorGroupsOpensearchSearchSpan.Finish()
 
@@ -4031,7 +4009,7 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 		Aggregation:       GetDateHistogramAggregation(histogramOptions, "timestamp", nil),
 	}
 
-	q := FormatErrorInstancesQuery(query, GetRetentionDate(workspace.RetentionPeriod))
+	q := FormatErrorInstancesQuery(query, GetRetentionDate(workspace.ErrorsRetentionPeriod))
 	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
@@ -5398,39 +5376,19 @@ func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID 
 		return nil, nil
 	}
 
-	var g errgroup.Group
-	var queriedSessionsOutOfQuota int64
-	g.Go(func() error {
-		queriedSessionsOutOfQuota, err = pricing.GetProjectQuotaOverflow(ctx, r.DB, projectID)
-		if err != nil {
-			return e.Wrap(err, "error from get quota overflow")
-		}
-		return nil
-	})
-
-	var billingDetails *modelInputs.BillingDetails
-	g.Go(func() error {
-		billingDetails, err = r.BillingDetails(ctx, project.WorkspaceID)
-		if err != nil {
-			return e.Wrap(err, "error from get quota")
-		}
-		return nil
-	})
-
-	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
-	if err := g.Wait(); err != nil {
-		return nil, e.Wrap(err, "error querying session data for billing details")
-	}
-
-	billingDetails.SessionsOutOfQuota = queriedSessionsOutOfQuota
-	return billingDetails, nil
+	return r.BillingDetails(ctx, project.WorkspaceID)
 }
 
 // BillingDetails is the resolver for the billingDetails field.
 func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*modelInputs.BillingDetails, error) {
-	workspace, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
+	_, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
+	}
+
+	workspace, err := r.Query().Workspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	planType := modelInputs.PlanType(workspace.PlanTier)
@@ -5447,9 +5405,12 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	var membersMeter int64
 	var errorsMeter int64
 	var logsMeter int64
+	var sessionsAvg float64
+	var errorsAvg float64
+	var logsAvg float64
 
 	g.Go(func() error {
-		sessionsMeter, err = pricing.GetWorkspaceSessionsMeter(r.DB, workspaceID)
+		sessionsMeter, err = pricing.GetWorkspaceSessionsMeter(ctx, r.DB, r.ClickhouseClient, workspace)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}
@@ -5465,7 +5426,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	})
 
 	g.Go(func() error {
-		errorsMeter, err = pricing.GetWorkspaceErrorsMeter(r.DB, workspaceID)
+		errorsMeter, err = pricing.GetWorkspaceErrorsMeter(ctx, r.DB, r.ClickhouseClient, workspace)
 		if err != nil {
 			return e.Wrap(err, "error querying errors meter")
 		}
@@ -5473,15 +5434,26 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	})
 
 	g.Go(func() error {
-		workspace, err := r.Workspace(ctx, workspaceID)
+		logsMeter, err = pricing.GetWorkspaceLogsMeter(ctx, r.DB, r.ClickhouseClient, workspace)
 		if err != nil {
-			return err
-		}
-		logsMeter, err = pricing.GetWorkspaceLogsMeter(ctx, r.ClickhouseClient, *workspace)
-		if err != nil {
-			return e.Wrap(err, "error querying errors meter")
+			return e.Wrap(err, "error querying logs meter")
 		}
 		return nil
+	})
+
+	g.Go(func() error {
+		sessionsAvg, err = pricing.GetSessions7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
+	})
+
+	g.Go(func() error {
+		errorsAvg, err = pricing.GetErrors7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
+	})
+
+	g.Go(func() error {
+		logsAvg, err = pricing.GetLogs7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
 	})
 
 	// Waits for all goroutines to finish, then returns the first non-nil error (if any).
@@ -5489,10 +5461,10 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		return nil, e.Wrap(err, "error querying session data for billing details")
 	}
 
-	sessionLimit := pricing.TypeToSessionsLimit(planType)
+	sessionsIncluded := pricing.TypeToSessionsLimit(planType)
 	// use monthly session limit if it exists
 	if workspace.MonthlySessionLimit != nil {
-		sessionLimit = *workspace.MonthlySessionLimit
+		sessionsIncluded = *workspace.MonthlySessionLimit
 	}
 
 	membersLimit := pricing.TypeToMemberLimit(planType, workspace.UnlimitedMembers)
@@ -5500,31 +5472,49 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		membersLimit = workspace.MonthlyMembersLimit
 	}
 
-	errorsLimit := pricing.TypeToErrorsLimit(planType)
+	errorsIncluded := pricing.TypeToErrorsLimit(planType)
 	// use monthly session limit if it exists
 	if workspace.MonthlyErrorsLimit != nil {
-		errorsLimit = *workspace.MonthlyErrorsLimit
+		errorsIncluded = *workspace.MonthlyErrorsLimit
 	}
 
-	logsLimit := pricing.TypeToLogsLimit(planType)
+	logsIncluded := pricing.TypeToLogsLimit(planType)
 	// use monthly session limit if it exists
 	if workspace.MonthlyLogsLimit != nil {
-		logsLimit = *workspace.MonthlyLogsLimit
+		logsIncluded = *workspace.MonthlyLogsLimit
+	}
+
+	retentionPeriod := modelInputs.RetentionPeriodSixMonths
+	if workspace.RetentionPeriod != nil {
+		retentionPeriod = *workspace.RetentionPeriod
+	}
+
+	var sessionsLimit, errorsLimit, logsLimit *int64
+	if workspace.TrialEndDate == nil || workspace.TrialEndDate.Before(time.Now()) {
+		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, pricing.ProductTypeSessions, planType, retentionPeriod)
+		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, pricing.ProductTypeErrors, planType, retentionPeriod)
+		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, pricing.ProductTypeLogs, planType, retentionPeriod)
 	}
 
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:         modelInputs.PlanType(planType.String()),
-			Quota:        sessionLimit,
+			Quota:        sessionsIncluded,
 			Interval:     interval,
 			MembersLimit: membersLimit,
-			ErrorsLimit:  errorsLimit,
-			LogsLimit:    logsLimit,
+			ErrorsLimit:  errorsIncluded,
+			LogsLimit:    logsIncluded,
 		},
-		Meter:        sessionsMeter,
-		MembersMeter: membersMeter,
-		ErrorsMeter:  errorsMeter,
-		LogsMeter:    logsMeter,
+		Meter:                sessionsMeter,
+		MembersMeter:         membersMeter,
+		ErrorsMeter:          errorsMeter,
+		LogsMeter:            logsMeter,
+		SessionsDailyAverage: sessionsAvg,
+		ErrorsDailyAverage:   errorsAvg,
+		LogsDailyAverage:     logsAvg,
+		SessionsBillingLimit: sessionsLimit,
+		ErrorsBillingLimit:   errorsLimit,
+		LogsBillingLimit:     logsLimit,
 	}
 
 	return details, nil
@@ -6418,6 +6408,10 @@ func (r *queryResolver) WorkspaceForInviteLink(ctx context.Context, secret strin
 		return nil, e.Wrap(err, "error querying workspace invite link")
 	}
 
+	if r.IsInviteLinkExpired(&workspaceInviteLink) {
+		return nil, e.New("invite link expired")
+	}
+
 	var workspace model.Workspace
 	if err := r.DB.Model(&model.Workspace{}).Where("id = ?", *workspaceInviteLink.WorkspaceID).First(&workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace for invite link")
@@ -6462,9 +6456,6 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 
 	if r.IsInviteLinkExpired(workspaceInviteLink) && !shouldCreateNewInviteLink {
 		shouldCreateNewInviteLink = true
-		if err := r.DB.Delete(workspaceInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error while deleting expired invite link for workspace")
-		}
 	}
 
 	if workspaceInviteLink != nil && workspaceInviteLink.ExpirationDate != nil {
