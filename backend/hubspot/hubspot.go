@@ -4,10 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"github.com/highlight-run/highlight/backend/redis"
-	"github.com/openlyinc/pointy"
-	"github.com/samber/lo"
 	"io"
 	"math"
 	"net/http"
@@ -15,6 +11,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/openlyinc/pointy"
+	"github.com/samber/lo"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/goware/emailproviders"
@@ -361,6 +362,7 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 	if len(components) > 1 {
 		domain = components[1]
 	}
+	hexLink := fmt.Sprintf("https://workspace-details.highlight.io?_workspace_id=%v", workspaceID)
 	resp, err := h.hubspotClient.Companies().Create(hubspot.CompaniesRequest{
 		Properties: []hubspot.Property{
 			{
@@ -372,6 +374,11 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 				Property: "domain",
 				Name:     "domain",
 				Value:    domain,
+			},
+			{
+				Property: "hex_link",
+				Name:     "hex_link",
+				Value:    hexLink,
 			},
 		},
 	})
