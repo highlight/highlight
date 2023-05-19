@@ -39,7 +39,6 @@ import { Typography } from '../../components/common/Typography/Typography'
 import { Callout } from '../../components/Docs/Callout/Callout'
 import { DocSection } from '../../components/Docs/DocLayout/DocLayout'
 import styles from '../../components/Docs/Docs.module.scss'
-import DocSelect from '../../components/Docs/DocSelect/DocSelect'
 import { generateIdFromProps } from '../../components/Docs/DocsTypographyRenderer/DocsTypographyRenderer'
 import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
 import { useMediaQuery } from '../../components/MediaQuery/MediaQuery'
@@ -857,9 +856,6 @@ export default function DocPage({
 			<Navbar title="Docs" hideBanner isDocsPage fixed />
 			<main ref={blogBody} className={styles.mainWrapper}>
 				<div className={styles.leftSection}>
-					<div className={styles.leftInner}>
-						<DocSelect />
-					</div>
 					<div className={styles.tocMenuLarge}>
 						{isSdkDoc ? (
 							<SdkTableOfContents />
