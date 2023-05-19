@@ -21,8 +21,14 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	errorGroup1 := model.ErrorGroup{State: privateModel.ErrorStateOpen}
-	errorGroup2 := model.ErrorGroup{State: privateModel.ErrorStateOpen}
+	errorGroup1 := model.ErrorGroup{
+		State:     privateModel.ErrorStateOpen,
+		ProjectID: project.ID,
+	}
+	errorGroup2 := model.ErrorGroup{
+		State:     privateModel.ErrorStateOpen,
+		ProjectID: project.ID,
+	}
 	service.db.Create(&errorGroup1)
 	service.db.Create(&errorGroup2)
 

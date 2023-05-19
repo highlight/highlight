@@ -36,7 +36,7 @@ func (service *AutoResolverService) findStaleErrors(ctx context.Context) []model
 	for _, projectFilterSettings := range projectFilterSettings {
 		interval := projectFilterSettings.AutoResolveStaleErrorsDayInterval
 
-		project := &model.Project{}
+		project := model.Project{}
 		if err := service.FilteringRepository.db.Where(&model.Project{
 			Model: model.Model{
 				ID: projectFilterSettings.ProjectID,
@@ -46,29 +46,32 @@ func (service *AutoResolverService) findStaleErrors(ctx context.Context) []model
 			continue
 		}
 
-		openProjectErrorGroups := []model.ErrorGroup{}
-		if err := service.FilteringRepository.db.Where(&model.ErrorGroup{
-			State: privateModel.ErrorStateOpen,
-		}).Find(&openProjectErrorGroups).Error; err != nil {
+		staleErrorGroupsForProject, err := service.findStaleErrorsForProject(ctx, project, interval)
+		if err != nil {
+			log.WithContext(ctx).WithFields(log.Fields{"project_id": projectFilterSettings.ProjectID}).Error(err)
 			continue
-		}
-
-		for _, errorGroup := range openProjectErrorGroups {
-			errorObject := &model.ErrorObject{}
-
-			if err := service.FilteringRepository.db.Where(&model.ErrorObject{
-				ErrorGroupID: errorGroup.ID,
-			}).Last(&errorObject).Error; err != nil {
-				continue
-			}
-
-			lookbackPeriod := time.Now().Add(time.Duration(-24*interval) * time.Hour)
-
-			if errorObject.CreatedAt.Before(lookbackPeriod) {
-				staleErrorGroups = append(staleErrorGroups, errorGroup)
-			}
+		} else {
+			staleErrorGroups = append(staleErrorGroups, staleErrorGroupsForProject...)
 		}
 	}
 
 	return staleErrorGroups
+}
+
+func (service *AutoResolverService) findStaleErrorsForProject(ctx context.Context, project model.Project, interval int) ([]model.ErrorGroup, error) {
+	var errorGroups []model.ErrorGroup
+
+	db := service.FilteringRepository.db
+
+	subQuery := db.
+		Model(model.ErrorObject{}).
+		Select("error_group_id").
+		Where("created_at >= ?", time.Now().AddDate(0, 0, -interval))
+
+	err := db.Debug().
+		Model(model.ErrorGroup{}).
+		Where("state = ? AND id NOT IN (?)", privateModel.ErrorStateOpen, subQuery).
+		Find(&errorGroups).Error
+
+	return errorGroups, err
 }
