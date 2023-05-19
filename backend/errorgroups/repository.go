@@ -60,12 +60,13 @@ func (repo *ErrorGroupsRepository) updateErrorGroupState(ctx context.Context,
 		return errorGroup, err
 	}
 
-	result := repo.db.Create(&model.ErrorGroupActivityLog{
-		Admin:     admin,
-		EventType: eventType,
-	})
+	err = repo.db.Create(&model.ErrorGroupActivityLog{
+		Admin:        admin,
+		EventType:    eventType,
+		ErrorGroupID: errorGroup.ID,
+	}).Error
 
-	if result.Error != nil {
+	if err != nil {
 		return errorGroup, err
 	}
 

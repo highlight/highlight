@@ -942,9 +942,10 @@ const (
 
 type ErrorGroupActivityLog struct {
 	Model
-	AdminID   int // when this is 0, it means the system generated the event
-	Admin     *Admin
-	EventType ErrorGroupEventType
+	ErrorGroupID int `gorm:"index"`
+	AdminID      int // when this is 0, it means the system generated the event
+	Admin        *Admin
+	EventType    ErrorGroupEventType
 }
 
 type ErrorGroupAdminsView struct {

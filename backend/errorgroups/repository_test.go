@@ -45,6 +45,7 @@ func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 
 	assert.Len(t, activityLogs, 1)
 	assert.Equal(t, activityLogs[0].AdminID, admin.ID)
+	assert.Equal(t, activityLogs[0].ErrorGroupID, errorGroup.ID)
 	assert.Equal(t, activityLogs[0].EventType, model.ErrorGroupIgnoredEvent)
 }
 
@@ -80,5 +81,6 @@ func TestUpdateErrorGroupStateBySystem(t *testing.T) {
 
 	assert.Len(t, activityLogs, 1)
 	assert.Equal(t, activityLogs[0].AdminID, 0) // 0 means the system generated this
+	assert.Equal(t, activityLogs[0].ErrorGroupID, errorGroup.ID)
 	assert.Equal(t, activityLogs[0].EventType, model.ErrorGroupIgnoredEvent)
 }
