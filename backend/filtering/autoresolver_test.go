@@ -21,54 +21,77 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	errorGroup1 := model.ErrorGroup{
-		State:     privateModel.ErrorStateOpen,
-		ProjectID: project.ID,
-	}
-	errorGroup2 := model.ErrorGroup{
-		State:     privateModel.ErrorStateOpen,
-		ProjectID: project.ID,
-	}
-	service.db.Create(&errorGroup1)
-	service.db.Create(&errorGroup2)
-
 	now := time.Now()
 	twentyThreeHoursAgo := now.Add(-time.Hour * 23)
 	twentyFiveHoursAgo := now.Add(-time.Hour * 25)
 
-	errorObject1 := model.ErrorObject{
-		ErrorGroupID: errorGroup1.ID,
+	// Should not be autoresolved
+	recentErrorGroup := model.ErrorGroup{
+		State:     privateModel.ErrorStateOpen,
+		ProjectID: project.ID,
+	}
+	service.db.Create(&recentErrorGroup)
+	recentErrorObject := model.ErrorObject{
+		ErrorGroupID: recentErrorGroup.ID,
 		Model: model.Model{
 			CreatedAt: twentyThreeHoursAgo,
 		},
 	}
-	errorObject2 := model.ErrorObject{
-		ErrorGroupID: errorGroup2.ID,
+	service.db.Create(&recentErrorObject)
+
+	// Should be autoresolved
+	oldErrorGroup := model.ErrorGroup{
+		State:     privateModel.ErrorStateOpen,
+		ProjectID: project.ID,
+	}
+	service.db.Create(&oldErrorGroup)
+	oldErrorObject := model.ErrorObject{
+		ErrorGroupID: oldErrorGroup.ID,
 		Model: model.Model{
 			CreatedAt: twentyFiveHoursAgo,
 		},
 	}
+	service.db.Create(&oldErrorObject)
 
-	service.db.Create(&errorObject1)
-	service.db.Create(&errorObject2)
+	// Should not be autoresolved since it belongs to a different project
+	projectWithNoSettings := model.Project{}
+	service.db.Create(&projectWithNoSettings)
+	oldErrorGroupForUnrelatedProject := model.ErrorGroup{
+		State:     privateModel.ErrorStateOpen,
+		ProjectID: projectWithNoSettings.ID,
+	}
+	service.db.Create(&oldErrorGroupForUnrelatedProject)
+	oldErrorObjectForUnrelatedProject := model.ErrorObject{
+		ErrorGroupID: oldErrorGroup.ID,
+		Model: model.Model{
+			CreatedAt: twentyFiveHoursAgo,
+		},
+	}
+	service.db.Create(&oldErrorObjectForUnrelatedProject)
 
 	service.AutoResolveStaleErrors(context.TODO())
 
-	updatedErrorGroup1 := model.ErrorGroup{}
+	errorGroup1 := model.ErrorGroup{}
 	service.db.Where(model.ErrorGroup{
 		Model: model.Model{
-			ID: errorGroup1.ID,
+			ID: recentErrorGroup.ID,
 		},
-	}).Find(&updatedErrorGroup1)
+	}).Find(&errorGroup1)
+	assert.Equal(t, errorGroup1.State, privateModel.ErrorStateOpen) // was not autoresolved
 
-	assert.Equal(t, updatedErrorGroup1.State, privateModel.ErrorStateOpen)
-
-	updatedErrorGroup2 := model.ErrorGroup{}
+	errorGroup2 := model.ErrorGroup{}
 	service.db.Where(model.ErrorGroup{
 		Model: model.Model{
-			ID: errorGroup2.ID,
+			ID: oldErrorGroup.ID,
 		},
-	}).Find(&updatedErrorGroup2)
+	}).Find(&errorGroup2)
+	assert.Equal(t, errorGroup2.State, privateModel.ErrorStateResolved) // was autoresolved
 
-	assert.Equal(t, updatedErrorGroup2.State, privateModel.ErrorStateResolved)
+	errorGroup3 := model.ErrorGroup{}
+	service.db.Where(model.ErrorGroup{
+		Model: model.Model{
+			ID: oldErrorGroupForUnrelatedProject.ID,
+		},
+	}).Find(&errorGroup3)
+	assert.Equal(t, errorGroup3.State, privateModel.ErrorStateOpen) // was not autoresolved
 }

@@ -19,6 +19,8 @@ func (service *AutoResolverService) AutoResolveStaleErrors(ctx context.Context) 
 	staleErrorGroups := service.findStaleErrors(ctx)
 
 	for _, errorGroup := range staleErrorGroups {
+		log.WithContext(ctx).WithFields(
+			log.Fields{"error_group_id": errorGroup.ID}).Info("Auto-resolving stale error group")
 		_, err := service.UpdateErrorGroupStateBySystem(ctx, errorgroups.UpdateErrorGroupParams{
 			ID:    errorGroup.ID,
 			State: privateModel.ErrorStateResolved,
@@ -34,6 +36,8 @@ func (service *AutoResolverService) findStaleErrors(ctx context.Context) []model
 	staleErrorGroups := []model.ErrorGroup{}
 
 	for _, projectFilterSettings := range projectFilterSettings {
+		log.WithContext(ctx).WithFields(
+			log.Fields{"project_id": projectFilterSettings.ProjectID}).Info("Finding stale errors for project")
 		interval := projectFilterSettings.AutoResolveStaleErrorsDayInterval
 
 		project := model.Project{}
@@ -69,8 +73,11 @@ func (service *AutoResolverService) findStaleErrorsForProject(ctx context.Contex
 		Where("created_at >= ?", time.Now().AddDate(0, 0, -interval))
 
 	err := db.Debug().
-		Model(model.ErrorGroup{}).
-		Where("state = ? AND id NOT IN (?)", privateModel.ErrorStateOpen, subQuery).
+		Where(model.ErrorGroup{
+			State:     privateModel.ErrorStateOpen,
+			ProjectID: project.ID,
+		}).
+		Where("id NOT IN (?)", subQuery).
 		Find(&errorGroups).Error
 
 	return errorGroups, err
