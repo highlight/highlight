@@ -325,24 +325,39 @@ func (r *Client) GetResourceObjects(ctx context.Context, s *model.Session) ([]mo
 }
 
 func (r *Client) GetResources(ctx context.Context, s *model.Session) ([]interface{}, error) {
-	// TODO: Handle cursor logic in the future
 	allResources := make([]interface{}, 0)
 
-	getResourcesRedisData, err := r.GetResourceObjects(ctx, s)
+	redisData, err := r.redisClient.ZRangeByScoreWithScores(ctx, NetworkResourcesKey(s.ID), &redis.ZRangeBy{
+		Min: "-inf",
+		Max: "+inf",
+	}).Result()
 	if err != nil {
-		return nil, errors.Wrap(err, "error getting resource objects")
+		return nil, errors.Wrap(err, "error retrieving network resources from Redis")
 	}
 
-	if len(getResourcesRedisData) == 0 {
-		return allResources, nil
-	}
+	for _, z := range redisData {
+		asBytes := []byte(z.Member.(string))
 
-	for _, obj := range getResourcesRedisData {
+		// Messages may be encoded with `snappy`.
+		// Try decoding them, but if decoding fails, use the original message.
+		decoded, err := snappy.Decode(nil, asBytes)
+		if err != nil {
+			decoded = asBytes
+		}
+
+		resourceObject := model.ResourcesObject{
+			Resources: string(decoded),
+		}
+
 		subResources := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(obj.Resources), &subResources); err != nil {
+		if err := json.Unmarshal([]byte(resourceObject.Resources), &subResources); err != nil {
 			return nil, errors.Wrap(err, "error decoding resource data")
 		}
 		allResources = append(allResources, subResources["resources"]...)
+	}
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting resource objects")
 	}
 
 	return allResources, nil
