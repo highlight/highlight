@@ -27,8 +27,6 @@ import (
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	dd "github.com/highlight-run/highlight/backend/datadog"
-	"github.com/highlight-run/highlight/backend/errorgroups"
-	"github.com/highlight-run/highlight/backend/filtering"
 	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 	"github.com/highlight-run/highlight/backend/integrations"
@@ -44,9 +42,9 @@ import (
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	"github.com/highlight-run/highlight/backend/redis"
-	"github.com/highlight-run/highlight/backend/repositories"
 	"github.com/highlight-run/highlight/backend/stepfunctions"
 	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
@@ -365,7 +363,7 @@ func main() {
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
-		Repositories:           initRepositories(db, opensearchClient),
+		Store:                  store.NewStore(db, opensearchClient),
 	}
 	private.SetupAuthClient(ctx, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
@@ -489,7 +487,7 @@ func main() {
 			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
 			Redis:           redisClient,
 			RH:              &rh,
-			Repositories:    initRepositories(db, opensearchClient),
+			Store:           store.NewStore(db, opensearchClient),
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -582,7 +580,7 @@ func main() {
 			Redis:           redisClient,
 			Clickhouse:      clickhouseClient,
 			RH:              &rh,
-			Repositories:    initRepositories(db, opensearchClient),
+			Store:           store.NewStore(db, opensearchClient),
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
@@ -634,12 +632,5 @@ func main() {
 		} else {
 			log.Fatal(http.ListenAndServe(":"+port, r))
 		}
-	}
-}
-
-func initRepositories(db *gorm.DB, opensearch *opensearch.Client) repositories.Repositories {
-	return repositories.Repositories{
-		Filtering:   filtering.NewRepository(db),
-		ErrorGroups: errorgroups.NewRepository(db, opensearch),
 	}
 }

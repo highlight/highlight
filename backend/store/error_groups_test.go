@@ -1,4 +1,4 @@
-package errorgroups
+package store
 
 import (
 	"context"
@@ -12,15 +12,14 @@ import (
 )
 
 func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
-	repo := setupErrorGroupsRepository()
-	util.RunTestWithDBWipe(t, "TestUpdateErrorGroupStateByAdmin", repo.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, "TestUpdateErrorGroupStateByAdmin", store.db, func(t *testing.T) {
 
 		errorGroup := model.ErrorGroup{
 			State: privateModel.ErrorStateOpen,
 		}
 
 		admin := model.Admin{}
-		repo.db.Create(&admin)
+		store.db.Create(&admin)
 
 		now := time.Now()
 		params := UpdateErrorGroupParams{
@@ -29,21 +28,21 @@ func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 			SnoozedUntil: &now,
 		}
 
-		_, err := repo.UpdateErrorGroupStateByAdmin(context.TODO(), admin, params)
+		_, err := store.UpdateErrorGroupStateByAdmin(context.TODO(), admin, params)
 		assert.EqualError(t, err, "record not found")
 
-		repo.db.Create(&errorGroup)
+		store.db.Create(&errorGroup)
 
 		params.ID = errorGroup.ID
 
-		updatedErrorGroup, err := repo.UpdateErrorGroupStateByAdmin(context.TODO(), admin, params)
+		updatedErrorGroup, err := store.UpdateErrorGroupStateByAdmin(context.TODO(), admin, params)
 		assert.NoError(t, err)
 
 		assert.Equal(t, updatedErrorGroup.State, params.State)
 		assert.Equal(t, updatedErrorGroup.SnoozedUntil, params.SnoozedUntil)
 
 		activityLogs := []model.ErrorGroupActivityLog{}
-		repo.db.Where(model.ErrorGroupActivityLog{}).Find(&activityLogs)
+		store.db.Where(model.ErrorGroupActivityLog{}).Find(&activityLogs)
 
 		assert.Len(t, activityLogs, 1)
 		assert.Equal(t, activityLogs[0].AdminID, admin.ID)
@@ -53,9 +52,7 @@ func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 }
 
 func TestUpdateErrorGroupStateBySystem(t *testing.T) {
-	repo := setupErrorGroupsRepository()
-
-	util.RunTestWithDBWipe(t, "UpdateErrorGroupStateBySystem", repo.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, "UpdateErrorGroupStateBySystem", store.db, func(t *testing.T) {
 		errorGroup := model.ErrorGroup{
 			State: privateModel.ErrorStateOpen,
 		}
@@ -67,21 +64,21 @@ func TestUpdateErrorGroupStateBySystem(t *testing.T) {
 			SnoozedUntil: &now,
 		}
 
-		_, err := repo.UpdateErrorGroupStateBySystem(context.TODO(), params)
+		_, err := store.UpdateErrorGroupStateBySystem(context.TODO(), params)
 		assert.EqualError(t, err, "record not found")
 
-		repo.db.Create(&errorGroup)
+		store.db.Create(&errorGroup)
 
 		params.ID = errorGroup.ID
 
-		updatedErrorGroup, err := repo.UpdateErrorGroupStateBySystem(context.TODO(), params)
+		updatedErrorGroup, err := store.UpdateErrorGroupStateBySystem(context.TODO(), params)
 		assert.NoError(t, err)
 
 		assert.Equal(t, updatedErrorGroup.State, params.State)
 		assert.Equal(t, updatedErrorGroup.SnoozedUntil, params.SnoozedUntil)
 
 		activityLogs := []model.ErrorGroupActivityLog{}
-		repo.db.Where(model.ErrorGroupActivityLog{}).Find(&activityLogs)
+		store.db.Where(model.ErrorGroupActivityLog{}).Find(&activityLogs)
 
 		assert.Len(t, activityLogs, 1)
 		assert.Equal(t, activityLogs[0].AdminID, 0) // 0 means the system generated this

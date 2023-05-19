@@ -1,4 +1,4 @@
-package errorgroups
+package store
 
 import (
 	"context"
@@ -8,20 +8,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"gorm.io/gorm"
 )
-
-type ErrorGroupsRepository struct {
-	db         *gorm.DB
-	opensearch *opensearch.Client
-}
-
-func NewRepository(db *gorm.DB, opensearch *opensearch.Client) ErrorGroupsRepository {
-	return ErrorGroupsRepository{
-		db:         db,
-		opensearch: opensearch,
-	}
-}
 
 type UpdateErrorGroupParams struct {
 	ID           int
@@ -29,22 +16,22 @@ type UpdateErrorGroupParams struct {
 	SnoozedUntil *time.Time
 }
 
-func (repo *ErrorGroupsRepository) UpdateErrorGroupStateByAdmin(ctx context.Context,
+func (store *Store) UpdateErrorGroupStateByAdmin(ctx context.Context,
 	admin model.Admin, params UpdateErrorGroupParams) (model.ErrorGroup, error) {
-	return repo.updateErrorGroupState(ctx, &admin, params)
+	return store.updateErrorGroupState(ctx, &admin, params)
 }
 
-func (repo *ErrorGroupsRepository) UpdateErrorGroupStateBySystem(ctx context.Context,
+func (store *Store) UpdateErrorGroupStateBySystem(ctx context.Context,
 	params UpdateErrorGroupParams) (model.ErrorGroup, error) {
-	return repo.updateErrorGroupState(ctx, nil, params)
+	return store.updateErrorGroupState(ctx, nil, params)
 }
 
-func (repo *ErrorGroupsRepository) updateErrorGroupState(ctx context.Context,
+func (store *Store) updateErrorGroupState(ctx context.Context,
 	admin *model.Admin, params UpdateErrorGroupParams) (model.ErrorGroup, error) {
 
 	var errorGroup model.ErrorGroup
 
-	if err := repo.db.Where(&model.ErrorGroup{
+	if err := store.db.Where(&model.ErrorGroup{
 		Model: model.Model{
 			ID: params.ID,
 		},
@@ -60,7 +47,7 @@ func (repo *ErrorGroupsRepository) updateErrorGroupState(ctx context.Context,
 		return errorGroup, err
 	}
 
-	err = repo.db.Create(&model.ErrorGroupActivityLog{
+	err = store.db.Create(&model.ErrorGroupActivityLog{
 		Admin:        admin,
 		EventType:    eventType,
 		ErrorGroupID: errorGroup.ID,
@@ -70,7 +57,7 @@ func (repo *ErrorGroupsRepository) updateErrorGroupState(ctx context.Context,
 		return errorGroup, err
 	}
 
-	if err := repo.opensearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, errorGroup); err != nil {
+	if err := store.opensearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, errorGroup); err != nil {
 		return errorGroup, errors.New("error updating error group state in OpenSearch")
 	}
 

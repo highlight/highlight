@@ -1,24 +1,43 @@
-package filtering
+package worker
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/opensearch"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/util"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
+func createAutoResolver() *AutoResolver {
+	dbName := "highlight_testing_db"
+	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
+	var err error
+	db, err := util.CreateAndMigrateTestDB(dbName)
+	if err != nil {
+		testLogger.Error(e.Wrap(err, "error creating testdb"))
+	}
+
+	store := store.NewStore(db, &opensearch.Client{})
+	return NewAutoResolver(store, db)
+}
+
 func TestAutoResolveStaleErrors(t *testing.T) {
-	service := AutoResolverService{setupFilteringRepository(), setupErrorGroupsRepository()}
+	autoResolver := createAutoResolver()
+	db := autoResolver.db
 
-	util.RunTestWithDBWipe(t, "AutoResolveStaleErrors", service.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, "AutoResolveStaleErrors", db, func(t *testing.T) {
 		project := model.Project{}
-		service.db.Create(&project)
+		db.Create(&project)
 
-		_, err := service.UpdateProjectFilterSettings(project, model.ProjectFilterSettings{
+		_, err := autoResolver.store.UpdateProjectFilterSettings(project, model.ProjectFilterSettings{
 			AutoResolveStaleErrorsDayInterval: 1,
 		})
 		assert.NoError(t, err)
@@ -32,49 +51,49 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 			State:     privateModel.ErrorStateOpen,
 			ProjectID: project.ID,
 		}
-		service.db.Create(&recentErrorGroup)
+		db.Create(&recentErrorGroup)
 		recentErrorObject := model.ErrorObject{
 			ErrorGroupID: recentErrorGroup.ID,
 			Model: model.Model{
 				CreatedAt: twentyThreeHoursAgo,
 			},
 		}
-		service.db.Create(&recentErrorObject)
+		db.Create(&recentErrorObject)
 
 		// Should be autoresolved
 		oldErrorGroup := model.ErrorGroup{
 			State:     privateModel.ErrorStateOpen,
 			ProjectID: project.ID,
 		}
-		service.db.Create(&oldErrorGroup)
+		db.Create(&oldErrorGroup)
 		oldErrorObject := model.ErrorObject{
 			ErrorGroupID: oldErrorGroup.ID,
 			Model: model.Model{
 				CreatedAt: twentyFiveHoursAgo,
 			},
 		}
-		service.db.Create(&oldErrorObject)
+		db.Create(&oldErrorObject)
 
 		// Should not be autoresolved since it belongs to a different project
 		projectWithNoSettings := model.Project{}
-		service.db.Create(&projectWithNoSettings)
+		db.Create(&projectWithNoSettings)
 		oldErrorGroupForUnrelatedProject := model.ErrorGroup{
 			State:     privateModel.ErrorStateOpen,
 			ProjectID: projectWithNoSettings.ID,
 		}
-		service.db.Create(&oldErrorGroupForUnrelatedProject)
+		db.Create(&oldErrorGroupForUnrelatedProject)
 		oldErrorObjectForUnrelatedProject := model.ErrorObject{
 			ErrorGroupID: oldErrorGroup.ID,
 			Model: model.Model{
 				CreatedAt: twentyFiveHoursAgo,
 			},
 		}
-		service.db.Create(&oldErrorObjectForUnrelatedProject)
+		db.Create(&oldErrorObjectForUnrelatedProject)
 
-		service.AutoResolveStaleErrors(context.TODO())
+		autoResolver.AutoResolveStaleErrors(context.TODO())
 
 		errorGroup1 := model.ErrorGroup{}
-		service.db.Where(model.ErrorGroup{
+		db.Where(model.ErrorGroup{
 			Model: model.Model{
 				ID: recentErrorGroup.ID,
 			},
@@ -82,7 +101,7 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 		assert.Equal(t, errorGroup1.State, privateModel.ErrorStateOpen) // was not autoresolved
 
 		errorGroup2 := model.ErrorGroup{}
-		service.db.Where(model.ErrorGroup{
+		db.Where(model.ErrorGroup{
 			Model: model.Model{
 				ID: oldErrorGroup.ID,
 			},
@@ -90,7 +109,7 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 		assert.Equal(t, errorGroup2.State, privateModel.ErrorStateResolved) // was autoresolved
 
 		errorGroup3 := model.ErrorGroup{}
-		service.db.Where(model.ErrorGroup{
+		db.Where(model.ErrorGroup{
 			Model: model.Model{
 				ID: oldErrorGroupForUnrelatedProject.ID,
 			},

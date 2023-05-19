@@ -1,40 +1,43 @@
-package filtering
+package worker
 
 import (
 	"context"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/store"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-type AutoResolverService struct {
-	FilteringRepository
-	errorgroups.ErrorGroupsRepository
+type AutoResolver struct {
+	store *store.Store
+	db    *gorm.DB
 }
 
-func (service *AutoResolverService) AutoResolveStaleErrors(ctx context.Context) {
-	projectFilterSettings := service.findProjectsWithAutoResolveSetting(ctx)
+func NewAutoResolver(store *store.Store, db *gorm.DB) *AutoResolver {
+	return &AutoResolver{
+		store: store,
+		db:    db,
+	}
+}
+
+func (autoResolver *AutoResolver) AutoResolveStaleErrors(ctx context.Context) {
+	projectFilterSettings := autoResolver.store.FindProjectsWithAutoResolveSetting(ctx)
 
 	for _, projectFilterSettings := range projectFilterSettings {
 		log.WithContext(ctx).WithFields(
 			log.Fields{"project_id": projectFilterSettings.ProjectID}).Info("Finding stale errors for project")
 		interval := projectFilterSettings.AutoResolveStaleErrorsDayInterval
 
-		project := model.Project{}
-		if err := service.FilteringRepository.db.Where(&model.Project{
-			Model: model.Model{
-				ID: projectFilterSettings.ProjectID,
-			},
-		}).First(&project).Error; err != nil {
+		project, err := autoResolver.store.GetProject(ctx, projectFilterSettings.ProjectID)
+		if err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"project_id": projectFilterSettings.ProjectID}).Error(err)
 			continue
 		}
 
-		err := service.resolveStaleErrorsForProjectInBatches(ctx, project, interval)
+		err = autoResolver.resolveStaleErrorsForProjectInBatches(ctx, project, interval)
 
 		if err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"project_id": projectFilterSettings.ProjectID}).Error(err)
@@ -43,10 +46,10 @@ func (service *AutoResolverService) AutoResolveStaleErrors(ctx context.Context) 
 	}
 }
 
-func (service *AutoResolverService) resolveStaleErrorsForProjectInBatches(ctx context.Context, project model.Project, interval int) error {
+func (autoResolver *AutoResolver) resolveStaleErrorsForProjectInBatches(ctx context.Context, project model.Project, interval int) error {
 	var errorGroups []model.ErrorGroup
 
-	db := service.FilteringRepository.db
+	db := autoResolver.db
 
 	subQuery := db.
 		Model(model.ErrorObject{}).
@@ -66,7 +69,7 @@ func (service *AutoResolverService) resolveStaleErrorsForProjectInBatches(ctx co
 						"error_group_id": errorGroup.ID,
 					}).Info("Autoresolving error group")
 
-				_, err := service.UpdateErrorGroupStateBySystem(ctx, errorgroups.UpdateErrorGroupParams{
+				_, err := autoResolver.store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
 					ID:    errorGroup.ID,
 					State: privateModel.ErrorStateResolved,
 				})

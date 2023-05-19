@@ -42,6 +42,7 @@ import (
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
@@ -590,7 +591,7 @@ func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projec
 		return nil, err
 	}
 
-	updatedProjectFilterSettings, err := r.Repositories.Filtering.UpdateProjectFilterSettings(*project, model.ProjectFilterSettings{
+	updatedProjectFilterSettings, err := r.Store.UpdateProjectFilterSettings(*project, model.ProjectFilterSettings{
 		FilterSessionsWithoutError: filterSessionsWithoutError,
 	})
 
@@ -827,7 +828,7 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID s
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 
-	updatedErrorGroup, err := r.Repositories.ErrorGroups.UpdateErrorGroupStateByAdmin(ctx, *admin, errorgroups.UpdateErrorGroupParams{
+	updatedErrorGroup, err := r.Store.UpdateErrorGroupStateByAdmin(ctx, *admin, store.UpdateErrorGroupParams{
 		ID:           errorGroup.ID,
 		State:        state,
 		SnoozedUntil: snoozedUntil,
@@ -6391,7 +6392,7 @@ func (r *queryResolver) ProjectFilterSettings(ctx context.Context, projectID int
 		return nil, err
 	}
 
-	projectFilterSettings, err := r.Repositories.Filtering.GetProjectFilterSettings(*project)
+	projectFilterSettings, err := r.Store.GetProjectFilterSettings(*project)
 
 	return &projectFilterSettings, err
 }
