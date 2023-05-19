@@ -216,3 +216,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 
 - Turn off client sourcemaps as they cause issues with next.js frontends.
 
+
+## 6.5.2
+
+### Patch Changes
+
+- Target ES6 for library build compatability.

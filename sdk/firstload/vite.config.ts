@@ -5,6 +5,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
 	envPrefix: ['REACT_APP_'],
 	build: {
+		target: 'es6',
 		lib: {
 			formats: ['es', 'cjs', 'umd'],
 			entry: resolve(__dirname, 'src/index.tsx'),
