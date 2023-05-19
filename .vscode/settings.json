@@ -104,8 +104,6 @@
 	"[markdown]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
-	"editor.wordWrapColumn": 120,
-	"editor.wordWrap": "wordWrapColumn",
 	"[css]": {
 		"editor.defaultFormatter": "vscode.css-language-features"
 	},
