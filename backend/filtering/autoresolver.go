@@ -8,6 +8,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 type AutoResolverService struct {
@@ -16,24 +17,7 @@ type AutoResolverService struct {
 }
 
 func (service *AutoResolverService) AutoResolveStaleErrors(ctx context.Context) {
-	staleErrorGroups := service.findStaleErrors(ctx)
-
-	for _, errorGroup := range staleErrorGroups {
-		log.WithContext(ctx).WithFields(
-			log.Fields{"error_group_id": errorGroup.ID}).Info("Auto-resolving stale error group")
-		_, err := service.UpdateErrorGroupStateBySystem(ctx, errorgroups.UpdateErrorGroupParams{
-			ID:    errorGroup.ID,
-			State: privateModel.ErrorStateResolved,
-		})
-		if err != nil {
-			log.WithContext(ctx).Error(err)
-		}
-	}
-}
-
-func (service *AutoResolverService) findStaleErrors(ctx context.Context) []model.ErrorGroup {
 	projectFilterSettings := service.findProjectsWithAutoResolveSetting(ctx)
-	staleErrorGroups := []model.ErrorGroup{}
 
 	for _, projectFilterSettings := range projectFilterSettings {
 		log.WithContext(ctx).WithFields(
@@ -50,19 +34,16 @@ func (service *AutoResolverService) findStaleErrors(ctx context.Context) []model
 			continue
 		}
 
-		staleErrorGroupsForProject, err := service.findStaleErrorsForProject(ctx, project, interval)
+		err := service.resolveStaleErrorsForProjectInBatches(ctx, project, interval)
+
 		if err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"project_id": projectFilterSettings.ProjectID}).Error(err)
 			continue
-		} else {
-			staleErrorGroups = append(staleErrorGroups, staleErrorGroupsForProject...)
 		}
 	}
-
-	return staleErrorGroups
 }
 
-func (service *AutoResolverService) findStaleErrorsForProject(ctx context.Context, project model.Project, interval int) ([]model.ErrorGroup, error) {
+func (service *AutoResolverService) resolveStaleErrorsForProjectInBatches(ctx context.Context, project model.Project, interval int) error {
 	var errorGroups []model.ErrorGroup
 
 	db := service.FilteringRepository.db
@@ -72,13 +53,27 @@ func (service *AutoResolverService) findStaleErrorsForProject(ctx context.Contex
 		Select("error_group_id").
 		Where("created_at >= ?", time.Now().AddDate(0, 0, -interval))
 
-	err := db.Debug().
-		Where(model.ErrorGroup{
-			State:     privateModel.ErrorStateOpen,
-			ProjectID: project.ID,
-		}).
+	result := db.Where(model.ErrorGroup{
+		State:     privateModel.ErrorStateOpen,
+		ProjectID: project.ID,
+	}).
 		Where("id NOT IN (?)", subQuery).
-		Find(&errorGroups).Error
+		FindInBatches(&errorGroups, 100, func(tx *gorm.DB, batch int) error {
+			for _, errorGroup := range errorGroups {
+				// batch processing found records
+				_, err := service.UpdateErrorGroupStateBySystem(ctx, errorgroups.UpdateErrorGroupParams{
+					ID:    errorGroup.ID,
+					State: privateModel.ErrorStateResolved,
+				})
 
-	return errorGroups, err
+				if err != nil {
+					return err
+				}
+			}
+
+			return nil
+
+		})
+
+	return result.Error
 }
