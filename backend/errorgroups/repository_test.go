@@ -40,12 +40,12 @@ func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 	assert.Equal(t, updatedErrorGroup.State, params.State)
 	assert.Equal(t, updatedErrorGroup.SnoozedUntil, params.SnoozedUntil)
 
-	activityLog := model.ErrorGroupActivityLog{}
-	repo.db.Where(model.ErrorGroupActivityLog{
-		AdminID: admin.ID,
-	}).Find(&activityLog)
+	activityLogs := []model.ErrorGroupActivityLog{}
+	repo.db.Where(model.ErrorGroupActivityLog{}).Find(&activityLogs)
 
-	assert.Equal(t, activityLog.AdminID, admin.ID)
+	assert.Len(t, activityLogs, 1)
+	assert.Equal(t, activityLogs[0].AdminID, admin.ID)
+	assert.Equal(t, activityLogs[0].EventType, model.ErrorGroupIgnoredEvent)
 }
 
 func TestUpdateErrorGroupStateBySystem(t *testing.T) {
@@ -80,4 +80,5 @@ func TestUpdateErrorGroupStateBySystem(t *testing.T) {
 
 	assert.Len(t, activityLogs, 1)
 	assert.Equal(t, activityLogs[0].AdminID, 0) // 0 means the system generated this
+	assert.Equal(t, activityLogs[0].EventType, model.ErrorGroupIgnoredEvent)
 }

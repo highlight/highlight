@@ -938,7 +938,6 @@ const (
 	ErrorGroupResolvedEvent ErrorGroupEventType = "ErrorGroupResolved"
 	ErrorGroupIgnoredEvent  ErrorGroupEventType = "ErrorGroupIgnored"
 	ErrorGroupOpenedEvent   ErrorGroupEventType = "ErrorGroupOpened"
-	ErrorGroupSnoozedEvent  ErrorGroupEventType = "ErrorGroupSnoozed"
 )
 
 type ErrorGroupActivityLog struct {

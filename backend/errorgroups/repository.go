@@ -55,7 +55,7 @@ func (repo *ErrorGroupsRepository) updateErrorGroupState(ctx context.Context,
 		return errorGroup, err
 	}
 
-	eventType, err := getEventType(params.State, params.SnoozedUntil)
+	eventType, err := getEventType(params.State)
 	if err != nil {
 		return errorGroup, err
 	}
@@ -77,11 +77,7 @@ func (repo *ErrorGroupsRepository) updateErrorGroupState(ctx context.Context,
 
 }
 
-func getEventType(state privateModel.ErrorState, snoozedUntil *time.Time) (model.ErrorGroupEventType, error) {
-	if snoozedUntil != nil {
-		return model.ErrorGroupSnoozedEvent, nil
-	}
-
+func getEventType(state privateModel.ErrorState) (model.ErrorGroupEventType, error) {
 	var event model.ErrorGroupEventType
 
 	switch state {
