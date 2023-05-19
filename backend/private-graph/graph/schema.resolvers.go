@@ -5489,9 +5489,12 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		retentionPeriod = *workspace.RetentionPeriod
 	}
 
-	sessionsLimit := pricing.GetLimitAmount(workspace.SessionsMaxCents, pricing.ProductTypeSessions, planType, retentionPeriod)
-	errorsLimit := pricing.GetLimitAmount(workspace.ErrorsMaxCents, pricing.ProductTypeErrors, planType, retentionPeriod)
-	logsLimit := pricing.GetLimitAmount(workspace.LogsMaxCents, pricing.ProductTypeLogs, planType, retentionPeriod)
+	var sessionsLimit, errorsLimit, logsLimit *int64
+	if workspace.TrialEndDate == nil || workspace.TrialEndDate.Before(time.Now()) {
+		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, pricing.ProductTypeSessions, planType, retentionPeriod)
+		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, pricing.ProductTypeErrors, planType, retentionPeriod)
+		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, pricing.ProductTypeLogs, planType, retentionPeriod)
+	}
 
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
