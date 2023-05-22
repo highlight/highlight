@@ -155,6 +155,31 @@ export async function register() {
 }
 ```
 
+> If you're using [Next Middleware](https://nextjs.org/docs/pages/building-your-application/routing/middleware), you'll need to do a conditional import. Otherwise you'll get an error like ` error - An error occurred while loading instrumentation hook: (0 , _highlight_run_next__WEBPACK_IMPORTED_MODULE_1__.registerHighlight) is not a function`
+
+```javascript
+// instrumentation.ts
+import CONSTANTS from '@/app/constants'
+
+export async function register() {
+	if (process.env.NEXT_RUNTIME === 'nodejs') {
+		/**
+		 * Conditional import required for use with Next middleware
+		 * 
+		 * Avoids the following error:
+		 * An error occurred while loading instrumentation hook: (0 , _highlight_run_next__WEBPACK_IMPORTED_MODULE_1__.registerHighlight) is not a function
+		 */
+		const { registerHighlight } = await import('@highlight-run/next')
+
+		registerHighlight({
+			projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+			otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
+		})
+	}
+}
+
+```
+
 ## Instrument the client
 
 This implementation requires React 17 or greater. If you're behind on React versions, follow our [React.js docs](../3_client-sdk/1_reactjs.md)

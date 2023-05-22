@@ -1,5 +1,5 @@
 // next.config.js
-const nextBuildId = require('next-build-id')
+import nextBuildId from 'next-build-id'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -11,4 +11,4 @@ const nextConfig = {
 	productionBrowserSourceMaps: true,
 }
 
-module.exports = nextConfig
+export default nextConfig
