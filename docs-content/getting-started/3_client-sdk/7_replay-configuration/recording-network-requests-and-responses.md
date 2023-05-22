@@ -64,6 +64,6 @@ This configuration is only available for `highlight.run` versions newer than `4.
 
 See [NetworkRecordingOptions](../../../sdk/client.md) for more information on how to configure network recording.
 
-## GraphQl
+## GraphQL
 
-We extract GraphQl operation names and format the payloads. See [GraphQl details](../../../general/6_product-features/1_session-replay/graphql.md).
+We extract GraphQL operation names and format the payloads. See [GraphQL details](../../../general/6_product-features/1_session-replay/graphql.md).
