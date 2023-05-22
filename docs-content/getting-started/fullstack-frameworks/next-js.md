@@ -155,7 +155,7 @@ export async function register() {
 }
 ```
 
-> If you're using [Next Middleware](https://nextjs.org/docs/pages/building-your-application/routing/middleware), you'll need to do a conditional import. Otherwise you'll get an error like ` error - An error occurred while loading instrumentation hook: (0 , _highlight_run_next__WEBPACK_IMPORTED_MODULE_1__.registerHighlight) is not a function`
+> You'll need to do a conditional import if you're using [Next Middleware](https://nextjs.org/docs/pages/building-your-application/routing/middleware).
 
 ```javascript
 // instrumentation.ts
