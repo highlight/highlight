@@ -5,15 +5,19 @@ slug: changelog-19
 
 ## Demo Project
 
-Check out [https://app.highlight.io/demo](https://app.highlight.io/demo) to check out our new demo project.
+Check out [our new demo project](https://app.highlight.io/demo).
 
-You can play around and see how the Highlight Dashboard works with a fully-featured project with plenty of live data.
+You can play around and see how the Highlight application works with a live project with plenty of data.
+
+Look closely. You might be able to find your own `highlight.io` sessions recorded on the demo project. That's right! We use Highlight ourselves, and we pipe all of our data to the demo project.
+
+![demo project](/images/changelog/demo-project.png)
 
 ## Winston.js Highlight Transport
 
 Check out our new [Winston.js Highlight Transporter](https://www.highlight.io/docs/getting-started/backend-logging/js/winston)!
 
-You can log to Winston as per usual, and Highlight will capture your logs and display them on your Highlight Dashboard.
+You can log to Winston as per usual, and Highlight will capture your logs and display them on your Highlight application.
 
 ## Canvas recording is getting even more powerful
 
