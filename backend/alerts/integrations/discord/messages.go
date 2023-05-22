@@ -273,42 +273,6 @@ func (bot *Bot) SendUserPropertiesAlert(channelId string, payload integrations.U
 	return err
 }
 
-func (bot *Bot) SendSessionFeedbackAlert(channelId string, payload integrations.SessionFeedbackAlertPayload) error {
-	fields := []*discordgo.MessageEmbedField{}
-	fields = append(fields, &discordgo.MessageEmbedField{
-		Name:   "Comment",
-		Value:  payload.CommentText,
-		Inline: true,
-	})
-
-	embed := newMessageEmbed()
-	embed.Title = "Highlight Feedback Alert"
-	embed.Description = payload.UserIdentifier
-	embed.Fields = fields
-
-	messageSend := discordgo.MessageSend{
-		Embeds: []*discordgo.MessageEmbed{
-			embed,
-		},
-		Components: []discordgo.MessageComponent{
-			discordgo.ActionsRow{
-				Components: []discordgo.MessageComponent{
-					discordgo.Button{
-						Label:    "View Comment",
-						Style:    discordgo.LinkButton,
-						Disabled: false,
-						URL:      payload.SessionCommentURL,
-					},
-				},
-			},
-		},
-	}
-
-	_, err := bot.Session.ChannelMessageSendComplex(channelId, &messageSend)
-
-	return err
-}
-
 func (bot *Bot) SendRageClicksAlert(channelId string, payload integrations.RageClicksAlertPayload) error {
 	fields := []*discordgo.MessageEmbedField{}
 

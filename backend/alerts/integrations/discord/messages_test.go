@@ -150,21 +150,6 @@ func (suite *DiscordChannelsTestSuite) TestSendUserPropertiesAlert() {
 	suite.True(true)
 }
 
-func (suite *DiscordChannelsTestSuite) TestSessionFeedbackAlert() {
-	err := suite.bot.SendSessionFeedbackAlert(suite.ChannelID, integrations.SessionFeedbackAlertPayload{
-		SessionCommentURL: "https://localhost:3000/1/sessions/yggihGDgdPlBwpgVFtwuTM9nMvpn?page=1&query=and%7C%7Ccustom_processed%2Cis%2Ctrue%2Cfalse%7C%7Ccustom_created_at%2Cbetween_date%2C30+days&ts=0&commentId=34",
-		UserIdentifier:    "chilly@mcwilly.com",
-		CommentText:       "Hey, what is up!",
-	})
-
-	if err != nil {
-		fmt.Printf("Failed to send new session feedback alert")
-		log.WithContext(ctx).Error(err)
-	}
-
-	suite.True(true)
-}
-
 func (suite *DiscordChannelsTestSuite) TestRageClicksAlert() {
 	err := suite.bot.SendRageClicksAlert(suite.ChannelID, integrations.RageClicksAlertPayload{
 		RageClicksCount: 100,

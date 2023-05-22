@@ -50,12 +50,6 @@ type UserPropertiesAlertPayload struct {
 	MatchedProperties []Property
 }
 
-type SessionFeedbackAlertPayload struct {
-	SessionCommentURL string
-	UserIdentifier    string
-	CommentText       string
-}
-
 type RageClicksAlertPayload struct {
 	RageClicksCount int64
 	UserIdentifier  string
@@ -89,7 +83,6 @@ type BaseAlertIntegration interface {
 	SendNewSessionAlert(channelId string, payload NewSessionAlertPayload) error
 	SendTrackPropertiesAlert(channelId string, payload TrackPropertiesAlertPayload) error
 	SendUserPropertiesAlert(channelId string, payload UserPropertiesAlertPayload) error
-	SendSessionFeedbackAlert(channelId string, payload SessionFeedbackAlertPayload) error
 	SendRageClicksAlert(channelId string, payload RageClicksAlertPayload) error
 	SendMetricMonitorAlert(channelId string, payload MetricMonitorAlertPayload) error
 	SendLogAlert(channelId string, payload MetricMonitorAlertPayload) error

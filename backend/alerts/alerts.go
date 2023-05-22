@@ -345,64 +345,6 @@ func SendUserPropertiesAlert(event UserPropertiesAlertEvent) error {
 	return g.Wait()
 }
 
-type SessionFeedbackAlertEvent struct {
-	Session        *model.Session
-	SessionAlert   *model.SessionAlert
-	Workspace      *model.Workspace
-	SessionComment *model.SessionComment
-	UserName       *string
-	UserEmail      *string
-}
-
-func SendSessionFeedbackAlert(event SessionFeedbackAlertEvent) error {
-	identifier := "Someone"
-	if event.UserName != nil {
-		identifier = *event.UserName
-	} else if event.UserEmail != nil {
-		identifier = *event.UserEmail
-	}
-
-	payload := integrations.SessionFeedbackAlertPayload{
-		UserIdentifier:    identifier,
-		SessionCommentURL: getSessionCommentURL(event.SessionAlert.ProjectID, event.Session, event.SessionComment),
-		CommentText:       event.SessionComment.Text,
-	}
-
-	var g errgroup.Group
-	g.Go(func() error {
-		for _, wh := range event.SessionAlert.WebhookDestinations {
-			if err := webhook.SendSessionFeedbackAlert(wh, &payload); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-
-	g.Go(func() error {
-		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
-			return nil
-		}
-
-		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
-		if err != nil {
-			return err
-		}
-
-		channels := event.SessionAlert.DiscordChannelsToNotify
-
-		for _, channel := range channels {
-			err = bot.SendSessionFeedbackAlert(channel.ID, payload)
-
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-
-	return g.Wait()
-}
-
 type RageClicksAlertEvent struct {
 	Session         *model.Session
 	SessionAlert    *model.SessionAlert
