@@ -1,13 +1,13 @@
-import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import InputNumber from '@components/InputNumber/InputNumber'
 import { LoadingBar } from '@components/Loading/Loading'
+import { Box, Form, Stack } from '@highlight-run/ui'
 import { useParams } from '@util/react-router/useParams'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
+import BorderBox from '@/components/BorderBox/BorderBox'
+import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
-
-import styles from './RageClicksForm.module.scss'
 
 export const RageClicksForm = () => {
 	const { project_id } = useParams<{
@@ -46,97 +46,108 @@ export const RageClicksForm = () => {
 	}
 
 	return (
-		<FieldsBox id="rage">
-			<h3>Rage Clicks</h3>
+		<BorderBox>
 			<form key={project_id}>
-				<p>
-					Use these settings to adjust the sensitivity for detecting
-					rage clicks.
-				</p>
-				<div className={styles.fieldRow}>
-					<label className={styles.fieldKey}>
-						Elapsed Time (seconds)
-						<InfoTooltip
-							title="The maximum time allowed between clicks in a rage click event"
-							size="medium"
-							className={styles.tooltip}
-						/>
-					</label>
-					<InputNumber
-						value={rageClickWindowSeconds}
-						onChange={(val) => {
-							setRageClickWindowSeconds(val as number)
-							setAllProjectSettings((currentProjectSettings) =>
-								currentProjectSettings?.projectSettings
-									? {
-											projectSettings: {
-												...currentProjectSettings.projectSettings,
-												rage_click_window_seconds:
-													val as number,
-											},
-									  }
-									: currentProjectSettings,
-							)
-						}}
-						min={1}
+				<Stack gap="8">
+					<BoxLabel
+						label="Rage clicks"
+						info="Use these settings to adjust the sensitivity for detecting
+					rage clicks."
 					/>
-				</div>
-				<div className={styles.fieldRow}>
-					<label className={styles.fieldKey}>
-						Radius (pixels)
-						<InfoTooltip
-							title="The maximum distance allowed between clicks in a rage click event"
-							size="medium"
-							className={styles.tooltip}
-						/>
-					</label>
-					<InputNumber
-						value={rageClickRadiusPixels}
-						onChange={(val) => {
-							setRageClickRadiusPixels(val as number)
-							setAllProjectSettings((currentProjectSettings) =>
-								currentProjectSettings?.projectSettings
-									? {
-											projectSettings: {
-												...currentProjectSettings.projectSettings,
-												rage_click_radius_pixels:
-													val as number,
-											},
-									  }
-									: currentProjectSettings,
-							)
-						}}
-						min={1}
-					/>
-				</div>
-				<div className={styles.fieldRow}>
-					<label className={styles.fieldKey}>
-						Minimum Clicks
-						<InfoTooltip
-							title="The minimum number of clicks needed to be considered a rage click event"
-							size="medium"
-							className={styles.tooltip}
-						/>
-					</label>
-					<InputNumber
-						value={rageClickCount}
-						onChange={(val) => {
-							setRageClickCount(val as number)
-							setAllProjectSettings((currentProjectSettings) =>
-								currentProjectSettings?.projectSettings
-									? {
-											projectSettings: {
-												...currentProjectSettings.projectSettings,
-												rage_click_count: val as number,
-											},
-									  }
-									: currentProjectSettings,
-							)
-						}}
-						min={1}
-					/>
-				</div>
+					<Box display="flex" gap="8">
+						<Form.NamedSection
+							label="Elapsed Time (seconds)"
+							name="Elapsed Time (seconds)"
+							tag={
+								<InfoTooltip
+									title="The maximum time allowed between clicks in a rage click event"
+									size="small"
+								/>
+							}
+						>
+							<InputNumber
+								value={rageClickWindowSeconds}
+								onChange={(val) => {
+									setRageClickWindowSeconds(val as number)
+									setAllProjectSettings(
+										(currentProjectSettings) =>
+											currentProjectSettings?.projectSettings
+												? {
+														projectSettings: {
+															...currentProjectSettings.projectSettings,
+															rage_click_window_seconds:
+																val as number,
+														},
+												  }
+												: currentProjectSettings,
+									)
+								}}
+								min={1}
+							/>
+						</Form.NamedSection>
+						<Form.NamedSection
+							label="Radius (pixels)"
+							name="Radius (pixels)"
+							tag={
+								<InfoTooltip
+									title="The maximum distance allowed between clicks in a rage click event"
+									size="small"
+								/>
+							}
+						>
+							<InputNumber
+								value={rageClickRadiusPixels}
+								onChange={(val) => {
+									setRageClickRadiusPixels(val as number)
+									setAllProjectSettings(
+										(currentProjectSettings) =>
+											currentProjectSettings?.projectSettings
+												? {
+														projectSettings: {
+															...currentProjectSettings.projectSettings,
+															rage_click_radius_pixels:
+																val as number,
+														},
+												  }
+												: currentProjectSettings,
+									)
+								}}
+								min={1}
+							/>
+						</Form.NamedSection>
+						<Form.NamedSection
+							label="Minimum clicks"
+							name="Minimum clicks"
+							tag={
+								<InfoTooltip
+									title="The minimum number of clicks needed to be considered a rage click event"
+									size="small"
+								/>
+							}
+						>
+							<InputNumber
+								value={rageClickCount}
+								onChange={(val) => {
+									setRageClickCount(val as number)
+									setAllProjectSettings(
+										(currentProjectSettings) =>
+											currentProjectSettings?.projectSettings
+												? {
+														projectSettings: {
+															...currentProjectSettings.projectSettings,
+															rage_click_count:
+																val as number,
+														},
+												  }
+												: currentProjectSettings,
+									)
+								}}
+								min={1}
+							/>
+						</Form.NamedSection>
+					</Box>
+				</Stack>
 			</form>
-		</FieldsBox>
+		</BorderBox>
 	)
 }

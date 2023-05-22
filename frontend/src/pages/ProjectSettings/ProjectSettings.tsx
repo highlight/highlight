@@ -1,6 +1,5 @@
 import Tabs from '@components/Tabs/Tabs'
-import { Heading } from '@highlight-run/ui'
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Heading, Stack, Text } from '@highlight-run/ui'
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm'
 import { ErrorFiltersForm } from '@pages/ProjectSettings/ErrorFiltersForm/ErrorFiltersForm'
 import { ErrorSettingsForm } from '@pages/ProjectSettings/ErrorSettingsForm/ErrorSettingsForm'
@@ -15,8 +14,8 @@ import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 
+import BorderBox from '@/components/BorderBox/BorderBox'
 import { Button } from '@/components/Button'
-import LeadAlignLayout from '@/components/layout/LeadAlignLayout'
 import { CircularSpinner } from '@/components/Loading/Loading'
 import {
 	useEditProjectSettingsMutation,
@@ -83,117 +82,125 @@ const ProjectSettings = () => {
 			<Helmet>
 				<title>Project Settings</title>
 			</Helmet>
-			<LeadAlignLayout>
-				<Heading mt="16" level="h4">
-					Project Settings
-				</Heading>
-				<div className={styles.tabsContainer}>
-					<ProjectSettingsContextProvider
-						value={{
-							allProjectSettings,
-							setAllProjectSettings,
-							loading,
-						}}
-					>
-						<Tabs
-							activeKeyOverride={params.tab ?? 'sessions'}
-							onChange={(key) => {
-								navigate(`/${project_id}/settings/${key}`)
+
+			<Box>
+				<Box style={{ maxWidth: 560 }} my="40" mx="auto">
+					<Heading mt="16" level="h4">
+						Project Settings
+					</Heading>
+					<div className={styles.tabsContainer}>
+						<ProjectSettingsContextProvider
+							value={{
+								allProjectSettings,
+								setAllProjectSettings,
+								loading,
 							}}
-							noHeaderPadding
-							noPadding
-							id="settingsTabs"
-							tabs={[
-								{
-									key: 'sessions',
-									title: 'Session replay',
-									panelContent: (
-										<>
-											<Box
-												display="flex"
-												gap="8"
-												justifyContent="space-between"
-												alignItems="center"
-											>
-												<Text
-													size="large"
-													weight="bold"
+						>
+							<Tabs
+								activeKeyOverride={params.tab ?? 'sessions'}
+								onChange={(key) => {
+									navigate(`/${project_id}/settings/${key}`)
+								}}
+								noHeaderPadding
+								noPadding
+								id="settingsTabs"
+								tabs={[
+									{
+										key: 'sessions',
+										title: 'Session replay',
+										panelContent: (
+											<Stack>
+												<Box
+													display="flex"
+													gap="8"
+													justifyContent="space-between"
+													alignItems="center"
 												>
-													Session replay
-												</Text>
-												<Button
-													onClick={onSubmit}
-													trackingId="ProjectSettingsUpdate"
+													<Text
+														size="large"
+														weight="bold"
+													>
+														Session replay
+													</Text>
+													<Button
+														onClick={onSubmit}
+														trackingId="ProjectSettingsUpdate"
+													>
+														{editProjectSettingsLoading ? (
+															<CircularSpinner
+																style={{
+																	fontSize: 18,
+																	color: 'var(--text-primary-inverted)',
+																}}
+															/>
+														) : (
+															'Save changes'
+														)}
+													</Button>
+												</Box>
+												<ExcludedUsersForm />
+												<FilterSessionsWithoutErrorForm />
+												<RageClicksForm />
+												<NetworkRecordingForm />
+											</Stack>
+										),
+									},
+									{
+										key: 'errors',
+										title: 'Error monitoring',
+										panelContent: (
+											<Stack>
+												<Box
+													display="flex"
+													gap="8"
+													justifyContent="space-between"
+													alignItems="center"
 												>
-													{editProjectSettingsLoading ? (
-														<CircularSpinner
-															style={{
-																fontSize: 18,
-																color: 'var(--text-primary-inverted)',
-															}}
-														/>
-													) : (
-														'Save changes'
-													)}
-												</Button>
-											</Box>
-											<ExcludedUsersForm />
-											<FilterSessionsWithoutErrorForm />
-											<RageClicksForm />
-											<NetworkRecordingForm />
-										</>
-									),
-								},
-								{
-									key: 'errors',
-									title: 'Error monitoring',
-									panelContent: (
-										<>
-											<Box
-												display="flex"
-												gap="8"
-												justifyContent="space-between"
-												alignItems="center"
-											>
-												<Text
-													size="large"
-													weight="bold"
-												>
-													Error monitoring
-												</Text>
-												<Button
-													onClick={onSubmit}
-													trackingId="ProjectSettingsUpdate"
-												>
-													{editProjectSettingsLoading ? (
-														<CircularSpinner
-															style={{
-																fontSize: 18,
-																color: 'var(--text-primary-inverted)',
-															}}
-														/>
-													) : (
-														'Save changes'
-													)}
-												</Button>
-											</Box>
-											<ErrorSettingsForm />
-											<FilterExtensionForm />
-											<ErrorFiltersForm />
-											<SourcemapSettings />
-										</>
-									),
-								},
-								{
-									key: 'general',
-									title: 'General',
-									panelContent: <DangerForm />,
-								},
-							]}
-						/>
-					</ProjectSettingsContextProvider>
-				</div>
-			</LeadAlignLayout>
+													<Text
+														size="large"
+														weight="bold"
+													>
+														Error monitoring
+													</Text>
+													<Button
+														onClick={onSubmit}
+														trackingId="ProjectSettingsUpdate"
+													>
+														{editProjectSettingsLoading ? (
+															<CircularSpinner
+																style={{
+																	fontSize: 18,
+																	color: 'var(--text-primary-inverted)',
+																}}
+															/>
+														) : (
+															'Save changes'
+														)}
+													</Button>
+												</Box>
+												<BorderBox>
+													<Stack gap="8">
+														<ErrorSettingsForm />
+														<Box borderTop="dividerWeak" />
+														<ErrorFiltersForm />
+													</Stack>
+												</BorderBox>
+												<FilterExtensionForm />
+												<SourcemapSettings />
+											</Stack>
+										),
+									},
+									{
+										key: 'general',
+										title: 'General',
+										panelContent: <DangerForm />,
+									},
+								]}
+							/>
+						</ProjectSettingsContextProvider>
+					</div>
+				</Box>
+			</Box>
 		</>
 	)
 }

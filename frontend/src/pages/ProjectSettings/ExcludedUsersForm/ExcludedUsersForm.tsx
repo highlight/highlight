@@ -1,15 +1,15 @@
-import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import { LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
+import { Form, Stack } from '@highlight-run/ui'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import React, { useState } from 'react'
+import { useState } from 'react'
 
+import BorderBox from '@/components/BorderBox/BorderBox'
+import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
-
-import styles from './ExcludedUsersForm.module.scss'
 
 export const ExcludedUsersForm = () => {
 	const { project_id } = useParams<{
@@ -62,15 +62,16 @@ export const ExcludedUsersForm = () => {
 	}
 
 	return (
-		<FieldsBox id="users">
-			<h3>Excluded Sessions</h3>
-			<form key={project_id}>
-				<p>
+		<BorderBox>
+			<Stack gap="8">
+				<BoxLabel
+					label="Excluded sessions"
+					info="
 					Enter user identifiers or emails to hide (regular
 					expressions are accepted). On completion, sessions from
-					these users will be excluded from your searches and quota.
-				</p>
-				<div className={styles.inputAndButtonRow}>
+					these users will be excluded from your searches and quota."
+				/>
+				<Form.NamedSection label="Excluded users" name="Excluded users">
 					<Select
 						mode="tags"
 						placeholder=".*@yourdomain.com"
@@ -117,9 +118,9 @@ export const ExcludedUsersForm = () => {
 							)
 						}}
 					/>
-				</div>
+				</Form.NamedSection>
 				{invalidExcludedUsers.length > 0 && <div></div>}
-			</form>
-		</FieldsBox>
+			</Stack>
+		</BorderBox>
 	)
 }

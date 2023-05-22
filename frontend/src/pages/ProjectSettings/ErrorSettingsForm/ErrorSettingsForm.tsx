@@ -1,12 +1,10 @@
-import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import { LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
+import { Stack } from '@highlight-run/ui'
 import { useParams } from '@util/react-router/useParams'
-import React from 'react'
 
+import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
-
-import styles from './ErrorSettingsForm.module.scss'
 
 export const ErrorSettingsForm = () => {
 	const { project_id } = useParams<{
@@ -23,31 +21,30 @@ export const ErrorSettingsForm = () => {
 	}
 
 	return (
-		<FieldsBox id="grouping">
-			<h3>Error Grouping</h3>
-
-			<form key={project_id}>
-				<p>Enter JSON expressions to use for grouping your errors.</p>
-				<div className={styles.inputAndButtonRow}>
-					<Select
-						mode="tags"
-						placeholder="$.context.messages[0]"
-						value={data?.projectSettings?.error_json_paths || []}
-						onChange={(paths: string[]) => {
-							setAllProjectSettings((currentProjectSettings) =>
-								currentProjectSettings?.projectSettings
-									? {
-											projectSettings: {
-												...currentProjectSettings.projectSettings,
-												error_json_paths: paths,
-											},
-									  }
-									: currentProjectSettings,
-							)
-						}}
-					/>
-				</div>
-			</form>
-		</FieldsBox>
+		<form key={project_id}>
+			<Stack gap="8">
+				<BoxLabel
+					label="Error grouping"
+					info="Enter JSON expressions to use for grouping your errors."
+				/>
+				<Select
+					mode="tags"
+					placeholder="$.context.messages[0]"
+					value={data?.projectSettings?.error_json_paths || []}
+					onChange={(paths: string[]) => {
+						setAllProjectSettings((currentProjectSettings) =>
+							currentProjectSettings?.projectSettings
+								? {
+										projectSettings: {
+											...currentProjectSettings.projectSettings,
+											error_json_paths: paths,
+										},
+								  }
+								: currentProjectSettings,
+						)
+					}}
+				/>
+			</Stack>
+		</form>
 	)
 }
