@@ -99,20 +99,6 @@ func SendUserPropertiesAlert(destination *model.WebhookDestination, payload *int
 	return sendWebhookData(destination, body)
 }
 
-func SendSessionFeedbackAlert(destination *model.WebhookDestination, payload *integrations.SessionFeedbackAlertPayload) error {
-	body, err := json.Marshal(&struct {
-		Event string
-		*integrations.SessionFeedbackAlertPayload
-	}{
-		Event:                       model.AlertType.NEW_USER,
-		SessionFeedbackAlertPayload: payload,
-	})
-	if err != nil {
-		return err
-	}
-	return sendWebhookData(destination, body)
-}
-
 func SendRageClicksAlert(destination *model.WebhookDestination, payload *integrations.RageClicksAlertPayload) error {
 	body, err := json.Marshal(&struct {
 		Event string
