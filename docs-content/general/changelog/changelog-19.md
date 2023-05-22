@@ -21,7 +21,11 @@ We dug deep into our most complex Canvas implementation with multiple overlaying
 
 We're snapshotting blob videos using Canvas and capturing frames from multiple canvases, regardless of overlays.
 
-## Error-only Session Recording
+<div style={{position: "relative", paddingBottom: "64.90384615384616%", height: 0 }}>
+    <iframe src="https://www.loom.com/embed/ebb971bf5fdd4aaf9ae1924e7e536fb7" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%"}}></iframe>
+</div>
+
+## Option to only record session with errors
 
 Highlight users with an enormous number of sessions may not want to record all of them.
 
