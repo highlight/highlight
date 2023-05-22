@@ -1491,7 +1491,6 @@ const (
 	SessionAlertTypeNewUserAlert         SessionAlertType = "NEW_USER_ALERT"
 	SessionAlertTypeTrackPropertiesAlert SessionAlertType = "TRACK_PROPERTIES_ALERT"
 	SessionAlertTypeUserPropertiesAlert  SessionAlertType = "USER_PROPERTIES_ALERT"
-	SessionAlertTypeSessionFeedbackAlert SessionAlertType = "SESSION_FEEDBACK_ALERT"
 	SessionAlertTypeRageClickAlert       SessionAlertType = "RAGE_CLICK_ALERT"
 	SessionAlertTypeNewSessionAlert      SessionAlertType = "NEW_SESSION_ALERT"
 )
@@ -1501,14 +1500,13 @@ var AllSessionAlertType = []SessionAlertType{
 	SessionAlertTypeNewUserAlert,
 	SessionAlertTypeTrackPropertiesAlert,
 	SessionAlertTypeUserPropertiesAlert,
-	SessionAlertTypeSessionFeedbackAlert,
 	SessionAlertTypeRageClickAlert,
 	SessionAlertTypeNewSessionAlert,
 }
 
 func (e SessionAlertType) IsValid() bool {
 	switch e {
-	case SessionAlertTypeErrorAlert, SessionAlertTypeNewUserAlert, SessionAlertTypeTrackPropertiesAlert, SessionAlertTypeUserPropertiesAlert, SessionAlertTypeSessionFeedbackAlert, SessionAlertTypeRageClickAlert, SessionAlertTypeNewSessionAlert:
+	case SessionAlertTypeErrorAlert, SessionAlertTypeNewUserAlert, SessionAlertTypeTrackPropertiesAlert, SessionAlertTypeUserPropertiesAlert, SessionAlertTypeRageClickAlert, SessionAlertTypeNewSessionAlert:
 		return true
 	}
 	return false
