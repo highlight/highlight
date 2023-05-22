@@ -69,7 +69,6 @@ const options: HighlightOptions = {
 			'localhost:8082',
 		],
 		urlBlocklist: [
-			'console-messages-compressed',
 			'network-resources-compressed',
 			'session-contents-compressed',
 		],

@@ -58,7 +58,6 @@ type PayloadType string
 
 const (
 	NetworkResources           PayloadType = "network-resources"
-	ConsoleMessages            PayloadType = "console-messages"
 	SessionContentsCompressed  PayloadType = "session-contents-compressed"
 	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
 	TimelineIndicatorEvents    PayloadType = "timeline-indicator-events"
