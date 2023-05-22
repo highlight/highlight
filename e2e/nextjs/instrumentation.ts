@@ -1,6 +1,5 @@
 // instrumentation.ts
 import CONSTANTS from '@/app/constants'
-// import { registerHighlight } from '@highlight-run/next'
 
 export async function register() {
 	if (process.env.NEXT_RUNTIME === 'nodejs') {
