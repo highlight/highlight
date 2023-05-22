@@ -139,7 +139,6 @@ type FileType string
 const (
 	EventsCompressed        FileType = "EventsCompressed"
 	ResourcesCompressed     FileType = "ResourcesCompressed"
-	MessagesCompressed      FileType = "MessagesCompressed"
 	EventsChunked           FileType = "EventsChunked"
 	TimelineIndicatorEvents FileType = "TimelineIndicatorEvents"
 )
@@ -180,10 +179,6 @@ func NewPayloadManager(ctx context.Context, filenamePrefix string) (*PayloadMana
 			suffix: ".resources.json.br",
 			ddTag:  "resourcesCompressedPayloadSize",
 		},
-		MessagesCompressed: {
-			suffix: ".messages.json.br",
-			ddTag:  "messagesCompressedPayloadSize",
-		},
 		TimelineIndicatorEvents: {
 			suffix: ".timelineindicatorevents.json.br",
 			ddTag:  "timelineIndicatorEventsPayloadSize",
@@ -208,8 +203,6 @@ func NewPayloadManager(ctx context.Context, filenamePrefix string) (*PayloadMana
 			manager.EventsCompressed = NewCompressedWriter(fileInfo.file)
 		case ResourcesCompressed:
 			manager.ResourcesCompressed = NewCompressedWriter(fileInfo.file)
-		case MessagesCompressed:
-			manager.MessagesCompressed = NewCompressedWriter(fileInfo.file)
 		case TimelineIndicatorEvents:
 			manager.TimelineIndicatorEvents = NewCompressedWriter(fileInfo.file)
 		}
