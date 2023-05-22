@@ -92,20 +92,20 @@ export default function ReportDialog({
 					__html: `
 					@font-face {
 						font-display: swap;
-						font-family: 'Steradian';
+						font-family: 'Inter';
 						font-style: normal;
 						font-weight: normal;
-						src: local('Steradian Regular'), local('SteradianRegular'),
-							url('https://app.highlight.io/font/SteradianRegular.woff2')
+						src: local('Inter Regular'), local('InterRegular'),
+							url('https://app.highlight.io/font/InterRegular.woff2')
 								format('woff2');
 					}
 					@font-face {
 						font-display: swap;
-						font-family: 'Steradian';
+						font-family: 'Inter';
 						font-style: normal;
 						font-weight: 500;
-						src: local('Steradian Medium'), local('SteradianMedium'),
-							url('https://app.highlight.io/font/SteradianMedium.woff2')
+						src: local('Inter Medium'), local('InterMedium'),
+							url('https://app.highlight.io/font/InterMedium.woff2')
 								format('woff2');
 					}
 

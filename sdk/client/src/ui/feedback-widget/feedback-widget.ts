@@ -268,7 +268,7 @@ const createContainer = (id: string) => {
 	container.style.setProperty('right', '20px')
 	container.style.setProperty(
 		'font-family',
-		"'Steradian', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif",
+		"'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif",
 	)
 
 	return container

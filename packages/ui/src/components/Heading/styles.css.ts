@@ -1,28 +1,29 @@
 import { createStyleObject } from '@capsizecss/core'
+import fontMetrics from '@capsizecss/metrics/inter'
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { sprinkles } from '../../css/sprinkles.css'
-import { steradianFontMetrics, typographyStyles } from '../Text/styles.css'
+import { typographyStyles } from '../Text/styles.css'
 
 // Headings
 export const h4 = createStyleObject({
 	fontSize: 20,
 	leading: 28,
-	fontMetrics: steradianFontMetrics,
+	fontMetrics,
 })
 export const h3 = createStyleObject({
 	fontSize: 24,
 	leading: 34,
-	fontMetrics: steradianFontMetrics,
+	fontMetrics,
 })
 export const h2 = createStyleObject({
 	fontSize: 30,
 	leading: 32,
-	fontMetrics: steradianFontMetrics,
+	fontMetrics,
 })
 export const h1 = createStyleObject({
 	fontSize: 36,
 	leading: 50,
-	fontMetrics: steradianFontMetrics,
+	fontMetrics,
 })
 
 export const variants = recipe({
