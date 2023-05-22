@@ -92,6 +92,7 @@
 		"Blocklist",
 		"interactable",
 		"munge",
+		"snapshotting",
 		"unobfuscated"
 	],
 	"[yaml]": {
