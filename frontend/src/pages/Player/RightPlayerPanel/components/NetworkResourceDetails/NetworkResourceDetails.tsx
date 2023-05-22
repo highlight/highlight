@@ -544,7 +544,7 @@ function NoRecordingMessage() {
 	return (
 		<Box width="full" display="flex" flexDirection="column" gap="12" pb="4">
 			<Text size="small" color="moderate" weight="medium">
-				No data recorded.
+				Network recording is on, but no data was recorded.
 			</Text>
 		</Box>
 	)
