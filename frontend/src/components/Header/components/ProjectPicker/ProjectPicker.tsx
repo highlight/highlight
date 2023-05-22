@@ -18,8 +18,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
 import { useProjectId } from '@/hooks/useProjectId'
-
-import { useApplicationContext } from '../../../../routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 const ProjectPicker = () => {
 	const { allProjects, currentProject, currentWorkspace } =

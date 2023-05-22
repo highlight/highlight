@@ -18,7 +18,6 @@ import { useToggle } from 'react-use'
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
 
 import commonStyles from '../../Common.module.scss'
-import { ApplicationContextProvider } from './context/ApplicationContext'
 
 export const WorkspaceRouter = () => {
 	const { isLoggedIn } = useAuthContext()
@@ -78,39 +77,30 @@ export const WorkspaceRouter = () => {
 				commandBarDialog,
 			}}
 		>
-			<ApplicationContextProvider
-				value={{
-					currentProject: undefined,
-					allProjects: data?.workspace?.projects || [],
-					currentWorkspace: data?.workspace || undefined,
-					workspaces: data?.workspaces || [],
-				}}
-			>
-				<Header />
-				<KeyboardShortcutsEducation />
-				<div className={commonStyles.bodyWrapper}>
-					{isLoggedIn && joinableWorkspace ? (
-						<ErrorState
-							shownWithHeader
-							joinableWorkspace={joinableWorkspace}
-						/>
-					) : isLoggedIn && data?.workspace === null ? (
-						<ErrorState
-							title="Enter this Workspace?"
-							message={
-								`Sadly, you don’t have access to the workspace 😢 ` +
-								`Request access and we'll shoot an email to your workspace admin. ` +
-								`Alternatively, feel free to make an account!`
-							}
-							shownWithHeader
-						/>
-					) : (
-						<Routes>
-							<Route path="*" element={<SettingsRouter />} />
-						</Routes>
-					)}
-				</div>
-			</ApplicationContextProvider>
+			<Header />
+			<KeyboardShortcutsEducation />
+			<div className={commonStyles.bodyWrapper}>
+				{isLoggedIn && joinableWorkspace ? (
+					<ErrorState
+						shownWithHeader
+						joinableWorkspace={joinableWorkspace}
+					/>
+				) : isLoggedIn && data?.workspace === null ? (
+					<ErrorState
+						title="Enter this Workspace?"
+						message={
+							`Sadly, you don’t have access to the workspace 😢 ` +
+							`Request access and we'll shoot an email to your workspace admin. ` +
+							`Alternatively, feel free to make an account!`
+						}
+						shownWithHeader
+					/>
+				) : (
+					<Routes>
+						<Route path="*" element={<SettingsRouter />} />
+					</Routes>
+				)}
+			</div>
 		</GlobalContextProvider>
 	)
 }

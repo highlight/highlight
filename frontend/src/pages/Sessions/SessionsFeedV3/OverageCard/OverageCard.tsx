@@ -7,7 +7,7 @@ import { useGetBillingDetailsForProjectQuery } from '@/graph/generated/hooks'
 import { ProductType } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { getMeterAmounts } from '@/pages/Billing/utils/utils'
-import { useApplicationContext } from '@/routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { formatNumberWithDelimiters } from '@/util/numbers'
 
 interface Props {

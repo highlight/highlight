@@ -19,7 +19,7 @@ import {
 	MetricSelector,
 	TagFilters,
 } from '@pages/Dashboards/components/EditMetricModal/EditMetricModal'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { Slider } from 'antd'
 import moment from 'moment'
