@@ -1,12 +1,10 @@
 import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import { LoadingBar } from '@components/Loading/Loading'
 import Switch from '@components/Switch/Switch'
-import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks'
-import { namedOperations } from '@graph/operations'
 import { Box } from '@highlight-run/ui'
-import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
 import { useEffect, useState } from 'react'
+
+import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
 const OptInRow = (
 	key: string,
@@ -30,33 +28,21 @@ const OptInRow = (
 }
 
 export const FilterExtensionForm = () => {
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
-
 	const [filterChromeExtension, setfilterChromeExtension] =
 		useState<boolean>(false)
-	const { data, loading } = useGetProjectQuery({
-		variables: {
-			id: project_id!,
-		},
-		skip: !project_id,
-	})
-
-	const [editProject] = useEditProjectMutation({
-		refetchQueries: [
-			namedOperations.Query.GetProjects,
-			namedOperations.Query.GetProject,
-		],
-	})
+	const {
+		allProjectSettings: data,
+		loading,
+		setAllProjectSettings,
+	} = useProjectSettingsContext()
 
 	useEffect(() => {
 		if (!loading) {
 			setfilterChromeExtension(
-				data?.project?.filter_chrome_extension || false,
+				data?.projectSettings?.filter_chrome_extension ?? false,
 			)
 		}
-	}, [data?.project?.filter_chrome_extension, loading])
+	}, [data?.projectSettings?.filter_chrome_extension, loading])
 
 	if (loading) {
 		return <LoadingBar />
@@ -88,22 +74,17 @@ export const FilterExtensionForm = () => {
 			<p>
 				{categories.map((c) =>
 					OptInRow(c.key, c.label, c.checked, (isOptIn: boolean) => {
-						editProject({
-							variables: {
-								id: project_id!,
-								filter_chrome_extension: isOptIn,
-							},
-						})
-							.then(() => {
-								message.success(
-									`${c.message} turned ${
-										isOptIn ? 'on' : 'off'
-									} successfully`,
-								)
-							})
-							.catch((reason: any) => {
-								message.error(String(reason))
-							})
+						setfilterChromeExtension(isOptIn)
+						setAllProjectSettings((currentProjectSettings) =>
+							currentProjectSettings?.projectSettings
+								? {
+										projectSettings: {
+											...currentProjectSettings.projectSettings,
+											filterChromeExtension: isOptIn,
+										},
+								  }
+								: currentProjectSettings,
+						)
 					}),
 				)}
 			</p>

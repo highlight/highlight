@@ -603,6 +603,38 @@ func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projec
 	return &projectFilterSettings, err
 }
 
+// EditProjectSettings is the resolver for the editProjectSettings field.
+func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool) (*modelInputs.AllProjectSettings, error) {
+	project, err := r.EditProject(ctx, projectID, name, billingEmail, excludedUsers, errorFilters, errorJSONPaths, rageClickWindowSeconds, rageClickRadiusPixels, rageClickCount, backendDomains, filterChromeExtension)
+	if err != nil {
+		return nil, err
+	}
+
+	allProjectSettings := modelInputs.AllProjectSettings{
+		ID:                     project.ID,
+		Name:                   *project.Name,
+		BillingEmail:           project.BillingEmail,
+		ExcludedUsers:          project.ExcludedUsers,
+		ErrorFilters:           project.ErrorFilters,
+		ErrorJSONPaths:         project.ErrorJsonPaths,
+		BackendDomains:         project.BackendDomains,
+		FilterChromeExtension:  project.FilterChromeExtension,
+		RageClickWindowSeconds: &project.RageClickWindowSeconds,
+		RageClickRadiusPixels:  &project.RageClickRadiusPixels,
+		RageClickCount:         &project.RageClickCount,
+	}
+
+	if filterSessionsWithoutError != nil {
+		projectFilterSettings, err := r.EditProjectFilterSettings(ctx, projectID, *filterSessionsWithoutError)
+		if err != nil {
+			return nil, err
+		}
+		allProjectSettings.FilterSessionsWithoutError = projectFilterSettings.FilterSessionsWithoutError
+	}
+
+	return &allProjectSettings, nil
+}
+
 // EditWorkspace is the resolver for the editWorkspace field.
 func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *string) (*model.Workspace, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, id)
@@ -6383,6 +6415,36 @@ func (r *queryResolver) ProjectFilterSettings(ctx context.Context, projectID int
 	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
 
 	return &projectFilterSettings, err
+}
+
+// ProjectSettings is the resolver for the projectSettings field.
+func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*modelInputs.AllProjectSettings, error) {
+	project, err := r.Project(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	projectFilterSettings, err := r.ProjectFilterSettings(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	allProjectSettings := modelInputs.AllProjectSettings{
+		ID:                         project.ID,
+		Name:                       *project.Name,
+		BillingEmail:               project.BillingEmail,
+		ExcludedUsers:              project.ExcludedUsers,
+		ErrorFilters:               project.ErrorFilters,
+		ErrorJSONPaths:             project.ErrorJsonPaths,
+		BackendDomains:             project.BackendDomains,
+		FilterChromeExtension:      project.FilterChromeExtension,
+		RageClickWindowSeconds:     &project.RageClickWindowSeconds,
+		RageClickRadiusPixels:      &project.RageClickRadiusPixels,
+		RageClickCount:             &project.RageClickCount,
+		FilterSessionsWithoutError: projectFilterSettings.FilterSessionsWithoutError,
+	}
+
+	return &allProjectSettings, nil
 }
 
 // Workspace is the resolver for the workspace field.
