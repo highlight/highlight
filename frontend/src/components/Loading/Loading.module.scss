@@ -25,6 +25,11 @@
 	z-index: 9999999999;
 }
 
+.loadingFlexWrapper {
+	height: 100%;
+	width: 100%;
+}
+
 .background {
 	--background-color: var(--color-primary-background);
 	--dot-color: var(--color-gray-200);
