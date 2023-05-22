@@ -1,9 +1,10 @@
-import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import { LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
+import { Stack } from '@highlight-run/ui'
 import { message } from 'antd'
 import { Text } from 'recharts'
 
+import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
 import styles from './ErrorFiltersForm.module.scss'
@@ -30,11 +31,12 @@ export const ErrorFiltersForm = () => {
 	}
 
 	return (
-		<FieldsBox id="filters">
-			<h3>Error Filters</h3>
-
-			<form>
-				<p>Enter regular expression patterns to filter out errors.</p>
+		<form>
+			<Stack gap="8">
+				<BoxLabel
+					label="Error filters"
+					info="Enter regular expression patterns to filter out errors."
+				/>
 				<div className={styles.inputAndButtonRow}>
 					<Select
 						className={styles.input}
@@ -61,7 +63,7 @@ export const ErrorFiltersForm = () => {
 						}}
 					/>
 				</div>
-			</form>
-		</FieldsBox>
+			</Stack>
+		</form>
 	)
 }
