@@ -168,3 +168,103 @@ func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 		})
 	}
 }
+
+// ensure that admin role changes are completed by valid admins
+func TestMutationResolver_ChangeAdminRole(t *testing.T) {
+	tests := map[string]struct {
+		currentAdminEmail string
+		currentAdminRole  string
+		updatingSelf      bool
+		errorExpected     bool
+	}{
+		"member updating an admin role": {
+			currentAdminEmail: "foo@bar.com",
+			currentAdminRole:  "MEMBER",
+			updatingSelf:      false,
+			errorExpected:     true,
+		},
+		"admin updating their own role": {
+			currentAdminEmail: "boo@bar.com",
+			currentAdminRole:  "ADMIN",
+			updatingSelf:      false,
+			errorExpected:     false,
+		},
+		"admin updating an admin role": {
+			currentAdminEmail: "zoo@bar.com",
+			currentAdminRole:  "ADMIN",
+			updatingSelf:      true,
+			errorExpected:     false,
+		},
+	}
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, "Test AddAdminToWorkspace", DB, func(t *testing.T) {
+			// inserting the data
+			workspace := model.Workspace{
+				Name: ptr.String("test1"),
+			}
+
+			if err := DB.Create(&workspace).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			currentAdmin := model.Admin{
+				Model:         model.Model{ID: 1},
+				UID:           ptr.String("a1b2c3"),
+				Name:          ptr.String("adm1"),
+				PhotoURL:      ptr.String("asdf"),
+				EmailVerified: ptr.Bool(true),
+				Email:         ptr.String(v.currentAdminEmail),
+			}
+
+			if err := DB.Create(&currentAdmin).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting admin"))
+			}
+
+			workspaceAdminRole := model.WorkspaceAdminRole{
+				Admin: &currentAdmin,
+				Role:  v.currentAdminRole,
+			}
+
+			if err := DB.Create(&workspaceAdminRole).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace admin role"))
+			}
+
+			var updatedAdmin model.Admin
+			if v.updatingSelf {
+				updatedAdmin = currentAdmin
+			} else {
+				updatedAdmin = model.Admin{
+					Model:         model.Model{ID: 2},
+					UID:           ptr.String("b2c3d4"),
+					Name:          ptr.String("Amy"),
+					PhotoURL:      ptr.String("hjkl"),
+					EmailVerified: ptr.Bool(true),
+					Email:         ptr.String("baz@bar.com"),
+				}
+
+				if err := DB.Create(&updatedAdmin).Error; err != nil {
+					t.Fatal(e.Wrap(err, "error inserting admin"))
+				}
+
+				updatedWorkspaceAdminRole := model.WorkspaceAdminRole{
+					Admin: &currentAdmin,
+					Role:  "ADMIN",
+				}
+
+				if err := DB.Create(&updatedWorkspaceAdminRole).Error; err != nil {
+					t.Fatal(e.Wrap(err, "error inserting workspace admin role"))
+				}
+			}
+
+			// test logic
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, model.ContextKeys.UID, *currentAdmin.UID)
+			r := &mutationResolver{Resolver: &Resolver{DB: DB, HubspotApi: &HubspotMock{}, PrivateWorkerPool: workerpool.New(1)}}
+
+			_, err := r.ChangeAdminRole(ctx, workspace.ID, updatedAdmin.ID, "MEMBER")
+			if v.errorExpected != (err != nil) {
+				t.Fatalf("error result invalid, expected? %t but saw %s", v.errorExpected, err)
+			}
+		})
+	}
+}
