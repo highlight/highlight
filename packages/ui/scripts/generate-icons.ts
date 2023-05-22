@@ -21,7 +21,17 @@ export const ${
 
 const VALID_COLORS = ['currentColor', 'none']
 const COLOR_ATTRS = ['stroke', 'fill']
-const KEEPS_ORIGINAL_COLORS = ['Linear', 'ClickUp', 'Height', 'Slack']
+
+// There are some transformations to these SVGs that we don't want to overwrite
+// when generating new icons.
+const IGNORED_ICONS = [
+	'Linear',
+	'ClickUp',
+	'Height',
+	'Slack',
+	'Github',
+	'Google',
+]
 
 const updateColors = ($el: any) => {
 	COLOR_ATTRS.forEach((attr) => {
@@ -49,23 +59,14 @@ const baseDir = new URL('..', import.meta.url).pathname
 const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 
 ;(async () => {
-	// Clean up existing SVG components
-	const existingComponentPaths = await globby(
-		path.join(iconComponentsDir, '**/*.tsx'),
-		{
-			cwd: baseDir,
-			absolute: true,
-		},
-	)
-	await Promise.all(
-		existingComponentPaths.map(async (existingComponentPath) => {
-			await fs.remove(existingComponentPath)
-		}),
-	)
-
 	// Load SVGs
-	const svgFilePaths = await globby('src/icons/**/*.svg', {
+	let svgFilePaths = await globby('src/icons/**/*.svg', {
 		cwd: baseDir,
+	})
+
+	svgFilePaths = svgFilePaths.filter((svgFilePath) => {
+		const svgName = path.basename(svgFilePath, '.svg')
+		return !IGNORED_ICONS.includes(svgName)
 	})
 
 	await Promise.all(
@@ -75,15 +76,7 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 			const iconName = `Icon${pascalCase(iconVariant)}${pascalCase(
 				svgName,
 			)}`
-
 			const outPath = path.join(iconComponentsDir, `${iconName}.tsx`)
-			if (
-				KEEPS_ORIGINAL_COLORS.includes(svgName) &&
-				(await fs.pathExists(outPath))
-			) {
-				return
-			}
-
 			const svg = await fs.readFile(svgFilePath, 'utf-8')
 
 			// Run through SVGO to optimize
@@ -111,12 +104,13 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 			// Replace stroke and fill attributes with 'currentColor'
 			const $ = cheerio.load(optimisedSvg)
 			const $svg = $('svg')
-			if (!KEEPS_ORIGINAL_COLORS.includes(svgName)) {
-				updateColors($svg)
-				$svg.find('*').each((i, el) => {
-					updateColors($(el))
-				})
-			}
+
+			// If you have an icon with custom colors, make sure this transformation
+			// isn't overwriting them.
+			updateColors($svg)
+			$svg.find('*').each((i, el) => {
+				updateColors($(el))
+			})
 
 			optimisedSvg = $.html($svg) || ''
 
@@ -125,7 +119,14 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 			})
 
 			// Write SVG React component
-			await fs.writeFile(outPath, svgComponent, { encoding: 'utf-8' })
+			try {
+				await fs.writeFile(outPath, svgComponent, {
+					encoding: 'utf-8',
+					flag: 'wx+',
+				})
+			} catch {
+				// Do nothing, file already exists
+			}
 		}),
 	)
 
@@ -141,5 +142,8 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 	const iconsIndexPath = path.join(iconComponentsDir, 'index.ts')
 	iconExports += "export type { IconProps } from './types'\n"
 
-	await fs.writeFile(iconsIndexPath, iconExports, 'utf-8')
+	await fs.writeFile(iconsIndexPath, iconExports, {
+		encoding: 'utf-8',
+		flag: 'w',
+	})
 })()
