@@ -8,9 +8,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/go-chi/chi"
-	"github.com/rs/cors"
-	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"os"
@@ -18,6 +15,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-chi/chi"
+	"github.com/rs/cors"
+	"github.com/samber/lo"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
@@ -60,7 +61,6 @@ const (
 	ConsoleMessages            PayloadType = "console-messages"
 	SessionContentsCompressed  PayloadType = "session-contents-compressed"
 	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
-	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"
 	TimelineIndicatorEvents    PayloadType = "timeline-indicator-events"
 )
 
@@ -68,7 +68,6 @@ const (
 var StoredPayloadTypes = map[payload.FileType]PayloadType{
 	payload.EventsCompressed:        SessionContentsCompressed,
 	payload.ResourcesCompressed:     NetworkResourcesCompressed,
-	payload.MessagesCompressed:      ConsoleMessagesCompressed,
 	payload.TimelineIndicatorEvents: TimelineIndicatorEvents,
 }
 
@@ -253,15 +252,6 @@ func (f *FilesystemClient) PushSourceMapFile(ctx context.Context, projectId int,
 	} else {
 		return &n, nil
 	}
-}
-
-func (f *FilesystemClient) ReadMessages(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	var messages []interface{}
-	err := f.readCompressed(ctx, sessionId, projectId, ConsoleMessagesCompressed, &messages)
-	if err != nil {
-		return nil, err
-	}
-	return messages, nil
 }
 
 func (f *FilesystemClient) ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error) {
@@ -704,66 +694,6 @@ func (s *S3Client) ReadUncompressedResourcesFromS3(ctx context.Context, sessionI
 		retResources = append(retResources, tempResources.Resources...)
 	}
 	return retResources, nil
-}
-
-func (s *S3Client) ReadMessages(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	client, bucket := s.getSessionClientAndBucket(sessionId)
-	output, err := client.GetObject(ctx, &s3.GetObjectInput{
-		Bucket:                  bucket,
-		Key:                     bucketKey(sessionId, projectId, ConsoleMessagesCompressed),
-		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
-		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
-	})
-	if err != nil {
-		// compressed file doesn't exist, fall back to reading uncompressed
-		return s.ReadUncompressedMessagesFromS3(ctx, sessionId, projectId)
-	}
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(output.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
-	}
-	buf, err = decompress(buf)
-	if err != nil {
-		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
-	}
-
-	var messages []interface{}
-	if err := json.Unmarshal(buf.Bytes(), &messages); err != nil {
-		return nil, errors.Wrap(err, "error decoding message data")
-	}
-	return messages, nil
-}
-
-// ReadUncompressedMessagesFromS3 is deprecated. Serves legacy uncompressed message data from S3.
-func (s *S3Client) ReadUncompressedMessagesFromS3(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	client, bucket := s.getSessionClientAndBucket(sessionId)
-	output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: bucket,
-		Key: bucketKey(sessionId, projectId, ConsoleMessages)})
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting object from s3")
-	}
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(output.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
-	}
-	type messages struct {
-		Messages []interface{}
-	}
-	messagesSlice := strings.Split(buf.String(), "\n\n\n")
-	var retMessages []interface{}
-	for _, e := range messagesSlice {
-		if e == "" {
-			continue
-		}
-		var tempResources messages
-		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
-			return nil, errors.Wrap(err, "error decoding message data")
-		}
-		retMessages = append(retMessages, tempResources.Messages...)
-	}
-	return retMessages, nil
 }
 
 func (s *S3Client) ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error) {

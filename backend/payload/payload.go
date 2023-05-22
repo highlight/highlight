@@ -128,7 +128,6 @@ func (w *CompressedWriter) Close() error {
 type PayloadManager struct {
 	EventsCompressed        *CompressedWriter
 	ResourcesCompressed     *CompressedWriter
-	MessagesCompressed      *CompressedWriter
 	EventsChunked           *CompressedWriter
 	TimelineIndicatorEvents *CompressedWriter
 	ChunkIndex              int

@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"os"
 	"sort"
 	"strconv"
 	"time"
+
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"github.com/go-redis/cache/v8"
 	"github.com/go-redis/redis/v8"
@@ -40,10 +41,6 @@ func EventsKey(sessionId int) string {
 
 func NetworkResourcesKey(sessionId int) string {
 	return fmt.Sprintf("network-resources-%d", sessionId)
-}
-
-func ConsoleMessagesKey(sessionId int) string {
-	return fmt.Sprintf("console-messages-%d", sessionId)
 }
 
 func SessionInitializedKey(sessionSecureId string) string {
@@ -148,8 +145,6 @@ func GetKey(sessionId int, payloadType model.RawPayloadType) string {
 		return EventsKey(sessionId)
 	case model.PayloadTypeResources:
 		return NetworkResourcesKey(sessionId)
-	case model.PayloadTypeMessages:
-		return ConsoleMessagesKey(sessionId)
 	default:
 		return ""
 	}
