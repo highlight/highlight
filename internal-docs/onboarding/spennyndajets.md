@@ -69,10 +69,10 @@ Once you feel like you are fully spun up, open up a pull request to delete your 
 - [X] Slack
 - [ ] Highlight
 - [X] GitHub
-- [ ] Zoom
-- [ ] Loom
-- [ ] Figma
-- [ ] Doppler
+- [X] Zoom
+- [X] Loom
+- [X] Figma
+- [X] Doppler
 - [ ] Render
 - [ ] Datadog
 - [ ] Intercom
