@@ -140,6 +140,30 @@ const nextConfig = {
 module.exports = nextConfig
 ```
 
+You may have trouble with `__dirname`, which can happen with Next.js middleware, consider patching it. This example uses a `next.config.mjs` file instead of the CJS-style `next.config.js` pattern.
+
+```javascript
+// next.config.mjs
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
+import nextBuildId from 'next-build-id'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+	generateBuildId: () => nextBuildId({ dir: __dirname }),
+	experimental: {
+		appDir: true,
+		instrumentationHook: true,
+	},
+	productionBrowserSourceMaps: true,
+}
+
+export default nextConfig
+```
+
 3. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function:
 
 ```javascript
