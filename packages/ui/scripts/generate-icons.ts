@@ -21,10 +21,7 @@ export const ${
 
 const VALID_COLORS = ['currentColor', 'none']
 const COLOR_ATTRS = ['stroke', 'fill']
-
-// There are some transformations to these SVGs that we don't want to overwrite
-// when generating new icons.
-const IGNORED_ICONS = [
+const KEEPS_ORIGINAL_COLORS = [
 	'Linear',
 	'ClickUp',
 	'Height',
@@ -59,14 +56,23 @@ const baseDir = new URL('..', import.meta.url).pathname
 const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 
 ;(async () => {
-	// Load SVGs
-	let svgFilePaths = await globby('src/icons/**/*.svg', {
-		cwd: baseDir,
-	})
+	// Clean up existing SVG components
+	const existingComponentPaths = await globby(
+		path.join(iconComponentsDir, '**/*.tsx'),
+		{
+			cwd: baseDir,
+			absolute: true,
+		},
+	)
+	await Promise.all(
+		existingComponentPaths.map(async (existingComponentPath) => {
+			await fs.remove(existingComponentPath)
+		}),
+	)
 
-	svgFilePaths = svgFilePaths.filter((svgFilePath) => {
-		const svgName = path.basename(svgFilePath, '.svg')
-		return !IGNORED_ICONS.includes(svgName)
+	// Load SVGs
+	const svgFilePaths = await globby('src/icons/**/*.svg', {
+		cwd: baseDir,
 	})
 
 	await Promise.all(
@@ -76,7 +82,15 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 			const iconName = `Icon${pascalCase(iconVariant)}${pascalCase(
 				svgName,
 			)}`
+
 			const outPath = path.join(iconComponentsDir, `${iconName}.tsx`)
+			if (
+				KEEPS_ORIGINAL_COLORS.includes(svgName) &&
+				(await fs.pathExists(outPath))
+			) {
+				return
+			}
+
 			const svg = await fs.readFile(svgFilePath, 'utf-8')
 
 			// Run through SVGO to optimize
@@ -88,29 +102,22 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 						params: {
 							overrides: {
 								removeViewBox: false,
+								cleanupIds: false,
 							},
 						},
 					},
-					{
-						name: 'inlineStyles',
-						params: {
-							onlyMatchedOnce: false,
-						},
-					},
-					{ name: 'convertStyleToAttrs' },
 				],
 			}).data
 
 			// Replace stroke and fill attributes with 'currentColor'
 			const $ = cheerio.load(optimisedSvg)
 			const $svg = $('svg')
-
-			// If you have an icon with custom colors, make sure this transformation
-			// isn't overwriting them.
-			updateColors($svg)
-			$svg.find('*').each((i, el) => {
-				updateColors($(el))
-			})
+			if (!KEEPS_ORIGINAL_COLORS.includes(svgName)) {
+				updateColors($svg)
+				$svg.find('*').each((i, el) => {
+					updateColors($(el))
+				})
+			}
 
 			optimisedSvg = $.html($svg) || ''
 
@@ -119,14 +126,7 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 			})
 
 			// Write SVG React component
-			try {
-				await fs.writeFile(outPath, svgComponent, {
-					encoding: 'utf-8',
-					flag: 'wx+',
-				})
-			} catch {
-				// Do nothing, file already exists
-			}
+			await fs.writeFile(outPath, svgComponent, { encoding: 'utf-8' })
 		}),
 	)
 
@@ -142,8 +142,5 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 	const iconsIndexPath = path.join(iconComponentsDir, 'index.ts')
 	iconExports += "export type { IconProps } from './types'\n"
 
-	await fs.writeFile(iconsIndexPath, iconExports, {
-		encoding: 'utf-8',
-		flag: 'w',
-	})
+	await fs.writeFile(iconsIndexPath, iconExports, 'utf-8')
 })()
