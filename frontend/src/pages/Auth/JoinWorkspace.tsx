@@ -124,11 +124,7 @@ export const JoinWorkspace = () => {
 									clearInviteAndRedirect()
 								} catch (_e) {
 									message.error(
-										'Failed to join the workspace. Please try again.',
-									)
-									window.Intercom(
-										'showNewMessage',
-										`I'm having trouble joining the "${workspaceName}" workspace....`,
+										'Failed to join the workspace. Please try again and reach out to us if you have any questions or need assistance.',
 									)
 								}
 							}}

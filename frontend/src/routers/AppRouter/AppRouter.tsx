@@ -17,7 +17,6 @@ import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/Integrat
 import { Landing } from '@pages/Landing/Landing'
 import NewProjectPage from '@pages/NewProject/NewProjectPage'
 import OAuthApprovalPage from '@pages/OAuthApproval/OAuthApprovalPage'
-import RegistrationForm from '@pages/RegistrationForm/RegistrationForm'
 import SwitchProject from '@pages/SwitchProject/SwitchProject'
 import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace'
 import useLocalStorage from '@rehooks/local-storage'
@@ -287,18 +286,6 @@ export const AppRouter = () => {
 						}
 					/>
 
-					<Route
-						path="/w/:workspace_id/about-you"
-						element={
-							isLoggedIn ? (
-								<Landing>
-									<RegistrationForm />
-								</Landing>
-							) : (
-								<Navigate to={SIGN_IN_ROUTE} />
-							)
-						}
-					/>
 					<Route
 						path="/w/:workspace_id/*"
 						element={

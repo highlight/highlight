@@ -12,7 +12,6 @@ import { Heading, Stack } from '@highlight-run/ui'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
 import { useDialogState } from 'ariakit/dialog'
-import { H } from 'highlight.run'
 import { useEffect } from 'react'
 import { StringParam, useQueryParams } from 'use-query-params'
 
@@ -49,27 +48,8 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 			<>
 				<p>Link is invalid or has expired.</p>
 				<p>
-					Please reach out to us on{' '}
-					<a
-						onClick={async () => {
-							const sessionId = await H.getSessionURL()
-
-							window.Intercom('boot', {
-								app_id: 'gm6369ty',
-								alignment: 'right',
-								hide_default_launcher: true,
-								sessionId,
-							})
-							window.Intercom('showNewMessage')
-						}}
-					>
-						Intercom
-					</a>{' '}
-					or email{' '}
-					<a href="mailto:support@highlight.io">
-						support@highlight.io
-					</a>
-					.
+					Please reach out to us if you have any questions or need
+					assistance.
 				</p>
 			</>
 		)

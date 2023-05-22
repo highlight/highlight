@@ -12,6 +12,8 @@ import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { showIntercom } from '@/util/window'
+
 import * as styles from './AuthRouter.css'
 
 export const VerifyEmail: React.FC = () => {
@@ -39,9 +41,7 @@ export const VerifyEmail: React.FC = () => {
 
 		// Show the Intercom message after 5 seconds in case the user needs help.
 		setTimeout(() => {
-			window.Intercom('update', {
-				hide_default_launcher: false,
-			})
+			showIntercom()
 		}, 5000)
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps

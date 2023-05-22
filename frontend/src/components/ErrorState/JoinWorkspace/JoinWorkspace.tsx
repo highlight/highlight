@@ -33,11 +33,10 @@ const JoinWorkspace = ({
 					})
 				} catch (_e) {
 					message.error(
-						<>Failed to join the workspace. Please try again.</>,
-					)
-					window.Intercom(
-						'showNewMessage',
-						`I can't reply to a comment. This is the error I'm getting: "${_e}"`,
+						<>
+							Failed to join the workspace. Please try again or
+							reach out contact us if you need assistance.
+						</>,
 					)
 				} finally {
 					message.success(

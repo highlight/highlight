@@ -48,7 +48,6 @@ import { SESSION_FEED_LEFT_PANEL_WIDTH } from '@pages/Sessions/SessionsFeedV3/Se
 import { SessionFeedV3 } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
-import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import Lottie from 'lottie-react'
@@ -431,30 +430,8 @@ const PlayerPage = () => {
 						className={style.emptySessionCard}
 					>
 						<p>
-							We need more time to process this session.{' '}
-							{!isOnPrem ? (
-								<>
-									If this looks like a bug, shoot us a message
-									on{' '}
-									<span
-										className={style.intercomLink}
-										onClick={() => {
-											window.Intercom(
-												'showNewMessage',
-												`I'm seeing an empty session. This is the session ID: "${session_secure_id}"`,
-											)
-										}}
-									>
-										Intercom
-									</span>
-									.
-								</>
-							) : (
-								<>
-									If this looks like a bug, please reach out
-									to us!
-								</>
-							)}
+							We need more time to process this session. If this
+							looks like a bug, please reach out to us!
 						</p>
 					</ElevatedCard>
 				)

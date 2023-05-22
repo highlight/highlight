@@ -1,11 +1,9 @@
-import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
 import {
 	Box,
 	Callout,
 	IconSolidArrowCircleRight,
 	IconSolidExclamation,
-	Stack,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
@@ -34,7 +32,6 @@ import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
-import { showIntercom } from '@util/window'
 import { message } from 'antd'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -602,17 +599,7 @@ const ResourceLoadingErrorCallout = function ({
 						<IconSolidExclamation size={14} color="#777777" />
 					</Box>
 				)}
-			>
-				<Stack direction="row" gap="8">
-					<Button
-						kind="secondary"
-						onClick={() => showIntercom()}
-						trackingId="devToolsResourcesShowIntercom"
-					>
-						Contact Us
-					</Button>
-				</Stack>
-			</Callout>
+			/>
 		</Box>
 	)
 }

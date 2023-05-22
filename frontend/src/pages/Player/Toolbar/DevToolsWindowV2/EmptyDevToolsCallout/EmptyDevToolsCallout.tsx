@@ -1,19 +1,10 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
-import {
-	Box,
-	Callout,
-	IconSolidCubeTransparent,
-	Stack,
-	Text,
-} from '@highlight-run/ui'
+import { Box, Callout, IconSolidCubeTransparent, Text } from '@highlight-run/ui'
 import {
 	RequestStatus,
 	RequestType,
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import { showIntercom } from '@util/window'
-import React from 'react'
 
 interface Props {
 	kind: Tab
@@ -28,8 +19,6 @@ export const EmptyDevToolsCallout = ({
 	requestType,
 	requestStatus,
 }: Props) => {
-	const { admin } = useAuthContext()
-
 	return (
 		<Box
 			height="full"
@@ -107,30 +96,21 @@ export const EmptyDevToolsCallout = ({
 						</Text>
 					</>
 				)}
-				<Stack direction="row" gap="8">
-					<Button
-						kind="secondary"
-						onClick={() => showIntercom({ admin })}
-						trackingId="emptyDevToolsShowIntercom"
-					>
-						Contact
-					</Button>
-					<Button
-						kind="secondary"
-						emphasis="low"
-						onClick={() => {
-							window.open(
-								kind === Tab.Console
-									? 'https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/console-messages'
-									: 'https://www.highlight.io/docs/general/product-features/error-monitoring/grouping-errors',
-								'_blank',
-							)
-						}}
-						trackingId="emptyDevToolsLearnMore"
-					>
-						Learn more
-					</Button>
-				</Stack>
+				<Button
+					kind="secondary"
+					emphasis="low"
+					onClick={() => {
+						window.open(
+							kind === Tab.Console
+								? 'https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/console-messages'
+								: 'https://www.highlight.io/docs/general/product-features/error-monitoring/grouping-errors',
+							'_blank',
+						)
+					}}
+					trackingId="emptyDevToolsLearnMore"
+				>
+					Learn more
+				</Button>
 			</Callout>
 		</Box>
 	)
