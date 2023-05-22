@@ -140,7 +140,7 @@ const nextConfig = {
 module.exports = nextConfig
 ```
 
-You may have trouble with `__dirname`, which can happen with Next.js middleware, consider patching it. This example uses a `next.config.mjs` file instead of the CJS-style `next.config.js` pattern.
+You may have trouble with a missing `__dirname` environment variable. This can happen with Next.js middleware. The following example uses a `next.config.mjs` file instead of the CJS-style `next.config.js` pattern. It calculates `__dirname` using native Node.js utility packages.
 
 ```javascript
 // next.config.mjs
