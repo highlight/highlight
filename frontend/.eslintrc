@@ -131,6 +131,10 @@
 					{
 						"group": ["**/packages/ui/src"],
 						"message": "Import from @highlight-run/ui instead."
+					},
+					{
+						"group": ["@icons/**"],
+						"message": "Import from @highlight-run/ui instead."
 					}
 				]
 			}
