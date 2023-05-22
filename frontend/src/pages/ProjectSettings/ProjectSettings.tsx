@@ -16,7 +16,10 @@ import { useNavigate } from 'react-router-dom'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
 import { Button } from '@/components/Button'
-import { CircularSpinner } from '@/components/Loading/Loading'
+import {
+	CircularSpinner,
+	LoadingRightPanel,
+} from '@/components/Loading/Loading'
 import {
 	useEditProjectSettingsMutation,
 	useGetProjectQuery,
@@ -73,9 +76,12 @@ const ProjectSettings = () => {
 	useEffect(() => {
 		if (!loading) {
 			setAllProjectSettings(data)
-			console.log('pepe', data, projectData)
 		}
 	}, [data, projectData, loading])
+
+	if (loading) {
+		return <LoadingRightPanel show={true} />
+	}
 
 	return (
 		<>
