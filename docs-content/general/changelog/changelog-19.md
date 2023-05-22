@@ -13,6 +13,16 @@ Look closely. You might be able to find your own `highlight.io` sessions recorde
 
 ![demo project](/images/changelog/demo-project.png)
 
+## Comment UI Facelift
+
+We've given the Comment UI a facelift. 
+
+- It fits better with our design system. 
+- We have a new draggable handle just below the session timeline.
+- New inline issue creation for connected issue trackers (GitHub, Linear, Height)
+
+![comment ui facelift](/images/changelog/comment-ui.png)
+
 ## Winston.js Highlight Transport
 
 Check out our new [Winston.js Highlight Transporter](https://www.highlight.io/docs/getting-started/backend-logging/js/winston)!
