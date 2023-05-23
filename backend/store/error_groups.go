@@ -57,7 +57,7 @@ func (store *Store) updateErrorGroupState(ctx context.Context,
 		return errorGroup, err
 	}
 
-	if err := store.opensearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, errorGroup); err != nil {
+	if err := store.opensearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, errorGroup); err != nil {
 		return errorGroup, errors.New("error updating error group state in OpenSearch")
 	}
 
