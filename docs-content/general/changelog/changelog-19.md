@@ -3,6 +3,8 @@ title: Changelog 19 (05/22)
 slug: changelog-19
 ---
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/AcIfUZeJjjs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
 ## Demo Project
 
 Check out [our new demo project](https://app.highlight.io/demo).
