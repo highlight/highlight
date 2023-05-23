@@ -2336,7 +2336,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 
 		if v.Source == "" {
-			v.Source = "backend"
+			v.Source = privateModel.LogSourceBackend.String()
 		}
 
 		errorToInsert := &model.ErrorObject{
