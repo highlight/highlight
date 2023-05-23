@@ -555,6 +555,22 @@ export const Buttons = () => {
 						))}
 					</Box>
 				</Box>
+
+				<Box width="full" style={{ height: 200 }}>
+					<div
+						style={{
+							backgroundImage:
+								'url("https://www.highlight.io/images/quickstart/react.svg")',
+							height: '24%',
+						}}
+					></div>
+					<div
+						style={{
+							backgroundImage:
+								'url("https://www.highlight.io/images/quickstart/react.svg")',
+						}}
+					></div>
+				</Box>
 			</div>
 		</div>
 	)
