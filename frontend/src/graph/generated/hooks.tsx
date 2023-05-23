@@ -1551,6 +1551,103 @@ export type EditProjectFilterSettingsMutationOptions =
 		Types.EditProjectFilterSettingsMutation,
 		Types.EditProjectFilterSettingsMutationVariables
 	>
+export const EditProjectSettingsDocument = gql`
+	mutation EditProjectSettings(
+		$projectId: ID!
+		$name: String
+		$billing_email: String
+		$excluded_users: StringArray
+		$error_filters: StringArray
+		$error_json_paths: StringArray
+		$filter_chrome_extension: Boolean
+		$rage_click_window_seconds: Int
+		$rage_click_radius_pixels: Int
+		$rage_click_count: Int
+		$backend_domains: StringArray
+		$filterSessionsWithoutError: Boolean
+	) {
+		editProjectSettings(
+			projectId: $projectId
+			name: $name
+			billing_email: $billing_email
+			excluded_users: $excluded_users
+			error_filters: $error_filters
+			error_json_paths: $error_json_paths
+			filter_chrome_extension: $filter_chrome_extension
+			rage_click_window_seconds: $rage_click_window_seconds
+			rage_click_radius_pixels: $rage_click_radius_pixels
+			rage_click_count: $rage_click_count
+			backend_domains: $backend_domains
+			filterSessionsWithoutError: $filterSessionsWithoutError
+		) {
+			id
+			name
+			billing_email
+			excluded_users
+			error_filters
+			error_json_paths
+			filter_chrome_extension
+			rage_click_window_seconds
+			rage_click_radius_pixels
+			rage_click_count
+			backend_domains
+			filterSessionsWithoutError
+		}
+	}
+`
+export type EditProjectSettingsMutationFn = Apollo.MutationFunction<
+	Types.EditProjectSettingsMutation,
+	Types.EditProjectSettingsMutationVariables
+>
+
+/**
+ * __useEditProjectSettingsMutation__
+ *
+ * To run a mutation, you first call `useEditProjectSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditProjectSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [editProjectSettingsMutation, { data, loading, error }] = useEditProjectSettingsMutation({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *      name: // value for 'name'
+ *      billing_email: // value for 'billing_email'
+ *      excluded_users: // value for 'excluded_users'
+ *      error_filters: // value for 'error_filters'
+ *      error_json_paths: // value for 'error_json_paths'
+ *      filter_chrome_extension: // value for 'filter_chrome_extension'
+ *      rage_click_window_seconds: // value for 'rage_click_window_seconds'
+ *      rage_click_radius_pixels: // value for 'rage_click_radius_pixels'
+ *      rage_click_count: // value for 'rage_click_count'
+ *      backend_domains: // value for 'backend_domains'
+ *      filterSessionsWithoutError: // value for 'filterSessionsWithoutError'
+ *   },
+ * });
+ */
+export function useEditProjectSettingsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.EditProjectSettingsMutation,
+		Types.EditProjectSettingsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.EditProjectSettingsMutation,
+		Types.EditProjectSettingsMutationVariables
+	>(EditProjectSettingsDocument, baseOptions)
+}
+export type EditProjectSettingsMutationHookResult = ReturnType<
+	typeof useEditProjectSettingsMutation
+>
+export type EditProjectSettingsMutationResult =
+	Apollo.MutationResult<Types.EditProjectSettingsMutation>
+export type EditProjectSettingsMutationOptions = Apollo.BaseMutationOptions<
+	Types.EditProjectSettingsMutation,
+	Types.EditProjectSettingsMutationVariables
+>
 export const DeleteProjectDocument = gql`
 	mutation DeleteProject($id: ID!) {
 		deleteProject(id: $id)
@@ -12767,4 +12864,72 @@ export type GetProjectFilterSettingsLazyQueryHookResult = ReturnType<
 export type GetProjectFilterSettingsQueryResult = Apollo.QueryResult<
 	Types.GetProjectFilterSettingsQuery,
 	Types.GetProjectFilterSettingsQueryVariables
+>
+export const GetProjectSettingsDocument = gql`
+	query GetProjectSettings($projectId: ID!) {
+		projectSettings(projectId: $projectId) {
+			id
+			name
+			verbose_id
+			billing_email
+			excluded_users
+			error_filters
+			error_json_paths
+			filter_chrome_extension
+			rage_click_window_seconds
+			rage_click_radius_pixels
+			rage_click_count
+			backend_domains
+			filterSessionsWithoutError
+		}
+	}
+`
+
+/**
+ * __useGetProjectSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetProjectSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetProjectSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetProjectSettingsQuery({
+ *   variables: {
+ *      projectId: // value for 'projectId'
+ *   },
+ * });
+ */
+export function useGetProjectSettingsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetProjectSettingsQuery,
+		Types.GetProjectSettingsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetProjectSettingsQuery,
+		Types.GetProjectSettingsQueryVariables
+	>(GetProjectSettingsDocument, baseOptions)
+}
+export function useGetProjectSettingsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetProjectSettingsQuery,
+		Types.GetProjectSettingsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetProjectSettingsQuery,
+		Types.GetProjectSettingsQueryVariables
+	>(GetProjectSettingsDocument, baseOptions)
+}
+export type GetProjectSettingsQueryHookResult = ReturnType<
+	typeof useGetProjectSettingsQuery
+>
+export type GetProjectSettingsLazyQueryHookResult = ReturnType<
+	typeof useGetProjectSettingsLazyQuery
+>
+export type GetProjectSettingsQueryResult = Apollo.QueryResult<
+	Types.GetProjectSettingsQuery,
+	Types.GetProjectSettingsQueryVariables
 >

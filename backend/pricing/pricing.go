@@ -160,6 +160,10 @@ func GetWorkspaceLogsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhous
 }
 
 func GetLimitAmount(limitCostCents *int, productType ProductType, planType backend.PlanType, retentionPeriod backend.RetentionPeriod) *int64 {
+	included := int64(IncludedAmount(planType, productType))
+	if planType == backend.PlanTypeFree {
+		return pointy.Int64(included)
+	}
 	if limitCostCents == nil {
 		return nil
 	}
@@ -167,11 +171,10 @@ func GetLimitAmount(limitCostCents *int, productType ProductType, planType backe
 	if planType != backend.PlanTypeUsageBased {
 		basePrice = ProductToBasePriceCentsNonUsageBased(productType)
 	}
-	included := float64(IncludedAmount(planType, productType))
 	retentionMultiplier := RetentionMultiplier(retentionPeriod)
 
 	return pointy.Int64(int64(
-		float64(*limitCostCents)/basePrice/retentionMultiplier + included))
+		float64(*limitCostCents)/basePrice/retentionMultiplier) + included)
 }
 
 func ProductToBasePriceCentsNonUsageBased(productType ProductType) float64 {

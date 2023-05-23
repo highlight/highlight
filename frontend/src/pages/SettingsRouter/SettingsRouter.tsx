@@ -1,6 +1,7 @@
 import { Box, Stack, Text } from '@highlight-run/ui'
 import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings'
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
@@ -21,7 +22,6 @@ import { ProjectColorLabel } from '@/pages/ProjectSettings/ProjectColorLabel/Pro
 import ProjectSettings from '@/pages/ProjectSettings/ProjectSettings'
 import Auth from '@/pages/UserSettings/Auth/Auth'
 import { PlayerForm } from '@/pages/UserSettings/PlayerForm/PlayerForm'
-import { useApplicationContext } from '@/routers/ProjectRouter/context/ApplicationContext'
 import { auth } from '@/util/auth'
 
 import * as styles from './SettingsRouter.css'

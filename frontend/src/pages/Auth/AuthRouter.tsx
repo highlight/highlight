@@ -16,6 +16,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import * as styles from './AuthRouter.css'
 
 export const SIGN_IN_ROUTE = '/sign_in'
+export const SIGN_UP_ROUTE = '/sign_up'
 
 export const AuthRouter: React.FC = () => {
 	const { isAuthLoading } = useAuthContext()
@@ -42,7 +43,7 @@ export const AuthRouter: React.FC = () => {
 						path={SIGN_IN_ROUTE}
 						element={<SignIn setResolver={setResolver} />}
 					/>
-					<Route path="/sign_up" element={<SignUp />} />
+					<Route path={SIGN_UP_ROUTE} element={<SignUp />} />
 					<Route
 						path="/multi_factor"
 						element={<MultiFactor resolver={resolver} />}

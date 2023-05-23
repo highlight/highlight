@@ -991,7 +991,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	useEffect(() => {
 		lastTimeRef.current = state.time
 		if (
-			!state.session?.processed ||
 			state.sessionMetadata.startTime === 0 ||
 			state.replayerState !== ReplayerState.Playing ||
 			session_secure_id !== state.session_secure_id
@@ -1040,7 +1039,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		state.time,
 		ensureChunksLoaded,
 		state.sessionMetadata.startTime,
-		state.session?.processed,
 		state.replayerState,
 		skipInactive,
 		getInactivityEnd,

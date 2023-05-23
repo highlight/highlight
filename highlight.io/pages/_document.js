@@ -1,6 +1,7 @@
 // pages/_document.js
 
 import Document, { Head, Html, Main, NextScript } from 'next/document'
+
 import Script from 'next/script'
 
 class HighlightDocument extends Document {
@@ -11,7 +12,7 @@ class HighlightDocument extends Document {
 					<link
 						rel="preconnect"
 						href="https://JGT9LI80J2-dsn.algolia.net"
-						crossorigin
+						crossOrigin
 					/>
 					<link
 						rel="preconnect"

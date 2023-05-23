@@ -603,6 +603,38 @@ func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projec
 	return &projectFilterSettings, err
 }
 
+// EditProjectSettings is the resolver for the editProjectSettings field.
+func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool) (*modelInputs.AllProjectSettings, error) {
+	project, err := r.EditProject(ctx, projectID, name, billingEmail, excludedUsers, errorFilters, errorJSONPaths, rageClickWindowSeconds, rageClickRadiusPixels, rageClickCount, backendDomains, filterChromeExtension)
+	if err != nil {
+		return nil, err
+	}
+
+	allProjectSettings := modelInputs.AllProjectSettings{
+		ID:                     project.ID,
+		Name:                   *project.Name,
+		BillingEmail:           project.BillingEmail,
+		ExcludedUsers:          project.ExcludedUsers,
+		ErrorFilters:           project.ErrorFilters,
+		ErrorJSONPaths:         project.ErrorJsonPaths,
+		BackendDomains:         project.BackendDomains,
+		FilterChromeExtension:  project.FilterChromeExtension,
+		RageClickWindowSeconds: &project.RageClickWindowSeconds,
+		RageClickRadiusPixels:  &project.RageClickRadiusPixels,
+		RageClickCount:         &project.RageClickCount,
+	}
+
+	if filterSessionsWithoutError != nil {
+		projectFilterSettings, err := r.EditProjectFilterSettings(ctx, projectID, *filterSessionsWithoutError)
+		if err != nil {
+			return nil, err
+		}
+		allProjectSettings.FilterSessionsWithoutError = projectFilterSettings.FilterSessionsWithoutError
+	}
+
+	return &allProjectSettings, nil
+}
+
 // EditWorkspace is the resolver for the editWorkspace field.
 func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *string) (*model.Workspace, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, id)
@@ -870,41 +902,14 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		return nil, e.Wrap(err, "error querying admin")
 	}
 
-	existingInviteLink := &model.WorkspaceInviteLink{}
-	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: &email}).First(existingInviteLink).Error; err != nil {
-		if e.Is(err, gorm.ErrRecordNotFound) {
-			existingInviteLink = nil
-		} else {
-			return nil, e.Wrap(err, "error querying workspace invite link for admin")
-		}
+	inviteLink := r.CreateInviteLink(workspaceID, &email, role, false)
+
+	if err := r.DB.Create(inviteLink).Error; err != nil {
+		return nil, e.Wrap(err, "error creating new invite link")
 	}
 
-	// If there's an existing and expired invite link for the user then delete it.
-	if existingInviteLink != nil && r.IsInviteLinkExpired(existingInviteLink) {
-		if err := r.DB.Delete(existingInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error deleting expired invite link")
-		}
-		existingInviteLink = nil
-	}
-
-	// Delete the existing invite if the roles are different.
-	if existingInviteLink != nil && existingInviteLink.InviteeRole != nil && *existingInviteLink.InviteeRole != role {
-		if err := r.DB.Delete(existingInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error deleting different role invite link")
-		}
-		existingInviteLink = nil
-	}
-
-	if existingInviteLink == nil {
-		existingInviteLink = r.CreateInviteLink(workspaceID, &email, role, false)
-
-		if err := r.DB.Create(existingInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error creating new invite link")
-		}
-	}
-
-	inviteLink := baseURL + "/w/" + strconv.Itoa(workspaceID) + "/invite/" + *existingInviteLink.Secret
-	return r.SendAdminInviteImpl(*admin.Name, *workspace.Name, inviteLink, email)
+	inviteLinkUrl := baseURL + "/w/" + strconv.Itoa(workspaceID) + "/invite/" + *inviteLink.Secret
+	return r.SendAdminInviteImpl(*admin.Name, *workspace.Name, inviteLinkUrl, email)
 }
 
 // AddAdminToWorkspace is the resolver for the addAdminToWorkspace field.
@@ -5516,9 +5521,12 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		retentionPeriod = *workspace.RetentionPeriod
 	}
 
-	sessionsLimit := pricing.GetLimitAmount(workspace.SessionsMaxCents, pricing.ProductTypeSessions, planType, retentionPeriod)
-	errorsLimit := pricing.GetLimitAmount(workspace.ErrorsMaxCents, pricing.ProductTypeErrors, planType, retentionPeriod)
-	logsLimit := pricing.GetLimitAmount(workspace.LogsMaxCents, pricing.ProductTypeLogs, planType, retentionPeriod)
+	var sessionsLimit, errorsLimit, logsLimit *int64
+	if workspace.TrialEndDate == nil || workspace.TrialEndDate.Before(time.Now()) {
+		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, pricing.ProductTypeSessions, planType, retentionPeriod)
+		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, pricing.ProductTypeErrors, planType, retentionPeriod)
+		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, pricing.ProductTypeLogs, planType, retentionPeriod)
+	}
 
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
@@ -6409,6 +6417,36 @@ func (r *queryResolver) ProjectFilterSettings(ctx context.Context, projectID int
 	return &projectFilterSettings, err
 }
 
+// ProjectSettings is the resolver for the projectSettings field.
+func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*modelInputs.AllProjectSettings, error) {
+	project, err := r.Project(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	projectFilterSettings, err := r.ProjectFilterSettings(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	allProjectSettings := modelInputs.AllProjectSettings{
+		ID:                         project.ID,
+		Name:                       *project.Name,
+		BillingEmail:               project.BillingEmail,
+		ExcludedUsers:              project.ExcludedUsers,
+		ErrorFilters:               project.ErrorFilters,
+		ErrorJSONPaths:             project.ErrorJsonPaths,
+		BackendDomains:             project.BackendDomains,
+		FilterChromeExtension:      project.FilterChromeExtension,
+		RageClickWindowSeconds:     &project.RageClickWindowSeconds,
+		RageClickRadiusPixels:      &project.RageClickRadiusPixels,
+		RageClickCount:             &project.RageClickCount,
+		FilterSessionsWithoutError: projectFilterSettings.FilterSessionsWithoutError,
+	}
+
+	return &allProjectSettings, nil
+}
+
 // Workspace is the resolver for the workspace field.
 func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, id)
@@ -6430,6 +6468,10 @@ func (r *queryResolver) WorkspaceForInviteLink(ctx context.Context, secret strin
 	var workspaceInviteLink model.WorkspaceInviteLink
 	if err := r.DB.Where(&model.WorkspaceInviteLink{Secret: &secret}).First(&workspaceInviteLink).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace invite link")
+	}
+
+	if r.IsInviteLinkExpired(&workspaceInviteLink) {
+		return nil, e.New("invite link expired")
 	}
 
 	var workspace model.Workspace
@@ -6476,9 +6518,6 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 
 	if r.IsInviteLinkExpired(workspaceInviteLink) && !shouldCreateNewInviteLink {
 		shouldCreateNewInviteLink = true
-		if err := r.DB.Delete(workspaceInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error while deleting expired invite link for workspace")
-		}
 	}
 
 	if workspaceInviteLink != nil && workspaceInviteLink.ExpirationDate != nil {

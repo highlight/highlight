@@ -57,7 +57,9 @@ export const run = async ({ rootDirectory }) => {
 		platform: 'browser',
 		outdir: outputDirectory,
 		outbase: workingDirectory,
-		minify: false, // Makes diffs smaller and more readable. Reflame will minify server-side.
+		// vanilla extract outputs comments that seem to depend on absolute path
+		// need to minify for consistent output between local and ci
+		minify: true,
 		splitting: false,
 		target: 'esnext',
 		plugins: [
@@ -95,6 +97,10 @@ export const run = async ({ rootDirectory }) => {
 		external: [
 			'consts:publicGraphURI',
 			...Object.keys(packageJson.dependencies).flatMap((pkg) => [
+				pkg,
+				`${pkg}/*`,
+			]),
+			...Object.keys(packageJson.devDependencies).flatMap((pkg) => [
 				pkg,
 				`${pkg}/*`,
 			]),

@@ -79,7 +79,13 @@ export const AdminForm: React.FC = () => {
 		},
 	})
 
+	const disableForm = loading || formState.submitSucceed > 0
+
 	formState.useSubmit(async () => {
+		if (disableForm) {
+			return
+		}
+
 		if (!formState.valid) {
 			analytics.track('About you submission failed')
 			formState.setError(
@@ -261,7 +267,8 @@ export const AdminForm: React.FC = () => {
 				<AuthFooter>
 					<Button
 						trackingId="about-you-submit"
-						loading={loading || formState.submitSucceed > 0}
+						disabled={disableForm}
+						loading={disableForm}
 						type="submit"
 					>
 						{inWorkspace ? 'Submit' : 'Create Workspace'}
