@@ -103,7 +103,8 @@ function AutoJoinForm({
 			<div className={styles.container}>
 				<Switch
 					trackingId="WorkspaceAutoJoin"
-					label="Enable Auto Join"
+					label="Auto join"
+					labelFirst
 					checked={origins.emailOrigins.length > 0}
 					loading={loading}
 					onChange={(checked) => {
