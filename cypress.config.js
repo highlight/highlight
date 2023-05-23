@@ -9,4 +9,12 @@ module.exports = defineConfig({
 			// implement node event listeners here
 		},
 	},
+	browser: {
+		baseUrl: 'https://example.com/',
+		pageLoadTimeout: 60000,
+		video: true,
+		setupNodeEvents(on, config) {
+			// implement node event listeners here
+		},
+	},
 })
