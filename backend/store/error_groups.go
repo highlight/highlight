@@ -47,11 +47,18 @@ func (store *Store) updateErrorGroupState(ctx context.Context,
 		return errorGroup, err
 	}
 
-	err = store.db.Create(&model.ErrorGroupActivityLog{
+	eventData := map[string]interface{}{}
+
+	if params.SnoozedUntil != nil {
+		eventData["SnoozedUntil"] = params.SnoozedUntil
+	}
+
+	err = store.CreateErrorGroupActivityLog(ctx, model.ErrorGroupActivityLog{
 		Admin:        admin,
 		EventType:    eventType,
 		ErrorGroupID: errorGroup.ID,
-	}).Error
+		EventData:    eventData,
+	})
 
 	if err != nil {
 		return errorGroup, err

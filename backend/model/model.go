@@ -946,6 +946,7 @@ type ErrorGroupActivityLog struct {
 	AdminID      int // when this is 0, it means the system generated the event
 	Admin        *Admin
 	EventType    ErrorGroupEventType
+	EventData    JSONB
 }
 
 type ErrorGroupAdminsView struct {
