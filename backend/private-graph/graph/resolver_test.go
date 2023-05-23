@@ -186,13 +186,13 @@ func TestMutationResolver_ChangeAdminRole(t *testing.T) {
 		"admin updating their own role": {
 			currentAdminEmail: "boo@bar.com",
 			currentAdminRole:  "ADMIN",
-			updatingSelf:      false,
-			errorExpected:     false,
+			updatingSelf:      true,
+			errorExpected:     true,
 		},
 		"admin updating an admin role": {
 			currentAdminEmail: "zoo@bar.com",
 			currentAdminRole:  "ADMIN",
-			updatingSelf:      true,
+			updatingSelf:      false,
 			errorExpected:     false,
 		},
 	}
@@ -220,13 +220,14 @@ func TestMutationResolver_ChangeAdminRole(t *testing.T) {
 				t.Fatal(e.Wrap(err, "error inserting admin"))
 			}
 
-			workspaceAdminRole := model.WorkspaceAdminRole{
-				Admin: &currentAdmin,
-				Role:  v.currentAdminRole,
+			workspaceAdmin := model.WorkspaceAdmin{
+				AdminID:     currentAdmin.ID,
+				WorkspaceID: workspace.ID,
+				Role:        ptr.String(v.currentAdminRole),
 			}
 
-			if err := DB.Create(&workspaceAdminRole).Error; err != nil {
-				t.Fatal(e.Wrap(err, "error inserting workspace admin role"))
+			if err := DB.Create(&workspaceAdmin).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace admin"))
 			}
 
 			var updatedAdmin model.Admin
@@ -246,13 +247,14 @@ func TestMutationResolver_ChangeAdminRole(t *testing.T) {
 					t.Fatal(e.Wrap(err, "error inserting admin"))
 				}
 
-				updatedWorkspaceAdminRole := model.WorkspaceAdminRole{
-					Admin: &currentAdmin,
-					Role:  "ADMIN",
+				updatedWorkspaceAdmin := model.WorkspaceAdmin{
+					AdminID:     updatedAdmin.ID,
+					WorkspaceID: workspace.ID,
+					Role:        ptr.String("ADMIN"),
 				}
 
-				if err := DB.Create(&updatedWorkspaceAdminRole).Error; err != nil {
-					t.Fatal(e.Wrap(err, "error inserting workspace admin role"))
+				if err := DB.Create(&updatedWorkspaceAdmin).Error; err != nil {
+					t.Fatal(e.Wrap(err, "error inserting workspace admin"))
 				}
 			}
 
