@@ -1926,7 +1926,7 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.Produc
 		pricing.ProductToBasePriceCents(productType) *
 		pricing.RetentionMultiplier(retentionPeriod)
 
-	return cost >= float64(*maxCostCents), cost / float64(*maxCostCents)
+	return cost <= float64(*maxCostCents), cost / float64(*maxCostCents)
 }
 
 func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorObject *model.ErrorObject, visitedUrl string) {
