@@ -2614,7 +2614,7 @@ func (r *Resolver) GetGitHubRepos(
 	}
 
 	if accessToken == nil {
-		return nil, errors.New("No GitHub integration access token found.")
+		return nil, nil
 	}
 	var repos []*github2.Repository
 	if c, err := github.NewClient(ctx, *accessToken); err == nil {
@@ -2646,7 +2646,7 @@ func (r *Resolver) GetGitHubIssueLabels(
 	}
 
 	if accessToken == nil {
-		return nil, errors.New("No GitHub integration access token found.")
+		return nil, nil
 	}
 	var labels []*github2.Label
 	if c, err := github.NewClient(ctx, *accessToken); err == nil {
