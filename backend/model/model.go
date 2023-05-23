@@ -1162,7 +1162,6 @@ type RawPayloadType string
 const (
 	PayloadTypeEvents    RawPayloadType = "raw-events"
 	PayloadTypeResources RawPayloadType = "raw-resources"
-	PayloadTypeMessages  RawPayloadType = "raw-messages"
 )
 
 type BillingEmailHistory struct {

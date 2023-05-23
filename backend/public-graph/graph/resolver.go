@@ -2764,9 +2764,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			log.WithContext(ctx).WithError(err).Error("failed to parse console messages")
 		}
 
-		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeMessages, []byte(messages)); err != nil {
-			return e.Wrap(err, "error saving messages data")
-		}
 		return nil
 	})
 

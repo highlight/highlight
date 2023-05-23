@@ -1419,7 +1419,6 @@ type Query {
 		error_group_secure_id: String!
 		error_object_id: ID
 	): ErrorInstance
-	messages(session_secure_id: String!): [Any]
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
 	resources(session_secure_id: String!): [Any]
