@@ -198,13 +198,13 @@ enum NetworkResourceMeta {
 	ResponsePayload = 'Response Payload',
 }
 
-const NetworkResourceData = ({
+function NetworkResourceData({
 	selectedNetworkResource,
 	networkRecordingEnabledForSession,
 }: {
 	selectedNetworkResource?: NetworkResource
 	networkRecordingEnabledForSession: boolean
-}) => {
+}) {
 	const requestHeadersData: TableListItem[] = []
 	const requestPayloadData: TableListItem[] = []
 	const responseHeadersData: TableListItem[] = []
@@ -524,7 +524,11 @@ const NetworkResourceData = ({
 							<TableList
 								data={value}
 								noDataMessage={
-									<NetworkRecordingEducationMessage />
+									networkRecordingEnabledForSession ? (
+										<NoRecordingMessage />
+									) : (
+										<NetworkRecordingEducationMessage />
+									)
 								}
 							/>
 						</Box>
@@ -535,24 +539,36 @@ const NetworkResourceData = ({
 	)
 }
 
-const NetworkRecordingEducationMessage = () => (
-	<Box width="full" display="flex" flexDirection="column" gap="12" pb="4">
-		<Text size="small" color="moderate" weight="medium">
-			<code>recordHeadersAndBody</code> is disabled. If you would like to
-			see XHR/Fetch headers and bodies you will need to enable{' '}
-			<code>recordHeadersAndBody</code>.
-		</Text>
-		<Text size="small" color="moderate" weight="medium">
-			You can learn more about this and about the security/privacy
-			implications{' '}
-			<a
-				target="_blank"
-				rel="noreferrer"
-				href="https://docs.highlight.run/recording-network-requests-and-responses"
-			>
-				here
-			</a>
-			.
-		</Text>
-	</Box>
-)
+function NoRecordingMessage() {
+	return (
+		<Box width="full" display="flex" flexDirection="column" gap="12" pb="4">
+			<Text size="small" color="moderate" weight="medium">
+				Network recording is on, but no data was recorded.
+			</Text>
+		</Box>
+	)
+}
+
+function NetworkRecordingEducationMessage() {
+	return (
+		<Box width="full" display="flex" flexDirection="column" gap="12" pb="4">
+			<Text size="small" color="moderate" weight="medium">
+				<code>recordHeadersAndBody</code> is disabled. If you would like
+				to see XHR/Fetch headers and bodies you will need to enable{' '}
+				<code>recordHeadersAndBody</code>.
+			</Text>
+			<Text size="small" color="moderate" weight="medium">
+				You can learn more about this and about the security/privacy
+				implications{' '}
+				<a
+					target="_blank"
+					rel="noreferrer"
+					href="https://docs.highlight.run/recording-network-requests-and-responses"
+				>
+					here
+				</a>
+				.
+			</Text>
+		</Box>
+	)
+}

@@ -140,6 +140,30 @@ const nextConfig = {
 module.exports = nextConfig
 ```
 
+You may have trouble with a missing `__dirname` environment variable. This can happen with Next.js middleware. The following example uses a `next.config.mjs` file instead of the CJS-style `next.config.js` pattern. It calculates `__dirname` using native Node.js utility packages.
+
+```javascript
+// next.config.mjs
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
+import nextBuildId from 'next-build-id'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+	generateBuildId: () => nextBuildId({ dir: __dirname }),
+	experimental: {
+		appDir: true,
+		instrumentationHook: true,
+	},
+	productionBrowserSourceMaps: true,
+}
+
+export default nextConfig
+```
+
 3. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function:
 
 ```javascript
@@ -153,6 +177,31 @@ export async function register() {
 		otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
 	})
 }
+```
+
+> You'll need to do a conditional import if you're using [Next Middleware](https://nextjs.org/docs/pages/building-your-application/routing/middleware).
+
+```javascript
+// instrumentation.ts
+import CONSTANTS from '@/app/constants'
+
+export async function register() {
+	if (process.env.NEXT_RUNTIME === 'nodejs') {
+		/**
+		 * Conditional import required for use with Next middleware
+		 * 
+		 * Avoids the following error:
+		 * An error occurred while loading instrumentation hook: (0 , _highlight_run_next__WEBPACK_IMPORTED_MODULE_1__.registerHighlight) is not a function
+		 */
+		const { registerHighlight } = await import('@highlight-run/next')
+
+		registerHighlight({
+			projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+			otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
+		})
+	}
+}
+
 ```
 
 ## Instrument the client
