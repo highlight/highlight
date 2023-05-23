@@ -67,16 +67,16 @@ Once you feel like you are fully spun up, open up a pull request to delete your 
 - [X] Rippling
 - [X] Google Workspace
 - [X] Slack
-- [ ] Highlight
+- [X] Highlight
 - [X] GitHub
 - [X] Zoom
 - [X] Loom
 - [X] Figma
 - [X] Doppler
-- [ ] Render
-- [ ] Datadog
-- [ ] Intercom
+- [X] Render
+- [X] Datadog
+- [X] Intercom
 - [X] Notion (much of this outdated)
-- [ ] AWS
-- [ ] SendGrid
+- [X] AWS
+- [X] SendGrid
 
