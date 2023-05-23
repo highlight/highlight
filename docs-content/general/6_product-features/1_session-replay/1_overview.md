@@ -42,7 +42,7 @@ Read more about the features we support in Session Replay below:
     <DocsCard title="Tracking Users & Events."  href="./events-and-users.md">
         {"SDK support for tracking users and their corresponding actions throughout a session."}
     </DocsCard>
-    <DocsCard title="GrqphQl"  href="./graphql.md">
+    <DocsCard title="GraphQl"  href="./graphql.md">
         {"GraphQL operation names and formatted payloads."}
     </DocsCard>
     <DocsCard title="Live Mode."  href="./live-mode.md">
