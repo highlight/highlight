@@ -1381,27 +1381,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	return session, nil
 }
 
-func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *string, sessionSecureID *string, projectID int, setupType model.MarkBackendSetupType) error {
-	if projectID == 0 {
-		if projectVerboseID != nil {
-			var err error
-			projectID, err = model.FromVerboseID(*projectVerboseID)
-			if err != nil {
-				log.WithContext(ctx).Errorf("An unsupported verboseID was used: %v", projectVerboseID)
-			}
-		} else {
-			if sessionSecureID == nil {
-				return e.New("MarkBackendSetupImpl called without secureID")
-			}
-			session := &model.Session{}
-			if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: *sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
-				log.WithContext(ctx).Error(e.Wrapf(err, "no session found for mark backend setup: %v", sessionSecureID))
-				return err
-			}
-			projectID = session.ProjectID
-		}
-	}
-
+func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectID int, setupType model.MarkBackendSetupType) error {
 	if setupType == model.MarkBackendSetupTypeLogs || setupType == model.MarkBackendSetupTypeError {
 		// Update Hubspot company and projects.backend_setup
 		var backendSetupCount int64
@@ -2355,6 +2335,10 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			continue
 		}
 
+		if v.Source == "" {
+			v.Source = "backend"
+		}
+
 		errorToInsert := &model.ErrorObject{
 			ProjectID:   projectID,
 			SessionID:   sessionID,
@@ -2382,6 +2366,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			if err != nil {
 				log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
 			}
+		}
+
+		err = r.MarkBackendSetupImpl(ctx, projectID, model.MarkBackendSetupTypeError)
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "Error marking backend error setup"))
 		}
 
 		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)

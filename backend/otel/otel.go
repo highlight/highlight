@@ -15,7 +15,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
-	model2 "github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -258,27 +257,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for sessionID, errors := range traceErrors {
-		var backendError = false
-		for _, err := range errors {
-			if err.Source == modelInputs.LogSourceBackend.String() {
-				backendError = true
-			}
-		}
-		if backendError {
-			err = o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
-				Type: kafkaqueue.MarkBackendSetup,
-				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
-					SessionSecureID: pointy.String(sessionID),
-					Type:            model2.MarkBackendSetupTypeError,
-				},
-			}, sessionID)
-			if err != nil {
-				log.WithContext(ctx).WithError(err).Error("failed to submit otel mark backend setup")
-				w.WriteHeader(http.StatusServiceUnavailable)
-				return
-			}
-		}
-
 		err = o.resolver.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
@@ -293,29 +271,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for projectID, errors := range projectErrors {
-		var backendError = false
-		for _, err := range errors {
-			if err.Source == modelInputs.LogSourceBackend.String() {
-				backendError = true
-			}
-		}
-		if backendError {
-			if projectIDInt, err := clickhouse.ProjectToInt(projectID); err == nil {
-				err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
-					Type: kafkaqueue.MarkBackendSetup,
-					MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
-						ProjectID: projectIDInt,
-						Type:      model2.MarkBackendSetupTypeError,
-					},
-				}, uuid.New().String())
-				if err != nil {
-					log.WithContext(ctx).WithError(err).Error("failed to submit otel mark backend setup")
-					w.WriteHeader(http.StatusServiceUnavailable)
-					return
-				}
-			}
-		}
-
 		err = o.resolver.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
@@ -418,28 +373,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow) error {
-	for projectID, logRows := range projectLogs {
-		var hasBackendLogs bool
-		for _, logRow := range logRows {
-			if logRow.Source == modelInputs.LogSourceBackend {
-				hasBackendLogs = true
-				break
-			}
-		}
-
-		if projectIDInt, err := clickhouse.ProjectToInt(projectID); hasBackendLogs && err == nil {
-			err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
-				Type: kafkaqueue.MarkBackendSetup,
-				MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
-					ProjectID: projectIDInt,
-					Type:      model2.MarkBackendSetupTypeLogs,
-				},
-			}, uuid.New().String())
-			if err != nil {
-				return e.Wrap(err, "failed to submit otel mark backend setup")
-			}
-		}
-
+	for _, logRows := range projectLogs {
 		err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushLogs,
 			PushLogs: &kafkaqueue.PushLogsArgs{

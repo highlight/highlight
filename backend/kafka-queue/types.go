@@ -1,12 +1,12 @@
 package kafka_queue
 
 import (
-	"github.com/leonelquinteros/hubspot"
 	"math"
 	"time"
 
+	"github.com/leonelquinteros/hubspot"
+
 	"github.com/highlight-run/highlight/backend/clickhouse"
-	"github.com/highlight-run/highlight/backend/model"
 
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/segmentio/kafka-go"
@@ -22,7 +22,6 @@ const (
 	AddSessionProperties             PayloadType = iota
 	PushBackendPayload               PayloadType = iota
 	PushMetrics                      PayloadType = iota
-	MarkBackendSetup                 PayloadType = iota
 	AddSessionFeedback               PayloadType = iota
 	PushLogs                         PayloadType = iota
 	HubSpotCreateContactForAdmin     PayloadType = iota
@@ -91,13 +90,6 @@ type PushMetricsArgs struct {
 	Metrics         []*customModels.MetricInput
 }
 
-type MarkBackendSetupArgs struct {
-	ProjectVerboseID *string
-	SessionSecureID  *string
-	ProjectID        int
-	Type             model.MarkBackendSetupType
-}
-
 type AddSessionFeedbackArgs struct {
 	SessionSecureID string
 	UserName        *string
@@ -149,7 +141,6 @@ type Message struct {
 	AddSessionProperties             *AddSessionPropertiesArgs
 	PushBackendPayload               *PushBackendPayloadArgs
 	PushMetrics                      *PushMetricsArgs
-	MarkBackendSetup                 *MarkBackendSetupArgs
 	AddSessionFeedback               *AddSessionFeedbackArgs
 	PushLogs                         *PushLogsArgs
 	HubSpotCreateContactForAdmin     *HubSpotCreateContactForAdminArgs
