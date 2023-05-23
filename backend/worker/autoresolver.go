@@ -37,7 +37,7 @@ func (autoResolver *AutoResolver) AutoResolveStaleErrors(ctx context.Context) {
 			continue
 		}
 
-		err = autoResolver.resolveStaleErrorsForProjectInBatches(ctx, project, interval)
+		err = autoResolver.resolveStaleErrorsForProject(ctx, project, interval)
 
 		if err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"project_id": projectFilterSettings.ProjectID}).Error(err)
@@ -46,41 +46,40 @@ func (autoResolver *AutoResolver) AutoResolveStaleErrors(ctx context.Context) {
 	}
 }
 
-func (autoResolver *AutoResolver) resolveStaleErrorsForProjectInBatches(ctx context.Context, project model.Project, interval int) error {
+func (autoResolver *AutoResolver) resolveStaleErrorsForProject(ctx context.Context, project model.Project, interval int) error {
 	var errorGroups []model.ErrorGroup
 
 	db := autoResolver.db
 
-	subQuery := db.
-		Model(model.ErrorObject{}).
-		Select("error_group_id").
-		Where("created_at >= ?", time.Now().AddDate(0, 0, -interval))
+	err := db.Debug().
+		Table("error_groups").
+		Select("DISTINCT(error_groups.id), error_groups.project_id").
+		Joins("LEFT JOIN error_objects ON error_groups.id = error_objects.error_group_id").
+		Where("error_groups.state = ?", privateModel.ErrorStateOpen).
+		Where("error_objects.created_at < ?", time.Now().AddDate(0, 0, -interval)).
+		Find(&errorGroups).
+		Error
 
-	result := db.Debug().Where(model.ErrorGroup{
-		State:     privateModel.ErrorStateOpen,
-		ProjectID: project.ID,
-	}).
-		Where("id NOT IN (?)", subQuery).
-		FindInBatches(&errorGroups, 100, func(tx *gorm.DB, batch int) error {
-			for _, errorGroup := range errorGroups {
-				log.WithContext(ctx).WithFields(
-					log.Fields{
-						"project_id":     project.ID,
-						"error_group_id": errorGroup.ID,
-					}).Info("Autoresolving error group")
+	if err != nil {
+		return err
+	}
 
-				_, err := autoResolver.store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
-					ID:    errorGroup.ID,
-					State: privateModel.ErrorStateResolved,
-				})
+	for _, errorGroup := range errorGroups {
+		log.WithContext(ctx).WithFields(
+			log.Fields{
+				"project_id":     project.ID,
+				"error_group_id": errorGroup.ID,
+			}).Info("Autoresolving error group")
 
-				if err != nil {
-					return err
-				}
-			}
-
-			return nil
+		_, err := autoResolver.store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
+			ID:    errorGroup.ID,
+			State: privateModel.ErrorStateResolved,
 		})
 
-	return result.Error
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
