@@ -171,7 +171,7 @@ export const getBlogPaths = async (
 
 export const getStaticProps: GetStaticProps = async () => {
 	let posts: Post[] = [] // await loadPostsFromGithub()
-	let tags = await loadTagsFromGithub(posts)
+	let tags: Tag[] = [] //await loadTagsFromGithub(posts)
 
 	posts.sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
 	tags = getUniqueTags(tags)
