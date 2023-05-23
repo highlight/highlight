@@ -288,7 +288,11 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 										<Box color="n11" flex="stretch">
 											{option.title}
 										</Box>
-										<Box color="n9" flex="stretch">
+										<Box
+											color="n9"
+											flex="stretch"
+											style={{ width: 150 }}
+										>
 											{option.time.format(DATE_FORMAT)}
 										</Box>
 									</Stack>
