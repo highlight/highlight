@@ -121,7 +121,7 @@ const WorkspaceTeam = () => {
 							roles!
 						</p>
 						<Authorization allowedRoles={[AdminRole.Admin]}>
-							<AutoJoinForm />
+							<AutoJoinForm label="Auto join" />
 						</Authorization>
 					</div>
 					<Modal

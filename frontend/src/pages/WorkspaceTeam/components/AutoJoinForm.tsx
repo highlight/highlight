@@ -18,9 +18,11 @@ const COMMON_EMAIL_PROVIDERS = ['gmail', 'yahoo', 'hotmail']
 function AutoJoinForm({
 	updateOrigins,
 	newWorkspace,
+	label,
 }: {
 	updateOrigins?: (domains: string[]) => void
 	newWorkspace?: boolean
+	label?: string
 }) {
 	const [origins, setOrigins] = useState<{
 		emailOrigins: string[]
@@ -103,7 +105,7 @@ function AutoJoinForm({
 			<div className={styles.container}>
 				<Switch
 					trackingId="WorkspaceAutoJoin"
-					label="Auto join"
+					label={label || 'Enable Auto Join'}
 					labelFirst
 					checked={origins.emailOrigins.length > 0}
 					loading={loading}
