@@ -19,10 +19,12 @@ function AutoJoinForm({
 	updateOrigins,
 	newWorkspace,
 	label,
+	labelFirst,
 }: {
 	updateOrigins?: (domains: string[]) => void
 	newWorkspace?: boolean
 	label?: string
+	labelFirst?: boolean
 }) {
 	const [origins, setOrigins] = useState<{
 		emailOrigins: string[]
@@ -106,7 +108,7 @@ function AutoJoinForm({
 				<Switch
 					trackingId="WorkspaceAutoJoin"
 					label={label || 'Enable Auto Join'}
-					labelFirst
+					labelFirst={labelFirst}
 					checked={origins.emailOrigins.length > 0}
 					loading={loading}
 					onChange={(checked) => {
