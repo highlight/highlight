@@ -13,6 +13,16 @@ def main():
             "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:173971919437:targetgroup/opentelemetry-group-http/ab4e710c0fdc140d",
             "containerName": "highlight-collector",
             "containerPort": 4318
+        },
+        {
+            "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:173971919437:targetgroup/opentelemetry-group-health/3684f2f6887d308e",
+            "containerName": "highlight-collector",
+            "containerPort": 4319
+        },
+        {
+            "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:173971919437:targetgroup/opentelemetry-group-fluentd/3be463a4f9874cf2",
+            "containerName": "highlight-collector",
+            "containerPort": 24224
         }
     ])
 
