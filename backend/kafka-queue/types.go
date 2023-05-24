@@ -18,6 +18,7 @@ const (
 	PushPayload                      PayloadType = iota
 	InitializeSession                PayloadType = iota
 	IdentifySession                  PayloadType = iota
+	AddTrackProperties               PayloadType = iota // Deprecated: track events are now processed in pushPayload
 	AddSessionProperties             PayloadType = iota
 	PushBackendPayload               PayloadType = iota
 	PushMetrics                      PayloadType = iota
@@ -67,6 +68,10 @@ type IdentifySessionArgs struct {
 	SessionSecureID string
 	UserIdentifier  string
 	UserObject      interface{}
+}
+type AddTrackPropertiesArgs struct {
+	SessionSecureID  string
+	PropertiesObject interface{}
 }
 
 type AddSessionPropertiesArgs struct {
@@ -133,6 +138,7 @@ type Message struct {
 	PushPayload                      *PushPayloadArgs
 	InitializeSession                *InitializeSessionArgs
 	IdentifySession                  *IdentifySessionArgs
+	AddTrackProperties               *AddTrackPropertiesArgs
 	AddSessionProperties             *AddSessionPropertiesArgs
 	PushBackendPayload               *PushBackendPayloadArgs
 	PushMetrics                      *PushMetricsArgs
