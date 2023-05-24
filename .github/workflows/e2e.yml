@@ -61,8 +61,8 @@ jobs:
                   yarn cy:run;
 
                   # look for containers that crashed
-                  crash_events=$(docker events --filter "event=stop" --since "$start_time" --until "$(date -Isecond)")
-                  num_crashed=$(echo "$crash_events" | wc -l)
+                  crash_events=$(docker ps -a -f status=exited)
+                  num_crashed=$(echo "$crash_events" | grep -c Exited)
                   if [ "$num_crashed" -gt 0 ]; then
                     echo "$num_crashed containers crashed: $crash_events"
                     exit 1
