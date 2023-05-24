@@ -21,8 +21,11 @@ export default async function handler(req: NextRequest) {
 		req.url,
 	)?.pathname.groups.slug
 
-	const title = slug?.split('-').join(' ')
-	console.log(query)
+	const title = slug
+		?.replaceAll('--', ' ')
+		.split(' ')
+		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+		.join(' ')
 
 	const url = new URL(query)
 	const firstName = url.searchParams.get('fname')

@@ -207,7 +207,11 @@ const PostPage = ({
 			<Meta
 				title={post.metaTitle || post.title}
 				description={post.metaDescription || post.description}
-				absoluteImageUrl={`https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/og/blog/${post.slug}?fname=${post.author?.firstName}&lname=${post.author?.lastName}&role=${post.author?.title}`}
+				absoluteImageUrl={`https://${
+					process.env.NEXT_PUBLIC_VERCEL_URL
+				}/api/og/blog/${post.title?.replaceAll(' ', '--')}?fname=${
+					post.author?.firstName
+				}&lname=${post.author?.lastName}&role=${post.author?.title}`}
 				canonical={`/blog/${post.slug}`}
 			/>
 			<BlogNavbar
