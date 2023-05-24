@@ -50,7 +50,7 @@ jobs:
                   popd;
 
                   # run opentelemetry file watcher
-                  pushd ../e2e/opentelemetry/filelog;
+                  pushd e2e/opentelemetry/filelog;
                   EXAMPLE_LOG_FILE_PATH=/tmp/highlight.log docker compose run -d collector;
                   popd;
 
