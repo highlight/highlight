@@ -1,31 +1,28 @@
 import { ImageResponse } from '@vercel/og'
 import { NextRequest, URLPattern } from 'next/server'
-import { gql } from 'graphql-request'
-import { Post } from '../../../../components/Blog/BlogPost/BlogPost'
-import { font, backdrop, fontLight } from '../util'
-import { GraphQLRequest } from '../../../../utils/graphql'
-import styles from '../../../../components/Products/Products.module.scss'
+import { getGithubPostBySlug } from '../../../blog/[slug]'
+import { backdrop, font, fontLight } from '../util'
 
 export const config = {
 	runtime: 'edge',
 }
-
-const QUERY = gql`
-	query GetPost($slug: String!) {
-		post(where: { slug: $slug }) {
-			slug
-			title
-			author {
-				firstName
-				lastName
-				title
-				profilePhoto {
-					url
-				}
-			}
-		}
-	}
-`
+//
+// const QUERY = gql`
+// 	query GetPost($slug: String!) {
+// 		post(where: { slug: $slug }) {
+// 			slug
+// 			title
+// 			author {
+// 				firstName
+// 				lastName
+// 				title
+// 				profilePhoto {
+// 					url
+// 				}
+// 			}
+// 		}
+// 	}
+// `
 
 export default async function handler(req: NextRequest) {
 	const fontData = await font
@@ -40,8 +37,11 @@ export default async function handler(req: NextRequest) {
 	const slug = new URLPattern({ pathname: '/api/og/blog/:slug' }).exec(
 		req.url,
 	)?.pathname.groups.slug
-	const post = (await GraphQLRequest<{ post?: Post }>(QUERY, { slug }, false))
-		.post as Post | undefined
+
+	// const post = (await GraphQLRequest<{ post?: Post }>(QUERY, { slug }, false))
+	// 	.post as Post | undefined
+
+	const post = await getGithubPostBySlug(slug as string)
 
 	return new ImageResponse(
 		(
