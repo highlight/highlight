@@ -1,0 +1,25 @@
+.boxSubTitle {
+	color: var(--color-gray-500) !important;
+	margin-top: 0 !important;
+}
+
+.buttonRow {
+	align-items: center;
+	column-gap: var(--size-medium);
+	display: grid;
+	grid-template-columns: 1fr 120px;
+}
+
+.emailInput {
+	height: 40px;
+}
+
+.inviteButton {
+	width: 100%;
+}
+
+.hr {
+	border: 0;
+	border-top: 1px solid var(--color-gray-300);
+	margin: var(--size-large) 0;
+}
