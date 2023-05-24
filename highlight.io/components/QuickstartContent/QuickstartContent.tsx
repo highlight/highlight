@@ -43,6 +43,7 @@ import { SelfHostContent } from './self-host/self-host'
 import { JSCloudflareLoggingContent } from './logging/js/cloudflare'
 import { FluentForwardContent } from './logging/fluentd'
 import { FileContent } from './logging/file'
+import { DockerContent } from './logging/docker'
 
 export type QuickStartOptions = {
 	title: string
@@ -103,6 +104,7 @@ export enum QuickStartType {
 	JStRPC = 'trpc',
 	HTTPOTLP = 'curl',
 	FluentForward = 'fluent-forward',
+	Docker = 'docker',
 	File = 'file',
 	RubyOther = 'other',
 	RubyRails = 'rails',
@@ -220,6 +222,7 @@ export const quickStartContent = {
 				'Get started with logging in your application via HTTP or OTLP.',
 			[QuickStartType.FluentForward]: FluentForwardContent,
 			[QuickStartType.File]: FileContent,
+			[QuickStartType.Docker]: DockerContent,
 		},
 		ruby: {
 			title: 'Ruby',
