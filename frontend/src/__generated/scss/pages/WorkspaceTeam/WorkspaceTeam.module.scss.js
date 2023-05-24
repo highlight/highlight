@@ -1,1 +1,1 @@
-var r={subTitle:"_subTitle_1hx0w_1",membersTitleContainer:"_membersTitleContainer_1hx0w_5",membersTitle:"_membersTitle_1hx0w_5",memberCard:"_memberCard_1hx0w_13",memberCardWrapper:"_memberCardWrapper_1hx0w_20",userDetails:"_userDetails_1hx0w_26",name:"_name_1hx0w_33",email:"_email_1hx0w_40",role:"_role_1hx0w_48",header:"_header_1hx0w_54",removeTeamMemberButton:"_removeTeamMemberButton_1hx0w_59",titleContainer:"_titleContainer_1hx0w_65"};export{r as default};
+var e={titleContainer:"_titleContainer_1oin8_1",subTitle:"_subTitle_1oin8_1"};export{e as default};
