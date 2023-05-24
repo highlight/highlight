@@ -25,6 +25,7 @@
 		"eslint": "8.39.0",
 		"eslint-config-next": "13.3.4",
 		"highlight.run": "workspace:*",
+		"ky": "^0.33.3",
 		"next": "13.3.4",
 		"next-build-id": "^3.0.0",
 		"react": "18.2.0",
