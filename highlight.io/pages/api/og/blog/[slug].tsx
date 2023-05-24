@@ -1,5 +1,4 @@
 import { ImageResponse } from '@vercel/og'
-import { gql } from 'graphql-request'
 import { NextRequest, URLPattern } from 'next/server'
 import { backdrop, font, fontLight } from '../util'
 
@@ -7,24 +6,8 @@ export const config = {
 	runtime: 'edge',
 }
 
-const QUERY = gql`
-	query GetPost($slug: String!) {
-		post(where: { slug: $slug }) {
-			slug
-			title
-			author {
-				firstName
-				lastName
-				title
-				profilePhoto {
-					url
-				}
-			}
-		}
-	}
-`
-
 export default async function handler(req: NextRequest) {
+	const query = req.nextUrl.href
 	const fontData = await font
 	const fontLightData = await fontLight
 	const backdropData = await backdrop
@@ -39,6 +22,12 @@ export default async function handler(req: NextRequest) {
 	)?.pathname.groups.slug
 
 	const title = slug?.split('-').join(' ')
+	console.log(query)
+
+	const url = new URL(query)
+	const firstName = url.searchParams.get('fname')
+	const lastName = url.searchParams.get('lname')
+	const role = url.searchParams.get('role')
 
 	// const post = (await GraphQLRequest<{ post?: Post }>(QUERY, { slug }, false))
 	// 	.post as Post | undefined
@@ -122,6 +111,22 @@ export default async function handler(req: NextRequest) {
 						>
 							{title || slug}
 						</span>
+						<div tw={'flex flex-row items-center'}>
+							<div tw={'flex flex-col'}>
+								<span style={{ fontSize: 24 }}>
+									{firstName || ''} {lastName || ''}
+								</span>
+								<span
+									style={{
+										color: '#DFDFDF',
+										fontSize: 24,
+										fontFamily: '"PoppinsLight"',
+									}}
+								>
+									{role || ''}
+								</span>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

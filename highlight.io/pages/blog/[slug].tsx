@@ -1,33 +1,33 @@
+import classNames from 'classnames'
+import { promises as fsp } from 'fs'
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import type {
 	GetStaticPaths,
 	GetStaticPathsResult,
 	GetStaticProps,
 } from 'next/types'
-import classNames from 'classnames'
-import { promises as fsp } from 'fs'
-import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import { getBlogPaths, loadPostsFromGithub } from '.'
 
-import { BlogCallToAction } from '../../components/common/CallToAction/BlogCallToAction'
 import { ElementNode } from '@graphcms/rich-text-types'
-import { PostAuthor } from '../../components/Blog/Author'
-import BlogNavbar from '../../components/Blog/BlogNavbar/BlogNavbar'
-import { Comments } from '../../components/Comments/Comments'
-import Footer from '../../components/common/Footer/Footer'
-import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
-import Image from 'next/legacy/image'
-import { Meta } from '../../components/common/Head/Meta'
-import { Post } from '../../components/Blog/BlogPost/BlogPost'
-import { PostTag } from '../../components/Blog/Tag'
-import { Section } from '../../components/common/Section/Section'
-import { SuggestedBlogPost } from '../../components/Blog/SuggestedBlogPost/SuggestedBlogPost'
-import { Typography } from '../../components/common/Typography/Typography'
-import YouTube from 'react-youtube'
-import homeStyles from '../../components/Home/Home.module.scss'
 import { serialize } from 'next-mdx-remote/serialize'
+import Image from 'next/legacy/image'
+import YouTube from 'react-youtube'
+import { PostAuthor } from '../../components/Blog/Author'
 import styles from '../../components/Blog/Blog.module.scss'
+import BlogNavbar from '../../components/Blog/BlogNavbar/BlogNavbar'
+import { Post } from '../../components/Blog/BlogPost/BlogPost'
+import { SuggestedBlogPost } from '../../components/Blog/SuggestedBlogPost/SuggestedBlogPost'
+import { PostTag } from '../../components/Blog/Tag'
+import { Comments } from '../../components/Comments/Comments'
+import { BlogCallToAction } from '../../components/common/CallToAction/BlogCallToAction'
+import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
+import Footer from '../../components/common/Footer/Footer'
+import { Meta } from '../../components/common/Head/Meta'
+import { Section } from '../../components/common/Section/Section'
+import { Typography } from '../../components/common/Typography/Typography'
 import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
+import homeStyles from '../../components/Home/Home.module.scss'
 
 const NUM_SUGGESTED_POSTS = 3
 
@@ -207,7 +207,7 @@ const PostPage = ({
 			<Meta
 				title={post.metaTitle || post.title}
 				description={post.metaDescription || post.description}
-				absoluteImageUrl={`https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/og/blog/${post.slug}`}
+				absoluteImageUrl={`https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/og/blog/${post.slug}?fname=${post.author?.firstName}&lname=${post.author?.lastName}&role=${post.author?.title}`}
 				canonical={`/blog/${post.slug}`}
 			/>
 			<BlogNavbar
