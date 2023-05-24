@@ -134,7 +134,7 @@ export const AuthenticationRoleRouter = () => {
 		}
 
 		const query = called
-			? await refetch({ variables })
+			? await refetch(variables)
 			: await getAdminQuery({ variables })
 
 		if (query.data) {

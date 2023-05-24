@@ -6522,7 +6522,6 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	admin := &model.Admin{UID: pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))}
 	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.admin"),
 		tracer.Tag("admin_uid", admin.UID))
-	fmt.Printf("::: REACT_APP_AUTH_MODE: %v\n", os.Getenv("REACT_APP_AUTH_MODE"))
 
 	if err := r.DB.Where(&model.Admin{UID: admin.UID}).First(&admin).Error; err != nil {
 		spanError := e.Wrap(err, "error getting admin from postgres")

@@ -99,7 +99,7 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 				setLoading(false)
 			}
 		},
-		[resolver, verificationId, formState.values.code, signIn],
+		[resolver, verificationId, formState.values.code, signIn, navigate],
 	)
 
 	useEffect(() => {
