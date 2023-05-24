@@ -9,7 +9,7 @@ export const FluentForwardContent: QuickStartContent = {
 		{
 			title: 'Setup fluentd / fluent bit ingest.',
 			content:
-				'Route your fluentd / fluent bit to forward://otel.highlight.io:8006.',
+				'Route your [fluentd / fluent bit](https://docs.fluentbit.io/manual/pipeline/outputs/forward/) to forward://otel.highlight.io:8006.',
 			code: {
 				text: `bin/fluent-bit -i cpu -t fluent_bit -o forward://otel.highlight.io:8006`,
 				language: 'bash',
