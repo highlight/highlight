@@ -135,29 +135,19 @@ const useIntersectionObserver = (setActiveId: (s: string) => void) => {
 	}, [setActiveId, router.query])
 }
 
-const sortByFilePrefix = (a: string, b: string) => {
-	const firstStringSplit = a.split('_')
-	const secondStringSplit = b.split('_')
-	const firstPrefix = Number(firstStringSplit[0])
-	const secondPrefix = Number(secondStringSplit[0])
-	if (firstPrefix && secondPrefix && firstPrefix != secondPrefix) {
+function sortByFilePrefix(a: string, b: string) {
+	const [firstStringSplit] = a.split('_')
+	const [secondStringSplit] = b.split('_')
+	const firstPrefix = parseInt(firstStringSplit)
+	const secondPrefix = parseInt(secondStringSplit)
+
+	if (firstPrefix != null && secondPrefix != null)
 		return firstPrefix - secondPrefix
-	} else if (firstPrefix && !secondPrefix) {
-		return -1
-	} else if (!firstPrefix && secondPrefix) {
-		return 1
-	}
-	const firstFileString = firstStringSplit[firstStringSplit.length - 1]
-	const secondFileString = secondStringSplit[secondStringSplit.length - 1]
-	if (firstFileString > secondFileString) {
-		return 1
-	}
-	if (firstFileString < secondFileString) {
-		return -1
-	}
-	if (firstFileString === secondFileString) {
-		return 0
-	}
+
+	if (firstPrefix != null) return -1
+	if (secondPrefix != null) return 1
+
+	return a.localeCompare(b)
 }
 
 const isValidDirectory = (files: string[]) => {
