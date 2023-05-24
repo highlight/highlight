@@ -48,7 +48,9 @@ export default defineConfig(({ mode }): UserConfig => {
 
 	return {
 		plugins: [
-			react(),
+			react({
+				jsxImportSource: '@emotion/react',
+			}),
 			vanillaExtractPlugin(),
 			tsconfigPaths(),
 			svgr(),

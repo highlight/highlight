@@ -7,6 +7,8 @@
 		"@apollo/client": "^3.7.0",
 		"@ctrl/tinycolor": "^3.4.1",
 		"@dinero.js/currencies": "2.0.0-alpha.14",
+		"@emotion/react": "^11.11.0",
+		"@emotion/styled": "^11.11.0",
 		"@fontsource/poppins": "^4.5.9",
 		"@frontapp/plugin-sdk": "^1.1.2",
 		"@highlight-run/client": "workspace:*",

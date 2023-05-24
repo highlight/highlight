@@ -1,3 +1,5 @@
+import { css, Global } from '@emotion/react'
+import styled from '@emotion/styled'
 import {
 	useGetCommentTagsForProjectQuery,
 	useGetWorkspaceAdminsByProjectIdLazyQuery,
@@ -10,6 +12,10 @@ import { SourcemapErrorDetails } from '@pages/ErrorsV2/SourcemapErrorDetails/Sou
 import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 
+const AnotherComp = styled.button`
+	color: ${(props) => props.color};
+`
+
 import analytics from '@/util/analytics'
 
 import commonStyles from '../../Common.module.scss'
@@ -20,6 +26,35 @@ import {
 	NestedError,
 	RandomError,
 } from './ButtonsHelper'
+
+const EmotionButton = function () {
+	const [padding, setPadding] = useState(64)
+	useEffect(() => {
+		const i = setInterval(() => {
+			setPadding((p) => p + 1)
+			return () => {
+				clearInterval(i)
+			}
+		}, 1000)
+	}, [])
+	return (
+		<>
+			<Global
+				styles={{
+					'.some-class': {
+						fontSize: 50,
+						textAlign: 'center',
+					},
+				}}
+			/>
+			<div className="some-class">This is hotpink now!</div>
+			<div css={css({ padding, color: 'blue' })}>
+				Hover to change color .{' '}
+				<AnotherComp color="green">hello</AnotherComp>
+			</div>
+		</>
+	)
+}
 
 export const Buttons = () => {
 	const [hasError, setHasError] = useState(false)
@@ -95,6 +130,7 @@ export const Buttons = () => {
 
 	return (
 		<div className={styles.container}>
+			<EmotionButton />
 			<div className={styles.buttonBody}>
 				<i className="mdi mdi-progress-check mdi-48px"></i>
 				<iframe

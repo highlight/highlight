@@ -14,6 +14,7 @@
 		"downlevelIteration": true,
 		"noEmit": true,
 		"jsx": "react-jsx",
+		"jsxImportSource": "@emotion/react",
 		"allowJs": true,
 		"typeRoots": ["./node_modules/@types", "./src/@types"],
 		"noFallthroughCasesInSwitch": true,
