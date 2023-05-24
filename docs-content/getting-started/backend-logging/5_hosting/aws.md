@@ -24,13 +24,8 @@ Here's a sample task definition (based on the [AWS docs](https://github.com/aws-
       "essential": true,
       "image": "906394416424.dkr.ecr.us-east-1.amazonaws.com/aws-for-fluent-bit:stable",
       "name": "log_router",
-      "firelensConfiguration": {
-        "type": "fluentbit",
-        "options": {
-          "Host": "otel.highlight.io",
-          "TLS": "on",
-          "highlight.project_id": "<YOUR_PROJECT_ID>"
-        }
+      "firelensConfiguration":{
+        "type":"fluentbit"
       }
     },
     {
@@ -38,7 +33,13 @@ Here's a sample task definition (based on the [AWS docs](https://github.com/aws-
       "image": "my-app:latest",
       "name": "app",
       "logConfiguration": {
-        "logDriver":"awsfirelens"
+        "logDriver":"awsfirelens",
+        "options": {
+          "Name": "highlight",
+          "Host": "otel.highlight.io",
+          "TLS": "on",
+          "highlight.project_id": "<YOUR_PROJECT_ID>"
+        }
       }
     }
   ]
