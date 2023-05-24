@@ -2956,15 +2956,6 @@ export type GetRecentErrorsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetMessagesQueryVariables = Types.Exact<{
-	session_secure_id: Types.Scalars['String']
-}>
-
-export type GetMessagesQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'messages'
->
-
 export type GetResourcesQueryVariables = Types.Exact<{
 	session_secure_id: Types.Scalars['String']
 }>
@@ -4425,7 +4416,6 @@ export const namedOperations = {
 		GetErrorObject: 'GetErrorObject' as const,
 		GetErrorInstance: 'GetErrorInstance' as const,
 		GetRecentErrors: 'GetRecentErrors' as const,
-		GetMessages: 'GetMessages' as const,
 		GetResources: 'GetResources' as const,
 		GetFieldSuggestion: 'GetFieldSuggestion' as const,
 		GetEnvironments: 'GetEnvironments' as const,

@@ -1926,7 +1926,7 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.Produc
 		pricing.ProductToBasePriceCents(productType) *
 		pricing.RetentionMultiplier(retentionPeriod)
 
-	return cost >= float64(*maxCostCents), cost / float64(*maxCostCents)
+	return cost <= float64(*maxCostCents), cost / float64(*maxCostCents)
 }
 
 func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorObject *model.ErrorObject, visitedUrl string) {
@@ -2685,7 +2685,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					}
 
 					// Replace any static resources with our own, hosted in S3
-					if projectID == 1 || projectID == 1031 || projectID == 1344 || projectID == 5378 || projectID == 5403 {
+					if map[int]bool{
+						1: true, 1031: true, 1344: true, 5378: true, 5403: true, 6469: true,
+					}[projectID] {
 						assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
 							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID), tracer.Tag("session_secure_id", sessionSecureID))
 						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB, r.Redis)
@@ -2762,9 +2764,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			log.WithContext(ctx).WithError(err).Error("failed to parse console messages")
 		}
 
-		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeMessages, []byte(messages)); err != nil {
-			return e.Wrap(err, "error saving messages data")
-		}
 		return nil
 	})
 

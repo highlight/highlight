@@ -139,7 +139,7 @@ export class IndexedDBLink extends ApolloLink {
 	static excluded = new Set<string>([
 		'GetAdmin',
 		'GetBillingDetails',
-		'GetCustomerPortalUrl',
+		'GetCustomerPortalURL',
 		'GetProject',
 		'GetSubscriptionDetails',
 	])
@@ -180,6 +180,9 @@ export class IndexedDBLink extends ApolloLink {
 		forward?: NextLink,
 	): Observable<FetchResult<Record<string, any>>> | null {
 		if (!IndexedDBLink.isCached({ operation })) {
+			log('db.ts', 'IndexedDBLink cache bypass', {
+				operation,
+			})
 			return this.httpLink.request(operation, forward)
 		}
 

@@ -1155,10 +1155,6 @@ query GetRecentErrors($secure_id: String!) {
 	}
 }
 
-query GetMessages($session_secure_id: String!) {
-	messages(session_secure_id: $session_secure_id)
-}
-
 query GetResources($session_secure_id: String!) {
 	resources(session_secure_id: $session_secure_id)
 }

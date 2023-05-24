@@ -178,9 +178,6 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 	case model.PayloadTypeEvents:
 		compressedWriter = manager.EventsCompressed
 		unmarshalled = &payload.EventsUnmarshalled{}
-	case model.PayloadTypeMessages:
-		compressedWriter = manager.MessagesCompressed
-		unmarshalled = &payload.MessagesUnmarshalled{}
 	case model.PayloadTypeResources:
 		compressedWriter = manager.ResourcesCompressed
 		unmarshalled = &payload.ResourcesUnmarshalled{}
@@ -271,30 +268,6 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		}
 		if err := manager.ResourcesCompressed.Close(); err != nil {
 			return errors.Wrap(err, "error closing compressed resources writer")
-		}
-	}
-
-	// Fetch/write messages.
-	if s.AvoidPostgresStorage {
-		if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeMessages, accumulator); err != nil {
-			return errors.Wrap(err, "error fetching messages from Redis")
-		}
-	} else {
-		messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
-		if err != nil {
-			return errors.Wrap(err, "error retrieving messages objects")
-		}
-		for messageRows.Next() {
-			messageObject := model.MessagesObject{}
-			if err := w.Resolver.DB.ScanRows(messageRows, &messageObject); err != nil {
-				return errors.Wrap(err, "error scanning message row")
-			}
-			if err := manager.MessagesCompressed.WriteObject(&messageObject, &payload.MessagesUnmarshalled{}); err != nil {
-				return errors.Wrap(err, "error writing compressed message row")
-			}
-		}
-		if err := manager.MessagesCompressed.Close(); err != nil {
-			return errors.Wrap(err, "error closing compressed messages writer")
 		}
 	}
 

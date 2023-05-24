@@ -4147,37 +4147,6 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 	return &errorInstance, nil
 }
 
-// Messages is the resolver for the messages field.
-func (r *queryResolver) Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
-	s, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
-	}
-	if en := s.ObjectStorageEnabled; en != nil && *en {
-		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
-		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadMessages(ctx, s.ID, s.ProjectID)
-		if err != nil {
-			return nil, e.Wrap(err, "error pulling messages from s3")
-		}
-		return ret, nil
-	}
-	messagesObj := []*model.MessagesObject{}
-	if err := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj).Error; err != nil {
-		return nil, e.Wrap(err, "error reading from messages")
-	}
-	allEvents := make(map[string][]interface{})
-	for _, messageObj := range messagesObj {
-		subMessage := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(messageObj.Messages), &subMessage); err != nil {
-			return nil, e.Wrap(err, "error decoding message data")
-		}
-		allEvents["messages"] = append(subMessage["messages"], allEvents["messages"]...)
-	}
-	return allEvents["messages"], nil
-}
-
 // EnhancedUserDetails is the resolver for the enhanced_user_details field.
 func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*modelInputs.EnhancedUserDetailsResult, error) {
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
@@ -4325,29 +4294,13 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	if en := s.ObjectStorageEnabled; en != nil && *en {
-		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
-		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadResources(ctx, s.ID, s.ProjectID)
-		if err != nil {
-			return nil, e.Wrap(err, "error pulling resources from s3")
-		}
-		return ret, nil
+
+	resources, err := r.Redis.GetResources(ctx, s)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting resources from redis")
 	}
-	resourcesObject := []*model.ResourcesObject{}
-	if err := r.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject).Error; err != nil {
-		return nil, e.Wrap(err, "error reading from resources")
-	}
-	allResources := make(map[string][]interface{})
-	for _, resourceObj := range resourcesObject {
-		subResources := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(resourceObj.Resources), &subResources); err != nil {
-			return nil, e.Wrap(err, "error decoding resource data")
-		}
-		allResources["resources"] = append(subResources["resources"], allResources["resources"]...)
-	}
-	return allResources["resources"], nil
+
+	return resources, nil
 }
 
 // WebVitals is the resolver for the web_vitals field.
