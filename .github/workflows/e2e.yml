@@ -64,7 +64,7 @@ jobs:
                   crash_events=$(docker events --filter "event=stop" --since "$start_time" --until "$(date -Isecond)")
                   num_crashed=$(echo "$crash_events" | wc -l)
                   if [ "$num_crashed" -gt 0 ]; then
-                    echo "Containers crashed! $crash_events"
+                    echo "$num_crashed containers crashed: $crash_events"
                     exit 1
                   fi
 
