@@ -48,19 +48,19 @@ import Minus from '../../public/images/MinusIcon'
 const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
 const DOCS_GITUB_LINK = `https://github.com/highlight/highlight/blob/main/docs-content`
 export interface DocPath {
-	// e.g. '[tips, sessions-search-deep-linking.md]'
+	/** e.g. '[tips, sessions-search-deep-linking.md]' */
 	array_path: string[]
-	// e.g. 'tips/sessions-search-deep-linking.md'
+	/** e.g. 'tips/sessions-search-deep-linking.md' */
 	simple_path: string
-	// e.g. '[/tips, /getting-started/client-sdk]'
+	/** e.g. '[/tips, /getting-started/client-sdk]' */
 	embedded_links: string[]
-	// e.g. /Users/jaykhatri/projects/highlight-landing/s/tips/sessions-search-deep-linking.md
+	/** e.g. /Users/jaykhatri/projects/highlight-landing/s/tips/sessions-search-deep-linking.md */
 	total_path: string
-	// e.g. 'tips/sessions-search-deep-linking.md'
+	/** e.g. 'tips/sessions-search-deep-linking.md' */
 	rel_path: string
-	// whether the path has an index.md file in it or a "homepage" of some sort for that directory.
+	/** whether the path has an index.md file in it or a "homepage" of some sort for that directory. */
 	indexPath: boolean
-	// metadata stored at the top of each md file.
+	/** metadata stored at the top of each md file. */
 	metadata: any
 	isSdkDoc: boolean
 	content: string
