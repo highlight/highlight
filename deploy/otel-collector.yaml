@@ -6,7 +6,7 @@ receivers:
             http:
                 endpoint: '0.0.0.0:4318'
     fluentforward:
-        endpoint: '0.0.0.0:8006'
+        endpoint: '0.0.0.0:24224'
 exporters:
     otlphttp:
         endpoint: 'https://pub.highlight.run/otel'

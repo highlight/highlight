@@ -26,6 +26,12 @@
 					"hostPort": 4319,
 					"protocol": "tcp",
 					"appProtocol": "http2"
+				},
+				{
+					"name": "highlight-collector-24224-tcp",
+					"containerPort": 24224,
+					"hostPort": 24224,
+					"protocol": "tcp"
 				}
 			],
 			"essential": true,

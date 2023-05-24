@@ -27,7 +27,7 @@ Here's a sample task definition (based on the [AWS docs](https://github.com/aws-
       "firelensConfiguration": {
         "type": "fluentbit",
         "options": {
-          "Host": "otel.highlight.io:8006",
+          "Host": "otel.highlight.io",
           "TLS": "on",
           "highlight.project_id": "<YOUR_PROJECT_ID>",
           "highlight.service_name": "public-graph-service"
