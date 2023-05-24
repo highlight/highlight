@@ -5,7 +5,7 @@ slug: canvas-iframe
 
 ## Recording `canvas` elements
 
-[highlight.io](https://highlight.io) supports recording canvas (and therefore WebGL) elements, although due to the nature of `canvas`, there are caveats regarding the quality/fidelity of the recording. Read more about how to get started with this in our [canvas configuration docs](../../getting-started/3_client-sdk/7_replay-configuration/canvas.md). Below is a video demo of what the video recording looks like:
+[highlight.io](https://highlight.io) supports recording canvas (and therefore WebGL) elements, although due to the nature of `canvas`, there are caveats regarding the quality/fidelity of the recording. Read more about how to get started with this in our [canvas configuration docs](../../2_getting-started/3_client-sdk/7_replay-configuration/canvas.md). Below is a video demo of what the video recording looks like:
 
 <br/>
 
@@ -16,8 +16,8 @@ slug: canvas-iframe
 
 ## Installing highlight.io in an `iframe`
 
-The highlight.io snippet supports recording within an iframe, but given the security limitations, there are caveats. Read more about this in our [sdk configuration docs](../../getting-started/3_client-sdk/7_replay-configuration/iframes.md#recording-within-iframe-elements).
+The highlight.io snippet supports recording within an iframe, but given the security limitations, there are caveats. Read more about this in our [sdk configuration docs](../../2_getting-started/3_client-sdk/7_replay-configuration/iframes.md#recording-within-iframe-elements).
 
 ## Recording Cross-origin `iframe`s
 
-To support recording a cross-origin iframe that you own, we've added functionality into our recording client that allows the iframe to forward its events to the parent session. Read more about this in our [sdk configuration docs](../../getting-started/3_client-sdk/7_replay-configuration/iframes.md#recording-a-cross-origin-iframe-element).
+To support recording a cross-origin iframe that you own, we've added functionality into our recording client that allows the iframe to forward its events to the parent session. Read more about this in our [sdk configuration docs](../../2_getting-started/3_client-sdk/7_replay-configuration/iframes.md#recording-a-cross-origin-iframe-element).

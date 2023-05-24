@@ -9,7 +9,7 @@ updatedAt: 2023-01-24T02:07:22.000Z
 ## How do I spin up highlight.io locally?
 
 <DocsCardGroup>
-    <DocsCard title="Local Development Guide." href="../../../getting-started/self-host/dev-deployment-guide.md">
+    <DocsCard title="Local Development Guide." href="../../../2_getting-started/self-host/dev-deployment-guide.md">
         {"Running a docker version of highlight.io for development."}
     </DocsCard>
     <DocsCard title="GitHub Code Spaces Guide" href="./code-spaces.md">

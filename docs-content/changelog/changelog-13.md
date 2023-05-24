@@ -15,7 +15,7 @@ We launched on hackernews a few days ago, and gained surpassed 1.5k github stars
 
 ## Contributing a new SDK:
 
-Interested in adding a new SDK for your for your backend (that isn't support [here](../getting-started/1_overview.md))? Check out our new docs on [adding an SDK](../4_company/open-source/contributing/adding-an-sdk.md). We're powered by opentelemetry, so adding something for your framework shouldn't be too tough; we're also down to work with you on it!
+Interested in adding a new SDK for your for your backend (that isn't support [here](../2_getting-started/1_overview.md))? Check out our new docs on [adding an SDK](../4_company/open-source/contributing/adding-an-sdk.md). We're powered by opentelemetry, so adding something for your framework shouldn't be too tough; we're also down to work with you on it!
 
 ## Better Doc Search
 
@@ -25,9 +25,9 @@ Thanks to our friends at Algolia, search in our docs is much smoother now! Give 
 
 We've shipped even more SDKS this week:
 
-[Go Fiber](../getting-started/4_backend-sdk/go.md)
+[Go Fiber](../2_getting-started/4_backend-sdk/go.md)
 
-[Python Fast API](../getting-started/4_backend-sdk/python.md)
+[Python Fast API](../2_getting-started/4_backend-sdk/python.md)
 
 ## Our new logging product (🤫)
 

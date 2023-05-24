@@ -25,6 +25,6 @@ We upgraded react router this week, which has made some significant performance 
 
 We now support several more Python SDKs: Flask, Django, Python Azure Functions.
 
-[Python Docs](https://www.highlight.io/docs/general/getting-started/backend-sdk/python)
+[Python Docs](https://www.highlight.io/docs/general/2_getting-started/backend-sdk/python)
 
-[Cloudflare Docs](https://www.highlight.io/docs/general/getting-started/backend-sdk/cloudflare)
+[Cloudflare Docs](https://www.highlight.io/docs/general/2_getting-started/backend-sdk/cloudflare)

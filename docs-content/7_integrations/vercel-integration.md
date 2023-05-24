@@ -11,10 +11,10 @@ If you use Vercel to deploy your app, you can install the Vercel Highlight integ
 
 After linking your Vercel projects to your Highlight projects, Highlight will automatically set the `HIGHLIGHT_SOURCEMAP_API_KEY` environment variable. If you're using `@higlight-run/sourcemap-uploader` or `withHighlightConfig` to upload your sourcemaps, those tools will check for this API key.
 
-More details on calling these methods [here](../getting-started/fullstack-frameworks/next-js.md#test-sourcemaps).
+More details on calling these methods [here](../2_getting-started/fullstack-frameworks/next-js.md#test-sourcemaps).
 
 ## Vercel Log Drain Integrations
 
 If you use Vercel to deploy your server-side applications, the Vercel integration will also send your logs to Highlight. Vercel will forward build logs, lambda and edge function (server-side) logs, and static access logs. You can view these logs in the Highlight UI by clicking on the "Logs" tab in your dashboard. To configure whether to collect logs in highlight.io, you can do this by limiting logs in your billing settings.
 
-More details on turning on this integration [here](../getting-started/backend-logging/6_hosting/vercel.md).
+More details on turning on this integration [here](../2_getting-started/backend-logging/6_hosting/vercel.md).

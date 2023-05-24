@@ -11,7 +11,7 @@ If your language of choice isn't support in the "Getting Started" docs below, hi
 Get started with the resources below:
 
 <DocsCardGroup>
-    <DocsCard title="Get Started" href="../../getting-started/1_overview.md#for-your-backend-logging">
+    <DocsCard title="Get Started" href="../../2_getting-started/1_overview.md#for-your-backend-logging">
         {"Set up logging for your application."}
     </DocsCard>
     <DocsCard title="Log Search Specification" href="./log-search.md">

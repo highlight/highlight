@@ -13,7 +13,7 @@ slug: client
   </div>
   <div className="right">
     <h6>Just getting started?</h6>
-    <p>Check out our [getting started guide](../getting-started/1_overview.md) to get up and running quickly.</p>
+    <p>Check out our [getting started guide](../2_getting-started/1_overview.md) to get up and running quickly.</p>
   </div>
 </section>
 
@@ -33,7 +33,7 @@ slug: client
         <aside className="innerParameterHeading">options properties</aside>
         <aside className="parameter">
           <h5>backendUrl <code>string</code> <code>optional</code></h5>
-          <p>Specifies the URL that Highlight will send data to. You should not use this unless you are running an on-premise instance. You may be interested in [Proxying](../getting-started/3_client-sdk/7_replay-configuration/proxying-highlight.md) to make sure your errors and sessions are not blocked by extensions.</p>
+          <p>Specifies the URL that Highlight will send data to. You should not use this unless you are running an on-premise instance. You may be interested in [Proxying](../2_getting-started/3_client-sdk/7_replay-configuration/proxying-highlight.md) to make sure your errors and sessions are not blocked by extensions.</p>
         </aside>
         <aside className="parameter">
           <h5>manualStart <code>boolean</code> <code>optional</code></h5>
@@ -57,11 +57,11 @@ slug: client
         </aside>
         <aside className="parameter">
           <h5>networkRecording <code>NetworkRecordingOptions</code> <code>optional</code></h5>
-          <p>Specifies how and what network requests and responses Highlight records. See [Recording Network Requests and Responses](../getting-started/3_client-sdk/7_replay-configuration/recording-network-requests-and-responses.md) for more information.</p>
+          <p>Specifies how and what network requests and responses Highlight records. See [Recording Network Requests and Responses](../2_getting-started/3_client-sdk/7_replay-configuration/recording-network-requests-and-responses.md) for more information.</p>
         </aside>
         <aside className="parameter">
           <h5>version <code>string</code> <code>optional</code></h5>
-          <p>Specifies the version of your application. See [Versioning Sessions](../getting-started/3_client-sdk/7_replay-configuration/versioning-sessions-and-errors.md) and [Versioning Errors](../getting-started/3_client-sdk/7_replay-configuration/versioning-sessions-and-errors.md) to see how setting the version can help you move faster.</p>
+          <p>Specifies the version of your application. See [Versioning Sessions](../2_getting-started/3_client-sdk/7_replay-configuration/versioning-sessions-and-errors.md) and [Versioning Errors](../2_getting-started/3_client-sdk/7_replay-configuration/versioning-sessions-and-errors.md) to see how setting the version can help you move faster.</p>
         </aside>
         <aside className="parameter">
           <h5>enableStrictPrivacy <code>boolean</code> <code>optional</code></h5>
@@ -73,7 +73,7 @@ slug: client
         </aside>
         <aside className="parameter">
           <h5>enableCanvasRecording <code>boolean</code> <code>optional</code></h5>
-          <p>Specifies whether Highlight will record the contents of &lt;canvas&gt; elements. See [Canvas](../getting-started/3_client-sdk/7_replay-configuration/canvas.md) for more information. The default value is false.</p>
+          <p>Specifies whether Highlight will record the contents of &lt;canvas&gt; elements. See [Canvas](../2_getting-started/3_client-sdk/7_replay-configuration/canvas.md) for more information. The default value is false.</p>
         </aside>
         <aside className="parameter">
           <h5>enablePerformanceRecording <code>boolean</code> <code>optional</code></h5>
@@ -89,7 +89,7 @@ slug: client
         </aside>
         <aside className="parameter">
           <h5>isCrossOriginIframe <code>boolean</code> <code>optional</code></h5>
-          <p>Specifies that the current app is a cross origin iframe in an app where Highlight is also enabled. This flag should only be set in the iframe, not in the parent application hosting the iframe. This allows the iframe to forward its recording to the parent to be included as part of the session. See [cross-origin iframe recording](../getting-started/3_client-sdk/7_replay-configuration/iframes.md) for more details.</p>
+          <p>Specifies that the current app is a cross origin iframe in an app where Highlight is also enabled. This flag should only be set in the iframe, not in the parent application hosting the iframe. This allows the iframe to forward its recording to the parent to be included as part of the session. See [cross-origin iframe recording](../2_getting-started/3_client-sdk/7_replay-configuration/iframes.md) for more details.</p>
         </aside>
         <aside className="parameter">
           <h5>urlBlocklist <code>string[]</code> <code>optional</code></h5>
@@ -110,7 +110,7 @@ slug: client
 <section className="section">
   <div className="left">
     <h3>H.identify</h3> 
-    <p>This method is used to add an identity to a user for the session. You can learn more in [Identifying Users](../getting-started/3_client-sdk/7_replay-configuration/identifying-sessions.md).</p>
+    <p>This method is used to add an identity to a user for the session. You can learn more in [Identifying Users](../2_getting-started/3_client-sdk/7_replay-configuration/identifying-sessions.md).</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
       <h5>identifier<code>String</code> <code>required</code></h5>
@@ -135,7 +135,7 @@ slug: client
 <section className="section">
   <div className="left">
     <h3>H.track</h3> 
-    <p>This method is used to track events that happen during the session. You can learn more in [Tracking Events](../getting-started/3_client-sdk/7_replay-configuration/tracking-events.md).</p>
+    <p>This method is used to track events that happen during the session. You can learn more in [Tracking Events](../2_getting-started/3_client-sdk/7_replay-configuration/tracking-events.md).</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
       <h5>eventName<code>String</code> <code>required</code></h5>

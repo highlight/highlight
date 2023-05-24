@@ -11,7 +11,7 @@ Session replay gives your team visibility into how people use your web app and i
 ## Get Started.
 
 <DocsCardGroup>
-    <DocsCard title="Get Started."  href="../../getting-started/1_overview.md">
+    <DocsCard title="Get Started."  href="../../2_getting-started/1_overview.md">
         {"Get started with error monitoring by installing highlight.io"}
     </DocsCard>
 </DocsCardGroup>

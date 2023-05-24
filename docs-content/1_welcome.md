@@ -16,7 +16,7 @@ When highlight.io is fully integrated, this is what it looks like:
 And to get started:
 
 <DocsCardGroup>
-    <DocsCard title="Get Started" href="../getting-started/1_overview.md">
+    <DocsCard title="Get Started" href="../2_getting-started/1_overview.md">
         {"Get started with highlight.io. Instrument your frontend & backend."}
     </DocsCard>
 </DocsCardGroup>
