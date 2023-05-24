@@ -1,4 +1,4 @@
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import Switch from '@components/Switch/Switch'
 import { useUpdateErrorGroupIsPublicMutation } from '@graph/hooks'
 import { GetErrorGroupQuery } from '@graph/operations'

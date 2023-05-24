@@ -1,7 +1,7 @@
 import { Box, IconSolidPlay, Tooltip } from '@highlight-run/ui'
 import { createSearchParams } from 'react-router-dom'
 
-import { isLoggedIn } from '@/authentication/AuthContext'
+import { isLoggedIn } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
 import { ErrorObjectFragment } from '@/graph/generated/operations'

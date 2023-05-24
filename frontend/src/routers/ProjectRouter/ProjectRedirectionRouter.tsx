@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -6,6 +5,8 @@ import {
 import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
 import React, { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
+
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 
 export const ProjectRedirectionRouter = () => {
 	const { loading, error, data } = useGetProjectsAndWorkspacesQuery()
@@ -30,10 +31,17 @@ export const ProjectRedirectionRouter = () => {
 		return null
 	}
 
+	if (!admin?.about_you_details_filled) {
+		return <Navigate to="/about-you" replace />
+	}
+
 	let redirectTo
 	if (data?.projects?.length) {
 		redirectTo = `/${data!.projects[0]!.id}${location.pathname}`
+	} else if (!admin?.about_you_details_filled) {
+		redirectTo = '/about_you'
 	} else {
+		debugger
 		redirectTo = '/new'
 	}
 

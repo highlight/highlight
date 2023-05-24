@@ -62,17 +62,22 @@ class SimpleAuth {
 		email: string,
 		password: string,
 	): Promise<Firebase.auth.UserCredential> {
+		this.currentUser = fakeFirebaseUser
 		return await getFakeFirebaseCredentials()
 	}
 
 	async signInWithPopup(
 		provider: Firebase.auth.AuthProvider,
 	): Promise<Firebase.auth.UserCredential> {
+		this.currentUser = fakeFirebaseUser
 		return await getFakeFirebaseCredentials()
 	}
 
 	signOut(): Promise<void> {
-		return Promise.resolve(undefined)
+		return new Promise((resolve) => {
+			this.currentUser = null
+			resolve()
+		})
 	}
 }
 

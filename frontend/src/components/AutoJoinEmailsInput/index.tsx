@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import Switch from '@components/Switch/Switch'
 import {
 	Box,
@@ -10,6 +9,8 @@ import {
 import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
 import { Select } from 'antd'
 import React, { useEffect, useState } from 'react'
+
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 
 import * as styles from './index.css'
 

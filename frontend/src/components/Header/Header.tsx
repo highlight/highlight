@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import CommandBar from '@components/CommandBar/CommandBar'
 import { DEMO_WORKSPACE_PROXY_APPLICATION_ID } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
@@ -64,6 +63,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useSessionStorage } from 'react-use'
 
 import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
 import styles from './Header.module.scss'
@@ -115,7 +115,7 @@ export const useBillingHook = ({
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId } = useProjectId()
-	const { isLoggedIn } = useAuthContext()
+	const { admin, isLoggedIn, signOut } = useAuthContext()
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
@@ -128,7 +128,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 
 	const { toggleShowKeyboardShortcutsGuide, commandBarDialog } =
 		useGlobalContext()
-	const { admin } = useAuthContext()
 
 	const pages = [
 		{
@@ -650,7 +649,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											<Menu.Item
 												onClick={async () => {
 													try {
-														auth.signOut()
+														signOut()
 													} catch (e) {
 														console.log(e)
 													}

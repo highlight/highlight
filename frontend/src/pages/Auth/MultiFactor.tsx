@@ -19,6 +19,8 @@ import firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
+
 type Props = {
 	resolver?: firebase.auth.MultiFactorResolver
 }
@@ -28,6 +30,7 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 	const [error, setError] = useState('')
 	const [verificationId, setVerificationId] = useState<string>('')
 	const { setLoadingState } = useAppLoadingContext()
+	const { signIn } = useAuthContext()
 	const navigate = useNavigate()
 	const recaptchaVerifier = useRef<firebase.auth.ApplicationVerifier>()
 	const phoneAuthProvider = new firebase.auth.PhoneAuthProvider()
@@ -86,14 +89,17 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 				const multiFactorAssertion =
 					firebase.auth.PhoneMultiFactorGenerator.assertion(cred)
 
-				await resolver.resolveSignIn(multiFactorAssertion)
+				await resolver.resolveSignIn(multiFactorAssertion).then(() => {
+					signIn()
+					navigate('/', { replace: true })
+				})
 			} catch (error: any) {
 				setError(error.message)
 			} finally {
 				setLoading(false)
 			}
 		},
-		[resolver, formState.values.code, verificationId],
+		[resolver, verificationId, formState.values.code, signIn],
 	)
 
 	useEffect(() => {

@@ -1,4 +1,4 @@
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import useLocalStorage from '@rehooks/local-storage'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'

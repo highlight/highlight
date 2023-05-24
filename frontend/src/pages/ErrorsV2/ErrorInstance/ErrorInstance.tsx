@@ -1,5 +1,5 @@
 import { useApolloClient } from '@apollo/client'
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
 import { Button } from '@components/Button'
 import JsonViewer from '@components/JsonViewer/JsonViewer'

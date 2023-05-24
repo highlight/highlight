@@ -1,4 +1,4 @@
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { Header } from '@components/Header/Header'
 import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'

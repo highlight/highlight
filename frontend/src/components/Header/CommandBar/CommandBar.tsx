@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import CommandPalette, { Command } from 'react-command-palette'
 import { useNavigate } from 'react-router-dom'
 
-import { useAuthContext } from '../../../authentication/AuthContext'
+import { useAuthContext } from '../../../routers/AuthenticationRolerouter/context/AuthContext'
 import styles from './CommandBar.module.scss'
 import {
 	CommandWithoutId,

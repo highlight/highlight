@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -12,6 +11,8 @@ import { Landing } from '@pages/Landing/Landing'
 import firebase from 'firebase/compat/app'
 import React, { useEffect, useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 
 import * as styles from './AuthRouter.css'
 

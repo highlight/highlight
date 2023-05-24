@@ -1,4 +1,4 @@
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import TimelineIndicatorsBarGraph from '@pages/Player/Toolbar/TimelineIndicators/TimelineIndicatorsBarGraph/TimelineIndicatorsBarGraph'
 import React, { useEffect } from 'react'
 

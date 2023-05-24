@@ -1,4 +1,4 @@
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import { useGetProjectQuery } from '@graph/hooks'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'

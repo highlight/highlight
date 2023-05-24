@@ -1,4 +1,4 @@
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import CollapsibleSection from '@components/CollapsibleSection'
 import LoadingBox from '@components/LoadingBox'
 import { TableList, TableListItem } from '@components/TableList/TableList'

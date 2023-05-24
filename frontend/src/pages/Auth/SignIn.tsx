@@ -18,6 +18,7 @@ import React, { useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 
 type Props = {
 	setResolver: React.Dispatch<
@@ -28,6 +29,7 @@ type Props = {
 export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const navigate = useNavigate()
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
+	const { signIn } = useAuthContext()
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
 	const location = useLocation()
@@ -66,6 +68,15 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		[navigate, setResolver],
 	)
 
+	const handleSignIn = useCallback(
+		(credential: firebase.auth.UserCredential) => {
+			if (credential.user) {
+				signIn()
+			}
+		},
+		[signIn],
+	)
+
 	return (
 		<Form
 			state={formState}
@@ -77,7 +88,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					formState.values.email,
 					formState.values.password,
 				)
-					.then(() => {})
+					.then(handleSignIn)
 					.catch((e) => {
 						handleAuthError(e)
 						setLoading(false)
@@ -161,9 +172,9 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						type="button"
 						trackingId="sign-in-with-google"
 						onClick={() => {
-							auth.signInWithPopup(auth.googleProvider!).catch(
-								handleAuthError,
-							)
+							auth.signInWithPopup(auth.googleProvider!)
+								.then(handleSignIn)
+								.catch(handleAuthError)
 						}}
 					>
 						<Box display="flex" alignItems="center" gap="6">

@@ -1,5 +1,8 @@
 import { Button } from '@components/Button'
-import { useGetWorkspaceForInviteLinkQuery } from '@graph/hooks'
+import {
+	useCreateAdminMutation,
+	useGetWorkspaceForInviteLinkQuery,
+} from '@graph/hooks'
 import {
 	Box,
 	Callout,
@@ -21,9 +24,13 @@ import firebase from 'firebase/compat/app'
 import React, { useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
+import { VERIFY_EMAIL_PATH } from '@/routers/AppRouter/AppRouter'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
+
 export const SignUp: React.FC = () => {
 	const navigate = useNavigate()
 	const location = useLocation()
+	const { signIn } = useAuthContext()
 	const initialEmail: string = location.state?.email ?? ''
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
@@ -52,29 +59,23 @@ export const SignUp: React.FC = () => {
 		},
 	})
 	const workspaceInvite = data?.workspace_for_invite_link
+	const [createAdmin] = useCreateAdminMutation()
 
 	const handleSubmit = useCallback(
-		(credential: firebase.auth.UserCredential) => {
+		async (credential: firebase.auth.UserCredential) => {
+			await createAdmin()
 			message.success('Account created succesfully!')
-
-			// Redirect the user to their initial path instead to creating a new
-			// workspace. We do this because this happens when a new user clicks
-			// on a Highlight link that was shared to them and they don't have
-			// an account yet.
-			const redirect = location.state?.previousPathName
+			signIn()
 
 			if (credential.user?.email) {
 				analytics.track('Sign up', {
 					email: credential.user.email,
-					redirect,
 				})
 			}
 
-			if (redirect) {
-				navigate(redirect, { replace: true })
-			}
+			navigate(VERIFY_EMAIL_PATH, { replace: true })
 		},
-		[location.state?.previousPathName, navigate],
+		[createAdmin, signIn, navigate],
 	)
 
 	return (

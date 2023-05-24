@@ -1,6 +1,6 @@
 import 'rc-slider/assets/index.css'
 
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import ElevatedCard from '@components/ElevatedCard/ElevatedCard'
 import FullBleedCard from '@components/FullBleedCard/FullBleedCard'

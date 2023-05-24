@@ -1,7 +1,8 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import { UserDropdown } from '@components/Header/UserDropdown/UserDropdown'
 import { Box } from '@highlight-run/ui'
 import { ReactNode, useEffect } from 'react'
+
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 
 export const Landing = ({ children }: { children: ReactNode }) => {
 	const { isLoggedIn } = useAuthContext()

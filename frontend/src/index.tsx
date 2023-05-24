@@ -4,51 +4,28 @@ import '@fontsource/poppins'
 import './index.scss'
 import './style/tailwind.css'
 
-import { ApolloError, ApolloProvider } from '@apollo/client'
-import {
-	AuthContextProvider,
-	AuthRole,
-	isAuthLoading,
-	isHighlightAdmin,
-	isLoggedIn,
-} from '@authentication/AuthContext'
-import { ErrorState } from '@components/ErrorState/ErrorState'
+import { ApolloProvider } from '@apollo/client'
 import { LoadingPage } from '@components/Loading/Loading'
-import {
-	AppLoadingContext,
-	AppLoadingState,
-	useAppLoadingContext,
-} from '@context/AppLoadingContext'
-import {
-	useCreateAdminMutation,
-	useGetAdminLazyQuery,
-	useGetAdminRoleByProjectLazyQuery,
-	useGetAdminRoleLazyQuery,
-	useGetProjectLazyQuery,
-} from '@graph/hooks'
-import { Admin } from '@graph/schemas'
+import { AppLoadingContext, AppLoadingState } from '@context/AppLoadingContext'
 import { ErrorBoundary } from '@highlight-run/react'
-import useLocalStorage from '@rehooks/local-storage'
-import { AppRouter } from '@routers/AppRouter/AppRouter'
 import * as Sentry from '@sentry/react'
 import { BrowserTracing } from '@sentry/tracing'
 import analytics from '@util/analytics'
 import { getAttributionData, setAttributionData } from '@util/attribution'
-import { auth } from '@util/auth'
-import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils'
 import { showHiringMessage } from '@util/console/hiringMessage'
 import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { showIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
+
+import { AuthenticationRoleRouter } from '@/routers/AuthenticationRolerouter/AuthenticationRoleRouter'
 
 document.body.className = 'highlight-light-theme'
 
@@ -172,219 +149,6 @@ const App = () => {
 				</SkeletonTheme>
 			</ApolloProvider>
 		</ErrorBoundary>
-	)
-}
-
-const AuthenticationRoleRouter = () => {
-	const location = useLocation()
-	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(location.pathname)?.pop()
-	const projectId = /^\/(\d+)\/.*$/.exec(location.pathname)?.pop()
-
-	const [
-		getAdminWorkspaceRoleQuery,
-		{
-			error: adminWError,
-			data: adminWData,
-			called: wCalled,
-			refetch: wRefetch,
-		},
-	] = useGetAdminRoleLazyQuery()
-
-	const [
-		getAdminProjectRoleQuery,
-		{
-			error: adminPError,
-			data: adminPData,
-			called: pCalled,
-			refetch: pRefetch,
-		},
-	] = useGetAdminRoleByProjectLazyQuery()
-
-	const [
-		getAdminSimpleQuery,
-		{
-			error: adminSError,
-			data: adminSData,
-			called: sCalled,
-			refetch: sRefetch,
-		},
-	] = useGetAdminLazyQuery()
-
-	let getAdminQuery:
-			| typeof getAdminWorkspaceRoleQuery
-			| typeof getAdminProjectRoleQuery
-			| typeof getAdminSimpleQuery,
-		adminError: ApolloError | undefined,
-		adminData: Admin | undefined | null,
-		adminRole: string | undefined,
-		called: boolean,
-		refetch: any
-	if (workspaceId) {
-		getAdminQuery = getAdminWorkspaceRoleQuery
-		adminError = adminWError
-		adminData = adminWData?.admin_role?.admin
-		adminRole = adminWData?.admin_role?.role
-		called = wCalled
-		refetch = wRefetch
-	} else if (projectId) {
-		getAdminQuery = getAdminProjectRoleQuery
-		adminError = adminPError
-		adminData = adminPData?.admin_role_by_project?.admin
-		adminRole = adminPData?.admin_role_by_project?.role
-		called = pCalled
-		refetch = pRefetch
-	} else {
-		getAdminQuery = getAdminSimpleQuery
-		adminError = adminSError
-		adminData = adminSData?.admin
-		called = sCalled
-		refetch = sRefetch
-	}
-
-	const { setLoadingState } = useAppLoadingContext()
-	const [getProjectQuery] = useGetProjectLazyQuery()
-
-	const [user, setUser] = useState<any>()
-	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
-
-	useEffect(() => {
-		// Wait until auth is finished loading otherwise this request can fail.
-		if (!adminData || !projectId || isAuthLoading(authRole)) {
-			return
-		}
-
-		getProjectQuery({
-			variables: {
-				id: projectId,
-			},
-			onCompleted: (data) => {
-				if (!data.project || !adminData) {
-					return
-				}
-
-				analytics.identify(adminData.id, {
-					'Project ID': data.project?.id,
-					'Workspace ID': data.workspace?.id,
-				})
-			},
-		})
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [adminData, authRole, projectId])
-
-	const [createAdminMutation, { called: createAdminCalled }] =
-		useCreateAdminMutation()
-
-	useEffect(() => {
-		const unsubscribeFirebase = auth.onAuthStateChanged(
-			async (user) => {
-				setUser(user)
-
-				const variables: any = {}
-				if (workspaceId) {
-					variables.workspace_id = workspaceId
-				} else if (projectId) {
-					variables.project_id = projectId
-				}
-
-				if (user) {
-					try {
-						// Try to create an admin if it's a new account. This can't be
-						// handled on the sign up form because this callback is triggered
-						// before the admin is created.
-						if (!user.emailVerified && !createAdminCalled) {
-							await createAdminMutation()
-						}
-					} finally {
-						if (!called) {
-							getAdminQuery({ variables })
-						} else {
-							refetch!()
-						}
-					}
-				} else {
-					setAuthRole(AuthRole.UNAUTHENTICATED)
-				}
-			},
-			(error) => {
-				H.consumeError(new Error(JSON.stringify(error)))
-				setAuthRole(AuthRole.UNAUTHENTICATED)
-			},
-		)
-
-		return () => {
-			unsubscribeFirebase()
-		}
-
-		// Don't rerun this more than necessary. Rerun if the project / workspace context changes.
-		// eslint-disable-next-line
-	}, [getAdminQuery])
-
-	useEffect(() => {
-		// Check user exists here as well because adminData isn't cleared correctly
-		// when a user logs out.
-		if (adminData && user) {
-			if (
-				HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) =>
-					adminData?.email.includes(d),
-				)
-			) {
-				setAuthRole(AuthRole.AUTHENTICATED_HIGHLIGHT)
-			} else if (adminData) {
-				setAuthRole(AuthRole.AUTHENTICATED)
-			}
-			analytics.track('Authenticated')
-		} else if (adminError) {
-			setAuthRole(AuthRole.UNAUTHENTICATED)
-		}
-	}, [adminError, adminData, user])
-
-	useEffect(() => {
-		if (authRole === AuthRole.UNAUTHENTICATED) {
-			setLoadingState(
-				isAuthLoading(authRole)
-					? AppLoadingState.LOADING
-					: AppLoadingState.LOADED,
-			)
-		}
-	}, [authRole, setLoadingState])
-
-	const [enableStaffView] = useLocalStorage(
-		`highlight-enable-staff-view`,
-		true,
-	)
-
-	const loggedIn = isLoggedIn(authRole)
-
-	return (
-		<AuthContextProvider
-			value={{
-				role: authRole,
-				admin: loggedIn ? adminData ?? undefined : undefined,
-				workspaceRole: adminRole || undefined,
-				isAuthLoading: isAuthLoading(authRole),
-				isLoggedIn: loggedIn,
-				isHighlightAdmin: isHighlightAdmin(authRole) && enableStaffView,
-				refetchAdmin: refetch,
-			}}
-		>
-			<Helmet>
-				<title>highlight.io</title>
-			</Helmet>
-			{adminError ? (
-				<ErrorState
-					message={
-						`Seems like we had an issue with your login 😢. ` +
-						`Feel free to log out and try again, or otherwise, ` +
-						`get in contact with us!`
-					}
-					errorString={JSON.stringify(adminError)}
-				/>
-			) : (
-				<Routes>
-					<Route path="/*" element={<AppRouter />} />
-				</Routes>
-			)}
-		</AuthContextProvider>
 	)
 }
 

@@ -1,4 +1,4 @@
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import Select from '@components/Select/Select'
 import Switch from '@components/Switch/Switch'
 import Tooltip from '@components/Tooltip/Tooltip'

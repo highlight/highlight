@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import {
 	AutoJoinEmailsInput,
 	getEmailDomain,
@@ -31,6 +30,8 @@ import { getAttributionData } from '@util/attribution'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
@@ -142,6 +143,7 @@ export const AdminForm: React.FC = () => {
 			)
 
 			await refetchProjects()
+			// TODO: Clean up and add redirect
 			await refetchAdmin() // updates admin in auth context
 		} catch (e: any) {
 			if (import.meta.env.DEV) {

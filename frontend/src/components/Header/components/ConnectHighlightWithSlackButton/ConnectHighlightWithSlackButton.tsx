@@ -2,7 +2,7 @@ import React from 'react'
 
 import { LinkButton } from '@/components/LinkButton'
 
-import { useAuthContext } from '../../../../authentication/AuthContext'
+import { useAuthContext } from '../../../../routers/AuthenticationRolerouter/context/AuthContext'
 import { useSlackBot } from './utils/utils'
 
 const ConnectHighlightWithSlackButton = () => {

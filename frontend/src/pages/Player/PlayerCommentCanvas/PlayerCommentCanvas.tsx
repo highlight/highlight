@@ -13,7 +13,7 @@ import clsx from 'clsx'
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import { useAuthContext } from '@/authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import { CommentIndicator } from '@/components/Comment/CommentIndicator'
 
 import styles from './PlayerCommentCanvas.module.scss'

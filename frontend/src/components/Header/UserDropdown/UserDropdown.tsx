@@ -1,10 +1,10 @@
 import { useGetAdminQuery } from '@graph/hooks'
-import { auth } from '@util/auth'
-import { client } from '@util/graph'
 import { Dropdown, Skeleton } from 'antd'
 import React from 'react'
 import { FiLogOut } from 'react-icons/fi'
 import { Link } from 'react-router-dom'
+
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 
 import { AdminAvatar } from '../../Avatar/Avatar'
 import styles from './UserDropdown.module.scss'
@@ -20,6 +20,7 @@ export const UserDropdown = ({ border, workspaceId }: Props) => {
 		error: a_error,
 		data: a_data,
 	} = useGetAdminQuery()
+	const { signOut } = useAuthContext()
 
 	const menu = (
 		<div className={styles.dropdownMenu}>
@@ -61,11 +62,10 @@ export const UserDropdown = ({ border, workspaceId }: Props) => {
 							className={styles.dropdownLogout}
 							onClick={async () => {
 								try {
-									auth.signOut()
+									signOut()
 								} catch (e) {
 									console.log(e)
 								}
-								await client.clearStore()
 							}}
 						>
 							<span className={styles.dropdownLogoutText}>

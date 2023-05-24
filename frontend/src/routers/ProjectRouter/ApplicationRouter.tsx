@@ -1,4 +1,4 @@
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import AlertsRouter from '@pages/Alerts/AlertsRouter'
 import LogAlertsRouter from '@pages/Alerts/LogAlert/LogAlertRouter'
 import { CanvasPage } from '@pages/Buttons/CanvasV2'

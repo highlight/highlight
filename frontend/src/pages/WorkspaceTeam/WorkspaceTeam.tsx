@@ -1,4 +1,4 @@
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import Alert from '@components/Alert/Alert'
 import { AdminAvatar } from '@components/Avatar/Avatar'
 import Card from '@components/Card/Card'

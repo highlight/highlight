@@ -1,4 +1,4 @@
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import { AdminRole } from '@graph/schemas'
 import AUTHORIZATION_POLICIES from '@util/authorization/authorizationPolicies'
 import React from 'react'

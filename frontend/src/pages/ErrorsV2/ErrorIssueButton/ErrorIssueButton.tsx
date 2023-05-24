@@ -1,4 +1,4 @@
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import { getAttachmentUrl } from '@components/Comment/AttachmentList/AttachmentList'
 import NewIssueModal from '@components/NewIssueModal/NewIssueModal'
 import {

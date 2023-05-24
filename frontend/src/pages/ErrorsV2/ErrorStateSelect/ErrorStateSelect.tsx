@@ -1,4 +1,4 @@
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import { useUpdateErrorGroupStateMutation } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { ErrorState, Maybe } from '@graph/schemas'

@@ -14,6 +14,8 @@ import { H } from 'highlight.run'
 import React, { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
+
 import commonStyles from '../../Common.module.scss'
 import styles from './NewMemberPage.module.scss'
 
@@ -27,6 +29,7 @@ const NewMemberPage = () => {
 	const [addAdmin, { loading: addLoading, error }] = addAdminMutation()
 	const { loading: adminLoading, data: adminData } = useGetAdminQuery()
 	const { setLoadingState } = useAppLoadingContext()
+	const { signOut } = useAuthContext()
 
 	useEffect(() => {
 		if (!adminLoading) {
@@ -80,8 +83,7 @@ const NewMemberPage = () => {
 				className={commonStyles.secondaryButton}
 				style={{ marginTop: 16 }}
 				onClick={() => {
-					auth.signOut()
-					client.clearStore()
+					signOut()
 				}}
 			>
 				Login as different User

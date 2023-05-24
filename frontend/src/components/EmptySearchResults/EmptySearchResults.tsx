@@ -1,4 +1,4 @@
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import { Button } from '@components/Button'
 import { Callout, Stack, Text } from '@highlight-run/ui'
 import { showIntercom } from '@util/window'

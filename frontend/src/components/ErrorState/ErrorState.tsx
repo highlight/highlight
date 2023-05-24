@@ -1,4 +1,4 @@
-import { useAuthContext } from '@authentication/AuthContext'
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import JoinWorkspace from '@components/ErrorState/JoinWorkspace/JoinWorkspace'
 import Space from '@components/Space/Space'
