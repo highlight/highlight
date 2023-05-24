@@ -62,7 +62,7 @@ jobs:
 
                   # look for containers that crashed
                   crash_events=$(docker ps -a -f status=exited)
-                  num_crashed=$(echo "$crash_events" | grep -c Exited)
+                  num_crashed=$(echo "$crash_events" | grep -c Exited || true)
                   if [ "$num_crashed" -gt 0 ]; then
                     echo "$num_crashed containers crashed: $crash_events"
                     exit 1
