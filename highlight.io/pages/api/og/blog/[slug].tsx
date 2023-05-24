@@ -1,28 +1,28 @@
 import { ImageResponse } from '@vercel/og'
+import { gql } from 'graphql-request'
 import { NextRequest, URLPattern } from 'next/server'
-import { getGithubPostBySlug } from '../../../blog/[slug]'
 import { backdrop, font, fontLight } from '../util'
 
 export const config = {
 	runtime: 'edge',
 }
-//
-// const QUERY = gql`
-// 	query GetPost($slug: String!) {
-// 		post(where: { slug: $slug }) {
-// 			slug
-// 			title
-// 			author {
-// 				firstName
-// 				lastName
-// 				title
-// 				profilePhoto {
-// 					url
-// 				}
-// 			}
-// 		}
-// 	}
-// `
+
+const QUERY = gql`
+	query GetPost($slug: String!) {
+		post(where: { slug: $slug }) {
+			slug
+			title
+			author {
+				firstName
+				lastName
+				title
+				profilePhoto {
+					url
+				}
+			}
+		}
+	}
+`
 
 export default async function handler(req: NextRequest) {
 	const fontData = await font
@@ -38,10 +38,10 @@ export default async function handler(req: NextRequest) {
 		req.url,
 	)?.pathname.groups.slug
 
+	const title = slug?.split('-').join(' ')
+
 	// const post = (await GraphQLRequest<{ post?: Post }>(QUERY, { slug }, false))
 	// 	.post as Post | undefined
-
-	const post = await getGithubPostBySlug(slug as string)
 
 	return new ImageResponse(
 		(
@@ -120,25 +120,8 @@ export default async function handler(req: NextRequest) {
 								overflow: 'hidden',
 							}}
 						>
-							{post?.title || slug}
+							{title || slug}
 						</span>
-						<div tw={'flex flex-row items-center'}>
-							<div tw={'flex flex-col'}>
-								<span style={{ fontSize: 24 }}>
-									{post?.author?.firstName}{' '}
-									{post?.author?.lastName}
-								</span>
-								<span
-									style={{
-										color: '#DFDFDF',
-										fontSize: 24,
-										fontFamily: '"PoppinsLight"',
-									}}
-								>
-									{post?.author?.title}
-								</span>
-							</div>
-						</div>
 					</div>
 				</div>
 			</div>
