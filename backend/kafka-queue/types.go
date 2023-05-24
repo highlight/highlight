@@ -7,7 +7,6 @@ import (
 	"github.com/leonelquinteros/hubspot"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
-	"github.com/highlight-run/highlight/backend/model"
 
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/segmentio/kafka-go"
@@ -19,7 +18,6 @@ const (
 	PushPayload                      PayloadType = iota
 	InitializeSession                PayloadType = iota
 	IdentifySession                  PayloadType = iota
-	AddTrackProperties               PayloadType = iota // Deprecated: track events are now processed in pushPayload
 	AddSessionProperties             PayloadType = iota
 	PushBackendPayload               PayloadType = iota
 	PushMetrics                      PayloadType = iota
@@ -70,10 +68,6 @@ type IdentifySessionArgs struct {
 	UserIdentifier  string
 	UserObject      interface{}
 }
-type AddTrackPropertiesArgs struct {
-	SessionSecureID  string
-	PropertiesObject interface{}
-}
 
 type AddSessionPropertiesArgs struct {
 	SessionSecureID  string
@@ -90,13 +84,6 @@ type PushMetricsArgs struct {
 	SessionID       int
 	ProjectID       int
 	Metrics         []*customModels.MetricInput
-}
-
-type MarkBackendSetupArgs struct {
-	ProjectVerboseID *string
-	SessionSecureID  *string
-	ProjectID        int
-	Type             model.MarkBackendSetupType
 }
 
 type AddSessionFeedbackArgs struct {
@@ -146,11 +133,9 @@ type Message struct {
 	PushPayload                      *PushPayloadArgs
 	InitializeSession                *InitializeSessionArgs
 	IdentifySession                  *IdentifySessionArgs
-	AddTrackProperties               *AddTrackPropertiesArgs
 	AddSessionProperties             *AddSessionPropertiesArgs
 	PushBackendPayload               *PushBackendPayloadArgs
 	PushMetrics                      *PushMetricsArgs
-	MarkBackendSetup                 *MarkBackendSetupArgs
 	AddSessionFeedback               *AddSessionFeedbackArgs
 	PushLogs                         *PushLogsArgs
 	HubSpotCreateContactForAdmin     *HubSpotCreateContactForAdminArgs
