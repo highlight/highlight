@@ -40,14 +40,33 @@ jobs:
 
             - name: Start docker containers & run cypress
               run: |
+                  start_time=$(date -Isecond)
+
+                  # start highlight
                   pushd docker;
                   ./start-infra.sh > /tmp/highlight.log 2>&1;
                   docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
                   ./run-frontend.sh  >> /tmp/highlight.log 2>&1 & ./run-backend.sh >> /tmp/highlight.log 2>&1 &
-                  yarn dlx wait-on -l -s 4 https://127.0.0.1:3000/index.html  https://127.0.0.1:3000/src/routers/AppRouter/AppRouter.tsx http://127.0.0.1:8080/dist/index.js https://127.0.0.1:8082/health;
                   popd;
 
+                  # run opentelemetry file watcher
+                  pushd ../e2e/opentelemetry/filelog;
+                  EXAMPLE_LOG_FILE_PATH=/tmp/highlight.log docker compose run -d collector;
+                  popd;
+
+                  # wait for highlight to be ready
+                  yarn dlx wait-on -l -s 4 https://127.0.0.1:3000/index.html  https://127.0.0.1:3000/src/routers/AppRouter/AppRouter.tsx http://127.0.0.1:8080/dist/index.js https://127.0.0.1:8082/health;
+
+                  # run cypress tests
                   yarn cy:run;
+
+                  # look for containers that crashed
+                  crash_events=$(docker events --filter "event=stop" --since "$start_time" --until "$(date -Isecond)")
+                  num_crashed=$(echo "$crash_events" | wc -l)
+                  if [ "$num_crashed" -gt 0 ]; then
+                    echo "Containers crashed! $crash_events"
+                    exit 1
+                  fi
 
             - name: Dump setup logs on failure
               if: failure()
