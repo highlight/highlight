@@ -291,9 +291,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 										<Box
 											color="n9"
 											flex="stretch"
-											style={{
-												whiteSpace: 'nowrap',
-											}}
+											whiteSpace="nowrap"
 										>
 											{option.time.format(DATE_FORMAT)}
 										</Box>
