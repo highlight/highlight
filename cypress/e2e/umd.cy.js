@@ -3,11 +3,6 @@ describe('web client recording spec', () => {
 		it('public graph requests are recorded', { baseUrl: null }, () => {
 			cy.intercept('POST', '/public', (req) => {
 				req.alias = req.body.operationName
-				req.continue(() => {
-					if (Array.isArray(req.body.variables.events?.events)) {
-						events.push(...req.body.variables.events.events)
-					}
-				})
 			})
 			cy.visit(`./cypress/pages/${source}.html`)
 			cy.window().then((win) => {
