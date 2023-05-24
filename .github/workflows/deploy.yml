@@ -3,287 +3,288 @@ on:
     push:
         branches:
             - 'main'
+            - 'vadim/file-logs-export'
         paths:
             - 'backend/**'
             - 'deploy/**'
             - '.github/workflows/deploy.yml'
 jobs:
-    migrate-database:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v3
-            - name: Setup Go
-              uses: actions/setup-go@v4
-              with:
-                  go-version-file: 'backend/go.mod'
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
-            - name: Migrate database
-              run: |
-                  cd backend/
-                  make migrate
-              env:
-                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
-
-    deploy-session-delete-lambdas:
-        needs: migrate-database
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v3
-            - name: Setup Go
-              uses: actions/setup-go@v4
-              with:
-                  go-version-file: 'backend/go.mod'
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
-            - name: Build and zip
-              run: |
-                  cd backend/
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/getSessionIdsByQuery
-                  zip getSessionIdsByQuery.zip getSessionIdsByQuery
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromPostgres
-                  zip deleteSessionBatchFromPostgres.zip deleteSessionBatchFromPostgres
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromOpenSearch
-                  zip deleteSessionBatchFromOpenSearch.zip deleteSessionBatchFromOpenSearch
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromS3
-                  zip deleteSessionBatchFromS3.zip deleteSessionBatchFromS3
-                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/sendEmail
-                  zip sendEmail.zip sendEmail
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v2
-              with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws-region: us-east-2
-            - name: Update Lambda secrets
-              env:
-                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
-              run: |
-                  aws lambda update-function-configuration --function-name getSessionIdsByQuery \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
-                  aws lambda update-function-configuration --function-name deleteSessionBatchFromPostgres \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
-                  aws lambda update-function-configuration --function-name deleteSessionBatchFromOpenSearch \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
-                  aws lambda update-function-configuration --function-name deleteSessionBatchFromS3 \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
-                  aws lambda update-function-configuration --function-name sendEmail \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
-            - name: Deploy getSessionIdsByQuery
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: getSessionIdsByQuery
-                  zip_file: backend/getSessionIdsByQuery.zip
-            - name: Deploy deleteSessionBatchFromPostgres
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: deleteSessionBatchFromPostgres
-                  zip_file: backend/deleteSessionBatchFromPostgres.zip
-            - name: Deploy deleteSessionBatchFromOpenSearch
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: deleteSessionBatchFromOpenSearch
-                  zip_file: backend/deleteSessionBatchFromOpenSearch.zip
-            - name: Deploy deleteSessionBatchFromS3
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: deleteSessionBatchFromS3
-                  zip_file: backend/deleteSessionBatchFromS3.zip
-            - name: Deploy sendEmail
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: sendEmail
-                  zip_file: backend/sendEmail.zip
-
-    deploy-digest-lambdas:
-        needs: migrate-database
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v3
-            - name: Setup Go
-              uses: actions/setup-go@v4
-              with:
-                  go-version-file: 'backend/go.mod'
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
-            - name: Build and zip
-              run: |
-                  cd backend/
-                  CGO_ENABLED=0 go build ./lambda-functions/digests/getProjectIds
-                  zip getProjectIds.zip getProjectIds
-                  CGO_ENABLED=0 go build ./lambda-functions/digests/getDigestData
-                  zip getDigestData.zip getDigestData
-                  CGO_ENABLED=0 go build ./lambda-functions/digests/sendDigestEmails
-                  zip sendDigestEmails.zip sendDigestEmails
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v2
-              with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws-region: us-east-2
-            - name: Update Lambda secrets
-              env:
-                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
-              run: |
-                  aws lambda update-function-configuration --function-name getProjectIds \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
-                  aws lambda update-function-configuration --function-name getDigestData \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
-                  aws lambda update-function-configuration --function-name sendDigestEmails \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
-            - name: Deploy getProjectIds
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: getProjectIds
-                  zip_file: backend/getProjectIds.zip
-            - name: Deploy getDigestData
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: getDigestData
-                  zip_file: backend/getDigestData.zip
-            - name: Deploy sendDigestEmails
-              uses: appleboy/lambda-action@v0.1.9
-              with:
-                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_region: us-east-2
-                  function_name: sendDigestEmails
-                  zip_file: backend/sendDigestEmails.zip
-
-    deploy_backend:
-        needs: migrate-database
-        runs-on: buildjet-2vcpu-ubuntu-2204-arm
-        steps:
-            - name: Check out the repo
-              uses: actions/checkout@v3
-
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v2
-              with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws-region: us-east-2
-            - name: Login to Amazon ECR
-              id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v1
-
-            - name: Build, tag, and push arm64 image to Amazon ECR
-              env:
-                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-                  ECR_REPOSITORY: highlight-production-ecr-repo
-                  IMAGE_TAG: ${{ github.sha }}
-              run: |
-                  docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f deploy/Dockerfile.prod.arm64 .
-                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64
-
-            # Edit and deploy private-graph
-            - name: Replace image label for private-graph task
-              id: image-private-graph
-              uses: aws-actions/amazon-ecs-render-task-definition@v1
-              with:
-                  task-definition: deploy/private-graph-task.json
-                  container-name: highlight-backend
-                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
-            - name: Deploy to Amazon ECS private-graph service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-              with:
-                  task-definition: ${{ steps.image-private-graph.outputs.task-definition }}
-                  service: private-graph-service
-                  cluster: highlight-production-cluster
-            # Edit and deploy public-graph
-            - name: Replace image label for public-graph task
-              id: image-public-graph
-              uses: aws-actions/amazon-ecs-render-task-definition@v1
-              with:
-                  task-definition: deploy/public-graph-task.json
-                  container-name: highlight-backend
-                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
-            - name: Deploy to Amazon ECS public-graph service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-              with:
-                  task-definition: ${{ steps.image-public-graph.outputs.task-definition }}
-                  service: public-graph-service
-                  cluster: highlight-production-cluster
-            # Edit and deploy worker
-            - name: Replace image label for worker task
-              id: image-worker
-              uses: aws-actions/amazon-ecs-render-task-definition@v1
-              with:
-                  task-definition: deploy/worker-task.json
-                  container-name: highlight-backend
-                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
-            - name: Deploy to Amazon ECS worker service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-              with:
-                  task-definition: ${{ steps.image-worker.outputs.task-definition }}
-                  service: worker-service-v2
-                  cluster: highlight-production-cluster
-            # Edit and deploy metric monitors
-            - name: Replace image label for metric monitors task
-              id: image-metric-monitor
-              uses: aws-actions/amazon-ecs-render-task-definition@v1
-              with:
-                  task-definition: deploy/metric-monitor-task.json
-                  container-name: highlight-backend
-                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
-            - name: Deploy to Amazon ECS metric monitor service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-              with:
-                  task-definition: ${{ steps.image-metric-monitor.outputs.task-definition }}
-                  service: metric-monitor
-                  cluster: highlight-production-cluster
-            # Edit and deploy log alerts
-            - name: Replace image label for log alerts task
-              id: image-log-alerts
-              uses: aws-actions/amazon-ecs-render-task-definition@v1
-              with:
-                  task-definition: deploy/log-alerts-task.json
-                  container-name: highlight-backend
-                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
-            - name: Deploy to Amazon ECS log alerts service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-              with:
-                  task-definition: ${{ steps.image-log-alerts.outputs.task-definition }}
-                  service: log-alerts-service
-                  cluster: highlight-production-cluster
-            # Edit and deploy public worker
-            - name: Replace image label for public worker service
-              id: image-public-worker
-              uses: aws-actions/amazon-ecs-render-task-definition@v1
-              with:
-                  task-definition: deploy/public-worker-service.json
-                  container-name: highlight-backend
-                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
-            - name: Deploy to Amazon ECS public worker service
-              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-              with:
-                  task-definition: ${{ steps.image-public-worker.outputs.task-definition }}
-                  service: public-worker-service
-                  cluster: highlight-production-cluster
+    #    migrate-database:
+    #        runs-on: ubuntu-latest
+    #        steps:
+    #            - name: Checkout
+    #              uses: actions/checkout@v3
+    #            - name: Setup Go
+    #              uses: actions/setup-go@v4
+    #              with:
+    #                  go-version-file: 'backend/go.mod'
+    #            - name: Install Doppler CLI
+    #              uses: dopplerhq/cli-action@v2
+    #            - name: Migrate database
+    #              run: |
+    #                  cd backend/
+    #                  make migrate
+    #              env:
+    #                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+    #
+    #    deploy-session-delete-lambdas:
+    #        needs: migrate-database
+    #        runs-on: ubuntu-latest
+    #        steps:
+    #            - name: Checkout
+    #              uses: actions/checkout@v3
+    #            - name: Setup Go
+    #              uses: actions/setup-go@v4
+    #              with:
+    #                  go-version-file: 'backend/go.mod'
+    #            - name: Install Doppler CLI
+    #              uses: dopplerhq/cli-action@v2
+    #            - name: Build and zip
+    #              run: |
+    #                  cd backend/
+    #                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/getSessionIdsByQuery
+    #                  zip getSessionIdsByQuery.zip getSessionIdsByQuery
+    #                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromPostgres
+    #                  zip deleteSessionBatchFromPostgres.zip deleteSessionBatchFromPostgres
+    #                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromOpenSearch
+    #                  zip deleteSessionBatchFromOpenSearch.zip deleteSessionBatchFromOpenSearch
+    #                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/deleteSessionBatchFromS3
+    #                  zip deleteSessionBatchFromS3.zip deleteSessionBatchFromS3
+    #                  CGO_ENABLED=0 go build ./lambda-functions/deleteSessions/sendEmail
+    #                  zip sendEmail.zip sendEmail
+    #            - name: Configure AWS credentials
+    #              uses: aws-actions/configure-aws-credentials@v2
+    #              with:
+    #                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #                  aws-region: us-east-2
+    #            - name: Update Lambda secrets
+    #              env:
+    #                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
+    #              run: |
+    #                  aws lambda update-function-configuration --function-name getSessionIdsByQuery \
+    #                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+    #                  aws lambda update-function-configuration --function-name deleteSessionBatchFromPostgres \
+    #                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+    #                  aws lambda update-function-configuration --function-name deleteSessionBatchFromOpenSearch \
+    #                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+    #                  aws lambda update-function-configuration --function-name deleteSessionBatchFromS3 \
+    #                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+    #                  aws lambda update-function-configuration --function-name sendEmail \
+    #                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+    #            - name: Deploy getSessionIdsByQuery
+    #              uses: appleboy/lambda-action@v0.1.9
+    #              with:
+    #                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #                  aws_region: us-east-2
+    #                  function_name: getSessionIdsByQuery
+    #                  zip_file: backend/getSessionIdsByQuery.zip
+    #            - name: Deploy deleteSessionBatchFromPostgres
+    #              uses: appleboy/lambda-action@v0.1.9
+    #              with:
+    #                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #                  aws_region: us-east-2
+    #                  function_name: deleteSessionBatchFromPostgres
+    #                  zip_file: backend/deleteSessionBatchFromPostgres.zip
+    #            - name: Deploy deleteSessionBatchFromOpenSearch
+    #              uses: appleboy/lambda-action@v0.1.9
+    #              with:
+    #                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #                  aws_region: us-east-2
+    #                  function_name: deleteSessionBatchFromOpenSearch
+    #                  zip_file: backend/deleteSessionBatchFromOpenSearch.zip
+    #            - name: Deploy deleteSessionBatchFromS3
+    #              uses: appleboy/lambda-action@v0.1.9
+    #              with:
+    #                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #                  aws_region: us-east-2
+    #                  function_name: deleteSessionBatchFromS3
+    #                  zip_file: backend/deleteSessionBatchFromS3.zip
+    #            - name: Deploy sendEmail
+    #              uses: appleboy/lambda-action@v0.1.9
+    #              with:
+    #                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #                  aws_region: us-east-2
+    #                  function_name: sendEmail
+    #                  zip_file: backend/sendEmail.zip
+    #
+    #    deploy-digest-lambdas:
+    #        needs: migrate-database
+    #        runs-on: ubuntu-latest
+    #        steps:
+    #            - name: Checkout
+    #              uses: actions/checkout@v3
+    #            - name: Setup Go
+    #              uses: actions/setup-go@v4
+    #              with:
+    #                  go-version-file: 'backend/go.mod'
+    #            - name: Install Doppler CLI
+    #              uses: dopplerhq/cli-action@v2
+    #            - name: Build and zip
+    #              run: |
+    #                  cd backend/
+    #                  CGO_ENABLED=0 go build ./lambda-functions/digests/getProjectIds
+    #                  zip getProjectIds.zip getProjectIds
+    #                  CGO_ENABLED=0 go build ./lambda-functions/digests/getDigestData
+    #                  zip getDigestData.zip getDigestData
+    #                  CGO_ENABLED=0 go build ./lambda-functions/digests/sendDigestEmails
+    #                  zip sendDigestEmails.zip sendDigestEmails
+    #            - name: Configure AWS credentials
+    #              uses: aws-actions/configure-aws-credentials@v2
+    #              with:
+    #                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #                  aws-region: us-east-2
+    #            - name: Update Lambda secrets
+    #              env:
+    #                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
+    #              run: |
+    #                  aws lambda update-function-configuration --function-name getProjectIds \
+    #                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+    #                  aws lambda update-function-configuration --function-name getDigestData \
+    #                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+    #                  aws lambda update-function-configuration --function-name sendDigestEmails \
+    #                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+    #            - name: Deploy getProjectIds
+    #              uses: appleboy/lambda-action@v0.1.9
+    #              with:
+    #                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #                  aws_region: us-east-2
+    #                  function_name: getProjectIds
+    #                  zip_file: backend/getProjectIds.zip
+    #            - name: Deploy getDigestData
+    #              uses: appleboy/lambda-action@v0.1.9
+    #              with:
+    #                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #                  aws_region: us-east-2
+    #                  function_name: getDigestData
+    #                  zip_file: backend/getDigestData.zip
+    #            - name: Deploy sendDigestEmails
+    #              uses: appleboy/lambda-action@v0.1.9
+    #              with:
+    #                  aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #                  aws_region: us-east-2
+    #                  function_name: sendDigestEmails
+    #                  zip_file: backend/sendDigestEmails.zip
+    #
+    #    deploy_backend:
+    #        needs: migrate-database
+    #        runs-on: buildjet-2vcpu-ubuntu-2204-arm
+    #        steps:
+    #            - name: Check out the repo
+    #              uses: actions/checkout@v3
+    #
+    #            - name: Configure AWS credentials
+    #              uses: aws-actions/configure-aws-credentials@v2
+    #              with:
+    #                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    #                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    #                  aws-region: us-east-2
+    #            - name: Login to Amazon ECR
+    #              id: login-ecr
+    #              uses: aws-actions/amazon-ecr-login@v1
+    #
+    #            - name: Build, tag, and push arm64 image to Amazon ECR
+    #              env:
+    #                  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+    #                  ECR_REPOSITORY: highlight-production-ecr-repo
+    #                  IMAGE_TAG: ${{ github.sha }}
+    #              run: |
+    #                  docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f deploy/Dockerfile.prod.arm64 .
+    #                  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64
+    #
+    #            # Edit and deploy private-graph
+    #            - name: Replace image label for private-graph task
+    #              id: image-private-graph
+    #              uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #              with:
+    #                  task-definition: deploy/private-graph-task.json
+    #                  container-name: highlight-backend
+    #                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+    #            - name: Deploy to Amazon ECS private-graph service
+    #              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #              with:
+    #                  task-definition: ${{ steps.image-private-graph.outputs.task-definition }}
+    #                  service: private-graph-service
+    #                  cluster: highlight-production-cluster
+    #            # Edit and deploy public-graph
+    #            - name: Replace image label for public-graph task
+    #              id: image-public-graph
+    #              uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #              with:
+    #                  task-definition: deploy/public-graph-task.json
+    #                  container-name: highlight-backend
+    #                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+    #            - name: Deploy to Amazon ECS public-graph service
+    #              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #              with:
+    #                  task-definition: ${{ steps.image-public-graph.outputs.task-definition }}
+    #                  service: public-graph-service
+    #                  cluster: highlight-production-cluster
+    #            # Edit and deploy worker
+    #            - name: Replace image label for worker task
+    #              id: image-worker
+    #              uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #              with:
+    #                  task-definition: deploy/worker-task.json
+    #                  container-name: highlight-backend
+    #                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+    #            - name: Deploy to Amazon ECS worker service
+    #              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #              with:
+    #                  task-definition: ${{ steps.image-worker.outputs.task-definition }}
+    #                  service: worker-service-v2
+    #                  cluster: highlight-production-cluster
+    #            # Edit and deploy metric monitors
+    #            - name: Replace image label for metric monitors task
+    #              id: image-metric-monitor
+    #              uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #              with:
+    #                  task-definition: deploy/metric-monitor-task.json
+    #                  container-name: highlight-backend
+    #                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+    #            - name: Deploy to Amazon ECS metric monitor service
+    #              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #              with:
+    #                  task-definition: ${{ steps.image-metric-monitor.outputs.task-definition }}
+    #                  service: metric-monitor
+    #                  cluster: highlight-production-cluster
+    #            # Edit and deploy log alerts
+    #            - name: Replace image label for log alerts task
+    #              id: image-log-alerts
+    #              uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #              with:
+    #                  task-definition: deploy/log-alerts-task.json
+    #                  container-name: highlight-backend
+    #                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+    #            - name: Deploy to Amazon ECS log alerts service
+    #              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #              with:
+    #                  task-definition: ${{ steps.image-log-alerts.outputs.task-definition }}
+    #                  service: log-alerts-service
+    #                  cluster: highlight-production-cluster
+    #            # Edit and deploy public worker
+    #            - name: Replace image label for public worker service
+    #              id: image-public-worker
+    #              uses: aws-actions/amazon-ecs-render-task-definition@v1
+    #              with:
+    #                  task-definition: deploy/public-worker-service.json
+    #                  container-name: highlight-backend
+    #                  image: ${{ steps.login-ecr.outputs.registry }}/highlight-production-ecr-repo:${{ github.sha }}.arm64
+    #            - name: Deploy to Amazon ECS public worker service
+    #              uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+    #              with:
+    #                  task-definition: ${{ steps.image-public-worker.outputs.task-definition }}
+    #                  service: public-worker-service
+    #                  cluster: highlight-production-cluster
 
     deploy_opentelemetry_collector:
         runs-on: buildjet-2vcpu-ubuntu-2204-arm
