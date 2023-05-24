@@ -18,8 +18,8 @@ import {
 } from '../../components/QuickstartContent/QuickstartContent'
 import {
 	IGNORED_DOCS_PATHS,
-	processDocPath,
 	removeOrderingPrefix,
+	trimMdPath,
 } from '../api/docs/github'
 
 import classNames from 'classnames'
@@ -199,7 +199,7 @@ export const getDocsPaths = async (
 				await getDocsPaths(fs_api, path.join(base, file_string)),
 			)
 		} else {
-			const pp = processDocPath(base, file_string)
+			const pp = trimMdPath(base, file_string)
 			const { data, links, content } = await readMarkdown(
 				fsp,
 				path.join(total_path || ''),
