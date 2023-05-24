@@ -187,7 +187,7 @@ export const getDocsPaths = async (
 	}
 	read.sort(sortByFilePrefix)
 	let paths: DocPath[] = []
-	for (var i = 0; i < read.length; i++) {
+	for (let i = 0; i < read.length; i++) {
 		const file_string = read[i]
 		if (IGNORED_DOCS_PATHS.has(file_string)) {
 			continue
@@ -1220,7 +1220,7 @@ const resolveEmbeddedLink = (
 	linkString: string,
 	relativePath: string,
 ): string => {
-	var absolutePath = path
+	let absolutePath = path
 		.resolve(relativePath, '..', linkString)
 		.replace('.md', '')
 	absolutePath = removeOrderingPrefix(absolutePath)
