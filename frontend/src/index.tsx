@@ -20,7 +20,6 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import {
-	useCreateAdminMutation,
 	useGetAdminLazyQuery,
 	useGetAdminRoleByProjectLazyQuery,
 	useGetAdminRoleLazyQuery,
@@ -42,7 +41,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { showIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
@@ -244,7 +243,7 @@ const AuthenticationRoleRouter = () => {
 	const { setLoadingState } = useAppLoadingContext()
 	const [getProjectQuery] = useGetProjectLazyQuery()
 
-	const [user, setUser] = useState<any>()
+	const [user, setUser] = useState(auth.currentUser)
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
 
 	useEffect(() => {
@@ -271,53 +270,36 @@ const AuthenticationRoleRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [adminData, authRole, projectId])
 
-	const [createAdminMutation, { called: createAdminCalled }] =
-		useCreateAdminMutation()
-
-	useEffect(() => {
-		const unsubscribeFirebase = auth.onAuthStateChanged(
-			async (user) => {
-				setUser(user)
-
-				const variables: any = {}
-				if (workspaceId) {
-					variables.workspace_id = workspaceId
-				} else if (projectId) {
-					variables.project_id = projectId
-				}
-
-				if (user) {
-					try {
-						// Try to create an admin if it's a new account. This can't be
-						// handled on the sign up form because this callback is triggered
-						// before the admin is created.
-						if (!user.emailVerified && !createAdminCalled) {
-							await createAdminMutation()
-						}
-					} finally {
-						if (!called) {
-							getAdminQuery({ variables })
-						} else {
-							refetch!()
-						}
-					}
-				} else {
-					setAuthRole(AuthRole.UNAUTHENTICATED)
-				}
-			},
-			(error) => {
-				H.consumeError(new Error(JSON.stringify(error)))
-				setAuthRole(AuthRole.UNAUTHENTICATED)
-			},
-		)
-
-		return () => {
-			unsubscribeFirebase()
+	const fetchAdmin = useCallback(() => {
+		console.log('::: fetchAdmin', !!user)
+		if (!user) {
+			return
 		}
 
-		// Don't rerun this more than necessary. Rerun if the project / workspace context changes.
-		// eslint-disable-next-line
+		const variables: any = {}
+		if (workspaceId) {
+			variables.workspace_id = workspaceId
+		} else if (projectId) {
+			variables.project_id = projectId
+		}
+
+		if (!called) {
+			getAdminQuery({ variables })
+		} else {
+			refetch!()
+		}
+	}, [called, getAdminQuery, projectId, refetch, user, workspaceId])
+
+	useEffect(() => {
+		fetchAdmin()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [getAdminQuery])
+
+	useEffect(() => {
+		return auth.onAuthStateChanged(setUser, (error) => {
+			H.consumeError(error)
+		})
+	}, [])
 
 	useEffect(() => {
 		// Check user exists here as well because adminData isn't cleared correctly
@@ -332,7 +314,6 @@ const AuthenticationRoleRouter = () => {
 			} else if (adminData) {
 				setAuthRole(AuthRole.AUTHENTICATED)
 			}
-			analytics.track('Authenticated')
 		} else if (adminError) {
 			setAuthRole(AuthRole.UNAUTHENTICATED)
 		}
@@ -364,7 +345,16 @@ const AuthenticationRoleRouter = () => {
 				isAuthLoading: isAuthLoading(authRole),
 				isLoggedIn: loggedIn,
 				isHighlightAdmin: isHighlightAdmin(authRole) && enableStaffView,
-				refetchAdmin: refetch,
+				fetchAdmin,
+				signIn: () => {
+					analytics.track('Authenticated')
+					fetchAdmin()
+				},
+				signOut: () => {
+					auth.signOut()
+					client.resetStore()
+					setAuthRole(AuthRole.UNAUTHENTICATED)
+				},
 			}}
 		>
 			<Helmet>

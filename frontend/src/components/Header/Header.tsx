@@ -115,7 +115,7 @@ export const useBillingHook = ({
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId } = useProjectId()
-	const { isLoggedIn } = useAuthContext()
+	const { admin, isLoggedIn, signOut } = useAuthContext()
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
@@ -128,7 +128,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 
 	const { toggleShowKeyboardShortcutsGuide, commandBarDialog } =
 		useGlobalContext()
-	const { admin } = useAuthContext()
 
 	const pages = [
 		{
@@ -650,7 +649,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											<Menu.Item
 												onClick={async () => {
 													try {
-														auth.signOut()
+														signOut()
 													} catch (e) {
 														console.log(e)
 													}
