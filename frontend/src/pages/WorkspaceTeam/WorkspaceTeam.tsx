@@ -8,7 +8,6 @@ import InviteMemberModal from '@pages/WorkspaceTeam/components/InviteMemberModal
 import { Authorization } from '@util/authorization/authorization'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
@@ -29,30 +28,6 @@ const WorkspaceTeam = () => {
 	})
 	const navigate = useNavigate()
 	const [showModal, toggleShowModal] = useToggle(false)
-
-	useHotkeys(
-		'm',
-		() => {
-			if (member_tab_key === 'members') {
-				return
-			}
-
-			navigate(`/w/${workspace_id}/team/members`)
-		},
-		[workspace_id, member_tab_key],
-	)
-
-	useHotkeys(
-		'p',
-		() => {
-			if (member_tab_key === 'invites') {
-				return
-			}
-
-			navigate(`/w/${workspace_id}/team/invites`)
-		},
-		[workspace_id, member_tab_key],
-	)
 
 	const TabContentContainer = ({ children }: { children: any }) => (
 		<Box mt="8">
