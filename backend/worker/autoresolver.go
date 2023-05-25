@@ -28,7 +28,10 @@ func (autoResolver *AutoResolver) AutoResolveStaleErrors(ctx context.Context) {
 
 	for _, projectFilterSettings := range projectFilterSettings {
 		log.WithContext(ctx).WithFields(
-			log.Fields{"project_id": projectFilterSettings.ProjectID}).Info("Finding stale errors for project")
+			log.Fields{
+				"project_id": projectFilterSettings.ProjectID,
+				"worker":     "autoresolver",
+			}).Info("Finding stale errors for project")
 		interval := projectFilterSettings.AutoResolveStaleErrorsDayInterval
 
 		project, err := autoResolver.store.GetProject(ctx, projectFilterSettings.ProjectID)
@@ -70,6 +73,7 @@ func (autoResolver *AutoResolver) resolveStaleErrorsForProject(ctx context.Conte
 			log.Fields{
 				"project_id":     project.ID,
 				"error_group_id": errorGroup.ID,
+				"worker":         "autoresolver",
 			}).Info("Autoresolving error group")
 
 		_, err := autoResolver.store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
