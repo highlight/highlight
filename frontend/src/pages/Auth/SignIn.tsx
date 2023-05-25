@@ -64,7 +64,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 				await createAdmin()
 			}
 
-			signIn()
+			await signIn()
 			navigate('/')
 		},
 		[createAdmin, navigate, signIn],

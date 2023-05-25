@@ -185,6 +185,7 @@ const AuthenticationRoleRouter = () => {
 			error: adminWError,
 			data: adminWData,
 			called: wCalled,
+			loading: wLoading,
 			refetch: wRefetch,
 		},
 	] = useGetAdminRoleLazyQuery()
@@ -195,6 +196,7 @@ const AuthenticationRoleRouter = () => {
 			error: adminPError,
 			data: adminPData,
 			called: pCalled,
+			loading: pLoading,
 			refetch: pRefetch,
 		},
 	] = useGetAdminRoleByProjectLazyQuery()
@@ -205,6 +207,7 @@ const AuthenticationRoleRouter = () => {
 			error: adminSError,
 			data: adminSData,
 			called: sCalled,
+			loading: sLoading,
 			refetch: sRefetch,
 		},
 	] = useGetAdminLazyQuery()
@@ -217,6 +220,7 @@ const AuthenticationRoleRouter = () => {
 		adminData: Admin | undefined | null,
 		adminRole: string | undefined,
 		called: boolean,
+		loading: boolean,
 		refetch: typeof wRefetch | typeof pRefetch | typeof sRefetch
 	if (workspaceId) {
 		getAdminQuery = getAdminWorkspaceRoleQuery
@@ -224,6 +228,7 @@ const AuthenticationRoleRouter = () => {
 		adminData = adminWData?.admin_role?.admin
 		adminRole = adminWData?.admin_role?.role
 		called = wCalled
+		loading = wLoading
 		refetch = wRefetch
 	} else if (projectId) {
 		getAdminQuery = getAdminProjectRoleQuery
@@ -231,12 +236,14 @@ const AuthenticationRoleRouter = () => {
 		adminData = adminPData?.admin_role_by_project?.admin
 		adminRole = adminPData?.admin_role_by_project?.role
 		called = pCalled
+		loading = pLoading
 		refetch = pRefetch
 	} else {
 		getAdminQuery = getAdminSimpleQuery
 		adminError = adminSError
 		adminData = adminSData?.admin
 		called = sCalled
+		loading = sLoading
 		refetch = sRefetch
 	}
 
@@ -247,47 +254,37 @@ const AuthenticationRoleRouter = () => {
 	const [user, setUser] = useState(auth.currentUser)
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
 
-	const updateAuthRole = useCallback(() => {
-		if (adminError || !user) {
-			setAuthRole(AuthRole.UNAUTHENTICATED)
-		} else if (adminData) {
+	useEffect(() => {
+		if (adminData && user) {
 			setAuthRole(AuthRole.AUTHENTICATED)
+		} else if (adminError) {
+			setAuthRole(AuthRole.UNAUTHENTICATED)
 		}
-
-		setLoadingState(AppLoadingState.LOADED)
-	}, [adminError, user, adminData, setLoadingState])
+	}, [adminData, adminError, user])
 
 	const fetchAdmin = useCallback(async () => {
-		if (user) {
-			const variables: any = {}
-			if (workspaceId) {
-				variables.workspace_id = workspaceId
-			} else if (projectId) {
-				variables.project_id = projectId
-			}
-
-			if (!called) {
-				await getAdminQuery({ variables })
-			} else {
-				await refetch!()
-			}
+		if (loading) {
+			return
 		}
 
-		updateAuthRole()
-	}, [
-		updateAuthRole,
-		called,
-		getAdminQuery,
-		projectId,
-		refetch,
-		user,
-		workspaceId,
-	])
+		const variables: any = {}
+		if (workspaceId) {
+			variables.workspace_id = workspaceId
+		} else if (projectId) {
+			variables.project_id = projectId
+		}
+
+		if (!called) {
+			await getAdminQuery({ variables })
+		} else {
+			await refetch!()
+		}
+	}, [called, getAdminQuery, loading, projectId, refetch, workspaceId])
 
 	useEffect(() => {
 		// Don't try to fetch the admin unless Firebase has initialized and we know
 		// whether the user is logged in.
-		if (firebaseAuthInitialized.current) {
+		if (firebaseAuthInitialized.current && user) {
 			fetchAdmin()
 		}
 
@@ -297,17 +294,17 @@ const AuthenticationRoleRouter = () => {
 
 	useEffect(() => {
 		return auth.onAuthStateChanged(
-			(user) => {
+			async (user) => {
 				setUser(user)
-				firebaseAuthInitialized.current = true
 
 				if (user) {
-					fetchAdmin()
+					await fetchAdmin()
 				} else {
-					// If the user is not logged in, don't wait for the admin query to
-					// finish before assigning the auth role.
-					updateAuthRole()
+					setAuthRole(AuthRole.UNAUTHENTICATED)
 				}
+
+				firebaseAuthInitialized.current = true
+				setLoadingState(AppLoadingState.LOADED)
 			},
 			(error) => {
 				H.consumeError(error)
@@ -368,9 +365,8 @@ const AuthenticationRoleRouter = () => {
 				isHighlightAdmin:
 					onlyAllowHighlightStaff(adminData) && enableStaffView,
 				fetchAdmin,
-				signIn: () => {
+				signIn: async () => {
 					analytics.track('Authenticated')
-					fetchAdmin()
 				},
 				signOut: () => {
 					auth.signOut()
