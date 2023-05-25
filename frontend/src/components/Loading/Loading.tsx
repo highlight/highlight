@@ -5,7 +5,7 @@ import {
 } from '@context/AppLoadingContext'
 import SvgHighlightLogoWithNoBackground from '@icons/HighlightLogoWithNoBackground'
 import { Spin } from 'antd'
-import classNames from 'classnames'
+import clsx from 'clsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import React from 'react'
 import BarLoader from 'react-spinners/BarLoader'
@@ -65,7 +65,7 @@ export const LoadingPage = React.memo<{ show?: boolean; className?: string }>(
 					].includes(loadingState)) && (
 					<motion.div
 						key="loadingWrapper"
-						className={classNames(styles.loadingWrapper, className)}
+						className={clsx(styles.loadingWrapper, className)}
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0, display: 'none' }}

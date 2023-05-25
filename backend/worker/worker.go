@@ -369,14 +369,6 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
-	case kafkaqueue.MarkBackendSetup:
-		if task.MarkBackendSetup == nil {
-			break
-		}
-		if err := w.PublicResolver.MarkBackendSetupImpl(ctx, task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SessionSecureID, task.MarkBackendSetup.ProjectID, task.MarkBackendSetup.Type); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
 	case kafkaqueue.AddSessionFeedback:
 		if task.AddSessionFeedback == nil {
 			break
