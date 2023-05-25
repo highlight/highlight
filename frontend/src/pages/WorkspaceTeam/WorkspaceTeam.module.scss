@@ -1,7 +1,4 @@
 .titleContainer {
-	align-items: flex-start;
-	display: flex;
-	justify-content: space-between;
 	margin-bottom: var(--size-medium) !important;
 	margin-top: var(--size-xxLarge) !important;
 	max-width: 700px;
@@ -9,5 +6,23 @@
 	#subTitle {
 		margin-bottom: 0 !important;
 		margin-top: var(--size-xSmall) !important;
+	}
+}
+
+.tabTitle {
+	font-weight: 500 !important;
+}
+
+.teamTabs {
+	:global(.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn) {
+		color: var(--color-purple) !important;
+	}
+
+	:global(.ant-tabs-ink-bar) {
+		background: var(--color-purple) !important;
+	}
+
+	:global(.ant-tabs-tab) {
+		margin-left: 0 !important;
 	}
 }

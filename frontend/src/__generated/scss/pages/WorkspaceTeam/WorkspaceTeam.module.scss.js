@@ -1,1 +1,1 @@
-var e={titleContainer:"_titleContainer_1oin8_1",subTitle:"_subTitle_1oin8_1"};export{e as default};
+var o={titleContainer:"_titleContainer_ov5oy_1",subTitle:"_subTitle_ov5oy_1",tabTitle:"_tabTitle_ov5oy_11",teamTabs:"_teamTabs_ov5oy_15"};export{o as default};
