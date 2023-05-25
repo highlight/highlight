@@ -271,7 +271,6 @@ const AuthenticationRoleRouter = () => {
 	}, [adminData, authRole, projectId])
 
 	const fetchAdmin = useCallback(() => {
-		console.log('::: fetchAdmin', !!user)
 		if (!user) {
 			return
 		}
