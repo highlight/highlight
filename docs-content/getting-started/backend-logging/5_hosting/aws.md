@@ -35,10 +35,9 @@ Here's a sample task definition (based on the [AWS docs](https://github.com/aws-
       "logConfiguration": {
         "logDriver":"awsfirelens",
         "options": {
-          "Name": "highlight",
+          "Name": "Forward",
           "Host": "otel.highlight.io",
-          "TLS": "on",
-          "highlight.project_id": "<YOUR_PROJECT_ID>"
+          "Tag": "highlight.project_id=<YOUR_PROJECT_ID>"
         }
       }
     }
