@@ -62,10 +62,10 @@ export const SignUp: React.FC = () => {
 	const workspaceInvite = data?.workspace_for_invite_link
 
 	const handleSubmit = useCallback(
-		async (credential: firebase.auth.UserCredential) => {
-			if (credential.user?.email) {
+		async ({ user }: firebase.auth.UserCredential) => {
+			if (user?.email) {
 				analytics.track('Sign up', {
-					email: credential.user.email,
+					email: user.email,
 				})
 			}
 

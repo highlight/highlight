@@ -9,7 +9,6 @@ import {
 	AuthContextProvider,
 	AuthRole,
 	isAuthLoading,
-	isHighlightAdmin,
 	isLoggedIn,
 } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
@@ -34,7 +33,6 @@ import { BrowserTracing } from '@sentry/tracing'
 import analytics from '@util/analytics'
 import { getAttributionData, setAttributionData } from '@util/attribution'
 import { auth } from '@util/auth'
-import { HIGHLIGHT_ADMIN_EMAIL_DOMAINS } from '@util/authorization/authorizationUtils'
 import { showHiringMessage } from '@util/console/hiringMessage'
 import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
@@ -48,6 +46,8 @@ import { SkeletonTheme } from 'react-loading-skeleton'
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
+
+import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
 
 document.body.className = 'highlight-light-theme'
 
@@ -246,6 +246,81 @@ const AuthenticationRoleRouter = () => {
 	const [user, setUser] = useState(auth.currentUser)
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
 
+	const updateAuthRole = useCallback(() => {
+		if (adminError || !user) {
+			setAuthRole(AuthRole.UNAUTHENTICATED)
+		} else if (adminData) {
+			setAuthRole(AuthRole.AUTHENTICATED)
+		}
+
+		setLoadingState(AppLoadingState.LOADED)
+	}, [adminError, user, adminData, setLoadingState])
+
+	const fetchAdmin = useCallback(async () => {
+		if (user) {
+			const variables: any = {}
+			if (workspaceId) {
+				variables.workspace_id = workspaceId
+			} else if (projectId) {
+				variables.project_id = projectId
+			}
+
+			if (!called) {
+				await getAdminQuery({ variables })
+			} else {
+				await refetch!()
+			}
+		}
+
+		updateAuthRole()
+	}, [
+		updateAuthRole,
+		called,
+		getAdminQuery,
+		projectId,
+		refetch,
+		user,
+		workspaceId,
+	])
+
+	useEffect(() => {
+		fetchAdmin()
+
+		// Only want to update adminData when the query changes.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [getAdminQuery])
+
+	useEffect(() => {
+		return auth.onAuthStateChanged(
+			(user) => {
+				setUser(user)
+
+				debugger
+				if (user) {
+					fetchAdmin()
+				} else {
+					// If the user is not logged in, don't wait for the admin query to
+					// finish before assigning the auth role.
+					updateAuthRole()
+				}
+			},
+			(error) => {
+				H.consumeError(error)
+			},
+		)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
+	useEffect(() => {
+		if (authRole === AuthRole.UNAUTHENTICATED) {
+			setLoadingState(
+				isAuthLoading(authRole)
+					? AppLoadingState.LOADING
+					: AppLoadingState.LOADED,
+			)
+		}
+	}, [authRole, setLoadingState])
+
 	useEffect(() => {
 		// Wait until auth is finished loading otherwise this request can fail.
 		if (!adminData || !projectId || isAuthLoading(authRole)) {
@@ -270,66 +345,6 @@ const AuthenticationRoleRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [adminData, authRole, projectId])
 
-	const fetchAdmin = useCallback(() => {
-		if (!user) {
-			return
-		}
-
-		const variables: any = {}
-		if (workspaceId) {
-			variables.workspace_id = workspaceId
-		} else if (projectId) {
-			variables.project_id = projectId
-		}
-
-		if (!called) {
-			getAdminQuery({ variables })
-		} else {
-			refetch!()
-		}
-	}, [called, getAdminQuery, projectId, refetch, user, workspaceId])
-
-	useEffect(() => {
-		fetchAdmin()
-
-		// Only want to update adminData when the query changes.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [getAdminQuery])
-
-	useEffect(() => {
-		return auth.onAuthStateChanged(setUser, (error) => {
-			H.consumeError(error)
-		})
-	}, [])
-
-	useEffect(() => {
-		// Check user exists here as well because adminData isn't cleared correctly
-		// when a user logs out.
-		if (adminData && user) {
-			if (
-				HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) =>
-					adminData?.email.includes(d),
-				)
-			) {
-				setAuthRole(AuthRole.AUTHENTICATED_HIGHLIGHT)
-			} else if (adminData) {
-				setAuthRole(AuthRole.AUTHENTICATED)
-			}
-		} else if (adminError || !user) {
-			setAuthRole(AuthRole.UNAUTHENTICATED)
-		}
-	}, [adminError, adminData, user])
-
-	useEffect(() => {
-		if (authRole === AuthRole.UNAUTHENTICATED) {
-			setLoadingState(
-				isAuthLoading(authRole)
-					? AppLoadingState.LOADING
-					: AppLoadingState.LOADED,
-			)
-		}
-	}, [authRole, setLoadingState])
-
 	const [enableStaffView] = useLocalStorage(
 		`highlight-enable-staff-view`,
 		true,
@@ -345,7 +360,8 @@ const AuthenticationRoleRouter = () => {
 				workspaceRole: adminRole || undefined,
 				isAuthLoading: isAuthLoading(authRole),
 				isLoggedIn: loggedIn,
-				isHighlightAdmin: isHighlightAdmin(authRole) && enableStaffView,
+				isHighlightAdmin:
+					onlyAllowHighlightStaff(adminData) && enableStaffView,
 				fetchAdmin,
 				signIn: () => {
 					analytics.track('Authenticated')
@@ -354,7 +370,7 @@ const AuthenticationRoleRouter = () => {
 				signOut: () => {
 					auth.signOut()
 					client.resetStore()
-					setAuthRole(AuthRole.UNAUTHENTICATED)
+					updateAuthRole()
 				},
 			}}
 		>
