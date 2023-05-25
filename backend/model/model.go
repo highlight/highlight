@@ -796,18 +796,18 @@ type MessagesObject struct {
 }
 
 type Metric struct {
-	CreatedAt     time.Time `json:"created_at" deep:"-" gorm:"index"`
+	CreatedAt     time.Time `json:"created_at" deep:"-"`
 	MetricGroupID int       `gorm:"index"`
-	Name          string    `gorm:"index;not null;"`
-	Value         float64   `gorm:"index"`
-	Category      string    `gorm:"index"`
+	Name          string
+	Value         float64
+	Category      string
 }
 
 type MetricGroup struct {
-	ID        int       `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
-	GroupName string    // index with session_id
-	SessionID int       // index with Name
-	ProjectID int       `gorm:"index;not null;"`
+	ID        int `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	GroupName string
+	SessionID int
+	ProjectID int
 	Metrics   []*Metric `gorm:"foreignKey:MetricGroupID;"`
 }
 
