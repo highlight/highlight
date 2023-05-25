@@ -52,79 +52,71 @@ const AllMembers = ({
 	const [changeAdminRole] = useChangeAdminRoleMutation()
 
 	return (
-		<>
-			<div className={styles.membersTitleContainer}>
-				<h4 className={styles.membersTitle}>All members</h4>
-			</div>
-			<div className={clsx(styles.memberCardWrapper, 'highlight-mask')}>
-				<Card noPadding>
-					<Table
-						columns={
-							checkPolicyAccess({
-								policyName: POLICY_NAMES.RolesUpdate,
+		<div className={clsx(styles.memberCardWrapper, 'highlight-mask')}>
+			<Card noPadding>
+				<Table
+					columns={
+						checkPolicyAccess({
+							policyName: POLICY_NAMES.RolesUpdate,
+						})
+							? TABLE_COLUMNS
+							: TABLE_COLUMNS.slice(0, 2)
+					}
+					loading={loading}
+					dataSource={admins?.map((wa: WorkspaceAdminRole) => ({
+						name: wa.admin?.name,
+						email: wa.admin?.email,
+						role: wa.role,
+						photoUrl: wa.admin?.photo_url,
+						id: wa.admin?.id,
+						isSameAdmin: wa.admin?.id === admin?.id,
+						onDeleteHandler: () => {
+							if (!workspaceId) {
+								return
+							}
+							deleteAdminFromWorkspace({
+								variables: {
+									admin_id: wa.admin!.id,
+									workspace_id: workspaceId!,
+								},
+								refetchQueries: [
+									namedOperations.Query.GetWorkspaceAdmins,
+								],
 							})
-								? TABLE_COLUMNS
-								: TABLE_COLUMNS.slice(0, 2)
-						}
-						loading={loading}
-						dataSource={admins?.map((wa: WorkspaceAdminRole) => ({
-							name: wa.admin?.name,
-							email: wa.admin?.email,
-							role: wa.role,
-							photoUrl: wa.admin?.photo_url,
-							id: wa.admin?.id,
-							isSameAdmin: wa.admin?.id === admin?.id,
-							onDeleteHandler: () => {
-								if (!workspaceId) {
-									return
-								}
-								deleteAdminFromWorkspace({
-									variables: {
-										admin_id: wa.admin!.id,
-										workspace_id: workspaceId!,
-									},
-									refetchQueries: [
-										namedOperations.Query
-											.GetWorkspaceAdmins,
-									],
-								})
-							},
-							onUpdateRoleHandler: (new_role: string) => {
-								changeAdminRole({
-									variables: {
-										admin_id: wa.admin!.id,
-										workspace_id: workspaceId!,
-										new_role,
-									},
-								})
+						},
+						onUpdateRoleHandler: (new_role: string) => {
+							changeAdminRole({
+								variables: {
+									admin_id: wa.admin!.id,
+									workspace_id: workspaceId!,
+									new_role,
+								},
+							})
 
-								let messageText = ''
-								const displayName =
-									wa.admin?.name ||
-									getDisplayNameFromEmail(
-										wa.admin?.email || '',
-									)
-								switch (new_role) {
-									case AdminRole.Admin:
-										messageText = `${displayName} has been granted Admin powers 🧙`
-										break
-									case AdminRole.Member:
-										messageText = `${displayName} no longer has admin access.`
-										break
-								}
-								message.success(messageText)
-							},
-							canUpdateAdminRole: checkPolicyAccess({
-								policyName: POLICY_NAMES.RolesUpdate,
-							}),
-						}))}
-						pagination={false}
-						showHeader={false}
-						rowHasPadding
-					/>
-				</Card>
-			</div>
-		</>
+							let messageText = ''
+							const displayName =
+								wa.admin?.name ||
+								getDisplayNameFromEmail(wa.admin?.email || '')
+							switch (new_role) {
+								case AdminRole.Admin:
+									messageText = `${displayName} has been granted Admin powers 🧙`
+									break
+								case AdminRole.Member:
+									messageText = `${displayName} no longer has admin access.`
+									break
+							}
+							message.success(messageText)
+						},
+						canUpdateAdminRole: checkPolicyAccess({
+							policyName: POLICY_NAMES.RolesUpdate,
+						}),
+					}))}
+					pagination={false}
+					showHeader={false}
+					rowHasPadding
+				/>
+			</Card>
+		</div>
 	)
 }
 
