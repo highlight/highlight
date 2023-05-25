@@ -7,7 +7,7 @@ import {
 	parseLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
 import moment from 'moment'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 
 export type LogEdgeWithError = LogEdge & {
 	error_object?: Pick<
@@ -38,8 +38,8 @@ export const useGetLogs = ({
 	// If the user scrolls forward to get the next 100 logs, the server will say that hasPreviousPage is `true` since we're on page 2.
 	// Hence, we track the initial information (where "window" is effectively multiple pages) to ensure we aren't making requests unnecessarily.
 	const [windowInfo, setWindowInfo] = useState<PageInfo>({
-		hasNextPage: false,
-		hasPreviousPage: false,
+		hasNextPage: true,
+		hasPreviousPage: true,
 		startCursor: '', // unused but needed for typedef
 		endCursor: '', // unused but needed for typedef
 	})
@@ -63,12 +63,6 @@ export const useGetLogs = ({
 		},
 		fetchPolicy: 'cache-and-network',
 	})
-
-	useEffect(() => {
-		if (data) {
-			setWindowInfo(data.logs.pageInfo)
-		}
-	}, [data])
 
 	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({
 		variables: { log_cursors: data?.logs.edges.map((e) => e.cursor) || [] },
