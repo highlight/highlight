@@ -65,7 +65,6 @@
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},
 	"devDependencies": {
-		"@vanilla-extract/esbuild-plugin": "^2.2.1",
 		"chalk": "^5.0.1",
 		"chokidar": "^3.5.3",
 		"cypress": "^12.9.0",
