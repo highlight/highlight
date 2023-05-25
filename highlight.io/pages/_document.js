@@ -34,21 +34,15 @@ class HighlightDocument extends Document {
 						strategy="afterInteractive"
 						src="//js.hs-scripts.com/20473940.js"
 					></Script>
-					<Script
-						src="https://www.googletagmanager.com/gtag/js?id=AW-10833687189"
-						strategy="afterInteractive"
-					/>
 					<Script id="google-analytics" strategy="afterInteractive">
 						{`
-                        function gtag() {
-                            (window.dataLayer || []).push(arguments);
-                        }
-
-                        gtag('set', 'linker', {
-                            'domains': ['app.highlight.io']
-                        });
-                        gtag('js', new Date());
-                        gtag('config', 'AW-10833687189');
+                        <!-- Google Tag Manager -->
+						(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+						new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+						j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+						'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+						})(window,document,'script','dataLayer','GTM-PT4CCQ4');
+						<!-- End Google Tag Manager -->
                         window.gtag = gtag
                     `}
 					</Script>
@@ -62,6 +56,14 @@ class HighlightDocument extends Document {
 					<NextScript />
 				</Head>
 				<body style={{ overflowX: 'hidden' }}>
+					<noscript>
+						<iframe
+							src="https://www.googletagmanager.com/ns.html?id=GTM-PT4CCQ4"
+							height="0"
+							width="0"
+							style="display:none;visibility:hidden"
+						></iframe>
+					</noscript>
 					<Main />
 				</body>
 			</Html>
