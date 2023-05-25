@@ -29,5 +29,7 @@ export const [useAuthContext, AuthContextProvider] = createContext<{
 	isAuthLoading: boolean
 	isLoggedIn: boolean
 	isHighlightAdmin: boolean
-	refetchAdmin: () => Promise<any>
+	signIn: () => void
+	signOut: () => void
+	fetchAdmin: () => void
 }>('AuthContext')

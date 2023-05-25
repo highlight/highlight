@@ -17,6 +17,7 @@ import firebase from 'firebase/compat/app'
 import React, { useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import { SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
 
 type Props = {
@@ -27,6 +28,7 @@ type Props = {
 
 export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const navigate = useNavigate()
+	const { signIn } = useAuthContext()
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
@@ -46,6 +48,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	})
 	const workspaceInvite = data?.workspace_for_invite_link
 
+	const handleAuth = useCallback(() => {
+		signIn()
+	}, [signIn])
+
 	const handleAuthError = useCallback(
 		(error: firebase.auth.MultiFactorError) => {
 			let errorMessage = error.message
@@ -62,6 +68,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			}
 
 			setError(errorMessage)
+			setLoading(false)
 		},
 		[navigate, setResolver],
 	)
@@ -77,11 +84,8 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					formState.values.email,
 					formState.values.password,
 				)
-					.then(() => {})
-					.catch((e) => {
-						handleAuthError(e)
-						setLoading(false)
-					})
+					.then(handleAuth)
+					.catch(handleAuthError)
 			}}
 		>
 			<AuthHeader>
@@ -161,9 +165,9 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						type="button"
 						trackingId="sign-in-with-google"
 						onClick={() => {
-							auth.signInWithPopup(auth.googleProvider!).catch(
-								handleAuthError,
-							)
+							auth.signInWithPopup(auth.googleProvider!)
+								.then(handleAuth)
+								.catch(handleAuthError)
 						}}
 					>
 						<Box display="flex" alignItems="center" gap="6">

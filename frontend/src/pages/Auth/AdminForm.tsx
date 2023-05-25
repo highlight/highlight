@@ -48,7 +48,7 @@ export const AdminForm: React.FC = () => {
 	const { refetch: refetchProjects } = useGetProjectsAndWorkspacesQuery()
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
 	const { setLoadingState } = useAppLoadingContext()
-	const { admin, refetchAdmin } = useAuthContext()
+	const { admin, fetchAdmin } = useAuthContext()
 	const navigate = useNavigate()
 	const { data: workspacesData, loading: workspacesLoading } =
 		useGetWorkspacesQuery()
@@ -142,7 +142,7 @@ export const AdminForm: React.FC = () => {
 			)
 
 			await refetchProjects()
-			await refetchAdmin() // updates admin in auth context
+			await fetchAdmin() // updates admin in auth context
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)
