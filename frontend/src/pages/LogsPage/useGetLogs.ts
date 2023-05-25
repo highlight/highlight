@@ -7,7 +7,7 @@ import {
 	parseLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
 import moment from 'moment'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 export type LogEdgeWithError = LogEdge & {
 	error_object?: Pick<
@@ -29,7 +29,7 @@ export const useGetLogs = ({
 	startDate: Date
 	endDate: Date
 }) => {
-	const [hasNextPage, setHasNextPage] = useState(true)
+	const [hasNextPage, setHasNextPage] = useState(false)
 	const [hasPreviousPage, setHasPreviousPage] = useState(false)
 	const [loadingAfter, setLoadingAfter] = useState(false)
 	const [loadingBefore, setLoadingBefore] = useState(false)
@@ -51,6 +51,13 @@ export const useGetLogs = ({
 		},
 		fetchPolicy: 'cache-and-network',
 	})
+
+	useEffect(() => {
+		if (data) {
+			setHasNextPage(data.logs.pageInfo.hasNextPage)
+			setHasPreviousPage(data.logs.pageInfo.hasPreviousPage)
+		}
+	}, [data])
 
 	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({
 		variables: { log_cursors: data?.logs.edges.map((e) => e.cursor) || [] },
