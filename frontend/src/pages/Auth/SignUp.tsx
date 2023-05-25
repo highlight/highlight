@@ -25,6 +25,7 @@ import React, { useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
+import { VERIFY_EMAIL_PATH } from '@/routers/AppRouter/AppRouter'
 
 export const SignUp: React.FC = () => {
 	const navigate = useNavigate()
@@ -62,17 +63,17 @@ export const SignUp: React.FC = () => {
 
 	const handleSubmit = useCallback(
 		async (credential: firebase.auth.UserCredential) => {
-			await createAdmin()
-			message.success('Account created succesfully!')
-			signIn()
-
 			if (credential.user?.email) {
 				analytics.track('Sign up', {
 					email: credential.user.email,
 				})
 			}
 
-			navigate('/verify_email', { replace: true })
+			await createAdmin()
+			message.success('Account created succesfully!')
+
+			signIn()
+			navigate(VERIFY_EMAIL_PATH, { replace: true })
 		},
 		[createAdmin, navigate, signIn],
 	)
