@@ -271,7 +271,7 @@ const AuthenticationRoleRouter = () => {
 	}, [adminData, adminError, user])
 
 	const fetchAdmin = useCallback(async () => {
-		if (loading) {
+		if (loading || !user) {
 			return
 		}
 
@@ -287,7 +287,7 @@ const AuthenticationRoleRouter = () => {
 		} else {
 			await refetch!()
 		}
-	}, [called, getAdminQuery, loading, projectId, refetch, workspaceId])
+	}, [called, getAdminQuery, loading, projectId, refetch, user, workspaceId])
 
 	useEffect(() => {
 		// Don't try to fetch the admin unless Firebase has initialized and we know
