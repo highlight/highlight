@@ -43,7 +43,7 @@ const WorkspaceTeam = () => {
 	)
 
 	useHotkeys(
-		'i',
+		'p',
 		() => {
 			if (member_tab_key === 'invites') {
 				return
