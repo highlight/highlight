@@ -6,7 +6,7 @@ import { Badge, Box, IconSolidUserAdd, Stack } from '@highlight-run/ui'
 import AllMembers from '@pages/WorkspaceTeam/components/AllMembers'
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import InviteMemberModal from '@pages/WorkspaceTeam/components/InviteMemberModal'
-import PendingInvites from '@pages/WorkspaceTeam/components/PendingInvites'
+import { PendingInvites } from '@pages/WorkspaceTeam/components/PendingInvites'
 import { Authorization } from '@util/authorization/authorization'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
@@ -117,7 +117,6 @@ const WorkspaceTeam = () => {
 									/>
 								</TabContentContainer>
 							),
-							disabled: true,
 						},
 					]}
 				/>
