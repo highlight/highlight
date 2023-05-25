@@ -14,7 +14,6 @@ import styles from './AllMembers.module.scss'
 
 const PendingInvites = ({ workspaceId }: { workspaceId?: string }) => {
 	const { checkPolicyAccess } = useAuthorization()
-	// TODO(spenny): make request for pending invites
 	const { data, loading, error } = useGetWorkspacePendingInvitesQuery({
 		variables: { workspace_id: workspaceId! },
 		skip: !workspaceId,
@@ -39,8 +38,10 @@ const PendingInvites = ({ workspaceId }: { workspaceId?: string }) => {
 					dataSource={data?.workspace_pending_invites?.map(
 						(invite) => ({
 							email: invite.invitee_email,
+							// TODO(spenny): use created at date instead of expiration date
 							expirationDate: invite.expiration_date,
 							id: invite.id,
+							// TODO(spenny): add delete handler
 							onDeleteHandler: () => null,
 						}),
 					)}

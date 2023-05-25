@@ -2089,6 +2089,7 @@ query GetProjectSettings($projectId: ID!) {
 	}
 }
 
+# TODO(spenny): grab created at date instead of expiration date
 query GetWorkspacePendingInvites($workspace_id: ID!) {
 	workspace_pending_invites(workspace_id: $workspace_id) {
 		id
