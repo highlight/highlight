@@ -6,6 +6,8 @@ export const config = {
 	runtime: 'edge',
 }
 
+//Example query: https://highlight.io/api/og/blog/highlight-launch-week-day-5?title=Day+5%3A+Our+Partners+%26+Supporters&fname=Vadim&lname=Korolik&role=Co-Founder+%26+CTO
+//This query is sent from each blog slug to generate the og image
 export default async function handler(req: NextRequest) {
 	const query = req.nextUrl.href
 	const fontData = await font
@@ -21,19 +23,11 @@ export default async function handler(req: NextRequest) {
 		req.url,
 	)?.pathname.groups.slug
 
-	const title = slug
-		?.replaceAll('--', ' ')
-		.split(' ')
-		.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-		.join(' ')
-
 	const url = new URL(query)
+	const title = url.searchParams.get('title')
 	const firstName = url.searchParams.get('fname')
 	const lastName = url.searchParams.get('lname')
 	const role = url.searchParams.get('role')
-
-	// const post = (await GraphQLRequest<{ post?: Post }>(QUERY, { slug }, false))
-	// 	.post as Post | undefined
 
 	return new ImageResponse(
 		(

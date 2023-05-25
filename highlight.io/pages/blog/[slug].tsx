@@ -202,16 +202,24 @@ const PostPage = ({
 	const singleTag =
 		post.tags_relations.length === 1 ? post.tags_relations[0] : undefined
 
+	const params = new URLSearchParams()
+	params.set('title', post.title || '')
+	params.set('fname', post.author?.firstName || '')
+	params.set('lname', post.author?.lastName || '')
+	params.set('role', post.author?.title || '')
+
+	const metaImageURL = `https://${
+		process.env.NEXT_PUBLIC_VERCEL_URL
+	}/api/og/blog/${post.slug}?${params.toString()}`
+
+	console.log(metaImageURL)
+
 	return (
 		<>
 			<Meta
 				title={post.metaTitle || post.title}
 				description={post.metaDescription || post.description}
-				absoluteImageUrl={`https://${
-					process.env.NEXT_PUBLIC_VERCEL_URL
-				}/api/og/blog/${post.title?.replaceAll(' ', '--')}?fname=${
-					post.author?.firstName
-				}&lname=${post.author?.lastName}&role=${post.author?.title}`}
+				absoluteImageUrl={metaImageURL}
 				canonical={`/blog/${post.slug}`}
 			/>
 			<BlogNavbar
