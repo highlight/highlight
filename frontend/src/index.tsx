@@ -39,7 +39,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { showIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
@@ -258,9 +258,12 @@ const AuthenticationRoleRouter = () => {
 	const { setLoadingState } = useAppLoadingContext()
 	const [getProjectQuery] = useGetProjectLazyQuery()
 
-	const firebaseAuthInitialized = useRef(false)
 	const [user, setUser] = useState(auth.currentUser)
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
+
+	if (!user) {
+		adminData = null
+	}
 
 	useEffect(() => {
 		if (adminData && user) {
@@ -291,9 +294,7 @@ const AuthenticationRoleRouter = () => {
 
 	useEffect(() => {
 		const fetch = async () => {
-			// Don't try to fetch the admin unless Firebase has initialized and we
-			// know whether the user is logged in.
-			if (firebaseAuthInitialized.current && user) {
+			if (user) {
 				await fetchAdmin()
 				setLoadingState(AppLoadingState.LOADED)
 			}
@@ -313,8 +314,6 @@ const AuthenticationRoleRouter = () => {
 					setAuthRole(AuthRole.UNAUTHENTICATED)
 					setLoadingState(AppLoadingState.LOADED)
 				}
-
-				firebaseAuthInitialized.current = true
 			},
 			(error) => {
 				H.consumeError(error)
@@ -353,6 +352,7 @@ const AuthenticationRoleRouter = () => {
 	)
 
 	const loggedIn = isLoggedIn(authRole)
+	console.log('::: isLoggedIn', isLoggedIn)
 
 	return (
 		<AuthContextProvider
@@ -372,7 +372,7 @@ const AuthenticationRoleRouter = () => {
 					auth.signOut()
 					client.clearStore()
 					navigate(SIGN_IN_ROUTE)
-					analytics.track('Signed out')
+					analytics.track('Sign out')
 				},
 			}}
 		>

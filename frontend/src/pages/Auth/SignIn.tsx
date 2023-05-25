@@ -17,7 +17,7 @@ import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import useLocalStorage from '@rehooks/local-storage'
 import { auth } from '@util/auth'
 import firebase from 'firebase/compat/app'
-import React, { useCallback, useEffect } from 'react'
+import React, { useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
@@ -32,7 +32,7 @@ type Props = {
 
 export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const navigate = useNavigate()
-	const { admin, signIn } = useAuthContext()
+	const { signIn } = useAuthContext()
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
@@ -53,12 +53,6 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	})
 	const workspaceInvite = data?.workspace_for_invite_link
 
-	useEffect(() => {
-		if (admin) {
-			navigate('/')
-		}
-	}, [admin, navigate])
-
 	const handleAuth = useCallback(
 		async ({ additionalUserInfo, user }: firebase.auth.UserCredential) => {
 			if (additionalUserInfo?.isNewUser && user?.email) {
@@ -70,6 +64,8 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 				await createAdmin()
 			}
 
+			// After sign in the user is redirected because AuthRouter is unmounted
+			// and the ProjectRedirectionRouter takes its place.
 			signIn()
 		},
 		[createAdmin, signIn],
@@ -95,10 +91,6 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		},
 		[navigate, setResolver],
 	)
-
-	if (auth.currentUser) {
-		debugger
-	}
 
 	return (
 		<Form

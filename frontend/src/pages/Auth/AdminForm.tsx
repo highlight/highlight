@@ -14,7 +14,6 @@ import {
 	useUpdateAdminAboutYouDetailsMutation,
 	useUpdateAdminAndCreateWorkspaceMutation,
 } from '@graph/hooks'
-import { namedOperations } from '@graph/operations'
 import {
 	Box,
 	ButtonLink,
@@ -102,10 +101,6 @@ export const AdminForm: React.FC = () => {
 
 			if (inWorkspace) {
 				await updateAdminAboutYouDetails({
-					awaitRefetchQueries: true,
-					refetchQueries: [
-						namedOperations.Query.GetProjectsAndWorkspaces,
-					],
 					variables: {
 						adminDetails: {
 							first_name: formState.values.firstName,
@@ -118,10 +113,6 @@ export const AdminForm: React.FC = () => {
 				})
 			} else {
 				await updateAdminAndCreateWorkspace({
-					awaitRefetchQueries: true,
-					refetchQueries: [
-						namedOperations.Query.GetProjectsAndWorkspaces,
-					],
 					variables: {
 						admin_and_workspace_details: {
 							first_name: formState.values.firstName,
@@ -141,8 +132,9 @@ export const AdminForm: React.FC = () => {
 				`Nice to meet you ${formState.values.firstName}, let's get started!`,
 			)
 
-			await refetchProjects()
-			await fetchAdmin() // updates admin in auth context
+			refetchProjects()
+			fetchAdmin() // updates admin in auth context
+			navigate('/setup')
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)
