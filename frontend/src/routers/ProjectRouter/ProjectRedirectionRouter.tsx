@@ -43,7 +43,7 @@ export const ProjectRedirectionRouter = () => {
 		console.log('::: path', path, location.pathname)
 		// TODO: Handle other routes like sign_in
 		if (authRoutes.indexOf(path) > -1) {
-			path = ''
+			path = '/sessions'
 		}
 
 		redirectTo = `/${data!.projects[0]!.id}${path}`
