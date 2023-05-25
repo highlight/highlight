@@ -120,6 +120,9 @@ const WorkspaceTeam = () => {
 							Invite new users to your workspace or manage their
 							roles!
 						</p>
+						<Authorization allowedRoles={[AdminRole.Admin]}>
+							<AutoJoinForm label="Auto join" labelFirst />
+						</Authorization>
 					</div>
 					<Modal
 						destroyOnClose
@@ -227,14 +230,6 @@ const WorkspaceTeam = () => {
 							)}
 							onCopyTooltipText="Copied invite link to clipboard!"
 						/>
-						<Authorization allowedRoles={[AdminRole.Admin]}>
-							<hr className={styles.hr} />
-							<p className={styles.boxSubTitle}>
-								Or you can enable auto join to allow anyone with
-								an approved email origin join.
-							</p>
-							<AutoJoinForm />
-						</Authorization>
 					</Modal>
 					<Button
 						trackingId="WorkspaceTeamInviteMember"
@@ -243,6 +238,9 @@ const WorkspaceTeam = () => {
 					>
 						Invite Member
 					</Button>
+				</div>
+				<div className={styles.membersTitleContainer}>
+					<h4 className={styles.membersTitle}>All members</h4>
 				</div>
 				<div
 					className={clsx(styles.memberCardWrapper, 'highlight-mask')}

@@ -37776,6 +37776,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ky@npm:^0.33.3":
+  version: 0.33.3
+  resolution: "ky@npm:0.33.3"
+  checksum: d1869e1f33c0165355f621b6726fcc1a9de20a31f4a826ca0cfd5753d83b9cba8723402d554a00194e0ee3959e0dda0638f4b99d54a3a7de928b55ff870b0bcc
+  languageName: node
+  linkType: hard
+
 "lambdafs@npm:^2.0.3":
   version: 2.1.1
   resolution: "lambdafs@npm:2.1.1"
@@ -40722,6 +40729,7 @@ __metadata:
     eslint: 8.39.0
     eslint-config-next: 13.3.4
     highlight.run: "workspace:*"
+    ky: ^0.33.3
     next: 13.3.4
     next-build-id: ^3.0.0
     react: 18.2.0
