@@ -1,5 +1,6 @@
 import { ApolloError } from '@apollo/client'
-import { useCallback, useEffect, useState } from 'react'
+import { H } from 'highlight.run'
+import { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import { useLocalStorage } from 'react-use'
@@ -33,7 +34,6 @@ export const AuthenticationRoleRouter = () => {
 	const location = useLocation()
 	const workspaceId = /^\/w\/(\d+)\/.*$/.exec(location.pathname)?.pop()
 	const projectId = /^\/(\d+)\/.*$/.exec(location.pathname)?.pop()
-	const user = auth.currentUser
 
 	const [
 		getAdminWorkspaceRoleQuery,
@@ -65,7 +65,6 @@ export const AuthenticationRoleRouter = () => {
 		},
 	] = useGetAdminLazyQuery()
 
-	// TODO: Understand why we have the different get admin queries.
 	let getAdminQuery:
 			| typeof getAdminWorkspaceRoleQuery
 			| typeof getAdminProjectRoleQuery
@@ -99,6 +98,8 @@ export const AuthenticationRoleRouter = () => {
 
 	const { setLoadingState } = useAppLoadingContext()
 	const [getProjectQuery] = useGetProjectLazyQuery()
+
+	const [user, setUser] = useState(auth.currentUser)
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
 
 	useEffect(() => {
@@ -125,19 +126,44 @@ export const AuthenticationRoleRouter = () => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [adminData, authRole, projectId])
 
-	const fetchAdmin = useCallback(async () => {
-		const variables: any = {}
-		if (workspaceId) {
-			variables.workspace_id = workspaceId
-		} else if (projectId) {
-			variables.project_id = projectId
-		}
+	useEffect(() => {
+		const unsubscribeFirebase = auth.onAuthStateChanged(
+			async (user) => {
+				setUser(user)
 
-		const query = called
-			? await refetch(variables)
-			: await getAdminQuery({ variables })
+				if (user) {
+					const variables: any = {}
+					if (workspaceId) {
+						variables.workspace_id = workspaceId
+					} else if (projectId) {
+						variables.project_id = projectId
+					}
 
-		if (query.data) {
+					if (!called) {
+						getAdminQuery({ variables })
+					} else {
+						refetch!()
+					}
+				} else {
+					setAuthRole(AuthRole.UNAUTHENTICATED)
+				}
+			},
+			(error) => {
+				H.consumeError(new Error(JSON.stringify(error)))
+				setAuthRole(AuthRole.UNAUTHENTICATED)
+			},
+		)
+
+		return unsubscribeFirebase
+
+		// Don't rerun this more than necessary. Rerun if the project / workspace context changes.
+		// eslint-disable-next-line
+	}, [getAdminQuery])
+
+	useEffect(() => {
+		// A user is only considered logged in once we have their Firebase user and
+		// admin data from Postgres.
+		if (adminData && user) {
 			if (
 				HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) =>
 					adminData?.email.includes(d),
@@ -147,24 +173,10 @@ export const AuthenticationRoleRouter = () => {
 			} else {
 				setAuthRole(AuthRole.AUTHENTICATED)
 			}
-		} else {
+		} else if (adminError) {
 			setAuthRole(AuthRole.UNAUTHENTICATED)
 		}
-	}, [
-		adminData?.email,
-		called,
-		getAdminQuery,
-		projectId,
-		refetch,
-		workspaceId,
-	])
-
-	// TODO: Think about how we want to trigger an admin refetch when the user
-	// changes contexts.
-	useEffect(() => {
-		fetchAdmin()
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [getAdminQuery])
+	}, [adminError, adminData, user])
 
 	useEffect(() => {
 		if (authRole === AuthRole.UNAUTHENTICATED) {
@@ -182,7 +194,6 @@ export const AuthenticationRoleRouter = () => {
 	)
 
 	const loggedIn = isLoggedIn(authRole)
-	console.log('::: loggedIn', loggedIn, adminData)
 
 	return (
 		<AuthContextProvider
@@ -194,18 +205,14 @@ export const AuthenticationRoleRouter = () => {
 				isLoggedIn: loggedIn,
 				isHighlightAdmin:
 					isHighlightAdmin(authRole) && !!enableStaffView,
-				user,
+				refetchAdmin: refetch,
 				signIn: () => {
-					debugger
-					fetchAdmin()
 					analytics.track('Authenticated')
 				},
-				signOut: async () => {
-					await auth.signOut()
-					await fetchAdmin()
-					client.clearStore()
+				signOut: () => {
+					auth.signOut()
+					client.resetStore()
 				},
-				refetchAdmin: refetch,
 			}}
 		>
 			<Helmet>

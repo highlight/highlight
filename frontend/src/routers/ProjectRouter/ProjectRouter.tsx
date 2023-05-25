@@ -1,7 +1,6 @@
 import 'firebase/compat/auth'
 
 import { ApolloError } from '@apollo/client'
-import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { Header } from '@components/Header/Header'
 import KeyboardShortcutsEducation from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
@@ -34,6 +33,7 @@ import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
+import { useAuthContext } from '@/routers/AuthenticationRolerouter/context/AuthContext'
 import {
 	useClientIntegration,
 	useLogsIntegration,

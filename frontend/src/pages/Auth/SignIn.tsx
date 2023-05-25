@@ -68,14 +68,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		[navigate, setResolver],
 	)
 
-	const handleSignIn = useCallback(
-		(credential: firebase.auth.UserCredential) => {
-			if (credential.user) {
-				signIn()
-			}
-		},
-		[signIn],
-	)
+	const handleSignIn = useCallback(() => {
+		signIn()
+		navigate('/')
+	}, [navigate, signIn])
 
 	return (
 		<Form

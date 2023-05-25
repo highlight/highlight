@@ -1,5 +1,4 @@
 import { Admin } from '@graph/schemas'
-import { auth } from '@util/auth'
 import { createContext } from '@util/context/context'
 
 export enum AuthRole {
@@ -30,7 +29,6 @@ export const [useAuthContext, AuthContextProvider] = createContext<{
 	isAuthLoading: boolean
 	isLoggedIn: boolean
 	isHighlightAdmin: boolean
-	user: typeof auth.currentUser
 	signIn: () => void
 	signOut: () => void
 	refetchAdmin: () => Promise<any>

@@ -143,7 +143,6 @@ export const AdminForm: React.FC = () => {
 			)
 
 			await refetchProjects()
-			// TODO: Clean up and add redirect
 			await refetchAdmin() // updates admin in auth context
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
