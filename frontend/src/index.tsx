@@ -290,29 +290,31 @@ const AuthenticationRoleRouter = () => {
 	}, [called, getAdminQuery, loading, projectId, refetch, user, workspaceId])
 
 	useEffect(() => {
-		// Don't try to fetch the admin unless Firebase has initialized and we know
-		// whether the user is logged in.
-		if (firebaseAuthInitialized.current && user) {
-			fetchAdmin()
+		const fetch = async () => {
+			// Don't try to fetch the admin unless Firebase has initialized and we
+			// know whether the user is logged in.
+			if (firebaseAuthInitialized.current && user) {
+				await fetchAdmin()
+				setLoadingState(AppLoadingState.LOADED)
+			}
 		}
+		fetch()
 
 		// Only want to update adminData when the query changes.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [getAdminQuery])
+	}, [getAdminQuery, user])
 
 	useEffect(() => {
 		return auth.onAuthStateChanged(
 			async (user) => {
 				setUser(user)
 
-				if (user) {
-					await fetchAdmin()
-				} else {
+				if (!user) {
 					setAuthRole(AuthRole.UNAUTHENTICATED)
+					setLoadingState(AppLoadingState.LOADED)
 				}
 
 				firebaseAuthInitialized.current = true
-				setLoadingState(AppLoadingState.LOADED)
 			},
 			(error) => {
 				H.consumeError(error)

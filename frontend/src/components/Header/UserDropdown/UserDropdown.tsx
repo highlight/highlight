@@ -1,4 +1,3 @@
-import { useGetAdminQuery } from '@graph/hooks'
 import { client } from '@util/graph'
 import { Dropdown, Skeleton } from 'antd'
 import React from 'react'
@@ -16,17 +15,12 @@ interface Props {
 }
 
 export const UserDropdown = ({ border, workspaceId }: Props) => {
-	const { signOut } = useAuthContext()
-	const {
-		loading: a_loading,
-		error: a_error,
-		data: a_data,
-	} = useGetAdminQuery()
+	const { admin, signOut } = useAuthContext()
 
 	const menu = (
 		<div className={styles.dropdownMenu}>
 			<div className={styles.dropdownInner}>
-				{a_loading || a_error ? (
+				{!admin ? (
 					<Skeleton />
 				) : (
 					<>
@@ -34,20 +28,19 @@ export const UserDropdown = ({ border, workspaceId }: Props) => {
 							<div className={styles.avatarWrapper}>
 								<AdminAvatar
 									adminInfo={{
-										name: a_data?.admin?.name,
-										email: a_data?.admin?.email,
-										photo_url:
-											a_data?.admin?.photo_url ?? '',
+										name: admin?.name,
+										email: admin?.email,
+										photo_url: admin?.photo_url ?? '',
 									}}
 									size={40}
 								/>
 							</div>
 							<div className={styles.userCopy}>
 								<h4 className={styles.dropdownName}>
-									{a_data?.admin?.name}
+									{admin?.name}
 								</h4>
 								<p className={styles.dropdownEmail}>
-									{a_data?.admin?.email}
+									{admin?.email}
 								</p>
 							</div>
 						</div>
@@ -83,12 +76,12 @@ export const UserDropdown = ({ border, workspaceId }: Props) => {
 	return (
 		<Dropdown overlay={menu} placement="bottomRight" trigger={['click']}>
 			<div className={styles.accountIconWrapper}>
-				{a_data?.admin ? (
+				{admin ? (
 					<AdminAvatar
 						adminInfo={{
-							name: a_data?.admin?.name,
-							email: a_data?.admin?.email,
-							photo_url: a_data?.admin?.photo_url ?? '',
+							name: admin?.name,
+							email: admin?.email,
+							photo_url: admin?.photo_url ?? '',
 						}}
 						size={35}
 						border={border}
