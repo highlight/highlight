@@ -28,7 +28,6 @@ import { ProjectRedirectionRouter } from '@routers/ProjectRouter/ProjectRedirect
 import { ProjectRouter } from '@routers/ProjectRouter/ProjectRouter'
 import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
-import { auth } from '@util/auth'
 import { showIntercom } from '@util/window'
 import { omit } from 'lodash'
 import { useEffect, useState } from 'react'
@@ -53,6 +52,8 @@ import {
 	GetProjectDropdownOptionsQuery,
 	GetWorkspaceDropdownOptionsQuery,
 } from '@/graph/generated/operations'
+
+export const VERIFY_EMAIL_PATH = '/verify_email'
 
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
@@ -102,7 +103,7 @@ export const AppRouter = () => {
 
 	useEffect(() => {
 		if (admin && admin.email_verified === false) {
-			navigate('/verify_email', { replace: true })
+			navigate(VERIFY_EMAIL_PATH, { replace: true })
 			return
 		}
 
@@ -196,13 +197,11 @@ export const AppRouter = () => {
 						<Route path="/about_you" element={<AdminForm />} />
 					)}
 
-					{/*
-				Not using isLoggedIn because this is shown immediately after sign up and
-				there can be a state briefly where the user authenticated in Firebase
-				but their admin account isn't created yet.
-				*/}
-					{auth.currentUser && !admin?.email_verified && (
-						<Route path="/verify_email" element={<VerifyEmail />} />
+					{isLoggedIn && !admin?.email_verified && (
+						<Route
+							path={VERIFY_EMAIL_PATH}
+							element={<VerifyEmail />}
+						/>
 					)}
 
 					<Route
