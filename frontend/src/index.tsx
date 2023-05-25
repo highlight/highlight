@@ -217,7 +217,7 @@ const AuthenticationRoleRouter = () => {
 		adminData: Admin | undefined | null,
 		adminRole: string | undefined,
 		called: boolean,
-		refetch: any
+		refetch: typeof wRefetch | typeof pRefetch | typeof sRefetch
 	if (workspaceId) {
 		getAdminQuery = getAdminWorkspaceRoleQuery
 		adminError = adminWError
@@ -291,6 +291,8 @@ const AuthenticationRoleRouter = () => {
 
 	useEffect(() => {
 		fetchAdmin()
+
+		// Only want to update adminData when the query changes.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [getAdminQuery])
 
