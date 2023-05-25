@@ -29,14 +29,6 @@ service:
             receivers: [otlp]
             processors: [batch]
             exporters: [otlphttp]
-        metrics:
-            receivers: [otlp]
-            processors: [batch]
-            exporters: [otlphttp]
-        logs:
-            receivers: [otlp, fluentforward]
-            processors: [batch]
-            exporters: [otlphttp]
         traces/highlight:
             receivers: [otlp]
             processors: [batch]
@@ -45,6 +37,18 @@ service:
             receivers: [otlp]
             processors: [batch]
             exporters: [otlphttp/traceloop]
+        metrics:
+            receivers: [otlp]
+            processors: [batch]
+            exporters: [otlphttp]
+        logs:
+            receivers: [otlp, fluentforward]
+            processors: [batch]
+            exporters: [otlphttp]
+        logs/highlight:
+            receivers: [otlp, fluentforward]
+            processors: [batch]
+            exporters: [otlphttp/highlight]
 extensions:
     health_check:
         endpoint: '0.0.0.0:4319'
