@@ -53,7 +53,6 @@ import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
-import { client } from '@util/graph'
 import { titleCaseString } from '@util/string'
 import { showIntercom } from '@util/window'
 import clsx from 'clsx'
@@ -653,7 +652,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 													} catch (e) {
 														console.log(e)
 													}
-													await client.clearStore()
 												}}
 											>
 												<Box

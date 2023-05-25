@@ -324,16 +324,6 @@ const AuthenticationRoleRouter = () => {
 	}, [])
 
 	useEffect(() => {
-		if (authRole === AuthRole.UNAUTHENTICATED) {
-			setLoadingState(
-				isAuthLoading(authRole)
-					? AppLoadingState.LOADING
-					: AppLoadingState.LOADED,
-			)
-		}
-	}, [authRole, setLoadingState])
-
-	useEffect(() => {
 		// Wait until auth is finished loading otherwise this request can fail.
 		if (!adminData || !projectId || isAuthLoading(authRole)) {
 			return
@@ -380,7 +370,7 @@ const AuthenticationRoleRouter = () => {
 				},
 				signOut: () => {
 					auth.signOut()
-					client.resetStore()
+					client.clearStore()
 					navigate(SIGN_IN_ROUTE)
 					analytics.track('Signed out')
 				},

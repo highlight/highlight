@@ -1,4 +1,3 @@
-import { client } from '@util/graph'
 import { Dropdown, Skeleton } from 'antd'
 import React from 'react'
 import { FiLogOut } from 'react-icons/fi'
@@ -60,7 +59,6 @@ export const UserDropdown = ({ border, workspaceId }: Props) => {
 								} catch (e) {
 									console.log(e)
 								}
-								await client.clearStore()
 							}}
 						>
 							<span className={styles.dropdownLogoutText}>
