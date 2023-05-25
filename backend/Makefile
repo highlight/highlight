@@ -42,5 +42,7 @@ delete-completed-sessions:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=delete-completed-sessions)
 public-worker:
 		(go build; doppler run -- ./backend -runtime=worker -worker-handler=public-worker)
+auto-resolve-stale-errors:
+		(go build; doppler run -- ./backend -runtime=worker -worker-handler=auto-resolve-stale-errors)
 migrate:
 		(doppler run -- go run ./migrations/main.go)

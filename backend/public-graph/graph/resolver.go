@@ -20,6 +20,7 @@ import (
 	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
+	"github.com/highlight-run/highlight/backend/store"
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/PaesslerAG/jsonpath"
@@ -76,6 +77,7 @@ type Resolver struct {
 	Redis           *redis.Client
 	Clickhouse      *clickhouse.Client
 	RH              *resthooks.Resthook
+	Store           *store.Store
 }
 
 type Location struct {
@@ -3032,9 +3034,7 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 }
 
 func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
-	projectFilterSettings := model.ProjectFilterSettings{}
-
-	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
+	projectFilterSettings, _ := r.Store.GetProjectFilterSettings(project)
 
 	if projectFilterSettings.FilterSessionsWithoutError {
 		return !sessionHasErrors
