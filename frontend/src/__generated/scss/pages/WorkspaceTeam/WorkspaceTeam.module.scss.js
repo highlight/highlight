@@ -1,1 +1,1 @@
-var _={titleContainer:"_titleContainer_1vwov_1",subTitle:"_subTitle_1vwov_1",tabTitleContainer:"_tabTitleContainer_1vwov_11",tabTitle:"_tabTitle_1vwov_11",inviteButton:"_inviteButton_1vwov_22",teamTabs:"_teamTabs_1vwov_30"};export{_ as default};
+var o={titleContainer:"_titleContainer_ov5oy_1",subTitle:"_subTitle_ov5oy_1",tabTitle:"_tabTitle_ov5oy_11",teamTabs:"_teamTabs_ov5oy_15"};export{o as default};

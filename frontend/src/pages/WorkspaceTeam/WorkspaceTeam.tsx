@@ -1,7 +1,8 @@
+import { Button } from '@components/Button/'
 import Tabs from '@components/Tabs/Tabs'
 import { useGetWorkspaceAdminsQuery } from '@graph/hooks'
 import { AdminRole, WorkspaceAdminRole } from '@graph/schemas'
-import { Badge, Box, IconSolidUserAdd, Stack, Text } from '@highlight-run/ui'
+import { Badge, Box, IconSolidUserAdd, Stack } from '@highlight-run/ui'
 import AllMembers from '@pages/WorkspaceTeam/components/AllMembers'
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import InviteMemberModal from '@pages/WorkspaceTeam/components/InviteMemberModal'
@@ -11,7 +12,6 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
-import Button from '../../components/Button/Button/Button'
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
 import styles from './WorkspaceTeam.module.scss'
 
@@ -31,7 +31,12 @@ const WorkspaceTeam = () => {
 
 	const TabContentContainer = ({ children }: { children: any }) => (
 		<Box mt="8">
-			<div className={styles.tabTitleContainer}>
+			<Stack
+				mb="8"
+				align="center"
+				justify="space-between"
+				direction="row"
+			>
 				<h4 className={styles.tabTitle}>
 					{determineTitle(member_tab_key)}
 				</h4>
@@ -43,16 +48,13 @@ const WorkspaceTeam = () => {
 					toggleShowModal={toggleShowModal}
 				/>
 				<Button
-					className={styles.inviteButton}
 					trackingId="WorkspaceTeamInviteMember"
-					type="primary"
+					iconLeft={<IconSolidUserAdd />}
 					onClick={toggleShowModal}
-					small
 				>
-					<IconSolidUserAdd />
-					<Text>Invite users</Text>
+					Invite users
 				</Button>
-			</div>
+			</Stack>
 			{children}
 		</Box>
 	)

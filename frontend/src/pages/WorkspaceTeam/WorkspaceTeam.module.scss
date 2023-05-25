@@ -9,23 +9,8 @@
 	}
 }
 
-.tabTitleContainer {
-	align-items: center;
-	display: flex;
-	justify-content: space-between;
-	margin-bottom: var(--size-xSmall);
-}
-
 .tabTitle {
 	font-weight: 500 !important;
-}
-
-.inviteButton {
-	align-items: center;
-	display: flex;
-	flex-direction: row;
-	gap: var(--size-xxSmall);
-	padding: var(--size-xSmall);
 }
 
 .teamTabs {
