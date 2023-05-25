@@ -10,7 +10,7 @@ authorLinkedIn: 'https://www.linkedin.com/in/jay-khatri/'
 authorGithub: ''
 authorWebsite: ''
 authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75'
-image: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2F2wDcc2CoTckAIZVup0NT&w=3840&q=75'
+image: 'https://media.graphassets.com/output=format:jpg/resize=height:800,fit:max/1dRnb0aCSpuN8Bnm83m9'
 youtubeVideoId: 'qloRP8rVMtw'
 tags: The Startup Stack 
 metaTitle: "EP1: Preview React components directly in VSCode?!"

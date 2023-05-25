@@ -212,8 +212,6 @@ const PostPage = ({
 		process.env.NEXT_PUBLIC_VERCEL_URL
 	}/api/og/blog/${post.slug}?${params.toString()}`
 
-	console.log(metaImageURL)
-
 	return (
 		<>
 			<Meta
