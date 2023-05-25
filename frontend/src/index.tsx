@@ -39,7 +39,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { showIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
@@ -243,6 +243,7 @@ const AuthenticationRoleRouter = () => {
 	const { setLoadingState } = useAppLoadingContext()
 	const [getProjectQuery] = useGetProjectLazyQuery()
 
+	const firebaseAuthInitialized = useRef(false)
 	const [user, setUser] = useState(auth.currentUser)
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
 
@@ -284,7 +285,11 @@ const AuthenticationRoleRouter = () => {
 	])
 
 	useEffect(() => {
-		fetchAdmin()
+		// Don't try to fetch the admin unless Firebase has initialized and we know
+		// whether the user is logged in.
+		if (firebaseAuthInitialized.current) {
+			fetchAdmin()
+		}
 
 		// Only want to update adminData when the query changes.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -294,8 +299,8 @@ const AuthenticationRoleRouter = () => {
 		return auth.onAuthStateChanged(
 			(user) => {
 				setUser(user)
+				firebaseAuthInitialized.current = true
 
-				debugger
 				if (user) {
 					fetchAdmin()
 				} else {
@@ -370,7 +375,7 @@ const AuthenticationRoleRouter = () => {
 				signOut: () => {
 					auth.signOut()
 					client.resetStore()
-					updateAuthRole()
+					analytics.track('Signed out')
 				},
 			}}
 		>
