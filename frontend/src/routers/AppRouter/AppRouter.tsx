@@ -193,7 +193,7 @@ export const AppRouter = () => {
 			>
 				<Routes>
 					{isLoggedIn && !admin?.about_you_details_filled && (
-						//  /about_you is used by google ads for conversion tracking
+						// used by google ads for conversion tracking
 						<Route path="/about_you" element={<AdminForm />} />
 					)}
 
