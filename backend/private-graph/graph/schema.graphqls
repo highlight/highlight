@@ -1434,7 +1434,6 @@ type Query {
 	error_comments_for_project(project_id: ID!): [ErrorComment]!
 	workspace_admins(workspace_id: ID!): [WorkspaceAdminRole!]!
 	workspace_admins_by_project_id(project_id: ID!): [WorkspaceAdminRole!]!
-	workspace_pending_invites(workspace_id: ID!): [WorkspaceInviteLink!]!
 	isIntegrated(project_id: ID!): Boolean
 	isBackendIntegrated(project_id: ID!): Boolean
 	clientIntegration(project_id: ID!): IntegrationStatus!
@@ -1577,6 +1576,7 @@ type Query {
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
+	workspace_pending_invites(workspace_id: ID!): [WorkspaceInviteLink!]!
 	workspace_for_project(project_id: ID!): Workspace
 	admin: Admin
 	admin_role(workspace_id: ID!): WorkspaceAdminRole

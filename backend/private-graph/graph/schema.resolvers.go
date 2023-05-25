@@ -4517,21 +4517,6 @@ func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectI
 	return r.WorkspaceAdmins(ctx, workspace.ID)
 }
 
-// WorkspacePendingInvites is the resolver for the workspace_pending_invites field.
-func (r *queryResolver) WorkspacePendingInvites(ctx context.Context, workspaceID int) ([]*model.WorkspaceInviteLink, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
-	if err != nil {
-		return nil, nil
-	}
-
-	var pendingInvites []*model.WorkspaceInviteLink
-	if err := r.DB.Order("created_at ASC").Model(workspace).Association("WorkspaceInviteLink").Find(&pendingInvites); err != nil {
-		return nil, e.Wrap(err, "error getting invite links for the workspace")
-	}
-
-	return pendingInvites, nil
-}
-
 // IsIntegrated is the resolver for the isIntegrated field.
 func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
@@ -6494,6 +6479,22 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 	}
 
 	return workspaceInviteLink, nil
+}
+
+// WorkspacePendingInvites is the resolver for the workspace_pending_invites field.
+func (r *queryResolver) WorkspacePendingInvites(ctx context.Context, workspaceID int) ([]*model.WorkspaceInviteLink, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, nil
+	}
+
+	// TODO(spenny) filter to invites that are pending for users with emails
+	var pendingInvites []*model.WorkspaceInviteLink
+	if err := r.DB.Order("created_at ASC").Model(workspace).Association("WorkspaceInviteLink").Find(&pendingInvites); err != nil {
+		return nil, e.Wrap(err, "error getting invite links for the workspace")
+	}
+
+	return pendingInvites, nil
 }
 
 // WorkspaceForProject is the resolver for the workspace_for_project field.

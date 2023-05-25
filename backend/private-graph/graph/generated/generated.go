@@ -1385,7 +1385,6 @@ type QueryResolver interface {
 	ErrorCommentsForProject(ctx context.Context, projectID int) ([]*model1.ErrorComment, error)
 	WorkspaceAdmins(ctx context.Context, workspaceID int) ([]*model1.WorkspaceAdminRole, error)
 	WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model1.WorkspaceAdminRole, error)
-	WorkspacePendingInvites(ctx context.Context, workspaceID int) ([]*model1.WorkspaceInviteLink, error)
 	IsIntegrated(ctx context.Context, projectID int) (*bool, error)
 	IsBackendIntegrated(ctx context.Context, projectID int) (*bool, error)
 	ClientIntegration(ctx context.Context, projectID int) (*model.IntegrationStatus, error)
@@ -1459,6 +1458,7 @@ type QueryResolver interface {
 	Workspace(ctx context.Context, id int) (*model1.Workspace, error)
 	WorkspaceForInviteLink(ctx context.Context, secret string) (*model.WorkspaceForInviteLink, error)
 	WorkspaceInviteLinks(ctx context.Context, workspaceID int) (*model1.WorkspaceInviteLink, error)
+	WorkspacePendingInvites(ctx context.Context, workspaceID int) ([]*model1.WorkspaceInviteLink, error)
 	WorkspaceForProject(ctx context.Context, projectID int) (*model1.Workspace, error)
 	Admin(ctx context.Context) (*model1.Admin, error)
 	AdminRole(ctx context.Context, workspaceID int) (*model1.WorkspaceAdminRole, error)
@@ -9940,7 +9940,6 @@ type Query {
 	error_comments_for_project(project_id: ID!): [ErrorComment]!
 	workspace_admins(workspace_id: ID!): [WorkspaceAdminRole!]!
 	workspace_admins_by_project_id(project_id: ID!): [WorkspaceAdminRole!]!
-	workspace_pending_invites(workspace_id: ID!): [WorkspaceInviteLink!]!
 	isIntegrated(project_id: ID!): Boolean
 	isBackendIntegrated(project_id: ID!): Boolean
 	clientIntegration(project_id: ID!): IntegrationStatus!
@@ -10083,6 +10082,7 @@ type Query {
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
+	workspace_pending_invites(workspace_id: ID!): [WorkspaceInviteLink!]!
 	workspace_for_project(project_id: ID!): Workspace
 	admin: Admin
 	admin_role(workspace_id: ID!): WorkspaceAdminRole
@@ -41325,72 +41325,6 @@ func (ec *executionContext) fieldContext_Query_workspace_admins_by_project_id(ct
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_workspace_pending_invites(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_workspace_pending_invites(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().WorkspacePendingInvites(rctx, fc.Args["workspace_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.WorkspaceInviteLink)
-	fc.Result = res
-	return ec.marshalNWorkspaceInviteLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLinkᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_workspace_pending_invites(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_WorkspaceInviteLink_id(ctx, field)
-			case "invitee_email":
-				return ec.fieldContext_WorkspaceInviteLink_invitee_email(ctx, field)
-			case "invitee_role":
-				return ec.fieldContext_WorkspaceInviteLink_invitee_role(ctx, field)
-			case "expiration_date":
-				return ec.fieldContext_WorkspaceInviteLink_expiration_date(ctx, field)
-			case "secret":
-				return ec.fieldContext_WorkspaceInviteLink_secret(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type WorkspaceInviteLink", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_workspace_pending_invites_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_isIntegrated(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_isIntegrated(ctx, field)
 	if err != nil {
@@ -46261,6 +46195,72 @@ func (ec *executionContext) fieldContext_Query_workspace_invite_links(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_workspace_invite_links_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_workspace_pending_invites(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_workspace_pending_invites(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().WorkspacePendingInvites(rctx, fc.Args["workspace_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.WorkspaceInviteLink)
+	fc.Result = res
+	return ec.marshalNWorkspaceInviteLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLinkᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_workspace_pending_invites(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_WorkspaceInviteLink_id(ctx, field)
+			case "invitee_email":
+				return ec.fieldContext_WorkspaceInviteLink_invitee_email(ctx, field)
+			case "invitee_role":
+				return ec.fieldContext_WorkspaceInviteLink_invitee_role(ctx, field)
+			case "expiration_date":
+				return ec.fieldContext_WorkspaceInviteLink_expiration_date(ctx, field)
+			case "secret":
+				return ec.fieldContext_WorkspaceInviteLink_secret(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type WorkspaceInviteLink", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_workspace_pending_invites_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -67208,26 +67208,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "workspace_pending_invites":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_workspace_pending_invites(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
 		case "isIntegrated":
 			field := field
 
@@ -68678,6 +68658,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_workspace_invite_links(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "workspace_pending_invites":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_workspace_pending_invites(ctx, field)
 				return res
 			}
 
