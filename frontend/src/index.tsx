@@ -314,7 +314,7 @@ const AuthenticationRoleRouter = () => {
 			} else if (adminData) {
 				setAuthRole(AuthRole.AUTHENTICATED)
 			}
-		} else if (adminError) {
+		} else if (adminError || !user) {
 			setAuthRole(AuthRole.UNAUTHENTICATED)
 		}
 	}, [adminError, adminData, user])
