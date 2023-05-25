@@ -180,6 +180,7 @@ var Models = []interface{}{
 	&ErrorGroupAdminsView{},
 	&LogAdminsView{},
 	&ProjectFilterSettings{},
+	&ErrorGroupActivityLog{},
 }
 
 func init() {
@@ -356,11 +357,13 @@ type SetupEvent struct {
 	ProjectID int                  `gorm:"uniqueIndex:idx_project_id_type"`
 	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
 }
+
 type ProjectFilterSettings struct {
 	Model
-	Project                    *Project
-	ProjectID                  int
-	FilterSessionsWithoutError bool `gorm:"default:false"`
+	Project                           *Project
+	ProjectID                         int
+	FilterSessionsWithoutError        bool `gorm:"default:false"`
+	AutoResolveStaleErrorsDayInterval int  `gorm:"default:0"`
 }
 
 type HasSecret interface {
@@ -927,6 +930,23 @@ type ErrorGroup struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
 	Viewed         *bool   `json:"viewed"`
+}
+
+type ErrorGroupEventType string
+
+const (
+	ErrorGroupResolvedEvent ErrorGroupEventType = "ErrorGroupResolved"
+	ErrorGroupIgnoredEvent  ErrorGroupEventType = "ErrorGroupIgnored"
+	ErrorGroupOpenedEvent   ErrorGroupEventType = "ErrorGroupOpened"
+)
+
+type ErrorGroupActivityLog struct {
+	Model
+	ErrorGroupID int `gorm:"index"`
+	AdminID      int // when this is 0, it means the system generated the event
+	Admin        *Admin
+	EventType    ErrorGroupEventType
+	EventData    JSONB
 }
 
 type ErrorGroupAdminsView struct {
