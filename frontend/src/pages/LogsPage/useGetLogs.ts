@@ -1,5 +1,5 @@
 import { useGetLogsErrorObjectsQuery, useGetLogsQuery } from '@graph/hooks'
-import { LogEdge } from '@graph/schemas'
+import { LogEdge, PageInfo } from '@graph/schemas'
 import * as Types from '@graph/schemas'
 import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import {
@@ -29,8 +29,20 @@ export const useGetLogs = ({
 	startDate: Date
 	endDate: Date
 }) => {
-	const [hasNextPage, setHasNextPage] = useState(false)
-	const [hasPreviousPage, setHasPreviousPage] = useState(false)
+	// The backend can only tell us page info about a single page.
+	// It has no idea what pages have already been loaded.
+	//
+	// For example: say we make the initial request for 100 logs and hasNextPage=true and hasPreviousPage=false
+	// That means that we should not make any requests when going backwards.
+	//
+	// If the user scrolls forward to get the next 100 logs, the server will say that hasPreviousPage is `true` since we're on page 2.
+	// Hence, we track the initial information (where "window" is effectively multiple pages) to ensure we aren't making requests unnecessarily.
+	const [windowInfo, setWindowInfo] = useState<PageInfo>({
+		hasNextPage: false,
+		hasPreviousPage: false,
+		startCursor: '', // unused but needed for typedef
+		endCursor: '', // unused but needed for typedef
+	})
 	const [loadingAfter, setLoadingAfter] = useState(false)
 	const [loadingBefore, setLoadingBefore] = useState(false)
 	const queryTerms = parseLogsQuery(query)
@@ -54,8 +66,7 @@ export const useGetLogs = ({
 
 	useEffect(() => {
 		if (data) {
-			setHasNextPage(data.logs.pageInfo.hasNextPage)
-			setHasPreviousPage(data.logs.pageInfo.hasPreviousPage)
+			setWindowInfo(data.logs.pageInfo)
 		}
 	}, [data])
 
@@ -65,7 +76,7 @@ export const useGetLogs = ({
 	})
 
 	const fetchMoreForward = useCallback(async () => {
-		if (!hasNextPage || loadingAfter) {
+		if (!windowInfo.hasNextPage || loadingAfter) {
 			return
 		}
 
@@ -82,7 +93,10 @@ export const useGetLogs = ({
 			variables: { after: lastCursor },
 			updateQuery: (prevResult, { fetchMoreResult }) => {
 				const newData = fetchMoreResult.logs.edges
-				setHasNextPage(fetchMoreResult.logs.pageInfo.hasNextPage)
+				setWindowInfo({
+					...windowInfo,
+					hasNextPage: fetchMoreResult.logs.pageInfo.hasNextPage,
+				})
 				setLoadingAfter(false)
 				return {
 					logs: {
@@ -93,10 +107,10 @@ export const useGetLogs = ({
 				}
 			},
 		})
-	}, [data, fetchMore, hasNextPage, loadingAfter])
+	}, [data, fetchMore, loadingAfter, windowInfo])
 
 	const fetchMoreBackward = useCallback(async () => {
-		if (!hasPreviousPage || loadingBefore) {
+		if (!windowInfo.hasPreviousPage || loadingBefore) {
 			return
 		}
 
@@ -113,9 +127,11 @@ export const useGetLogs = ({
 			variables: { before: firstCursor },
 			updateQuery: (prevResult, { fetchMoreResult }) => {
 				const newData = fetchMoreResult.logs.edges
-				setHasPreviousPage(
-					fetchMoreResult.logs.pageInfo.hasPreviousPage,
-				)
+				setWindowInfo({
+					...windowInfo,
+					hasPreviousPage:
+						fetchMoreResult.logs.pageInfo.hasPreviousPage,
+				})
 				setLoadingBefore(false)
 				return {
 					logs: {
@@ -126,7 +142,7 @@ export const useGetLogs = ({
 				}
 			},
 		})
-	}, [data, fetchMore, hasPreviousPage, loadingBefore])
+	}, [data, fetchMore, loadingBefore, windowInfo])
 
 	const logEdgesWithError: LogEdgeWithError[] = (data?.logs.edges || []).map(
 		(e) => ({
