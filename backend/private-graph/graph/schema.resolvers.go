@@ -6493,6 +6493,20 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 	return workspaceInviteLink, nil
 }
 
+func (r *queryResolver) WorkspacePendingInvites(ctx context.Context, workspaceID int) ([]*model.WorkspaceInviteLink, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, nil
+	}
+
+	var pendingInvites []*model.WorkspaceInviteLink
+	if err := r.DB.Order("created_at ASC").Model(workspace).Association("WorkspaceInviteLink").Find(&pendingInvites); err != nil {
+		return nil, e.Wrap(err, "error getting invite links for the workspace")
+	}
+
+	return pendingInvites, nil
+}
+
 // WorkspaceForProject is the resolver for the workspace_for_project field.
 func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) (*model.Workspace, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
