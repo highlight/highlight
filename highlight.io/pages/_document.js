@@ -48,18 +48,22 @@ class HighlightDocument extends Document {
 						defer
 						src="//js.hs-scripts.com/20473940.js"
 					></Script>
-					<NextScript />
 				</Head>
 				<body style={{ overflowX: 'hidden' }}>
-					<noscript>
-						<iframe
-							src="https://www.googletagmanager.com/ns.html?id=GTM-PT4CCQ4"
-							height="0"
-							width="0"
-							style="display:none;visibility:hidden"
-						></iframe>
-					</noscript>
 					<Main />
+					<NextScript />
+					<noscript
+						dangerouslySetInnerHTML={{
+							__html: (
+								<iframe
+									src="https://www.googletagmanager.com/ns.html?id=GTM-PT4CCQ4"
+									height="0"
+									width="0"
+									style="display:none;visibility:hidden"
+								></iframe>
+							),
+						}}
+					/>
 				</body>
 			</Html>
 		)
