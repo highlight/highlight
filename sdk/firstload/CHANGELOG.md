@@ -228,3 +228,10 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Patch Changes
 
 - The Highlight `window.fetch` proxy was only forwarding headers from `RequestInit`. It now forwards headers from `RequestInfo` as well.
+- Target ES6 for library build compatability.
+
+## 7.0.0
+
+### Breaking Changes
+
+- Removed the `feedbackWidget` option.

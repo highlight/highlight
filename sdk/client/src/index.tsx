@@ -9,7 +9,6 @@ import {
 	AmplitudeIntegrationOptions,
 	ConsoleMethods,
 	DebugOptions,
-	FeedbackWidgetOptions,
 	MetricCategory,
 	MetricName,
 	MixpanelIntegrationOptions,
@@ -46,7 +45,6 @@ import { FocusListener } from './listeners/focus-listener/focus-listener'
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys'
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener'
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener'
-import { initializeFeedbackWidget } from './ui/feedback-widget/feedback-widget'
 import { getPerformanceMethods } from './utils/performance/performance'
 import {
 	PerformanceListener,
@@ -107,7 +105,6 @@ export type HighlightClassOptions = {
 	environment?: 'development' | 'production' | 'staging' | string
 	appVersion?: string
 	sessionShortcut?: SessionShortcutOptions
-	feedbackWidget?: FeedbackWidgetOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 }
 
@@ -193,7 +190,6 @@ export class Highlight {
 	_lastSnapshotTime!: number
 	_lastVisibilityChangeTime!: number
 	pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined
-	feedbackWidgetOptions!: FeedbackWidgetOptions
 	hasSessionUnloaded!: boolean
 	hasPushedData!: boolean
 	reloaded!: boolean
@@ -370,14 +366,6 @@ export class Highlight {
 			this.organizationID === '1' || this.organizationID === '1jdkoe52'
 		this.firstloadVersion = options.firstloadVersion || 'unknown'
 		this.sessionShortcut = options.sessionShortcut || false
-		this.feedbackWidgetOptions = {
-			enabled: options.feedbackWidget?.enabled || false,
-			subTitle: options.feedbackWidget?.subTitle,
-			submitButtonLabel: options.feedbackWidget?.submitButtonLabel,
-			title: options.feedbackWidget?.title,
-			onSubmit: options.feedbackWidget?.onSubmit,
-			onCancel: options.feedbackWidget?.onCancel,
-		}
 		this._onToggleFeedbackFormVisibility = () => {}
 		// We only want to store a subset of the options for debugging purposes. Firstload version is stored as another field so we don't need to store it here.
 		const { firstloadVersion: _, ...optionsInternal } = options
@@ -511,13 +499,6 @@ export class Highlight {
 				// effectively 'restart' recording by starting the new payload with a full snapshot
 				this.takeFullSnapshot()
 				return
-			}
-
-			if (this.feedbackWidgetOptions.enabled) {
-				const { onToggleFeedbackFormVisibility } =
-					initializeFeedbackWidget(this.feedbackWidgetOptions)
-				this._onToggleFeedbackFormVisibility =
-					onToggleFeedbackFormVisibility
 			}
 
 			const recordingStartTime = window.sessionStorage.getItem(
@@ -1128,16 +1109,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			return `https://${HIGHLIGHT_URL}/${projectID}/sessions/${sessionSecureID}`
 		}
 		return null
-	}
-
-	toggleFeedbackWidgetVisibility() {
-		if (this.feedbackWidgetOptions.enabled) {
-			this._onToggleFeedbackFormVisibility()
-		} else {
-			console.warn(
-				`Highlight's toggleFeedbackWidgetVisibility() was called. You need to configure feedbackWidget in the Highlight options to show the feedback widget.`,
-			)
-		}
 	}
 
 	addSessionFeedback({
