@@ -1577,7 +1577,7 @@ type Query {
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
-	workspace_pending_invites(workspace_id: ID!): [WorkspaceInviteLink!]!
+	workspace_pending_invites(workspace_id: ID!): [WorkspaceInviteLink]!
 	workspace_for_project(project_id: ID!): Workspace
 	admin: Admin
 	admin_role(workspace_id: ID!): WorkspaceAdminRole

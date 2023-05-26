@@ -1703,7 +1703,7 @@ export type Query = {
 	workspace_for_invite_link: WorkspaceForInviteLink
 	workspace_for_project?: Maybe<Workspace>
 	workspace_invite_links: WorkspaceInviteLink
-	workspace_pending_invites: Array<WorkspaceInviteLink>
+	workspace_pending_invites: Array<Maybe<WorkspaceInviteLink>>
 	workspaces?: Maybe<Array<Maybe<Workspace>>>
 	workspaces_count: Scalars['Int64']
 }

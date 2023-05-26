@@ -2,6 +2,7 @@ import { AdminAvatar } from '@components/Avatar/Avatar'
 import Card from '@components/Card/Card'
 import Table from '@components/Table/Table'
 import { useGetWorkspacePendingInvitesQuery } from '@graph/hooks'
+import { Box } from '@highlight-run/ui'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { titleCaseString } from '@util/string'
@@ -17,6 +18,7 @@ const PendingInvites = ({ workspaceId }: { workspaceId?: string }) => {
 		variables: { workspace_id: workspaceId! },
 		skip: !workspaceId,
 	})
+	const { workspace_pending_invites = [] } = data || {}
 
 	if (error) {
 		return <div>{JSON.stringify(error)}</div>
@@ -25,27 +27,31 @@ const PendingInvites = ({ workspaceId }: { workspaceId?: string }) => {
 	return (
 		<div className={clsx(styles.inviteCardWrapper, 'highlight-mask')}>
 			<Card noPadding>
-				<Table
-					columns={
-						checkPolicyAccess({
-							policyName: POLICY_NAMES.RolesUpdate,
-						})
-							? TABLE_COLUMNS
-							: TABLE_COLUMNS.slice(0, 2)
-					}
-					loading={loading}
-					dataSource={data?.workspace_pending_invites?.map(
-						(invite) => ({
-							email: invite.invitee_email,
-							creationDate: invite.created_at,
-							id: invite.id,
-							role: invite.invitee_role,
-						}),
-					)}
-					pagination={false}
-					showHeader={false}
-					rowHasPadding
-				/>
+				{!loading && workspace_pending_invites.length == 0 ? (
+					<Box p="16" display="flex" justifyContent="center">
+						You currently do not have any pending invites.
+					</Box>
+				) : (
+					<Table
+						columns={
+							checkPolicyAccess({
+								policyName: POLICY_NAMES.RolesUpdate,
+							})
+								? TABLE_COLUMNS
+								: TABLE_COLUMNS.slice(0, 2)
+						}
+						loading={loading}
+						dataSource={workspace_pending_invites.map((invite) => ({
+							email: invite?.invitee_email,
+							creationDate: invite?.created_at,
+							id: invite?.id,
+							role: invite?.invitee_role,
+						}))}
+						pagination={false}
+						showHeader={false}
+						rowHasPadding
+					/>
+				)}
 			</Card>
 		</div>
 	)

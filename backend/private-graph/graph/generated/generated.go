@@ -10091,7 +10091,7 @@ type Query {
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
-	workspace_pending_invites(workspace_id: ID!): [WorkspaceInviteLink!]!
+	workspace_pending_invites(workspace_id: ID!): [WorkspaceInviteLink]!
 	workspace_for_project(project_id: ID!): Workspace
 	admin: Admin
 	admin_role(workspace_id: ID!): WorkspaceAdminRole
@@ -46239,7 +46239,7 @@ func (ec *executionContext) _Query_workspace_pending_invites(ctx context.Context
 	}
 	res := resTmp.([]*model1.WorkspaceInviteLink)
 	fc.Result = res
-	return ec.marshalNWorkspaceInviteLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLinkᚄ(ctx, field.Selections, res)
+	return ec.marshalNWorkspaceInviteLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLink(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_workspace_pending_invites(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -76387,7 +76387,7 @@ func (ec *executionContext) marshalNWorkspaceInviteLink2githubᚗcomᚋhighlight
 	return ec._WorkspaceInviteLink(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWorkspaceInviteLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLinkᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.WorkspaceInviteLink) graphql.Marshaler {
+func (ec *executionContext) marshalNWorkspaceInviteLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLink(ctx context.Context, sel ast.SelectionSet, v []*model1.WorkspaceInviteLink) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -76411,7 +76411,7 @@ func (ec *executionContext) marshalNWorkspaceInviteLink2ᚕᚖgithubᚗcomᚋhig
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNWorkspaceInviteLink2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLink(ctx, sel, v[i])
+			ret[i] = ec.marshalOWorkspaceInviteLink2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLink(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -76421,12 +76421,6 @@ func (ec *executionContext) marshalNWorkspaceInviteLink2ᚕᚖgithubᚗcomᚋhig
 
 	}
 	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
 
 	return ret
 }
@@ -78254,6 +78248,13 @@ func (ec *executionContext) marshalOWorkspaceAdminRole2ᚖgithubᚗcomᚋhighlig
 		return graphql.Null
 	}
 	return ec._WorkspaceAdminRole(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOWorkspaceInviteLink2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLink(ctx context.Context, sel ast.SelectionSet, v *model1.WorkspaceInviteLink) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._WorkspaceInviteLink(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {
