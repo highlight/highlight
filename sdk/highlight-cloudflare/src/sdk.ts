@@ -15,27 +15,19 @@ export interface HighlightEnv {
 }
 
 export interface HighlightInterface {
-	_createSDK: (
+	init: (
 		request: Request,
 		env: HighlightEnv,
 		ctx: ExecutionContext,
 	) => WorkersSDK
-	consumeError: (
-		request: Request,
-		env: HighlightEnv,
-		ctx: ExecutionContext,
-		error: Error,
-	) => void
-	sendResponse: (
-		request: Request,
-		env: HighlightEnv,
-		ctx: ExecutionContext,
-		response: Response,
-	) => void
+	consumeError: (error: Error) => void
+	sendResponse: (response: Response) => void
 }
 
+let sdk: WorkersSDK
+
 export const H: HighlightInterface = {
-	_createSDK: (
+	init: (
 		request: Request,
 		{ [HIGHLIGHT_PROJECT_ENV]: projectID }: HighlightEnv,
 		ctx: ExecutionContext,
@@ -45,7 +37,7 @@ export const H: HighlightInterface = {
 			request.headers.get(HIGHLIGHT_REQUEST_HEADER) || ''
 		).split('/')
 		const endpoints = { default: HIGHLIGHT_OTLP_BASE }
-		return new WorkersSDK(request, ctx, {
+		return (sdk = new WorkersSDK(request, ctx, {
 			service: service || 'cloudflare-worker',
 			consoleLogEnabled: true,
 			traceExporter: new OTLPProtoTraceExporter({
@@ -59,26 +51,26 @@ export const H: HighlightInterface = {
 				['highlight.session_id']: sessionID,
 				['highlight.trace_id']: requestID,
 			}),
-		})
+		}))
 	},
 
-	consumeError: (
-		request: Request,
-		env: HighlightEnv,
-		ctx: ExecutionContext,
-		error: Error,
-	) => {
-		const sdk = H._createSDK(request, env, ctx)
+	consumeError: (error: Error) => {
+		if (!sdk) {
+			console.error(
+				'please call H.init(...) before calling H.sendResponse(...)',
+			)
+			return
+		}
 		sdk.captureException(error)
 	},
 
-	sendResponse: (
-		request: Request,
-		env: HighlightEnv,
-		ctx: ExecutionContext,
-		response: Response,
-	) => {
-		const sdk = H._createSDK(request, env, ctx)
+	sendResponse: (response: Response) => {
+		if (!sdk) {
+			console.error(
+				'please call H.init(...) before calling H.sendResponse(...)',
+			)
+			return
+		}
 		sdk.sendResponse(response)
 	},
 }

@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/cloudflare",
-	"version": "1.0.2",
+	"version": "2.0.0",
 	"packageManager": "yarn@3.2.3",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
@@ -16,8 +16,8 @@
 		"opentelemetry-sdk-workers": "^0.6.2"
 	},
 	"devDependencies": {
-		"@cloudflare/workers-types": "^4.20230115.0",
-		"@opentelemetry/core": "^1.12.0",
-		"tsup": "^6.6.2"
+		"@cloudflare/workers-types": "^4.20230518.0",
+		"@opentelemetry/core": "^1.13.0",
+		"tsup": "^6.7.0"
 	}
 }
