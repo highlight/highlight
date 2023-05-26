@@ -135,6 +135,10 @@
 				],
 				"patterns": [
 					{
+						"group": ["**/*/$"],
+						"message": "Import without the trailing / instead."
+					},
+					{
 						"group": ["**/packages/ui/src"],
 						"message": "Import from @highlight-run/ui instead."
 					}
