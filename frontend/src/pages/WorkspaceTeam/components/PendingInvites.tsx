@@ -57,6 +57,7 @@ const PendingInvites = ({ workspaceId }: { workspaceId?: string }) => {
 	)
 }
 
+// TODO(spenny): add delete invite button and functionality
 const TABLE_COLUMNS = [
 	{
 		title: 'Email',

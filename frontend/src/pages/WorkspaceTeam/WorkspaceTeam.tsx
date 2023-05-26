@@ -106,7 +106,10 @@ const WorkspaceTeam = () => {
 						},
 						{
 							key: 'invites',
-							title: <TabTitle label="Pending invites" />,
+							// TODO(spenny): load count
+							title: (
+								<TabTitle label="Pending invites (coming soon)" />
+							),
 							panelContent: (
 								<TabContentContainer>
 									<PendingInvites
@@ -114,6 +117,7 @@ const WorkspaceTeam = () => {
 									/>
 								</TabContentContainer>
 							),
+							disabled: true,
 						},
 					]}
 				/>
