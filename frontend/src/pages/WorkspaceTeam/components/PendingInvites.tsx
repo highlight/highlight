@@ -12,13 +12,26 @@ import React from 'react'
 
 import styles from './PendingInvites.module.scss'
 
-const PendingInvites = ({ workspaceId }: { workspaceId?: string }) => {
+interface Props {
+	workspaceId?: string
+	active: boolean
+	shouldRefetchData: boolean
+}
+
+const PendingInvites = ({ workspaceId, active, shouldRefetchData }: Props) => {
 	const { checkPolicyAccess } = useAuthorization()
-	const { data, loading, error } = useGetWorkspacePendingInvitesQuery({
-		variables: { workspace_id: workspaceId! },
-		skip: !workspaceId,
-	})
+	const { data, loading, error, refetch } =
+		useGetWorkspacePendingInvitesQuery({
+			variables: { workspace_id: workspaceId! },
+			skip: !workspaceId,
+		})
 	const { workspace_pending_invites = [] } = data || {}
+
+	React.useEffect(() => {
+		if (active && shouldRefetchData) {
+			refetch({ workspace_id: workspaceId! })
+		}
+	}, [active, shouldRefetchData, refetch, workspaceId])
 
 	if (error) {
 		return <div>{JSON.stringify(error)}</div>
