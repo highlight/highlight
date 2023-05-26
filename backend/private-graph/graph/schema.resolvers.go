@@ -6488,7 +6488,6 @@ func (r *queryResolver) WorkspacePendingInvites(ctx context.Context, workspaceID
 		return nil, nil
 	}
 
-	// TODO(spenny): filter to invites that are pending for users with emails
 	var pendingInvites []*model.WorkspaceInviteLink
 	var queryErr = r.DB.
 		Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID}).
