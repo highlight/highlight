@@ -17,8 +17,8 @@ readFile(inputFile, 'utf8', (err, data) => {
 
 	const json = JSON.parse(data)
 
-	extractColors(json.values.Primitives)
-	extractThemeVariables(json.values['Light theme'], lightThemeTokens)
+	extractColors(json.Primitives)
+	extractThemeVariables(json['Light theme'], lightThemeTokens)
 
 	const theme = objectKeysToCamelCase(lightThemeTokens)
 	let themeContent = `import { createGlobalTheme } from '@vanilla-extract/css'\n\n`
@@ -27,7 +27,23 @@ readFile(inputFile, 'utf8', (err, data) => {
 	)})`
 
 	const colors = objectKeysToCamelCase(colorTokens)
-	const colorsContent = `export const colors = ${JSON.stringify(colors)}`
+	const textColors = valuesStartingWith(colors, ['static.content.'])
+	const backgroundColors = valuesStartingWith(colors, [
+		'static.surface.',
+		'interactive.fill.',
+		'interactive.overlay.',
+	])
+	const borderColors = valuesStartingWith(colors, ['interactive.outline.'])
+	let colorsContent = `export const colors = ${JSON.stringify(colors)}\n\n`
+	colorsContent += `export const textColors = ${JSON.stringify(
+		textColors,
+	)}\n\n`
+	colorsContent += `export const backgroundColors = ${JSON.stringify(
+		backgroundColors,
+	)}\n\n`
+	colorsContent += `export const borderColors = ${JSON.stringify(
+		borderColors,
+	)}\n\n`
 
 	writeFileSync(outputThemeFile, themeContent)
 	writeFileSync(outputColorsFile, colorsContent)
@@ -48,12 +64,13 @@ const extractColors = (obj: any) => {
 	})
 }
 
-const extractThemeVariables = (obj: any, tokens = {}) => {
+const extractThemeVariables = (obj: any, tokens = {}, keyString = '') => {
 	const keys = Object.keys(obj)
 
 	keys.forEach((key) => {
 		tokens[key] = {}
 		const { value } = obj[key]
+		const themeVarKey = keyString ? `${keyString}.${key}` : `${key}`
 
 		if (value) {
 			// Get the variable reference: {Neutrals.Greyscale.N3} => N3
@@ -69,8 +86,9 @@ const extractThemeVariables = (obj: any, tokens = {}) => {
 			const transformedKey = value.replace(/\{.*\}/i, color)
 
 			tokens[key] = transformedKey
+			colorTokens[themeVarKey] = transformedKey
 		} else {
-			extractThemeVariables(obj[key], tokens[key])
+			extractThemeVariables(obj[key], tokens[key], themeVarKey)
 		}
 	})
 }
@@ -81,7 +99,11 @@ const objectKeysToCamelCase = (obj: any) => {
 		const newVal =
 			typeof val === 'object' ? objectKeysToCamelCase(val) : val
 
-		newObj[camelCase(key)] = newVal
+		const newKey = key
+			.split('.')
+			.map((k) => camelCase(k))
+			.join('.')
+		newObj[newKey] = newVal
 
 		return newObj
 	}, {})
@@ -95,4 +117,19 @@ const hexToRgb = (hex: string) => {
 	const b = parseInt(hex.substring(4, 6), 16)
 
 	return `${r}, ${g}, ${b}`
+}
+
+const valuesStartingWith = (obj: any, prefix: string[]) => {
+	return Object.keys(obj).reduce((newObj, key) => {
+		const val = obj[key]
+		const newVal =
+			typeof val === 'object' ? valuesStartingWith(val, prefix) : val
+
+		if (prefix.some((p) => key.startsWith(p))) {
+			const newKey = key.replace(new RegExp(`^(${prefix.join('|')})`), '')
+			newObj[newKey] = newVal
+		}
+
+		return newObj
+	}, {})
 }

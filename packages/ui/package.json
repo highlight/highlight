@@ -15,7 +15,7 @@
 		"g": "hygen",
 		"lint": "eslint ./src",
 		"test": "TZ=UTC vitest --run",
-		"tokens:generate": "npx ts-node-esm ./scripts/generate-tokens.ts"
+		"tokens:generate": "npx ts-node-esm --swc ./scripts/generate-tokens.ts"
 	},
 	"dependencies": {
 		"@rehookify/datepicker": "^4.1.5",
@@ -44,6 +44,7 @@
 		"@storybook/testing-library": "^0.0.13",
 		"@svgr/core": "^6.5.1",
 		"@testing-library/react": "^13.4.0",
+		"@types/lodash.camelcase": "^4.3.7",
 		"@typescript-eslint/eslint-plugin": "^5.40.0",
 		"@typescript-eslint/parser": "^5.40.0",
 		"@vanilla-extract/vite-plugin": "^3.6.1",

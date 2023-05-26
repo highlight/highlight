@@ -1,68 +1,7 @@
 import { defineProperties, createSprinkles } from '@vanilla-extract/sprinkles'
 import { borders } from './borders'
-import { colors } from './colors'
+import { backgroundColors, borderColors, textColors } from './colors'
 import { vars } from './vars'
-
-export const textColors = {
-	...colors,
-	default: vars.theme.static.content.default,
-	moderate: vars.theme.static.content.moderate,
-	strong: vars.theme.static.content.strong,
-	bad: vars.theme.static.content.sentiment.bad,
-	good: vars.theme.static.content.sentiment.good,
-	caution: vars.theme.static.content.sentiment.caution,
-	informative: vars.theme.static.content.sentiment.informative,
-	weak: vars.theme.static.content.weak,
-	primaryEnabled: vars.theme.interactive.fill.primary.enabled,
-	primaryHover: vars.theme.interactive.fill.primary.hover,
-	primaryPressed: vars.theme.interactive.fill.primary.pressed,
-	primaryDisabled: vars.theme.interactive.fill.primary.disabled,
-	primaryContentOnEnabled:
-		vars.theme.interactive.fill.primary.content.onEnabled,
-	primaryContentOnDisabled:
-		vars.theme.interactive.fill.primary.content.onDisabled,
-	primaryContentText: vars.theme.interactive.fill.primary.content.text,
-	secondaryEnabled: vars.theme.interactive.fill.secondary.enabled,
-	secondaryHover: vars.theme.interactive.fill.secondary.hover,
-	secondaryPressed: vars.theme.interactive.fill.secondary.pressed,
-	secondaryDisabled: vars.theme.interactive.fill.secondary.disabled,
-	secondaryContentOnEnabled:
-		vars.theme.interactive.fill.secondary.content.onEnabled,
-	secondaryContentOnDisabled:
-		vars.theme.interactive.fill.secondary.content.onDisabled,
-	secondaryContentText: vars.theme.interactive.fill.secondary.content.text,
-} as const
-
-export const backgroundColors = {
-	...colors,
-	nested: vars.theme.static.surface.nested,
-	default: vars.theme.static.surface.default,
-	raised: vars.theme.static.surface.raised,
-	elevated: vars.theme.static.surface.elevated,
-	scrim: vars.theme.static.surface.scrim,
-	good: vars.theme.static.surface.sentiment.good,
-	informative: vars.theme.static.surface.sentiment.informative,
-	caution: vars.theme.static.surface.sentiment.caution,
-	contentModerate: vars.theme.static.content.moderate,
-	contentStrong: vars.theme.static.content.strong,
-	contentBad: vars.theme.static.content.sentiment.bad,
-	contentGood: vars.theme.static.content.sentiment.good,
-	contentCaution: vars.theme.static.content.sentiment.caution,
-	contentInformative: vars.theme.static.content.sentiment.informative,
-	weak: vars.theme.static.content.weak,
-	secondaryDisabled: vars.theme.interactive.overlay.secondary.disabled,
-	secondaryEnabled: vars.theme.interactive.overlay.secondary.enabled,
-	secondaryHover: vars.theme.interactive.overlay.secondary.hover,
-	secondaryPressed: vars.theme.interactive.overlay.secondary.pressed,
-	secondarySelected:
-		vars.theme.interactive.overlay.secondary.selected.default,
-	secondarySelectedHover:
-		vars.theme.interactive.overlay.secondary.selected.hover,
-	primaryDisabled: vars.theme.interactive.overlay.primary.disabled,
-	primaryEnabled: vars.theme.interactive.overlay.primary.enabled,
-	primaryHover: vars.theme.interactive.overlay.primary.hover,
-	primaryPressed: vars.theme.interactive.overlay.primary.pressed,
-} as const
 
 const staticProperties = defineProperties({
 	properties: {
@@ -199,7 +138,7 @@ const colorProperties = defineProperties({
 		borderRight: borders,
 		borderBottom: borders,
 		borderLeft: borders,
-		borderColor: colors,
+		borderColor: borderColors,
 		borderStyle: ['hidden', 'solid'],
 		borderWidth: vars.borderWidth,
 		boxShadow: vars.shadows,

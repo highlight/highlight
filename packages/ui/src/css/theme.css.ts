@@ -7,13 +7,13 @@ export const themeVars = createGlobalTheme('.highlight-light-theme', {
 			default: '#ffffff',
 			raised: '#f9f8f9',
 			elevated: '#f4f2f4',
-			scrim: 'rgba(26, 21, 35, 0.72)',
+			scrim: 'rgba(111, 110, 119, 0.48)',
 			sentiment: {
-				good: '#ddf3e4',
-				caution: '#ffecbc',
-				bad: '#ffe5e5',
-				informative: '#ede7fe',
-				neutral: '#eeedef',
+				good: '#ccebd7',
+				caution: '#ffe3a2',
+				bad: '#fdd8d8',
+				informative: '#e7defc',
+				neutral: '#e9e8ea',
 			},
 		},
 		content: {
@@ -28,7 +28,7 @@ export const themeVars = createGlobalTheme('.highlight-light-theme', {
 				informative: '#6346af',
 			},
 		},
-		divider: { strong: '#c8c7cb', default: '#dcdbdd', weak: '#ebe9eb' },
+		divider: { strong: '#c8c7cb', default: '#dcdbdd', weak: '#e4e2e4' },
 	},
 	interactive: {
 		fill: {
@@ -111,7 +111,7 @@ export const themeVars = createGlobalTheme('.highlight-light-theme', {
 			},
 			secondary: {
 				enabled: 'rgba(238, 237, 239, 0.0)',
-				hover: '#eeedef',
+				hover: 'rgba(233, 232, 234, 0.84)',
 				pressed: '#e9e8ea',
 				disabled: 'rgba(238, 237, 239, 0.0)',
 				selected: {
