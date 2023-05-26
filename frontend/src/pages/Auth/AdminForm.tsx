@@ -31,6 +31,8 @@ import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { namedOperations } from '@/graph/generated/operations'
+
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
 
@@ -101,6 +103,10 @@ export const AdminForm: React.FC = () => {
 
 			if (inWorkspace) {
 				await updateAdminAboutYouDetails({
+					awaitRefetchQueries: true,
+					refetchQueries: [
+						namedOperations.Query.GetProjectsAndWorkspaces,
+					],
 					variables: {
 						adminDetails: {
 							first_name: formState.values.firstName,
@@ -113,6 +119,10 @@ export const AdminForm: React.FC = () => {
 				})
 			} else {
 				await updateAdminAndCreateWorkspace({
+					awaitRefetchQueries: true,
+					refetchQueries: [
+						namedOperations.Query.GetProjectsAndWorkspaces,
+					],
 					variables: {
 						admin_and_workspace_details: {
 							first_name: formState.values.firstName,
@@ -132,9 +142,15 @@ export const AdminForm: React.FC = () => {
 				`Nice to meet you ${formState.values.firstName}, let's get started!`,
 			)
 
-			refetchProjects()
-			fetchAdmin() // updates admin in auth context
-			navigate('/setup')
+			const projects = await refetchProjects()
+			await fetchAdmin() // updates admin in auth context
+
+			if (projects.data?.projects?.length) {
+				const projectId = projects.data?.projects[0]?.id
+				navigate(`/${projectId}/setup`)
+			} else {
+				navigate('/setup')
+			}
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)

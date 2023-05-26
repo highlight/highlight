@@ -72,7 +72,7 @@ export const SignUp: React.FC = () => {
 			await createAdmin()
 			message.success('Account created succesfully!')
 
-			signIn()
+			signIn(user)
 			navigate(VERIFY_EMAIL_ROUTE, { replace: true })
 		},
 		[createAdmin, navigate, signIn],
