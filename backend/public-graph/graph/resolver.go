@@ -2677,7 +2677,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 					// Replace any static resources with our own, hosted in S3
 					if map[int]bool{
-						1: true, 1031: true, 1344: true, 5378: true, 5403: true, 6469: true,
+						1: true, 1031: true, 1079: true,
+						1344: true, 5378: true, 5403: true, 6469: true,
 					}[projectID] {
 						assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
 							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID), tracer.Tag("session_secure_id", sessionSecureID))
