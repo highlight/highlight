@@ -8,9 +8,14 @@
 		"noEmit": true,
 		"resolveJsonModule": true,
 		"sourceMap": true,
+		/* required due to our sdk's dependence on opentelemetry-sdk-workers
+		   which hacks around the dependence on @opentelemetry by dynamically replacing
+		   javascript, but does not replace the '@types/node' dependency
+		*/
+		"skipLibCheck": true,
 		"strict": true,
 		"target": "es2022",
-		"types": ["@cloudflare/workers-types", "@highlight-run/cloudflare"],
+		"types": ["@cloudflare/workers-types", "@highlight-run/cloudflare"]
 	},
 	"include": ["src", "../common"]
 }
