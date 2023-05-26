@@ -27,13 +27,17 @@ readFile(inputFile, 'utf8', (err, data) => {
 	)})`
 
 	const colors = objectKeysToCamelCase(colorTokens)
-	const textColors = valuesStartingWith(colors, ['static.content.'])
-	const backgroundColors = valuesStartingWith(colors, [
-		'static.surface.',
-		'interactive.fill.',
-		'interactive.overlay.',
-	])
-	const borderColors = valuesStartingWith(colors, ['interactive.outline.'])
+	const textColors = valuesStartingWith(colors, {
+		'static.content.': 'static.content.',
+	})
+	const backgroundColors = valuesStartingWith(colors, {
+		'static.surface.': 'static.',
+		'interactive.fill.': 'interactive.',
+		'interactive.overlay.': 'interactive.',
+	})
+	const borderColors = valuesStartingWith(colors, {
+		'interactive.outline.': 'interactive.outline.',
+	})
 	let colorsContent = `export const colors = ${JSON.stringify(colors)}\n\n`
 	colorsContent += `export const textColors = ${JSON.stringify(
 		textColors,
@@ -119,15 +123,27 @@ const hexToRgb = (hex: string) => {
 	return `${r}, ${g}, ${b}`
 }
 
-const valuesStartingWith = (obj: any, prefix: string[]) => {
-	return Object.keys(obj).reduce((newObj, key) => {
-		const val = obj[key]
-		const newVal =
-			typeof val === 'object' ? valuesStartingWith(val, prefix) : val
+const valuesStartingWith = (
+	colors: any,
+	prefixes: { [key: string]: string },
+) => {
+	const defaultColors = ['inherit', 'white', 'black']
 
-		if (prefix.some((p) => key.startsWith(p))) {
-			const newKey = key.replace(new RegExp(`^(${prefix.join('|')})`), '')
-			newObj[newKey] = newVal
+	return Object.keys(colors).reduce((newObj, key) => {
+		const val = colors[key]
+		const newVal =
+			typeof val === 'object' ? valuesStartingWith(val, prefixes) : val
+
+		if (defaultColors.includes(key)) {
+			console.log('mathces default color')
+			newObj[key] = newVal
+		} else {
+			for (const prefix in prefixes) {
+				if (!key.startsWith(prefix)) continue
+
+				const newKey = key.replace(prefixes[prefix], '')
+				newObj[newKey] = newVal
+			}
 		}
 
 		return newObj
