@@ -257,9 +257,10 @@ const AuthenticationRoleRouter = () => {
 	const { setLoadingState } = useAppLoadingContext()
 	const [getProjectQuery] = useGetProjectLazyQuery()
 
-	const firebaseInitialized = useRef(false)
 	const [user, setUser] = useState(auth.currentUser)
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
+
+	const firebaseInitialized = useRef(false)
 	const isLoggedIn = authRole === AuthRole.AUTHENTICATED
 
 	useEffect(() => {
@@ -298,7 +299,8 @@ const AuthenticationRoleRouter = () => {
 		}
 		fetch()
 
-		// Only want to update adminData when the query changes.
+		// Want to refetch admin when the query changes (happens when navigating to
+		// different parts of the app) or when the Firebase user changes.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [getAdminQuery, user])
 
@@ -306,14 +308,16 @@ const AuthenticationRoleRouter = () => {
 		return auth.onAuthStateChanged(
 			async (user) => {
 				if (!firebaseInitialized.current) {
-					// Only set the user if this is the first time we're initializing,
-					// otherwise let the signIn/signOut handlers set it.
+					// Only call this logic when we are initializing Firebase, otherwise,
+					// let the signIn/signOut handlers set it.
 					setUser(user)
-				}
 
-				if (!user) {
-					setAuthRole(AuthRole.UNAUTHENTICATED)
-					setLoadingState(AppLoadingState.LOADED)
+					if (!user) {
+						// If Firebase initialized without a user they need to authenticate,
+						// so set them as unauthenticated and disable the loading state.
+						setAuthRole(AuthRole.UNAUTHENTICATED)
+						setLoadingState(AppLoadingState.LOADED)
+					}
 				}
 
 				firebaseInitialized.current = true
