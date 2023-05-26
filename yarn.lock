@@ -11002,6 +11002,7 @@ __metadata:
   resolution: "@highlight-run/cloudflare@workspace:sdk/highlight-cloudflare"
   dependencies:
     "@cloudflare/workers-types": ^4.20230518.0
+    diary: ^0.4.4
     opentelemetry-sdk-workers: ^0.6.2
     tsup: ^6.7.0
   languageName: unknown
@@ -27744,6 +27745,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"diary@npm:^0.4.4":
+  version: 0.4.4
+  resolution: "diary@npm:0.4.4"
+  checksum: 906a276d05fae33e7d8330b26846448d09ce5d8d7457e8a559e938d8267788bb667718bbcd74b184b4203602d0acebf1259c229fbfb639b7f4226285deca824a
+  languageName: node
+  linkType: hard
+
 "didyoumean@npm:^1.2.2":
   version: 1.2.2
   resolution: "didyoumean@npm:1.2.2"
@@ -40256,7 +40264,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:^3.3.1, nanoid@npm:^3.3.3, nanoid@npm:^3.3.4":
+"nanoid@npm:^3.3.1, nanoid@npm:^3.3.4":
   version: 3.3.4
   resolution: "nanoid@npm:3.3.4"
   bin:
@@ -40265,7 +40273,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:^3.3.6":
+"nanoid@npm:^3.3.3, nanoid@npm:^3.3.6":
   version: 3.3.6
   resolution: "nanoid@npm:3.3.6"
   bin:

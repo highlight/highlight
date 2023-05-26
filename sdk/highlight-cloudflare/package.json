@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/cloudflare",
-	"version": "2.0.3",
+	"version": "2.0.4",
 	"packageManager": "yarn@3.2.3",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
@@ -13,6 +13,7 @@
 		"access": "public"
 	},
 	"dependencies": {
+		"diary": "^0.4.4",
 		"opentelemetry-sdk-workers": "^0.6.2"
 	},
 	"devDependencies": {

@@ -14,14 +14,16 @@ async function doRequest() {
 	 * @param {Response} response
 	 */
 	async function gatherResponse(response: any) {
+		H.setAttributes({ foo: 'bar', random: Math.random() })
 		console.log('yo! gathering a cloudflare worker response', {
-			random: Math.random(),
+			another: Math.random(),
+			bar: 'bar',
 		})
 		console.warn('warning! gathering a cloudflare worker response', {
-			random: Math.random(),
+			bar: 'warning',
 		})
 		console.warn('error! gathering a cloudflare worker response', {
-			random: Math.random(),
+			another: Math.random(),
 		})
 		if (Math.random() < 0.2) {
 			throw new Error('random error from cloudflare worker!')

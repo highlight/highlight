@@ -5,6 +5,7 @@ import { WorkersSDK } from 'opentelemetry-sdk-workers'
 import { Resource } from '@opentelemetry/resources'
 import { OTLPProtoTraceExporter } from 'opentelemetry-sdk-workers/exporters/OTLPProtoTraceExporter'
 import { OTLPProtoLogExporter } from 'opentelemetry-sdk-workers/exporters/OTLPProtoLogExporter'
+import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
 
 const HIGHLIGHT_PROJECT_ENV = 'HIGHLIGHT_PROJECT_ID'
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
@@ -15,7 +16,6 @@ export const RECORDED_CONSOLE_METHODS = [
 	'error',
 	'info',
 	'log',
-	'trace',
 	'warn',
 ] as const
 
@@ -31,6 +31,7 @@ export interface HighlightInterface {
 	) => WorkersSDK
 	consumeError: (error: Error) => void
 	sendResponse: (response: Response) => void
+	setAttributes: (attributes: ResourceAttributes) => void
 }
 
 let sdk: WorkersSDK
@@ -85,5 +86,12 @@ export const H: HighlightInterface = {
 			return
 		}
 		sdk.sendResponse(response)
+	},
+
+	// Set custom attributes on the errors and logs reported to highlight.
+	// Setting a key previously set will update the value.
+	setAttributes: (attributes: ResourceAttributes) => {
+		// @ts-ignore
+		sdk.traceProvider.resource.merge(new Resource(attributes))
 	},
 }
