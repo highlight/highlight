@@ -4371,7 +4371,7 @@ export type GetWorkspacePendingInvitesQuery = { __typename?: 'Query' } & {
 	workspace_pending_invites: Array<
 		{ __typename?: 'WorkspaceInviteLink' } & Pick<
 			Types.WorkspaceInviteLink,
-			'id' | 'invitee_email' | 'invitee_role' | 'expiration_date'
+			'id' | 'invitee_email' | 'invitee_role' | 'created_at'
 		>
 	>
 }

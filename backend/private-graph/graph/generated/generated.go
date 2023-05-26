@@ -1219,6 +1219,7 @@ type ComplexityRoot struct {
 	}
 
 	WorkspaceInviteLink struct {
+		CreatedAt      func(childComplexity int) int
 		ExpirationDate func(childComplexity int) int
 		ID             func(childComplexity int) int
 		InviteeEmail   func(childComplexity int) int
@@ -8356,6 +8357,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.WorkspaceForInviteLink.WorkspaceName(childComplexity), true
 
+	case "WorkspaceInviteLink.created_at":
+		if e.complexity.WorkspaceInviteLink.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.WorkspaceInviteLink.CreatedAt(childComplexity), true
+
 	case "WorkspaceInviteLink.expiration_date":
 		if e.complexity.WorkspaceInviteLink.ExpirationDate == nil {
 			break
@@ -9682,6 +9690,7 @@ type WorkspaceInviteLink {
 	invitee_role: String!
 	expiration_date: Timestamp!
 	secret: String!
+	created_at: Timestamp!
 }
 
 type WorkspaceForInviteLink {
@@ -46183,6 +46192,8 @@ func (ec *executionContext) fieldContext_Query_workspace_invite_links(ctx contex
 				return ec.fieldContext_WorkspaceInviteLink_expiration_date(ctx, field)
 			case "secret":
 				return ec.fieldContext_WorkspaceInviteLink_secret(ctx, field)
+			case "created_at":
+				return ec.fieldContext_WorkspaceInviteLink_created_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkspaceInviteLink", field.Name)
 		},
@@ -46249,6 +46260,8 @@ func (ec *executionContext) fieldContext_Query_workspace_pending_invites(ctx con
 				return ec.fieldContext_WorkspaceInviteLink_expiration_date(ctx, field)
 			case "secret":
 				return ec.fieldContext_WorkspaceInviteLink_secret(ctx, field)
+			case "created_at":
+				return ec.fieldContext_WorkspaceInviteLink_created_at(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type WorkspaceInviteLink", field.Name)
 		},
@@ -58386,6 +58399,50 @@ func (ec *executionContext) fieldContext_WorkspaceInviteLink_secret(ctx context.
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _WorkspaceInviteLink_created_at(ctx context.Context, field graphql.CollectedField, obj *model1.WorkspaceInviteLink) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_WorkspaceInviteLink_created_at(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_WorkspaceInviteLink_created_at(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "WorkspaceInviteLink",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
 		},
 	}
 	return fc, nil
@@ -71583,6 +71640,13 @@ func (ec *executionContext) _WorkspaceInviteLink(ctx context.Context, sel ast.Se
 		case "secret":
 
 			out.Values[i] = ec._WorkspaceInviteLink_secret(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "created_at":
+
+			out.Values[i] = ec._WorkspaceInviteLink_created_at(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

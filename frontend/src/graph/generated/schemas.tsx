@@ -2800,6 +2800,7 @@ export type WorkspaceForInviteLink = {
 
 export type WorkspaceInviteLink = {
 	__typename?: 'WorkspaceInviteLink'
+	created_at: Scalars['Timestamp']
 	expiration_date: Scalars['Timestamp']
 	id: Scalars['ID']
 	invitee_email?: Maybe<Scalars['String']>

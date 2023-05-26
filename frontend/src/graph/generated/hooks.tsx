@@ -12887,7 +12887,7 @@ export const GetWorkspacePendingInvitesDocument = gql`
 			id
 			invitee_email
 			invitee_role
-			expiration_date
+			created_at
 		}
 	}
 `

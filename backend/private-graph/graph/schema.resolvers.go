@@ -6483,15 +6483,22 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 
 // WorkspacePendingInvites is the resolver for the workspace_pending_invites field.
 func (r *queryResolver) WorkspacePendingInvites(ctx context.Context, workspaceID int) ([]*model.WorkspaceInviteLink, error) {
-	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
 	}
 
-	// TODO(spenny) filter to invites that are pending for users with emails
+	// TODO(spenny): filter to invites that are pending for users with emails
 	var pendingInvites []*model.WorkspaceInviteLink
-	if err := r.DB.Order("created_at ASC").Model(workspace).Association("WorkspaceInviteLink").Find(&pendingInvites); err != nil {
-		return nil, e.Wrap(err, "error getting invite links for the workspace")
+	var queryErr = r.DB.
+		Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID}).
+		Where("invitee_email IS NOT NULL").
+		Order("created_at DESC").
+		Find(&pendingInvites).
+		Error
+
+	if queryErr != nil {
+		return nil, e.Wrap(queryErr, "error getting invite links for the workspace")
 	}
 
 	return pendingInvites, nil

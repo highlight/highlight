@@ -2,15 +2,14 @@ import { AdminAvatar } from '@components/Avatar/Avatar'
 import Card from '@components/Card/Card'
 import Table from '@components/Table/Table'
 import { useGetWorkspacePendingInvitesQuery } from '@graph/hooks'
-import SvgTrashIcon from '@icons/TrashIcon'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
+import { titleCaseString } from '@util/string'
 import clsx from 'clsx'
+import moment from 'moment'
 import React from 'react'
 
-import Button from '../../../components/Button/Button/Button'
-import PopConfirm from '../../../components/PopConfirm/PopConfirm'
-import styles from './AllMembers.module.scss'
+import styles from './PendingInvites.module.scss'
 
 const PendingInvites = ({ workspaceId }: { workspaceId?: string }) => {
 	const { checkPolicyAccess } = useAuthorization()
@@ -24,7 +23,7 @@ const PendingInvites = ({ workspaceId }: { workspaceId?: string }) => {
 	}
 
 	return (
-		<div className={clsx(styles.memberCardWrapper, 'highlight-mask')}>
+		<div className={clsx(styles.inviteCardWrapper, 'highlight-mask')}>
 			<Card noPadding>
 				<Table
 					columns={
@@ -38,11 +37,9 @@ const PendingInvites = ({ workspaceId }: { workspaceId?: string }) => {
 					dataSource={data?.workspace_pending_invites?.map(
 						(invite) => ({
 							email: invite.invitee_email,
-							// TODO(spenny): use created at date instead of expiration date
-							expirationDate: invite.expiration_date,
+							creationDate: invite.created_at,
 							id: invite.id,
-							// TODO(spenny): add delete handler
-							onDeleteHandler: () => null,
+							role: invite.invitee_role,
 						}),
 					)}
 					pagination={false}
@@ -54,7 +51,6 @@ const PendingInvites = ({ workspaceId }: { workspaceId?: string }) => {
 	)
 }
 
-// TODO(spenny): update styles
 const TABLE_COLUMNS = [
 	{
 		title: 'Email',
@@ -62,7 +58,7 @@ const TABLE_COLUMNS = [
 		key: 'email',
 		render: (_: string, record: any) => {
 			return (
-				<div className={styles.memberCard}>
+				<div className={styles.inviteCard}>
 					<AdminAvatar
 						size={45}
 						adminInfo={{
@@ -71,8 +67,8 @@ const TABLE_COLUMNS = [
 					/>
 					<div>
 						<h4>{record?.email}</h4>
-						<div className={styles.email}>
-							{record?.expirationDate}
+						<div className={styles.inviteTime}>
+							{moment(record?.creationDate).fromNow()}
 						</div>
 					</div>
 				</div>
@@ -80,32 +76,11 @@ const TABLE_COLUMNS = [
 		},
 	},
 	{
-		title: 'Remove',
-		dataIndex: 'remove',
-		key: 'remove',
-		render: (_: any, record: any) => {
-			return (
-				<PopConfirm
-					title={`Delete invite for ${record?.email}?`}
-					description="Their invite link will no longer be active. You can invite them again if they need access."
-					okText={`Remove ${record?.email}`}
-					cancelText="Cancel"
-					onConfirm={() => {
-						if (record?.onDeleteHandler) {
-							record.onDeleteHandler()
-						}
-					}}
-					okButtonProps={{ danger: true }}
-				>
-					<Button
-						className={styles.removeTeamMemberButton}
-						trackingId="DeleteInvite"
-						iconButton
-					>
-						<SvgTrashIcon />
-					</Button>
-				</PopConfirm>
-			)
+		title: 'Role',
+		dataIndex: 'role',
+		key: 'role',
+		render: (role: string, _: any) => {
+			return <div className={styles.role}>{titleCaseString(role)}</div>
 		},
 	},
 ]
