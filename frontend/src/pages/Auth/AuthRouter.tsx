@@ -16,16 +16,9 @@ export const SIGN_UP_ROUTE = '/sign_up'
 
 export const AuthRouter: React.FC = () => {
 	const { isAuthLoading } = useAuthContext()
-	// const { setLoadingState } = useAppLoadingContext()
 
 	const [resolver, setResolver] =
 		useState<firebase.auth.MultiFactorResolver>()
-
-	// useEffect(() => {
-	// 	if (isAuthLoading) {
-	// 		setLoadingState(AppLoadingState.LOADING)
-	// 	}
-	// }, [isAuthLoading, setLoadingState])
 
 	if (isAuthLoading) {
 		return null
