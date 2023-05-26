@@ -14,6 +14,15 @@ async function doRequest() {
 	 * @param {Response} response
 	 */
 	async function gatherResponse(response: any) {
+		console.log('yo! gathering a cloudflare worker response', {
+			random: Math.random(),
+		})
+		console.warn('warning! gathering a cloudflare worker response', {
+			random: Math.random(),
+		})
+		console.warn('error! gathering a cloudflare worker response', {
+			random: Math.random(),
+		})
 		if (Math.random() < 0.2) {
 			throw new Error('random error from cloudflare worker!')
 		}
@@ -43,13 +52,13 @@ async function doRequest() {
 
 export default {
 	async fetch(request: Request, env: {}, ctx: ExecutionContext) {
-		const hEnv = { HIGHLIGHT_PROJECT_ID: '1' }
+		H.init(request, { HIGHLIGHT_PROJECT_ID: '1' }, ctx)
 		try {
 			const response = await doRequest()
-			H.sendResponse(request, hEnv, ctx, response)
+			H.sendResponse(response)
 			return response
 		} catch (e: any) {
-			H.consumeError(request, hEnv, ctx, e)
+			H.consumeError(e)
 			throw e
 		}
 	},

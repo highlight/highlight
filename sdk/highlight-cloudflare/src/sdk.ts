@@ -10,6 +10,15 @@ const HIGHLIGHT_PROJECT_ENV = 'HIGHLIGHT_PROJECT_ID'
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
 const HIGHLIGHT_OTLP_BASE = 'https://otel.highlight.io'
 
+export const RECORDED_CONSOLE_METHODS = [
+	'debug',
+	'error',
+	'info',
+	'log',
+	'trace',
+	'warn',
+] as const
+
 export interface HighlightEnv {
 	[HIGHLIGHT_PROJECT_ENV]: string
 }
@@ -37,9 +46,9 @@ export const H: HighlightInterface = {
 			request.headers.get(HIGHLIGHT_REQUEST_HEADER) || ''
 		).split('/')
 		const endpoints = { default: HIGHLIGHT_OTLP_BASE }
-		return (sdk = new WorkersSDK(request, ctx, {
+		sdk = new WorkersSDK(request, ctx, {
 			service: service || 'cloudflare-worker',
-			consoleLogEnabled: true,
+			consoleLogEnabled: false,
 			traceExporter: new OTLPProtoTraceExporter({
 				url: `${endpoints.default}/v1/traces`,
 			}),
@@ -51,7 +60,11 @@ export const H: HighlightInterface = {
 				['highlight.session_id']: sessionID,
 				['highlight.trace_id']: requestID,
 			}),
-		}))
+		})
+		for (const m of RECORDED_CONSOLE_METHODS) {
+			console[m] = sdk.logger[m]
+		}
+		return sdk
 	},
 
 	consumeError: (error: Error) => {
