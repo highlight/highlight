@@ -1,6 +1,7 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
+import { tsconfig } from '../../shared-snippets'
 
 export const JSCloudflareLoggingContent: QuickStartContent = {
 	title: 'Cloudflare Workers',
@@ -27,6 +28,7 @@ export default {
 				language: `js`,
 			},
 		},
+		tsconfig,
 		verifyLogs,
 	],
 }

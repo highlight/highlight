@@ -8,10 +8,9 @@
 		"noEmit": true,
 		"resolveJsonModule": true,
 		"sourceMap": true,
-		/* required due to our sdk's dependence on opentelemetry-sdk-workers
-		   which hacks around the dependence on @opentelemetry by dynamically replacing
-		   javascript, but does not replace the '@types/node' dependency
-		*/
+		/* required due to our sdk's usage of 'opentelemetry-sdk-workers'
+		   which works around node syntax in its dependencies by dynamically replacing
+		   the imported javascript bundle, but does not replace the '@types/node' dependency */
 		"skipLibCheck": true,
 		"strict": true,
 		"target": "es2022",

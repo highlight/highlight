@@ -7,6 +7,7 @@ import {
 	setupLogging,
 	verifyError,
 } from './shared-snippets'
+import { tsconfig } from '../../shared-snippets'
 
 export const JSCloudflareContent: QuickStartContent = {
 	title: 'Cloudflare Workers',
@@ -55,6 +56,7 @@ export default {
   },
 }`,
 		),
+		tsconfig,
 		setupLogging('cloudflare'),
 	],
 }
