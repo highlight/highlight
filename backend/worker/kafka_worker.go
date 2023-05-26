@@ -15,6 +15,7 @@ import (
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -192,11 +193,15 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 
 	spanW.Finish()
 
+	var markBackendSetupProjectIds []uint32
 	// Filter out any log rows for projects where the log quota has been exceeded
 	var filteredRows []*clickhouse.LogRow
 	for _, logRow := range logRows {
 		if quotaExceededByProject[logRow.ProjectId] {
 			continue
+		}
+		if logRow.Source == privateModel.LogSourceBackend {
+			markBackendSetupProjectIds = append(markBackendSetupProjectIds, logRow.ProjectId)
 		}
 		filteredRows = append(filteredRows, logRow)
 	}
@@ -204,7 +209,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	wSpan, wCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.process"))
 	wSpan.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
 	wSpan.SetTag("NumProjects", len(workspaceByProject))
-	for projectId := range workspaceByProject {
+	for projectId := range markBackendSetupProjectIds {
 		err := k.Worker.PublicResolver.MarkBackendSetupImpl(wCtx, int(projectId), model.MarkBackendSetupTypeLogs)
 		if err != nil {
 			log.WithContext(wCtx).WithError(err).Error("failed to mark backend logs setup")
