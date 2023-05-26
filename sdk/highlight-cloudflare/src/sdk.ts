@@ -92,6 +92,8 @@ export const H: HighlightInterface = {
 	// Setting a key previously set will update the value.
 	setAttributes: (attributes: ResourceAttributes) => {
 		// @ts-ignore
-		sdk.traceProvider.resource.merge(new Resource(attributes))
+		sdk.traceProvider.resource = sdk.traceProvider.resource.merge(
+			new Resource(attributes),
+		)
 	},
 }
