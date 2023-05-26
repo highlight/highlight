@@ -1,6 +1,8 @@
 import { Admin } from '@graph/schemas'
 import { createContext } from '@util/context/context'
 
+import { auth } from '@/util/auth'
+
 export enum AuthRole {
 	AUTHENTICATED,
 	UNAUTHENTICATED,
@@ -11,10 +13,6 @@ export const isAuthLoading = (role: AuthRole) => {
 	return role == AuthRole.LOADING
 }
 
-export const isLoggedIn = (role: AuthRole) => {
-	return role === AuthRole.AUTHENTICATED
-}
-
 export const [useAuthContext, AuthContextProvider] = createContext<{
 	role: AuthRole
 	admin?: Admin
@@ -22,7 +20,7 @@ export const [useAuthContext, AuthContextProvider] = createContext<{
 	isAuthLoading: boolean
 	isLoggedIn: boolean
 	isHighlightAdmin: boolean
-	signIn: () => Promise<void>
+	signIn: (user: typeof auth.currentUser) => Promise<void>
 	signOut: () => void
-	fetchAdmin: () => void
+	fetchAdmin: () => Promise<void>
 }>('AuthContext')

@@ -32,21 +32,7 @@ export const ProjectRedirectionRouter = () => {
 
 	let redirectTo
 	if (data?.projects?.length) {
-		const authRoutes = [
-			'sign_in',
-			'sign_up',
-			'reset_password',
-			'about_you',
-			'multi_factor',
-		]
-		let path = location.pathname.split('/')[1]
-		console.log('::: path', path, location.pathname)
-		// TODO: Handle other routes like sign_in
-		if (authRoutes.indexOf(path) > -1) {
-			path = '/sessions'
-		}
-
-		redirectTo = `/${data!.projects[0]!.id}${path}`
+		redirectTo = `/${data!.projects[0]!.id}${location.pathname}`
 	} else {
 		redirectTo = '/new'
 	}

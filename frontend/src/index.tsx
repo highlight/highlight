@@ -9,7 +9,6 @@ import {
 	AuthContextProvider,
 	AuthRole,
 	isAuthLoading,
-	isLoggedIn,
 } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { LoadingPage } from '@components/Loading/Loading'
@@ -39,7 +38,7 @@ import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { showIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Helmet } from 'react-helmet'
 import { SkeletonTheme } from 'react-loading-skeleton'
@@ -258,12 +257,10 @@ const AuthenticationRoleRouter = () => {
 	const { setLoadingState } = useAppLoadingContext()
 	const [getProjectQuery] = useGetProjectLazyQuery()
 
+	const firebaseInitialized = useRef(false)
 	const [user, setUser] = useState(auth.currentUser)
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
-
-	if (!user) {
-		adminData = null
-	}
+	const isLoggedIn = authRole === AuthRole.AUTHENTICATED
 
 	useEffect(() => {
 		if (adminData && user) {
@@ -308,12 +305,18 @@ const AuthenticationRoleRouter = () => {
 	useEffect(() => {
 		return auth.onAuthStateChanged(
 			async (user) => {
-				setUser(user)
+				if (!firebaseInitialized.current) {
+					// Only set the user if this is the first time we're initializing,
+					// otherwise let the signIn/signOut handlers set it.
+					setUser(user)
+				}
 
 				if (!user) {
 					setAuthRole(AuthRole.UNAUTHENTICATED)
 					setLoadingState(AppLoadingState.LOADED)
 				}
+
+				firebaseInitialized.current = true
 			},
 			(error) => {
 				H.consumeError(error)
@@ -351,35 +354,36 @@ const AuthenticationRoleRouter = () => {
 		true,
 	)
 
-	const loggedIn = isLoggedIn(authRole)
-	console.log('::: isLoggedIn', isLoggedIn)
-
 	return (
 		<AuthContextProvider
 			value={{
 				role: authRole,
-				admin: loggedIn ? adminData ?? undefined : undefined,
+				admin: isLoggedIn ? adminData ?? undefined : undefined,
 				workspaceRole: adminRole || undefined,
 				isAuthLoading: isAuthLoading(authRole),
-				isLoggedIn: loggedIn,
+				isLoggedIn,
 				isHighlightAdmin:
 					onlyAllowHighlightStaff(adminData) && enableStaffView,
 				fetchAdmin,
-				signIn: async () => {
+				signIn: async (user: typeof auth.currentUser) => {
 					analytics.track('Authenticated')
+					setUser(user)
+					setAuthRole(AuthRole.AUTHENTICATED)
 				},
 				signOut: () => {
 					auth.signOut()
 					client.clearStore()
 					navigate(SIGN_IN_ROUTE)
 					analytics.track('Sign out')
+					setUser(null)
+					setAuthRole(AuthRole.UNAUTHENTICATED)
 				},
 			}}
 		>
 			<Helmet>
 				<title>highlight.io</title>
 			</Helmet>
-			{adminError ? (
+			{adminError && user ? (
 				<ErrorState
 					message={
 						`Seems like we had an issue with your login 😢. ` +

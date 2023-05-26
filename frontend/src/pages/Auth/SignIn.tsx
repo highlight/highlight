@@ -1,6 +1,7 @@
 import { Button } from '@components/Button'
 import {
 	useCreateAdminMutation,
+	useGetProjectsLazyQuery,
 	useGetWorkspaceForInviteLinkQuery,
 } from '@graph/hooks'
 import {
@@ -32,7 +33,7 @@ type Props = {
 
 export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const navigate = useNavigate()
-	const { signIn } = useAuthContext()
+	const { fetchAdmin, signIn } = useAuthContext()
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
@@ -44,6 +45,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			password: '',
 		},
 	})
+	const [getProjects] = useGetProjectsLazyQuery()
 	const [createAdmin] = useCreateAdminMutation()
 	const { data } = useGetWorkspaceForInviteLinkQuery({
 		variables: {
@@ -64,11 +66,16 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 				await createAdmin()
 			}
 
-			// After sign in the user is redirected because AuthRouter is unmounted
-			// and the ProjectRedirectionRouter takes its place.
-			signIn()
+			const { data: projectsData } = await getProjects()
+			await fetchAdmin()
+
+			signIn(user)
+			if (projectsData?.projects?.length) {
+				const projectId = projectsData.projects[0]!.id
+				navigate(`/${projectId}/sessions`, { replace: true })
+			}
 		},
-		[createAdmin, signIn],
+		[createAdmin, fetchAdmin, getProjects, navigate, signIn],
 	)
 
 	const handleAuthError = useCallback(
