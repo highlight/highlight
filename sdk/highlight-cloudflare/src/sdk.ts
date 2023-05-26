@@ -37,6 +37,7 @@ export interface HighlightInterface {
 let sdk: WorkersSDK
 
 export const H: HighlightInterface = {
+	// Initialize the highlight SDK. This monkeypatches the console methods to start sending console logs to highlight.
 	init: (
 		request: Request,
 		{ [HIGHLIGHT_PROJECT_ENV]: projectID }: HighlightEnv,
@@ -68,6 +69,7 @@ export const H: HighlightInterface = {
 		return sdk
 	},
 
+	// Capture a javascript exception as an error in highlight.
 	consumeError: (error: Error) => {
 		if (!sdk) {
 			console.error(
@@ -78,6 +80,7 @@ export const H: HighlightInterface = {
 		sdk.captureException(error)
 	},
 
+	// Capture a cloudflare response as a trace in highlight.
 	sendResponse: (response: Response) => {
 		if (!sdk) {
 			console.error(
@@ -91,6 +94,12 @@ export const H: HighlightInterface = {
 	// Set custom attributes on the errors and logs reported to highlight.
 	// Setting a key previously set will update the value.
 	setAttributes: (attributes: ResourceAttributes) => {
+		if (!sdk) {
+			console.error(
+				'please call H.init(...) before calling H.setAttributes(...)',
+			)
+			return
+		}
 		// @ts-ignore
 		sdk.traceProvider.resource = sdk.traceProvider.resource.merge(
 			new Resource(attributes),
