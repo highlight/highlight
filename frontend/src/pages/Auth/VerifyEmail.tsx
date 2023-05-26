@@ -12,6 +12,8 @@ import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
+
 import * as styles from './AuthRouter.css'
 
 export const VerifyEmail: React.FC = () => {
@@ -28,7 +30,7 @@ export const VerifyEmail: React.FC = () => {
 	useEffect(() => {
 		if (isEmailVerified) {
 			stopPolling()
-			navigate('/about_you')
+			navigate(ABOUT_YOU_ROUTE)
 		} else {
 			startPolling(1000)
 		}

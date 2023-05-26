@@ -25,7 +25,7 @@ import React, { useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
-import { VERIFY_EMAIL_PATH } from '@/routers/AppRouter/AppRouter'
+import { VERIFY_EMAIL_ROUTE } from '@/routers/AppRouter/AppRouter'
 
 export const SignUp: React.FC = () => {
 	const navigate = useNavigate()
@@ -73,7 +73,7 @@ export const SignUp: React.FC = () => {
 			message.success('Account created succesfully!')
 
 			signIn()
-			navigate(VERIFY_EMAIL_PATH, { replace: true })
+			navigate(VERIFY_EMAIL_ROUTE, { replace: true })
 		},
 		[createAdmin, navigate, signIn],
 	)

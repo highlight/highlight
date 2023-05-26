@@ -53,7 +53,8 @@ import {
 	GetWorkspaceDropdownOptionsQuery,
 } from '@/graph/generated/operations'
 
-export const VERIFY_EMAIL_PATH = '/verify_email'
+export const VERIFY_EMAIL_ROUTE = '/verify_email'
+export const ABOUT_YOU_ROUTE = '/about_you'
 
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
@@ -103,7 +104,7 @@ export const AppRouter = () => {
 
 	useEffect(() => {
 		if (admin && admin.email_verified === false) {
-			navigate(VERIFY_EMAIL_PATH, { replace: true })
+			navigate(VERIFY_EMAIL_ROUTE, { replace: true })
 			return
 		}
 
@@ -118,7 +119,7 @@ export const AppRouter = () => {
 			!isVercelIntegrationFlow &&
 			!isInvitePage
 		) {
-			navigate('/about_you', { replace: true })
+			navigate(ABOUT_YOU_ROUTE, { replace: true })
 			return
 		}
 
@@ -192,17 +193,12 @@ export const AppRouter = () => {
 				}}
 			>
 				<Routes>
-					{isLoggedIn && !admin?.about_you_details_filled && (
-						// used by google ads for conversion tracking
-						<Route path="/about_you" element={<AdminForm />} />
-					)}
-
-					{isLoggedIn && !admin?.email_verified && (
-						<Route
-							path={VERIFY_EMAIL_PATH}
-							element={<VerifyEmail />}
-						/>
-					)}
+					<Route
+						path={VERIFY_EMAIL_ROUTE}
+						element={<VerifyEmail />}
+					/>
+					{/* used by google ads for conversion tracking */}
+					<Route path={ABOUT_YOU_ROUTE} element={<AdminForm />} />
 
 					<Route
 						path="/oauth/authorize"
@@ -328,6 +324,7 @@ export const AppRouter = () => {
 								projectId === DEMO_PROJECT_ID) ? (
 								<ProjectRouter />
 							) : isLoggedIn ? (
+								// TODO: Need to ensure we don't get here during sign up/in flows
 								<ProjectRedirectionRouter />
 							) : (
 								<AuthRouter />
