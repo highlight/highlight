@@ -194,14 +194,15 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	spanW.Finish()
 
 	var markBackendSetupProjectIds []uint32
-	// Filter out any log rows for projects where the log quota has been exceeded
 	var filteredRows []*clickhouse.LogRow
 	for _, logRow := range logRows {
-		if quotaExceededByProject[logRow.ProjectId] {
-			continue
-		}
 		if logRow.Source == privateModel.LogSourceBackend {
 			markBackendSetupProjectIds = append(markBackendSetupProjectIds, logRow.ProjectId)
+		}
+
+		// Filter out any log rows for projects where the log quota has been exceeded
+		if quotaExceededByProject[logRow.ProjectId] {
+			continue
 		}
 		filteredRows = append(filteredRows, logRow)
 	}
