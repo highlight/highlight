@@ -9,7 +9,8 @@
 	"private": true,
 	"scripts": {
 		"start": "wrangler dev",
-		"deploy": "wrangler deploy"
+		"deploy": "wrangler deploy",
+		"typegen": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@highlight-run/cloudflare": "workspace:*"

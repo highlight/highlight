@@ -7627,6 +7627,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@cloudflare/workers-types@npm:^4.20230518.0":
+  version: 4.20230518.0
+  resolution: "@cloudflare/workers-types@npm:4.20230518.0"
+  checksum: 69c861437f1064b860b2a52129ed973f670090a8d2de9f4b205f86f8a2f40caec48b8c7614533c6531875d1fa254fc7d9da3ab52d7a6fff46be0f64079b394dc
+  languageName: node
+  linkType: hard
+
 "@cnakazawa/watch@npm:^1.0.3":
   version: 1.0.4
   resolution: "@cnakazawa/watch@npm:1.0.4"
@@ -10994,6 +11001,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@highlight-run/cloudflare@workspace:sdk/highlight-cloudflare"
   dependencies:
+    "@cloudflare/workers-types": ^4.20230518.0
     opentelemetry-sdk-workers: ^0.6.2
     tsup: ^6.7.0
   languageName: unknown
