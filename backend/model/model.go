@@ -146,7 +146,9 @@ var Models = []interface{}{
 	&CommentFollower{},
 	&CommentSlackThread{},
 	&ErrorAlert{},
+	&ErrorAlertEvent{},
 	&SessionAlert{},
+	&SessionAlertEvent{},
 	&LogAlert{},
 	&Project{},
 	&RageClickEvent{},
@@ -1723,7 +1725,22 @@ type ErrorAlert struct {
 	AlertIntegrations
 }
 
+type ErrorAlertEvent struct {
+	ID            int64 `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	ErrorAlertID  int   `gorm:"index:idx_error_alert_event"`
+	ErrorObjectID int   `gorm:"index:idx_error_alert_event"`
+	SentAt        time.Time
+}
+
 func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
+	defer func() {
+		db.Create(&ErrorAlertEvent{
+			ErrorAlertID:  obj.ID,
+			ErrorObjectID: input.ErrorObject.ID,
+			SentAt:        time.Now(),
+		})
+	}()
+
 	if err := obj.sendSlackAlert(ctx, db, obj.ID, input); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -1827,7 +1844,22 @@ type SessionAlert struct {
 	AlertIntegrations
 }
 
+type SessionAlertEvent struct {
+	ID              int64  `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	SessionAlertID  int    `gorm:"index:idx_session_alert_event"`
+	SessionSecureID string `gorm:"index:idx_session_alert_event"`
+	SentAt          time.Time
+}
+
 func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
+	defer func() {
+		db.Create(&SessionAlertEvent{
+			SessionAlertID:  obj.ID,
+			SessionSecureID: input.SessionSecureID,
+			SentAt:          time.Now(),
+		})
+	}()
+
 	if err := obj.sendSlackAlert(ctx, db, obj.ID, input); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -2583,7 +2615,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 			suffix += fmt.Sprintf("%s=%s", k, v)
 		}
 	}
-	sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s|View Thread>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
+	sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s|View>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
 	identifier := input.UserIdentifier
@@ -2612,7 +2644,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		errorLink := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 		// construct Slack message
 		previewText = fmt.Sprintf("Highlight: Error Alert: %s", shortEvent)
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/|View Thread>", *input.ErrorsCount, shortEvent, errorLink), false, false)
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/|View>", *input.ErrorsCount, shortEvent, errorLink), false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+identifier, false, false))
 		if input.URL != nil && *input.URL != "" {
 			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*input.URL, false, false))
