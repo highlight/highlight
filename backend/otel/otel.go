@@ -343,18 +343,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for sessionID, metrics := range traceMetrics {
-		if err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
-			Type: kafkaqueue.MarkBackendSetup,
-			MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
-				SessionSecureID: pointy.String(sessionID),
-				Type:            model2.MarkBackendSetupTypeError,
-			},
-		}, uuid.New().String()); err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to submit otel mark backend setup")
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
-		}
-
 		err = o.resolver.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushMetrics,
 			PushMetrics: &kafkaqueue.PushMetricsArgs{
