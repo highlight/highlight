@@ -40,6 +40,7 @@ import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
+import { JSCloudflareLoggingContent } from './logging/js/cloudflare'
 
 export type QuickStartOptions = {
 	title: string
@@ -201,6 +202,7 @@ export const quickStartContent = {
 			[QuickStartType.JSNodejs]: JSOtherLogContent,
 			[QuickStartType.JSNestjs]: JSNestLogContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogContent,
+			[QuickStartType.JSCloudflare]: JSCloudflareLoggingContent,
 		},
 		http: {
 			title: 'curl',
