@@ -1080,7 +1080,7 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 		"click",
 		slack.NewTextBlockObject(
 			slack.PlainTextType,
-			"View Thread",
+			"View",
 			false,
 			false,
 		),

@@ -473,21 +473,18 @@ func main() {
 			}
 			defer profiler.Stop()
 		}
-		alertWorkerpool := workerpool.New(40)
-		alertWorkerpool.SetPanicHandler(util.Recover)
 		publicResolver := &public.Resolver{
-			DB:              db,
-			TDB:             tdb,
-			ProducerQueue:   kafkaProducer,
-			BatchedQueue:    kafkaBatchedProducer,
-			MailClient:      sendgrid.NewSendClient(sendgridKey),
-			StorageClient:   storageClient,
-			AlertWorkerPool: alertWorkerpool,
-			OpenSearch:      opensearchClient,
-			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
-			Redis:           redisClient,
-			RH:              &rh,
-			Store:           store.NewStore(db, opensearchClient),
+			DB:            db,
+			TDB:           tdb,
+			ProducerQueue: kafkaProducer,
+			BatchedQueue:  kafkaBatchedProducer,
+			MailClient:    sendgrid.NewSendClient(sendgridKey),
+			StorageClient: storageClient,
+			OpenSearch:    opensearchClient,
+			HubspotApi:    hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
+			Redis:         redisClient,
+			RH:            &rh,
+			Store:         store.NewStore(db, opensearchClient),
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -565,22 +562,19 @@ func main() {
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
 	if runtimeParsed == util.Worker || runtimeParsed == util.All {
-		alertWorkerpool := workerpool.New(40)
-		alertWorkerpool.SetPanicHandler(util.Recover)
 		publicResolver := &public.Resolver{
-			DB:              db,
-			TDB:             tdb,
-			ProducerQueue:   kafkaProducer,
-			BatchedQueue:    kafkaBatchedProducer,
-			MailClient:      sendgrid.NewSendClient(sendgridKey),
-			StorageClient:   storageClient,
-			AlertWorkerPool: alertWorkerpool,
-			OpenSearch:      opensearchClient,
-			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
-			Redis:           redisClient,
-			Clickhouse:      clickhouseClient,
-			RH:              &rh,
-			Store:           store.NewStore(db, opensearchClient),
+			DB:            db,
+			TDB:           tdb,
+			ProducerQueue: kafkaProducer,
+			BatchedQueue:  kafkaBatchedProducer,
+			MailClient:    sendgrid.NewSendClient(sendgridKey),
+			StorageClient: storageClient,
+			OpenSearch:    opensearchClient,
+			HubspotApi:    hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
+			Redis:         redisClient,
+			Clickhouse:    clickhouseClient,
+			RH:            &rh,
+			Store:         store.NewStore(db, opensearchClient),
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
