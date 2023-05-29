@@ -45,7 +45,6 @@
 
 		<maven.install.skip>true</maven.install.skip>
 		<maven.deploy.skip>true</maven.deploy.skip>
-		<deployAtEnd>true</deployAtEnd>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 

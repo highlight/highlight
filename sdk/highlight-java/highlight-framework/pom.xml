@@ -11,6 +11,6 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>highlight-framework-sping</module>
+		<module>highlight-framework-spring</module>
 	</modules>
 </project>

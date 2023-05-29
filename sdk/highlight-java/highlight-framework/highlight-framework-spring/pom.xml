@@ -7,9 +7,25 @@
 		<version>${revision}</version>
 	</parent>
 
-	<artifactId>highlight-framework-sping</artifactId>
+	<artifactId>highlight-framework-spring</artifactId>
+
+	<properties>
+		<maven.deploy.skip>true</maven.deploy.skip>
+	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>io.highlight</groupId>
+			<artifactId>highlight-common</artifactId>
+			<version>${revision}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.highlight</groupId>
+			<artifactId>highlight-sdk</artifactId>
+			<version>${revision}</version>
+			<scope>compile</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>

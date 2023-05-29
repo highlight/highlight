@@ -3,6 +3,7 @@ package io.highlight.sdk.common.record;
 import java.time.Instant;
 import java.util.function.Consumer;
 
+import io.highlight.sdk.common.HighlightHeader;
 import io.highlight.sdk.common.HighlightSessionId;
 import io.highlight.sdk.common.Severity;
 import io.opentelemetry.api.common.Attributes;
@@ -201,6 +202,18 @@ public sealed class HighlightRecord permits HighlightErrorRecord, HighlightLogRe
 		 */
 		public T timeOccured(Instant timeOccured) {
 			this.timeOccured = timeOccured;
+			return (T) this;
+		}
+
+		/**
+		 * Sets the user session and request id associated with the record.
+		 *
+		 * @param header the {@link HighlightHeader} associated with the record
+		 * @return this {@link Builder} instance
+		 */
+		public T requestHeader(HighlightHeader header) {
+			this.userSession(header.sessionId());
+			this.requestId(header.requestId());
 			return (T) this;
 		}
 

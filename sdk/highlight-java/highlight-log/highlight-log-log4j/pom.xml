@@ -8,4 +8,8 @@
 	</parent>
 
 	<artifactId>highlight-log-log4j</artifactId>
+
+	<properties>
+		<maven.deploy.skip>true</maven.deploy.skip>
+	</properties>
 </project>

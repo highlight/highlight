@@ -4,6 +4,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
+import io.highlight.sdk.common.HighlightHeader;
 import io.highlight.sdk.common.HighlightOptions;
 import io.highlight.sdk.common.Severity;
 import io.highlight.sdk.common.record.HighlightErrorRecord;
@@ -100,6 +101,23 @@ public class Highlight {
 	}
 
 	/**
+	 * Captures an exception and sends it to Highlight.
+	 * 
+	 * @param throwable the throwable to capture
+	 * @param header the {@link HighlightHeader} associated with the record
+	 * @throws HighlightIllegalStateException  if Highlight is not initialized
+	 * @throws HighlightInvalidRecordException if the record is invalid
+	 */
+	public static void captureException(Throwable throwable, HighlightHeader header) {
+		Highlight.requireInitialization();
+
+		Highlight.captureRecord(HighlightRecord.error()
+				.throwable(throwable)
+				.requestHeader(header)
+				.build());
+	}
+
+	/**
 	 * Captures a log and sends it to Highlight.
 	 * 
 	 * @param severity the severity of the log
@@ -135,6 +153,25 @@ public class Highlight {
 	}
 
 	/**
+	 * Captures a log and sends it to Highlight.
+	 * 
+	 * @param severity  the severity of the log
+	 * @param message   the message to log
+	 * @param header the {@link HighlightHeader} associated with the record
+	 * @throws HighlightIllegalStateException  if Highlight is not initialized
+	 * @throws HighlightInvalidRecordException if the record is invalid
+	 */
+	public static void captureLog(Severity severity, String message, HighlightHeader header) {
+		Highlight.requireInitialization();
+
+		Highlight.captureRecord(HighlightRecord.log()
+				.severity(severity)
+				.message(message)
+				.requestHeader(header)
+				.build());
+	}
+
+	/**
 	 * Captures a record using a record builder and sends it to Highlight.
 	 * 
 	 * @param builder the builder to use for the record
@@ -156,6 +193,15 @@ public class Highlight {
 		Highlight.requireInitialization();
 
 		Highlight.highlight.capture(record);
+	}
+
+	/**
+	 * Return the currently initialized instance.
+	 * 
+	 * @return highlight instance
+	 */
+	public static Highlight getHighlight() {
+		return Highlight.highlight;
 	}
 
 	private final HighlightOptions options;
