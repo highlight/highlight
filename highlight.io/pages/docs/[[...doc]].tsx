@@ -218,69 +218,14 @@ export const getDocsPaths = async (
 	return paths
 }
 
+/** Sorts the docs so the parents are before their children in the list. Avoids re-sorting alphabetically */
 function sortBySlashLength(docPaths: DocPath[]): DocPath[] {
-	let trees: any[] = []
-	let dataIndice: any = {}
-	for (let key in docPaths) {
-		dataIndice[docPaths[key].simple_path] = key
-	}
-
-	docPaths.forEach((item) => {
-		const nodes = item.simple_path.split('/')
-		let children = trees
-
-		for (const label of nodes) {
-			let node = {
-				label: label,
-				children: [],
-			}
-			if (children.length === 0) {
-				children.push(node)
-			}
-
-			let isExist = false
-			for (let child of children) {
-				if (child.label === node.label) {
-					children = child.children
-					isExist = true
-					break
-				}
-			}
-
-			if (!isExist) {
-				children.push(node)
-				children = children[children.length - 1].children
-			}
-		}
+	return [...docPaths].sort(({ simple_path: a }, { simple_path: b }) => {
+		if (!a || !b) return 0
+		if (a.includes(b)) return 1
+		if (b.includes(a)) return -1
+		return 0
 	})
-
-	let sortedPaths: string[] = []
-	let ret: any[] = []
-
-	function dfs(data: any, path: string) {
-		if (data.children.length === 0) {
-			sortedPaths.push(path)
-			if (dataIndice[path]) {
-				ret.push(docPaths[dataIndice[path]])
-			}
-			return
-		}
-
-		for (let child of data.children) {
-			if (!(path === '' || sortedPaths.includes(path))) {
-				sortedPaths.push(path)
-				if (dataIndice[path]) {
-					ret.push(docPaths[dataIndice[path]])
-				}
-			}
-			let prefix = path === '' ? path : path + '/'
-			dfs(child, prefix + child.label)
-		}
-	}
-
-	dfs({ label: '', children: trees }, '')
-
-	return ret
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
