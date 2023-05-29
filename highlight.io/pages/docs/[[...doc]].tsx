@@ -94,47 +94,6 @@ const useHeadingsData = (headingTag: string) => {
 	return { nestedHeadings }
 }
 
-// Checks which header is currently in view, and highlights the table of content item on the right.
-const useIntersectionObserver = (setActiveId: (s: string) => void) => {
-	const router = useRouter()
-	const headingElementsRef = useRef<any>({})
-	useEffect(() => {
-		const callback = (headings: any) => {
-			headingElementsRef.current = {}
-			headingElementsRef.current = headings.reduce(
-				(map: any, headingElement: any) => {
-					map[headingElement.target.id] = headingElement
-					return map
-				},
-				headingElementsRef.current,
-			)
-
-			const visibleHeadings: any = []
-			Object.keys(headingElementsRef.current).forEach((key) => {
-				const headingElement = headingElementsRef.current[key]
-				if (headingElement.isIntersecting)
-					visibleHeadings.push(headingElement)
-			})
-
-			if (visibleHeadings.length >= 1) {
-				setActiveId(visibleHeadings[0].target.id)
-			}
-		}
-
-		const observer = new IntersectionObserver(callback, {
-			rootMargin: '-5% 0px -90% 0px',
-			threshold: 0.0001,
-		})
-
-		const headingElements = Array.from(
-			document.querySelectorAll('h4, h5, h6'),
-		)
-		headingElements.forEach((element) => observer.observe(element))
-
-		return () => observer.disconnect()
-	}, [setActiveId, router.query])
-}
-
 function sortByFilePrefix(a: string, b: string) {
 	const [firstStringSplit] = a.split('_')
 	const [secondStringSplit] = b.split('_')
@@ -413,6 +372,47 @@ export const parseMarkdown = (
 		data,
 		links,
 	}
+}
+
+// Checks which header is currently in view, and highlights the table of content item on the right.
+const useIntersectionObserver = (setActiveId: (s: string) => void) => {
+	const router = useRouter()
+	const headingElementsRef = useRef<any>({})
+	useEffect(() => {
+		const callback = (headings: any) => {
+			headingElementsRef.current = {}
+			headingElementsRef.current = headings.reduce(
+				(map: any, headingElement: any) => {
+					map[headingElement.target.id] = headingElement
+					return map
+				},
+				headingElementsRef.current,
+			)
+
+			const visibleHeadings: any = []
+			Object.keys(headingElementsRef.current).forEach((key) => {
+				const headingElement = headingElementsRef.current[key]
+				if (headingElement.isIntersecting)
+					visibleHeadings.push(headingElement)
+			})
+
+			if (visibleHeadings.length >= 1) {
+				setActiveId(visibleHeadings[0].target.id)
+			}
+		}
+
+		const observer = new IntersectionObserver(callback, {
+			rootMargin: '-5% 0px -90% 0px',
+			threshold: 0.0001,
+		})
+
+		const headingElements = Array.from(
+			document.querySelectorAll('h4, h5, h6'),
+		)
+		headingElements.forEach((element) => observer.observe(element))
+
+		return () => observer.disconnect()
+	}, [setActiveId, router.query])
 }
 
 const SdkTableOfContents = () => {
