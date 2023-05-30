@@ -24,3 +24,9 @@
 	font-size: 13px;
 	justify-content: flex-end;
 }
+
+.removeTeamMemberButton {
+	flex-shrink: 0;
+	height: fit-content;
+	margin-left: auto;
+}

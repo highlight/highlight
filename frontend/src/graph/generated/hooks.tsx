@@ -4770,6 +4770,61 @@ export type UpdateEmailOptOutMutationOptions = Apollo.BaseMutationOptions<
 	Types.UpdateEmailOptOutMutation,
 	Types.UpdateEmailOptOutMutationVariables
 >
+export const DeleteInviteLinkFromWorkspaceDocument = gql`
+	mutation DeleteInviteLinkFromWorkspace(
+		$workspace_id: ID!
+		$workspace_invite_link_id: ID!
+	) {
+		deleteInviteLinkFromWorkspace(
+			workspace_id: $workspace_id
+			workspace_invite_link_id: $workspace_invite_link_id
+		)
+	}
+`
+export type DeleteInviteLinkFromWorkspaceMutationFn = Apollo.MutationFunction<
+	Types.DeleteInviteLinkFromWorkspaceMutation,
+	Types.DeleteInviteLinkFromWorkspaceMutationVariables
+>
+
+/**
+ * __useDeleteInviteLinkFromWorkspaceMutation__
+ *
+ * To run a mutation, you first call `useDeleteInviteLinkFromWorkspaceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteInviteLinkFromWorkspaceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteInviteLinkFromWorkspaceMutation, { data, loading, error }] = useDeleteInviteLinkFromWorkspaceMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      workspace_invite_link_id: // value for 'workspace_invite_link_id'
+ *   },
+ * });
+ */
+export function useDeleteInviteLinkFromWorkspaceMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.DeleteInviteLinkFromWorkspaceMutation,
+		Types.DeleteInviteLinkFromWorkspaceMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.DeleteInviteLinkFromWorkspaceMutation,
+		Types.DeleteInviteLinkFromWorkspaceMutationVariables
+	>(DeleteInviteLinkFromWorkspaceDocument, baseOptions)
+}
+export type DeleteInviteLinkFromWorkspaceMutationHookResult = ReturnType<
+	typeof useDeleteInviteLinkFromWorkspaceMutation
+>
+export type DeleteInviteLinkFromWorkspaceMutationResult =
+	Apollo.MutationResult<Types.DeleteInviteLinkFromWorkspaceMutation>
+export type DeleteInviteLinkFromWorkspaceMutationOptions =
+	Apollo.BaseMutationOptions<
+		Types.DeleteInviteLinkFromWorkspaceMutation,
+		Types.DeleteInviteLinkFromWorkspaceMutationVariables
+	>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!

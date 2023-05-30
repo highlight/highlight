@@ -87,9 +87,7 @@ const WorkspaceTeam = () => {
 						{
 							key: 'invites',
 							// TODO(spenny): load count
-							title: (
-								<TabTitle label="Pending invites (coming soon)" />
-							),
+							title: <TabTitle label="Pending invites" />,
 							panelContent: (
 								<TabContentContainer
 									title="Pending invites"

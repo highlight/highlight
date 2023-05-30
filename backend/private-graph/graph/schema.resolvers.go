@@ -926,6 +926,20 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 	return adminID, nil
 }
 
+// DeleteInviteLinkFromWorkspace is the resolver for the deleteInviteLinkFromWorkspace field.
+func (r *mutationResolver) DeleteInviteLinkFromWorkspace(ctx context.Context, workspaceID int, workspaceInviteLinkID int) (bool, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return false, e.Wrap(err, "current admin is not in workspace")
+	}
+
+	if err := r.DB.Delete(&model.WorkspaceInviteLink{Model: model.Model{ID: workspaceInviteLinkID}, WorkspaceID: &workspaceID}).Error; err != nil {
+		return false, e.Wrap(err, "error deleting workspace invite link")
+	}
+
+	return true, nil
+}
+
 // JoinWorkspace is the resolver for the joinWorkspace field.
 func (r *mutationResolver) JoinWorkspace(ctx context.Context, workspaceID int) (*int, error) {
 	admin, err := r.getCurrentAdmin(ctx)

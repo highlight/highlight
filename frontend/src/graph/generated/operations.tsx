@@ -1342,6 +1342,15 @@ export type UpdateEmailOptOutMutation = { __typename?: 'Mutation' } & Pick<
 	'updateEmailOptOut'
 >
 
+export type DeleteInviteLinkFromWorkspaceMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	workspace_invite_link_id: Types.Scalars['ID']
+}>
+
+export type DeleteInviteLinkFromWorkspaceMutation = {
+	__typename?: 'Mutation'
+} & Pick<Types.Mutation, 'deleteInviteLinkFromWorkspace'>
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -4588,6 +4597,7 @@ export const namedOperations = {
 		UpdateIntegrationProjectSettings:
 			'UpdateIntegrationProjectSettings' as const,
 		UpdateEmailOptOut: 'UpdateEmailOptOut' as const,
+		DeleteInviteLinkFromWorkspace: 'DeleteInviteLinkFromWorkspace' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {
