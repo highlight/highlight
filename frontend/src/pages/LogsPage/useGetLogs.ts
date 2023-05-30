@@ -52,7 +52,7 @@ export const useGetLogs = ({
 
 	useEffect(() => {
 		setWindowInfo(initialWindowInfo)
-	}, [query])
+	}, [query, startDate, endDate])
 
 	const { data, loading, error, refetch, fetchMore } = useGetLogsQuery({
 		variables: {
