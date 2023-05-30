@@ -42,7 +42,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 			await rudderInitialize()
 			window.rudderanalytics?.page()
 			window.rudderanalytics?.identify(
-				ref.referrer || 'unknown',
+				ref.clientID || 'unknown',
 				ref as unknown as { [k: string]: string },
 			)
 		}
