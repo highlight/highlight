@@ -55,7 +55,14 @@ export const JoinWorkspace = () => {
 	useEffect(() => {
 		if (error) {
 			clearInviteAndRedirect()
-			message.error('Invalid invite code.')
+
+			if (error.message.indexOf('expired') > -1) {
+				message.error(
+					'This invite link has expired. Please ask your admin for a new one.',
+				)
+			} else {
+				message.error('Invalid invite code.')
+			}
 		}
 
 		if (alreadyInWorkspace) {

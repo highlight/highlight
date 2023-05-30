@@ -16,7 +16,7 @@ import {
 	Competitor,
 } from './competitors'
 
-function HeadlessTooltip(props) {
+function HeadlessTooltip(props: { tooltip: string }) {
 	const [isShowing, setIsShowing] = useState(false)
 
 	return (

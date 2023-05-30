@@ -13,6 +13,8 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
+
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 var (
@@ -26,6 +28,7 @@ var (
 	SendGridOutboundEmail                = "gm@runhighlight.com"
 	SessionCommentMentionsAsmId          = 20950
 	ErrorCommentMentionsAsmId            = 20994
+	frontendUri                          = os.Getenv("FRONTEND_URI")
 )
 
 type EmailType string
@@ -37,6 +40,10 @@ const (
 	BillingStripeTrial3Days       EmailType = "BillingStripeTrial3Days"
 	BillingSessionUsage80Percent  EmailType = "BillingSessionUsage80Percent"
 	BillingSessionUsage100Percent EmailType = "BillingSessionUsage100Percent"
+	BillingErrorsUsage80Percent   EmailType = "BillingErrorsUsage80Percent"
+	BillingErrorsUsage100Percent  EmailType = "BillingErrorsUsage100Percent"
+	BillingLogsUsage80Percent     EmailType = "BillingLogsUsage80Percent"
+	BillingLogsUsage100Percent    EmailType = "BillingLogsUsage100Percent"
 )
 
 func SendAlertEmail(ctx context.Context, MailClient *sendgrid.Client, email string, message string, alertType string, alertName string) error {
@@ -84,50 +91,93 @@ func GetSubscriptionUrl(adminId int, previous bool) string {
 	return fmt.Sprintf("%s/subscriptions?admin_id=%d&token=%s", os.Getenv("FRONTEND_URI"), adminId, token)
 }
 
+func getApproachingLimitMessage(productType string, workspaceId int) string {
+	return fmt.Sprintf(`Your %s usage has exceeded 80&#37; of your monthly limit.<br>
+		Once this limit is exceeded, extra %ss will not be recorded.<br>
+		If you would like to increase your billing limit,
+		you can upgrade your subscription <a href="%s/w/%d/current-plan">here</a>.`,
+		productType, productType, frontendUri, workspaceId)
+}
+
+func getExceededLimitMessage(productType string, workspaceId int) string {
+	return fmt.Sprintf(`Your %s usage has exceeded your monthly limit - extra %ss will not be recorded.<br>
+		If you would like to increase your billing limit,
+		you can upgrade your subscription <a href="%s/w/%d/current-plan">here</a>.`,
+		productType, productType, frontendUri, workspaceId)
+}
+
+func getBillingNotificationSubject(emailType EmailType) string {
+	switch emailType {
+	case BillingHighlightTrial7Days:
+		return "Your Highlight trial ends in 7 days"
+	case BillingStripeTrial7Days:
+		return "Your Highlight trial ends in 7 days"
+	case BillingStripeTrial3Days:
+		return "Your Highlight trial ends in 3 days"
+	case BillingHighlightTrialEnded:
+		return "Your Highlight trial has ended"
+	case BillingSessionUsage80Percent:
+		return "[Highlight] billing limits - 80% of your session usage"
+	case BillingSessionUsage100Percent:
+		return "[Highlight] billing limits - 100% of your session usage"
+	case BillingErrorsUsage80Percent:
+		return "[Highlight] billing limits - 80% of your errors usage"
+	case BillingErrorsUsage100Percent:
+		return "[Highlight] billing limits - 100% of your errors usage"
+	case BillingLogsUsage80Percent:
+		return "[Highlight] billing limits - 80% of your logs usage"
+	case BillingLogsUsage100Percent:
+		return "[Highlight] billing limits - 100% of your logs usage"
+	default:
+		return "Highlight Billing Notification"
+	}
+}
+
 func getBillingNotificationMessage(workspaceId int, emailType EmailType) string {
 	switch emailType {
 	case BillingHighlightTrial7Days:
 		return fmt.Sprintf(`
 			We hope you've been enjoying Highlight!<br>
 			Your free trial is ending in 7 days.<br>
-			Once it has ended, you will be on the free tier with a limit of 500 sessions per month.<br>
-			You can upgrade to a paid subscription <a href="https://app.highlight.io/w/%d/upgrade-plan">here</a>.`, workspaceId)
+			Once it has ended, you will be on the free tier with monthly limits for sessions, errors, and logs.<br>
+			You can upgrade to a paid subscription <a href="%s/w/%d/current-plan">here</a>.`, frontendUri, workspaceId)
 	case BillingHighlightTrialEnded:
 		return fmt.Sprintf(`
 			We hope you've been enjoying Highlight!<br>
-			Your free trial has ended - you are now on the free tier with a limit of 500 sessions per month.<br>
-			You can upgrade to a paid subscription <a href="https://app.highlight.io/w/%d/upgrade-plan">here</a>.`, workspaceId)
+			Your free trial has ended - you are now on the free tier with monthly limits for sessions, errors, and logs.<br>
+			You can upgrade to a paid subscription <a href="%s/w/%d/current-plan">here</a>.`, frontendUri, workspaceId)
 	case BillingStripeTrial7Days:
 		return fmt.Sprintf(`
 			We hope you've been enjoying Highlight!<br>
 			Your free trial is ending in 7 days.<br>
 			Once the trial has ended, the card on file will be charged for the plan you have selected.<br>
 			If you would like to switch to a different plan or cancel your subscription, 
-			you can update your billing settings <a href="https://app.highlight.io/w/%d/current-plan">here</a>.`, workspaceId)
+			you can update your billing settings <a href="%s/w/%d/current-plan">here</a>.`, frontendUri, workspaceId)
 	case BillingStripeTrial3Days:
 		return fmt.Sprintf(`
 			We hope you've been enjoying Highlight!<br>
 			Your free trial is ending in 3 days.<br>
 			Once the trial has ended, the card on file will be charged for the plan you have selected.<br>
 			If you would like to switch to a different plan or cancel your subscription, 
-			you can update your billing settings <a href="https://app.highlight.io/w/%d/current-plan">here</a>.`, workspaceId)
+			you can update your billing settings <a href="%s/w/%d/current-plan">here</a>.`, frontendUri, workspaceId)
 	case BillingSessionUsage80Percent:
-		return fmt.Sprintf(`
-			Your session usage has exceeded 80&#37; of your monthly limit.<br>
-			Once this limit is exceeded, extra sessions will be charged at $5 per 1,000 sessions.<br>
-			If you would like to switch to a plan with a higher limit,
-			you can upgrade your subscription <a href="https://app.highlight.io/w/%d/upgrade-plan">here</a>.`, workspaceId)
+		return getApproachingLimitMessage("session", workspaceId)
 	case BillingSessionUsage100Percent:
-		return fmt.Sprintf(`
-			Your session usage has exceeded your monthly limit - extra sessions are charged at $5 per 1,000 sessions.<br>
-			If you would like to switch to a plan with a higher limit,
-			you can upgrade your subscription <a href="https://app.highlight.io/w/%d/upgrade-plan">here</a>.`, workspaceId)
+		return getExceededLimitMessage("session", workspaceId)
+	case BillingErrorsUsage80Percent:
+		return getApproachingLimitMessage("error", workspaceId)
+	case BillingErrorsUsage100Percent:
+		return getExceededLimitMessage("error", workspaceId)
+	case BillingLogsUsage80Percent:
+		return getApproachingLimitMessage("log", workspaceId)
+	case BillingLogsUsage100Percent:
+		return getExceededLimitMessage("log", workspaceId)
 	default:
 		return ""
 	}
 }
 
-func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Client, emailType EmailType, workspaceId int, workspaceName *string, toEmail string, adminId int) error {
+func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Client, workspaceId int, workspaceName *string, retentionPeriod *modelInputs.RetentionPeriod, emailType EmailType, toEmail string, adminId int) error {
 	to := &mail.Email{Address: toEmail}
 
 	m := mail.NewV3Mail()
@@ -138,26 +188,28 @@ func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Clie
 	p := mail.NewPersonalization()
 	p.AddTos(to)
 	curData := map[string]interface{}{}
+
 	curData["message"] = getBillingNotificationMessage(workspaceId, emailType)
 	curData["toEmail"] = toEmail
 	curData["workspaceName"] = workspaceName
 	curData["unsubscribeUrl"] = GetSubscriptionUrl(adminId, false)
+	curData["subject"] = getBillingNotificationSubject(emailType)
 
 	p.DynamicTemplateData = curData
 
 	m.AddPersonalizations(p)
 
 	log.WithContext(ctx).WithFields(log.Fields{"workspace_id": workspaceId, "to_email": toEmail, "email_type": emailType}).
-		Info("BILLING_NOTIFICATION email dry run")
+		Info("BILLING_NOTIFICATION email")
 
-	// if resp, sendGridErr := mailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
-	// 	estr := "error sending sendgrid email -> "
-	// 	estr += fmt.Sprintf("resp-code: %v; ", resp)
-	// 	if sendGridErr != nil {
-	// 		estr += fmt.Sprintf("err: %v", sendGridErr.Error())
-	// 	}
-	// 	return e.New(estr)
-	// }
+	if resp, sendGridErr := mailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
+		estr := "error sending sendgrid email -> "
+		estr += fmt.Sprintf("resp-code: %v; ", resp)
+		if sendGridErr != nil {
+			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
+		}
+		return e.New(estr)
+	}
 
 	return nil
 }

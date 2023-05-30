@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"os"
+	"reflect"
 	"strconv"
 	"testing"
 	"time"
 
+	"github.com/go-test/deep"
 	"github.com/highlight-run/highlight/backend/timeseries"
-	"github.com/highlight-run/workerpool"
 	"github.com/stretchr/testify/assert"
 
 	e "github.com/pkg/errors"
@@ -18,7 +19,8 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
-	publicModelInput "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	publicModel "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 )
 
@@ -40,8 +42,8 @@ func TestMain(m *testing.M) {
 func TestProcessBackendPayloadImpl(t *testing.T) {
 	trpcTraceStr := "[{\"columnNumber\":11,\"lineNumber\":80,\"fileName\":\"/workspace/src/trpc/instance.ts\",\"source\":\"    at /workspace/src/trpc/instance.ts:80:11\",\"lineContent\":\"    throw new TRPCError({\\n\",\"linesBefore\":\"        organizationId,\\n        supabaseAccessToken,\\n      },\\n    });\\n  } catch (error) {\\n\",\"linesAfter\":\"      code: \\\"UNAUTHORIZED\\\",\\n    });\\n  }\\n});\\n\\n\"},{\"columnNumber\":38,\"lineNumber\":421,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/index.js\",\"functionName\":\"callRecursive\",\"source\":\"    at callRecursive (/workspace/node_modules/@trpc/server/dist/index.js:421:38)\",\"lineContent\":\"                const result = await middleware({\\n\",\"linesBefore\":\"            ctx: opts.ctx\\n        })=\u003e{\\n            try {\\n                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion\\n                const middleware = _def.middlewares[callOpts.index];\\n\",\"linesAfter\":\"                    ctx: callOpts.ctx,\\n                    type: opts.type,\\n                    path: opts.path,\\n                    rawInput: opts.rawInput,\\n                    meta: _def.meta,\\n\"},{\"columnNumber\":30,\"lineNumber\":449,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/index.js\",\"functionName\":\"resolve\",\"source\":\"    at resolve (/workspace/node_modules/@trpc/server/dist/index.js:449:30)\",\"lineContent\":\"        const result = await callRecursive();\\n\",\"linesBefore\":\"                    marker: middlewareMarker\\n                };\\n            }\\n        };\\n        // there's always at least one \\\"next\\\" since we wrap this.resolver in a middleware\\n\",\"linesAfter\":\"        if (!result) {\\n            throw new TRPCError.TRPCError({\\n                code: 'INTERNAL_SERVER_ERROR',\\n                message: 'No result from middlewares - did you forget to `return next()`?'\\n            });\\n\"},{\"columnNumber\":12,\"lineNumber\":228,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/config-7b65d7da.js\",\"functionName\":\"Object.callProcedure\",\"source\":\"    at Object.callProcedure (/workspace/node_modules/@trpc/server/dist/config-7b65d7da.js:228:12)\",\"lineContent\":\"    return procedure(opts);\\n\",\"linesBefore\":\"            code: 'NOT_FOUND',\\n            message: `No \\\"${type}\\\"-procedure on path \\\"${path}\\\"`\\n        });\\n    }\\n    const procedure = opts.procedures[path];\\n\",\"linesAfter\":\"}\\n\\n/**\\n * The default check to see if we're in a server\\n */ const isServerDefault = typeof window === 'undefined' || 'Deno' in window || globalThis.process?.env?.NODE_ENV === 'test' || !!globalThis.process?.env?.JEST_WORKER_ID;\\n\"},{\"columnNumber\":45,\"lineNumber\":125,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/resolveHTTPResponse-83d9b5ff.js\",\"source\":\"    at /workspace/node_modules/@trpc/server/dist/resolveHTTPResponse-83d9b5ff.js:125:45\",\"lineContent\":\"                const output = await config.callProcedure({\\n\",\"linesBefore\":\"        };\\n        const inputs = getInputs();\\n        const rawResults = await Promise.all(paths.map(async (path, index)=\u003e{\\n            const input = inputs[index];\\n            try {\\n\",\"linesAfter\":\"                    procedures: router._def.procedures,\\n                    path,\\n                    rawInput: input,\\n                    ctx,\\n                    type\\n\"},{\"columnNumber\":52,\"lineNumber\":122,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/resolveHTTPResponse-83d9b5ff.js\",\"functionName\":\"Object.resolveHTTPResponse\",\"source\":\"    at Object.resolveHTTPResponse (/workspace/node_modules/@trpc/server/dist/resolveHTTPResponse-83d9b5ff.js:122:52)\",\"lineContent\":\"        const rawResults = await Promise.all(paths.map(async (path, index)=\u003e{\\n\",\"linesBefore\":\"                input[k] = value;\\n            }\\n            return input;\\n        };\\n        const inputs = getInputs();\\n\",\"linesAfter\":\"            const input = inputs[index];\\n            try {\\n                const output = await config.callProcedure({\\n                    procedures: router._def.procedures,\\n                    path,\\n\"},{\"columnNumber\":5,\"lineNumber\":96,\"fileName\":\"node:internal/process/task_queues\",\"functionName\":\"processTicksAndRejections\",\"source\":\"    at processTicksAndRejections (node:internal/process/task_queues:96:5)\"},{\"columnNumber\":20,\"lineNumber\":53,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/nodeHTTPRequestHandler-e6a535cb.js\",\"functionName\":\"Object.nodeHTTPRequestHandler\",\"source\":\"    at Object.nodeHTTPRequestHandler (/workspace/node_modules/@trpc/server/dist/nodeHTTPRequestHandler-e6a535cb.js:53:20)\",\"lineContent\":\"    const result = await resolveHTTPResponse.resolveHTTPResponse({\\n\",\"linesBefore\":\"        method: opts.req.method,\\n        headers: opts.req.headers,\\n        query,\\n        body: bodyResult.ok ? bodyResult.data : undefined\\n    };\\n\",\"linesAfter\":\"        batching: opts.batching,\\n        responseMeta: opts.responseMeta,\\n        path,\\n        createContext,\\n        router,\\n\"}]"
 	util.RunTestWithDBWipe(t, "trpc test", DB, func(t *testing.T) {
-		r := &Resolver{AlertWorkerPool: workerpool.New(1), DB: DB, TDB: timeseries.New(context.TODO())}
-		r.ProcessBackendPayloadImpl(context.Background(), nil, nil, []*publicModelInput.BackendErrorObjectInput{{
+		r := &Resolver{DB: DB, TDB: timeseries.New(context.TODO())}
+		r.ProcessBackendPayloadImpl(context.Background(), nil, nil, []*publicModel.BackendErrorObjectInput{{
 			SessionSecureID: nil,
 			RequestID:       nil,
 			TraceID:         nil,
@@ -77,19 +79,21 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					ProjectID:   1,
 					Environment: "dev",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+					StackTrace:  &shortTraceStr,
 				},
 				{
 					Event:       "error",
 					ProjectID:   1,
 					Environment: "dEv",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					StackTrace:  &shortTraceStr,
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					Event:        "error",
 					ProjectID:    1,
-					State:        model.ErrorGroupStates.OPEN,
+					State:        privateModel.ErrorStateOpen,
 					Environments: `{"dev":2}`,
 				},
 			},
@@ -101,19 +105,21 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					ProjectID:   1,
 					Environment: "dev",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+					StackTrace:  &shortTraceStr,
 				},
 				{
 					Event:       "error",
 					ProjectID:   1,
 					Environment: "prod",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					StackTrace:  &shortTraceStr,
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					Event:        "error",
 					ProjectID:    1,
-					State:        model.ErrorGroupStates.OPEN,
+					State:        privateModel.ErrorStateOpen,
 					Environments: `{"dev":1,"prod":1}`,
 				},
 			},
@@ -125,18 +131,20 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					Environment: "dev",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					Event:       "error",
+					StackTrace:  &shortTraceStr,
 				},
 				{
-					Event:     "error",
-					ProjectID: 1,
-					Model:     model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					Event:      "error",
+					ProjectID:  1,
+					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					StackTrace: &shortTraceStr,
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					Event:        "error",
 					ProjectID:    1,
-					State:        model.ErrorGroupStates.OPEN,
+					State:        privateModel.ErrorStateOpen,
 					Environments: `{"dev":1}`,
 				},
 			},
@@ -158,12 +166,11 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					Event:            "error",
-					ProjectID:        1,
-					StackTrace:       shortTraceStr,
-					State:            model.ErrorGroupStates.OPEN,
-					Environments:     `{}`,
-					MappedStackTrace: util.MakeStringPointer("null"),
+					Event:        "error",
+					ProjectID:    1,
+					StackTrace:   shortTraceStr,
+					State:        privateModel.ErrorStateOpen,
+					Environments: `{}`,
 				},
 			},
 		},
@@ -184,29 +191,34 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					Event:            "error",
-					ProjectID:        1,
-					StackTrace:       longTraceStr,
-					Environments:     `{}`,
-					State:            model.ErrorGroupStates.OPEN,
-					MappedStackTrace: util.MakeStringPointer("null"),
+					Event:        "error",
+					ProjectID:    1,
+					StackTrace:   longTraceStr,
+					Environments: `{}`,
+					State:        privateModel.ErrorStateOpen,
 				},
 			},
 		},
 	}
-	// run tests
+	//run tests
 	for name, tc := range tests {
 		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
 			r := &Resolver{DB: DB}
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
 			for _, errorObj := range tc.errorsToInsert {
-				var frames []*publicModelInput.StackFrameInput
-				if errorObj.StackTrace != nil {
+				var frames []*publicModel.StackFrameInput
+				if errorObj.StackTrace != nil && *errorObj.StackTrace != "" {
 					if err := json.Unmarshal([]byte(*errorObj.StackTrace), &frames); err != nil {
 						t.Fatal(e.Wrap(err, "error unmarshalling error stack trace frames"))
 					}
 				}
-				errorGroup, err := r.HandleErrorAndGroup(context.TODO(), &errorObj, "", frames, nil, 1)
+
+				_, structuredStackTrace, err := r.getMappedStackTraceString(context.Background(), frames, 1, &errorObj)
+				if err != nil {
+					t.Fatal(e.Wrap(err, "error making mapped stacktrace"))
+				}
+
+				errorGroup, err := r.HandleErrorAndGroup(context.TODO(), &errorObj, structuredStackTrace, nil, 1, nil)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error handling error and group"))
 				}
@@ -217,7 +229,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			}
 			var i int
 			for _, errorGroup := range receivedErrorGroups {
-				isEqual, diff, err := model.AreModelsWeaklyEqual(&errorGroup, &tc.expectedErrorGroups[i])
+				isEqual, diff, err := areErrorGroupsEqual(&errorGroup, &tc.expectedErrorGroups[i])
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error comparing two error groups"))
 				}
@@ -230,9 +242,101 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	}
 }
 
+func TestMatchErrorsWithSameTracesDifferentBodies(t *testing.T) {
+	stacktrace := `[{"fileName":"/Users/ericthomas/code/highlight/backend/private-graph/graph/schema.resolvers.go","lineNumber":6517,"functionName":"Admin","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/backend/private-graph/graph/resolver.go","lineNumber":216,"functionName":"getCurrentAdmin","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/backend/private-graph/graph/schema.resolvers.go","lineNumber":6609,"functionName":"AdminRoleByProject","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/backend/private-graph/graph/generated/generated.go","lineNumber":44838,"functionName":"func2","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/go-workspace/pkg/mod/github.com/99designs/gqlgen@v0.17.24/graphql/executor/extensions.go","lineNumber":72,"functionName":"func4","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/go-workspace/pkg/mod/github.com/99designs/gqlgen@v0.17.24/graphql/executor/extensions.go","lineNumber":110,"functionName":"1","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/sdk/highlight-go/tracer.go","lineNumber":59,"functionName":"InterceptField","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/go-workspace/pkg/mod/github.com/99designs/gqlgen@v0.17.24/graphql/executor/extensions.go","lineNumber":109,"functionName":"func8","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/go-workspace/pkg/mod/github.com/99designs/gqlgen@v0.17.24/graphql/executor/extensions.go","lineNumber":110,"functionName":"1","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/backend/util/tracer.go","lineNumber":45,"functionName":"InterceptField","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/go-workspace/pkg/mod/github.com/99designs/gqlgen@v0.17.24/graphql/executor/extensions.go","lineNumber":109,"functionName":"func8","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/backend/private-graph/graph/generated/generated.go","lineNumber":44836,"functionName":"_Query_admin_role_by_project","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/backend/private-graph/graph/generated/generated.go","lineNumber":66748,"functionName":"func316","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/go-workspace/pkg/mod/github.com/99designs/gqlgen@v0.17.24/graphql/executor/extensions.go","lineNumber":69,"functionName":"func3","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null},{"fileName":"/Users/ericthomas/code/highlight/backend/private-graph/graph/generated/generated.go","lineNumber":66753,"functionName":"func317","columnNumber":null,"error":"github.com/highlight-run/highlight/backend/private-graph/graph.(*queryResolver).Admin","sourceMappingErrorMetadata":null,"lineContent":null,"linesBefore":null,"linesAfter":null}]`
+
+	var structuredStackTrace []*privateModel.ErrorTrace
+	err := json.Unmarshal([]byte(stacktrace), &structuredStackTrace)
+	if err != nil {
+		t.Fatal("failed to generate structured stacktrace")
+	}
+
+	util.RunTestWithDBWipe(t, "error matching", DB, func(t *testing.T) {
+		r := &Resolver{DB: DB, TDB: timeseries.New(context.TODO())}
+
+		errorObject := model.ErrorObject{
+			Event:      "error 1",
+			ProjectID:  1,
+			StackTrace: &stacktrace,
+		}
+
+		errorGroup1, err := r.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, 1, nil)
+		assert.NoError(t, err)
+
+		errorObject = model.ErrorObject{
+			Event:      "error 2",
+			ProjectID:  1,
+			StackTrace: &stacktrace,
+		}
+
+		errorGroup2, err := r.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, 1, nil)
+		assert.NoError(t, err)
+
+		assert.Equal(t, errorGroup1.ID, errorGroup2.ID, "should return the same error group id")
+	})
+}
+
 func TestResolver_isExcludedError(t *testing.T) {
 	assert.False(t, isExcludedError(context.Background(), []string{}, "", 1))
 	assert.True(t, isExcludedError(context.Background(), []string{}, "[{}]", 2))
 	assert.True(t, isExcludedError(context.Background(), []string{".*a+.*"}, "foo bar baz", 3))
 	assert.False(t, isExcludedError(context.Background(), []string{"("}, "foo bar baz", 4))
+}
+
+// areErrorGroupsEqual compares two error objects while ignoring the Model and SecureID field
+// a and b MUST be pointers, otherwise this won't work
+func areErrorGroupsEqual(a *model.ErrorGroup, b *model.ErrorGroup) (bool, []string, error) {
+	if reflect.TypeOf(a) != reflect.TypeOf(b) {
+		return false, nil, e.New("interfaces to compare aren't the same time")
+	}
+
+	aReflection := reflect.ValueOf(a)
+	// Check if the passed interface is a pointer
+	if aReflection.Type().Kind() != reflect.Ptr {
+		return false, nil, e.New("`a` is not a pointer")
+	}
+	// 'dereference' with Elem() and get the field by name
+	aModelField := aReflection.Elem().FieldByName("Model")
+	aSecureIDField := aReflection.Elem().FieldByName("SecureID")
+	aStackTraceField := aReflection.Elem().FieldByName("StackTrace")
+
+	bReflection := reflect.ValueOf(b)
+	// Check if the passed interface is a pointer
+	if bReflection.Type().Kind() != reflect.Ptr {
+		return false, nil, e.New("`b` is not a pointer")
+	}
+	// 'dereference' with Elem() and get the field by name
+	bModelField := bReflection.Elem().FieldByName("Model")
+	bSecureIDField := bReflection.Elem().FieldByName("SecureID")
+	bStackTraceField := bReflection.Elem().FieldByName("StackTrace")
+
+	if aModelField.IsValid() && bModelField.IsValid() {
+		// override Model on b with a's model
+		bModelField.Set(aModelField)
+	} else if aModelField.IsValid() || bModelField.IsValid() {
+		// return error if one has a model and the other doesn't
+		return false, nil, e.New("one interface has a model and the other doesn't")
+	}
+
+	if aSecureIDField.IsValid() && bSecureIDField.IsValid() {
+		// override SecureID on b with a's SecureID
+		bSecureIDField.Set(aSecureIDField)
+	} else if aSecureIDField.IsValid() || bSecureIDField.IsValid() {
+		// return error if one has a SecureID and the other doesn't
+		return false, nil, e.New("one interface has a SecureID and the other doesn't")
+	}
+
+	if aStackTraceField.IsValid() && bStackTraceField.IsValid() {
+		// override StackTrace on b with a's StackTrace
+		bStackTraceField.Set(aStackTraceField)
+	} else if aStackTraceField.IsValid() || bStackTraceField.IsValid() {
+		// return error if one has a StackTrace and the other doesn't
+		return false, nil, e.New("one interface has a StackTrace and the other doesn't")
+	}
+
+	// get diff
+	diff := deep.Equal(aReflection.Interface(), bReflection.Interface())
+	isEqual := len(diff) == 0
+
+	return isEqual, diff, nil
 }

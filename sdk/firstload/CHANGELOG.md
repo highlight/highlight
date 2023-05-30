@@ -197,3 +197,41 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Patch Changes
 
 - Switch to umd default output.
+
+## 6.4.3
+
+### Patch Changes
+
+- Fixes to umd format
+
+## 6.5.0
+
+### Minor Changes
+
+- Adds an `H.start({forceNew: true})` option that allows forcing the start of a new session recording.
+
+## 6.5.1
+
+### Patch Changes
+
+- Turn off client sourcemaps as they cause issues with next.js frontends.
+
+
+## 6.5.2
+
+### Patch Changes
+
+- Target ES6 for library build compatibility.
+
+## 6.5.3
+
+### Patch Changes
+
+- The Highlight `window.fetch` proxy was only forwarding headers from `RequestInit`. It now forwards headers from `RequestInfo` as well.
+- Target ES6 for library build compatability.
+
+## 7.0.0
+
+### Breaking Changes
+
+- Removed the `feedbackWidget` option.

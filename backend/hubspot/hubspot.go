@@ -4,10 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"github.com/highlight-run/highlight/backend/redis"
-	"github.com/openlyinc/pointy"
-	"github.com/samber/lo"
 	"io"
 	"math"
 	"net/http"
@@ -15,6 +11,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/openlyinc/pointy"
+	"github.com/samber/lo"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/goware/emailproviders"
@@ -344,15 +345,6 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 		return
 	}
 
-	if companyID, err = pollHubspot(func() (*int, error) {
-		return h.getCompany(ctx, name)
-	}); companyID != nil {
-		return
-	}
-
-	log.WithContext(ctx).
-		WithField("name", name).
-		Warnf("failed to get client-side hubspot company. creating")
 	if emailproviders.Exists(adminEmail) {
 		adminEmail = ""
 	}
@@ -361,7 +353,8 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 	if len(components) > 1 {
 		domain = components[1]
 	}
-	resp, err := h.hubspotClient.Companies().Create(hubspot.CompaniesRequest{
+	hexLink := fmt.Sprintf("https://workspace-details.highlight.io?_workspace_id=%v", workspaceID)
+	companyProperties := hubspot.CompaniesRequest{
 		Properties: []hubspot.Property{
 			{
 				Property: "name",
@@ -373,8 +366,34 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 				Name:     "domain",
 				Value:    domain,
 			},
+			{
+				Property: "hex_link",
+				Name:     "hex_link",
+				Value:    hexLink,
+			},
 		},
-	})
+	}
+
+	if companyID, err = pollHubspot(func() (*int, error) {
+		return h.getCompany(ctx, name)
+	}); companyID != nil {
+		log.WithContext(ctx).
+			WithField("name", name).
+			Infof("company already exists in Hubspot. updating")
+
+		_, er := h.hubspotClient.Companies().Update(*companyID, companyProperties)
+		if er != nil {
+			return nil, er
+		}
+
+		return
+	}
+
+	log.WithContext(ctx).
+		WithField("name", name).
+		Warnf("failed to get client-side hubspot company. creating")
+
+	resp, err := h.hubspotClient.Companies().Create(companyProperties)
 	if err != nil {
 		return nil, err
 	}

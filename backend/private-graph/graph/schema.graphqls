@@ -68,7 +68,7 @@ type Session {
 	event_counts: String
 	direct_download_url: String
 	resources_url: String
-	messages_url: String
+	timeline_indicators_url: String
 	deviceMemory: Int
 	last_user_interaction_time: Timestamp!
 	chunked: Boolean
@@ -110,9 +110,14 @@ type BillingDetails {
 	plan: Plan!
 	meter: Int64!
 	membersMeter: Int64!
-	sessionsOutOfQuota: Int64!
 	errorsMeter: Int64!
 	logsMeter: Int64!
+	sessionsDailyAverage: Float!
+	errorsDailyAverage: Float!
+	logsDailyAverage: Float!
+	sessionsBillingLimit: Int64
+	errorsBillingLimit: Int64
+	logsBillingLimit: Int64
 }
 
 type Invoice {
@@ -146,6 +151,7 @@ enum PlanType {
 	Basic
 	Startup
 	Enterprise
+	UsageBased
 }
 
 enum ProductType {
@@ -160,6 +166,7 @@ enum SubscriptionInterval {
 }
 
 enum RetentionPeriod {
+	ThirtyDays
 	ThreeMonths
 	SixMonths
 	TwelveMonths
@@ -353,6 +360,24 @@ type ProjectFilterSettings {
 	filterSessionsWithoutError: Boolean!
 }
 
+type AllProjectSettings {
+	id: ID!
+	verbose_id: String!
+	name: String!
+	billing_email: String
+	secret: String
+	workspace_id: ID!
+	excluded_users: StringArray
+	error_filters: StringArray
+	error_json_paths: StringArray
+	rage_click_window_seconds: Int
+	rage_click_radius_pixels: Int
+	rage_click_count: Int
+	backend_domains: StringArray
+	filter_chrome_extension: Boolean
+	filterSessionsWithoutError: Boolean!
+}
+
 type Account {
 	id: ID!
 	name: String!
@@ -412,6 +437,10 @@ type Workspace {
 	trial_extension_enabled: Boolean!
 	clearbit_enabled: Boolean!
 	retention_period: RetentionPeriod
+	errors_retention_period: RetentionPeriod
+	sessions_max_cents: Int
+	errors_max_cents: Int
+	logs_max_cents: Int
 }
 
 type Segment {
@@ -1390,7 +1419,6 @@ type Query {
 		error_group_secure_id: String!
 		error_object_id: ID
 	): ErrorInstance
-	messages(session_secure_id: String!): [Any]
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
 	resources(session_secure_id: String!): [Any]
@@ -1544,6 +1572,7 @@ type Query {
 	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
 	projectFilterSettings(projectId: ID!): ProjectFilterSettings
+	projectSettings(projectId: ID!): AllProjectSettings
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
@@ -1631,6 +1660,20 @@ type Mutation {
 		projectId: ID!
 		filterSessionsWithoutError: Boolean!
 	): ProjectFilterSettings
+	editProjectSettings(
+		projectId: ID!
+		name: String
+		billing_email: String
+		excluded_users: StringArray
+		error_filters: StringArray
+		error_json_paths: StringArray
+		rage_click_window_seconds: Int
+		rage_click_radius_pixels: Int
+		rage_click_count: Int
+		backend_domains: StringArray
+		filter_chrome_extension: Boolean
+		filterSessionsWithoutError: Boolean
+	): AllProjectSettings
 	editWorkspace(id: ID!, name: String): Workspace
 	markErrorGroupAsViewed(
 		error_secure_id: String!
@@ -1640,7 +1683,7 @@ type Mutation {
 	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
 	updateErrorGroupState(
 		secure_id: String!
-		state: String!
+		state: ErrorState!
 		snoozed_until: Timestamp
 	): ErrorGroup
 	deleteProject(id: ID!): Boolean
@@ -1697,6 +1740,15 @@ type Mutation {
 		retention_period: RetentionPeriod!
 	): String
 	updateBillingDetails(workspace_id: ID!): Boolean
+	saveBillingPlan(
+		workspace_id: ID!
+		sessionsLimitCents: Int
+		sessionsRetention: RetentionPeriod!
+		errorsLimitCents: Int
+		errorsRetention: RetentionPeriod!
+		logsLimitCents: Int
+		logsRetention: RetentionPeriod!
+	): Boolean
 	createSessionComment(
 		project_id: ID!
 		session_secure_id: String!

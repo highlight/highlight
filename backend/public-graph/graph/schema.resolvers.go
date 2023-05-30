@@ -14,6 +14,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
 	generated1 "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/openlyinc/pointy"
@@ -63,9 +64,8 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 			err = r.Redis.SetIsPendingSession(ctx, sessionSecureID, true)
 		}
 		if err == nil {
-			var exceeded bool
-			exceeded, err = r.Redis.IsBillingQuotaExceeded(ctx, projectID)
-			if err == nil && exceeded {
+			exceeded, err := r.Redis.IsBillingQuotaExceeded(ctx, projectID, pricing.ProductTypeSessions)
+			if err == nil && exceeded != nil && *exceeded {
 				err = e.New(string(customModels.PublicGraphErrorBillingQuotaExceeded))
 			}
 		}
@@ -162,28 +162,8 @@ func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customMod
 
 // MarkBackendSetup is the resolver for the markBackendSetup field.
 func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string, typeArg *string) (interface{}, error) {
-	var partitionKey string
-	if sessionSecureID != nil {
-		partitionKey = *sessionSecureID
-	} else if projectID != nil {
-		partitionKey = uuid.New().String()
-	}
-
-	var setupType string
-	if typeArg != nil {
-		setupType = *typeArg
-	} else {
-		setupType = model.MarkBackendSetupTypeGeneric
-	}
-
-	err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
-		Type: kafkaqueue.MarkBackendSetup,
-		MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
-			ProjectVerboseID: projectID,
-			SessionSecureID:  sessionSecureID,
-			Type:             setupType,
-		}}, partitionKey)
-	return nil, err
+	// TODO: Remove this mutation once our SDKs are updated.
+	return nil, nil
 }
 
 // AddSessionFeedback is the resolver for the addSessionFeedback field.

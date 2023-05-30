@@ -3,13 +3,13 @@ import {
 	GetSessionIntervalsQuery,
 	GetSessionPayloadQuery,
 	GetSessionQuery,
-	GetTimelineIndicatorEventsQuery,
 } from '@graph/operations'
 import {
 	ErrorObject,
 	Session,
 	SessionComment,
 	SessionResults,
+	TimelineIndicatorEvent,
 } from '@graph/schemas'
 import { EventType, Replayer } from '@highlight-run/rrweb'
 import {
@@ -105,7 +105,12 @@ interface PlayerState {
 	onSessionPayloadLoadedPayload?: {
 		sessionIntervals: GetSessionIntervalsQuery | undefined
 		sessionPayload: GetSessionPayloadQuery | undefined
-		timelineIndicatorEvents: GetTimelineIndicatorEventsQuery | undefined
+		timelineIndicatorEvents:
+			| Pick<
+					TimelineIndicatorEvent,
+					'timestamp' | 'data' | 'type' | 'sid'
+			  >[]
+			| undefined
 	}
 	performancePayloads: Array<HighlightPerformancePayload>
 	project_id: string
@@ -249,7 +254,10 @@ interface onSessionPayloadLoaded {
 	type: PlayerActionType.onSessionPayloadLoaded
 	sessionPayload?: GetSessionPayloadQuery
 	sessionIntervals?: GetSessionIntervalsQuery
-	timelineIndicatorEvents?: GetTimelineIndicatorEventsQuery
+	timelineIndicatorEvents?: Pick<
+		TimelineIndicatorEvent,
+		'timestamp' | 'data' | 'type' | 'sid'
+	>[]
 }
 
 interface setLastActiveString {
@@ -794,11 +802,9 @@ const processSessionMetadata = (
 
 	const parsedTimelineIndicatorEvents =
 		s.onSessionPayloadLoadedPayload.timelineIndicatorEvents &&
-		s.onSessionPayloadLoadedPayload.timelineIndicatorEvents
-			.timeline_indicator_events.length > 0
+		s.onSessionPayloadLoadedPayload.timelineIndicatorEvents.length > 0
 			? toHighlightEvents(
-					s.onSessionPayloadLoadedPayload.timelineIndicatorEvents
-						.timeline_indicator_events,
+					s.onSessionPayloadLoadedPayload.timelineIndicatorEvents,
 			  )
 			: events
 	s.sessionIntervals = getCommentsInSessionIntervalsRelative(

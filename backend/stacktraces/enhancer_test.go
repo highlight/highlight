@@ -242,9 +242,11 @@ func TestEnhanceStackTrace(t *testing.T) {
 					}
 					t.Error(e.Wrap(err, "error setting source map elements"))
 				}
-				diff := deep.Equal(&mappedStackTrace, &tc.expectedStackTrace)
-				if len(diff) > 0 {
-					t.Error(e.Errorf("publicModelInput. not equal: %+v", diff))
+				for i, errorTrace := range mappedStackTrace {
+					diff := deep.Equal(*errorTrace, tc.expectedStackTrace[i])
+					if len(diff) > 0 {
+						t.Error(e.Errorf("publicModelInput. not equal: %+v", diff))
+					}
 				}
 			})
 		}

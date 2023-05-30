@@ -8,9 +8,9 @@ updatedAt: 2023-05-10T00:00:00.000Z
 
 ## Limitations 
 
-⚠️ We are working on App Directory support. App Directory has not reached feature-parity with standard Next, so we're waiting for a stable release to lock down our integration. We're capturing App Directory API errors, but we've been unable to capture server-side errors from App Directory routes.
+⚠️ App Directory support on Vercel is a work-in-progress. Session Replay, Vercel Log Drain and non-Vercel-deployed Error Monitoring are fully operational; however, Vercel's `edge` runtime is not yet compatible with OpenTelemetry. Vercel's `nodejs` runtime **is** instrumented for OpenTelemetry, but we're having trouble ingesting Server-side Rendering (SSR) errors. We expect to solve the `nodejs` runtime issues first. In the meantime, we're hoping to find an `edge` runtime-compatible version of OpenTelemetry.
 
-⚠️ Sourcemaps do not work in development mode. Run `yarn build && yarn start` to test compiled source maps in Highlight.
+⚠️ Source maps do not work in development mode. Run `yarn build && yarn start` to test compiled source maps in Highlight.
 
 ## Installation
 
@@ -140,6 +140,30 @@ const nextConfig = {
 module.exports = nextConfig
 ```
 
+You may have trouble with a missing `__dirname` environment variable. This can happen with Next.js middleware. The following example uses a `next.config.mjs` file instead of the CJS-style `next.config.js` pattern. It calculates `__dirname` using native Node.js utility packages.
+
+```javascript
+// next.config.mjs
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
+import nextBuildId from 'next-build-id'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+	generateBuildId: () => nextBuildId({ dir: __dirname }),
+	experimental: {
+		appDir: true,
+		instrumentationHook: true,
+	},
+	productionBrowserSourceMaps: true,
+}
+
+export default nextConfig
+```
+
 3. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function:
 
 ```javascript
@@ -153,6 +177,31 @@ export async function register() {
 		otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
 	})
 }
+```
+
+> You'll need to do a conditional import if you're using [Next Middleware](https://nextjs.org/docs/pages/building-your-application/routing/middleware).
+
+```javascript
+// instrumentation.ts
+import CONSTANTS from '@/app/constants'
+
+export async function register() {
+	if (process.env.NEXT_RUNTIME === 'nodejs') {
+		/**
+		 * Conditional import required for use with Next middleware
+		 * 
+		 * Avoids the following error:
+		 * An error occurred while loading instrumentation hook: (0 , _highlight_run_next__WEBPACK_IMPORTED_MODULE_1__.registerHighlight) is not a function
+		 */
+		const { registerHighlight } = await import('@highlight-run/next')
+
+		registerHighlight({
+			projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+			otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
+		})
+	}
+}
+
 ```
 
 ## Instrument the client

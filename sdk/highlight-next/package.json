@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/next",
-	"version": "3.0.1",
+	"version": "3.0.2",
 	"description": "Client for interfacing with Highlight in next.js",
 	"files": [
 		"dist",
@@ -26,7 +26,7 @@
 	},
 	"scripts": {
 		"typegen": "tsup --dts-only",
-		"dev": "yarn build --watch",
+		"dev": "tsup --watch && sh ./bin/clean-highlight-init.sh",
 		"build": "tsup && sh ./bin/clean-highlight-init.sh",
 		"test": "jest"
 	},

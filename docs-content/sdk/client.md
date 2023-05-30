@@ -80,10 +80,6 @@ slug: client
           <p>Specifies whether Highlight will record performance metrics (e.g. FPS, device memory).</p>
         </aside>
         <aside className="parameter">
-          <h5>feedbackWidget <code>FeedbackWidgetOptions</code> <code>optional</code></h5>
-          <p>Specifies the configuration for the Highlight feedback widget. This widget is used to collect user feedback. The feedback is collected in the context of the session.</p>
-        </aside>
-        <aside className="parameter">
           <h5>tracingOrigins <code>boolean | (string | RegExp)[]</code> <code>optional</code></h5>
           <p>Specifies where the backend of the app lives. If specified, Highlight will attach the X-Highlight-Request header to outgoing requests whose destination URLs match a substring or regexp from this list, so that backend errors can be linked back to the session. If true is specified, all requests to the current domain will be matched. Example tracingOrigins: ['localhost', /^\//, 'backend.myapp.com']</p>
         </aside>
@@ -279,6 +275,10 @@ slug: client
       <p>Optional configuration parameters.</p>
       <article className="innerParameterContainer">
         <aside className="innerParameterHeading">options properties</aside>
+        <aside className="parameter">
+          <h5>forceNew <code>boolean</code> <code>optional</code></h5>
+          <p>Setting this option will start a new recording session.</p>
+        </aside>
         <aside className="parameter">
           <h5>silent <code>boolean</code> <code>optional</code></h5>
           <p>Specifies whether console.warn messages created in this method should be skipped.</p>

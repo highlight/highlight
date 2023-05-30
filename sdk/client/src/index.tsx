@@ -9,7 +9,6 @@ import {
 	AmplitudeIntegrationOptions,
 	ConsoleMethods,
 	DebugOptions,
-	FeedbackWidgetOptions,
 	MetricCategory,
 	MetricName,
 	MixpanelIntegrationOptions,
@@ -24,6 +23,7 @@ import {
 	Metric,
 	SamplingStrategy,
 	SessionDetails,
+	StartOptions,
 } from './types/types'
 import { PathListener } from './listeners/path-listener'
 import { GraphQLClient } from 'graphql-request'
@@ -45,7 +45,6 @@ import { FocusListener } from './listeners/focus-listener/focus-listener'
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys'
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener'
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener'
-import { initializeFeedbackWidget } from './ui/feedback-widget/feedback-widget'
 import { getPerformanceMethods } from './utils/performance/performance'
 import {
 	PerformanceListener,
@@ -106,7 +105,6 @@ export type HighlightClassOptions = {
 	environment?: 'development' | 'production' | 'staging' | string
 	appVersion?: string
 	sessionShortcut?: SessionShortcutOptions
-	feedbackWidget?: FeedbackWidgetOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 }
 
@@ -192,7 +190,6 @@ export class Highlight {
 	_lastSnapshotTime!: number
 	_lastVisibilityChangeTime!: number
 	pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined
-	feedbackWidgetOptions!: FeedbackWidgetOptions
 	hasSessionUnloaded!: boolean
 	hasPushedData!: boolean
 	reloaded!: boolean
@@ -302,8 +299,9 @@ export class Highlight {
 		// no need to set the sessionStorage value here since firstload won't call
 		// init again after a reset, and `this.initialize()` will set sessionStorage
 		this.sessionData.sessionSecureID = GenerateSecureID()
-		this.options.sessionSecureID = this.sessionData.sessionSecureID
 		this.sessionData.sessionStartTime = Date.now()
+		this.options.sessionSecureID = this.sessionData.sessionSecureID
+		this._payloadId = 0
 		this.stopRecording()
 		this._firstLoadListeners = new FirstLoadListeners(this.options)
 		await this.initialize()
@@ -368,14 +366,6 @@ export class Highlight {
 			this.organizationID === '1' || this.organizationID === '1jdkoe52'
 		this.firstloadVersion = options.firstloadVersion || 'unknown'
 		this.sessionShortcut = options.sessionShortcut || false
-		this.feedbackWidgetOptions = {
-			enabled: options.feedbackWidget?.enabled || false,
-			subTitle: options.feedbackWidget?.subTitle,
-			submitButtonLabel: options.feedbackWidget?.submitButtonLabel,
-			title: options.feedbackWidget?.title,
-			onSubmit: options.feedbackWidget?.onSubmit,
-			onCancel: options.feedbackWidget?.onCancel,
-		}
 		this._onToggleFeedbackFormVisibility = () => {}
 		// We only want to store a subset of the options for debugging purposes. Firstload version is stored as another field so we don't need to store it here.
 		const { firstloadVersion: _, ...optionsInternal } = options
@@ -485,7 +475,7 @@ export class Highlight {
 		})
 	}
 
-	async initialize(): Promise<undefined> {
+	async initialize(options?: StartOptions): Promise<undefined> {
 		if (
 			(navigator?.webdriver && !window.Cypress) ||
 			navigator?.userAgent?.includes('Googlebot') ||
@@ -504,11 +494,11 @@ export class Highlight {
 				}
 			}
 
-			if (this.feedbackWidgetOptions.enabled) {
-				const { onToggleFeedbackFormVisibility } =
-					initializeFeedbackWidget(this.feedbackWidgetOptions)
-				this._onToggleFeedbackFormVisibility =
-					onToggleFeedbackFormVisibility
+			if (options?.forceNew) {
+				await this._reset()
+				// effectively 'restart' recording by starting the new payload with a full snapshot
+				this.takeFullSnapshot()
+				return
 			}
 
 			const recordingStartTime = window.sessionStorage.getItem(
@@ -591,12 +581,6 @@ export class Highlight {
 				this.sessionData.projectID = parseInt(
 					gr?.initializeSession?.project_id || '0',
 				)
-				if (this.sessionData.userIdentifier) {
-					this.identify(
-						this.sessionData.userIdentifier,
-						this.sessionData.userObject,
-					)
-				}
 
 				if (
 					!this.sessionData.projectID ||
@@ -630,6 +614,14 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				SESSION_STORAGE_KEYS.SESSION_SECURE_ID,
 				this.sessionData.sessionSecureID,
 			)
+
+			if (this.sessionData.userIdentifier) {
+				this.identify(
+					this.sessionData.userIdentifier,
+					this.sessionData.userObject,
+				)
+			}
+
 			if (!this._firstLoadListeners.isListening()) {
 				this._firstLoadListeners.startListening()
 			} else if (!this._firstLoadListeners.hasNetworkRecording) {
@@ -1086,6 +1078,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			)
 		}
 		this.state = 'NotRecording'
+		// stop rrweb recording mutation observers
+		if (manual && this._recordStop) {
+			this._recordStop()
+			this._recordStop = undefined
+		}
 		// stop all other event listeners, to be restarted on initialize()
 		this.listeners.forEach((stop) => stop())
 		this.listeners = []
@@ -1112,16 +1109,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			return `https://${HIGHLIGHT_URL}/${projectID}/sessions/${sessionSecureID}`
 		}
 		return null
-	}
-
-	toggleFeedbackWidgetVisibility() {
-		if (this.feedbackWidgetOptions.enabled) {
-			this._onToggleFeedbackFormVisibility()
-		} else {
-			console.warn(
-				`Highlight's toggleFeedbackWidgetVisibility() was called. You need to configure feedbackWidget in the Highlight options to show the feedback widget.`,
-			)
-		}
 	}
 
 	addSessionFeedback({
@@ -1221,7 +1208,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		// if it is time to take a full snapshot,
 		// ensure the snapshot is at the beginning of the next payload
 		if (!isBeacon) {
-			const now = new Date().getTime()
 			// After snapshot thresholds have been met,
 			// take a full snapshot and reset the counters
 			const { bytes, time } = this.enableCanvasRecording
@@ -1229,11 +1215,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				: SNAPSHOT_SETTINGS.normal
 			if (
 				this._eventBytesSinceSnapshot >= bytes &&
-				now - this._lastSnapshotTime >= time
+				new Date().getTime() - this._lastSnapshotTime >= time
 			) {
-				record.takeFullSnapshot()
-				this._eventBytesSinceSnapshot = 0
-				this._lastSnapshotTime = now
+				this.takeFullSnapshot()
 			}
 		}
 
@@ -1294,6 +1278,12 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this._firstLoadListeners.errors.slice(errors.length)
 			clearHighlightLogs(highlightLogs)
 		}
+	}
+
+	private takeFullSnapshot() {
+		record.takeFullSnapshot()
+		this._eventBytesSinceSnapshot = 0
+		this._lastSnapshotTime = new Date().getTime()
 	}
 }
 

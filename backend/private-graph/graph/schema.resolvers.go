@@ -42,6 +42,7 @@ import (
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
@@ -191,20 +192,6 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 		obj.ProjectID,
 	).Scan(&metadataLogs)
 	return metadataLogs, nil
-}
-
-// State is the resolver for the state field.
-func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (modelInputs.ErrorState, error) {
-	switch obj.State {
-	case model.ErrorGroupStates.OPEN:
-		return modelInputs.ErrorStateOpen, nil
-	case model.ErrorGroupStates.RESOLVED:
-		return modelInputs.ErrorStateResolved, nil
-	case model.ErrorGroupStates.IGNORED:
-		return modelInputs.ErrorStateIgnored, nil
-	default:
-		return modelInputs.ErrorStateOpen, e.New("invalid error group state")
-	}
 }
 
 // ErrorGroupSecureID is the resolver for the error_group_secure_id field.
@@ -604,17 +591,43 @@ func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projec
 		return nil, err
 	}
 
-	projectFilterSettings := model.ProjectFilterSettings{}
+	updatedProjectFilterSettings, err := r.Store.UpdateProjectFilterSettings(*project, model.ProjectFilterSettings{
+		FilterSessionsWithoutError: filterSessionsWithoutError,
+	})
 
-	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).First(&projectFilterSettings)
+	return &updatedProjectFilterSettings, err
+}
 
-	projectFilterSettings.FilterSessionsWithoutError = filterSessionsWithoutError
-
-	if err := r.DB.Save(projectFilterSettings).Error; err != nil {
+// EditProjectSettings is the resolver for the editProjectSettings field.
+func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool) (*modelInputs.AllProjectSettings, error) {
+	project, err := r.EditProject(ctx, projectID, name, billingEmail, excludedUsers, errorFilters, errorJSONPaths, rageClickWindowSeconds, rageClickRadiusPixels, rageClickCount, backendDomains, filterChromeExtension)
+	if err != nil {
 		return nil, err
 	}
 
-	return &projectFilterSettings, err
+	allProjectSettings := modelInputs.AllProjectSettings{
+		ID:                     project.ID,
+		Name:                   *project.Name,
+		BillingEmail:           project.BillingEmail,
+		ExcludedUsers:          project.ExcludedUsers,
+		ErrorFilters:           project.ErrorFilters,
+		ErrorJSONPaths:         project.ErrorJsonPaths,
+		BackendDomains:         project.BackendDomains,
+		FilterChromeExtension:  project.FilterChromeExtension,
+		RageClickWindowSeconds: &project.RageClickWindowSeconds,
+		RageClickRadiusPixels:  &project.RageClickRadiusPixels,
+		RageClickCount:         &project.RageClickCount,
+	}
+
+	if filterSessionsWithoutError != nil {
+		projectFilterSettings, err := r.EditProjectFilterSettings(ctx, projectID, *filterSessionsWithoutError)
+		if err != nil {
+			return nil, err
+		}
+		allProjectSettings.FilterSessionsWithoutError = projectFilterSettings.FilterSessionsWithoutError
+	}
+
+	return &allProjectSettings, nil
 }
 
 // EditWorkspace is the resolver for the editWorkspace field.
@@ -840,28 +853,20 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID st
 }
 
 // UpdateErrorGroupState is the resolver for the updateErrorGroupState field.
-func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state string, snoozedUntil *time.Time) (*model.ErrorGroup, error) {
-	errGroup, err := r.canAdminModifyErrorGroup(ctx, secureID)
+func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state modelInputs.ErrorState, snoozedUntil *time.Time) (*model.ErrorGroup, error) {
+	errorGroup, err := r.canAdminModifyErrorGroup(ctx, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to modify error group")
 	}
+	admin, err := r.getCurrentAdmin(ctx)
 
-	errorGroup := &model.ErrorGroup{}
-	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errGroup.ID}}).First(&errorGroup).Updates(map[string]interface{}{
-		"State":        state,
-		"SnoozedUntil": snoozedUntil,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error writing errorGroup state")
-	}
+	updatedErrorGroup, err := r.Store.UpdateErrorGroupStateByAdmin(ctx, *admin, store.UpdateErrorGroupParams{
+		ID:           errorGroup.ID,
+		State:        state,
+		SnoozedUntil: snoozedUntil,
+	})
 
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
-		"state":         state,
-		"snoozed_until": snoozedUntil,
-	}); err != nil {
-		return nil, e.Wrap(err, "error updating error group state in OpenSearch")
-	}
-
-	return errorGroup, nil
+	return &updatedErrorGroup, err
 }
 
 // DeleteProject is the resolver for the deleteProject field.
@@ -887,41 +892,14 @@ func (r *mutationResolver) SendAdminWorkspaceInvite(ctx context.Context, workspa
 		return nil, e.Wrap(err, "error querying admin")
 	}
 
-	existingInviteLink := &model.WorkspaceInviteLink{}
-	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: &email}).First(existingInviteLink).Error; err != nil {
-		if e.Is(err, gorm.ErrRecordNotFound) {
-			existingInviteLink = nil
-		} else {
-			return nil, e.Wrap(err, "error querying workspace invite link for admin")
-		}
+	inviteLink := r.CreateInviteLink(workspaceID, &email, role, false)
+
+	if err := r.DB.Create(inviteLink).Error; err != nil {
+		return nil, e.Wrap(err, "error creating new invite link")
 	}
 
-	// If there's an existing and expired invite link for the user then delete it.
-	if existingInviteLink != nil && r.IsInviteLinkExpired(existingInviteLink) {
-		if err := r.DB.Delete(existingInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error deleting expired invite link")
-		}
-		existingInviteLink = nil
-	}
-
-	// Delete the existing invite if the roles are different.
-	if existingInviteLink != nil && existingInviteLink.InviteeRole != nil && *existingInviteLink.InviteeRole != role {
-		if err := r.DB.Delete(existingInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error deleting different role invite link")
-		}
-		existingInviteLink = nil
-	}
-
-	if existingInviteLink == nil {
-		existingInviteLink = r.CreateInviteLink(workspaceID, &email, role, false)
-
-		if err := r.DB.Create(existingInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error creating new invite link")
-		}
-	}
-
-	inviteLink := baseURL + "/w/" + strconv.Itoa(workspaceID) + "/invite/" + *existingInviteLink.Secret
-	return r.SendAdminInviteImpl(*admin.Name, *workspace.Name, inviteLink, email)
+	inviteLinkUrl := baseURL + "/w/" + strconv.Itoa(workspaceID) + "/invite/" + *inviteLink.Secret
+	return r.SendAdminInviteImpl(*admin.Name, *workspace.Name, inviteLinkUrl, email)
 }
 
 // AddAdminToWorkspace is the resolver for the addAdminToWorkspace field.
@@ -1316,8 +1294,8 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 
 	// If there's no existing subscription, we create a checkout.
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/upgrade-plan/success"),
-		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/upgrade-plan/checkoutCanceled"),
+		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/success"),
+		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/w/" + strconv.Itoa(workspaceID) + "/current-plan/update-plan"),
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
@@ -1355,6 +1333,28 @@ func (r *mutationResolver) UpdateBillingDetails(ctx context.Context, workspaceID
 	}
 
 	return &model.T, nil
+}
+
+// SaveBillingPlan is the resolver for the saveBillingPlan field.
+func (r *mutationResolver) SaveBillingPlan(ctx context.Context, workspaceID int, sessionsLimitCents *int, sessionsRetention modelInputs.RetentionPeriod, errorsLimitCents *int, errorsRetention modelInputs.RetentionPeriod, logsLimitCents *int, logsRetention modelInputs.RetentionPeriod) (*bool, error) {
+	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in workspace")
+	}
+
+	if err := r.DB.Model(&workspace).
+		Select("sessions_max_cents", "retention_period", "errors_max_cents", "errors_retention_period", "logs_max_cents").
+		Updates(&model.Workspace{
+			SessionsMaxCents:      sessionsLimitCents,
+			RetentionPeriod:       &sessionsRetention,
+			ErrorsMaxCents:        errorsLimitCents,
+			ErrorsRetentionPeriod: &errorsRetention,
+			LogsMaxCents:          logsLimitCents,
+		}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating workspace")
+	}
+
+	return pointy.Bool(true), nil
 }
 
 // CreateSessionComment is the resolver for the createSessionComment field.
@@ -3979,7 +3979,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 	}
 	errorGroupsOpensearchSearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("resolver.errorGroupsOpensearchSearchQuery"), tracer.Tag("project_id", projectID))
-	q := FormatErrorGroupsQuery(query, GetRetentionDate(workspace.RetentionPeriod))
+	q := FormatErrorGroupsQuery(query, GetRetentionDate(workspace.ErrorsRetentionPeriod))
 	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, q, options, &results)
 	errorGroupsOpensearchSearchSpan.Finish()
 
@@ -4031,7 +4031,7 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 		Aggregation:       GetDateHistogramAggregation(histogramOptions, "timestamp", nil),
 	}
 
-	q := FormatErrorInstancesQuery(query, GetRetentionDate(workspace.RetentionPeriod))
+	q := FormatErrorInstancesQuery(query, GetRetentionDate(workspace.ErrorsRetentionPeriod))
 	_, aggs, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, q, options, &results)
 	if err != nil {
 		return nil, err
@@ -4135,37 +4135,6 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 	}
 
 	return &errorInstance, nil
-}
-
-// Messages is the resolver for the messages field.
-func (r *queryResolver) Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
-	s, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
-	}
-	if en := s.ObjectStorageEnabled; en != nil && *en {
-		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
-		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadMessages(ctx, s.ID, s.ProjectID)
-		if err != nil {
-			return nil, e.Wrap(err, "error pulling messages from s3")
-		}
-		return ret, nil
-	}
-	messagesObj := []*model.MessagesObject{}
-	if err := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj).Error; err != nil {
-		return nil, e.Wrap(err, "error reading from messages")
-	}
-	allEvents := make(map[string][]interface{})
-	for _, messageObj := range messagesObj {
-		subMessage := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(messageObj.Messages), &subMessage); err != nil {
-			return nil, e.Wrap(err, "error decoding message data")
-		}
-		allEvents["messages"] = append(subMessage["messages"], allEvents["messages"]...)
-	}
-	return allEvents["messages"], nil
 }
 
 // EnhancedUserDetails is the resolver for the enhanced_user_details field.
@@ -4315,29 +4284,13 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	if en := s.ObjectStorageEnabled; en != nil && *en {
-		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
-		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadResources(ctx, s.ID, s.ProjectID)
-		if err != nil {
-			return nil, e.Wrap(err, "error pulling resources from s3")
-		}
-		return ret, nil
+
+	resources, err := r.Redis.GetResources(ctx, s)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting resources from redis")
 	}
-	resourcesObject := []*model.ResourcesObject{}
-	if err := r.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject).Error; err != nil {
-		return nil, e.Wrap(err, "error reading from resources")
-	}
-	allResources := make(map[string][]interface{})
-	for _, resourceObj := range resourcesObject {
-		subResources := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(resourceObj.Resources), &subResources); err != nil {
-			return nil, e.Wrap(err, "error decoding resource data")
-		}
-		allResources["resources"] = append(subResources["resources"], allResources["resources"]...)
-	}
-	return allResources["resources"], nil
+
+	return resources, nil
 }
 
 // WebVitals is the resolver for the web_vitals field.
@@ -5398,39 +5351,19 @@ func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID 
 		return nil, nil
 	}
 
-	var g errgroup.Group
-	var queriedSessionsOutOfQuota int64
-	g.Go(func() error {
-		queriedSessionsOutOfQuota, err = pricing.GetProjectQuotaOverflow(ctx, r.DB, projectID)
-		if err != nil {
-			return e.Wrap(err, "error from get quota overflow")
-		}
-		return nil
-	})
-
-	var billingDetails *modelInputs.BillingDetails
-	g.Go(func() error {
-		billingDetails, err = r.BillingDetails(ctx, project.WorkspaceID)
-		if err != nil {
-			return e.Wrap(err, "error from get quota")
-		}
-		return nil
-	})
-
-	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
-	if err := g.Wait(); err != nil {
-		return nil, e.Wrap(err, "error querying session data for billing details")
-	}
-
-	billingDetails.SessionsOutOfQuota = queriedSessionsOutOfQuota
-	return billingDetails, nil
+	return r.BillingDetails(ctx, project.WorkspaceID)
 }
 
 // BillingDetails is the resolver for the billingDetails field.
 func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*modelInputs.BillingDetails, error) {
-	workspace, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
+	_, err := r.isAdminInWorkspaceOrDemoWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
+	}
+
+	workspace, err := r.Query().Workspace(ctx, workspaceID)
+	if err != nil {
+		return nil, err
 	}
 
 	planType := modelInputs.PlanType(workspace.PlanTier)
@@ -5447,9 +5380,12 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	var membersMeter int64
 	var errorsMeter int64
 	var logsMeter int64
+	var sessionsAvg float64
+	var errorsAvg float64
+	var logsAvg float64
 
 	g.Go(func() error {
-		sessionsMeter, err = pricing.GetWorkspaceSessionsMeter(r.DB, workspaceID)
+		sessionsMeter, err = pricing.GetWorkspaceSessionsMeter(ctx, r.DB, r.ClickhouseClient, workspace)
 		if err != nil {
 			return e.Wrap(err, "error from get quota")
 		}
@@ -5465,7 +5401,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	})
 
 	g.Go(func() error {
-		errorsMeter, err = pricing.GetWorkspaceErrorsMeter(r.DB, workspaceID)
+		errorsMeter, err = pricing.GetWorkspaceErrorsMeter(ctx, r.DB, r.ClickhouseClient, workspace)
 		if err != nil {
 			return e.Wrap(err, "error querying errors meter")
 		}
@@ -5473,15 +5409,26 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 	})
 
 	g.Go(func() error {
-		workspace, err := r.Workspace(ctx, workspaceID)
+		logsMeter, err = pricing.GetWorkspaceLogsMeter(ctx, r.DB, r.ClickhouseClient, workspace)
 		if err != nil {
-			return err
-		}
-		logsMeter, err = pricing.GetWorkspaceLogsMeter(ctx, r.ClickhouseClient, *workspace)
-		if err != nil {
-			return e.Wrap(err, "error querying errors meter")
+			return e.Wrap(err, "error querying logs meter")
 		}
 		return nil
+	})
+
+	g.Go(func() error {
+		sessionsAvg, err = pricing.GetSessions7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
+	})
+
+	g.Go(func() error {
+		errorsAvg, err = pricing.GetErrors7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
+	})
+
+	g.Go(func() error {
+		logsAvg, err = pricing.GetLogs7DayAverage(ctx, r.DB, r.ClickhouseClient, workspace)
+		return err
 	})
 
 	// Waits for all goroutines to finish, then returns the first non-nil error (if any).
@@ -5489,10 +5436,10 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		return nil, e.Wrap(err, "error querying session data for billing details")
 	}
 
-	sessionLimit := pricing.TypeToSessionsLimit(planType)
+	sessionsIncluded := pricing.TypeToSessionsLimit(planType)
 	// use monthly session limit if it exists
 	if workspace.MonthlySessionLimit != nil {
-		sessionLimit = *workspace.MonthlySessionLimit
+		sessionsIncluded = *workspace.MonthlySessionLimit
 	}
 
 	membersLimit := pricing.TypeToMemberLimit(planType, workspace.UnlimitedMembers)
@@ -5500,31 +5447,49 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 		membersLimit = workspace.MonthlyMembersLimit
 	}
 
-	errorsLimit := pricing.TypeToErrorsLimit(planType)
+	errorsIncluded := pricing.TypeToErrorsLimit(planType)
 	// use monthly session limit if it exists
 	if workspace.MonthlyErrorsLimit != nil {
-		errorsLimit = *workspace.MonthlyErrorsLimit
+		errorsIncluded = *workspace.MonthlyErrorsLimit
 	}
 
-	logsLimit := pricing.TypeToLogsLimit(planType)
+	logsIncluded := pricing.TypeToLogsLimit(planType)
 	// use monthly session limit if it exists
 	if workspace.MonthlyLogsLimit != nil {
-		logsLimit = *workspace.MonthlyLogsLimit
+		logsIncluded = *workspace.MonthlyLogsLimit
+	}
+
+	retentionPeriod := modelInputs.RetentionPeriodSixMonths
+	if workspace.RetentionPeriod != nil {
+		retentionPeriod = *workspace.RetentionPeriod
+	}
+
+	var sessionsLimit, errorsLimit, logsLimit *int64
+	if workspace.TrialEndDate == nil || workspace.TrialEndDate.Before(time.Now()) {
+		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, pricing.ProductTypeSessions, planType, retentionPeriod)
+		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, pricing.ProductTypeErrors, planType, retentionPeriod)
+		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, pricing.ProductTypeLogs, planType, retentionPeriod)
 	}
 
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:         modelInputs.PlanType(planType.String()),
-			Quota:        sessionLimit,
+			Quota:        sessionsIncluded,
 			Interval:     interval,
 			MembersLimit: membersLimit,
-			ErrorsLimit:  errorsLimit,
-			LogsLimit:    logsLimit,
+			ErrorsLimit:  errorsIncluded,
+			LogsLimit:    logsIncluded,
 		},
-		Meter:        sessionsMeter,
-		MembersMeter: membersMeter,
-		ErrorsMeter:  errorsMeter,
-		LogsMeter:    logsMeter,
+		Meter:                sessionsMeter,
+		MembersMeter:         membersMeter,
+		ErrorsMeter:          errorsMeter,
+		LogsMeter:            logsMeter,
+		SessionsDailyAverage: sessionsAvg,
+		ErrorsDailyAverage:   errorsAvg,
+		LogsDailyAverage:     logsAvg,
+		SessionsBillingLimit: sessionsLimit,
+		ErrorsBillingLimit:   errorsLimit,
+		LogsBillingLimit:     logsLimit,
 	}
 
 	return details, nil
@@ -6388,11 +6353,39 @@ func (r *queryResolver) ProjectFilterSettings(ctx context.Context, projectID int
 		return nil, err
 	}
 
-	projectFilterSettings := model.ProjectFilterSettings{}
-
-	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
+	projectFilterSettings, err := r.Store.GetProjectFilterSettings(*project)
 
 	return &projectFilterSettings, err
+}
+
+// ProjectSettings is the resolver for the projectSettings field.
+func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*modelInputs.AllProjectSettings, error) {
+	project, err := r.Project(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	projectFilterSettings, err := r.ProjectFilterSettings(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	allProjectSettings := modelInputs.AllProjectSettings{
+		ID:                         project.ID,
+		Name:                       *project.Name,
+		BillingEmail:               project.BillingEmail,
+		ExcludedUsers:              project.ExcludedUsers,
+		ErrorFilters:               project.ErrorFilters,
+		ErrorJSONPaths:             project.ErrorJsonPaths,
+		BackendDomains:             project.BackendDomains,
+		FilterChromeExtension:      project.FilterChromeExtension,
+		RageClickWindowSeconds:     &project.RageClickWindowSeconds,
+		RageClickRadiusPixels:      &project.RageClickRadiusPixels,
+		RageClickCount:             &project.RageClickCount,
+		FilterSessionsWithoutError: projectFilterSettings.FilterSessionsWithoutError,
+	}
+
+	return &allProjectSettings, nil
 }
 
 // Workspace is the resolver for the workspace field.
@@ -6416,6 +6409,10 @@ func (r *queryResolver) WorkspaceForInviteLink(ctx context.Context, secret strin
 	var workspaceInviteLink model.WorkspaceInviteLink
 	if err := r.DB.Where(&model.WorkspaceInviteLink{Secret: &secret}).First(&workspaceInviteLink).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace invite link")
+	}
+
+	if r.IsInviteLinkExpired(&workspaceInviteLink) {
+		return nil, e.New("invite link expired")
 	}
 
 	var workspace model.Workspace
@@ -6462,9 +6459,6 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 
 	if r.IsInviteLinkExpired(workspaceInviteLink) && !shouldCreateNewInviteLink {
 		shouldCreateNewInviteLink = true
-		if err := r.DB.Delete(workspaceInviteLink).Error; err != nil {
-			return nil, e.Wrap(err, "error while deleting expired invite link for workspace")
-		}
 	}
 
 	if workspaceInviteLink != nil && workspaceInviteLink.ExpirationDate != nil {
@@ -7399,16 +7393,16 @@ func (r *sessionResolver) ResourcesURL(ctx context.Context, obj *model.Session) 
 	return str, err
 }
 
-// MessagesURL is the resolver for the messages_url field.
-func (r *sessionResolver) MessagesURL(ctx context.Context, obj *model.Session) (*string, error) {
+// TimelineIndicatorsURL is the resolver for the timeline_indicators_url field.
+func (r *sessionResolver) TimelineIndicatorsURL(ctx context.Context, obj *model.Session) (*string, error) {
 	// Direct download only supported for clients that accept Brotli content encoding
 	if !obj.AllObjectsCompressed || !r.isBrotliAccepted(ctx) {
 		return nil, nil
 	}
 
-	str, err := r.StorageClient.GetDirectDownloadURL(ctx, obj.ProjectID, obj.ID, storage.ConsoleMessagesCompressed, nil)
+	str, err := r.StorageClient.GetDirectDownloadURL(ctx, obj.ProjectID, obj.ID, storage.TimelineIndicatorEvents, nil)
 	if err != nil {
-		return nil, e.Wrap(err, "error getting messages URL")
+		return nil, e.Wrap(err, "error getting timeline indicators URL")
 	}
 
 	return str, err

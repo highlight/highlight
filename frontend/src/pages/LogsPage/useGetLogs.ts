@@ -1,4 +1,4 @@
-import { useGetLogsErrorObjectsQuery, useGetLogsLazyQuery } from '@graph/hooks'
+import { useGetLogsErrorObjectsQuery, useGetLogsQuery } from '@graph/hooks'
 import { LogEdge, PageInfo } from '@graph/schemas'
 import * as Types from '@graph/schemas'
 import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
@@ -14,6 +14,13 @@ export type LogEdgeWithError = LogEdge & {
 		Types.ErrorObject,
 		'log_cursor' | 'error_group_secure_id' | 'id'
 	>
+}
+
+const initialWindowInfo: PageInfo = {
+	hasNextPage: true,
+	hasPreviousPage: true,
+	startCursor: '', // unused but needed for typedef
+	endCursor: '', // unused but needed for typedef
 }
 
 export const useGetLogs = ({
@@ -37,103 +44,105 @@ export const useGetLogs = ({
 	//
 	// If the user scrolls forward to get the next 100 logs, the server will say that hasPreviousPage is `true` since we're on page 2.
 	// Hence, we track the initial information (where "window" is effectively multiple pages) to ensure we aren't making requests unnecessarily.
-	const [windowInfo, setWindowInfo] = useState<PageInfo>({
-		hasNextPage: false,
-		hasPreviousPage: false,
-		startCursor: '',
-		endCursor: '',
-	})
+	const [windowInfo, setWindowInfo] = useState<PageInfo>(initialWindowInfo)
 	const [loadingAfter, setLoadingAfter] = useState(false)
 	const [loadingBefore, setLoadingBefore] = useState(false)
 	const queryTerms = parseLogsQuery(query)
 	const serverQuery = buildLogsQueryForServer(queryTerms)
 
-	const [getLogs, { data, loading, error, refetch, fetchMore }] =
-		useGetLogsLazyQuery({
-			variables: {
-				project_id: project_id!,
-				at: logCursor,
-				direction: Types.LogDirection.Desc,
-				params: {
-					query: serverQuery,
-					date_range: {
-						start_date: moment(startDate).format(LOG_TIME_FORMAT),
-						end_date: moment(endDate).format(LOG_TIME_FORMAT),
-					},
+	useEffect(() => {
+		setWindowInfo(initialWindowInfo)
+	}, [query, startDate, endDate])
+
+	const { data, loading, error, refetch, fetchMore } = useGetLogsQuery({
+		variables: {
+			project_id: project_id!,
+			at: logCursor,
+			direction: Types.LogDirection.Desc,
+			params: {
+				query: serverQuery,
+				date_range: {
+					start_date: moment(startDate).format(LOG_TIME_FORMAT),
+					end_date: moment(endDate).format(LOG_TIME_FORMAT),
 				},
 			},
-			fetchPolicy: 'cache-and-network',
-		})
+		},
+		fetchPolicy: 'cache-and-network',
+	})
 
 	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({
 		variables: { log_cursors: data?.logs.edges.map((e) => e.cursor) || [] },
 		skip: !data?.logs.edges.length,
 	})
 
-	useEffect(() => {
-		getLogs().then((result) => {
-			if (result.data?.logs) {
-				setWindowInfo(result.data.logs.pageInfo)
-			}
-		})
-	}, [getLogs])
+	const fetchMoreForward = useCallback(async () => {
+		if (!windowInfo.hasNextPage || loadingAfter) {
+			return
+		}
 
-	const fetchMoreForward = useCallback(() => {
-		if (!windowInfo.hasNextPage) {
+		const lastItem = data && data.logs.edges[data.logs.edges.length - 1]
+		const lastCursor = lastItem?.cursor
+
+		if (!lastCursor) {
 			return
 		}
 
 		setLoadingAfter(true)
 
-		fetchMore({
-			variables: {
-				after: windowInfo.endCursor,
-				before: undefined,
-				at: undefined,
+		await fetchMore({
+			variables: { after: lastCursor },
+			updateQuery: (prevResult, { fetchMoreResult }) => {
+				const newData = fetchMoreResult.logs.edges
+				setWindowInfo({
+					...windowInfo,
+					hasNextPage: fetchMoreResult.logs.pageInfo.hasNextPage,
+				})
+				setLoadingAfter(false)
+				return {
+					logs: {
+						...prevResult.logs,
+						edges: [...prevResult.logs.edges, ...newData],
+						pageInfo: fetchMoreResult.logs.pageInfo,
+					},
+				}
 			},
 		})
-			.then((result) => {
-				if (result.data?.logs) {
-					const { pageInfo } = result.data?.logs
-					setWindowInfo({
-						...windowInfo,
-						hasNextPage: pageInfo.hasNextPage,
-						endCursor: pageInfo.endCursor,
-					})
-				}
-			})
-			.finally(() => {
-				setLoadingAfter(false)
-			})
-	}, [fetchMore, windowInfo])
+	}, [data, fetchMore, loadingAfter, windowInfo])
 
-	const fetchMoreBackward = useCallback(() => {
-		if (!windowInfo.hasPreviousPage) {
+	const fetchMoreBackward = useCallback(async () => {
+		if (!windowInfo.hasPreviousPage || loadingBefore) {
 			return
 		}
 
-		setLoadingBefore(false)
-		fetchMore({
-			variables: {
-				after: undefined,
-				before: windowInfo.startCursor,
-				at: undefined,
+		const firstItem = data && data.logs.edges[0]
+		const firstCursor = firstItem?.cursor
+
+		if (!firstCursor) {
+			return
+		}
+
+		setLoadingBefore(true)
+
+		await fetchMore({
+			variables: { before: firstCursor },
+			updateQuery: (prevResult, { fetchMoreResult }) => {
+				const newData = fetchMoreResult.logs.edges
+				setWindowInfo({
+					...windowInfo,
+					hasPreviousPage:
+						fetchMoreResult.logs.pageInfo.hasPreviousPage,
+				})
+				setLoadingBefore(false)
+				return {
+					logs: {
+						...prevResult.logs,
+						edges: [...prevResult.logs.edges, ...newData],
+						pageInfo: fetchMoreResult.logs.pageInfo,
+					},
+				}
 			},
 		})
-			.then((result) => {
-				if (result.data?.logs) {
-					const { pageInfo } = result.data?.logs
-					setWindowInfo({
-						...windowInfo,
-						hasPreviousPage: pageInfo.hasPreviousPage,
-						startCursor: pageInfo.startCursor,
-					})
-				}
-			})
-			.finally(() => {
-				setLoadingBefore(false)
-			})
-	}, [fetchMore, windowInfo])
+	}, [data, fetchMore, loadingBefore, windowInfo])
 
 	const logEdgesWithError: LogEdgeWithError[] = (data?.logs.edges || []).map(
 		(e) => ({

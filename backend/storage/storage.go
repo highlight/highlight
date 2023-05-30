@@ -8,9 +8,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/go-chi/chi"
-	"github.com/rs/cors"
-	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"os"
@@ -18,6 +15,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-chi/chi"
+	"github.com/rs/cors"
+	"github.com/samber/lo"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
@@ -57,10 +58,8 @@ type PayloadType string
 
 const (
 	NetworkResources           PayloadType = "network-resources"
-	ConsoleMessages            PayloadType = "console-messages"
 	SessionContentsCompressed  PayloadType = "session-contents-compressed"
 	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
-	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"
 	TimelineIndicatorEvents    PayloadType = "timeline-indicator-events"
 )
 
@@ -68,7 +67,6 @@ const (
 var StoredPayloadTypes = map[payload.FileType]PayloadType{
 	payload.EventsCompressed:        SessionContentsCompressed,
 	payload.ResourcesCompressed:     NetworkResourcesCompressed,
-	payload.MessagesCompressed:      ConsoleMessagesCompressed,
 	payload.TimelineIndicatorEvents: TimelineIndicatorEvents,
 }
 
@@ -87,7 +85,6 @@ type Client interface {
 	PushFiles(ctx context.Context, sessionId, projectId int, payloadManager *payload.PayloadManager) (int64, error)
 	PushRawEvents(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType, events []redis.Z) error
 	PushSourceMapFile(ctx context.Context, projectId int, version *string, fileName string, fileBytes []byte) (*int64, error)
-	ReadMessages(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
 	ReadResources(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
 	ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error)
 	ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error)
@@ -109,10 +106,9 @@ func (f *FilesystemClient) GetDirectDownloadURL(_ context.Context, projectId int
 }
 
 func (f *FilesystemClient) GetRawData(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType) (map[int]string, error) {
-	prefix := fmt.Sprintf("%s/raw-events/%d/%d", f.fsRoot, sessionId, projectId)
+	prefix := fmt.Sprintf("%s/raw-events/%d/%d", f.fsRoot, projectId, sessionId)
 	dir, err := os.ReadDir(prefix)
 	if err != nil {
-		log.WithContext(ctx).Warnf("error listing objects in fs: %s", err)
 		return make(map[int]string), nil
 	}
 	objects := lo.Filter(lo.Map(dir, func(t os.DirEntry, i int) string {
@@ -172,7 +168,7 @@ func (f *FilesystemClient) GetSourceMapUploadUrl(_ context.Context, key string) 
 	return fmt.Sprintf("%s/sourcemap-upload/%s", f.origin, key), nil
 }
 
-func (f *FilesystemClient) GetSourcemapFiles(ctx context.Context, projectId int, version *string) ([]s3Types.Object, error) {
+func (f *FilesystemClient) GetSourcemapFiles(_ context.Context, projectId int, version *string) ([]s3Types.Object, error) {
 	if version == nil || len(*version) == 0 {
 		// If no version is specified we put files in an "unversioned" directory.
 		version = pointy.String("unversioned")
@@ -180,7 +176,6 @@ func (f *FilesystemClient) GetSourcemapFiles(ctx context.Context, projectId int,
 
 	dir, err := os.ReadDir(fmt.Sprintf("%s/sourcemaps/%d/%s", f.fsRoot, projectId, *version))
 	if err != nil {
-		log.WithContext(ctx).Warnf("error listing objects in fs: %s", err)
 		return nil, nil
 	}
 	return lo.Map(dir, func(t os.DirEntry, i int) s3Types.Object {
@@ -190,10 +185,9 @@ func (f *FilesystemClient) GetSourcemapFiles(ctx context.Context, projectId int,
 	}), nil
 }
 
-func (f *FilesystemClient) GetSourcemapVersions(ctx context.Context, projectId int) ([]string, error) {
+func (f *FilesystemClient) GetSourcemapVersions(_ context.Context, projectId int) ([]string, error) {
 	dir, err := os.ReadDir(fmt.Sprintf("%s/sourcemaps/%d", f.fsRoot, projectId))
 	if err != nil {
-		log.WithContext(ctx).Warnf("error listing objects in fs: %s", err)
 		return nil, nil
 	}
 	return lo.Map(dir, func(t os.DirEntry, i int) string {
@@ -240,7 +234,7 @@ func (f *FilesystemClient) PushRawEvents(ctx context.Context, sessionId, project
 		return errors.Wrap(err, "error encoding gob")
 	}
 
-	key := fmt.Sprintf("%s/raw-events/%d/%d/%v-%s", f.fsRoot, sessionId, projectId, payloadType, uuid.New().String())
+	key := fmt.Sprintf("%s/raw-events/%d/%d/%v-%s", f.fsRoot, projectId, sessionId, payloadType, uuid.New().String())
 	_, err := f.writeFSBytes(ctx, key, buf)
 	return err
 }
@@ -256,15 +250,6 @@ func (f *FilesystemClient) PushSourceMapFile(ctx context.Context, projectId int,
 	} else {
 		return &n, nil
 	}
-}
-
-func (f *FilesystemClient) ReadMessages(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	var messages []interface{}
-	err := f.readCompressed(ctx, sessionId, projectId, ConsoleMessagesCompressed, &messages)
-	if err != nil {
-		return nil, err
-	}
-	return messages, nil
 }
 
 func (f *FilesystemClient) ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error) {
@@ -307,7 +292,7 @@ func (f *FilesystemClient) UploadAsset(ctx context.Context, uuid, _ string, read
 }
 
 func (f *FilesystemClient) readCompressed(ctx context.Context, sessionId int, projectId int, t PayloadType, results interface{}) error {
-	key := fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, sessionId, projectId, t)
+	key := fmt.Sprintf("%s/%v/%v/%v", f.fsRoot, projectId, sessionId, t)
 	if _, err := os.Stat(key); err != nil {
 		log.WithContext(ctx).Warnf("file %s does not exist", key)
 		return nil
@@ -707,66 +692,6 @@ func (s *S3Client) ReadUncompressedResourcesFromS3(ctx context.Context, sessionI
 		retResources = append(retResources, tempResources.Resources...)
 	}
 	return retResources, nil
-}
-
-func (s *S3Client) ReadMessages(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	client, bucket := s.getSessionClientAndBucket(sessionId)
-	output, err := client.GetObject(ctx, &s3.GetObjectInput{
-		Bucket:                  bucket,
-		Key:                     bucketKey(sessionId, projectId, ConsoleMessagesCompressed),
-		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
-		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
-	})
-	if err != nil {
-		// compressed file doesn't exist, fall back to reading uncompressed
-		return s.ReadUncompressedMessagesFromS3(ctx, sessionId, projectId)
-	}
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(output.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
-	}
-	buf, err = decompress(buf)
-	if err != nil {
-		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
-	}
-
-	var messages []interface{}
-	if err := json.Unmarshal(buf.Bytes(), &messages); err != nil {
-		return nil, errors.Wrap(err, "error decoding message data")
-	}
-	return messages, nil
-}
-
-// ReadUncompressedMessagesFromS3 is deprecated. Serves legacy uncompressed message data from S3.
-func (s *S3Client) ReadUncompressedMessagesFromS3(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	client, bucket := s.getSessionClientAndBucket(sessionId)
-	output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: bucket,
-		Key: bucketKey(sessionId, projectId, ConsoleMessages)})
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting object from s3")
-	}
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(output.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
-	}
-	type messages struct {
-		Messages []interface{}
-	}
-	messagesSlice := strings.Split(buf.String(), "\n\n\n")
-	var retMessages []interface{}
-	for _, e := range messagesSlice {
-		if e == "" {
-			continue
-		}
-		var tempResources messages
-		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
-			return nil, errors.Wrap(err, "error decoding message data")
-		}
-		retMessages = append(retMessages, tempResources.Messages...)
-	}
-	return retMessages, nil
 }
 
 func (s *S3Client) ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error) {

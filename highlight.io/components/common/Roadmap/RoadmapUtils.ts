@@ -1,5 +1,4 @@
 import { gql } from 'graphql-request'
-import { contentRender } from '../../Docs/Docs.module.scss'
 
 //converts "session-replay" to "Session Replay
 export function tagToTitle(tag: string) {
@@ -168,8 +167,8 @@ export const roadmapFetcher = async (): Promise<{
 		let labels: string[] = []
 		if (content && content.labels) {
 			labels = content.labels.nodes
-				.filter((label) => label)
-				.map((label?: { name: string }) => label.name)
+				.filter((label: any) => label)
+				.map((label?: { name: string }) => label?.name)
 		}
 
 		let issue: Issue = {

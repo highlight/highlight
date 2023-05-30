@@ -83,23 +83,27 @@
 			rel="stylesheet"
 		/>
 		<title>highlight.io</title>
+		<!-- Google Tag Manager -->
+		<script>
+			;(function (w, d, s, l, i) {
+				w[l] = w[l] || []
+				w[l].push({
+					'gtm.start': new Date().getTime(),
+					event: 'gtm.js',
+				})
+				var f = d.getElementsByTagName(s)[0],
+					j = d.createElement(s),
+					dl = l != 'dataLayer' ? '&l=' + l : ''
+				j.async = true
+				j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl
+				f.parentNode.insertBefore(j, f)
+			})(window, document, 'script', 'dataLayer', 'GTM-PT4CCQ4')
+		</script>
+		<!-- End Google Tag Manager -->
 		<script type="module" src="./src/intercom.js" defer></script>
 		<script>
 			window._highlightFirebaseConfigString = `{{.FirebaseConfigString}}`
 		</script>
-		<script
-			async
-			src="https://www.googletagmanager.com/gtag/js?id=AW-10833687189"
-			onload="
-			window.dataLayer = window.dataLayer || [];
-			function gtag(){dataLayer.push(arguments);}
-			gtag('set', 'linker', {
-				'domains': ['highlight.io']
-			});
-			gtag('js', new Date());
-			gtag('config', 'AW-10833687189');
-			window.gtag = gtag"
-		></script>
 		<!-- Start of HubSpot Embed Code -->
 		<script
 			type="text/javascript"
@@ -113,6 +117,16 @@
 		<script type="module" src="./src/index.tsx" defer></script>
 	</head>
 	<body class="highlight-light-theme">
+		<!-- Google Tag Manager (noscript) -->
+		<noscript
+			><iframe
+				src="https://www.googletagmanager.com/ns.html?id=GTM-PT4CCQ4"
+				height="0"
+				width="0"
+				style="display: none; visibility: hidden"
+			></iframe
+		></noscript>
+		<!-- End Google Tag Manager (noscript) -->
 		<noscript>You need to enable JavaScript to run this app.</noscript>
 		<div id="root"></div>
 		<!--

@@ -46,7 +46,7 @@ import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsC
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import { SESSION_FEED_LEFT_PANEL_WIDTH } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
 import { SessionFeedV3 } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
@@ -181,20 +181,22 @@ const PlayerPage = () => {
 			const height = replayer?.wrapper?.getBoundingClientRect().height
 			const targetWidth = playerWrapperRef.current?.clientWidth
 			const targetHeight = playerWrapperRef.current?.clientHeight
-			if (!width || !targetWidth || !height || !targetHeight) {
+			if (!targetWidth || !targetHeight) {
 				return false
 			}
 			const widthScale = (targetWidth - style.PLAYER_PADDING_X) / width
 			const heightScale = (targetHeight - style.PLAYER_PADDING_Y) / height
-			const scale = Math.min(heightScale, widthScale)
+			let scale = Math.min(heightScale, widthScale)
 			// If calculated scale is close enough to 1, return to avoid
 			// infinite looping caused by small floating point math differences
 			if (scale >= 0.9999 && scale <= 1.0001) {
-				return true
+				return false
 			}
 
-			if (scale <= 0) {
-				return false
+			let retry = false
+			if (scale <= 0 || !Number.isFinite(scale)) {
+				retry = true
+				scale = 1
 			}
 
 			setScale((s) => {
@@ -212,7 +214,7 @@ const PlayerPage = () => {
 
 				return replayerScale
 			})
-			return true
+			return !retry
 		},
 		[setScale],
 	)
@@ -223,7 +225,7 @@ const PlayerPage = () => {
 			if (replayer && resizePlayer(replayer)) {
 				clearInterval(i)
 			}
-		}, 1000 / 60)
+		}, 1000 / 15)
 		return () => {
 			i && clearInterval(i)
 		}
@@ -381,7 +383,7 @@ const PlayerPage = () => {
 								session quota. To view it, upgrade your plan.
 							</p>
 							<ButtonLink
-								to={`/w/${currentWorkspace?.id}/upgrade-plan`}
+								to={`/w/${currentWorkspace?.id}/current-plan`}
 								trackingId="PlayerPageUpgradePlan"
 							>
 								Upgrade Plan

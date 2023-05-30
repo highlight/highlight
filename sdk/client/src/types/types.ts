@@ -1,7 +1,6 @@
 import {
 	ConsoleMethods,
 	DebugOptions,
-	FeedbackWidgetOptions,
 	IntegrationOptions,
 	NetworkRecordingOptions,
 	SessionShortcutOptions,
@@ -183,10 +182,6 @@ export declare type HighlightOptions = {
 	 * @see {@link https://docs.highlight.run/session-shortcut} for more information.
 	 */
 	sessionShortcut?: SessionShortcutOptions
-	/**
-	 * Specifies whether to show the Highlight feedback widget. This allows users to submit feedback for their current session.
-	 */
-	feedbackWidget?: FeedbackWidgetOptions
 }
 
 export declare interface HighlightPublicInterface {
@@ -236,10 +231,6 @@ export declare interface HighlightPublicInterface {
 	 * Calling this will add a feedback comment to the session.
 	 */
 	addSessionFeedback: (feedbackOptions: SessionFeedbackOptions) => void
-	/**
-	 * Calling this will toggle the visibility of the feedback modal.
-	 */
-	toggleSessionFeedbackModal: () => void
 }
 
 export declare interface SessionDetails {
@@ -258,9 +249,13 @@ interface SessionFeedbackOptions {
 	timestampOverride?: string
 }
 
-interface StartOptions {
+export interface StartOptions {
 	/**
 	 * Specifies whether console warn messages should not be created.
 	 */
 	silent?: boolean
+	/**
+	 * Starts a new recording session even if one was stopped recently.
+	 */
+	forceNew?: boolean
 }

@@ -1,83 +1,4 @@
-.subTitle {
-	font-size: 18px;
-}
-
-.memberCard {
-	align-items: center;
-	column-gap: var(--size-small);
-	display: flex;
-	flex-direction: row;
-}
-
-.memberCardWrapper {
-	margin-right: var(--size-xxLarge) !important;
-	max-width: 700px;
-	width: 100%;
-}
-
-.userDetails {
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	overflow: hidden;
-}
-
-.name {
-	color: var(--text-primary);
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.email {
-	color: var(--color-gray-500);
-	font-size: 13px;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.role {
-	color: var(--color-gray-500);
-	font-size: 13px;
-	justify-content: flex-end;
-}
-
-.header {
-	column-gap: var(--size-small);
-	display: flex;
-}
-
-.buttonRow {
-	align-items: center;
-	column-gap: var(--size-medium);
-	display: grid;
-	grid-template-columns: 1fr 120px;
-}
-
-.emailInput {
-	height: 40px;
-}
-
-.inviteButton {
-	width: 100%;
-}
-
-.boxSubTitle {
-	color: var(--color-gray-500) !important;
-	margin-top: 0 !important;
-}
-
-.removeTeamMemberButton {
-	flex-shrink: 0;
-	height: fit-content;
-	margin-left: auto;
-}
-
 .titleContainer {
-	align-items: flex-start;
-	display: flex;
-	justify-content: space-between;
 	margin-bottom: var(--size-medium) !important;
 	margin-top: var(--size-xxLarge) !important;
 	max-width: 700px;
@@ -88,8 +9,20 @@
 	}
 }
 
-.hr {
-	border: 0;
-	border-top: 1px solid var(--color-gray-300);
-	margin: var(--size-large) 0;
+.tabTitle {
+	font-weight: 500 !important;
+}
+
+.teamTabs {
+	:global(.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn) {
+		color: var(--color-purple) !important;
+	}
+
+	:global(.ant-tabs-ink-bar) {
+		background: var(--color-purple) !important;
+	}
+
+	:global(.ant-tabs-tab) {
+		margin-left: 0 !important;
+	}
 }

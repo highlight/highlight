@@ -1,101 +1,50 @@
-import { FieldsBox } from '@components/FieldsBox/FieldsBox'
-import { CircularSpinner, LoadingBar } from '@components/Loading/Loading'
+import { LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
-import { useEditProjectMutation, useGetProjectQuery } from '@graph/hooks'
-import { namedOperations } from '@graph/operations'
+import { Stack } from '@highlight-run/ui'
 import { useParams } from '@util/react-router/useParams'
-import { message } from 'antd'
-import clsx from 'clsx'
-import React, { useEffect, useState } from 'react'
 
-import commonStyles from '../../../Common.module.scss'
-import Button from '../../../components/Button/Button/Button'
-import styles from './ErrorSettingsForm.module.scss'
+import BoxLabel from '@/components/BoxLabel/BoxLabel'
+import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
 export const ErrorSettingsForm = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const [errorJsonPaths, setErrorJsonPaths] = useState<string[]>([])
-	const { data, loading } = useGetProjectQuery({
-		variables: {
-			id: project_id!,
-		},
-		skip: !project_id,
-	})
-
-	const [editProject, { loading: editProjectLoading }] =
-		useEditProjectMutation({
-			refetchQueries: [
-				namedOperations.Query.GetProjects,
-				namedOperations.Query.GetProject,
-			],
-		})
-
-	const onSubmit = (e: { preventDefault: () => void }) => {
-		e.preventDefault()
-		if (!project_id) {
-			return
-		}
-		editProject({
-			variables: {
-				id: project_id!,
-				error_json_paths: errorJsonPaths,
-			},
-		}).then(() => {
-			message.success('Updated error grouping rules!', 5)
-		})
-	}
-
-	useEffect(() => {
-		if (!loading) {
-			setErrorJsonPaths(data?.project?.error_json_paths || [])
-		}
-	}, [data?.project?.error_json_paths, loading])
+	const {
+		allProjectSettings: data,
+		loading,
+		setAllProjectSettings,
+	} = useProjectSettingsContext()
 
 	if (loading) {
 		return <LoadingBar />
 	}
 
 	return (
-		<FieldsBox id="grouping">
-			<h3>Error Grouping</h3>
-
-			<form onSubmit={onSubmit} key={project_id}>
-				<p>Enter JSON expressions to use for grouping your errors.</p>
-				<div className={styles.inputAndButtonRow}>
-					<Select
-						mode="tags"
-						placeholder="$.context.messages[0]"
-						defaultValue={
-							data?.project?.error_json_paths || undefined
-						}
-						onChange={(paths: string[]) => {
-							setErrorJsonPaths(paths)
-						}}
-					/>
-					<Button
-						trackingId="UpdateErrorJsonPaths"
-						htmlType="submit"
-						type="primary"
-						className={clsx(
-							commonStyles.submitButton,
-							styles.saveButton,
-						)}
-					>
-						{editProjectLoading ? (
-							<CircularSpinner
-								style={{
-									fontSize: 18,
-									color: 'var(--text-primary-inverted)',
-								}}
-							/>
-						) : (
-							'Save'
-						)}
-					</Button>
-				</div>
-			</form>
-		</FieldsBox>
+		<form key={project_id}>
+			<Stack gap="8">
+				<BoxLabel
+					label="Error grouping"
+					info="Enter JSON expressions to use for grouping your errors."
+				/>
+				<Select
+					mode="tags"
+					placeholder="$.context.messages[0]"
+					value={data?.projectSettings?.error_json_paths || []}
+					onChange={(paths: string[]) => {
+						setAllProjectSettings((currentProjectSettings) =>
+							currentProjectSettings?.projectSettings
+								? {
+										projectSettings: {
+											...currentProjectSettings.projectSettings,
+											error_json_paths: paths,
+										},
+								  }
+								: currentProjectSettings,
+						)
+					}}
+				/>
+			</Stack>
+		</form>
 	)
 }

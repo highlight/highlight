@@ -59,6 +59,21 @@ export type CreateOrUpdateStripeSubscriptionMutation = {
 	__typename?: 'Mutation'
 } & Pick<Types.Mutation, 'createOrUpdateStripeSubscription'>
 
+export type SaveBillingPlanMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	sessionsLimitCents?: Types.Maybe<Types.Scalars['Int']>
+	sessionsRetention: Types.RetentionPeriod
+	errorsLimitCents?: Types.Maybe<Types.Scalars['Int']>
+	errorsRetention: Types.RetentionPeriod
+	logsLimitCents?: Types.Maybe<Types.Scalars['Int']>
+	logsRetention: Types.RetentionPeriod
+}>
+
+export type SaveBillingPlanMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'saveBillingPlan'
+>
+
 export type UpdateBillingDetailsMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 }>
@@ -70,7 +85,7 @@ export type UpdateBillingDetailsMutation = { __typename?: 'Mutation' } & Pick<
 
 export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
 	secure_id: Types.Scalars['String']
-	state: Types.Scalars['String']
+	state: Types.ErrorState
 	snoozed_until?: Types.Maybe<Types.Scalars['Timestamp']>
 }>
 
@@ -276,6 +291,41 @@ export type EditProjectFilterSettingsMutation = { __typename?: 'Mutation' } & {
 		{ __typename?: 'ProjectFilterSettings' } & Pick<
 			Types.ProjectFilterSettings,
 			'id' | 'filterSessionsWithoutError'
+		>
+	>
+}
+
+export type EditProjectSettingsMutationVariables = Types.Exact<{
+	projectId: Types.Scalars['ID']
+	name?: Types.Maybe<Types.Scalars['String']>
+	billing_email?: Types.Maybe<Types.Scalars['String']>
+	excluded_users?: Types.Maybe<Types.Scalars['StringArray']>
+	error_filters?: Types.Maybe<Types.Scalars['StringArray']>
+	error_json_paths?: Types.Maybe<Types.Scalars['StringArray']>
+	filter_chrome_extension?: Types.Maybe<Types.Scalars['Boolean']>
+	rage_click_window_seconds?: Types.Maybe<Types.Scalars['Int']>
+	rage_click_radius_pixels?: Types.Maybe<Types.Scalars['Int']>
+	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
+	backend_domains?: Types.Maybe<Types.Scalars['StringArray']>
+	filterSessionsWithoutError?: Types.Maybe<Types.Scalars['Boolean']>
+}>
+
+export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
+	editProjectSettings?: Types.Maybe<
+		{ __typename?: 'AllProjectSettings' } & Pick<
+			Types.AllProjectSettings,
+			| 'id'
+			| 'name'
+			| 'billing_email'
+			| 'excluded_users'
+			| 'error_filters'
+			| 'error_json_paths'
+			| 'filter_chrome_extension'
+			| 'rage_click_window_seconds'
+			| 'rage_click_radius_pixels'
+			| 'rage_click_count'
+			| 'backend_domains'
+			| 'filterSessionsWithoutError'
 		>
 	>
 }
@@ -1632,7 +1682,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
 			| 'event_counts'
 			| 'direct_download_url'
 			| 'resources_url'
-			| 'messages_url'
+			| 'timeline_indicators_url'
 			| 'deviceMemory'
 			| 'last_user_interaction_time'
 			| 'length'
@@ -2586,7 +2636,9 @@ export type GetBillingDetailsForProjectQuery = { __typename?: 'Query' } & {
 			| 'membersMeter'
 			| 'errorsMeter'
 			| 'logsMeter'
-			| 'sessionsOutOfQuota'
+			| 'sessionsBillingLimit'
+			| 'errorsBillingLimit'
+			| 'logsBillingLimit'
 		> & {
 				plan: { __typename?: 'Plan' } & Pick<
 					Types.Plan,
@@ -2620,7 +2672,16 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 	billingDetails: { __typename?: 'BillingDetails' } & Pick<
 		Types.BillingDetails,
-		'meter' | 'membersMeter' | 'errorsMeter' | 'logsMeter'
+		| 'meter'
+		| 'membersMeter'
+		| 'errorsMeter'
+		| 'logsMeter'
+		| 'sessionsBillingLimit'
+		| 'errorsBillingLimit'
+		| 'logsBillingLimit'
+		| 'sessionsDailyAverage'
+		| 'errorsDailyAverage'
+		| 'logsDailyAverage'
 	> & {
 			plan: { __typename?: 'Plan' } & Pick<
 				Types.Plan,
@@ -2630,6 +2691,22 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 				| 'membersLimit'
 				| 'errorsLimit'
 				| 'logsLimit'
+			>
+		}
+	subscription_details: { __typename?: 'SubscriptionDetails' } & Pick<
+		Types.SubscriptionDetails,
+		'baseAmount' | 'discountAmount' | 'discountPercent'
+	> & {
+			lastInvoice?: Types.Maybe<
+				{ __typename?: 'Invoice' } & Pick<
+					Types.Invoice,
+					| 'amountDue'
+					| 'amountPaid'
+					| 'attemptCount'
+					| 'date'
+					| 'url'
+					| 'status'
+				>
 			>
 		}
 	workspace?: Types.Maybe<
@@ -2642,6 +2719,10 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
 			| 'allow_meter_overage'
 			| 'eligible_for_trial_extension'
 			| 'retention_period'
+			| 'errors_retention_period'
+			| 'sessions_max_cents'
+			| 'errors_max_cents'
+			| 'logs_max_cents'
 		>
 	>
 }
@@ -2874,15 +2955,6 @@ export type GetRecentErrorsQuery = { __typename?: 'Query' } & {
 			}
 	>
 }
-
-export type GetMessagesQueryVariables = Types.Exact<{
-	session_secure_id: Types.Scalars['String']
-}>
-
-export type GetMessagesQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'messages'
->
 
 export type GetResourcesQueryVariables = Types.Exact<{
 	session_secure_id: Types.Scalars['String']
@@ -4266,6 +4338,31 @@ export type GetProjectFilterSettingsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetProjectSettingsQueryVariables = Types.Exact<{
+	projectId: Types.Scalars['ID']
+}>
+
+export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
+	projectSettings?: Types.Maybe<
+		{ __typename?: 'AllProjectSettings' } & Pick<
+			Types.AllProjectSettings,
+			| 'id'
+			| 'name'
+			| 'verbose_id'
+			| 'billing_email'
+			| 'excluded_users'
+			| 'error_filters'
+			| 'error_json_paths'
+			| 'filter_chrome_extension'
+			| 'rage_click_window_seconds'
+			| 'rage_click_radius_pixels'
+			| 'rage_click_count'
+			| 'backend_domains'
+			| 'filterSessionsWithoutError'
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4319,7 +4416,6 @@ export const namedOperations = {
 		GetErrorObject: 'GetErrorObject' as const,
 		GetErrorInstance: 'GetErrorInstance' as const,
 		GetRecentErrors: 'GetRecentErrors' as const,
-		GetMessages: 'GetMessages' as const,
 		GetResources: 'GetResources' as const,
 		GetFieldSuggestion: 'GetFieldSuggestion' as const,
 		GetEnvironments: 'GetEnvironments' as const,
@@ -4395,6 +4491,7 @@ export const namedOperations = {
 		GetLogsKeyValues: 'GetLogsKeyValues' as const,
 		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
 		GetProjectFilterSettings: 'GetProjectFilterSettings' as const,
+		GetProjectSettings: 'GetProjectSettings' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -4403,6 +4500,7 @@ export const namedOperations = {
 		MuteSessionCommentThread: 'MuteSessionCommentThread' as const,
 		CreateOrUpdateStripeSubscription:
 			'CreateOrUpdateStripeSubscription' as const,
+		SaveBillingPlan: 'SaveBillingPlan' as const,
 		UpdateBillingDetails: 'UpdateBillingDetails' as const,
 		updateErrorGroupState: 'updateErrorGroupState' as const,
 		SendEmailSignup: 'SendEmailSignup' as const,
@@ -4423,6 +4521,7 @@ export const namedOperations = {
 		CreateWorkspace: 'CreateWorkspace' as const,
 		EditProject: 'EditProject' as const,
 		EditProjectFilterSettings: 'EditProjectFilterSettings' as const,
+		EditProjectSettings: 'EditProjectSettings' as const,
 		DeleteProject: 'DeleteProject' as const,
 		EditWorkspace: 'EditWorkspace' as const,
 		DeleteSegment: 'DeleteSegment' as const,

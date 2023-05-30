@@ -52,7 +52,6 @@ export const SessionComment = ({
 		comment.__typename === 'SessionComment'
 	const commentTime = formatTimeAsHMS(comment.timestamp || 0)
 	const isClickable = !isReply && !showReplies
-	console.log('::: isSelected', isSelected, deepLinkedCommentId, comment)
 
 	return (
 		<>

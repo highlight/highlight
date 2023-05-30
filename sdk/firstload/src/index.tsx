@@ -119,7 +119,6 @@ const H: HighlightPublicInterface = {
 				environment: options?.environment || 'production',
 				appVersion: options?.version,
 				sessionShortcut: options?.sessionShortcut,
-				feedbackWidget: options?.feedbackWidget,
 				sessionSecureID: sessionSecureID,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
@@ -182,15 +181,6 @@ const H: HighlightPublicInterface = {
 					user_email: userEmail,
 					user_name: userName,
 				}),
-			)
-		} catch (e) {
-			HighlightWarning('error', e)
-		}
-	},
-	toggleSessionFeedbackModal: () => {
-		try {
-			H.onHighlightReady(() =>
-				highlight_obj.toggleFeedbackWidgetVisibility(),
 			)
 		} catch (e) {
 			HighlightWarning('error', e)
@@ -261,7 +251,7 @@ const H: HighlightPublicInterface = {
 			if (highlight_obj?.state === 'Recording') {
 				if (!options?.silent) {
 					console.warn(
-						'You cannot called `start()` again. The session is already being recorded.',
+						'Highlight is already recording. Please `H.stop()` the current session before starting a new one.',
 					)
 				}
 				return
@@ -270,7 +260,7 @@ const H: HighlightPublicInterface = {
 				var interval = setInterval(function () {
 					if (highlight_obj) {
 						clearInterval(interval)
-						highlight_obj.initialize()
+						highlight_obj.initialize(options)
 					}
 				}, 200)
 			}

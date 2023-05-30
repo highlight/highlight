@@ -1,4 +1,3 @@
-import Switch from '@components/Switch/Switch'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -9,8 +8,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
-import { Box, Heading, Stack, Text } from '@highlight-run/ui'
-import { ApplicationContextProvider } from '@routers/ProjectRouter/context/ApplicationContext'
+import { Heading, Stack } from '@highlight-run/ui'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
 import { useDialogState } from 'ariakit/dialog'
@@ -18,42 +16,10 @@ import { H } from 'highlight.run'
 import { useEffect } from 'react'
 import { StringParam, useQueryParams } from 'use-query-params'
 
+import BorderBox from '@/components/BorderBox/BorderBox'
 import { Header } from '@/components/Header/Header'
-
-const OptInRow = (
-	label: string,
-	info: string | undefined,
-	checked: boolean,
-	setState: (n: boolean) => void,
-	disabled: boolean,
-) => {
-	return (
-		<Box
-			border="dividerWeak"
-			borderRadius="8"
-			p="8"
-			pr="12"
-			display="flex"
-			justifyContent="space-between"
-			alignItems="center"
-			key={label}
-		>
-			<Stack gap="8" direction="column" my="6">
-				<Text weight="bold" size="small" color="strong">
-					{label}
-				</Text>
-				{info && <Text color="moderate">{info}</Text>}
-			</Stack>
-			<Switch
-				trackingId={`switch-${label}`}
-				checked={checked}
-				onChange={setState}
-				disabled={disabled}
-				size="default"
-			/>
-		</Box>
-	)
-}
+import LeadAlignLayout from '@/components/layout/LeadAlignLayout'
+import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
 
 type Props = {
 	token?: string | null
@@ -140,34 +106,36 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 					Notifications
 				</Heading>
 				<Stack gap="12" direction="column">
-					{categories.map((c) =>
-						OptInRow(
-							c.label,
-							c.info,
-							!optOuts.has(c.type),
-							(isOptIn: boolean) => {
-								updateEmailOptOut({
-									variables: {
-										token,
-										admin_id,
-										category: c.type,
-										is_opt_out: !isOptIn,
-									},
-								})
-									.then(() => {
-										message.success(
-											`Opted ${
-												isOptIn ? 'in to' : 'out of'
-											} ${c.type} emails.`,
-										)
+					{categories.map((c) => (
+						<BorderBox key={c.label}>
+							{ToggleRow(
+								c.label,
+								c.info,
+								!optOuts.has(c.type),
+								(isOptIn: boolean) => {
+									updateEmailOptOut({
+										variables: {
+											token,
+											admin_id,
+											category: c.type,
+											is_opt_out: !isOptIn,
+										},
 									})
-									.catch((reason: any) => {
-										message.error(String(reason))
-									})
-							},
-							optOutAll,
-						),
-					)}
+										.then(() => {
+											message.success(
+												`Opted ${
+													isOptIn ? 'in to' : 'out of'
+												} ${c.type} emails.`,
+											)
+										})
+										.catch((reason: any) => {
+											message.error(String(reason))
+										})
+								},
+								optOutAll,
+							)}
+						</BorderBox>
+					))}
 				</Stack>
 			</Stack>
 		)
@@ -183,31 +151,20 @@ export const EmailOptOutPage = () => {
 	const commandBarDialog = useDialogState()
 
 	return (
-		<ApplicationContextProvider
+		<GlobalContextProvider
 			value={{
-				currentProject: undefined,
-				allProjects: [],
-				currentWorkspace: undefined,
-				workspaces: [],
+				showKeyboardShortcutsGuide: false,
+				toggleShowKeyboardShortcutsGuide: () => {},
+				showBanner: false,
+				toggleShowBanner: () => {},
+				commandBarDialog,
 			}}
 		>
-			<GlobalContextProvider
-				value={{
-					showKeyboardShortcutsGuide: false,
-					toggleShowKeyboardShortcutsGuide: () => {},
-					showBanner: false,
-					toggleShowBanner: () => {},
-					commandBarDialog,
-				}}
-			>
-				<div>
-					<Header />
-					<div>
-						<h1>Email Settings</h1>
-						<EmailOptOutPanel token={token} admin_id={admin_id} />
-					</div>
-				</div>
-			</GlobalContextProvider>
-		</ApplicationContextProvider>
+			<Header />
+			<LeadAlignLayout>
+				<h1>Email Settings</h1>
+				<EmailOptOutPanel token={token} admin_id={admin_id} />
+			</LeadAlignLayout>
+		</GlobalContextProvider>
 	)
 }

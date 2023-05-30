@@ -1,6 +1,6 @@
 {
 	"name": "highlight.run",
-	"version": "6.4.2",
+	"version": "7.0.0",
 	"description": "Open source, fullstack monitoring. Capture frontend errors, record server side logs, and visualize what broke with session replay.",
 	"keywords": [
 		"highlight",
@@ -25,25 +25,23 @@
 		}
 	},
 	"scripts": {
-		"build": "node scripts/version.mjs && yarn typegen && vite build",
-		"dev": "node scripts/version.mjs && vite dev",
-		"reflame": "node scripts/version.mjs",
-		"reflame-build": "node scripts/version.mjs",
+		"build": "yarn typegen && vite build",
+		"dev": "vite dev",
 		"enforce-size": "size-limit",
 		"test": "vitest --run",
 		"typegen": "tsc && node scripts/replace-client-imports.mjs"
 	},
 	"type": "module",
-	"main": "./dist/index.js",
-	"unpkg": "./dist/index.umd.cjs",
-	"jsdelivr": "./dist/index.umd.cjs",
+	"main": "./dist/index.es.js",
+	"unpkg": "./dist/index.umd.js",
+	"jsdelivr": "./dist/index.umd.js",
 	"types": "./dist/firstload/src/index.d.ts",
 	"exports": {
 		"types": "./dist/firstload/src/index.d.ts",
-		"import": "./dist/index.js",
-		"require": "./dist/index.cjs",
-		"node": "./dist/index.cjs",
-		"default": "./dist/index.js"
+		"import": "./dist/index.es.js",
+		"require": "./dist/index.cjs.js",
+		"node": "./dist/index.cjs.js",
+		"default": "./dist/index.es.js"
 	},
 	"files": [
 		"dist"
@@ -61,7 +59,7 @@
 	"size-limit": [
 		{
 			"path": "dist/**.js",
-			"limit": "32 kB",
+			"limit": "64 kB",
 			"brotli": true
 		}
 	]

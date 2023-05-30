@@ -252,20 +252,20 @@ export const Buttons = () => {
 					<button
 						className={commonStyles.submitButton}
 						onClick={() => {
+							H.start({ forceNew: true })
+						}}
+					>
+						H.Start force new session
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={() => {
 							H.track(
 								'therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues',
 							)
 						}}
 					>
 						Track
-					</button>
-					<button
-						className={commonStyles.submitButton}
-						onClick={() => {
-							H.toggleSessionFeedbackModal()
-						}}
-					>
-						toggleSessionFeedbackModal
 					</button>
 					<SampleBuggyButton />
 					<button
@@ -546,6 +546,22 @@ export const Buttons = () => {
 							</Box>
 						))}
 					</Box>
+				</Box>
+
+				<Box width="full" style={{ height: 200 }}>
+					<div
+						style={{
+							backgroundImage:
+								'url("https://www.highlight.io/images/quickstart/react.svg")',
+							height: '24%',
+						}}
+					></div>
+					<div
+						style={{
+							backgroundImage:
+								'url("https://www.highlight.io/images/quickstart/react.svg")',
+						}}
+					></div>
 				</Box>
 			</div>
 		</div>

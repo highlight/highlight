@@ -38,8 +38,9 @@
 		"dev:frontend": "doppler run -- yarn turbo run dev --filter frontend... --filter=!@highlight-run/rrweb... --filter=!@highlight-run/ui...",
 		"dev:highlight.io": "doppler run -- yarn turbo run dev --filter highlight.io",
 		"dev:ui": "yarn turbo run dev --filter @highlight-run/ui...",
-		"reflame": "yarn turbo run reflame --filter frontend... --filter=!@highlight-run/rrweb...",
-		"reflame-build": "yarn turbo run reflame-build --filter frontend... --filter=!@highlight-run/rrweb...",
+		"reflame": "cd frontend && yarn reflame",
+		"reflame-build": "cd frontend && yarn reflame-build",
+		"reflame-check": "./scripts/reflame-check.sh",
 		"dev:redis": "redis-server",
 		"docker:frontend": "yarn turbo run dev --filter frontend --filter highlight.run --filter @highlight-run/client",
 		"e2e:nestjs": "yarn turbo run dev --filter nestjs",
@@ -64,7 +65,6 @@
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},
 	"devDependencies": {
-		"@vanilla-extract/esbuild-plugin": "^2.2.1",
 		"chalk": "^5.0.1",
 		"chokidar": "^3.5.3",
 		"cypress": "^12.9.0",

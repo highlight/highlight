@@ -1,0 +1,1 @@
+var m={memberCard:"_memberCard_vnr9e_1",memberCardWrapper:"_memberCardWrapper_vnr9e_8",email:"_email_vnr9e_14",role:"_role_vnr9e_22",removeTeamMemberButton:"_removeTeamMemberButton_vnr9e_28"};export{m as default};

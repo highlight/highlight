@@ -178,9 +178,6 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 	case model.PayloadTypeEvents:
 		compressedWriter = manager.EventsCompressed
 		unmarshalled = &payload.EventsUnmarshalled{}
-	case model.PayloadTypeMessages:
-		compressedWriter = manager.MessagesCompressed
-		unmarshalled = &payload.MessagesUnmarshalled{}
 	case model.PayloadTypeResources:
 		compressedWriter = manager.ResourcesCompressed
 		unmarshalled = &payload.ResourcesUnmarshalled{}
@@ -271,30 +268,6 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		}
 		if err := manager.ResourcesCompressed.Close(); err != nil {
 			return errors.Wrap(err, "error closing compressed resources writer")
-		}
-	}
-
-	// Fetch/write messages.
-	if s.AvoidPostgresStorage {
-		if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeMessages, accumulator); err != nil {
-			return errors.Wrap(err, "error fetching messages from Redis")
-		}
-	} else {
-		messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
-		if err != nil {
-			return errors.Wrap(err, "error retrieving messages objects")
-		}
-		for messageRows.Next() {
-			messageObject := model.MessagesObject{}
-			if err := w.Resolver.DB.ScanRows(messageRows, &messageObject); err != nil {
-				return errors.Wrap(err, "error scanning message row")
-			}
-			if err := manager.MessagesCompressed.WriteObject(&messageObject, &payload.MessagesUnmarshalled{}); err != nil {
-				return errors.Wrap(err, "error writing compressed message row")
-			}
-		}
-		if err := manager.MessagesCompressed.Close(); err != nil {
-			return errors.Wrap(err, "error closing compressed messages writer")
 		}
 	}
 
@@ -393,14 +366,6 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionSecureID, task.PushMetrics.Metrics); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
-	case kafkaqueue.MarkBackendSetup:
-		if task.MarkBackendSetup == nil {
-			break
-		}
-		if err := w.PublicResolver.MarkBackendSetupImpl(ctx, task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SessionSecureID, task.MarkBackendSetup.ProjectID, task.MarkBackendSetup.Type); err != nil {
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
@@ -544,6 +509,12 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 		}
 		deleteSpan.Finish()
 	}
+}
+
+// Autoresolves error groups that have not had any recent instances
+func (w *Worker) AutoResolveStaleErrors(ctx context.Context) {
+	autoResolver := NewAutoResolver(w.PublicResolver.Store, w.PublicResolver.DB)
+	autoResolver.AutoResolveStaleErrors(ctx)
 }
 
 func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason backend.SessionExcludedReason) error {
@@ -1418,6 +1389,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 		return w.DeleteCompletedSessions
 	case "public-worker":
 		return w.PublicWorker
+	case "auto-resolve-stale-errors":
+		return w.AutoResolveStaleErrors
 	default:
 		log.WithContext(ctx).Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil

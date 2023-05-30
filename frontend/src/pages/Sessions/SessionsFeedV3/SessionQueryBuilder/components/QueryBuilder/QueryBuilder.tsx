@@ -22,8 +22,8 @@ import { Exact, Field, SearchParamsInput, Segment } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
+	getDefaultPresets,
 	IconSolidCheveronDown,
-	IconSolidClock,
 	IconSolidCloudUpload,
 	IconSolidDocumentDuplicate,
 	IconSolidLogout,
@@ -36,6 +36,7 @@ import {
 	IconSolidTrash,
 	IconSolidX,
 	Menu,
+	PreviousDateRangePicker,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
@@ -903,68 +904,6 @@ const QueryRule = ({
 	)
 }
 
-export const TimeRangeFilter = ({
-	rule,
-	onChangeValue,
-	onReset,
-}: {
-	rule: RuleProps
-	onChangeValue: OnChange
-	onReset?: () => void
-}) => {
-	const { val: value } = rule
-	const [visible, setVisible] = useState(!value)
-	const onSetVisible = (val: boolean) => {
-		setVisible(val)
-	}
-
-	return (
-		<Box display="flex" gap="8" alignItems="center">
-			<Popover
-				showArrow={false}
-				trigger="click"
-				content={
-					<PopoutContent
-						value={value}
-						setVisible={onSetVisible}
-						type="date_range"
-						onChange={onChangeValue}
-						loadOptions={() => Promise.resolve([])}
-					/>
-				}
-				placement="bottomLeft"
-				contentContainerClassName={styles.contentContainer}
-				popoverClassName={styles.popoverContainer}
-				onVisibleChange={(isVisible) => {
-					setVisible(isVisible)
-				}}
-				visible={visible}
-				destroyTooltipOnHide
-			>
-				<Button
-					kind="secondary"
-					size="small"
-					emphasis="high"
-					iconLeft={<IconSolidClock size={14} />}
-					iconRight={<IconSolidCheveronDown size={14} />}
-					trackingId="searchTimeRangeFilterTooltipToggle"
-				/>
-			</Popover>
-			<Tag
-				kind="secondary"
-				emphasis="low"
-				shape="basic"
-				iconRight={!!onReset ? <IconSolidX size={12} /> : undefined}
-				onIconRightClick={!!onReset ? onReset : undefined}
-				onClick={() => setVisible((visible) => !visible)}
-				lines="1"
-			>
-				{value && value.options.length === 1 && value.options[0].label}
-			</Tag>
-		</Box>
-	)
-}
-
 const hasArguments = (op: Operator): boolean =>
 	!['exists', 'not_exists'].includes(op)
 
@@ -1307,6 +1246,13 @@ enum QueryBuilderMode {
 	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
 }
 
+const now = moment()
+const defaultMinDate = now.clone().subtract(90, 'days').toDate()
+
+const presetOptions = getDefaultPresets(now)
+
+const defaultPreset = presetOptions[5]
+
 function QueryBuilder(props: QueryBuilderProps) {
 	const {
 		searchContext,
@@ -1620,10 +1566,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 	})
 
 	const [currentRule, setCurrentRule] = useState<RuleProps | undefined>()
+	const [dateRange, setDateRange] = useState<Date[]>([
+		defaultPreset.startDate, // Start at 30days
+		new Date(now.toISOString()),
+	])
 	const defaultTimeRangeRule: RuleProps = useMemo(() => {
 		const period = {
-			label: 'Last 30 days',
-			value: '30 days',
+			label: defaultPreset.label, // Start at 30 days
+			value: `${defaultPreset.startDate.toISOString()}_${now.toISOString()}`, // Start at 30 days
 		}
 
 		return {
@@ -1763,16 +1713,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 			setRules(rules.filter((rule) => rule !== targetRule)),
 		[rules],
 	)
-	const updateRule = useCallback(
-		(targetRule: RuleProps, newProps: any) => {
-			setRules(
-				rules.map((rule) =>
-					rule !== targetRule ? rule : { ...rule, ...newProps },
-				),
-			)
-		},
-		[rules],
-	)
+	const updateRule = (targetRule: RuleProps, newProps: any) => {
+		setRulesImpl((currentRules) =>
+			currentRules.map((rule) =>
+				rule !== targetRule ? rule : { ...rule, ...newProps },
+			),
+		)
+	}
 
 	const timeRangeRule = useMemo<RuleProps>(() => {
 		const timeRange = rules.find(
@@ -2028,6 +1975,18 @@ function QueryBuilder(props: QueryBuilderProps) {
 			searchParams.query !== qbState
 		) {
 			const newState = JSON.parse(searchParams.query)
+			const deserializedRules = deserializeRules(newState.rules)
+
+			const defaultDateRange = deserializedRules?.find(
+				(rule) =>
+					rule.op === 'between_date' &&
+					rule.field?.value === 'custom_created_at',
+			)?.val?.options?.[0]?.value
+
+			if (defaultDateRange) {
+				const [from, to] = defaultDateRange.split('_')
+				setDateRange([new Date(from), new Date(to)])
+			}
 			toggleIsAnd(newState.isAnd)
 			setRules(deserializeRules(newState.rules))
 		}
@@ -2329,19 +2288,27 @@ function QueryBuilder(props: QueryBuilderProps) {
 				borderBottom="secondary"
 				cssClass={styles.controlBar}
 			>
-				<TimeRangeFilter
-					rule={timeRangeRule}
-					onChangeValue={(val) => updateRule(timeRangeRule, { val })}
-					onReset={
-						!readonly &&
-						timeRangeRule.val?.options[0].value !==
-							defaultTimeRangeRule.val?.options[0].value
-							? () =>
-									updateRule(timeRangeRule, {
-										val: defaultTimeRangeRule.val,
-									})
-							: undefined
-					}
+				<PreviousDateRangePicker
+					presets={presetOptions}
+					selectedDates={dateRange}
+					minDate={defaultMinDate}
+					onDatesChange={(dates: Date[]) => {
+						setDateRange(dates)
+						if (!dates[0] || !dates[1]) {
+							return
+						}
+						updateRule(timeRangeRule, {
+							val: {
+								kind: 'multi',
+								options: [
+									{
+										label: 'Date Range',
+										value: `${dates[0].toISOString()}_${dates[1].toISOString()}`,
+									},
+								],
+							} as MultiselectOption,
+						})
+					}}
 				/>
 				<Box marginLeft="auto" display="flex" gap="4">
 					<DropdownMenu
@@ -2383,7 +2350,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		)
 	}, [
 		backendSearchQuery?.searchQuery,
-		defaultTimeRangeRule.val,
 		isAnd,
 		readonly,
 		rules,
@@ -2392,8 +2358,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 		setShowLeftPanel,
 		syncButtonDisabled,
 		timeRangeRule,
-		updateRule,
 		updateSerializedQuery,
+		dateRange,
 	])
 
 	const alteredSegmentSettings = useMemo(() => {

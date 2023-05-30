@@ -35,6 +35,7 @@ import (
 	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stepfunctions"
+	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/vercel"
 
 	"github.com/pkg/errors"
@@ -128,6 +129,7 @@ type Resolver struct {
 	OAuthServer            *oauth.Server
 	IntegrationsClient     *integrations.Client
 	ClickhouseClient       *clickhouse.Client
+	Store                  *store.Store
 }
 
 func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {
@@ -1078,7 +1080,7 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 		"click",
 		slack.NewTextBlockObject(
 			slack.PlainTextType,
-			"View Thread",
+			"View",
 			false,
 			false,
 		),
@@ -2614,7 +2616,7 @@ func (r *Resolver) GetGitHubRepos(
 	}
 
 	if accessToken == nil {
-		return nil, errors.New("No GitHub integration access token found.")
+		return nil, nil
 	}
 	var repos []*github2.Repository
 	if c, err := github.NewClient(ctx, *accessToken); err == nil {
@@ -2646,7 +2648,7 @@ func (r *Resolver) GetGitHubIssueLabels(
 	}
 
 	if accessToken == nil {
-		return nil, errors.New("No GitHub integration access token found.")
+		return nil, nil
 	}
 	var labels []*github2.Label
 	if c, err := github.NewClient(ctx, *accessToken); err == nil {

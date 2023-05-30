@@ -104,6 +104,25 @@ export enum AdminRole {
 	Member = 'MEMBER',
 }
 
+export type AllProjectSettings = {
+	__typename?: 'AllProjectSettings'
+	backend_domains?: Maybe<Scalars['StringArray']>
+	billing_email?: Maybe<Scalars['String']>
+	error_filters?: Maybe<Scalars['StringArray']>
+	error_json_paths?: Maybe<Scalars['StringArray']>
+	excluded_users?: Maybe<Scalars['StringArray']>
+	filterSessionsWithoutError: Scalars['Boolean']
+	filter_chrome_extension?: Maybe<Scalars['Boolean']>
+	id: Scalars['ID']
+	name: Scalars['String']
+	rage_click_count?: Maybe<Scalars['Int']>
+	rage_click_radius_pixels?: Maybe<Scalars['Int']>
+	rage_click_window_seconds?: Maybe<Scalars['Int']>
+	secret?: Maybe<Scalars['String']>
+	verbose_id: Scalars['String']
+	workspace_id: Scalars['ID']
+}
+
 export type AverageSessionLength = {
 	__typename?: 'AverageSessionLength'
 	length: Scalars['Float']
@@ -111,12 +130,17 @@ export type AverageSessionLength = {
 
 export type BillingDetails = {
 	__typename?: 'BillingDetails'
+	errorsBillingLimit?: Maybe<Scalars['Int64']>
+	errorsDailyAverage: Scalars['Float']
 	errorsMeter: Scalars['Int64']
+	logsBillingLimit?: Maybe<Scalars['Int64']>
+	logsDailyAverage: Scalars['Float']
 	logsMeter: Scalars['Int64']
 	membersMeter: Scalars['Int64']
 	meter: Scalars['Int64']
 	plan: Plan
-	sessionsOutOfQuota: Scalars['Int64']
+	sessionsBillingLimit?: Maybe<Scalars['Int64']>
+	sessionsDailyAverage: Scalars['Float']
 }
 
 export type CategoryHistogramBucket = {
@@ -895,6 +919,7 @@ export type Mutation = {
 	editErrorSegment?: Maybe<Scalars['Boolean']>
 	editProject?: Maybe<Project>
 	editProjectFilterSettings?: Maybe<ProjectFilterSettings>
+	editProjectSettings?: Maybe<AllProjectSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
 	editWorkspace?: Maybe<Workspace>
 	emailSignup: Scalars['String']
@@ -911,6 +936,7 @@ export type Mutation = {
 	replyToErrorComment?: Maybe<CommentReply>
 	replyToSessionComment?: Maybe<CommentReply>
 	requestAccess?: Maybe<Scalars['Boolean']>
+	saveBillingPlan?: Maybe<Scalars['Boolean']>
 	sendAdminWorkspaceInvite?: Maybe<Scalars['String']>
 	submitRegistrationForm?: Maybe<Scalars['Boolean']>
 	syncSlackIntegration: SlackSyncResponse
@@ -1174,6 +1200,21 @@ export type MutationEditProjectFilterSettingsArgs = {
 	projectId: Scalars['ID']
 }
 
+export type MutationEditProjectSettingsArgs = {
+	backend_domains?: InputMaybe<Scalars['StringArray']>
+	billing_email?: InputMaybe<Scalars['String']>
+	error_filters?: InputMaybe<Scalars['StringArray']>
+	error_json_paths?: InputMaybe<Scalars['StringArray']>
+	excluded_users?: InputMaybe<Scalars['StringArray']>
+	filterSessionsWithoutError?: InputMaybe<Scalars['Boolean']>
+	filter_chrome_extension?: InputMaybe<Scalars['Boolean']>
+	name?: InputMaybe<Scalars['String']>
+	projectId: Scalars['ID']
+	rage_click_count?: InputMaybe<Scalars['Int']>
+	rage_click_radius_pixels?: InputMaybe<Scalars['Int']>
+	rage_click_window_seconds?: InputMaybe<Scalars['Int']>
+}
+
 export type MutationEditSegmentArgs = {
 	id: Scalars['ID']
 	name: Scalars['String']
@@ -1260,6 +1301,16 @@ export type MutationRequestAccessArgs = {
 	project_id: Scalars['ID']
 }
 
+export type MutationSaveBillingPlanArgs = {
+	errorsLimitCents?: InputMaybe<Scalars['Int']>
+	errorsRetention: RetentionPeriod
+	logsLimitCents?: InputMaybe<Scalars['Int']>
+	logsRetention: RetentionPeriod
+	sessionsLimitCents?: InputMaybe<Scalars['Int']>
+	sessionsRetention: RetentionPeriod
+	workspace_id: Scalars['ID']
+}
+
 export type MutationSendAdminWorkspaceInviteArgs = {
 	base_url: Scalars['String']
 	email: Scalars['String']
@@ -1344,7 +1395,7 @@ export type MutationUpdateErrorGroupIsPublicArgs = {
 export type MutationUpdateErrorGroupStateArgs = {
 	secure_id: Scalars['String']
 	snoozed_until?: InputMaybe<Scalars['Timestamp']>
-	state: Scalars['String']
+	state: ErrorState
 }
 
 export type MutationUpdateIntegrationProjectMappingsArgs = {
@@ -1486,6 +1537,7 @@ export enum PlanType {
 	Free = 'Free',
 	Lite = 'Lite',
 	Startup = 'Startup',
+	UsageBased = 'UsageBased',
 }
 
 export enum ProductType {
@@ -1595,7 +1647,6 @@ export type Query = {
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<LogKey>
 	logs_total_count: Scalars['UInt64']
-	messages?: Maybe<Array<Maybe<Scalars['Any']>>>
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>
@@ -1609,6 +1660,7 @@ export type Query = {
 	project?: Maybe<Project>
 	projectFilterSettings?: Maybe<ProjectFilterSettings>
 	projectHasViewedASession?: Maybe<Session>
+	projectSettings?: Maybe<AllProjectSettings>
 	projectSuggestion: Array<Maybe<Project>>
 	projects?: Maybe<Array<Maybe<Project>>>
 	property_suggestion?: Maybe<Array<Maybe<Field>>>
@@ -1986,10 +2038,6 @@ export type QueryLogs_Total_CountArgs = {
 	project_id: Scalars['ID']
 }
 
-export type QueryMessagesArgs = {
-	session_secure_id: Scalars['String']
-}
-
 export type QueryMetric_MonitorsArgs = {
 	metric_name?: InputMaybe<Scalars['String']>
 	project_id: Scalars['ID']
@@ -2050,6 +2098,10 @@ export type QueryProjectFilterSettingsArgs = {
 
 export type QueryProjectHasViewedASessionArgs = {
 	project_id: Scalars['ID']
+}
+
+export type QueryProjectSettingsArgs = {
+	projectId: Scalars['ID']
 }
 
 export type QueryProjectSuggestionArgs = {
@@ -2267,6 +2319,7 @@ export enum ReservedLogKey {
 
 export enum RetentionPeriod {
 	SixMonths = 'SixMonths',
+	ThirtyDays = 'ThirtyDays',
 	ThreeMonths = 'ThreeMonths',
 	TwelveMonths = 'TwelveMonths',
 	TwoYears = 'TwoYears',
@@ -2388,7 +2441,6 @@ export type Session = {
 	language: Scalars['String']
 	last_user_interaction_time: Scalars['Timestamp']
 	length?: Maybe<Scalars['Int']>
-	messages_url?: Maybe<Scalars['String']>
 	object_storage_enabled?: Maybe<Scalars['Boolean']>
 	os_name: Scalars['String']
 	os_version: Scalars['String']
@@ -2400,6 +2452,7 @@ export type Session = {
 	secure_id: Scalars['String']
 	starred?: Maybe<Scalars['Boolean']>
 	state: Scalars['String']
+	timeline_indicators_url?: Maybe<Scalars['String']>
 	user_object?: Maybe<Scalars['Any']>
 	user_properties?: Maybe<Scalars['String']>
 	viewed?: Maybe<Scalars['Boolean']>
@@ -2706,13 +2759,17 @@ export type Workspace = {
 	billing_period_end?: Maybe<Scalars['Timestamp']>
 	clearbit_enabled: Scalars['Boolean']
 	eligible_for_trial_extension: Scalars['Boolean']
+	errors_max_cents?: Maybe<Scalars['Int']>
+	errors_retention_period?: Maybe<RetentionPeriod>
 	id: Scalars['ID']
+	logs_max_cents?: Maybe<Scalars['Int']>
 	name: Scalars['String']
 	next_invoice_date?: Maybe<Scalars['Timestamp']>
 	plan_tier: Scalars['String']
 	projects: Array<Maybe<Project>>
 	retention_period?: Maybe<RetentionPeriod>
 	secret?: Maybe<Scalars['String']>
+	sessions_max_cents?: Maybe<Scalars['Int']>
 	slack_channels?: Maybe<Scalars['String']>
 	slack_webhook_channel?: Maybe<Scalars['String']>
 	trial_end_date?: Maybe<Scalars['Timestamp']>

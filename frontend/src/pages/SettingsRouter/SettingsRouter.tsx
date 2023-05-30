@@ -1,6 +1,7 @@
 import { Box, Stack, Text } from '@highlight-run/ui'
 import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings'
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
@@ -21,21 +22,21 @@ import { ProjectColorLabel } from '@/pages/ProjectSettings/ProjectColorLabel/Pro
 import ProjectSettings from '@/pages/ProjectSettings/ProjectSettings'
 import Auth from '@/pages/UserSettings/Auth/Auth'
 import { PlayerForm } from '@/pages/UserSettings/PlayerForm/PlayerForm'
-import { useApplicationContext } from '@/routers/ProjectRouter/context/ApplicationContext'
 import { auth } from '@/util/auth'
 
 import * as styles from './SettingsRouter.css'
 
-const BillingPage = React.lazy(() => import('../Billing/Billing'))
+const BillingPageV2 = React.lazy(() => import('../Billing/BillingPageV2'))
+const UpdatePlanPage = React.lazy(() => import('../Billing/UpdatePlanPage'))
 
 const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 	switch (tab) {
 		case 'team':
-			return 'User management'
+			return 'Members'
 		case 'settings':
 			return 'Properties'
 		case 'current-plan':
-			return 'Current plan'
+			return 'Billing plans'
 		case 'upgrade-plan':
 			return 'Upgrade plan'
 		default:
@@ -69,9 +70,22 @@ export const SettingsRouter = () => {
 		sectionId ||
 		''
 
+	const billingContent = (
+		<Suspense fallback={null}>
+			<BillingPageV2 />
+		</Suspense>
+	)
+
+	const updatePlanContent = (
+		<Suspense fallback={null}>
+			<UpdatePlanPage />
+		</Suspense>
+	)
+
 	const workspaceSettingTabs = [
 		{
 			key: 'team',
+			pathParam: '/:member_tab_key?',
 			title: getTitle('team'),
 			panelContent: <WorkspaceTeam />,
 		},
@@ -83,20 +97,7 @@ export const SettingsRouter = () => {
 		{
 			key: 'current-plan',
 			title: getTitle('current-plan'),
-			panelContent: (
-				<Suspense fallback={null}>
-					<BillingPage />
-				</Suspense>
-			),
-		},
-		{
-			key: 'upgrade-plan',
-			title: getTitle('upgrade-plan'),
-			panelContent: (
-				<Suspense fallback={null}>
-					<BillingPage />
-				</Suspense>
-			),
+			panelContent: billingContent,
 		},
 	]
 
@@ -118,7 +119,7 @@ export const SettingsRouter = () => {
 			},
 			{
 				key: 'player-settings',
-				title: 'Player settings',
+				title: 'App settings',
 				panelContent: <PlayerForm />,
 			},
 		],
@@ -257,13 +258,30 @@ export const SettingsRouter = () => {
 					>
 						<Box overflowY="scroll" height="full">
 							<Routes>
-								{workspaceSettingTabs.map((tab) => (
-									<Route
-										key={tab.key}
-										path={`${tab.key}`}
-										element={tab.panelContent}
-									/>
-								))}
+								{workspaceSettingTabs.map((tab) => {
+									const path = tab.pathParam
+										? `${tab.key}${tab.pathParam}`
+										: tab.key
+									return (
+										<Route
+											key={tab.key}
+											path={path}
+											element={tab.panelContent}
+										/>
+									)
+								})}
+								<Route
+									path="current-plan/success"
+									element={billingContent}
+								/>
+								<Route
+									path="current-plan/update-plan"
+									element={updatePlanContent}
+								/>
+								<Route
+									path="upgrade-plan"
+									element={billingContent}
+								/>
 								{accountSettingTabs.map((tab) => (
 									<Route
 										key={tab.key}

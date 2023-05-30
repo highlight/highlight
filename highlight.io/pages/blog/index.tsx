@@ -6,7 +6,6 @@ import Navbar from '../../components/common/Navbar/Navbar'
 import { Typography } from '../../components/common/Typography/Typography'
 
 import classNames from 'classnames'
-import { gql } from 'graphql-request'
 import { matchSorter } from 'match-sorter'
 import { GetStaticProps } from 'next'
 import Image from 'next/image'
@@ -19,70 +18,10 @@ import styles from '../../components/Blog/Blog.module.scss'
 import { getTagUrl, PostTag, TagTab } from '../../components/Blog/Tag'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
-import { GraphQLRequest } from '../../utils/graphql'
 import { removeOrderingPrefix } from '../api/docs/github'
 import { readMarkdown } from '../docs/[[...doc]]'
 
 export const BLOG_CONTENT_PATH = path.join(process.cwd(), '../blog-content')
-
-export async function loadPostsFromHygraph(tag?: string) {
-	const QUERY = gql`
-      query GetPosts() {
-        posts(
-          orderBy: postedAt_DESC
-          where: { unlisted: false }
-          ) {
-            slug
-            title
-            publishedAt
-            postedAt
-            readingTime
-            featured
-            image {
-              url
-            }
-            author {
-              firstName
-              lastName
-              title
-              twitterLink
-              linkedInLink
-              githubLink
-              personalWebsiteLink
-              profilePhoto {
-                url
-              }
-            }
-            tags_relations {
-              name
-              slug
-            }
-          }
-      }
-  `
-
-	const { posts } = await GraphQLRequest<{ posts: Post[] }>(QUERY, {
-		tag: tag ? [tag] : [],
-	})
-
-	return posts.filter((p) =>
-		tag ? p.tags_relations.some((t) => t.slug === tag) : true,
-	) as Post[]
-}
-
-export async function loadTagsFromHygraph() {
-	const tagsQuery = gql`
-    query GetTags() {
-      tags {
-        name
-        description
-        slug
-      }
-    }
-  `
-
-	return (await GraphQLRequest<{ tags: Tag[] }>(tagsQuery)).tags
-}
 
 export async function loadTagsFromGithub(posts: Post[]) {
 	const tags: Tag[] = Array.from(
@@ -100,7 +39,7 @@ export async function loadPostsFromGithub() {
 			BLOG_CONTENT_PATH + paths[index].rel_path,
 		)
 		const posty = markdownToPost(data.content, data.data)
-		posty.slug = paths[index].rel_path.split('/').at(-1).replace('.md', '')
+		posty.slug = paths[index].rel_path.split('/').at(-1)?.replace('.md', '')
 		posts.push(posty)
 	}
 
@@ -115,14 +54,16 @@ export function markdownToPost(
 ): Post {
 	let tags: Tag[] = []
 
-	data.tags.split(',').forEach((tag: string) => {
-		const tempTag: Tag = {
-			name: tag.trim(),
-			slug: tag.toLowerCase().trim().replaceAll(' ', '-'),
-		}
+	if (data.tags) {
+		data.tags.split(',').forEach((tag: string) => {
+			const tempTag: Tag = {
+				name: tag.trim(),
+				slug: tag.toLowerCase().trim().replaceAll(' ', '-'),
+			}
 
-		tags.push(tempTag)
-	})
+			tags.push(tempTag)
+		})
+	}
 
 	let post: Post = {
 		title: data.title,
@@ -142,6 +83,7 @@ export function markdownToPost(
 		image: {
 			url: data.image || null,
 		},
+		youtubeVideoId: data.youtubeVideoId || null,
 		author: {
 			firstName: data.authorFirstName,
 			lastName: data.authorLastName,
@@ -228,14 +170,10 @@ export const getBlogPaths = async (
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-	const hygraphPosts = await loadPostsFromHygraph()
-	const hygraphTags = await loadTagsFromHygraph()
-	const githubPosts = await loadPostsFromGithub()
-	const githubTags = await loadTagsFromGithub(githubPosts)
+	let posts = await loadPostsFromGithub()
+	let tags = await loadTagsFromGithub(posts)
 
-	const posts = githubPosts.concat(hygraphPosts)
 	posts.sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
-	let tags = [...hygraphTags, ...githubTags]
 	tags = getUniqueTags(tags)
 
 	return {
