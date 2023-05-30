@@ -54,15 +54,18 @@ func (autoResolver *AutoResolver) resolveStaleErrorsForProject(ctx context.Conte
 
 	db := autoResolver.db
 
+	subQuery := db.
+		Model(model.ErrorObject{}).
+		Select("error_group_id").
+		Where("created_at >= ?", time.Now().AddDate(0, 0, -interval))
+
 	err := db.Debug().
-		Table("error_groups").
-		Select("DISTINCT(error_groups.id), error_groups.project_id").
-		Joins("INNER JOIN error_objects ON error_groups.id = error_objects.error_group_id").
-		Where("error_groups.state = ?", privateModel.ErrorStateOpen).
-		Where("error_groups.project_id = ?", project.ID).
-		Where("error_objects.created_at < ?", time.Now().AddDate(0, 0, -interval)).
-		Find(&errorGroups).
-		Error
+		Where(model.ErrorGroup{
+			State:     privateModel.ErrorStateOpen,
+			ProjectID: project.ID,
+		}).
+		Where("id NOT IN (?)", subQuery).
+		Find(&errorGroups).Error
 
 	if err != nil {
 		return err
