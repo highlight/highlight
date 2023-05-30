@@ -25,7 +25,7 @@ import Wallet from '../../public/images/wallet.svg'
 import { RadioGroup } from '@headlessui/react'
 import * as Slider from '@radix-ui/react-slider'
 import classNames from 'classnames'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Collapsible from 'react-collapsible'
 import { Section } from '../../components/common/Section/Section'
 import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel'
@@ -258,47 +258,13 @@ const priceTiers: Record<TierName, PricingTier> = {
 	},
 }
 
-function getBasePrice(
-	{ basePrice }: PricingTier,
-	billing: BillingPeriod,
-	retention: Retention,
-) {
-	const billingMultiplier = billing === 'Annual' ? 0.8 : 1
-	const retentionMultiplier = retentionMultipliers[retention]
-
-	return basePrice * billingMultiplier * retentionMultiplier
-}
-
 const PlanTable = () => {
-	const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('Monthly')
-	const [retention, setRetention] = useState<Retention>('3 months')
-
 	return (
 		<div className="flex flex-col items-center max-w-full gap-6 mx-auto mt-16">
 			{/* Pricing */}
-			<div className="flex flex-wrap justify-center gap-12 gap-y-3">
-				<RadioOptions
-					title="Billing Period"
-					options={billingPeriodOptions}
-					value={billingPeriod}
-					onChange={(v: BillingPeriod) => setBillingPeriod(v)}
-				/>
-				<RadioOptions
-					title="Retention"
-					options={retentionOptions}
-					value={retention}
-					onChange={(v: Retention) => setRetention(v)}
-				/>
-			</div>
-			<div className="grid items-stretch w-full grid-cols-1 sm:grid-cols-2 min-[1190px]:grid-flow-col gap-7">
+			<div className="grid items-stretch max-w-[600px] w-full grid-cols-1 sm:grid-cols-2 min-[1190px]:grid-flow-col gap-7">
 				{Object.entries(priceTiers).map(([name, tier]) => (
-					<PlanTier
-						name={name}
-						tier={tier}
-						billingPeriod={billingPeriod}
-						key={name}
-						retention={retention}
-					/>
+					<PlanTier name={name} tier={tier} key={name} />
 				))}
 			</div>
 			<Typography type="copy1" onDark className="text-center my-9">
@@ -310,25 +276,35 @@ const PlanTable = () => {
 	)
 }
 
-const PlanTier = ({
-	name,
-	tier,
-	billingPeriod,
-	retention,
-}: {
-	name: string
-	tier: PricingTier
-	billingPeriod: BillingPeriod
-	retention: Retention
-}) => {
-	const { sessions, errors, logs } = tier
+const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
+	const { sessions, errors, logs, isMostPopular } = tier
 
 	return (
-		<div className="flex flex-col flex-grow border rounded-md min-[1190px]:min-w-[255px] basis-64 border-divider-on-dark">
+		<div
+			className={classNames(
+				'flex flex-col flex-grow border rounded-md min-[1190px]:min-w-[255px] basis-64 border-divider-on-dark h-fit',
+				isMostPopular
+					? 'shadow-[-8px_8px_0_0] shadow-purple-primary'
+					: '',
+			)}
+		>
 			<div className="p-5 border-b border-divider-on-dark">
-				<Typography type="copy1" emphasis>
-					{tier.label}
-				</Typography>
+				{isMostPopular && (
+					<div className="bg-highlight-yellow w-fit py-0.5 px-3 rounded-full">
+						<Typography
+							type="copy4"
+							emphasis
+							className="text-dark-background"
+						>
+							Most popular
+						</Typography>
+					</div>
+				)}
+				<div>
+					<Typography type="copy1" emphasis>
+						{tier.label}
+					</Typography>
+				</div>
 			</div>
 			<div className="p-5 flex flex-col gap-2.5 flex-grow">
 				<div className="flex items-center gap-1">
@@ -353,13 +329,21 @@ const PlanTier = ({
 				</Typography>
 				<Typography type="copy3">Unlimited seats</Typography>
 			</div>
-			<div className="p-5">
+			<div className="px-5 pb-5 flex flex-col gap-2.5">
 				<PrimaryButton
 					href="https://app.highlight.io/sign_up"
 					className={homeStyles.hollowButton}
 				>
 					Start free trial
 				</PrimaryButton>
+				{isMostPopular && (
+					<PrimaryButton
+						href="#overage"
+						className="flex justify-center border border-copy-on-light text-copy-on-dark bg-transparent"
+					>
+						Calculate Usage
+					</PrimaryButton>
+				)}
 			</div>
 		</div>
 	)
@@ -380,57 +364,50 @@ const formatPrice = (price: number) =>
 		.replace('+', '+ ')
 
 const PriceCalculator = () => {
-	const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('Monthly')
-	const [tierName, setTierName] = useState<TierName>('Free')
-	const [retention, setRetention] = useState<Retention>('3 months')
+	const tier = priceTiers['UsageBased']
 
-	const tier = priceTiers[tierName]
+	const [errorUsage, setErrorUsage] = useState(tier.errors)
+	const [sessionUsage, setSessionUsage] = useState(tier.sessions)
+	const [loggingUsage, setLoggingUsage] = useState(tier.logs)
 
-	const [errorUsage, setErrorUsage] = useState(0)
-	const [sessionUsage, setSessionUsage] = useState(0)
-	const [loggingUsage, setLoggingUsage] = useState(0)
+	const [errorRetention, setErrorRetention] = useState<Retention>('3 months')
+	const [sessionRetention, setSessionRetention] =
+		useState<Retention>('3 months')
 
-	useEffect(() => {
-		setErrorUsage(tier.errors)
-		setSessionUsage(tier.sessions)
-	}, [tier, tierName])
-
-	const basePrice = getBasePrice(tier, billingPeriod, retention)
-
-	const getUsagePrice = (usage: number, price: number, size: number) =>
+	const getUsagePrice = (
+		usage: number,
+		price: number,
+		size: number,
+		retention: Retention,
+	) =>
 		Math.trunc(
 			((Math.max(usage, 0) * price) / size) *
 				retentionMultipliers[retention] *
 				100,
 		) / 100
 
-	const sessionsCost = getUsagePrice(sessionUsage - tier.sessions, 5.0, 1_000)
-	const errorsCost = getUsagePrice(errorUsage - tier.errors, 0.2, 1_000)
-	const loggingCost = getUsagePrice(loggingUsage, 1.5, 1_000_000)
+	const errorsCost = getUsagePrice(
+		errorUsage - tier.errors,
+		0.2,
+		1_000,
+		errorRetention,
+	)
+	const sessionsCost = getUsagePrice(
+		sessionUsage - tier.sessions,
+		20.0,
+		1_000,
+		sessionRetention,
+	)
+	const loggingCost = getUsagePrice(
+		loggingUsage - tier.logs,
+		1.5,
+		1_000_000,
+		'30 days',
+	)
 
 	return (
 		<div className="flex flex-col items-center w-full gap-10 mx-auto mt-12">
 			{/* Price calculator */}
-			<div className="flex flex-wrap justify-center gap-12 gap-y-3">
-				<RadioOptions
-					title="Billing Period"
-					options={billingPeriodOptions}
-					value={billingPeriod}
-					onChange={(v: BillingPeriod) => setBillingPeriod(v)}
-				/>
-				<RadioOptions
-					title="Pricing Tier"
-					options={tierOptions}
-					value={tierName}
-					onChange={(v: TierName) => setTierName(v)}
-				/>
-				<RadioOptions
-					title="Retention"
-					options={retentionOptions}
-					value={retention}
-					onChange={(v: Retention) => setRetention(v)}
-				/>
-			</div>
 			<div className="flex flex-col items-end w-full max-w-[1100px]">
 				<div className="flex flex-col overflow-hidden border divide-y rounded-lg md:rounded-br-none divide-divider-on-dark border-divider-on-dark">
 					<div className="hidden h-12 md:flex">
@@ -446,38 +423,40 @@ const PriceCalculator = () => {
 						</div>
 					</div>
 					<CalculatorRowDesktop
-						title="Error Monitoring Usage."
+						title="Error Monitoring"
 						description="Error monitoring usage is defined by the number of errors collected by Highlight per month. Our frontend/server SDKs send errors, but you can also send custom errors."
 						value={errorUsage}
-						cost={errorsCost + basePrice}
+						cost={errorsCost}
 						includedRange={tier.errors}
+						retention={errorRetention}
 						onChange={setErrorUsage}
+						onChangeRetention={setErrorRetention}
 					/>
 					<CalculatorRowDesktop
-						title="Session Replay Usage."
+						title="Session Replay"
 						description="Session replay usage is defined by the number of sessions collected per month. A session is defined by an instance of a user’s tab on your application. "
 						value={sessionUsage}
-						cost={sessionsCost + basePrice}
+						cost={sessionsCost}
 						includedRange={tier.sessions}
+						retention={sessionRetention}
 						onChange={setSessionUsage}
+						onChangeRetention={setSessionRetention}
 					/>
 					<CalculatorRowDesktop
-						title="Logging Usage."
+						title="Logging"
 						description="Log usage is defined by the number of logs collected by highlight.io per month. A log is defined by a text field with attributes."
 						value={loggingUsage}
-						cost={loggingCost + basePrice}
-						includedRange={0}
+						cost={loggingCost}
+						includedRange={tier.logs}
 						rangeMultiplier={100}
+						retention="30 days"
 						onChange={setLoggingUsage}
 					/>
 					<div className="block px-3 py-5 rounded-b-lg md:hidden">
 						<Typography type="copy1" emphasis>
 							Total:{' '}
 							{formatPrice(
-								basePrice +
-									sessionsCost +
-									errorsCost +
-									loggingCost,
+								sessionsCost + errorsCost + loggingCost,
 							)}
 						</Typography>
 					</div>
@@ -485,9 +464,7 @@ const PriceCalculator = () => {
 				<div className="hidden border border-t-0 rounded-b-lg md:block h-52 border-divider-on-dark">
 					<CalculatorCostDisplay
 						heading="Total"
-						cost={
-							basePrice + sessionsCost + errorsCost + loggingCost
-						}
+						cost={sessionsCost + errorsCost + loggingCost}
 					/>
 				</div>
 			</div>
@@ -502,7 +479,9 @@ const CalculatorRowDesktop = ({
 	cost,
 	includedRange,
 	rangeMultiplier = 1,
+	retention,
 	onChange,
+	onChangeRetention,
 }: {
 	title: string
 	description: string
@@ -510,7 +489,9 @@ const CalculatorRowDesktop = ({
 	includedRange: number
 	cost: number
 	rangeMultiplier?: number
+	retention: Retention
 	onChange: (value: number) => void
+	onChangeRetention?: (value: Retention) => void
 }) => {
 	const rangeOptions = [
 		0, 500, 1_000, 5_000, 10_000, 100_000, 250_000, 500_000, 750_000,
@@ -533,12 +514,26 @@ const CalculatorRowDesktop = ({
 				<Typography type="copy3" className="mt-2.5">
 					{description}
 				</Typography>
-				<RangedInput
-					options={rangeOptions}
-					value={value}
-					includedRange={includedRange}
-					onChange={onChange}
-				/>
+				<div className="mt-2.5">
+					<RadioOptions
+						title="Retention"
+						options={
+							onChangeRetention !== undefined
+								? ['3 months', '6 months', '1 year', '2 years']
+								: ['30 days']
+						}
+						value={retention}
+						onChange={onChangeRetention}
+					/>
+				</div>
+				<div className="mt-2.5">
+					<RangedInput
+						options={rangeOptions}
+						value={value}
+						includedRange={includedRange}
+						onChange={onChange}
+					/>
+				</div>
 			</div>
 			<div className="hidden border-l border-divider-on-dark md:inline-block">
 				<CalculatorCostDisplay heading="Base + Usage" cost={cost} />
@@ -576,28 +571,38 @@ export const RangedInput = ({
 	return (
 		<>
 			<div className="block md:hidden">
-				<div className="relative">
-					<select
-						className="flex items-center justify-center w-full h-12 gap-2 text-center text-transparent transition-all border rounded-lg appearance-none cursor-pointer border-copy-on-light hover:bg-white/10 bg-dark-background"
-						onChange={(ev) => onChange(parseFloat(ev.target.value))}
+				<label className="flex flex-col gap-2">
+					<Typography
+						type="copy4"
+						className=" text-darker-copy-on-dark"
 					>
-						{options.map((value, i) => (
-							<option value={value} key={i}>
-								{value.toLocaleString(undefined, {
+						Usage
+					</Typography>
+					<div className="relative">
+						<select
+							className="flex items-center justify-center w-full h-12 gap-2 text-center text-transparent transition-all border rounded-lg appearance-none cursor-pointer border-copy-on-light hover:bg-white/10 bg-dark-background"
+							onChange={(ev) =>
+								onChange(parseFloat(ev.target.value))
+							}
+						>
+							{options.map((value, i) => (
+								<option value={value} key={i}>
+									{value.toLocaleString(undefined, {
+										notation: 'compact',
+									})}
+								</option>
+							))}
+						</select>
+						<div className="absolute inset-0 flex items-center justify-center w-full h-12 gap-2 transition-all border rounded-lg pointer-events-none border-copy-on-light hover:bg-white/10">
+							<Typography type="copy2" emphasis onDark>
+								{snapValue(value).toLocaleString(undefined, {
 									notation: 'compact',
 								})}
-							</option>
-						))}
-					</select>
-					<div className="absolute inset-0 flex items-center justify-center w-full h-12 gap-2 transition-all border rounded-lg pointer-events-none border-copy-on-light hover:bg-white/10">
-						<Typography type="copy2" emphasis onDark>
-							{snapValue(value).toLocaleString(undefined, {
-								notation: 'compact',
-							})}
-						</Typography>
-						<ChevronDownIcon className="w-5 h-5 text-darker-copy-on-dark" />
+							</Typography>
+							<ChevronDownIcon className="w-5 h-5 text-darker-copy-on-dark" />
+						</div>
 					</div>
-				</div>
+				</label>
 			</div>
 			<Slider.Root
 				min={min}
@@ -610,8 +615,14 @@ export const RangedInput = ({
 						Math.ceil(denormalize(Math.pow(normalize(value), 3))),
 					)
 				}
-				className="relative items-center hidden w-full h-16 mt-4 select-none md:flex touch-none group"
+				className="relative items-center hidden w-full h-12 mt-4 select-none md:flex touch-none group"
 			>
+				<Typography
+					type="copy4"
+					className="text-darker-copy-on-dark absolute top-[-14px]"
+				>
+					Usage
+				</Typography>
 				<Slider.Track className="relative flex-1 h-3 overflow-hidden rounded-full bg-divider-on-dark">
 					<div
 						className="absolute inset-y-0 left-0 h-full bg-blue-cta/30"
@@ -665,7 +676,7 @@ const RadioOptions = <T extends string>({
 		<RadioGroup
 			value={value}
 			onChange={onChange}
-			className="flex flex-col items-center gap-2"
+			className="flex flex-col gap-2"
 		>
 			<RadioGroup.Label className="">
 				<Typography
@@ -675,7 +686,7 @@ const RadioOptions = <T extends string>({
 					{title}
 				</Typography>
 			</RadioGroup.Label>
-			<div className="flex p-px border rounded-[10px] gap-1 bg-user-black border-divider-on-dark">
+			<div className="flex p-px rounded-[10px] gap-1 border-divider-on-dark">
 				{options.map((option) => (
 					<RadioGroup.Option value={option} key={option}>
 						{({ checked }) => (
