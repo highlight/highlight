@@ -1697,13 +1697,13 @@ export type Query = {
 	vercel_projects: Array<VercelProject>
 	web_vitals: Array<Metric>
 	workspace?: Maybe<Workspace>
+	workspacePendingInvites: Array<Maybe<WorkspaceInviteLink>>
 	workspaceSuggestion: Array<Maybe<Workspace>>
 	workspace_admins: Array<WorkspaceAdminRole>
 	workspace_admins_by_project_id: Array<WorkspaceAdminRole>
 	workspace_for_invite_link: WorkspaceForInviteLink
 	workspace_for_project?: Maybe<Workspace>
 	workspace_invite_links: WorkspaceInviteLink
-	workspace_pending_invites: Array<Maybe<WorkspaceInviteLink>>
 	workspaces?: Maybe<Array<Maybe<Workspace>>>
 	workspaces_count: Scalars['Int64']
 }
@@ -2258,6 +2258,10 @@ export type QueryWorkspaceArgs = {
 	id: Scalars['ID']
 }
 
+export type QueryWorkspacePendingInvitesArgs = {
+	workspace_id: Scalars['ID']
+}
+
 export type QueryWorkspaceSuggestionArgs = {
 	query: Scalars['String']
 }
@@ -2279,10 +2283,6 @@ export type QueryWorkspace_For_ProjectArgs = {
 }
 
 export type QueryWorkspace_Invite_LinksArgs = {
-	workspace_id: Scalars['ID']
-}
-
-export type QueryWorkspace_Pending_InvitesArgs = {
 	workspace_id: Scalars['ID']
 }
 

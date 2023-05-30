@@ -25,7 +25,7 @@ const PendingInvites = ({ workspaceId, active, shouldRefetchData }: Props) => {
 			variables: { workspace_id: workspaceId! },
 			skip: !workspaceId,
 		})
-	const { workspace_pending_invites = [] } = data || {}
+	const { workspacePendingInvites = [] } = data || {}
 
 	React.useEffect(() => {
 		if (active && shouldRefetchData) {
@@ -40,7 +40,7 @@ const PendingInvites = ({ workspaceId, active, shouldRefetchData }: Props) => {
 	return (
 		<div className={clsx(styles.inviteCardWrapper, 'highlight-mask')}>
 			<Card noPadding>
-				{!loading && workspace_pending_invites.length == 0 ? (
+				{!loading && workspacePendingInvites.length == 0 ? (
 					<Box p="16" display="flex" justifyContent="center">
 						You currently do not have any pending invites.
 					</Box>
@@ -54,7 +54,7 @@ const PendingInvites = ({ workspaceId, active, shouldRefetchData }: Props) => {
 								: TABLE_COLUMNS.slice(0, 2)
 						}
 						loading={loading}
-						dataSource={workspace_pending_invites.map((invite) => ({
+						dataSource={workspacePendingInvites.map((invite) => ({
 							email: invite?.invitee_email,
 							creationDate: invite?.created_at,
 							id: invite?.id,

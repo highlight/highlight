@@ -12883,7 +12883,7 @@ export type GetProjectSettingsQueryResult = Apollo.QueryResult<
 >
 export const GetWorkspacePendingInvitesDocument = gql`
 	query GetWorkspacePendingInvites($workspace_id: ID!) {
-		workspace_pending_invites(workspace_id: $workspace_id) {
+		workspacePendingInvites(workspace_id: $workspace_id) {
 			id
 			invitee_email
 			invitee_role

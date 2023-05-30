@@ -4368,7 +4368,7 @@ export type GetWorkspacePendingInvitesQueryVariables = Types.Exact<{
 }>
 
 export type GetWorkspacePendingInvitesQuery = { __typename?: 'Query' } & {
-	workspace_pending_invites: Array<
+	workspacePendingInvites: Array<
 		Types.Maybe<
 			{ __typename?: 'WorkspaceInviteLink' } & Pick<
 				Types.WorkspaceInviteLink,
