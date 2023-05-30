@@ -100,7 +100,6 @@ const WorkspaceTeam = () => {
 									/>
 								</TabContentContainer>
 							),
-							disabled: true,
 						},
 					]}
 				/>
