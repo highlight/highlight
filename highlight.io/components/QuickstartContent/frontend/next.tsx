@@ -19,22 +19,31 @@ export const NextContent: QuickStartContent = {
 			title: 'Install the npm package & SDK.',
 			content:
 				'Install the npm package `highlight.run` in your terminal.',
-			code: {
-				text: `
+			code: [
+				{
+					key: 'npm',
+					text: `
 # with npm
 npm install @highlight-run/next highlight.run @highlight-run/react
-
+					`,
+					language: 'bash',
+				},
+				{
+					key: 'yarn',
+					text: `
 # with yarn
 yarn add @highlight-run/next highlight.run @highlight-run/react
 				`,
-				language: 'bash',
-			},
+					language: 'bash',
+				},
+			],
 		},
 		{
 			title: 'Initialize the client SDK.',
 			content: `Grab your project ID from [app.highlight.io/setup](https://app.highlight.io/setup). If you're using the original Next.js Page router, drop \`<HighlightInit />\` in your \`_app.tsx\` file. For the App Router, add it to your top-level \`layout.tsx\` file.`,
-			code: {
-				text: `
+			code: [
+				{
+					text: `
 // src/app/layout.tsx
 import { HighlightInit } from '@highlight-run/next/highlight-init'
 
@@ -58,16 +67,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	)
 }
 				`,
-				language: 'js',
-			},
+					language: 'js',
+				},
+			],
 		},
 		{
 			title: 'Add the ErrorBoundary component. (optional)',
 			content: `The ErrorBoundary component wraps your component tree and catches crashes/exceptions from your react app. When a crash happens, your users will be prompted with a modal to share details about what led up to the crash. Read more [here](${siteUrl(
 				'/docs/getting-started/client-sdk/replay-configuration',
 			)}).`,
-			code: {
-				text: `
+			code: [
+				{
+					text: `
 import { ErrorBoundary } from '@highlight-run/react';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -81,8 +92,9 @@ export default function App({ Component, pageProps }: AppProps) {
 	);
 }
 			`,
-				language: 'js',
-			},
+					language: 'js',
+				},
+			],
 		},
 		identifySnippet,
 		verifySnippet,

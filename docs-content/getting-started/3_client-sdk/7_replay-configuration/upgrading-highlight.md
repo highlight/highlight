@@ -14,7 +14,9 @@ If Highlight ships a breaking change (new feature, security fix, etc.), we'll ne
 ```shell
 # with npm
 npm install highlight.run@latest
+```
 
+```shell
 # with yarn
 yarn upgrade highlight.run@latest
 ```

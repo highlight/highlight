@@ -20,8 +20,9 @@ export const curlExample: QuickStartStep = {
 	title: 'Use curl to test how logs look in Highlight.',
 	content:
 		'Get started quickly with logs transmitted over the OTLP HTTP protocol.',
-	code: {
-		text: `curl -X POST https://otel.highlight.io:4318/v1/logs \\
+	code: [
+		{
+			text: `curl -X POST https://otel.highlight.io:4318/v1/logs \\
 -H 'Content-Type: application/json' \\
 -d '{
       "resourceLogs": [
@@ -64,6 +65,7 @@ export const curlExample: QuickStartStep = {
         }
       ]
     }'`,
-		language: 'bash',
-	},
+			language: 'bash',
+		},
+	],
 }

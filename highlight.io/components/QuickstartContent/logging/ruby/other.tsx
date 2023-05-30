@@ -12,16 +12,18 @@ export const RubyOtherLogContent: QuickStartContent = {
 			title: 'Set up and call the Highlight Logger.',
 			content:
 				'Highlight::Logger can be used in place of your existing logger, and will record and send logs to Highlight.',
-			code: {
-				text: `require "highlight"
+			code: [
+				{
+					text: `require "highlight"
 
 Highlight::H.new("<YOUR_PROJECT_ID>")
 
 logger = Highlight::Logger.new(STDOUT)
 logger.info('hello, world!')
 logger.error('oh no!')`,
-				language: 'ruby',
-			},
+					language: 'ruby',
+				},
+			],
 		},
 		verifyLogs,
 	],

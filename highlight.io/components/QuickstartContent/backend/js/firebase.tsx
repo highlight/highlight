@@ -20,8 +20,9 @@ export const JSFirebaseContent: QuickStartContent = {
 		{
 			title: `Add the Firebase Highlight integration.`,
 			content: addIntegrationContent('Node Highlight SDK', 'nodejs'),
-			code: {
-				text: `const highlightNode = require('@highlight-run/node')
+			code: [
+				{
+					text: `const highlightNode = require('@highlight-run/node')
 
 // Callable function wrapper
 exports.exampleCallable = functions.https.onCall(
@@ -44,8 +45,9 @@ exports.exampleHttp = functions.https.onRequest(
     { projectID: '<YOUR_PROJECT_ID>' },
   ),
 )`,
-				language: `js`,
-			},
+					language: `js`,
+				},
+			],
 		},
 		verifyError(
 			'Firebase',

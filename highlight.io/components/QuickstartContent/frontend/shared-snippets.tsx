@@ -4,17 +4,26 @@ import { QuickStartStep } from '../QuickstartContent'
 export const packageInstallSnippet: QuickStartStep = {
 	title: 'Install the npm package & SDK.',
 	content: 'Install the npm package `highlight.run` in your terminal.',
-	code: {
-		text: `# with yarn
-yarn add highlight.run
-
-# with pnpm
-pnpm add highlight.run
-
-# with npm
+	code: [
+		{
+			key: 'yarn',
+			text: `# with yarn
+yarn add highlight.run`,
+			language: 'bash',
+		},
+		{
+			key: 'pnpm',
+			text: `# with pnpm
+pnpm add highlight.run`,
+			language: 'bash',
+		},
+		{
+			key: 'npm',
+			text: `# with npm
 npm install highlight.run`,
-		language: 'bash',
-	},
+			language: 'bash',
+		},
+	],
 }
 
 export const sessionReplayFeaturesLink = siteUrl(
@@ -42,13 +51,15 @@ export const configureSourcemapsCI = (docsLink?: string): QuickStartStep => {
 		content: `To get properly enhanced stacktraces of your javascript app, we recommend instrumenting sourcemaps. If you deploy public sourcemaps, you can skip this step. Refer to our docs on [sourcemaps](${
 			docsLink ?? sourceMapDetailsLink
 		}) to read more about this option.`,
-		code: {
-			text: `# Upload sourcemaps to Highlight
+		code: [
+			{
+				text: `# Upload sourcemaps to Highlight
 ...
 npx --yes @highlight-run/sourcemap-uploader upload --apiKey $\{YOUR_ORG_API_KEY\} --path ./build
 ...`,
-			language: 'bash',
-		},
+				language: 'bash',
+			},
+		],
 	}
 }
 
@@ -56,8 +67,9 @@ export const initializeSnippet: QuickStartStep = {
 	title: 'Initialize the SDK in your frontend.',
 	content: `Grab your project ID from [app.highlight.io/setup](https://app.highlight.io/setup) and insert it in place of \`<YOUR_PROJECT_ID>\`.
                     To get started, we recommend setting \`tracingOrigins\` and \`networkRecording\` so that we can pass a header to pair frontend and backend errors . Refer to our docs on [SDK configuration](${sessionReplayFeaturesLink}) and [Fullstack Mapping](${fullstackMappingLink}) to read more about these options.`,
-	code: {
-		text: `...
+	code: [
+		{
+			text: `...
 import { H } from 'highlight.run';
 
 H.init('<YOUR_PROJECT_ID>', {
@@ -73,15 +85,17 @@ H.init('<YOUR_PROJECT_ID>', {
 
 ...
 // rendering code.`,
-		language: 'js',
-	},
+			language: 'js',
+		},
+	],
 }
 
 export const identifySnippet: QuickStartStep = {
 	title: 'Identify users.',
 	content: `Identify users after the authentication flow of your web app. We recommend doing this in a \`useEffect\` call or in any asynchronous, client-side context. \n\n\nThe first argument of \`identify\` will be searchable via the property \`identifier\`, and the second property is searchable by the key of each item in the object. \n\n\nFor more details, read about [session search](${sessionSearchLink}) or how to [identify users](${identifyingUsersLink}).`,
-	code: {
-		text: `
+	code: [
+		{
+			text: `
 import { H } from 'highlight.run';
 
 function RenderFunction() {
@@ -99,8 +113,9 @@ function RenderFunction() {
 	return null; // Or your app's rendering code.
 }
 `,
-		language: 'js',
-	},
+			language: 'js',
+		},
+	],
 }
 
 export const verifySnippet: QuickStartStep = {

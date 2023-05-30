@@ -19,8 +19,9 @@ export const GoGinContent: QuickStartContent = {
 			title: 'Add the Highlight middleware.',
 			content:
 				'`highlightGin.Middleware()` provides is a [Go Gin](https://github.com/gin-gonic/gin) compatible middleware.',
-			code: {
-				text: `import (
+			code: [
+				{
+					text: `import (
   highlightGin "github.com/highlight/highlight/sdk/highlight-go/middleware/gin"
 )
 
@@ -30,8 +31,9 @@ func main() {
   r.Use(highlightGin.Middleware())
   // ...
 }`,
-				language: 'go',
-			},
+					language: 'go',
+				},
+			],
 		},
 		customGoError,
 		verifyCustomError,

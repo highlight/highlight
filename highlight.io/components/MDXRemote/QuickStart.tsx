@@ -3,12 +3,11 @@ import {
 	QuickStartStep,
 } from '../QuickstartContent/QuickstartContent'
 
-import { HighlightCodeBlock } from '../Docs/HighlightCodeBlock/HighlightCodeBlock'
-import Markdown from 'markdown-to-jsx'
-import { Typography } from '../common/Typography/Typography'
 import classNames from 'classnames'
+import Markdown from 'markdown-to-jsx'
 import styles from '../../components/Docs/Docs.module.scss'
-
+import { Typography } from '../common/Typography/Typography'
+import { HighlightCodeBlock } from '../Docs/HighlightCodeBlock/HighlightCodeBlock'
 type Props = { content: QuickStartContent }
 
 export function QuickStart({ content: c }: Props) {
@@ -70,17 +69,20 @@ export function QuickStart({ content: c }: Props) {
 									</Markdown>
 								</div>
 								<div className="min-w-0">
-									{step.code && (
-										<HighlightCodeBlock
-											style={{
-												position: 'sticky',
-												top: '80px',
-											}}
-											language={step.code.language}
-											text={step.code.text}
-											showLineNumbers={false}
-										/>
-									)}
+									{step.code?.map((codeBlock) => {
+										return (
+											<HighlightCodeBlock
+												key={codeBlock.key}
+												style={{
+													position: 'sticky',
+													top: '80px',
+												}}
+												language={codeBlock.language}
+												text={codeBlock.text}
+												showLineNumbers={false}
+											/>
+										)
+									})}
 								</div>
 							</div>
 						</div>

@@ -42,11 +42,13 @@ export const AngularContent: QuickStartContent = {
 		packageInstallSnippet,
 		{
 			...initializeSnippet,
-			code: {
-				...initializeSnippet.code,
-				text: angularInitCodeSnippet,
-				language: initializeSnippet.code?.language ?? 'js',
-			},
+			code: [
+				{
+					...initializeSnippet.code,
+					text: angularInitCodeSnippet,
+					language: initializeSnippet.code?.[0]?.language ?? 'js',
+				},
+			],
 		},
 		identifySnippet,
 		verifySnippet,

@@ -21,8 +21,9 @@ export const GoMuxContent: QuickStartContent = {
 			title: 'Add the Highlight gqlgen error handler.',
 			content:
 				'`H.NewGraphqlTracer` provides a middleware you can add to your [Golang Mux](https://github.com/gorilla/mux) handler to automatically record and send GraphQL resolver errors to Highlight.',
-			code: {
-				text: `import (
+			code: [
+				{
+					text: `import (
   highlightGorillaMux "github.com/highlight/highlight/sdk/highlight-go/middleware/gorillamux"
 )
 
@@ -32,8 +33,9 @@ func main() {
   r.Use(highlightGorillaMux.Middleware)
   // ...
 }`,
-				language: 'go',
-			},
+					language: 'go',
+				},
+			],
 		},
 		customGoError,
 		verifyCustomError,

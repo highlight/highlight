@@ -12,17 +12,26 @@ export const jsGetSnippet: (slugs: string[]) => QuickStartStep = (slugs) => {
 	return {
 		title: 'Install the Highlight JS SDK.',
 		content: `Install ${linkedPackages} with your package manager.`,
-		code: {
-			text: `# with yarn
-yarn add ${packages}
-
-# with pnpm
-pnpm add ${packages}
-
-# with npm
+		code: [
+			{
+				key: 'yarn',
+				text: `# with yarn
+yarn add ${packages}`,
+				language: 'bash',
+			},
+			{
+				key: 'pnpm',
+				text: `# with pnpm
+pnpm add ${packages}`,
+				language: 'bash',
+			},
+			{
+				key: 'npm',
+				text: `# with npm
 npm install --save ${packages}`,
-			language: 'bash',
-		},
+				language: 'bash',
+			},
+		],
 	}
 }
 
@@ -31,12 +40,14 @@ export const initializeNodeSDK: (slug: string) => QuickStartStep = (slug) => ({
 	content: `Initialize the [Highlight JS SDK](${siteUrl(
 		'/docs/sdk/nodejs',
 	)}) with your project ID.`,
-	code: {
-		text: `import { H } from '@highlight-run/${slug}'
+	code: [
+		{
+			text: `import { H } from '@highlight-run/${slug}'
 
 H.init({projectID: '<YOUR_PROJECT_ID>'})`,
-		language: 'js',
-	},
+			language: 'js',
+		},
+	],
 })
 
 export const verifyError: (name: string, code?: string) => QuickStartStep = (
@@ -49,22 +60,26 @@ export const verifyError: (name: string, code?: string) => QuickStartStep = (
 		`Access the API handler and make sure the error shows up in [Highlight](https://app.highlight.io/errors).`,
 	...(code
 		? {
-				code: {
-					text: code,
-					language: `js`,
-				},
+				code: [
+					{
+						text: code,
+						language: `js`,
+					},
+				],
 		  }
-		: {}),
+		: []),
 })
 
 export const manualError = {
 	title: 'Optionally, report manual errors in your app.',
 	content: `If you need to report exceptions outside of a handler, use the Highlight SDK.`,
-	code: {
-		text: `const parsed = H.parseHeaders(request.headers)
+	code: [
+		{
+			text: `const parsed = H.parseHeaders(request.headers)
 H.consumeError(error, parsed?.secureSessionId, parsed?.requestId)`,
-		language: 'js',
-	},
+			language: 'js',
+		},
+	],
 }
 
 export const setupLogging: (slug: string) => QuickStartStep = (slug) => ({
