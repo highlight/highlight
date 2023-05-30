@@ -1,11 +1,12 @@
-import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 import { useAuthContext } from '@authentication/AuthContext'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
+
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 export const ProjectRedirectionRouter = () => {
 	const { allProjects: projects, loading } = useApplicationContext()
