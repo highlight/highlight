@@ -210,7 +210,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	wSpan, wCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.process"))
 	wSpan.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
 	wSpan.SetTag("NumProjects", len(workspaceByProject))
-	for projectId := range markBackendSetupProjectIds {
+	for _, projectId := range markBackendSetupProjectIds {
 		err := k.Worker.PublicResolver.MarkBackendSetupImpl(wCtx, int(projectId), model.MarkBackendSetupTypeLogs)
 		if err != nil {
 			log.WithContext(wCtx).WithError(err).Error("failed to mark backend logs setup")
