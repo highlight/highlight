@@ -50,4 +50,6 @@ export const setAttributionData = () => {
 	Cookies.set('referrer', JSON.stringify(referrer), {
 		domain: 'highlight.io',
 	})
+
+	return referrer
 }
