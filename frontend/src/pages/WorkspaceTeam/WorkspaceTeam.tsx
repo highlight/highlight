@@ -1,4 +1,4 @@
-import { Button } from '@components/Button/'
+import { Button } from '@components/Button'
 import Tabs from '@components/Tabs/Tabs'
 import { useGetWorkspaceAdminsQuery } from '@graph/hooks'
 import { AdminRole, WorkspaceAdminRole } from '@graph/schemas'

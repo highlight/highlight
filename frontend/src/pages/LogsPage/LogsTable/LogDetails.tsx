@@ -44,9 +44,10 @@ type Props = {
 	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
 }
 
-export const getLogURL = (row: Row<LogEdge>) => {
+export const getLogURL = (projectId: string, row: Row<LogEdge>) => {
 	const currentUrl = new URL(window.location.href)
-	const path = generatePath('/logs/:log_cursor', {
+	const path = generatePath('/:project_id/logs/:log_cursor', {
+		project_id: projectId,
 		log_cursor: row.original.cursor,
 	})
 	return currentUrl.origin + path
@@ -226,7 +227,7 @@ export const LogDetails: React.FC<Props> = ({
 						kind="secondary"
 						emphasis="low"
 						onClick={(e) => {
-							const url = getLogURL(row)
+							const url = getLogURL(projectId, row)
 							e.stopPropagation()
 							navigator.clipboard.writeText(url)
 							antdMessage.success('Copied link!')

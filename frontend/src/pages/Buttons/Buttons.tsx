@@ -267,14 +267,6 @@ export const Buttons = () => {
 					>
 						Track
 					</button>
-					<button
-						className={commonStyles.submitButton}
-						onClick={() => {
-							H.toggleSessionFeedbackModal()
-						}}
-					>
-						toggleSessionFeedbackModal
-					</button>
 					<SampleBuggyButton />
 					<button
 						className={commonStyles.submitButton}

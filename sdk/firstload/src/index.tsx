@@ -119,7 +119,6 @@ const H: HighlightPublicInterface = {
 				environment: options?.environment || 'production',
 				appVersion: options?.version,
 				sessionShortcut: options?.sessionShortcut,
-				feedbackWidget: options?.feedbackWidget,
 				sessionSecureID: sessionSecureID,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
@@ -182,15 +181,6 @@ const H: HighlightPublicInterface = {
 					user_email: userEmail,
 					user_name: userName,
 				}),
-			)
-		} catch (e) {
-			HighlightWarning('error', e)
-		}
-	},
-	toggleSessionFeedbackModal: () => {
-		try {
-			H.onHighlightReady(() =>
-				highlight_obj.toggleFeedbackWidgetVisibility(),
 			)
 		} catch (e) {
 			HighlightWarning('error', e)

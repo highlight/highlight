@@ -415,3 +415,8 @@ select:focus {
 .ReactCollapse--collapse {
 	transition: height 500ms;
 }
+
+iframe,
+img {
+	max-width: calc(100vw - 2rem);
+}

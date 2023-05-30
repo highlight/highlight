@@ -1,33 +1,15 @@
 import { ImageResponse } from '@vercel/og'
 import { NextRequest, URLPattern } from 'next/server'
-import { gql } from 'graphql-request'
-import { Post } from '../../../../components/Blog/BlogPost/BlogPost'
-import { font, backdrop, fontLight } from '../util'
-import { GraphQLRequest } from '../../../../utils/graphql'
-import styles from '../../../../components/Products/Products.module.scss'
+import { backdrop, font, fontLight } from '../util'
 
 export const config = {
 	runtime: 'edge',
 }
 
-const QUERY = gql`
-	query GetPost($slug: String!) {
-		post(where: { slug: $slug }) {
-			slug
-			title
-			author {
-				firstName
-				lastName
-				title
-				profilePhoto {
-					url
-				}
-			}
-		}
-	}
-`
-
+//Example query: https://highlight.io/api/og/blog/highlight-launch-week-day-5?title=Day+5%3A+Our+Partners+%26+Supporters&fname=Vadim&lname=Korolik&role=Co-Founder+%26+CTO
+//This query is sent from each blog slug to generate the og image
 export default async function handler(req: NextRequest) {
+	const query = req.nextUrl.href
 	const fontData = await font
 	const fontLightData = await fontLight
 	const backdropData = await backdrop
@@ -40,8 +22,12 @@ export default async function handler(req: NextRequest) {
 	const slug = new URLPattern({ pathname: '/api/og/blog/:slug' }).exec(
 		req.url,
 	)?.pathname.groups.slug
-	const post = (await GraphQLRequest<{ post?: Post }>(QUERY, { slug }, false))
-		.post as Post | undefined
+
+	const url = new URL(query)
+	const title = url.searchParams.get('title')
+	const firstName = url.searchParams.get('fname')
+	const lastName = url.searchParams.get('lname')
+	const role = url.searchParams.get('role')
 
 	return new ImageResponse(
 		(
@@ -120,13 +106,12 @@ export default async function handler(req: NextRequest) {
 								overflow: 'hidden',
 							}}
 						>
-							{post?.title || slug}
+							{title || slug}
 						</span>
 						<div tw={'flex flex-row items-center'}>
 							<div tw={'flex flex-col'}>
 								<span style={{ fontSize: 24 }}>
-									{post?.author?.firstName}{' '}
-									{post?.author?.lastName}
+									{firstName || ''} {lastName || ''}
 								</span>
 								<span
 									style={{
@@ -135,7 +120,7 @@ export default async function handler(req: NextRequest) {
 										fontFamily: '"PoppinsLight"',
 									}}
 								>
-									{post?.author?.title}
+									{role || ''}
 								</span>
 							</div>
 						</div>

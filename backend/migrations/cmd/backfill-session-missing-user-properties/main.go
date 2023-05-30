@@ -5,7 +5,6 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
-	"github.com/highlight-run/workerpool"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -69,9 +68,8 @@ func main() {
 	}
 
 	r := public.Resolver{
-		AlertWorkerPool: workerpool.New(16),
-		DB:              db,
-		OpenSearch:      opensearchClient,
+		DB:         db,
+		OpenSearch: opensearchClient,
 	}
 	log.WithContext(ctx).Infof("starting query")
 

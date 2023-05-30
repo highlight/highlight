@@ -1,56 +1,42 @@
+import classNames from 'classnames'
+import { promises as fsp } from 'fs'
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
 import type {
 	GetStaticPaths,
 	GetStaticPathsResult,
 	GetStaticProps,
 } from 'next/types'
-import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
-import { ReactNode, createElement, useEffect, useRef, useState } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import { getBlogPaths, loadPostsFromGithub } from '.'
 
-import { BlogCallToAction } from '../../components/common/CallToAction/BlogCallToAction'
-import BlogNavbar from '../../components/Blog/BlogNavbar/BlogNavbar'
-import { Comments } from '../../components/Comments/Comments'
 import { ElementNode } from '@graphcms/rich-text-types'
-import Footer from '../../components/common/Footer/Footer'
-import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
-import { GraphQLRequest } from '../../utils/graphql'
-import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
-import Image from 'next/legacy/image'
-import { Meta } from '../../components/common/Head/Meta'
-import { Post } from '../../components/Blog/BlogPost/BlogPost'
-import { PostAuthor } from '../../components/Blog/Author'
-import { PostTag } from '../../components/Blog/Tag'
-import { RichText } from '@graphcms/rich-text-react-renderer'
-import { Section } from '../../components/common/Section/Section'
-import { SuggestedBlogPost } from '../../components/Blog/SuggestedBlogPost/SuggestedBlogPost'
-import { Typography } from '../../components/common/Typography/Typography'
-import YouTube from 'react-youtube'
-import classNames from 'classnames'
-import { promises as fsp } from 'fs'
-import { gql } from 'graphql-request'
-import homeStyles from '../../components/Home/Home.module.scss'
 import { serialize } from 'next-mdx-remote/serialize'
+import Image from 'next/legacy/image'
+import YouTube from 'react-youtube'
+import { PostAuthor } from '../../components/Blog/Author'
 import styles from '../../components/Blog/Blog.module.scss'
+import BlogNavbar from '../../components/Blog/BlogNavbar/BlogNavbar'
+import { Post } from '../../components/Blog/BlogPost/BlogPost'
+import { SuggestedBlogPost } from '../../components/Blog/SuggestedBlogPost/SuggestedBlogPost'
+import { PostTag } from '../../components/Blog/Tag'
+import { Comments } from '../../components/Comments/Comments'
+import { BlogCallToAction } from '../../components/common/CallToAction/BlogCallToAction'
+import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
+import Footer from '../../components/common/Footer/Footer'
+import { Meta } from '../../components/common/Head/Meta'
+import { Section } from '../../components/common/Section/Section'
+import { Typography } from '../../components/common/Typography/Typography'
+import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
+import homeStyles from '../../components/Home/Home.module.scss'
 
 const NUM_SUGGESTED_POSTS = 3
 
-interface Content {
-	text?: string
-	href?: string
-	type?: string
-	children?: Content[]
-	openInNewTab?: boolean
-	code?: boolean
-	italic?: boolean
-	bold?: boolean
-}
-
-export async function getGithubPostBySlug(slug: string) {
-	const posts = await loadPostsFromGithub()
+export async function getGithubPostBySlug(slug: string, githubPosts?: Post[]) {
+	const posts = githubPosts || (await loadPostsFromGithub())
 
 	const post = posts.find((p) => p.slug === slug)
 	if (!post) {
-		throw new Error(`Could not find post with slug ${slug}`)
+		return null
 	}
 	return post
 }
@@ -60,17 +46,17 @@ const components: Record<
 	React.FunctionComponent<{ children: ReactNode; className?: string }>
 > = {
 	BlogCallToAction,
-	p: (props) => {
+	p: (props: any) => {
 		return <p className={styles.blogText} {...props}></p>
 	},
-	h1: (props) => <h4 className={styles.blogText}>{props.children}</h4>,
-	h2: (props) => {
+	h1: (props: any) => <h4 className={styles.blogText}>{props.children}</h4>,
+	h2: (props: any) => {
 		return <h2 className={styles.blogText}>{props.children}</h2>
 	},
-	h3: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
-	h4: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
-	h5: (props) => <h6 className={styles.blogText}>{props.children}</h6>,
-	ul: (props) => {
+	h3: (props: any) => <h6 className={styles.blogText}>{props.children}</h6>,
+	h4: (props: any) => <h6 className={styles.blogText}>{props.children}</h6>,
+	h5: (props: any) => <h6 className={styles.blogText}>{props.children}</h6>,
+	ul: (props: any) => {
 		// check if the type of props.children is an array.
 		return (
 			<>
@@ -104,7 +90,7 @@ const components: Record<
 			</>
 		)
 	},
-	code: (props) => {
+	code: (props: any) => {
 		if (
 			typeof props.children === 'string' &&
 			(props.children.match(/\n/g) || []).length
@@ -129,82 +115,8 @@ const components: Record<
 	},
 }
 
-const getBlogTypographyRenderer = (type: string) => {
-	function ParagraphBody({ content }: { content: Content }) {
-		if (content.text) {
-			if (content.code) {
-				return <span className={styles.codeInline}>{content.text}</span>
-			} else if (content.italic) {
-				return <i>{content.text}</i>
-			} else if (content.bold) {
-				return <b>{content.text}</b>
-			} else if (content.text.indexOf('://') !== -1) {
-				return (
-					<>
-						{content.text.split('/').map((p) => (
-							<>
-								{p}
-								{'/'}
-								<wbr />
-							</>
-						))}
-					</>
-				)
-			}
-			return <>{content.text}</>
-		} else if (content.href) {
-			return (
-				<a
-					href={content.href}
-					{...(content.openInNewTab
-						? { target: '_blank', rel: 'noopener noreferrer' }
-						: {})}
-				>
-					{content?.children?.map((c, idx) => (
-						<ParagraphBody content={c} key={`child-${idx}`} />
-					))}
-				</a>
-			)
-		}
-		return null
-	}
-
-	function ParagraphHeader({ children }: { children: any }) {
-		return (
-			<>
-				{createElement(
-					type,
-					{
-						className: styles.blogText,
-					},
-					children?.props?.content.map((c: Content, idx: number) => (
-						<ParagraphBody content={c} key={idx} />
-					)),
-				)}
-			</>
-		)
-	}
-
-	return ParagraphHeader
-}
-
 export const getStaticPaths: GetStaticPaths = async () => {
-	const QUERY = gql`
-		{
-			posts {
-				slug
-			}
-		}
-	`
-
 	let paths: GetStaticPathsResult['paths'] = []
-
-	const { posts } = await GraphQLRequest<{ posts: Post[] }>(QUERY)
-	posts.forEach((post) => {
-		if (post.slug) {
-			paths.push({ params: { slug: post.slug } })
-		}
-	})
 
 	let p = await getBlogPaths(fsp, '')
 	p.forEach((path) => {
@@ -220,83 +132,14 @@ export const getStaticPaths: GetStaticPaths = async () => {
 export const getStaticProps: GetStaticProps = async ({ params }) => {
 	const slug = params?.slug as string
 
-	const QUERY = gql`
-		query GetPost($slug: String!) {
-			post(where: { slug: $slug }) {
-				slug
-				title
-				metaTitle
-				youtubeVideoId
-				image {
-					url
-				}
-				description
-				metaDescription
-				publishedAt
-				publishedBy {
-					name
-					picture
-				}
-				richcontent {
-					raw
-					markdown
-				}
-				tags
-				tags_relations {
-					name
-					slug
-				}
-				readingTime
-				author {
-					firstName
-					lastName
-					title
-					twitterLink
-					linkedInLink
-					githubLink
-					personalWebsiteLink
-					profilePhoto {
-						url
-					}
-				}
-			}
-		}
-	`
-	const POSTS_QUERY = gql`
-      query GetPosts() {
-          posts(
-              orderBy: publishedAt_DESC
-              where: { unlisted: false }
-          ) {
-              slug
-              title
-              image {
-                  url
-              }
-              richcontent {
-                  markdown
-              }
-              publishedAt
-              tags
-              tags_relations {
-                name
-                slug
-              }
-              readingTime
-          }
-      }
-  `
-
-	const data = await GraphQLRequest<{ post?: Post }>(QUERY, { slug: slug })
-	const { posts } = await GraphQLRequest<{ posts: Post[] }>(POSTS_QUERY)
 	const githubPosts = await loadPostsFromGithub()
-	let allPosts = [...posts, ...githubPosts]
-	const otherPosts = allPosts.filter((post: any) => post.slug !== slug)
+	const otherPosts = githubPosts.filter((post: any) => post.slug !== slug)
 	const suggestedPosts = []
+
 	// suggest N random posts that are not the current post
 	for (
 		let i = 0;
-		i < Math.min(NUM_SUGGESTED_POSTS, allPosts.length - 1);
+		i < Math.min(NUM_SUGGESTED_POSTS, githubPosts.length - 1);
 		i++
 	) {
 		suggestedPosts.push(
@@ -307,69 +150,20 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		)
 	}
 
-	if (!data.post) {
-		// lookup should be done by the file name, not the `slug` parameter.
-		const githubPost = await getGithubPostBySlug(slug)
-		if (!githubPost) {
-			return {
-				notFound: true,
-			}
-		}
-		const mdxSource = await serialize(githubPost.richcontent.markdown)
-
+	const githubPost = await getGithubPostBySlug(slug, githubPosts)
+	if (!githubPost) {
 		return {
-			props: {
-				suggestedPosts,
-				source: mdxSource,
-				post: githubPost,
-			},
-			revalidate: 60 * 60, // Cache response for 1 hour (60 seconds * 60 minutes)
+			notFound: true,
 		}
 	}
 
-	const postSections: PostSection[] = []
-	let currentBlock: ElementNode[] = []
-	for (const r of data.post.richcontent.raw.children) {
-		let specialType: SectionType | undefined = undefined
-		for (const child of r.children) {
-			// update here to support other tags
-			if (child.text === SectionType.CallToAction) {
-				specialType = SectionType.CallToAction
-				break
-			}
-		}
-		switch (specialType) {
-			// update here to support other tags
-			case SectionType.CallToAction:
-				postSections.push({
-					nodes: currentBlock,
-					footer: 'BlogCallToAction',
-				})
-				currentBlock = []
-				break
-			default:
-				r.className = '.testing'
-				currentBlock.push(r)
-		}
-	}
-	if (currentBlock.length) {
-		postSections.push({
-			nodes: currentBlock,
-			footer: null,
-		})
-	}
-
-	if (!data.post.author?.profilePhoto?.url) {
-		throw new Error(
-			`missing required profile image for blog '${data.post.slug}', author: ${data.post.author?.profilePhoto?.url}.`,
-		)
-	}
+	const mdxSource = await serialize(githubPost.richcontent.markdown)
 
 	return {
 		props: {
 			suggestedPosts,
-			post: data.post,
-			postSections,
+			source: mdxSource,
+			post: githubPost,
 		},
 		revalidate: 60 * 60, // Cache response for 1 hour (60 seconds * 60 minutes)
 	}
@@ -378,53 +172,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 interface PostSection {
 	nodes: ElementNode[]
 	footer: string | null
-}
-
-// update here to support other tags
-enum SectionType {
-	CallToAction = '{{CALL_TO_ACTION}}',
-}
-
-const PostSection = ({ p }: { p: PostSection; idx: number }) => {
-	return (
-		<>
-			<RichText
-				content={{
-					children: p.nodes,
-				}}
-				renderers={{
-					code_block: ({ children }: { children: any }) => {
-						return (
-							<HighlightCodeBlock
-								language={'js'}
-								text={children?.props?.content[0].text}
-								showLineNumbers={false}
-							/>
-						)
-					},
-					h1: getBlogTypographyRenderer('h1'),
-					h2: getBlogTypographyRenderer('h2'),
-					h3: getBlogTypographyRenderer('h3'),
-					h4: getBlogTypographyRenderer('h4'),
-					h5: getBlogTypographyRenderer('h5'),
-					h6: getBlogTypographyRenderer('h6'),
-					p: getBlogTypographyRenderer('p'),
-					img: (props) => (
-						<div className={styles.blogImageContainer}>
-							<Image
-								src={props.src || ''}
-								alt={props.altText}
-								width={props.width}
-								height={props.height}
-							/>
-						</div>
-					),
-				}}
-			/>
-			{/*update to support new footer components*/}
-			{p.footer === 'BlogCallToAction' ? <BlogCallToAction /> : null}
-		</>
-	)
 }
 
 const PostPage = ({
@@ -455,12 +202,22 @@ const PostPage = ({
 	const singleTag =
 		post.tags_relations.length === 1 ? post.tags_relations[0] : undefined
 
+	const params = new URLSearchParams()
+	params.set('title', post.title || '')
+	params.set('fname', post.author?.firstName || '')
+	params.set('lname', post.author?.lastName || '')
+	params.set('role', post.author?.title || '')
+
+	const metaImageURL = `https://${
+		process.env.NEXT_PUBLIC_VERCEL_URL
+	}/api/og/blog/${post.slug}?${params.toString()}`
+
 	return (
 		<>
 			<Meta
 				title={post.metaTitle || post.title}
 				description={post.metaDescription || post.description}
-				absoluteImageUrl={`https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/og/blog/${post.slug}`}
+				absoluteImageUrl={metaImageURL}
 				canonical={`/blog/${post.slug}`}
 			/>
 			<BlogNavbar
@@ -559,10 +316,6 @@ const PostPage = ({
 							'text-start',
 						)}
 					>
-						{postSections &&
-							postSections?.map((p, idx) => (
-								<PostSection key={idx} idx={idx} p={p} />
-							))}
 						{source && (
 							<div className={classNames(styles.blogText)}>
 								<MDXRemote
