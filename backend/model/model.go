@@ -146,8 +146,11 @@ var Models = []interface{}{
 	&CommentFollower{},
 	&CommentSlackThread{},
 	&ErrorAlert{},
+	&ErrorAlertEvent{},
 	&SessionAlert{},
+	&SessionAlertEvent{},
 	&LogAlert{},
+	&LogAlertEvent{},
 	&Project{},
 	&RageClickEvent{},
 	&Workspace{},
@@ -155,7 +158,6 @@ var Models = []interface{}{
 	&WorkspaceInviteLink{},
 	&WorkspaceAccessRequest{},
 	&EnhancedUserDetails{},
-	&AlertEvent{},
 	&RegistrationData{},
 	&MetricGroup{},
 	&Metric{},
@@ -180,6 +182,7 @@ var Models = []interface{}{
 	&ErrorGroupAdminsView{},
 	&LogAdminsView{},
 	&ProjectFilterSettings{},
+	&ErrorGroupActivityLog{},
 }
 
 func init() {
@@ -356,11 +359,13 @@ type SetupEvent struct {
 	ProjectID int                  `gorm:"uniqueIndex:idx_project_id_type"`
 	Type      MarkBackendSetupType `gorm:"uniqueIndex:idx_project_id_type"`
 }
+
 type ProjectFilterSettings struct {
 	Model
-	Project                    *Project
-	ProjectID                  int
-	FilterSessionsWithoutError bool `gorm:"default:false"`
+	Project                           *Project
+	ProjectID                         int
+	FilterSessionsWithoutError        bool `gorm:"default:false"`
+	AutoResolveStaleErrorsDayInterval int  `gorm:"default:0"`
 }
 
 type HasSecret interface {
@@ -796,18 +801,18 @@ type MessagesObject struct {
 }
 
 type Metric struct {
-	CreatedAt     time.Time `json:"created_at" deep:"-" gorm:"index"`
+	CreatedAt     time.Time `json:"created_at" deep:"-"`
 	MetricGroupID int       `gorm:"index"`
-	Name          string    `gorm:"index;not null;"`
-	Value         float64   `gorm:"index"`
-	Category      string    `gorm:"index"`
+	Name          string
+	Value         float64
+	Category      string
 }
 
 type MetricGroup struct {
-	ID        int       `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
-	GroupName string    // index with session_id
-	SessionID int       // index with Name
-	ProjectID int       `gorm:"index;not null;"`
+	ID        int `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	GroupName string
+	SessionID int
+	ProjectID int
 	Metrics   []*Metric `gorm:"foreignKey:MetricGroupID;"`
 }
 
@@ -927,6 +932,23 @@ type ErrorGroup struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
 	Viewed         *bool   `json:"viewed"`
+}
+
+type ErrorGroupEventType string
+
+const (
+	ErrorGroupResolvedEvent ErrorGroupEventType = "ErrorGroupResolved"
+	ErrorGroupIgnoredEvent  ErrorGroupEventType = "ErrorGroupIgnored"
+	ErrorGroupOpenedEvent   ErrorGroupEventType = "ErrorGroupOpened"
+)
+
+type ErrorGroupActivityLog struct {
+	Model
+	ErrorGroupID int `gorm:"index"`
+	AdminID      int // when this is 0, it means the system generated the event
+	Admin        *Admin
+	EventType    ErrorGroupEventType
+	EventData    JSONB
 }
 
 type ErrorGroupAdminsView struct {
@@ -1125,14 +1147,6 @@ type IntegrationProjectMapping struct {
 	IntegrationType modelInputs.IntegrationType `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type"`
 	ProjectID       int                         `gorm:"uniqueIndex:idx_integration_project_mapping_project_id_integration_type"`
 	ExternalID      string
-}
-
-type AlertEvent struct {
-	Model
-	Type         string
-	ProjectID    int
-	AlertID      int
-	ErrorGroupID *int
 }
 
 type OAuthClientStore struct {
@@ -1703,7 +1717,22 @@ type ErrorAlert struct {
 	AlertIntegrations
 }
 
+type ErrorAlertEvent struct {
+	ID            int64 `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	ErrorAlertID  int   `gorm:"index:idx_error_alert_event"`
+	ErrorObjectID int   `gorm:"index:idx_error_alert_event"`
+	SentAt        time.Time
+}
+
 func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
+	defer func() {
+		db.Create(&ErrorAlertEvent{
+			ErrorAlertID:  obj.ID,
+			ErrorObjectID: input.ErrorObject.ID,
+			SentAt:        time.Now(),
+		})
+	}()
+
 	if err := obj.sendSlackAlert(ctx, db, obj.ID, input); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -1807,7 +1836,22 @@ type SessionAlert struct {
 	AlertIntegrations
 }
 
+type SessionAlertEvent struct {
+	ID              int64  `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	SessionAlertID  int    `gorm:"index:idx_session_alert_event"`
+	SessionSecureID string `gorm:"index:idx_session_alert_event"`
+	SentAt          time.Time
+}
+
 func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
+	defer func() {
+		db.Create(&SessionAlertEvent{
+			SessionAlertID:  obj.ID,
+			SessionSecureID: input.SessionSecureID,
+			SentAt:          time.Now(),
+		})
+	}()
+
 	if err := obj.sendSlackAlert(ctx, db, obj.ID, input); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -1885,6 +1929,15 @@ type LogAlert struct {
 	AlertIntegrations
 }
 
+type LogAlertEvent struct {
+	ID         int64     `gorm:"primary_key;type:bigserial" json:"id" deep:"-"`
+	LogAlertID int       `gorm:"index:idx_log_alert_event"`
+	Query      string    `gorm:"index:idx_log_alert_event"`
+	StartDate  time.Time `gorm:"index:idx_log_alert_event"`
+	EndDate    time.Time `gorm:"index:idx_log_alert_event"`
+	SentAt     time.Time
+}
+
 func GetLogAlertURL(projectId int, query string, startDate time.Time, endDate time.Time) string {
 	queryStr := url.QueryEscape(query)
 	startDateStr := url.QueryEscape(startDate.Format("2006-01-02T15:04:05.000Z"))
@@ -1892,44 +1945,6 @@ func GetLogAlertURL(projectId int, query string, startDate time.Time, endDate ti
 	frontendURL := os.Getenv("FRONTEND_URI")
 	return fmt.Sprintf("%s/%d/logs?query=%s&start_date=%s&end_date=%s", frontendURL,
 		projectId, queryStr, startDateStr, endDateStr)
-}
-
-func (obj *LogAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
-	if err := obj.sendSlackAlert(ctx, db, obj.ID, input); err != nil {
-		log.WithContext(ctx).Error(err)
-	}
-
-	emailsToNotify, err := GetEmailsToNotify(obj.EmailsToNotify)
-	if err != nil {
-		log.WithContext(ctx).Error(err)
-	}
-
-	frontendURL := os.Getenv("FRONTEND_URI")
-	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
-	alertType := ""
-	message := ""
-	subjectLine := ""
-	identifier := input.UserIdentifier
-	if val, ok := input.UserObject["email"].(string); ok && len(val) > 0 {
-		identifier = val
-	}
-	if val, ok := input.UserObject["highlightDisplayName"].(string); ok && len(val) > 0 {
-		identifier = val
-	}
-	if identifier == "" {
-		identifier = "Someone"
-	}
-
-	alertType = "Log Alert"
-	message = fmt.Sprintf("<b>%s</b> logs .<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
-	subjectLine = fmt.Sprintf("%s just started a new session", identifier)
-
-	for _, email := range emailsToNotify {
-		if err := Email.SendAlertEmail(ctx, mailClient, *email, message, alertType, subjectLine); err != nil {
-			log.WithContext(ctx).Error(err)
-
-		}
-	}
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
@@ -2389,7 +2404,16 @@ type SendSlackAlertForLogAlertInput struct {
 	EndDate   time.Time
 }
 
-func (obj *LogAlert) SendSlackAlert(ctx context.Context, input *SendSlackAlertForLogAlertInput) error {
+func (obj *LogAlert) SendSlackAlert(ctx context.Context, db *gorm.DB, input *SendSlackAlertForLogAlertInput) error {
+	defer func() {
+		db.Create(&LogAlertEvent{
+			LogAlertID: obj.ID,
+			Query:      obj.Query,
+			StartDate:  input.StartDate,
+			EndDate:    input.EndDate,
+			SentAt:     time.Now(),
+		})
+	}()
 	if obj == nil {
 		return e.New("log alert needs to be defined.")
 	}
@@ -2563,7 +2587,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 			suffix += fmt.Sprintf("%s=%s", k, v)
 		}
 	}
-	sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s|View Thread>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
+	sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s|View>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
 	identifier := input.UserIdentifier
@@ -2582,7 +2606,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 			obj.Type = &AlertType.NEW_USER
 		}
 	}
-	alertEvent := &AlertEvent{Type: *obj.Type, ProjectID: obj.ProjectID, AlertID: alertID}
 	switch *obj.Type {
 	case AlertType.ERROR:
 		shortEvent := input.Group.Event
@@ -2592,7 +2615,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		errorLink := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 		// construct Slack message
 		previewText = fmt.Sprintf("Highlight: Error Alert: %s", shortEvent)
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/|View Thread>", *input.ErrorsCount, shortEvent, errorLink), false, false)
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/|View>", *input.ErrorsCount, shortEvent, errorLink), false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+identifier, false, false))
 		if input.URL != nil && *input.URL != "" {
 			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*input.URL, false, false))
@@ -2647,7 +2670,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 				Blocks: slack.Blocks{BlockSet: blockSet},
 			},
 		}
-		alertEvent.ErrorGroupID = &input.Group.ID
 	case AlertType.NEW_USER:
 		// construct Slack message
 		previewText = "Highlight: New User Alert"
@@ -2798,9 +2820,6 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 				} else {
 					log.WithContext(ctx).Error("couldn't send slack alert, slack client isn't setup AND not webhook channel")
 					return
-				}
-				if err := db.Create(alertEvent).Error; err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "error creating alert event"))
 				}
 			}()
 		}

@@ -10,8 +10,6 @@ import (
 	"strings"
 	"testing"
 
-	model2 "github.com/highlight-run/highlight/backend/model"
-
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
@@ -90,22 +88,12 @@ func TestHandler_HandleTrace(t *testing.T) {
 	}
 	h.HandleTrace(w, r)
 
-	assert.Equal(t, 5, len(producer.messages), fmt.Sprintf("%+v", producer.messages))
+	assert.Equal(t, 3, len(producer.messages), fmt.Sprintf("%+v", producer.messages))
 
 	_, ok := lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
 		return message.Type == kafkaqueue.PushBackendPayload
 	})
 	assert.Truef(t, ok, "did not find a PushBackendPayload message")
-
-	_, ok = lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
-		return message.Type == kafkaqueue.MarkBackendSetup && message.MarkBackendSetup.Type == model2.MarkBackendSetupTypeError
-	})
-	assert.Truef(t, ok, "did not find a MarkBackendSetup error message")
-
-	_, ok = lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
-		return message.Type == kafkaqueue.MarkBackendSetup && message.MarkBackendSetup.Type == model2.MarkBackendSetupTypeLogs
-	})
-	assert.Truef(t, ok, "did not find a MarkBackendSetup logs message")
 
 	_, ok = lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
 		return message.Type == kafkaqueue.PushLogs

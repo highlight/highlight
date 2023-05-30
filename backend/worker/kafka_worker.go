@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 
 	"encoding/binary"
@@ -16,6 +15,7 @@ import (
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -86,8 +86,6 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	defer s.Finish()
 
 	var logRows []*clickhouse.LogRow
-	setupProjectIDs := make(map[int]map[model.MarkBackendSetupType]bool)
-	setupSessionIDs := make(map[string]map[model.MarkBackendSetupType]bool)
 
 	var received int
 	var lastMsg *kafkaqueue.Message
@@ -99,21 +97,6 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 				case kafkaqueue.PushLogs:
 					logRows = append(logRows, lastMsg.PushLogs.LogRows...)
 					received += len(lastMsg.PushLogs.LogRows)
-				case kafkaqueue.MarkBackendSetup:
-					if lastMsg.MarkBackendSetup.ProjectID != 0 {
-						if _, ok := setupProjectIDs[lastMsg.MarkBackendSetup.ProjectID]; !ok {
-							setupProjectIDs[lastMsg.MarkBackendSetup.ProjectID] = make(map[model.MarkBackendSetupType]bool)
-						}
-						setupProjectIDs[lastMsg.MarkBackendSetup.ProjectID][lastMsg.MarkBackendSetup.Type] = true
-					} else if lastMsg.MarkBackendSetup.SessionSecureID != nil {
-						if _, ok := setupSessionIDs[*lastMsg.MarkBackendSetup.SessionSecureID]; !ok {
-							setupSessionIDs[*lastMsg.MarkBackendSetup.SessionSecureID] = make(map[model.MarkBackendSetupType]bool)
-						}
-						setupSessionIDs[*lastMsg.MarkBackendSetup.SessionSecureID][lastMsg.MarkBackendSetup.Type] = true
-					} else {
-						log.WithContext(ctx).Errorf("invalid MarkBackendSetup message %+v", lastMsg.MarkBackendSetup)
-					}
-					received += 1
 				}
 				if received >= BatchFlushSize {
 					return
@@ -210,9 +193,14 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 
 	spanW.Finish()
 
-	// Filter out any log rows for projects where the log quota has been exceeded
+	var markBackendSetupProjectIds []uint32
 	var filteredRows []*clickhouse.LogRow
 	for _, logRow := range logRows {
+		if logRow.Source == privateModel.LogSourceBackend {
+			markBackendSetupProjectIds = append(markBackendSetupProjectIds, logRow.ProjectId)
+		}
+
+		// Filter out any log rows for projects where the log quota has been exceeded
 		if quotaExceededByProject[logRow.ProjectId] {
 			continue
 		}
@@ -221,6 +209,13 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 
 	wSpan, wCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.process"))
 	wSpan.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
+	wSpan.SetTag("NumProjects", len(workspaceByProject))
+	for projectId := range markBackendSetupProjectIds {
+		err := k.Worker.PublicResolver.MarkBackendSetupImpl(wCtx, int(projectId), model.MarkBackendSetupTypeLogs)
+		if err != nil {
+			log.WithContext(wCtx).WithError(err).Error("failed to mark backend logs setup")
+		}
+	}
 
 	span, ctxT := tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.clickhouse"))
 	span.SetTag("NumLogRows", len(logRows))
@@ -231,28 +226,6 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 		log.WithContext(ctxT).WithError(err).Error("failed to batch write to clickhouse")
 	}
 	span.Finish(tracer.WithError(err))
-
-	span, ctxT = tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.markBackend"))
-	span.SetTag("NumProjectRows", len(setupProjectIDs))
-	span.SetTag("NumSessionRows", len(setupSessionIDs))
-	for projectID, types := range setupProjectIDs {
-		for t := range types {
-			err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctxT, nil, nil, projectID, t)
-			if err != nil {
-				log.WithContext(ctxT).WithError(err).Errorf("failed to batch mark backend setup for project %d", projectID)
-			}
-		}
-	}
-	for sessionID, types := range setupSessionIDs {
-		for t := range types {
-			err := k.Worker.PublicResolver.MarkBackendSetupImpl(ctxT, nil, pointy.String(sessionID), 0, t)
-			if err != nil {
-				log.WithContext(ctxT).WithError(err).Errorf("failed to batch mark backend setup for session %s", sessionID)
-			}
-		}
-	}
-	span.Finish()
-
 	wSpan.Finish()
 
 	if lastMsg != nil {

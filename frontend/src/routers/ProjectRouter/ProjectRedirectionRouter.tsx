@@ -34,6 +34,7 @@ export const ProjectRedirectionRouter = () => {
 	if (data?.projects?.length) {
 		redirectTo = `/${data!.projects[0]!.id}${location.pathname}`
 	} else {
+		debugger
 		redirectTo = '/new'
 	}
 

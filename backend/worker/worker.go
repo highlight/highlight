@@ -369,14 +369,6 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
-	case kafkaqueue.MarkBackendSetup:
-		if task.MarkBackendSetup == nil {
-			break
-		}
-		if err := w.PublicResolver.MarkBackendSetupImpl(ctx, task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SessionSecureID, task.MarkBackendSetup.ProjectID, task.MarkBackendSetup.Type); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
 	case kafkaqueue.AddSessionFeedback:
 		if task.AddSessionFeedback == nil {
 			break
@@ -517,6 +509,12 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 		}
 		deleteSpan.Finish()
 	}
+}
+
+// Autoresolves error groups that have not had any recent instances
+func (w *Worker) AutoResolveStaleErrors(ctx context.Context) {
+	autoResolver := NewAutoResolver(w.PublicResolver.Store, w.PublicResolver.DB)
+	autoResolver.AutoResolveStaleErrors(ctx)
 }
 
 func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason backend.SessionExcludedReason) error {
@@ -1391,6 +1389,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 		return w.DeleteCompletedSessions
 	case "public-worker":
 		return w.PublicWorker
+	case "auto-resolve-stale-errors":
+		return w.AutoResolveStaleErrors
 	default:
 		log.WithContext(ctx).Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil
