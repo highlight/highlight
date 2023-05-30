@@ -6,14 +6,16 @@ import '../styles/nprogress.css'
 import '../styles/public.css'
 
 import type { AppProps } from 'next/app'
-import Head from 'next/head'
-import { useEffect } from 'react'
-import { SSRProvider } from 'react-aria'
-import { Meta } from '../components/common/Head/Meta'
+import Script from 'next/script'
 import MetaImage from '../public/images/meta-image.jpg'
-import { rudderInitialize } from '../scripts/rudder-initialize'
-import { setAttributionData } from '../utils/attribution'
+import Head from 'next/head'
+import { Meta } from '../components/common/Head/Meta'
 export { reportWebVitals } from 'next-axiom'
+import { H } from 'highlight.run'
+import { useEffect } from 'react'
+import { rudderInitialize } from '../scripts/rudder-initialize'
+import { SSRProvider } from 'react-aria'
+import { setAttributionData } from '../utils/attribution'
 
 Router.events.on('routeChangeStart', nProgress.start)
 Router.events.on('routeChangeError', nProgress.done)
@@ -25,13 +27,13 @@ Router.events.on('routeChangeComplete', () => {
 	nProgress.done()
 })
 
-// H.init('4d7k1xeo', {
-// 	networkRecording: {
-// 		enabled: true,
-// 		recordHeadersAndBody: true,
-// 	},
-// 	tracingOrigins: true,
-// })
+H.init('4d7k1xeo', {
+	networkRecording: {
+		enabled: true,
+		recordHeadersAndBody: true,
+	},
+	tracingOrigins: true,
+})
 
 function MyApp({ Component, pageProps }: AppProps) {
 	useEffect(() => {
