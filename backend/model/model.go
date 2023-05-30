@@ -295,7 +295,6 @@ type WorkspaceInviteLink struct {
 	InviteeRole    *string
 	ExpirationDate *time.Time
 	Secret         *string
-	CreatedAt      time.Time
 }
 
 type WorkspaceAccessRequest struct {
