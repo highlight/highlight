@@ -1,4 +1,3 @@
-import { GenerateSecureID } from '@highlight-run/client'
 import Cookies from 'js-cookie'
 
 interface Referrer {
@@ -15,14 +14,11 @@ interface Referrer {
 	documentReferrer: string
 }
 
-// Same as what we have in frontend. Need to keep these in sync.
 export const setAttributionData = () => {
-	let clientID = window.localStorage.getItem('highlightClientID')
-
-	if (!clientID) {
-		clientID = GenerateSecureID()
-		window.localStorage.setItem('highlightClientID', clientID)
-	}
+	const cryptoRandom = new Uint32Array(32)
+	window.crypto.getRandomValues(cryptoRandom)
+	const decoder = new TextDecoder('utf8')
+	let clientID = btoa(decoder.decode(cryptoRandom))
 	let referrer: Referrer = {
 		clientID,
 		documentReferrer: document.referrer,
