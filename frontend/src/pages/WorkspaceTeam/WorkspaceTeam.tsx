@@ -6,6 +6,7 @@ import { Badge, Box, IconSolidUserAdd, Stack } from '@highlight-run/ui'
 import AllMembers from '@pages/WorkspaceTeam/components/AllMembers'
 import AutoJoinForm from '@pages/WorkspaceTeam/components/AutoJoinForm'
 import InviteMemberModal from '@pages/WorkspaceTeam/components/InviteMemberModal'
+import { PendingInvites } from '@pages/WorkspaceTeam/components/PendingInvites'
 import { Authorization } from '@util/authorization/authorization'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
@@ -29,36 +30,6 @@ const WorkspaceTeam = () => {
 	const navigate = useNavigate()
 	const [showModal, toggleShowModal] = useToggle(false)
 
-	const TabContentContainer = ({ children }: { children: any }) => (
-		<Box mt="8">
-			<Stack
-				mb="8"
-				align="center"
-				justify="space-between"
-				direction="row"
-			>
-				<h4 className={styles.tabTitle}>
-					{determineTitle(member_tab_key)}
-				</h4>
-				<InviteMemberModal
-					workspaceId={workspace_id}
-					workspaceName={data?.workspace?.name}
-					workspaceInviteLinks={data?.workspace_invite_links}
-					showModal={showModal}
-					toggleShowModal={toggleShowModal}
-				/>
-				<Button
-					trackingId="WorkspaceTeamInviteMember"
-					iconLeft={<IconSolidUserAdd />}
-					onClick={toggleShowModal}
-				>
-					Invite users
-				</Button>
-			</Stack>
-			{children}
-		</Box>
-	)
-
 	if (error) {
 		return <div>{JSON.stringify(error)}</div>
 	}
@@ -75,6 +46,13 @@ const WorkspaceTeam = () => {
 					<Authorization allowedRoles={[AdminRole.Admin]}>
 						<AutoJoinForm label="Auto join" labelFirst />
 					</Authorization>
+					<InviteMemberModal
+						workspaceId={workspace_id}
+						workspaceName={data?.workspace?.name}
+						workspaceInviteLinks={data?.workspace_invite_links}
+						showModal={showModal}
+						toggleShowModal={toggleShowModal}
+					/>
 				</div>
 				<Tabs
 					animated={false}
@@ -92,7 +70,10 @@ const WorkspaceTeam = () => {
 							key: 'members',
 							title: <TabTitle label="Members" />,
 							panelContent: (
-								<TabContentContainer>
+								<TabContentContainer
+									title="All members"
+									toggleInviteModal={toggleShowModal}
+								>
 									<AllMembers
 										workspaceId={workspace_id}
 										admins={
@@ -110,8 +91,15 @@ const WorkspaceTeam = () => {
 								<TabTitle label="Pending invites (coming soon)" />
 							),
 							panelContent: (
-								<TabContentContainer>
-									Coming soon
+								<TabContentContainer
+									title="Pending invites"
+									toggleInviteModal={toggleShowModal}
+								>
+									<PendingInvites
+										workspaceId={workspace_id}
+										active={member_tab_key === 'invites'}
+										shouldRefetchData={!showModal}
+									/>
 								</TabContentContainer>
 							),
 							disabled: true,
@@ -123,13 +111,35 @@ const WorkspaceTeam = () => {
 	)
 }
 
-const determineTitle = (key: MemberKeyType) => {
-	switch (key) {
-		case 'members':
-			return 'All members'
-		case 'invites':
-			return 'Pending invites'
-	}
+const TabContentContainer = ({
+	children,
+	title,
+	toggleInviteModal,
+}: {
+	children: any
+	title: string
+	toggleInviteModal: any
+}) => {
+	return (
+		<Box mt="8">
+			<Stack
+				mb="8"
+				align="center"
+				justify="space-between"
+				direction="row"
+			>
+				<h4 className={styles.tabTitle}>{title}</h4>
+				<Button
+					trackingId="WorkspaceTeamInviteMember"
+					iconLeft={<IconSolidUserAdd />}
+					onClick={toggleInviteModal}
+				>
+					Invite users
+				</Button>
+			</Stack>
+			{children}
+		</Box>
+	)
 }
 
 type TabTitleProps = {

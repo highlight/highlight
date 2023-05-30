@@ -1,0 +1,26 @@
+.inviteCard {
+	align-items: center;
+	column-gap: var(--size-small);
+	display: flex;
+	flex-direction: row;
+}
+
+.inviteCardWrapper {
+	margin-right: var(--size-xxLarge) !important;
+	max-width: 700px;
+	width: 100%;
+}
+
+.inviteTime {
+	color: var(--color-gray-500);
+	font-size: 13px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.role {
+	color: var(--color-gray-500);
+	font-size: 13px;
+	justify-content: flex-end;
+}

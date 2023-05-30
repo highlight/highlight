@@ -4363,6 +4363,21 @@ export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetWorkspacePendingInvitesQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetWorkspacePendingInvitesQuery = { __typename?: 'Query' } & {
+	workspacePendingInvites: Array<
+		Types.Maybe<
+			{ __typename?: 'WorkspaceInviteLink' } & Pick<
+				Types.WorkspaceInviteLink,
+				'id' | 'invitee_email' | 'invitee_role' | 'created_at'
+			>
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4492,6 +4507,7 @@ export const namedOperations = {
 		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
 		GetProjectFilterSettings: 'GetProjectFilterSettings' as const,
 		GetProjectSettings: 'GetProjectSettings' as const,
+		GetWorkspacePendingInvites: 'GetWorkspacePendingInvites' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,

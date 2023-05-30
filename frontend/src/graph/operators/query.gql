@@ -2088,3 +2088,12 @@ query GetProjectSettings($projectId: ID!) {
 		filterSessionsWithoutError
 	}
 }
+
+query GetWorkspacePendingInvites($workspace_id: ID!) {
+	workspacePendingInvites(workspace_id: $workspace_id) {
+		id
+		invitee_email
+		invitee_role
+		created_at
+	}
+}

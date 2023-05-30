@@ -12881,3 +12881,62 @@ export type GetProjectSettingsQueryResult = Apollo.QueryResult<
 	Types.GetProjectSettingsQuery,
 	Types.GetProjectSettingsQueryVariables
 >
+export const GetWorkspacePendingInvitesDocument = gql`
+	query GetWorkspacePendingInvites($workspace_id: ID!) {
+		workspacePendingInvites(workspace_id: $workspace_id) {
+			id
+			invitee_email
+			invitee_role
+			created_at
+		}
+	}
+`
+
+/**
+ * __useGetWorkspacePendingInvitesQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspacePendingInvitesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspacePendingInvitesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspacePendingInvitesQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetWorkspacePendingInvitesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspacePendingInvitesQuery,
+		Types.GetWorkspacePendingInvitesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspacePendingInvitesQuery,
+		Types.GetWorkspacePendingInvitesQueryVariables
+	>(GetWorkspacePendingInvitesDocument, baseOptions)
+}
+export function useGetWorkspacePendingInvitesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspacePendingInvitesQuery,
+		Types.GetWorkspacePendingInvitesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspacePendingInvitesQuery,
+		Types.GetWorkspacePendingInvitesQueryVariables
+	>(GetWorkspacePendingInvitesDocument, baseOptions)
+}
+export type GetWorkspacePendingInvitesQueryHookResult = ReturnType<
+	typeof useGetWorkspacePendingInvitesQuery
+>
+export type GetWorkspacePendingInvitesLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspacePendingInvitesLazyQuery
+>
+export type GetWorkspacePendingInvitesQueryResult = Apollo.QueryResult<
+	Types.GetWorkspacePendingInvitesQuery,
+	Types.GetWorkspacePendingInvitesQueryVariables
+>
