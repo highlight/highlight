@@ -6788,12 +6788,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.WorkspaceInviteLinks(childComplexity, args["workspace_id"].(int)), true
 
-	case "Query.workspace_pending_invites":
+	case "Query.workspacePendingInvites":
 		if e.complexity.Query.WorkspacePendingInvites == nil {
 			break
 		}
 
-		args, err := ec.field_Query_workspace_pending_invites_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_workspacePendingInvites_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
@@ -10105,7 +10105,7 @@ type Query {
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
-	workspace_pending_invites(workspace_id: ID!): [WorkspaceInviteLink]!
+	workspacePendingInvites(workspace_id: ID!): [WorkspaceInviteLink]!
 	workspace_for_project(project_id: ID!): Workspace
 	admin: Admin
 	admin_role(workspace_id: ID!): WorkspaceAdminRole
@@ -15982,6 +15982,21 @@ func (ec *executionContext) field_Query_web_vitals_args(ctx context.Context, raw
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_workspacePendingInvites_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["workspace_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["workspace_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_workspaceSuggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -16073,21 +16088,6 @@ func (ec *executionContext) field_Query_workspace_for_project_args(ctx context.C
 }
 
 func (ec *executionContext) field_Query_workspace_invite_links_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["workspace_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("workspace_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["workspace_id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_workspace_pending_invites_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -46305,8 +46305,8 @@ func (ec *executionContext) fieldContext_Query_workspace_invite_links(ctx contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_workspace_pending_invites(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_workspace_pending_invites(ctx, field)
+func (ec *executionContext) _Query_workspacePendingInvites(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_workspacePendingInvites(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -46335,7 +46335,7 @@ func (ec *executionContext) _Query_workspace_pending_invites(ctx context.Context
 	return ec.marshalNWorkspaceInviteLink2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐWorkspaceInviteLink(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_workspace_pending_invites(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_workspacePendingInvites(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -46366,7 +46366,7 @@ func (ec *executionContext) fieldContext_Query_workspace_pending_invites(ctx con
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_workspace_pending_invites_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_workspacePendingInvites_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -68824,7 +68824,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "workspace_pending_invites":
+		case "workspacePendingInvites":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -68833,7 +68833,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_workspace_pending_invites(ctx, field)
+				res = ec._Query_workspacePendingInvites(ctx, field)
 				return res
 			}
 
