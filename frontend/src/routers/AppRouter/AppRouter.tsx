@@ -75,16 +75,18 @@ export const AppRouter = () => {
 	const [projectListData, setProjectListData] =
 		useState<GetProjectDropdownOptionsQuery>()
 
-	const { data: projectDropdownData } = useGetProjectDropdownOptionsQuery({
-		variables: { project_id: projectId! },
-		skip: !isLoggedIn || !projectId,
+	const { data: projectDropdownData, loading: projectDropdownDataLoading } =
+		useGetProjectDropdownOptionsQuery({
+			variables: { project_id: projectId! },
+			skip: !isLoggedIn || !projectId,
+		})
+	const {
+		data: workspaceDropdownData,
+		loading: workspaceDropdownDataLoading,
+	} = useGetWorkspaceDropdownOptionsQuery({
+		variables: { workspace_id: workspaceId ?? '' },
+		skip: !isLoggedIn || !workspaceId,
 	})
-	const { data: workspaceDropdownData } = useGetWorkspaceDropdownOptionsQuery(
-		{
-			variables: { workspace_id: workspaceId ?? '' },
-			skip: !isLoggedIn || !workspaceId,
-		},
-	)
 
 	useEffect(() => {
 		if (projectDropdownData) {
@@ -177,6 +179,9 @@ export const AppRouter = () => {
 		<Box height="screen" width="screen">
 			<ApplicationContextProvider
 				value={{
+					loading:
+						projectDropdownDataLoading ||
+						workspaceDropdownDataLoading,
 					currentProject: projectListData?.project ?? undefined,
 					allProjects:
 						(projectListData?.workspace?.projects ||
@@ -324,7 +329,6 @@ export const AppRouter = () => {
 								projectId === DEMO_PROJECT_ID) ? (
 								<ProjectRouter />
 							) : isLoggedIn ? (
-								// TODO: Need to ensure we don't get here during sign up/in flows
 								<ProjectRedirectionRouter />
 							) : (
 								<AuthRouter />

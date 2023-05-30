@@ -179,6 +179,7 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 	return (
 		<ApplicationContextProvider
 			value={{
+				loading: false,
 				currentProject: undefined,
 				allProjects: data?.projects || [],
 				currentWorkspace: undefined,
@@ -405,6 +406,7 @@ const IntegrationAuthCallbackPage = () => {
 		return (
 			<ApplicationContextProvider
 				value={{
+					loading: false,
 					currentProject: undefined,
 					allProjects: [],
 					currentWorkspace: workspaceId

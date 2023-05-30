@@ -5,6 +5,7 @@ import { createContext } from '@util/context/context'
  * Provides data about the current application and all applications the admin has access to.
  */
 interface ApplicationContext {
+	loading: boolean
 	currentProject?: Project
 	allProjects: Maybe<
 		Maybe<
