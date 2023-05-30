@@ -1,5 +1,20 @@
 import Cookies from 'js-cookie'
 
+const GenerateSecureID = (): string => {
+	const ID_LENGTH = 28
+	const CHARACTER_SET =
+		'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+
+	const cryptoRandom = new Uint32Array(ID_LENGTH)
+	window.crypto.getRandomValues(cryptoRandom)
+
+	let secureID = ''
+	cryptoRandom.forEach((b) => {
+		secureID += CHARACTER_SET.charAt(b % CHARACTER_SET.length)
+	})
+	return secureID
+}
+
 interface Referrer {
 	clientID: string
 	utm_source?: string | null
@@ -15,10 +30,11 @@ interface Referrer {
 }
 
 export const setAttributionData = () => {
-	const cryptoRandom = new Uint32Array(32)
-	window.crypto.getRandomValues(cryptoRandom)
-	const decoder = new TextDecoder('utf8')
-	let clientID = btoa(decoder.decode(cryptoRandom))
+	let clientID = window.localStorage.getItem('highlightClientID')
+	if (!clientID) {
+		clientID = GenerateSecureID()
+		window.localStorage.setItem('highlightClientID', clientID)
+	}
 	let referrer: Referrer = {
 		clientID,
 		documentReferrer: document.referrer,
