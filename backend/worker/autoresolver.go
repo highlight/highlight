@@ -60,6 +60,7 @@ func (autoResolver *AutoResolver) resolveStaleErrorsForProject(ctx context.Conte
 		Where("created_at >= ?", time.Now().AddDate(0, 0, -interval))
 
 	err := db.Debug().
+		Select("DISTINCT(error_groups.id), error_groups.project_id").
 		Where(model.ErrorGroup{
 			State:     privateModel.ErrorStateOpen,
 			ProjectID: project.ID,
