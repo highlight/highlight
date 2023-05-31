@@ -918,7 +918,6 @@ export type Mutation = {
 	deleteSessions: Scalars['Boolean']
 	editErrorSegment?: Maybe<Scalars['Boolean']>
 	editProject?: Maybe<Project>
-	editProjectFilterSettings?: Maybe<ProjectFilterSettings>
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
 	editWorkspace?: Maybe<Workspace>
@@ -1193,11 +1192,6 @@ export type MutationEditProjectArgs = {
 	rage_click_count?: InputMaybe<Scalars['Int']>
 	rage_click_radius_pixels?: InputMaybe<Scalars['Int']>
 	rage_click_window_seconds?: InputMaybe<Scalars['Int']>
-}
-
-export type MutationEditProjectFilterSettingsArgs = {
-	filterSessionsWithoutError: Scalars['Boolean']
-	projectId: Scalars['ID']
 }
 
 export type MutationEditProjectSettingsArgs = {
@@ -1564,12 +1558,6 @@ export type Project = {
 	workspace_id: Scalars['ID']
 }
 
-export type ProjectFilterSettings = {
-	__typename?: 'ProjectFilterSettings'
-	filterSessionsWithoutError: Scalars['Boolean']
-	id: Scalars['ID']
-}
-
 export type Query = {
 	__typename?: 'Query'
 	account_details: AccountDetails
@@ -1658,7 +1646,6 @@ export type Query = {
 	new_user_alerts?: Maybe<Array<Maybe<SessionAlert>>>
 	oauth_client_metadata?: Maybe<OAuthClient>
 	project?: Maybe<Project>
-	projectFilterSettings?: Maybe<ProjectFilterSettings>
 	projectHasViewedASession?: Maybe<Session>
 	projectSettings?: Maybe<AllProjectSettings>
 	projectSuggestion: Array<Maybe<Project>>
@@ -2091,10 +2078,6 @@ export type QueryOauth_Client_MetadataArgs = {
 
 export type QueryProjectArgs = {
 	id: Scalars['ID']
-}
-
-export type QueryProjectFilterSettingsArgs = {
-	projectId: Scalars['ID']
 }
 
 export type QueryProjectHasViewedASessionArgs = {

@@ -661,7 +661,6 @@ type ComplexityRoot struct {
 		DeleteSessions                   func(childComplexity int, projectID int, query string, sessionCount int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput, name string) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) int
-		EditProjectFilterSettings        func(childComplexity int, projectID int, filterSessionsWithoutError bool) int
 		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput, name string) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
@@ -754,11 +753,6 @@ type ComplexityRoot struct {
 		WorkspaceID            func(childComplexity int) int
 	}
 
-	ProjectFilterSettings struct {
-		FilterSessionsWithoutError func(childComplexity int) int
-		ID                         func(childComplexity int) int
-	}
-
 	Query struct {
 		APIKeyToOrgID                func(childComplexity int, apiKey string) int
 		AccountDetails               func(childComplexity int, workspaceID int) int
@@ -846,7 +840,6 @@ type ComplexityRoot struct {
 		NewUsersCount                func(childComplexity int, projectID int, lookBackPeriod int) int
 		OauthClientMetadata          func(childComplexity int, clientID string) int
 		Project                      func(childComplexity int, id int) int
-		ProjectFilterSettings        func(childComplexity int, projectID int) int
 		ProjectHasViewedASession     func(childComplexity int, projectID int) int
 		ProjectSettings              func(childComplexity int, projectID int) int
 		ProjectSuggestion            func(childComplexity int, query string) int
@@ -1285,7 +1278,6 @@ type MutationResolver interface {
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model1.Workspace, error)
 	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) (*model1.Project, error)
-	EditProjectFilterSettings(ctx context.Context, projectID int, filterSessionsWithoutError bool) (*model1.ProjectFilterSettings, error)
 	EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool) (*model.AllProjectSettings, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model1.ErrorGroup, error)
@@ -1454,7 +1446,6 @@ type QueryResolver interface {
 	GithubRepos(ctx context.Context, workspaceID int) ([]*model.GitHubRepo, error)
 	GithubIssueLabels(ctx context.Context, workspaceID int, repository string) ([]string, error)
 	Project(ctx context.Context, id int) (*model1.Project, error)
-	ProjectFilterSettings(ctx context.Context, projectID int) (*model1.ProjectFilterSettings, error)
 	ProjectSettings(ctx context.Context, projectID int) (*model.AllProjectSettings, error)
 	Workspace(ctx context.Context, id int) (*model1.Workspace, error)
 	WorkspaceForInviteLink(ctx context.Context, secret string) (*model.WorkspaceForInviteLink, error)
@@ -4504,18 +4495,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.EditProject(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["backend_domains"].(pq.StringArray), args["filter_chrome_extension"].(*bool)), true
 
-	case "Mutation.editProjectFilterSettings":
-		if e.complexity.Mutation.EditProjectFilterSettings == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_editProjectFilterSettings_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.EditProjectFilterSettings(childComplexity, args["projectId"].(int), args["filterSessionsWithoutError"].(bool)), true
-
 	case "Mutation.editProjectSettings":
 		if e.complexity.Mutation.EditProjectSettings == nil {
 			break
@@ -5229,20 +5208,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.WorkspaceID(childComplexity), true
-
-	case "ProjectFilterSettings.filterSessionsWithoutError":
-		if e.complexity.ProjectFilterSettings.FilterSessionsWithoutError == nil {
-			break
-		}
-
-		return e.complexity.ProjectFilterSettings.FilterSessionsWithoutError(childComplexity), true
-
-	case "ProjectFilterSettings.id":
-		if e.complexity.ProjectFilterSettings.ID == nil {
-			break
-		}
-
-		return e.complexity.ProjectFilterSettings.ID(childComplexity), true
 
 	case "Query.api_key_to_org_id":
 		if e.complexity.Query.APIKeyToOrgID == nil {
@@ -6255,18 +6220,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Project(childComplexity, args["id"].(int)), true
-
-	case "Query.projectFilterSettings":
-		if e.complexity.Query.ProjectFilterSettings == nil {
-			break
-		}
-
-		args, err := ec.field_Query_projectFilterSettings_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ProjectFilterSettings(childComplexity, args["projectId"].(int)), true
 
 	case "Query.projectHasViewedASession":
 		if e.complexity.Query.ProjectHasViewedASession == nil {
@@ -8869,11 +8822,6 @@ type Project {
 	filter_chrome_extension: Boolean
 }
 
-type ProjectFilterSettings {
-	id: ID!
-	filterSessionsWithoutError: Boolean!
-}
-
 type AllProjectSettings {
 	id: ID!
 	verbose_id: String!
@@ -10086,7 +10034,6 @@ type Query {
 	github_repos(workspace_id: ID!): [GitHubRepo!]
 	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
-	projectFilterSettings(projectId: ID!): ProjectFilterSettings
 	projectSettings(projectId: ID!): AllProjectSettings
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
@@ -10172,10 +10119,6 @@ type Mutation {
 		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 	): Project
-	editProjectFilterSettings(
-		projectId: ID!
-		filterSessionsWithoutError: Boolean!
-	): ProjectFilterSettings
 	editProjectSettings(
 		projectId: ID!
 		name: String
@@ -11830,30 +11773,6 @@ func (ec *executionContext) field_Mutation_editErrorSegment_args(ctx context.Con
 		}
 	}
 	args["name"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_editProjectFilterSettings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["projectId"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectId"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["projectId"] = arg0
-	var arg1 bool
-	if tmp, ok := rawArgs["filterSessionsWithoutError"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("filterSessionsWithoutError"))
-		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["filterSessionsWithoutError"] = arg1
 	return args, nil
 }
 
@@ -15232,21 +15151,6 @@ func (ec *executionContext) field_Query_oauth_client_metadata_args(ctx context.C
 		}
 	}
 	args["client_id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_projectFilterSettings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["projectId"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectId"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["projectId"] = arg0
 	return args, nil
 }
 
@@ -32959,63 +32863,6 @@ func (ec *executionContext) fieldContext_Mutation_editProject(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_editProjectFilterSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_editProjectFilterSettings(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditProjectFilterSettings(rctx, fc.Args["projectId"].(int), fc.Args["filterSessionsWithoutError"].(bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.ProjectFilterSettings)
-	fc.Result = res
-	return ec.marshalOProjectFilterSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐProjectFilterSettings(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_editProjectFilterSettings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ProjectFilterSettings_id(ctx, field)
-			case "filterSessionsWithoutError":
-				return ec.fieldContext_ProjectFilterSettings_filterSessionsWithoutError(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ProjectFilterSettings", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_editProjectFilterSettings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Mutation_editProjectSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_editProjectSettings(ctx, field)
 	if err != nil {
@@ -39104,94 +38951,6 @@ func (ec *executionContext) _Project_filter_chrome_extension(ctx context.Context
 func (ec *executionContext) fieldContext_Project_filter_chrome_extension(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Project",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ProjectFilterSettings_id(ctx context.Context, field graphql.CollectedField, obj *model1.ProjectFilterSettings) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ProjectFilterSettings_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ProjectFilterSettings_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ProjectFilterSettings",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ProjectFilterSettings_filterSessionsWithoutError(ctx context.Context, field graphql.CollectedField, obj *model1.ProjectFilterSettings) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ProjectFilterSettings_filterSessionsWithoutError(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.FilterSessionsWithoutError, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ProjectFilterSettings_filterSessionsWithoutError(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ProjectFilterSettings",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -45835,63 +45594,6 @@ func (ec *executionContext) fieldContext_Query_project(ctx context.Context, fiel
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_project_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Query_projectFilterSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_projectFilterSettings(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ProjectFilterSettings(rctx, fc.Args["projectId"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.ProjectFilterSettings)
-	fc.Result = res
-	return ec.marshalOProjectFilterSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐProjectFilterSettings(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_projectFilterSettings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_ProjectFilterSettings_id(ctx, field)
-			case "filterSessionsWithoutError":
-				return ec.fieldContext_ProjectFilterSettings_filterSessionsWithoutError(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ProjectFilterSettings", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_projectFilterSettings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -65901,12 +65603,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_editProject(ctx, field)
 			})
 
-		case "editProjectFilterSettings":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_editProjectFilterSettings(ctx, field)
-			})
-
 		case "editProjectSettings":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -66621,41 +66317,6 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Project_filter_chrome_extension(ctx, field, obj)
 
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var projectFilterSettingsImplementors = []string{"ProjectFilterSettings"}
-
-func (ec *executionContext) _ProjectFilterSettings(ctx context.Context, sel ast.SelectionSet, obj *model1.ProjectFilterSettings) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, projectFilterSettingsImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ProjectFilterSettings")
-		case "id":
-
-			out.Values[i] = ec._ProjectFilterSettings_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "filterSessionsWithoutError":
-
-			out.Values[i] = ec._ProjectFilterSettings_filterSessionsWithoutError(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -68615,26 +68276,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_project(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "projectFilterSettings":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_projectFilterSettings(ctx, field)
 				return res
 			}
 
@@ -77670,13 +77311,6 @@ func (ec *executionContext) marshalOProject2ᚖgithubᚗcomᚋhighlightᚑrunᚋ
 		return graphql.Null
 	}
 	return ec._Project(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOProjectFilterSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐProjectFilterSettings(ctx context.Context, sel ast.SelectionSet, v *model1.ProjectFilterSettings) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ProjectFilterSettings(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOReferrerTablePayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐReferrerTablePayload(ctx context.Context, sel ast.SelectionSet, v *model.ReferrerTablePayload) graphql.Marshaler {

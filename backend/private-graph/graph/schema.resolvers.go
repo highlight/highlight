@@ -584,20 +584,6 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 	return project, nil
 }
 
-// EditProjectFilterSettings is the resolver for the editProjectFilterSettings field.
-func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projectID int, filterSessionsWithoutError bool) (*model.ProjectFilterSettings, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	updatedProjectFilterSettings, err := r.Store.UpdateProjectFilterSettings(*project, model.ProjectFilterSettings{
-		FilterSessionsWithoutError: filterSessionsWithoutError,
-	})
-
-	return &updatedProjectFilterSettings, err
-}
-
 // EditProjectSettings is the resolver for the editProjectSettings field.
 func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool) (*modelInputs.AllProjectSettings, error) {
 	project, err := r.EditProject(ctx, projectID, name, billingEmail, excludedUsers, errorFilters, errorJSONPaths, rageClickWindowSeconds, rageClickRadiusPixels, rageClickCount, backendDomains, filterChromeExtension)
@@ -620,7 +606,9 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 	}
 
 	if filterSessionsWithoutError != nil {
-		projectFilterSettings, err := r.EditProjectFilterSettings(ctx, projectID, *filterSessionsWithoutError)
+		projectFilterSettings, err := r.Store.UpdateProjectFilterSettings(*project, model.ProjectFilterSettings{
+			FilterSessionsWithoutError: *filterSessionsWithoutError,
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -6331,18 +6319,6 @@ func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, er
 	return project, nil
 }
 
-// ProjectFilterSettings is the resolver for the project_filter_settings field.
-func (r *queryResolver) ProjectFilterSettings(ctx context.Context, projectID int) (*model.ProjectFilterSettings, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	projectFilterSettings, err := r.Store.GetProjectFilterSettings(*project)
-
-	return &projectFilterSettings, err
-}
-
 // ProjectSettings is the resolver for the projectSettings field.
 func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*modelInputs.AllProjectSettings, error) {
 	project, err := r.Project(ctx, projectID)
@@ -6350,7 +6326,7 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 		return nil, err
 	}
 
-	projectFilterSettings, err := r.ProjectFilterSettings(ctx, projectID)
+	projectFilterSettings, err := r.Store.GetProjectFilterSettings(*project)
 	if err != nil {
 		return nil, err
 	}
