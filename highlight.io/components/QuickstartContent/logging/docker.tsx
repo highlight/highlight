@@ -1,10 +1,9 @@
 import { QuickStartContent } from '../QuickstartContent'
-import { curlExample, verifyLogs } from './shared-snippets'
+import { verifyLogs } from './shared-snippets'
 
 export const DockerContent: QuickStartContent = {
 	title: 'Docker',
-	subtitle:
-		'Export your docker logs to highlight using the fluentd log driver.',
+	subtitle: 'Ship docker logs to highlight using the fluentd log driver.',
 	entries: [
 		{
 			title: 'Setup the fluentd log driver.',
@@ -16,7 +15,7 @@ export const DockerContent: QuickStartContent = {
 			},
 		},
 		{
-			title: 'Setup the fluentd log driver in a docker compose.',
+			title: 'Setup the fluentd log driver in docker compose.',
 			content:
 				'Use the following syntax if you are using [docker compose](https://docs.docker.com/config/containers/logging/configure/).',
 			code: {

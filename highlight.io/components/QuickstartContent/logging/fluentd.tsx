@@ -1,10 +1,10 @@
 import { QuickStartContent } from '../QuickstartContent'
-import { curlExample, verifyLogs } from './shared-snippets'
+import { verifyLogs } from './shared-snippets'
 
 export const FluentForwardContent: QuickStartContent = {
 	title: 'FluentForward',
 	subtitle:
-		'Set up highlight.io log ingestion via FluentForward (fluentd / fluentbit protocol).',
+		'Set up highlight.io log ingestion via Fluent Forward (fluentd / fluentbit protocol).',
 	entries: [
 		{
 			title: 'Setup fluentd / fluent bit ingest.',

@@ -1,10 +1,10 @@
 import { QuickStartContent } from '../QuickstartContent'
-import { curlExample, verifyLogs } from './shared-snippets'
+import { verifyLogs } from './shared-snippets'
 
 export const FileContent: QuickStartContent = {
-	title: 'File',
+	title: 'Logging from a file',
 	subtitle:
-		'Set up highlight.io log ingestion for any log file using an OpenTelemetry collector with the filelog receiver.',
+		'Set up log ingestion using an OpenTelemetry collector with the filelog receiver.',
 	entries: [
 		{
 			title: 'Define your OpenTelemetry configuration.',

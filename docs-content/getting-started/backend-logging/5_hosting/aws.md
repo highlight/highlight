@@ -6,11 +6,15 @@ updatedAt: 2022-04-06T20:22:54.000Z
 ---
 
 Deploying your application or infrastructure in AWS? Stream your logs to highlight to see everything in one place.
+Most AWS Services support streaming logs via Fluent Forward though the exact configuration will differ.
+Read the [AWS documentation here](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-setup-logs-FluentBit.html) to learn more.
+
+Check out the following examples of setting up logs streaming in these services:
 
 ## AWS ECS Containers
 
-To stream your container logs to highlight from an ECS Fargate container, run a fluent-bit agent alongside
-that will accept aws firelens logs and stream them to highlight via the [FluentForward](https://docs.fluentbit.io/manual/pipeline/outputs/forward/) protocol.
+To stream your container logs to highlight from an ECS Fargate container, we recommend running a fluent-bit agent alongside the container
+to stream logs to highlight (which accepts AWS FireLens logs via the [Fluent Forward](https://docs.fluentbit.io/manual/pipeline/outputs/forward/ protocol)).
 
 Here's a sample task definition (based on the [AWS docs](https://github.com/aws-samples/amazon-ecs-firelens-examples/tree/mainline/examples/fluent-bit/ecs-log-collection)) containing a dummy app container and a fluent-bit agent configured alongside.
 
