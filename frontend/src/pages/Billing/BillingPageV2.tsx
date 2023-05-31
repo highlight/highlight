@@ -353,7 +353,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						<Text size="small" weight="medium">
 							Prices are usage based and flexible with your needs.
 							Need a custom quote or want to commit to a minimum
-							spend?{' '}
+							spend (at a discount)?{' '}
 							<a href="mailto:sales@highlight.run">
 								<Box display="inline-flex" alignItems="center">
 									Reach out to sales <IconSolidArrowSmRight />
