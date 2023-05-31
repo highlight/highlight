@@ -30,6 +30,27 @@ import Collapsible from 'react-collapsible'
 import { Section } from '../../components/common/Section/Section'
 import { CompaniesReel } from '../../components/Home/CompaniesReel/CompaniesReel'
 
+const OverageLink = ({
+	children,
+	className,
+}: React.PropsWithChildren<{ className?: string }>) => {
+	return (
+		<a
+			href="#overage"
+			onClick={(e) => {
+				e.preventDefault()
+				document.querySelector('#overage')?.scrollIntoView({
+					behavior: 'smooth',
+				})
+				window.history.pushState({}, '', `#overage`)
+			}}
+			className={className}
+		>
+			{children}
+		</a>
+	)
+}
+
 const PricingPage: NextPage = () => {
 	return (
 		<div>
@@ -46,7 +67,9 @@ const PricingPage: NextPage = () => {
 					</h1>
 					<Typography type="copy1" onDark>
 						Fair and transparent pricing that scales with any
-						organization.
+						organization. <br />
+						If usage goes beyond the included monthly quota, your{' '}
+						<OverageLink>usage rate</OverageLink> kicks in.
 					</Typography>
 				</div>
 				<PlanTable />
@@ -62,9 +85,9 @@ const PricingPage: NextPage = () => {
 						</span>
 					</h2>
 					<Typography type="copy1" onDark className="max-w-4xl">
-						Each of our plans comes with a pre-defined usage quota,
-						and if you exceed that quota, we charge an additional
-						fee. For custom plans,{' '}
+						After reaching the free tier limits, we charge an
+						additional usage-based fee for each product. For custom
+						plans,{' '}
 						<a href="mailto:sales@highlight.io">reach out to us</a>.
 					</Typography>
 				</div>
@@ -260,17 +283,13 @@ const priceTiers: Record<TierName, PricingTier> = {
 
 const PlanTable = () => {
 	return (
-		<div className="flex flex-col items-center max-w-full gap-6 mx-auto mt-16">
+		<div className="flex flex-col-reverse items-center w-full gap-6 mx-auto mt-16">
 			{/* Pricing */}
-			<div className="grid items-stretch max-w-[600px] w-full grid-cols-1 sm:grid-cols-2 min-[1190px]:grid-flow-col gap-7">
+			<div className="flex flex-col-reverse items-stretch max-w-[600px] w-full sm:flex-row gap-7">
 				{Object.entries(priceTiers).map(([name, tier]) => (
 					<PlanTier name={name} tier={tier} key={name} />
 				))}
 			</div>
-			<Typography type="copy1" onDark className="text-center my-9">
-				If usage goes beyond the included monthly quota, your{' '}
-				<a href="#overage">usage rate</a> kicks in.
-			</Typography>
 			<div className="flex-shrink w-48" />
 		</div>
 	)
@@ -311,12 +330,9 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 					<Typography type="copy3" emphasis>
 						Included
 					</Typography>
-					<a
-						href="#overage"
-						className="text-white transition-colors hover:text-blue-cta"
-					>
+					<OverageLink className="text-white transition-colors hover:text-blue-cta">
 						<InformationCircleIcon className="inline w-5 h-5" />
-					</a>
+					</OverageLink>
 				</div>
 				<Typography type="copy3">
 					{formatNumber(sessions)} monthly sessions
@@ -337,12 +353,22 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 					Start free trial
 				</PrimaryButton>
 				{isMostPopular && (
-					<PrimaryButton
-						href="#overage"
-						className="flex justify-center border border-copy-on-light text-copy-on-dark bg-transparent"
+					<div
+						onClick={(e) => {
+							e.preventDefault()
+							document.querySelector('#overage')?.scrollIntoView({
+								behavior: 'smooth',
+							})
+							window.history.pushState({}, '', `#overage`)
+						}}
 					>
-						Calculate Usage
-					</PrimaryButton>
+						<PrimaryButton
+							href="#overage"
+							className="flex justify-center border border-copy-on-light text-copy-on-dark bg-transparent"
+						>
+							Calculate Usage
+						</PrimaryButton>
+					</div>
 				)}
 			</div>
 		</div>
