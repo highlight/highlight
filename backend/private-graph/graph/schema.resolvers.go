@@ -934,7 +934,7 @@ func (r *mutationResolver) DeleteInviteLinkFromWorkspace(ctx context.Context, wo
 	}
 
 	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
-		return false, e.Wrap(err, "A non-Admin role Admin tried changing an admin role.")
+		return false, e.Wrap(err, "a non-Admin role Admin tried deleting an invite.")
 	}
 
 	result := r.DB.Where("id = ?", workspaceInviteLinkID).Where("workspace_id = ?", workspaceID).Delete(&model.WorkspaceInviteLink{})
