@@ -10225,7 +10225,7 @@ type Mutation {
 	): String
 	addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
 	deleteInviteLinkFromWorkspace(
-		workspace_id: ID!,
+		workspace_id: ID!
 		workspace_invite_link_id: ID!
 	): Boolean!
 	joinWorkspace(workspace_id: ID!): ID
