@@ -21,12 +21,14 @@ func TestUpdateProjectFilterSettings(t *testing.T) {
 		})
 		assert.NoError(t, err)
 		assert.True(t, updatedSettings.FilterSessionsWithoutError)
+		assert.Equal(t, updatedSettings.ProjectID, project.ID)
 
 		updatedSettings, err = store.UpdateProjectFilterSettings(project, UpdateProjectFilterSettingsParams{
 			FilterSessionsWithoutError: ptr.Bool(false),
 		})
 		assert.NoError(t, err)
 		assert.False(t, updatedSettings.FilterSessionsWithoutError)
+		assert.Equal(t, updatedSettings.ProjectID, project.ID)
 
 	})
 }

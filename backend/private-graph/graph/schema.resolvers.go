@@ -605,15 +605,13 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 		RageClickCount:         &project.RageClickCount,
 	}
 
-	if filterSessionsWithoutError != nil {
-		projectFilterSettings, err := r.Store.UpdateProjectFilterSettings(*project, model.ProjectFilterSettings{
-			FilterSessionsWithoutError: *filterSessionsWithoutError,
-		})
-		if err != nil {
-			return nil, err
-		}
-		allProjectSettings.FilterSessionsWithoutError = projectFilterSettings.FilterSessionsWithoutError
+	projectFilterSettings, err := r.Store.UpdateProjectFilterSettings(*project, store.UpdateProjectFilterSettingsParams{
+		FilterSessionsWithoutError: filterSessionsWithoutError,
+	})
+	if err != nil {
+		return nil, err
 	}
+	allProjectSettings.FilterSessionsWithoutError = projectFilterSettings.FilterSessionsWithoutError
 
 	return &allProjectSettings, nil
 }

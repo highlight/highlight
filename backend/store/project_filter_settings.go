@@ -18,7 +18,9 @@ type UpdateProjectFilterSettingsParams struct {
 }
 
 func (store *Store) UpdateProjectFilterSettings(project model.Project, updates UpdateProjectFilterSettingsParams) (model.ProjectFilterSettings, error) {
-	projectFilterSettings := model.ProjectFilterSettings{}
+	projectFilterSettings := model.ProjectFilterSettings{
+		ProjectID: project.ID,
+	}
 
 	if updates.AutoResolveStaleErrorsDayInterval != nil {
 		projectFilterSettings.AutoResolveStaleErrorsDayInterval = *updates.AutoResolveStaleErrorsDayInterval
@@ -28,9 +30,7 @@ func (store *Store) UpdateProjectFilterSettings(project model.Project, updates U
 		projectFilterSettings.FilterSessionsWithoutError = *updates.FilterSessionsWithoutError
 	}
 
-	result := store.db.Where(model.ProjectFilterSettings{
-		ProjectID: project.ID,
-	}).Save(&projectFilterSettings)
+	result := store.db.Save(&projectFilterSettings)
 
 	return projectFilterSettings, result.Error
 }
