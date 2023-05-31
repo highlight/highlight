@@ -11,24 +11,41 @@ import (
 	_ "gorm.io/driver/postgres"
 )
 
+func TestGetProjectFilterSettings(t *testing.T) {
+	util.RunTestWithDBWipe(t, "GetProjectFilterSettings", store.db, func(t *testing.T) {
+		project := model.Project{}
+		store.db.Create(&project)
+
+		originalSettings, err := store.GetProjectFilterSettings(project)
+		assert.NoError(t, err)
+		assert.NotNil(t, originalSettings.ID)
+
+		settings, err := store.GetProjectFilterSettings(project)
+		assert.NoError(t, err)
+		assert.Equal(t, settings.ID, originalSettings.ID)
+
+	})
+}
+
 func TestUpdateProjectFilterSettings(t *testing.T) {
 	util.RunTestWithDBWipe(t, "UpdateProjectFilterSettings", store.db, func(t *testing.T) {
 		project := model.Project{}
 		store.db.Create(&project)
 
-		updatedSettings, err := store.UpdateProjectFilterSettings(project, UpdateProjectFilterSettingsParams{
+		originalSettings, err := store.UpdateProjectFilterSettings(project, UpdateProjectFilterSettingsParams{
 			FilterSessionsWithoutError: ptr.Bool(true),
 		})
 		assert.NoError(t, err)
-		assert.True(t, updatedSettings.FilterSessionsWithoutError)
-		assert.Equal(t, updatedSettings.ProjectID, project.ID)
+		assert.True(t, originalSettings.FilterSessionsWithoutError)
+		assert.Equal(t, originalSettings.ProjectID, project.ID)
 
-		updatedSettings, err = store.UpdateProjectFilterSettings(project, UpdateProjectFilterSettingsParams{
+		updatedSettings, err := store.UpdateProjectFilterSettings(project, UpdateProjectFilterSettingsParams{
 			FilterSessionsWithoutError: ptr.Bool(false),
 		})
 		assert.NoError(t, err)
 		assert.False(t, updatedSettings.FilterSessionsWithoutError)
 		assert.Equal(t, updatedSettings.ProjectID, project.ID)
+		assert.Equal(t, originalSettings.ID, updatedSettings.ID)
 
 	})
 }

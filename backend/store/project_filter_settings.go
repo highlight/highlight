@@ -18,8 +18,12 @@ type UpdateProjectFilterSettingsParams struct {
 }
 
 func (store *Store) UpdateProjectFilterSettings(project model.Project, updates UpdateProjectFilterSettingsParams) (model.ProjectFilterSettings, error) {
-	projectFilterSettings := model.ProjectFilterSettings{
-		ProjectID: project.ID,
+	var projectFilterSettings model.ProjectFilterSettings
+
+	projectFilterSettings, err := store.GetProjectFilterSettings(project)
+
+	if err != nil {
+		return projectFilterSettings, err
 	}
 
 	if updates.AutoResolveStaleErrorsDayInterval != nil {
