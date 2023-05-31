@@ -270,3 +270,109 @@ func TestMutationResolver_ChangeAdminRole(t *testing.T) {
 		})
 	}
 }
+
+// ensure that invites are only deleted by valid users
+func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
+	tests := map[string]struct {
+		currentAdminEmail string
+		currentAdminRole  string
+		sameWorkspace     bool
+		errorExpected     bool
+		deletionExpected  bool
+	}{
+		"member deleting an invite": {
+			currentAdminEmail: "foo@bar.com",
+			currentAdminRole:  "MEMBER",
+			sameWorkspace:     true,
+			errorExpected:     true,
+			deletionExpected:  false,
+		},
+		"admin deleting an invite in a different workspace": {
+			currentAdminEmail: "boo@bar.com",
+			currentAdminRole:  "ADMIN",
+			sameWorkspace:     false,
+			errorExpected:     false,
+			deletionExpected:  false,
+		},
+		"admin deleting an invite in a their workspace": {
+			currentAdminEmail: "zoo@bar.com",
+			currentAdminRole:  "ADMIN",
+			sameWorkspace:     true,
+			errorExpected:     false,
+			deletionExpected:  true,
+		},
+	}
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, "Test DeleteInviteLinkFromWorkspace", DB, func(t *testing.T) {
+			// inserting the data
+			workspace := model.Workspace{
+				Name: ptr.String("test1"),
+			}
+
+			if err := DB.Create(&workspace).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			currentAdmin := model.Admin{
+				Model:         model.Model{ID: 1},
+				UID:           ptr.String("a1b2c3"),
+				Name:          ptr.String("adm1"),
+				PhotoURL:      ptr.String("asdf"),
+				EmailVerified: ptr.Bool(true),
+				Email:         ptr.String(v.currentAdminEmail),
+			}
+
+			if err := DB.Create(&currentAdmin).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting admin"))
+			}
+
+			workspaceAdmin := model.WorkspaceAdmin{
+				AdminID:     currentAdmin.ID,
+				WorkspaceID: workspace.ID,
+				Role:        ptr.String(v.currentAdminRole),
+			}
+
+			if err := DB.Create(&workspaceAdmin).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace admin"))
+			}
+
+			var updatedWorkspace model.Workspace
+			if v.sameWorkspace {
+				updatedWorkspace = workspace
+			} else {
+				updatedWorkspace = model.Workspace{
+					Name: ptr.String("test2"),
+				}
+
+				if err := DB.Create(&updatedWorkspace).Error; err != nil {
+					t.Fatal(e.Wrap(err, "error inserting workspace"))
+				}
+			}
+
+			// create invite
+			inviteLink := model.WorkspaceInviteLink{
+				WorkspaceID:  ptr.Int(updatedWorkspace.ID),
+				InviteeEmail: ptr.String("bam@bar.com"),
+				InviteeRole:  ptr.String("Member"),
+				Secret:       ptr.String("asdf"),
+			}
+
+			if err := DB.Create(&inviteLink).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace invite link"))
+			}
+
+			// test logic
+			ctx := context.Background()
+			ctx = context.WithValue(ctx, model.ContextKeys.UID, *currentAdmin.UID)
+			r := &mutationResolver{Resolver: &Resolver{DB: DB, HubspotApi: &HubspotMock{}, PrivateWorkerPool: workerpool.New(1)}}
+
+			response, err := r.DeleteInviteLinkFromWorkspace(ctx, workspace.ID, inviteLink.ID)
+			if v.errorExpected != (err != nil) {
+				t.Fatalf("error result invalid, expected? %t but saw %s", v.errorExpected, err)
+			}
+			if v.deletionExpected != response {
+				t.Fatalf("deletion result invalid, expected? %t but saw %t", v.deletionExpected, response)
+			}
+		})
+	}
+}

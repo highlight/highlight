@@ -933,11 +933,16 @@ func (r *mutationResolver) DeleteInviteLinkFromWorkspace(ctx context.Context, wo
 		return false, e.Wrap(err, "current admin is not in workspace")
 	}
 
-	if err := r.DB.Delete(&model.WorkspaceInviteLink{Model: model.Model{ID: workspaceInviteLinkID}, WorkspaceID: &workspaceID}).Error; err != nil {
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
+		return false, e.Wrap(err, "A non-Admin role Admin tried changing an admin role.")
+	}
+
+	result := r.DB.Where("id = ?", workspaceInviteLinkID).Where("workspace_id = ?", workspaceID).Delete(&model.WorkspaceInviteLink{})
+	if result.Error != nil {
 		return false, e.Wrap(err, "error deleting workspace invite link")
 	}
 
-	return true, nil
+	return int(result.RowsAffected) > 0, nil
 }
 
 // JoinWorkspace is the resolver for the joinWorkspace field.
