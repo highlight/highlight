@@ -12,8 +12,8 @@ If you don't see one of your languages / frameworks below, reach out to us in ou
 
 
 <DocsCardGroup>
-    <DocsCard title="AWS ECS" href="./aws.md">
-        {"Set up logging in AWS ECS."}
+    <DocsCard title="AWS" href="./aws.md">
+        {"Set up logging in AWS."}
     </DocsCard>
     <DocsCard title="Vercel" href="./vercel.md">
         {"Set up logging in Vercel."}

@@ -7,7 +7,7 @@ updatedAt: 2022-04-06T20:22:54.000Z
 
 Deploying your application or infrastructure in Amazon Web Services (AWS)? Stream your logs to highlight to see everything in one place.
 Most AWS Services support streaming logs via Fluent Forward though the exact configuration will differ.
-Read the [AWS documentation here](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-setup-logs-FluentBit.html) to learn more.
+Read the [AWS documentation here](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/using_firelens.html) to learn more.
 
 Check out the following examples of setting up logs streaming in these services:
 
