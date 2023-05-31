@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/stretchr/testify/assert"
@@ -15,12 +16,18 @@ func TestUpdateProjectFilterSettings(t *testing.T) {
 		project := model.Project{}
 		store.db.Create(&project)
 
-		updatedSettings, err := store.UpdateProjectFilterSettings(project, model.ProjectFilterSettings{
-			FilterSessionsWithoutError: true,
+		updatedSettings, err := store.UpdateProjectFilterSettings(project, UpdateProjectFilterSettingsParams{
+			FilterSessionsWithoutError: ptr.Bool(true),
 		})
 		assert.NoError(t, err)
-
 		assert.True(t, updatedSettings.FilterSessionsWithoutError)
+
+		updatedSettings, err = store.UpdateProjectFilterSettings(project, UpdateProjectFilterSettingsParams{
+			FilterSessionsWithoutError: ptr.Bool(false),
+		})
+		assert.NoError(t, err)
+		assert.False(t, updatedSettings.FilterSessionsWithoutError)
+
 	})
 }
 
@@ -34,13 +41,13 @@ func TestFindProjectsWithAutoResolveSetting(t *testing.T) {
 
 		_, err := store.GetProjectFilterSettings(project1)
 		assert.NoError(t, err)
-		_, err = store.UpdateProjectFilterSettings(project1, model.ProjectFilterSettings{})
+		_, err = store.UpdateProjectFilterSettings(project1, UpdateProjectFilterSettingsParams{})
 		assert.NoError(t, err)
 
 		_, err = store.GetProjectFilterSettings(project2)
 		assert.NoError(t, err)
-		projectWithAutoResolveSetting, err := store.UpdateProjectFilterSettings(project1, model.ProjectFilterSettings{
-			AutoResolveStaleErrorsDayInterval: 1,
+		projectWithAutoResolveSetting, err := store.UpdateProjectFilterSettings(project1, UpdateProjectFilterSettingsParams{
+			AutoResolveStaleErrorsDayInterval: ptr.Int(1),
 		})
 		assert.NoError(t, err)
 

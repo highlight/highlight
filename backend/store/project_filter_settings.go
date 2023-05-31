@@ -12,12 +12,25 @@ func (store *Store) GetProjectFilterSettings(project model.Project) (model.Proje
 	return projectFilterSettings, result.Error
 }
 
-func (store *Store) UpdateProjectFilterSettings(project model.Project, updates model.ProjectFilterSettings) (model.ProjectFilterSettings, error) {
+type UpdateProjectFilterSettingsParams struct {
+	AutoResolveStaleErrorsDayInterval *int
+	FilterSessionsWithoutError        *bool
+}
+
+func (store *Store) UpdateProjectFilterSettings(project model.Project, updates UpdateProjectFilterSettingsParams) (model.ProjectFilterSettings, error) {
 	projectFilterSettings := model.ProjectFilterSettings{}
+
+	if updates.AutoResolveStaleErrorsDayInterval != nil {
+		projectFilterSettings.AutoResolveStaleErrorsDayInterval = *updates.AutoResolveStaleErrorsDayInterval
+	}
+
+	if updates.FilterSessionsWithoutError != nil {
+		projectFilterSettings.FilterSessionsWithoutError = *updates.FilterSessionsWithoutError
+	}
 
 	result := store.db.Where(model.ProjectFilterSettings{
 		ProjectID: project.ID,
-	}).Assign(updates).FirstOrCreate(&projectFilterSettings)
+	}).Save(&projectFilterSettings)
 
 	return projectFilterSettings, result.Error
 }
