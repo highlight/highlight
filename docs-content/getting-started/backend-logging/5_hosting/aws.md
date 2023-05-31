@@ -49,3 +49,7 @@ Here's a sample task definition (based on the [AWS docs](https://github.com/aws-
 }
 
 ```
+
+## AWS Kinesis Firehose for logs from infrastructure or other services
+
+Let's say you are running RDS Postgres or MSK Kafka services that are core infrastructure for your application, and you are interested in searching and browsing the logs. The best way to export such infrastructure logs is via [AWS Kinesis Firehose shipping to our HTTP logs endpoint](https://aws.amazon.com/blogs/big-data/stream-data-to-an-http-endpoint-with-amazon-kinesis-data-firehose/). Configure your Kinesis data stream to ship logs to HTTP https://pub.highlight.io/v1/logs/json, enabling GZIP content encoding and passing paramater `x-highlight-project` with your highlight project ID. If you have any questions with your setup, don't hesitate to [reach out](https://community.highlight.io)!
