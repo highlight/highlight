@@ -2,7 +2,7 @@ import { QuickStartContent } from '../QuickstartContent'
 import { verifyLogs } from './shared-snippets'
 
 export const DockerContent: QuickStartContent = {
-	title: 'Docker',
+	title: 'Logging in Docker or Docker Compose',
 	subtitle: 'Ship docker logs to highlight using the fluentd log driver.',
 	entries: [
 		{

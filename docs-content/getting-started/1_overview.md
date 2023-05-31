@@ -59,6 +59,8 @@ Highlight.io also supports reporting errors from your backend and mapping these 
 
 Highlight.io also supports logging from your backend and mapping these to corresponding errors and sessions. This gives you and your team a full picture of your application's state. Supported frameworks / languages below:
 
+### Application Logging
+
 <DocsCardGroup>
     <DocsCard title="Go" href="./backend-logging/1_go/1_overview.md">
         {"Get started with logging in Go"}
@@ -72,6 +74,11 @@ Highlight.io also supports logging from your backend and mapping these to corres
     <DocsCard title="Python" href="./backend-logging/3_python/1_overview.md">
         {"Get started with logging in Python"}
     </DocsCard>
+</DocsCardGroup>
+
+### Hosting Platform Logging
+
+<DocsCardGroup>
     <DocsCard title="Cloud" href="./backend-logging/5_hosting/1_overview.md">
         {"Log from your Cloud Hosting Environment"}
     </DocsCard>

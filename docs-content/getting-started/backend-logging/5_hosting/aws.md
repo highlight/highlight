@@ -1,11 +1,11 @@
 ---
-title: Amazon Web Services (AWS)
+title: Logging in AWS
 slug: aws
 createdAt: 2022-03-28T20:31:15.000Z
 updatedAt: 2022-04-06T20:22:54.000Z
 ---
 
-Deploying your application or infrastructure in AWS? Stream your logs to highlight to see everything in one place.
+Deploying your application or infrastructure in Amazon Web Services (AWS)? Stream your logs to highlight to see everything in one place.
 Most AWS Services support streaming logs via Fluent Forward though the exact configuration will differ.
 Read the [AWS documentation here](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-setup-logs-FluentBit.html) to learn more.
 
