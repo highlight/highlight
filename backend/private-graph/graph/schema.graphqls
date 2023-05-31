@@ -355,11 +355,6 @@ type Project {
 	filter_chrome_extension: Boolean
 }
 
-type ProjectFilterSettings {
-	id: ID!
-	filterSessionsWithoutError: Boolean!
-}
-
 type AllProjectSettings {
 	id: ID!
 	verbose_id: String!
@@ -376,6 +371,7 @@ type AllProjectSettings {
 	backend_domains: StringArray
 	filter_chrome_extension: Boolean
 	filterSessionsWithoutError: Boolean!
+	autoResolveStaleErrorsDayInterval: Int!
 }
 
 type Account {
@@ -1571,7 +1567,6 @@ type Query {
 	github_repos(workspace_id: ID!): [GitHubRepo!]
 	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
-	projectFilterSettings(projectId: ID!): ProjectFilterSettings
 	projectSettings(projectId: ID!): AllProjectSettings
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
@@ -1656,10 +1651,6 @@ type Mutation {
 		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 	): Project
-	editProjectFilterSettings(
-		projectId: ID!
-		filterSessionsWithoutError: Boolean!
-	): ProjectFilterSettings
 	editProjectSettings(
 		projectId: ID!
 		name: String
@@ -1673,6 +1664,7 @@ type Mutation {
 		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 		filterSessionsWithoutError: Boolean
+		autoResolveStaleErrorsDayInterval: Int
 	): AllProjectSettings
 	editWorkspace(id: ID!, name: String): Workspace
 	markErrorGroupAsViewed(

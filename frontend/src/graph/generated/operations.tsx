@@ -281,20 +281,6 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type EditProjectFilterSettingsMutationVariables = Types.Exact<{
-	projectId: Types.Scalars['ID']
-	filterSessionsWithoutError: Types.Scalars['Boolean']
-}>
-
-export type EditProjectFilterSettingsMutation = { __typename?: 'Mutation' } & {
-	editProjectFilterSettings?: Types.Maybe<
-		{ __typename?: 'ProjectFilterSettings' } & Pick<
-			Types.ProjectFilterSettings,
-			'id' | 'filterSessionsWithoutError'
-		>
-	>
-}
-
 export type EditProjectSettingsMutationVariables = Types.Exact<{
 	projectId: Types.Scalars['ID']
 	name?: Types.Maybe<Types.Scalars['String']>
@@ -308,6 +294,7 @@ export type EditProjectSettingsMutationVariables = Types.Exact<{
 	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
 	backend_domains?: Types.Maybe<Types.Scalars['StringArray']>
 	filterSessionsWithoutError?: Types.Maybe<Types.Scalars['Boolean']>
+	autoResolveStaleErrorsDayInterval?: Types.Maybe<Types.Scalars['Int']>
 }>
 
 export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
@@ -326,6 +313,7 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 			| 'rage_click_count'
 			| 'backend_domains'
 			| 'filterSessionsWithoutError'
+			| 'autoResolveStaleErrorsDayInterval'
 		>
 	>
 }
@@ -4359,6 +4347,7 @@ export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
 			| 'rage_click_count'
 			| 'backend_domains'
 			| 'filterSessionsWithoutError'
+			| 'autoResolveStaleErrorsDayInterval'
 		>
 	>
 }
@@ -4520,7 +4509,6 @@ export const namedOperations = {
 		CreateAdmin: 'CreateAdmin' as const,
 		CreateWorkspace: 'CreateWorkspace' as const,
 		EditProject: 'EditProject' as const,
-		EditProjectFilterSettings: 'EditProjectFilterSettings' as const,
 		EditProjectSettings: 'EditProjectSettings' as const,
 		DeleteProject: 'DeleteProject' as const,
 		EditWorkspace: 'EditWorkspace' as const,

@@ -1493,64 +1493,6 @@ export type EditProjectMutationOptions = Apollo.BaseMutationOptions<
 	Types.EditProjectMutation,
 	Types.EditProjectMutationVariables
 >
-export const EditProjectFilterSettingsDocument = gql`
-	mutation EditProjectFilterSettings(
-		$projectId: ID!
-		$filterSessionsWithoutError: Boolean!
-	) {
-		editProjectFilterSettings(
-			projectId: $projectId
-			filterSessionsWithoutError: $filterSessionsWithoutError
-		) {
-			id
-			filterSessionsWithoutError
-		}
-	}
-`
-export type EditProjectFilterSettingsMutationFn = Apollo.MutationFunction<
-	Types.EditProjectFilterSettingsMutation,
-	Types.EditProjectFilterSettingsMutationVariables
->
-
-/**
- * __useEditProjectFilterSettingsMutation__
- *
- * To run a mutation, you first call `useEditProjectFilterSettingsMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useEditProjectFilterSettingsMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [editProjectFilterSettingsMutation, { data, loading, error }] = useEditProjectFilterSettingsMutation({
- *   variables: {
- *      projectId: // value for 'projectId'
- *      filterSessionsWithoutError: // value for 'filterSessionsWithoutError'
- *   },
- * });
- */
-export function useEditProjectFilterSettingsMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.EditProjectFilterSettingsMutation,
-		Types.EditProjectFilterSettingsMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.EditProjectFilterSettingsMutation,
-		Types.EditProjectFilterSettingsMutationVariables
-	>(EditProjectFilterSettingsDocument, baseOptions)
-}
-export type EditProjectFilterSettingsMutationHookResult = ReturnType<
-	typeof useEditProjectFilterSettingsMutation
->
-export type EditProjectFilterSettingsMutationResult =
-	Apollo.MutationResult<Types.EditProjectFilterSettingsMutation>
-export type EditProjectFilterSettingsMutationOptions =
-	Apollo.BaseMutationOptions<
-		Types.EditProjectFilterSettingsMutation,
-		Types.EditProjectFilterSettingsMutationVariables
-	>
 export const EditProjectSettingsDocument = gql`
 	mutation EditProjectSettings(
 		$projectId: ID!
@@ -1565,6 +1507,7 @@ export const EditProjectSettingsDocument = gql`
 		$rage_click_count: Int
 		$backend_domains: StringArray
 		$filterSessionsWithoutError: Boolean
+		$autoResolveStaleErrorsDayInterval: Int
 	) {
 		editProjectSettings(
 			projectId: $projectId
@@ -1579,6 +1522,7 @@ export const EditProjectSettingsDocument = gql`
 			rage_click_count: $rage_click_count
 			backend_domains: $backend_domains
 			filterSessionsWithoutError: $filterSessionsWithoutError
+			autoResolveStaleErrorsDayInterval: $autoResolveStaleErrorsDayInterval
 		) {
 			id
 			name
@@ -1592,6 +1536,7 @@ export const EditProjectSettingsDocument = gql`
 			rage_click_count
 			backend_domains
 			filterSessionsWithoutError
+			autoResolveStaleErrorsDayInterval
 		}
 	}
 `
@@ -1625,6 +1570,7 @@ export type EditProjectSettingsMutationFn = Apollo.MutationFunction<
  *      rage_click_count: // value for 'rage_click_count'
  *      backend_domains: // value for 'backend_domains'
  *      filterSessionsWithoutError: // value for 'filterSessionsWithoutError'
+ *      autoResolveStaleErrorsDayInterval: // value for 'autoResolveStaleErrorsDayInterval'
  *   },
  * });
  */
@@ -12829,6 +12775,7 @@ export const GetProjectSettingsDocument = gql`
 			rage_click_count
 			backend_domains
 			filterSessionsWithoutError
+			autoResolveStaleErrorsDayInterval
 		}
 	}
 `
