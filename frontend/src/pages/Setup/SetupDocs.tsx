@@ -51,27 +51,28 @@ export const SetupDocs: React.FC<Props> = ({ projectVerboseId }) => {
 								defaultOpen
 							>
 								<ReactMarkdown>{entry.content}</ReactMarkdown>
-								{entry.code && (
+								{entry.code?.map((codeBlock) => (
 									<CodeBlock
-										language={entry.code.language}
+										key={codeBlock.key}
+										language={codeBlock.language}
 										onCopy={() => {
 											analytics.track(
 												'Copied Setup Code',
 												{
 													copied: 'script',
 													language:
-														entry.code?.language,
+														codeBlock.language,
 												},
 											)
 										}}
-										text={entry.code.text.replaceAll(
+										text={codeBlock.text.replaceAll(
 											'<YOUR_PROJECT_ID>',
 											projectVerboseId,
 										)}
 										className={clsx(styles.codeBlock)}
 										customStyle={{}} // removes unwanted bottom padding
 									/>
-								)}
+								))}
 							</Section>
 						)
 					})}

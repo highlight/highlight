@@ -39,6 +39,12 @@ npm install highlight.run @highlight-run/react`,
 yarn add highlight.run @highlight-run/react`,
 					language: 'bash',
 				},
+				{
+					key: 'pnpm',
+					text: `# with pnpm
+pnpm add highlight.run @highlight-run/react`,
+					language: 'bash',
+				},
 			],
 		},
 		initializeSnippet,

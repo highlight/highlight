@@ -53,6 +53,12 @@ yarn add @highlight-run/gatsby-plugin-highlight
     `,
 					language: 'bash',
 				},
+				{
+					key: 'pnpm',
+					text: `# with pnpm
+pnpm add @highlight-run/gatsby-plugin-highlight`,
+					language: 'bash',
+				},
 			],
 		},
 		initializePluginSnippet,

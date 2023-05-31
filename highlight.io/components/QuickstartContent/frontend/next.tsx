@@ -36,6 +36,14 @@ yarn add @highlight-run/next highlight.run @highlight-run/react
 				`,
 					language: 'bash',
 				},
+				{
+					key: 'pnpm',
+					text: `
+# with pnpm
+pnpm add @highlight-run/next highlight.run @highlight-run/react
+				`,
+					language: 'bash',
+				},
 			],
 		},
 		{

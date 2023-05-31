@@ -14,6 +14,12 @@ export const jsGetSnippet: (slugs: string[]) => QuickStartStep = (slugs) => {
 		content: `Install ${linkedPackages} with your package manager.`,
 		code: [
 			{
+				key: 'npm',
+				text: `# with npm
+npm install --save ${packages}`,
+				language: 'bash',
+			},
+			{
 				key: 'yarn',
 				text: `# with yarn
 yarn add ${packages}`,
@@ -23,12 +29,6 @@ yarn add ${packages}`,
 				key: 'pnpm',
 				text: `# with pnpm
 pnpm add ${packages}`,
-				language: 'bash',
-			},
-			{
-				key: 'npm',
-				text: `# with npm
-npm install --save ${packages}`,
 				language: 'bash',
 			},
 		],
