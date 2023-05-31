@@ -1,16 +1,6 @@
 {
 	"$schema": "https://turborepo.org/schema.json",
 	"pipeline": {
-		"@highlight-run/client#build": {
-			"inputs": [
-				"src",
-				"codegen.yml",
-				"package.json",
-				"tsconfig.json",
-				"vite.config.ts"
-			],
-			"outputs": ["dist"]
-		},
 		"highlight.run#typegen": {
 			"dependsOn": [
 				"@highlight-run/rrweb#build",
