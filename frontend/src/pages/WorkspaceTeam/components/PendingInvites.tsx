@@ -9,7 +9,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Box } from '@highlight-run/ui'
-import SvgTrashIcon from '@icons/TrashIcon'
+import SvgTrashIconSolid from '@icons/TrashIconSolid'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { titleCaseString } from '@util/string'
@@ -166,7 +166,7 @@ const TABLE_COLUMNS = [
 						trackingId="DeleteInvite"
 						iconButton
 					>
-						<SvgTrashIcon />
+						<SvgTrashIconSolid />
 					</Button>
 				</PopConfirm>
 			)

@@ -1,1 +1,1 @@
-var i={inviteCard:"_inviteCard_1cyr6_1",inviteCardWrapper:"_inviteCardWrapper_1cyr6_8",inviteTime:"_inviteTime_1cyr6_14",role:"_role_1cyr6_22",removeTeamMemberButton:"_removeTeamMemberButton_1cyr6_28"};export{i as default};
+var i={inviteCard:"_inviteCard_b35ac_1",inviteCardWrapper:"_inviteCardWrapper_b35ac_8",inviteTime:"_inviteTime_b35ac_14",role:"_role_b35ac_22",removeTeamMemberButton:"_removeTeamMemberButton_b35ac_28"};export{i as default};

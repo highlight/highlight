@@ -9,7 +9,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { AdminRole, WorkspaceAdminRole } from '@graph/schemas'
-import SvgTrashIcon from '@icons/TrashIcon'
+import SvgTrashIconSolid from '@icons/TrashIconSolid'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { getDisplayNameFromEmail, titleCaseString } from '@util/string'
@@ -208,7 +208,7 @@ const TABLE_COLUMNS = [
 						disabled={record?.isSameAdmin}
 						iconButton
 					>
-						<SvgTrashIcon />
+						<SvgTrashIconSolid />
 					</Button>
 				</PopConfirm>
 			)
