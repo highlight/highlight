@@ -1140,3 +1140,13 @@ mutation UpdateEmailOptOut(
 		is_opt_out: $is_opt_out
 	)
 }
+
+mutation DeleteInviteLinkFromWorkspace(
+	$workspace_id: ID!
+	$workspace_invite_link_id: ID!
+) {
+	deleteInviteLinkFromWorkspace(
+		workspace_id: $workspace_id
+		workspace_invite_link_id: $workspace_invite_link_id
+	)
+}

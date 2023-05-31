@@ -909,6 +909,7 @@ export type Mutation = {
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
 	deleteErrorSegment?: Maybe<Scalars['Boolean']>
+	deleteInviteLinkFromWorkspace: Scalars['Boolean']
 	deleteLogAlert?: Maybe<LogAlert>
 	deleteMetricMonitor?: Maybe<MetricMonitor>
 	deleteProject?: Maybe<Scalars['Boolean']>
@@ -1139,6 +1140,11 @@ export type MutationDeleteErrorCommentArgs = {
 
 export type MutationDeleteErrorSegmentArgs = {
 	segment_id: Scalars['ID']
+}
+
+export type MutationDeleteInviteLinkFromWorkspaceArgs = {
+	workspace_id: Scalars['ID']
+	workspace_invite_link_id: Scalars['ID']
 }
 
 export type MutationDeleteLogAlertArgs = {
