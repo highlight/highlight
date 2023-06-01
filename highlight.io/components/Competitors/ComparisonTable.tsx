@@ -89,6 +89,7 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 									<Image
 										src={highlightlogosmall}
 										alt="Logo"
+										height={32}
 										className="md:hidden"
 									/>
 								</div>
