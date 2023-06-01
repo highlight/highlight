@@ -7,7 +7,7 @@ import { QuickStartContent } from '../../QuickstartContent'
 import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
 
 export const JSOtherLogContent: QuickStartContent = {
-	title: 'JS',
+	title: 'Logging in a JS App',
 	subtitle:
 		'Learn how to set up highlight.io JS log ingestion without a logging library.',
 	logoUrl: siteUrl('/images/quickstart/javascript.svg'),
