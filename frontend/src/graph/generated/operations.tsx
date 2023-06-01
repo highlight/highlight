@@ -313,6 +313,7 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 			| 'rage_click_count'
 			| 'backend_domains'
 			| 'filterSessionsWithoutError'
+			| 'autoResolveStaleErrorsDayInterval'
 		>
 	>
 }

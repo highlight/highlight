@@ -606,7 +606,8 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 	}
 
 	projectFilterSettings, err := r.Store.UpdateProjectFilterSettings(*project, store.UpdateProjectFilterSettingsParams{
-		FilterSessionsWithoutError: filterSessionsWithoutError,
+		FilterSessionsWithoutError:        filterSessionsWithoutError,
+		AutoResolveStaleErrorsDayInterval: autoResolveStaleErrorsDayInterval,
 	})
 	if err != nil {
 		return nil, err

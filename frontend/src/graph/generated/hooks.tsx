@@ -1536,6 +1536,7 @@ export const EditProjectSettingsDocument = gql`
 			rage_click_count
 			backend_domains
 			filterSessionsWithoutError
+			autoResolveStaleErrorsDayInterval
 		}
 	}
 `
