@@ -211,13 +211,13 @@ export const quickStartContent = {
 			[QuickStartType.JSCloudflare]: JSCloudflareLoggingContent,
 		},
 		http: {
-			title: 'curl',
+			title: 'HTTPS curl',
 			subtitle:
 				'Get started with logging in your application via HTTP or OTLP.',
 			[QuickStartType.HTTPOTLP]: HTTPContent,
 		},
 		other: {
-			title: 'Other',
+			title: 'Infrastructure / Other',
 			subtitle:
 				'Get started with logging in your application via HTTP or OTLP.',
 			[QuickStartType.FluentForward]: FluentForwardContent,
@@ -233,7 +233,7 @@ export const quickStartContent = {
 			[QuickStartType.RubyOther]: RubyOtherLogContent,
 		},
 		hosting: {
-			title: 'Hosting Provider',
+			title: 'Cloud Hosting Provider',
 			subtitle:
 				'Select your Hosting provider to setup the Highlight integration and stream logs.',
 			[QuickStartType.HostingVercel]: HostingVercelLogContent,
