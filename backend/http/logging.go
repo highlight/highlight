@@ -83,18 +83,18 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		var msg []byte
+		// try to load data as gzip. if it is not, assume it is not compressed
 		gz, err := gzip.NewReader(strings.NewReader(string(data)))
-		if err != nil {
-			log.WithContext(r.Context()).WithError(err).WithField("data", data).Error("invalid http firehose record data gzip")
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		msg, err := io.ReadAll(gz)
-		if err != nil {
-			log.WithContext(r.Context()).WithError(err).WithField("data", data).Error("invalid http firehose record data reading gzip")
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
+		if err == nil {
+			msg, err = io.ReadAll(gz)
+			if err != nil {
+				log.WithContext(r.Context()).WithError(err).WithField("data", data).Error("invalid http firehose record data reading gzip")
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+		} else {
+			msg = data
 		}
 
 		var cloudwatchPayload struct {
@@ -109,31 +109,41 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 				Message   string
 			}
 		}
+		// try to parse the message as a cloudwatch payload
+		// if it is not, send it as a raw log message
 		if err := json.Unmarshal(msg, &cloudwatchPayload); err != nil {
-			log.WithContext(r.Context()).WithError(err).Error("invalid http firehose record json")
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		for _, event := range cloudwatchPayload.LogEvents {
 			hl := hlog.Log{
-				Message:   event.Message,
-				Timestamp: time.UnixMilli(event.Timestamp).Format("2006-01-02T15:04:05.000Z"),
+				Message:   string(msg),
+				Timestamp: time.UnixMilli(lg.Timestamp).Format("2006-01-02T15:04:05.000Z"),
 				Level:     "info",
-				Attributes: map[string]string{
-					"source":       "firehose",
-					"message_type": cloudwatchPayload.MessageType,
-					"owner":        cloudwatchPayload.Owner,
-					"log_group":    cloudwatchPayload.LogGroup,
-					"log_stream":   cloudwatchPayload.LogStream,
-				},
 			}
 			if err := hlog.SubmitHTTPLog(r.Context(), projectID, hl); err != nil {
 				log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
+		} else {
+			for _, event := range cloudwatchPayload.LogEvents {
+				hl := hlog.Log{
+					Message:   event.Message,
+					Timestamp: time.UnixMilli(event.Timestamp).Format("2006-01-02T15:04:05.000Z"),
+					Level:     "info",
+					Attributes: map[string]string{
+						"source":       "firehose",
+						"message_type": cloudwatchPayload.MessageType,
+						"owner":        cloudwatchPayload.Owner,
+						"log_group":    cloudwatchPayload.LogGroup,
+						"log_stream":   cloudwatchPayload.LogStream,
+					},
+				}
+				if err := hlog.SubmitHTTPLog(r.Context(), projectID, hl); err != nil {
+					log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
+			}
 		}
+
 	}
 
 	w.Header().Add("content-type", "application/json")
