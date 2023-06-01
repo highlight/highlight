@@ -56,6 +56,12 @@ type RageClicksAlertPayload struct {
 	SessionURL      string
 }
 
+type ErrorFeedbackAlertPayload struct {
+	SessionCommentURL string
+	UserIdentifier    string
+	CommentText       string
+}
+
 type MetricMonitorAlertPayload struct {
 	MetricToMonitor string
 	UnitsFormat     string
@@ -83,6 +89,7 @@ type BaseAlertIntegration interface {
 	SendNewSessionAlert(channelId string, payload NewSessionAlertPayload) error
 	SendTrackPropertiesAlert(channelId string, payload TrackPropertiesAlertPayload) error
 	SendUserPropertiesAlert(channelId string, payload UserPropertiesAlertPayload) error
+	SendErrorFeedbackAlert(channelId string, payload ErrorFeedbackAlertPayload) error
 	SendRageClicksAlert(channelId string, payload RageClicksAlertPayload) error
 	SendMetricMonitorAlert(channelId string, payload MetricMonitorAlertPayload) error
 	SendLogAlert(channelId string, payload MetricMonitorAlertPayload) error

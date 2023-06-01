@@ -7,6 +7,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
@@ -334,6 +335,88 @@ func SendUserPropertiesAlert(event UserPropertiesAlertEvent) error {
 
 		for _, channel := range channels {
 			err = bot.SendUserPropertiesAlert(channel.ID, payload)
+
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	return g.Wait()
+}
+
+type ErrorFeedbackAlertEvent struct {
+	Session        *model.Session
+	ErrorAlert     *model.ErrorAlert
+	Workspace      *model.Workspace
+	SessionComment *model.SessionComment
+	UserName       *string
+	UserEmail      *string
+}
+
+func SendErrorFeedbackAlert(event ErrorFeedbackAlertEvent) error {
+	identifier := "Someone"
+	if event.UserName != nil {
+		identifier = *event.UserName
+	} else if event.UserEmail != nil {
+		identifier = *event.UserEmail
+	}
+
+	payload := integrations.ErrorFeedbackAlertPayload{
+		UserIdentifier:    identifier,
+		SessionCommentURL: getSessionCommentURL(event.ErrorAlert.ProjectID, event.Session, event.SessionComment),
+		CommentText:       event.SessionComment.Text,
+	}
+
+	var g errgroup.Group
+	g.Go(func() error {
+		for _, wh := range event.ErrorAlert.WebhookDestinations {
+			if err := webhook.SendErrorFeedbackAlert(wh, &payload); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		channels, err := event.ErrorAlert.GetChannelsToNotify()
+		if err != nil {
+			return errors.New("error getting channels to notify from user properties alert")
+		}
+		// get project's channels
+		integratedSlackChannels, err := input.Workspace.IntegratedSlackChannels()
+		if err != nil {
+			return e.Wrap(err, "error getting slack webhook url for alert")
+		}
+		if len(integratedSlackChannels) <= 0 {
+			return nil
+		}
+
+		for _, channel := range channels {
+			err = bot.SendErrorFeedbackAlert(channel.ID, payload)
+
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		if !isWorkspaceIntegratedWithDiscord(*event.Workspace) {
+			return nil
+		}
+
+		bot, err := discord.NewDiscordBot(*event.Workspace.DiscordGuildId)
+		if err != nil {
+			return err
+		}
+
+		channels := event.ErrorAlert.DiscordChannelsToNotify
+
+		for _, channel := range channels {
+			err = bot.SendErrorFeedbackAlert(channel.ID, payload)
 
 			if err != nil {
 				return err

@@ -1179,6 +1179,69 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 		return e.Wrap(err, "error creating session feedback")
 	}
 
+	var errorAlerts []*model.ErrorAlert
+	if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
+		return e.Wrapf(err, "[project_id: %d] error fetching session feedback alerts", session.ProjectID)
+	}
+
+	for _, errorAlert := range errorAlerts {
+		excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "error getting excluded environments from %s alert", model.AlertType.ERROR_FEEDBACK))
+			return err
+		}
+		for _, env := range excludedEnvironments {
+			if env != nil && *env == session.Environment {
+				return nil
+			}
+		}
+
+		var project model.Project
+		if err := r.DB.Raw(`
+	  		SELECT *
+	  		FROM projects
+	  		WHERE id = ?
+	  	`, session.ProjectID).Scan(&project).Error; err != nil {
+			log.WithContext(ctx).WithError(err).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
+				Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.ERROR_FEEDBACK))
+			return err
+		}
+
+		identifier := "Someone"
+		if input.UserName != nil {
+			identifier = *input.UserName
+		} else if input.UserEmail != nil {
+			identifier = *input.UserEmail
+		}
+
+		workspace, err := r.getWorkspace(project.WorkspaceID)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).
+				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
+				Error(e.Wrap(err, "error fetching workspace"))
+		}
+
+		errorAlert.SendAlertFeedback(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			Workspace:       workspace,
+			SessionSecureID: session.SecureID,
+			UserIdentifier:  identifier,
+			CommentID:       &feedbackComment.ID,
+			CommentText:     feedbackComment.Text,
+		})
+
+		if err = alerts.SendErrorFeedbackAlert(alerts.ErrorFeedbackAlertEvent{
+			Session:        session,
+			ErrorAlert:     errorAlert,
+			SessionComment: feedbackComment,
+			Workspace:      workspace,
+			UserName:       input.UserName,
+			UserEmail:      input.UserEmail,
+		}); err != nil {
+			log.WithContext(ctx).Error(err)
+		}
+	}
+
 	return nil
 }
 func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}, backfill bool) error {

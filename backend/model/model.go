@@ -62,6 +62,7 @@ var AlertType = struct {
 	NEW_USER         string
 	TRACK_PROPERTIES string
 	USER_PROPERTIES  string
+	ERROR_FEEDBACK   string
 	RAGE_CLICK       string
 	NEW_SESSION      string
 	LOG              string
@@ -70,6 +71,7 @@ var AlertType = struct {
 	NEW_USER:         "NEW_USER_ALERT",
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
+	ERROR_FEEDBACK:   "ERROR_FEEDBACK_ALERT",
 	RAGE_CLICK:       "RAGE_CLICK_ALERT",
 	NEW_SESSION:      "NEW_SESSION_ALERT",
 	LOG:              "LOG",
@@ -1751,6 +1753,12 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 	}
 }
 
+func (obj *ErrorAlert) SendAlertFeedback(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
+	if err := obj.sendSlackAlert(ctx, db, obj.ID, input); err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+}
+
 func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, emailType Email.EmailType, workspace *Workspace) error {
 	// Skip sending email if sending was attempted within the cache TTL
 	cacheKey := fmt.Sprintf("%s;%d", emailType, workspace.ID)
@@ -2708,8 +2716,8 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
-	case AlertType.SESSION_FEEDBACK:
-		previewText = "Highlight: Session Feedback Alert"
+	case AlertType.ERROR_FEEDBACK:
+		previewText = "Highlight: ERROR Feedback Alert"
 		if identifier == "" {
 			identifier = "User"
 		}
