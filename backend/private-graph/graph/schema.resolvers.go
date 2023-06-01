@@ -585,7 +585,7 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 }
 
 // EditProjectSettings is the resolver for the editProjectSettings field.
-func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool) (*modelInputs.AllProjectSettings, error) {
+func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) (*modelInputs.AllProjectSettings, error) {
 	project, err := r.EditProject(ctx, projectID, name, billingEmail, excludedUsers, errorFilters, errorJSONPaths, rageClickWindowSeconds, rageClickRadiusPixels, rageClickCount, backendDomains, filterChromeExtension)
 	if err != nil {
 		return nil, err
@@ -612,6 +612,7 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 		return nil, err
 	}
 	allProjectSettings.FilterSessionsWithoutError = projectFilterSettings.FilterSessionsWithoutError
+	allProjectSettings.AutoResolveStaleErrorsDayInterval = projectFilterSettings.AutoResolveStaleErrorsDayInterval
 
 	return &allProjectSettings, nil
 }
@@ -6349,18 +6350,19 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 	}
 
 	allProjectSettings := modelInputs.AllProjectSettings{
-		ID:                         project.ID,
-		Name:                       *project.Name,
-		BillingEmail:               project.BillingEmail,
-		ExcludedUsers:              project.ExcludedUsers,
-		ErrorFilters:               project.ErrorFilters,
-		ErrorJSONPaths:             project.ErrorJsonPaths,
-		BackendDomains:             project.BackendDomains,
-		FilterChromeExtension:      project.FilterChromeExtension,
-		RageClickWindowSeconds:     &project.RageClickWindowSeconds,
-		RageClickRadiusPixels:      &project.RageClickRadiusPixels,
-		RageClickCount:             &project.RageClickCount,
-		FilterSessionsWithoutError: projectFilterSettings.FilterSessionsWithoutError,
+		ID:                                project.ID,
+		Name:                              *project.Name,
+		BillingEmail:                      project.BillingEmail,
+		ExcludedUsers:                     project.ExcludedUsers,
+		ErrorFilters:                      project.ErrorFilters,
+		ErrorJSONPaths:                    project.ErrorJsonPaths,
+		BackendDomains:                    project.BackendDomains,
+		FilterChromeExtension:             project.FilterChromeExtension,
+		RageClickWindowSeconds:            &project.RageClickWindowSeconds,
+		RageClickRadiusPixels:             &project.RageClickRadiusPixels,
+		RageClickCount:                    &project.RageClickCount,
+		FilterSessionsWithoutError:        projectFilterSettings.FilterSessionsWithoutError,
+		AutoResolveStaleErrorsDayInterval: projectFilterSettings.AutoResolveStaleErrorsDayInterval,
 	}
 
 	return &allProjectSettings, nil

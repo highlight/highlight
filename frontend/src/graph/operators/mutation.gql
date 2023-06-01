@@ -258,6 +258,7 @@ mutation EditProjectSettings(
 	$rage_click_count: Int
 	$backend_domains: StringArray
 	$filterSessionsWithoutError: Boolean
+	$autoResolveStaleErrorsDayInterval: Int
 ) {
 	editProjectSettings(
 		projectId: $projectId
@@ -272,6 +273,7 @@ mutation EditProjectSettings(
 		rage_click_count: $rage_click_count
 		backend_domains: $backend_domains
 		filterSessionsWithoutError: $filterSessionsWithoutError
+		autoResolveStaleErrorsDayInterval: $autoResolveStaleErrorsDayInterval
 	) {
 		id
 		name

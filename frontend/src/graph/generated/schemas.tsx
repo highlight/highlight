@@ -106,6 +106,7 @@ export enum AdminRole {
 
 export type AllProjectSettings = {
 	__typename?: 'AllProjectSettings'
+	autoResolveStaleErrorsDayInterval: Scalars['Int']
 	backend_domains?: Maybe<Scalars['StringArray']>
 	billing_email?: Maybe<Scalars['String']>
 	error_filters?: Maybe<Scalars['StringArray']>
@@ -1201,6 +1202,7 @@ export type MutationEditProjectArgs = {
 }
 
 export type MutationEditProjectSettingsArgs = {
+	autoResolveStaleErrorsDayInterval?: InputMaybe<Scalars['Int']>
 	backend_domains?: InputMaybe<Scalars['StringArray']>
 	billing_email?: InputMaybe<Scalars['String']>
 	error_filters?: InputMaybe<Scalars['StringArray']>

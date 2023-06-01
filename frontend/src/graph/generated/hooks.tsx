@@ -1507,6 +1507,7 @@ export const EditProjectSettingsDocument = gql`
 		$rage_click_count: Int
 		$backend_domains: StringArray
 		$filterSessionsWithoutError: Boolean
+		$autoResolveStaleErrorsDayInterval: Int
 	) {
 		editProjectSettings(
 			projectId: $projectId
@@ -1521,6 +1522,7 @@ export const EditProjectSettingsDocument = gql`
 			rage_click_count: $rage_click_count
 			backend_domains: $backend_domains
 			filterSessionsWithoutError: $filterSessionsWithoutError
+			autoResolveStaleErrorsDayInterval: $autoResolveStaleErrorsDayInterval
 		) {
 			id
 			name
@@ -1567,6 +1569,7 @@ export type EditProjectSettingsMutationFn = Apollo.MutationFunction<
  *      rage_click_count: // value for 'rage_click_count'
  *      backend_domains: // value for 'backend_domains'
  *      filterSessionsWithoutError: // value for 'filterSessionsWithoutError'
+ *      autoResolveStaleErrorsDayInterval: // value for 'autoResolveStaleErrorsDayInterval'
  *   },
  * });
  */
@@ -12769,6 +12772,7 @@ export const GetProjectSettingsDocument = gql`
 			rage_click_count
 			backend_domains
 			filterSessionsWithoutError
+			autoResolveStaleErrorsDayInterval
 		}
 	}
 `
