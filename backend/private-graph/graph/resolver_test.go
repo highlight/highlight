@@ -285,7 +285,7 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 			currentAdminRole:  "MEMBER",
 			sameWorkspace:     true,
 			errorExpected:     true,
-			deletionExpected:  true,
+			deletionExpected:  false,
 		},
 		"admin deleting an invite in a different workspace": {
 			currentAdminEmail: "boo@bar.com",
