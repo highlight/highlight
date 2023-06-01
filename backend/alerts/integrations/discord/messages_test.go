@@ -151,7 +151,7 @@ func (suite *DiscordChannelsTestSuite) TestSendUserPropertiesAlert() {
 }
 
 func (suite *DiscordChannelsTestSuite) TestErrorFeedbackAlert() {
-	err := suite.bot.SendSessionFeedbackAlert(suite.ChannelID, integrations.ErrorFeedbackAlertPayload{
+	err := suite.bot.SendErrorFeedbackAlert(suite.ChannelID, integrations.ErrorFeedbackAlertPayload{
 		SessionCommentURL: "https://localhost:3000/1/sessions/yggihGDgdPlBwpgVFtwuTM9nMvpn?page=1&query=and%7C%7Ccustom_processed%2Cis%2Ctrue%2Cfalse%7C%7Ccustom_created_at%2Cbetween_date%2C30+days&ts=0&commentId=34",
 		UserIdentifier:    "chilly@mcwilly.com",
 		CommentText:       "Hey, what is up!",
