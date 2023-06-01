@@ -5,7 +5,6 @@ import {
 	IconSolidGlobeAlt,
 	IconSolidLink,
 	IconSolidQuestionMarkCircle,
-	IconSolidShare,
 	Menu,
 	Tag,
 	Text,

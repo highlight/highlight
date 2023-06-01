@@ -6,7 +6,6 @@ import {
 	Badge,
 	Box,
 	ButtonIcon,
-	IconSolidChatAlt_2,
 	IconSolidDocumentDuplicate,
 	IconSolidExitRight,
 	IconSolidLockClosed,
@@ -15,8 +14,6 @@ import {
 	IconSolidTemplate,
 	Stack,
 	SwitchButton,
-	Tag,
-	Text,
 	TextLink,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
@@ -28,7 +25,6 @@ import {
 import { changeSession } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
@@ -38,9 +34,10 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
+import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch/PlayerModeSwitch'
+
 import SessionShareButtonV2 from '../SessionShareButton/SessionShareButtonV2'
 import * as styles from './SessionLevelBarV2.css'
-import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch/PlayerModeSwitch'
 
 const DEFAULT_RIGHT_PANEL_VIEWS = [RightPanelView.Event, RightPanelView.Session]
 
