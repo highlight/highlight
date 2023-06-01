@@ -110,7 +110,7 @@ export const AutoresolveStaleErrorsForm = () => {
 									</option>
 								)
 							})}
-						</select>
+						</Form.Select>
 					</Stack>
 					{enableAutoResolveStaleErrors && (
 						<Callout kind="warning">
