@@ -1489,25 +1489,6 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error assigning default to session_fields.id")
 	}
 
-	// default case, should only exist in main highlight prod
-	thresholdWindow := 30
-	emptiness := "[]"
-	if err := DB.FirstOrCreate(&SessionAlert{
-		Alert: Alert{
-			ProjectID: 1,
-			Type:      &AlertType.SESSION_FEEDBACK,
-		},
-	}).Attrs(&SessionAlert{
-		Alert: Alert{
-			ExcludedEnvironments: &emptiness,
-			CountThreshold:       1,
-			ThresholdWindow:      &thresholdWindow,
-			ChannelsToNotify:     &emptiness,
-		},
-	}).Error; err != nil {
-		log.WithContext(ctx).WithError(err).Error("Failed to create default session feedback alert.")
-	}
-
 	log.WithContext(ctx).Printf("Finished running DB migrations.\n")
 
 	return true, nil
@@ -1896,8 +1877,8 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 		alertType = "Rage Click"
 		message = fmt.Sprintf("<b>%s</b> has been rage clicking in a session.<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
 		subjectLine = fmt.Sprintf("%s has been rage clicking in a session.", identifier)
-	case AlertType.SESSION_FEEDBACK:
-		alertType = "Session Feedback"
+	case AlertType.ERROR_FEEDBACK:
+		alertType = "Error Feedback"
 		message = fmt.Sprintf("<b>%s</b> just left feedback.<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
 		subjectLine = fmt.Sprintf("%s just left feedback.", identifier)
 	case AlertType.TRACK_PROPERTIES:
