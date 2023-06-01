@@ -127,18 +127,6 @@ export const variants = recipe({
 			style: typographyStyles.weight.medium,
 		},
 		{
-			variants: { family: 'body', size: 'xxSmall', weight: 'regular' },
-			style: typographyStyles.weight.medium,
-		},
-		{
-			variants: { family: 'body', size: 'xxSmall', weight: 'medium' },
-			style: typographyStyles.weight.bold,
-		},
-		{
-			variants: { family: 'body', size: 'xxSmall', weight: 'bold' },
-			style: { fontWeight: 700 },
-		},
-		{
 			variants: { family: 'monospace', size: 'small' },
 			style: sMonotype,
 		},
