@@ -12,10 +12,6 @@ export const AutoresolveStaleErrorsForm = () => {
 	const [enableAutoResolveStaleErrors, setEnableAutoResolveStaleErrors] =
 		useState<boolean>(false)
 
-	// const [
-	// 	autoResolveStaleErrorsDayInterval,
-	// 	setAutoResolveStaleErrorsDayInterval,
-	// ] = useState<number>()
 	const {
 		allProjectSettings: data,
 		loading,
