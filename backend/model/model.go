@@ -62,7 +62,6 @@ var AlertType = struct {
 	NEW_USER         string
 	TRACK_PROPERTIES string
 	USER_PROPERTIES  string
-	SESSION_FEEDBACK string
 	RAGE_CLICK       string
 	NEW_SESSION      string
 	LOG              string
