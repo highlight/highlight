@@ -43,7 +43,7 @@ export const rightButtons = style({
 	display: 'flex',
 	alignItems: 'center',
 	justifyContent: 'flex-end',
-	gap: 16,
+	gap: 6,
 	minWidth: 400,
 })
 

@@ -3,6 +3,7 @@ import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import { useGetSessionsOpenSearchQuery } from '@graph/hooks'
 import {
+	Badge,
 	Box,
 	ButtonIcon,
 	IconSolidChatAlt_2,
@@ -12,7 +13,9 @@ import {
 	IconSolidLockOpen,
 	IconSolidMenuAlt_3,
 	IconSolidTemplate,
+	Stack,
 	SwitchButton,
+	Tag,
 	Text,
 	TextLink,
 } from '@highlight-run/ui'
@@ -37,6 +40,7 @@ import { useNavigate } from 'react-router-dom'
 
 import SessionShareButtonV2 from '../SessionShareButton/SessionShareButtonV2'
 import * as styles from './SessionLevelBarV2.css'
+import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch'
 
 const DEFAULT_RIGHT_PANEL_VIEWS = [RightPanelView.Event, RightPanelView.Session]
 
@@ -185,6 +189,38 @@ export const SessionLevelBarV2: React.FC<
 						}}
 						canMoveForward={!!canMoveForward}
 					/>
+					{session && (
+						<Stack direction="row" gap="4" align="center">
+							<Badge
+								iconStart={
+									<IconSolidTemplate color={colors.n9} />
+								}
+								size="medium"
+								variant="gray"
+								shape="basic"
+								label={`${viewport?.width}x${viewport?.height}`}
+								title="Application viewport size (pixels)"
+							/>
+							<Badge
+								variant="gray"
+								size="medium"
+								iconStart={
+									session?.enable_strict_privacy ? (
+										<IconSolidLockClosed
+											color={colors.n9}
+										/>
+									) : (
+										<IconSolidLockOpen color={colors.n9} />
+									)
+								}
+								title={
+									session?.enable_strict_privacy
+										? 'Strict privacy on'
+										: 'Strict privacy off'
+								}
+							/>
+						</Stack>
+					)}
 					<Box
 						className={styles.currentUrl}
 						onMouseEnter={() => {
@@ -248,103 +284,22 @@ export const SessionLevelBarV2: React.FC<
 				<Box className={styles.rightButtons}>
 					{session && (
 						<>
-							<Box display="flex" align="center" gap="2">
-								<ExplanatoryPopover
-									content={
-										<Text
-											size="medium"
-											color="n11"
-											userSelect="none"
-										>
-											Application viewport size (pixels)
-										</Text>
+							<SessionShareButtonV2 />
+							<PlayerModeSwitch />
+							<SwitchButton
+								size="small"
+								onChange={() => {
+									if (!isDefaultView) {
+										setRightPanelView(RightPanelView.Event)
 									}
-								>
-									<IconSolidTemplate color={colors.n9} />
-									<Text
-										size="medium"
-										color="n11"
-										userSelect="none"
-									>
-										{viewport?.width} x {viewport?.height}
-									</Text>
-								</ExplanatoryPopover>
-							</Box>
-							<Box display="flex" align="center" gap="2">
-								<ExplanatoryPopover
-									content={
-										<Text
-											size="medium"
-											color="n11"
-											userSelect="none"
-										>
-											Recording strict privacy{' '}
-											{session?.enable_strict_privacy
-												? 'on'
-												: 'off'}
-										</Text>
-									}
-								>
-									{session?.enable_strict_privacy ? (
-										<IconSolidLockClosed
-											color={colors.n9}
-										/>
-									) : (
-										<IconSolidLockOpen color={colors.n9} />
-									)}
-								</ExplanatoryPopover>
-							</Box>
-							<Box display="flex" align="center" gap="6">
-								<SessionShareButtonV2 />
-								<ExplanatoryPopover
-									content={
-										<>
-											<Text userSelect="none" color="n11">
-												Comments
-											</Text>
-										</>
-									}
-								>
-									<SwitchButton
-										size="small"
-										onChange={() => {
-											setRightPanelView(
-												RightPanelView.Comments,
-											)
 
-											setShowRightPanel(
-												!showRightPanel ||
-													rightPanelView !==
-														RightPanelView.Comments,
-											)
-										}}
-										checked={
-											showRightPanel &&
-											rightPanelView ===
-												RightPanelView.Comments
-										}
-										iconLeft={
-											<IconSolidChatAlt_2 size={14} />
-										}
-									/>
-								</ExplanatoryPopover>
-								<SwitchButton
-									size="small"
-									onChange={() => {
-										if (!isDefaultView) {
-											setRightPanelView(
-												RightPanelView.Event,
-											)
-										}
-
-										setShowRightPanel(
-											!showRightPanel || !isDefaultView,
-										)
-									}}
-									checked={showRightPanel && isDefaultView}
-									iconLeft={<IconSolidMenuAlt_3 size={14} />}
-								/>
-							</Box>
+									setShowRightPanel(
+										!showRightPanel || !isDefaultView,
+									)
+								}}
+								checked={showRightPanel && isDefaultView}
+								iconLeft={<IconSolidMenuAlt_3 size={14} />}
+							/>
 						</>
 					)}
 				</Box>
