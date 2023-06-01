@@ -40,7 +40,7 @@ import { useNavigate } from 'react-router-dom'
 
 import SessionShareButtonV2 from '../SessionShareButton/SessionShareButtonV2'
 import * as styles from './SessionLevelBarV2.css'
-import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch'
+import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch/PlayerModeSwitch'
 
 const DEFAULT_RIGHT_PANEL_VIEWS = [RightPanelView.Event, RightPanelView.Session]
 
