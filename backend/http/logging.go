@@ -120,8 +120,13 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 				Message:   event.Message,
 				Timestamp: time.UnixMilli(event.Timestamp).Format("2006-01-02T15:04:05.000Z"),
 				Level:     "info",
-				// TODO(vkorolik)
-				Attributes: nil,
+				Attributes: map[string]string{
+					"source":       "firehose",
+					"message_type": cloudwatchPayload.MessageType,
+					"owner":        cloudwatchPayload.Owner,
+					"log_group":    cloudwatchPayload.LogGroup,
+					"log_stream":   cloudwatchPayload.LogStream,
+				},
 			}
 			if err := hlog.SubmitHTTPLog(r.Context(), projectID, hl); err != nil {
 				log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
@@ -133,8 +138,8 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("content-type", "application/json")
 	js, _ := json.Marshal(struct {
-		RequestId string
-		Timestamp int64
+		RequestId string `json:"requestId"`
+		Timestamp int64  `json:"timestamp"`
 	}{
 		RequestId: lg.RequestId,
 		Timestamp: time.Now().UnixMilli(),
