@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "highlight-io"
-version = "0.4.8"
+version = "0.4.9"
 description = "Session replay and error monitoring: stop guessing why bugs happen!"
 license = "Apache-2.0"
 authors = [
@@ -31,13 +31,13 @@ django = { version = "^4.1.7", optional = true }
 flask = { version = "^2.2.2", optional = true }
 fastapi = { version = "^0.92.0", optional = true }
 uvicorn = {version = "^0.20.0", extras = ["standard"], optional = true }
-opentelemetry-api = "^1.15.0"
-opentelemetry-distro = { extras = ["otlp"], version = "^0.37b0" }
-opentelemetry-exporter-otlp-proto-http = "^1.16.0"
-opentelemetry-instrumentation = "^0.37b0"
-opentelemetry-instrumentation-logging = "^0.37b0"
-opentelemetry-proto = "^1.16.0"
-opentelemetry-sdk = "^1.15.0"
+opentelemetry-api = "^1.18.0"
+opentelemetry-distro = { extras = ["otlp"], version = "^0.39b0" }
+opentelemetry-exporter-otlp-proto-http = "^1.18.0"
+opentelemetry-instrumentation = "^0.39b0"
+opentelemetry-instrumentation-logging = "^0.39b0"
+opentelemetry-proto = "^1.18.0"
+opentelemetry-sdk = "^1.18.0"
 
 [tool.poetry.group.dev.dependencies]
 azure-functions = "^1.13.2"

@@ -1,19 +1,16 @@
 {
 	"compilerOptions": {
-		"types": ["@cloudflare/workers-types"],
-		"target": "ES6",
-		"skipLibCheck": true,
 		"allowSyntheticDefaultImports": true,
-		"strict": true,
-		"forceConsistentCasingInFileNames": true,
-		"module": "ES6",
-		"outDir": "dist",
-		"removeComments": true,
-		"declaration": true,
-		"declarationDir": "dist",
-		"moduleResolution": "node",
+		"baseUrl": ".",
+		"lib": ["es2022"],
+		"module": "ESNext",
+		"moduleResolution": "Node",
+		"noEmit": true,
 		"resolveJsonModule": true,
-		"jsx": "react"
+		"sourceMap": true,
+		"strict": true,
+		"target": "es2022",
+		"types": ["@cloudflare/workers-types"]
 	},
 	"include": ["src/**/*"]
 }

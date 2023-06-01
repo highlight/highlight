@@ -7,7 +7,12 @@
 		"plugin:react-hooks/recommended",
 		"plugin:tailwindcss/recommended"
 	],
-	"plugins": ["simple-import-sort", "unused-imports", "tailwindcss"],
+	"plugins": [
+		"simple-import-sort",
+		"unused-imports",
+		"import",
+		"tailwindcss"
+	],
 	"env": {
 		"commonjs": true,
 		"es6": true,
@@ -43,6 +48,7 @@
 				"varsIgnorePattern": "^_"
 			}
 		],
+		"import/no-extraneous-dependencies": "error",
 		"unused-imports/no-unused-imports-ts": "error",
 		"@typescript-eslint/no-non-null-assertion": "off",
 		"tailwindcss/no-custom-classname": "off",
@@ -128,6 +134,10 @@
 					}
 				],
 				"patterns": [
+					{
+						"group": ["**/*/$"],
+						"message": "Import without the trailing / instead."
+					},
 					{
 						"group": ["**/packages/ui/src"],
 						"message": "Import from @highlight-run/ui instead."

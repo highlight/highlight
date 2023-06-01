@@ -26,7 +26,7 @@
 	},
 	"scripts": {
 		"typegen": "tsup --dts-only",
-		"dev": "yarn build --watch",
+		"dev": "tsup --watch && sh ./bin/clean-highlight-init.sh",
 		"build": "tsup && sh ./bin/clean-highlight-init.sh",
 		"test": "jest"
 	},

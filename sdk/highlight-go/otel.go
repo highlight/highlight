@@ -49,6 +49,7 @@ var InternalAttributePrefixes = []string{
 	// exception should be parsed as structured and not included as part of log attributes
 	"exception.message",
 	"exception.stacktrace",
+	"fluent.",
 }
 
 var BackendOnlyAttributePrefixes = []string{

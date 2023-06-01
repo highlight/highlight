@@ -31,7 +31,7 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { showIntercom } from '@util/window'
 import { omit } from 'lodash'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
 	Navigate,
 	Route,

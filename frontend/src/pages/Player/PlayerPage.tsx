@@ -181,20 +181,22 @@ const PlayerPage = () => {
 			const height = replayer?.wrapper?.getBoundingClientRect().height
 			const targetWidth = playerWrapperRef.current?.clientWidth
 			const targetHeight = playerWrapperRef.current?.clientHeight
-			if (!width || !targetWidth || !height || !targetHeight) {
+			if (!targetWidth || !targetHeight) {
 				return false
 			}
 			const widthScale = (targetWidth - style.PLAYER_PADDING_X) / width
 			const heightScale = (targetHeight - style.PLAYER_PADDING_Y) / height
-			const scale = Math.min(heightScale, widthScale)
+			let scale = Math.min(heightScale, widthScale)
 			// If calculated scale is close enough to 1, return to avoid
 			// infinite looping caused by small floating point math differences
 			if (scale >= 0.9999 && scale <= 1.0001) {
-				return true
+				return false
 			}
 
-			if (scale <= 0) {
-				return false
+			let retry = false
+			if (scale <= 0 || !Number.isFinite(scale)) {
+				retry = true
+				scale = 1
 			}
 
 			setScale((s) => {
@@ -212,7 +214,7 @@ const PlayerPage = () => {
 
 				return replayerScale
 			})
-			return true
+			return !retry
 		},
 		[setScale],
 	)
@@ -223,7 +225,7 @@ const PlayerPage = () => {
 			if (replayer && resizePlayer(replayer)) {
 				clearInterval(i)
 			}
-		}, 1000 / 60)
+		}, 1000 / 15)
 		return () => {
 			i && clearInterval(i)
 		}

@@ -7,6 +7,7 @@ import {
 	setupLogging,
 	verifyError,
 } from './shared-snippets'
+import { tsconfig } from '../../shared-snippets'
 
 export const JSCloudflareContent: QuickStartContent = {
 	title: 'Cloudflare Workers',
@@ -31,13 +32,14 @@ async function doRequest() {
 
 export default {
   async fetch(request: Request, env: {}, ctx: ExecutionContext) {
-    const hEnv = { HIGHLIGHT_PROJECT_ID: '<YOUR_PROJECT_ID>' }
+    H.init(request, { HIGHLIGHT_PROJECT_ID: '<YOUR_PROJECT_ID>' }, ctx)
+    console.log('starting some work...')
     try {
       const response = await doRequest()
-      H.sendResponse(request, hEnv, ctx, response)
+      H.sendResponse(response)
       return response
     } catch (e: any) {
-      H.consumeError(request, hEnv, ctx, e)
+      H.consumeError(e)
       throw e
     }
   },
@@ -49,10 +51,12 @@ export default {
 			'cloudflare',
 			`export default {
   async fetch(request: Request, env: {}, ctx: ExecutionContext) {
-    H.consumeError(request, { HIGHLIGHT_PROJECT_ID: '<YOUR_PROJECT_ID>' }, ctx, new Error('example error!'))
+    H.init(request, { HIGHLIGHT_PROJECT_ID: '<YOUR_PROJECT_ID>' }, ctx)
+    H.consumeError(new Error('example error!'))
   },
 }`,
 		),
+		tsconfig,
 		setupLogging('cloudflare'),
 	],
 }

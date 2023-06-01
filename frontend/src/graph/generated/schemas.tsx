@@ -104,6 +104,25 @@ export enum AdminRole {
 	Member = 'MEMBER',
 }
 
+export type AllProjectSettings = {
+	__typename?: 'AllProjectSettings'
+	backend_domains?: Maybe<Scalars['StringArray']>
+	billing_email?: Maybe<Scalars['String']>
+	error_filters?: Maybe<Scalars['StringArray']>
+	error_json_paths?: Maybe<Scalars['StringArray']>
+	excluded_users?: Maybe<Scalars['StringArray']>
+	filterSessionsWithoutError: Scalars['Boolean']
+	filter_chrome_extension?: Maybe<Scalars['Boolean']>
+	id: Scalars['ID']
+	name: Scalars['String']
+	rage_click_count?: Maybe<Scalars['Int']>
+	rage_click_radius_pixels?: Maybe<Scalars['Int']>
+	rage_click_window_seconds?: Maybe<Scalars['Int']>
+	secret?: Maybe<Scalars['String']>
+	verbose_id: Scalars['String']
+	workspace_id: Scalars['ID']
+}
+
 export type AverageSessionLength = {
 	__typename?: 'AverageSessionLength'
 	length: Scalars['Float']
@@ -890,6 +909,7 @@ export type Mutation = {
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
 	deleteErrorSegment?: Maybe<Scalars['Boolean']>
+	deleteInviteLinkFromWorkspace: Scalars['Boolean']
 	deleteLogAlert?: Maybe<LogAlert>
 	deleteMetricMonitor?: Maybe<MetricMonitor>
 	deleteProject?: Maybe<Scalars['Boolean']>
@@ -900,6 +920,7 @@ export type Mutation = {
 	editErrorSegment?: Maybe<Scalars['Boolean']>
 	editProject?: Maybe<Project>
 	editProjectFilterSettings?: Maybe<ProjectFilterSettings>
+	editProjectSettings?: Maybe<AllProjectSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
 	editWorkspace?: Maybe<Workspace>
 	emailSignup: Scalars['String']
@@ -1121,6 +1142,11 @@ export type MutationDeleteErrorSegmentArgs = {
 	segment_id: Scalars['ID']
 }
 
+export type MutationDeleteInviteLinkFromWorkspaceArgs = {
+	workspace_id: Scalars['ID']
+	workspace_invite_link_id: Scalars['ID']
+}
+
 export type MutationDeleteLogAlertArgs = {
 	id: Scalars['ID']
 	project_id: Scalars['ID']
@@ -1178,6 +1204,21 @@ export type MutationEditProjectArgs = {
 export type MutationEditProjectFilterSettingsArgs = {
 	filterSessionsWithoutError: Scalars['Boolean']
 	projectId: Scalars['ID']
+}
+
+export type MutationEditProjectSettingsArgs = {
+	backend_domains?: InputMaybe<Scalars['StringArray']>
+	billing_email?: InputMaybe<Scalars['String']>
+	error_filters?: InputMaybe<Scalars['StringArray']>
+	error_json_paths?: InputMaybe<Scalars['StringArray']>
+	excluded_users?: InputMaybe<Scalars['StringArray']>
+	filterSessionsWithoutError?: InputMaybe<Scalars['Boolean']>
+	filter_chrome_extension?: InputMaybe<Scalars['Boolean']>
+	name?: InputMaybe<Scalars['String']>
+	projectId: Scalars['ID']
+	rage_click_count?: InputMaybe<Scalars['Int']>
+	rage_click_radius_pixels?: InputMaybe<Scalars['Int']>
+	rage_click_window_seconds?: InputMaybe<Scalars['Int']>
 }
 
 export type MutationEditSegmentArgs = {
@@ -1612,7 +1653,6 @@ export type Query = {
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<LogKey>
 	logs_total_count: Scalars['UInt64']
-	messages?: Maybe<Array<Maybe<Scalars['Any']>>>
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>
@@ -1626,6 +1666,7 @@ export type Query = {
 	project?: Maybe<Project>
 	projectFilterSettings?: Maybe<ProjectFilterSettings>
 	projectHasViewedASession?: Maybe<Session>
+	projectSettings?: Maybe<AllProjectSettings>
 	projectSuggestion: Array<Maybe<Project>>
 	projects?: Maybe<Array<Maybe<Project>>>
 	property_suggestion?: Maybe<Array<Maybe<Field>>>
@@ -1662,6 +1703,7 @@ export type Query = {
 	vercel_projects: Array<VercelProject>
 	web_vitals: Array<Metric>
 	workspace?: Maybe<Workspace>
+	workspacePendingInvites: Array<Maybe<WorkspaceInviteLink>>
 	workspaceSuggestion: Array<Maybe<Workspace>>
 	workspace_admins: Array<WorkspaceAdminRole>
 	workspace_admins_by_project_id: Array<WorkspaceAdminRole>
@@ -2003,10 +2045,6 @@ export type QueryLogs_Total_CountArgs = {
 	project_id: Scalars['ID']
 }
 
-export type QueryMessagesArgs = {
-	session_secure_id: Scalars['String']
-}
-
 export type QueryMetric_MonitorsArgs = {
 	metric_name?: InputMaybe<Scalars['String']>
 	project_id: Scalars['ID']
@@ -2067,6 +2105,10 @@ export type QueryProjectFilterSettingsArgs = {
 
 export type QueryProjectHasViewedASessionArgs = {
 	project_id: Scalars['ID']
+}
+
+export type QueryProjectSettingsArgs = {
+	projectId: Scalars['ID']
 }
 
 export type QueryProjectSuggestionArgs = {
@@ -2220,6 +2262,10 @@ export type QueryWeb_VitalsArgs = {
 
 export type QueryWorkspaceArgs = {
 	id: Scalars['ID']
+}
+
+export type QueryWorkspacePendingInvitesArgs = {
+	workspace_id: Scalars['ID']
 }
 
 export type QueryWorkspaceSuggestionArgs = {
@@ -2760,6 +2806,7 @@ export type WorkspaceForInviteLink = {
 
 export type WorkspaceInviteLink = {
 	__typename?: 'WorkspaceInviteLink'
+	created_at: Scalars['Timestamp']
 	expiration_date: Scalars['Timestamp']
 	id: Scalars['ID']
 	invitee_email?: Maybe<Scalars['String']>

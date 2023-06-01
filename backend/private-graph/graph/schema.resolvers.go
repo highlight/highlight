@@ -42,6 +42,7 @@ import (
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
@@ -590,17 +591,43 @@ func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projec
 		return nil, err
 	}
 
-	projectFilterSettings := model.ProjectFilterSettings{}
+	updatedProjectFilterSettings, err := r.Store.UpdateProjectFilterSettings(*project, model.ProjectFilterSettings{
+		FilterSessionsWithoutError: filterSessionsWithoutError,
+	})
 
-	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).First(&projectFilterSettings)
+	return &updatedProjectFilterSettings, err
+}
 
-	projectFilterSettings.FilterSessionsWithoutError = filterSessionsWithoutError
-
-	if err := r.DB.Save(projectFilterSettings).Error; err != nil {
+// EditProjectSettings is the resolver for the editProjectSettings field.
+func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool) (*modelInputs.AllProjectSettings, error) {
+	project, err := r.EditProject(ctx, projectID, name, billingEmail, excludedUsers, errorFilters, errorJSONPaths, rageClickWindowSeconds, rageClickRadiusPixels, rageClickCount, backendDomains, filterChromeExtension)
+	if err != nil {
 		return nil, err
 	}
 
-	return &projectFilterSettings, err
+	allProjectSettings := modelInputs.AllProjectSettings{
+		ID:                     project.ID,
+		Name:                   *project.Name,
+		BillingEmail:           project.BillingEmail,
+		ExcludedUsers:          project.ExcludedUsers,
+		ErrorFilters:           project.ErrorFilters,
+		ErrorJSONPaths:         project.ErrorJsonPaths,
+		BackendDomains:         project.BackendDomains,
+		FilterChromeExtension:  project.FilterChromeExtension,
+		RageClickWindowSeconds: &project.RageClickWindowSeconds,
+		RageClickRadiusPixels:  &project.RageClickRadiusPixels,
+		RageClickCount:         &project.RageClickCount,
+	}
+
+	if filterSessionsWithoutError != nil {
+		projectFilterSettings, err := r.EditProjectFilterSettings(ctx, projectID, *filterSessionsWithoutError)
+		if err != nil {
+			return nil, err
+		}
+		allProjectSettings.FilterSessionsWithoutError = projectFilterSettings.FilterSessionsWithoutError
+	}
+
+	return &allProjectSettings, nil
 }
 
 // EditWorkspace is the resolver for the editWorkspace field.
@@ -827,24 +854,19 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID st
 
 // UpdateErrorGroupState is the resolver for the updateErrorGroupState field.
 func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, secureID string, state modelInputs.ErrorState, snoozedUntil *time.Time) (*model.ErrorGroup, error) {
-	errGroup, err := r.canAdminModifyErrorGroup(ctx, secureID)
+	errorGroup, err := r.canAdminModifyErrorGroup(ctx, secureID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not authorized to modify error group")
 	}
+	admin, err := r.getCurrentAdmin(ctx)
 
-	errorGroup := &model.ErrorGroup{}
-	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errGroup.ID}}).First(&errorGroup).Updates(map[string]interface{}{
-		"State":        state,
-		"SnoozedUntil": snoozedUntil,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error writing errorGroup state")
-	}
+	updatedErrorGroup, err := r.Store.UpdateErrorGroupStateByAdmin(ctx, *admin, store.UpdateErrorGroupParams{
+		ID:           errorGroup.ID,
+		State:        state,
+		SnoozedUntil: snoozedUntil,
+	})
 
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, errorGroup); err != nil {
-		return nil, e.Wrap(err, "error updating error group state in OpenSearch")
-	}
-
-	return errorGroup, nil
+	return &updatedErrorGroup, err
 }
 
 // DeleteProject is the resolver for the deleteProject field.
@@ -902,6 +924,25 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 	})
 
 	return adminID, nil
+}
+
+// DeleteInviteLinkFromWorkspace is the resolver for the deleteInviteLinkFromWorkspace field.
+func (r *mutationResolver) DeleteInviteLinkFromWorkspace(ctx context.Context, workspaceID int, workspaceInviteLinkID int) (bool, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return false, e.Wrap(err, "current admin is not in workspace")
+	}
+
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
+		return false, e.Wrap(err, "a non-Admin role Admin tried deleting an invite.")
+	}
+
+	result := r.DB.Where("id = ?", workspaceInviteLinkID).Where("workspace_id = ?", workspaceID).Delete(&model.WorkspaceInviteLink{})
+	if result.Error != nil {
+		return false, e.Wrap(err, "error deleting workspace invite link")
+	}
+
+	return int(result.RowsAffected) > 0, nil
 }
 
 // JoinWorkspace is the resolver for the joinWorkspace field.
@@ -4115,37 +4156,6 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 	return &errorInstance, nil
 }
 
-// Messages is the resolver for the messages field.
-func (r *queryResolver) Messages(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
-	s, err := r.canAdminViewSession(ctx, sessionSecureID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
-	}
-	if en := s.ObjectStorageEnabled; en != nil && *en {
-		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
-		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadMessages(ctx, s.ID, s.ProjectID)
-		if err != nil {
-			return nil, e.Wrap(err, "error pulling messages from s3")
-		}
-		return ret, nil
-	}
-	messagesObj := []*model.MessagesObject{}
-	if err := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj).Error; err != nil {
-		return nil, e.Wrap(err, "error reading from messages")
-	}
-	allEvents := make(map[string][]interface{})
-	for _, messageObj := range messagesObj {
-		subMessage := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(messageObj.Messages), &subMessage); err != nil {
-			return nil, e.Wrap(err, "error decoding message data")
-		}
-		allEvents["messages"] = append(subMessage["messages"], allEvents["messages"]...)
-	}
-	return allEvents["messages"], nil
-}
-
 // EnhancedUserDetails is the resolver for the enhanced_user_details field.
 func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*modelInputs.EnhancedUserDetailsResult, error) {
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
@@ -4293,29 +4303,13 @@ func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) (
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	if en := s.ObjectStorageEnabled; en != nil && *en {
-		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-			tracer.ResourceName("db.objectStorageQuery"), tracer.Tag("project_id", s.ProjectID))
-		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadResources(ctx, s.ID, s.ProjectID)
-		if err != nil {
-			return nil, e.Wrap(err, "error pulling resources from s3")
-		}
-		return ret, nil
+
+	resources, err := r.Redis.GetResources(ctx, s)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting resources from redis")
 	}
-	resourcesObject := []*model.ResourcesObject{}
-	if err := r.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject).Error; err != nil {
-		return nil, e.Wrap(err, "error reading from resources")
-	}
-	allResources := make(map[string][]interface{})
-	for _, resourceObj := range resourcesObject {
-		subResources := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(resourceObj.Resources), &subResources); err != nil {
-			return nil, e.Wrap(err, "error decoding resource data")
-		}
-		allResources["resources"] = append(subResources["resources"], allResources["resources"]...)
-	}
-	return allResources["resources"], nil
+
+	return resources, nil
 }
 
 // WebVitals is the resolver for the web_vitals field.
@@ -6052,21 +6046,6 @@ func (r *queryResolver) IsProjectIntegratedWith(ctx context.Context, integration
 		return false, e.Wrap(err, "error querying project")
 	}
 
-	if integrationType == modelInputs.IntegrationTypeClickUp {
-		var projectMapping *model.IntegrationProjectMapping
-		if err := r.DB.Where(&model.IntegrationProjectMapping{
-			ProjectID:       project.ID,
-			IntegrationType: integrationType,
-		}).First(&projectMapping).Error; err != nil {
-			return false, nil
-		}
-
-		if projectMapping == nil {
-			return false, nil
-		}
-
-	}
-
 	return r.IntegrationsClient.IsProjectIntegrated(ctx, project, integrationType)
 }
 
@@ -6378,11 +6357,39 @@ func (r *queryResolver) ProjectFilterSettings(ctx context.Context, projectID int
 		return nil, err
 	}
 
-	projectFilterSettings := model.ProjectFilterSettings{}
-
-	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
+	projectFilterSettings, err := r.Store.GetProjectFilterSettings(*project)
 
 	return &projectFilterSettings, err
+}
+
+// ProjectSettings is the resolver for the projectSettings field.
+func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*modelInputs.AllProjectSettings, error) {
+	project, err := r.Project(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	projectFilterSettings, err := r.ProjectFilterSettings(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	allProjectSettings := modelInputs.AllProjectSettings{
+		ID:                         project.ID,
+		Name:                       *project.Name,
+		BillingEmail:               project.BillingEmail,
+		ExcludedUsers:              project.ExcludedUsers,
+		ErrorFilters:               project.ErrorFilters,
+		ErrorJSONPaths:             project.ErrorJsonPaths,
+		BackendDomains:             project.BackendDomains,
+		FilterChromeExtension:      project.FilterChromeExtension,
+		RageClickWindowSeconds:     &project.RageClickWindowSeconds,
+		RageClickRadiusPixels:      &project.RageClickRadiusPixels,
+		RageClickCount:             &project.RageClickCount,
+		FilterSessionsWithoutError: projectFilterSettings.FilterSessionsWithoutError,
+	}
+
+	return &allProjectSettings, nil
 }
 
 // Workspace is the resolver for the workspace field.
@@ -6476,6 +6483,28 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 	}
 
 	return workspaceInviteLink, nil
+}
+
+// WorkspacePendingInvites is the resolver for the workspacePendingInvites field.
+func (r *queryResolver) WorkspacePendingInvites(ctx context.Context, workspaceID int) ([]*model.WorkspaceInviteLink, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, nil
+	}
+
+	var pendingInvites []*model.WorkspaceInviteLink
+	var queryErr = r.DB.
+		Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID}).
+		Where("invitee_email IS NOT NULL").
+		Order("created_at DESC").
+		Find(&pendingInvites).
+		Error
+
+	if queryErr != nil {
+		return nil, e.Wrap(queryErr, "error getting invite links for the workspace")
+	}
+
+	return pendingInvites, nil
 }
 
 // WorkspaceForProject is the resolver for the workspace_for_project field.

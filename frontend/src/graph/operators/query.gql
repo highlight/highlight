@@ -1155,10 +1155,6 @@ query GetRecentErrors($secure_id: String!) {
 	}
 }
 
-query GetMessages($session_secure_id: String!) {
-	messages(session_secure_id: $session_secure_id)
-}
-
 query GetResources($session_secure_id: String!) {
 	resources(session_secure_id: $session_secure_id)
 }
@@ -2072,5 +2068,32 @@ query GetProjectFilterSettings($projectId: ID!) {
 	projectFilterSettings(projectId: $projectId) {
 		id
 		filterSessionsWithoutError
+	}
+}
+
+query GetProjectSettings($projectId: ID!) {
+	projectSettings(projectId: $projectId) {
+		id
+		name
+		verbose_id
+		billing_email
+		excluded_users
+		error_filters
+		error_json_paths
+		filter_chrome_extension
+		rage_click_window_seconds
+		rage_click_radius_pixels
+		rage_click_count
+		backend_domains
+		filterSessionsWithoutError
+	}
+}
+
+query GetWorkspacePendingInvites($workspace_id: ID!) {
+	workspacePendingInvites(workspace_id: $workspace_id) {
+		id
+		invitee_email
+		invitee_role
+		created_at
 	}
 }

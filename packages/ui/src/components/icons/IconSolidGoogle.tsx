@@ -1,9 +1,7 @@
-import React, { useId } from 'react'
+import React from 'react'
 import { IconProps } from './types'
 
 export const IconSolidGoogle = ({ size = '1em', ...props }: IconProps) => {
-	const colorId1 = useId()
-
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
@@ -14,7 +12,7 @@ export const IconSolidGoogle = ({ size = '1em', ...props }: IconProps) => {
 			focusable="false"
 			{...props}
 		>
-			<g clipPath={`url(#${colorId1})`}>
+			<g clipPath="url(#clip0_1603_12998)">
 				<path
 					fill="#4285F4"
 					d="M18.215 10.368a7.05 7.05 0 0 0-.172-1.669h-7.665v3.03h4.5c-.092.753-.581 1.886-1.67 2.648l-.015.101 2.423 1.878.168.017c1.542-1.424 2.431-3.52 2.431-6.005Z"
@@ -33,8 +31,8 @@ export const IconSolidGoogle = ({ size = '1em', ...props }: IconProps) => {
 				/>
 			</g>
 			<defs>
-				<clipPath id={colorId1}>
-					<path fill="currentColor" d="M2.215 2h16v16.373h-16z" />
+				<clipPath id="clip0_1603_12998">
+					<path fill="#fff" d="M2.215 2h16v16.373h-16z" />
 				</clipPath>
 			</defs>
 		</svg>

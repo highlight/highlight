@@ -360,6 +360,24 @@ type ProjectFilterSettings {
 	filterSessionsWithoutError: Boolean!
 }
 
+type AllProjectSettings {
+	id: ID!
+	verbose_id: String!
+	name: String!
+	billing_email: String
+	secret: String
+	workspace_id: ID!
+	excluded_users: StringArray
+	error_filters: StringArray
+	error_json_paths: StringArray
+	rage_click_window_seconds: Int
+	rage_click_radius_pixels: Int
+	rage_click_count: Int
+	backend_domains: StringArray
+	filter_chrome_extension: Boolean
+	filterSessionsWithoutError: Boolean!
+}
+
 type Account {
 	id: ID!
 	name: String!
@@ -1158,6 +1176,7 @@ type WorkspaceInviteLink {
 	invitee_role: String!
 	expiration_date: Timestamp!
 	secret: String!
+	created_at: Timestamp!
 }
 
 type WorkspaceForInviteLink {
@@ -1401,7 +1420,6 @@ type Query {
 		error_group_secure_id: String!
 		error_object_id: ID
 	): ErrorInstance
-	messages(session_secure_id: String!): [Any]
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
 	resources(session_secure_id: String!): [Any]
@@ -1555,9 +1573,11 @@ type Query {
 	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
 	projectFilterSettings(projectId: ID!): ProjectFilterSettings
+	projectSettings(projectId: ID!): AllProjectSettings
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
+	workspacePendingInvites(workspace_id: ID!): [WorkspaceInviteLink]!
 	workspace_for_project(project_id: ID!): Workspace
 	admin: Admin
 	admin_role(workspace_id: ID!): WorkspaceAdminRole
@@ -1642,6 +1662,20 @@ type Mutation {
 		projectId: ID!
 		filterSessionsWithoutError: Boolean!
 	): ProjectFilterSettings
+	editProjectSettings(
+		projectId: ID!
+		name: String
+		billing_email: String
+		excluded_users: StringArray
+		error_filters: StringArray
+		error_json_paths: StringArray
+		rage_click_window_seconds: Int
+		rage_click_radius_pixels: Int
+		rage_click_count: Int
+		backend_domains: StringArray
+		filter_chrome_extension: Boolean
+		filterSessionsWithoutError: Boolean
+	): AllProjectSettings
 	editWorkspace(id: ID!, name: String): Workspace
 	markErrorGroupAsViewed(
 		error_secure_id: String!
@@ -1662,6 +1696,10 @@ type Mutation {
 		role: String!
 	): String
 	addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+	deleteInviteLinkFromWorkspace(
+		workspace_id: ID!
+		workspace_invite_link_id: ID!
+	): Boolean!
 	joinWorkspace(workspace_id: ID!): ID
 	updateAllowedEmailOrigins(
 		workspace_id: ID!
