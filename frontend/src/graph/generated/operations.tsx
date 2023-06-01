@@ -281,20 +281,6 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type EditProjectFilterSettingsMutationVariables = Types.Exact<{
-	projectId: Types.Scalars['ID']
-	filterSessionsWithoutError: Types.Scalars['Boolean']
-}>
-
-export type EditProjectFilterSettingsMutation = { __typename?: 'Mutation' } & {
-	editProjectFilterSettings?: Types.Maybe<
-		{ __typename?: 'ProjectFilterSettings' } & Pick<
-			Types.ProjectFilterSettings,
-			'id' | 'filterSessionsWithoutError'
-		>
-	>
-}
-
 export type EditProjectSettingsMutationVariables = Types.Exact<{
 	projectId: Types.Scalars['ID']
 	name?: Types.Maybe<Types.Scalars['String']>
@@ -4334,19 +4320,6 @@ export type GetLogsErrorObjectsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetProjectFilterSettingsQueryVariables = Types.Exact<{
-	projectId: Types.Scalars['ID']
-}>
-
-export type GetProjectFilterSettingsQuery = { __typename?: 'Query' } & {
-	projectFilterSettings?: Types.Maybe<
-		{ __typename?: 'ProjectFilterSettings' } & Pick<
-			Types.ProjectFilterSettings,
-			'id' | 'filterSessionsWithoutError'
-		>
-	>
-}
-
 export type GetProjectSettingsQueryVariables = Types.Exact<{
 	projectId: Types.Scalars['ID']
 }>
@@ -4514,7 +4487,6 @@ export const namedOperations = {
 		GetLogsKeys: 'GetLogsKeys' as const,
 		GetLogsKeyValues: 'GetLogsKeyValues' as const,
 		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
-		GetProjectFilterSettings: 'GetProjectFilterSettings' as const,
 		GetProjectSettings: 'GetProjectSettings' as const,
 		GetWorkspacePendingInvites: 'GetWorkspacePendingInvites' as const,
 	},
@@ -4545,7 +4517,6 @@ export const namedOperations = {
 		CreateAdmin: 'CreateAdmin' as const,
 		CreateWorkspace: 'CreateWorkspace' as const,
 		EditProject: 'EditProject' as const,
-		EditProjectFilterSettings: 'EditProjectFilterSettings' as const,
 		EditProjectSettings: 'EditProjectSettings' as const,
 		DeleteProject: 'DeleteProject' as const,
 		EditWorkspace: 'EditWorkspace' as const,
