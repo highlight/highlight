@@ -9,7 +9,7 @@ export const PythonLoguruLogContent: QuickStartContent = {
 	logoUrl: siteUrl('/images/quickstart/python-loguru.png'),
 	entries: [
 		previousInstallSnippet('python'),
-		downloadSnippet('loguru'),
+		downloadSnippet(),
 		{
 			title: 'Initialize the Highlight SDK.',
 			content:
