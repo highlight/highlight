@@ -114,7 +114,7 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 		if err := json.Unmarshal(msg, &cloudwatchPayload); err != nil {
 			hl := hlog.Log{
 				Message:   string(msg),
-				Timestamp: time.UnixMilli(lg.Timestamp).UTC().Format("2006-01-02T15:04:05.000Z"),
+				Timestamp: time.UnixMilli(lg.Timestamp).UTC().Format(hlog.TimestampFormat),
 				Level:     "info",
 			}
 			if err := hlog.SubmitHTTPLog(r.Context(), projectID, hl); err != nil {
@@ -126,7 +126,7 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 			for _, event := range cloudwatchPayload.LogEvents {
 				hl := hlog.Log{
 					Message:   event.Message,
-					Timestamp: time.UnixMilli(event.Timestamp).UTC().Format("2006-01-02T15:04:05.000Z"),
+					Timestamp: time.UnixMilli(event.Timestamp).UTC().Format(hlog.TimestampFormat),
 					Level:     "info",
 					Attributes: map[string]string{
 						"service_name": "firehose",
