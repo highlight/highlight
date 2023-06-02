@@ -26,7 +26,9 @@ export const TrpcQueries = trpc.withTRPC(function TrpcQueries() {
 				`,
 				}}
 			/>
-			<p>Hello World payload: {JSON.stringify(helloWorld.data)}</p>
+			<p style={{ marginTop: 0 }}>
+				Hello World payload: {JSON.stringify(helloWorld.data)}
+			</p>
 		</div>
 	)
 })
