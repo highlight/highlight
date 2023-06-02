@@ -2,7 +2,6 @@ import React from 'react'
 import {
 	useSelectState,
 	Select,
-	SelectArrow,
 	SelectItem,
 	SelectItemCheck,
 	SelectLabel,
@@ -18,6 +17,7 @@ type Option = {
 
 type Props = {
 	label: string
+	icon?: React.ReactNode
 	defaultValue?: string
 	value?: string[]
 	options: Option[]
@@ -26,6 +26,7 @@ type Props = {
 
 export const MultiSelectButton: React.FC<Props> = ({
 	label,
+	icon,
 	defaultValue,
 	value,
 	options,
@@ -49,8 +50,8 @@ export const MultiSelectButton: React.FC<Props> = ({
 				{label}
 			</SelectLabel>
 			<Select state={selectState} className={styles.selectButton}>
+				{icon}
 				{renderValue(selectState.value)}
-				<SelectArrow />
 			</Select>
 			{selectState.mounted && (
 				<SelectPopover
