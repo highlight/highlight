@@ -25,6 +25,7 @@ export const selectPopover = style({
 	backgroundColor: colors.white,
 	border: vars.border.secondary,
 	borderRadius: BORDER_RADIUS,
+	minWidth: 150,
 	zIndex: 10,
 })
 
