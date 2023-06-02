@@ -2,7 +2,7 @@ from loguru import logger
 
 import highlight_io
 
-H = highlight_io.H("1", record_logs=False)
+H = highlight_io.H("1", instrument_logging=False)
 
 
 def test_loguru(mocker):

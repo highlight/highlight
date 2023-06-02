@@ -57,7 +57,7 @@ const onError = (request, error) => {
 
 const pythonSnippet: string = `import highlight_io
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
+H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
 `
 
 export const FEATURES: { [k: string]: iFeature } = {

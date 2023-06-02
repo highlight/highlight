@@ -5,7 +5,7 @@ import time
 import highlight_io
 from loguru import logger
 
-H = highlight_io.H("1", record_logs=False)
+H = highlight_io.H("1", instrument_logging=False)
 
 logger.add(
     H.logging_handler,

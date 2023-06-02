@@ -36,8 +36,8 @@ def mock_otlp(mocker, request, integrations):
 @pytest.mark.parametrize("session_id", ["", "a1b2c3d4e5"])
 @pytest.mark.parametrize("request_id", ["", "a123"])
 def test_record_exception(mock_otlp, project_id, session_id, request_id):
-    integrations, record_logs = mock_otlp
-    h = highlight_io.H(project_id, integrations=integrations, record_logs=record_logs)
+    integrations, instrument_logging = mock_otlp
+    h = highlight_io.H(project_id, integrations=integrations, instrument_logging=instrument_logging)
 
     for i in range(10):
         with h.trace(session_id, request_id):

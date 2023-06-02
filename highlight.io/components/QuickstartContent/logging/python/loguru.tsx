@@ -13,12 +13,12 @@ export const PythonLoguruLogContent: QuickStartContent = {
 		{
 			title: 'Initialize the Highlight SDK.',
 			content:
-				'Setup the SDK with `record_logs` disabled, while passing the highlight logging handler to [loguru](https://github.com/Delgan/loguru#readme).',
+				'Setup the SDK with `instrument_logging` disabled, while passing the highlight logging handler to [loguru](https://github.com/Delgan/loguru#readme).',
 			code: {
 				text: `import highlight_io
 from loguru import logger
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=False)
+H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=False)
 
 logger.add(
 	H.logging_handler,
@@ -38,7 +38,7 @@ logger.add(
 				text: `import highlight_io
 from loguru import logger
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=False)
+H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=False)
 
 logger.add(
 	H.logging_handler,
