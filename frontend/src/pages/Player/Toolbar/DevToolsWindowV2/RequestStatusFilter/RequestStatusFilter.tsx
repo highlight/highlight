@@ -1,8 +1,8 @@
 import {
 	Badge,
 	Box,
-	MultiSelectButton,
 	IconSolidFilter,
+	MultiSelectButton,
 } from '@highlight-run/ui'
 import {
 	RequestStatus,

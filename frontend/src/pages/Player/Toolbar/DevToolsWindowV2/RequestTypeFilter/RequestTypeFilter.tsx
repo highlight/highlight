@@ -1,12 +1,12 @@
 import {
 	Badge,
 	Box,
-	MultiSelectButton,
 	IconSolidFilter,
+	MultiSelectButton,
 } from '@highlight-run/ui'
 import {
-	RequestType,
 	getNetworkResourcesDisplayName,
+	RequestType,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { ICountPerRequestType } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import React, { useMemo } from 'react'

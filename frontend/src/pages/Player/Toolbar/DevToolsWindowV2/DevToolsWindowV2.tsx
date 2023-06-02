@@ -38,10 +38,10 @@ import { Link } from 'react-router-dom'
 import { useLinkLogCursor } from '@/pages/Player/PlayerHook/utils'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
-import { RequestTypeFilter } from './RequestTypeFilter/RequestTypeFilter'
-import { RequestStatusFilter } from './RequestStatusFilter/RequestStatusFilter'
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
+import { RequestStatusFilter } from './RequestStatusFilter/RequestStatusFilter'
+import { RequestTypeFilter } from './RequestTypeFilter/RequestTypeFilter'
 import * as styles from './style.css'
 
 const LogLevelValues = [
