@@ -32,7 +32,6 @@ function processErrorImpl(
 		H.init(options)
 		H._debug('initialized H')
 	}
-	H.consumeEvent(secureSessionId)
 	H.consumeError(error, secureSessionId, requestId)
 	H._debug('consumed error', error)
 }
