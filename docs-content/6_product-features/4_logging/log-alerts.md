@@ -10,7 +10,7 @@ Logs alerts are a way to get notified when the count of logs for a query is over
 
 ## Creating an alert
 
-[](/images/log-alert.png)
+![](/images/log-alert.png)
 
 ### Query
 

@@ -25,9 +25,9 @@ Thanks to our friends at Algolia, search in our docs is much smoother now! Give 
 
 We've shipped even more SDKS this week:
 
-[Go Fiber](../2_getting-started/4_backend-sdk/go.md)
+[Go Fiber](../2_getting-started/4_backend-sdk/go/1_overview.md)
 
-[Python Fast API](../2_getting-started/4_backend-sdk/python.md)
+[Python Fast API](../2_getting-started/4_backend-sdk/python/1_overview.md)
 
 ## Our new logging product (🤫)
 
