@@ -7,7 +7,7 @@ import {
 } from './shared-snippets'
 
 export const PythonAWSContext: QuickStartContent = {
-	title: 'Python AWS Lambda',
+	title: 'Logging from Python AWS Lambda',
 	subtitle: 'Learn how to set up highlight.io on AWS Lambda.',
 	logoUrl: siteUrl('/images/quickstart/aws-lambda.svg'),
 	entries: [

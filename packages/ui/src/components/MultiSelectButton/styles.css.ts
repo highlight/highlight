@@ -44,6 +44,7 @@ export const selectItem = style({
 		'&[data-active-item]': {
 			backgroundColor: vars.color.n5,
 			color: vars.theme.static.content.default,
+			cursor: 'pointer',
 		},
 		'&:first-of-type': {
 			borderTopLeftRadius: BORDER_RADIUS,
