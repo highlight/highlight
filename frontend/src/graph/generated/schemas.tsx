@@ -2543,6 +2543,7 @@ export enum SessionExcludedReason {
 	Initializing = 'Initializing',
 	NoActivity = 'NoActivity',
 	NoError = 'NoError',
+	NoTimelineIndicatorEvents = 'NoTimelineIndicatorEvents',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
 }
 

@@ -12,15 +12,28 @@ export const AutoresolveStaleErrorsForm = () => {
 	const [enableAutoResolveStaleErrors, setEnableAutoResolveStaleErrors] =
 		useState<boolean>(false)
 
-	const [
-		autoResolveStaleErrorsDayInterval,
-		setAutoResolveStaleErrorsDayInterval,
-	] = useState<number>()
+	// const [
+	// 	autoResolveStaleErrorsDayInterval,
+	// 	setAutoResolveStaleErrorsDayInterval,
+	// ] = useState<number>()
 	const {
 		allProjectSettings: data,
 		loading,
 		setAllProjectSettings,
 	} = useProjectSettingsContext()
+
+	const setAutoResolveStaleErrorsDayInterval = (interval: number) => {
+		setAllProjectSettings((currentProjectSettings) =>
+			currentProjectSettings?.projectSettings
+				? {
+						projectSettings: {
+							...currentProjectSettings.projectSettings,
+							autoResolveStaleErrorsDayInterval: interval,
+						},
+				  }
+				: currentProjectSettings,
+		)
+	}
 
 	useEffect(() => {
 		if (!loading) {
@@ -29,7 +42,6 @@ export const AutoresolveStaleErrorsForm = () => {
 
 			if (interval > 0) {
 				setEnableAutoResolveStaleErrors(true)
-				setAutoResolveStaleErrorsDayInterval(interval)
 			}
 		}
 	}, [data?.projectSettings?.autoResolveStaleErrorsDayInterval, loading])
@@ -58,6 +70,10 @@ export const AutoresolveStaleErrorsForm = () => {
 							c.checked,
 							(isOptIn: boolean) => {
 								setEnableAutoResolveStaleErrors(isOptIn)
+
+								if (!isOptIn) {
+									setAutoResolveStaleErrorsDayInterval(0)
+								}
 							},
 							false,
 						)}
@@ -71,46 +87,42 @@ export const AutoresolveStaleErrorsForm = () => {
 						justify="space-between"
 						py="8"
 					>
-						<Label
-							label="Auto-resolve errors not seen in"
-							name="Auto-resolve errors not seen in"
-						/>
-						<Form.Select
-							name="Auto-resolve errors not seen in"
-							value={autoResolveStaleErrorsDayInterval}
-							onChange={(e) => {
-								setAllProjectSettings(
-									(currentProjectSettings) =>
-										currentProjectSettings?.projectSettings
-											? {
-													projectSettings: {
-														...currentProjectSettings.projectSettings,
-														autoResolveStaleErrorsDayInterval:
-															Number(
-																e.target.value,
-															),
-													},
-											  }
-											: currentProjectSettings,
-								)
-							}}
-							disabled={!enableAutoResolveStaleErrors}
-						>
-							{DAY_VALUES.map((day) => {
-								if (day === 1) {
+						<Box display="flex">
+							<Label
+								label="Auto-resolve errors not seen in"
+								name="Auto-resolve errors not seen in"
+							/>
+						</Box>
+						<Box>
+							<Form.Select
+								name="Auto-resolve errors not seen in"
+								value={
+									data?.projectSettings
+										?.autoResolveStaleErrorsDayInterval
+								}
+								onChange={(e) =>
+									setAutoResolveStaleErrorsDayInterval(
+										Number(e.target.value),
+									)
+								}
+								disabled={!enableAutoResolveStaleErrors}
+							>
+								{DAY_VALUES.map((day) => {
+									if (day === 1) {
+										return (
+											<option value={day} key={day}>
+												{day} day
+											</option>
+										)
+									}
 									return (
 										<option value={day} key={day}>
 											{day} days
 										</option>
 									)
-								}
-								return (
-									<option value={day} key={day}>
-										{day} days
-									</option>
-								)
-							})}
-						</Form.Select>
+								})}
+							</Form.Select>
+						</Box>
 					</Stack>
 					{enableAutoResolveStaleErrors && (
 						<Callout kind="warning">
