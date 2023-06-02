@@ -44,6 +44,7 @@ import { JSCloudflareLoggingContent } from './logging/js/cloudflare'
 import { FluentForwardContent } from './logging/fluentd'
 import { FileContent } from './logging/file'
 import { DockerContent } from './logging/docker'
+import { PythonLoguruLogContent } from './logging/python/loguru'
 
 export type QuickStartOptions = {
 	title: string
@@ -83,6 +84,7 @@ export enum QuickStartType {
 	PythonFlask = 'flask',
 	PythonDjango = 'django',
 	PythonFastAPI = 'fastapi',
+	PythonLoguru = 'loguru',
 	PythonOther = 'other',
 	PythonAWSFn = 'aws-lambda',
 	PythonAzureFn = 'azure-functions',
@@ -189,6 +191,7 @@ export const quickStartContent = {
 			subtitle:
 				'Select your Python framework to install logging in your application.',
 			logoUrl: siteUrl('/images/quickstart/python.svg'),
+			[QuickStartType.PythonLoguru]: PythonLoguruLogContent,
 			[QuickStartType.PythonOther]: PythonOtherLogContent,
 		},
 		go: {
