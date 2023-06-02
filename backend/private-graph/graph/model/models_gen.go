@@ -1579,24 +1579,26 @@ func (e SessionCommentType) MarshalGQL(w io.Writer) {
 type SessionExcludedReason string
 
 const (
-	SessionExcludedReasonInitializing            SessionExcludedReason = "Initializing"
-	SessionExcludedReasonNoActivity              SessionExcludedReason = "NoActivity"
-	SessionExcludedReasonNoUserInteractionEvents SessionExcludedReason = "NoUserInteractionEvents"
-	SessionExcludedReasonNoError                 SessionExcludedReason = "NoError"
-	SessionExcludedReasonIgnoredUser             SessionExcludedReason = "IgnoredUser"
+	SessionExcludedReasonInitializing              SessionExcludedReason = "Initializing"
+	SessionExcludedReasonNoActivity                SessionExcludedReason = "NoActivity"
+	SessionExcludedReasonNoUserInteractionEvents   SessionExcludedReason = "NoUserInteractionEvents"
+	SessionExcludedReasonNoTimelineIndicatorEvents SessionExcludedReason = "NoTimelineIndicatorEvents"
+	SessionExcludedReasonNoError                   SessionExcludedReason = "NoError"
+	SessionExcludedReasonIgnoredUser               SessionExcludedReason = "IgnoredUser"
 )
 
 var AllSessionExcludedReason = []SessionExcludedReason{
 	SessionExcludedReasonInitializing,
 	SessionExcludedReasonNoActivity,
 	SessionExcludedReasonNoUserInteractionEvents,
+	SessionExcludedReasonNoTimelineIndicatorEvents,
 	SessionExcludedReasonNoError,
 	SessionExcludedReasonIgnoredUser,
 }
 
 func (e SessionExcludedReason) IsValid() bool {
 	switch e {
-	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoError, SessionExcludedReasonIgnoredUser:
+	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonIgnoredUser:
 		return true
 	}
 	return false
