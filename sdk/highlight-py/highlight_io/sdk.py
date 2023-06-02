@@ -154,6 +154,26 @@ class H(object):
         span.record_exception(e)
         logging.exception("Highlight caught an error", exc_info=e)
 
+    @property
+    def logging_handler(self) -> logging.Handler:
+        """A logging handler implementing `logging.Handler` that allows plugging highlight_io
+        into your existing logging setup.
+
+        Example:
+            import highlight_io
+            from loguru import logger
+
+            H = highlight_io.H('project_id', ...)
+
+            logger.add(
+                H.logging_handler,
+                format="{message}",
+                level="INFO",
+                backtrace=True,
+            )
+        """
+        return self.log
+
     def _log_hook(self, span: _Span, record: logging.LogRecord):
         if span and span.is_recording():
             ctx = span.get_span_context()
