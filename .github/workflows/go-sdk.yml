@@ -32,7 +32,9 @@ jobs:
               with:
                   args: --config ./.golangci.yaml --timeout 5m
                   working-directory: sdk/highlight-go
-                  version: latest
+                  # version: latest
+                  # Pinning the version until https://github.com/golangci/golangci-lint/issues/3862 is solved
+                  version: v1.52.2
 
     build:
         name: build binary
