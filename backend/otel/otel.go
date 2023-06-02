@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/samber/lo"
 	"io"
 	"net/http"
@@ -37,7 +38,7 @@ type Handler struct {
 
 var fluentProjectPattern = regexp.MustCompile(fmt.Sprintf(`%s=([\S]+)`, highlight.ProjectIDAttribute))
 
-func lg(ctx context.Context, projectID, sessionID, traceID string, source *modelInputs.LogSource, resourceAttrs, spanAttrs, eventAttrs map[string]any) *log.Entry {
+func lg(ctx context.Context, projectID, sessionID, traceID string, source modelInputs.LogSource, resourceAttrs, spanAttrs, eventAttrs map[string]any) *log.Entry {
 	return log.WithContext(ctx).
 		WithField("project_id", projectID).
 		WithField("session_id", sessionID).
@@ -138,10 +139,10 @@ func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, re
 	errorUrl := cast(eventAttributes[highlight.ErrorURLAttribute], source.String())
 	stackTrace := cast(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
 	if excType == "" && excMessage == "" {
-		lg(ctx, projectID, sessionID, requestID, &source, resourceAttributes, spanAttributes, eventAttributes).Error("otel received exception with no type and no message")
+		lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).Error("otel received exception with no type and no message")
 		return false, nil
 	} else if stackTrace == "" || stackTrace == "null" {
-		lg(ctx, projectID, sessionID, requestID, &source, resourceAttributes, spanAttributes, eventAttributes).Warn("otel received exception with no stacktrace")
+		lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).Warn("otel received exception with no stacktrace")
 		stackTrace = ""
 	}
 	stackTrace = stacktraces.FormatStructureStackTrace(ctx, stackTrace)
@@ -262,7 +263,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						logRow, err := getLogRow(ctx, ts, "ERROR", projectID, sessionID, requestID, traceID, spanID, excMessage, resourceAttributes, spanAttributes, eventAttributes, source, service)
 
 						if err != nil {
-							lg(ctx, projectID, sessionID, requestID, &source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create log row")
+							lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create log row")
 							continue
 						}
 
@@ -271,7 +272,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 						isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, excMessage, source, host, resourceAttributes, spanAttributes, eventAttributes)
 						if backendError == nil {
-							lg(ctx, projectID, sessionID, requestID, &source, resourceAttributes, spanAttributes, eventAttributes).Error("otel span error got no session and no project")
+							lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).Error("otel span error got no session and no project")
 						} else {
 							if isProjectError {
 								projectErrors[projectID] = append(projectErrors[projectID], backendError)
@@ -283,7 +284,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						logSev := cast(eventAttributes[string(hlog.LogSeverityKey)], "unknown")
 						logMessage := cast(eventAttributes[string(hlog.LogMessageKey)], "")
 						if logMessage == "" {
-							lg(ctx, projectID, sessionID, requestID, &source, resourceAttributes, spanAttributes, eventAttributes).Warn("otel received log with no message")
+							lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).Warn("otel received log with no message")
 							continue
 						}
 
@@ -293,7 +294,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						)
 
 						if err != nil {
-							lg(ctx, projectID, sessionID, requestID, &source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create log row")
+							lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create log row")
 							continue
 						}
 
@@ -301,13 +302,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					} else if event.Name() == highlight.MetricEvent {
 						metric, err := getMetric(ctx, ts, projectID, sessionID, requestID, traceID, spanID, resourceAttributes, spanAttributes, eventAttributes, source, service)
 						if err != nil {
-							lg(ctx, &projectID, &sessionID, &requestID, &source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create metric")
+							lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create metric")
 							continue
 						}
 
 						traceMetrics[sessionID] = append(traceMetrics[sessionID], metric)
 					} else {
-						lg(ctx, &projectID, &sessionID, &requestID, &source, resourceAttributes, spanAttributes, eventAttributes).Warnf("otel received unknown event %s", event.Name())
+						lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).Warnf("otel received unknown event %s", event.Name())
 					}
 				}
 			}
@@ -418,7 +419,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				logRow, err := getLogRow(ctx, logRecord.Timestamp().AsTime(), logRecord.SeverityText(), projectID, sessionID, requestID, logRecord.TraceID().String(), logRecord.SpanID().String(), logRecord.Body().Str(), resourceAttributes, scopeAttributes, logAttributes, source, service)
 
 				if err != nil {
-					lg(ctx, projectID, sessionID, requestID, &source, resourceAttributes, scopeAttributes, logAttributes).Errorf("otel log got invalid log record")
+					lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, scopeAttributes, logAttributes).Errorf("otel log got invalid log record")
 					continue
 				}
 
@@ -428,7 +429,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					}
 					projectLogs[projectID] = append(projectLogs[projectID], logRow)
 				} else {
-					lg(ctx, projectID, sessionID, requestID, &source, resourceAttributes, scopeAttributes, logAttributes).Errorf("otel log got no project")
+					lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, scopeAttributes, logAttributes).Errorf("otel log got no project")
 					continue
 				}
 			}
