@@ -108,6 +108,7 @@ const RequestStatusFilter = ({
 	const options = Object.entries(RequestStatus).map(
 		([statusKey, statusValue]) => ({
 			key: statusValue,
+			clearsOnClick: statusKey === RequestStatus.All,
 			render: (
 				<Box
 					display="flex"

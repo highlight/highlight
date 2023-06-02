@@ -72,6 +72,7 @@ const RequestTypeFilter = ({
 	const options = Object.entries(RequestType).map(
 		([displayName, requestName]) => ({
 			key: requestName,
+			clearsOnClick: requestName === RequestType.All,
 			render: (
 				<Box
 					display="flex"

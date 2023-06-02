@@ -7,13 +7,14 @@ import {
 	SelectPopover,
 } from 'ariakit'
 
-import { IconSolidCheckCircle } from '../icons'
+import { IconSolidCheckCircle, IconSolidMinus } from '../icons'
 
 import * as styles from './styles.css'
 
 type Option = {
 	key: string
 	render: React.ReactNode
+	clearsOnClick?: boolean
 }
 
 type Props = {
@@ -62,7 +63,12 @@ export const MultiSelectButton: React.FC<Props> = ({
 							className={styles.selectItem}
 						>
 							<div className={styles.checkbox}>
-								<IconSolidCheckCircle color="white" />
+								{option.clearsOnClick &&
+								!value.includes(option.key) ? (
+									<IconSolidMinus color="grey" />
+								) : (
+									<IconSolidCheckCircle color="white" />
+								)}
 							</div>
 							{option.render}
 						</SelectItem>
