@@ -1,4 +1,9 @@
-import { MultiSelectButton, IconSolidFilter } from '@highlight-run/ui'
+import {
+	Badge,
+	Box,
+	MultiSelectButton,
+	IconSolidFilter,
+} from '@highlight-run/ui'
 import {
 	RequestStatus,
 	RequestType,
@@ -13,39 +18,14 @@ type Props = {
 	setRequestStatuses: (values: RequestStatus[]) => void
 }
 
+const FILTER_LABEL = 'Status'
+
 const RequestStatusFilter = ({
 	requestStatuses,
 	setRequestStatuses,
 	parsedResources,
 	requestTypes,
 }: Props) => {
-	const handleRequestTypeChange = (valueNames: string[]) => {
-		const allPreviouslySelected = requestStatuses.includes(
-			RequestStatus.All,
-		)
-		const allCurrentlySelected = valueNames.includes(RequestStatus.All)
-		const clearOtherTypes = !allPreviouslySelected && allCurrentlySelected
-		const deselectAllType = allPreviouslySelected && valueNames.length > 1
-
-		if (!valueNames.length || clearOtherTypes) {
-			return setRequestStatuses([RequestStatus.All])
-		}
-
-		//-- Set type to be the requestName value --//		)
-		const updatedRequestStatuses = valueNames.reduce(
-			(agg: string[], name: string) => {
-				if (deselectAllType && name === RequestStatus.All) {
-					return agg
-				}
-
-				return agg.concat(name)
-			},
-			[],
-		) as RequestStatus[]
-
-		setRequestStatuses(updatedRequestStatuses)
-	}
-
 	/* Count request per type (XHR, etc.) */
 	/* Count request per http status (200, etc.) */
 	const countPerRequestStatus = useMemo(() => {
@@ -105,12 +85,58 @@ const RequestStatusFilter = ({
 		return count
 	}, [parsedResources, requestTypes])
 
+	const handleRequestTypeChange = (valueNames: string[]) => {
+		const allPreviouslySelected = requestStatuses.includes(
+			RequestStatus.All,
+		)
+		const allCurrentlySelected = valueNames.includes(RequestStatus.All)
+		const clearOtherTypes = !allPreviouslySelected && allCurrentlySelected
+		const deselectAllType = allPreviouslySelected && valueNames.length > 1
+
+		if (!valueNames.length || clearOtherTypes) {
+			return setRequestStatuses([RequestStatus.All])
+		}
+
+		//-- Set type to be the requestName value --//
+		const updatedRequestStatuses = valueNames.filter(
+			(name) => !deselectAllType || name !== RequestStatus.All,
+		) as RequestStatus[]
+
+		setRequestStatuses(updatedRequestStatuses)
+	}
+
 	const options = Object.entries(RequestStatus).map(
 		([statusKey, statusValue]) => ({
 			key: statusValue,
-			render: `${statusKey} (${countPerRequestStatus[statusValue]})`,
+			render: (
+				<Box
+					display="flex"
+					justifyContent="space-between"
+					width="full"
+					gap="8"
+				>
+					<span>{statusKey}</span>
+					<Badge
+						variant="gray"
+						size="small"
+						label={countPerRequestStatus[statusValue].toString()}
+					/>
+				</Box>
+			),
 		}),
 	)
+
+	const valueRender = () => {
+		if (requestStatuses.includes(RequestStatus.All)) {
+			return FILTER_LABEL
+		}
+
+		if (requestStatuses.length === 1) {
+			return `${FILTER_LABEL}: ${requestStatuses[0]}`
+		}
+
+		return `${FILTER_LABEL}: ${requestStatuses.length} selected`
+	}
 
 	return (
 		<MultiSelectButton
@@ -118,6 +144,7 @@ const RequestStatusFilter = ({
 			icon={<IconSolidFilter />}
 			defaultValue={options[0].key}
 			value={requestStatuses}
+			valueRender={valueRender}
 			options={options}
 			onChange={handleRequestTypeChange}
 		/>

@@ -3,10 +3,11 @@ import {
 	useSelectState,
 	Select,
 	SelectItem,
-	SelectItemCheck,
 	SelectLabel,
 	SelectPopover,
 } from 'ariakit'
+
+import { IconSolidCheckCircle } from '../icons'
 
 import * as styles from './styles.css'
 
@@ -19,7 +20,8 @@ type Props = {
 	label: string
 	icon?: React.ReactNode
 	defaultValue?: string
-	value?: string[]
+	value: string[]
+	valueRender: () => React.ReactNode
 	options: Option[]
 	onChange: (value: string[]) => void
 }
@@ -29,6 +31,7 @@ export const MultiSelectButton: React.FC<Props> = ({
 	icon,
 	defaultValue,
 	value,
+	valueRender,
 	options,
 	onChange,
 }) => {
@@ -38,12 +41,6 @@ export const MultiSelectButton: React.FC<Props> = ({
 		value: value,
 	})
 
-	const renderValue = (value: string[]) => {
-		if (value.length === 0) return `${label}: none selected`
-		if (value.length === 1) return `${label}: ${value[0]}`
-		return `${label}: ${value.length} selected`
-	}
-
 	return (
 		<>
 			<SelectLabel state={selectState} className={styles.selectLabel}>
@@ -51,7 +48,7 @@ export const MultiSelectButton: React.FC<Props> = ({
 			</SelectLabel>
 			<Select state={selectState} className={styles.selectButton}>
 				{icon}
-				{renderValue(selectState.value)}
+				{valueRender()}
 			</Select>
 			{selectState.mounted && (
 				<SelectPopover
@@ -64,8 +61,10 @@ export const MultiSelectButton: React.FC<Props> = ({
 							value={option.key}
 							className={styles.selectItem}
 						>
+							<div className={styles.checkbox}>
+								<IconSolidCheckCircle color="white" />
+							</div>
 							{option.render}
-							<SelectItemCheck />
 						</SelectItem>
 					))}
 				</SelectPopover>

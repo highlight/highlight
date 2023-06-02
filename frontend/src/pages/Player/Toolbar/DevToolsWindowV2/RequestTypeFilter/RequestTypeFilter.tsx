@@ -1,38 +1,29 @@
-import { MultiSelectButton, IconSolidFilter } from '@highlight-run/ui'
-import { RequestType } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import {
+	Badge,
+	Box,
+	MultiSelectButton,
+	IconSolidFilter,
+} from '@highlight-run/ui'
+import {
+	RequestType,
+	getNetworkResourcesDisplayName,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { ICountPerRequestType } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import React, { useMemo } from 'react'
+
+type Props = {
+	requestTypes: RequestType[]
+	parsedResources: any
+	setRequestTypes: (values: RequestType[]) => void
+}
+
+const FILTER_LABEL = 'Type'
 
 const RequestTypeFilter = ({
 	requestTypes,
 	setRequestTypes,
 	parsedResources,
-}: any) => {
-	const handleRequestTypeChange = (valueNames: string[]) => {
-		const allPreviouslySelected = requestTypes.includes(RequestType.All)
-		const allCurrentlySelected = valueNames.includes(RequestType.All)
-		const clearOtherTypes = !allPreviouslySelected && allCurrentlySelected
-		const deselectAllType = allPreviouslySelected && valueNames.length > 1
-
-		if (!valueNames.length || clearOtherTypes) {
-			return setRequestTypes([RequestType.All])
-		}
-
-		//-- Set type to be the requestName value --//
-		const updatedRequestTypes = valueNames.reduce(
-			(agg: string[], name: string) => {
-				if (deselectAllType && name === RequestType.All) {
-					return agg
-				}
-
-				return agg.concat(name)
-			},
-			[] as string[],
-		)
-
-		setRequestTypes(updatedRequestTypes)
-	}
-
+}: Props) => {
 	/* Count request per type (XHR, etc.) */
 	const countPerRequestType = useMemo(() => {
 		const count: ICountPerRequestType = {
@@ -61,19 +52,65 @@ const RequestTypeFilter = ({
 		return count
 	}, [parsedResources])
 
+	const handleRequestTypeChange = (valueNames: string[]) => {
+		const allPreviouslySelected = requestTypes.includes(RequestType.All)
+		const allCurrentlySelected = valueNames.includes(RequestType.All)
+		const clearOtherTypes = !allPreviouslySelected && allCurrentlySelected
+		const deselectAllType = allPreviouslySelected && valueNames.length > 1
+
+		if (!valueNames.length || clearOtherTypes) {
+			return setRequestTypes([RequestType.All])
+		}
+
+		const updatedRequestTypes = valueNames.filter(
+			(name) => !deselectAllType || name !== RequestType.All,
+		) as RequestType[]
+
+		setRequestTypes(updatedRequestTypes)
+	}
+
 	const options = Object.entries(RequestType).map(
 		([displayName, requestName]) => ({
 			key: requestName,
-			render: `${displayName} (${countPerRequestType[requestName]})`,
+			render: (
+				<Box
+					display="flex"
+					justifyContent="space-between"
+					width="full"
+					gap="16"
+				>
+					<span>{displayName}</span>
+					<Badge
+						variant="gray"
+						size="small"
+						label={countPerRequestType[requestName].toString()}
+					/>
+				</Box>
+			),
 		}),
 	)
 
+	const valueRender = () => {
+		if (requestTypes.includes(RequestType.All)) {
+			return FILTER_LABEL
+		}
+
+		if (requestTypes.length === 1) {
+			return `${FILTER_LABEL}: ${getNetworkResourcesDisplayName(
+				requestTypes[0],
+			)}`
+		}
+
+		return `${FILTER_LABEL}: ${requestTypes.length} selected`
+	}
+
 	return (
 		<MultiSelectButton
-			label="Type"
+			label={FILTER_LABEL}
 			icon={<IconSolidFilter />}
 			defaultValue={RequestType.All}
 			value={requestTypes}
+			valueRender={valueRender}
 			options={options}
 			onChange={handleRequestTypeChange}
 		/>
