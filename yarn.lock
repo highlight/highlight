@@ -11214,7 +11214,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/node@workspace:*, @highlight-run/node@workspace:^, @highlight-run/node@workspace:sdk/highlight-node":
+"@highlight-run/node@workspace:*, @highlight-run/node@workspace:sdk/highlight-node":
   version: 0.0.0-use.local
   resolution: "@highlight-run/node@workspace:sdk/highlight-node"
   dependencies:
@@ -40423,7 +40423,7 @@ __metadata:
   resolution: "nextjs@workspace:e2e/nextjs"
   dependencies:
     "@highlight-run/next": "workspace:*"
-    "@highlight-run/node": "workspace:^"
+    "@highlight-run/node": "workspace:*"
     "@highlight-run/react": "workspace:*"
     "@next/env": ^13.3.4
     "@tanstack/react-query": ^4.29.7
