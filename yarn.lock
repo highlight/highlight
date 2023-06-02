@@ -33516,6 +33516,7 @@ __metadata:
     typed-scss-modules: ^7.0.1
     typescript: ^4.9.4
     uuidv4: ^6.2.13
+    zod: ^3.21.4
   languageName: unknown
   linkType: soft
 

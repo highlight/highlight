@@ -69,7 +69,8 @@
 		"rudder-sdk-js": "^2.20.0",
 		"sass": "^1.56.1",
 		"sharp": "^0.31.3",
-		"uuidv4": "^6.2.13"
+		"uuidv4": "^6.2.13",
+		"zod": "^3.21.4"
 	},
 	"devDependencies": {
 		"@svgr/webpack": "^6.5.1",
