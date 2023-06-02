@@ -65,7 +65,7 @@ func (autoResolver *AutoResolver) resolveStaleErrorsForProject(ctx context.Conte
 			State:     privateModel.ErrorStateOpen,
 			ProjectID: project.ID,
 		}).
-		Where("id NOT IN (?)", subQuery).
+		Where("NOT EXISTS (?)", subQuery).
 		Find(&errorGroups).Error
 
 	if err != nil {
