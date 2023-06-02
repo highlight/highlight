@@ -8499,6 +8499,7 @@ enum SessionExcludedReason {
 	Initializing
 	NoActivity
 	NoUserInteractionEvents
+	NoTimelineIndicatorEvents
 	NoError
 	IgnoredUser
 }
