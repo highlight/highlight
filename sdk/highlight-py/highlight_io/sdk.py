@@ -10,10 +10,25 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LogRecord
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry.sdk.trace import TracerProvider, _Span
+from opentelemetry.sdk.trace import TracerProvider, Span
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 from highlight_io.integrations import Integration
+
+
+class LogHandler(logging.Handler):
+    def __init__(self, highlight: "H", level=logging.NOTSET):
+        self.highlight = highlight
+        super(LogHandler, self).__init__(level=level)
+
+    def emit(self, record: logging.LogRecord):
+        ctx = contextlib.nullcontext
+        span = trace.get_current_span()
+        if span is None or not span.is_recording():
+            ctx = self.highlight.trace
+
+        with ctx():
+            self.highlight.log_hook(trace.get_current_span(), record)
 
 
 class H(object):
@@ -35,6 +50,7 @@ class H(object):
         integrations: typing.List[Integration] = None,
         record_logs: bool = True,
         otlp_endpoint: str = "",
+        log_level=logging.DEBUG,
     ):
         """
         Setup Highlight backend instrumentation.
@@ -55,6 +71,7 @@ class H(object):
         self._integrations = integrations or []
         self._record_logs = record_logs
         self._otlp_endpoint = otlp_endpoint or H.OTLP_HTTP
+        self._log_handler = LogHandler(self, level=log_level)
         if self._record_logs:
             self._instrument_logs()
 
@@ -172,9 +189,9 @@ class H(object):
                 backtrace=True,
             )
         """
-        return self.log
+        return self._log_handler
 
-    def _log_hook(self, span: _Span, record: logging.LogRecord):
+    def log_hook(self, span: Span, record: logging.LogRecord):
         if span and span.is_recording():
             ctx = span.get_span_context()
             # record.created is sec but timestamp should be ns
@@ -200,5 +217,5 @@ class H(object):
 
     def _instrument_logs(self):
         LoggingInstrumentor().instrument(
-            set_logging_format=True, log_hook=self._log_hook
+            set_logging_format=True, log_hook=self.log_hook
         )
