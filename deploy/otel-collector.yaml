@@ -5,6 +5,8 @@ receivers:
                 endpoint: '0.0.0.0:4317'
             http:
                 endpoint: '0.0.0.0:4318'
+    fluentforward:
+        endpoint: '0.0.0.0:24224'
 exporters:
     otlphttp:
         endpoint: 'https://pub.highlight.run/otel'
@@ -22,7 +24,7 @@ service:
             processors: [batch]
             exporters: [otlphttp]
         logs:
-            receivers: [otlp]
+            receivers: [otlp, fluentforward]
             processors: [batch]
             exporters: [otlphttp]
 extensions:
