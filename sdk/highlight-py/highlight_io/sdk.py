@@ -69,10 +69,9 @@ class H(object):
         H._instance = self
         self._project_id = project_id
         self._integrations = integrations or []
-        self._instrument_logging = instrument_logging
         self._otlp_endpoint = otlp_endpoint or H.OTLP_HTTP
         self._log_handler = LogHandler(self, level=log_level)
-        if self._instrument_logging:
+        if instrument_logging:
             self._instrument_logging()
 
         self._trace_provider = TracerProvider()
