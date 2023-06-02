@@ -299,10 +299,11 @@ func (c *Client) UpdateSynchronous(index Index, id int, obj interface{}) error {
 	indexStr := GetIndex(index)
 
 	req := opensearchapi.UpdateRequest{
-		Index:      indexStr,
-		DocumentID: documentId,
-		Body:       body,
-		Refresh:    "true",
+		Index:           indexStr,
+		DocumentID:      documentId,
+		Body:            body,
+		RetryOnConflict: pointy.Int(3),
+		Refresh:         "true",
 	}
 
 	res, err := req.Do(context.Background(), c.Client)
