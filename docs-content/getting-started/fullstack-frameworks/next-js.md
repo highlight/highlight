@@ -59,15 +59,13 @@ const publicEnv = {
 		process.env.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL,
 }
 
-const CONSTANTS = z
+export const CONSTANTS = z
 	.object({
 		NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: z.string(),
 		NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT: stringOrUndefined,
 		NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL: stringOrUndefined,
 	})
 	.parse(publicEnv)
-
-export default CONSTANTS
 ```
 
 ## Instrument your API routes
@@ -75,7 +73,7 @@ export default CONSTANTS
 
  ```javascript
 // src/app/utils/highlight.config.ts:
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/app/constants'
 import { Highlight } from '@highlight-run/next'
 
 if (process.env.NODE_ENV === 'development') {
@@ -168,7 +166,7 @@ export default nextConfig
 
 ```javascript
 // instrumentation.ts
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/app/constants'
 import { registerHighlight } from '@highlight-run/next'
 
 export async function register() {
@@ -183,7 +181,7 @@ export async function register() {
 
 ```javascript
 // instrumentation.ts
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/app/constants'
 
 export async function register() {
 	if (process.env.NEXT_RUNTIME === 'nodejs') {
@@ -213,7 +211,7 @@ This implementation requires React 17 or greater. If you're behind on React vers
 ```javascript
 // pages/_app.tsx
 import { AppProps } from 'next/app'
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/app/constants'
 import { HighlightInit } from '@highlight-run/next/highlight-init'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
@@ -242,7 +240,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 // src/app/layout.tsx
 import './globals.css'
 
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/app/constants'
 import { HighlightInit } from '@highlight-run/next/highlight-init'
 
 export const metadata = {

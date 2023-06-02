@@ -74,7 +74,7 @@ export default CONSTANTS
 
  ```javascript
 // src/app/utils/highlight.config.ts:
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/app/constants'
 import { Highlight } from '@highlight-run/next'
 
 if (process.env.NODE_ENV === 'development') {
@@ -144,7 +144,7 @@ module.exports = nextConfig
 
 ```javascript
 // instrumentation.ts
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/app/constants'
 import { registerHighlight } from '@highlight-run/next'
 
 export async function register() {
@@ -162,7 +162,7 @@ export async function register() {
 ```javascript
 // pages/_app.tsx
 import { AppProps } from 'next/app'
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/app/constants'
 import { HighlightInit } from '@highlight-run/next/highlight-init'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
@@ -191,7 +191,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 // src/app/layout.tsx
 import './globals.css'
 
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/app/constants'
 import { HighlightInit } from '@highlight-run/next/highlight-init'
 
 export const metadata = {

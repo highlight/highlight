@@ -1,5 +1,5 @@
 // src/app/utils/highlight.config.ts:
-import CONSTANTS from '@/app/constants'
+import { CONSTANTS } from '@/app/constants'
 import { Highlight } from '@highlight-run/next'
 
 if (process.env.NODE_ENV === 'development') {
