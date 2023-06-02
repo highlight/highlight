@@ -48,8 +48,8 @@ class H(object):
         self,
         project_id: str,
         integrations: typing.List[Integration] = None,
-        record_logs: bool = True,
         otlp_endpoint: str = "",
+        record_logs: bool = True,
         log_level=logging.DEBUG,
     ):
         """
@@ -62,7 +62,7 @@ class H(object):
 
         :param project_id: a string that corresponds to the verbose id of your project from app.highlight.io/setup
         :param integrations: a list of Integrations that allow connecting with your framework, like Flask or Django.
-        :param record_logs: defaults to True. set False if you want to disable python logging recording.
+        :param record_logs: defaults to True. set False to disable auto-instrumentation of python `logging` methods.
         :param otlp_endpoint: set to a custom otlp destination
         :return: a configured H instance
         """
@@ -73,7 +73,7 @@ class H(object):
         self._otlp_endpoint = otlp_endpoint or H.OTLP_HTTP
         self._log_handler = LogHandler(self, level=log_level)
         if self._record_logs:
-            self._instrument_logs()
+            self._instrument_logging()
 
         self._trace_provider = TracerProvider()
         self._trace_provider.add_span_processor(
@@ -215,7 +215,7 @@ class H(object):
             )
             self.log.emit(r)
 
-    def _instrument_logs(self):
+    def _instrument_logging(self):
         LoggingInstrumentor().instrument(
             set_logging_format=True, log_hook=self.log_hook
         )

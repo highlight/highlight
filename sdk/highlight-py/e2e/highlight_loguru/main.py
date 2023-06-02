@@ -18,7 +18,9 @@ logger.add(
 def main():
     logger.info("hello handler", {"customer": "unknown"})
     for idx in range(1000):
-        logger.info(f"hello {idx}")
+        with H.trace(session_id="session-abc123", request_id="request-abc123"):
+            logger.info(f"hello from loguru with trace {idx}")
+            logging.info(f"hello from logging with trace {idx}")
     logger.warning("made it outside the loop!")
     logger.error("oops")
 
