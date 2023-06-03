@@ -10,7 +10,7 @@ export const PythonOtherLogContent: QuickStartContent = {
 	logoUrl: siteUrl('/images/quickstart/python.svg'),
 	entries: [
 		previousInstallSnippet('python'),
-		downloadSnippet('Flask'),
+		downloadSnippet(),
 		{
 			title: 'Initialize the Highlight SDK.',
 			content: 'Setup the SDK with `instrument_logging` enabled.',
