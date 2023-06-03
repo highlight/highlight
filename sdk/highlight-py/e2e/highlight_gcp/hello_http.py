@@ -7,7 +7,7 @@ import functions_framework
 import highlight_io
 from highlight_io.integrations.gcp import observe_handler
 
-H = highlight_io.H("1", record_logs=True)
+H = highlight_io.H("1", instrument_logging=True)
 
 
 @observe_handler
