@@ -17,7 +17,6 @@ export const PythonLoguruLogContent: QuickStartContent = {
 				'`instrument_logging=False` must be passed to make sure the loguru handler does not collide with built-in `logging` instrumentation.',
 			code: {
 				text: `import highlight_io
-from loguru import logger
 
 H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=False)`,
 				language: 'python',
