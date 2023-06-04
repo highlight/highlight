@@ -1,10 +1,9 @@
-import Image from 'next/image'
-import styles from './Products.module.scss'
 import classNames from 'classnames'
-import { Typography } from '../common/Typography/Typography'
+import Image from 'next/image'
 import { PrimaryButton } from '../../components/common/Buttons/PrimaryButton'
-import React from 'react'
+import { Typography } from '../common/Typography/Typography'
 import { ObfuscationSlider } from '../Home/ObfuscationSlider/ObfuscationSlider'
+import styles from './Products.module.scss'
 
 //Component for the image/text row for the footer of the product page
 //invert puts the image on the right side of the text
@@ -35,7 +34,11 @@ const InfoRow = ({
 				{privacy ? (
 					<ObfuscationSlider />
 				) : (
-					<Image src={imgSrc} alt="" />
+					<Image
+						className="w-full h-full object-contain"
+						src={imgSrc}
+						alt=""
+					/>
 				)}
 			</div>
 			<div className="lg:w-1/2 text-center lg:text-left">
