@@ -58,7 +58,7 @@ const CarouselFeatures = ({ feature }: { feature: Feature }) => {
 				{feature.code ? (
 					<>
 						{feature.link && (
-							<div className="flex justify-center sm:justify-start mb-4">
+							<div className="flex justify-start mb-4">
 								<Link href={`${feature.link}`}>
 									<Typography type="copy3" emphasis={true}>
 										<div className="flex items-center justify-center gap-2">
@@ -90,7 +90,7 @@ const CarouselFeatures = ({ feature }: { feature: Feature }) => {
 				) : (
 					<div className="flex flex-col gap-3 rounded-lg">
 						{feature.link && (
-							<div className="flex justify-center sm:justify-start mb-4">
+							<div className="flex justify-start mb-4">
 								<Link href={`${feature.link}`}>
 									<Typography type="copy3" emphasis={true}>
 										<div className="flex items-center justify-center gap-2">
