@@ -65,8 +65,9 @@ npx --yes @highlight-run/sourcemap-uploader upload --apiKey $\{YOUR_ORG_API_KEY\
 
 export const initializeSnippet: QuickStartStep = {
 	title: 'Initialize the SDK in your frontend.',
-	content: `Grab your project ID from [app.highlight.io/setup](https://app.highlight.io/setup) and insert it in place of \`<YOUR_PROJECT_ID>\`.
-                    To get started, we recommend setting \`tracingOrigins\` and \`networkRecording\` so that we can pass a header to pair frontend and backend errors . Refer to our docs on [SDK configuration](${sessionReplayFeaturesLink}) and [Fullstack Mapping](${fullstackMappingLink}) to read more about these options.`,
+	content: `Grab your project ID from [app.highlight.io/setup](https://app.highlight.io/setup), and pass it as the first parameter of the \`H.init()\` method.
+                    
+To get started, we recommend setting \`tracingOrigins\` and \`networkRecording\` so that we can pass a header to pair frontend and backend errors. Refer to our docs on [SDK configuration](${sessionReplayFeaturesLink}) and [Fullstack Mapping](${fullstackMappingLink}) to read more about these options.`,
 	code: [
 		{
 			text: `...
@@ -79,6 +80,9 @@ H.init('<YOUR_PROJECT_ID>', {
 		recordHeadersAndBody: true,
 		urlBlocklist: [
 			// insert full or partial urls that you don't want to record here
+			// Out of the box, Highlight will not record these URLs (they can be safely removed):
+			"https://www.googleapis.com/identitytoolkit",
+			"https://securetoken.googleapis.com",
 		],
 	},
 });

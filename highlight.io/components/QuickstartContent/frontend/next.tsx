@@ -48,7 +48,9 @@ pnpm add @highlight-run/next highlight.run @highlight-run/react
 		},
 		{
 			title: 'Initialize the client SDK.',
-			content: `Grab your project ID from [app.highlight.io/setup](https://app.highlight.io/setup). If you're using the original Next.js Page router, drop \`<HighlightInit />\` in your \`_app.tsx\` file. For the App Router, add it to your top-level \`layout.tsx\` file.`,
+			content: `Grab your project ID from [app.highlight.io/setup](https://app.highlight.io/setup), and set it as the \`projectID\` in the \`<HighlightInit/>\` component.
+			
+If you're using the original Next.js Page router, drop \`<HighlightInit />\` in your \`_app.tsx\` file. For the App Router, add it to your top-level \`layout.tsx\` file.`,
 			code: [
 				{
 					text: `
