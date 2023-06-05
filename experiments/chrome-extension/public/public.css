@@ -18,15 +18,6 @@
 
 @font-face {
 	font-family: 'Inter';
-	font-style: normal;
-	font-weight: 200;
-	font-display: swap;
-	src: url("Inter-ExtraLight.woff2?v=3.19") format("woff2"),
-		url("Inter-ExtraLight.woff?v=3.19") format("woff");
-}
-
-@font-face {
-	font-family: 'Inter';
 	font-style: italic;
 	font-weight: 200;
 	font-display: swap;

@@ -15,15 +15,6 @@ body {
 	font-display: swap;
 	font-family: 'Inter';
 	font-style: normal;
-	font-weight: 100;
-	src: local('Inter Thin'), local('InterThin'),
-		url('./font/Inter-Thin.woff2') format('woff2');
-}
-
-@font-face {
-	font-display: swap;
-	font-family: 'Inter';
-	font-style: normal;
 	font-weight: 800;
 	src: local('Inter Black'), local('InterBlack'),
 		url('./font/Inter-Black.woff2') format('woff2');
@@ -45,15 +36,6 @@ body {
 	font-weight: 500;
 	src: local('Inter Medium'), local('InterMedium'),
 		url('./font/Inter-Medium.woff2') format('woff2');
-}
-
-@font-face {
-	font-display: swap;
-	font-family: 'Inter';
-	font-style: normal;
-	font-weight: 200;
-	src: local('Inter ExtraLight'), local('InterExtraLight'),
-		url('./font/Inter-ExtraLight.woff2') format('woff2');
 }
 
 @font-face {
