@@ -347,7 +347,21 @@ const ProductCard = ({
 					</Form.NamedSection>
 				</Box>
 				<Box cssClass={style.formSection}>
-					<Form.NamedSection label="Limit" name="Limit">
+					<Form.NamedSection
+						label="Limit"
+						name="Limit"
+						tag={
+							<Tooltip
+								trigger={
+									<IconSolidInformationCircle size={12} />
+								}
+							>
+								If a billing limit is added, extra{' '}
+								{productType.toLowerCase()} will not be recorded
+								once the limit is reached.
+							</Tooltip>
+						}
+					>
 						<Box display="flex">
 							<LimitButton
 								limitCents={limitCents}
@@ -802,7 +816,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							<Text size="small" weight="medium">
 								Prices are usage based and flexible with your
 								needs. Need a custom quote or want to commit to
-								a minimum spend?{' '}
+								a minimum spend (at a discount)?{' '}
 								<a href="mailto:sales@highlight.run">
 									<Box
 										display="inline-flex"

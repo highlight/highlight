@@ -12,7 +12,10 @@ If you don't see one of your languages / frameworks below, reach out to us in ou
 
 
 <DocsCardGroup>
-    <DocsCard title="Python" href="./python-install.md">
-        {"Integrate logging in Python."}
+    <DocsCard title="Loguru" href="./loguru.md">
+        {"Integrate with Loguru."}
+    </DocsCard>
+    <DocsCard title="logging" href="./other.md">
+        {"Integrate with Python native logging."}
     </DocsCard>
 </DocsCardGroup>

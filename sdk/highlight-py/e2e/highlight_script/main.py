@@ -4,7 +4,7 @@ import time
 
 import highlight_io
 
-H = highlight_io.H("1", record_logs=True)
+H = highlight_io.H("1", instrument_logging=True)
 
 
 def main():

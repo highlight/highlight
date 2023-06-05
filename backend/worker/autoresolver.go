@@ -57,7 +57,11 @@ func (autoResolver *AutoResolver) resolveStaleErrorsForProject(ctx context.Conte
 	subQuery := db.
 		Model(model.ErrorObject{}).
 		Select("error_group_id").
-		Where("created_at >= ?", time.Now().AddDate(0, 0, -interval))
+		Where("error_objects.error_group_id = error_groups.id").
+		Where("created_at >= ?", time.Now().AddDate(0, 0, -interval)).
+		Where(model.ErrorObject{
+			ProjectID: project.ID,
+		})
 
 	err := db.Debug().
 		Select("DISTINCT(error_groups.id), error_groups.project_id").
@@ -65,7 +69,7 @@ func (autoResolver *AutoResolver) resolveStaleErrorsForProject(ctx context.Conte
 			State:     privateModel.ErrorStateOpen,
 			ProjectID: project.ID,
 		}).
-		Where("id NOT IN (?)", subQuery).
+		Where("NOT EXISTS (?)", subQuery).
 		Find(&errorGroups).Error
 
 	if err != nil {

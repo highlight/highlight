@@ -553,30 +553,26 @@ const LogAlertForm = ({
 					</Column>
 
 					<Column>
-						<Form.NamedSection
+						<Form.Select
 							label="Alert frequency"
-							name={form.names.frequency}
+							name={form.names.frequency.toString()}
+							value={form.values.frequency}
+							onChange={(e) =>
+								form.setValue(
+									form.names.frequency,
+									e.target.value,
+								)
+							}
 						>
-							<select
-								className={styles.select}
-								value={form.values.frequency}
-								onChange={(e) =>
-									form.setValue(
-										form.names.frequency,
-										e.target.value,
-									)
-								}
-							>
-								<option value="" disabled>
-									Select alert frequency
-								</option>
-								<option value={15}>15 seconds</option>
-								<option value={60}>1 minute</option>
-								<option value={300}>5 minutes</option>
-								<option value={900}>15 minutes</option>
-								<option value={1800}>30 minutes</option>
-							</select>
-						</Form.NamedSection>
+							<option value="" disabled>
+								Select alert frequency
+							</option>
+							<option value={15}>15 seconds</option>
+							<option value={60}>1 minute</option>
+							<option value={300}>5 minutes</option>
+							<option value={900}>15 minutes</option>
+							<option value={1800}>30 minutes</option>
+						</Form.Select>
 					</Column>
 				</Column.Container>
 			</Stack>

@@ -13,7 +13,6 @@ import (
 
 // TestConsumeError tests every case for ConsumeError
 func TestConsumeError(t *testing.T) {
-	requester = mockRequester{}
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, ContextKeys.SessionSecureID, "0")
 	ctx = context.WithValue(ctx, ContextKeys.RequestID, "0")
@@ -42,7 +41,6 @@ func TestConsumeError(t *testing.T) {
 
 // TestConsumeError tests every case for RecordMetric
 func TestRecordMetric(t *testing.T) {
-	requester = mockRequester{}
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, ContextKeys.SessionSecureID, "0")
 	ctx = context.WithValue(ctx, ContextKeys.RequestID, "0")
@@ -64,20 +62,6 @@ func TestRecordMetric(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			Start()
 			RecordMetric(input.contextInput, input.metricInput.name, input.metricInput.value)
-			a := flush()
-			if len(a) != input.expectedFlushSize {
-				t.Errorf("flush returned the wrong number of metrics [%v != %v]", len(a), input.expectedFlushSize)
-				return
-			}
-			if len(a) < 1 {
-				return
-			}
-			if string(a[0].Name) != input.metricInput.name {
-				t.Errorf("name not equal to expected name: %v != %v", a[0].Name, input.metricInput.name)
-			}
-			if float64(a[0].Value) != input.metricInput.value {
-				t.Errorf("name not equal to expected name: %v != %v", a[0].Value, input.metricInput.value)
-			}
 		})
 	}
 	Stop()
@@ -109,13 +93,6 @@ func TestTracer(t *testing.T) {
 			return &graphql.Response{}, nil
 		}); field == nil || err != nil {
 			t.Errorf("got invalid response from intercept field")
-		}
-
-		a := flush()
-		// size, duration, errorsCount, fields duration
-		if len(a) != 3 {
-			t.Errorf("flush returned the wrong number of metrics [%v != %v]", len(a), 4)
-			return
 		}
 	})
 	Stop()

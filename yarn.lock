@@ -9711,7 +9711,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-codegen/cli@npm:2.11.2, @graphql-codegen/cli@npm:^2.11.2":
+"@graphql-codegen/cli@npm:^2.11.2":
   version: 2.11.2
   resolution: "@graphql-codegen/cli@npm:2.11.2"
   dependencies:
@@ -9991,7 +9991,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@graphql-codegen/typescript-graphql-request@npm:4.5.2, @graphql-codegen/typescript-graphql-request@npm:^4.5.2":
+"@graphql-codegen/typescript-graphql-request@npm:^4.5.2":
   version: 4.5.2
   resolution: "@graphql-codegen/typescript-graphql-request@npm:4.5.2"
   dependencies:
@@ -10004,21 +10004,6 @@ __metadata:
     graphql-request: ^3.4.0 || ^4.0.0
     graphql-tag: ^2.0.0
   checksum: b2bae42791943e13055b1d51c010539b811df4b6e7a37971d5cc673c7c9973a3148c36ce3d4077dd4bd868d88a47cab2a1e077ce8e5f2da367790c15fc8f9c4e
-  languageName: node
-  linkType: hard
-
-"@graphql-codegen/typescript-operations@npm:2.5.2, @graphql-codegen/typescript-operations@npm:^2.5.2":
-  version: 2.5.2
-  resolution: "@graphql-codegen/typescript-operations@npm:2.5.2"
-  dependencies:
-    "@graphql-codegen/plugin-helpers": ^2.6.0
-    "@graphql-codegen/typescript": ^2.7.2
-    "@graphql-codegen/visitor-plugin-common": 2.12.0
-    auto-bind: ~4.0.0
-    tslib: ~2.4.0
-  peerDependencies:
-    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: 98be34a9d9d92ff5408705fd898713071641d3b4d56651da8f2622ce41f79765656c87502fcefe728737a7b3b1e53f998e0661224f0795f9148881d2efe7552c
   languageName: node
   linkType: hard
 
@@ -10037,6 +10022,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@graphql-codegen/typescript-operations@npm:^2.5.2":
+  version: 2.5.2
+  resolution: "@graphql-codegen/typescript-operations@npm:2.5.2"
+  dependencies:
+    "@graphql-codegen/plugin-helpers": ^2.6.0
+    "@graphql-codegen/typescript": ^2.7.2
+    "@graphql-codegen/visitor-plugin-common": 2.12.0
+    auto-bind: ~4.0.0
+    tslib: ~2.4.0
+  peerDependencies:
+    graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
+  checksum: 98be34a9d9d92ff5408705fd898713071641d3b4d56651da8f2622ce41f79765656c87502fcefe728737a7b3b1e53f998e0661224f0795f9148881d2efe7552c
+  languageName: node
+  linkType: hard
+
 "@graphql-codegen/typescript-react-apollo@npm:^2.2.1":
   version: 2.2.1
   resolution: "@graphql-codegen/typescript-react-apollo@npm:2.2.1"
@@ -10051,21 +10051,6 @@ __metadata:
     graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
     graphql-tag: ^2.0.0
   checksum: e037259e7ab285f9cf698906637e2a7cc065ee48c88e8a52e433d358ed85c1939be9d92b05b9249200735fb3b444bf2fa1cbd5ebb849416c78331631379f6580
-  languageName: node
-  linkType: hard
-
-"@graphql-codegen/typescript@npm:2.8.1, @graphql-codegen/typescript@npm:^2.8.1":
-  version: 2.8.1
-  resolution: "@graphql-codegen/typescript@npm:2.8.1"
-  dependencies:
-    "@graphql-codegen/plugin-helpers": ^2.7.2
-    "@graphql-codegen/schema-ast": ^2.5.1
-    "@graphql-codegen/visitor-plugin-common": 2.13.1
-    auto-bind: ~4.0.0
-    tslib: ~2.4.0
-  peerDependencies:
-    graphql: ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-  checksum: 2b5466190e385c557eed6210b861fb9e632fb61b90bd0f97ff983f359c0ad8106228667c9ff2201842100417a07cfaffa91794ef03058a151df256d733363fa2
   languageName: node
   linkType: hard
 
@@ -10095,6 +10080,21 @@ __metadata:
   peerDependencies:
     graphql: ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
   checksum: be1c200b97be42591edd34b998d04e3938ac125f63397bac0936e127f1836ab03c2032b56fd506477f0e26862aaa40ace418d4508cba02e646d6b72d49445532
+  languageName: node
+  linkType: hard
+
+"@graphql-codegen/typescript@npm:^2.8.1":
+  version: 2.8.1
+  resolution: "@graphql-codegen/typescript@npm:2.8.1"
+  dependencies:
+    "@graphql-codegen/plugin-helpers": ^2.7.2
+    "@graphql-codegen/schema-ast": ^2.5.1
+    "@graphql-codegen/visitor-plugin-common": 2.13.1
+    auto-bind: ~4.0.0
+    tslib: ~2.4.0
+  peerDependencies:
+    graphql: ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
+  checksum: 2b5466190e385c557eed6210b861fb9e632fb61b90bd0f97ff983f359c0ad8106228667c9ff2201842100417a07cfaffa91794ef03058a151df256d733363fa2
   languageName: node
   linkType: hard
 
@@ -11214,14 +11214,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/node@workspace:*, @highlight-run/node@workspace:^, @highlight-run/node@workspace:sdk/highlight-node":
+"@highlight-run/node@workspace:*, @highlight-run/node@workspace:sdk/highlight-node":
   version: 0.0.0-use.local
   resolution: "@highlight-run/node@workspace:sdk/highlight-node"
   dependencies:
-    "@graphql-codegen/cli": 2.11.2
-    "@graphql-codegen/typescript": 2.8.1
-    "@graphql-codegen/typescript-graphql-request": 4.5.2
-    "@graphql-codegen/typescript-operations": 2.5.2
     "@opentelemetry/api": ^1.4.1
     "@opentelemetry/auto-instrumentations-node": 0.36.5
     "@opentelemetry/exporter-trace-otlp-http": 0.38.0
@@ -11232,9 +11228,6 @@ __metadata:
     "@types/lru-cache": ^7.10.10
     "@types/node": 17.0.13
     error-stack-parser: 2.0.7
-    graphql: ">=15"
-    graphql-request: 3.7.0
-    graphql-tag: 2.12.6
     highlight.run: "workspace:*"
     jest: ^29.2.2
     lru-cache: ^7.14.0
@@ -32568,19 +32561,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-request@npm:3.7.0":
-  version: 3.7.0
-  resolution: "graphql-request@npm:3.7.0"
-  dependencies:
-    cross-fetch: ^3.0.6
-    extract-files: ^9.0.0
-    form-data: ^3.0.0
-  peerDependencies:
-    graphql: 14 - 16
-  checksum: db3800cc4ee884cd1514d7d5eafafb9ed27694278fdddd7402345754a7d25e7d713246c72aa510b439b6df2633b74f2cf74fb36864a22a857d5fb2de1cf0b4d8
-  languageName: node
-  linkType: hard
-
 "graphql-request@npm:^4.0.0, graphql-request@npm:^4.3.0":
   version: 4.3.0
   resolution: "graphql-request@npm:4.3.0"
@@ -32608,7 +32588,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-tag@npm:2.12.6, graphql-tag@npm:^2.12.6":
+"graphql-tag@npm:^2.11.0":
+  version: 2.11.0
+  resolution: "graphql-tag@npm:2.11.0"
+  peerDependencies:
+    graphql: ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
+  checksum: a36557381cd0c8cdc507c6d63bd49fb9d2a409c990f7ce4964d9ddc1c7195d8ca52659a2bae305b50977e0dd29a162e0997b1cc84b2ceb3ad745991699d67bda
+  languageName: node
+  linkType: hard
+
+"graphql-tag@npm:^2.12.6":
   version: 2.12.6
   resolution: "graphql-tag@npm:2.12.6"
   dependencies:
@@ -32619,28 +32608,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql-tag@npm:^2.11.0":
-  version: 2.11.0
-  resolution: "graphql-tag@npm:2.11.0"
-  peerDependencies:
-    graphql: ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
-  checksum: a36557381cd0c8cdc507c6d63bd49fb9d2a409c990f7ce4964d9ddc1c7195d8ca52659a2bae305b50977e0dd29a162e0997b1cc84b2ceb3ad745991699d67bda
-  languageName: node
-  linkType: hard
-
 "graphql-ws@npm:^5.4.1":
   version: 5.9.1
   resolution: "graphql-ws@npm:5.9.1"
   peerDependencies:
     graphql: ">=0.11 <=16"
   checksum: 5fcb4da352f2273b8056f06e48fb4d5957304e85e593d65b509960f9344fe4ff32c4d1a067bb3f81704d3f552d826d79a606a8fde00d3af7822b9b25998ce8aa
-  languageName: node
-  linkType: hard
-
-"graphql@npm:>=15, graphql@npm:^16.6.0":
-  version: 16.6.0
-  resolution: "graphql@npm:16.6.0"
-  checksum: bf1d9e3c1938ce3c1a81e909bd3ead1ae4707c577f91cff1ca2eca474bfbc7873d5d7b942e1e9777ff5a8304421dba57a4b76d7a29eb19de8711cb70e3c2415e
   languageName: node
   linkType: hard
 
@@ -32655,6 +32628,13 @@ __metadata:
   version: 16.5.0
   resolution: "graphql@npm:16.5.0"
   checksum: a82a926d085818934d04fdf303a269af170e79de943678bd2726370a96194f9454ade9d6d76c2de69afbd7b9f0b4f8061619baecbbddbe82125860e675ac219e
+  languageName: node
+  linkType: hard
+
+"graphql@npm:^16.6.0":
+  version: 16.6.0
+  resolution: "graphql@npm:16.6.0"
+  checksum: bf1d9e3c1938ce3c1a81e909bd3ead1ae4707c577f91cff1ca2eca474bfbc7873d5d7b942e1e9777ff5a8304421dba57a4b76d7a29eb19de8711cb70e3c2415e
   languageName: node
   linkType: hard
 
@@ -40443,7 +40423,7 @@ __metadata:
   resolution: "nextjs@workspace:e2e/nextjs"
   dependencies:
     "@highlight-run/next": "workspace:*"
-    "@highlight-run/node": "workspace:^"
+    "@highlight-run/node": "workspace:*"
     "@highlight-run/react": "workspace:*"
     "@next/env": ^13.3.4
     "@tanstack/react-query": ^4.29.7

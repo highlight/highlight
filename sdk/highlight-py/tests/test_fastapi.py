@@ -15,7 +15,7 @@ def highlight_setup(request):
         if request.param:
             yield H(
                 project_id="1",
-                record_logs=True,
+                instrument_logging=True,
                 integrations=[],
                 otlp_endpoint="http://localhost:4318",
             )

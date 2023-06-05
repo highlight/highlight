@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/node",
-	"version": "2.5.5",
+	"version": "3.0.0",
 	"license": "MIT",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
@@ -13,7 +13,6 @@
 		}
 	},
 	"scripts": {
-		"codegen": "graphql-codegen --config codegen.yml",
 		"typegen": "tsup src/index.ts --dts-only",
 		"dev": "yarn build --watch",
 		"build": "tsup src/index.ts --format cjs,esm --dts",
@@ -30,18 +29,11 @@
 		"@opentelemetry/sdk-node": "0.38.0",
 		"@opentelemetry/sdk-trace-base": "1.12.0",
 		"error-stack-parser": "2.0.7",
-		"graphql": ">=15",
-		"graphql-request": "3.7.0",
-		"graphql-tag": "2.12.6",
 		"highlight.run": "workspace:*",
 		"lru-cache": "^7.14.0",
 		"npm-run-all": "4.1.5"
 	},
 	"devDependencies": {
-		"@graphql-codegen/cli": "2.11.2",
-		"@graphql-codegen/typescript": "2.8.1",
-		"@graphql-codegen/typescript-graphql-request": "4.5.2",
-		"@graphql-codegen/typescript-operations": "2.5.2",
 		"@types/jest": "^29.2.0",
 		"@types/lru-cache": "^7.10.10",
 		"@types/node": "17.0.13",

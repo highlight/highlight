@@ -160,9 +160,8 @@ func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customMod
 	return r.SubmitMetricsMessage(ctx, metrics)
 }
 
-// MarkBackendSetup is the resolver for the markBackendSetup field.
+// Deprecated: MarkBackendSetup is the resolver for the markBackendSetup field. This may be used by old SDKs but is a NOOP
 func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string, typeArg *string) (interface{}, error) {
-	// TODO: Remove this mutation once our SDKs are updated.
 	return nil, nil
 }
 

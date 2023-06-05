@@ -1,7 +1,7 @@
 ---
 title: Python
 heading: Logging in Python
-slug: python-install
+slug: other
 quickstart: true
 ---
 

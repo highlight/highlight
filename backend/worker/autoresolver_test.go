@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -37,8 +38,8 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 		project := model.Project{}
 		db.Create(&project)
 
-		_, err := autoResolver.store.UpdateProjectFilterSettings(project, model.ProjectFilterSettings{
-			AutoResolveStaleErrorsDayInterval: 1,
+		_, err := autoResolver.store.UpdateProjectFilterSettings(project, store.UpdateProjectFilterSettingsParams{
+			AutoResolveStaleErrorsDayInterval: ptr.Int(1),
 		})
 		assert.NoError(t, err)
 
@@ -54,6 +55,7 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 		db.Create(&recentErrorGroup)
 		recentErrorObject := model.ErrorObject{
 			ErrorGroupID: recentErrorGroup.ID,
+			ProjectID:    project.ID,
 			Model: model.Model{
 				CreatedAt: twentyThreeHoursAgo,
 			},
@@ -68,6 +70,7 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 		db.Create(&oldErrorGroup)
 		oldErrorObject := model.ErrorObject{
 			ErrorGroupID: oldErrorGroup.ID,
+			ProjectID:    project.ID,
 			Model: model.Model{
 				CreatedAt: twentyFiveHoursAgo,
 			},
@@ -82,6 +85,7 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 		db.Create(&hasManyErrorObjectsErrorGroup)
 		errorObject1 := model.ErrorObject{
 			ErrorGroupID: hasManyErrorObjectsErrorGroup.ID,
+			ProjectID:    project.ID,
 			Model: model.Model{
 				CreatedAt: twentyFiveHoursAgo,
 			},
@@ -89,6 +93,7 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 		db.Create(&errorObject1)
 		errorObject2 := model.ErrorObject{
 			ErrorGroupID: hasManyErrorObjectsErrorGroup.ID,
+			ProjectID:    project.ID,
 			Model: model.Model{
 				CreatedAt: twentyThreeHoursAgo,
 			},
