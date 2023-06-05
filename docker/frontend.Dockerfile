@@ -23,8 +23,6 @@ RUN yarn build:frontend
 
 # reduce the image size by keeping just the built code
 FROM nginx:stable-alpine as frontend-prod
-ARG REACT_APP_COMMIT_SHA
-ENV REACT_APP_COMMIT_SHA=$REACT_APP_COMMIT_SHA
 LABEL org.opencontainers.image.source=https://github.com/highlight/highlight
 LABEL org.opencontainers.image.description="highlight.io Production Frontend Image"
 LABEL org.opencontainers.image.licenses="Apache 2.0"
@@ -36,3 +34,9 @@ COPY ../backend/localhostssl/server.pem /etc/ssl/certs/ssl-cert.pem
 WORKDIR /build
 COPY --from=frontend-build /highlight/frontend/build /build/frontend/build
 COPY --from=frontend-build /highlight/sdk/client/dist /build/sdk/client/dist
+
+ARG REACT_APP_PRIVATE_GRAPH_URI
+ARG REACT_APP_PUBLIC_GRAPH_URI
+ENV REACT_APP_PRIVATE_GRAPH_URI=$REACT_APP_PRIVATE_GRAPH_URI
+ENV REACT_APP_PUBLIC_GRAPH_URI=$REACT_APP_PUBLIC_GRAPH_URI
+CMD ["sh", "-c", "sed -i -e 's/http:\/\/localhost:8082\/private/$REACT_APP_PRIVATE_GRAPH_URI/g' /build/frontend/build/assets/*.js && sed -i -e 's/http:\/\/localhost:8082\/public/$REACT_APP_PUBLIC_GRAPH_URI/g' /build/frontend/build/assets/*.js && nginx -g 'daemon off;'"]
