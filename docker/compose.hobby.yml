@@ -110,12 +110,6 @@ services:
             - 6006:6006
             - 8080:8080
         environment:
-            - REACT_APP_AUTH_MODE
-            - REACT_APP_COMMIT_SHA
-            - REACT_APP_FIREBASE_CONFIG_OBJECT
-            - REACT_APP_FRONTEND_ORG
-            - REACT_APP_FRONTEND_URI
-            - REACT_APP_IN_DOCKER
             - REACT_APP_PRIVATE_GRAPH_URI
             - REACT_APP_PUBLIC_GRAPH_URI
 

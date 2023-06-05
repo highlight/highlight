@@ -3,7 +3,23 @@ FROM --platform=$BUILDPLATFORM node:lts-alpine as frontend-build
 RUN apk update && apk add --no-cache build-base chromium
 
 WORKDIR /highlight
-COPY . ./
+COPY .npmignore .prettierrc .prettierignore graphql.config.js tsconfig.json turbo.json .yarnrc.yml package.json yarn.lock ./
+COPY ../.yarn/plugins ./.yarn/plugins
+COPY ../.yarn/releases ./.yarn/releases
+COPY ../backend/private-graph ./backend/private-graph
+COPY ../backend/public-graph ./backend/public-graph
+COPY ../backend/localhostssl ./backend/localhostssl
+COPY ../blog-content ./blog-content
+COPY ../docs-content ./docs-content
+COPY ../forks ./forks
+COPY ../frontend ./frontend
+COPY ../highlight.io ./highlight.io
+COPY ../packages ./packages
+COPY ../render ./render
+COPY ../rrweb ./rrweb
+COPY ../scripts ./scripts
+COPY ../sdk ./sdk
+COPY ../sourcemap-uploader ./sourcemap-uploader
 RUN yarn
 
 # These three 'args' need to be here because they're injected at build time
@@ -39,4 +55,4 @@ ARG REACT_APP_PRIVATE_GRAPH_URI
 ARG REACT_APP_PUBLIC_GRAPH_URI
 ENV REACT_APP_PRIVATE_GRAPH_URI=$REACT_APP_PRIVATE_GRAPH_URI
 ENV REACT_APP_PUBLIC_GRAPH_URI=$REACT_APP_PUBLIC_GRAPH_URI
-CMD ["sh", "-c", "sed -i -e 's/http:\/\/localhost:8082\/private/$REACT_APP_PRIVATE_GRAPH_URI/g' /build/frontend/build/assets/*.js && sed -i -e 's/http:\/\/localhost:8082\/public/$REACT_APP_PUBLIC_GRAPH_URI/g' /build/frontend/build/assets/*.js && nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "sed -i -e 's/https:\/\/localhost:8082\/private/$REACT_APP_PRIVATE_GRAPH_URI/g' /build/frontend/build/assets/*.js && sed -i -e 's/https:\/\/localhost:8082\/public/$REACT_APP_PUBLIC_GRAPH_URI/g' /build/frontend/build/assets/*.js && nginx -g 'daemon off;'"]
