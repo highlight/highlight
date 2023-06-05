@@ -232,10 +232,6 @@ const Day = ({ children, day }: Props) => {
 
 	const Wrapper = day.now ? Box : Fragment
 
-	if (day.day === '29') {
-		console.log(day)
-	}
-
 	const WrapperProps = day.now
 		? ({
 				style: containerStyles,
