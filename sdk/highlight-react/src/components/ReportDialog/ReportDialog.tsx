@@ -96,7 +96,7 @@ export default function ReportDialog({
 						font-style: normal;
 						font-weight: normal;
 						src: local('Inter Regular'), local('InterRegular'),
-							url('https://app.highlight.io/font/InterRegular.woff2')
+							url('https://app.highlight.io/font/Inter-Regular.woff2')
 								format('woff2');
 					}
 					@font-face {
@@ -105,7 +105,7 @@ export default function ReportDialog({
 						font-style: normal;
 						font-weight: 500;
 						src: local('Inter Medium'), local('InterMedium'),
-							url('https://app.highlight.io/font/InterMedium.woff2')
+							url('https://app.highlight.io/font/Inter-Medium.woff2')
 								format('woff2');
 					}
 
