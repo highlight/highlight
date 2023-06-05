@@ -7,7 +7,7 @@ import {
 } from './shared-snippets'
 
 export const PythonAWSContext: QuickStartContent = {
-	title: 'Python AWS Lambda',
+	title: 'Logging from Python AWS Lambda',
 	subtitle: 'Learn how to set up highlight.io on AWS Lambda.',
 	logoUrl: siteUrl('/images/quickstart/aws-lambda.svg'),
 	entries: [
@@ -21,7 +21,7 @@ export const PythonAWSContext: QuickStartContent = {
 				text: `import highlight_io
 from highlight_io.integrations.aws import observe_handler
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
+H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
 
 
 @observe_handler
@@ -46,7 +46,7 @@ def lambda_handler(event, context):
 				text: `import highlight_io
 from highlight_io.integrations.aws import observe_handler
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
+H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
 
 
 @observe_handler

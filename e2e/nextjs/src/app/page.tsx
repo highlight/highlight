@@ -1,4 +1,5 @@
 import { ErrorButtons } from '@/app/components/error-buttons'
+import { FetchTests } from '@/app/components/fetch-tests'
 import Image from 'next/image'
 import { PathButtons } from '@/app/components/path-buttons'
 import { TrpcQueries } from '@/app/components/trpc-queries'
@@ -23,6 +24,9 @@ export default function Home() {
 
 			<h3>tRPC</h3>
 			<TrpcQueries />
+
+			<h3>Fetch</h3>
+			<FetchTests />
 		</main>
 	)
 }

@@ -1,12 +1,12 @@
-import Image from 'next/image'
-import styles from './Home.module.scss'
-import productStyles from '../Products/Products.module.scss'
 import classNames from 'classnames'
-import { Typography } from '../common/Typography/Typography'
-import { PrimaryButton } from '../common/Buttons/PrimaryButton'
-import { ObfuscationSlider } from './ObfuscationSlider/ObfuscationSlider'
-import { HighlightCodeBlock } from '../Docs/HighlightCodeBlock/HighlightCodeBlock'
+import Image from 'next/image'
 import Link from 'next/link'
+import { PrimaryButton } from '../common/Buttons/PrimaryButton'
+import { Typography } from '../common/Typography/Typography'
+import { HighlightCodeBlock } from '../Docs/HighlightCodeBlock/HighlightCodeBlock'
+import productStyles from '../Products/Products.module.scss'
+import styles from './Home.module.scss'
+import { ObfuscationSlider } from './ObfuscationSlider/ObfuscationSlider'
 
 //Component for the image/text row for the footer of the product page
 //invert puts the image on the right side of the text
@@ -46,7 +46,7 @@ const LandingInfoRow = ({
 
 				{imgSrc && (
 					<Image
-						className="object-scale-down sm:object-contain"
+						className="w-full h-full object-contain"
 						src={imgSrc}
 						alt=""
 						width={500}

@@ -1,0 +1,24 @@
+receivers:
+    filelog:
+        include: [/var/log/watch.log]
+        start_at: beginning
+exporters:
+    otlp:
+        endpoint: 'http://host.docker.internal:4317'
+        tls:
+            insecure: true
+    otlp/highlight:
+        endpoint: 'https://otel.highlight.io:4317'
+processors:
+    attributes/highlight-project:
+        actions:
+            - key: highlight.project_id
+              value: '1jdkoe52'
+              action: insert
+    batch:
+service:
+    pipelines:
+        logs:
+            receivers: [filelog]
+            processors: [attributes/highlight-project, batch]
+            exporters: [otlp, otlp/highlight]

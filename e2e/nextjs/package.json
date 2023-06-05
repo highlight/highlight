@@ -10,7 +10,7 @@
 	},
 	"dependencies": {
 		"@highlight-run/next": "workspace:*",
-		"@highlight-run/node": "workspace:^",
+		"@highlight-run/node": "workspace:*",
 		"@highlight-run/react": "workspace:*",
 		"@next/env": "^13.3.4",
 		"@tanstack/react-query": "^4.29.7",
@@ -25,6 +25,7 @@
 		"eslint": "8.39.0",
 		"eslint-config-next": "13.3.4",
 		"highlight.run": "workspace:*",
+		"ky": "^0.33.3",
 		"next": "13.3.4",
 		"next-build-id": "^3.0.0",
 		"react": "18.2.0",

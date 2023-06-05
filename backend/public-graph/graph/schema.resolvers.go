@@ -160,30 +160,9 @@ func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customMod
 	return r.SubmitMetricsMessage(ctx, metrics)
 }
 
-// MarkBackendSetup is the resolver for the markBackendSetup field.
+// Deprecated: MarkBackendSetup is the resolver for the markBackendSetup field. This may be used by old SDKs but is a NOOP
 func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string, typeArg *string) (interface{}, error) {
-	var partitionKey string
-	if sessionSecureID != nil {
-		partitionKey = *sessionSecureID
-	} else if projectID != nil {
-		partitionKey = uuid.New().String()
-	}
-
-	var setupType string
-	if typeArg != nil {
-		setupType = *typeArg
-	} else {
-		setupType = model.MarkBackendSetupTypeGeneric
-	}
-
-	err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
-		Type: kafkaqueue.MarkBackendSetup,
-		MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
-			ProjectVerboseID: projectID,
-			SessionSecureID:  sessionSecureID,
-			Type:             setupType,
-		}}, partitionKey)
-	return nil, err
+	return nil, nil
 }
 
 // AddSessionFeedback is the resolver for the addSessionFeedback field.

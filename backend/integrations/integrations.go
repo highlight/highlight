@@ -116,6 +116,22 @@ func (c *Client) GetWorkspaceAccessToken(ctx context.Context, workspace *model.W
 }
 
 func (c *Client) IsProjectIntegrated(ctx context.Context, project *model.Project, integrationType modelInputs.IntegrationType) (bool, error) {
+	if integrationType == modelInputs.IntegrationTypeClickUp {
+		var projectMapping *model.IntegrationProjectMapping
+		if err := c.db.Where(&model.IntegrationProjectMapping{
+			ProjectID:       project.ID,
+			IntegrationType: integrationType,
+		}).First(&projectMapping).Error; err != nil {
+			return false, nil
+		}
+
+		if projectMapping == nil {
+			return false, nil
+		}
+
+		return true, nil
+	}
+
 	var workspace model.Workspace
 	if err := c.db.Where(&model.Workspace{Model: model.Model{ID: project.WorkspaceID}}).First(&workspace).Error; err != nil {
 		return false, nil

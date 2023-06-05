@@ -19,6 +19,8 @@ import firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import analytics from '@/util/analytics'
+
 type Props = {
 	resolver?: firebase.auth.MultiFactorResolver
 }
@@ -67,6 +69,8 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 		sendAuthCode()
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
+
+	useEffect(() => analytics.page(), [])
 
 	const handleSubmit = useCallback(
 		async (e?: React.FormEvent<HTMLFormElement>) => {

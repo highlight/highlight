@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>unpkg.com highlight.run bundle</title>
+		<script src="https://unpkg.com/highlight.run"></script>
+		<script>
+			H.init('1', {
+				backendUrl: 'https://localhost:8082/public',
+				environment: 'test',
+				networkRecording: {
+					enabled: true,
+					recordHeadersAndBody: true,
+				},
+			})
+		</script>
+	</head>
+	<body></body>
+</html>

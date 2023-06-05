@@ -1,8 +1,8 @@
 .container {
-	align-items: center;
-	column-gap: var(--size-large);
+	align-items: flex-start;
+	row-gap: var(--size-xxSmall);
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
 	justify-content: space-between;
 	max-height: fit-content;
 	min-height: var(--size-xxLarge);

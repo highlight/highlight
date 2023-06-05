@@ -181,7 +181,7 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCl
 
 		log.WithContext(ctx).Info(message)
 
-		if err := alert.SendSlackAlert(ctx, &model.SendSlackAlertForLogAlertInput{Message: message, Workspace: &workspace, StartDate: start, EndDate: end}); err != nil {
+		if err := alert.SendSlackAlert(ctx, DB, &model.SendSlackAlertForLogAlertInput{Message: message, Workspace: &workspace, StartDate: start, EndDate: end}); err != nil {
 			log.WithContext(ctx).Error("error sending slack alert for metric monitor", err)
 		}
 

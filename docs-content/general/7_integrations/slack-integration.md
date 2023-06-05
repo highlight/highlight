@@ -13,4 +13,4 @@ To get started, go to [https://app.highlight.io/alerts](https://app.highlight.io
 
 1.  [Comments](../6_product-features/3_general-features/comments.md) will send a Slack message to whoever is tagged in a comment
 
-2.  [Alerts](../6_product-features/3_general-features/comments.md) will send a Slack message to channels or users who want to receive alerts
+2.  [Alerts](../6_product-features/3_general-features/alerts.md) will send a Slack message to channels or users who want to receive alerts

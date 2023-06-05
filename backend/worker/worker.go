@@ -369,14 +369,6 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
-	case kafkaqueue.MarkBackendSetup:
-		if task.MarkBackendSetup == nil {
-			break
-		}
-		if err := w.PublicResolver.MarkBackendSetupImpl(ctx, task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SessionSecureID, task.MarkBackendSetup.ProjectID, task.MarkBackendSetup.Type); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
 	case kafkaqueue.AddSessionFeedback:
 		if task.AddSessionFeedback == nil {
 			break
@@ -519,6 +511,12 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 	}
 }
 
+// Autoresolves error groups that have not had any recent instances
+func (w *Worker) AutoResolveStaleErrors(ctx context.Context) {
+	autoResolver := NewAutoResolver(w.PublicResolver.Store, w.PublicResolver.DB)
+	autoResolver.AutoResolveStaleErrors(ctx)
+}
+
 func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason backend.SessionExcludedReason) error {
 	s.Excluded = true
 	s.ExcludedReason = &reason
@@ -528,7 +526,7 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 			"session_obj": s}).Warnf("error excluding session (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 	}
 
-	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{
 		"Excluded":  true,
 		"processed": true,
 	}); err != nil {
@@ -597,23 +595,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Exclude the session if there's no events.
 	if len(accumulator.EventsForTimelineIndicator) == 0 && s.Length <= 0 {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-			"session_obj": s}).Warnf("excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
-		s.Excluded = true
-		s.Processed = &model.T
-		if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-				"session_obj": s}).Warnf("error excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
-		}
-
-		if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
-			"Excluded":  true,
-			"processed": true,
-		}); err != nil {
-			return e.Wrap(err, "error updating session in opensearch")
-		}
-
-		return nil
+		return w.excludeSession(ctx, s, backend.SessionExcludedReasonNoTimelineIndicatorEvents)
 	}
 
 	payloadManager.SeekStart(ctx)
@@ -1391,6 +1373,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 		return w.DeleteCompletedSessions
 	case "public-worker":
 		return w.PublicWorker
+	case "auto-resolve-stale-errors":
+		return w.AutoResolveStaleErrors
 	default:
 		log.WithContext(ctx).Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil

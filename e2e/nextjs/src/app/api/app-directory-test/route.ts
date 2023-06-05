@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 export const GET = async function GET(request: Request) {
@@ -11,6 +12,14 @@ export const GET = async function GET(request: Request) {
 	} else {
 		throw new Error('Error: /api/app-directory-test')
 	}
+}
+
+export const POST = async function POST(request: Request) {
+	const headers = Object.fromEntries(request.headers.entries())
+
+	return NextResponse.json({
+		body: { headers },
+	})
 }
 
 export const runtime = 'nodejs'

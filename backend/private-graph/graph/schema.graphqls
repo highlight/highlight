@@ -18,6 +18,7 @@ enum SessionExcludedReason {
 	Initializing
 	NoActivity
 	NoUserInteractionEvents
+	NoTimelineIndicatorEvents
 	NoError
 	IgnoredUser
 }
@@ -355,11 +356,6 @@ type Project {
 	filter_chrome_extension: Boolean
 }
 
-type ProjectFilterSettings {
-	id: ID!
-	filterSessionsWithoutError: Boolean!
-}
-
 type AllProjectSettings {
 	id: ID!
 	verbose_id: String!
@@ -376,6 +372,7 @@ type AllProjectSettings {
 	backend_domains: StringArray
 	filter_chrome_extension: Boolean
 	filterSessionsWithoutError: Boolean!
+	autoResolveStaleErrorsDayInterval: Int!
 }
 
 type Account {
@@ -1176,6 +1173,7 @@ type WorkspaceInviteLink {
 	invitee_role: String!
 	expiration_date: Timestamp!
 	secret: String!
+	created_at: Timestamp!
 }
 
 type WorkspaceForInviteLink {
@@ -1571,11 +1569,11 @@ type Query {
 	github_repos(workspace_id: ID!): [GitHubRepo!]
 	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
-	projectFilterSettings(projectId: ID!): ProjectFilterSettings
 	projectSettings(projectId: ID!): AllProjectSettings
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
+	workspacePendingInvites(workspace_id: ID!): [WorkspaceInviteLink]!
 	workspace_for_project(project_id: ID!): Workspace
 	admin: Admin
 	admin_role(workspace_id: ID!): WorkspaceAdminRole
@@ -1656,10 +1654,6 @@ type Mutation {
 		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 	): Project
-	editProjectFilterSettings(
-		projectId: ID!
-		filterSessionsWithoutError: Boolean!
-	): ProjectFilterSettings
 	editProjectSettings(
 		projectId: ID!
 		name: String
@@ -1673,6 +1667,7 @@ type Mutation {
 		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 		filterSessionsWithoutError: Boolean
+		autoResolveStaleErrorsDayInterval: Int
 	): AllProjectSettings
 	editWorkspace(id: ID!, name: String): Workspace
 	markErrorGroupAsViewed(
@@ -1694,6 +1689,10 @@ type Mutation {
 		role: String!
 	): String
 	addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+	deleteInviteLinkFromWorkspace(
+		workspace_id: ID!
+		workspace_invite_link_id: ID!
+	): Boolean!
 	joinWorkspace(workspace_id: ID!): ID
 	updateAllowedEmailOrigins(
 		workspace_id: ID!

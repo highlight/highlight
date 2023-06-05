@@ -115,15 +115,6 @@ export declare type IntegrationOptions = {
 
 export declare type SessionShortcutOptions = false | string
 
-export declare interface FeedbackWidgetOptions {
-	title?: string
-	subTitle?: string
-	submitButtonLabel?: string
-	enabled?: boolean
-	onSubmit?: (name: string, email: string, text: string) => void
-	onCancel?: () => void
-}
-
 type DefaultIntegrationOptions = {
 	disabled?: boolean
 }

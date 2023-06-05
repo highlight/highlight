@@ -15,6 +15,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+const TimestampFormat = "2006-01-02T15:04:05.000Z"
+
 type Log struct {
 	Message    string `json:"message"`
 	Timestamp  string `json:"timestamp"`
@@ -185,7 +187,7 @@ func SubmitHTTPLog(ctx context.Context, projectID int, lg Log) error {
 		attrs = append(attrs, attribute.String(k, v))
 	}
 
-	t, err := time.Parse("2006-01-02T15:04:05.000Z", lg.Timestamp)
+	t, err := time.Parse(TimestampFormat, lg.Timestamp)
 	if err != nil {
 		return err
 	}

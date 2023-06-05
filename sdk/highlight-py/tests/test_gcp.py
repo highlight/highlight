@@ -6,7 +6,7 @@ from e2e.highlight_gcp.hello_http import hello_http
 
 
 def test_gcp(mocker):
-    highlight_io.H("1", record_logs=True)
+    highlight_io.H("1", instrument_logging=True)
     mocker.patch("random.random", return_value=0.1)
     mock_trace = mocker.patch("highlight_io.H.trace")
     # Construct a mock HTTP request.
