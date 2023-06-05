@@ -64,7 +64,7 @@ module Highlight
             span.record_exception(e)
         end
 
-        def record_log(session_id, request_id, level, message)
+        def record_log(session_id, request_id, level, message, attrs = {})
             caller_info = caller[0].split(":", 3)
             function = caller_info[2]
             if function
@@ -86,7 +86,7 @@ module Highlight
                     CODE_FILEPATH => caller_info[0],
                     CODE_LINENO => caller_info[1],
                     CODE_FUNCTION => function,
-                })
+                }.merge(attrs))
             end
         end
 
