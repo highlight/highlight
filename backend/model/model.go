@@ -17,6 +17,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
+	"github.com/aws/smithy-go/ptr"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
@@ -1735,6 +1736,7 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 }
 
 func (obj *ErrorAlert) SendAlertFeedback(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
+	obj.Type = ptr.String(AlertType.ERROR_FEEDBACK)
 	if err := obj.sendSlackAlert(ctx, db, obj.ID, input); err != nil {
 		log.WithContext(ctx).Error(err)
 	}
@@ -2698,7 +2700,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 	case AlertType.ERROR_FEEDBACK:
-		previewText = "Highlight: ERROR Feedback Alert"
+		previewText = "Highlight: Error Feedback Alert"
 		if identifier == "" {
 			identifier = "User"
 		}
