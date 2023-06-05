@@ -67,21 +67,22 @@ type AdminAndWorkspaceDetails struct {
 }
 
 type AllProjectSettings struct {
-	ID                         int            `json:"id"`
-	VerboseID                  string         `json:"verbose_id"`
-	Name                       string         `json:"name"`
-	BillingEmail               *string        `json:"billing_email"`
-	Secret                     *string        `json:"secret"`
-	WorkspaceID                int            `json:"workspace_id"`
-	ExcludedUsers              pq.StringArray `json:"excluded_users"`
-	ErrorFilters               pq.StringArray `json:"error_filters"`
-	ErrorJSONPaths             pq.StringArray `json:"error_json_paths"`
-	RageClickWindowSeconds     *int           `json:"rage_click_window_seconds"`
-	RageClickRadiusPixels      *int           `json:"rage_click_radius_pixels"`
-	RageClickCount             *int           `json:"rage_click_count"`
-	BackendDomains             pq.StringArray `json:"backend_domains"`
-	FilterChromeExtension      *bool          `json:"filter_chrome_extension"`
-	FilterSessionsWithoutError bool           `json:"filterSessionsWithoutError"`
+	ID                                int            `json:"id"`
+	VerboseID                         string         `json:"verbose_id"`
+	Name                              string         `json:"name"`
+	BillingEmail                      *string        `json:"billing_email"`
+	Secret                            *string        `json:"secret"`
+	WorkspaceID                       int            `json:"workspace_id"`
+	ExcludedUsers                     pq.StringArray `json:"excluded_users"`
+	ErrorFilters                      pq.StringArray `json:"error_filters"`
+	ErrorJSONPaths                    pq.StringArray `json:"error_json_paths"`
+	RageClickWindowSeconds            *int           `json:"rage_click_window_seconds"`
+	RageClickRadiusPixels             *int           `json:"rage_click_radius_pixels"`
+	RageClickCount                    *int           `json:"rage_click_count"`
+	BackendDomains                    pq.StringArray `json:"backend_domains"`
+	FilterChromeExtension             *bool          `json:"filter_chrome_extension"`
+	FilterSessionsWithoutError        bool           `json:"filterSessionsWithoutError"`
+	AutoResolveStaleErrorsDayInterval int            `json:"autoResolveStaleErrorsDayInterval"`
 }
 
 type AverageSessionLength struct {
@@ -1579,24 +1580,26 @@ func (e SessionCommentType) MarshalGQL(w io.Writer) {
 type SessionExcludedReason string
 
 const (
-	SessionExcludedReasonInitializing            SessionExcludedReason = "Initializing"
-	SessionExcludedReasonNoActivity              SessionExcludedReason = "NoActivity"
-	SessionExcludedReasonNoUserInteractionEvents SessionExcludedReason = "NoUserInteractionEvents"
-	SessionExcludedReasonNoError                 SessionExcludedReason = "NoError"
-	SessionExcludedReasonIgnoredUser             SessionExcludedReason = "IgnoredUser"
+	SessionExcludedReasonInitializing              SessionExcludedReason = "Initializing"
+	SessionExcludedReasonNoActivity                SessionExcludedReason = "NoActivity"
+	SessionExcludedReasonNoUserInteractionEvents   SessionExcludedReason = "NoUserInteractionEvents"
+	SessionExcludedReasonNoTimelineIndicatorEvents SessionExcludedReason = "NoTimelineIndicatorEvents"
+	SessionExcludedReasonNoError                   SessionExcludedReason = "NoError"
+	SessionExcludedReasonIgnoredUser               SessionExcludedReason = "IgnoredUser"
 )
 
 var AllSessionExcludedReason = []SessionExcludedReason{
 	SessionExcludedReasonInitializing,
 	SessionExcludedReasonNoActivity,
 	SessionExcludedReasonNoUserInteractionEvents,
+	SessionExcludedReasonNoTimelineIndicatorEvents,
 	SessionExcludedReasonNoError,
 	SessionExcludedReasonIgnoredUser,
 }
 
 func (e SessionExcludedReason) IsValid() bool {
 	switch e {
-	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoError, SessionExcludedReasonIgnoredUser:
+	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonIgnoredUser:
 		return true
 	}
 	return false

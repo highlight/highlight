@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -37,8 +38,8 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 		project := model.Project{}
 		db.Create(&project)
 
-		_, err := autoResolver.store.UpdateProjectFilterSettings(project, model.ProjectFilterSettings{
-			AutoResolveStaleErrorsDayInterval: 1,
+		_, err := autoResolver.store.UpdateProjectFilterSettings(project, store.UpdateProjectFilterSettingsParams{
+			AutoResolveStaleErrorsDayInterval: ptr.Int(1),
 		})
 		assert.NoError(t, err)
 
@@ -54,6 +55,7 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 		db.Create(&recentErrorGroup)
 		recentErrorObject := model.ErrorObject{
 			ErrorGroupID: recentErrorGroup.ID,
+			ProjectID:    project.ID,
 			Model: model.Model{
 				CreatedAt: twentyThreeHoursAgo,
 			},
@@ -68,11 +70,35 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 		db.Create(&oldErrorGroup)
 		oldErrorObject := model.ErrorObject{
 			ErrorGroupID: oldErrorGroup.ID,
+			ProjectID:    project.ID,
 			Model: model.Model{
 				CreatedAt: twentyFiveHoursAgo,
 			},
 		}
 		db.Create(&oldErrorObject)
+
+		// Should not be autoresolved
+		hasManyErrorObjectsErrorGroup := model.ErrorGroup{
+			State:     privateModel.ErrorStateOpen,
+			ProjectID: project.ID,
+		}
+		db.Create(&hasManyErrorObjectsErrorGroup)
+		errorObject1 := model.ErrorObject{
+			ErrorGroupID: hasManyErrorObjectsErrorGroup.ID,
+			ProjectID:    project.ID,
+			Model: model.Model{
+				CreatedAt: twentyFiveHoursAgo,
+			},
+		}
+		db.Create(&errorObject1)
+		errorObject2 := model.ErrorObject{
+			ErrorGroupID: hasManyErrorObjectsErrorGroup.ID,
+			ProjectID:    project.ID,
+			Model: model.Model{
+				CreatedAt: twentyThreeHoursAgo,
+			},
+		}
+		db.Create(&errorObject2)
 
 		// Should not be autoresolved since it belongs to a different project
 		projectWithNoSettings := model.Project{}
@@ -111,9 +137,17 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 		errorGroup3 := model.ErrorGroup{}
 		db.Where(model.ErrorGroup{
 			Model: model.Model{
-				ID: oldErrorGroupForUnrelatedProject.ID,
+				ID: hasManyErrorObjectsErrorGroup.ID,
 			},
 		}).Find(&errorGroup3)
 		assert.Equal(t, errorGroup3.State, privateModel.ErrorStateOpen) // was not autoresolved
+
+		errorGroup4 := model.ErrorGroup{}
+		db.Where(model.ErrorGroup{
+			Model: model.Model{
+				ID: oldErrorGroupForUnrelatedProject.ID,
+			},
+		}).Find(&errorGroup4)
+		assert.Equal(t, errorGroup4.State, privateModel.ErrorStateOpen) // was not autoresolved
 	})
 }

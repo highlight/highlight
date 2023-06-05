@@ -19,12 +19,11 @@ func Middleware(next http.Handler) http.Handler {
 		ctx := highlight.InterceptRequest(r)
 		r = r.WithContext(ctx)
 
-		span, hCtx := highlight.StartTrace(ctx, "highlight/chi")
+		span, _ := highlight.StartTrace(ctx, "highlight/chi")
 		defer highlight.EndTrace(span)
 
 		next.ServeHTTP(w, r)
 
-		highlight.MarkBackendSetup(hCtx)
 		span.SetAttributes(attribute.String(highlight.SourceAttribute, "GoChiMiddleware"))
 		span.SetAttributes(middleware.GetRequestAttributes(r)...)
 	}

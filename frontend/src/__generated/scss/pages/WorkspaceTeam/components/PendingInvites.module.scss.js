@@ -1,0 +1,1 @@
+var i={inviteCard:"_inviteCard_b35ac_1",inviteCardWrapper:"_inviteCardWrapper_b35ac_8",inviteTime:"_inviteTime_b35ac_14",role:"_role_b35ac_22",removeTeamMemberButton:"_removeTeamMemberButton_b35ac_28"};export{i as default};

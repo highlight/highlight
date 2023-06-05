@@ -41,6 +41,10 @@ import { RubyRailsLogContent } from './logging/ruby/rails'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
 import { JSCloudflareLoggingContent } from './logging/js/cloudflare'
+import { FluentForwardContent } from './logging/fluentd'
+import { FileContent } from './logging/file'
+import { DockerContent } from './logging/docker'
+import { PythonLoguruLogContent } from './logging/python/loguru'
 
 export type QuickStartOptions = {
 	title: string
@@ -80,6 +84,7 @@ export enum QuickStartType {
 	PythonFlask = 'flask',
 	PythonDjango = 'django',
 	PythonFastAPI = 'fastapi',
+	PythonLoguru = 'loguru',
 	PythonOther = 'other',
 	PythonAWSFn = 'aws-lambda',
 	PythonAzureFn = 'azure-functions',
@@ -100,6 +105,9 @@ export enum QuickStartType {
 	JSWinston = 'winston',
 	JStRPC = 'trpc',
 	HTTPOTLP = 'curl',
+	FluentForward = 'fluent-forward',
+	Docker = 'docker',
+	File = 'file',
 	RubyOther = 'other',
 	RubyRails = 'rails',
 	HostingVercel = 'vercel',
@@ -183,6 +191,7 @@ export const quickStartContent = {
 			subtitle:
 				'Select your Python framework to install logging in your application.',
 			logoUrl: siteUrl('/images/quickstart/python.svg'),
+			[QuickStartType.PythonLoguru]: PythonLoguruLogContent,
 			[QuickStartType.PythonOther]: PythonOtherLogContent,
 		},
 		go: {
@@ -205,10 +214,18 @@ export const quickStartContent = {
 			[QuickStartType.JSCloudflare]: JSCloudflareLoggingContent,
 		},
 		http: {
-			title: 'curl',
+			title: 'HTTPS curl',
 			subtitle:
 				'Get started with logging in your application via HTTP or OTLP.',
 			[QuickStartType.HTTPOTLP]: HTTPContent,
+		},
+		other: {
+			title: 'Infrastructure / Other',
+			subtitle:
+				'Get started with logging in your application via HTTP or OTLP.',
+			[QuickStartType.FluentForward]: FluentForwardContent,
+			[QuickStartType.File]: FileContent,
+			[QuickStartType.Docker]: DockerContent,
 		},
 		ruby: {
 			title: 'Ruby',
@@ -219,7 +236,7 @@ export const quickStartContent = {
 			[QuickStartType.RubyOther]: RubyOtherLogContent,
 		},
 		hosting: {
-			title: 'Hosting Provider',
+			title: 'Cloud Hosting Provider',
 			subtitle:
 				'Select your Hosting provider to setup the Highlight integration and stream logs.',
 			[QuickStartType.HostingVercel]: HostingVercelLogContent,

@@ -10,10 +10,25 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.sdk._logs import LoggerProvider, LogRecord
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry.sdk.trace import TracerProvider, _Span
+from opentelemetry.sdk.trace import TracerProvider, Span
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 from highlight_io.integrations import Integration
+
+
+class LogHandler(logging.Handler):
+    def __init__(self, highlight: "H", level=logging.NOTSET):
+        self.highlight = highlight
+        super(LogHandler, self).__init__(level=level)
+
+    def emit(self, record: logging.LogRecord):
+        ctx = contextlib.nullcontext
+        span = trace.get_current_span()
+        if span is None or not span.is_recording():
+            ctx = self.highlight.trace
+
+        with ctx():
+            self.highlight.log_hook(trace.get_current_span(), record)
 
 
 class H(object):
@@ -33,8 +48,9 @@ class H(object):
         self,
         project_id: str,
         integrations: typing.List[Integration] = None,
-        record_logs: bool = True,
         otlp_endpoint: str = "",
+        instrument_logging: bool = True,
+        log_level=logging.DEBUG,
     ):
         """
         Setup Highlight backend instrumentation.
@@ -46,17 +62,17 @@ class H(object):
 
         :param project_id: a string that corresponds to the verbose id of your project from app.highlight.io/setup
         :param integrations: a list of Integrations that allow connecting with your framework, like Flask or Django.
-        :param record_logs: defaults to True. set False if you want to disable python logging recording.
+        :param instrument_logging: defaults to True. set False to disable auto-instrumentation of python `logging` methods.
         :param otlp_endpoint: set to a custom otlp destination
         :return: a configured H instance
         """
         H._instance = self
         self._project_id = project_id
         self._integrations = integrations or []
-        self._record_logs = record_logs
         self._otlp_endpoint = otlp_endpoint or H.OTLP_HTTP
-        if self._record_logs:
-            self._instrument_logs()
+        self._log_handler = LogHandler(self, level=log_level)
+        if instrument_logging:
+            self._instrument_logging()
 
         self._trace_provider = TracerProvider()
         self._trace_provider.add_span_processor(
@@ -154,7 +170,27 @@ class H(object):
         span.record_exception(e)
         logging.exception("Highlight caught an error", exc_info=e)
 
-    def _log_hook(self, span: _Span, record: logging.LogRecord):
+    @property
+    def logging_handler(self) -> logging.Handler:
+        """A logging handler implementing `logging.Handler` that allows plugging highlight_io
+        into your existing logging setup.
+
+        Example:
+            import highlight_io
+            from loguru import logger
+
+            H = highlight_io.H('project_id', ...)
+
+            logger.add(
+                H.logging_handler,
+                format="{message}",
+                level="INFO",
+                backtrace=True,
+            )
+        """
+        return self._log_handler
+
+    def log_hook(self, span: Span, record: logging.LogRecord):
         if span and span.is_recording():
             ctx = span.get_span_context()
             # record.created is sec but timestamp should be ns
@@ -178,7 +214,7 @@ class H(object):
             )
             self.log.emit(r)
 
-    def _instrument_logs(self):
+    def _instrument_logging(self):
         LoggingInstrumentor().instrument(
-            set_logging_format=True, log_hook=self._log_hook
+            set_logging_format=True, log_hook=self.log_hook
         )

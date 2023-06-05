@@ -29,6 +29,7 @@ import {
 	GetProjectSettingsQuery,
 	namedOperations,
 } from '@/graph/generated/operations'
+import { AutoresolveStaleErrorsForm } from '@/pages/ProjectSettings/AutoresolveStaleErrorsForm/AutoresolveStaleErrorsForm'
 import { FilterSessionsWithoutErrorForm } from '@/pages/ProjectSettings/FilterSessionsWithoutErrorForm/FilterSessionsWithoutErrorForm'
 import { ProjectSettingsContextProvider } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
@@ -193,6 +194,7 @@ const ProjectSettings = () => {
 												</BorderBox>
 												<FilterExtensionForm />
 												<SourcemapSettings />
+												<AutoresolveStaleErrorsForm />
 											</Stack>
 										),
 									},

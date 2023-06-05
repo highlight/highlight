@@ -584,22 +584,8 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 	return project, nil
 }
 
-// EditProjectFilterSettings is the resolver for the editProjectFilterSettings field.
-func (r *mutationResolver) EditProjectFilterSettings(ctx context.Context, projectID int, filterSessionsWithoutError bool) (*model.ProjectFilterSettings, error) {
-	project, err := r.isAdminInProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	updatedProjectFilterSettings, err := r.Store.UpdateProjectFilterSettings(*project, model.ProjectFilterSettings{
-		FilterSessionsWithoutError: filterSessionsWithoutError,
-	})
-
-	return &updatedProjectFilterSettings, err
-}
-
 // EditProjectSettings is the resolver for the editProjectSettings field.
-func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool) (*modelInputs.AllProjectSettings, error) {
+func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) (*modelInputs.AllProjectSettings, error) {
 	project, err := r.EditProject(ctx, projectID, name, billingEmail, excludedUsers, errorFilters, errorJSONPaths, rageClickWindowSeconds, rageClickRadiusPixels, rageClickCount, backendDomains, filterChromeExtension)
 	if err != nil {
 		return nil, err
@@ -619,13 +605,15 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 		RageClickCount:         &project.RageClickCount,
 	}
 
-	if filterSessionsWithoutError != nil {
-		projectFilterSettings, err := r.EditProjectFilterSettings(ctx, projectID, *filterSessionsWithoutError)
-		if err != nil {
-			return nil, err
-		}
-		allProjectSettings.FilterSessionsWithoutError = projectFilterSettings.FilterSessionsWithoutError
+	projectFilterSettings, err := r.Store.UpdateProjectFilterSettings(*project, store.UpdateProjectFilterSettingsParams{
+		FilterSessionsWithoutError:        filterSessionsWithoutError,
+		AutoResolveStaleErrorsDayInterval: autoResolveStaleErrorsDayInterval,
+	})
+	if err != nil {
+		return nil, err
 	}
+	allProjectSettings.FilterSessionsWithoutError = projectFilterSettings.FilterSessionsWithoutError
+	allProjectSettings.AutoResolveStaleErrorsDayInterval = projectFilterSettings.AutoResolveStaleErrorsDayInterval
 
 	return &allProjectSettings, nil
 }
@@ -716,7 +704,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 		return nil, e.Wrap(err, "error writing error as viewed")
 	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, eg.ID, map[string]interface{}{"viewed": viewed}); err != nil {
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, eg.ID, map[string]interface{}{"viewed": viewed}); err != nil {
 		return nil, e.Wrap(err, "error updating error in opensearch")
 	}
 
@@ -810,7 +798,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"viewed": viewed}); err != nil {
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{"viewed": viewed}); err != nil {
 		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
@@ -845,7 +833,7 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID st
 		return nil, e.Wrap(err, "error writing session as starred")
 	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"starred": starred}); err != nil {
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{"starred": starred}); err != nil {
 		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
@@ -924,6 +912,25 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 	})
 
 	return adminID, nil
+}
+
+// DeleteInviteLinkFromWorkspace is the resolver for the deleteInviteLinkFromWorkspace field.
+func (r *mutationResolver) DeleteInviteLinkFromWorkspace(ctx context.Context, workspaceID int, workspaceInviteLinkID int) (bool, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return false, e.Wrap(err, "current admin is not in workspace")
+	}
+
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
+		return false, e.Wrap(err, "a non-Admin role Admin tried deleting an invite.")
+	}
+
+	result := r.DB.Where("id = ?", workspaceInviteLinkID).Where("workspace_id = ?", workspaceID).Delete(&model.WorkspaceInviteLink{})
+	if result.Error != nil {
+		return false, e.Wrap(err, "error deleting workspace invite link")
+	}
+
+	return int(result.RowsAffected) > 0, nil
 }
 
 // JoinWorkspace is the resolver for the joinWorkspace field.
@@ -3044,7 +3051,7 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 		return nil, e.Wrap(err, "error updating session is_public")
 	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"is_public": isPublic}); err != nil {
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"is_public": isPublic}); err != nil {
 		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
@@ -3060,7 +3067,7 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 	if err := r.DB.Model(errorGroup).Update("IsPublic", isPublic).Error; err != nil {
 		return nil, e.Wrap(err, "error updating error group is_public")
 	}
-	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
 		"IsPublic": isPublic,
 	}); err != nil {
 		return nil, e.Wrap(err, "error updating error group IsPublic in OpenSearch")
@@ -6027,21 +6034,6 @@ func (r *queryResolver) IsProjectIntegratedWith(ctx context.Context, integration
 		return false, e.Wrap(err, "error querying project")
 	}
 
-	if integrationType == modelInputs.IntegrationTypeClickUp {
-		var projectMapping *model.IntegrationProjectMapping
-		if err := r.DB.Where(&model.IntegrationProjectMapping{
-			ProjectID:       project.ID,
-			IntegrationType: integrationType,
-		}).First(&projectMapping).Error; err != nil {
-			return false, nil
-		}
-
-		if projectMapping == nil {
-			return false, nil
-		}
-
-	}
-
 	return r.IntegrationsClient.IsProjectIntegrated(ctx, project, integrationType)
 }
 
@@ -6346,18 +6338,6 @@ func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, er
 	return project, nil
 }
 
-// ProjectFilterSettings is the resolver for the project_filter_settings field.
-func (r *queryResolver) ProjectFilterSettings(ctx context.Context, projectID int) (*model.ProjectFilterSettings, error) {
-	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, err
-	}
-
-	projectFilterSettings, err := r.Store.GetProjectFilterSettings(*project)
-
-	return &projectFilterSettings, err
-}
-
 // ProjectSettings is the resolver for the projectSettings field.
 func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*modelInputs.AllProjectSettings, error) {
 	project, err := r.Project(ctx, projectID)
@@ -6365,24 +6345,25 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 		return nil, err
 	}
 
-	projectFilterSettings, err := r.ProjectFilterSettings(ctx, projectID)
+	projectFilterSettings, err := r.Store.GetProjectFilterSettings(*project)
 	if err != nil {
 		return nil, err
 	}
 
 	allProjectSettings := modelInputs.AllProjectSettings{
-		ID:                         project.ID,
-		Name:                       *project.Name,
-		BillingEmail:               project.BillingEmail,
-		ExcludedUsers:              project.ExcludedUsers,
-		ErrorFilters:               project.ErrorFilters,
-		ErrorJSONPaths:             project.ErrorJsonPaths,
-		BackendDomains:             project.BackendDomains,
-		FilterChromeExtension:      project.FilterChromeExtension,
-		RageClickWindowSeconds:     &project.RageClickWindowSeconds,
-		RageClickRadiusPixels:      &project.RageClickRadiusPixels,
-		RageClickCount:             &project.RageClickCount,
-		FilterSessionsWithoutError: projectFilterSettings.FilterSessionsWithoutError,
+		ID:                                project.ID,
+		Name:                              *project.Name,
+		BillingEmail:                      project.BillingEmail,
+		ExcludedUsers:                     project.ExcludedUsers,
+		ErrorFilters:                      project.ErrorFilters,
+		ErrorJSONPaths:                    project.ErrorJsonPaths,
+		BackendDomains:                    project.BackendDomains,
+		FilterChromeExtension:             project.FilterChromeExtension,
+		RageClickWindowSeconds:            &project.RageClickWindowSeconds,
+		RageClickRadiusPixels:             &project.RageClickRadiusPixels,
+		RageClickCount:                    &project.RageClickCount,
+		FilterSessionsWithoutError:        projectFilterSettings.FilterSessionsWithoutError,
+		AutoResolveStaleErrorsDayInterval: projectFilterSettings.AutoResolveStaleErrorsDayInterval,
 	}
 
 	return &allProjectSettings, nil
@@ -6479,6 +6460,28 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 	}
 
 	return workspaceInviteLink, nil
+}
+
+// WorkspacePendingInvites is the resolver for the workspacePendingInvites field.
+func (r *queryResolver) WorkspacePendingInvites(ctx context.Context, workspaceID int) ([]*model.WorkspaceInviteLink, error) {
+	_, err := r.isAdminInWorkspace(ctx, workspaceID)
+	if err != nil {
+		return nil, nil
+	}
+
+	var pendingInvites []*model.WorkspaceInviteLink
+	var queryErr = r.DB.
+		Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID}).
+		Where("invitee_email IS NOT NULL").
+		Order("created_at DESC").
+		Find(&pendingInvites).
+		Error
+
+	if queryErr != nil {
+		return nil, e.Wrap(queryErr, "error getting invite links for the workspace")
+	}
+
+	return pendingInvites, nil
 }
 
 // WorkspaceForProject is the resolver for the workspace_for_project field.
