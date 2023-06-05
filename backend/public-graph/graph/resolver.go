@@ -241,7 +241,7 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 	})
 
 	for _, field := range newFields {
-		if err := r.OpenSearch.Index(ctx,
+		if err := r.OpenSearch.IndexSynchronous(ctx,
 			opensearch.IndexParams{
 				Index:  opensearch.IndexFields,
 				ID:     field.ID,
@@ -685,7 +685,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		Timestamp:   errorObj.Timestamp,
 		Environment: errorObj.Environment,
 	}
-	if err := r.OpenSearch.Index(ctx, opensearch.IndexParams{
+	if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexParams{
 		Index:    opensearch.IndexErrorsCombined,
 		ID:       int64(errorObj.ID),
 		ParentID: pointy.Int(errorGroup.ID),
@@ -752,7 +752,7 @@ func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorF
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
-			if err := r.OpenSearch.Index(ctx, opensearch.IndexParams{
+			if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexParams{
 				Index:  opensearch.IndexErrorFields,
 				ID:     int64(f.ID),
 				Object: f,
@@ -1358,7 +1358,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	if session.Identifier != "" {
 		openSearchProperties["identifier"] = session.Identifier
 	}
-	if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionID, openSearchProperties); err != nil {
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, sessionID, openSearchProperties); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 	openSearchUpdateSpan.Finish()
@@ -2633,7 +2633,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	// If the session was previously excluded (as we do with new sessions by default),
 	// clear it so it is shown as live in OpenSearch since we now have data for it.
 	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
-		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+		if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"processed":  false,
 			"Excluded":   false,
 			"has_errors": sessionHasErrors,
@@ -2644,7 +2644,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	}
 
 	if sessionHasErrors {
-		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+		if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"has_errors": true,
 		}); err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))

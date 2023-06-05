@@ -51,14 +51,14 @@ export const NetworkPage = ({
 	time,
 	autoScroll,
 	filter,
-	requestType,
-	requestStatus,
+	requestTypes,
+	requestStatuses,
 }: {
 	time: number
 	autoScroll: boolean
 	filter: string
-	requestType: RequestType
-	requestStatus: RequestStatus
+	requestTypes: RequestType[]
+	requestStatuses: RequestStatus[]
 }) => {
 	const {
 		state,
@@ -117,12 +117,14 @@ export const NetworkPage = ({
 			(parsedResources
 				.filter(
 					(request) =>
-						requestType === RequestType.All ||
-						requestType === request.initiatorType,
+						requestTypes.includes(RequestType.All) ||
+						requestTypes.includes(
+							request.initiatorType as RequestType,
+						),
 				)
 				.filter((request) => {
 					/* No filter for RequestStatus.All */
-					if (requestStatus === RequestStatus.All) {
+					if (requestStatuses.includes(RequestStatus.All)) {
 						return true
 					}
 					/* Filter on RequestStatus */
@@ -131,7 +133,14 @@ export const NetworkPage = ({
 					if (status) {
 						const statusString = status.toString()
 						/* '1', '2', '3', '4', '5', '?' */
-						if (requestStatus[0] === statusString[0]) {
+						const selectedRequestStatusGroups = requestStatuses.map(
+							(status) => status[0],
+						)
+						if (
+							selectedRequestStatusGroups.includes(
+								statusString[0],
+							)
+						) {
 							return true
 						}
 					} else {
@@ -140,10 +149,14 @@ export const NetworkPage = ({
 								request.initiatorType as RequestType,
 							)
 						) {
-							return requestStatus === RequestStatus.Unknown
+							return requestStatuses.includes(
+								RequestStatus.Unknown,
+							)
 						} else {
 							// this is a network request with no status code, so we assume 2xx
-							return requestStatus === RequestStatus['2XX']
+							return requestStatuses.includes(
+								RequestStatus['2XX'],
+							)
 						}
 					}
 				})
@@ -165,7 +178,7 @@ export const NetworkPage = ({
 		}
 
 		return current
-	}, [parsedResources, filter, requestType, requestStatus, startTime])
+	}, [parsedResources, filter, requestTypes, requestStatuses, startTime])
 
 	const currentResourceIdx = useMemo(() => {
 		return findLastActiveEventIndex(
@@ -383,8 +396,8 @@ export const NetworkPage = ({
 					<EmptyDevToolsCallout
 						kind={Tab.Network}
 						filter={filter}
-						requestType={requestType}
-						requestStatus={requestStatus}
+						requestTypes={requestTypes}
+						requestStatuses={requestStatuses}
 					/>
 				)
 			)}

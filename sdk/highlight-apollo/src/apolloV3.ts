@@ -33,7 +33,6 @@ export const ApolloServerV3HighlightPlugin = function <T extends BaseContext>(
 				async didEncounterErrors(
 					requestContext: GraphQLRequestContextDidEncounterErrors<T>,
 				): Promise<void> {
-					H.consumeEvent(secureSessionId)
 					for (const error of requestContext.errors) {
 						H.consumeError(error, secureSessionId, requestId)
 						H._debug('consumed apollo request error', error)

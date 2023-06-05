@@ -14,10 +14,11 @@ import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import useLocalStorage from '@rehooks/local-storage'
 import { auth } from '@util/auth'
 import firebase from 'firebase/compat/app'
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
+import analytics from '@/util/analytics'
 
 type Props = {
 	setResolver: React.Dispatch<
@@ -65,6 +66,8 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		},
 		[navigate, setResolver],
 	)
+
+	useEffect(() => analytics.page(), [])
 
 	return (
 		<Form
