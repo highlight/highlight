@@ -25,7 +25,7 @@ import highlight_io
 from highlight_io.integrations.flask import FlaskIntegration
 
 app = Flask(__name__)
-H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[FlaskIntegration()], record_logs=True)`,
+H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[FlaskIntegration()], instrument_logging=True)`,
 					language: 'python',
 				},
 			],
@@ -50,7 +50,7 @@ import highlight_io
 from highlight_io.integrations.flask import FlaskIntegration
 
 app = Flask(__name__)
-H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[FlaskIntegration()], record_logs=True)
+H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[FlaskIntegration()], instrument_logging=True)
 
 
 @app.route("/hello")

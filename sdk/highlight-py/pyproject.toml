@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "highlight-io"
-version = "0.4.9"
+version = "0.5.0"
 description = "Session replay and error monitoring: stop guessing why bugs happen!"
 license = "Apache-2.0"
 authors = [
@@ -47,6 +47,7 @@ pytest = "^7.2.1"
 pytest-mock = "^3.10.0"
 pytest-cov = "^4.0.0"
 pytest-asyncio = "^0.20.3"
+loguru = "^0.7.0"
 
 [tool.poetry.extras]
 Django = ["django"]

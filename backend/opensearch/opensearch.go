@@ -299,10 +299,11 @@ func (c *Client) UpdateSynchronous(index Index, id int, obj interface{}) error {
 	indexStr := GetIndex(index)
 
 	req := opensearchapi.UpdateRequest{
-		Index:      indexStr,
-		DocumentID: documentId,
-		Body:       body,
-		Refresh:    "true",
+		Index:           indexStr,
+		DocumentID:      documentId,
+		Body:            body,
+		RetryOnConflict: pointy.Int(3),
+		Refresh:         "true",
 	}
 
 	res, err := req.Do(context.Background(), c.Client)
@@ -311,16 +312,7 @@ func (c *Client) UpdateSynchronous(index Index, id int, obj interface{}) error {
 	}
 
 	if res.IsError() {
-		c.RetryableClient.ReportError(context.Background(), model.RetryableOpensearchError, indexStr, documentId, map[string]interface{}{"id": id, "obj": obj, "res": res}, nil)
-		return e.New(
-			fmt.Sprintf(
-				"OPENSEARCH_ERROR (%s : %s) [%d] %s",
-				indexStr,
-				documentId,
-				res.StatusCode,
-				res.String(),
-			),
-		)
+		return e.New("OPENSEARCH_ERROR error updating document: " + res.String())
 	}
 
 	// log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)

@@ -281,20 +281,6 @@ export type EditProjectMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type EditProjectFilterSettingsMutationVariables = Types.Exact<{
-	projectId: Types.Scalars['ID']
-	filterSessionsWithoutError: Types.Scalars['Boolean']
-}>
-
-export type EditProjectFilterSettingsMutation = { __typename?: 'Mutation' } & {
-	editProjectFilterSettings?: Types.Maybe<
-		{ __typename?: 'ProjectFilterSettings' } & Pick<
-			Types.ProjectFilterSettings,
-			'id' | 'filterSessionsWithoutError'
-		>
-	>
-}
-
 export type EditProjectSettingsMutationVariables = Types.Exact<{
 	projectId: Types.Scalars['ID']
 	name?: Types.Maybe<Types.Scalars['String']>
@@ -308,6 +294,7 @@ export type EditProjectSettingsMutationVariables = Types.Exact<{
 	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
 	backend_domains?: Types.Maybe<Types.Scalars['StringArray']>
 	filterSessionsWithoutError?: Types.Maybe<Types.Scalars['Boolean']>
+	autoResolveStaleErrorsDayInterval?: Types.Maybe<Types.Scalars['Int']>
 }>
 
 export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
@@ -326,6 +313,7 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 			| 'rage_click_count'
 			| 'backend_domains'
 			| 'filterSessionsWithoutError'
+			| 'autoResolveStaleErrorsDayInterval'
 		>
 	>
 }
@@ -1341,6 +1329,15 @@ export type UpdateEmailOptOutMutation = { __typename?: 'Mutation' } & Pick<
 	Types.Mutation,
 	'updateEmailOptOut'
 >
+
+export type DeleteInviteLinkFromWorkspaceMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	workspace_invite_link_id: Types.Scalars['ID']
+}>
+
+export type DeleteInviteLinkFromWorkspaceMutation = {
+	__typename?: 'Mutation'
+} & Pick<Types.Mutation, 'deleteInviteLinkFromWorkspace'>
 
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
@@ -4325,19 +4322,6 @@ export type GetLogsErrorObjectsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetProjectFilterSettingsQueryVariables = Types.Exact<{
-	projectId: Types.Scalars['ID']
-}>
-
-export type GetProjectFilterSettingsQuery = { __typename?: 'Query' } & {
-	projectFilterSettings?: Types.Maybe<
-		{ __typename?: 'ProjectFilterSettings' } & Pick<
-			Types.ProjectFilterSettings,
-			'id' | 'filterSessionsWithoutError'
-		>
-	>
-}
-
 export type GetProjectSettingsQueryVariables = Types.Exact<{
 	projectId: Types.Scalars['ID']
 }>
@@ -4359,6 +4343,7 @@ export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
 			| 'rage_click_count'
 			| 'backend_domains'
 			| 'filterSessionsWithoutError'
+			| 'autoResolveStaleErrorsDayInterval'
 		>
 	>
 }
@@ -4505,7 +4490,6 @@ export const namedOperations = {
 		GetLogsKeys: 'GetLogsKeys' as const,
 		GetLogsKeyValues: 'GetLogsKeyValues' as const,
 		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
-		GetProjectFilterSettings: 'GetProjectFilterSettings' as const,
 		GetProjectSettings: 'GetProjectSettings' as const,
 		GetWorkspacePendingInvites: 'GetWorkspacePendingInvites' as const,
 	},
@@ -4536,7 +4520,6 @@ export const namedOperations = {
 		CreateAdmin: 'CreateAdmin' as const,
 		CreateWorkspace: 'CreateWorkspace' as const,
 		EditProject: 'EditProject' as const,
-		EditProjectFilterSettings: 'EditProjectFilterSettings' as const,
 		EditProjectSettings: 'EditProjectSettings' as const,
 		DeleteProject: 'DeleteProject' as const,
 		EditWorkspace: 'EditWorkspace' as const,
@@ -4588,6 +4571,7 @@ export const namedOperations = {
 		UpdateIntegrationProjectSettings:
 			'UpdateIntegrationProjectSettings' as const,
 		UpdateEmailOptOut: 'UpdateEmailOptOut' as const,
+		DeleteInviteLinkFromWorkspace: 'DeleteInviteLinkFromWorkspace' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

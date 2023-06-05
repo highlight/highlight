@@ -526,7 +526,7 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 			"session_obj": s}).Warnf("error excluding session (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 	}
 
-	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{
 		"Excluded":  true,
 		"processed": true,
 	}); err != nil {
@@ -595,23 +595,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Exclude the session if there's no events.
 	if len(accumulator.EventsForTimelineIndicator) == 0 && s.Length <= 0 {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-			"session_obj": s}).Warnf("excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
-		s.Excluded = true
-		s.Processed = &model.T
-		if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-				"session_obj": s}).Warnf("error excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
-		}
-
-		if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
-			"Excluded":  true,
-			"processed": true,
-		}); err != nil {
-			return e.Wrap(err, "error updating session in opensearch")
-		}
-
-		return nil
+		return w.excludeSession(ctx, s, backend.SessionExcludedReasonNoTimelineIndicatorEvents)
 	}
 
 	payloadManager.SeekStart(ctx)

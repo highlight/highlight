@@ -28,7 +28,7 @@ import functions_framework
 import highlight_io
 from highlight_io.integrations.gcp import observe_handler
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
+H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
 
 
 @observe_handler
@@ -59,7 +59,7 @@ import functions_framework
 import highlight_io
 from highlight_io.integrations.gcp import observe_handler
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
+H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
 
 
 @observe_handler

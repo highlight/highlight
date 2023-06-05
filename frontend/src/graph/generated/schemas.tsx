@@ -106,6 +106,7 @@ export enum AdminRole {
 
 export type AllProjectSettings = {
 	__typename?: 'AllProjectSettings'
+	autoResolveStaleErrorsDayInterval: Scalars['Int']
 	backend_domains?: Maybe<Scalars['StringArray']>
 	billing_email?: Maybe<Scalars['String']>
 	error_filters?: Maybe<Scalars['StringArray']>
@@ -909,6 +910,7 @@ export type Mutation = {
 	deleteErrorAlert?: Maybe<ErrorAlert>
 	deleteErrorComment?: Maybe<Scalars['Boolean']>
 	deleteErrorSegment?: Maybe<Scalars['Boolean']>
+	deleteInviteLinkFromWorkspace: Scalars['Boolean']
 	deleteLogAlert?: Maybe<LogAlert>
 	deleteMetricMonitor?: Maybe<MetricMonitor>
 	deleteProject?: Maybe<Scalars['Boolean']>
@@ -918,7 +920,6 @@ export type Mutation = {
 	deleteSessions: Scalars['Boolean']
 	editErrorSegment?: Maybe<Scalars['Boolean']>
 	editProject?: Maybe<Project>
-	editProjectFilterSettings?: Maybe<ProjectFilterSettings>
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
 	editWorkspace?: Maybe<Workspace>
@@ -1141,6 +1142,11 @@ export type MutationDeleteErrorSegmentArgs = {
 	segment_id: Scalars['ID']
 }
 
+export type MutationDeleteInviteLinkFromWorkspaceArgs = {
+	workspace_id: Scalars['ID']
+	workspace_invite_link_id: Scalars['ID']
+}
+
 export type MutationDeleteLogAlertArgs = {
 	id: Scalars['ID']
 	project_id: Scalars['ID']
@@ -1195,12 +1201,8 @@ export type MutationEditProjectArgs = {
 	rage_click_window_seconds?: InputMaybe<Scalars['Int']>
 }
 
-export type MutationEditProjectFilterSettingsArgs = {
-	filterSessionsWithoutError: Scalars['Boolean']
-	projectId: Scalars['ID']
-}
-
 export type MutationEditProjectSettingsArgs = {
+	autoResolveStaleErrorsDayInterval?: InputMaybe<Scalars['Int']>
 	backend_domains?: InputMaybe<Scalars['StringArray']>
 	billing_email?: InputMaybe<Scalars['String']>
 	error_filters?: InputMaybe<Scalars['StringArray']>
@@ -1564,12 +1566,6 @@ export type Project = {
 	workspace_id: Scalars['ID']
 }
 
-export type ProjectFilterSettings = {
-	__typename?: 'ProjectFilterSettings'
-	filterSessionsWithoutError: Scalars['Boolean']
-	id: Scalars['ID']
-}
-
 export type Query = {
 	__typename?: 'Query'
 	account_details: AccountDetails
@@ -1658,7 +1654,6 @@ export type Query = {
 	new_user_alerts?: Maybe<Array<Maybe<SessionAlert>>>
 	oauth_client_metadata?: Maybe<OAuthClient>
 	project?: Maybe<Project>
-	projectFilterSettings?: Maybe<ProjectFilterSettings>
 	projectHasViewedASession?: Maybe<Session>
 	projectSettings?: Maybe<AllProjectSettings>
 	projectSuggestion: Array<Maybe<Project>>
@@ -2091,10 +2086,6 @@ export type QueryOauth_Client_MetadataArgs = {
 
 export type QueryProjectArgs = {
 	id: Scalars['ID']
-}
-
-export type QueryProjectFilterSettingsArgs = {
-	projectId: Scalars['ID']
 }
 
 export type QueryProjectHasViewedASessionArgs = {
@@ -2552,6 +2543,7 @@ export enum SessionExcludedReason {
 	Initializing = 'Initializing',
 	NoActivity = 'NoActivity',
 	NoError = 'NoError',
+	NoTimelineIndicatorEvents = 'NoTimelineIndicatorEvents',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
 }
 

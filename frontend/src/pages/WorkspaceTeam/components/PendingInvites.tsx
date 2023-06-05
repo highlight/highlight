@@ -1,11 +1,19 @@
 import { AdminAvatar } from '@components/Avatar/Avatar'
+import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
+import PopConfirm from '@components/PopConfirm/PopConfirm'
 import Table from '@components/Table/Table'
-import { useGetWorkspacePendingInvitesQuery } from '@graph/hooks'
+import {
+	useDeleteInviteLinkFromWorkspaceMutation,
+	useGetWorkspacePendingInvitesQuery,
+} from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
 import { Box } from '@highlight-run/ui'
+import SvgTrashIconSolid from '@icons/TrashIconSolid'
 import { useAuthorization } from '@util/authorization/authorization'
 import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { titleCaseString } from '@util/string'
+import { message } from 'antd'
 import clsx from 'clsx'
 import moment from 'moment'
 import React from 'react'
@@ -26,6 +34,23 @@ const PendingInvites = ({ workspaceId, active, shouldRefetchData }: Props) => {
 			skip: !workspaceId,
 		})
 	const { workspacePendingInvites = [] } = data || {}
+	const [deleteInviteLinkFromWorkspace] =
+		useDeleteInviteLinkFromWorkspaceMutation({
+			update(cache, { data }) {
+				cache.modify({
+					fields: {
+						workspace_pending_invites(existingInvites, { DELETE }) {
+							if (data?.deleteInviteLinkFromWorkspace) {
+								message.success('Deleted invite')
+								return DELETE
+							}
+							message.success('Failed to delete invite')
+							return existingInvites
+						},
+					},
+				})
+			},
+		})
 
 	React.useEffect(() => {
 		if (active && shouldRefetchData) {
@@ -59,6 +84,22 @@ const PendingInvites = ({ workspaceId, active, shouldRefetchData }: Props) => {
 							creationDate: invite?.created_at,
 							id: invite?.id,
 							role: invite?.invitee_role,
+							onDeleteHandler: () => {
+								if (!workspaceId) {
+									return
+								}
+
+								deleteInviteLinkFromWorkspace({
+									variables: {
+										workspace_invite_link_id: invite!.id,
+										workspace_id: workspaceId!,
+									},
+									refetchQueries: [
+										namedOperations.Query
+											.GetWorkspacePendingInvites,
+									],
+								})
+							},
 						}))}
 						pagination={false}
 						showHeader={false}
@@ -70,7 +111,6 @@ const PendingInvites = ({ workspaceId, active, shouldRefetchData }: Props) => {
 	)
 }
 
-// TODO(spenny): add delete invite button and functionality
 const TABLE_COLUMNS = [
 	{
 		title: 'Email',
@@ -101,6 +141,35 @@ const TABLE_COLUMNS = [
 		key: 'role',
 		render: (role: string, _: any) => {
 			return <div className={styles.role}>{titleCaseString(role)}</div>
+		},
+	},
+	{
+		title: 'Remove',
+		dataIndex: 'remove',
+		key: 'remove',
+		render: (_: any, record: any) => {
+			return (
+				<PopConfirm
+					title={`Delete invite for ${record?.email}?`}
+					description="Their invite link will no longer be active. You can invite them again if they need access."
+					okText={`Remove ${record?.email}`}
+					cancelText="Cancel"
+					onConfirm={() => {
+						if (record?.onDeleteHandler) {
+							record.onDeleteHandler()
+						}
+					}}
+					okButtonProps={{ danger: true }}
+				>
+					<Button
+						className={styles.removeTeamMemberButton}
+						trackingId="DeleteInvite"
+						iconButton
+					>
+						<SvgTrashIconSolid />
+					</Button>
+				</PopConfirm>
+			)
 		},
 	},
 ]

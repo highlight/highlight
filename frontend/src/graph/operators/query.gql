@@ -2064,13 +2064,6 @@ query GetLogsErrorObjects($log_cursors: [String!]!) {
 	}
 }
 
-query GetProjectFilterSettings($projectId: ID!) {
-	projectFilterSettings(projectId: $projectId) {
-		id
-		filterSessionsWithoutError
-	}
-}
-
 query GetProjectSettings($projectId: ID!) {
 	projectSettings(projectId: $projectId) {
 		id
@@ -2086,6 +2079,7 @@ query GetProjectSettings($projectId: ID!) {
 		rage_click_count
 		backend_domains
 		filterSessionsWithoutError
+		autoResolveStaleErrorsDayInterval
 	}
 }
 

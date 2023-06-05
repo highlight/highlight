@@ -10,7 +10,7 @@
 	},
 	"dependencies": {
 		"@highlight-run/next": "workspace:*",
-		"@highlight-run/node": "workspace:^",
+		"@highlight-run/node": "workspace:*",
 		"@highlight-run/react": "workspace:*",
 		"@next/env": "^13.3.4",
 		"@tanstack/react-query": "^4.29.7",

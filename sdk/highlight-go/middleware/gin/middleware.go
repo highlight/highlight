@@ -27,12 +27,11 @@ func Middleware() gin.HandlerFunc {
 		c.Set(string(highlight.ContextKeys.SessionSecureID), ids[0])
 		c.Set(string(highlight.ContextKeys.RequestID), ids[1])
 
-		span, hCtx := highlight.StartTrace(c, "highlight/gin")
+		span, _ := highlight.StartTrace(c, "highlight/gin")
 		defer highlight.EndTrace(span)
 
 		c.Next()
 
-		highlight.MarkBackendSetup(hCtx)
 		span.SetAttributes(attribute.String(highlight.SourceAttribute, "GoGinMiddleware"))
 		span.SetAttributes(middleware.GetRequestAttributes(c.Request)...)
 		if len(c.Errors) > 0 {

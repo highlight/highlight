@@ -11,7 +11,7 @@ app = Flask(__name__)
 H = highlight_io.H(
     "1",
     integrations=[FlaskIntegration()],
-    record_logs=True,
+    instrument_logging=True,
     otlp_endpoint="http://localhost:4318",
 )
 
