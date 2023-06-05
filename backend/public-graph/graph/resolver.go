@@ -1170,11 +1170,13 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	metadata["timestamp"] = input.Timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("project_id", "environment", "id", "secure_id").Where(&model.Session{SecureID: input.SessionSecureID}).First(&session).Error; err != nil {
+	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at").Where(&model.Session{SecureID: input.SessionSecureID}).First(&session).Error; err != nil {
 		return e.Wrap(err, "error querying session by sessionSecureID for adding session feedback")
 	}
 
-	feedbackComment := &model.SessionComment{SessionId: session.ID, Text: input.Verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID, SessionSecureId: session.SecureID}
+	sessionTimestamp := input.Timestamp.UnixMilli() - session.CreatedAt.UnixMilli()
+
+	feedbackComment := &model.SessionComment{SessionId: session.ID, Text: input.Verbatim, Metadata: metadata, Timestamp: int(sessionTimestamp), Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID, SessionSecureId: session.SecureID}
 	if err := r.DB.Create(feedbackComment).Error; err != nil {
 		return e.Wrap(err, "error creating session feedback")
 	}
