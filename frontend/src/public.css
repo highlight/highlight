@@ -6,18 +6,9 @@ body {
 	font-display: swap;
 	font-family: 'Inter';
 	font-style: normal;
-	font-weight: 200;
-	src: local('Inter UltraLight'), local('InterUltraLight'),
-		url('./font/InterUltraLight.woff2') format('woff2');
-}
-
-@font-face {
-	font-display: swap;
-	font-family: 'Inter';
-	font-style: normal;
 	font-weight: normal;
 	src: local('Inter Regular'), local('InterRegular'),
-		url('./font/InterRegular.woff2') format('woff2');
+		url('./font/Inter-Regular.woff2') format('woff2');
 }
 
 @font-face {
@@ -26,7 +17,7 @@ body {
 	font-style: normal;
 	font-weight: 100;
 	src: local('Inter Thin'), local('InterThin'),
-		url('./font/InterThin.woff2') format('woff2');
+		url('./font/Inter-Thin.woff2') format('woff2');
 }
 
 @font-face {
@@ -35,7 +26,7 @@ body {
 	font-style: normal;
 	font-weight: 800;
 	src: local('Inter Black'), local('InterBlack'),
-		url('./font/InterBlack.woff2') format('woff2');
+		url('./font/Inter-Black.woff2') format('woff2');
 }
 
 @font-face {
@@ -44,7 +35,7 @@ body {
 	font-style: normal;
 	font-weight: bold;
 	src: local('Inter Bold'), local('InterBold'),
-		url('./font/InterBold.woff2') format('woff2');
+		url('./font/Inter-Bold.woff2') format('woff2');
 }
 
 @font-face {
@@ -53,7 +44,7 @@ body {
 	font-style: normal;
 	font-weight: 500;
 	src: local('Inter Medium'), local('InterMedium'),
-		url('./font/InterMedium.woff2') format('woff2');
+		url('./font/Inter-Medium.woff2') format('woff2');
 }
 
 @font-face {
@@ -62,7 +53,7 @@ body {
 	font-style: normal;
 	font-weight: 200;
 	src: local('Inter ExtraLight'), local('InterExtraLight'),
-		url('./font/InterExtraLight.woff2') format('woff2');
+		url('./font/Inter-ExtraLight.woff2') format('woff2');
 }
 
 @font-face {
@@ -71,5 +62,5 @@ body {
 	font-style: normal;
 	font-weight: 300;
 	src: local('Inter Light'), local('InterLight'),
-		url('./font/InterLight.woff2') format('woff2');
+		url('./font/Inter-Light.woff2') format('woff2');
 }
