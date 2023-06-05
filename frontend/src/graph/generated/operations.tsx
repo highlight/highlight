@@ -294,6 +294,7 @@ export type EditProjectSettingsMutationVariables = Types.Exact<{
 	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
 	backend_domains?: Types.Maybe<Types.Scalars['StringArray']>
 	filterSessionsWithoutError?: Types.Maybe<Types.Scalars['Boolean']>
+	autoResolveStaleErrorsDayInterval?: Types.Maybe<Types.Scalars['Int']>
 }>
 
 export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
@@ -312,6 +313,7 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 			| 'rage_click_count'
 			| 'backend_domains'
 			| 'filterSessionsWithoutError'
+			| 'autoResolveStaleErrorsDayInterval'
 		>
 	>
 }
@@ -4341,6 +4343,7 @@ export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
 			| 'rage_click_count'
 			| 'backend_domains'
 			| 'filterSessionsWithoutError'
+			| 'autoResolveStaleErrorsDayInterval'
 		>
 	>
 }
