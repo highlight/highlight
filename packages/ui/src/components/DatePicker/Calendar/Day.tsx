@@ -1,84 +1,197 @@
-import React from 'react'
-import { Box } from '../../Box/Box'
+import React, { CSSProperties, Fragment } from 'react'
+import { Box, BoxProps } from '../../Box/Box'
 import { CalendarDay, useContextDaysPropGetters } from '@rehookify/datepicker'
 import { ReactNode } from 'react'
 
 const getColor = (day: CalendarDay) => {
-	const { selected, disabled } = day
+	const { selected, disabled, range } = day
 
 	if (disabled) {
-		return 'weak'
+		return 'n8'
 	}
 
 	if (selected) {
 		return 'white'
 	}
 
-	return 'inherit'
-}
-
-const getBackgroundColor = (day: CalendarDay) => {
-	const { selected, range } = day
-
-	if (selected) {
-		return 'p9'
+	if (range == 'will-be-range-start') {
+		return 'white'
 	}
-
-	if (range == 'in-range') {
-		return 'p7'
-	}
-
-	return 'inherit'
-}
-
-const getBorderRight = (day: CalendarDay) => {
-	const { range } = day
 
 	if (range == 'will-be-range-end') {
-		return 'secondaryHover'
+		return 'white'
 	}
 
-	return 'none'
+	return 'inherit'
 }
 
-const getBorderLeft = (day: CalendarDay) => {
-	const { range } = day
+const getContainerBorderTopLeftRadius = (day: CalendarDay) => {
+	const { range, selected, now } = day
 
-	if (range == 'will-be-range-start') {
-		return 'secondaryHover'
+	if (selected && range === '') {
+		return '6'
 	}
 
-	return 'none'
-}
-
-const getBorderTopBottom = (day: CalendarDay) => {
-	const { range } = day
-
-	if (
-		range == 'will-be-in-range' ||
-		range == 'will-be-range-start' ||
-		range == 'will-be-range-end'
-	) {
-		return 'secondaryHover'
+	if (now && range === 'will-be-range-end') {
+		return '6'
 	}
 
-	return 'none'
-}
+	if (selected && range === 'range-start') {
+		return '6'
+	}
 
-const getBorderLeftRadius = (day: CalendarDay) => {
-	const { range } = day
+	if (now && selected) {
+		return '6'
+	}
 
-	if (range == 'range-start') {
+	if (range === 'will-be-range-start') {
 		return '6'
 	}
 
 	return 'inherit'
 }
 
-const getBorderRightRadius = (day: CalendarDay) => {
-	const { range } = day
+const getContainerBorderTopRightRadius = (day: CalendarDay) => {
+	const { range, selected, now } = day
 
-	if (range == 'range-end') {
+	if (selected && range === '') {
+		return '6'
+	}
+
+	if (now && selected) {
+		return '6'
+	}
+
+	if (selected && range === 'range-end') {
+		return '6'
+	}
+
+	if (range === 'will-be-range-end' && 'will-be-range-start' && 'in-range') {
+		return '6'
+	}
+
+	return 'inherit'
+}
+
+const getContainerBorderBottomLeftRadius = (day: CalendarDay) => {
+	const { range, selected, now } = day
+
+	if (selected && range === '') {
+		return '6'
+	}
+
+	if (now && range === 'will-be-range-end') {
+		return '6'
+	}
+
+	if (now && selected) {
+		return '6'
+	}
+
+	if (selected && range === 'range-start') {
+		return '6'
+	}
+
+	if (range === 'will-be-range-start') {
+		return '6'
+	}
+
+	return 'inherit'
+}
+
+const getContainerBorderBottomRightRadius = (day: CalendarDay) => {
+	const { range, selected, now } = day
+
+	if (now && selected) {
+		return '6'
+	}
+
+	if (selected && range === '') {
+		return '6'
+	}
+
+	if (selected && range === 'in-range') {
+		return 'inherit'
+	}
+
+	if (range === 'will-be-range-end') {
+		return '6'
+	}
+	return 'inherit'
+}
+
+const getContainerBackgroundColor = (day: CalendarDay) => {
+	const { selected, range, now } = day
+
+	if (now && selected) {
+		return 'p9'
+	}
+
+	if (now && range === 'will-be-range-end') {
+		return 'p9'
+	}
+
+	if (now && range === 'will-be-in-range') {
+		return 'p6'
+	}
+
+	if (
+		selected ||
+		range === 'will-be-range-end' ||
+		range === 'will-be-range-start'
+	) {
+		return 'p6'
+	}
+
+	return 'inherit'
+}
+
+const getBackgroundColor = (day: CalendarDay) => {
+	const { selected, range, now } = day
+
+	if (now) {
+		return 'lb300'
+	}
+
+	if (selected) {
+		return 'p9'
+	}
+
+	if (range == 'will-be-range-end') {
+		return 'p9'
+	}
+
+	if (range == 'will-be-range-start') {
+		return 'p9'
+	}
+
+	if (range == 'will-be-in-range') {
+		return 'p6'
+	}
+
+	if (range == 'in-range') {
+		return 'p6'
+	}
+
+	return 'inherit'
+}
+
+const getBorderRadius = (day: CalendarDay) => {
+	const { selected, range, now } = day
+
+	if (now) {
+		return 'round'
+	}
+
+	if (selected) {
+		return '6'
+	}
+
+	if (range == 'will-be-range-start') {
+		return '6'
+	}
+
+	if (range == 'will-be-range-end') {
 		return '6'
 	}
 
@@ -88,7 +201,25 @@ const getBorderRightRadius = (day: CalendarDay) => {
 const getPointer = (day: CalendarDay) => {
 	const { disabled } = day
 
-	return disabled ? 'default' : 'pointer'
+	return disabled ? 'not-allowed' : 'pointer'
+}
+
+const getWidth = (day: CalendarDay) => {
+	const { now } = day
+
+	if (now) {
+		return '24px'
+	}
+
+	return '100%'
+}
+
+const containerStyles: CSSProperties = {
+	width: '100%',
+	height: '100%',
+	display: 'flex',
+	alignItems: 'center',
+	justifyContent: 'center',
 }
 
 interface Props {
@@ -99,24 +230,73 @@ interface Props {
 const Day = ({ children, day }: Props) => {
 	const { dayButton } = useContextDaysPropGetters()
 
+	const Wrapper = day.now ? Box : Fragment
+
+	if (day.day === '29') {
+		console.log(day)
+	}
+
+	const WrapperProps = day.now
+		? ({
+				style: containerStyles,
+				backgroundColor:
+					day.range === 'will-be-in-range' ||
+					day.range === 'in-range' ||
+					day.range === 'will-be-range-end' ||
+					day.selected
+						? 'p6'
+						: 'inherit',
+				borderTopRightRadius:
+					day.range === 'range-end' ||
+					day.range === 'will-be-range-end'
+						? '6'
+						: 'inherit',
+				borderBottomRightRadius:
+					day.range === 'range-end' ||
+					day.range === 'will-be-range-end'
+						? '6'
+						: 'inherit',
+		  } as BoxProps)
+		: {}
+
 	return (
-		<Box
-			{...dayButton(day)}
-			cursor={getPointer(day)}
-			color={getColor(day)}
-			padding="10"
-			backgroundColor={getBackgroundColor(day)}
-			borderTop={getBorderTopBottom(day)}
-			borderBottom={getBorderTopBottom(day)}
-			borderLeft={getBorderLeft(day)}
-			borderRight={getBorderRight(day)}
-			borderTopLeftRadius={getBorderLeftRadius(day)}
-			borderBottomLeftRadius={getBorderLeftRadius(day)}
-			borderTopRightRadius={getBorderRightRadius(day)}
-			borderBottomRightRadius={getBorderRightRadius(day)}
-		>
-			{children}
-		</Box>
+		<Wrapper {...WrapperProps}>
+			<Box
+				{...dayButton(day)}
+				cursor={getPointer(day)}
+				style={containerStyles}
+				backgroundColor={getContainerBackgroundColor(day)}
+				borderTopLeftRadius={getContainerBorderTopLeftRadius(day)}
+				borderTopRightRadius={getContainerBorderTopRightRadius(day)}
+				borderBottomLeftRadius={getContainerBorderBottomLeftRadius(day)}
+				borderBottomRightRadius={getContainerBorderBottomRightRadius(
+					day,
+				)}
+			>
+				<Box
+					color={getColor(day)}
+					backgroundColor={getBackgroundColor(day)}
+					padding="10"
+					style={{
+						width: getWidth(day),
+						height: getWidth(day),
+						...(day.now
+							? {
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center',
+							  }
+							: {}),
+					}}
+					borderTopLeftRadius={getBorderRadius(day)}
+					borderBottomLeftRadius={getBorderRadius(day)}
+					borderTopRightRadius={getBorderRadius(day)}
+					borderBottomRightRadius={getBorderRadius(day)}
+				>
+					{children}
+				</Box>
+			</Box>
+		</Wrapper>
 	)
 }
 
