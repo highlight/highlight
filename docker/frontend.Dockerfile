@@ -55,4 +55,4 @@ ARG REACT_APP_PRIVATE_GRAPH_URI
 ARG REACT_APP_PUBLIC_GRAPH_URI
 ENV REACT_APP_PRIVATE_GRAPH_URI=$REACT_APP_PRIVATE_GRAPH_URI
 ENV REACT_APP_PUBLIC_GRAPH_URI=$REACT_APP_PUBLIC_GRAPH_URI
-CMD ["sh", "-c", "sed -i -e 's/https:\/\/localhost:8082\/private/$REACT_APP_PRIVATE_GRAPH_URI/g' /build/frontend/build/assets/*.js && sed -i -e 's/https:\/\/localhost:8082\/public/$REACT_APP_PUBLIC_GRAPH_URI/g' /build/frontend/build/assets/*.js && nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "sed -i -e \"s/https:\/\/localhost:8082\/private/$REACT_APP_PRIVATE_GRAPH_URI/g\" /build/frontend/build/assets/*.js && sed -i -e \"s/https:\/\/localhost:8082\/public/$REACT_APP_PUBLIC_GRAPH_URI/g\" /build/frontend/build/assets/*.js && nginx -g 'daemon off;'"]
