@@ -128,7 +128,7 @@ async function getAllSourceMapFiles(paths: string[]) {
   const map: { path: string; name: string }[] = [];
 
   await Promise.all(
-    paths.map((path) => {
+    paths.map(async (path) => {
       const realPath = join(cwd(), path);
 
       if (statSync(realPath).isFile()) {
@@ -137,25 +137,33 @@ async function getAllSourceMapFiles(paths: string[]) {
           name: basename(realPath),
         });
 
-        return Promise.resolve();
+        return;
       }
 
-      return new Promise<void>((resolve) => {
-        glob("**/*.js?(.map)", {
-          cwd: realPath,
-          nodir: true,
-          ignore: "**/node_modules/**/*",
-        }).then((files) => {
-          for (const file of files) {
-            map.push({
-              path: join(realPath, file),
-              name: file,
-            });
-          }
+      if (
+        !(
+          await glob("**/*.js.map", {
+            cwd: realPath,
+            nodir: true,
+            ignore: "**/node_modules/**/*",
+          })
+        ).length
+      ) {
+        throw new Error(
+          "no .js.map files found. please double check that you have generated sourcemaps for your app."
+        );
+      }
 
-          resolve();
+      for (const file of await glob("**/*.js?(.map)", {
+        cwd: realPath,
+        nodir: true,
+        ignore: "**/node_modules/**/*",
+      })) {
+        map.push({
+          path: join(realPath, file),
+          name: file,
         });
-      });
+      }
     })
   );
 

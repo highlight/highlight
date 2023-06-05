@@ -8,14 +8,15 @@ program
 
 program
   .command("upload")
-  .option("-k, --apiKey <string>", "The Highlight api key")
-  .option("-av, --appVersion <string>", "The current version of your deploy")
+  .requiredOption("-k, --apiKey <string>", "The Highlight api key")
+  .option("-av, --appVersion [string]", "The current version of your deploy")
   .option(
-    "-p, --path <string>",
-    "Sets the directory of where the sourcemaps are"
+    "-p, --path [string]",
+    "Sets the directory of where the sourcemaps are",
+    "."
   )
   .option(
-    "-bp, --basePath",
+    "-bp, --basePath [string]",
     "An optional base path for the uploaded sourcemaps",
     ""
   )
