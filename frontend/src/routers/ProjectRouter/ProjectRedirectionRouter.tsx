@@ -3,13 +3,12 @@ import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
-import { useEffect } from 'react'
+import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
+import React, { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
-import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
-
 export const ProjectRedirectionRouter = () => {
-	const { allProjects: projects, loading } = useApplicationContext()
+	const { loading, error, data } = useGetProjectsAndWorkspacesQuery()
 	const { admin } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
 	const location = useLocation()
@@ -17,18 +16,23 @@ export const ProjectRedirectionRouter = () => {
 	useEffect(() => {
 		if (loading) {
 			setLoadingState(AppLoadingState.LOADING)
-		} else {
+		}
+		if (error) {
 			setLoadingState(AppLoadingState.LOADED)
 		}
-	}, [loading, setLoadingState])
+	}, [loading, setLoadingState, error])
+
+	if (error) {
+		return <p>{'App error: ' + JSON.stringify(error)}</p>
+	}
 
 	if (loading || !admin) {
 		return null
 	}
 
 	let redirectTo
-	if (projects?.length) {
-		redirectTo = `/${projects[0]!.id}${location.pathname}`
+	if (data?.projects?.length) {
+		redirectTo = `/${data!.projects[0]!.id}${location.pathname}`
 	} else {
 		redirectTo = '/new'
 	}
