@@ -34,17 +34,17 @@ import { HTTPContent } from './logging/http'
 import { JSNestLogContent } from './logging/js/nestjs'
 import { JSOtherLogContent } from './logging/js/other'
 
+import { DockerContent } from './logging/docker'
+import { FileContent } from './logging/file'
+import { FluentForwardContent } from './logging/fluentd'
+import { JSCloudflareLoggingContent } from './logging/js/cloudflare'
 import { JSWinstonHTTPJSONLogContent } from './logging/js/winston'
+import { PythonLoguruLogContent } from './logging/python/loguru'
 import { PythonOtherLogContent } from './logging/python/other'
 import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
-import { JSCloudflareLoggingContent } from './logging/js/cloudflare'
-import { FluentForwardContent } from './logging/fluentd'
-import { FileContent } from './logging/file'
-import { DockerContent } from './logging/docker'
-import { PythonLoguruLogContent } from './logging/python/loguru'
 
 export type QuickStartOptions = {
 	title: string
@@ -61,13 +61,16 @@ export type QuickStartContent = {
 	entries: Array<QuickStartStep>
 }
 
+export type QuickStartCodeBlock = {
+	key?: string
+	text: string
+	language: string
+}
+
 export type QuickStartStep = {
 	title: string
 	content: string
-	code?: {
-		text: string
-		language: string
-	}
+	code?: QuickStartCodeBlock[]
 	hidden?: true
 }
 

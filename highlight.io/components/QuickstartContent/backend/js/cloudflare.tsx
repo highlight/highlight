@@ -1,5 +1,6 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
+import { tsconfig } from '../../shared-snippets'
 import { frontendInstallSnippet } from '../shared-snippets'
 import {
 	addIntegrationContent,
@@ -7,7 +8,6 @@ import {
 	setupLogging,
 	verifyError,
 } from './shared-snippets'
-import { tsconfig } from '../../shared-snippets'
 
 export const JSCloudflareContent: QuickStartContent = {
 	title: 'Cloudflare Workers',
@@ -23,8 +23,9 @@ export const JSCloudflareContent: QuickStartContent = {
 				' ' +
 				'The `sendResponse` method traces successful requests while `consumeError` reports exceptions. ' +
 				'All Highlight data submission uses [waitUntil](https://developers.cloudflare.com/workers/runtime-apis/fetch-event/#waituntil) to make sure that we have no impact on request handling performance.',
-			code: {
-				text: `import { H } from '@highlight-run/cloudflare'
+			code: [
+				{
+					text: `import { H } from '@highlight-run/cloudflare'
 
 async function doRequest() {
   return new Response('hello!')
@@ -44,8 +45,9 @@ export default {
     }
   },
 }`,
-				language: `js`,
-			},
+					language: `js`,
+				},
+			],
 		},
 		verifyError(
 			'cloudflare',

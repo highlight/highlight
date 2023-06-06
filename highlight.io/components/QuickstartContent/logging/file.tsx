@@ -10,8 +10,9 @@ export const FileContent: QuickStartContent = {
 			title: 'Define your OpenTelemetry configuration.',
 			content:
 				'Setup the following OpenTelemetry collector. Check out our [example here](https://github.com/highlight/highlight/tree/main/e2e/opentelemetry/filelog).',
-			code: {
-				text: `receivers:
+			code: [
+				{
+					text: `receivers:
     filelog:
         include: [/watch.log]
         start_at: beginning
@@ -32,17 +33,20 @@ service:
             processors: [attributes/highlight-project, batch]
             exporters: [otlp/highlight]
 `,
-				language: 'yaml',
-			},
+					language: 'yaml',
+				},
+			],
 		},
 		{
 			title: 'Run the collector',
 			content:
 				'Run the [OpenTelemetry collector](https://opentelemetry.io/docs/collector/getting-started/) to start streaming the file to highlight.',
-			code: {
-				text: `docker run -v /my/file/to/watch.log:/watch.log -v $(pwd)/config.yaml:/etc/otelcol-contrib/config.yaml otel/opentelemetry-collector-contrib`,
-				language: 'bash',
-			},
+			code: [
+				{
+					text: `docker run -v /my/file/to/watch.log:/watch.log -v $(pwd)/config.yaml:/etc/otelcol-contrib/config.yaml otel/opentelemetry-collector-contrib`,
+					language: 'bash',
+				},
+			],
 		},
 		verifyLogs,
 	],
