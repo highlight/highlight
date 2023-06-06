@@ -10,6 +10,12 @@ import (
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
+func (store *Store) ListErrorObjects(ctx context.Context, errorGroup model.ErrorGroup) (privateModel.ErrorObjectConnection, error) {
+	var connection privateModel.ErrorObjectConnection
+
+	return connection, nil
+}
+
 type UpdateErrorGroupParams struct {
 	ID           int
 	State        privateModel.ErrorState

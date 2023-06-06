@@ -207,6 +207,10 @@ export type CommentReply = {
 	updated_at: Scalars['Timestamp']
 }
 
+export type Connection = {
+	pageInfo: PageInfo
+}
+
 export type DailyErrorCount = {
 	__typename?: 'DailyErrorCount'
 	count: Scalars['Int64']
@@ -341,6 +345,10 @@ export type DiscordChannel = {
 export type DiscordChannelInput = {
 	id: Scalars['String']
 	name: Scalars['String']
+}
+
+export type Edge = {
+	cursor: Scalars['String']
 }
 
 export enum EmailOptOutCategory {
@@ -501,6 +509,18 @@ export type ErrorObject = {
 	trace_id?: Maybe<Scalars['String']>
 	type: Scalars['String']
 	url: Scalars['String']
+}
+
+export type ErrorObjectConnection = Connection & {
+	__typename?: 'ErrorObjectConnection'
+	edges: Array<ErrorObjectEdge>
+	pageInfo: PageInfo
+}
+
+export type ErrorObjectEdge = Edge & {
+	__typename?: 'ErrorObjectEdge'
+	cursor: Scalars['String']
+	node: Log
 }
 
 export type ErrorResults = {
@@ -749,12 +769,18 @@ export type LogAlertInput = {
 	webhook_destinations: Array<WebhookDestinationInput>
 }
 
+export type LogConnection = Connection & {
+	__typename?: 'LogConnection'
+	edges: Array<LogEdge>
+	pageInfo: PageInfo
+}
+
 export enum LogDirection {
 	Asc = 'ASC',
 	Desc = 'DESC',
 }
 
-export type LogEdge = {
+export type LogEdge = Edge & {
 	__typename?: 'LogEdge'
 	cursor: Scalars['String']
 	node: Log
@@ -782,12 +808,6 @@ export enum LogLevel {
 export enum LogSource {
 	Backend = 'backend',
 	Frontend = 'frontend',
-}
-
-export type LogsConnection = {
-	__typename?: 'LogsConnection'
-	edges: Array<LogEdge>
-	pageInfo: PageInfo
 }
 
 export type LogsHistogram = {
@@ -1608,6 +1628,7 @@ export type Query = {
 	error_issue: Array<Maybe<ExternalAttachment>>
 	error_object?: Maybe<ErrorObject>
 	error_object_for_log?: Maybe<ErrorObject>
+	error_objects: ErrorObjectConnection
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram: ErrorsHistogram
@@ -1636,7 +1657,7 @@ export type Query = {
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	log_alert: LogAlert
 	log_alerts: Array<Maybe<LogAlert>>
-	logs: LogsConnection
+	logs: LogConnection
 	logsIntegration: IntegrationStatus
 	logs_error_objects: Array<ErrorObject>
 	logs_histogram: LogsHistogram
@@ -1870,6 +1891,10 @@ export type QueryError_ObjectArgs = {
 
 export type QueryError_Object_For_LogArgs = {
 	log_cursor: Scalars['String']
+}
+
+export type QueryError_ObjectsArgs = {
+	error_group_secure_id: Scalars['String']
 }
 
 export type QueryError_SegmentsArgs = {
