@@ -62,7 +62,9 @@ export const AppRouter = () => {
 	const workspaceId = workspaceMatch?.params.workspace_id
 	const workspaceInviteMatch = useMatch('/w/:workspace_id/invite/:invite')
 	const inviteMatch = useMatch('/invite/:invite')
+	const joinWorkspaceMatch = useMatch('/join_workspace')
 	const isInvitePage = !!inviteMatch
+	const isJoinWorkspacePage = !!joinWorkspaceMatch
 	const [inviteCode, setInviteCode] = useLocalStorage('highlightInviteCode')
 	const { projectId } = useNumericProjectId()
 	const [nextParam] = useQueryParam('next', StringParam)
@@ -117,7 +119,8 @@ export const AppRouter = () => {
 			admin &&
 			!admin.about_you_details_filled &&
 			!isVercelIntegrationFlow &&
-			!isInvitePage
+			!isInvitePage &&
+			!isJoinWorkspacePage
 		) {
 			navigate('/about_you', { replace: true })
 			return
@@ -141,6 +144,7 @@ export const AppRouter = () => {
 		inviteCode,
 		isInvitePage,
 		projectId,
+		isJoinWorkspacePage,
 	])
 
 	useEffect(() => {
@@ -193,12 +197,12 @@ export const AppRouter = () => {
 				}}
 			>
 				<Routes>
+					<Route path="/join_workspace" element={<JoinWorkspace />} />
+
 					{isLoggedIn && !admin?.about_you_details_filled && (
 						//  /about_you is used by google ads for conversion tracking
 						<Route path="/about_you" element={<AdminForm />} />
 					)}
-
-					<Route path="/join_workspace" element={<JoinWorkspace />} />
 
 					{/*
 				Not using isLoggedIn because this is shown immediately after sign up and

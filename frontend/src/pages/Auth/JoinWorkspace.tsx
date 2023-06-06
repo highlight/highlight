@@ -49,6 +49,7 @@ export const JoinWorkspace = () => {
 		})
 
 		if (!!response.data?.joinWorkspace) {
+			setDismissedJoinWorkspace(true)
 			message.success('Successfuly joined workspace!', 1)
 			navigate('/about_you', { replace: true })
 		}
@@ -56,13 +57,16 @@ export const JoinWorkspace = () => {
 
 	useEffect(() => {
 		if (!loading) {
-			if (!data?.joinable_workspaces?.length) {
-				navigate('/about_you', { replace: true })
-			} else {
-				setLoadingState(AppLoadingState.LOADED)
-			}
+			setLoadingState(AppLoadingState.LOADED)
 		}
-	}, [data?.joinable_workspaces?.length, loading, navigate, setLoadingState])
+	}, [loading, setLoadingState])
+
+	useEffect(() => {
+		if (data && !data?.joinable_workspaces?.length) {
+			debugger
+			navigate('/about_you', { replace: true })
+		}
+	}, [data, navigate])
 
 	if (loading) {
 		return null
