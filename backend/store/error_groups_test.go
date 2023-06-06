@@ -11,9 +11,22 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestListErrorObjects(t *testing.T) {
+	util.RunTestWithDBWipe(t, "TestUpdateErrorGroupStateByAdmin", store.db, func(t *testing.T) {
+		errorGroup := model.ErrorGroup{
+			State: privateModel.ErrorStateOpen,
+		}
+		store.db.Create(&errorGroup)
+
+		connection, err := store.ListErrorObjects(context.TODO(), errorGroup)
+		assert.NoError(t, err)
+
+		assert.Equal(t, privateModel.ErrorObjectConnection{}, connection)
+	})
+}
+
 func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 	util.RunTestWithDBWipe(t, "TestUpdateErrorGroupStateByAdmin", store.db, func(t *testing.T) {
-
 		errorGroup := model.ErrorGroup{
 			State: privateModel.ErrorStateOpen,
 		}

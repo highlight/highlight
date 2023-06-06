@@ -11,7 +11,13 @@ import (
 )
 
 func (store *Store) ListErrorObjects(ctx context.Context, errorGroup model.ErrorGroup) (privateModel.ErrorObjectConnection, error) {
+	limit := 10 // Number of results per page
+
 	var connection privateModel.ErrorObjectConnection
+	var errorObjects []model.ErrorObject
+	errorObjectsPtr := &errorObjects
+
+	store.db.Limit(limit).Where(errorGroup.ErrorObjects).Find(errorObjectsPtr)
 
 	return connection, nil
 }
