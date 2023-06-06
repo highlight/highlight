@@ -888,6 +888,7 @@ type ErrorObject struct {
 	SpanID           *string
 	LogCursor        *string `gorm:"index:idx_error_object_log_cursor,option:CONCURRENTLY"`
 	ErrorGroupID     int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
+	ErrorGroup       ErrorGroup
 	Event            string
 	Type             string
 	URL              string
@@ -928,6 +929,7 @@ type ErrorGroup struct {
 	ErrorMetrics     []*modelInputs.ErrorDistributionItem `gorm:"-"`
 	FirstOccurrence  *time.Time                           `gorm:"-"`
 	LastOccurrence   *time.Time                           `gorm:"-"`
+	ErrorObjects     []ErrorObject
 
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
