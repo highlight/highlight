@@ -28,6 +28,14 @@ const getColor = (day: CalendarDay) => {
 const getContainerBorderTopLeftRadius = (day: CalendarDay) => {
 	const { range, selected, now } = day
 
+	if (!selected && !now && range === '') {
+		return '6'
+	}
+
+	if (now) {
+		return '6'
+	}
+
 	if (selected && range === '') {
 		return '6'
 	}
@@ -54,6 +62,14 @@ const getContainerBorderTopLeftRadius = (day: CalendarDay) => {
 const getContainerBorderTopRightRadius = (day: CalendarDay) => {
 	const { range, selected, now } = day
 
+	if (!selected && !now && range === '') {
+		return '6'
+	}
+
+	if (now) {
+		return '6'
+	}
+
 	if (selected && range === '') {
 		return '6'
 	}
@@ -75,6 +91,14 @@ const getContainerBorderTopRightRadius = (day: CalendarDay) => {
 
 const getContainerBorderBottomLeftRadius = (day: CalendarDay) => {
 	const { range, selected, now } = day
+
+	if (!selected && !now && range === '') {
+		return '6'
+	}
+
+	if (now) {
+		return '6'
+	}
 
 	if (selected && range === '') {
 		return '6'
@@ -102,6 +126,18 @@ const getContainerBorderBottomLeftRadius = (day: CalendarDay) => {
 const getContainerBorderBottomRightRadius = (day: CalendarDay) => {
 	const { range, selected, now } = day
 
+	if (!selected && !now && range === '') {
+		return '6'
+	}
+
+	if (now) {
+		return '6'
+	}
+
+	if (selected && range === 'range-end') {
+		return '6'
+	}
+
 	if (now && selected) {
 		return '6'
 	}
@@ -121,7 +157,11 @@ const getContainerBorderBottomRightRadius = (day: CalendarDay) => {
 }
 
 const getContainerBackgroundColor = (day: CalendarDay) => {
-	const { selected, range, now } = day
+	const { selected, range, now, disabled } = day
+
+	if (disabled) {
+		return 'inherit'
+	}
 
 	if (now && selected) {
 		return 'p9'
@@ -147,7 +187,11 @@ const getContainerBackgroundColor = (day: CalendarDay) => {
 }
 
 const getBackgroundColor = (day: CalendarDay) => {
-	const { selected, range, now } = day
+	const { selected, range, now, disabled } = day
+
+	if (disabled) {
+		return 'inherit'
+	}
 
 	if (now) {
 		return 'lb300'
@@ -225,9 +269,11 @@ const containerStyles: CSSProperties = {
 interface Props {
 	children: ReactNode
 	day: CalendarDay
+	onMouseEnter?: () => void
+	onMouseLeave?: () => void
 }
 
-const Day = ({ children, day }: Props) => {
+const Day = ({ children, day, onMouseEnter, onMouseLeave }: Props) => {
 	const { dayButton } = useContextDaysPropGetters()
 
 	const Wrapper = day.now ? Box : Fragment
@@ -255,13 +301,30 @@ const Day = ({ children, day }: Props) => {
 		  } as BoxProps)
 		: {}
 
+	const dayProps = dayButton(day)
+
 	return (
 		<Wrapper {...WrapperProps}>
 			<Box
-				{...dayButton(day)}
+				onMouseLeave={onMouseLeave}
+				{...dayProps}
+				onMouseEnter={function () {
+					onMouseEnter?.()
+					;(dayProps?.onMouseEnter as Function)?.()
+				}}
 				cursor={getPointer(day)}
 				style={containerStyles}
-				backgroundColor={getContainerBackgroundColor(day)}
+				backgroundColor={{
+					default: getContainerBackgroundColor(day),
+					hover:
+						day.disabled ||
+						// day.now ||
+						day.selected ||
+						day.range === 'will-be-range-end' ||
+						day.range === 'will-be-range-start'
+							? undefined
+							: 'p4',
+				}}
 				borderTopLeftRadius={getContainerBorderTopLeftRadius(day)}
 				borderTopRightRadius={getContainerBorderTopRightRadius(day)}
 				borderBottomLeftRadius={getContainerBorderBottomLeftRadius(day)}
