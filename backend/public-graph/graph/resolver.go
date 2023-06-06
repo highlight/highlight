@@ -393,6 +393,8 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 
 		updatedState := errorGroup.State
 
+		// Reopen resolved errors
+		// Note that ignored errors do change state
 		if updatedState == privateModel.ErrorStateResolved {
 			updatedState = privateModel.ErrorStateOpen
 		}
