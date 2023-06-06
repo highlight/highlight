@@ -920,10 +920,6 @@ func (r *Resolver) canAdminViewErrorObject(ctx context.Context, errorObjectID in
 	defer authSpan.Finish()
 
 	errorObject := model.ErrorObject{}
-	if err := r.DB.Where(&model.ErrorObject{ID: errorObjectID}).First(&errorObject).Error; err != nil {
-		return nil, err
-	}
-
 	if err := r.DB.Where(&model.ErrorObject{ID: errorObjectID}).
 		Preload("ErrorGroup").
 		First(&errorObject).Error; err != nil {
