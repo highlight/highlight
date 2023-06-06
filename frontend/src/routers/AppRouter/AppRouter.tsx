@@ -243,6 +243,7 @@ export const AppRouter = () => {
 							isLoggedIn ? (
 								<Landing>
 									<SwitchWorkspace />
+									<div>This is a test change.</div>
 								</Landing>
 							) : (
 								<Navigate to={SIGN_IN_ROUTE} />
