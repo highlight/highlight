@@ -3028,10 +3028,15 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model
 }
 
 func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId int) (*[]model.SlackChannel, int, error) {
+	var filteredNewChannels []model.SlackChannel
+
 	workspace, _ := r.GetWorkspace(workspaceId)
+	// workspace is not integrated with slack
+	if workspace.SlackAccessToken == nil {
+		return &filteredNewChannels, 0, nil
+	}
 
 	slackClient := slack.New(*workspace.SlackAccessToken)
-	filteredNewChannels := []model.SlackChannel{}
 	existingChannels, _ := workspace.IntegratedSlackChannels()
 
 	getConversationsParam := slack.GetConversationsParameters{
