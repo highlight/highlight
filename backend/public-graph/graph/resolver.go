@@ -391,31 +391,31 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 
 		environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
 
+		updatedState := errorGroup.State
+
+		// Reopen resolved errors
+		// Note that ignored errors do change state
+		if updatedState == privateModel.ErrorStateResolved {
+			updatedState = privateModel.ErrorStateOpen
+		}
+
 		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{
 			StackTrace:       *errorObj.StackTrace,
 			MappedStackTrace: errorObj.MappedStackTrace,
 			Environments:     environmentsString,
 			Event:            errorObj.Event,
+			State:            updatedState,
 		}).Error; err != nil {
 			return nil, e.Wrap(err, "Error updating error group")
 		}
 	}
 
-	opensearchErrorGroup := &model.ErrorGroup{
-		Model:     errorGroup.Model,
-		SecureID:  errorGroup.SecureID,
-		ProjectID: errorObj.ProjectID,
-		Event:     errorObj.Event,
-		Type:      errorObj.Type,
-		State:     privateModel.ErrorStateOpen,
-		Fields:    []*model.ErrorField{},
-	}
 	if err := r.OpenSearch.IndexSynchronous(ctx,
 		opensearch.IndexParams{
 			Index:    opensearch.IndexErrorsCombined,
 			ID:       int64(errorGroup.ID),
 			ParentID: pointy.Int(0),
-			Object:   opensearchErrorGroup}); err != nil {
+			Object:   errorGroup}); err != nil {
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
