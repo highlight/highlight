@@ -235,3 +235,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Breaking Changes
 
 - Removed the `feedbackWidget` option.
+
+## 7.1.0
+
+### Minor Changes
+
+- Improves the experience of configuring cross-origin `<iframe>` recording.
