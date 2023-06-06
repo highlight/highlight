@@ -10,7 +10,6 @@ import {
 	SIGN_IN_ROUTE,
 	SIGN_UP_ROUTE,
 } from '@pages/Auth/AuthRouter'
-import { JoinWorkspace } from '@pages/Auth/JoinWorkspace'
 import { VerifyEmail } from '@pages/Auth/VerifyEmail'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
@@ -53,6 +52,8 @@ import {
 	GetProjectDropdownOptionsQuery,
 	GetWorkspaceDropdownOptionsQuery,
 } from '@/graph/generated/operations'
+import { JoinWorkspace } from '@/pages/Auth/JoinWorkspace'
+import { WorkspaceInvitation } from '@/pages/Auth/WorkspaceInvitation'
 
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
@@ -72,10 +73,11 @@ export const AppRouter = () => {
 		useState<GetWorkspaceDropdownOptionsQuery>()
 	const [projectListData, setProjectListData] =
 		useState<GetProjectDropdownOptionsQuery>()
+	const isValidProjectId = Number.isInteger(Number(projectId))
 
 	const { data: projectDropdownData } = useGetProjectDropdownOptionsQuery({
 		variables: { project_id: projectId! },
-		skip: !isLoggedIn || !projectId,
+		skip: !isLoggedIn || !isValidProjectId,
 	})
 	const { data: workspaceDropdownData } = useGetWorkspaceDropdownOptionsQuery(
 		{
@@ -196,6 +198,8 @@ export const AppRouter = () => {
 						<Route path="/about_you" element={<AdminForm />} />
 					)}
 
+					<Route path="/join_workspace" element={<JoinWorkspace />} />
+
 					{/*
 				Not using isLoggedIn because this is shown immediately after sign up and
 				there can be a state briefly where the user authenticated in Firebase
@@ -254,7 +258,7 @@ export const AppRouter = () => {
 						path="/invite/:invite_id"
 						element={
 							isLoggedIn ? (
-								<JoinWorkspace />
+								<WorkspaceInvitation />
 							) : (
 								<Navigate to={SIGN_UP_ROUTE} />
 							)
@@ -325,7 +329,7 @@ export const AppRouter = () => {
 						path="/*"
 						element={
 							projectId &&
-							(Number.isInteger(Number(projectId)) ||
+							(isValidProjectId ||
 								projectId === DEMO_PROJECT_ID) ? (
 								<ProjectRouter />
 							) : isLoggedIn ? (
