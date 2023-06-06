@@ -372,6 +372,7 @@ type AllProjectSettings {
 	backend_domains: StringArray
 	filter_chrome_extension: Boolean
 	filterSessionsWithoutError: Boolean!
+	autoResolveStaleErrorsDayInterval: Int!
 }
 
 type Account {
@@ -1666,6 +1667,7 @@ type Mutation {
 		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 		filterSessionsWithoutError: Boolean
+		autoResolveStaleErrorsDayInterval: Int
 	): AllProjectSettings
 	editWorkspace(id: ID!, name: String): Workspace
 	markErrorGroupAsViewed(

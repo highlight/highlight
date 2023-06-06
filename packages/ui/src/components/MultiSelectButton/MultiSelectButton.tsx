@@ -2,32 +2,37 @@ import React from 'react'
 import {
 	useSelectState,
 	Select,
-	SelectArrow,
 	SelectItem,
-	SelectItemCheck,
 	SelectLabel,
 	SelectPopover,
 } from 'ariakit'
+
+import { IconSolidCheckCircle, IconSolidMinus } from '../icons'
 
 import * as styles from './styles.css'
 
 type Option = {
 	key: string
 	render: React.ReactNode
+	clearsOnClick?: boolean
 }
 
 type Props = {
 	label: string
+	icon?: React.ReactNode
 	defaultValue?: string
-	value?: string[]
+	value: string[]
+	valueRender: () => React.ReactNode
 	options: Option[]
 	onChange: (value: string[]) => void
 }
 
 export const MultiSelectButton: React.FC<Props> = ({
 	label,
+	icon,
 	defaultValue,
 	value,
+	valueRender,
 	options,
 	onChange,
 }) => {
@@ -37,20 +42,14 @@ export const MultiSelectButton: React.FC<Props> = ({
 		value: value,
 	})
 
-	const renderValue = (value: string[]) => {
-		if (value.length === 0) return `${label}: none selected`
-		if (value.length === 1) return `${label}: ${value[0]}`
-		return `${label}: ${value.length} selected`
-	}
-
 	return (
 		<>
 			<SelectLabel state={selectState} className={styles.selectLabel}>
 				{label}
 			</SelectLabel>
 			<Select state={selectState} className={styles.selectButton}>
-				{renderValue(selectState.value)}
-				<SelectArrow />
+				{icon}
+				{valueRender()}
 			</Select>
 			{selectState.mounted && (
 				<SelectPopover
@@ -63,8 +62,15 @@ export const MultiSelectButton: React.FC<Props> = ({
 							value={option.key}
 							className={styles.selectItem}
 						>
+							<div className={styles.checkbox}>
+								{option.clearsOnClick &&
+								!value.includes(option.key) ? (
+									<IconSolidMinus color="grey" />
+								) : (
+									<IconSolidCheckCircle color="white" />
+								)}
+							</div>
 							{option.render}
-							<SelectItemCheck />
 						</SelectItem>
 					))}
 				</SelectPopover>

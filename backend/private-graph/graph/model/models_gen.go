@@ -67,21 +67,22 @@ type AdminAndWorkspaceDetails struct {
 }
 
 type AllProjectSettings struct {
-	ID                         int            `json:"id"`
-	VerboseID                  string         `json:"verbose_id"`
-	Name                       string         `json:"name"`
-	BillingEmail               *string        `json:"billing_email"`
-	Secret                     *string        `json:"secret"`
-	WorkspaceID                int            `json:"workspace_id"`
-	ExcludedUsers              pq.StringArray `json:"excluded_users"`
-	ErrorFilters               pq.StringArray `json:"error_filters"`
-	ErrorJSONPaths             pq.StringArray `json:"error_json_paths"`
-	RageClickWindowSeconds     *int           `json:"rage_click_window_seconds"`
-	RageClickRadiusPixels      *int           `json:"rage_click_radius_pixels"`
-	RageClickCount             *int           `json:"rage_click_count"`
-	BackendDomains             pq.StringArray `json:"backend_domains"`
-	FilterChromeExtension      *bool          `json:"filter_chrome_extension"`
-	FilterSessionsWithoutError bool           `json:"filterSessionsWithoutError"`
+	ID                                int            `json:"id"`
+	VerboseID                         string         `json:"verbose_id"`
+	Name                              string         `json:"name"`
+	BillingEmail                      *string        `json:"billing_email"`
+	Secret                            *string        `json:"secret"`
+	WorkspaceID                       int            `json:"workspace_id"`
+	ExcludedUsers                     pq.StringArray `json:"excluded_users"`
+	ErrorFilters                      pq.StringArray `json:"error_filters"`
+	ErrorJSONPaths                    pq.StringArray `json:"error_json_paths"`
+	RageClickWindowSeconds            *int           `json:"rage_click_window_seconds"`
+	RageClickRadiusPixels             *int           `json:"rage_click_radius_pixels"`
+	RageClickCount                    *int           `json:"rage_click_count"`
+	BackendDomains                    pq.StringArray `json:"backend_domains"`
+	FilterChromeExtension             *bool          `json:"filter_chrome_extension"`
+	FilterSessionsWithoutError        bool           `json:"filterSessionsWithoutError"`
+	AutoResolveStaleErrorsDayInterval int            `json:"autoResolveStaleErrorsDayInterval"`
 }
 
 type AverageSessionLength struct {
