@@ -493,12 +493,8 @@ type ErrorField {
 	value: String!
 }
 
-type Foo {
-	name: String!
-}
-
-type Bar {
-	foo: ErrorField!
+type ErrorFieldWrapper {
+	error_field: ErrorField!
 }
 
 type ErrorGroup {
