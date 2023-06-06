@@ -520,7 +520,7 @@ export type ErrorObjectConnection = Connection & {
 export type ErrorObjectEdge = Edge & {
 	__typename?: 'ErrorObjectEdge'
 	cursor: Scalars['String']
-	node: Log
+	node: ErrorObject
 }
 
 export type ErrorResults = {

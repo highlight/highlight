@@ -604,7 +604,7 @@ type LogConnection implements Connection {
 
 type ErrorObjectEdge implements Edge {
 	cursor: String!
-	node: Log!
+	node: ErrorObject!
 }
 
 type ErrorObjectConnection implements Connection {

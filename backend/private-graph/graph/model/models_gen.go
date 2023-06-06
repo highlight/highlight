@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/lib/pq"
 )
 
@@ -308,8 +309,8 @@ func (ErrorObjectConnection) IsConnection()               {}
 func (this ErrorObjectConnection) GetPageInfo() *PageInfo { return this.PageInfo }
 
 type ErrorObjectEdge struct {
-	Cursor string `json:"cursor"`
-	Node   *Log   `json:"node"`
+	Cursor string             `json:"cursor"`
+	Node   *model.ErrorObject `json:"node"`
 }
 
 func (ErrorObjectEdge) IsEdge()                {}
