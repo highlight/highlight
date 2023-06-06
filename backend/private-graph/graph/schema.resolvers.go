@@ -4069,9 +4069,9 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model
 
 // ErrorObject is the resolver for the error_object field.
 func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorObject, error) {
-	errorObject := &model.ErrorObject{}
-	if err := r.DB.Where(&model.ErrorObject{Model: model.Model{ID: id}}).First(&errorObject).Error; err != nil {
-		return nil, e.Wrap(err, "error reading error object")
+	errorObject, err := r.canAdminViewErrorObject(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "not authorized to view error object")
 	}
 	return errorObject, nil
 }
@@ -4081,6 +4081,10 @@ func (r *queryResolver) ErrorObjectForLog(ctx context.Context, logCursor string)
 	errorObject := &model.ErrorObject{}
 	if err := r.DB.Order("log_cursor").Model(&errorObject).Where(&model.ErrorObject{LogCursor: pointy.String(logCursor)}).Limit(1).Find(&errorObject).Error; err != nil || errorObject.ID == 0 {
 		return nil, e.Wrapf(err, "no error found for log cursor %s", logCursor)
+	}
+	errorObject, err := r.canAdminViewErrorObject(ctx, errorObject.ID)
+	if err != nil {
+		return nil, e.Wrap(err, "not authorized to view error object")
 	}
 	return errorObject, nil
 }
