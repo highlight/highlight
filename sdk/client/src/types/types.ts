@@ -169,6 +169,11 @@ export declare type HighlightOptions = {
 	 * @default false
 	 */
 	recordCrossOriginIframe?: boolean
+	/**
+	 * Deprecated: this setting is now inferred automatically. Passing this option does nothing.
+	 * @deprecated
+	 */
+	isCrossOriginIframe?: boolean
 	integrations?: IntegrationOptions
 	/**
 	 * Specifies the keyboard shortcut to open the current session in Highlight.
