@@ -17,35 +17,17 @@ async function generateXML(): Promise<string> {
 		},
 	)
 
-	const start = global.performance.now()
-	const [{ posts }, { customers }, { changelogs }, docs, githubBlogPosts] =
-		await Promise.all([
-			await graphcms.request(gql`
-	      query GetPosts() {
-	        posts(orderBy: publishedAt_DESC) {
-	          slug
-	        }
-	      }
-	    `),
-			await graphcms.request(gql`
+	const [{ customers }, docs, githubBlogPosts] = await Promise.all([
+		await graphcms.request(gql`
 	      query GetCustomers() {
 	        customers() {
 	          slug
 	        }
 	      }
 	    `),
-			await graphcms.request(gql`
-	      query GetChangelogs() {
-	        changelogs() {
-	          slug
-	        }
-	      }
-	    `),
-			await getGithubDocsPaths(),
-			await getBlogPaths(fsp, ''),
-		])
-
-	const blogPages = posts.map((post: any) => `blog/${post.slug}`)
+		await getGithubDocsPaths(),
+		await getBlogPaths(fsp, ''),
+	])
 
 	const githubBlogPages = githubBlogPosts.map(
 		(path) => `blog/${path.simple_path}`,
@@ -53,9 +35,6 @@ async function generateXML(): Promise<string> {
 
 	const customerPages = customers.map(
 		(customer: { slug: string }) => `customers/${customer.slug}`,
-	)
-	const changelogPages = changelogs.map(
-		(changelog: { slug: string }) => `changelog/${changelog.slug}`,
 	)
 	const docsPages = Array.from(docs.keys()).map(
 		(d) => `docs/${d.split('docs-content/').pop()}`,
@@ -78,10 +57,8 @@ async function generateXML(): Promise<string> {
 
 	const pages = [
 		...staticPages,
-		...blogPages,
 		...githubBlogPages,
 		...customerPages,
-		...changelogPages,
 		...docsPages,
 		...productPages,
 		...featurePages,

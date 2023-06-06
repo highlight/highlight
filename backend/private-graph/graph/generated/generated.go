@@ -114,21 +114,22 @@ type ComplexityRoot struct {
 	}
 
 	AllProjectSettings struct {
-		BackendDomains             func(childComplexity int) int
-		BillingEmail               func(childComplexity int) int
-		ErrorFilters               func(childComplexity int) int
-		ErrorJSONPaths             func(childComplexity int) int
-		ExcludedUsers              func(childComplexity int) int
-		FilterChromeExtension      func(childComplexity int) int
-		FilterSessionsWithoutError func(childComplexity int) int
-		ID                         func(childComplexity int) int
-		Name                       func(childComplexity int) int
-		RageClickCount             func(childComplexity int) int
-		RageClickRadiusPixels      func(childComplexity int) int
-		RageClickWindowSeconds     func(childComplexity int) int
-		Secret                     func(childComplexity int) int
-		VerboseID                  func(childComplexity int) int
-		WorkspaceID                func(childComplexity int) int
+		AutoResolveStaleErrorsDayInterval func(childComplexity int) int
+		BackendDomains                    func(childComplexity int) int
+		BillingEmail                      func(childComplexity int) int
+		ErrorFilters                      func(childComplexity int) int
+		ErrorJSONPaths                    func(childComplexity int) int
+		ExcludedUsers                     func(childComplexity int) int
+		FilterChromeExtension             func(childComplexity int) int
+		FilterSessionsWithoutError        func(childComplexity int) int
+		ID                                func(childComplexity int) int
+		Name                              func(childComplexity int) int
+		RageClickCount                    func(childComplexity int) int
+		RageClickRadiusPixels             func(childComplexity int) int
+		RageClickWindowSeconds            func(childComplexity int) int
+		Secret                            func(childComplexity int) int
+		VerboseID                         func(childComplexity int) int
+		WorkspaceID                       func(childComplexity int) int
 	}
 
 	AverageSessionLength struct {
@@ -662,7 +663,7 @@ type ComplexityRoot struct {
 		DeleteSessions                   func(childComplexity int, projectID int, query string, sessionCount int) int
 		EditErrorSegment                 func(childComplexity int, id int, projectID int, params model.ErrorSearchParamsInput, name string) int
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) int
-		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool) int
+		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput, name string) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EmailSignup                      func(childComplexity int, email string) int
@@ -1279,7 +1280,7 @@ type MutationResolver interface {
 	CreateProject(ctx context.Context, name string, workspaceID int) (*model1.Project, error)
 	CreateWorkspace(ctx context.Context, name string, promoCode *string) (*model1.Workspace, error)
 	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) (*model1.Project, error)
-	EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool) (*model.AllProjectSettings, error)
+	EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) (*model.AllProjectSettings, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model1.ErrorGroup, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
@@ -1809,6 +1810,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.UserDefinedRole(childComplexity), true
+
+	case "AllProjectSettings.autoResolveStaleErrorsDayInterval":
+		if e.complexity.AllProjectSettings.AutoResolveStaleErrorsDayInterval == nil {
+			break
+		}
+
+		return e.complexity.AllProjectSettings.AutoResolveStaleErrorsDayInterval(childComplexity), true
 
 	case "AllProjectSettings.backend_domains":
 		if e.complexity.AllProjectSettings.BackendDomains == nil {
@@ -4519,7 +4527,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditProjectSettings(childComplexity, args["projectId"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["backend_domains"].(pq.StringArray), args["filter_chrome_extension"].(*bool), args["filterSessionsWithoutError"].(*bool)), true
+		return e.complexity.Mutation.EditProjectSettings(childComplexity, args["projectId"].(int), args["name"].(*string), args["billing_email"].(*string), args["excluded_users"].(pq.StringArray), args["error_filters"].(pq.StringArray), args["error_json_paths"].(pq.StringArray), args["rage_click_window_seconds"].(*int), args["rage_click_radius_pixels"].(*int), args["rage_click_count"].(*int), args["backend_domains"].(pq.StringArray), args["filter_chrome_extension"].(*bool), args["filterSessionsWithoutError"].(*bool), args["autoResolveStaleErrorsDayInterval"].(*int)), true
 
 	case "Mutation.editSegment":
 		if e.complexity.Mutation.EditSegment == nil {
@@ -8853,6 +8861,7 @@ type AllProjectSettings {
 	backend_domains: StringArray
 	filter_chrome_extension: Boolean
 	filterSessionsWithoutError: Boolean!
+	autoResolveStaleErrorsDayInterval: Int!
 }
 
 type Account {
@@ -10147,6 +10156,7 @@ type Mutation {
 		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 		filterSessionsWithoutError: Boolean
+		autoResolveStaleErrorsDayInterval: Int
 	): AllProjectSettings
 	editWorkspace(id: ID!, name: String): Workspace
 	markErrorGroupAsViewed(
@@ -11930,6 +11940,15 @@ func (ec *executionContext) field_Mutation_editProjectSettings_args(ctx context.
 		}
 	}
 	args["filterSessionsWithoutError"] = arg11
+	var arg12 *int
+	if tmp, ok := rawArgs["autoResolveStaleErrorsDayInterval"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoResolveStaleErrorsDayInterval"))
+		arg12, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["autoResolveStaleErrorsDayInterval"] = arg12
 	return args, nil
 }
 
@@ -18396,6 +18415,50 @@ func (ec *executionContext) fieldContext_AllProjectSettings_filterSessionsWithou
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllProjectSettings_autoResolveStaleErrorsDayInterval(ctx context.Context, field graphql.CollectedField, obj *model.AllProjectSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AllProjectSettings_autoResolveStaleErrorsDayInterval(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AutoResolveStaleErrorsDayInterval, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AllProjectSettings_autoResolveStaleErrorsDayInterval(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllProjectSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -32920,7 +32983,7 @@ func (ec *executionContext) _Mutation_editProjectSettings(ctx context.Context, f
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditProjectSettings(rctx, fc.Args["projectId"].(int), fc.Args["name"].(*string), fc.Args["billing_email"].(*string), fc.Args["excluded_users"].(pq.StringArray), fc.Args["error_filters"].(pq.StringArray), fc.Args["error_json_paths"].(pq.StringArray), fc.Args["rage_click_window_seconds"].(*int), fc.Args["rage_click_radius_pixels"].(*int), fc.Args["rage_click_count"].(*int), fc.Args["backend_domains"].(pq.StringArray), fc.Args["filter_chrome_extension"].(*bool), fc.Args["filterSessionsWithoutError"].(*bool))
+		return ec.resolvers.Mutation().EditProjectSettings(rctx, fc.Args["projectId"].(int), fc.Args["name"].(*string), fc.Args["billing_email"].(*string), fc.Args["excluded_users"].(pq.StringArray), fc.Args["error_filters"].(pq.StringArray), fc.Args["error_json_paths"].(pq.StringArray), fc.Args["rage_click_window_seconds"].(*int), fc.Args["rage_click_radius_pixels"].(*int), fc.Args["rage_click_count"].(*int), fc.Args["backend_domains"].(pq.StringArray), fc.Args["filter_chrome_extension"].(*bool), fc.Args["filterSessionsWithoutError"].(*bool), fc.Args["autoResolveStaleErrorsDayInterval"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -32971,6 +33034,8 @@ func (ec *executionContext) fieldContext_Mutation_editProjectSettings(ctx contex
 				return ec.fieldContext_AllProjectSettings_filter_chrome_extension(ctx, field)
 			case "filterSessionsWithoutError":
 				return ec.fieldContext_AllProjectSettings_filterSessionsWithoutError(ctx, field)
+			case "autoResolveStaleErrorsDayInterval":
+				return ec.fieldContext_AllProjectSettings_autoResolveStaleErrorsDayInterval(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllProjectSettings", field.Name)
 		},
@@ -45762,6 +45827,8 @@ func (ec *executionContext) fieldContext_Query_projectSettings(ctx context.Conte
 				return ec.fieldContext_AllProjectSettings_filter_chrome_extension(ctx, field)
 			case "filterSessionsWithoutError":
 				return ec.fieldContext_AllProjectSettings_filterSessionsWithoutError(ctx, field)
+			case "autoResolveStaleErrorsDayInterval":
+				return ec.fieldContext_AllProjectSettings_autoResolveStaleErrorsDayInterval(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllProjectSettings", field.Name)
 		},
@@ -62107,6 +62174,13 @@ func (ec *executionContext) _AllProjectSettings(ctx context.Context, sel ast.Sel
 		case "filterSessionsWithoutError":
 
 			out.Values[i] = ec._AllProjectSettings_filterSessionsWithoutError(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "autoResolveStaleErrorsDayInterval":
+
+			out.Values[i] = ec._AllProjectSettings_autoResolveStaleErrorsDayInterval(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

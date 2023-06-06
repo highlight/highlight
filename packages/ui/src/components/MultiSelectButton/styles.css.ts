@@ -25,6 +25,7 @@ export const selectPopover = style({
 	backgroundColor: colors.white,
 	border: vars.border.secondary,
 	borderRadius: BORDER_RADIUS,
+	minWidth: 150,
 	zIndex: 10,
 })
 
@@ -32,27 +33,29 @@ export const selectItem = style({
 	alignItems: 'center',
 	display: 'flex',
 	fontSize: 13,
-	gap: 16,
-	justifyContent: 'space-between',
+	gap: 4,
 	padding: '4px 8px',
 
 	selectors: {
-		'&[aria-selected="true"]': {
-			color: vars.color.white,
-			backgroundColor: vars.theme.interactive.fill.primary.enabled,
-		},
 		'&[data-active-item]': {
 			backgroundColor: vars.color.n5,
 			color: vars.theme.static.content.default,
 			cursor: 'pointer',
 		},
-		'&:first-of-type': {
-			borderTopLeftRadius: BORDER_RADIUS,
-			borderTopRightRadius: BORDER_RADIUS,
+	},
+})
+
+export const checkbox = style({
+	border: vars.border.secondary,
+	borderRadius: BORDER_RADIUS,
+	display: 'flex',
+	padding: 1,
+	selectors: {
+		[`${selectItem}[aria-selected="true"] &`]: {
+			backgroundColor: vars.theme.interactive.fill.primary.enabled,
 		},
-		'&:last-of-type': {
-			borderBottomLeftRadius: BORDER_RADIUS,
-			borderBottomRightRadius: BORDER_RADIUS,
+		[`${selectItem}[aria-selected="false"] &`]: {
+			backgroundColor: 'white',
 		},
 	},
 })

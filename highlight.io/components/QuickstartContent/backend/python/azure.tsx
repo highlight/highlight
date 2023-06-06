@@ -17,8 +17,9 @@ export const PythonAzureContext: QuickStartContent = {
 			title: 'Initialize the Highlight SDK.',
 			content:
 				'Setup the SDK. Add the `@observe_handler` decorator to your azure functions.',
-			code: {
-				text: `import azure.functions as func
+			code: [
+				{
+					text: `import azure.functions as func
 
 import highlight_io
 from highlight_io.integrations.azure import observe_handler
@@ -33,8 +34,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         status_code=200,
     )
 `,
-				language: 'python',
-			},
+					language: 'python',
+				},
+			],
 		},
 		{
 			title: 'Verify your installation.',
@@ -44,8 +46,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 				'Setup an HTTP trigger and visit your azure function on the internet. ' +
 				'You should see a `DivideByZero` error in the [Highlight errors page](https://app.highlight.io/errors) ' +
 				'within a few moments.',
-			code: {
-				text: `import azure.functions as func
+			code: [
+				{
+					text: `import azure.functions as func
 
 import highlight_io
 from highlight_io.integrations.azure import observe_handler
@@ -59,8 +62,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         f"Not a good idea: {5 / 0}.",
     )
 `,
-				language: 'python',
-			},
+					language: 'python',
+				},
+			],
 		},
 		setupLogging('azure'),
 	],

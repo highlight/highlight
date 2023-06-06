@@ -18,7 +18,7 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { message } from 'antd'
 import firebase from 'firebase/compat/app'
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 export const SignUp: React.FC = () => {
@@ -76,6 +76,8 @@ export const SignUp: React.FC = () => {
 		},
 		[location.state?.previousPathName, navigate],
 	)
+
+	useEffect(() => analytics.page(), [])
 
 	return (
 		<Form

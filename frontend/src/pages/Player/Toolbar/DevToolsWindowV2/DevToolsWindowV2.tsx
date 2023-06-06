@@ -30,13 +30,9 @@ import {
 	RequestType,
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import {
-	ICountPerRequestStatus,
-	ICountPerRequestType,
-} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
 import clsx from 'clsx'
-import React, { useMemo } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 
 import { useLinkLogCursor } from '@/pages/Player/PlayerHook/utils'
@@ -44,6 +40,8 @@ import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
+import { RequestStatusFilter } from './RequestStatusFilter/RequestStatusFilter'
+import { RequestTypeFilter } from './RequestTypeFilter/RequestTypeFilter'
 import * as styles from './style.css'
 
 const LogLevelValues = [
@@ -69,12 +67,12 @@ const DevToolsWindowV2: React.FC<
 	const { time, session } = useReplayerContext()
 	const { selectedDevToolsTab, setSelectedDevToolsTab } =
 		usePlayerConfiguration()
-	const [requestType, setRequestType] = React.useState<RequestType>(
+	const [requestTypes, setRequestTypes] = React.useState<RequestType[]>([
 		RequestType.All,
-	)
-	const [requestStatus, setRequestStatus] = React.useState<RequestStatus>(
-		RequestStatus.All,
-	)
+	])
+	const [requestStatuses, setRequestStatuses] = React.useState<
+		RequestStatus[]
+	>([RequestStatus.All])
 
 	const [searchShown, setSearchShown] = React.useState<boolean>(false)
 	const [levels, setLevels] = React.useState<LogLevel[]>([])
@@ -97,92 +95,6 @@ const DevToolsWindowV2: React.FC<
 	const { showDevTools, showHistogram } = usePlayerConfiguration()
 
 	const { resources: parsedResources } = useResourcesContext()
-
-	/* Count request per type (XHR, etc.) */
-	const countPerRequestType = useMemo(() => {
-		const count: ICountPerRequestType = {
-			All: 0,
-			link: 0,
-			script: 0,
-			other: 0,
-			xmlhttprequest: 0,
-			css: 0,
-			iframe: 0,
-			fetch: 0,
-			img: 0,
-		}
-
-		parsedResources.forEach((request) => {
-			const requestType =
-				request.initiatorType as keyof ICountPerRequestType
-
-			count['All'] += 1
-			/* Only count request types defined in ICountPerRequestType, e.g. skip 'beacon' */
-			if (count.hasOwnProperty(request.initiatorType)) {
-				count[requestType] += 1
-			}
-		})
-
-		return count
-	}, [parsedResources])
-
-	/* Count request per http status (200, etc.) */
-	const countPerRequestStatus = useMemo(() => {
-		const count: ICountPerRequestStatus = {
-			All: 0,
-			'1XX': 0,
-			'2XX': 0,
-			'3XX': 0,
-			'4XX': 0,
-			'5XX': 0,
-			Unknown: 0,
-		}
-
-		parsedResources
-			.filter(
-				(r) =>
-					requestType === RequestType.All ||
-					requestType === r.initiatorType,
-			)
-			.forEach((request) => {
-				const status: number | undefined =
-					request?.requestResponsePairs?.response?.status
-
-				count['All'] += 1
-				if (status) {
-					switch (true) {
-						case status >= 100 && status < 200:
-							count['1XX'] += 1
-							break
-						case status >= 200 && status < 300:
-							count['2XX'] += 1
-							break
-						case status >= 300 && status < 400:
-							count['3XX'] += 1
-							break
-						case status >= 400 && status < 500:
-							count['4XX'] += 1
-							break
-						case status >= 500 && status < 600:
-							count['5XX'] += 1
-							break
-						default:
-							count['Unknown'] += 1
-							break
-					}
-				} else {
-					// this is a network request with no status code
-					// if fetch, consider unknown. otherwise assume it is 2xx
-					if (request.initiatorType === RequestType.Fetch) {
-						count['Unknown'] += 1
-					} else {
-						count['2XX'] += 1
-					}
-				}
-			})
-
-		return count
-	}, [parsedResources, requestType])
 
 	if (!showDevTools || isPlayerFullscreen) {
 		return null
@@ -251,8 +163,8 @@ const DevToolsWindowV2: React.FC<
 								page: (
 									<NetworkPage
 										autoScroll={autoScroll}
-										requestType={requestType}
-										requestStatus={requestStatus}
+										requestTypes={requestTypes}
+										requestStatuses={requestStatuses}
 										filter={filter}
 										time={time}
 									/>
@@ -372,49 +284,26 @@ const DevToolsWindowV2: React.FC<
 										</>
 									) : selectedDevToolsTab === Tab.Network ? (
 										<>
-											<MenuButton
-												size="medium"
-												options={Object.entries(
-													RequestType,
-												).map(
-													([
-														displayName,
-														requestName,
-													]) => ({
-														key: displayName,
-														render: `${displayName} (${countPerRequestType[requestName]})`,
-													}),
-												)}
-												onChange={(displayName) => {
-													setRequestType(
-														//-- Set type to be the requestName value --//
-														RequestType[
-															displayName as keyof typeof RequestType
-														],
-													)
-												}}
+											<RequestTypeFilter
+												requestTypes={requestTypes}
+												setRequestTypes={
+													setRequestTypes
+												}
+												parsedResources={
+													parsedResources
+												}
 											/>
-											<MenuButton
-												size="medium"
-												options={Object.entries(
-													RequestStatus,
-												).map(
-													([
-														statusKey,
-														statusValue,
-													]) => ({
-														key: statusKey,
-														render: `${statusKey} (${countPerRequestStatus[statusValue]})`,
-													}),
-												)}
-												onChange={(statusKey) => {
-													setRequestStatus(
-														//-- Set type to be the requestName value --//
-														RequestStatus[
-															statusKey as keyof typeof RequestStatus
-														],
-													)
-												}}
+											<RequestStatusFilter
+												requestStatuses={
+													requestStatuses
+												}
+												setRequestStatuses={
+													setRequestStatuses
+												}
+												parsedResources={
+													parsedResources
+												}
+												requestTypes={requestTypes}
 											/>
 										</>
 									) : null}

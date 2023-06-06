@@ -240,48 +240,6 @@ func NewOpensearchClient(db *gorm.DB) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) Update(index Index, id int, obj interface{}) error {
-	if c == nil || !c.isInitialized {
-		return nil
-	}
-
-	documentId := strconv.Itoa(id)
-
-	b, err := json.Marshal(obj)
-	if err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error marshalling map for update")
-	}
-	body := strings.NewReader(fmt.Sprintf("{ \"doc\" : %s }", string(b)))
-
-	indexStr := GetIndex(index)
-
-	item := opensearchutil.BulkIndexerItem{
-		Index:           indexStr,
-		Action:          "update",
-		DocumentID:      documentId,
-		Body:            body,
-		RetryOnConflict: pointy.Int(3),
-		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
-			// log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
-		},
-		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
-			if err != nil {
-				c.RetryableClient.ReportError(ctx, model.RetryableOpensearchError, item.Index, item.DocumentID, map[string]interface{}{"item.Action": item.Action, "res": res}, err)
-				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
-			} else {
-				c.RetryableClient.ReportError(ctx, model.RetryableOpensearchError, item.Index, item.DocumentID, map[string]interface{}{"item.Action": item.Action, "res": res}, nil)
-				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
-			}
-		},
-	}
-
-	if err := c.BulkIndexer.Add(context.Background(), item); err != nil {
-		return e.Wrap(err, "OPENSEARCH_ERROR error adding bulk indexer item for update")
-	}
-
-	return nil
-}
-
 func (c *Client) UpdateSynchronous(index Index, id int, obj interface{}) error {
 	if c == nil || !c.isInitialized {
 		return nil
