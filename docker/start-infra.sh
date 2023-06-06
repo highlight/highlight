@@ -4,8 +4,8 @@ source env.sh
 
 # startup the infra
 
-if [[ "$*" == *"--prod"* ]]; then
-    CUSTOM_COMPOSE="-f compose.yml -f compose.prod.yml"
+if [[ "$*" == *"--hobby"* ]]; then
+    CUSTOM_COMPOSE="-f compose.yml -f compose.hobby.yml"
 fi
 SERVICES="clickhouse collector influxdb kafka opensearch postgres redis zookeeper"
 docker compose $CUSTOM_COMPOSE pull $SERVICES
