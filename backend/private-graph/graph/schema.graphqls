@@ -602,9 +602,13 @@ type LogConnection implements Connection {
 	pageInfo: PageInfo!
 }
 
+type ErrorObjectNode {
+	ID: ID!
+}
+
 type ErrorObjectEdge implements Edge {
 	cursor: String!
-	node: ErrorObject!
+	node: ErrorObjectNode!
 }
 
 type ErrorObjectConnection implements Connection {

@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/model"
 	"github.com/lib/pq"
 )
 
@@ -309,12 +308,16 @@ func (ErrorObjectConnection) IsConnection()               {}
 func (this ErrorObjectConnection) GetPageInfo() *PageInfo { return this.PageInfo }
 
 type ErrorObjectEdge struct {
-	Cursor string             `json:"cursor"`
-	Node   *model.ErrorObject `json:"node"`
+	Cursor string           `json:"cursor"`
+	Node   *ErrorObjectNode `json:"node"`
 }
 
 func (ErrorObjectEdge) IsEdge()                {}
 func (this ErrorObjectEdge) GetCursor() string { return this.Cursor }
+
+type ErrorObjectNode struct {
+	ID int `json:"ID"`
+}
 
 type ErrorSearchParamsInput struct {
 	DateRange  *DateRangeInput `json:"date_range"`
