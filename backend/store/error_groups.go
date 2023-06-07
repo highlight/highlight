@@ -64,6 +64,8 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 		}
 
 		if errorObject.SessionID != nil {
+			// This is an N+1 query to get the UserProperties and AppVersion off of Session.
+			// Ideally, we would denormalize this data into opensearch and query opensearch instead of postgres.
 			session, err := store.GetSession(*errorObject.SessionID)
 
 			if err != nil {
