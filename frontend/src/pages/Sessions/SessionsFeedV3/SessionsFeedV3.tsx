@@ -34,7 +34,7 @@ import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/
 import {
 	QueryBuilderState,
 	updateQueriedTimeRange,
-} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
+} from '@/components/QueryBuilder/QueryBuilder'
 import SessionQueryBuilder, {
 	TIME_RANGE_FIELD,
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'

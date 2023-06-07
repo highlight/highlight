@@ -9134,7 +9134,7 @@ export type GetSegmentsQueryResult = Apollo.QueryResult<
 >
 export const GetErrorSegmentsDocument = gql`
 	query GetErrorSegments($project_id: ID!) {
-		error_segments(project_id: $project_id) {
+		segments: error_segments(project_id: $project_id) {
 			id
 			name
 			params {

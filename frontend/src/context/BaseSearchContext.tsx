@@ -12,10 +12,10 @@ export type BackendSearchQuery =
 			histogramBucketSize: DateHistogramBucketSize
 	  }
 
-export function normalizeParams<T>(params: object) {
-	return omitBy(
+export function normalizeParams<T extends object>(params: T) {
+	return omitBy<T>(
 		pickBy(params, identity),
-		(val) => Array.isArray(val) && (val as Array<T>).length === 0,
+		(val) => Array.isArray(val) && (val as Array<any>).length === 0,
 	)
 }
 
