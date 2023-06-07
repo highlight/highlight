@@ -4774,46 +4774,43 @@ iframe {
   white-space: nowrap;
 }
 ._145lkmvl {
-  font-weight: 500;
-}
-._145lkmvm {
   font-size: 14px;
   line-height: 20px;
 }
-._145lkmvm::before {
+._145lkmvl::before {
   content: "";
   margin-bottom: -0.3913em;
   display: table;
 }
-._145lkmvm::after {
+._145lkmvl::after {
   content: "";
   margin-top: -0.3393em;
   display: table;
 }
-._145lkmvn {
+._145lkmvm {
   font-size: 11px;
   line-height: 23px;
 }
-._145lkmvn::before {
+._145lkmvm::before {
   content: "";
   margin-bottom: -0.7225em;
   display: table;
 }
-._145lkmvn::after {
+._145lkmvm::after {
   content: "";
   margin-top: -0.6705em;
   display: table;
 }
-._145lkmvo {
+._145lkmvn {
   font-size: 10px;
   line-height: 14px;
 }
-._145lkmvo::before {
+._145lkmvn::before {
   content: "";
   margin-bottom: -0.377em;
   display: table;
 }
-._145lkmvo::after {
+._145lkmvn::after {
   content: "";
   margin-top: -0.325em;
   display: table;

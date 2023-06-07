@@ -123,10 +123,6 @@ export const variants = recipe({
 
 	compoundVariants: [
 		{
-			variants: { family: 'monospace', weight: 'regular' },
-			style: typographyStyles.weight.medium,
-		},
-		{
 			variants: { family: 'monospace', size: 'small' },
 			style: sMonotype,
 		},
