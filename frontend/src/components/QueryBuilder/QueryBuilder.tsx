@@ -52,8 +52,6 @@ import {
 import { colors } from '@highlight-run/ui/src/css/colors'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
-// import CreateSegmentModal from '@pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
-// import DeleteSessionSegmentModal from '@pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
 import { gqlSanitize } from '@util/gql'
