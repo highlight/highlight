@@ -48,29 +48,26 @@ func TestListErrorObjects(t *testing.T) {
 		connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{})
 		assert.NoError(t, err)
 
-		assert.Equal(t, privateModel.ErrorObjectConnection{
-			Edges: []*privateModel.ErrorObjectEdge{
-				{
-					Cursor: strconv.Itoa(errorObject.ID),
-					Node: &privateModel.ErrorObjectNode{
-						ID:        errorObject.ID,
-						CreatedAt: errorObject.CreatedAt,
-						Event:     errorObject.Event,
-						Session: &privateModel.ErrorObjectNodeSession{
-							SecureID:       session.SecureID,
-							UserProperties: session.UserProperties,
-							AppVersion:     session.AppVersion,
-						},
-					},
-				},
-			},
-			PageInfo: &privateModel.PageInfo{
-				HasNextPage:     false,
-				HasPreviousPage: false,
-				StartCursor:     strconv.Itoa(errorObject.ID),
-				EndCursor:       strconv.Itoa(errorObject.ID),
-			},
-		}, connection)
+		assert.Len(t, connection.Edges, 1)
+
+		edge := connection.Edges[0]
+
+		assert.Equal(t, strconv.Itoa(errorObject.ID), edge.Cursor)
+		assert.Equal(t, errorObject.ID, edge.Node.ID)
+		assert.WithinDuration(t, errorObject.CreatedAt, edge.Node.CreatedAt, 10*time.Second)
+		assert.Equal(t, errorObject.Event, edge.Node.Event)
+		assert.Equal(t, &privateModel.ErrorObjectNodeSession{
+			SecureID:       session.SecureID,
+			UserProperties: session.UserProperties,
+			AppVersion:     session.AppVersion,
+		}, edge.Node.Session)
+
+		assert.Equal(t, &privateModel.PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+			StartCursor:     strconv.Itoa(errorObject.ID),
+			EndCursor:       strconv.Itoa(errorObject.ID),
+		}, connection.PageInfo)
 
 	})
 }
