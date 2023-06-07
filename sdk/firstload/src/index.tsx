@@ -114,7 +114,6 @@ const H: HighlightPublicInterface = {
 				inlineImages: options?.inlineImages,
 				inlineStylesheet: options?.inlineStylesheet,
 				recordCrossOriginIframe: options?.recordCrossOriginIframe,
-				isCrossOriginIframe: options?.isCrossOriginIframe,
 				firstloadVersion,
 				environment: options?.environment || 'production',
 				appVersion: options?.version,

@@ -406,7 +406,7 @@ const PreviousDateRangePickerImpl = ({
 							<Box style={{ width: 116 }}>
 								<Box
 									border={'secondary'}
-									py={'8'}
+									py={'9'}
 									borderBottom={
 										startTimeIsValid ? 'secondary' : 'none'
 									}
@@ -454,7 +454,7 @@ const PreviousDateRangePickerImpl = ({
 							<Box style={{ width: 116 }}>
 								<Box
 									border={'secondary'}
-									py={'8'}
+									py={'9'}
 									pl={'6'}
 									borderBottom={
 										endTimeIsValid ? 'secondary' : 'none'
@@ -489,6 +489,7 @@ const PreviousDateRangePickerImpl = ({
 										pl={'6'}
 										borderBottomLeftRadius={'6'}
 										borderBottomRightRadius={'6'}
+										py="0"
 									>
 										<TimeInput
 											name="endTime"
