@@ -105,9 +105,6 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 			edges = edges[:LIMIT]
 			hasNextPage = true
 		}
-
-		startCursor = edges[0].Cursor
-		endCursor = edges[len(edges)-1].Cursor
 	} else if params.Before != nil {
 		hasNextPage = true // Assume we have a next page if `before` is provided
 
@@ -116,19 +113,16 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 			hasPreviousPage = true
 		}
 
-		edges := lo.Reverse(edges)
-
-		startCursor = edges[0].Cursor
-		endCursor = edges[len(edges)-1].Cursor
+		edges = lo.Reverse(edges)
 	} else {
 		if len(edges) > LIMIT {
 			edges = edges[:LIMIT]
 			hasNextPage = true
 		}
-
-		startCursor = edges[0].Cursor
-		endCursor = edges[len(edges)-1].Cursor
 	}
+
+	startCursor = edges[0].Cursor
+	endCursor = edges[len(edges)-1].Cursor
 
 	return privateModel.ErrorObjectConnection{
 		Edges: edges,
