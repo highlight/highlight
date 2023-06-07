@@ -240,7 +240,7 @@ func NewOpensearchClient(db *gorm.DB) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) UpdateAsync(index Index, id int, obj interface{}) error {
+func (c *Client) UpdateAsync(ctx context.Context, index Index, id int, obj interface{}) error {
 	if c == nil || !c.isInitialized {
 		return nil
 	}
@@ -263,7 +263,7 @@ func (c *Client) UpdateAsync(index Index, id int, obj interface{}) error {
 		RetryOnConflict: pointy.Int(3),
 	}
 
-	if err := c.BulkIndexer.Add(context.Background(), item); err != nil {
+	if err := c.BulkIndexer.Add(ctx, item); err != nil {
 		return e.Wrap(err, "OPENSEARCH_ERROR error adding bulk indexer item for update")
 	}
 

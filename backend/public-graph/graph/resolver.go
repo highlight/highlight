@@ -2578,7 +2578,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 
-	updateSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
+	updateSpan, updateSpanCtx := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
 	defer updateSpan.Finish()
 
 	excluded, reason := r.isSessionExcluded(ctx, sessionObj, sessionHasErrors)
@@ -2628,33 +2628,35 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 
+	opensearchSpan, osCtx := tracer.StartSpanFromContext(updateSpanCtx, "public-graph.pushPayload", tracer.ResourceName("opensearch.update"))
+	defer opensearchSpan.Finish()
 	// If the session was previously marked as processed, clear this
 	// in OpenSearch so that it's treated as a live session again.
 	// If the session was previously excluded (as we do with new sessions by default),
 	// clear it so it is shown as live in OpenSearch since we now have data for it.
 	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
-		if err := r.OpenSearch.UpdateAsync(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"processed":  false,
 			"Excluded":   false,
 			"has_errors": sessionHasErrors,
 		}); err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error updating session in opensearch"))
+			log.WithContext(osCtx).Error(e.Wrap(err, "error updating session in opensearch"))
 			return err
 		}
 	}
 
 	if sessionHasErrors {
-		if err := r.OpenSearch.UpdateAsync(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"has_errors": true,
 		}); err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
+			log.WithContext(osCtx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
 			return err
 		}
 	}
 
 	// if the session is not excluded, it is viewable, so send any relevant alerts
 	if !excluded {
-		return r.HandleSessionViewable(ctx, projectID, sessionObj)
+		return r.HandleSessionViewable(osCtx, projectID, sessionObj)
 	}
 
 	return nil
