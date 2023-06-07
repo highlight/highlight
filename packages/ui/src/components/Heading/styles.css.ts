@@ -57,7 +57,7 @@ export const variants = recipe({
 				// This should be removed at some point, but we need to make sure the
 				// other !important it is overriding can be removed.
 				// https://github.com/highlight-run/highlight/blob/a96450680f7222af10b502f4ac6047b31410fd1c/frontend/src/index.scss#L240
-				fontWeight: '500 !important',
+				fontWeight: '700 !important',
 			},
 		},
 	},
