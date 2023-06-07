@@ -152,7 +152,7 @@
 		"@vanilla-extract/css": "^1.11.1",
 		"@vanilla-extract/esbuild-plugin": "^2.2.2",
 		"@vanilla-extract/vite-plugin": "^3.8.2",
-		"@vitejs/plugin-react-swc": "^3.0.1",
+		"@vitejs/plugin-react-swc": "^3.3.2",
 		"autoprefixer": "^10.4.8",
 		"esbuild": "0.17.17",
 		"eslint": "^7.0.0",
