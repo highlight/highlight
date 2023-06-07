@@ -240,6 +240,36 @@ func NewOpensearchClient(db *gorm.DB) (*Client, error) {
 	}, nil
 }
 
+func (c *Client) UpdateAsync(index Index, id int, obj interface{}) error {
+	if c == nil || !c.isInitialized {
+		return nil
+	}
+
+	documentId := strconv.Itoa(id)
+
+	b, err := json.Marshal(obj)
+	if err != nil {
+		return e.Wrap(err, "OPENSEARCH_ERROR error marshalling map for update")
+	}
+	body := strings.NewReader(fmt.Sprintf("{ \"doc\" : %s }", string(b)))
+
+	indexStr := GetIndex(index)
+
+	item := opensearchutil.BulkIndexerItem{
+		Index:           indexStr,
+		Action:          "update",
+		DocumentID:      documentId,
+		Body:            body,
+		RetryOnConflict: pointy.Int(3),
+	}
+
+	if err := c.BulkIndexer.Add(context.Background(), item); err != nil {
+		return e.Wrap(err, "OPENSEARCH_ERROR error adding bulk indexer item for update")
+	}
+
+	return nil
+}
+
 func (c *Client) UpdateSynchronous(index Index, id int, obj interface{}) error {
 	if c == nil || !c.isInitialized {
 		return nil
