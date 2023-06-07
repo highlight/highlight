@@ -28,7 +28,6 @@ import { ProjectRedirectionRouter } from '@routers/ProjectRouter/ProjectRedirect
 import { ProjectRouter } from '@routers/ProjectRouter/ProjectRouter'
 import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
-import { auth } from '@util/auth'
 import { showIntercom } from '@util/window'
 import { omit } from 'lodash'
 import { useEffect, useState } from 'react'
@@ -54,6 +53,9 @@ import {
 	GetWorkspaceDropdownOptionsQuery,
 } from '@/graph/generated/operations'
 
+export const VERIFY_EMAIL_ROUTE = '/verify_email'
+export const ABOUT_YOU_ROUTE = '/about_you'
+
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
 		useAuthContext()
@@ -73,16 +75,18 @@ export const AppRouter = () => {
 	const [projectListData, setProjectListData] =
 		useState<GetProjectDropdownOptionsQuery>()
 
-	const { data: projectDropdownData } = useGetProjectDropdownOptionsQuery({
-		variables: { project_id: projectId! },
-		skip: !isLoggedIn || !projectId,
+	const { data: projectDropdownData, loading: projectDropdownDataLoading } =
+		useGetProjectDropdownOptionsQuery({
+			variables: { project_id: projectId! },
+			skip: !isLoggedIn || !projectId,
+		})
+	const {
+		data: workspaceDropdownData,
+		loading: workspaceDropdownDataLoading,
+	} = useGetWorkspaceDropdownOptionsQuery({
+		variables: { workspace_id: workspaceId ?? '' },
+		skip: !isLoggedIn || !workspaceId,
 	})
-	const { data: workspaceDropdownData } = useGetWorkspaceDropdownOptionsQuery(
-		{
-			variables: { workspace_id: workspaceId ?? '' },
-			skip: !isLoggedIn || !workspaceId,
-		},
-	)
 
 	useEffect(() => {
 		if (projectDropdownData) {
@@ -102,7 +106,7 @@ export const AppRouter = () => {
 
 	useEffect(() => {
 		if (admin && admin.email_verified === false) {
-			navigate('/verify_email', { replace: true })
+			navigate(VERIFY_EMAIL_ROUTE, { replace: true })
 			return
 		}
 
@@ -117,7 +121,7 @@ export const AppRouter = () => {
 			!isVercelIntegrationFlow &&
 			!isInvitePage
 		) {
-			navigate('/about_you', { replace: true })
+			navigate(ABOUT_YOU_ROUTE, { replace: true })
 			return
 		}
 
@@ -175,6 +179,9 @@ export const AppRouter = () => {
 		<Box height="screen" width="screen">
 			<ApplicationContextProvider
 				value={{
+					loading:
+						projectDropdownDataLoading ||
+						workspaceDropdownDataLoading,
 					currentProject: projectListData?.project ?? undefined,
 					allProjects:
 						(projectListData?.workspace?.projects ||
@@ -191,19 +198,12 @@ export const AppRouter = () => {
 				}}
 			>
 				<Routes>
-					{isLoggedIn && !admin?.about_you_details_filled && (
-						//  /about_you is used by google ads for conversion tracking
-						<Route path="/about_you" element={<AdminForm />} />
-					)}
-
-					{/*
-				Not using isLoggedIn because this is shown immediately after sign up and
-				there can be a state briefly where the user authenticated in Firebase
-				but their admin account isn't created yet.
-				*/}
-					{auth.currentUser && !admin?.email_verified && (
-						<Route path="/verify_email" element={<VerifyEmail />} />
-					)}
+					<Route
+						path={VERIFY_EMAIL_ROUTE}
+						element={<VerifyEmail />}
+					/>
+					{/* used by google ads for conversion tracking */}
+					<Route path={ABOUT_YOU_ROUTE} element={<AdminForm />} />
 
 					<Route
 						path="/oauth/authorize"

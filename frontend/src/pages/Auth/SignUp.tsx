@@ -1,5 +1,8 @@
 import { Button } from '@components/Button'
-import { useGetWorkspaceForInviteLinkQuery } from '@graph/hooks'
+import {
+	useCreateAdminMutation,
+	useGetWorkspaceForInviteLinkQuery,
+} from '@graph/hooks'
 import {
 	Box,
 	Callout,
@@ -21,9 +24,13 @@ import firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
+import { useAuthContext } from '@/authentication/AuthContext'
+import { VERIFY_EMAIL_ROUTE } from '@/routers/AppRouter/AppRouter'
+
 export const SignUp: React.FC = () => {
 	const navigate = useNavigate()
 	const location = useLocation()
+	const { signIn } = useAuthContext()
 	const initialEmail: string = location.state?.email ?? ''
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
@@ -34,6 +41,7 @@ export const SignUp: React.FC = () => {
 			password: '',
 		},
 	})
+	const [createAdmin] = useCreateAdminMutation()
 	const { data } = useGetWorkspaceForInviteLinkQuery({
 		variables: {
 			secret: inviteCode!,
@@ -54,27 +62,20 @@ export const SignUp: React.FC = () => {
 	const workspaceInvite = data?.workspace_for_invite_link
 
 	const handleSubmit = useCallback(
-		(credential: firebase.auth.UserCredential) => {
-			message.success('Account created succesfully!')
-
-			// Redirect the user to their initial path instead to creating a new
-			// workspace. We do this because this happens when a new user clicks
-			// on a Highlight link that was shared to them and they don't have
-			// an account yet.
-			const redirect = location.state?.previousPathName
-
-			if (credential.user?.email) {
+		async ({ user }: firebase.auth.UserCredential) => {
+			if (user?.email) {
 				analytics.track('Sign up', {
-					email: credential.user.email,
-					redirect,
+					email: user.email,
 				})
 			}
 
-			if (redirect) {
-				navigate(redirect, { replace: true })
-			}
+			await createAdmin()
+			message.success('Account created succesfully!')
+
+			signIn(user)
+			navigate(VERIFY_EMAIL_ROUTE, { replace: true })
 		},
-		[location.state?.previousPathName, navigate],
+		[createAdmin, navigate, signIn],
 	)
 
 	useEffect(() => analytics.page(), [])
