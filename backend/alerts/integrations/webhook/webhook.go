@@ -99,13 +99,13 @@ func SendUserPropertiesAlert(destination *model.WebhookDestination, payload *int
 	return sendWebhookData(destination, body)
 }
 
-func SendSessionFeedbackAlert(destination *model.WebhookDestination, payload *integrations.SessionFeedbackAlertPayload) error {
+func SendErrorFeedbackAlert(destination *model.WebhookDestination, payload *integrations.ErrorFeedbackAlertPayload) error {
 	body, err := json.Marshal(&struct {
 		Event string
-		*integrations.SessionFeedbackAlertPayload
+		*integrations.ErrorFeedbackAlertPayload
 	}{
-		Event:                       model.AlertType.NEW_USER,
-		SessionFeedbackAlertPayload: payload,
+		Event:                     model.AlertType.ERROR_FEEDBACK,
+		ErrorFeedbackAlertPayload: payload,
 	})
 	if err != nil {
 		return err

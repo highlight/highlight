@@ -12,7 +12,6 @@ import SvgChevronRightIcon from '@icons/ChevronRightIcon'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
 import SvgFaceIdIcon from '@icons/FaceIdIcon'
 import SvgMonitorIcon from '@icons/MonitorIcon'
-import SvgQuoteIcon from '@icons/QuoteIcon'
 import SvgSparkles2Icon from '@icons/Sparkles2Icon'
 import SvgTargetIcon from '@icons/TargetIcon'
 import SvgUserPlusIcon from '@icons/UserPlusIcon'
@@ -33,7 +32,6 @@ export enum ALERT_TYPE {
 	FirstTimeUser,
 	UserProperties,
 	TrackProperties,
-	SessionFeedback,
 	NewSession,
 	RageClick,
 	MetricMonitor,
@@ -45,7 +43,6 @@ export enum ALERT_NAMES {
 	NEW_USER_ALERT = 'New Users',
 	USER_PROPERTIES_ALERT = 'User Properties',
 	TRACK_PROPERTIES_ALERT = 'Track Events',
-	SESSION_FEEDBACK_ALERT = 'Feedback',
 	NEW_SESSION_ALERT = 'New Sessions',
 	RAGE_CLICK_ALERT = 'Rage Clicks',
 	METRIC_MONITOR = 'Metric Monitor',
@@ -113,26 +110,6 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 		type: ALERT_TYPE.TrackProperties,
 		description: 'Get alerted when an action is done in your application.',
 		icon: <SvgTargetIcon />,
-		supportsExcludeRules: false,
-	},
-	SESSION_FEEDBACK_ALERT: {
-		name: ALERT_NAMES['SESSION_FEEDBACK_ALERT'],
-		canControlThreshold: false,
-		type: ALERT_TYPE.SessionFeedback,
-		description: (
-			<>
-				Get alerted when a user submits{' '}
-				{/* eslint-disable-next-line react/jsx-no-target-blank */}
-				<a
-					href="https://docs.highlight.run/user-feedback"
-					target="_blank"
-				>
-					a session feedback
-				</a>
-				.
-			</>
-		),
-		icon: <SvgQuoteIcon />,
 		supportsExcludeRules: false,
 	},
 	NEW_SESSION_ALERT: {
@@ -296,7 +273,6 @@ function AlertsPageLoaded({
 		const values = [
 			alertsPayload?.error_alerts,
 			alertsPayload?.new_user_alerts,
-			alertsPayload?.session_feedback_alerts,
 			alertsPayload?.track_properties_alerts,
 			alertsPayload?.user_properties_alerts,
 			alertsPayload?.new_session_alerts,
@@ -326,19 +302,6 @@ function AlertsPageLoaded({
 				type: ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
 				Name:
 					alert?.Name || ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
-				key: alert?.id,
-				frequency: maxNum,
-				allAdmins: alertsPayload?.admins || [],
-			}))
-			.sort((a, b) => a.Name.localeCompare(b.Name)),
-		...(alertsPayload?.session_feedback_alerts || [])
-			.map((alert) => ({
-				...alert,
-				configuration: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'],
-				type: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].name,
-				Name:
-					alert?.Name ||
-					ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'].name,
 				key: alert?.id,
 				frequency: maxNum,
 				allAdmins: alertsPayload?.admins || [],

@@ -345,16 +345,16 @@ func SendUserPropertiesAlert(event UserPropertiesAlertEvent) error {
 	return g.Wait()
 }
 
-type SessionFeedbackAlertEvent struct {
+type ErrorFeedbackAlertEvent struct {
 	Session        *model.Session
-	SessionAlert   *model.SessionAlert
+	ErrorAlert     *model.ErrorAlert
 	Workspace      *model.Workspace
 	SessionComment *model.SessionComment
 	UserName       *string
 	UserEmail      *string
 }
 
-func SendSessionFeedbackAlert(event SessionFeedbackAlertEvent) error {
+func SendErrorFeedbackAlert(event ErrorFeedbackAlertEvent) error {
 	identifier := "Someone"
 	if event.UserName != nil {
 		identifier = *event.UserName
@@ -362,16 +362,16 @@ func SendSessionFeedbackAlert(event SessionFeedbackAlertEvent) error {
 		identifier = *event.UserEmail
 	}
 
-	payload := integrations.SessionFeedbackAlertPayload{
+	payload := integrations.ErrorFeedbackAlertPayload{
 		UserIdentifier:    identifier,
-		SessionCommentURL: getSessionCommentURL(event.SessionAlert.ProjectID, event.Session, event.SessionComment),
+		SessionCommentURL: getSessionCommentURL(event.ErrorAlert.ProjectID, event.Session, event.SessionComment),
 		CommentText:       event.SessionComment.Text,
 	}
 
 	var g errgroup.Group
 	g.Go(func() error {
-		for _, wh := range event.SessionAlert.WebhookDestinations {
-			if err := webhook.SendSessionFeedbackAlert(wh, &payload); err != nil {
+		for _, wh := range event.ErrorAlert.WebhookDestinations {
+			if err := webhook.SendErrorFeedbackAlert(wh, &payload); err != nil {
 				return err
 			}
 		}
@@ -388,10 +388,10 @@ func SendSessionFeedbackAlert(event SessionFeedbackAlertEvent) error {
 			return err
 		}
 
-		channels := event.SessionAlert.DiscordChannelsToNotify
+		channels := event.ErrorAlert.DiscordChannelsToNotify
 
 		for _, channel := range channels {
-			err = bot.SendSessionFeedbackAlert(channel.ID, payload)
+			err = bot.SendErrorFeedbackAlert(channel.ID, payload)
 
 			if err != nil {
 				return err

@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	pointy "github.com/openlyinc/pointy"
 	"os"
 	"testing"
 
@@ -372,6 +373,48 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 			}
 			if v.deletionExpected != response {
 				t.Fatalf("deletion result invalid, expected? %t but saw %t", v.deletionExpected, response)
+			}
+		})
+	}
+}
+
+func TestResolver_GetSlackChannelsFromSlack(t *testing.T) {
+	tests := map[string]struct {
+		accessToken    *string
+		expNumChannels int
+		expError       bool
+	}{
+		"no token": {
+			accessToken:    nil,
+			expNumChannels: 0,
+			expError:       false,
+		},
+		"fake token": {
+			accessToken:    pointy.String("foo"),
+			expNumChannels: 0,
+			// not a real token - should get an error from slack
+			expError: true,
+		},
+	}
+	for testName, v := range tests {
+		util.RunTestWithDBWipe(t, testName, DB, func(t *testing.T) {
+			workspace := model.Workspace{
+				Name:             ptr.String("test1"),
+				SlackAccessToken: v.accessToken,
+			}
+			if err := DB.Create(&workspace).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			ctx := context.Background()
+			r := &queryResolver{Resolver: &Resolver{DB: DB}}
+
+			_, num, err := r.GetSlackChannelsFromSlack(ctx, workspace.ID)
+			if v.expError != (err != nil) {
+				t.Fatalf("error result invalid, expected? %t but saw %s", v.expError, err)
+			}
+			if err == nil && num != v.expNumChannels {
+				t.Fatalf("received invalid num channels %d, expected %d", num, v.expNumChannels)
 			}
 		})
 	}

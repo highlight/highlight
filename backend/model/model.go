@@ -17,6 +17,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
+	"github.com/aws/smithy-go/ptr"
 	Email "github.com/highlight-run/highlight/backend/email"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
@@ -62,7 +63,7 @@ var AlertType = struct {
 	NEW_USER         string
 	TRACK_PROPERTIES string
 	USER_PROPERTIES  string
-	SESSION_FEEDBACK string
+	ERROR_FEEDBACK   string
 	RAGE_CLICK       string
 	NEW_SESSION      string
 	LOG              string
@@ -71,7 +72,7 @@ var AlertType = struct {
 	NEW_USER:         "NEW_USER_ALERT",
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
-	SESSION_FEEDBACK: "SESSION_FEEDBACK_ALERT",
+	ERROR_FEEDBACK:   "ERROR_FEEDBACK_ALERT",
 	RAGE_CLICK:       "RAGE_CLICK_ALERT",
 	NEW_SESSION:      "NEW_SESSION_ALERT",
 	LOG:              "LOG",
@@ -888,6 +889,7 @@ type ErrorObject struct {
 	SpanID           *string
 	LogCursor        *string `gorm:"index:idx_error_object_log_cursor,option:CONCURRENTLY"`
 	ErrorGroupID     int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
+	ErrorGroup       ErrorGroup
 	Event            string
 	Type             string
 	URL              string
@@ -928,6 +930,7 @@ type ErrorGroup struct {
 	ErrorMetrics     []*modelInputs.ErrorDistributionItem `gorm:"-"`
 	FirstOccurrence  *time.Time                           `gorm:"-"`
 	LastOccurrence   *time.Time                           `gorm:"-"`
+	ErrorObjects     []ErrorObject
 
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
@@ -1489,25 +1492,6 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		return false, e.Wrap(err, "Error assigning default to session_fields.id")
 	}
 
-	// default case, should only exist in main highlight prod
-	thresholdWindow := 30
-	emptiness := "[]"
-	if err := DB.FirstOrCreate(&SessionAlert{
-		Alert: Alert{
-			ProjectID: 1,
-			Type:      &AlertType.SESSION_FEEDBACK,
-		},
-	}).Attrs(&SessionAlert{
-		Alert: Alert{
-			ExcludedEnvironments: &emptiness,
-			CountThreshold:       1,
-			ThresholdWindow:      &thresholdWindow,
-			ChannelsToNotify:     &emptiness,
-		},
-	}).Error; err != nil {
-		log.WithContext(ctx).WithError(err).Error("Failed to create default session feedback alert.")
-	}
-
 	log.WithContext(ctx).Printf("Finished running DB migrations.\n")
 
 	return true, nil
@@ -1753,6 +1737,13 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 	}
 }
 
+func (obj *ErrorAlert) SendAlertFeedback(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, input *SendSlackAlertInput) {
+	obj.Type = ptr.String(AlertType.ERROR_FEEDBACK)
+	if err := obj.sendSlackAlert(ctx, db, obj.ID, input); err != nil {
+		log.WithContext(ctx).Error(err)
+	}
+}
+
 func SendBillingNotifications(ctx context.Context, db *gorm.DB, mailClient *sendgrid.Client, emailType Email.EmailType, workspace *Workspace) error {
 	// Skip sending email if sending was attempted within the cache TTL
 	cacheKey := fmt.Sprintf("%s;%d", emailType, workspace.ID)
@@ -1890,8 +1881,8 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 		alertType = "Rage Click"
 		message = fmt.Sprintf("<b>%s</b> has been rage clicking in a session.<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
 		subjectLine = fmt.Sprintf("%s has been rage clicking in a session.", identifier)
-	case AlertType.SESSION_FEEDBACK:
-		alertType = "Session Feedback"
+	case AlertType.ERROR_FEEDBACK:
+		alertType = "Error Feedback"
 		message = fmt.Sprintf("<b>%s</b> just left feedback.<br><br><a href=\"%s\">View Session</a>", identifier, sessionURL)
 		subjectLine = fmt.Sprintf("%s just left feedback.", identifier)
 	case AlertType.TRACK_PROPERTIES:
@@ -2710,8 +2701,8 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		blockSet = append(blockSet, slack.NewDividerBlock())
 		msg.Blocks = &slack.Blocks{BlockSet: blockSet}
-	case AlertType.SESSION_FEEDBACK:
-		previewText = "Highlight: Session Feedback Alert"
+	case AlertType.ERROR_FEEDBACK:
+		previewText = "Highlight: Error Feedback Alert"
 		if identifier == "" {
 			identifier = "User"
 		}

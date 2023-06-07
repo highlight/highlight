@@ -768,6 +768,40 @@ const SelectPopout = ({
 			value.options.map((o) => o.label).join(', ')) ||
 		undefined
 
+	const inner = (
+		<Tooltip
+			title={tooltipMessage}
+			mouseEnterDelay={1.5}
+			overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
+		>
+			<span className={newStyle.tagPopoverAnchor}>
+				<Tag
+					kind="secondary"
+					size="medium"
+					shape="basic"
+					className={clsx(cssClass, {
+						[styles.invalid]: invalid && !visible,
+					})}
+					lines={limitWidth ? '1' : undefined}
+					disabled={disabled}
+				>
+					{invalid && '--'}
+					{value?.kind === 'single' && getNameLabel(value.label)}
+					{value?.kind === 'multi' &&
+						value.options.length > 1 &&
+						`${value.options.length} selections`}
+					{value?.kind === 'multi' &&
+						value.options.length === 1 &&
+						value.options[0].label}
+				</Tag>
+			</span>
+		</Tooltip>
+	)
+
+	if (disabled) {
+		return inner
+	}
+
 	return (
 		<Popover
 			showArrow={false}
@@ -788,33 +822,7 @@ const SelectPopout = ({
 			visible={visible}
 			destroyTooltipOnHide
 		>
-			<Tooltip
-				title={tooltipMessage}
-				mouseEnterDelay={1.5}
-				overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
-			>
-				<span className={newStyle.tagPopoverAnchor}>
-					<Tag
-						kind="secondary"
-						size="medium"
-						shape="basic"
-						className={clsx(cssClass, {
-							[styles.invalid]: invalid && !visible,
-						})}
-						lines={limitWidth ? '1' : undefined}
-						disabled={disabled}
-					>
-						{invalid && '--'}
-						{value?.kind === 'single' && getNameLabel(value.label)}
-						{value?.kind === 'multi' &&
-							value.options.length > 1 &&
-							`${value.options.length} selections`}
-						{value?.kind === 'multi' &&
-							value.options.length === 1 &&
-							value.options[0].label}
-					</Tag>
-				</span>
-			</Tooltip>
+			{inner}
 		</Popover>
 	)
 }
@@ -2243,7 +2251,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 						size="xSmall"
 						emphasis="medium"
 						iconLeft={<IconSolidSave size={12} />}
-						onClick={() => {
+						onClick={(e: React.MouseEvent) => {
+							e.preventDefault()
 							setShowCreateSegmentModal(true)
 						}}
 						disabled={!areRulesValid}
@@ -2316,26 +2325,23 @@ function QueryBuilder(props: QueryBuilderProps) {
 						sessionQuery={backendSearchQuery?.searchQuery || ''}
 					/>
 
-					{!readonly &&
-						!isAbsoluteTimeRange(
-							timeRangeRule.val?.options[0].value,
-						) && (
-							<ButtonIcon
-								kind="secondary"
-								size="small"
-								shape="square"
-								emphasis="low"
-								icon={<IconSolidRefresh size={14} />}
-								disabled={syncButtonDisabled}
-								onClick={() => {
-									// Re-generate the absolute times used in the serialized query
-									updateSerializedQuery(isAnd, rules)
-									setBackendSearchQuery(
-										serializedQuery.current,
-									)
-								}}
-							/>
-						)}
+					{!isAbsoluteTimeRange(
+						timeRangeRule.val?.options[0].value,
+					) && (
+						<ButtonIcon
+							kind="secondary"
+							size="small"
+							shape="square"
+							emphasis="low"
+							icon={<IconSolidRefresh size={14} />}
+							disabled={syncButtonDisabled}
+							onClick={() => {
+								// Re-generate the absolute times used in the serialized query
+								updateSerializedQuery(isAnd, rules)
+								setBackendSearchQuery(serializedQuery.current)
+							}}
+						/>
+					)}
 
 					<ButtonIcon
 						kind="secondary"
@@ -2351,7 +2357,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	}, [
 		backendSearchQuery?.searchQuery,
 		isAnd,
-		readonly,
 		rules,
 		sessionResults.totalCount,
 		setBackendSearchQuery,
@@ -2464,7 +2469,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					}
 				}}
 			/>
-			{controlBar}
+			{!readonly && controlBar}
 			<Box
 				border="secondary"
 				borderRadius="8"
@@ -2472,7 +2477,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				flexDirection="column"
 				overflow="hidden"
 				flexShrink={0}
-				m="8"
+				m={readonly ? undefined : '8'}
 				shadow="medium"
 			>
 				{mode !== QueryBuilderMode.EMPTY && (
@@ -2480,7 +2485,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						p="4"
 						paddingBottom="8"
 						background="white"
-						borderBottom="secondary"
+						borderBottom={readonly ? undefined : 'secondary'}
 						display="flex"
 						alignItems="center"
 						flexWrap="wrap"
@@ -2538,171 +2543,177 @@ function QueryBuilder(props: QueryBuilderProps) {
 						{addFilterButton}
 					</Box>
 				)}
-				<Box
-					display="flex"
-					p="8"
-					paddingRight="4"
-					justifyContent="space-between"
-					alignItems="center"
-				>
-					{searchResultsLoading ? (
-						<Skeleton width="100px" />
-					) : (
-						<Text
-							size="xSmall"
-							weight="medium"
-							color="n9"
-							userSelect="none"
-						>
-							{formatNumber(searchResultsCount)} results
-						</Text>
-					)}
+				{!readonly && (
 					<Box
 						display="flex"
-						gap="4"
+						p="8"
+						paddingRight="4"
+						justifyContent="space-between"
 						alignItems="center"
-						cssClass={newStyle.maxHalfWidth}
 					>
-						<Menu placement="bottom-end">
-							{actionButton}
-							<Menu.List cssClass={styles.menuList}>
-								<Box
-									background="n2"
-									borderBottom="secondary"
-									p="8"
-									mb="4"
-								>
-									<Text
-										weight="medium"
-										size="xxSmall"
-										color="n11"
-										userSelect="none"
-									>
-										Segment settings
-									</Text>
-								</Box>
-								{mode === QueryBuilderMode.SEGMENT_UPDATE
-									? alteredSegmentSettings
-									: null}
-
-								<Menu.Item
-									onClick={(e) => {
-										e.stopPropagation()
-										setShowEditSegmentNameModal(true)
-									}}
-								>
-									<Box
-										display="flex"
-										alignItems="center"
-										gap="4"
-										userSelect="none"
-									>
-										<IconSolidPencil
-											size={16}
-											color={colors.n9}
-										/>
-										Edit segment name
-									</Box>
-								</Menu.Item>
-
-								<Menu.Item
-									onClick={(e) => {
-										e.stopPropagation()
-										if (currentSegment) {
-											selectSegment(currentSegment)
-											setShowCreateSegmentModal(true)
-										}
-									}}
-								>
-									<Box
-										display="flex"
-										alignItems="center"
-										gap="4"
-										userSelect="none"
-									>
-										<IconSolidDocumentDuplicate
-											size={16}
-											color={colors.n9}
-										/>
-										Duplicate segment
-									</Box>
-								</Menu.Item>
-
-								<Menu.Divider />
-								<Menu.Item
-									onClick={(e) => {
-										e.stopPropagation()
-										setSegmentToDelete({
-											id: currentSegment?.id,
-											name: currentSegment?.name,
-										})
-									}}
-								>
-									<Box
-										display="flex"
-										alignItems="center"
-										gap="4"
-										userSelect="none"
-									>
-										<IconSolidTrash
-											size={16}
-											color={colors.n9}
-										/>
-										Delete segment
-									</Box>
-								</Menu.Item>
-							</Menu.List>
-						</Menu>
-
-						<Menu>
-							<Menu.Button
-								kind="secondary"
-								disabled={segmentsLoading}
-								emphasis="high"
-								icon={<IconSolidSegment size={12} />}
+						{searchResultsLoading ? (
+							<Skeleton width="100px" />
+						) : (
+							<Text
 								size="xSmall"
-								cssClass={newStyle.noShrink}
-							/>
-							<Menu.List cssClass={styles.menuList}>
-								<Box
-									background="n2"
-									borderBottom="secondary"
-									p="8"
-									mb="4"
-								>
-									<Text
-										weight="medium"
-										size="xxSmall"
-										color="n11"
-										userSelect="none"
+								weight="medium"
+								color="n9"
+								userSelect="none"
+							>
+								{formatNumber(searchResultsCount)} results
+							</Text>
+						)}
+						<Box
+							display="flex"
+							gap="4"
+							alignItems="center"
+							cssClass={newStyle.maxHalfWidth}
+						>
+							<Menu placement="bottom-end">
+								{actionButton}
+								<Menu.List cssClass={styles.menuList}>
+									<Box
+										background="n2"
+										borderBottom="secondary"
+										p="8"
+										mb="4"
 									>
-										Segments
-									</Text>
-								</Box>
-								{segmentOptions.map((segment, idx) => (
+										<Text
+											weight="medium"
+											size="xxSmall"
+											color="n11"
+											userSelect="none"
+										>
+											Segment settings
+										</Text>
+									</Box>
+									{mode === QueryBuilderMode.SEGMENT_UPDATE
+										? alteredSegmentSettings
+										: null}
+
 									<Menu.Item
-										key={idx}
 										onClick={(e) => {
 											e.stopPropagation()
-											selectSegment(segment)
+											setShowEditSegmentNameModal(true)
 										}}
 									>
-										<Text lines="1">{segment.name}</Text>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+											userSelect="none"
+										>
+											<IconSolidPencil
+												size={16}
+												color={colors.n9}
+											/>
+											Edit segment name
+										</Box>
 									</Menu.Item>
-								))}
-								{segmentOptions.length > 0 && <Menu.Divider />}
-								<Menu.Item
-									onClick={(e) => {
-										e.stopPropagation()
-										selectSegment()
-									}}
-								>
-									Reset to defaults
-								</Menu.Item>
-							</Menu.List>
-						</Menu>
+
+									<Menu.Item
+										onClick={(e) => {
+											e.stopPropagation()
+											if (currentSegment) {
+												selectSegment(currentSegment)
+												setShowCreateSegmentModal(true)
+											}
+										}}
+									>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+											userSelect="none"
+										>
+											<IconSolidDocumentDuplicate
+												size={16}
+												color={colors.n9}
+											/>
+											Duplicate segment
+										</Box>
+									</Menu.Item>
+
+									<Menu.Divider />
+									<Menu.Item
+										onClick={(e) => {
+											e.stopPropagation()
+											setSegmentToDelete({
+												id: currentSegment?.id,
+												name: currentSegment?.name,
+											})
+										}}
+									>
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+											userSelect="none"
+										>
+											<IconSolidTrash
+												size={16}
+												color={colors.n9}
+											/>
+											Delete segment
+										</Box>
+									</Menu.Item>
+								</Menu.List>
+							</Menu>
+
+							<Menu>
+								<Menu.Button
+									kind="secondary"
+									disabled={segmentsLoading}
+									emphasis="high"
+									icon={<IconSolidSegment size={12} />}
+									size="xSmall"
+									cssClass={newStyle.noShrink}
+								/>
+								<Menu.List cssClass={styles.menuList}>
+									<Box
+										background="n2"
+										borderBottom="secondary"
+										p="8"
+										mb="4"
+									>
+										<Text
+											weight="medium"
+											size="xxSmall"
+											color="n11"
+											userSelect="none"
+										>
+											Segments
+										</Text>
+									</Box>
+									{segmentOptions.map((segment, idx) => (
+										<Menu.Item
+											key={idx}
+											onClick={(e) => {
+												e.stopPropagation()
+												selectSegment(segment)
+											}}
+										>
+											<Text lines="1">
+												{segment.name}
+											</Text>
+										</Menu.Item>
+									))}
+									{segmentOptions.length > 0 && (
+										<Menu.Divider />
+									)}
+									<Menu.Item
+										onClick={(e) => {
+											e.stopPropagation()
+											selectSegment()
+										}}
+									>
+										Reset to defaults
+									</Menu.Item>
+								</Menu.List>
+							</Menu>
+						</Box>
 					</Box>
-				</Box>
+				)}
 			</Box>
 		</>
 	)

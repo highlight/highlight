@@ -75,12 +75,12 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
-	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"migration_state": migrationState}); err != nil {
+	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{"migration_state": migrationState}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
 	totalPayloadSize, err := w.StorageClient.PushFiles(ctx, s.ID, s.ProjectID, payloadManager)
-	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
+	// If this is unsuccessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
 		return errors.Wrap(err, "error pushing files to s3")
 	}
@@ -94,7 +94,7 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
 
-	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{
 		"object_storage_enabled":  true,
 		"payload_size":            totalPayloadSize,
 		"direct_download_enabled": true,
@@ -799,7 +799,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
-	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{
 		"processed":       true,
 		"length":          sessionTotalLengthInMilliseconds,
 		"active_length":   accumulator.ActiveDuration.Milliseconds(),
@@ -1090,7 +1090,7 @@ func (w *Worker) Start(ctx context.Context) {
 
 					if excluded {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Warn(e.Wrap(err, "session has reached the max retry count and will be excluded"))
-						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
+						if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
 						span.Finish()
