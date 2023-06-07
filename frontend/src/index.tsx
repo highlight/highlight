@@ -5,11 +5,7 @@ import './index.scss'
 import './style/tailwind.css'
 
 import { ApolloError, ApolloProvider } from '@apollo/client'
-import {
-	AuthContextProvider,
-	AuthRole,
-	isAuthLoading,
-} from '@authentication/AuthContext'
+import { AuthContextProvider, AuthRole } from '@authentication/AuthContext'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { LoadingPage } from '@components/Loading/Loading'
 import {
@@ -261,6 +257,7 @@ const AuthenticationRoleRouter = () => {
 	const [authRole, setAuthRole] = useState<AuthRole>(AuthRole.LOADING)
 
 	const firebaseInitialized = useRef(false)
+	const isAuthLoading = authRole === AuthRole.LOADING
 	const isLoggedIn = authRole === AuthRole.AUTHENTICATED
 
 	useEffect(() => {
@@ -331,7 +328,7 @@ const AuthenticationRoleRouter = () => {
 
 	useEffect(() => {
 		// Wait until auth is finished loading otherwise this request can fail.
-		if (!adminData || !projectId || isAuthLoading(authRole)) {
+		if (!adminData || !projectId || isAuthLoading) {
 			return
 		}
 
@@ -364,7 +361,7 @@ const AuthenticationRoleRouter = () => {
 				role: authRole,
 				admin: isLoggedIn ? adminData ?? undefined : undefined,
 				workspaceRole: adminRole || undefined,
-				isAuthLoading: isAuthLoading(authRole),
+				isAuthLoading,
 				isLoggedIn,
 				isHighlightAdmin:
 					onlyAllowHighlightStaff(adminData) && enableStaffView,

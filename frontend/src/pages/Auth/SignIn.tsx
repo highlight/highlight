@@ -66,16 +66,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 				await createAdmin()
 			}
 
-			const { data: projectsData } = await getProjects()
 			await fetchAdmin()
-
 			signIn(user)
-			if (projectsData?.projects?.length) {
-				const projectId = projectsData.projects[0]!.id
-				navigate(`/${projectId}/sessions`, { replace: true })
-			}
 		},
-		[createAdmin, fetchAdmin, getProjects, navigate, signIn],
+		[createAdmin, fetchAdmin, signIn],
 	)
 
 	const handleAuthError = useCallback(
