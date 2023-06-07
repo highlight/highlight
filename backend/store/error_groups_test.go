@@ -53,7 +53,7 @@ func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 }
 
 func TestUpdateErrorGroupStateBySystem(t *testing.T) {
-	util.RunTestWithDBWipe(t, "UpdateErrorGroupStateBySystem", store.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
 		errorGroup := model.ErrorGroup{
 			State: privateModel.ErrorStateOpen,
 		}
