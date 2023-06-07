@@ -1,7 +1,5 @@
 import { Tag } from './Tag'
-import { Variants } from './styles.css'
 import type { Meta } from '@storybook/react'
-import React from 'react'
 import { Box } from '../Box/Box'
 import { IconSolidCheveronDown, IconSolidSave } from '../icons'
 
@@ -11,10 +9,10 @@ export default {
 } as Meta<typeof Tag>
 
 export const TagVariants = () => {
-	const emphasis: Variants['emphasis'][] = ['high', 'medium', 'low']
-	const kind: Variants['kind'][] = ['primary', 'secondary']
-	const shape: Variants['shape'][] = ['basic', 'rounded']
-	const size: Variants['size'][] = ['small', 'medium', 'large']
+	const emphasis: any[] = ['high', 'medium', 'low']
+	const kind: any[] = ['primary', 'secondary']
+	const shape: any[] = ['basic', 'rounded']
+	const size: any[] = ['small', 'medium', 'large']
 
 	return (
 		<Box display="flex" gap="12" flexDirection="column">
@@ -34,12 +32,16 @@ export const TagVariants = () => {
 											icon={
 												jdx % emphasis.length !== 0 ? (
 													<IconSolidCheveronDown />
-												) : null
+												) : (
+													<></>
+												)
 											}
 											iconRight={
 												jdx % emphasis.length === 0 ? (
 													<IconSolidSave />
-												) : null
+												) : (
+													<></>
+												)
 											}
 											size={$size}
 											kind={$kind}
@@ -59,7 +61,9 @@ export const TagVariants = () => {
 										iconLeft={
 											jdx % emphasis.length !== 0 ? (
 												<IconSolidCheveronDown />
-											) : null
+											) : (
+												<></>
+											)
 										}
 										disabled
 									>

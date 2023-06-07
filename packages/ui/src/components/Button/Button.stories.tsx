@@ -1,9 +1,7 @@
-import React from 'react'
 import { Meta } from '@storybook/react'
 
 import { Button } from './Button'
 import { Box } from '../Box/Box'
-import { Variants } from './styles.css'
 import { IconSolidCheveronDown, IconSolidSave } from '../icons'
 
 export default {
@@ -12,9 +10,9 @@ export default {
 } as Meta<typeof Button>
 
 export const ButtonVariants = () => {
-	const kind: Variants['kind'][] = ['primary', 'secondary']
-	const emphasis: Variants['emphasis'][] = ['high', 'medium', 'low']
-	const size: Variants['size'][] = ['medium', 'small', 'xSmall']
+	const kind: any[] = ['primary', 'secondary', 'asdf']
+	const emphasis: any[] = ['high', 'medium', 'low']
+	const size: any[] = ['medium', 'small', 'xSmall']
 
 	return (
 		<Box display="flex" gap="12" flexDirection="column">

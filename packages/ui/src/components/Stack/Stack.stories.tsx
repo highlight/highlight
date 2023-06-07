@@ -39,7 +39,7 @@ export const Horizontal = () => (
 
 export const Wrapped = () => (
 	<>
-		<Stack direction="row" gap="24" wrap>
+		<Stack direction="row" gap="24">
 			<Content>Horizontal / Wrapped</Content>
 			<Content>Horizontal / Wrapped</Content>
 			<Content>Horizontal / Wrapped</Content>

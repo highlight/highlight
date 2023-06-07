@@ -22,11 +22,11 @@ export const Sizes = () => (
 
 export const Modes = () => (
 	<>
-		<Card mode="light">A Light Mode Card (Default)</Card>
+		<Card>A Light Mode Card (Default)</Card>
 
 		<br />
 
-		<Card mode="dark">A Dark Mode Card</Card>
+		<Card>A Dark Mode Card</Card>
 	</>
 )
 

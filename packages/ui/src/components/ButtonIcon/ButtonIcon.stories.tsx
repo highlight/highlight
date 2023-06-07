@@ -4,7 +4,6 @@ import { Meta } from '@storybook/react'
 import { ButtonIcon } from './ButtonIcon'
 import { Box } from '../Box/Box'
 import { IconSolidCheveronDown } from '../icons'
-import { Variants } from './styles.css'
 
 export default {
 	title: 'Components/ButtonIcon',
@@ -12,10 +11,10 @@ export default {
 } as Meta<typeof ButtonIcon>
 
 export const AllVariants = () => {
-	const variant: Variants['kind'][] = ['primary', 'secondary']
-	const shape: Variants['shape'][] = ['square', 'thin']
-	const emphasis: Variants['emphasis'][] = ['high', 'medium', 'low']
-	const size: Variants['size'][] = ['medium', 'small', 'xSmall', 'minimal']
+	const variant: any[] = ['primary', 'secondary']
+	const shape: any[] = ['square', 'thin']
+	const emphasis: any[] = ['high', 'medium', 'low']
+	const size: any[] = ['medium', 'small', 'xSmall', 'minimal']
 
 	return (
 		<Box display="flex" gap="12" flexDirection="column">
