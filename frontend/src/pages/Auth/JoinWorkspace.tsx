@@ -64,7 +64,6 @@ export const JoinWorkspace = () => {
 
 	useEffect(() => {
 		if (data && !data?.joinable_workspaces?.length) {
-			debugger
 			navigate(ABOUT_YOU_ROUTE, { replace: true })
 		}
 	}, [data, navigate])
