@@ -1,4 +1,4 @@
-// next.config.js
+// next.config.mjs
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import nextBuildId from 'next-build-id'

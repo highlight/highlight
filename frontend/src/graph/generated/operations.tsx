@@ -3853,11 +3853,6 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				}
 		>
 	>
-	session_feedback_alerts: Array<
-		Types.Maybe<
-			{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
-		>
-	>
 	new_session_alerts: Array<
 		Types.Maybe<
 			{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment

@@ -20,19 +20,28 @@ export const DevDeploymentContent: QuickStartContent = {
 			content:
 				'While the above instructions will hot-reload, you might want more control of parts of the stack when developing. ' +
 				'Running the dev workflow manually is easy in different terminals as well.',
-			code: {
-				text: `# first, start the infrastructure containers
+			code: [
+				{
+					key: 'infra',
+					text: `# first, start the infrastructure containers
 cd highlight/docker;
-./start-infra.sh;
-
-# now, start the frontend. this will run yarn docker:frontend in the monorepo and block until you stop it with ctrl+c.
-./run-frontend.sh
-
-# in a second terminal, start the backend. this will run make start-no-doppler in backend and block until you stop it with ctrl+c.
+./start-infra.sh;`,
+					language: 'bash',
+				},
+				{
+					key: 'frontend',
+					text: `# now, start the frontend. this will run yarn docker:frontend in the monorepo and block until you stop it with ctrl+c.
+./run-frontend.sh`,
+					language: 'bash',
+				},
+				{
+					key: 'backend',
+					text: `# in a second terminal, start the backend. this will run make start-no-doppler in backend and block until you stop it with ctrl+c.
 cd highlight/docker;
 ./run-backend.sh`,
-				language: 'bash',
-			},
+					language: 'bash',
+				},
+			],
 		},
 		dashboard,
 		{
