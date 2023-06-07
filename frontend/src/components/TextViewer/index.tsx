@@ -42,7 +42,6 @@ const TextViewer = React.memo(
 					{title}
 					<Box ml="auto" display="flex" gap="2">
 						<Tooltip
-							placement="top-end"
 							trigger={
 								<ButtonIcon
 									kind="secondary"
@@ -67,7 +66,6 @@ const TextViewer = React.memo(
 							</Box>
 						</Tooltip>
 						<Tooltip
-							placement="top-end"
 							trigger={
 								<ButtonIcon
 									kind="secondary"
