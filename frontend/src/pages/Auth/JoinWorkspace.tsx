@@ -17,6 +17,7 @@ import {
 } from '@/graph/generated/hooks'
 import { AuthBody, AuthFooter, AuthHeader } from '@/pages/Auth/Layout'
 import { Landing } from '@/pages/Landing/Landing'
+import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
 
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
@@ -51,7 +52,7 @@ export const JoinWorkspace = () => {
 		if (!!response.data?.joinWorkspace) {
 			setDismissedJoinWorkspace(true)
 			message.success('Successfuly joined workspace!', 1)
-			navigate('/about_you', { replace: true })
+			navigate(ABOUT_YOU_ROUTE, { replace: true })
 		}
 	})
 
@@ -64,7 +65,7 @@ export const JoinWorkspace = () => {
 	useEffect(() => {
 		if (data && !data?.joinable_workspaces?.length) {
 			debugger
-			navigate('/about_you', { replace: true })
+			navigate(ABOUT_YOU_ROUTE, { replace: true })
 		}
 	}, [data, navigate])
 
@@ -135,7 +136,7 @@ export const JoinWorkspace = () => {
 						trackingId="join-workspace_skip"
 						onClick={() => {
 							setDismissedJoinWorkspace(true)
-							navigate('/about_you', { replace: true })
+							navigate(ABOUT_YOU_ROUTE, { replace: true })
 						}}
 					>
 						<Text color="moderate">Cancel</Text>
