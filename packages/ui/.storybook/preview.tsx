@@ -10,6 +10,11 @@ const preview: Preview = {
 				date: /Date$/,
 			},
 		},
+		options: {
+			storySort: {
+				order: ['Guides', 'Components'],
+			},
+		},
 	},
 	decorators: [
 		(Story: StoryFn) => (

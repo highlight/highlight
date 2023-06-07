@@ -14,7 +14,7 @@ export default {
 export const ButtonVariants = () => {
 	const kind: Variants['kind'][] = ['primary', 'secondary']
 	const emphasis: Variants['emphasis'][] = ['high', 'medium', 'low']
-	const size: Variants['size'][] = ['xSmall', 'small', 'medium']
+	const size: Variants['size'][] = ['medium', 'small', 'xSmall']
 
 	return (
 		<Box display="flex" gap="12" flexDirection="column">
@@ -23,7 +23,7 @@ export const ButtonVariants = () => {
 					{emphasis.map(($emphasis, jdx) => (
 						<Box
 							display="flex"
-							alignItems="center"
+							alignItems="flex-end"
 							gap="4"
 							key={`emp-${idx}-${jdx}`}
 						>

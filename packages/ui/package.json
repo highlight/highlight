@@ -8,17 +8,16 @@
 	"scripts": {
 		"build": "run-p --print-label 'build:**'",
 		"build:vite": "vite build",
-		"build-docs": "storybook build",
+		"build:docs": "storybook build --docs",
 		"dev": "run-p --print-label --race 'dev:**'",
-		"dev:storybook": "storybook dev -p 6006 --no-manager-cache",
+		"dev:storybook": "storybook dev -p 6006",
+		"dev:docs": "storybook dev -p 6006 --docs",
 		"icons:generate": "npx ts-node-esm ./scripts/generate-icons.ts",
 		"g": "hygen",
 		"lint": "eslint ./src",
 		"lint:ts": "tsc --noEmit",
 		"test": "TZ=UTC vitest --run",
-		"tokens:generate": "npx ts-node-esm ./scripts/generate-tokens.ts",
-		"storybook": "storybook dev -p 6006",
-		"build-storybook": "storybook build"
+		"tokens:generate": "npx ts-node-esm ./scripts/generate-tokens.ts"
 	},
 	"dependencies": {
 		"@rehookify/datepicker": "^4.1.5",
