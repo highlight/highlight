@@ -52,7 +52,7 @@ jobs:
                   ANNOTATIONS="$ANNOTATIONS,annotation-index.org.opencontainers.image.licenses=Apache 2.0"
 
                   if [[ ${{ github.event_name }} == 'release' ]]; then
-                    echo "--push" >> "$push"
+                    push="--push"
                   fi
 
                   # build docker image with common environment

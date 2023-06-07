@@ -10,5 +10,16 @@
 	"arrowParens": "always",
 	"requirePragma": false,
 	"insertPragma": false,
-	"proseWrap": "preserve"
+	"proseWrap": "preserve",
+	"overrides": [
+		{
+			"files": [".reflame.config.jsonc"],
+			"options": {
+				"parser": "json5",
+				"quoteProps": "preserve",
+				"singleQuote": false,
+				"trailingComma": "all"
+			}
+		}
+	]
 }
