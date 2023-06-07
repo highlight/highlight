@@ -28,7 +28,7 @@ export const XHRListener = (
 	bodyKeysToRedact?: string[],
 	bodyKeysToRecord?: string[],
 ) => {
-	const XHR = XMLHttpRequest.prototype
+	const XHR = window.XMLHttpRequest.prototype
 
 	const originalOpen = XHR.open
 	const originalSend = XHR.send

@@ -285,6 +285,10 @@ export class Highlight {
 			this._isCrossOriginIframe = true
 		}
 		this._initMembers(this.options)
+
+		if (window.SNOW) {
+			window.SNOW((win) => console.log('new iframe detected:', win))
+		}
 	}
 
 	// Start a new session
@@ -1376,6 +1380,7 @@ interface HighlightWindow extends Window {
 		}
 	}
 	Cypress?: any
+	SNOW?: (fn: (win: Window) => void) => void
 }
 
 declare var window: HighlightWindow

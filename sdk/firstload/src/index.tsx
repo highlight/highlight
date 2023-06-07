@@ -82,11 +82,21 @@ const H: HighlightPublicInterface = {
 			init_called = true
 
 			script = document.createElement('script')
+			script.setAttribute(
+				'src',
+				// TODO(vkorolik) host from static.highlight.io
+				`https://unpkg.com/@lavamoat/snow@1.5.0/snow.prod.js`,
+			)
+			script.setAttribute('type', 'text/javascript')
+			document.getElementsByTagName('head')[0].appendChild(script)
+
+			script = document.createElement('script')
 			var scriptSrc = options?.scriptUrl
 				? options.scriptUrl
 				: `https://static.highlight.io/v${firstloadVersion}/index.js`
 			script.setAttribute('src', scriptSrc)
 			script.setAttribute('type', 'text/javascript')
+			script.setAttribute('async', 'true')
 			document.getElementsByTagName('head')[0].appendChild(script)
 
 			let previousSession = getPreviousSessionData()

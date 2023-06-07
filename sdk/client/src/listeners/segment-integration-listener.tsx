@@ -8,8 +8,8 @@ enum SEGMENT_LOCAL_STORAGE_KEYS {
 
 export const SegmentIntegrationListener = (callback: (obj: any) => void) => {
 	callback(window.location.href)
-	var send = XMLHttpRequest.prototype.send
-	XMLHttpRequest.prototype.send = function (data: any) {
+	var send = window.XMLHttpRequest.prototype.send
+	window.XMLHttpRequest.prototype.send = function (data: any) {
 		setTimeout(() => {
 			var obj: any
 			try {
@@ -86,7 +86,7 @@ export const SegmentIntegrationListener = (callback: (obj: any) => void) => {
 
 	return () => {
 		window.removeEventListener('storage', localStorageHandler)
-		XMLHttpRequest.prototype.send = send
+		window.XMLHttpRequest.prototype.send = send
 	}
 }
 
