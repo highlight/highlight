@@ -11413,22 +11413,6 @@ span:last-child ._ruleItem_1yzqu_148 {
 ._1hjkzyj1 {
   white-space: pre;
 }
-
-/* temp_stylePlugin:ni:sha-256;oDUKD9GxDsgeQivffCYJSAujfaHEtPdjRZBdu4Gz04U */
-._explanatoryPopoverOverlay_jdhfs_1 .ant-popover-inner-content {
-  align-items: center;
-  display: flex;
-  gap: 4px;
-  justify-content: center;
-  padding: 4px !important;
-}
-._explanatoryPopoverOverlay_jdhfs_1.ant-popover-placement-top {
-  pointer-events: none;
-}
-._explanatoryPopoverOverlay_jdhfs_1.ant-popover-inner {
-  border: 1px solid var(--color-neutral-200);
-  overflow: hidden;
-}
 ._1ubqgtn0 {
   display: grid;
   grid-template-columns: 82px 1fr;
