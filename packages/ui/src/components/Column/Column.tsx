@@ -5,7 +5,7 @@ import { sprinkles } from '../../css/sprinkles.css'
 import { negativeMargin } from './utils'
 
 import * as styles from './styles.css'
-import { spaces } from '@css/spaces'
+import { spaces } from '../../css/spaces'
 
 type Gap = keyof typeof spaces
 
