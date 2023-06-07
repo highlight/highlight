@@ -463,9 +463,12 @@ export const LogValue: React.FC<{
 									}}
 								/>
 							}
+							timeout={1000}
 						>
 							<Box p="4">
-								<Text size="small">Apply as filter</Text>
+								<Text userSelect="none" color="n11">
+									Apply as filter
+								</Text>
 							</Box>
 						</Tooltip>
 					</Box>
@@ -485,9 +488,12 @@ export const LogValue: React.FC<{
 									}}
 								/>
 							}
+							timeout={1000}
 						>
 							<Box p="4">
-								<Text size="small">Copy to your clipboard</Text>
+								<Text userSelect="none" color="n11">
+									Copy to your clipboard
+								</Text>
 							</Box>
 						</Tooltip>
 					</Box>

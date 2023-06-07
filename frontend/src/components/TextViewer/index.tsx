@@ -5,8 +5,8 @@ import {
 	IconSolidClipboardCopy,
 	IconSolidDownload,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui'
-import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
 import { copyToClipboard } from '@util/string'
 import React from 'react'
 // @ts-ignore
@@ -41,55 +41,60 @@ const TextViewer = React.memo(
 				<Box display="flex" alignItems="center">
 					{title}
 					<Box ml="auto" display="flex" gap="2">
-						<ExplanatoryPopover
-							content={
-								<>
-									<Text userSelect="none" color="n11">
-										Copy to Clipboard
-									</Text>
-								</>
+						<Tooltip
+							placement="top-end"
+							trigger={
+								<ButtonIcon
+									kind="secondary"
+									size="xSmall"
+									shape="square"
+									emphasis="low"
+									icon={<IconSolidClipboardCopy />}
+									onClick={() => {
+										copyToClipboard(JSON.stringify(data), {
+											onCopyText:
+												'Copied text to clipboard.',
+										})
+									}}
+								/>
 							}
+							timeout={1000}
 						>
-							<ButtonIcon
-								kind="secondary"
-								size="xSmall"
-								shape="square"
-								emphasis="low"
-								icon={<IconSolidClipboardCopy />}
-								onClick={() => {
-									copyToClipboard(JSON.stringify(data), {
-										onCopyText: 'Copied text to clipboard.',
-									})
-								}}
-							/>
-						</ExplanatoryPopover>
-						<ExplanatoryPopover
-							content={
-								<>
-									<Text userSelect="none" color="n11">
-										Download this as JSON
-									</Text>
-								</>
+							<Box p="4">
+								<Text userSelect="none" color="n11">
+									Copy to Clipboard
+								</Text>
+							</Box>
+						</Tooltip>
+						<Tooltip
+							placement="top-end"
+							trigger={
+								<ButtonIcon
+									kind="secondary"
+									size="xSmall"
+									shape="square"
+									emphasis="low"
+									icon={<IconSolidDownload />}
+									onClick={() => {
+										download({
+											data: JSON.stringify(
+												data,
+												undefined,
+												2,
+											),
+											name: downloadFileName,
+										})
+									}}
+								/>
 							}
+							timeout={1000}
 						>
-							<ButtonIcon
-								kind="secondary"
-								size="xSmall"
-								shape="square"
-								emphasis="low"
-								icon={<IconSolidDownload />}
-								onClick={() => {
-									download({
-										data: JSON.stringify(
-											data,
-											undefined,
-											2,
-										),
-										name: downloadFileName,
-									})
-								}}
-							/>
-						</ExplanatoryPopover>
+							<Box p="4">
+								<Text userSelect="none" color="n11">
+									Download this as JSON
+								</Text>
+							</Box>
+						</Tooltip>
 					</Box>
 				</Box>
 				<Box
