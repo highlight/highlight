@@ -9134,7 +9134,7 @@ export type GetSegmentsQueryResult = Apollo.QueryResult<
 >
 export const GetErrorSegmentsDocument = gql`
 	query GetErrorSegments($project_id: ID!) {
-		error_segments(project_id: $project_id) {
+		segments: error_segments(project_id: $project_id) {
 			id
 			name
 			params {
@@ -11286,9 +11286,6 @@ export const GetAlertsPagePayloadDocument = gql`
 			Name
 			DailyFrequency
 			disabled
-		}
-		session_feedback_alerts(project_id: $project_id) {
-			...SessionAlertFragment
 		}
 		new_session_alerts(project_id: $project_id) {
 			...SessionAlertFragment

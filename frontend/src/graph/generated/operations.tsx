@@ -3239,7 +3239,7 @@ export type GetErrorSegmentsQueryVariables = Types.Exact<{
 }>
 
 export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
-	error_segments?: Types.Maybe<
+	segments?: Types.Maybe<
 		Array<
 			Types.Maybe<
 				{ __typename?: 'ErrorSegment' } & Pick<
@@ -3851,11 +3851,6 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 						>
 					>
 				}
-		>
-	>
-	session_feedback_alerts: Array<
-		Types.Maybe<
-			{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
 		>
 	>
 	new_session_alerts: Array<

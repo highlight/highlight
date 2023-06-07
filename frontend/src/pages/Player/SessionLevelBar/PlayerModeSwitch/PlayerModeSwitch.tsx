@@ -47,7 +47,7 @@ export const PlayerModeSwitch: React.FC = () => {
 						}}
 					/>
 				}
-				timeout={1000}
+				delayed
 			>
 				<KeyboardShortcut label="Enable comment mode" shortcut="c" />
 			</Tooltip>
@@ -65,7 +65,7 @@ export const PlayerModeSwitch: React.FC = () => {
 						}}
 					/>
 				}
-				timeout={1000}
+				delayed
 			>
 				<KeyboardShortcut label="Enable inspect mode" shortcut="d" />
 			</Tooltip>

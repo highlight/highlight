@@ -4069,9 +4069,9 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model
 
 // ErrorObject is the resolver for the error_object field.
 func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorObject, error) {
-	errorObject := &model.ErrorObject{}
-	if err := r.DB.Where(&model.ErrorObject{Model: model.Model{ID: id}}).First(&errorObject).Error; err != nil {
-		return nil, e.Wrap(err, "error reading error object")
+	errorObject, err := r.canAdminViewErrorObject(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "not authorized to view error object")
 	}
 	return errorObject, nil
 }
@@ -4081,6 +4081,10 @@ func (r *queryResolver) ErrorObjectForLog(ctx context.Context, logCursor string)
 	errorObject := &model.ErrorObject{}
 	if err := r.DB.Order("log_cursor").Model(&errorObject).Where(&model.ErrorObject{LogCursor: pointy.String(logCursor)}).Limit(1).Find(&errorObject).Error; err != nil || errorObject.ID == 0 {
 		return nil, e.Wrapf(err, "no error found for log cursor %s", logCursor)
+	}
+	errorObject, err := r.canAdminViewErrorObject(ctx, errorObject.ID)
+	if err != nil {
+		return nil, e.Wrap(err, "not authorized to view error object")
 	}
 	return errorObject, nil
 }
@@ -5672,20 +5676,6 @@ func (r *queryResolver) ErrorAlerts(ctx context.Context, projectID int) ([]*mode
 	return alerts, nil
 }
 
-// SessionFeedbackAlerts is the resolver for the session_feedback_alerts field.
-func (r *queryResolver) SessionFeedbackAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying project on session feedback alerts")
-	}
-	var alerts []*model.SessionAlert
-	if err := r.DB.Model(&model.SessionAlert{}).Where("project_id = ?", projectID).
-		Where("type=?", model.AlertType.SESSION_FEEDBACK).Find(&alerts).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session feedback alerts")
-	}
-	return alerts, nil
-}
-
 // NewUserAlerts is the resolver for the new_user_alerts field.
 func (r *queryResolver) NewUserAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -5907,7 +5897,7 @@ func (r *queryResolver) DiscordChannelSuggestions(ctx context.Context, projectID
 	guildId := workspace.DiscordGuildId
 
 	if guildId == nil {
-		return ret, e.Wrap(err, "discord not enabled for workspace")
+		return ret, nil
 	}
 
 	bot, err := discord.NewDiscordBot(*guildId)
@@ -6515,37 +6505,20 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		tracer.Tag("admin_uid", admin.UID))
 
 	if err := r.DB.Where(&model.Admin{UID: admin.UID}).First(&admin).Error; err != nil {
-		if admin, err = r.createAdmin(ctx); err != nil {
-			spanError := e.Wrap(err, "error creating user in postgres")
+		if e.Is(err, gorm.ErrRecordNotFound) {
+			// Sometimes users don't exist in our DB because they authenticated with
+			// Google auth and never went through the sign up flow. In this case, we
+			// create a new user in our DB.
+			if admin, err = r.createAdmin(ctx); err != nil {
+				spanError := e.Wrap(err, "error creating admin in postgres")
+				adminSpan.Finish(tracer.WithError(spanError))
+				return nil, spanError
+			}
+		} else {
+			spanError := e.Wrap(err, "error retrieving admin from postgres")
 			adminSpan.Finish(tracer.WithError(spanError))
 			return nil, spanError
 		}
-	}
-
-	if admin.PhotoURL == nil || admin.Name == nil {
-		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
-			tracer.Tag("admin_uid", *admin.UID))
-		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
-		if err != nil {
-			spanError := e.Wrap(err, "error retrieving user from firebase api")
-			adminSpan.Finish(tracer.WithError(spanError))
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
-			PhotoURL: &firebaseUser.PhotoURL,
-			Name:     &firebaseUser.DisplayName,
-			Phone:    &firebaseUser.PhoneNumber,
-		}).Error; err != nil {
-			spanError := e.Wrap(err, "error updating org fields")
-			adminSpan.Finish(tracer.WithError(spanError))
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		admin.PhotoURL = &firebaseUser.PhotoURL
-		admin.Name = &firebaseUser.DisplayName
-		admin.Phone = &firebaseUser.PhoneNumber
-		firebaseSpan.Finish()
 	}
 
 	// Check email verification status

@@ -144,10 +144,28 @@ func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) 
 }
 
 func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
-	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.admin"))
+	adminUID := pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))
+	firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
+		tracer.Tag("admin_uid", adminUID))
+	firebaseUser, err := AuthClient.GetUser(context.Background(), *adminUID)
+	if err != nil {
+		spanError := e.Wrap(err, "error retrieving user from firebase api")
+		firebaseSpan.Finish(tracer.WithError(spanError))
+		return nil, spanError
+	}
+	firebaseSpan.Finish()
 
-	admin := &model.Admin{UID: pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))}
-	tx := r.DB.Where(admin).
+	adminSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.admin"))
+	admin := &model.Admin{
+		UID:                   adminUID,
+		Name:                  &firebaseUser.DisplayName,
+		Email:                 &firebaseUser.Email,
+		PhotoURL:              &firebaseUser.PhotoURL,
+		EmailVerified:         &firebaseUser.EmailVerified,
+		Phone:                 &firebaseUser.PhoneNumber,
+		AboutYouDetailsFilled: &model.F,
+	}
+	tx := r.DB.Where(&model.Admin{UID: admin.UID}).
 		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "uid"}}, DoNothing: true}).
 		Create(&admin).
 		Attrs(&admin)
@@ -156,61 +174,8 @@ func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
 		adminSpan.Finish(tracer.WithError(spanError))
 		return nil, spanError
 	}
-	if tx.RowsAffected != 0 {
-		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
-			tracer.Tag("admin_uid", *admin.UID))
-		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
-		if err != nil {
-			spanError := e.Wrap(err, "error retrieving user from firebase api")
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			adminSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
-			UID:                   admin.UID,
-			Name:                  &firebaseUser.DisplayName,
-			Email:                 &firebaseUser.Email,
-			PhotoURL:              &firebaseUser.PhotoURL,
-			EmailVerified:         &firebaseUser.EmailVerified,
-			Phone:                 &firebaseUser.PhoneNumber,
-			AboutYouDetailsFilled: &model.F,
-		}).Error; err != nil {
-			spanError := e.Wrap(err, "error creating new admin")
-			adminSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		firebaseSpan.Finish()
-	}
-	if err := r.DB.Where(&model.Admin{UID: admin.UID}).First(&admin).Error; err != nil {
-		spanError := e.Wrap(err, "error fetching admin")
-		adminSpan.Finish(tracer.WithError(spanError))
-		return nil, spanError
-	}
-	if admin.PhotoURL == nil || admin.Name == nil {
-		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
-			tracer.Tag("admin_uid", *admin.UID))
-		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
-		if err != nil {
-			spanError := e.Wrap(err, "error retrieving user from firebase api")
-			adminSpan.Finish(tracer.WithError(spanError))
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
-			PhotoURL: &firebaseUser.PhotoURL,
-			Name:     &firebaseUser.DisplayName,
-			Phone:    &firebaseUser.PhoneNumber,
-		}).Error; err != nil {
-			spanError := e.Wrap(err, "error updating org fields")
-			adminSpan.Finish(tracer.WithError(spanError))
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		admin.PhotoURL = &firebaseUser.PhotoURL
-		admin.Name = &firebaseUser.DisplayName
-		admin.Phone = &firebaseUser.PhoneNumber
-		firebaseSpan.Finish()
-	}
+	adminSpan.Finish()
+
 	return admin, nil
 }
 
@@ -913,6 +878,24 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 	}
 
 	return eg, true, nil
+}
+
+func (r *Resolver) canAdminViewErrorObject(ctx context.Context, errorObjectID int) (*model.ErrorObject, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorObject"))
+	defer authSpan.Finish()
+
+	errorObject := model.ErrorObject{}
+	if err := r.DB.Where(&model.ErrorObject{ID: errorObjectID}).
+		Preload("ErrorGroup").
+		First(&errorObject).Error; err != nil {
+		return nil, err
+	}
+
+	if _, err := r.canAdminViewErrorGroup(ctx, errorObject.ErrorGroup.SecureID); err != nil {
+		return nil, err
+	}
+
+	return &errorObject, nil
 }
 
 func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
@@ -3028,10 +3011,15 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model
 }
 
 func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId int) (*[]model.SlackChannel, int, error) {
+	var filteredNewChannels []model.SlackChannel
+
 	workspace, _ := r.GetWorkspace(workspaceId)
+	// workspace is not integrated with slack
+	if workspace.SlackAccessToken == nil {
+		return &filteredNewChannels, 0, nil
+	}
 
 	slackClient := slack.New(*workspace.SlackAccessToken)
-	filteredNewChannels := []model.SlackChannel{}
 	existingChannels, _ := workspace.IntegratedSlackChannels()
 
 	getConversationsParam := slack.GetConversationsParameters{

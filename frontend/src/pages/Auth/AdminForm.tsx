@@ -14,7 +14,6 @@ import {
 	useUpdateAdminAboutYouDetailsMutation,
 	useUpdateAdminAndCreateWorkspaceMutation,
 } from '@graph/hooks'
-import { namedOperations } from '@graph/operations'
 import {
 	Box,
 	ButtonLink,
@@ -35,6 +34,8 @@ import { useLocalStorage } from 'react-use'
 
 import { DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY } from '@/pages/Auth/JoinWorkspace'
 
+import { namedOperations } from '@/graph/generated/operations'
+
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
 
@@ -51,7 +52,7 @@ export const AdminForm: React.FC = () => {
 	const { refetch: refetchProjects } = useGetProjectsAndWorkspacesQuery()
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
 	const { setLoadingState } = useAppLoadingContext()
-	const { admin, refetchAdmin } = useAuthContext()
+	const { admin, fetchAdmin } = useAuthContext()
 	const navigate = useNavigate()
 	const { data: workspacesData, loading: workspacesLoading } =
 		useGetWorkspacesQuery()
@@ -156,8 +157,15 @@ export const AdminForm: React.FC = () => {
 				`Nice to meet you ${formState.values.firstName}, let's get started!`,
 			)
 
-			await refetchProjects()
-			await refetchAdmin() // updates admin in auth context
+			const projects = await refetchProjects()
+			await fetchAdmin() // updates admin in auth context
+
+			if (projects.data?.projects?.length) {
+				const projectId = projects.data?.projects[0]?.id
+				navigate(`/${projectId}/setup`)
+			} else {
+				navigate('/setup')
+			}
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)

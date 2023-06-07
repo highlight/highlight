@@ -20,8 +20,9 @@ export const JStRPCContent: QuickStartContent = {
 		{
 			title: 'Add the tRPC Highlight integration.',
 			content: addIntegrationContent('Node Highlight SDK', 'nodejs'),
-			code: {
-				text: `import { createNextApiHandler } from '@trpc/server/adapters/next'
+			code: [
+				{
+					text: `import { createNextApiHandler } from '@trpc/server/adapters/next'
 import { Handlers } from '@highlight-run/node'
 
 export default createNextApiHandler({
@@ -32,8 +33,9 @@ export default createNextApiHandler({
   },
 })
 `,
-				language: 'js',
-			},
+					language: 'js',
+				},
+			],
 		},
 		verifyError('tRPC'),
 		setupLogging('trpc'),
