@@ -1,6 +1,7 @@
 import { UserPropertyInput } from '@graph/schemas'
-import { QueryBuilderState } from '@pages/ErrorsV2/ErrorQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { decodeDelimitedArray, encodeDelimitedArray } from 'use-query-params'
+
+import { QueryBuilderState } from '@/components/QueryBuilder/QueryBuilder'
 
 /**
  * Delimiter used to delimit a properties value and id.
