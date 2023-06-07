@@ -73,9 +73,9 @@ const size = {
 } as const
 
 const weight = {
-	regular: { fontWeight: '300' },
-	medium: { fontWeight: '400' },
-	bold: { fontWeight: '500' },
+	regular: { fontWeight: '400' },
+	medium: { fontWeight: '500' },
+	bold: { fontWeight: '600' },
 } as const
 
 export const typographyStyles = {
