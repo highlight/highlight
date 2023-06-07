@@ -2,26 +2,157 @@ package store
 
 import (
 	"context"
+	"strconv"
 	"testing"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestListErrorObjects(t *testing.T) {
-	util.RunTestWithDBWipe(t, "TestUpdateErrorGroupStateByAdmin", store.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, "TestListErrorObjects", store.db, func(t *testing.T) {
 		errorGroup := model.ErrorGroup{
 			State: privateModel.ErrorStateOpen,
 		}
 		store.db.Create(&errorGroup)
 
-		connection, err := store.ListErrorObjects(context.TODO(), errorGroup)
+		// No error objects
+		connection, err := store.ListErrorObjects(errorGroup, ListErrorObjectsParams{})
 		assert.NoError(t, err)
 
 		assert.Equal(t, privateModel.ErrorObjectConnection{}, connection)
+
+		// One error object
+		errorObject := model.ErrorObject{
+			ErrorGroupID: errorGroup.ID,
+		}
+		store.db.Create(&errorObject)
+		connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{})
+		assert.NoError(t, err)
+
+		assert.Equal(t, privateModel.ErrorObjectConnection{
+			Edges: []*privateModel.ErrorObjectEdge{
+				{
+					Cursor: strconv.Itoa(errorObject.ID),
+					Node: &privateModel.ErrorObjectNode{
+						ID: errorObject.ID,
+					},
+				},
+			},
+			PageInfo: &privateModel.PageInfo{
+				HasNextPage:     false,
+				HasPreviousPage: false,
+				StartCursor:     strconv.Itoa(errorObject.ID),
+				EndCursor:       strconv.Itoa(errorObject.ID),
+			},
+		}, connection)
+
+	})
+}
+
+func TestListErrorObjectsTraversing(t *testing.T) {
+	util.RunTestWithDBWipe(t, "TestListErrorObjectsTraversing", store.db, func(t *testing.T) {
+		errorGroup := model.ErrorGroup{
+			State: privateModel.ErrorStateOpen,
+		}
+		store.db.Create(&errorGroup)
+
+		// Create three pages
+		// The first page has 10 items (hasPreviousPage = false, hasNextPage = true)
+		// The second page has 10 items (hasPreviousPage = true, hasNextPage = true)
+		// The last page has 1 item (hasPreviousPage = true, hasNextPage = false)
+		for i := 1; i <= 21; i++ {
+			store.db.Create(&model.ErrorObject{
+				ErrorGroupID: errorGroup.ID,
+				ID:           i,
+			})
+		}
+
+		// Get first page
+		connection, err := store.ListErrorObjects(errorGroup, ListErrorObjectsParams{})
+		assert.NoError(t, err)
+
+		assert.Len(t, connection.Edges, 10)
+		cursors := lo.Map(connection.Edges, func(edge *privateModel.ErrorObjectEdge, index int) string {
+			return edge.Cursor
+		})
+		assert.Equal(t, cursors, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"})
+		assert.Equal(t, &privateModel.PageInfo{
+			HasNextPage:     true,
+			HasPreviousPage: false,
+			StartCursor:     "1",
+			EndCursor:       "10",
+		}, connection.PageInfo)
+
+		// Get second page using `After` cursor
+		connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{After: ptr.String("10")})
+		assert.NoError(t, err)
+
+		assert.Len(t, connection.Edges, 10)
+		cursors = lo.Map(connection.Edges, func(edge *privateModel.ErrorObjectEdge, index int) string {
+			return edge.Cursor
+		})
+		assert.Equal(t, cursors, []string{"11", "12", "13", "14", "15", "16", "17", "18", "19", "20"})
+		assert.Equal(t, &privateModel.PageInfo{
+			HasNextPage:     true,
+			HasPreviousPage: true,
+			StartCursor:     "11",
+			EndCursor:       "20",
+		}, connection.PageInfo)
+
+		// Get last page using `After` cursor
+		connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{After: ptr.String("20")})
+		assert.NoError(t, err)
+
+		assert.Len(t, connection.Edges, 1)
+		cursors = lo.Map(connection.Edges, func(edge *privateModel.ErrorObjectEdge, index int) string {
+			return edge.Cursor
+		})
+		assert.Equal(t, cursors, []string{"21"})
+		assert.Equal(t, &privateModel.PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: true,
+			StartCursor:     "21",
+			EndCursor:       "21",
+		}, connection.PageInfo)
+
+		// Go back to second page using `Before` cursor
+		connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{Before: ptr.String("21")})
+		assert.NoError(t, err)
+
+		assert.Len(t, connection.Edges, 10)
+		cursors = lo.Map(connection.Edges, func(edge *privateModel.ErrorObjectEdge, index int) string {
+			return edge.Cursor
+		})
+		assert.Equal(t, cursors, []string{"11", "12", "13", "14", "15", "16", "17", "18", "19", "20"})
+		assert.Equal(t, &privateModel.PageInfo{
+			HasNextPage:     true,
+			HasPreviousPage: true,
+			StartCursor:     "11",
+			EndCursor:       "20",
+		}, connection.PageInfo)
+
+		// Go back to first page using `Before` cursor
+		connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{Before: ptr.String("11")})
+		assert.NoError(t, err)
+
+		assert.Len(t, connection.Edges, 10)
+		cursors = lo.Map(connection.Edges, func(edge *privateModel.ErrorObjectEdge, index int) string {
+			return edge.Cursor
+		})
+		assert.Equal(t, cursors, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"})
+		assert.Equal(t, &privateModel.PageInfo{
+			HasNextPage:     true,
+			HasPreviousPage: false,
+			StartCursor:     "1",
+			EndCursor:       "10",
+		}, connection.PageInfo)
+
 	})
 }
 

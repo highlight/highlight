@@ -3,23 +3,104 @@ package store
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/samber/lo"
 )
 
-func (store *Store) ListErrorObjects(ctx context.Context, errorGroup model.ErrorGroup) (privateModel.ErrorObjectConnection, error) {
+type ListErrorObjectsParams struct {
+	After  *string
+	Before *string
+}
+
+func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErrorObjectsParams) (privateModel.ErrorObjectConnection, error) {
 	limit := 10 // Number of results per page
 
-	var connection privateModel.ErrorObjectConnection
 	var errorObjects []model.ErrorObject
-	errorObjectsPtr := &errorObjects
 
-	store.db.Limit(limit).Where(errorGroup.ErrorObjects).Find(errorObjectsPtr)
+	query := store.db.
+		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(limit + 1)
 
-	return connection, nil
+	var (
+		endCursor       string
+		startCursor     string
+		hasNextPage     bool
+		hasPreviousPage bool
+	)
+
+	if params.After != nil {
+		query = query.Order("id ASC").Where("id > ?", *params.After)
+	} else if params.Before != nil {
+		query = query.Order("id DESC").Where("id < ?", *params.Before)
+	} else {
+		query = query.Order("id ASC")
+	}
+
+	if err := query.Find(&errorObjects).Error; err != nil {
+		return privateModel.ErrorObjectConnection{}, err
+	}
+
+	if len(errorObjects) == 0 {
+		return privateModel.ErrorObjectConnection{}, nil
+	}
+
+	edges := []*privateModel.ErrorObjectEdge{}
+
+	for _, errorObject := range errorObjects {
+		edges = append(edges, &privateModel.ErrorObjectEdge{
+			Cursor: strconv.Itoa(errorObject.ID),
+			Node: &privateModel.ErrorObjectNode{
+				ID: errorObject.ID,
+			},
+		})
+	}
+
+	if params.After != nil {
+		hasPreviousPage = true // Assume we have a previous page if `after` is provided
+
+		if len(edges) == limit+1 {
+			edges = edges[:limit]
+			hasNextPage = true
+		}
+
+		startCursor = edges[0].Cursor
+		endCursor = edges[len(edges)-1].Cursor
+	} else if params.Before != nil {
+		hasNextPage = true // Assume we have a next page if `before` is provided
+
+		if len(edges) == limit+1 {
+			edges = edges[:limit]
+			hasPreviousPage = true
+		}
+
+		edges := lo.Reverse(edges)
+
+		startCursor = edges[0].Cursor
+		endCursor = edges[len(edges)-1].Cursor
+	} else {
+		if len(edges) > limit {
+			edges = edges[:limit]
+			hasNextPage = true
+		}
+
+		startCursor = edges[0].Cursor
+		endCursor = edges[len(edges)-1].Cursor
+	}
+
+	return privateModel.ErrorObjectConnection{
+		Edges: edges,
+		PageInfo: &privateModel.PageInfo{
+			HasNextPage:     hasNextPage,
+			HasPreviousPage: hasPreviousPage,
+			StartCursor:     startCursor,
+			EndCursor:       endCursor,
+		},
+	}, nil
+
 }
 
 type UpdateErrorGroupParams struct {

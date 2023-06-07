@@ -810,7 +810,7 @@ type ComplexityRoot struct {
 		ErrorIssue                   func(childComplexity int, errorGroupSecureID string) int
 		ErrorObject                  func(childComplexity int, id int) int
 		ErrorObjectForLog            func(childComplexity int, logCursor string) int
-		ErrorObjects                 func(childComplexity int, errorGroupSecureID string) int
+		ErrorObjects                 func(childComplexity int, errorGroupSecureID string, after *string, before *string) int
 		ErrorSegments                func(childComplexity int, projectID int) int
 		Errors                       func(childComplexity int, sessionSecureID string) int
 		ErrorsHistogram              func(childComplexity int, projectID int, query string, histogramOptions model.DateHistogramOptions) int
@@ -1379,7 +1379,7 @@ type QueryResolver interface {
 	ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions model.DateHistogramOptions) (*model1.ErrorsHistogram, error)
 	ErrorGroup(ctx context.Context, secureID string) (*model1.ErrorGroup, error)
 	ErrorObject(ctx context.Context, id int) (*model1.ErrorObject, error)
-	ErrorObjects(ctx context.Context, errorGroupSecureID string) (*model.ErrorObjectConnection, error)
+	ErrorObjects(ctx context.Context, errorGroupSecureID string, after *string, before *string) (*model.ErrorObjectConnection, error)
 	ErrorObjectForLog(ctx context.Context, logCursor string) (*model1.ErrorObject, error)
 	ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int) (*model1.ErrorInstance, error)
 	EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*model.EnhancedUserDetailsResult, error)
@@ -5757,7 +5757,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorObjects(childComplexity, args["error_group_secure_id"].(string)), true
+		return e.complexity.Query.ErrorObjects(childComplexity, args["error_group_secure_id"].(string), args["after"].(*string), args["before"].(*string)), true
 
 	case "Query.error_segments":
 		if e.complexity.Query.ErrorSegments == nil {
@@ -9986,7 +9986,11 @@ type Query {
 	): ErrorsHistogram!
 	error_group(secure_id: String!): ErrorGroup
 	error_object(id: ID!): ErrorObject
-	error_objects(error_group_secure_id: String!): ErrorObjectConnection!
+	error_objects(
+		error_group_secure_id: String!
+		after: String
+		before: String
+	): ErrorObjectConnection!
 	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(
 		error_group_secure_id: String!
@@ -14330,6 +14334,24 @@ func (ec *executionContext) field_Query_error_objects_args(ctx context.Context, 
 		}
 	}
 	args["error_group_secure_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
 	return args, nil
 }
 
@@ -40404,7 +40426,7 @@ func (ec *executionContext) _Query_error_objects(ctx context.Context, field grap
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorObjects(rctx, fc.Args["error_group_secure_id"].(string))
+		return ec.resolvers.Query().ErrorObjects(rctx, fc.Args["error_group_secure_id"].(string), fc.Args["after"].(*string), fc.Args["before"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
