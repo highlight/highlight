@@ -18,6 +18,7 @@ func TestListErrorObjects(t *testing.T) {
 	util.RunTestWithDBWipe(t, "TestListErrorObjects", store.db, func(t *testing.T) {
 		errorGroup := model.ErrorGroup{
 			State: privateModel.ErrorStateOpen,
+			Event: "something broke!",
 		}
 		store.db.Create(&errorGroup)
 
@@ -28,8 +29,18 @@ func TestListErrorObjects(t *testing.T) {
 		assert.Equal(t, privateModel.ErrorObjectConnection{}, connection)
 
 		// One error object
+		userProperties := map[string]string{
+			"email": "chilly@mcwilly.com",
+		}
+		session := model.Session{}
+		err = session.SetUserProperties(userProperties)
+		assert.NoError(t, err)
+
+		store.db.Create(&session)
+
 		errorObject := model.ErrorObject{
 			ErrorGroupID: errorGroup.ID,
+			SessionID:    &session.ID,
 		}
 		store.db.Create(&errorObject)
 		connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{})
@@ -40,7 +51,13 @@ func TestListErrorObjects(t *testing.T) {
 				{
 					Cursor: strconv.Itoa(errorObject.ID),
 					Node: &privateModel.ErrorObjectNode{
-						ID: errorObject.ID,
+						ID:        errorObject.ID,
+						CreatedAt: errorObject.CreatedAt,
+						Event:     errorObject.Event,
+						Session: &privateModel.ErrorObjectNodeSession{
+							SecureID:       session.SecureID,
+							UserProperties: &session.UserProperties,
+						},
 					},
 				},
 			},

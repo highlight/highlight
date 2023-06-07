@@ -520,7 +520,21 @@ export type ErrorObjectConnection = Connection & {
 export type ErrorObjectEdge = Edge & {
 	__typename?: 'ErrorObjectEdge'
 	cursor: Scalars['String']
-	node: ErrorObject
+	node: ErrorObjectNode
+}
+
+export type ErrorObjectNode = {
+	__typename?: 'ErrorObjectNode'
+	created_at: Scalars['Timestamp']
+	event: Scalars['String']
+	id: Scalars['ID']
+	session: ErrorObjectNodeSession
+}
+
+export type ErrorObjectNodeSession = {
+	__typename?: 'ErrorObjectNodeSession'
+	secure_id: Scalars['String']
+	user_properties?: Maybe<Scalars['String']>
 }
 
 export type ErrorResults = {
@@ -1894,6 +1908,8 @@ export type QueryError_Object_For_LogArgs = {
 }
 
 export type QueryError_ObjectsArgs = {
+	after?: InputMaybe<Scalars['String']>
+	before?: InputMaybe<Scalars['String']>
 	error_group_secure_id: Scalars['String']
 }
 

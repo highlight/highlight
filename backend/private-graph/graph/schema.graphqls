@@ -602,8 +602,16 @@ type LogConnection implements Connection {
 	pageInfo: PageInfo!
 }
 
+type ErrorObjectNodeSession {
+	secure_id: String!
+	user_properties: String
+}
+
 type ErrorObjectNode {
-	ID: ID!
+	id: ID!
+	created_at: Timestamp!
+	event: String!
+	session: ErrorObjectNodeSession!
 }
 
 type ErrorObjectEdge implements Edge {

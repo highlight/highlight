@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -17,13 +18,15 @@ type ListErrorObjectsParams struct {
 	Before *string
 }
 
+// Number of results per page
+const LIMIT = 10
+
 func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErrorObjectsParams) (privateModel.ErrorObjectConnection, error) {
-	limit := 10 // Number of results per page
 
 	var errorObjects []model.ErrorObject
 
 	query := store.db.
-		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(limit + 1)
+		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(LIMIT + 1)
 
 	var (
 		endCursor       string
@@ -51,19 +54,36 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 	edges := []*privateModel.ErrorObjectEdge{}
 
 	for _, errorObject := range errorObjects {
-		edges = append(edges, &privateModel.ErrorObjectEdge{
+		edge := &privateModel.ErrorObjectEdge{
 			Cursor: strconv.Itoa(errorObject.ID),
 			Node: &privateModel.ErrorObjectNode{
-				ID: errorObject.ID,
+				ID:        errorObject.ID,
+				CreatedAt: errorObject.CreatedAt,
+				Event:     errorObject.Event,
 			},
-		})
+		}
+
+		if errorObject.SessionID != nil {
+			session, err := store.GetSession(*errorObject.SessionID)
+
+			if err != nil {
+				return privateModel.ErrorObjectConnection{}, fmt.Errorf("Failed to fetch session for error_object_id: %d", errorObject.ID)
+			}
+
+			edge.Node.Session = &privateModel.ErrorObjectNodeSession{
+				SecureID:       session.SecureID,
+				UserProperties: &session.UserProperties,
+			}
+		}
+
+		edges = append(edges, edge)
 	}
 
 	if params.After != nil {
 		hasPreviousPage = true // Assume we have a previous page if `after` is provided
 
-		if len(edges) == limit+1 {
-			edges = edges[:limit]
+		if len(edges) == LIMIT+1 {
+			edges = edges[:LIMIT]
 			hasNextPage = true
 		}
 
@@ -72,8 +92,8 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 	} else if params.Before != nil {
 		hasNextPage = true // Assume we have a next page if `before` is provided
 
-		if len(edges) == limit+1 {
-			edges = edges[:limit]
+		if len(edges) == LIMIT+1 {
+			edges = edges[:LIMIT]
 			hasPreviousPage = true
 		}
 
@@ -82,8 +102,8 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 		startCursor = edges[0].Cursor
 		endCursor = edges[len(edges)-1].Cursor
 	} else {
-		if len(edges) > limit {
-			edges = edges[:limit]
+		if len(edges) > LIMIT {
+			edges = edges[:LIMIT]
 			hasNextPage = true
 		}
 
