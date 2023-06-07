@@ -5,6 +5,7 @@ export type WebSocketListenerCallback = (event: WebSocketEvent) => void
 
 const WebSocketListener = (callback: WebSocketListenerCallback) => {
 	var originalWebSocket = window.WebSocket
+	console.log('Websocket - Initialized')
 
 	function WebSocket(
 		this: WebSocket,
@@ -18,20 +19,21 @@ const WebSocketListener = (callback: WebSocketListenerCallback) => {
 			throw new Error('WebSocket must be called with new')
 		}
 		const ws = new originalWebSocket(...args)
+		// TODO(spenny): do we want a create? Can we rely on open?
 		callback({
 			socketId,
 			type: 'create',
 			size: 0,
 			strData: args[0],
 		})
-		console.log('Create', socketId, 0, args[0])
+		console.log('Websocket - Create', socketId, 0, args[0])
 		ws.addEventListener('error', (event) => {
 			callback({
 				socketId,
 				type: 'error',
 				size: 0,
 			})
-			console.log('Error', socketId, 0)
+			console.log('Websocket - Error', socketId, 0, event)
 		})
 		ws.addEventListener('open', (event) => {
 			callback({
@@ -39,7 +41,7 @@ const WebSocketListener = (callback: WebSocketListenerCallback) => {
 				type: 'open',
 				size: 0,
 			})
-			console.log('Open', socketId, 0)
+			console.log('Websocket - Open', socketId, 0, event)
 		})
 		ws.addEventListener('close', (event) => {
 			callback({
@@ -47,7 +49,7 @@ const WebSocketListener = (callback: WebSocketListenerCallback) => {
 				type: 'close',
 				size: 0,
 			})
-			console.log('Close', socketId, 0)
+			console.log('Websocket - Close', socketId, 0, event)
 		})
 		ws.addEventListener('message', (event) => {
 			let size: number
@@ -65,7 +67,7 @@ const WebSocketListener = (callback: WebSocketListenerCallback) => {
 				size,
 				strData,
 			})
-			console.log('Received', socketId, size, strData)
+			console.log('Websocket - Received', socketId, size, strData, event)
 		})
 		const originalSend = ws.send.bind(ws)
 		ws.send = (data) => {
@@ -87,7 +89,7 @@ const WebSocketListener = (callback: WebSocketListenerCallback) => {
 				size,
 				strData,
 			})
-			console.log('Sent', socketId, size, strData)
+			console.log('Websocket - Sent', socketId, size, strData)
 			return originalSend(data)
 		}
 
