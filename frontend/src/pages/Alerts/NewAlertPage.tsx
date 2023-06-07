@@ -184,17 +184,6 @@ const getNewAlert = (type: ALERT_NAMES) => {
 				},
 				configuration: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'],
 			} as const
-		case snakeCaseString(ALERT_NAMES.SESSION_FEEDBACK_ALERT):
-			return {
-				alert: {
-					Name: ALERT_NAMES.SESSION_FEEDBACK_ALERT,
-					ExcludedEnvironments: [],
-					CountThreshold: 1,
-					ThresholdWindow: 30,
-					Type: ALERT_TYPE.SessionFeedback,
-				},
-				configuration: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'],
-			} as const
 		case snakeCaseString(ALERT_NAMES.NEW_SESSION_ALERT):
 			return {
 				alert: {
