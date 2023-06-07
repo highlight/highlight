@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -51,6 +50,27 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 		return privateModel.ErrorObjectConnection{}, nil
 	}
 
+	// Extract the non-null session IDs
+	var sessionIDs []int
+	for _, errorObject := range errorObjects {
+		if errorObject.SessionID != nil {
+			sessionIDs = append(sessionIDs, *errorObject.SessionID)
+		}
+	}
+
+	// Preload sessions for non-null session IDs
+	var sessions []model.Session
+	err := store.db.Where("id IN (?)", sessionIDs).Find(&sessions).Error
+	if err != nil {
+		return privateModel.ErrorObjectConnection{}, errors.New("Failed to preload sessions for error objects")
+	}
+
+	// Build a map of session IDs to sessions
+	sessionMap := make(map[int]model.Session)
+	for _, session := range sessions {
+		sessionMap[session.ID] = session
+	}
+
 	edges := []*privateModel.ErrorObjectEdge{}
 
 	for _, errorObject := range errorObjects {
@@ -63,19 +83,15 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 			},
 		}
 
+		// Attach the session we preloaded earlier to this error_object
 		if errorObject.SessionID != nil {
-			// This is an N+1 query to get the UserProperties and AppVersion off of Session.
-			// Ideally, we would denormalize this data into opensearch and query opensearch instead of postgres.
-			session, err := store.GetSession(*errorObject.SessionID)
-
-			if err != nil {
-				return privateModel.ErrorObjectConnection{}, fmt.Errorf("Failed to fetch session for error_object_id: %d", errorObject.ID)
-			}
-
-			edge.Node.Session = &privateModel.ErrorObjectNodeSession{
-				SecureID:       session.SecureID,
-				UserProperties: session.UserProperties,
-				AppVersion:     session.AppVersion,
+			session, exists := sessionMap[*errorObject.SessionID]
+			if exists {
+				edge.Node.Session = &privateModel.ErrorObjectNodeSession{
+					SecureID:       session.SecureID,
+					UserProperties: session.UserProperties,
+					AppVersion:     session.AppVersion,
+				}
 			}
 		}
 
