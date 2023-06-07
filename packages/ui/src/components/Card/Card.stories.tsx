@@ -1,12 +1,12 @@
 import React from 'react'
-import type { ComponentMeta } from '@storybook/react'
+import type { Meta } from '@storybook/react'
 
 import { Card } from './Card'
 
 export default {
 	title: 'Components/Card',
 	component: Card,
-} as ComponentMeta<typeof Card>
+} as Meta<typeof Card>
 
 export const Default = () => <Card>A Standard Card</Card>
 

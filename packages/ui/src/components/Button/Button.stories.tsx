@@ -1,5 +1,5 @@
 import React from 'react'
-import { ComponentMeta } from '@storybook/react'
+import { Meta } from '@storybook/react'
 
 import { Button } from './Button'
 import { Box } from '../Box/Box'
@@ -9,7 +9,7 @@ import { IconSolidCheveronDown, IconSolidSave } from '../icons'
 export default {
 	title: 'Components/Button',
 	component: Button,
-} as ComponentMeta<typeof Button>
+} as Meta<typeof Button>
 
 export const ButtonVariants = () => {
 	const kind: Variants['kind'][] = ['primary', 'secondary']
@@ -32,12 +32,16 @@ export const ButtonVariants = () => {
 									iconLeft={
 										jdx % emphasis.length !== 0 ? (
 											<IconSolidCheveronDown />
-										) : null
+										) : (
+											<></>
+										)
 									}
 									iconRight={
 										jdx % emphasis.length === 0 ? (
 											<IconSolidSave />
-										) : null
+										) : (
+											<></>
+										)
 									}
 									size={$size}
 									kind={$kind}
@@ -55,7 +59,9 @@ export const ButtonVariants = () => {
 								iconLeft={
 									jdx % emphasis.length !== 0 ? (
 										<IconSolidCheveronDown />
-									) : null
+									) : (
+										<></>
+									)
 								}
 								disabled
 							>

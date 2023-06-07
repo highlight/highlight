@@ -1,5 +1,5 @@
 import React from 'react'
-import { ComponentMeta } from '@storybook/react'
+import { Meta } from '@storybook/react'
 
 import { Stack } from './Stack'
 import { Box } from '../Box/Box'
@@ -7,7 +7,7 @@ import { Box } from '../Box/Box'
 export default {
 	title: 'Components/Stack',
 	component: Stack,
-} as ComponentMeta<typeof Stack>
+} as Meta<typeof Stack>
 
 const Content: React.FC<React.PropsWithChildren> = ({ children }) => (
 	<Box background="n2" p="16">

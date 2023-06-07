@@ -1,5 +1,5 @@
 import React from 'react'
-import { ComponentMeta } from '@storybook/react'
+import { Meta } from '@storybook/react'
 
 import { Text } from './Text'
 import { typographyStyles } from './styles.css'
@@ -9,7 +9,7 @@ import { Heading } from '../Heading/Heading'
 export default {
 	title: 'Components/Text',
 	component: Text,
-} as ComponentMeta<typeof Text>
+} as Meta<typeof Text>
 
 export const Sizes = () => {
 	return Object.keys(typographyStyles.size).map(

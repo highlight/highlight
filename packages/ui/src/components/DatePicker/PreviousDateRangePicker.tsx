@@ -15,7 +15,6 @@ import { Stack } from '../Stack/Stack'
 import { Box } from '../Box/Box'
 import { colors } from '../../css/colors'
 import { TimeInput } from './TimeInput'
-import { subtractDays, subtractHours } from './utils'
 
 export { getDefaultPresets } from './utils'
 

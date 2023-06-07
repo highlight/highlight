@@ -1,12 +1,12 @@
 import React from 'react'
-import { ComponentMeta } from '@storybook/react'
+import { Meta } from '@storybook/react'
 
 import { Tabs } from './Tabs'
 
 export default {
 	title: 'Components/Tabs',
 	component: Tabs,
-} as ComponentMeta<typeof Tabs>
+} as Meta<typeof Tabs>
 
 export const Basic = () => (
 	<Tabs

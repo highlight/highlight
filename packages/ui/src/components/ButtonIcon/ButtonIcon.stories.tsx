@@ -1,5 +1,5 @@
 import React from 'react'
-import { ComponentMeta } from '@storybook/react'
+import { Meta } from '@storybook/react'
 
 import { ButtonIcon } from './ButtonIcon'
 import { Box } from '../Box/Box'
@@ -9,7 +9,7 @@ import { Variants } from './styles.css'
 export default {
 	title: 'Components/ButtonIcon',
 	component: ButtonIcon,
-} as ComponentMeta<typeof ButtonIcon>
+} as Meta<typeof ButtonIcon>
 
 export const AllVariants = () => {
 	const variant: Variants['kind'][] = ['primary', 'secondary']

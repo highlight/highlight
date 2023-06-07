@@ -1,13 +1,14 @@
-import React from 'react'
-import { ComponentMeta } from '@storybook/react'
+import { Meta } from '@storybook/react'
 
-import { Form, useFormState } from './Form'
-import { Box } from '../Box/Box'
+import { Box } from '@components/Box/Box'
+import { Form, useFormState } from '@components/Form/Form'
 
-export default {
+const meta = {
 	title: 'Components/Form',
 	component: Form,
-} as ComponentMeta<typeof Form>
+} as Meta<typeof Form>
+
+export default meta
 
 export const Basic = () => {
 	const form = useFormState({

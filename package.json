@@ -116,7 +116,6 @@
 		"trim-newlines": "3.0.1",
 		"ua-parser-js": "0.7.33",
 		"undici": "5.19.1",
-		"webpack": "5.76.0",
-		"ws": "7.4.6"
+		"webpack": "5.76.0"
 	}
 }

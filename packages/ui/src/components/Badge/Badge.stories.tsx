@@ -1,11 +1,10 @@
 import { Badge } from './Badge'
-import type { ComponentMeta } from '@storybook/react'
-import React from 'react'
+import type { Meta } from '@storybook/react'
 
 export default {
 	title: 'Components/Badge',
 	component: Badge,
-} as ComponentMeta<typeof Badge>
+} as Meta<typeof Badge>
 
 export const Sizes = () => {
 	return (
