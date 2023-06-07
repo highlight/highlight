@@ -72,7 +72,8 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 
 			edge.Node.Session = &privateModel.ErrorObjectNodeSession{
 				SecureID:       session.SecureID,
-				UserProperties: &session.UserProperties,
+				UserProperties: session.UserProperties,
+				AppVersion:     session.AppVersion,
 			}
 		}
 

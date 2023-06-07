@@ -4083,7 +4083,10 @@ func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID str
 		return nil, e.Wrap(err, "not authorized to view error group")
 	}
 
-	connection, err := r.Store.ListErrorObjects(ctx, *errorGroup)
+	connection, err := r.Store.ListErrorObjects(*errorGroup, store.ListErrorObjectsParams{
+		After:  after,
+		Before: before,
+	})
 
 	return &connection, err
 }

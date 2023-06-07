@@ -32,7 +32,9 @@ func TestListErrorObjects(t *testing.T) {
 		userProperties := map[string]string{
 			"email": "chilly@mcwilly.com",
 		}
-		session := model.Session{}
+		session := model.Session{
+			AppVersion: ptr.String("123"),
+		}
 		err = session.SetUserProperties(userProperties)
 		assert.NoError(t, err)
 
@@ -56,7 +58,8 @@ func TestListErrorObjects(t *testing.T) {
 						Event:     errorObject.Event,
 						Session: &privateModel.ErrorObjectNodeSession{
 							SecureID:       session.SecureID,
-							UserProperties: &session.UserProperties,
+							UserProperties: session.UserProperties,
+							AppVersion:     session.AppVersion,
 						},
 					},
 				},

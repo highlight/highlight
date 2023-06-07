@@ -603,13 +603,14 @@ type LogConnection implements Connection {
 }
 
 type ErrorObjectNodeSession {
-	secure_id: String!
-	user_properties: String
+	secureID: String!
+	userProperties: String!
+	appVersion: String
 }
 
 type ErrorObjectNode {
 	id: ID!
-	created_at: Timestamp!
+	createdAt: Timestamp!
 	event: String!
 	session: ErrorObjectNodeSession!
 }

@@ -317,14 +317,15 @@ func (this ErrorObjectEdge) GetCursor() string { return this.Cursor }
 
 type ErrorObjectNode struct {
 	ID        int                     `json:"id"`
-	CreatedAt time.Time               `json:"created_at"`
+	CreatedAt time.Time               `json:"createdAt"`
 	Event     string                  `json:"event"`
 	Session   *ErrorObjectNodeSession `json:"session"`
 }
 
 type ErrorObjectNodeSession struct {
-	SecureID       string  `json:"secure_id"`
-	UserProperties *string `json:"user_properties"`
+	SecureID       string  `json:"secureID"`
+	UserProperties string  `json:"userProperties"`
+	AppVersion     *string `json:"appVersion"`
 }
 
 type ErrorSearchParamsInput struct {
