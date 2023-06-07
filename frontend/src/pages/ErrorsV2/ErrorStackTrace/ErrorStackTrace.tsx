@@ -219,7 +219,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 					>
 						{lineNumber}
 					</Box>
-					<Tooltip mouseEnterDelay={0.5} title={functionName}>
+					<Tooltip title={functionName}>
 						<span>{functionName}</span>
 					</Tooltip>
 					<span>
