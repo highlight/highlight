@@ -12,7 +12,7 @@ import (
 )
 
 func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
-	util.RunTestWithDBWipe(t, "TestUpdateErrorGroupStateByAdmin", store.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
 
 		errorGroup := model.ErrorGroup{
 			State: privateModel.ErrorStateOpen,
