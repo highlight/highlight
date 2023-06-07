@@ -1455,7 +1455,7 @@ var productTypeToQuotaConfig = map[pricing.ProductType]struct {
 	},
 	pricing.ProductTypeErrors: {
 		func(w *model.Workspace) *int { return w.ErrorsMaxCents },
-		pricing.GetWorkspaceSessionsMeter,
+		pricing.GetWorkspaceErrorsMeter,
 		func(w *model.Workspace) privateModel.RetentionPeriod {
 			if w.ErrorsRetentionPeriod == nil {
 				return privateModel.RetentionPeriodThreeMonths
