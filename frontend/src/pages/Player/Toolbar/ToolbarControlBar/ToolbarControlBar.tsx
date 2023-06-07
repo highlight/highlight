@@ -1,3 +1,4 @@
+import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import {
 	cmdKey,
 	DevToolsShortcut,
@@ -8,13 +9,9 @@ import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
 import {
-	Badge,
 	Box,
 	ButtonIcon,
 	IconSolidArrowsExpand,
-	IconSolidArrowSmDown,
-	IconSolidArrowSmLeft,
-	IconSolidArrowSmUp,
 	IconSolidChartBar,
 	IconSolidClock,
 	IconSolidCog,
@@ -27,6 +24,7 @@ import {
 	SwitchButton,
 	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui'
 import ActivityIcon from '@icons/ActivityIcon'
 import { ReactComponent as AnnotationIcon } from '@icons/Solid/annotation.svg'
@@ -50,7 +48,6 @@ import {
 	useReplayerContext,
 } from '@pages/Player/ReplayerContext'
 import SessionToken from '@pages/Player/SessionLevelBar/SessionToken/SessionToken'
-import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
 import analytics from '@util/analytics'
@@ -115,105 +112,93 @@ export const ToolbarControlBar = () => {
 			overflow="hidden"
 		>
 			<Box display="flex" gap="2">
-				<ExplanatoryPopover
-					content={
-						<>
-							<Text userSelect="none" color="n11">
-								Skip back
-							</Text>
-							<Badge
-								variant="gray"
-								size="small"
-								iconStart={<IconSolidArrowSmLeft />}
-							/>
-						</>
+				<Tooltip
+					trigger={
+						<ButtonIcon
+							onClick={() => {
+								analytics.track('PlayerSkipLeft')
+								const prevTime = Math.max(time - 5000, 0)
+								setTime(prevTime)
+							}}
+							disabled={disableControls}
+							icon={<IconSolidSkipLeft />}
+							size="xSmall"
+							shape="square"
+							emphasis="low"
+							kind="secondary"
+						/>
 					}
+					delayed
+					disabled={disableControls}
 				>
-					<ButtonIcon
-						onClick={() => {
-							analytics.track('PlayerSkipLeft')
-							const prevTime = Math.max(time - 5000, 0)
-							setTime(prevTime)
-						}}
-						disabled={disableControls}
-						icon={<IconSolidSkipLeft />}
-						size="xSmall"
-						shape="square"
-						emphasis="low"
-						kind="secondary"
-					/>
-				</ExplanatoryPopover>
-				<ExplanatoryPopover
-					content={
-						<>
-							<Text userSelect="none" color="n11">
-								{isPlaybackComplete
-									? 'Restart'
-									: isPaused && !isLiveMode
-									? 'Play'
-									: 'Pause'}
-							</Text>
-							<Badge variant="gray" size="small" label="Space" />
-						</>
-					}
-				>
-					<ButtonIcon
-						onClick={() => {
-							analytics.track('Player Play/Pause Button')
-							if (isPlaybackComplete) {
-								pause(time)
-								const newTime = 0
-								play(newTime)
-							} else if (isPaused && !isLiveMode) {
-								play(time)
-							} else {
-								pause(time)
+					<KeyboardShortcut label="Skip back" shortcut="←" />
+				</Tooltip>
+				<Tooltip
+					trigger={
+						<ButtonIcon
+							onClick={() => {
+								analytics.track('Player Play/Pause Button')
+								if (isPlaybackComplete) {
+									pause(time)
+									const newTime = 0
+									play(newTime)
+								} else if (isPaused && !isLiveMode) {
+									play(time)
+								} else {
+									pause(time)
+								}
+							}}
+							disabled={disableControls}
+							icon={
+								isPaused && isPlaybackComplete ? (
+									<IconSolidRefresh />
+								) : isPaused && !isLiveMode ? (
+									<IconSolidPlay />
+								) : (
+									<IconSolidPause />
+								)
 							}
-						}}
-						disabled={disableControls}
-						icon={
-							isPaused && isPlaybackComplete ? (
-								<IconSolidRefresh />
-							) : isPaused && !isLiveMode ? (
-								<IconSolidPlay />
-							) : (
-								<IconSolidPause />
-							)
-						}
-						size="xSmall"
-						shape="square"
-						emphasis="low"
-						kind="secondary"
-					/>
-				</ExplanatoryPopover>
-				<ExplanatoryPopover
-					content={
-						<>
-							<Text userSelect="none" color="n11">
-								Skip forward
-							</Text>
-							<Badge
-								variant="gray"
-								size="small"
-								iconStart={<IconSolidSkip size={12} />}
-							/>
-						</>
+							size="xSmall"
+							shape="square"
+							emphasis="low"
+							kind="secondary"
+						/>
 					}
+					delayed
+					disabled={disableControls}
 				>
-					<ButtonIcon
-						onClick={() => {
-							analytics.track('PlayerSkipRight')
-							const newTime = Math.max(time + 5000, 0)
-							setTime(newTime)
-						}}
-						disabled={disableControls}
-						icon={<IconSolidSkip size={14} />}
-						size="xSmall"
-						shape="square"
-						emphasis="low"
-						kind="secondary"
+					<KeyboardShortcut
+						label={
+							isPlaybackComplete
+								? 'Restart'
+								: isPaused && !isLiveMode
+								? 'Play'
+								: 'Pause'
+						}
+						shortcut="Space"
 					/>
-				</ExplanatoryPopover>
+				</Tooltip>
+				<Tooltip
+					trigger={
+						<ButtonIcon
+							onClick={() => {
+								analytics.track('PlayerSkipRight')
+								const newTime = Math.max(time + 5000, 0)
+								setTime(newTime)
+							}}
+							disabled={disableControls}
+							icon={<IconSolidSkip size={14} />}
+							size="xSmall"
+							shape="square"
+							emphasis="low"
+							kind="secondary"
+						/>
+					}
+					delayed
+					disabled={disableControls}
+				>
+					<KeyboardShortcut label="Skip forward" shortcut="→" />
+				</Tooltip>
 			</Box>
 
 			{showLiveToggle && (
@@ -279,92 +264,73 @@ export const ToolbarControlBar = () => {
 				gap="4"
 			>
 				{!isLiveMode && (
-					<ExplanatoryPopover
-						content={
-							<>
-								<Text userSelect="none" color="n11">
-									Speed +/-
-								</Text>
-								<Box display="flex" gap="2">
-									<Badge
-										variant="gray"
-										size="small"
-										label={cmdKey}
-									/>
-									<Badge
-										variant="gray"
-										size="small"
-										iconStart={
-											<IconSolidArrowSmUp size={12} />
-										}
-										label="/"
-										iconEnd={
-											<IconSolidArrowSmDown size={12} />
-										}
-									/>
-								</Box>
-							</>
+					<Tooltip
+						trigger={
+							<Tag
+								kind="secondary"
+								shape="rounded"
+								size="medium"
+								emphasis="low"
+								onClick={() => {
+									setPlayerSpeedIdx(playerSpeedIdx + 1)
+								}}
+								disabled={disableControls}
+								lines="1"
+							>
+								{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
+							</Tag>
 						}
+						delayed
+						disabled={disableControls}
 					>
-						<Tag
-							kind="secondary"
-							shape="rounded"
-							size="medium"
-							emphasis="low"
-							onClick={() => {
-								setPlayerSpeedIdx(playerSpeedIdx + 1)
-							}}
-							disabled={disableControls}
-							lines="1"
-						>
-							{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
-						</Tag>
-					</ExplanatoryPopover>
+						<KeyboardShortcut
+							label="Speed +/-"
+							shortcut={[cmdKey, '↑/↓']}
+						/>
+					</Tooltip>
 				)}
 
 				{!isLiveMode && (
-					<ExplanatoryPopover
-						content={
-							<>
-								<Text userSelect="none" color="n11">
-									Timeline
-								</Text>
-								<ShortcutTextGuide
-									shortcut={TimelineShortcut}
-								/>
-							</>
+					<Tooltip
+						trigger={
+							<SwitchButton
+								onChange={() => {
+									setShowHistogram(!showHistogram)
+								}}
+								checked={showHistogram}
+								disabled={isPlayerFullscreen || disableControls}
+								iconLeft={<IconSolidChartBar size={14} />}
+							/>
 						}
+						delayed
+						disabled={isPlayerFullscreen || disableControls}
 					>
-						<SwitchButton
-							onChange={() => {
-								setShowHistogram(!showHistogram)
-							}}
-							checked={showHistogram}
-							disabled={isPlayerFullscreen || disableControls}
-							iconLeft={<IconSolidChartBar size={14} />}
+						<KeyboardShortcut
+							label="Timeline"
+							shortcut={TimelineShortcut.shortcut}
 						/>
-					</ExplanatoryPopover>
+					</Tooltip>
 				)}
 
-				<ExplanatoryPopover
-					content={
-						<>
-							<Text userSelect="none" color="n11">
-								Dev tools
-							</Text>
-							<ShortcutTextGuide shortcut={DevToolsShortcut} />
-						</>
+				<Tooltip
+					trigger={
+						<SwitchButton
+							onChange={() => {
+								setShowDevTools(!showDevTools)
+							}}
+							checked={showDevTools}
+							disabled={isPlayerFullscreen || disableControls}
+							iconLeft={<IconSolidTerminal size={14} />}
+						/>
 					}
+					delayed
+					disabled={isPlayerFullscreen || disableControls}
 				>
-					<SwitchButton
-						onChange={() => {
-							setShowDevTools(!showDevTools)
-						}}
-						checked={showDevTools}
-						disabled={isPlayerFullscreen || disableControls}
-						iconLeft={<IconSolidTerminal size={14} />}
+					<KeyboardShortcut
+						label="Dev tools"
+						shortcut={DevToolsShortcut.shortcut}
 					/>
-				</ExplanatoryPopover>
+				</Tooltip>
 
 				<Popover
 					getPopupContainer={getFullScreenPopoverGetPopupContainer}

@@ -42,7 +42,6 @@ export const AlertEnableSwitch: React.FC<
 			case ALERT_TYPE.FirstTimeUser:
 			case ALERT_TYPE.UserProperties:
 			case ALERT_TYPE.TrackProperties:
-			case ALERT_TYPE.SessionFeedback:
 			case ALERT_TYPE.NewSession:
 			case ALERT_TYPE.RageClick:
 				await updateSessionAlertIsDisabled({

@@ -1170,53 +1170,32 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	metadata["timestamp"] = input.Timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("project_id", "environment", "id", "secure_id").Where(&model.Session{SecureID: input.SessionSecureID}).First(&session).Error; err != nil {
+	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at").Where(&model.Session{SecureID: input.SessionSecureID}).First(&session).Error; err != nil {
 		return e.Wrap(err, "error querying session by sessionSecureID for adding session feedback")
 	}
 
-	feedbackComment := &model.SessionComment{SessionId: session.ID, Text: input.Verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID, SessionSecureId: session.SecureID}
+	sessionTimestamp := input.Timestamp.UnixMilli() - session.CreatedAt.UnixMilli()
+
+	feedbackComment := &model.SessionComment{SessionId: session.ID, Text: input.Verbatim, Metadata: metadata, Timestamp: int(sessionTimestamp), Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID, SessionSecureId: session.SecureID}
 	if err := r.DB.Create(feedbackComment).Error; err != nil {
 		return e.Wrap(err, "error creating session feedback")
 	}
 
-	var sessionAlerts []*model.SessionAlert
-	if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.SESSION_FEEDBACK).Find(&sessionAlerts).Error; err != nil {
+	var errorAlerts []*model.ErrorAlert
+	if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
 		return e.Wrapf(err, "[project_id: %d] error fetching session feedback alerts", session.ProjectID)
 	}
 
-	for _, sessionAlert := range sessionAlerts {
-		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+	for _, errorAlert := range errorAlerts {
+		excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
 		if err != nil {
-			log.WithContext(ctx).Error(e.Wrapf(err, "error getting excluded environments from %s alert", model.AlertType.SESSION_FEEDBACK))
+			log.WithContext(ctx).Error(e.Wrapf(err, "error getting excluded environments from %s alert", model.AlertType.ERROR_FEEDBACK))
 			return err
 		}
 		for _, env := range excludedEnvironments {
 			if env != nil && *env == session.Environment {
 				return nil
 			}
-		}
-
-		commentsCount := int64(-1)
-		if sessionAlert.ThresholdWindow == nil {
-			t := 30
-			sessionAlert.ThresholdWindow = &t
-		}
-		if err := r.DB.Raw(`
-	  		SELECT COUNT(*)
-	  		FROM session_comments
-	  		WHERE project_id = ?
-	  			AND type = ?
-	  			AND created_at > ?
-	  	`, session.ProjectID, model.SessionCommentTypes.FEEDBACK,
-			time.Now().Add(-time.Duration(*sessionAlert.ThresholdWindow)*time.Minute)).
-			Scan(&commentsCount).Error; err != nil {
-			log.WithContext(ctx).WithError(err).
-				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
-				Error(e.Wrapf(err, "error fetching %s alert count", model.AlertType.SESSION_FEEDBACK))
-			return err
-		}
-		if commentsCount+1 < int64(sessionAlert.CountThreshold) {
-			return nil
 		}
 
 		var project model.Project
@@ -1227,7 +1206,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	  	`, session.ProjectID).Scan(&project).Error; err != nil {
 			log.WithContext(ctx).WithError(err).
 				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
-				Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.SESSION_FEEDBACK))
+				Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.ERROR_FEEDBACK))
 			return err
 		}
 
@@ -1245,7 +1224,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 				Error(e.Wrap(err, "error fetching workspace"))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+		errorAlert.SendAlertFeedback(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
 			UserIdentifier:  identifier,
@@ -1253,9 +1232,9 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 			CommentText:     feedbackComment.Text,
 		})
 
-		if err = alerts.SendSessionFeedbackAlert(alerts.SessionFeedbackAlertEvent{
+		if err = alerts.SendErrorFeedbackAlert(alerts.ErrorFeedbackAlertEvent{
 			Session:        session,
-			SessionAlert:   sessionAlert,
+			ErrorAlert:     errorAlert,
 			SessionComment: feedbackComment,
 			Workspace:      workspace,
 			UserName:       input.UserName,
@@ -1476,7 +1455,7 @@ var productTypeToQuotaConfig = map[pricing.ProductType]struct {
 	},
 	pricing.ProductTypeErrors: {
 		func(w *model.Workspace) *int { return w.ErrorsMaxCents },
-		pricing.GetWorkspaceSessionsMeter,
+		pricing.GetWorkspaceErrorsMeter,
 		func(w *model.Workspace) privateModel.RetentionPeriod {
 			if w.ErrorsRetentionPeriod == nil {
 				return privateModel.RetentionPeriodThreeMonths
@@ -2578,7 +2557,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 
-	updateSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
+	updateSpan, updateSpanCtx := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
 	defer updateSpan.Finish()
 
 	excluded, reason := r.isSessionExcluded(ctx, sessionObj, sessionHasErrors)
@@ -2628,33 +2607,35 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 
+	opensearchSpan, osCtx := tracer.StartSpanFromContext(updateSpanCtx, "public-graph.pushPayload", tracer.ResourceName("opensearch.update"))
+	defer opensearchSpan.Finish()
 	// If the session was previously marked as processed, clear this
 	// in OpenSearch so that it's treated as a live session again.
 	// If the session was previously excluded (as we do with new sessions by default),
 	// clear it so it is shown as live in OpenSearch since we now have data for it.
 	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
-		if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"processed":  false,
 			"Excluded":   false,
 			"has_errors": sessionHasErrors,
 		}); err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error updating session in opensearch"))
+			log.WithContext(osCtx).Error(e.Wrap(err, "error updating session in opensearch"))
 			return err
 		}
 	}
 
 	if sessionHasErrors {
-		if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"has_errors": true,
 		}); err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
+			log.WithContext(osCtx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
 			return err
 		}
 	}
 
 	// if the session is not excluded, it is viewable, so send any relevant alerts
 	if !excluded {
-		return r.HandleSessionViewable(ctx, projectID, sessionObj)
+		return r.HandleSessionViewable(osCtx, projectID, sessionObj)
 	}
 
 	return nil

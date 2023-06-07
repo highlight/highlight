@@ -41,7 +41,7 @@ export const PreviousNextGroup = function ({
 						cssClass={style.leftButton}
 					/>
 				}
-				timeout={1000}
+				delayed
 				disabled={!canMoveBackward}
 			>
 				<KeyboardShortcut
@@ -67,7 +67,7 @@ export const PreviousNextGroup = function ({
 						cssClass={style.rightButton}
 					/>
 				}
-				timeout={1000}
+				delayed
 				disabled={!canMoveForward}
 			>
 				<KeyboardShortcut label="Next" shortcut={nextShortcut ?? 'j'} />

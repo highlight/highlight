@@ -15,20 +15,23 @@ export const PythonLoguruLogContent: QuickStartContent = {
 			content:
 				'Setup the SDK with `instrument_logging` disabled, while passing the highlight logging handler to [loguru](https://github.com/Delgan/loguru#readme). ' +
 				'`instrument_logging=False` must be passed to make sure the loguru handler does not collide with built-in `logging` instrumentation.',
-			code: {
-				text: `import highlight_io
+			code: [
+				{
+					text: `import highlight_io
 
 H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=False)`,
-				language: 'python',
-			},
+					language: 'python',
+				},
+			],
 		},
 		{
 			title: 'Use loguru!',
 			content:
 				'Logs are reported automatically from loguru logging methods. ' +
 				'Visit the [highlight logs portal](http://app.highlight.io/logs) and check that backend logs are coming in.',
-			code: {
-				text: `import highlight_io
+			code: [
+				{
+					text: `import highlight_io
 from loguru import logger
 
 H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=False)
@@ -45,8 +48,9 @@ def main():
     context_logger = logger.bind(ip="192.168.0.1", user="someone")
 	context_logger.info("Contextualize your logger easily")
 `,
-				language: 'python',
-			},
+					language: 'python',
+				},
+			],
 		},
 		verifyLogs,
 	],

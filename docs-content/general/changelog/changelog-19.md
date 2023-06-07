@@ -13,7 +13,7 @@ You can play around and see how the Highlight application works with a live proj
 
 Look closely. You might be able to find your own `highlight.io` sessions recorded on the demo project. That's right! We use Highlight ourselves, and we pipe all of our data to the demo project.
 
-![demo project](/images/changelog/demo-project.png)
+![demo project](/images/changelog/19/demo-project.png)
 
 ## Comment UI Facelift
 
@@ -23,7 +23,7 @@ We've given the Comment UI a facelift.
 - We have a new draggable handle just below the session timeline.
 - New inline issue creation for connected issue trackers (GitHub, Linear, Height)
 
-![comment ui facelift](/images/changelog/comment-ui.png)
+![comment ui facelift](/images/changelog/19/comment-ui.png)
 
 ## Winston.js Highlight Transport
 
@@ -47,4 +47,4 @@ Highlight users with an enormous number of sessions may not want to record all o
 
 You can now opt into error-only recording. If the session throws an error, we'll record it. If not, that session never hits your Dashboard.
 
-![exclude sessions without errors](/images/changelog/exclude-sessions-without-errors.png)
+![exclude sessions without errors](/images/changelog/19/exclude-sessions-without-errors.png)

@@ -15,8 +15,9 @@ export const JSCloudflareLoggingContent: QuickStartContent = {
 			content:
 				'All you need to start recording your console methods is call `H.init`. ' +
 				'All Highlight data submission uses [waitUntil](https://developers.cloudflare.com/workers/runtime-apis/fetch-event/#waituntil) to make sure that we have no impact on request handling performance.',
-			code: {
-				text: `import { H } from '@highlight-run/cloudflare'
+			code: [
+				{
+					text: `import { H } from '@highlight-run/cloudflare'
 
 export default {
   async fetch(request: Request, env: {}, ctx: ExecutionContext) {
@@ -25,8 +26,9 @@ export default {
     // ...
   },
 }`,
-				language: `js`,
-			},
+					language: `js`,
+				},
+			],
 		},
 		tsconfig,
 		verifyLogs,
