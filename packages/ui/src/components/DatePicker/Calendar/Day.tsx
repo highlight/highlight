@@ -2,6 +2,10 @@ import React, { CSSProperties, Fragment } from 'react'
 import { Box, BoxProps } from '../../Box/Box'
 import { CalendarDay, useContextDaysPropGetters } from '@rehookify/datepicker'
 import { ReactNode } from 'react'
+import {
+	PropGettersDisabled,
+	PropGettersEnabled,
+} from '@rehookify/datepicker/dist/utils/create-prop-getter'
 
 const getColor = (day: CalendarDay) => {
 	const { selected, disabled, range } = day
@@ -301,7 +305,9 @@ const Day = ({ children, day, onMouseEnter, onMouseLeave }: Props) => {
 		  } as BoxProps)
 		: {}
 
-	const dayProps = dayButton(day)
+	const dayProps: (PropGettersEnabled | PropGettersDisabled) & {
+		onMouseEnter?: () => void
+	} = dayButton(day)
 
 	return (
 		<Wrapper {...WrapperProps}>
@@ -310,7 +316,7 @@ const Day = ({ children, day, onMouseEnter, onMouseLeave }: Props) => {
 				{...dayProps}
 				onMouseEnter={function () {
 					onMouseEnter?.()
-					;(dayProps?.onMouseEnter as Function)?.()
+					dayProps?.onMouseEnter?.()
 				}}
 				cursor={getPointer(day)}
 				style={containerStyles}
