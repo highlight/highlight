@@ -3239,7 +3239,7 @@ export type GetErrorSegmentsQueryVariables = Types.Exact<{
 }>
 
 export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
-	error_segments?: Types.Maybe<
+	segments?: Types.Maybe<
 		Array<
 			Types.Maybe<
 				{ __typename?: 'ErrorSegment' } & Pick<

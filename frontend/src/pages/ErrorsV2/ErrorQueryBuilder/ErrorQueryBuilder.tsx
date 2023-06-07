@@ -1,15 +1,21 @@
-import { useGetErrorFieldsOpensearchQuery } from '@graph/hooks'
+import {
+	useEditErrorSegmentMutation,
+	useGetErrorFieldsOpensearchQuery,
+	useGetErrorSegmentsQuery,
+} from '@graph/hooks'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
+
 import QueryBuilder, {
 	CustomField,
+	ERROR_FIELD_TYPE,
+	ERROR_TYPE,
 	FetchFieldVariables,
 	SelectOption,
-} from '@pages/ErrorsV2/ErrorQueryBuilder/components/QueryBuilder/QueryBuilder'
+} from '@/components/QueryBuilder/QueryBuilder'
+import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
+import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
+import { EmptyErrorsSearchParams } from '@/pages/Errors/ErrorsPage'
 
-export const CUSTOM_TYPE = 'custom'
-export const SESSION_TYPE = 'session'
-export const ERROR_TYPE = 'error'
-export const ERROR_FIELD_TYPE = 'error-field'
 export const TIME_RANGE_FIELD: SelectOption = {
 	kind: 'single',
 	label: 'timestamp',
@@ -81,6 +87,11 @@ const ErrorQueryBuilder = (props: { readonly?: boolean }) => {
 			timeRangeField={TIME_RANGE_FIELD}
 			customFields={CUSTOM_FIELDS}
 			fetchFields={fetchFields}
+			emptySearchParams={EmptyErrorsSearchParams}
+			useEditAnySegmentMutation={useEditErrorSegmentMutation}
+			useGetAnySegmentsQuery={useGetErrorSegmentsQuery}
+			CreateAnySegmentModal={CreateErrorSegmentModal}
+			DeleteAnySegmentModal={DeleteErrorSegmentModal}
 			{...props}
 		/>
 	)
