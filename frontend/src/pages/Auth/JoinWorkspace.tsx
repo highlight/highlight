@@ -107,7 +107,6 @@ export const JoinWorkspace = () => {
 								Select a workspace
 							</option>
 
-							{/* TODO: Clean up the select UI */}
 							{data?.joinable_workspaces?.map((workspace) => (
 								<option
 									key={workspace?.id}
