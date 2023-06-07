@@ -153,5 +153,6 @@ export type Variants = RecipeVariants<typeof variants>
 // global styles to be injected.
 globalStyle('body', {
 	color: themeVars.static.content.default,
+	fontFeatureSettings: "'tnum' 0", // disable tabular numbers
 	...typographyStyles.family.body,
 })

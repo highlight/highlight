@@ -4744,13 +4744,13 @@ iframe {
   display: table;
 }
 ._145lkmvb {
-  font-weight: 300;
-}
-._145lkmvc {
   font-weight: 400;
 }
-._145lkmvd {
+._145lkmvc {
   font-weight: 500;
+}
+._145lkmvd {
+  font-weight: 600;
 }
 ._145lkmve {
   text-transform: capitalize;
@@ -4774,7 +4774,7 @@ iframe {
   white-space: nowrap;
 }
 ._145lkmvl {
-  font-weight: 400;
+  font-weight: 500;
 }
 ._145lkmvm {
   font-size: 14px;
@@ -4820,6 +4820,7 @@ iframe {
 }
 body {
   color: var(--_1pyqka9b);
+  font-feature-settings: "tnum" 0;
   font-family:
     Inter,
     -apple-system,
