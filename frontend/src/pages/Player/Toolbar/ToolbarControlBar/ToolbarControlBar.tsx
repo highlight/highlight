@@ -128,7 +128,7 @@ export const ToolbarControlBar = () => {
 							kind="secondary"
 						/>
 					}
-					timeout={1000}
+					delayed
 					disabled={disableControls}
 				>
 					<KeyboardShortcut label="Skip back" shortcut="←" />
@@ -164,7 +164,7 @@ export const ToolbarControlBar = () => {
 							kind="secondary"
 						/>
 					}
-					timeout={1000}
+					delayed
 					disabled={disableControls}
 				>
 					<KeyboardShortcut
@@ -194,7 +194,7 @@ export const ToolbarControlBar = () => {
 							kind="secondary"
 						/>
 					}
-					timeout={1000}
+					delayed
 					disabled={disableControls}
 				>
 					<KeyboardShortcut label="Skip forward" shortcut="→" />
@@ -280,7 +280,7 @@ export const ToolbarControlBar = () => {
 								{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
 							</Tag>
 						}
-						timeout={1000}
+						delayed
 						disabled={disableControls}
 					>
 						<KeyboardShortcut
@@ -302,7 +302,7 @@ export const ToolbarControlBar = () => {
 								iconLeft={<IconSolidChartBar size={14} />}
 							/>
 						}
-						timeout={1000}
+						delayed
 						disabled={isPlayerFullscreen || disableControls}
 					>
 						<KeyboardShortcut
@@ -323,7 +323,7 @@ export const ToolbarControlBar = () => {
 							iconLeft={<IconSolidTerminal size={14} />}
 						/>
 					}
-					timeout={1000}
+					delayed
 					disabled={isPlayerFullscreen || disableControls}
 				>
 					<KeyboardShortcut

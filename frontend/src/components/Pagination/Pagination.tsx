@@ -53,7 +53,7 @@ export const Pagination = ({
 		<>
 			<div className={clsx([styles.pageButtonsRow, className])}>
 				<Tooltip
-					mouseEnterDelay={0.3}
+					mouseEnterDelay={0.5}
 					placement="top"
 					align={{ offset: [106, 0] }}
 					title={

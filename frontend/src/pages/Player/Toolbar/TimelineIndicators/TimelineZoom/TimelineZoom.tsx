@@ -44,7 +44,7 @@ const TimelineZoom: React.FC<Props> = ({ isHidden, zoom }) => {
 						/>
 					</>
 				}
-				timeout={1000}
+				delayed
 			>
 				<Box display="flex" gap="2" alignItems="center">
 					<Badge variant="gray" size="small" label={cmdKey} />

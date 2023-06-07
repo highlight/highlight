@@ -57,7 +57,7 @@ const TextViewer = React.memo(
 									}}
 								/>
 							}
-							timeout={1000}
+							delayed
 						>
 							<Box p="4">
 								<Text userSelect="none" color="n11">
@@ -85,7 +85,7 @@ const TextViewer = React.memo(
 									}}
 								/>
 							}
-							timeout={1000}
+							delayed
 						>
 							<Box p="4">
 								<Text userSelect="none" color="n11">
