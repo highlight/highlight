@@ -8,7 +8,8 @@ import {
 	Callout,
 	Form,
 	Heading,
-	IconSolidSparkles,
+	IconSolidGithub,
+	IconSolidGoogle,
 	Stack,
 	Text,
 	useFormState,
@@ -188,7 +189,10 @@ export const SignUp: React.FC = () => {
 							handleExternalAuthClick(auth.googleProvider!)
 						}}
 					>
-						Sign up with Google <IconSolidSparkles />
+						<Box display="flex" alignItems="center" gap="6">
+							<IconSolidGoogle />
+							Sign up with Google
+						</Box>
 					</Button>
 					<Button
 						kind="secondary"
@@ -198,7 +202,10 @@ export const SignUp: React.FC = () => {
 							handleExternalAuthClick(auth.githubProvider!)
 						}
 					>
-						Sign in with Github
+						<Box display="flex" alignItems="center" gap="6">
+							<IconSolidGithub />
+							Sign up with Github
+						</Box>
 					</Button>
 				</Stack>
 			</AuthFooter>

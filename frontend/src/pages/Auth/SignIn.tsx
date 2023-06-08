@@ -7,7 +7,8 @@ import {
 	Box,
 	Form,
 	Heading,
-	IconSolidSparkles,
+	IconSolidGithub,
+	IconSolidGoogle,
 	Stack,
 	Text,
 	useFormState,
@@ -190,7 +191,8 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						}}
 					>
 						<Box display="flex" alignItems="center" gap="6">
-							Sign in with Google <IconSolidSparkles />
+							<IconSolidGoogle />
+							Sign in with Google
 						</Box>
 					</Button>
 					<Button
@@ -201,7 +203,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 							handleExternalAuthClick(auth.githubProvider!)
 						}}
 					>
-						Sign in with Github
+						<Box display="flex" alignItems="center" gap="6">
+							<IconSolidGithub />
+							Sign in with Github
+						</Box>
 					</Button>
 				</Stack>
 			</AuthFooter>
