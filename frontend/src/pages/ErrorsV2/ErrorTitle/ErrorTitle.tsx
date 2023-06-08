@@ -1,6 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
 import { GetErrorGroupQuery } from '@graph/operations'
-import { ErrorObject } from '@graph/schemas'
 import { Box, Heading } from '@highlight-run/ui'
 import ErrorIssueButton from '@pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
 import ErrorShareButton from '@pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
@@ -12,11 +11,10 @@ import React, { useMemo } from 'react'
 
 interface Props {
 	errorGroup: GetErrorGroupQuery['error_group']
-	errorObject?: ErrorObject
 }
 
-const ErrorTitle = ({ errorGroup, errorObject }: Props) => {
-	const event = errorObject?.event ?? errorGroup?.event
+const ErrorTitle = ({ errorGroup }: Props) => {
+	const event = errorGroup?.event
 	const headerText = useMemo(() => {
 		let header = getHeaderFromError(event ?? [])
 		if (header && event) {
