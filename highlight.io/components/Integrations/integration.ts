@@ -39,6 +39,8 @@ export const INTEGRATIONS: {
 				'This is some text explaining what this company does. This is some text explaining what this company does. ',
 			link: '/docs/general/integrations/front-integration',
 		},
+	],
+	'Category 2': [
 		{
 			name: 'GitHub',
 			description:
