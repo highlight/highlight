@@ -105,11 +105,8 @@ func StructureStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, error) {
 					errMsg = line
 					continue
 				}
-			} else {
-				if frame.LineContent == nil {
-					frame.LineContent = pointy.String(string(matches[1]))
-				}
 			}
+			frame.LineContent = pointy.String(string(matches[1]))
 		}
 		frames = append(frames, frame)
 		frame = nil
