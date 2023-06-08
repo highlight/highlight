@@ -26,6 +26,9 @@ linters:
 
 # all available settings of specific linters
 linters-settings:
+    errcheck:
+        check-blank: true
+
     staticcheck:
         checks: ['all']
 
