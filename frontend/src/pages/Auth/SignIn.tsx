@@ -1,7 +1,6 @@
 import { Button } from '@components/Button'
 import {
 	useCreateAdminMutation,
-	useGetProjectsLazyQuery,
 	useGetWorkspaceForInviteLinkQuery,
 } from '@graph/hooks'
 import {
@@ -45,7 +44,6 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			password: '',
 		},
 	})
-	const [getProjects] = useGetProjectsLazyQuery()
 	const [createAdmin] = useCreateAdminMutation()
 	const { data } = useGetWorkspaceForInviteLinkQuery({
 		variables: {
