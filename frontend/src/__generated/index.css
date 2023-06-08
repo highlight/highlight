@@ -10279,9 +10279,6 @@ span:last-child ._ruleItem_1yzqu_148 {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
-._33eaux0 {
-  max-height: 16em;
-}
 
 /* temp_stylePlugin:ni:sha-256;rMrQRyZrKw_rd6RipEc2Ve-7bXKt5YqAsAeoQ0Mt554 */
 ._tabPane_19cqh_1 {
@@ -10380,6 +10377,9 @@ span:last-child ._ruleItem_1yzqu_148 {
   display: flex;
   justify-content: center;
   width: 100%;
+}
+._33eaux0 {
+  max-height: 16em;
 }
 
 /* temp_stylePlugin:ni:sha-256;BtqyzEEtG8ThljpH4yzPm1T9yuUz6xMGDnI9IWq9o3c */
