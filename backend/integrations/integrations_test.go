@@ -11,7 +11,7 @@ import (
 )
 
 func TestIsProjectIntegrated(t *testing.T) {
-	util.RunTestWithDBWipe(t, "UpdateProjectFilterSettings", client.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, client.db, func(t *testing.T) {
 		project := model.Project{}
 		err := client.db.Create(&project).Error
 		assert.NoError(t, err)
