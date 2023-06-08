@@ -298,7 +298,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 							</>
 						}
 					>
-						<ErrorBodyText errorGroup={errorGroup} />
+						<ErrorBodyText errorBody={event} />
 					</Stat>
 					{context ? (
 						<Stat

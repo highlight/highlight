@@ -1,5 +1,5 @@
 import { Button } from '@components/Button'
-import { ErrorGroup, Maybe } from '@graph/schemas'
+import { Maybe } from '@graph/schemas'
 import { Box, Text } from '@highlight-run/ui'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { useEffect, useRef, useState } from 'react'
@@ -7,13 +7,13 @@ import { useEffect, useRef, useState } from 'react'
 import * as style from './style.css'
 
 interface Props {
-	errorGroup?: Maybe<Omit<ErrorGroup, 'metadata_log'>>
+	errorBody: Maybe<string>[] | undefined
 }
 
-const ErrorBodyText = ({ errorGroup }: Props) => {
+const ErrorBodyText = ({ errorBody }: Props) => {
 	const [truncated, setTruncated] = useState(true)
 	const [truncateable, setTruncateable] = useState(true)
-	const body = getErrorBody(errorGroup?.event)
+	const body = getErrorBody(errorBody)
 	const bodyRef = useRef<HTMLElement | undefined>()
 
 	useEffect(() => {
@@ -26,12 +26,7 @@ const ErrorBodyText = ({ errorGroup }: Props) => {
 
 	return (
 		<Box display="flex" flexDirection="column" gap="8">
-			<Box
-				py="8"
-				cssClass={style.errorBodyContainer}
-				overflowY="scroll"
-				overflowX="auto"
-			>
+			<Box py="8" cssClass={style.errorBodyContainer}>
 				<Text
 					family="monospace"
 					lines={truncated ? '3' : undefined}
