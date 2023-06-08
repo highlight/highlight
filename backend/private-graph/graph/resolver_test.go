@@ -436,8 +436,8 @@ func TestResolver_canAdminViewSession(t *testing.T) {
 			expError: true,
 		},
 	}
-	for testName, v := range tests {
-		util.RunTestWithDBWipe(t, testName, DB, func(t *testing.T) {
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 			ctx := context.Background()
 			r := &queryResolver{Resolver: &Resolver{DB: DB}}
 
@@ -489,8 +489,8 @@ func TestResolver_isAdminInProjectOrDemoProject(t *testing.T) {
 			expError: true,
 		},
 	}
-	for testName, v := range tests {
-		util.RunTestWithDBWipe(t, testName, DB, func(t *testing.T) {
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 			ctx := context.Background()
 			r := &queryResolver{Resolver: &Resolver{DB: DB}}
 
