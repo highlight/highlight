@@ -27,6 +27,7 @@ func TestMain(m *testing.M) {
 	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
 	var err error
 	DB, err = util.CreateAndMigrateTestDB(dbName)
+	SetupAuthClient(context.Background(), Simple, nil, nil)
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
@@ -416,6 +417,111 @@ func TestResolver_GetSlackChannelsFromSlack(t *testing.T) {
 			}
 			if err == nil && num != v.expNumChannels {
 				t.Fatalf("received invalid num channels %d, expected %d", num, v.expNumChannels)
+			}
+		})
+	}
+}
+
+func TestResolver_canAdminViewSession(t *testing.T) {
+	tests := map[string]struct {
+		secureID string
+		expError bool
+	}{
+		"valid session": {
+			secureID: "abc123",
+			expError: false,
+		},
+		"invalid session": {
+			secureID: "a1b2c3",
+			expError: true,
+		},
+	}
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+			ctx := context.Background()
+			r := &queryResolver{Resolver: &Resolver{DB: DB}}
+
+			w := model.Workspace{}
+			if err := DB.Create(&w).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			admin, _ := r.getCurrentAdmin(ctx)
+			if err := DB.Model(&w).Association("Admins").Append(admin); err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			p := model.Project{WorkspaceID: w.ID}
+			if err := DB.Create(&p).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting project"))
+			}
+
+			session := model.Session{
+				SecureID:  "abc123",
+				ProjectID: p.ID,
+			}
+			if err := DB.Create(&session).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting session"))
+			}
+
+			s, err := r.canAdminViewSession(ctx, v.secureID)
+			if v.expError {
+				if err == nil {
+					t.Fatalf("error result invalid, saw %s", err)
+				}
+			} else if err != nil {
+				t.Fatalf("saw unexpected error %s", err)
+			} else if s.SecureID != v.secureID {
+				t.Fatalf("received invalid session %s, expected %s", s.SecureID, v.secureID)
+			}
+		})
+	}
+}
+
+func TestResolver_isAdminInProjectOrDemoProject(t *testing.T) {
+	tests := map[string]struct {
+		expError bool
+	}{
+		"valid session": {
+			expError: false,
+		},
+		"invalid session": {
+			expError: true,
+		},
+	}
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+			ctx := context.Background()
+			r := &queryResolver{Resolver: &Resolver{DB: DB}}
+
+			w := model.Workspace{}
+			if err := DB.Create(&w).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			admin, _ := r.getCurrentAdmin(ctx)
+			if err := DB.Model(&w).Association("Admins").Append(admin); err != nil {
+				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			}
+
+			p := model.Project{WorkspaceID: w.ID}
+			if err := DB.Create(&p).Error; err != nil {
+				t.Fatal(e.Wrap(err, "error inserting project"))
+			}
+
+			id := p.ID
+			if v.expError {
+				id += 1
+			}
+			pr, err := r.isAdminInProjectOrDemoProject(ctx, id)
+			if v.expError {
+				if err == nil {
+					t.Fatalf("error result invalid, saw %s", err)
+				}
+			} else if err != nil {
+				t.Fatalf("saw unexpected error %s", err)
+			} else if pr.ID != id {
+				t.Fatalf("received invalid project %d, expected %d", pr.ID, id)
 			}
 		})
 	}

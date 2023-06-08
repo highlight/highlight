@@ -1275,7 +1275,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	}
 	session := &model.Session{}
 	if err := r.DB.Order("secure_id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
-		return e.Wrap(err, "[IdentifySession] error querying session by sessionID")
+		return e.New("[IdentifySession] error querying session by sessionID")
 	}
 	getSessionSpan.Finish()
 	sessionID := session.ID
@@ -1730,7 +1730,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 	session := &model.Session{}
 	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
 		log.WithContext(ctx).Error(e.Wrapf(err, "no session found for push metrics: %s", sessionSecureID))
-		return err
+		return e.New("no session found for push metrics: " + sessionSecureID)
 	}
 	sessionID := session.ID
 	projectID := session.ProjectID
@@ -2229,7 +2229,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	}
 	sessionObj := &model.Session{}
 	if err := r.DB.Order("secure_id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&sessionObj).Error; err != nil || sessionObj.ID == 0 {
-		retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
+		retErr := e.New("error reading from session %v" + sessionSecureID)
 		querySessionSpan.Finish(tracer.WithError(retErr))
 		return retErr
 	}
