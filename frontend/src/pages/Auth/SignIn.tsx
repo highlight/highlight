@@ -63,6 +63,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					provider: additionalUserInfo.providerId,
 				})
 
+				if (!user?.emailVerified) {
+					auth.currentUser?.sendEmailVerification()
+				}
+
 				await createAdmin()
 			}
 

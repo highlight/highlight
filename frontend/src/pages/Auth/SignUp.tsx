@@ -71,6 +71,10 @@ export const SignUp: React.FC = () => {
 				})
 			}
 
+			if (!user?.emailVerified) {
+				auth.currentUser?.sendEmailVerification()
+			}
+
 			await createAdmin()
 			message.success('Account created succesfully!')
 
@@ -109,7 +113,6 @@ export const SignUp: React.FC = () => {
 					formState.values.password,
 				)
 					.then(async (credential) => {
-						auth.currentUser?.sendEmailVerification()
 						handleSubmit(credential)
 					})
 					.catch((error) => {
