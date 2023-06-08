@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as style from './style.css'
 
 interface Props {
-	errorBody: Maybe<string>[] | undefined
+	errorBody: Maybe<string>[]
 }
 
 const ErrorBodyText = ({ errorBody }: Props) => {
