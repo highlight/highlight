@@ -93,7 +93,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	)
 
 	const handleExternalAuthClick = (provider: Firebase.auth.AuthProvider) => {
-		auth.signInWithPopup(provider).catch(handleAuthError)
+		auth.signInWithPopup(provider).then(handleAuth).catch(handleAuthError)
 	}
 
 	useEffect(() => analytics.page(), [])
