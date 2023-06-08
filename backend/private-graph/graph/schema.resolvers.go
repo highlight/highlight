@@ -6338,7 +6338,7 @@ func (r *queryResolver) GithubIssueLabels(ctx context.Context, workspaceID int, 
 func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, id)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	return project, nil
 }
@@ -6710,6 +6710,9 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
+	}
+	if workspace.StripeCustomerID == nil {
+		return nil, e.New("workspace has no stripe customer ID")
 	}
 
 	if err := r.validateAdminRole(ctx, workspaceID); err != nil {

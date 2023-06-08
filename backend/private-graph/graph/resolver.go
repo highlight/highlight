@@ -938,16 +938,17 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id st
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewSession"))
 	defer authSpan.Finish()
 	session, isOwner, err := r._doesAdminOwnSession(ctx, session_secure_id)
-	if err == nil && isOwner {
+	if err != nil {
+		return nil, err
+	}
+	if isOwner {
+		return session, nil
+	} else if session.IsPublic {
+		return session, nil
+	} else if session.ProjectID == r.demoProjectID(ctx) {
 		return session, nil
 	}
-	if session != nil && session.IsPublic {
-		return session, nil
-	}
-	if session.ProjectID == r.demoProjectID(ctx) {
-		return session, nil
-	}
-	return nil, err
+	return nil, e.New("session access unauthorized")
 }
 
 func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id string) (*model.Session, error) {
