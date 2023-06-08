@@ -247,23 +247,6 @@ export const AlertConfigurationCard = ({
 							},
 						})
 						break
-					case ALERT_TYPE.SessionFeedback:
-						await createSessionAlert({
-							...requestBody,
-							variables: {
-								input: {
-									...requestVariables,
-									threshold_window: 1,
-									user_properties: [],
-									exclude_rules: [],
-									track_properties: [],
-									emails: emailsToNotify,
-									disabled: false,
-									type: SessionAlertType.SessionFeedbackAlert,
-								},
-							},
-						})
-						break
 					case ALERT_TYPE.TrackProperties:
 						await createSessionAlert({
 							...requestBody,
@@ -412,24 +395,6 @@ export const AlertConfigurationCard = ({
 									emails: emailsToNotify,
 									disabled: isDisabled,
 									type: SessionAlertType.TrackPropertiesAlert,
-								},
-							},
-						})
-						break
-					case ALERT_TYPE.SessionFeedback:
-						await updateSessionAlert({
-							...requestBody,
-							variables: {
-								id: alert.id,
-								input: {
-									...requestVariables,
-									threshold_window: lookbackPeriod,
-									user_properties: [],
-									exclude_rules: [],
-									track_properties: [],
-									emails: emailsToNotify,
-									disabled: isDisabled,
-									type: SessionAlertType.SessionFeedbackAlert,
 								},
 							},
 						})

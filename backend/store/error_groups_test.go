@@ -15,7 +15,7 @@ import (
 )
 
 func TestListErrorObjects(t *testing.T) {
-	util.RunTestWithDBWipe(t, "TestListErrorObjects", store.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
 		errorGroup := model.ErrorGroup{
 			State: privateModel.ErrorStateOpen,
 			Event: "something broke!",
@@ -73,7 +73,7 @@ func TestListErrorObjects(t *testing.T) {
 }
 
 func TestListErrorObjectsTraversing(t *testing.T) {
-	util.RunTestWithDBWipe(t, "TestListErrorObjectsTraversing", store.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
 		errorGroup := model.ErrorGroup{
 			State: privateModel.ErrorStateOpen,
 		}
@@ -174,7 +174,8 @@ func TestListErrorObjectsTraversing(t *testing.T) {
 }
 
 func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
-	util.RunTestWithDBWipe(t, "TestUpdateErrorGroupStateByAdmin", store.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
+
 		errorGroup := model.ErrorGroup{
 			State: privateModel.ErrorStateOpen,
 		}
@@ -214,7 +215,7 @@ func TestUpdateErrorGroupStateByAdmin(t *testing.T) {
 }
 
 func TestUpdateErrorGroupStateBySystem(t *testing.T) {
-	util.RunTestWithDBWipe(t, "UpdateErrorGroupStateBySystem", store.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
 		errorGroup := model.ErrorGroup{
 			State: privateModel.ErrorStateOpen,
 		}

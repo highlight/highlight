@@ -884,7 +884,6 @@ type ComplexityRoot struct {
 		SessionComments              func(childComplexity int, sessionSecureID string) int
 		SessionCommentsForAdmin      func(childComplexity int) int
 		SessionCommentsForProject    func(childComplexity int, projectID int) int
-		SessionFeedbackAlerts        func(childComplexity int, projectID int) int
 		SessionIntervals             func(childComplexity int, sessionSecureID string) int
 		SessionLogs                  func(childComplexity int, projectID int, params model.LogsParamsInput) int
 		SessionsHistogram            func(childComplexity int, projectID int, query string, histogramOptions model.DateHistogramOptions) int
@@ -1442,7 +1441,6 @@ type QueryResolver interface {
 	WorkspacesCount(ctx context.Context) (int64, error)
 	JoinableWorkspaces(ctx context.Context) ([]*model1.Workspace, error)
 	ErrorAlerts(ctx context.Context, projectID int) ([]*model1.ErrorAlert, error)
-	SessionFeedbackAlerts(ctx context.Context, projectID int) ([]*model1.SessionAlert, error)
 	NewUserAlerts(ctx context.Context, projectID int) ([]*model1.SessionAlert, error)
 	TrackPropertiesAlerts(ctx context.Context, projectID int) ([]*model1.SessionAlert, error)
 	UserPropertiesAlerts(ctx context.Context, projectID int) ([]*model1.SessionAlert, error)
@@ -6563,18 +6561,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SessionCommentsForProject(childComplexity, args["project_id"].(int)), true
 
-	case "Query.session_feedback_alerts":
-		if e.complexity.Query.SessionFeedbackAlerts == nil {
-			break
-		}
-
-		args, err := ec.field_Query_session_feedback_alerts_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.SessionFeedbackAlerts(childComplexity, args["project_id"].(int)), true
-
 	case "Query.session_intervals":
 		if e.complexity.Query.SessionIntervals == nil {
 			break
@@ -8923,7 +8909,6 @@ enum SessionAlertType {
 	NEW_USER_ALERT
 	TRACK_PROPERTIES_ALERT
 	USER_PROPERTIES_ALERT
-	SESSION_FEEDBACK_ALERT
 	RAGE_CLICK_ALERT
 	NEW_SESSION_ALERT
 }
@@ -10164,7 +10149,6 @@ type Query {
 	workspaces_count: Int64!
 	joinable_workspaces: [Workspace]
 	error_alerts(project_id: ID!): [ErrorAlert]!
-	session_feedback_alerts(project_id: ID!): [SessionAlert]!
 	new_user_alerts(project_id: ID!): [SessionAlert]
 	track_properties_alerts(project_id: ID!): [SessionAlert]!
 	user_properties_alerts(project_id: ID!): [SessionAlert]!
@@ -15718,21 +15702,6 @@ func (ec *executionContext) field_Query_session_comments_args(ctx context.Contex
 }
 
 func (ec *executionContext) field_Query_session_comments_for_project_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_session_feedback_alerts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -44327,94 +44296,6 @@ func (ec *executionContext) fieldContext_Query_error_alerts(ctx context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_session_feedback_alerts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_session_feedback_alerts(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionFeedbackAlerts(rctx, fc.Args["project_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.SessionAlert)
-	fc.Result = res
-	return ec.marshalNSessionAlert2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionAlert(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_session_feedback_alerts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_SessionAlert_id(ctx, field)
-			case "updated_at":
-				return ec.fieldContext_SessionAlert_updated_at(ctx, field)
-			case "Name":
-				return ec.fieldContext_SessionAlert_Name(ctx, field)
-			case "ChannelsToNotify":
-				return ec.fieldContext_SessionAlert_ChannelsToNotify(ctx, field)
-			case "DiscordChannelsToNotify":
-				return ec.fieldContext_SessionAlert_DiscordChannelsToNotify(ctx, field)
-			case "EmailsToNotify":
-				return ec.fieldContext_SessionAlert_EmailsToNotify(ctx, field)
-			case "ExcludedEnvironments":
-				return ec.fieldContext_SessionAlert_ExcludedEnvironments(ctx, field)
-			case "CountThreshold":
-				return ec.fieldContext_SessionAlert_CountThreshold(ctx, field)
-			case "TrackProperties":
-				return ec.fieldContext_SessionAlert_TrackProperties(ctx, field)
-			case "UserProperties":
-				return ec.fieldContext_SessionAlert_UserProperties(ctx, field)
-			case "ThresholdWindow":
-				return ec.fieldContext_SessionAlert_ThresholdWindow(ctx, field)
-			case "LastAdminToEditID":
-				return ec.fieldContext_SessionAlert_LastAdminToEditID(ctx, field)
-			case "Type":
-				return ec.fieldContext_SessionAlert_Type(ctx, field)
-			case "ExcludeRules":
-				return ec.fieldContext_SessionAlert_ExcludeRules(ctx, field)
-			case "DailyFrequency":
-				return ec.fieldContext_SessionAlert_DailyFrequency(ctx, field)
-			case "disabled":
-				return ec.fieldContext_SessionAlert_disabled(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type SessionAlert", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_session_feedback_alerts_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_new_user_alerts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query_new_user_alerts(ctx, field)
 	if err != nil {
@@ -68795,26 +68676,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_error_alerts(ctx, field)
-				return res
-			}
-
-			rrm := func(ctx context.Context) graphql.Marshaler {
-				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
-			}
-
-			out.Concurrently(i, func() graphql.Marshaler {
-				return rrm(innerCtx)
-			})
-		case "session_feedback_alerts":
-			field := field
-
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_session_feedback_alerts(ctx, field)
 				return res
 			}
 

@@ -68,7 +68,7 @@ services:
             file: compose.yml
             service: collector
         volumes:
-            - ./otel-collector.prod.yaml:/etc/otel-collector-config.yaml
+            - ./otel-collector.hobby.yaml:/etc/otel-collector-config.yaml
 
     backend-setup-opensearch:
         image: ghcr.io/highlight/highlight-backend:latest
@@ -109,6 +109,9 @@ services:
             - 3000:3000
             - 6006:6006
             - 8080:8080
+        environment:
+            - REACT_APP_PRIVATE_GRAPH_URI
+            - REACT_APP_PUBLIC_GRAPH_URI
 
 volumes:
     highlight-data:

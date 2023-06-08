@@ -19,13 +19,15 @@ export const JSOtherLogContent: QuickStartContent = {
 			title: 'Call built-in console methods.',
 			content:
 				'Logs are automatically recorded by the highlight SDK. Arguments passed as a dictionary as the second parameter will be interpreted as structured key-value pairs that logs can be easily searched by.',
-			code: {
-				text: `module.exports = function() {
+			code: [
+				{
+					text: `module.exports = function() {
     console.log('hey there!');
     console.warn('whoa there', {'key': 'value'});
 }`,
-				language: 'js',
-			},
+					language: 'js',
+				},
+			],
 		},
 		verifyLogs,
 	],

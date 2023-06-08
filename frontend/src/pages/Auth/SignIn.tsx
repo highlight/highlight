@@ -1,5 +1,8 @@
 import { Button } from '@components/Button'
-import { useGetWorkspaceForInviteLinkQuery } from '@graph/hooks'
+import {
+	useCreateAdminMutation,
+	useGetWorkspaceForInviteLinkQuery,
+} from '@graph/hooks'
 import {
 	Box,
 	Form,
@@ -17,6 +20,7 @@ import firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import { SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
 import analytics from '@/util/analytics'
 
@@ -28,6 +32,7 @@ type Props = {
 
 export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const navigate = useNavigate()
+	const { fetchAdmin, signIn } = useAuthContext()
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
@@ -39,6 +44,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			password: '',
 		},
 	})
+	const [createAdmin] = useCreateAdminMutation()
 	const { data } = useGetWorkspaceForInviteLinkQuery({
 		variables: {
 			secret: inviteCode!,
@@ -46,6 +52,23 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		skip: !inviteCode,
 	})
 	const workspaceInvite = data?.workspace_for_invite_link
+
+	const handleAuth = useCallback(
+		async ({ additionalUserInfo, user }: firebase.auth.UserCredential) => {
+			if (additionalUserInfo?.isNewUser && user?.email) {
+				analytics.track('Sign up', {
+					email: user.email,
+					provider: additionalUserInfo.providerId,
+				})
+
+				await createAdmin()
+			}
+
+			await fetchAdmin()
+			signIn(user)
+		},
+		[createAdmin, fetchAdmin, signIn],
+	)
 
 	const handleAuthError = useCallback(
 		(error: firebase.auth.MultiFactorError) => {
@@ -63,6 +86,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			}
 
 			setError(errorMessage)
+			setLoading(false)
 		},
 		[navigate, setResolver],
 	)
@@ -80,21 +104,14 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					formState.values.email,
 					formState.values.password,
 				)
-					.then(() => {})
-					.catch((e) => {
-						handleAuthError(e)
-						setLoading(false)
-					})
+					.then(handleAuth)
+					.catch(handleAuthError)
 			}}
 		>
 			<AuthHeader>
 				<Box mb="4">
 					<Stack direction="column" gap="16" align="center">
 						<SvgHighlightLogoOnLight height="48" width="48" />
-						{/*
-						TODO: Render info for workspace they were invited to by fetching it
-						from WorkspaceForInviteLink, similar to what we do on SignUp.
-						*/}
 						<Heading level="h4">
 							{workspaceInvite
 								? `You're invited to join ‘${workspaceInvite.workspace_name}’`
@@ -164,9 +181,9 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						type="button"
 						trackingId="sign-in-with-google"
 						onClick={() => {
-							auth.signInWithPopup(auth.googleProvider!).catch(
-								handleAuthError,
-							)
+							auth.signInWithPopup(auth.googleProvider!)
+								.then(handleAuth)
+								.catch(handleAuthError)
 						}}
 					>
 						<Box display="flex" alignItems="center" gap="6">

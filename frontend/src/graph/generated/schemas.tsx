@@ -1709,7 +1709,6 @@ export type Query = {
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
 	session_comments_for_project: Array<Maybe<SessionComment>>
-	session_feedback_alerts: Array<Maybe<SessionAlert>>
 	session_intervals: Array<SessionInterval>
 	sessions_histogram: SessionsHistogram
 	sessions_opensearch: SessionResults
@@ -2205,10 +2204,6 @@ export type QuerySession_Comments_For_ProjectArgs = {
 	project_id: Scalars['ID']
 }
 
-export type QuerySession_Feedback_AlertsArgs = {
-	project_id: Scalars['ID']
-}
-
 export type QuerySession_IntervalsArgs = {
 	session_secure_id: Scalars['String']
 }
@@ -2539,7 +2534,6 @@ export enum SessionAlertType {
 	NewSessionAlert = 'NEW_SESSION_ALERT',
 	NewUserAlert = 'NEW_USER_ALERT',
 	RageClickAlert = 'RAGE_CLICK_ALERT',
-	SessionFeedbackAlert = 'SESSION_FEEDBACK_ALERT',
 	TrackPropertiesAlert = 'TRACK_PROPERTIES_ALERT',
 	UserPropertiesAlert = 'USER_PROPERTIES_ALERT',
 }

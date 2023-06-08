@@ -320,7 +320,6 @@ enum SessionAlertType {
 	NEW_USER_ALERT
 	TRACK_PROPERTIES_ALERT
 	USER_PROPERTIES_ALERT
-	SESSION_FEEDBACK_ALERT
 	RAGE_CLICK_ALERT
 	NEW_SESSION_ALERT
 }
@@ -1561,7 +1560,6 @@ type Query {
 	workspaces_count: Int64!
 	joinable_workspaces: [Workspace]
 	error_alerts(project_id: ID!): [ErrorAlert]!
-	session_feedback_alerts(project_id: ID!): [SessionAlert]!
 	new_user_alerts(project_id: ID!): [SessionAlert]
 	track_properties_alerts(project_id: ID!): [SessionAlert]!
 	user_properties_alerts(project_id: ID!): [SessionAlert]!

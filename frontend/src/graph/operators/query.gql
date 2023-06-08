@@ -1320,7 +1320,7 @@ query GetSegments($project_id: ID!) {
 }
 
 query GetErrorSegments($project_id: ID!) {
-	error_segments(project_id: $project_id) {
+	segments: error_segments(project_id: $project_id) {
 		id
 		name
 		params {
@@ -1745,9 +1745,6 @@ query GetAlertsPagePayload($project_id: ID!) {
 		Name
 		DailyFrequency
 		disabled
-	}
-	session_feedback_alerts(project_id: $project_id) {
-		...SessionAlertFragment
 	}
 	new_session_alerts(project_id: $project_id) {
 		...SessionAlertFragment
