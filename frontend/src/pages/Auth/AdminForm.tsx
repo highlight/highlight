@@ -30,8 +30,10 @@ import { getAttributionData } from '@util/attribution'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLocalStorage } from 'react-use'
 
 import { namedOperations } from '@/graph/generated/operations'
+import { DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY } from '@/pages/Auth/JoinWorkspace'
 
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
@@ -52,13 +54,25 @@ export const AdminForm: React.FC = () => {
 	const { admin, fetchAdmin } = useAuthContext()
 	const navigate = useNavigate()
 	const { data: workspacesData, loading: workspacesLoading } =
-		useGetWorkspacesQuery()
+		useGetWorkspacesQuery({ fetchPolicy: 'network-only' })
 	const [updateAdminAndCreateWorkspace, { loading }] =
 		useUpdateAdminAndCreateWorkspaceMutation()
 	const [updateAdminAboutYouDetails] = useUpdateAdminAboutYouDetailsMutation()
+	const [dismissedJoinWorkspace] = useLocalStorage(
+		DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY,
+		false,
+	)
 
 	if (admin?.about_you_details_filled) {
 		navigate('/setup')
+	}
+
+	if (
+		!dismissedJoinWorkspace &&
+		admin &&
+		workspacesData?.joinable_workspaces?.length
+	) {
+		navigate('/join_workspace', { replace: true })
 	}
 
 	const adminEmailDomain = getEmailDomain(admin?.email)

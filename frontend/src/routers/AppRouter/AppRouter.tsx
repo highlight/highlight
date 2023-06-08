@@ -10,7 +10,6 @@ import {
 	SIGN_IN_ROUTE,
 	SIGN_UP_ROUTE,
 } from '@pages/Auth/AuthRouter'
-import { JoinWorkspace } from '@pages/Auth/JoinWorkspace'
 import { VerifyEmail } from '@pages/Auth/VerifyEmail'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
@@ -52,6 +51,8 @@ import {
 	GetProjectDropdownOptionsQuery,
 	GetWorkspaceDropdownOptionsQuery,
 } from '@/graph/generated/operations'
+import { JoinWorkspace } from '@/pages/Auth/JoinWorkspace'
+import { WorkspaceInvitation } from '@/pages/Auth/WorkspaceInvitation'
 
 export const VERIFY_EMAIL_ROUTE = '/verify_email'
 export const ABOUT_YOU_ROUTE = '/about_you'
@@ -63,7 +64,9 @@ export const AppRouter = () => {
 	const workspaceId = workspaceMatch?.params.workspace_id
 	const workspaceInviteMatch = useMatch('/w/:workspace_id/invite/:invite')
 	const inviteMatch = useMatch('/invite/:invite')
+	const joinWorkspaceMatch = useMatch('/join_workspace')
 	const isInvitePage = !!inviteMatch
+	const isJoinWorkspacePage = !!joinWorkspaceMatch
 	const [inviteCode, setInviteCode] = useLocalStorage('highlightInviteCode')
 	const { projectId } = useNumericProjectId()
 	const [nextParam] = useQueryParam('next', StringParam)
@@ -74,12 +77,14 @@ export const AppRouter = () => {
 		useState<GetWorkspaceDropdownOptionsQuery>()
 	const [projectListData, setProjectListData] =
 		useState<GetProjectDropdownOptionsQuery>()
+	const isValidProjectId = Number.isInteger(Number(projectId))
 
 	const { data: projectDropdownData, loading: projectDropdownDataLoading } =
 		useGetProjectDropdownOptionsQuery({
 			variables: { project_id: projectId! },
-			skip: !isLoggedIn || !projectId,
+			skip: !isLoggedIn || !isValidProjectId,
 		})
+
 	const {
 		data: workspaceDropdownData,
 		loading: workspaceDropdownDataLoading,
@@ -119,7 +124,8 @@ export const AppRouter = () => {
 			admin &&
 			!admin.about_you_details_filled &&
 			!isVercelIntegrationFlow &&
-			!isInvitePage
+			!isInvitePage &&
+			!isJoinWorkspacePage
 		) {
 			navigate(ABOUT_YOU_ROUTE, { replace: true })
 			return
@@ -143,6 +149,7 @@ export const AppRouter = () => {
 		inviteCode,
 		isInvitePage,
 		projectId,
+		isJoinWorkspacePage,
 	])
 
 	useEffect(() => {
@@ -198,10 +205,13 @@ export const AppRouter = () => {
 				}}
 			>
 				<Routes>
+					<Route path="/join_workspace" element={<JoinWorkspace />} />
+
 					<Route
 						path={VERIFY_EMAIL_ROUTE}
 						element={<VerifyEmail />}
 					/>
+
 					{/* used by google ads for conversion tracking */}
 					<Route path={ABOUT_YOU_ROUTE} element={<AdminForm />} />
 
@@ -254,7 +264,7 @@ export const AppRouter = () => {
 						path="/invite/:invite_id"
 						element={
 							isLoggedIn ? (
-								<JoinWorkspace />
+								<WorkspaceInvitation />
 							) : (
 								<Navigate to={SIGN_UP_ROUTE} />
 							)
@@ -325,7 +335,7 @@ export const AppRouter = () => {
 						path="/*"
 						element={
 							projectId &&
-							(Number.isInteger(Number(projectId)) ||
+							(isValidProjectId ||
 								projectId === DEMO_PROJECT_ID) ? (
 								<ProjectRouter />
 							) : isLoggedIn ? (

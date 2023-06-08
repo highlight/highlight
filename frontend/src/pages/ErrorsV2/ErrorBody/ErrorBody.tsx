@@ -4,14 +4,12 @@ import {
 	Box,
 	ButtonLink,
 	IconSolidCheveronRight,
-	IconSolidCode,
 	IconSolidUsers,
 	IconSolidViewGrid,
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import AffectedUserCount from '@pages/ErrorsV2/ErrorBody/components/AffectedUserCount'
-import ErrorBodyText from '@pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
 import ErrorFrequencyChart from '@pages/ErrorsV2/ErrorBody/components/ErrorFrequencyChart'
 import ErrorObjectCount from '@pages/ErrorsV2/ErrorBody/components/ErrorObjectCount'
 import ErrorOccurenceDate from '@pages/ErrorsV2/ErrorBody/components/ErrorOccurenceDate'
@@ -130,19 +128,6 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				>
 					<ErrorFrequencyChart errorGroup={errorGroup} />
 				</Stat>
-			</Box>
-			<Box py="12" px="16">
-				<Box
-					mb="20"
-					display="flex"
-					gap="6"
-					alignItems="center"
-					color="weak"
-				>
-					<IconSolidCode />
-					<Text color="moderate">Error Body</Text>
-				</Box>
-				<ErrorBodyText errorGroup={errorGroup} />
 			</Box>
 		</Box>
 	)

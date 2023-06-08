@@ -1,7 +1,6 @@
 import { Button } from '@components/Button'
 import {
 	useCreateAdminMutation,
-	useGetProjectsLazyQuery,
 	useGetWorkspaceForInviteLinkQuery,
 } from '@graph/hooks'
 import {
@@ -45,7 +44,6 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			password: '',
 		},
 	})
-	const [getProjects] = useGetProjectsLazyQuery()
 	const [createAdmin] = useCreateAdminMutation()
 	const { data } = useGetWorkspaceForInviteLinkQuery({
 		variables: {
@@ -66,16 +64,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 				await createAdmin()
 			}
 
-			const { data: projectsData } = await getProjects()
 			await fetchAdmin()
-
 			signIn(user)
-			if (projectsData?.projects?.length) {
-				const projectId = projectsData.projects[0]!.id
-				navigate(`/${projectId}/sessions`, { replace: true })
-			}
 		},
-		[createAdmin, fetchAdmin, getProjects, navigate, signIn],
+		[createAdmin, fetchAdmin, signIn],
 	)
 
 	const handleAuthError = useCallback(
