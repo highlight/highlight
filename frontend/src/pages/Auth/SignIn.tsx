@@ -190,6 +190,18 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 							Sign in with Google <IconSolidSparkles />
 						</Box>
 					</Button>
+					<Button
+						kind="secondary"
+						type="button"
+						trackingId="sign-in-with-github"
+						onClick={() => {
+							auth.signInWithPopup(auth.githubProvider!).catch(
+								handleAuthError,
+							)
+						}}
+					>
+						Sign in with Github
+					</Button>
 				</Stack>
 			</AuthFooter>
 		</Form>

@@ -78,6 +78,21 @@ export const SignUp: React.FC = () => {
 		[createAdmin, navigate, signIn],
 	)
 
+	const handleExternalAuthClick = (provider: any) => {
+		auth.signInWithPopup(provider)
+			.then(handleSubmit)
+			.catch((error: firebase.auth.MultiFactorError) => {
+				let errorMessage = error.message
+
+				if (error.code === 'auth/popup-closed-by-user') {
+					errorMessage =
+						'Pop-up closed without successfully authenticating. Please try again.'
+				}
+
+				setError(errorMessage)
+			})
+	}
+
 	useEffect(() => analytics.page(), [])
 
 	return (
@@ -169,26 +184,20 @@ export const SignUp: React.FC = () => {
 						type="button"
 						trackingId="sign-up-with-google"
 						onClick={() => {
-							auth.signInWithPopup(auth.googleProvider!)
-								.then(handleSubmit)
-								.catch(
-									(error: firebase.auth.MultiFactorError) => {
-										let errorMessage = error.message
-
-										if (
-											error.code ===
-											'auth/popup-closed-by-user'
-										) {
-											errorMessage =
-												'Pop-up closed without successfully authenticating. Please try again.'
-										}
-
-										setError(errorMessage)
-									},
-								)
+							handleExternalAuthClick(auth.googleProvider!)
 						}}
 					>
 						Sign up with Google <IconSolidSparkles />
+					</Button>
+					<Button
+						kind="secondary"
+						type="button"
+						trackingId="sign-up-with-github"
+						onClick={() =>
+							handleExternalAuthClick(auth.githubProvider!)
+						}
+					>
+						Sign in with Github
 					</Button>
 				</Stack>
 			</AuthFooter>
