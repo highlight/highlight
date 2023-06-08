@@ -1,12 +1,12 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
-import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import Popover from '@components/Popover/Popover'
+import { START_PAGE } from '@components/SearchPagination/SearchPagination'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
-import { default as OldTooltip } from '@components/Tooltip/Tooltip'
+import Tooltip from '@components/Tooltip/Tooltip'
 import {
 	BackendSearchQuery,
 	BaseSearchContext,
@@ -14,17 +14,19 @@ import {
 } from '@context/BaseSearchContext'
 import {
 	useEditErrorSegmentMutation,
+	useEditSegmentMutation,
 	useGetAppVersionsQuery,
 	useGetErrorSegmentsQuery,
+	useGetSegmentsQuery,
 } from '@graph/hooks'
 import { GetFieldTypesQuery, namedOperations } from '@graph/operations'
 import {
 	ErrorSearchParamsInput,
 	ErrorSegment,
-	ErrorState,
 	Exact,
 	Field,
 	SearchParamsInput,
+	Segment,
 } from '@graph/schemas'
 import {
 	Box,
@@ -46,31 +48,20 @@ import {
 	PreviousDateRangePicker,
 	Tag,
 	Text,
-	Tooltip,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import CreateErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
-import DeleteErrorSegmentModal from '@pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
-import { EmptyErrorsSearchParams } from '@pages/Errors/ErrorsPage'
-import {
-	CUSTOM_TYPE,
-	ERROR_FIELD_TYPE,
-	ERROR_TYPE,
-	SESSION_TYPE,
-} from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
-import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
 import { gqlSanitize } from '@util/gql'
-import { client } from '@util/graph'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import { QueryBuilderStateParam } from '@util/url/params'
 import { Checkbox, message } from 'antd'
 import clsx, { ClassValue } from 'clsx'
-import { capitalize, isEqual, remove } from 'lodash'
+import { isEqual } from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { components } from 'react-select'
@@ -82,13 +73,19 @@ import { useToggle } from 'react-use'
 import {
 	BooleanParam,
 	JsonParam,
+	NumberParam,
 	useQueryParam,
 	useQueryParams,
 } from 'use-query-params'
 
+import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
+import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
+import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
+import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
+
+import { DropdownMenu } from '../../pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfigurationV2/SessionFeedConfigurationV2'
 import * as newStyle from './QueryBuilder.css'
 import styles from './QueryBuilder.module.scss'
-
 export interface RuleProps {
 	field: SelectOption | undefined
 	op: Operator | undefined
@@ -100,7 +97,6 @@ export interface SelectOption {
 	label: string
 	value: string
 }
-
 interface MultiselectOption {
 	kind: 'multi'
 	options: readonly {
@@ -135,7 +131,6 @@ type PopoutType =
 	| 'date_range'
 	| 'time_range'
 	| 'range'
-
 interface PopoutContentProps {
 	type: PopoutType
 	value: OnChangeInput
@@ -218,7 +213,7 @@ function useScroll<T extends HTMLElement>(): [() => void, React.RefObject<T>] {
 	return [doScroll, ref]
 }
 
-const OptionLabelName: React.FC<React.PropsWithChildren<unknown>> = (props) => {
+const OptionLabelName: React.FC<React.PropsWithChildren> = (props) => {
 	const ref = useRef<HTMLDivElement>(null)
 
 	const [className, setClassName] = useState<string>(styles.shadowContainer)
@@ -381,7 +376,13 @@ const getProcessedLabel = (value: string): string => {
 }
 
 const getStateLabel = (value: string): string => {
-	return capitalize(value.toLowerCase())
+	if (value === 'RESOLVED') {
+		return 'Resolved'
+	} else if (value === 'IGNORED') {
+		return 'Ignored'
+	} else {
+		return 'Open'
+	}
 }
 
 const getMultiselectOption = (props: any) => {
@@ -772,7 +773,7 @@ const SelectPopout = ({
 		undefined
 
 	const inner = (
-		<OldTooltip
+		<Tooltip
 			title={tooltipMessage}
 			mouseEnterDelay={1.5}
 			overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
@@ -782,12 +783,9 @@ const SelectPopout = ({
 					kind="secondary"
 					size="medium"
 					shape="basic"
-					className={clsx([
-						cssClass,
-						{
-							[styles.invalid]: invalid && !visible,
-						},
-					])}
+					className={clsx(cssClass, {
+						[styles.invalid]: invalid && !visible,
+					})}
 					lines={limitWidth ? '1' : undefined}
 					disabled={disabled}
 				>
@@ -801,7 +799,7 @@ const SelectPopout = ({
 						value.options[0].label}
 				</Tag>
 			</span>
-		</OldTooltip>
+		</Tooltip>
 	)
 
 	if (disabled) {
@@ -879,8 +877,8 @@ const QueryRule = ({
 				type="select"
 				disabled={readonly}
 				cssClass={[
-					newStyle.flatLeft,
 					newStyle.tagKey,
+					newStyle.flatLeft,
 					{
 						[newStyle.flatRight]:
 							(!!rule.op && hasArguments(rule.op)) || !readonly,
@@ -896,8 +894,8 @@ const QueryRule = ({
 					disabled={readonly}
 					limitWidth
 					cssClass={[
-						newStyle.flatLeft,
 						newStyle.tagValue,
+						newStyle.flatLeft,
 						{ [newStyle.flatRight]: !readonly },
 					]}
 				/>
@@ -1021,11 +1019,14 @@ const OPERATORS: Operator[] = [
 	'not_matches',
 ]
 
+export const CUSTOM_TYPE = 'custom'
+export const SESSION_TYPE = 'session'
+export const ERROR_TYPE = 'error'
+export const ERROR_FIELD_TYPE = 'error-field'
+
 export const RANGE_OPERATORS: Operator[] = ['between', 'not_between']
 
 export const TIME_OPERATORS: Operator[] = ['between_time', 'not_between_time']
-
-export const DATE_OPERATORS: Operator[] = ['between_date', 'not_between_date']
 
 export const BOOLEAN_OPERATORS: Operator[] = ['is', 'is_not']
 
@@ -1055,14 +1056,14 @@ const LABEL_MAP: { [key: string]: string } = {
 	identifier: 'Identifier',
 	reload: 'Reloaded',
 	state: 'State',
-	event: 'Error Body',
-	Event: 'Error Body',
+	event: 'Event',
 	timestamp: 'Date',
 	has_rage_clicks: 'Has Rage Clicks',
 	has_errors: 'Has Errors',
 	pages_visited: 'Pages Visited',
 	landing_page: 'Landing Page',
 	exit_page: 'Exit Page',
+	has_comments: 'Has Comments',
 }
 
 const getOperator = (
@@ -1092,7 +1093,6 @@ interface FieldOptions {
 interface HasOptions {
 	options?: FieldOptions
 }
-
 export type CustomField = HasOptions & Pick<Field, 'type' | 'name'>
 
 export type QueryBuilderRule = string[]
@@ -1246,13 +1246,28 @@ export type FetchFieldVariables =
 	  >
 	| undefined
 
-interface QueryBuilderProps {
-	searchContext: BaseSearchContext<ErrorSearchParamsInput>
+interface QueryBuilderProps<
+	T extends SearchParamsInput | ErrorSearchParamsInput,
+> {
+	searchContext: BaseSearchContext<T>
 	timeRangeField: SelectOption
 	customFields: CustomField[]
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
 	fieldData?: GetFieldTypesQuery
 	readonly?: boolean
+	emptySearchParams: T
+	useEditAnySegmentMutation:
+		| typeof useEditSegmentMutation
+		| typeof useEditErrorSegmentMutation
+	useGetAnySegmentsQuery:
+		| typeof useGetSegmentsQuery
+		| typeof useGetErrorSegmentsQuery
+	CreateAnySegmentModal:
+		| typeof CreateSegmentModal
+		| typeof CreateErrorSegmentModal
+	DeleteAnySegmentModal:
+		| typeof DeleteSessionSegmentModal
+		| typeof DeleteErrorSegmentModal
 }
 
 enum QueryBuilderMode {
@@ -1264,11 +1279,14 @@ enum QueryBuilderMode {
 
 const now = moment()
 const defaultMinDate = now.clone().subtract(90, 'days').toDate()
+
 const presetOptions = getDefaultPresets(now)
 
 const defaultPreset = presetOptions[5]
 
-function QueryBuilder(props: QueryBuilderProps) {
+function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
+	props: QueryBuilderProps<T>,
+) {
 	const {
 		searchContext,
 		timeRangeField,
@@ -1276,10 +1294,15 @@ function QueryBuilder(props: QueryBuilderProps) {
 		fetchFields,
 		fieldData,
 		readonly,
+		emptySearchParams,
+		useEditAnySegmentMutation,
+		useGetAnySegmentsQuery,
+		CreateAnySegmentModal,
+		DeleteAnySegmentModal,
 	} = props
 
 	const {
-		setPage,
+		backendSearchQuery,
 		setBackendSearchQuery,
 		searchParams,
 		setSearchParams,
@@ -1290,6 +1313,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 		selectedSegment,
 		setSelectedSegment,
 		removeSelectedSegment,
+		page,
+		setPage,
 	} = searchContext
 
 	const { project_id: projectId } = useParams<{
@@ -1297,7 +1322,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 	}>()
 
 	const { loading: segmentsLoading, data: segmentData } =
-		useGetErrorSegmentsQuery({
+		useGetAnySegmentsQuery({
 			variables: { project_id: projectId! },
 			skip: !projectId,
 		})
@@ -1314,20 +1339,21 @@ function QueryBuilder(props: QueryBuilderProps) {
 		name?: string
 		id?: string
 	} | null>(null)
-	const [editErrorSegment] = useEditErrorSegmentMutation({
-		refetchQueries: [namedOperations.Query.GetErrorSegments],
+
+	const [editSegment] = useEditAnySegmentMutation({
+		refetchQueries: [namedOperations.Query.GetSegments],
 	})
 
-	const segmentOptions = (segmentData?.error_segments || [])
+	const segmentOptions = (segmentData?.segments || [])
 		.map((segment) => ({
 			name: segment?.name || '',
 			id: segment?.id || '',
 		}))
 		.sort((a, b) => (a.name.toLowerCase() > b.name.toLowerCase() ? 1 : -1))
 
-	const currentSegment = segmentData?.error_segments?.find(
-		(s) => s?.id === selectedSegment?.id,
-	)
+	const currentSegment = segmentData?.segments
+		?.map((s) => s)
+		.find((s) => s?.id === selectedSegment?.id)
 
 	const [searchParamsToUrlParams, setSearchParamsToUrlParams] =
 		useQueryParams({
@@ -1340,38 +1366,41 @@ function QueryBuilder(props: QueryBuilderProps) {
 	)
 
 	const selectSegment = useCallback(
-		(segment?: Partial<ErrorSegment>) => {
+		(segment?: Pick<Segment | ErrorSegment, 'id' | 'name'>) => {
 			if (segment && segment.id && segment.name) {
-				const segmentParameters = normalizeParams(
-					gqlSanitize(
-						segmentData?.error_segments?.find(
-							(s) => s?.id === segment?.id,
-						)?.params || '{}',
-					),
-				)
-				setSearchParams(segmentParameters)
-				setExistingParams(segmentParameters)
-				setSelectedSegment({ id: segment.id, name: segment.name })
-			} else {
-				removeSelectedSegment()
-				setSearchParams(EmptyErrorsSearchParams)
-				setExistingParams(EmptyErrorsSearchParams)
-				setSearchParamsToUrlParams(
-					normalizeParams(EmptyErrorsSearchParams),
-				)
+				const match = segmentData?.segments
+					?.map((s) => s)
+					.find((s) => s?.id === segment?.id)
+
+				if (match !== undefined) {
+					const segmentParameters = normalizeParams(
+						gqlSanitize(match?.params),
+					)
+					// @ts-expect-error
+					setSearchParams(segmentParameters)
+					// @ts-expect-error
+					setExistingParams(segmentParameters)
+					setSelectedSegment({ id: segment.id, name: segment.name })
+					return
+				}
 			}
+
+			removeSelectedSegment()
+			setSearchParams(emptySearchParams)
+			setExistingParams(emptySearchParams)
 		},
 		[
 			removeSelectedSegment,
-			segmentData?.error_segments,
+			segmentData?.segments,
 			setExistingParams,
 			setSearchParams,
-			setSearchParamsToUrlParams,
 			setSelectedSegment,
+			emptySearchParams,
 		],
 	)
 
 	const { admin } = useAuthContext()
+
 	const getCustomFieldOptions = useCallback(
 		(field: SelectOption | undefined) => {
 			if (!field) {
@@ -1587,7 +1616,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const defaultTimeRangeRule: RuleProps = useMemo(() => {
 		const period = {
 			label: defaultPreset.label, // Start at 30 days
-			value: `${defaultPreset.startDate.toISOString()}_${now.toISOString()}`, // Start at 30 days,
+			value: `${defaultPreset.startDate.toISOString()}_${now.toISOString()}`, // Start at 30 days
 		}
 
 		return {
@@ -1836,7 +1865,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						value: v,
 					}))
 				} else if (field.value === 'error_state') {
-					options = Object.values(ErrorState).map((v) => ({
+					options = ['OPEN', 'RESOLVED', 'IGNORED'].map((v) => ({
 						label: getStateLabel(v),
 						value: v,
 					}))
@@ -1890,26 +1919,35 @@ function QueryBuilder(props: QueryBuilderProps) {
 		],
 	)
 
-	// Track the current state of the query builder to detect changes
-	const [qbState, setQbState] = useState<string | undefined>(undefined)
-
+	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
+		page: NumberParam,
+	})
 	useEffect(() => {
+		if (page !== undefined) {
+			setPaginationToUrlParams({ page }, 'replaceIn')
+		}
+	}, [setPaginationToUrlParams, page])
+
+	// Set initial state from URL params.
+	const [initialized, setInitialized] = useState(false)
+	useEffect(() => {
+		setPage(paginationToUrlParams.page || START_PAGE)
+
 		if (searchParamsToUrlParams.query !== undefined) {
-			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+			setSearchParams(searchParamsToUrlParams as T)
 		} else {
-			setSearchParams(EmptyErrorsSearchParams)
+			setSearchParams(emptySearchParams)
 		}
 
-		// We only want to run this on mount (i.e. when the page first loads)
-		// after fetching segments.
-
+		setInitialized(true)
+		// Only want this to run on init.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
 	const [forceReload, setForceReload] = useQueryParam('reload', BooleanParam)
 	useEffect(() => {
 		if (forceReload && searchParamsToUrlParams.query !== undefined) {
-			setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+			setSearchParams(searchParamsToUrlParams as T)
 			setForceReload(false)
 		}
 	}, [forceReload, searchParamsToUrlParams, setForceReload, setSearchParams])
@@ -1920,7 +1958,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				selectSegment(activeSegmentUrlParam)
 			}
 			if (searchParamsToUrlParams.query !== undefined) {
-				setSearchParams(searchParamsToUrlParams as SearchParamsInput)
+				setSearchParams(searchParamsToUrlParams as T)
 			}
 		}
 		// We only want to run this once after loading segments.
@@ -1939,8 +1977,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedSegment, setActiveSegmentUrlParam])
 
+	// Main useEffect that handles updates to URL on every filter change.
 	useEffect(() => {
-		if (!isEqual(searchParams, EmptyErrorsSearchParams)) {
+		if (initialized && searchParams.query !== undefined) {
 			setSearchParamsToUrlParams(
 				normalizeParams(searchParams),
 				'replaceIn',
@@ -1951,6 +1990,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		searchParams,
 		selectedSegment,
 		activeSegmentUrlParam,
+		initialized,
 	])
 
 	useEffect(() => {
@@ -1966,16 +2006,24 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [searchResultsLoading])
 
-	// If the search query is updated externally, set the rules and `isAnd` toggle based on it
+	// Track the current state of the query builder to detect changes
+	const [qbState, setQbState] = useState<string | undefined>(undefined)
+
+	// If the search query is updated externally, set the rules and `isAnd` toggle
+	// based on it
 	useEffect(() => {
-		if (!!searchParams.query && searchParams.query !== qbState) {
+		if (
+			initialized &&
+			!!searchParams.query &&
+			searchParams.query !== qbState
+		) {
 			const newState = JSON.parse(searchParams.query)
 			const deserializedRules = deserializeRules(newState.rules)
 
 			const defaultDateRange = deserializedRules?.find(
 				(rule) =>
 					rule.op === 'between_date' &&
-					rule.field?.value === 'error-field_timestamp',
+					rule.field?.value === timeRangeField.value,
 			)?.val?.options?.[0]?.value
 
 			if (defaultDateRange) {
@@ -1985,7 +2033,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 			toggleIsAnd(newState.isAnd)
 			setRules(deserializeRules(newState.rules))
 		}
-	}, [searchParams.query, toggleIsAnd, qbState])
+	}, [
+		searchParams.query,
+		toggleIsAnd,
+		qbState,
+		initialized,
+		timeRangeField.value,
+	])
 
 	const areRulesValid = rules.every(isComplete)
 	useEffect(() => {
@@ -2031,7 +2085,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 
 		if (serializedQuery.current) {
-			setPage(1)
 			setBackendSearchQuery(serializedQuery.current)
 		}
 	}, [
@@ -2041,7 +2094,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		readonly,
 		rules,
 		setBackendSearchQuery,
-		setPage,
 		setSearchParams,
 		timeRangeField.value,
 	])
@@ -2050,7 +2102,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		undefined,
 	)
 
-	const { setShowLeftPanel } = useErrorPageConfiguration()
+	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	const mode = useMemo(() => {
 		if (filterRules.length === 0 && !selectedSegment) {
@@ -2203,7 +2255,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const updateSegment = useCallback(() => {
 		if (canUpdateSegment) {
-			editErrorSegment({
+			editSegment({
 				variables: {
 					project_id: projectId!,
 					id: selectedSegment.id,
@@ -2221,7 +2273,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [
 		canUpdateSegment,
-		editErrorSegment,
+		editSegment,
 		projectId,
 		searchParams,
 		selectedSegment?.id,
@@ -2257,6 +2309,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						emphasis="medium"
 						iconLeft={<IconSolidSegment size={12} />}
 						iconRight={<IconSolidCheveronDown size={12} />}
+						onClick={() => {}}
 					>
 						<Text lines="1">{selectedSegment?.name}</Text>
 					</Menu.Button>
@@ -2308,65 +2361,51 @@ function QueryBuilder(props: QueryBuilderProps) {
 					}}
 				/>
 				<Box marginLeft="auto" display="flex" gap="4">
-					{!readonly &&
-						!isAbsoluteTimeRange(
-							timeRangeRule.val?.options[0].value,
-						) && (
-							<ButtonIcon
-								kind="secondary"
-								size="small"
-								shape="square"
-								emphasis="low"
-								icon={<IconSolidRefresh size={14} />}
-								disabled={syncButtonDisabled}
-								onClick={() => {
-									// Re-generate the absolute times used in the serialized query
-									updateSerializedQuery(isAnd, rules)
-									setBackendSearchQuery(
-										serializedQuery.current,
-									)
-									client.refetchQueries({
-										include: [
-											namedOperations.Query.GetErrorGroup,
-											namedOperations.Query
-												.GetErrorInstance,
-										],
-									})
-								}}
-							/>
-						)}
+					<DropdownMenu
+						sessionCount={searchResultsCount}
+						sessionQuery={backendSearchQuery?.searchQuery || ''}
+					/>
 
-					<Tooltip
-						placement="bottom"
-						trigger={
-							<ButtonIcon
-								kind="secondary"
-								size="small"
-								shape="square"
-								emphasis="medium"
-								icon={<IconSolidLogout size={14} />}
-								onClick={() => setShowLeftPanel(false)}
-							/>
-						}
-					>
-						<KeyboardShortcut
-							label="Toggle sidebar"
-							shortcut={['cmd', 'b']}
+					{!isAbsoluteTimeRange(
+						timeRangeRule.val?.options[0].value,
+					) && (
+						<ButtonIcon
+							kind="secondary"
+							size="small"
+							shape="square"
+							emphasis="low"
+							icon={<IconSolidRefresh size={14} />}
+							disabled={syncButtonDisabled}
+							onClick={() => {
+								// Re-generate the absolute times used in the serialized query
+								updateSerializedQuery(isAnd, rules)
+								setBackendSearchQuery(serializedQuery.current)
+							}}
 						/>
-					</Tooltip>
+					)}
+
+					<ButtonIcon
+						kind="secondary"
+						size="small"
+						shape="square"
+						emphasis="low"
+						icon={<IconSolidLogout size={14} />}
+						onClick={() => setShowLeftPanel(false)}
+					/>
 				</Box>
 			</Box>
 		)
 	}, [
+		dateRange,
+		searchResultsCount,
+		backendSearchQuery?.searchQuery,
+		timeRangeRule,
+		syncButtonDisabled,
+		updateSerializedQuery,
 		isAnd,
-		readonly,
 		rules,
 		setBackendSearchQuery,
 		setShowLeftPanel,
-		syncButtonDisabled,
-		timeRangeRule,
-		updateSerializedQuery,
-		dateRange,
 	])
 
 	const alteredSegmentSettings = useMemo(() => {
@@ -2437,14 +2476,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	return (
 		<>
-			<CreateErrorSegmentModal
+			<CreateAnySegmentModal
 				showModal={showCreateSegmentModal}
 				onHideModal={() => {
 					setShowEditSegmentNameModal(false)
 					setShowCreateSegmentModal(false)
 				}}
 				afterCreateHandler={(segmentId, segmentName) => {
-					if (segmentData?.error_segments) {
+					if (segmentData?.segments) {
 						setSelectedSegment({
 							id: segmentId,
 							name: segmentName,
@@ -2455,7 +2494,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					showEditSegmentNameModal ? currentSegment : undefined
 				}
 			/>
-			<DeleteErrorSegmentModal
+			<DeleteAnySegmentModal
 				showModal={!!segmentToDelete}
 				hideModalHandler={() => {
 					setSegmentToDelete(null)
@@ -2467,7 +2506,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						selectedSegment?.name === segmentToDelete.name
 					) {
 						removeSelectedSegment()
-						setSearchParams(EmptyErrorsSearchParams)
+						setSearchParams(emptySearchParams)
 					}
 				}}
 			/>
@@ -2503,8 +2542,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 											onClick={toggleIsAnd}
 											key={`separator-${index}`}
 											disabled={readonly}
-											lines="1"
-											className={newStyle.tagKey}
 										>
 											{isAnd ? 'and' : 'or'}
 										</Tag>,
@@ -2563,7 +2600,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 								weight="medium"
 								color="n9"
 								userSelect="none"
-								lines="1"
 							>
 								{formatNumber(searchResultsCount)} results
 							</Text>
@@ -2572,7 +2608,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 							display="flex"
 							gap="4"
 							alignItems="center"
-							justifyContent="flex-end"
 							cssClass={newStyle.maxHalfWidth}
 						>
 							<Menu placement="bottom-end">
@@ -2691,61 +2726,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 											Segments
 										</Text>
 									</Box>
-									{Object.values(ErrorState).map(
-										(errorState) => (
-											<Menu.Item
-												key={errorState}
-												onClick={(e) => {
-													e.stopPropagation()
-													const newRules = [...rules]
-													const removed = remove(
-														newRules,
-														(rule) =>
-															rule?.field
-																?.value ===
-															'error_state',
-													)[0]
-
-													if (
-														removed &&
-														removed?.val?.options
-															?.length &&
-														removed.val?.options[0]
-															?.value ===
-															errorState
-													) {
-														return
-													}
-
-													const option = [
-														{
-															value: errorState as string,
-															label: getStateLabel(
-																errorState,
-															),
-														},
-													] as const
-													newRules.push({
-														field: {
-															value: 'error_state',
-															kind: 'single',
-															label: 'state',
-														},
-														op: 'is',
-														val: {
-															kind: 'multi',
-															options: option,
-														},
-													})
-													setRules(newRules)
-												}}
-											>
-												{getStateLabel(errorState)}{' '}
-												errors
-											</Menu.Item>
-										),
-									)}
-									<Menu.Divider />
 									{segmentOptions.map((segment, idx) => (
 										<Menu.Item
 											key={idx}

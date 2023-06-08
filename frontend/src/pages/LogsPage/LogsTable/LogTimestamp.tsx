@@ -13,7 +13,7 @@ type Props = {
 
 const LogTimestamp = ({ timestamp }: Props) => {
 	return (
-		<Text color="weak" weight="bold" family="monospace">
+		<Text color="weak" family="monospace">
 			{toYearMonthDay(timestamp)}
 		</Text>
 	)

@@ -2,9 +2,10 @@ package graph
 
 import (
 	"context"
-	pointy "github.com/openlyinc/pointy"
 	"os"
 	"testing"
+
+	pointy "github.com/openlyinc/pointy"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/workerpool"
@@ -44,7 +45,7 @@ func TestResolver_GetSessionChunk(t *testing.T) {
 		1651074284153,
 		1651074417161,
 	}
-	util.RunTestWithDBWipe(t, "Test Chunk", DB, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 		// inserting the data
 		sessionsToInsert := []model.Session{
 			{ActiveLength: 1000, ProjectID: 1, Viewed: nil},
@@ -124,7 +125,7 @@ func TestMutationResolver_AddAdminToWorkspace(t *testing.T) {
 		},
 	}
 	for testName, v := range tests {
-		util.RunTestWithDBWipe(t, "Test AddAdminToWorkspace", DB, func(t *testing.T) {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 			// inserting the data
 			admin := model.Admin{
 				Model:         model.Model{ID: 1},
@@ -198,7 +199,7 @@ func TestMutationResolver_ChangeAdminRole(t *testing.T) {
 		},
 	}
 	for _, v := range tests {
-		util.RunTestWithDBWipe(t, "Test AddAdminToWorkspace", DB, func(t *testing.T) {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 			// inserting the data
 			workspace := model.Workspace{
 				Name: ptr.String("test1"),
@@ -304,7 +305,7 @@ func TestMutationResolver_DeleteInviteLinkFromWorkspace(t *testing.T) {
 		},
 	}
 	for _, v := range tests {
-		util.RunTestWithDBWipe(t, "Test DeleteInviteLinkFromWorkspace", DB, func(t *testing.T) {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 			// inserting the data
 			workspace := model.Workspace{
 				Name: ptr.String("test1"),
@@ -396,8 +397,8 @@ func TestResolver_GetSlackChannelsFromSlack(t *testing.T) {
 			expError: true,
 		},
 	}
-	for testName, v := range tests {
-		util.RunTestWithDBWipe(t, testName, DB, func(t *testing.T) {
+	for _, v := range tests {
+		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 			workspace := model.Workspace{
 				Name:             ptr.String("test1"),
 				SlackAccessToken: v.accessToken,
