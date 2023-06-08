@@ -1,3 +1,4 @@
+""" Run with `poetry run uvicorn main:app` """
 import logging
 import random
 
@@ -25,5 +26,7 @@ async def root(request: Request):
         logging.info(f"hello {idx}")
         if random.randint(0, 100) == 1:
             raise Exception(f"random error! {idx}")
+        elif random.randint(0, 100) == 1:
+            logging.info(f'oh no {5 / 0}')
     logging.warning("made it outside the loop!")
     return {"message": "Hello World"}
