@@ -216,7 +216,7 @@ export class FirstLoadListeners {
 					fetchCallback: (requestResponsePair) => {
 						sThis.fetchNetworkContents.push(requestResponsePair)
 					},
-					webSocketCallback(event) {
+					webSocketCallback: (event) => {
 						sThis.webSocketNetworkContents.push(event)
 					},
 					headersToRedact: sThis.networkHeadersToRedact,
@@ -278,7 +278,12 @@ export class FirstLoadListeners {
 				)
 			}
 		}
-		// TODO(spenny): handle websocket events to either send separately or refactor match perf timing
+		// TODO(spenny): insert network contents in to the resources array
+		console.log(
+			'Websocket - Contents to be sent',
+			sThis.webSocketNetworkContents,
+		)
+
 		return resources
 	}
 
@@ -286,6 +291,7 @@ export class FirstLoadListeners {
 		if (!sThis.disableNetworkRecording) {
 			sThis.xhrNetworkContents = []
 			sThis.fetchNetworkContents = []
+			sThis.webSocketNetworkContents = []
 			performance.clearResourceTimings()
 		}
 	}

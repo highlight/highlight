@@ -52,6 +52,7 @@ const WebSocketListener = (callback: WebSocketListenerCallback) => {
 			console.log('Websocket - Close', socketId, 0, event)
 		})
 		ws.addEventListener('message', (event) => {
+			// TODO(spenny): forgo sending data if large and binary
 			let size: number
 			let strData =
 				typeof event.data === 'string' ? event.data : undefined
@@ -71,6 +72,7 @@ const WebSocketListener = (callback: WebSocketListenerCallback) => {
 		})
 		const originalSend = ws.send.bind(ws)
 		ws.send = (data) => {
+			// TODO(spenny): forgo sending data if large and binary
 			let size: number
 			let strData = typeof data === 'string' ? data : undefined
 			if (typeof data === 'string') {
