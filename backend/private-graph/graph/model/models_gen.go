@@ -11,6 +11,16 @@ import (
 	"github.com/lib/pq"
 )
 
+type Connection interface {
+	IsConnection()
+	GetPageInfo() *PageInfo
+}
+
+type Edge interface {
+	IsEdge()
+	GetCursor() string
+}
+
 type Account struct {
 	ID                   int        `json:"id"`
 	Name                 string     `json:"name"`
@@ -289,6 +299,35 @@ type ErrorMetadata struct {
 	Payload         *string    `json:"payload"`
 }
 
+type ErrorObjectConnection struct {
+	Edges    []*ErrorObjectEdge `json:"edges"`
+	PageInfo *PageInfo          `json:"pageInfo"`
+}
+
+func (ErrorObjectConnection) IsConnection()               {}
+func (this ErrorObjectConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
+type ErrorObjectEdge struct {
+	Cursor string           `json:"cursor"`
+	Node   *ErrorObjectNode `json:"node"`
+}
+
+func (ErrorObjectEdge) IsEdge()                {}
+func (this ErrorObjectEdge) GetCursor() string { return this.Cursor }
+
+type ErrorObjectNode struct {
+	ID        int                     `json:"id"`
+	CreatedAt time.Time               `json:"createdAt"`
+	Event     string                  `json:"event"`
+	Session   *ErrorObjectNodeSession `json:"session"`
+}
+
+type ErrorObjectNodeSession struct {
+	SecureID       string  `json:"secureID"`
+	UserProperties string  `json:"userProperties"`
+	AppVersion     *string `json:"appVersion"`
+}
+
 type ErrorSearchParamsInput struct {
 	DateRange  *DateRangeInput `json:"date_range"`
 	Os         *string         `json:"os"`
@@ -418,19 +457,25 @@ type LogAlertInput struct {
 	Query               string                        `json:"query"`
 }
 
+type LogConnection struct {
+	Edges    []*LogEdge `json:"edges"`
+	PageInfo *PageInfo  `json:"pageInfo"`
+}
+
+func (LogConnection) IsConnection()               {}
+func (this LogConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
 type LogEdge struct {
 	Cursor string `json:"cursor"`
 	Node   *Log   `json:"node"`
 }
 
+func (LogEdge) IsEdge()                {}
+func (this LogEdge) GetCursor() string { return this.Cursor }
+
 type LogKey struct {
 	Name string     `json:"name"`
 	Type LogKeyType `json:"type"`
-}
-
-type LogsConnection struct {
-	Edges    []*LogEdge `json:"edges"`
-	PageInfo *PageInfo  `json:"pageInfo"`
 }
 
 type LogsHistogram struct {

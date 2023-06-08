@@ -4076,6 +4076,21 @@ func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorOb
 	return errorObject, nil
 }
 
+// ErrorObjects is the resolver for the error_objects field.
+func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID string, after *string, before *string) (*modelInputs.ErrorObjectConnection, error) {
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "not authorized to view error group")
+	}
+
+	connection, err := r.Store.ListErrorObjects(*errorGroup, store.ListErrorObjectsParams{
+		After:  after,
+		Before: before,
+	})
+
+	return &connection, err
+}
+
 // ErrorObjectForLog is the resolver for the error_object_for_log field.
 func (r *queryResolver) ErrorObjectForLog(ctx context.Context, logCursor string) (*model.ErrorObject, error) {
 	errorObject := &model.ErrorObject{}
@@ -7191,7 +7206,7 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 }
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string, direction modelInputs.LogDirection) (*modelInputs.LogsConnection, error) {
+func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string, direction modelInputs.LogDirection) (*modelInputs.LogConnection, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not logged in")
