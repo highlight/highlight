@@ -204,7 +204,7 @@ export const ToolbarControlBar = () => {
 			{showLiveToggle && (
 				<Tag
 					onClick={() => {
-						setIsLiveMode((isLive) => !isLive)
+						setIsLiveMode(!isLiveMode)
 					}}
 					shape="rounded"
 					kind="primary"

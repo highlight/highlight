@@ -154,10 +154,9 @@ const DevToolsWindowV2: React.FC<
 									icon={false}
 								>
 									<Text>
-										The dev tools are not available in live
+										The devtools are not available in live
 										mode. You can disable live mode to use
-										the dev tools, or hide them to get a
-										better view of the player.
+										the devtools.
 									</Text>
 
 									<Box display="flex" gap="6">
