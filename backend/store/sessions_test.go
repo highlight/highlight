@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetSession(t *testing.T) {
-	util.RunTestWithDBWipe(t, "TestGetSession", store.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
 		_, err := store.GetSession(1)
 		assert.Error(t, err)
 
