@@ -119,7 +119,6 @@ export const uploadSourcemaps = async ({
 
   const uploadUrls = urlRes.data.get_source_map_upload_urls;
 
-  // TODO(spenny): upload here?
   await Promise.all(
     fileList.map(({ path }, idx) => uploadFile(path, uploadUrls[idx]))
   );
