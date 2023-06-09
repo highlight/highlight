@@ -27,7 +27,8 @@ this data while improving the performance of queries. New features are prefixed 
   - shows a histogram of sessions over time for the current query, grouped by an attribute (default - has/no-has errors)
   - new: for each session, shows a distribution-preview of events over time (grouping by errors, track events, etc.)
 - Command bar
-  - Searching for sessions and errors based on predefined attributes: email, identifier, url, os, browser
+  - Searching for sessions, errors, and logs based on predefined attributes: email, identifier, url, os, browser
+    - Logs are already stored in ClickHouse and are associated with sessions. We should consider how to standardize the metadata stored in ClickHouse across the three products.
   - new: using the input to predict the type of query that makes more sense (session vs. error vs. log)
 
 ## User Feedback

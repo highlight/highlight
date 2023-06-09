@@ -16,10 +16,12 @@ See [PRD: Session/Error Feeds ClickHouse Migration](../prds/002-feed-clickhouse-
 ## Proposed Implementation
 
 The migration from OpenSearch to ClickHouse will happen in a few phases:
-1. Replace the Error feed queries with ClickHouse
+1. Replace the Error Group feed queries with ClickHouse
 2. Replace the Error Group metrics with ClickHouse
 3. Replace the Session feed queries with ClickHouse
 4. Implement CommandBar improvements using ClickHouse
+
+Note: error groups and error instances will both have metadata stored in ClickHouse. Error instance metadata will be used to populate error group aggregate statistics (such as browser distribution metrics or the number of users affected).
 
 ## Database modeling
 
@@ -49,6 +51,7 @@ the source of truth for error group data, but we should consider if ClickHouse c
 * Optimizing ClickHouse query performance is still relatively new to us.
 * We'll be writing new types of ClickHouse aggregation queries which we are not as familiar with.
 * However, we'll be able to deprecate OpenSearch and save time currently spent when looking at performance issues.
+* Until the ClickHouse migration is complete, other enhancements to the sessions / errors feeds and search capabilities may be blocked or would require effort now that will have to be redone. 
 
 ## Open Questions
 
