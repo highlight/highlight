@@ -308,13 +308,16 @@ func TestUpdatingErrorState(t *testing.T) {
 	}
 
 	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
+		project := model.Project{}
+		resolver.DB.Create(&project)
+
 		errorObject1 := model.ErrorObject{
 			Event:      "error",
-			ProjectID:  1,
+			ProjectID:  project.ID,
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup, err := resolver.HandleErrorAndGroup(ctx, &errorObject1, structuredStackTrace, nil, 1, nil)
+		errorGroup, err := resolver.HandleErrorAndGroup(ctx, &errorObject1, structuredStackTrace, nil, project.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, errorGroup.State, privateModel.ErrorStateOpen)
 
@@ -327,11 +330,11 @@ func TestUpdatingErrorState(t *testing.T) {
 
 		errorObject2 := model.ErrorObject{
 			Event:      "error",
-			ProjectID:  1,
+			ProjectID:  project.ID,
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup, err = resolver.HandleErrorAndGroup(ctx, &errorObject2, structuredStackTrace, nil, 1, nil)
+		errorGroup, err = resolver.HandleErrorAndGroup(ctx, &errorObject2, structuredStackTrace, nil, project.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, errorGroup.State, privateModel.ErrorStateOpen)
 
@@ -344,11 +347,11 @@ func TestUpdatingErrorState(t *testing.T) {
 
 		errorObject3 := model.ErrorObject{
 			Event:      "error",
-			ProjectID:  1,
+			ProjectID:  project.ID,
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup, err = resolver.HandleErrorAndGroup(ctx, &errorObject3, structuredStackTrace, nil, 1, nil)
+		errorGroup, err = resolver.HandleErrorAndGroup(ctx, &errorObject3, structuredStackTrace, nil, project.ID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, errorGroup.State, privateModel.ErrorStateIgnored) // Should stay ignored
 
