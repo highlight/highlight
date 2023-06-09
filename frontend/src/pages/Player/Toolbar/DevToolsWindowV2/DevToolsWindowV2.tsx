@@ -3,7 +3,6 @@ import { LogSource } from '@graph/schemas'
 import { LogLevel } from '@graph/schemas'
 import {
 	Box,
-	Callout,
 	Form,
 	IconSolidLogs,
 	IconSolidSearch,
@@ -65,13 +64,12 @@ const DevToolsWindowV2: React.FC<
 	const { projectId } = useProjectId()
 	const { logCursor } = useLinkLogCursor()
 	const { isPlayerFullscreen } = usePlayerUIContext()
-	const { isLiveMode, setIsLiveMode, time, session } = useReplayerContext()
+	const { isLiveMode, time, session } = useReplayerContext()
 	const {
 		selectedDevToolsTab,
 		setSelectedDevToolsTab,
 		showDevTools,
 		showHistogram,
-		setShowDevTools,
 	} = usePlayerConfiguration()
 	const [requestTypes, setRequestTypes] = React.useState<RequestType[]>([
 		RequestType.All,
@@ -101,7 +99,7 @@ const DevToolsWindowV2: React.FC<
 
 	const { resources: parsedResources } = useResourcesContext()
 
-	if (!showDevTools || isPlayerFullscreen) {
+	if (!showDevTools || isPlayerFullscreen || isLiveMode) {
 		return null
 	}
 
@@ -137,294 +135,237 @@ const DevToolsWindowV2: React.FC<
 							}}
 						/>
 					</Box>
-					{isLiveMode ? (
-						<Box
-							display="flex"
-							alignItems="center"
-							justifyContent="center"
-							style={{
-								height: '100%',
-								width: '100%',
-							}}
-						>
-							<Box style={{ maxWidth: 340 }}>
-								<Callout
-									kind="info"
-									title="You’re watching a live session!"
-									icon={false}
-								>
-									<Text>
-										The devtools are not available in live
-										mode. You can disable live mode to use
-										the devtools.
-									</Text>
-
-									<Box display="flex" gap="6">
-										<Button
-											kind="secondary"
-											emphasis="high"
-											onClick={() => setIsLiveMode(false)}
-											trackingId="devtools-live-mode-callout_disable"
-										>
-											Disable live mode
-										</Button>
-										<Button
-											kind="secondary"
-											emphasis="medium"
-											onClick={() =>
-												setShowDevTools(false)
-											}
-											trackingId="devtools-live-mode-callout_hide-devtools"
-										>
-											Hide dev tools
-										</Button>
-									</Box>
-								</Callout>
-							</Box>
-						</Box>
-					) : (
-						<Tabs<Tab>
-							tab={selectedDevToolsTab}
-							setTab={(t: Tab) => {
-								setSelectedDevToolsTab(t)
-								form.reset()
-							}}
-							pages={{
-								[Tab.Console]: {
-									page: (
-										<ConsolePage
-											autoScroll={autoScroll}
-											logCursor={logCursor}
-											levels={levels}
-											sources={sources}
-											filter={filter}
-										/>
-									),
-								},
-								[Tab.Errors]: {
-									page: (
-										<ErrorsPage
-											autoScroll={autoScroll}
-											filter={filter}
-											time={time}
-										/>
-									),
-								},
-								[Tab.Network]: {
-									page: (
-										<NetworkPage
-											autoScroll={autoScroll}
-											requestTypes={requestTypes}
-											requestStatuses={requestStatuses}
-											filter={filter}
-											time={time}
-										/>
-									),
-								},
-							}}
-							right={
+					<Tabs<Tab>
+						tab={selectedDevToolsTab}
+						setTab={(t: Tab) => {
+							setSelectedDevToolsTab(t)
+							form.reset()
+						}}
+						pages={{
+							[Tab.Console]: {
+								page: (
+									<ConsolePage
+										autoScroll={autoScroll}
+										logCursor={logCursor}
+										levels={levels}
+										sources={sources}
+										filter={filter}
+									/>
+								),
+							},
+							[Tab.Errors]: {
+								page: (
+									<ErrorsPage
+										autoScroll={autoScroll}
+										filter={filter}
+										time={time}
+									/>
+								),
+							},
+							[Tab.Network]: {
+								page: (
+									<NetworkPage
+										autoScroll={autoScroll}
+										requestTypes={requestTypes}
+										requestStatuses={requestStatuses}
+										filter={filter}
+										time={time}
+									/>
+								),
+							},
+						}}
+						right={
+							<Box
+								display="flex"
+								justifyContent="space-between"
+								gap="6"
+								align="center"
+							>
 								<Box
 									display="flex"
 									justifyContent="space-between"
-									gap="6"
+									gap="4"
 									align="center"
 								>
-									<Box
-										display="flex"
-										justifyContent="space-between"
-										gap="4"
-										align="center"
-									>
-										<Form state={form}>
-											<Box
-												display="flex"
-												justifyContent="space-between"
-												align="center"
-											>
-												<Box
-													cursor="pointer"
-													display="flex"
-													align="center"
-													onClick={() => {
-														setSearchShown(
-															(s) => !s,
-														)
-													}}
-													color="weak"
-												>
-													<IconSolidSearch
-														size={16}
-													/>
-												</Box>
-												<Box gap="6">
-													<Form.Input
-														name={form.names.search}
-														placeholder="Search"
-														size="xSmall"
-														outline={false}
-														collapsed={!searchShown}
-														onKeyDown={(e: any) => {
-															if (
-																e.code ===
-																'Escape'
-															) {
-																e.target?.blur()
-															}
-														}}
-														onBlur={() => {
-															setSearchShown(
-																false,
-															)
-														}}
-														onFocus={() => {
-															setSearchShown(true)
-														}}
-													/>
-												</Box>
-											</Box>
-										</Form>
-
-										{selectedDevToolsTab === Tab.Console ? (
-											<>
-												<MenuButton
-													divider
-													size="medium"
-													options={LogLevelValues.map(
-														(level) => ({
-															key: level,
-															render: (
-																<Text case="capital">
-																	{level}
-																</Text>
-															),
-														}),
-													)}
-													onChange={(level) => {
-														if (level === 'All') {
-															setLevels([])
-														} else {
-															setLevels([
-																level as LogLevel,
-															])
-														}
-													}}
-												/>
-												<MenuButton
-													divider
-													size="medium"
-													selectedKey={
-														sources.includes(
-															LogSource.Frontend,
-														)
-															? LogSource.Frontend
-															: 'All'
-													}
-													options={LogSourceValues.map(
-														(source) => ({
-															key: source,
-															render: (
-																<Text case="capital">
-																	{source}
-																</Text>
-															),
-														}),
-													)}
-													onChange={(source) => {
-														if (source === 'All') {
-															setSources([])
-														} else {
-															setSources([
-																source as LogSource,
-															])
-														}
-													}}
-												/>
-											</>
-										) : selectedDevToolsTab ===
-										  Tab.Network ? (
-											<>
-												<RequestTypeFilter
-													requestTypes={requestTypes}
-													setRequestTypes={
-														setRequestTypes
-													}
-													parsedResources={
-														parsedResources
-													}
-												/>
-												<RequestStatusFilter
-													requestStatuses={
-														requestStatuses
-													}
-													setRequestStatuses={
-														setRequestStatuses
-													}
-													parsedResources={
-														parsedResources
-													}
-													requestTypes={requestTypes}
-												/>
-											</>
-										) : null}
-
-										{selectedDevToolsTab === Tab.Console &&
-										session ? (
-											<Link
-												to={getLogsURLForSession({
-													projectId,
-													session,
-													levels,
-													sources,
-												})}
-												target="_blank"
-												style={{ display: 'flex' }}
-											>
-												<Button
-													size="xSmall"
-													kind="secondary"
-													trackingId="showInLogViewer"
-													cssClass={styles.autoScroll}
-													iconLeft={
-														<IconSolidLogs
-															width={12}
-															height={12}
-														/>
-													}
-												>
-													Show in Log Viewer
-												</Button>
-											</Link>
-										) : null}
-
-										<Button
-											size="xSmall"
-											cssClass={styles.autoScroll}
-											iconRight={
-												<IconSolidSwitchHorizontal
-													width={12}
-													height={12}
-													className={
-														styles.switchInverted
-													}
-												/>
-											}
-											kind={
-												autoScroll
-													? 'primary'
-													: 'secondary'
-											}
-											onClick={() => {
-												setAutoScroll(!autoScroll)
-											}}
-											trackingId="devToolsAutoScroll"
+									<Form state={form}>
+										<Box
+											display="flex"
+											justifyContent="space-between"
+											align="center"
 										>
-											Auto scroll
-										</Button>
-									</Box>
+											<Box
+												cursor="pointer"
+												display="flex"
+												align="center"
+												onClick={() => {
+													setSearchShown((s) => !s)
+												}}
+												color="weak"
+											>
+												<IconSolidSearch size={16} />
+											</Box>
+											<Box gap="6">
+												<Form.Input
+													name={form.names.search}
+													placeholder="Search"
+													size="xSmall"
+													outline={false}
+													collapsed={!searchShown}
+													onKeyDown={(e: any) => {
+														if (
+															e.code === 'Escape'
+														) {
+															e.target?.blur()
+														}
+													}}
+													onBlur={() => {
+														setSearchShown(false)
+													}}
+													onFocus={() => {
+														setSearchShown(true)
+													}}
+												/>
+											</Box>
+										</Box>
+									</Form>
+
+									{selectedDevToolsTab === Tab.Console ? (
+										<>
+											<MenuButton
+												divider
+												size="medium"
+												options={LogLevelValues.map(
+													(level) => ({
+														key: level,
+														render: (
+															<Text case="capital">
+																{level}
+															</Text>
+														),
+													}),
+												)}
+												onChange={(level) => {
+													if (level === 'All') {
+														setLevels([])
+													} else {
+														setLevels([
+															level as LogLevel,
+														])
+													}
+												}}
+											/>
+											<MenuButton
+												divider
+												size="medium"
+												selectedKey={
+													sources.includes(
+														LogSource.Frontend,
+													)
+														? LogSource.Frontend
+														: 'All'
+												}
+												options={LogSourceValues.map(
+													(source) => ({
+														key: source,
+														render: (
+															<Text case="capital">
+																{source}
+															</Text>
+														),
+													}),
+												)}
+												onChange={(source) => {
+													if (source === 'All') {
+														setSources([])
+													} else {
+														setSources([
+															source as LogSource,
+														])
+													}
+												}}
+											/>
+										</>
+									) : selectedDevToolsTab === Tab.Network ? (
+										<>
+											<RequestTypeFilter
+												requestTypes={requestTypes}
+												setRequestTypes={
+													setRequestTypes
+												}
+												parsedResources={
+													parsedResources
+												}
+											/>
+											<RequestStatusFilter
+												requestStatuses={
+													requestStatuses
+												}
+												setRequestStatuses={
+													setRequestStatuses
+												}
+												parsedResources={
+													parsedResources
+												}
+												requestTypes={requestTypes}
+											/>
+										</>
+									) : null}
+
+									{selectedDevToolsTab === Tab.Console &&
+									session ? (
+										<Link
+											to={getLogsURLForSession({
+												projectId,
+												session,
+												levels,
+												sources,
+											})}
+											target="_blank"
+											style={{ display: 'flex' }}
+										>
+											<Button
+												size="xSmall"
+												kind="secondary"
+												trackingId="showInLogViewer"
+												cssClass={styles.autoScroll}
+												iconLeft={
+													<IconSolidLogs
+														width={12}
+														height={12}
+													/>
+												}
+											>
+												Show in Log Viewer
+											</Button>
+										</Link>
+									) : null}
+
+									<Button
+										size="xSmall"
+										cssClass={styles.autoScroll}
+										iconRight={
+											<IconSolidSwitchHorizontal
+												width={12}
+												height={12}
+												className={
+													styles.switchInverted
+												}
+											/>
+										}
+										kind={
+											autoScroll ? 'primary' : 'secondary'
+										}
+										onClick={() => {
+											setAutoScroll(!autoScroll)
+										}}
+										trackingId="devToolsAutoScroll"
+									>
+										Auto scroll
+									</Button>
 								</Box>
-							}
-						/>
-					)}
+							</Box>
+						}
+					/>
 				</Box>
 			)}
 		</ResizePanel>
