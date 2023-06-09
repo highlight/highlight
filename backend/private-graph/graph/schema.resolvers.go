@@ -6662,6 +6662,7 @@ func (r *queryResolver) GetSourceMapUploadUrls(ctx context.Context, apiKey strin
 	// Assert all paths start with this prefix to block cross-project uploads
 	pathPrefix := fmt.Sprintf("%d/", *projectId)
 
+	sourceMaps := []*model.SourceMap{}
 	urls := []string{}
 	for _, path := range paths {
 		if !strings.HasPrefix(path, pathPrefix) {
@@ -6671,7 +6672,20 @@ func (r *queryResolver) GetSourceMapUploadUrls(ctx context.Context, apiKey strin
 		if err != nil {
 			return nil, err
 		}
+
+		sourceMap := &model.SourceMap{
+			OrganizationID: *projectId,
+			ProjectID:      *projectId,
+			Path:           path,
+			StorageUrl:     url,
+		}
+
 		urls = append(urls, url)
+		sourceMaps = append(sourceMaps, sourceMap)
+	}
+
+	if err := r.DB.Create(sourceMaps).Error; err != nil {
+		return nil, e.Wrap(err, "error creating source maps")
 	}
 
 	return urls, nil

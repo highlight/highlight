@@ -184,6 +184,7 @@ var Models = []interface{}{
 	&LogAdminsView{},
 	&ProjectFilterSettings{},
 	&ErrorGroupActivityLog{},
+	&SourceMap{},
 }
 
 func init() {
@@ -973,6 +974,14 @@ type ErrorField struct {
 	Name           string
 	Value          string
 	ErrorGroups    []ErrorGroup `gorm:"many2many:error_group_fields;"`
+}
+
+type SourceMap struct {
+	Model
+	OrganizationID int
+	ProjectID      int    `json:"project_id"`
+	Path           string `gorm:"not null"`
+	StorageUrl     string `gorm:"not null"`
 }
 
 type LogAdminsView struct {
