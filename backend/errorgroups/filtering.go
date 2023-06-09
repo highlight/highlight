@@ -9,6 +9,10 @@ import (
 )
 
 func IsErrorTraceFiltered(project model.Project, structuredStackTrace []*privateModel.ErrorTrace) bool {
+	if !*project.FilterChromeExtension {
+		return false
+	}
+
 	hasChromeExtensionFrame := lo.SomeBy(structuredStackTrace, func(frame *privateModel.ErrorTrace) bool {
 		return IsFrameChromeExtension(*frame)
 	})

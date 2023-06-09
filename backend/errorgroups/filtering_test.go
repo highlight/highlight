@@ -10,11 +10,7 @@ import (
 )
 
 func TestIsErrorTraceFilteredForChromeExtension(t *testing.T) {
-	project := model.Project{
-		FilterChromeExtension: ptr.Bool(false),
-	}
-
-	trace := []*privateModel.ErrorTrace{
+	chromeTrace := []*privateModel.ErrorTrace{
 		{
 			FileName:                   ptr.String("chrome-extension://bfnaelmomeimhlpmgjnjophhpkkoljpa/content-script/inpageSol.js"),
 			LineNumber:                 nil,
@@ -28,9 +24,20 @@ func TestIsErrorTraceFilteredForChromeExtension(t *testing.T) {
 		},
 	}
 
-	assert.True(t, IsErrorTraceFiltered(s, project, trace))
+	// Disabling chrome extension filtering
+	project := model.Project{
+		FilterChromeExtension: ptr.Bool(false),
+	}
 
-	trace = []*privateModel.ErrorTrace{
+	assert.False(t, IsErrorTraceFiltered(project, chromeTrace))
+
+	// Enabling chrome extension filtering
+	project = model.Project{
+		FilterChromeExtension: ptr.Bool(true),
+	}
+	assert.True(t, IsErrorTraceFiltered(project, chromeTrace))
+
+	nonChromeTrace := []*privateModel.ErrorTrace{
 		{
 			FileName:                   ptr.String("/build/backend/private-graph/graph/schema.resolvers.go"),
 			LineNumber:                 nil,
@@ -44,5 +51,5 @@ func TestIsErrorTraceFilteredForChromeExtension(t *testing.T) {
 		},
 	}
 
-	assert.False(t, IsErrorTraceFiltered(s, 1, trace))
+	assert.False(t, IsErrorTraceFiltered(project, nonChromeTrace))
 }
