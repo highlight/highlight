@@ -554,8 +554,8 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil, errors.New("error object stacktrace was empty")
 	}
 
-	var project model.Project
-	if err := r.DB.Where("id = ?", projectID).First(&project).Error; err != nil {
+	project, err := r.Store.GetProject(projectID)
+	if err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 
