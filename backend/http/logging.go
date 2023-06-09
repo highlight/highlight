@@ -220,6 +220,10 @@ func HandleJSONLog(w http.ResponseWriter, r *http.Request) {
 func HandleRawLog(w http.ResponseWriter, r *http.Request) {
 	qs := r.URL.Query()
 	projectVerboseID := qs.Get(LogDrainProjectQueryParam)
+	if projectVerboseID == "" {
+		http.Error(w, "no project query string parameter provided", http.StatusBadRequest)
+		return
+	}
 	serviceName := qs.Get(LogDrainServiceQueryParam)
 
 	body, err := io.ReadAll(r.Body)
@@ -230,9 +234,10 @@ func HandleRawLog(w http.ResponseWriter, r *http.Request) {
 	}
 
 	lg := hlog.Log{
-		Message:   string(body),
-		Timestamp: time.Now().UTC().Format(hlog.TimestampFormat),
-		Level:     model.LogLevelInfo.String(),
+		Attributes: map[string]string{},
+		Message:    string(body),
+		Timestamp:  time.Now().UTC().Format(hlog.TimestampFormat),
+		Level:      model.LogLevelInfo.String(),
 	}
 
 	projectID, err := model2.FromVerboseID(projectVerboseID)
