@@ -11,6 +11,7 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/go-test/deep"
+	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +19,6 @@ import (
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	_ "gorm.io/driver/postgres"
-	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -26,16 +26,22 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 )
 
-var DB *gorm.DB
+var resolver *Resolver
 
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
 	testLogger := log.WithContext(context.TODO()).WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
 	var err error
-	DB, err = util.CreateAndMigrateTestDB("highlight_testing_db")
+	db, err := util.CreateAndMigrateTestDB("highlight_testing_db")
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
+	}
+
+	resolver = &Resolver{
+		DB:    db,
+		TDB:   timeseries.New(context.TODO()),
+		Store: store.NewStore(db, &opensearch.Client{}),
 	}
 	code := m.Run()
 	os.Exit(code)
@@ -43,12 +49,11 @@ func TestMain(m *testing.M) {
 
 func TestProcessBackendPayloadImpl(t *testing.T) {
 	trpcTraceStr := "[{\"columnNumber\":11,\"lineNumber\":80,\"fileName\":\"/workspace/src/trpc/instance.ts\",\"source\":\"    at /workspace/src/trpc/instance.ts:80:11\",\"lineContent\":\"    throw new TRPCError({\\n\",\"linesBefore\":\"        organizationId,\\n        supabaseAccessToken,\\n      },\\n    });\\n  } catch (error) {\\n\",\"linesAfter\":\"      code: \\\"UNAUTHORIZED\\\",\\n    });\\n  }\\n});\\n\\n\"},{\"columnNumber\":38,\"lineNumber\":421,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/index.js\",\"functionName\":\"callRecursive\",\"source\":\"    at callRecursive (/workspace/node_modules/@trpc/server/dist/index.js:421:38)\",\"lineContent\":\"                const result = await middleware({\\n\",\"linesBefore\":\"            ctx: opts.ctx\\n        })=\u003e{\\n            try {\\n                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion\\n                const middleware = _def.middlewares[callOpts.index];\\n\",\"linesAfter\":\"                    ctx: callOpts.ctx,\\n                    type: opts.type,\\n                    path: opts.path,\\n                    rawInput: opts.rawInput,\\n                    meta: _def.meta,\\n\"},{\"columnNumber\":30,\"lineNumber\":449,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/index.js\",\"functionName\":\"resolve\",\"source\":\"    at resolve (/workspace/node_modules/@trpc/server/dist/index.js:449:30)\",\"lineContent\":\"        const result = await callRecursive();\\n\",\"linesBefore\":\"                    marker: middlewareMarker\\n                };\\n            }\\n        };\\n        // there's always at least one \\\"next\\\" since we wrap this.resolver in a middleware\\n\",\"linesAfter\":\"        if (!result) {\\n            throw new TRPCError.TRPCError({\\n                code: 'INTERNAL_SERVER_ERROR',\\n                message: 'No result from middlewares - did you forget to `return next()`?'\\n            });\\n\"},{\"columnNumber\":12,\"lineNumber\":228,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/config-7b65d7da.js\",\"functionName\":\"Object.callProcedure\",\"source\":\"    at Object.callProcedure (/workspace/node_modules/@trpc/server/dist/config-7b65d7da.js:228:12)\",\"lineContent\":\"    return procedure(opts);\\n\",\"linesBefore\":\"            code: 'NOT_FOUND',\\n            message: `No \\\"${type}\\\"-procedure on path \\\"${path}\\\"`\\n        });\\n    }\\n    const procedure = opts.procedures[path];\\n\",\"linesAfter\":\"}\\n\\n/**\\n * The default check to see if we're in a server\\n */ const isServerDefault = typeof window === 'undefined' || 'Deno' in window || globalThis.process?.env?.NODE_ENV === 'test' || !!globalThis.process?.env?.JEST_WORKER_ID;\\n\"},{\"columnNumber\":45,\"lineNumber\":125,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/resolveHTTPResponse-83d9b5ff.js\",\"source\":\"    at /workspace/node_modules/@trpc/server/dist/resolveHTTPResponse-83d9b5ff.js:125:45\",\"lineContent\":\"                const output = await config.callProcedure({\\n\",\"linesBefore\":\"        };\\n        const inputs = getInputs();\\n        const rawResults = await Promise.all(paths.map(async (path, index)=\u003e{\\n            const input = inputs[index];\\n            try {\\n\",\"linesAfter\":\"                    procedures: router._def.procedures,\\n                    path,\\n                    rawInput: input,\\n                    ctx,\\n                    type\\n\"},{\"columnNumber\":52,\"lineNumber\":122,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/resolveHTTPResponse-83d9b5ff.js\",\"functionName\":\"Object.resolveHTTPResponse\",\"source\":\"    at Object.resolveHTTPResponse (/workspace/node_modules/@trpc/server/dist/resolveHTTPResponse-83d9b5ff.js:122:52)\",\"lineContent\":\"        const rawResults = await Promise.all(paths.map(async (path, index)=\u003e{\\n\",\"linesBefore\":\"                input[k] = value;\\n            }\\n            return input;\\n        };\\n        const inputs = getInputs();\\n\",\"linesAfter\":\"            const input = inputs[index];\\n            try {\\n                const output = await config.callProcedure({\\n                    procedures: router._def.procedures,\\n                    path,\\n\"},{\"columnNumber\":5,\"lineNumber\":96,\"fileName\":\"node:internal/process/task_queues\",\"functionName\":\"processTicksAndRejections\",\"source\":\"    at processTicksAndRejections (node:internal/process/task_queues:96:5)\"},{\"columnNumber\":20,\"lineNumber\":53,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/nodeHTTPRequestHandler-e6a535cb.js\",\"functionName\":\"Object.nodeHTTPRequestHandler\",\"source\":\"    at Object.nodeHTTPRequestHandler (/workspace/node_modules/@trpc/server/dist/nodeHTTPRequestHandler-e6a535cb.js:53:20)\",\"lineContent\":\"    const result = await resolveHTTPResponse.resolveHTTPResponse({\\n\",\"linesBefore\":\"        method: opts.req.method,\\n        headers: opts.req.headers,\\n        query,\\n        body: bodyResult.ok ? bodyResult.data : undefined\\n    };\\n\",\"linesAfter\":\"        batching: opts.batching,\\n        responseMeta: opts.responseMeta,\\n        path,\\n        createContext,\\n        router,\\n\"}]"
-	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
-		r := &Resolver{DB: DB, TDB: timeseries.New(context.TODO())}
+	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
 		project := model.Project{}
-		r.DB.Create(&project)
+		resolver.DB.Create(&project)
 
-		r.ProcessBackendPayloadImpl(context.Background(), nil, ptr.String(project.VerboseID()), []*publicModel.BackendErrorObjectInput{{
+		resolver.ProcessBackendPayloadImpl(context.Background(), nil, ptr.String(project.VerboseID()), []*publicModel.BackendErrorObjectInput{{
 			SessionSecureID: nil,
 			RequestID:       nil,
 			TraceID:         nil,
@@ -63,7 +68,7 @@ func TestProcessBackendPayloadImpl(t *testing.T) {
 		}})
 
 		var result *model.ErrorObject
-		err := r.DB.Model(&model.ErrorObject{
+		err := resolver.DB.Model(&model.ErrorObject{
 			ProjectID: project.ID,
 		}).Where(&model.ErrorObject{Event: "dummy event"}).First(&result).Error
 		assert.NoError(t, err)
@@ -214,10 +219,9 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	}
 	//run tests
 	for _, tc := range tests {
-		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
-			r := &Resolver{DB: DB}
+		util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
 			project := model.Project{Model: model.Model{ID: projectID}}
-			r.DB.Create(&project)
+			resolver.DB.Create(&project)
 
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
 			for _, errorObj := range tc.errorsToInsert {
@@ -228,12 +232,12 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					}
 				}
 
-				_, structuredStackTrace, err := r.getMappedStackTraceString(context.Background(), frames, 1, &errorObj)
+				_, structuredStackTrace, err := resolver.getMappedStackTraceString(context.Background(), frames, 1, &errorObj)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error making mapped stacktrace"))
 				}
 
-				errorGroup, err := r.HandleErrorAndGroup(context.TODO(), &errorObj, structuredStackTrace, nil, 1, nil)
+				errorGroup, err := resolver.HandleErrorAndGroup(context.TODO(), &errorObj, structuredStackTrace, nil, 1, nil)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error handling error and group"))
 				}
@@ -266,16 +270,14 @@ func TestMatchErrorsWithSameTracesDifferentBodies(t *testing.T) {
 		t.Fatal("failed to generate structured stacktrace")
 	}
 
-	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
-		r := &Resolver{DB: DB, TDB: timeseries.New(context.TODO())}
-
+	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
 		errorObject := model.ErrorObject{
 			Event:      "error 1",
 			ProjectID:  1,
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup1, err := r.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, 1, nil)
+		errorGroup1, err := resolver.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, 1, nil)
 		assert.NoError(t, err)
 
 		errorObject = model.ErrorObject{
@@ -284,7 +286,7 @@ func TestMatchErrorsWithSameTracesDifferentBodies(t *testing.T) {
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup2, err := r.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, 1, nil)
+		errorGroup2, err := resolver.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, 1, nil)
 		assert.NoError(t, err)
 
 		assert.Equal(t, errorGroup1.ID, errorGroup2.ID, "should return the same error group id")
@@ -302,22 +304,19 @@ func TestUpdatingErrorState(t *testing.T) {
 		t.Fatal("failed to generate structured stacktrace")
 	}
 
-	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
-		r := &Resolver{DB: DB, TDB: timeseries.New(context.TODO())}
-		s := store.NewStore(r.DB, r.OpenSearch)
-
+	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
 		errorObject1 := model.ErrorObject{
 			Event:      "error",
 			ProjectID:  1,
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup, err := r.HandleErrorAndGroup(ctx, &errorObject1, structuredStackTrace, nil, 1, nil)
+		errorGroup, err := resolver.HandleErrorAndGroup(ctx, &errorObject1, structuredStackTrace, nil, 1, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, errorGroup.State, privateModel.ErrorStateOpen)
 
 		// Resolve
-		_, err = s.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
+		_, err = resolver.Store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
 			ID:    errorGroup.ID,
 			State: privateModel.ErrorStateResolved,
 		})
@@ -329,12 +328,12 @@ func TestUpdatingErrorState(t *testing.T) {
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup, err = r.HandleErrorAndGroup(ctx, &errorObject2, structuredStackTrace, nil, 1, nil)
+		errorGroup, err = resolver.HandleErrorAndGroup(ctx, &errorObject2, structuredStackTrace, nil, 1, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, errorGroup.State, privateModel.ErrorStateOpen)
 
 		// Ignore
-		_, err = s.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
+		_, err = resolver.Store.UpdateErrorGroupStateBySystem(ctx, store.UpdateErrorGroupParams{
 			ID:    errorGroup.ID,
 			State: privateModel.ErrorStateIgnored,
 		})
@@ -346,7 +345,7 @@ func TestUpdatingErrorState(t *testing.T) {
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup, err = r.HandleErrorAndGroup(ctx, &errorObject3, structuredStackTrace, nil, 1, nil)
+		errorGroup, err = resolver.HandleErrorAndGroup(ctx, &errorObject3, structuredStackTrace, nil, 1, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, errorGroup.State, privateModel.ErrorStateIgnored) // Should stay ignored
 
