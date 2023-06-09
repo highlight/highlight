@@ -1305,17 +1305,23 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			if err == nil && logs.Integrated {
 				c.BackendLoggingIntegrated = c.BackendLoggingIntegrated || logs.Integrated
 			}
-			count, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
+			count, err := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
 				StartDate: time.Now().Add(-time.Hour * 24 * 30),
 				EndDate:   time.Now(),
 			}})
+			if err != nil {
+				log.WithContext(ctx).WithField("project_id", p.ID).Fatal(e.Wrap(err, "Failed to read logs for project"))
+			}
 			c.LogCount += int64(count)
-			countWeek, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
+			countWeek, err := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
 				StartDate: time.Now().Add(-time.Hour * 24 * 7),
 				EndDate:   time.Now(),
 			}})
+			if err != nil {
+				log.WithContext(ctx).WithField("project_id", p.ID).Fatal(e.Wrap(err, "Failed to read logs for project"))
+			}
 			c.LogCountLastWeek += int64(countWeek)
-			countDay, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
+			countDay, err := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.QueryInput{DateRange: &backend.DateRangeRequiredInput{
 				StartDate: time.Now().Add(-time.Hour * 24),
 				EndDate:   time.Now(),
 			}})
