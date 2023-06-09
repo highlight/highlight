@@ -2007,6 +2007,8 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
 			} else if e.Is(err, ErrQuotaExceeded) {
 				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
+			} else if e.Is(err, ErrUserFilteredError) {
+				log.WithContext(ctx).Info(e.Wrap(err, "Error updating error group"))
 			} else {
 				log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))
 			}

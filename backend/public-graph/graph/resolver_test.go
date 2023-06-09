@@ -63,9 +63,11 @@ func TestProcessBackendPayloadImpl(t *testing.T) {
 		}})
 
 		var result *model.ErrorObject
-		r.DB.Model(&model.ErrorObject{
+		err := r.DB.Model(&model.ErrorObject{
 			ProjectID: project.ID,
-		}).Where(&model.ErrorObject{Event: "dummy event"}).First(&result)
+		}).Where(&model.ErrorObject{Event: "dummy event"}).First(&result).Error
+		assert.NoError(t, err)
+
 		if *result.StackTrace != trpcTraceStr {
 			t.Fatal("stacktrace changed after processing")
 		}
