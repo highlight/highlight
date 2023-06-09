@@ -341,7 +341,11 @@ type Project struct {
 	// Minimum count of clicks in a rage click event
 	RageClickCount int `gorm:"default:5"`
 
+<<<<<<< HEAD
 	FilterChromeExtension *bool `gorm:"default:false"`
+=======
+	FilterChromeExtension bool `gorm:"default:false"`
+>>>>>>> bea875511 (filtering)
 }
 
 type MarkBackendSetupType = string

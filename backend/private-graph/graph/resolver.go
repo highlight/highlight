@@ -16,6 +16,7 @@ import (
 	"time"
 
 	github2 "github.com/google/go-github/v50/github"
+	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/integrations/github"
 
 	"gorm.io/gorm/clause"
@@ -1367,7 +1368,7 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string, filterChrome boo
 	var ret []*modelInputs.ErrorTrace
 	for _, frame := range unmarshalled {
 		if frame != nil && *frame != empty {
-			if !filterChrome || (frame.FileName != nil && !strings.HasPrefix(*frame.FileName, "chrome-extension")) {
+			if !filterChrome || !errorgroups.IsFrameChromeExtension(*frame) {
 				ret = append(ret, frame)
 			}
 		}

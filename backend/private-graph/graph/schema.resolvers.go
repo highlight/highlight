@@ -135,7 +135,7 @@ func (r *errorGroupResolver) StructuredStackTrace(ctx context.Context, obj *mode
 	var project model.Project
 	filterChromeExtension := false
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: obj.ProjectID}}).First(&project).Error; err == nil {
-		filterChromeExtension = *project.FilterChromeExtension
+		filterChromeExtension = project.FilterChromeExtension
 	}
 
 	return r.UnmarshalStackTrace(stackTraceString, filterChromeExtension)
@@ -225,7 +225,7 @@ func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *mod
 	var project model.Project
 	filterChromeExtension := false
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: obj.ProjectID}}).First(&project).Error; err == nil {
-		filterChromeExtension = *project.FilterChromeExtension
+		filterChromeExtension = project.FilterChromeExtension
 	}
 
 	return r.UnmarshalStackTrace(stackTraceString, filterChromeExtension)
