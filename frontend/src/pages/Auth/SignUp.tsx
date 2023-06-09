@@ -22,7 +22,6 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { message } from 'antd'
 import firebase from 'firebase/compat/app'
-import Firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
@@ -84,7 +83,7 @@ export const SignUp: React.FC = () => {
 		[createAdmin, navigate, signIn],
 	)
 
-	const handleExternalAuthClick = (provider: Firebase.auth.AuthProvider) => {
+	const handleExternalAuthClick = (provider: firebase.auth.AuthProvider) => {
 		auth.signInWithPopup(provider)
 			.then(handleSubmit)
 			.catch((error: firebase.auth.MultiFactorError) => {

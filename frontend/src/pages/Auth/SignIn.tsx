@@ -18,7 +18,6 @@ import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import useLocalStorage from '@rehooks/local-storage'
 import { auth } from '@util/auth'
 import firebase from 'firebase/compat/app'
-import Firebase from 'firebase/compat/app'
 import React, { useCallback, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
@@ -97,7 +96,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		[navigate, setResolver],
 	)
 
-	const handleExternalAuthClick = (provider: Firebase.auth.AuthProvider) => {
+	const handleExternalAuthClick = (provider: firebase.auth.AuthProvider) => {
 		auth.signInWithPopup(provider).then(handleAuth).catch(handleAuthError)
 	}
 
