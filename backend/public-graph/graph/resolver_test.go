@@ -75,6 +75,8 @@ func TestProcessBackendPayloadImpl(t *testing.T) {
 }
 
 func TestHandleErrorAndGroup(t *testing.T) {
+	projectID := 1
+
 	// construct table of sub-tests to run
 	longTraceStr := `[{"functionName":"is","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"longer","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"trace","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null}]`
 	shortTraceStr := `[{"functionName":"a","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"short","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null}]`
@@ -86,14 +88,14 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			errorsToInsert: []model.ErrorObject{
 				{
 					Event:       "error",
-					ProjectID:   1,
+					ProjectID:   projectID,
 					Environment: "dev",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					StackTrace:  &shortTraceStr,
 				},
 				{
 					Event:       "error",
-					ProjectID:   1,
+					ProjectID:   projectID,
 					Environment: "dEv",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace:  &shortTraceStr,
@@ -102,7 +104,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					Event:        "error",
-					ProjectID:    1,
+					ProjectID:    projectID,
 					State:        privateModel.ErrorStateOpen,
 					Environments: `{"dev":2}`,
 				},
@@ -112,14 +114,14 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			errorsToInsert: []model.ErrorObject{
 				{
 					Event:       "error",
-					ProjectID:   1,
+					ProjectID:   projectID,
 					Environment: "dev",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					StackTrace:  &shortTraceStr,
 				},
 				{
 					Event:       "error",
-					ProjectID:   1,
+					ProjectID:   projectID,
 					Environment: "prod",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace:  &shortTraceStr,
@@ -128,7 +130,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					Event:        "error",
-					ProjectID:    1,
+					ProjectID:    projectID,
 					State:        privateModel.ErrorStateOpen,
 					Environments: `{"dev":1,"prod":1}`,
 				},
@@ -137,7 +139,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 		"two errors, one with empty environment": {
 			errorsToInsert: []model.ErrorObject{
 				{
-					ProjectID:   1,
+					ProjectID:   projectID,
 					Environment: "dev",
 					Model:       model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					Event:       "error",
@@ -145,7 +147,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				},
 				{
 					Event:      "error",
-					ProjectID:  1,
+					ProjectID:  projectID,
 					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace: &shortTraceStr,
 				},
@@ -153,7 +155,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					Event:        "error",
-					ProjectID:    1,
+					ProjectID:    projectID,
 					State:        privateModel.ErrorStateOpen,
 					Environments: `{"dev":1}`,
 				},
@@ -163,13 +165,13 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			errorsToInsert: []model.ErrorObject{
 				{
 					Event:      "error",
-					ProjectID:  1,
+					ProjectID:  projectID,
 					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					StackTrace: &longTraceStr,
 				},
 				{
 					Event:      "error",
-					ProjectID:  1,
+					ProjectID:  projectID,
 					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace: &shortTraceStr,
 				},
@@ -177,7 +179,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					Event:        "error",
-					ProjectID:    1,
+					ProjectID:    projectID,
 					StackTrace:   shortTraceStr,
 					State:        privateModel.ErrorStateOpen,
 					Environments: `{}`,
@@ -188,13 +190,13 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			errorsToInsert: []model.ErrorObject{
 				{
 					Event:      "error",
-					ProjectID:  1,
+					ProjectID:  projectID,
 					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 					StackTrace: &shortTraceStr,
 				},
 				{
 					Event:      "error",
-					ProjectID:  1,
+					ProjectID:  projectID,
 					Model:      model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 					StackTrace: &longTraceStr,
 				},
@@ -202,7 +204,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					Event:        "error",
-					ProjectID:    1,
+					ProjectID:    projectID,
 					StackTrace:   longTraceStr,
 					Environments: `{}`,
 					State:        privateModel.ErrorStateOpen,
@@ -214,6 +216,9 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	for _, tc := range tests {
 		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 			r := &Resolver{DB: DB}
+			project := model.Project{Model: model.Model{ID: projectID}}
+			r.DB.Create(&project)
+
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
 			for _, errorObj := range tc.errorsToInsert {
 				var frames []*publicModel.StackFrameInput
