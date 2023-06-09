@@ -10,7 +10,7 @@ export default {
 } as Meta<typeof Button>
 
 export const ButtonVariants = () => {
-	const kind: any[] = ['primary', 'secondary', 'asdf']
+	const kind: any[] = ['primary', 'secondary']
 	const emphasis: any[] = ['high', 'medium', 'low']
 	const size: any[] = ['medium', 'small', 'xSmall']
 
