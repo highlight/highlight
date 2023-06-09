@@ -271,22 +271,25 @@ func TestMatchErrorsWithSameTracesDifferentBodies(t *testing.T) {
 	}
 
 	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
+		project := model.Project{}
+		resolver.DB.Create(&project)
+
 		errorObject := model.ErrorObject{
 			Event:      "error 1",
-			ProjectID:  1,
+			ProjectID:  project.ID,
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup1, err := resolver.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, 1, nil)
+		errorGroup1, err := resolver.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, project.ID, nil)
 		assert.NoError(t, err)
 
 		errorObject = model.ErrorObject{
 			Event:      "error 2",
-			ProjectID:  1,
+			ProjectID:  project.ID,
 			StackTrace: &stacktrace,
 		}
 
-		errorGroup2, err := resolver.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, 1, nil)
+		errorGroup2, err := resolver.HandleErrorAndGroup(context.TODO(), &errorObject, structuredStackTrace, nil, project.ID, nil)
 		assert.NoError(t, err)
 
 		assert.Equal(t, errorGroup1.ID, errorGroup2.ID, "should return the same error group id")
