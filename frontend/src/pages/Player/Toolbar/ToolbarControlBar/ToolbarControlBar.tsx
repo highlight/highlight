@@ -212,7 +212,7 @@ export const ToolbarControlBar = () => {
 					disabled={disableControls}
 					lines="1"
 				>
-					{isLiveMode ? 'Disable' : 'Enable'} live mode
+					{isLiveMode ? 'Hide' : 'Show'} live mode
 				</Tag>
 			)}
 
@@ -290,35 +290,27 @@ export const ToolbarControlBar = () => {
 					</Tooltip>
 				)}
 
-				<Tooltip
-					trigger={
-						<SwitchButton
-							onChange={() => {
-								setShowHistogram(!showHistogram)
-							}}
-							checked={showHistogram}
-							disabled={
-								isPlayerFullscreen ||
-								disableControls ||
-								isLiveMode
-							}
-							iconLeft={<IconSolidChartBar size={14} />}
-						/>
-					}
-					delayed
-					disabled={isPlayerFullscreen || disableControls}
-				>
-					{isLiveMode ? (
-						<Box p="2">
-							<Text>Timeline can't be used in live mode.</Text>
-						</Box>
-					) : (
+				{!isLiveMode && (
+					<Tooltip
+						trigger={
+							<SwitchButton
+								onChange={() => {
+									setShowHistogram(!showHistogram)
+								}}
+								checked={showHistogram}
+								disabled={isPlayerFullscreen || disableControls}
+								iconLeft={<IconSolidChartBar size={14} />}
+							/>
+						}
+						delayed
+						disabled={isPlayerFullscreen || disableControls}
+					>
 						<KeyboardShortcut
 							label="Timeline"
 							shortcut={TimelineShortcut.shortcut}
 						/>
-					)}
-				</Tooltip>
+					</Tooltip>
+				)}
 
 				<Tooltip
 					trigger={
@@ -327,27 +319,17 @@ export const ToolbarControlBar = () => {
 								setShowDevTools(!showDevTools)
 							}}
 							checked={showDevTools}
-							disabled={
-								isPlayerFullscreen ||
-								disableControls ||
-								isLiveMode
-							}
+							disabled={isPlayerFullscreen || disableControls}
 							iconLeft={<IconSolidTerminal size={14} />}
 						/>
 					}
 					delayed
 					disabled={isPlayerFullscreen || disableControls}
 				>
-					{isLiveMode ? (
-						<Box p="2">
-							<Text>Dev tools can't be used in live mode.</Text>
-						</Box>
-					) : (
-						<KeyboardShortcut
-							label="Dev tools"
-							shortcut={DevToolsShortcut.shortcut}
-						/>
-					)}
+					<KeyboardShortcut
+						label="Dev tools"
+						shortcut={DevToolsShortcut.shortcut}
+					/>
 				</Tooltip>
 
 				<Popover
@@ -457,11 +439,10 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				/>
 				<Switch
 					trackingId="DevToolsMenuToggle"
-					checked={!isLiveMode && showDevTools}
+					checked={showDevTools}
 					onChange={(checked: boolean) => {
 						setShowDevTools(checked)
 					}}
-					disabled={isLiveMode}
 				/>
 			</button>
 
