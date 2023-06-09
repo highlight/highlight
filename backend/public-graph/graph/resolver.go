@@ -672,7 +672,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 
 	var errorGroup *model.ErrorGroup
-	errorGroup, err := r.GetOrCreateErrorGroup(ctx, errorObj, fingerprints)
+	errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, fingerprints)
 	if err != nil {
 		return nil, e.Wrap(err, "Error getting top error group match")
 	}
