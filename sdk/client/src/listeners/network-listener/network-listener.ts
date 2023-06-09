@@ -73,6 +73,7 @@ export const NetworkListener = ({
 	)
 
 	const removeWebSocketListener = WebSocketListener((event) => {
+		console.log('Websocket - Event', event)
 		webSocketCallback(event)
 	})
 
