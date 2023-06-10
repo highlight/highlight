@@ -142,12 +142,28 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		i < Math.min(NUM_SUGGESTED_POSTS, githubPosts.length - 1);
 		i++
 	) {
-		suggestedPosts.push(
-			otherPosts.splice(
-				Math.floor(Math.random() * otherPosts.length),
-				1,
-			)[0],
-		)
+		let suggestedPost = otherPosts.splice(
+			Math.floor(Math.random() * otherPosts.length),
+			1,
+		)[0]
+
+		console.log(suggestedPost.image)
+
+		if (suggestedPost.image.url == null) {
+			const params = new URLSearchParams()
+			params.set('title', suggestedPost.title || '')
+			params.set('fname', suggestedPost.author?.firstName || '')
+			params.set('lname', suggestedPost.author?.lastName || '')
+			params.set('role', suggestedPost.author?.title || '')
+
+			const metaImageURL = `https://${
+				process.env.NEXT_PUBLIC_VERCEL_URL || 'www.highlight.io'
+			}/api/og/blog/${suggestedPost.slug}?${params.toString()}`
+
+			suggestedPost.image.url = metaImageURL
+		}
+
+		suggestedPosts.push(suggestedPost)
 	}
 
 	const githubPost = await getGithubPostBySlug(slug, githubPosts)
