@@ -241,6 +241,11 @@ const PostPage = ({
 				endPosition={endPosition}
 				singleTag={singleTag}
 			/>
+			<div className="hidden">
+				{suggestedPosts.map((p, i) => (
+					<SuggestedBlogPost {...p} key={i} />
+				))}
+			</div>
 			<main
 				ref={blogBody}
 				className={classNames(styles.mainBlogPadding, 'relative')}
