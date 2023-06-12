@@ -264,107 +264,113 @@ export const ToolbarControlBar = () => {
 				gap="4"
 			>
 				{!isLiveMode && (
-					<Tooltip
-						trigger={
-							<Tag
-								kind="secondary"
-								shape="rounded"
-								size="medium"
-								emphasis="low"
-								onClick={() => {
-									setPlayerSpeedIdx(playerSpeedIdx + 1)
-								}}
-								disabled={disableControls}
-								lines="1"
-							>
-								{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
-							</Tag>
-						}
-						delayed
-						disabled={disableControls}
-					>
-						<KeyboardShortcut
-							label="Speed +/-"
-							shortcut={[cmdKey, '↑/↓']}
-						/>
-					</Tooltip>
-				)}
-
-				{!isLiveMode && (
-					<Tooltip
-						trigger={
-							<SwitchButton
-								onChange={() => {
-									setShowHistogram(!showHistogram)
-								}}
-								checked={showHistogram}
-								disabled={isPlayerFullscreen || disableControls}
-								iconLeft={<IconSolidChartBar size={14} />}
+					<>
+						<Tooltip
+							trigger={
+								<Tag
+									kind="secondary"
+									shape="rounded"
+									size="medium"
+									emphasis="low"
+									onClick={() => {
+										setPlayerSpeedIdx(playerSpeedIdx + 1)
+									}}
+									disabled={disableControls}
+									lines="1"
+								>
+									{PLAYBACK_SPEED_OPTIONS[playerSpeedIdx]}x
+								</Tag>
+							}
+							delayed
+							disabled={disableControls}
+						>
+							<KeyboardShortcut
+								label="Speed +/-"
+								shortcut={[cmdKey, '↑/↓']}
 							/>
-						}
-						delayed
-						disabled={isPlayerFullscreen || disableControls}
-					>
-						<KeyboardShortcut
-							label="Timeline"
-							shortcut={TimelineShortcut.shortcut}
-						/>
-					</Tooltip>
-				)}
+						</Tooltip>
 
-				<Tooltip
-					trigger={
-						<SwitchButton
-							onChange={() => {
-								setShowDevTools(!showDevTools)
-							}}
-							checked={showDevTools}
+						<Tooltip
+							trigger={
+								<SwitchButton
+									onChange={() => {
+										setShowHistogram(!showHistogram)
+									}}
+									checked={showHistogram}
+									disabled={
+										isPlayerFullscreen || disableControls
+									}
+									iconLeft={<IconSolidChartBar size={14} />}
+								/>
+							}
+							delayed
 							disabled={isPlayerFullscreen || disableControls}
-							iconLeft={<IconSolidTerminal size={14} />}
-						/>
-					}
-					delayed
-					disabled={isPlayerFullscreen || disableControls}
-				>
-					<KeyboardShortcut
-						label="Dev tools"
-						shortcut={DevToolsShortcut.shortcut}
-					/>
-				</Tooltip>
+						>
+							<KeyboardShortcut
+								label="Timeline"
+								shortcut={TimelineShortcut.shortcut}
+							/>
+						</Tooltip>
 
-				<Popover
-					getPopupContainer={getFullScreenPopoverGetPopupContainer}
-					content={
-						<ControlSettings
-							setShowSettingsPopover={setShowSettings}
-						/>
-					}
-					overlayClassName={style.settingsPopoverOverlay}
-					placement="topRight"
-					trigger="click"
-					showArrow={false}
-					align={{
-						overflow: {
-							adjustY: false,
-							adjustX: false,
-						},
-						offset: [0, 8],
-					}}
-					onVisibleChange={(visible) => {
-						setShowSettings(visible)
-					}}
-					visible={showSettings}
-					destroyTooltipOnHide
-				>
-					<ButtonIcon
-						icon={<IconSolidCog />}
-						disabled={disableControls}
-						size="xSmall"
-						shape="square"
-						emphasis="low"
-						kind="secondary"
-					/>
-				</Popover>
+						<Tooltip
+							trigger={
+								<SwitchButton
+									onChange={() => {
+										setShowDevTools(!showDevTools)
+									}}
+									checked={showDevTools}
+									disabled={
+										isPlayerFullscreen || disableControls
+									}
+									iconLeft={<IconSolidTerminal size={14} />}
+								/>
+							}
+							delayed
+							disabled={isPlayerFullscreen || disableControls}
+						>
+							<KeyboardShortcut
+								label="Dev tools"
+								shortcut={DevToolsShortcut.shortcut}
+							/>
+						</Tooltip>
+
+						<Popover
+							getPopupContainer={
+								getFullScreenPopoverGetPopupContainer
+							}
+							content={
+								<ControlSettings
+									setShowSettingsPopover={setShowSettings}
+								/>
+							}
+							overlayClassName={style.settingsPopoverOverlay}
+							placement="topRight"
+							trigger="click"
+							showArrow={false}
+							align={{
+								overflow: {
+									adjustY: false,
+									adjustX: false,
+								},
+								offset: [0, 8],
+							}}
+							onVisibleChange={(visible) => {
+								setShowSettings(visible)
+							}}
+							visible={showSettings}
+							destroyTooltipOnHide
+						>
+							<ButtonIcon
+								icon={<IconSolidCog />}
+								disabled={disableControls}
+								size="xSmall"
+								shape="square"
+								emphasis="low"
+								kind="secondary"
+							/>
+						</Popover>
+					</>
+				)}
 
 				<ButtonIcon
 					onClick={() => {
