@@ -72,6 +72,7 @@
 		"uuidv4": "^6.2.13"
 	},
 	"devDependencies": {
+		"@cspell/eslint-plugin": "^6.31.1",
 		"@svgr/webpack": "^6.5.1",
 		"@types/js-cookie": "^3.0.2",
 		"@types/js-yaml": "^4.0.5",

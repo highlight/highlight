@@ -33729,6 +33729,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "highlight.io@workspace:highlight.io"
   dependencies:
+    "@cspell/eslint-plugin": ^6.31.1
     "@docsearch/css": 3
     "@docsearch/js": 3
     "@graphcms/rich-text-react-renderer": ^0.6.1
