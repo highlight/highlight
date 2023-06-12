@@ -10381,6 +10381,43 @@ span:last-child ._ruleItem_1yzqu_148 {
 ._33eaux0 {
   max-height: 16em;
 }
+@keyframes v755nm0 {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
+.v755nm1 {
+  background: linear-gradient(45deg, #f7d8fe 0%, #b5bbff 20%, #fac492 40%, #f7d8fe 60%, #b5bbff 80%, #fac492 100%);
+  background-size: 450% 450%;
+  box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.05) inset;
+}
+.v755nm2 {
+  animation: v755nm0 4s linear infinite;
+}
+.v755nm1 p {
+  margin: 0 0 1rem 0 !important;
+}
+.v755nm1 pre {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 6px;
+  padding: 10px;
+}
+.v755nm1 code:not([class]) {
+  background-color: transparent;
+  border: 0;
+}
+.v755nm1 p:last-child,
+.v755nm1 ol:last-child {
+  margin: 0 !important;
+}
+.v755nm1 ol {
+  padding: 0 0 0 1.5rem !important;
+  margin: 0 0 1rem 0 !important;
+}
 
 /* temp_stylePlugin:ni:sha-256;BtqyzEEtG8ThljpH4yzPm1T9yuUz6xMGDnI9IWq9o3c */
 ._metricsDistributionContainer_1bgqt_1 {

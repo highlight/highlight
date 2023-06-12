@@ -1644,6 +1644,7 @@ export type Query = {
 	error_object?: Maybe<ErrorObject>
 	error_object_for_log?: Maybe<ErrorObject>
 	error_objects: ErrorObjectConnection
+	error_resolution_suggestion: Scalars['String']
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram: ErrorsHistogram
@@ -1911,6 +1912,10 @@ export type QueryError_ObjectsArgs = {
 	after?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
 	error_group_secure_id: Scalars['String']
+}
+
+export type QueryError_Resolution_SuggestionArgs = {
+	error_object_id: Scalars['ID']
 }
 
 export type QueryError_SegmentsArgs = {

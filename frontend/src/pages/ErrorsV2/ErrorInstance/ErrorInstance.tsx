@@ -10,15 +10,18 @@ import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	GetErrorInstanceDocument,
 	useGetErrorInstanceQuery,
+	useGetErrorResolutionSuggestionLazyQuery,
 } from '@graph/hooks'
 import { ErrorObjectFragment, GetErrorGroupQuery } from '@graph/operations'
 import { Maybe, ReservedLogKey } from '@graph/schemas'
 import {
+	Badge,
 	Box,
 	Heading,
 	IconSolidCode,
 	IconSolidExternalLink,
 	IconSolidLogs,
+	Stack,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
@@ -39,15 +42,19 @@ import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
 import { buildQueryURLString } from '@util/url/params'
+import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { ReactMarkdown } from 'react-markdown/lib/react-markdown'
 import { createSearchParams, useNavigate } from 'react-router-dom'
 
 import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
 import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionMissingOrExcluded'
 import { ShowSessionButton } from '@/pages/ErrorsV2/ErrorInstance/ShowSessionButton'
 import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
+
+import * as styles from './ErrorInstance.css'
 
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
@@ -142,6 +149,18 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				loadSession(data.error_instance.error_object.session.secure_id)
 			}
 		},
+	})
+
+	const [
+		getErrorResolutionSuggestion,
+		{
+			data: errorResolutionSuggestionData,
+			error: errorResolutionSuggestionError,
+			loading: errorResolutionSuggestionLoading,
+			refetch: refetchErrorResolutionSuggestion,
+		},
+	] = useGetErrorResolutionSuggestionLazyQuery({
+		notifyOnNetworkStatusChange: true,
 	})
 
 	const errorInstance = data?.error_instance
@@ -352,6 +371,81 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			</Box>
 
 			<Box display="flex" flexDirection="column" mb="40" gap="40">
+				<Box
+					p="16"
+					borderRadius="8"
+					cssClass={clsx(styles.aiSuggestion, {
+						[styles.aiSuggestionAnimated]:
+							errorResolutionSuggestionLoading,
+					})}
+				>
+					<Heading level="h3">
+						<Stack direction="row" align="center">
+							Ask Harold for help{' '}
+							<Badge label="Beta" size="large" />
+						</Stack>
+					</Heading>
+
+					<Box mt="16">
+						{errorResolutionSuggestionData?.error_resolution_suggestion ? (
+							<ReactMarkdown
+								components={{
+									li: ({ children }) => <li>{children}</li>,
+								}}
+							>
+								{
+									errorResolutionSuggestionData.error_resolution_suggestion
+								}
+							</ReactMarkdown>
+						) : errorResolutionSuggestionError ? (
+							<Text>
+								There was an error getting a resolution
+								suggestion. Please try again.
+							</Text>
+						) : (
+							<Text>
+								Get help from Highlight's AI programming
+								partner, Harold. By clicking the button below
+								you agree to send context about this error to
+								the OpenAI API.
+							</Text>
+						)}
+					</Box>
+
+					<Box display="flex" mt="12">
+						{!errorResolutionSuggestionData?.error_resolution_suggestion ? (
+							<Button
+								onClick={() => {
+									getErrorResolutionSuggestion({
+										variables: {
+											error_object_id:
+												errorInstance.error_object.id,
+										},
+									})
+								}}
+								kind="primary"
+								emphasis="high"
+								trackingId="error-instance_get-ai-suggestion"
+								loading={errorResolutionSuggestionLoading}
+							>
+								Get Suggestion
+							</Button>
+						) : (
+							<Button
+								onClick={() =>
+									refetchErrorResolutionSuggestion()
+								}
+								kind="primary"
+								emphasis="high"
+								trackingId="error-instance_get-ai-suggestion"
+								loading={errorResolutionSuggestionLoading}
+							>
+								Refresh Suggestion
+							</Button>
+						)}
+					</Box>
+				</Box>
+
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
 					<Metadata errorObject={errorInstance.error_object} />
 				</div>

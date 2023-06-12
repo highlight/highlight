@@ -53,6 +53,7 @@ import (
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
+	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
 	"go.opentelemetry.io/otel/attribute"
@@ -7338,6 +7339,74 @@ func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []strin
 	highlight.EndTrace(s)
 	ddS.Finish()
 	return errorObjects, nil
+}
+
+// ErrorResolutionSuggestion is the resolver for the error_resolution_suggestion field.
+func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error) {
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		return "", e.New("OPENAI_API_KEY is not set")
+	}
+
+	errorObject := &model.ErrorObject{}
+	if err := r.DB.Model(&model.ErrorObject{}).Where("id = ?", errorObjectID).Find(&errorObject).Error; err != nil {
+		return "", e.Wrap(err, "failed to find error object")
+	}
+
+	systemPrompt := fmt.Sprint(`
+	You are a software engineer working on a web application and are trying to
+	debug an error in your code. Provide some general background on the issue and
+	then step-by-step instructions on fixing it. If possible, attempt to include
+	code samples. Don't state anything obvious like "read the error".
+	`)
+
+	var stackTrace *string
+	if errorObject.MappedStackTrace != nil {
+		stackTrace = errorObject.MappedStackTrace
+	} else {
+		stackTrace = errorObject.StackTrace
+	}
+
+	userPrompt := fmt.Sprintf(`
+	Here is some information about the error.
+
+	Title: %s
+	Here's the stack trace information: %v
+	`, errorObject.Event, *stackTrace)
+
+	client := openai.NewClient(apiKey)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model:       openai.GPT3Dot5Turbo,
+			Temperature: 0.7,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: systemPrompt,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: userPrompt,
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		fmt.Printf("ChatCompletion error: %v\n", err)
+		return "", err
+	}
+
+	log.WithContext(ctx).
+		// TODO: Check if this is a reserved field name.
+		WithField("error_object_id", errorObjectID).
+		WithField("system_prompt", systemPrompt).
+		WithField("user_prompt", userPrompt).
+		WithField("response", resp.Choices[0].Message.Content).
+		Info("AI suggestion generated.")
+
+	return resp.Choices[0].Message.Content, nil
 }
 
 // Params is the resolver for the params field.
