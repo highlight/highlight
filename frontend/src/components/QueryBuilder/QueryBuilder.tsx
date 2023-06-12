@@ -2,7 +2,6 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Popover from '@components/Popover/Popover'
-import { START_PAGE } from '@components/SearchPagination/SearchPagination'
 import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
@@ -10,7 +9,6 @@ import Tooltip from '@components/Tooltip/Tooltip'
 import {
 	BackendSearchQuery,
 	BaseSearchContext,
-	normalizeParams,
 } from '@context/BaseSearchContext'
 import {
 	useEditErrorSegmentMutation,
@@ -20,14 +18,7 @@ import {
 	useGetSegmentsQuery,
 } from '@graph/hooks'
 import { GetFieldTypesQuery, namedOperations } from '@graph/operations'
-import {
-	ErrorSearchParamsInput,
-	ErrorSegment,
-	Exact,
-	Field,
-	SearchParamsInput,
-	Segment,
-} from '@graph/schemas'
+import { ErrorSegment, Exact, Field, Segment } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
@@ -54,11 +45,9 @@ import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConf
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
-import { gqlSanitize } from '@util/gql'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
-import { QueryBuilderStateParam } from '@util/url/params'
 import { Checkbox, message } from 'antd'
 import clsx, { ClassValue } from 'clsx'
 import { isEqual } from 'lodash'
@@ -70,13 +59,6 @@ import Creatable from 'react-select/creatable'
 import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
 import { useToggle } from 'react-use'
-import {
-	BooleanParam,
-	JsonParam,
-	NumberParam,
-	useQueryParam,
-	useQueryParams,
-} from 'use-query-params'
 
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
@@ -231,6 +213,7 @@ const OptionLabelName: React.FC<React.PropsWithChildren> = (props) => {
 		)
 	}
 
+	// ZANETODO: this is ok, in subcomponent
 	useEffect(() => {
 		if (!!ref?.current) {
 			setScrollShadow(ref.current)
@@ -266,6 +249,7 @@ const ScrolledTextHighlighter = ({
 	}
 	const [doScroll, ref] = useScroll()
 
+	// ZANETODO: this is ok, in subcomponent
 	useEffect(() => {
 		doScroll()
 	}, [doScroll, textToHighlight])
@@ -1246,16 +1230,13 @@ export type FetchFieldVariables =
 	  >
 	| undefined
 
-interface QueryBuilderProps<
-	T extends SearchParamsInput | ErrorSearchParamsInput,
-> {
-	searchContext: BaseSearchContext<T>
+interface QueryBuilderProps {
+	searchContext: BaseSearchContext
 	timeRangeField: SelectOption
 	customFields: CustomField[]
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
 	fieldData?: GetFieldTypesQuery
 	readonly?: boolean
-	emptySearchParams: T
 	useEditAnySegmentMutation:
 		| typeof useEditSegmentMutation
 		| typeof useEditErrorSegmentMutation
@@ -1277,6 +1258,12 @@ enum QueryBuilderMode {
 	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
 }
 
+enum SegmentModalState {
+	HIDDEN = 'HIDDEN',
+	CREATE = 'CREATE',
+	EDIT_NAME = 'EDIT_NAME',
+}
+
 const now = moment()
 const defaultMinDate = now.clone().subtract(90, 'days').toDate()
 
@@ -1284,9 +1271,7 @@ const presetOptions = getDefaultPresets(now)
 
 const defaultPreset = presetOptions[5]
 
-function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
-	props: QueryBuilderProps<T>,
-) {
+function QueryBuilder(props: QueryBuilderProps) {
 	const {
 		searchContext,
 		timeRangeField,
@@ -1294,7 +1279,6 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		fetchFields,
 		fieldData,
 		readonly,
-		emptySearchParams,
 		useEditAnySegmentMutation,
 		useGetAnySegmentsQuery,
 		CreateAnySegmentModal,
@@ -1304,17 +1288,14 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 	const {
 		backendSearchQuery,
 		setBackendSearchQuery,
-		searchParams,
-		setSearchParams,
-		searchResultsLoading,
-		existingParams,
-		setExistingParams,
+		searchQuery,
+		setSearchQuery,
+		existingQuery,
+		setExistingQuery,
 		searchResultsCount,
 		selectedSegment,
 		setSelectedSegment,
 		removeSelectedSegment,
-		page,
-		setPage,
 	} = searchContext
 
 	const { project_id: projectId } = useParams<{
@@ -1325,15 +1306,28 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		useGetAnySegmentsQuery({
 			variables: { project_id: projectId! },
 			skip: !projectId,
+			onCompleted: (data) => {
+				if (selectedSegment && selectedSegment.id) {
+					const match = data?.segments
+						?.map((s) => s)
+						.find((s) => s?.id === selectedSegment.id)
+
+					if (match && match.params?.query) {
+						setSelectedSegment(
+							{ id: match.id, name: match.name },
+							match.params?.query,
+						)
+						return
+					}
+				}
+
+				setSelectedSegment(undefined, searchQuery)
+			},
 		})
 
-	const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false)
-	const [showEditSegmentNameModal, setShowEditSegmentNameModal] =
-		useState(false)
-
-	useEffect(() => {
-		setShowCreateSegmentModal(showEditSegmentNameModal)
-	}, [showEditSegmentNameModal])
+	const [segmentModalState, setSegmentModalState] = useState(
+		SegmentModalState.HIDDEN,
+	)
 
 	const [segmentToDelete, setSegmentToDelete] = useState<{
 		name?: string
@@ -1355,16 +1349,6 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		?.map((s) => s)
 		.find((s) => s?.id === selectedSegment?.id)
 
-	const [searchParamsToUrlParams, setSearchParamsToUrlParams] =
-		useQueryParams({
-			query: QueryBuilderStateParam,
-		})
-
-	const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
-		'segment',
-		JsonParam,
-	)
-
 	const selectSegment = useCallback(
 		(segment?: Pick<Segment | ErrorSegment, 'id' | 'name'>) => {
 			if (segment && segment.id && segment.name) {
@@ -1372,31 +1356,18 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 					?.map((s) => s)
 					.find((s) => s?.id === segment?.id)
 
-				if (match !== undefined) {
-					const segmentParameters = normalizeParams(
-						gqlSanitize(match?.params),
+				if (match && match.params?.query) {
+					setSelectedSegment(
+						{ id: segment.id, name: segment.name },
+						match.params?.query,
 					)
-					// @ts-expect-error
-					setSearchParams(segmentParameters)
-					// @ts-expect-error
-					setExistingParams(segmentParameters)
-					setSelectedSegment({ id: segment.id, name: segment.name })
 					return
 				}
 			}
 
 			removeSelectedSegment()
-			setSearchParams(emptySearchParams)
-			setExistingParams(emptySearchParams)
 		},
-		[
-			removeSelectedSegment,
-			segmentData?.segments,
-			setExistingParams,
-			setSearchParams,
-			setSelectedSegment,
-			emptySearchParams,
-		],
+		[removeSelectedSegment, segmentData?.segments, setSelectedSegment],
 	)
 
 	const { admin } = useAuthContext()
@@ -1723,9 +1694,7 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		[defaultTimeRangeRule, parseRule, timeRangeField.value],
 	)
 	const [isAnd, toggleIsAnd] = useToggle(true)
-	const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule])
-	const serializedQuery = useRef<BackendSearchQuery | undefined>()
-	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
+	const [rules, setRules] = useState<RuleProps[]>([defaultTimeRangeRule])
 
 	const filterRules = useMemo(
 		() =>
@@ -1733,9 +1702,6 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		[rules, timeRangeField.value],
 	)
 
-	const setRules = (rules: RuleProps[]) => {
-		setRulesImpl(rules)
-	}
 	const addNewRule = () => {
 		setCurrentRule({
 			field: undefined,
@@ -1757,7 +1723,7 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		[rules],
 	)
 	const updateRule = (targetRule: RuleProps, newProps: any) => {
-		setRulesImpl((currentRules) =>
+		setRules((currentRules) =>
 			currentRules.map((rule) =>
 				rule !== targetRule ? rule : { ...rule, ...newProps },
 			),
@@ -1806,8 +1772,8 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		[customFields, fieldData?.field_types],
 	)
 
-	const updateSerializedQuery = useCallback(
-		(isAnd: boolean, rules: RuleProps[]) => {
+	const getSerializedQuery = useCallback(
+		(isAnd: boolean, rules: RuleProps[]): BackendSearchQuery => {
 			const startDate = roundFeedDate(
 				getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
 			)
@@ -1815,7 +1781,7 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 				getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
 			)
 			const searchQuery = parseGroup(isAnd, rules)
-			serializedQuery.current = {
+			return {
 				searchQuery: JSON.stringify(searchQuery.query),
 				childSearchQuery: searchQuery.childQuery
 					? JSON.stringify(searchQuery.childQuery)
@@ -1919,105 +1885,12 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		],
 	)
 
-	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
-		page: NumberParam,
-	})
-	useEffect(() => {
-		if (page !== undefined) {
-			setPaginationToUrlParams({ page }, 'replaceIn')
-		}
-	}, [setPaginationToUrlParams, page])
-
-	// Set initial state from URL params.
-	const [initialized, setInitialized] = useState(false)
-	useEffect(() => {
-		setPage(paginationToUrlParams.page || START_PAGE)
-
-		if (searchParamsToUrlParams.query !== undefined) {
-			setSearchParams(searchParamsToUrlParams as T)
-		} else {
-			setSearchParams(emptySearchParams)
-		}
-
-		setInitialized(true)
-		// Only want this to run on init.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
-
-	const [forceReload, setForceReload] = useQueryParam('reload', BooleanParam)
-	useEffect(() => {
-		if (forceReload && searchParamsToUrlParams.query !== undefined) {
-			setSearchParams(searchParamsToUrlParams as T)
-			setForceReload(false)
-		}
-	}, [forceReload, searchParamsToUrlParams, setForceReload, setSearchParams])
-
-	useEffect(() => {
-		if (!segmentsLoading) {
-			if (activeSegmentUrlParam) {
-				selectSegment(activeSegmentUrlParam)
-			}
-			if (searchParamsToUrlParams.query !== undefined) {
-				setSearchParams(searchParamsToUrlParams as T)
-			}
-		}
-		// We only want to run this once after loading segments.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [segmentsLoading])
-
-	// Errors Segment Deep Linking
-	useEffect(() => {
-		if (selectedSegment && selectedSegment.id && selectedSegment.name) {
-			if (!isEqual(activeSegmentUrlParam, selectedSegment)) {
-				setActiveSegmentUrlParam(selectedSegment, 'replaceIn')
-			}
-		} else if (activeSegmentUrlParam !== undefined) {
-			setActiveSegmentUrlParam(undefined, 'replace')
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedSegment, setActiveSegmentUrlParam])
-
-	// Main useEffect that handles updates to URL on every filter change.
-	useEffect(() => {
-		if (initialized && searchParams.query !== undefined) {
-			setSearchParamsToUrlParams(
-				normalizeParams(searchParams),
-				'replaceIn',
-			)
-		}
-	}, [
-		setSearchParamsToUrlParams,
-		searchParams,
-		selectedSegment,
-		activeSegmentUrlParam,
-		initialized,
-	])
-
-	useEffect(() => {
-		if (!searchResultsLoading) {
-			const timer = setTimeout(() => {
-				setSyncButtonDisabled(false)
-			}, 5000)
-			return () => {
-				clearTimeout(timer)
-			}
-		} else {
-			setSyncButtonDisabled(true)
-		}
-	}, [searchResultsLoading])
-
-	// Track the current state of the query builder to detect changes
-	const [qbState, setQbState] = useState<string | undefined>(undefined)
-
 	// If the search query is updated externally, set the rules and `isAnd` toggle
 	// based on it
 	useEffect(() => {
-		if (
-			initialized &&
-			!!searchParams.query &&
-			searchParams.query !== qbState
-		) {
-			const newState = JSON.parse(searchParams.query)
+		if (!!searchQuery) {
+			console.log('zane', searchQuery)
+			const newState = JSON.parse(searchQuery)
 			const deserializedRules = deserializeRules(newState.rules)
 
 			const defaultDateRange = deserializedRules?.find(
@@ -2033,22 +1906,9 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 			toggleIsAnd(newState.isAnd)
 			setRules(deserializeRules(newState.rules))
 		}
-	}, [
-		searchParams.query,
-		toggleIsAnd,
-		qbState,
-		initialized,
-		timeRangeField.value,
-	])
+	}, [searchQuery, toggleIsAnd, timeRangeField.value])
 
 	const areRulesValid = rules.every(isComplete)
-	useEffect(() => {
-		if (areRulesValid) {
-			// For relative time ranges, the serialized query will be different every time you serialize,
-			// so serialize once and only once every time the rules list changes
-			updateSerializedQuery(isAnd, rules)
-		}
-	}, [areRulesValid, isAnd, rules, updateSerializedQuery])
 
 	useEffect(() => {
 		// Only update the external state if not readonly
@@ -2062,39 +1922,23 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 			return
 		}
 
-		const newState = JSON.stringify({
-			isAnd,
-			rules: serializeRules(rules),
-		})
+		// ZANETODO: uncomment below!
+		// const newState = JSON.stringify({
+		// 	isAnd,
+		// 	rules: serializeRules(rules),
+		// })
 
-		// Update if the state has changed
-		if (
-			newState !== qbState &&
-			!(
-				rules.length === 1 &&
-				rules[0].field?.value === timeRangeField.value &&
-				rules[0] === defaultTimeRangeRule
-			)
-		) {
-			setQbState(newState)
-			setSearchParams((params) => ({
-				...params,
-				query: newState,
-			}))
-			return
-		}
-
-		if (serializedQuery.current) {
-			setBackendSearchQuery(serializedQuery.current)
-		}
+		// setSearchQuery(newState)
+		setBackendSearchQuery(getSerializedQuery(isAnd, rules))
 	}, [
 		defaultTimeRangeRule,
+		getSerializedQuery,
 		isAnd,
-		qbState,
 		readonly,
 		rules,
+		searchQuery,
 		setBackendSearchQuery,
-		setSearchParams,
+		setSearchQuery,
 		timeRangeField.value,
 	])
 
@@ -2108,18 +1952,14 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		if (filterRules.length === 0 && !selectedSegment) {
 			return QueryBuilderMode.EMPTY
 		} else if (selectedSegment !== undefined) {
-			const areParamsDifferent = !isEqual(
-				normalizeParams(searchParams),
-				normalizeParams(existingParams),
-			)
-			if (areParamsDifferent) {
+			if (searchQuery !== existingQuery) {
 				return QueryBuilderMode.SEGMENT_UPDATE
 			} else {
 				return QueryBuilderMode.SEGMENT
 			}
 		}
 		return QueryBuilderMode.CUSTOM
-	}, [existingParams, filterRules.length, searchParams, selectedSegment])
+	}, [existingQuery, filterRules.length, searchQuery, selectedSegment])
 
 	const addFilterButton = useMemo(() => {
 		if (readonly) {
@@ -2259,13 +2099,15 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 				variables: {
 					project_id: projectId!,
 					id: selectedSegment.id,
-					params: searchParams,
+					params: {
+						query: searchQuery, // ZANETODO: verify
+					},
 					name: selectedSegment.name,
 				},
 			})
 				.then(() => {
 					message.success(`Updated '${selectedSegment.name}'`, 5)
-					setExistingParams(searchParams)
+					setExistingQuery(searchQuery)
 				})
 				.catch(() => {
 					message.error('Error updating segment!', 5)
@@ -2275,10 +2117,10 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		canUpdateSegment,
 		editSegment,
 		projectId,
-		searchParams,
+		searchQuery,
 		selectedSegment?.id,
 		selectedSegment?.name,
-		setExistingParams,
+		setExistingQuery,
 	])
 
 	const actionButton = useMemo(() => {
@@ -2294,7 +2136,7 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 						iconLeft={<IconSolidSave size={12} />}
 						onClick={(e: React.MouseEvent) => {
 							e.preventDefault()
-							setShowCreateSegmentModal(true)
+							setSegmentModalState(SegmentModalState.CREATE)
 						}}
 						disabled={!areRulesValid}
 					>
@@ -2362,27 +2204,9 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 				/>
 				<Box marginLeft="auto" display="flex" gap="4">
 					<DropdownMenu
-						sessionCount={searchResultsCount}
+						sessionCount={searchResultsCount || 0}
 						sessionQuery={backendSearchQuery?.searchQuery || ''}
 					/>
-
-					{!isAbsoluteTimeRange(
-						timeRangeRule.val?.options[0].value,
-					) && (
-						<ButtonIcon
-							kind="secondary"
-							size="small"
-							shape="square"
-							emphasis="low"
-							icon={<IconSolidRefresh size={14} />}
-							disabled={syncButtonDisabled}
-							onClick={() => {
-								// Re-generate the absolute times used in the serialized query
-								updateSerializedQuery(isAnd, rules)
-								setBackendSearchQuery(serializedQuery.current)
-							}}
-						/>
-					)}
 
 					<ButtonIcon
 						kind="secondary"
@@ -2400,11 +2224,6 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		searchResultsCount,
 		backendSearchQuery?.searchQuery,
 		timeRangeRule,
-		syncButtonDisabled,
-		updateSerializedQuery,
-		isAnd,
-		rules,
-		setBackendSearchQuery,
 		setShowLeftPanel,
 	])
 
@@ -2431,7 +2250,7 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 				<Menu.Item
 					onClick={(e) => {
 						e.stopPropagation()
-						setShowCreateSegmentModal(true)
+						setSegmentModalState(SegmentModalState.CREATE)
 					}}
 					disabled={!canUpdateSegment}
 				>
@@ -2477,21 +2296,25 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 	return (
 		<>
 			<CreateAnySegmentModal
-				showModal={showCreateSegmentModal}
+				showModal={segmentModalState !== SegmentModalState.HIDDEN}
 				onHideModal={() => {
-					setShowEditSegmentNameModal(false)
-					setShowCreateSegmentModal(false)
+					setSegmentModalState(SegmentModalState.HIDDEN)
 				}}
 				afterCreateHandler={(segmentId, segmentName) => {
 					if (segmentData?.segments) {
-						setSelectedSegment({
-							id: segmentId,
-							name: segmentName,
-						})
+						setSelectedSegment(
+							{
+								id: segmentId,
+								name: segmentName,
+							},
+							searchQuery,
+						)
 					}
 				}}
 				currentSegment={
-					showEditSegmentNameModal ? currentSegment : undefined
+					segmentModalState === SegmentModalState.EDIT_NAME
+						? currentSegment
+						: undefined
 				}
 			/>
 			<DeleteAnySegmentModal
@@ -2506,7 +2329,6 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 						selectedSegment?.name === segmentToDelete.name
 					) {
 						removeSelectedSegment()
-						setSearchParams(emptySearchParams)
 					}
 				}}
 			/>
@@ -2592,7 +2414,7 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 						justifyContent="space-between"
 						alignItems="center"
 					>
-						{searchResultsLoading ? (
+						{searchResultsCount === undefined ? (
 							<Skeleton width="100px" />
 						) : (
 							<Text
@@ -2635,7 +2457,9 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 									<Menu.Item
 										onClick={(e) => {
 											e.stopPropagation()
-											setShowEditSegmentNameModal(true)
+											setSegmentModalState(
+												SegmentModalState.EDIT_NAME,
+											)
 										}}
 									>
 										<Box
@@ -2657,7 +2481,9 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 											e.stopPropagation()
 											if (currentSegment) {
 												selectSegment(currentSegment)
-												setShowCreateSegmentModal(true)
+												setSegmentModalState(
+													SegmentModalState.CREATE,
+												)
 											}
 										}}
 									>

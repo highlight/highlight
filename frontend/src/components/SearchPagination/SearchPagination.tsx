@@ -21,7 +21,7 @@ const MAX_PAGES = Math.floor(OPENSEARCH_MAX_RESULTS / PAGE_SIZE) - 1
 
 interface Props {
 	page?: number
-	setPage: React.Dispatch<React.SetStateAction<number | undefined>>
+	setPage: React.Dispatch<React.SetStateAction<number>>
 	totalCount: number
 	pageSize?: number
 	siblingCount?: number

@@ -6,14 +6,7 @@ import {
 } from '@graph/hooks'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
-import { isEqual } from 'lodash'
-import React, { useEffect } from 'react'
-import {
-	JsonParam,
-	NumberParam,
-	useQueryParam,
-	useQueryParams,
-} from 'use-query-params'
+import React from 'react'
 
 import QueryBuilder, {
 	BOOLEAN_OPERATORS,
@@ -25,7 +18,6 @@ import QueryBuilder, {
 	TIME_OPERATORS,
 	VIEWED_BY_OPERATORS,
 } from '@/components/QueryBuilder/QueryBuilder'
-import { EmptySessionsSearchParams } from '@/pages/Sessions/EmptySessionsSearchParams'
 import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
 import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
 
@@ -155,49 +147,6 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 		variables: { project_id: project_id! },
 		skip: !project_id,
 	})
-	const searchContext = useSearchContext()
-
-	const { page, selectedSegment, setSelectedSegment } = searchContext
-
-	const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
-		'segment',
-		JsonParam,
-	)
-
-	const [, setPaginationToUrlParams] = useQueryParams({
-		page: NumberParam,
-	})
-
-	useEffect(() => {
-		if (page !== undefined) {
-			setPaginationToUrlParams(
-				{
-					page: page,
-				},
-				'replaceIn',
-			)
-		}
-	}, [setPaginationToUrlParams, page])
-
-	// Session Segment Deep Linking
-	useEffect(() => {
-		if (selectedSegment && selectedSegment.id && selectedSegment.name) {
-			if (!isEqual(activeSegmentUrlParam, selectedSegment)) {
-				setActiveSegmentUrlParam(selectedSegment, 'replace')
-			}
-		} else if (activeSegmentUrlParam !== undefined) {
-			setActiveSegmentUrlParam(undefined, 'replace')
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedSegment, setActiveSegmentUrlParam])
-
-	useEffect(() => {
-		if (activeSegmentUrlParam) {
-			setSelectedSegment(activeSegmentUrlParam)
-		}
-		// We only want to run this on mount (i.e. when the page first loads).
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
 
 	return (
 		<QueryBuilder
@@ -206,7 +155,6 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 			customFields={CUSTOM_FIELDS}
 			fetchFields={fetchFields}
 			fieldData={fieldData}
-			emptySearchParams={EmptySessionsSearchParams}
 			useEditAnySegmentMutation={useEditSegmentMutation}
 			useGetAnySegmentsQuery={useGetSegmentsQuery}
 			CreateAnySegmentModal={CreateSegmentModal}

@@ -16,7 +16,6 @@ import {
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import ActivityGraph from '@pages/Sessions/SessionsFeedV3/ActivityGraph/ActivityGraph'
 import { formatDatetime } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfiguration/SessionFeedConfiguration'
@@ -25,6 +24,8 @@ import moment from 'moment/moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { buildQueryStateString } from '@/util/url/params'
+
 import {
 	getDisplayName,
 	getIdentifiedUserProfileImage,
@@ -32,7 +33,6 @@ import {
 import * as style from './SessionFeedCard.css'
 interface Props {
 	session: Session
-	urlParams?: string
 	showDetailedSessionView?: boolean
 	autoPlaySessions?: boolean
 	selected?: boolean
@@ -44,7 +44,6 @@ interface Props {
 export const SessionFeedCard = React.memo(
 	({
 		session,
-		urlParams,
 		showDetailedSessionView,
 		autoPlaySessions,
 		selected,
@@ -52,7 +51,7 @@ export const SessionFeedCard = React.memo(
 	}: Props) => {
 		const ref = useRef<HTMLDivElement | null>(null)
 		const { projectId } = useProjectId()
-		const { setSearchParams } = useSearchContext()
+		const { setSearchQuery } = useSearchContext()
 		const [eventCounts, setEventCounts] =
 			useState<{ ts: number; value: number }[]>()
 		const customAvatarImage = getIdentifiedUserProfileImage(session)
@@ -91,9 +90,10 @@ export const SessionFeedCard = React.memo(
 		return (
 			<Box ref={ref}>
 				<Link
-					to={`/${projectId}/sessions/${session.secure_id}${
-						urlParams ?? ''
-					}`}
+					to={{
+						pathname: `/${projectId}/sessions/${session.secure_id}`,
+						search: location.search,
+					}}
 					onClick={() => {
 						setRightPanelView(RightPanelView.Session)
 					}}
@@ -148,10 +148,11 @@ export const SessionFeedCard = React.memo(
 									size="small"
 									emphasis="low"
 									onClick={() => {
-										setSearchParams({
-											...EmptySessionsSearchParams,
-											show_live_sessions: true,
-										})
+										setSearchQuery(
+											buildQueryStateString({
+												custom_processed: true,
+											}),
+										)
 									}}
 								>
 									Live
@@ -181,10 +182,11 @@ export const SessionFeedCard = React.memo(
 												<IconSolidEyeOff size={12} />
 											}
 											onClick={() => {
-												setSearchParams({
-													...EmptySessionsSearchParams,
-													hide_viewed: true,
-												})
+												setSearchQuery(
+													buildQueryStateString({
+														custom_viewed: false,
+													}),
+												)
 											}}
 										/>
 									)}
@@ -200,10 +202,11 @@ export const SessionFeedCard = React.memo(
 												/>
 											}
 											onClick={() => {
-												setSearchParams({
-													...EmptySessionsSearchParams,
-													first_time: true,
-												})
+												setSearchQuery(
+													buildQueryStateString({
+														custom_first_time: true,
+													}),
+												)
 											}}
 										/>
 									)}

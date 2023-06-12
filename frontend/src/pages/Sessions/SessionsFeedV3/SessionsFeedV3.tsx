@@ -13,7 +13,6 @@ import {
 	RESET_PAGE_MS,
 	STARTING_PAGE,
 } from '@components/Pagination/Pagination'
-import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import SearchPagination from '@components/SearchPagination/SearchPagination'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import {
@@ -39,7 +38,7 @@ import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import clsx from 'clsx'
-import React, { useCallback, useEffect, useMemo, useRef } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 
 import {
 	QueryBuilderState,
@@ -67,8 +66,7 @@ export const SessionsHistogram: React.FC<SessionsHistogramProps> = React.memo(
 		const { project_id } = useParams<{
 			project_id: string
 		}>()
-		const { searchParams, setSearchParams, backendSearchQuery } =
-			useSearchContext()
+		const { setSearchQuery, backendSearchQuery } = useSearchContext()
 
 		const { loading, data } = useGetSessionsHistogramQuery({
 			variables: {
@@ -121,17 +119,15 @@ export const SessionsHistogram: React.FC<SessionsHistogramProps> = React.memo(
 
 		const updateTimeRange = useCallback(
 			(newStartTime: Date, newEndTime: Date) => {
-				const newSearchParams = {
-					...searchParams,
-					query: updateQueriedTimeRange(
-						searchParams.query || '',
+				setSearchQuery((query) =>
+					updateQueriedTimeRange(
+						query || '',
 						TIME_RANGE_FIELD,
 						serializeAbsoluteTimeRange(newStartTime, newEndTime),
 					),
-				}
-				setSearchParams(newSearchParams)
+				)
 			},
-			[searchParams, setSearchParams],
+			[setSearchQuery],
 		)
 
 		return (
@@ -159,9 +155,8 @@ export const SessionFeedV3 = React.memo(() => {
 
 	const totalPages = useRef<number>(0)
 	const {
-		showStarredSessions,
-		searchParams,
-		setSearchParams,
+		searchQuery,
+		setSearchQuery,
 		backendSearchQuery,
 		page,
 		setPage,
@@ -174,22 +169,21 @@ export const SessionFeedV3 = React.memo(() => {
 	const { showLeftPanel } = usePlayerConfiguration()
 	const { showBanner } = useGlobalContext()
 	const searchParamsChanged = useRef<Date>()
-	const projectHasManySessions = searchResultsCount > DEFAULT_PAGE_SIZE
-	const showHistogram = searchResultsLoading || searchResultsCount > 0
+	const projectHasManySessions =
+		searchResultsCount !== undefined &&
+		searchResultsCount > DEFAULT_PAGE_SIZE
+	const showHistogram = searchResultsCount !== 0
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: project_id! },
 		skip: !project_id || project_id === DEMO_PROJECT_ID,
 	})
 
-	// Used to determine if we need to show the loading skeleton.
-	// The loading skeleton should only be shown on the first load and when searchParams changes.
-	// It should not show when loading more sessions via infinite scroll.
-	useEffect(() => {
-		setSearchResultsLoading(true)
-	}, [backendSearchQuery, page, setSearchResultsLoading])
-
 	const addSessions = (response: GetSessionsOpenSearchQuery) => {
+		console.log(
+			'zane searchreducer addSessions',
+			response.sessions_opensearch.totalCount,
+		)
 		if (response?.sessions_opensearch) {
 			setSessionResults({
 				...response.sessions_opensearch,
@@ -219,6 +213,17 @@ export const SessionFeedV3 = React.memo(() => {
 		fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
 	})
 
+	// Used to determine if we need to show the loading skeleton.
+	// The loading skeleton should only be shown on the first load and when searchParams changes.
+	// It should not show when loading more sessions via infinite scroll.
+	useEffect(() => {
+		setSearchResultsLoading(loading)
+	}, [loading, setSearchResultsLoading])
+
+	useEffect(() => {
+		setSearchResultsCount(undefined)
+	}, [backendSearchQuery?.searchQuery, setSearchResultsCount])
+
 	useEffect(() => {
 		// we just loaded the page for the first time
 		if (
@@ -230,31 +235,24 @@ export const SessionFeedV3 = React.memo(() => {
 			setPage(STARTING_PAGE)
 		}
 		searchParamsChanged.current = new Date()
-	}, [searchParams, setPage])
+	}, [searchQuery, setPage]) // ZANETODO: why the searchQuery dependency?
 
 	const enableLiveSessions = useCallback(() => {
-		if (!searchParams.query) {
-			setSearchParams({
-				...searchParams,
-			})
-		} else {
+		if (searchQuery) {
 			// Replace any 'custom_processed' values with ['true', 'false']
 			const processedRule = ['custom_processed', 'is', 'true', 'false']
-			const currentState = JSON.parse(
-				searchParams.query,
-			) as QueryBuilderState
+			const currentState = JSON.parse(searchQuery) as QueryBuilderState
 			const newRules = currentState.rules.map((rule) =>
 				rule[0] === processedRule[0] ? processedRule : rule,
 			)
-			setSearchParams({
-				...searchParams,
-				query: JSON.stringify({
+			setSearchQuery(
+				JSON.stringify({
 					isAnd: currentState.isAnd,
 					rules: newRules,
 				}),
-			})
+			)
 		}
-	}, [searchParams, setSearchParams])
+	}, [searchQuery, setSearchQuery])
 
 	useEffect(() => {
 		// We're showing live sessions for new users.
@@ -265,7 +263,7 @@ export const SessionFeedV3 = React.memo(() => {
 			integrated &&
 			project_id !== DEMO_PROJECT_ID &&
 			project_id !== DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
-			!showLiveSessions(searchParams)
+			!showLiveSessions(searchQuery)
 		) {
 			if (
 				billingDetails.billingDetailsForProject.plan.type ===
@@ -280,19 +278,8 @@ export const SessionFeedV3 = React.memo(() => {
 		enableLiveSessions,
 		integrated,
 		project_id,
-		searchParams,
-		setSearchParams,
+		searchQuery,
 	])
-
-	const filteredSessions = useMemo(() => {
-		if (loading) {
-			return sessionResults.sessions
-		}
-		if (searchParams.hide_viewed) {
-			return sessionResults.sessions.filter((session) => !session?.viewed)
-		}
-		return sessionResults.sessions
-	}, [loading, searchParams.hide_viewed, sessionResults.sessions])
 
 	return (
 		<SessionFeedConfigurationContextProvider
@@ -331,25 +318,12 @@ export const SessionFeedV3 = React.memo(() => {
 						<>
 							<OverageCard productType={ProductType.Sessions} />
 							{searchResultsCount === 0 ? (
-								showStarredSessions ? (
-									<SearchEmptyState
-										item="sessions"
-										customTitle="Your project doesn't have starred sessions."
-										customDescription={
-											'Starring a session is like bookmarking a website. ' +
-											'It gives you a way to tag a session that you want to look at again. ' +
-											'You can star a session by clicking the star icon next to the user details ' +
-											"in the session's right panel."
-										}
-									/>
-								) : (
-									<EmptySearchResults
-										kind={SearchResultsKind.Sessions}
-									/>
-								)
+								<EmptySearchResults
+									kind={SearchResultsKind.Sessions}
+								/>
 							) : (
 								<>
-									{filteredSessions?.map(
+									{sessionResults.sessions?.map(
 										(s: Maybe<Session>, ind: number) =>
 											s && (
 												<SessionFeedCard
@@ -382,7 +356,7 @@ export const SessionFeedV3 = React.memo(() => {
 				<SearchPagination
 					page={page}
 					setPage={setPage}
-					totalCount={searchResultsCount}
+					totalCount={searchResultsCount ?? 0}
 					pageSize={DEFAULT_PAGE_SIZE}
 				/>
 			</Box>
