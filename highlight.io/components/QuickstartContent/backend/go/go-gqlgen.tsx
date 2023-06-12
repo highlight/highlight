@@ -10,7 +10,7 @@ import {
 } from './shared-snippets'
 
 export const GoGqlgenContent: QuickStartContent = {
-	title: 'Go Gqlgen',
+	title: 'Go gqlgen',
 	subtitle: 'Learn how to set up highlight.io on your Go gqlgen backend.',
 	logoUrl: siteUrl('/images/quickstart/gqlgen.svg'),
 	entries: [

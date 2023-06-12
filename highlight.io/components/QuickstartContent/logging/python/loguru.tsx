@@ -13,8 +13,8 @@ export const PythonLoguruLogContent: QuickStartContent = {
 		{
 			title: 'Initialize the Highlight SDK.',
 			content:
-				'Setup the SDK with `instrument_logging` disabled, while passing the highlight logging handler to [loguru](https://github.com/Delgan/loguru#readme). ' +
-				'`instrument_logging=False` must be passed to make sure the loguru handler does not collide with built-in `logging` instrumentation.',
+				'Setup the SDK with `instrument_logging` disabled, while passing the highlight logging handler to [Loguru](https://github.com/Delgan/loguru#readme). ' +
+				'`instrument_logging=False` must be passed to make sure the Loguru handler does not collide with built-in `logging` instrumentation.',
 			code: [
 				{
 					text: `import highlight_io
@@ -25,9 +25,9 @@ H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=False)`,
 			],
 		},
 		{
-			title: 'Use loguru!',
+			title: 'Use Loguru!',
 			content:
-				'Logs are reported automatically from loguru logging methods. ' +
+				'Logs are reported automatically from Loguru logging methods. ' +
 				'Visit the [highlight logs portal](http://app.highlight.io/logs) and check that backend logs are coming in.',
 			code: [
 				{
