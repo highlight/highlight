@@ -11449,7 +11449,6 @@ __metadata:
     "@ant-design/icons": ^4.7.0
     "@apollo/client": ^3.7.0
     "@babel/core": ^7.19.0
-    "@cspell/eslint-plugin": ^6.31.1
     "@ctrl/tinycolor": ^3.4.1
     "@dinero.js/currencies": 2.0.0-alpha.14
     "@fontsource/poppins": ^4.5.9
