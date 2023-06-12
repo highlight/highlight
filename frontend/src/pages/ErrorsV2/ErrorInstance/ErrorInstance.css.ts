@@ -1,23 +1,10 @@
-import { globalStyle, keyframes, style } from '@vanilla-extract/css'
-
-const animateGradient = keyframes({
-	'0%': {
-		backgroundPosition: '0% 0%',
-	},
-	'100%': {
-		backgroundPosition: '100% 100%',
-	},
-})
+import { globalStyle, style } from '@vanilla-extract/css'
 
 export const aiSuggestion = style({
 	background:
-		'linear-gradient(45deg, #f7d8fe 0%, #b5bbff 20%, #fac492 40%, #f7d8fe 60%, #b5bbff 80%, #fac492 100%)',
+		'linear-gradient(45deg, rgba(236, 180, 70, 0.12) 0%, rgba(54, 186, 194, 0.12) 33%, rgba(60, 209, 102, 0.12) 67%, rgba(236, 180, 70, 0.12) 100%)',
 	backgroundSize: '450% 450%',
 	boxShadow: '0 0 1px 1px rgba(0, 0, 0, 0.05) inset',
-})
-
-export const aiSuggestionAnimated = style({
-	animation: `${animateGradient} 4s linear infinite`,
 })
 
 globalStyle(`${aiSuggestion} p`, {
@@ -25,8 +12,8 @@ globalStyle(`${aiSuggestion} p`, {
 })
 
 globalStyle(`${aiSuggestion} pre`, {
-	background: 'rgba(255, 255, 255, 0.5)',
-	border: '1px solid rgba(255, 255, 255, 0.5)',
+	background: 'rgba(255, 255, 255, 0.6)',
+	border: '1px solid rgba(255, 255, 255, 0.8)',
 	borderRadius: 6,
 	padding: 10,
 })

@@ -42,7 +42,6 @@ import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
 import { buildQueryURLString } from '@util/url/params'
-import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
@@ -371,14 +370,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			</Box>
 
 			<Box display="flex" flexDirection="column" mb="40" gap="40">
-				<Box
-					p="16"
-					borderRadius="8"
-					cssClass={clsx(styles.aiSuggestion, {
-						[styles.aiSuggestionAnimated]:
-							errorResolutionSuggestionLoading,
-					})}
-				>
+				<Box p="16" borderRadius="8" cssClass={styles.aiSuggestion}>
 					<Heading level="h3">
 						<Stack direction="row" align="center">
 							Ask Harold for help{' '}
