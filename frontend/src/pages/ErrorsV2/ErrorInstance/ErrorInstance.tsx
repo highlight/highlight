@@ -432,12 +432,12 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 							</Button>
 						) : (
 							<Button
-								onClick={() =>
+								onClick={() => {
 									refetchErrorResolutionSuggestion()
-								}
+								}}
 								kind="primary"
 								emphasis="high"
-								trackingId="error-instance_get-ai-suggestion"
+								trackingId="error-instance_refresh-ai-suggestion"
 								loading={errorResolutionSuggestionLoading}
 							>
 								Refresh Suggestion
