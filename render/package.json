@@ -2,10 +2,11 @@
 	"name": "render",
 	"private": true,
 	"version": "0.0.0",
-	"type": "commonjs",
+	"type": "module",
 	"main": "./dist/index.js",
+	"module": "./dist/index.js",
 	"scripts": {
-		"build": "esbuild ./src/index.ts --bundle --minify --platform=node --format=cjs --target=es2020 --outfile=dist/index.js",
+		"build": "tsup",
 		"publish": "zip -r function.zip node_modules package.json chromium.br && cd dist && zip ../function.zip * && cd .. && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
 	},
 	"installConfig": {
@@ -15,7 +16,6 @@
 		"@aws-sdk/client-s3": "^3.294.0",
 		"@highlight-run/rrweb": "workspace:*",
 		"@sparticuz/chromium": "^112.0.2",
-		"esbuild": "^0.17.12",
 		"puppeteer-core": "^19.8.1"
 	},
 	"devDependencies": {
@@ -23,6 +23,7 @@
 		"@types/find": "^0.2.1",
 		"@types/fs-extra": "^11.0.1",
 		"@types/node": "^18.15.3",
+		"tsup": "^6.7.0",
 		"typescript": "^5.0.2"
 	},
 	"packageManager": "yarn@3.2.0"
