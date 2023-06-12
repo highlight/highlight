@@ -2,5 +2,17 @@
 	"extends": [
 		"next/core-web-vitals",
 		"plugin:@cspell/recommended"
-	]
+	],
+	"rules": {
+		"@cspell/spellchecker": [
+			"warn", {
+				"ignoreImports": false,
+				"checkIdentifiers": false,
+				"checkStrings": false,
+				"checkStringTemplates": false,
+				"checkJSXText": true,
+				"checkComments": false
+			}
+		]
+	}
 }

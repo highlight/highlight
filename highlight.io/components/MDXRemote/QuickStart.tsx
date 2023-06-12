@@ -60,7 +60,7 @@ export function QuickStart({ content: c }: Props) {
 													)
 												},
 												ul: (props) => {
-													return <div>hellooooo</div>
+													return <div>hello</div>
 												},
 											},
 										}}

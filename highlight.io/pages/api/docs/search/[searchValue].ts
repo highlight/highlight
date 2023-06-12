@@ -1,9 +1,8 @@
 import { promises as fsp } from 'fs'
-import path from 'path'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getDocsPaths, readMarkdown } from '../../../docs/[[...doc]]'
-import RangeTuple from 'fuse.js'
+import path from 'path'
 import removeMd from 'remove-markdown'
+import { getDocsPaths, readMarkdown } from '../../../docs/[[...doc]]'
 
 export const SEARCH_RESULT_BLURB_LENGTH = 100
 
@@ -45,16 +44,16 @@ export default async function handler(
 	)
 	const searchResults = filteredResults.map((result) => {
 		const parsedContent = removeHtmlTags(removeMd(result.content))
-		const firstOccurence = parsedContent.toLowerCase().indexOf(searchValue)
+		const firstOccurrence = parsedContent.toLowerCase().indexOf(searchValue)
 		return {
 			...result,
 			content: `${
-				firstOccurence - SEARCH_RESULT_BLURB_LENGTH > 0 ? '...' : ''
+				firstOccurrence - SEARCH_RESULT_BLURB_LENGTH > 0 ? '...' : ''
 			}${parsedContent.slice(
-				Math.max(0, firstOccurence - SEARCH_RESULT_BLURB_LENGTH),
-				Math.min(firstOccurence + SEARCH_RESULT_BLURB_LENGTH),
+				Math.max(0, firstOccurrence - SEARCH_RESULT_BLURB_LENGTH),
+				Math.min(firstOccurrence + SEARCH_RESULT_BLURB_LENGTH),
 			)}${
-				firstOccurence + SEARCH_RESULT_BLURB_LENGTH <
+				firstOccurrence + SEARCH_RESULT_BLURB_LENGTH <
 				parsedContent.length
 					? '...'
 					: ''
