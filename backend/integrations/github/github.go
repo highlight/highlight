@@ -2,14 +2,15 @@ package github
 
 import (
 	"context"
+	"net/http"
+	"os"
+	"strconv"
+
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v50/github"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"os"
-	"strconv"
 )
 
 type Config struct {
@@ -22,6 +23,8 @@ type Config struct {
 }
 
 func GetConfig() (*Config, error) {
+
+	// yo
 	var ok bool
 	var config Config
 	if config.githubAppId, ok = os.LookupEnv("GITHUB_APP_ID"); !ok || config.githubAppId == "" {
