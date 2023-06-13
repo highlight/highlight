@@ -20,8 +20,8 @@ We use [GORM](https://gorm.io) as our ORM to Postgres. It has several gotchas th
 
 Examples:
 
-- #5354 
-- #5557
+- [#5354](https://github.com/highlight/highlight/pull/5354)
+- [#5557](https://github.com/highlight/highlight/pull/5557)
 
 ### Adding to product-specific functionality
 
