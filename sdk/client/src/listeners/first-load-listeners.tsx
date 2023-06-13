@@ -217,6 +217,7 @@ export class FirstLoadListeners {
 						sThis.fetchNetworkContents.push(requestResponsePair)
 					},
 					webSocketCallback: (event) => {
+						console.log('Websocket - replacement', event)
 						sThis.webSocketNetworkContents.push(event)
 					},
 					headersToRedact: sThis.networkHeadersToRedact,

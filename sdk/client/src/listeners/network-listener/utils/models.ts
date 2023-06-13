@@ -27,7 +27,12 @@ export interface RequestResponsePair {
 
 export interface WebSocketEvent {
 	socketId: string
-	type: 'open' | 'error' | 'close' | 'received' | 'sent' | 'create'
+	initiatorType: 'WebSocket'
+	type: 'open' | 'error' | 'close' | 'received' | 'sent'
+	name: string
+	timeStamp: number
 	size: number
-	strData?: string
+	message?: string
+	// TODO(spenny): add headers
+	// headers?: { [k: string]: string }
 }

@@ -53,11 +53,6 @@ const CommandBarBox = () => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const { setTouched } = useCommandBarAPI()
 
-	React.useEffect(() => {
-		const webSocket = new WebSocket('wss://echo.websocket.org')
-		console.log('Websocket - test', webSocket)
-	}, [])
-
 	const { commandBarDialog } = useGlobalContext()
 	return (
 		<Dialog

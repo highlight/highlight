@@ -5,73 +5,66 @@ export type WebSocketListenerCallback = (event: WebSocketEvent) => void
 
 const WebSocketListener = (callback: WebSocketListenerCallback) => {
 	var originalWebSocket = window.WebSocket
-	console.log('Websocket - Initialized')
 
 	const WebSocketProxy = new Proxy(window.WebSocket, {
 		construct(target, args: [url: string, protocols?: string | string[]]) {
-			console.log('Websocket - Proxying connection', ...args)
 			const socketId = createNetworkRequestId()
 			const webSocket = new target(...args)
 
-			// TODO(spenny): do we want a create? Can we rely on open?
-			callback({
-				socketId,
-				type: 'create',
-				size: 0,
-				strData: args[0],
-			})
-
 			const openHandler = (event: Event) => {
-				console.log('Websocket - Open', socketId, 0, event)
 				callback({
 					socketId,
+					initiatorType: 'WebSocket',
 					type: 'open',
+					name: target.name,
+					timeStamp: event.timeStamp,
 					size: 0,
 				})
 			}
 
 			const messageHandler = (event: MessageEvent) => {
-				// TODO(spenny): forgo sending data if large and binary
-				let size: number
-				let strData =
-					typeof event.data === 'string' ? event.data : undefined
-				if (typeof event.data === 'string') {
-					// TODO: Consider passing the UTF-8 byte length instead.
-					size = event.data.length
-				} else {
-					size = event.data.byteLength || 0
-				}
+				const { data } = event
+				const message =
+					typeof data === 'string' ? event.data : undefined
 
-				console.log(
-					'Websocket - Received',
-					socketId,
-					size,
-					strData,
-					event,
-				)
+				let size: number
+				if (typeof data === 'string') {
+					size = data.length
+				} else if (data instanceof Blob) {
+					size = data.size
+				} else {
+					size = data.byteLength || 0
+				}
 
 				callback({
 					socketId,
+					initiatorType: 'WebSocket',
 					type: 'received',
+					name: target.name,
+					timeStamp: event.timeStamp,
 					size,
-					strData,
+					message,
 				})
 			}
 
 			const errorHandler = (event: Event) => {
-				console.log('Websocket - Error', socketId, 0, event)
 				callback({
 					socketId,
+					initiatorType: 'WebSocket',
 					type: 'error',
+					name: target.name,
+					timeStamp: event.timeStamp,
 					size: 0,
 				})
 			}
 
 			const closeHandler = (event: CloseEvent) => {
-				console.log('Websocket - Close', socketId, 0, event)
 				callback({
 					socketId,
+					initiatorType: 'WebSocket',
 					type: 'close',
+					name: target.name,
+					timeStamp: event.timeStamp,
 					size: 0,
 				})
 
@@ -88,16 +81,33 @@ const WebSocketListener = (callback: WebSocketListenerCallback) => {
 
 			const sendProxy = new Proxy(webSocket.send, {
 				apply: function (
-					target,
+					sendTarget,
 					thisArg,
-					args: [
-						data: string | ArrayBufferLike | Blob | ArrayBufferView,
-					],
+					args: [data: string | Blob | ArrayBuffer],
 				) {
-					// TODO(spenny): forgo sending data if large and binary
-					// TODO(spenny): apply callback appropriately
-					console.log('Websocket - Send', args)
-					target.apply(thisArg, args)
+					const data = args[0]
+					const message = typeof data === 'string' ? data : undefined
+
+					let size: number
+					if (typeof data === 'string') {
+						size = data.length
+					} else if (data instanceof Blob) {
+						size = data.size
+					} else {
+						size = data.byteLength || 0
+					}
+
+					callback({
+						socketId,
+						initiatorType: 'WebSocket',
+						type: 'sent',
+						name: target.name,
+						timeStamp: performance.now(),
+						size,
+						message,
+					})
+
+					sendTarget.apply(thisArg, args)
 				},
 			})
 
@@ -115,31 +125,3 @@ const WebSocketListener = (callback: WebSocketListenerCallback) => {
 }
 
 export { WebSocketListener }
-
-// 	const originalSend = ws.send.bind(ws)
-// 	ws.send = (data) => {
-// 		// TODO(spenny): forgo sending data if large and binary
-// 		let size: number
-// 		let strData = typeof data === 'string' ? data : undefined
-// 		if (typeof data === 'string') {
-// 			// TODO: Consider passing the UTF-8 byte length instead.
-// 			size = data.length
-// 		} else {
-// 			if (data instanceof Blob) {
-// 				size = data.size
-// 			} else {
-// 				size = data.byteLength
-// 			}
-// 		}
-// 		callback({
-// 			socketId,
-// 			type: 'sent',
-// 			size,
-// 			strData,
-// 		})
-// 		console.log('Websocket - Sent', socketId, size, strData)
-// 		return originalSend(data)
-// 	}
-
-// 	return ws
-// }
