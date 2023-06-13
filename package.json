@@ -65,7 +65,6 @@
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},
 	"devDependencies": {
-		"all-contributors-cli": "^6.26.0",
 		"chalk": "^5.0.1",
 		"chokidar": "^3.5.3",
 		"cypress": "^12.9.0",
