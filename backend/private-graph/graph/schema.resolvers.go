@@ -123,7 +123,6 @@ func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) (
 }
 
 // StructuredStackTrace is the resolver for the structured_stack_trace field.
-// Where the stack trace is queried from the error group page.
 func (r *errorGroupResolver) StructuredStackTrace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
 	if (obj.MappedStackTrace == nil || *obj.MappedStackTrace == "") && obj.StackTrace == "" {
 		return nil, nil
