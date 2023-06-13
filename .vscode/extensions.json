@@ -9,6 +9,7 @@
 		"sourcegraph.sourcegraph",
 		"eamodio.gitlens",
 		"github.codespaces",
-		"reflame.agent"
+		"reflame.agent",
+		"redhat.vscode-yaml"
 	]
 }
