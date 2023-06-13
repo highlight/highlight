@@ -57,6 +57,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 		<Box border="secondary" borderRadius="6">
 			<Box display="flex">
 				<Stat
+					noBorderBottom
 					title={
 						<>
 							<Box
@@ -87,6 +88,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					<AffectedUserCount errorGroup={errorGroup} />
 				</Stat>
 				<Stat
+					noBorderBottom
 					title={
 						<>
 							<Box
@@ -117,14 +119,16 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					<ErrorObjectCount errorGroup={errorGroup} />
 				</Stat>
 				<Stat
+					noBorderBottom
 					title={<Text color="moderate">Last/first occurrence</Text>}
 				>
 					<ErrorOccurenceDate errorGroup={errorGroup} />
 				</Stat>
 
 				<Stat
+					noBorderBottom
 					title={<Text color="moderate">Last 30 days</Text>}
-					noBorder
+					noBorderRight
 				>
 					<ErrorFrequencyChart errorGroup={errorGroup} />
 				</Stat>
@@ -134,11 +138,15 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 }
 
 const Stat: React.FC<
-	React.PropsWithChildren<{ title: React.ReactElement; noBorder?: boolean }>
-> = ({ title, children, noBorder = false }) => (
+	React.PropsWithChildren<{
+		title: React.ReactElement
+		noBorderRight?: boolean
+		noBorderBottom?: boolean
+	}>
+> = ({ title, children, noBorderRight = false, noBorderBottom = false }) => (
 	<Box
-		borderBottom="secondary"
-		borderRight={noBorder ? undefined : 'secondary'}
+		borderBottom={noBorderBottom ? undefined : 'secondary'}
+		borderRight={noBorderRight ? undefined : 'secondary'}
 		px="16"
 		py="12"
 		flex="stretch"
