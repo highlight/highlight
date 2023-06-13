@@ -25,7 +25,7 @@ Examples:
 
 ### Adding to product-specific functionality
 
-If you have some type of product specific functionality, move your logic into a directory that most closely matches that feature. Ideally, these directories do not touch a data store (if so, they probably should be in the `store` directory for better reuse)
+If you have some type of product specific functionality, move your logic into a directory that most closely matches that feature. Ideally, these directories do not touch a data store (if so, they probably should be in the `store` directory for better reuse).
 
 Examples:
 
