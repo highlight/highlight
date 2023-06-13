@@ -6,5 +6,5 @@ export default defineConfig({
 	target: 'esnext',
 	dts: false,
 	minify: false,
-	sourcemap: true,
+	sourcemap: false,
 })

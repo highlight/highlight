@@ -3,26 +3,23 @@ import { getEvents } from './s3'
 import cluster from 'cluster'
 import path from 'path'
 import { tmpdir } from 'os'
-import { exists, mkdir, readFileSync, writeFileSync } from 'fs'
+import fs, { exists, mkdir } from 'fs'
 import { promisify } from 'util'
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-const WORKERS = 8
+const WORKERS = 2
 
 export async function parallelRender(project: number, session: number) {
+	console.log(`starting parallel render for ${project} ${session}`)
 	const dir = path.join(tmpdir(), `render_${project}_${session}`)
 	if (!(await promisify(exists)(dir))) {
 		await promisify(mkdir)(dir)
 	}
-	const sessionFile = path.join(dir, 'session.json')
-	let events: string
-	if (!(await promisify(exists)(sessionFile))) {
-		events = await getEvents(project, session)
-		writeFileSync(sessionFile, events)
-	} else {
-		events = readFileSync(sessionFile, 'utf8')
-	}
+	let events = await getEvents(project, session)
+	console.log(
+		`got events ${events.length} parallel render for ${project} ${session}`,
+	)
 
 	if (cluster.isPrimary) {
 		await delay(100)
@@ -50,5 +47,12 @@ export async function parallelRender(project: number, session: number) {
 		}
 		await delay(100)
 	}
-	return dir
+
+	const files: string[] = []
+	for (const file of fs.readdirSync(dir)) {
+		if (!fs.statSync(file).isDirectory()) {
+			files.push(file)
+		}
+	}
+	return { files, dir }
 }
