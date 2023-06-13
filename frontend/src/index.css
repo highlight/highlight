@@ -76,7 +76,7 @@
 	--color-new-purple-700: #5420d1;
 	--color-new-purple-900: #0d0225;
 
-	// Editor Color
+	/* Editor Color */
 	--color-editor-background: #fafafa;
 	--color-editor-foreground-text: #383a42;
 	--color-editor-secondary-text: #4078f2;
@@ -89,7 +89,7 @@
 	--text-primary: var(--color-black);
 	--color-link: var(--color-purple);
 
-	// Logo
+	/* Logo */
 	--logo-background-color: #6c37f4;
 	--logo-border-color: #0b0222;
 
@@ -128,16 +128,16 @@
 	--button-border-radius: var(--size-xSmall);
 	--border-radius: var(--size-xSmall);
 
-	// UI Elements
+	/* UI Elements */
 	--header-height: 45px;
 	--banner-height: 32px;
 
-	// Errors
+	/* Errors */
 	--color-error-resolved: var(--color-green-400);
 	--color-error-ignored: var(--color-gray-500);
 	--color-error-open: var(--color-red-400);
 
-	// Scrubber
+	/* Scrubber */
 	--color-scrubber-zoom-region-border: #565656;
 	--color-scrubber-zoom-region: #56565622;
 	--color-scrubber-zoom-handle: #757575;
@@ -190,7 +190,7 @@
 	--color-black: #111;
 	--color-white: #fff;
 
-	// Editor Color
+	/* Editor Color */
 	--color-editor-background: #111;
 	--color-editor-foreground-text: var(--color-gray-700);
 	--color-editor-secondary-text: #4078f2;
@@ -270,7 +270,7 @@ input {
 	font-weight: 400 !important;
 }
 
-// commandbar overlay modal
+/* commandbar overlay modal */
 .atom-overlay {
 	color: blue;
 	z-index: 1000000;
@@ -358,7 +358,7 @@ a {
 	border-radius: 5px;
 }
 
-.ant-skeleton-content .ant-skeleton-paragraph > li {
+.ant-skeleton-content .ant-skeleton-paragraph>li {
 	border-radius: 5px;
 }
 
