@@ -1,27 +1,27 @@
 {
-  "files": [
-    "README.md"
-  ],
-  "imageSize": 100,
-  "commit": false,
-  "commitType": "docs",
-  "commitConvention": "angular",
-  "contributors": [
-    {
-      "login": "jay-khatri",
-      "name": "Jay Khatri",
-      "avatar_url": "https://avatars.githubusercontent.com/u/20292680?v=4",
-      "profile": "http://jaykhatri.com",
-      "contributions": [
-        "code",
-        "doc"
-      ]
-    }
-  ],
-  "contributorsPerLine": 7,
-  "skipCi": true,
-  "repoType": "github",
-  "repoHost": "https://github.com",
-  "projectName": "highlight",
-  "projectOwner": "highlight"
+	"files": [
+		"README.md"
+	],
+	"imageSize": 100,
+	"commit": false,
+	"commitType": "docs",
+	"commitConvention": "angular",
+	"contributors": [
+		{
+			"login": "jay-khatri",
+			"name": "Jay Khatri",
+			"avatar_url": "https://avatars.githubusercontent.com/u/20292680?v=4",
+			"profile": "http://jaykhatri.com",
+			"contributions": [
+				"code",
+				"doc"
+			]
+		}
+	],
+	"contributorsPerLine": 7,
+	"skipCi": false,
+	"repoType": "github",
+	"repoHost": "https://github.com",
+	"projectName": "highlight",
+	"projectOwner": "highlight"
 }
