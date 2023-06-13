@@ -38,7 +38,7 @@ import { Layouts, Responsive, WidthProvider } from 'react-grid-layout'
 import { VscEllipsis } from 'react-icons/vsc'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-import styles from './DashboardPage.module.scss'
+import styles from './DashboardPage.module.css'
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
 

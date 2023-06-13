@@ -18,7 +18,7 @@ import clsx from 'clsx'
 import moment from 'moment'
 import React from 'react'
 
-import styles from './PendingInvites.module.scss'
+import styles from './PendingInvites.module.css'
 
 interface Props {
 	workspaceId?: string

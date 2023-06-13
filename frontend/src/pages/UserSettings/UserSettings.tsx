@@ -9,8 +9,8 @@ import React from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 
-import commonStyles from '../../Common.module.scss'
-import projectSettingsStyles from '../ProjectSettings/ProjectSettings.module.scss'
+import commonStyles from '../../Common.module.css'
+import projectSettingsStyles from '../ProjectSettings/ProjectSettings.module.css'
 import Auth from './Auth/Auth'
 
 const UserSettings: React.FC = () => {

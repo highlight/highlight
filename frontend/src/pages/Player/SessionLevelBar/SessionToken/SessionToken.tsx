@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import React, { ReactElement } from 'react'
 
 import Tooltip from '../../../../components/Tooltip/Tooltip'
-import styles from './SessionToken.module.scss'
+import styles from './SessionToken.module.css'
 
 interface Props {
 	icon: React.ReactNode

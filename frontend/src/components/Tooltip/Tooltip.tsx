@@ -6,7 +6,7 @@ import {
 } from 'antd'
 import React from 'react'
 
-import styles from './Tooltip.module.scss'
+import styles from './Tooltip.module.css'
 
 type TooltipProps = Pick<
 	AntDesignTooltipProps,

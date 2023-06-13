@@ -10,13 +10,13 @@ import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
-import commonStyles from '../../../Common.module.scss'
+import commonStyles from '../../../Common.module.css'
 import Button from '../../../components/Button/Button/Button'
 import {
 	CircularSpinner,
 	LoadingBar,
 } from '../../../components/Loading/Loading'
-import styles from './FieldsForm.module.scss'
+import styles from './FieldsForm.module.css'
 
 export const FieldsForm = () => {
 	const { project_id, workspace_id } = useParams<{

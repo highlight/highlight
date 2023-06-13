@@ -5,7 +5,7 @@ import {
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './Popover.module.scss'
+import styles from './Popover.module.css'
 
 export type PopoverProps = Pick<
 	AntDesignPopoverProps,

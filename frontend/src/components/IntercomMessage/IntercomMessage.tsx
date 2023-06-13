@@ -1,7 +1,7 @@
 import Button from '@components/Button/Button/Button'
 import React from 'react'
 
-import styles from './IntercomMessage.module.scss'
+import styles from './IntercomMessage.module.css'
 
 interface Props {
 	defaultMessage?: string

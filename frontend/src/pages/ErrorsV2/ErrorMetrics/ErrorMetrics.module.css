@@ -1,4 +1,4 @@
-@import 'src/static/shared.scss';
+@import 'src/static/shared.css';
 
 .metricsDistributionContainer {
 	min-height: 240px;

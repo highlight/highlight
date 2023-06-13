@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom'
 
 import ElevatedCard from '../../components/ElevatedCard/ElevatedCard'
 import WaitingAnimation from '../../lottie/waiting.json'
-import styles from './HomePage.module.scss'
+import styles from './HomePage.module.css'
 
 const HomePageV2 = () => {
 	useEffect(() => analytics.page(), [])

@@ -14,7 +14,7 @@ import { TooltipPlacement } from 'antd/es/tooltip'
 import clsx from 'clsx'
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 
-import styles from './TimelineBar.module.scss'
+import styles from './TimelineBar.module.css'
 
 interface IBar {
 	bucket: EventBucket

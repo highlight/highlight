@@ -14,8 +14,8 @@ import React from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
-import styles from './NewAlertPage.module.scss'
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
+import styles from './NewAlertPage.module.css'
 
 const NewAlertPage = () => {
 	const { type, project_id } = useParams<{

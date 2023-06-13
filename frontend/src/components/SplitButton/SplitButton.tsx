@@ -3,7 +3,7 @@ import analytics from '@util/analytics'
 import Dropdown, { DropdownButtonProps } from 'antd/es/dropdown'
 import React from 'react'
 
-import styles from './SplitButton.module.scss'
+import styles from './SplitButton.module.css'
 
 type Props = {
 	buttonLabel: string | React.ReactNode
