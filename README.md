@@ -56,7 +56,7 @@ Good for <10k sessions and <50k errors ingested monthly. See our  [docs for more
 
 ### Enterprise self-hosted
 
-See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/company/open-source/self-host-enterprise) to deploy a scalable, production-ready instance with support from our team.
+See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/company/open-source/hosting/self-host-enterprise) to deploy a scalable, production-ready instance with support from our team.
 
 ## Features
 
