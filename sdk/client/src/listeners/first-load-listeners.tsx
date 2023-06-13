@@ -217,7 +217,6 @@ export class FirstLoadListeners {
 						sThis.fetchNetworkContents.push(requestResponsePair)
 					},
 					webSocketCallback: (event) => {
-						console.log('Websocket - replacement', event)
 						sThis.webSocketNetworkContents.push(event)
 					},
 					headersToRedact: sThis.networkHeadersToRedact,
@@ -236,12 +235,12 @@ export class FirstLoadListeners {
 	static getRecordedNetworkResources(
 		sThis: FirstLoadListeners,
 		recordingStartTime: number,
-	): Array<PerformanceResourceTiming> {
-		let resources: Array<PerformanceResourceTiming> = []
+	): Array<PerformanceResourceTiming | WebSocketEvent> {
+		let httpResources: Array<PerformanceResourceTiming> = []
 		if (!sThis.disableNetworkRecording) {
 			const documentTimeOrigin = window?.performance?.timeOrigin || 0
 			// get all resources that don't include 'api.highlight.run'
-			resources = performance.getEntriesByType(
+			httpResources = performance.getEntriesByType(
 				'resource',
 			) as PerformanceResourceTiming[]
 
@@ -249,7 +248,7 @@ export class FirstLoadListeners {
 			// Subtract diff to the times to do the offsets
 			const offset = (recordingStartTime - documentTimeOrigin) * 2
 
-			resources = resources
+			httpResources = httpResources
 				.filter((r) =>
 					shouldNetworkRequestBeRecorded(
 						r.name,
@@ -267,25 +266,23 @@ export class FirstLoadListeners {
 				})
 
 			if (sThis.enableRecordingNetworkContents) {
-				resources = matchPerformanceTimingsWithRequestResponsePair(
-					resources,
+				httpResources = matchPerformanceTimingsWithRequestResponsePair(
+					httpResources,
 					sThis.xhrNetworkContents,
 					'xmlhttprequest',
 				)
-				resources = matchPerformanceTimingsWithRequestResponsePair(
-					resources,
+				httpResources = matchPerformanceTimingsWithRequestResponsePair(
+					httpResources,
 					sThis.fetchNetworkContents,
 					'fetch',
 				)
 			}
 		}
-		// TODO(spenny): insert network contents in to the resources array
-		console.log(
-			'Websocket - Contents to be sent',
-			sThis.webSocketNetworkContents,
-		)
 
-		return resources
+		const networkResources: Array<
+			PerformanceResourceTiming | WebSocketEvent
+		> = sThis.webSocketNetworkContents
+		return networkResources.concat(httpResources)
 	}
 
 	static clearRecordedNetworkResources(sThis: FirstLoadListeners): void {
