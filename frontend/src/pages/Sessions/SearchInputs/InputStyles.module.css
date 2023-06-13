@@ -1,5 +1,3 @@
-@import 'src/static/shared.css';
-
 .commonInputWrapper {
 	padding: 10px 0;
 }
@@ -15,7 +13,7 @@
 }
 
 .datePicker {
-	@include rounded-border;
+	composes: rounded-border from global;
 	font-family: var(--header-font-family);
 	font-size: 14px;
 	font-weight: 300 !important;
