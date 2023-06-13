@@ -130,3 +130,14 @@ People may think that we're building multiple products (session replay, error mo
 If you're building software, why should you care about grafana or loki or the elk stack? highlight.io is built for developers that want to **develop**. Leave the monitoring stuff to us 👍.
 
 Read more about [our values here](https://www.highlight.io/docs/general/company/values).
+
+## Contributors ✨
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
