@@ -2,12 +2,14 @@ import { APIGatewayEvent } from 'aws-lambda'
 import { serialRender } from './serial'
 import { readFileSync } from 'fs'
 import { encodeGIF, encodeMP4 } from './ffmpeg'
+import { uploadRenderExport } from './s3'
 
 interface Args {
 	project?: string
 	session?: string
 	ts?: string
 	chunk?: string
+	format?: string
 }
 
 const screenshot = async (event?: APIGatewayEvent) => {
@@ -19,11 +21,10 @@ const screenshot = async (event?: APIGatewayEvent) => {
 		undefined,
 		args?.chunk?.length ? Number(args?.chunk) : undefined,
 	)
-	const file = readFileSync(files[0])
 	return {
 		statusCode: 200,
 		isBase64Encoded: true,
-		body: Buffer.from(file).toString('base64'),
+		body: Buffer.from(readFileSync(files[0])).toString('base64'),
 		path: files[0],
 		headers: {
 			'content-type': 'image/png',
@@ -31,26 +32,28 @@ const screenshot = async (event?: APIGatewayEvent) => {
 	}
 }
 
-const gif = async (event?: APIGatewayEvent) => {
+const media = async (event?: APIGatewayEvent) => {
 	const args = event?.queryStringParameters as unknown as Args | undefined
-	const { dir } = await serialRender(
-		Number(args?.project),
-		Number(args?.session),
-		undefined,
-		1,
-	)
-	// const gif = await encodeGIF(dir)
-	const mp4 = await encodeMP4(dir)
-	console.log({ mp4 })
+	const { project, session, format } = {
+		project: Number(args?.project),
+		session: Number(args?.session),
+		format: args?.format ?? 'video/mp4',
+	}
+	const { dir } = await serialRender(project, session, undefined, 1)
+	let path = ''
+	if (args?.format === 'image/gif') {
+		path = await encodeGIF(dir)
+	} else {
+		path = await encodeMP4(dir)
+	}
+	const key = await uploadRenderExport(project, session, format, path)
 
-	const file = readFileSync(mp4)
 	return {
 		statusCode: 200,
-		isBase64Encoded: true,
-		body: Buffer.from(file).toString('base64'),
-		path: gif,
+		body: { key },
+		path,
 		headers: {
-			'content-type': 'video/mp4',
+			'content-type': 'application/json',
 		},
 	}
 }
@@ -58,7 +61,7 @@ const gif = async (event?: APIGatewayEvent) => {
 export const handler = (event?: APIGatewayEvent) => {
 	const args = event?.queryStringParameters as unknown as Args | undefined
 	if (!args?.ts) {
-		return gif(event)
+		return media(event)
 	}
 	return screenshot(event)
 }
