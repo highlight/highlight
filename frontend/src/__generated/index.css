@@ -5887,7 +5887,7 @@ body {
 }
 ._1e9eref4 {
   font-size: 30px;
-  line-height: 32px;
+  line-height: 36px;
   font-family:
     Inter,
     Segoe UI,
@@ -5900,12 +5900,12 @@ body {
 }
 ._1e9eref4::before {
   content: "";
-  margin-bottom: -0.1697em;
+  margin-bottom: -0.2364em;
   display: table;
 }
 ._1e9eref4::after {
   content: "";
-  margin-top: -0.1697em;
+  margin-top: -0.2364em;
   display: table;
 }
 ._1e9eref5 {

@@ -17,7 +17,7 @@ export const h3 = createStyleObject({
 })
 export const h2 = createStyleObject({
 	fontSize: 30,
-	leading: 32,
+	leading: 36,
 	fontMetrics,
 })
 export const h1 = createStyleObject({
