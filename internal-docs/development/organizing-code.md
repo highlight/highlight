@@ -1,10 +1,10 @@
 # Organizing code
 
-*This doc was created as a result of a team retrospective. Anyone who has opinions is can and should edit this document to improve the experience for Highlight developers.*
+**This doc was created as a result of a team retrospective. Anyone who has opinions can and should edit this document to improve the experience for Highlight developers.**
 
 ## Backend
 
-One big challenge new developers at Highlight (particularly those without Go experience) is overcoming the fact that much of our code is contained in giant files (`schema.resolvers.go` or `resolver.go`). This is largely a result of not trying to create many new files that deviate away from [gqlgen](https://gqlgen.com/) as well as the fact that Go is generally of the mindset that there is nothing objectively wrong this approach.
+One big challenge new developers at Highlight (particularly those without Go experience) is overcoming the fact that much of our code is contained in giant files (`schema.resolvers.go` or `resolver.go`). This is largely a result of not trying to create new files that deviate away from [gqlgen](https://gqlgen.com/) as well as the fact that Go is generally of the mindset that there is nothing objectively wrong this approach.
 
 However, as we grow, there will become more of a demand to split the codebase, namely:
 
@@ -29,10 +29,10 @@ If you have some type of product specific functionality, move your logic into a 
 
 Examples:
 
-- [errors*](https://github.com/highlight/highlight/pull/5557)
+- [errors](https://github.com/highlight/highlight/pull/5557)
 - [integrations](https://github.com/highlight/highlight/pull/3472)
 
-* the directory is named `errorgroups` to avoid conflicts with the internal Go [`errors` package](https://pkg.go.dev/errors).
+*Note: the `errors` product directory is named `errorgroups` to avoid conflicts with the internal Go [`errors` package](https://pkg.go.dev/errors).*
 
 
 ### Adding to schema.resolvers.go and resolver.go
