@@ -57,8 +57,8 @@ export type Feature = {
 	link?: string
 }
 
-//feature images need class name "h-[20px] w-[20px]"
-//thumbnail needs class name "h-[35px] w-[35px]"
+//feature images need classname "h-[20px] w-[20px]"
+//thumbnail needs classname "h-[35px] w-[35px]"
 const features: Feature[] = [
 	{
 		name: 'Session Replay',

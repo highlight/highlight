@@ -209,7 +209,7 @@ export const quickStartContent = {
 		js: {
 			title: 'JavaScript',
 			subtitle:
-				'Select your JavaScript framework to install logging in your application.',
+				'Select your JavaScript framework to installa logging in your application.',
 			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 			[QuickStartType.JSNodejs]: JSOtherLogContent,
 			[QuickStartType.JSNestjs]: JSNestLogContent,
