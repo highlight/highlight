@@ -147,8 +147,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			1,
 		)[0]
 
-		console.log(suggestedPost.image)
-
 		if (suggestedPost.image.url == null) {
 			const params = new URLSearchParams()
 			params.set('title', suggestedPost.title || '')
