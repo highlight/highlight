@@ -54,10 +54,6 @@ After a brief frontend load time, the app should be accessible at https://localh
 
 Good for <10k sessions and <50k errors ingested monthly. See our  [docs for more info and limitations](https://www.highlight.io/docs/general/company/open-source/hosting/self-host-hobby).
 
-### Developing on Highlight
-
-Want to contribute to Highlight? See our [onboarding](./DEVELOPER_ONBOARDING.md) guide.
-
 ### Enterprise self-hosted
 
 See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/company/open-source/self-host-enterprise) to deploy a scalable, production-ready instance with support from our team.
