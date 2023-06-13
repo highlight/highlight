@@ -23,8 +23,6 @@ type Config struct {
 }
 
 func GetConfig() (*Config, error) {
-
-	// yo
 	var ok bool
 	var config Config
 	if config.githubAppId, ok = os.LookupEnv("GITHUB_APP_ID"); !ok || config.githubAppId == "" {
