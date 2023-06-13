@@ -1275,7 +1275,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	}
 	session := &model.Session{}
 	if err := r.DB.Order("secure_id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
-		return e.Wrap(err, "[IdentifySession] error querying session by sessionID")
+		return e.New("[IdentifySession] error querying session by sessionID")
 	}
 	getSessionSpan.Finish()
 	sessionID := session.ID
@@ -1730,7 +1730,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 	session := &model.Session{}
 	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
 		log.WithContext(ctx).Error(e.Wrapf(err, "no session found for push metrics: %s", sessionSecureID))
-		return err
+		return e.New("no session found for push metrics: " + sessionSecureID)
 	}
 	sessionID := session.ID
 	projectID := session.ProjectID
@@ -2229,7 +2229,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	}
 	sessionObj := &model.Session{}
 	if err := r.DB.Order("secure_id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&sessionObj).Error; err != nil || sessionObj.ID == 0 {
-		retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
+		retErr := e.New("error reading from session %v" + sessionSecureID)
 		querySessionSpan.Finish(tracer.WithError(retErr))
 		return retErr
 	}
@@ -2607,35 +2607,35 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 
-	opensearchSpan, osCtx := tracer.StartSpanFromContext(updateSpanCtx, "public-graph.pushPayload", tracer.ResourceName("opensearch.update"))
+	opensearchSpan, _ := tracer.StartSpanFromContext(updateSpanCtx, "public-graph.pushPayload", tracer.ResourceName("opensearch.update"))
 	defer opensearchSpan.Finish()
 	// If the session was previously marked as processed, clear this
 	// in OpenSearch so that it's treated as a live session again.
 	// If the session was previously excluded (as we do with new sessions by default),
 	// clear it so it is shown as live in OpenSearch since we now have data for it.
 	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
-		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+		if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"processed":  false,
 			"Excluded":   false,
 			"has_errors": sessionHasErrors,
 		}); err != nil {
-			log.WithContext(osCtx).Error(e.Wrap(err, "error updating session in opensearch"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error updating session in opensearch"))
 			return err
 		}
 	}
 
 	if sessionHasErrors {
-		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+		if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"has_errors": true,
 		}); err != nil {
-			log.WithContext(osCtx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
+			log.WithContext(ctx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
 			return err
 		}
 	}
 
 	// if the session is not excluded, it is viewable, so send any relevant alerts
 	if !excluded {
-		return r.HandleSessionViewable(osCtx, projectID, sessionObj)
+		return r.HandleSessionViewable(ctx, projectID, sessionObj)
 	}
 
 	return nil

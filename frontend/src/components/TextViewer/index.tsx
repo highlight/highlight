@@ -112,7 +112,6 @@ const TextViewer = React.memo(
 						<Text
 							as="span"
 							family="monospace"
-							weight="bold"
 							size="xxSmall"
 							cssClass={consoleText}
 						>

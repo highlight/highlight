@@ -16,6 +16,7 @@ import { Maybe, ReservedLogKey } from '@graph/schemas'
 import {
 	Box,
 	Heading,
+	IconSolidCode,
 	IconSolidExternalLink,
 	IconSolidLogs,
 	Text,
@@ -43,6 +44,7 @@ import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { createSearchParams, useNavigate } from 'react-router-dom'
 
+import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
 import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionMissingOrExcluded'
 import { ShowSessionButton } from '@/pages/ErrorsV2/ErrorInstance/ShowSessionButton'
 import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
@@ -180,7 +182,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			<Box id="error-instance-container">
 				<Box my="28" display="flex" justifyContent="space-between">
 					<Box display="flex" flexDirection="column" gap="16">
-						<Heading level="h4">Error Instance</Heading>
+						<Heading level="h4">Instance Details</Heading>
 					</Box>
 
 					<Box>
@@ -257,7 +259,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		<Box id="error-instance-container">
 			<Box my="28" display="flex" justifyContent="space-between">
 				<Box display="flex" flexDirection="column" gap="16">
-					<Heading level="h4">Error Instance</Heading>
+					<Heading level="h4">Instance Details</Heading>
 				</Box>
 
 				<Box>
@@ -333,6 +335,20 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						/>
 					</Box>
 				</Box>
+			</Box>
+
+			<Box py="16" px="16" mb="40" border="secondary">
+				<Box
+					mb="20"
+					display="flex"
+					gap="6"
+					alignItems="center"
+					color="weak"
+				>
+					<IconSolidCode />
+					<Text color="moderate">Instance Error Body</Text>
+				</Box>
+				<ErrorBodyText errorBody={errorInstance.error_object.event} />
 			</Box>
 
 			<Box display="flex" flexDirection="column" mb="40" gap="40">

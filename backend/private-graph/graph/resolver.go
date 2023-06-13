@@ -144,10 +144,28 @@ func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) 
 }
 
 func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
-	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.admin"))
+	adminUID := pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))
+	firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
+		tracer.Tag("admin_uid", adminUID))
+	firebaseUser, err := AuthClient.GetUser(context.Background(), *adminUID)
+	if err != nil {
+		spanError := e.Wrap(err, "error retrieving user from firebase api")
+		firebaseSpan.Finish(tracer.WithError(spanError))
+		return nil, spanError
+	}
+	firebaseSpan.Finish()
 
-	admin := &model.Admin{UID: pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))}
-	tx := r.DB.Where(admin).
+	adminSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.admin"))
+	admin := &model.Admin{
+		UID:                   adminUID,
+		Name:                  &firebaseUser.DisplayName,
+		Email:                 &firebaseUser.Email,
+		PhotoURL:              &firebaseUser.PhotoURL,
+		EmailVerified:         &firebaseUser.EmailVerified,
+		Phone:                 &firebaseUser.PhoneNumber,
+		AboutYouDetailsFilled: &model.F,
+	}
+	tx := r.DB.Where(&model.Admin{UID: admin.UID}).
 		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "uid"}}, DoNothing: true}).
 		Create(&admin).
 		Attrs(&admin)
@@ -156,61 +174,8 @@ func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
 		adminSpan.Finish(tracer.WithError(spanError))
 		return nil, spanError
 	}
-	if tx.RowsAffected != 0 {
-		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
-			tracer.Tag("admin_uid", *admin.UID))
-		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
-		if err != nil {
-			spanError := e.Wrap(err, "error retrieving user from firebase api")
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			adminSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
-			UID:                   admin.UID,
-			Name:                  &firebaseUser.DisplayName,
-			Email:                 &firebaseUser.Email,
-			PhotoURL:              &firebaseUser.PhotoURL,
-			EmailVerified:         &firebaseUser.EmailVerified,
-			Phone:                 &firebaseUser.PhoneNumber,
-			AboutYouDetailsFilled: &model.F,
-		}).Error; err != nil {
-			spanError := e.Wrap(err, "error creating new admin")
-			adminSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		firebaseSpan.Finish()
-	}
-	if err := r.DB.Where(&model.Admin{UID: admin.UID}).First(&admin).Error; err != nil {
-		spanError := e.Wrap(err, "error fetching admin")
-		adminSpan.Finish(tracer.WithError(spanError))
-		return nil, spanError
-	}
-	if admin.PhotoURL == nil || admin.Name == nil {
-		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
-			tracer.Tag("admin_uid", *admin.UID))
-		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
-		if err != nil {
-			spanError := e.Wrap(err, "error retrieving user from firebase api")
-			adminSpan.Finish(tracer.WithError(spanError))
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
-			PhotoURL: &firebaseUser.PhotoURL,
-			Name:     &firebaseUser.DisplayName,
-			Phone:    &firebaseUser.PhoneNumber,
-		}).Error; err != nil {
-			spanError := e.Wrap(err, "error updating org fields")
-			adminSpan.Finish(tracer.WithError(spanError))
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		admin.PhotoURL = &firebaseUser.PhotoURL
-		admin.Name = &firebaseUser.DisplayName
-		admin.Phone = &firebaseUser.PhoneNumber
-		firebaseSpan.Finish()
-	}
+	adminSpan.Finish()
+
 	return admin, nil
 }
 
@@ -509,9 +474,6 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 
 	span.SetTag("ProjectID", project_id)
 
-	if util.IsTestEnv() {
-		return nil, nil
-	}
 	if r.isWhitelistedAccount(ctx) {
 		project := &model.Project{}
 		if err := r.DB.Where(&model.Project{Model: model.Model{ID: project_id}}).First(&project).Error; err != nil {
@@ -959,7 +921,7 @@ func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecur
 func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id string) (session *model.Session, ownsSession bool, err error) {
 	session = &model.Session{}
 	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: session_secure_id}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
-		return nil, false, e.Wrap(err, "error querying session by secure_id: "+session_secure_id)
+		return nil, false, e.New("error querying session by secure_id: " + session_secure_id)
 	}
 
 	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
@@ -973,16 +935,17 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id st
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewSession"))
 	defer authSpan.Finish()
 	session, isOwner, err := r._doesAdminOwnSession(ctx, session_secure_id)
-	if err == nil && isOwner {
+	if err != nil {
+		return nil, err
+	}
+	if isOwner {
+		return session, nil
+	} else if session.IsPublic {
+		return session, nil
+	} else if session.ProjectID == r.demoProjectID(ctx) {
 		return session, nil
 	}
-	if session != nil && session.IsPublic {
-		return session, nil
-	}
-	if session.ProjectID == r.demoProjectID(ctx) {
-		return session, nil
-	}
-	return nil, err
+	return nil, e.New("session access unauthorized")
 }
 
 func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id string) (*model.Session, error) {

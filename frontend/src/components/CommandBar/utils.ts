@@ -5,18 +5,17 @@ import {
 } from '@components/CommandBar/context'
 import { FormState } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import {
-	ERROR_FIELD_TYPE,
-	ERROR_TYPE,
-} from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
-import {
-	CUSTOM_TYPE,
-	SESSION_TYPE,
-} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { BuilderParams, buildQueryURLString } from '@util/url/params'
 import moment from 'moment'
 import { useNavigate } from 'react-router-dom'
+
+import {
+	CUSTOM_TYPE,
+	ERROR_FIELD_TYPE,
+	ERROR_TYPE,
+	SESSION_TYPE,
+} from '@/components/QueryBuilder/QueryBuilder'
 
 export const isErrorAttribute = (attribute: typeof ATTRIBUTES[number]) => {
 	return [ERROR_TYPE, ERROR_FIELD_TYPE].includes(attribute.type)
