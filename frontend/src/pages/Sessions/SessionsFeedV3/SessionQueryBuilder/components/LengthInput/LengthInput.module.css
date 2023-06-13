@@ -21,7 +21,7 @@
 	justify-content: space-between;
 	margin-top: var(--size-xxSmall);
 
-	button {
+	& button {
 		color: var(--color-purple);
 		font-size: 12px;
 		height: 13px !important;
@@ -34,11 +34,11 @@
 	justify-content: space-between;
 	margin-top: var(--size-xSmall);
 
-	.group {
+	& .group {
 		display: flex;
 		height: 43px;
 
-		input {
+		& input {
 			border: 1px solid var(--color-gray-300);
 			width: 100px;
 		}

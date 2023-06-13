@@ -13,17 +13,17 @@
 		box-shadow: 0 5px 8px rgba(86, 41, 198, 0.2);
 	}
 
-	p {
+	& p {
 		font-size: 12px !important;
 		margin: 0 !important;
 		margin-top: var(--size-xSmall) !important;
 	}
 
-	h4 {
+	& h4 {
 		font-weight: 500 !important;
 	}
 
-	.icon {
+	& .icon {
 		--size: var(--size-medium);
 		align-items: center;
 		background: var(--color-purple);
@@ -37,7 +37,7 @@
 		top: var(--size-small);
 		width: var(--size);
 
-		svg {
+		& svg {
 			--size: var(--size-small);
 			height: var(--size);
 			width: var(--size);

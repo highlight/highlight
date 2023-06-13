@@ -1,6 +1,7 @@
 .hostContainer {
 	padding-right: 2rem;
-	span {
+
+	& span {
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;

@@ -14,7 +14,8 @@
 .identifierActionButton {
 	height: 1.2em !important;
 	width: 1.2em !important;
-	svg {
+
+	& svg {
 		color: var(--color-gray-500);
 		height: 1em !important;
 	}

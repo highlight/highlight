@@ -24,7 +24,7 @@
 	flex-direction: column;
 	height: auto;
 
-	.primary {
+	& .primary {
 		font-size: 16px;
 		font-weight: 500;
 		overflow: hidden;
@@ -41,7 +41,7 @@
 	margin-bottom: var(--size-medium);
 	margin-top: var(--size-small);
 
-	p {
+	& p {
 		align-self: flex-start;
 		color: var(--color-gray-500);
 		font-size: 18px;
@@ -49,7 +49,7 @@
 		margin-top: 0 !important;
 	}
 
-	.callToAction {
+	& .callToAction {
 		margin-left: auto;
 		transform: translateY(-49px);
 	}
@@ -66,7 +66,7 @@
 		color: var(--color-gray-500) !important;
 	}
 
-	svg {
+	& svg {
 		color: var(--color-gray-400);
 		height: var(--size-large);
 		width: var(--size-large);
@@ -93,7 +93,8 @@
 .chart {
 	display: flex;
 	justify-content: center;
-	.innerChart {
+
+	& .innerChart {
 		align-items: center;
 		background-color: var(--color-gray-100);
 		border-radius: 5px;

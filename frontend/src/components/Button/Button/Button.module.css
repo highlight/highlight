@@ -43,14 +43,14 @@
 			background-color: var(--color-gray-200);
 		}
 
-		svg {
+		& svg {
 			height: var(--size-icon);
 			width: var(--size-icon);
 		}
 	}
 
 	&.small {
-		svg {
+		& svg {
 			height: var(--size-small);
 			width: var(--size-small);
 		}

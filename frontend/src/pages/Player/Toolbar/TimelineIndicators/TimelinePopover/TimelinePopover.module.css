@@ -4,13 +4,15 @@
 	flex-direction: column;
 	justify-content: center;
 	width: 224px;
-	span:not(.selectedTypeName) {
+
+	& span:not(.selectedTypeName) {
 		font-size: 13px;
 		font-weight: 400;
 		letter-spacing: -0.01em;
 		line-height: 20px;
 	}
-	span.selectedTypeName {
+
+	& span.selectedTypeName {
 		color: var(--color-neutral-800);
 		font-size: 11px;
 		font-weight: 500;
@@ -33,7 +35,8 @@
 .eventTypeRow:hover {
 	background-color: var(--color-neutral-50);
 	cursor: pointer;
-	.transitionIcon path {
+
+	& .transitionIcon path {
 		fill: var(--color-neutral-500);
 	}
 }
@@ -69,7 +72,8 @@
 .transitionIcon {
 	height: 16px;
 	width: 16px;
-	path {
+
+	& path {
 		fill: var(--color-neutral-300);
 	}
 }

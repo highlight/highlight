@@ -6,11 +6,11 @@
 	height: fit-content;
 	justify-content: center;
 
-	svg {
+	& svg {
 		color: var(--text-primary) !important;
 	}
 
-	> * {
+	&>* {
 		border-right: 1px solid var(--color-gray-300);
 		padding-bottom: 0;
 		padding-left: var(--size-xxSmall);
@@ -18,7 +18,7 @@
 		padding-top: 0;
 	}
 
-	> *:last-child {
+	&>*:last-child {
 		border-right: 0;
 	}
 }

@@ -5,7 +5,8 @@
 	border-radius: var(--button-border-radius);
 	display: flex;
 	height: 36px;
-	.copyButton {
+
+	& .copyButton {
 		border-radius: var(--button-border-radius);
 		border-bottom-left-radius: 0;
 		border-top-left-radius: 0;
@@ -13,7 +14,7 @@
 		margin-left: auto;
 	}
 
-	.link {
+	& .link {
 		margin-left: var(--size-small);
 		margin-right: var(--size-small);
 		overflow: hidden;
@@ -27,12 +28,12 @@
 	column-gap: var(--size-xxSmall);
 	display: flex;
 
-	.copyButton {
+	& .copyButton {
 		color: inherit !important;
 		height: 1.2em;
 		width: 1.2em;
 
-		svg {
+		& svg {
 			color: inherit;
 			height: 1em;
 		}

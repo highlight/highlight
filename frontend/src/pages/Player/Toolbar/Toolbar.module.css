@@ -168,13 +168,13 @@
 	justify-content: flex-end;
 	padding-right: var(--size-medium);
 
-	>* {
+	&>* {
 		height: fit-content;
 		margin-left: var(--size-xxSmall);
 		margin-right: var(--size-xxSmall);
 	}
 
-	>*:last-child {
+	&>*:last-child {
 		margin-right: 0;
 	}
 }
@@ -189,7 +189,7 @@
 	margin-left: auto;
 	overflow-y: hidden;
 
-	button {
+	& button {
 		height: fit-content;
 		margin-bottom: 6px;
 		margin-left: var(--size-xxSmall);

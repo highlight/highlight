@@ -8,11 +8,11 @@
 	padding: 6px;
 	width: 30px;
 
-	>svg {
+	&>svg {
 		height: 16px;
 		width: 16px;
 
-		path {
+		& path {
 			fill: var(--color-neutral-800);
 		}
 	}
@@ -22,8 +22,8 @@
 		border: 0;
 		cursor: not-allowed;
 
-		>svg {
-			path {
+		&>svg {
+			& path {
 				fill: var(--color-neutral-300);
 			}
 		}
@@ -65,7 +65,7 @@
 	padding: 2px 10px;
 	width: fit-content;
 
-	>span {
+	&>span {
 		color: var(--color-neutral-700);
 		font-size: 12px;
 		line-height: 16px;
@@ -100,13 +100,13 @@
 .activeButton:focus {
 	background: var(--color-new-purple-500);
 
-	>svg {
-		path {
+	&>svg {
+		& path {
 			fill: var(--color-white);
 		}
 	}
 
-	>span {
+	&>span {
 		color: var(--color-white);
 	}
 }
@@ -120,7 +120,7 @@
 	:global(.ant-popover-inner-content) {
 		padding: 0 !important;
 
-		>div {
+		&>div {
 			padding: 0 !important;
 		}
 	}
@@ -138,7 +138,7 @@
 	justify-content: center;
 	width: 224px;
 
-	>.section:first-child {
+	&>.section:first-child {
 		border-bottom: 1px solid var(--color-neutral-200);
 	}
 }
@@ -169,11 +169,11 @@
 		cursor: pointer;
 	}
 
-	>svg {
+	&>svg {
 		height: 16px;
 		width: 16px;
 
-		path {
+		& path {
 			fill: var(--color-neutral-300);
 		}
 	}

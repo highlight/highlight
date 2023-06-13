@@ -49,11 +49,11 @@
 	display: flex;
 	margin-top: var(--size-xLarge);
 
-	> * {
+	&>* {
 		width: 50%;
 	}
 
-	.button {
+	& .button {
 		justify-content: center;
 	}
 }
@@ -131,7 +131,7 @@
 	flex-direction: column;
 	justify-content: space-between;
 
-	> button {
+	&>button {
 		margin-bottom: var(--size-medium);
 	}
 }

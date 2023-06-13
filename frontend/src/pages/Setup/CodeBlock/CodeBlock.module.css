@@ -22,7 +22,7 @@
 .codeBlock {
 	position: relative;
 
-	pre {
+	& pre {
 		margin: 0 !important;
 	}
 

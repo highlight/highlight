@@ -1,6 +1,3 @@
-$side: 8px;
-$vert: 2px;
-
 .keyValueWrapper {
 	border-bottom-left-radius: var(--size-xxSmall);
 	border-top-left-radius: var(--size-xxSmall);
@@ -22,10 +19,10 @@ $vert: 2px;
 
 .value {
 	font-size: 12px;
-	padding-bottom: $vert;
-	padding-left: $side;
-	padding-right: $side;
-	padding-top: $vert;
+	padding-bottom: 2px;
+	padding-left: 8px;
+	padding-right: 8px;
+	padding-top: 2px;
 }
 
 .wrapper {

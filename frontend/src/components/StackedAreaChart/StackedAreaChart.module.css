@@ -1,5 +1,5 @@
 .tooltipContentContainer {
-	p {
+	& p {
 		align-items: center;
 		column-gap: var(--size-xSmall);
 		display: flex;
@@ -7,7 +7,7 @@
 		margin-top: 0 !important;
 	}
 
-	.label {
+	& .label {
 		color: var(--color-gray-500);
 	}
 }
@@ -18,7 +18,7 @@
 	top: var(--size-xxSmall);
 	z-index: 999;
 
-	p {
+	& p {
 		border-radius: var(--size-xxSmall);
 		font-size: 12px;
 		margin: 0 !important;

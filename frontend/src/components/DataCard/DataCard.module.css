@@ -4,17 +4,17 @@
 
 	transition: box-shadow 0.1s ease-in;
 
-	p,
-	a {
+	& p,
+	& a {
 		font-size: 12px;
 		margin-top: 0 !important;
 	}
 
-	p {
+	& p {
 		color: var(--color-gray-500);
 	}
 
-	h2 {
+	& h2 {
 		color: var(--text-primary);
 		font-size: 12px !important;
 		margin: 0;
@@ -25,7 +25,7 @@
 		box-shadow: 0 0 9px rgba(86, 41, 198, 0.25);
 	}
 
-	.titleContainer {
+	& .titleContainer {
 		align-items: center;
 		border-bottom: 1px solid var(--color-gray-300);
 		display: flex;
@@ -36,7 +36,7 @@
 		width: 100%;
 	}
 
-	.content {
+	& .content {
 		padding-bottom: var(--size-small);
 		padding-left: var(--size-small);
 		padding-right: var(--size-small);

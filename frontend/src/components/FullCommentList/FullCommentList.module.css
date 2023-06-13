@@ -12,7 +12,7 @@
 	top: 35%;
 	width: 200px;
 
-	h2 {
+	& h2 {
 		color: var(--text-primary);
 		font-size: 14px !important;
 		font-weight: 400 !important;
@@ -20,7 +20,7 @@
 		margin-bottom: var(--size-xSmall);
 	}
 
-	p {
+	& p {
 		color: var(--color-gray-500);
 		font-size: 12px !important;
 		margin: 0;

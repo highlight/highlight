@@ -46,6 +46,7 @@
 	}
 
 	:global(.ant-steps-item-wait) {
+
 		:global(.ant-steps-icon),
 		:global(.ant-steps-item-title) {
 			color: var(--color-gray-400) !important;
@@ -57,6 +58,7 @@
 	}
 
 	:global(.ant-steps-item-finish) {
+
 		:global(.ant-steps-icon),
 		:global(.ant-steps-item-title) {
 			color: var(--color-green-500) !important;
@@ -69,11 +71,13 @@
 	}
 
 	:global(.ant-steps-item-active) {
+
 		:global(.ant-steps-icon),
 		:global(.ant-steps-item-title) {
 			color: var(--color-purple) !important;
 		}
 	}
+
 	:global(.ant-steps-item-container::before) {
 		background: var(--color-gray-400);
 		border-radius: var(--size-xxLarge);
@@ -93,13 +97,13 @@
 	justify-content: space-between;
 	padding-top: var(--size-large);
 
-	> button {
+	&>button {
 		margin: 0 !important;
 		padding-bottom: var(--size-xxSmall);
 		padding-top: var(--size-xxSmall);
 	}
 
-	.nextButton {
+	& .nextButton {
 		margin-left: auto !important;
 	}
 }

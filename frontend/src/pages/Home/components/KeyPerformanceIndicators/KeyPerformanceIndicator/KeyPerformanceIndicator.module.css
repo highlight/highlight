@@ -1,20 +1,20 @@
 .keyPerformanceIndicator {
-	.value {
+	& .value {
 		font-size: 36px !important;
 	}
 
-	.label {
+	& .label {
 		margin: 0 !important;
 	}
 
-	.tooltip {
+	& .tooltip {
 		color: var(--text-primary);
 		position: absolute;
 		right: calc(var(--size-small) * -1);
 		top: calc(var(--size-xxSmall) * -1);
 	}
 
-	.labelContainer {
+	& .labelContainer {
 		display: flex;
 		position: relative;
 		width: fit-content;

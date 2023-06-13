@@ -3,15 +3,15 @@
 	column-gap: var(--size-xSmall);
 	display: flex;
 
-	.adminText {
+	& .adminText {
 		display: flex;
 		flex-direction: column;
 
-		.email {
+		& .email {
 			color: var(--color-gray-500);
 		}
 
-		.longValue {
+		& .longValue {
 			overflow: hidden;
 			text-overflow: ellipsis;
 			white-space: nowrap;
@@ -19,12 +19,12 @@
 		}
 	}
 
-	.slackLogo {
+	& .slackLogo {
 		height: var(--size-medium);
 		width: var(--size-medium);
 	}
 
-	.slackLogoContainer {
+	& .slackLogoContainer {
 		align-items: center;
 		background: var(--color-primary-background);
 		border-radius: 50%;
@@ -38,7 +38,7 @@
 		width: calc(var(--size-medium) + var(--size-xxSmall));
 	}
 
-	.avatarContainer {
+	& .avatarContainer {
 		position: relative;
 	}
 }
@@ -54,7 +54,7 @@
 	justify-content: space-between;
 	padding: var(--size-medium) var(--size-small);
 
-	p {
+	& p {
 		font-size: 13px;
 		font-weight: 400;
 		margin: 0 !important;

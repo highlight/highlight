@@ -12,7 +12,7 @@
 	color: var(--text-primary);
 	min-width: 220px;
 
-	.segmentItemWrapper:last-child .segmentItem {
+	& .segmentItemWrapper:last-child .segmentItem {
 		border-bottom: 0;
 	}
 }
@@ -70,7 +70,7 @@
 		background-color: var(--color-gray-300);
 		cursor: pointer;
 
-		.trashIcon {
+		& .trashIcon {
 			color: var(--text-primary);
 			fill: var(--text-primary);
 		}
@@ -129,7 +129,7 @@
 	&:hover {
 		background-color: var(--color-gray-200);
 
-		.segmentAction {
+		& .segmentAction {
 			display: flex;
 		}
 	}
@@ -159,7 +159,7 @@
 .segmentUnselected {
 	color: var(--color-gray-500);
 
-	.starIcon {
+	& .starIcon {
 		color: var(--color-gray-500);
 		fill: var(--color-gray-500);
 	}
@@ -211,7 +211,7 @@
 	display: flex;
 	padding-top: var(--size-medium);
 
-	> button {
+	&>button {
 		flex-grow: 1;
 		justify-content: center;
 	}

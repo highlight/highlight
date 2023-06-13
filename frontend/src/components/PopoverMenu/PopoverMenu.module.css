@@ -4,32 +4,33 @@
 	&:first-of-type {
 		margin-top: -12px;
 	}
+
 	&:not(:first-of-type) {
 		margin-top: 0;
 	}
 
-	a {
+	& a {
 		color: var(--text-primary);
 	}
 
-	a,
-	button {
+	& a,
+	& button {
 		align-items: center;
 		column-gap: var(--size-xSmall);
 		display: flex !important;
 		width: 100%;
 
-		> div {
+		&>div {
 			overflow: hidden;
 		}
 
-		span {
+		& span {
 			overflow: hidden;
 			text-overflow: ellipsis;
 		}
 	}
 
-	.endingIcon {
+	& .endingIcon {
 		align-items: center;
 		display: flex;
 		margin-left: auto;
@@ -55,7 +56,7 @@
 	padding-right: var(--size-medium);
 	padding-top: 0;
 
-	h3 {
+	& h3 {
 		font-size: 13px;
 		font-weight: 400;
 		margin-bottom: 0 !important;
@@ -68,7 +69,8 @@
 
 	&.active {
 		color: var(--text-primary-inverted) !important;
-		svg {
+
+		& svg {
 			color: var(--text-primary-inverted);
 		}
 	}

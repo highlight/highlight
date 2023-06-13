@@ -86,7 +86,7 @@
 	margin-left: var(--size-xSmall);
 	width: var(--size-medium);
 
-	svg {
+	& svg {
 		height: var(--size-small);
 		width: var(--size-small);
 	}
@@ -103,7 +103,7 @@
 	position: relative;
 
 	&:hover {
-		.sessionCardAction {
+		& .sessionCardAction {
 			display: flex;
 		}
 	}

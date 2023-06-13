@@ -19,13 +19,14 @@
 		background: var(--color-gray-400);
 	}
 
-	svg {
+	& svg {
 		color: var(--text-primary);
 	}
 }
 
 .dropdown {
 	z-index: 9999999999999 !important;
+
 	:global(.ant-dropdown-menu-item) {
 		align-items: center;
 		column-gap: var(--size-small);
