@@ -50,3 +50,5 @@ __pycache__
 .turbo
 .vercel
 temp
+
+megalinter-reports/
