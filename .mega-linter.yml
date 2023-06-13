@@ -6,7 +6,6 @@ APPLY_FIXES: all # all, none, or list of linter keys
 # ENABLE_LINTERS: # If you use ENABLE_LINTERS variable, all other linters will be disabled by default
 ENABLE_LINTERS:
     - ACTION_ACTIONLINT
-    - GO_GOLANGCI_LINT
     - JAVASCRIPT_PRETTIER
     - JSX_ESLINT
     - MARKDOWN_MARKDOWN_LINK_CHECK
