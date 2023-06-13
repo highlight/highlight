@@ -20,6 +20,8 @@ import { DateInput } from './DateInput'
 export { getDefaultPresets } from './utils'
 
 const DATE_INPUT_FORMAT_WITH_COMMA = 'MMM DD, YYYY'
+const DATE_INPUT_FORMAT_WITH_SINGLE_DAY = 'MMM D, YYYY'
+const DATE_INPUT_FORMAT_WITH_SINGLE_DAY_AND_NO_COMMA = 'MMM D YYYY'
 const DATE_INPUT_FORMAT_WITH_NO_COMMA = 'MMM DD YYYY'
 const DATE_INPUT_FORMAT_WITH_SLASH = 'MM/DD/YYYY'
 const DATE_INPUT_FORMAT_WITH_DASH = 'MM-DD-YYYY'
@@ -286,6 +288,8 @@ const PreviousDateRangePickerImpl = ({
 			DATE_INPUT_FORMAT_WITH_DOT,
 			DATE_INPUT_FORMAT_WITH_COMMA,
 			DATE_INPUT_FORMAT_WITH_NO_COMMA,
+			DATE_INPUT_FORMAT_WITH_SINGLE_DAY_AND_NO_COMMA,
+			DATE_INPUT_FORMAT_WITH_SINGLE_DAY,
 		].some((format) => moment(value, format, true).isValid())
 
 		if (isValidDateInput) {
@@ -303,7 +307,8 @@ const PreviousDateRangePickerImpl = ({
 			DATE_INPUT_FORMAT_WITH_DOT,
 			DATE_INPUT_FORMAT_WITH_COMMA,
 			DATE_INPUT_FORMAT_WITH_NO_COMMA,
-			,
+			DATE_INPUT_FORMAT_WITH_SINGLE_DAY_AND_NO_COMMA,
+			DATE_INPUT_FORMAT_WITH_SINGLE_DAY,
 		]
 			.map((format) => moment(value, format, true).isValid())
 			.some((isValid) => isValid)
@@ -373,6 +378,13 @@ const PreviousDateRangePickerImpl = ({
 			setButtonLabel(getLabel({ selectedDates, presets }))
 		}
 	}, [selectedDates[0]?.getTime(), selectedDates[1]?.getTime()])
+
+	const hasSelectedRange = useMemo(
+		() =>
+			selectedDates.length === 2 &&
+			selectedDates.filter((date) => moment(date).isValid()).length === 2,
+		[selectedDates],
+	)
 
 	return (
 		<DatePickerStateProvider
@@ -602,7 +614,7 @@ const PreviousDateRangePickerImpl = ({
 								e.stopPropagation()
 							}}
 						>
-							<DatePicker />
+							<DatePicker hasSelectedRange={hasSelectedRange} />
 						</Menu.Item>
 					</>
 				)}
