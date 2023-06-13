@@ -279,10 +279,9 @@ export class FirstLoadListeners {
 			}
 		}
 
-		const networkResources: Array<
-			PerformanceResourceTiming | WebSocketEvent
-		> = sThis.webSocketNetworkContents
-		return networkResources.concat(httpResources)
+		return (
+			httpResources as Array<PerformanceResourceTiming | WebSocketEvent>
+		).concat(sThis.webSocketNetworkContents)
 	}
 
 	static clearRecordedNetworkResources(sThis: FirstLoadListeners): void {
