@@ -114,6 +114,7 @@ export async function render(
 		const file = path.join(dir, `${i}.png`)
 		await page.evaluate(`r.pause(${i})`)
 		await page.screenshot({ path: file })
+		console.log(`screenshotted`, { start, end, interval, i })
 		files.push(file)
 	}
 

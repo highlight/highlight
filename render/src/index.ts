@@ -16,6 +16,7 @@ const screenshot = async (event?: APIGatewayEvent) => {
 		Number(args?.project),
 		Number(args?.session),
 		Number(args?.ts),
+		undefined,
 		args?.chunk?.length ? Number(args?.chunk) : undefined,
 	)
 	const file = readFileSync(files[0])
@@ -35,19 +36,21 @@ const gif = async (event?: APIGatewayEvent) => {
 	const { dir } = await serialRender(
 		Number(args?.project),
 		Number(args?.session),
+		undefined,
+		1,
 	)
-	const gif = await encodeGIF(dir)
+	// const gif = await encodeGIF(dir)
 	const mp4 = await encodeMP4(dir)
-	console.log({ gif, mp4 })
+	console.log({ mp4 })
 
-	const file = readFileSync(gif)
+	const file = readFileSync(mp4)
 	return {
 		statusCode: 200,
 		isBase64Encoded: true,
 		body: Buffer.from(file).toString('base64'),
 		path: gif,
 		headers: {
-			'content-type': 'image/gif',
+			'content-type': 'video/mp4',
 		},
 	}
 }
@@ -63,10 +66,10 @@ export const handler = (event?: APIGatewayEvent) => {
 if (process.env.DEV?.length) {
 	screenshot({
 		queryStringParameters: {
-			project: '122',
-			session: '33249578',
-			ts: '208392',
-			chunk: '3',
+			project: '1',
+			session: '239571781',
+			ts: '1',
+			chunk: '0',
 		},
 	} as unknown as APIGatewayEvent).then(console.info)
 }

@@ -7,16 +7,17 @@
 	"module": "./dist/index.js",
 	"scripts": {
 		"build": "tsup",
+		"invoke": "DEV=true node dist/index.js",
 		"publish": "zip -9 -r function.zip node_modules package.json -x node_modules/typescript/\\* -x node_modules/tsup/\\* -x node_modules/@types/\\* -x node_modules/@highlight-run/rrweb/node_modules/typescript/\\* && cd dist && zip ../function.zip * && cd .. && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
 	},
 	"installConfig": {
 		"hoistingLimits": "dependencies"
 	},
 	"dependencies": {
-		"@aws-sdk/client-s3": "^3.294.0",
+		"@aws-sdk/client-s3": "^3.352.0",
 		"@highlight-run/rrweb": "workspace:*",
-		"@sparticuz/chromium": "^112.0.2",
-		"puppeteer-core": "^19.8.1"
+		"@sparticuz/chromium": "^114.0.0",
+		"puppeteer-core": "^19.11.1"
 	},
 	"devDependencies": {
 		"@types/aws-lambda": "^8.10.114",

@@ -9,6 +9,7 @@ export async function serialRender(
 	project: number,
 	session: number,
 	ts?: number,
+	fps?: number,
 	chunk?: number,
 ) {
 	const dir = path.join(tmpdir(), `render_${project}_${session}`)
@@ -27,6 +28,6 @@ export async function serialRender(
 	)
 	return {
 		dir,
-		files: await render(events, 0, 1, undefined, ts, dir),
+		files: await render(events, 0, 1, fps, ts, dir),
 	}
 }
