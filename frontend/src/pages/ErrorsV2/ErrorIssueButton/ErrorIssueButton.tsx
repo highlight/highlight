@@ -148,7 +148,7 @@ const ErrorIssueButton = ({ errorGroup }: Props) => {
 					disabled={!isLoggedIn || isLoading || !!showNewIssueModal}
 					iconLeft={<IconSolidDocumentAdd />}
 				>
-					Create Issuesss
+					Create Issue
 				</Menu.Button>
 				<Menu.List>
 					<Menu.Heading>
