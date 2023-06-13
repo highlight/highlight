@@ -1,4 +1,7 @@
 <p align="center">
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
   <img width="2051" alt="docs-thumbnail" src="https://user-images.githubusercontent.com/20292680/233754540-409ee4cf-beab-46b1-b313-d2d717a87fd6.png">
 </p>
 <p align="center">
@@ -134,6 +137,20 @@ Read more about [our values here](https://www.highlight.io/docs/general/company/
 ## Contributors ✨
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="http://jaykhatri.com"><img src="https://avatars.githubusercontent.com/u/20292680?v=4?s=100" width="100px;" alt="Jay Khatri"/><br /><sub><b>Jay Khatri</b></sub></a><br /><a href="https://github.com/highlight/highlight/commits?author=jay-khatri" title="Code">💻</a> <a href="https://github.com/highlight/highlight/commits?author=jay-khatri" title="Documentation">📖</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 
