@@ -397,9 +397,10 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						) : (
 							<Text>
 								Get help from Highlight's AI programming
-								partner, Harold. By clicking the button below
-								you agree to send context about this error to
-								the OpenAI API.
+								partner, Harold. Click the button below for a
+								suggestion on how to resolve this issue. By
+								clicking this button you agree to send context
+								about this error to the OpenAI API.
 							</Text>
 						)}
 					</Box>
