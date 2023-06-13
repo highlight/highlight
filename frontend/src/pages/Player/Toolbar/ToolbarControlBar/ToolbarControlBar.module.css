@@ -7,24 +7,29 @@
 	justify-content: center;
 	padding: 6px;
 	width: 30px;
-	> svg {
+
+	>svg {
 		height: 16px;
 		width: 16px;
+
 		path {
 			fill: var(--color-neutral-800);
 		}
 	}
+
 	&:disabled {
 		background: var(--color-white) !important;
 		border: 0;
 		cursor: not-allowed;
-		> svg {
+
+		>svg {
 			path {
 				fill: var(--color-neutral-300);
 			}
 		}
 	}
-	// disable click animations from antd
+
+	/* disable click animations from antd */
 	&::after {
 		display: none !important;
 	}
@@ -59,7 +64,8 @@
 	height: 20px;
 	padding: 2px 10px;
 	width: fit-content;
-	> span {
+
+	>span {
 		color: var(--color-neutral-700);
 		font-size: 12px;
 		line-height: 16px;
@@ -77,12 +83,14 @@
 	border: 0;
 	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
+
 .minorButton:hover,
 .minorButton:focus {
 	background: var(--color-neutral-200);
 	border: 0;
 	box-shadow: none;
 }
+
 .minorButton:focus {
 	border: 1px solid var(--color-neutral-300);
 }
@@ -91,12 +99,14 @@
 .activeButton:hover,
 .activeButton:focus {
 	background: var(--color-new-purple-500);
-	> svg {
+
+	>svg {
 		path {
 			fill: var(--color-white);
 		}
 	}
-	> span {
+
+	>span {
 		color: var(--color-white);
 	}
 }
@@ -109,7 +119,8 @@
 .settingsPopoverOverlay {
 	:global(.ant-popover-inner-content) {
 		padding: 0 !important;
-		> div {
+
+		>div {
 			padding: 0 !important;
 		}
 	}
@@ -127,7 +138,7 @@
 	justify-content: center;
 	width: 224px;
 
-	> .section:first-child {
+	>.section:first-child {
 		border-bottom: 1px solid var(--color-neutral-200);
 	}
 }
@@ -152,13 +163,16 @@
 	padding: 4px 8px;
 	user-select: none;
 	width: 100%;
+
 	&:hover {
 		background: var(--color-neutral-50);
 		cursor: pointer;
 	}
-	> svg {
+
+	>svg {
 		height: 16px;
 		width: 16px;
+
 		path {
 			fill: var(--color-neutral-300);
 		}
@@ -182,8 +196,9 @@
 	display: flex;
 	flex-direction: row;
 	width: 100%;
+
 	&:hover {
-		> .leftClickActionName {
+		>.leftClickActionName {
 			visibility: visible;
 		}
 	}

@@ -1,4 +1,4 @@
-// set the vertical chart slider color scheme
+/* set the vertical chart slider color scheme */
 :global {
 	.ant-slider:hover .ant-slider-track {
 		background-color: var(--color-blue-400) !important;
@@ -61,9 +61,11 @@
 .thresholdRow {
 	display: flex;
 }
+
 .threshold {
 	flex-grow: 1;
 }
+
 .thresholdUnits {
 	margin-left: var(--size-xxSmall);
 	width: 160px;

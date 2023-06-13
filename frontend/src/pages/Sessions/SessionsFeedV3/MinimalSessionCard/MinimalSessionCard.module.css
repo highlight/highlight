@@ -78,7 +78,8 @@
 .backfilledIcon {
 	align-items: center;
 	background-color: var(--color-gray-600);
-	border-radius: 2.5px; // matches cardAnnotation
+	/* matches cardAnnotation */
+	border-radius: 2.5px;
 	color: var(--color-white);
 	display: flex;
 	font-size: 18px;
@@ -202,6 +203,7 @@
 	&.selected {
 		border: 1px solid var(--color-purple);
 		box-shadow: 0 0 9px rgba(86, 41, 198, 0.25);
+
 		&::before {
 			opacity: 1;
 		}
@@ -260,7 +262,7 @@
 		row-gap: var(--size-medium);
 	}
 
-	> div {
+	>div {
 		height: 16px;
 		width: 16px;
 	}

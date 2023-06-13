@@ -121,7 +121,7 @@
 
 .resizeBorder {
 	background: var(--color-gray-300);
-	// Fitts' Law, we're making the hit target larger than what it looks visually to make it easier to hit.
+	/* Fitts' Law, we're making the hit target larger than what it looks visually to make it easier to hit. */
 	border-radius: var(--size-medium);
 	cursor: ns-resize;
 	height: var(--size-xxSmall);

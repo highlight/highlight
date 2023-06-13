@@ -45,6 +45,7 @@
 		border-bottom-left-radius: var(--size-xxSmall);
 		border-left: 1px solid var(--color-gray-300);
 	}
+
 	&.lastSegment {
 		border-bottom-right-radius: var(--size-xxSmall);
 		border-right: 1px solid var(--color-gray-300);
@@ -57,12 +58,10 @@
 	animation-iteration-count: infinite;
 	animation-name: liveShimmer;
 	animation-timing-function: linear;
-	background: linear-gradient(
-		to right,
-		var(--color-red-300) 8%,
-		var(--color-red) 38%,
-		var(--color-red-300) 68%
-	);
+	background: linear-gradient(to right,
+			var(--color-red-300) 8%,
+			var(--color-red) 38%,
+			var(--color-red-300) 68%);
 	background-size: 800px 5px;
 	display: flex;
 	height: 5px;
@@ -75,13 +74,14 @@
 	0% {
 		background-position: -800px 0;
 	}
+
 	100% {
 		background-position: 800px 0;
 	}
 }
 
 .sliderPopover {
-	// text-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
+	/* text-shadow: 0 0 4px rgba(0, 0, 0, 0.75); */
 	background: var(--text-primary);
 	border-radius: 8px;
 	bottom: 16px;
@@ -168,13 +168,13 @@
 	justify-content: flex-end;
 	padding-right: var(--size-medium);
 
-	> * {
+	>* {
 		height: fit-content;
 		margin-left: var(--size-xxSmall);
 		margin-right: var(--size-xxSmall);
 	}
 
-	> *:last-child {
+	>*:last-child {
 		margin-right: 0;
 	}
 }
@@ -393,6 +393,7 @@
 	align-items: center;
 	display: flex;
 }
+
 .devToolsIcon {
 	color: var(--color-gray-500);
 	width: 20px;

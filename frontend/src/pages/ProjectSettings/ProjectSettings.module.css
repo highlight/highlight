@@ -1,7 +1,7 @@
 .tabsContainer {
 	margin-top: var(--size-large);
 
-	// Override some defaults we don't want on tabs.
+	/* Override some defaults we don't want on tabs. */
 	:global {
 		.ant-tabs-nav::before {
 			border-bottom: 0 !important;

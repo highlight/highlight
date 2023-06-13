@@ -8,6 +8,7 @@
 
 	&.checked {
 		color: var(--text-primary);
+
 		&.red {
 			color: var(--color-red);
 		}
@@ -23,7 +24,8 @@
 	}
 
 	&.setMarginForAnimation {
-		margin: 6px; // The animation for toggling the switch takes up extra space
+		/* The animation for toggling the switch takes up extra space */
+		margin: 6px;
 	}
 }
 
@@ -32,6 +34,7 @@
 
 	&:global(.ant-switch-checked) {
 		background: var(--color-purple);
+
 		&.red {
 			background: var(--color-red);
 		}
