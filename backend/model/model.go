@@ -184,6 +184,7 @@ var Models = []interface{}{
 	&LogAdminsView{},
 	&ProjectFilterSettings{},
 	&ErrorGroupActivityLog{},
+	&UserJourneyStep{},
 }
 
 func init() {
@@ -1186,6 +1187,14 @@ type BillingEmailHistory struct {
 	Active      bool
 	WorkspaceID int
 	Type        Email.EmailType
+}
+
+type UserJourneyStep struct {
+	SessionID int `gorm:"primary_key;not null"`
+	Index     int `gorm:"primary_key;not null"`
+	Url       string
+	NextUrl   string
+	Delta     int64
 }
 
 type RetryableType string
