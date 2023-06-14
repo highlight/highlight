@@ -18,6 +18,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
 
@@ -64,6 +65,11 @@ func GetSessions7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhou
 }
 
 func GetWorkspaceSessionsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
+	meterSpan, _ := tracer.StartSpanFromContext(ctx, "pricing.GetWorkspaceSessionsMeter",
+		tracer.ResourceName("GetWorkspaceSessionsMeter"),
+		tracer.Tag("workspace_id", workspace.ID))
+	defer meterSpan.Finish()
+
 	var meter int64
 	if err := DB.Raw(`
 		WITH materialized_rows AS (
@@ -113,6 +119,11 @@ func GetErrors7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse
 }
 
 func GetWorkspaceErrorsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
+	meterSpan, _ := tracer.StartSpanFromContext(ctx, "pricing.GetWorkspaceErrorsMeter",
+		tracer.ResourceName("GetWorkspaceErrorsMeter"),
+		tracer.Tag("workspace_id", workspace.ID))
+	defer meterSpan.Finish()
+
 	var meter int64
 	if err := DB.Raw(`
 		WITH materialized_rows AS (
