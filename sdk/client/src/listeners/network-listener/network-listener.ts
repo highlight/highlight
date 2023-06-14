@@ -74,16 +74,16 @@ export const NetworkListener = ({
 		bodyKeysToRecord,
 	)
 
-	const removeWebSocketListener = WebSocketListener((event) => {
-		webSocketCallback(event)
-	})
+	const removeWebSocketListener = !disableWebSocketRecording
+		? WebSocketListener((event) => {
+				webSocketCallback(event)
+		  })
+		: () => {}
 
 	return () => {
 		removeXHRListener()
 		removeFetchListener()
-		if (!disableWebSocketRecording) {
-			removeWebSocketListener()
-		}
+		removeWebSocketListener()
 	}
 }
 

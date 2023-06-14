@@ -61,7 +61,6 @@ const options: HighlightOptions = {
 	networkRecording: {
 		enabled: true,
 		recordHeadersAndBody: true,
-		// disableWebSocketEventRecordings: true,
 		destinationDomains: [
 			'pri.highlight.run',
 			'pub.highlight.run',
