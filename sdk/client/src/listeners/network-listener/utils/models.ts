@@ -30,9 +30,7 @@ export interface WebSocketEvent {
 	initiatorType: 'WebSocket'
 	type: 'open' | 'error' | 'close' | 'received' | 'sent'
 	name: string
-	timeStamp: number
+	startTime: number
 	size: number
 	message?: string
-	// TODO(spenny): add headers
-	// headers?: { [k: string]: string }
 }

@@ -1,5 +1,5 @@
 import { createNetworkRequestId } from '@highlight-run/client/src/listeners/network-listener/utils/utils'
-import { HighlightWebSocketWindow } from '@highlight-run/client/src/listeners/network-listener/utils/web-socket-listener'
+import type { HighlightWebSocketWindow } from '@highlight-run/client/src/listeners/network-listener/utils/web-socket-listener'
 
 declare var window: HighlightWebSocketWindow
 
@@ -23,7 +23,7 @@ export const initializeWebSocketListener = () => {
 						initiatorType: 'WebSocket',
 						type: 'open',
 						name: target.name,
-						timeStamp: event.timeStamp,
+						startTime: event.timeStamp,
 						size: 0,
 					})
 				}
@@ -47,7 +47,7 @@ export const initializeWebSocketListener = () => {
 						initiatorType: 'WebSocket',
 						type: 'received',
 						name: target.name,
-						timeStamp: event.timeStamp,
+						startTime: event.timeStamp,
 						size,
 						message,
 					})
@@ -59,7 +59,7 @@ export const initializeWebSocketListener = () => {
 						initiatorType: 'WebSocket',
 						type: 'error',
 						name: target.name,
-						timeStamp: event.timeStamp,
+						startTime: event.timeStamp,
 						size: 0,
 					})
 				}
@@ -70,7 +70,7 @@ export const initializeWebSocketListener = () => {
 						initiatorType: 'WebSocket',
 						type: 'close',
 						name: target.name,
-						timeStamp: event.timeStamp,
+						startTime: event.timeStamp,
 						size: 0,
 					})
 
@@ -109,7 +109,7 @@ export const initializeWebSocketListener = () => {
 							initiatorType: 'WebSocket',
 							type: 'sent',
 							name: target.name,
-							timeStamp: performance.now(),
+							startTime: performance.now(),
 							size,
 							message,
 						})
