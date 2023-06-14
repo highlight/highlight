@@ -16,6 +16,7 @@ type NetworkListenerArguments = {
 	xhrCallback: NetworkListenerCallback
 	fetchCallback: NetworkListenerCallback
 	webSocketCallback: WebSocketListenerCallback
+	disableWebSocketRecording: boolean
 	headersToRedact: string[]
 	bodyKeysToRedact: string[]
 	backendUrl: string
@@ -28,6 +29,7 @@ export const NetworkListener = ({
 	xhrCallback,
 	fetchCallback,
 	webSocketCallback,
+	disableWebSocketRecording,
 	headersToRedact,
 	bodyKeysToRedact,
 	backendUrl,
@@ -79,7 +81,9 @@ export const NetworkListener = ({
 	return () => {
 		removeXHRListener()
 		removeFetchListener()
-		removeWebSocketListener()
+		if (!disableWebSocketRecording) {
+			removeWebSocketListener()
+		}
 	}
 }
 

@@ -1,5 +1,4 @@
 import { WebSocketEvent } from '../utils/models'
-import type { HighlightPublicInterface } from '@highlight-run/client/src/types/types'
 
 export type WebSocketListenerCallback = (event: WebSocketEvent) => void
 export type HighlightWebSocketWindow = Window & {
