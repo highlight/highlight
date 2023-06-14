@@ -19,7 +19,7 @@
 		"version": 1,
 	},
 	"themeColor": "#5629c6",
-	"filesIgnored": ["**/**.css.ts", "**/**.scss"],
+	"filesIgnored": ["**/**.css.ts"],
 	"environments": {
 		"production": {
 			"REACT_APP_FIREBASE_CONFIG_OBJECT": "{    apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',    authDomain: 'auth.highlight.run',    databaseURL: 'https://highlight-f5c5b.firebaseio.com',    projectId: 'highlight-f5c5b',    storageBucket: 'highlight-f5c5b.appspot.com',    messagingSenderId: '263184175068',    appId: '1:263184175068:web:f8190c20320087d1c6c919',}",
@@ -86,6 +86,7 @@
 		"https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap",
 		"https://unpkg.com/@highlight-run/rrweb@0.9.27/dist/index.css",
 		"/public.css",
+		"/__generated/index.css",
 	],
 	"nodejsCompatibility": {
 		"omitModuleExtension": true,
@@ -141,10 +142,6 @@
 			"to": "@lottie/",
 		},
 		{
-			"from": "/__generated/index.css",
-			"to": "/index.scss",
-		},
-		{
 			"from": "/__generated/rr/rr.js",
 			"to": "@highlight-run/rrweb",
 		},
@@ -159,11 +156,6 @@
 		{
 			"from": "^/__generated/ve/(.*).css.js$",
 			"to": "/$1.css",
-			"phase": "pre",
-		},
-		{
-			"from": "^/__generated/scss/(.*).scss.js$",
-			"to": "/$1.scss",
 			"phase": "pre",
 		},
 		{
