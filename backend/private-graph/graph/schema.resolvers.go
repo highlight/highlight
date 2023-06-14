@@ -7346,6 +7346,37 @@ func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []strin
 	return errorObjects, nil
 }
 
+// SessionInsight is the resolver for the session_insight field.
+func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*modelInputs.SessionInsight, error) {
+	session, err := r.canAdminViewSession(ctx, secureID)
+	if err != nil {
+		return nil, nil
+	}
+
+	body := &modelInputs.SessionQuery{
+		ID:        session.ID,
+		ProjectID: session.ProjectID,
+	}
+
+	insight := &modelInputs.SessionInsight{}
+
+	var sessionInsightError error
+	var runlocal = false
+
+	if runlocal {
+		sessionInsightError = util.RestRequest("http://localhost:8765/session/insights", "POST", body, insight)
+	} else {
+		b, _ := r.getSessionInsight(ctx, session.ProjectID, session.ID)
+		sessionInsightError = json.Unmarshal(b, insight)
+	}
+
+	if sessionInsightError != nil {
+		return nil, e.Wrap(sessionInsightError, "failed to get session insight")
+	}
+
+	return insight, nil
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}

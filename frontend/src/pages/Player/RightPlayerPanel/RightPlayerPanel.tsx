@@ -12,8 +12,9 @@ import ErrorDetails from '@pages/Player/RightPlayerPanel/components/ErrorDetails
 import EventDetails from '@pages/Player/RightPlayerPanel/components/EventDetails/EventDetails'
 import NetworkResourceDetails from '@pages/Player/RightPlayerPanel/components/NetworkResourceDetails/NetworkResourceDetails'
 import RightPanelTabs from '@pages/Player/RightPlayerPanel/components/Tabs'
-import React, { useEffect, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 
+import SessionInsights from '@/pages/Player/RightPlayerPanel/components/SessionInsights/SessionInsights'
 import SessionFullCommentList from '@/pages/Player/SessionFullCommentList/SessionFullCommentList'
 
 import * as style from './style.css'
@@ -56,6 +57,7 @@ const RightPlayerPanel = () => {
 				return (
 					<Box height="full" display="flex" flexDirection="column">
 						<MetadataBox />
+						<SessionInsights />
 						<RightPanelTabs />
 					</Box>
 				)

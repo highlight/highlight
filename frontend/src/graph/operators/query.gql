@@ -297,6 +297,13 @@ query GetWorkspaceAdmins($workspace_id: ID!) {
 	}
 }
 
+query GetSessionInsight($secure_id: String!) {
+	session_insight(secure_id: $secure_id) {
+		id
+		insight
+	}
+}
+
 query GetSessionComments($session_secure_id: String!) {
 	session_comments(session_secure_id: $session_secure_id) {
 		id

@@ -588,6 +588,16 @@ type SessionCommentTagInput struct {
 	Name string `json:"name"`
 }
 
+type SessionInsight struct {
+	ID      int    `json:"id"`
+	Insight string `json:"insight"`
+}
+
+type SessionQuery struct {
+	ID        int `json:"id"`
+	ProjectID int `json:"project_id"`
+}
+
 type SlackSyncResponse struct {
 	Success               bool `json:"success"`
 	NewChannelsAddedCount int  `json:"newChannelsAddedCount"`
