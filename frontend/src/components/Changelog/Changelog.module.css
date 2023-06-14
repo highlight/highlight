@@ -25,7 +25,7 @@
 		color: #fff;
 	}
 
-	.indicatorIcon {
+	& .indicatorIcon {
 		color: #8a8f98;
 
 		height: 18px;

@@ -9,7 +9,7 @@
 		max-width: 100%;
 	}
 
-	.subTitle {
+	& .subTitle {
 		color: var(--color-gray-500);
 		font-size: 18px;
 		margin-bottom: var(--size-xLarge) !important;

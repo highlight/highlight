@@ -28,7 +28,7 @@
 	margin-bottom: 0;
 	margin-top: 0;
 
-	.workspaceCount {
+	& .workspaceCount {
 		color: var(--color-white);
 		font-size: var(--size-xSmall);
 		height: var(--size-small);

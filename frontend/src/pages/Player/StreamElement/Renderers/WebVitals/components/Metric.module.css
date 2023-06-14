@@ -3,19 +3,19 @@
 	--needs-improvement-color: var(--color-yellow-500) !important;
 	--poor-color: var(--color-red-500) !important;
 
-	.name,
-	.value {
+	& .name,
+	& .value {
 		display: flex;
 		font-size: 12px !important;
 		font-weight: 500 !important;
 		margin-bottom: 0 !important;
 	}
 
-	.value {
+	& .value {
 		column-gap: 0.25ch;
 	}
 
-	.units {
+	& .units {
 		color: var(--color-gray-500) !important;
 		font-weight: 400 !important;
 	}
@@ -23,9 +23,11 @@
 	&.goodScore {
 		color: var(--good-color);
 	}
+
 	&.needsImprovementScore {
 		color: var(--needs-improvement-color);
 	}
+
 	&.poorScore {
 		color: var(--poor-color);
 	}
@@ -43,11 +45,11 @@
 	column-gap: var(--size-xSmall);
 	display: flex;
 
-	.name {
+	& .name {
 		width: 6ch;
 	}
 
-	.value {
+	& .value {
 		margin-left: auto;
 		transform: translateY(-100%);
 
@@ -70,30 +72,30 @@
 	position: relative;
 	width: 100%;
 
-	> div {
+	&>div {
 		background-color: var(--color-gray-300);
 		border-radius: var(--size-xxSmall);
 		flex-grow: 1;
 		height: 100%;
 	}
 
-	.poor {
+	& .poor {
 		--color: var(--poor-color);
 	}
 
-	.needsImprovement {
+	& .needsImprovement {
 		--color: var(--needs-improvement-color);
 	}
 
-	.good {
+	& .good {
 		--color: var(--good-color);
 	}
 
-	.active {
+	& .active {
 		background-color: var(--color);
 	}
 
-	.scoreIndicator {
+	& .scoreIndicator {
 		--size: var(--size-medium);
 
 		background: var(--color-white);

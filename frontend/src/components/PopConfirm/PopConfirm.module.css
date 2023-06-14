@@ -1,5 +1,6 @@
 .popConfirmContainer {
 	z-index: 999999999;
+
 	:global(.ant-popover-message-title) {
 		max-width: 300px;
 		padding-left: 0 !important;
@@ -22,7 +23,7 @@
 		box-shadow: var(--box-shadow);
 	}
 
-	.description {
+	& .description {
 		color: var(--color-gray-500) !important;
 		line-height: 1.5 !important;
 		margin-bottom: 0 !important;

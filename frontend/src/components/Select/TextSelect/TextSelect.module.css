@@ -40,7 +40,7 @@
 		height: 18px;
 		width: 100%;
 
-		> svg {
+		&>svg {
 			color: var(--text-primary);
 			height: 100%;
 			position: relative;

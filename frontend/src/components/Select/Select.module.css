@@ -29,7 +29,7 @@
 		height: 18px;
 		width: 18px;
 
-		> svg {
+		&>svg {
 			height: 100%;
 			position: relative;
 			right: -2px;
@@ -73,8 +73,7 @@
 			}
 		}
 
-		&:global(.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
-				.ant-select-selector) {
+		&:global(.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector) {
 			border-color: transparent !important;
 			box-shadow: none !important;
 		}
@@ -83,7 +82,8 @@
 
 .dropdownIcon {
 	display: inline;
-	.icon {
+
+	& .icon {
 		display: none;
 	}
 }
@@ -110,10 +110,11 @@
 		display: flex;
 	}
 
-	.dropdownIcon {
+	& .dropdownIcon {
 		align-items: center;
 		display: flex;
-		.icon {
+
+		& .icon {
 			display: contents;
 			width: 100%;
 		}

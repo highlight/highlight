@@ -4,10 +4,10 @@
 	display: flex;
 	margin-top: var(--size-xSmall);
 
-	.adminContainer {
+	& .adminContainer {
 		color: var(--color-gray-500);
 
-		.value {
+		& .value {
 			color: var(--color-gray-600);
 			font-weight: 500;
 		}

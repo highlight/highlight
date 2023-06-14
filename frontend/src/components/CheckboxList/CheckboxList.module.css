@@ -4,12 +4,12 @@
 	display: flex;
 
 	&:hover {
-		.actionLabel {
+		& .actionLabel {
 			opacity: 1;
 		}
 	}
 
-	.checkboxContainer {
+	& .checkboxContainer {
 		border-radius: var(--size-xxSmall);
 		padding: var(--size-xxSmall);
 
@@ -19,7 +19,7 @@
 		}
 	}
 
-	.actionLabel {
+	& .actionLabel {
 		color: var(--color-gray-500) !important;
 		font-size: 0.8em !important;
 		margin: 0 !important;
@@ -30,7 +30,7 @@
 		width: 6ch;
 	}
 
-	.button {
+	& .button {
 		align-items: center;
 		background: transparent;
 		border: 0;

@@ -4,14 +4,14 @@
 	position: absolute;
 	z-index: 9999;
 
-	.commentPinButton {
+	& .commentPinButton {
 		background: none;
 		border: 0;
 		cursor: pointer;
 		outline: none;
 	}
 
-	> .commentPinButton {
+	&>.commentPinButton {
 		position: relative;
 		z-index: 99;
 	}

@@ -27,7 +27,7 @@
 	}
 
 	&:hover {
-		.copyButton {
+		& .copyButton {
 			opacity: 1;
 		}
 	}

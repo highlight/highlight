@@ -26,7 +26,7 @@
 		}
 
 		&.small {
-			>* {
+			&>* {
 				padding: var(--size-xSmall) var(--size-medium);
 			}
 		}

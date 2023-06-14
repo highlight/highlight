@@ -34,7 +34,7 @@
 
 	:global(.ant-spin),
 	:global(svg),
-	.loadingIcon {
+	& .loadingIcon {
 		height: var(--size);
 		width: var(--size);
 	}

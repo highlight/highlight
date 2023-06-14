@@ -25,7 +25,7 @@
 	display: flex;
 	margin: 0 10px 0 0;
 
-	>svg {
+	&>svg {
 		color: var(--color-gray-400) !important;
 		height: var(--size-medium);
 		width: var(--size-medium);

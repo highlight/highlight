@@ -4,7 +4,8 @@
 	position: relative;
 	width: 100%;
 	z-index: 2;
-	> div {
+
+	& > div {
 		height: 44px;
 		width: 100%;
 	}
@@ -18,12 +19,12 @@
 	padding: var(--size-small) 0 !important;
 	transition: scale 0.2s ease-in-out;
 
-	> * {
+	&>* {
 		padding-left: var(--size-medium) !important;
 		padding-right: var(--size-medium) !important;
 	}
 
-	> h4 {
+	&>h4 {
 		border-bottom: 1px solid var(--color-gray-300);
 		font-family: var(--header-font-family);
 		font-size: 13px !important;
@@ -31,7 +32,7 @@
 		padding-bottom: var(--size-xSmall);
 	}
 
-	> p {
+	&>p {
 		color: var(--color-gray-500) !important;
 		font-size: 14px !important;
 		margin: 0 !important;

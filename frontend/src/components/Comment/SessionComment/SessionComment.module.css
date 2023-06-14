@@ -12,7 +12,7 @@
 	transition: box-shadow 0.1s ease-in;
 	width: 100%;
 
-	> p {
+	&>p {
 		font-size: 14px;
 		font-weight: 200;
 	}
@@ -50,11 +50,12 @@
 	justify-content: space-between;
 	padding-top: var(--size-medium);
 
-	.actions {
+	& .actions {
 		column-gap: var(--size-xxSmall);
 		display: flex;
 	}
 }
+
 .iconLabel {
 	align-items: center;
 	column-gap: var(--size-small);

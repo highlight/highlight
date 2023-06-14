@@ -20,7 +20,7 @@
 	background-color: #f9f8f9;
 	margin-top: var(--size-medium);
 
-	.bodyText {
+	& .bodyText {
 		line-height: 20px;
 		margin-bottom: var(--size-small);
 	}

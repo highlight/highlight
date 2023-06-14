@@ -10,7 +10,7 @@
 	align-items: center;
 	display: flex;
 
-	> svg {
+	&>svg {
 		height: 12px;
 		width: 12px;
 	}
