@@ -50,14 +50,14 @@
 		}
 	}
 
-	.content {
+	& .content {
 		cursor: auto;
 		padding-bottom: var(--size-large);
 		padding-left: var(--size-large);
 		padding-right: var(--size-large);
 		padding-top: var(--size-xxSmall);
 
-		p:first-of-type {
+		& p:first-of-type {
 			margin-top: 0 !important;
 		}
 	}

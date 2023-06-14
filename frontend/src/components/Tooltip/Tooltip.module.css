@@ -1,16 +1,17 @@
 .tooltipOverlay {
 	z-index: 9999999999999999 !important;
-	a {
+
+	& a {
 		color: var(--text-primary-inverted) !important;
 		text-decoration: underline;
 	}
 
-	table {
+	& table {
 		border-collapse: collapse;
 		border-spacing: 0;
 		width: 100%;
 
-		td:first-of-type {
+		& td:first-of-type {
 			padding-right: var(--size-small);
 		}
 	}

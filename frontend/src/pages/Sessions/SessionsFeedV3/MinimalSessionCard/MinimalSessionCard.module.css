@@ -128,7 +128,7 @@
 		background-color: var(--color-gray-300);
 		cursor: pointer;
 
-		.actionIcon {
+		& .actionIcon {
 			color: var(--text-primary);
 			fill: var(--text-primary);
 			stroke: var(--text-primary);
@@ -157,7 +157,7 @@
 	&:hover {
 		cursor: pointer;
 
-		.actionIcon {
+		& .actionIcon {
 			color: var(--text-primary);
 			fill: var(--text-primary);
 			stroke: var(--text-primary);
@@ -216,7 +216,7 @@
 		cursor: not-allowed;
 	}
 
-	.activityGraphContainer {
+	& .activityGraphContainer {
 		border-top: 1px solid var(--color-gray-300);
 		width: 100%;
 	}
@@ -260,7 +260,7 @@
 		row-gap: var(--size-medium);
 	}
 
-	>div {
+	&>div {
 		height: 16px;
 		width: 16px;
 	}
@@ -276,7 +276,7 @@
 	justify-content: center;
 	width: var(--size-medium);
 
-	svg {
+	& svg {
 		height: var(--size-xSmall);
 		width: var(--size-xSmall);
 	}

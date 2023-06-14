@@ -29,7 +29,7 @@
 	padding: 14px 12px;
 	transition: color 0.2s ease-in-out;
 
-	b {
+	& b {
 		color: var(--color-purple-600);
 	}
 }

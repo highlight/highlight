@@ -3,7 +3,7 @@
 	gap: var(--size-xSmall);
 	justify-content: flex-end;
 
-	button {
+	& button {
 		align-items: center;
 		display: flex;
 		flex-direction: row;
@@ -51,11 +51,11 @@
 	padding-top: var(--size-xSmall) !important;
 	transition: all 0.2s ease-in-out;
 
-	div {
+	& div {
 		height: 100%;
 	}
 
-	textarea {
+	& textarea {
 		color: var(--text-primary) !important;
 		height: 100%;
 	}
@@ -95,7 +95,7 @@
 	transition: transform 0.25s ease;
 	width: calc(200% + (var(--size-medium) / 2));
 
-	> div {
+	&>div {
 		transition: opacity 0.25s, visibility 0.15s linear;
 		visibility: visible;
 		width: 100%;

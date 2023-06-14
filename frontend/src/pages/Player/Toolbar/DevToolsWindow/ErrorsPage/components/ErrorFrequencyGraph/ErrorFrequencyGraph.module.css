@@ -3,7 +3,7 @@
 	display: flex;
 	justify-content: space-between;
 
-	h3 {
+	& h3 {
 		margin-bottom: 0 !important;
 	}
 }

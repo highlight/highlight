@@ -28,12 +28,12 @@
 	&.error {
 		background-color: var(--color-red-400);
 
-		button {
+		& button {
 			background: transparent;
 		}
 	}
 
-	button {
+	& button {
 		--button-size: var(--size-medium);
 		--icon-size: var(--size-xSmall);
 		align-items: center;
@@ -52,7 +52,7 @@
 		transition: all 0.2s ease-in-out;
 		width: var(--button-size);
 
-		svg {
+		& svg {
 			flex-shrink: 0;
 			height: var(--icon-size);
 			transform-origin: center;
@@ -72,7 +72,7 @@
 	padding-top: 4px;
 	z-index: 100;
 
-	a {
+	& a {
 		color: white;
 		text-decoration: underline;
 	}

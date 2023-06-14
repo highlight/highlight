@@ -1,32 +1,32 @@
 .integration {
-	.logo {
+	& .logo {
 		border-radius: 50%;
 		height: var(--size-xxLarge);
 		width: var(--size-xxLarge);
 	}
 
-	.header {
+	& .header {
 		align-items: flex-start;
 		display: flex;
 		justify-content: space-between;
 		padding-bottom: var(--size-small);
 	}
 
-	.connectButton {
+	& .connectButton {
 		text-transform: uppercase;
 	}
 
-	.title {
+	& .title {
 		margin-bottom: var(--size-small) !important;
 	}
 
-	.description {
+	& .description {
 		margin-bottom: 0 !important;
 	}
 }
 
 .modal {
-	footer {
+	& footer {
 		column-gap: var(--size-medium);
 		display: flex;
 		justify-content: flex-end;

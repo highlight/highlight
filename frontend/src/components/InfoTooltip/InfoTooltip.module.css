@@ -1,7 +1,8 @@
 .tooltip {
 	flex-shrink: 0;
 	z-index: 9999999999999 !important;
-	a {
+
+	& a {
 		color: var(--text-primary-inverted) !important;
 		text-decoration: underline;
 	}

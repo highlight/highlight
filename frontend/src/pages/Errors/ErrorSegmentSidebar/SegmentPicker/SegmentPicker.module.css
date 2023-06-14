@@ -62,7 +62,7 @@
 		background-color: var(--color-gray-300);
 		cursor: pointer;
 
-		.trashIcon {
+		& .trashIcon {
 			color: var(--text-primary);
 			fill: var(--text-primary);
 		}
@@ -121,7 +121,7 @@
 	&:hover {
 		background-color: var(--color-gray-200);
 
-		.segmentAction {
+		& .segmentAction {
 			display: flex;
 		}
 	}

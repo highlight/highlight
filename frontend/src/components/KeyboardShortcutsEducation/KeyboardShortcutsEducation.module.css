@@ -33,28 +33,29 @@
 .container {
 	padding-top: var(--size-large);
 
-	section {
+	& section {
 		padding-top: var(--size-large);
 	}
 
-	table {
+	& table {
 		width: 100%;
 	}
 
-	tr {
+	& tr {
 		width: 100%;
+
 		&:not(:last-of-type) {
-			td {
+			& td {
 				padding-bottom: var(--size-small);
 			}
 		}
 	}
 
-	p {
+	& p {
 		font-size: 13px !important;
 	}
 
-	h3 {
+	& h3 {
 		font-size: 16px !important;
 		margin-bottom: var(--size-small) !important;
 	}

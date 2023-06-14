@@ -16,7 +16,7 @@
 	grid-template-columns: 80px minmax(0, 1fr);
 	row-gap: var(--size-xSmall);
 
-	p {
+	& p {
 		margin: 0 !important;
 	}
 }

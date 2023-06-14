@@ -35,10 +35,8 @@
 	--dot-color: var(--color-gray-200);
 	--dot-size: 2px;
 	--square-size: 50px;
-	background-image: radial-gradient(
-		var(--dot-color) var(--dot-size),
-		var(--background-color) var(--dot-size)
-	);
+	background-image: radial-gradient(var(--dot-color) var(--dot-size),
+			var(--background-color) var(--dot-size));
 	background-position: 0 0;
 	background-size: var(--square-size) var(--square-size);
 	height: 100vh;
@@ -53,20 +51,20 @@
 	height: var(--logo-size);
 	width: var(--logo-size);
 
-	.logo {
+	& .logo {
 		grid-column-start: 1;
 		grid-row-start: 1;
 		height: var(--logo-size);
 		width: var(--logo-size);
 		z-index: 2;
 
-		svg {
+		& svg {
 			height: 100%;
 			width: 100%;
 		}
 	}
 
-	.logoBackground {
+	& .logoBackground {
 		background: var(--logo-background-color);
 		border: 2px solid var(--logo-border-color);
 		border-radius: 50%;

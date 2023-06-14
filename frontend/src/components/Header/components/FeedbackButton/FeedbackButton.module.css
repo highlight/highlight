@@ -20,12 +20,12 @@
 }
 
 .feedbackButtonMenu {
-	a {
+	& a {
 		color: var(--text-primary);
 	}
 
-	a,
-	button {
+	& a,
+	& button {
 		align-items: center;
 		column-gap: var(--size-xSmall);
 		display: flex !important;

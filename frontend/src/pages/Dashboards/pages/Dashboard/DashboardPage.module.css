@@ -1,5 +1,6 @@
 .gridContainer {
 	padding: 30px 80px;
+
 	&.isEditing {
 		:global(.react-resizable-handle) {
 			opacity: 1;
@@ -128,7 +129,7 @@
 		padding-top: 0;
 	}
 
-	h3 {
+	& h3 {
 		font-size: var(--size-medium);
 		margin-bottom: 0 !important;
 		margin-top: 0 !important;

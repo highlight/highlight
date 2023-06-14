@@ -29,7 +29,7 @@
 		border-color: var(--color-gray-300) !important;
 		border-radius: 0 var(--border-radius) var(--border-radius) 0;
 
-		svg {
+		& svg {
 			color: var(--text-primary) !important;
 		}
 	}

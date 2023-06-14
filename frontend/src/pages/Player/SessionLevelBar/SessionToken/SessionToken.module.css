@@ -8,18 +8,18 @@
 	max-width: 378px;
 	min-width: 0;
 
-	> span {
+	&>span {
 		color: var(--color-gray-500);
 		line-height: normal;
 		margin: 0;
 		white-space: nowrap;
 	}
 
-	a {
+	& a {
 		color: var(--text-primary);
 	}
 
-	svg {
+	& svg {
 		color: var(--color-gray-500);
 		flex-shrink: 0;
 		height: 16px;
