@@ -43,7 +43,7 @@
 			margin-right: var(--size-medium);
 		}
 
-		& @media (max-width: 1350px) {
+		@media (max-width: 1350px) {
 			align-items: start;
 			flex-direction: column;
 		}
@@ -57,12 +57,14 @@
 .collapsibleWrapper {
 	width: 100%;
 
-	&#{&} {
-		h2 {
-			font-size: 14px !important;
-			font-weight: 400;
-		}
+	/* Not quite sure what the original selector here was doing, replacing with simple nesting for now? */
+	/* &#{&} { */
+	& h2 {
+		font-size: 14px !important;
+		font-weight: 400;
 	}
+
+	/* } */
 
 	& span>div {
 		margin-bottom: initial !important;
