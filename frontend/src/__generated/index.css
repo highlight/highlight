@@ -1,4 +1,4 @@
-/* temp_stylePlugin:ni:sha-256;ssVf0YXHMRBlOQdkNQCpM4PG3-IUXtUolw8eZs4QsY4 */
+/* temp_stylePlugin:ni:sha-256;AXfPD1GwJrG8m_FbTHzgEW1LCimcGNDXU0rOmaAiuOk */
 .container {
   width: 100%;
 }
@@ -184,9 +184,6 @@
   flex-shrink: 1 !important;
 }
 .flex-grow {
-  flex-grow: 1 !important;
-}
-.grow {
   flex-grow: 1 !important;
 }
 .transform {
