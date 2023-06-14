@@ -2633,8 +2633,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 
-	// if the session is not excluded, it is viewable, so send any relevant alerts
-	if !excluded {
+	// if the session changed from excluded to not excluded, it is viewable, so send any relevant alerts
+	if sessionObj.Excluded && !excluded {
 		return r.HandleSessionViewable(ctx, projectID, sessionObj)
 	}
 
