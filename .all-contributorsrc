@@ -30,7 +30,7 @@
 		{
 			"login": "mayberryzane",
 			"name": "Zane Mayberry",
-			"avatar_url": "https://avatars.githubusercontent.com/u/86132398?v=4?s=100",
+			"avatar_url": "https://avatars.githubusercontent.com/u/86132398?v=4",
 			"contributions": [
 				"code",
 				"doc"
@@ -40,7 +40,16 @@
 			"login": "et",
 			"name": "Eric Thomas",
 			"profile": "http://elmthomas.com/",
-			"avatar_url": "https://avatars.githubusercontent.com/u/58678?v=4?s=100",
+			"avatar_url": "https://avatars.githubusercontent.com/u/58678?v=4",
+			"contributions": [
+				"code",
+				"doc"
+			]
+		},
+		{
+			"login": "ccschmitz",
+			"name": "Chris Schmitz",
+			"avatar_url": "https://avatars.githubusercontent.com/u/308182?v=4",
 			"contributions": [
 				"code",
 				"doc"
