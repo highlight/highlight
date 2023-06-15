@@ -1,4 +1,7 @@
 <p align="center">
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
   <img width="2051" alt="docs-thumbnail" src="https://user-images.githubusercontent.com/20292680/233754540-409ee4cf-beab-46b1-b313-d2d717a87fd6.png">
 </p>
 <p align="center">
@@ -54,13 +57,9 @@ After a brief frontend load time, the app should be accessible at https://localh
 
 Good for <10k sessions and <50k errors ingested monthly. See our  [docs for more info and limitations](https://www.highlight.io/docs/general/company/open-source/hosting/self-host-hobby).
 
-### Developing on Highlight
-
-Want to contribute to Highlight? See our [onboarding](./DEVELOPER_ONBOARDING.md) guide.
-
 ### Enterprise self-hosted
 
-See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/company/open-source/self-host-enterprise) to deploy a scalable, production-ready instance with support from our team.
+See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/company/open-source/hosting/self-host-enterprise) to deploy a scalable, production-ready instance with support from our team.
 
 ## Features
 
@@ -134,6 +133,21 @@ Read more about [our values here](https://www.highlight.io/docs/general/company/
 ## Contributors ✨
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="http://jaykhatri.com"><img src="https://avatars.githubusercontent.com/u/20292680?v=4?s=100" width="100px;" alt="Jay Khatri"/><br /><sub><b>Jay Khatri</b></sub></a><br /><a href="https://github.com/highlight/highlight/commits?author=jay-khatri" title="Code">💻</a> <a href="https://github.com/highlight/highlight/commits?author=jay-khatri" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://vadweb.us"><img src="https://avatars.githubusercontent.com/u/1351531?v=4?s=100" width="100px;" alt="Vadim Korolik"/><br /><sub><b>Vadim Korolik</b></sub></a><br /><a href="https://github.com/highlight/highlight/commits?author=Vadman97" title="Code">💻</a> <a href="https://github.com/highlight/highlight/commits?author=Vadman97" title="Documentation">📖</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 

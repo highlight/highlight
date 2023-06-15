@@ -1,17 +1,18 @@
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import {
+	GetObjectCommand,
+	PutObjectCommand,
+	S3Client,
+} from '@aws-sdk/client-s3'
 import { Readable } from 'stream'
-import { NodeHttpHandler } from '@aws-sdk/node-http-handler'
-import zlib from 'zlib'
-import * as https from 'https'
+import * as zlib from 'zlib'
+import { readFileSync, statSync } from 'fs'
 
-const west_client = new S3Client({
-	region: 'us-west-2',
-	requestHandler: new NodeHttpHandler({
-		socketTimeout: 10000,
-		connectionTimeout: 5000,
-		httpsAgent: new https.Agent({ secureProtocol: 'TLSv1_2_method' }),
-	}),
-	maxAttempts: 2,
+const DATA_BUCKET = 'highlight-session-data'
+const RENDER_BUCKET = 'highlight-session-render'
+
+const east_client = new S3Client({
+	region: 'us-east-2',
+	maxAttempts: 5,
 })
 
 export async function compressedStreamToString(
@@ -36,17 +37,37 @@ export async function getEvents(
 	session: number,
 	chunk?: number,
 ) {
-	let key = `${project}/${session}/session-contents-compressed`
+	let key = `v2/${project}/${session}/session-contents-compressed`
 	if (chunk !== undefined) {
 		key = `${key}-${chunk.toString().padStart(4, '0')}`
 	}
 	const command = new GetObjectCommand({
-		Bucket: 'highlight-session-s3-test',
+		Bucket: DATA_BUCKET,
 		Key: key,
 	})
-	const response = await west_client.send(command)
+	const response = await east_client.send(command)
 	if (!response.Body) {
 		throw new Error(`no body downloaded from s3 for ${key}`)
 	}
 	return await compressedStreamToString(response.Body as Readable)
+}
+
+export async function uploadRenderExport(
+	project: number,
+	session: number,
+	format: string,
+	localPath: string,
+) {
+	const stat = statSync(localPath)
+	console.log(`uploading file ${localPath} size ${stat.size}`)
+	const ext = format.split('/').pop()
+	let key = `${project}/${session}.${ext}`
+	const command = new PutObjectCommand({
+		Bucket: RENDER_BUCKET,
+		Key: key,
+		Body: Buffer.from(readFileSync(localPath)),
+		ContentType: format,
+	})
+	await east_client.send(command)
+	return `https://highlight-session-render.s3.us-east-2.amazonaws.com/${key}`
 }
