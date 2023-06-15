@@ -3,10 +3,11 @@ import { SearchResultsHistogram } from '@components/SearchResultsHistogram/Searc
 import { useGetErrorsHistogramQuery } from '@graph/hooks'
 import { DateHistogramBucketSize } from '@graph/schemas'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import { updateQueriedTimeRange } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import React, { useCallback } from 'react'
+
+import { updateQueriedTimeRange } from '@/components/QueryBuilder/QueryBuilder'
 
 import { TIME_RANGE_FIELD } from '../ErrorQueryBuilder/ErrorQueryBuilder'
 

@@ -1,7 +1,7 @@
 import { Box, IconSolidPlay, Tooltip } from '@highlight-run/ui'
 import { createSearchParams } from 'react-router-dom'
 
-import { isLoggedIn } from '@/authentication/AuthContext'
+import { useAuthContext } from '@/authentication/AuthContext'
 import { Button } from '@/components/Button'
 import { LinkButton } from '@/components/LinkButton'
 import { ErrorObjectFragment } from '@/graph/generated/operations'
@@ -29,6 +29,7 @@ type Props = {
 }
 
 export const ShowSessionButton = ({ errorObject }: Props) => {
+	const { isLoggedIn } = useAuthContext()
 	const trackingId = 'errorInstanceShowSession'
 	const sessionAvailable =
 		errorObject && errorObject.session?.excluded === false

@@ -72,7 +72,7 @@ const staticProperties = defineProperties({
 		borderTopRightRadius: vars.borderRadius,
 		borderBottomLeftRadius: vars.borderRadius,
 		borderBottomRightRadius: vars.borderRadius,
-		cursor: ['default', 'pointer'],
+		cursor: ['default', 'pointer', 'not-allowed'],
 		display: [
 			'none',
 			'flex',

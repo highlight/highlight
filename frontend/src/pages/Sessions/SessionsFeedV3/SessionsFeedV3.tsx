@@ -31,10 +31,6 @@ import {
 } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
 import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/SessionFeedCard'
-import {
-	QueryBuilderState,
-	updateQueriedTimeRange,
-} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import SessionQueryBuilder, {
 	TIME_RANGE_FIELD,
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
@@ -45,6 +41,10 @@ import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import clsx from 'clsx'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 
+import {
+	QueryBuilderState,
+	updateQueriedTimeRange,
+} from '@/components/QueryBuilder/QueryBuilder'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
 

@@ -12,7 +12,7 @@ import (
 )
 
 func TestGetProjectFilterSettings(t *testing.T) {
-	util.RunTestWithDBWipe(t, "GetProjectFilterSettings", store.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
 		project := model.Project{}
 		store.db.Create(&project)
 
@@ -28,7 +28,7 @@ func TestGetProjectFilterSettings(t *testing.T) {
 }
 
 func TestUpdateProjectFilterSettings(t *testing.T) {
-	util.RunTestWithDBWipe(t, "UpdateProjectFilterSettings", store.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
 		project := model.Project{}
 		store.db.Create(&project)
 
@@ -51,7 +51,7 @@ func TestUpdateProjectFilterSettings(t *testing.T) {
 }
 
 func TestFindProjectsWithAutoResolveSetting(t *testing.T) {
-	util.RunTestWithDBWipe(t, "FindProjectsWithAutoResolveSetting", store.db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
 		project1 := model.Project{}
 		store.db.Create(&project1)
 

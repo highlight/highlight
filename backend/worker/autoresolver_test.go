@@ -34,7 +34,7 @@ func TestAutoResolveStaleErrors(t *testing.T) {
 	autoResolver := createAutoResolver()
 	db := autoResolver.db
 
-	util.RunTestWithDBWipe(t, "AutoResolveStaleErrors", db, func(t *testing.T) {
+	util.RunTestWithDBWipe(t, db, func(t *testing.T) {
 		project := model.Project{}
 		db.Create(&project)
 

@@ -32,7 +32,7 @@ button {
 	margin-top: 10px;
 	background-color: #5629c6;
 	color: white;
-	font-family: 'Steradian';
+	font-family: 'Inter';
 	border-radius: 4px;
 	border: none;
 	padding: 8px;
@@ -43,6 +43,7 @@ button {
 	from {
 		transform: rotate(0deg);
 	}
+
 	to {
 		transform: rotate(360deg);
 	}

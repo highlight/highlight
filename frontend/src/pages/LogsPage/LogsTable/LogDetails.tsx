@@ -342,7 +342,7 @@ const LogDetailsObject: React.FC<{
 			<LogAttributeLine>
 				{open ? <IconExpanded /> : <IconCollapsed />}
 				<Box py="6">
-					<Text color="weak" family="monospace" weight="bold">
+					<Text color="weak" family="monospace">
 						{label}
 					</Text>
 				</Box>
@@ -391,9 +391,7 @@ export const LogValue: React.FC<{
 				py="6"
 				onClick={(e: any) => e.stopPropagation()}
 			>
-				<Text family="monospace" weight="bold">
-					"{label}":
-				</Text>
+				<Text family="monospace">"{label}":</Text>
 			</Box>
 			<Box
 				display="flex"
@@ -403,12 +401,7 @@ export const LogValue: React.FC<{
 				onClick={(e: any) => e.stopPropagation()}
 			>
 				<Box borderRadius="4" p="6">
-					<Text
-						family="monospace"
-						weight="bold"
-						color="caution"
-						break="word"
-					>
+					<Text family="monospace" color="caution" break="word">
 						{queryMatch ? (
 							stringParts.map((part, index) => (
 								<React.Fragment key={index}>
