@@ -35,6 +35,16 @@
 				"code",
 				"doc"
 			]
+		},
+		{
+			"login": "et",
+			"name": "Eric Thomas",
+			"profile": "http://elmthomas.com/",
+			"avatar_url": "https://avatars.githubusercontent.com/u/58678?v=4?s=100",
+			"contributions": [
+				"code",
+				"doc"
+			]
 		}
 	],
 	"contributorsPerLine": 7,
