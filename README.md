@@ -1,6 +1,6 @@
 <p align="center">
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
   <img width="2051" alt="docs-thumbnail" src="https://user-images.githubusercontent.com/20292680/233754540-409ee4cf-beab-46b1-b313-d2d717a87fd6.png">
 </p>
@@ -147,7 +147,9 @@ Read more about [our values here](https://www.highlight.io/docs/general/company/
       <td align="center" valign="top" width="14.28%"><img src="https://avatars.githubusercontent.com/u/17744174?v=4?s=100" width="100px;" alt="Spencer Amarantides"/><br /><sub><b>Spencer Amarantides</b></sub><br /><a href="https://github.com/highlight/highlight/commits?author=SpennyNDaJets" title="Code">💻</a> <a href="https://github.com/highlight/highlight/commits?author=SpennyNDaJets" title="Documentation">📖</a></td>
     </tr>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Abhishek-More"><img src="https://avatars.githubusercontent.com/u/25088104?v=4?s=100" width="100px;" alt="Abhishek More"/><br /><sub><b>Abhishek More</b></sub></a><br /><a href="https://github.com/highlight/highlight/commits?author=Abhishek-More" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><img src="https://avatars.githubusercontent.com/u/25088104?v=4?s=100" width="100px;" alt="Abhishek More"/><br /><sub><b>Abhishek More</b></sub><br /><a href="https://github.com/highlight/highlight/commits?author=Abhishek-More" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><img src="https://avatars.githubusercontent.com/u/19144605?v=4?s=100" width="100px;" alt="Aaron"/><br /><sub><b>Aaron</b></sub><br /><a href="https://github.com/highlight/highlight/commits?author=Crawron" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/julian-highlight"><img src="https://avatars.githubusercontent.com/u/114743131?v=4?s=100" width="100px;" alt="Julian Schneider"/><br /><sub><b>Julian Schneider</b></sub></a><br /><a href="#design-julian-highlight" title="Design">🎨</a></td>
     </tr>
   </tbody>
 </table>

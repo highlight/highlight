@@ -80,6 +80,22 @@
 			"contributions": [
 				"code"
 			]
+		},
+		{
+			"login": "Crawron",
+			"name": "Aaron",
+			"avatar_url": "https://avatars.githubusercontent.com/u/19144605?v=4",
+			"contributions": [
+				"code"
+			]
+		},
+		{
+			"login": "julian-highlight",
+			"name": "Julian Schneider",
+			"avatar_url": "https://avatars.githubusercontent.com/u/114743131?v=4",
+			"contributions": [
+				"design"
+			]
 		}
 	],
 	"contributorsPerLine": 7,
