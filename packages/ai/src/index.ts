@@ -1,7 +1,6 @@
 import { Configuration, OpenAIApi } from 'openai'
-import { getSessionHighlightPrompt } from './prompts'
 import { getEvents } from './s3'
-import { getInsightsForEvents, parseEventsForInput } from './utils'
+import { getInsightsForEvents } from './utils'
 import { APIGatewayEvent } from 'aws-lambda'
 
 const configuration = new Configuration({

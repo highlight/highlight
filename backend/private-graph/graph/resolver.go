@@ -1270,16 +1270,12 @@ func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sess
 
 func (r *Resolver) getSessionInsight(ctx context.Context, projectID int, sessionID int) ([]byte, error) {
 	res, err := r.LambdaClient.GetSessionInsight(ctx, projectID, sessionID)
-	fmt.Print("pepe0")
 	if err != nil {
 		return nil, e.Wrap(err, "failed to make session insight request")
 	}
-	fmt.Print("pepe1")
-	fmt.Print(res)
 	if res.StatusCode != 200 {
 		return nil, errors.New(fmt.Sprintf("session insight returned %d", res.StatusCode))
 	}
-	fmt.Print("pepe2")
 	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, e.Wrap(err, "failed to read body of session insight response")
