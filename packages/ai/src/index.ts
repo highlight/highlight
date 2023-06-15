@@ -1,7 +1,7 @@
 import { Configuration, OpenAIApi } from 'openai'
 import { getSessionHighlightPrompt } from './prompts'
 import { getEvents } from './s3'
-import { parseEventsForInput } from './utils'
+import { getInsightsForEvents, parseEventsForInput } from './utils'
 import { APIGatewayEvent } from 'aws-lambda'
 
 const configuration = new Configuration({
@@ -14,20 +14,7 @@ export const handler = async (event?: APIGatewayEvent) => {
 	const args = JSON.parse(event?.body ?? '[]')
 	const { id, project_id } = args
 	const events = JSON.parse(await getEvents(project_id, id))
-	const parsedEvents = parseEventsForInput(events)
-	const completion = await openai.createChatCompletion({
-		model: 'gpt-3.5-turbo',
-		messages: [
-			{
-				role: 'user',
-				content: getSessionHighlightPrompt(
-					JSON.stringify(parsedEvents),
-				),
-			},
-		],
-		temperature: 1.2,
-	})
-	const responseString = completion.data.choices[0].message?.content || ''
+	const responseString = await getInsightsForEvents(openai, events)
 	return {
 		statusCode: 200,
 		body: JSON.stringify({ id: id, insight: responseString }),

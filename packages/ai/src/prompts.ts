@@ -7,9 +7,9 @@ Rules:
 - Do not solely recite the different type of events.
 - There is no need to mention every event.
 - Identification information is not interesting
-- If timestamps are included in output, convert time into human-readable format
+- Only the timestamp that best represents the insight in the 'timestamp' field of the output
 
-${FORMAT_INSTRUCTION}
+${JSON_FORMAT_INSTRUCTION}
 
 Context: 
 - The events are JSON objects, where the "timestamp" field represents UNIX time of the event in seconds, the "type" field represents the type of event, and the "data" field represents more information about the event
@@ -55,3 +55,9 @@ const FORMAT_INSTRUCTION = `Format:
 2. <Insight>
 3. <Insight> 
 Do not provide any other output other than this format`
+
+const JSON_FORMAT_INSTRUCTION = `
+You must respond ONLY with JSON that looks like this: 
+[{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number }]
+Do not provide any other output other than this format.
+`

@@ -64,17 +64,18 @@ func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessio
 }
 
 func (s *Client) GetSessionInsight(ctx context.Context, projectID int, sessionID int) (*http.Response, error) {
-	// b, _ := json.Marshal(&modelInputs.SessionQuery{
-	// 	ID:        232563428,
-	// 	ProjectID: 1,
-	// })
-
 	b, _ := json.Marshal(&modelInputs.SessionQuery{
-		ID:        sessionID,
-		ProjectID: projectID,
+		ID:        232563428,
+		ProjectID: 1,
 	})
 
+	// b, _ := json.Marshal(&modelInputs.SessionQuery{
+	// 	ID:        sessionID,
+	// 	ProjectID: projectID,
+	// })
+
 	req, _ := http.NewRequest(http.MethodPost, "https://ohw2ocqp0d.execute-api.us-east-2.amazonaws.com/default/ai-insights", bytes.NewBuffer(b))
+	// req, _ := http.NewRequest(http.MethodPost, "http://localhost:8765/session/insight", bytes.NewBuffer(b))
 	req = req.WithContext(ctx)
 	req.Header = http.Header{
 		"Content-Type":  []string{"application/json"},

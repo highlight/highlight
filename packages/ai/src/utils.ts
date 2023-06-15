@@ -1,3 +1,6 @@
+import { OpenAIApi } from 'openai'
+import { getSessionHighlightPrompt } from './prompts'
+
 export enum EventType {
 	DomContentLoaded,
 	Load,
@@ -26,4 +29,25 @@ export const parseEventsForInput = (events: any[]) => {
 		}
 	})
 	return parsedEvents
+}
+
+export const getInsightsForEvents = async (
+	openai: OpenAIApi,
+	events: any[],
+) => {
+	const parsedEvents = parseEventsForInput(events)
+	const completion = await openai.createChatCompletion({
+		model: 'gpt-3.5-turbo',
+		messages: [
+			{
+				role: 'user',
+				content: getSessionHighlightPrompt(
+					JSON.stringify(parsedEvents),
+				),
+			},
+		],
+		temperature: 1.2,
+	})
+	const responseString = completion.data.choices[0].message?.content || ''
+	return responseString
 }
