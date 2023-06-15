@@ -302,6 +302,21 @@ export class FirstLoadListeners {
 		return [...httpResources, ...webSocketResources]
 	}
 
+	static getRecordedWebSocketEvents(
+		sThis: FirstLoadListeners,
+	): Array<WebSocketEvent> {
+		let webSocketEvents: Array<WebSocketEvent> = []
+
+		if (
+			!sThis.disableNetworkRecording &&
+			!sThis.disableRecordingWebSocketContents
+		) {
+			webSocketEvents = sThis.webSocketEventContents
+		}
+
+		return webSocketEvents
+	}
+
 	static clearRecordedNetworkResources(sThis: FirstLoadListeners): void {
 		if (!sThis.disableNetworkRecording) {
 			sThis.xhrNetworkContents = []
