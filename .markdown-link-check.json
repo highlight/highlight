@@ -1,0 +1,15 @@
+{
+	"ignorePatterns": [
+		{
+			"pattern": "https://www.linkedin.com.*"
+		},
+		{
+			"pattern": "https://twitter.com*"
+		}
+	],
+	"timeout": "30s",
+	"retryOn429": true,
+	"retryCount": 2,
+	"fallbackRetryDelay": "1m",
+	"aliveStatusCodes": [200, 203, 429]
+}
