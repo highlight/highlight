@@ -54,6 +54,15 @@
 				"code",
 				"doc"
 			]
+		},
+		{
+			"login": "deltaepsilon",
+			"name": "Chris Esplin",
+			"avatar_url": "https://avatars.githubusercontent.com/u/878947?v=4",
+			"contributions": [
+				"code",
+				"doc"
+			]
 		}
 	],
 	"contributorsPerLine": 7,
