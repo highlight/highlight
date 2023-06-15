@@ -96,6 +96,15 @@
 			"contributions": [
 				"design"
 			]
+		},
+		{
+			"login": "cameronbrill",
+			"name": "Cameron Brill",
+			"profile": "https://www.cameronbrill.me/",
+			"avatar_url": "https://avatars.githubusercontent.com/u/37822869?v=4",
+			"contributions": [
+				"code"
+			]
 		}
 	],
 	"contributorsPerLine": 7,
