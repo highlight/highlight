@@ -180,6 +180,7 @@ Read more about [our values here](https://www.highlight.io/docs/general/company/
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><img src="https://avatars.githubusercontent.com/u/4401263?v=4?s=100" width="100px;" alt="Pedro Saratscheff"/><br /><sub><b>Pedro Saratscheff</b></sub><br /><a href="https://github.com/highlight/highlight/commits?author=saratscheff" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://grantmercer.dev"><img src="https://avatars.githubusercontent.com/u/1827631?v=4?s=100" width="100px;" alt="Grant Mercer"/><br /><sub><b>Grant Mercer</b></sub></a><br /><a href="https://github.com/highlight/highlight/commits?author=Syntaf" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
