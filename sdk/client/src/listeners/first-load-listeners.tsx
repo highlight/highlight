@@ -10,6 +10,7 @@ import { DEFAULT_URL_BLOCKLIST } from './network-listener/utils/network-sanitize
 import {
 	RequestResponsePair,
 	WebSocketEvent,
+	WebSocketRequest,
 } from './network-listener/utils/models'
 import { NetworkListener } from './network-listener/network-listener'
 import {
@@ -35,7 +36,8 @@ export class FirstLoadListeners {
 	xhrNetworkContents!: RequestResponsePair[]
 	fetchNetworkContents!: RequestResponsePair[]
 	disableRecordingWebSocketContents!: boolean
-	webSocketNetworkContents!: WebSocketEvent[]
+	webSocketNetworkContents!: WebSocketRequest[]
+	webSocketEventContents!: WebSocketEvent[]
 	tracingOrigins!: boolean | (string | RegExp)[]
 	networkHeadersToRedact!: string[]
 	networkBodyKeysToRedact: string[] | undefined
@@ -137,6 +139,7 @@ export class FirstLoadListeners {
 		sThis.xhrNetworkContents = []
 		sThis.fetchNetworkContents = []
 		sThis.webSocketNetworkContents = []
+		sThis.webSocketEventContents = []
 		sThis.networkHeadersToRedact = []
 		sThis.urlBlocklist = []
 		sThis.tracingOrigins = options.tracingOrigins || []
@@ -222,8 +225,11 @@ export class FirstLoadListeners {
 					fetchCallback: (requestResponsePair) => {
 						sThis.fetchNetworkContents.push(requestResponsePair)
 					},
-					webSocketCallback: (event) => {
+					webSocketRequestCallback: (event) => {
 						sThis.webSocketNetworkContents.push(event)
+					},
+					webSocketEventCallback: (event) => {
+						sThis.webSocketEventContents.push(event)
 					},
 					disableWebSocketRecording:
 						sThis.disableRecordingWebSocketContents,
@@ -243,9 +249,9 @@ export class FirstLoadListeners {
 	static getRecordedNetworkResources(
 		sThis: FirstLoadListeners,
 		recordingStartTime: number,
-	): Array<PerformanceResourceTiming | WebSocketEvent> {
+	): Array<PerformanceResourceTiming | WebSocketRequest> {
 		let httpResources: Array<PerformanceResourceTiming> = []
-		let webSocketResources: Array<WebSocketEvent> = []
+		let webSocketResources: Array<WebSocketRequest> = []
 
 		if (!sThis.disableNetworkRecording) {
 			const documentTimeOrigin = window?.performance?.timeOrigin || 0
@@ -301,6 +307,7 @@ export class FirstLoadListeners {
 			sThis.xhrNetworkContents = []
 			sThis.fetchNetworkContents = []
 			sThis.webSocketNetworkContents = []
+			sThis.webSocketEventContents = []
 			performance.clearResourceTimings()
 		}
 	}

@@ -25,12 +25,20 @@ export interface RequestResponsePair {
 	urlBlocked: boolean
 }
 
-export interface WebSocketEvent {
+export interface WebSocketRequest {
 	socketId: string
 	initiatorType: 'WebSocket'
-	type: 'open' | 'error' | 'close' | 'received' | 'sent'
+	type: 'open' | 'close'
 	name: string
-	startTime: number
+	startTime?: number
+	endTime?: number
+}
+
+export interface WebSocketEvent {
+	socketId: string
+	type: 'error' | 'received' | 'sent'
+	name: string
+	timeStamp: number
 	size: number
 	message?: string
 }

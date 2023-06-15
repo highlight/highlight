@@ -3,11 +3,12 @@ import type { HighlightWebSocketWindow } from '@highlight-run/client/src/listene
 
 declare var window: HighlightWebSocketWindow
 
-const placeholderWebSocketCallback = () => null
+const placeholderCallback = () => null
 
 export const initializeWebSocketListener = () => {
 	if (!(typeof window === 'undefined' || typeof document === 'undefined')) {
-		window._highlightWebSocketCallback = placeholderWebSocketCallback
+		window._highlightWebSocketRequestCallback = placeholderCallback
+		window._highlightWebSocketEventCallback = placeholderCallback
 
 		const WebSocketProxy = new Proxy(window.WebSocket, {
 			construct(
@@ -18,14 +19,28 @@ export const initializeWebSocketListener = () => {
 				const webSocket = new target(...args)
 
 				const openHandler = (event: Event) => {
-					window._highlightWebSocketCallback({
+					window._highlightWebSocketRequestCallback({
 						socketId,
 						initiatorType: 'WebSocket',
 						type: 'open',
 						name: webSocket.url,
 						startTime: event.timeStamp,
-						size: 0,
 					})
+				}
+
+				const closeHandler = (event: CloseEvent) => {
+					window._highlightWebSocketRequestCallback({
+						socketId,
+						initiatorType: 'WebSocket',
+						type: 'close',
+						name: webSocket.url,
+						endTime: event.timeStamp,
+					})
+
+					webSocket.removeEventListener('open', openHandler)
+					webSocket.removeEventListener('error', errorHandler)
+					webSocket.removeEventListener('message', messageHandler)
+					webSocket.removeEventListener('close', closeHandler)
 				}
 
 				const messageHandler = (event: MessageEvent) => {
@@ -42,42 +57,24 @@ export const initializeWebSocketListener = () => {
 						size = data.byteLength || 0
 					}
 
-					window._highlightWebSocketCallback({
+					window._highlightWebSocketEventCallback({
 						socketId,
-						initiatorType: 'WebSocket',
 						type: 'received',
 						name: webSocket.url,
-						startTime: event.timeStamp,
+						timeStamp: event.timeStamp,
 						size,
 						message,
 					})
 				}
 
 				const errorHandler = (event: Event) => {
-					window._highlightWebSocketCallback({
+					window._highlightWebSocketEventCallback({
 						socketId,
-						initiatorType: 'WebSocket',
 						type: 'error',
 						name: webSocket.url,
-						startTime: event.timeStamp,
+						timeStamp: event.timeStamp,
 						size: 0,
 					})
-				}
-
-				const closeHandler = (event: CloseEvent) => {
-					window._highlightWebSocketCallback({
-						socketId,
-						initiatorType: 'WebSocket',
-						type: 'close',
-						name: webSocket.url,
-						startTime: event.timeStamp,
-						size: 0,
-					})
-
-					webSocket.removeEventListener('open', openHandler)
-					webSocket.removeEventListener('error', errorHandler)
-					webSocket.removeEventListener('message', messageHandler)
-					webSocket.removeEventListener('close', closeHandler)
 				}
 
 				webSocket.addEventListener('open', openHandler)
@@ -104,12 +101,11 @@ export const initializeWebSocketListener = () => {
 							size = data.byteLength || 0
 						}
 
-						window._highlightWebSocketCallback({
+						window._highlightWebSocketEventCallback({
 							socketId,
-							initiatorType: 'WebSocket',
 							type: 'sent',
 							name: webSocket.url,
-							startTime: performance.now(),
+							timeStamp: performance.now(),
 							size,
 							message,
 						})

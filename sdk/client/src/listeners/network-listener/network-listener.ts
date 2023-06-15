@@ -3,8 +3,9 @@ import { FetchListener } from './utils/fetch-listener'
 import { RequestResponsePair } from './utils/models'
 import { sanitizeRequest, sanitizeResponse } from './utils/network-sanitizer'
 import {
-	WebSocketListenerCallback,
+	WebSocketEventListenerCallback,
 	WebSocketListener,
+	WebSocketRequestListenerCallback,
 } from './utils/web-socket-listener'
 import { XHRListener } from './utils/xhr-listener'
 
@@ -15,7 +16,8 @@ export type NetworkListenerCallback = (
 type NetworkListenerArguments = {
 	xhrCallback: NetworkListenerCallback
 	fetchCallback: NetworkListenerCallback
-	webSocketCallback: WebSocketListenerCallback
+	webSocketRequestCallback: WebSocketRequestListenerCallback
+	webSocketEventCallback: WebSocketEventListenerCallback
 	disableWebSocketRecording: boolean
 	headersToRedact: string[]
 	bodyKeysToRedact: string[]
@@ -28,7 +30,8 @@ type NetworkListenerArguments = {
 export const NetworkListener = ({
 	xhrCallback,
 	fetchCallback,
-	webSocketCallback,
+	webSocketRequestCallback,
+	webSocketEventCallback,
 	disableWebSocketRecording,
 	headersToRedact,
 	bodyKeysToRedact,
@@ -75,9 +78,7 @@ export const NetworkListener = ({
 	)
 
 	const removeWebSocketListener = !disableWebSocketRecording
-		? WebSocketListener((event) => {
-				webSocketCallback(event)
-		  })
+		? WebSocketListener(webSocketRequestCallback, webSocketEventCallback)
 		: () => {}
 
 	return () => {

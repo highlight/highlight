@@ -1,19 +1,40 @@
-import { WebSocketEvent } from '../utils/models'
+import { WebSocketEvent, WebSocketRequest } from '../utils/models'
 
-export type WebSocketListenerCallback = (event: WebSocketEvent) => void
+export type WebSocketRequestListenerCallback = (event: WebSocketRequest) => void
+
+export type WebSocketEventListenerCallback = (event: WebSocketEvent) => void
+
 export type HighlightWebSocketWindow = Window & {
-	_highlightWebSocketCallback: WebSocketListenerCallback
+	/**
+	 * Callback for web socket open and close events that are displayed in the network requests
+	 */
+	_highlightWebSocketRequestCallback: WebSocketRequestListenerCallback
+	/**
+	 * Callback for web socket message and error events that are displayed under the websocket requests
+	 */
+	_highlightWebSocketEventCallback: WebSocketEventListenerCallback
 	WebSocket: any
 }
 
 declare var window: HighlightWebSocketWindow
 
-const WebSocketListener = (callback: WebSocketListenerCallback) => {
-	const initialHighlightWebSocketCallback = window._highlightWebSocketCallback
-	window._highlightWebSocketCallback = callback
+const WebSocketListener = (
+	requestCallback: WebSocketRequestListenerCallback,
+	eventCallback: WebSocketEventListenerCallback,
+) => {
+	const initialHighlightWebSocketRequestCallback =
+		window._highlightWebSocketRequestCallback
+	window._highlightWebSocketRequestCallback = requestCallback
+
+	const initialHighlightWebSocketEventCallback =
+		window._highlightWebSocketEventCallback
+	window._highlightWebSocketEventCallback = eventCallback
 
 	return () => {
-		window._highlightWebSocketCallback = initialHighlightWebSocketCallback
+		window._highlightWebSocketRequestCallback =
+			initialHighlightWebSocketRequestCallback
+		window._highlightWebSocketEventCallback =
+			initialHighlightWebSocketEventCallback
 	}
 }
 
