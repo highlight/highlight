@@ -86,7 +86,6 @@
 		"https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap",
 		"https://unpkg.com/@highlight-run/rrweb@0.9.27/dist/index.css",
 		"/public.css",
-		"/__generated/index.css",
 	],
 	"nodejsCompatibility": {
 		"omitModuleExtension": true,
@@ -140,6 +139,10 @@
 		{
 			"from": "/lottie/",
 			"to": "@lottie/",
+		},
+		{
+			"from": "/__generated/index.css",
+			"to": "/style/tailwind.css",
 		},
 		{
 			"from": "/__generated/rr/rr.js",
