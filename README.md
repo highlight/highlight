@@ -1,11 +1,7 @@
 <p align="center">
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-36-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
   <img width="2051" alt="docs-thumbnail" src="https://user-images.githubusercontent.com/20292680/233754540-409ee4cf-beab-46b1-b313-d2d717a87fd6.png">
 </p>
 <p align="center">
-  <a href='https://github.com/highlight/highlight/graphs/contributors'><img src='https://img.shields.io/badge/all_contributors-17-orange.svg' /></a>
   <a href='http://makeapullrequest.com'><img alt='PRs Welcome' src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=shields'/></a>
   <a href='https://highlight.io/community'><img alt="Join Discord Community" src="https://img.shields.io/badge/discord%20community-join-blue"/></a>
   <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/m/highlight/highlight"/>
