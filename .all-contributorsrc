@@ -63,6 +63,15 @@
 				"code",
 				"doc"
 			]
+		},
+		{
+			"login": "SpennyNDaJets",
+			"name": "Spencer Amarantides",
+			"avatar_url": "https://avatars.githubusercontent.com/u/17744174?v=4",
+			"contributions": [
+				"code",
+				"doc"
+			]
 		}
 	],
 	"contributorsPerLine": 7,
