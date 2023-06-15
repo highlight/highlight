@@ -243,7 +243,7 @@
 			"sourceDirectory": "sdk/client/src",
 			"entryPoints": {
 				"/src/listeners/first-load-listeners": "/listeners/first-load-listeners.tsx",
-				"/src/listeners/network-listener/utils/utils": "/src/listeners/network-listener/utils/utils.ts",
+				"/src/listeners/network-listener/utils/utils": "/listeners/network-listener/utils/utils.ts",
 				"/src/utils/secure-id": "/utils/secure-id.ts",
 				"/src/utils/sessionStorage/highlightSession": "/utils/sessionStorage/highlightSession.ts",
 			},
