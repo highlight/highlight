@@ -57,6 +57,57 @@ Good for <10k sessions and <50k errors ingested monthly. See our  [docs for more
 ### Enterprise self-hosted
 
 See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/company/open-source/hosting/self-host-enterprise) to deploy a scalable, production-ready instance with support from our team.
+
+
+## Features
+
+### Session Replay: Understand WHY bugs happen.
+
+-   **Dom-based High-fidelity Replay**: Replay every interaction and dom change that happened in a given browser session (powered by https://github.com/rrweb-io/rrweb)
+-   **Outgoing Network Requests**: See all the network requests (and their contents) in a given session to reproduce the data that was sent/received by your frontend -> [docs](https://www.highlight.io/docs/general/product-features/session-replay/dev-tools)
+-   **Console logs**: Analyze the logs printed (`console.error`, `console.log`, etc..) to the console from your frontend -> [docs](https://www.highlight.io/docs/general/product-features/session-replay/dev-tools)
+-   **Embedded Error Monitoring**: See the errors associated with a given session to understand what the user was doing leading up to them.
+-   **Session Comments**: Comment on errors to communicate with your team on user frustration, bugs, and more! -> [docs](https://www.highlight.io/docs/general/product-features/general-features/comments)
+-   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
+
+<p align="center">
+<img width="600" alt="Frame 43972" src="https://user-images.githubusercontent.com/20292680/214499701-86b7deb3-ec8f-4cb2-8661-ff4f9d7ade2d.png">
+</p>
+
+### Error Monitoring: Understand WHAT bugs are happening.
+
+-   **Customizable Error Grouping**: Customize rules for grouping repeated errors -> [docs](https://www.highlight.io/docs/general/product-features/error-monitoring/grouping-errors)
+-   **Customizable Alerting Rules**: Customize how often, and where alerts are sent -> [docs](https://www.highlight.io/docs/general/product-features/general-features/alerts)
+-   **Embedded Session Replay**: See all of the sessions associated with any given error.
+-   **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
+-   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
+
+<p align="center">
+<img width="600" alt="error-monitoring" src="https://user-images.githubusercontent.com/20292680/214500108-c8e0e289-276a-4863-816a-7c854c97df4e.png">
+</p>
+
+### Logging
+
+-   **Powerful Log Search**: Search across all your logs, with automatic property collection -> [docs](https://www.highlight.io/docs/general/product-features/logging/log-search)
+-   **Log Alerts**: Set thresholds for your log alerts, and view them in the alerts dashboard -> [docs](https://www.highlight.io/docs/general/product-features/general-features/alerts)
+-   **Embedded Session Replay and Errors**: See all of the sessions & errors associated with any given log.
+-   **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
+-   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
+
+<p align="center">
+<img width="600" alt="logging" src="https://user-images.githubusercontent.com/20292680/233539519-f8f58251-5b88-4703-8bea-2cd8d9549faf.png">
+</p>
+
+### More?! Metrics? Traces? Merch?
+
+Have an idea for what we should build next? Please share our [community](https://highlight.io/community) or via a Github Issue!
+
+[Read a full list of highlight.io features](https://highlight.io/docs).
+
+## SDKs
+
+All of our SDKs for highlight.io can be found in the `sdk` [directory](https://github.com/highlight/highlight/tree/main/sdk). To get started with these SDKs, we recommend the [getting started guide](https://www.highlight.io/docs/getting-started/overview) in our docs.
+
 ## Contributors ✨
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
@@ -120,55 +171,6 @@ See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/comp
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
-
-## Features
-
-### Session Replay: Understand WHY bugs happen.
-
--   **Dom-based High-fidelity Replay**: Replay every interaction and dom change that happened in a given browser session (powered by https://github.com/rrweb-io/rrweb)
--   **Outgoing Network Requests**: See all the network requests (and their contents) in a given session to reproduce the data that was sent/received by your frontend -> [docs](https://www.highlight.io/docs/general/product-features/session-replay/dev-tools)
--   **Console logs**: Analyze the logs printed (`console.error`, `console.log`, etc..) to the console from your frontend -> [docs](https://www.highlight.io/docs/general/product-features/session-replay/dev-tools)
--   **Embedded Error Monitoring**: See the errors associated with a given session to understand what the user was doing leading up to them.
--   **Session Comments**: Comment on errors to communicate with your team on user frustration, bugs, and more! -> [docs](https://www.highlight.io/docs/general/product-features/general-features/comments)
--   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
-
-<p align="center">
-<img width="600" alt="Frame 43972" src="https://user-images.githubusercontent.com/20292680/214499701-86b7deb3-ec8f-4cb2-8661-ff4f9d7ade2d.png">
-</p>
-
-### Error Monitoring: Understand WHAT bugs are happening.
-
--   **Customizable Error Grouping**: Customize rules for grouping repeated errors -> [docs](https://www.highlight.io/docs/general/product-features/error-monitoring/grouping-errors)
--   **Customizable Alerting Rules**: Customize how often, and where alerts are sent -> [docs](https://www.highlight.io/docs/general/product-features/general-features/alerts)
--   **Embedded Session Replay**: See all of the sessions associated with any given error.
--   **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
--   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
-
-<p align="center">
-<img width="600" alt="error-monitoring" src="https://user-images.githubusercontent.com/20292680/214500108-c8e0e289-276a-4863-816a-7c854c97df4e.png">
-</p>
-
-### Logging
-
--   **Powerful Log Search**: Search across all your logs, with automatic property collection -> [docs](https://www.highlight.io/docs/general/product-features/logging/log-search)
--   **Log Alerts**: Set thresholds for your log alerts, and view them in the alerts dashboard -> [docs](https://www.highlight.io/docs/general/product-features/general-features/alerts)
--   **Embedded Session Replay and Errors**: See all of the sessions & errors associated with any given log.
--   **SDK Support**: Support for a long (and growing!) list of [SDKs](#sdks).
--   **Integrations with your favorite tools** -> [docs](https://highlight.io/docs/general/integrations/overview)
-
-<p align="center">
-<img width="600" alt="logging" src="https://user-images.githubusercontent.com/20292680/233539519-f8f58251-5b88-4703-8bea-2cd8d9549faf.png">
-</p>
-
-### More?! Metrics? Traces? Merch?
-
-Have an idea for what we should build next? Please share our [community](https://highlight.io/community) or via a Github Issue!
-
-[Read a full list of highlight.io features](https://highlight.io/docs).
-
-## SDKs
-
-All of our SDKs for highlight.io can be found in the `sdk` [directory](https://github.com/highlight/highlight/tree/main/sdk). To get started with these SDKs, we recommend the [getting started guide](https://www.highlight.io/docs/getting-started/overview) in our docs.
 
 ## Our Mission
 
