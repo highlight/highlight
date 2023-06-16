@@ -108,7 +108,7 @@ Have an idea for what we should build next? Please share our [community](https:/
 
 All of our SDKs for highlight.io can be found in the `sdk` [directory](https://github.com/highlight/highlight/tree/main/sdk). To get started with these SDKs, we recommend the [getting started guide](https://www.highlight.io/docs/getting-started/overview) in our docs.
 
-## Contributors ✨
+## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
