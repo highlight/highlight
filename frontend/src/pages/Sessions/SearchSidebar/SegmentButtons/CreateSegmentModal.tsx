@@ -53,7 +53,7 @@ const CreateSegmentModal = ({
 		}
 	}, [currentSegment?.name, shouldUpdate])
 
-	const { searchParams, setExistingParams } = useSearchContext()
+	const { searchQuery, setExistingQuery } = useSearchContext()
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
@@ -67,7 +67,7 @@ const CreateSegmentModal = ({
 					project_id,
 					id: currentSegment.id!,
 					name: newSegmentName,
-					params: searchParams,
+					params: { query: searchQuery },
 				},
 				onCompleted: () => {
 					message.success(
@@ -81,7 +81,7 @@ const CreateSegmentModal = ({
 						)
 					}
 					onHideModal()
-					setExistingParams(searchParams)
+					setExistingQuery(searchQuery)
 				},
 				onError: (e) => {
 					message.error(`Error updating segment: ${e.message}`, 5)
@@ -92,7 +92,7 @@ const CreateSegmentModal = ({
 				variables: {
 					project_id,
 					name: newSegmentName,
-					params: searchParams,
+					params: { query: searchQuery },
 				},
 				refetchQueries: [namedOperations.Query.GetSegments],
 				onCompleted: (r) => {
@@ -102,7 +102,7 @@ const CreateSegmentModal = ({
 							r.createSegment?.name as string,
 						)
 					}
-					setExistingParams(searchParams)
+					setExistingQuery(searchQuery)
 					onHideModal()
 					message.success(
 						`Created '${r.createSegment?.name}' segment`,
