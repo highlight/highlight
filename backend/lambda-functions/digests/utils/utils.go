@@ -53,6 +53,7 @@ type ActiveSession struct {
 	Location     string `json:"location"`
 	ActiveLength string `json:"activeLength"`
 	URL          string `json:"url"`
+	VideoURL     string `json:"videoURL"`
 }
 
 type ErrorSession struct {
@@ -60,6 +61,7 @@ type ErrorSession struct {
 	ErrorCount   string `json:"errorCount"`
 	ActiveLength string `json:"activeLength"`
 	URL          string `json:"url"`
+	VideoURL     string `json:"videoURL"`
 }
 
 type NewError struct {

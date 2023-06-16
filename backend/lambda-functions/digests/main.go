@@ -2,13 +2,13 @@ package main
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/util"
 	"time"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/lambda-functions/digests/handlers"
 	"github.com/highlight-run/highlight/backend/lambda-functions/digests/utils"
-	"github.com/highlight-run/highlight/backend/util"
 )
 
 // Meant for local invocation for testing the lambda handler stack

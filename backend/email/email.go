@@ -24,6 +24,7 @@ var (
 	SendGridRequestAccessEmailTemplateID = "d-f059960009ba4a9fb5640e98db517eef"
 	SessionsDeletedEmailTemplateID       = "d-d9e10ce22c774fc9850dd0b36ccde339"
 	DigestEmailTemplateID                = "d-5bb29dabe298425ab9422b74636516bd"
+	DigestWithVideoEmailTemplateID       = "d-a3e0ce54c5cd4e78b3bc37d27373f899"
 	BillingNotificationTemplateID        = "d-9fa375187c114dc1a5b561e81fbee794"
 	SendGridOutboundEmail                = "notifications@notify.highlight.io"
 	SessionCommentMentionsAsmId          = 20950

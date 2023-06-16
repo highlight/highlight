@@ -3,6 +3,7 @@ package lambda
 import (
 	"context"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 
@@ -10,8 +11,6 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	log "github.com/sirupsen/logrus"
-
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/pkg/errors"
 )
@@ -24,6 +23,7 @@ type ServiceType string
 
 const (
 	ExecuteAPI ServiceType = "execute-api"
+	LambdaAPI  ServiceType = "lambda"
 )
 
 type Client struct {
@@ -47,16 +47,40 @@ func NewLambdaClient() (*Client, error) {
 	return &Client{
 		Config:      &cfg,
 		Credentials: &creds,
-		HTTPClient:  &http.Client{},
+		HTTPClient: &http.Client{
+			Timeout: 5 * time.Minute,
+		},
 	}, nil
 }
 
-func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts int, chunk int) (*http.Response, error) {
-	log.WithContext(ctx).Infof("requesting session screenshot for project=%d&session=%d&ts=%d&chunk=%d", projectID, sessionID, ts, chunk)
-	req, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("https://zbty37wu02.execute-api.us-east-2.amazonaws.com/default/session-screenshots?project=%d&session=%d&ts=%d&chunk=%d", projectID, sessionID, ts, chunk), nil)
+type Format = string
+
+var (
+	FormatImage = "image/png"
+	FormatGIF   = "image/gif"
+	FormatMP4   = "video/mp4"
+)
+
+func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts *int, chunk *int, format *Format) (*http.Response, error) {
+	host := "https://ygh5bj5f646ix4pixknhvysrje0haeoi.lambda-url.us-east-2.on.aws"
+	url := fmt.Sprintf("%s/session-screenshots?project=%d&session=%d", host, projectID, sessionID)
+	if ts != nil {
+		url = fmt.Sprintf("%s&ts=%d", url, *ts)
+	}
+	if chunk != nil {
+		url = fmt.Sprintf("%s&chunk=%d", url, *chunk)
+	}
+	if format != nil {
+		url = fmt.Sprintf("%s&format=%s", url, *format)
+	}
+	log.WithContext(ctx).Infof("requesting session screenshot for %s", url)
+
+	req, _ := http.NewRequest(http.MethodGet, url, nil)
 	req = req.WithContext(ctx)
 
 	signer := v4.NewSigner()
-	_ = signer.SignHTTP(ctx, *s.Credentials, req, NilPayloadHash, string(ExecuteAPI), s.Config.Region, time.Now())
+	if err := signer.SignHTTP(ctx, *s.Credentials, req, NilPayloadHash, string(LambdaAPI), "us-east-2", time.Now()); err != nil {
+		return nil, err
+	}
 	return s.HTTPClient.Do(req)
 }
