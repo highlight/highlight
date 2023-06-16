@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/lambda"
+	"io"
 	"os"
 	"time"
 
@@ -28,12 +30,14 @@ type Handlers interface {
 
 type handlers struct {
 	db             *gorm.DB
+	lambdaClient   *lambda.Client
 	sendgridClient *sendgrid.Client
 }
 
-func InitHandlers(db *gorm.DB, sendgridClient *sendgrid.Client) *handlers {
+func InitHandlers(db *gorm.DB, lambdaClient *lambda.Client, sendgridClient *sendgrid.Client) *handlers {
 	return &handlers{
 		db:             db,
+		lambdaClient:   lambdaClient,
 		sendgridClient: sendgridClient,
 	}
 }
@@ -45,9 +49,14 @@ func NewHandlers() *handlers {
 		log.WithContext(ctx).Fatal(errors.Wrap(err, "error setting up DB"))
 	}
 
+	lambdaClient, err := lambda.NewLambdaClient()
+	if err != nil {
+		log.WithContext(ctx).Fatal(errors.Wrap(err, "error setting up lambda client"))
+	}
+
 	sendgridClient := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 
-	return InitHandlers(db, sendgridClient)
+	return InitHandlers(db, lambdaClient, sendgridClient)
 }
 
 func (h *handlers) GetProjectIds(ctx context.Context, input utils.DigestsInput) ([]utils.ProjectIdResponse, error) {
@@ -216,11 +225,28 @@ func (h *handlers) GetDigestData(ctx context.Context, input utils.ProjectIdRespo
 
 	activeSessions := []utils.ActiveSession{}
 	for _, item := range activeSessionsSql {
+		s := model.Session{}
+		if err := h.db.Model(model.Session{}).Where(model.Session{SecureID: item.SecureId}).Limit(1).Find(&s).Error; err != nil {
+			return nil, errors.Wrap(err, "error querying active session")
+		}
+		res, err := h.lambdaClient.GetSessionScreenshot(ctx, s.ProjectID, s.ID, nil, nil, &lambda.FormatGIF)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to make render request")
+		}
+		if res.StatusCode != 200 {
+			return nil, errors.New(fmt.Sprintf("render returned %d", res.StatusCode))
+		}
+		b, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read body of screenshot render response")
+		}
+
 		activeSessions = append(activeSessions, utils.ActiveSession{
 			Identifier:   truncate100(getIdentifier(item.UserProperties, item.Identifier, item.Fingerprint)),
 			Location:     getLocation(item.Country),
 			ActiveLength: formatDurationMinute(item.ActiveLength * time.Millisecond),
 			URL:          formatSessionURL(input.ProjectId, item.SecureId),
+			VideoURL:     string(b),
 		})
 	}
 
@@ -487,7 +513,7 @@ func (h *handlers) SendDigestEmails(ctx context.Context, input utils.DigestDataR
 		m := mail.NewV3Mail()
 		from := mail.NewEmail("Highlight", email.SendGridOutboundEmail)
 		m.SetFrom(from)
-		m.SetTemplateID(email.DigestEmailTemplateID)
+		m.SetTemplateID(email.DigestWithVideoEmailTemplateID)
 
 		p := mail.NewPersonalization()
 		p.AddTos(to)
