@@ -2,17 +2,17 @@ export const getSessionHighlightPrompt = (events: string) =>
 	`Given an array of events performed by a customer from a session recording for a web application, make inferences and output 3 insights from the session and provide specific details. 
 
 Rules: 
-- Provide specific details for each thing.
-- Use less than 2 sentences for each point.
-- Do not solely recite the different type of events.
-- There is no need to mention every event.
-- Identification information is not interesting
-- Only the timestamp that best represents the insight in the 'timestamp' field of the output
+- Use less than 2 sentences for each point
+- Do not solely recite the different type of events
+- There is no need to mention every event
+- Insights must be different to each other
+- Don't mention timestamps in <insight>, insights should be interesting inferences from the input
+- Output timestamp that best represents the insight in <timestamp> of output
 
 ${JSON_FORMAT_INSTRUCTION}
 
 Context: 
-- The events are JSON objects, where the "timestamp" field represents UNIX time of the event in seconds, the "type" field represents the type of event, and the "data" field represents more information about the event
+- The events are JSON objects, where the "timestamp" field represents UNIX time of the event, the "type" field represents the type of event, and the "data" field represents more information about the event
 - If the event is of type "Custom", the "tag" field provides the type of custom event, and the "payload" field represents more information about the event
 - If the event is of tag "Track", it is a custom event where the actual type of the event is in the "event" field within "data.payload"
 
@@ -21,7 +21,7 @@ ${EVENT_TYPES}
 Input:
 ${events}
 Output:`
-		.slice(0, 8000)
+		.slice(0, 32000)
 		.replace(/\\/g, '')
 
 const EVENT_TYPES = `
