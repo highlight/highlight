@@ -41,11 +41,11 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 		if (event.reason) {
 			let res: ErrorStackParser.StackFrame[] = []
 			try {
-				res = ErrorStackParser.parse(event.reason)
+				res = ErrorStackParser.parse(Error())
 			} catch {} // @eslint-ignore
 			const framesToUse = removeHighlightFrameIfExists(res)
 			callback({
-				event: stringify(event),
+				event: stringify(event.reason),
 				type: 'window.onunhandledrejection',
 				url: window.location.href,
 				source: event.type,
