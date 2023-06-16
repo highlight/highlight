@@ -106,7 +106,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionSecu
 }
 
 // PushPayload is the resolver for the pushPayload field.
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID string, events customModels.ReplayEventsInput, messages string, resources string, webSocketEvents string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID string, events customModels.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error) {
 	if payloadID == nil {
 		payloadID = pointy.Int(0)
 	}
