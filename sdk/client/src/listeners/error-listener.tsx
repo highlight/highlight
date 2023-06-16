@@ -4,6 +4,7 @@ import ErrorStackParser from 'error-stack-parser'
 
 export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 	const initialOnError = window.onerror
+	const initialOnUnhandledRejection = window.onunhandledrejection
 	window.onerror = (
 		event: any,
 		source: string | undefined,
@@ -34,8 +35,34 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 			})
 		}
 	}
+	window.onunhandledrejection = function (
+		event: PromiseRejectionEvent,
+	): void {
+		if (event.reason) {
+			let res: ErrorStackParser.StackFrame[] = []
+			try {
+				res = ErrorStackParser.parse(event.reason)
+			} catch {} // @eslint-ignore
+			const framesToUse = removeHighlightFrameIfExists(res)
+			callback({
+				event: stringify(event),
+				type: 'window.onunhandledrejection',
+				url: window.location.href,
+				source: event.type,
+				lineNumber: framesToUse[0]?.lineNumber
+					? framesToUse[0]?.lineNumber
+					: 0,
+				columnNumber: framesToUse[0]?.columnNumber
+					? framesToUse[0]?.columnNumber
+					: 0,
+				stackTrace: framesToUse,
+				timestamp: new Date().toISOString(),
+			})
+		}
+	}
 	return () => {
 		window.onerror = initialOnError
+		window.onunhandledrejection = initialOnUnhandledRejection
 	}
 }
 
