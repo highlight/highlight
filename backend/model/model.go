@@ -1320,6 +1320,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 			SELECT project_id, DATE_TRUNC('day', created_at, 'UTC') as date, COUNT(*) as count
 			FROM sessions
 			WHERE excluded <> true
+			AND within_billing_quota
 			AND (active_length >= 1000 OR (active_length is null and length >= 1000))
 			AND processed = true
 			AND created_at > now() - interval '3 months'
