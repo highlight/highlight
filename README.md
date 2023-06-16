@@ -28,9 +28,9 @@ Read more about our [features](#features), [values](#our-values) and [mission](#
 ## Table of Contents
 
 -   [Get started for free](#get-started)
--   [Contributors](#contributors)
 -   [Features](#features)
 -   [SDKs](#sdks)
+-   [Contributors](#contributors)
 -   [Mission](#our-mission)
 -   [Values](#our-values)
 
