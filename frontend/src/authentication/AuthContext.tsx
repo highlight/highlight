@@ -1,25 +1,12 @@
 import { Admin } from '@graph/schemas'
 import { createContext } from '@util/context/context'
 
+import { auth } from '@/util/auth'
+
 export enum AuthRole {
-	AUTHENTICATED_HIGHLIGHT, // A highlight staff member
-	AUTHENTICATED, // Any authenticated user
+	AUTHENTICATED,
 	UNAUTHENTICATED,
 	LOADING,
-}
-
-export const isAuthLoading = (role: AuthRole) => {
-	return role == AuthRole.LOADING
-}
-
-export const isLoggedIn = (role: AuthRole) => {
-	return [AuthRole.AUTHENTICATED_HIGHLIGHT, AuthRole.AUTHENTICATED].includes(
-		role,
-	)
-}
-
-export const isHighlightAdmin = (role: AuthRole) => {
-	return role == AuthRole.AUTHENTICATED_HIGHLIGHT
 }
 
 export const [useAuthContext, AuthContextProvider] = createContext<{
@@ -29,5 +16,7 @@ export const [useAuthContext, AuthContextProvider] = createContext<{
 	isAuthLoading: boolean
 	isLoggedIn: boolean
 	isHighlightAdmin: boolean
-	refetchAdmin: () => Promise<any>
+	signIn: (user: typeof auth.currentUser) => Promise<void>
+	signOut: () => void
+	fetchAdmin: () => Promise<void>
 }>('AuthContext')

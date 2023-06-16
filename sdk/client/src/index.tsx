@@ -71,6 +71,12 @@ import {
 	JankListener,
 	JankPayload,
 } from './listeners/jank-listener/jank-listener'
+import {
+	HighlightIframeMessage,
+	HighlightIframeReponse,
+	IFRAME_PARENT_READY,
+	IFRAME_PARENT_RESPONSE,
+} from './types/iframe'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -99,7 +105,6 @@ export type HighlightClassOptions = {
 	samplingStrategy?: SamplingStrategy
 	inlineImages?: boolean
 	inlineStylesheet?: boolean
-	isCrossOriginIframe?: boolean
 	recordCrossOriginIframe?: boolean
 	firstloadVersion?: string
 	environment?: 'development' | 'production' | 'staging' | string
@@ -186,6 +191,7 @@ export class Highlight {
 	_isOnLocalHost!: boolean
 	_onToggleFeedbackFormVisibility!: () => void
 	_firstLoadListeners!: FirstLoadListeners
+	_isCrossOriginIframe!: boolean
 	_eventBytesSinceSnapshot!: number
 	_lastSnapshotTime!: number
 	_lastVisibilityChangeTime!: number
@@ -270,6 +276,14 @@ export class Highlight {
 		// Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
 		this._firstLoadListeners =
 			firstLoadListeners || new FirstLoadListeners(this.options)
+		try {
+			// throws if parent is cross-origin
+			if (window.parent.document) {
+				this._isCrossOriginIframe = false
+			}
+		} catch (e) {
+			this._isCrossOriginIframe = true
+		}
 		this._initMembers(this.options)
 	}
 
@@ -551,7 +565,10 @@ export class Highlight {
 				destinationDomains =
 					this.options.networkRecording.destinationDomains
 			}
-			if (!this.options.isCrossOriginIframe) {
+			if (this._isCrossOriginIframe) {
+				// wait for 'cross-origin iframe ready' message
+				await this._setupCrossOriginIframe()
+			} else {
 				const gr = await this.graphqlSDK.initializeSession({
 					organization_verbose_id: this.organizationID,
 					enable_strict_privacy: this.enableStrictPrivacy,
@@ -636,7 +653,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				clearTimeout(this.pushPayloadTimerId)
 				this.pushPayloadTimerId = undefined
 			}
-			if (!this.options.isCrossOriginIframe) {
+			if (!this._isCrossOriginIframe) {
 				this.pushPayloadTimerId = setTimeout(() => {
 					this._save()
 				}, FIRST_SEND_FREQUENCY)
@@ -714,6 +731,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					plugins: [getRecordSequentialIdPlugin()],
 					logger,
 				})
+				if (this.options.recordCrossOriginIframe) {
+					this._setupCrossOriginIframeParent()
+				}
 				// recordStop is not part of listeners because we do not actually want to stop rrweb
 				// rrweb has some bugs that make the stop -> restart workflow broken (eg iframe listeners)
 				const viewport = {
@@ -807,6 +827,64 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this.stopRecording()
 			}
 		}
+	}
+
+	async _setupCrossOriginIframe() {
+		this.logger.log(`highlight in cross-origin iframe is waiting `)
+		// wait until we get a initialization message from the parent window
+		await new Promise<void>((r) => {
+			const listener = (message: MessageEvent) => {
+				if (message.data.highlight === IFRAME_PARENT_READY) {
+					const msg = message.data as HighlightIframeMessage
+					this.logger.log(`highlight got window message `, msg)
+					this.sessionData.projectID = msg.projectID
+					this.sessionData.sessionSecureID = msg.sessionSecureID
+					// reply back that we got the message and are set up
+					window.parent.postMessage(
+						{
+							highlight: IFRAME_PARENT_RESPONSE,
+						} as HighlightIframeReponse,
+						'*',
+					)
+					// stop listening to parent messages
+					window.removeEventListener('message', listener)
+					r()
+				}
+			}
+			window.addEventListener('message', listener)
+		})
+	}
+
+	_setupCrossOriginIframeParent() {
+		this.logger.log(
+			`highlight setting up cross origin iframe parent notification`,
+		)
+		// notify iframes that highlight is ready
+		const iframeInterval = setInterval(() => {
+			window.document.querySelectorAll('iframe').forEach((iframe) => {
+				iframe.contentWindow?.postMessage(
+					{
+						highlight: IFRAME_PARENT_READY,
+						projectID: this.sessionData.projectID,
+						sessionSecureID: this.sessionData.sessionSecureID,
+					} as HighlightIframeMessage,
+					'*',
+				)
+			})
+		}, 100) as unknown as number
+		// once an iframe responds that it got our message and it ready, clear the interval
+		const listener = (message: MessageEvent) => {
+			if (message.data.highlight === IFRAME_PARENT_RESPONSE) {
+				this.logger.log(
+					`highlight got response from initialized iframe`,
+				)
+				// stop sending iframe messages
+				window.clearInterval(iframeInterval)
+				// stop listening to parent messages
+				window.removeEventListener('message', listener)
+			}
+		}
+		window.addEventListener('message', listener)
 	}
 
 	_setupWindowListeners() {

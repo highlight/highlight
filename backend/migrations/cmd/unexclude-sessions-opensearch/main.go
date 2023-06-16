@@ -55,7 +55,7 @@ func main() {
 	log.WithContext(ctx).Infof("starting an opensearch update")
 
 	for _, sessionID := range sessionIDs {
-		if err := r.OpenSearch.Update(
+		if err := r.OpenSearch.UpdateSynchronous(
 			opensearch.IndexSessions,
 			sessionID,
 			map[string]interface{}{"Excluded": false},

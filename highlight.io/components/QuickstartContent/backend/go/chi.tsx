@@ -21,8 +21,9 @@ export const GoChiContent: QuickStartContent = {
 			title: 'Add the Highlight middleware.',
 			content:
 				'`highlightChi.Middleware` is a [Go Chi](https://github.com/go-chi/chi) compatible middleware.',
-			code: {
-				text: `import (
+			code: [
+				{
+					text: `import (
   highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 )
 
@@ -32,8 +33,9 @@ func main() {
   r.Use(highlightChi.Middleware)
   // ...
 }`,
-				language: 'go',
-			},
+					language: 'go',
+				},
+			],
 		},
 		customGoError,
 		verifyCustomError,

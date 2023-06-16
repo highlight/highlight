@@ -106,6 +106,7 @@ export enum AdminRole {
 
 export type AllProjectSettings = {
 	__typename?: 'AllProjectSettings'
+	autoResolveStaleErrorsDayInterval: Scalars['Int']
 	backend_domains?: Maybe<Scalars['StringArray']>
 	billing_email?: Maybe<Scalars['String']>
 	error_filters?: Maybe<Scalars['StringArray']>
@@ -204,6 +205,10 @@ export type CommentReply = {
 	id: Scalars['ID']
 	text: Scalars['String']
 	updated_at: Scalars['Timestamp']
+}
+
+export type Connection = {
+	pageInfo: PageInfo
 }
 
 export type DailyErrorCount = {
@@ -340,6 +345,10 @@ export type DiscordChannel = {
 export type DiscordChannelInput = {
 	id: Scalars['String']
 	name: Scalars['String']
+}
+
+export type Edge = {
+	cursor: Scalars['String']
 }
 
 export enum EmailOptOutCategory {
@@ -500,6 +509,33 @@ export type ErrorObject = {
 	trace_id?: Maybe<Scalars['String']>
 	type: Scalars['String']
 	url: Scalars['String']
+}
+
+export type ErrorObjectConnection = Connection & {
+	__typename?: 'ErrorObjectConnection'
+	edges: Array<ErrorObjectEdge>
+	pageInfo: PageInfo
+}
+
+export type ErrorObjectEdge = Edge & {
+	__typename?: 'ErrorObjectEdge'
+	cursor: Scalars['String']
+	node: ErrorObjectNode
+}
+
+export type ErrorObjectNode = {
+	__typename?: 'ErrorObjectNode'
+	createdAt: Scalars['Timestamp']
+	event: Scalars['String']
+	id: Scalars['ID']
+	session: ErrorObjectNodeSession
+}
+
+export type ErrorObjectNodeSession = {
+	__typename?: 'ErrorObjectNodeSession'
+	appVersion?: Maybe<Scalars['String']>
+	secureID: Scalars['String']
+	userProperties: Scalars['String']
 }
 
 export type ErrorResults = {
@@ -748,12 +784,18 @@ export type LogAlertInput = {
 	webhook_destinations: Array<WebhookDestinationInput>
 }
 
+export type LogConnection = Connection & {
+	__typename?: 'LogConnection'
+	edges: Array<LogEdge>
+	pageInfo: PageInfo
+}
+
 export enum LogDirection {
 	Asc = 'ASC',
 	Desc = 'DESC',
 }
 
-export type LogEdge = {
+export type LogEdge = Edge & {
 	__typename?: 'LogEdge'
 	cursor: Scalars['String']
 	node: Log
@@ -781,12 +823,6 @@ export enum LogLevel {
 export enum LogSource {
 	Backend = 'backend',
 	Frontend = 'frontend',
-}
-
-export type LogsConnection = {
-	__typename?: 'LogsConnection'
-	edges: Array<LogEdge>
-	pageInfo: PageInfo
 }
 
 export type LogsHistogram = {
@@ -1201,6 +1237,7 @@ export type MutationEditProjectArgs = {
 }
 
 export type MutationEditProjectSettingsArgs = {
+	autoResolveStaleErrorsDayInterval?: InputMaybe<Scalars['Int']>
 	backend_domains?: InputMaybe<Scalars['StringArray']>
 	billing_email?: InputMaybe<Scalars['String']>
 	error_filters?: InputMaybe<Scalars['StringArray']>
@@ -1606,6 +1643,7 @@ export type Query = {
 	error_issue: Array<Maybe<ExternalAttachment>>
 	error_object?: Maybe<ErrorObject>
 	error_object_for_log?: Maybe<ErrorObject>
+	error_objects: ErrorObjectConnection
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram: ErrorsHistogram
@@ -1634,7 +1672,7 @@ export type Query = {
 	liveUsersCount?: Maybe<Scalars['Int64']>
 	log_alert: LogAlert
 	log_alerts: Array<Maybe<LogAlert>>
-	logs: LogsConnection
+	logs: LogConnection
 	logsIntegration: IntegrationStatus
 	logs_error_objects: Array<ErrorObject>
 	logs_histogram: LogsHistogram
@@ -1671,7 +1709,6 @@ export type Query = {
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
 	session_comments_for_project: Array<Maybe<SessionComment>>
-	session_feedback_alerts: Array<Maybe<SessionAlert>>
 	session_intervals: Array<SessionInterval>
 	sessions_histogram: SessionsHistogram
 	sessions_opensearch: SessionResults
@@ -1868,6 +1905,12 @@ export type QueryError_ObjectArgs = {
 
 export type QueryError_Object_For_LogArgs = {
 	log_cursor: Scalars['String']
+}
+
+export type QueryError_ObjectsArgs = {
+	after?: InputMaybe<Scalars['String']>
+	before?: InputMaybe<Scalars['String']>
+	error_group_secure_id: Scalars['String']
 }
 
 export type QueryError_SegmentsArgs = {
@@ -2158,10 +2201,6 @@ export type QuerySession_CommentsArgs = {
 }
 
 export type QuerySession_Comments_For_ProjectArgs = {
-	project_id: Scalars['ID']
-}
-
-export type QuerySession_Feedback_AlertsArgs = {
 	project_id: Scalars['ID']
 }
 
@@ -2495,7 +2534,6 @@ export enum SessionAlertType {
 	NewSessionAlert = 'NEW_SESSION_ALERT',
 	NewUserAlert = 'NEW_USER_ALERT',
 	RageClickAlert = 'RAGE_CLICK_ALERT',
-	SessionFeedbackAlert = 'SESSION_FEEDBACK_ALERT',
 	TrackPropertiesAlert = 'TRACK_PROPERTIES_ALERT',
 	UserPropertiesAlert = 'USER_PROPERTIES_ALERT',
 }
@@ -2541,6 +2579,7 @@ export enum SessionExcludedReason {
 	Initializing = 'Initializing',
 	NoActivity = 'NoActivity',
 	NoError = 'NoError',
+	NoTimelineIndicatorEvents = 'NoTimelineIndicatorEvents',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
 }
 

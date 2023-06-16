@@ -294,6 +294,7 @@ export type EditProjectSettingsMutationVariables = Types.Exact<{
 	rage_click_count?: Types.Maybe<Types.Scalars['Int']>
 	backend_domains?: Types.Maybe<Types.Scalars['StringArray']>
 	filterSessionsWithoutError?: Types.Maybe<Types.Scalars['Boolean']>
+	autoResolveStaleErrorsDayInterval?: Types.Maybe<Types.Scalars['Int']>
 }>
 
 export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
@@ -312,6 +313,7 @@ export type EditProjectSettingsMutation = { __typename?: 'Mutation' } & {
 			| 'rage_click_count'
 			| 'backend_domains'
 			| 'filterSessionsWithoutError'
+			| 'autoResolveStaleErrorsDayInterval'
 		>
 	>
 }
@@ -3237,7 +3239,7 @@ export type GetErrorSegmentsQueryVariables = Types.Exact<{
 }>
 
 export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
-	error_segments?: Types.Maybe<
+	segments?: Types.Maybe<
 		Array<
 			Types.Maybe<
 				{ __typename?: 'ErrorSegment' } & Pick<
@@ -3851,11 +3853,6 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				}
 		>
 	>
-	session_feedback_alerts: Array<
-		Types.Maybe<
-			{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
-		>
-	>
 	new_session_alerts: Array<
 		Types.Maybe<
 			{ __typename?: 'SessionAlert' } & SessionAlertFragmentFragment
@@ -4209,7 +4206,7 @@ export type GetLogsQueryVariables = Types.Exact<{
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
-	logs: { __typename?: 'LogsConnection' } & {
+	logs: { __typename?: 'LogConnection' } & {
 		edges: Array<
 			{ __typename?: 'LogEdge' } & Pick<Types.LogEdge, 'cursor'> & {
 					node: { __typename?: 'Log' } & Pick<
@@ -4341,6 +4338,7 @@ export type GetProjectSettingsQuery = { __typename?: 'Query' } & {
 			| 'rage_click_count'
 			| 'backend_domains'
 			| 'filterSessionsWithoutError'
+			| 'autoResolveStaleErrorsDayInterval'
 		>
 	>
 }

@@ -12,7 +12,6 @@ export const PaywallTooltip = ({
 	}>()
 	return (
 		<Tooltip
-			mouseEnterDelay={0.3}
 			title={
 				<a
 					href={`/w/${project_id}/plan?tier=${tier}`}

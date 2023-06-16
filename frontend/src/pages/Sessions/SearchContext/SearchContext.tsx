@@ -1,8 +1,9 @@
 import { BaseSearchContext } from '@context/BaseSearchContext'
 import { SearchParamsInput } from '@graph/schemas'
-import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { createContext } from '@util/context/context'
 import React from 'react'
+
+import { QueryBuilderState } from '@/components/QueryBuilder/QueryBuilder'
 
 type SearchContext = BaseSearchContext<SearchParamsInput> & {
 	showStarredSessions: boolean

@@ -312,9 +312,7 @@ export const loadSession = async function (secureID: string) {
 			},
 		])
 	} catch (e: any) {
-		const msg = `failed to preload session ${secureID}`
-		console.warn(msg)
-		H.consumeError(e, msg)
+		log('preload.ts', `failed to preload session ${secureID}`)
 	}
 }
 
@@ -417,8 +415,6 @@ const loadErrorGroup = async function (projectID: string, secureID: string) {
 			},
 		])
 	} catch (e: any) {
-		const msg = `failed to preload error group ${secureID}`
-		console.warn(msg)
-		H.consumeError(e, msg)
+		log('preload.ts', `failed to preload session ${secureID}`)
 	}
 }

@@ -291,6 +291,7 @@ export const usePlayerKeyboardShortcuts = () => {
 		moveFocusToDocument(e)
 
 		setEnableInspectElement(true)
+		setShowRightPanel(false)
 		message.success(
 			"Inspect element enabled, you can open up your browser's DevTools and inspect the DOM now.",
 		)

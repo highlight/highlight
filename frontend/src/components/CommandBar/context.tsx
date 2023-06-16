@@ -1,17 +1,18 @@
 import { last30Days } from '@components/CommandBar/constants'
 import { nextAttribute, useAttributeSearch } from '@components/CommandBar/utils'
 import { FormState, useFormState } from '@highlight-run/ui'
-import {
-	ERROR_FIELD_TYPE,
-	ERROR_TYPE,
-} from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuilder'
-import { SESSION_TYPE } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { createContext } from '@util/context/context'
 import { validateEmail } from '@util/string'
 import moment from 'moment'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+
+import {
+	ERROR_FIELD_TYPE,
+	ERROR_TYPE,
+	SESSION_TYPE,
+} from '@/components/QueryBuilder/QueryBuilder'
 
 export interface CommandBarSearch {
 	search: string

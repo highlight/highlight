@@ -9,17 +9,20 @@ export const DockerContent: QuickStartContent = {
 			title: 'Setup the fluentd log driver.',
 			content:
 				'Use the [Fluentd logging driver](https://docs.docker.com/config/containers/logging/fluentd/) to route logs to highlight.',
-			code: {
-				text: `docker run --log-driver=fluentd --log-opt fluentd-address=otel.highlight.io:24224 --log-opt tag=highlight.project_id=<YOUR_PROJECT_ID> -t ubuntu echo "Testing a log message"`,
-				language: 'bash',
-			},
+			code: [
+				{
+					text: `docker run --log-driver=fluentd --log-opt fluentd-address=otel.highlight.io:24224 --log-opt tag=highlight.project_id=<YOUR_PROJECT_ID> -t ubuntu echo "Testing a log message"`,
+					language: 'bash',
+				},
+			],
 		},
 		{
 			title: 'Setup the fluentd log driver in docker compose.',
 			content:
 				'Use the following syntax if you are using [docker compose](https://docs.docker.com/config/containers/logging/configure/).',
-			code: {
-				text: `x-logging:
+			code: [
+				{
+					text: `x-logging:
   &highlight-logging
     driver: fluentd
     options:
@@ -36,8 +39,9 @@ services:
             - echo
             - "hello, highlight.io!"
 `,
-				language: 'yaml',
-			},
+					language: 'yaml',
+				},
+			],
 		},
 		verifyLogs,
 	],
