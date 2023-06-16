@@ -3,7 +3,7 @@ import { promisify } from 'util'
 import path from 'path'
 import { tmpdir } from 'os'
 import chromium from '@sparticuz/chromium'
-import puppeteer from 'puppeteer-core'
+import puppeteer, { Browser } from 'puppeteer-core'
 
 const getHtml = (): string => {
 	return `<html lang="en"><head><title></title><style>
@@ -42,14 +42,25 @@ export async function render(
 		dir = await promisify(mkdtemp)(prefix)
 	}
 
-	console.log(`starting puppeteer`)
-	const browser = await puppeteer.launch({
-		args: chromium.args,
-		defaultViewport: chromium.defaultViewport,
-		executablePath: await chromium.executablePath(),
-		headless: chromium.headless,
-		ignoreHTTPSErrors: true,
-	})
+	let browser: Browser
+	if (process.env.DEV?.length) {
+		console.log(`starting puppeteer`)
+		browser = await puppeteer.launch({
+			headless: 'new',
+			defaultViewport: { width: 1920, height: 1080 },
+			executablePath:
+				'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+		})
+	} else {
+		console.log(`starting puppeteer for lambda`)
+		browser = await puppeteer.launch({
+			args: chromium.args,
+			defaultViewport: chromium.defaultViewport,
+			executablePath: await chromium.executablePath(),
+			headless: chromium.headless,
+			ignoreHTTPSErrors: true,
+		})
+	}
 
 	const page = await browser.newPage()
 	await page.goto('about:blank')

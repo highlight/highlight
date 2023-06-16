@@ -2,7 +2,7 @@ import { APIGatewayEvent } from 'aws-lambda'
 import { serialRender } from './serial'
 import { readFileSync } from 'fs'
 import { encodeGIF, encodeMP4 } from './ffmpeg'
-import { uploadRenderExport } from './s3'
+import { getRenderExport, uploadRenderExport } from './s3'
 
 interface Args {
 	project?: string
@@ -39,40 +39,46 @@ const media = async (event?: APIGatewayEvent) => {
 		session: Number(args?.session),
 		format: args?.format ?? 'video/mp4',
 	}
-	const { dir } = await serialRender(project, session, undefined, 1)
-	let path = ''
-	if (args?.format === 'image/gif') {
-		path = await encodeGIF(dir)
-	} else {
-		path = await encodeMP4(dir)
+	let key = await getRenderExport(project, session, format)
+	if (key === undefined) {
+		const { dir } = await serialRender(project, session, undefined, 1)
+		let path = ''
+		if (args?.format === 'image/gif') {
+			path = await encodeGIF(dir)
+		} else {
+			path = await encodeMP4(dir)
+		}
+		key = await uploadRenderExport(project, session, format, path)
 	}
-	const key = await uploadRenderExport(project, session, format, path)
 
 	return {
 		statusCode: 200,
-		body: { key },
-		path,
-		headers: {
-			'content-type': 'application/json',
-		},
+		body: key,
 	}
 }
 
 export const handler = (event?: APIGatewayEvent) => {
 	const args = event?.queryStringParameters as unknown as Args | undefined
-	if (!args?.ts) {
+	if (args?.format === 'image/gif' || args?.format === 'video/mp4') {
 		return media(event)
 	}
 	return screenshot(event)
 }
 
 if (process.env.DEV?.length) {
-	screenshot({
+	media({
 		queryStringParameters: {
 			project: '1',
 			session: '239571781',
-			ts: '1',
-			chunk: '0',
+			format: 'image/gif',
 		},
 	} as unknown as APIGatewayEvent).then(console.info)
+	// screenshot({
+	// 	queryStringParameters: {
+	// 		project: '1',
+	// 		session: '239571781',
+	// 		ts: '1',
+	// 		chunk: '0',
+	// 	},
+	// } as unknown as APIGatewayEvent).then(console.info)
 }
