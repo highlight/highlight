@@ -17,7 +17,9 @@ updatedAt: 2023-05-10T00:00:00.000Z
 ```shell
 # with npm
 npm install @highlight-run/next @highlight-run/react highlight.run
+```
 
+```shell
 # with yarn
 yarn add @highlight-run/next @highlight-run/react highlight.run
 ```

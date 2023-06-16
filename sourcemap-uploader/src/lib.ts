@@ -1,7 +1,7 @@
 import { basename, join } from "path";
 import { cwd } from "process";
 import { readFileSync, statSync } from "fs";
-import glob from "glob";
+import { globSync } from "glob";
 import fetch from "cross-fetch";
 
 const VERIFY_API_KEY_QUERY = `
@@ -128,7 +128,7 @@ async function getAllSourceMapFiles(paths: string[]) {
   const map: { path: string; name: string }[] = [];
 
   await Promise.all(
-    paths.map((path) => {
+    paths.map(async (path) => {
       const realPath = join(cwd(), path);
 
       if (statSync(realPath).isFile()) {
@@ -137,25 +137,31 @@ async function getAllSourceMapFiles(paths: string[]) {
           name: basename(realPath),
         });
 
-        return Promise.resolve();
+        return;
       }
 
-      return new Promise<void>((resolve) => {
-        glob("**/*.js?(.map)", {
+      if (
+        !globSync("**/*.js.map", {
           cwd: realPath,
           nodir: true,
           ignore: "**/node_modules/**/*",
-        }).then((files) => {
-          for (const file of files) {
-            map.push({
-              path: join(realPath, file),
-              name: file,
-            });
-          }
+        }).length
+      ) {
+        throw new Error(
+          "No .js.map files found. Please double check that you have generated sourcemaps for your app."
+        );
+      }
 
-          resolve();
+      for (const file of globSync("**/*.js?(.map)", {
+        cwd: realPath,
+        nodir: true,
+        ignore: "**/node_modules/**/*",
+      })) {
+        map.push({
+          path: join(realPath, file),
+          name: file,
         });
-      });
+      }
     })
   );
 

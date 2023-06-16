@@ -1,7 +1,7 @@
 require_relative 'lib/highlight/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "highlight"
+  spec.name          = "highlight_io"
   spec.version       = Highlight::VERSION
   spec.authors       = ["Highlight"]
   spec.email         = ["support@highlight.io"]

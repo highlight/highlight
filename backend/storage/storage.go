@@ -31,6 +31,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/util"
@@ -512,8 +513,8 @@ func (s *S3Client) pushFileToS3WithOptions(ctx context.Context, sessionId, proje
 // PushCompressedFile pushes a compressed file to S3, adding the relevant metadata
 func (s *S3Client) PushCompressedFile(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType) (*int64, error) {
 	options := s3.PutObjectInput{
-		ContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
-		ContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+		ContentType:     ptr.String(MIME_TYPE_JSON),
+		ContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
 	}
 	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, payloadType, options)
 }
@@ -639,8 +640,8 @@ func (s *S3Client) ReadResources(ctx context.Context, sessionId int, projectId i
 	output, err := client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket:                  bucket,
 		Key:                     bucketKey(sessionId, projectId, NetworkResourcesCompressed),
-		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
-		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+		ResponseContentType:     ptr.String(MIME_TYPE_JSON),
+		ResponseContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
 	})
 	if err != nil {
 		// compressed file doesn't exist, fall back to reading uncompressed
@@ -701,8 +702,8 @@ func (s *S3Client) ReadTimelineIndicatorEvents(ctx context.Context, sessionId in
 	output, err := client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket:                  bucket,
 		Key:                     bucketKey(sessionId, projectId, TimelineIndicatorEvents),
-		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
-		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+		ResponseContentType:     ptr.String(MIME_TYPE_JSON),
+		ResponseContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
 	})
 	if err != nil {
 		if strings.Contains(err.Error(), "NoSuchKey") {

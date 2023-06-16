@@ -132,13 +132,7 @@ func (r *errorGroupResolver) StructuredStackTrace(ctx context.Context, obj *mode
 		stackTraceString = *obj.MappedStackTrace
 	}
 
-	var project model.Project
-	filterChromeExtension := false
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: obj.ProjectID}}).First(&project).Error; err == nil {
-		filterChromeExtension = *project.FilterChromeExtension
-	}
-
-	return r.UnmarshalStackTrace(stackTraceString, filterChromeExtension)
+	return r.UnmarshalStackTrace(stackTraceString)
 }
 
 // MetadataLog is the resolver for the metadata_log field.
@@ -222,13 +216,7 @@ func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *mod
 		stackTraceString = *obj.MappedStackTrace
 	}
 
-	var project model.Project
-	filterChromeExtension := false
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: obj.ProjectID}}).First(&project).Error; err == nil {
-		filterChromeExtension = *project.FilterChromeExtension
-	}
-
-	return r.UnmarshalStackTrace(stackTraceString, filterChromeExtension)
+	return r.UnmarshalStackTrace(stackTraceString)
 }
 
 // Session is the resolver for the session field.
@@ -585,7 +573,7 @@ func (r *mutationResolver) EditProject(ctx context.Context, id int, name *string
 }
 
 // EditProjectSettings is the resolver for the editProjectSettings field.
-func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool) (*modelInputs.AllProjectSettings, error) {
+func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) (*modelInputs.AllProjectSettings, error) {
 	project, err := r.EditProject(ctx, projectID, name, billingEmail, excludedUsers, errorFilters, errorJSONPaths, rageClickWindowSeconds, rageClickRadiusPixels, rageClickCount, backendDomains, filterChromeExtension)
 	if err != nil {
 		return nil, err
@@ -606,12 +594,14 @@ func (r *mutationResolver) EditProjectSettings(ctx context.Context, projectID in
 	}
 
 	projectFilterSettings, err := r.Store.UpdateProjectFilterSettings(*project, store.UpdateProjectFilterSettingsParams{
-		FilterSessionsWithoutError: filterSessionsWithoutError,
+		FilterSessionsWithoutError:        filterSessionsWithoutError,
+		AutoResolveStaleErrorsDayInterval: autoResolveStaleErrorsDayInterval,
 	})
 	if err != nil {
 		return nil, err
 	}
 	allProjectSettings.FilterSessionsWithoutError = projectFilterSettings.FilterSessionsWithoutError
+	allProjectSettings.AutoResolveStaleErrorsDayInterval = projectFilterSettings.AutoResolveStaleErrorsDayInterval
 
 	return &allProjectSettings, nil
 }
@@ -702,7 +692,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 		return nil, e.Wrap(err, "error writing error as viewed")
 	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, eg.ID, map[string]interface{}{"viewed": viewed}); err != nil {
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, eg.ID, map[string]interface{}{"viewed": viewed}); err != nil {
 		return nil, e.Wrap(err, "error updating error in opensearch")
 	}
 
@@ -796,7 +786,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"viewed": viewed}); err != nil {
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{"viewed": viewed}); err != nil {
 		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
@@ -831,7 +821,7 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID st
 		return nil, e.Wrap(err, "error writing session as starred")
 	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"starred": starred}); err != nil {
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{"starred": starred}); err != nil {
 		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
@@ -1103,7 +1093,7 @@ func (r *mutationResolver) EditSegment(ctx context.Context, id int, projectID in
 
 	// check if such a segment exists
 	var count int64
-	if err := r.DB.Model(&model.Segment{}).Where("project_id = ? AND name = ?", projectID, name).Count(&count).Error; err != nil {
+	if err := r.DB.Model(&model.Segment{}).Where("project_id = ? AND name = ? AND id <> ?", projectID, name, id).Count(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error checking if segment exists")
 	}
 	if count > 0 {
@@ -1179,7 +1169,7 @@ func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, project
 	paramString := string(paramBytes)
 
 	var count int64
-	if err := r.DB.Model(&model.ErrorSegment{}).Where("project_id = ? AND name = ?", projectID, name).Count(&count).Error; err != nil {
+	if err := r.DB.Model(&model.ErrorSegment{}).Where("project_id = ? AND name = ? AND id <> ?", projectID, name, id).Count(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error checking if segment exists")
 	}
 	if count > 0 {
@@ -3049,7 +3039,7 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 		return nil, e.Wrap(err, "error updating session is_public")
 	}
 
-	if err := r.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"is_public": isPublic}); err != nil {
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"is_public": isPublic}); err != nil {
 		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
@@ -3065,7 +3055,7 @@ func (r *mutationResolver) UpdateErrorGroupIsPublic(ctx context.Context, errorGr
 	if err := r.DB.Model(errorGroup).Update("IsPublic", isPublic).Error; err != nil {
 		return nil, e.Wrap(err, "error updating error group is_public")
 	}
-	if err := r.OpenSearch.Update(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, map[string]interface{}{
 		"IsPublic": isPublic,
 	}); err != nil {
 		return nil, e.Wrap(err, "error updating error group IsPublic in OpenSearch")
@@ -3821,7 +3811,7 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 
 	s, err := r.canAdminViewSession(ctx, secureID)
 	if s == nil || err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	retentionDate, err := r.GetProjectRetentionDate(s.ProjectID)
@@ -4067,18 +4057,37 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model
 
 // ErrorObject is the resolver for the error_object field.
 func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorObject, error) {
-	errorObject := &model.ErrorObject{}
-	if err := r.DB.Where(&model.ErrorObject{Model: model.Model{ID: id}}).First(&errorObject).Error; err != nil {
-		return nil, e.Wrap(err, "error reading error object")
+	errorObject, err := r.canAdminViewErrorObject(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "not authorized to view error object")
 	}
 	return errorObject, nil
+}
+
+// ErrorObjects is the resolver for the error_objects field.
+func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID string, after *string, before *string) (*modelInputs.ErrorObjectConnection, error) {
+	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
+	if err != nil {
+		return nil, e.Wrap(err, "not authorized to view error group")
+	}
+
+	connection, err := r.Store.ListErrorObjects(*errorGroup, store.ListErrorObjectsParams{
+		After:  after,
+		Before: before,
+	})
+
+	return &connection, err
 }
 
 // ErrorObjectForLog is the resolver for the error_object_for_log field.
 func (r *queryResolver) ErrorObjectForLog(ctx context.Context, logCursor string) (*model.ErrorObject, error) {
 	errorObject := &model.ErrorObject{}
 	if err := r.DB.Order("log_cursor").Model(&errorObject).Where(&model.ErrorObject{LogCursor: pointy.String(logCursor)}).Limit(1).Find(&errorObject).Error; err != nil || errorObject.ID == 0 {
-		return nil, e.Wrapf(err, "no error found for log cursor %s", logCursor)
+		return nil, e.New("no error found for log cursor " + logCursor)
+	}
+	errorObject, err := r.canAdminViewErrorObject(ctx, errorObject.ID)
+	if err != nil {
+		return nil, e.Wrap(err, "not authorized to view error object")
 	}
 	return errorObject, nil
 }
@@ -5670,20 +5679,6 @@ func (r *queryResolver) ErrorAlerts(ctx context.Context, projectID int) ([]*mode
 	return alerts, nil
 }
 
-// SessionFeedbackAlerts is the resolver for the session_feedback_alerts field.
-func (r *queryResolver) SessionFeedbackAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
-	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying project on session feedback alerts")
-	}
-	var alerts []*model.SessionAlert
-	if err := r.DB.Model(&model.SessionAlert{}).Where("project_id = ?", projectID).
-		Where("type=?", model.AlertType.SESSION_FEEDBACK).Find(&alerts).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session feedback alerts")
-	}
-	return alerts, nil
-}
-
 // NewUserAlerts is the resolver for the new_user_alerts field.
 func (r *queryResolver) NewUserAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -5905,7 +5900,7 @@ func (r *queryResolver) DiscordChannelSuggestions(ctx context.Context, projectID
 	guildId := workspace.DiscordGuildId
 
 	if guildId == nil {
-		return ret, e.Wrap(err, "discord not enabled for workspace")
+		return ret, nil
 	}
 
 	bot, err := discord.NewDiscordBot(*guildId)
@@ -6331,7 +6326,7 @@ func (r *queryResolver) GithubIssueLabels(ctx context.Context, workspaceID int, 
 func (r *queryResolver) Project(ctx context.Context, id int) (*model.Project, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, id)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	return project, nil
 }
@@ -6349,18 +6344,19 @@ func (r *queryResolver) ProjectSettings(ctx context.Context, projectID int) (*mo
 	}
 
 	allProjectSettings := modelInputs.AllProjectSettings{
-		ID:                         project.ID,
-		Name:                       *project.Name,
-		BillingEmail:               project.BillingEmail,
-		ExcludedUsers:              project.ExcludedUsers,
-		ErrorFilters:               project.ErrorFilters,
-		ErrorJSONPaths:             project.ErrorJsonPaths,
-		BackendDomains:             project.BackendDomains,
-		FilterChromeExtension:      project.FilterChromeExtension,
-		RageClickWindowSeconds:     &project.RageClickWindowSeconds,
-		RageClickRadiusPixels:      &project.RageClickRadiusPixels,
-		RageClickCount:             &project.RageClickCount,
-		FilterSessionsWithoutError: projectFilterSettings.FilterSessionsWithoutError,
+		ID:                                project.ID,
+		Name:                              *project.Name,
+		BillingEmail:                      project.BillingEmail,
+		ExcludedUsers:                     project.ExcludedUsers,
+		ErrorFilters:                      project.ErrorFilters,
+		ErrorJSONPaths:                    project.ErrorJsonPaths,
+		BackendDomains:                    project.BackendDomains,
+		FilterChromeExtension:             project.FilterChromeExtension,
+		RageClickWindowSeconds:            &project.RageClickWindowSeconds,
+		RageClickRadiusPixels:             &project.RageClickRadiusPixels,
+		RageClickCount:                    &project.RageClickCount,
+		FilterSessionsWithoutError:        projectFilterSettings.FilterSessionsWithoutError,
+		AutoResolveStaleErrorsDayInterval: projectFilterSettings.AutoResolveStaleErrorsDayInterval,
 	}
 
 	return &allProjectSettings, nil
@@ -6512,37 +6508,20 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		tracer.Tag("admin_uid", admin.UID))
 
 	if err := r.DB.Where(&model.Admin{UID: admin.UID}).First(&admin).Error; err != nil {
-		if admin, err = r.createAdmin(ctx); err != nil {
-			spanError := e.Wrap(err, "error creating user in postgres")
+		if e.Is(err, gorm.ErrRecordNotFound) {
+			// Sometimes users don't exist in our DB because they authenticated with
+			// Google auth and never went through the sign up flow. In this case, we
+			// create a new user in our DB.
+			if admin, err = r.createAdmin(ctx); err != nil {
+				spanError := e.Wrap(err, "error creating admin in postgres")
+				adminSpan.Finish(tracer.WithError(spanError))
+				return nil, spanError
+			}
+		} else {
+			spanError := e.Wrap(err, "error retrieving admin from postgres")
 			adminSpan.Finish(tracer.WithError(spanError))
 			return nil, spanError
 		}
-	}
-
-	if admin.PhotoURL == nil || admin.Name == nil {
-		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
-			tracer.Tag("admin_uid", *admin.UID))
-		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
-		if err != nil {
-			spanError := e.Wrap(err, "error retrieving user from firebase api")
-			adminSpan.Finish(tracer.WithError(spanError))
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
-			PhotoURL: &firebaseUser.PhotoURL,
-			Name:     &firebaseUser.DisplayName,
-			Phone:    &firebaseUser.PhoneNumber,
-		}).Error; err != nil {
-			spanError := e.Wrap(err, "error updating org fields")
-			adminSpan.Finish(tracer.WithError(spanError))
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		admin.PhotoURL = &firebaseUser.PhotoURL
-		admin.Name = &firebaseUser.DisplayName
-		admin.Phone = &firebaseUser.PhoneNumber
-		firebaseSpan.Finish()
 	}
 
 	// Check email verification status
@@ -6719,6 +6698,9 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, nil
+	}
+	if workspace.StripeCustomerID == nil {
+		return nil, e.New("workspace has no stripe customer ID")
 	}
 
 	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
@@ -7215,7 +7197,7 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 }
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string, direction modelInputs.LogDirection) (*modelInputs.LogsConnection, error) {
+func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string, direction modelInputs.LogDirection) (*modelInputs.LogConnection, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not logged in")

@@ -5,7 +5,6 @@ import {
 	IconSolidGlobeAlt,
 	IconSolidLink,
 	IconSolidQuestionMarkCircle,
-	IconSolidShare,
 	Menu,
 	Tag,
 	Text,
@@ -55,7 +54,6 @@ const SessionShareButtonV2 = () => {
 				size="small"
 				kind="secondary"
 				emphasis="low"
-				iconRight={<IconSolidShare />}
 				onClick={() => {
 					analytics.track('Clicked session share button')
 				}}

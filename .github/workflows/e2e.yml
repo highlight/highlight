@@ -61,10 +61,10 @@ jobs:
                   yarn cy:run;
 
                   # look for containers that crashed
-                  crash_events=$(docker ps -a -f status=exited)
-                  num_crashed=$(echo "$crash_events" | grep -c Exited || true)
+                  num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)
                   if [ "$num_crashed" -gt 0 ]; then
-                    echo "$num_crashed containers crashed: $crash_events"
+                    echo "$num_crashed containers crashed"
+                    docker ps -a -f status=exited
                     exit 1
                   fi
 

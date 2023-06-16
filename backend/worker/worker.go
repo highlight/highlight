@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/alerts"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -75,12 +76,12 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
-	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"migration_state": migrationState}); err != nil {
+	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{"migration_state": migrationState}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
 	totalPayloadSize, err := w.StorageClient.PushFiles(ctx, s.ID, s.ProjectID, payloadManager)
-	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
+	// If this is unsuccessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
 		return errors.Wrap(err, "error pushing files to s3")
 	}
@@ -94,7 +95,7 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
 
-	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{
 		"object_storage_enabled":  true,
 		"payload_size":            totalPayloadSize,
 		"direct_download_enabled": true,
@@ -526,7 +527,7 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 			"session_obj": s}).Warnf("error excluding session (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 	}
 
-	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{
 		"Excluded":  true,
 		"processed": true,
 	}); err != nil {
@@ -595,23 +596,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Exclude the session if there's no events.
 	if len(accumulator.EventsForTimelineIndicator) == 0 && s.Length <= 0 {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-			"session_obj": s}).Warnf("excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
-		s.Excluded = true
-		s.Processed = &model.T
-		if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-				"session_obj": s}).Warnf("error excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
-		}
-
-		if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
-			"Excluded":  true,
-			"processed": true,
-		}); err != nil {
-			return e.Wrap(err, "error updating session in opensearch")
-		}
-
-		return nil
+		return w.excludeSession(ctx, s, backend.SessionExcludedReasonNoTimelineIndicatorEvents)
 	}
 
 	payloadManager.SeekStart(ctx)
@@ -815,7 +800,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
-	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{
 		"processed":       true,
 		"length":          sessionTotalLengthInMilliseconds,
 		"active_length":   accumulator.ActiveDuration.Milliseconds(),
@@ -921,7 +906,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			if sessionAlert.ThresholdWindow == nil {
-				sessionAlert.ThresholdWindow = util.MakeIntPointer(30)
+				sessionAlert.ThresholdWindow = ptr.Int(30)
 			}
 			var count int
 			if err := w.Resolver.DB.Raw(`
@@ -1106,7 +1091,7 @@ func (w *Worker) Start(ctx context.Context) {
 
 					if excluded {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Warn(e.Wrap(err, "session has reached the max retry count and will be excluded"))
-						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
+						if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
 						span.Finish()

@@ -1,6 +1,6 @@
-import { Admin, AdminRole } from '@graph/schemas'
+import { Admin, AdminRole, Maybe } from '@graph/schemas'
 
-export const HIGHLIGHT_ADMIN_EMAIL_DOMAINS = [
+const HIGHLIGHT_ADMIN_EMAIL_DOMAINS = [
 	'@highlight.run',
 	'@highlight.io',
 	'@runhighlight.com',
@@ -9,5 +9,5 @@ export const HIGHLIGHT_ADMIN_EMAIL_DOMAINS = [
 export const onlyAllowAdminRole = (admin?: Admin, role?: string) =>
 	role === AdminRole.Admin
 
-export const onlyAllowHighlightStaff = (admin?: Admin) =>
+export const onlyAllowHighlightStaff = (admin?: Maybe<Admin>) =>
 	HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) => admin?.email.includes(d)) || false

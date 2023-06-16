@@ -38,6 +38,7 @@ const getFakeFirebaseCredentials: () => Promise<Firebase.auth.UserCredential> =
 class SimpleAuth {
 	currentUser: User | null = fakeFirebaseUser
 	googleProvider?: Firebase.auth.GoogleAuthProvider
+	githubProvider?: Firebase.auth.GithubAuthProvider
 
 	async createUserWithEmailAndPassword(
 		email: string,
@@ -104,6 +105,8 @@ if (import.meta.env.REACT_APP_AUTH_MODE === 'simple') {
 
 	Firebase.initializeApp(firebaseConfig)
 	const googleProvider = new Firebase.auth.GoogleAuthProvider()
+	const githubProvider = new Firebase.auth.GithubAuthProvider()
 	auth = Firebase.auth()
 	auth.googleProvider = googleProvider
+	auth.githubProvider = githubProvider
 }

@@ -2,7 +2,8 @@ import { mkdtemp, readFileSync } from 'fs'
 import { promisify } from 'util'
 import path from 'path'
 import { tmpdir } from 'os'
-import chromium from 'chrome-aws-lambda'
+import chromium from '@sparticuz/chromium'
+import puppeteer from 'puppeteer-core'
 
 const getHtml = (): string => {
 	return `<html lang="en"><head><title></title><style>
@@ -35,16 +36,19 @@ export async function render(
 		throw new Error('timestamp or fps must be provided')
 	}
 	events = events.replace(/\\/g, '\\\\')
+	console.log('events', { events })
 	if (!dir?.length) {
 		const prefix = path.join(tmpdir(), 'render_')
 		dir = await promisify(mkdtemp)(prefix)
 	}
 
-	const browser = await chromium.puppeteer.launch({
+	console.log(`starting puppeteer`)
+	const browser = await puppeteer.launch({
+		args: chromium.args,
+		defaultViewport: chromium.defaultViewport,
+		executablePath: await chromium.executablePath(),
 		headless: chromium.headless,
 		ignoreHTTPSErrors: true,
-		args: chromium.args,
-		executablePath: await chromium.executablePath,
 	})
 
 	const page = await browser.newPage()
@@ -52,7 +56,7 @@ export async function render(
 	await page.setContent(getHtml())
 
 	const jsPath = path.join(
-		path.dirname(__dirname),
+		path.resolve(),
 		'node_modules',
 		'@highlight-run',
 		'rrweb',
@@ -84,13 +88,15 @@ export async function render(
     `,
 	)
 	await page.waitForFunction('loaded')
+	console.log(`puppeteer loaded`)
 	const meta = (await page.evaluate('meta')) as {
 		startTime: number
 		endTime: number
 		totalTime: number
 	}
-	const width = await page.evaluate(`viewport.width`)
-	const height = await page.evaluate(`viewport.height`)
+	const width = Number(await page.evaluate(`viewport.width`))
+	const height = Number(await page.evaluate(`viewport.height`))
+	console.log(`puppeteer meta`, { meta, width, height })
 	await page.setViewport({ width: width + 16, height: height + 16 })
 
 	let interval = 1000
@@ -102,14 +108,16 @@ export async function render(
 		end = Math.floor((meta.totalTime / workers) * (worker + 1))
 	}
 
+	console.log(`starting screenshotting`, { start, end, interval })
 	const files: string[] = []
 	for (let i = start; i <= end; i += interval) {
 		const file = path.join(dir, `${i}.png`)
 		await page.evaluate(`r.pause(${i})`)
 		await page.screenshot({ path: file })
+		console.log(`screenshotted`, { start, end, interval, i })
 		files.push(file)
 	}
 
-	await browser.close()
+	console.log(`done`, { files })
 	return files
 }

@@ -240,7 +240,7 @@ func NewOpensearchClient(db *gorm.DB) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) Update(index Index, id int, obj interface{}) error {
+func (c *Client) UpdateAsync(ctx context.Context, index Index, id int, obj interface{}) error {
 	if c == nil || !c.isInitialized {
 		return nil
 	}
@@ -261,21 +261,9 @@ func (c *Client) Update(index Index, id int, obj interface{}) error {
 		DocumentID:      documentId,
 		Body:            body,
 		RetryOnConflict: pointy.Int(3),
-		OnSuccess: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem) {
-			// log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] %s", indexStr, item.DocumentID, res.Status, res.Result)
-		},
-		OnFailure: func(ctx context.Context, item opensearchutil.BulkIndexerItem, res opensearchutil.BulkIndexerResponseItem, err error) {
-			if err != nil {
-				c.RetryableClient.ReportError(ctx, model.RetryableOpensearchError, item.Index, item.DocumentID, map[string]interface{}{"item.Action": item.Action, "res": res}, err)
-				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s", indexStr, item.DocumentID, err)
-			} else {
-				c.RetryableClient.ReportError(ctx, model.RetryableOpensearchError, item.Index, item.DocumentID, map[string]interface{}{"item.Action": item.Action, "res": res}, nil)
-				log.WithContext(ctx).Errorf("OPENSEARCH_ERROR (%s : %s) %s %s", indexStr, item.DocumentID, res.Error.Type, res.Error.Reason)
-			}
-		},
 	}
 
-	if err := c.BulkIndexer.Add(context.Background(), item); err != nil {
+	if err := c.BulkIndexer.Add(ctx, item); err != nil {
 		return e.Wrap(err, "OPENSEARCH_ERROR error adding bulk indexer item for update")
 	}
 
@@ -299,10 +287,11 @@ func (c *Client) UpdateSynchronous(index Index, id int, obj interface{}) error {
 	indexStr := GetIndex(index)
 
 	req := opensearchapi.UpdateRequest{
-		Index:      indexStr,
-		DocumentID: documentId,
-		Body:       body,
-		Refresh:    "true",
+		Index:           indexStr,
+		DocumentID:      documentId,
+		Body:            body,
+		RetryOnConflict: pointy.Int(3),
+		Refresh:         "true",
 	}
 
 	res, err := req.Do(context.Background(), c.Client)
@@ -311,16 +300,7 @@ func (c *Client) UpdateSynchronous(index Index, id int, obj interface{}) error {
 	}
 
 	if res.IsError() {
-		c.RetryableClient.ReportError(context.Background(), model.RetryableOpensearchError, indexStr, documentId, map[string]interface{}{"id": id, "obj": obj, "res": res}, nil)
-		return e.New(
-			fmt.Sprintf(
-				"OPENSEARCH_ERROR (%s : %s) [%d] %s",
-				indexStr,
-				documentId,
-				res.StatusCode,
-				res.String(),
-			),
-		)
+		return e.New("OPENSEARCH_ERROR error updating document: " + res.String())
 	}
 
 	// log.WithContext(ctx).Infof("OPENSEARCH_SUCCESS (%s : %s) [%d] created", indexStr, documentId, res.StatusCode)

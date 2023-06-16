@@ -57,7 +57,7 @@ type Pagination struct {
 	CountOnly bool
 }
 
-func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*modelInputs.LogsConnection, error) {
+func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*modelInputs.LogConnection, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}

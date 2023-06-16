@@ -17,7 +17,6 @@ const LogMessage = ({ message, expanded, queryTerms }: Props) => {
 
 	return (
 		<Text
-			weight="bold"
 			family="monospace"
 			lines={expanded ? undefined : '1'}
 			break="word"

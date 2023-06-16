@@ -12,7 +12,7 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
-func getLogsConnection(edges []*modelInputs.LogEdge, pagination Pagination) *modelInputs.LogsConnection {
+func getLogsConnection(edges []*modelInputs.LogEdge, pagination Pagination) *modelInputs.LogConnection {
 	var (
 		endCursor       string
 		startCursor     string
@@ -59,7 +59,7 @@ func getLogsConnection(edges []*modelInputs.LogEdge, pagination Pagination) *mod
 		endCursor = edges[len(edges)-1].Cursor
 	}
 
-	return &modelInputs.LogsConnection{
+	return &modelInputs.LogConnection{
 		Edges: edges,
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     hasNextPage,
