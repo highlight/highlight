@@ -15,6 +15,7 @@ import React, { useMemo } from 'react'
 
 import styles from './GitHubIntegrationConfig.module.scss'
 
+// Github Integration Code
 const GitHubIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
 > = ({ setModalOpen: setModalOpen, setIntegrationEnabled, action }) => {

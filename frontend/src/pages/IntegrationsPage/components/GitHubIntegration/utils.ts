@@ -13,6 +13,7 @@ import useLocalStorage from '@rehooks/local-storage'
 
 export const GitHubRepoSelectionKey = 'highlight-github-default-repo'
 
+// logic for storing the github integration data
 export const useGitHubIntegration = () => {
 	const [, , removeGitHubRepoId] = useLocalStorage(GitHubRepoSelectionKey, '')
 	const hook = useIntegration<
@@ -51,7 +52,7 @@ export const getGitHubInstallationOAuthUrl = (
 	}
 
 	return (
-		`https://github.com/apps/highlight-io/installations/new` +
+		`https://github.com/apps/development-highlight-io/installations/new` +
 		`?state=${btoa(JSON.stringify(state))}&`
 	)
 }
