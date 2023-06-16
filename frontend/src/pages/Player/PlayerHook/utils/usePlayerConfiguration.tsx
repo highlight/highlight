@@ -106,6 +106,11 @@ const usePlayerConfiguration = () => {
 		false,
 	)
 
+	const [showAiExperiments, setShowAiExperiments] = useLocalStorage(
+		'highlightShowAiExperiments',
+		false,
+	)
+
 	const [_showDetailedSessionView, setShowDetailedSessionView] =
 		useLocalStorage('highlightShowDetailedSessionView', true)
 
@@ -149,6 +154,8 @@ const usePlayerConfiguration = () => {
 		setSelectedRightPlayerPanelTab,
 		showHistogram,
 		setShowHistogram,
+		showAiExperiments,
+		setShowAiExperiments,
 	}
 }
 

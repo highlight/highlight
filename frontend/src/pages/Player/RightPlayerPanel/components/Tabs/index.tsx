@@ -12,11 +12,13 @@ import {
 } from '@pages/Player/context/PlayerUIContext'
 import MetadataPanel from '@pages/Player/MetadataPanel/MetadataPanel'
 
+import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import SessionInsights from '@/pages/Player/RightPlayerPanel/components/SessionInsights/SessionInsights'
 
 const RightPanelTabs = () => {
 	const { selectedRightPanelTab, setSelectedRightPanelTab } =
 		usePlayerUIContext()
+	const { showAiExperiments } = usePlayerConfiguration()
 
 	return (
 		<Tabs<RightPlayerTab>
@@ -47,18 +49,23 @@ const RightPanelTabs = () => {
 						/>
 					),
 				},
-				['AI Insights']: {
-					page: <SessionInsights />,
-					icon: (
-						<IconSolidSparkles
-							color={
-								selectedRightPanelTab === 'AI Insights'
-									? colors.p9
-									: undefined
-							}
-						/>
-					),
-				},
+				...(showAiExperiments
+					? {
+							['AI Insights']: {
+								page: <SessionInsights />,
+								icon: (
+									<IconSolidSparkles
+										color={
+											selectedRightPanelTab ===
+											'AI Insights'
+												? colors.p9
+												: undefined
+										}
+									/>
+								),
+							},
+					  }
+					: {}),
 			}}
 		/>
 	)

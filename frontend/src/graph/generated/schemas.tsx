@@ -1709,7 +1709,6 @@ export type Query = {
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
 	session_comments_for_project: Array<Maybe<SessionComment>>
-	session_feedback_alerts: Array<Maybe<SessionAlert>>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
 	sessions_histogram: SessionsHistogram
@@ -2203,10 +2202,6 @@ export type QuerySession_CommentsArgs = {
 }
 
 export type QuerySession_Comments_For_ProjectArgs = {
-	project_id: Scalars['ID']
-}
-
-export type QuerySession_Feedback_AlertsArgs = {
 	project_id: Scalars['ID']
 }
 
