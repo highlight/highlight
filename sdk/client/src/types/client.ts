@@ -39,6 +39,12 @@ export declare type NetworkRecordingOptions = {
 	 */
 	recordHeadersAndBody?: boolean
 	/**
+	 * This disables recording WebSocket events.
+	 * WebSocket events are recorded by default if recordHeadersAndBody is set.
+	 * @default false
+	 */
+	disableWebSocketEventRecordings?: boolean
+	/**
 	 * Request and response headers where the value is not recorded.
 	 * The header value is replaced with '[REDACTED]'.
 	 * These headers are case-insensitive.
