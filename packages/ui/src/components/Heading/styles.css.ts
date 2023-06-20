@@ -12,17 +12,17 @@ export const h4 = createStyleObject({
 })
 export const h3 = createStyleObject({
 	fontSize: 24,
-	leading: 34,
+	leading: 32,
 	fontMetrics,
 })
 export const h2 = createStyleObject({
 	fontSize: 30,
-	leading: 32,
+	leading: 36,
 	fontMetrics,
 })
 export const h1 = createStyleObject({
 	fontSize: 36,
-	leading: 50,
+	leading: 40,
 	fontMetrics,
 })
 
