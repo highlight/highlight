@@ -355,7 +355,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				</Box>
 			</Box>
 
-			<Box py="16" px="16" mb="40" border="secondary">
+			<Box py="16" px="16" mb="40" border="secondary" borderRadius="8">
 				<Box
 					mb="20"
 					display="flex"
