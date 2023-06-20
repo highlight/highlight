@@ -1279,6 +1279,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this._firstLoadListeners,
 			this._recordingStartTime,
 		)
+		const webSocketEvents = FirstLoadListeners.getRecordedWebSocketEvents(
+			this._firstLoadListeners,
+		)
 		const events = [...this.events]
 		const messages = [...this._firstLoadListeners.messages]
 		const errors = [...this._firstLoadListeners.errors]
@@ -1309,6 +1312,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				events: { events } as ReplayEventsInput,
 				messages: stringify({ messages: messages }),
 				resources: JSON.stringify({ resources: resources }),
+				web_socket_events: JSON.stringify({
+					webSocketEvents: webSocketEvents,
+				}),
 				errors,
 				is_beacon: isBeacon,
 				has_session_unloaded: this.hasSessionUnloaded,
@@ -1323,6 +1329,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					messages,
 					errors,
 					resourcesString: JSON.stringify({ resources: resources }),
+					webSocketEventsString: JSON.stringify({
+						webSocketEvents: webSocketEvents,
+					}),
 					isBeacon,
 					hasSessionUnloaded: this.hasSessionUnloaded,
 					highlightLogs: highlightLogs,
