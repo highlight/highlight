@@ -9,4 +9,4 @@ Segments are a set of search filters that apply to sessions or errors. Segments 
 
 Highlight supports a variety of filters. Visit [app.highlight.io/demo](https://app.highlight.io/demo/sessions) to experiment with real Highlight data.
 
-![segment filters](/images/features/segment-filters.png)
+![segment filters](/images/features/segment-filters-sq.png)
