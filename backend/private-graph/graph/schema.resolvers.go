@@ -132,13 +132,7 @@ func (r *errorGroupResolver) StructuredStackTrace(ctx context.Context, obj *mode
 		stackTraceString = *obj.MappedStackTrace
 	}
 
-	var project model.Project
-	filterChromeExtension := false
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: obj.ProjectID}}).First(&project).Error; err == nil {
-		filterChromeExtension = *project.FilterChromeExtension
-	}
-
-	return r.UnmarshalStackTrace(stackTraceString, filterChromeExtension)
+	return r.UnmarshalStackTrace(stackTraceString)
 }
 
 // MetadataLog is the resolver for the metadata_log field.
@@ -222,13 +216,7 @@ func (r *errorObjectResolver) StructuredStackTrace(ctx context.Context, obj *mod
 		stackTraceString = *obj.MappedStackTrace
 	}
 
-	var project model.Project
-	filterChromeExtension := false
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: obj.ProjectID}}).First(&project).Error; err == nil {
-		filterChromeExtension = *project.FilterChromeExtension
-	}
-
-	return r.UnmarshalStackTrace(stackTraceString, filterChromeExtension)
+	return r.UnmarshalStackTrace(stackTraceString)
 }
 
 // Session is the resolver for the session field.

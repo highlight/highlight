@@ -34,7 +34,7 @@ func (autoResolver *AutoResolver) AutoResolveStaleErrors(ctx context.Context) {
 			}).Info("Finding stale errors for project")
 		interval := projectFilterSettings.AutoResolveStaleErrorsDayInterval
 
-		project, err := autoResolver.store.GetProject(ctx, projectFilterSettings.ProjectID)
+		project, err := autoResolver.store.GetProject(projectFilterSettings.ProjectID)
 		if err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"project_id": projectFilterSettings.ProjectID}).Error(err)
 			continue
