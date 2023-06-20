@@ -5993,6 +5993,10 @@ body {
   gap: 4px;
   padding: 0 8px;
 }
+._1oemo0l1:hover {
+  cursor: pointer;
+  background: var(--_1pyqka91x);
+}
 ._1oemo0l2 {
   background-color: #ffffff;
   border: var(--_1pyqka91o) solid 1px;
