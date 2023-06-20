@@ -8,7 +8,11 @@ type HighlightWindow = Window & {
 declare var window: HighlightWindow
 
 export const initializeFetchListener = () => {
-	if (!(typeof window === 'undefined' || typeof document === 'undefined')) {
+	if (typeof window !== 'undefined') {
+		// avoid initializing fetch listener more than once.
+		if (typeof window._highlightFetchPatch !== 'undefined') {
+			return
+		}
 		window._originalFetch = window.fetch
 		window._fetchProxy = (
 			input: RequestInfo,
