@@ -55,9 +55,10 @@ document.body.className = 'highlight-light-theme'
 
 analytics.initialize()
 const dev = import.meta.env.DEV
-const clientDebug = window.localStorage.getItem('highlight-client-debug')
-if (clientDebug === undefined) {
-	window.localStorage.setItem('highlight-client-debug', 'false')
+const clientDebugKey = 'highlight-client-debug'
+const clientDebug = window.localStorage.getItem(clientDebugKey)
+if (!clientDebug) {
+	window.localStorage.setItem(clientDebugKey, 'false')
 }
 const shouldDebugLog = clientDebug === 'true'
 const options: HighlightOptions = {
