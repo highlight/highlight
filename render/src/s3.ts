@@ -56,9 +56,13 @@ export async function getRenderExport(
 	project: number,
 	session: number,
 	format: string,
+	ts?: number,
+	tsEnd?: number,
 ) {
 	const ext = format.split('/').pop()
-	let key = `${project}/${session}.${ext}`
+	let key = `${project}/${session}${ts ? '-' : ''}${ts ?? ''}${
+		tsEnd ? '-' : ''
+	}${tsEnd ?? ''}.${ext}`
 	const command = new GetObjectCommand({
 		Bucket: RENDER_BUCKET,
 		Key: key,
@@ -76,11 +80,15 @@ export async function uploadRenderExport(
 	session: number,
 	format: string,
 	localPath: string,
+	ts?: number,
+	tsEnd?: number,
 ) {
 	const stat = statSync(localPath)
 	console.log(`uploading file ${localPath} size ${stat.size}`)
 	const ext = format.split('/').pop()
-	let key = `${project}/${session}.${ext}`
+	let key = `${project}/${session}${ts ? '-' : ''}${ts ?? ''}${
+		tsEnd ? '-' : ''
+	}${tsEnd ?? ''}.${ext}`
 	const command = new PutObjectCommand({
 		Bucket: RENDER_BUCKET,
 		Key: key,

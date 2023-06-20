@@ -30,6 +30,7 @@ export async function render(
 	workers: number,
 	fps?: number,
 	ts?: number,
+	tsEnd?: number,
 	dir?: string,
 ) {
 	if (ts === undefined && fps === undefined) {
@@ -112,14 +113,22 @@ export async function render(
 
 	let interval = 1000
 	let start = ts || meta.startTime
-	let end = ts || meta.endTime
+	let end = tsEnd || ts || meta.endTime
 	if (fps) {
 		interval = Math.round(1000 / fps)
-		start = Math.floor((meta.totalTime / workers) * worker)
-		end = Math.floor((meta.totalTime / workers) * (worker + 1))
+		start = ts || Math.floor((meta.totalTime / workers) * worker)
+		end =
+			tsEnd || ts || Math.floor((meta.totalTime / workers) * (worker + 1))
 	}
 
-	console.log(`starting screenshotting`, { start, end, interval })
+	console.log(`starting screenshotting`, {
+		start,
+		end,
+		interval,
+		fps,
+		ts,
+		tsEnd,
+	})
 	const files: string[] = []
 	for (let i = start; i <= end; i += interval) {
 		const file = path.join(dir, `${i}.png`)

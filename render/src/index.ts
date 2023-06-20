@@ -8,6 +8,7 @@ interface Args {
 	project?: string
 	session?: string
 	ts?: string
+	tsEnd?: string
 	chunk?: string
 	format?: string
 }
@@ -18,6 +19,7 @@ const screenshot = async (event?: APIGatewayEvent) => {
 		Number(args?.project),
 		Number(args?.session),
 		Number(args?.ts),
+		undefined,
 		undefined,
 		args?.chunk?.length ? Number(args?.chunk) : undefined,
 	)
@@ -34,21 +36,30 @@ const screenshot = async (event?: APIGatewayEvent) => {
 
 const media = async (event?: APIGatewayEvent) => {
 	const args = event?.queryStringParameters as unknown as Args | undefined
-	const { project, session, format } = {
+	const { project, session, format, ts, tsEnd } = {
 		project: Number(args?.project),
 		session: Number(args?.session),
 		format: args?.format ?? 'video/mp4',
+		ts: args?.ts ? Number(args.ts) : undefined,
+		tsEnd: args?.tsEnd ? Number(args.tsEnd) : undefined,
 	}
-	let key = await getRenderExport(project, session, format)
+	let key = await getRenderExport(project, session, format, ts, tsEnd)
 	if (key === undefined) {
-		const { dir } = await serialRender(project, session, undefined, 1)
+		const { dir } = await serialRender(project, session, ts, tsEnd, 5)
 		let path = ''
 		if (args?.format === 'image/gif') {
 			path = await encodeGIF(dir)
 		} else {
 			path = await encodeMP4(dir)
 		}
-		key = await uploadRenderExport(project, session, format, path)
+		key = await uploadRenderExport(
+			project,
+			session,
+			format,
+			path,
+			ts,
+			tsEnd,
+		)
 	}
 
 	return {
@@ -71,6 +82,8 @@ if (process.env.DEV?.length) {
 			project: '1',
 			session: '239571781',
 			format: 'image/gif',
+			ts: '15000',
+			tsEnd: '20000',
 		},
 	} as unknown as APIGatewayEvent).then(console.info)
 	// screenshot({
