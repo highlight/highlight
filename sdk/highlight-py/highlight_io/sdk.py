@@ -125,7 +125,7 @@ class H(object):
             H = highlight_io.H('project_id', ...)
 
             def my_fn():
-                with H.guard(headers={'X-Highlight-Request': '...'}):
+                with H.trace(headers={'X-Highlight-Request': '...'}):
                     raise Exception('fake error!')
 
 
@@ -192,13 +192,13 @@ class H(object):
 
     def log_hook(self, span: Span, record: logging.LogRecord):
         if span:
-            if not span.is_recording():
-                return
             manager = contextlib.nullcontext(enter_result=span)
         else:
             manager = self.trace()
 
         with manager as span:
+            if not span.is_recording():
+                return
             ctx = span.get_span_context()
             # record.created is sec but timestamp should be ns
             ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
