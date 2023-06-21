@@ -157,7 +157,12 @@ export const SessionFeedCard = React.memo(
 								gap="4"
 								justifyContent="space-between"
 							>
-								<Box display="flex" gap="4" alignItems="center">
+								<Box
+									display="flex"
+									gap="4"
+									alignItems="center"
+									style={{ minHeight: 16 }}
+								>
 									{!viewed && (
 										<Tag
 											shape="basic"

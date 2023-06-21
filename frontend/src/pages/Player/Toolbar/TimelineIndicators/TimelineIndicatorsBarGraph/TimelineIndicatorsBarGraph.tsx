@@ -1087,6 +1087,7 @@ const TimelineIndicatorsBarGraph = ({
 						{
 							[style.hidden]:
 								!showHistogram || isPlayerFullscreen,
+							[style.noPointerEvents]: isLiveMode,
 						},
 					])}
 					ref={canvasRef}
@@ -1121,6 +1122,7 @@ const TimelineIndicatorsBarGraph = ({
 										bucket={bucket}
 										width={bucketPercentWidth}
 										height={relativeHeight}
+										disabled={isLiveMode}
 										viewportRef={viewportRef}
 									/>
 								)
