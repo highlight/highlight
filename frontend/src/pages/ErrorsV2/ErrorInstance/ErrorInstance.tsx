@@ -10,6 +10,7 @@ import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	GetErrorInstanceDocument,
 	useGetErrorInstanceQuery,
+	useGetWorkspaceQuery,
 } from '@graph/hooks'
 import { ErrorObjectFragment, GetErrorGroupQuery } from '@graph/operations'
 import { Maybe, ReservedLogKey } from '@graph/schemas'
@@ -34,7 +35,9 @@ import {
 	getIdentifiedUserProfileImage,
 	getUserProperties,
 } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
+import { onlyAllowPaidTier } from '@util/authorization/authorizationTiers'
 import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
@@ -105,6 +108,12 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const navigate = useNavigate()
 	const client = useApolloClient()
 	const { isLoggedIn } = useAuthContext()
+	const { currentWorkspace } = useApplicationContext()
+
+	const { data: workspaceData } = useGetWorkspaceQuery({
+		variables: { id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
 
 	const { loading, data } = useGetErrorInstanceQuery({
 		variables: {
@@ -353,9 +362,11 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			</Box>
 
 			<Box display="flex" flexDirection="column" mb="40" gap="40">
-				<AiErrorSuggestion
-					errorObjectId={errorInstance.error_object.id}
-				/>
+				{onlyAllowPaidTier(workspaceData?.workspace?.plan_tier) && (
+					<AiErrorSuggestion
+						errorObjectId={errorInstance.error_object.id}
+					/>
+				)}
 
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
 					<Metadata errorObject={errorInstance.error_object} />
