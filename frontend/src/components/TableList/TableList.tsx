@@ -49,6 +49,7 @@ export const TableList = ({
 							lines={item.lines}
 							as="span"
 							color="weak"
+							wrap="breakWord"
 						>
 							{item.keyDisplayValue}
 						</Text>
