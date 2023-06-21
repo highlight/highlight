@@ -106,5 +106,5 @@ jobs:
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             - name: Publish render
-              #              if: github.ref == 'refs/heads/main'
+              if: github.ref == 'refs/heads/main'
               run: yarn publish:render
