@@ -42,6 +42,7 @@ def test_record_exception(mock_otlp, project_id, session_id, request_id):
     )
 
     for i in range(10):
+        logging.info(f"hey there! {i}")
         with h.trace(session_id, request_id):
             logging.info(f"trace! {i}")
         h.record_exception(FileNotFoundError(f"test! {i}"))

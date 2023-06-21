@@ -114,7 +114,7 @@ class H(object):
         self,
         session_id: typing.Optional[str] = "",
         request_id: typing.Optional[str] = "",
-    ) -> None:
+    ) -> Span:
         """
         Catch exceptions raised by your app using this context manager.
         Exceptions will be recorded with the Highlight project and
@@ -138,7 +138,7 @@ class H(object):
             span.set_attributes({"highlight.session_id": session_id})
             span.set_attributes({"highlight.trace_id": request_id})
             try:
-                yield
+                yield span
             except Exception as e:
                 self.record_exception(e)
                 raise
@@ -191,7 +191,14 @@ class H(object):
         return self._log_handler
 
     def log_hook(self, span: Span, record: logging.LogRecord):
-        if span and span.is_recording():
+        if span:
+            if not span.is_recording():
+                return
+            ctx = contextlib.nullcontext(enter_result=span)
+        else:
+            ctx = self.trace()
+
+        with ctx() as span:
             ctx = span.get_span_context()
             # record.created is sec but timestamp should be ns
             ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
