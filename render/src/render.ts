@@ -45,12 +45,10 @@ export async function render(
 
 	let browser: Browser
 	if (process.env.DEV?.length) {
-		console.log(`starting puppeteer`)
+		console.log(`starting puppeteer for dev`)
 		browser = await puppeteer.launch({
+			channel: 'chrome',
 			headless: 'new',
-			defaultViewport: { width: 1920, height: 1080 },
-			executablePath:
-				'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
 		})
 	} else {
 		console.log(`starting puppeteer for lambda`)

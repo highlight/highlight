@@ -76,7 +76,7 @@ export const handler = (event?: APIGatewayEvent) => {
 	return screenshot(event)
 }
 
-if (process.env.TEST?.length || process.env.DEV?.length) {
+if (process.env.DEV?.length) {
 	screenshot({
 		queryStringParameters: {
 			project: '1',
