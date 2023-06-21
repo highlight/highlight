@@ -13,13 +13,13 @@ export function HighlightButtons() {
 				padding: '2rem',
 			}}
 		>
-			<Butto
+			<Button
 				onClick={() => {
 					H.identify('vadim@highlight.io', { foo: 'bar' })
 				}}
 			>
 				Identify
-			</Butto>
+			</Button>
 			<Button
 				onClick={() => {
 					H.track('clicked track event', { random: Math.random() })
