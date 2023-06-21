@@ -194,11 +194,11 @@ class H(object):
         if span:
             if not span.is_recording():
                 return
-            ctx = contextlib.nullcontext(enter_result=span)
+            manager = contextlib.nullcontext(enter_result=span)
         else:
-            ctx = self.trace()
+            manager = self.trace()
 
-        with ctx() as span:
+        with manager as span:
             ctx = span.get_span_context()
             # record.created is sec but timestamp should be ns
             ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
