@@ -1235,7 +1235,7 @@ func (r *Resolver) GetSessionChunk(ctx context.Context, sessionID int, ts int) (
 }
 
 func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts int, chunk int) ([]byte, error) {
-	res, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, sessionID, pointy.Int(ts), pointy.Int(chunk), nil)
+	res, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, sessionID, ts, chunk)
 	if err != nil {
 		return nil, e.Wrap(err, "failed to make screenshot render request")
 	}
