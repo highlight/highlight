@@ -6,7 +6,12 @@ declare var window: HighlightWebSocketWindow
 const placeholderCallback = () => null
 
 export const initializeWebSocketListener = () => {
-	if (!(typeof window === 'undefined' || typeof document === 'undefined')) {
+	if (typeof window !== 'undefined') {
+		// avoid initializing fetch listener more than once.
+		if (typeof window._highlightWebSocketRequestCallback !== 'undefined') {
+			return
+		}
+
 		window._highlightWebSocketRequestCallback = placeholderCallback
 		window._highlightWebSocketEventCallback = placeholderCallback
 

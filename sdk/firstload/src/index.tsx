@@ -25,7 +25,6 @@ import configureElectronHighlight from './environments/electron'
 import firstloadVersion from './__generated/version'
 
 initializeFetchListener()
-initializeWebSocketListener()
 
 enum MetricCategory {
 	Device = 'Device',
@@ -385,6 +384,7 @@ if (typeof window !== 'undefined') {
 }
 
 listenToChromeExtensionMessage()
+initializeWebSocketListener()
 
 export type { HighlightOptions }
 export {
