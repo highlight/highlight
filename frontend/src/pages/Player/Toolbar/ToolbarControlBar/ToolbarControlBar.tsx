@@ -212,7 +212,7 @@ export const ToolbarControlBar = () => {
 					disabled={disableControls}
 					lines="1"
 				>
-					{isLiveMode ? 'Hide' : 'Show'} live mode
+					{isLiveMode ? 'Disable' : 'Enable'} live mode
 				</Tag>
 			)}
 
