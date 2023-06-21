@@ -7341,6 +7341,11 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 		return "", e.Wrap(err, "failed to find error object")
 	}
 
+	_, err := r.isProjectInPaidWorkspace(ctx, errorObject.ProjectID)
+	if err != nil {
+		return "", e.Wrap(err, "workspace does not have access")
+	}
+
 	systemPrompt := fmt.Sprint(`
 	You are a software engineer working on a web application and are trying to
 	debug an error in your code. Provide some general background on the issue and
