@@ -1,5 +1,6 @@
 import { ErrorButtons } from '@/app/components/error-buttons'
 import { FetchTests } from '@/app/components/fetch-tests'
+import { HighlightIdentify } from '@/app/components/highlight-identify'
 import Image from 'next/image'
 import { PathButtons } from '@/app/components/path-buttons'
 import { TrpcQueries } from '@/app/components/trpc-queries'
@@ -8,6 +9,8 @@ import { HighlightButtons } from './components/highlight-buttons'
 export default function Home() {
 	return (
 		<main style={{ padding: '2rem' }}>
+			<HighlightIdentify />
+
 			<Image
 				alt="Highlight logo"
 				src="highlight/logo-and-text-on-dark.svg"
