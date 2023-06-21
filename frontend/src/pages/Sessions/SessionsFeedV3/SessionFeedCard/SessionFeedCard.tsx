@@ -7,6 +7,7 @@ import {
 	IconSolidEyeOff,
 	IconSolidUserCircle,
 	IconSolidUsers,
+	IconSolidVideoCamera,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
@@ -105,6 +106,7 @@ export const SessionFeedCard = React.memo(
 						borderRadius="6"
 						display="flex"
 						flexDirection="column"
+						gap="4"
 						cssClass={[
 							style.sessionCard,
 							{
@@ -141,28 +143,13 @@ export const SessionFeedCard = React.memo(
 									/>
 								)}
 							</Box>
-							{!session.processed && (
-								<Tag
-									shape="basic"
-									kind="primary"
-									size="small"
-									emphasis="low"
-									onClick={() => {
-										setSearchParams({
-											...EmptySessionsSearchParams,
-											show_live_sessions: true,
-										})
-									}}
-								>
-									Live
-								</Tag>
-							)}
 						</Box>
 						<Box
 							alignItems="center"
 							display="flex"
 							gap="12"
 							justifyContent="space-between"
+							cssClass={style.sessionMeta}
 						>
 							<Box
 								display="flex"
@@ -177,9 +164,7 @@ export const SessionFeedCard = React.memo(
 											kind="secondary"
 											emphasis="low"
 											size="small"
-											iconLeft={
-												<IconSolidEyeOff size={12} />
-											}
+											icon={<IconSolidEyeOff size={12} />}
 											onClick={() => {
 												setSearchParams({
 													...EmptySessionsSearchParams,
@@ -194,7 +179,7 @@ export const SessionFeedCard = React.memo(
 											kind="secondary"
 											emphasis="low"
 											size="small"
-											iconLeft={
+											icon={
 												<IconSolidUserCircle
 													size={12}
 												/>
@@ -213,7 +198,7 @@ export const SessionFeedCard = React.memo(
 											kind="secondary"
 											emphasis="low"
 											size="small"
-											iconLeft={
+											icon={
 												<IconSolidExclamation
 													size={12}
 												/>
@@ -226,7 +211,7 @@ export const SessionFeedCard = React.memo(
 											kind="secondary"
 											emphasis="low"
 											size="small"
-											iconLeft={
+											icon={
 												<IconSolidCursorClick
 													size={12}
 												/>
@@ -235,27 +220,35 @@ export const SessionFeedCard = React.memo(
 									)}
 								</Box>
 								<Box display="flex" gap="4" alignItems="center">
-									<Tag
-										shape="basic"
-										kind="secondary"
-										size="small"
-									>
-										<Text
-											lines="1"
+									{session.processed ? (
+										<Tag
+											shape="basic"
+											kind="secondary"
 											size="small"
-											display="flex"
 										>
-											{moment
-												.utc(session.active_length)
-												.format('HH:mm:ss')}
-										</Text>
-									</Tag>
-									<Text
-										lines="1"
-										size="small"
-										display="flex"
-										cssClass={style.datetimeText}
-									>
+											<Text size="xSmall">
+												{moment
+													.utc(session.active_length)
+													.format('H:mm:ss')}
+											</Text>
+										</Tag>
+									) : (
+										<Tag
+											shape="basic"
+											kind="primary"
+											size="small"
+											iconLeft={<IconSolidVideoCamera />}
+											onClick={() => {
+												setSearchParams({
+													...EmptySessionsSearchParams,
+													show_live_sessions: true,
+												})
+											}}
+										>
+											<Text size="xSmall">Live</Text>
+										</Tag>
+									)}
+									<Text lines="1" size="xSmall">
 										{configuration?.datetimeFormat
 											? formatDatetime(
 													session.created_at,
