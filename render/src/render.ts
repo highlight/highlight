@@ -136,8 +136,11 @@ export async function render(
 		files.push(file)
 	}
 
-	await page.close()
-	await browser.close()
+	// puppeteer shutdown should not happen in lambda as it causes the lambda to hang
+	if (process.env.DEV?.length) {
+		await page.close()
+		await browser.close()
+	}
 	console.log(`done`, { files })
 
 	return files
