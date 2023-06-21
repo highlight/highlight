@@ -132,8 +132,13 @@ class H(object):
 
         :param session_id: the highlight session that initiated this network request.
         :param request_id: the identifier of the current network request.
-        :return: None
+        :return: Span
         """
+        # in case the otel library is in a non-recording context, do nothing
+        if not hasattr(self, "tracer") or not self.tracer:
+            yield
+            return
+
         with self.tracer.start_as_current_span("highlight-ctx") as span:
             span.set_attributes({"highlight.project_id": self._project_id})
             span.set_attributes({"highlight.session_id": session_id})
