@@ -2,6 +2,10 @@ import { SearchContextProvider } from '@pages/Sessions/SearchContext/SearchConte
 
 import { useGetBaseSearchContext } from '@/context/SearchState'
 import { EmptySessionsSearchQuery } from '@/pages/Sessions/EmptySessionsSearchParams'
+import {
+	CUSTOM_FIELDS,
+	TIME_RANGE_FIELD,
+} from '@/pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 
 const WithSessionSearchContext: React.FC<React.PropsWithChildren> = ({
 	children,
@@ -9,6 +13,8 @@ const WithSessionSearchContext: React.FC<React.PropsWithChildren> = ({
 	const baseContext = useGetBaseSearchContext(
 		EmptySessionsSearchQuery,
 		'highlightSegmentPickerForPlayerSelectedSegmentId',
+		CUSTOM_FIELDS,
+		TIME_RANGE_FIELD,
 	)
 
 	const sessionSearchContext = {

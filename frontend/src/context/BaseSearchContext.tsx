@@ -33,9 +33,9 @@ export type BaseSearchContext = {
 	removeSelectedSegment: () => void
 	/** The query sent to the backend */
 	backendSearchQuery: BackendSearchQuery
-	setBackendSearchQuery: React.Dispatch<
-		React.SetStateAction<BackendSearchQuery>
-	>
+	// setBackendSearchQuery: React.Dispatch<
+	// 	React.SetStateAction<BackendSearchQuery>
+	// >
 	page: number
 	setPage: React.Dispatch<React.SetStateAction<number>>
 	searchResultsLoading: boolean

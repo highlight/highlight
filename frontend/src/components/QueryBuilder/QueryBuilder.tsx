@@ -1,15 +1,10 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Popover from '@components/Popover/Popover'
-import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import Tooltip from '@components/Tooltip/Tooltip'
-import {
-	BackendSearchQuery,
-	BaseSearchContext,
-} from '@context/BaseSearchContext'
+import { BaseSearchContext } from '@context/BaseSearchContext'
 import {
 	useEditErrorSegmentMutation,
 	useEditSegmentMutation,
@@ -79,7 +74,7 @@ export interface SelectOption {
 	label: string
 	value: string
 }
-interface MultiselectOption {
+export interface MultiselectOption {
 	kind: 'multi'
 	options: readonly {
 		label: string
@@ -90,10 +85,6 @@ interface MultiselectOption {
 type OnChangeInput = SelectOption | MultiselectOption | undefined
 type OnChange = (val: OnChangeInput) => void
 type LoadOptions = (input: string, callback: any) => Promise<any>
-type OpenSearchQuery = {
-	query: any
-	childQuery?: any
-}
 
 interface RuleSettings {
 	onChangeKey: OnChange
@@ -128,8 +119,8 @@ interface SetVisible {
 	setVisible: (val: boolean) => void
 }
 
-const TIME_MAX_LENGTH = 60
-const RANGE_MAX_LENGTH = 200
+export const TIME_MAX_LENGTH = 60
+export const RANGE_MAX_LENGTH = 200
 
 const TOOLTIP_MESSAGE = 'This property was automatically collected by Highlight'
 
@@ -213,7 +204,6 @@ const OptionLabelName: React.FC<React.PropsWithChildren> = (props) => {
 		)
 	}
 
-	// ZANETODO: this is ok, in subcomponent
 	useEffect(() => {
 		if (!!ref?.current) {
 			setScrollShadow(ref.current)
@@ -249,7 +239,6 @@ const ScrolledTextHighlighter = ({
 	}
 	const [doScroll, ref] = useScroll()
 
-	// ZANETODO: this is ok, in subcomponent
 	useEffect(() => {
 		doScroll()
 	}, [doScroll, textToHighlight])
@@ -900,19 +889,8 @@ const QueryRule = ({
 	)
 }
 
-const hasArguments = (op: Operator): boolean =>
+export const hasArguments = (op: Operator): boolean =>
 	!['exists', 'not_exists'].includes(op)
-
-const isNegative = (op: Operator): boolean =>
-	[
-		'is_not',
-		'not_contains',
-		'not_exists',
-		'not_between',
-		'not_between_time',
-		'not_between_date',
-		'not_matches',
-	].includes(op)
 
 const LABEL_MAP_SINGLE: { [K in Operator]: string } = {
 	is: 'is',
@@ -959,24 +937,7 @@ const TOOLTIP_MESSAGES: { [K in string]: string } = {
 	not_exists: 'Filters for results which do not have this field.',
 }
 
-const NEGATION_MAP: { [K in Operator]: Operator } = {
-	is: 'is_not',
-	is_not: 'is',
-	contains: 'not_contains',
-	not_contains: 'contains',
-	exists: 'not_exists',
-	not_exists: 'exists',
-	between: 'not_between',
-	not_between: 'between',
-	between_time: 'not_between_time',
-	not_between_time: 'between_time',
-	between_date: 'not_between_date',
-	not_between_date: 'between_date',
-	matches: 'not_matches',
-	not_matches: 'matches',
-}
-
-type Operator =
+export type Operator =
 	| 'is'
 	| 'is_not'
 	| 'contains'
@@ -992,7 +953,7 @@ type Operator =
 	| 'matches'
 	| 'not_matches'
 
-const OPERATORS: Operator[] = [
+export const OPERATORS: Operator[] = [
 	'is',
 	'is_not',
 	'contains',
@@ -1150,7 +1111,7 @@ export const deserializeGroup = (
 	}
 }
 
-const deserializeRules = (ruleGroups: any): RuleProps[] => {
+export const deserializeRules = (ruleGroups: any): RuleProps[] => {
 	if (!ruleGroups) {
 		return []
 	}
@@ -1177,7 +1138,7 @@ const getTypeLabel = (value: string) => {
 	return undefined
 }
 
-const getType = (value: string) => {
+export const getType = (value: string) => {
 	return value.split('_')[0]
 }
 
@@ -1266,9 +1227,7 @@ enum SegmentModalState {
 
 const now = moment()
 const defaultMinDate = now.clone().subtract(90, 'days').toDate()
-
 const presetOptions = getDefaultPresets(now)
-
 const defaultPreset = presetOptions[5]
 
 function QueryBuilder(props: QueryBuilderProps) {
@@ -1287,11 +1246,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const {
 		backendSearchQuery,
-		setBackendSearchQuery,
 		searchQuery,
 		setSearchQuery,
 		existingQuery,
-		setExistingQuery,
+		setExistingQuery, // ZANETODO: can we get rid of `setExistingQuery`?
 		searchResultsCount,
 		selectedSegment,
 		setSelectedSegment,
@@ -1318,10 +1276,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 							match.params?.query,
 						)
 						return
+					} else {
+						setSelectedSegment(undefined, searchQuery)
 					}
 				}
-
-				setSelectedSegment(undefined, searchQuery)
 			},
 		})
 
@@ -1370,8 +1328,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		[removeSelectedSegment, segmentData?.segments, setSelectedSegment],
 	)
 
-	const { admin } = useAuthContext()
-
 	const getCustomFieldOptions = useCallback(
 		(field: SelectOption | undefined) => {
 			if (!field) {
@@ -1398,182 +1354,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const getDefaultOperator = (field: SelectOption | undefined) =>
 		((field && getCustomFieldOptions(field)?.operators) ?? OPERATORS)[0]
 
-	const parseInner = useCallback(
-		(field: SelectOption, op: Operator, value?: string): any => {
-			if (
-				[CUSTOM_TYPE, ERROR_TYPE, ERROR_FIELD_TYPE].includes(
-					getType(field.value),
-				)
-			) {
-				const name = field.label
-				const isKeyword = !(
-					getCustomFieldOptions(field)?.type !== 'text'
-				)
-
-				if (field.label === 'viewed_by_me' && admin) {
-					const baseQuery = {
-						term: {
-							[`viewed_by_admins.id`]: admin.id,
-						},
-					}
-
-					if (value === 'true') {
-						return {
-							...baseQuery,
-						}
-					}
-					return {
-						bool: {
-							must_not: {
-								...baseQuery,
-							},
-						},
-					}
-				}
-
-				switch (op) {
-					case 'is':
-						return {
-							term: {
-								[`${name}${isKeyword ? '.keyword' : ''}`]:
-									value,
-							},
-						}
-					case 'contains':
-						return {
-							wildcard: {
-								[`${name}${
-									isKeyword ? '.keyword' : ''
-								}`]: `*${value}*`,
-							},
-						}
-					case 'matches':
-						return {
-							regexp: {
-								[`${name}${isKeyword ? '.keyword' : ''}`]:
-									value,
-							},
-						}
-					case 'exists':
-						return { exists: { field: name } }
-					case 'between_date':
-						return {
-							range: {
-								[name]: {
-									gte: getAbsoluteStartTime(value),
-									lte: getAbsoluteEndTime(value),
-								},
-							},
-						}
-					case 'between_time':
-						return {
-							range: {
-								[name]: {
-									gte:
-										Number(value?.split('_')[0]) *
-										60 *
-										1000,
-									...(Number(value?.split('_')[1]) ===
-									TIME_MAX_LENGTH
-										? null
-										: {
-												lte:
-													Number(
-														value?.split('_')[1],
-													) *
-													60 *
-													1000,
-										  }),
-								},
-							},
-						}
-					case 'between':
-						return {
-							range: {
-								[name]: {
-									gte: Number(value?.split('_')[0]),
-									...(Number(value?.split('_')[1]) ===
-									RANGE_MAX_LENGTH
-										? null
-										: {
-												lte: Number(
-													value?.split('_')[1],
-												),
-										  }),
-								},
-							},
-						}
-				}
-			} else {
-				const key = field.value
-				switch (op) {
-					case 'is':
-						return {
-							term: { 'fields.KeyValue': `${key}_${value}` },
-						}
-					case 'contains':
-						return {
-							wildcard: {
-								'fields.KeyValue': `${key}_*${value}*`,
-							},
-						}
-					case 'matches':
-						return {
-							regexp: {
-								'fields.KeyValue': `${key}_${value}`,
-							},
-						}
-					case 'exists':
-						return { term: { 'fields.Key': key } }
-				}
-			}
-		},
-		[getCustomFieldOptions, admin],
-	)
-
-	const parseRuleImpl = useCallback(
-		(
-			field: SelectOption,
-			op: Operator,
-			multiValue: MultiselectOption,
-		): any => {
-			if (isNegative(op)) {
-				return {
-					bool: {
-						must_not: {
-							...parseRuleImpl(
-								field,
-								NEGATION_MAP[op],
-								multiValue,
-							),
-						},
-					},
-				}
-			} else if (hasArguments(op)) {
-				return {
-					bool: {
-						should: multiValue.options.map(({ value }) =>
-							parseInner(field, op, value),
-						),
-					},
-				}
-			} else {
-				return parseInner(field, op)
-			}
-		},
-		[parseInner],
-	)
-
-	const parseRule = useCallback(
-		(rule: RuleProps): any => {
-			const field = rule.field!
-			const multiValue = rule.val!
-			const op = rule.op!
-
-			return parseRuleImpl(field, op, multiValue)
-		},
-		[parseRuleImpl],
-	)
 	const { data: appVersionData } = useGetAppVersionsQuery({
 		variables: { project_id: projectId! },
 		skip: !projectId,
@@ -1600,99 +1380,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [timeRangeField])
 
-	const parseGroup = useCallback(
-		(isAnd: boolean, rules: RuleProps[]): OpenSearchQuery => {
-			const condition = isAnd ? 'must' : 'should'
-			const filterErrors = rules.some(
-				(r) => getType(r.field!.value) === ERROR_FIELD_TYPE,
-			)
-			const timeRange =
-				rules.find(
-					(rule) => rule.field?.value === timeRangeField.value,
-				) ?? defaultTimeRangeRule
-
-			const timeRule = parseRule(timeRange)
-
-			const errorObjectRules = rules
-				.filter(
-					(r) =>
-						getType(r.field!.value) === ERROR_FIELD_TYPE &&
-						r !== timeRange,
-				)
-				.map(parseRule)
-
-			const standardRules = rules
-				.filter(
-					(r) =>
-						getType(r.field!.value) !== ERROR_FIELD_TYPE &&
-						r !== timeRange,
-				)
-				.map(parseRule)
-
-			const request: OpenSearchQuery = { query: {} }
-
-			if (filterErrors) {
-				const errorGroupFilter = {
-					bool: {
-						[condition]: standardRules,
-					},
-				}
-				const errorObjectFilter = {
-					bool: {
-						must: [
-							timeRule,
-							{
-								bool: {
-									[condition]: errorObjectRules,
-								},
-							},
-						],
-					},
-				}
-				request.query = {
-					bool: {
-						must: [
-							errorGroupFilter,
-							{
-								has_child: {
-									type: 'child',
-									query: errorObjectFilter,
-								},
-							},
-						],
-					},
-				}
-				request.childQuery = {
-					bool: {
-						must: [
-							{
-								has_parent: {
-									parent_type: 'parent',
-									query: errorGroupFilter,
-								},
-							},
-							errorObjectFilter,
-						],
-					},
-				}
-			} else {
-				request.query = {
-					bool: {
-						must: [
-							timeRule,
-							{
-								bool: {
-									[condition]: standardRules,
-								},
-							},
-						],
-					},
-				}
-			}
-			return request
-		},
-		[defaultTimeRangeRule, parseRule, timeRangeField.value],
-	)
 	const [isAnd, toggleIsAnd] = useToggle(true)
 	const [rules, setRules] = useState<RuleProps[]>([defaultTimeRangeRule])
 
@@ -1700,6 +1387,23 @@ function QueryBuilder(props: QueryBuilderProps) {
 		() =>
 			rules.filter((rule) => rule.field?.value !== timeRangeField.value),
 		[rules, timeRangeField.value],
+	)
+
+	const setRulesImpl = useCallback(
+		(newRules: RuleProps[]) => {
+			setRules(newRules)
+
+			if (readonly || !newRules.every(isComplete)) {
+				return
+			}
+
+			const newState = JSON.stringify({
+				isAnd,
+				rules: serializeRules(newRules),
+			})
+			setSearchQuery(newState)
+		},
+		[isAnd, readonly, setSearchQuery],
 	)
 
 	const addNewRule = () => {
@@ -1712,23 +1416,25 @@ function QueryBuilder(props: QueryBuilderProps) {
 	}
 	const addRule = useCallback(
 		(rule: RuleProps) => {
-			setRules([...rules, rule])
+			setRulesImpl([...rules, rule])
 			setCurrentRule(undefined)
 		},
-		[rules],
+		[rules, setRulesImpl],
 	)
 	const removeRule = useCallback(
 		(targetRule: RuleProps) =>
-			setRules(rules.filter((rule) => rule !== targetRule)),
-		[rules],
+			setRulesImpl(rules.filter((rule) => rule !== targetRule)),
+		[rules, setRulesImpl],
 	)
-	const updateRule = (targetRule: RuleProps, newProps: any) => {
-		setRules((currentRules) =>
-			currentRules.map((rule) =>
-				rule !== targetRule ? rule : { ...rule, ...newProps },
+	const updateRule = useCallback(
+		(targetRule: RuleProps, newProps: any) =>
+			setRulesImpl(
+				rules.map((rule) =>
+					rule !== targetRule ? rule : { ...rule, ...newProps },
+				),
 			),
-		)
-	}
+		[rules, setRulesImpl],
+	)
 
 	const timeRangeRule = useMemo<RuleProps>(() => {
 		const timeRange = rules.find(
@@ -1770,30 +1476,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 				})
 		},
 		[customFields, fieldData?.field_types],
-	)
-
-	const getSerializedQuery = useCallback(
-		(isAnd: boolean, rules: RuleProps[]): BackendSearchQuery => {
-			const startDate = roundFeedDate(
-				getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
-			)
-			const endDate = roundFeedDate(
-				getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
-			)
-			const searchQuery = parseGroup(isAnd, rules)
-			return {
-				searchQuery: JSON.stringify(searchQuery.query),
-				childSearchQuery: searchQuery.childQuery
-					? JSON.stringify(searchQuery.childQuery)
-					: undefined,
-				startDate,
-				endDate,
-				histogramBucketSize: GetHistogramBucketSize(
-					moment.duration(endDate.diff(startDate)),
-				),
-			}
-		},
-		[parseGroup, timeRangeRule],
 	)
 
 	const getOperatorOptionsCallback = (
@@ -1885,11 +1567,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 		],
 	)
 
-	// If the search query is updated externally, set the rules and `isAnd` toggle
-	// based on it
+	const areRulesValid = rules.every(isComplete)
+
 	useEffect(() => {
-		if (!!searchQuery) {
-			console.log('zane', searchQuery)
+		// If the search query is updated externally, set the rules and `isAnd` toggle
+		// based on it
+		if (searchQuery) {
 			const newState = JSON.parse(searchQuery)
 			const deserializedRules = deserializeRules(newState.rules)
 
@@ -1904,43 +1587,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 				setDateRange([new Date(from), new Date(to)])
 			}
 			toggleIsAnd(newState.isAnd)
-			setRules(deserializeRules(newState.rules))
+			setRules(deserializedRules)
 		}
-	}, [searchQuery, toggleIsAnd, timeRangeField.value])
-
-	const areRulesValid = rules.every(isComplete)
-
-	useEffect(() => {
-		// Only update the external state if not readonly
-		if (readonly) {
-			return
-		}
-
-		const allComplete = rules.every(isComplete)
-
-		if (!allComplete) {
-			return
-		}
-
-		// ZANETODO: uncomment below!
-		// const newState = JSON.stringify({
-		// 	isAnd,
-		// 	rules: serializeRules(rules),
-		// })
-
-		// setSearchQuery(newState)
-		setBackendSearchQuery(getSerializedQuery(isAnd, rules))
-	}, [
-		defaultTimeRangeRule,
-		getSerializedQuery,
-		isAnd,
-		readonly,
-		rules,
-		searchQuery,
-		setBackendSearchQuery,
-		setSearchQuery,
-		timeRangeField.value,
-	])
+	}, [searchQuery, timeRangeField.value, toggleIsAnd])
 
 	const [currentStep, setCurrentStep] = useState<number | undefined>(
 		undefined,

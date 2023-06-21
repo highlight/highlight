@@ -21,7 +21,7 @@ export const TIME_RANGE_FIELD: SelectOption = {
 	value: 'error-field_timestamp',
 }
 
-const CUSTOM_FIELDS: CustomField[] = [
+export const CUSTOM_FIELDS: CustomField[] = [
 	{
 		type: ERROR_TYPE,
 		name: 'Type',

@@ -47,7 +47,7 @@ export const TIME_RANGE_FIELD: SelectOption = {
 	value: 'custom_created_at',
 }
 
-const CUSTOM_FIELDS: CustomField[] = [
+export const CUSTOM_FIELDS: CustomField[] = [
 	{
 		type: CUSTOM_TYPE,
 		name: 'app_version',

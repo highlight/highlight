@@ -180,10 +180,6 @@ export const SessionFeedV3 = React.memo(() => {
 	})
 
 	const addSessions = (response: GetSessionsOpenSearchQuery) => {
-		console.log(
-			'zane searchreducer addSessions',
-			response.sessions_opensearch.totalCount,
-		)
 		if (response?.sessions_opensearch) {
 			setSessionResults({
 				...response.sessions_opensearch,
@@ -217,6 +213,7 @@ export const SessionFeedV3 = React.memo(() => {
 	// The loading skeleton should only be shown on the first load and when searchParams changes.
 	// It should not show when loading more sessions via infinite scroll.
 	useEffect(() => {
+		console.log('zane setSearchResultsLoading', loading)
 		setSearchResultsLoading(loading)
 	}, [loading, setSearchResultsLoading])
 
@@ -235,7 +232,7 @@ export const SessionFeedV3 = React.memo(() => {
 			setPage(STARTING_PAGE)
 		}
 		searchParamsChanged.current = new Date()
-	}, [searchQuery, setPage]) // ZANETODO: why the searchQuery dependency?
+	}, [searchQuery, setPage])
 
 	const enableLiveSessions = useCallback(() => {
 		if (searchQuery) {
