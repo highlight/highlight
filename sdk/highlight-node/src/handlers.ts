@@ -87,6 +87,39 @@ export async function trpcOnError(
 	}
 }
 
+declare type Headers = { [name: string]: string | undefined }
+
+const makeHandler = (
+	origHandler: (...args: any) => any,
+	options: NodeOptions,
+	headersExtractor: (...args: any) => Headers | undefined,
+) => {
+	return async (...args: any) => {
+		try {
+			return await origHandler(args)
+		} catch (e) {
+			try {
+				if (e instanceof Error) {
+					if (!H.isInitialized()) {
+						H.init(options)
+					}
+					processErrorImpl(
+						options,
+						{ headers: headersExtractor(args) },
+						e,
+					)
+					await H.flush()
+				}
+			} catch (e) {
+				console.warn('highlight-node serverlessFunction error:', e)
+			}
+
+			// Rethrow the error here to allow any other error handling to happen
+			throw e
+		}
+	}
+}
+
 /**
  * A wrapper for logging errors to Highlight for Firebase HTTP functions
  */
@@ -98,29 +131,7 @@ export function firebaseHttpFunctionHandler(
 	origHandler: FirebaseHttpFunctionHandler,
 	options: NodeOptions,
 ): FirebaseHttpFunctionHandler {
-	return async (req, res) => {
-		try {
-			return await origHandler(req, res)
-		} catch (e) {
-			try {
-				if (e instanceof Error) {
-					if (!H.isInitialized()) {
-						H.init(options)
-					}
-					processErrorImpl(options, req, e)
-					await H.flush()
-				}
-			} catch (e) {
-				console.warn(
-					'highlight-node firebaseHttpFunctionHandler error:',
-					e,
-				)
-			}
-
-			// Rethrow the error here to allow any other error handling to happen
-			throw e
-		}
-	}
+	return makeHandler(origHandler, options, (req, res) => req.headers)
 }
 
 /**
@@ -131,27 +142,16 @@ export function firebaseCallableFunctionHandler(
 	origHandler: FirebaseCallableFunctionHandler,
 	options: NodeOptions,
 ): FirebaseCallableFunctionHandler {
-	return async (data, context) => {
-		try {
-			return await origHandler(data, context)
-		} catch (e) {
-			try {
-				if (e instanceof Error) {
-					if (!H.isInitialized()) {
-						H.init(options)
-					}
-					processErrorImpl(options, context.rawRequest, e)
-					await H.flush()
-				}
-			} catch (e) {
-				console.warn(
-					'highlight-node firebaseCallableFunctionHandler error:',
-					e,
-				)
-			}
+	return makeHandler(origHandler, options, (data, ctx) => ctx.rawRequest)
+}
 
-			// Rethrow the error here to allow any other error handling to happen
-			throw e
-		}
-	}
+/**
+ * A wrapper for logging errors to Highlight for AWS Lambda and other serverless functions
+ */
+declare type ServerlessCallableFunctionHandler = (event?: any) => any
+export function serverlessFunction(
+	origHandler: ServerlessCallableFunctionHandler,
+	options: NodeOptions,
+): FirebaseCallableFunctionHandler {
+	return makeHandler(origHandler, options, (event) => event?.headers)
 }
