@@ -497,11 +497,7 @@ export const PlayerReducer = (
 			const time = getTimeFromReplayer(s.replayer, s.sessionMetadata)
 			// Compute the string rather than number here, so that dependencies don't
 			// have to re-render on every tick
-			if (
-				s.isLiveMode &&
-				s.lastActiveTimestamp != 0 &&
-				s.lastActiveTimestamp < time - 5000
-			) {
+			if (s.isLiveMode && s.lastActiveTimestamp != 0) {
 				if (s.lastActiveTimestamp > time - 1000 * 60) {
 					s.lastActiveString = 'less than a minute ago'
 				} else {

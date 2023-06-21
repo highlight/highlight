@@ -1003,25 +1003,6 @@ const TimelineIndicatorsBarGraph = ({
 						width: canvasWidth,
 					}}
 				>
-					{/*
-					TODO: Set fixed height on entire bottom panel and preserve that across
-					loading states. This will prevent the UI from jumping around.
-					TODO: See if we can add the time since last event.
-					*/}
-					{isLiveMode && (
-						// Add an overlay over the top of the timeline to prevent any interactivity.
-						<Box
-							background="white"
-							position="absolute"
-							style={{
-								top: 0,
-								left: 0,
-								bottom: 0,
-								right: 0,
-								opacity: 0.5,
-							}}
-						/>
-					)}
 					<div
 						ref={timeIndicatorRef}
 						className={clsx([
