@@ -274,6 +274,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
+## Configure `inlineImages`
+
+We use a package called [rrweb](https://www.rrweb.io/) to record web sessions. rrweb enables inlining images into session replay to improve performance; however, the inlined images can cause CORS issues in some situations.
+
+We currently default `inlineImages` to `true`. Explicitly set `inlineImages={false}` if you run into trouble loading images on your page while Highlight is running. This will degrade tracking on localhost and other domains that are inaccessible to `app.highlight.io`.
+
 ## Configure `tracingOrigins` and `networkRecording`
 
 See [Fullstack Mapping](https://www.highlight.io/docs/getting-started/frontend-backend-mapping#how-can-i-start-using-this) for details.
