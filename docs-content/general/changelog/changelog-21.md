@@ -21,7 +21,23 @@ We've installed the [AllContributor](https://allcontributors.org/docs/en/bot/ins
 
 ![all contributors](/images/changelog/21/all-contributors.png)
 
+## New Slack Embed
 
+We already support tagging a Slack channel in a session comment.
+
+Now we take a screenshot of that session and embed it in the Slack channel to add extra context to the message.
+
+![Slack embed](/images/changelog/21/slack-embed.png)
+
+## Hobby Deploy off localhost
+
+The Hobby Deploy assumed that it would always host itself on `localhost`.
+
+We fixed that issue by passing `REACT_APP_PRIVATE_GRAPH_URI` and `REACT_APP_PUBLIC_GRAPH_URI` to the Docker containers, so you can configure the endpoints to run on any domain you like.
+
+## Python 3.11 Support
+
+Our SDK now supports Python 3.11.
 
 
 
