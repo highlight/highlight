@@ -52,16 +52,43 @@ export async function getEvents(
 	return await compressedStreamToString(response.Body as Readable)
 }
 
+export async function getRenderExport(
+	project: number,
+	session: number,
+	format: string,
+	ts?: number,
+	tsEnd?: number,
+) {
+	const ext = format.split('/').pop()
+	let key = `${project}/${session}${ts ? '-' : ''}${ts ?? ''}${
+		tsEnd ? '-' : ''
+	}${tsEnd ?? ''}.${ext}`
+	const command = new GetObjectCommand({
+		Bucket: RENDER_BUCKET,
+		Key: key,
+	})
+	try {
+		const response = await east_client.send(command)
+		if (response?.ContentLength ?? 0 > 0) {
+			return `https://highlight-session-render.s3.us-east-2.amazonaws.com/${key}`
+		}
+	} catch (e) {}
+}
+
 export async function uploadRenderExport(
 	project: number,
 	session: number,
 	format: string,
 	localPath: string,
+	ts?: number,
+	tsEnd?: number,
 ) {
 	const stat = statSync(localPath)
 	console.log(`uploading file ${localPath} size ${stat.size}`)
 	const ext = format.split('/').pop()
-	let key = `${project}/${session}.${ext}`
+	let key = `${project}/${session}${ts ? '-' : ''}${ts ?? ''}${
+		tsEnd ? '-' : ''
+	}${tsEnd ?? ''}.${ext}`
 	const command = new PutObjectCommand({
 		Bucket: RENDER_BUCKET,
 		Key: key,
