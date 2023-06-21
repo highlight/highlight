@@ -78,7 +78,11 @@ export const NetworkListener = ({
 	)
 
 	const removeWebSocketListener = !disableWebSocketRecording
-		? WebSocketListener(webSocketRequestCallback, webSocketEventCallback)
+		? WebSocketListener(
+				webSocketRequestCallback,
+				webSocketEventCallback,
+				urlBlocklist,
+		  )
 		: () => {}
 
 	return () => {

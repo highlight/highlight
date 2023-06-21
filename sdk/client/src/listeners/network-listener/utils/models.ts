@@ -39,6 +39,6 @@ export interface WebSocketEvent {
 	type: 'error' | 'received' | 'sent'
 	name: string
 	timeStamp: number
-	size: number
+	size?: number
 	message?: string
 }

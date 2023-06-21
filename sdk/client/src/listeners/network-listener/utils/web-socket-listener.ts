@@ -21,6 +21,7 @@ declare var window: HighlightWebSocketWindow
 const WebSocketListener = (
 	requestCallback: WebSocketRequestListenerCallback,
 	eventCallback: WebSocketEventListenerCallback,
+	urlBlocklist: string[],
 ) => {
 	const initialHighlightWebSocketRequestCallback =
 		window._highlightWebSocketRequestCallback
@@ -28,7 +29,16 @@ const WebSocketListener = (
 
 	const initialHighlightWebSocketEventCallback =
 		window._highlightWebSocketEventCallback
-	window._highlightWebSocketEventCallback = eventCallback
+	window._highlightWebSocketEventCallback = (eventData: WebSocketEvent) => {
+		const { message, size, ...visibleEventData } = eventData
+		const blockedUrl = urlBlocklist.some((blockedUrl) =>
+			eventData.name.toLowerCase().includes(blockedUrl),
+		)
+
+		const redactedEventData = blockedUrl ? visibleEventData : eventData
+
+		eventCallback(redactedEventData)
+	}
 
 	return () => {
 		window._highlightWebSocketRequestCallback =
