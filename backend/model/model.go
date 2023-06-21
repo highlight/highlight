@@ -139,6 +139,7 @@ var Models = []interface{}{
 	&Field{},
 	&EmailSignup{},
 	&ResourcesObject{},
+	&WebSocketEventsObject{},
 	&ExternalAttachment{},
 	&SessionComment{},
 	&SessionCommentTag{},
@@ -694,6 +695,18 @@ func (r *ResourcesObject) Contents() string {
 	return r.Resources
 }
 
+type WebSocketEventsObject struct {
+	Model
+	ID              int `json:"id"` // Shadow Model.ID to avoid creating a pkey constraint
+	SessionID       int
+	WebSocketEvents string
+	IsBeacon        bool `gorm:"default:false"`
+}
+
+func (r *WebSocketEventsObject) Contents() string {
+	return r.WebSocketEvents
+}
+
 type SearchParams struct {
 	UserProperties          []*UserProperty `json:"user_properties"`
 	ExcludedProperties      []*UserProperty `json:"excluded_properties"`
@@ -1177,8 +1190,9 @@ type EmailOptOut struct {
 type RawPayloadType string
 
 const (
-	PayloadTypeEvents    RawPayloadType = "raw-events"
-	PayloadTypeResources RawPayloadType = "raw-resources"
+	PayloadTypeEvents          RawPayloadType = "raw-events"
+	PayloadTypeResources       RawPayloadType = "raw-resources"
+	PayloadTypeWebSocketEvents RawPayloadType = "raw-web-socket-events"
 )
 
 type BillingEmailHistory struct {

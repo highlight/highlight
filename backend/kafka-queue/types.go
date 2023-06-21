@@ -37,6 +37,7 @@ type PushPayloadArgs struct {
 	Events             customModels.ReplayEventsInput
 	Messages           string
 	Resources          string
+	WebSocketEvents    *string
 	Errors             []*customModels.ErrorObjectInput
 	IsBeacon           *bool
 	HasSessionUnloaded *bool

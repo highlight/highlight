@@ -2215,11 +2215,12 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 	return nil
 }
 
-func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
+func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionSecureID", sessionSecureID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
 	querySessionSpan.SetTag("resourcesLength", len(resources))
+	querySessionSpan.SetTag("webSocketEventsLength", len(*webSocketEvents))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
 	querySessionSpan.SetTag("numberOfEvents", len(events.Events))
 	if highlightLogs != nil {
@@ -2413,6 +2414,41 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
 				if err := r.DB.Create(obj).Error; err != nil {
 					return e.Wrap(err, "error creating resources object")
+				}
+			}
+		}
+
+		return nil
+	})
+
+	// unmarshal WebSocket events
+	g.Go(func() error {
+		defer util.Recover()
+		if len(*webSocketEvents) > 0 {
+			unmarshalWebSocketEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+				tracer.ResourceName("go.unmarshal.web_socket_events"), tracer.Tag("project_id", projectID))
+			defer unmarshalWebSocketEventsSpan.Finish()
+
+			if sessionObj.AvoidPostgresStorage {
+				if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeWebSocketEvents, []byte(*webSocketEvents)); err != nil {
+					return e.Wrap(err, "error saving web socket events data")
+				}
+			} else {
+				if hasBeacon {
+					r.DB.Where(&model.WebSocketEventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
+				}
+				webSocketEventsParsed := make(map[string][]NetworkResource)
+				if err := json.Unmarshal([]byte(*webSocketEvents), &webSocketEventsParsed); err != nil {
+					return nil
+				}
+				if len(webSocketEventsParsed["webSocketEvents"]) > 0 {
+					if err := r.submitFrontendNetworkMetric(ctx, sessionObj, webSocketEventsParsed["webSocketEvents"]); err != nil {
+						return err
+					}
+					obj := &model.WebSocketEventsObject{SessionID: sessionID, WebSocketEvents: *webSocketEvents, IsBeacon: isBeacon}
+					if err := r.DB.Create(obj).Error; err != nil {
+						return e.Wrap(err, "error creating web socket events object")
+					}
 				}
 			}
 		}

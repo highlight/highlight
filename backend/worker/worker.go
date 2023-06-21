@@ -303,6 +303,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			task.PushPayload.Events,
 			task.PushPayload.Messages,
 			task.PushPayload.Resources,
+			task.PushPayload.WebSocketEvents,
 			task.PushPayload.Errors,
 			task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
 			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
