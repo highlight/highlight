@@ -138,6 +138,9 @@ export async function render(
 		files.push(file)
 	}
 
+	await page.close()
+	await browser.close()
 	console.log(`done`, { files })
+
 	return files
 }
