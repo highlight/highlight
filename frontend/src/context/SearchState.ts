@@ -1,6 +1,7 @@
-import { getDefaultPresets } from '@highlight-run/ui'
+import { getDefaultPresets, getNow } from '@highlight-run/ui'
 import moment from 'moment'
 import { useCallback, useEffect, useReducer } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useLocalStorage } from 'react-use'
 import { JsonParam, NumberParam, useQueryParams } from 'use-query-params'
 
@@ -20,6 +21,7 @@ import {
 	RANGE_MAX_LENGTH,
 	RuleProps,
 	SelectOption,
+	serializeRules,
 	SESSION_TYPE,
 	TIME_MAX_LENGTH,
 } from '@/components/QueryBuilder/QueryBuilder'
@@ -47,7 +49,6 @@ interface SearchState {
 
 enum SearchActionType {
 	setSearchQuery,
-	setExistingQuery,
 	setSelectedSegment,
 	setPage,
 	setSearchResultsLoading,
@@ -56,7 +57,6 @@ enum SearchActionType {
 
 type SearchAction =
 	| setSearchQuery
-	| setExistingQuery
 	| setSelectedSegment
 	| setPage
 	| setSearchResultsLoading
@@ -68,11 +68,6 @@ interface setSearchQuery {
 	admin: Admin | undefined
 	customFields: CustomField[]
 	timeRangeField: SelectOption
-}
-
-interface setExistingQuery {
-	type: SearchActionType.setExistingQuery
-	existingQuery: React.SetStateAction<SearchState['existingQuery']>
 }
 
 interface setSelectedSegment {
@@ -121,7 +116,10 @@ export const SearchReducer = (
 	const s = { ...state }
 	switch (action.type) {
 		case SearchActionType.setSearchQuery:
-			s.searchQuery = evaluateAction(action.searchQuery, s.searchQuery)
+			s.searchQuery = tryAddDefaultDate(
+				evaluateAction(action.searchQuery, s.searchQuery),
+				action.timeRangeField,
+			)
 			s.backendSearchQuery = getSerializedQuery(
 				s.searchQuery,
 				action.admin,
@@ -129,19 +127,14 @@ export const SearchReducer = (
 				action.timeRangeField,
 			)
 			break
-		case SearchActionType.setExistingQuery:
-			s.existingQuery = evaluateAction(
-				action.existingQuery,
-				s.existingQuery,
-			)
-			break
 		case SearchActionType.setSelectedSegment:
+			const query = tryAddDefaultDate(action.query, action.timeRangeField)
 			s.selectedSegment = evaluateAction(
 				action.selectedSegment,
 				s.selectedSegment,
 			)
-			s.searchQuery = action.query
-			s.existingQuery = action.query
+			s.searchQuery = query
+			s.existingQuery = query
 			s.backendSearchQuery = getSerializedQuery(
 				s.searchQuery,
 				action.admin,
@@ -165,7 +158,7 @@ export const SearchReducer = (
 			)
 			break
 	}
-	console.log('SearchReducer', state.searchQuery, action)
+	console.log('SearchReducer', state, action)
 	return s
 }
 
@@ -174,7 +167,27 @@ const SearchInitialState = {
 	searchResultsCount: undefined,
 }
 
+const tryAddDefaultDate = (
+	searchQuery: string,
+	timeRangeField: SelectOption,
+): string => {
+	const { isAnd, rules: serializedRules }: { isAnd: boolean; rules: any } =
+		JSON.parse(searchQuery)
+	const newRules = deserializeRules(serializedRules)
+	const hasTimeRange =
+		newRules.find((rule) => rule.field?.value === timeRangeField.value) !==
+		undefined
+	if (!hasTimeRange) {
+		newRules.push(getDefaultTimeRangeRule(timeRangeField))
+	}
+	return JSON.stringify({
+		isAnd,
+		rules: serializeRules(newRules),
+	})
+}
+
 export const useGetInitialSearchState = (
+	page: 'sessions' | 'errors',
 	defaultSearchQuery: string,
 	segmentKeyPrefix: string,
 	admin: Admin | undefined,
@@ -184,21 +197,28 @@ export const useGetInitialSearchState = (
 	const [queryParams] = useQueryParams({
 		query: QueryBuilderStateParam,
 		page: NumberParam,
-		segment: JsonParam,
 	})
 
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const segmentKey = `${segmentKeyPrefix}-${project_id}`
-
 	const [selectedSegment] = useLocalStorage<
 		{ name: string; id: string } | undefined
 	>(segmentKey, undefined)
 
-	const startingQuery = queryParams.query || defaultSearchQuery
+	// sessions / errors search state exists outside of the sessions / errors pages.
+	// only set the state from the url params if we're currently on the page
+	const location = useLocation()
+	const pathSnippet = location.pathname.split('/')[2]
+	const isCurrentPage = page === pathSnippet
+
+	const startingQuery = tryAddDefaultDate(
+		(isCurrentPage && queryParams.query) || defaultSearchQuery,
+		timeRangeField,
+	)
+
 	return {
 		...SearchInitialState,
 		searchQuery: startingQuery,
@@ -210,11 +230,12 @@ export const useGetInitialSearchState = (
 			timeRangeField,
 		),
 		selectedSegment,
-		page: queryParams.page || START_PAGE,
+		page: (isCurrentPage && queryParams.page) || START_PAGE,
 	}
 }
 
 export const useGetBaseSearchContext = (
+	page: 'sessions' | 'errors',
 	defaultSearchQuery: string,
 	segmentKeyPrefix: string,
 	customFields: CustomField[],
@@ -223,18 +244,13 @@ export const useGetBaseSearchContext = (
 	const { admin } = useAuthContext()
 
 	const initialState = useGetInitialSearchState(
+		page,
 		defaultSearchQuery,
 		segmentKeyPrefix,
 		admin,
 		customFields,
 		timeRangeField,
 	)
-
-	const [, setUrlParams] = useQueryParams({
-		page: NumberParam,
-		query: QueryBuilderStateParam,
-		segment: JsonParam,
-	})
 
 	const { project_id } = useParams<{
 		project_id: string
@@ -244,16 +260,32 @@ export const useGetBaseSearchContext = (
 
 	const [state, dispatch] = useReducer(SearchReducer, initialState)
 
+	const location = useLocation()
+	const [, setUrlParams] = useQueryParams({
+		page: NumberParam,
+		query: QueryBuilderStateParam,
+		segment: JsonParam,
+	})
 	useEffect(() => {
-		setUrlParams(
-			{
-				page: state.page,
-				query: state.searchQuery,
-				segment: state.selectedSegment,
-			},
-			'replaceIn',
-		)
-	}, [state.searchQuery, state.page, state.selectedSegment, setUrlParams])
+		const pathSnippet = location.pathname.split('/')[2]
+		if (pathSnippet === page) {
+			setUrlParams(
+				{
+					page: state.page,
+					query: state.searchQuery,
+					segment: state.selectedSegment,
+				},
+				'replaceIn',
+			)
+		}
+	}, [
+		state.searchQuery,
+		state.page,
+		state.selectedSegment,
+		setUrlParams,
+		location.pathname,
+		page,
+	])
 
 	const setSearchQuery = useCallback(
 		(searchQuery: React.SetStateAction<string>) => {
@@ -266,16 +298,6 @@ export const useGetBaseSearchContext = (
 			})
 		},
 		[admin, customFields, timeRangeField],
-	)
-
-	const setExistingQuery = useCallback(
-		(existingQuery: React.SetStateAction<string>) => {
-			dispatch({
-				type: SearchActionType.setExistingQuery,
-				existingQuery,
-			})
-		},
-		[],
 	)
 
 	const setSelectedSegment = useCallback(
@@ -327,7 +349,6 @@ export const useGetBaseSearchContext = (
 	return {
 		...state,
 		setSearchQuery,
-		setExistingQuery,
 		setSelectedSegment,
 		removeSelectedSegment,
 		setPage,
@@ -341,12 +362,31 @@ type OpenSearchQuery = {
 	childQuery?: any
 }
 
+const getDefaultTimeRangeRule = (timeRangeField: SelectOption): RuleProps => {
+	const presetOptions = getDefaultPresets()
+	const defaultPreset = presetOptions[5]
+	const period = {
+		label: defaultPreset.label, // Start at 30 days
+		value: `${defaultPreset.startDate.toISOString()}_${getNow().toISOString()}`, // Start at 30 days
+	}
+	return {
+		field: timeRangeField,
+		op: 'between_date',
+		val: {
+			kind: 'multi',
+			options: [period],
+		},
+	}
+}
+
 const getSerializedQuery = (
 	searchQuery: string,
 	admin: Admin | undefined,
 	customFields: CustomField[],
 	timeRangeField: SelectOption,
 ): BackendSearchQuery => {
+	const defaultTimeRangeRule = getDefaultTimeRangeRule(timeRangeField)
+
 	const { isAnd, rules: serializedRules }: { isAnd: boolean; rules: any } =
 		JSON.parse(searchQuery)
 	const rules = deserializeRules(serializedRules)
@@ -361,26 +401,6 @@ const getSerializedQuery = (
 			'not_between_date',
 			'not_matches',
 		].includes(op)
-
-	const now = moment()
-
-	const presetOptions = getDefaultPresets(now)
-
-	const defaultPreset = presetOptions[5]
-
-	const period = {
-		label: defaultPreset.label, // Start at 30 days
-		value: `${defaultPreset.startDate.toISOString()}_${now.toISOString()}`, // Start at 30 days
-	}
-
-	const defaultTimeRangeRule: RuleProps = {
-		field: timeRangeField,
-		op: 'between_date',
-		val: {
-			kind: 'multi',
-			options: [period],
-		},
-	}
 
 	const parseGroup = (
 		isAnd: boolean,

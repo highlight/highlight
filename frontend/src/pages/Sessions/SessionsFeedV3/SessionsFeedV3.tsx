@@ -57,91 +57,83 @@ import * as style from './SessionFeedV3.css'
 import { SessionFeedConfigurationContextProvider } from './SessionQueryBuilder/context/SessionFeedConfigurationContext'
 import { useSessionFeedConfiguration } from './SessionQueryBuilder/hooks/useSessionFeedConfiguration'
 
-interface SessionsHistogramProps {
-	projectHasManySessions: boolean
-}
+export const SessionsHistogram: React.FC = React.memo(() => {
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
+	const { setSearchQuery, backendSearchQuery } = useSearchContext()
 
-export const SessionsHistogram: React.FC<SessionsHistogramProps> = React.memo(
-	({ projectHasManySessions }: SessionsHistogramProps) => {
-		const { project_id } = useParams<{
-			project_id: string
-		}>()
-		const { setSearchQuery, backendSearchQuery } = useSearchContext()
-
-		const { loading, data } = useGetSessionsHistogramQuery({
-			variables: {
-				project_id: project_id!,
-				query: backendSearchQuery?.searchQuery as string,
-				histogram_options: {
-					bucket_size:
-						backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
-					time_zone:
-						Intl.DateTimeFormat().resolvedOptions().timeZone ??
-						'UTC',
-					bounds: {
-						start_date: roundFeedDate(
-							backendSearchQuery?.startDate.toISOString() ?? null,
-						).format(),
-						end_date: roundFeedDate(
-							backendSearchQuery?.endDate.toISOString() ?? null,
-						).format(),
-					},
+	const { loading, data } = useGetSessionsHistogramQuery({
+		variables: {
+			project_id: project_id!,
+			query: backendSearchQuery?.searchQuery as string,
+			histogram_options: {
+				bucket_size:
+					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
+				time_zone:
+					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
+				bounds: {
+					start_date: roundFeedDate(
+						backendSearchQuery?.startDate.toISOString() ?? null,
+					).format(),
+					end_date: roundFeedDate(
+						backendSearchQuery?.endDate.toISOString() ?? null,
+					).format(),
 				},
 			},
-			skip: !backendSearchQuery || !project_id,
-			fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
-		})
+		},
+		skip: !backendSearchQuery || !project_id,
+	})
 
-		const histogram: {
-			seriesList: Series[]
-			bucketTimes: number[]
-		} = {
-			seriesList: [],
-			bucketTimes: [],
-		}
-		if (data?.sessions_histogram) {
-			histogram.bucketTimes = data?.sessions_histogram.bucket_times.map(
-				(startTime) => new Date(startTime).valueOf(),
+	const histogram: {
+		seriesList: Series[]
+		bucketTimes: number[]
+	} = {
+		seriesList: [],
+		bucketTimes: [],
+	}
+	if (data?.sessions_histogram) {
+		histogram.bucketTimes = data?.sessions_histogram.bucket_times.map(
+			(startTime) => new Date(startTime).valueOf(),
+		)
+		histogram.seriesList = [
+			{
+				label: 'sessions',
+				color: 'n11',
+				counts: data?.sessions_histogram.sessions_without_errors,
+			},
+			{
+				label: 'w/errors',
+				color: 'p11',
+				counts: data?.sessions_histogram.sessions_with_errors,
+			},
+		]
+	}
+
+	const updateTimeRange = useCallback(
+		(newStartTime: Date, newEndTime: Date) => {
+			setSearchQuery((query) =>
+				updateQueriedTimeRange(
+					query || '',
+					TIME_RANGE_FIELD,
+					serializeAbsoluteTimeRange(newStartTime, newEndTime),
+				),
 			)
-			histogram.seriesList = [
-				{
-					label: 'sessions',
-					color: 'n11',
-					counts: data?.sessions_histogram.sessions_without_errors,
-				},
-				{
-					label: 'w/errors',
-					color: 'p11',
-					counts: data?.sessions_histogram.sessions_with_errors,
-				},
-			]
-		}
+		},
+		[setSearchQuery],
+	)
 
-		const updateTimeRange = useCallback(
-			(newStartTime: Date, newEndTime: Date) => {
-				setSearchQuery((query) =>
-					updateQueriedTimeRange(
-						query || '',
-						TIME_RANGE_FIELD,
-						serializeAbsoluteTimeRange(newStartTime, newEndTime),
-					),
-				)
-			},
-			[setSearchQuery],
-		)
-
-		return (
-			<SearchResultsHistogram
-				seriesList={histogram.seriesList}
-				bucketTimes={histogram.bucketTimes}
-				bucketSize={backendSearchQuery?.histogramBucketSize}
-				loading={loading}
-				updateTimeRange={updateTimeRange}
-				barGap={2.4}
-			/>
-		)
-	},
-)
+	return (
+		<SearchResultsHistogram
+			seriesList={histogram.seriesList}
+			bucketTimes={histogram.bucketTimes}
+			bucketSize={backendSearchQuery?.histogramBucketSize}
+			loading={loading}
+			updateTimeRange={updateTimeRange}
+			barGap={2.4}
+		/>
+	)
+})
 
 export const SessionFeedV3 = React.memo(() => {
 	const { setSessionResults, sessionResults } = useReplayerContext()
@@ -169,9 +161,6 @@ export const SessionFeedV3 = React.memo(() => {
 	const { showLeftPanel } = usePlayerConfiguration()
 	const { showBanner } = useGlobalContext()
 	const searchParamsChanged = useRef<Date>()
-	const projectHasManySessions =
-		searchResultsCount !== undefined &&
-		searchResultsCount > DEFAULT_PAGE_SIZE
 	const showHistogram = searchResultsCount !== 0
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
@@ -191,6 +180,7 @@ export const SessionFeedV3 = React.memo(() => {
 			totalPages.current = Math.ceil(
 				response?.sessions_opensearch.totalCount / DEFAULT_PAGE_SIZE,
 			)
+			console.log('zane setSearchResultsCount')
 			setSearchResultsCount(response?.sessions_opensearch.totalCount)
 		}
 		setSearchResultsLoading(false)
@@ -205,8 +195,7 @@ export const SessionFeedV3 = React.memo(() => {
 			sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
 		},
 		onCompleted: addSessions,
-		skip: !backendSearchQuery || !project_id,
-		fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
+		skip: !backendSearchQuery?.searchQuery || !project_id,
 	})
 
 	// Used to determine if we need to show the loading skeleton.
@@ -297,9 +286,7 @@ export const SessionFeedV3 = React.memo(() => {
 				<SessionQueryBuilder />
 				{showHistogram && (
 					<Box borderBottom="secondary" paddingBottom="8" px="8">
-						<SessionsHistogram
-							projectHasManySessions={projectHasManySessions}
-						/>
+						<SessionsHistogram />
 					</Box>
 				)}
 				<Box

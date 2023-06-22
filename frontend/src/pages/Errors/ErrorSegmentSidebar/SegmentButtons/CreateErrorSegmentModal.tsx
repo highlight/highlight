@@ -58,7 +58,7 @@ const CreateErrorSegmentModal = ({
 		segment_id: string
 	}>()
 
-	const { searchQuery, setExistingQuery } = useErrorSearchContext()
+	const { searchQuery } = useErrorSearchContext()
 
 	const onSubmit = (e: { preventDefault: () => void }) => {
 		e.preventDefault()
@@ -91,7 +91,6 @@ const CreateErrorSegmentModal = ({
 						)
 					}
 					onHideModal()
-					setExistingQuery(searchQuery)
 				},
 				onError: (e) => {
 					message.error(`Error updating segment: ${e.message}`, 5)
@@ -112,7 +111,6 @@ const CreateErrorSegmentModal = ({
 							r.createErrorSegment?.name as string,
 						)
 					}
-					setExistingQuery(searchQuery)
 					onHideModal()
 					message.success(
 						`Created '${r.createErrorSegment?.name}' segment`,

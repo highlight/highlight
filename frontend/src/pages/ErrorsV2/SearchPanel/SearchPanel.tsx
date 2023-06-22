@@ -40,8 +40,6 @@ const SearchPanel = () => {
 
 	const { project_id: projectId } = useParams<{ project_id: string }>()
 
-	const useCachedErrors = searchResultsCount && searchResultsCount > PAGE_SIZE
-
 	const { data: fetchedData, loading } = useGetErrorGroupsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
@@ -63,7 +61,6 @@ const SearchPanel = () => {
 			)
 		},
 		skip: !backendSearchQuery || !projectId,
-		fetchPolicy: useCachedErrors ? 'cache-first' : 'no-cache',
 	})
 
 	useEffect(() => {

@@ -27,15 +27,11 @@ export type BaseSearchContext = {
 	setSearchQuery: React.Dispatch<React.SetStateAction<string>>
 	/** The parameters that are persisted to the database. These params are saved to a segment. */
 	existingQuery: string
-	setExistingQuery: React.Dispatch<React.SetStateAction<string>>
 	selectedSegment: Segment
 	setSelectedSegment: (newValue: Segment, query: string) => void
 	removeSelectedSegment: () => void
 	/** The query sent to the backend */
 	backendSearchQuery: BackendSearchQuery
-	// setBackendSearchQuery: React.Dispatch<
-	// 	React.SetStateAction<BackendSearchQuery>
-	// >
 	page: number
 	setPage: React.Dispatch<React.SetStateAction<number>>
 	searchResultsLoading: boolean

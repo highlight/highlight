@@ -7,8 +7,7 @@ import {
 	IconSolidDotsHorizontal,
 } from '@highlight-run/ui'
 import { clamp, range } from '@util/numbers'
-import React, { useEffect, useMemo } from 'react'
-import { NumberParam, useQueryParams } from 'use-query-params'
+import React, { useMemo } from 'react'
 
 import * as style from './style.css'
 
@@ -96,29 +95,6 @@ const SearchPagination = ({
 		const rightRange = range(pageCount - sideItemCount + 1, pageCount + 1)
 		return [START_PAGE, ExpandAction.Back, ...rightRange]
 	}, [$siblingCount, currentPage, sideItemCount, pageCount])
-
-	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
-		page: NumberParam,
-	})
-
-	useEffect(() => {
-		if (page !== undefined) {
-			setPaginationToUrlParams(
-				{
-					page: page,
-				},
-				'replaceIn',
-			)
-		}
-	}, [setPaginationToUrlParams, page])
-
-	useEffect(() => {
-		if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
-			setPage(paginationToUrlParams.page)
-		}
-		// We only want to run this on mount (i.e. when the page first loads).
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
 
 	if (!pageCount) return null
 

@@ -11,6 +11,7 @@ const WithSessionSearchContext: React.FC<React.PropsWithChildren> = ({
 	children,
 }) => {
 	const baseContext = useGetBaseSearchContext(
+		'sessions',
 		EmptySessionsSearchQuery,
 		'highlightSegmentPickerForPlayerSelectedSegmentId',
 		CUSTOM_FIELDS,

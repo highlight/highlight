@@ -18,6 +18,7 @@ import {
 	Box,
 	ButtonIcon,
 	getDefaultPresets,
+	getNow,
 	IconSolidCheveronDown,
 	IconSolidCloudUpload,
 	IconSolidDocumentDuplicate,
@@ -1225,9 +1226,8 @@ enum SegmentModalState {
 	EDIT_NAME = 'EDIT_NAME',
 }
 
-const now = moment()
-const defaultMinDate = now.clone().subtract(90, 'days').toDate()
-const presetOptions = getDefaultPresets(now)
+const defaultMinDate = getNow().subtract(90, 'days').toDate()
+const presetOptions = getDefaultPresets()
 const defaultPreset = presetOptions[5]
 
 function QueryBuilder(props: QueryBuilderProps) {
@@ -1249,7 +1249,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		searchQuery,
 		setSearchQuery,
 		existingQuery,
-		setExistingQuery, // ZANETODO: can we get rid of `setExistingQuery`?
 		searchResultsCount,
 		selectedSegment,
 		setSelectedSegment,
@@ -1360,28 +1359,30 @@ function QueryBuilder(props: QueryBuilderProps) {
 	})
 
 	const [currentRule, setCurrentRule] = useState<RuleProps | undefined>()
+
+	const {
+		isAnd: serializedIsAnd,
+		rules: serializedRules,
+	}: { isAnd: boolean; rules: any } = JSON.parse(searchQuery)
+	const startingRules = deserializeRules(serializedRules)
+	const [isAnd, toggleIsAnd] = useToggle(serializedIsAnd)
+	const [rules, setRules] = useState<RuleProps[]>(startingRules)
+
+	const startingDateRange = startingRules.find(
+		(rule) =>
+			rule.op === 'between_date' &&
+			rule.field?.value === timeRangeField.value,
+	)?.val?.options?.[0]?.value
+	let from, to: Date | undefined
+	if (startingDateRange) {
+		const [fromStr, toStr] = startingDateRange.split('_')
+		from = new Date(fromStr)
+		to = new Date(toStr)
+	}
 	const [dateRange, setDateRange] = useState<Date[]>([
-		defaultPreset.startDate, // Start at 30days
-		new Date(now.toISOString()),
+		from ?? defaultPreset.startDate, // Start at 30days
+		to ?? new Date(getNow().toISOString()),
 	])
-	const defaultTimeRangeRule: RuleProps = useMemo(() => {
-		const period = {
-			label: defaultPreset.label, // Start at 30 days
-			value: `${defaultPreset.startDate.toISOString()}_${now.toISOString()}`, // Start at 30 days
-		}
-
-		return {
-			field: timeRangeField,
-			op: 'between_date',
-			val: {
-				kind: 'multi',
-				options: [period],
-			},
-		}
-	}, [timeRangeField])
-
-	const [isAnd, toggleIsAnd] = useToggle(true)
-	const [rules, setRules] = useState<RuleProps[]>([defaultTimeRangeRule])
 
 	const filterRules = useMemo(
 		() =>
@@ -1427,26 +1428,23 @@ function QueryBuilder(props: QueryBuilderProps) {
 		[rules, setRulesImpl],
 	)
 	const updateRule = useCallback(
-		(targetRule: RuleProps, newProps: any) =>
+		(targetRule: RuleProps, newProps: any) => {
 			setRulesImpl(
 				rules.map((rule) =>
 					rule !== targetRule ? rule : { ...rule, ...newProps },
 				),
-			),
+			)
+		},
 		[rules, setRulesImpl],
 	)
 
 	const timeRangeRule = useMemo<RuleProps>(() => {
 		const timeRange = rules.find(
 			(rule) => rule.field?.value === timeRangeField.value,
-		)
-		if (!timeRange) {
-			addRule(defaultTimeRangeRule)
-			return defaultTimeRangeRule
-		}
+		)! // ZANETODO: can we enforce this?
 
 		return timeRange
-	}, [addRule, defaultTimeRangeRule, rules, timeRangeField.value])
+	}, [rules, timeRangeField.value])
 
 	const getKeyOptions = useCallback(
 		async (input: string) => {
@@ -1569,27 +1567,36 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const areRulesValid = rules.every(isComplete)
 
+	// If the search query is updated externally,
+	// set the rules and `isAnd` toggle based on it
 	useEffect(() => {
-		// If the search query is updated externally, set the rules and `isAnd` toggle
-		// based on it
 		if (searchQuery) {
 			const newState = JSON.parse(searchQuery)
 			const deserializedRules = deserializeRules(newState.rules)
 
-			const defaultDateRange = deserializedRules?.find(
+			const dateRange = deserializedRules?.find(
 				(rule) =>
 					rule.op === 'between_date' &&
 					rule.field?.value === timeRangeField.value,
 			)?.val?.options?.[0]?.value
-
-			if (defaultDateRange) {
-				const [from, to] = defaultDateRange.split('_')
+			if (dateRange) {
+				const [from, to] = dateRange.split('_')
 				setDateRange([new Date(from), new Date(to)])
 			}
+
 			toggleIsAnd(newState.isAnd)
 			setRules(deserializedRules)
 		}
 	}, [searchQuery, timeRangeField.value, toggleIsAnd])
+
+	// When the query builder is unmounted, reset the state.
+	// Not sure if this is desired behavior in the long term, but
+	// this matches the current prod behavior.
+	useEffect(() => {
+		return () => {
+			removeSelectedSegment()
+		}
+	}, [removeSelectedSegment])
 
 	const [currentStep, setCurrentStep] = useState<number | undefined>(
 		undefined,
@@ -1749,14 +1756,20 @@ function QueryBuilder(props: QueryBuilderProps) {
 					project_id: projectId!,
 					id: selectedSegment.id,
 					params: {
-						query: searchQuery, // ZANETODO: verify
+						query: searchQuery,
 					},
 					name: selectedSegment.name,
 				},
 			})
 				.then(() => {
 					message.success(`Updated '${selectedSegment.name}'`, 5)
-					setExistingQuery(searchQuery)
+					setSelectedSegment(
+						{
+							id: selectedSegment.id,
+							name: selectedSegment.name,
+						},
+						searchQuery,
+					)
 				})
 				.catch(() => {
 					message.error('Error updating segment!', 5)
@@ -1769,7 +1782,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		searchQuery,
 		selectedSegment?.id,
 		selectedSegment?.name,
-		setExistingQuery,
+		setSelectedSegment,
 	])
 
 	const actionButton = useMemo(() => {
@@ -1872,6 +1885,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		dateRange,
 		searchResultsCount,
 		backendSearchQuery?.searchQuery,
+		updateRule,
 		timeRangeRule,
 		setShowLeftPanel,
 	])

@@ -32,6 +32,11 @@ const ApplicationRouter: React.FC = () => {
 		backendSearchQuery: errorBackendSearchQuery,
 	})
 	const { isLoggedIn } = useAuthContext()
+	console.log('zane test backendSearchQuery', backendSearchQuery?.searchQuery)
+	console.log(
+		'zane test errorBackendSearchQuery',
+		errorBackendSearchQuery?.searchQuery,
+	)
 
 	return (
 		<Routes>

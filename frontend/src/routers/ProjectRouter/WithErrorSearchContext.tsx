@@ -12,6 +12,7 @@ const WithErrorSearchContext: React.FC<React.PropsWithChildren> = ({
 	children,
 }) => {
 	const baseContext = useGetBaseSearchContext(
+		'errors',
 		EmptyErrorsSearchQuery,
 		'highlightSegmentPickerForErrorsSelectedSegmentId',
 		CUSTOM_FIELDS,
