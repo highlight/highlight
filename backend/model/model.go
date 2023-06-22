@@ -1988,17 +1988,12 @@ func (obj *Alert) GetDailyErrorEventFrequency(db *gorm.DB, id int) ([]*int64, er
 			FROM generate_series(0, 6, 1)
 			AS offs
 		) d
-		LEFT OUTER JOIN (
-			error_alert_events e
-			INNER JOIN error_objects obj
-			ON obj.id = e.error_object_id
-				AND e.error_alert_id=?
-				AND obj.project_id=?
-		)
+		LEFT OUTER JOIN error_alert_events e
 		ON d.date = to_char(date_trunc('day', e.sent_at), 'YYYY-MM-DD')
+			AND e.error_alert_id=?
 		GROUP BY d.date
 		ORDER BY d.date;
-	`, id, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
+	`, id).Scan(&dailyAlerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying daily error event frequency")
 	}
 
@@ -2014,14 +2009,9 @@ func (obj *Alert) GetDailySessionEventFrequency(db *gorm.DB, id int) ([]*int64, 
 			FROM generate_series(0, 6, 1)
 			AS offs
 		) d
-		LEFT OUTER JOIN (
-			session_alert_events e
-			INNER JOIN sessions s
-			ON s.secure_id = e.session_secure_id
-				AND e.session_alert_id=?
-				AND s.project_id=?
-		)
+		LEFT OUTER JOIN session_alert_events e
 		ON d.date = to_char(date_trunc('day', e.sent_at), 'YYYY-MM-DD')
+			AND e.session_alert_id=?
 		GROUP BY d.date
 		ORDER BY d.date;
 	`, id, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
@@ -2040,14 +2030,9 @@ func (obj *Alert) GetDailyLogEventFrequency(db *gorm.DB, id int) ([]*int64, erro
 			FROM generate_series(0, 6, 1)
 			AS offs
 		) d
-		LEFT OUTER JOIN (
-			log_alert_events e
-			INNER JOIN log_alerts la
-			ON la.id = e.log_alert_id
-				AND e.log_alert_id=?
-				AND la.project_id=?
-		)
+		LEFT OUTER JOIN log_alert_events e
 		ON d.date = to_char(date_trunc('day', e.sent_at), 'YYYY-MM-DD')
+			AND e.log_alert_id=?
 		GROUP BY d.date
 		ORDER BY d.date;
 	`, id, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {

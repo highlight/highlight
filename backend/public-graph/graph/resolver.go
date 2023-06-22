@@ -1632,8 +1632,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				INNER JOIN error_objects obj
 				ON obj.id = ev.error_object_id
 				WHERE
-					obj.project_id=?
-					AND (obj.error_group_id IS NOT NULL
+					(obj.error_group_id IS NOT NULL
 						AND obj.error_group_id=?)
 					AND ev.error_alert_id=?
 					AND ev.sent_at > NOW() - ? * (INTERVAL '1 SECOND')
