@@ -69,9 +69,14 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 				| Promise<any>
 				| HighlightPromise<any>
 			if (hPromise instanceof HighlightPromise) {
-				handleError(callback, event, event.type, hPromise.getStack())
+				handleError(
+					callback,
+					event.reason,
+					event.type,
+					hPromise.getStack(),
+				)
 			} else {
-				handleError(callback, event, event.type, Error())
+				handleError(callback, event.reason, event.type, Error())
 			}
 		}
 	}
