@@ -196,29 +196,28 @@ class H(object):
         return self._log_handler
 
     def log_hook(self, span: Span, record: logging.LogRecord):
-        if not span.is_recording():
-            return
-        ctx = span.get_span_context()
-        # record.created is sec but timestamp should be ns
-        ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
-        attributes = span.attributes.copy()
-        attributes["code.function"] = record.funcName
-        attributes["code.namespace"] = record.module
-        attributes["code.filepath"] = record.pathname
-        attributes["code.lineno"] = record.lineno
-        attributes.update(record.args or {})
-        r = LogRecord(
-            timestamp=ts,
-            trace_id=ctx.trace_id,
-            span_id=ctx.span_id,
-            trace_flags=ctx.trace_flags,
-            severity_text=record.levelname,
-            severity_number=std_to_otel(record.levelno),
-            body=record.getMessage(),
-            resource=span.resource,
-            attributes=attributes,
-        )
-        self.log.emit(r)
+        if span and span.is_recording():
+            ctx = span.get_span_context()
+            # record.created is sec but timestamp should be ns
+            ts = int(record.created * 1000.0 * 1000.0 * 1000.0)
+            attributes = span.attributes.copy()
+            attributes["code.function"] = record.funcName
+            attributes["code.namespace"] = record.module
+            attributes["code.filepath"] = record.pathname
+            attributes["code.lineno"] = record.lineno
+            attributes.update(record.args or {})
+            r = LogRecord(
+                timestamp=ts,
+                trace_id=ctx.trace_id,
+                span_id=ctx.span_id,
+                trace_flags=ctx.trace_flags,
+                severity_text=record.levelname,
+                severity_number=std_to_otel(record.levelno),
+                body=record.getMessage(),
+                resource=span.resource,
+                attributes=attributes,
+            )
+            self.log.emit(r)
 
     def _instrument_logging(self):
         if H._logging_instrumented:
