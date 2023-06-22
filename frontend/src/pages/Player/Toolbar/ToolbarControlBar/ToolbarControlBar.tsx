@@ -207,8 +207,8 @@ export const ToolbarControlBar = () => {
 						setIsLiveMode(!isLiveMode)
 					}}
 					shape="rounded"
-					kind="primary"
-					emphasis="high"
+					kind={isLiveMode ? 'primary' : 'secondary'}
+					emphasis={isLiveMode ? 'high' : 'medium'}
 					disabled={disableControls}
 					lines="1"
 				>
