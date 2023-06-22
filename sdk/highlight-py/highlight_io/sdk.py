@@ -36,6 +36,7 @@ class H(object):
     REQUEST_HEADER = "X-Highlight-Request"
     OTLP_HTTP = "https://otel.highlight.io:4318"
     _instance: "H" = None
+    _logging_instrumented = False
 
     @classmethod
     def get_instance(cls) -> "H":
@@ -82,7 +83,6 @@ class H(object):
                     f"{self._otlp_endpoint}/v1/traces", compression=Compression.Gzip
                 ),
                 schedule_delay_millis=1000,
-                max_export_batch_size=64,
                 export_timeout_millis=5000,
             )
         )
@@ -96,7 +96,6 @@ class H(object):
                     f"{self._otlp_endpoint}/v1/logs", compression=Compression.Gzip
                 ),
                 schedule_delay_millis=1000,
-                max_export_batch_size=64,
                 export_timeout_millis=5000,
             )
         )
@@ -222,6 +221,9 @@ class H(object):
         self.log.emit(r)
 
     def _instrument_logging(self):
+        if H._logging_instrumented:
+            return
+
         LoggingInstrumentor().instrument(
             set_logging_format=True, log_hook=self.log_hook
         )
@@ -238,3 +240,4 @@ class H(object):
                 return otel_factory(*args, **kwargs)
 
         logging.setLogRecordFactory(factory)
+        H._logging_instrumented = True
