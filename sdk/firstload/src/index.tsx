@@ -5,6 +5,7 @@ import {
 } from './integrations/amplitude'
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
 import { initializeFetchListener } from './listeners/fetch'
+import { initializeWebSocketListener } from './listeners/web-socket'
 import { getPreviousSessionData } from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
 import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners'
 import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
@@ -382,6 +383,7 @@ if (typeof window !== 'undefined') {
 
 listenToChromeExtensionMessage()
 initializeFetchListener()
+initializeWebSocketListener()
 
 export type { HighlightOptions }
 export {

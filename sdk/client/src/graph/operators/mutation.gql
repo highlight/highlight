@@ -3,6 +3,7 @@ mutation PushPayload(
 	$events: ReplayEventsInput!
 	$messages: String!
 	$resources: String!
+	$web_socket_events: String!
 	$errors: [ErrorObjectInput]!
 	$is_beacon: Boolean
 	$has_session_unloaded: Boolean
@@ -14,6 +15,7 @@ mutation PushPayload(
 		events: $events
 		messages: $messages
 		resources: $resources
+		web_socket_events: $web_socket_events
 		errors: $errors
 		is_beacon: $is_beacon
 		has_session_unloaded: $has_session_unloaded

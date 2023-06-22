@@ -24,3 +24,21 @@ export interface RequestResponsePair {
 	/** Whether this URL matched a `urlToBlock` so the contents should not be recorded. */
 	urlBlocked: boolean
 }
+
+export interface WebSocketRequest {
+	socketId: string
+	initiatorType: 'WebSocket'
+	type: 'open' | 'close'
+	name: string
+	startTime?: number
+	endTime?: number
+}
+
+export interface WebSocketEvent {
+	socketId: string
+	type: 'error' | 'received' | 'sent'
+	name: string
+	timeStamp: number
+	size?: number
+	message?: string
+}
