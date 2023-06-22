@@ -104,3 +104,7 @@ jobs:
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish render
+              if: github.ref == 'refs/heads/main'
+              run: yarn publish:render

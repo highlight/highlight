@@ -3,6 +3,7 @@ import { FetchTests } from '@/app/components/fetch-tests'
 import Image from 'next/image'
 import { PathButtons } from '@/app/components/path-buttons'
 import { TrpcQueries } from '@/app/components/trpc-queries'
+import { HighlightButtons } from './components/highlight-buttons'
 
 export default function Home() {
 	return (
@@ -15,8 +16,10 @@ export default function Home() {
 				priority
 			/>
 
-			<h3>Error Buttons</h3>
+			<h3>H Buttons</h3>
+			<HighlightButtons />
 
+			<h3>Error Buttons</h3>
 			<ErrorButtons />
 
 			<h3>Paths</h3>

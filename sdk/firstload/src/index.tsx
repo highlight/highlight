@@ -5,6 +5,7 @@ import {
 } from './integrations/amplitude'
 import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
 import { initializeFetchListener } from './listeners/fetch'
+import { initializeWebSocketListener } from './listeners/web-socket'
 import { getPreviousSessionData } from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
 import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners'
 import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
@@ -22,8 +23,6 @@ import type {
 import { HighlightSegmentMiddleware } from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
 import firstloadVersion from './__generated/version'
-
-initializeFetchListener()
 
 enum MetricCategory {
 	Device = 'Device',
@@ -49,10 +48,10 @@ interface HighlightWindow extends Window {
 
 declare var window: HighlightWindow
 
-var script: HTMLScriptElement
-var highlight_obj: Highlight
-var first_load_listeners: FirstLoadListeners
-var init_called = false
+let script: HTMLScriptElement
+let highlight_obj: Highlight
+let first_load_listeners: FirstLoadListeners
+let init_called = false
 const H: HighlightPublicInterface = {
 	options: undefined,
 	init: (projectID?: string | number, options?: HighlightOptions) => {
@@ -383,6 +382,8 @@ if (typeof window !== 'undefined') {
 }
 
 listenToChromeExtensionMessage()
+initializeFetchListener()
+initializeWebSocketListener()
 
 export type { HighlightOptions }
 export {
