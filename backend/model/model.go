@@ -1979,7 +1979,7 @@ func (obj *Alert) GetEmailsToNotify() ([]*string, error) {
 	return emailsToNotify, err
 }
 
-func (obj *Alert) GetDailyFrequency(db *gorm.DB, id int) ([]*int64, error) {
+func (obj *Alert) GetDailyErrorEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
 	var dailyAlerts []*int64
 	if err := db.Raw(`
 		SELECT COUNT(e.id)
@@ -1987,15 +1987,66 @@ func (obj *Alert) GetDailyFrequency(db *gorm.DB, id int) ([]*int64, error) {
 			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
 			FROM generate_series(0, 6, 1)
 			AS offs
-		) d LEFT OUTER JOIN
-		alert_events e
-		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
-			AND e.type=?
-			AND e.alert_id=?
-			AND e.project_id=?
+		) d
+		LEFT OUTER JOIN (
+			error_alert_events e
+			INNER JOIN error_objects obj
+			ON obj.id = e.error_object_id
+				AND e.error_alert_id=?
+				AND obj.project_id=?
+		)
+		ON d.date = to_char(date_trunc('day', e.sent_at), 'YYYY-MM-DD')
 		GROUP BY d.date
 		ORDER BY d.date;
-	`, obj.Type, id, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
+	`, id, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying daily error event frequency")
+	}
+
+	return dailyAlerts, nil
+}
+
+func (obj *Alert) GetDailySessionEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
+	var dailyAlerts []*int64
+	if err := db.Raw(`
+		SELECT COUNT(e.id)
+		FROM (
+			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
+			FROM generate_series(0, 6, 1)
+			AS offs
+		) d
+		LEFT OUTER JOIN (
+			session_alert_events e
+			INNER JOIN sessions s
+			ON s.secure_id = e.session_secure_id
+				AND e.session_alert_id=?
+				AND s.project_id=?
+		)
+		ON d.date = to_char(date_trunc('day', e.sent_at), 'YYYY-MM-DD')
+		GROUP BY d.date
+		ORDER BY d.date;
+	`, id, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying daily session event frequency")
+	}
+
+	return dailyAlerts, nil
+}
+
+func (obj *Alert) GetDailyLogEventFrequency(db *gorm.DB, id int) ([]*int64, error) {
+	var dailyAlerts []*int64
+	// TODO(spenny): figure out where to filter by project_id
+	if err := db.Raw(`
+		SELECT COUNT(e.id)
+		FROM (
+			SELECT to_char(date_trunc('day', (current_date - offs)), 'YYYY-MM-DD') AS date
+			FROM generate_series(0, 6, 1)
+			AS offs
+		) d LEFT OUTER JOIN
+		log_alert_events e
+		ON d.date = to_char(date_trunc('day', e.created_at), 'YYYY-MM-DD')
+			AND e.log_alert_id=?
+		GROUP BY d.date
+		ORDER BY d.date;
+	`, id).Scan(&dailyAlerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying daily alert frequency")
 	}
 
