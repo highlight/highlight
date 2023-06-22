@@ -235,7 +235,12 @@ class H(object):
             else:
                 manager = self.trace()
 
-            with manager:
+            try:
+                with manager:
+                    return otel_factory(*args, **kwargs)
+            except RecursionError:
+                # in case we are hitting a recusrive log from the `self.trace()` invocation
+                # (happens when we exceed the otel log queue depth)
                 return otel_factory(*args, **kwargs)
 
         logging.setLogRecordFactory(factory)
