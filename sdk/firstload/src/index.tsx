@@ -23,8 +23,6 @@ import { HighlightSegmentMiddleware } from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
 import firstloadVersion from './__generated/version'
 
-initializeFetchListener()
-
 enum MetricCategory {
 	Device = 'Device',
 	WebVital = 'WebVital',
@@ -49,10 +47,10 @@ interface HighlightWindow extends Window {
 
 declare var window: HighlightWindow
 
-var script: HTMLScriptElement
-var highlight_obj: Highlight
-var first_load_listeners: FirstLoadListeners
-var init_called = false
+let script: HTMLScriptElement
+let highlight_obj: Highlight
+let first_load_listeners: FirstLoadListeners
+let init_called = false
 const H: HighlightPublicInterface = {
 	options: undefined,
 	init: (projectID?: string | number, options?: HighlightOptions) => {
@@ -383,6 +381,7 @@ if (typeof window !== 'undefined') {
 }
 
 listenToChromeExtensionMessage()
+initializeFetchListener()
 
 export type { HighlightOptions }
 export {

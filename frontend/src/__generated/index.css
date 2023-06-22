@@ -5682,7 +5682,7 @@ body {
 }
 ._1ec5cce1 {
   container-name: _1ec5cce0;
-  container-type: inline-size;
+  container-type: normal;
   overflow-y: scroll;
   width: 100%;
   height: 100%;
@@ -5864,7 +5864,7 @@ body {
 }
 ._1e9eref3 {
   font-size: 36px;
-  line-height: 50px;
+  line-height: 40px;
   font-family:
     Inter,
     Segoe UI,
@@ -5877,17 +5877,17 @@ body {
 }
 ._1e9eref3::before {
   content: "";
-  margin-bottom: -0.3308em;
+  margin-bottom: -0.1919em;
   display: table;
 }
 ._1e9eref3::after {
   content: "";
-  margin-top: -0.3308em;
+  margin-top: -0.1919em;
   display: table;
 }
 ._1e9eref4 {
   font-size: 30px;
-  line-height: 32px;
+  line-height: 36px;
   font-family:
     Inter,
     Segoe UI,
@@ -5900,17 +5900,17 @@ body {
 }
 ._1e9eref4::before {
   content: "";
-  margin-bottom: -0.1697em;
+  margin-bottom: -0.2364em;
   display: table;
 }
 ._1e9eref4::after {
   content: "";
-  margin-top: -0.1697em;
+  margin-top: -0.2364em;
   display: table;
 }
 ._1e9eref5 {
   font-size: 24px;
-  line-height: 34px;
+  line-height: 32px;
   font-family:
     Inter,
     Segoe UI,
@@ -5923,12 +5923,12 @@ body {
 }
 ._1e9eref5::before {
   content: "";
-  margin-bottom: -0.3447em;
+  margin-bottom: -0.303em;
   display: table;
 }
 ._1e9eref5::after {
   content: "";
-  margin-top: -0.3447em;
+  margin-top: -0.303em;
   display: table;
 }
 ._1e9eref6 {
@@ -5992,6 +5992,10 @@ body {
   font-size: 13px;
   gap: 4px;
   padding: 0 8px;
+}
+._1oemo0l1:hover {
+  cursor: pointer;
+  background: var(--_1pyqka91x);
 }
 ._1oemo0l2 {
   background-color: #ffffff;
@@ -10279,9 +10283,6 @@ span:last-child ._ruleItem_1yzqu_148 {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
-._33eaux0 {
-  max-height: 16em;
-}
 
 /* temp_stylePlugin:ni:sha-256;rMrQRyZrKw_rd6RipEc2Ve-7bXKt5YqAsAeoQ0Mt554 */
 ._tabPane_19cqh_1 {
@@ -10380,6 +10381,9 @@ span:last-child ._ruleItem_1yzqu_148 {
   display: flex;
   justify-content: center;
   width: 100%;
+}
+._33eaux0 {
+  max-height: 16em;
 }
 
 /* temp_stylePlugin:ni:sha-256;BtqyzEEtG8ThljpH4yzPm1T9yuUz6xMGDnI9IWq9o3c */

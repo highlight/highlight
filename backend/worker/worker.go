@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/alerts"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -905,7 +906,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			if sessionAlert.ThresholdWindow == nil {
-				sessionAlert.ThresholdWindow = util.MakeIntPointer(30)
+				sessionAlert.ThresholdWindow = ptr.Int(30)
 			}
 			var count int
 			if err := w.Resolver.DB.Raw(`

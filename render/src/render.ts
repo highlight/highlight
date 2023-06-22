@@ -2,7 +2,8 @@ import { mkdtemp, readFileSync } from 'fs'
 import { promisify } from 'util'
 import path from 'path'
 import { tmpdir } from 'os'
-import chromium from 'chrome-aws-lambda'
+import chromium from '@sparticuz/chromium'
+import puppeteer, { Browser } from 'puppeteer-core'
 
 const getHtml = (): string => {
 	return `<html lang="en"><head><title></title><style>
@@ -29,30 +30,43 @@ export async function render(
 	workers: number,
 	fps?: number,
 	ts?: number,
+	tsEnd?: number,
 	dir?: string,
 ) {
 	if (ts === undefined && fps === undefined) {
 		throw new Error('timestamp or fps must be provided')
 	}
 	events = events.replace(/\\/g, '\\\\')
+	console.log('events', { events })
 	if (!dir?.length) {
 		const prefix = path.join(tmpdir(), 'render_')
 		dir = await promisify(mkdtemp)(prefix)
 	}
 
-	const browser = await chromium.puppeteer.launch({
-		headless: chromium.headless,
-		ignoreHTTPSErrors: true,
-		args: chromium.args,
-		executablePath: await chromium.executablePath,
-	})
+	let browser: Browser
+	if (process.env.DEV?.length) {
+		console.log(`starting puppeteer for dev`)
+		browser = await puppeteer.launch({
+			channel: 'chrome',
+			headless: 'new',
+		})
+	} else {
+		console.log(`starting puppeteer for lambda`)
+		browser = await puppeteer.launch({
+			args: chromium.args,
+			defaultViewport: chromium.defaultViewport,
+			executablePath: await chromium.executablePath(),
+			headless: chromium.headless,
+			ignoreHTTPSErrors: true,
+		})
+	}
 
 	const page = await browser.newPage()
 	await page.goto('about:blank')
 	await page.setContent(getHtml())
 
 	const jsPath = path.join(
-		path.dirname(__dirname),
+		path.resolve(),
 		'node_modules',
 		'@highlight-run',
 		'rrweb',
@@ -84,32 +98,50 @@ export async function render(
     `,
 	)
 	await page.waitForFunction('loaded')
+	console.log(`puppeteer loaded`)
 	const meta = (await page.evaluate('meta')) as {
 		startTime: number
 		endTime: number
 		totalTime: number
 	}
-	const width = await page.evaluate(`viewport.width`)
-	const height = await page.evaluate(`viewport.height`)
+	const width = Number(await page.evaluate(`viewport.width`))
+	const height = Number(await page.evaluate(`viewport.height`))
+	console.log(`puppeteer meta`, { meta, width, height })
 	await page.setViewport({ width: width + 16, height: height + 16 })
 
 	let interval = 1000
 	let start = ts || meta.startTime
-	let end = ts || meta.endTime
+	let end = tsEnd || ts || meta.endTime
 	if (fps) {
 		interval = Math.round(1000 / fps)
-		start = Math.floor((meta.totalTime / workers) * worker)
-		end = Math.floor((meta.totalTime / workers) * (worker + 1))
+		start = ts || Math.floor((meta.totalTime / workers) * worker)
+		end =
+			tsEnd || ts || Math.floor((meta.totalTime / workers) * (worker + 1))
 	}
 
+	console.log(`starting screenshotting`, {
+		start,
+		end,
+		interval,
+		fps,
+		ts,
+		tsEnd,
+	})
 	const files: string[] = []
 	for (let i = start; i <= end; i += interval) {
 		const file = path.join(dir, `${i}.png`)
 		await page.evaluate(`r.pause(${i})`)
 		await page.screenshot({ path: file })
+		console.log(`screenshotted`, { start, end, interval, i })
 		files.push(file)
 	}
 
-	await browser.close()
+	// puppeteer shutdown should not happen in lambda as it causes the lambda to hang
+	if (process.env.DEV?.length) {
+		await page.close()
+		await browser.close()
+	}
+	console.log(`done`, { files })
+
 	return files
 }

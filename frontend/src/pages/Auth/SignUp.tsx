@@ -8,7 +8,8 @@ import {
 	Callout,
 	Form,
 	Heading,
-	IconSolidSparkles,
+	IconSolidGithub,
+	IconSolidGoogle,
 	Stack,
 	Text,
 	useFormState,
@@ -69,6 +70,10 @@ export const SignUp: React.FC = () => {
 				})
 			}
 
+			if (!user?.emailVerified) {
+				auth.currentUser?.sendEmailVerification()
+			}
+
 			await createAdmin()
 			message.success('Account created succesfully!')
 
@@ -77,6 +82,21 @@ export const SignUp: React.FC = () => {
 		},
 		[createAdmin, navigate, signIn],
 	)
+
+	const handleExternalAuthClick = (provider: firebase.auth.AuthProvider) => {
+		auth.signInWithPopup(provider)
+			.then(handleSubmit)
+			.catch((error: firebase.auth.MultiFactorError) => {
+				let errorMessage = error.message
+
+				if (error.code === 'auth/popup-closed-by-user') {
+					errorMessage =
+						'Pop-up closed without successfully authenticating. Please try again.'
+				}
+
+				setError(errorMessage)
+			})
+	}
 
 	useEffect(() => analytics.page(), [])
 
@@ -92,7 +112,6 @@ export const SignUp: React.FC = () => {
 					formState.values.password,
 				)
 					.then(async (credential) => {
-						auth.currentUser?.sendEmailVerification()
 						handleSubmit(credential)
 					})
 					.catch((error) => {
@@ -169,26 +188,26 @@ export const SignUp: React.FC = () => {
 						type="button"
 						trackingId="sign-up-with-google"
 						onClick={() => {
-							auth.signInWithPopup(auth.googleProvider!)
-								.then(handleSubmit)
-								.catch(
-									(error: firebase.auth.MultiFactorError) => {
-										let errorMessage = error.message
-
-										if (
-											error.code ===
-											'auth/popup-closed-by-user'
-										) {
-											errorMessage =
-												'Pop-up closed without successfully authenticating. Please try again.'
-										}
-
-										setError(errorMessage)
-									},
-								)
+							handleExternalAuthClick(auth.googleProvider!)
 						}}
 					>
-						Sign up with Google <IconSolidSparkles />
+						<Box display="flex" alignItems="center" gap="6">
+							<IconSolidGoogle />
+							Sign up with Google
+						</Box>
+					</Button>
+					<Button
+						kind="secondary"
+						type="button"
+						trackingId="sign-up-with-github"
+						onClick={() =>
+							handleExternalAuthClick(auth.githubProvider!)
+						}
+					>
+						<Box display="flex" alignItems="center" gap="6">
+							<IconSolidGithub />
+							Sign up with Github
+						</Box>
 					</Button>
 				</Stack>
 			</AuthFooter>

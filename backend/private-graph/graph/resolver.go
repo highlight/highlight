@@ -474,9 +474,6 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 
 	span.SetTag("ProjectID", project_id)
 
-	if util.IsTestEnv() {
-		return nil, nil
-	}
 	if r.isWhitelistedAccount(ctx) {
 		project := &model.Project{}
 		if err := r.DB.Where(&model.Project{Model: model.Model{ID: project_id}}).First(&project).Error; err != nil {
@@ -924,7 +921,7 @@ func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecur
 func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id string) (session *model.Session, ownsSession bool, err error) {
 	session = &model.Session{}
 	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: session_secure_id}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
-		return nil, false, e.Wrap(err, "error querying session by secure_id: "+session_secure_id)
+		return nil, false, e.New("error querying session by secure_id: " + session_secure_id)
 	}
 
 	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
@@ -938,16 +935,17 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id st
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewSession"))
 	defer authSpan.Finish()
 	session, isOwner, err := r._doesAdminOwnSession(ctx, session_secure_id)
-	if err == nil && isOwner {
+	if err != nil {
+		return nil, err
+	}
+	if isOwner {
+		return session, nil
+	} else if session.IsPublic {
+		return session, nil
+	} else if session.ProjectID == r.demoProjectID(ctx) {
 		return session, nil
 	}
-	if session != nil && session.IsPublic {
-		return session, nil
-	}
-	if session.ProjectID == r.demoProjectID(ctx) {
-		return session, nil
-	}
-	return nil, err
+	return nil, e.New("session access unauthorized")
 }
 
 func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id string) (*model.Session, error) {
@@ -1356,7 +1354,7 @@ func (r *Resolver) MarshalAlertEmails(emails []*string) (*string, error) {
 	return &channelsString, nil
 }
 
-func (r *Resolver) UnmarshalStackTrace(stackTraceString string, filterChrome bool) ([]*modelInputs.ErrorTrace, error) {
+func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.ErrorTrace, error) {
 	var unmarshalled []*modelInputs.ErrorTrace
 	if err := json.Unmarshal([]byte(stackTraceString), &unmarshalled); err != nil {
 		// Stack trace may not be able to be unmarshalled as the format may differ
@@ -1369,9 +1367,7 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string, filterChrome boo
 	var ret []*modelInputs.ErrorTrace
 	for _, frame := range unmarshalled {
 		if frame != nil && *frame != empty {
-			if !filterChrome || (frame.FileName != nil && !strings.HasPrefix(*frame.FileName, "chrome-extension")) {
-				ret = append(ret, frame)
-			}
+			ret = append(ret, frame)
 		}
 	}
 

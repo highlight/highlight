@@ -564,6 +564,21 @@ type S3File {
 	key: String
 }
 
+interface Edge {
+	cursor: String!
+}
+
+type PageInfo {
+	hasNextPage: Boolean!
+	hasPreviousPage: Boolean!
+	startCursor: String!
+	endCursor: String!
+}
+
+interface Connection {
+	pageInfo: PageInfo!
+}
+
 type Log {
 	timestamp: Timestamp!
 	level: LogLevel!
@@ -576,20 +591,36 @@ type Log {
 	serviceName: String
 }
 
-type LogEdge {
+type LogEdge implements Edge {
 	cursor: String!
 	node: Log!
 }
 
-type PageInfo {
-	hasNextPage: Boolean!
-	hasPreviousPage: Boolean!
-	startCursor: String!
-	endCursor: String!
+type LogConnection implements Connection {
+	edges: [LogEdge!]!
+	pageInfo: PageInfo!
 }
 
-type LogsConnection {
-	edges: [LogEdge!]!
+type ErrorObjectNodeSession {
+	secureID: String!
+	userProperties: String!
+	appVersion: String
+}
+
+type ErrorObjectNode {
+	id: ID!
+	createdAt: Timestamp!
+	event: String!
+	session: ErrorObjectNodeSession!
+}
+
+type ErrorObjectEdge implements Edge {
+	cursor: String!
+	node: ErrorObjectNode!
+}
+
+type ErrorObjectConnection implements Connection {
+	edges: [ErrorObjectEdge!]!
 	pageInfo: PageInfo!
 }
 
@@ -1411,6 +1442,11 @@ type Query {
 	): ErrorsHistogram!
 	error_group(secure_id: String!): ErrorGroup
 	error_object(id: ID!): ErrorObject
+	error_objects(
+		error_group_secure_id: String!
+		after: String
+		before: String
+	): ErrorObjectConnection!
 	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(
 		error_group_secure_id: String!
@@ -1618,7 +1654,7 @@ type Query {
 		before: String
 		at: String
 		direction: LogDirection!
-	): LogsConnection!
+	): LogConnection!
 	sessionLogs(project_id: ID!, params: LogsParamsInput!): [LogEdge!]!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
