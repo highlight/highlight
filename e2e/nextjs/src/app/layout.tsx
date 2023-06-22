@@ -24,11 +24,15 @@ export default function RootLayout({
 					recordHeadersAndBody: true,
 					urlBlocklist: [],
 				}}
+				// inlineImages={false}
 				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
 			/>
 
 			<html lang="en">
-				<body>{children}</body>
+				<body>
+					<div>{children}</div>
+					<img src="https://i.travelapi.com/lodging/11000000/10140000/10130300/10130300/c9095011_z.jpg" />
+				</body>
 			</html>
 		</>
 	)
