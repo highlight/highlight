@@ -180,7 +180,6 @@ export const SessionFeedV3 = React.memo(() => {
 			totalPages.current = Math.ceil(
 				response?.sessions_opensearch.totalCount / DEFAULT_PAGE_SIZE,
 			)
-			console.log('zane setSearchResultsCount')
 			setSearchResultsCount(response?.sessions_opensearch.totalCount)
 		}
 		setSearchResultsLoading(false)
@@ -202,7 +201,6 @@ export const SessionFeedV3 = React.memo(() => {
 	// The loading skeleton should only be shown on the first load and when searchParams changes.
 	// It should not show when loading more sessions via infinite scroll.
 	useEffect(() => {
-		console.log('zane setSearchResultsLoading', loading)
 		setSearchResultsLoading(loading)
 	}, [loading, setSearchResultsLoading])
 

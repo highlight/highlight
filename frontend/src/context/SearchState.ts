@@ -158,7 +158,6 @@ export const SearchReducer = (
 			)
 			break
 	}
-	console.log('SearchReducer', state, action)
 	return s
 }
 

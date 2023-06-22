@@ -55,8 +55,16 @@ document.body.className = 'highlight-light-theme'
 
 analytics.initialize()
 const dev = import.meta.env.DEV
+const clientDebugKey = 'highlight-client-debug'
+const clientDebug = window.localStorage.getItem(clientDebugKey)
+if (!clientDebug) {
+	window.localStorage.setItem(clientDebugKey, 'false')
+}
+const shouldDebugLog = clientDebug === 'true'
 const options: HighlightOptions = {
-	debug: { clientInteractions: true, domRecording: true },
+	debug: shouldDebugLog
+		? { clientInteractions: true, domRecording: true }
+		: undefined,
 	manualStart: true,
 	enableStrictPrivacy: Math.floor(Math.random() * 8) === 0,
 	networkRecording: {
@@ -404,4 +412,8 @@ const AuthenticationRoleRouter = () => {
 
 const container = document.getElementById('root')!
 const root = createRoot(container)
-root.render(<App />)
+root.render(
+	<React.StrictMode>
+		<App />
+	</React.StrictMode>,
+)
