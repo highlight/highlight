@@ -36,7 +36,7 @@ export class FirstLoadListeners {
 	xhrNetworkContents!: RequestResponsePair[]
 	fetchNetworkContents!: RequestResponsePair[]
 	disableRecordingWebSocketContents!: boolean
-	webSocketNetworkContents!: WebSocketRequest[]
+	webSocketNetworkContents!: WebSocketRequest[] | undefined
 	webSocketEventContents!: WebSocketEvent[]
 	tracingOrigins!: boolean | (string | RegExp)[]
 	networkHeadersToRedact!: string[]
@@ -226,7 +226,9 @@ export class FirstLoadListeners {
 						sThis.fetchNetworkContents.push(requestResponsePair)
 					},
 					webSocketRequestCallback: (event) => {
-						sThis.webSocketNetworkContents.push(event)
+						if (sThis.webSocketNetworkContents) {
+							sThis.webSocketNetworkContents.push(event)
+						}
 					},
 					webSocketEventCallback: (event) => {
 						sThis.webSocketEventContents.push(event)
@@ -296,7 +298,7 @@ export class FirstLoadListeners {
 		}
 
 		if (!sThis.disableRecordingWebSocketContents) {
-			webSocketResources = sThis.webSocketNetworkContents
+			webSocketResources = sThis.webSocketNetworkContents || []
 		}
 
 		return [...httpResources, ...webSocketResources]
