@@ -11868,36 +11868,6 @@ span:last-child ._ruleItem_1yzqu_148 {
   transition: width 0.17s linear;
 }
 
-/* temp_stylePlugin:ni:sha-256;o3NjbMjlK-G0_Mov2-LHBqEp_X-_GYBGeP3nsXHQRNc */
-._sessionToken_ci7y5_1 {
-  align-items: center;
-  color: var(--color-gray-500);
-  display: flex;
-  flex-shrink: 0;
-  font-size: 12px;
-  gap: var(--size-xSmall);
-  max-width: 378px;
-  min-width: 0;
-}
-._sessionToken_ci7y5_1 > span {
-  color: var(--color-gray-500);
-  line-height: normal;
-  margin: 0;
-  white-space: nowrap;
-}
-._sessionToken_ci7y5_1 a {
-  color: var(--text-primary);
-}
-._sessionToken_ci7y5_1 svg {
-  color: var(--color-gray-500);
-  flex-shrink: 0;
-  height: 16px;
-  width: 16px;
-}
-._iconContainer_ci7y5_27 {
-  display: flex;
-}
-
 /* temp_stylePlugin:ni:sha-256;q4KT-az-mVtYfjCc2zkmD8tLbc6VYVZOpzuEihLTzeU */
 ._button_1d1w0_1 {
   align-items: center;
