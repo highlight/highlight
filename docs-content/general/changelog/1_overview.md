@@ -7,6 +7,9 @@ slug: getting-started
 Stay up to date with what we work on week over week:
 
 <DocsCardGroup>
+    <DocsCard title="Changelog 21" href="./changelog-21.md">
+    {"GitHub Auth, Invite detection, AllContributor App"}
+    </DocsCard>
     <DocsCard title="Changelog 20" href="./changelog-20.md">
     {"User Management, New logging connectors"}
     </DocsCard>
