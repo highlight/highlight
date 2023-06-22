@@ -93,6 +93,7 @@ func GetWorkspaceSessionsMeter(ctx context.Context, DB *gorm.DB, ccClient *click
 			FROM workspaces
 			WHERE id=@workspace_id)
 			AND excluded <> true
+			AND within_billing_quota
 			AND (active_length >= 1000 OR (active_length is null and length >= 1000))
 			AND processed = true
 			UNION ALL SELECT COALESCE(SUM(count), 0) FROM materialized_rows
