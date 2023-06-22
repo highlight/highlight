@@ -1,6 +1,7 @@
 import { ErrorMessage } from '../types/shared-types'
 import stringify from 'json-stringify-safe'
 import ErrorStackParser from 'error-stack-parser'
+import { instanceOf } from 'graphql/jsutils/instanceOf'
 
 const g = typeof window !== 'undefined' ? window : global
 
@@ -29,15 +30,20 @@ function handleError(
 ) {
 	let res: ErrorStackParser.StackFrame[] = []
 
-	try {
-		res = ErrorStackParser.parse(error)
-	} catch {} // @eslint-ignore
+	if (event instanceof Error) {
+		res = ErrorStackParser.parse(event)
+		event = event.message
+	} else {
+		try {
+			res = ErrorStackParser.parse(error)
+		} catch {} // @eslint-ignore
+	}
 	const framesToUse = removeHighlightFrameIfExists(res)
 	callback({
 		event: stringify(event),
 		type: 'window.onerror',
 		url: g.location.href,
-		source: source ? source : '',
+		source: source ?? '',
 		lineNumber: framesToUse[0]?.lineNumber ? framesToUse[0]?.lineNumber : 0,
 		columnNumber: framesToUse[0]?.columnNumber
 			? framesToUse[0]?.columnNumber
@@ -97,8 +103,9 @@ const removeHighlightFrameIfExists = (
 
 	const firstFrame = frames[0]
 	if (
-		firstFrame.functionName === 'console.error' &&
-		firstFrame.fileName?.includes('highlight.run')
+		(firstFrame.functionName === 'console.error' &&
+			firstFrame.fileName?.includes('highlight.run')) ||
+		firstFrame.functionName === 'new HighlightPromise'
 	) {
 		return frames.slice(1)
 	}
