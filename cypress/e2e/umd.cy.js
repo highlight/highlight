@@ -1,5 +1,5 @@
 const cdns = ['unpkg', 'jsdelivr']
-describe.skip('web client recording spec', () => {
+describe('web client recording spec', () => {
 	cdns.map((source) => {
 		it(
 			`public graph requests are recorded when highlight set up from ${source}`,
