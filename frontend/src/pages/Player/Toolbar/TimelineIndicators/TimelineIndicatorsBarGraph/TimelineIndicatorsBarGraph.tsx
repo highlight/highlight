@@ -346,7 +346,7 @@ const TimelineIndicatorsBarGraph = ({
 	const zoom = useCallback(
 		(clientX: number, dz: number) => {
 			const viewportDiv = viewportRef.current
-			if (!viewportDiv) {
+			if (!viewportDiv || isLiveMode) {
 				return
 			}
 
@@ -378,7 +378,7 @@ const TimelineIndicatorsBarGraph = ({
 				return { x, zoom }
 			})
 		},
-		[maxZoom, viewportWidth],
+		[isLiveMode, maxZoom, viewportWidth],
 	)
 
 	const pan = useCallback(
