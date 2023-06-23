@@ -24,7 +24,9 @@ class FastAPIMiddleware(BaseHTTPMiddleware):
             # we detect this by checking the status code and recording a special type of error
             if resp.status_code >= 400:
                 body = b""
-                if hasattr(resp, "body_iterator"):
+                if hasattr(resp, "body"):
+                    body = resp.body
+                elif hasattr(resp, "body_iterator"):
                     async for chunk in resp.body_iterator:
                         if not isinstance(chunk, bytes):
                             chunk = chunk.encode(resp.charset)
