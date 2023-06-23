@@ -182,6 +182,9 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 	case model.PayloadTypeResources:
 		compressedWriter = manager.ResourcesCompressed
 		unmarshalled = &payload.ResourcesUnmarshalled{}
+	case model.PayloadTypeWebSocketEvents:
+		compressedWriter = manager.WebSocketEventsCompressed
+		unmarshalled = &payload.WebSocketEventsUnmarshalled{}
 	}
 
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && payloadType == model.PayloadTypeEvents
@@ -269,6 +272,31 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 		}
 		if err := manager.ResourcesCompressed.Close(); err != nil {
 			return errors.Wrap(err, "error closing compressed resources writer")
+		}
+	}
+
+	// Fetch/write web socket events.
+	if s.AvoidPostgresStorage {
+		if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeWebSocketEvents, accumulator); err != nil {
+			return errors.Wrap(err, "error fetching web socket events from Redis")
+		}
+	} else {
+		webSocketEvents, err := w.Resolver.DB.Model(&model.WebSocketEventsObject{}).Where(&model.WebSocketEventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
+		if err != nil {
+			return errors.Wrap(err, "error retrieving web socket events objects")
+		}
+		for webSocketEvents.Next() {
+			webSocketEventsObject := model.WebSocketEventsObject{}
+			err := w.Resolver.DB.ScanRows(webSocketEvents, &webSocketEventsObject)
+			if err != nil {
+				return errors.Wrap(err, "error scanning web socket events row")
+			}
+			if err := manager.WebSocketEventsCompressed.WriteObject(&webSocketEventsObject, &payload.WebSocketEventsUnmarshalled{}); err != nil {
+				return errors.Wrap(err, "error writing compressed web socket events row")
+			}
+		}
+		if err := manager.WebSocketEventsCompressed.Close(); err != nil {
+			return errors.Wrap(err, "error closing compressed web socket events writer")
 		}
 	}
 

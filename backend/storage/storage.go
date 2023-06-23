@@ -62,13 +62,15 @@ const (
 	SessionContentsCompressed  PayloadType = "session-contents-compressed"
 	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
 	TimelineIndicatorEvents    PayloadType = "timeline-indicator-events"
+	WebSocketEventsCompressed  PayloadType = "web-socket-events-compressed"
 )
 
 // StoredPayloadTypes configures what payloads are uploaded with this config.
 var StoredPayloadTypes = map[payload.FileType]PayloadType{
-	payload.EventsCompressed:        SessionContentsCompressed,
-	payload.ResourcesCompressed:     NetworkResourcesCompressed,
-	payload.TimelineIndicatorEvents: TimelineIndicatorEvents,
+	payload.EventsCompressed:          SessionContentsCompressed,
+	payload.ResourcesCompressed:       NetworkResourcesCompressed,
+	payload.TimelineIndicatorEvents:   TimelineIndicatorEvents,
+	payload.WebSocketEventsCompressed: WebSocketEventsCompressed,
 }
 
 func GetChunkedPayloadType(offset int) PayloadType {
@@ -87,6 +89,7 @@ type Client interface {
 	PushRawEvents(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType, events []redis.Z) error
 	PushSourceMapFile(ctx context.Context, projectId int, version *string, fileName string, fileBytes []byte) (*int64, error)
 	ReadResources(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
+	ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
 	ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error)
 	ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error)
 	UploadAsset(ctx context.Context, uuid string, contentType string, reader io.Reader) error
@@ -269,6 +272,15 @@ func (f *FilesystemClient) ReadResources(ctx context.Context, sessionId int, pro
 		return nil, err
 	}
 	return resources, nil
+}
+
+func (f *FilesystemClient) ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
+	var webSocketEvents []interface{}
+	err := f.readCompressed(ctx, sessionId, projectId, WebSocketEventsCompressed, &webSocketEvents)
+	if err != nil {
+		return nil, err
+	}
+	return webSocketEvents, nil
 }
 
 func (f *FilesystemClient) ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
@@ -662,6 +674,35 @@ func (s *S3Client) ReadResources(ctx context.Context, sessionId int, projectId i
 		return nil, errors.Wrap(err, "error decoding resource data")
 	}
 	return resources, nil
+}
+
+func (s *S3Client) ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
+	client, bucket := s.getSessionClientAndBucket(sessionId)
+	output, err := client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket:                  bucket,
+		Key:                     bucketKey(sessionId, projectId, WebSocketEventsCompressed),
+		ResponseContentType:     ptr.String(MIME_TYPE_JSON),
+		ResponseContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
+	})
+	if err != nil {
+		// compressed file doesn't exist, fall back to reading uncompressed
+		return s.ReadUncompressedResourcesFromS3(ctx, sessionId, projectId)
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	buf, err = decompress(buf)
+	if err != nil {
+		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
+	}
+
+	var webSocketEvents []interface{}
+	if err := json.Unmarshal(buf.Bytes(), &webSocketEvents); err != nil {
+		return nil, errors.Wrap(err, "error decoding web socket event data")
+	}
+	return webSocketEvents, nil
 }
 
 // ReadUncompressedResourcesFromS3 is deprecated. Serves legacy uncompressed network data from S3.
