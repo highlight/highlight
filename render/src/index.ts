@@ -83,7 +83,7 @@ export const handler = Handlers.serverlessFunction(
 H.init({ projectID: '1' })
 
 if (process.env.DEV?.length) {
-	screenshot({
+	handler({
 		queryStringParameters: {
 			project: '1',
 			session: '239571781',
@@ -91,11 +91,11 @@ if (process.env.DEV?.length) {
 			chunk: '0',
 		},
 	} as unknown as APIGatewayEvent).then(console.info)
-	media({
+	handler({
 		queryStringParameters: {
+			format: 'image/gif',
 			project: '1',
 			session: '239571781',
-			format: 'image/gif',
 			ts: '15000',
 			tsEnd: '20000',
 		},

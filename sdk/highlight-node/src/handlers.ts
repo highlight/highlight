@@ -152,6 +152,6 @@ declare type ServerlessCallableFunctionHandler = (event?: any) => any
 export function serverlessFunction(
 	origHandler: ServerlessCallableFunctionHandler,
 	options: NodeOptions,
-): FirebaseCallableFunctionHandler {
+): ServerlessCallableFunctionHandler {
 	return makeHandler(origHandler, options, (event) => event?.headers)
 }
