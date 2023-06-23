@@ -34,9 +34,9 @@ async def root(request: Request):
     return {"message": "Hello World"}
 
 
-@router.get("/health")
+@router.get("/not-found")
 def health_check():
-    logging.info("hello, world!")
+    logging.info("oh, no!")
     raise HTTPException(status_code=404, detail="Item not found")
 
 
