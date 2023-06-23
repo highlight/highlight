@@ -1029,6 +1029,7 @@ type ComplexityRoot struct {
 		UserObject                     func(childComplexity int) int
 		UserProperties                 func(childComplexity int) int
 		Viewed                         func(childComplexity int) int
+		WebSocketEventsURL             func(childComplexity int) int
 		WithinBillingQuota             func(childComplexity int) int
 	}
 
@@ -1517,6 +1518,7 @@ type SessionResolver interface {
 
 	DirectDownloadURL(ctx context.Context, obj *model1.Session) (*string, error)
 	ResourcesURL(ctx context.Context, obj *model1.Session) (*string, error)
+	WebSocketEventsURL(ctx context.Context, obj *model1.Session) (*string, error)
 	TimelineIndicatorsURL(ctx context.Context, obj *model1.Session) (*string, error)
 	DeviceMemory(ctx context.Context, obj *model1.Session) (*int, error)
 }
@@ -7517,6 +7519,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Viewed(childComplexity), true
 
+	case "Session.web_socket_events_url":
+		if e.complexity.Session.WebSocketEventsURL == nil {
+			break
+		}
+
+		return e.complexity.Session.WebSocketEventsURL(childComplexity), true
+
 	case "Session.within_billing_quota":
 		if e.complexity.Session.WithinBillingQuota == nil {
 			break
@@ -8658,6 +8667,7 @@ type Session {
 	event_counts: String
 	direct_download_url: String
 	resources_url: String
+	web_socket_events_url: String
 	timeline_indicators_url: String
 	deviceMemory: Int
 	last_user_interaction_time: Timestamp!
@@ -26799,6 +26809,8 @@ func (ec *executionContext) fieldContext_ErrorObject_session(ctx context.Context
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
+			case "web_socket_events_url":
+				return ec.fieldContext_Session_web_socket_events_url(ctx, field)
 			case "timeline_indicators_url":
 				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
@@ -34036,6 +34048,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsViewed(ctx contex
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
+			case "web_socket_events_url":
+				return ec.fieldContext_Session_web_socket_events_url(ctx, field)
 			case "timeline_indicators_url":
 				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
@@ -34187,6 +34201,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsStarred(ctx conte
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
+			case "web_socket_events_url":
+				return ec.fieldContext_Session_web_socket_events_url(ctx, field)
 			case "timeline_indicators_url":
 				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
@@ -37756,6 +37772,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionIsPublic(ctx cont
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
+			case "web_socket_events_url":
+				return ec.fieldContext_Session_web_socket_events_url(ctx, field)
 			case "timeline_indicators_url":
 				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
@@ -40059,6 +40077,8 @@ func (ec *executionContext) fieldContext_Query_session(ctx context.Context, fiel
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
+			case "web_socket_events_url":
+				return ec.fieldContext_Session_web_socket_events_url(ctx, field)
 			case "timeline_indicators_url":
 				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
@@ -42548,6 +42568,8 @@ func (ec *executionContext) fieldContext_Query_projectHasViewedASession(ctx cont
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
+			case "web_socket_events_url":
+				return ec.fieldContext_Session_web_socket_events_url(ctx, field)
 			case "timeline_indicators_url":
 				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
@@ -52593,6 +52615,47 @@ func (ec *executionContext) fieldContext_Session_resources_url(ctx context.Conte
 	return fc, nil
 }
 
+func (ec *executionContext) _Session_web_socket_events_url(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Session_web_socket_events_url(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Session().WebSocketEventsURL(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Session_web_socket_events_url(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Session_timeline_indicators_url(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 	if err != nil {
@@ -54963,6 +55026,8 @@ func (ec *executionContext) fieldContext_SessionResults_sessions(ctx context.Con
 				return ec.fieldContext_Session_direct_download_url(ctx, field)
 			case "resources_url":
 				return ec.fieldContext_Session_resources_url(ctx, field)
+			case "web_socket_events_url":
+				return ec.fieldContext_Session_web_socket_events_url(ctx, field)
 			case "timeline_indicators_url":
 				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
 			case "deviceMemory":
@@ -70728,6 +70793,23 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Session_resources_url(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "web_socket_events_url":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Session_web_socket_events_url(ctx, field, obj)
 				return res
 			}
 

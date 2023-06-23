@@ -2489,6 +2489,7 @@ export type Session = {
 	user_object?: Maybe<Scalars['Any']>
 	user_properties?: Maybe<Scalars['String']>
 	viewed?: Maybe<Scalars['Boolean']>
+	web_socket_events_url?: Maybe<Scalars['String']>
 	within_billing_quota?: Maybe<Scalars['Boolean']>
 }
 

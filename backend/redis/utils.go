@@ -331,6 +331,8 @@ func (r *Client) GetResources(ctx context.Context, s *model.Session) ([]interfac
 	return allResources, nil
 }
 
+// TODO(spenny): add for web sockets when new resolver created
+
 func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, payloadType model.RawPayloadType, payload []byte) error {
 	encoded := string(snappy.Encode(nil, payload))
 

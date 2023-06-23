@@ -7375,6 +7375,21 @@ func (r *sessionResolver) ResourcesURL(ctx context.Context, obj *model.Session) 
 	return str, err
 }
 
+// WebSocketEventsURL is the resolver for the web_socket_events_url field.
+func (r *sessionResolver) WebSocketEventsURL(ctx context.Context, obj *model.Session) (*string, error) {
+	// Direct download only supported for clients that accept Brotli content encoding
+	if !obj.AllObjectsCompressed || !r.isBrotliAccepted(ctx) {
+		return nil, nil
+	}
+
+	str, err := r.StorageClient.GetDirectDownloadURL(ctx, obj.ProjectID, obj.ID, storage.WebSocketEventsCompressed, nil)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting web socket events URL")
+	}
+
+	return str, err
+}
+
 // TimelineIndicatorsURL is the resolver for the timeline_indicators_url field.
 func (r *sessionResolver) TimelineIndicatorsURL(ctx context.Context, obj *model.Session) (*string, error) {
 	// Direct download only supported for clients that accept Brotli content encoding
