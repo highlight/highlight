@@ -12,6 +12,7 @@ from opentelemetry.sdk._logs import LoggerProvider, LogRecord
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.trace import TracerProvider, Span
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.trace import INVALID_SPAN
 
 from highlight_io.integrations import Integration
 
@@ -35,6 +36,7 @@ class H(object):
     REQUEST_HEADER = "X-Highlight-Request"
     OTLP_HTTP = "https://otel.highlight.io:4318"
     _instance: "H" = None
+    _logging_instrumented = False
 
     @classmethod
     def get_instance(cls) -> "H":
@@ -81,7 +83,6 @@ class H(object):
                     f"{self._otlp_endpoint}/v1/traces", compression=Compression.Gzip
                 ),
                 schedule_delay_millis=1000,
-                max_export_batch_size=64,
                 export_timeout_millis=5000,
             )
         )
@@ -95,7 +96,6 @@ class H(object):
                     f"{self._otlp_endpoint}/v1/logs", compression=Compression.Gzip
                 ),
                 schedule_delay_millis=1000,
-                max_export_batch_size=64,
                 export_timeout_millis=5000,
             )
         )
@@ -114,7 +114,7 @@ class H(object):
         self,
         session_id: typing.Optional[str] = "",
         request_id: typing.Optional[str] = "",
-    ) -> None:
+    ) -> Span:
         """
         Catch exceptions raised by your app using this context manager.
         Exceptions will be recorded with the Highlight project and
@@ -125,20 +125,25 @@ class H(object):
             H = highlight_io.H('project_id', ...)
 
             def my_fn():
-                with H.guard(headers={'X-Highlight-Request': '...'}):
+                with H.trace(headers={'X-Highlight-Request': '...'}):
                     raise Exception('fake error!')
 
 
         :param session_id: the highlight session that initiated this network request.
         :param request_id: the identifier of the current network request.
-        :return: None
+        :return: Span
         """
+        # in case the otel library is in a non-recording context, do nothing
+        if not hasattr(self, "tracer") or not self.tracer:
+            yield
+            return
+
         with self.tracer.start_as_current_span("highlight-ctx") as span:
             span.set_attributes({"highlight.project_id": self._project_id})
             span.set_attributes({"highlight.session_id": session_id})
             span.set_attributes({"highlight.trace_id": request_id})
             try:
-                yield
+                yield span
             except Exception as e:
                 self.record_exception(e)
                 raise
@@ -215,6 +220,28 @@ class H(object):
             self.log.emit(r)
 
     def _instrument_logging(self):
+        if H._logging_instrumented:
+            return
+
         LoggingInstrumentor().instrument(
             set_logging_format=True, log_hook=self.log_hook
         )
+        otel_factory = logging.getLogRecordFactory()
+
+        def factory(*args, **kwargs) -> LogRecord:
+            span = trace.get_current_span()
+            if span != INVALID_SPAN:
+                manager = contextlib.nullcontext(enter_result=span)
+            else:
+                manager = self.trace()
+
+            try:
+                with manager:
+                    return otel_factory(*args, **kwargs)
+            except RecursionError:
+                # in case we are hitting a recusrive log from the `self.trace()` invocation
+                # (happens when we exceed the otel log queue depth)
+                return otel_factory(*args, **kwargs)
+
+        logging.setLogRecordFactory(factory)
+        H._logging_instrumented = True
