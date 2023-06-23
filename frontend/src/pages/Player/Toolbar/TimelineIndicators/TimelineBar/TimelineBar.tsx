@@ -20,6 +20,7 @@ interface IBar {
 	bucket: EventBucket
 	width: number
 	height: number
+	disabled: boolean
 	viewportRef: React.RefObject<HTMLElement>
 }
 
@@ -28,6 +29,7 @@ const TimelineIndicatorsBar = ({
 	bucket,
 	width,
 	height,
+	disabled,
 	viewportRef,
 }: IBar) => {
 	const data = useMemo(() => {
@@ -37,7 +39,10 @@ const TimelineIndicatorsBar = ({
 
 		const barData = selectedEventTypes
 			.map((eventType) => {
-				const color = `var(${getAnnotationColor(eventType)})`
+				const color = disabled
+					? 'rgba(111, 110, 119, 0.08)'
+					: `var(${getAnnotationColor(eventType)})`
+
 				return {
 					name: getTimelineEventDisplayName(eventType || ''),
 					color,
@@ -52,7 +57,7 @@ const TimelineIndicatorsBar = ({
 			.filter((rect) => rect.percent > 0)
 
 		return barData
-	}, [bucket])
+	}, [bucket, disabled])
 
 	const [isInsideBar, setIsInsideBar] = useState(false)
 	const [isInsidePopover, setIsInsidePopover] = useState(false)

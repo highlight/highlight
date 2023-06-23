@@ -204,6 +204,25 @@ export const Buttons = () => {
 					<button
 						className={commonStyles.submitButton}
 						onClick={() => {
+							for (let i = 0; i < 100; i++) {
+								new Promise<void>((resolve, reject) => {
+									if (Math.random() < 0.1) {
+										throw new Error(
+											'third uncaught error in promise',
+										)
+									} else if (Math.random() < 0.2) {
+										reject('what the')
+									}
+									resolve()
+								}).then()
+							}
+						}}
+					>
+						Async Error
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={() => {
 							setHasError(true)
 						}}
 					>

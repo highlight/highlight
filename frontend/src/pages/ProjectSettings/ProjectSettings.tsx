@@ -59,20 +59,21 @@ const ProjectSettings = () => {
 			refetchQueries: [namedOperations.Query.GetProjectSettings],
 		})
 
-	const onSubmit = (e: { preventDefault: () => void }) => {
-		e.preventDefault()
-		if (!project_id) {
-			return
+	const onSubmit =
+		(tabTitle: string) => (e: { preventDefault: () => void }) => {
+			e.preventDefault()
+			if (!project_id) {
+				return
+			}
+			editProjectSettings({
+				variables: {
+					projectId: project_id!,
+					...allProjectSettings?.projectSettings,
+				},
+			}).then(() => {
+				message.success(`Updated ${tabTitle} settings!`, 5)
+			})
 		}
-		editProjectSettings({
-			variables: {
-				projectId: project_id!,
-				...allProjectSettings?.projectSettings,
-			},
-		}).then(() => {
-			message.success('Updated session replay settings!', 5)
-		})
-	}
 
 	useEffect(() => {
 		if (!loading) {
@@ -130,7 +131,9 @@ const ProjectSettings = () => {
 														Session replay
 													</Text>
 													<Button
-														onClick={onSubmit}
+														onClick={onSubmit(
+															'session replay',
+														)}
 														trackingId="ProjectSettingsUpdate"
 													>
 														{editProjectSettingsLoading ? (
@@ -170,7 +173,9 @@ const ProjectSettings = () => {
 														Error monitoring
 													</Text>
 													<Button
-														onClick={onSubmit}
+														onClick={onSubmit(
+															'error monitoring',
+														)}
 														trackingId="ProjectSettingsUpdate"
 													>
 														{editProjectSettingsLoading ? (
