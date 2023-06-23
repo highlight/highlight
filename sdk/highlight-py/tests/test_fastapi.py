@@ -28,8 +28,14 @@ def highlight_setup(request):
 
 
 @pytest.mark.parametrize("exception", [False, True])
-@pytest.mark.parametrize("response", [Response(), Response(status_code=404, content="foo"),
-                                      StreamingResponse(status_code=404, content=(f"foo-{i}" for i in range(10)))])
+@pytest.mark.parametrize(
+    "response",
+    [
+        Response(),
+        Response(status_code=404, content="foo"),
+        StreamingResponse(status_code=404, content=(f"foo-{i}" for i in range(10))),
+    ],
+)
 @pytest.mark.asyncio
 async def test_fastapi(mocker, highlight_setup, exception, response):
     app = mocker.MagicMock()

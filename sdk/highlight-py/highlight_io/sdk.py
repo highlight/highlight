@@ -204,7 +204,7 @@ class H(object):
         attributes = {
             "exception.type": "HTTPException",
             "exception.message": detail,
-            "exception.stacktrace": ''.join(traceback.format_stack()),
+            "exception.stacktrace": "".join(traceback.format_stack()),
             "http.status_code": status_code,
         }
         for k, v in headers.items():
