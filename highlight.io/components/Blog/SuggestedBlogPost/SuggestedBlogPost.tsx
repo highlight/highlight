@@ -1,9 +1,9 @@
-import styles from '../Blog.module.scss'
+import classNames from 'classnames'
 import Image from 'next/legacy/image'
 import Link from 'next/link'
 import { Typography } from '../../common/Typography/Typography'
+import styles from '../Blog.module.scss'
 import { Post } from '../BlogPost/BlogPost'
-import classNames from 'classnames'
 import { PostTag } from '../Tag'
 
 export const SuggestedBlogPost = ({

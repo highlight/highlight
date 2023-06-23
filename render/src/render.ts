@@ -129,10 +129,11 @@ export async function render(
 	})
 	const files: string[] = []
 	for (let i = start; i <= end; i += interval) {
-		const file = path.join(dir, `${i}.png`)
+		const idx = files.length
+		const file = path.join(dir, `${idx}.png`)
 		await page.evaluate(`r.pause(${i})`)
 		await page.screenshot({ path: file })
-		console.log(`screenshotted`, { start, end, interval, i })
+		console.log(`screenshotted`, { start, end, interval, i, idx })
 		files.push(file)
 	}
 
