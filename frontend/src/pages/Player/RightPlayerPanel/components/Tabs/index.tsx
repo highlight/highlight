@@ -12,13 +12,13 @@ import {
 } from '@pages/Player/context/PlayerUIContext'
 import MetadataPanel from '@pages/Player/MetadataPanel/MetadataPanel'
 
-import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
+import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import SessionInsights from '@/pages/Player/RightPlayerPanel/components/SessionInsights/SessionInsights'
 
 const RightPanelTabs = () => {
 	const { selectedRightPanelTab, setSelectedRightPanelTab } =
 		usePlayerUIContext()
-	const { showAiExperiments } = usePlayerConfiguration()
+	const showSessionInsights = useFeatureFlag(Feature.AiSessionInsights)
 
 	return (
 		<Tabs<RightPlayerTab>
@@ -49,7 +49,7 @@ const RightPanelTabs = () => {
 						/>
 					),
 				},
-				...(showAiExperiments
+				...(showSessionInsights
 					? {
 							['AI Insights']: {
 								page: <SessionInsights />,

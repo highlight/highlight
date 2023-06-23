@@ -7335,25 +7335,14 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 		return nil, nil
 	}
 
-	body := &modelInputs.SessionQuery{
-		ID:        session.ID,
-		ProjectID: session.ProjectID,
-	}
-
 	insight := &modelInputs.SessionInsight{}
 
-	var sessionInsightError error
-	var runlocal = false
-
-	if runlocal {
-		sessionInsightError = util.RestRequest("http://localhost:8765/session/insights", "POST", body, insight)
-	} else {
-		b, _ := r.getSessionInsight(ctx, session.ProjectID, session.ID)
-		sessionInsightError = json.Unmarshal(b, insight)
+	b, err := r.getSessionInsight(ctx, session.ProjectID, session.ID)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to get session insight")
 	}
-
-	if sessionInsightError != nil {
-		return nil, e.Wrap(sessionInsightError, "failed to get session insight")
+	if err = json.Unmarshal(b, insight); err != nil {
+		return nil, e.Wrap(err, "failed to unmarshal session insight")
 	}
 
 	return insight, nil
