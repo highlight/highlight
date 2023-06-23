@@ -5154,15 +5154,20 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, qu
 }
 
 // FieldTypes is the resolver for the field_types field.
-func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model.Field, error) {
+func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate *time.Time, endDate *time.Time) ([]*model.Field, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
 	}
 
-	aggQuery := `{"bool": {
-		"must": []
-	}}`
+	aggQuery := fmt.Sprintf(`{
+		"range": {
+			"created_at": {
+				"lt": "%s"
+			}
+		}
+	}`, endDate)
+	sessionsQuery := FormatSessionsQuery(aggQuery, *startDate)
 
 	aggOptions := opensearch.SearchOptions{
 		MaxResults: pointy.Int(0),
@@ -5174,7 +5179,7 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 	}
 
 	ignored := []struct{}{}
-	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, aggQuery, aggOptions, &ignored)
+	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, sessionsQuery, aggOptions, &ignored)
 	if err != nil {
 		return nil, err
 	}

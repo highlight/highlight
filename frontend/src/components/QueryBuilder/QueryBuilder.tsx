@@ -1055,7 +1055,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	starred: 'Starred',
 	identifier: 'Identifier',
 	reload: 'Reloaded',
-	state: 'State',
+	state: 'Status',
 	event: 'Event',
 	timestamp: 'Date',
 	has_rage_clicks: 'Has Rage Clicks',
