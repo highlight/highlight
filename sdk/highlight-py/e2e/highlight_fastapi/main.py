@@ -2,7 +2,7 @@
 import logging
 import random
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException, APIRouter
 
 import highlight_io
 from highlight_io.integrations.fastapi import FastAPIMiddleware
@@ -15,6 +15,8 @@ H = highlight_io.H(
 
 app = FastAPI()
 app.add_middleware(FastAPIMiddleware)
+
+router = APIRouter()
 
 
 @app.get("/")
@@ -30,3 +32,12 @@ async def root(request: Request):
             logging.info(f"oh no {5 / 0}")
     logging.warning("made it outside the loop!")
     return {"message": "Hello World"}
+
+
+@router.get("/health")
+def health_check():
+    logging.info("hello, world!")
+    raise HTTPException(status_code=404, detail="Item not found")
+
+
+app.include_router(router)
