@@ -1947,7 +1947,9 @@ export type QueryField_SuggestionArgs = {
 }
 
 export type QueryField_TypesArgs = {
+	end_date?: InputMaybe<Scalars['Timestamp']>
 	project_id: Scalars['ID']
+	start_date?: InputMaybe<Scalars['Timestamp']>
 }
 
 export type QueryFields_OpensearchArgs = {

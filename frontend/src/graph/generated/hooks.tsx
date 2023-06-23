@@ -6302,8 +6302,16 @@ export type GetTimelineIndicatorEventsQueryResult = Apollo.QueryResult<
 	Types.GetTimelineIndicatorEventsQueryVariables
 >
 export const GetFieldTypesDocument = gql`
-	query GetFieldTypes($project_id: ID!) {
-		field_types(project_id: $project_id) {
+	query GetFieldTypes(
+		$project_id: ID!
+		$start_date: Timestamp
+		$end_date: Timestamp
+	) {
+		field_types(
+			project_id: $project_id
+			start_date: $start_date
+			end_date: $end_date
+		) {
 			type
 			name
 		}
@@ -6323,6 +6331,8 @@ export const GetFieldTypesDocument = gql`
  * const { data, loading, error } = useGetFieldTypesQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
+ *      start_date: // value for 'start_date'
+ *      end_date: // value for 'end_date'
  *   },
  * });
  */

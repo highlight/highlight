@@ -1525,7 +1525,11 @@ type Query {
 		query: String!
 		histogram_options: DateHistogramOptions!
 	): SessionsHistogram!
-	field_types(project_id: ID!): [Field!]!
+	field_types(
+		project_id: ID!
+		start_date: Timestamp
+		end_date: Timestamp
+	): [Field!]!
 	fields_opensearch(
 		project_id: ID!
 		count: Int!

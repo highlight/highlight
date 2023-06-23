@@ -2059,6 +2059,8 @@ export type GetTimelineIndicatorEventsQuery = { __typename?: 'Query' } & {
 
 export type GetFieldTypesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
+	start_date?: Types.Maybe<Types.Scalars['Timestamp']>
+	end_date?: Types.Maybe<Types.Scalars['Timestamp']>
 }>
 
 export type GetFieldTypesQuery = { __typename?: 'Query' } & {
