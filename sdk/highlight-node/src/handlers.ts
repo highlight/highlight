@@ -96,7 +96,7 @@ const makeHandler = (
 ) => {
 	return async (...args: any) => {
 		try {
-			return await origHandler(args)
+			return await origHandler(...args)
 		} catch (e) {
 			try {
 				if (e instanceof Error) {
