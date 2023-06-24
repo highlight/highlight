@@ -1,4 +1,4 @@
-/* temp_stylePlugin:ni:sha-256;uBG4zLXNuzQuTtBwceK8WnLSxsGBVC3X5-e_DFs42-A */
+/* temp_stylePlugin:ni:sha-256;YYlIdE3LQqvDwL_zFdT2gQ8VAWB71-POn1FFyB0q9Og */
 :root {
   --color-purple-100: #ede9fe;
   --color-purple-200: #ddd6fe;
@@ -257,6 +257,9 @@ button {
 }
 input {
   font-weight: 400 !important;
+}
+.date-input {
+  font-weight: 500 !important;
 }
 .atom-overlay {
   color: blue;
