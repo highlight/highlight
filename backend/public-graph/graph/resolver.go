@@ -160,6 +160,7 @@ const SESSION_FIELD_MAX_LENGTH = 2000
 
 var ErrNoisyError = e.New("Filtering out noisy error")
 var ErrQuotaExceeded = e.New(string(publicModel.PublicGraphErrorBillingQuotaExceeded))
+var ErrUserFilteredError = e.New("User filtered error")
 
 // metrics that should be stored in postgres for session lookup
 var MetricCategoriesForDB = map[string]bool{"Device": true, "WebVital": true}
@@ -553,7 +554,12 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil, errors.New("error object stacktrace was empty")
 	}
 
-	if projectID == 1 {
+	project, err := r.Store.GetProject(projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	if project.ID == 1 {
 		if errorObj.Event == `input: initializeSession BillingQuotaExceeded` ||
 			errorObj.Event == `BillingQuotaExceeded` ||
 			errorObj.Event == `panic {error: missing operation context}` ||
@@ -569,7 +575,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			return nil, ErrNoisyError
 		}
 	}
-	if projectID == 356 {
+	if project.ID == 356 {
 		if errorObj.Event == `["\"ReferenceError: Can't find variable: widgetContainerAttribute\""]` ||
 			errorObj.Event == `"ReferenceError: Can't find variable: widgetContainerAttribute"` ||
 			errorObj.Event == `"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'."` ||
@@ -577,29 +583,33 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			return nil, ErrNoisyError
 		}
 	}
-	if projectID == 765 {
+	if project.ID == 765 {
 		if errorObj.Event == `"Uncaught Error: PollingBlockTracker - encountered an error while attempting to update latest block:\nundefined"` ||
 			errorObj.Event == `["\"Uncaught Error: PollingBlockTracker - encountered an error while attempting to update latest block:\\nundefined\""]` {
 			return nil, ErrNoisyError
 		}
 	}
-	if projectID == 898 {
+	if project.ID == 898 {
 		if errorObj.Event == `["\"LaunchDarklyFlagFetchError: Error fetching flag settings: 414\""]` ||
 			errorObj.Event == `["\"[LaunchDarkly] Error fetching flag settings: 414\""]` {
 			return nil, ErrNoisyError
 		}
 	}
-	if projectID == 1703 {
+	if project.ID == 1703 {
 		if errorObj.Event == `["\"Uncaught TypeError: Cannot read properties of null (reading 'play')\""]` ||
 			errorObj.Event == `"Uncaught TypeError: Cannot read properties of null (reading 'play')"` {
 			return nil, ErrNoisyError
 		}
 	}
-	if projectID == 3322 {
+	if project.ID == 3322 {
 		if errorObj.Event == `["\"Failed to fetch feature flags from PostHog.\""]` ||
 			errorObj.Event == `["\"Bad HTTP status: 0 \""]` {
 			return nil, ErrNoisyError
 		}
+	}
+
+	if errorgroups.IsErrorTraceFiltered(project, structuredStackTrace) {
+		return nil, ErrUserFilteredError
 	}
 
 	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, pricing.ProductTypeErrors, workspace, time.Now())
@@ -636,8 +646,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 
 	fingerprints := []*model.ErrorFingerprint{}
-	var err error
-
 	fingerprints = append(fingerprints, errorgroups.GetFingerprints(projectID, structuredStackTrace)...)
 
 	// Try unmarshalling the Event to JSON.
@@ -646,10 +654,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	if err := json.Unmarshal([]byte(errorObj.Event), &jsonStrings); err == nil && len(jsonStrings) == 1 {
 		errorAsJson := interface{}(nil)
 		if err := json.Unmarshal([]byte(jsonStrings[0]), &errorAsJson); err == nil {
-			var project model.Project
-			if err := r.DB.Where("id = ?", projectID).First(&project).Error; err != nil {
-				return nil, e.Wrap(err, "error querying project")
-			}
 			for _, path := range project.ErrorJsonPaths {
 				value, err := jsonpath.Get(path, errorAsJson)
 				if err == nil {
@@ -1624,15 +1628,15 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			numAlerts := int64(-1)
 			if err := r.DB.Raw(`
 				SELECT COUNT(*)
-				FROM alert_events
+				FROM error_alert_events ev
+				INNER JOIN error_objects obj
+				ON obj.id = ev.error_object_id
 				WHERE
-					project_id=?
-					AND type=?
-					AND (error_group_id IS NOT NULL
-						AND error_group_id=?)
-					AND alert_id=?
-					AND created_at > NOW() - ? * (INTERVAL '1 SECOND')
-			`, projectID, model.AlertType.ERROR, group.ID, errorAlert.ID, errorAlert.Frequency).Scan(&numAlerts).Error; err != nil {
+					(obj.error_group_id IS NOT NULL
+						AND obj.error_group_id=?)
+					AND ev.error_alert_id=?
+					AND ev.sent_at > NOW() - ? * (INTERVAL '1 SECOND')
+			`, group.ID, errorAlert.ID, errorAlert.Frequency).Scan(&numAlerts).Error; err != nil {
 				log.WithContext(ctx).Error(e.Wrapf(err, "error counting alert events from past %d seconds", errorAlert.Frequency))
 				return
 			}
@@ -2003,6 +2007,8 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
 			} else if e.Is(err, ErrQuotaExceeded) {
 				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
+			} else if e.Is(err, ErrUserFilteredError) {
+				log.WithContext(ctx).Info(e.Wrap(err, "Error updating error group"))
 			} else {
 				log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))
 			}
@@ -2607,35 +2613,35 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 
-	opensearchSpan, _ := tracer.StartSpanFromContext(updateSpanCtx, "public-graph.pushPayload", tracer.ResourceName("opensearch.update"))
+	opensearchSpan, osCtx := tracer.StartSpanFromContext(updateSpanCtx, "public-graph.pushPayload", tracer.ResourceName("opensearch.update"))
 	defer opensearchSpan.Finish()
 	// If the session was previously marked as processed, clear this
 	// in OpenSearch so that it's treated as a live session again.
 	// If the session was previously excluded (as we do with new sessions by default),
 	// clear it so it is shown as live in OpenSearch since we now have data for it.
 	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
-		if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"processed":  false,
 			"Excluded":   false,
 			"has_errors": sessionHasErrors,
 		}); err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error updating session in opensearch"))
+			log.WithContext(osCtx).Error(e.Wrap(err, "error updating session in opensearch"))
 			return err
 		}
 	}
 
 	if sessionHasErrors {
-		if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"has_errors": true,
 		}); err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
+			log.WithContext(osCtx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
 			return err
 		}
 	}
 
-	// if the session is not excluded, it is viewable, so send any relevant alerts
-	if !excluded {
-		return r.HandleSessionViewable(ctx, projectID, sessionObj)
+	// if the session changed from excluded to not excluded, it is viewable, so send any relevant alerts
+	if sessionObj.Excluded && !excluded {
+		return r.HandleSessionViewable(osCtx, projectID, sessionObj)
 	}
 
 	return nil

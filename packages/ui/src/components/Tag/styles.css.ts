@@ -213,7 +213,7 @@ export const variants = recipe({
 			},
 			style: {
 				backgroundColor:
-					vars.theme.interactive.overlay.secondary.pressed,
+					vars.theme.interactive.overlay.secondary.enabled,
 				border: vars.border.secondary,
 				boxShadow: 'none',
 				color: vars.theme.interactive.fill.secondary.content.text,
