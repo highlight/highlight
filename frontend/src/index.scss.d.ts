@@ -24,4 +24,5 @@ export const antTooltipOpen: string
 export const atomOverlay: string
 export const blob: string
 export const cssFoqpf7: string
+export const dateInput: string
 export const pulse: string

@@ -13,6 +13,15 @@ export function DateInput({ name, onDateChange, placeholder }: DateInputProps) {
 		onDateChange?.(value)
 	}
 
+	const inputStyle = {
+		boxSizing: 'border-box',
+		border: 'none',
+		background: 'none',
+		marginTop: '-5px',
+		fontSize: '13px',
+		fontWeight: '500',
+	}
+
 	useEffect(
 		function () {
 			setValue(placeholder)
@@ -20,19 +29,23 @@ export function DateInput({ name, onDateChange, placeholder }: DateInputProps) {
 		[placeholder],
 	)
 
+	const inputClassName = 'date-input'
+
 	return (
 		<Form.Input
 			name={name}
 			placeholder={placeholder}
 			type="input"
-			color={'n8'}
+			color={'n12'}
 			value={value}
 			style={{
-				boxSizing: 'border-box',
 				border: 'none',
 				background: 'none',
-				marginTop: '-5px',
+				marginTop: '-2px',
+				fontSize: '13px',
+				paddingLeft: '6px',
 			}}
+			className={inputClassName}
 			onChange={handleDateInput}
 		/>
 	)
