@@ -13,15 +13,6 @@ export function DateInput({ name, onDateChange, placeholder }: DateInputProps) {
 		onDateChange?.(value)
 	}
 
-	const inputStyle = {
-		boxSizing: 'border-box',
-		border: 'none',
-		background: 'none',
-		marginTop: '-5px',
-		fontSize: '13px',
-		fontWeight: '500',
-	}
-
 	useEffect(
 		function () {
 			setValue(placeholder)
