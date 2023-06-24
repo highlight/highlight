@@ -258,6 +258,9 @@ span:last-child {
 .controlBar {
 	flex-shrink: 0;
 	height: 44px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .menuList {
