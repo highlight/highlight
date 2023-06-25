@@ -21,6 +21,7 @@ const nextConfig = {
 			'lh3.googleusercontent.com',
 			'picsum.photos',
 			'firebasestorage.googleapis.com',
+			'tamuhack.org',
 		],
 	},
 	productionBrowserSourceMaps: true,
