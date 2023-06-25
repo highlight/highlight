@@ -14,14 +14,16 @@ tags: Highlight Engineering
 metaTitle: Using Github as a Headless CMS 
 ---
 
-A content-management system (CMS) is software used to create, manage, and host content for blogs, docs, etc.
+A content-management system (CMS) is software used to create, manage, and host content.
 It is crucial to use a CMS for any frequently updating content on your site, as it allows for:
 
 - Easy content creation and editing
 - Centralized content management
 - Collaboration and workflow management
 
-Recently, Highlight switched over from [Hygraph](https://hygraph.com) to GitHub for managing blog content, and we've been loving it!
+Recently, Highlight switched over from [Hygraph](https://hygraph.com) to GitHub for managing blog content, and we've been loving it! In this blog, we'll cover how we did it and why it has been working so well for us.
+
+[Check out the PR for this one!](https://github.com/highlight/highlight/pull/5635)
 
 ## Why GitHub is the best solution for us
 
@@ -42,8 +44,6 @@ Our build time for blog content is now down to **~2 seconds** and will remain co
 For our technical content writers, GitHub couldn't be better! With the limited team members allowed by Hygraph, not everyone was able to review blog posts in Hygraph before they get published. Now, our engineers can make PRs and let everyone see the hosted blog post formatted exactly how its supposed to be.
 
 Additionally, we get access to GitHub features, including Issues, Actions, and Projects. This ensures better organization and also provides a centralized platform for collaboration and feedback. 
-
-[Check out the PR for this one!](https://github.com/highlight/highlight/pull/5635)
 
 ## How we did it 
 
