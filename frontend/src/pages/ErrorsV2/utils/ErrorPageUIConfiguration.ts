@@ -1,5 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import useLocalStorage from '@rehooks/local-storage'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useNumericProjectId } from '@/hooks/useProjectId'
@@ -16,10 +16,7 @@ const DEFAULT_STATE = {
 const useErrorPageConfiguration = (): typeof DEFAULT_STATE => {
 	const { isLoggedIn } = useAuthContext()
 	const { projectId } = useNumericProjectId()
-	const [showLeftPanel, setShowLeftPanel] = useLocalStorage<boolean>(
-		'highlightMenuShowLeftPanel',
-		true,
-	)
+	const { showLeftPanel, setShowLeftPanel } = usePlayerConfiguration()
 
 	return isLoggedIn || projectId === DEMO_PROJECT_ID
 		? {
