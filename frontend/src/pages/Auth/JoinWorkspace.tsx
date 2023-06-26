@@ -19,6 +19,7 @@ import React, { useEffect } from 'react'
 import { Navigate, useMatch, useNavigate } from 'react-router-dom'
 
 import * as styles from './AuthRouter.css'
+import { showIntercom } from '@/util/window'
 
 export const JoinWorkspace = () => {
 	const [_, setInviteCode] = useLocalStorage('highlightInviteCode')
@@ -50,6 +51,11 @@ export const JoinWorkspace = () => {
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
+
+		// Show the Intercom message after 5 seconds in case the user needs help.
+		setTimeout(() => {
+			showIntercom()
+		}, 5000)
 	}, [setLoadingState])
 
 	useEffect(() => {

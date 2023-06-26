@@ -55,7 +55,7 @@ import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { client } from '@util/graph'
 import { titleCaseString } from '@util/string'
-import { showIntercom } from '@util/window'
+import { loadIntercom, showIntercom } from '@util/window'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -574,9 +574,9 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												</Menu.Item>
 											</Link>
 											<Menu.Item
-												onClick={() =>
-													showIntercom({ admin })
-												}
+												onClick={() => {
+													showIntercom()
+												}}
 											>
 												<Box
 													display="flex"

@@ -34,6 +34,7 @@ import { useNavigate } from 'react-router-dom'
 
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
+import { showIntercom } from '@/util/window'
 
 const COMMON_EMAIL_PROVIDERS = [
 	'gmail',
@@ -171,6 +172,13 @@ export const AdminForm: React.FC = () => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [workspace?.name, workspacesLoading])
+
+	useEffect(() => {
+		// Show the Intercom message after 5 seconds in case the user needs help.
+		setTimeout(() => {
+			showIntercom()
+		}, 5000)
+	}, [])
 
 	if (workspacesLoading) {
 		return null

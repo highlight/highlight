@@ -11,10 +11,9 @@ export function GetBaseURL(): string {
 
 interface IntercomInit {
 	admin?: Admin
-	hideMessage?: boolean
 }
 
-export function showIntercom({ admin, hideMessage }: IntercomInit = {}) {
+export function loadIntercom({ admin }: IntercomInit = {}) {
 	const config = {
 		app_id: INTERCOM_APP_ID,
 		alignment: 'right',
@@ -33,8 +32,8 @@ export function showIntercom({ admin, hideMessage }: IntercomInit = {}) {
 		.catch(() => {
 			window.Intercom('boot', config)
 		})
+}
 
-	if (!hideMessage) {
-		window.Intercom('showNewMessage')
-	}
+export const showIntercom = () => {
+	window.Intercom('showNewMessage')
 }

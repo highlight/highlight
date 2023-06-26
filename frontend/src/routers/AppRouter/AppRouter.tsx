@@ -28,7 +28,7 @@ import { ProjectRouter } from '@routers/ProjectRouter/ProjectRouter'
 import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
-import { showIntercom } from '@util/window'
+import { loadIntercom } from '@util/window'
 import { omit } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import {
@@ -162,7 +162,7 @@ export const AppRouter = () => {
 			// static property for the user ID rather than something that could change
 			// over time, like an email address.
 			analytics.identify(admin.id, omit(identifyMetadata, ['id']))
-			showIntercom({ admin, hideMessage: true })
+			loadIntercom({ admin })
 		}
 	}, [admin])
 

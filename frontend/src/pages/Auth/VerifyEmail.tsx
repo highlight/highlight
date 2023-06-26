@@ -43,9 +43,7 @@ export const VerifyEmail: React.FC = () => {
 		setTimeout(() => {
 			showIntercom()
 		}, 5000)
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	}, [setLoadingState])
 
 	return (
 		<Landing>
