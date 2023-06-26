@@ -1,6 +1,7 @@
 import { Admin } from '@graph/schemas'
 import { INTERCOM_APP_ID } from '@util/constants/constants'
 import { H } from 'highlight.run'
+
 import { FRONTEND_URI } from '@/constants'
 
 export function GetBaseURL(): string {
