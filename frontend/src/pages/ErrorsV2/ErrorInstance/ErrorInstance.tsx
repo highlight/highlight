@@ -16,9 +16,11 @@ import { Maybe, ReservedLogKey } from '@graph/schemas'
 import {
 	Box,
 	Heading,
+	IconSolidArrowSmLeft,
 	IconSolidCode,
 	IconSolidExternalLink,
 	IconSolidLogs,
+	Stack,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
@@ -44,6 +46,7 @@ import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { createSearchParams, useNavigate } from 'react-router-dom'
 
+import { PreviousNextGroup } from '@/components/PreviousNextGroup/PreviousNextGroup'
 import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
 import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionMissingOrExcluded'
 import { ShowSessionButton } from '@/pages/ErrorsV2/ErrorInstance/ShowSessionButton'
@@ -257,6 +260,29 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 	return (
 		<Box id="error-instance-container">
+			<Stack mt="12" direction="row" alignItems="center">
+				<Button
+					kind="secondary"
+					size="xSmall"
+					emphasis="medium"
+					trackingId="seeAllInstance"
+					iconLeft={<IconSolidArrowSmLeft />}
+				>
+					See all instances
+				</Button>
+
+				{/** TODO: Update hot keys  */}
+				<PreviousNextGroup
+					canMoveBackward={Number(errorInstance.previous_id) !== 0}
+					canMoveForward={Number(errorInstance.next_id) !== 0}
+					onPrev={() =>
+						goToErrorInstance(errorInstance.previous_id, 'previous')
+					}
+					onNext={() =>
+						goToErrorInstance(errorInstance.next_id, 'next')
+					}
+				/>
+			</Stack>
 			<Box my="28" display="flex" justifyContent="space-between">
 				<Box display="flex" flexDirection="column" gap="16">
 					<Heading level="h4">Instance Details</Heading>

@@ -14,8 +14,6 @@ import React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
-import { ErrorInstances } from '@/pages/ErrorsV2/ErrorInstances/ErrorInstances'
-
 import styles from './ErrorTabContent.module.scss'
 
 type Props = React.PropsWithChildren & {
@@ -31,7 +29,7 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 	} = useParams<{
 		project_id: string
 		error_secure_id: string
-		error_tab_key?: 'instances' | 'metrics' | 'instances_all'
+		error_tab_key?: 'instances' | 'metrics'
 	}>()
 
 	useHotkeys(
@@ -83,17 +81,6 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 						/>
 					),
 					panelContent: <ErrorInstance errorGroup={errorGroup} />,
-				},
-				{
-					key: 'instances_all',
-					title: (
-						<TabTitle
-							icon={<IconSolidTerminal size={14} />}
-							label="Instances_all"
-							shortcut="i"
-						/>
-					),
-					panelContent: <ErrorInstances errorGroup={errorGroup} />,
 				},
 				{
 					key: 'metrics',
