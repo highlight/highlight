@@ -2,7 +2,7 @@ import SvgCheckmarkIcon from '@icons/CheckmarkIcon'
 import { AnimatePresence, motion } from 'framer-motion'
 import React from 'react'
 
-import styles from './CardSelect.module.scss'
+import styles from './CardSelect.module.css'
 
 type Props = {
 	title: string

@@ -66,11 +66,12 @@ export const run = async ({ rootDirectory }) => {
 		splitting: false,
 		target: 'esnext',
 		plugins: [
+			ignorePlugin,
 			// Style plugin doesn't respect esbuild externals
 			// FIXME: follow https://github.com/g45t345rt/esbuild-style-plugin/pull/18
 			{
 				name: 'styleIgnorePlugin',
-				setup: ({ onResolve }) => {
+				setup: ({ onResolve, onLoad }) => {
 					Object.keys(packageJson.dependencies).forEach((pkg) => {
 						onResolve(
 							{
@@ -83,17 +84,26 @@ export const run = async ({ rootDirectory }) => {
 							}),
 						)
 					})
+
+					// We don't need css handled by stylePlugin now that
+					// Reflame has native css modules support
+					// Just need it to handle tailwind for now.
+					onLoad(
+						{ filter: /\.(css)$/, namespace: 'stylePlugin' },
+						({ path }) =>
+							path.endsWith('/tailwind.css')
+								? undefined
+								: {
+										contents: '',
+								  },
+					)
 				},
 			},
 			stylePlugin({
-				cssModulesOptions: {
-					localsConvention: 'camelCaseOnly',
-				},
 				postcss: {
 					plugins: [tailwindcss()],
 				},
 			}),
-			ignorePlugin,
 			vanillaExtractPlugin({ identifiers: 'short' }),
 			resultPlugin,
 		],

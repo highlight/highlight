@@ -4,7 +4,7 @@ import { VscArrowRight, VscDeviceCameraVideo } from 'react-icons/vsc'
 import sanitizeHtml from 'xss'
 
 import SvgUsersIcon from '../../../../static/UsersIcon'
-import styles from './CommandBarCommand.module.scss'
+import styles from './CommandBarCommand.module.css'
 
 type Props = Command & {
 	highlight: any[]

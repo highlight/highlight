@@ -30,6 +30,7 @@ Read more about our [features](#features), [values](#our-values) and [mission](#
 -   [Get started for free](#get-started)
 -   [Features](#features)
 -   [SDKs](#sdks)
+-   [Contributors](#contributors)
 -   [Mission](#our-mission)
 -   [Values](#our-values)
 
@@ -56,6 +57,7 @@ Good for <10k sessions and <50k errors ingested monthly. See our  [docs for more
 ### Enterprise self-hosted
 
 See our [enterprise self-hosted docs](https://www.highlight.io/docs/general/company/open-source/hosting/self-host-enterprise) to deploy a scalable, production-ready instance with support from our team.
+
 
 ## Features
 
@@ -106,27 +108,7 @@ Have an idea for what we should build next? Please share our [community](https:/
 
 All of our SDKs for highlight.io can be found in the `sdk` [directory](https://github.com/highlight/highlight/tree/main/sdk). To get started with these SDKs, we recommend the [getting started guide](https://www.highlight.io/docs/getting-started/overview) in our docs.
 
-## Our Mission
-
-Our mission is to support developers like you in shipping with confidence. We do this by giving you the tools you need to **uncover, resolve, and prevent** issues in your web app.
-
-## Our Values
-
-### We build in public.
-
-We strive to build in public in every way we can. This means that what we built, what we're building, and what we plan to build is shared with the world.
-
-### We build a cohesive product.
-
-People may think that we're building multiple products (session replay, error monitoring, etc..). But we see it as one. Before we build anything new, we prioritize making it operate seemlessly with everything else.
-
-### We build for today's developer.
-
-If you're building software, why should you care about grafana or loki or the elk stack? highlight.io is built for developers that want to **develop**. Leave the monitoring stuff to us 👍.
-
-Read more about [our values here](https://www.highlight.io/docs/general/company/values).
-
-## Contributors ✨
+## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -189,10 +171,23 @@ Read more about [our values here](https://www.highlight.io/docs/general/company/
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
 
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
+## Our Mission
 
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+Our mission is to support developers like you in shipping with confidence. We do this by giving you the tools you need to **uncover, resolve, and prevent** issues in your web app.
+
+## Our Values
+
+### We build in public.
+
+We strive to build in public in every way we can. This means that what we built, what we're building, and what we plan to build is shared with the world.
+
+### We build a cohesive product.
+
+People may think that we're building multiple products (session replay, error monitoring, etc..). But we see it as one. Before we build anything new, we prioritize making it operate seemlessly with everything else.
+
+### We build for today's developer.
+
+If you're building software, why should you care about grafana or loki or the elk stack? highlight.io is built for developers that want to **develop**. Leave the monitoring stuff to us 👍.
+
+Read more about [our values here](https://www.highlight.io/docs/general/company/values).

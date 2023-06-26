@@ -17,7 +17,7 @@ import React, {
 
 import { useAuthContext } from '@/authentication/AuthContext'
 
-import styles from './Auth.module.scss'
+import styles from './Auth.module.css'
 
 enum AuthState {
 	Enroll,

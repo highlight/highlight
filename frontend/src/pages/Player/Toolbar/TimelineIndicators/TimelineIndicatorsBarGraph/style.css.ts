@@ -42,6 +42,10 @@ export const hideOverflow = style({
 	overflow: 'hidden !important',
 })
 
+export const noPointerEvents = style({
+	pointerEvents: 'none',
+})
+
 export const progressBarContainer = style({
 	backgroundColor: 'var(--color-neutral-300)',
 	borderBottom: '1px solid var(--color-neutral-100)',

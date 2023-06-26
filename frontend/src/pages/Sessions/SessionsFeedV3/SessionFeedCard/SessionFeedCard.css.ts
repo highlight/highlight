@@ -14,7 +14,7 @@ export const sessionCardTitleText = style({
 	maxWidth: '100%',
 })
 
-export const datetimeText = style({
+export const sessionMeta = style({
 	color: colors.n11,
 })
 

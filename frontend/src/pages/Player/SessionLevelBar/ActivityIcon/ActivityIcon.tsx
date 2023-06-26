@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './ActivityIcon.module.scss'
+import styles from './ActivityIcon.module.css'
 
 interface Props {
 	isActive: boolean

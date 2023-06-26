@@ -19,7 +19,7 @@ import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 
-import styles from './ClickUpIntegrationConfig.module.scss'
+import styles from './ClickUpIntegrationConfig.module.css'
 
 const CLICKUP_CLIENT_ID = import.meta.env.CLICKUP_CLIENT_ID
 

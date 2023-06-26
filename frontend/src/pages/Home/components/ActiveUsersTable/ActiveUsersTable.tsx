@@ -27,7 +27,7 @@ import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBa
 import Tooltip from '../../../../components/Tooltip/Tooltip'
 import { DashboardInnerTable } from '../DashboardInnerTable/DashboardInnerTable'
 import { formatShortTime } from '../KeyPerformanceIndicators/utils/utils'
-import styles from './ActiveUsersTable.module.scss'
+import styles from './ActiveUsersTable.module.css'
 
 const ActiveUsersTable = ({
 	filterSearchTerm,

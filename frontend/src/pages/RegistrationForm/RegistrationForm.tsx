@@ -11,9 +11,9 @@ import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Navigate } from 'react-router-dom'
 
-import commonStyles from '../../Common.module.scss'
+import commonStyles from '../../Common.module.css'
 import Button from '../../components/Button/Button/Button'
-import styles from './RegistrationForm.module.scss'
+import styles from './RegistrationForm.module.css'
 
 const HEARD_ABOUT_OPTIONS = [
 	'Twitter',

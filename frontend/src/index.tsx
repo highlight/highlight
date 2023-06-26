@@ -1,7 +1,7 @@
 import 'antd/dist/antd.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
 import '@fontsource/poppins'
-import './index.scss'
+import './index.css'
 import './style/tailwind.css'
 
 import { ApolloError, ApolloProvider } from '@apollo/client'
@@ -48,6 +48,7 @@ import {
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
+import { PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
 
@@ -55,8 +56,17 @@ document.body.className = 'highlight-light-theme'
 
 analytics.initialize()
 const dev = import.meta.env.DEV
+const clientDebugKey = 'highlight-client-debug'
+const clientDebug = window.localStorage.getItem(clientDebugKey)
+if (!clientDebug) {
+	window.localStorage.setItem(clientDebugKey, 'false')
+}
+const shouldDebugLog = clientDebug === 'true'
 const options: HighlightOptions = {
-	debug: { clientInteractions: true, domRecording: true },
+	debug: shouldDebugLog
+		? { clientInteractions: true, domRecording: true }
+		: undefined,
+	backendUrl: PUBLIC_GRAPH_URI,
 	manualStart: true,
 	enableStrictPrivacy: Math.floor(Math.random() * 8) === 0,
 	networkRecording: {
@@ -100,7 +110,6 @@ const options: HighlightOptions = {
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {
 	options.scriptUrl = 'http://localhost:8080/dist/index.js'
-	options.backendUrl = import.meta.env.REACT_APP_PUBLIC_GRAPH_URI
 
 	options.integrations = undefined
 

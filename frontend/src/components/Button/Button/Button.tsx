@@ -3,7 +3,7 @@ import { Button as AntDesignButton, ButtonProps } from 'antd'
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './Button.module.scss'
+import styles from './Button.module.css'
 
 export type GenericHighlightButtonProps = ButtonProps & {
 	/** The ID used for identifying that this button was clicked for analytics. */

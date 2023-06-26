@@ -56,6 +56,14 @@ jobs:
             - name: Check formatting
               run: yarn format-check
 
+            - name: Configure AWS credentials
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              uses: aws-actions/configure-aws-credentials@v2
+              with:
+                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws-region: us-east-2
+
             - name: Build & test
               run: yarn test:all
               env:
@@ -63,13 +71,9 @@ jobs:
                   GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
 
-            - name: Configure AWS credentials
-              if: steps.filter.outputs.npm-changed == 'true' && (github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main')
-              uses: aws-actions/configure-aws-credentials@v2
-              with:
-                  aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws-region: us-east-2
+            - name: Test session screenshot lambda
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              run: yarn test:render
 
             - name: Validate project is ready to be published
               if: steps.filter.outputs.npm-changed == 'true' && (github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main')
@@ -104,3 +108,7 @@ jobs:
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish render
+              if: github.ref == 'refs/heads/main'
+              run: yarn publish:render

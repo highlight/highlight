@@ -17,9 +17,9 @@ export const verifyLogs: QuickStartStep = {
 }
 
 export const curlExample: QuickStartStep = {
-	title: 'Use curl to test how logs look in Highlight.',
+	title: 'Send structured logs from curl via the OTLP HTTPS protocol.',
 	content:
-		'Get started quickly with logs transmitted over the OTLP HTTP protocol.',
+		'Get started quickly with logs transmitted over the OTLP HTTPS protocol.',
 	code: [
 		{
 			text: `curl -X POST https://otel.highlight.io:4318/v1/logs \\
@@ -65,6 +65,18 @@ export const curlExample: QuickStartStep = {
         }
       ]
     }'`,
+			language: 'bash',
+		},
+	],
+}
+
+export const curlExampleRaw: QuickStartStep = {
+	title: 'Send raw logs over HTTPS via curl.',
+	content: 'Get started quickly with logs transmitted over HTTPS.',
+	code: [
+		{
+			text: `curl -X POST https://pub.highlight.io/v1/logs/raw?project=YOUR_PROJECT_ID&service=my-backend \\
+-d 'hello, world! this is the log message'`,
 			language: 'bash',
 		},
 	],

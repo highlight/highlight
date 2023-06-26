@@ -18,7 +18,7 @@ import SvgBrowser from '../../../static/Browser'
 import SvgMonitorIcon from '../../../static/MonitorIcon'
 import SvgOs from '../../../static/Os'
 import { useSearchContext } from '../SearchContext/SearchContext'
-import inputStyles from './InputStyles.module.scss'
+import inputStyles from './InputStyles.module.css'
 import { SharedSelectStyleProps } from './SearchInputUtil'
 
 export const OperatingSystemInput = () => {

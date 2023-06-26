@@ -1,0 +1,12 @@
+.statusCell {
+	align-items: center;
+	display: flex;
+	gap: 0.1rem;
+	justify-content: center;
+	padding: 1.5rem 0.5rem;
+
+	&>label>span {
+		/* Make the switch label stay fixed so the switch doesn't resize when toggled */
+		width: 3.75rem;
+	}
+}

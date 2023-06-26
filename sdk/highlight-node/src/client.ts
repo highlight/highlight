@@ -11,6 +11,7 @@ import { Resource } from '@opentelemetry/resources'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { hookConsole } from './hooks'
 import log from './log'
+import { clearInterval } from 'timers'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -73,6 +74,14 @@ export class Highlight {
 		}
 
 		this._log(`Initialized SDK for project ${this._projectID}`)
+	}
+
+	async stop() {
+		await this.flush()
+		await this.otel.shutdown()
+		if (this._intervalFunction) {
+			clearInterval(this._intervalFunction)
+		}
 	}
 
 	_log(...data: any[]) {

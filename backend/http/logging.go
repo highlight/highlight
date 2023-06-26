@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	model2 "github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	log "github.com/sirupsen/logrus"
@@ -19,8 +20,10 @@ import (
 )
 
 const (
-	LogDrainProjectHeader = "x-highlight-project"
-	LogDrainServiceHeader = "x-highlight-service"
+	LogDrainProjectQueryParam = "project"
+	LogDrainServiceQueryParam = "service"
+	LogDrainProjectHeader     = "x-highlight-project"
+	LogDrainServiceHeader     = "x-highlight-service"
 )
 
 func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
@@ -214,9 +217,51 @@ func HandleJSONLog(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func HandleRawLog(w http.ResponseWriter, r *http.Request) {
+	qs := r.URL.Query()
+	projectVerboseID := qs.Get(LogDrainProjectQueryParam)
+	if projectVerboseID == "" {
+		http.Error(w, "no project query string parameter provided", http.StatusBadRequest)
+		return
+	}
+	serviceName := qs.Get(LogDrainServiceQueryParam)
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.WithContext(r.Context()).WithError(err).Error("invalid http logs body")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	lg := hlog.Log{
+		Attributes: map[string]string{},
+		Message:    string(body),
+		Timestamp:  time.Now().UTC().Format(hlog.TimestampFormat),
+		Level:      model.LogLevelInfo.String(),
+	}
+
+	projectID, err := model2.FromVerboseID(projectVerboseID)
+	if err != nil {
+		log.WithContext(r.Context()).WithError(err).WithField("projectVerboseID", projectVerboseID).Error("failed to parse highlight project id from http logs request")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if serviceName != "" {
+		lg.Attributes[string(semconv.ServiceNameKey)] = serviceName
+	}
+	if err := hlog.SubmitHTTPLog(r.Context(), projectID, lg); err != nil {
+		log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func Listen(r *chi.Mux) {
 	r.Route("/v1", func(r chi.Router) {
 		r.Use(highlightChi.Middleware)
+		r.HandleFunc("/logs/raw", HandleRawLog)
 		r.HandleFunc("/logs/json", HandleJSONLog)
 		r.HandleFunc("/logs/firehose", HandleFirehoseLog)
 	})

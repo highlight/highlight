@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import React, { HTMLProps } from 'react'
 
 import SvgSparklesIcon from '../../static/SparklesIcon'
-import styles from './Changelog.module.scss'
+import styles from './Changelog.module.css'
 
 const Changelog = (props: HTMLProps<HTMLDivElement>) => {
 	// @ts-expect-error

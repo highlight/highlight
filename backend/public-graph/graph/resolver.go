@@ -1628,15 +1628,15 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			numAlerts := int64(-1)
 			if err := r.DB.Raw(`
 				SELECT COUNT(*)
-				FROM alert_events
+				FROM error_alert_events ev
+				INNER JOIN error_objects obj
+				ON obj.id = ev.error_object_id
 				WHERE
-					project_id=?
-					AND type=?
-					AND (error_group_id IS NOT NULL
-						AND error_group_id=?)
-					AND alert_id=?
-					AND created_at > NOW() - ? * (INTERVAL '1 SECOND')
-			`, projectID, model.AlertType.ERROR, group.ID, errorAlert.ID, errorAlert.Frequency).Scan(&numAlerts).Error; err != nil {
+					(obj.error_group_id IS NOT NULL
+						AND obj.error_group_id=?)
+					AND ev.error_alert_id=?
+					AND ev.sent_at > NOW() - ? * (INTERVAL '1 SECOND')
+			`, group.ID, errorAlert.ID, errorAlert.Frequency).Scan(&numAlerts).Error; err != nil {
 				log.WithContext(ctx).Error(e.Wrapf(err, "error counting alert events from past %d seconds", errorAlert.Frequency))
 				return
 			}

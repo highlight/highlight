@@ -1,5 +1,5 @@
 import Button from '@components/Button/Button/Button'
-import styles from '@components/Pagination/Pagination.module.scss'
+import styles from '@components/Pagination/Pagination.module.css'
 import Tooltip from '@components/Tooltip/Tooltip'
 import SvgFastForwardIcon from '@icons/FastForwardIcon'
 import SvgRewindIcon from '@icons/RewindIcon'
