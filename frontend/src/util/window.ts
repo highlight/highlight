@@ -1,12 +1,10 @@
 import { Admin } from '@graph/schemas'
 import { INTERCOM_APP_ID } from '@util/constants/constants'
 import { H } from 'highlight.run'
+import { FRONTEND_URI } from '@/constants'
 
 export function GetBaseURL(): string {
-	return (
-		import.meta.env.REACT_APP_FRONTEND_URI ||
-		window.location.protocol + '//' + window.location.host
-	)
+	return FRONTEND_URI
 }
 
 interface IntercomInit {
