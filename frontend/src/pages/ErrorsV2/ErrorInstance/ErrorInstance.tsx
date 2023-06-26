@@ -3,7 +3,6 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
 import { Button } from '@components/Button'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
-import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import { LinkButton } from '@components/LinkButton'
 import LoadingBox from '@components/LoadingBox'
 import { Skeleton } from '@components/Skeleton/Skeleton'
@@ -22,7 +21,6 @@ import {
 	IconSolidLogs,
 	Stack,
 	Text,
-	Tooltip,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
@@ -270,8 +268,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				>
 					See all instances
 				</Button>
-
-				{/** TODO: Update hot keys  */}
 				<PreviousNextGroup
 					canMoveBackward={Number(errorInstance.previous_id) !== 0}
 					canMoveForward={Number(errorInstance.next_id) !== 0}
@@ -281,61 +277,16 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 					onNext={() =>
 						goToErrorInstance(errorInstance.next_id, 'next')
 					}
+					prevShortcut="["
+					nextShortcut="]"
 				/>
 			</Stack>
 			<Box my="28" display="flex" justifyContent="space-between">
 				<Box display="flex" flexDirection="column" gap="16">
 					<Heading level="h4">Instance Details</Heading>
 				</Box>
-
 				<Box>
 					<Box display="flex" gap="8" alignItems="center">
-						<Tooltip
-							trigger={
-								<Button
-									onClick={() => {
-										goToErrorInstance(
-											errorInstance.previous_id,
-											'previous',
-										)
-									}}
-									disabled={
-										Number(errorInstance.previous_id) === 0
-									}
-									kind="secondary"
-									emphasis="low"
-									trackingId="errorInstanceOlder"
-								>
-									Older
-								</Button>
-							}
-						>
-							<KeyboardShortcut label="Previous" shortcut="[" />
-						</Tooltip>
-
-						<Box borderRight="secondary" style={{ height: 18 }} />
-						<Tooltip
-							trigger={
-								<Button
-									onClick={() => {
-										goToErrorInstance(
-											errorInstance.next_id,
-											'next',
-										)
-									}}
-									disabled={
-										Number(errorInstance.next_id) === 0
-									}
-									kind="secondary"
-									emphasis="low"
-									trackingId="errorInstanceNewer"
-								>
-									Newer
-								</Button>
-							}
-						>
-							<KeyboardShortcut label="Next" shortcut="]" />
-						</Tooltip>
 						<LinkButton
 							kind="primary"
 							emphasis="high"
