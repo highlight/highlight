@@ -1636,7 +1636,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 						AND obj.error_group_id=?)
 					AND ev.error_alert_id=?
 					AND ev.sent_at > NOW() - ? * (INTERVAL '1 SECOND')
-			`, projectID, group.ID, errorAlert.ID, errorAlert.Frequency).Scan(&numAlerts).Error; err != nil {
+			`, group.ID, errorAlert.ID, errorAlert.Frequency).Scan(&numAlerts).Error; err != nil {
 				log.WithContext(ctx).Error(e.Wrapf(err, "error counting alert events from past %d seconds", errorAlert.Frequency))
 				return
 			}

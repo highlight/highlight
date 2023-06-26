@@ -2014,7 +2014,7 @@ func (obj *Alert) GetDailySessionEventFrequency(db *gorm.DB, id int) ([]*int64, 
 			AND e.session_alert_id=?
 		GROUP BY d.date
 		ORDER BY d.date;
-	`, id, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
+	`, id).Scan(&dailyAlerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying daily session event frequency")
 	}
 
@@ -2035,7 +2035,7 @@ func (obj *Alert) GetDailyLogEventFrequency(db *gorm.DB, id int) ([]*int64, erro
 			AND e.log_alert_id=?
 		GROUP BY d.date
 		ORDER BY d.date;
-	`, id, obj.ProjectID).Scan(&dailyAlerts).Error; err != nil {
+	`, id).Scan(&dailyAlerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying daily log event frequency")
 	}
 
