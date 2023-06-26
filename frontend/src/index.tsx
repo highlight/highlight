@@ -48,6 +48,7 @@ import {
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
+import { PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
 
@@ -65,6 +66,7 @@ const options: HighlightOptions = {
 	debug: shouldDebugLog
 		? { clientInteractions: true, domRecording: true }
 		: undefined,
+	backendUrl: PUBLIC_GRAPH_URI,
 	manualStart: true,
 	enableStrictPrivacy: Math.floor(Math.random() * 8) === 0,
 	networkRecording: {
@@ -108,7 +110,6 @@ const options: HighlightOptions = {
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {
 	options.scriptUrl = 'http://localhost:8080/dist/index.js'
-	options.backendUrl = import.meta.env.REACT_APP_PUBLIC_GRAPH_URI
 
 	options.integrations = undefined
 
