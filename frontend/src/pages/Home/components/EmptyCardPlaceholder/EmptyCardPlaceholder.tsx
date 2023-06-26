@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import React from 'react'
 
 import { ReactComponent as EmptyState } from '../../../../static/empty-state.svg'
-import styles from './EmptyCardPlaceholder.module.scss'
+import styles from './EmptyCardPlaceholder.module.css'
 
 interface Props {
 	title?: string

@@ -10,7 +10,7 @@ import { useState } from 'react'
 import { SIGN_IN_ROUTE, SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
 
 import Button from '../Button/Button/Button'
-import styles from './ErrorState.module.scss'
+import styles from './ErrorState.module.css'
 import RequestAccess from './RequestAccess/RequestAccess'
 
 export const ErrorState = ({

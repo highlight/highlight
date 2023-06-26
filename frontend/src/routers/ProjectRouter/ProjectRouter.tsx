@@ -41,7 +41,7 @@ import {
 	useServerIntegration,
 } from '@/util/integrated'
 
-import commonStyles from '../../Common.module.scss'
+import commonStyles from '../../Common.module.css'
 import ApplicationRouter from './ApplicationRouter'
 
 export const ProjectRouter = () => {

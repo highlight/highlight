@@ -6,7 +6,7 @@ import analytics from '@util/analytics'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 
-import styles from './WebVitalRender.module.scss'
+import styles from './WebVitalRender.module.css'
 
 interface Props {
 	vitals: {

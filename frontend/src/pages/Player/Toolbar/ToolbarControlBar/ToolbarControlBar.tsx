@@ -58,8 +58,8 @@ import clsx from 'clsx'
 import React from 'react'
 import { useState } from 'react'
 
-import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.scss'
-import style from './ToolbarControlBar.module.scss'
+import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.css'
+import style from './ToolbarControlBar.module.css'
 
 const EventTypeToExclude: readonly string[] = ['Web Vitals']
 

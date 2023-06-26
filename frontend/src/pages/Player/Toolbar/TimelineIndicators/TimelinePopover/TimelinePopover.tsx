@@ -26,7 +26,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
-import style from './TimelinePopover.module.scss'
+import style from './TimelinePopover.module.css'
 
 interface Props {
 	bucket: EventBucket

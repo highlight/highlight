@@ -7847,6 +7847,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@csstools/selector-specificity@npm:^2.0.0":
+  version: 2.2.0
+  resolution: "@csstools/selector-specificity@npm:2.2.0"
+  peerDependencies:
+    postcss-selector-parser: ^6.0.10
+  checksum: 97c89f23b3b527d7bd51ed299969ed2b9fbb219a367948b44aefec228b8eda6ae0ad74fe8a82f9aac8ff32cfd00bb6d0c98d1daeab2e8fc6d5c4af25e5be5673
+  languageName: node
+  linkType: hard
+
 "@csstools/selector-specificity@npm:^2.0.1":
   version: 2.0.2
   resolution: "@csstools/selector-specificity@npm:2.0.2"
@@ -11299,6 +11308,7 @@ __metadata:
     npm-run-all: ^4.1.5
     postcss: ^8.4.16
     postcss-custom-properties: ^12.1.7
+    postcss-nesting: ^11.2.2
     postinstall-postinstall: ^2.1.0
     prettier: ^2.7.1
     query-string: 6.14.1
@@ -11334,10 +11344,8 @@ __metadata:
     react-virtuoso: ^2.13.1
     recharts: ^2.1.13
     rudder-sdk-js: 2.20.0
-    sass: ^1.54.8
     source-map-explorer: ^2.5.2
     stylelint: ^14.9.1
-    stylelint-config-sass-guidelines: ^9.0.1
     subscriptions-transport-ws: ^0.11.0
     tailwindcss: ^3.1.8
     typed-scss-modules: ^3.4.0
@@ -43000,6 +43008,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"postcss-nesting@npm:^11.2.2":
+  version: 11.2.2
+  resolution: "postcss-nesting@npm:11.2.2"
+  dependencies:
+    "@csstools/selector-specificity": ^2.0.0
+    postcss-selector-parser: ^6.0.10
+  peerDependencies:
+    postcss: ^8.4
+  checksum: 84149edbfe9b0adf069b7ddf06d21fc7a543e7f44b97c3975d8b1f088dddc20853689cb859d5be06000cca83bdc56929b13581bfdaf1971cfafa492add867831
+  languageName: node
+  linkType: hard
+
 "postcss-normalize-charset@npm:^4.0.1":
   version: 4.0.1
   resolution: "postcss-normalize-charset@npm:4.0.1"
@@ -43150,15 +43170,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss-scss@npm:^4.0.2":
-  version: 4.0.4
-  resolution: "postcss-scss@npm:4.0.4"
-  peerDependencies:
-    postcss: ^8.3.3
-  checksum: b4f240dd5eeb0c21738b673d9caf9a06b9a6db665a5b1c815ee4ca10c4c74a67c54f11cd5a4970dea98475cbb9e6d846e05dd3e48924189c2ecbf1f50cd44aa4
-  languageName: node
-  linkType: hard
-
 "postcss-selector-parser@npm:^3.0.0":
   version: 3.1.2
   resolution: "postcss-selector-parser@npm:3.1.2"
@@ -43187,15 +43198,6 @@ __metadata:
     cssesc: ^3.0.0
     util-deprecate: ^1.0.2
   checksum: 0b01aa9c2d2c8dbeb51e9b204796b678284be9823abc8d6d40a8b16d4149514e922c264a8ed4deb4d6dbced564b9be390f5942c058582d8656351516d6c49cde
-  languageName: node
-  linkType: hard
-
-"postcss-sorting@npm:^7.0.1":
-  version: 7.0.1
-  resolution: "postcss-sorting@npm:7.0.1"
-  peerDependencies:
-    postcss: ^8.3.9
-  checksum: 79cca6703ef7c60ea913c3bfb91f85bd7adce35e60b834a40cadd1c7e18f37961d63f0e641387651ee3bf1df1996e952d8fe443f93a271aa2d23f239ea3145bc
   languageName: node
   linkType: hard
 
@@ -43289,7 +43291,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.0.9, postcss@npm:^8.3.11, postcss@npm:^8.4.12, postcss@npm:^8.4.14, postcss@npm:^8.4.18, postcss@npm:^8.4.21":
+"postcss@npm:^8.0.9, postcss@npm:^8.4.12, postcss@npm:^8.4.14, postcss@npm:^8.4.18, postcss@npm:^8.4.21":
   version: 8.4.21
   resolution: "postcss@npm:8.4.21"
   dependencies:
@@ -47861,19 +47863,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass@npm:^1.54.8":
-  version: 1.54.8
-  resolution: "sass@npm:1.54.8"
-  dependencies:
-    chokidar: ">=3.0.0 <4.0.0"
-    immutable: ^4.0.0
-    source-map-js: ">=0.6.2 <2.0.0"
-  bin:
-    sass: sass.js
-  checksum: 72893b2dc6284a6194fc560a578da57ab0082130ee558a96bcb9893cc7b517b836dac6e17b3a52b040975e70b4cdefb1268907df955a706b5bf70e3860afcfba
-  languageName: node
-  linkType: hard
-
 "sass@npm:^1.56.1":
   version: 1.60.0
   resolution: "sass@npm:1.60.0"
@@ -49697,47 +49686,6 @@ __metadata:
     postcss: ^7.0.0
     postcss-selector-parser: ^3.0.0
   checksum: 8acf28ea609bee6d7ba40121bcf53af8d899c1ec04f2c08de9349b8292b84b8aa7f82e14c623ae6956decf5b7a7eeea5472ab8e48de7bdcdb6d76640444f6753
-  languageName: node
-  linkType: hard
-
-"stylelint-config-sass-guidelines@npm:^9.0.1":
-  version: 9.0.1
-  resolution: "stylelint-config-sass-guidelines@npm:9.0.1"
-  dependencies:
-    postcss-scss: ^4.0.2
-    stylelint-order: ^5.0.0
-    stylelint-scss: ^4.0.0
-  peerDependencies:
-    postcss: ^8.3.3
-    stylelint: ^14.0.1
-  checksum: 9844e0858b1175b30786cbca873cc5856313475de4b3cf3e4a8504d19f2673899f0fe4d56bef5cf73c93d0ed6c7c8c3d5a3dd91b7a9586aa52ddab12ef52a64b
-  languageName: node
-  linkType: hard
-
-"stylelint-order@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "stylelint-order@npm:5.0.0"
-  dependencies:
-    postcss: ^8.3.11
-    postcss-sorting: ^7.0.1
-  peerDependencies:
-    stylelint: ^14.0.0
-  checksum: fa3ace3cc65486b9f94165603bd04983636fda5ac959cd29bf87847a95b32f366b16faf612bd49e3b9f96073f8fe28a22a5c5727cc08c8f9d7327c89084b3f30
-  languageName: node
-  linkType: hard
-
-"stylelint-scss@npm:^4.0.0":
-  version: 4.3.0
-  resolution: "stylelint-scss@npm:4.3.0"
-  dependencies:
-    lodash: ^4.17.21
-    postcss-media-query-parser: ^0.2.3
-    postcss-resolve-nested-selector: ^0.1.1
-    postcss-selector-parser: ^6.0.6
-    postcss-value-parser: ^4.1.0
-  peerDependencies:
-    stylelint: ^14.5.1
-  checksum: fdf6119add2a3ccbf79f3a928acd7f90fc0f77fc45e5cf6f67d97419fe1a39dc6feec56307e1c45e0ec5ae677b0f18f83ce70e644df52aa6600706cf3551d0db
   languageName: node
   linkType: hard
 

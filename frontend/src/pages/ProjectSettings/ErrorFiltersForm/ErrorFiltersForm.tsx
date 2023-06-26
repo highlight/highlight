@@ -7,7 +7,7 @@ import { Text } from 'recharts'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
-import styles from './ErrorFiltersForm.module.scss'
+import styles from './ErrorFiltersForm.module.css'
 
 const isValidRegex = function (p: string) {
 	try {

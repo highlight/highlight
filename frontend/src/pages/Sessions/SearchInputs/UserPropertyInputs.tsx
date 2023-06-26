@@ -12,7 +12,7 @@ import Tooltip from '../../../components/Tooltip/Tooltip'
 import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks'
 import SvgFaceIdIcon from '../../../static/FaceIdIcon'
 import { useSearchContext } from '../SearchContext/SearchContext'
-import inputStyles from './InputStyles.module.scss'
+import inputStyles from './InputStyles.module.css'
 import { ContainsLabel } from './SearchInputUtil'
 
 export const UserPropertyInput = ({ include }: { include: boolean }) => {

@@ -20,7 +20,7 @@ import {
 	WebhookDestination,
 } from '@graph/schemas'
 import { useSlackSync } from '@hooks/useSlackSync'
-import alertConfigurationCardStyles from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard.module.scss'
+import alertConfigurationCardStyles from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard.module.css'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
@@ -36,11 +36,11 @@ import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadO
 
 import Button from '../../../components/Button/Button/Button'
 import InputNumber from '../../../components/InputNumber/InputNumber'
-import layoutStyles from '../../../components/layout/LeadAlignLayout.module.scss'
+import layoutStyles from '../../../components/layout/LeadAlignLayout.module.css'
 import Select from '../../../components/Select/Select'
 import { ALERT_TYPE } from '../Alerts'
 import { dedupeEnvironments, getAlertTypeColor } from '../utils/AlertsUtils'
-import styles from './AlertConfigurationCard.module.scss'
+import styles from './AlertConfigurationCard.module.css'
 
 interface AlertConfiguration {
 	name: string

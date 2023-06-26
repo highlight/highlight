@@ -5,7 +5,7 @@ import React from 'react'
 import Button from '../Button/Button/Button'
 import Popover from '../Popover/Popover'
 import PopoverListContent from '../Popover/PopoverListContent'
-import styles from './PopoverMenu.module.scss'
+import styles from './PopoverMenu.module.css'
 
 type Props = {
 	/** The contents of the popover. This is used if you want to control what content is rendered in the Popover. If the content is not a list then you should use `Popover` instead. */

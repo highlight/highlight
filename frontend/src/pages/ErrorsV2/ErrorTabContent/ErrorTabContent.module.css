@@ -1,0 +1,15 @@
+.tabs {
+	margin-top: var(--size-xxLarge);
+
+	:global(.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn) {
+		color: var(--color-purple) !important;
+	}
+
+	:global(.ant-tabs-ink-bar) {
+		background: var(--color-purple) !important;
+	}
+
+	:global(.ant-tabs-tab) {
+		margin-left: 0 !important;
+	}
+}

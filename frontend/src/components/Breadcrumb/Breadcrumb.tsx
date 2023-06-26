@@ -5,7 +5,7 @@ import React from 'react'
 import { useLocation } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 
-import styles from './Breadcrumb.module.scss'
+import styles from './Breadcrumb.module.css'
 
 interface Props {
 	getBreadcrumbName: (currentUrl: string) => string

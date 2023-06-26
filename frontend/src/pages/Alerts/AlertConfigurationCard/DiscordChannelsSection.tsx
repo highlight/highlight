@@ -3,7 +3,7 @@ import { DiscordChannel } from '@graph/schemas'
 import { Form } from 'antd'
 import React from 'react'
 
-import styles from './AlertConfigurationCard.module.scss'
+import styles from './AlertConfigurationCard.module.css'
 
 type Props = {
 	options: DiscordChannel[]

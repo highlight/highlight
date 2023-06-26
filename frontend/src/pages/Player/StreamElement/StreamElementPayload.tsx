@@ -3,7 +3,7 @@ import React from 'react'
 import validator from 'validator'
 
 import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip'
-import styles from './StreamElementPayload.module.scss'
+import styles from './StreamElementPayload.module.css'
 import { isJson } from './utils'
 
 interface StreamElementProps {
