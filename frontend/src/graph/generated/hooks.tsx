@@ -1493,64 +1493,6 @@ export type EditProjectMutationOptions = Apollo.BaseMutationOptions<
 	Types.EditProjectMutation,
 	Types.EditProjectMutationVariables
 >
-export const EditProjectFilterSettingsDocument = gql`
-	mutation EditProjectFilterSettings(
-		$projectId: ID!
-		$filterSessionsWithoutError: Boolean!
-	) {
-		editProjectFilterSettings(
-			projectId: $projectId
-			filterSessionsWithoutError: $filterSessionsWithoutError
-		) {
-			id
-			filterSessionsWithoutError
-		}
-	}
-`
-export type EditProjectFilterSettingsMutationFn = Apollo.MutationFunction<
-	Types.EditProjectFilterSettingsMutation,
-	Types.EditProjectFilterSettingsMutationVariables
->
-
-/**
- * __useEditProjectFilterSettingsMutation__
- *
- * To run a mutation, you first call `useEditProjectFilterSettingsMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useEditProjectFilterSettingsMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [editProjectFilterSettingsMutation, { data, loading, error }] = useEditProjectFilterSettingsMutation({
- *   variables: {
- *      projectId: // value for 'projectId'
- *      filterSessionsWithoutError: // value for 'filterSessionsWithoutError'
- *   },
- * });
- */
-export function useEditProjectFilterSettingsMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.EditProjectFilterSettingsMutation,
-		Types.EditProjectFilterSettingsMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.EditProjectFilterSettingsMutation,
-		Types.EditProjectFilterSettingsMutationVariables
-	>(EditProjectFilterSettingsDocument, baseOptions)
-}
-export type EditProjectFilterSettingsMutationHookResult = ReturnType<
-	typeof useEditProjectFilterSettingsMutation
->
-export type EditProjectFilterSettingsMutationResult =
-	Apollo.MutationResult<Types.EditProjectFilterSettingsMutation>
-export type EditProjectFilterSettingsMutationOptions =
-	Apollo.BaseMutationOptions<
-		Types.EditProjectFilterSettingsMutation,
-		Types.EditProjectFilterSettingsMutationVariables
-	>
 export const EditProjectSettingsDocument = gql`
 	mutation EditProjectSettings(
 		$projectId: ID!
@@ -1565,6 +1507,7 @@ export const EditProjectSettingsDocument = gql`
 		$rage_click_count: Int
 		$backend_domains: StringArray
 		$filterSessionsWithoutError: Boolean
+		$autoResolveStaleErrorsDayInterval: Int
 	) {
 		editProjectSettings(
 			projectId: $projectId
@@ -1579,6 +1522,7 @@ export const EditProjectSettingsDocument = gql`
 			rage_click_count: $rage_click_count
 			backend_domains: $backend_domains
 			filterSessionsWithoutError: $filterSessionsWithoutError
+			autoResolveStaleErrorsDayInterval: $autoResolveStaleErrorsDayInterval
 		) {
 			id
 			name
@@ -1592,6 +1536,7 @@ export const EditProjectSettingsDocument = gql`
 			rage_click_count
 			backend_domains
 			filterSessionsWithoutError
+			autoResolveStaleErrorsDayInterval
 		}
 	}
 `
@@ -1625,6 +1570,7 @@ export type EditProjectSettingsMutationFn = Apollo.MutationFunction<
  *      rage_click_count: // value for 'rage_click_count'
  *      backend_domains: // value for 'backend_domains'
  *      filterSessionsWithoutError: // value for 'filterSessionsWithoutError'
+ *      autoResolveStaleErrorsDayInterval: // value for 'autoResolveStaleErrorsDayInterval'
  *   },
  * });
  */
@@ -4770,6 +4716,61 @@ export type UpdateEmailOptOutMutationOptions = Apollo.BaseMutationOptions<
 	Types.UpdateEmailOptOutMutation,
 	Types.UpdateEmailOptOutMutationVariables
 >
+export const DeleteInviteLinkFromWorkspaceDocument = gql`
+	mutation DeleteInviteLinkFromWorkspace(
+		$workspace_id: ID!
+		$workspace_invite_link_id: ID!
+	) {
+		deleteInviteLinkFromWorkspace(
+			workspace_id: $workspace_id
+			workspace_invite_link_id: $workspace_invite_link_id
+		)
+	}
+`
+export type DeleteInviteLinkFromWorkspaceMutationFn = Apollo.MutationFunction<
+	Types.DeleteInviteLinkFromWorkspaceMutation,
+	Types.DeleteInviteLinkFromWorkspaceMutationVariables
+>
+
+/**
+ * __useDeleteInviteLinkFromWorkspaceMutation__
+ *
+ * To run a mutation, you first call `useDeleteInviteLinkFromWorkspaceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteInviteLinkFromWorkspaceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteInviteLinkFromWorkspaceMutation, { data, loading, error }] = useDeleteInviteLinkFromWorkspaceMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      workspace_invite_link_id: // value for 'workspace_invite_link_id'
+ *   },
+ * });
+ */
+export function useDeleteInviteLinkFromWorkspaceMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.DeleteInviteLinkFromWorkspaceMutation,
+		Types.DeleteInviteLinkFromWorkspaceMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.DeleteInviteLinkFromWorkspaceMutation,
+		Types.DeleteInviteLinkFromWorkspaceMutationVariables
+	>(DeleteInviteLinkFromWorkspaceDocument, baseOptions)
+}
+export type DeleteInviteLinkFromWorkspaceMutationHookResult = ReturnType<
+	typeof useDeleteInviteLinkFromWorkspaceMutation
+>
+export type DeleteInviteLinkFromWorkspaceMutationResult =
+	Apollo.MutationResult<Types.DeleteInviteLinkFromWorkspaceMutation>
+export type DeleteInviteLinkFromWorkspaceMutationOptions =
+	Apollo.BaseMutationOptions<
+		Types.DeleteInviteLinkFromWorkspaceMutation,
+		Types.DeleteInviteLinkFromWorkspaceMutationVariables
+	>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -8399,58 +8400,6 @@ export type GetRecentErrorsQueryResult = Apollo.QueryResult<
 	Types.GetRecentErrorsQuery,
 	Types.GetRecentErrorsQueryVariables
 >
-export const GetMessagesDocument = gql`
-	query GetMessages($session_secure_id: String!) {
-		messages(session_secure_id: $session_secure_id)
-	}
-`
-
-/**
- * __useGetMessagesQuery__
- *
- * To run a query within a React component, call `useGetMessagesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetMessagesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetMessagesQuery({
- *   variables: {
- *      session_secure_id: // value for 'session_secure_id'
- *   },
- * });
- */
-export function useGetMessagesQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetMessagesQuery,
-		Types.GetMessagesQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetMessagesQuery,
-		Types.GetMessagesQueryVariables
-	>(GetMessagesDocument, baseOptions)
-}
-export function useGetMessagesLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetMessagesQuery,
-		Types.GetMessagesQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetMessagesQuery,
-		Types.GetMessagesQueryVariables
-	>(GetMessagesDocument, baseOptions)
-}
-export type GetMessagesQueryHookResult = ReturnType<typeof useGetMessagesQuery>
-export type GetMessagesLazyQueryHookResult = ReturnType<
-	typeof useGetMessagesLazyQuery
->
-export type GetMessagesQueryResult = Apollo.QueryResult<
-	Types.GetMessagesQuery,
-	Types.GetMessagesQueryVariables
->
 export const GetResourcesDocument = gql`
 	query GetResources($session_secure_id: String!) {
 		resources(session_secure_id: $session_secure_id)
@@ -9185,7 +9134,7 @@ export type GetSegmentsQueryResult = Apollo.QueryResult<
 >
 export const GetErrorSegmentsDocument = gql`
 	query GetErrorSegments($project_id: ID!) {
-		error_segments(project_id: $project_id) {
+		segments: error_segments(project_id: $project_id) {
 			id
 			name
 			params {
@@ -11338,9 +11287,6 @@ export const GetAlertsPagePayloadDocument = gql`
 			DailyFrequency
 			disabled
 		}
-		session_feedback_alerts(project_id: $project_id) {
-			...SessionAlertFragment
-		}
 		new_session_alerts(project_id: $project_id) {
 			...SessionAlertFragment
 		}
@@ -12808,63 +12754,6 @@ export type GetLogsErrorObjectsQueryResult = Apollo.QueryResult<
 	Types.GetLogsErrorObjectsQuery,
 	Types.GetLogsErrorObjectsQueryVariables
 >
-export const GetProjectFilterSettingsDocument = gql`
-	query GetProjectFilterSettings($projectId: ID!) {
-		projectFilterSettings(projectId: $projectId) {
-			id
-			filterSessionsWithoutError
-		}
-	}
-`
-
-/**
- * __useGetProjectFilterSettingsQuery__
- *
- * To run a query within a React component, call `useGetProjectFilterSettingsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetProjectFilterSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetProjectFilterSettingsQuery({
- *   variables: {
- *      projectId: // value for 'projectId'
- *   },
- * });
- */
-export function useGetProjectFilterSettingsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetProjectFilterSettingsQuery,
-		Types.GetProjectFilterSettingsQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetProjectFilterSettingsQuery,
-		Types.GetProjectFilterSettingsQueryVariables
-	>(GetProjectFilterSettingsDocument, baseOptions)
-}
-export function useGetProjectFilterSettingsLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetProjectFilterSettingsQuery,
-		Types.GetProjectFilterSettingsQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetProjectFilterSettingsQuery,
-		Types.GetProjectFilterSettingsQueryVariables
-	>(GetProjectFilterSettingsDocument, baseOptions)
-}
-export type GetProjectFilterSettingsQueryHookResult = ReturnType<
-	typeof useGetProjectFilterSettingsQuery
->
-export type GetProjectFilterSettingsLazyQueryHookResult = ReturnType<
-	typeof useGetProjectFilterSettingsLazyQuery
->
-export type GetProjectFilterSettingsQueryResult = Apollo.QueryResult<
-	Types.GetProjectFilterSettingsQuery,
-	Types.GetProjectFilterSettingsQueryVariables
->
 export const GetProjectSettingsDocument = gql`
 	query GetProjectSettings($projectId: ID!) {
 		projectSettings(projectId: $projectId) {
@@ -12881,6 +12770,7 @@ export const GetProjectSettingsDocument = gql`
 			rage_click_count
 			backend_domains
 			filterSessionsWithoutError
+			autoResolveStaleErrorsDayInterval
 		}
 	}
 `
@@ -12932,4 +12822,63 @@ export type GetProjectSettingsLazyQueryHookResult = ReturnType<
 export type GetProjectSettingsQueryResult = Apollo.QueryResult<
 	Types.GetProjectSettingsQuery,
 	Types.GetProjectSettingsQueryVariables
+>
+export const GetWorkspacePendingInvitesDocument = gql`
+	query GetWorkspacePendingInvites($workspace_id: ID!) {
+		workspacePendingInvites(workspace_id: $workspace_id) {
+			id
+			invitee_email
+			invitee_role
+			created_at
+		}
+	}
+`
+
+/**
+ * __useGetWorkspacePendingInvitesQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspacePendingInvitesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspacePendingInvitesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspacePendingInvitesQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetWorkspacePendingInvitesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspacePendingInvitesQuery,
+		Types.GetWorkspacePendingInvitesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspacePendingInvitesQuery,
+		Types.GetWorkspacePendingInvitesQueryVariables
+	>(GetWorkspacePendingInvitesDocument, baseOptions)
+}
+export function useGetWorkspacePendingInvitesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspacePendingInvitesQuery,
+		Types.GetWorkspacePendingInvitesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspacePendingInvitesQuery,
+		Types.GetWorkspacePendingInvitesQueryVariables
+	>(GetWorkspacePendingInvitesDocument, baseOptions)
+}
+export type GetWorkspacePendingInvitesQueryHookResult = ReturnType<
+	typeof useGetWorkspacePendingInvitesQuery
+>
+export type GetWorkspacePendingInvitesLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspacePendingInvitesLazyQuery
+>
+export type GetWorkspacePendingInvitesQueryResult = Apollo.QueryResult<
+	Types.GetWorkspacePendingInvitesQuery,
+	Types.GetWorkspacePendingInvitesQueryVariables
 >

@@ -1155,10 +1155,6 @@ query GetRecentErrors($secure_id: String!) {
 	}
 }
 
-query GetMessages($session_secure_id: String!) {
-	messages(session_secure_id: $session_secure_id)
-}
-
 query GetResources($session_secure_id: String!) {
 	resources(session_secure_id: $session_secure_id)
 }
@@ -1324,7 +1320,7 @@ query GetSegments($project_id: ID!) {
 }
 
 query GetErrorSegments($project_id: ID!) {
-	error_segments(project_id: $project_id) {
+	segments: error_segments(project_id: $project_id) {
 		id
 		name
 		params {
@@ -1750,9 +1746,6 @@ query GetAlertsPagePayload($project_id: ID!) {
 		DailyFrequency
 		disabled
 	}
-	session_feedback_alerts(project_id: $project_id) {
-		...SessionAlertFragment
-	}
 	new_session_alerts(project_id: $project_id) {
 		...SessionAlertFragment
 	}
@@ -2068,13 +2061,6 @@ query GetLogsErrorObjects($log_cursors: [String!]!) {
 	}
 }
 
-query GetProjectFilterSettings($projectId: ID!) {
-	projectFilterSettings(projectId: $projectId) {
-		id
-		filterSessionsWithoutError
-	}
-}
-
 query GetProjectSettings($projectId: ID!) {
 	projectSettings(projectId: $projectId) {
 		id
@@ -2090,5 +2076,15 @@ query GetProjectSettings($projectId: ID!) {
 		rage_click_count
 		backend_domains
 		filterSessionsWithoutError
+		autoResolveStaleErrorsDayInterval
+	}
+}
+
+query GetWorkspacePendingInvites($workspace_id: ID!) {
+	workspacePendingInvites(workspace_id: $workspace_id) {
+		id
+		invitee_email
+		invitee_role
+		created_at
 	}
 }

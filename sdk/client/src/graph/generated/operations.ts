@@ -144,6 +144,7 @@ export type MutationPushPayloadArgs = {
 	payload_id?: InputMaybe<Scalars['ID']>
 	resources: Scalars['String']
 	session_secure_id: Scalars['String']
+	web_socket_events?: InputMaybe<Scalars['String']>
 }
 
 export enum PublicGraphError {
@@ -194,6 +195,7 @@ export type PushPayloadMutationVariables = Exact<{
 	events: ReplayEventsInput
 	messages: Scalars['String']
 	resources: Scalars['String']
+	web_socket_events: Scalars['String']
 	errors: Array<InputMaybe<ErrorObjectInput>> | InputMaybe<ErrorObjectInput>
 	is_beacon?: InputMaybe<Scalars['Boolean']>
 	has_session_unloaded?: InputMaybe<Scalars['Boolean']>
@@ -288,6 +290,7 @@ export const PushPayloadDocument = gql`
 		$events: ReplayEventsInput!
 		$messages: String!
 		$resources: String!
+		$web_socket_events: String!
 		$errors: [ErrorObjectInput]!
 		$is_beacon: Boolean
 		$has_session_unloaded: Boolean
@@ -299,6 +302,7 @@ export const PushPayloadDocument = gql`
 			events: $events
 			messages: $messages
 			resources: $resources
+			web_socket_events: $web_socket_events
 			errors: $errors
 			is_beacon: $is_beacon
 			has_session_unloaded: $has_session_unloaded

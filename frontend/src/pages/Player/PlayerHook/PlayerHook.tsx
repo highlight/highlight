@@ -991,7 +991,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	useEffect(() => {
 		lastTimeRef.current = state.time
 		if (
-			!state.session?.processed ||
 			state.sessionMetadata.startTime === 0 ||
 			state.replayerState !== ReplayerState.Playing ||
 			session_secure_id !== state.session_secure_id
@@ -1040,7 +1039,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		state.time,
 		ensureChunksLoaded,
 		state.sessionMetadata.startTime,
-		state.session?.processed,
 		state.replayerState,
 		skipInactive,
 		getInactivityEnd,
@@ -1086,7 +1084,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.scale !== 1 &&
 			state.sessionViewability === SessionViewability.VIEWABLE,
 		setIsLiveMode: (isLiveMode) => {
-			if (isLiveMode) {
+			if (state.isLiveMode) {
+				// TODO: This probably takes a while, add a loading state or break this
+				// into a separate action. Also, not positive this is working as it
+				// doesn't seem to be adding the latest events to the player.
 				const events = getEvents(chunkEventsRef.current)
 
 				dispatch({

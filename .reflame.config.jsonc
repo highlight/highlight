@@ -16,7 +16,7 @@
 	// Reflame will use this to keep your app up to date as we make improvements.
 	"foundation": {
 		"name": "ts-react",
-		"version": 1
+		"version": 1,
 	},
 	"themeColor": "#5629c6",
 	"filesIgnored": ["**/**.css.ts", "**/**.scss"],
@@ -25,13 +25,13 @@
 			"REACT_APP_FIREBASE_CONFIG_OBJECT": "{    apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',    authDomain: 'auth.highlight.run',    databaseURL: 'https://highlight-f5c5b.firebaseio.com',    projectId: 'highlight-f5c5b',    storageBucket: 'highlight-f5c5b.appspot.com',    messagingSenderId: '263184175068',    appId: '1:263184175068:web:f8190c20320087d1c6c919',}",
 			"REACT_APP_COMMIT_SHA": {
 				"type": "expression",
-				"value": "Reflame.gitCommitSha"
+				"value": "Reflame.gitCommitSha",
 			},
 			"REACT_APP_PRIVATE_GRAPH_URI": "https://pri.highlight.io",
 			"REACT_APP_ONPREM": "false",
 			"REACT_APP_FRONTEND_URI": {
 				"type": "expression",
-				"value": "window.location.origin"
+				"value": "window.location.origin",
 			},
 			"REACT_APP_FRONTEND_ORG": "1jdkoe52",
 			"REACT_APP_PUBLIC_GRAPH_URI": "https://pub.highlight.run",
@@ -45,23 +45,23 @@
 			"HEIGHT_CLIENT_ID": "w8GzB4GI8gGUE2iEAQMY8Wck44gK2ek2i4Q8q4myKQY",
 			"DEMO_SESSION_URL": "/1/sessions/SGKFqG4mE8au2UmHjT0BhjO5Q15f",
 			"LINEAR_CLIENT_ID": "f60ff43c7376d0aceaa1e111db39e60d",
-			"DEMO_PROJECT_ID": "1344"
+			"DEMO_PROJECT_ID": "1344",
 		},
 		"development": {
 			"REACT_APP_FIREBASE_CONFIG_OBJECT": "{    apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',    authDomain: 'auth.highlight.run',    databaseURL: 'https://highlight-f5c5b.firebaseio.com',    projectId: 'highlight-f5c5b',    storageBucket: 'highlight-f5c5b.appspot.com',    messagingSenderId: '263184175068',    appId: '1:263184175068:web:f8190c20320087d1c6c919',}",
 			"REACT_APP_COMMIT_SHA": {
 				"type": "expression",
-				"value": "Reflame.gitCommitSha"
+				"value": "Reflame.gitCommitSha",
 			},
 			"REACT_APP_PRIVATE_GRAPH_URI": "https://localhost:8082/private",
 			"REACT_APP_ONPREM": "false",
 			"REACT_APP_FRONTEND_URI": {
 				"type": "expression",
-				"value": "window.location.origin"
+				"value": "window.location.origin",
 			},
 			"REACT_APP_FRONTEND_ORG": "1",
 			"REACT_APP_PUBLIC_GRAPH_URI": "https://localhost:8082/public",
-			"REACT_APP_AUTH_MODE": "simple",
+			"REACT_APP_AUTH_MODE": "firebase",
 			"SLACK_CLIENT_ID": "1354469824468.1868913469441",
 			"REACT_APP_STRIPE_API_PK": "pk_test_51Hlqh1Gz4ry65q42v4lYEnAGIB4Tq5rzWwE7PgpdCpQjqJjg1iVuosCzEGFbaJNTxDpo77F3YwOfrSlUp8g4wZYB00ojMQX0DP",
 			"DEMO_ERROR_URL": "/1/errors/RxxaYWFKZPsIa1lF1phmFqTQ04BO",
@@ -71,106 +71,106 @@
 			"HEIGHT_CLIENT_ID": "N58AdgpuOi2AmSeG2wKc8Osayo8WIU0UoQGwACiYqyI",
 			"DEMO_SESSION_URL": "/1/sessions/SGKFqG4mE8au2UmHjT0BhjO5Q15f",
 			"LINEAR_CLIENT_ID": "f60ff43c7376d0aceaa1e111db39e60d",
-			"DEMO_PROJECT_ID": "2"
-		}
+			"DEMO_PROJECT_ID": "2",
+		},
 	},
 	"environment": "production",
 	"scripts": [
 		"/intercom.js",
 		"/index",
 		"/canny.js",
-		"https://js.hs-scripts.com/20473940.js"
+		"https://js.hs-scripts.com/20473940.js",
 		// TODO: google tag manager
 	],
 	"stylesheets": [
 		"https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap",
 		"https://unpkg.com/@highlight-run/rrweb@0.9.27/dist/index.css",
-		"/public.css"
+		"/public.css",
 	],
 	"nodejsCompatibility": {
 		"omitModuleExtension": true,
 		"mapIndexToDirectory": true,
 		"packageJson": {
 			"versionIncluded": true,
-			"dependenciesSynced": true
-		}
+			"dependenciesSynced": true,
+		},
 	},
 	"specifierTransforms": [
 		{
 			"from": "/",
-			"to": "@/"
+			"to": "@/",
 		},
 		{
 			"from": "/components/",
-			"to": "@components/"
+			"to": "@components/",
 		},
 		{
 			"from": "/static/",
-			"to": "@icons/"
+			"to": "@icons/",
 		},
 		{
 			"from": "/util/",
-			"to": "@util/"
+			"to": "@util/",
 		},
 		{
 			"from": "/hooks/",
-			"to": "@hooks/"
+			"to": "@hooks/",
 		},
 		{
 			"from": "/pages/",
-			"to": "@pages/"
+			"to": "@pages/",
 		},
 		{
 			"from": "/routers/",
-			"to": "@routers/"
+			"to": "@routers/",
 		},
 		{
 			"from": "/graph/generated/",
-			"to": "@graph/"
+			"to": "@graph/",
 		},
 		{
 			"from": "/authentication/",
-			"to": "@authentication/"
+			"to": "@authentication/",
 		},
 		{
 			"from": "/context/",
-			"to": "@context/"
+			"to": "@context/",
 		},
 		{
 			"from": "/lottie/",
-			"to": "@lottie/"
+			"to": "@lottie/",
 		},
 		{
 			"from": "/__generated/index.css",
-			"to": "/index.scss"
+			"to": "/index.scss",
 		},
 		{
 			"from": "/__generated/rr/rr.js",
-			"to": "@highlight-run/rrweb"
+			"to": "@highlight-run/rrweb",
 		},
 		{
 			"from": "/__generated/rr/rrTypes.js",
-			"to": "@highlight-run/rrweb-types"
+			"to": "@highlight-run/rrweb-types",
 		},
 		{
 			"from": "/__generated/rr/rr.min.css",
-			"to": "@highlight-run/rrweb/dist/rrweb.min.css"
+			"to": "@highlight-run/rrweb/dist/rrweb.min.css",
 		},
 		{
 			"from": "^/__generated/ve/(.*).css.js$",
 			"to": "/$1.css",
-			"phase": "pre"
+			"phase": "pre",
 		},
 		{
 			"from": "^/__generated/scss/(.*).scss.js$",
 			"to": "/$1.scss",
-			"phase": "pre"
+			"phase": "pre",
 		},
 		{
 			"from": "^/__generated/svgr/(.*).svg.js$",
 			"to": "/$1.svg",
-			"phase": "pre"
-		}
+			"phase": "pre",
+		},
 	],
 	"libraries": {
 		"@highlight-run/ui": {
@@ -183,7 +183,7 @@
 				"/src/css/vars": "/css/vars.ts",
 				"/src/css/colors": "/css/colors.ts",
 				"/src/css/sprinkles.css": "/css/sprinkles.css",
-				"/src/css/theme.css": "/css/theme.css"
+				"/src/css/theme.css": "/css/theme.css",
 			},
 			"npmPackages": {
 				"ariakit": {
@@ -192,43 +192,43 @@
 						"/button",
 						"/combobox",
 						"/form",
-						"/checkbox"
-					]
+						"/checkbox",
+					],
 				},
 				"@vanilla-extract/sprinkles": {
-					"entryPoints": ["/createRuntimeSprinkles"]
+					"entryPoints": ["/createRuntimeSprinkles"],
 				},
 				"@vanilla-extract/recipes": {
-					"entryPoints": ["/createRuntimeFn"]
-				}
+					"entryPoints": ["/createRuntimeFn"],
+				},
 			},
 			"nodejsCompatibility": {
 				"omitModuleExtension": true,
 				"mapIndexToDirectory": true,
 				"packageJson": {
-					"dependenciesSynced": true
-				}
+					"dependenciesSynced": true,
+				},
 			},
 			"filesIgnored": ["**/**.css.ts"],
 			"specifierTransforms": {
-				"^/__generated/ve/(.*).css.js$": "/$1.css"
-			}
+				"^/__generated/ve/(.*).css.js$": "/$1.css",
+			},
 		},
 		"highlight.run": {
 			"sourceDirectory": "sdk/firstload/src",
 			"entryPoint": "/index.tsx",
 			"nodejsCompatibility": {
 				"omitModuleExtension": true,
-				"mapIndexToDirectory": true
+				"mapIndexToDirectory": true,
 			},
-			"npmPackages": {}
+			"npmPackages": {},
 		},
 		"highlight.io": {
 			"sourceDirectory": "highlight.io",
 			"entryPoint": "/index.ts",
 			"nodejsCompatibility": {
 				"omitModuleExtension": true,
-				"mapIndexToDirectory": true
+				"mapIndexToDirectory": true,
 			},
 			"filesIgnored": [
 				"**/**",
@@ -236,28 +236,29 @@
 				"!content/**/**",
 				"!styles/**/**",
 				"!utils/**/**",
-				"!index.ts"
-			]
+				"!index.ts",
+			],
 		},
 		"@highlight-run/client": {
 			"sourceDirectory": "sdk/client/src",
 			"entryPoints": {
 				"/src/listeners/first-load-listeners": "/listeners/first-load-listeners.tsx",
+				"/src/listeners/network-listener/utils/utils": "/listeners/network-listener/utils/utils.ts",
 				"/src/utils/secure-id": "/utils/secure-id.ts",
-				"/src/utils/sessionStorage/highlightSession": "/utils/sessionStorage/highlightSession.ts"
+				"/src/utils/sessionStorage/highlightSession": "/utils/sessionStorage/highlightSession.ts",
 			},
 			"nodejsCompatibility": {
 				"omitModuleExtension": true,
 				"mapIndexToDirectory": true,
 				"packageJson": {
-					"dependenciesSynced": true
-				}
+					"dependenciesSynced": true,
+				},
 			},
 			"specifierTransforms": {
-				"/publicGraphURI.ts": "consts:publicGraphURI"
+				"/publicGraphURI.ts": "consts:publicGraphURI",
 			},
-			"npmPackages": {}
-		}
+			"npmPackages": {},
+		},
 	},
 	// NPM packages listed here will be installed by Reflame every time you update this file.
 	//
@@ -266,15 +267,18 @@
 	// performance.
 	"npmPackages": {
 		"@apollo/client": {
-			"entryPoints": ["/", "/link/context", "/link/ws", "/utilities"]
+			"entryPoints": ["/", "/link/context", "/link/ws", "/utilities"],
+		},
+		"@vanilla-extract/recipes": {
+			"entryPoints": ["/createRuntimeFn"],
 		},
 		"ariakit": {
-			"entryPoints": ["/", "/dialog", "/form"]
+			"entryPoints": ["/", "/dialog", "/form"],
 		},
 		// TODO: create a library for this
 		// Might need a shim entry point for .css?
 		"@highlight-run/react": {
-			"version": "^3.2.0"
+			"version": "^3.2.0",
 		},
 		"antd": {
 			"entryPoints": [
@@ -286,49 +290,49 @@
 				"/es/input",
 				"/es/dropdown",
 				"/es/message",
-				"/dist/antd.css"
-			]
+				"/dist/antd.css",
+			],
 		},
 		"firebase": {
-			"entryPoints": ["/compat/auth", "/compat/app"]
+			"entryPoints": ["/compat/auth", "/compat/app"],
 		},
 		"intro.js": {
-			"entryPoints": ["/", "/introjs.css"]
+			"entryPoints": ["/", "/introjs.css"],
 		},
 		"lodash": {
-			"entryPoints": ["/", "/isEqual"]
+			"entryPoints": ["/", "/isEqual"],
 		},
 		"moment": {
-			"entryPoints": ["/", "/moment"]
+			"entryPoints": ["/", "/moment"],
 		},
 		"rc-slider": {
-			"entryPoints": ["/", "/assets/index.css"]
+			"entryPoints": ["/", "/assets/index.css"],
 		},
 		"react-resizable": {
-			"entryPoints": ["/css/styles.css"]
+			"entryPoints": ["/css/styles.css"],
 		},
 		"react-awesome-query-builder": {
 			"entryPoints": [
 				"/",
 				"/lib/config/antd",
 				"/lib/css/compact_styles.css",
-				"/lib/css/styles.css"
-			]
+				"/lib/css/styles.css",
+			],
 		},
 		"react-grid-layout": {
-			"entryPoints": ["/", "/css/styles.css"]
+			"entryPoints": ["/", "/css/styles.css"],
 		},
 		"react-icons": {
-			"entryPoints": ["/fa", "/fi", "/ri", "/vsc"]
+			"entryPoints": ["/fa", "/fi", "/ri", "/vsc"],
 		},
 		"react-loading-skeleton": {
-			"entryPoints": ["/", "/dist/skeleton.css"]
+			"entryPoints": ["/", "/dist/skeleton.css"],
 		},
 		"react-select": {
-			"entryPoints": ["/", "/async", "/async-creatable", "/creatable"]
+			"entryPoints": ["/", "/async", "/async-creatable", "/creatable"],
 		},
 		"react-spinners": {
-			"entryPoints": ["/BarLoader"]
+			"entryPoints": ["/BarLoader"],
 		},
 		"react-syntax-highlighter": {
 			"entryPoints": [
@@ -337,25 +341,25 @@
 				// "/",
 				"/dist/esm/prism",
 				"/dist/esm/light",
-				"/dist/esm/styles/prism"
-			]
+				"/dist/esm/styles/prism",
+			],
 		},
 		"react-use": {
 			"entryPoints": [
 				"/",
 				"/esm/useSessionStorage",
-				"/esm/useLocalStorage"
-			]
+				"/esm/useLocalStorage",
+			],
 		},
 		"use-query-params": {
-			"entryPoints": ["/", "/adapters/react-router-6"]
-		}
+			"entryPoints": ["/", "/adapters/react-router-6"],
+		},
 	},
 	"npmPackageOverrides": {
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
 		"graphql": "16.6.0",
 		"react-transition-group": "4.4.1",
-		"lodash": "npm:lodash-es"
-	}
+		"lodash": "npm:lodash-es",
+	},
 }

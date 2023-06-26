@@ -44,6 +44,7 @@ import (
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stepfunctions"
 	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
@@ -229,7 +230,6 @@ func main() {
 	highlight.SetProjectID("1jdkoe52")
 	if !util.IsOnPrem() && util.IsDevOrTestEnv() {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql / otlp client address...")
-		highlight.SetGraphqlClientAddress("https://localhost:8082/public")
 		highlight.SetOTLPEndpoint("http://localhost:4318")
 		if util.IsBackendInDocker() {
 			highlight.SetOTLPEndpoint("http://collector:4318")
@@ -362,6 +362,7 @@ func main() {
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
+		Store:                  store.NewStore(db, opensearchClient),
 	}
 	private.SetupAuthClient(ctx, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
@@ -471,20 +472,18 @@ func main() {
 			}
 			defer profiler.Stop()
 		}
-		alertWorkerpool := workerpool.New(40)
-		alertWorkerpool.SetPanicHandler(util.Recover)
 		publicResolver := &public.Resolver{
-			DB:              db,
-			TDB:             tdb,
-			ProducerQueue:   kafkaProducer,
-			BatchedQueue:    kafkaBatchedProducer,
-			MailClient:      sendgrid.NewSendClient(sendgridKey),
-			StorageClient:   storageClient,
-			AlertWorkerPool: alertWorkerpool,
-			OpenSearch:      opensearchClient,
-			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
-			Redis:           redisClient,
-			RH:              &rh,
+			DB:            db,
+			TDB:           tdb,
+			ProducerQueue: kafkaProducer,
+			BatchedQueue:  kafkaBatchedProducer,
+			MailClient:    sendgrid.NewSendClient(sendgridKey),
+			StorageClient: storageClient,
+			OpenSearch:    opensearchClient,
+			HubspotApi:    hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
+			Redis:         redisClient,
+			RH:            &rh,
+			Store:         store.NewStore(db, opensearchClient),
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -562,21 +561,19 @@ func main() {
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
 	if runtimeParsed == util.Worker || runtimeParsed == util.All {
-		alertWorkerpool := workerpool.New(40)
-		alertWorkerpool.SetPanicHandler(util.Recover)
 		publicResolver := &public.Resolver{
-			DB:              db,
-			TDB:             tdb,
-			ProducerQueue:   kafkaProducer,
-			BatchedQueue:    kafkaBatchedProducer,
-			MailClient:      sendgrid.NewSendClient(sendgridKey),
-			StorageClient:   storageClient,
-			AlertWorkerPool: alertWorkerpool,
-			OpenSearch:      opensearchClient,
-			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
-			Redis:           redisClient,
-			Clickhouse:      clickhouseClient,
-			RH:              &rh,
+			DB:            db,
+			TDB:           tdb,
+			ProducerQueue: kafkaProducer,
+			BatchedQueue:  kafkaBatchedProducer,
+			MailClient:    sendgrid.NewSendClient(sendgridKey),
+			StorageClient: storageClient,
+			OpenSearch:    opensearchClient,
+			HubspotApi:    hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
+			Redis:         redisClient,
+			Clickhouse:    clickhouseClient,
+			RH:            &rh,
+			Store:         store.NewStore(db, opensearchClient),
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {

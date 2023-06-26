@@ -21,7 +21,7 @@ And to get started:
     </DocsCard>
 </DocsCardGroup>
 
-### About us.
+### About us
 
 <DocsCardGroup>
     <DocsCard title="Mission & Values." href="./2_company/1_values.md">
@@ -33,12 +33,12 @@ And to get started:
     <DocsCard title="Contributing to highlight.io"  href="./2_company/open-source/contributing.md">
         {"Open source, self hosting highlight, and contributing."}
     </DocsCard>
-    <DocsCard title="Self hosting highlight.io"  href="./2_company/open-source/self-host-hobby.md">
+    <DocsCard title="Self hosting highlight.io"  href="./4_company/open-source/hosting/2_self-host-hobby.md">
         {"Open source, self hosting highlight, and contributing."}
     </DocsCard>
 </DocsCardGroup>
 
-### Features.
+### Features
 
 <DocsCardGroup>
     <DocsCard title="Session Replay." href="./6_product-features/1_session-replay/1_overview.md">

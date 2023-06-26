@@ -1,5 +1,6 @@
 import * as jsoncParser from 'jsonc-parser'
 import * as fs from 'node:fs'
+import prettier from 'prettier'
 
 const configPath = '../.reflame.config.jsonc'
 const configText = fs.readFileSync(configPath, 'utf8')
@@ -56,7 +57,16 @@ const result = jsoncParser.applyEdits(
 	),
 )
 
-if (result !== configText) {
+const prettierConfigFile = await prettier.resolveConfigFile(process.cwd())
+
+const prettierConfig = JSON.parse(fs.readFileSync(prettierConfigFile))
+
+const formatted = prettier.format(result, {
+	...prettierConfig,
+	...prettierConfig.overrides[0].options,
+})
+
+if (formatted !== configText) {
 	console.log(`updating Reflame config with '${name}' environment`)
-	fs.writeFileSync(configPath, result)
+	fs.writeFileSync(configPath, formatted)
 }

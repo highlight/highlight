@@ -110,6 +110,7 @@ type Mutation {
 		events: ReplayEventsInput!
 		messages: String!
 		resources: String!
+		web_socket_events: String
 		errors: [ErrorObjectInput]!
 		is_beacon: Boolean
 		has_session_unloaded: Boolean

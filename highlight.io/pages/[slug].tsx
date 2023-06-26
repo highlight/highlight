@@ -133,7 +133,7 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 					<div className="flex justify-center mt-12 lg:mt-0 ultra:relative">
 						<AnimateFeatureHeroRight loaded={imageLoaded}>
 							<Image
-								className={`hidden lg:flex ultra:hidden right-0 object-contain top-0`}
+								className={`hidden lg:flex ultra:hidden right-0 object-contain top-0 lg:w-[550px] xl:w-[650px]`}
 								src={IMAGE_MAP[feature.slantedImage]}
 								alt="Feature Spotlight"
 								onLoadingComplete={() => setImageLoaded(true)}
@@ -141,7 +141,7 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 						</AnimateFeatureHeroRight>
 						<AnimateFeatureHeroXL loaded={imageLoaded}>
 							<Image
-								className={`hidden ultra:flex`}
+								className={`hidden ultra:flex w-[500px]`}
 								src={IMAGE_MAP[feature.regularImage]}
 								alt="Feature Spotlight"
 								onLoadingComplete={() => setImageLoaded(true)}

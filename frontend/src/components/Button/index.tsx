@@ -30,6 +30,7 @@ export const Button: React.FC<ButtonProps> = ({
 }) => {
 	const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
 		if (loading) {
+			e.preventDefault()
 			return
 		}
 

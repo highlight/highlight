@@ -3,7 +3,7 @@ import { QuickStartContent } from '../../QuickstartContent'
 import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
 
 export const JSNestLogContent: QuickStartContent = {
-	title: 'Nest.js',
+	title: 'Logging from Nest.js',
 	subtitle: 'Learn how to set up highlight.io log ingestion in Nest.js.',
 	logoUrl: siteUrl('/images/quickstart/nestjs.svg'),
 	entries: [
@@ -12,8 +12,9 @@ export const JSNestLogContent: QuickStartContent = {
 			title: 'Add the @highlight-run/nest app middleware.',
 			content:
 				'Use the `HighlightLogger` middleware to record backend logs in highlight.io',
-			code: {
-				text: `import { HttpAdapterHost, NestFactory } from '@nestjs/core'
+			code: [
+				{
+					text: `import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { HighlightLogger } from '@highlight-run/nest'
 
@@ -25,8 +26,9 @@ async function bootstrap() {
 }
 bootstrap()
 `,
-				language: 'js',
-			},
+					language: 'js',
+				},
+			],
 		},
 		verifyLogs,
 	],

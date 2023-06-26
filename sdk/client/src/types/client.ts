@@ -39,6 +39,12 @@ export declare type NetworkRecordingOptions = {
 	 */
 	recordHeadersAndBody?: boolean
 	/**
+	 * This disables recording WebSocket events.
+	 * WebSocket events are recorded by default if recordHeadersAndBody is set.
+	 * @default false
+	 */
+	disableWebSocketEventRecordings?: boolean
+	/**
 	 * Request and response headers where the value is not recorded.
 	 * The header value is replaced with '[REDACTED]'.
 	 * These headers are case-insensitive.
@@ -114,15 +120,6 @@ export declare type IntegrationOptions = {
 }
 
 export declare type SessionShortcutOptions = false | string
-
-export declare interface FeedbackWidgetOptions {
-	title?: string
-	subTitle?: string
-	submitButtonLabel?: string
-	enabled?: boolean
-	onSubmit?: (name: string, email: string, text: string) => void
-	onCancel?: () => void
-}
 
 type DefaultIntegrationOptions = {
 	disabled?: boolean

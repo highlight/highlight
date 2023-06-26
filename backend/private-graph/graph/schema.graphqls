@@ -18,6 +18,7 @@ enum SessionExcludedReason {
 	Initializing
 	NoActivity
 	NoUserInteractionEvents
+	NoTimelineIndicatorEvents
 	NoError
 	IgnoredUser
 }
@@ -319,7 +320,6 @@ enum SessionAlertType {
 	NEW_USER_ALERT
 	TRACK_PROPERTIES_ALERT
 	USER_PROPERTIES_ALERT
-	SESSION_FEEDBACK_ALERT
 	RAGE_CLICK_ALERT
 	NEW_SESSION_ALERT
 }
@@ -355,11 +355,6 @@ type Project {
 	filter_chrome_extension: Boolean
 }
 
-type ProjectFilterSettings {
-	id: ID!
-	filterSessionsWithoutError: Boolean!
-}
-
 type AllProjectSettings {
 	id: ID!
 	verbose_id: String!
@@ -376,6 +371,7 @@ type AllProjectSettings {
 	backend_domains: StringArray
 	filter_chrome_extension: Boolean
 	filterSessionsWithoutError: Boolean!
+	autoResolveStaleErrorsDayInterval: Int!
 }
 
 type Account {
@@ -568,6 +564,21 @@ type S3File {
 	key: String
 }
 
+interface Edge {
+	cursor: String!
+}
+
+type PageInfo {
+	hasNextPage: Boolean!
+	hasPreviousPage: Boolean!
+	startCursor: String!
+	endCursor: String!
+}
+
+interface Connection {
+	pageInfo: PageInfo!
+}
+
 type Log {
 	timestamp: Timestamp!
 	level: LogLevel!
@@ -580,20 +591,36 @@ type Log {
 	serviceName: String
 }
 
-type LogEdge {
+type LogEdge implements Edge {
 	cursor: String!
 	node: Log!
 }
 
-type PageInfo {
-	hasNextPage: Boolean!
-	hasPreviousPage: Boolean!
-	startCursor: String!
-	endCursor: String!
+type LogConnection implements Connection {
+	edges: [LogEdge!]!
+	pageInfo: PageInfo!
 }
 
-type LogsConnection {
-	edges: [LogEdge!]!
+type ErrorObjectNodeSession {
+	secureID: String!
+	userProperties: String!
+	appVersion: String
+}
+
+type ErrorObjectNode {
+	id: ID!
+	createdAt: Timestamp!
+	event: String!
+	session: ErrorObjectNodeSession!
+}
+
+type ErrorObjectEdge implements Edge {
+	cursor: String!
+	node: ErrorObjectNode!
+}
+
+type ErrorObjectConnection implements Connection {
+	edges: [ErrorObjectEdge!]!
 	pageInfo: PageInfo!
 }
 
@@ -1176,6 +1203,7 @@ type WorkspaceInviteLink {
 	invitee_role: String!
 	expiration_date: Timestamp!
 	secret: String!
+	created_at: Timestamp!
 }
 
 type WorkspaceForInviteLink {
@@ -1414,12 +1442,16 @@ type Query {
 	): ErrorsHistogram!
 	error_group(secure_id: String!): ErrorGroup
 	error_object(id: ID!): ErrorObject
+	error_objects(
+		error_group_secure_id: String!
+		after: String
+		before: String
+	): ErrorObjectConnection!
 	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(
 		error_group_secure_id: String!
 		error_object_id: ID
 	): ErrorInstance
-	messages(session_secure_id: String!): [Any]
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
 	resources(session_secure_id: String!): [Any]
@@ -1528,7 +1560,6 @@ type Query {
 	workspaces_count: Int64!
 	joinable_workspaces: [Workspace]
 	error_alerts(project_id: ID!): [ErrorAlert]!
-	session_feedback_alerts(project_id: ID!): [SessionAlert]!
 	new_user_alerts(project_id: ID!): [SessionAlert]
 	track_properties_alerts(project_id: ID!): [SessionAlert]!
 	user_properties_alerts(project_id: ID!): [SessionAlert]!
@@ -1572,11 +1603,11 @@ type Query {
 	github_repos(workspace_id: ID!): [GitHubRepo!]
 	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
-	projectFilterSettings(projectId: ID!): ProjectFilterSettings
 	projectSettings(projectId: ID!): AllProjectSettings
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
+	workspacePendingInvites(workspace_id: ID!): [WorkspaceInviteLink]!
 	workspace_for_project(project_id: ID!): Workspace
 	admin: Admin
 	admin_role(workspace_id: ID!): WorkspaceAdminRole
@@ -1623,7 +1654,7 @@ type Query {
 		before: String
 		at: String
 		direction: LogDirection!
-	): LogsConnection!
+	): LogConnection!
 	sessionLogs(project_id: ID!, params: LogsParamsInput!): [LogEdge!]!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
@@ -1657,10 +1688,6 @@ type Mutation {
 		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 	): Project
-	editProjectFilterSettings(
-		projectId: ID!
-		filterSessionsWithoutError: Boolean!
-	): ProjectFilterSettings
 	editProjectSettings(
 		projectId: ID!
 		name: String
@@ -1674,6 +1701,7 @@ type Mutation {
 		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 		filterSessionsWithoutError: Boolean
+		autoResolveStaleErrorsDayInterval: Int
 	): AllProjectSettings
 	editWorkspace(id: ID!, name: String): Workspace
 	markErrorGroupAsViewed(
@@ -1695,6 +1723,10 @@ type Mutation {
 		role: String!
 	): String
 	addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+	deleteInviteLinkFromWorkspace(
+		workspace_id: ID!
+		workspace_invite_link_id: ID!
+	): Boolean!
 	joinWorkspace(workspace_id: ID!): ID
 	updateAllowedEmailOrigins(
 		workspace_id: ID!

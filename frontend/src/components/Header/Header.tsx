@@ -53,7 +53,6 @@ import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
-import { client } from '@util/graph'
 import { titleCaseString } from '@util/string'
 import { loadIntercom, showIntercom } from '@util/window'
 import clsx from 'clsx'
@@ -115,7 +114,7 @@ export const useBillingHook = ({
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId } = useProjectId()
-	const { isLoggedIn } = useAuthContext()
+	const { admin, isLoggedIn, signOut } = useAuthContext()
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
@@ -128,7 +127,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 
 	const { toggleShowKeyboardShortcutsGuide, commandBarDialog } =
 		useGlobalContext()
-	const { admin } = useAuthContext()
 
 	const pages = [
 		{
@@ -650,11 +648,10 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											<Menu.Item
 												onClick={async () => {
 													try {
-														auth.signOut()
+														signOut()
 													} catch (e) {
 														console.log(e)
 													}
-													await client.clearStore()
 												}}
 											>
 												<Box

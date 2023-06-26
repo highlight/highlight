@@ -34,7 +34,12 @@ import { HTTPContent } from './logging/http'
 import { JSNestLogContent } from './logging/js/nestjs'
 import { JSOtherLogContent } from './logging/js/other'
 
+import { DockerContent } from './logging/docker'
+import { FileContent } from './logging/file'
+import { FluentForwardContent } from './logging/fluentd'
+import { JSCloudflareLoggingContent } from './logging/js/cloudflare'
 import { JSWinstonHTTPJSONLogContent } from './logging/js/winston'
+import { PythonLoguruLogContent } from './logging/python/loguru'
 import { PythonOtherLogContent } from './logging/python/other'
 import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
@@ -56,13 +61,16 @@ export type QuickStartContent = {
 	entries: Array<QuickStartStep>
 }
 
+export type QuickStartCodeBlock = {
+	key?: string
+	text: string
+	language: string
+}
+
 export type QuickStartStep = {
 	title: string
 	content: string
-	code?: {
-		text: string
-		language: string
-	}
+	code?: QuickStartCodeBlock[]
 	hidden?: true
 }
 
@@ -79,6 +87,7 @@ export enum QuickStartType {
 	PythonFlask = 'flask',
 	PythonDjango = 'django',
 	PythonFastAPI = 'fastapi',
+	PythonLoguru = 'loguru',
 	PythonOther = 'other',
 	PythonAWSFn = 'aws-lambda',
 	PythonAzureFn = 'azure-functions',
@@ -99,6 +108,9 @@ export enum QuickStartType {
 	JSWinston = 'winston',
 	JStRPC = 'trpc',
 	HTTPOTLP = 'curl',
+	FluentForward = 'fluent-forward',
+	Docker = 'docker',
+	File = 'file',
 	RubyOther = 'other',
 	RubyRails = 'rails',
 	HostingVercel = 'vercel',
@@ -182,6 +194,7 @@ export const quickStartContent = {
 			subtitle:
 				'Select your Python framework to install logging in your application.',
 			logoUrl: siteUrl('/images/quickstart/python.svg'),
+			[QuickStartType.PythonLoguru]: PythonLoguruLogContent,
 			[QuickStartType.PythonOther]: PythonOtherLogContent,
 		},
 		go: {
@@ -201,12 +214,21 @@ export const quickStartContent = {
 			[QuickStartType.JSNodejs]: JSOtherLogContent,
 			[QuickStartType.JSNestjs]: JSNestLogContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogContent,
+			[QuickStartType.JSCloudflare]: JSCloudflareLoggingContent,
 		},
 		http: {
-			title: 'curl',
+			title: 'HTTPS curl',
 			subtitle:
 				'Get started with logging in your application via HTTP or OTLP.',
 			[QuickStartType.HTTPOTLP]: HTTPContent,
+		},
+		other: {
+			title: 'Infrastructure / Other',
+			subtitle:
+				'Get started with logging in your application via HTTP or OTLP.',
+			[QuickStartType.FluentForward]: FluentForwardContent,
+			[QuickStartType.File]: FileContent,
+			[QuickStartType.Docker]: DockerContent,
 		},
 		ruby: {
 			title: 'Ruby',
@@ -217,7 +239,7 @@ export const quickStartContent = {
 			[QuickStartType.RubyOther]: RubyOtherLogContent,
 		},
 		hosting: {
-			title: 'Hosting Provider',
+			title: 'Cloud Hosting Provider',
 			subtitle:
 				'Select your Hosting provider to setup the Highlight integration and stream logs.',
 			[QuickStartType.HostingVercel]: HostingVercelLogContent,

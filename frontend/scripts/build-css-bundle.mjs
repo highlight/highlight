@@ -38,7 +38,12 @@ export const run = async ({ rootDirectory }) => {
 
 				await fs.promises.writeFile(
 					path_.join(outputDirectory, 'index.css'),
-					cssOutput.contents,
+					// vanilla extract outputs comments that seem to depend on absolute path
+					// need to strip them for consistent output between local and ci
+					cssOutput.text.replaceAll(
+						/\n\/\* vanilla-extract-css-ns\:.*\n/g,
+						'',
+					),
 				)
 				console.log(new Date(), 'built css bundle', cssOutput.path)
 			})
@@ -57,9 +62,7 @@ export const run = async ({ rootDirectory }) => {
 		platform: 'browser',
 		outdir: outputDirectory,
 		outbase: workingDirectory,
-		// vanilla extract outputs comments that seem to depend on absolute path
-		// need to minify for consistent output between local and ci
-		minify: true,
+		minify: false,
 		splitting: false,
 		target: 'esnext',
 		plugins: [

@@ -1,17 +1,18 @@
-import { getBodyThatShouldBeRecorded } from './xhr-listener'
-import { NetworkListenerCallback } from '../network-listener'
 import {
-	RequestResponsePair,
-	Request as HighlightRequest,
-	Response as HighlightResponse,
-} from './models'
-import {
+	HIGHLIGHT_REQUEST_HEADER,
 	createNetworkRequestId,
 	getHighlightRequestHeader,
-	HIGHLIGHT_REQUEST_HEADER,
 	shouldNetworkRequestBeRecorded,
 	shouldNetworkRequestBeTraced,
 } from './utils'
+import {
+	Request as HighlightRequest,
+	Response as HighlightResponse,
+	RequestResponsePair,
+} from './models'
+
+import { NetworkListenerCallback } from '../network-listener'
+import { getBodyThatShouldBeRecorded } from './xhr-listener'
 
 export interface HighlightFetchWindow extends WindowOrWorkerGlobalScope {
 	_originalFetch: WindowOrWorkerGlobalScope['fetch']
@@ -43,10 +44,18 @@ export const FetchListener = (
 			init = init || {}
 			// Pre-existing headers could be one of three different formats; this reads all of them.
 			let headers = new Headers(init.headers)
+
+			if (input instanceof Request) {
+				;[...input.headers].forEach(([key, value]) =>
+					headers.set(key, value),
+				)
+			}
+
 			headers.set(
 				HIGHLIGHT_REQUEST_HEADER,
 				getHighlightRequestHeader(sessionSecureID, requestId),
 			)
+
 			init.headers = Object.fromEntries(headers.entries())
 		}
 

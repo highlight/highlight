@@ -4,10 +4,11 @@ import time
 
 import highlight_io
 
-H = highlight_io.H("1", record_logs=True)
+H = highlight_io.H("1", instrument_logging=True, otlp_endpoint="http://localhost:4318")
 
 
 def main():
+    logging.info("hello main", {"customer": "world", "trace": "outside"})
     with H.trace():
         logging.info("hello handler", {"customer": "unknown"})
         for idx in range(1000):
@@ -20,3 +21,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    H.flush()

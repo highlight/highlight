@@ -9,15 +9,28 @@ import {
 interface Props {
 	kind: Tab
 	filter?: string
-	requestType?: RequestType
-	requestStatus?: RequestStatus
+	requestTypes?: RequestType[]
+	requestStatuses?: RequestStatus[]
+}
+
+const buildList = (values: RequestType[] | RequestStatus[]) => {
+	switch (values.length) {
+		case 0:
+			return ''
+		case 1:
+			return values[0]
+		case 2:
+			return `${values[0]} or ${values[1]}`
+		default:
+			return values.join('/')
+	}
 }
 
 export const EmptyDevToolsCallout = ({
 	kind,
 	filter,
-	requestType,
-	requestStatus,
+	requestTypes = [],
+	requestStatuses = [],
 }: Props) => {
 	return (
 		<Box
@@ -53,18 +66,19 @@ export const EmptyDevToolsCallout = ({
 					</Box>
 				)}
 			>
-				{requestType ? (
+				{requestTypes.length ? (
 					<>
 						<Text color="n11">
 							{`No ${
-								requestType !== RequestType.All
-									? requestType
+								!requestTypes.includes(RequestType.All)
+									? buildList(requestTypes)
 									: ''
 							} network resources${
 								filter !== '' ? ` matching '${filter}'` : ''
 							}${
-								requestStatus !== RequestStatus.All
-									? ' with status ' + requestStatus
+								!requestStatuses?.includes(RequestStatus.All)
+									? ' with status ' +
+									  buildList(requestStatuses)
 									: ''
 							}.`}
 						</Text>

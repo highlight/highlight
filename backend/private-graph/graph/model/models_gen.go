@@ -11,6 +11,16 @@ import (
 	"github.com/lib/pq"
 )
 
+type Connection interface {
+	IsConnection()
+	GetPageInfo() *PageInfo
+}
+
+type Edge interface {
+	IsEdge()
+	GetCursor() string
+}
+
 type Account struct {
 	ID                   int        `json:"id"`
 	Name                 string     `json:"name"`
@@ -67,21 +77,22 @@ type AdminAndWorkspaceDetails struct {
 }
 
 type AllProjectSettings struct {
-	ID                         int            `json:"id"`
-	VerboseID                  string         `json:"verbose_id"`
-	Name                       string         `json:"name"`
-	BillingEmail               *string        `json:"billing_email"`
-	Secret                     *string        `json:"secret"`
-	WorkspaceID                int            `json:"workspace_id"`
-	ExcludedUsers              pq.StringArray `json:"excluded_users"`
-	ErrorFilters               pq.StringArray `json:"error_filters"`
-	ErrorJSONPaths             pq.StringArray `json:"error_json_paths"`
-	RageClickWindowSeconds     *int           `json:"rage_click_window_seconds"`
-	RageClickRadiusPixels      *int           `json:"rage_click_radius_pixels"`
-	RageClickCount             *int           `json:"rage_click_count"`
-	BackendDomains             pq.StringArray `json:"backend_domains"`
-	FilterChromeExtension      *bool          `json:"filter_chrome_extension"`
-	FilterSessionsWithoutError bool           `json:"filterSessionsWithoutError"`
+	ID                                int            `json:"id"`
+	VerboseID                         string         `json:"verbose_id"`
+	Name                              string         `json:"name"`
+	BillingEmail                      *string        `json:"billing_email"`
+	Secret                            *string        `json:"secret"`
+	WorkspaceID                       int            `json:"workspace_id"`
+	ExcludedUsers                     pq.StringArray `json:"excluded_users"`
+	ErrorFilters                      pq.StringArray `json:"error_filters"`
+	ErrorJSONPaths                    pq.StringArray `json:"error_json_paths"`
+	RageClickWindowSeconds            *int           `json:"rage_click_window_seconds"`
+	RageClickRadiusPixels             *int           `json:"rage_click_radius_pixels"`
+	RageClickCount                    *int           `json:"rage_click_count"`
+	BackendDomains                    pq.StringArray `json:"backend_domains"`
+	FilterChromeExtension             *bool          `json:"filter_chrome_extension"`
+	FilterSessionsWithoutError        bool           `json:"filterSessionsWithoutError"`
+	AutoResolveStaleErrorsDayInterval int            `json:"autoResolveStaleErrorsDayInterval"`
 }
 
 type AverageSessionLength struct {
@@ -288,6 +299,35 @@ type ErrorMetadata struct {
 	Payload         *string    `json:"payload"`
 }
 
+type ErrorObjectConnection struct {
+	Edges    []*ErrorObjectEdge `json:"edges"`
+	PageInfo *PageInfo          `json:"pageInfo"`
+}
+
+func (ErrorObjectConnection) IsConnection()               {}
+func (this ErrorObjectConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
+type ErrorObjectEdge struct {
+	Cursor string           `json:"cursor"`
+	Node   *ErrorObjectNode `json:"node"`
+}
+
+func (ErrorObjectEdge) IsEdge()                {}
+func (this ErrorObjectEdge) GetCursor() string { return this.Cursor }
+
+type ErrorObjectNode struct {
+	ID        int                     `json:"id"`
+	CreatedAt time.Time               `json:"createdAt"`
+	Event     string                  `json:"event"`
+	Session   *ErrorObjectNodeSession `json:"session"`
+}
+
+type ErrorObjectNodeSession struct {
+	SecureID       string  `json:"secureID"`
+	UserProperties string  `json:"userProperties"`
+	AppVersion     *string `json:"appVersion"`
+}
+
 type ErrorSearchParamsInput struct {
 	DateRange  *DateRangeInput `json:"date_range"`
 	Os         *string         `json:"os"`
@@ -417,19 +457,25 @@ type LogAlertInput struct {
 	Query               string                        `json:"query"`
 }
 
+type LogConnection struct {
+	Edges    []*LogEdge `json:"edges"`
+	PageInfo *PageInfo  `json:"pageInfo"`
+}
+
+func (LogConnection) IsConnection()               {}
+func (this LogConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
 type LogEdge struct {
 	Cursor string `json:"cursor"`
 	Node   *Log   `json:"node"`
 }
 
+func (LogEdge) IsEdge()                {}
+func (this LogEdge) GetCursor() string { return this.Cursor }
+
 type LogKey struct {
 	Name string     `json:"name"`
 	Type LogKeyType `json:"type"`
-}
-
-type LogsConnection struct {
-	Edges    []*LogEdge `json:"edges"`
-	PageInfo *PageInfo  `json:"pageInfo"`
 }
 
 type LogsHistogram struct {
@@ -1491,7 +1537,6 @@ const (
 	SessionAlertTypeNewUserAlert         SessionAlertType = "NEW_USER_ALERT"
 	SessionAlertTypeTrackPropertiesAlert SessionAlertType = "TRACK_PROPERTIES_ALERT"
 	SessionAlertTypeUserPropertiesAlert  SessionAlertType = "USER_PROPERTIES_ALERT"
-	SessionAlertTypeSessionFeedbackAlert SessionAlertType = "SESSION_FEEDBACK_ALERT"
 	SessionAlertTypeRageClickAlert       SessionAlertType = "RAGE_CLICK_ALERT"
 	SessionAlertTypeNewSessionAlert      SessionAlertType = "NEW_SESSION_ALERT"
 )
@@ -1501,14 +1546,13 @@ var AllSessionAlertType = []SessionAlertType{
 	SessionAlertTypeNewUserAlert,
 	SessionAlertTypeTrackPropertiesAlert,
 	SessionAlertTypeUserPropertiesAlert,
-	SessionAlertTypeSessionFeedbackAlert,
 	SessionAlertTypeRageClickAlert,
 	SessionAlertTypeNewSessionAlert,
 }
 
 func (e SessionAlertType) IsValid() bool {
 	switch e {
-	case SessionAlertTypeErrorAlert, SessionAlertTypeNewUserAlert, SessionAlertTypeTrackPropertiesAlert, SessionAlertTypeUserPropertiesAlert, SessionAlertTypeSessionFeedbackAlert, SessionAlertTypeRageClickAlert, SessionAlertTypeNewSessionAlert:
+	case SessionAlertTypeErrorAlert, SessionAlertTypeNewUserAlert, SessionAlertTypeTrackPropertiesAlert, SessionAlertTypeUserPropertiesAlert, SessionAlertTypeRageClickAlert, SessionAlertTypeNewSessionAlert:
 		return true
 	}
 	return false
@@ -1579,24 +1623,26 @@ func (e SessionCommentType) MarshalGQL(w io.Writer) {
 type SessionExcludedReason string
 
 const (
-	SessionExcludedReasonInitializing            SessionExcludedReason = "Initializing"
-	SessionExcludedReasonNoActivity              SessionExcludedReason = "NoActivity"
-	SessionExcludedReasonNoUserInteractionEvents SessionExcludedReason = "NoUserInteractionEvents"
-	SessionExcludedReasonNoError                 SessionExcludedReason = "NoError"
-	SessionExcludedReasonIgnoredUser             SessionExcludedReason = "IgnoredUser"
+	SessionExcludedReasonInitializing              SessionExcludedReason = "Initializing"
+	SessionExcludedReasonNoActivity                SessionExcludedReason = "NoActivity"
+	SessionExcludedReasonNoUserInteractionEvents   SessionExcludedReason = "NoUserInteractionEvents"
+	SessionExcludedReasonNoTimelineIndicatorEvents SessionExcludedReason = "NoTimelineIndicatorEvents"
+	SessionExcludedReasonNoError                   SessionExcludedReason = "NoError"
+	SessionExcludedReasonIgnoredUser               SessionExcludedReason = "IgnoredUser"
 )
 
 var AllSessionExcludedReason = []SessionExcludedReason{
 	SessionExcludedReasonInitializing,
 	SessionExcludedReasonNoActivity,
 	SessionExcludedReasonNoUserInteractionEvents,
+	SessionExcludedReasonNoTimelineIndicatorEvents,
 	SessionExcludedReasonNoError,
 	SessionExcludedReasonIgnoredUser,
 }
 
 func (e SessionExcludedReason) IsValid() bool {
 	switch e {
-	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoError, SessionExcludedReasonIgnoredUser:
+	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonIgnoredUser:
 		return true
 	}
 	return false

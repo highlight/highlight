@@ -24,6 +24,7 @@ import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
+import { LoadingRightPanel } from '@/components/Loading/Loading'
 import {
 	useGetBillingDetailsQuery,
 	useGetCustomerPortalUrlLazyQuery,
@@ -251,7 +252,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 	}, [location.pathname, refetch, updateBillingDetails])
 
 	if (loading) {
-		return null
+		return <LoadingRightPanel show={true} />
 	}
 
 	const baseAmount = data?.subscription_details.baseAmount ?? 0
@@ -352,7 +353,7 @@ const BillingPageV2 = ({}: BillingPageProps) => {
 						<Text size="small" weight="medium">
 							Prices are usage based and flexible with your needs.
 							Need a custom quote or want to commit to a minimum
-							spend?{' '}
+							spend (at a discount)?{' '}
 							<a href="mailto:sales@highlight.run">
 								<Box display="inline-flex" alignItems="center">
 									Reach out to sales <IconSolidArrowSmRight />

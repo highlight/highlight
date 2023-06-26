@@ -16,7 +16,10 @@ import { useNavigate } from 'react-router-dom'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
 import { Button } from '@/components/Button'
-import { CircularSpinner } from '@/components/Loading/Loading'
+import {
+	CircularSpinner,
+	LoadingRightPanel,
+} from '@/components/Loading/Loading'
 import {
 	useEditProjectSettingsMutation,
 	useGetProjectQuery,
@@ -26,6 +29,7 @@ import {
 	GetProjectSettingsQuery,
 	namedOperations,
 } from '@/graph/generated/operations'
+import { AutoresolveStaleErrorsForm } from '@/pages/ProjectSettings/AutoresolveStaleErrorsForm/AutoresolveStaleErrorsForm'
 import { FilterSessionsWithoutErrorForm } from '@/pages/ProjectSettings/FilterSessionsWithoutErrorForm/FilterSessionsWithoutErrorForm'
 import { ProjectSettingsContextProvider } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
@@ -55,27 +59,31 @@ const ProjectSettings = () => {
 			refetchQueries: [namedOperations.Query.GetProjectSettings],
 		})
 
-	const onSubmit = (e: { preventDefault: () => void }) => {
-		e.preventDefault()
-		if (!project_id) {
-			return
+	const onSubmit =
+		(tabTitle: string) => (e: { preventDefault: () => void }) => {
+			e.preventDefault()
+			if (!project_id) {
+				return
+			}
+			editProjectSettings({
+				variables: {
+					projectId: project_id!,
+					...allProjectSettings?.projectSettings,
+				},
+			}).then(() => {
+				message.success(`Updated ${tabTitle} settings!`, 5)
+			})
 		}
-		editProjectSettings({
-			variables: {
-				projectId: project_id!,
-				...allProjectSettings?.projectSettings,
-			},
-		}).then(() => {
-			message.success('Updated session replay settings!', 5)
-		})
-	}
 
 	useEffect(() => {
 		if (!loading) {
 			setAllProjectSettings(data)
-			console.log('pepe', data, projectData)
 		}
 	}, [data, projectData, loading])
+
+	if (loading) {
+		return <LoadingRightPanel show={true} />
+	}
 
 	return (
 		<>
@@ -123,7 +131,9 @@ const ProjectSettings = () => {
 														Session replay
 													</Text>
 													<Button
-														onClick={onSubmit}
+														onClick={onSubmit(
+															'session replay',
+														)}
 														trackingId="ProjectSettingsUpdate"
 													>
 														{editProjectSettingsLoading ? (
@@ -163,7 +173,9 @@ const ProjectSettings = () => {
 														Error monitoring
 													</Text>
 													<Button
-														onClick={onSubmit}
+														onClick={onSubmit(
+															'error monitoring',
+														)}
 														trackingId="ProjectSettingsUpdate"
 													>
 														{editProjectSettingsLoading ? (
@@ -187,6 +199,7 @@ const ProjectSettings = () => {
 												</BorderBox>
 												<FilterExtensionForm />
 												<SourcemapSettings />
+												<AutoresolveStaleErrorsForm />
 											</Stack>
 										),
 									},

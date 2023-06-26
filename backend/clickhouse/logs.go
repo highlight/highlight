@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 	"unicode"
@@ -57,7 +58,7 @@ type Pagination struct {
 	CountOnly bool
 }
 
-func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*modelInputs.LogsConnection, error) {
+func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*modelInputs.LogConnection, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
@@ -265,6 +266,13 @@ func readLogsDailyImpl[N number](ctx context.Context, client *Client, aggFn stri
 		sql,
 		args...,
 	).Scan(&out)
+
+	switch v := any(out).(type) {
+	case float64:
+		if math.IsNaN(v) {
+			return 0, err
+		}
+	}
 
 	return out, err
 }

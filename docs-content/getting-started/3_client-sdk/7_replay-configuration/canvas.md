@@ -11,21 +11,21 @@ updatedAt: 2022-09-29T18:01:58.000Z
 </div>
 ## Canvas Recording
 
-Highlight can now not record the contents of `<canvas>` elements. This feature is disabled by default, but can be enabled and configured via the `H.init` options. You'll want to configure the recording settings depending on the type of HTML5 Canvas application you are building. For example, a video game WebGL application may require a higher snapshotting framerate to ensure the replay has enough frames to understand what was happening.
+Highlight can record the contents of `<canvas>` elements, with support for 2D and 3D contexts. Canvas recording can be enabled and configured via the `H.init` options, set up depending on the type of HTML5 Canvas application you are building. For example, a video game WebGL application or three.js visualization may require a higher snapshotting framerate to ensure the replay has enough frames to understand what was happening.
 
 Enable canvas recording by configuring [H.init()](../../../sdk/client.md#Hinit) in the following way:
 
 ```javascript
 H.init('<YOUR_PROJECT_ID>', {
-  enableCanvasRecording: true,
+  enableCanvasRecording: true,        // enable canvas recording
   samplingStrategy: {
-    canvas: 5,
-    canvasMaxSnapshotDimension: 480,
+    canvas: 2,                        // snapshot at 2 fps
+    canvasMaxSnapshotDimension: 480,  // snapshot at a max 480p resolution
   },
 })
 ```
 
-With these settings, the canvas is serialized as a 480p video at 5FPS.
+With these settings, the canvas is serialized as a 480p video at 2FPS.
 
 `samplingStrategy.canvas` is the frame per second rate used to record the HTML canvas. A value < 5 is recommended to ensure the recording is not too large and does not have issues with playback.
 

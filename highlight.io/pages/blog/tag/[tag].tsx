@@ -1,23 +1,15 @@
 import { GetStaticProps } from 'next'
 import { getUniqueTags } from '../../../components/Blog/BlogPost/BlogPost'
 import { Tag } from '../../../components/Blog/Tag'
-import {
-	Blog,
-	loadPostsFromGithub,
-	loadPostsFromHygraph,
-	loadTagsFromGithub,
-	loadTagsFromHygraph,
-} from '../index'
+import { Blog, loadPostsFromGithub, loadTagsFromGithub } from '../index'
 
 export async function getStaticPaths(): Promise<{
 	paths: string[]
 	fallback: string
 }> {
-	const hygraphTags = await loadTagsFromHygraph()
-	const githubPosts = await loadPostsFromGithub()
-	const githubTags = await loadTagsFromGithub(githubPosts)
+	const posts = await loadPostsFromGithub()
+	let tags = await loadTagsFromGithub(posts)
 
-	let tags = [...hygraphTags, ...githubTags]
 	tags = getUniqueTags(tags)
 
 	return {
@@ -27,21 +19,16 @@ export async function getStaticPaths(): Promise<{
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-	const postsRequest = loadPostsFromHygraph(params!.tag as string)
-	const tagsRequest = loadTagsFromHygraph()
-	const githubPosts = await loadPostsFromGithub()
-	const githubTags = await loadTagsFromGithub(githubPosts)
-	let [posts, tags] = await Promise.all([postsRequest, tagsRequest])
+	let posts = await loadPostsFromGithub()
+	let tags = await loadTagsFromGithub(posts)
 
-	let filteredPosts = githubPosts.filter((post) => {
+	posts = posts.filter((post) => {
 		return post.tags_relations.some((tag: Tag) => {
 			return tag.slug === (params!.tag as string)
 		})
 	})
 
-	tags.concat(githubTags)
 	tags = getUniqueTags(tags)
-	posts = [...filteredPosts, ...posts]
 	posts.sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
 
 	return {

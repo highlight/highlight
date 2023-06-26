@@ -5,37 +5,40 @@ import { WorkersSDK } from 'opentelemetry-sdk-workers'
 import { Resource } from '@opentelemetry/resources'
 import { OTLPProtoTraceExporter } from 'opentelemetry-sdk-workers/exporters/OTLPProtoTraceExporter'
 import { OTLPProtoLogExporter } from 'opentelemetry-sdk-workers/exporters/OTLPProtoLogExporter'
+import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
 
 const HIGHLIGHT_PROJECT_ENV = 'HIGHLIGHT_PROJECT_ID'
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
 const HIGHLIGHT_OTLP_BASE = 'https://otel.highlight.io'
+
+export const RECORDED_CONSOLE_METHODS = [
+	'debug',
+	'error',
+	'info',
+	'log',
+	'warn',
+] as const
 
 export interface HighlightEnv {
 	[HIGHLIGHT_PROJECT_ENV]: string
 }
 
 export interface HighlightInterface {
-	_createSDK: (
+	init: (
 		request: Request,
 		env: HighlightEnv,
 		ctx: ExecutionContext,
 	) => WorkersSDK
-	consumeError: (
-		request: Request,
-		env: HighlightEnv,
-		ctx: ExecutionContext,
-		error: Error,
-	) => void
-	sendResponse: (
-		request: Request,
-		env: HighlightEnv,
-		ctx: ExecutionContext,
-		response: Response,
-	) => void
+	consumeError: (error: Error) => void
+	sendResponse: (response: Response) => void
+	setAttributes: (attributes: ResourceAttributes) => void
 }
 
+let sdk: WorkersSDK
+
 export const H: HighlightInterface = {
-	_createSDK: (
+	// Initialize the highlight SDK. This monkeypatches the console methods to start sending console logs to highlight.
+	init: (
 		request: Request,
 		{ [HIGHLIGHT_PROJECT_ENV]: projectID }: HighlightEnv,
 		ctx: ExecutionContext,
@@ -45,9 +48,9 @@ export const H: HighlightInterface = {
 			request.headers.get(HIGHLIGHT_REQUEST_HEADER) || ''
 		).split('/')
 		const endpoints = { default: HIGHLIGHT_OTLP_BASE }
-		return new WorkersSDK(request, ctx, {
+		sdk = new WorkersSDK(request, ctx, {
 			service: service || 'cloudflare-worker',
-			consoleLogEnabled: true,
+			consoleLogEnabled: false,
 			traceExporter: new OTLPProtoTraceExporter({
 				url: `${endpoints.default}/v1/traces`,
 			}),
@@ -60,25 +63,46 @@ export const H: HighlightInterface = {
 				['highlight.trace_id']: requestID,
 			}),
 		})
+		for (const m of RECORDED_CONSOLE_METHODS) {
+			console[m] = sdk.logger[m]
+		}
+		return sdk
 	},
 
-	consumeError: (
-		request: Request,
-		env: HighlightEnv,
-		ctx: ExecutionContext,
-		error: Error,
-	) => {
-		const sdk = H._createSDK(request, env, ctx)
+	// Capture a javascript exception as an error in highlight.
+	consumeError: (error: Error) => {
+		if (!sdk) {
+			console.error(
+				'please call H.init(...) before calling H.sendResponse(...)',
+			)
+			return
+		}
 		sdk.captureException(error)
 	},
 
-	sendResponse: (
-		request: Request,
-		env: HighlightEnv,
-		ctx: ExecutionContext,
-		response: Response,
-	) => {
-		const sdk = H._createSDK(request, env, ctx)
+	// Capture a cloudflare response as a trace in highlight.
+	sendResponse: (response: Response) => {
+		if (!sdk) {
+			console.error(
+				'please call H.init(...) before calling H.sendResponse(...)',
+			)
+			return
+		}
 		sdk.sendResponse(response)
+	},
+
+	// Set custom attributes on the errors and logs reported to highlight.
+	// Setting a key previously set will update the value.
+	setAttributes: (attributes: ResourceAttributes) => {
+		if (!sdk) {
+			console.error(
+				'please call H.init(...) before calling H.setAttributes(...)',
+			)
+			return
+		}
+		// @ts-ignore
+		sdk.traceProvider.resource = sdk.traceProvider.resource.merge(
+			new Resource(attributes),
+		)
 	},
 }

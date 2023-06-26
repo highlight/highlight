@@ -19,7 +19,7 @@ export interface Post {
 	description: string
 	youtubeVideoId?: string
 	metaDescription?: string
-	image?: {
+	image: {
 		url: string
 	}
 	title: string
@@ -37,10 +37,7 @@ export interface Post {
 		markdown: string
 		raw?: any
 	}
-	// to delete once we fire hygraph
 	slug?: string
-	// tags?: Array<string>
-	featured?: boolean
 }
 
 export const BlogPost = ({

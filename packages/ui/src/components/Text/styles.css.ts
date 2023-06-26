@@ -1,43 +1,35 @@
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { createStyleObject } from '@capsizecss/core'
+import fontMetrics from '@capsizecss/metrics/inter'
 import plexoFontMetrics from '@capsizecss/metrics/iBMPlexMono'
 import { globalStyle } from '@vanilla-extract/css'
 import { themeVars } from '../../css/theme.css'
-
-// Generated at https://seek-oss.github.io/capsize/.
-export const steradianFontMetrics = {
-	ascent: 995,
-	descent: 305,
-	capHeight: 703,
-	lineGap: 0,
-	unitsPerEm: 1000,
-}
 
 // Body
 export const xxSmall = createStyleObject({
 	fontSize: 11,
 	leading: 12,
-	fontMetrics: steradianFontMetrics,
+	fontMetrics,
 })
 export const xSmall = createStyleObject({
 	fontSize: 12,
 	leading: 16,
-	fontMetrics: steradianFontMetrics,
+	fontMetrics,
 })
 export const small = createStyleObject({
 	fontSize: 13,
 	leading: 20,
-	fontMetrics: steradianFontMetrics,
+	fontMetrics,
 })
 export const medium = createStyleObject({
 	fontSize: 14,
 	leading: 20,
-	fontMetrics: steradianFontMetrics,
+	fontMetrics,
 })
 export const large = createStyleObject({
 	fontSize: 16,
 	leading: 24,
-	fontMetrics: steradianFontMetrics,
+	fontMetrics,
 })
 
 // Monospace
@@ -57,7 +49,7 @@ const xxsMonotype = createStyleObject({
 	fontMetrics: plexoFontMetrics,
 })
 
-const mainFontFamily = 'Steradian'
+const mainFontFamily = 'Inter'
 
 const family = {
 	body: {
@@ -81,9 +73,9 @@ const size = {
 } as const
 
 const weight = {
-	regular: { fontWeight: '300' },
-	medium: { fontWeight: '400' },
-	bold: { fontWeight: '500' },
+	regular: { fontWeight: '400' },
+	medium: { fontWeight: '500' },
+	bold: { fontWeight: '600' },
 } as const
 
 export const typographyStyles = {
@@ -131,22 +123,6 @@ export const variants = recipe({
 
 	compoundVariants: [
 		{
-			variants: { family: 'monospace', weight: 'regular' },
-			style: typographyStyles.weight.medium,
-		},
-		{
-			variants: { family: 'body', size: 'xxSmall', weight: 'regular' },
-			style: typographyStyles.weight.medium,
-		},
-		{
-			variants: { family: 'body', size: 'xxSmall', weight: 'medium' },
-			style: typographyStyles.weight.bold,
-		},
-		{
-			variants: { family: 'body', size: 'xxSmall', weight: 'bold' },
-			style: { fontWeight: 700 },
-		},
-		{
 			variants: { family: 'monospace', size: 'small' },
 			style: sMonotype,
 		},
@@ -173,5 +149,6 @@ export type Variants = RecipeVariants<typeof variants>
 // global styles to be injected.
 globalStyle('body', {
 	color: themeVars.static.content.default,
+	fontFeatureSettings: "'tnum' 0", // disable tabular numbers
 	...typographyStyles.family.body,
 })
