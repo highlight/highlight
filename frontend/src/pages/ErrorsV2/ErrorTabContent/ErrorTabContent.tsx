@@ -14,6 +14,8 @@ import React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
+import { ErrorInstances } from '@/pages/ErrorsV2/ErrorInstances/ErrorInstances'
+
 import styles from './ErrorTabContent.module.scss'
 
 type Props = React.PropsWithChildren & {
@@ -22,15 +24,13 @@ type Props = React.PropsWithChildren & {
 
 const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 	const navigate = useNavigate()
-	const {
-		project_id,
-		error_secure_id,
-		error_tab_key = 'instances',
-	} = useParams<{
-		project_id: string
-		error_secure_id: string
-		error_tab_key?: 'instances' | 'metrics'
-	}>()
+	const { project_id, error_secure_id, error_object_id, error_tab_key } =
+		useParams<{
+			project_id: string
+			error_secure_id: string
+			error_object_id: string
+			error_tab_key?: 'instances' | 'metrics'
+		}>()
 
 	useHotkeys(
 		'm',
@@ -51,10 +51,13 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 				return
 			}
 
-			navigate(`/${project_id}/errors/${error_secure_id}/instances`)
+			navigate(`/${project_id}/errors/${error_secure_id}`)
 		},
 		[project_id, error_secure_id, error_tab_key],
 	)
+
+	const showAllInstances =
+		error_tab_key === 'instances' && error_object_id === undefined
 
 	return (
 		<Tabs
@@ -65,11 +68,15 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 			noPadding
 			unsetOverflowY
 			activeKeyOverride={error_tab_key}
-			onChange={(activeKey) =>
-				navigate(
-					`/${project_id}/errors/${error_secure_id}/${activeKey}`,
-				)
-			}
+			onChange={(activeKey) => {
+				if (activeKey === 'instances') {
+					navigate(`/${project_id}/errors/${error_secure_id}`)
+				} else {
+					navigate(
+						`/${project_id}/errors/${error_secure_id}/${activeKey}`,
+					)
+				}
+			}}
 			tabs={[
 				{
 					key: 'instances',
@@ -80,7 +87,11 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 							shortcut="i"
 						/>
 					),
-					panelContent: <ErrorInstance errorGroup={errorGroup} />,
+					panelContent: showAllInstances ? (
+						<ErrorInstances errorGroup={errorGroup} />
+					) : (
+						<ErrorInstance errorGroup={errorGroup} />
+					),
 				},
 				{
 					key: 'metrics',

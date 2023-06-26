@@ -259,15 +259,16 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	return (
 		<Box id="error-instance-container">
 			<Stack mt="12" direction="row" alignItems="center">
-				<Button
+				<LinkButton
 					kind="secondary"
 					size="xSmall"
 					emphasis="medium"
 					trackingId="seeAllInstance"
 					iconLeft={<IconSolidArrowSmLeft />}
+					to={`/${projectId}/errors/${error_secure_id}/instances`}
 				>
 					See all instances
-				</Button>
+				</LinkButton>
 				<PreviousNextGroup
 					canMoveBackward={Number(errorInstance.previous_id) !== 0}
 					canMoveForward={Number(errorInstance.next_id) !== 0}
