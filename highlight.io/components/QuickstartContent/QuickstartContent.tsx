@@ -45,6 +45,7 @@ import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
+import { JSAWSLambdaContent } from './backend/js/aws-lambda'
 
 export type QuickStartOptions = {
 	title: string
@@ -89,7 +90,7 @@ export enum QuickStartType {
 	PythonFastAPI = 'fastapi',
 	PythonLoguru = 'loguru',
 	PythonOther = 'other',
-	PythonAWSFn = 'aws-lambda',
+	PythonAWSFn = 'aws-lambda-python',
 	PythonAzureFn = 'azure-functions',
 	PythonGCPFn = 'google-cloud-functions',
 	GoGqlgen = 'gqlgen',
@@ -100,6 +101,7 @@ export enum QuickStartType {
 	GoLogrus = 'logrus',
 	GoOther = 'other',
 	JSApollo = 'apollo',
+	JSAWSFn = 'aws-lambda-node',
 	JSCloudflare = 'cloudflare',
 	JSExpress = 'express',
 	JSFirebase = 'firebase',
@@ -169,6 +171,7 @@ export const quickStartContent = {
 				'Select your JavaScript framework to install error monitoring for your application.',
 			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 			[QuickStartType.JSApollo]: JSApolloContent,
+			[QuickStartType.JSAWSFn]: JSAWSLambdaContent,
 			[QuickStartType.JSCloudflare]: JSCloudflareContent,
 			[QuickStartType.JSExpress]: JSExpressContent,
 			[QuickStartType.JSFirebase]: JSFirebaseContent,
