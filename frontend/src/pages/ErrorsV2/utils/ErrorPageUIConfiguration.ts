@@ -17,7 +17,7 @@ const useErrorPageConfiguration = (): typeof DEFAULT_STATE => {
 	const { isLoggedIn } = useAuthContext()
 	const { projectId } = useNumericProjectId()
 	const [showLeftPanel, setShowLeftPanel] = useLocalStorage<boolean>(
-		'highlightErrorPageShowLeftPanel',
+		'highlightMenuShowLeftPanel',
 		true,
 	)
 
