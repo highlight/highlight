@@ -12882,3 +12882,71 @@ export type GetWorkspacePendingInvitesQueryResult = Apollo.QueryResult<
 	Types.GetWorkspacePendingInvitesQuery,
 	Types.GetWorkspacePendingInvitesQueryVariables
 >
+export const GetErrorObjectsDocument = gql`
+	query GetErrorObjects($errorGroupSecureID: String!) {
+		error_objects(error_group_secure_id: $errorGroupSecureID) {
+			edges {
+				cursor
+				node {
+					id
+					createdAt
+					event
+					session {
+						secureID
+						userProperties
+						appVersion
+					}
+				}
+			}
+		}
+	}
+`
+
+/**
+ * __useGetErrorObjectsQuery__
+ *
+ * To run a query within a React component, call `useGetErrorObjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorObjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorObjectsQuery({
+ *   variables: {
+ *      errorGroupSecureID: // value for 'errorGroupSecureID'
+ *   },
+ * });
+ */
+export function useGetErrorObjectsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorObjectsQuery,
+		Types.GetErrorObjectsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorObjectsQuery,
+		Types.GetErrorObjectsQueryVariables
+	>(GetErrorObjectsDocument, baseOptions)
+}
+export function useGetErrorObjectsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorObjectsQuery,
+		Types.GetErrorObjectsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorObjectsQuery,
+		Types.GetErrorObjectsQueryVariables
+	>(GetErrorObjectsDocument, baseOptions)
+}
+export type GetErrorObjectsQueryHookResult = ReturnType<
+	typeof useGetErrorObjectsQuery
+>
+export type GetErrorObjectsLazyQueryHookResult = ReturnType<
+	typeof useGetErrorObjectsLazyQuery
+>
+export type GetErrorObjectsQueryResult = Apollo.QueryResult<
+	Types.GetErrorObjectsQuery,
+	Types.GetErrorObjectsQueryVariables
+>

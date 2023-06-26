@@ -2088,3 +2088,21 @@ query GetWorkspacePendingInvites($workspace_id: ID!) {
 		created_at
 	}
 }
+
+query GetErrorObjects($errorGroupSecureID: String!) {
+	error_objects(error_group_secure_id: $errorGroupSecureID) {
+		edges {
+			cursor
+			node {
+				id
+				createdAt
+				event
+				session {
+					secureID
+					userProperties
+					appVersion
+				}
+			}
+		}
+	}
+}

@@ -4358,6 +4358,33 @@ export type GetWorkspacePendingInvitesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorObjectsQueryVariables = Types.Exact<{
+	errorGroupSecureID: Types.Scalars['String']
+}>
+
+export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
+	error_objects: { __typename?: 'ErrorObjectConnection' } & {
+		edges: Array<
+			{ __typename?: 'ErrorObjectEdge' } & Pick<
+				Types.ErrorObjectEdge,
+				'cursor'
+			> & {
+					node: { __typename?: 'ErrorObjectNode' } & Pick<
+						Types.ErrorObjectNode,
+						'id' | 'createdAt' | 'event'
+					> & {
+							session: {
+								__typename?: 'ErrorObjectNodeSession'
+							} & Pick<
+								Types.ErrorObjectNodeSession,
+								'secureID' | 'userProperties' | 'appVersion'
+							>
+						}
+				}
+		>
+	}
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4487,6 +4514,7 @@ export const namedOperations = {
 		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
 		GetProjectSettings: 'GetProjectSettings' as const,
 		GetWorkspacePendingInvites: 'GetWorkspacePendingInvites' as const,
+		GetErrorObjects: 'GetErrorObjects' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,

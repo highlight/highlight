@@ -1,0 +1,22 @@
+import { Text } from '@highlight-run/ui'
+import moment from 'moment'
+import React from 'react'
+
+const toYearMonthDay = (timestamp: string) => {
+	const date = new Date(timestamp)
+	return moment(date).format('YYYY-MM-DD HH:mm:ss')
+}
+
+type Props = {
+	timestamp: string
+}
+
+const ErrorInstanceTimestamp = ({ timestamp }: Props) => {
+	return (
+		<Text color="weak" family="monospace">
+			{toYearMonthDay(timestamp)}
+		</Text>
+	)
+}
+
+export { ErrorInstanceTimestamp }
