@@ -471,7 +471,6 @@ const PlayerPage = () => {
 		isSessionPendingData?.isSessionPending,
 		loading,
 		sessionViewability,
-		session_secure_id,
 		integrated,
 	])
 

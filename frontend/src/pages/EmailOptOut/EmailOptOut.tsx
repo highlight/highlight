@@ -19,6 +19,7 @@ import BorderBox from '@/components/BorderBox/BorderBox'
 import { Header } from '@/components/Header/Header'
 import LeadAlignLayout from '@/components/layout/LeadAlignLayout'
 import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
+import { showIntercomBubble } from '@/util/window'
 
 type Props = {
 	token?: string | null
@@ -39,6 +40,11 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 		if (!loading) {
 			setLoadingState(AppLoadingState.LOADED)
 		}
+
+		// Show the Intercom message after 5 seconds in case the user needs help.
+		setTimeout(() => {
+			showIntercomBubble()
+		}, 5000)
 	}, [loading, setLoadingState])
 
 	if (loading) {

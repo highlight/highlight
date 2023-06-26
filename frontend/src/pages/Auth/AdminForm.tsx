@@ -34,10 +34,10 @@ import { useLocalStorage } from 'react-use'
 
 import { namedOperations } from '@/graph/generated/operations'
 import { DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY } from '@/pages/Auth/JoinWorkspace'
+import { showIntercomBubble } from '@/util/window'
 
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
-import { showIntercom } from '@/util/window'
 
 const COMMON_EMAIL_PROVIDERS = [
 	'gmail',
@@ -198,7 +198,7 @@ export const AdminForm: React.FC = () => {
 	useEffect(() => {
 		// Show the Intercom message after 5 seconds in case the user needs help.
 		setTimeout(() => {
-			showIntercom()
+			showIntercomBubble()
 		}, 5000)
 	}, [])
 

@@ -54,7 +54,7 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { titleCaseString } from '@util/string'
-import { loadIntercom, showIntercom } from '@util/window'
+import { showIntercomBubble } from '@util/window'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -114,7 +114,7 @@ export const useBillingHook = ({
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId } = useProjectId()
-	const { admin, isLoggedIn, signOut } = useAuthContext()
+	const { isLoggedIn, signOut } = useAuthContext()
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
@@ -573,7 +573,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											</Link>
 											<Menu.Item
 												onClick={() => {
-													showIntercom()
+													showIntercomBubble()
 												}}
 											>
 												<Box

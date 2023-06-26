@@ -18,8 +18,8 @@ import {
 import { AuthBody, AuthFooter, AuthHeader } from '@/pages/Auth/Layout'
 import { Landing } from '@/pages/Landing/Landing'
 import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
+import { showIntercomBubble } from '@/util/window'
 
-import { showIntercom } from '@/util/window'
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
 
@@ -64,7 +64,7 @@ export const JoinWorkspace = () => {
 
 		// Show the Intercom message after 5 seconds in case the user needs help.
 		setTimeout(() => {
-			showIntercom()
+			showIntercomBubble()
 		}, 5000)
 	}, [loading, setLoadingState])
 

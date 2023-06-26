@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import { LinkButton } from '@components/LinkButton'
 import {
 	Maybe,
@@ -231,7 +230,6 @@ const StackSectionError: React.FC<
 	const { projectId } = useProjectId()
 	const [showMetadata, setShowMetadata] = React.useState(false)
 	const { mounted } = usePopover()
-	const { admin } = useAuthContext()
 
 	useEffect(() => {
 		if (!mounted) {

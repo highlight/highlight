@@ -12,8 +12,8 @@ import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { showIntercom } from '@/util/window'
 import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
+import { showIntercomBubble } from '@/util/window'
 
 import * as styles from './AuthRouter.css'
 
@@ -42,7 +42,7 @@ export const VerifyEmail: React.FC = () => {
 
 		// Show the Intercom message after 5 seconds in case the user needs help.
 		setTimeout(() => {
-			showIntercom()
+			showIntercomBubble()
 		}, 5000)
 	}, [setLoadingState])
 

@@ -34,6 +34,10 @@ export function loadIntercom({ admin }: IntercomInit = {}) {
 		})
 }
 
-export const showIntercom = () => {
-	window.Intercom('showNewMessage')
+export const showIntercomBubble = () => {
+	window.Intercom('boot', { hide_default_launcher: false })
+}
+
+export const showIntercomNewMessage = (message = '') => {
+	window.Intercom('showNewMessage', message)
 }
