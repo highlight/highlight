@@ -35,7 +35,7 @@ const JoinWorkspace = ({
 					message.error(
 						<>
 							Failed to join the workspace. Please try again or
-							reach out contact us if you need assistance.
+							contact us if you need assistance.
 						</>,
 					)
 				} finally {
