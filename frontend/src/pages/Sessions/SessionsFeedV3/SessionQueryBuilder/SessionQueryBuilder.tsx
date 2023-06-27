@@ -13,7 +13,10 @@ import QueryBuilder, {
 	BOOLEAN_OPERATORS,
 	CUSTOM_TYPE,
 	CustomField,
+	deserializeRules,
 	FetchFieldVariables,
+	getAbsoluteEndTime,
+	getAbsoluteStartTime,
 	RANGE_OPERATORS,
 	SelectOption,
 	TIME_OPERATORS,
@@ -144,15 +147,32 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
+
+	const searchContext = useSearchContext()
+
+	const { rules: serializedRules }: { rules: any } = JSON.parse(
+		searchContext.searchQuery,
+	)
+	const newRules = deserializeRules(serializedRules)
+	const timeRange = newRules.find(
+		(rule) => rule.field?.value === TIME_RANGE_FIELD.value,
+	)
+
+	const startDate = getAbsoluteStartTime(timeRange?.val?.options[0].value)
+	const endDate = getAbsoluteEndTime(timeRange?.val?.options[0].value)
 	const { data: fieldData } = useGetFieldTypesQuery({
-		variables: { project_id: project_id! },
+		variables: {
+			project_id: project_id!,
+			start_date: startDate,
+			end_date: endDate,
+		},
 		skip: !project_id,
 	})
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	return (
 		<QueryBuilder
-			searchContext={useSearchContext()}
+			searchContext={searchContext}
 			timeRangeField={TIME_RANGE_FIELD}
 			customFields={CUSTOM_FIELDS}
 			fetchFields={fetchFields}
