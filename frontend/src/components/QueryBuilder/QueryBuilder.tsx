@@ -844,25 +844,26 @@ const SelectPopoutV2 = ({
 					value.options[0].label}
 			</Menu.Button>
 			<Menu.List cssClass={styles.menuList}>
-				<Box>
-					<input
-						type="text"
-						placeholder="Filter..."
-						value={query}
-						onChange={(ev) => setQuery(ev.currentTarget.value)}
-					/>
-				</Box>
+				<PopoutContent />
+				<input
+					type="text"
+					placeholder="Filter..."
+					value={query}
+					onChange={(ev) => setQuery(ev.currentTarget.value)}
+				/>
 				<Menu.Divider />
-				{options.map((o: any, i) => (
-					<Menu.Item
-						key={i}
-						onClick={(e) => {
-							console.log('zane onClick', e)
-						}}
-					>
-						{getOptionV2(o)}
-					</Menu.Item>
-				))}
+				<Box>
+					{options.map((o: any, i) => (
+						<Menu.Item
+							key={i}
+							onClick={() => {
+								onChange(o)
+							}}
+						>
+							{getOptionV2(o)}
+						</Menu.Item>
+					))}
+				</Box>
 			</Menu.List>
 		</Menu>
 	)
@@ -992,7 +993,7 @@ const QueryRule = ({
 				disabled={readonly}
 				cssClass={[newStyle.flatRight, newStyle.tagKey]}
 			/>
-			<SelectPopout
+			<SelectPopoutV2
 				value={getOperator(rule.op, rule.val)}
 				onChange={onChangeOperator}
 				loadOptions={getOperatorOptions}
@@ -1008,7 +1009,7 @@ const QueryRule = ({
 				]}
 			/>
 			{!!rule.op && hasArguments(rule.op) && (
-				<SelectPopout
+				<SelectPopoutV2
 					value={rule.val}
 					onChange={onChangeValue}
 					loadOptions={getValueOptions}
