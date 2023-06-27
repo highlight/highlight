@@ -6451,6 +6451,17 @@ body {
   flex-direction: column;
   row-gap: 4px;
 }
+._1bsjoph0 {
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  width: 100%;
+}
+._1bsjoph0:hover {
+  background-color: var(--_1pyqka91x);
+}
 .ltrwrc0 {
   height: calc(100vh - 108px - var(--banner-height));
 }

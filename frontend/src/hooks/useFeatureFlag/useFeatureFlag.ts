@@ -14,6 +14,7 @@ interface Config {
 
 export enum Feature {
 	HistogramTimelineV2,
+	AiSessionInsights,
 }
 
 // configures the criteria and percentage of population for which the feature is active.
@@ -34,6 +35,11 @@ export const FeatureConfig: { [key: number]: Config } = {
 			// Synder
 			'1031',
 		]),
+	},
+	[Feature.AiSessionInsights]: {
+		workspace: true,
+		percent: 0,
+		projectOverride: new Set<string>(['1']),
 	},
 } as const
 
