@@ -323,6 +323,9 @@ export const indexedDBFetch = async function* (
 }
 
 const cleanup = async () => {
+	if (!navigator?.storage?.estimate) {
+		return
+	}
 	const fetchElems = await db.fetch.count()
 	const mapElems = await db.map.count()
 	const apolloElems = await db.apollo.count()
