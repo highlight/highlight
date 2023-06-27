@@ -30,7 +30,7 @@ const (
 
 func getBody(r *http.Request) (body io.Reader, err error) {
 	body = r.Body
-	if r.Header.Get("content-encoding") == "gzip" {
+	if r.Header.Get("Content-Encoding") == "gzip" {
 		body, err = gzip.NewReader(r.Body)
 		if err != nil {
 			return

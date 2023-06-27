@@ -1,6 +1,8 @@
 package http
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -33,15 +35,36 @@ func (m *MockResponseWriter) WriteHeader(statusCode int) {
 }
 
 func TestHandleRawLog(t *testing.T) {
-	w := &MockResponseWriter{}
 	r, _ := http.NewRequest("POST", fmt.Sprintf("/v1/logs/raw?%s=1jdkoe52&%s=test", LogDrainProjectQueryParam, LogDrainServiceQueryParam), strings.NewReader("yo there, this is the message"))
+	w := &MockResponseWriter{}
 	HandleRawLog(w, r)
 	assert.Equal(t, 200, w.statusCode)
 }
 
 func TestHandleFlyJSONLog(t *testing.T) {
-	w := &MockResponseWriter{}
 	r, _ := http.NewRequest("POST", "/v1/logs/json", strings.NewReader(FlyNDJson))
+	r.Header.Set("Content-Type", "application/x-ndjson")
+	r.Header.Set(LogDrainProjectHeader, "1")
+	w := &MockResponseWriter{}
+	HandleJSONLog(w, r)
+	assert.Equal(t, 200, w.statusCode)
+}
+
+func TestHandleFlyJSONGZIPLog(t *testing.T) {
+	b := bytes.Buffer{}
+	gz := gzip.NewWriter(&b)
+	if _, err := gz.Write([]byte(FlyNDJson)); err != nil {
+		t.Fatal(err)
+	}
+	if err := gz.Close(); err != nil {
+		t.Fatal(err)
+	}
+	r, _ := http.NewRequest("POST", "/v1/logs/json", &b)
+	r.Header.Set("Content-Type", "application/x-ndjson")
+	r.Header.Set("Content-Encoding", "gzip")
+	r.Header.Set(LogDrainProjectHeader, "1")
+	r.Header.Set(LogDrainServiceHeader, "foo")
+	w := &MockResponseWriter{}
 	HandleJSONLog(w, r)
 	assert.Equal(t, 200, w.statusCode)
 }
