@@ -1520,11 +1520,8 @@ type QueryResolver interface {
 	LogsKeys(ctx context.Context, projectID int, dateRange model.DateRangeRequiredInput) ([]*model.LogKey, error)
 	LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model1.ErrorObject, error)
-<<<<<<< HEAD
 	ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error)
-=======
 	SessionInsight(ctx context.Context, secureID string) (*model.SessionInsight, error)
->>>>>>> main
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -10333,11 +10330,8 @@ type Query {
 		date_range: DateRangeRequiredInput!
 	): [String!]!
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
-<<<<<<< HEAD
 	error_resolution_suggestion(error_object_id: ID!): String!
-=======
 	session_insight(secure_id: String!): SessionInsight
->>>>>>> main
 }
 
 type Mutation {
@@ -48824,17 +48818,12 @@ func (ec *executionContext) _Query_error_resolution_suggestion(ctx context.Conte
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-<<<<<<< HEAD
 		return ec.resolvers.Query().ErrorResolutionSuggestion(rctx, fc.Args["error_object_id"].(int))
-=======
-		return ec.resolvers.Query().SessionInsight(rctx, fc.Args["secure_id"].(string))
->>>>>>> main
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 	}
 	if resTmp == nil {
-<<<<<<< HEAD
 		if !graphql.HasFieldError(ctx, fc) {
 			ec.Errorf(ctx, "must not be null")
 		}
@@ -48846,33 +48835,13 @@ func (ec *executionContext) _Query_error_resolution_suggestion(ctx context.Conte
 }
 
 func (ec *executionContext) fieldContext_Query_error_resolution_suggestion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-=======
-		return graphql.Null
-	}
-	res := resTmp.(*model.SessionInsight)
-	fc.Result = res
-	return ec.marshalOSessionInsight2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionInsight(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Query_session_insight(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
->>>>>>> main
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-<<<<<<< HEAD
 			return nil, errors.New("field of type String does not have child fields")
-=======
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_SessionInsight_id(ctx, field)
-			case "insight":
-				return ec.fieldContext_SessionInsight_insight(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type SessionInsight", field.Name)
->>>>>>> main
 		},
 	}
 	defer func() {
@@ -48882,11 +48851,64 @@ func (ec *executionContext) fieldContext_Query_session_insight(ctx context.Conte
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-<<<<<<< HEAD
 	if fc.Args, err = ec.field_Query_error_resolution_suggestion_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-=======
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_session_insight(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_session_insight(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SessionInsight(rctx, fc.Args["secure_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.SessionInsight)
+	fc.Result = res
+	return ec.marshalOSessionInsight2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionInsight(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_session_insight(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_SessionInsight_id(ctx, field)
+			case "insight":
+				return ec.fieldContext_SessionInsight_insight(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SessionInsight", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_session_insight_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
->>>>>>> main
 		ec.Error(ctx, err)
 		return
 	}
@@ -70399,11 +70421,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-<<<<<<< HEAD
 		case "error_resolution_suggestion":
-=======
-		case "session_insight":
->>>>>>> main
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -70412,11 +70430,27 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-<<<<<<< HEAD
 				res = ec._Query_error_resolution_suggestion(ctx, field)
-=======
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "session_insight":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
 				res = ec._Query_session_insight(ctx, field)
->>>>>>> main
 				return res
 			}
 
