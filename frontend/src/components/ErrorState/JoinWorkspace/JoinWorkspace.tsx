@@ -5,6 +5,8 @@ import { Maybe } from '@graph/schemas'
 import { message } from 'antd'
 import React from 'react'
 
+import { showIntercomNewMessage } from '@/util/window'
+
 const JoinWorkspace = ({
 	workspace,
 }: {
@@ -33,10 +35,11 @@ const JoinWorkspace = ({
 					})
 				} catch (_e) {
 					message.error(
-						<>
-							Failed to join the workspace. Please try again or
-							contact us if you need assistance.
-						</>,
+						'Failed to join the workspace. Please try again or',
+					)
+
+					showIntercomNewMessage(
+						`I can't reply to a comment. This is the error I'm getting: "${_e}"`,
 					)
 				} finally {
 					message.success(
