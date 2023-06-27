@@ -4,11 +4,11 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	model2 "github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	log "github.com/sirupsen/logrus"
@@ -16,7 +16,6 @@ import (
 	"io"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -218,22 +217,8 @@ func HandleJSONLog(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		for k, v := range lgAttrs {
-			switch typed := v.(type) {
-			case map[string]interface{}:
-				// special case for fly.io `log.level` ingest
-				if lvl, ok := typed["level"]; ok && k == "log" {
-					if lvlStr, ok := lvl.(string); ok {
-						lg.Level = lvlStr
-					}
-				} else {
-					lg.Attributes[k] = fmt.Sprintf("%+v", typed)
-				}
-			case string:
-				lg.Attributes[k] = typed
-			case int64:
-				lg.Attributes[k] = strconv.FormatInt(typed, 10)
-			case float64:
-				lg.Attributes[k] = strconv.FormatFloat(typed, 'E', -1, 64)
+			for key, value := range util.FormatLogAttributes(r.Context(), 0, k, v) {
+				lg.Attributes[key] = value
 			}
 		}
 
