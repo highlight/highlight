@@ -2570,7 +2570,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	defer updateSpan.Finish()
 
 	excluded, reason := r.isSessionExcluded(ctx, sessionObj, sessionHasErrors)
-	hasUserEvents := sessionObj.HasUserEvents != nil && *sessionObj.HasUserEvents
 
 	// Update only if any of these fields are changing
 	// Update the PayloadUpdatedAt field only if it's been >15s since the last one
@@ -2597,7 +2596,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				ObjectStorageEnabled:  &model.F,
 				DirectDownloadEnabled: false,
 				Chunked:               &model.F,
-				Excluded:              !hasUserEvents,
+				Excluded:              false,
 				ExcludedReason:        nil,
 				HasErrors:             &sessionHasErrors,
 			}).Error; err != nil {
@@ -3028,7 +3027,18 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 		reason = privateModel.SessionExcludedReasonNoError
 	}
 
+	if r.isSessionExcludedForNoUserEvents(ctx, s) {
+		excluded = true
+		reason = privateModel.SessionExcludedReasonNoUserEvents
+	}
+
 	return excluded, &reason
+}
+
+func (r *Resolver) isSessionExcludedForNoUserEvents(ctx context.Context, s *model.Session) bool {
+	hasUserEvents := s.HasUserEvents != nil && *s.HasUserEvents
+
+	return !hasUserEvents
 }
 
 func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
