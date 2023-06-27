@@ -815,8 +815,7 @@ export const AlertConfigurationCard = ({
 							<h3>Emails to Notify</h3>
 							<p>
 								Pick email addresses to email when an alert is
-								created. These are email addresses for people in
-								your workspace.
+								created.
 							</p>
 							<Form.Item shouldUpdate>
 								{() => (
