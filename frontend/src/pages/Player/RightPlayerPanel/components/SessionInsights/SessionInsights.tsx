@@ -2,12 +2,14 @@ import {
 	Badge,
 	Box,
 	IconSolidArrowCircleRight,
+	IconSolidSparkles,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
 
+import { Button } from '@/components/Button'
 import LoadingBox from '@/components/LoadingBox'
-import { useGetSessionInsightQuery } from '@/graph/generated/hooks'
+import { useGetSessionInsightLazyQuery } from '@/graph/generated/hooks'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'
 import { useParams } from '@/util/react-router/useParams'
@@ -30,24 +32,24 @@ const SessionInsights = () => {
 	} = useReplayerContext()
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 
-	const { data, loading } = useGetSessionInsightQuery({
-		variables: {
-			secure_id: session_secure_id!,
-		},
-		skip: !session_secure_id,
-	})
+	const [getSessionInsight, { data, loading }] =
+		useGetSessionInsightLazyQuery({
+			variables: {
+				secure_id: session_secure_id!,
+			},
+		})
 
 	return (
-		<Box py="8" display="flex" flexDirection="column">
+		<Box p="8" display="flex" flexDirection="column" height="full">
 			{loading ? (
 				<LoadingBox />
-			) : (
+			) : data ? (
 				JSON.parse(data?.session_insight?.insight || '[]').map(
 					(insight: SessionInsight, idx: number) => {
 						const timeSinceStart =
 							new Date(insight.timestamp).getTime() - startTime
 						return (
-							<Box px="8" cursor="pointer" key={idx}>
+							<Box cursor="pointer" key={idx}>
 								<Box
 									className={style.insight}
 									onClick={() => {
@@ -97,6 +99,26 @@ const SessionInsights = () => {
 						)
 					},
 				)
+			) : (
+				<Box
+					background="raised"
+					height="full"
+					width="full"
+					display="flex"
+					alignItems="center"
+					justifyContent="center"
+					borderRadius="6"
+				>
+					<Button
+						trackingId="GetSessionInsight"
+						onClick={() => {
+							getSessionInsight()
+						}}
+						iconLeft={<IconSolidSparkles />}
+					>
+						Generate summary
+					</Button>
+				</Box>
 			)}
 		</Box>
 	)

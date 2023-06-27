@@ -77,11 +77,7 @@ func (s *Client) GetSessionInsight(ctx context.Context, projectID int, sessionID
 			ID:        232563428,
 			ProjectID: 1,
 		})
-		var localServerErr error
-		req, localServerErr = http.NewRequest(http.MethodPost, "http://localhost:8765/session/insight", bytes.NewBuffer(b))
-		if localServerErr != nil {
-			req, _ = http.NewRequest(http.MethodPost, "https://ohw2ocqp0d.execute-api.us-east-2.amazonaws.com/default/ai-insights", bytes.NewBuffer(b))
-		}
+		req, _ = http.NewRequest(http.MethodPost, "http://localhost:8765/session/insight", bytes.NewBuffer(b))
 	} else {
 		req, _ = http.NewRequest(http.MethodPost, "https://ohw2ocqp0d.execute-api.us-east-2.amazonaws.com/default/ai-insights", bytes.NewBuffer(b))
 	}
