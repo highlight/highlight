@@ -27,7 +27,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 "customer": req.headers.get("customer") or "unknown",
                 "idx": idx,
                 "float": 1.2345,
-                "duration": datetime.now() - start,
+                "duration": (datetime.now() - start).total_seconds(),
             },
         )
 
@@ -51,7 +51,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             "customer": req.headers.get("customer") or "unknown",
             "name": name,
             "float": 1.2345,
-            "duration": datetime.now() - start,
+            "duration": (datetime.now() - start).total_seconds(),
         },
     )
 

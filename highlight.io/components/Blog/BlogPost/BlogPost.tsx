@@ -19,7 +19,7 @@ export interface Post {
 	description: string
 	youtubeVideoId?: string
 	metaDescription?: string
-	image?: {
+	image: {
 		url: string
 	}
 	title: string

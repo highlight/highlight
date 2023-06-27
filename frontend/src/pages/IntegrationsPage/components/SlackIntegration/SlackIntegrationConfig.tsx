@@ -9,7 +9,7 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 
-import styles from './SlackIntegrationConfig.module.scss'
+import styles from './SlackIntegrationConfig.module.css'
 
 const SlackIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>

@@ -15,7 +15,7 @@ import {
 import { formatTimeAsHMS } from '@/util/time'
 
 import CommentTextBody from '../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
-import styles from './SessionComment.module.scss'
+import styles from './SessionComment.module.css'
 import SessionCommentHeader from './SessionCommentHeader'
 
 interface Props {

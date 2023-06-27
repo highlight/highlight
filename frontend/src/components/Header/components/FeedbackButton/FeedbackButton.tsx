@@ -9,7 +9,7 @@ import SvgBugIcon from '../../../../static/BugIcon'
 import SvgPlusIcon from '../../../../static/PlusIcon'
 import Button from '../../../Button/Button/Button'
 import PopoverMenu from '../../../PopoverMenu/PopoverMenu'
-import styles from './FeedbackButton.module.scss'
+import styles from './FeedbackButton.module.css'
 
 const FeedbackButton = () => {
 	const { admin } = useAuthContext()

@@ -19,6 +19,13 @@ export const selectButton = style({
 	fontSize: 13,
 	gap: 4,
 	padding: '0 8px',
+
+	selectors: {
+		'&:hover': {
+			cursor: 'pointer',
+			background: vars.theme.interactive.overlay.secondary.hover,
+		},
+	},
 })
 
 export const selectPopover = style({

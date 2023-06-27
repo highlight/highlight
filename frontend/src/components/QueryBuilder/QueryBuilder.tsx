@@ -50,7 +50,6 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
@@ -85,7 +84,7 @@ import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPic
 
 import { DropdownMenu } from '../../pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfigurationV2/SessionFeedConfigurationV2'
 import * as newStyle from './QueryBuilder.css'
-import styles from './QueryBuilder.module.scss'
+import styles from './QueryBuilder.module.css'
 export interface RuleProps {
 	field: SelectOption | undefined
 	op: Operator | undefined
@@ -1256,6 +1255,7 @@ interface QueryBuilderProps<
 	fieldData?: GetFieldTypesQuery
 	readonly?: boolean
 	emptySearchParams: T
+	setShowLeftPanel: (value: boolean) => void
 	useEditAnySegmentMutation:
 		| typeof useEditSegmentMutation
 		| typeof useEditErrorSegmentMutation
@@ -1295,6 +1295,7 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 		fieldData,
 		readonly,
 		emptySearchParams,
+		setShowLeftPanel,
 		useEditAnySegmentMutation,
 		useGetAnySegmentsQuery,
 		CreateAnySegmentModal,
@@ -2101,8 +2102,6 @@ function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
 	const [currentStep, setCurrentStep] = useState<number | undefined>(
 		undefined,
 	)
-
-	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	const mode = useMemo(() => {
 		if (filterRules.length === 0 && !selectedSegment) {

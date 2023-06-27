@@ -1,0 +1,35 @@
+.tooltip {
+	flex-shrink: 0;
+	z-index: 9999999999999 !important;
+
+	& a {
+		color: var(--text-primary-inverted) !important;
+		text-decoration: underline;
+	}
+
+	:global(.ant-tooltip-inner) {
+		background: var(--color-primary-inverted-background) !important;
+		border-radius: var(--border-radius) !important;
+	}
+
+	&.hideArrow {
+		:global(.ant-tooltip-arrow-content) {
+			display: none;
+		}
+	}
+}
+
+.icon {
+	--size: var(--size-small);
+	flex-shrink: 0;
+	height: var(--size);
+	width: var(--size);
+
+	&.medium {
+		--size: var(--size-medium);
+	}
+
+	&.large {
+		--size: var(--size-large);
+	}
+}

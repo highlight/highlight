@@ -3,7 +3,7 @@ import { Dropdown, DropDownProps } from 'antd'
 import React from 'react'
 
 import SvgDotsHorizontalIcon from '../../static/DotsHorizontalIcon'
-import styles from './DotsMenu.module.scss'
+import styles from './DotsMenu.module.css'
 
 type Props = {
 	/**

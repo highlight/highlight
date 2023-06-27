@@ -9,7 +9,11 @@ export type ConsoleMessage = {
 
 export type ErrorMessage = {
 	event: string
-	type: 'console.error' | 'window.onerror' | 'custom'
+	type:
+		| 'console.error'
+		| 'window.onerror'
+		| 'window.onunhandledrejection'
+		| 'custom'
 	url: string
 	source: string
 	lineNumber: number

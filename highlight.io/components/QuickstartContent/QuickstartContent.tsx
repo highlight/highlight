@@ -34,9 +34,11 @@ import { HTTPContent } from './logging/http'
 import { JSNestLogContent } from './logging/js/nestjs'
 import { JSOtherLogContent } from './logging/js/other'
 
+import { JSAWSLambdaContent } from './backend/js/aws-lambda'
 import { DockerContent } from './logging/docker'
 import { FileContent } from './logging/file'
 import { FluentForwardContent } from './logging/fluentd'
+import { HostingFlyIOLogContent } from './logging/hosting/fly-io'
 import { JSCloudflareLoggingContent } from './logging/js/cloudflare'
 import { JSWinstonHTTPJSONLogContent } from './logging/js/winston'
 import { PythonLoguruLogContent } from './logging/python/loguru'
@@ -89,7 +91,7 @@ export enum QuickStartType {
 	PythonFastAPI = 'fastapi',
 	PythonLoguru = 'loguru',
 	PythonOther = 'other',
-	PythonAWSFn = 'aws-lambda',
+	PythonAWSFn = 'aws-lambda-python',
 	PythonAzureFn = 'azure-functions',
 	PythonGCPFn = 'google-cloud-functions',
 	GoGqlgen = 'gqlgen',
@@ -100,6 +102,7 @@ export enum QuickStartType {
 	GoLogrus = 'logrus',
 	GoOther = 'other',
 	JSApollo = 'apollo',
+	JSAWSFn = 'aws-lambda-node',
 	JSCloudflare = 'cloudflare',
 	JSExpress = 'express',
 	JSFirebase = 'firebase',
@@ -114,6 +117,7 @@ export enum QuickStartType {
 	RubyOther = 'other',
 	RubyRails = 'rails',
 	HostingVercel = 'vercel',
+	HostingFlyIO = 'fly-io',
 }
 
 export const quickStartContent = {
@@ -169,6 +173,7 @@ export const quickStartContent = {
 				'Select your JavaScript framework to install error monitoring for your application.',
 			logoUrl: siteUrl('/images/quickstart/javascript.svg'),
 			[QuickStartType.JSApollo]: JSApolloContent,
+			[QuickStartType.JSAWSFn]: JSAWSLambdaContent,
 			[QuickStartType.JSCloudflare]: JSCloudflareContent,
 			[QuickStartType.JSExpress]: JSExpressContent,
 			[QuickStartType.JSFirebase]: JSFirebaseContent,
@@ -243,6 +248,7 @@ export const quickStartContent = {
 			subtitle:
 				'Select your Hosting provider to setup the Highlight integration and stream logs.',
 			[QuickStartType.HostingVercel]: HostingVercelLogContent,
+			[QuickStartType.HostingFlyIO]: HostingFlyIOLogContent,
 		},
 	},
 	other: {

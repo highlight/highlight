@@ -7,7 +7,8 @@ import {
 	Box,
 	Form,
 	Heading,
-	IconSolidSparkles,
+	IconSolidGithub,
+	IconSolidGoogle,
 	Stack,
 	Text,
 	useFormState,
@@ -61,6 +62,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 					provider: additionalUserInfo.providerId,
 				})
 
+				if (!user?.emailVerified) {
+					auth.currentUser?.sendEmailVerification()
+				}
+
 				await createAdmin()
 			}
 
@@ -90,6 +95,10 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 		},
 		[navigate, setResolver],
 	)
+
+	const handleExternalAuthClick = (provider: firebase.auth.AuthProvider) => {
+		auth.signInWithPopup(provider).then(handleAuth).catch(handleAuthError)
+	}
 
 	useEffect(() => analytics.page(), [])
 
@@ -181,13 +190,25 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						type="button"
 						trackingId="sign-in-with-google"
 						onClick={() => {
-							auth.signInWithPopup(auth.googleProvider!)
-								.then(handleAuth)
-								.catch(handleAuthError)
+							handleExternalAuthClick(auth.googleProvider!)
 						}}
 					>
 						<Box display="flex" alignItems="center" gap="6">
-							Sign in with Google <IconSolidSparkles />
+							<IconSolidGoogle />
+							Sign in with Google
+						</Box>
+					</Button>
+					<Button
+						kind="secondary"
+						type="button"
+						trackingId="sign-in-with-github"
+						onClick={() => {
+							handleExternalAuthClick(auth.githubProvider!)
+						}}
+					>
+						<Box display="flex" alignItems="center" gap="6">
+							<IconSolidGithub />
+							Sign in with Github
 						</Box>
 					</Button>
 				</Stack>

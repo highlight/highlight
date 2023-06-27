@@ -28,8 +28,8 @@ import { Link } from 'react-router-dom'
 
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 
-import alertConfigurationCardStyles from '../AlertConfigurationCard/AlertConfigurationCard.module.scss'
-import styles from './MonitorConfiguration.module.scss'
+import alertConfigurationCardStyles from '../AlertConfigurationCard/AlertConfigurationCard.module.css'
+import styles from './MonitorConfiguration.module.css'
 
 // show the last 5 periods
 const PREVIEW_PERIODS = 5

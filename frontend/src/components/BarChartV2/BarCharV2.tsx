@@ -23,7 +23,7 @@ import {
 	YAxis,
 } from 'recharts'
 
-import styles from './BarChartV2.module.scss'
+import styles from './BarChartV2.module.css'
 
 type Props = Omit<LineChartProps, 'lineColorMapping' | 'height'> & {
 	xAxisLabel?: string

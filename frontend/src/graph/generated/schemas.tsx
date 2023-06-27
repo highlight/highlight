@@ -1709,6 +1709,7 @@ export type Query = {
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
 	session_comments_for_project: Array<Maybe<SessionComment>>
+	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
 	sessions_histogram: SessionsHistogram
 	sessions_opensearch: SessionResults
@@ -2204,6 +2205,10 @@ export type QuerySession_Comments_For_ProjectArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QuerySession_InsightArgs = {
+	secure_id: Scalars['String']
+}
+
 export type QuerySession_IntervalsArgs = {
 	session_secure_id: Scalars['String']
 }
@@ -2583,6 +2588,12 @@ export enum SessionExcludedReason {
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
 }
 
+export type SessionInsight = {
+	__typename?: 'SessionInsight'
+	id: Scalars['ID']
+	insight: Scalars['String']
+}
+
 export type SessionInterval = {
 	__typename?: 'SessionInterval'
 	active: Scalars['Boolean']
@@ -2605,6 +2616,12 @@ export type SessionPayload = {
 	last_user_interaction_time: Scalars['Timestamp']
 	rage_clicks: Array<RageClickEvent>
 	session_comments: Array<Maybe<SessionComment>>
+}
+
+export type SessionQuery = {
+	__typename?: 'SessionQuery'
+	id: Scalars['ID']
+	project_id: Scalars['ID']
 }
 
 export type SessionResults = {

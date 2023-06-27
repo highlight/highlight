@@ -11,7 +11,7 @@ import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
 import React, { useEffect } from 'react'
 
-import styles from './FrontIntegrationConfig.module.scss'
+import styles from './FrontIntegrationConfig.module.css'
 
 const FRONT_CLIENT_ID = import.meta.env.REACT_APP_FRONT_INTEGRATION_CLIENT_ID
 

@@ -1746,6 +1746,19 @@ export type GetWorkspaceAdminsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetSessionInsightQueryVariables = Types.Exact<{
+	secure_id: Types.Scalars['String']
+}>
+
+export type GetSessionInsightQuery = { __typename?: 'Query' } & {
+	session_insight?: Types.Maybe<
+		{ __typename?: 'SessionInsight' } & Pick<
+			Types.SessionInsight,
+			'id' | 'insight'
+		>
+	>
+}
+
 export type GetSessionCommentsQueryVariables = Types.Exact<{
 	session_secure_id: Types.Scalars['String']
 }>
@@ -4370,6 +4383,7 @@ export const namedOperations = {
 		GetSession: 'GetSession' as const,
 		GetWorkspaceAdminsByProjectId: 'GetWorkspaceAdminsByProjectId' as const,
 		GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,
+		GetSessionInsight: 'GetSessionInsight' as const,
 		GetSessionComments: 'GetSessionComments' as const,
 		GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
 		isSessionPending: 'isSessionPending' as const,
