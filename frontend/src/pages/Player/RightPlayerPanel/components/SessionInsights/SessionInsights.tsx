@@ -6,6 +6,7 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
+import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/Button'
 import LoadingBox from '@/components/LoadingBox'
@@ -31,20 +32,24 @@ const SessionInsights = () => {
 		sessionMetadata: { startTime },
 	} = useReplayerContext()
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
+	const [insightData, setInsightData] = useState('')
 
-	const [getSessionInsight, { data, loading }] =
-		useGetSessionInsightLazyQuery({
-			variables: {
-				secure_id: session_secure_id!,
-			},
-		})
+	const [getSessionInsight, { loading }] = useGetSessionInsightLazyQuery({
+		onCompleted: (data) => {
+			setInsightData(data?.session_insight?.insight || '[]')
+		},
+	})
+
+	useEffect(() => {
+		setInsightData('')
+	}, [session_secure_id])
 
 	return (
 		<Box p="8" display="flex" flexDirection="column" height="full">
 			{loading ? (
 				<LoadingBox />
-			) : data ? (
-				JSON.parse(data?.session_insight?.insight || '[]').map(
+			) : insightData ? (
+				JSON.parse(insightData).map(
 					(insight: SessionInsight, idx: number) => {
 						const timeSinceStart =
 							new Date(insight.timestamp).getTime() - startTime
@@ -112,7 +117,11 @@ const SessionInsights = () => {
 					<Button
 						trackingId="GetSessionInsight"
 						onClick={() => {
-							getSessionInsight()
+							getSessionInsight({
+								variables: {
+									secure_id: session_secure_id!,
+								},
+							})
 						}}
 						iconLeft={<IconSolidSparkles />}
 					>
