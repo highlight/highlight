@@ -12,7 +12,7 @@ import Button from '../../../../../components/Button/Button/Button'
 import { CircularSpinner } from '../../../../../components/Loading/Loading'
 import Modal from '../../../../../components/Modal/Modal'
 import { useDeleteSegmentMutation } from '../../../../../graph/generated/hooks'
-import styles from '../SegmentPicker.module.scss'
+import styles from '../SegmentPicker.module.css'
 
 const NO_SEGMENT = 'none'
 

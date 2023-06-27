@@ -32,7 +32,7 @@ import { Form } from 'antd'
 import _ from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
 
-import styles from './EditMetricModal.module.scss'
+import styles from './EditMetricModal.module.css'
 
 const CHART_TYPES: {
 	title: string

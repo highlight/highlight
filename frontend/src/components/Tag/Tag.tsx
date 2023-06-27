@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import ColorHash from 'color-hash'
 import React from 'react'
 
-import styles from './Tag.module.scss'
+import styles from './Tag.module.css'
 
 interface Props {
 	backgroundColor?: string

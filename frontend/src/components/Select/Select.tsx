@@ -8,7 +8,7 @@ import {
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './Select.module.scss'
+import styles from './Select.module.css'
 
 const { Option } = AntDesignSelect
 

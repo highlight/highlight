@@ -8,7 +8,7 @@ import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrat
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
-import styles from './Integration.module.scss'
+import styles from './Integration.module.css'
 
 export enum IntegrationAction {
 	Setup,

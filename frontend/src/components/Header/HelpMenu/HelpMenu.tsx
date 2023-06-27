@@ -10,8 +10,8 @@ import SvgHelpCircleIcon from '../../../static/HelpCircleIcon'
 import SvgMessageIcon from '../../../static/MessageIcon'
 import PopoverListContent from '../../Popover/PopoverListContent'
 import PopoverMenu, { PopoverMenuItem } from '../../PopoverMenu/PopoverMenu'
-import popoverMenuStyles from '../../PopoverMenu/PopoverMenu.module.scss'
-import styles from './HelpMenu.module.scss'
+import popoverMenuStyles from '../../PopoverMenu/PopoverMenu.module.css'
+import styles from './HelpMenu.module.css'
 
 const HelpMenu = () => {
 	const { admin } = useAuthContext()

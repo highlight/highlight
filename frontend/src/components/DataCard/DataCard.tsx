@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './DataCard.module.scss'
+import styles from './DataCard.module.css'
 
 type Props = {
 	title: string | React.ReactNode

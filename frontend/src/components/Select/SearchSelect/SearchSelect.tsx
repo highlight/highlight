@@ -2,7 +2,7 @@ import { Select } from 'antd'
 import _ from 'lodash'
 import { useEffect, useMemo, useState } from 'react'
 
-import styles from './SearchSelect.module.scss'
+import styles from './SearchSelect.module.css'
 
 export interface SearchOption {
 	value: string

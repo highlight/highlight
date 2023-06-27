@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './DashboardInnerCard.module.scss'
+import styles from './DashboardInnerCard.module.css'
 
 type Props = Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> & {
 	noPadding?: boolean

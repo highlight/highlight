@@ -20,7 +20,7 @@ import {
 	sortOrders,
 } from '../../context/SessionFeedConfigurationContext'
 import DeleteSessionsModal from '../DeleteSessionsModal/DeleteSessionsModal'
-import styles from './SessionFeedConfiguration.module.scss'
+import styles from './SessionFeedConfiguration.module.css'
 
 interface Props {
 	configuration: SessionFeedConfigurationContext

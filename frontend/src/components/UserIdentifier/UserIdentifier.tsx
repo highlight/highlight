@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import React from 'react'
 
 import Button from '../Button/Button/Button'
-import styles from './UserIdentifier.module.scss'
+import styles from './UserIdentifier.module.css'
 
 interface Props {
 	displayValue: string

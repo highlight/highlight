@@ -7328,6 +7328,26 @@ func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []strin
 	return errorObjects, nil
 }
 
+// SessionInsight is the resolver for the session_insight field.
+func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*modelInputs.SessionInsight, error) {
+	session, err := r.canAdminViewSession(ctx, secureID)
+	if err != nil {
+		return nil, nil
+	}
+
+	insight := &modelInputs.SessionInsight{}
+
+	b, err := r.getSessionInsight(ctx, session.ProjectID, session.ID)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to get session insight")
+	}
+	if err = json.Unmarshal(b, insight); err != nil {
+		return nil, e.Wrap(err, "failed to unmarshal session insight")
+	}
+
+	return insight, nil
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}

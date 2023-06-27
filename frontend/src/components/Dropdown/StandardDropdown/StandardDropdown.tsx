@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
 import { ReactComponent as DownIcon } from '../../../static/chevron-down-icon.svg'
-import styles from './StandardDropdown.module.scss'
+import styles from './StandardDropdown.module.css'
 
 type Option = {
 	label: string

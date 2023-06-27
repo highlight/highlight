@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './Card.module.scss'
+import styles from './Card.module.css'
 export type CardProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> & {
 	noPadding?: boolean
 	title?: string | React.ReactNode

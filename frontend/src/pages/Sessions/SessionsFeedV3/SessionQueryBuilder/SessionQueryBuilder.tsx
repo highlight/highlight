@@ -4,6 +4,7 @@ import {
 	useGetFieldTypesQuery,
 	useGetSegmentsQuery,
 } from '@graph/hooks'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
@@ -147,6 +148,7 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 		variables: { project_id: project_id! },
 		skip: !project_id,
 	})
+	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	return (
 		<QueryBuilder
@@ -155,6 +157,7 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 			customFields={CUSTOM_FIELDS}
 			fetchFields={fetchFields}
 			fieldData={fieldData}
+			setShowLeftPanel={setShowLeftPanel}
 			useEditAnySegmentMutation={useEditSegmentMutation}
 			useGetAnySegmentsQuery={useGetSegmentsQuery}
 			CreateAnySegmentModal={CreateSegmentModal}

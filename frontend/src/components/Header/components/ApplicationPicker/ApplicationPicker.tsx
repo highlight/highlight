@@ -19,7 +19,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import SvgPlusIcon from '../../../../static/PlusIcon'
 import SvgSettingsIcon from '../../../../static/SettingsIcon'
-import styles from './ApplicationPicker.module.scss'
+import styles from './ApplicationPicker.module.css'
 
 const ApplicationPicker = () => {
 	const { allProjects, currentProject, currentWorkspace } =
