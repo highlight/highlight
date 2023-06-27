@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"net/mail"
-	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -3094,65 +3093,4 @@ func isExcludedError(ctx context.Context, errorFilters []string, errorEvent stri
 		}
 	}
 	return false
-}
-
-func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
-	project := &model.Project{}
-	if err := r.DB.Model(&model.Project{}).Select("backend_domains").Where("id = ?", sessionObj.ProjectID).First(&project).Error; err != nil {
-		return e.Wrap(err, "error querying project")
-	}
-
-	var points []timeseries.Point
-	for _, re := range resources {
-		tags := map[string]string{
-			"session_id": strconv.Itoa(sessionObj.ID),
-			"group_name": re.RequestResponsePairs.Request.ID,
-		}
-		fields := map[string]interface{}{}
-		for key, value := range map[privateModel.NetworkRequestAttribute]float64{
-			privateModel.NetworkRequestAttributeBodySize:     float64(len(re.RequestResponsePairs.Request.Body)),
-			privateModel.NetworkRequestAttributeResponseSize: re.RequestResponsePairs.Response.Size,
-			privateModel.NetworkRequestAttributeStatus:       re.RequestResponsePairs.Response.Status,
-			privateModel.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
-		} {
-			fields[key.String()] = value
-		}
-		categories := map[privateModel.NetworkRequestAttribute]string{
-			privateModel.NetworkRequestAttributeMethod:        re.RequestResponsePairs.Request.Method,
-			privateModel.NetworkRequestAttributeInitiatorType: re.InitiatorType,
-			privateModel.NetworkRequestAttributeRequestID:     re.RequestResponsePairs.Request.ID,
-		}
-		requestBody := make(map[string]interface{})
-		// if the request body is json and contains the graphql key operationName, treat it as an operation
-		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
-			if _, ok := requestBody["operationName"]; ok {
-				categories[privateModel.NetworkRequestAttributeGraphqlOperation] = requestBody["operationName"].(string)
-			}
-		}
-
-		// only record urls for network requests that match config to limit metric cardinality
-		u, err := url.Parse(re.Name)
-		if err == nil {
-			for _, d := range project.BackendDomains {
-				if u.Host == d {
-					u.RawQuery = ""
-					u.Fragment = ""
-					categories[privateModel.NetworkRequestAttributeURL] = u.String()
-				}
-			}
-		}
-
-		for key, value := range categories {
-			tags[key.String()] = value
-		}
-		// request time is relative to session start
-		d, _ := time.ParseDuration(fmt.Sprintf("%fms", re.StartTime))
-		points = append(points, timeseries.Point{
-			Time:   sessionObj.CreatedAt.Add(d),
-			Tags:   tags,
-			Fields: fields,
-		})
-	}
-	r.TDB.Write(ctx, strconv.Itoa(sessionObj.ProjectID), timeseries.Metrics, points)
-	return nil
 }
