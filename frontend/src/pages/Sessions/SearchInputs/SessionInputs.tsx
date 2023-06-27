@@ -4,7 +4,7 @@ import React from 'react'
 
 import { useSearchContext } from '../SearchContext/SearchContext'
 import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker'
-import inputStyles from './InputStyles.module.scss'
+import inputStyles from './InputStyles.module.css'
 
 export const ViewedSessionsSwitch = () => {
 	const { searchParams, setSearchParams } = useSearchContext()

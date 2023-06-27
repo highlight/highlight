@@ -19,7 +19,7 @@ import React from 'react'
 
 import Button from '../../../components/Button/Button/Button'
 import PopConfirm from '../../../components/PopConfirm/PopConfirm'
-import styles from './AllMembers.module.scss'
+import styles from './AllMembers.module.css'
 
 const AllMembers = ({
 	workspaceId,

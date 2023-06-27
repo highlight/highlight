@@ -1,4 +1,4 @@
-import '../../App.scss'
+import '../../App.css'
 
 import { useAuthContext } from '@authentication/AuthContext'
 import { Box } from '@highlight-run/ui'

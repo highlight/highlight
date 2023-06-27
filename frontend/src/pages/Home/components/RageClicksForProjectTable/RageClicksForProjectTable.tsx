@@ -25,7 +25,7 @@ import { useNavigate } from 'react-router-dom'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
 import Tooltip from '../../../../components/Tooltip/Tooltip'
-import styles from './RageClicksForProjectTable.module.scss'
+import styles from './RageClicksForProjectTable.module.css'
 
 const RageClicksForProjectTable = ({
 	filterSearchTerm,

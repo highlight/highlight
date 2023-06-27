@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import ReactCollapsible from 'react-collapsible'
 
 import SvgChevronDownIcon from '../../static/ChevronDownIcon'
-import styles from './Collapsible.module.scss'
+import styles from './Collapsible.module.css'
 
 interface InnerProps extends Props {
 	setExpanded: (newValue: boolean) => void

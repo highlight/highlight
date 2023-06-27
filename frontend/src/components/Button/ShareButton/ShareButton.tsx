@@ -3,7 +3,7 @@ import React from 'react'
 
 import SvgShareIcon from '../../../static/ShareIcon'
 import Button, { GenericHighlightButtonProps } from '../Button/Button'
-import styles from './ShareButton.module.scss'
+import styles from './ShareButton.module.css'
 type Props = {} & Pick<React.HTMLAttributes<HTMLButtonElement>, 'onClick'> &
 	GenericHighlightButtonProps
 

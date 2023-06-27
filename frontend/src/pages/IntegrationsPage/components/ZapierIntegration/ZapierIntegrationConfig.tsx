@@ -11,7 +11,7 @@ import { message } from 'antd'
 import React, { useEffect } from 'react'
 import { coy as lightTheme } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
-import styles from './ZapierIntegrationConfig.module.scss'
+import styles from './ZapierIntegrationConfig.module.css'
 
 const ZapierIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>

@@ -3,6 +3,7 @@ import { serialRender } from './serial'
 import { readFileSync } from 'fs'
 import { encodeGIF, encodeMP4 } from './ffmpeg'
 import { getRenderExport, uploadRenderExport } from './s3'
+import { H, Handlers } from '@highlight-run/node'
 
 interface Args {
 	project?: string
@@ -68,30 +69,37 @@ const media = async (event?: APIGatewayEvent) => {
 	}
 }
 
-export const handler = (event?: APIGatewayEvent) => {
-	const args = event?.queryStringParameters as unknown as Args | undefined
-	if (args?.format === 'image/gif' || args?.format === 'video/mp4') {
-		return media(event)
-	}
-	return screenshot(event)
-}
+export const handler = Handlers.serverlessFunction(
+	(event?: APIGatewayEvent) => {
+		const args = event?.queryStringParameters as unknown as Args | undefined
+		if (args?.format === 'image/gif' || args?.format === 'video/mp4') {
+			return media(event)
+		}
+		return screenshot(event)
+	},
+	{ projectID: '1' },
+)
+
+H.init({ projectID: '1' })
 
 if (process.env.DEV?.length) {
-	screenshot({
-		queryStringParameters: {
-			project: '1',
-			session: '239571781',
-			ts: '1',
-			chunk: '0',
-		},
-	} as unknown as APIGatewayEvent).then(console.info)
-	media({
-		queryStringParameters: {
-			project: '1',
-			session: '239571781',
-			format: 'image/gif',
-			ts: '15000',
-			tsEnd: '20000',
-		},
-	} as unknown as APIGatewayEvent).then(console.info)
+	Promise.all([
+		handler({
+			queryStringParameters: {
+				project: '1',
+				session: '239571781',
+				ts: '1',
+				chunk: '0',
+			},
+		} as unknown as APIGatewayEvent),
+		handler({
+			queryStringParameters: {
+				format: 'image/gif',
+				project: '1',
+				session: '239571781',
+				ts: '15000',
+				tsEnd: '20000',
+			},
+		} as unknown as APIGatewayEvent),
+	]).then(() => H.stop())
 }

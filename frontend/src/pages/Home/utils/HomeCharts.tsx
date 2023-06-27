@@ -20,7 +20,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ResponsiveContainer } from 'recharts'
 
-import styles from './HomeCharts.module.scss'
+import styles from './HomeCharts.module.css'
 
 type DailyCount = {
 	date: moment.Moment

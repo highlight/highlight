@@ -2,7 +2,7 @@ import { Input as AntDesignInput, InputProps } from 'antd'
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './Input.module.scss'
+import styles from './Input.module.css'
 
 type Props = InputProps & {
 	ref?: any

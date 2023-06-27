@@ -3,7 +3,7 @@ import { DatePicker } from 'antd'
 import moment from 'moment'
 import React from 'react'
 
-import inputStyles from './InputStyles.module.scss'
+import inputStyles from './InputStyles.module.css'
 
 const { RangePicker } = DatePicker
 

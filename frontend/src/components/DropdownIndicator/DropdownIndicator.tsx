@@ -5,7 +5,7 @@ import { Spin } from 'antd'
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './DropdownIndicator.module.scss'
+import styles from './DropdownIndicator.module.css'
 
 export const DropdownIndicator = React.memo(
 	({ isLoading, height }: { isLoading: boolean; height?: number }) => {

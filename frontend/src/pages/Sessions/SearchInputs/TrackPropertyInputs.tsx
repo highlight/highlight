@@ -9,7 +9,7 @@ import { PropertyOption } from '../../../components/Option/Option'
 import { useGetTrackSuggestionQuery } from '../../../graph/generated/hooks'
 import SvgTargetIcon from '../../../static/TargetIcon'
 import { useSearchContext } from '../SearchContext/SearchContext'
-import inputStyles from './InputStyles.module.scss'
+import inputStyles from './InputStyles.module.css'
 import { ContainsLabel } from './SearchInputUtil'
 
 export const TrackPropertyInput = ({

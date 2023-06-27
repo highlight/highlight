@@ -5,7 +5,7 @@ import { getIdentifiedUserProfileImage } from '@pages/Sessions/SessionsFeedV3/Mi
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './ProgressBarTableColumns.module.scss'
+import styles from './ProgressBarTableColumns.module.css'
 
 interface ProgressBarTablePercentageProps {
 	percent: number

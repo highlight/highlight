@@ -65,7 +65,7 @@ import { useSessionStorage } from 'react-use'
 import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
 
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
-import styles from './Header.module.scss'
+import styles from './Header.module.css'
 
 type Props = {
 	fullyIntegrated?: boolean

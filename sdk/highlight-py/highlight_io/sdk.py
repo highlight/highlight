@@ -1,5 +1,8 @@
 import contextlib
+import http
+import json
 import logging
+import traceback
 import typing
 
 from opentelemetry import trace, _logs
@@ -147,6 +150,70 @@ class H(object):
             except Exception as e:
                 self.record_exception(e)
                 raise
+
+    @staticmethod
+    def record_http_error(
+        status_code: int, detail: str, headers: typing.Dict[str, str]
+    ) -> None:
+        """
+        Record an http error from your app.
+
+        Example:
+            from fastapi import FastAPI, Request, HTTPException, APIRouter
+            import highlight_io
+
+            H = highlight_io.H('project_id', ...)
+
+            app = FastAPI()
+            app.add_middleware(FastAPIMiddleware)
+
+            router = APIRouter()
+
+
+            @router.get("/health")
+            def health_check():
+                with H.trace(session_id, request_id):
+                    logging.info('hello, world!')
+                    H.record_http_error(status_code=404)
+                    raise HTTPException(status_code=404, detail="Item not found")
+
+
+        :param status_code: the http status code to report
+        :param detail: the error status details
+        :param headers: the headers of the http request
+        :return: None
+        """
+        span = trace.get_current_span()
+        if not span:
+            raise RuntimeError("H.record_http_error called without a span context")
+
+        # try load json of the form `{"detail":"Item not found"}`
+        try:
+            body = json.loads(detail)
+            if "detail" in body:
+                detail = body["detail"]
+        except ValueError:
+            pass
+
+        if not detail:
+            detail = http.HTTPStatus(status_code).phrase
+
+        # we cannot use `span.record_exception()` here because that uses `traceback.format_exc()` which
+        # relies there being an exception raised. we manually `traceback.format_stack()` to get the current
+        # execution stack for recording an http exception.
+        attributes = {
+            "exception.type": "HTTPException",
+            "exception.message": detail,
+            "exception.stacktrace": "".join(traceback.format_stack()),
+            "http.status_code": status_code,
+        }
+        for k, v in headers.items():
+            if type(v) in [bool, str, bytes, int, float]:
+                attributes[f"http.headers.{k}"] = v
+        span.add_event(name="exception", attributes=attributes)
+        logging.exception(
+            f"Highlight caught an http error (status_code={status_code}, detail={detail})"
+        )
 
     @staticmethod
     def record_exception(e: Exception) -> None:

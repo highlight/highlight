@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import React, { ReactNode } from 'react'
 
 import { ReactComponent as EmptyState } from '../../static/empty-state.svg'
-import styles from './SearchEmptyState.module.scss'
+import styles from './SearchEmptyState.module.css'
 
 const { emptyStateSection, emptyStateWrapper, emptySubTitle, emptyTitle } =
 	styles

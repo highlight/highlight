@@ -11,7 +11,7 @@ import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { Navigate } from 'react-router-dom'
 
-import styles from './SwitchProject.module.scss'
+import styles from './SwitchProject.module.css'
 
 const SwitchProject = () => {
 	const { workspace_id } = useParams<{

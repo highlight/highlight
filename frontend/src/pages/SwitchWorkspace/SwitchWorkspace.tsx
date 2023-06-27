@@ -14,7 +14,7 @@ import { Helmet } from 'react-helmet'
 import { Navigate, useLocation } from 'react-router-dom'
 import { StringParam, useQueryParam } from 'use-query-params'
 
-import styles from './SwitchWorkspace.module.scss'
+import styles from './SwitchWorkspace.module.css'
 
 const SwitchWorkspace = () => {
 	const [currentWorkspaceId] = useQueryParam('current_workspace', StringParam)

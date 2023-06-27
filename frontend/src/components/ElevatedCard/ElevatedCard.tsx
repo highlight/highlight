@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import React, { PropsWithChildren } from 'react'
 
-import styles from './ElevatedCard.module.scss'
+import styles from './ElevatedCard.module.css'
 
 interface Props {
 	title?: string | React.ReactNode
