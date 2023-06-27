@@ -13,7 +13,6 @@ import {
 	Text,
 	useMenu,
 } from '@highlight-run/ui'
-import { delayedRefetch } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
 import { DatePicker, message } from 'antd'
 import moment from 'moment'
@@ -59,7 +58,6 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 			namedOperations.Query.GetErrorGroup,
 			namedOperations.Query.GetErrorGroupsOpenSearch,
 		],
-		onQueryUpdated: delayedRefetch,
 		awaitRefetchQueries: true,
 	})
 
