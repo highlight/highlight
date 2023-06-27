@@ -139,7 +139,6 @@ var Models = []interface{}{
 	&Field{},
 	&EmailSignup{},
 	&ResourcesObject{},
-	&WebSocketEventsObject{},
 	&ExternalAttachment{},
 	&SessionComment{},
 	&SessionCommentTag{},
@@ -693,18 +692,6 @@ type ResourcesObject struct {
 
 func (r *ResourcesObject) Contents() string {
 	return r.Resources
-}
-
-type WebSocketEventsObject struct {
-	Model
-	ID              int `json:"id"` // Shadow Model.ID to avoid creating a pkey constraint
-	SessionID       int
-	WebSocketEvents string
-	IsBeacon        bool `gorm:"default:false"`
-}
-
-func (r *WebSocketEventsObject) Contents() string {
-	return r.WebSocketEvents
 }
 
 type SearchParams struct {

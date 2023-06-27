@@ -39,7 +39,7 @@ export const initializeWebSocketListener = () => {
 						initiatorType: 'websocket',
 						type: 'close',
 						name: webSocket.url,
-						endTime: event.timeStamp,
+						requestEnd: event.timeStamp,
 					})
 
 					webSocket.removeEventListener('open', openHandler)

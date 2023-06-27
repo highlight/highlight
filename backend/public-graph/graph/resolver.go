@@ -2395,27 +2395,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
 		defer unmarshalResourcesSpan.Finish()
 
-		if sessionObj.AvoidPostgresStorage {
-			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
-				return e.Wrap(err, "error saving resources data")
-			}
-		} else {
-			if hasBeacon {
-				r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
-			}
-			resourcesParsed := make(map[string][]NetworkResource)
-			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-				return nil
-			}
-			if len(resourcesParsed["resources"]) > 0 {
-				if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
-					return err
-				}
-				obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
-				if err := r.DB.Create(obj).Error; err != nil {
-					return e.Wrap(err, "error creating resources object")
-				}
-			}
+		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
+			return e.Wrap(err, "error saving resources data")
 		}
 
 		return nil
@@ -2429,27 +2410,8 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				tracer.ResourceName("go.unmarshal.web_socket_events"), tracer.Tag("project_id", projectID))
 			defer unmarshalWebSocketEventsSpan.Finish()
 
-			if sessionObj.AvoidPostgresStorage {
-				if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeWebSocketEvents, []byte(*webSocketEvents)); err != nil {
-					return e.Wrap(err, "error saving web socket events data")
-				}
-			} else {
-				if hasBeacon {
-					r.DB.Where(&model.WebSocketEventsObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
-				}
-				webSocketEventsParsed := make(map[string][]NetworkResource)
-				if err := json.Unmarshal([]byte(*webSocketEvents), &webSocketEventsParsed); err != nil {
-					return nil
-				}
-				if len(webSocketEventsParsed["webSocketEvents"]) > 0 {
-					if err := r.submitFrontendNetworkMetric(ctx, sessionObj, webSocketEventsParsed["webSocketEvents"]); err != nil {
-						return err
-					}
-					obj := &model.WebSocketEventsObject{SessionID: sessionID, WebSocketEvents: *webSocketEvents, IsBeacon: isBeacon}
-					if err := r.DB.Create(obj).Error; err != nil {
-						return e.Wrap(err, "error creating web socket events object")
-					}
-				}
+			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeWebSocketEvents, []byte(*webSocketEvents)); err != nil {
+				return e.Wrap(err, "error saving web socket events data")
 			}
 		}
 
