@@ -16,8 +16,8 @@ import {
 	SessionCommentType,
 } from '../../../../graph/generated/schemas'
 import { useReplayerContext } from '../../ReplayerContext'
-import commentButtonStyles from '../PlayerCommentCanvas.module.scss'
-import styles from './PlayerSessionComment.module.scss'
+import commentButtonStyles from '../PlayerCommentCanvas.module.css'
+import styles from './PlayerSessionComment.module.css'
 
 interface Props {
 	comment: Maybe<

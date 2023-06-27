@@ -9,7 +9,7 @@ import { ErrorDistributions } from '@pages/ErrorsV2/ErrorMetrics/ErrorDistributi
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 
-import styles from './ErrorMetrics.module.scss'
+import styles from './ErrorMetrics.module.css'
 
 type Props = {
 	errorGroup: GetErrorGroupQuery['error_group']

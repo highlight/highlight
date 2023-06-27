@@ -16,7 +16,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuthContext } from '@/authentication/AuthContext'
 import { CommentIndicator } from '@/components/Comment/CommentIndicator'
 
-import styles from './PlayerCommentCanvas.module.scss'
+import styles from './PlayerCommentCanvas.module.css'
 
 export interface Coordinates2D {
 	x: number

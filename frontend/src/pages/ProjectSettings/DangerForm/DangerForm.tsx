@@ -9,9 +9,9 @@ import clsx from 'clsx'
 import React, { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 
-import commonStyles from '../../../Common.module.scss'
+import commonStyles from '../../../Common.module.css'
 import Button from '../../../components/Button/Button/Button'
-import styles from './DangerForm.module.scss'
+import styles from './DangerForm.module.css'
 
 export const DangerForm = () => {
 	const { project_id } = useParams<{ project_id: string }>()

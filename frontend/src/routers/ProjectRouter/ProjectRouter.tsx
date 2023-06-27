@@ -34,13 +34,14 @@ import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
+import { PRIVATE_GRAPH_URI } from '@/constants'
 import {
 	useClientIntegration,
 	useLogsIntegration,
 	useServerIntegration,
 } from '@/util/integrated'
 
-import commonStyles from '../../Common.module.scss'
+import commonStyles from '../../Common.module.css'
 import ApplicationRouter from './ApplicationRouter'
 
 export const ProjectRouter = () => {
@@ -74,14 +75,11 @@ export const ProjectRouter = () => {
 	}, [projectId])
 
 	useEffect(() => {
-		const uri =
-			import.meta.env.REACT_APP_PRIVATE_GRAPH_URI ??
-			window.location.origin + '/private'
 		let intervalId: NodeJS.Timeout
 
 		auth.currentUser?.getIdToken().then((t) => {
 			const fetchToken = () => {
-				fetch(`${uri}/project-token/${projectId}`, {
+				fetch(`${PRIVATE_GRAPH_URI}/project-token/${projectId}`, {
 					credentials: 'include',
 					headers: {
 						token: t,

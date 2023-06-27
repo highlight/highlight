@@ -12,7 +12,7 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import React, { useMemo } from 'react'
 
-import styles from './LinearIntegrationConfig.module.scss'
+import styles from './LinearIntegrationConfig.module.css'
 
 const LinearIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>

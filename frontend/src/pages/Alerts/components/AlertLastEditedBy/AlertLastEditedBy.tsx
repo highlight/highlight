@@ -2,7 +2,7 @@ import { Admin } from '@graph/schemas'
 import moment from 'moment'
 import React from 'react'
 
-import styles from './AlertLastEditedBy.module.scss'
+import styles from './AlertLastEditedBy.module.css'
 
 interface Props {
 	adminId: string

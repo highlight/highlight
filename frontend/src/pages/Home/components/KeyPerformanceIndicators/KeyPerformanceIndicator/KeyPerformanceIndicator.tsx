@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 
 import InfoTooltip from '../../../../../components/InfoTooltip/InfoTooltip'
-import styles from './KeyPerformanceIndicator.module.scss'
+import styles from './KeyPerformanceIndicator.module.css'
 
 interface Props {
 	value: string

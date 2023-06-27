@@ -247,6 +247,16 @@
 		width: 100%;
 		border-radius: var(--border-radius);
 	}
+
+	li {
+		font-size: 18px;
+		line-height: 34px !important;
+		color: var(--copy-on-dark);
+
+		img {
+			width: 100%;
+		}
+	}
 }
 
 .sdkRightColumn {

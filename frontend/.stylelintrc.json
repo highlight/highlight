@@ -1,6 +1,5 @@
 {
 	"$schema": "http://json.schemastore.org/stylelintrc.json",
-	"extends": ["stylelint-config-sass-guidelines"],
 	"rules": {
 		"color-no-hex": true,
 		"declaration-block-no-duplicate-properties": true,
@@ -9,7 +8,6 @@
 		"indentation": null,
 		"max-nesting-depth": null,
 		"rule-empty-line-before": null,
-		"scss/at-import-partial-extension-blacklist": null,
 		"selector-class-pattern": null,
 		"selector-max-id": null,
 		"selector-no-qualifying-type": null,

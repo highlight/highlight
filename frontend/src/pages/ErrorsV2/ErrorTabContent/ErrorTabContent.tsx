@@ -14,7 +14,7 @@ import React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
-import styles from './ErrorTabContent.module.scss'
+import styles from './ErrorTabContent.module.css'
 
 type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
