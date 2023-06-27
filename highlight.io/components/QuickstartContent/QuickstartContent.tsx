@@ -34,9 +34,11 @@ import { HTTPContent } from './logging/http'
 import { JSNestLogContent } from './logging/js/nestjs'
 import { JSOtherLogContent } from './logging/js/other'
 
+import { JSAWSLambdaContent } from './backend/js/aws-lambda'
 import { DockerContent } from './logging/docker'
 import { FileContent } from './logging/file'
 import { FluentForwardContent } from './logging/fluentd'
+import { HostingFlyIOLogContent } from './logging/hosting/fly-io'
 import { JSCloudflareLoggingContent } from './logging/js/cloudflare'
 import { JSWinstonHTTPJSONLogContent } from './logging/js/winston'
 import { PythonLoguruLogContent } from './logging/python/loguru'
@@ -45,7 +47,6 @@ import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
-import { JSAWSLambdaContent } from './backend/js/aws-lambda'
 
 export type QuickStartOptions = {
 	title: string
@@ -116,6 +117,7 @@ export enum QuickStartType {
 	RubyOther = 'other',
 	RubyRails = 'rails',
 	HostingVercel = 'vercel',
+	HostingFlyIO = 'fly-io',
 }
 
 export const quickStartContent = {
@@ -246,6 +248,7 @@ export const quickStartContent = {
 			subtitle:
 				'Select your Hosting provider to setup the Highlight integration and stream logs.',
 			[QuickStartType.HostingVercel]: HostingVercelLogContent,
+			[QuickStartType.HostingFlyIO]: HostingFlyIOLogContent,
 		},
 	},
 	other: {
