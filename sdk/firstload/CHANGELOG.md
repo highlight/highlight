@@ -259,3 +259,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Minor Changes
 
 - Capture unhandled promise exceptions in highlight errors.
+
+## 7.3.0
+
+### Minor Changes
+
+- Update format of data sent in for WebSocket events
