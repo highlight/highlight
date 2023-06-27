@@ -16,7 +16,7 @@ import React, { useEffect } from 'react'
 import BorderBox from '@/components/BorderBox/BorderBox'
 import BoxLabel from '@/components/BoxLabel/BoxLabel'
 
-import styles from './SourcemapSettings.module.scss'
+import styles from './SourcemapSettings.module.css'
 
 const SourcemapSettings = () => {
 	const { project_id } = useParams<{ project_id: string }>()

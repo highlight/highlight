@@ -135,6 +135,7 @@ const SEND_FREQUENCY = 1000 * 2
  * Maximum length of a session
  */
 const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000
+const EXTENDED_MAX_SESSION_LENGTH = 12 * 60 * 60 * 1000
 
 const HIGHLIGHT_URL = 'app.highlight.run'
 
@@ -1215,12 +1216,15 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	// Reset the events array and push to a backend.
 	async _save() {
 		try {
+			let maxLength = MAX_SESSION_LENGTH
+			if (this.organizationID === 'odzl0xep') {
+				maxLength = EXTENDED_MAX_SESSION_LENGTH
+			}
 			if (
 				this.state === 'Recording' &&
 				this.listeners &&
 				this.sessionData.sessionStartTime &&
-				Date.now() - this.sessionData.sessionStartTime >
-					MAX_SESSION_LENGTH
+				Date.now() - this.sessionData.sessionStartTime > maxLength
 			) {
 				await this._reset()
 			}
@@ -1279,6 +1283,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this._firstLoadListeners,
 			this._recordingStartTime,
 		)
+		const webSocketEvents = FirstLoadListeners.getRecordedWebSocketEvents(
+			this._firstLoadListeners,
+		)
 		const events = [...this.events]
 		const messages = [...this._firstLoadListeners.messages]
 		const errors = [...this._firstLoadListeners.errors]
@@ -1309,6 +1316,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				events: { events } as ReplayEventsInput,
 				messages: stringify({ messages: messages }),
 				resources: JSON.stringify({ resources: resources }),
+				web_socket_events: JSON.stringify({
+					webSocketEvents: webSocketEvents,
+				}),
 				errors,
 				is_beacon: isBeacon,
 				has_session_unloaded: this.hasSessionUnloaded,
@@ -1323,6 +1333,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					messages,
 					errors,
 					resourcesString: JSON.stringify({ resources: resources }),
+					webSocketEventsString: JSON.stringify({
+						webSocketEvents: webSocketEvents,
+					}),
 					isBeacon,
 					hasSessionUnloaded: this.hasSessionUnloaded,
 					highlightLogs: highlightLogs,

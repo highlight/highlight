@@ -22,7 +22,7 @@ import { useNavigate } from 'react-router-dom'
 
 import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBarTable'
 import { DashboardInnerTable } from '../DashboardInnerTable/DashboardInnerTable'
-import styles from './ReferrersTable.module.scss'
+import styles from './ReferrersTable.module.css'
 
 const ReferrersTable = ({
 	setUpdatingData,

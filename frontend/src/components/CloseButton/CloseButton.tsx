@@ -2,7 +2,7 @@ import Button from '@components/Button/Button/Button'
 import CloseIcon from '@icons/CloseIcon'
 import React from 'react'
 
-import styles from './CloseButton.module.scss'
+import styles from './CloseButton.module.css'
 
 type Props = {
 	trackingId: string

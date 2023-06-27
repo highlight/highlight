@@ -1017,6 +1017,16 @@ type SessionComment {
 	replies: [CommentReply]!
 }
 
+type SessionInsight {
+	id: ID!
+	insight: String!
+}
+
+type SessionQuery {
+	id: ID!
+	project_id: ID!
+}
+
 type SlackSyncResponse {
 	success: Boolean!
 	newChannelsAddedCount: Int!
@@ -1666,6 +1676,7 @@ type Query {
 	): [String!]!
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
 	error_resolution_suggestion(error_object_id: ID!): String!
+	session_insight(secure_id: String!): SessionInsight
 }
 
 type Mutation {

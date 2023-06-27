@@ -11,7 +11,7 @@ import {
 	coy as lightTheme,
 } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
-import styles from './CodeBlock.module.scss'
+import styles from './CodeBlock.module.css'
 
 type Props = Omit<SyntaxHighlighterProps, 'children'> & {
 	text: string

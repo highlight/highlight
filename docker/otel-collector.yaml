@@ -13,9 +13,6 @@ exporters:
         compression: gzip
         tls:
             insecure_skip_verify: true
-    otlphttp/highlight:
-        endpoint: 'https://pub.highlight.run/otel'
-        compression: gzip
     otlphttp/traceloop:
         traces_endpoint: https://api.traceloop.dev/v1/traces
         headers:
@@ -29,10 +26,6 @@ service:
             receivers: [otlp]
             processors: [batch]
             exporters: [otlphttp]
-        traces/highlight:
-            receivers: [otlp]
-            processors: [batch]
-            exporters: [otlphttp/highlight]
         traces/traceloop:
             receivers: [otlp]
             processors: [batch]
@@ -45,10 +38,6 @@ service:
             receivers: [otlp, fluentforward]
             processors: [batch]
             exporters: [otlphttp]
-        logs/highlight:
-            receivers: [otlp, fluentforward]
-            processors: [batch]
-            exporters: [otlphttp/highlight]
 extensions:
     health_check:
         endpoint: '0.0.0.0:4319'

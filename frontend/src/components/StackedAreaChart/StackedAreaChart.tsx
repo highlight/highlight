@@ -11,7 +11,7 @@ import {
 	YAxis,
 } from 'recharts'
 
-import styles from './StackedAreaChart.module.scss'
+import styles from './StackedAreaChart.module.css'
 
 interface Props {
 	data: any[]

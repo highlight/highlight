@@ -9,6 +9,7 @@ export async function serialRender(
 	project: number,
 	session: number,
 	ts?: number,
+	tsEnd?: number,
 	fps?: number,
 	chunk?: number,
 ) {
@@ -18,16 +19,20 @@ export async function serialRender(
 	}
 
 	console.log(
-		`starting serial render for ${project} ${session} ${ts} ${chunk || ''}`,
+		`starting serial render for ${project} ${session} ${ts}-${tsEnd} ${
+			chunk || ''
+		}`,
 	)
 	const events = await getEvents(project, session, chunk)
 	console.log(
 		`got events ${
 			events.length
-		} serial render for ${project} ${session} ${ts} ${chunk || ''}`,
+		} serial render for ${project} ${session} ${ts}-${tsEnd} ${
+			chunk || ''
+		}`,
 	)
 	return {
 		dir,
-		files: await render(events, 0, 1, fps, ts, dir),
+		files: await render(events, 0, 1, fps, ts, tsEnd, dir),
 	}
 }

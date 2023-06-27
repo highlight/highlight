@@ -105,7 +105,7 @@ func (r *errorAlertResolver) RegexGroups(ctx context.Context, obj *model.ErrorAl
 
 // DailyFrequency is the resolver for the DailyFrequency field.
 func (r *errorAlertResolver) DailyFrequency(ctx context.Context, obj *model.ErrorAlert) ([]*int64, error) {
-	return obj.GetDailyFrequency(r.DB, obj.ID)
+	return obj.GetDailyErrorEventFrequency(r.DB, obj.ID)
 }
 
 // Author is the resolver for the author field.
@@ -283,7 +283,7 @@ func (r *logAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.
 
 // DailyFrequency is the resolver for the DailyFrequency field.
 func (r *logAlertResolver) DailyFrequency(ctx context.Context, obj *model.LogAlert) ([]*int64, error) {
-	return obj.GetDailyFrequency(r.DB, obj.ID)
+	return obj.GetDailyLogEventFrequency(r.DB, obj.ID)
 }
 
 // ChannelsToNotify is the resolver for the channels_to_notify field.
@@ -7402,6 +7402,26 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 	return resp.Choices[0].Message.Content, nil
 }
 
+// SessionInsight is the resolver for the session_insight field.
+func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*modelInputs.SessionInsight, error) {
+	session, err := r.canAdminViewSession(ctx, secureID)
+	if err != nil {
+		return nil, nil
+	}
+
+	insight := &modelInputs.SessionInsight{}
+
+	b, err := r.getSessionInsight(ctx, session.ProjectID, session.ID)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to get session insight")
+	}
+	if err = json.Unmarshal(b, insight); err != nil {
+		return nil, e.Wrap(err, "failed to unmarshal session insight")
+	}
+
+	return insight, nil
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
@@ -7532,7 +7552,7 @@ func (r *sessionAlertResolver) ExcludeRules(ctx context.Context, obj *model.Sess
 
 // DailyFrequency is the resolver for the DailyFrequency field.
 func (r *sessionAlertResolver) DailyFrequency(ctx context.Context, obj *model.SessionAlert) ([]*int64, error) {
-	return obj.GetDailyFrequency(r.DB, obj.ID)
+	return obj.GetDailySessionEventFrequency(r.DB, obj.ID)
 }
 
 // Author is the resolver for the author field.

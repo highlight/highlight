@@ -19,8 +19,8 @@ import React, { useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
-import styles from './IntegrationsPage.module.scss'
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
+import styles from './IntegrationsPage.module.css'
 
 const IntegrationsPage = () => {
 	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()

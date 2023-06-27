@@ -2,7 +2,7 @@ import React from 'react'
 // eslint-disable-next-line no-restricted-imports
 import Highlighter, { HighlighterProps } from 'react-highlight-words'
 
-import styles from './TextHighlighter.module.scss'
+import styles from './TextHighlighter.module.css'
 
 type Props = HighlighterProps
 
