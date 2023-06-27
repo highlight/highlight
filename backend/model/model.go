@@ -593,6 +593,7 @@ type Session struct {
 	Processed           *bool `json:"processed"`
 	HasRageClicks       *bool `json:"has_rage_clicks"`
 	HasErrors           *bool `json:"has_errors"`
+	HasUserEvents       *bool `json:"has_user_events"`
 	HasOutOfOrderEvents bool  `gorm:"default:false"`
 	// The timestamp of the first payload received after the session got processed (if applicable)
 	ResumedAfterProcessedTime *time.Time `json:"resumed_after_processed_time"`
