@@ -58,14 +58,16 @@ export const JoinWorkspace = () => {
 	})
 
 	useEffect(() => {
-		if (!loading) {
-			setLoadingState(AppLoadingState.LOADED)
-		}
-
 		// Show the Intercom message after 5 seconds in case the user needs help.
 		setTimeout(() => {
 			showIntercomBubble()
 		}, 5000)
+	}, [])
+
+	useEffect(() => {
+		if (!loading) {
+			setLoadingState(AppLoadingState.LOADED)
+		}
 	}, [loading, setLoadingState])
 
 	useEffect(() => {

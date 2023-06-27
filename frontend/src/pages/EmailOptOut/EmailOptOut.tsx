@@ -40,11 +40,6 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 		if (!loading) {
 			setLoadingState(AppLoadingState.LOADED)
 		}
-
-		// Show the Intercom message after 5 seconds in case the user needs help.
-		setTimeout(() => {
-			showIntercomBubble()
-		}, 5000)
 	}, [loading, setLoadingState])
 
 	if (loading) {
@@ -135,6 +130,13 @@ export const EmailOptOutPage = () => {
 	})
 
 	const commandBarDialog = useDialogState()
+
+	useEffect(() => {
+		// Show the Intercom message after 5 seconds in case the user needs help.
+		setTimeout(() => {
+			showIntercomBubble()
+		}, 5000)
+	}, [])
 
 	return (
 		<GlobalContextProvider

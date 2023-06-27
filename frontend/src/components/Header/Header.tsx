@@ -54,7 +54,7 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { titleCaseString } from '@util/string'
-import { showIntercomBubble } from '@util/window'
+import { showIntercomNewMessage } from '@util/window'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -573,7 +573,7 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											</Link>
 											<Menu.Item
 												onClick={() => {
-													showIntercomBubble()
+													showIntercomNewMessage()
 												}}
 											>
 												<Box
