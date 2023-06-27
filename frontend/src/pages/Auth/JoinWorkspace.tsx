@@ -18,7 +18,7 @@ import {
 import { AuthBody, AuthFooter, AuthHeader } from '@/pages/Auth/Layout'
 import { Landing } from '@/pages/Landing/Landing'
 import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
-import { showIntercomNewMessage } from '@/util/window'
+import { showIntercomMessage } from '@/util/window'
 
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
@@ -58,7 +58,7 @@ export const JoinWorkspace = () => {
 			const error = response.errors[0].message
 			message.error(response.errors[0].message, 1)
 
-			showIntercomNewMessage(
+			showIntercomMessage(
 				`I can't join a workspace. This is the error I'm getting: "${error}"`,
 			)
 		}

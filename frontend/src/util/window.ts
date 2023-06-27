@@ -37,6 +37,6 @@ export const showIntercomBubble = () => {
 	window.Intercom('boot', { hide_default_launcher: false })
 }
 
-export const showIntercomNewMessage = (message = '') => {
+export const showIntercomMessage = (message = '') => {
 	window.Intercom('showNewMessage', message)
 }

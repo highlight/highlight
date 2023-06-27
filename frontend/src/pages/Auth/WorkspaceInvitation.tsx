@@ -18,7 +18,7 @@ import { H } from 'highlight.run'
 import React, { useEffect } from 'react'
 import { Navigate, useMatch, useNavigate } from 'react-router-dom'
 
-import { showIntercomNewMessage } from '@/util/window'
+import { showIntercomMessage } from '@/util/window'
 
 import * as styles from './AuthRouter.css'
 
@@ -128,7 +128,7 @@ export const WorkspaceInvitation = () => {
 									message.error(
 										'Failed to join the workspace. Please try again.',
 									)
-									showIntercomNewMessage(
+									showIntercomMessage(
 										`I'm having trouble joining the "${workspaceName}" workspace....`,
 									)
 								}
