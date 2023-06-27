@@ -34,7 +34,6 @@ import { useLocalStorage } from 'react-use'
 
 import { namedOperations } from '@/graph/generated/operations'
 import { DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY } from '@/pages/Auth/JoinWorkspace'
-import { showIntercomBubble } from '@/util/window'
 
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
@@ -194,13 +193,6 @@ export const AdminForm: React.FC = () => {
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [workspace?.name, workspacesLoading])
-
-	useEffect(() => {
-		// Show the Intercom message after 5 seconds in case the user needs help.
-		setTimeout(() => {
-			showIntercomBubble()
-		}, 5000)
-	}, [])
 
 	if (workspacesLoading) {
 		return null

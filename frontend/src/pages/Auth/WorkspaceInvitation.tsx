@@ -18,7 +18,7 @@ import { H } from 'highlight.run'
 import React, { useEffect } from 'react'
 import { Navigate, useMatch, useNavigate } from 'react-router-dom'
 
-import { showIntercomBubble, showIntercomNewMessage } from '@/util/window'
+import { showIntercomNewMessage } from '@/util/window'
 
 import * as styles from './AuthRouter.css'
 
@@ -52,11 +52,6 @@ export const WorkspaceInvitation = () => {
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
-
-		// Show the Intercom message after 5 seconds in case the user needs help.
-		setTimeout(() => {
-			showIntercomBubble()
-		}, 5000)
 	}, [setLoadingState])
 
 	useEffect(() => {
