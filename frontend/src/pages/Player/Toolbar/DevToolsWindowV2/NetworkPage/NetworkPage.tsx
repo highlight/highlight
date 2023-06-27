@@ -152,6 +152,12 @@ export const NetworkPage = ({
 							return requestStatuses.includes(
 								RequestStatus.Unknown,
 							)
+						} else if (
+							request.initiatorType === RequestType.WebSocket
+						) {
+							return requestStatuses.includes(
+								RequestStatus['1XX'],
+							)
 						} else {
 							// this is a network request with no status code, so we assume 2xx
 							return requestStatuses.includes(
@@ -481,6 +487,8 @@ const ResourceRow = ({
 									}
 								/>
 						  )
+						: resource.initiatorType === 'websocket'
+						? '101'
 						: '200'}
 				</Text>
 				<Text
@@ -511,7 +519,9 @@ const ResourceRow = ({
 						: MillisToMinutesAndSeconds(resource.startTime)}
 				</Text>
 				<Text size="small" weight={showingDetails ? 'bold' : 'medium'}>
-					{formatTime(resource.responseEnd - resource.startTime)}
+					{resource.responseEnd && resource.startTime
+						? formatTime(resource.responseEnd - resource.startTime)
+						: 'N/A'}
 				</Text>
 				<Box className={styles.timingBarWrapper}>
 					<Box
