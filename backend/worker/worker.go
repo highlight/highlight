@@ -251,53 +251,13 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 
 	// Fetch/write resources.
-	if s.AvoidPostgresStorage {
-		if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeResources, accumulator); err != nil {
-			return errors.Wrap(err, "error fetching resources from Redis")
-		}
-	} else {
-		resourcesRows, err := w.Resolver.DB.Model(&model.ResourcesObject{}).Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
-		if err != nil {
-			return errors.Wrap(err, "error retrieving resources objects")
-		}
-		for resourcesRows.Next() {
-			resourcesObject := model.ResourcesObject{}
-			err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)
-			if err != nil {
-				return errors.Wrap(err, "error scanning resource row")
-			}
-			if err := manager.ResourcesCompressed.WriteObject(&resourcesObject, &payload.ResourcesUnmarshalled{}); err != nil {
-				return errors.Wrap(err, "error writing compressed resources row")
-			}
-		}
-		if err := manager.ResourcesCompressed.Close(); err != nil {
-			return errors.Wrap(err, "error closing compressed resources writer")
-		}
+	if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeResources, accumulator); err != nil {
+		return errors.Wrap(err, "error fetching resources from Redis")
 	}
 
 	// Fetch/write web socket events.
-	if s.AvoidPostgresStorage {
-		if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeWebSocketEvents, accumulator); err != nil {
-			return errors.Wrap(err, "error fetching web socket events from Redis")
-		}
-	} else {
-		webSocketEvents, err := w.Resolver.DB.Model(&model.WebSocketEventsObject{}).Where(&model.WebSocketEventsObject{SessionID: s.ID}).Order("created_at asc").Rows()
-		if err != nil {
-			return errors.Wrap(err, "error retrieving web socket events objects")
-		}
-		for webSocketEvents.Next() {
-			webSocketEventsObject := model.WebSocketEventsObject{}
-			err := w.Resolver.DB.ScanRows(webSocketEvents, &webSocketEventsObject)
-			if err != nil {
-				return errors.Wrap(err, "error scanning web socket events row")
-			}
-			if err := manager.WebSocketEventsCompressed.WriteObject(&webSocketEventsObject, &payload.WebSocketEventsUnmarshalled{}); err != nil {
-				return errors.Wrap(err, "error writing compressed web socket events row")
-			}
-		}
-		if err := manager.WebSocketEventsCompressed.Close(); err != nil {
-			return errors.Wrap(err, "error closing compressed web socket events writer")
-		}
+	if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeWebSocketEvents, accumulator); err != nil {
+		return errors.Wrap(err, "error fetching web socket events from Redis")
 	}
 
 	return nil

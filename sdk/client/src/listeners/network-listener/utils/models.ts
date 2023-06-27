@@ -31,7 +31,7 @@ export interface WebSocketRequest {
 	type: 'open' | 'close'
 	name: string
 	startTime?: number
-	endTime?: number
+	requestEnd?: number
 }
 
 export interface WebSocketEvent {
