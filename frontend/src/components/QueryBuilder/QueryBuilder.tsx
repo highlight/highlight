@@ -1,4 +1,3 @@
-import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
@@ -85,7 +84,7 @@ export interface MultiselectOption {
 
 type OnChangeInput = SelectOption | MultiselectOption | undefined
 type OnChange = (val: OnChangeInput) => void
-type LoadOptions = (input: string, callback: any) => Promise<any>
+type LoadOptions = (input: string) => Promise<any>
 
 interface RuleSettings {
 	onChangeKey: OnChange
@@ -453,6 +452,21 @@ const getOption = (props: any) => {
 	)
 }
 
+const getOptionV2 = (props: any) => {
+	const {
+		label,
+		// value,
+		// selectProps: { inputValue },
+	} = props
+	// const type = getType(value)
+	const nameLabel = getNameLabel(label)
+	// const typeLabel = getTypeLabel(value)
+	// const tooltipMessage = TOOLTIP_MESSAGES[value]
+	// const searchWords = [inputValue]
+
+	return <Text lines="1">{nameLabel}</Text>
+}
+
 const PopoutContent = ({
 	value,
 	onChange,
@@ -511,11 +525,11 @@ const PopoutContent = ({
 					isMulti
 					value={selected}
 					styles={styleProps}
-					loadOptions={(input, callback) => {
+					loadOptions={(input) => {
 						const selectedSet = new Set(
 							selected.map((s) => s.value),
 						)
-						return loadOptions(input, callback).then((results) => [
+						return loadOptions(input).then((results) => [
 							...selected,
 							...results.filter(
 								(r: any) => !selectedSet.has(r.value),
@@ -720,6 +734,140 @@ const PopoutContent = ({
 	}
 }
 
+const SelectPopoutV2 = ({
+	value,
+	disabled,
+	cssClass,
+	limitWidth,
+	loadOptions,
+	type,
+	onChange,
+}: PopoutProps &
+	PopoutContentProps & {
+		cssClass?: ClassValue | ClassValue[]
+		limitWidth?: boolean
+	}) => {
+	const [query, setQuery] = useState('') // ZANETODO: initialize!
+	const [options, setOptions] = useState<any[]>([])
+	useMemo(() => {
+		loadOptions(query).then((v) => setOptions(v))
+	}, [loadOptions, query])
+	// Visible by default if no value yet
+	// const [visible, setVisible] = useState(!value)
+	// const onSetVisible = (val: boolean) => {
+	// 	setVisible(val)
+	// }
+
+	const invalid =
+		value === undefined ||
+		(value?.kind === 'multi' && value.options.length === 0)
+
+	// const tooltipMessage =
+	// 	(value?.kind === 'multi' &&
+	// 		value.options.map((o) => o.label).join(', ')) ||
+	// 	undefined
+
+	// ZANETODO: add tooltip!
+	// ZANETODO: add invalid color!
+
+	// const inner = (
+	// 	<Tooltip
+	// 		title={tooltipMessage}
+	// 		mouseEnterDelay={1.5}
+	// 		overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
+	// 	>
+	// 		<span className={newStyle.tagPopoverAnchor}>
+	// 			<Tag
+	// 				kind="secondary"
+	// 				size="medium"
+	// 				shape="basic"
+	// 				className={clsx(cssClass, {
+	// 					[styles.invalid]: invalid && !visible,
+	// 				})}
+	// 				lines={limitWidth ? '1' : undefined}
+	// 				disabled={disabled}
+	// 			>
+	// 				{invalid && '--'}
+	// 				{value?.kind === 'single' && getNameLabel(value.label)}
+	// 				{value?.kind === 'multi' &&
+	// 					value.options.length > 1 &&
+	// 					`${value.options.length} selections`}
+	// 				{value?.kind === 'multi' &&
+	// 					value.options.length === 1 &&
+	// 					value.options[0].label}
+	// 			</Tag>
+	// 		</span>
+	// 	</Tooltip>
+	// )
+
+	// if (disabled) {
+	// 	return inner
+	// }
+
+	// return (
+	// 	<Popover
+	// 		showArrow={false}
+	// 		trigger="click"
+	// 		content={
+	// 			<PopoutContent
+	// 				value={value}
+	// 				setVisible={onSetVisible}
+	// 				{...props}
+	// 			/>
+	// 		}
+	// 		placement="bottomLeft"
+	// 		contentContainerClassName={styles.contentContainer}
+	// 		popoverClassName={styles.popoverContainer}
+	// 		onVisibleChange={(isVisible) => {
+	// 			setVisible(isVisible)
+	// 		}}
+	// 		visible={visible}
+	// 		destroyTooltipOnHide
+	// 	>
+	// 		{inner}
+	// 	</Popover>
+	// )
+
+	// const options = await loadOptions()
+	console.log('zane options', options)
+
+	return (
+		<Menu placement="bottom-end">
+			<Menu.Button disabled={disabled}>
+				{invalid && '--'}
+				{value?.kind === 'single' && getNameLabel(value.label)}
+				{value?.kind === 'multi' &&
+					value.options.length > 1 &&
+					`${value.options.length} selections`}
+				{value?.kind === 'multi' &&
+					value.options.length === 1 &&
+					value.options[0].label}
+			</Menu.Button>
+			<Menu.List cssClass={styles.menuList}>
+				<Box>
+					<input
+						type="text"
+						placeholder="Filter..."
+						value={query}
+						onChange={(ev) => setQuery(ev.currentTarget.value)}
+					/>
+				</Box>
+				<Menu.Divider />
+				{options.map((o: any, i) => (
+					<Menu.Item
+						key={i}
+						onClick={(e) => {
+							console.log('zane onClick', e)
+						}}
+					>
+						{getOptionV2(o)}
+					</Menu.Item>
+				))}
+			</Menu.List>
+		</Menu>
+	)
+}
+
 const SelectPopout = ({
 	value,
 	disabled,
@@ -836,7 +984,7 @@ const QueryRule = ({
 }: { rule: RuleProps } & RuleSettings) => {
 	return (
 		<Box display="inline-flex" gap="1">
-			<SelectPopout
+			<SelectPopoutV2
 				value={rule.field}
 				onChange={onChangeKey}
 				loadOptions={getKeyOptions}
@@ -1214,7 +1362,6 @@ interface QueryBuilderProps {
 }
 
 enum QueryBuilderMode {
-	EMPTY = 'EMPTY',
 	CUSTOM = 'CUSTOM',
 	SEGMENT = 'SEGMENT',
 	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
@@ -1604,10 +1751,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
-	const mode = useMemo(() => {
-		if (filterRules.length === 0 && !selectedSegment) {
-			return QueryBuilderMode.EMPTY
-		} else if (selectedSegment !== undefined) {
+	const mode = (() => {
+		if (selectedSegment !== undefined) {
 			if (searchQuery !== existingQuery) {
 				return QueryBuilderMode.SEGMENT_UPDATE
 			} else {
@@ -1615,7 +1760,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 			}
 		}
 		return QueryBuilderMode.CUSTOM
-	}, [existingQuery, filterRules.length, searchQuery, selectedSegment])
+	})()
 
 	const addFilterButton = useMemo(() => {
 		if (readonly) {
@@ -1627,75 +1772,24 @@ function QueryBuilder(props: QueryBuilderProps) {
 				showArrow={false}
 				trigger="click"
 				content={
-					currentRule?.field === undefined ? (
-						<PopoutContent
-							key="popover-step-1"
-							value={undefined}
-							setVisible={() => {
-								setCurrentStep(undefined)
-							}}
-							onChange={(val) => {
-								const field = val as SelectOption | undefined
-								addRule({
-									field: field,
-									op: undefined,
-									val: undefined,
-								})
-							}}
-							loadOptions={getKeyOptions}
-							type="select"
-							placeholder="Filter..."
-						/>
-					) : currentRule?.op === undefined ? (
-						<PopoutContent
-							key="popover-step-2"
-							value={undefined}
-							setVisible={() => {
-								setCurrentStep(3)
-							}}
-							onChange={(val) => {
-								const op = (val as SelectOption)
-									.value as Operator
-								if (!hasArguments(op)) {
-									setCurrentStep(undefined)
-									addRule({
-										...currentRule,
-										op,
-									})
-								} else {
-									setCurrentRule({
-										...currentRule,
-										op,
-									})
-								}
-							}}
-							loadOptions={getOperatorOptionsCallback(
-								getCustomFieldOptions(currentRule.field),
-								currentRule.val,
-							)}
-							type="select"
-							placeholder="Select..."
-						/>
-					) : (
-						<PopoutContent
-							key="popover-step-3"
-							value={undefined}
-							setVisible={() => {
-								setCurrentStep(undefined)
-							}}
-							onChange={(val) => {
-								addRule({
-									...currentRule,
-									val: val as MultiselectOption | undefined,
-								})
-							}}
-							loadOptions={getValueOptionsCallback(
-								currentRule.field,
-							)}
-							type={getPopoutType(currentRule.op)}
-							placeholder="Select..."
-						/>
-					)
+					<PopoutContent
+						key="popover-step-1"
+						value={undefined}
+						setVisible={() => {
+							setCurrentStep(undefined)
+						}}
+						onChange={(val) => {
+							const field = val as SelectOption | undefined
+							addRule({
+								field: field,
+								op: undefined,
+								val: undefined,
+							})
+						}}
+						loadOptions={getKeyOptions}
+						type="select"
+						placeholder="Filter..."
+					/>
 				}
 				placement="bottomLeft"
 				contentContainerClassName={styles.contentContainer}
@@ -1712,39 +1806,17 @@ function QueryBuilder(props: QueryBuilderProps) {
 					(currentStep === 3 && !!currentRule?.op)
 				}
 			>
-				{mode === QueryBuilderMode.EMPTY ? (
-					<Button
-						kind="secondary"
-						size="xSmall"
-						emphasis="low"
-						iconLeft={<IconSolidPlusSm size={12} />}
-						onClick={addNewRule}
-						trackingId="queryBuilderAddFilter"
-					>
-						Add filter
-					</Button>
-				) : (
-					<ButtonIcon
-						kind="secondary"
-						size="xSmall"
-						emphasis="low"
-						icon={<IconSolidPlusSm size={12} />}
-						onClick={addNewRule}
-						cssClass={newStyle.addButton}
-					/>
-				)}
+				<ButtonIcon
+					kind="secondary"
+					size="xSmall"
+					emphasis="low"
+					icon={<IconSolidPlusSm size={12} />}
+					onClick={addNewRule}
+					cssClass={newStyle.addButton}
+				/>
 			</Popover>
 		)
-	}, [
-		addRule,
-		currentRule,
-		currentStep,
-		getCustomFieldOptions,
-		getKeyOptions,
-		getValueOptionsCallback,
-		mode,
-		readonly,
-	])
+	}, [addRule, currentRule, currentStep, getKeyOptions, readonly])
 
 	const canUpdateSegment =
 		!!selectedSegment && filterRules.length > 0 && areRulesValid
@@ -1787,8 +1859,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const actionButton = useMemo(() => {
 		switch (mode) {
-			case QueryBuilderMode.EMPTY:
-				return addFilterButton
 			case QueryBuilderMode.CUSTOM:
 				return (
 					<Menu.Button
@@ -1831,7 +1901,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					</Menu.Button>
 				)
 		}
-	}, [addFilterButton, areRulesValid, mode, selectedSegment?.name])
+	}, [areRulesValid, mode, selectedSegment?.name])
 
 	const controlBar = useMemo(() => {
 		return (
@@ -2006,69 +2076,67 @@ function QueryBuilder(props: QueryBuilderProps) {
 				m={readonly ? undefined : '8'}
 				shadow="medium"
 			>
-				{mode !== QueryBuilderMode.EMPTY && (
-					<Box
-						p="4"
-						paddingBottom="8"
-						background="white"
-						borderBottom={readonly ? undefined : 'secondary'}
-						display="flex"
-						alignItems="center"
-						flexWrap="wrap"
-						gap="4"
-					>
-						{filterRules.flatMap((rule, index) => [
-							...(index != 0
-								? [
-										<Tag
-											shape="basic"
-											kind="secondary"
-											emphasis="low"
-											onClick={toggleIsAnd}
-											key={`separator-${index}`}
-											disabled={readonly}
-										>
-											{isAnd ? 'and' : 'or'}
-										</Tag>,
-								  ]
-								: []),
-							<QueryRule
-								key={`rule-${index}`}
-								rule={rule}
-								onChangeKey={(val) => {
-									// Default to 'is' when rule is not defined yet
-									if (rule.op === undefined) {
-										updateRule(rule, {
-											field: val,
-											op: getDefaultOperator(rule.field),
-										})
-									} else {
-										updateRule(rule, { field: val })
-									}
-								}}
-								getKeyOptions={getKeyOptions}
-								onChangeOperator={(val) => {
-									if (val?.kind === 'single') {
-										updateRule(rule, { op: val.value })
-									}
-								}}
-								getOperatorOptions={getOperatorOptionsCallback(
-									getCustomFieldOptions(rule.field),
-									rule.val,
-								)}
-								onChangeValue={(val) => {
-									updateRule(rule, { val: val })
-								}}
-								getValueOptions={getValueOptionsCallback(
-									rule.field,
-								)}
-								onRemove={() => removeRule(rule)}
-								readonly={readonly ?? false}
-							/>,
-						])}
-						{addFilterButton}
-					</Box>
-				)}
+				<Box
+					p="4"
+					paddingBottom="8"
+					background="white"
+					borderBottom={readonly ? undefined : 'secondary'}
+					display="flex"
+					alignItems="center"
+					flexWrap="wrap"
+					gap="4"
+				>
+					{filterRules.flatMap((rule, index) => [
+						...(index != 0
+							? [
+									<Tag
+										shape="basic"
+										kind="secondary"
+										emphasis="low"
+										onClick={toggleIsAnd}
+										key={`separator-${index}`}
+										disabled={readonly}
+									>
+										{isAnd ? 'and' : 'or'}
+									</Tag>,
+							  ]
+							: []),
+						<QueryRule
+							key={`rule-${index}`}
+							rule={rule}
+							onChangeKey={(val) => {
+								// Default to 'is' when rule is not defined yet
+								if (rule.op === undefined) {
+									updateRule(rule, {
+										field: val,
+										op: getDefaultOperator(rule.field),
+									})
+								} else {
+									updateRule(rule, { field: val })
+								}
+							}}
+							getKeyOptions={getKeyOptions}
+							onChangeOperator={(val) => {
+								if (val?.kind === 'single') {
+									updateRule(rule, { op: val.value })
+								}
+							}}
+							getOperatorOptions={getOperatorOptionsCallback(
+								getCustomFieldOptions(rule.field),
+								rule.val,
+							)}
+							onChangeValue={(val) => {
+								updateRule(rule, { val: val })
+							}}
+							getValueOptions={getValueOptionsCallback(
+								rule.field,
+							)}
+							onRemove={() => removeRule(rule)}
+							readonly={readonly ?? false}
+						/>,
+					])}
+					{addFilterButton}
+				</Box>
 				{!readonly && (
 					<Box
 						display="flex"
