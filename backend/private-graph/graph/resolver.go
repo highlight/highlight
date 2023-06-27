@@ -494,25 +494,6 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	return nil, e.New("admin doesn't exist in project")
 }
 
-func (r *Resolver) isProjectInPaidWorkspace(ctx context.Context, project_id int) (*model.Workspace, error) {
-	workspace := &model.Workspace{}
-	if err := r.DB.Raw(`
-		SELECT w.*
-		FROM workspaces w
-		INNER JOIN projects pr
-		ON w.id = pr.workspace_id
-		WHERE pr.id = ?
-	`, project_id).First(&workspace).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying workspaces")
-	}
-
-	if modelInputs.PlanType(workspace.PlanTier) == modelInputs.PlanTypeFree {
-		return nil, e.New("workspace is in free tier")
-	}
-
-	return workspace, nil
-}
-
 func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.ErrorGroup) (*time.Time, *time.Time, error) {
 	bucket, measurement := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(eg.ProjectID), timeseries.Errors), timeseries.Errors, time.Since(eg.CreatedAt))
 	var filter string

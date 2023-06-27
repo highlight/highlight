@@ -37,7 +37,6 @@ import {
 } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
-import { onlyAllowPaidTier } from '@util/authorization/authorizationTiers'
 import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard } from '@util/string'
@@ -362,11 +361,9 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			</Box>
 
 			<Box display="flex" flexDirection="column" mb="40" gap="40">
-				{onlyAllowPaidTier(workspaceData?.workspace?.plan_tier) && (
-					<AiErrorSuggestion
-						errorObjectId={errorInstance.error_object.id}
-					/>
-				)}
+				<AiErrorSuggestion
+					errorObjectId={errorInstance.error_object.id}
+				/>
 
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
 					<Metadata errorObject={errorInstance.error_object} />
