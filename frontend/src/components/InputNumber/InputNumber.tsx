@@ -2,7 +2,7 @@
 import { InputNumber as AntDesignInputNumber, InputNumberProps } from 'antd'
 import React from 'react'
 
-import styles from './InputNumber.module.scss'
+import styles from './InputNumber.module.css'
 
 type Props = Pick<
 	InputNumberProps,

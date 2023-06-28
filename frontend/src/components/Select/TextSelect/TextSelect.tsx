@@ -8,7 +8,7 @@ import clsx from 'clsx'
 import React from 'react'
 
 import SvgChevronDownIcon from '../../../static/ChevronDownIcon'
-import styles from './TextSelect.module.scss'
+import styles from './TextSelect.module.css'
 const { Option } = AntDesignSelect
 
 type Props = Pick<

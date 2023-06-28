@@ -1249,6 +1249,21 @@ func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sess
 	return b, nil
 }
 
+func (r *Resolver) getSessionInsight(ctx context.Context, projectID int, sessionID int) ([]byte, error) {
+	res, err := r.LambdaClient.GetSessionInsight(ctx, projectID, sessionID)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to make session insight request")
+	}
+	if res.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("session insight returned %d", res.StatusCode))
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to read body of session insight response")
+	}
+	return b, nil
+}
+
 // Returns the current Admin or an Admin with ID = 0 if the current Admin is a guest
 func (r *Resolver) getCurrentAdminOrGuest(ctx context.Context) (currentAdmin *model.Admin, isGuest bool) {
 	admin, err := r.getCurrentAdmin(ctx)
@@ -1488,6 +1503,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 		"BillingPeriodStart": billingPeriodStart,
 		"BillingPeriodEnd":   billingPeriodEnd,
 		"NextInvoiceDate":    nextInvoiceDate,
+		"TrialEndDate":       nil,
 	}
 
 	// Only update retention period if already set

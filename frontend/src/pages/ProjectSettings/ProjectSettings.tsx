@@ -33,7 +33,7 @@ import { AutoresolveStaleErrorsForm } from '@/pages/ProjectSettings/AutoresolveS
 import { FilterSessionsWithoutErrorForm } from '@/pages/ProjectSettings/FilterSessionsWithoutErrorForm/FilterSessionsWithoutErrorForm'
 import { ProjectSettingsContextProvider } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
-import styles from './ProjectSettings.module.scss'
+import styles from './ProjectSettings.module.css'
 
 const ProjectSettings = () => {
 	const navigate = useNavigate()

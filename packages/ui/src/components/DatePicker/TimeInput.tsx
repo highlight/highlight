@@ -19,6 +19,7 @@ export function TimeInput({ placeholder, name, onTimeChange }: TimeInputProps) {
 				boxSizing: 'border-box',
 				border: 'none',
 				background: 'none',
+				marginTop: '-5px',
 			}}
 			onChange={(event) => {
 				setValue(event.target.value)

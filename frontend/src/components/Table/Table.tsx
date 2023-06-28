@@ -3,7 +3,7 @@ import { ConfigProvider, Table as AntDesignTable, TableProps } from 'antd'
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './Table.module.scss'
+import styles from './Table.module.css'
 
 type Props = Pick<
 	TableProps<any>,

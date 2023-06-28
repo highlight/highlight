@@ -14,7 +14,7 @@ import { Helmet } from 'react-helmet'
 import { Navigate, useLocation } from 'react-router-dom'
 import { StringParam, useQueryParam } from 'use-query-params'
 
-import styles from './SwitchWorkspace.module.scss'
+import styles from './SwitchWorkspace.module.css'
 
 const SwitchWorkspace = () => {
 	const [currentWorkspaceId] = useQueryParam('current_workspace', StringParam)
@@ -140,18 +140,7 @@ const SwitchWorkspace = () => {
 					<h2 className={styles.title}>Enter Workspace</h2>
 					<p className={styles.subTitle}>
 						Pick a workspace. If you’re having trouble getting into
-						the correct workspace, message us on{' '}
-						<span
-							className={styles.intercomButton}
-							onClick={() =>
-								window.Intercom('update', {
-									hide_default_launcher: false,
-								})
-							}
-						>
-							Intercom
-						</span>
-						.
+						the correct workspace, reach out to us.
 					</p>
 					<Select
 						className={styles.fullWidth}

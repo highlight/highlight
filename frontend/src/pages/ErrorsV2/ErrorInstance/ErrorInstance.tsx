@@ -4,7 +4,6 @@ import { Avatar } from '@components/Avatar/Avatar'
 import { Button } from '@components/Button'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
 import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
-import { LinkButton } from '@components/LinkButton'
 import LoadingBox from '@components/LoadingBox'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
@@ -12,7 +11,7 @@ import {
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { ErrorObjectFragment, GetErrorGroupQuery } from '@graph/operations'
-import { Maybe, ReservedLogKey } from '@graph/schemas'
+import { Maybe } from '@graph/schemas'
 import {
 	Box,
 	Heading,
@@ -24,11 +23,6 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
-import {
-	DEFAULT_LOGS_OPERATOR,
-	LogsSearchParam,
-	stringifyLogsQuery,
-} from '@pages/LogsPage/SearchForm/utils'
 import {
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
@@ -42,10 +36,11 @@ import { buildQueryURLString } from '@util/url/params'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { createSearchParams, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
 import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionMissingOrExcluded'
+import { ShowLogsButton } from '@/pages/ErrorsV2/ErrorInstance/ShowLogsButton'
 import { ShowSessionButton } from '@/pages/ErrorsV2/ErrorInstance/ShowSessionButton'
 import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
 
@@ -60,41 +55,6 @@ const METADATA_LABELS: { [key: string]: string } = {
 	id: 'ID',
 } as const
 
-const getLogsLink = (errorObject: ErrorObjectFragment): string => {
-	const queryParams: LogsSearchParam[] = []
-	let offsetStart = 1
-	if (errorObject.session?.secure_id) {
-		queryParams.push({
-			key: ReservedLogKey.SecureSessionId,
-			operator: DEFAULT_LOGS_OPERATOR,
-			value: errorObject.session?.secure_id,
-			offsetStart: offsetStart++,
-		})
-	}
-	if (errorObject.trace_id) {
-		queryParams.push({
-			key: ReservedLogKey.TraceId,
-			operator: DEFAULT_LOGS_OPERATOR,
-			value: errorObject.trace_id,
-			offsetStart: offsetStart++,
-		})
-	}
-	const query = stringifyLogsQuery(queryParams)
-	const logCursor = errorObject.log_cursor
-	const params = createSearchParams({
-		query,
-		start_date: moment(errorObject.timestamp)
-			.add(-5, 'minutes')
-			.toISOString(),
-		end_date: moment(errorObject.timestamp).add(5, 'minutes').toISOString(),
-	})
-	if (logCursor) {
-		return `/${errorObject.project_id}/logs/${logCursor}?${params}`
-	} else {
-		return `/${errorObject.project_id}/logs?${params}`
-	}
-}
-
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { error_object_id, error_secure_id } = useParams<{
 		error_secure_id: string
@@ -103,7 +63,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	const { projectId } = useProjectId()
 	const navigate = useNavigate()
 	const client = useApolloClient()
-	const { isLoggedIn } = useAuthContext()
 
 	const { loading, data } = useGetErrorInstanceQuery({
 		variables: {
@@ -310,26 +269,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						>
 							<KeyboardShortcut label="Next" shortcut="]" />
 						</Tooltip>
-						<LinkButton
-							kind="primary"
-							emphasis="high"
-							to={getLogsLink(errorInstance.error_object)}
-							disabled={
-								!isLoggedIn ||
-								!errorInstance.error_object.session
-							}
-							trackingId="error-related_logs_link"
-						>
-							<Box
-								display="flex"
-								alignItems="center"
-								flexDirection="row"
-								gap="4"
-							>
-								<IconSolidLogs />
-								Show logs
-							</Box>
-						</LinkButton>
+						<ShowLogsButton data={data} />
 						<ShowSessionButton
 							errorObject={errorInstance.error_object}
 						/>

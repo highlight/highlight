@@ -12,8 +12,8 @@ import React, { useEffect, useState } from 'react'
 
 import analytics from '@/util/analytics'
 
-import commonStyles from '../../Common.module.scss'
-import styles from './Buttons.module.scss'
+import commonStyles from '../../Common.module.css'
+import styles from './Buttons.module.css'
 import {
 	CustomError,
 	DefaultError,

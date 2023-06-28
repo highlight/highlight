@@ -5154,15 +5154,31 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, qu
 }
 
 // FieldTypes is the resolver for the field_types field.
-func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model.Field, error) {
+func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate *time.Time, endDate *time.Time) ([]*model.Field, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
 	}
 
+	var startDateNotNil time.Time
+	if startDate != nil {
+		startDateNotNil = *startDate
+	}
+
 	aggQuery := `{"bool": {
 		"must": []
 	}}`
+	if endDate != nil {
+		aggQuery = fmt.Sprintf(`{
+			"range": {
+				"created_at": {
+					"lt": "%s"
+				}
+			}
+		}`, (*endDate).Format(time.RFC3339))
+	}
+
+	sessionsQuery := FormatSessionsQuery(aggQuery, startDateNotNil)
 
 	aggOptions := opensearch.SearchOptions{
 		MaxResults: pointy.Int(0),
@@ -5174,7 +5190,7 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int) ([]*model
 	}
 
 	ignored := []struct{}{}
-	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, aggQuery, aggOptions, &ignored)
+	_, aggResults, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexSessions}, projectID, sessionsQuery, aggOptions, &ignored)
 	if err != nil {
 		return nil, err
 	}
@@ -7326,6 +7342,26 @@ func (r *queryResolver) LogsErrorObjects(ctx context.Context, logCursors []strin
 	highlight.EndTrace(s)
 	ddS.Finish()
 	return errorObjects, nil
+}
+
+// SessionInsight is the resolver for the session_insight field.
+func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*modelInputs.SessionInsight, error) {
+	session, err := r.canAdminViewSession(ctx, secureID)
+	if err != nil {
+		return nil, nil
+	}
+
+	insight := &modelInputs.SessionInsight{}
+
+	b, err := r.getSessionInsight(ctx, session.ProjectID, session.ID)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to get session insight")
+	}
+	if err = json.Unmarshal(b, insight); err != nil {
+		return nil, e.Wrap(err, "failed to unmarshal session insight")
+	}
+
+	return insight, nil
 }
 
 // Params is the resolver for the params field.

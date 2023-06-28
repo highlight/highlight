@@ -298,6 +298,13 @@ query GetWorkspaceAdmins($workspace_id: ID!) {
 	}
 }
 
+query GetSessionInsight($secure_id: String!) {
+	session_insight(secure_id: $secure_id) {
+		id
+		insight
+	}
+}
+
 query GetSessionComments($session_secure_id: String!) {
 	session_comments(session_secure_id: $session_secure_id) {
 		id
@@ -512,8 +519,16 @@ query GetTimelineIndicatorEvents($session_secure_id: String!) {
 	}
 }
 
-query GetFieldTypes($project_id: ID!) {
-	field_types(project_id: $project_id) {
+query GetFieldTypes(
+	$project_id: ID!
+	$start_date: Timestamp
+	$end_date: Timestamp
+) {
+	field_types(
+		project_id: $project_id
+		start_date: $start_date
+		end_date: $end_date
+	) {
 		type
 		name
 	}

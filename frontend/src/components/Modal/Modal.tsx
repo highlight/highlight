@@ -4,7 +4,7 @@ import { Modal as AntDesignModal, ModalProps } from 'antd'
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './Modal.module.scss'
+import styles from './Modal.module.css'
 
 type Props = Pick<
 	ModalProps,
