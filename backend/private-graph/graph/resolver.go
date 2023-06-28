@@ -1503,6 +1503,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 		"BillingPeriodStart": billingPeriodStart,
 		"BillingPeriodEnd":   billingPeriodEnd,
 		"NextInvoiceDate":    nextInvoiceDate,
+		"TrialEndDate":       nil,
 	}
 
 	// Only update retention period if already set
