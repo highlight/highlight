@@ -13,7 +13,6 @@ import {
 	Text,
 	useMenu,
 } from '@highlight-run/ui'
-import { delayedRefetch } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
 import { DatePicker, message } from 'antd'
 import moment from 'moment'
@@ -52,6 +51,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 	const [menuState, setMenuState] = React.useState<MenuState>(
 		MenuState.Default,
 	)
+	const [isUpdating, setIsUpdating] = React.useState(false)
 
 	const { error_secure_id } = useParams<{ error_secure_id: string }>()
 	const [updateErrorGroupState] = useUpdateErrorGroupStateMutation({
@@ -59,7 +59,6 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 			namedOperations.Query.GetErrorGroup,
 			namedOperations.Query.GetErrorGroupsOpenSearch,
 		],
-		onQueryUpdated: delayedRefetch,
 		awaitRefetchQueries: true,
 	})
 
@@ -80,6 +79,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 
 			showStateUpdateMessage(newState, newSnoozedUntil)
 			setMenuState(MenuState.Default)
+			setIsUpdating(true)
 
 			await updateErrorGroupState({
 				variables: {
@@ -87,13 +87,9 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 					state: newState,
 					snoozed_until: newSnoozedUntil,
 				},
-				optimisticResponse: {
-					updateErrorGroupState: {
-						secure_id: error_secure_id!,
-						state: newState,
-						snoozed_until: newSnoozedUntil,
-						__typename: 'ErrorGroup',
-					},
+				onCompleted: async () => {
+					showStateUpdateMessage(newState, newSnoozedUntil)
+					setMenuState(MenuState.Default)
 				},
 				onError: async () => {
 					message.destroy(MESSAGE_KEY)
@@ -102,6 +98,8 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 					)
 				},
 			})
+
+			setIsUpdating(false)
 		},
 		[error_secure_id, initialErrorState, snoozed, updateErrorGroupState],
 	)
@@ -180,7 +178,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				size="small"
 				kind="secondary"
 				emphasis="medium"
-				disabled={!isLoggedIn}
+				disabled={!isLoggedIn || isUpdating}
 				iconRight={<IconSolidCheveronDown />}
 			>
 				<Text case="capital">
