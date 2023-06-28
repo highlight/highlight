@@ -1364,7 +1364,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 
 	var project model.Project
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -1601,7 +1601,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
 	var project model.Project
 	if err := r.DB.Where("id = ?", projectID).First(&project).Error; err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -1752,7 +1752,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 
 	var project model.Project
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: sessionComment.ProjectID}}).First(&project).Error; err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -1851,7 +1851,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 	var project model.Project
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -2079,7 +2079,7 @@ func (r *mutationResolver) MuteErrorCommentThread(ctx context.Context, id int, h
 func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	var project model.Project
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -2191,7 +2191,7 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 
 	var project model.Project
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: errorComment.ProjectID}}).First(&project).Error; err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -3138,7 +3138,7 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 
 	var project model.Project
 	if err := r.DB.Select("workspace_id").Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
+		log.WithContext(ctx).Error(err)
 		return &model.T, nil
 	}
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -4619,7 +4619,7 @@ func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*mo
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 
 	setupEvent := model.SetupEvent{}
@@ -5547,7 +5547,7 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, projectID int, name
 // PropertySuggestion is the resolver for the property_suggestion field.
 func (r *queryResolver) PropertySuggestion(ctx context.Context, projectID int, query string, typeArg string) ([]*model.Field, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 	fields := []*model.Field{}
 	res := r.DB.Where(&model.Field{Type: typeArg}).Where("project_id = ?", projectID).Where(r.DB.
@@ -5564,7 +5564,7 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, projectID int, q
 // ErrorFieldSuggestion is the resolver for the error_field_suggestion field.
 func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, projectID int, name string, query string) ([]*model.ErrorField, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 	fields := []*model.ErrorField{}
 	res := r.DB.Where(&model.ErrorField{Name: name}).
@@ -5686,7 +5686,7 @@ func (r *queryResolver) JoinableWorkspaces(ctx context.Context) ([]*model.Worksp
 func (r *queryResolver) ErrorAlerts(ctx context.Context, projectID int) ([]*model.ErrorAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 	alerts := []*model.ErrorAlert{}
 	if err := r.DB.Order("created_at asc").Model(&model.ErrorAlert{}).Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
@@ -5713,7 +5713,7 @@ func (r *queryResolver) NewUserAlerts(ctx context.Context, projectID int) ([]*mo
 func (r *queryResolver) TrackPropertiesAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 	var alerts []*model.SessionAlert
 	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.TRACK_PROPERTIES}}).
@@ -5727,7 +5727,7 @@ func (r *queryResolver) TrackPropertiesAlerts(ctx context.Context, projectID int
 func (r *queryResolver) UserPropertiesAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 	var alerts []*model.SessionAlert
 	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.USER_PROPERTIES}}).
@@ -5741,7 +5741,7 @@ func (r *queryResolver) UserPropertiesAlerts(ctx context.Context, projectID int)
 func (r *queryResolver) NewSessionAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 	var alerts []*model.SessionAlert
 	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.NEW_SESSION}}).
@@ -5816,7 +5816,7 @@ func (r *queryResolver) WorkspaceSuggestion(ctx context.Context, query string) (
 // EnvironmentSuggestion is the resolver for the environment_suggestion field.
 func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model.Field, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 	fields := []*model.Field{}
 	res := r.DB.Where(&model.Field{Type: "session", Name: "environment"}).
@@ -5833,7 +5833,7 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int
 // AppVersionSuggestion is the resolver for the app_version_suggestion field.
 func (r *queryResolver) AppVersionSuggestion(ctx context.Context, projectID int) ([]*string, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 	appVersions := []*string{}
 
@@ -5847,7 +5847,7 @@ func (r *queryResolver) AppVersionSuggestion(ctx context.Context, projectID int)
 // IdentifierSuggestion is the resolver for the identifier_suggestion field.
 func (r *queryResolver) IdentifierSuggestion(ctx context.Context, projectID int, query string) ([]string, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 
 	input := fmt.Sprintf(`{"wildcard": {"identifier.keyword": {"value": "*%s*", "case_insensitive": true}}}`, query)
@@ -5945,7 +5945,7 @@ func (r *queryResolver) DiscordChannelSuggestions(ctx context.Context, projectID
 func (r *queryResolver) GenerateZapierAccessToken(ctx context.Context, projectID int) (string, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return "", e.Wrap(err, "error querying project")
+		return "", err
 	}
 
 	if project.ZapierAccessToken != nil {
@@ -5965,7 +5965,7 @@ func (r *queryResolver) IsIntegratedWith(ctx context.Context, integrationType mo
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 
 	if err != nil {
-		return false, e.Wrap(err, "error querying project")
+		return false, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -6040,7 +6040,7 @@ func (r *queryResolver) IsProjectIntegratedWith(ctx context.Context, integration
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 
 	if err != nil {
-		return false, e.Wrap(err, "error querying project")
+		return false, err
 	}
 
 	return r.IntegrationsClient.IsProjectIntegrated(ctx, project, integrationType)
@@ -6286,7 +6286,7 @@ func (r *queryResolver) LinearTeams(ctx context.Context, projectID int) ([]*mode
 	ret := []*modelInputs.LinearTeam{}
 
 	if err != nil {
-		return ret, e.Wrap(err, "error querying project")
+		return ret, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -7220,7 +7220,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 	}
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 
 	// Update the the number of logs viewed for the current admin.
@@ -7280,7 +7280,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogEdge, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 
 	return r.ClickhouseClient.ReadSessionLogs(ctx, project.ID, params)
@@ -7290,7 +7290,7 @@ func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params m
 func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return 0, e.Wrap(err, "error querying project")
+		return 0, err
 	}
 
 	return r.ClickhouseClient.ReadLogsTotalCount(ctx, project.ID, params)
@@ -7300,7 +7300,7 @@ func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, param
 func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (*modelInputs.LogsHistogram, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 
 	return r.ClickhouseClient.ReadLogsHistogram(ctx, project.ID, params, 48)
@@ -7310,7 +7310,7 @@ func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params
 func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.LogKey, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 
 	return r.ClickhouseClient.LogsKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate)
@@ -7320,7 +7320,7 @@ func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange m
 func (r *queryResolver) LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project")
+		return nil, err
 	}
 
 	return r.ClickhouseClient.LogsKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
