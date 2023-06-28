@@ -316,7 +316,7 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	} else {
 		project, err = r.isAdminInProject(ctx, project_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in project or demo project")
+			return nil, err
 		}
 	}
 	return project, nil
@@ -462,7 +462,7 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 	}
 
 	if workspaceID != workspace.ID {
-		return nil, e.New("workspace is not associated to the current admin")
+		return nil, errors.New(AuthorizationError)
 	}
 
 	return &workspace, nil
