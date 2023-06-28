@@ -6,9 +6,6 @@ import {
 	IconSolidCheveronUp,
 	Tooltip,
 } from '@highlight-run/ui'
-import React from 'react'
-
-import * as style from './style.css'
 
 export const PreviousNextGroup = function ({
 	onPrev,
@@ -26,7 +23,13 @@ export const PreviousNextGroup = function ({
 	nextShortcut?: string
 }) {
 	return (
-		<Box borderRadius="6" overflow="hidden" display="flex" flexShrink={0}>
+		<Box
+			borderRadius="6"
+			overflow="hidden"
+			display="flex"
+			flexShrink={0}
+			alignItems="center"
+		>
 			<Tooltip
 				placement="bottom-end"
 				trigger={
@@ -38,7 +41,6 @@ export const PreviousNextGroup = function ({
 						icon={<IconSolidCheveronUp size={14} />}
 						onClick={onPrev}
 						disabled={!canMoveBackward}
-						cssClass={style.leftButton}
 					/>
 				}
 				delayed
@@ -50,7 +52,7 @@ export const PreviousNextGroup = function ({
 				/>
 			</Tooltip>
 
-			<Box as="span" borderRight="secondary" />
+			<Box as="span" borderRight="secondary" style={{ height: 16 }} />
 
 			<Tooltip
 				placement="bottom-start"
@@ -64,7 +66,6 @@ export const PreviousNextGroup = function ({
 						title="j"
 						onClick={onNext}
 						disabled={!canMoveForward}
-						cssClass={style.rightButton}
 					/>
 				}
 				delayed

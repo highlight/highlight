@@ -6,6 +6,7 @@ import {
 	Badge,
 	Box,
 	ButtonIcon,
+	Heading,
 	IconSolidArrowCircleRight,
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
@@ -33,6 +34,7 @@ import React, { useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 const NetworkResourceDetails = React.memo(
+	// TODO: Store network resource in the URL and pull from there instead.
 	({ resource }: { resource: NetworkResource }) => {
 		const { setActiveNetworkResource } = usePlayerUIContext()
 		const { resources } = useResourcesContext()
@@ -61,6 +63,7 @@ const NetworkResourceDetails = React.memo(
 			return new Date(resource.timestamp).getTime() - startTime
 		}, [resource.timestamp, startTime])
 
+		// TODO: Swap these so they follow the pattern of the j/k shortcuts.
 		useHotkeys(
 			'h',
 			() => {
@@ -90,7 +93,15 @@ const NetworkResourceDetails = React.memo(
 				overflowX="hidden"
 				overflowY="auto"
 			>
-				<Box pl="12" pr="8" py="6" display="flex">
+				<Box
+					pl="12"
+					pr="8"
+					py="6"
+					display="flex"
+					alignItems="center"
+					justifyContent="space-between"
+					borderBottom="divider"
+				>
 					<Box display="flex" gap="6" alignItems="center">
 						<PreviousNextGroup
 							onPrev={() =>
@@ -108,18 +119,16 @@ const NetworkResourceDetails = React.memo(
 							{resourceIdx + 1} / {networkResources.length}
 						</Text>
 					</Box>
-					<Box ml="auto" display="flex" alignItems="center">
-						<ButtonIcon
-							kind="secondary"
-							size="small"
-							shape="square"
-							emphasis="low"
-							icon={<IconSolidX />}
-							onClick={() => {
-								setActiveNetworkResource(undefined)
-							}}
-						/>
-					</Box>
+					<ButtonIcon
+						kind="secondary"
+						size="small"
+						shape="square"
+						emphasis="low"
+						icon={<IconSolidX />}
+						onClick={() => {
+							setActiveNetworkResource(undefined)
+						}}
+					/>
 				</Box>
 				<Box
 					px="12"
@@ -128,20 +137,9 @@ const NetworkResourceDetails = React.memo(
 					flexDirection="column"
 					gap="8"
 				>
-					<Text
-						size="small"
-						weight="medium"
-						color="strong"
-						wrap="breakWord"
-						lines="4"
-					>
-						{resource.displayName ?? resource.name}
-					</Text>
-					<Box
-						display="flex"
-						alignItems="center"
-						justifyContent="space-between"
-					>
+					<Heading level="h4">Network request</Heading>
+
+					<Box display="flex" alignItems="center">
 						<Badge
 							label={String(
 								showPlayerAbsoluteTime
@@ -173,7 +171,7 @@ const NetworkResourceDetails = React.memo(
 								flexShrink: 0,
 							}}
 						>
-							Go to request
+							Go to
 						</Tag>
 					</Box>
 				</Box>
