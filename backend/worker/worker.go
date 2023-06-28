@@ -784,6 +784,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	pagesVisited := len(visitFields)
 
+	workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return err
+	}
+	withinBillingQuota, _ := w.PublicResolver.IsWithinQuota(ctx, pricing.ProductTypeSessions, workspace, time.Now())
+
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -795,6 +801,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			HasRageClicks:       &hasRageClicks,
 			HasOutOfOrderEvents: accumulator.AreEventsOutOfOrder,
 			PagesVisited:        pagesVisited,
+			WithinBillingQuota:  &withinBillingQuota,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
