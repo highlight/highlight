@@ -13,7 +13,8 @@ import { TIME_RANGE_FIELD } from '../ErrorQueryBuilder/ErrorQueryBuilder'
 
 const ErrorFeedHistogram = React.memo(() => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const { backendSearchQuery, setSearchQuery } = useErrorSearchContext()
+	const { backendSearchQuery, searchParams, setSearchParams } =
+		useErrorSearchContext()
 	const { loading, data } = useGetErrorsHistogramQuery({
 		variables: {
 			query: backendSearchQuery?.childSearchQuery as string,
@@ -59,15 +60,17 @@ const ErrorFeedHistogram = React.memo(() => {
 
 	const updateTimeRange = useCallback(
 		(newStartTime: Date, newEndTime: Date) => {
-			setSearchQuery((query) =>
-				updateQueriedTimeRange(
-					query || '',
+			const newSearchParams = {
+				...searchParams,
+				query: updateQueriedTimeRange(
+					searchParams.query || '',
 					TIME_RANGE_FIELD,
 					serializeAbsoluteTimeRange(newStartTime, newEndTime),
 				),
-			)
+			}
+			setSearchParams(newSearchParams)
 		},
-		[setSearchQuery],
+		[searchParams, setSearchParams],
 	)
 
 	return (

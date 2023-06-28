@@ -19,7 +19,7 @@ export default {
 
 const now = moment()
 
-const defaultPresets = getDefaultPresets()
+const defaultPresets = getDefaultPresets(now)
 
 export { subtractDays, subtractHours } from './utils'
 

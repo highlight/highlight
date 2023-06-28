@@ -827,7 +827,7 @@ type ComplexityRoot struct {
 		EventChunks                  func(childComplexity int, secureID string) int
 		Events                       func(childComplexity int, sessionSecureID string) int
 		FieldSuggestion              func(childComplexity int, projectID int, name string, query string) int
-		FieldTypes                   func(childComplexity int, projectID int, startDate *time.Time, endDate *time.Time) int
+		FieldTypes                   func(childComplexity int, projectID int) int
 		FieldsOpensearch             func(childComplexity int, projectID int, count int, fieldType string, fieldName string, query string) int
 		GenerateZapierAccessToken    func(childComplexity int, projectID int) int
 		GetSourceMapUploadUrls       func(childComplexity int, apiKey string, paths []string) int
@@ -1438,7 +1438,7 @@ type QueryResolver interface {
 	UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*model.UserFingerprintCount, error)
 	SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int) (*model1.SessionResults, error)
 	SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions model.DateHistogramOptions) (*model1.SessionsHistogram, error)
-	FieldTypes(ctx context.Context, projectID int, startDate *time.Time, endDate *time.Time) ([]*model1.Field, error)
+	FieldTypes(ctx context.Context, projectID int) ([]*model1.Field, error)
 	FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error)
 	ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error)
 	QuickFieldsOpensearch(ctx context.Context, projectID int, count int, query string) ([]*model1.Field, error)
@@ -5914,7 +5914,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FieldTypes(childComplexity, args["project_id"].(int), args["start_date"].(*time.Time), args["end_date"].(*time.Time)), true
+		return e.complexity.Query.FieldTypes(childComplexity, args["project_id"].(int)), true
 
 	case "Query.fields_opensearch":
 		if e.complexity.Query.FieldsOpensearch == nil {
@@ -10176,11 +10176,7 @@ type Query {
 		query: String!
 		histogram_options: DateHistogramOptions!
 	): SessionsHistogram!
-	field_types(
-		project_id: ID!
-		start_date: Timestamp
-		end_date: Timestamp
-	): [Field!]!
+	field_types(project_id: ID!): [Field!]!
 	fields_opensearch(
 		project_id: ID!
 		count: Int!
@@ -14628,24 +14624,6 @@ func (ec *executionContext) field_Query_field_types_args(ctx context.Context, ra
 		}
 	}
 	args["project_id"] = arg0
-	var arg1 *time.Time
-	if tmp, ok := rawArgs["start_date"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
-		arg1, err = ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["start_date"] = arg1
-	var arg2 *time.Time
-	if tmp, ok := rawArgs["end_date"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
-		arg2, err = ec.unmarshalOTimestamp2ᚖtimeᚐTime(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["end_date"] = arg2
 	return args, nil
 }
 
@@ -43471,7 +43449,7 @@ func (ec *executionContext) _Query_field_types(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FieldTypes(rctx, fc.Args["project_id"].(int), fc.Args["start_date"].(*time.Time), fc.Args["end_date"].(*time.Time))
+		return ec.resolvers.Query().FieldTypes(rctx, fc.Args["project_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

@@ -518,16 +518,8 @@ query GetTimelineIndicatorEvents($session_secure_id: String!) {
 	}
 }
 
-query GetFieldTypes(
-	$project_id: ID!
-	$start_date: Timestamp
-	$end_date: Timestamp
-) {
-	field_types(
-		project_id: $project_id
-		start_date: $start_date
-		end_date: $end_date
-	) {
+query GetFieldTypes($project_id: ID!) {
+	field_types(project_id: $project_id) {
 		type
 		name
 	}

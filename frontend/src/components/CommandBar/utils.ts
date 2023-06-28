@@ -6,11 +6,7 @@ import {
 import { FormState } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
-import {
-	BuilderParams,
-	buildQueryStateString,
-	buildQueryURLString,
-} from '@util/url/params'
+import { BuilderParams, buildQueryURLString } from '@util/url/params'
 import moment from 'moment'
 import { useNavigate } from 'react-router-dom'
 
@@ -20,8 +16,6 @@ import {
 	ERROR_TYPE,
 	SESSION_TYPE,
 } from '@/components/QueryBuilder/QueryBuilder'
-import { useErrorSearchContext } from '@/pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import { useSearchContext } from '@/pages/Sessions/SearchContext/SearchContext'
 
 export const isErrorAttribute = (attribute: typeof ATTRIBUTES[number]) => {
 	return [ERROR_TYPE, ERROR_FIELD_TYPE].includes(attribute.type)
@@ -85,17 +79,15 @@ export const useAttributeSearch = (form: FormState<CommandBarSearch>) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const { commandBarDialog } = useGlobalContext()
-	const { setSearchQuery } = useSearchContext()
-	const { setSearchQuery: setErrorSearchQuery } = useErrorSearchContext()
 	return (
 		attribute: Attribute | undefined,
 		params?: { newTab?: boolean; withDate?: boolean },
 	) => {
 		if (!attribute) return
 
-		const isError = isErrorAttribute(attribute)
-
-		const basePath = `/${projectId}/${isError ? 'errors' : 'sessions'}`
+		const basePath = `/${projectId}/${
+			isErrorAttribute(attribute) ? 'errors' : 'sessions'
+		}`
 		const qbParams = buildQueryBuilderParams({
 			attribute,
 			query,
@@ -103,17 +95,16 @@ export const useAttributeSearch = (form: FormState<CommandBarSearch>) => {
 			endDate: params?.withDate ? dates[1] : undefined,
 		})
 
+		const searchQuery = buildQueryURLString(qbParams, {
+			reload: true,
+		})
+
 		if (!params?.newTab) {
-			if (isError) {
-				setErrorSearchQuery(buildQueryStateString(qbParams))
-			} else {
-				setSearchQuery(buildQueryStateString(qbParams))
-			}
 			navigate({
 				pathname: basePath,
+				search: searchQuery,
 			})
 		} else {
-			const searchQuery = buildQueryURLString(qbParams)
 			window.open(`${basePath}${searchQuery}`, '_blank')
 		}
 		commandBarDialog.hide()

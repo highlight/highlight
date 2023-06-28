@@ -8,6 +8,7 @@ import { useGetSessionsOpenSearchQuery } from '@graph/hooks'
 import SvgShareIcon from '@icons/ShareIcon'
 import { useFrontContext } from '@pages/FrontPlugin/Front/FrontContext'
 import EmptyCardPlaceholder from '@pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import MinimalSessionCard from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/MinimalSessionCard'
 import SessionQueryBuilder from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
@@ -18,7 +19,7 @@ import React, { useEffect, useState } from 'react'
 
 function HighlightSessions() {
 	const { setLoadingState } = useAppLoadingContext()
-	const { backendSearchQuery, setSearchQuery } = useSearchContext()
+	const { backendSearchQuery, setSearchParams } = useSearchContext()
 	const frontContext = useFrontContext()
 	const { project_id } = useParams<{
 		project_id: string
@@ -86,11 +87,14 @@ function HighlightSessions() {
 						start,
 						end,
 					})
-					setSearchQuery(query)
+					setSearchParams({
+						...EmptySessionsSearchParams,
+						query,
+					})
 				}
 			})
 		}
-	}, [email, frontContext, setSearchQuery])
+	}, [email, frontContext, setSearchParams])
 
 	useEffect(() => {
 		if (called) {

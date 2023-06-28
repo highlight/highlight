@@ -9,6 +9,7 @@ import {
 } from '@graph/hooks'
 import useDataTimeRange from '@hooks/useDataTimeRange'
 import { SessionPageSearchParams } from '@pages/Player/utils/utils'
+import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { dailyCountData } from '@util/dashboardCalculations'
 import { useParams } from '@util/react-router/useParams'
@@ -18,10 +19,6 @@ import moment from 'moment/moment'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ResponsiveContainer } from 'recharts'
-
-import { updateQueriedTimeRange } from '@/components/QueryBuilder/QueryBuilder'
-import { TIME_RANGE_FIELD } from '@/pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
-import { serializeAbsoluteTimeRange } from '@/util/time'
 
 import styles from './HomeCharts.module.css'
 
@@ -44,7 +41,7 @@ export const SessionCountGraph = ({
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 
-	const { setSearchQuery, removeSelectedSegment } = useSearchContext()
+	const { setSearchParams, removeSelectedSegment } = useSearchContext()
 	const { timeRange } = useDataTimeRange()
 	const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
 		[],
@@ -107,17 +104,13 @@ export const SessionCountGraph = ({
 				onClickHandler={(payload: any) => {
 					const date = moment(payload.activePayload[0].payload.date)
 					removeSelectedSegment()
-
-					setSearchQuery(
-						updateQueriedTimeRange(
-							'',
-							TIME_RANGE_FIELD,
-							serializeAbsoluteTimeRange(
-								date.startOf('day').toDate(),
-								date.endOf('day').toDate(),
-							),
-						),
-					)
+					setSearchParams({
+						...EmptySessionsSearchParams,
+						date_range: {
+							start_date: date.startOf('day').toDate().toString(),
+							end_date: date.endOf('day').toDate().toString(),
+						},
+					})
 
 					message.success(
 						`Showing sessions that were recorded on ${payload.activeLabel}`,

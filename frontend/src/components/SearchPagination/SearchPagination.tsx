@@ -7,7 +7,8 @@ import {
 	IconSolidDotsHorizontal,
 } from '@highlight-run/ui'
 import { clamp, range } from '@util/numbers'
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
+import { NumberParam, useQueryParams } from 'use-query-params'
 
 import * as style from './style.css'
 
@@ -20,7 +21,7 @@ const MAX_PAGES = Math.floor(OPENSEARCH_MAX_RESULTS / PAGE_SIZE) - 1
 
 interface Props {
 	page?: number
-	setPage: React.Dispatch<React.SetStateAction<number>>
+	setPage: React.Dispatch<React.SetStateAction<number | undefined>>
 	totalCount: number
 	pageSize?: number
 	siblingCount?: number
@@ -95,6 +96,29 @@ const SearchPagination = ({
 		const rightRange = range(pageCount - sideItemCount + 1, pageCount + 1)
 		return [START_PAGE, ExpandAction.Back, ...rightRange]
 	}, [$siblingCount, currentPage, sideItemCount, pageCount])
+
+	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
+		page: NumberParam,
+	})
+
+	useEffect(() => {
+		if (page !== undefined) {
+			setPaginationToUrlParams(
+				{
+					page: page,
+				},
+				'replaceIn',
+			)
+		}
+	}, [setPaginationToUrlParams, page])
+
+	useEffect(() => {
+		if (paginationToUrlParams.page && page != paginationToUrlParams.page) {
+			setPage(paginationToUrlParams.page)
+		}
+		// We only want to run this on mount (i.e. when the page first loads).
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	if (!pageCount) return null
 

@@ -122,19 +122,24 @@ type IsAnd = boolean
 // Output: '?query=and%7C%7Cuser_email%2Cis%2Cchris@highlight.io`
 export const buildQueryURLString = (
 	params: BuilderParams,
-	options: { isAnd?: IsAnd } = {
+	options: { isAnd?: IsAnd; reload?: boolean } = {
 		isAnd: true,
+		reload: false,
 	},
 ) => {
-	const builderParams = buildQueryParams(params, options.isAnd ?? true)
+	const builderParams = buildQueryParams(params, !!options.isAnd)
 
 	const encodedParams: any = QueryBuilderStateParam.encode(
 		JSON.stringify(builderParams),
 	)
-	const url =
+	let url =
 		params.query !== false
 			? `?query=${encodeURIComponent(encodedParams)}`
 			: encodeURIComponent(encodedParams.replace('and||', ''))
+
+	if (options.reload) {
+		url = `${url}&reload=1`
+	}
 
 	return url
 }

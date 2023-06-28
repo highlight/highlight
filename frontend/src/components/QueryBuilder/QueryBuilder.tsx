@@ -1,10 +1,17 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Popover from '@components/Popover/Popover'
+import { START_PAGE } from '@components/SearchPagination/SearchPagination'
+import { GetHistogramBucketSize } from '@components/SearchResultsHistogram/SearchResultsHistogram'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import Tooltip from '@components/Tooltip/Tooltip'
-import { BaseSearchContext } from '@context/BaseSearchContext'
+import {
+	BackendSearchQuery,
+	BaseSearchContext,
+	normalizeParams,
+} from '@context/BaseSearchContext'
 import {
 	useEditErrorSegmentMutation,
 	useEditSegmentMutation,
@@ -13,12 +20,18 @@ import {
 	useGetSegmentsQuery,
 } from '@graph/hooks'
 import { GetFieldTypesQuery, namedOperations } from '@graph/operations'
-import { ErrorSegment, Exact, Field, Segment } from '@graph/schemas'
+import {
+	ErrorSearchParamsInput,
+	ErrorSegment,
+	Exact,
+	Field,
+	SearchParamsInput,
+	Segment,
+} from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
 	getDefaultPresets,
-	getNow,
 	IconSolidCheveronDown,
 	IconSolidCloudUpload,
 	IconSolidDocumentDuplicate,
@@ -40,9 +53,11 @@ import { colors } from '@highlight-run/ui/src/css/colors'
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
+import { gqlSanitize } from '@util/gql'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
+import { QueryBuilderStateParam } from '@util/url/params'
 import { Checkbox, message } from 'antd'
 import clsx, { ClassValue } from 'clsx'
 import { isEqual } from 'lodash'
@@ -54,6 +69,13 @@ import Creatable from 'react-select/creatable'
 import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
 import { useToggle } from 'react-use'
+import {
+	BooleanParam,
+	JsonParam,
+	NumberParam,
+	useQueryParam,
+	useQueryParams,
+} from 'use-query-params'
 
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
@@ -74,7 +96,7 @@ export interface SelectOption {
 	label: string
 	value: string
 }
-export interface MultiselectOption {
+interface MultiselectOption {
 	kind: 'multi'
 	options: readonly {
 		label: string
@@ -85,6 +107,10 @@ export interface MultiselectOption {
 type OnChangeInput = SelectOption | MultiselectOption | undefined
 type OnChange = (val: OnChangeInput) => void
 type LoadOptions = (input: string, callback: any) => Promise<any>
+type OpenSearchQuery = {
+	query: any
+	childQuery?: any
+}
 
 interface RuleSettings {
 	onChangeKey: OnChange
@@ -119,8 +145,8 @@ interface SetVisible {
 	setVisible: (val: boolean) => void
 }
 
-export const TIME_MAX_LENGTH = 60
-export const RANGE_MAX_LENGTH = 200
+const TIME_MAX_LENGTH = 60
+const RANGE_MAX_LENGTH = 200
 
 const TOOLTIP_MESSAGE = 'This property was automatically collected by Highlight'
 
@@ -889,8 +915,19 @@ const QueryRule = ({
 	)
 }
 
-export const hasArguments = (op: Operator): boolean =>
+const hasArguments = (op: Operator): boolean =>
 	!['exists', 'not_exists'].includes(op)
+
+const isNegative = (op: Operator): boolean =>
+	[
+		'is_not',
+		'not_contains',
+		'not_exists',
+		'not_between',
+		'not_between_time',
+		'not_between_date',
+		'not_matches',
+	].includes(op)
 
 const LABEL_MAP_SINGLE: { [K in Operator]: string } = {
 	is: 'is',
@@ -937,7 +974,24 @@ const TOOLTIP_MESSAGES: { [K in string]: string } = {
 	not_exists: 'Filters for results which do not have this field.',
 }
 
-export type Operator =
+const NEGATION_MAP: { [K in Operator]: Operator } = {
+	is: 'is_not',
+	is_not: 'is',
+	contains: 'not_contains',
+	not_contains: 'contains',
+	exists: 'not_exists',
+	not_exists: 'exists',
+	between: 'not_between',
+	not_between: 'between',
+	between_time: 'not_between_time',
+	not_between_time: 'between_time',
+	between_date: 'not_between_date',
+	not_between_date: 'between_date',
+	matches: 'not_matches',
+	not_matches: 'matches',
+}
+
+type Operator =
 	| 'is'
 	| 'is_not'
 	| 'contains'
@@ -953,7 +1007,7 @@ export type Operator =
 	| 'matches'
 	| 'not_matches'
 
-export const OPERATORS: Operator[] = [
+const OPERATORS: Operator[] = [
 	'is',
 	'is_not',
 	'contains',
@@ -1000,7 +1054,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	starred: 'Starred',
 	identifier: 'Identifier',
 	reload: 'Reloaded',
-	state: 'Status',
+	state: 'State',
 	event: 'Event',
 	timestamp: 'Date',
 	has_rage_clicks: 'Has Rage Clicks',
@@ -1111,7 +1165,7 @@ export const deserializeGroup = (
 	}
 }
 
-export const deserializeRules = (ruleGroups: any): RuleProps[] => {
+const deserializeRules = (ruleGroups: any): RuleProps[] => {
 	if (!ruleGroups) {
 		return []
 	}
@@ -1138,7 +1192,7 @@ const getTypeLabel = (value: string) => {
 	return undefined
 }
 
-export const getType = (value: string) => {
+const getType = (value: string) => {
 	return value.split('_')[0]
 }
 
@@ -1191,13 +1245,16 @@ export type FetchFieldVariables =
 	  >
 	| undefined
 
-interface QueryBuilderProps {
-	searchContext: BaseSearchContext
+interface QueryBuilderProps<
+	T extends SearchParamsInput | ErrorSearchParamsInput,
+> {
+	searchContext: BaseSearchContext<T>
 	timeRangeField: SelectOption
 	customFields: CustomField[]
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
 	fieldData?: GetFieldTypesQuery
 	readonly?: boolean
+	emptySearchParams: T
 	setShowLeftPanel: (value: boolean) => void
 	useEditAnySegmentMutation:
 		| typeof useEditSegmentMutation
@@ -1220,17 +1277,16 @@ enum QueryBuilderMode {
 	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
 }
 
-enum SegmentModalState {
-	HIDDEN = 'HIDDEN',
-	CREATE = 'CREATE',
-	EDIT_NAME = 'EDIT_NAME',
-}
+const now = moment()
+const defaultMinDate = now.clone().subtract(90, 'days').toDate()
 
-const defaultMinDate = getNow().subtract(90, 'days').toDate()
-const presetOptions = getDefaultPresets()
+const presetOptions = getDefaultPresets(now)
+
 const defaultPreset = presetOptions[5]
 
-function QueryBuilder(props: QueryBuilderProps) {
+function QueryBuilder<T extends SearchParamsInput | ErrorSearchParamsInput>(
+	props: QueryBuilderProps<T>,
+) {
 	const {
 		searchContext,
 		timeRangeField,
@@ -1238,6 +1294,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		fetchFields,
 		fieldData,
 		readonly,
+		emptySearchParams,
 		setShowLeftPanel,
 		useEditAnySegmentMutation,
 		useGetAnySegmentsQuery,
@@ -1247,13 +1304,18 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const {
 		backendSearchQuery,
-		searchQuery,
-		setSearchQuery,
-		existingQuery,
+		setBackendSearchQuery,
+		searchParams,
+		setSearchParams,
+		searchResultsLoading,
+		existingParams,
+		setExistingParams,
 		searchResultsCount,
 		selectedSegment,
 		setSelectedSegment,
 		removeSelectedSegment,
+		page,
+		setPage,
 	} = searchContext
 
 	const { project_id: projectId } = useParams<{
@@ -1264,28 +1326,15 @@ function QueryBuilder(props: QueryBuilderProps) {
 		useGetAnySegmentsQuery({
 			variables: { project_id: projectId! },
 			skip: !projectId,
-			onCompleted: (data) => {
-				if (selectedSegment && selectedSegment.id) {
-					const match = data?.segments
-						?.map((s) => s)
-						.find((s) => s?.id === selectedSegment.id)
-
-					if (match && match.params?.query) {
-						setSelectedSegment(
-							{ id: match.id, name: match.name },
-							match.params?.query,
-						)
-						return
-					} else {
-						setSelectedSegment(undefined, searchQuery)
-					}
-				}
-			},
 		})
 
-	const [segmentModalState, setSegmentModalState] = useState(
-		SegmentModalState.HIDDEN,
-	)
+	const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false)
+	const [showEditSegmentNameModal, setShowEditSegmentNameModal] =
+		useState(false)
+
+	useEffect(() => {
+		setShowCreateSegmentModal(showEditSegmentNameModal)
+	}, [showEditSegmentNameModal])
 
 	const [segmentToDelete, setSegmentToDelete] = useState<{
 		name?: string
@@ -1307,6 +1356,16 @@ function QueryBuilder(props: QueryBuilderProps) {
 		?.map((s) => s)
 		.find((s) => s?.id === selectedSegment?.id)
 
+	const [searchParamsToUrlParams, setSearchParamsToUrlParams] =
+		useQueryParams({
+			query: QueryBuilderStateParam,
+		})
+
+	const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
+		'segment',
+		JsonParam,
+	)
+
 	const selectSegment = useCallback(
 		(segment?: Pick<Segment | ErrorSegment, 'id' | 'name'>) => {
 			if (segment && segment.id && segment.name) {
@@ -1314,19 +1373,34 @@ function QueryBuilder(props: QueryBuilderProps) {
 					?.map((s) => s)
 					.find((s) => s?.id === segment?.id)
 
-				if (match && match.params?.query) {
-					setSelectedSegment(
-						{ id: segment.id, name: segment.name },
-						match.params?.query,
+				if (match !== undefined) {
+					const segmentParameters = normalizeParams(
+						gqlSanitize(match?.params),
 					)
+					// @ts-expect-error
+					setSearchParams(segmentParameters)
+					// @ts-expect-error
+					setExistingParams(segmentParameters)
+					setSelectedSegment({ id: segment.id, name: segment.name })
 					return
 				}
 			}
 
 			removeSelectedSegment()
+			setSearchParams(emptySearchParams)
+			setExistingParams(emptySearchParams)
 		},
-		[removeSelectedSegment, segmentData?.segments, setSelectedSegment],
+		[
+			removeSelectedSegment,
+			segmentData?.segments,
+			setExistingParams,
+			setSearchParams,
+			setSelectedSegment,
+			emptySearchParams,
+		],
 	)
+
+	const { admin } = useAuthContext()
 
 	const getCustomFieldOptions = useCallback(
 		(field: SelectOption | undefined) => {
@@ -1354,36 +1428,305 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const getDefaultOperator = (field: SelectOption | undefined) =>
 		((field && getCustomFieldOptions(field)?.operators) ?? OPERATORS)[0]
 
+	const parseInner = useCallback(
+		(field: SelectOption, op: Operator, value?: string): any => {
+			if (
+				[CUSTOM_TYPE, ERROR_TYPE, ERROR_FIELD_TYPE].includes(
+					getType(field.value),
+				)
+			) {
+				const name = field.label
+				const isKeyword = !(
+					getCustomFieldOptions(field)?.type !== 'text'
+				)
+
+				if (field.label === 'viewed_by_me' && admin) {
+					const baseQuery = {
+						term: {
+							[`viewed_by_admins.id`]: admin.id,
+						},
+					}
+
+					if (value === 'true') {
+						return {
+							...baseQuery,
+						}
+					}
+					return {
+						bool: {
+							must_not: {
+								...baseQuery,
+							},
+						},
+					}
+				}
+
+				switch (op) {
+					case 'is':
+						return {
+							term: {
+								[`${name}${isKeyword ? '.keyword' : ''}`]:
+									value,
+							},
+						}
+					case 'contains':
+						return {
+							wildcard: {
+								[`${name}${
+									isKeyword ? '.keyword' : ''
+								}`]: `*${value}*`,
+							},
+						}
+					case 'matches':
+						return {
+							regexp: {
+								[`${name}${isKeyword ? '.keyword' : ''}`]:
+									value,
+							},
+						}
+					case 'exists':
+						return { exists: { field: name } }
+					case 'between_date':
+						return {
+							range: {
+								[name]: {
+									gte: getAbsoluteStartTime(value),
+									lte: getAbsoluteEndTime(value),
+								},
+							},
+						}
+					case 'between_time':
+						return {
+							range: {
+								[name]: {
+									gte:
+										Number(value?.split('_')[0]) *
+										60 *
+										1000,
+									...(Number(value?.split('_')[1]) ===
+									TIME_MAX_LENGTH
+										? null
+										: {
+												lte:
+													Number(
+														value?.split('_')[1],
+													) *
+													60 *
+													1000,
+										  }),
+								},
+							},
+						}
+					case 'between':
+						return {
+							range: {
+								[name]: {
+									gte: Number(value?.split('_')[0]),
+									...(Number(value?.split('_')[1]) ===
+									RANGE_MAX_LENGTH
+										? null
+										: {
+												lte: Number(
+													value?.split('_')[1],
+												),
+										  }),
+								},
+							},
+						}
+				}
+			} else {
+				const key = field.value
+				switch (op) {
+					case 'is':
+						return {
+							term: { 'fields.KeyValue': `${key}_${value}` },
+						}
+					case 'contains':
+						return {
+							wildcard: {
+								'fields.KeyValue': `${key}_*${value}*`,
+							},
+						}
+					case 'matches':
+						return {
+							regexp: {
+								'fields.KeyValue': `${key}_${value}`,
+							},
+						}
+					case 'exists':
+						return { term: { 'fields.Key': key } }
+				}
+			}
+		},
+		[getCustomFieldOptions, admin],
+	)
+
+	const parseRuleImpl = useCallback(
+		(
+			field: SelectOption,
+			op: Operator,
+			multiValue: MultiselectOption,
+		): any => {
+			if (isNegative(op)) {
+				return {
+					bool: {
+						must_not: {
+							...parseRuleImpl(
+								field,
+								NEGATION_MAP[op],
+								multiValue,
+							),
+						},
+					},
+				}
+			} else if (hasArguments(op)) {
+				return {
+					bool: {
+						should: multiValue.options.map(({ value }) =>
+							parseInner(field, op, value),
+						),
+					},
+				}
+			} else {
+				return parseInner(field, op)
+			}
+		},
+		[parseInner],
+	)
+
+	const parseRule = useCallback(
+		(rule: RuleProps): any => {
+			const field = rule.field!
+			const multiValue = rule.val!
+			const op = rule.op!
+
+			return parseRuleImpl(field, op, multiValue)
+		},
+		[parseRuleImpl],
+	)
 	const { data: appVersionData } = useGetAppVersionsQuery({
 		variables: { project_id: projectId! },
 		skip: !projectId,
 	})
 
 	const [currentRule, setCurrentRule] = useState<RuleProps | undefined>()
-
-	const {
-		isAnd: serializedIsAnd,
-		rules: serializedRules,
-	}: { isAnd: boolean; rules: any } = JSON.parse(searchQuery)
-	const startingRules = deserializeRules(serializedRules)
-	const [isAnd, toggleIsAnd] = useToggle(serializedIsAnd)
-	const [rules, setRules] = useState<RuleProps[]>(startingRules)
-
-	const startingDateRange = startingRules.find(
-		(rule) =>
-			rule.op === 'between_date' &&
-			rule.field?.value === timeRangeField.value,
-	)?.val?.options?.[0]?.value
-	let from, to: Date | undefined
-	if (startingDateRange) {
-		const [fromStr, toStr] = startingDateRange.split('_')
-		from = new Date(fromStr)
-		to = new Date(toStr)
-	}
 	const [dateRange, setDateRange] = useState<Date[]>([
-		from ?? defaultPreset.startDate, // Start at 30days
-		to ?? new Date(getNow().toISOString()),
+		defaultPreset.startDate, // Start at 30days
+		new Date(now.toISOString()),
 	])
+	const defaultTimeRangeRule: RuleProps = useMemo(() => {
+		const period = {
+			label: defaultPreset.label, // Start at 30 days
+			value: `${defaultPreset.startDate.toISOString()}_${now.toISOString()}`, // Start at 30 days
+		}
+
+		return {
+			field: timeRangeField,
+			op: 'between_date',
+			val: {
+				kind: 'multi',
+				options: [period],
+			},
+		}
+	}, [timeRangeField])
+
+	const parseGroup = useCallback(
+		(isAnd: boolean, rules: RuleProps[]): OpenSearchQuery => {
+			const condition = isAnd ? 'must' : 'should'
+			const filterErrors = rules.some(
+				(r) => getType(r.field!.value) === ERROR_FIELD_TYPE,
+			)
+			const timeRange =
+				rules.find(
+					(rule) => rule.field?.value === timeRangeField.value,
+				) ?? defaultTimeRangeRule
+
+			const timeRule = parseRule(timeRange)
+
+			const errorObjectRules = rules
+				.filter(
+					(r) =>
+						getType(r.field!.value) === ERROR_FIELD_TYPE &&
+						r !== timeRange,
+				)
+				.map(parseRule)
+
+			const standardRules = rules
+				.filter(
+					(r) =>
+						getType(r.field!.value) !== ERROR_FIELD_TYPE &&
+						r !== timeRange,
+				)
+				.map(parseRule)
+
+			const request: OpenSearchQuery = { query: {} }
+
+			if (filterErrors) {
+				const errorGroupFilter = {
+					bool: {
+						[condition]: standardRules,
+					},
+				}
+				const errorObjectFilter = {
+					bool: {
+						must: [
+							timeRule,
+							{
+								bool: {
+									[condition]: errorObjectRules,
+								},
+							},
+						],
+					},
+				}
+				request.query = {
+					bool: {
+						must: [
+							errorGroupFilter,
+							{
+								has_child: {
+									type: 'child',
+									query: errorObjectFilter,
+								},
+							},
+						],
+					},
+				}
+				request.childQuery = {
+					bool: {
+						must: [
+							{
+								has_parent: {
+									parent_type: 'parent',
+									query: errorGroupFilter,
+								},
+							},
+							errorObjectFilter,
+						],
+					},
+				}
+			} else {
+				request.query = {
+					bool: {
+						must: [
+							timeRule,
+							{
+								bool: {
+									[condition]: standardRules,
+								},
+							},
+						],
+					},
+				}
+			}
+			return request
+		},
+		[defaultTimeRangeRule, parseRule, timeRangeField.value],
+	)
+	const [isAnd, toggleIsAnd] = useToggle(true)
+	const [rules, setRulesImpl] = useState<RuleProps[]>([defaultTimeRangeRule])
+	const serializedQuery = useRef<BackendSearchQuery | undefined>()
+	const [syncButtonDisabled, setSyncButtonDisabled] = useState<boolean>(false)
 
 	const filterRules = useMemo(
 		() =>
@@ -1391,23 +1734,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 		[rules, timeRangeField.value],
 	)
 
-	const setRulesImpl = useCallback(
-		(newRules: RuleProps[]) => {
-			setRules(newRules)
-
-			if (readonly || !newRules.every(isComplete)) {
-				return
-			}
-
-			const newState = JSON.stringify({
-				isAnd,
-				rules: serializeRules(newRules),
-			})
-			setSearchQuery(newState)
-		},
-		[isAnd, readonly, setSearchQuery],
-	)
-
+	const setRules = (rules: RuleProps[]) => {
+		setRulesImpl(rules)
+	}
 	const addNewRule = () => {
 		setCurrentRule({
 			field: undefined,
@@ -1418,34 +1747,35 @@ function QueryBuilder(props: QueryBuilderProps) {
 	}
 	const addRule = useCallback(
 		(rule: RuleProps) => {
-			setRulesImpl([...rules, rule])
+			setRules([...rules, rule])
 			setCurrentRule(undefined)
 		},
-		[rules, setRulesImpl],
+		[rules],
 	)
 	const removeRule = useCallback(
 		(targetRule: RuleProps) =>
-			setRulesImpl(rules.filter((rule) => rule !== targetRule)),
-		[rules, setRulesImpl],
+			setRules(rules.filter((rule) => rule !== targetRule)),
+		[rules],
 	)
-	const updateRule = useCallback(
-		(targetRule: RuleProps, newProps: any) => {
-			setRulesImpl(
-				rules.map((rule) =>
-					rule !== targetRule ? rule : { ...rule, ...newProps },
-				),
-			)
-		},
-		[rules, setRulesImpl],
-	)
+	const updateRule = (targetRule: RuleProps, newProps: any) => {
+		setRulesImpl((currentRules) =>
+			currentRules.map((rule) =>
+				rule !== targetRule ? rule : { ...rule, ...newProps },
+			),
+		)
+	}
 
 	const timeRangeRule = useMemo<RuleProps>(() => {
 		const timeRange = rules.find(
 			(rule) => rule.field?.value === timeRangeField.value,
-		)! // ZANETODO: can we enforce this?
+		)
+		if (!timeRange) {
+			addRule(defaultTimeRangeRule)
+			return defaultTimeRangeRule
+		}
 
 		return timeRange
-	}, [rules, timeRangeField.value])
+	}, [addRule, defaultTimeRangeRule, rules, timeRangeField.value])
 
 	const getKeyOptions = useCallback(
 		async (input: string) => {
@@ -1475,6 +1805,30 @@ function QueryBuilder(props: QueryBuilderProps) {
 				})
 		},
 		[customFields, fieldData?.field_types],
+	)
+
+	const updateSerializedQuery = useCallback(
+		(isAnd: boolean, rules: RuleProps[]) => {
+			const startDate = roundFeedDate(
+				getAbsoluteStartTime(timeRangeRule.val?.options[0].value),
+			)
+			const endDate = roundFeedDate(
+				getAbsoluteEndTime(timeRangeRule.val?.options[0].value),
+			)
+			const searchQuery = parseGroup(isAnd, rules)
+			serializedQuery.current = {
+				searchQuery: JSON.stringify(searchQuery.query),
+				childSearchQuery: searchQuery.childQuery
+					? JSON.stringify(searchQuery.childQuery)
+					: undefined,
+				startDate,
+				endDate,
+				histogramBucketSize: GetHistogramBucketSize(
+					moment.duration(endDate.diff(startDate)),
+				),
+			}
+		},
+		[parseGroup, timeRangeRule],
 	)
 
 	const getOperatorOptionsCallback = (
@@ -1566,38 +1920,184 @@ function QueryBuilder(props: QueryBuilderProps) {
 		],
 	)
 
-	const areRulesValid = rules.every(isComplete)
-
-	// If the search query is updated externally,
-	// set the rules and `isAnd` toggle based on it
+	const [paginationToUrlParams, setPaginationToUrlParams] = useQueryParams({
+		page: NumberParam,
+	})
 	useEffect(() => {
-		if (searchQuery) {
-			const newState = JSON.parse(searchQuery)
+		if (page !== undefined) {
+			setPaginationToUrlParams({ page }, 'replaceIn')
+		}
+	}, [setPaginationToUrlParams, page])
+
+	// Set initial state from URL params.
+	const [initialized, setInitialized] = useState(false)
+	useEffect(() => {
+		setPage(paginationToUrlParams.page || START_PAGE)
+
+		if (searchParamsToUrlParams.query !== undefined) {
+			setSearchParams(searchParamsToUrlParams as T)
+		} else {
+			setSearchParams(emptySearchParams)
+		}
+
+		setInitialized(true)
+		// Only want this to run on init.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
+
+	const [forceReload, setForceReload] = useQueryParam('reload', BooleanParam)
+	useEffect(() => {
+		if (forceReload && searchParamsToUrlParams.query !== undefined) {
+			setSearchParams(searchParamsToUrlParams as T)
+			setForceReload(false)
+		}
+	}, [forceReload, searchParamsToUrlParams, setForceReload, setSearchParams])
+
+	useEffect(() => {
+		if (!segmentsLoading) {
+			if (activeSegmentUrlParam) {
+				selectSegment(activeSegmentUrlParam)
+			}
+			if (searchParamsToUrlParams.query !== undefined) {
+				setSearchParams(searchParamsToUrlParams as T)
+			}
+		}
+		// We only want to run this once after loading segments.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [segmentsLoading])
+
+	// Errors Segment Deep Linking
+	useEffect(() => {
+		if (selectedSegment && selectedSegment.id && selectedSegment.name) {
+			if (!isEqual(activeSegmentUrlParam, selectedSegment)) {
+				setActiveSegmentUrlParam(selectedSegment, 'replaceIn')
+			}
+		} else if (activeSegmentUrlParam !== undefined) {
+			setActiveSegmentUrlParam(undefined, 'replace')
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedSegment, setActiveSegmentUrlParam])
+
+	// Main useEffect that handles updates to URL on every filter change.
+	useEffect(() => {
+		if (initialized && searchParams.query !== undefined) {
+			setSearchParamsToUrlParams(
+				normalizeParams(searchParams),
+				'replaceIn',
+			)
+		}
+	}, [
+		setSearchParamsToUrlParams,
+		searchParams,
+		selectedSegment,
+		activeSegmentUrlParam,
+		initialized,
+	])
+
+	useEffect(() => {
+		if (!searchResultsLoading) {
+			const timer = setTimeout(() => {
+				setSyncButtonDisabled(false)
+			}, 5000)
+			return () => {
+				clearTimeout(timer)
+			}
+		} else {
+			setSyncButtonDisabled(true)
+		}
+	}, [searchResultsLoading])
+
+	// Track the current state of the query builder to detect changes
+	const [qbState, setQbState] = useState<string | undefined>(undefined)
+
+	// If the search query is updated externally, set the rules and `isAnd` toggle
+	// based on it
+	useEffect(() => {
+		if (
+			initialized &&
+			!!searchParams.query &&
+			searchParams.query !== qbState
+		) {
+			const newState = JSON.parse(searchParams.query)
 			const deserializedRules = deserializeRules(newState.rules)
 
-			const dateRange = deserializedRules?.find(
+			const defaultDateRange = deserializedRules?.find(
 				(rule) =>
 					rule.op === 'between_date' &&
 					rule.field?.value === timeRangeField.value,
 			)?.val?.options?.[0]?.value
-			if (dateRange) {
-				const [from, to] = dateRange.split('_')
+
+			if (defaultDateRange) {
+				const [from, to] = defaultDateRange.split('_')
 				setDateRange([new Date(from), new Date(to)])
 			}
-
 			toggleIsAnd(newState.isAnd)
-			setRules(deserializedRules)
+			setRules(deserializeRules(newState.rules))
 		}
-	}, [searchQuery, timeRangeField.value, toggleIsAnd])
+	}, [
+		searchParams.query,
+		toggleIsAnd,
+		qbState,
+		initialized,
+		timeRangeField.value,
+	])
 
-	// When the query builder is unmounted, reset the state.
-	// Not sure if this is desired behavior in the long term, but
-	// this matches the current prod behavior.
+	const areRulesValid = rules.every(isComplete)
 	useEffect(() => {
-		return () => {
-			removeSelectedSegment()
+		if (areRulesValid) {
+			// For relative time ranges, the serialized query will be different every time you serialize,
+			// so serialize once and only once every time the rules list changes
+			updateSerializedQuery(isAnd, rules)
 		}
-	}, [removeSelectedSegment])
+	}, [areRulesValid, isAnd, rules, updateSerializedQuery])
+
+	useEffect(() => {
+		// Only update the external state if not readonly
+		if (readonly) {
+			return
+		}
+
+		const allComplete = rules.every(isComplete)
+
+		if (!allComplete) {
+			return
+		}
+
+		const newState = JSON.stringify({
+			isAnd,
+			rules: serializeRules(rules),
+		})
+
+		// Update if the state has changed
+		if (
+			newState !== qbState &&
+			!(
+				rules.length === 1 &&
+				rules[0].field?.value === timeRangeField.value &&
+				rules[0] === defaultTimeRangeRule
+			)
+		) {
+			setQbState(newState)
+			setSearchParams((params) => ({
+				...params,
+				query: newState,
+			}))
+			return
+		}
+
+		if (serializedQuery.current) {
+			setBackendSearchQuery(serializedQuery.current)
+		}
+	}, [
+		defaultTimeRangeRule,
+		isAnd,
+		qbState,
+		readonly,
+		rules,
+		setBackendSearchQuery,
+		setSearchParams,
+		timeRangeField.value,
+	])
 
 	const [currentStep, setCurrentStep] = useState<number | undefined>(
 		undefined,
@@ -1607,14 +2107,18 @@ function QueryBuilder(props: QueryBuilderProps) {
 		if (filterRules.length === 0 && !selectedSegment) {
 			return QueryBuilderMode.EMPTY
 		} else if (selectedSegment !== undefined) {
-			if (searchQuery !== existingQuery) {
+			const areParamsDifferent = !isEqual(
+				normalizeParams(searchParams),
+				normalizeParams(existingParams),
+			)
+			if (areParamsDifferent) {
 				return QueryBuilderMode.SEGMENT_UPDATE
 			} else {
 				return QueryBuilderMode.SEGMENT
 			}
 		}
 		return QueryBuilderMode.CUSTOM
-	}, [existingQuery, filterRules.length, searchQuery, selectedSegment])
+	}, [existingParams, filterRules.length, searchParams, selectedSegment])
 
 	const addFilterButton = useMemo(() => {
 		if (readonly) {
@@ -1754,21 +2258,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 				variables: {
 					project_id: projectId!,
 					id: selectedSegment.id,
-					params: {
-						query: searchQuery,
-					},
+					params: searchParams,
 					name: selectedSegment.name,
 				},
 			})
 				.then(() => {
 					message.success(`Updated '${selectedSegment.name}'`, 5)
-					setSelectedSegment(
-						{
-							id: selectedSegment.id,
-							name: selectedSegment.name,
-						},
-						searchQuery,
-					)
+					setExistingParams(searchParams)
 				})
 				.catch(() => {
 					message.error('Error updating segment!', 5)
@@ -1778,10 +2274,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 		canUpdateSegment,
 		editSegment,
 		projectId,
-		searchQuery,
+		searchParams,
 		selectedSegment?.id,
 		selectedSegment?.name,
-		setSelectedSegment,
+		setExistingParams,
 	])
 
 	const actionButton = useMemo(() => {
@@ -1797,7 +2293,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						iconLeft={<IconSolidSave size={12} />}
 						onClick={(e: React.MouseEvent) => {
 							e.preventDefault()
-							setSegmentModalState(SegmentModalState.CREATE)
+							setShowCreateSegmentModal(true)
 						}}
 						disabled={!areRulesValid}
 					>
@@ -1865,9 +2361,27 @@ function QueryBuilder(props: QueryBuilderProps) {
 				/>
 				<Box marginLeft="auto" display="flex" gap="4">
 					<DropdownMenu
-						sessionCount={searchResultsCount || 0}
+						sessionCount={searchResultsCount}
 						sessionQuery={backendSearchQuery?.searchQuery || ''}
 					/>
+
+					{!isAbsoluteTimeRange(
+						timeRangeRule.val?.options[0].value,
+					) && (
+						<ButtonIcon
+							kind="secondary"
+							size="small"
+							shape="square"
+							emphasis="low"
+							icon={<IconSolidRefresh size={14} />}
+							disabled={syncButtonDisabled}
+							onClick={() => {
+								// Re-generate the absolute times used in the serialized query
+								updateSerializedQuery(isAnd, rules)
+								setBackendSearchQuery(serializedQuery.current)
+							}}
+						/>
+					)}
 
 					<ButtonIcon
 						kind="secondary"
@@ -1884,8 +2398,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 		dateRange,
 		searchResultsCount,
 		backendSearchQuery?.searchQuery,
-		updateRule,
 		timeRangeRule,
+		syncButtonDisabled,
+		updateSerializedQuery,
+		isAnd,
+		rules,
+		setBackendSearchQuery,
 		setShowLeftPanel,
 	])
 
@@ -1912,7 +2430,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				<Menu.Item
 					onClick={(e) => {
 						e.stopPropagation()
-						setSegmentModalState(SegmentModalState.CREATE)
+						setShowCreateSegmentModal(true)
 					}}
 					disabled={!canUpdateSegment}
 				>
@@ -1958,25 +2476,21 @@ function QueryBuilder(props: QueryBuilderProps) {
 	return (
 		<>
 			<CreateAnySegmentModal
-				showModal={segmentModalState !== SegmentModalState.HIDDEN}
+				showModal={showCreateSegmentModal}
 				onHideModal={() => {
-					setSegmentModalState(SegmentModalState.HIDDEN)
+					setShowEditSegmentNameModal(false)
+					setShowCreateSegmentModal(false)
 				}}
 				afterCreateHandler={(segmentId, segmentName) => {
 					if (segmentData?.segments) {
-						setSelectedSegment(
-							{
-								id: segmentId,
-								name: segmentName,
-							},
-							searchQuery,
-						)
+						setSelectedSegment({
+							id: segmentId,
+							name: segmentName,
+						})
 					}
 				}}
 				currentSegment={
-					segmentModalState === SegmentModalState.EDIT_NAME
-						? currentSegment
-						: undefined
+					showEditSegmentNameModal ? currentSegment : undefined
 				}
 			/>
 			<DeleteAnySegmentModal
@@ -1991,6 +2505,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						selectedSegment?.name === segmentToDelete.name
 					) {
 						removeSelectedSegment()
+						setSearchParams(emptySearchParams)
 					}
 				}}
 			/>
@@ -2076,7 +2591,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 						justifyContent="space-between"
 						alignItems="center"
 					>
-						{searchResultsCount === undefined ? (
+						{searchResultsLoading ? (
 							<Skeleton width="100px" />
 						) : (
 							<Text
@@ -2119,9 +2634,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 									<Menu.Item
 										onClick={(e) => {
 											e.stopPropagation()
-											setSegmentModalState(
-												SegmentModalState.EDIT_NAME,
-											)
+											setShowEditSegmentNameModal(true)
 										}}
 									>
 										<Box
@@ -2143,9 +2656,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 											e.stopPropagation()
 											if (currentSegment) {
 												selectSegment(currentSegment)
-												setSegmentModalState(
-													SegmentModalState.CREATE,
-												)
+												setShowCreateSegmentModal(true)
 											}
 										}}
 									>
