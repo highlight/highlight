@@ -328,6 +328,10 @@ const PreviousDateRangePickerImpl = ({
 			<Menu.Button
 				kind="secondary"
 				iconRight={<IconSolidCheveronDown />}
+				style={{
+					whiteSpace: 'nowrap',
+					overflow: 'hidden',
+				}}
 				{...(props as Omit<MenuButtonProps, 'ref'>)}
 			>
 				{buttonLabel}
