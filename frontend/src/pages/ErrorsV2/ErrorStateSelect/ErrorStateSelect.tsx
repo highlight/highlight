@@ -88,7 +88,6 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				},
 				onCompleted: async () => {
 					showStateUpdateMessage(newState, newSnoozedUntil)
-					setMenuState(MenuState.Default)
 				},
 				onError: async () => {
 					message.destroy(MESSAGE_KEY)
