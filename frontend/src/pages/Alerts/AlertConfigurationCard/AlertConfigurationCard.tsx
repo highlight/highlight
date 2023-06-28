@@ -41,6 +41,12 @@ import Select from '../../../components/Select/Select'
 import { ALERT_TYPE } from '../Alerts'
 import { dedupeEnvironments, getAlertTypeColor } from '../utils/AlertsUtils'
 import styles from './AlertConfigurationCard.module.css'
+import {
+	DEFAULT_FREQUENCY,
+	DEFAULT_LOOKBACK_PERIOD,
+	FREQUENCIES,
+	LOOKBACK_PERIODS,
+} from './AlertConfigurationConstants'
 
 interface AlertConfiguration {
 	name: string
@@ -930,8 +936,13 @@ export const AlertConfigurationCard = ({
 										<TextTransition
 											inline
 											text={
-												frequency === '1' ||
-												frequency === '60'
+												[
+													'1',
+													'60',
+													'3600',
+													'86400',
+													'604800',
+												].includes(frequency)
 													? getFrequencyOption(
 															frequency,
 													  ).displayValue
@@ -1109,89 +1120,6 @@ export const AlertConfigurationCard = ({
 	)
 }
 
-const FREQUENCIES = [
-	{
-		displayValue: '1 second',
-		value: '1',
-		id: '1s',
-	},
-	{
-		displayValue: '5 seconds',
-		value: '5',
-		id: '5s',
-	},
-	{
-		displayValue: '15 seconds',
-		value: '15',
-		id: '15s',
-	},
-	{
-		displayValue: '30 seconds',
-		value: '30',
-		id: '30s',
-	},
-	{
-		displayValue: '1 minute',
-		value: '60',
-		id: '1m',
-	},
-	{
-		displayValue: '5 minutes',
-		value: '300',
-		id: '5m',
-	},
-	{
-		displayValue: '15 minutes',
-		value: '900',
-		id: '15m',
-	},
-	{
-		displayValue: '30 minutes',
-		value: '1800',
-		id: '30m',
-	},
-]
-
-const LOOKBACK_PERIODS = [
-	{
-		displayValue: '5 minutes',
-		value: '5',
-		id: '5m',
-	},
-	{
-		displayValue: '10 minutes',
-		value: '10',
-		id: '10m',
-	},
-	{
-		displayValue: '30 minutes',
-		value: '30',
-		id: '30m',
-	},
-	{
-		displayValue: '60 minutes',
-		value: '60',
-		id: '60m',
-	},
-	{
-		displayValue: '3 hours',
-		value: `${60 * 3}`,
-		id: '3h',
-	},
-	{
-		displayValue: '12 hours',
-		value: `${60 * 12}`,
-		id: '12h',
-	},
-	{
-		displayValue: '24 hours',
-		value: `${60 * 24}`,
-		id: '24h',
-	},
-]
-
-const DEFAULT_LOOKBACK_PERIOD = '30'
-
 const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
 	const option = LOOKBACK_PERIODS.find(
 		(option) => option.value === minutes?.toString(),
@@ -1207,8 +1135,6 @@ const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
 
 	return option
 }
-
-const DEFAULT_FREQUENCY = '15'
 
 const getFrequencyOption = (seconds = DEFAULT_FREQUENCY): any => {
 	const option = FREQUENCIES.find(
