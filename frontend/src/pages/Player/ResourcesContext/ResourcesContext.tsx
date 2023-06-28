@@ -23,32 +23,29 @@ interface ResourcesContext {
 	error?: LoadingError
 }
 
-type WebSocketResource = {
-	socketId: string
-	type: 'open' | 'close'
-	initatorType: RequestType.WebSocket
-}
-
-type RequestResource = {
+interface NetworkResource extends PerformanceResourceTiming {
+	// http specific
 	requestResponsePairs?: RequestResponsePair
 	displayName?: string
+	// websocket specific
+	socketId?: string
+	type?: 'open' | 'close'
 }
 
-export type NetworkResourceWithID = PerformanceResourceTiming & {
-	id: number
-} & (WebSocketResource | RequestResource)
+export type NetworkResourceWithID = { id: number } & NetworkResource
 
-const buildResources = (resources: any) => {
+const buildResources = (resources: NetworkResource[]) => {
 	const indexResources = [] as NetworkResourceWithID[]
-	const webSocketHash = {} as any
+	const webSocketHash = {} as { [key: string]: NetworkResource }
 
-	resources?.forEach((resource: any) => {
-		const webSocketType = resource.initiatorType === RequestType.WebSocket
-		if (webSocketType) {
+	resources?.forEach((resource: NetworkResource) => {
+		if (
+			resource.initiatorType === RequestType.WebSocket &&
+			resource.socketId
+		) {
 			webSocketHash[resource.socketId] = {
-				...resource,
 				...webSocketHash?.[resource.socketId],
-				responseEnd: resource.endTime,
+				...resource,
 			}
 
 			if (resource.type === 'close') {
@@ -66,20 +63,13 @@ const buildResources = (resources: any) => {
 
 	return indexResources
 		.sort((a, b) => a.startTime - b.startTime)
-		.map((resource: any) => {
+		.map((resource: NetworkResourceWithID) => {
 			const resolverName = getGraphQLResolverName(resource)
 
 			if (resolverName) {
 				return {
 					...resource,
 					displayName: `${resolverName} (${resource.name})`,
-				}
-			}
-
-			if (resource.initiatorType === RequestType.WebSocket) {
-				return {
-					...webSocketHash[resource.socketId],
-					id: resource.id,
 				}
 			}
 
@@ -118,7 +108,7 @@ export const useResources = (
 	const [resources, setResources] = useState<NetworkResourceWithID[]>([])
 	useEffect(() => {
 		setError(undefined)
-		setResources(buildResources(data?.resources))
+		setResources(buildResources(data?.resources as NetworkResource[]))
 	}, [data?.resources])
 
 	useEffect(() => {
