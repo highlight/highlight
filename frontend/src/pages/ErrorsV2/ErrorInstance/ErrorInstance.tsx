@@ -378,11 +378,11 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				)}
 
 			<Box display="flex" flexDirection="column" mb="40">
-				<Stack direction="row" align="center" pb="20">
+				<Stack direction="row" align="center" pb="20" gap="8">
 					<Text size="large" weight="bold">
 						Harold AI
 					</Text>
-					<Badge label="Beta" size="large" variant="purple" />
+					<Badge label="Beta" size="medium" variant="purple" />
 				</Stack>
 				<AiErrorSuggestion
 					errorObjectId={errorInstance.error_object.id}

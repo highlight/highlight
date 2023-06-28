@@ -1,13 +1,29 @@
+import { vars } from '@highlight-run/ui/src/css/vars'
 import { globalStyle, style } from '@vanilla-extract/css'
 
 export const aiSuggestionPrompt = style({
 	background:
 		'linear-gradient(45deg, rgba(162, 138, 220, 0.08) 0%, rgba(216, 165, 216, 0.08) 50%, rgba(233, 192, 186, 0.08) 100%)',
-	backgroundSize: '450% 450%',
 })
 
 export const aiSuggestion = style({
-	boxShadow: '0 0 1px 1px rgba(0, 0, 0, 0.05) inset',
+	position: 'relative',
+	zIndex: 1,
+
+	selectors: {
+		'&:after': {
+			background:
+				'linear-gradient(45deg, rgba(162, 138, 220) 0%, rgba(216, 165, 216) 50%, rgba(233, 192, 186) 100%)',
+			border: '1px solid transparent',
+			content: '',
+			borderRadius: 8,
+			inset: 0,
+			mask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
+			maskComposite: 'exclude',
+			position: 'absolute',
+			zIndex: -1,
+		},
+	},
 })
 
 globalStyle(`${aiSuggestion} p`, {
@@ -15,9 +31,11 @@ globalStyle(`${aiSuggestion} p`, {
 })
 
 globalStyle(`${aiSuggestion} pre`, {
-	background: 'rgba(255, 255, 255, 0.6)',
-	border: '1px solid rgba(255, 255, 255, 0.8)',
+	background: vars.theme.static.surface.raised,
+	borderColor: vars.theme.static.divider.weak,
+	borderStyle: 'solid',
 	borderRadius: 6,
+	borderWidth: 1,
 	padding: 10,
 })
 
