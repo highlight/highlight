@@ -6,13 +6,13 @@ import { Typography } from '../common/Typography/Typography'
 import type { Comment } from './Comments'
 
 const upvoteButton = classNames(
-	'bg-[#131032] rounded border-2 border-[#1E2848] p-2',
+	'bg-[#131032] rounded border-2 border-[#30294e] p-2',
 )
 const section = classNames(
-	'col-4 border-2 border-[#1E2848] rounded-xl p-6 my-3',
+	'col-4 border-2 border-[#30294e] rounded-xl p-6 my-3',
 )
 const input = classNames(
-	'p-3 h-12 leading-none bg-transparent outline-none text-copy-on-dark text-[17px] rounded-xl bg-[#72E4FC0F] border-2 border-[#72E4FC1C]',
+	'p-3 h-12 leading-none bg-transparent outline-none text-copy-on-dark text-[17px] rounded-xl bg-[#72E4FC0F] border-2 border-[#30294e]',
 )
 
 export const CommentsBox = function ({

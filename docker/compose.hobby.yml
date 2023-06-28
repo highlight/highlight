@@ -47,6 +47,9 @@ x-backend-env: &backend-env
         - PSQL_PORT
         - PSQL_USER
         - REACT_APP_AUTH_MODE=simple
+        - REACT_APP_COMMIT_SHA
+        - REACT_APP_FRONTEND_URI
+        - REACT_APP_PRIVATE_GRAPH_URI
         - PRIVATE_GRAPH_URI
         - PUBLIC_GRAPH_URI
         - REDIS_ADDRESS

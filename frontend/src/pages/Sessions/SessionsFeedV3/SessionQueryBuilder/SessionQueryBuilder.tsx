@@ -4,6 +4,7 @@ import {
 	useGetFieldTypesQuery,
 	useGetSegmentsQuery,
 } from '@graph/hooks'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import { isEqual } from 'lodash'
@@ -156,6 +157,7 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 		skip: !project_id,
 	})
 	const searchContext = useSearchContext()
+	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	const { page, selectedSegment, setSelectedSegment } = searchContext
 
@@ -206,6 +208,7 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 			customFields={CUSTOM_FIELDS}
 			fetchFields={fetchFields}
 			fieldData={fieldData}
+			setShowLeftPanel={setShowLeftPanel}
 			emptySearchParams={EmptySessionsSearchParams}
 			useEditAnySegmentMutation={useEditSegmentMutation}
 			useGetAnySegmentsQuery={useGetSegmentsQuery}

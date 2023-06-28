@@ -16,6 +16,7 @@ import (
 )
 
 const TimestampFormat = "2006-01-02T15:04:05.000Z"
+const TimestampFormatNano = "2006-01-02T15:04:05.999999999Z"
 
 type Log struct {
 	Message    string `json:"message"`
@@ -187,9 +188,14 @@ func SubmitHTTPLog(ctx context.Context, projectID int, lg Log) error {
 		attrs = append(attrs, attribute.String(k, v))
 	}
 
-	t, err := time.Parse(TimestampFormat, lg.Timestamp)
+	var t time.Time
+	var err error
+	t, err = time.Parse(TimestampFormat, lg.Timestamp)
 	if err != nil {
-		return err
+		t, err = time.Parse(TimestampFormatNano, lg.Timestamp)
+		if err != nil {
+			return err
+		}
 	}
 	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(t))
 	if lg.Level == "error" {
