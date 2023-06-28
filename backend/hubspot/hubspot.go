@@ -29,8 +29,15 @@ import (
 
 const Retries = 5
 
-// ClientSideCreationTimeout is the time we will wait for the object to be created by the hubspot client-side snippet
-const ClientSideCreationTimeout = 3 * time.Minute
+// ClientSideContactCreationTimeout is the time we will wait for the object to be created by the hubspot client-side snippet
+const ClientSideContactCreationTimeout = 3 * time.Minute
+
+// ClientSideCompanyCreationTimeout is double the contact creation time because we expect contact creation to create a company.
+// The company creation backend task can be kicked off at the same time that contact creation is kicked off, so
+// we want to wait (in the worst-case) for the contact creation to time out, manually create a contact, and then
+// wait for the company creation to time out with the same delay of 3 minutes.
+const ClientSideCompanyCreationTimeout = 2 * ClientSideContactCreationTimeout
+
 const ClientSideCreationPollInterval = 5 * time.Second
 
 func retry[T *int](fn func() (T, error)) (ret T, err error) {
@@ -44,7 +51,7 @@ func retry[T *int](fn func() (T, error)) (ret T, err error) {
 	return
 }
 
-func pollHubspot[T *int](fn func() (T, error)) (result T, err error) {
+func pollHubspot[T *int](fn func() (T, error), timeout time.Duration) (result T, err error) {
 	start := time.Now()
 	ticker := time.NewTicker(ClientSideCreationPollInterval)
 	defer ticker.Stop()
@@ -53,7 +60,7 @@ func pollHubspot[T *int](fn func() (T, error)) (result T, err error) {
 		if result != nil {
 			return
 		}
-		if t.Sub(start) > ClientSideCreationTimeout {
+		if t.Sub(start) > timeout {
 			break
 		}
 	}
@@ -306,7 +313,7 @@ func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, ema
 func (h *HubspotApi) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	if contactId, err = pollHubspot(func() (*int, error) {
 		return h.getContactForAdmin(email)
-	}); contactId != nil {
+	}, ClientSideContactCreationTimeout); contactId != nil {
 		return
 	}
 
@@ -376,7 +383,7 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 
 	if companyID, err = pollHubspot(func() (*int, error) {
 		return h.getCompany(ctx, name)
-	}); companyID != nil {
+	}, ClientSideCompanyCreationTimeout); companyID != nil {
 		log.WithContext(ctx).
 			WithField("name", name).
 			Infof("company already exists in Hubspot. updating")
