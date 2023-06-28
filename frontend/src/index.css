@@ -270,6 +270,10 @@ input {
 	font-weight: 400 !important;
 }
 
+.date-input {
+	font-weight: 500 !important;
+}
+
 /* commandbar overlay modal */
 .atom-overlay {
 	color: blue;

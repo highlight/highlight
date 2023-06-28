@@ -15,19 +15,19 @@ interface CalendarProps {
 	prevButton: ReactNode
 	nextButton: ReactNode
 	calendar: CalendarType
+	hasSelectedRange?: boolean
 }
 
 export const Calendar: FC<CalendarProps> = ({
 	prevButton,
 	nextButton,
 	calendar,
+	hasSelectedRange,
 }) => {
 	const { weekDays } = useContextCalendars()
 	const [isHoveringOverDisabledDay, setIsHoveringOverDisabledDay] =
 		useState(false)
 	const { days, month, year } = calendar
-
-	const hasSelectedRange = days.filter((day) => day.selected).length > 1
 
 	return (
 		<Box backgroundColor="white" p="10">
