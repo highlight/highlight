@@ -8,10 +8,10 @@
 	"scripts": {
 		"build": "run-p --print-label 'build:**'",
 		"build:vite": "vite build",
-		"build-docs": "storybook build --docs",
 		"dev": "run-p --print-label --race 'dev:**'",
 		"dev:storybook": "storybook dev -p 6006",
-		"dev:docs": "storybook dev -p 6006 --docs",
+		"docs:build": "storybook build --docs",
+		"docs:dev": "storybook dev -p 6006 --docs",
 		"icons:generate": "npx ts-node-esm ./scripts/generate-icons.ts",
 		"g": "hygen",
 		"lint": "eslint ./src",
