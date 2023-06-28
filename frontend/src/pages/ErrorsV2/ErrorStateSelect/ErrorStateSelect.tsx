@@ -77,7 +77,6 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 				return
 			}
 
-			showStateUpdateMessage(newState, newSnoozedUntil)
 			setMenuState(MenuState.Default)
 			setIsUpdating(true)
 
@@ -88,18 +87,18 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 					snoozed_until: newSnoozedUntil,
 				},
 				onCompleted: async () => {
-					setIsUpdating(false)
 					showStateUpdateMessage(newState, newSnoozedUntil)
 					setMenuState(MenuState.Default)
 				},
 				onError: async () => {
-					setIsUpdating(false)
 					message.destroy(MESSAGE_KEY)
 					message.error(
 						'There was an issue updating the state of this error. Please try again.',
 					)
 				},
 			})
+
+			setIsUpdating(false)
 		},
 		[error_secure_id, initialErrorState, snoozed, updateErrorGroupState],
 	)
