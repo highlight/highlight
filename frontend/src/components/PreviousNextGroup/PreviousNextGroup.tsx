@@ -4,6 +4,7 @@ import {
 	ButtonIcon,
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
+	Tag,
 	Tooltip,
 } from '@highlight-run/ui'
 import React from 'react'
@@ -17,6 +18,7 @@ export const PreviousNextGroup = function ({
 	onNext,
 	canMoveForward,
 	nextShortcut,
+	as = 'button',
 }: {
 	onPrev: () => void
 	canMoveBackward: boolean
@@ -24,21 +26,23 @@ export const PreviousNextGroup = function ({
 	onNext: () => void
 	canMoveForward: boolean
 	nextShortcut?: string
+	as?: 'button' | 'tag'
 }) {
+	const Component = as === 'button' ? ButtonIcon : Tag
+
 	return (
 		<Box borderRadius="6" overflow="hidden" display="flex" flexShrink={0}>
 			<Tooltip
 				placement="bottom-end"
 				trigger={
-					<ButtonIcon
+					<Component
 						kind="secondary"
 						size="small"
-						shape="square"
 						emphasis="low"
 						icon={<IconSolidCheveronUp size={14} />}
 						onClick={onPrev}
 						disabled={!canMoveBackward}
-						cssClass={style.leftButton}
+						className={style.leftButton}
 					/>
 				}
 				delayed
@@ -55,16 +59,14 @@ export const PreviousNextGroup = function ({
 			<Tooltip
 				placement="bottom-start"
 				trigger={
-					<ButtonIcon
+					<Component
 						kind="secondary"
 						size="small"
-						shape="square"
 						emphasis="low"
 						icon={<IconSolidCheveronDown size={14} />}
-						title="j"
 						onClick={onNext}
 						disabled={!canMoveForward}
-						cssClass={style.rightButton}
+						className={style.rightButton}
 					/>
 				}
 				delayed

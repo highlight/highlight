@@ -1,9 +1,8 @@
-import { Box, IconSolidLogs } from '@highlight-run/ui'
+import { IconSolidLogs, Tag } from '@highlight-run/ui'
 import moment from 'moment'
-import { createSearchParams } from 'react-router-dom'
+import { createSearchParams, useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
-import { LinkButton } from '@/components/LinkButton'
 import { GetErrorInstanceQuery } from '@/graph/generated/operations'
 import { ReservedLogKey } from '@/graph/generated/schemas'
 import {
@@ -57,23 +56,22 @@ type Props = {
 	data: GetErrorInstanceQuery | undefined
 }
 
-export const ShowLogsButton = ({ data }: Props) => {
+export const RelatedLogs = ({ data }: Props) => {
 	const { isLoggedIn } = useAuthContext()
+	const navigate = useNavigate()
 
 	const logsLink = getLogsLink(data)
 
 	return (
-		<LinkButton
-			kind="primary"
-			emphasis="high"
+		<Tag
+			kind="secondary"
+			emphasis="low"
+			size="medium"
 			disabled={!isLoggedIn || logsLink === ''}
-			trackingId="error-related_logs_link"
-			to={logsLink}
+			onClick={() => navigate(logsLink)}
+			iconLeft={<IconSolidLogs />}
 		>
-			<Box display="flex" alignItems="center" flexDirection="row" gap="4">
-				<IconSolidLogs />
-				Show logs
-			</Box>
-		</LinkButton>
+			Related logs
+		</Tag>
 	)
 }
