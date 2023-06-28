@@ -364,10 +364,6 @@ export const NetworkPage = ({
 										onClickHandler={() => {
 											setCurrentActiveIndex(index)
 											setActiveNetworkResource(resource)
-											setShowRightPanel(true)
-											setRightPanelView(
-												RightPanelView.NetworkResource,
-											)
 										}}
 										setCurrentActiveIndex={
 											setCurrentActiveIndex

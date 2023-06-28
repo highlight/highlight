@@ -1,4 +1,3 @@
-import CollapsibleSection from '@components/CollapsibleSection'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import { TableList, TableListItem } from '@components/TableList/TableList'
 import { ErrorObject } from '@graph/schemas'
@@ -8,9 +7,9 @@ import {
 	ButtonIcon,
 	Heading,
 	IconSolidArrowCircleRight,
-	IconSolidCheveronDown,
-	IconSolidCheveronUp,
 	IconSolidX,
+	sprinkles,
+	Tabs,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
@@ -30,12 +29,23 @@ import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
-import React, { useMemo, useState } from 'react'
+import { Dialog, useDialogState } from 'ariakit'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+
+enum NetworkRequestTabs {
+	Info = 'Info',
+	Errors = 'Errors',
+	Logs = 'Logs',
+}
 
 const NetworkResourceDetails = React.memo(
 	// TODO: Store network resource in the URL and pull from there instead.
 	({ resource }: { resource: NetworkResource }) => {
+		const dialog = useDialogState({ animated: true })
+		const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
+			NetworkRequestTabs.Info,
+		)
 		const { setActiveNetworkResource } = usePlayerUIContext()
 		const { resources } = useResourcesContext()
 		const {
@@ -86,12 +96,32 @@ const NetworkResourceDetails = React.memo(
 			[canMoveForward, next],
 		)
 
+		useEffect(() => {
+			dialog.setOpen(true)
+		}, [dialog])
+
 		return (
-			<Box
-				display="flex"
-				flexDirection="column"
-				overflowX="hidden"
-				overflowY="auto"
+			// TODO: Handle outside clicks to close the dialog.
+			<Dialog
+				state={dialog}
+				modal={false}
+				className={sprinkles({
+					backgroundColor: 'white',
+					display: 'flex',
+					flexDirection: 'column',
+					border: 'dividerWeak',
+					borderRadius: '6',
+					boxShadow: 'small',
+					overflow: 'hidden',
+				})}
+				style={{
+					width: 400,
+					right: 8,
+					top: 8,
+					bottom: 8,
+					zIndex: 8,
+					position: 'absolute',
+				}}
 			>
 				<Box
 					pl="12"
@@ -139,7 +169,7 @@ const NetworkResourceDetails = React.memo(
 				>
 					<Heading level="h4">Network request</Heading>
 
-					<Box display="flex" alignItems="center">
+					<Box display="flex" alignItems="center" gap="4">
 						<Badge
 							label={String(
 								showPlayerAbsoluteTime
@@ -149,7 +179,7 @@ const NetworkResourceDetails = React.memo(
 									  })
 									: MillisToMinutesAndSeconds(timestamp),
 							)}
-							size="small"
+							size="medium"
 							shape="basic"
 							variant="gray"
 							flexShrink={0}
@@ -166,22 +196,36 @@ const NetworkResourceDetails = React.memo(
 										startTime,
 								)
 							}}
-							style={{
-								marginLeft: 'auto',
-								flexShrink: 0,
-							}}
 						>
 							Go to
 						</Tag>
 					</Box>
 				</Box>
-				<NetworkResourceData
-					selectedNetworkResource={resource}
-					networkRecordingEnabledForSession={
-						session?.enable_recording_network_contents || false
-					}
+
+				<Tabs<NetworkRequestTabs>
+					tab={activeTab}
+					setTab={(tab) => setActiveTab(tab)}
+					pages={{
+						[NetworkRequestTabs.Info]: {
+							page: (
+								<NetworkResourceData
+									selectedNetworkResource={resource}
+									networkRecordingEnabledForSession={
+										session?.enable_recording_network_contents ||
+										false
+									}
+								/>
+							),
+						},
+						[NetworkRequestTabs.Errors]: {
+							page: <Box>Errors</Box>,
+						},
+						[NetworkRequestTabs.Logs]: {
+							page: <Box>Logs</Box>,
+						},
+					}}
 				/>
-			</Box>
+			</Dialog>
 		)
 	},
 )
@@ -196,6 +240,7 @@ enum NetworkResourceMeta {
 	ResponsePayload = 'Response Payload',
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function NetworkResourceData({
 	selectedNetworkResource,
 	networkRecordingEnabledForSession,
@@ -426,10 +471,6 @@ function NetworkResourceData({
 		},
 	]
 
-	const [expanded, setExpanded] = useState<NetworkResourceMeta | undefined>(
-		NetworkResourceMeta.General,
-	)
-
 	const sections: [NetworkResourceMeta, TableListItem[]][] = [
 		[NetworkResourceMeta.General, generalData],
 	]
@@ -458,82 +499,47 @@ function NetworkResourceData({
 		)
 	}
 
+	// TODO: Figure out a way to make this content scrollable.
 	return (
-		<>
+		<Box>
 			{showRequestMetrics && (
 				<RequestMetrics resource={selectedNetworkResource} />
 			)}
 
-			{sections.map(([key, value]) => {
-				const isExpanded = expanded === key
-				const title = (
+			{sections.map(([key, value]) => (
+				<Box key={key} p="20">
 					<Box
-						py="8"
-						px="12"
-						bb={isExpanded ? undefined : 'secondary'}
+						pb="12"
+						bb="secondary"
 						display="flex"
 						justifyContent="space-between"
 						alignItems="center"
 					>
-						<Text
-							color="secondaryContentOnEnabled"
-							as="span"
-							size="small"
-							weight="medium"
-						>
+						<Text size="large" weight="bold" color="strong">
 							{key}
 						</Text>
-
-						<Box display="flex" gap="4" alignItems="center">
-							<ButtonIcon
-								icon={
-									isExpanded ? (
-										<IconSolidCheveronUp size={12} />
-									) : (
-										<IconSolidCheveronDown size={12} />
-									)
-								}
-								kind="secondary"
-								size="minimal"
-								emphasis="low"
-							/>
-						</Box>
 					</Box>
-				)
-				return (
-					<CollapsibleSection
-						key={key}
-						title={title}
-						expanded={isExpanded}
-						setExpanded={(e) => {
-							if (e) {
-								setExpanded(key as NetworkResourceMeta)
-							} else {
-								setExpanded(undefined)
-							}
-						}}
+
+					<Box
+						mt="12"
+						display="flex"
+						justifyContent="space-between"
+						alignItems="center"
 					>
-						<Box
-							px="12"
-							display="flex"
-							justifyContent="space-between"
-							alignItems="center"
-						>
-							<TableList
-								data={value}
-								noDataMessage={
-									networkRecordingEnabledForSession ? (
-										<NoRecordingMessage />
-									) : (
-										<NetworkRecordingEducationMessage />
-									)
-								}
-							/>
-						</Box>
-					</CollapsibleSection>
-				)
-			})}
-		</>
+						<TableList
+							data={value}
+							noDataMessage={
+								networkRecordingEnabledForSession ? (
+									<NoRecordingMessage />
+								) : (
+									<NetworkRecordingEducationMessage />
+								)
+							}
+						/>
+					</Box>
+				</Box>
+			))}
+		</Box>
 	)
 }
 

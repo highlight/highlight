@@ -30,3 +30,6 @@ export { Text } from './Text/Text'
 export { TextLink } from './TextLink/TextLink'
 export { Tooltip } from './Tooltip/Tooltip'
 export * from './icons'
+
+// Expose Ariakit building blocks
+export * as Ariakit from 'ariakit'

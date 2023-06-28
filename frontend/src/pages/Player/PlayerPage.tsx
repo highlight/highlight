@@ -58,6 +58,7 @@ import useResizeAware from 'react-resize-aware'
 import { useNavigate } from 'react-router-dom'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import NetworkResourceDetails from '@/pages/Player/RightPlayerPanel/components/NetworkResourceDetails/NetworkResourceDetails'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import WaitingAnimation from '../../lottie/waiting.json'
@@ -274,7 +275,8 @@ const PlayerPage = () => {
 			sessionViewability !== SessionViewability.ERROR) ||
 		(replayerState === ReplayerState.Empty && !!session_secure_id)
 
-	const { isPlayerFullscreen, playerCenterPanelRef } = usePlayerUIContext()
+	const { activeNetworkResource, isPlayerFullscreen, playerCenterPanelRef } =
+		usePlayerUIContext()
 
 	const sessionView = showSession ? (
 		<Box
@@ -359,6 +361,11 @@ const PlayerPage = () => {
 							<DevTools width={controllerWidth} />
 						</div>
 						{!isPlayerFullscreen && <RightPlayerPanel />}
+						{activeNetworkResource && (
+							<NetworkResourceDetails
+								resource={activeNetworkResource}
+							/>
+						)}
 					</Box>
 				</Box>
 			</div>

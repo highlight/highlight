@@ -10,7 +10,6 @@ import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConf
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import ErrorDetails from '@pages/Player/RightPlayerPanel/components/ErrorDetails/ErrorDetails'
 import EventDetails from '@pages/Player/RightPlayerPanel/components/EventDetails/EventDetails'
-import NetworkResourceDetails from '@pages/Player/RightPlayerPanel/components/NetworkResourceDetails/NetworkResourceDetails'
 import RightPanelTabs from '@pages/Player/RightPlayerPanel/components/Tabs'
 import { useEffect, useMemo } from 'react'
 
@@ -28,7 +27,6 @@ const RightPlayerPanel = () => {
 		rightPanelView,
 		setRightPanelView,
 		activeError,
-		activeNetworkResource,
 	} = usePlayerUIContext()
 
 	const showRightPanel = showRightPanelPreference && canViewSession
@@ -76,29 +74,10 @@ const RightPlayerPanel = () => {
 					return null
 				}
 
-			case RightPanelView.NetworkResource:
-				if (activeNetworkResource) {
-					return (
-						<NetworkResourceDetails
-							resource={activeNetworkResource}
-						/>
-					)
-				} else {
-					setRightPanelView(RightPanelView.Session)
-					return null
-				}
-
 			case RightPanelView.Comments:
 				return <SessionFullCommentList />
 		}
-	}, [
-		activeError,
-		activeEvent,
-		activeNetworkResource,
-		rightPanelView,
-		session,
-		setRightPanelView,
-	])
+	}, [activeError, activeEvent, rightPanelView, session, setRightPanelView])
 
 	return (
 		<Box
