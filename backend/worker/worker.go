@@ -599,9 +599,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return w.excludeSession(ctx, s, backend.SessionExcludedReasonNoTimelineIndicatorEvents)
 	}
 
-	// TODO: Should we be doing something similar to what we do for timeline
-	// indicator events?
-
 	payloadManager.SeekStart(ctx)
 
 	if len(accumulator.EventsForTimelineIndicator) > 0 {

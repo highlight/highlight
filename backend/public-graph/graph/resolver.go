@@ -980,7 +980,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		AppVersion:                     input.AppVersion,
 		VerboseID:                      input.ProjectVerboseID,
 		Fields:                         []*model.Field{},
-		LastUserInteractionTime:        time.Now(),
 		ViewedByAdmins:                 []model.Admin{},
 		ClientID:                       input.ClientID,
 		Excluded:                       true, // A session is excluded by default until it receives events
@@ -2367,7 +2366,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			if !lastUserInteractionTimestamp.IsZero() {
 				if err := r.DB.Model(&sessionObj).Updates(&model.Session{
 					LastUserInteractionTime: lastUserInteractionTimestamp,
-					HasUserEvents:           &model.T,
 				}).Error; err != nil {
 					return e.Wrap(err, "error updating LastUserInteractionTime")
 				}
@@ -3036,9 +3034,7 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 }
 
 func (r *Resolver) isSessionExcludedForNoUserEvents(ctx context.Context, s *model.Session) bool {
-	hasUserEvents := s.HasUserEvents != nil && *s.HasUserEvents
-
-	return !hasUserEvents
+	return s.LastUserInteractionTime.IsZero()
 }
 
 func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
