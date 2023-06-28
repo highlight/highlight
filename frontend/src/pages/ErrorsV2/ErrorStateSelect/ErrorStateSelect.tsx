@@ -55,10 +55,7 @@ const ErrorStateSelectImpl: React.FC<Props> = ({
 
 	const { error_secure_id } = useParams<{ error_secure_id: string }>()
 	const [updateErrorGroupState] = useUpdateErrorGroupStateMutation({
-		refetchQueries: [
-			namedOperations.Query.GetErrorGroup,
-			namedOperations.Query.GetErrorGroupsOpenSearch,
-		],
+		refetchQueries: [namedOperations.Query.GetErrorGroupsOpenSearch],
 		awaitRefetchQueries: true,
 	})
 
