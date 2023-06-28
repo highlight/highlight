@@ -1,9 +1,12 @@
 import { globalStyle, style } from '@vanilla-extract/css'
 
-export const aiSuggestion = style({
+export const aiSuggestionPrompt = style({
 	background:
-		'linear-gradient(45deg, rgba(236, 180, 70, 0.12) 0%, rgba(54, 186, 194, 0.12) 33%, rgba(60, 209, 102, 0.12) 67%, rgba(236, 180, 70, 0.12) 100%)',
+		'linear-gradient(45deg, rgba(162, 138, 220, 0.08) 0%, rgba(216, 165, 216, 0.08) 50%, rgba(233, 192, 186, 0.08) 100%)',
 	backgroundSize: '450% 450%',
+})
+
+export const aiSuggestion = style({
 	boxShadow: '0 0 1px 1px rgba(0, 0, 0, 0.05) inset',
 })
 

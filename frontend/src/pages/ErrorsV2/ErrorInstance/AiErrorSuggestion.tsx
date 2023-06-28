@@ -1,6 +1,12 @@
 import { Button } from '@components/Button'
 import { useGetErrorResolutionSuggestionLazyQuery } from '@graph/hooks'
-import { Badge, Box, Heading, Stack, Text } from '@highlight-run/ui'
+import {
+	Box,
+	IconSolidRefresh,
+	IconSolidSparkles,
+	Text,
+} from '@highlight-run/ui'
+import clsx from 'clsx'
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
 
@@ -17,12 +23,14 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 		})
 
 	return (
-		<Box p="16" borderRadius="8" cssClass={styles.aiSuggestion}>
-			<Heading level="h3">
-				<Stack direction="row" align="center">
-					Ask Harold for help <Badge label="Beta" size="large" />
-				</Stack>
-			</Heading>
+		<Box
+			p="16"
+			borderRadius="8"
+			cssClass={clsx(styles.aiSuggestion, {
+				[styles.aiSuggestionPrompt]: !data?.error_resolution_suggestion,
+			})}
+		>
+			<Text weight="bold">Ask Harold for help!</Text>
 
 			<Box mt="16">
 				{data?.error_resolution_suggestion ? (
@@ -62,16 +70,18 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 						emphasis="high"
 						trackingId="error-instance_get-ai-suggestion"
 						loading={loading}
+						iconLeft={<IconSolidSparkles />}
 					>
 						Get Suggestion
 					</Button>
 				) : (
 					<Button
 						onClick={(_event) => refetch()}
-						kind="primary"
+						kind="secondary"
 						emphasis="high"
 						trackingId="error-instance_refresh-ai-suggestion"
 						loading={loading}
+						iconLeft={<IconSolidRefresh />}
 					>
 						Refresh Suggestion
 					</Button>

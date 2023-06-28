@@ -14,11 +14,13 @@ import {
 import { ErrorObjectFragment, GetErrorGroupQuery } from '@graph/operations'
 import { Maybe, ReservedLogKey } from '@graph/schemas'
 import {
+	Badge,
 	Box,
 	Heading,
 	IconSolidCode,
 	IconSolidExternalLink,
 	IconSolidLogs,
+	Stack,
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
@@ -353,10 +355,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			</Box>
 
 			<Box display="flex" flexDirection="column" mb="40" gap="40">
-				<AiErrorSuggestion
-					errorObjectId={errorInstance.error_object.id}
-				/>
-
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
 					<Metadata errorObject={errorInstance.error_object} />
 				</div>
@@ -378,6 +376,18 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						</Box>
 					</>
 				)}
+
+			<Box display="flex" flexDirection="column" mb="40">
+				<Stack direction="row" align="center" pb="20">
+					<Text size="large" weight="bold">
+						Harold AI
+					</Text>
+					<Badge label="Beta" size="large" variant="purple" />
+				</Stack>
+				<AiErrorSuggestion
+					errorObjectId={errorInstance.error_object.id}
+				/>
+			</Box>
 
 			{(errorInstance.error_object.stack_trace !== '' &&
 				errorInstance.error_object.stack_trace !== 'null') ||

@@ -5842,28 +5842,30 @@ body {
   max-height: 16em;
 }
 ._2tuxi80 {
-  background: linear-gradient(45deg, rgba(236, 180, 70, 0.12) 0%, rgba(54, 186, 194, 0.12) 33%, rgba(60, 209, 102, 0.12) 67%, rgba(236, 180, 70, 0.12) 100%);
+  background: linear-gradient(45deg, rgba(162, 138, 220, 0.08) 0%, rgba(216, 165, 216, 0.08) 50%, rgba(233, 192, 186, 0.08) 100%);
   background-size: 450% 450%;
+}
+._2tuxi81 {
   box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.05) inset;
 }
-._2tuxi80 p {
+._2tuxi81 p {
   margin: 0 0 1rem 0 !important;
 }
-._2tuxi80 pre {
+._2tuxi81 pre {
   background: rgba(255, 255, 255, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 6px;
   padding: 10px;
 }
-._2tuxi80 code:not([class]) {
+._2tuxi81 code:not([class]) {
   background-color: transparent;
   border: 0;
 }
-._2tuxi80 p:last-child,
-._2tuxi80 ol:last-child {
+._2tuxi81 p:last-child,
+._2tuxi81 ol:last-child {
   margin: 0 !important;
 }
-._2tuxi80 ol {
+._2tuxi81 ol {
   padding: 0 0 0 1.5rem !important;
   margin: 0 0 1rem 0 !important;
 }
