@@ -16,7 +16,6 @@ import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/Integrat
 import { Landing } from '@pages/Landing/Landing'
 import NewProjectPage from '@pages/NewProject/NewProjectPage'
 import OAuthApprovalPage from '@pages/OAuthApproval/OAuthApprovalPage'
-import RegistrationForm from '@pages/RegistrationForm/RegistrationForm'
 import SwitchProject from '@pages/SwitchProject/SwitchProject'
 import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace'
 import useLocalStorage from '@rehooks/local-storage'
@@ -27,7 +26,7 @@ import { ProjectRedirectionRouter } from '@routers/ProjectRouter/ProjectRedirect
 import { ProjectRouter } from '@routers/ProjectRouter/ProjectRouter'
 import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
-import { showIntercom } from '@util/window'
+import { loadIntercom } from '@util/window'
 import { omit } from 'lodash'
 import { useEffect, useState } from 'react'
 import {
@@ -174,7 +173,7 @@ export const AppRouter = () => {
 			// static property for the user ID rather than something that could change
 			// over time, like an email address.
 			analytics.identify(admin.id, omit(identifyMetadata, ['id']))
-			showIntercom({ admin, hideMessage: true })
+			loadIntercom({ admin })
 		}
 	}, [admin])
 
@@ -297,18 +296,6 @@ export const AppRouter = () => {
 						}
 					/>
 
-					<Route
-						path="/w/:workspace_id/about-you"
-						element={
-							isLoggedIn ? (
-								<Landing>
-									<RegistrationForm />
-								</Landing>
-							) : (
-								<Navigate to={SIGN_IN_ROUTE} />
-							)
-						}
-					/>
 					<Route
 						path="/w/:workspace_id/*"
 						element={
