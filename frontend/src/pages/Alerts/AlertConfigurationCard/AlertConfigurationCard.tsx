@@ -500,7 +500,8 @@ export const AlertConfigurationCard = ({
 
 	const emails = uniq([
 		...emailSuggestions,
-		...form.getFieldValue('emails'),
+		// Add values from the form to ensure custom emails are included
+		...(form.getFieldValue('emails') ?? []),
 	]).map((email) => ({
 		displayValue: email,
 		value: email,
