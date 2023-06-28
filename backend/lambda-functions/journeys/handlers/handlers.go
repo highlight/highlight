@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -67,35 +68,36 @@ type navigateEvent struct {
 	Data      navigateData `json:"data"`
 }
 
-var separatorRegex = regexp.MustCompile(`[._~\-]+`)
+func isId(input string) bool {
+	return strings.ContainsAny(input, "0123456789")
+}
 
-func normalize(input string) string {
-	noQuery := strings.Split(strings.Split(input, "?")[0], "#")[0]
+func normalize(input string) (string, error) {
+	parsed, err := url.Parse(input)
+	if err != nil {
+		return "", nil
+	}
 
 	idIdx := 1
 	var sb strings.Builder
-	parts := strings.Split(noQuery, "/")
+	parts := strings.Split(parsed.Path, "/")
 	for idx, p := range parts {
+		if p == "" {
+			continue
+		}
+
 		if idx != 0 {
 			sb.WriteString("/")
 		}
-		innerParts := separatorRegex.Split(p, -1)
-		for idx2, p2 := range innerParts {
-			if idx2 != 0 {
-				sb.WriteString(".")
-			}
-			if strings.ContainsAny(p2, ".") {
-				sb.WriteString(p2)
-			} else if strings.ContainsAny(p2, "0123456789") {
-				sb.WriteString(fmt.Sprintf("{id-%d}", idIdx))
-				idIdx++
-			} else {
-				sb.WriteString(p2)
-			}
+		if isId(p) {
+			sb.WriteString(fmt.Sprintf("{id-%d}", idIdx))
+			idIdx++
+		} else {
+			sb.WriteString(p)
 		}
 	}
 
-	return sb.String()
+	return sb.String(), nil
 }
 
 func (h *handlers) GetSessions(ctx context.Context, projectId int) ([]int, error) {
