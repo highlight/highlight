@@ -6,6 +6,7 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
+import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/Button'
@@ -13,6 +14,7 @@ import LoadingBox from '@/components/LoadingBox'
 import { useGetSessionInsightLazyQuery } from '@/graph/generated/hooks'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'
+import { useGlobalContext } from '@/routers/ProjectRouter/context/GlobalContext'
 import { useParams } from '@/util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@/util/session/utils'
 import { MillisToMinutesAndSeconds } from '@/util/time'
@@ -32,6 +34,7 @@ const SessionInsights = () => {
 		sessionMetadata: { startTime },
 	} = useReplayerContext()
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
+	const { showBanner } = useGlobalContext()
 	const [insightData, setInsightData] = useState('')
 
 	const [getSessionInsight, { loading }] = useGetSessionInsightLazyQuery({
@@ -45,65 +48,81 @@ const SessionInsights = () => {
 	}, [session_secure_id])
 
 	return (
-		<Box p="8" display="flex" flexDirection="column" height="full">
+		<Box p="8" height="full" overflow="auto">
 			{loading ? (
 				<LoadingBox />
 			) : insightData ? (
-				JSON.parse(insightData).map(
-					(insight: SessionInsight, idx: number) => {
-						const timeSinceStart =
-							new Date(insight.timestamp).getTime() - startTime
-						return (
-							<Box cursor="pointer" key={idx}>
-								<Box
-									className={style.insight}
-									onClick={() => {
-										setTime(timeSinceStart)
-									}}
-								>
-									<Box display="flex" gap="4">
-										<Badge
-											size="small"
-											variant="purple"
-											label={String(idx + 1)}
-										/>
-										<Tag
-											kind="secondary"
-											size="small"
-											shape="basic"
-											emphasis="low"
-											iconRight={
-												<IconSolidArrowCircleRight />
-											}
-										>
-											{showPlayerAbsoluteTime
-												? playerTimeToSessionAbsoluteTime(
-														{
-															sessionStartTime:
-																startTime,
-															relativeTime:
-																timeSinceStart,
-														},
-												  )
-												: MillisToMinutesAndSeconds(
-														timeSinceStart,
-												  )}
-										</Tag>
-									</Box>
-									<Box overflowWrap="breakWord">
-										<Text
-											size="small"
-											weight="medium"
-											color="strong"
-										>
-											{insight.insight}
-										</Text>
+				<Box
+					cssClass={clsx(style.insightPanel, {
+						[style.insightPanelWithBanner]: showBanner,
+					})}
+				>
+					<Box
+						height="full"
+						width="full"
+						display="flex"
+						flexDirection="column"
+						position="relative"
+					>
+						{[
+							...JSON.parse(insightData),
+							...JSON.parse(insightData),
+						].map((insight: SessionInsight, idx: number) => {
+							const timeSinceStart =
+								new Date(insight.timestamp).getTime() -
+								startTime
+							return (
+								<Box cursor="pointer" key={idx}>
+									<Box
+										className={style.insight}
+										onClick={() => {
+											setTime(timeSinceStart)
+										}}
+									>
+										<Box display="flex" gap="4">
+											<Badge
+												size="small"
+												variant="purple"
+												label={String(idx + 1)}
+											/>
+											<Tag
+												kind="secondary"
+												size="small"
+												shape="basic"
+												emphasis="low"
+												iconRight={
+													<IconSolidArrowCircleRight />
+												}
+											>
+												{showPlayerAbsoluteTime
+													? playerTimeToSessionAbsoluteTime(
+															{
+																sessionStartTime:
+																	startTime,
+																relativeTime:
+																	timeSinceStart,
+															},
+													  )
+													: MillisToMinutesAndSeconds(
+															timeSinceStart,
+													  )}
+											</Tag>
+										</Box>
+										<Box overflowWrap="breakWord">
+											<Text
+												size="small"
+												weight="medium"
+												color="strong"
+											>
+												{insight.insight}
+											</Text>
+										</Box>
 									</Box>
 								</Box>
-							</Box>
-						)
-					},
-				)
+							)
+						})}
+					</Box>
+				</Box>
 			) : (
 				<Box
 					background="raised"
