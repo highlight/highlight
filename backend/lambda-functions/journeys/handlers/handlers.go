@@ -24,6 +24,9 @@ import (
 	"gorm.io/gorm"
 )
 
+var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z]+`)
+var capitalsRegex = regexp.MustCompile(`[A-Z]+`)
+
 type Handlers interface {
 	GetProjectIds(context.Context, utils.JourneyInput) ([]utils.JourneyResponse, error)
 }
@@ -69,7 +72,34 @@ type navigateEvent struct {
 }
 
 func isId(input string) bool {
-	return strings.ContainsAny(input, "0123456789")
+	if strings.ContainsAny(input, "0123456789") {
+		return true
+	}
+
+	input = nonAlphanumericRegex.ReplaceAllString(input, ",")
+	input = capitalsRegex.ReplaceAllString(input, ",$1")
+	input = strings.ToLower(input)
+	parts := strings.Split(input, ",")
+
+	for _, p := range parts {
+		if !strings.ContainsAny(p, "aeiouy") {
+			return true
+		}
+
+		consonantCount := 0
+		for _, c := range p {
+			if strings.ContainsRune("bcdfghjklmnpqrstvwxz", c) {
+				consonantCount++
+				if consonantCount > 4 {
+					return true
+				}
+			} else {
+				consonantCount = 0
+			}
+		}
+	}
+
+	return false
 }
 
 func normalize(input string) (string, error) {
@@ -82,6 +112,7 @@ func normalize(input string) (string, error) {
 	var sb strings.Builder
 	parts := strings.Split(parsed.Path, "/")
 	for idx, p := range parts {
+		// Skip if part is empty (this also removes trailing slashes)
 		if p == "" {
 			continue
 		}
@@ -142,41 +173,46 @@ func (h *handlers) GetJourneyImpl(sessionId int, data []byte) ([]model.UserJourn
 	}
 
 	steps := []model.UserJourneyStep{}
-	var curUrl string
+	var curUrl string = "START"
 	var curTimestamp int64
 	var curDelta int64
 	var idx int
 	for _, e := range events {
-		curDelta = e.Timestamp - curTimestamp
 		if e.Data.Tag == "Navigate" {
+			curDelta = e.Timestamp - curTimestamp
 			var unmarshalled string
 			if err := json.Unmarshal(e.Data.Payload, &unmarshalled); err != nil {
 				return nil, err
 			}
-			normalizedUrl := normalize(string(unmarshalled))
-			if curUrl != normalizedUrl {
-				if curUrl != "" {
-					steps = append(steps, model.UserJourneyStep{
-						SessionID: sessionId,
-						Url:       curUrl,
-						Delta:     curDelta,
-						Index:     idx,
-					})
-					idx++
-				}
-				curUrl = normalizedUrl
-				curTimestamp = e.Timestamp
-				curDelta = 0
+			normalizedUrl, err := normalize(string(unmarshalled))
+			if err != nil {
+				return nil, err
 			}
+			if curUrl != normalizedUrl && curDelta >= 1000 {
+				steps = append(steps, model.UserJourneyStep{
+					SessionID: sessionId,
+					Url:       curUrl,
+					Index:     idx,
+				})
+				idx++
+			}
+			curUrl = normalizedUrl
+			curTimestamp = e.Timestamp
 		}
 	}
 	if curUrl != "" {
 		steps = append(steps, model.UserJourneyStep{
 			SessionID: sessionId,
 			Url:       curUrl,
-			Delta:     curDelta,
+			NextUrl:   "END",
 			Index:     idx,
 		})
+	}
+	for idx, s := range steps {
+		if idx == len(steps)-1 {
+			continue
+		}
+		s.NextUrl = steps[idx+1].Url
 	}
 
 	return steps, nil

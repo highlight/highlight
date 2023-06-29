@@ -1194,7 +1194,6 @@ type UserJourneyStep struct {
 	Index     int `gorm:"primary_key;not null"`
 	Url       string
 	NextUrl   string
-	Delta     int64
 }
 
 type RetryableType string
