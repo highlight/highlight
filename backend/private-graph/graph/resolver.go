@@ -76,6 +76,8 @@ const ErrorGroupLookbackDays = 7
 const SessionActiveMetricName = "sessionActiveLength"
 const SessionProcessedMetricName = "sessionProcessed"
 
+var AuthorizationError = errors.New("403 - AuthorizationError")
+
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
@@ -314,7 +316,7 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	} else {
 		project, err = r.isAdminInProject(ctx, project_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in project or demo project")
+			return nil, err
 		}
 	}
 	return project, nil
@@ -338,7 +340,7 @@ func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, worksp
 	} else {
 		workspace, err = r.isAdminInWorkspace(ctx, workspace_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in workspace or demo workspace")
+			return nil, err
 		}
 	}
 	return workspace, nil
@@ -387,7 +389,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 	if inviteLink.InviteeEmail != nil {
 		// check case-insensitively because email addresses are case-insensitive.
 		if !strings.EqualFold(*inviteLink.InviteeEmail, *admin.Email) {
-			return nil, e.New("403: This invite is not valid for the admin.")
+			return nil, AuthorizationError
 		}
 	}
 
@@ -460,7 +462,7 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 	}
 
 	if workspaceID != workspace.ID {
-		return nil, e.New("workspace is not associated to the current admin")
+		return nil, AuthorizationError
 	}
 
 	return &workspace, nil
@@ -491,7 +493,7 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 			return p, nil
 		}
 	}
-	return nil, e.New("admin doesn't exist in project")
+	return nil, AuthorizationError
 }
 
 func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.ErrorGroup) (*time.Time, *time.Time, error) {
