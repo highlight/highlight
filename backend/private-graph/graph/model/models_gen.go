@@ -1774,6 +1774,7 @@ type SourceMappingErrorCode string
 const (
 	SourceMappingErrorCodeFileNameMissingFromSourcePath         SourceMappingErrorCode = "File_Name_Missing_From_Source_Path"
 	SourceMappingErrorCodeErrorParsingStackTraceFileURL         SourceMappingErrorCode = "Error_Parsing_Stack_Trace_File_Url"
+	SourceMappingErrorCodeErrorConstructingSourceMapURL         SourceMappingErrorCode = "Error_Constructing_Source_Map_URL"
 	SourceMappingErrorCodeMissingSourceMapFileInS3              SourceMappingErrorCode = "Missing_Source_Map_File_In_S3"
 	SourceMappingErrorCodeMinifiedFileMissingInS3AndURL         SourceMappingErrorCode = "Minified_File_Missing_In_S3_And_URL"
 	SourceMappingErrorCodeSourcemapFileMissingInS3AndURL        SourceMappingErrorCode = "Sourcemap_File_Missing_In_S3_And_URL"
@@ -1787,6 +1788,7 @@ const (
 var AllSourceMappingErrorCode = []SourceMappingErrorCode{
 	SourceMappingErrorCodeFileNameMissingFromSourcePath,
 	SourceMappingErrorCodeErrorParsingStackTraceFileURL,
+	SourceMappingErrorCodeErrorConstructingSourceMapURL,
 	SourceMappingErrorCodeMissingSourceMapFileInS3,
 	SourceMappingErrorCodeMinifiedFileMissingInS3AndURL,
 	SourceMappingErrorCodeSourcemapFileMissingInS3AndURL,
@@ -1799,7 +1801,7 @@ var AllSourceMappingErrorCode = []SourceMappingErrorCode{
 
 func (e SourceMappingErrorCode) IsValid() bool {
 	switch e {
-	case SourceMappingErrorCodeFileNameMissingFromSourcePath, SourceMappingErrorCodeErrorParsingStackTraceFileURL, SourceMappingErrorCodeMissingSourceMapFileInS3, SourceMappingErrorCodeMinifiedFileMissingInS3AndURL, SourceMappingErrorCodeSourcemapFileMissingInS3AndURL, SourceMappingErrorCodeMinifiedFileLarger, SourceMappingErrorCodeSourceMapFileLarger, SourceMappingErrorCodeInvalidSourceMapURL, SourceMappingErrorCodeSourcemapLibraryCouldntParse, SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource:
+	case SourceMappingErrorCodeFileNameMissingFromSourcePath, SourceMappingErrorCodeErrorParsingStackTraceFileURL, SourceMappingErrorCodeErrorConstructingSourceMapURL, SourceMappingErrorCodeMissingSourceMapFileInS3, SourceMappingErrorCodeMinifiedFileMissingInS3AndURL, SourceMappingErrorCodeSourcemapFileMissingInS3AndURL, SourceMappingErrorCodeMinifiedFileLarger, SourceMappingErrorCodeSourceMapFileLarger, SourceMappingErrorCodeInvalidSourceMapURL, SourceMappingErrorCodeSourcemapLibraryCouldntParse, SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource:
 		return true
 	}
 	return false
