@@ -1527,10 +1527,11 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.Produc
 		return false, 1
 	}
 
+	basePrice := pricing.ProductToBasePriceCents(productType, stripePlan)
 	retentionPeriod := cfg.retentionPeriod(workspace)
 	overage := meter - includedQuantity
 	cost := float64(overage) *
-		pricing.ProductToBasePriceCents(productType) *
+		basePrice *
 		pricing.RetentionMultiplier(retentionPeriod)
 
 	return cost <= float64(*maxCostCents), cost / float64(*maxCostCents)
