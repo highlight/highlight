@@ -25,7 +25,6 @@ import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/Di
 import { useParams } from '@util/react-router/useParams'
 import { Form, message, Tag } from 'antd'
 import clsx from 'clsx'
-import { uniq } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
@@ -498,24 +497,19 @@ export const AlertConfigurationCard = ({
 		}),
 	)
 
-	const formEmails = form.getFieldValue('emails') ?? []
-	const emails = uniq([
-		...(emailSuggestions ?? []),
-		// Add values from the form to ensure custom emails are included
-		...formEmails,
-	]).map((email) => ({
+	const emails = emailSuggestions.map((email) => ({
 		displayValue: email,
 		value: email,
 		id: email,
 	}))
 
-	if (!!customEmail.split('@')[1]) {
-		emails.unshift({
-			displayValue: `Send email alerts to: ${customEmail}`,
-			value: customEmail,
-			id: customEmail,
-		})
-	}
+	// if (!!customEmail.split('@')[1]) {
+	// 	emails.unshift({
+	// 		displayValue: `Send email alerts to: ${customEmail}`,
+	// 		value: customEmail,
+	// 		id: customEmail,
+	// 	})
+	// }
 
 	const environments = [
 		...dedupeEnvironments(environmentOptions).map(
