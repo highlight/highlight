@@ -493,6 +493,10 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	if err != nil {
 		return nil, e.Wrap(err, "error querying projects")
 	}
+	if len(projects) == 0 {
+		return nil, AuthenticationError
+	}
+
 	for _, p := range projects {
 		if p.ID == project_id {
 			span.SetTag("WorkspaceID", p.WorkspaceID)
