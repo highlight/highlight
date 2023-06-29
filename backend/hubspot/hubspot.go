@@ -281,20 +281,22 @@ func (h *HubspotApi) getAllCompanies(ctx context.Context) (companies []*CompanyR
 	return
 }
 
-func (h *HubspotApi) getCompany(ctx context.Context, name string) (*int, error) {
+func (h *HubspotApi) getCompany(ctx context.Context, name, domain string) (*int, error) {
 	companies, err := h.getAllCompanies(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if company, ok := lo.Find(companies, func(response *CompanyResponse) bool {
 		for prop, data := range response.Properties {
-			if prop == "name" {
+			if domain != "" && prop == "domain" {
+				return strings.EqualFold(data.Value, domain)
+			} else if name != "" && prop == "name" {
 				return strings.EqualFold(data.Value, name)
 			}
 		}
 		return false
 	}); !ok {
-		return nil, e.New(fmt.Sprintf("failed to find company with name %s", name))
+		return nil, e.New(fmt.Sprintf("failed to find company with name %s domain %s", name, domain))
 	} else {
 		return pointy.Int(company.CompanyID), nil
 	}
@@ -485,10 +487,11 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 	}
 
 	if companyID, err = pollHubspot(func() (*int, error) {
-		return h.getCompany(ctx, name)
+		return h.getCompany(ctx, name, domain)
 	}, ClientSideCompanyCreationTimeout); companyID != nil {
 		log.WithContext(ctx).
 			WithField("name", name).
+			WithField("domain", domain).
 			Infof("company already exists in Hubspot. updating")
 
 		_, er := h.hubspotClient.Companies().Update(*companyID, companyProperties)
