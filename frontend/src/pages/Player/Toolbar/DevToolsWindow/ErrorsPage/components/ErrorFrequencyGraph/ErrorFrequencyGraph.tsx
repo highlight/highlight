@@ -16,7 +16,7 @@ import {
 	YAxis,
 } from 'recharts'
 
-import styles from './ErrorFrequencyGraph.module.scss'
+import styles from './ErrorFrequencyGraph.module.css'
 
 type FrequencyGraphProps = {
 	errorGroup?: Maybe<Pick<ErrorGroup, 'secure_id' | 'project_id'>>

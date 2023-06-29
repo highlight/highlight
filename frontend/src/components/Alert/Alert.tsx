@@ -9,7 +9,7 @@ import React from 'react'
 import { useSessionStorage } from 'react-use'
 
 import SvgInformationIcon from '../../static/InformationIcon'
-import styles from './Alert.module.scss'
+import styles from './Alert.module.css'
 
 export type AlertProps = {
 	trackingId: string

@@ -17,9 +17,9 @@ import Linkify from 'react-linkify'
 import { AdminSuggestion } from '@/components/Comment/utils/utils'
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 
-import newCommentFormStyles from '../NewCommentForm.module.scss'
-import styles from './CommentTextBody.module.scss'
-import mentionsClassNames from './mentions.module.scss'
+import newCommentFormStyles from '../NewCommentForm.module.css'
+import styles from './CommentTextBody.module.css'
+import mentionsClassNames from './mentions.module.css'
 
 interface Props {
 	commentText: string

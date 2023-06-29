@@ -58,7 +58,7 @@ type ComplexityRoot struct {
 		MarkBackendSetup     func(childComplexity int, projectID *string, sessionSecureID *string, typeArg *string) int
 		PushBackendPayload   func(childComplexity int, projectID *string, errors []*model.BackendErrorObjectInput) int
 		PushMetrics          func(childComplexity int, metrics []*model.MetricInput) int
-		PushPayload          func(childComplexity int, sessionSecureID string, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) int
+		PushPayload          func(childComplexity int, sessionSecureID string, events model.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) int
 	}
 
 	Query struct {
@@ -77,7 +77,7 @@ type MutationResolver interface {
 	InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool) (*model.InitializeSessionResponse, error)
 	IdentifySession(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}) (string, error)
 	AddSessionProperties(ctx context.Context, sessionSecureID string, propertiesObject interface{}) (string, error)
-	PushPayload(ctx context.Context, sessionSecureID string, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error)
+	PushPayload(ctx context.Context, sessionSecureID string, events model.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error)
 	PushBackendPayload(ctx context.Context, projectID *string, errors []*model.BackendErrorObjectInput) (interface{}, error)
 	PushMetrics(ctx context.Context, metrics []*model.MetricInput) (int, error)
 	MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string, typeArg *string) (interface{}, error)
@@ -210,7 +210,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.PushPayload(childComplexity, args["session_secure_id"].(string), args["events"].(model.ReplayEventsInput), args["messages"].(string), args["resources"].(string), args["errors"].([]*model.ErrorObjectInput), args["is_beacon"].(*bool), args["has_session_unloaded"].(*bool), args["highlight_logs"].(*string), args["payload_id"].(*int)), true
+		return e.complexity.Mutation.PushPayload(childComplexity, args["session_secure_id"].(string), args["events"].(model.ReplayEventsInput), args["messages"].(string), args["resources"].(string), args["web_socket_events"].(*string), args["errors"].([]*model.ErrorObjectInput), args["is_beacon"].(*bool), args["has_session_unloaded"].(*bool), args["highlight_logs"].(*string), args["payload_id"].(*int)), true
 
 	case "Query.ignore":
 		if e.complexity.Query.Ignore == nil {
@@ -439,6 +439,7 @@ type Mutation {
 		events: ReplayEventsInput!
 		messages: String!
 		resources: String!
+		web_socket_events: String
 		errors: [ErrorObjectInput]!
 		is_beacon: Boolean
 		has_session_unloaded: Boolean
@@ -821,51 +822,60 @@ func (ec *executionContext) field_Mutation_pushPayload_args(ctx context.Context,
 		}
 	}
 	args["resources"] = arg3
-	var arg4 []*model.ErrorObjectInput
+	var arg4 *string
+	if tmp, ok := rawArgs["web_socket_events"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("web_socket_events"))
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["web_socket_events"] = arg4
+	var arg5 []*model.ErrorObjectInput
 	if tmp, ok := rawArgs["errors"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errors"))
-		arg4, err = ec.unmarshalNErrorObjectInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐErrorObjectInput(ctx, tmp)
+		arg5, err = ec.unmarshalNErrorObjectInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐErrorObjectInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["errors"] = arg4
-	var arg5 *bool
+	args["errors"] = arg5
+	var arg6 *bool
 	if tmp, ok := rawArgs["is_beacon"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("is_beacon"))
-		arg5, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["is_beacon"] = arg5
-	var arg6 *bool
-	if tmp, ok := rawArgs["has_session_unloaded"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_session_unloaded"))
 		arg6, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["has_session_unloaded"] = arg6
-	var arg7 *string
+	args["is_beacon"] = arg6
+	var arg7 *bool
+	if tmp, ok := rawArgs["has_session_unloaded"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("has_session_unloaded"))
+		arg7, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["has_session_unloaded"] = arg7
+	var arg8 *string
 	if tmp, ok := rawArgs["highlight_logs"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("highlight_logs"))
-		arg7, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg8, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["highlight_logs"] = arg7
-	var arg8 *int
+	args["highlight_logs"] = arg8
+	var arg9 *int
 	if tmp, ok := rawArgs["payload_id"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payload_id"))
-		arg8, err = ec.unmarshalOID2ᚖint(ctx, tmp)
+		arg9, err = ec.unmarshalOID2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["payload_id"] = arg8
+	args["payload_id"] = arg9
 	return args, nil
 }
 
@@ -1219,7 +1229,7 @@ func (ec *executionContext) _Mutation_pushPayload(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().PushPayload(rctx, fc.Args["session_secure_id"].(string), fc.Args["events"].(model.ReplayEventsInput), fc.Args["messages"].(string), fc.Args["resources"].(string), fc.Args["errors"].([]*model.ErrorObjectInput), fc.Args["is_beacon"].(*bool), fc.Args["has_session_unloaded"].(*bool), fc.Args["highlight_logs"].(*string), fc.Args["payload_id"].(*int))
+		return ec.resolvers.Mutation().PushPayload(rctx, fc.Args["session_secure_id"].(string), fc.Args["events"].(model.ReplayEventsInput), fc.Args["messages"].(string), fc.Args["resources"].(string), fc.Args["web_socket_events"].(*string), fc.Args["errors"].([]*model.ErrorObjectInput), fc.Args["is_beacon"].(*bool), fc.Args["has_session_unloaded"].(*bool), fc.Args["highlight_logs"].(*string), fc.Args["payload_id"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

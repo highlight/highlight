@@ -1,7 +1,7 @@
 import React from 'react'
 
 import ElevatedCard from '../ElevatedCard/ElevatedCard'
-import styles from './FullBleedCard.module.scss'
+import styles from './FullBleedCard.module.css'
 
 interface Props {
 	title: string

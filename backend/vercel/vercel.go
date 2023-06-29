@@ -4,12 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/go-chi/chi"
-	model2 "github.com/highlight-run/highlight/backend/model"
-	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
-	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
-	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"net/url"
@@ -17,6 +11,13 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/go-chi/chi"
+	model2 "github.com/highlight-run/highlight/backend/model"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/pkg/errors"
@@ -121,6 +122,9 @@ func SetEnvVariable(projectId string, apiKey string, accessToken string, teamId 
 	b, err := io.ReadAll(res.Body)
 
 	if res.StatusCode != 200 {
+		if method == "PATCH" {
+			return errors.New(fmt.Sprintf("Could not patch environment variable %s - If this environment variable is already defined in Vercel, please remove it from your Vercel project and retry.", key))
+		}
 		return errors.New("Vercel Project Env API responded with error; status_code=" + res.Status + "; body=" + string(b))
 	}
 

@@ -54,7 +54,7 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { titleCaseString } from '@util/string'
-import { showIntercom } from '@util/window'
+import { showIntercomMessage } from '@util/window'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -65,7 +65,7 @@ import { useSessionStorage } from 'react-use'
 import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
 
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
-import styles from './Header.module.scss'
+import styles from './Header.module.css'
 
 type Props = {
 	fullyIntegrated?: boolean
@@ -114,7 +114,7 @@ export const useBillingHook = ({
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId } = useProjectId()
-	const { admin, isLoggedIn, signOut } = useAuthContext()
+	const { isLoggedIn, signOut } = useAuthContext()
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
@@ -572,9 +572,9 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												</Menu.Item>
 											</Link>
 											<Menu.Item
-												onClick={() =>
-													showIntercom({ admin })
-												}
+												onClick={() => {
+													showIntercomMessage()
+												}}
 											>
 												<Box
 													display="flex"

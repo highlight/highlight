@@ -18,6 +18,7 @@ import {
 import { AuthBody, AuthFooter, AuthHeader } from '@/pages/Auth/Layout'
 import { Landing } from '@/pages/Landing/Landing'
 import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
+import { showIntercomMessage } from '@/util/window'
 
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
@@ -53,6 +54,13 @@ export const JoinWorkspace = () => {
 			setDismissedJoinWorkspace(true)
 			message.success('Successfuly joined workspace!', 1)
 			navigate(ABOUT_YOU_ROUTE, { replace: true })
+		} else if (response.errors?.length) {
+			const error = response.errors[0].message
+			message.error(response.errors[0].message, 1)
+
+			showIntercomMessage(
+				`I can't join a workspace. This is the error I'm getting: "${error}"`,
+			)
 		}
 	})
 

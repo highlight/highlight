@@ -10,7 +10,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import React from 'react'
 import BarLoader from 'react-spinners/BarLoader'
 
-import styles from './Loading.module.scss'
+import styles from './Loading.module.css'
 
 export const CircularSpinner = ({ style }: { style?: React.CSSProperties }) => {
 	return (

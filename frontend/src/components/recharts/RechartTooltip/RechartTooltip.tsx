@@ -1,6 +1,6 @@
 import React from 'react'
 
-import styles from './RechartTooltip.module.scss'
+import styles from './RechartTooltip.module.css'
 
 export const RechartTooltip = ({
 	active,

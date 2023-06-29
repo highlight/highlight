@@ -43,6 +43,10 @@ func NetworkResourcesKey(sessionId int) string {
 	return fmt.Sprintf("network-resources-%d", sessionId)
 }
 
+func WebSocketEventsKey(sessionId int) string {
+	return fmt.Sprintf("web-socket-events-%d", sessionId)
+}
+
 func SessionInitializedKey(sessionSecureId string) string {
 	return fmt.Sprintf("session-init-%s", sessionSecureId)
 }
@@ -145,6 +149,8 @@ func GetKey(sessionId int, payloadType model.RawPayloadType) string {
 		return EventsKey(sessionId)
 	case model.PayloadTypeResources:
 		return NetworkResourcesKey(sessionId)
+	case model.PayloadTypeWebSocketEvents:
+		return WebSocketEventsKey(sessionId)
 	default:
 		return ""
 	}

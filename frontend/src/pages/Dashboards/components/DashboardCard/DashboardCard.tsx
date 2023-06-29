@@ -43,7 +43,7 @@ import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import styles from './DashboardCard.module.scss'
+import styles from './DashboardCard.module.css'
 import DashboardInnerCard from './DashboardInnerCard/DashboardInnerCard'
 
 export const UNIT_OPTIONS = [

@@ -6,7 +6,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import { Bar, BarChart, Cell, ReferenceArea, Tooltip } from 'recharts'
 
-import styles from './Histogram.module.scss'
+import styles from './Histogram.module.css'
 
 export interface Series {
 	label: string

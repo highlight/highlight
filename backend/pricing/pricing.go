@@ -2,6 +2,7 @@ package pricing
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"time"
@@ -17,6 +18,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
 
@@ -63,19 +65,40 @@ func GetSessions7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhou
 }
 
 func GetWorkspaceSessionsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
+	meterSpan, _ := tracer.StartSpanFromContext(ctx, "pricing.GetWorkspaceSessionsMeter",
+		tracer.ResourceName("GetWorkspaceSessionsMeter"),
+		tracer.Tag("workspace_id", workspace.ID))
+	defer meterSpan.Finish()
+
 	var meter int64
 	if err := DB.Raw(`
-			SELECT COALESCE(SUM(count), 0) as currentPeriodSessionCount
+		WITH materialized_rows AS (
+			SELECT count, date
 			FROM daily_session_counts_view
-			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=?)
+			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=@workspace_id)
 			AND date >= (
 				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
 				FROM workspaces
-				WHERE id=?)
+				WHERE id=@workspace_id)
 			AND date < (
 				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
 				FROM workspaces
-				WHERE id=?)`, workspace.ID, workspace.ID, workspace.ID).
+				WHERE id=@workspace_id))
+		SELECT SUM(count) as currentPeriodSessionCount from (
+			SELECT COUNT(*) FROM sessions
+			WHERE project_id IN (SELECT id FROM projects WHERE workspace_id=@workspace_id)
+			AND created_at >= (SELECT MAX(date) FROM materialized_rows)
+			AND created_at < (
+			SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+			FROM workspaces
+			WHERE id=@workspace_id)
+			AND excluded <> true
+			AND within_billing_quota
+			AND (active_length >= 1000 OR (active_length is null and length >= 1000))
+			AND processed = true
+			UNION ALL SELECT COALESCE(SUM(count), 0) FROM materialized_rows
+			WHERE date < (SELECT MAX(date) FROM materialized_rows)
+		) a`, sql.Named("workspace_id", workspace.ID)).
 		Scan(&meter).Error; err != nil {
 		return 0, e.Wrap(err, "error querying for session meter")
 	}
@@ -97,19 +120,36 @@ func GetErrors7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse
 }
 
 func GetWorkspaceErrorsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
+	meterSpan, _ := tracer.StartSpanFromContext(ctx, "pricing.GetWorkspaceErrorsMeter",
+		tracer.ResourceName("GetWorkspaceErrorsMeter"),
+		tracer.Tag("workspace_id", workspace.ID))
+	defer meterSpan.Finish()
+
 	var meter int64
 	if err := DB.Raw(`
-			SELECT COALESCE(SUM(count), 0) as currentPeriodErrorsCount
+		WITH materialized_rows AS (
+			SELECT count, date
 			FROM daily_error_counts_view
-			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=?)
+			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=@workspace_id)
 			AND date >= (
 				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
 				FROM workspaces
-				WHERE id=?)
+				WHERE id=@workspace_id)
 			AND date < (
 				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
 				FROM workspaces
-				WHERE id=?)`, workspace.ID, workspace.ID, workspace.ID).
+				WHERE id=@workspace_id))
+		SELECT SUM(count) as currentPeriodErrorsCount from (
+			SELECT COUNT(*) FROM error_objects
+			WHERE project_id IN (SELECT id FROM projects WHERE workspace_id=@workspace_id)
+			AND created_at >= (SELECT MAX(date) FROM materialized_rows)
+			AND created_at < (
+				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+				FROM workspaces
+				WHERE id=@workspace_id)
+			UNION ALL SELECT COALESCE(SUM(count), 0) FROM materialized_rows
+			WHERE date < (SELECT MAX(date) FROM materialized_rows)
+		) a`, sql.Named("workspace_id", workspace.ID)).
 		Scan(&meter).Error; err != nil {
 		return 0, e.Wrap(err, "error querying for session meter")
 	}
@@ -167,39 +207,36 @@ func GetLimitAmount(limitCostCents *int, productType ProductType, planType backe
 	if limitCostCents == nil {
 		return nil
 	}
-	basePrice := ProductToBasePriceCents(productType)
-	if planType != backend.PlanTypeUsageBased {
-		basePrice = ProductToBasePriceCentsNonUsageBased(productType)
-	}
+	basePrice := ProductToBasePriceCents(productType, planType)
 	retentionMultiplier := RetentionMultiplier(retentionPeriod)
 
 	return pointy.Int64(int64(
 		float64(*limitCostCents)/basePrice/retentionMultiplier) + included)
 }
 
-func ProductToBasePriceCentsNonUsageBased(productType ProductType) float64 {
-	switch productType {
-	case ProductTypeSessions:
-		return .5
-	case ProductTypeErrors:
-		return .02
-	case ProductTypeLogs:
-		return .00015
-	default:
-		return 0
-	}
-}
-
-func ProductToBasePriceCents(productType ProductType) float64 {
-	switch productType {
-	case ProductTypeSessions:
-		return 2
-	case ProductTypeErrors:
-		return .02
-	case ProductTypeLogs:
-		return .00015
-	default:
-		return 0
+func ProductToBasePriceCents(productType ProductType, planType backend.PlanType) float64 {
+	if planType == backend.PlanTypeUsageBased {
+		switch productType {
+		case ProductTypeSessions:
+			return 2
+		case ProductTypeErrors:
+			return .02
+		case ProductTypeLogs:
+			return .00015
+		default:
+			return 0
+		}
+	} else {
+		switch productType {
+		case ProductTypeSessions:
+			return .5
+		case ProductTypeErrors:
+			return .02
+		case ProductTypeLogs:
+			return .00015
+		default:
+			return 0
+		}
 	}
 }
 

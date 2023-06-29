@@ -14,6 +14,7 @@ export { Container } from './Container/Container'
 export {
 	PreviousDateRangePicker,
 	getDefaultPresets,
+	getNow,
 } from './DatePicker/PreviousDateRangePicker'
 export type { Preset } from './DatePicker/PreviousDateRangePicker'
 export * from './Form/Form'

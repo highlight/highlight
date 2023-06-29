@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom'
 import { useAuthContext } from '@/authentication/AuthContext'
 
 import { AdminAvatar } from '../../Avatar/Avatar'
-import styles from './UserDropdown.module.scss'
+import styles from './UserDropdown.module.css'
 
 interface Props {
 	border?: boolean

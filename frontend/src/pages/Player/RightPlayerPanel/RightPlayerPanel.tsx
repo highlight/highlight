@@ -12,7 +12,7 @@ import ErrorDetails from '@pages/Player/RightPlayerPanel/components/ErrorDetails
 import EventDetails from '@pages/Player/RightPlayerPanel/components/EventDetails/EventDetails'
 import NetworkResourceDetails from '@pages/Player/RightPlayerPanel/components/NetworkResourceDetails/NetworkResourceDetails'
 import RightPanelTabs from '@pages/Player/RightPlayerPanel/components/Tabs'
-import React, { useEffect, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import SessionFullCommentList from '@/pages/Player/SessionFullCommentList/SessionFullCommentList'
 

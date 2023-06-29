@@ -7,7 +7,7 @@ import { debounce } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useToggle } from 'react-use'
 
-import styles from './LengthInput.module.scss'
+import styles from './LengthInput.module.css'
 
 interface LengthInputProps {
 	start: number

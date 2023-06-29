@@ -4,7 +4,7 @@ import Input from '@components/Input/Input'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import SvgPlusIcon from '@icons/PlusIcon'
-import alertStyles from '@pages/Alerts/Alerts.module.scss'
+import alertStyles from '@pages/Alerts/Alerts.module.css'
 import { useDashboardsContext } from '@pages/Dashboards/DashboardsContext/DashboardsContext'
 import { DEFAULT_METRICS_LAYOUT } from '@pages/Dashboards/Metrics'
 import analytics from '@util/analytics'
@@ -13,7 +13,7 @@ import { Form } from 'antd'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import styles from './CreateDashboardModal.module.scss'
+import styles from './CreateDashboardModal.module.css'
 
 const CreateDashboardModal = () => {
 	const { project_id } = useParams<{ project_id: string }>()

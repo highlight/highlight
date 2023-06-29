@@ -5493,6 +5493,63 @@ export type GetWorkspaceAdminsQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceAdminsQuery,
 	Types.GetWorkspaceAdminsQueryVariables
 >
+export const GetSessionInsightDocument = gql`
+	query GetSessionInsight($secure_id: String!) {
+		session_insight(secure_id: $secure_id) {
+			id
+			insight
+		}
+	}
+`
+
+/**
+ * __useGetSessionInsightQuery__
+ *
+ * To run a query within a React component, call `useGetSessionInsightQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionInsightQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionInsightQuery({
+ *   variables: {
+ *      secure_id: // value for 'secure_id'
+ *   },
+ * });
+ */
+export function useGetSessionInsightQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetSessionInsightQuery,
+		Types.GetSessionInsightQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetSessionInsightQuery,
+		Types.GetSessionInsightQueryVariables
+	>(GetSessionInsightDocument, baseOptions)
+}
+export function useGetSessionInsightLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetSessionInsightQuery,
+		Types.GetSessionInsightQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetSessionInsightQuery,
+		Types.GetSessionInsightQueryVariables
+	>(GetSessionInsightDocument, baseOptions)
+}
+export type GetSessionInsightQueryHookResult = ReturnType<
+	typeof useGetSessionInsightQuery
+>
+export type GetSessionInsightLazyQueryHookResult = ReturnType<
+	typeof useGetSessionInsightLazyQuery
+>
+export type GetSessionInsightQueryResult = Apollo.QueryResult<
+	Types.GetSessionInsightQuery,
+	Types.GetSessionInsightQueryVariables
+>
 export const GetSessionCommentsDocument = gql`
 	query GetSessionComments($session_secure_id: String!) {
 		session_comments(session_secure_id: $session_secure_id) {
@@ -6302,8 +6359,16 @@ export type GetTimelineIndicatorEventsQueryResult = Apollo.QueryResult<
 	Types.GetTimelineIndicatorEventsQueryVariables
 >
 export const GetFieldTypesDocument = gql`
-	query GetFieldTypes($project_id: ID!) {
-		field_types(project_id: $project_id) {
+	query GetFieldTypes(
+		$project_id: ID!
+		$start_date: Timestamp
+		$end_date: Timestamp
+	) {
+		field_types(
+			project_id: $project_id
+			start_date: $start_date
+			end_date: $end_date
+		) {
 			type
 			name
 		}
@@ -6323,6 +6388,8 @@ export const GetFieldTypesDocument = gql`
  * const { data, loading, error } = useGetFieldTypesQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
+ *      start_date: // value for 'start_date'
+ *      end_date: // value for 'end_date'
  *   },
  * });
  */

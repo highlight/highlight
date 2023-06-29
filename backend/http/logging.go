@@ -7,32 +7,68 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	model2 "github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	log "github.com/sirupsen/logrus"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"io"
 	"net/http"
-	"strconv"
+	"regexp"
 	"strings"
 	"time"
 )
 
 const (
-	LogDrainProjectHeader = "x-highlight-project"
-	LogDrainServiceHeader = "x-highlight-service"
+	LogDrainProjectQueryParam = "project"
+	LogDrainServiceQueryParam = "service"
+	LogDrainProjectHeader     = "x-highlight-project"
+	LogDrainServiceHeader     = "x-highlight-service"
 )
 
-func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
-	requestBody := r.Body
-	if r.Header.Get("content-encoding") == "gzip" {
-		gz, err := gzip.NewReader(r.Body)
+func getBody(r *http.Request) (body io.Reader, err error) {
+	body = r.Body
+	if r.Header.Get("Content-Encoding") == "gzip" {
+		body, err = gzip.NewReader(r.Body)
 		if err != nil {
-			log.WithContext(r.Context()).WithError(err).Error("invalid http firehose gzip")
-			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		requestBody = gz
+	}
+	return
+}
+
+func getJSONLogs(r *http.Request) (logs [][]byte, err error) {
+	var requestBody io.Reader
+	requestBody, err = getBody(r)
+	if err != nil {
+		return
+	}
+	body, err := io.ReadAll(requestBody)
+	if err != nil {
+		return
+	}
+
+	if r.Header.Get("Content-Type") != "application/x-ndjson" {
+		return [][]byte{body}, nil
+	}
+
+	jsons := regexp.MustCompile(`\n+`).Split(string(body), -1)
+	for _, j := range jsons {
+		if j == "" {
+			continue
+		}
+		logs = append(logs, []byte(j))
+	}
+	return
+}
+
+func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
+	requestBody, err := getBody(r)
+	if err != nil {
+		log.WithContext(r.Context()).WithError(err).Error("invalid http firehose gzip")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	body, err := io.ReadAll(requestBody)
 	if err != nil {
@@ -158,53 +194,98 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleJSONLog(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
+	logs, err := getJSONLogs(r)
+	if err != nil {
+		log.WithContext(r.Context()).WithError(err).Error("invalid http logs json")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	for _, lgJson := range logs {
+		var lg hlog.Log
+		lg.Attributes = make(map[string]string)
+		if err := json.Unmarshal(lgJson, &lg); err != nil {
+			log.WithContext(r.Context()).WithError(err).Error("invalid http logs json")
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		var lgAttrs map[string]interface{}
+		if err := json.Unmarshal(lgJson, &lgAttrs); err != nil {
+			log.WithContext(r.Context()).WithError(err).Error("invalid http logs json")
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		for k, v := range lgAttrs {
+			for key, value := range util.FormatLogAttributes(r.Context(), 0, k, v) {
+				lg.Attributes[key] = value
+			}
+		}
+
+		attributes := make(map[string]string)
+		for _, k := range []string{
+			LogDrainProjectHeader,
+			LogDrainServiceHeader,
+		} {
+			value := r.Header.Get(k)
+			attributes[k] = value
+		}
+		projectID, err := model2.FromVerboseID(attributes[LogDrainProjectHeader])
+		if err != nil {
+			log.WithContext(r.Context()).WithError(err).WithField("projectVerboseID", attributes[LogDrainProjectHeader]).Error("failed to parse highlight project id from http logs request")
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		lg.Attributes[string(semconv.ServiceNameKey)] = attributes[LogDrainServiceHeader]
+		if err := hlog.SubmitHTTPLog(r.Context(), projectID, lg); err != nil {
+			log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func HandleRawLog(w http.ResponseWriter, r *http.Request) {
+	qs := r.URL.Query()
+	projectVerboseID := qs.Get(LogDrainProjectQueryParam)
+	if projectVerboseID == "" {
+		http.Error(w, "no project query string parameter provided", http.StatusBadRequest)
+		return
+	}
+	serviceName := qs.Get(LogDrainServiceQueryParam)
+
+	requestBody, err := getBody(r)
+	if err != nil {
+		log.WithContext(r.Context()).WithError(err).Error("invalid http firehose gzip")
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	body, err := io.ReadAll(requestBody)
 	if err != nil {
 		log.WithContext(r.Context()).WithError(err).Error("invalid http logs body")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	var lg hlog.Log
-	lg.Attributes = make(map[string]string)
-	if err := json.Unmarshal(body, &lg); err != nil {
-		log.WithContext(r.Context()).WithError(err).Error("invalid http logs json")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	lg := hlog.Log{
+		Attributes: map[string]string{},
+		Message:    string(body),
+		Timestamp:  time.Now().UTC().Format(hlog.TimestampFormat),
+		Level:      model.LogLevelInfo.String(),
 	}
 
-	var lgAttrs map[string]interface{}
-	if err := json.Unmarshal(body, &lgAttrs); err != nil {
-		log.WithContext(r.Context()).WithError(err).Error("invalid http logs json")
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	for k, v := range lgAttrs {
-		switch typed := v.(type) {
-		case string:
-			lg.Attributes[k] = typed
-		case int64:
-			lg.Attributes[k] = strconv.FormatInt(typed, 10)
-		case float64:
-			lg.Attributes[k] = strconv.FormatFloat(typed, 'E', -1, 64)
-		}
-	}
-
-	attributes := make(map[string]string)
-	for _, k := range []string{
-		LogDrainProjectHeader,
-		LogDrainServiceHeader,
-	} {
-		value := r.Header.Get(k)
-		attributes[k] = value
-	}
-	projectID, err := model2.FromVerboseID(attributes[LogDrainProjectHeader])
+	projectID, err := model2.FromVerboseID(projectVerboseID)
 	if err != nil {
-		log.WithContext(r.Context()).WithError(err).WithField("projectVerboseID", attributes[LogDrainProjectHeader]).Error("failed to parse highlight project id from http logs request")
+		log.WithContext(r.Context()).WithError(err).WithField("projectVerboseID", projectVerboseID).Error("failed to parse highlight project id from http logs request")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	lg.Attributes[string(semconv.ServiceNameKey)] = attributes[LogDrainServiceHeader]
+	if serviceName != "" {
+		lg.Attributes[string(semconv.ServiceNameKey)] = serviceName
+	}
 	if err := hlog.SubmitHTTPLog(r.Context(), projectID, lg); err != nil {
 		log.WithContext(r.Context()).WithError(err).Error("failed to submit log")
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -217,6 +298,7 @@ func HandleJSONLog(w http.ResponseWriter, r *http.Request) {
 func Listen(r *chi.Mux) {
 	r.Route("/v1", func(r chi.Router) {
 		r.Use(highlightChi.Middleware)
+		r.HandleFunc("/logs/raw", HandleRawLog)
 		r.HandleFunc("/logs/json", HandleJSONLog)
 		r.HandleFunc("/logs/firehose", HandleFirehoseLog)
 	})

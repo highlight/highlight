@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
 )
@@ -30,7 +31,7 @@ func Enrich(email string) (short *string, long *string, err error) {
 
 	contactBytes, err := json.MarshalIndent(matchResponse.Person, "", "  ")
 	if err == nil {
-		long = util.MakeStringPointer(string(contactBytes))
+		long = ptr.String(string(contactBytes))
 	} else {
 		return nil, nil, errors.Wrap(err, "error marshaling")
 	}
@@ -43,7 +44,7 @@ func Enrich(email string) (short *string, long *string, err error) {
 	}
 	contactBytesShort, err := json.MarshalIndent(shortContactMap, "", "  ")
 	if err == nil {
-		short = util.MakeStringPointer(string(contactBytesShort))
+		short = ptr.String(string(contactBytesShort))
 	} else {
 		return nil, nil, errors.Wrap(err, "error marshaling short")
 	}

@@ -13,6 +13,16 @@ import (
 )
 
 func StructureStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, error) {
+	jsPattern := regexp.MustCompile(` {4}at ((.+) )?\(?(.+):(\d+):(\d+)\)?`)
+	jsAnonPattern := regexp.MustCompile(` {4}at (.+) \((.+)\)`)
+	pyPattern := regexp.MustCompile(` {2}File "(.+)", line (\d+), in (\w+)`)
+	pyExcPattern := regexp.MustCompile(`^(\S.+)`)
+	pyUnderPattern := regexp.MustCompile(`^\s*[\^~]+\s*$`)
+	pyMultiPattern := regexp.MustCompile(`^During handling of the above exception, another exception occurred:$`)
+	goLinePattern := regexp.MustCompile(`\t(.+):(\d+)( 0x[0-f]+)?`)
+	goFuncPattern := regexp.MustCompile(`^(.+)\.(.+?)(\([^()]*\))?$`)
+	generalPattern := regexp.MustCompile(`^(.+)`)
+
 	var language string
 	var errMsg string
 	var frames []*publicModel.ErrorTrace
@@ -23,12 +33,13 @@ func StructureStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, error) {
 	}
 	lines := strings.Split(stackTrace, "\n")
 	for idx, line := range lines {
+		if line == "Traceback (most recent call last):" {
+			language = "python"
+			continue
+		}
 		if idx == 0 {
 			if line == "" {
 				language = "golang"
-				continue
-			} else if line == "Traceback (most recent call last):" {
-				language = "python"
 				continue
 			}
 			errMsg = line
@@ -41,6 +52,12 @@ func StructureStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, error) {
 			errMsg = line
 			continue
 		}
+		if matches := pyUnderPattern.FindSubmatch([]byte(line)); language == "python" && matches != nil {
+			continue
+		}
+		if matches := pyMultiPattern.FindSubmatch([]byte(line)); language == "python" && matches != nil {
+			continue
+		}
 		if errMsg == "" {
 			errMsg = line
 		}
@@ -49,12 +66,6 @@ func StructureStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, error) {
 				Error: &errMsg,
 			}
 		}
-		jsPattern := regexp.MustCompile(` {4}at ((.+) )?\(?(.+):(\d+):(\d+)\)?`)
-		jsAnonPattern := regexp.MustCompile(` {4}at (.+) \((.+)\)`)
-		pyPattern := regexp.MustCompile(` {2}File "(.+)", line (\d+), in (\w+)`)
-		goLinePattern := regexp.MustCompile(`\t(.+):(\d+)( 0x[0-f]+)?`)
-		goFuncPattern := regexp.MustCompile(`^(.+)\.(.+?)(\([^()]*\))?$`)
-		generalPattern := regexp.MustCompile(`^(.+)`)
 		if matches := jsPattern.FindSubmatch([]byte(line)); matches != nil {
 			language = "js"
 			if matches[2] != nil {
@@ -89,9 +100,13 @@ func StructureStackTrace(stackTrace string) ([]*publicModel.ErrorTrace, error) {
 			if language == "golang" {
 				frame.FunctionName = pointy.String(string(matches[1]))
 				continue
-			} else {
-				frame.LineContent = pointy.String(string(matches[1]))
+			} else if language == "python" {
+				if m := pyExcPattern.FindSubmatch([]byte(line)); m != nil {
+					errMsg = line
+					continue
+				}
 			}
+			frame.LineContent = pointy.String(string(matches[1]))
 		}
 		frames = append(frames, frame)
 		frame = nil

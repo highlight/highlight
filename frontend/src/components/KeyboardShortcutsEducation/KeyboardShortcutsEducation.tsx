@@ -14,7 +14,7 @@ import { useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation } from 'react-router-dom'
 
-import styles from './KeyboardShortcutsEducation.module.scss'
+import styles from './KeyboardShortcutsEducation.module.css'
 
 const KeyboardShortcutsEducation = () => {
 	const location = useLocation()
