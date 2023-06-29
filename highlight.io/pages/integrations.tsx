@@ -18,19 +18,22 @@ const IntegrationsPage = () => {
 						</span>{' '}
 						you need.
 					</h2>
-					<Typography type="copyHeader" className="text-copy-on-dark">
+					<Typography type="copy1" className="text-copy-on-dark">
 						Use your favorite tools with highlight.io.
 					</Typography>
 				</div>
 				<div className="my-24 mx-auto max-w-[1250px] px-8">
 					{Object.entries(INTEGRATIONS).map(([category, items]) => (
 						<div className="my-12" key={category}>
-							<h5 className="mb-4">{category}</h5>
-							<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mx-auto">
+							<Typography type="copy1" emphasis>
+								{category}
+							</Typography>
+							<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-5 mx-auto">
 								{items.map((item) => (
 									<IntegrationCard
 										key={item.name}
 										name={item.name}
+										image={item.image || ''}
 										description={item.description}
 										link={item.link}
 									/>
