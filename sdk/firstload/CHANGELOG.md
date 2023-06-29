@@ -241,3 +241,27 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Minor Changes
 
 - Improves the experience of configuring cross-origin `<iframe>` recording.
+
+## 7.1.1
+
+### Patch Changes
+
+- Extends the length of recorded sessions for a given project.
+
+## 7.1.2
+
+### Minor Changes
+
+- Avoid initializing highlight fetch monkeypatch more than once.
+
+## 7.2.0
+
+### Minor Changes
+
+- Capture unhandled promise exceptions in highlight errors.
+
+## 7.3.0
+
+### Minor Changes
+
+- Update format of data sent in for WebSocket events

@@ -96,6 +96,12 @@ export default defineConfig(({ mode }): UserConfig => {
 			sourcemap: env.RENDER_PREVIEW !== 'true' && mode !== 'development',
 			rollupOptions: {
 				output: {
+					manualChunks: (id: string) => {
+						if (id.endsWith('frontend/src/constants.ts')) {
+							return 'constants'
+						}
+						return null
+					},
 					entryFileNames: `assets/[name].js`,
 					chunkFileNames: `assets/[name].js`,
 					assetFileNames: `assets/[name].[ext]`,

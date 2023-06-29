@@ -3,7 +3,7 @@ import { ColumnsType } from 'antd/es/table'
 import React from 'react'
 
 import EmptyCardPlaceholder from '../../pages/Home/components/EmptyCardPlaceholder/EmptyCardPlaceholder'
-import styles from './ProgressBarTable.module.scss'
+import styles from './ProgressBarTable.module.css'
 
 interface Props {
 	columns: ColumnsType<any>

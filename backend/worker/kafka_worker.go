@@ -34,10 +34,11 @@ func (k *KafkaWorker) processWorkerError(ctx context.Context, task *kafkaqueue.M
 func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 	for {
 		func() {
+			var err error
 			defer util.Recover()
 			s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"))
 			s.SetTag("worker.goroutine", k.WorkerThread)
-			defer s.Finish()
+			defer s.Finish(tracer.WithError(err))
 
 			s1 := tracer.StartSpan("worker.kafka.receiveMessage", tracer.ChildOf(s.Context()))
 			task := k.KafkaQueue.Receive(ctx)
@@ -50,16 +51,15 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 			s.SetTag("partition", task.KafkaMessage.Partition)
 			s.SetTag("partitionKey", string(task.KafkaMessage.Key))
 
-			var err error
 			s2 := tracer.StartSpan("worker.kafka.processMessage", tracer.ChildOf(s.Context()))
 			for i := 0; i <= task.MaxRetries; i++ {
 				if err = k.Worker.processPublicWorkerMessage(tracer.ContextWithSpan(ctx, s), task); err != nil {
 					k.processWorkerError(ctx, task, err)
-					s.SetTag("taskFailures", task.Failures)
 				} else {
 					break
 				}
 			}
+			s.SetTag("taskFailures", task.Failures)
 			s2.Finish(tracer.WithError(err))
 
 			s3 := tracer.StartSpan("worker.kafka.commitMessage", tracer.ChildOf(s.Context()))

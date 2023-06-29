@@ -8,7 +8,7 @@ import {
 } from 'antd'
 import React, { useEffect, useState } from 'react'
 
-import styles from './Steps.module.scss'
+import styles from './Steps.module.css'
 
 interface Step {
 	title: string

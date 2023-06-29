@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
-import styles from './DemoWorkspaceButton.module.scss'
+import styles from './DemoWorkspaceButton.module.css'
 
 interface Props {
 	integrated: boolean

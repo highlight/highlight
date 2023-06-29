@@ -76,6 +76,8 @@ const ErrorGroupLookbackDays = 7
 const SessionActiveMetricName = "sessionActiveLength"
 const SessionProcessedMetricName = "sessionProcessed"
 
+var AuthorizationError = errors.New("403 - AuthorizationError")
+
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
@@ -314,7 +316,7 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	} else {
 		project, err = r.isAdminInProject(ctx, project_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in project or demo project")
+			return nil, err
 		}
 	}
 	return project, nil
@@ -338,7 +340,7 @@ func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, worksp
 	} else {
 		workspace, err = r.isAdminInWorkspace(ctx, workspace_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in workspace or demo workspace")
+			return nil, err
 		}
 	}
 	return workspace, nil
@@ -387,7 +389,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 	if inviteLink.InviteeEmail != nil {
 		// check case-insensitively because email addresses are case-insensitive.
 		if !strings.EqualFold(*inviteLink.InviteeEmail, *admin.Email) {
-			return nil, e.New("403: This invite is not valid for the admin.")
+			return nil, AuthorizationError
 		}
 	}
 
@@ -460,7 +462,7 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 	}
 
 	if workspaceID != workspace.ID {
-		return nil, e.New("workspace is not associated to the current admin")
+		return nil, AuthorizationError
 	}
 
 	return &workspace, nil
@@ -491,7 +493,7 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 			return p, nil
 		}
 	}
-	return nil, e.New("admin doesn't exist in project")
+	return nil, AuthorizationError
 }
 
 func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.ErrorGroup) (*time.Time, *time.Time, error) {
@@ -1249,6 +1251,21 @@ func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sess
 	return b, nil
 }
 
+func (r *Resolver) getSessionInsight(ctx context.Context, projectID int, sessionID int) ([]byte, error) {
+	res, err := r.LambdaClient.GetSessionInsight(ctx, projectID, sessionID)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to make session insight request")
+	}
+	if res.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("session insight returned %d", res.StatusCode))
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to read body of session insight response")
+	}
+	return b, nil
+}
+
 // Returns the current Admin or an Admin with ID = 0 if the current Admin is a guest
 func (r *Resolver) getCurrentAdminOrGuest(ctx context.Context) (currentAdmin *model.Admin, isGuest bool) {
 	admin, err := r.getCurrentAdmin(ctx)
@@ -1354,7 +1371,7 @@ func (r *Resolver) MarshalAlertEmails(emails []*string) (*string, error) {
 	return &channelsString, nil
 }
 
-func (r *Resolver) UnmarshalStackTrace(stackTraceString string, filterChrome bool) ([]*modelInputs.ErrorTrace, error) {
+func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.ErrorTrace, error) {
 	var unmarshalled []*modelInputs.ErrorTrace
 	if err := json.Unmarshal([]byte(stackTraceString), &unmarshalled); err != nil {
 		// Stack trace may not be able to be unmarshalled as the format may differ
@@ -1367,9 +1384,7 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string, filterChrome boo
 	var ret []*modelInputs.ErrorTrace
 	for _, frame := range unmarshalled {
 		if frame != nil && *frame != empty {
-			if !filterChrome || (frame.FileName != nil && !strings.HasPrefix(*frame.FileName, "chrome-extension")) {
-				ret = append(ret, frame)
-			}
+			ret = append(ret, frame)
 		}
 	}
 
@@ -1490,6 +1505,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 		"BillingPeriodStart": billingPeriodStart,
 		"BillingPeriodEnd":   billingPeriodEnd,
 		"NextInvoiceDate":    nextInvoiceDate,
+		"TrialEndDate":       nil,
 	}
 
 	// Only update retention period if already set

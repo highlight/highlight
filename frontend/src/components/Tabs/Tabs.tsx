@@ -6,7 +6,7 @@ const { TabPane } = AntDesignTabs
 import { isRenderable } from '@util/react'
 import clsx from 'clsx'
 
-import styles from './Tabs.module.scss'
+import styles from './Tabs.module.css'
 
 export interface TabItem {
 	key: string

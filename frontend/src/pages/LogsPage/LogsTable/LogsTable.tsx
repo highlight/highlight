@@ -2,7 +2,7 @@ import { ApolloError } from '@apollo/client'
 import { Button } from '@components/Button'
 import { Link } from '@components/Link'
 import LoadingBox from '@components/LoadingBox'
-import { LogLevel as LogLevelType, ReservedLogKey } from '@graph/schemas'
+import { ReservedLogKey } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
 import {
 	Box,
@@ -24,7 +24,7 @@ import {
 } from '@pages/LogsPage/SearchForm/utils'
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import {
-	ColumnDef,
+	createColumnHelper,
 	ExpandedState,
 	flexRender,
 	getCoreRowModel,
@@ -119,56 +119,48 @@ const LogsTableInner = ({
 	const queryTerms = parseLogsQuery(query)
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
-	const columns = React.useMemo<ColumnDef<LogEdge>[]>(
-		() => [
-			{
-				accessorKey: 'node.timestamp',
-				cell: ({ row, getValue }) => (
-					<Box
-						flexShrink={0}
-						flexDirection="row"
-						display="flex"
-						alignItems="flex-start"
-						gap="6"
-					>
-						{row.getCanExpand() && (
-							<Box
-								display="flex"
-								alignItems="flex-start"
-								cssClass={styles.expandIcon}
-							>
-								{row.getIsExpanded() ? (
-									<IconExpanded />
-								) : (
-									<IconCollapsed />
-								)}
-							</Box>
-						)}
-						<LogTimestamp timestamp={getValue() as string} />
-					</Box>
-				),
-			},
-			{
-				accessorKey: 'node.level',
-				cell: ({ getValue }) => (
-					<LogLevel level={getValue() as LogLevelType} />
-				),
-			},
-			{
-				accessorKey: 'node.message',
-				cell: ({ row, getValue }) => (
-					<LogMessage
-						queryTerms={queryTerms}
-						message={getValue() as string}
-						expanded={row.getIsExpanded()}
-					/>
-				),
-			},
-		],
-		// Only want to update when the query string matches.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[query],
-	)
+	const columnHelper = createColumnHelper<LogEdge>()
+
+	const columns = [
+		columnHelper.accessor('node.timestamp', {
+			cell: ({ row, getValue }) => (
+				<Box
+					flexShrink={0}
+					flexDirection="row"
+					display="flex"
+					alignItems="flex-start"
+					gap="6"
+				>
+					{row.getCanExpand() && (
+						<Box
+							display="flex"
+							alignItems="flex-start"
+							cssClass={styles.expandIcon}
+						>
+							{row.getIsExpanded() ? (
+								<IconExpanded />
+							) : (
+								<IconCollapsed />
+							)}
+						</Box>
+					)}
+					<LogTimestamp timestamp={getValue()} />
+				</Box>
+			),
+		}),
+		columnHelper.accessor('node.level', {
+			cell: ({ getValue }) => <LogLevel level={getValue()} />,
+		}),
+		columnHelper.accessor('node.message', {
+			cell: ({ row, getValue }) => (
+				<LogMessage
+					queryTerms={queryTerms}
+					message={getValue()}
+					expanded={row.getIsExpanded()}
+				/>
+			),
+		}),
+	]
 
 	const table = useReactTable({
 		data: logEdges,

@@ -2,19 +2,17 @@ import { Admin } from '@graph/schemas'
 import { INTERCOM_APP_ID } from '@util/constants/constants'
 import { H } from 'highlight.run'
 
+import { FRONTEND_URI } from '@/constants'
+
 export function GetBaseURL(): string {
-	return (
-		import.meta.env.REACT_APP_FRONTEND_URI ||
-		window.location.protocol + '//' + window.location.host
-	)
+	return FRONTEND_URI
 }
 
 interface IntercomInit {
 	admin?: Admin
-	hideMessage?: boolean
 }
 
-export function showIntercom({ admin, hideMessage }: IntercomInit = {}) {
+export function loadIntercom({ admin }: IntercomInit = {}) {
 	const config = {
 		app_id: INTERCOM_APP_ID,
 		alignment: 'right',
@@ -33,8 +31,12 @@ export function showIntercom({ admin, hideMessage }: IntercomInit = {}) {
 		.catch(() => {
 			window.Intercom('boot', config)
 		})
+}
 
-	if (!hideMessage) {
-		window.Intercom('showNewMessage')
-	}
+export const showIntercomBubble = () => {
+	window.Intercom('update', { hide_default_launcher: false })
+}
+
+export const showIntercomMessage = (message = '') => {
+	window.Intercom('showNewMessage', message)
 }

@@ -25,6 +25,10 @@ const getLocalStorage = function (): Storage | undefined {
 }
 
 export const isIndexedDBEnabled = function () {
+	// disabled indexeddb altogether if we cannot read indexeddb memory usage
+	if (!navigator?.storage?.estimate) {
+		return false
+	}
 	const defaultEnabled = import.meta.env.MODE !== 'development'
 	const storage = getLocalStorage()
 	if (!storage) {

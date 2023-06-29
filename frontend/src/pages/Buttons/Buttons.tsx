@@ -12,8 +12,8 @@ import React, { useEffect, useState } from 'react'
 
 import analytics from '@/util/analytics'
 
-import commonStyles from '../../Common.module.scss'
-import styles from './Buttons.module.scss'
+import commonStyles from '../../Common.module.css'
+import styles from './Buttons.module.css'
 import {
 	CustomError,
 	DefaultError,
@@ -200,6 +200,25 @@ export const Buttons = () => {
 						}}
 					>
 						Console Error
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={() => {
+							for (let i = 0; i < 100; i++) {
+								new Promise<void>((resolve, reject) => {
+									if (Math.random() < 0.1) {
+										throw new Error(
+											'third uncaught error in promise',
+										)
+									} else if (Math.random() < 0.2) {
+										reject('what the')
+									}
+									resolve()
+								}).then()
+							}
+						}}
+					>
+						Async Error
 					</button>
 					<button
 						className={commonStyles.submitButton}

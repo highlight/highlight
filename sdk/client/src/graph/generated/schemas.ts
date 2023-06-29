@@ -141,6 +141,7 @@ export type MutationPushPayloadArgs = {
 	payload_id?: InputMaybe<Scalars['ID']>
 	resources: Scalars['String']
 	session_secure_id: Scalars['String']
+	web_socket_events: Scalars['String']
 }
 
 export enum PublicGraphError {

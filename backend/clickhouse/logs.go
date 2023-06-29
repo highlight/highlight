@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 	"unicode"
@@ -265,6 +266,13 @@ func readLogsDailyImpl[N number](ctx context.Context, client *Client, aggFn stri
 		sql,
 		args...,
 	).Scan(&out)
+
+	switch v := any(out).(type) {
+	case float64:
+		if math.IsNaN(v) {
+			return 0, err
+		}
+	}
 
 	return out, err
 }

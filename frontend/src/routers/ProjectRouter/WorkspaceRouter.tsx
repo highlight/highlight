@@ -17,7 +17,7 @@ import { useToggle } from 'react-use'
 
 import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
 
-import commonStyles from '../../Common.module.scss'
+import commonStyles from '../../Common.module.css'
 
 export const WorkspaceRouter = () => {
 	const { isLoggedIn } = useAuthContext()

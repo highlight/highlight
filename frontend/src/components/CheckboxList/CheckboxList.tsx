@@ -2,7 +2,7 @@ import Checkbox, { CheckboxChangeEvent } from 'antd/es/checkbox'
 import clsx from 'clsx'
 import React, { useState } from 'react'
 
-import styles from './CheckboxList.module.scss'
+import styles from './CheckboxList.module.css'
 
 interface Props {
 	checkboxOptions: CheckboxOption[]

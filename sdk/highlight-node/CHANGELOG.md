@@ -41,3 +41,17 @@
 ### Minor Changes
 
 -   Ensures `flush` method will send opentelemetry spans to highlight.
+
+## 3.0.0
+
+### Major Changes
+
+- Entirely replaces highlight graphql calls with opentelemetry.
+- Removes dependency on graphql libraries.
+
+## 3.1.0
+
+### Minor Changes
+
+- Adds a `Handlers.serverlessFunction` for use as a error wrapper in AWS Lambda.
+- Adds a `H.stop()` method for shutting down the SDK and flushing unsent data.
