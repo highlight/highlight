@@ -1177,8 +1177,9 @@ type EmailOptOut struct {
 type RawPayloadType string
 
 const (
-	PayloadTypeEvents    RawPayloadType = "raw-events"
-	PayloadTypeResources RawPayloadType = "raw-resources"
+	PayloadTypeEvents          RawPayloadType = "raw-events"
+	PayloadTypeResources       RawPayloadType = "raw-resources"
+	PayloadTypeWebSocketEvents RawPayloadType = "raw-web-socket-events"
 )
 
 type BillingEmailHistory struct {

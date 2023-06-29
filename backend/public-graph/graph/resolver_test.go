@@ -12,8 +12,10 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/go-test/deep"
 	"github.com/highlight-run/highlight/backend/opensearch"
+	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/timeseries"
+	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
 
 	e "github.com/pkg/errors"
@@ -421,4 +423,65 @@ func areErrorGroupsEqual(a *model.ErrorGroup, b *model.ErrorGroup) (bool, []stri
 	isEqual := len(diff) == 0
 
 	return isEqual, diff, nil
+}
+
+func Test_WithinQuota_CommittedPricing(t *testing.T) {
+	ctx := context.TODO()
+
+	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
+		resolver.DB.Create(&model.Project{
+			Model: model.Model{
+				ID: 1,
+			},
+			WorkspaceID: 1,
+		})
+		resolver.DB.Create(&model.Project{
+			Model: model.Model{
+				ID: 2,
+			},
+			WorkspaceID: 2,
+		})
+
+		jan1 := time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)
+		feb1 := jan1.AddDate(0, 1, 0)
+		workspaceBasic := model.Workspace{
+			Model: model.Model{
+				ID: 1,
+			},
+			PlanTier:           privateModel.PlanTypeBasic.String(),
+			SessionsMaxCents:   pointy.Int(500),
+			BillingPeriodStart: &jan1,
+			BillingPeriodEnd:   &feb1,
+		}
+		resolver.DB.Create(&workspaceBasic)
+
+		workspaceUsageBased := model.Workspace{
+			Model: model.Model{
+				ID: 2,
+			},
+			PlanTier:           privateModel.PlanTypeUsageBased.String(),
+			SessionsMaxCents:   pointy.Int(500),
+			BillingPeriodStart: &jan1,
+			BillingPeriodEnd:   &feb1,
+		}
+		resolver.DB.Create(&workspaceUsageBased)
+
+		// workspace 1: basic (10k included), 1k overage, $5 = 1k sessions until limit. within limit.
+		// workspace 2: usage based (500 included), 500 overage, $5 = 250 sessions until limit. not within limit.
+		resolver.DB.Exec(`drop materialized view daily_session_counts_view`)
+		resolver.DB.Exec(`
+			select * into daily_session_counts_view 
+			from (
+				select 1 as project_id, '2023-01-01'::date as date, 11000 as count
+				union all select 1, '2023-01-02'::date, 0
+				union all select 2, '2023-01-01'::date, 1000
+				union all select 2, '2023-01-02'::date, 0) a
+		`)
+
+		basicWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, pricing.ProductTypeSessions, &workspaceBasic, time.Now())
+		assert.True(t, basicWithinBillingQuota)
+
+		usageBasedWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, pricing.ProductTypeSessions, &workspaceUsageBased, time.Now())
+		assert.False(t, usageBasedWithinBillingQuota)
+	})
 }

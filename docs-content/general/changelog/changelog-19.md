@@ -3,7 +3,11 @@ title: Changelog 19 (05/22)
 slug: changelog-19
 ---
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/AcIfUZeJjjs" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+<EmbeddedVideo 
+  src="https://www.youtube.com/embed/AcIfUZeJjjs"
+  title="Youtube"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+/>
 
 ## Demo Project
 
@@ -17,11 +21,11 @@ Look closely. You might be able to find your own `highlight.io` sessions recorde
 
 ## Comment UI Facelift
 
-We've given the Comment UI a facelift. 
+We've given the Comment UI a facelift.
 
-- It fits better with our design system. 
-- We have a new draggable handle just below the session timeline.
-- New inline issue creation for connected issue trackers (GitHub, Linear, Height)
+-   It fits better with our design system.
+-   We have a new draggable handle just below the session timeline.
+-   New inline issue creation for connected issue trackers (GitHub, Linear, Height)
 
 ![comment ui facelift](/images/changelog/19/comment-ui.png)
 
