@@ -40,6 +40,13 @@ const ClientSideCompanyCreationTimeout = 2 * ClientSideContactCreationTimeout
 
 const ClientSideCreationPollInterval = 5 * time.Second
 
+var (
+	OAuthToken = os.Getenv("HUBSPOT_OAUTH_TOKEN")
+	APIKey     = os.Getenv("HUBSPOT_API_KEY")
+	APICookie  = os.Getenv("HUBSPOT_API_COOKIE")
+	CSRFToken  = os.Getenv("HUBSPOT_CSRF_TOKEN")
+)
+
 func retry[T *int](fn func() (T, error)) (ret T, err error) {
 	for i := 0; i < Retries; i++ {
 		ret, err = fn()
@@ -112,16 +119,82 @@ type CompaniesResponse struct {
 	Total   int                `json:"total"`
 }
 
-func (h *HubspotApi) doRequest(url string, result interface{}, params map[string]string) error {
-	req, _ := http.NewRequest("GET", fmt.Sprintf("https://api.hubapi.com%s", url), nil)
+type DoppelgangersPropertyVersion struct {
+	Name      string   `json:"name"`
+	Source    string   `json:"source"`
+	SourceID  string   `json:"sourceId"`
+	SourceVid []string `json:"sourceVid"`
+	Timestamp int      `json:"timestamp"`
+	Value     string   `json:"value"`
+}
+
+type DoppelgangersProperty struct {
+	PersistenceTimestamp *int                            `json:"persistenceTimestamp"`
+	Source               string                          `json:"source"`
+	SourceID             string                          `json:"sourceId"`
+	Timestamp            *int                            `json:"timestamp"`
+	UpdatedByUserID      *int                            `json:"updatedByUserId"`
+	Value                *string                         `json:"value"`
+	Versions             []*DoppelgangersPropertyVersion `json:"versions"`
+}
+
+type DoppelgangersObject struct {
+	ObjectType string                            `json:"objectType"`
+	ObjectID   int                               `json:"objectId"`
+	PortalID   int                               `json:"portalId"`
+	Properties map[string]*DoppelgangersProperty `json:"properties"`
+}
+
+type DoppelgangersResult struct {
+	FeedbackID      string  `json:"feedbackId"`
+	ID1             int     `json:"id1"`
+	ID2             int     `json:"id2"`
+	SimilarityScore float64 `json:"similarityScore"`
+}
+
+type DoppelgangersUserSavedPropertyOption struct {
+	DisplayOrder int    `json:"displayOrder"`
+	Hidden       bool   `json:"hidden"`
+	Label        string `json:"label"`
+	ReadOnly     bool   `json:"readOnly"`
+	Value        string `json:"value"`
+}
+
+type DoppelgangersUserSavedProperty struct {
+	ExternalOptionsReferenceType *string                                 `json:"externalOptionsReferenceType"`
+	FieldType                    string                                  `json:"fieldType"`
+	Hidden                       bool                                    `json:"hidden"`
+	HubspotDefined               bool                                    `json:"hubspotDefined"`
+	Label                        string                                  `json:"label"`
+	Name                         string                                  `json:"name"`
+	Type                         string                                  `json:"type"`
+	Options                      []*DoppelgangersUserSavedPropertyOption `json:"options"`
+}
+
+type DoppelgangersResponse struct {
+	Results             []*DoppelgangersResult            `json:"results"`
+	Objects             map[int]*DoppelgangersObject      `json:"objects"`
+	UserSavedProperties []*DoppelgangersUserSavedProperty `json:"userSavedProperties"`
+	HasMore             bool                              `json:"hasMore"`
+	Offset              int                               `json:"offset"`
+	Total               int                               `json:"total"`
+	LastScoredTimestamp int64                             `json:"lastScoredTimestamp"`
+}
+
+func (h *HubspotApi) doRequest(url string, result interface{}, params map[string]string, method string, b io.Reader) error {
+	req, _ := http.NewRequest(method, fmt.Sprintf("https://api.hubapi.com%s", url), b)
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+os.Getenv("HUBSPOT_OAUTH_TOKEN"))
+	req.Header.Add("Authorization", "Bearer "+OAuthToken)
+	req.Header.Add("X-Hubspot-Csrf-Hubspotapi", CSRFToken)
 	q := req.URL.Query()
-	q.Add("hapikey", os.Getenv("HUBSPOT_API_KEY"))
+	q.Add("hapikey", APIKey)
 	for k, v := range params {
 		q.Add(k, v)
 	}
+	req.AddCookie(&http.Cookie{Name: "hubspotapi", Value: APICookie})
+	req.AddCookie(&http.Cookie{Name: "hubspotapi-csrf", Value: CSRFToken})
+	req.AddCookie(&http.Cookie{Name: "csrf.app", Value: CSRFToken})
 	req.URL.RawQuery = q.Encode()
 
 	httpClient := &http.Client{}
@@ -138,9 +211,11 @@ func (h *HubspotApi) doRequest(url string, result interface{}, params map[string
 		return err
 	}
 
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		return err
+	if result != nil {
+		err = json.Unmarshal(body, &result)
+		if err != nil {
+			return err
+		}
 	}
 
 	if resp.StatusCode != 200 && resp.StatusCode != 204 {
@@ -150,6 +225,36 @@ func (h *HubspotApi) doRequest(url string, result interface{}, params map[string
 	return nil
 }
 
+func (h *HubspotApi) getDoppelgangers(ctx context.Context) (results []*DoppelgangersResult, objects map[int]*DoppelgangersObject, err error) {
+	objects = make(map[int]*DoppelgangersObject)
+	for {
+		r := DoppelgangersResponse{}
+		if err = h.doRequest("/doppelganger/v1/similar/company/resultPage", &r, map[string]string{
+			"pageSize":   "50",
+			"offset":     strconv.Itoa(len(results)),
+			"properties": "name,domain,hs_num_child_companies,hs_parent_company_id,hs_last_sales_activity_timestamp,createdate,hs_lastmodifieddate",
+			"portalId":   "20473940",
+		}, "GET", nil); err != nil {
+			return
+		} else {
+			for k, v := range r.Objects {
+				objects[k] = v
+			}
+			results = append(results, r.Results...)
+			if !r.HasMore {
+				break
+			}
+		}
+	}
+	return
+}
+
+func (h *HubspotApi) mergeCompanies(keepID, mergeID int) error {
+	return h.doRequest(fmt.Sprintf("/companies/v2/companies/%d/merge", keepID), nil, map[string]string{
+		"portalId": "20473940",
+	}, "PUT", strings.NewReader(fmt.Sprintf(`{"companyIdToMerge":%d}`, mergeID)))
+}
+
 func (h *HubspotApi) getAllCompanies(ctx context.Context) (companies []*CompanyResponse, err error) {
 	if h.redisClient != nil {
 		err = h.redisClient.GetHubspotCompanies(ctx, &companies)
@@ -157,19 +262,17 @@ func (h *HubspotApi) getAllCompanies(ctx context.Context) (companies []*CompanyR
 			return companies, nil
 		}
 	}
-	offset := 0
 	for {
 		r := CompaniesResponse{}
 		if err = h.doRequest("/companies/v2/companies/recent/created", &r, map[string]string{
-			"count": "100", "offset": strconv.Itoa(offset),
-		}); err != nil {
+			"count": "100", "offset": strconv.Itoa(len(companies)),
+		}, "GET", nil); err != nil {
 			return
 		} else {
 			companies = append(companies, r.Results...)
 			if !r.HasMore {
 				break
 			}
-			offset = r.Offset
 		}
 	}
 	if h.redisClient != nil {
