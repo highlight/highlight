@@ -200,6 +200,19 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				<Code>{error.mappedColumnNumber}</Code>
 			</StackSectionError>
 		)
+	} else if (
+		error.errorCode == SourceMappingErrorCode.ErrorConstructingSourceMapUrl
+	) {
+		return (
+			<StackSectionError
+				error={error}
+				keys={sourcemapParseErrorMetadata}
+				title={fileParseTitle}
+			>
+				Failed to construct the sourcemap URL from the stacktrace{' '}
+				<Code>{error.stackTraceFileURL}</Code>
+			</StackSectionError>
+		)
 	} else {
 		return null
 	}

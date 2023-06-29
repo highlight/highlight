@@ -261,7 +261,7 @@ func TestGetURLSourcemap(t *testing.T) {
 	}
 	sm := modelInput.SourceMappingError{}
 	_, _, err = getURLSourcemap(ctx, 1, nil, "", "", 100, fsClient, &sm)
-	if err != nil {
-		t.Errorf("failed to get sourcemap: %v", err)
+	if err == nil {
+		t.Error("expected an error")
 	}
 }
