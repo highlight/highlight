@@ -109,7 +109,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 					<Box flexGrow={1}>
 						<PreviousNextInstance data={data} />
 					</Box>
-					<Stack direction="row" gap="0">
+					<Stack direction="row" gap="4">
 						<RelatedSession data={data} />
 						<RelatedLogs data={data} />
 					</Stack>
@@ -155,7 +155,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				<Box flexGrow={1}>
 					<PreviousNextInstance data={data} />
 				</Box>
-				<Stack direction="row" gap="0">
+				<Stack direction="row" gap="4">
 					<RelatedSession data={data} />
 					<RelatedLogs data={data} />
 				</Stack>
