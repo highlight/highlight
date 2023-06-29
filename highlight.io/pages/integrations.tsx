@@ -10,7 +10,7 @@ const IntegrationsPage = () => {
 		<div>
 			<Navbar />
 			<main>
-				<div className="flex flex-col gap-2 mt-20 text-center">
+				<div className="flex flex-col gap-2 mt-20 text-center px-8">
 					<h2>
 						Find the{' '}
 						<span className="text-color-selected-light">
