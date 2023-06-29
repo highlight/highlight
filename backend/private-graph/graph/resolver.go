@@ -340,7 +340,7 @@ func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, worksp
 	} else {
 		workspace, err = r.isAdminInWorkspace(ctx, workspace_id)
 		if err != nil {
-			return nil, AuthorizationError
+			return nil, err
 		}
 	}
 	return workspace, nil
