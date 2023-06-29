@@ -252,3 +252,16 @@ func TestEnhanceStackTrace(t *testing.T) {
 		}
 	}
 }
+
+func TestGetURLSourcemap(t *testing.T) {
+	ctx := context.Background()
+	fsClient, err := storage.NewFSClient(ctx, "https://localhost:8082/public", "")
+	if err != nil {
+		t.Fatalf("error creating storage client: %v", err)
+	}
+	sm := modelInput.SourceMappingError{}
+	_, _, err = getURLSourcemap(ctx, 1, nil, "", "", 100, fsClient, &sm)
+	if err == nil {
+		t.Error("expected an error")
+	}
+}
