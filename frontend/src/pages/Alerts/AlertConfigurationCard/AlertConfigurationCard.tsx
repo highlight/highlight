@@ -23,7 +23,7 @@ import { useSlackSync } from '@hooks/useSlackSync'
 import alertConfigurationCardStyles from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard.module.css'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
 import { useParams } from '@util/react-router/useParams'
-import { Form, message } from 'antd'
+import { Form, message, Tag } from 'antd'
 import clsx from 'clsx'
 import { uniq } from 'lodash'
 import React, { useEffect, useState } from 'react'
@@ -824,6 +824,38 @@ export const AlertConfigurationCard = ({
 										className={styles.channelSelect}
 										options={emails}
 										mode="multiple"
+										tagRender={(props) => {
+											const { value, closable, onClose } =
+												props
+
+											const onPreventMouseDown = (
+												event: React.MouseEvent<HTMLSpanElement>,
+											) => {
+												event.preventDefault()
+												event.stopPropagation()
+											}
+
+											return (
+												<Tag
+													onMouseDown={
+														onPreventMouseDown
+													}
+													closable={closable}
+													onClose={onClose}
+													style={{
+														// A few custom styles to match default tags on selects
+														backgroundColor: `var(--color-gray-200)`,
+														border: 0,
+														fontSize: 14,
+														height: 24,
+														lineHeight: `24px`, // set in px to avoid being set as a ratio of the font size
+														marginRight: 4,
+													}}
+												>
+													{value}
+												</Tag>
+											)
+										}}
 										filterOption={(searchValue, option) => {
 											return (
 												option?.children
