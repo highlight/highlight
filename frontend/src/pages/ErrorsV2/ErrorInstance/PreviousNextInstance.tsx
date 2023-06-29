@@ -64,7 +64,7 @@ export const PreviousNextInstance = ({ data }: Props) => {
 				goToErrorInstance(errorInstance?.previous_id, 'previous')
 			}
 			onNext={() => goToErrorInstance(errorInstance?.next_id, 'next')}
-			as="tag"
+			size="medium"
 		/>
 	)
 }

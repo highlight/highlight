@@ -42,6 +42,7 @@ export const RelatedSession = ({ data }: Props) => {
 			kind="secondary"
 			emphasis="low"
 			size="medium"
+			shape="basic"
 			onClick={() => navigate(sessionLink)}
 			disabled={!isLoggedIn || sessionLink === ''}
 			iconLeft={<IconSolidPlayCircle />}

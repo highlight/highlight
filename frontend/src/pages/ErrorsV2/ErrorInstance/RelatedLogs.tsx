@@ -67,6 +67,7 @@ export const RelatedLogs = ({ data }: Props) => {
 			kind="secondary"
 			emphasis="low"
 			size="medium"
+			shape="basic"
 			disabled={!isLoggedIn || logsLink === ''}
 			onClick={() => navigate(logsLink)}
 			iconLeft={<IconSolidLogs />}
