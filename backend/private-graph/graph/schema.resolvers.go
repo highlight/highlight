@@ -443,7 +443,7 @@ func (r *mutationResolver) CreateAdmin(ctx context.Context) (*model.Admin, error
 func (r *mutationResolver) CreateProject(ctx context.Context, name string, workspaceID int) (*model.Project, error) {
 	workspace, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, err
+		return nil, nil
 	}
 
 	admin, err := r.getCurrentAdmin(ctx)
