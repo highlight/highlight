@@ -76,7 +76,7 @@ const ErrorGroupLookbackDays = 7
 const SessionActiveMetricName = "sessionActiveLength"
 const SessionProcessedMetricName = "sessionProcessed"
 
-const AuthorizationError = "403 - AuthorizationError"
+var AuthorizationError = errors.New("403 - AuthorizationError")
 
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
@@ -340,7 +340,7 @@ func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, worksp
 	} else {
 		workspace, err = r.isAdminInWorkspace(ctx, workspace_id)
 		if err != nil {
-			return nil, errors.New(AuthorizationError)
+			return nil, AuthorizationError
 		}
 	}
 	return workspace, nil
@@ -389,7 +389,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 	if inviteLink.InviteeEmail != nil {
 		// check case-insensitively because email addresses are case-insensitive.
 		if !strings.EqualFold(*inviteLink.InviteeEmail, *admin.Email) {
-			return nil, errors.New(AuthorizationError)
+			return nil, AuthorizationError
 		}
 	}
 
@@ -462,7 +462,7 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 	}
 
 	if workspaceID != workspace.ID {
-		return nil, errors.New(AuthorizationError)
+		return nil, AuthorizationError
 	}
 
 	return &workspace, nil
@@ -493,7 +493,7 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 			return p, nil
 		}
 	}
-	return nil, errors.New(AuthorizationError)
+	return nil, AuthorizationError
 }
 
 func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.ErrorGroup) (*time.Time, *time.Time, error) {
