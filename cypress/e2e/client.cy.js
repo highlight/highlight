@@ -12,7 +12,7 @@ describe('client recording spec', () => {
 		cy.visit('/')
 		cy.window().then((win) => {
 			// delay can be long because the client test might run first, and waiting for vite to have the dev bundle ready can take a while.
-			cy.wait('@PushPayload', { timeout: 90 * 1000 })
+			cy.wait('@PushPayload', { timeout: 900 * 1000 })
 				.its('request.body.variables')
 				.should('have.property', 'resources')
 				.then((resources) => {
