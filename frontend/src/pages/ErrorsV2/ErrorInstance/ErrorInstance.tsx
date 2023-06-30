@@ -38,6 +38,7 @@ import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/Er
 import { PreviousNextInstance } from '@/pages/ErrorsV2/ErrorInstance/PreviousNextInstance'
 import { RelatedLogs } from '@/pages/ErrorsV2/ErrorInstance/RelatedLogs'
 import { RelatedSession } from '@/pages/ErrorsV2/ErrorInstance/RelatedSession'
+import { SeeAllInstances } from '@/pages/ErrorsV2/ErrorInstance/SeeAllInstances'
 import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
 
 const MAX_USER_PROPERTIES = 4
@@ -106,9 +107,10 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		return (
 			<Box id="error-instance-container">
 				<Stack direction="row" my="12">
-					<Box flexGrow={1}>
+					<Stack direction="row" flexGrow={1}>
+						<SeeAllInstances data={data} />
 						<PreviousNextInstance data={data} />
-					</Box>
+					</Stack>
 					<Stack direction="row" gap="4">
 						<RelatedSession data={data} />
 						<RelatedLogs data={data} />
@@ -152,9 +154,10 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	return (
 		<Box id="error-instance-container">
 			<Stack direction="row" my="12">
-				<Box flexGrow={1}>
+				<Stack direction="row" flexGrow={1}>
+					<SeeAllInstances data={data} />
 					<PreviousNextInstance data={data} />
-				</Box>
+				</Stack>
 				<Stack direction="row" gap="4">
 					<RelatedSession data={data} />
 					<RelatedLogs data={data} />

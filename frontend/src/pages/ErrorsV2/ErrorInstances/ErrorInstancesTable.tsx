@@ -77,6 +77,7 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 						px="8"
 						py="2"
 						alignItems="center"
+						cursor="pointer"
 						onClick={() => goToErrorInstance(row.original)}
 					>
 						{row.getVisibleCells().map((cell) => {
