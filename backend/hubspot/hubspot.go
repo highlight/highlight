@@ -43,8 +43,10 @@ const ClientSideCreationPollInterval = 5 * time.Second
 var (
 	OAuthToken = os.Getenv("HUBSPOT_OAUTH_TOKEN")
 	APIKey     = os.Getenv("HUBSPOT_API_KEY")
-	APICookie  = os.Getenv("HUBSPOT_API_COOKIE")
-	CSRFToken  = os.Getenv("HUBSPOT_CSRF_TOKEN")
+	// APICookie and CSRFToken are reverse engineered from the frontend request flow.
+	// they only need to be set for the doppelgänger functionality.
+	APICookie = os.Getenv("HUBSPOT_API_COOKIE")
+	CSRFToken = os.Getenv("HUBSPOT_CSRF_TOKEN")
 )
 
 func retry[T *int](fn func() (T, error)) (ret T, err error) {
@@ -186,15 +188,19 @@ func (h *HubspotApi) doRequest(url string, result interface{}, params map[string
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Authorization", "Bearer "+OAuthToken)
-	req.Header.Add("X-Hubspot-Csrf-Hubspotapi", CSRFToken)
 	q := req.URL.Query()
 	q.Add("hapikey", APIKey)
 	for k, v := range params {
 		q.Add(k, v)
 	}
-	req.AddCookie(&http.Cookie{Name: "hubspotapi", Value: APICookie})
-	req.AddCookie(&http.Cookie{Name: "hubspotapi-csrf", Value: CSRFToken})
-	req.AddCookie(&http.Cookie{Name: "csrf.app", Value: CSRFToken})
+	if APICookie != "" {
+		req.AddCookie(&http.Cookie{Name: "hubspotapi", Value: APICookie})
+	}
+	if CSRFToken != "" {
+		req.Header.Add("X-Hubspot-Csrf-Hubspotapi", CSRFToken)
+		req.AddCookie(&http.Cookie{Name: "hubspotapi-csrf", Value: CSRFToken})
+		req.AddCookie(&http.Cookie{Name: "csrf.app", Value: CSRFToken})
+	}
 	req.URL.RawQuery = q.Encode()
 
 	httpClient := &http.Client{}
