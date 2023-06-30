@@ -296,3 +296,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Patch Changes
 
 - Remove any properties that throw a `structuredClone` error in `addProperties` before calling `postMessage`
+
+## 7.3.6
+
+### Patch Changes
+
+- Track identify metadata in the mixpanel integration as a tracked event.
