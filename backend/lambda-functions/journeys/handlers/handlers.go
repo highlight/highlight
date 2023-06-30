@@ -72,25 +72,31 @@ type navigateEvent struct {
 }
 
 func isId(input string) bool {
+	// Assume a string is an id if it contains a number
 	if strings.ContainsAny(input, "0123456789") {
 		return true
 	}
 
+	// Replace any non-alphanumeric character with a comma
 	input = nonAlphanumericRegex.ReplaceAllString(input, ",")
+	// Add a comma in front of any capital
 	input = capitalsRegex.ReplaceAllString(input, ",$1")
 	input = strings.ToLower(input)
+	// Split on comma boundaries
 	parts := strings.Split(input, ",")
 
 	for _, p := range parts {
+		// If there are no vowels in the word part, assume it's an id
 		if !strings.ContainsAny(p, "aeiouy") {
 			return true
 		}
 
+		// If there are 5 or more consonants in a row, assume it's an id
 		consonantCount := 0
 		for _, c := range p {
 			if strings.ContainsRune("bcdfghjklmnpqrstvwxz", c) {
 				consonantCount++
-				if consonantCount > 4 {
+				if consonantCount >= 5 {
 					return true
 				}
 			} else {
@@ -111,15 +117,14 @@ func normalize(input string) (string, error) {
 	idIdx := 1
 	var sb strings.Builder
 	parts := strings.Split(parsed.Path, "/")
-	for idx, p := range parts {
+	for _, p := range parts {
 		// Skip if part is empty (this also removes trailing slashes)
 		if p == "" {
 			continue
 		}
 
-		if idx != 0 {
-			sb.WriteString("/")
-		}
+		sb.WriteString("/")
+		// If the path part is an id, replace it with {id-N}
 		if isId(p) {
 			sb.WriteString(fmt.Sprintf("{id-%d}", idIdx))
 			idIdx++
@@ -131,6 +136,7 @@ func normalize(input string) (string, error) {
 	return sb.String(), nil
 }
 
+// Returns a list of all sessions for a given project id with `timeline-indicator-events` files in S3
 func (h *handlers) GetSessions(ctx context.Context, projectId int) ([]int, error) {
 	prefix := fmt.Sprintf("v2/%d/", projectId)
 	regex := regexp.MustCompile(fmt.Sprintf(`v2\/%d\/(\d+)\/timeline-indicator-events`, projectId))
@@ -166,6 +172,7 @@ func (h *handlers) GetSessions(ctx context.Context, projectId int) ([]int, error
 	return sessions, nil
 }
 
+// Returns a list of user journey steps from a `timeline-indicator-events` file
 func GetUserJourneySteps(sessionId int, data []byte) ([]model.UserJourneyStep, error) {
 	var events []navigateEvent
 	if err := json.Unmarshal(data, &events); err != nil {

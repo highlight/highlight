@@ -619,6 +619,8 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			if err := payloadManager.TimelineIndicatorEvents.Close(); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "error closing TimelineIndicatorEvents writer"))
 			}
+
+			// Extract and save the user journey steps from the timeline indicator events
 			userJourneySteps, err := journey_handlers.GetUserJourneySteps(s.ID, eventBytes)
 			if err != nil {
 				return err
@@ -626,6 +628,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			if err := w.Resolver.DB.Model(&model.UserJourneyStep{}).Save(&userJourneySteps).Error; err != nil {
 				return err
 			}
+
+			// Calculate the "normalness" score using the trailing 30 days
+			// of user journeys in the same project
 			if err := w.Resolver.DB.Raw(`
 				with frequencies as (
 					select url, next_url, count(*)
