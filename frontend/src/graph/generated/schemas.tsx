@@ -2227,6 +2227,7 @@ export type QuerySessions_OpensearchArgs = {
 	project_id: Scalars['ID']
 	query: Scalars['String']
 	sort_desc: Scalars['Boolean']
+	sort_field?: InputMaybe<Scalars['String']>
 }
 
 export type QuerySlack_Channel_SuggestionArgs = {
