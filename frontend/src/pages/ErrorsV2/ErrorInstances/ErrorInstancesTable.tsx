@@ -5,8 +5,10 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
+import { useNavigate } from 'react-router-dom'
 
 import { ErrorObjectEdge } from '@/graph/generated/schemas'
+import { useProjectId } from '@/hooks/useProjectId'
 import { AppVersionCell } from '@/pages/ErrorsV2/ErrorInstances/AppVersionCell'
 import { SessionEmailCell } from '@/pages/ErrorsV2/ErrorInstances/SessionEmailCell'
 import { TimestampCell } from '@/pages/ErrorsV2/ErrorInstances/TimestampCell'
@@ -16,6 +18,8 @@ type Props = {
 }
 
 export const ErrorInstancesTable = ({ edges }: Props) => {
+	const navigate = useNavigate()
+	const { projectId } = useProjectId()
 	const columnHelper = createColumnHelper<ErrorObjectEdge>()
 
 	const columns = [
@@ -55,6 +59,13 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 		getCoreRowModel: getCoreRowModel(),
 	})
 
+	const goToErrorInstance = (edge: ErrorObjectEdge) => {
+		navigate({
+			pathname: `/${projectId}/errors/${edge.node.errorGroupSecureID}/instances/${edge.cursor}`,
+			search: window.location.search,
+		})
+	}
+
 	return (
 		<>
 			{table.getRowModel().rows.map((row) => {
@@ -66,6 +77,7 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 						px="8"
 						py="2"
 						alignItems="center"
+						onClick={() => goToErrorInstance(row.original)}
 					>
 						{row.getVisibleCells().map((cell) => {
 							return (

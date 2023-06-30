@@ -77,9 +77,10 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 		edge := &privateModel.ErrorObjectEdge{
 			Cursor: strconv.Itoa(errorObject.ID),
 			Node: &privateModel.ErrorObjectNode{
-				ID:        errorObject.ID,
-				CreatedAt: errorObject.CreatedAt,
-				Event:     errorObject.Event,
+				ID:                 errorObject.ID,
+				CreatedAt:          errorObject.CreatedAt,
+				Event:              errorObject.Event,
+				ErrorGroupSecureID: errorGroup.SecureID,
 			},
 		}
 

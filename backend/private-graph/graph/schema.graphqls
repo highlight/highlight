@@ -612,6 +612,7 @@ type ErrorObjectNode {
 	createdAt: Timestamp!
 	event: String!
 	session: ErrorObjectNodeSession!
+	errorGroupSecureID: String!
 }
 
 type ErrorObjectEdge implements Edge {
