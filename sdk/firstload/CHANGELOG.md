@@ -265,3 +265,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Minor Changes
 
 - Update format of data sent in for WebSocket events
+
+## 7.3.1
+
+### Patch Changes
+
+- Increase data transmission retry delays.
