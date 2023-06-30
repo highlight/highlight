@@ -356,5 +356,6 @@
 		"graphql": "16.6.0",
 		"react-transition-group": "4.4.1",
 		"lodash": "npm:lodash-es",
+		"antd": "4.24.12",
 	},
 }
