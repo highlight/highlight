@@ -166,7 +166,7 @@ func (h *handlers) GetSessions(ctx context.Context, projectId int) ([]int, error
 	return sessions, nil
 }
 
-func (h *handlers) GetJourneyImpl(sessionId int, data []byte) ([]model.UserJourneyStep, error) {
+func GetUserJourneySteps(sessionId int, data []byte) ([]model.UserJourneyStep, error) {
 	var events []navigateEvent
 	if err := json.Unmarshal(data, &events); err != nil {
 		return nil, err
@@ -208,11 +208,11 @@ func (h *handlers) GetJourneyImpl(sessionId int, data []byte) ([]model.UserJourn
 			Index:     idx,
 		})
 	}
-	for idx, s := range steps {
+	for idx := range steps {
 		if idx == len(steps)-1 {
 			continue
 		}
-		s.NextUrl = steps[idx+1].Url
+		steps[idx].NextUrl = steps[idx+1].Url
 	}
 
 	return steps, nil
@@ -238,7 +238,7 @@ func (h *handlers) GetJourney(ctx context.Context, input utils.JourneyInput) (*u
 		return nil, err
 	}
 
-	steps, err := h.GetJourneyImpl(input.SessionID, out.Bytes())
+	steps, err := GetUserJourneySteps(input.SessionID, out.Bytes())
 	if err != nil {
 		return nil, err
 	}

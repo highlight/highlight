@@ -656,6 +656,7 @@ type Session struct {
 	Chunked              *bool
 	ProcessWithRedis     bool
 	AvoidPostgresStorage bool
+	Normalness           *float64
 }
 
 type SessionAdminsView struct {
