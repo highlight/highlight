@@ -3453,6 +3453,10 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 		})
 	}
 
+	if err := vercel.RemoveLogDrains(ctx, workspace.VercelTeamID, *workspace.VercelAccessToken); err != nil {
+		return false, err
+	}
+
 	// Group configs by Highlight project id, then create a log drain for each
 	byHighlightProject := lo.GroupBy(configs, func(c *model.VercelIntegrationConfig) int {
 		return c.ProjectID
