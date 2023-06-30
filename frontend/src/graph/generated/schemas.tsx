@@ -2678,6 +2678,7 @@ export type SourceMappingError = {
 }
 
 export enum SourceMappingErrorCode {
+	ErrorConstructingSourceMapUrl = 'Error_Constructing_Source_Map_URL',
 	ErrorParsingStackTraceFileUrl = 'Error_Parsing_Stack_Trace_File_Url',
 	FileNameMissingFromSourcePath = 'File_Name_Missing_From_Source_Path',
 	InvalidSourceMapUrl = 'Invalid_SourceMapURL',
