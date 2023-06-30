@@ -259,7 +259,17 @@ const getWidth = (day: CalendarDay) => {
 		return '24px'
 	}
 
-	return '100%'
+	return '36px'
+}
+
+const getHeight = (day: CalendarDay) => {
+	const { now } = day
+
+	if (now) {
+		return '24px'
+	}
+
+	return '34px'
 }
 
 const containerStyles: CSSProperties = {
@@ -324,7 +334,6 @@ const Day = ({ children, day, onMouseEnter, onMouseLeave }: Props) => {
 					default: getContainerBackgroundColor(day),
 					hover:
 						day.disabled ||
-						// day.now ||
 						day.selected ||
 						day.range === 'will-be-range-end' ||
 						day.range === 'will-be-range-start'
@@ -344,14 +353,10 @@ const Day = ({ children, day, onMouseEnter, onMouseLeave }: Props) => {
 					padding="10"
 					style={{
 						width: getWidth(day),
-						height: getWidth(day),
-						...(day.now
-							? {
-									display: 'flex',
-									alignItems: 'center',
-									justifyContent: 'center',
-							  }
-							: {}),
+						height: getHeight(day),
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
 					}}
 					borderTopLeftRadius={getBorderRadius(day)}
 					borderBottomLeftRadius={getBorderRadius(day)}

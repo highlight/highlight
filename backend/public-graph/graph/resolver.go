@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"net/mail"
-	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -1527,10 +1526,11 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.Produc
 		return false, 1
 	}
 
+	basePrice := pricing.ProductToBasePriceCents(productType, stripePlan)
 	retentionPeriod := cfg.retentionPeriod(workspace)
 	overage := meter - includedQuantity
 	cost := float64(overage) *
-		pricing.ProductToBasePriceCents(productType) *
+		basePrice *
 		pricing.RetentionMultiplier(retentionPeriod)
 
 	return cost <= float64(*maxCostCents), cost / float64(*maxCostCents)
@@ -1989,7 +1989,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		err = json.Unmarshal([]byte(v.StackTrace), &structuredStackTrace)
 		if err != nil {
-			structuredStackTrace, err = stacktraces.StructureStackTrace(v.StackTrace)
+			structuredStackTrace, err = stacktraces.StructureOTELStackTrace(v.StackTrace)
 			if err != nil {
 				log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
 			}
@@ -2214,11 +2214,18 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 	return nil
 }
 
-func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
+func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
+	// old clients do not send web socket events, so the value can be nil.
+	// use this str as a simpler way to reference
+	webSocketEventsStr := ""
+	if webSocketEvents != nil {
+		webSocketEventsStr = *webSocketEvents
+	}
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionSecureID", sessionSecureID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
 	querySessionSpan.SetTag("resourcesLength", len(resources))
+	querySessionSpan.SetTag("webSocketEventsLength", len(webSocketEventsStr))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
 	querySessionSpan.SetTag("numberOfEvents", len(events.Events))
 	if highlightLogs != nil {
@@ -2395,26 +2402,23 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
 		defer unmarshalResourcesSpan.Finish()
 
-		if sessionObj.AvoidPostgresStorage {
-			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
-				return e.Wrap(err, "error saving resources data")
-			}
-		} else {
-			if hasBeacon {
-				r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
-			}
-			resourcesParsed := make(map[string][]NetworkResource)
-			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-				return nil
-			}
-			if len(resourcesParsed["resources"]) > 0 {
-				if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
-					return err
-				}
-				obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
-				if err := r.DB.Create(obj).Error; err != nil {
-					return e.Wrap(err, "error creating resources object")
-				}
+		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
+			return e.Wrap(err, "error saving resources data")
+		}
+
+		return nil
+	})
+
+	// unmarshal WebSocket events
+	g.Go(func() error {
+		defer util.Recover()
+		if webSocketEventsStr != "" {
+			unmarshalWebSocketEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+				tracer.ResourceName("go.unmarshal.web_socket_events"), tracer.Tag("project_id", projectID))
+			defer unmarshalWebSocketEventsSpan.Finish()
+
+			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
+				return e.Wrap(err, "error saving web socket events data")
 			}
 		}
 
@@ -3106,65 +3110,4 @@ func isExcludedError(ctx context.Context, errorFilters []string, errorEvent stri
 		}
 	}
 	return false
-}
-
-func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
-	project := &model.Project{}
-	if err := r.DB.Model(&model.Project{}).Select("backend_domains").Where("id = ?", sessionObj.ProjectID).First(&project).Error; err != nil {
-		return e.Wrap(err, "error querying project")
-	}
-
-	var points []timeseries.Point
-	for _, re := range resources {
-		tags := map[string]string{
-			"session_id": strconv.Itoa(sessionObj.ID),
-			"group_name": re.RequestResponsePairs.Request.ID,
-		}
-		fields := map[string]interface{}{}
-		for key, value := range map[privateModel.NetworkRequestAttribute]float64{
-			privateModel.NetworkRequestAttributeBodySize:     float64(len(re.RequestResponsePairs.Request.Body)),
-			privateModel.NetworkRequestAttributeResponseSize: re.RequestResponsePairs.Response.Size,
-			privateModel.NetworkRequestAttributeStatus:       re.RequestResponsePairs.Response.Status,
-			privateModel.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
-		} {
-			fields[key.String()] = value
-		}
-		categories := map[privateModel.NetworkRequestAttribute]string{
-			privateModel.NetworkRequestAttributeMethod:        re.RequestResponsePairs.Request.Method,
-			privateModel.NetworkRequestAttributeInitiatorType: re.InitiatorType,
-			privateModel.NetworkRequestAttributeRequestID:     re.RequestResponsePairs.Request.ID,
-		}
-		requestBody := make(map[string]interface{})
-		// if the request body is json and contains the graphql key operationName, treat it as an operation
-		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
-			if _, ok := requestBody["operationName"]; ok {
-				categories[privateModel.NetworkRequestAttributeGraphqlOperation] = requestBody["operationName"].(string)
-			}
-		}
-
-		// only record urls for network requests that match config to limit metric cardinality
-		u, err := url.Parse(re.Name)
-		if err == nil {
-			for _, d := range project.BackendDomains {
-				if u.Host == d {
-					u.RawQuery = ""
-					u.Fragment = ""
-					categories[privateModel.NetworkRequestAttributeURL] = u.String()
-				}
-			}
-		}
-
-		for key, value := range categories {
-			tags[key.String()] = value
-		}
-		// request time is relative to session start
-		d, _ := time.ParseDuration(fmt.Sprintf("%fms", re.StartTime))
-		points = append(points, timeseries.Point{
-			Time:   sessionObj.CreatedAt.Add(d),
-			Tags:   tags,
-			Fields: fields,
-		})
-	}
-	r.TDB.Write(ctx, strconv.Itoa(sessionObj.ProjectID), timeseries.Metrics, points)
-	return nil
 }

@@ -1,63 +1,25 @@
-import { BackendSearchQuery } from '@context/BaseSearchContext'
-import { SearchParamsInput } from '@graph/schemas'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { SearchContextProvider } from '@pages/Sessions/SearchContext/SearchContext'
-import { useParams } from '@util/react-router/useParams'
-import { useState } from 'react'
-import { useLocalStorage } from 'react-use'
+
+import { useGetBaseSearchContext } from '@/context/SearchState'
+import { EmptySessionsSearchQuery } from '@/pages/Sessions/EmptySessionsSearchParams'
+import {
+	CUSTOM_FIELDS,
+	TIME_RANGE_FIELD,
+} from '@/pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 
 const WithSessionSearchContext: React.FC<React.PropsWithChildren> = ({
 	children,
 }) => {
-	const { project_id } = useParams<{
-		project_id: string
-	}>()
-
-	const [showStarredSessions, setShowStarredSessions] =
-		useState<boolean>(false)
-	const [searchParams, setSearchParams] = useState<SearchParamsInput>(
-		EmptySessionsSearchParams,
-	)
-	const [searchResultsLoading, setSearchResultsLoading] =
-		useState<boolean>(true)
-	const [searchResultsCount, setSearchResultsCount] = useState<number>(0)
-	const [isQuickSearchOpen, setIsQuickSearchOpen] = useState(false)
-
-	const [page, setPage] = useState<number>()
-
-	const [selectedSegment, setSelectedSegment, removeSelectedSegment] =
-		useLocalStorage<{ name: string; id: string } | undefined>(
-			`highlightSegmentPickerForPlayerSelectedSegmentId-${project_id}`,
-			undefined,
-		)
-
-	const [backendSearchQuery, setBackendSearchQuery] =
-		useState<BackendSearchQuery>(undefined)
-
-	const [existingParams, setExistingParams] = useState<SearchParamsInput>(
-		EmptySessionsSearchParams,
+	const baseContext = useGetBaseSearchContext(
+		'sessions',
+		EmptySessionsSearchQuery,
+		'highlightSegmentPickerForPlayerSelectedSegmentId',
+		CUSTOM_FIELDS,
+		TIME_RANGE_FIELD,
 	)
 
 	const sessionSearchContext = {
-		searchParams,
-		setSearchParams,
-		existingParams,
-		setExistingParams,
-		showStarredSessions,
-		setShowStarredSessions,
-		selectedSegment,
-		setSelectedSegment,
-		removeSelectedSegment,
-		backendSearchQuery,
-		setBackendSearchQuery,
-		isQuickSearchOpen,
-		setIsQuickSearchOpen,
-		page,
-		setPage,
-		searchResultsLoading,
-		setSearchResultsLoading,
-		searchResultsCount,
-		setSearchResultsCount,
+		...baseContext,
 	}
 
 	return (

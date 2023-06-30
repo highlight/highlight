@@ -140,18 +140,7 @@ const SwitchWorkspace = () => {
 					<h2 className={styles.title}>Enter Workspace</h2>
 					<p className={styles.subTitle}>
 						Pick a workspace. If you’re having trouble getting into
-						the correct workspace, message us on{' '}
-						<span
-							className={styles.intercomButton}
-							onClick={() =>
-								window.Intercom('update', {
-									hide_default_launcher: false,
-								})
-							}
-						>
-							Intercom
-						</span>
-						.
+						the correct workspace, reach out to us.
 					</p>
 					<Select
 						className={styles.fullWidth}

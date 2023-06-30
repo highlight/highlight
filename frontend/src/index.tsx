@@ -31,7 +31,7 @@ import { auth } from '@util/auth'
 import { showHiringMessage } from '@util/console/hiringMessage'
 import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { showIntercom } from '@util/window'
+import { loadIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -134,7 +134,7 @@ H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 analytics.track('attribution', getAttributionData())
 if (!isOnPrem) {
 	H.start()
-	showIntercom({ hideMessage: true })
+	loadIntercom()
 
 	if (!dev) {
 		Sentry.init({

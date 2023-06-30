@@ -1948,7 +1948,9 @@ export type QueryField_SuggestionArgs = {
 }
 
 export type QueryField_TypesArgs = {
+	end_date?: InputMaybe<Scalars['Timestamp']>
 	project_id: Scalars['ID']
+	start_date?: InputMaybe<Scalars['Timestamp']>
 }
 
 export type QueryFields_OpensearchArgs = {
@@ -2677,6 +2679,7 @@ export type SourceMappingError = {
 }
 
 export enum SourceMappingErrorCode {
+	ErrorConstructingSourceMapUrl = 'Error_Constructing_Source_Map_URL',
 	ErrorParsingStackTraceFileUrl = 'Error_Parsing_Stack_Trace_File_Url',
 	FileNameMissingFromSourcePath = 'File_Name_Missing_From_Source_Path',
 	InvalidSourceMapUrl = 'Invalid_SourceMapURL',

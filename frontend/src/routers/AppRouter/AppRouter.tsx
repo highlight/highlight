@@ -16,7 +16,6 @@ import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/Integrat
 import { Landing } from '@pages/Landing/Landing'
 import NewProjectPage from '@pages/NewProject/NewProjectPage'
 import OAuthApprovalPage from '@pages/OAuthApproval/OAuthApprovalPage'
-import RegistrationForm from '@pages/RegistrationForm/RegistrationForm'
 import SwitchProject from '@pages/SwitchProject/SwitchProject'
 import SwitchWorkspace from '@pages/SwitchWorkspace/SwitchWorkspace'
 import useLocalStorage from '@rehooks/local-storage'
@@ -27,7 +26,7 @@ import { ProjectRedirectionRouter } from '@routers/ProjectRouter/ProjectRedirect
 import { ProjectRouter } from '@routers/ProjectRouter/ProjectRouter'
 import { WorkspaceRouter } from '@routers/ProjectRouter/WorkspaceRouter'
 import analytics from '@util/analytics'
-import { showIntercom } from '@util/window'
+import { loadIntercom } from '@util/window'
 import { omit } from 'lodash'
 import { useEffect, useState } from 'react'
 import {
@@ -53,6 +52,8 @@ import {
 } from '@/graph/generated/operations'
 import { JoinWorkspace } from '@/pages/Auth/JoinWorkspace'
 import { WorkspaceInvitation } from '@/pages/Auth/WorkspaceInvitation'
+import WithErrorSearchContext from '@/routers/ProjectRouter/WithErrorSearchContext'
+import WithSessionSearchContext from '@/routers/ProjectRouter/WithSessionSearchContext'
 
 export const VERIFY_EMAIL_ROUTE = '/verify_email'
 export const ABOUT_YOU_ROUTE = '/about_you'
@@ -174,7 +175,7 @@ export const AppRouter = () => {
 			// static property for the user ID rather than something that could change
 			// over time, like an email address.
 			analytics.identify(admin.id, omit(identifyMetadata, ['id']))
-			showIntercom({ admin, hideMessage: true })
+			loadIntercom({ admin })
 		}
 	}, [admin])
 
@@ -204,161 +205,161 @@ export const AppRouter = () => {
 						[],
 				}}
 			>
-				<Routes>
-					<Route path="/join_workspace" element={<JoinWorkspace />} />
-
-					<Route
-						path={VERIFY_EMAIL_ROUTE}
-						element={<VerifyEmail />}
-					/>
-
-					{/* used by google ads for conversion tracking */}
-					<Route path={ABOUT_YOU_ROUTE} element={<AdminForm />} />
-
-					<Route
-						path="/oauth/authorize"
-						element={
-							<Landing>
-								<OAuthApprovalPage />
-							</Landing>
-						}
-					/>
-
-					<Route
-						path="/callback/:integrationName"
-						element={<IntegrationAuthCallbackPage />}
-					/>
-
-					<Route
-						path="/subscriptions"
-						element={<EmailOptOutPage />}
-					/>
-
-					<Route
-						path="/new"
-						element={
-							isLoggedIn ? (
-								<Landing>
-									<NewProjectPage />
-								</Landing>
-							) : (
-								<Navigate to={SIGN_IN_ROUTE} />
-							)
-						}
-					/>
-
-					<Route
-						path="/switch"
-						element={
-							isLoggedIn ? (
-								<Landing>
-									<SwitchWorkspace />
-								</Landing>
-							) : (
-								<Navigate to={SIGN_IN_ROUTE} />
-							)
-						}
-					/>
-
-					<Route
-						path="/invite/:invite_id"
-						element={
-							isLoggedIn ? (
-								<WorkspaceInvitation />
-							) : (
-								<Navigate to={SIGN_UP_ROUTE} />
-							)
-						}
-					/>
-
-					<Route
-						path="/w/:workspace_id/new"
-						element={
-							isLoggedIn ? (
-								<Landing>
-									<NewProjectPage />
-								</Landing>
-							) : (
-								<Navigate to={SIGN_IN_ROUTE} />
-							)
-						}
-					/>
-
-					<Route
-						path="/w/:workspace_id/switch"
-						element={
-							isLoggedIn ? (
-								<Landing>
-									<SwitchProject />
-								</Landing>
-							) : (
-								<Navigate to={SIGN_IN_ROUTE} />
-							)
-						}
-					/>
-
-					<Route
-						path="/w/:workspace_id/about-you"
-						element={
-							isLoggedIn ? (
-								<Landing>
-									<RegistrationForm />
-								</Landing>
-							) : (
-								<Navigate to={SIGN_IN_ROUTE} />
-							)
-						}
-					/>
-					<Route
-						path="/w/:workspace_id/*"
-						element={
-							isLoggedIn ? (
-								workspaceId &&
-								Number.isInteger(Number(workspaceId)) ? (
-									<WorkspaceRouter />
-								) : (
-									<DefaultWorkspaceRouter />
-								)
-							) : (
-								<Navigate
-									to={
-										inviteCode
-											? SIGN_UP_ROUTE
-											: SIGN_IN_ROUTE
-									}
-								/>
-							)
-						}
-					/>
-
-					<Route
-						path="/*"
-						element={
-							projectId &&
-							(isValidProjectId ||
-								projectId === DEMO_PROJECT_ID) ? (
-								<ProjectRouter />
-							) : isLoggedIn ? (
-								<ProjectRedirectionRouter />
-							) : (
-								<AuthRouter />
-							)
-						}
-					/>
-
-					{isHighlightAdmin && (
-						<>
+				<WithSessionSearchContext>
+					<WithErrorSearchContext>
+						<Routes>
 							<Route
-								path="/accounts/*"
-								element={<AccountsPage />}
+								path="/join_workspace"
+								element={<JoinWorkspace />}
 							/>
+
 							<Route
-								path="/_internal/*"
-								element={<InternalRouter />}
+								path={VERIFY_EMAIL_ROUTE}
+								element={<VerifyEmail />}
 							/>
-						</>
-					)}
-				</Routes>
+
+							{/* used by google ads for conversion tracking */}
+							<Route
+								path={ABOUT_YOU_ROUTE}
+								element={<AdminForm />}
+							/>
+
+							<Route
+								path="/oauth/authorize"
+								element={
+									<Landing>
+										<OAuthApprovalPage />
+									</Landing>
+								}
+							/>
+
+							<Route
+								path="/callback/:integrationName"
+								element={<IntegrationAuthCallbackPage />}
+							/>
+
+							<Route
+								path="/subscriptions"
+								element={<EmailOptOutPage />}
+							/>
+
+							<Route
+								path="/new"
+								element={
+									isLoggedIn ? (
+										<Landing>
+											<NewProjectPage />
+										</Landing>
+									) : (
+										<Navigate to={SIGN_IN_ROUTE} />
+									)
+								}
+							/>
+
+							<Route
+								path="/switch"
+								element={
+									isLoggedIn ? (
+										<Landing>
+											<SwitchWorkspace />
+										</Landing>
+									) : (
+										<Navigate to={SIGN_IN_ROUTE} />
+									)
+								}
+							/>
+
+							<Route
+								path="/invite/:invite_id"
+								element={
+									isLoggedIn ? (
+										<WorkspaceInvitation />
+									) : (
+										<Navigate to={SIGN_UP_ROUTE} />
+									)
+								}
+							/>
+
+							<Route
+								path="/w/:workspace_id/new"
+								element={
+									isLoggedIn ? (
+										<Landing>
+											<NewProjectPage />
+										</Landing>
+									) : (
+										<Navigate to={SIGN_IN_ROUTE} />
+									)
+								}
+							/>
+
+							<Route
+								path="/w/:workspace_id/switch"
+								element={
+									isLoggedIn ? (
+										<Landing>
+											<SwitchProject />
+										</Landing>
+									) : (
+										<Navigate to={SIGN_IN_ROUTE} />
+									)
+								}
+							/>
+
+							<Route
+								path="/w/:workspace_id/*"
+								element={
+									isLoggedIn ? (
+										workspaceId &&
+										Number.isInteger(
+											Number(workspaceId),
+										) ? (
+											<WorkspaceRouter />
+										) : (
+											<DefaultWorkspaceRouter />
+										)
+									) : (
+										<Navigate
+											to={
+												inviteCode
+													? SIGN_UP_ROUTE
+													: SIGN_IN_ROUTE
+											}
+										/>
+									)
+								}
+							/>
+
+							<Route
+								path="/*"
+								element={
+									projectId &&
+									(isValidProjectId ||
+										projectId === DEMO_PROJECT_ID) ? (
+										<ProjectRouter />
+									) : isLoggedIn ? (
+										<ProjectRedirectionRouter />
+									) : (
+										<AuthRouter />
+									)
+								}
+							/>
+
+							{isHighlightAdmin && (
+								<>
+									<Route
+										path="/accounts/*"
+										element={<AccountsPage />}
+									/>
+									<Route
+										path="/_internal/*"
+										element={<InternalRouter />}
+									/>
+								</>
+							)}
+						</Routes>
+					</WithErrorSearchContext>
+				</WithSessionSearchContext>
 			</ApplicationContextProvider>
 		</Box>
 	)

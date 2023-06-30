@@ -41,7 +41,7 @@
 	.cardImage {
 		min-height: 160px;
 		max-height: 170px;
-		border: 1px solid var(--color-copy-on-light);
+		border: 2px solid #30294e;
 	}
 
 	.cardSection {
@@ -167,7 +167,7 @@
 	min-height: 400px;
 	border-radius: var(--border-radius);
 	overflow: hidden;
-	border: 1px solid #30294e;
+	border: 2px solid #30294e;
 }
 
 .youtubeEmbed {
@@ -414,7 +414,7 @@
 	img {
 		margin: 12px 0;
 		border-radius: 8px;
-		border: solid #30294e 1px;
+		border: solid #30294e 4px;
 		overflow: hidden;
 		display: flex;
 	}

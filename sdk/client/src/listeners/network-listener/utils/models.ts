@@ -27,11 +27,11 @@ export interface RequestResponsePair {
 
 export interface WebSocketRequest {
 	socketId: string
-	initiatorType: 'WebSocket'
+	initiatorType: 'websocket'
 	type: 'open' | 'close'
 	name: string
 	startTime?: number
-	endTime?: number
+	requestEnd?: number
 }
 
 export interface WebSocketEvent {
