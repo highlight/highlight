@@ -1990,7 +1990,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		err = json.Unmarshal([]byte(v.StackTrace), &structuredStackTrace)
 		if err != nil {
-			structuredStackTrace, err = stacktraces.StructureStackTrace(v.StackTrace)
+			structuredStackTrace, err = stacktraces.StructureOTELStackTrace(v.StackTrace)
 			if err != nil {
 				log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
 			}
