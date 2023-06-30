@@ -2,6 +2,8 @@ package stacktraces
 
 import (
 	"context"
+	"github.com/openlyinc/pointy"
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/aws/smithy-go/ptr"
@@ -264,4 +266,33 @@ func TestGetURLSourcemap(t *testing.T) {
 	if err == nil {
 		t.Error("expected an error")
 	}
+}
+
+func TestEnhanceStackTraceProd(t *testing.T) {
+	// local only for troubleshooting stacktrace enhancement
+	t.Skip()
+	storage.S3SourceMapBucketNameNew = "highlight-source-maps"
+	ctx := context.TODO()
+
+	s3Client, err := storage.NewS3Client(ctx)
+	if err != nil {
+		t.Fatalf("error creating storage client: %v", err)
+	}
+
+	fetch = NetworkFetcher{}
+	mappedStackTrace, err := EnhanceStackTrace(ctx, []*publicModelInput.StackFrameInput{
+		{
+			FunctionName: nil,
+			FileName:     pointy.String("https://lifeat.io/bundle.js"),
+			LineNumber:   pointy.Int(3540),
+			ColumnNumber: pointy.Int(5784),
+			Source:       pointy.String("    at https://lifeat.io/bundle.js:3540:5784"),
+		},
+	}, 1703, pointy.String("dev"), s3Client)
+	if err != nil {
+		t.Fatal(e.Wrap(err, "error enhancing source map"))
+	}
+	assert.Equal(t, 1, len(mappedStackTrace))
+	assert.Equal(t, "normal", *mappedStackTrace[0].FunctionName)
+	assert.Equal(t, "    font-size: ${FontSize.normal};\n", *mappedStackTrace[0].LineContent)
 }
