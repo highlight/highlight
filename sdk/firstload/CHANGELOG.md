@@ -271,3 +271,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Patch Changes
 
 - Increase data transmission retry delays.
+
+## 7.3.2
+
+### Patch Changes
+
+- Ensure compatibility with native `window.Highlight` [class](https://developer.mozilla.org/en-US/docs/Web/API/Highlight).

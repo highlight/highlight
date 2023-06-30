@@ -36,7 +36,7 @@ const HighlightWarning = (context: string, msg: any) => {
 }
 
 interface HighlightWindow extends Window {
-	Highlight: new (
+	HighlightIO: new (
 		options: HighlightClassOptions,
 		firstLoadListeners: FirstLoadListeners,
 	) => Highlight
@@ -127,7 +127,7 @@ const H: HighlightPublicInterface = {
 			}
 			script.addEventListener('load', () => {
 				const startFunction = () => {
-					highlight_obj = new window.Highlight(
+					highlight_obj = new window.HighlightIO(
 						client_options,
 						first_load_listeners,
 					)
