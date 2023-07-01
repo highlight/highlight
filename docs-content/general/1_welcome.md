@@ -12,7 +12,7 @@ updatedAt: 2022-08-18T22:36:12.000Z
 When highlight.io is fully integrated, this is what it looks like:
 
 <EmbeddedVideo 
-  src="https://www.youtube.com/embed/evgsmbt0f7s"
+  src="https://www.youtube.com/embed/EvGsmbt0F7s"
   title="Youtube Video Player"
   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 />
