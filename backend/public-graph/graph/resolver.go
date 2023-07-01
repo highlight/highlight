@@ -3038,7 +3038,7 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 }
 
 func (r *Resolver) isSessionExcludedForNoUserEvents(ctx context.Context, s *model.Session) bool {
-	return s.LastUserInteractionTime.IsZero()
+	return s.LastUserInteractionTime.Unix() == 0
 }
 
 func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
