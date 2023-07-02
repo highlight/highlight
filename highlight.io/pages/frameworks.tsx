@@ -1,8 +1,10 @@
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import Footer from '../components/common/Footer/Footer'
 import Navbar from '../components/common/Navbar/Navbar'
+import { Section } from '../components/common/Section/Section'
 import { Typography } from '../components/common/Typography/Typography'
 import { FRAMEWORKS } from '../components/Frameworks/framework'
+import { CompaniesReel } from '../components/Home/CompaniesReel/CompaniesReel'
 import IntegrationCard from '../components/Integrations/IntegrationCard'
 
 const FrameworksPage = () => {
@@ -42,6 +44,9 @@ const FrameworksPage = () => {
 						</div>
 					))}
 				</div>
+				<Section>
+					<CompaniesReel />
+				</Section>
 				<FooterCallToAction />
 			</main>
 			<Footer />
