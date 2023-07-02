@@ -624,7 +624,7 @@ func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *stri
 func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceID int, aiInsights *bool) (*model.AllWorkspaceSettings, error) {
 	_, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying workspace")
+		return nil, err
 	}
 	workspaceSettings := &model.AllWorkspaceSettings{
 		WorkspaceID: workspaceID,
@@ -632,7 +632,7 @@ func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceI
 	if err := r.DB.Where(workspaceSettings).Updates(&model.AllWorkspaceSettings{
 		AIInsights: *aiInsights,
 	}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating workspace settings fields")
+		return nil, err
 	}
 	return workspaceSettings, nil
 }
@@ -6515,7 +6515,7 @@ func (r *queryResolver) WorkspacePendingInvites(ctx context.Context, workspaceID
 func (r *queryResolver) WorkspaceSettings(ctx context.Context, workspaceID int) (*model.AllWorkspaceSettings, error) {
 	_, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	workspaceSettings := model.AllWorkspaceSettings{}
