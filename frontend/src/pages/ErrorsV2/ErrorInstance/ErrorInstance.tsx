@@ -3,7 +3,6 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
 import { Button } from '@components/Button'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
-import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import LoadingBox from '@components/LoadingBox'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
@@ -11,15 +10,12 @@ import {
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { ErrorObjectFragment, GetErrorGroupQuery } from '@graph/operations'
-import { Maybe } from '@graph/schemas'
 import {
 	Box,
-	Heading,
 	IconSolidCode,
 	IconSolidExternalLink,
-	IconSolidLogs,
+	Stack,
 	Text,
-	Tooltip,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
@@ -35,13 +31,13 @@ import { copyToClipboard } from '@util/string'
 import { buildQueryURLString } from '@util/url/params'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
 import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
 import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionMissingOrExcluded'
-import { ShowLogsButton } from '@/pages/ErrorsV2/ErrorInstance/ShowLogsButton'
-import { ShowSessionButton } from '@/pages/ErrorsV2/ErrorInstance/ShowSessionButton'
+import { PreviousNextInstance } from '@/pages/ErrorsV2/ErrorInstance/PreviousNextInstance'
+import { RelatedLogs } from '@/pages/ErrorsV2/ErrorInstance/RelatedLogs'
+import { RelatedSession } from '@/pages/ErrorsV2/ErrorInstance/RelatedSession'
 import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
 
 const MAX_USER_PROPERTIES = 4
@@ -56,12 +52,9 @@ const METADATA_LABELS: { [key: string]: string } = {
 } as const
 
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
-	const { error_object_id, error_secure_id } = useParams<{
-		error_secure_id: string
+	const { error_object_id } = useParams<{
 		error_object_id: string
 	}>()
-	const { projectId } = useProjectId()
-	const navigate = useNavigate()
 	const client = useApolloClient()
 
 	const { loading, data } = useGetErrorInstanceQuery({
@@ -107,78 +100,20 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 	useEffect(() => analytics.page(), [])
 
-	useHotkeys(']', () => goToErrorInstance(errorInstance?.next_id, 'next'), [
-		errorInstance?.next_id,
-	])
-	useHotkeys(
-		'[',
-		() => goToErrorInstance(errorInstance?.previous_id, 'previous'),
-		[errorInstance?.previous_id],
-	)
-
-	const goToErrorInstance = (
-		errorInstanceId: Maybe<string> | undefined,
-		direction: 'next' | 'previous',
-	) => {
-		if (!errorInstanceId || Number(errorInstanceId) === 0) {
-			return
-		}
-
-		navigate({
-			pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstanceId}`,
-			search: window.location.search,
-		})
-
-		analytics.track('Viewed error instance', {
-			direction,
-		})
-	}
-
 	if (!errorInstance || !errorInstance?.error_object) {
 		if (!loading) return null
 
 		return (
 			<Box id="error-instance-container">
-				<Box my="28" display="flex" justifyContent="space-between">
-					<Box display="flex" flexDirection="column" gap="16">
-						<Heading level="h4">Instance Details</Heading>
+				<Stack direction="row" my="12">
+					<Box flexGrow={1}>
+						<PreviousNextInstance data={data} />
 					</Box>
-
-					<Box>
-						<Box display="flex" gap="8" alignItems="center">
-							<Button
-								disabled={true}
-								kind="secondary"
-								emphasis="low"
-								trackingId="errorInstanceOlder"
-							>
-								Older
-							</Button>
-							<Box
-								borderRight="secondary"
-								style={{ height: 18 }}
-							/>
-							<Button
-								disabled={true}
-								kind="secondary"
-								emphasis="low"
-								trackingId="errorInstanceNewer"
-							>
-								Newer
-							</Button>
-							<Button
-								kind="primary"
-								emphasis="high"
-								disabled={true}
-								iconLeft={<IconSolidLogs />}
-								trackingId="errorInstanceShowLogs"
-							>
-								Show logs
-							</Button>
-							<ShowSessionButton />
-						</Box>
-					</Box>
-				</Box>
+					<Stack direction="row" gap="4">
+						<RelatedSession data={data} />
+						<RelatedLogs data={data} />
+					</Stack>
+				</Stack>
 
 				<Box display="flex" flexDirection="row" mb="40" gap="40">
 					<div style={{ flexBasis: 0, flexGrow: 1 }}>
@@ -216,66 +151,15 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 	return (
 		<Box id="error-instance-container">
-			<Box my="28" display="flex" justifyContent="space-between">
-				<Box display="flex" flexDirection="column" gap="16">
-					<Heading level="h4">Instance Details</Heading>
+			<Stack direction="row" my="12">
+				<Box flexGrow={1}>
+					<PreviousNextInstance data={data} />
 				</Box>
-
-				<Box>
-					<Box display="flex" gap="8" alignItems="center">
-						<Tooltip
-							trigger={
-								<Button
-									onClick={() => {
-										goToErrorInstance(
-											errorInstance.previous_id,
-											'previous',
-										)
-									}}
-									disabled={
-										Number(errorInstance.previous_id) === 0
-									}
-									kind="secondary"
-									emphasis="low"
-									trackingId="errorInstanceOlder"
-								>
-									Older
-								</Button>
-							}
-						>
-							<KeyboardShortcut label="Previous" shortcut="[" />
-						</Tooltip>
-
-						<Box borderRight="secondary" style={{ height: 18 }} />
-						<Tooltip
-							trigger={
-								<Button
-									onClick={() => {
-										goToErrorInstance(
-											errorInstance.next_id,
-											'next',
-										)
-									}}
-									disabled={
-										Number(errorInstance.next_id) === 0
-									}
-									kind="secondary"
-									emphasis="low"
-									trackingId="errorInstanceNewer"
-								>
-									Newer
-								</Button>
-							}
-						>
-							<KeyboardShortcut label="Next" shortcut="]" />
-						</Tooltip>
-						<ShowLogsButton data={data} />
-						<ShowSessionButton
-							errorObject={errorInstance.error_object}
-						/>
-					</Box>
-				</Box>
-			</Box>
+				<Stack direction="row" gap="4">
+					<RelatedSession data={data} />
+					<RelatedLogs data={data} />
+				</Stack>
+			</Stack>
 
 			<Box py="16" px="16" mb="40" border="secondary" borderRadius="8">
 				<Box

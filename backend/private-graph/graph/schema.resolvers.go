@@ -3453,10 +3453,25 @@ func (r *mutationResolver) UpdateVercelProjectMappings(ctx context.Context, proj
 		})
 	}
 
-	if err := vercel.CreateLogDrain(ctx, workspace.VercelTeamID, lo.Map(projectMappings, func(t *modelInputs.VercelProjectMappingInput, i int) string {
-		return t.VercelProjectID
-	}), project.VerboseID(), "Highlight Log Drain", *workspace.VercelAccessToken); err != nil {
+	if err := vercel.RemoveLogDrains(ctx, workspace.VercelTeamID, *workspace.VercelAccessToken); err != nil {
 		return false, err
+	}
+
+	// Group configs by Highlight project id, then create a log drain for each
+	byHighlightProject := lo.GroupBy(configs, func(c *model.VercelIntegrationConfig) int {
+		return c.ProjectID
+	})
+	for highlightProjectId, configs := range byHighlightProject {
+		project := model.Project{
+			Model: model.Model{
+				ID: highlightProjectId,
+			},
+		}
+		if err := vercel.CreateLogDrain(ctx, workspace.VercelTeamID, lo.Map(configs, func(t *model.VercelIntegrationConfig, i int) string {
+			return t.VercelProjectID
+		}), project.VerboseID(), "Highlight Log Drain", *workspace.VercelAccessToken); err != nil {
+			return false, err
+		}
 	}
 
 	if err := r.DB.Where("workspace_id = ?", workspaceId).Delete(&model.VercelIntegrationConfig{}).Error; err != nil {
