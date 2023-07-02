@@ -3,54 +3,81 @@ import { Integration } from '../Integrations/integration'
 export const FRAMEWORKS: {
 	[key: string]: Integration[]
 } = {
-	Analytics: [
+	Frameworks: [
 		{
-			name: 'Amplitude',
+			name: 'React.js',
 			description:
 				'This is some text explaining what this company does. This is some text explaining what this company does. ',
 			link: '/docs/general/integrations/amplitude-integration',
 			image: '/images/companies/icons/amplitude.png',
 		},
 		{
-			name: 'Mixpanel',
+			name: 'Next.js',
 			description:
 				'This is some text explaining what this company does. This is some text explaining what this company does. ',
 			link: '/docs/general/integrations/mixpanel-integration',
 			image: '/images/companies/icons/mixpanel.png',
 		},
 		{
-			name: 'Segment',
+			name: 'Vue.js',
+			description:
+				'This is some text explaining what this company does. This is some text explaining what this company does. ',
+			link: '/docs/general/integrations/segment-integration',
+			image: '/images/companies/icons/segment.png',
+		},
+		{
+			name: 'Angular',
+			description:
+				'This is some text explaining what this company does. This is some text explaining what this company does. ',
+			link: '/docs/general/integrations/segment-integration',
+			image: '/images/companies/icons/segment.png',
+		},
+		{
+			name: 'Gatsby.js',
+			description:
+				'This is some text explaining what this company does. This is some text explaining what this company does. ',
+			link: '/docs/general/integrations/segment-integration',
+			image: '/images/companies/icons/segment.png',
+		},
+		{
+			name: 'SvelteKit',
+			description:
+				'This is some text explaining what this company does. This is some text explaining what this company does. ',
+			link: '/docs/general/integrations/segment-integration',
+			image: '/images/companies/icons/segment.png',
+		},
+		{
+			name: 'Angular',
 			description:
 				'This is some text explaining what this company does. This is some text explaining what this company does. ',
 			link: '/docs/general/integrations/segment-integration',
 			image: '/images/companies/icons/segment.png',
 		},
 	],
-	Messaging: [
+	Languages: [
 		{
-			name: 'Discord',
+			name: 'Go',
 			description:
 				'This is some text explaining what this company does. This is some text explaining what this company does. ',
 			link: '/docs/general/integrations/discord-integration',
 			image: '/images/companies/icons/discord.png',
 		},
 		{
-			name: 'Front',
+			name: 'Javascript',
 			description:
 				'This is some text explaining what this company does. This is some text explaining what this company does. ',
 			link: '/docs/general/integrations/front-integration',
 			image: '/images/companies/icons/front.png',
 		},
-
 		{
-			name: 'Intercom',
+			name: 'Python',
 			description:
 				'This is some text explaining what this company does. This is some text explaining what this company does. ',
 			link: '/docs/general/integrations/intercom-integration',
 			image: '/images/companies/icons/intercom.png',
 		},
 		{
-			name: 'Slack',
+			name: 'Ruby',
 			description:
 				'This is some text explaining what this company does. This is some text explaining what this company does. ',
 			link: '/docs/general/integrations/slack-integration',
