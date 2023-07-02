@@ -11,19 +11,19 @@ export const INTEGRATIONS: {
 	Analytics: [
 		{
 			name: 'Amplitude',
-			description: 'Instrument highlight.io to send Amplitude events',
+			description: 'Instrument highlight.io to send Amplitude events.',
 			link: '/docs/general/integrations/amplitude-integration',
 			image: '/images/companies/icons/amplitude.png',
 		},
 		{
 			name: 'Mixpanel',
-			description: 'Instrument highlight.io to sent Mixpanel events',
+			description: 'Instrument highlight.io to sent Mixpanel events.',
 			link: '/docs/general/integrations/mixpanel-integration',
 			image: '/images/companies/icons/mixpanel.png',
 		},
 		{
 			name: 'Segment',
-			description: 'Instrument highlight.io to send Segment events',
+			description: 'Instrument highlight.io to send Segment events.',
 			link: '/docs/general/integrations/segment-integration',
 			image: '/images/companies/icons/segment.png',
 		},
@@ -31,14 +31,14 @@ export const INTEGRATIONS: {
 	Messaging: [
 		{
 			name: 'Discord',
-			description: 'Create Discord tickets within highlight.io',
+			description: 'Create Discord tickets within highlight.io.',
 			link: '/docs/general/integrations/discord-integration',
 			image: '/images/companies/icons/discord.png',
 		},
 		{
 			name: 'Front',
 			description:
-				'View highlight.io sessions directly in your Front inbox',
+				'View highlight.io sessions directly in your Front inbox.',
 			link: '/docs/general/integrations/front-integration',
 			image: '/images/companies/icons/front.png',
 		},
@@ -46,13 +46,13 @@ export const INTEGRATIONS: {
 		{
 			name: 'Intercom',
 			description:
-				'Access highlight.io sessions within your Intercom dashboard',
+				'Access highlight.io sessions within your Intercom dashboard.',
 			link: '/docs/general/integrations/intercom-integration',
 			image: '/images/companies/icons/intercom.png',
 		},
 		{
 			name: 'Slack',
-			description: 'Send highlight.io alerts to Slack',
+			description: 'Send alerts from highlight.io directly to Slack.',
 			link: '/docs/general/integrations/slack-integration',
 			image: '/images/companies/icons/slack.png',
 		},
@@ -75,13 +75,13 @@ export const INTEGRATIONS: {
 		{
 			name: 'GCP',
 			description:
-				'Stream GCP application and infrastructure logs to highlight.io',
+				'Stream GCP application and infrastructure logs to highlight.io.',
 			link: '/docs/getting-started/backend-logging/hosting/gcp',
 			image: '/images/companies/icons/gcp.png',
 		},
 		{
 			name: 'Fly.io',
-			description: 'Setup highlight.io log ingestion on Fly.io',
+			description: 'Setup highlight.io log ingestion on Fly.io.',
 			link: '/docs/getting-started/backend-logging/hosting/fly-io',
 			image: '/images/companies/icons/flyio.png',
 		},
@@ -89,20 +89,20 @@ export const INTEGRATIONS: {
 	Productivity: [
 		{
 			name: 'ClickUp',
-			description: 'Create Clickup Tickets within highlight.io',
+			description: 'Create Clickup Tickets within highlight.io.',
 
 			link: '/docs/general/integrations/clickup-integration',
 			image: '/images/companies/icons/clickup.png',
 		},
 		{
 			name: 'Height',
-			description: 'Create Height tasks from within highlight.io',
+			description: 'Create Height tasks from within highlight.io.',
 			link: '/docs/general/integrations/height-integration',
 			image: '/images/companies/icons/height.png',
 		},
 		{
 			name: 'GitHub',
-			description: 'Create GitHub issues within highlight.io',
+			description: 'Create GitHub issues within highlight.io.',
 			link: '/docs/general/integrations/github-integration',
 			image: '/images/companies/icons/github.png',
 		},
