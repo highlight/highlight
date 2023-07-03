@@ -1,14 +1,7 @@
-import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
 import {
 	AmplitudeAPI,
 	setupAmplitudeIntegration,
 } from './integrations/amplitude'
-import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
-import { initializeFetchListener } from './listeners/fetch'
-import { initializeWebSocketListener } from './listeners/web-socket'
-import { getPreviousSessionData } from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
-import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners'
-import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
 import type {
 	Highlight,
 	HighlightClassOptions,
@@ -20,9 +13,17 @@ import type {
 	Metric,
 	SessionDetails,
 } from '@highlight-run/client/src/types/types'
+import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
+
+import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners'
+import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
 import { HighlightSegmentMiddleware } from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
 import firstloadVersion from './__generated/version'
+import { getPreviousSessionData } from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
+import { initializeFetchListener } from './listeners/fetch'
+import { initializeWebSocketListener } from './listeners/web-socket'
+import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -136,11 +137,11 @@ const H: HighlightPublicInterface = {
 					}
 				}
 
-				if ('Highlight' in window) {
+				if ('HighlightIO' in window) {
 					startFunction()
 				} else {
 					const interval = setInterval(() => {
-						if ('Highlight' in window) {
+						if ('HighlightIO' in window) {
 							startFunction()
 							clearInterval(interval)
 						}
