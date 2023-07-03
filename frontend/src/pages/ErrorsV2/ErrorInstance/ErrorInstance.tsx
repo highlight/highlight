@@ -53,9 +53,13 @@ const METADATA_LABELS: { [key: string]: string } = {
 } as const
 
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
-	const { error_object_id } = useParams<{
+	let { error_object_id } = useParams<{
 		error_object_id: string
 	}>()
+	if (error_object_id === 'latest') {
+		error_object_id = undefined
+	}
+
 	const client = useApolloClient()
 
 	const { loading, data } = useGetErrorInstanceQuery({

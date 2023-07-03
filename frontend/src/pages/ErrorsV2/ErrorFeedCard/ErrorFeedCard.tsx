@@ -39,7 +39,7 @@ export const ErrorFeedCard = ({ errorGroup }: Props) => {
 	return (
 		<Link
 			to={{
-				pathname: `/${projectId}/errors/${errorGroup?.secure_id}`,
+				pathname: `/${projectId}/errors/${errorGroup?.secure_id}/instances/latest`,
 				search: location.search,
 			}}
 		>

@@ -529,7 +529,7 @@ export type ErrorObjectNode = {
 	errorGroupSecureID: Scalars['String']
 	event: Scalars['String']
 	id: Scalars['ID']
-	session: ErrorObjectNodeSession
+	session?: Maybe<ErrorObjectNodeSession>
 }
 
 export type ErrorObjectNodeSession = {

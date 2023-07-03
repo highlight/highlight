@@ -39,7 +39,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 	} else if params.Before != nil {
 		query = query.Order("id DESC").Where("id < ?", *params.Before)
 	} else {
-		query = query.Order("id ASC")
+		query = query.Order("id DESC")
 	}
 
 	if err := query.Find(&errorObjects).Error; err != nil {

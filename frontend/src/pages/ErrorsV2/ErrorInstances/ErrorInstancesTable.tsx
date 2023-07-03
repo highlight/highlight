@@ -5,8 +5,10 @@ import {
 	getCoreRowModel,
 	useReactTable,
 } from '@tanstack/react-table'
+import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { Link } from '@/components/Link'
 import { ErrorObjectEdge } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { AppVersionCell } from '@/pages/ErrorsV2/ErrorInstances/AppVersionCell'
@@ -37,19 +39,33 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 				</Box>
 			),
 		}),
-		columnHelper.accessor('node.session.appVersion', {
-			cell: ({ getValue }) => (
-				<Box display="flex">
-					<AppVersionCell version={getValue()} />
-				</Box>
-			),
+		columnHelper.accessor('node.session', {
+			cell: ({ getValue }) => {
+				const session = getValue()
+
+				return (
+					<Box display="flex">
+						{session?.appVersion ? (
+							<AppVersionCell version={session.appVersion} />
+						) : null}
+					</Box>
+				)
+			},
 		}),
-		columnHelper.accessor('node.session.userProperties', {
-			cell: ({ getValue }) => (
-				<Box display="flex">
-					<SessionEmailCell userProperties={getValue()} />
-				</Box>
-			),
+		columnHelper.accessor('node.session', {
+			cell: ({ getValue }) => {
+				const session = getValue()
+
+				return (
+					<Box display="flex">
+						{session ? (
+							<SessionEmailCell
+								userProperties={session.userProperties}
+							/>
+						) : null}
+					</Box>
+				)
+			},
 		}),
 	]
 
@@ -59,38 +75,35 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 		getCoreRowModel: getCoreRowModel(),
 	})
 
-	const goToErrorInstance = (edge: ErrorObjectEdge) => {
-		navigate({
-			pathname: `/${projectId}/errors/${edge.node.errorGroupSecureID}/instances/${edge.cursor}`,
-			search: window.location.search,
-		})
-	}
-
 	return (
 		<>
 			{table.getRowModel().rows.map((row) => {
 				return (
-					<Stack
+					<Link
+						to={`/${projectId}/errors/${row.original.node.errorGroupSecureID}/instances/${row.original.cursor}`}
 						key={row.id}
-						direction="row"
-						mb="8"
-						px="8"
-						py="2"
-						alignItems="center"
-						cursor="pointer"
-						onClick={() => goToErrorInstance(row.original)}
 					>
-						{row.getVisibleCells().map((cell) => {
-							return (
-								<Box key={cell.id}>
-									{flexRender(
-										cell.column.columnDef.cell,
-										cell.getContext(),
-									)}
-								</Box>
-							)
-						})}
-					</Stack>
+						<Stack
+							key={row.id}
+							direction="row"
+							mb="8"
+							px="8"
+							py="2"
+							alignItems="center"
+							cursor="pointer"
+						>
+							{row.getVisibleCells().map((cell) => {
+								return (
+									<React.Fragment key={cell.id}>
+										{flexRender(
+											cell.column.columnDef.cell,
+											cell.getContext(),
+										)}
+									</React.Fragment>
+								)
+							})}
+						</Stack>
+					</Link>
 				)
 			})}
 		</>
