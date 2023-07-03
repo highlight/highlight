@@ -11,6 +11,7 @@ import {
 } from '@context/AppLoadingContext'
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
 import { ErrorObject, Maybe, Project, Workspace } from '@graph/schemas'
+import { Ariakit } from '@highlight-run/ui'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
 import {
@@ -28,9 +29,9 @@ import WithSessionSearchContext from '@routers/ProjectRouter/WithSessionSearchCo
 import { auth } from '@util/auth'
 import { setIndexedDBEnabled } from '@util/db'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { useDialogState } from 'ariakit/dialog'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
@@ -123,6 +124,16 @@ export const ProjectRouter = () => {
 		}
 	}, [])
 
+	useHotkeys(
+		'escape',
+		() => {
+			if (networkResourceDialog.open) {
+				networkResourceDialog.hide()
+			}
+		},
+		[],
+	)
+
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
 	}, [setLoadingState])
@@ -144,9 +155,23 @@ export const ProjectRouter = () => {
 		undefined,
 	)
 
-	const [activeNetworkResource, setActiveNetworkResource] = useState<
+	const networkResourceDialog = Ariakit.useDialogState()
+
+	const [activeNetworkResource, setActiveNetworkResourceState] = useState<
 		NetworkResource | undefined
 	>(undefined)
+
+	const setActiveNetworkResource = (
+		resource: NetworkResource | undefined,
+	) => {
+		setActiveNetworkResourceState(resource)
+
+		if (resource) {
+			networkResourceDialog.show()
+		} else {
+			networkResourceDialog.hide()
+		}
+	}
 
 	const [selectedRightPanelTab, setSelectedRightPanelTab] =
 		useLocalStorage<RightPlayerTab>(
@@ -171,9 +196,10 @@ export const ProjectRouter = () => {
 		setActiveNetworkResource,
 		rightPanelView,
 		setRightPanelView,
+		networkResourceDialog,
 	}
 
-	const commandBarDialog = useDialogState()
+	const commandBarDialog = Ariakit.useDialogState()
 
 	return (
 		<GlobalContextProvider

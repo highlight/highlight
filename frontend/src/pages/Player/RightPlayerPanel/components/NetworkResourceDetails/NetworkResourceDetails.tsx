@@ -2,6 +2,7 @@ import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGro
 import { TableList, TableListItem } from '@components/TableList/TableList'
 import { ErrorObject } from '@graph/schemas'
 import {
+	Ariakit,
 	Badge,
 	Box,
 	ButtonIcon,
@@ -29,8 +30,7 @@ import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
-import { Dialog, useDialogState } from 'ariakit'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 enum NetworkRequestTabs {
@@ -39,196 +39,187 @@ enum NetworkRequestTabs {
 	Logs = 'Logs',
 }
 
-const NetworkResourceDetails = React.memo(
-	// TODO: Store network resource in the URL and pull from there instead.
-	({ resource }: { resource: NetworkResource }) => {
-		const dialog = useDialogState({ animated: true })
-		const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
-			NetworkRequestTabs.Info,
-		)
-		const { setActiveNetworkResource } = usePlayerUIContext()
-		const { resources } = useResourcesContext()
-		const {
-			sessionMetadata: { startTime },
-			setTime,
-			session,
-		} = useReplayerContext()
+// TODO: Store network resource in the URL and pull from there instead.
+const NetworkResourceDetails = ({
+	resource,
+}: {
+	resource: NetworkResource
+}) => {
+	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
+		NetworkRequestTabs.Info,
+	)
+	const { networkResourceDialog: dialog, setActiveNetworkResource } =
+		usePlayerUIContext()
+	const { resources } = useResourcesContext()
+	const {
+		sessionMetadata: { startTime },
+		setTime,
+		session,
+	} = useReplayerContext()
 
-		const networkResources = useMemo(() => {
-			return (
-				(resources.map((event) => ({
-					...event,
-					timestamp: event.startTime,
-				})) as NetworkResource[]) ?? []
-			)
-		}, [resources])
-
-		const resourceIdx = resources.findIndex((r) => resource.id === r.id)
-		const [prev, next] = [resourceIdx - 1, resourceIdx + 1]
-		const canMoveBackward = !!resources[prev]
-		const canMoveForward = !!resources[next]
-
-		const { showPlayerAbsoluteTime } = usePlayerConfiguration()
-		const timestamp = useMemo(() => {
-			return new Date(resource.timestamp).getTime() - startTime
-		}, [resource.timestamp, startTime])
-
-		// TODO: Swap these so they follow the pattern of the j/k shortcuts.
-		useHotkeys(
-			'h',
-			() => {
-				if (canMoveBackward) {
-					analytics.track('PrevNetworkResourceKeyboardShortcut')
-					setActiveNetworkResource(networkResources[prev])
-				}
-			},
-			[canMoveBackward, prev],
-		)
-
-		useHotkeys(
-			'l',
-			() => {
-				if (canMoveForward) {
-					analytics.track('NextNetworkResourceKeyboardShortcut')
-					setActiveNetworkResource(networkResources[next])
-				}
-			},
-			[canMoveForward, next],
-		)
-
-		useEffect(() => {
-			dialog.setOpen(true)
-		}, [dialog])
-
+	const networkResources = useMemo(() => {
 		return (
-			// TODO: Handle outside clicks to close the dialog.
-			<Dialog
-				state={dialog}
-				modal={false}
-				className={sprinkles({
-					backgroundColor: 'white',
-					display: 'flex',
-					flexDirection: 'column',
-					border: 'dividerWeak',
-					borderRadius: '6',
-					boxShadow: 'small',
-					overflow: 'hidden',
-				})}
-				style={{
-					width: 400,
-					right: 8,
-					top: 8,
-					bottom: 8,
-					zIndex: 8,
-					position: 'absolute',
-				}}
+			(resources.map((event) => ({
+				...event,
+				timestamp: event.startTime,
+			})) as NetworkResource[]) ?? []
+		)
+	}, [resources])
+
+	const resourceIdx = resources.findIndex((r) => resource.id === r.id)
+	const [prev, next] = [resourceIdx - 1, resourceIdx + 1]
+	const canMoveBackward = !!resources[prev]
+	const canMoveForward = !!resources[next]
+
+	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
+	const timestamp = useMemo(() => {
+		return new Date(resource.timestamp).getTime() - startTime
+	}, [resource.timestamp, startTime])
+
+	// TODO: Swap these so they follow the pattern of the j/k shortcuts.
+	useHotkeys(
+		'h',
+		() => {
+			if (canMoveBackward) {
+				analytics.track('PrevNetworkResourceKeyboardShortcut')
+				setActiveNetworkResource(networkResources[prev])
+			}
+		},
+		[canMoveBackward, prev],
+	)
+
+	useHotkeys(
+		'l',
+		() => {
+			if (canMoveForward) {
+				analytics.track('NextNetworkResourceKeyboardShortcut')
+				setActiveNetworkResource(networkResources[next])
+			}
+		},
+		[canMoveForward, next],
+	)
+
+	return (
+		<Ariakit.Dialog
+			state={dialog}
+			modal={false}
+			className={sprinkles({
+				backgroundColor: 'white',
+				display: 'flex',
+				flexDirection: 'column',
+				border: 'dividerWeak',
+				borderRadius: '6',
+				boxShadow: 'small',
+				overflow: 'hidden',
+			})}
+			style={{
+				width: 400,
+				right: 8,
+				top: 8,
+				bottom: 8,
+				zIndex: 8,
+				position: 'absolute',
+			}}
+		>
+			<Box
+				pl="12"
+				pr="8"
+				py="6"
+				display="flex"
+				alignItems="center"
+				justifyContent="space-between"
+				borderBottom="divider"
 			>
-				<Box
-					pl="12"
-					pr="8"
-					py="6"
-					display="flex"
-					alignItems="center"
-					justifyContent="space-between"
-					borderBottom="divider"
-				>
-					<Box display="flex" gap="6" alignItems="center">
-						<PreviousNextGroup
-							onPrev={() =>
-								setActiveNetworkResource(networkResources[prev])
-							}
-							canMoveBackward={canMoveBackward}
-							prevShortcut="h"
-							onNext={() =>
-								setActiveNetworkResource(networkResources[next])
-							}
-							canMoveForward={canMoveForward}
-							nextShortcut="l"
-						/>
-						<Text size="xSmall" weight="medium" color="weak">
-							{resourceIdx + 1} / {networkResources.length}
-						</Text>
-					</Box>
-					<ButtonIcon
-						kind="secondary"
-						size="small"
-						shape="square"
-						emphasis="low"
-						icon={<IconSolidX />}
-						onClick={() => {
-							setActiveNetworkResource(undefined)
-						}}
+				<Box display="flex" gap="6" alignItems="center">
+					<PreviousNextGroup
+						onPrev={() =>
+							setActiveNetworkResource(networkResources[prev])
+						}
+						canMoveBackward={canMoveBackward}
+						prevShortcut="h"
+						onNext={() =>
+							setActiveNetworkResource(networkResources[next])
+						}
+						canMoveForward={canMoveForward}
+						nextShortcut="l"
 					/>
+					<Text size="xSmall" weight="medium" color="weak">
+						{resourceIdx + 1} / {networkResources.length}
+					</Text>
 				</Box>
-				<Box
-					px="12"
-					py="8"
-					display="flex"
-					flexDirection="column"
-					gap="8"
-				>
-					<Heading level="h4">Network request</Heading>
-
-					<Box display="flex" alignItems="center" gap="4">
-						<Badge
-							label={String(
-								showPlayerAbsoluteTime
-									? playerTimeToSessionAbsoluteTime({
-											sessionStartTime: startTime,
-											relativeTime: timestamp,
-									  })
-									: MillisToMinutesAndSeconds(timestamp),
-							)}
-							size="medium"
-							shape="basic"
-							variant="gray"
-							flexShrink={0}
-						/>
-						<Tag
-							shape="basic"
-							kind="secondary"
-							size="medium"
-							emphasis="low"
-							iconRight={<IconSolidArrowCircleRight />}
-							onClick={() => {
-								setTime(
-									new Date(resource.timestamp).getTime() -
-										startTime,
-								)
-							}}
-						>
-							Go to
-						</Tag>
-					</Box>
-				</Box>
-
-				<Tabs<NetworkRequestTabs>
-					tab={activeTab}
-					setTab={(tab) => setActiveTab(tab)}
-					pages={{
-						[NetworkRequestTabs.Info]: {
-							page: (
-								<NetworkResourceData
-									selectedNetworkResource={resource}
-									networkRecordingEnabledForSession={
-										session?.enable_recording_network_contents ||
-										false
-									}
-								/>
-							),
-						},
-						[NetworkRequestTabs.Errors]: {
-							page: <Box>Errors</Box>,
-						},
-						[NetworkRequestTabs.Logs]: {
-							page: <Box>Logs</Box>,
-						},
+				<ButtonIcon
+					kind="secondary"
+					size="small"
+					shape="square"
+					emphasis="low"
+					icon={<IconSolidX />}
+					onClick={() => {
+						setActiveNetworkResource(undefined)
 					}}
 				/>
-			</Dialog>
-		)
-	},
-)
+			</Box>
+			<Box px="12" py="8" display="flex" flexDirection="column" gap="8">
+				<Heading level="h4">Network request</Heading>
+
+				<Box display="flex" alignItems="center" gap="4">
+					<Badge
+						label={String(
+							showPlayerAbsoluteTime
+								? playerTimeToSessionAbsoluteTime({
+										sessionStartTime: startTime,
+										relativeTime: timestamp,
+								  })
+								: MillisToMinutesAndSeconds(timestamp),
+						)}
+						size="medium"
+						shape="basic"
+						variant="gray"
+						flexShrink={0}
+					/>
+					<Tag
+						shape="basic"
+						kind="secondary"
+						size="medium"
+						emphasis="low"
+						iconRight={<IconSolidArrowCircleRight />}
+						onClick={() => {
+							setTime(
+								new Date(resource.timestamp).getTime() -
+									startTime,
+							)
+						}}
+					>
+						Go to
+					</Tag>
+				</Box>
+			</Box>
+
+			<Tabs<NetworkRequestTabs>
+				tab={activeTab}
+				setTab={(tab) => setActiveTab(tab)}
+				pages={{
+					[NetworkRequestTabs.Info]: {
+						page: (
+							<NetworkResourceData
+								selectedNetworkResource={resource}
+								networkRecordingEnabledForSession={
+									session?.enable_recording_network_contents ||
+									false
+								}
+							/>
+						),
+					},
+					[NetworkRequestTabs.Errors]: {
+						page: <Box>Errors</Box>,
+					},
+					[NetworkRequestTabs.Logs]: {
+						page: <Box>Logs</Box>,
+					},
+				}}
+			/>
+		</Ariakit.Dialog>
+	)
+}
 
 export default NetworkResourceDetails
 
