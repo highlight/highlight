@@ -8,10 +8,9 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
-import { Heading, Stack } from '@highlight-run/ui'
+import { Ariakit, Heading, Stack } from '@highlight-run/ui'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
-import { useDialogState } from 'ariakit/dialog'
 import { H } from 'highlight.run'
 import { useEffect } from 'react'
 import { StringParam, useQueryParams } from 'use-query-params'
@@ -148,7 +147,7 @@ export const EmailOptOutPage = () => {
 		token: StringParam,
 	})
 
-	const commandBarDialog = useDialogState()
+	const commandBarDialog = Ariakit.useDialogState()
 
 	return (
 		<GlobalContextProvider
