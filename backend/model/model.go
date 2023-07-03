@@ -342,6 +342,7 @@ type Project struct {
 	RageClickCount int `gorm:"default:5"`
 
 	// Applies to all browser extensions
+	// TODO - rename to FilterBrowserExtension #5811
 	FilterChromeExtension *bool `gorm:"default:false"`
 }
 
