@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"errors"
+	"sort"
 	"strconv"
 	"time"
 
@@ -35,15 +36,21 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 	)
 
 	if params.After != nil {
-		query = query.Order("id ASC").Where("id > ?", *params.After)
+		query = query.Order("id DESC").Where("id < ?", *params.After)
 	} else if params.Before != nil {
-		query = query.Order("id DESC").Where("id < ?", *params.Before)
+		query = query.Order("id ASC").Where("id > ?", *params.Before)
 	} else {
-		query = query.Order("id ASC")
+		query = query.Order("id DESC")
 	}
 
 	if err := query.Find(&errorObjects).Error; err != nil {
 		return privateModel.ErrorObjectConnection{}, err
+	}
+
+	if params.Before != nil {
+		sort.Slice(errorObjects, func(i, j int) bool {
+			return errorObjects[i].ID < errorObjects[j].ID
+		})
 	}
 
 	if len(errorObjects) == 0 {

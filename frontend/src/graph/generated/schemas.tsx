@@ -528,7 +528,7 @@ export type ErrorObjectNode = {
 	createdAt: Scalars['Timestamp']
 	event: Scalars['String']
 	id: Scalars['ID']
-	session: ErrorObjectNodeSession
+	session?: Maybe<ErrorObjectNodeSession>
 }
 
 export type ErrorObjectNodeSession = {
