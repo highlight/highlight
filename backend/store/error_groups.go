@@ -48,6 +48,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 	}
 
 	if params.Before != nil {
+		// Reverse the slice to maintain a descending order view
 		sort.Slice(errorObjects, func(i, j int) bool {
 			return errorObjects[i].ID < errorObjects[j].ID
 		})
