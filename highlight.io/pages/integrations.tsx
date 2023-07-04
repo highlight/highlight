@@ -1,11 +1,15 @@
+import Link from 'next/link'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import Footer from '../components/common/Footer/Footer'
 import Navbar from '../components/common/Navbar/Navbar'
 import { Section } from '../components/common/Section/Section'
 import { Typography } from '../components/common/Typography/Typography'
 import { CompaniesReel } from '../components/Home/CompaniesReel/CompaniesReel'
+import { CustomerReviewTrack } from '../components/Home/CustomerReviewTrack'
+import styles from '../components/Home/Home.module.scss'
 import { INTEGRATIONS } from '../components/Integrations/integration'
 import IntegrationCard from '../components/Integrations/IntegrationCard'
+import MissingCard from '../components/Integrations/MissingCard'
 
 const IntegrationsPage = () => {
 	return (
@@ -26,7 +30,7 @@ const IntegrationsPage = () => {
 				</div>
 				<div className="my-24 mx-auto max-w-[1250px] px-8">
 					{Object.entries(INTEGRATIONS).map(([category, items]) => (
-						<div className="my-12" key={category}>
+						<div className="pt-12" key={category} id={category}>
 							<Typography type="copy1" emphasis>
 								{category}
 							</Typography>
@@ -43,10 +47,27 @@ const IntegrationsPage = () => {
 							</div>
 						</div>
 					))}
+					<MissingCard
+						link="/docs"
+						desc="Reach out if you want support for another integration!"
+					/>
 				</div>
 				<Section>
 					<CompaniesReel />
 				</Section>
+				<Section>
+					<div className={styles.anchorFeature}>
+						<div className={styles.anchorHead}>
+							<Typography type="copy2" onDark>
+								Don&apos;t take our word.{' '}
+								<Link href="/customers">
+									Read our customer review section →
+								</Link>
+							</Typography>
+						</div>
+					</div>
+				</Section>
+				<CustomerReviewTrack />
 				<FooterCallToAction />
 			</main>
 			<Footer />
