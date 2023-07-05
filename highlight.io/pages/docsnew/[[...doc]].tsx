@@ -35,6 +35,7 @@ import {
 	AutoplayVideo,
 	DocsCard,
 	DocsCardGroup,
+	EmbeddedVideo,
 	MarkdownList,
 	MissingFrameworkCopy,
 	QuickStart,
@@ -464,6 +465,7 @@ export default function DocPage({
 										<MDXRemote
 											components={{
 												AutoplayVideo,
+												EmbeddedVideo,
 												MissingFrameworkCopy,
 												Roadmap,
 												RoadmapItem,
