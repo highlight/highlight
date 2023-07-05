@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/alerts"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -75,12 +76,12 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
-	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{"migration_state": migrationState}); err != nil {
+	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{"migration_state": migrationState}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
 	totalPayloadSize, err := w.StorageClient.PushFiles(ctx, s.ID, s.ProjectID, payloadManager)
-	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
+	// If this is unsuccessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
 		return errors.Wrap(err, "error pushing files to s3")
 	}
@@ -94,7 +95,7 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
 
-	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{
 		"object_storage_enabled":  true,
 		"payload_size":            totalPayloadSize,
 		"direct_download_enabled": true,
@@ -178,12 +179,12 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 	case model.PayloadTypeEvents:
 		compressedWriter = manager.EventsCompressed
 		unmarshalled = &payload.EventsUnmarshalled{}
-	case model.PayloadTypeMessages:
-		compressedWriter = manager.MessagesCompressed
-		unmarshalled = &payload.MessagesUnmarshalled{}
 	case model.PayloadTypeResources:
 		compressedWriter = manager.ResourcesCompressed
 		unmarshalled = &payload.ResourcesUnmarshalled{}
+	case model.PayloadTypeWebSocketEvents:
+		compressedWriter = manager.WebSocketEventsCompressed
+		unmarshalled = &payload.WebSocketEventsUnmarshalled{}
 	}
 
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && payloadType == model.PayloadTypeEvents
@@ -250,52 +251,13 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 
 	// Fetch/write resources.
-	if s.AvoidPostgresStorage {
-		if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeResources, accumulator); err != nil {
-			return errors.Wrap(err, "error fetching resources from Redis")
-		}
-	} else {
-		resourcesRows, err := w.Resolver.DB.Model(&model.ResourcesObject{}).Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
-		if err != nil {
-			return errors.Wrap(err, "error retrieving resources objects")
-		}
-		for resourcesRows.Next() {
-			resourcesObject := model.ResourcesObject{}
-			err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)
-			if err != nil {
-				return errors.Wrap(err, "error scanning resource row")
-			}
-			if err := manager.ResourcesCompressed.WriteObject(&resourcesObject, &payload.ResourcesUnmarshalled{}); err != nil {
-				return errors.Wrap(err, "error writing compressed resources row")
-			}
-		}
-		if err := manager.ResourcesCompressed.Close(); err != nil {
-			return errors.Wrap(err, "error closing compressed resources writer")
-		}
+	if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeResources, accumulator); err != nil {
+		return errors.Wrap(err, "error fetching resources from Redis")
 	}
 
-	// Fetch/write messages.
-	if s.AvoidPostgresStorage {
-		if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeMessages, accumulator); err != nil {
-			return errors.Wrap(err, "error fetching messages from Redis")
-		}
-	} else {
-		messageRows, err := w.Resolver.DB.Model(&model.MessagesObject{}).Where(&model.MessagesObject{SessionID: s.ID}).Order("created_at asc").Rows()
-		if err != nil {
-			return errors.Wrap(err, "error retrieving messages objects")
-		}
-		for messageRows.Next() {
-			messageObject := model.MessagesObject{}
-			if err := w.Resolver.DB.ScanRows(messageRows, &messageObject); err != nil {
-				return errors.Wrap(err, "error scanning message row")
-			}
-			if err := manager.MessagesCompressed.WriteObject(&messageObject, &payload.MessagesUnmarshalled{}); err != nil {
-				return errors.Wrap(err, "error writing compressed message row")
-			}
-		}
-		if err := manager.MessagesCompressed.Close(); err != nil {
-			return errors.Wrap(err, "error closing compressed messages writer")
-		}
+	// Fetch/write web socket events.
+	if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeWebSocketEvents, accumulator); err != nil {
+		return errors.Wrap(err, "error fetching web socket events from Redis")
 	}
 
 	return nil
@@ -329,6 +291,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			task.PushPayload.Events,
 			task.PushPayload.Messages,
 			task.PushPayload.Resources,
+			task.PushPayload.WebSocketEvents,
 			task.PushPayload.Errors,
 			task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
 			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
@@ -393,14 +356,6 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			break
 		}
 		if err := w.PublicResolver.PushMetricsImpl(ctx, task.PushMetrics.SessionSecureID, task.PushMetrics.Metrics); err != nil {
-			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
-			return err
-		}
-	case kafkaqueue.MarkBackendSetup:
-		if task.MarkBackendSetup == nil {
-			break
-		}
-		if err := w.PublicResolver.MarkBackendSetupImpl(ctx, task.MarkBackendSetup.ProjectVerboseID, task.MarkBackendSetup.SessionSecureID, task.MarkBackendSetup.ProjectID, task.MarkBackendSetup.Type); err != nil {
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
@@ -546,6 +501,12 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 	}
 }
 
+// Autoresolves error groups that have not had any recent instances
+func (w *Worker) AutoResolveStaleErrors(ctx context.Context) {
+	autoResolver := NewAutoResolver(w.PublicResolver.Store, w.PublicResolver.DB)
+	autoResolver.AutoResolveStaleErrors(ctx)
+}
+
 func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason backend.SessionExcludedReason) error {
 	s.Excluded = true
 	s.ExcludedReason = &reason
@@ -555,7 +516,7 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 			"session_obj": s}).Warnf("error excluding session (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
 	}
 
-	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{
 		"Excluded":  true,
 		"processed": true,
 	}); err != nil {
@@ -624,23 +585,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Exclude the session if there's no events.
 	if len(accumulator.EventsForTimelineIndicator) == 0 && s.Length <= 0 {
-		log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-			"session_obj": s}).Warnf("excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v)", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed)
-		s.Excluded = true
-		s.Processed = &model.T
-		if err := w.Resolver.DB.Table(model.SESSIONS_TBL).Model(&model.Session{Model: model.Model{ID: s.ID}}).Updates(s).Error; err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID, "identifier": s.Identifier,
-				"session_obj": s}).Warnf("error excluding session with no events (session_id=%d, identifier=%s, is_in_obj_already=%v, processed=%v): %v", s.ID, s.Identifier, s.ObjectStorageEnabled, s.Processed, err)
-		}
-
-		if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
-			"Excluded":  true,
-			"processed": true,
-		}); err != nil {
-			return e.Wrap(err, "error updating session in opensearch")
-		}
-
-		return nil
+		return w.excludeSession(ctx, s, backend.SessionExcludedReasonNoTimelineIndicatorEvents)
 	}
 
 	payloadManager.SeekStart(ctx)
@@ -828,6 +773,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	pagesVisited := len(visitFields)
 
+	workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return err
+	}
+	withinBillingQuota, _ := w.PublicResolver.IsWithinQuota(ctx, pricing.ProductTypeSessions, workspace, time.Now())
+
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -839,12 +790,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			HasRageClicks:       &hasRageClicks,
 			HasOutOfOrderEvents: accumulator.AreEventsOutOfOrder,
 			PagesVisited:        pagesVisited,
+			WithinBillingQuota:  &withinBillingQuota,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
-	if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, s.ID, map[string]interface{}{
+	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{
 		"processed":       true,
 		"length":          sessionTotalLengthInMilliseconds,
 		"active_length":   accumulator.ActiveDuration.Milliseconds(),
@@ -950,7 +902,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			if sessionAlert.ThresholdWindow == nil {
-				sessionAlert.ThresholdWindow = util.MakeIntPointer(30)
+				sessionAlert.ThresholdWindow = ptr.Int(30)
 			}
 			var count int
 			if err := w.Resolver.DB.Raw(`
@@ -1135,7 +1087,7 @@ func (w *Worker) Start(ctx context.Context) {
 
 					if excluded {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Warn(e.Wrap(err, "session has reached the max retry count and will be excluded"))
-						if err := w.Resolver.OpenSearch.Update(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
+						if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
 						span.Finish()
@@ -1418,6 +1370,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 		return w.DeleteCompletedSessions
 	case "public-worker":
 		return w.PublicWorker
+	case "auto-resolve-stale-errors":
+		return w.AutoResolveStaleErrors
 	default:
 		log.WithContext(ctx).Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil

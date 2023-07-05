@@ -3,6 +3,7 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/util"
 	"strconv"
 	"strings"
 	"time"
@@ -15,9 +16,6 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	log "github.com/sirupsen/logrus"
 )
-
-const LogAttributeValueLengthLimit = 2 << 10
-const LogAttributeValueWarningLengthLimit = 2 << 8
 
 func ProjectToInt(projectID string) (int, error) {
 	i, err := strconv.ParseInt(projectID, 10, 32)
@@ -115,12 +113,12 @@ func WithSource(source modelInputs.LogSource) LogRowOption {
 
 func WithBody(ctx context.Context, body string) LogRowOption {
 	return func(l *LogRow) {
-		if len(body) > LogAttributeValueLengthLimit {
+		if len(body) > util.LogAttributeValueLengthLimit {
 			log.WithContext(ctx).
 				WithField("ValueLength", len(body)).
-				WithField("ValueTrunc", body[:LogAttributeValueWarningLengthLimit]).
+				WithField("ValueTrunc", body[:util.LogAttributeValueWarningLengthLimit]).
 				Warnf("log body value is too long %d", len(body))
-			body = body[:LogAttributeValueLengthLimit] + "..."
+			body = body[:util.LogAttributeValueLengthLimit] + "..."
 		}
 		l.Body = body
 	}
@@ -152,22 +150,8 @@ func GetAttributesMap(ctx context.Context, resourceAttributes, spanAttributes, e
 				continue
 			}
 
-			if vStr, ok := v.(string); ok {
-				if len(vStr) > LogAttributeValueLengthLimit {
-					log.WithContext(ctx).
-						WithField("AttributeMapIdx", mIdx).
-						WithField("Key", k).
-						WithField("ValueLength", len(vStr)).
-						Warnf("attribute value for %s is too long %d", k, len(vStr))
-					vStr = vStr[:LogAttributeValueLengthLimit] + "..."
-				}
-				attributesMap[k] = vStr
-			}
-			if vInt, ok := v.(int64); ok {
-				attributesMap[k] = strconv.FormatInt(vInt, 10)
-			}
-			if vFlt, ok := v.(float64); ok {
-				attributesMap[k] = strconv.FormatFloat(vFlt, 'f', -1, 64)
+			for key, value := range util.FormatLogAttributes(ctx, mIdx, k, v) {
+				attributesMap[key] = value
 			}
 		}
 	}

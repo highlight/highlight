@@ -4,7 +4,6 @@ import { FieldsBox } from '@components/FieldsBox/FieldsBox'
 import Input from '@components/Input/Input'
 import Space from '@components/Space/Space'
 import { auth } from '@util/auth'
-import { client } from '@util/graph'
 import { message } from 'antd'
 import firebase from 'firebase/compat/app'
 import moment from 'moment'
@@ -16,7 +15,9 @@ import React, {
 	useState,
 } from 'react'
 
-import styles from './Auth.module.scss'
+import { useAuthContext } from '@/authentication/AuthContext'
+
+import styles from './Auth.module.css'
 
 enum AuthState {
 	Enroll,
@@ -79,6 +80,8 @@ interface Props {
 }
 
 const Login: React.FC<Props> = () => {
+	const { signOut } = useAuthContext()
+
 	return (
 		<>
 			<Alert
@@ -93,8 +96,7 @@ const Login: React.FC<Props> = () => {
 				trackingId="logInAgainFor2fa"
 				type="primary"
 				onClick={() => {
-					firebaseAuth.signOut()
-					client.clearStore()
+					signOut()
 				}}
 			>
 				Re-Authenticate to Modify Auth Settings

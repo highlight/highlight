@@ -80,16 +80,12 @@ slug: client
           <p>Specifies whether Highlight will record performance metrics (e.g. FPS, device memory).</p>
         </aside>
         <aside className="parameter">
-          <h5>feedbackWidget <code>FeedbackWidgetOptions</code> <code>optional</code></h5>
-          <p>Specifies the configuration for the Highlight feedback widget. This widget is used to collect user feedback. The feedback is collected in the context of the session.</p>
-        </aside>
-        <aside className="parameter">
           <h5>tracingOrigins <code>boolean | (string | RegExp)[]</code> <code>optional</code></h5>
           <p>Specifies where the backend of the app lives. If specified, Highlight will attach the X-Highlight-Request header to outgoing requests whose destination URLs match a substring or regexp from this list, so that backend errors can be linked back to the session. If true is specified, all requests to the current domain will be matched. Example tracingOrigins: ['localhost', /^\//, 'backend.myapp.com']</p>
         </aside>
         <aside className="parameter">
-          <h5>isCrossOriginIframe <code>boolean</code> <code>optional</code></h5>
-          <p>Specifies that the current app is a cross origin iframe in an app where Highlight is also enabled. This flag should only be set in the iframe, not in the parent application hosting the iframe. This allows the iframe to forward its recording to the parent to be included as part of the session. See [cross-origin iframe recording](../2_getting-started/3_client-sdk/7_replay-configuration/iframes.md) for more details.</p>
+          <h5>recordCrossOriginIframe <code>boolean</code> <code>optional</code></h5>
+          <p>Specifies that cross-origin iframe elements should be recorded. Should be set in both the parent window and in the iframe. See [cross-origin iframe recording](../2_getting-started/3_client-sdk/7_replay-configuration/iframes.md) for more details.</p>
         </aside>
         <aside className="parameter">
           <h5>urlBlocklist <code>string[]</code> <code>optional</code></h5>

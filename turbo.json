@@ -22,7 +22,7 @@
 			"dependsOn": ["^build"]
 		},
 		"codegen": {
-			"inputs": ["./**/*.gql", "./**/*.graphqls"],
+			"inputs": ["../**/*.gql", "../**/*.graphqls"],
 			"outputs": ["src/graph/generated/**"]
 		},
 		"typegen": {
@@ -84,6 +84,10 @@
 		},
 		"dev": {
 			"dependsOn": ["typegen", "^build"],
+			"cache": false,
+			"persistent": true
+		},
+		"dev:watch": {
 			"cache": false,
 			"persistent": true
 		},

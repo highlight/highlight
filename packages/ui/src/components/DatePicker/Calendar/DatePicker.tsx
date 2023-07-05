@@ -8,7 +8,7 @@ import {
 	useContextMonthsPropGetters,
 } from '@rehookify/datepicker'
 
-const DatePicker = () => {
+const DatePicker = ({ hasSelectedRange }: { hasSelectedRange?: boolean }) => {
 	const { calendars } = useContextCalendars()
 	const { previousMonthButton, nextMonthButton } =
 		useContextMonthsPropGetters()
@@ -18,6 +18,7 @@ const DatePicker = () => {
 
 	return (
 		<Calendar
+			hasSelectedRange={hasSelectedRange}
 			prevButton={
 				previousMonthButtonProps.disabled ? (
 					<div />

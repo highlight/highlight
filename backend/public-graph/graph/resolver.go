@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"net/mail"
-	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -20,6 +19,7 @@ import (
 	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
+	"github.com/highlight-run/highlight/backend/store"
 	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/PaesslerAG/jsonpath"
@@ -54,7 +54,6 @@ import (
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/zapier"
-	"github.com/highlight-run/workerpool"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 )
 
@@ -64,18 +63,18 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	AlertWorkerPool *workerpool.WorkerPool
-	DB              *gorm.DB
-	TDB             timeseries.DB
-	ProducerQueue   kafka_queue.MessageQueue
-	BatchedQueue    kafka_queue.MessageQueue
-	MailClient      *sendgrid.Client
-	StorageClient   storage.Client
-	OpenSearch      *opensearch.Client
-	HubspotApi      *highlightHubspot.HubspotApi
-	Redis           *redis.Client
-	Clickhouse      *clickhouse.Client
-	RH              *resthooks.Resthook
+	DB            *gorm.DB
+	TDB           timeseries.DB
+	ProducerQueue kafka_queue.MessageQueue
+	BatchedQueue  kafka_queue.MessageQueue
+	MailClient    *sendgrid.Client
+	StorageClient storage.Client
+	OpenSearch    *opensearch.Client
+	HubspotApi    *highlightHubspot.HubspotApi
+	Redis         *redis.Client
+	Clickhouse    *clickhouse.Client
+	RH            *resthooks.Resthook
+	Store         *store.Store
 }
 
 type Location struct {
@@ -160,6 +159,7 @@ const SESSION_FIELD_MAX_LENGTH = 2000
 
 var ErrNoisyError = e.New("Filtering out noisy error")
 var ErrQuotaExceeded = e.New(string(publicModel.PublicGraphErrorBillingQuotaExceeded))
+var ErrUserFilteredError = e.New("User filtered error")
 
 // metrics that should be stored in postgres for session lookup
 var MetricCategoriesForDB = map[string]bool{"Device": true, "WebVital": true}
@@ -203,194 +203,22 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 		}
 	}
 
-	r.AlertWorkerPool.SubmitRecover(func() {
-		alertWorkerSpan, _ := tracer.StartSpanFromContext(outerCtx, "public-graph.AppendProperties",
-			tracer.ResourceName("go.sessions.AppendProperties.alertWorker"), tracer.Tag("sessionID", sessionID))
-		defer alertWorkerSpan.Finish()
-		// Sending Track Properties Alert
-		if propType != PropertyType.TRACK {
-			return
-		}
-		var sessionAlerts []*model.SessionAlert
-		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
-			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching track properties alert", projectID))
-			return
-		}
+	project := &model.Project{}
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).First(&project).Error; err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
+		return err
+	}
+	workspace, err := r.getWorkspace(project.WorkspaceID)
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
+		return err
+	}
 
-		for _, sessionAlert := range sessionAlerts {
-			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-			if err != nil {
-				log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from track properties alert", projectID))
-				return
-			}
-			isExcludedEnvironment := false
-			for _, env := range excludedEnvironments {
-				if env != nil && *env == session.Environment {
-					isExcludedEnvironment = true
-					break
-				}
-			}
-			if isExcludedEnvironment {
-				return
-			}
-
-			// get matched track properties between the alert and session
-			trackProperties, err := sessionAlert.GetTrackProperties()
-			if err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error getting track properties from session"))
-				return
-			}
-			var trackPropertyIds []int
-			for _, trackProperty := range trackProperties {
-				trackPropertyIds = append(trackPropertyIds, trackProperty.ID)
-			}
-			stmt := r.DB.Model(&model.Field{}).
-				Where(&model.Field{ProjectID: projectID, Type: "track"}).
-				Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", session.ID).
-				Where("id IN ?", trackPropertyIds)
-			var matchedFields []*model.Field
-			if err := stmt.Find(&matchedFields).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error querying matched fields by session_id"))
-				return
-			}
-			if len(matchedFields) < 1 {
-				return
-			}
-
-			// relatedFields is the list of fields not inside of matchedFields.
-			var relatedFields []*model.Field
-			for k, fv := range properties {
-				isAMatchedField := false
-
-				for _, matchedField := range matchedFields {
-					if matchedField.Name == k && matchedField.Value == fv {
-						isAMatchedField = true
-					}
-				}
-
-				if !isAMatchedField {
-					relatedFields = append(relatedFields, &model.Field{ProjectID: projectID, Name: k, Value: fv, Type: string(propType)})
-				}
-			}
-
-			// If the lengths are the same then there were not matched properties, so we don't need to send an alert.
-			if len(relatedFields) == len(properties) {
-				return
-			}
-
-			project := &model.Project{}
-			if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).First(&project).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
-				return
-			}
-			workspace, err := r.getWorkspace(project.WorkspaceID)
-			if err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
-				return
-			}
-
-			hookPayload := zapier.HookPayload{
-				UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject,
-			}
-			if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
-				log.WithContext(ctx).Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
-			}
-
-			sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject})
-			if err = alerts.SendTrackPropertiesAlert(alerts.TrackPropertiesAlertEvent{
-				Session:       session,
-				SessionAlert:  sessionAlert,
-				Workspace:     workspace,
-				MatchedFields: matchedFields,
-				RelatedFields: relatedFields,
-			}); err != nil {
-				log.WithContext(ctx).Error(err)
-			}
-		}
-	})
-
-	r.AlertWorkerPool.SubmitRecover(func() {
-		// Sending User Properties Alert
-		if propType != PropertyType.USER {
-			return
-		}
-		var sessionAlerts []*model.SessionAlert
-		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
-			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching user properties alert", projectID))
-			return
-		}
-
-		for _, sessionAlert := range sessionAlerts {
-			// check if session was produced from an excluded environment
-			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-			if err != nil {
-				log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from user properties alert", projectID))
-				return
-			}
-			isExcludedEnvironment := false
-			for _, env := range excludedEnvironments {
-				if env != nil && *env == session.Environment {
-					isExcludedEnvironment = true
-					break
-				}
-			}
-			if isExcludedEnvironment {
-				return
-			}
-
-			// get matched user properties between the alert and session
-			userProperties, err := sessionAlert.GetUserProperties()
-			if err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error getting user properties from session"))
-				return
-			}
-			var userPropertyIds []int
-			for _, userProperty := range userProperties {
-				userPropertyIds = append(userPropertyIds, userProperty.ID)
-			}
-			stmt := r.DB.Model(&model.Field{}).
-				Where(&model.Field{ProjectID: projectID, Type: "user"}).
-				Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", session.ID).
-				Where("id IN ?", userPropertyIds)
-			var matchedFields []*model.Field
-			if err := stmt.Find(&matchedFields).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error querying matched fields by session_id"))
-				return
-			}
-			if len(matchedFields) < 1 {
-				return
-			}
-
-			project := &model.Project{}
-			if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).First(&project).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
-				return
-			}
-			workspace, err := r.getWorkspace(project.WorkspaceID)
-			if err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
-				return
-			}
-
-			hookPayload := zapier.HookPayload{
-				UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject,
-			}
-			if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
-				log.WithContext(ctx).Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
-			}
-
-			sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
-			if err = alerts.SendUserPropertiesAlert(alerts.UserPropertiesAlertEvent{
-				SessionAlert:  sessionAlert,
-				Session:       session,
-				Workspace:     workspace,
-				MatchedFields: matchedFields,
-			}); err != nil {
-				log.WithContext(ctx).Error(err)
-			}
-		}
-	})
-
+	if propType == PropertyType.USER {
+		return r.SendSessionUserPropertiesAlert(ctx, workspace, session)
+	} else if propType == PropertyType.TRACK {
+		return r.SendSessionTrackPropertiesAlert(ctx, workspace, session, properties)
+	}
 	return nil
 }
 
@@ -413,7 +241,7 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 	})
 
 	for _, field := range newFields {
-		if err := r.OpenSearch.Index(ctx,
+		if err := r.OpenSearch.IndexSynchronous(ctx,
 			opensearch.IndexParams{
 				Index:  opensearch.IndexFields,
 				ID:     field.ID,
@@ -563,31 +391,31 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 
 		environmentsString := getIncrementedEnvironmentCount(ctx, errorGroup, errorObj)
 
+		updatedState := errorGroup.State
+
+		// Reopen resolved errors
+		// Note that ignored errors do change state
+		if updatedState == privateModel.ErrorStateResolved {
+			updatedState = privateModel.ErrorStateOpen
+		}
+
 		if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{
 			StackTrace:       *errorObj.StackTrace,
 			MappedStackTrace: errorObj.MappedStackTrace,
 			Environments:     environmentsString,
 			Event:            errorObj.Event,
+			State:            updatedState,
 		}).Error; err != nil {
 			return nil, e.Wrap(err, "Error updating error group")
 		}
 	}
 
-	opensearchErrorGroup := &model.ErrorGroup{
-		Model:     errorGroup.Model,
-		SecureID:  errorGroup.SecureID,
-		ProjectID: errorObj.ProjectID,
-		Event:     errorObj.Event,
-		Type:      errorObj.Type,
-		State:     privateModel.ErrorStateOpen,
-		Fields:    []*model.ErrorField{},
-	}
 	if err := r.OpenSearch.IndexSynchronous(ctx,
 		opensearch.IndexParams{
 			Index:    opensearch.IndexErrorsCombined,
 			ID:       int64(errorGroup.ID),
 			ParentID: pointy.Int(0),
-			Object:   opensearchErrorGroup}); err != nil {
+			Object:   errorGroup}); err != nil {
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
@@ -725,7 +553,12 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil, errors.New("error object stacktrace was empty")
 	}
 
-	if projectID == 1 {
+	project, err := r.Store.GetProject(projectID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying project")
+	}
+
+	if project.ID == 1 {
 		if errorObj.Event == `input: initializeSession BillingQuotaExceeded` ||
 			errorObj.Event == `BillingQuotaExceeded` ||
 			errorObj.Event == `panic {error: missing operation context}` ||
@@ -741,7 +574,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			return nil, ErrNoisyError
 		}
 	}
-	if projectID == 356 {
+	if project.ID == 356 {
 		if errorObj.Event == `["\"ReferenceError: Can't find variable: widgetContainerAttribute\""]` ||
 			errorObj.Event == `"ReferenceError: Can't find variable: widgetContainerAttribute"` ||
 			errorObj.Event == `"InvalidStateError: XMLHttpRequest.responseText getter: responseText is only available if responseType is '' or 'text'."` ||
@@ -749,29 +582,33 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			return nil, ErrNoisyError
 		}
 	}
-	if projectID == 765 {
+	if project.ID == 765 {
 		if errorObj.Event == `"Uncaught Error: PollingBlockTracker - encountered an error while attempting to update latest block:\nundefined"` ||
 			errorObj.Event == `["\"Uncaught Error: PollingBlockTracker - encountered an error while attempting to update latest block:\\nundefined\""]` {
 			return nil, ErrNoisyError
 		}
 	}
-	if projectID == 898 {
+	if project.ID == 898 {
 		if errorObj.Event == `["\"LaunchDarklyFlagFetchError: Error fetching flag settings: 414\""]` ||
 			errorObj.Event == `["\"[LaunchDarkly] Error fetching flag settings: 414\""]` {
 			return nil, ErrNoisyError
 		}
 	}
-	if projectID == 1703 {
+	if project.ID == 1703 {
 		if errorObj.Event == `["\"Uncaught TypeError: Cannot read properties of null (reading 'play')\""]` ||
 			errorObj.Event == `"Uncaught TypeError: Cannot read properties of null (reading 'play')"` {
 			return nil, ErrNoisyError
 		}
 	}
-	if projectID == 3322 {
+	if project.ID == 3322 {
 		if errorObj.Event == `["\"Failed to fetch feature flags from PostHog.\""]` ||
 			errorObj.Event == `["\"Bad HTTP status: 0 \""]` {
 			return nil, ErrNoisyError
 		}
+	}
+
+	if errorgroups.IsErrorTraceFiltered(project, structuredStackTrace) {
+		return nil, ErrUserFilteredError
 	}
 
 	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, pricing.ProductTypeErrors, workspace, time.Now())
@@ -808,8 +645,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 
 	fingerprints := []*model.ErrorFingerprint{}
-	var err error
-
 	fingerprints = append(fingerprints, errorgroups.GetFingerprints(projectID, structuredStackTrace)...)
 
 	// Try unmarshalling the Event to JSON.
@@ -818,10 +653,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	if err := json.Unmarshal([]byte(errorObj.Event), &jsonStrings); err == nil && len(jsonStrings) == 1 {
 		errorAsJson := interface{}(nil)
 		if err := json.Unmarshal([]byte(jsonStrings[0]), &errorAsJson); err == nil {
-			var project model.Project
-			if err := r.DB.Where("id = ?", projectID).First(&project).Error; err != nil {
-				return nil, e.Wrap(err, "error querying project")
-			}
 			for _, path := range project.ErrorJsonPaths {
 				value, err := jsonpath.Get(path, errorAsJson)
 				if err == nil {
@@ -857,7 +688,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		Timestamp:   errorObj.Timestamp,
 		Environment: errorObj.Environment,
 	}
-	if err := r.OpenSearch.Index(ctx, opensearch.IndexParams{
+	if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexParams{
 		Index:    opensearch.IndexErrorsCombined,
 		ID:       int64(errorObj.ID),
 		ParentID: pointy.Int(errorGroup.ID),
@@ -924,7 +755,7 @@ func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorF
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
-			if err := r.OpenSearch.Index(ctx, opensearch.IndexParams{
+			if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexParams{
 				Index:  opensearch.IndexErrorFields,
 				ID:     int64(f.ID),
 				Object: f,
@@ -1148,7 +979,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		AppVersion:                     input.AppVersion,
 		VerboseID:                      input.ProjectVerboseID,
 		Fields:                         []*model.Field{},
-		LastUserInteractionTime:        time.Now(),
 		ViewedByAdmins:                 []model.Admin{},
 		ClientID:                       input.ClientID,
 		Excluded:                       true, // A session is excluded by default until it receives events
@@ -1267,12 +1097,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	go func() {
 		defer util.Recover()
-		workspace, err := r.getWorkspace(project.WorkspaceID)
-		if err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
-			return
-		}
-
 		if quotaPercent >= 1 {
 			if err := model.SendBillingNotifications(ctx, r.DB, r.MailClient, email.BillingSessionUsage100Percent, workspace); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
@@ -1282,126 +1106,12 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 				log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
 			}
 		}
-
-		// Sleep for 25 seconds, then query from the DB. If this session is identified, we
-		// want to wait for the H.identify call to be able to create a better Slack message.
-		// If an ECS task is being replaced, there's a 30 second window to do cleanup work.
-		// A 25 second delay here gives this 5 seconds to complete in case this session
-		// is created right before the task is replaced.
-		time.Sleep(25 * time.Second)
-		r.AlertWorkerPool.SubmitRecover(func() {
-			// Sending session init alert
-			var sessionAlerts []*model.SessionAlert
-			if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: project.ID, Disabled: &model.F}}).
-				Where("type=?", model.AlertType.NEW_SESSION).Find(&sessionAlerts).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching new session alert", project.ID))
-				return
-			}
-
-			sessionObj := &model.Session{}
-			if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: session.ID}}).First(&sessionObj).Error; err != nil {
-				retErr := e.Wrapf(err, "error reading from session %v", session.ID)
-				log.WithContext(ctx).Error(retErr)
-				return
-			}
-
-			for _, sessionAlert := range sessionAlerts {
-				// check if session was produced from an excluded environment
-				excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-				if err != nil {
-					log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from new session alert", project.ID))
-					return
-				}
-
-				isExcludedEnvironment := false
-				for _, env := range excludedEnvironments {
-					if env != nil && *env == sessionObj.Environment {
-						isExcludedEnvironment = true
-						break
-					}
-				}
-				if isExcludedEnvironment {
-					return
-				}
-
-				// check if session was created by a should-ignore identifier
-				excludedIdentifiers, err := sessionAlert.GetExcludeRules()
-				if err != nil {
-					log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting exclude rules from new session alert", project.ID))
-					return
-				}
-				isSessionByExcludedIdentifier := false
-				for _, identifier := range excludedIdentifiers {
-					if identifier != nil && *identifier == sessionObj.Identifier {
-						isSessionByExcludedIdentifier = true
-						break
-					}
-				}
-				if isSessionByExcludedIdentifier {
-					return
-				}
-
-				var userProperties map[string]string
-				if sessionObj.UserProperties != "" {
-					userProperties, err = sessionObj.GetUserProperties()
-					if err != nil {
-						log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", sessionObj.ProjectID))
-						return
-					}
-				}
-
-				var visitedUrl *string
-				for _, field := range sessionObj.Fields {
-					if field.Type == "session" && field.Name == "visited-url" {
-						visitedUrl = &field.Value
-						break
-					}
-				}
-
-				hookPayload := zapier.HookPayload{
-					UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl,
-				}
-				if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
-					log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending new session alert to zapier", sessionObj.ProjectID))
-				}
-
-				sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
-				if err = alerts.SendNewSessionAlert(alerts.SendNewSessionAlertEvent{
-					Session:      session,
-					SessionAlert: sessionAlert,
-					Workspace:    workspace,
-					VisitedURL:   visitedUrl,
-				}); err != nil {
-					log.WithContext(ctx).Error(err)
-				}
-			}
-		})
 	}()
 
 	return session, nil
 }
 
-func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectVerboseID *string, sessionSecureID *string, projectID int, setupType model.MarkBackendSetupType) error {
-	if projectID == 0 {
-		if projectVerboseID != nil {
-			var err error
-			projectID, err = model.FromVerboseID(*projectVerboseID)
-			if err != nil {
-				log.WithContext(ctx).Errorf("An unsupported verboseID was used: %v", projectVerboseID)
-			}
-		} else {
-			if sessionSecureID == nil {
-				return e.New("MarkBackendSetupImpl called without secureID")
-			}
-			session := &model.Session{}
-			if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: *sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
-				log.WithContext(ctx).Error(e.Wrapf(err, "no session found for mark backend setup: %v", sessionSecureID))
-				return err
-			}
-			projectID = session.ProjectID
-		}
-	}
-
+func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectID int, setupType model.MarkBackendSetupType) error {
 	if setupType == model.MarkBackendSetupTypeLogs || setupType == model.MarkBackendSetupTypeError {
 		// Update Hubspot company and projects.backend_setup
 		var backendSetupCount int64
@@ -1462,53 +1172,32 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	metadata["timestamp"] = input.Timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("project_id", "environment", "id", "secure_id").Where(&model.Session{SecureID: input.SessionSecureID}).First(&session).Error; err != nil {
+	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at").Where(&model.Session{SecureID: input.SessionSecureID}).First(&session).Error; err != nil {
 		return e.Wrap(err, "error querying session by sessionSecureID for adding session feedback")
 	}
 
-	feedbackComment := &model.SessionComment{SessionId: session.ID, Text: input.Verbatim, Metadata: metadata, Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID, SessionSecureId: session.SecureID}
+	sessionTimestamp := input.Timestamp.UnixMilli() - session.CreatedAt.UnixMilli()
+
+	feedbackComment := &model.SessionComment{SessionId: session.ID, Text: input.Verbatim, Metadata: metadata, Timestamp: int(sessionTimestamp), Type: model.SessionCommentTypes.FEEDBACK, ProjectID: session.ProjectID, SessionSecureId: session.SecureID}
 	if err := r.DB.Create(feedbackComment).Error; err != nil {
 		return e.Wrap(err, "error creating session feedback")
 	}
 
-	var sessionAlerts []*model.SessionAlert
-	if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.SESSION_FEEDBACK).Find(&sessionAlerts).Error; err != nil {
+	var errorAlerts []*model.ErrorAlert
+	if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
 		return e.Wrapf(err, "[project_id: %d] error fetching session feedback alerts", session.ProjectID)
 	}
 
-	for _, sessionAlert := range sessionAlerts {
-		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+	for _, errorAlert := range errorAlerts {
+		excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
 		if err != nil {
-			log.WithContext(ctx).Error(e.Wrapf(err, "error getting excluded environments from %s alert", model.AlertType.SESSION_FEEDBACK))
+			log.WithContext(ctx).Error(e.Wrapf(err, "error getting excluded environments from %s alert", model.AlertType.ERROR_FEEDBACK))
 			return err
 		}
 		for _, env := range excludedEnvironments {
 			if env != nil && *env == session.Environment {
 				return nil
 			}
-		}
-
-		commentsCount := int64(-1)
-		if sessionAlert.ThresholdWindow == nil {
-			t := 30
-			sessionAlert.ThresholdWindow = &t
-		}
-		if err := r.DB.Raw(`
-	  		SELECT COUNT(*)
-	  		FROM session_comments
-	  		WHERE project_id = ?
-	  			AND type = ?
-	  			AND created_at > ?
-	  	`, session.ProjectID, model.SessionCommentTypes.FEEDBACK,
-			time.Now().Add(-time.Duration(*sessionAlert.ThresholdWindow)*time.Minute)).
-			Scan(&commentsCount).Error; err != nil {
-			log.WithContext(ctx).WithError(err).
-				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
-				Error(e.Wrapf(err, "error fetching %s alert count", model.AlertType.SESSION_FEEDBACK))
-			return err
-		}
-		if commentsCount+1 < int64(sessionAlert.CountThreshold) {
-			return nil
 		}
 
 		var project model.Project
@@ -1519,7 +1208,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	  	`, session.ProjectID).Scan(&project).Error; err != nil {
 			log.WithContext(ctx).WithError(err).
 				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "session_secure_id": session.SecureID, "comment_id": feedbackComment.ID}).
-				Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.SESSION_FEEDBACK))
+				Error(e.Wrapf(err, "error fetching %s alert", model.AlertType.ERROR_FEEDBACK))
 			return err
 		}
 
@@ -1537,7 +1226,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 				Error(e.Wrap(err, "error fetching workspace"))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+		errorAlert.SendAlertFeedback(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
 			UserIdentifier:  identifier,
@@ -1545,9 +1234,9 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 			CommentText:     feedbackComment.Text,
 		})
 
-		if err = alerts.SendSessionFeedbackAlert(alerts.SessionFeedbackAlertEvent{
+		if err = alerts.SendErrorFeedbackAlert(alerts.ErrorFeedbackAlertEvent{
 			Session:        session,
-			SessionAlert:   sessionAlert,
+			ErrorAlert:     errorAlert,
 			SessionComment: feedbackComment,
 			Workspace:      workspace,
 			UserName:       input.UserName,
@@ -1588,7 +1277,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	}
 	session := &model.Session{}
 	if err := r.DB.Order("secure_id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
-		return e.Wrap(err, "[IdentifySession] error querying session by sessionID")
+		return e.New("[IdentifySession] error querying session by sessionID")
 	}
 	getSessionSpan.Finish()
 	sessionID := session.ID
@@ -1650,7 +1339,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	if session.Identifier != "" {
 		openSearchProperties["identifier"] = session.Identifier
 	}
-	if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionID, openSearchProperties); err != nil {
+	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, sessionID, openSearchProperties); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 	openSearchUpdateSpan.Finish()
@@ -1704,89 +1393,6 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 
 	log.WithContext(ctx).WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("identified session: %s", session.Identifier)
-
-	go func() {
-		defer util.Recover()
-		// if is not new user, return
-		if !*firstTime {
-			return
-		}
-		// Sleep for 25 seconds, then query from the DB. If this session is identified, we
-		// want to wait for the H.identify call to be able to create a better Slack message.
-		// If an ECS task is being replaced, there's a 30 second window to do cleanup work.
-		// A 25 second delay here gives this 5 seconds to complete in case this session
-		// is created right before the task is replaced.
-		time.Sleep(25 * time.Second)
-		// Sending New User Alert
-		var sessionAlerts []*model.SessionAlert
-		if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
-			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching new user alert", session.ProjectID))
-			return
-		}
-
-		refetchedSession := &model.Session{}
-		if err := r.DB.Where(&model.Session{Model: model.Model{ID: session.ID}}).First(&refetchedSession).Error; err != nil {
-			retErr := e.Wrapf(err, "error reading from session %v", session.ID)
-			log.WithContext(ctx).Error(retErr)
-			return
-		}
-		// get produced user properties from session
-		// these are refetched after the 25 sec sleep to allow multiple identify calls to be
-		// merged into one alert.
-		userProperties, err := refetchedSession.GetUserProperties()
-		if err != nil {
-			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", refetchedSession.ProjectID))
-			return
-		}
-
-		for _, sessionAlert := range sessionAlerts {
-			// check if session was produced from an excluded environment
-			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-			if err != nil {
-				log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from new user alert", refetchedSession.ProjectID))
-				return
-			}
-			isExcludedEnvironment := false
-			for _, env := range excludedEnvironments {
-				if env != nil && *env == refetchedSession.Environment {
-					isExcludedEnvironment = true
-					break
-				}
-			}
-			if isExcludedEnvironment {
-				return
-			}
-
-			project := &model.Project{}
-			if err := r.DB.Where(&model.Project{Model: model.Model{ID: refetchedSession.ProjectID}}).First(&project).Error; err != nil {
-				log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
-				return
-			}
-
-			workspace, err := r.getWorkspace(project.WorkspaceID)
-			if err != nil {
-				log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error querying workspace", refetchedSession.ProjectID))
-				return
-			}
-
-			hookPayload := zapier.HookPayload{
-				UserIdentifier: session.Identifier, UserProperties: userProperties, UserObject: session.UserObject,
-			}
-			if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
-				log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending alert to zapier", session.ProjectID))
-			}
-
-			sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: refetchedSession.SecureID, UserIdentifier: refetchedSession.Identifier, UserProperties: userProperties, UserObject: refetchedSession.UserObject})
-			if err = alerts.SendNewUserAlert(alerts.SendNewUserAlertEvent{
-				Session:      session,
-				SessionAlert: sessionAlert,
-				Workspace:    workspace,
-			}); err != nil {
-				log.WithContext(ctx).Error(err)
-			}
-
-		}
-	}()
 	return nil
 }
 
@@ -1851,7 +1457,7 @@ var productTypeToQuotaConfig = map[pricing.ProductType]struct {
 	},
 	pricing.ProductTypeErrors: {
 		func(w *model.Workspace) *int { return w.ErrorsMaxCents },
-		pricing.GetWorkspaceSessionsMeter,
+		pricing.GetWorkspaceErrorsMeter,
 		func(w *model.Workspace) privateModel.RetentionPeriod {
 			if w.ErrorsRetentionPeriod == nil {
 				return privateModel.RetentionPeriodThreeMonths
@@ -1920,17 +1526,18 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.Produc
 		return false, 1
 	}
 
+	basePrice := pricing.ProductToBasePriceCents(productType, stripePlan)
 	retentionPeriod := cfg.retentionPeriod(workspace)
 	overage := meter - includedQuantity
 	cost := float64(overage) *
-		pricing.ProductToBasePriceCents(productType) *
+		basePrice *
 		pricing.RetentionMultiplier(retentionPeriod)
 
-	return cost >= float64(*maxCostCents), cost / float64(*maxCostCents)
+	return cost <= float64(*maxCostCents), cost / float64(*maxCostCents)
 }
 
 func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj *model.Session, group *model.ErrorGroup, errorObject *model.ErrorObject, visitedUrl string) {
-	r.AlertWorkerPool.SubmitRecover(func() {
+	func() {
 		var errorAlerts []*model.ErrorAlert
 		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).Find(&errorAlerts).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrap(err, "error fetching ErrorAlerts object"))
@@ -2020,15 +1627,15 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			numAlerts := int64(-1)
 			if err := r.DB.Raw(`
 				SELECT COUNT(*)
-				FROM alert_events
+				FROM error_alert_events ev
+				INNER JOIN error_objects obj
+				ON obj.id = ev.error_object_id
 				WHERE
-					project_id=?
-					AND type=?
-					AND (error_group_id IS NOT NULL
-						AND error_group_id=?)
-					AND alert_id=?
-					AND created_at > NOW() - ? * (INTERVAL '1 SECOND')
-			`, projectID, model.AlertType.ERROR, group.ID, errorAlert.ID, errorAlert.Frequency).Scan(&numAlerts).Error; err != nil {
+					(obj.error_group_id IS NOT NULL
+						AND obj.error_group_id=?)
+					AND ev.error_alert_id=?
+					AND ev.sent_at > NOW() - ? * (INTERVAL '1 SECOND')
+			`, group.ID, errorAlert.ID, errorAlert.Frequency).Scan(&numAlerts).Error; err != nil {
 				log.WithContext(ctx).Error(e.Wrapf(err, "error counting alert events from past %d seconds", errorAlert.Frequency))
 				return
 			}
@@ -2071,7 +1678,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 
 			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, ErrorObject: errorObject, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
 		}
-	})
+	}()
 }
 func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*publicModel.MetricInput) (int, error) {
 	if len(metrics) == 0 {
@@ -2126,7 +1733,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 	session := &model.Session{}
 	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
 		log.WithContext(ctx).Error(e.Wrapf(err, "no session found for push metrics: %s", sessionSecureID))
-		return err
+		return e.New("no session found for push metrics: " + sessionSecureID)
 	}
 	sessionID := session.ID
 	projectID := session.ProjectID
@@ -2355,6 +1962,10 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			continue
 		}
 
+		if v.Source == "" {
+			v.Source = privateModel.LogSourceBackend.String()
+		}
+
 		errorToInsert := &model.ErrorObject{
 			ProjectID:   projectID,
 			SessionID:   sessionID,
@@ -2378,10 +1989,15 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		err = json.Unmarshal([]byte(v.StackTrace), &structuredStackTrace)
 		if err != nil {
-			structuredStackTrace, err = stacktraces.StructureStackTrace(v.StackTrace)
+			structuredStackTrace, err = stacktraces.StructureOTELStackTrace(v.StackTrace)
 			if err != nil {
 				log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
 			}
+		}
+
+		err = r.MarkBackendSetupImpl(ctx, projectID, model.MarkBackendSetupTypeError)
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "Error marking backend error setup"))
 		}
 
 		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)
@@ -2390,6 +2006,8 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
 			} else if e.Is(err, ErrQuotaExceeded) {
 				log.WithContext(ctx).Warn(e.Wrap(err, "Error updating error group"))
+			} else if e.Is(err, ErrUserFilteredError) {
+				log.WithContext(ctx).Info(e.Wrap(err, "Error updating error group"))
 			} else {
 				log.WithContext(ctx).Error(e.Wrap(err, "Error updating error group"))
 			}
@@ -2596,11 +2214,18 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 	return nil
 }
 
-func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
+func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
+	// old clients do not send web socket events, so the value can be nil.
+	// use this str as a simpler way to reference
+	webSocketEventsStr := ""
+	if webSocketEvents != nil {
+		webSocketEventsStr = *webSocketEvents
+	}
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionSecureID", sessionSecureID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
 	querySessionSpan.SetTag("resourcesLength", len(resources))
+	querySessionSpan.SetTag("webSocketEventsLength", len(webSocketEventsStr))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
 	querySessionSpan.SetTag("numberOfEvents", len(events.Events))
 	if highlightLogs != nil {
@@ -2616,7 +2241,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 	}
 	sessionObj := &model.Session{}
 	if err := r.DB.Order("secure_id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&sessionObj).Error; err != nil || sessionObj.ID == 0 {
-		retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
+		retErr := e.New("error reading from session %v" + sessionSecureID)
 		querySessionSpan.Finish(tracer.WithError(retErr))
 		return retErr
 	}
@@ -2685,7 +2310,10 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					}
 
 					// Replace any static resources with our own, hosted in S3
-					if projectID == 1 || projectID == 1031 || projectID == 1344 || projectID == 5378 || projectID == 5403 {
+					if map[int]bool{
+						1: true, 1031: true, 1079: true,
+						1344: true, 5378: true, 5403: true, 6469: true,
+					}[projectID] {
 						assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
 							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID), tracer.Tag("session_secure_id", sessionSecureID))
 						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB, r.Redis)
@@ -2743,7 +2371,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 
 			if !lastUserInteractionTimestamp.IsZero() {
-				if err := r.DB.Model(&sessionObj).Update("LastUserInteractionTime", lastUserInteractionTimestamp).Error; err != nil {
+				if err := r.DB.Model(&sessionObj).Updates(&model.Session{
+					LastUserInteractionTime: lastUserInteractionTimestamp,
+				}).Error; err != nil {
 					return e.Wrap(err, "error updating LastUserInteractionTime")
 				}
 			}
@@ -2762,9 +2392,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			log.WithContext(ctx).WithError(err).Error("failed to parse console messages")
 		}
 
-		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeMessages, []byte(messages)); err != nil {
-			return e.Wrap(err, "error saving messages data")
-		}
 		return nil
 	})
 
@@ -2775,26 +2402,23 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
 		defer unmarshalResourcesSpan.Finish()
 
-		if sessionObj.AvoidPostgresStorage {
-			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
-				return e.Wrap(err, "error saving resources data")
-			}
-		} else {
-			if hasBeacon {
-				r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
-			}
-			resourcesParsed := make(map[string][]NetworkResource)
-			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-				return nil
-			}
-			if len(resourcesParsed["resources"]) > 0 {
-				if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
-					return err
-				}
-				obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
-				if err := r.DB.Create(obj).Error; err != nil {
-					return e.Wrap(err, "error creating resources object")
-				}
+		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
+			return e.Wrap(err, "error saving resources data")
+		}
+
+		return nil
+	})
+
+	// unmarshal WebSocket events
+	g.Go(func() error {
+		defer util.Recover()
+		if webSocketEventsStr != "" {
+			unmarshalWebSocketEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+				tracer.ResourceName("go.unmarshal.web_socket_events"), tracer.Tag("project_id", projectID))
+			defer unmarshalWebSocketEventsSpan.Finish()
+
+			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
+				return e.Wrap(err, "error saving web socket events data")
 			}
 		}
 
@@ -2944,7 +2568,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 
-	updateSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
+	updateSpan, updateSpanCtx := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("doSessionFieldsUpdate"))
 	defer updateSpan.Finish()
 
 	excluded, reason := r.isSessionExcluded(ctx, sessionObj, sessionHasErrors)
@@ -2994,27 +2618,392 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 
+	opensearchSpan, osCtx := tracer.StartSpanFromContext(updateSpanCtx, "public-graph.pushPayload", tracer.ResourceName("opensearch.update"))
+	defer opensearchSpan.Finish()
 	// If the session was previously marked as processed, clear this
 	// in OpenSearch so that it's treated as a live session again.
 	// If the session was previously excluded (as we do with new sessions by default),
 	// clear it so it is shown as live in OpenSearch since we now have data for it.
 	if (sessionObj.Processed != nil && *sessionObj.Processed) || (!excluded) {
-		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"processed":  false,
 			"Excluded":   false,
 			"has_errors": sessionHasErrors,
 		}); err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error updating session in opensearch"))
+			log.WithContext(osCtx).Error(e.Wrap(err, "error updating session in opensearch"))
 			return err
 		}
 	}
 
 	if sessionHasErrors {
-		if err := r.OpenSearch.Update(opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"has_errors": true,
 		}); err != nil {
-			log.WithContext(ctx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
+			log.WithContext(osCtx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
 			return err
+		}
+	}
+
+	// if the session changed from excluded to not excluded, it is viewable, so send any relevant alerts
+	if sessionObj.Excluded && !excluded {
+		return r.HandleSessionViewable(osCtx, projectID, sessionObj)
+	}
+
+	return nil
+}
+
+// HandleSessionViewable is called after the first events to a session are written.
+// It handles any alerts that must be sent for this session after it is able to be played.
+func (r *Resolver) HandleSessionViewable(ctx context.Context, projectID int, session *model.Session) error {
+	project, err := r.getProject(projectID)
+	if err != nil {
+		return err
+	}
+
+	workspace, err := r.getWorkspace(project.WorkspaceID)
+	if err != nil {
+		return err
+	}
+
+	g := errgroup.Group{}
+	g.Go(func() error {
+		return r.SendSessionInitAlert(ctx, workspace, projectID, session.ID)
+	})
+	if session.FirstTime != nil && *session.FirstTime {
+		g.Go(func() error {
+			return r.SendSessionIdentifiedAlert(ctx, workspace, session)
+		})
+	}
+	return g.Wait()
+}
+
+func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Workspace, projectID, sessionID int) error {
+	// Sending session init alert
+	var sessionAlerts []*model.SessionAlert
+	if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: projectID, Disabled: &model.F}}).
+		Where("type=?", model.AlertType.NEW_SESSION).Find(&sessionAlerts).Error; err != nil {
+		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching new session alert", projectID))
+		return err
+	}
+
+	sessionObj := &model.Session{}
+	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj).Error; err != nil {
+		retErr := e.Wrapf(err, "error reading from session %v", sessionID)
+		log.WithContext(ctx).Error(retErr)
+		return nil
+	}
+
+	for _, sessionAlert := range sessionAlerts {
+		// skip alerts that have already been sent for this session
+		var count int64
+		if err := r.DB.Model(&model.SessionAlertEvent{}).Where(&model.SessionAlertEvent{
+			SessionAlertID:  sessionAlert.ID,
+			SessionSecureID: sessionObj.SecureID,
+		}).Count(&count).Error; err != nil {
+			return err
+		}
+		if count > 0 {
+			continue
+		}
+		// check if session was produced from an excluded environment
+		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from new session alert", sessionObj.ProjectID))
+			return err
+		}
+
+		isExcludedEnvironment := false
+		for _, env := range excludedEnvironments {
+			if env != nil && *env == sessionObj.Environment {
+				isExcludedEnvironment = true
+				break
+			}
+		}
+		if isExcludedEnvironment {
+			return nil
+		}
+
+		// check if session was created by a should-ignore identifier
+		excludedIdentifiers, err := sessionAlert.GetExcludeRules()
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting exclude rules from new session alert", sessionObj.ProjectID))
+			return err
+		}
+		isSessionByExcludedIdentifier := false
+		for _, identifier := range excludedIdentifiers {
+			if identifier != nil && *identifier == sessionObj.Identifier {
+				isSessionByExcludedIdentifier = true
+				break
+			}
+		}
+		if isSessionByExcludedIdentifier {
+			return nil
+		}
+
+		var userProperties map[string]string
+		if sessionObj.UserProperties != "" {
+			userProperties, err = sessionObj.GetUserProperties()
+			if err != nil {
+				log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", sessionObj.ProjectID))
+				return err
+			}
+		}
+
+		var visitedUrl *string
+		for _, field := range sessionObj.Fields {
+			if field.Type == "session" && field.Name == "visited-url" {
+				visitedUrl = &field.Value
+				break
+			}
+		}
+
+		hookPayload := zapier.HookPayload{
+			UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl,
+		}
+		if err := r.RH.Notify(sessionObj.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending new session alert to zapier", sessionObj.ProjectID))
+		}
+
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
+		if err = alerts.SendNewSessionAlert(alerts.SendNewSessionAlertEvent{
+			Session:      sessionObj,
+			SessionAlert: sessionAlert,
+			Workspace:    workspace,
+			VisitedURL:   visitedUrl,
+		}); err != nil {
+			log.WithContext(ctx).Error(err)
+		}
+	}
+	return nil
+}
+
+func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspace *model.Workspace, session *model.Session, properties map[string]string) error {
+	alertWorkerSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
+		tracer.ResourceName("go.sessions.AppendProperties.alertWorker"), tracer.Tag("sessionID", session.ID))
+	defer alertWorkerSpan.Finish()
+	// Sending Track Properties Alert
+	var sessionAlerts []*model.SessionAlert
+	if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
+		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching track properties alert", session.ProjectID))
+		return err
+	}
+
+	for _, sessionAlert := range sessionAlerts {
+		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from track properties alert", session.ProjectID))
+			return err
+		}
+		isExcludedEnvironment := false
+		for _, env := range excludedEnvironments {
+			if env != nil && *env == session.Environment {
+				isExcludedEnvironment = true
+				break
+			}
+		}
+		if isExcludedEnvironment {
+			return nil
+		}
+
+		// get matched track properties between the alert and session
+		trackProperties, err := sessionAlert.GetTrackProperties()
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error getting track properties from session"))
+			return err
+		}
+		var trackPropertyIds []int
+		for _, trackProperty := range trackProperties {
+			trackPropertyIds = append(trackPropertyIds, trackProperty.ID)
+		}
+		stmt := r.DB.Model(&model.Field{}).
+			Where(&model.Field{ProjectID: session.ProjectID, Type: "track"}).
+			Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", session.ID).
+			Where("id IN ?", trackPropertyIds)
+		var matchedFields []*model.Field
+		if err := stmt.Find(&matchedFields).Error; err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error querying matched fields by session_id"))
+			return err
+		}
+		if len(matchedFields) < 1 {
+			return nil
+		}
+
+		// relatedFields is the list of fields not inside of matchedFields.
+		var relatedFields []*model.Field
+		for k, fv := range properties {
+			isAMatchedField := false
+
+			for _, matchedField := range matchedFields {
+				if matchedField.Name == k && matchedField.Value == fv {
+					isAMatchedField = true
+				}
+			}
+
+			if !isAMatchedField {
+				relatedFields = append(relatedFields, &model.Field{ProjectID: session.ProjectID, Name: k, Value: fv, Type: string(PropertyType.TRACK)})
+			}
+		}
+
+		// If the lengths are the same then there were not matched properties, so we don't need to send an alert.
+		if len(relatedFields) == len(properties) {
+			return nil
+		}
+
+		hookPayload := zapier.HookPayload{
+			UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject,
+		}
+		if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
+		}
+
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject})
+		if err = alerts.SendTrackPropertiesAlert(alerts.TrackPropertiesAlertEvent{
+			Session:       session,
+			SessionAlert:  sessionAlert,
+			Workspace:     workspace,
+			MatchedFields: matchedFields,
+			RelatedFields: relatedFields,
+		}); err != nil {
+			log.WithContext(ctx).Error(err)
+		}
+	}
+	return nil
+}
+
+func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *model.Workspace, session *model.Session) error {
+	// Sending New User Alert
+	var sessionAlerts []*model.SessionAlert
+	if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.NEW_USER).Find(&sessionAlerts).Error; err != nil {
+		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching new user alert", session.ProjectID))
+		return err
+	}
+
+	refetchedSession := &model.Session{}
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: session.ID}}).First(&refetchedSession).Error; err != nil {
+		retErr := e.Wrapf(err, "error reading from session %v", session.ID)
+		log.WithContext(ctx).Error(retErr)
+		return err
+	}
+	// get produced user properties from session
+	userProperties, err := refetchedSession.GetUserProperties()
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting user properties from new user alert", refetchedSession.ProjectID))
+		return err
+	}
+
+	for _, sessionAlert := range sessionAlerts {
+		// skip alerts that have already been sent for this session
+		var count int64
+		if err := r.DB.Model(&model.SessionAlertEvent{}).Where(&model.SessionAlertEvent{
+			SessionAlertID:  sessionAlert.ID,
+			SessionSecureID: session.SecureID,
+		}).Count(&count).Error; err != nil {
+			return err
+		}
+		if count > 0 {
+			continue
+		}
+		// check if session was produced from an excluded environment
+		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from new user alert", refetchedSession.ProjectID))
+			return err
+		}
+		isExcludedEnvironment := false
+		for _, env := range excludedEnvironments {
+			if env != nil && *env == refetchedSession.Environment {
+				isExcludedEnvironment = true
+				break
+			}
+		}
+		if isExcludedEnvironment {
+			return nil
+		}
+
+		hookPayload := zapier.HookPayload{
+			UserIdentifier: session.Identifier, UserProperties: userProperties, UserObject: session.UserObject,
+		}
+		if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending alert to zapier", session.ProjectID))
+		}
+
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: refetchedSession.SecureID, UserIdentifier: refetchedSession.Identifier, UserProperties: userProperties, UserObject: refetchedSession.UserObject})
+		if err = alerts.SendNewUserAlert(alerts.SendNewUserAlertEvent{
+			Session:      session,
+			SessionAlert: sessionAlert,
+			Workspace:    workspace,
+		}); err != nil {
+			log.WithContext(ctx).Error(err)
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace *model.Workspace, session *model.Session) error {
+	// Sending User Properties Alert
+	var sessionAlerts []*model.SessionAlert
+	if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
+		log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error fetching user properties alert", session.ProjectID))
+		return err
+	}
+
+	for _, sessionAlert := range sessionAlerts {
+		// check if session was produced from an excluded environment
+		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from user properties alert", session.ProjectID))
+			return err
+		}
+		isExcludedEnvironment := false
+		for _, env := range excludedEnvironments {
+			if env != nil && *env == session.Environment {
+				isExcludedEnvironment = true
+				break
+			}
+		}
+		if isExcludedEnvironment {
+			return nil
+		}
+
+		// get matched user properties between the alert and session
+		userProperties, err := sessionAlert.GetUserProperties()
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error getting user properties from session"))
+			return err
+		}
+		var userPropertyIds []int
+		for _, userProperty := range userProperties {
+			userPropertyIds = append(userPropertyIds, userProperty.ID)
+		}
+		stmt := r.DB.Model(&model.Field{}).
+			Where(&model.Field{ProjectID: session.ProjectID, Type: "user"}).
+			Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", session.ID).
+			Where("id IN ?", userPropertyIds)
+		var matchedFields []*model.Field
+		if err := stmt.Find(&matchedFields).Error; err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "error querying matched fields by session_id"))
+			return err
+		}
+		if len(matchedFields) < 1 {
+			return nil
+		}
+
+		hookPayload := zapier.HookPayload{
+			UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject,
+		}
+		if err := r.RH.Notify(session.ProjectID, fmt.Sprintf("SessionAlert_%d", sessionAlert.ID), hookPayload); err != nil {
+			log.WithContext(ctx).Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
+		}
+
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
+		if err = alerts.SendUserPropertiesAlert(alerts.UserPropertiesAlertEvent{
+			SessionAlert:  sessionAlert,
+			Session:       session,
+			Workspace:     workspace,
+			MatchedFields: matchedFields,
+		}); err != nil {
+			log.WithContext(ctx).Error(err)
 		}
 	}
 	return nil
@@ -3040,13 +3029,20 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 		reason = privateModel.SessionExcludedReasonNoError
 	}
 
+	if r.isSessionExcludedForNoUserEvents(ctx, s) {
+		excluded = true
+		reason = privateModel.SessionExcludedReasonNoUserEvents
+	}
+
 	return excluded, &reason
 }
 
-func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
-	projectFilterSettings := model.ProjectFilterSettings{}
+func (r *Resolver) isSessionExcludedForNoUserEvents(ctx context.Context, s *model.Session) bool {
+	return s.LastUserInteractionTime.Unix() == 0
+}
 
-	r.DB.Where(model.ProjectFilterSettings{ProjectID: project.ID}).FirstOrCreate(&projectFilterSettings)
+func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
+	projectFilterSettings, _ := r.Store.GetProjectFilterSettings(project)
 
 	if projectFilterSettings.FilterSessionsWithoutError {
 		return !sessionHasErrors
@@ -3114,65 +3110,4 @@ func isExcludedError(ctx context.Context, errorFilters []string, errorEvent stri
 		}
 	}
 	return false
-}
-
-func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
-	project := &model.Project{}
-	if err := r.DB.Model(&model.Project{}).Select("backend_domains").Where("id = ?", sessionObj.ProjectID).First(&project).Error; err != nil {
-		return e.Wrap(err, "error querying project")
-	}
-
-	var points []timeseries.Point
-	for _, re := range resources {
-		tags := map[string]string{
-			"session_id": strconv.Itoa(sessionObj.ID),
-			"group_name": re.RequestResponsePairs.Request.ID,
-		}
-		fields := map[string]interface{}{}
-		for key, value := range map[privateModel.NetworkRequestAttribute]float64{
-			privateModel.NetworkRequestAttributeBodySize:     float64(len(re.RequestResponsePairs.Request.Body)),
-			privateModel.NetworkRequestAttributeResponseSize: re.RequestResponsePairs.Response.Size,
-			privateModel.NetworkRequestAttributeStatus:       re.RequestResponsePairs.Response.Status,
-			privateModel.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
-		} {
-			fields[key.String()] = value
-		}
-		categories := map[privateModel.NetworkRequestAttribute]string{
-			privateModel.NetworkRequestAttributeMethod:        re.RequestResponsePairs.Request.Method,
-			privateModel.NetworkRequestAttributeInitiatorType: re.InitiatorType,
-			privateModel.NetworkRequestAttributeRequestID:     re.RequestResponsePairs.Request.ID,
-		}
-		requestBody := make(map[string]interface{})
-		// if the request body is json and contains the graphql key operationName, treat it as an operation
-		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
-			if _, ok := requestBody["operationName"]; ok {
-				categories[privateModel.NetworkRequestAttributeGraphqlOperation] = requestBody["operationName"].(string)
-			}
-		}
-
-		// only record urls for network requests that match config to limit metric cardinality
-		u, err := url.Parse(re.Name)
-		if err == nil {
-			for _, d := range project.BackendDomains {
-				if u.Host == d {
-					u.RawQuery = ""
-					u.Fragment = ""
-					categories[privateModel.NetworkRequestAttributeURL] = u.String()
-				}
-			}
-		}
-
-		for key, value := range categories {
-			tags[key.String()] = value
-		}
-		// request time is relative to session start
-		d, _ := time.ParseDuration(fmt.Sprintf("%fms", re.StartTime))
-		points = append(points, timeseries.Point{
-			Time:   sessionObj.CreatedAt.Add(d),
-			Tags:   tags,
-			Fields: fields,
-		})
-	}
-	r.TDB.Write(ctx, strconv.Itoa(sessionObj.ProjectID), timeseries.Metrics, points)
-	return nil
 }

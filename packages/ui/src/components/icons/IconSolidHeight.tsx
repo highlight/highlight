@@ -12,7 +12,7 @@ export const IconSolidHeight = ({ size = '1em', ...props }: IconProps) => {
 			focusable="false"
 			{...props}
 		>
-			<g clipPath="url(#a)">
+			<g clipPath="url(#clip0_590_7243)">
 				<path
 					fill="#7957FF"
 					d="m8.922 12.62.129-.107 6.473-.056.04.164a.409.409 0 0 1-.04.1c-.056.098-.177.168-.419.308l-6.25 3.616c-.622.36-.933.54-1.125.497a.505.505 0 0 1-.363-.315c-.07-.184.065-.518.335-1.185l1.22-3.021Z"
@@ -27,7 +27,7 @@ export const IconSolidHeight = ({ size = '1em', ...props }: IconProps) => {
 				/>
 			</g>
 			<defs>
-				<clipPath id="a">
+				<clipPath id="clip0_590_7243">
 					<path fill="#fff" d="M0 0h20v20H0z" />
 				</clipPath>
 			</defs>

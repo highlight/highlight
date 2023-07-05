@@ -6,7 +6,7 @@ import React from 'react'
 import { specific } from 'react-files-hooks'
 import ReactJson, { ReactJsonViewProps } from 'react-json-view'
 
-import styles from './JsonViewer.module.scss'
+import styles from './JsonViewer.module.css'
 
 type Props = { allowDownload?: boolean; downloadFileName?: string } & Pick<
 	ReactJsonViewProps,

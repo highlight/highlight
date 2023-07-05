@@ -25,7 +25,7 @@ var (
 	SessionsDeletedEmailTemplateID       = "d-d9e10ce22c774fc9850dd0b36ccde339"
 	DigestEmailTemplateID                = "d-5bb29dabe298425ab9422b74636516bd"
 	BillingNotificationTemplateID        = "d-9fa375187c114dc1a5b561e81fbee794"
-	SendGridOutboundEmail                = "gm@runhighlight.com"
+	SendGridOutboundEmail                = "notifications@notify.highlight.io"
 	SessionCommentMentionsAsmId          = 20950
 	ErrorCommentMentionsAsmId            = 20994
 	frontendUri                          = os.Getenv("FRONTEND_URI")

@@ -9,16 +9,17 @@ import {
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
 import { Heading, Stack } from '@highlight-run/ui'
-import { ApplicationContextProvider } from '@routers/ProjectRouter/context/ApplicationContext'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
 import { useDialogState } from 'ariakit/dialog'
-import { H } from 'highlight.run'
 import { useEffect } from 'react'
 import { StringParam, useQueryParams } from 'use-query-params'
 
+import BorderBox from '@/components/BorderBox/BorderBox'
 import { Header } from '@/components/Header/Header'
+import LeadAlignLayout from '@/components/layout/LeadAlignLayout'
 import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
+import { showIntercomBubble } from '@/util/window'
 
 type Props = {
 	token?: string | null
@@ -48,27 +49,8 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 			<>
 				<p>Link is invalid or has expired.</p>
 				<p>
-					Please reach out to us on{' '}
-					<a
-						onClick={async () => {
-							const sessionId = await H.getSessionURL()
-
-							window.Intercom('boot', {
-								app_id: 'gm6369ty',
-								alignment: 'right',
-								hide_default_launcher: true,
-								sessionId,
-							})
-							window.Intercom('showNewMessage')
-						}}
-					>
-						Intercom
-					</a>{' '}
-					or email{' '}
-					<a href="mailto:support@highlight.io">
-						support@highlight.io
-					</a>
-					.
+					Please reach out to us if you have any questions or need
+					assistance.
 				</p>
 			</>
 		)
@@ -105,34 +87,36 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 					Notifications
 				</Heading>
 				<Stack gap="12" direction="column">
-					{categories.map((c) =>
-						ToggleRow(
-							c.label,
-							c.info,
-							!optOuts.has(c.type),
-							(isOptIn: boolean) => {
-								updateEmailOptOut({
-									variables: {
-										token,
-										admin_id,
-										category: c.type,
-										is_opt_out: !isOptIn,
-									},
-								})
-									.then(() => {
-										message.success(
-											`Opted ${
-												isOptIn ? 'in to' : 'out of'
-											} ${c.type} emails.`,
-										)
+					{categories.map((c) => (
+						<BorderBox key={c.label}>
+							{ToggleRow(
+								c.label,
+								c.info,
+								!optOuts.has(c.type),
+								(isOptIn: boolean) => {
+									updateEmailOptOut({
+										variables: {
+											token,
+											admin_id,
+											category: c.type,
+											is_opt_out: !isOptIn,
+										},
 									})
-									.catch((reason: any) => {
-										message.error(String(reason))
-									})
-							},
-							optOutAll,
-						),
-					)}
+										.then(() => {
+											message.success(
+												`Opted ${
+													isOptIn ? 'in to' : 'out of'
+												} ${c.type} emails.`,
+											)
+										})
+										.catch((reason: any) => {
+											message.error(String(reason))
+										})
+								},
+								optOutAll,
+							)}
+						</BorderBox>
+					))}
 				</Stack>
 			</Stack>
 		)
@@ -147,32 +131,28 @@ export const EmailOptOutPage = () => {
 
 	const commandBarDialog = useDialogState()
 
+	useEffect(() => {
+		// Show the Intercom message after 5 seconds in case the user needs help.
+		setTimeout(() => {
+			showIntercomBubble()
+		}, 5000)
+	}, [])
+
 	return (
-		<ApplicationContextProvider
+		<GlobalContextProvider
 			value={{
-				currentProject: undefined,
-				allProjects: [],
-				currentWorkspace: undefined,
-				workspaces: [],
+				showKeyboardShortcutsGuide: false,
+				toggleShowKeyboardShortcutsGuide: () => {},
+				showBanner: false,
+				toggleShowBanner: () => {},
+				commandBarDialog,
 			}}
 		>
-			<GlobalContextProvider
-				value={{
-					showKeyboardShortcutsGuide: false,
-					toggleShowKeyboardShortcutsGuide: () => {},
-					showBanner: false,
-					toggleShowBanner: () => {},
-					commandBarDialog,
-				}}
-			>
-				<div>
-					<Header />
-					<div>
-						<h1>Email Settings</h1>
-						<EmailOptOutPanel token={token} admin_id={admin_id} />
-					</div>
-				</div>
-			</GlobalContextProvider>
-		</ApplicationContextProvider>
+			<Header />
+			<LeadAlignLayout>
+				<h1>Email Settings</h1>
+				<EmailOptOutPanel token={token} admin_id={admin_id} />
+			</LeadAlignLayout>
+		</GlobalContextProvider>
 	)
 }

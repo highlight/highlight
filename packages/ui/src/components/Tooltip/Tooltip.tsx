@@ -7,11 +7,14 @@ import {
 import React from 'react'
 import { Box } from '../Box/Box'
 
+const STANDARD_DELAY = 500
+
 export type TooltipProps = Partial<TooltipState> &
 	React.PropsWithChildren<{
 		trigger: React.ReactNode
 		disabled?: boolean
 		style?: React.CSSProperties
+		delayed?: boolean
 	}>
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -19,11 +22,13 @@ export const Tooltip: React.FC<TooltipProps> = ({
 	trigger,
 	disabled,
 	style,
+	delayed,
 	...props
 }: TooltipProps) => {
 	const tooltipState = useTooltipState({
 		placement: 'top',
 		gutter: 4,
+		timeout: delayed ? STANDARD_DELAY : 0,
 		...props,
 	})
 

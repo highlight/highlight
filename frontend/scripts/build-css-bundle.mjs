@@ -38,7 +38,12 @@ export const run = async ({ rootDirectory }) => {
 
 				await fs.promises.writeFile(
 					path_.join(outputDirectory, 'index.css'),
-					cssOutput.contents,
+					// vanilla extract outputs comments that seem to depend on absolute path
+					// need to strip them for consistent output between local and ci
+					cssOutput.text.replaceAll(
+						/\n\/\* vanilla-extract-css-ns\:.*\n/g,
+						'',
+					),
 				)
 				console.log(new Date(), 'built css bundle', cssOutput.path)
 			})
@@ -57,15 +62,16 @@ export const run = async ({ rootDirectory }) => {
 		platform: 'browser',
 		outdir: outputDirectory,
 		outbase: workingDirectory,
-		minify: false, // Makes diffs smaller and more readable. Reflame will minify server-side.
+		minify: false,
 		splitting: false,
 		target: 'esnext',
 		plugins: [
+			ignorePlugin,
 			// Style plugin doesn't respect esbuild externals
 			// FIXME: follow https://github.com/g45t345rt/esbuild-style-plugin/pull/18
 			{
 				name: 'styleIgnorePlugin',
-				setup: ({ onResolve }) => {
+				setup: ({ onResolve, onLoad }) => {
 					Object.keys(packageJson.dependencies).forEach((pkg) => {
 						onResolve(
 							{
@@ -78,23 +84,36 @@ export const run = async ({ rootDirectory }) => {
 							}),
 						)
 					})
+
+					// We don't need css handled by stylePlugin now that
+					// Reflame has native css modules support
+					// Just need it to handle tailwind for now.
+					onLoad(
+						{ filter: /\.(css)$/, namespace: 'stylePlugin' },
+						({ path }) =>
+							path.endsWith('/tailwind.css')
+								? undefined
+								: {
+										contents: '',
+								  },
+					)
 				},
 			},
 			stylePlugin({
-				cssModulesOptions: {
-					localsConvention: 'camelCaseOnly',
-				},
 				postcss: {
 					plugins: [tailwindcss()],
 				},
 			}),
-			ignorePlugin,
 			vanillaExtractPlugin({ identifiers: 'short' }),
 			resultPlugin,
 		],
 		external: [
 			'consts:publicGraphURI',
 			...Object.keys(packageJson.dependencies).flatMap((pkg) => [
+				pkg,
+				`${pkg}/*`,
+			]),
+			...Object.keys(packageJson.devDependencies).flatMap((pkg) => [
 				pkg,
 				`${pkg}/*`,
 			]),

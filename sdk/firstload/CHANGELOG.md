@@ -209,3 +209,84 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Minor Changes
 
 - Adds an `H.start({forceNew: true})` option that allows forcing the start of a new session recording.
+
+## 6.5.1
+
+### Patch Changes
+
+- Turn off client sourcemaps as they cause issues with next.js frontends.
+
+
+## 6.5.2
+
+### Patch Changes
+
+- Target ES6 for library build compatibility.
+
+## 6.5.3
+
+### Patch Changes
+
+- The Highlight `window.fetch` proxy was only forwarding headers from `RequestInit`. It now forwards headers from `RequestInfo` as well.
+- Target ES6 for library build compatability.
+
+## 7.0.0
+
+### Breaking Changes
+
+- Removed the `feedbackWidget` option.
+
+## 7.1.0
+
+### Minor Changes
+
+- Improves the experience of configuring cross-origin `<iframe>` recording.
+
+## 7.1.1
+
+### Patch Changes
+
+- Extends the length of recorded sessions for a given project.
+
+## 7.1.2
+
+### Minor Changes
+
+- Avoid initializing highlight fetch monkeypatch more than once.
+
+## 7.2.0
+
+### Minor Changes
+
+- Capture unhandled promise exceptions in highlight errors.
+
+## 7.3.0
+
+### Minor Changes
+
+- Update format of data sent in for WebSocket events
+
+## 7.3.1
+
+### Patch Changes
+
+- Increase data transmission retry delays.
+
+## 7.3.2
+
+### Patch Changes
+
+- Ensure compatibility with native `window.Highlight` [class](https://developer.mozilla.org/en-US/docs/Web/API/Highlight).
+
+## 7.3.3
+
+### Patch Changes
+
+- Ensure `console.error` caught stack traces are not missing the top frame.
+
+## 7.3.4
+
+### Patch Changes
+
+- Add easier testing of local `@highlight-run/client` and `highlight.run` scripts.
+- Look for `window.HighlightIO` instead of `window.Highlight` when waiting for client script to load.

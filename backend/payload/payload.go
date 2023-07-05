@@ -52,6 +52,14 @@ func (r *ResourcesUnmarshalled) getArray() []interface{} {
 	return r.Resources
 }
 
+type WebSocketEventsUnmarshalled struct {
+	WebSocketEvents []interface{}
+}
+
+func (r *WebSocketEventsUnmarshalled) getArray() []interface{} {
+	return r.WebSocketEvents
+}
+
 type MessagesUnmarshalled struct {
 	Messages []interface{}
 }
@@ -126,23 +134,23 @@ func (w *CompressedWriter) Close() error {
 }
 
 type PayloadManager struct {
-	EventsCompressed        *CompressedWriter
-	ResourcesCompressed     *CompressedWriter
-	MessagesCompressed      *CompressedWriter
-	EventsChunked           *CompressedWriter
-	TimelineIndicatorEvents *CompressedWriter
-	ChunkIndex              int
-	files                   map[FileType]*FileInfo
+	EventsCompressed          *CompressedWriter
+	ResourcesCompressed       *CompressedWriter
+	WebSocketEventsCompressed *CompressedWriter
+	EventsChunked             *CompressedWriter
+	TimelineIndicatorEvents   *CompressedWriter
+	ChunkIndex                int
+	files                     map[FileType]*FileInfo
 }
 
 type FileType string
 
 const (
-	EventsCompressed        FileType = "EventsCompressed"
-	ResourcesCompressed     FileType = "ResourcesCompressed"
-	MessagesCompressed      FileType = "MessagesCompressed"
-	EventsChunked           FileType = "EventsChunked"
-	TimelineIndicatorEvents FileType = "TimelineIndicatorEvents"
+	EventsCompressed          FileType = "EventsCompressed"
+	ResourcesCompressed       FileType = "ResourcesCompressed"
+	WebSocketEventsCompressed FileType = "WebSocketEventsCompressed"
+	EventsChunked             FileType = "EventsChunked"
+	TimelineIndicatorEvents   FileType = "TimelineIndicatorEvents"
 )
 
 type FileInfo struct {
@@ -181,9 +189,9 @@ func NewPayloadManager(ctx context.Context, filenamePrefix string) (*PayloadMana
 			suffix: ".resources.json.br",
 			ddTag:  "resourcesCompressedPayloadSize",
 		},
-		MessagesCompressed: {
-			suffix: ".messages.json.br",
-			ddTag:  "messagesCompressedPayloadSize",
+		WebSocketEventsCompressed: {
+			suffix: ".websocketevents.json.br",
+			ddTag:  "webSocketEventsCompressedPayloadSize",
 		},
 		TimelineIndicatorEvents: {
 			suffix: ".timelineindicatorevents.json.br",
@@ -209,8 +217,8 @@ func NewPayloadManager(ctx context.Context, filenamePrefix string) (*PayloadMana
 			manager.EventsCompressed = NewCompressedWriter(fileInfo.file)
 		case ResourcesCompressed:
 			manager.ResourcesCompressed = NewCompressedWriter(fileInfo.file)
-		case MessagesCompressed:
-			manager.MessagesCompressed = NewCompressedWriter(fileInfo.file)
+		case WebSocketEventsCompressed:
+			manager.WebSocketEventsCompressed = NewCompressedWriter(fileInfo.file)
 		case TimelineIndicatorEvents:
 			manager.TimelineIndicatorEvents = NewCompressedWriter(fileInfo.file)
 		}

@@ -1,5 +1,6 @@
 import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
+import { tsconfig } from '../../shared-snippets'
 import { frontendInstallSnippet } from '../shared-snippets'
 import {
 	addIntegrationContent,
@@ -22,8 +23,9 @@ export const JSCloudflareContent: QuickStartContent = {
 				' ' +
 				'The `sendResponse` method traces successful requests while `consumeError` reports exceptions. ' +
 				'All Highlight data submission uses [waitUntil](https://developers.cloudflare.com/workers/runtime-apis/fetch-event/#waituntil) to make sure that we have no impact on request handling performance.',
-			code: {
-				text: `import { H } from '@highlight-run/cloudflare'
+			code: [
+				{
+					text: `import { H } from '@highlight-run/cloudflare'
 
 async function doRequest() {
   return new Response('hello!')
@@ -31,28 +33,32 @@ async function doRequest() {
 
 export default {
   async fetch(request: Request, env: {}, ctx: ExecutionContext) {
-    const hEnv = { HIGHLIGHT_PROJECT_ID: '<YOUR_PROJECT_ID>' }
+    H.init(request, { HIGHLIGHT_PROJECT_ID: '<YOUR_PROJECT_ID>' }, ctx)
+    console.log('starting some work...')
     try {
       const response = await doRequest()
-      H.sendResponse(request, hEnv, ctx, response)
+      H.sendResponse(response)
       return response
     } catch (e: any) {
-      H.consumeError(request, hEnv, ctx, e)
+      H.consumeError(e)
       throw e
     }
   },
 }`,
-				language: `js`,
-			},
+					language: `js`,
+				},
+			],
 		},
 		verifyError(
 			'cloudflare',
 			`export default {
   async fetch(request: Request, env: {}, ctx: ExecutionContext) {
-    H.consumeError(request, { HIGHLIGHT_PROJECT_ID: '<YOUR_PROJECT_ID>' }, ctx, new Error('example error!'))
+    H.init(request, { HIGHLIGHT_PROJECT_ID: '<YOUR_PROJECT_ID>' }, ctx)
+    H.consumeError(new Error('example error!'))
   },
 }`,
 		),
+		tsconfig,
 		setupLogging('cloudflare'),
 	],
 }

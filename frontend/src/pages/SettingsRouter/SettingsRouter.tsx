@@ -1,6 +1,7 @@
 import { Box, Stack, Text } from '@highlight-run/ui'
 import WorkspaceSettings from '@pages/WorkspaceSettings/WorkspaceSettings'
 import WorkspaceTeam from '@pages/WorkspaceTeam/WorkspaceTeam'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
@@ -21,7 +22,6 @@ import { ProjectColorLabel } from '@/pages/ProjectSettings/ProjectColorLabel/Pro
 import ProjectSettings from '@/pages/ProjectSettings/ProjectSettings'
 import Auth from '@/pages/UserSettings/Auth/Auth'
 import { PlayerForm } from '@/pages/UserSettings/PlayerForm/PlayerForm'
-import { useApplicationContext } from '@/routers/ProjectRouter/context/ApplicationContext'
 import { auth } from '@/util/auth'
 
 import * as styles from './SettingsRouter.css'
@@ -32,7 +32,7 @@ const UpdatePlanPage = React.lazy(() => import('../Billing/UpdatePlanPage'))
 const getTitle = (tab: WorkspaceSettingsTab | string): string => {
 	switch (tab) {
 		case 'team':
-			return 'User management'
+			return 'Members'
 		case 'settings':
 			return 'Properties'
 		case 'current-plan':
@@ -85,6 +85,7 @@ export const SettingsRouter = () => {
 	const workspaceSettingTabs = [
 		{
 			key: 'team',
+			pathParam: '/:member_tab_key?',
 			title: getTitle('team'),
 			panelContent: <WorkspaceTeam />,
 		},
@@ -257,13 +258,18 @@ export const SettingsRouter = () => {
 					>
 						<Box overflowY="scroll" height="full">
 							<Routes>
-								{workspaceSettingTabs.map((tab) => (
-									<Route
-										key={tab.key}
-										path={`${tab.key}`}
-										element={tab.panelContent}
-									/>
-								))}
+								{workspaceSettingTabs.map((tab) => {
+									const path = tab.pathParam
+										? `${tab.key}${tab.pathParam}`
+										: tab.key
+									return (
+										<Route
+											key={tab.key}
+											path={path}
+											element={tab.panelContent}
+										/>
+									)
+								})}
 								<Route
 									path="current-plan/success"
 									element={billingContent}

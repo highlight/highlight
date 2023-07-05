@@ -3,7 +3,7 @@ import 'react-loading-skeleton/dist/skeleton.css'
 import React from 'react'
 import SkeletonComponent, { SkeletonProps } from 'react-loading-skeleton'
 
-import styles from './Skeleton.module.scss'
+import styles from './Skeleton.module.css'
 
 type Props = Pick<
 	SkeletonProps,

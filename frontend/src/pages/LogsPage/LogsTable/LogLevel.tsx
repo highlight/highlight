@@ -13,9 +13,7 @@ const LogLevel = ({ level }: Props) => {
 
 	return (
 		<Box flexShrink={0} style={{ color, width: 46 }}>
-			<Text weight="bold" family="monospace">
-				{level.toUpperCase()}
-			</Text>
+			<Text family="monospace">{level.toUpperCase()}</Text>
 		</Box>
 	)
 }

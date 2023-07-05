@@ -14,7 +14,7 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { VercelIntegrationSettings } from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
 import { Landing } from '@pages/Landing/Landing'
-import { ApplicationContextProvider } from '@routers/ProjectRouter/context/ApplicationContext'
+import { ApplicationContextProvider } from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
@@ -179,6 +179,7 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 	return (
 		<ApplicationContextProvider
 			value={{
+				loading: false,
 				currentProject: undefined,
 				allProjects: data?.projects || [],
 				currentWorkspace: undefined,
@@ -405,6 +406,7 @@ const IntegrationAuthCallbackPage = () => {
 		return (
 			<ApplicationContextProvider
 				value={{
+					loading: false,
 					currentProject: undefined,
 					allProjects: [],
 					currentWorkspace: workspaceId

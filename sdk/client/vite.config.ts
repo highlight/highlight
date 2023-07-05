@@ -1,6 +1,7 @@
 // vite.config.ts
-import { resolve } from 'path'
+
 import { defineConfig } from 'vite'
+import { resolve } from 'path'
 
 export default defineConfig({
 	envPrefix: ['REACT_APP_'],
@@ -13,6 +14,7 @@ export default defineConfig({
 		},
 	},
 	build: {
+		target: 'es6',
 		lib: {
 			formats: ['umd'],
 			entry: resolve(__dirname, 'src/index.tsx'),
@@ -26,7 +28,7 @@ export default defineConfig({
 		},
 		minify: 'terser',
 		emptyOutDir: false,
-		sourcemap: true,
+		sourcemap: false,
 	},
 	define: {
 		// used by dependencies of highlight-client-worker

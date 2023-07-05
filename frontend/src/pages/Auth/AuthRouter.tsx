@@ -1,8 +1,4 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import {
-	AppLoadingState,
-	useAppLoadingContext,
-} from '@context/AppLoadingContext'
 import { Box } from '@highlight-run/ui'
 import { MultiFactor } from '@pages/Auth/MultiFactor'
 import { ResetPassword } from '@pages/Auth/ResetPassword'
@@ -10,25 +6,19 @@ import { SignIn } from '@pages/Auth/SignIn'
 import { SignUp } from '@pages/Auth/SignUp'
 import { Landing } from '@pages/Landing/Landing'
 import firebase from 'firebase/compat/app'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import * as styles from './AuthRouter.css'
 
 export const SIGN_IN_ROUTE = '/sign_in'
+export const SIGN_UP_ROUTE = '/sign_up'
 
 export const AuthRouter: React.FC = () => {
 	const { isAuthLoading } = useAuthContext()
-	const { setLoadingState } = useAppLoadingContext()
 
 	const [resolver, setResolver] =
 		useState<firebase.auth.MultiFactorResolver>()
-
-	useEffect(() => {
-		if (isAuthLoading) {
-			setLoadingState(AppLoadingState.LOADING)
-		}
-	}, [isAuthLoading, setLoadingState])
 
 	if (isAuthLoading) {
 		return null
@@ -42,7 +32,7 @@ export const AuthRouter: React.FC = () => {
 						path={SIGN_IN_ROUTE}
 						element={<SignIn setResolver={setResolver} />}
 					/>
-					<Route path="/sign_up" element={<SignUp />} />
+					<Route path={SIGN_UP_ROUTE} element={<SignUp />} />
 					<Route
 						path="/multi_factor"
 						element={<MultiFactor resolver={resolver} />}

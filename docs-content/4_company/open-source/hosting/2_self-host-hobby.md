@@ -15,10 +15,6 @@ Interested in deploying highlight.io on your local machine or on a small remote 
     </DocsCard>
 </DocsCardGroup>
 
-## Pricing
-
-Pricing for our self-hosted enterprise deployment starts at $3k / month. Contact us at jay@highlight.io, or message us [on discord](https://community.highlight.io) to get in touch.
-
 # Limitations
 
 We don't recommend hosting Highlight yourself if you have more than 10k monthly sessions or 50k monthly errors. The infrastructure configuration in the docker compose is not meant to scale beyond a small number of sessions, and isn't resilient to an outage or version upgrades.

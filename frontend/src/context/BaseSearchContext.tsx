@@ -2,6 +2,8 @@ import { DateHistogramBucketSize } from '@graph/schemas'
 import { identity, omitBy, pickBy } from 'lodash'
 import moment from 'moment'
 
+export type Segment = { name: string; id: string } | undefined
+
 export type BackendSearchQuery =
 	| undefined
 	| {
@@ -19,33 +21,23 @@ export function normalizeParams<T>(params: object) {
 	)
 }
 
-export type BaseSearchContext<T> = {
+export type BaseSearchContext = {
 	/** Local changes to the segment parameters that might not be persisted to the database. */
-	searchParams: T
-	setSearchParams: React.Dispatch<React.SetStateAction<T>>
+	searchQuery: string
+	setSearchQuery: React.Dispatch<React.SetStateAction<string>>
 	/** The parameters that are persisted to the database. These params are saved to a segment. */
-	existingParams: T
-	setExistingParams: React.Dispatch<React.SetStateAction<T>>
-	selectedSegment: { name: string; id: string } | undefined
-	setSelectedSegment: (
-		newValue:
-			| {
-					name: string
-					id: string
-			  }
-			| undefined,
-	) => void
+	existingQuery: string
+	selectedSegment: Segment
+	setSelectedSegment: (newValue: Segment, query: string) => void
 	removeSelectedSegment: () => void
 	/** The query sent to the backend */
 	backendSearchQuery: BackendSearchQuery
-	setBackendSearchQuery: React.Dispatch<
-		React.SetStateAction<BackendSearchQuery>
-	>
-	page?: number
-	setPage: React.Dispatch<React.SetStateAction<number | undefined>>
+	page: number
+	setPage: React.Dispatch<React.SetStateAction<number>>
 	searchResultsLoading: boolean
 	setSearchResultsLoading: React.Dispatch<React.SetStateAction<boolean>>
-	searchResultsCount: number
-	setSearchResultsCount: React.Dispatch<React.SetStateAction<number>>
-	query?: string
+	searchResultsCount: number | undefined
+	setSearchResultsCount: React.Dispatch<
+		React.SetStateAction<number | undefined>
+	>
 }

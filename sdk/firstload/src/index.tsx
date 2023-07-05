@@ -1,13 +1,7 @@
-import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
 import {
 	AmplitudeAPI,
 	setupAmplitudeIntegration,
 } from './integrations/amplitude'
-import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
-import { initializeFetchListener } from './listeners/fetch'
-import { getPreviousSessionData } from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
-import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners'
-import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
 import type {
 	Highlight,
 	HighlightClassOptions,
@@ -19,11 +13,17 @@ import type {
 	Metric,
 	SessionDetails,
 } from '@highlight-run/client/src/types/types'
+import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
+
+import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners'
+import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
 import { HighlightSegmentMiddleware } from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
 import firstloadVersion from './__generated/version'
-
-initializeFetchListener()
+import { getPreviousSessionData } from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
+import { initializeFetchListener } from './listeners/fetch'
+import { initializeWebSocketListener } from './listeners/web-socket'
+import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
 
 enum MetricCategory {
 	Device = 'Device',
@@ -37,7 +37,7 @@ const HighlightWarning = (context: string, msg: any) => {
 }
 
 interface HighlightWindow extends Window {
-	Highlight: new (
+	HighlightIO: new (
 		options: HighlightClassOptions,
 		firstLoadListeners: FirstLoadListeners,
 	) => Highlight
@@ -49,10 +49,10 @@ interface HighlightWindow extends Window {
 
 declare var window: HighlightWindow
 
-var script: HTMLScriptElement
-var highlight_obj: Highlight
-var first_load_listeners: FirstLoadListeners
-var init_called = false
+let script: HTMLScriptElement
+let highlight_obj: Highlight
+let first_load_listeners: FirstLoadListeners
+let init_called = false
 const H: HighlightPublicInterface = {
 	options: undefined,
 	init: (projectID?: string | number, options?: HighlightOptions) => {
@@ -114,12 +114,10 @@ const H: HighlightPublicInterface = {
 				inlineImages: options?.inlineImages,
 				inlineStylesheet: options?.inlineStylesheet,
 				recordCrossOriginIframe: options?.recordCrossOriginIframe,
-				isCrossOriginIframe: options?.isCrossOriginIframe,
 				firstloadVersion,
 				environment: options?.environment || 'production',
 				appVersion: options?.version,
 				sessionShortcut: options?.sessionShortcut,
-				feedbackWidget: options?.feedbackWidget,
 				sessionSecureID: sessionSecureID,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
@@ -130,7 +128,7 @@ const H: HighlightPublicInterface = {
 			}
 			script.addEventListener('load', () => {
 				const startFunction = () => {
-					highlight_obj = new window.Highlight(
+					highlight_obj = new window.HighlightIO(
 						client_options,
 						first_load_listeners,
 					)
@@ -139,11 +137,11 @@ const H: HighlightPublicInterface = {
 					}
 				}
 
-				if ('Highlight' in window) {
+				if ('HighlightIO' in window) {
 					startFunction()
 				} else {
 					const interval = setInterval(() => {
-						if ('Highlight' in window) {
+						if ('HighlightIO' in window) {
 							startFunction()
 							clearInterval(interval)
 						}
@@ -182,15 +180,6 @@ const H: HighlightPublicInterface = {
 					user_email: userEmail,
 					user_name: userName,
 				}),
-			)
-		} catch (e) {
-			HighlightWarning('error', e)
-		}
-	},
-	toggleSessionFeedbackModal: () => {
-		try {
-			H.onHighlightReady(() =>
-				highlight_obj.toggleFeedbackWidgetVisibility(),
 			)
 		} catch (e) {
 			HighlightWarning('error', e)
@@ -394,6 +383,8 @@ if (typeof window !== 'undefined') {
 }
 
 listenToChromeExtensionMessage()
+initializeFetchListener()
+initializeWebSocketListener()
 
 export type { HighlightOptions }
 export {

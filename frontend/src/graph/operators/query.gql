@@ -297,6 +297,13 @@ query GetWorkspaceAdmins($workspace_id: ID!) {
 	}
 }
 
+query GetSessionInsight($secure_id: String!) {
+	session_insight(secure_id: $secure_id) {
+		id
+		insight
+	}
+}
+
 query GetSessionComments($session_secure_id: String!) {
 	session_comments(session_secure_id: $session_secure_id) {
 		id
@@ -511,8 +518,16 @@ query GetTimelineIndicatorEvents($session_secure_id: String!) {
 	}
 }
 
-query GetFieldTypes($project_id: ID!) {
-	field_types(project_id: $project_id) {
+query GetFieldTypes(
+	$project_id: ID!
+	$start_date: Timestamp
+	$end_date: Timestamp
+) {
+	field_types(
+		project_id: $project_id
+		start_date: $start_date
+		end_date: $end_date
+	) {
 		type
 		name
 	}
@@ -1155,10 +1170,6 @@ query GetRecentErrors($secure_id: String!) {
 	}
 }
 
-query GetMessages($session_secure_id: String!) {
-	messages(session_secure_id: $session_secure_id)
-}
-
 query GetResources($session_secure_id: String!) {
 	resources(session_secure_id: $session_secure_id)
 }
@@ -1324,7 +1335,7 @@ query GetSegments($project_id: ID!) {
 }
 
 query GetErrorSegments($project_id: ID!) {
-	error_segments(project_id: $project_id) {
+	segments: error_segments(project_id: $project_id) {
 		id
 		name
 		params {
@@ -1750,9 +1761,6 @@ query GetAlertsPagePayload($project_id: ID!) {
 		DailyFrequency
 		disabled
 	}
-	session_feedback_alerts(project_id: $project_id) {
-		...SessionAlertFragment
-	}
 	new_session_alerts(project_id: $project_id) {
 		...SessionAlertFragment
 	}
@@ -2068,9 +2076,30 @@ query GetLogsErrorObjects($log_cursors: [String!]!) {
 	}
 }
 
-query GetProjectFilterSettings($projectId: ID!) {
-	projectFilterSettings(projectId: $projectId) {
+query GetProjectSettings($projectId: ID!) {
+	projectSettings(projectId: $projectId) {
 		id
+		name
+		verbose_id
+		billing_email
+		excluded_users
+		error_filters
+		error_json_paths
+		filter_chrome_extension
+		rage_click_window_seconds
+		rage_click_radius_pixels
+		rage_click_count
+		backend_domains
 		filterSessionsWithoutError
+		autoResolveStaleErrorsDayInterval
+	}
+}
+
+query GetWorkspacePendingInvites($workspace_id: ID!) {
+	workspacePendingInvites(workspace_id: $workspace_id) {
+		id
+		invitee_email
+		invitee_role
+		created_at
 	}
 }

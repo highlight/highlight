@@ -39,7 +39,7 @@ slug: python
       </article>
     </aside>
     <aside className="parameter">
-      <h5>record_logs<code>boolean</code> <code>optional</code></h5>
+      <h5>instrument_logging<code>boolean</code> <code>optional</code></h5>
       <p>If enabled, Highlight will record log output from the logging module.</p>
     </aside>
   </div>
@@ -49,19 +49,19 @@ slug: python
         import highlight_io
         from highlight_io.integrations.flask import FlaskIntegration
         app = Flask('test-app')
-        H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[FlaskIntegration()], record_logs=True)
+        H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[FlaskIntegration()], instrument_logging=True)
     </code>
     In Django, you'll add Highlight to your settings.py file:
     <code>
         import highlight_io
         from highlight_io.integrations.django import DjangoIntegration
-        H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[DjangoIntegration()], record_logs=True)
+        H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[DjangoIntegration()], instrument_logging=True)
     </code>
     In FastAPI, you'll add Highlight as a middleware:
     <code>
         import highlight_io
         from highlight_io.integrations.fastapi import FastAPIMiddleware
-        H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
+        H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
         app = FastAPI()
         app.add_middleware(FastAPIMiddleware)
     </code>

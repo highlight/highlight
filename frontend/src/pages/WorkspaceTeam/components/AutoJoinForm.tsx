@@ -11,16 +11,20 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 
-import styles from './AutoJoinForm.module.scss'
+import styles from './AutoJoinForm.module.css'
 
 const COMMON_EMAIL_PROVIDERS = ['gmail', 'yahoo', 'hotmail']
 
 function AutoJoinForm({
 	updateOrigins,
 	newWorkspace,
+	label,
+	labelFirst,
 }: {
 	updateOrigins?: (domains: string[]) => void
 	newWorkspace?: boolean
+	label?: string
+	labelFirst?: boolean
 }) {
 	const [origins, setOrigins] = useState<{
 		emailOrigins: string[]
@@ -103,7 +107,8 @@ function AutoJoinForm({
 			<div className={styles.container}>
 				<Switch
 					trackingId="WorkspaceAutoJoin"
-					label="Enable Auto Join"
+					label={label || 'Enable Auto Join'}
+					labelFirst={labelFirst}
 					checked={origins.emailOrigins.length > 0}
 					loading={loading}
 					onChange={(checked) => {

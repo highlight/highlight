@@ -7,13 +7,13 @@ import {
 } from '@graph/hooks'
 import SvgCloseIcon from '@icons/CloseIcon'
 import { GITHUB_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { SelectProps } from 'antd'
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './SessionCommentTagSelect.module.scss'
+import styles from './SessionCommentTagSelect.module.css'
 
 type Props = Pick<
 	SelectProps<any>,

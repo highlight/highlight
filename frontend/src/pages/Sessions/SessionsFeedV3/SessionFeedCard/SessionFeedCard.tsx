@@ -7,6 +7,7 @@ import {
 	IconSolidEyeOff,
 	IconSolidUserCircle,
 	IconSolidUsers,
+	IconSolidVideoCamera,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
@@ -16,7 +17,6 @@ import {
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
 import { sessionIsBackfilled } from '@pages/Player/utils/utils'
-import { EmptySessionsSearchParams } from '@pages/Sessions/EmptySessionsSearchParams'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import ActivityGraph from '@pages/Sessions/SessionsFeedV3/ActivityGraph/ActivityGraph'
 import { formatDatetime } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfiguration/SessionFeedConfiguration'
@@ -25,6 +25,8 @@ import moment from 'moment/moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { buildQueryStateString } from '@/util/url/params'
+
 import {
 	getDisplayName,
 	getIdentifiedUserProfileImage,
@@ -32,7 +34,6 @@ import {
 import * as style from './SessionFeedCard.css'
 interface Props {
 	session: Session
-	urlParams?: string
 	showDetailedSessionView?: boolean
 	autoPlaySessions?: boolean
 	selected?: boolean
@@ -44,7 +45,6 @@ interface Props {
 export const SessionFeedCard = React.memo(
 	({
 		session,
-		urlParams,
 		showDetailedSessionView,
 		autoPlaySessions,
 		selected,
@@ -52,7 +52,7 @@ export const SessionFeedCard = React.memo(
 	}: Props) => {
 		const ref = useRef<HTMLDivElement | null>(null)
 		const { projectId } = useProjectId()
-		const { setSearchParams } = useSearchContext()
+		const { setSearchQuery } = useSearchContext()
 		const [eventCounts, setEventCounts] =
 			useState<{ ts: number; value: number }[]>()
 		const customAvatarImage = getIdentifiedUserProfileImage(session)
@@ -91,9 +91,10 @@ export const SessionFeedCard = React.memo(
 		return (
 			<Box ref={ref}>
 				<Link
-					to={`/${projectId}/sessions/${session.secure_id}${
-						urlParams ?? ''
-					}`}
+					to={{
+						pathname: `/${projectId}/sessions/${session.secure_id}`,
+						search: location.search,
+					}}
 					onClick={() => {
 						setRightPanelView(RightPanelView.Session)
 					}}
@@ -105,6 +106,7 @@ export const SessionFeedCard = React.memo(
 						borderRadius="6"
 						display="flex"
 						flexDirection="column"
+						gap="4"
 						cssClass={[
 							style.sessionCard,
 							{
@@ -141,28 +143,13 @@ export const SessionFeedCard = React.memo(
 									/>
 								)}
 							</Box>
-							{!session.processed && (
-								<Tag
-									shape="basic"
-									kind="primary"
-									size="small"
-									emphasis="low"
-									onClick={() => {
-										setSearchParams({
-											...EmptySessionsSearchParams,
-											show_live_sessions: true,
-										})
-									}}
-								>
-									Live
-								</Tag>
-							)}
 						</Box>
 						<Box
 							alignItems="center"
 							display="flex"
 							gap="12"
 							justifyContent="space-between"
+							cssClass={style.sessionMeta}
 						>
 							<Box
 								display="flex"
@@ -170,21 +157,25 @@ export const SessionFeedCard = React.memo(
 								gap="4"
 								justifyContent="space-between"
 							>
-								<Box display="flex" gap="4" alignItems="center">
+								<Box
+									display="flex"
+									gap="4"
+									alignItems="center"
+									style={{ minHeight: 16 }}
+								>
 									{!viewed && (
 										<Tag
 											shape="basic"
 											kind="secondary"
 											emphasis="low"
 											size="small"
-											iconLeft={
-												<IconSolidEyeOff size={12} />
-											}
+											icon={<IconSolidEyeOff size={12} />}
 											onClick={() => {
-												setSearchParams({
-													...EmptySessionsSearchParams,
-													hide_viewed: true,
-												})
+												setSearchQuery(
+													buildQueryStateString({
+														custom_viewed: false,
+													}),
+												)
 											}}
 										/>
 									)}
@@ -194,16 +185,17 @@ export const SessionFeedCard = React.memo(
 											kind="secondary"
 											emphasis="low"
 											size="small"
-											iconLeft={
+											icon={
 												<IconSolidUserCircle
 													size={12}
 												/>
 											}
 											onClick={() => {
-												setSearchParams({
-													...EmptySessionsSearchParams,
-													first_time: true,
-												})
+												setSearchQuery(
+													buildQueryStateString({
+														custom_first_time: true,
+													}),
+												)
 											}}
 										/>
 									)}
@@ -213,7 +205,7 @@ export const SessionFeedCard = React.memo(
 											kind="secondary"
 											emphasis="low"
 											size="small"
-											iconLeft={
+											icon={
 												<IconSolidExclamation
 													size={12}
 												/>
@@ -226,7 +218,7 @@ export const SessionFeedCard = React.memo(
 											kind="secondary"
 											emphasis="low"
 											size="small"
-											iconLeft={
+											icon={
 												<IconSolidCursorClick
 													size={12}
 												/>
@@ -235,27 +227,36 @@ export const SessionFeedCard = React.memo(
 									)}
 								</Box>
 								<Box display="flex" gap="4" alignItems="center">
-									<Tag
-										shape="basic"
-										kind="secondary"
-										size="small"
-									>
-										<Text
-											lines="1"
+									{session.processed ? (
+										<Tag
+											shape="basic"
+											kind="secondary"
 											size="small"
-											display="flex"
 										>
-											{moment
-												.utc(session.active_length)
-												.format('HH:mm:ss')}
-										</Text>
-									</Tag>
-									<Text
-										lines="1"
-										size="small"
-										display="flex"
-										cssClass={style.datetimeText}
-									>
+											<Text size="xSmall">
+												{moment
+													.utc(session.active_length)
+													.format('H:mm:ss')}
+											</Text>
+										</Tag>
+									) : (
+										<Tag
+											shape="basic"
+											kind="primary"
+											size="small"
+											iconLeft={<IconSolidVideoCamera />}
+											onClick={() => {
+												setSearchQuery(
+													buildQueryStateString({
+														custom_processed: false,
+													}),
+												)
+											}}
+										>
+											<Text size="xSmall">Live</Text>
+										</Tag>
+									)}
+									<Text lines="1" size="xSmall">
 										{configuration?.datetimeFormat
 											? formatDatetime(
 													session.created_at,

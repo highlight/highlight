@@ -2,6 +2,7 @@ import { Heading, Stack } from '@highlight-run/ui'
 import { isIndexedDBEnabled, setIndexedDBEnabled } from '@util/db'
 import React from 'react'
 
+import BorderBox from '@/components/BorderBox/BorderBox'
 import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
 
 const dbcache = {
@@ -21,7 +22,15 @@ export const PlayerForm = () => {
 			<Heading mt="16" level="h4">
 				App Settings
 			</Heading>
-			{ToggleRow(dbcache.label, dbcache.info, checked, setChecked, false)}
+			<BorderBox>
+				{ToggleRow(
+					dbcache.label,
+					dbcache.info,
+					checked,
+					setChecked,
+					false,
+				)}
+			</BorderBox>
 		</Stack>
 	)
 }

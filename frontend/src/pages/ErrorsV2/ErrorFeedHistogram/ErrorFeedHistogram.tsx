@@ -3,17 +3,17 @@ import { SearchResultsHistogram } from '@components/SearchResultsHistogram/Searc
 import { useGetErrorsHistogramQuery } from '@graph/hooks'
 import { DateHistogramBucketSize } from '@graph/schemas'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
-import { updateQueriedTimeRange } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import React, { useCallback } from 'react'
+
+import { updateQueriedTimeRange } from '@/components/QueryBuilder/QueryBuilder'
 
 import { TIME_RANGE_FIELD } from '../ErrorQueryBuilder/ErrorQueryBuilder'
 
 const ErrorFeedHistogram = React.memo(() => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const { backendSearchQuery, searchParams, setSearchParams } =
-		useErrorSearchContext()
+	const { backendSearchQuery, setSearchQuery } = useErrorSearchContext()
 	const { loading, data } = useGetErrorsHistogramQuery({
 		variables: {
 			query: backendSearchQuery?.childSearchQuery as string,
@@ -59,17 +59,15 @@ const ErrorFeedHistogram = React.memo(() => {
 
 	const updateTimeRange = useCallback(
 		(newStartTime: Date, newEndTime: Date) => {
-			const newSearchParams = {
-				...searchParams,
-				query: updateQueriedTimeRange(
-					searchParams.query || '',
+			setSearchQuery((query) =>
+				updateQueriedTimeRange(
+					query || '',
 					TIME_RANGE_FIELD,
 					serializeAbsoluteTimeRange(newStartTime, newEndTime),
 				),
-			}
-			setSearchParams(newSearchParams)
+			)
 		},
-		[searchParams, setSearchParams],
+		[setSearchQuery],
 	)
 
 	return (

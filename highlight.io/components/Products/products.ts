@@ -171,7 +171,7 @@ import { H } from 'highlight.run'
 import { createApp } from 'vue'
 import App from './App.vue'
 
-H.init('9me23yd2') // Get your project ID from https://app.highlight.io/setup
+H.init('<YOUR_PROJECT_ID>') // Get your project ID from https://app.highlight.io/setup
 
 createApp(App).mount('#app')
 `

@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './Dot.module.scss'
+import styles from './Dot.module.css'
 
 export enum CustomDotColor {
 	RED,
