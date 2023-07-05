@@ -1638,6 +1638,7 @@ const (
 	SessionExcludedReasonNoUserInteractionEvents   SessionExcludedReason = "NoUserInteractionEvents"
 	SessionExcludedReasonNoTimelineIndicatorEvents SessionExcludedReason = "NoTimelineIndicatorEvents"
 	SessionExcludedReasonNoError                   SessionExcludedReason = "NoError"
+	SessionExcludedReasonNoUserEvents              SessionExcludedReason = "NoUserEvents"
 	SessionExcludedReasonIgnoredUser               SessionExcludedReason = "IgnoredUser"
 )
 
@@ -1647,12 +1648,13 @@ var AllSessionExcludedReason = []SessionExcludedReason{
 	SessionExcludedReasonNoUserInteractionEvents,
 	SessionExcludedReasonNoTimelineIndicatorEvents,
 	SessionExcludedReasonNoError,
+	SessionExcludedReasonNoUserEvents,
 	SessionExcludedReasonIgnoredUser,
 }
 
 func (e SessionExcludedReason) IsValid() bool {
 	switch e {
-	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonIgnoredUser:
+	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonNoUserEvents, SessionExcludedReasonIgnoredUser:
 		return true
 	}
 	return false

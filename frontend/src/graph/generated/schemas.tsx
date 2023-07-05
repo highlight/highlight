@@ -2587,6 +2587,7 @@ export enum SessionExcludedReason {
 	NoActivity = 'NoActivity',
 	NoError = 'NoError',
 	NoTimelineIndicatorEvents = 'NoTimelineIndicatorEvents',
+	NoUserEvents = 'NoUserEvents',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
 }
 
