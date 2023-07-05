@@ -30,7 +30,7 @@ import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 enum NetworkRequestTabs {
@@ -48,9 +48,9 @@ const NetworkResourceDetails = ({
 	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
 		NetworkRequestTabs.Info,
 	)
-	const { networkResourceDialog: dialog, setActiveNetworkResource } =
-		usePlayerUIContext()
+	const { setActiveNetworkResource } = usePlayerUIContext()
 	const { resources } = useResourcesContext()
+	const networkResourceDialog = Ariakit.useDialogState()
 	const {
 		sessionMetadata: { startTime },
 		setTime,
@@ -76,7 +76,6 @@ const NetworkResourceDetails = ({
 		return new Date(resource.timestamp).getTime() - startTime
 	}, [resource.timestamp, startTime])
 
-	// TODO: Swap these so they follow the pattern of the j/k shortcuts.
 	useHotkeys(
 		'h',
 		() => {
@@ -99,9 +98,14 @@ const NetworkResourceDetails = ({
 		[canMoveForward, next],
 	)
 
+	useHotkeys('Escape', networkResourceDialog.hide, [])
+
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	useEffect(networkResourceDialog.show, [resource.id])
+
 	return (
 		<Ariakit.Dialog
-			state={dialog}
+			state={networkResourceDialog}
 			modal={false}
 			className={sprinkles({
 				backgroundColor: 'white',

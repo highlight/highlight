@@ -1,5 +1,4 @@
 import { ErrorObject } from '@graph/schemas'
-import { Ariakit } from '@highlight-run/ui'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { createContext } from '@util/context/context'
@@ -36,7 +35,6 @@ interface PlayerUIContext {
 
 	activeNetworkResource?: NetworkResource
 	setActiveNetworkResource: (resource: NetworkResource | undefined) => void
-	networkResourceDialog: Ariakit.DialogState
 }
 
 export const [usePlayerUIContext, PlayerUIContextProvider] =

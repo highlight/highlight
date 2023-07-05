@@ -67,12 +67,8 @@ export const NetworkPage = ({
 		sessionMetadata,
 	} = useReplayerContext()
 	const startTime = sessionMetadata.startTime
-	const {
-		setShowDevTools,
-		setSelectedDevToolsTab,
-		setShowRightPanel,
-		showPlayerAbsoluteTime,
-	} = usePlayerConfiguration()
+	const { setShowDevTools, setSelectedDevToolsTab, showPlayerAbsoluteTime } =
+		usePlayerConfiguration()
 	const {
 		setActiveError,
 		setActiveNetworkResource,
@@ -408,9 +404,7 @@ interface ResourceRowProps {
 	setCurrentActiveIndex: React.Dispatch<
 		React.SetStateAction<number | undefined>
 	>
-	setActiveNetworkResource: React.Dispatch<
-		React.SetStateAction<NetworkResource | undefined>
-	>
+	setActiveNetworkResource: (resource: NetworkResource | undefined) => void
 	setTime: (time: number) => void
 	networkRequestAndResponseRecordingEnabled: boolean
 	playerStartTime: number

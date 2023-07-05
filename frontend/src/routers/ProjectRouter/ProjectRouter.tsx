@@ -29,7 +29,6 @@ import { setIndexedDBEnabled } from '@util/db'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
 import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
@@ -122,16 +121,6 @@ export const ProjectRouter = () => {
 		}
 	}, [])
 
-	useHotkeys(
-		'escape',
-		() => {
-			if (networkResourceDialog.open) {
-				networkResourceDialog.hide()
-			}
-		},
-		[],
-	)
-
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)
 	}, [setLoadingState])
@@ -153,8 +142,6 @@ export const ProjectRouter = () => {
 		undefined,
 	)
 
-	const networkResourceDialog = Ariakit.useDialogState()
-
 	const [activeNetworkResource, setActiveNetworkResourceState] = useState<
 		NetworkResource | undefined
 	>(undefined)
@@ -163,12 +150,6 @@ export const ProjectRouter = () => {
 		resource: NetworkResource | undefined,
 	) => {
 		setActiveNetworkResourceState(resource)
-
-		if (resource) {
-			networkResourceDialog.show()
-		} else {
-			networkResourceDialog.hide()
-		}
 	}
 
 	const [selectedRightPanelTab, setSelectedRightPanelTab] =
@@ -179,6 +160,8 @@ export const ProjectRouter = () => {
 
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
+
+	const commandBarDialog = Ariakit.useDialogState()
 
 	const playerUIContext = {
 		isPlayerFullscreen,
@@ -194,10 +177,7 @@ export const ProjectRouter = () => {
 		setActiveNetworkResource,
 		rightPanelView,
 		setRightPanelView,
-		networkResourceDialog,
 	}
-
-	const commandBarDialog = Ariakit.useDialogState()
 
 	return (
 		<GlobalContextProvider
