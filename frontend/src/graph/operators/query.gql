@@ -2105,3 +2105,10 @@ query GetWorkspacePendingInvites($workspace_id: ID!) {
 		created_at
 	}
 }
+
+query GetWorkspaceSettings($workspace_id: ID!) {
+	workspaceSettings(workspace_id: $workspace_id) {
+		workspace_id
+		ai_insights
+	}
+}

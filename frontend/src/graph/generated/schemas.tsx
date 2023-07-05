@@ -124,6 +124,12 @@ export type AllProjectSettings = {
 	workspace_id: Scalars['ID']
 }
 
+export type AllWorkspaceSettings = {
+	__typename?: 'AllWorkspaceSettings'
+	ai_insights: Scalars['Boolean']
+	workspace_id: Scalars['ID']
+}
+
 export type AverageSessionLength = {
 	__typename?: 'AverageSessionLength'
 	length: Scalars['Float']
@@ -355,6 +361,7 @@ export enum EmailOptOutCategory {
 	All = 'All',
 	Billing = 'Billing',
 	Digests = 'Digests',
+	SessionDigests = 'SessionDigests',
 }
 
 export type EnhancedUserDetailsResult = {
@@ -958,6 +965,7 @@ export type Mutation = {
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
 	editWorkspace?: Maybe<Workspace>
+	editWorkspaceSettings?: Maybe<AllWorkspaceSettings>
 	emailSignup: Scalars['String']
 	joinWorkspace?: Maybe<Scalars['ID']>
 	markErrorGroupAsViewed?: Maybe<ErrorGroup>
@@ -1264,6 +1272,11 @@ export type MutationEditWorkspaceArgs = {
 	name?: InputMaybe<Scalars['String']>
 }
 
+export type MutationEditWorkspaceSettingsArgs = {
+	ai_insights?: InputMaybe<Scalars['Boolean']>
+	workspace_id: Scalars['ID']
+}
+
 export type MutationEmailSignupArgs = {
 	email: Scalars['String']
 }
@@ -1399,6 +1412,7 @@ export type MutationUpdateEmailOptOutArgs = {
 	admin_id?: InputMaybe<Scalars['ID']>
 	category: EmailOptOutCategory
 	is_opt_out: Scalars['Boolean']
+	project_id?: InputMaybe<Scalars['Int']>
 	token?: InputMaybe<Scalars['String']>
 }
 
@@ -1729,6 +1743,7 @@ export type Query = {
 	web_vitals: Array<Metric>
 	workspace?: Maybe<Workspace>
 	workspacePendingInvites: Array<Maybe<WorkspaceInviteLink>>
+	workspaceSettings?: Maybe<AllWorkspaceSettings>
 	workspaceSuggestion: Array<Maybe<Workspace>>
 	workspace_admins: Array<WorkspaceAdminRole>
 	workspace_admins_by_project_id: Array<WorkspaceAdminRole>
@@ -2295,6 +2310,10 @@ export type QueryWorkspaceArgs = {
 }
 
 export type QueryWorkspacePendingInvitesArgs = {
+	workspace_id: Scalars['ID']
+}
+
+export type QueryWorkspaceSettingsArgs = {
 	workspace_id: Scalars['ID']
 }
 

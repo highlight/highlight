@@ -788,20 +788,22 @@ func (e DashboardChartType) MarshalGQL(w io.Writer) {
 type EmailOptOutCategory string
 
 const (
-	EmailOptOutCategoryAll     EmailOptOutCategory = "All"
-	EmailOptOutCategoryDigests EmailOptOutCategory = "Digests"
-	EmailOptOutCategoryBilling EmailOptOutCategory = "Billing"
+	EmailOptOutCategoryAll            EmailOptOutCategory = "All"
+	EmailOptOutCategoryDigests        EmailOptOutCategory = "Digests"
+	EmailOptOutCategoryBilling        EmailOptOutCategory = "Billing"
+	EmailOptOutCategorySessionDigests EmailOptOutCategory = "SessionDigests"
 )
 
 var AllEmailOptOutCategory = []EmailOptOutCategory{
 	EmailOptOutCategoryAll,
 	EmailOptOutCategoryDigests,
 	EmailOptOutCategoryBilling,
+	EmailOptOutCategorySessionDigests,
 }
 
 func (e EmailOptOutCategory) IsValid() bool {
 	switch e {
-	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests, EmailOptOutCategoryBilling:
+	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests, EmailOptOutCategoryBilling, EmailOptOutCategorySessionDigests:
 		return true
 	}
 	return false

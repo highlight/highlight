@@ -1692,6 +1692,60 @@ export type EditWorkspaceMutationOptions = Apollo.BaseMutationOptions<
 	Types.EditWorkspaceMutation,
 	Types.EditWorkspaceMutationVariables
 >
+export const EditWorkspaceSettingsDocument = gql`
+	mutation EditWorkspaceSettings($workspace_id: ID!, $ai_insights: Boolean) {
+		editWorkspaceSettings(
+			workspace_id: $workspace_id
+			ai_insights: $ai_insights
+		) {
+			workspace_id
+			ai_insights
+		}
+	}
+`
+export type EditWorkspaceSettingsMutationFn = Apollo.MutationFunction<
+	Types.EditWorkspaceSettingsMutation,
+	Types.EditWorkspaceSettingsMutationVariables
+>
+
+/**
+ * __useEditWorkspaceSettingsMutation__
+ *
+ * To run a mutation, you first call `useEditWorkspaceSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditWorkspaceSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [editWorkspaceSettingsMutation, { data, loading, error }] = useEditWorkspaceSettingsMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      ai_insights: // value for 'ai_insights'
+ *   },
+ * });
+ */
+export function useEditWorkspaceSettingsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.EditWorkspaceSettingsMutation,
+		Types.EditWorkspaceSettingsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.EditWorkspaceSettingsMutation,
+		Types.EditWorkspaceSettingsMutationVariables
+	>(EditWorkspaceSettingsDocument, baseOptions)
+}
+export type EditWorkspaceSettingsMutationHookResult = ReturnType<
+	typeof useEditWorkspaceSettingsMutation
+>
+export type EditWorkspaceSettingsMutationResult =
+	Apollo.MutationResult<Types.EditWorkspaceSettingsMutation>
+export type EditWorkspaceSettingsMutationOptions = Apollo.BaseMutationOptions<
+	Types.EditWorkspaceSettingsMutation,
+	Types.EditWorkspaceSettingsMutationVariables
+>
 export const DeleteSegmentDocument = gql`
 	mutation DeleteSegment($segment_id: ID!) {
 		deleteSegment(segment_id: $segment_id)
@@ -12951,4 +13005,61 @@ export type GetWorkspacePendingInvitesLazyQueryHookResult = ReturnType<
 export type GetWorkspacePendingInvitesQueryResult = Apollo.QueryResult<
 	Types.GetWorkspacePendingInvitesQuery,
 	Types.GetWorkspacePendingInvitesQueryVariables
+>
+export const GetWorkspaceSettingsDocument = gql`
+	query GetWorkspaceSettings($workspace_id: ID!) {
+		workspaceSettings(workspace_id: $workspace_id) {
+			workspace_id
+			ai_insights
+		}
+	}
+`
+
+/**
+ * __useGetWorkspaceSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceSettingsQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceSettingsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceSettingsQuery,
+		Types.GetWorkspaceSettingsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceSettingsQuery,
+		Types.GetWorkspaceSettingsQueryVariables
+	>(GetWorkspaceSettingsDocument, baseOptions)
+}
+export function useGetWorkspaceSettingsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceSettingsQuery,
+		Types.GetWorkspaceSettingsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceSettingsQuery,
+		Types.GetWorkspaceSettingsQueryVariables
+	>(GetWorkspaceSettingsDocument, baseOptions)
+}
+export type GetWorkspaceSettingsQueryHookResult = ReturnType<
+	typeof useGetWorkspaceSettingsQuery
+>
+export type GetWorkspaceSettingsLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceSettingsLazyQuery
+>
+export type GetWorkspaceSettingsQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceSettingsQuery,
+	Types.GetWorkspaceSettingsQueryVariables
 >
