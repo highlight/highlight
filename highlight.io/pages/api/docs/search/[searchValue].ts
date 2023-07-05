@@ -1,9 +1,8 @@
 import { promises as fsp } from 'fs'
-import path from 'path'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getDocsPaths, readMarkdown } from '../../../docs/[[...doc]]'
-import RangeTuple from 'fuse.js'
+import path from 'path'
 import removeMd from 'remove-markdown'
+import { getDocsPaths, readMarkdown } from '../../../docs/[[...doc]]'
 
 export const SEARCH_RESULT_BLURB_LENGTH = 100
 
@@ -22,7 +21,7 @@ export default async function handler(
 	res: NextApiResponse,
 ) {
 	const searchValue = [req.query.searchValue].flat().join('').toLowerCase()
-	const docPaths = await getDocsPaths(fsp, undefined)
+	const docPaths = await getDocsPaths()
 	const paths: SearchResult[] = await Promise.all(
 		docPaths.map(async (doc) => {
 			const { content } = await readMarkdown(
