@@ -9253,7 +9253,7 @@ type ErrorObjectNode {
 	id: ID!
 	createdAt: Timestamp!
 	event: String!
-	session: ErrorObjectNodeSession!
+	session: ErrorObjectNodeSession
 }
 
 type ErrorObjectEdge implements Edge {
@@ -27270,14 +27270,11 @@ func (ec *executionContext) _ErrorObjectNode_session(ctx context.Context, field 
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.ErrorObjectNodeSession)
 	fc.Result = res
-	return ec.marshalNErrorObjectNodeSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectNodeSession(ctx, field.Selections, res)
+	return ec.marshalOErrorObjectNodeSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectNodeSession(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ErrorObjectNode_session(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -65234,9 +65231,6 @@ func (ec *executionContext) _ErrorObjectNode(ctx context.Context, sel ast.Select
 
 			out.Values[i] = ec._ErrorObjectNode_session(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -74568,16 +74562,6 @@ func (ec *executionContext) marshalNErrorObjectNode2ᚖgithubᚗcomᚋhighlight�
 	return ec._ErrorObjectNode(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNErrorObjectNodeSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectNodeSession(ctx context.Context, sel ast.SelectionSet, v *model.ErrorObjectNodeSession) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ErrorObjectNodeSession(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNErrorResults2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorResults(ctx context.Context, sel ast.SelectionSet, v model1.ErrorResults) graphql.Marshaler {
 	return ec._ErrorResults(ctx, sel, &v)
 }
@@ -78231,6 +78215,13 @@ func (ec *executionContext) marshalOErrorObject2ᚖgithubᚗcomᚋhighlightᚑru
 		return graphql.Null
 	}
 	return ec._ErrorObject(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOErrorObjectNodeSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorObjectNodeSession(ctx context.Context, sel ast.SelectionSet, v *model.ErrorObjectNodeSession) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ErrorObjectNodeSession(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOErrorSegment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorSegment(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorSegment) graphql.Marshaler {
