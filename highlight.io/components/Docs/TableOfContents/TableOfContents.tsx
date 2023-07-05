@@ -264,6 +264,9 @@ export function TableOfContents({
 						</Typography>
 					</button>
 					<TocSeparator />
+					<Typography type="copy3" emphasis onDark className="h-7">
+						{subtableSlug}
+					</Typography>
 				</>
 			)}
 			{subtables.map(({ docPage, subEntries }) => {
