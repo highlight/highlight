@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -30,9 +31,10 @@ const (
 )
 
 type Client struct {
-	Config      *aws.Config
-	Credentials *aws.Credentials
-	HTTPClient  *http.Client
+	Config              *aws.Config
+	Credentials         *aws.Credentials
+	HTTPClient          *http.Client
+	RetryableHTTPClient *retryablehttp.Client
 }
 
 func NewLambdaClient() (*Client, error) {
@@ -47,10 +49,14 @@ func NewLambdaClient() (*Client, error) {
 		return nil, errors.Wrap(err, "error loading lambda credentials")
 	}
 
+	retryClient := retryablehttp.Client{}
+	retryClient.RetryMax = 5
+
 	return &Client{
-		Config:      &cfg,
-		Credentials: &creds,
-		HTTPClient:  &http.Client{},
+		Config:              &cfg,
+		Credentials:         &creds,
+		HTTPClient:          &http.Client{},
+		RetryableHTTPClient: &retryClient,
 	}, nil
 }
 
@@ -73,7 +79,7 @@ func (s *Client) GetSessionInsight(ctx context.Context, projectID int, sessionID
 		if localServerErr != nil {
 			log.WithContext(ctx).Warnf("failed to make session insight request on local dev server: %+v", localServerErr)
 			req = s.GetSessionInsightRequest(ctx, "https://ohw2ocqp0d.execute-api.us-east-2.amazonaws.com/default/ai-insights", 1, 232563428)
-			return s.HTTPClient.Do(req)
+			return s.RetryableHTTPClient.HTTPClient.Do(req)
 		}
 		return res, localServerErr
 	} else {
