@@ -228,7 +228,7 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 	defer outerSpan.Finish()
 
 	result := r.DB.
-		Clauses(clause.Returning{}, clause.OnConflict{
+		Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "project_id"}, {Name: "type"}, {Name: "name"}, {Name: "value"}},
 			DoNothing: true}).
 		Create(&fields)
