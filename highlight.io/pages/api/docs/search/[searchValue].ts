@@ -21,7 +21,7 @@ export default async function handler(
 	res: NextApiResponse,
 ) {
 	const searchValue = [req.query.searchValue].flat().join('').toLowerCase()
-	const docPaths = await getDocsPaths()
+	const docPaths = await getDocsPaths(fsp, undefined)
 	const paths: SearchResult[] = await Promise.all(
 		docPaths.map(async (doc) => {
 			const { content } = await readMarkdown(
