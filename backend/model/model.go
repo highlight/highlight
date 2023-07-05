@@ -341,6 +341,8 @@ type Project struct {
 	// Minimum count of clicks in a rage click event
 	RageClickCount int `gorm:"default:5"`
 
+	// Applies to all browser extensions
+	// TODO - rename to FilterBrowserExtension #5811
 	FilterChromeExtension *bool `gorm:"default:false"`
 }
 
