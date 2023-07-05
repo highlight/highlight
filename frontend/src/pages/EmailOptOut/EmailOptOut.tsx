@@ -11,7 +11,6 @@ import { EmailOptOutCategory } from '@graph/schemas'
 import { Ariakit, Heading, Stack } from '@highlight-run/ui'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
-import { H } from 'highlight.run'
 import { useEffect } from 'react'
 import { StringParam, useQueryParams } from 'use-query-params'
 
@@ -19,6 +18,7 @@ import BorderBox from '@/components/BorderBox/BorderBox'
 import { Header } from '@/components/Header/Header'
 import LeadAlignLayout from '@/components/layout/LeadAlignLayout'
 import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
+import { showIntercomBubble } from '@/util/window'
 
 type Props = {
 	token?: string | null
@@ -48,27 +48,8 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 			<>
 				<p>Link is invalid or has expired.</p>
 				<p>
-					Please reach out to us on{' '}
-					<a
-						onClick={async () => {
-							const sessionId = await H.getSessionURL()
-
-							window.Intercom('boot', {
-								app_id: 'gm6369ty',
-								alignment: 'right',
-								hide_default_launcher: true,
-								sessionId,
-							})
-							window.Intercom('showNewMessage')
-						}}
-					>
-						Intercom
-					</a>{' '}
-					or email{' '}
-					<a href="mailto:support@highlight.io">
-						support@highlight.io
-					</a>
-					.
+					Please reach out to us if you have any questions or need
+					assistance.
 				</p>
 			</>
 		)
@@ -148,6 +129,13 @@ export const EmailOptOutPage = () => {
 	})
 
 	const commandBarDialog = Ariakit.useDialogState()
+
+	useEffect(() => {
+		// Show the Intercom message after 5 seconds in case the user needs help.
+		setTimeout(() => {
+			showIntercomBubble()
+		}, 5000)
+	}, [])
 
 	return (
 		<GlobalContextProvider

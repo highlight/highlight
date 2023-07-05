@@ -76,7 +76,7 @@ export function ConsoleListener(
 				]
 				callback({
 					type: 'Error',
-					trace: trace.slice(1),
+					trace,
 					time: Date.now(),
 					value: payload,
 				})

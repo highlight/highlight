@@ -24,8 +24,6 @@ import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks'
 import useLocalStorage from '@rehooks/local-storage'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
-import WithErrorSearchContext from '@routers/ProjectRouter/WithErrorSearchContext'
-import WithSessionSearchContext from '@routers/ProjectRouter/WithSessionSearchContext'
 import { auth } from '@util/auth'
 import { setIndexedDBEnabled } from '@util/db'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
@@ -212,43 +210,28 @@ export const ProjectRouter = () => {
 			}}
 		>
 			<PlayerUIContextProvider value={playerUIContext}>
-				<WithSessionSearchContext>
-					<WithErrorSearchContext>
-						<Routes>
-							<Route
-								path=":project_id/front"
-								element={<FrontPlugin />}
-							/>
-							<Route
-								path=":project_id/*"
-								element={
-									<>
-										<Header
-											fullyIntegrated={fullyIntegrated}
-										/>
-										<KeyboardShortcutsEducation />
-										<div
-											className={clsx(
-												commonStyles.bodyWrapper,
-												{
-													[commonStyles.bannerShown]:
-														showBanner,
-												},
-											)}
-										>
-											<ApplicationOrError
-												error={error}
-												joinableWorkspace={
-													joinableWorkspace
-												}
-											/>
-										</div>
-									</>
-								}
-							/>
-						</Routes>
-					</WithErrorSearchContext>
-				</WithSessionSearchContext>
+				<Routes>
+					<Route path=":project_id/front" element={<FrontPlugin />} />
+					<Route
+						path=":project_id/*"
+						element={
+							<>
+								<Header fullyIntegrated={fullyIntegrated} />
+								<KeyboardShortcutsEducation />
+								<div
+									className={clsx(commonStyles.bodyWrapper, {
+										[commonStyles.bannerShown]: showBanner,
+									})}
+								>
+									<ApplicationOrError
+										error={error}
+										joinableWorkspace={joinableWorkspace}
+									/>
+								</div>
+							</>
+						}
+					/>
+				</Routes>
 			</PlayerUIContextProvider>
 		</GlobalContextProvider>
 	)
