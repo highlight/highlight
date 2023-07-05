@@ -6639,12 +6639,14 @@ export const GetSessionsOpenSearchDocument = gql`
 		$count: Int!
 		$query: String!
 		$sort_desc: Boolean!
+		$sort_field: String
 		$page: Int
 	) {
 		sessions_opensearch(
 			project_id: $project_id
 			count: $count
 			query: $query
+			sort_field: $sort_field
 			sort_desc: $sort_desc
 			page: $page
 		) {
@@ -6707,6 +6709,7 @@ export const GetSessionsOpenSearchDocument = gql`
  *      count: // value for 'count'
  *      query: // value for 'query'
  *      sort_desc: // value for 'sort_desc'
+ *      sort_field: // value for 'sort_field'
  *      page: // value for 'page'
  *   },
  * });

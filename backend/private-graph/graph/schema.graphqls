@@ -1529,6 +1529,7 @@ type Query {
 		project_id: ID!
 		count: Int!
 		query: String!
+		sort_field: String
 		sort_desc: Boolean!
 		page: Int
 	): SessionResults!

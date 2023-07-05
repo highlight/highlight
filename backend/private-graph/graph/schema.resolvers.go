@@ -5075,7 +5075,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 }
 
 // SessionsOpensearch is the resolver for the sessions_opensearch field.
-func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortDesc bool, page *int) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -5092,9 +5092,14 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		sortOrder = "asc"
 	}
 
+	sortFieldStr := "created_at"
+	if sortField != nil {
+		sortFieldStr = *sortField
+	}
+
 	options := opensearch.SearchOptions{
 		MaxResults:    ptr.Int(count),
-		SortField:     ptr.String("created_at"),
+		SortField:     ptr.String(sortFieldStr),
 		SortOrder:     ptr.String(sortOrder),
 		ReturnCount:   ptr.Bool(true),
 		ExcludeFields: []string{"fields", "field_group"}, // Excluding certain fields for performance
