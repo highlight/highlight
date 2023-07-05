@@ -12,7 +12,6 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import clsx from 'clsx'
-import React from 'react'
 import ReactMarkdown from 'react-markdown'
 
 import AiErrorSuggestionCard from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestionCard'
