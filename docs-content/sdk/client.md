@@ -93,7 +93,7 @@ slug: client
         </aside>
         <aside className="parameter">
           <h5>inlineImages <code>boolean</code> <code>optional</code></h5>
-          <p>Specifies whether to record image content. We default inlineImages to true on localhost and false on other domains. Inlined images perform better on inaccessible domains like localhost, but they can cause CORS errors. Explicitly set inlineImages to false to resolve CORS errors.</p>
+          <p>Specifies whether to record image content. We default inlineImages to true on localhost and false on other domains. Inlined images that are otherwise only available on localhost can be sent to Highlight's servers and used in session replay; however, this can cause CORS errors. Explicitly set inlineImages to false to resolve CORS errors.</p>
         </aside>
       </article>
     </aside>
