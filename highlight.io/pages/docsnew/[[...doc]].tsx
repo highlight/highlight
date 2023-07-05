@@ -313,7 +313,6 @@ export default function DocPage({
 	mdContent,
 	toc,
 }: DocProps) {
-	console.log({ docPages })
 	// TODO (fabio): Description for embedding is not correctly cleaned
 	const description = rawMdContent
 		.replaceAll(/[`[(]+.+[`\])]+/gi, '')
