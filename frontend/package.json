@@ -58,6 +58,7 @@
 		"react-loading-skeleton": "3.0.1",
 		"react-markdown": "^8.0.5",
 		"react-nice-avatar": "^1.2.1",
+		"react-phone-number-input": "^3.2.25",
 		"react-resizable": "^3.0.4",
 		"react-resize-aware": "^3.0.1",
 		"react-router-dom": "^6.8.1",

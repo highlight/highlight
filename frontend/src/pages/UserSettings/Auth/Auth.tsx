@@ -14,8 +14,10 @@ import React, {
 	useRef,
 	useState,
 } from 'react'
+import { isPossiblePhoneNumber } from 'react-phone-number-input'
 
 import { useAuthContext } from '@/authentication/AuthContext'
+import { formatPhoneNumber } from '@/pages/UserSettings/Auth/utils'
 
 import styles from './Auth.module.css'
 
@@ -129,13 +131,13 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 		setLoading(true)
 		setError(null)
 
-		if (phoneNumber.length < 10) {
-			setError('Please use a valid phone number')
+		if (isPossiblePhoneNumber(phoneNumber)) {
+			setError(
+				"Please use a valid phone number. Don't forget your regional prefix!",
+			)
 			setLoading(false)
 			return
 		}
-
-		const formattedPhoneNumber = `+1${phoneNumber.replace(/\D/g, '')}`
 
 		await recaptchaVerifier.current?.verify()
 
@@ -147,7 +149,7 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 		try {
 			const vId = await phoneAuthProvider.verifyPhoneNumber(
 				{
-					phoneNumber: formattedPhoneNumber,
+					phoneNumber,
 					session: multiFactorSession,
 				},
 				recaptchaVerifier.current,
@@ -164,9 +166,15 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 			setLoading(false)
 		}
 	}
+	const isValid = isPossiblePhoneNumber(phoneNumber)
+
+	const handleOnBlur = (event: React.FocusEvent<HTMLInputElement>): void => {
+		setPhoneNumber(formatPhoneNumber(event.target.value))
+	}
 
 	return (
 		<>
+			<>Is Valid: {isValid ? 'true' : 'false'}</>
 			{!verificationId ? (
 				<form onSubmit={handleSubmit}>
 					<Space size="medium" direction="vertical">
@@ -176,10 +184,10 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 						</p>
 
 						<Input
-							addonBefore="+1"
 							value={phoneNumber}
 							onChange={(e) => setPhoneNumber(e.target.value)}
-							placeholder="Enter your phone number"
+							placeholder="+1 123-456-7890"
+							onBlur={handleOnBlur}
 						/>
 
 						<Button
