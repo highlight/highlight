@@ -13060,3 +13060,60 @@ export type GetErrorResolutionSuggestionQueryResult = Apollo.QueryResult<
 	Types.GetErrorResolutionSuggestionQuery,
 	Types.GetErrorResolutionSuggestionQueryVariables
 >
+export const GetWorkspaceSettingsDocument = gql`
+	query GetWorkspaceSettings($workspace_id: ID!) {
+		workspaceSettings(workspace_id: $workspace_id) {
+			workspace_id
+			ai_insights
+		}
+	}
+`
+
+/**
+ * __useGetWorkspaceSettingsQuery__
+ *
+ * To run a query within a React component, call `useGetWorkspaceSettingsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWorkspaceSettingsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWorkspaceSettingsQuery({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *   },
+ * });
+ */
+export function useGetWorkspaceSettingsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWorkspaceSettingsQuery,
+		Types.GetWorkspaceSettingsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWorkspaceSettingsQuery,
+		Types.GetWorkspaceSettingsQueryVariables
+	>(GetWorkspaceSettingsDocument, baseOptions)
+}
+export function useGetWorkspaceSettingsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWorkspaceSettingsQuery,
+		Types.GetWorkspaceSettingsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWorkspaceSettingsQuery,
+		Types.GetWorkspaceSettingsQueryVariables
+	>(GetWorkspaceSettingsDocument, baseOptions)
+}
+export type GetWorkspaceSettingsQueryHookResult = ReturnType<
+	typeof useGetWorkspaceSettingsQuery
+>
+export type GetWorkspaceSettingsLazyQueryHookResult = ReturnType<
+	typeof useGetWorkspaceSettingsLazyQuery
+>
+export type GetWorkspaceSettingsQueryResult = Apollo.QueryResult<
+	Types.GetWorkspaceSettingsQuery,
+	Types.GetWorkspaceSettingsQueryVariables
+>

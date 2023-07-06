@@ -4397,6 +4397,19 @@ export type GetErrorResolutionSuggestionQuery = { __typename?: 'Query' } & Pick<
 	'error_resolution_suggestion'
 >
 
+export type GetWorkspaceSettingsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
+	workspaceSettings?: Types.Maybe<
+		{ __typename?: 'AllWorkspaceSettings' } & Pick<
+			Types.AllWorkspaceSettings,
+			'workspace_id' | 'ai_insights'
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4528,6 +4541,7 @@ export const namedOperations = {
 		GetProjectSettings: 'GetProjectSettings' as const,
 		GetWorkspacePendingInvites: 'GetWorkspacePendingInvites' as const,
 		GetErrorResolutionSuggestion: 'GetErrorResolutionSuggestion' as const,
+		GetWorkspaceSettings: 'GetWorkspaceSettings' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
