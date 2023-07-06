@@ -30,17 +30,15 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 		columnHelper.accessor('node.event', {
 			cell: ({ getValue }) => (
 				<Box display="flex" flexGrow={1}>
-					<Text>{getValue()}</Text>
+					<Text lines="1">{getValue()}</Text>
 				</Box>
 			),
 		}),
 		columnHelper.accessor('node.createdAt', {
 			cell: ({ getValue }) => (
-				<Box display="flex">
-					<Tag shape="basic" kind="secondary">
-						{toYearMonthDay(getValue())}
-					</Tag>
-				</Box>
+				<Tag shape="basic" kind="secondary">
+					{toYearMonthDay(getValue())}
+				</Tag>
 			),
 		}),
 		columnHelper.accessor('node.session', {
@@ -51,13 +49,11 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 				}
 
 				return (
-					<Box display="flex">
-						<Badge
-							size="medium"
-							color="weak"
-							label={session.appVersion}
-						></Badge>
-					</Box>
+					<Badge
+						size="medium"
+						color="weak"
+						label={session.appVersion}
+					></Badge>
 				)
 			},
 		}),
@@ -72,11 +68,7 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 					session.userProperties,
 				)
 
-				return (
-					<Box display="flex">
-						<Text>{parsedUserProperties.email}</Text>
-					</Box>
-				)
+				return <Text>{parsedUserProperties.email}</Text>
 			},
 		}),
 	]
