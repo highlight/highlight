@@ -22,6 +22,15 @@ type Props = {
 	edges: ErrorObjectEdge[]
 }
 
+function truncateVersion(version: string) {
+	const maxLength = 6
+	if (version.length > maxLength) {
+		return version.slice(0, maxLength) + '...'
+	} else {
+		return version
+	}
+}
+
 export const ErrorInstancesTable = ({ edges }: Props) => {
 	const { projectId } = useProjectId()
 	const columnHelper = createColumnHelper<ErrorObjectEdge>()
@@ -52,7 +61,7 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 					<Badge
 						size="medium"
 						color="weak"
-						label={session.appVersion}
+						label={truncateVersion(session.appVersion)}
 					></Badge>
 				)
 			},
