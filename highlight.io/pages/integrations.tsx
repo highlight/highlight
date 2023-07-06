@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { useState } from 'react'
+import { AiFillCheckCircle, AiOutlineLink } from 'react-icons/ai'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import Footer from '../components/common/Footer/Footer'
 import Navbar from '../components/common/Navbar/Navbar'
@@ -12,6 +14,19 @@ import IntegrationCard from '../components/Integrations/IntegrationCard'
 import MissingCard from '../components/Integrations/MissingCard'
 
 const IntegrationsPage = () => {
+	const [copy, setCopy] = useState(false)
+
+	function handleCopy(str: string) {
+		navigator.clipboard.writeText(
+			process.env.NEXT_PUBLIC_VERCEL_URL + '#' + str,
+		)
+
+		setCopy(true)
+		setTimeout(() => {
+			setCopy(false)
+		}, 1000)
+	}
+
 	return (
 		<div>
 			<Navbar />
@@ -28,12 +43,29 @@ const IntegrationsPage = () => {
 						Use your favorite tools with highlight.io.
 					</Typography>
 				</div>
-				<div className="my-24 mx-auto max-w-[1250px] px-8">
+				<div className="my-12 mx-auto max-w-[1250px] px-8">
 					{Object.entries(INTEGRATIONS).map(([category, items]) => (
-						<div className="pt-12" key={category} id={category}>
-							<Typography type="copy1" emphasis>
-								{category}
-							</Typography>
+						<div
+							className="pt-12"
+							key={category}
+							id={category.toLowerCase()}
+						>
+							<div
+								onClick={() =>
+									handleCopy(category.toLowerCase())
+								}
+								className="group flex items-center gap-2 cursor-pointer"
+							>
+								<Typography type="copy1" emphasis>
+									{category}
+								</Typography>
+								{!copy && (
+									<AiOutlineLink className="text-copy-on-light h-5 w-5 invisible group-hover:visible" />
+								)}
+								{copy && (
+									<AiFillCheckCircle className="text-copy-on-light h-5 w-5 invisible group-hover:visible" />
+								)}
+							</div>
 							<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-5 mx-auto">
 								{items.map((item) => (
 									<IntegrationCard

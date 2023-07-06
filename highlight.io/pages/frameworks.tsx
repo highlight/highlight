@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { FRAMEWORKS } from '../components/Frameworks/framework'
 
 import Link from 'next/link'
@@ -13,6 +14,19 @@ import IntegrationCard from '../components/Integrations/IntegrationCard'
 import MissingCard from '../components/Integrations/MissingCard'
 
 const FrameworksPage = () => {
+	const [copy, setCopy] = useState(false)
+
+	function handleCopy(str: string) {
+		navigator.clipboard.writeText(
+			process.env.NEXT_PUBLIC_VERCEL_URL + '/frameworks' + str,
+		)
+
+		setCopy(true)
+		setTimeout(() => {
+			setCopy(false)
+		}, 1000)
+	}
+
 	return (
 		<div>
 			<Navbar />
@@ -29,9 +43,14 @@ const FrameworksPage = () => {
 						Use your favorite frameworks with highlight.io.
 					</Typography>
 				</div>
-				<div className="my-24 mx-auto max-w-[1250px] px-8">
+				<div className="my-12 mx-auto max-w-[1250px] px-8">
 					{Object.entries(FRAMEWORKS).map(([category, items]) => (
-						<div className="pt-12" key={category} id={category}>
+						<div
+							onClick={() => handleCopy(category.toLowerCase())}
+							className="pt-12"
+							key={category}
+							id={category.toLowerCase()}
+						>
 							<Typography type="copy1" emphasis>
 								{category}
 							</Typography>

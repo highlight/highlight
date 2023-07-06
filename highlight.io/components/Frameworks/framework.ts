@@ -41,7 +41,7 @@ export const FRAMEWORKS: {
 			image: '/images/companies/icons/sveltekit.svg',
 		},
 	],
-	'Backend: Error Monitoring': [
+	'Error Monitoring': [
 		{
 			name: 'Go',
 			description:
@@ -70,7 +70,7 @@ export const FRAMEWORKS: {
 			image: '/images/companies/icons/rails.svg',
 		},
 	],
-	'Backend: Logging': [
+	Logging: [
 		{
 			name: 'Go',
 			description: 'Set up logging in Go with Fiber, Logrus, and more.',

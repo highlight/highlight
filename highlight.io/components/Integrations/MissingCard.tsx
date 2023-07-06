@@ -15,7 +15,7 @@ const MissingCard = ({ link, desc }: { link: string; desc: string }) => {
 					width="50"
 					className="rounded-md flex-shrink-0 w-[50px] h-[50px]"
 				/>
-				<div className="flex flex-col gap-1">
+				<div className="flex flex-col">
 					<Typography
 						type="copy1"
 						emphasis
