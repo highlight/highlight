@@ -533,6 +533,7 @@ export type ErrorObjectEdge = Edge & {
 export type ErrorObjectNode = {
 	__typename?: 'ErrorObjectNode'
 	createdAt: Scalars['Timestamp']
+	errorGroupSecureID: Scalars['String']
 	event: Scalars['String']
 	id: Scalars['ID']
 	session?: Maybe<ErrorObjectNodeSession>
