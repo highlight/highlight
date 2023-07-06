@@ -2112,3 +2112,36 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 		ai_insights
 	}
 }
+
+query GetErrorObjects(
+	$errorGroupSecureID: String!
+	$after: String
+	$before: String
+) {
+	error_objects(
+		error_group_secure_id: $errorGroupSecureID
+		after: $after
+		before: $before
+	) {
+		edges {
+			cursor
+			node {
+				id
+				createdAt
+				event
+				errorGroupSecureID
+				session {
+					secureID
+					userProperties
+					appVersion
+				}
+			}
+		}
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}
