@@ -49,14 +49,14 @@ func NewLambdaClient() (*Client, error) {
 		return nil, errors.Wrap(err, "error loading lambda credentials")
 	}
 
-	retryClient := retryablehttp.Client{}
+	retryClient := retryablehttp.NewClient()
 	retryClient.RetryMax = 5
 
 	return &Client{
 		Config:              &cfg,
 		Credentials:         &creds,
 		HTTPClient:          &http.Client{},
-		RetryableHTTPClient: &retryClient,
+		RetryableHTTPClient: retryClient,
 	}, nil
 }
 
@@ -71,35 +71,35 @@ func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessio
 }
 
 func (s *Client) GetSessionInsight(ctx context.Context, projectID int, sessionID int) (*http.Response, error) {
-	var req *http.Request
+	var req *retryablehttp.Request
 
 	if util.IsDevEnv() {
 		localReq := s.GetSessionInsightRequest(ctx, "http://localhost:8765/session/insight", 1, 232563428)
-		res, localServerErr := s.HTTPClient.Do(localReq)
+		res, localServerErr := s.HTTPClient.Do(localReq.Request)
 		if localServerErr != nil {
 			log.WithContext(ctx).Warnf("failed to make session insight request on local dev server: %+v", localServerErr)
 			req = s.GetSessionInsightRequest(ctx, "https://ohw2ocqp0d.execute-api.us-east-2.amazonaws.com/default/ai-insights", 1, 232563428)
-			return s.RetryableHTTPClient.HTTPClient.Do(req)
+			return s.RetryableHTTPClient.Do(req)
 		}
 		return res, localServerErr
 	} else {
 		req = s.GetSessionInsightRequest(ctx, "https://ohw2ocqp0d.execute-api.us-east-2.amazonaws.com/default/ai-insights", projectID, sessionID)
 	}
-	return s.HTTPClient.Do(req)
+	return s.RetryableHTTPClient.Do(req)
 }
 
-func (s *Client) GetSessionInsightRequest(ctx context.Context, url string, projectID int, sessionID int) *http.Request {
+func (s *Client) GetSessionInsightRequest(ctx context.Context, url string, projectID int, sessionID int) *retryablehttp.Request {
 	b, _ := json.Marshal(&modelInputs.SessionQuery{
 		ID:        sessionID,
 		ProjectID: projectID,
 	})
 
-	req, _ := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(b))
+	req, _ := retryablehttp.NewRequest(http.MethodPost, url, bytes.NewBuffer(b))
 	req = req.WithContext(ctx)
 	req.Header = http.Header{
 		"Content-Type": []string{"application/json"},
 	}
 	signer := v4.NewSigner()
-	_ = signer.SignHTTP(ctx, *s.Credentials, req, NilPayloadHash, string(ExecuteAPI), s.Config.Region, time.Now())
+	_ = signer.SignHTTP(ctx, *s.Credentials, req.Request, NilPayloadHash, string(ExecuteAPI), s.Config.Region, time.Now())
 	return req
 }
