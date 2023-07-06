@@ -58,7 +58,6 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 						<Box mb="6">
 							<Text color="moderate">
 								There was an error loading error instances.
-								Reach out to us if this might be a bug.
 							</Text>
 						</Box>
 					</Callout>
