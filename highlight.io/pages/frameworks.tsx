@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { FRAMEWORKS } from '../components/Frameworks/framework'
 
 import Link from 'next/link'
+import { AiFillCheckCircle, AiOutlineLink } from 'react-icons/ai'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import Footer from '../components/common/Footer/Footer'
 import Navbar from '../components/common/Navbar/Navbar'
@@ -18,7 +19,7 @@ const FrameworksPage = () => {
 
 	function handleCopy(str: string) {
 		navigator.clipboard.writeText(
-			process.env.NEXT_PUBLIC_VERCEL_URL + '/frameworks' + str,
+			process.env.NEXT_PUBLIC_VERCEL_URL + '/frameworks#' + str,
 		)
 
 		setCopy(true)
@@ -46,14 +47,26 @@ const FrameworksPage = () => {
 				<div className="my-12 mx-auto max-w-[1250px] px-8">
 					{Object.entries(FRAMEWORKS).map(([category, items]) => (
 						<div
-							onClick={() => handleCopy(category.toLowerCase())}
 							className="pt-12"
 							key={category}
 							id={category.toLowerCase()}
 						>
-							<Typography type="copy1" emphasis>
-								{category}
-							</Typography>
+							<div
+								onClick={() =>
+									handleCopy(category.toLowerCase())
+								}
+								className="group flex items-center gap-2 cursor-pointer"
+							>
+								<Typography type="copy1" emphasis>
+									{category}
+								</Typography>
+								{!copy && (
+									<AiOutlineLink className="text-copy-on-light h-5 w-5 invisible group-hover:visible" />
+								)}
+								{copy && (
+									<AiFillCheckCircle className="text-copy-on-light h-5 w-5 invisible group-hover:visible" />
+								)}
+							</div>
 							<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-5 mx-auto">
 								{items.map((item) => (
 									<IntegrationCard

@@ -18,7 +18,7 @@ const IntegrationsPage = () => {
 
 	function handleCopy(str: string) {
 		navigator.clipboard.writeText(
-			process.env.NEXT_PUBLIC_VERCEL_URL + '#' + str,
+			process.env.NEXT_PUBLIC_VERCEL_URL + '/integrations#' + str,
 		)
 
 		setCopy(true)
