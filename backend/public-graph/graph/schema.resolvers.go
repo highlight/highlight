@@ -118,6 +118,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 			Events:             events,
 			Messages:           messages,
 			Resources:          resources,
+			WebSocketEvents:    webSocketEvents,
 			Errors:             errors,
 			IsBeacon:           isBeacon,
 			HasSessionUnloaded: hasSessionUnloaded,

@@ -51,7 +51,7 @@ steps:
 
 -   `cd experiments/chrome-extension`
 -   `yarn build`
--   replace `new window.Highlight` with `Highlight.create` in `firstload/index.tsx`
+-   replace `new window.HighlightIO` with `Highlight.create` in `firstload/index.tsx`
 -   `yarn firstload:update`
 -   open chrome extensions page on chrome or sidekick
 -   enable developer mode on the top right

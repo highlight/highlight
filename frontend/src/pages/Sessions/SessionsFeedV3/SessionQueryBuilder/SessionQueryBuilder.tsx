@@ -7,26 +7,21 @@ import {
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
-import { isEqual } from 'lodash'
-import React, { useEffect } from 'react'
-import {
-	JsonParam,
-	NumberParam,
-	useQueryParam,
-	useQueryParams,
-} from 'use-query-params'
+import React from 'react'
 
 import QueryBuilder, {
 	BOOLEAN_OPERATORS,
 	CUSTOM_TYPE,
 	CustomField,
+	deserializeRules,
 	FetchFieldVariables,
+	getAbsoluteEndTime,
+	getAbsoluteStartTime,
 	RANGE_OPERATORS,
 	SelectOption,
 	TIME_OPERATORS,
 	VIEWED_BY_OPERATORS,
 } from '@/components/QueryBuilder/QueryBuilder'
-import { EmptySessionsSearchParams } from '@/pages/Sessions/EmptySessionsSearchParams'
 import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
 import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
 
@@ -56,7 +51,7 @@ export const TIME_RANGE_FIELD: SelectOption = {
 	value: 'custom_created_at',
 }
 
-const CUSTOM_FIELDS: CustomField[] = [
+export const CUSTOM_FIELDS: CustomField[] = [
 	{
 		type: CUSTOM_TYPE,
 		name: 'app_version',
@@ -152,64 +147,37 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const { data: fieldData } = useGetFieldTypesQuery({
-		variables: { project_id: project_id! },
-		skip: !project_id,
-	})
+
 	const searchContext = useSearchContext()
-	const { setShowLeftPanel } = usePlayerConfiguration()
 
-	const { page, selectedSegment, setSelectedSegment } = searchContext
-
-	const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
-		'segment',
-		JsonParam,
+	const { rules: serializedRules }: { rules: any } = JSON.parse(
+		searchContext.searchQuery,
+	)
+	const newRules = deserializeRules(serializedRules)
+	const timeRange = newRules.find(
+		(rule) => rule.field?.value === TIME_RANGE_FIELD.value,
 	)
 
-	const [, setPaginationToUrlParams] = useQueryParams({
-		page: NumberParam,
+	const startDate = getAbsoluteStartTime(timeRange?.val?.options[0].value)
+	const endDate = getAbsoluteEndTime(timeRange?.val?.options[0].value)
+	const { data: fieldData } = useGetFieldTypesQuery({
+		variables: {
+			project_id: project_id!,
+			start_date: startDate,
+			end_date: endDate,
+		},
+		skip: !project_id,
 	})
-
-	useEffect(() => {
-		if (page !== undefined) {
-			setPaginationToUrlParams(
-				{
-					page: page,
-				},
-				'replaceIn',
-			)
-		}
-	}, [setPaginationToUrlParams, page])
-
-	// Session Segment Deep Linking
-	useEffect(() => {
-		if (selectedSegment && selectedSegment.id && selectedSegment.name) {
-			if (!isEqual(activeSegmentUrlParam, selectedSegment)) {
-				setActiveSegmentUrlParam(selectedSegment, 'replace')
-			}
-		} else if (activeSegmentUrlParam !== undefined) {
-			setActiveSegmentUrlParam(undefined, 'replace')
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedSegment, setActiveSegmentUrlParam])
-
-	useEffect(() => {
-		if (activeSegmentUrlParam) {
-			setSelectedSegment(activeSegmentUrlParam)
-		}
-		// We only want to run this on mount (i.e. when the page first loads).
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	return (
 		<QueryBuilder
-			searchContext={useSearchContext()}
+			searchContext={searchContext}
 			timeRangeField={TIME_RANGE_FIELD}
 			customFields={CUSTOM_FIELDS}
 			fetchFields={fetchFields}
 			fieldData={fieldData}
 			setShowLeftPanel={setShowLeftPanel}
-			emptySearchParams={EmptySessionsSearchParams}
 			useEditAnySegmentMutation={useEditSegmentMutation}
 			useGetAnySegmentsQuery={useGetSegmentsQuery}
 			CreateAnySegmentModal={CreateSegmentModal}

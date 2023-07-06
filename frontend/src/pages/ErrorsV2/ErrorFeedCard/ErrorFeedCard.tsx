@@ -22,7 +22,7 @@ interface Props {
 	errorGroup: Maybe<Omit<ErrorGroup, 'metadata_log'>>
 	urlParams?: string
 }
-export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
+export const ErrorFeedCard = ({ errorGroup }: Props) => {
 	const { projectId } = useProjectId()
 	const { error_secure_id } = useParams<{
 		error_secure_id?: string
@@ -38,9 +38,10 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 
 	return (
 		<Link
-			to={`/${projectId}/errors/${errorGroup?.secure_id}${
-				urlParams || ''
-			}`}
+			to={{
+				pathname: `/${projectId}/errors/${errorGroup?.secure_id}`,
+				search: location.search,
+			}}
 		>
 			<Box
 				paddingTop="8"

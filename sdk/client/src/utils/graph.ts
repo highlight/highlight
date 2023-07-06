@@ -1,11 +1,11 @@
 import { ClientError } from 'graphql-request'
 import { PublicGraphError } from '../graph/generated/schemas'
-import { logForHighlight } from './highlight-logging'
 
 export const MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS = 5
 
 // Initial backoff for retrying graphql requests.
-export const INITIAL_BACKOFF = 300
+export const BASE_DELAY_MS = 1000
+export const BACKOFF_DELAY_MS = 500
 
 // Do not retry if any of these public graph errors are thrown
 const NON_RETRYABLE_ERRORS = [PublicGraphError.BillingQuotaExceeded.toString()]
@@ -34,7 +34,10 @@ export const getGraphQLRequestWrapper = (sessionSecureID: string) => {
 
 			if (retries < MAX_PUBLIC_GRAPH_RETRY_ATTEMPTS) {
 				await new Promise((resolve) =>
-					setTimeout(resolve, INITIAL_BACKOFF * Math.pow(2, retries)),
+					setTimeout(
+						resolve,
+						BASE_DELAY_MS + BACKOFF_DELAY_MS * Math.pow(2, retries),
+					),
 				)
 				return await graphQLRequestWrapper(
 					requestFn,
@@ -43,12 +46,10 @@ export const getGraphQLRequestWrapper = (sessionSecureID: string) => {
 					retries + 1,
 				)
 			}
-			logForHighlight(
-				'[' +
-					(sessionSecureID || sessionSecureID) +
-					'] Request failed after ' +
-					retries +
-					' retries',
+			console.error(
+				`highlight.io: [${
+					sessionSecureID || sessionSecureID
+				}] data request failed after ${retries} retries`,
 			)
 			throw error
 		}

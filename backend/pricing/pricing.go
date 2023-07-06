@@ -207,39 +207,36 @@ func GetLimitAmount(limitCostCents *int, productType ProductType, planType backe
 	if limitCostCents == nil {
 		return nil
 	}
-	basePrice := ProductToBasePriceCents(productType)
-	if planType != backend.PlanTypeUsageBased {
-		basePrice = ProductToBasePriceCentsNonUsageBased(productType)
-	}
+	basePrice := ProductToBasePriceCents(productType, planType)
 	retentionMultiplier := RetentionMultiplier(retentionPeriod)
 
 	return pointy.Int64(int64(
 		float64(*limitCostCents)/basePrice/retentionMultiplier) + included)
 }
 
-func ProductToBasePriceCentsNonUsageBased(productType ProductType) float64 {
-	switch productType {
-	case ProductTypeSessions:
-		return .5
-	case ProductTypeErrors:
-		return .02
-	case ProductTypeLogs:
-		return .00015
-	default:
-		return 0
-	}
-}
-
-func ProductToBasePriceCents(productType ProductType) float64 {
-	switch productType {
-	case ProductTypeSessions:
-		return 2
-	case ProductTypeErrors:
-		return .02
-	case ProductTypeLogs:
-		return .00015
-	default:
-		return 0
+func ProductToBasePriceCents(productType ProductType, planType backend.PlanType) float64 {
+	if planType == backend.PlanTypeUsageBased {
+		switch productType {
+		case ProductTypeSessions:
+			return 2
+		case ProductTypeErrors:
+			return .02
+		case ProductTypeLogs:
+			return .00015
+		default:
+			return 0
+		}
+	} else {
+		switch productType {
+		case ProductTypeSessions:
+			return .5
+		case ProductTypeErrors:
+			return .02
+		case ProductTypeLogs:
+			return .00015
+		default:
+			return 0
+		}
 	}
 }
 

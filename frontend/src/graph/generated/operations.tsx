@@ -338,6 +338,20 @@ export type EditWorkspaceMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type EditWorkspaceSettingsMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	ai_insights?: Types.Maybe<Types.Scalars['Boolean']>
+}>
+
+export type EditWorkspaceSettingsMutation = { __typename?: 'Mutation' } & {
+	editWorkspaceSettings?: Types.Maybe<
+		{ __typename?: 'AllWorkspaceSettings' } & Pick<
+			Types.AllWorkspaceSettings,
+			'workspace_id' | 'ai_insights'
+		>
+	>
+}
+
 export type DeleteSegmentMutationVariables = Types.Exact<{
 	segment_id: Types.Scalars['ID']
 }>
@@ -2072,6 +2086,8 @@ export type GetTimelineIndicatorEventsQuery = { __typename?: 'Query' } & {
 
 export type GetFieldTypesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
+	start_date?: Types.Maybe<Types.Scalars['Timestamp']>
+	end_date?: Types.Maybe<Types.Scalars['Timestamp']>
 }>
 
 export type GetFieldTypesQuery = { __typename?: 'Query' } & {
@@ -2128,6 +2144,7 @@ export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
 	count: Types.Scalars['Int']
 	query: Types.Scalars['String']
 	sort_desc: Types.Scalars['Boolean']
+	sort_field?: Types.Maybe<Types.Scalars['String']>
 	page?: Types.Maybe<Types.Scalars['Int']>
 }>
 
@@ -4542,6 +4559,7 @@ export const namedOperations = {
 		EditProjectSettings: 'EditProjectSettings' as const,
 		DeleteProject: 'DeleteProject' as const,
 		EditWorkspace: 'EditWorkspace' as const,
+		EditWorkspaceSettings: 'EditWorkspaceSettings' as const,
 		DeleteSegment: 'DeleteSegment' as const,
 		EditSegment: 'EditSegment' as const,
 		CreateSegment: 'CreateSegment' as const,

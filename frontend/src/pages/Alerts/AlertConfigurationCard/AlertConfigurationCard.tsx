@@ -22,10 +22,10 @@ import {
 import { useSlackSync } from '@hooks/useSlackSync'
 import alertConfigurationCardStyles from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard.module.css'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
-import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
-import { Form, message } from 'antd'
+import { Form, message, Tag } from 'antd'
 import clsx from 'clsx'
+import { uniq } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
@@ -33,6 +33,7 @@ import { Link, useLocation } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
 
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 import Button from '../../../components/Button/Button/Button'
 import InputNumber from '../../../components/InputNumber/InputNumber'
@@ -89,6 +90,7 @@ export const AlertConfigurationCard = ({
 	const [frequency, setFrequency] = useState(
 		getFrequencyOption(alert?.Frequency).value,
 	)
+	const [customEmail, setCustomEmail] = useState('')
 
 	const { slackLoading, syncSlack } = useSlackSync()
 	const [isDisabled, setIsDisabled] = useState(alert?.disabled || false)
@@ -496,11 +498,23 @@ export const AlertConfigurationCard = ({
 		}),
 	)
 
-	const emails = emailSuggestions.map((email) => ({
+	const emails = uniq([
+		...(emailSuggestions ?? []),
+		// Add values from the form to ensure custom emails are included
+		...(form.getFieldValue('emails') ?? []),
+	]).map((email) => ({
 		displayValue: email,
 		value: email,
 		id: email,
 	}))
+
+	if (!!customEmail.split('@')[1]) {
+		emails.unshift({
+			displayValue: `Send email alerts to: ${customEmail}`,
+			value: customEmail,
+			id: customEmail,
+		})
+	}
 
 	const environments = [
 		...dedupeEnvironments(environmentOptions).map(
@@ -567,6 +581,7 @@ export const AlertConfigurationCard = ({
 		form.setFieldsValue({ emails })
 		setEmailsToNotify(emails)
 		setFormTouched(true)
+		setCustomEmail('')
 	}
 
 	const onWebhooksChange = (webhooks: WebhookDestination[]) => {
@@ -801,8 +816,7 @@ export const AlertConfigurationCard = ({
 							<h3>Emails to Notify</h3>
 							<p>
 								Pick email addresses to email when an alert is
-								created. These are email addresses for people in
-								your workspace.
+								created.
 							</p>
 							<Form.Item shouldUpdate>
 								{() => (
@@ -810,6 +824,38 @@ export const AlertConfigurationCard = ({
 										className={styles.channelSelect}
 										options={emails}
 										mode="multiple"
+										tagRender={(props) => {
+											const { value, closable, onClose } =
+												props
+
+											const onPreventMouseDown = (
+												event: React.MouseEvent<HTMLSpanElement>,
+											) => {
+												event.preventDefault()
+												event.stopPropagation()
+											}
+
+											return (
+												<Tag
+													onMouseDown={
+														onPreventMouseDown
+													}
+													closable={closable}
+													onClose={onClose}
+													style={{
+														// A few custom styles to match default tags on selects
+														backgroundColor: `var(--color-gray-200)`,
+														border: 0,
+														fontSize: 14,
+														height: 24,
+														lineHeight: `24px`, // set in px to avoid being set as a ratio of the font size
+														marginRight: 4,
+													}}
+												>
+													{value}
+												</Tag>
+											)
+										}}
 										filterOption={(searchValue, option) => {
 											return (
 												option?.children
@@ -820,7 +866,11 @@ export const AlertConfigurationCard = ({
 													) || false
 											)
 										}}
-										placeholder={`Select a email address to send ${defaultName} to.`}
+										onKeyUp={(e: any) => {
+											setCustomEmail(e.target.value)
+										}}
+										onBlur={() => setCustomEmail('')}
+										placeholder={`Select an email address to send ${defaultName} to.`}
 										onChange={onEmailsChange}
 										notFoundContent={
 											<div
@@ -834,8 +884,10 @@ export const AlertConfigurationCard = ({
 													to={`/w/${currentWorkspace?.id}/team`}
 												>
 													invite someone to the
-													workspace?
+													workspace
 												</Link>
+												? Or enter an external email
+												address to send alerts to.
 											</div>
 										}
 										defaultValue={

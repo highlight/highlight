@@ -1692,6 +1692,60 @@ export type EditWorkspaceMutationOptions = Apollo.BaseMutationOptions<
 	Types.EditWorkspaceMutation,
 	Types.EditWorkspaceMutationVariables
 >
+export const EditWorkspaceSettingsDocument = gql`
+	mutation EditWorkspaceSettings($workspace_id: ID!, $ai_insights: Boolean) {
+		editWorkspaceSettings(
+			workspace_id: $workspace_id
+			ai_insights: $ai_insights
+		) {
+			workspace_id
+			ai_insights
+		}
+	}
+`
+export type EditWorkspaceSettingsMutationFn = Apollo.MutationFunction<
+	Types.EditWorkspaceSettingsMutation,
+	Types.EditWorkspaceSettingsMutationVariables
+>
+
+/**
+ * __useEditWorkspaceSettingsMutation__
+ *
+ * To run a mutation, you first call `useEditWorkspaceSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditWorkspaceSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [editWorkspaceSettingsMutation, { data, loading, error }] = useEditWorkspaceSettingsMutation({
+ *   variables: {
+ *      workspace_id: // value for 'workspace_id'
+ *      ai_insights: // value for 'ai_insights'
+ *   },
+ * });
+ */
+export function useEditWorkspaceSettingsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.EditWorkspaceSettingsMutation,
+		Types.EditWorkspaceSettingsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.EditWorkspaceSettingsMutation,
+		Types.EditWorkspaceSettingsMutationVariables
+	>(EditWorkspaceSettingsDocument, baseOptions)
+}
+export type EditWorkspaceSettingsMutationHookResult = ReturnType<
+	typeof useEditWorkspaceSettingsMutation
+>
+export type EditWorkspaceSettingsMutationResult =
+	Apollo.MutationResult<Types.EditWorkspaceSettingsMutation>
+export type EditWorkspaceSettingsMutationOptions = Apollo.BaseMutationOptions<
+	Types.EditWorkspaceSettingsMutation,
+	Types.EditWorkspaceSettingsMutationVariables
+>
 export const DeleteSegmentDocument = gql`
 	mutation DeleteSegment($segment_id: ID!) {
 		deleteSegment(segment_id: $segment_id)
@@ -6359,8 +6413,16 @@ export type GetTimelineIndicatorEventsQueryResult = Apollo.QueryResult<
 	Types.GetTimelineIndicatorEventsQueryVariables
 >
 export const GetFieldTypesDocument = gql`
-	query GetFieldTypes($project_id: ID!) {
-		field_types(project_id: $project_id) {
+	query GetFieldTypes(
+		$project_id: ID!
+		$start_date: Timestamp
+		$end_date: Timestamp
+	) {
+		field_types(
+			project_id: $project_id
+			start_date: $start_date
+			end_date: $end_date
+		) {
 			type
 			name
 		}
@@ -6380,6 +6442,8 @@ export const GetFieldTypesDocument = gql`
  * const { data, loading, error } = useGetFieldTypesQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
+ *      start_date: // value for 'start_date'
+ *      end_date: // value for 'end_date'
  *   },
  * });
  */
@@ -6629,12 +6693,14 @@ export const GetSessionsOpenSearchDocument = gql`
 		$count: Int!
 		$query: String!
 		$sort_desc: Boolean!
+		$sort_field: String
 		$page: Int
 	) {
 		sessions_opensearch(
 			project_id: $project_id
 			count: $count
 			query: $query
+			sort_field: $sort_field
 			sort_desc: $sort_desc
 			page: $page
 		) {
@@ -6697,6 +6763,7 @@ export const GetSessionsOpenSearchDocument = gql`
  *      count: // value for 'count'
  *      query: // value for 'query'
  *      sort_desc: // value for 'sort_desc'
+ *      sort_field: // value for 'sort_field'
  *      page: // value for 'page'
  *   },
  * });

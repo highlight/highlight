@@ -124,6 +124,12 @@ export type AllProjectSettings = {
 	workspace_id: Scalars['ID']
 }
 
+export type AllWorkspaceSettings = {
+	__typename?: 'AllWorkspaceSettings'
+	ai_insights: Scalars['Boolean']
+	workspace_id: Scalars['ID']
+}
+
 export type AverageSessionLength = {
 	__typename?: 'AverageSessionLength'
 	length: Scalars['Float']
@@ -355,6 +361,7 @@ export enum EmailOptOutCategory {
 	All = 'All',
 	Billing = 'Billing',
 	Digests = 'Digests',
+	SessionDigests = 'SessionDigests',
 }
 
 export type EnhancedUserDetailsResult = {
@@ -528,7 +535,7 @@ export type ErrorObjectNode = {
 	createdAt: Scalars['Timestamp']
 	event: Scalars['String']
 	id: Scalars['ID']
-	session: ErrorObjectNodeSession
+	session?: Maybe<ErrorObjectNodeSession>
 }
 
 export type ErrorObjectNodeSession = {
@@ -958,6 +965,7 @@ export type Mutation = {
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
 	editWorkspace?: Maybe<Workspace>
+	editWorkspaceSettings?: Maybe<AllWorkspaceSettings>
 	emailSignup: Scalars['String']
 	joinWorkspace?: Maybe<Scalars['ID']>
 	markErrorGroupAsViewed?: Maybe<ErrorGroup>
@@ -1264,6 +1272,11 @@ export type MutationEditWorkspaceArgs = {
 	name?: InputMaybe<Scalars['String']>
 }
 
+export type MutationEditWorkspaceSettingsArgs = {
+	ai_insights?: InputMaybe<Scalars['Boolean']>
+	workspace_id: Scalars['ID']
+}
+
 export type MutationEmailSignupArgs = {
 	email: Scalars['String']
 }
@@ -1399,6 +1412,7 @@ export type MutationUpdateEmailOptOutArgs = {
 	admin_id?: InputMaybe<Scalars['ID']>
 	category: EmailOptOutCategory
 	is_opt_out: Scalars['Boolean']
+	project_id?: InputMaybe<Scalars['Int']>
 	token?: InputMaybe<Scalars['String']>
 }
 
@@ -1730,6 +1744,7 @@ export type Query = {
 	web_vitals: Array<Metric>
 	workspace?: Maybe<Workspace>
 	workspacePendingInvites: Array<Maybe<WorkspaceInviteLink>>
+	workspaceSettings?: Maybe<AllWorkspaceSettings>
 	workspaceSuggestion: Array<Maybe<Workspace>>
 	workspace_admins: Array<WorkspaceAdminRole>
 	workspace_admins_by_project_id: Array<WorkspaceAdminRole>
@@ -1953,7 +1968,9 @@ export type QueryField_SuggestionArgs = {
 }
 
 export type QueryField_TypesArgs = {
+	end_date?: InputMaybe<Scalars['Timestamp']>
 	project_id: Scalars['ID']
+	start_date?: InputMaybe<Scalars['Timestamp']>
 }
 
 export type QueryFields_OpensearchArgs = {
@@ -2230,6 +2247,7 @@ export type QuerySessions_OpensearchArgs = {
 	project_id: Scalars['ID']
 	query: Scalars['String']
 	sort_desc: Scalars['Boolean']
+	sort_field?: InputMaybe<Scalars['String']>
 }
 
 export type QuerySlack_Channel_SuggestionArgs = {
@@ -2297,6 +2315,10 @@ export type QueryWorkspaceArgs = {
 }
 
 export type QueryWorkspacePendingInvitesArgs = {
+	workspace_id: Scalars['ID']
+}
+
+export type QueryWorkspaceSettingsArgs = {
 	workspace_id: Scalars['ID']
 }
 
@@ -2590,6 +2612,7 @@ export enum SessionExcludedReason {
 	NoActivity = 'NoActivity',
 	NoError = 'NoError',
 	NoTimelineIndicatorEvents = 'NoTimelineIndicatorEvents',
+	NoUserEvents = 'NoUserEvents',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
 }
 
@@ -2681,6 +2704,7 @@ export type SourceMappingError = {
 }
 
 export enum SourceMappingErrorCode {
+	ErrorConstructingSourceMapUrl = 'Error_Constructing_Source_Map_URL',
 	ErrorParsingStackTraceFileUrl = 'Error_Parsing_Stack_Trace_File_Url',
 	FileNameMissingFromSourcePath = 'File_Name_Missing_From_Source_Path',
 	InvalidSourceMapUrl = 'Invalid_SourceMapURL',

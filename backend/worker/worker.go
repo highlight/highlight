@@ -182,6 +182,9 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 	case model.PayloadTypeResources:
 		compressedWriter = manager.ResourcesCompressed
 		unmarshalled = &payload.ResourcesUnmarshalled{}
+	case model.PayloadTypeWebSocketEvents:
+		compressedWriter = manager.WebSocketEventsCompressed
+		unmarshalled = &payload.WebSocketEventsUnmarshalled{}
 	}
 
 	writeChunks := os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && payloadType == model.PayloadTypeEvents
@@ -248,28 +251,13 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 	}
 
 	// Fetch/write resources.
-	if s.AvoidPostgresStorage {
-		if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeResources, accumulator); err != nil {
-			return errors.Wrap(err, "error fetching resources from Redis")
-		}
-	} else {
-		resourcesRows, err := w.Resolver.DB.Model(&model.ResourcesObject{}).Where(&model.ResourcesObject{SessionID: s.ID}).Order("created_at asc").Rows()
-		if err != nil {
-			return errors.Wrap(err, "error retrieving resources objects")
-		}
-		for resourcesRows.Next() {
-			resourcesObject := model.ResourcesObject{}
-			err := w.Resolver.DB.ScanRows(resourcesRows, &resourcesObject)
-			if err != nil {
-				return errors.Wrap(err, "error scanning resource row")
-			}
-			if err := manager.ResourcesCompressed.WriteObject(&resourcesObject, &payload.ResourcesUnmarshalled{}); err != nil {
-				return errors.Wrap(err, "error writing compressed resources row")
-			}
-		}
-		if err := manager.ResourcesCompressed.Close(); err != nil {
-			return errors.Wrap(err, "error closing compressed resources writer")
-		}
+	if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeResources, accumulator); err != nil {
+		return errors.Wrap(err, "error fetching resources from Redis")
+	}
+
+	// Fetch/write web socket events.
+	if err := w.writeSessionDataFromRedis(ctx, manager, s, model.PayloadTypeWebSocketEvents, accumulator); err != nil {
+		return errors.Wrap(err, "error fetching web socket events from Redis")
 	}
 
 	return nil
@@ -303,6 +291,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			task.PushPayload.Events,
 			task.PushPayload.Messages,
 			task.PushPayload.Resources,
+			task.PushPayload.WebSocketEvents,
 			task.PushPayload.Errors,
 			task.PushPayload.IsBeacon != nil && *task.PushPayload.IsBeacon,
 			task.PushPayload.HasSessionUnloaded != nil && *task.PushPayload.HasSessionUnloaded,
@@ -784,6 +773,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	pagesVisited := len(visitFields)
 
+	workspace, err := w.Resolver.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return err
+	}
+	withinBillingQuota, _ := w.PublicResolver.IsWithinQuota(ctx, pricing.ProductTypeSessions, workspace, time.Now())
+
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -795,6 +790,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			HasRageClicks:       &hasRageClicks,
 			HasOutOfOrderEvents: accumulator.AreEventsOutOfOrder,
 			PagesVisited:        pagesVisited,
+			WithinBillingQuota:  &withinBillingQuota,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")

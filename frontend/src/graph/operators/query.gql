@@ -518,8 +518,16 @@ query GetTimelineIndicatorEvents($session_secure_id: String!) {
 	}
 }
 
-query GetFieldTypes($project_id: ID!) {
-	field_types(project_id: $project_id) {
+query GetFieldTypes(
+	$project_id: ID!
+	$start_date: Timestamp
+	$end_date: Timestamp
+) {
+	field_types(
+		project_id: $project_id
+		start_date: $start_date
+		end_date: $end_date
+	) {
 		type
 		name
 	}
@@ -578,12 +586,14 @@ query GetSessionsOpenSearch(
 	$count: Int!
 	$query: String!
 	$sort_desc: Boolean!
+	$sort_field: String
 	$page: Int
 ) {
 	sessions_opensearch(
 		project_id: $project_id
 		count: $count
 		query: $query
+		sort_field: $sort_field
 		sort_desc: $sort_desc
 		page: $page
 	) {
@@ -2098,4 +2108,11 @@ query GetWorkspacePendingInvites($workspace_id: ID!) {
 
 query GetErrorResolutionSuggestion($error_object_id: ID!) {
 	error_resolution_suggestion(error_object_id: $error_object_id)
+}
+
+query GetWorkspaceSettings($workspace_id: ID!) {
+	workspaceSettings(workspace_id: $workspace_id) {
+		workspace_id
+		ai_insights
+	}
 }
