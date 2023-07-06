@@ -186,16 +186,6 @@ export const usePreloadErrors = function ({
 					},
 				},
 			})
-			const promises: Promise<void>[] = []
-			for (const _eg of errors?.error_groups_opensearch.error_groups ||
-				[]) {
-				promises.push(loadErrorGroup(project_id!, _eg.secure_id))
-				if (promises.length === CONCURRENT_PRELOADS) {
-					await Promise.all(promises)
-					promises.length = 0
-				}
-			}
-			await Promise.all(promises)
 		})()
 	}, [project_id, pageToLoad, backendSearchQuery?.searchQuery])
 }
@@ -316,7 +306,10 @@ export const loadSession = async function (secureID: string) {
 	}
 }
 
-const loadErrorGroup = async function (projectID: string, secureID: string) {
+export const loadErrorGroup = async function (
+	projectID: string,
+	secureID: string,
+) {
 	if (
 		await IndexedDBLink.has('GetErrorGroup', {
 			secure_id: secureID,

@@ -17,6 +17,8 @@ import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import { Link } from 'react-router-dom'
 
+import { loadErrorGroup } from '@/util/preload'
+
 import * as style from './ErrorFeedCard.css'
 interface Props {
 	errorGroup: Maybe<Omit<ErrorGroup, 'metadata_log'>>
@@ -42,6 +44,10 @@ export const ErrorFeedCard = ({ errorGroup }: Props) => {
 				pathname: `/${projectId}/errors/${errorGroup?.secure_id}`,
 				search: location.search,
 			}}
+			onMouseOver={() =>
+				errorGroup?.secure_id &&
+				loadErrorGroup(projectId, errorGroup.secure_id)
+			}
 		>
 			<Box
 				paddingTop="8"
