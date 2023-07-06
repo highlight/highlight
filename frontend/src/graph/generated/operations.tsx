@@ -2953,36 +2953,6 @@ export type GetErrorInstanceQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetRecentErrorsQueryVariables = Types.Exact<{
-	secure_id: Types.Scalars['String']
-}>
-
-export type GetRecentErrorsQuery = { __typename?: 'Query' } & {
-	error_group?: Types.Maybe<
-		{ __typename?: 'ErrorGroup' } & Pick<Types.ErrorGroup, 'secure_id'> & {
-				metadata_log: Array<
-					Types.Maybe<
-						{ __typename?: 'ErrorMetadata' } & Pick<
-							Types.ErrorMetadata,
-							| 'error_id'
-							| 'session_secure_id'
-							| 'environment'
-							| 'timestamp'
-							| 'os'
-							| 'browser'
-							| 'visited_url'
-							| 'fingerprint'
-							| 'identifier'
-							| 'user_properties'
-							| 'request_id'
-							| 'payload'
-						>
-					>
-				>
-			}
-	>
-}
-
 export type GetResourcesQueryVariables = Types.Exact<{
 	session_secure_id: Types.Scalars['String']
 }>
@@ -4489,7 +4459,6 @@ export const namedOperations = {
 		GetErrorObjectForLog: 'GetErrorObjectForLog' as const,
 		GetErrorObject: 'GetErrorObject' as const,
 		GetErrorInstance: 'GetErrorInstance' as const,
-		GetRecentErrors: 'GetRecentErrors' as const,
 		GetResources: 'GetResources' as const,
 		GetFieldSuggestion: 'GetFieldSuggestion' as const,
 		GetEnvironments: 'GetEnvironments' as const,
