@@ -8,7 +8,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
-import { Heading, Stack } from '@highlight-run/ui'
+import { Heading, Stack, Text } from '@highlight-run/ui'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
 import { useDialogState } from 'ariakit/dialog'
@@ -55,18 +55,26 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 			</>
 		)
 	} else {
-		const categories = [
-			{
-				label: 'Digests',
-				info: 'Weekly summaries of user activity and errors for your projects',
-				type: EmailOptOutCategory.Digests,
-			},
+		const general = [
 			{
 				label: 'Billing',
 				info: 'Notifications about billing and plan usage',
 				type: EmailOptOutCategory.Billing,
 			},
 		]
+		const digests = [
+			{
+				label: 'Project Overview',
+				info: 'Weekly summaries of user activity and errors for your projects',
+				type: EmailOptOutCategory.Digests,
+			},
+			{
+				label: 'Session Insights',
+				info: 'Weekly summaries of your most interesting sessions',
+				type: EmailOptOutCategory.SessionDigests,
+			},
+		]
+		const categories = [...general, ...digests]
 
 		let optOutAll = false
 		const optOuts = new Set<EmailOptOutCategory>()
@@ -87,7 +95,42 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 					Notifications
 				</Heading>
 				<Stack gap="12" direction="column">
-					{categories.map((c) => (
+					{general.map((c) => (
+						<BorderBox key={c.label}>
+							{ToggleRow(
+								c.label,
+								c.info,
+								!optOuts.has(c.type),
+								(isOptIn: boolean) => {
+									updateEmailOptOut({
+										variables: {
+											token,
+											admin_id,
+											category: c.type,
+											is_opt_out: !isOptIn,
+										},
+									})
+										.then(() => {
+											message.success(
+												`Opted ${
+													isOptIn ? 'in to' : 'out of'
+												} ${c.type} emails.`,
+											)
+										})
+										.catch((reason: any) => {
+											message.error(String(reason))
+										})
+								},
+								optOutAll,
+							)}
+						</BorderBox>
+					))}
+				</Stack>
+				<Stack gap="12" direction="column" paddingTop="24">
+					<Text weight="bold" size="small" color="default">
+						Digests
+					</Text>
+					{digests.map((c) => (
 						<BorderBox key={c.label}>
 							{ToggleRow(
 								c.label,

@@ -338,6 +338,20 @@ export type EditWorkspaceMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type EditWorkspaceSettingsMutationVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+	ai_insights?: Types.Maybe<Types.Scalars['Boolean']>
+}>
+
+export type EditWorkspaceSettingsMutation = { __typename?: 'Mutation' } & {
+	editWorkspaceSettings?: Types.Maybe<
+		{ __typename?: 'AllWorkspaceSettings' } & Pick<
+			Types.AllWorkspaceSettings,
+			'workspace_id' | 'ai_insights'
+		>
+	>
+}
+
 export type DeleteSegmentMutationVariables = Types.Exact<{
 	segment_id: Types.Scalars['ID']
 }>
@@ -2130,6 +2144,7 @@ export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
 	count: Types.Scalars['Int']
 	query: Types.Scalars['String']
 	sort_desc: Types.Scalars['Boolean']
+	sort_field?: Types.Maybe<Types.Scalars['String']>
 	page?: Types.Maybe<Types.Scalars['Int']>
 }>
 
@@ -4373,6 +4388,19 @@ export type GetWorkspacePendingInvitesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetWorkspaceSettingsQueryVariables = Types.Exact<{
+	workspace_id: Types.Scalars['ID']
+}>
+
+export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
+	workspaceSettings?: Types.Maybe<
+		{ __typename?: 'AllWorkspaceSettings' } & Pick<
+			Types.AllWorkspaceSettings,
+			'workspace_id' | 'ai_insights'
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4503,6 +4531,7 @@ export const namedOperations = {
 		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
 		GetProjectSettings: 'GetProjectSettings' as const,
 		GetWorkspacePendingInvites: 'GetWorkspacePendingInvites' as const,
+		GetWorkspaceSettings: 'GetWorkspaceSettings' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -4534,6 +4563,7 @@ export const namedOperations = {
 		EditProjectSettings: 'EditProjectSettings' as const,
 		DeleteProject: 'DeleteProject' as const,
 		EditWorkspace: 'EditWorkspace' as const,
+		EditWorkspaceSettings: 'EditWorkspaceSettings' as const,
 		DeleteSegment: 'DeleteSegment' as const,
 		EditSegment: 'EditSegment' as const,
 		CreateSegment: 'CreateSegment' as const,

@@ -2,14 +2,19 @@ import {
 	Badge,
 	Box,
 	IconSolidArrowCircleRight,
+	IconSolidSparkles,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
+import clsx from 'clsx'
+import { useEffect, useState } from 'react'
 
+import { Button } from '@/components/Button'
 import LoadingBox from '@/components/LoadingBox'
-import { useGetSessionInsightQuery } from '@/graph/generated/hooks'
+import { useGetSessionInsightLazyQuery } from '@/graph/generated/hooks'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'
+import { useGlobalContext } from '@/routers/ProjectRouter/context/GlobalContext'
 import { useParams } from '@/util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@/util/session/utils'
 import { MillisToMinutesAndSeconds } from '@/util/time'
@@ -29,74 +34,119 @@ const SessionInsights = () => {
 		sessionMetadata: { startTime },
 	} = useReplayerContext()
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
+	const { showBanner } = useGlobalContext()
+	const [insightData, setInsightData] = useState('')
 
-	const { data, loading } = useGetSessionInsightQuery({
-		variables: {
-			secure_id: session_secure_id!,
+	const [getSessionInsight, { loading }] = useGetSessionInsightLazyQuery({
+		onCompleted: (data) => {
+			setInsightData(data?.session_insight?.insight || '[]')
 		},
-		skip: !session_secure_id,
 	})
 
+	useEffect(() => {
+		setInsightData('')
+	}, [session_secure_id])
+
 	return (
-		<Box py="8" display="flex" flexDirection="column">
+		<Box p="8" height="full" overflow="auto">
 			{loading ? (
 				<LoadingBox />
-			) : (
-				JSON.parse(data?.session_insight?.insight || '[]').map(
-					(insight: SessionInsight, idx: number) => {
-						const timeSinceStart =
-							new Date(insight.timestamp).getTime() - startTime
-						return (
-							<Box px="8" cursor="pointer" key={idx}>
-								<Box
-									className={style.insight}
-									onClick={() => {
-										setTime(timeSinceStart)
-									}}
-								>
-									<Box display="flex" gap="4">
-										<Badge
-											size="small"
-											variant="purple"
-											label={String(idx + 1)}
-										/>
-										<Tag
-											kind="secondary"
-											size="small"
-											shape="basic"
-											emphasis="low"
-											iconRight={
-												<IconSolidArrowCircleRight />
-											}
-										>
-											{showPlayerAbsoluteTime
-												? playerTimeToSessionAbsoluteTime(
-														{
-															sessionStartTime:
-																startTime,
-															relativeTime:
-																timeSinceStart,
-														},
-												  )
-												: MillisToMinutesAndSeconds(
-														timeSinceStart,
-												  )}
-										</Tag>
-									</Box>
-									<Box overflowWrap="breakWord">
-										<Text
-											size="small"
-											weight="medium"
-											color="strong"
-										>
-											{insight.insight}
-										</Text>
+			) : insightData ? (
+				<Box
+					cssClass={clsx(style.insightPanel, {
+						[style.insightPanelWithBanner]: showBanner,
+					})}
+				>
+					<Box
+						height="full"
+						width="full"
+						display="flex"
+						flexDirection="column"
+						position="relative"
+					>
+						{[
+							...JSON.parse(insightData),
+							...JSON.parse(insightData),
+						].map((insight: SessionInsight, idx: number) => {
+							const timeSinceStart =
+								new Date(insight.timestamp).getTime() -
+								startTime
+							return (
+								<Box cursor="pointer" key={idx}>
+									<Box
+										className={style.insight}
+										onClick={() => {
+											setTime(timeSinceStart)
+										}}
+									>
+										<Box display="flex" gap="4">
+											<Badge
+												size="small"
+												variant="purple"
+												label={String(idx + 1)}
+											/>
+											<Tag
+												kind="secondary"
+												size="small"
+												shape="basic"
+												emphasis="low"
+												iconRight={
+													<IconSolidArrowCircleRight />
+												}
+											>
+												{showPlayerAbsoluteTime
+													? playerTimeToSessionAbsoluteTime(
+															{
+																sessionStartTime:
+																	startTime,
+																relativeTime:
+																	timeSinceStart,
+															},
+													  )
+													: MillisToMinutesAndSeconds(
+															timeSinceStart,
+													  )}
+											</Tag>
+										</Box>
+										<Box overflowWrap="breakWord">
+											<Text
+												size="small"
+												weight="medium"
+												color="strong"
+											>
+												{insight.insight}
+											</Text>
+										</Box>
 									</Box>
 								</Box>
-							</Box>
-						)
-					},
-				)
+							)
+						})}
+					</Box>
+				</Box>
+			) : (
+				<Box
+					background="raised"
+					height="full"
+					width="full"
+					display="flex"
+					alignItems="center"
+					justifyContent="center"
+					borderRadius="6"
+				>
+					<Button
+						trackingId="GetSessionInsight"
+						onClick={() => {
+							getSessionInsight({
+								variables: {
+									secure_id: session_secure_id!,
+								},
+							})
+						}}
+						iconLeft={<IconSolidSparkles />}
+					>
+						Generate summary
+					</Button>
+				</Box>
 			)}
 		</Box>
 	)

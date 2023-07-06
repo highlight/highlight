@@ -14,7 +14,6 @@ import (
 
 func main() {
 	highlight.SetProjectID("1jdkoe52")
-	highlight.SetGraphqlClientAddress("https://localhost:8082/public")
 	highlight.SetOTLPEndpoint("http://localhost:4318")
 	highlight.Start()
 	defer highlight.Stop()

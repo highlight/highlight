@@ -6648,6 +6648,12 @@ body {
 ._1bsjoph0:hover {
   background-color: var(--_1pyqka91x);
 }
+._1bsjoph1 {
+  max-height: calc(100vh - 160px - 32px - 42px - 32px - var(--header-height));
+}
+._1bsjoph2 {
+  max-height: calc(100vh - 160px - 32px - 42px - 32px - var(--header-height) - var(--banner-height));
+}
 .ltrwrc0 {
   height: calc(100vh - 108px - var(--banner-height));
 }
