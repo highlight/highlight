@@ -1,5 +1,6 @@
-// Light utility to format phone numbers
+// Light utility functions to handle phone numbers
 // If this gets more complex, consider using a library such as https://catamphetamine.gitlab.io/react-phone-number-input
+
 export const formatPhoneNumber = (input: string): string => {
 	if (input.startsWith('+')) {
 		// Using a country code already, replace all non-digits and re-add the + sign

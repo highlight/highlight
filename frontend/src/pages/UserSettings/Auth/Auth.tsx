@@ -14,7 +14,6 @@ import React, {
 	useRef,
 	useState,
 } from 'react'
-import { isPossiblePhoneNumber } from 'react-phone-number-input'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { formatPhoneNumber } from '@/pages/UserSettings/Auth/utils'
@@ -131,14 +130,6 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 		setLoading(true)
 		setError(null)
 
-		if (isPossiblePhoneNumber(phoneNumber)) {
-			setError(
-				"Please use a valid phone number. Don't forget your regional prefix!",
-			)
-			setLoading(false)
-			return
-		}
-
 		await recaptchaVerifier.current?.verify()
 
 		const multiFactorSession =
@@ -160,13 +151,15 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 			if (error.code === 'auth/requires-recent-login') {
 				setStatus(AuthState.Login)
 			} else {
-				setError(error.message)
+				setError(
+					"Please use a valid phone number. Don't forget your regional prefix!",
+				)
+				console.error(`Firebase threw an error: ${error.message}`)
 			}
 		} finally {
 			setLoading(false)
 		}
 	}
-	const isValid = isPossiblePhoneNumber(phoneNumber)
 
 	const handleOnBlur = (event: React.FocusEvent<HTMLInputElement>): void => {
 		setPhoneNumber(formatPhoneNumber(event.target.value))
@@ -174,7 +167,6 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 
 	return (
 		<>
-			<>Is Valid: {isValid ? 'true' : 'false'}</>
 			{!verificationId ? (
 				<form onSubmit={handleSubmit}>
 					<Space size="medium" direction="vertical">

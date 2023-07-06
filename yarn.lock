@@ -11331,7 +11331,6 @@ __metadata:
     react-loading-skeleton: 3.0.1
     react-markdown: ^8.0.5
     react-nice-avatar: ^1.2.1
-    react-phone-number-input: ^3.2.25
     react-resizable: ^3.0.4
     react-resize-aware: ^3.0.1
     react-router-dom: ^6.8.1
@@ -26688,13 +26687,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"country-flag-icons@npm:^1.5.4":
-  version: 1.5.7
-  resolution: "country-flag-icons@npm:1.5.7"
-  checksum: b2512623ec7fa5a7b3d875b173469637f8782bb160d6054cd281223847b434316b22a736488a441168fc278fc9ee4b0b5e84a0b6164ab0a371a7afb1c2d50ca5
-  languageName: node
-  linkType: hard
-
 "cp-file@npm:^7.0.0":
   version: 7.0.0
   resolution: "cp-file@npm:7.0.0"
@@ -34403,15 +34395,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"input-format@npm:^0.3.8":
-  version: 0.3.8
-  resolution: "input-format@npm:0.3.8"
-  dependencies:
-    prop-types: ^15.8.1
-  checksum: 22a0266504536c4c18cee1e44f45d995a7c3f8599e63f52e0cf1805eea16997508dc6182736caf8676d5e279695997ef8edc4f4e091a9f17fa365ffe6e19710e
-  languageName: node
-  linkType: hard
-
 "inquirer@npm:8.2.4, inquirer@npm:^8.0.0":
   version: 8.2.4
   resolution: "inquirer@npm:8.2.4"
@@ -38074,13 +38057,6 @@ __metadata:
   version: 1.10.21
   resolution: "libphonenumber-js@npm:1.10.21"
   checksum: 0ffac0db4552eb1d39f8da8ee57cba20b1ad76a268f0e633c2dfcfe7db97d498cc6631c1ec4c1fc608944b866509d5b8e5039af878debec00b3a526946edebac
-  languageName: node
-  linkType: hard
-
-"libphonenumber-js@npm:^1.10.37":
-  version: 1.10.37
-  resolution: "libphonenumber-js@npm:1.10.37"
-  checksum: c28f7623226d6ab33c48044f12e772d35dfdbebae53e89434840f64da92e92736fa547a47b48d99050f225d921df71d9827848f78d6c62a063dec4c44dad1b1b
   languageName: node
   linkType: hard
 
@@ -45987,22 +45963,6 @@ __metadata:
   peerDependencies:
     react: ">=16.0.0"
   checksum: 4bdffe2e6dbd2fc68cfe1424909fd9ebb1e9adb8910e472f3c528fd7f971fc6bba4d8c184d10d25bdfadc8c6de1af6c3c862b8fe945c97166ad01b0b14441c66
-  languageName: node
-  linkType: hard
-
-"react-phone-number-input@npm:^3.2.25":
-  version: 3.2.25
-  resolution: "react-phone-number-input@npm:3.2.25"
-  dependencies:
-    classnames: ^2.3.1
-    country-flag-icons: ^1.5.4
-    input-format: ^0.3.8
-    libphonenumber-js: ^1.10.37
-    prop-types: ^15.8.1
-  peerDependencies:
-    react: ">=16.8"
-    react-dom: ">=16.8"
-  checksum: 64b07225afcf274019b1da4c6c014b876e77ba4b6ac12affb54666bb323595918608e846578abc156cfd3d0748bb79c37db29d13ebaaca6a15e6f4a65c3aa359
   languageName: node
   linkType: hard
 
