@@ -1,4 +1,11 @@
-import { Badge, Box, Stack, Tag, Text } from '@highlight-run/ui'
+import {
+	Badge,
+	Box,
+	IconSolidPlayCircle,
+	Stack,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
 import {
 	createColumnHelper,
 	flexRender,
@@ -8,6 +15,7 @@ import {
 import moment from 'moment'
 import React from 'react'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import { Link } from '@/components/Link'
 import { ErrorObjectEdge } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -33,6 +41,7 @@ function truncateVersion(version: string) {
 
 export const ErrorInstancesTable = ({ edges }: Props) => {
 	const { projectId } = useProjectId()
+	const { isLoggedIn } = useAuthContext()
 	const columnHelper = createColumnHelper<ErrorObjectEdge>()
 
 	const columns = [
@@ -66,18 +75,36 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 				)
 			},
 		}),
-		columnHelper.accessor('node.session', {
+		columnHelper.accessor('node', {
 			cell: ({ getValue }) => {
-				const session = getValue()
-				if (!session) {
-					return null
+				const session = getValue().session
+
+				let content = 'no session'
+				let sessionLink = ''
+
+				if (session) {
+					const parsedUserProperties = getUserProperties(
+						session.userProperties,
+					)
+					content = parsedUserProperties.email
+					// TODO - link directly to the timestamp like RelatedSession does
+					sessionLink = `/${projectId}/sessions/${session.secureID}`
 				}
 
-				const parsedUserProperties = getUserProperties(
-					session.userProperties,
+				return (
+					<Link to={sessionLink}>
+						<Tag
+							kind="secondary"
+							emphasis="low"
+							size="medium"
+							shape="basic"
+							disabled={!isLoggedIn || sessionLink === ''}
+							iconLeft={<IconSolidPlayCircle />}
+						>
+							{content}
+						</Tag>
+					</Link>
 				)
-
-				return <Text>{parsedUserProperties.email}</Text>
 			},
 		}),
 	]
