@@ -610,8 +610,8 @@ type LogConnection implements Connection {
 
 type ErrorObjectNodeSession {
 	secureID: String!
-	userProperties: String!
 	appVersion: String
+	email: String
 }
 
 type ErrorObjectNode {

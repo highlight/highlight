@@ -2114,7 +2114,7 @@ query GetErrorObjects(
 				errorGroupSecureID
 				session {
 					secureID
-					userProperties
+					email
 					appVersion
 				}
 			}

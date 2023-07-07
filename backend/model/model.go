@@ -580,10 +580,10 @@ type Session struct {
 	Identified  bool `json:"identified" gorm:"default:false;not null"`
 	Fingerprint int  `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
-	Identifier     string `json:"identifier"`
-	OrganizationID int    `json:"organization_id"`
-	ProjectID      int    `json:"project_id" gorm:"index:idx_project_id_email"`
-	Email          string `json:"email" gorm:"index:idx_project_id_email"`
+	Identifier     string  `json:"identifier"`
+	OrganizationID int     `json:"organization_id"`
+	ProjectID      int     `json:"project_id" gorm:"index:idx_project_id_email"`
+	Email          *string `json:"email" gorm:"index:idx_project_id_email"`
 	// Location data based off user ip (see InitializeSession)
 	City      string  `json:"city"`
 	State     string  `json:"state"`

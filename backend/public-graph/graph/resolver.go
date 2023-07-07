@@ -1266,7 +1266,6 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	// If userIdentifier is a valid email, save as an email field
 	// (this will be overridden if `email` is passed to `H.identify`)
 	_, err := mail.ParseAddress(userIdentifier)
-
 	if err == nil {
 		userProperties["email"] = userIdentifier
 	}
@@ -1327,7 +1326,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	}
 
 	if userProperties["email"] != "" {
-		session.Email = userProperties["email"]
+		session.Email = ptr.String(userProperties["email"])
 	}
 
 	if !backfill {

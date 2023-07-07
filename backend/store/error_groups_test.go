@@ -77,7 +77,7 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 
 		session := model.Session{
 			AppVersion: ptr.String("123"),
-			Email:      "chilly@mcwilly.com",
+			Email:      ptr.String("chilly@mcwilly.com"),
 		}
 
 		store.db.Create(&session)
@@ -100,9 +100,9 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 		assert.Equal(t, errorObject.Event, edge.Node.Event)
 		assert.Equal(t, errorGroup.SecureID, edge.Node.ErrorGroupSecureID)
 		assert.Equal(t, &privateModel.ErrorObjectNodeSession{
-			SecureID:       session.SecureID,
-			UserProperties: session.UserProperties,
-			AppVersion:     session.AppVersion,
+			SecureID:   session.SecureID,
+			Email:      session.Email,
+			AppVersion: session.AppVersion,
 		}, edge.Node.Session)
 
 		assert.Equal(t, &privateModel.PageInfo{
@@ -111,27 +111,6 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 			StartCursor:     strconv.Itoa(errorObject.ID),
 			EndCursor:       strconv.Itoa(errorObject.ID),
 		}, connection.PageInfo)
-
-		session = model.Session{
-			Email: "scoutie@mcscout.com",
-		}
-
-		store.db.Create(&session)
-
-		errorObject = model.ErrorObject{
-			ErrorGroupID: errorGroup.ID,
-			SessionID:    &session.ID,
-		}
-
-		store.db.Create(&errorObject)
-
-		connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{
-			Query: "email:scoutie@mcscout.com",
-		})
-		assert.NoError(t, err)
-
-		assert.Len(t, connection.Edges, 1)
-
 	})
 }
 
@@ -144,11 +123,11 @@ func TestListErrorObjectsSearchByEmail(t *testing.T) {
 		store.db.Create(&errorGroup)
 
 		session1 := model.Session{
-			Email: "chilly@mcwilly.com",
+			Email: ptr.String("chilly@mcwilly.com"),
 		}
 
 		session2 := model.Session{
-			Email: "scoutie@mcwoutie.com",
+			Email: ptr.String("scoutie@mcwoutie.com"),
 		}
 
 		store.db.Create(&session1)
