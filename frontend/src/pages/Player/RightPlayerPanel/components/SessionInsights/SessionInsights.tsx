@@ -64,63 +64,62 @@ const SessionInsights = () => {
 						flexDirection="column"
 						position="relative"
 					>
-						{[
-							...JSON.parse(insightData),
-							...JSON.parse(insightData),
-						].map((insight: SessionInsight, idx: number) => {
-							const timeSinceStart =
-								new Date(insight.timestamp).getTime() -
-								startTime
-							return (
-								<Box cursor="pointer" key={idx}>
-									<Box
-										className={style.insight}
-										onClick={() => {
-											setTime(timeSinceStart)
-										}}
-									>
-										<Box display="flex" gap="4">
-											<Badge
-												size="small"
-												variant="purple"
-												label={String(idx + 1)}
-											/>
-											<Tag
-												kind="secondary"
-												size="small"
-												shape="basic"
-												emphasis="low"
-												iconRight={
-													<IconSolidArrowCircleRight />
-												}
-											>
-												{showPlayerAbsoluteTime
-													? playerTimeToSessionAbsoluteTime(
-															{
-																sessionStartTime:
-																	startTime,
-																relativeTime:
-																	timeSinceStart,
-															},
-													  )
-													: MillisToMinutesAndSeconds(
-															timeSinceStart,
-													  )}
-											</Tag>
-										</Box>
-										<Box overflowWrap="breakWord">
-											<Text
-												size="small"
-												weight="medium"
-												color="strong"
-											>
-												{insight.insight}
-											</Text>
+						{[...JSON.parse(insightData)].map(
+							(insight: SessionInsight, idx: number) => {
+								const timeSinceStart =
+									new Date(insight.timestamp).getTime() -
+									startTime
+								return (
+									<Box cursor="pointer" key={idx}>
+										<Box
+											className={style.insight}
+											onClick={() => {
+												setTime(timeSinceStart)
+											}}
+										>
+											<Box display="flex" gap="4">
+												<Badge
+													size="small"
+													variant="purple"
+													label={String(idx + 1)}
+												/>
+												<Tag
+													kind="secondary"
+													size="small"
+													shape="basic"
+													emphasis="low"
+													iconRight={
+														<IconSolidArrowCircleRight />
+													}
+												>
+													{showPlayerAbsoluteTime
+														? playerTimeToSessionAbsoluteTime(
+																{
+																	sessionStartTime:
+																		startTime,
+																	relativeTime:
+																		timeSinceStart,
+																},
+														  )
+														: MillisToMinutesAndSeconds(
+																timeSinceStart,
+														  )}
+												</Tag>
+											</Box>
+											<Box overflowWrap="breakWord">
+												<Text
+													size="small"
+													weight="medium"
+													color="strong"
+												>
+													{insight.insight}
+												</Text>
+											</Box>
 										</Box>
 									</Box>
-								</Box>
-							)
-						})}
+								)
+							},
+						)}
 					</Box>
 				</Box>
 			) : (
