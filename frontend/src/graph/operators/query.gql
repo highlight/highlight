@@ -2097,11 +2097,13 @@ query GetErrorObjects(
 	$errorGroupSecureID: String!
 	$after: String
 	$before: String
+	$query: String!
 ) {
 	error_objects(
 		error_group_secure_id: $errorGroupSecureID
 		after: $after
 		before: $before
+		query: $query
 	) {
 		edges {
 			cursor

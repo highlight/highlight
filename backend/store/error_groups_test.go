@@ -75,14 +75,10 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 		}
 		store.db.Create(&errorGroup)
 
-		userProperties := map[string]string{
-			"email": "chilly@mcwilly.com",
-		}
 		session := model.Session{
 			AppVersion: ptr.String("123"),
+			Email:      "chilly@mcwilly.com",
 		}
-		err := session.SetUserProperties(userProperties)
-		assert.NoError(t, err)
 
 		store.db.Create(&session)
 
@@ -115,6 +111,66 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 			StartCursor:     strconv.Itoa(errorObject.ID),
 			EndCursor:       strconv.Itoa(errorObject.ID),
 		}, connection.PageInfo)
+
+		session = model.Session{
+			Email: "scoutie@mcscout.com",
+		}
+
+		store.db.Create(&session)
+
+		errorObject = model.ErrorObject{
+			ErrorGroupID: errorGroup.ID,
+			SessionID:    &session.ID,
+		}
+
+		store.db.Create(&errorObject)
+
+		connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{
+			Query: "email:scoutie@mcscout.com",
+		})
+		assert.NoError(t, err)
+
+		assert.Len(t, connection.Edges, 1)
+
+	})
+}
+
+func TestListErrorObjectsSearchByEmail(t *testing.T) {
+	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
+		errorGroup := model.ErrorGroup{
+			State: privateModel.ErrorStateOpen,
+			Event: "something broke!",
+		}
+		store.db.Create(&errorGroup)
+
+		session1 := model.Session{
+			Email: "chilly@mcwilly.com",
+		}
+
+		session2 := model.Session{
+			Email: "scoutie@mcwoutie.com",
+		}
+
+		store.db.Create(&session1)
+		store.db.Create(&session2)
+
+		store.db.Create(&model.ErrorObject{
+			ErrorGroupID: errorGroup.ID,
+			SessionID:    &session1.ID,
+		})
+
+		store.db.Create(&model.ErrorObject{
+			ErrorGroupID: errorGroup.ID,
+			SessionID:    &session2.ID,
+		})
+
+		connection, err := store.ListErrorObjects(errorGroup, ListErrorObjectsParams{
+			Query: "email:scoutie@mcwoutie.com",
+		})
+		assert.NoError(t, err)
+
+		assert.Len(t, connection.Edges, 1)
+
 	})
 }
 

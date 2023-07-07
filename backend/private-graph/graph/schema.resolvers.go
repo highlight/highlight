@@ -4098,7 +4098,7 @@ func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorOb
 }
 
 // ErrorObjects is the resolver for the error_objects field.
-func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID string, after *string, before *string) (*modelInputs.ErrorObjectConnection, error) {
+func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID string, after *string, before *string, query string) (*modelInputs.ErrorObjectConnection, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, e.Wrap(err, "not authorized to view error group")
@@ -4107,6 +4107,7 @@ func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID str
 	connection, err := r.Store.ListErrorObjects(*errorGroup, store.ListErrorObjectsParams{
 		After:  after,
 		Before: before,
+		Query:  query,
 	})
 
 	return &connection, err
