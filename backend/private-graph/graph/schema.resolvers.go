@@ -829,7 +829,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model.Session, error) {
 	s, err := r.canAdminModifySession(ctx, secureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
+		return nil, err
 	}
 	session := &model.Session{}
 	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&session).Updates(&model.Session{
@@ -3048,7 +3048,7 @@ func (r *mutationResolver) UpdateLogAlertIsDisabled(ctx context.Context, id int,
 func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSecureID string, isPublic bool) (*model.Session, error) {
 	session, err := r.canAdminModifySession(ctx, sessionSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
+		return nil, err
 	}
 	if err := r.DB.Model(session).Updates(&model.Session{
 		IsPublic: isPublic,
@@ -3876,7 +3876,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionSecureID string) ([]i
 	}
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
+		return nil, err
 	}
 	events, err, _ := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
 	return events, err
@@ -3887,7 +3887,7 @@ func (r *queryResolver) SessionIntervals(ctx context.Context, sessionSecureID st
 	if !(util.IsDevEnv() && sessionSecureID == "repro") {
 		_, err := r.canAdminViewSession(ctx, sessionSecureID)
 		if err != nil {
-			return nil, e.Wrap(err, "admin not session owner")
+			return nil, err
 		}
 	}
 
@@ -3904,7 +3904,7 @@ func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecu
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if !(util.IsDevEnv() && sessionSecureID == "repro") {
 		if err != nil {
-			return nil, e.Wrap(err, "admin not session owner")
+			return nil, err
 		}
 	}
 
@@ -3928,7 +3928,7 @@ func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) 
 	if !(util.IsDevEnv() && sessionSecureID == "repro") {
 		_, err := r.canAdminViewSession(ctx, sessionSecureID)
 		if err != nil {
-			return nil, e.Wrap(err, "admin not session owner")
+			return nil, err
 		}
 	}
 
@@ -3943,7 +3943,7 @@ func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) 
 // RageClicksForProject is the resolver for the rageClicksForProject field.
 func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.RageClickEventForProject, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, err
 	}
 
 	rageClicks := []*modelInputs.RageClickEventForProject{}
@@ -4188,15 +4188,15 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID string) (*modelInputs.EnhancedUserDetailsResult, error) {
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
+		return nil, err
 	}
 	p, err := r.isAdminInProjectOrDemoProject(ctx, s.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not project owner")
+		return nil, err
 	}
 	w, err := r.isAdminInWorkspace(ctx, p.WorkspaceID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not workspace owner")
+		return nil, err
 	}
 	if pricing.MustUpgradeForClearbit(w.PlanTier) {
 		return nil, nil
@@ -4313,7 +4313,7 @@ func (r *queryResolver) Errors(ctx context.Context, sessionSecureID string) ([]*
 	}
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
+		return nil, err
 	}
 	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
 		tracer.ResourceName("db.errorObjectsQuery"), tracer.Tag("project_id", s.ProjectID))
@@ -4329,7 +4329,7 @@ func (r *queryResolver) Errors(ctx context.Context, sessionSecureID string) ([]*
 func (r *queryResolver) Resources(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
+		return nil, err
 	}
 
 	resources, err := r.Redis.GetResources(ctx, s)
@@ -4377,7 +4377,7 @@ func (r *queryResolver) SessionComments(ctx context.Context, sessionSecureID str
 	}
 	s, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
+		return nil, err
 	}
 
 	sessionComments := []*model.SessionComment{}
@@ -4672,7 +4672,7 @@ func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*mo
 // UnprocessedSessionsCount is the resolver for the unprocessedSessionsCount field.
 func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID int) (*int64, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, err
 	}
 
 	// If demo project, load stats for project_id 1
@@ -4699,7 +4699,7 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, projectID 
 // LiveUsersCount is the resolver for the liveUsersCount field.
 func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int64, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, err
 	}
 
 	// If demo project, load stats for project_id 1
@@ -4736,7 +4736,7 @@ func (r *queryResolver) AdminHasCreatedComment(ctx context.Context, adminID int)
 // ProjectHasViewedASession is the resolver for the projectHasViewedASession field.
 func (r *queryResolver) ProjectHasViewedASession(ctx context.Context, projectID int) (*model.Session, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, err
 	}
 
 	session := model.Session{}
@@ -4749,7 +4749,7 @@ func (r *queryResolver) ProjectHasViewedASession(ctx context.Context, projectID 
 // DailySessionsCount is the resolver for the dailySessionsCount field.
 func (r *queryResolver) DailySessionsCount(ctx context.Context, projectID int, dateRange modelInputs.DateRangeInput) ([]*model.DailySessionCount, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, err
 	}
 
 	// If demo project, load stats for project_id 1
@@ -4772,7 +4772,7 @@ func (r *queryResolver) DailySessionsCount(ctx context.Context, projectID int, d
 // DailyErrorsCount is the resolver for the dailyErrorsCount field.
 func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dateRange modelInputs.DateRangeInput) ([]*model.DailyErrorCount, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, err
 	}
 
 	// If demo project, load stats for project_id 1
@@ -4924,7 +4924,7 @@ func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID s
 // Referrers is the resolver for the referrers field.
 func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, err
 	}
 
 	referrers := []*modelInputs.ReferrerTablePayload{}
@@ -4939,7 +4939,7 @@ func (r *queryResolver) Referrers(ctx context.Context, projectID int, lookBackPe
 // NewUsersCount is the resolver for the newUsersCount field.
 func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.NewUsersCount, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, err
 	}
 
 	// If demo project, load stats for project_id 1
@@ -4958,7 +4958,7 @@ func (r *queryResolver) NewUsersCount(ctx context.Context, projectID int, lookBa
 // TopUsers is the resolver for the topUsers field.
 func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPeriod int) ([]*modelInputs.TopUsersPayload, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, err
 	}
 
 	var topUsersPayload = []*modelInputs.TopUsersPayload{}
@@ -5035,7 +5035,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, projectID int, lookBackPer
 // AverageSessionLength is the resolver for the averageSessionLength field.
 func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.AverageSessionLength, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, err
 	}
 
 	// If demo project, load stats for project_id 1
@@ -5063,7 +5063,7 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, projectID int,
 // UserFingerprintCount is the resolver for the userFingerprintCount field.
 func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int, lookBackPeriod int) (*modelInputs.UserFingerprintCount, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, err
 	}
 
 	// If demo project, load stats for project_id 1
@@ -5737,7 +5737,7 @@ func (r *queryResolver) ErrorAlerts(ctx context.Context, projectID int) ([]*mode
 func (r *queryResolver) NewUserAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project on new user alerts")
+		return nil, err
 	}
 	var alerts []*model.SessionAlert
 	if err := r.DB.Model(&model.SessionAlert{}).Where("project_id = ?", projectID).
@@ -5793,7 +5793,7 @@ func (r *queryResolver) NewSessionAlerts(ctx context.Context, projectID int) ([]
 func (r *queryResolver) RageClickAlerts(ctx context.Context, projectID int) ([]*model.SessionAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying project on rage click alert")
+		return nil, err
 	}
 	var alerts []*model.SessionAlert
 	if err := r.DB.Model(&model.SessionAlert{}).Where("project_id = ?", projectID).
@@ -5807,7 +5807,7 @@ func (r *queryResolver) RageClickAlerts(ctx context.Context, projectID int) ([]*
 func (r *queryResolver) LogAlerts(ctx context.Context, projectID int) ([]*model.LogAlert, error) {
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in project")
+		return nil, err
 	}
 	var alerts []*model.LogAlert
 	if err := r.DB.Model(&model.LogAlert{}).Where("project_id = ?", projectID).Find(&alerts).Error; err != nil {
@@ -5824,7 +5824,7 @@ func (r *queryResolver) LogAlert(ctx context.Context, id int) (*model.LogAlert, 
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, alert.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in project")
+		return nil, err
 	}
 	return alert, nil
 }
@@ -5943,7 +5943,7 @@ func (r *queryResolver) DiscordChannelSuggestions(ctx context.Context, projectID
 
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return ret, e.Wrap(err, "error getting project")
+		return ret, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -6674,7 +6674,7 @@ func (r *queryResolver) AdminRoleByProject(ctx context.Context, projectID int) (
 // Segments is the resolver for the segments field.
 func (r *queryResolver) Segments(ctx context.Context, projectID int) ([]*model.Segment, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, err
 	}
 	// list of maps, where each map represents a field query.
 	segments := []*model.Segment{}
@@ -6687,7 +6687,7 @@ func (r *queryResolver) Segments(ctx context.Context, projectID int) ([]*model.S
 // ErrorSegments is the resolver for the error_segments field.
 func (r *queryResolver) ErrorSegments(ctx context.Context, projectID int) ([]*model.ErrorSegment, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
-		return nil, e.Wrap(err, "admin not found in project")
+		return nil, err
 	}
 	// list of maps, where each map represents a field query.
 	segments := []*model.ErrorSegment{}
