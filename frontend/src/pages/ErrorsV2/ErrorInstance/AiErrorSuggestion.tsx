@@ -11,10 +11,13 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui'
+import { message } from 'antd'
 import clsx from 'clsx'
+import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 
 import AiErrorSuggestionCard from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestionCard'
+import analytics from '@/util/analytics'
 
 import * as styles from './AiErrorSuggestion.css'
 
@@ -29,6 +32,7 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 	] = useGetErrorResolutionSuggestionLazyQuery({
 		notifyOnNetworkStatusChange: true,
 	})
+	const [voted, setVoted] = useState(false)
 
 	return (
 		<Box
@@ -69,7 +73,23 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 												kind="secondary"
 												emphasis="low"
 												size="small"
-												onClick={() => {}}
+												onClick={() => {
+													if (!voted) {
+														analytics.track(
+															'AiErrorSuggestionFeedback',
+															{ value: 1 },
+														)
+														console.log(
+															'AiErrorSuggestionFeedback',
+															1,
+														)
+														setVoted(true)
+														message.success(
+															`Thanks for your feedback!`,
+															5,
+														)
+													}
+												}}
 											/>
 										</Box>
 										<Box
@@ -82,7 +102,23 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 												kind="secondary"
 												emphasis="low"
 												size="small"
-												onClick={() => {}}
+												onClick={() => {
+													if (!voted) {
+														analytics.track(
+															'AiErrorSuggestionFeedback',
+															{ value: 0 },
+														)
+														console.log(
+															'AiErrorSuggestionFeedback',
+															0,
+														)
+														setVoted(true)
+														message.success(
+															`Thanks for your feedback!`,
+															5,
+														)
+													}
+												}}
 											/>
 										</Box>
 									</Stack>
@@ -138,7 +174,10 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 			) : (
 				<Box display="flex" justifyContent="center" mt="12">
 					<Button
-						onClick={(_event) => refetch()}
+						onClick={(_event) => {
+							refetch()
+							setVoted(false)
+						}}
 						kind="secondary"
 						emphasis="medium"
 						trackingId="error-instance_refresh-ai-suggestion"
