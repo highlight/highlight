@@ -117,17 +117,20 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 func TestListErrorObjectsSearchByEmail(t *testing.T) {
 	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
 		errorGroup := model.ErrorGroup{
-			State: privateModel.ErrorStateOpen,
-			Event: "something broke!",
+			State:     privateModel.ErrorStateOpen,
+			Event:     "something broke!",
+			ProjectID: 1,
 		}
 		store.db.Create(&errorGroup)
 
 		session1 := model.Session{
-			Email: ptr.String("chilly@mcwilly.com"),
+			Email:     ptr.String("chilly@mcwilly.com"),
+			ProjectID: 1,
 		}
 
 		session2 := model.Session{
-			Email: ptr.String("scoutie@mcwoutie.com"),
+			Email:     ptr.String("scoutie@mcwoutie.com"),
+			ProjectID: 1,
 		}
 
 		store.db.Create(&session1)
@@ -149,7 +152,6 @@ func TestListErrorObjectsSearchByEmail(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.Len(t, connection.Edges, 1)
-
 	})
 }
 
