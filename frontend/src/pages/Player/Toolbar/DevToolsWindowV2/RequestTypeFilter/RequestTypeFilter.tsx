@@ -36,6 +36,7 @@ const RequestTypeFilter = ({
 			iframe: 0,
 			fetch: 0,
 			img: 0,
+			websocket: 0,
 		}
 
 		parsedResources.forEach((request: any) => {

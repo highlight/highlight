@@ -82,6 +82,7 @@ const options: HighlightOptions = {
 		urlBlocklist: [
 			'network-resources-compressed',
 			'session-contents-compressed',
+			'web-socket-events-compressed',
 		],
 	},
 	tracingOrigins: [
