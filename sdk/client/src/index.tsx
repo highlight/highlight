@@ -481,10 +481,20 @@ export class Highlight {
 	}
 
 	addProperties(properties_obj = {}, typeArg?: PropertyType) {
+		// Remove any properties which throw on structuredClone
+		// (structuredClone is used when posting messages to the worker)
+		const obj = { ...properties_obj } as any
+		Object.entries(obj).forEach(([key, val]) => {
+			try {
+				structuredClone(val)
+			} catch {
+				delete obj[key]
+			}
+		})
 		this._worker.postMessage({
 			message: {
 				type: MessageType.Properties,
-				propertiesObject: properties_obj,
+				propertiesObject: obj,
 				propertyType: typeArg,
 			},
 		})
