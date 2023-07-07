@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -31,7 +30,7 @@ func main() {
 		var userProperties map[string]interface{}
 		for _, session := range sessions {
 			if err := json.Unmarshal([]byte(session.UserProperties), &userProperties); err != nil {
-				fmt.Printf("Error parsing user_properties: %v\n", err)
+				log.WithContext(ctx).Errorf("Error parsing user_properties for session_id:%d : %v\n", session.ID, err)
 				continue
 			}
 
@@ -39,7 +38,7 @@ func main() {
 			if email, ok := userProperties["email"].(string); ok {
 				// Update the "email" column on the session
 				if err := db.Model(&session).Update("email", email).Error; err != nil {
-					fmt.Printf("Error updating email column: %v\n", err)
+					log.WithContext(ctx).Errorf("Error updating email column: %v\n", err)
 					continue
 				}
 			}
@@ -49,7 +48,7 @@ func main() {
 		return nil
 	}
 
-	if err := db.Model(&model.Session{}).FindInBatches(&sessions, batchSize, inner).Error; err != nil {
+	if err := db.Debug().Where("email IS NULL").FindInBatches(&sessions, batchSize, inner).Error; err != nil {
 		log.WithContext(ctx).Fatalf("failed: %v", err)
 	}
 }
