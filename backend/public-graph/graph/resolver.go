@@ -227,18 +227,30 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", session.ID))
 	defer outerSpan.Finish()
 
-	if err := r.DB.
-		Clauses(clause.Returning{}, clause.OnConflict{
+	result := r.DB.
+		Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "project_id"}, {Name: "type"}, {Name: "name"}, {Name: "value"}},
 			DoNothing: true}).
-		Create(&fields).Error; err != nil {
+		Create(&fields)
+
+	if err := result.Error; err != nil {
 		return e.Wrap(err, "error inserting new fields")
 	}
 
-	// New fields have an ID after the insert above
-	newFields := lo.Filter(fields, func(field *model.Field, _ int) bool {
-		return field.ID != 0
-	})
+	updateCount := result.RowsAffected
+
+	var allFields []*model.Field
+	inClause := [][]interface{}{}
+	for _, f := range fields {
+		inClause = append(inClause, []interface{}{f.ProjectID, f.Type, f.Name, f.Value})
+	}
+	if err := r.DB.Where("(project_id, type, name, value) IN ?", inClause).Order("id DESC").
+		Find(&allFields).Error; err != nil {
+		return e.Wrap(err, "error retrieving all fields")
+	}
+
+	// the first N fields ordered by id DESC were added in the prior insert
+	newFields := allFields[:updateCount]
 
 	for _, field := range newFields {
 		if err := r.OpenSearch.IndexSynchronous(ctx,
@@ -249,16 +261,6 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 			}); err != nil {
 			return e.Wrap(err, "error indexing new field")
 		}
-	}
-
-	var allFields []*model.Field
-	inClause := [][]interface{}{}
-	for _, f := range fields {
-		inClause = append(inClause, []interface{}{f.ProjectID, f.Type, f.Name, f.Value})
-	}
-	if err := r.DB.Where("(project_id, type, name, value) IN ?", inClause).
-		Find(&allFields).Error; err != nil {
-		return e.Wrap(err, "error retrieving all fields")
 	}
 
 	openSearchFields := make([]interface{}, len(allFields))
