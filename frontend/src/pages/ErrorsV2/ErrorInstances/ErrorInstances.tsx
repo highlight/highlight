@@ -1,4 +1,4 @@
-import { Box, Callout, Stack, Text } from '@highlight-run/ui'
+import { Box, Callout, Card, Stack, Text } from '@highlight-run/ui'
 import React, { useState } from 'react'
 
 import { Button } from '@/components/Button'
@@ -38,7 +38,9 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 				canMoveBackward={false}
 				canMoveForward={false}
 			>
-				<LoadingBox height={156} />
+				<Card>
+					<LoadingBox height={156} />
+				</Card>
 			</ErrorInstancesContainer>
 		)
 	}
