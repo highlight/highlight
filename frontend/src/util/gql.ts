@@ -1,6 +1,5 @@
 import { OnQueryUpdated } from '@apollo/client'
 import { indexeddbCache } from '@util/db'
-import { wait } from '@util/time'
 
 export const gqlSanitize = (object: any): any => {
 	const omitTypename = (key: any, value: any) =>

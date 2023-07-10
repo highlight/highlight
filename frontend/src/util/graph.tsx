@@ -18,6 +18,7 @@ import {
 import { namedOperations } from '@graph/operations'
 import { auth } from '@util/auth'
 import { IndexedDBLink } from '@util/db'
+import { invalidateRefetch } from '@util/gql'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 
 import {
@@ -25,7 +26,6 @@ import {
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { PRIVATE_GRAPH_URI } from '@/constants'
-import { invalidateRefetch } from '@util/gql'
 
 const highlightGraph = new IndexedDBLink(
 	createHttpLink({
