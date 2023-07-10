@@ -82,9 +82,7 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 				let sessionLink = ''
 
 				if (session) {
-					if (!session.email) {
-						content = '(no value)'
-					}
+					content = session.email ? session.email : '(no value)'
 					// TODO - link directly to the timestamp like RelatedSession does
 					sessionLink = `/${projectId}/sessions/${session.secureID}`
 				}
