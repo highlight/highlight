@@ -27,7 +27,10 @@ import { H } from 'highlight.run'
 import moment from 'moment'
 import { useEffect, useRef } from 'react'
 
-const CONCURRENT_PRELOADS = 1
+const CONCURRENT_SESSION_PRELOADS = 1
+const CONCURRENT_ERROR_PRELOADS = 10
+// disable this for now as loading session data for each error instance requires a lot of preloading
+const SHOULD_PRELOAD_ERROR_INSTANCE_SESSION = false
 const PREVIOUS_ERROR_OBJECTS_TO_FETCH = 2
 // Max brotlied resource file allowed. Note that a brotli file with some binary data
 // has a compression ratio of >5x, so unbrotlied this file will take up much more memory.
@@ -108,7 +111,7 @@ export const usePreloadSessions = function ({
 			const promises: Promise<void>[] = []
 			for (const _s of sessions?.sessions_opensearch.sessions || []) {
 				promises.push(loadSession(_s.secure_id))
-				if (promises.length === CONCURRENT_PRELOADS) {
+				if (promises.length === CONCURRENT_SESSION_PRELOADS) {
 					await Promise.all(promises)
 					promises.length = 0
 				}
@@ -189,7 +192,7 @@ export const usePreloadErrors = function ({
 			for (const _eg of errors?.error_groups_opensearch.error_groups ||
 				[]) {
 				promises.push(loadErrorGroup(project_id!, _eg.secure_id))
-				if (promises.length === CONCURRENT_PRELOADS) {
+				if (promises.length === CONCURRENT_ERROR_PRELOADS) {
 					await Promise.all(promises)
 					promises.length = 0
 				}
@@ -355,15 +358,17 @@ const loadErrorGroup = async function (projectID: string, secureID: string) {
 							  },
 				})
 			)?.data?.error_instance as ErrorInstance
-			const sessionSecureID =
-				errorInstance.error_object.session?.secure_id
-			if (sessionSecureID) {
-				log('preload.ts', 'loading session from error object', {
-					errorGroupSecureID: secureID,
-					errorInstance,
-					sessionSecureID,
-				})
-				await loadSession(sessionSecureID)
+			if (SHOULD_PRELOAD_ERROR_INSTANCE_SESSION) {
+				const sessionSecureID =
+					errorInstance.error_object.session?.secure_id
+				if (sessionSecureID) {
+					log('preload.ts', 'loading session from error object', {
+						errorGroupSecureID: secureID,
+						errorInstance,
+						sessionSecureID,
+					})
+					await loadSession(sessionSecureID)
+				}
 			}
 			if (
 				errorInstance?.previous_id?.length &&
