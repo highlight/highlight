@@ -20,7 +20,6 @@ import {
 	RightPlayerTab,
 } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
-import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks'
 import useLocalStorage from '@rehooks/local-storage'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
@@ -142,16 +141,6 @@ export const ProjectRouter = () => {
 		undefined,
 	)
 
-	const [activeNetworkResource, setActiveNetworkResourceState] = useState<
-		NetworkResource | undefined
-	>(undefined)
-
-	const setActiveNetworkResource = (
-		resource: NetworkResource | undefined,
-	) => {
-		setActiveNetworkResourceState(resource)
-	}
-
 	const [selectedRightPanelTab, setSelectedRightPanelTab] =
 		useLocalStorage<RightPlayerTab>(
 			'tabs-PlayerRightPanel-active-tab',
@@ -173,8 +162,6 @@ export const ProjectRouter = () => {
 		setActiveEvent,
 		activeError,
 		setActiveError,
-		activeNetworkResource,
-		setActiveNetworkResource,
 		rightPanelView,
 		setRightPanelView,
 	}

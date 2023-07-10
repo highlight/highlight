@@ -14,7 +14,6 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
@@ -30,8 +29,10 @@ import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+
+import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
 
 enum NetworkRequestTabs {
 	Info = 'Info',
@@ -39,69 +40,43 @@ enum NetworkRequestTabs {
 	Logs = 'Logs',
 }
 
-// TODO: Store network resource in the URL and pull from there instead.
-const NetworkResourceDetails = ({
-	resource,
-}: {
-	resource: NetworkResource
-}) => {
-	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
-		NetworkRequestTabs.Info,
-	)
-	const { setActiveNetworkResource } = usePlayerUIContext()
-	const { resources } = useResourcesContext()
+export const NetworkResourcePanel = () => {
 	const networkResourceDialog = Ariakit.useDialogState()
-	const {
-		sessionMetadata: { startTime },
-		setTime,
-		session,
-	} = useReplayerContext()
+	const { activeNetworkResourceId, setActiveNetworkResourceId } =
+		useActiveNetworkResourceId()
 
-	const networkResources = useMemo(() => {
-		return (
-			(resources.map((event) => ({
-				...event,
-				timestamp: event.startTime,
-			})) as NetworkResource[]) ?? []
-		)
-	}, [resources])
-
-	const resourceIdx = resources.findIndex((r) => resource.id === r.id)
-	const [prev, next] = [resourceIdx - 1, resourceIdx + 1]
-	const canMoveBackward = !!resources[prev]
-	const canMoveForward = !!resources[next]
-
-	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
-	const timestamp = useMemo(() => {
-		return new Date(resource.timestamp).getTime() - startTime
-	}, [resource.timestamp, startTime])
-
-	useHotkeys(
-		'h',
-		() => {
-			if (canMoveBackward) {
-				analytics.track('PrevNetworkResourceKeyboardShortcut')
-				setActiveNetworkResource(networkResources[prev])
-			}
-		},
-		[canMoveBackward, prev],
+	const { resources } = useResourcesContext()
+	const resourceIdx = resources.findIndex(
+		(r) => activeNetworkResourceId === r.id,
 	)
+	const resource = resources[resourceIdx] as NetworkResource | undefined
 
-	useHotkeys(
-		'l',
-		() => {
-			if (canMoveForward) {
-				analytics.track('NextNetworkResourceKeyboardShortcut')
-				setActiveNetworkResource(networkResources[next])
-			}
-		},
-		[canMoveForward, next],
-	)
+	const hide = useCallback(() => {
+		setActiveNetworkResourceId(undefined)
+		networkResourceDialog.hide()
+	}, [networkResourceDialog, setActiveNetworkResourceId])
 
-	useHotkeys('Escape', networkResourceDialog.hide, [])
+	useHotkeys('Escape', hide, [])
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	useEffect(networkResourceDialog.show, [resource.id])
+	useEffect(() => {
+		if (resource?.id !== undefined) {
+			networkResourceDialog.show()
+		}
+	}, [networkResourceDialog, resource?.id])
+
+	// Close the dialog and reset the active resource when the user interacts with
+	// the page outside the dialog.
+	const previousVisibleRef = React.useRef(networkResourceDialog.open)
+	useEffect(() => {
+		if (
+			previousVisibleRef.current !== networkResourceDialog.open &&
+			!networkResourceDialog.open
+		) {
+			hide()
+		}
+
+		previousVisibleRef.current = networkResourceDialog.open
+	}, [hide, networkResourceDialog.open])
 
 	return (
 		<Ariakit.Dialog
@@ -125,6 +100,70 @@ const NetworkResourceDetails = ({
 				position: 'absolute',
 			}}
 		>
+			{resource && <NetworkResourceDetails resource={resource} />}
+		</Ariakit.Dialog>
+	)
+}
+
+function NetworkResourceDetails({ resource }: { resource: NetworkResource }) {
+	const { resources } = useResourcesContext()
+	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
+		NetworkRequestTabs.Info,
+	)
+	const {
+		sessionMetadata: { startTime },
+		setTime,
+		session,
+	} = useReplayerContext()
+	const { activeNetworkResourceId, setActiveNetworkResourceId } =
+		useActiveNetworkResourceId()
+
+	const networkResources = useMemo(() => {
+		return (
+			(resources.map((event) => ({
+				...event,
+				timestamp: event.startTime,
+			})) as NetworkResource[]) ?? []
+		)
+	}, [resources])
+
+	const resourceIdx = resources.findIndex(
+		(r) => activeNetworkResourceId === r.id,
+	)
+
+	const [prev, next] = [resourceIdx - 1, resourceIdx + 1]
+	const canMoveBackward = !!resources[prev]
+	const canMoveForward = !!resources[next]
+
+	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
+	const timestamp = useMemo(() => {
+		return new Date(resource.timestamp).getTime() - startTime
+	}, [resource.timestamp, startTime])
+
+	useHotkeys(
+		'h',
+		() => {
+			if (canMoveBackward) {
+				analytics.track('PrevNetworkResourceKeyboardShortcut')
+				setActiveNetworkResourceId(networkResources[prev].id)
+			}
+		},
+		[canMoveBackward, prev],
+	)
+
+	useHotkeys(
+		'l',
+		() => {
+			if (canMoveForward) {
+				analytics.track('NextNetworkResourceKeyboardShortcut')
+				setActiveNetworkResourceId(networkResources[next].id)
+			}
+		},
+		[canMoveForward, next],
+	)
+
+	return (
+		<>
 			<Box
 				pl="12"
 				pr="8"
@@ -137,12 +176,16 @@ const NetworkResourceDetails = ({
 				<Box display="flex" gap="6" alignItems="center">
 					<PreviousNextGroup
 						onPrev={() =>
-							setActiveNetworkResource(networkResources[prev])
+							setActiveNetworkResourceId(
+								networkResources[prev].id,
+							)
 						}
 						canMoveBackward={canMoveBackward}
 						prevShortcut="h"
 						onNext={() =>
-							setActiveNetworkResource(networkResources[next])
+							setActiveNetworkResourceId(
+								networkResources[next].id,
+							)
 						}
 						canMoveForward={canMoveForward}
 						nextShortcut="l"
@@ -158,7 +201,7 @@ const NetworkResourceDetails = ({
 					emphasis="low"
 					icon={<IconSolidX />}
 					onClick={() => {
-						setActiveNetworkResource(undefined)
+						setActiveNetworkResourceId(undefined)
 					}}
 				/>
 			</Box>
@@ -221,11 +264,9 @@ const NetworkResourceDetails = ({
 					},
 				}}
 			/>
-		</Ariakit.Dialog>
+		</>
 	)
 }
-
-export default NetworkResourceDetails
 
 enum NetworkResourceMeta {
 	General = 'General',

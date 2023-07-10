@@ -1,6 +1,5 @@
 import { ErrorObject } from '@graph/schemas'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
-import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { createContext } from '@util/context/context'
 import React from 'react'
 
@@ -32,9 +31,6 @@ interface PlayerUIContext {
 	setActiveError: React.Dispatch<
 		React.SetStateAction<ErrorObject | undefined>
 	>
-
-	activeNetworkResource?: NetworkResource
-	setActiveNetworkResource: (resource: NetworkResource | undefined) => void
 }
 
 export const [usePlayerUIContext, PlayerUIContextProvider] =
