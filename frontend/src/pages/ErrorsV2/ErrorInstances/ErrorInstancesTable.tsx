@@ -87,6 +87,9 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 						session.userProperties,
 					)
 					content = parsedUserProperties.email
+					if (!content) {
+						content = '(no value)'
+					}
 					// TODO - link directly to the timestamp like RelatedSession does
 					sessionLink = `/${projectId}/sessions/${session.secureID}`
 				}
