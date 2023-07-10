@@ -153,11 +153,7 @@ export const NetworkPage = ({
 							)
 						}
 					}
-				})
-				.map((event) => ({
-					...event,
-					timestamp: event.startTime + startTime,
-				})) as NetworkResource[]) ?? []
+				}) as NetworkResource[]) ?? []
 
 		if (filter !== '') {
 			return current.filter((resource) => {
@@ -172,7 +168,7 @@ export const NetworkPage = ({
 		}
 
 		return current
-	}, [parsedResources, filter, requestTypes, requestStatuses, startTime])
+	}, [parsedResources, filter, requestTypes, requestStatuses])
 
 	const currentResourceIdx = useMemo(() => {
 		return findLastActiveEventIndex(
