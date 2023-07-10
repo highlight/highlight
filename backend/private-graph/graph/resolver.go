@@ -938,7 +938,7 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id s
 
 	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
 	if err != nil {
-		return session, false, e.Wrap(err, "error validating admin in project")
+		return session, false, err
 	}
 	return session, true, nil
 }
