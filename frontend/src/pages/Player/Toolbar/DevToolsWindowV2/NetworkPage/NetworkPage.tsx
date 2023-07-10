@@ -305,7 +305,6 @@ export const NetworkPage = ({
 								return (
 									<ResourceRow
 										key={index.toString()}
-										index={index}
 										resource={resource}
 										networkRange={networkRange}
 										isCurrentResource={
@@ -351,7 +350,6 @@ export const NetworkPage = ({
 }
 
 interface ResourceRowProps {
-	index: number
 	resource: NetworkResource
 	networkRange: number
 	isCurrentResource: boolean
@@ -366,7 +364,6 @@ interface ResourceRowProps {
 }
 
 const ResourceRow = ({
-	index,
 	resource,
 	networkRange,
 	isCurrentResource,

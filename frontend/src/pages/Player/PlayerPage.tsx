@@ -57,7 +57,6 @@ import useResizeAware from 'react-resize-aware'
 import { useNavigate } from 'react-router-dom'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
-import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
 import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
@@ -275,7 +274,6 @@ const PlayerPage = () => {
 			sessionViewability !== SessionViewability.ERROR) ||
 		(replayerState === ReplayerState.Empty && !!session_secure_id)
 
-	const { activeNetworkResourceId } = useActiveNetworkResourceId()
 	const { isPlayerFullscreen, playerCenterPanelRef } = usePlayerUIContext()
 
 	const sessionView = showSession ? (
