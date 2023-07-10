@@ -75,6 +75,9 @@ jobs:
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               run: yarn test:render
 
+            - name: Validate session screenshot lambda size
+              run: yarn workspace render zip && yarn workspace render check
+
             - name: Validate project is ready to be published
               if: steps.filter.outputs.npm-changed == 'true' && (github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main')
               run: yarn validate
