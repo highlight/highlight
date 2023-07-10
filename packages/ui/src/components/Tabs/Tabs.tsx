@@ -17,10 +17,16 @@ type Props<T extends string> = {
 	}
 	tab: T
 	right?: React.ReactNode
-	containerClass?: string
-	pageContainerClass?: string
 	setTab: (tab: T) => void
 	handleRef?: (ref: HTMLElement | null) => void
+
+	// These props have been added to override defaults that prevent us from
+	// implementing the UX as designed. They are temporary and will be removed
+	// when we rebuild tabs: https://github.com/highlight/highlight/issues/5771
+	noHandle?: boolean
+	containerClass?: string
+	tabsContainerClass?: string
+	pageContainerClass?: string
 }
 
 export const Tabs = function <T extends string>({
@@ -28,7 +34,9 @@ export const Tabs = function <T extends string>({
 	tab,
 	right,
 	containerClass,
+	tabsContainerClass,
 	pageContainerClass,
+	noHandle = false,
 	setTab,
 	handleRef,
 }: Props<T>) {
@@ -48,6 +56,7 @@ export const Tabs = function <T extends string>({
 				display="flex"
 				alignItems="center"
 				justifyContent="space-between"
+				cssClass={tabsContainerClass}
 			>
 				<Box
 					gap="6"
@@ -97,15 +106,17 @@ export const Tabs = function <T extends string>({
 			{currentPage && (
 				<Box cssClass={pageContainerClass ?? styles.pageWrapper}>
 					{pages[tab].page}
-					<Box
-						ref={handleRef}
-						cssClass={[
-							styles.handle,
-							{ [styles.grabbable]: !!handleRef },
-						]}
-					>
-						<Box cssClass={styles.handleLine} />
-					</Box>
+					{!noHandle && (
+						<Box
+							ref={handleRef}
+							cssClass={[
+								styles.handle,
+								{ [styles.grabbable]: !!handleRef },
+							]}
+						>
+							<Box cssClass={styles.handleLine} />
+						</Box>
+					)}
 				</Box>
 			)}
 		</Box>

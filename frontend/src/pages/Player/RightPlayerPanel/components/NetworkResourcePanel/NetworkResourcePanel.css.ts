@@ -9,6 +9,10 @@ export const container = style({
 	overflowY: 'hidden',
 })
 
+export const tabsContainer = sprinkles({
+	borderBottom: 'secondary',
+})
+
 export const pageContainer = sprinkles({
 	overflowY: 'scroll',
 	position: 'relative',

@@ -272,7 +272,9 @@ function NetworkResourceDetails({
 					// 	page: <Box>Logs</Box>,
 					// },
 				}}
+				noHandle
 				containerClass={styles.container}
+				tabsContainerClass={styles.tabsContainer}
 				pageContainerClass={styles.pageContainer}
 			/>
 		</>
