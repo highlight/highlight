@@ -36,8 +36,9 @@ import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
 
 enum NetworkRequestTabs {
 	Info = 'Info',
-	Errors = 'Errors',
-	Logs = 'Logs',
+	// These tabs will be built out in a future PR.
+	// Errors = 'Errors',
+	// Logs = 'Logs',
 }
 
 export const NetworkResourcePanel = () => {
@@ -259,12 +260,12 @@ function NetworkResourceDetails({
 							/>
 						),
 					},
-					[NetworkRequestTabs.Errors]: {
-						page: <Box>Errors</Box>,
-					},
-					[NetworkRequestTabs.Logs]: {
-						page: <Box>Logs</Box>,
-					},
+					// [NetworkRequestTabs.Errors]: {
+					// 	page: <Box>Errors</Box>,
+					// },
+					// [NetworkRequestTabs.Logs]: {
+					// 	page: <Box>Logs</Box>,
+					// },
 				}}
 			/>
 		</>
