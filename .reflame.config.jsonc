@@ -181,15 +181,6 @@
 				"/src/css/theme.css": "/css/theme.css",
 			},
 			"npmPackages": {
-				"ariakit": {
-					"entryPoints": [
-						"/",
-						"/button",
-						"/combobox",
-						"/form",
-						"/checkbox",
-					],
-				},
 				"@vanilla-extract/sprinkles": {
 					"entryPoints": ["/createRuntimeSprinkles"],
 				},
