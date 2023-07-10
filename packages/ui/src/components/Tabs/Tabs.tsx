@@ -18,7 +18,6 @@ type Props<T extends string> = {
 	tab: T
 	right?: React.ReactNode
 	containerClass?: string
-	tabsContainerClass?: string
 	pageContainerClass?: string
 	setTab: (tab: T) => void
 	handleRef?: (ref: HTMLElement | null) => void
@@ -29,7 +28,6 @@ export const Tabs = function <T extends string>({
 	tab,
 	right,
 	containerClass,
-	tabsContainerClass,
 	pageContainerClass,
 	setTab,
 	handleRef,
@@ -50,7 +48,6 @@ export const Tabs = function <T extends string>({
 				display="flex"
 				alignItems="center"
 				justifyContent="space-between"
-				cssClass={tabsContainerClass}
 			>
 				<Box
 					gap="6"

@@ -90,12 +90,14 @@ export const NetworkResourcePanel = () => {
 				display: 'flex',
 				flexDirection: 'column',
 				border: 'dividerWeak',
-				borderRadius: '6',
+				borderTopRightRadius: '6',
+				borderBottomRightRadius: '6',
 				boxShadow: 'small',
 				overflow: 'hidden',
 			})}
 			style={{
-				width: 400,
+				width: '45%',
+				minWidth: 400,
 				right: 8,
 				top: 8,
 				bottom: 8,
@@ -200,6 +202,7 @@ function NetworkResourceDetails({
 						}
 						canMoveForward={canMoveForward}
 						nextShortcut="l"
+						size="small"
 					/>
 					<Text size="xSmall" weight="medium" color="weak">
 						{resourceIdx + 1} / {networkResources.length}
@@ -270,7 +273,6 @@ function NetworkResourceDetails({
 					// },
 				}}
 				containerClass={styles.container}
-				tabsContainerClass={styles.tabsContainer}
 				pageContainerClass={styles.pageContainer}
 			/>
 		</>
