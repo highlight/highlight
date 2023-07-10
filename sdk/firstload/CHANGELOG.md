@@ -283,3 +283,16 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Patch Changes
 
 - Ensure `console.error` caught stack traces are not missing the top frame.
+
+## 7.3.4
+
+### Patch Changes
+
+- Add easier testing of local `@highlight-run/client` and `highlight.run` scripts.
+- Look for `window.HighlightIO` instead of `window.Highlight` when waiting for client script to load.
+
+## 7.3.5
+
+### Patch Changes
+
+- Remove any properties that throw a `structuredClone` error in `addProperties` before calling `postMessage`

@@ -11,7 +11,7 @@ export const ToggleRow = (
 ) => {
 	return (
 		<Box
-			pr="4"
+			pr="8"
 			display="flex"
 			gap="12"
 			justifyContent="space-between"
