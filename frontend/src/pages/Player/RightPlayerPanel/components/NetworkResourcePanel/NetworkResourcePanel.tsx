@@ -34,6 +34,8 @@ import { useHotkeys } from 'react-hotkeys-hook'
 
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
 
+import * as styles from './NetworkResourcePanel.css'
+
 enum NetworkRequestTabs {
 	Info = 'Info',
 	// These tabs will be built out in a future PR.
@@ -267,6 +269,9 @@ function NetworkResourceDetails({
 					// 	page: <Box>Logs</Box>,
 					// },
 				}}
+				containerClass={styles.container}
+				tabsContainerClass={styles.tabsContainer}
+				pageContainerClass={styles.pageContainer}
 			/>
 		</>
 	)
@@ -539,7 +544,6 @@ function NetworkResourceData({
 		)
 	}
 
-	// TODO: Figure out a way to make this content scrollable.
 	return (
 		<Box>
 			{showRequestMetrics && (

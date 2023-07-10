@@ -16,28 +16,41 @@ type Props<T extends string> = {
 		[k: string]: Page
 	}
 	tab: T
-	setTab: (tab: T) => void
 	right?: React.ReactNode
+	containerClass?: string
+	tabsContainerClass?: string
+	pageContainerClass?: string
+	setTab: (tab: T) => void
 	handleRef?: (ref: HTMLElement | null) => void
 }
 
 export const Tabs = function <T extends string>({
 	pages,
 	tab,
-	setTab,
 	right,
+	containerClass,
+	tabsContainerClass,
+	pageContainerClass,
+	setTab,
 	handleRef,
 }: Props<T>) {
 	const [hoveredTab, setHoveredTab] = React.useState<string>()
 	const currentPage = pages[tab]
 
 	return (
-		<Box display="flex" flexDirection="column" height="full" width="full">
+		<Box
+			display="flex"
+			flexDirection="column"
+			height="full"
+			width="full"
+			cssClass={containerClass}
+		>
 			<Box
 				px="8"
 				display="flex"
 				alignItems="center"
 				justifyContent="space-between"
+				cssClass={tabsContainerClass}
 			>
 				<Box
 					gap="6"
@@ -85,7 +98,7 @@ export const Tabs = function <T extends string>({
 				{right}
 			</Box>
 			{currentPage && (
-				<Box className={styles.pageWrapper}>
+				<Box cssClass={pageContainerClass ?? styles.pageWrapper}>
 					{pages[tab].page}
 					<Box
 						ref={handleRef}
