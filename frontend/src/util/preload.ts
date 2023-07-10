@@ -2,7 +2,6 @@ import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import { BackendSearchQuery } from '@context/BaseSearchContext'
 import {
 	GetEnhancedUserDetailsDocument,
-	GetErrorDistributionDocument,
 	GetErrorGroupDocument,
 	GetErrorGroupsOpenSearchDocument,
 	GetErrorInstanceDocument,
