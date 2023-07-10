@@ -6,6 +6,7 @@ import {
 	GetErrorGroupDocument,
 	GetErrorGroupsOpenSearchDocument,
 	GetErrorInstanceDocument,
+	GetErrorIssuesDocument,
 	GetErrorsHistogramDocument,
 	GetEventChunksDocument,
 	GetEventChunkUrlDocument,
@@ -31,7 +32,7 @@ const CONCURRENT_SESSION_PRELOADS = 1
 const CONCURRENT_ERROR_PRELOADS = 10
 // disable this for now as loading session data for each error instance requires a lot of preloading
 const SHOULD_PRELOAD_ERROR_INSTANCE_SESSION = false
-const PREVIOUS_ERROR_OBJECTS_TO_FETCH = 2
+const PREVIOUS_ERROR_OBJECTS_TO_FETCH = 3
 // Max brotlied resource file allowed. Note that a brotli file with some binary data
 // has a compression ratio of >5x, so unbrotlied this file will take up much more memory.
 const RESOURCE_FILE_SIZE_LIMIT_BYTES = 16 * 1024 * 1024
@@ -319,10 +320,12 @@ export const loadSession = async function (secureID: string) {
 }
 
 const loadErrorGroup = async function (projectID: string, secureID: string) {
+	// we repeat loading error groups since they are lightweight and we can benefit from loading apollo in-memory cache
 	if (
-		await IndexedDBLink.has('GetErrorGroup', {
+		SHOULD_PRELOAD_ERROR_INSTANCE_SESSION &&
+		(await IndexedDBLink.has('GetErrorGroup', {
 			secure_id: secureID,
-		})
+		}))
 	) {
 		log('preload.ts', `skipping loaded error group ${secureID}`)
 		return
@@ -334,6 +337,12 @@ const loadErrorGroup = async function (projectID: string, secureID: string) {
 			query: GetErrorGroupDocument,
 			variables: {
 				secure_id: secureID,
+			},
+		})
+		await client.query({
+			query: GetErrorIssuesDocument,
+			variables: {
+				error_group_secure_id: secureID,
 			},
 		})
 		// run this query with the `error_object_id` variable set to 0 as well, as the ui uses both
@@ -379,22 +388,6 @@ const loadErrorGroup = async function (projectID: string, secureID: string) {
 				break
 			}
 		}
-		await client.query({
-			query: GetErrorDistributionDocument,
-			variables: {
-				error_group_secure_id: secureID,
-				project_id: projectID,
-				property: 'os',
-			},
-		})
-		await client.query({
-			query: GetErrorDistributionDocument,
-			variables: {
-				error_group_secure_id: secureID,
-				project_id: projectID,
-				property: 'browser',
-			},
-		})
 		const preloadTime = window.performance.now() - start
 		log(
 			'preload.ts',
