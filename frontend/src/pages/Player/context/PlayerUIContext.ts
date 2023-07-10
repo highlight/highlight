@@ -6,7 +6,6 @@ import React from 'react'
 export enum RightPanelView {
 	Error = 'ERROR',
 	Comments = 'COMMENTS',
-	NetworkResource = 'NETWORK_RESOURCE',
 	Session = 'SESSION',
 	Event = 'EVENT',
 }
