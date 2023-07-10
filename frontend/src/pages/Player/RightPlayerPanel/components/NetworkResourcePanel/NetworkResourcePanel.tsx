@@ -100,12 +100,20 @@ export const NetworkResourcePanel = () => {
 				position: 'absolute',
 			}}
 		>
-			{resource && <NetworkResourceDetails resource={resource} />}
+			{resource && (
+				<NetworkResourceDetails resource={resource} hide={hide} />
+			)}
 		</Ariakit.Dialog>
 	)
 }
 
-function NetworkResourceDetails({ resource }: { resource: NetworkResource }) {
+function NetworkResourceDetails({
+	resource,
+	hide,
+}: {
+	resource: NetworkResource
+	hide: () => void
+}) {
 	const { resources } = useResourcesContext()
 	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
 		NetworkRequestTabs.Info,
@@ -137,8 +145,8 @@ function NetworkResourceDetails({ resource }: { resource: NetworkResource }) {
 
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const timestamp = useMemo(() => {
-		return new Date(resource.timestamp).getTime() - startTime
-	}, [resource.timestamp, startTime])
+		return new Date(resource.startTime).getTime()
+	}, [resource.startTime])
 
 	useHotkeys(
 		'h',
@@ -200,9 +208,7 @@ function NetworkResourceDetails({ resource }: { resource: NetworkResource }) {
 					shape="square"
 					emphasis="low"
 					icon={<IconSolidX />}
-					onClick={() => {
-						setActiveNetworkResourceId(undefined)
-					}}
+					onClick={hide}
 				/>
 			</Box>
 			<Box px="12" py="8" display="flex" flexDirection="column" gap="8">
@@ -230,10 +236,7 @@ function NetworkResourceDetails({ resource }: { resource: NetworkResource }) {
 						emphasis="low"
 						iconRight={<IconSolidArrowCircleRight />}
 						onClick={() => {
-							setTime(
-								new Date(resource.timestamp).getTime() -
-									startTime,
-							)
+							setTime(timestamp)
 						}}
 					>
 						Go to
