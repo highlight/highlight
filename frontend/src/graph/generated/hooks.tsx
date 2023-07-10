@@ -12999,11 +12999,13 @@ export const GetErrorObjectsDocument = gql`
 		$errorGroupSecureID: String!
 		$after: String
 		$before: String
+		$query: String!
 	) {
 		error_objects(
 			error_group_secure_id: $errorGroupSecureID
 			after: $after
 			before: $before
+			query: $query
 		) {
 			edges {
 				cursor
@@ -13014,7 +13016,7 @@ export const GetErrorObjectsDocument = gql`
 					errorGroupSecureID
 					session {
 						secureID
-						userProperties
+						email
 						appVersion
 					}
 				}
@@ -13044,6 +13046,7 @@ export const GetErrorObjectsDocument = gql`
  *      errorGroupSecureID: // value for 'errorGroupSecureID'
  *      after: // value for 'after'
  *      before: // value for 'before'
+ *      query: // value for 'query'
  *   },
  * });
  */
