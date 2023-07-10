@@ -324,9 +324,9 @@ type ErrorObjectNode struct {
 }
 
 type ErrorObjectNodeSession struct {
-	SecureID       string  `json:"secureID"`
-	UserProperties string  `json:"userProperties"`
-	AppVersion     *string `json:"appVersion"`
+	SecureID   string  `json:"secureID"`
+	AppVersion *string `json:"appVersion"`
+	Email      *string `json:"email"`
 }
 
 type ErrorSearchParamsInput struct {

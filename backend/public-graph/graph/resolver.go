@@ -1327,6 +1327,10 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		session.Identifier = userIdentifier
 	}
 
+	if userProperties["email"] != "" {
+		session.Email = ptr.String(userProperties["email"])
+	}
+
 	if !backfill {
 		session.Identified = true
 	}

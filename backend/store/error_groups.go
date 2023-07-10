@@ -10,12 +10,14 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/samber/lo"
 )
 
 type ListErrorObjectsParams struct {
 	After  *string
 	Before *string
+	Query  string
 }
 
 // Number of results per page
@@ -27,6 +29,16 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 
 	query := store.db.
 		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(LIMIT + 1)
+
+	if params.Query != "" {
+		parsedQuery := queryparser.Parse(params.Query)
+
+		if parsedQuery["email"] != "" {
+			query.Joins("LEFT JOIN sessions ON error_objects.session_id = sessions.id").
+				Where("sessions.project_id = ?", errorGroup.ProjectID). // Attaching project id so we can utilize the composite index sessions
+				Where("sessions.email = ?", parsedQuery["email"])
+		}
+	}
 
 	var (
 		endCursor       string
@@ -97,9 +109,9 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 			session, exists := sessionMap[*errorObject.SessionID]
 			if exists {
 				edge.Node.Session = &privateModel.ErrorObjectNodeSession{
-					SecureID:       session.SecureID,
-					UserProperties: session.UserProperties,
-					AppVersion:     session.AppVersion,
+					SecureID:   session.SecureID,
+					Email:      session.Email,
+					AppVersion: session.AppVersion,
 				}
 			}
 		}

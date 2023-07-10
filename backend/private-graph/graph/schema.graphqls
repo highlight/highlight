@@ -611,8 +611,8 @@ type LogConnection implements Connection {
 
 type ErrorObjectNodeSession {
 	secureID: String!
-	userProperties: String!
 	appVersion: String
+	email: String
 }
 
 type ErrorObjectNode {
@@ -1466,6 +1466,7 @@ type Query {
 		error_group_secure_id: String!
 		after: String
 		before: String
+		query: String!
 	): ErrorObjectConnection!
 	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(
