@@ -19,7 +19,6 @@ import { useAuthContext } from '@/authentication/AuthContext'
 import { Link } from '@/components/Link'
 import { ErrorObjectEdge } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
-import { getUserProperties } from '@/pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 
 const toYearMonthDay = (timestamp: string) => {
 	const date = new Date(timestamp)
@@ -83,11 +82,7 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 				let sessionLink = ''
 
 				if (session) {
-					const parsedUserProperties = getUserProperties(
-						session.userProperties,
-					)
-					content = parsedUserProperties.email
-					if (!content) {
+					if (!session.email) {
 						content = '(no value)'
 					}
 					// TODO - link directly to the timestamp like RelatedSession does

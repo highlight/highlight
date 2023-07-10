@@ -542,8 +542,8 @@ export type ErrorObjectNode = {
 export type ErrorObjectNodeSession = {
 	__typename?: 'ErrorObjectNodeSession'
 	appVersion?: Maybe<Scalars['String']>
+	email?: Maybe<Scalars['String']>
 	secureID: Scalars['String']
-	userProperties: Scalars['String']
 }
 
 export type ErrorResults = {
@@ -1929,6 +1929,7 @@ export type QueryError_ObjectsArgs = {
 	after?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
 	error_group_secure_id: Scalars['String']
+	query: Scalars['String']
 }
 
 export type QueryError_Resolution_SuggestionArgs = {

@@ -28,6 +28,7 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			errorGroupSecureID: errorGroup?.secure_id ?? '',
 			after: pagination.after,
 			before: pagination.before,
+			query: '', // unused, will be used to search by email (https://github.com/highlight/highlight/issues/5850)
 		},
 		skip: !errorGroup?.secure_id,
 	})

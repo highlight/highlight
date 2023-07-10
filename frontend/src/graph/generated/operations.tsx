@@ -4385,6 +4385,7 @@ export type GetErrorObjectsQueryVariables = Types.Exact<{
 	errorGroupSecureID: Types.Scalars['String']
 	after?: Types.Maybe<Types.Scalars['String']>
 	before?: Types.Maybe<Types.Scalars['String']>
+	query: Types.Scalars['String']
 }>
 
 export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
@@ -4403,7 +4404,7 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 									__typename?: 'ErrorObjectNodeSession'
 								} & Pick<
 									Types.ErrorObjectNodeSession,
-									'secureID' | 'userProperties' | 'appVersion'
+									'secureID' | 'email' | 'appVersion'
 								>
 							>
 						}
