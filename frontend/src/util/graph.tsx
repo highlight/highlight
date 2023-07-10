@@ -25,6 +25,7 @@ import {
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { PRIVATE_GRAPH_URI } from '@/constants'
+import { invalidateRefetch } from '@util/gql'
 
 const highlightGraph = new IndexedDBLink(
 	createHttpLink({
@@ -160,6 +161,11 @@ export const client = new ApolloClient({
 			authLink.concat(splitLink || highlightGraph),
 		),
 	]),
+	defaultOptions: {
+		mutate: {
+			onQueryUpdated: invalidateRefetch,
+		},
+	},
 	cache,
 	assumeImmutableResults: true,
 	connectToDevTools: import.meta.env.DEV,

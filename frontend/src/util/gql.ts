@@ -9,11 +9,10 @@ export const gqlSanitize = (object: any): any => {
 	return newPayload
 }
 
-export const delayedRefetch: OnQueryUpdated<any> = async (observable) => {
+export const invalidateRefetch: OnQueryUpdated<any> = async (observable) => {
 	await indexeddbCache.deleteItem({
 		operation: observable.queryName ?? '',
 		variables: observable.variables,
 	})
-	await wait(500)
 	await observable.refetch()
 }
