@@ -32,7 +32,7 @@ function rootLoader() {
 	return { contact }
 }
 
-function ErrorPage() {
+export function ErrorPage() {
 	const error = useRouteError() as { statusText: string; data: string }
 	return (
 		<ReportDialog error={new Error(`${error.statusText}: ${error.data}`)} />
