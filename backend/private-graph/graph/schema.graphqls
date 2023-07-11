@@ -70,6 +70,7 @@ type Session {
 	event_counts: String
 	direct_download_url: String
 	resources_url: String
+	web_socket_events_url: String
 	timeline_indicators_url: String
 	deviceMemory: Int
 	last_user_interaction_time: Timestamp!
@@ -610,8 +611,8 @@ type LogConnection implements Connection {
 
 type ErrorObjectNodeSession {
 	secureID: String!
-	userProperties: String!
 	appVersion: String
+	email: String
 }
 
 type ErrorObjectNode {
@@ -619,6 +620,7 @@ type ErrorObjectNode {
 	createdAt: Timestamp!
 	event: String!
 	session: ErrorObjectNodeSession
+	errorGroupSecureID: String!
 }
 
 type ErrorObjectEdge implements Edge {
@@ -1464,6 +1466,7 @@ type Query {
 		error_group_secure_id: String!
 		after: String
 		before: String
+		query: String!
 	): ErrorObjectConnection!
 	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(

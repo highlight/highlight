@@ -533,6 +533,7 @@ export type ErrorObjectEdge = Edge & {
 export type ErrorObjectNode = {
 	__typename?: 'ErrorObjectNode'
 	createdAt: Scalars['Timestamp']
+	errorGroupSecureID: Scalars['String']
 	event: Scalars['String']
 	id: Scalars['ID']
 	session?: Maybe<ErrorObjectNodeSession>
@@ -2521,6 +2522,7 @@ export type Session = {
 	user_object?: Maybe<Scalars['Any']>
 	user_properties?: Maybe<Scalars['String']>
 	viewed?: Maybe<Scalars['Boolean']>
+	web_socket_events_url?: Maybe<Scalars['String']>
 	within_billing_quota?: Maybe<Scalars['Boolean']>
 }
 

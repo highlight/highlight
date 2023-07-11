@@ -82,6 +82,7 @@ const options: HighlightOptions = {
 		urlBlocklist: [
 			'network-resources-compressed',
 			'session-contents-compressed',
+			'web-socket-events-compressed',
 		],
 	},
 	tracingOrigins: [
@@ -93,6 +94,9 @@ const options: HighlightOptions = {
 	integrations: {
 		amplitude: {
 			apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
+		},
+		mixpanel: {
+			projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',
 		},
 	},
 	enableSegmentIntegration: true,

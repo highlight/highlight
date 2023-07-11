@@ -284,7 +284,15 @@ const H: HighlightPublicInterface = {
 		}
 		if (!H.options?.integrations?.mixpanel?.disabled) {
 			if (window.mixpanel?.identify) {
-				window.mixpanel.identify(identifier)
+				window.mixpanel.identify(
+					typeof metadata?.email === 'string'
+						? metadata?.email
+						: identifier,
+				)
+				if (metadata) {
+					window.mixpanel.track('identify', metadata)
+					window.mixpanel.people.set(metadata)
+				}
 			}
 		}
 
