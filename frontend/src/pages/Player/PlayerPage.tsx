@@ -57,6 +57,7 @@ import useResizeAware from 'react-resize-aware'
 import { useNavigate } from 'react-router-dom'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import WaitingAnimation from '../../lottie/waiting.json'
@@ -358,6 +359,7 @@ const PlayerPage = () => {
 							<DevTools width={controllerWidth} />
 						</div>
 						{!isPlayerFullscreen && <RightPlayerPanel />}
+						<NetworkResourcePanel />
 					</Box>
 				</Box>
 			</div>

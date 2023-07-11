@@ -1,14 +1,11 @@
 import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import {
 	Box,
+	ButtonIcon,
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
-	Tag,
 	Tooltip,
 } from '@highlight-run/ui'
-import React from 'react'
-
-import * as style from './style.css'
 
 export const PreviousNextGroup = function ({
 	onPrev,
@@ -17,7 +14,7 @@ export const PreviousNextGroup = function ({
 	onNext,
 	canMoveForward,
 	nextShortcut,
-	size = 'large',
+	size = 'small',
 }: {
 	onPrev: () => void
 	canMoveBackward: boolean
@@ -25,22 +22,26 @@ export const PreviousNextGroup = function ({
 	onNext: () => void
 	canMoveForward: boolean
 	nextShortcut?: string
-	size?: 'medium' | 'large'
+	size?: 'xSmall' | 'small' | 'medium'
 }) {
 	return (
-		<Box borderRadius="6" overflow="hidden" display="flex" flexShrink={0}>
+		<Box
+			borderRadius="6"
+			overflow="hidden"
+			display="flex"
+			flexShrink={0}
+			alignItems="center"
+		>
 			<Tooltip
 				placement="bottom-end"
 				trigger={
-					<Tag
+					<ButtonIcon
 						kind="secondary"
 						size={size}
 						emphasis="low"
 						icon={<IconSolidCheveronUp size={14} />}
 						onClick={onPrev}
 						disabled={!canMoveBackward}
-						className={style.leftButton}
-						shape="basic"
 					/>
 				}
 				delayed
@@ -52,20 +53,18 @@ export const PreviousNextGroup = function ({
 				/>
 			</Tooltip>
 
-			<Box as="span" borderRight="secondary" />
+			<Box as="span" borderRight="secondary" style={{ height: 16 }} />
 
 			<Tooltip
 				placement="bottom-start"
 				trigger={
-					<Tag
+					<ButtonIcon
 						kind="secondary"
 						size={size}
 						emphasis="low"
 						icon={<IconSolidCheveronDown size={14} />}
 						onClick={onNext}
 						disabled={!canMoveForward}
-						className={style.rightButton}
-						shape="basic"
 					/>
 				}
 				delayed
