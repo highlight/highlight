@@ -67,7 +67,10 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 	}
 
 	if len(errorObjects) == 0 {
-		return privateModel.ErrorObjectConnection{}, nil
+		return privateModel.ErrorObjectConnection{
+			Edges:    []*privateModel.ErrorObjectEdge{},
+			PageInfo: &privateModel.PageInfo{},
+		}, nil
 	}
 
 	// Extract the non-null session IDs

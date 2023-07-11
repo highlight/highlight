@@ -1,4 +1,13 @@
-import { Box, Callout, Stack, Text } from '@highlight-run/ui'
+import {
+	Box,
+	Callout,
+	Form,
+	FormState,
+	IconSolidSearch,
+	Stack,
+	Text,
+	useFormState,
+} from '@highlight-run/ui'
 import React, { useState } from 'react'
 
 import { Button } from '@/components/Button'
@@ -9,6 +18,8 @@ import { ErrorObjectEdge } from '@/graph/generated/schemas'
 import { ErrorInstancesTable } from '@/pages/ErrorsV2/ErrorInstances/ErrorInstancesTable'
 import { NoErrorInstancesFound } from '@/pages/ErrorsV2/ErrorInstances/NoErrorInstancesFound'
 
+import * as styles from './ErrorInstances.css'
+
 type Props = {
 	errorGroup: GetErrorGroupQuery['error_group']
 }
@@ -18,7 +29,18 @@ type Pagination = {
 	before: string | null
 }
 
+export interface SearchFormState {
+	email: string
+}
+
 export const ErrorInstances = ({ errorGroup }: Props) => {
+	const form = useFormState<SearchFormState>({
+		defaultValues: {
+			email: '',
+		},
+	})
+	const [query, setQuery] = useState('')
+
 	const [pagination, setPagination] = useState<Pagination>({
 		after: null,
 		before: null,
@@ -28,16 +50,23 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			errorGroupSecureID: errorGroup?.secure_id ?? '',
 			after: pagination.after,
 			before: pagination.before,
-			query: '', // unused, will be used to search by email (https://github.com/highlight/highlight/issues/5850)
+			query,
 		},
 		skip: !errorGroup?.secure_id,
 	})
+
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault()
+		setQuery(`email:${form.values.email}`)
+	}
 
 	if (loading) {
 		return (
 			<ErrorInstancesContainer
 				canMoveBackward={false}
 				canMoveForward={false}
+				form={form}
+				onSubmit={handleSubmit}
 			>
 				<LoadingBox height={156} />
 			</ErrorInstancesContainer>
@@ -48,6 +77,8 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			<ErrorInstancesContainer
 				canMoveBackward={false}
 				canMoveForward={false}
+				form={form}
+				onSubmit={handleSubmit}
 			>
 				<Box m="auto" style={{ maxWidth: 300 }}>
 					<Callout
@@ -86,6 +117,8 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			<ErrorInstancesContainer
 				canMoveBackward={false}
 				canMoveForward={false}
+				form={form}
+				onSubmit={handleSubmit}
 			>
 				<NoErrorInstancesFound />
 			</ErrorInstancesContainer>
@@ -100,6 +133,8 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			canMoveForward={pageInfo?.hasNextPage ?? false}
 			onPrevious={handlePreviousPage}
 			onNext={handleNextPage}
+			form={form}
+			onSubmit={handleSubmit}
 		>
 			<ErrorInstancesTable edges={edges} />
 		</ErrorInstancesContainer>
@@ -109,16 +144,47 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 type ErrorInstancesContainerProps = {
 	canMoveBackward: boolean
 	canMoveForward: boolean
+	form: FormState<SearchFormState>
+	onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
 	onPrevious?: () => void
 	onNext?: () => void
 }
 
 const ErrorInstancesContainer: React.FC<
 	React.PropsWithChildren<ErrorInstancesContainerProps>
-> = ({ canMoveBackward, canMoveForward, onPrevious, onNext, children }) => {
+> = ({
+	canMoveBackward,
+	canMoveForward,
+	onPrevious,
+	onNext,
+	onSubmit,
+	form,
+	children,
+}) => {
 	return (
 		<>
-			<Box my="20" borderBottom="secondary">
+			<Box my="8">
+				<Form state={form} onSubmit={onSubmit}>
+					<Box
+						position="relative"
+						alignItems="stretch"
+						display="flex"
+						flexGrow={1}
+						color="weak"
+					>
+						<IconSolidSearch
+							size={16}
+							className={styles.searchIcon}
+						/>
+						<Form.Input
+							name={form.names.email}
+							placeholder="Search for email"
+							style={{ paddingLeft: 28, width: 310 }}
+						/>
+					</Box>
+				</Form>
+			</Box>
+			<Box mb="20" borderBottom="secondary">
 				{children}
 			</Box>
 			<Stack direction="row" justifyContent="flex-end">
