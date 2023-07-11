@@ -933,7 +933,7 @@ func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecur
 func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id string) (session *model.Session, ownsSession bool, err error) {
 	session = &model.Session{}
 	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: session_secure_id}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
-		return nil, false, e.New("error querying session by secure_id: " + session_secure_id)
+		return nil, false, AuthorizationError
 	}
 
 	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
@@ -957,7 +957,7 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id st
 	} else if session.ProjectID == r.demoProjectID(ctx) {
 		return session, nil
 	}
-	return nil, e.New("session access unauthorized")
+	return nil, AuthorizationError
 }
 
 func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id string) (*model.Session, error) {
