@@ -18,6 +18,7 @@ import {
 	ShortcutTextGuide,
 } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import {
+	Ariakit,
 	Badge,
 	Box,
 	Form,
@@ -35,7 +36,6 @@ import { PreviousDateRangePicker } from '@highlight-run/ui/src/components/DatePi
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { isInsideElement } from '@util/dom'
-import { Dialog } from 'ariakit/dialog'
 import isEqual from 'lodash/isEqual'
 import React, { useRef } from 'react'
 
@@ -55,7 +55,7 @@ const CommandBarBox = () => {
 
 	const { commandBarDialog } = useGlobalContext()
 	return (
-		<Dialog
+		<Ariakit.Dialog
 			state={commandBarDialog}
 			className={styles.dialog}
 			onClick={(e) => {
@@ -79,7 +79,7 @@ const CommandBarBox = () => {
 				<SearchBar />
 				<SearchOptions />
 			</Box>
-		</Dialog>
+		</Ariakit.Dialog>
 	)
 }
 const SearchOptions = () => {

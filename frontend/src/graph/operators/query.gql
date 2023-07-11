@@ -251,6 +251,7 @@ query GetSession($secure_id: String!) {
 		event_counts
 		direct_download_url
 		resources_url
+		web_socket_events_url
 		timeline_indicators_url
 		deviceMemory
 		last_user_interaction_time
@@ -586,12 +587,14 @@ query GetSessionsOpenSearch(
 	$count: Int!
 	$query: String!
 	$sort_desc: Boolean!
+	$sort_field: String
 	$page: Int
 ) {
 	sessions_opensearch(
 		project_id: $project_id
 		count: $count
 		query: $query
+		sort_field: $sort_field
 		sort_desc: $sort_desc
 		page: $page
 	) {
@@ -1147,26 +1150,6 @@ query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
 		}
 		next_id
 		previous_id
-	}
-}
-
-query GetRecentErrors($secure_id: String!) {
-	error_group(secure_id: $secure_id) {
-		secure_id
-		metadata_log {
-			error_id
-			session_secure_id
-			environment
-			timestamp
-			os
-			browser
-			visited_url
-			fingerprint
-			identifier
-			user_properties
-			request_id
-			payload
-		}
 	}
 }
 
@@ -2101,5 +2084,51 @@ query GetWorkspacePendingInvites($workspace_id: ID!) {
 		invitee_email
 		invitee_role
 		created_at
+	}
+}
+
+query GetErrorResolutionSuggestion($error_object_id: ID!) {
+	error_resolution_suggestion(error_object_id: $error_object_id)
+}
+
+query GetWorkspaceSettings($workspace_id: ID!) {
+	workspaceSettings(workspace_id: $workspace_id) {
+		workspace_id
+		ai_insights
+	}
+}
+
+query GetErrorObjects(
+	$errorGroupSecureID: String!
+	$after: String
+	$before: String
+	$query: String!
+) {
+	error_objects(
+		error_group_secure_id: $errorGroupSecureID
+		after: $after
+		before: $before
+		query: $query
+	) {
+		edges {
+			cursor
+			node {
+				id
+				createdAt
+				event
+				errorGroupSecureID
+				session {
+					secureID
+					email
+					appVersion
+				}
+			}
+		}
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
 	}
 }

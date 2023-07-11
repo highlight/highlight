@@ -41,11 +41,11 @@ export const PreviousNextInstance = ({ data }: Props) => {
 
 	const errorInstance = data?.error_instance
 
-	useHotkeys(']', () => goToErrorInstance(errorInstance?.next_id, 'next'), [
+	useHotkeys('[', () => goToErrorInstance(errorInstance?.next_id, 'next'), [
 		errorInstance?.next_id,
 	])
 	useHotkeys(
-		'[',
+		']',
 		() => goToErrorInstance(errorInstance?.previous_id, 'previous'),
 		[errorInstance?.previous_id],
 	)
@@ -53,18 +53,18 @@ export const PreviousNextInstance = ({ data }: Props) => {
 	return (
 		<PreviousNextGroup
 			canMoveBackward={
-				!!errorInstance && Number(errorInstance.previous_id) !== 0
+				!!errorInstance && Number(errorInstance.next_id) !== 0
 			}
 			canMoveForward={
-				!!errorInstance && Number(errorInstance.next_id) !== 0
+				!!errorInstance && Number(errorInstance.previous_id) !== 0
 			}
 			prevShortcut="["
 			nextShortcut="]"
-			onPrev={() =>
+			onPrev={() => goToErrorInstance(errorInstance?.next_id, 'next')}
+			onNext={() =>
 				goToErrorInstance(errorInstance?.previous_id, 'previous')
 			}
-			onNext={() => goToErrorInstance(errorInstance?.next_id, 'next')}
-			size="medium"
+			size="xSmall"
 		/>
 	)
 }

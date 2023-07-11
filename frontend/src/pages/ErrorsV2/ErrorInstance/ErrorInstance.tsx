@@ -11,6 +11,7 @@ import {
 } from '@graph/hooks'
 import { ErrorObjectFragment, GetErrorGroupQuery } from '@graph/operations'
 import {
+	Badge,
 	Box,
 	IconSolidCode,
 	IconSolidExternalLink,
@@ -34,6 +35,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
+import { AiErrorSuggestion } from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestion'
 import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionMissingOrExcluded'
 import { PreviousNextInstance } from '@/pages/ErrorsV2/ErrorInstance/PreviousNextInstance'
 import { RelatedLogs } from '@/pages/ErrorsV2/ErrorInstance/RelatedLogs'
@@ -197,6 +199,18 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						</Box>
 					</>
 				)}
+
+			<Box display="flex" flexDirection="column" mb="40">
+				<Stack direction="row" align="center" pb="20" gap="8">
+					<Text size="large" weight="bold">
+						Harold AI
+					</Text>
+					<Badge label="Beta" size="medium" variant="purple" />
+				</Stack>
+				<AiErrorSuggestion
+					errorObjectId={errorInstance.error_object.id}
+				/>
+			</Box>
 
 			{(errorInstance.error_object.stack_trace !== '' &&
 				errorInstance.error_object.stack_trace !== 'null') ||

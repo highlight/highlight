@@ -20,6 +20,7 @@ enum SessionExcludedReason {
 	NoUserInteractionEvents
 	NoTimelineIndicatorEvents
 	NoError
+	NoUserEvents
 	IgnoredUser
 }
 
@@ -69,6 +70,7 @@ type Session {
 	event_counts: String
 	direct_download_url: String
 	resources_url: String
+	web_socket_events_url: String
 	timeline_indicators_url: String
 	deviceMemory: Int
 	last_user_interaction_time: Timestamp!
@@ -375,6 +377,11 @@ type AllProjectSettings {
 	autoResolveStaleErrorsDayInterval: Int!
 }
 
+type AllWorkspaceSettings {
+	workspace_id: ID!
+	ai_insights: Boolean!
+}
+
 type Account {
 	id: ID!
 	name: String!
@@ -604,15 +611,16 @@ type LogConnection implements Connection {
 
 type ErrorObjectNodeSession {
 	secureID: String!
-	userProperties: String!
 	appVersion: String
+	email: String
 }
 
 type ErrorObjectNode {
 	id: ID!
 	createdAt: Timestamp!
 	event: String!
-	session: ErrorObjectNodeSession!
+	session: ErrorObjectNodeSession
+	errorGroupSecureID: String!
 }
 
 type ErrorObjectEdge implements Edge {
@@ -1422,6 +1430,7 @@ enum EmailOptOutCategory {
 	All
 	Digests
 	Billing
+	SessionDigests
 }
 
 scalar Upload
@@ -1457,6 +1466,7 @@ type Query {
 		error_group_secure_id: String!
 		after: String
 		before: String
+		query: String!
 	): ErrorObjectConnection!
 	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(
@@ -1528,6 +1538,7 @@ type Query {
 		project_id: ID!
 		count: Int!
 		query: String!
+		sort_field: String
 		sort_desc: Boolean!
 		page: Int
 	): SessionResults!
@@ -1623,6 +1634,7 @@ type Query {
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
 	workspacePendingInvites(workspace_id: ID!): [WorkspaceInviteLink]!
+	workspaceSettings(workspace_id: ID!): AllWorkspaceSettings
 	workspace_for_project(project_id: ID!): Workspace
 	admin: Admin
 	admin_role(workspace_id: ID!): WorkspaceAdminRole
@@ -1680,6 +1692,7 @@ type Query {
 		date_range: DateRangeRequiredInput!
 	): [String!]!
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
+	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
 }
 
@@ -1720,6 +1733,10 @@ type Mutation {
 		autoResolveStaleErrorsDayInterval: Int
 	): AllProjectSettings
 	editWorkspace(id: ID!, name: String): Workspace
+	editWorkspaceSettings(
+		workspace_id: ID!
+		ai_insights: Boolean
+	): AllWorkspaceSettings
 	markErrorGroupAsViewed(
 		error_secure_id: String!
 		viewed: Boolean
@@ -2038,6 +2055,7 @@ type Mutation {
 		admin_id: ID
 		category: EmailOptOutCategory!
 		is_opt_out: Boolean!
+		project_id: Int
 	): Boolean!
 }
 

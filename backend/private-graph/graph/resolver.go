@@ -876,7 +876,7 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 
 	_, err := r.isAdminInProjectOrDemoProject(ctx, eg.ProjectID)
 	if err != nil {
-		return eg, false, e.Wrap(err, "error validating admin in project")
+		return eg, false, err
 	}
 
 	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg); err != nil {
@@ -938,7 +938,7 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id s
 
 	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
 	if err != nil {
-		return session, false, e.Wrap(err, "error validating admin in project")
+		return session, false, err
 	}
 	return session, true, nil
 }
@@ -979,7 +979,7 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in project")
+		return nil, err
 	}
 	return segment, nil
 }
@@ -993,7 +993,7 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in project")
+		return nil, err
 	}
 	return segment, nil
 }
@@ -3049,8 +3049,10 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 	getConversationsParam := slack.GetConversationsParameters{
 		Limit: 1000,
 		// public_channel is for public channels in the Slack workspace
+		// private is for private channels in the Slack workspace that the Bot is included in
 		// im is for all individuals in the Slack workspace
-		Types: []string{"public_channel", "im"},
+		// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
+		Types: []string{"public_channel", "private_channel", "mpim", "im"},
 	}
 	allSlackChannelsFromAPI := []slack.Channel{}
 

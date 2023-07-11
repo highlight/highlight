@@ -131,6 +131,7 @@ export enum RequestType {
 	Link = 'link',
 	Other = 'other',
 	Script = 'script',
+	WebSocket = 'websocket',
 	XHR = 'xmlhttprequest',
 }
 
@@ -143,6 +144,7 @@ export interface ICountPerRequestType {
 	link: number
 	other: number
 	script: number
+	websocket: number
 	xmlhttprequest: number
 }
 

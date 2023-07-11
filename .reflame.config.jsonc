@@ -267,9 +267,6 @@
 		"@vanilla-extract/recipes": {
 			"entryPoints": ["/createRuntimeFn"],
 		},
-		"ariakit": {
-			"entryPoints": ["/", "/dialog", "/form"],
-		},
 		// TODO: create a library for this
 		// Might need a shim entry point for .css?
 		"@highlight-run/react": {
@@ -349,13 +346,5 @@
 		"use-query-params": {
 			"entryPoints": ["/", "/adapters/react-router-6"],
 		},
-	},
-	"npmPackageOverrides": {
-		"react": "18.2.0",
-		"react-dom": "18.2.0",
-		"graphql": "16.6.0",
-		"react-transition-group": "4.4.1",
-		"lodash": "npm:lodash-es",
-		"antd": "4.24.12",
 	},
 }
