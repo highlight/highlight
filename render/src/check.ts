@@ -10,7 +10,7 @@ let unzippedSizeBytes = unzippedSizeLimitBytes + 1
 // because AWS lambda sets a limit on the unzipped payload, rather than the zip size.
 try {
 	await exec(
-		'mkdir out && cp function.zip out && cd out && unzip function.zip && rm function.zip',
+		'mkdir out && cp function.zip out && cd out && unzip -q function.zip && rm function.zip',
 	)
 	const { stdout } = await exec('du -b -d0 out')
 	unzippedSizeBytes = Number(stdout.split('\t')[0])

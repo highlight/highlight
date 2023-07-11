@@ -3,7 +3,6 @@ import { serialRender } from './serial'
 import { readFileSync } from 'fs'
 import { encodeGIF, encodeMP4 } from './ffmpeg'
 import { getRenderExport, uploadRenderExport } from './s3'
-import { H, Handlers } from '@highlight-run/node'
 
 interface Args {
 	project?: string
@@ -69,18 +68,13 @@ const media = async (event?: APIGatewayEvent) => {
 	}
 }
 
-export const handler = Handlers.serverlessFunction(
-	(event?: APIGatewayEvent) => {
-		const args = event?.queryStringParameters as unknown as Args | undefined
-		if (args?.format === 'image/gif' || args?.format === 'video/mp4') {
-			return media(event)
-		}
-		return screenshot(event)
-	},
-	{ projectID: '1' },
-)
-
-H.init({ projectID: '1' })
+export const handler = (event?: APIGatewayEvent) => {
+	const args = event?.queryStringParameters as unknown as Args | undefined
+	if (args?.format === 'image/gif' || args?.format === 'video/mp4') {
+		return media(event)
+	}
+	return screenshot(event)
+}
 
 if (process.env.DEV?.length) {
 	Promise.all([
@@ -101,5 +95,5 @@ if (process.env.DEV?.length) {
 				tsEnd: '20000',
 			},
 		} as unknown as APIGatewayEvent),
-	]).then(() => H.stop())
+	])
 }
