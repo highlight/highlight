@@ -102,7 +102,7 @@ export declare type HighlightOptions = {
 	disableSessionRecording?: boolean
 	/**
 	 * Specifies whether Highlight will report `console.error` invocations as Highlight Errors.
-	 * @default true
+	 * @default false
 	 */
 	reportConsoleErrors?: boolean
 	/**
