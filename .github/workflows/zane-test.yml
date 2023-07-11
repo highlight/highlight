@@ -1,8 +1,5 @@
 name: zane-test
-on:
-    push:
-        branches:
-            - '*'
+on: push
 jobs:
     deploy-session-insights-lambdas:
         runs-on: ubuntu-latest
