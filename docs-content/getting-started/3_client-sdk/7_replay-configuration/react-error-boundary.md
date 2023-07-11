@@ -76,7 +76,6 @@ the `ErrorBoundary` prop pointing to a component that extracts the react router 
 
 ```typescript
 import * as React from 'react'
-import { useEffect } from 'react'
 import * as ReactDOM from 'react-dom/client'
 import {
 	createBrowserRouter,
@@ -85,12 +84,10 @@ import {
 	RouterProvider,
 	useRouteError,
 } from 'react-router-dom'
-import { H } from 'highlight.run'
 import { ReportDialog } from '@highlight-run/react'
 import Root from './routes/root'
 
-export async function rootAction() {
-    // sample action that occasionally returns an error
+function rootAction() {
 	const contact = { name: 'hello' }
 	if (Math.random() < 0.5) {
 		throw new Response('', {
@@ -101,8 +98,7 @@ export async function rootAction() {
 	return { contact }
 }
 
-export async function rootLoader({ params }) {
-    // sample loader that occasionally returns an error
+function rootLoader() {
 	const contact = { name: 'hello' }
 	if (Math.random() < 0.5) {
 		throw new Response('', {
@@ -113,9 +109,11 @@ export async function rootLoader({ params }) {
 	return { contact }
 }
 
-export default function ErrorPage() {
-	const error = useRouteError()
-	return <ReportDialog error={new Error(error)} />
+function ErrorPage() {
+	const error = useRouteError() as { statusText: string; data: string }
+	return (
+		<ReportDialog error={new Error(`${error.statusText}: ${error.data}`)} />
+	)
 }
 
 const router = createBrowserRouter(
