@@ -1,8 +1,9 @@
 import * as React from 'react'
+import { useEffect } from 'react'
 import * as ReactDOM from 'react-dom/client'
 import {
-	createRoutesFromElements,
 	createBrowserRouter,
+	createRoutesFromElements,
 	Route,
 	RouterProvider,
 	useRouteError,
@@ -10,7 +11,6 @@ import {
 import { H } from 'highlight.run'
 import { ReportDialog } from '@highlight-run/react'
 import Root from './routes/root'
-import { useEffect } from 'react'
 
 export async function rootAction() {
 	const contact = { name: 'hello' }

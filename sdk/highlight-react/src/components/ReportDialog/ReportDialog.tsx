@@ -20,6 +20,8 @@ export interface ReportDialogOptions {
 	successMessage?: string
 	successSubtitle?: string
 	hideHighlightBranding?: boolean
+	// if an error is passed, the ReportDialog will send it to highlight
+	error?: Error
 }
 
 type ReportDialogProps = ReportDialogOptions & {
@@ -43,6 +45,7 @@ export function ReportDialog({
 	onCloseHandler,
 	onSubmitHandler,
 	hideHighlightBranding = false,
+	error,
 }: ReportDialogProps) {
 	const [name, setName] = useState(user?.name || '')
 	const [email, setEmail] = useState(user?.email || '')
@@ -58,6 +61,12 @@ export function ReportDialog({
 
 		return !!name && isValidEmail && !!verbatim
 	}, [name, email, verbatim])
+
+	React.useEffect(() => {
+		if (window?.H?.consumeError && error) {
+			window.H.consumeError(error)
+		}
+	}, [error])
 
 	const handleSubmit = (event: React.SyntheticEvent) => {
 		event.preventDefault()
