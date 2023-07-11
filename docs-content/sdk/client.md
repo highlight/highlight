@@ -49,7 +49,7 @@ slug: client
         </aside>
         <aside className="parameter">
           <h5>reportConsoleErrors <code>boolean</code> <code>optional</code></h5>
-          <p>If true, <code>console.error</code> calls will be logged as errors. The default value is false.</p>
+          <p>If true, console.error calls will be logged as errors. The default value is false.</p>
         </aside>
         <aside className="parameter">
           <h5>enableSegmentIntegration <code>boolean</code> <code>optional</code></h5>
