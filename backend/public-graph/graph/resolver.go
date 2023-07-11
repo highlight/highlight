@@ -2613,7 +2613,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	} else if excluded {
 		// Only update the excluded flag and reason if either have changed
-		if sessionObj.Excluded != excluded || sessionObj.ExcludedReason != reason {
+		var reasonDeref, newReasonDeref privateModel.SessionExcludedReason
+		if sessionObj.ExcludedReason != nil {
+			reasonDeref = *sessionObj.ExcludedReason
+		}
+		if reason != nil {
+			newReasonDeref = *reason
+		}
+		if sessionObj.Excluded != excluded || reasonDeref != newReasonDeref {
 			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
 				Select("Excluded", "ExcludedReason").Updates(&model.Session{
 				Excluded:       excluded,
