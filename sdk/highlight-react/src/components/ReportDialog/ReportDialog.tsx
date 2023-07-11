@@ -27,7 +27,7 @@ type ReportDialogProps = ReportDialogOptions & {
 	onSubmitHandler?: () => void
 }
 
-export default function ReportDialog({
+export function ReportDialog({
 	labelClose = 'Cancel',
 	labelComments = 'Message',
 	labelName = 'Name',
