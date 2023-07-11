@@ -48,7 +48,7 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 	const columns = [
 		columnHelper.accessor('node.event', {
 			cell: ({ getValue }) => (
-				<Box display="flex" flexGrow={1}>
+				<Box display="flex" flexGrow={1} flexBasis={1}>
 					<Text lines="1">{getValue()}</Text>
 				</Box>
 			),
