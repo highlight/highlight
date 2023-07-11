@@ -1,6 +1,8 @@
 import { Box } from '@highlight-run/ui'
 import React, { CSSProperties, useEffect, useRef, useState } from 'react'
 
+import { Button } from '../../../../packages/ui'
+
 interface Navigator {
 	getUserMedia(
 		options: { video?: boolean; audio?: boolean },
@@ -11,6 +13,7 @@ interface Navigator {
 
 export const CanvasPage = function () {
 	const ref = useRef<HTMLDivElement>(null)
+	const [numCanvases, setNumCanvases] = useState<number>(0)
 	const [canvasStyle, setCanvasStyle] = useState<CSSProperties>()
 
 	const onMouseMove = () => {
@@ -125,7 +128,7 @@ export const CanvasPage = function () {
 				}
 			}
 		}
-	}, [])
+	}, [numCanvases])
 
 	return (
 		<Box ref={ref} width="full" height="full">
@@ -141,11 +144,11 @@ export const CanvasPage = function () {
 					></video>
 				</Box>
 				<Box border="dividerStrong">
-					{Array(8)
+					{Array(numCanvases)
 						.fill(0)
 						.map((_, i) => (
 							<canvas
-								id="canvas-1"
+								id={`canvas-${i}`}
 								key={`canvas-${i}`}
 								style={canvasStyle}
 								onMouseMove={onMouseMove}
@@ -170,6 +173,9 @@ export const CanvasPage = function () {
 						width={640}
 						height={480}
 					></video>
+				</Box>
+				<Box border="dividerStrong">
+					<Button onClick={() => setNumCanvases((n) => n + 1)} />
 				</Box>
 			</Box>
 		</Box>
