@@ -4359,6 +4359,15 @@ export type GetWorkspacePendingInvitesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorResolutionSuggestionQueryVariables = Types.Exact<{
+	error_object_id: Types.Scalars['ID']
+}>
+
+export type GetErrorResolutionSuggestionQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'error_resolution_suggestion'
+>
+
 export type GetWorkspaceSettingsQueryVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 }>
@@ -4536,6 +4545,7 @@ export const namedOperations = {
 		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
 		GetProjectSettings: 'GetProjectSettings' as const,
 		GetWorkspacePendingInvites: 'GetWorkspacePendingInvites' as const,
+		GetErrorResolutionSuggestion: 'GetErrorResolutionSuggestion' as const,
 		GetWorkspaceSettings: 'GetWorkspaceSettings' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
 	},

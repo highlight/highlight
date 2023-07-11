@@ -12937,6 +12937,60 @@ export type GetWorkspacePendingInvitesQueryResult = Apollo.QueryResult<
 	Types.GetWorkspacePendingInvitesQuery,
 	Types.GetWorkspacePendingInvitesQueryVariables
 >
+export const GetErrorResolutionSuggestionDocument = gql`
+	query GetErrorResolutionSuggestion($error_object_id: ID!) {
+		error_resolution_suggestion(error_object_id: $error_object_id)
+	}
+`
+
+/**
+ * __useGetErrorResolutionSuggestionQuery__
+ *
+ * To run a query within a React component, call `useGetErrorResolutionSuggestionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorResolutionSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorResolutionSuggestionQuery({
+ *   variables: {
+ *      error_object_id: // value for 'error_object_id'
+ *   },
+ * });
+ */
+export function useGetErrorResolutionSuggestionQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorResolutionSuggestionQuery,
+		Types.GetErrorResolutionSuggestionQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorResolutionSuggestionQuery,
+		Types.GetErrorResolutionSuggestionQueryVariables
+	>(GetErrorResolutionSuggestionDocument, baseOptions)
+}
+export function useGetErrorResolutionSuggestionLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorResolutionSuggestionQuery,
+		Types.GetErrorResolutionSuggestionQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorResolutionSuggestionQuery,
+		Types.GetErrorResolutionSuggestionQueryVariables
+	>(GetErrorResolutionSuggestionDocument, baseOptions)
+}
+export type GetErrorResolutionSuggestionQueryHookResult = ReturnType<
+	typeof useGetErrorResolutionSuggestionQuery
+>
+export type GetErrorResolutionSuggestionLazyQueryHookResult = ReturnType<
+	typeof useGetErrorResolutionSuggestionLazyQuery
+>
+export type GetErrorResolutionSuggestionQueryResult = Apollo.QueryResult<
+	Types.GetErrorResolutionSuggestionQuery,
+	Types.GetErrorResolutionSuggestionQueryVariables
+>
 export const GetWorkspaceSettingsDocument = gql`
 	query GetWorkspaceSettings($workspace_id: ID!) {
 		workspaceSettings(workspace_id: $workspace_id) {

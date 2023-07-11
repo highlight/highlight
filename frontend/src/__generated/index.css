@@ -5823,6 +5823,47 @@ body {
 ._33eaux0 {
   max-height: 16em;
 }
+._2tuxi80 {
+  background: linear-gradient(45deg, rgba(162, 138, 220, 0.08) 0%, rgba(216, 165, 216, 0.08) 50%, rgba(233, 192, 186, 0.08) 100%);
+}
+._2tuxi81 {
+  position: relative;
+  z-index: 1;
+}
+._2tuxi81:after {
+  content: "";
+  background: linear-gradient(45deg, rgba(162, 138, 220) 0%, rgba(216, 165, 216) 50%, rgba(233, 192, 186) 100%);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  inset: 0;
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  position: absolute;
+  z-index: -1;
+}
+._2tuxi81 p {
+  margin: 0 0 1rem 0 !important;
+}
+._2tuxi81 pre {
+  background: var(--_1pyqka92);
+  border-color: var(--_1pyqka9k);
+  border-style: solid;
+  border-radius: 6px;
+  border-width: 1px;
+  padding: 10px;
+}
+._2tuxi81 code:not([class]) {
+  background-color: transparent;
+  border: 0;
+}
+._2tuxi81 p:last-child,
+._2tuxi81 ol:last-child {
+  margin: 0 !important;
+}
+._2tuxi81 ol {
+  padding: 0 0 0 1.5rem !important;
+  margin: 0 0 1rem 0 !important;
+}
 ._1g045pm0 {
   color: var(--_1pyqka9b) !important;
 }

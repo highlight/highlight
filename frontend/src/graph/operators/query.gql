@@ -2087,6 +2087,10 @@ query GetWorkspacePendingInvites($workspace_id: ID!) {
 	}
 }
 
+query GetErrorResolutionSuggestion($error_object_id: ID!) {
+	error_resolution_suggestion(error_object_id: $error_object_id)
+}
+
 query GetWorkspaceSettings($workspace_id: ID!) {
 	workspaceSettings(workspace_id: $workspace_id) {
 		workspace_id
