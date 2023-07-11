@@ -26,7 +26,10 @@ func TestListErrorObjectsNoData(t *testing.T) {
 		connection, err := store.ListErrorObjects(errorGroup, ListErrorObjectsParams{})
 		assert.NoError(t, err)
 
-		assert.Equal(t, privateModel.ErrorObjectConnection{}, connection)
+		assert.Equal(t, privateModel.ErrorObjectConnection{
+			Edges:    []*privateModel.ErrorObjectEdge{},
+			PageInfo: &privateModel.PageInfo{},
+		}, connection)
 	})
 }
 
