@@ -1,4 +1,4 @@
-import { NetworkStatus } from '@apollo/client'
+import { ApolloError, NetworkStatus } from '@apollo/client'
 import { Button } from '@components/Button'
 import { useGetErrorResolutionSuggestionLazyQuery } from '@graph/hooks'
 import {
@@ -16,6 +16,7 @@ import clsx from 'clsx'
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 
+import { GetErrorResolutionSuggestionQuery } from '@/graph/generated/operations'
 import AiErrorSuggestionCard from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestionCard'
 import analytics from '@/util/analytics'
 
@@ -26,12 +27,22 @@ type Props = {
 }
 
 export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
-	const [
-		getErrorResolutionSuggestion,
-		{ data, error, loading, networkStatus, refetch },
-	] = useGetErrorResolutionSuggestionLazyQuery({
-		notifyOnNetworkStatusChange: true,
-	})
+	const [data, setData] = useState<GetErrorResolutionSuggestionQuery | null>(
+		null,
+	)
+	const [error, setError] = useState<ApolloError | null>(null)
+	const [getErrorResolutionSuggestion, { loading, networkStatus, refetch }] =
+		useGetErrorResolutionSuggestionLazyQuery({
+			notifyOnNetworkStatusChange: true,
+			onCompleted: (data) => {
+				setError(null)
+				setData(data)
+			},
+			onError: (error) => {
+				setError(error)
+				setData(null)
+			},
+		})
 	const [voted, setVoted] = useState(false)
 
 	return (
@@ -77,10 +88,14 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 													if (!voted) {
 														analytics.track(
 															'AiErrorSuggestionFeedback',
-															{ value: 1 },
+															{
+																error_object_id:
+																	errorObjectId,
+																vote: 1,
+															},
 														)
 														console.log(
-															'AiErrorSuggestionFeedback',
+															`[Highlight] AiErrorSuggestionFeedback (${errorObjectId})`,
 															1,
 														)
 														setVoted(true)
@@ -106,10 +121,14 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 													if (!voted) {
 														analytics.track(
 															'AiErrorSuggestionFeedback',
-															{ value: 0 },
+															{
+																error_object_id:
+																	errorObjectId,
+																vote: 0,
+															},
 														)
 														console.log(
-															'AiErrorSuggestionFeedback',
+															`[Highlight] AiErrorSuggestionFeedback (${errorObjectId})`,
 															0,
 														)
 														setVoted(true)

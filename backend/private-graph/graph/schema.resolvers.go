@@ -7456,7 +7456,6 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 	}
 
 	log.WithContext(ctx).
-		// TODO: Check if this is a reserved field name.
 		WithField("error_object_id", errorObjectID).
 		WithField("system_prompt", systemPrompt).
 		WithField("user_prompt", userPrompt).
