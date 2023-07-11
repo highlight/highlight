@@ -9,7 +9,6 @@ import {
 	GetErrorsHistogramDocument,
 	GetEventChunksDocument,
 	GetEventChunkUrlDocument,
-	GetRecentErrorsDocument,
 	GetSessionDocument,
 	GetSessionIntervalsDocument,
 	GetSessionPayloadDocument,
@@ -375,12 +374,6 @@ const loadErrorGroup = async function (projectID: string, secureID: string) {
 				break
 			}
 		}
-		await client.query({
-			query: GetRecentErrorsDocument,
-			variables: {
-				secure_id: secureID,
-			},
-		})
 		await client.query({
 			query: GetErrorDistributionDocument,
 			variables: {

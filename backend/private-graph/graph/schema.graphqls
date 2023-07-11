@@ -20,6 +20,7 @@ enum SessionExcludedReason {
 	NoUserInteractionEvents
 	NoTimelineIndicatorEvents
 	NoError
+	NoUserEvents
 	IgnoredUser
 }
 
@@ -69,6 +70,7 @@ type Session {
 	event_counts: String
 	direct_download_url: String
 	resources_url: String
+	web_socket_events_url: String
 	timeline_indicators_url: String
 	deviceMemory: Int
 	last_user_interaction_time: Timestamp!
@@ -295,6 +297,7 @@ enum ErrorState {
 enum SourceMappingErrorCode {
 	File_Name_Missing_From_Source_Path
 	Error_Parsing_Stack_Trace_File_Url
+	Error_Constructing_Source_Map_URL
 	Missing_Source_Map_File_In_S3
 	Minified_File_Missing_In_S3_And_URL
 	Sourcemap_File_Missing_In_S3_And_URL
@@ -372,6 +375,11 @@ type AllProjectSettings {
 	filter_chrome_extension: Boolean
 	filterSessionsWithoutError: Boolean!
 	autoResolveStaleErrorsDayInterval: Int!
+}
+
+type AllWorkspaceSettings {
+	workspace_id: ID!
+	ai_insights: Boolean!
 }
 
 type Account {
@@ -603,15 +611,16 @@ type LogConnection implements Connection {
 
 type ErrorObjectNodeSession {
 	secureID: String!
-	userProperties: String!
 	appVersion: String
+	email: String
 }
 
 type ErrorObjectNode {
 	id: ID!
 	createdAt: Timestamp!
 	event: String!
-	session: ErrorObjectNodeSession!
+	session: ErrorObjectNodeSession
+	errorGroupSecureID: String!
 }
 
 type ErrorObjectEdge implements Edge {
@@ -1421,6 +1430,7 @@ enum EmailOptOutCategory {
 	All
 	Digests
 	Billing
+	SessionDigests
 }
 
 scalar Upload
@@ -1456,6 +1466,7 @@ type Query {
 		error_group_secure_id: String!
 		after: String
 		before: String
+		query: String!
 	): ErrorObjectConnection!
 	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(
@@ -1527,6 +1538,7 @@ type Query {
 		project_id: ID!
 		count: Int!
 		query: String!
+		sort_field: String
 		sort_desc: Boolean!
 		page: Int
 	): SessionResults!
@@ -1535,7 +1547,11 @@ type Query {
 		query: String!
 		histogram_options: DateHistogramOptions!
 	): SessionsHistogram!
-	field_types(project_id: ID!): [Field!]!
+	field_types(
+		project_id: ID!
+		start_date: Timestamp
+		end_date: Timestamp
+	): [Field!]!
 	fields_opensearch(
 		project_id: ID!
 		count: Int!
@@ -1618,6 +1634,7 @@ type Query {
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
 	workspacePendingInvites(workspace_id: ID!): [WorkspaceInviteLink]!
+	workspaceSettings(workspace_id: ID!): AllWorkspaceSettings
 	workspace_for_project(project_id: ID!): Workspace
 	admin: Admin
 	admin_role(workspace_id: ID!): WorkspaceAdminRole
@@ -1715,6 +1732,10 @@ type Mutation {
 		autoResolveStaleErrorsDayInterval: Int
 	): AllProjectSettings
 	editWorkspace(id: ID!, name: String): Workspace
+	editWorkspaceSettings(
+		workspace_id: ID!
+		ai_insights: Boolean
+	): AllWorkspaceSettings
 	markErrorGroupAsViewed(
 		error_secure_id: String!
 		viewed: Boolean
@@ -2033,6 +2054,7 @@ type Mutation {
 		admin_id: ID
 		category: EmailOptOutCategory!
 		is_opt_out: Boolean!
+		project_id: Int
 	): Boolean!
 }
 

@@ -31,7 +31,7 @@ import { auth } from '@util/auth'
 import { showHiringMessage } from '@util/console/hiringMessage'
 import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { showIntercom } from '@util/window'
+import { loadIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -82,6 +82,7 @@ const options: HighlightOptions = {
 		urlBlocklist: [
 			'network-resources-compressed',
 			'session-contents-compressed',
+			'web-socket-events-compressed',
 		],
 	},
 	tracingOrigins: [
@@ -93,6 +94,9 @@ const options: HighlightOptions = {
 	integrations: {
 		amplitude: {
 			apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
+		},
+		mixpanel: {
+			projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',
 		},
 	},
 	enableSegmentIntegration: true,
@@ -134,7 +138,7 @@ H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 analytics.track('attribution', getAttributionData())
 if (!isOnPrem) {
 	H.start()
-	showIntercom({ hideMessage: true })
+	loadIntercom()
 
 	if (!dev) {
 		Sentry.init({

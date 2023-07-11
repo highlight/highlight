@@ -76,6 +76,9 @@ const ErrorGroupLookbackDays = 7
 const SessionActiveMetricName = "sessionActiveLength"
 const SessionProcessedMetricName = "sessionProcessed"
 
+var AuthenticationError = errors.New("401 - AuthenticationError")
+var AuthorizationError = errors.New("403 - AuthorizationError")
+
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
@@ -180,7 +183,12 @@ func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
-	return r.Query().Admin(ctx)
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, AuthenticationError
+	}
+
+	return admin, nil
 }
 
 func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -314,7 +322,7 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	} else {
 		project, err = r.isAdminInProject(ctx, project_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in project or demo project")
+			return nil, err
 		}
 	}
 	return project, nil
@@ -338,7 +346,7 @@ func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, worksp
 	} else {
 		workspace, err = r.isAdminInWorkspace(ctx, workspace_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in workspace or demo workspace")
+			return nil, err
 		}
 	}
 	return workspace, nil
@@ -372,7 +380,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.New("500: error querying admin")
+		return nil, err
 	}
 
 	inviteLink := &model.WorkspaceInviteLink{}
@@ -387,7 +395,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 	if inviteLink.InviteeEmail != nil {
 		// check case-insensitively because email addresses are case-insensitive.
 		if !strings.EqualFold(*inviteLink.InviteeEmail, *admin.Email) {
-			return nil, e.New("403: This invite is not valid for the admin.")
+			return nil, AuthorizationError
 		}
 	}
 
@@ -422,7 +430,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, adminID int) (*int, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.New("error querying admin while deleting admin association")
+		return nil, err
 	}
 	if admin.ID == adminID {
 		return nil, e.New("Admin tried deleting their own association")
@@ -447,7 +455,7 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.Wrap(err, "error retrieving user")
+		return nil, err
 	}
 
 	span.SetTag("AdminID", admin.ID)
@@ -460,7 +468,7 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 	}
 
 	if workspaceID != workspace.ID {
-		return nil, e.New("workspace is not associated to the current admin")
+		return nil, AuthorizationError
 	}
 
 	return &workspace, nil
@@ -485,13 +493,17 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	if err != nil {
 		return nil, e.Wrap(err, "error querying projects")
 	}
+	if len(projects) == 0 {
+		return nil, AuthenticationError
+	}
+
 	for _, p := range projects {
 		if p.ID == project_id {
 			span.SetTag("WorkspaceID", p.WorkspaceID)
 			return p, nil
 		}
 	}
-	return nil, e.New("admin doesn't exist in project")
+	return nil, AuthorizationError
 }
 
 func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.ErrorGroup) (*time.Time, *time.Time, error) {
@@ -864,7 +876,7 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 
 	_, err := r.isAdminInProjectOrDemoProject(ctx, eg.ProjectID)
 	if err != nil {
-		return eg, false, e.Wrap(err, "error validating admin in project")
+		return eg, false, err
 	}
 
 	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg); err != nil {
@@ -926,7 +938,7 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id s
 
 	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
 	if err != nil {
-		return session, false, e.Wrap(err, "error validating admin in project")
+		return session, false, err
 	}
 	return session, true, nil
 }
@@ -967,7 +979,7 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in project")
+		return nil, err
 	}
 	return segment, nil
 }
@@ -981,7 +993,7 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in project")
+		return nil, err
 	}
 	return segment, nil
 }
@@ -1396,7 +1408,7 @@ func (r *Resolver) validateAdminRole(ctx context.Context, workspaceID int) error
 
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return e.Wrap(err, "error retrieving admin")
+		return err
 	}
 
 	role, err := r.GetAdminRole(ctx, admin.ID, workspaceID)
@@ -1503,6 +1515,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 		"BillingPeriodStart": billingPeriodStart,
 		"BillingPeriodEnd":   billingPeriodEnd,
 		"NextInvoiceDate":    nextInvoiceDate,
+		"TrialEndDate":       nil,
 	}
 
 	// Only update retention period if already set
@@ -3036,8 +3049,10 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 	getConversationsParam := slack.GetConversationsParameters{
 		Limit: 1000,
 		// public_channel is for public channels in the Slack workspace
+		// private is for private channels in the Slack workspace that the Bot is included in
 		// im is for all individuals in the Slack workspace
-		Types: []string{"public_channel", "im"},
+		// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
+		Types: []string{"public_channel", "private_channel", "mpim", "im"},
 	}
 	allSlackChannelsFromAPI := []slack.Channel{}
 

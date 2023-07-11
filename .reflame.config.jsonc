@@ -350,11 +350,4 @@
 			"entryPoints": ["/", "/adapters/react-router-6"],
 		},
 	},
-	"npmPackageOverrides": {
-		"react": "18.2.0",
-		"react-dom": "18.2.0",
-		"graphql": "16.6.0",
-		"react-transition-group": "4.4.1",
-		"lodash": "npm:lodash-es",
-	},
 }

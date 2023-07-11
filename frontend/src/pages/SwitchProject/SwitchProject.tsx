@@ -1,6 +1,5 @@
 import Button from '@components/Button/Button/Button'
 import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
-import { IntercomInlineMessage } from '@components/IntercomMessage/IntercomMessage'
 import Select from '@components/Select/Select'
 import {
 	AppLoadingState,
@@ -66,8 +65,7 @@ const SwitchProject = () => {
 					<h2 className={styles.title}>Enter Project</h2>
 					<p className={styles.subTitle}>
 						Pick a project. If you’re having trouble getting into
-						the correct project, message us on{' '}
-						<IntercomInlineMessage>Intercom</IntercomInlineMessage>.
+						the correct project, please message us.
 					</p>
 					<Select
 						className={styles.fullWidth}

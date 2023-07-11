@@ -109,7 +109,7 @@ const TABLE_COLUMNS = [
 		key: 'view',
 		render: (_: any, record: any) => (
 			<Link
-				to={`dashboards/${record.id}`}
+				to={`/${record.project_id}/dashboards/${record.id}`}
 				state={{ dashboardName: record.name }}
 				className={alertStyles.configureButton}
 				onClick={(e) => {

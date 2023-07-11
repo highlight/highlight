@@ -65,7 +65,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	span.SetTag("backend", t.serverType)
 	defer span.Finish()
 	resp := next(ctx)
-	if resp.Errors != nil {
+	if resp != nil {
 		var errs []ddtrace.FinishOption
 		for _, err := range resp.Errors {
 			errs = append(errs, tracer.WithError(err))

@@ -183,6 +183,7 @@ var Models = []interface{}{
 	&ErrorGroupAdminsView{},
 	&LogAdminsView{},
 	&ProjectFilterSettings{},
+	&AllWorkspaceSettings{},
 	&ErrorGroupActivityLog{},
 }
 
@@ -341,6 +342,8 @@ type Project struct {
 	// Minimum count of clicks in a rage click event
 	RageClickCount int `gorm:"default:5"`
 
+	// Applies to all browser extensions
+	// TODO - rename to FilterBrowserExtension #5811
 	FilterChromeExtension *bool `gorm:"default:false"`
 }
 
@@ -367,6 +370,12 @@ type ProjectFilterSettings struct {
 	ProjectID                         int
 	FilterSessionsWithoutError        bool `gorm:"default:false"`
 	AutoResolveStaleErrorsDayInterval int  `gorm:"default:0"`
+}
+
+type AllWorkspaceSettings struct {
+	Model
+	WorkspaceID int
+	AIInsights  bool `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -571,9 +580,10 @@ type Session struct {
 	Identified  bool `json:"identified" gorm:"default:false;not null"`
 	Fingerprint int  `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
-	Identifier     string `json:"identifier"`
-	OrganizationID int    `json:"organization_id"`
-	ProjectID      int    `json:"project_id"`
+	Identifier     string  `json:"identifier"`
+	OrganizationID int     `json:"organization_id"`
+	ProjectID      int     `json:"project_id" gorm:"index:idx_project_id_email"`
+	Email          *string `json:"email" gorm:"index:idx_project_id_email"`
 	// Location data based off user ip (see InitializeSession)
 	City      string  `json:"city"`
 	State     string  `json:"state"`
@@ -1170,15 +1180,17 @@ var ErrorType = struct {
 
 type EmailOptOut struct {
 	Model
-	AdminID  int                             `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
-	Category modelInputs.EmailOptOutCategory `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
+	AdminID   int                             `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
+	Category  modelInputs.EmailOptOutCategory `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
+	ProjectID *int                            `gorm:"uniqueIndex:email_opt_out_admin_category_project_idx"`
 }
 
 type RawPayloadType string
 
 const (
-	PayloadTypeEvents    RawPayloadType = "raw-events"
-	PayloadTypeResources RawPayloadType = "raw-resources"
+	PayloadTypeEvents          RawPayloadType = "raw-events"
+	PayloadTypeResources       RawPayloadType = "raw-resources"
+	PayloadTypeWebSocketEvents RawPayloadType = "raw-web-socket-events"
 )
 
 type BillingEmailHistory struct {

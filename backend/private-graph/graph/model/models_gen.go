@@ -316,16 +316,17 @@ func (ErrorObjectEdge) IsEdge()                {}
 func (this ErrorObjectEdge) GetCursor() string { return this.Cursor }
 
 type ErrorObjectNode struct {
-	ID        int                     `json:"id"`
-	CreatedAt time.Time               `json:"createdAt"`
-	Event     string                  `json:"event"`
-	Session   *ErrorObjectNodeSession `json:"session"`
+	ID                 int                     `json:"id"`
+	CreatedAt          time.Time               `json:"createdAt"`
+	Event              string                  `json:"event"`
+	Session            *ErrorObjectNodeSession `json:"session"`
+	ErrorGroupSecureID string                  `json:"errorGroupSecureID"`
 }
 
 type ErrorObjectNodeSession struct {
-	SecureID       string  `json:"secureID"`
-	UserProperties string  `json:"userProperties"`
-	AppVersion     *string `json:"appVersion"`
+	SecureID   string  `json:"secureID"`
+	AppVersion *string `json:"appVersion"`
+	Email      *string `json:"email"`
 }
 
 type ErrorSearchParamsInput struct {
@@ -788,20 +789,22 @@ func (e DashboardChartType) MarshalGQL(w io.Writer) {
 type EmailOptOutCategory string
 
 const (
-	EmailOptOutCategoryAll     EmailOptOutCategory = "All"
-	EmailOptOutCategoryDigests EmailOptOutCategory = "Digests"
-	EmailOptOutCategoryBilling EmailOptOutCategory = "Billing"
+	EmailOptOutCategoryAll            EmailOptOutCategory = "All"
+	EmailOptOutCategoryDigests        EmailOptOutCategory = "Digests"
+	EmailOptOutCategoryBilling        EmailOptOutCategory = "Billing"
+	EmailOptOutCategorySessionDigests EmailOptOutCategory = "SessionDigests"
 )
 
 var AllEmailOptOutCategory = []EmailOptOutCategory{
 	EmailOptOutCategoryAll,
 	EmailOptOutCategoryDigests,
 	EmailOptOutCategoryBilling,
+	EmailOptOutCategorySessionDigests,
 }
 
 func (e EmailOptOutCategory) IsValid() bool {
 	switch e {
-	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests, EmailOptOutCategoryBilling:
+	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests, EmailOptOutCategoryBilling, EmailOptOutCategorySessionDigests:
 		return true
 	}
 	return false
@@ -1638,6 +1641,7 @@ const (
 	SessionExcludedReasonNoUserInteractionEvents   SessionExcludedReason = "NoUserInteractionEvents"
 	SessionExcludedReasonNoTimelineIndicatorEvents SessionExcludedReason = "NoTimelineIndicatorEvents"
 	SessionExcludedReasonNoError                   SessionExcludedReason = "NoError"
+	SessionExcludedReasonNoUserEvents              SessionExcludedReason = "NoUserEvents"
 	SessionExcludedReasonIgnoredUser               SessionExcludedReason = "IgnoredUser"
 )
 
@@ -1647,12 +1651,13 @@ var AllSessionExcludedReason = []SessionExcludedReason{
 	SessionExcludedReasonNoUserInteractionEvents,
 	SessionExcludedReasonNoTimelineIndicatorEvents,
 	SessionExcludedReasonNoError,
+	SessionExcludedReasonNoUserEvents,
 	SessionExcludedReasonIgnoredUser,
 }
 
 func (e SessionExcludedReason) IsValid() bool {
 	switch e {
-	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonIgnoredUser:
+	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonNoUserEvents, SessionExcludedReasonIgnoredUser:
 		return true
 	}
 	return false
@@ -1774,6 +1779,7 @@ type SourceMappingErrorCode string
 const (
 	SourceMappingErrorCodeFileNameMissingFromSourcePath         SourceMappingErrorCode = "File_Name_Missing_From_Source_Path"
 	SourceMappingErrorCodeErrorParsingStackTraceFileURL         SourceMappingErrorCode = "Error_Parsing_Stack_Trace_File_Url"
+	SourceMappingErrorCodeErrorConstructingSourceMapURL         SourceMappingErrorCode = "Error_Constructing_Source_Map_URL"
 	SourceMappingErrorCodeMissingSourceMapFileInS3              SourceMappingErrorCode = "Missing_Source_Map_File_In_S3"
 	SourceMappingErrorCodeMinifiedFileMissingInS3AndURL         SourceMappingErrorCode = "Minified_File_Missing_In_S3_And_URL"
 	SourceMappingErrorCodeSourcemapFileMissingInS3AndURL        SourceMappingErrorCode = "Sourcemap_File_Missing_In_S3_And_URL"
@@ -1787,6 +1793,7 @@ const (
 var AllSourceMappingErrorCode = []SourceMappingErrorCode{
 	SourceMappingErrorCodeFileNameMissingFromSourcePath,
 	SourceMappingErrorCodeErrorParsingStackTraceFileURL,
+	SourceMappingErrorCodeErrorConstructingSourceMapURL,
 	SourceMappingErrorCodeMissingSourceMapFileInS3,
 	SourceMappingErrorCodeMinifiedFileMissingInS3AndURL,
 	SourceMappingErrorCodeSourcemapFileMissingInS3AndURL,
@@ -1799,7 +1806,7 @@ var AllSourceMappingErrorCode = []SourceMappingErrorCode{
 
 func (e SourceMappingErrorCode) IsValid() bool {
 	switch e {
-	case SourceMappingErrorCodeFileNameMissingFromSourcePath, SourceMappingErrorCodeErrorParsingStackTraceFileURL, SourceMappingErrorCodeMissingSourceMapFileInS3, SourceMappingErrorCodeMinifiedFileMissingInS3AndURL, SourceMappingErrorCodeSourcemapFileMissingInS3AndURL, SourceMappingErrorCodeMinifiedFileLarger, SourceMappingErrorCodeSourceMapFileLarger, SourceMappingErrorCodeInvalidSourceMapURL, SourceMappingErrorCodeSourcemapLibraryCouldntParse, SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource:
+	case SourceMappingErrorCodeFileNameMissingFromSourcePath, SourceMappingErrorCodeErrorParsingStackTraceFileURL, SourceMappingErrorCodeErrorConstructingSourceMapURL, SourceMappingErrorCodeMissingSourceMapFileInS3, SourceMappingErrorCodeMinifiedFileMissingInS3AndURL, SourceMappingErrorCodeSourcemapFileMissingInS3AndURL, SourceMappingErrorCodeMinifiedFileLarger, SourceMappingErrorCodeSourceMapFileLarger, SourceMappingErrorCodeInvalidSourceMapURL, SourceMappingErrorCodeSourcemapLibraryCouldntParse, SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource:
 		return true
 	}
 	return false

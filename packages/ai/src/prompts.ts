@@ -1,13 +1,15 @@
 export const getSessionHighlightPrompt = (events: string) =>
-	`Given an array of events performed by a customer from a session recording for a web application, make inferences and output 3 insights from the session and provide specific details. 
+	`Given an array of events performed by a user from a session recording for a web application, make inferences and justifications and summarize interesting things about the session in 3 insights. 
 
 Rules: 
 - Use less than 2 sentences for each point
-- Do not solely recite the different type of events
-- There is no need to mention every event
+- Provide high level insights, do not mention singular events
+- Do not mention event types in the insights
 - Insights must be different to each other
+- Do not mention identification or authentication events
 - Don't mention timestamps in <insight>, insights should be interesting inferences from the input
 - Output timestamp that best represents the insight in <timestamp> of output
+- Sort the insights by timestamp
 
 ${JSON_FORMAT_INSTRUCTION}
 
