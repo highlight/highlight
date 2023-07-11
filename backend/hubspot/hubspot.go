@@ -505,6 +505,11 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 		}()
 	}
 
+	workspace := &model.Workspace{}
+	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
+		return nil, err
+	}
+
 	var domain string
 	if !emailproviders.Exists(adminEmail) {
 		components := strings.Split(adminEmail, "@")
@@ -531,6 +536,13 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 				Value:    hexLink,
 			},
 		},
+	}
+	if workspace.TrialEndDate != nil {
+		companyProperties.Properties = append(companyProperties.Properties, hubspot.Property{
+			Property: "trial_end_date",
+			Name:     "trial_end_date",
+			Value:    *workspace.TrialEndDate,
+		})
 	}
 
 	if companyID, err = pollHubspot(func() (*int, error) {
