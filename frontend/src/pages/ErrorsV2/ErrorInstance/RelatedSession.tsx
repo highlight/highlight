@@ -1,7 +1,8 @@
 import { IconSolidPlayCircle, Tag, Tooltip } from '@highlight-run/ui'
-import { createSearchParams, useNavigate } from 'react-router-dom'
+import { createSearchParams } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
+import { Link } from '@/components/Link'
 import { GetErrorInstanceQuery } from '@/graph/generated/operations'
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 
@@ -34,21 +35,21 @@ type Props = {
 
 export const RelatedSession = ({ data }: Props) => {
 	const { isLoggedIn } = useAuthContext()
-	const navigate = useNavigate()
 	const sessionLink = getSessionLink(data)
 
 	const tag = (
-		<Tag
-			kind="secondary"
-			emphasis="low"
-			size="medium"
-			shape="basic"
-			onClick={() => navigate(sessionLink)}
-			disabled={!isLoggedIn || sessionLink === ''}
-			iconLeft={<IconSolidPlayCircle />}
-		>
-			Related session
-		</Tag>
+		<Link to={sessionLink}>
+			<Tag
+				kind="secondary"
+				emphasis="low"
+				size="medium"
+				shape="basic"
+				disabled={!isLoggedIn || sessionLink === ''}
+				iconLeft={<IconSolidPlayCircle />}
+			>
+				Related session
+			</Tag>
+		</Link>
 	)
 
 	if (data?.error_instance?.error_object.session?.processed === false) {
