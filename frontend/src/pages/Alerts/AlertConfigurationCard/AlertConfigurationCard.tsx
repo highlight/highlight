@@ -987,25 +987,9 @@ export const AlertConfigurationCard = ({
 									<b>
 										<TextTransition
 											inline
-											text={
-												[
-													'1',
-													'60',
-													'3600',
-													'86400',
-													'604800',
-												].includes(frequency)
-													? getFrequencyOption(
-															frequency,
-													  ).displayValue
-													: getFrequencyOption(
-															frequency,
-													  ).displayValue.slice(
-															0,
-															-1,
-													  ) ||
-													  `${DEFAULT_FREQUENCY} second`
-											}
+											text={getSingularFrequencyOption(
+												frequency,
+											)}
 										/>
 									</b>
 									{` `}
@@ -1198,6 +1182,14 @@ const getFrequencyOption = (seconds = DEFAULT_FREQUENCY): any => {
 	}
 
 	return option
+}
+
+const getSingularFrequencyOption = (seconds = DEFAULT_FREQUENCY): string => {
+	const displayValue = getFrequencyOption(seconds).displayValue
+
+	return displayValue.slice(-1) !== 's'
+		? displayValue
+		: displayValue.slice(0, -1)
 }
 
 const getPropertiesOption = (option: any) => ({
