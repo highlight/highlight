@@ -103,6 +103,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 				ID:                 errorObject.ID,
 				CreatedAt:          errorObject.CreatedAt,
 				Event:              errorObject.Event,
+				Timestamp:          errorObject.Timestamp,
 				ErrorGroupSecureID: errorGroup.SecureID,
 			},
 		}

@@ -2116,6 +2116,7 @@ query GetErrorObjects(
 				id
 				createdAt
 				event
+				timestamp
 				errorGroupSecureID
 				session {
 					secureID

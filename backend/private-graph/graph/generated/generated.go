@@ -425,6 +425,7 @@ type ComplexityRoot struct {
 		Event              func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		Session            func(childComplexity int) int
+		Timestamp          func(childComplexity int) int
 	}
 
 	ErrorObjectNodeSession struct {
@@ -3322,6 +3323,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObjectNode.Session(childComplexity), true
+
+	case "ErrorObjectNode.timestamp":
+		if e.complexity.ErrorObjectNode.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.ErrorObjectNode.Timestamp(childComplexity), true
 
 	case "ErrorObjectNodeSession.appVersion":
 		if e.complexity.ErrorObjectNodeSession.AppVersion == nil {
@@ -9338,6 +9346,7 @@ type ErrorObjectNode {
 	id: ID!
 	createdAt: Timestamp!
 	event: String!
+	timestamp: Timestamp!
 	session: ErrorObjectNodeSession
 	errorGroupSecureID: String!
 }
@@ -27375,6 +27384,8 @@ func (ec *executionContext) fieldContext_ErrorObjectEdge_node(ctx context.Contex
 				return ec.fieldContext_ErrorObjectNode_createdAt(ctx, field)
 			case "event":
 				return ec.fieldContext_ErrorObjectNode_event(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_ErrorObjectNode_timestamp(ctx, field)
 			case "session":
 				return ec.fieldContext_ErrorObjectNode_session(ctx, field)
 			case "errorGroupSecureID":
@@ -27513,6 +27524,50 @@ func (ec *executionContext) fieldContext_ErrorObjectNode_event(ctx context.Conte
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorObjectNode_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectNode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorObjectNode_timestamp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorObjectNode_timestamp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorObjectNode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
 		},
 	}
 	return fc, nil
@@ -65789,6 +65844,13 @@ func (ec *executionContext) _ErrorObjectNode(ctx context.Context, sel ast.Select
 		case "event":
 
 			out.Values[i] = ec._ErrorObjectNode_event(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "timestamp":
+
+			out.Values[i] = ec._ErrorObjectNode_timestamp(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

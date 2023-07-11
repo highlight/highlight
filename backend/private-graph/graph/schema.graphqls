@@ -619,6 +619,7 @@ type ErrorObjectNode {
 	id: ID!
 	createdAt: Timestamp!
 	event: String!
+	timestamp: Timestamp!
 	session: ErrorObjectNodeSession
 	errorGroupSecureID: String!
 }

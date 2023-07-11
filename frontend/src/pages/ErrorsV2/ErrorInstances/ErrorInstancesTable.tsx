@@ -14,11 +14,13 @@ import {
 } from '@tanstack/react-table'
 import moment from 'moment'
 import React from 'react'
+import { createSearchParams } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { Link } from '@/components/Link'
 import { ErrorObjectEdge } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
+import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 
 const toYearMonthDay = (timestamp: string) => {
 	const date = new Date(timestamp)
@@ -76,6 +78,8 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 		}),
 		columnHelper.accessor('node', {
 			cell: ({ getValue }) => {
+				const errorObjectId = getValue().id
+				const timestamp = getValue().timestamp
 				const session = getValue().session
 
 				let content = 'no session'
@@ -83,8 +87,12 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 
 				if (session) {
 					content = session.email ? session.email : '(no value)'
-					// TODO - link directly to the timestamp like RelatedSession does
-					sessionLink = `/${projectId}/sessions/${session.secureID}`
+					const params = createSearchParams({
+						tsAbs: timestamp,
+						[PlayerSearchParameters.errorId]: errorObjectId,
+					})
+
+					sessionLink = `/${projectId}/sessions/${session.secureID}?${params}`
 				}
 
 				return (

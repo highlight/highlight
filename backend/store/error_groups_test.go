@@ -57,6 +57,7 @@ func TestListErrorObjectsOneObjectNoSession(t *testing.T) {
 		assert.Equal(t, errorObject.ID, edge.Node.ID)
 		assert.WithinDuration(t, errorObject.CreatedAt, edge.Node.CreatedAt, 10*time.Second)
 		assert.Equal(t, errorObject.Event, edge.Node.Event)
+		assert.WithinDuration(t, errorObject.Timestamp, edge.Node.Timestamp, 10*time.Second)
 		assert.Equal(t, errorGroup.SecureID, edge.Node.ErrorGroupSecureID)
 		assert.Nil(t, edge.Node.Session)
 
