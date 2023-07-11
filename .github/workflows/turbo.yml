@@ -112,6 +112,10 @@ jobs:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-            - name: Publish render
+            - name: Publish render lambda
               if: github.ref == 'refs/heads/main'
               run: yarn publish:render
+
+            - name: Publish ai lambda
+              if: github.ref == 'refs/heads/main'
+              run: yarn publish:ai
