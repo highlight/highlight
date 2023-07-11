@@ -21,6 +21,9 @@
 	"publishConfig": {
 		"access": "public"
 	},
+	"installConfig": {
+		"hoistingLimits": "dependencies"
+	},
 	"dependencies": {
 		"@opentelemetry/api": "^1.4.1",
 		"@opentelemetry/auto-instrumentations-node": "0.36.5",
