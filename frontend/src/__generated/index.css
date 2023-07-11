@@ -5864,6 +5864,13 @@ body {
   padding: 0 0 0 1.5rem !important;
   margin: 0 0 1rem 0 !important;
 }
+._1vb6x0p0 {
+  text-decoration: none;
+  color: var(--_1pyqka9y);
+}
+._1vb6x0p0:hover {
+  color: var(--_1pyqka9y);
+}
 ._1g045pm0 {
   color: var(--_1pyqka9b) !important;
 }
@@ -6013,13 +6020,6 @@ body {
 }
 ._1f99hkr0 {
   height: 2.305rem;
-}
-._1vb6x0p0 {
-  text-decoration: none;
-  color: var(--_1pyqka9y);
-}
-._1vb6x0p0:hover {
-  color: var(--_1pyqka9y);
 }
 .szxd8q0 .szxd8q0 {
   padding-left: 22px;
