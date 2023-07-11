@@ -69,8 +69,9 @@ const App = () => (
 
 ### Using the ErrorBoundary with react-router
 
-If you're using react-router, you may have error raised by your route loaders that can be handled with
-the highlight error boundary. To set this up, you'll need to pass your `<Route>` or your `<RouterProvider> router`
+If you're using react-router, you may have [error raised by your route loaders](https://reactrouter.com/en/main/route/error-element)
+that can be handled with the highlight error boundary. 
+To set this up, you'll need to pass your `<Route>` or your `<RouterProvider> router`
 the `ErrorBoundary` prop pointing to a component that extracts the react router error from `useRouteError` and
 
 ```typescript
