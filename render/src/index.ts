@@ -1,4 +1,4 @@
-import { APIGatewayEvent } from 'aws-lambda'
+import type { APIGatewayEvent } from 'aws-lambda'
 import { serialRender } from './serial'
 import { readFileSync } from 'fs'
 import { encodeGIF, encodeMP4 } from './ffmpeg'
