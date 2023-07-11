@@ -5,12 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
 	"github.com/hashicorp/go-retryablehttp"
+	"github.com/highlight-run/highlight/backend/lambda-functions/sessionInsights/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -102,4 +104,31 @@ func (s *Client) GetSessionInsightRequest(ctx context.Context, url string, proje
 	signer := v4.NewSigner()
 	_ = signer.SignHTTP(ctx, *s.Credentials, req.Request, NilPayloadHash, string(ExecuteAPI), s.Config.Region, time.Now())
 	return req
+}
+
+func (s *Client) GetSessionInsightEmailHtml(ctx context.Context, toEmail string, unsubscribeUrl string, data utils.SessionInsightsData) (string, error) {
+	data.ToEmail = toEmail
+	data.UnsubscribeUrl = unsubscribeUrl
+	b, err := json.Marshal(data)
+	if err != nil {
+		return "", err
+	}
+
+	req, _ := retryablehttp.NewRequest(http.MethodPost, "https://fha2fg4du8.execute-api.us-east-2.amazonaws.com/default/session-insights-email", bytes.NewBuffer(b))
+	req = req.WithContext(ctx)
+	req.Header = http.Header{
+		"Content-Type": []string{"application/json"},
+	}
+	signer := v4.NewSigner()
+	_ = signer.SignHTTP(ctx, *s.Credentials, req.Request, NilPayloadHash, string(ExecuteAPI), s.Config.Region, time.Now())
+	res, err := s.RetryableHTTPClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	b, err = io.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }

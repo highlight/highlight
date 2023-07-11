@@ -63,6 +63,9 @@ func (h *handlers) GetProjectIds(ctx context.Context, input utils.DigestsInput) 
 		FROM sessions s
 		WHERE s.created_at >= ?
 		AND s.created_at < ?
+		AND NOT s.excluded
+		AND s.processed
+		AND s.within_billing_quota
 		GROUP BY s.project_id
 		HAVING count(*) >= 50
 	`, start, end).Scan(&projectIds).Error; err != nil {
