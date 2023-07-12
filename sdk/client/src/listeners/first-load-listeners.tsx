@@ -115,7 +115,10 @@ export class FirstLoadListeners {
 			)
 		}
 		this.listeners.push(
-			ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e)),
+			ErrorListener(
+				(e: ErrorMessage) => highlightThis.errors.push(e),
+				this.urlBlocklist,
+			),
 		)
 		FirstLoadListeners.setupNetworkListener(this, this.options)
 	}

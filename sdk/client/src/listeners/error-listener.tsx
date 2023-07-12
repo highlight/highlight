@@ -53,7 +53,10 @@ function handleError(
 	})
 }
 
-export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
+export const ErrorListener = (
+	callback: (e: ErrorMessage) => void,
+	urlBlocklist: string[],
+) => {
 	const initialOnError = g.onerror
 	const initialOnUnhandledRejection = g.onunhandledrejection
 	const initialPromise = g.Promise
@@ -66,7 +69,13 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 		error: Error | undefined,
 	): void => {
 		if (error) {
-			handleError(callback, event, source, error)
+			const shouldRecordError = !urlBlocklist.some((blockedUrl) =>
+				window.location.href.toLowerCase().includes(blockedUrl),
+			)
+
+			if (shouldRecordError) {
+				handleError(callback, event, source, error)
+			}
 		}
 	}
 	g.onunhandledrejection = function (event: PromiseRejectionEvent): void {
