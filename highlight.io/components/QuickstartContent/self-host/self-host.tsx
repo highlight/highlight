@@ -1,35 +1,12 @@
 import { QuickStartContent } from '../QuickstartContent'
-import { clone, dashboard, troubleshoot } from './shared-snippets'
+import { clone, dashboard, dependencies, troubleshoot } from './shared-snippets'
 
 export const SelfHostContent: QuickStartContent = {
 	title: 'Self-hosted (Hobby) Deployment',
 	subtitle:
 		'Learn how to set up the self-hosted hobby deployment of highlight.io.',
 	entries: [
-		{
-			title: 'Prerequisites',
-			content:
-				'Before we get started, you should install [Go](https://go.dev/) (1.20), [Node.js](https://nodejs.org/en) (18), and [yarn](https://yarnpkg.com/getting-started/install) (v3+).' +
-				'You should have the latest version of [Docker](https://docs.docker.com/engine/install/) (19.03.0+) ' +
-				'and [Git](https://git-scm.com/downloads) (2.13+) installed. ' +
-				'For a local hobby deploy, we suggest [configuring docker](https://docs.docker.com/desktop/settings/mac/#resources) ' +
-				'to use at least 8GB of RAM, 4 CPUs, and 64 GB of disk space.',
-			code: [
-				{
-					language: 'bash',
-					text: `$ go version
-go version go1.20.3 darwin/arm64
-$ node --version
-v18.15.0
-$ yarn --version
-v3.5.0
-$ docker --version
-Docker version 20.10.23, build 7155243
-$ docker compose version
-Docker Compose version v2.15.1`,
-				},
-			],
-		},
+		dependencies,
 		clone,
 		{
 			title: 'Configure networking.',
