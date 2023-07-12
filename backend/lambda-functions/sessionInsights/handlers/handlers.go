@@ -90,13 +90,13 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 
 	interestingSessions := []utils.InterestingSession{}
 	for _, item := range interestingSessionsSql {
-		insightStrs := []string{}
+		var insightStrs []string
 		if result.AiInsights {
-			insights := struct {
-				Insight []struct {
-					Insight string `json:"insight"`
-				} `json:"insight"`
-			}{}
+			type insightType struct {
+				Insight string `json:"insight"`
+			}
+			var insight insightType
+			var insights []insightType
 
 			res, err := h.lambdaClient.GetSessionInsight(ctx, input.ProjectId, item.Id)
 			if err == nil && res.StatusCode == 200 {
@@ -104,12 +104,18 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 				if err != nil {
 					return nil, err
 				}
-				if err := json.Unmarshal(b, &insights); err == nil {
+				if err := json.Unmarshal(b, &insight); err != nil {
 					return nil, err
 				}
-				for _, i := range insights.Insight {
+				if err := json.Unmarshal([]byte(insight.Insight), &insights); err != nil {
+					return nil, err
+				}
+				for _, i := range insights {
 					insightStrs = append(insightStrs, i.Insight)
 				}
+			} else {
+				log.WithFields(log.Fields{"project_id": input.ProjectId, "session_id": item.Id}).
+					Warnf("failed to get session insight with error %#v and status code %d", err, res.StatusCode)
 			}
 		}
 
@@ -240,9 +246,13 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 	for _, session := range input.InterestingSessions {
 		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, nil, nil, nil)
 		if err != nil {
+			log.WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
+				Warnf("failed to get session screenshot with error %#v", err)
 			continue
 		}
 		if res.StatusCode != 200 {
+			log.WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
+				Warnf("failed to get session screenshot with status code %d", res.StatusCode)
 			continue
 		}
 		imageBytes, err := io.ReadAll(res.Body)
@@ -262,7 +272,8 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 
 		from := mail.NewEmail("Highlight", email.SendGridOutboundEmail)
 		to := &mail.Email{Address: toAddr.Email}
-		m := mail.NewV3MailInit(from, "Subject", to, mail.NewContent("text/html", html))
+		subject := fmt.Sprintf("[Highlight] Session Insights - %s", input.ProjectName)
+		m := mail.NewV3MailInit(from, subject, to, mail.NewContent("text/html", html))
 		m.SetFrom(from)
 
 		for sessionId, img := range images {
