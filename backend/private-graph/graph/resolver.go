@@ -316,7 +316,7 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	var project *model.Project
 	var err error
 	if r.isDemoProject(ctx, project_id) {
-		if err = r.DB.Model(&model.Project{}).Where("id = ?", r.demoProjectID(ctx)).First(&project).Error; err != nil {
+		if err = r.DB.Model(&model.Project{}).Where("id = ?", r.demoProjectID(ctx)).Take(&project).Error; err != nil {
 			return nil, e.Wrap(err, "error querying demo project")
 		}
 	} else {
@@ -340,7 +340,7 @@ func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, worksp
 	var workspace *model.Workspace
 	var err error
 	if r.isDemoWorkspace(workspace_id) {
-		if err = r.DB.Model(&model.Workspace{}).Where("id = ?", 0).First(&workspace).Error; err != nil {
+		if err = r.DB.Model(&model.Workspace{}).Where("id = ?", 0).Take(&workspace).Error; err != nil {
 			return nil, e.Wrap(err, "error querying demo workspace")
 		}
 	} else {
@@ -354,7 +354,7 @@ func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, worksp
 
 func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 	var workspace model.Workspace
-	if err := r.DB.Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).First(&workspace).Error; err != nil {
+	if err := r.DB.Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).Take(&workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace")
 	}
 	return &workspace, nil
@@ -362,7 +362,7 @@ func (r *Resolver) GetWorkspace(workspaceID int) (*model.Workspace, error) {
 
 func (r *Resolver) GetAdminRole(ctx context.Context, adminID int, workspaceID int) (string, error) {
 	var workspaceAdmin model.WorkspaceAdmin
-	if err := r.DB.Where(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).First(&workspaceAdmin).Error; err != nil {
+	if err := r.DB.Where(&model.WorkspaceAdmin{AdminID: adminID, WorkspaceID: workspaceID}).Take(&workspaceAdmin).Error; err != nil {
 		return "", e.Wrap(err, "error querying workspace_admin")
 	}
 	if workspaceAdmin.Role == nil || *workspaceAdmin.Role == "" {
@@ -375,7 +375,7 @@ func (r *Resolver) GetAdminRole(ctx context.Context, adminID int, workspaceID in
 
 func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, inviteID string) (*int, error) {
 	workspace := &model.Workspace{}
-	if err := r.DB.Model(workspace).Where("id = ?", workspaceId).First(workspace).Error; err != nil {
+	if err := r.DB.Model(workspace).Where("id = ?", workspaceId).Take(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "500: error querying workspace")
 	}
 	admin, err := r.getCurrentAdmin(ctx)
@@ -384,7 +384,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 	}
 
 	inviteLink := &model.WorkspaceInviteLink{}
-	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceId, Secret: &inviteID}).First(&inviteLink).Error; err != nil {
+	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceId, Secret: &inviteID}).Take(&inviteLink).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, e.New("404: Invite not found")
 		}
@@ -484,7 +484,7 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 
 	if r.isWhitelistedAccount(ctx) {
 		project := &model.Project{}
-		if err := r.DB.Where(&model.Project{Model: model.Model{ID: project_id}}).First(&project).Error; err != nil {
+		if err := r.DB.Where(&model.Project{Model: model.Model{ID: project_id}}).Take(&project).Error; err != nil {
 			return nil, e.Wrap(err, "error querying project")
 		}
 		return project, nil
@@ -870,7 +870,7 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, bool, error) {
 	eg := &model.ErrorGroup{}
 
-	if err := r.DB.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).First(&eg).Error; err != nil {
+	if err := r.DB.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).Take(&eg).Error; err != nil {
 		return nil, false, e.Wrap(err, "error querying error group by secureID: "+errorGroupSecureID)
 	}
 
@@ -896,7 +896,7 @@ func (r *Resolver) canAdminViewErrorObject(ctx context.Context, errorObjectID in
 	errorObject := model.ErrorObject{}
 	if err := r.DB.Where(&model.ErrorObject{ID: errorObjectID}).
 		Preload("ErrorGroup").
-		First(&errorObject).Error; err != nil {
+		Take(&errorObject).Error; err != nil {
 		return nil, err
 	}
 
@@ -932,7 +932,7 @@ func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecur
 
 func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id string) (session *model.Session, ownsSession bool, err error) {
 	session = &model.Session{}
-	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: session_secure_id}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
+	if err := r.DB.Model(&session).Where(&model.Session{SecureID: session_secure_id}).Take(&session).Error; err != nil {
 		return nil, false, AuthorizationError
 	}
 
@@ -974,7 +974,7 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminSegmentOwner"))
 	defer authSpan.Finish()
 	segment := &model.Segment{}
-	if err := r.DB.Where(&model.Segment{Model: model.Model{ID: segment_id}}).First(&segment).Error; err != nil {
+	if err := r.DB.Where(&model.Segment{Model: model.Model{ID: segment_id}}).Take(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying segment")
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
@@ -988,7 +988,7 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminErrorSegmentOwner"))
 	defer authSpan.Finish()
 	segment := &model.ErrorSegment{}
-	if err := r.DB.Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).First(&segment).Error; err != nil {
+	if err := r.DB.Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).Take(&segment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error segment")
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
@@ -1107,7 +1107,7 @@ func (r *Resolver) SendSlackThreadReply(ctx context.Context, workspace *model.Wo
 	blocks := r.CreateSlackBlocks(admin, viewLink, commentText, action, subjectScope, nil)
 	for _, threadID := range threadIDs {
 		thread := &model.CommentSlackThread{}
-		if err := r.DB.Where(&model.CommentSlackThread{Model: model.Model{ID: threadID}}).First(&thread).Error; err != nil {
+		if err := r.DB.Where(&model.CommentSlackThread{Model: model.Model{ID: threadID}}).Take(&thread).Error; err != nil {
 			return e.Wrap(err, "error querying slack thread")
 		}
 		opts := []slack.MsgOption{
@@ -1691,7 +1691,7 @@ func (r *Resolver) SlackEventsWebhook(ctx context.Context, signingSecret string)
 
 					if sessionId, err := getIdForPageFromUrl(u, "sessions"); err == nil {
 						session := model.Session{SecureID: sessionId}
-						if err := r.DB.Where(&session).First(&session).Error; err != nil {
+						if err := r.DB.Where(&session).Take(&session).Error; err != nil {
 							log.WithContext(ctx).Error(e.Wrapf(err, "couldn't get session (unfurl url: %s)", link))
 							continue
 						}
@@ -1705,7 +1705,7 @@ func (r *Resolver) SlackEventsWebhook(ctx context.Context, signingSecret string)
 						urlToSlackAttachment[link.URL] = attachment
 					} else if errorId, err := getIdForPageFromUrl(u, "errors"); err == nil {
 						errorGroup := model.ErrorGroup{SecureID: errorId}
-						if err := r.DB.Where(&errorGroup).First(&errorGroup).Error; err != nil {
+						if err := r.DB.Where(&errorGroup).Take(&errorGroup).Error; err != nil {
 							log.WithContext(ctx).Error(e.Wrapf(err, "couldn't get ErrorGroup (unfurl url: %s)", link))
 							continue
 						}
@@ -2186,7 +2186,7 @@ func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(ctx context.Context
 	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
 		WorkspaceID:     workspace.ID,
 		IntegrationType: integrationType,
-	}).First(&workspaceMapping).Error; err != nil {
+	}).Take(&workspaceMapping).Error; err != nil {
 		return e.Wrap(err, fmt.Sprintf("workspace does not have a %s integration", integrationType))
 	}
 
@@ -2834,7 +2834,7 @@ func (r *Resolver) sendFollowedCommentNotification(
 		}
 		if f.AdminId > 0 {
 			a := &model.Admin{}
-			if err := r.DB.Where(&model.Admin{Model: model.Model{ID: f.AdminId}}).First(&a).Error; err != nil {
+			if err := r.DB.Where(&model.Admin{Model: model.Model{ID: f.AdminId}}).Take(&a).Error; err != nil {
 				log.WithContext(ctx).Error(err, "Error finding follower admin object")
 				continue
 			}
@@ -3296,7 +3296,7 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 
 func (r *Resolver) GetProjectRetentionDate(projectId int) (time.Time, error) {
 	var project *model.Project
-	if err := r.DB.Model(&model.Project{}).Where("id = ?", projectId).First(&project).Error; err != nil {
+	if err := r.DB.Model(&model.Project{}).Where("id = ?", projectId).Take(&project).Error; err != nil {
 		return time.Time{}, e.Wrap(err, "error querying project")
 	}
 

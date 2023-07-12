@@ -271,7 +271,7 @@ func (w *Worker) getSessionID(ctx context.Context, sessionSecureID string) (id i
 		return 0, e.New("getSessionID called with no secure id")
 	}
 	session := &model.Session{}
-	w.Resolver.DB.Order("secure_id").Select("id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session)
+	w.Resolver.DB.Select("id").Where(&model.Session{SecureID: sessionSecureID}).Take(&session)
 	if session.ID == 0 {
 		return 0, e.New(fmt.Sprintf("no session found for secure id: '%s'", sessionSecureID))
 	}
@@ -539,7 +539,7 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	project := &model.Project{}
-	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).First(&project).Error; err != nil {
+	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).Take(&project).Error; err != nil {
 		return e.Wrap(err, "error querying project")
 	}
 
@@ -1254,7 +1254,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 
 	for _, c := range counts {
 		workspace := &model.Workspace{}
-		if err := w.Resolver.DB.Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).First(&workspace).Error; err != nil {
+		if err := w.Resolver.DB.Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).Take(&workspace).Error; err != nil {
 			continue
 		}
 		for _, p := range workspace.Projects {

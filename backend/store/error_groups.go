@@ -189,7 +189,7 @@ func (store *Store) updateErrorGroupState(ctx context.Context,
 		Model: model.Model{
 			ID: params.ID,
 		},
-	}).First(&errorGroup).Updates(map[string]interface{}{
+	}).Take(&errorGroup).Updates(map[string]interface{}{
 		"State":        params.State,
 		"SnoozedUntil": params.SnoozedUntil,
 	}).Error; err != nil {
