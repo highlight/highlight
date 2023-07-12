@@ -6,6 +6,7 @@ import {
 	Badge,
 	Box,
 	ButtonIcon,
+	Callout,
 	Heading,
 	IconSolidArrowCircleRight,
 	IconSolidX,
@@ -21,6 +22,7 @@ import RequestMetrics from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/co
 import { UnknownRequestStatusCode } from '@pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
 import {
 	formatSize,
+	getHighlightRequestId,
 	getNetworkResourcesDisplayName,
 	NetworkResource,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
@@ -32,14 +34,22 @@ import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
+import LoadingBox from '@/components/LoadingBox'
+import { useGetErrorGroupsOpenSearchQuery } from '@/graph/generated/hooks'
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
+import { useProjectId } from '@/hooks/useProjectId'
+import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
+import {
+	RightPanelView,
+	usePlayerUIContext,
+} from '@/pages/Player/context/PlayerUIContext'
 
 import * as styles from './NetworkResourcePanel.css'
 
 enum NetworkRequestTabs {
 	Info = 'Info',
-	// These tabs will be built out in a future PR.
-	// Errors = 'Errors',
+	Errors = 'Errors',
+	// This tab will be built out in a future PR.
 	// Logs = 'Logs',
 }
 
@@ -265,9 +275,9 @@ function NetworkResourceDetails({
 							/>
 						),
 					},
-					// [NetworkRequestTabs.Errors]: {
-					// 	page: <Box>Errors</Box>,
-					// },
+					[NetworkRequestTabs.Errors]: {
+						page: <ErrorsData resource={resource} hide={hide} />,
+					},
 					// [NetworkRequestTabs.Logs]: {
 					// 	page: <Box>Logs</Box>,
 					// },
@@ -621,6 +631,73 @@ function NetworkRecordingEducationMessage() {
 				</a>
 				.
 			</Text>
+		</Box>
+	)
+}
+
+const ErrorsData: React.FC<{ resource: NetworkResource; hide: () => void }> = ({
+	resource,
+	hide,
+}) => {
+	const { projectId } = useProjectId()
+	const { errors: sessionErrors } = useReplayerContext()
+	const requestId = getHighlightRequestId(resource)
+	const errors = sessionErrors.filter((e) => e.request_id === requestId)
+	const errorGroupSecureIds = errors.map((e) => e.error_group_secure_id)
+	const { data, loading } = useGetErrorGroupsOpenSearchQuery({
+		variables: {
+			query: `{
+				"bool": {
+					"must": {
+						"terms": {
+							"secure_id.keyword": [${errorGroupSecureIds.map((id) => `"${id}"`).join(',')}]
+						}
+					}
+				}
+			}`.replace(/\s+/g, ''),
+			project_id: projectId,
+			count: errorGroupSecureIds.length,
+		},
+		skip: errors.length === 0,
+	})
+
+	const { setActiveError, setRightPanelView } = usePlayerUIContext()
+	const { setShowRightPanel } = usePlayerConfiguration()
+
+	return (
+		<Box py="8" px="12">
+			{data?.error_groups_opensearch.error_groups?.length ? (
+				data?.error_groups_opensearch.error_groups.map(
+					(errorGroup, idx) => (
+						<ErrorFeedCard
+							errorGroup={errorGroup}
+							key={idx}
+							onClick={() => {
+								const error = errors.find(
+									(e) =>
+										e.error_group_secure_id ===
+										errorGroup.secure_id,
+								)
+								setActiveError(error)
+								setShowRightPanel(true)
+								setRightPanelView(RightPanelView.Error)
+								hide()
+							}}
+						/>
+					),
+				)
+			) : loading ? (
+				<LoadingBox />
+			) : (
+				<Callout title="No errors">
+					<Box mb="6">
+						<Text>
+							There are no errors associated with this network
+							request.
+						</Text>
+					</Box>
+				</Callout>
+			)}
 		</Box>
 	)
 }
