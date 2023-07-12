@@ -288,9 +288,6 @@
 		"firebase": {
 			"entryPoints": ["/compat/auth", "/compat/app"],
 		},
-		"intro.js": {
-			"entryPoints": ["/", "/introjs.css"],
-		},
 		"lodash": {
 			"entryPoints": ["/", "/isEqual"],
 		},

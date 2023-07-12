@@ -11480,8 +11480,6 @@ __metadata:
     happy-dom: ^6.0.4
     highlight.io: "workspace:*"
     highlight.run: "workspace:*"
-    intro.js: ^4.1.0
-    intro.js-react: ^0.6.0
     js-cookie: ^3.0.1
     jsonc-parser: ^3.2.0
     less: ^4.1.3
@@ -35064,23 +35062,6 @@ __metadata:
     "@formatjs/icu-messageformat-parser": 2.3.0
     tslib: ^2.4.0
   checksum: 05baee05d31b911dc4bb1774ddf0799dc136723203461f73fecb185e2e2d18b148311db7ef14294d664a6212311c5d9116c3e850cf609dd6348e347f3d07e660
-  languageName: node
-  linkType: hard
-
-"intro.js-react@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "intro.js-react@npm:0.6.0"
-  peerDependencies:
-    intro.js: ">=2.5.0"
-    react: ">=0.14.0"
-  checksum: f90a74297d69fc13bfc43600c614826869618f80cc9e1bbd7e2e44c04d253039047bd2d7c9cc57289b52ea0e65e2d24d7fa6b87ea0e95fbc6d3aa3719715a40c
-  languageName: node
-  linkType: hard
-
-"intro.js@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "intro.js@npm:4.1.0"
-  checksum: 30b68b85fbc48f465759dd6c9b3f49886f4fd2a57d43ea01c2313c77896d4d5504a726b7729a0ebb0f1d027c20c73ca80b19186a19ce777d92230efad8089757
   languageName: node
   linkType: hard
 
