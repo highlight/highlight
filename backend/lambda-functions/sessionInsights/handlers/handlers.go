@@ -114,8 +114,14 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 					insightStrs = append(insightStrs, i.Insight)
 				}
 			} else {
-				log.WithFields(log.Fields{"project_id": input.ProjectId, "session_id": item.Id}).
-					Warnf("failed to get session insight with error %#v and status code %d", err, res.StatusCode)
+				if err != nil {
+					log.WithFields(log.Fields{"project_id": input.ProjectId, "session_id": item.Id}).
+						Warnf("failed to get session insight with error %#v ", err)
+
+				} else if res.StatusCode != 200 {
+					log.WithFields(log.Fields{"project_id": input.ProjectId, "session_id": item.Id}).
+						Warnf("failed to get session insight with status code %d", res.StatusCode)
+				}
 			}
 		}
 
@@ -274,7 +280,6 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 		to := &mail.Email{Address: toAddr.Email}
 		subject := fmt.Sprintf("[Highlight] Session Insights - %s", input.ProjectName)
 		m := mail.NewV3MailInit(from, subject, to, mail.NewContent("text/html", html))
-		m.SetFrom(from)
 
 		for sessionId, img := range images {
 			a := mail.NewAttachment()
