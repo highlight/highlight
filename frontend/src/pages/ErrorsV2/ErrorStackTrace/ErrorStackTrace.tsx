@@ -24,8 +24,8 @@ import ReactCollapsibleModule from 'react-collapsible'
 
 // FIXME: this is a temporary workaround for Reflame not handling minified UMD modules properly
 // Fix coming up soon
-// @ts-ignore
 const ReactCollapsible =
+	// @ts-ignore
 	ReactCollapsibleModule.default ?? ReactCollapsibleModule
 
 import { ErrorObjectFragment } from '@/graph/generated/operations'
