@@ -230,7 +230,14 @@ function NetworkResourceDetails({
 					onClick={hide}
 				/>
 			</Box>
-			<Box px="12" py="8" display="flex" flexDirection="column" gap="8">
+			<Box
+				pt="16"
+				px="12"
+				pb="12"
+				display="flex"
+				flexDirection="column"
+				gap="12"
+			>
 				<Heading level="h4">Network request</Heading>
 
 				<Box display="flex" alignItems="center" gap="4">
