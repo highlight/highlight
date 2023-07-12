@@ -91,32 +91,27 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 	interestingSessions := []utils.InterestingSession{}
 	for _, item := range interestingSessionsSql {
 		insightStrs := []string{}
-		// if result.AiInsights {
-		// 	insights := struct {
-		// 		Insight []struct {
-		// 			Insight string `json:"insight"`
-		// 		} `json:"insight"`
-		// 	}{}
+		if result.AiInsights {
+			insights := struct {
+				Insight []struct {
+					Insight string `json:"insight"`
+				} `json:"insight"`
+			}{}
 
-		// 	res, err := h.lambdaClient.GetSessionInsight(ctx, input.ProjectId, item.Id)
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-		// 	if res.StatusCode != 200 {
-		// 		return nil, errors.New(fmt.Sprintf("screenshot lambda returned %d", res.StatusCode))
-		// 	}
-
-		// 	b, err := io.ReadAll(res.Body)
-		// 	if err != nil {
-		// 		return nil, err
-		// 	}
-		// 	if err := json.Unmarshal(b, &insights); err == nil {
-		// 		return nil, err
-		// 	}
-		// 	for _, i := range insights.Insight {
-		// 		insightStrs = append(insightStrs, i.Insight)
-		// 	}
-		// }
+			res, err := h.lambdaClient.GetSessionInsight(ctx, input.ProjectId, item.Id)
+			if err == nil && res.StatusCode == 200 {
+				b, err := io.ReadAll(res.Body)
+				if err != nil {
+					return nil, err
+				}
+				if err := json.Unmarshal(b, &insights); err == nil {
+					return nil, err
+				}
+				for _, i := range insights.Insight {
+					insightStrs = append(insightStrs, i.Insight)
+				}
+			}
+		}
 
 		interestingSessions = append(interestingSessions, utils.InterestingSession{
 			Identifier:   truncate100(getIdentifier(item.UserProperties, item.Identifier, item.Fingerprint)),
