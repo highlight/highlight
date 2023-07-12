@@ -542,8 +542,8 @@ export type ErrorObjectNode = {
 export type ErrorObjectNodeSession = {
 	__typename?: 'ErrorObjectNodeSession'
 	appVersion?: Maybe<Scalars['String']>
+	email?: Maybe<Scalars['String']>
 	secureID: Scalars['String']
-	userProperties: Scalars['String']
 }
 
 export type ErrorResults = {
@@ -1643,7 +1643,6 @@ export type Query = {
 	email_opt_outs: Array<EmailOptOutCategory>
 	enhanced_user_details?: Maybe<EnhancedUserDetailsResult>
 	environment_suggestion?: Maybe<Array<Maybe<Field>>>
-	errorDistribution: Array<Maybe<ErrorDistributionItem>>
 	errorGroupFrequencies: Array<Maybe<ErrorDistributionItem>>
 	errorGroupTags: Array<ErrorGroupTagAggregation>
 	error_alerts: Array<Maybe<ErrorAlert>>
@@ -1854,12 +1853,6 @@ export type QueryEnvironment_SuggestionArgs = {
 	project_id: Scalars['ID']
 }
 
-export type QueryErrorDistributionArgs = {
-	error_group_secure_id: Scalars['String']
-	project_id: Scalars['ID']
-	property: Scalars['String']
-}
-
 export type QueryErrorGroupFrequenciesArgs = {
 	error_group_secure_ids?: InputMaybe<Array<Scalars['String']>>
 	metric?: InputMaybe<Scalars['String']>
@@ -1929,6 +1922,7 @@ export type QueryError_ObjectsArgs = {
 	after?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
 	error_group_secure_id: Scalars['String']
+	query: Scalars['String']
 }
 
 export type QueryError_Resolution_SuggestionArgs = {
