@@ -27251,6 +27251,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"babylonjs@npm:^6.11.2":
+  version: 6.11.2
+  resolution: "babylonjs@npm:6.11.2"
+  checksum: e79cb0102fecc237acb3ba14aa5af016293736225362c1668f5c54fdc6bf78e7c9c32812b4ed4280fd01ea7f2d113188573af05f41909b6c02b13ef9363b661b
+  languageName: node
+  linkType: hard
+
 "backo2@npm:^1.0.2":
   version: 1.0.2
   resolution: "backo2@npm:1.0.2"
@@ -45109,6 +45116,7 @@ __metadata:
     "@types/node": 18.15.11
     "@types/react": 18.0.35
     "@types/react-dom": 18.0.11
+    babylonjs: ^6.11.2
     classnames: ^2.3.2
     eslint: 8.39.0
     eslint-config-next: 13.4.9
