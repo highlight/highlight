@@ -240,10 +240,10 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 	for _, session := range input.InterestingSessions {
 		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, nil, nil, nil)
 		if err != nil {
-			return err
+			continue
 		}
 		if res.StatusCode != 200 {
-			return errors.New(fmt.Sprintf("screenshot lambda returned %d", res.StatusCode))
+			continue
 		}
 		imageBytes, err := io.ReadAll(res.Body)
 		if err != nil {
