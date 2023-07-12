@@ -2628,6 +2628,13 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}).Error; err != nil {
 				return err
 			}
+			if err := r.OpenSearch.UpdateAsync(ctx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+				"Excluded":       excluded,
+				"ExcludedReason": reason,
+			}); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "error updating session in opensearch"))
+				return err
+			}
 		}
 	}
 
