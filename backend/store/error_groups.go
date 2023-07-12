@@ -48,15 +48,18 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 	)
 
 	if params.After != nil {
-		query = query.Order("id DESC").Where("id < ?", *params.After)
+		query = query.Order("error_objects.id DESC").Where("error_objects.id < ?", *params.After)
 	} else if params.Before != nil {
-		query = query.Order("id ASC").Where("id > ?", *params.Before)
+		query = query.Order("error_objects.id ASC").Where("error_objects.id > ?", *params.Before)
 	} else {
-		query = query.Order("id DESC")
+		query = query.Order("error_objects.id DESC")
 	}
 
 	if err := query.Find(&errorObjects).Error; err != nil {
-		return privateModel.ErrorObjectConnection{}, err
+		return privateModel.ErrorObjectConnection{
+			Edges:    []*privateModel.ErrorObjectEdge{},
+			PageInfo: &privateModel.PageInfo{},
+		}, err
 	}
 
 	if params.Before != nil {
@@ -67,7 +70,10 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 	}
 
 	if len(errorObjects) == 0 {
-		return privateModel.ErrorObjectConnection{}, nil
+		return privateModel.ErrorObjectConnection{
+			Edges:    []*privateModel.ErrorObjectEdge{},
+			PageInfo: &privateModel.PageInfo{},
+		}, nil
 	}
 
 	// Extract the non-null session IDs
@@ -100,6 +106,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 				ID:                 errorObject.ID,
 				CreatedAt:          errorObject.CreatedAt,
 				Event:              errorObject.Event,
+				Timestamp:          errorObject.Timestamp,
 				ErrorGroupSecureID: errorGroup.SecureID,
 			},
 		}

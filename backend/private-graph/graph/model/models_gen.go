@@ -319,6 +319,7 @@ type ErrorObjectNode struct {
 	ID                 int                     `json:"id"`
 	CreatedAt          time.Time               `json:"createdAt"`
 	Event              string                  `json:"event"`
+	Timestamp          time.Time               `json:"timestamp"`
 	Session            *ErrorObjectNodeSession `json:"session"`
 	ErrorGroupSecureID string                  `json:"errorGroupSecureID"`
 }

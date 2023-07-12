@@ -13000,6 +13000,7 @@ export const GetErrorObjectsDocument = gql`
 					id
 					createdAt
 					event
+					timestamp
 					errorGroupSecureID
 					session {
 						secureID

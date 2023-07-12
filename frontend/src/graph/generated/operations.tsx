@@ -4380,7 +4380,11 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 			> & {
 					node: { __typename?: 'ErrorObjectNode' } & Pick<
 						Types.ErrorObjectNode,
-						'id' | 'createdAt' | 'event' | 'errorGroupSecureID'
+						| 'id'
+						| 'createdAt'
+						| 'event'
+						| 'timestamp'
+						| 'errorGroupSecureID'
 					> & {
 							session?: Types.Maybe<
 								{
