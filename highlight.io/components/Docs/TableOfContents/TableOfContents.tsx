@@ -15,7 +15,10 @@ import { Typography } from '../../common/Typography/Typography'
 
 import { Disclosure, Transition } from '@headlessui/react'
 import classNames from 'classnames'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
+import { useRouter } from 'next/router'
+import styles from '../Docs.module.scss'
 
 export const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
 
@@ -242,7 +245,7 @@ export function TableOfContents({
 	const singleEntries = renderedTable.filter((t) => !t.docPage.isIndex)
 
 	return (
-		<div className="flex flex-col">
+		<div className="flex flex-col self-stretch">
 			{subtableSlug && (
 				<>
 					<button
@@ -439,7 +442,62 @@ export function TableOfContents({
 	)
 } */
 
-/* const SdkTableOfContents = () => {
+// Checks which header is currently in view, and highlights the table of content item on the right.
+const useIntersectionObserver = (setActiveId: (s: string) => void) => {
+	const router = useRouter()
+	const headingElementsRef = useRef<any>({})
+	useEffect(() => {
+		const callback = (headings: any) => {
+			headingElementsRef.current = {}
+			headingElementsRef.current = headings.reduce(
+				(map: any, headingElement: any) => {
+					map[headingElement.target.id] = headingElement
+					return map
+				},
+				headingElementsRef.current,
+			)
+
+			const visibleHeadings: any = []
+			Object.keys(headingElementsRef.current).forEach((key) => {
+				const headingElement = headingElementsRef.current[key]
+				if (headingElement.isIntersecting)
+					visibleHeadings.push(headingElement)
+			})
+
+			if (visibleHeadings.length >= 1) {
+				setActiveId(visibleHeadings[0].target.id)
+			}
+		}
+
+		const observer = new IntersectionObserver(callback, {
+			rootMargin: '-5% 0px -90% 0px',
+			threshold: 0.0001,
+		})
+
+		const headingElements = Array.from(
+			document.querySelectorAll('h4, h5, h6'),
+		)
+		headingElements.forEach((element) => observer.observe(element))
+
+		return () => observer.disconnect()
+	}, [setActiveId, router.query])
+}
+
+const useHeadingsData = (headingTag: string) => {
+	const router = useRouter()
+	const [nestedHeadings, setNestedHeadings] = useState<any>([])
+
+	useEffect(() => {
+		const headingElements = Array.from(
+			document.querySelectorAll(headingTag),
+		)
+		setNestedHeadings(headingElements)
+	}, [headingTag, router.query])
+
+	return { nestedHeadings }
+}
+
+export function SdkTableOfContents () {
 	const { nestedHeadings } = useHeadingsData('h4')
 	const router = useRouter()
 	const [activeId, setActiveId] = useState<string>()
@@ -480,7 +538,7 @@ export function TableOfContents({
 							)
 						}}
 					>
-						<Minus
+						<MinusIcon
 							className={classNames(
 								styles.tocIcon,
 								styles.tocChild,
@@ -508,4 +566,4 @@ export function TableOfContents({
 			))}
 		</>
 	)
-} */
+}
