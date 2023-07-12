@@ -29,10 +29,13 @@ import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
+import clsx from 'clsx'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
+import { WebSocketMessages } from '@/pages/Player/RightPlayerPanel/components/WebSocketMessages/WebSocketMessages'
+import { useWebSocket } from '@/pages/Player/WebSocketContext/WebSocketContext'
 
 import * as styles from './NetworkResourcePanel.css'
 
@@ -41,6 +44,11 @@ enum NetworkRequestTabs {
 	// These tabs will be built out in a future PR.
 	// Errors = 'Errors',
 	// Logs = 'Logs',
+}
+
+enum WebSocketTabs {
+	Headers = 'Headers',
+	Messages = 'Messages',
 }
 
 export const NetworkResourcePanel = () => {
@@ -105,9 +113,12 @@ export const NetworkResourcePanel = () => {
 				position: 'absolute',
 			}}
 		>
-			{resource && (
-				<NetworkResourceDetails resource={resource} hide={hide} />
-			)}
+			{resource &&
+				(resource.initiatorType === 'websocket' ? (
+					<WebSocketDetails resource={resource} hide={hide} />
+				) : (
+					<NetworkResourceDetails resource={resource} hide={hide} />
+				))}
 		</Ariakit.Dialog>
 	)
 }
@@ -281,6 +292,185 @@ function NetworkResourceDetails({
 	)
 }
 
+function WebSocketDetails({
+	resource,
+	hide,
+}: {
+	resource: NetworkResource
+	hide: () => void
+}) {
+	const { resources } = useResourcesContext()
+	const [activeTab, setActiveTab] = useState<WebSocketTabs>(
+		WebSocketTabs.Headers,
+	)
+	const {
+		sessionMetadata: { startTime },
+		setTime,
+		session,
+	} = useReplayerContext()
+	const { activeNetworkResourceId, setActiveNetworkResourceId } =
+		useActiveNetworkResourceId()
+
+	const networkResources = useMemo(() => {
+		return (
+			(resources.map((event) => ({
+				...event,
+				timestamp: event.startTime,
+			})) as NetworkResource[]) ?? []
+		)
+	}, [resources])
+
+	const resourceIdx = resources.findIndex(
+		(r) => activeNetworkResourceId === r.id,
+	)
+
+	const [prev, next] = [resourceIdx - 1, resourceIdx + 1]
+	const canMoveBackward = !!resources[prev]
+	const canMoveForward = !!resources[next]
+
+	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
+	const timestamp = useMemo(() => {
+		return new Date(resource.startTime).getTime()
+	}, [resource.startTime])
+
+	const { webSocketEvents } = useWebSocket(session)
+
+	useHotkeys(
+		'h',
+		() => {
+			if (canMoveBackward) {
+				analytics.track('PrevNetworkResourceKeyboardShortcut')
+				setActiveNetworkResourceId(networkResources[prev].id)
+			}
+		},
+		[canMoveBackward, prev],
+	)
+
+	useHotkeys(
+		'l',
+		() => {
+			if (canMoveForward) {
+				analytics.track('NextNetworkResourceKeyboardShortcut')
+				setActiveNetworkResourceId(networkResources[next].id)
+			}
+		},
+		[canMoveForward, next],
+	)
+
+	return (
+		<>
+			<Box
+				pl="12"
+				pr="8"
+				py="6"
+				display="flex"
+				alignItems="center"
+				justifyContent="space-between"
+				borderBottom="divider"
+			>
+				<Box display="flex" gap="6" alignItems="center">
+					<PreviousNextGroup
+						onPrev={() =>
+							setActiveNetworkResourceId(
+								networkResources[prev].id,
+							)
+						}
+						canMoveBackward={canMoveBackward}
+						prevShortcut="h"
+						onNext={() =>
+							setActiveNetworkResourceId(
+								networkResources[next].id,
+							)
+						}
+						canMoveForward={canMoveForward}
+						nextShortcut="l"
+						size="small"
+					/>
+					<Text size="xSmall" weight="medium" color="weak">
+						{resourceIdx + 1} / {networkResources.length}
+					</Text>
+				</Box>
+				<ButtonIcon
+					kind="secondary"
+					size="small"
+					shape="square"
+					emphasis="low"
+					icon={<IconSolidX />}
+					onClick={hide}
+				/>
+			</Box>
+			<Box px="12" py="8" display="flex" flexDirection="column" gap="8">
+				<Heading level="h4">
+					{resource.initiatorType === 'websocket'
+						? resource.name
+						: `WebSocket`}
+				</Heading>
+
+				<Box display="flex" alignItems="center" gap="4">
+					<Badge
+						label={String(
+							showPlayerAbsoluteTime
+								? playerTimeToSessionAbsoluteTime({
+										sessionStartTime: startTime,
+										relativeTime: timestamp,
+								  })
+								: MillisToMinutesAndSeconds(timestamp),
+						)}
+						size="medium"
+						shape="basic"
+						variant="gray"
+						flexShrink={0}
+					/>
+					<Tag
+						shape="basic"
+						kind="secondary"
+						size="medium"
+						emphasis="low"
+						iconRight={<IconSolidArrowCircleRight />}
+						onClick={() => {
+							setTime(timestamp)
+						}}
+					>
+						Go to
+					</Tag>
+				</Box>
+			</Box>
+
+			<Tabs<WebSocketTabs>
+				tab={activeTab}
+				setTab={(tab) => setActiveTab(tab)}
+				pages={{
+					[WebSocketTabs.Headers]: {
+						page: (
+							<NetworkResourceData
+								selectedNetworkResource={resource}
+								networkRecordingEnabledForSession={
+									session?.enable_recording_network_contents ||
+									false
+								}
+							/>
+						),
+					},
+					[WebSocketTabs.Messages]: {
+						page: (
+							<WebSocketMessages
+								startEvent={resource}
+								events={webSocketEvents}
+							/>
+						),
+					},
+				}}
+				noHandle
+				tabsContainerClass={styles.tabsContainer}
+				pageContainerClass={clsx(
+					styles.pageContainer,
+					styles.pageContainerFull,
+				)}
+			/>
+		</>
+	)
+}
+
 enum NetworkResourceMeta {
 	General = 'General',
 	RequestHeaders = 'Request Headers',
@@ -315,14 +505,17 @@ function NetworkResourceData({
 		},
 		{
 			keyDisplayValue: 'Status',
-			valueDisplayValue: selectedNetworkResource?.requestResponsePairs
-				?.response.status ?? (
-				<UnknownRequestStatusCode
-					networkRequestAndResponseRecordingEnabled={
-						networkRecordingEnabledForSession
-					}
-				/>
-			),
+			valueDisplayValue:
+				selectedNetworkResource?.initiatorType === 'websocket'
+					? 101
+					: selectedNetworkResource?.requestResponsePairs?.response
+							.status ?? (
+							<UnknownRequestStatusCode
+								networkRequestAndResponseRecordingEnabled={
+									networkRecordingEnabledForSession
+								}
+							/>
+					  ),
 			valueInfoTooltipMessage:
 				selectedNetworkResource?.requestResponsePairs?.response
 					.status === 0 &&

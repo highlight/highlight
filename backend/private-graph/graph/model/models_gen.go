@@ -729,6 +729,15 @@ type VercelProjectMappingInput struct {
 	ProjectID       *int    `json:"project_id"`
 }
 
+type WebSocketEvent struct {
+	Message   string  `json:"message"`
+	Name      string  `json:"name"`
+	SocketID  string  `json:"socketId"`
+	Type      string  `json:"type"`
+	TimeStamp float64 `json:"timeStamp"`
+	Size      int     `json:"size"`
+}
+
 type WebhookDestinationInput struct {
 	URL           string  `json:"url"`
 	Authorization *string `json:"authorization"`
