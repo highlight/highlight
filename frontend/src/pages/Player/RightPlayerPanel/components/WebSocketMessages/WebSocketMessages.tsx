@@ -8,9 +8,10 @@ import {
 	Text,
 	vars,
 } from '@highlight-run/ui'
-import { useMemo, useRef } from 'react'
+import { useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
+import LoadingBox from '@/components/LoadingBox'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -19,24 +20,22 @@ import { MillisToMinutesAndSeconds } from '@/util/time'
 
 import * as styles from './WebSocketMessages.css'
 
-export const WebSocketMessages = ({ events, startEvent }: any) => {
+export const WebSocketMessages = ({ events, eventsLoading }: any) => {
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const { sessionMetadata } = useReplayerContext()
 	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const startTime = sessionMetadata.startTime
 
-	const eventsToRender = useMemo(() => {
-		return [startEvent, ...events]
-	}, [events, startEvent])
-
-	return (
+	return eventsLoading ? (
+		<LoadingBox />
+	) : (
 		<Box className={styles.container}>
 			<Box className={styles.websocketHeader}>
 				<Box></Box>
-				<Box color="weak" py="6" px="8">
+				<Box color="weak" py="6" px="8" borderRight="dividerWeak">
 					<Text size="xxSmall">Data</Text>
 				</Box>
-				<Box color="weak" py="6" px="8">
+				<Box color="weak" py="6" px="8" borderRight="dividerWeak">
 					<Text size="xxSmall">Length</Text>
 				</Box>
 				<Box color="weak" py="6" px="8">
@@ -62,7 +61,7 @@ export const WebSocketMessages = ({ events, startEvent }: any) => {
 						enter: (v) => v > 512,
 						exit: (v) => v < 128,
 					}}
-					data={eventsToRender}
+					data={events}
 					itemContent={(index, resource) => {
 						return (
 							<WebSocketRow
@@ -70,7 +69,6 @@ export const WebSocketMessages = ({ events, startEvent }: any) => {
 								resource={resource}
 								playerStartTime={startTime}
 								showPlayerAbsoluteTime={showPlayerAbsoluteTime}
-								gray={index % 2 === 0}
 							/>
 						)
 					}}
@@ -84,7 +82,6 @@ interface WebSocketRowProps {
 	resource: any
 	playerStartTime: number
 	showPlayerAbsoluteTime?: boolean
-	gray: boolean
 }
 
 const WebSocketRequestTypeIcon: { [k: string]: JSX.Element } = {
@@ -118,6 +115,8 @@ const getWebSocketEventMessage = (event: any) => {
 		? 'Websocket connection has been opened'
 		: event.type === 'close'
 		? 'Websocket connection has been closed'
+		: event.type === 'error'
+		? 'Error'
 		: event.message
 }
 
@@ -127,7 +126,6 @@ const getWebSocketEventSize = (event: any) => {
 
 const WebSocketRow = ({
 	resource,
-	gray,
 	playerStartTime,
 	showPlayerAbsoluteTime,
 }: WebSocketRowProps) => {
@@ -135,9 +133,7 @@ const WebSocketRow = ({
 		<Box>
 			<Box
 				borderBottom="dividerWeak"
-				cssClass={styles.websocketRowVariants({
-					gray,
-				})}
+				cssClass={styles.websocketRowVariants()}
 			>
 				<Box color="secondaryContentText" pl="4" display="flex">
 					{WebSocketRequestTypeIcon[String(resource.type) || 'error']}

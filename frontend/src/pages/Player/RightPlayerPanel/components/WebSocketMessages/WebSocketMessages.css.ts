@@ -11,7 +11,7 @@ export const container = style({
 
 export const networkBox = style({
 	width: '100%',
-	height: 'calc(100% - 32px)',
+	height: 'calc(100% - 22px)',
 	display: 'flex',
 	flexDirection: 'column',
 	overflowX: 'hidden',
@@ -40,18 +40,6 @@ export const websocketRowVariants = recipe({
 		width: '100%',
 		height: 24,
 		alignItems: 'center',
-		selectors: {
-			'&:hover': {
-				backgroundColor: vars.theme.interactive.overlay.secondary.hover,
-			},
-		},
-	},
-	variants: {
-		gray: {
-			true: {
-				backgroundColor: vars.theme.static.surface.raised,
-			},
-			false: {},
-		},
+		selectors: {},
 	},
 })

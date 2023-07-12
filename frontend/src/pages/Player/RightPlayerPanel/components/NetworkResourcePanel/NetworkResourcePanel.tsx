@@ -333,7 +333,7 @@ function WebSocketDetails({
 		return new Date(resource.startTime).getTime()
 	}, [resource.startTime])
 
-	const { webSocketEvents } = useWebSocket(session)
+	const { webSocketEvents, webSocketLoading } = useWebSocket(session)
 
 	useHotkeys(
 		'h',
@@ -455,6 +455,7 @@ function WebSocketDetails({
 						page: (
 							<WebSocketMessages
 								startEvent={resource}
+								eventsLoading={webSocketLoading}
 								events={webSocketEvents}
 							/>
 						),
@@ -537,25 +538,35 @@ function NetworkResourceData({
 				selectedNetworkResource?.initiatorType || '',
 			),
 		},
-		{
-			keyDisplayValue: 'Size',
-			valueDisplayValue: selectedNetworkResource?.requestResponsePairs
-				?.response.size ? (
-				formatSize(
-					selectedNetworkResource.requestResponsePairs.response.size,
-				)
-			) : selectedNetworkResource?.requestResponsePairs?.response
-					.status === 0 ? (
-				'-'
-			) : selectedNetworkResource?.requestResponsePairs?.urlBlocked ||
-			  selectedNetworkResource?.transferSize == null ? (
-				'-'
-			) : selectedNetworkResource?.transferSize === 0 ? (
-				'Cached'
-			) : (
-				<>{formatSize(selectedNetworkResource.transferSize)}</>
-			),
-		},
+		...(selectedNetworkResource?.initiatorType === 'websocket'
+			? []
+			: [
+					{
+						keyDisplayValue: 'Size',
+						valueDisplayValue: selectedNetworkResource
+							?.requestResponsePairs?.response.size ? (
+							formatSize(
+								selectedNetworkResource.requestResponsePairs
+									.response.size,
+							)
+						) : selectedNetworkResource?.requestResponsePairs
+								?.response.status === 0 ? (
+							'-'
+						) : selectedNetworkResource?.requestResponsePairs
+								?.urlBlocked ||
+						  selectedNetworkResource?.transferSize == null ? (
+							'-'
+						) : selectedNetworkResource?.transferSize === 0 ? (
+							'Cached'
+						) : (
+							<>
+								{formatSize(
+									selectedNetworkResource.transferSize,
+								)}
+							</>
+						),
+					},
+			  ]),
 	]
 
 	const showRequestMetrics =
