@@ -49,11 +49,15 @@ const FrameworksPage = () => {
 						<div
 							className="pt-12"
 							key={category}
-							id={category.toLowerCase()}
+							id={category.toLowerCase().replaceAll(' ', '-')}
 						>
 							<div
 								onClick={() =>
-									handleCopy(category.toLowerCase())
+									handleCopy(
+										category
+											.toLowerCase()
+											.replaceAll(' ', '-'),
+									)
 								}
 								className="group flex items-center gap-2 cursor-pointer"
 							>

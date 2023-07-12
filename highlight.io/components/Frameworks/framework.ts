@@ -66,7 +66,7 @@ export const FRAMEWORKS: {
 		{
 			name: 'Ruby',
 			description: 'Set up error monitoring in Ruby on Rails.',
-			link: 'https://www.highlight.io/docs/getting-started/backend-sdk/ruby/overview',
+			link: '/docs/getting-started/backend-sdk/ruby/overview',
 			image: '/images/companies/icons/rails.svg',
 		},
 	],
@@ -74,25 +74,25 @@ export const FRAMEWORKS: {
 		{
 			name: 'Go',
 			description: 'Set up logging in Go with Fiber, Logrus, and more.',
-			link: 'https://www.highlight.io/docs/getting-started/backend-logging/go/overview',
+			link: '/docs/getting-started/backend-logging/go/overview',
 			image: '/images/companies/icons/go.svg',
 		},
 		{
 			name: 'Javascript',
 			description: 'Set up logging in JS with Nest, Winston, and more.',
-			link: 'https://www.highlight.io/docs/getting-started/backend-logging/js/overview',
+			link: '/docs/getting-started/backend-logging/js/overview',
 			image: '/images/companies/icons/js.svg',
 		},
 		{
 			name: 'Python',
 			description: 'Set up logging in Python with Loguru.',
-			link: 'https://www.highlight.io/docs/getting-started/backend-logging/python/overview',
+			link: '/docs/getting-started/backend-logging/python/overview',
 			image: '/images/companies/icons/python.svg',
 		},
 		{
 			name: 'Ruby',
 			description: 'Set up logging in Ruby on Rails.',
-			link: 'https://www.highlight.io/docs/getting-started/backend-logging/ruby/overview',
+			link: '/docs/getting-started/backend-logging/ruby/overview',
 			image: '/images/companies/icons/rails.svg',
 		},
 	],
@@ -108,14 +108,14 @@ export const FRAMEWORKS: {
 			description:
 				'Set up log ingestion using an OpenTelemetry collector with the filelog receiver.',
 			link: '/docs/getting-started/backend-logging/file',
-			image: '/images/companies/icons/vercel.png',
+			image: '/images/companies/icons/file.svg',
 		},
 		{
 			name: 'Fluent Forward',
 			description:
 				'Set up highlight.io log ingestion via Fluent Forward.',
 			link: '/docs/getting-started/backend-logging/fluentforward',
-			image: '/images/companies/icons/aws.png',
+			image: '/images/companies/icons/fluent.svg',
 		},
 	],
 }
