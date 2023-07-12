@@ -32,8 +32,6 @@ type InterestingSession struct {
 	URL          string   `json:"url"`
 	Insights     []string `json:"insights"`
 	Id           int      `json:"id"`
-	Chunk        int      `json:"chunk"`
-	Ts           int      `json:"ts"`
 }
 
 type SessionInsightsData struct {

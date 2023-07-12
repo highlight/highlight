@@ -120,8 +120,6 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 			ActiveLength: formatDurationMinute(item.ActiveLength * time.Millisecond),
 			URL:          formatSessionURL(input.ProjectId, item.SecureId),
 			Id:           item.Id,
-			Chunk:        0, // ZANETODO: get chunk / ts for interesting sessions
-			Ts:           0, // ZANETODO: get chunk / ts for interesting sessions
 			Insights:     insightStrs,
 		})
 	}
@@ -240,7 +238,7 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 
 	images := map[int]string{}
 	for _, session := range input.InterestingSessions {
-		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, session.Ts, session.Chunk)
+		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, nil, nil, nil)
 		if err != nil {
 			return err
 		}
