@@ -1643,7 +1643,6 @@ export type Query = {
 	email_opt_outs: Array<EmailOptOutCategory>
 	enhanced_user_details?: Maybe<EnhancedUserDetailsResult>
 	environment_suggestion?: Maybe<Array<Maybe<Field>>>
-	errorDistribution: Array<Maybe<ErrorDistributionItem>>
 	errorGroupFrequencies: Array<Maybe<ErrorDistributionItem>>
 	errorGroupTags: Array<ErrorGroupTagAggregation>
 	error_alerts: Array<Maybe<ErrorAlert>>
@@ -1851,12 +1850,6 @@ export type QueryEnhanced_User_DetailsArgs = {
 
 export type QueryEnvironment_SuggestionArgs = {
 	project_id: Scalars['ID']
-}
-
-export type QueryErrorDistributionArgs = {
-	error_group_secure_id: Scalars['String']
-	project_id: Scalars['ID']
-	property: Scalars['String']
 }
 
 export type QueryErrorGroupFrequenciesArgs = {

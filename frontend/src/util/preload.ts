@@ -5,7 +5,6 @@ import {
 	GetErrorGroupDocument,
 	GetErrorGroupsOpenSearchDocument,
 	GetErrorInstanceDocument,
-	GetErrorIssuesDocument,
 	GetErrorsHistogramDocument,
 	GetEventChunksDocument,
 	GetEventChunkUrlDocument,
@@ -29,8 +28,6 @@ import { useEffect, useRef } from 'react'
 
 const CONCURRENT_SESSION_PRELOADS = 1
 const CONCURRENT_ERROR_PRELOADS = 10
-// disable this for now as loading session data for each error instance requires a lot of preloading
-const SHOULD_PRELOAD_ERROR_INSTANCE_SESSION = false
 const PREVIOUS_ERROR_OBJECTS_TO_FETCH = 3
 // Max brotlied resource file allowed. Note that a brotli file with some binary data
 // has a compression ratio of >5x, so unbrotlied this file will take up much more memory.
@@ -320,15 +317,6 @@ export const loadSession = async function (secureID: string) {
 
 const loadErrorGroup = async function (projectID: string, secureID: string) {
 	// we repeat loading error groups since they are lightweight and we can benefit from loading apollo in-memory cache
-	if (
-		SHOULD_PRELOAD_ERROR_INSTANCE_SESSION &&
-		(await IndexedDBLink.has('GetErrorGroup', {
-			secure_id: secureID,
-		}))
-	) {
-		log('preload.ts', `skipping loaded error group ${secureID}`)
-		return
-	}
 	const start = window.performance.now()
 	log('preload.ts', `preloading error group ${secureID}`)
 	try {
@@ -336,12 +324,6 @@ const loadErrorGroup = async function (projectID: string, secureID: string) {
 			query: GetErrorGroupDocument,
 			variables: {
 				secure_id: secureID,
-			},
-		})
-		await client.query({
-			query: GetErrorIssuesDocument,
-			variables: {
-				error_group_secure_id: secureID,
 			},
 		})
 		// run this query with the `error_object_id` variable set to 0 as well, as the ui uses both
@@ -366,18 +348,6 @@ const loadErrorGroup = async function (projectID: string, secureID: string) {
 							  },
 				})
 			)?.data?.error_instance as ErrorInstance
-			if (SHOULD_PRELOAD_ERROR_INSTANCE_SESSION) {
-				const sessionSecureID =
-					errorInstance.error_object.session?.secure_id
-				if (sessionSecureID) {
-					log('preload.ts', 'loading session from error object', {
-						errorGroupSecureID: secureID,
-						errorInstance,
-						sessionSecureID,
-					})
-					await loadSession(sessionSecureID)
-				}
-			}
 			if (
 				errorInstance?.previous_id?.length &&
 				errorInstance.previous_id !== '0'
