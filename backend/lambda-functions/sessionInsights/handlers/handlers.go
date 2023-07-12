@@ -232,15 +232,6 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 		return errors.Wrap(err, "error querying recipient emails")
 	}
 
-	marshalled, err := json.Marshal(input)
-	if err != nil {
-		return errors.Wrap(err, "error marshalling input")
-	}
-	var templateData map[string]interface{}
-	if err := json.Unmarshal(marshalled, &templateData); err != nil {
-		return errors.Wrap(err, "error unmarshalling marshalled input")
-	}
-
 	if input.DryRun {
 		toAddrs = []struct {
 			AdminID int
@@ -271,10 +262,13 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 	for _, toAddr := range toAddrs {
 		toEmail := toAddr.Email
 		unsubscribeUrl := email.GetSubscriptionUrl(toAddr.AdminID, false)
+
+		log.Infof("generating email for %s", toEmail)
 		html, err := h.lambdaClient.GetSessionInsightEmailHtml(ctx, toEmail, unsubscribeUrl, input)
 		if err != nil {
 			return err
 		}
+		log.Infof("generated email for %s", toEmail)
 
 		from := mail.NewEmail("Highlight", email.SendGridOutboundEmail)
 		to := &mail.Email{Address: toAddr.Email}
@@ -282,6 +276,7 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 		m := mail.NewV3MailInit(from, subject, to, mail.NewContent("text/html", html))
 
 		for sessionId, img := range images {
+			log.Infof("attaching image for session %d", sessionId)
 			a := mail.NewAttachment()
 			a.SetContent(img)
 			a.SetType("image/png")
@@ -291,6 +286,7 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 			m.AddAttachment(a)
 		}
 
+		log.Infof("sending email to %s", toEmail)
 		if resp, sendGridErr := h.sendgridClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
 			estr := "error sending sendgrid email -> "
 			estr += fmt.Sprintf("resp-code: %v; ", resp)
@@ -299,6 +295,7 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 			}
 			return errors.New(estr)
 		}
+		log.Info("sent")
 	}
 
 	return nil
