@@ -346,7 +346,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			const lastChunkIdx =
 				eventChunksData?.event_chunks[
 					eventChunksData?.event_chunks.length - 1
-				].chunk_index
+				]?.chunk_index
 			if (lastChunkIdx !== undefined)
 				endIdx = Math.min(lastChunkIdx, endIdx)
 
