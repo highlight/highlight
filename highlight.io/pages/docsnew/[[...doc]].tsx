@@ -115,8 +115,14 @@ export const getStaticPaths: GetStaticPaths = async () => {
 	}
 }
 
-function resolveEmbeddedLink(link: string, relativePath: string) {
-	let absolutePath = path.resolve(relativePath, '..', link).replace('.md', '')
+function resolveEmbeddedLink(link: string, currentLocation: string) {
+	let absolutePath = path
+		.relative(
+			DOCS_CONTENT_PATH,
+			path.resolve(DOCS_CONTENT_PATH, currentLocation, '..', link),
+		)
+		.replace('.md', '')
+
 	return path.join('/docsnew', removeOrderingPrefix(absolutePath))
 }
 
