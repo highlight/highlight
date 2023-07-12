@@ -5063,7 +5063,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
@@ -5110,7 +5110,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
