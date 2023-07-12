@@ -90,7 +90,7 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 
 	interestingSessions := []utils.InterestingSession{}
 	for _, item := range interestingSessionsSql {
-		var insightStrs []string
+		insightStrs := []string{}
 		if result.AiInsights {
 			type insightType struct {
 				Insight string `json:"insight"`
