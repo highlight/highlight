@@ -37,7 +37,6 @@ import {
 } from '@pages/Player/ResourcesContext/ResourcesContext'
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
 import SessionLevelBarV2 from '@pages/Player/SessionLevelBar/SessionLevelBarV2'
-import { DevTools } from '@pages/Player/Toolbar/DevTools'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
@@ -58,6 +57,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
+import DevToolsWindowV2 from '@/pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import WaitingAnimation from '../../lottie/waiting.json'
@@ -356,7 +356,7 @@ const PlayerPage = () => {
 								</div>
 								<Toolbar width={controllerWidth} />
 							</div>
-							<DevTools width={controllerWidth} />
+							<DevToolsWindowV2 width={controllerWidth} />
 						</div>
 						{!isPlayerFullscreen && <RightPlayerPanel />}
 						<NetworkResourcePanel />
