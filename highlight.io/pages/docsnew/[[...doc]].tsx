@@ -5,9 +5,10 @@ import fs from 'fs/promises'
 import { MDXRemote, type MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { serialize } from 'next-mdx-remote/serialize'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { GetStaticPaths, GetStaticProps } from 'next/types'
 import path from 'path'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Collapse } from 'react-collapse'
 import { BiChevronLeft, BiChevronRight } from 'react-icons/bi'
 import remarkGfm from 'remark-gfm'
@@ -28,6 +29,7 @@ import {
 	getTocEntry,
 	readDocFile,
 	readMarkdownFile,
+	SdkTableOfContents,
 	TableOfContents,
 	TocEntry,
 } from '../../components/Docs/TableOfContents/TableOfContents'
@@ -318,6 +320,7 @@ export default function DocPage({
 	docPages,
 	docIndex,
 	mdContent,
+	redirect,
 	toc,
 }: DocProps) {
 	// TODO (fabio): Description for embedding is not correctly cleaned
@@ -330,6 +333,11 @@ export default function DocPage({
 
 	const [mobileTocOpen, setMobileToCOpen] = useState(false)
 	const closeMenu = useCallback(() => setMobileToCOpen(false), [])
+
+	const router = useRouter()
+	useEffect(() => {
+		if (redirect) router.replace(redirect)
+	}, [redirect, router])
 
 	return (
 		<>
@@ -350,22 +358,11 @@ export default function DocPage({
 				<div className={styles.leftSection}>
 					<div className={styles.tocMenuLarge}>
 						{/* Desktop table of contents */}
-						<TableOfContents toc={toc} />
-						{/* {docPath.isSdkDoc ? (
+						{docPage.isSdkDoc ? (
 							<SdkTableOfContents />
 						) : (
-							toc.children.map((t) => {
-								return (
-									<TableOfContents
-										openTopLevel={true}
-										key={t.slugPath}
-										toc={t}
-										openParent={true}
-										docPaths={docPaths}
-									/>
-								)
-							})
-						)} */}
+							<TableOfContents toc={toc} />
+						)}
 					</div>
 					<div
 						className={classNames(styles.tocRow, styles.tocMenu)}
@@ -391,26 +388,13 @@ export default function DocPage({
 					</div>
 					<Collapse isOpened={mobileTocOpen}>
 						{/* Mobile Tabe of contents */}
-						<div
-							className={classNames(
-								styles.tocContents,
-								styles.tocMenu,
-							)}
-						>
-							{/* {docPath.isSdkDoc ? (
+						<div className={classNames('pl-3', styles.tocMenu)}>
+							<TableOfContents toc={toc} />
+							{docPage.isSdkDoc ? (
 								<SdkTableOfContents />
 							) : (
-								toc?.children.map((t) => (
-									<TableOfContents
-										key={t.slug}
-										toc={t}
-										docPaths={docPaths}
-										openParent={false}
-										openTopLevel={false}
-										onNavigate={closeMenu}
-									/>
-								))
-							)} */}
+								<TableOfContents toc={toc} />
+							)}
 						</div>
 					</Collapse>
 				</div>
