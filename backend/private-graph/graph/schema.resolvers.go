@@ -1377,7 +1377,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	// All viewers can leave a comment, including guests
 	session, err := r.canAdminViewSession(ctx, sessionSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin cannot leave a comment")
+		return nil, err
 	}
 
 	var project model.Project
@@ -1684,7 +1684,7 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	session, err := r.canAdminModifySession(ctx, sessionComment.SessionSecureId)
 
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not session owner")
+		return nil, err
 	}
 
 	if err := r.DB.Delete(&model.SessionComment{Model: model.Model{ID: id}}).Error; err != nil {
@@ -1731,7 +1731,7 @@ func (r *mutationResolver) MuteSessionCommentThread(ctx context.Context, id int,
 
 	_, err := r.canAdminModifySession(ctx, sessionComment.SessionSecureId)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not session owner")
+		return nil, err
 	}
 
 	admin, err := r.getCurrentAdmin(ctx)
@@ -1765,7 +1765,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	// All viewers can leave a comment reply, including guests
 	_, err := r.canAdminViewSession(ctx, sessionComment.SessionSecureId)
 	if err != nil {
-		return nil, e.Wrap(err, "admin cannot leave a comment reply")
+		return nil, err
 	}
 
 	var project model.Project
