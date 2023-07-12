@@ -115,11 +115,11 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 				}
 			} else {
 				if err != nil {
-					log.WithFields(log.Fields{"project_id": input.ProjectId, "session_id": item.Id}).
+					log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": item.Id}).
 						Warnf("failed to get session insight with error %#v ", err)
 
 				} else if res.StatusCode != 200 {
-					log.WithFields(log.Fields{"project_id": input.ProjectId, "session_id": item.Id}).
+					log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": item.Id}).
 						Warnf("failed to get session insight with status code %d", res.StatusCode)
 				}
 			}
@@ -243,12 +243,12 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 	for _, session := range input.InterestingSessions {
 		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, nil, nil, nil)
 		if err != nil {
-			log.WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
+			log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
 				Warnf("failed to get session screenshot with error %#v", err)
 			continue
 		}
 		if res.StatusCode != 200 {
-			log.WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
+			log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
 				Warnf("failed to get session screenshot with status code %d", res.StatusCode)
 			continue
 		}
@@ -263,12 +263,12 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 		toEmail := toAddr.Email
 		unsubscribeUrl := email.GetSubscriptionUrl(toAddr.AdminID, false)
 
-		log.Infof("generating email for %s", toEmail)
+		log.WithContext(ctx).Infof("generating email for %s", toEmail)
 		html, err := h.lambdaClient.GetSessionInsightEmailHtml(ctx, toEmail, unsubscribeUrl, input)
 		if err != nil {
 			return err
 		}
-		log.Infof("generated email for %s", toEmail)
+		log.WithContext(ctx).Infof("generated email for %s", toEmail)
 
 		from := mail.NewEmail("Highlight", email.SendGridOutboundEmail)
 		to := &mail.Email{Address: toAddr.Email}
@@ -276,7 +276,7 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 		m := mail.NewV3MailInit(from, subject, to, mail.NewContent("text/html", html))
 
 		for sessionId, img := range images {
-			log.Infof("attaching image for session %d", sessionId)
+			log.WithContext(ctx).Infof("attaching image for session %d", sessionId)
 			a := mail.NewAttachment()
 			a.SetContent(img)
 			a.SetType("image/png")
@@ -286,7 +286,7 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 			m.AddAttachment(a)
 		}
 
-		log.Infof("sending email to %s", toEmail)
+		log.WithContext(ctx).Infof("sending email to %s", toEmail)
 		if resp, sendGridErr := h.sendgridClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
 			estr := "error sending sendgrid email -> "
 			estr += fmt.Sprintf("resp-code: %v; ", resp)
@@ -295,7 +295,7 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 			}
 			return errors.New(estr)
 		}
-		log.Info("sent")
+		log.WithContext(ctx).Info("sent")
 	}
 
 	return nil
