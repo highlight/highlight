@@ -20,7 +20,12 @@ import { SourcemapErrorDetails } from '@pages/ErrorsV2/SourcemapErrorDetails/Sou
 import { UnstructuredStackTrace } from '@pages/ErrorsV2/UnstructuredStackTrace/UnstructuredStackTrace'
 import clsx from 'clsx'
 import React from 'react'
-import ReactCollapsible from 'react-collapsible'
+import ReactCollapsibleModule from 'react-collapsible'
+
+// FIXME: this is a temporary workaround for Reflame not handling minified UMD modules properly
+// Fix coming up soon
+// @ts-ignore
+const ReactCollapsible = ReactCollapsibleModule.default ?? ReactCollapsible
 
 import { ErrorObjectFragment } from '@/graph/generated/operations'
 
