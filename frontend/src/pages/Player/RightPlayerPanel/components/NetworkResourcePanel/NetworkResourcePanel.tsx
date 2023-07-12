@@ -95,6 +95,7 @@ export const NetworkResourcePanel = () => {
 		<Ariakit.Dialog
 			state={networkResourceDialog}
 			modal={false}
+			autoFocusOnShow={false}
 			className={sprinkles({
 				backgroundColor: 'white',
 				display: 'flex',
