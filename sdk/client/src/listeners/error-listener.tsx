@@ -27,7 +27,16 @@ function handleError(
 	event: any,
 	source: string | undefined,
 	error: Error,
+	urlBlocklist: string[],
 ) {
+	const shouldRecordError = !urlBlocklist.some((blockedUrl) =>
+		window.location.href.toLowerCase().includes(blockedUrl),
+	)
+
+	if (!shouldRecordError) {
+		return
+	}
+
 	let res: ErrorStackParser.StackFrame[] = []
 
 	if (event instanceof Error) {
@@ -69,13 +78,7 @@ export const ErrorListener = (
 		error: Error | undefined,
 	): void => {
 		if (error) {
-			const shouldRecordError = !urlBlocklist.some((blockedUrl) =>
-				window.location.href.toLowerCase().includes(blockedUrl),
-			)
-
-			if (shouldRecordError) {
-				handleError(callback, event, source, error)
-			}
+			handleError(callback, event, source, error, urlBlocklist)
 		}
 	}
 	g.onunhandledrejection = function (event: PromiseRejectionEvent): void {
@@ -89,9 +92,16 @@ export const ErrorListener = (
 					event.reason,
 					event.type,
 					hPromise.getStack(),
+					urlBlocklist,
 				)
 			} else {
-				handleError(callback, event.reason, event.type, Error())
+				handleError(
+					callback,
+					event.reason,
+					event.type,
+					Error(),
+					urlBlocklist,
+				)
 			}
 		}
 	}
