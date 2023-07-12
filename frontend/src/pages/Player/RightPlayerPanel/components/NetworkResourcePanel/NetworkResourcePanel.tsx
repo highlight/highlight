@@ -74,8 +74,10 @@ export const NetworkResourcePanel = () => {
 	useEffect(() => {
 		if (resource?.id !== undefined) {
 			networkResourceDialog.show()
+		} else {
+			hide()
 		}
-	}, [networkResourceDialog, resource?.id])
+	}, [hide, networkResourceDialog, resource?.id])
 
 	// Close the dialog and reset the active resource when the user interacts with
 	// the page outside the dialog.
@@ -254,6 +256,7 @@ function NetworkResourceDetails({
 						iconRight={<IconSolidArrowCircleRight />}
 						onClick={() => {
 							setTime(timestamp)
+							hide()
 						}}
 					>
 						Go to
