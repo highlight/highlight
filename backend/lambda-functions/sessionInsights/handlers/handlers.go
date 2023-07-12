@@ -59,8 +59,8 @@ func NewHandlers() *handlers {
 
 func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.ProjectIdResponse) (*utils.SessionInsightsData, error) {
 	var result struct {
-		projectName string
-		aiInsights  bool
+		ProjectName string
+		AiInsights  bool
 	}
 	if err := h.db.Raw(`
 		SELECT p.name as project_name, coalesce(ws.ai_insights, false) as ai_insights
@@ -69,7 +69,7 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 		ON p.workspace_id = ws.workspace_id
 		WHERE p.id = ?
 	`, input.ProjectId).Scan(&result).Error; err != nil {
-		return nil, errors.Wrap(err, "error querying project name")
+		return nil, errors.Wrap(err, "error querying project info")
 	}
 
 	var interestingSessionsSql []utils.InterestingSessionSql
@@ -91,7 +91,7 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 	interestingSessions := []utils.InterestingSession{}
 	for _, item := range interestingSessionsSql {
 		insightStrs := []string{}
-		if result.aiInsights {
+		if result.AiInsights {
 			insights := struct {
 				Insight []struct {
 					Insight string `json:"insight"`
@@ -99,13 +99,21 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 			}{}
 
 			res, err := h.lambdaClient.GetSessionInsight(ctx, input.ProjectId, item.Id)
-			if err == nil && res.StatusCode == 200 {
-				b, err := io.ReadAll(res.Body)
-				if err == nil && json.Unmarshal(b, &insights) == nil {
-					for _, i := range insights.Insight {
-						insightStrs = append(insightStrs, i.Insight)
-					}
-				}
+			if err != nil {
+				return nil, err
+			}
+			if res.StatusCode != 200 {
+				return nil, errors.New(fmt.Sprintf("screenshot lambda returned %d", res.StatusCode))
+			}
+			b, err := io.ReadAll(res.Body)
+			if err != nil {
+				return nil, err
+			}
+			if err := json.Unmarshal(b, &insights); err == nil {
+				return nil, err
+			}
+			for _, i := range insights.Insight {
+				insightStrs = append(insightStrs, i.Insight)
 			}
 		}
 
@@ -126,8 +134,8 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 		ProjectId:           input.ProjectId,
 		StartFmt:            input.Start.Format("01/02"),
 		EndFmt:              input.End.Format("01/02"),
-		ProjectName:         result.projectName,
-		UseHarold:           result.aiInsights,
+		ProjectName:         result.ProjectName,
+		UseHarold:           result.AiInsights,
 		InterestingSessions: interestingSessions,
 		DryRun:              input.DryRun,
 	}, nil
@@ -237,7 +245,7 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 	images := map[int]string{}
 	for _, session := range input.InterestingSessions {
 		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, session.Ts, session.Chunk)
-		if err == nil {
+		if err != nil {
 			return err
 		}
 		if res.StatusCode != 200 {

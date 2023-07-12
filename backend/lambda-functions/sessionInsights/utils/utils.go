@@ -12,7 +12,6 @@ type ProjectIdResponse struct {
 	DryRun    bool      `json:"dryRun"`
 	End       time.Time `json:"end"`
 	Start     time.Time `json:"start"`
-	Prior     time.Time `json:"prior"`
 }
 
 type InterestingSessionSql struct {
