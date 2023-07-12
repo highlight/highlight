@@ -12,6 +12,7 @@ import React from 'react'
 // @ts-ignore
 import { specific } from 'react-files-hooks'
 
+import { Button } from '@/components/Button'
 import { styledHorizontalScrollbar } from '@/style/common.css'
 
 type Props = {
@@ -24,6 +25,7 @@ type Props = {
 const TextViewer = React.memo(
 	({ title, data, downloadFileName = 'highlight-json', repr }: Props) => {
 		const { download } = specific.useJSONDownloader()
+		const [truncated, setTruncated] = React.useState(false)
 
 		if (data === null) {
 			return null
@@ -35,6 +37,7 @@ const TextViewer = React.memo(
 			return value
 		})
 		const objectStr = JSON.stringify(data, Array.from(allKeys).sort(), 2)
+		const isTruncated = objectStr.length > 15000 && !truncated
 
 		return (
 			<Box width="full" display="flex" flexDirection="column" gap="4">
@@ -95,6 +98,7 @@ const TextViewer = React.memo(
 						</Tooltip>
 					</Box>
 				</Box>
+
 				<Box
 					color="moderate"
 					px="4"
@@ -108,6 +112,21 @@ const TextViewer = React.memo(
 				>
 					{!!repr ? (
 						repr
+					) : isTruncated ? (
+						<Box pt="12" px="6" pb="4" textAlign="center">
+							<Box pb="12">
+								<Text>
+									Payload is large and could be difficult to
+									view in the browser.
+								</Text>
+							</Box>
+							<Button
+								onClick={() => setTruncated(!truncated)}
+								trackingId="open-json-payload"
+							>
+								Show payload
+							</Button>
+						</Box>
 					) : (
 						<Text
 							as="span"

@@ -68,6 +68,7 @@ export const playerCenterColumn = style({
 	flexGrow: 1,
 	position: 'relative',
 	minWidth: MIN_CENTER_COLUMN_WIDTH,
+	zIndex: 0,
 })
 
 export const playerLeftPanel = style({

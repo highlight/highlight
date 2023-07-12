@@ -8,20 +8,21 @@
 	"scripts": {
 		"build": "tsup",
 		"test": "DEV=true node dist/index.js",
-		"publish": "zip -9 -r function.zip node_modules package.json -x node_modules/typescript/\\* -x node_modules/tsup/\\* -x node_modules/@types/\\* -x node_modules/@highlight-run/rrweb/node_modules/typescript/\\* && cd dist && zip ../function.zip * && cd .. && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
+		"zip": "zip -9 -r function.zip node_modules package.json -x node_modules/typescript/\\* -x node_modules/tsup/\\* -x node_modules/@types/\\* -x node_modules/@highlight-run/node/node_modules/typescript/\\* -x node_modules/@highlight-run/rrweb/node_modules/typescript/\\* && cd dist && zip ../function.zip * && cd ..",
+		"check": "node dist/check.js",
+		"publish": "yarn zip && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
 	},
 	"installConfig": {
 		"hoistingLimits": "dependencies"
 	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.352.0",
-		"@highlight-run/node": "workspace:*",
 		"@highlight-run/rrweb": "workspace:*",
 		"@sparticuz/chromium": "^114.0.0",
 		"puppeteer-core": "^19.11.1"
 	},
 	"devDependencies": {
-		"@types/aws-lambda": "^8.10.114",
+		"@types/aws-lambda": "^8.10.119",
 		"@types/find": "^0.2.1",
 		"@types/fs-extra": "^11.0.1",
 		"@types/node": "^18.15.3",

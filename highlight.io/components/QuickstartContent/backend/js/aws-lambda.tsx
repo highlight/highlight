@@ -22,7 +22,7 @@ export const JSAWSLambdaContent: QuickStartContent = {
 			content: addIntegrationContent('Node Highlight SDK', 'nodejs'),
 			code: [
 				{
-					text: `import { APIGatewayEvent } from 'aws-lambda'
+					text: `import type { APIGatewayEvent } from 'aws-lambda'
 import { H, Handlers } from '@highlight-run/node'
 
 // setup console log recording

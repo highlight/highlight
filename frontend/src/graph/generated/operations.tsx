@@ -3470,23 +3470,6 @@ export type GetDailyErrorFrequencyQuery = { __typename?: 'Query' } & Pick<
 	'dailyErrorFrequency'
 >
 
-export type GetErrorDistributionQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	error_group_secure_id: Types.Scalars['String']
-	property: Types.Scalars['String']
-}>
-
-export type GetErrorDistributionQuery = { __typename?: 'Query' } & {
-	errorDistribution: Array<
-		Types.Maybe<
-			{ __typename?: 'ErrorDistributionItem' } & Pick<
-				Types.ErrorDistributionItem,
-				'name' | 'value'
-			>
-		>
-	>
-}
-
 export type GetSlackChannelSuggestionQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 }>
@@ -4359,6 +4342,15 @@ export type GetWorkspacePendingInvitesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorResolutionSuggestionQueryVariables = Types.Exact<{
+	error_object_id: Types.Scalars['ID']
+}>
+
+export type GetErrorResolutionSuggestionQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'error_resolution_suggestion'
+>
+
 export type GetWorkspaceSettingsQueryVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 }>
@@ -4376,6 +4368,7 @@ export type GetErrorObjectsQueryVariables = Types.Exact<{
 	errorGroupSecureID: Types.Scalars['String']
 	after?: Types.Maybe<Types.Scalars['String']>
 	before?: Types.Maybe<Types.Scalars['String']>
+	query: Types.Scalars['String']
 }>
 
 export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
@@ -4387,14 +4380,18 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 			> & {
 					node: { __typename?: 'ErrorObjectNode' } & Pick<
 						Types.ErrorObjectNode,
-						'id' | 'createdAt' | 'event' | 'errorGroupSecureID'
+						| 'id'
+						| 'createdAt'
+						| 'event'
+						| 'timestamp'
+						| 'errorGroupSecureID'
 					> & {
 							session?: Types.Maybe<
 								{
 									__typename?: 'ErrorObjectNodeSession'
 								} & Pick<
 									Types.ErrorObjectNodeSession,
-									'secureID' | 'userProperties' | 'appVersion'
+									'secureID' | 'email' | 'appVersion'
 								>
 							>
 						}
@@ -4486,7 +4483,6 @@ export const namedOperations = {
 		GetDailyErrorsCount: 'GetDailyErrorsCount' as const,
 		GetRageClicksForProject: 'GetRageClicksForProject' as const,
 		GetDailyErrorFrequency: 'GetDailyErrorFrequency' as const,
-		GetErrorDistribution: 'GetErrorDistribution' as const,
 		GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
 		GetWorkspaceIsIntegratedWithSlack:
 			'GetWorkspaceIsIntegratedWithSlack' as const,
@@ -4536,6 +4532,7 @@ export const namedOperations = {
 		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
 		GetProjectSettings: 'GetProjectSettings' as const,
 		GetWorkspacePendingInvites: 'GetWorkspacePendingInvites' as const,
+		GetErrorResolutionSuggestion: 'GetErrorResolutionSuggestion' as const,
 		GetWorkspaceSettings: 'GetWorkspaceSettings' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
 	},

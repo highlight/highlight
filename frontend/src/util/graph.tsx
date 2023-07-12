@@ -18,6 +18,7 @@ import {
 import { namedOperations } from '@graph/operations'
 import { auth } from '@util/auth'
 import { IndexedDBLink } from '@util/db'
+import { invalidateRefetch } from '@util/gql'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 
 import {
@@ -160,6 +161,11 @@ export const client = new ApolloClient({
 			authLink.concat(splitLink || highlightGraph),
 		),
 	]),
+	defaultOptions: {
+		mutate: {
+			onQueryUpdated: invalidateRefetch,
+		},
+	},
 	cache,
 	assumeImmutableResults: true,
 	connectToDevTools: import.meta.env.DEV,

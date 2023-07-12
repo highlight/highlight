@@ -267,9 +267,6 @@
 		"@vanilla-extract/recipes": {
 			"entryPoints": ["/createRuntimeFn"],
 		},
-		"ariakit": {
-			"entryPoints": ["/", "/dialog", "/form"],
-		},
 		// TODO: create a library for this
 		// Might need a shim entry point for .css?
 		"@highlight-run/react": {
@@ -290,9 +287,6 @@
 		},
 		"firebase": {
 			"entryPoints": ["/compat/auth", "/compat/app"],
-		},
-		"intro.js": {
-			"entryPoints": ["/", "/introjs.css"],
 		},
 		"lodash": {
 			"entryPoints": ["/", "/isEqual"],
