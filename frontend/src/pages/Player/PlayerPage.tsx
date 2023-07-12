@@ -26,7 +26,6 @@ import {
 	useLinkLogCursor,
 } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import PlayerPageProductTour from '@pages/Player/PlayerPageProductTour/PlayerPageProductTour'
 import {
 	ReplayerContextProvider,
 	ReplayerState,
@@ -483,7 +482,6 @@ const PlayerPage = () => {
 					<Helmet>
 						<title>{getTabTitle(session)}</title>
 					</Helmet>
-					{isPlayerReady && !isLoggedIn && <PlayerPageProductTour />}
 					<Box
 						cssClass={clsx(style.playerBody, {
 							[style.withLeftPanel]: showLeftPanel,
