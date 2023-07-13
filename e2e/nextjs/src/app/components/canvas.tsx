@@ -27,16 +27,19 @@ export const Canvas = ({
 	sceneOptions?: any
 }) => {
 	const onRender = (scene: Scene) => {
-		console.log('onRender', scene)
+		console.debug('onRender', scene)
 	}
 	const onSceneReady = (scene: Scene) => {
-		console.log('onSceneReady', scene)
+		console.debug('onSceneReady', scene)
 	}
 	const reactCanvas = useRef(null)
 	const loadTimer = useRef<number>()
 
 	const [loaded, setLoaded] = useState(false)
-	const [scene, setScene] = useState<Scene | null>(null)
+	const [canvas, setCanvas] = useState<{
+		engine: Engine | null
+		scene: Scene | null
+	}>({ engine: null, scene: null })
 
 	useEffect(() => {
 		H.identify('vadim@highlight.io')
@@ -45,8 +48,8 @@ export const Canvas = ({
 	useEffect(() => {
 		if (window) {
 			const resize = () => {
-				if (scene) {
-					scene.getEngine().resize()
+				if (canvas.scene) {
+					canvas.scene.getEngine().resize()
 				}
 			}
 			window.addEventListener('resize', resize)
@@ -55,7 +58,7 @@ export const Canvas = ({
 				window.removeEventListener('resize', resize)
 			}
 		}
-	}, [scene])
+	}, [canvas])
 
 	useEffect(() => {
 		const load = () => {
@@ -138,7 +141,7 @@ export const Canvas = ({
 				return scene
 			}
 			const scene = createScene()
-			setScene(scene)
+			setCanvas({ scene, engine })
 			if (scene.isReady()) {
 				onSceneReady(scene)
 			} else {
@@ -169,18 +172,40 @@ export const Canvas = ({
 				window.clearTimeout(loadTimer.current)
 				loadTimer.current = undefined
 			}
-			if (scene !== null) {
-				scene.dispose()
+			if (canvas.scene !== null) {
+				canvas.scene.dispose()
 			}
 			setLoaded(false)
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [reactCanvas])
 
 	return (
-		<canvas
-			style={{ width: '100%', height: '100%' }}
-			ref={reactCanvas}
-			{...rest}
-		/>
+		<div>
+			<button
+				onClick={() => {
+					H.track('render loop start')
+					canvas.engine?.runRenderLoop(() => {
+						onRender(canvas.scene!)
+						canvas.scene!.render()
+					})
+				}}
+			>
+				start
+			</button>
+			<button
+				onClick={() => {
+					H.track('render loop stop')
+					canvas.engine?.stopRenderLoop()
+				}}
+			>
+				stop
+			</button>
+			<canvas
+				style={{ width: '100%', height: '100%' }}
+				ref={reactCanvas}
+				{...rest}
+			/>
+		</div>
 	)
 }
