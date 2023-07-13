@@ -1,7 +1,7 @@
 import { Box } from '@highlight-run/ui'
 import React, { CSSProperties, useEffect, useRef, useState } from 'react'
 
-import { Button } from '../../../../packages/ui'
+import { Button } from '@/components/Button'
 
 interface Navigator {
 	getUserMedia(
