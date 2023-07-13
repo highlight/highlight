@@ -95,7 +95,7 @@ jobs:
               run: yarn publish:client
 
             - name: Upload frontend sourcemaps
-              if: github.ref == 'refs/heads/main'
+              #              if: github.ref == 'refs/heads/main'
               run: yarn && yarn sourcemaps:frontend
               env:
                   HIGHLIGHT_API_KEY: ${{ secrets.HIGHLIGHT_SOURCEMAP_API_KEY }}
