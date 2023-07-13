@@ -65,13 +65,12 @@ jobs:
               uses: dopplerhq/cli-action@v2
 
             - name: Build & test
-              run: doppler run -- yarn test:all
+              run: doppler run -- bash -c 'RENDER_PREVIEW=false yarn test:all'
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
                   GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
                   REACT_APP_COMMIT_SHA: ${{ github.sha }}
-                  RENDER_PREVIEW: false
 
             - name: Test session screenshot lambda
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
