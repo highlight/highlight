@@ -429,9 +429,10 @@ type ComplexityRoot struct {
 	}
 
 	ErrorObjectNodeSession struct {
-		AppVersion func(childComplexity int) int
-		Email      func(childComplexity int) int
-		SecureID   func(childComplexity int) int
+		AppVersion  func(childComplexity int) int
+		Email       func(childComplexity int) int
+		Fingerprint func(childComplexity int) int
+		SecureID    func(childComplexity int) int
 	}
 
 	ErrorResults struct {
@@ -3342,6 +3343,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObjectNodeSession.Email(childComplexity), true
+
+	case "ErrorObjectNodeSession.fingerprint":
+		if e.complexity.ErrorObjectNodeSession.Fingerprint == nil {
+			break
+		}
+
+		return e.complexity.ErrorObjectNodeSession.Fingerprint(childComplexity), true
 
 	case "ErrorObjectNodeSession.secureID":
 		if e.complexity.ErrorObjectNodeSession.SecureID == nil {
@@ -9326,6 +9334,7 @@ type ErrorObjectNodeSession {
 	secureID: String!
 	appVersion: String
 	email: String
+	fingerprint: Int
 }
 
 type ErrorObjectNode {
@@ -27563,6 +27572,8 @@ func (ec *executionContext) fieldContext_ErrorObjectNode_session(ctx context.Con
 				return ec.fieldContext_ErrorObjectNodeSession_appVersion(ctx, field)
 			case "email":
 				return ec.fieldContext_ErrorObjectNodeSession_email(ctx, field)
+			case "fingerprint":
+				return ec.fieldContext_ErrorObjectNodeSession_fingerprint(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObjectNodeSession", field.Name)
 		},
@@ -27735,6 +27746,47 @@ func (ec *executionContext) fieldContext_ErrorObjectNodeSession_email(ctx contex
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorObjectNodeSession_fingerprint(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectNodeSession) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorObjectNodeSession_fingerprint(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Fingerprint, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorObjectNodeSession_fingerprint(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorObjectNodeSession",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
 		},
 	}
 	return fc, nil
@@ -65785,6 +65837,10 @@ func (ec *executionContext) _ErrorObjectNodeSession(ctx context.Context, sel ast
 		case "email":
 
 			out.Values[i] = ec._ErrorObjectNodeSession_email(ctx, field, obj)
+
+		case "fingerprint":
+
+			out.Values[i] = ec._ErrorObjectNodeSession_fingerprint(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

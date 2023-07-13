@@ -544,6 +544,7 @@ export type ErrorObjectNodeSession = {
 	__typename?: 'ErrorObjectNodeSession'
 	appVersion?: Maybe<Scalars['String']>
 	email?: Maybe<Scalars['String']>
+	fingerprint?: Maybe<Scalars['Int']>
 	secureID: Scalars['String']
 }
 

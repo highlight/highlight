@@ -13006,6 +13006,7 @@ export const GetErrorObjectsDocument = gql`
 						secureID
 						email
 						appVersion
+						fingerprint
 					}
 				}
 			}
