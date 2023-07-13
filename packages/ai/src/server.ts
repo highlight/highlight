@@ -2,12 +2,7 @@ import express from 'express'
 import { Configuration, OpenAIApi } from 'openai'
 import cors from 'cors'
 import { getEvents } from './s3'
-import {
-	getInsightsForEvents,
-	getMostActiveChunks,
-	parseEventsForInput,
-} from './utils'
-import { getSessionHighlightPrompt } from 'src/prompts'
+import { getInsightsForEvents } from './utils'
 
 const configuration = new Configuration({
 	organization: 'org-q9w5AyJeJV2vbW0t1g74sCB0',
