@@ -50,7 +50,7 @@ export const HaroldAISettings = () => {
 						</Text>
 					</Stack>
 					<BorderBox>
-						<Box py="4">
+						<Box pt="4">
 							<Stack gap="12" direction="column" pb="12">
 								<Text weight="bold" size="small" color="strong">
 									Learn more about Highlight's AI
@@ -63,7 +63,7 @@ export const HaroldAISettings = () => {
 							<Button
 								kind="secondary"
 								emphasis="high"
-								iconRight={<IconSolidExternalLink />}
+								iconRight={<IconSolidExternalLink size={14} />}
 								onClick={() => {
 									window.open(
 										'https://highlight.io/blog/introducing-harold',
