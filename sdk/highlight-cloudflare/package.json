@@ -6,13 +6,15 @@
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
 	"scripts": {
-		"typegen": "tsup src/index.ts --dts-only",
-		"build": "tsup src/index.ts --format cjs,esm --dts"
+		"dev": "yarn build --watch",
+		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"typegen": "tsup src/index.ts --dts-only"
 	},
 	"publishConfig": {
 		"access": "public"
 	},
 	"dependencies": {
+		"@microlabs/otel-cf-workers": "^1.0.0-rc.6",
 		"diary": "^0.4.4",
 		"opentelemetry-sdk-workers": "^0.6.2"
 	},
