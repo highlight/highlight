@@ -43,15 +43,14 @@ const sessionExample = {
 	country: 'Germany',
 	activeLength: '1h 25m',
 	insights: [
-		'The customer identified themselves with an “authenticated” event at 11:12.',
+		`The user viewed an error page with the URL 'https://app.highlight.io/1/errors/7YboUB1obqGbOZV95X40gZrTGyRC/instances/196875448/?page=1&query=and%7C%7Cerror_state%2Cis%2COPEN%7C%7Cerror-field_timestamp%2Cbetween_date%2C2023-06-05T18%3A32%3A16.319Z_2023-07-05T18%3A32%3A16.319Z'`,
 		'The customer changed their billing settings on the billing page. This is a really long insight. I wonder what happens when the insight is this long.',
 		'The customer logged out at 45:32.',
 	],
 }
 
 export const SessionInsightsEmail = ({
-	projectId = 1,
-	projectName = 'Highlight Production',
+	projectName = 'Highlight Production (app.highlight.io)',
 	toEmail = 'zane@highlight.io',
 	unsubscribeUrl = 'https://app.highlight.io/unsubscribe',
 	useHarold = false,
@@ -59,7 +58,7 @@ export const SessionInsightsEmail = ({
 }: SessionInsightsEmailProps) => (
 	<Html>
 		<Head />
-		<Preview>{projectName}</Preview>
+		<Preview>Session insights for {projectName}</Preview>
 		<Body style={main}>
 			<Container style={container}>
 				<Container style={contentContainer}>
@@ -72,7 +71,7 @@ export const SessionInsightsEmail = ({
 							style={logo}
 						/>
 						<Heading style={{ ...text, fontSize: '36px' }}>
-							<span style={highlightedText}>{projectName}</span>
+							<a style={highlightedText}>{projectName}</a>
 							<br />
 							Session Insights
 						</Heading>
@@ -127,7 +126,11 @@ export const SessionInsightsEmail = ({
 									<Column style={numberLabel} width={24}>
 										{idx + 1}
 									</Column>
-									<Column style={insightText}>{i}</Column>
+									<Column width={326}>
+										<Link style={hoverAnchor} href={s.url}>
+											<Text style={insightText}>{i}</Text>
+										</Link>
+									</Column>
 								</Section>
 							))}
 						</Section>
@@ -205,6 +208,10 @@ const text = {
 
 const highlightedText = {
 	color: '#ebff5e',
+}
+
+const hoverAnchor = {
+	color: '#ffffff',
 }
 
 const anchor = {
@@ -304,4 +311,5 @@ const insightText = {
 	...text,
 	paddingLeft: '8px',
 	textAlign: 'left' as const,
+	lineBreak: 'anywhere' as const,
 }

@@ -2,8 +2,12 @@
 	"name": "emails",
 	"version": "0.0.18",
 	"private": true,
+	"workspaces": [
+		".react-email"
+	],
 	"scripts": {
 		"build": "tsc --build ./",
+		"dev": "email dev",
 		"publish": "zip -r function.zip node_modules package.json && cd dist && zip ../function.zip ./**/*.js && cd .. && aws s3 cp function.zip s3://highlight-lambda-code/session-insights-email.zip && rm function.zip && aws lambda update-function-code --function-name session-insights-email --s3-bucket highlight-lambda-code --s3-key session-insights-email.zip"
 	},
 	"dependencies": {
@@ -13,6 +17,7 @@
 		"typescript": "^5.1.6"
 	},
 	"devDependencies": {
-		"@types/aws-lambda": "^8.10.119"
+		"@types/aws-lambda": "^8.10.119",
+		"react-email": "^1.9.4"
 	}
 }
