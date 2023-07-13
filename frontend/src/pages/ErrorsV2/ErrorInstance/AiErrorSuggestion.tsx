@@ -172,7 +172,7 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 			)}
 
 			{!data?.error_resolution_suggestion ? (
-				<Box display="flex" mt="12">
+				<Box display="flex" mt="12" gap="4">
 					<Button
 						onClick={() => {
 							getErrorResolutionSuggestion({
@@ -187,11 +187,24 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 						loading={loading}
 						iconLeft={<IconSolidSparkles />}
 					>
-						Get Suggestion
+						Get error help
+					</Button>
+					<Button
+						kind="secondary"
+						emphasis="low"
+						trackingId="error-instance_ai-learn-more"
+						onClick={() => {
+							window.open(
+								'https://highlight.io/blog/introducing-harold',
+								'_blank',
+							)
+						}}
+					>
+						Learn more
 					</Button>
 				</Box>
 			) : (
-				<Box display="flex" justifyContent="center" mt="12">
+				<Box display="flex" justifyContent="center" mt="12" gap="4">
 					<Button
 						onClick={(_event) => {
 							refetch()
@@ -204,6 +217,19 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 						iconLeft={<IconSolidRefresh />}
 					>
 						Refresh Suggestion
+					</Button>
+					<Button
+						kind="secondary"
+						emphasis="low"
+						trackingId="error-instance_ai-learn-more"
+						onClick={() => {
+							window.open(
+								'https://highlight.io/blog/introducing-harold',
+								'_blank',
+							)
+						}}
+					>
+						Learn more
 					</Button>
 				</Box>
 			)}
