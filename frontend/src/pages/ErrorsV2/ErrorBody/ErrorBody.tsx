@@ -4,14 +4,12 @@ import {
 	Box,
 	ButtonLink,
 	IconSolidCheveronRight,
-	IconSolidCode,
 	IconSolidUsers,
 	IconSolidViewGrid,
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import AffectedUserCount from '@pages/ErrorsV2/ErrorBody/components/AffectedUserCount'
-import ErrorBodyText from '@pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
 import ErrorFrequencyChart from '@pages/ErrorsV2/ErrorBody/components/ErrorFrequencyChart'
 import ErrorObjectCount from '@pages/ErrorsV2/ErrorBody/components/ErrorObjectCount'
 import ErrorOccurenceDate from '@pages/ErrorsV2/ErrorBody/components/ErrorOccurenceDate'
@@ -59,6 +57,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 		<Box border="secondary" borderRadius="6">
 			<Box display="flex">
 				<Stat
+					noBorderBottom
 					title={
 						<>
 							<Box
@@ -89,6 +88,7 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					<AffectedUserCount errorGroup={errorGroup} />
 				</Stat>
 				<Stat
+					noBorderBottom
 					title={
 						<>
 							<Box
@@ -119,41 +119,34 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 					<ErrorObjectCount errorGroup={errorGroup} />
 				</Stat>
 				<Stat
+					noBorderBottom
 					title={<Text color="moderate">Last/first occurrence</Text>}
 				>
 					<ErrorOccurenceDate errorGroup={errorGroup} />
 				</Stat>
 
 				<Stat
+					noBorderBottom
 					title={<Text color="moderate">Last 30 days</Text>}
-					noBorder
+					noBorderRight
 				>
 					<ErrorFrequencyChart errorGroup={errorGroup} />
 				</Stat>
-			</Box>
-			<Box py="12" px="16">
-				<Box
-					mb="20"
-					display="flex"
-					gap="6"
-					alignItems="center"
-					color="weak"
-				>
-					<IconSolidCode />
-					<Text color="moderate">Error Body</Text>
-				</Box>
-				<ErrorBodyText errorGroup={errorGroup} />
 			</Box>
 		</Box>
 	)
 }
 
 const Stat: React.FC<
-	React.PropsWithChildren<{ title: React.ReactElement; noBorder?: boolean }>
-> = ({ title, children, noBorder = false }) => (
+	React.PropsWithChildren<{
+		title: React.ReactElement
+		noBorderRight?: boolean
+		noBorderBottom?: boolean
+	}>
+> = ({ title, children, noBorderRight = false, noBorderBottom = false }) => (
 	<Box
-		borderBottom="secondary"
-		borderRight={noBorder ? undefined : 'secondary'}
+		borderBottom={noBorderBottom ? undefined : 'secondary'}
+		borderRight={noBorderRight ? undefined : 'secondary'}
 		px="16"
 		py="12"
 		flex="stretch"

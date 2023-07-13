@@ -144,7 +144,6 @@ export enum PlayerActionType {
 	seek,
 	setCurrentEvent,
 	setIsLiveMode,
-	setLastActiveString,
 	setScale,
 	setSessionResults,
 	setTime,
@@ -167,7 +166,6 @@ type PlayerAction =
 	| seek
 	| setCurrentEvent
 	| setIsLiveMode
-	| setLastActiveString
 	| setScale
 	| setSessionResults
 	| setTime
@@ -257,11 +255,6 @@ interface onSessionPayloadLoaded {
 		TimelineIndicatorEvent,
 		'timestamp' | 'data' | 'type' | 'sid'
 	>[]
-}
-
-interface setLastActiveString {
-	type: PlayerActionType.setLastActiveString
-	lastActiveString: SetStateAction<string | null>
 }
 
 interface setScale {
@@ -486,13 +479,9 @@ export const PlayerReducer = (
 			const time = getTimeFromReplayer(s.replayer, s.sessionMetadata)
 			// Compute the string rather than number here, so that dependencies don't
 			// have to re-render on every tick
-			if (
-				s.isLiveMode &&
-				s.lastActiveTimestamp != 0 &&
-				s.lastActiveTimestamp < time - 5000
-			) {
+			if (s.isLiveMode && s.lastActiveTimestamp != 0) {
 				if (s.lastActiveTimestamp > time - 1000 * 60) {
-					s.lastActiveString = 'less than a minute ago'
+					s.lastActiveString = 'less than 1 minute ago'
 				} else {
 					s.lastActiveString = moment(s.lastActiveTimestamp).from(
 						time,
@@ -542,12 +531,6 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.setScale:
 			s.scale = handleSetStateAction(s.scale, action.scale)
-			break
-		case PlayerActionType.setLastActiveString:
-			s.lastActiveString = handleSetStateAction(
-				s.lastActiveString,
-				action.lastActiveString,
-			)
 			break
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)

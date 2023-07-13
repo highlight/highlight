@@ -12,7 +12,7 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useState } from 'react'
 
-import styles from './AlertEnableSwitch.module.scss'
+import styles from './AlertEnableSwitch.module.css'
 
 export const AlertEnableSwitch: React.FC<
 	React.PropsWithChildren<{ record: any }>
@@ -42,7 +42,6 @@ export const AlertEnableSwitch: React.FC<
 			case ALERT_TYPE.FirstTimeUser:
 			case ALERT_TYPE.UserProperties:
 			case ALERT_TYPE.TrackProperties:
-			case ALERT_TYPE.SessionFeedback:
 			case ALERT_TYPE.NewSession:
 			case ALERT_TYPE.RageClick:
 				await updateSessionAlertIsDisabled({

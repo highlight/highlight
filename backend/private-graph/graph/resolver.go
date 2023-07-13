@@ -35,6 +35,7 @@ import (
 	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stepfunctions"
+	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/vercel"
 
 	"github.com/pkg/errors"
@@ -74,6 +75,9 @@ import (
 const ErrorGroupLookbackDays = 7
 const SessionActiveMetricName = "sessionActiveLength"
 const SessionProcessedMetricName = "sessionProcessed"
+
+var AuthenticationError = errors.New("401 - AuthenticationError")
+var AuthorizationError = errors.New("403 - AuthorizationError")
 
 var (
 	WhitelistedUID  = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
@@ -128,6 +132,7 @@ type Resolver struct {
 	OAuthServer            *oauth.Server
 	IntegrationsClient     *integrations.Client
 	ClickhouseClient       *clickhouse.Client
+	Store                  *store.Store
 }
 
 func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {
@@ -142,10 +147,28 @@ func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) 
 }
 
 func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
-	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.admin"))
+	adminUID := pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))
+	firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
+		tracer.Tag("admin_uid", adminUID))
+	firebaseUser, err := AuthClient.GetUser(context.Background(), *adminUID)
+	if err != nil {
+		spanError := e.Wrap(err, "error retrieving user from firebase api")
+		firebaseSpan.Finish(tracer.WithError(spanError))
+		return nil, spanError
+	}
+	firebaseSpan.Finish()
 
-	admin := &model.Admin{UID: pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))}
-	tx := r.DB.Where(admin).
+	adminSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.admin"))
+	admin := &model.Admin{
+		UID:                   adminUID,
+		Name:                  &firebaseUser.DisplayName,
+		Email:                 &firebaseUser.Email,
+		PhotoURL:              &firebaseUser.PhotoURL,
+		EmailVerified:         &firebaseUser.EmailVerified,
+		Phone:                 &firebaseUser.PhoneNumber,
+		AboutYouDetailsFilled: &model.F,
+	}
+	tx := r.DB.Where(&model.Admin{UID: admin.UID}).
 		Clauses(clause.OnConflict{Columns: []clause.Column{{Name: "uid"}}, DoNothing: true}).
 		Create(&admin).
 		Attrs(&admin)
@@ -154,66 +177,18 @@ func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
 		adminSpan.Finish(tracer.WithError(spanError))
 		return nil, spanError
 	}
-	if tx.RowsAffected != 0 {
-		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
-			tracer.Tag("admin_uid", *admin.UID))
-		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
-		if err != nil {
-			spanError := e.Wrap(err, "error retrieving user from firebase api")
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			adminSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
-			UID:                   admin.UID,
-			Name:                  &firebaseUser.DisplayName,
-			Email:                 &firebaseUser.Email,
-			PhotoURL:              &firebaseUser.PhotoURL,
-			EmailVerified:         &firebaseUser.EmailVerified,
-			Phone:                 &firebaseUser.PhoneNumber,
-			AboutYouDetailsFilled: &model.F,
-		}).Error; err != nil {
-			spanError := e.Wrap(err, "error creating new admin")
-			adminSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		firebaseSpan.Finish()
-	}
-	if err := r.DB.Where(&model.Admin{UID: admin.UID}).First(&admin).Error; err != nil {
-		spanError := e.Wrap(err, "error fetching admin")
-		adminSpan.Finish(tracer.WithError(spanError))
-		return nil, spanError
-	}
-	if admin.PhotoURL == nil || admin.Name == nil {
-		firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.updateAdminFromFirebase"),
-			tracer.Tag("admin_uid", *admin.UID))
-		firebaseUser, err := AuthClient.GetUser(context.Background(), *admin.UID)
-		if err != nil {
-			spanError := e.Wrap(err, "error retrieving user from firebase api")
-			adminSpan.Finish(tracer.WithError(spanError))
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		if err := r.DB.Where(&model.Admin{UID: admin.UID}).Updates(&model.Admin{
-			PhotoURL: &firebaseUser.PhotoURL,
-			Name:     &firebaseUser.DisplayName,
-			Phone:    &firebaseUser.PhoneNumber,
-		}).Error; err != nil {
-			spanError := e.Wrap(err, "error updating org fields")
-			adminSpan.Finish(tracer.WithError(spanError))
-			firebaseSpan.Finish(tracer.WithError(spanError))
-			return nil, spanError
-		}
-		admin.PhotoURL = &firebaseUser.PhotoURL
-		admin.Name = &firebaseUser.DisplayName
-		admin.Phone = &firebaseUser.PhoneNumber
-		firebaseSpan.Finish()
-	}
+	adminSpan.Finish()
+
 	return admin, nil
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
-	return r.Query().Admin(ctx)
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, AuthenticationError
+	}
+
+	return admin, nil
 }
 
 func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -347,7 +322,7 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 	} else {
 		project, err = r.isAdminInProject(ctx, project_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in project or demo project")
+			return nil, err
 		}
 	}
 	return project, nil
@@ -371,7 +346,7 @@ func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, worksp
 	} else {
 		workspace, err = r.isAdminInWorkspace(ctx, workspace_id)
 		if err != nil {
-			return nil, e.Wrap(err, "admin is not in workspace or demo workspace")
+			return nil, err
 		}
 	}
 	return workspace, nil
@@ -405,7 +380,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.New("500: error querying admin")
+		return nil, err
 	}
 
 	inviteLink := &model.WorkspaceInviteLink{}
@@ -420,7 +395,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 	if inviteLink.InviteeEmail != nil {
 		// check case-insensitively because email addresses are case-insensitive.
 		if !strings.EqualFold(*inviteLink.InviteeEmail, *admin.Email) {
-			return nil, e.New("403: This invite is not valid for the admin.")
+			return nil, AuthorizationError
 		}
 	}
 
@@ -455,7 +430,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, adminID int) (*int, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.New("error querying admin while deleting admin association")
+		return nil, err
 	}
 	if admin.ID == adminID {
 		return nil, e.New("Admin tried deleting their own association")
@@ -480,7 +455,7 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.Wrap(err, "error retrieving user")
+		return nil, err
 	}
 
 	span.SetTag("AdminID", admin.ID)
@@ -493,7 +468,7 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 	}
 
 	if workspaceID != workspace.ID {
-		return nil, e.New("workspace is not associated to the current admin")
+		return nil, AuthorizationError
 	}
 
 	return &workspace, nil
@@ -507,9 +482,6 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 
 	span.SetTag("ProjectID", project_id)
 
-	if util.IsTestEnv() {
-		return nil, nil
-	}
 	if r.isWhitelistedAccount(ctx) {
 		project := &model.Project{}
 		if err := r.DB.Where(&model.Project{Model: model.Model{ID: project_id}}).First(&project).Error; err != nil {
@@ -521,13 +493,17 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	if err != nil {
 		return nil, e.Wrap(err, "error querying projects")
 	}
+	if len(projects) == 0 {
+		return nil, AuthenticationError
+	}
+
 	for _, p := range projects {
 		if p.ID == project_id {
 			span.SetTag("WorkspaceID", p.WorkspaceID)
 			return p, nil
 		}
 	}
-	return nil, e.New("admin doesn't exist in project")
+	return nil, AuthorizationError
 }
 
 func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.ErrorGroup) (*time.Time, *time.Time, error) {
@@ -900,7 +876,7 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 
 	_, err := r.isAdminInProjectOrDemoProject(ctx, eg.ProjectID)
 	if err != nil {
-		return eg, false, e.Wrap(err, "error validating admin in project")
+		return eg, false, err
 	}
 
 	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg); err != nil {
@@ -911,6 +887,24 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 	}
 
 	return eg, true, nil
+}
+
+func (r *Resolver) canAdminViewErrorObject(ctx context.Context, errorObjectID int) (*model.ErrorObject, error) {
+	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorObject"))
+	defer authSpan.Finish()
+
+	errorObject := model.ErrorObject{}
+	if err := r.DB.Where(&model.ErrorObject{ID: errorObjectID}).
+		Preload("ErrorGroup").
+		First(&errorObject).Error; err != nil {
+		return nil, err
+	}
+
+	if _, err := r.canAdminViewErrorGroup(ctx, errorObject.ErrorGroup.SecureID); err != nil {
+		return nil, err
+	}
+
+	return &errorObject, nil
 }
 
 func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
@@ -939,12 +933,12 @@ func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecur
 func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id string) (session *model.Session, ownsSession bool, err error) {
 	session = &model.Session{}
 	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: session_secure_id}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
-		return nil, false, e.Wrap(err, "error querying session by secure_id: "+session_secure_id)
+		return nil, false, AuthorizationError
 	}
 
 	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
 	if err != nil {
-		return session, false, e.Wrap(err, "error validating admin in project")
+		return session, false, err
 	}
 	return session, true, nil
 }
@@ -953,16 +947,17 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id st
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewSession"))
 	defer authSpan.Finish()
 	session, isOwner, err := r._doesAdminOwnSession(ctx, session_secure_id)
-	if err == nil && isOwner {
+	if err != nil {
+		return nil, err
+	}
+	if isOwner {
+		return session, nil
+	} else if session.IsPublic {
+		return session, nil
+	} else if session.ProjectID == r.demoProjectID(ctx) {
 		return session, nil
 	}
-	if session != nil && session.IsPublic {
-		return session, nil
-	}
-	if session.ProjectID == r.demoProjectID(ctx) {
-		return session, nil
-	}
-	return nil, err
+	return nil, AuthorizationError
 }
 
 func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id string) (*model.Session, error) {
@@ -984,7 +979,7 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in project")
+		return nil, err
 	}
 	return segment, nil
 }
@@ -998,7 +993,7 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in project")
+		return nil, err
 	}
 	return segment, nil
 }
@@ -1078,7 +1073,7 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 		"click",
 		slack.NewTextBlockObject(
 			slack.PlainTextType,
-			"View Thread",
+			"View",
 			false,
 			false,
 		),
@@ -1266,6 +1261,21 @@ func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sess
 	return b, nil
 }
 
+func (r *Resolver) getSessionInsight(ctx context.Context, projectID int, sessionID int) ([]byte, error) {
+	res, err := r.LambdaClient.GetSessionInsight(ctx, projectID, sessionID)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to make session insight request")
+	}
+	if res.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("session insight returned %d", res.StatusCode))
+	}
+	b, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to read body of session insight response")
+	}
+	return b, nil
+}
+
 // Returns the current Admin or an Admin with ID = 0 if the current Admin is a guest
 func (r *Resolver) getCurrentAdminOrGuest(ctx context.Context) (currentAdmin *model.Admin, isGuest bool) {
 	admin, err := r.getCurrentAdmin(ctx)
@@ -1371,7 +1381,7 @@ func (r *Resolver) MarshalAlertEmails(emails []*string) (*string, error) {
 	return &channelsString, nil
 }
 
-func (r *Resolver) UnmarshalStackTrace(stackTraceString string, filterChrome bool) ([]*modelInputs.ErrorTrace, error) {
+func (r *Resolver) UnmarshalStackTrace(stackTraceString string) ([]*modelInputs.ErrorTrace, error) {
 	var unmarshalled []*modelInputs.ErrorTrace
 	if err := json.Unmarshal([]byte(stackTraceString), &unmarshalled); err != nil {
 		// Stack trace may not be able to be unmarshalled as the format may differ
@@ -1384,9 +1394,7 @@ func (r *Resolver) UnmarshalStackTrace(stackTraceString string, filterChrome boo
 	var ret []*modelInputs.ErrorTrace
 	for _, frame := range unmarshalled {
 		if frame != nil && *frame != empty {
-			if !filterChrome || (frame.FileName != nil && !strings.HasPrefix(*frame.FileName, "chrome-extension")) {
-				ret = append(ret, frame)
-			}
+			ret = append(ret, frame)
 		}
 	}
 
@@ -1400,7 +1408,7 @@ func (r *Resolver) validateAdminRole(ctx context.Context, workspaceID int) error
 
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return e.Wrap(err, "error retrieving admin")
+		return err
 	}
 
 	role, err := r.GetAdminRole(ctx, admin.ID, workspaceID)
@@ -1507,6 +1515,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 		"BillingPeriodStart": billingPeriodStart,
 		"BillingPeriodEnd":   billingPeriodEnd,
 		"NextInvoiceDate":    nextInvoiceDate,
+		"TrialEndDate":       nil,
 	}
 
 	// Only update retention period if already set
@@ -2614,7 +2623,7 @@ func (r *Resolver) GetGitHubRepos(
 	}
 
 	if accessToken == nil {
-		return nil, errors.New("No GitHub integration access token found.")
+		return nil, nil
 	}
 	var repos []*github2.Repository
 	if c, err := github.NewClient(ctx, *accessToken); err == nil {
@@ -2646,7 +2655,7 @@ func (r *Resolver) GetGitHubIssueLabels(
 	}
 
 	if accessToken == nil {
-		return nil, errors.New("No GitHub integration access token found.")
+		return nil, nil
 	}
 	var labels []*github2.Label
 	if c, err := github.NewClient(ctx, *accessToken); err == nil {
@@ -3026,17 +3035,24 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model
 }
 
 func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId int) (*[]model.SlackChannel, int, error) {
+	var filteredNewChannels []model.SlackChannel
+
 	workspace, _ := r.GetWorkspace(workspaceId)
+	// workspace is not integrated with slack
+	if workspace.SlackAccessToken == nil {
+		return &filteredNewChannels, 0, nil
+	}
 
 	slackClient := slack.New(*workspace.SlackAccessToken)
-	filteredNewChannels := []model.SlackChannel{}
 	existingChannels, _ := workspace.IntegratedSlackChannels()
 
 	getConversationsParam := slack.GetConversationsParameters{
 		Limit: 1000,
 		// public_channel is for public channels in the Slack workspace
+		// private is for private channels in the Slack workspace that the Bot is included in
 		// im is for all individuals in the Slack workspace
-		Types: []string{"public_channel", "im"},
+		// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
+		Types: []string{"public_channel", "private_channel", "mpim", "im"},
 	}
 	allSlackChannelsFromAPI := []slack.Channel{}
 

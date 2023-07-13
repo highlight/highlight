@@ -24,7 +24,6 @@ import {
 	useLinkLogCursor,
 } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import PlayerPageProductTour from '@pages/Player/PlayerPageProductTour/PlayerPageProductTour'
 import {
 	ReplayerContextProvider,
 	ReplayerState,
@@ -35,7 +34,6 @@ import {
 } from '@pages/Player/ResourcesContext/ResourcesContext'
 import RightPlayerPanel from '@pages/Player/RightPlayerPanel/RightPlayerPanel'
 import SessionLevelBarV2 from '@pages/Player/SessionLevelBar/SessionLevelBarV2'
-import { DevTools } from '@pages/Player/Toolbar/DevTools'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { NewCommentModal } from '@pages/Player/Toolbar/NewCommentModal/NewCommentModal'
 import { Toolbar } from '@pages/Player/Toolbar/Toolbar'
@@ -44,9 +42,8 @@ import { ToolbarItemsContextProvider } from '@pages/Player/Toolbar/ToolbarItemsC
 import { getDisplayName } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import { SESSION_FEED_LEFT_PANEL_WIDTH } from '@pages/Sessions/SessionsFeedV3/SessionFeedV3.css'
 import { SessionFeedV3 } from '@pages/Sessions/SessionsFeedV3/SessionsFeedV3'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
-import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
 import clsx from 'clsx'
 import Lottie from 'lottie-react'
@@ -56,6 +53,8 @@ import useResizeAware from 'react-resize-aware'
 import { useNavigate } from 'react-router-dom'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { NetworkResourcePanel } from '@/pages/Player/RightPlayerPanel/components/NetworkResourcePanel/NetworkResourcePanel'
+import DevToolsWindowV2 from '@/pages/Player/Toolbar/DevToolsWindowV2/DevToolsWindowV2'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import WaitingAnimation from '../../lottie/waiting.json'
@@ -179,20 +178,22 @@ const PlayerPage = () => {
 			const height = replayer?.wrapper?.getBoundingClientRect().height
 			const targetWidth = playerWrapperRef.current?.clientWidth
 			const targetHeight = playerWrapperRef.current?.clientHeight
-			if (!width || !targetWidth || !height || !targetHeight) {
+			if (!targetWidth || !targetHeight) {
 				return false
 			}
 			const widthScale = (targetWidth - style.PLAYER_PADDING_X) / width
 			const heightScale = (targetHeight - style.PLAYER_PADDING_Y) / height
-			const scale = Math.min(heightScale, widthScale)
+			let scale = Math.min(heightScale, widthScale)
 			// If calculated scale is close enough to 1, return to avoid
 			// infinite looping caused by small floating point math differences
 			if (scale >= 0.9999 && scale <= 1.0001) {
-				return true
+				return false
 			}
 
-			if (scale <= 0) {
-				return false
+			let retry = false
+			if (scale <= 0 || !Number.isFinite(scale)) {
+				retry = true
+				scale = 1
 			}
 
 			setScale((s) => {
@@ -210,7 +211,7 @@ const PlayerPage = () => {
 
 				return replayerScale
 			})
-			return true
+			return !retry
 		},
 		[setScale],
 	)
@@ -221,7 +222,7 @@ const PlayerPage = () => {
 			if (replayer && resizePlayer(replayer)) {
 				clearInterval(i)
 			}
-		}, 1000 / 60)
+		}, 1000 / 15)
 		return () => {
 			i && clearInterval(i)
 		}
@@ -351,9 +352,10 @@ const PlayerPage = () => {
 								</div>
 								<Toolbar width={controllerWidth} />
 							</div>
-							<DevTools width={controllerWidth} />
+							<DevToolsWindowV2 width={controllerWidth} />
 						</div>
 						{!isPlayerFullscreen && <RightPlayerPanel />}
+						<NetworkResourcePanel />
 					</Box>
 				</Box>
 			</div>
@@ -438,30 +440,8 @@ const PlayerPage = () => {
 						className={style.emptySessionCard}
 					>
 						<p>
-							We need more time to process this session.{' '}
-							{!isOnPrem ? (
-								<>
-									If this looks like a bug, shoot us a message
-									on{' '}
-									<span
-										className={style.intercomLink}
-										onClick={() => {
-											window.Intercom(
-												'showNewMessage',
-												`I'm seeing an empty session. This is the session ID: "${session_secure_id}"`,
-											)
-										}}
-									>
-										Intercom
-									</span>
-									.
-								</>
-							) : (
-								<>
-									If this looks like a bug, please reach out
-									to us!
-								</>
-							)}
+							We need more time to process this session. If this
+							looks like a bug, please reach out to us!
 						</p>
 					</ElevatedCard>
 				)
@@ -499,7 +479,6 @@ const PlayerPage = () => {
 		isSessionPendingData?.isSessionPending,
 		loading,
 		sessionViewability,
-		session_secure_id,
 		integrated,
 		session?.excluded_reason,
 	])
@@ -511,7 +490,6 @@ const PlayerPage = () => {
 					<Helmet>
 						<title>{getTabTitle(session)}</title>
 					</Helmet>
-					{isPlayerReady && !isLoggedIn && <PlayerPageProductTour />}
 					<Box
 						cssClass={clsx(style.playerBody, {
 							[style.withLeftPanel]: showLeftPanel,

@@ -1,20 +1,15 @@
 import { BaseSearchContext } from '@context/BaseSearchContext'
 import { SearchParamsInput } from '@graph/schemas'
-import { QueryBuilderState } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import { createContext } from '@util/context/context'
-import React from 'react'
 
-type SearchContext = BaseSearchContext<SearchParamsInput> & {
-	showStarredSessions: boolean
-	setShowStarredSessions: React.Dispatch<React.SetStateAction<boolean>>
-	isQuickSearchOpen: boolean
-	setIsQuickSearchOpen: React.Dispatch<React.SetStateAction<boolean>>
-}
+import { QueryBuilderState } from '@/components/QueryBuilder/QueryBuilder'
 
-export const showLiveSessions = (searchParams: SearchParamsInput): boolean => {
+type SearchContext = BaseSearchContext
+
+export const showLiveSessions = (searchQuery: string): boolean => {
 	// If query is defined, check if it allows live sessions
-	if (!!searchParams.query) {
-		const query = JSON.parse(searchParams.query) as QueryBuilderState
+	if (!!searchQuery) {
+		const query = JSON.parse(searchQuery) as QueryBuilderState
 		// If any 'custom_processed' has 'false', assume we're showing live sessions
 		const processedRules = query.rules.filter(
 			(r) => r[0] === 'custom_processed',
@@ -25,8 +20,7 @@ export const showLiveSessions = (searchParams: SearchParamsInput): boolean => {
 		)
 	}
 
-	// Else, default to the show_live_sessions search param
-	return searchParams?.show_live_sessions ?? false
+	return false
 }
 
 export const updateSearchTimeRange = (

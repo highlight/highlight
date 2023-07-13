@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import React from 'react'
 import { Link, LinkProps } from 'react-router-dom'
 
-import styles from './ButtonLink.module.scss'
+import styles from './ButtonLink.module.css'
 
 type Props = {
 	/** The ID used for identifying that this button was clicked for analytics. */

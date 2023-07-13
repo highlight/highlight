@@ -4,7 +4,7 @@ import CommandPalette, { Command } from 'react-command-palette'
 import { useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '../../../authentication/AuthContext'
-import styles from './CommandBar.module.scss'
+import styles from './CommandBar.module.css'
 import {
 	CommandWithoutId,
 	useNavigationCommands,

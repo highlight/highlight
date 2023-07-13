@@ -1,45 +1,29 @@
-import { FieldsBox } from '@components/FieldsBox/FieldsBox'
-import { CircularSpinner, LoadingBar } from '@components/Loading/Loading'
+import { LoadingBar } from '@components/Loading/Loading'
 import Select from '@components/Select/Select'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
-import {
-	useEditProjectMutation,
-	useGetIdentifierSuggestionsQuery,
-	useGetProjectQuery,
-} from '@graph/hooks'
-import { namedOperations } from '@graph/operations'
+import { useGetIdentifierSuggestionsQuery } from '@graph/hooks'
+import { Form, Stack } from '@highlight-run/ui'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import clsx from 'clsx'
-import React, { useEffect, useState } from 'react'
+import { useState } from 'react'
 
-import commonStyles from '../../../Common.module.scss'
-import Button from '../../../components/Button/Button/Button'
-import styles from './ExcludedUsersForm.module.scss'
+import BorderBox from '@/components/BorderBox/BorderBox'
+import BoxLabel from '@/components/BoxLabel/BoxLabel'
+import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
 
 export const ExcludedUsersForm = () => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const [excludedUsers, setExcludedUsers] = useState<string[]>([])
 	const [identifierQuery, setIdentifierQuery] = useState('')
 	const [invalidExcludedUsers, setInvalidExcludedUsers] = useState<string[]>(
 		[],
 	)
-	const { data, loading } = useGetProjectQuery({
-		variables: {
-			id: project_id!,
-		},
-		skip: !project_id,
-	})
-
-	const [editProject, { loading: editProjectLoading }] =
-		useEditProjectMutation({
-			refetchQueries: [
-				namedOperations.Query.GetProjects,
-				namedOperations.Query.GetProject,
-			],
-		})
+	const {
+		allProjectSettings: data,
+		loading,
+		setAllProjectSettings,
+	} = useProjectSettingsContext()
 
 	const {
 		refetch: refetchIdentifierSuggestions,
@@ -52,34 +36,6 @@ export const ExcludedUsersForm = () => {
 		},
 		skip: !project_id,
 	})
-
-	const onSubmit = (e: { preventDefault: () => void }) => {
-		e.preventDefault()
-		if (!project_id) {
-			return
-		}
-		editProject({
-			variables: {
-				id: project_id!,
-				excluded_users: excludedUsers,
-			},
-		}).then(() => {
-			if (invalidExcludedUsers.length == 0) {
-				message.success('Updated excluded sessions!', 5)
-			} else {
-				message.warn(
-					'Updated excluded sessions, but the following were ignored: ' +
-						JSON.stringify(invalidExcludedUsers),
-				)
-			}
-		})
-	}
-
-	useEffect(() => {
-		if (!loading) {
-			setExcludedUsers(data?.project?.excluded_users || [])
-		}
-	}, [data?.project?.excluded_users, loading])
 
 	if (loading) {
 		return <LoadingBar />
@@ -106,20 +62,21 @@ export const ExcludedUsersForm = () => {
 	}
 
 	return (
-		<FieldsBox id="users">
-			<h3>Excluded Sessions</h3>
-			<form onSubmit={onSubmit} key={project_id}>
-				<p>
+		<BorderBox>
+			<Stack gap="8">
+				<BoxLabel
+					label="Excluded sessions"
+					info="
 					Enter user identifiers or emails to hide (regular
 					expressions are accepted). On completion, sessions from
-					these users will be excluded from your searches and quota.
-				</p>
-				<div className={styles.inputAndButtonRow}>
+					these users will be excluded from your searches and quota."
+				/>
+				<Form.NamedSection label="Excluded users" name="Excluded users">
 					<Select
 						mode="tags"
 						placeholder=".*@yourdomain.com"
-						defaultValue={
-							data?.project?.excluded_users || undefined
+						value={
+							data?.projectSettings?.excluded_users || undefined
 						}
 						onSearch={handleIdentifierSearch}
 						options={identifierSuggestions}
@@ -147,34 +104,23 @@ export const ExcludedUsersForm = () => {
 									5,
 								)
 							}
-							setExcludedUsers(validRegexes)
 							setInvalidExcludedUsers(invalidRegexes)
 							handleIdentifierSearch('')
+							setAllProjectSettings((currentProjectSettings) =>
+								currentProjectSettings?.projectSettings
+									? {
+											projectSettings: {
+												...currentProjectSettings.projectSettings,
+												excluded_users: validRegexes,
+											},
+									  }
+									: currentProjectSettings,
+							)
 						}}
 					/>
-					<Button
-						trackingId="ExcludedUsersUpdate"
-						htmlType="submit"
-						type="primary"
-						className={clsx(
-							commonStyles.submitButton,
-							styles.saveButton,
-						)}
-					>
-						{editProjectLoading ? (
-							<CircularSpinner
-								style={{
-									fontSize: 18,
-									color: 'var(--text-primary-inverted)',
-								}}
-							/>
-						) : (
-							'Save'
-						)}
-					</Button>
-				</div>
+				</Form.NamedSection>
 				{invalidExcludedUsers.length > 0 && <div></div>}
-			</form>
-		</FieldsBox>
+			</Stack>
+		</BorderBox>
 	)
 }

@@ -7,8 +7,10 @@ import { Callout } from '@highlight-run/ui'
 import clsx from 'clsx'
 import { useState } from 'react'
 
+import { SIGN_IN_ROUTE, SIGN_UP_ROUTE } from '@/pages/Auth/AuthRouter'
+
 import Button from '../Button/Button/Button'
-import styles from './ErrorState.module.scss'
+import styles from './ErrorState.module.css'
 import RequestAccess from './RequestAccess/RequestAccess'
 
 export const ErrorState = ({
@@ -87,35 +89,16 @@ export const ErrorState = ({
 							<ButtonLink
 								type="primary"
 								trackingId="ErrorStateSignIn"
-								{...(isLoggedIn
-									? { to: '/', href: undefined }
-									: {
-											to: undefined,
-											href: '/',
-											anchor: true,
-									  })}
+								href={SIGN_IN_ROUTE}
+								anchor
 							>
 								Sign in
 							</ButtonLink>
 							<ButtonLink
 								trackingId="ErrorStateSignUp"
 								type="default"
-								{...(isLoggedIn
-									? {
-											to: {
-												pathname: '/?sign_up=1',
-											},
-											href: undefined,
-											state: {
-												previousPathName:
-													window.location.pathname,
-											},
-									  }
-									: {
-											to: undefined,
-											href: '/?sign_up=1',
-											anchor: true,
-									  })}
+								href={SIGN_UP_ROUTE}
+								anchor
 							>
 								Sign up
 							</ButtonLink>

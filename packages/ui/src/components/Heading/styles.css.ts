@@ -1,28 +1,29 @@
 import { createStyleObject } from '@capsizecss/core'
+import fontMetrics from '@capsizecss/metrics/inter'
 import { RecipeVariants, recipe } from '@vanilla-extract/recipes'
 import { sprinkles } from '../../css/sprinkles.css'
-import { steradianFontMetrics, typographyStyles } from '../Text/styles.css'
+import { typographyStyles } from '../Text/styles.css'
 
 // Headings
 export const h4 = createStyleObject({
 	fontSize: 20,
 	leading: 28,
-	fontMetrics: steradianFontMetrics,
+	fontMetrics,
 })
 export const h3 = createStyleObject({
 	fontSize: 24,
-	leading: 34,
-	fontMetrics: steradianFontMetrics,
+	leading: 32,
+	fontMetrics,
 })
 export const h2 = createStyleObject({
 	fontSize: 30,
-	leading: 32,
-	fontMetrics: steradianFontMetrics,
+	leading: 36,
+	fontMetrics,
 })
 export const h1 = createStyleObject({
 	fontSize: 36,
-	leading: 50,
-	fontMetrics: steradianFontMetrics,
+	leading: 40,
+	fontMetrics,
 })
 
 export const variants = recipe({
@@ -56,7 +57,7 @@ export const variants = recipe({
 				// This should be removed at some point, but we need to make sure the
 				// other !important it is overriding can be removed.
 				// https://github.com/highlight-run/highlight/blob/a96450680f7222af10b502f4ac6047b31410fd1c/frontend/src/index.scss#L240
-				fontWeight: '500 !important',
+				fontWeight: '700 !important',
 			},
 		},
 	},

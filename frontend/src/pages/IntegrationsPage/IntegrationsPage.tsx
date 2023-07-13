@@ -12,15 +12,15 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
-import styles from './IntegrationsPage.module.scss'
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
+import styles from './IntegrationsPage.module.css'
 
 const IntegrationsPage = () => {
 	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()

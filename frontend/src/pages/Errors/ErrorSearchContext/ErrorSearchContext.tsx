@@ -1,8 +1,7 @@
 import { BaseSearchContext } from '@context/BaseSearchContext'
-import { ErrorSearchParamsInput } from '@graph/schemas'
 import { createContext } from '@util/context/context'
 
-type ErrorSearchContext = BaseSearchContext<ErrorSearchParamsInput> & {
+type ErrorSearchContext = BaseSearchContext & {
 	searchResultSecureIds: string[]
 	setSearchResultSecureIds: React.Dispatch<React.SetStateAction<string[]>>
 }

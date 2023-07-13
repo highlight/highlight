@@ -14,8 +14,8 @@ import React from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
-import styles from './NewAlertPage.module.scss'
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
+import styles from './NewAlertPage.module.css'
 
 const NewAlertPage = () => {
 	const { type, project_id } = useParams<{
@@ -183,17 +183,6 @@ const getNewAlert = (type: ALERT_NAMES) => {
 					Type: ALERT_TYPE.TrackProperties,
 				},
 				configuration: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'],
-			} as const
-		case snakeCaseString(ALERT_NAMES.SESSION_FEEDBACK_ALERT):
-			return {
-				alert: {
-					Name: ALERT_NAMES.SESSION_FEEDBACK_ALERT,
-					ExcludedEnvironments: [],
-					CountThreshold: 1,
-					ThresholdWindow: 30,
-					Type: ALERT_TYPE.SessionFeedback,
-				},
-				configuration: ALERT_CONFIGURATIONS['SESSION_FEEDBACK_ALERT'],
 			} as const
 		case snakeCaseString(ALERT_NAMES.NEW_SESSION_ALERT):
 			return {

@@ -1,6 +1,22 @@
 import Cookies from 'js-cookie'
 
+const GenerateSecureID = (): string => {
+	const ID_LENGTH = 28
+	const CHARACTER_SET =
+		'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+
+	const cryptoRandom = new Uint32Array(ID_LENGTH)
+	window.crypto.getRandomValues(cryptoRandom)
+
+	let secureID = ''
+	cryptoRandom.forEach((b) => {
+		secureID += CHARACTER_SET.charAt(b % CHARACTER_SET.length)
+	})
+	return secureID
+}
+
 interface Referrer {
+	clientID: string
 	utm_source?: string | null
 	utm_medium?: string | null
 	utm_campaign?: string | null
@@ -13,9 +29,16 @@ interface Referrer {
 	documentReferrer: string
 }
 
-// Same as what we have in frontend. Need to keep these in sync.
 export const setAttributionData = () => {
-	let referrer: Referrer = { documentReferrer: document.referrer }
+	let clientID = window.localStorage.getItem('highlightClientID')
+	if (!clientID) {
+		clientID = GenerateSecureID()
+		window.localStorage.setItem('highlightClientID', clientID)
+	}
+	let referrer: Referrer = {
+		clientID,
+		documentReferrer: document.referrer,
+	}
 	const prevRef = Cookies.get('referrer')
 	if (prevRef) {
 		referrer = { ...referrer, ...(JSON.parse(prevRef) as Referrer) }
@@ -50,4 +73,6 @@ export const setAttributionData = () => {
 	Cookies.set('referrer', JSON.stringify(referrer), {
 		domain: 'highlight.io',
 	})
+
+	return referrer
 }

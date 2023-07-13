@@ -1,35 +1,29 @@
 import {
+	useEditSegmentMutation,
 	useGetFieldsOpensearchQuery,
 	useGetFieldTypesQuery,
+	useGetSegmentsQuery,
 } from '@graph/hooks'
-import { SearchParamsInput } from '@graph/schemas'
+import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
-import {
+import { useParams } from '@util/react-router/useParams'
+import React from 'react'
+
+import QueryBuilder, {
 	BOOLEAN_OPERATORS,
-	propertiesToRules,
+	CUSTOM_TYPE,
+	CustomField,
+	deserializeRules,
+	FetchFieldVariables,
+	getAbsoluteEndTime,
+	getAbsoluteStartTime,
 	RANGE_OPERATORS,
+	SelectOption,
 	TIME_OPERATORS,
 	VIEWED_BY_OPERATORS,
-} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
-import QueryBuilder, {
-	CustomField,
-	deserializeGroup,
-	FetchFieldVariables,
-	QueryBuilderState,
-	RuleProps,
-	SelectOption,
-	serializeRules,
-} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
-import { useParams } from '@util/react-router/useParams'
-import { isEqual } from 'lodash'
-import moment from 'moment'
-import React, { useEffect } from 'react'
-import {
-	JsonParam,
-	NumberParam,
-	useQueryParam,
-	useQueryParams,
-} from 'use-query-params'
+} from '@/components/QueryBuilder/QueryBuilder'
+import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
+import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
 
 export const InitialSearchParamsForUrl = {
 	browser: undefined,
@@ -51,17 +45,13 @@ export const InitialSearchParamsForUrl = {
 	app_versions: undefined,
 } as const
 
-export const CUSTOM_TYPE = 'custom'
-export const SESSION_TYPE = 'session'
-export const ERROR_TYPE = 'error'
-export const ERROR_FIELD_TYPE = 'error-field'
 export const TIME_RANGE_FIELD: SelectOption = {
 	kind: 'single',
 	label: 'created_at',
 	value: 'custom_created_at',
 }
 
-const CUSTOM_FIELDS: CustomField[] = [
+export const CUSTOM_FIELDS: CustomField[] = [
 	{
 		type: CUSTOM_TYPE,
 		name: 'app_version',
@@ -147,115 +137,6 @@ const CUSTOM_FIELDS: CustomField[] = [
 	},
 ]
 
-// If there is no query builder param (for segments saved
-// before the query builder was released), create one.
-export const getQueryFromParams = (
-	params: SearchParamsInput,
-): QueryBuilderState => {
-	const rules: RuleProps[] = []
-	if (params.user_properties) {
-		rules.push(...propertiesToRules(params.user_properties, 'user', 'is'))
-	}
-	if (params.excluded_properties) {
-		rules.push(
-			...propertiesToRules(params.excluded_properties, 'user', 'is_not'),
-		)
-	}
-	if (params.track_properties) {
-		rules.push(...propertiesToRules(params.track_properties, 'track', 'is'))
-	}
-	if (params.excluded_track_properties) {
-		rules.push(
-			...propertiesToRules(
-				params.excluded_track_properties,
-				'track',
-				'is_not',
-			),
-		)
-	}
-	if (params.date_range) {
-		const start = moment(params.date_range.start_date).toISOString()
-		const end = moment(params.date_range.end_date).toISOString()
-		rules.push(
-			deserializeGroup('custom_created_at', 'between_date', [
-				`${start}_${end}`,
-			]),
-		)
-	}
-	if (params.length_range) {
-		const min = params.length_range.min
-		const max = params.length_range.max
-		rules.push(
-			deserializeGroup('custom_active_length', 'between_time', [
-				`${min}_${max}`,
-			]),
-		)
-	}
-	if (params.browser) {
-		rules.push(
-			deserializeGroup('session_browser_name', 'is', [params.browser]),
-		)
-	}
-	if (params.os) {
-		rules.push(deserializeGroup('session_os_name', 'is', [params.os]))
-	}
-	if (params.environments && params.environments.length > 0) {
-		rules.push(
-			deserializeGroup(
-				'session_environment',
-				'is',
-				params.environments.map((env) => env ?? ''),
-			),
-		)
-	}
-	if (params.app_versions && params.app_versions.length > 0) {
-		rules.push(
-			deserializeGroup(
-				'custom_app_version',
-				'is',
-				params.app_versions.map((ver) => ver ?? ''),
-			),
-		)
-	}
-	if (params.device_id) {
-		rules.push(
-			deserializeGroup('session_device_id', 'is', [params.device_id]),
-		)
-	}
-	if (params.visited_url) {
-		rules.push(
-			deserializeGroup('session_visited-url', 'contains', [
-				params.visited_url,
-			]),
-		)
-	}
-	if (params.referrer) {
-		rules.push(
-			deserializeGroup('session_referrer', 'contains', [params.referrer]),
-		)
-	}
-	if (params.identified) {
-		rules.push(deserializeGroup('user_identifier', 'exists', []))
-	}
-	if (params.hide_viewed) {
-		rules.push(deserializeGroup('custom_viewed', 'is', ['false']))
-	}
-	if (params.first_time) {
-		rules.push(deserializeGroup('custom_first_time', 'is', ['true']))
-	}
-	if (!params.show_live_sessions) {
-		rules.push(deserializeGroup('custom_processed', 'is', ['true']))
-	} else {
-		rules.push(
-			deserializeGroup('custom_processed', 'is', ['true', 'false']),
-		)
-	}
-	return {
-		isAnd: true,
-		rules: serializeRules(rules),
-	}
-}
-
 const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 	const { refetch } = useGetFieldsOpensearchQuery({
 		skip: true,
@@ -266,62 +147,41 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const { data: fieldData } = useGetFieldTypesQuery({
-		variables: { project_id: project_id! },
-		skip: !project_id,
-	})
+
 	const searchContext = useSearchContext()
 
-	const { page, selectedSegment, setSelectedSegment } = searchContext
-
-	const [activeSegmentUrlParam, setActiveSegmentUrlParam] = useQueryParam(
-		'segment',
-		JsonParam,
+	const { rules: serializedRules }: { rules: any } = JSON.parse(
+		searchContext.searchQuery,
+	)
+	const newRules = deserializeRules(serializedRules)
+	const timeRange = newRules.find(
+		(rule) => rule.field?.value === TIME_RANGE_FIELD.value,
 	)
 
-	const [, setPaginationToUrlParams] = useQueryParams({
-		page: NumberParam,
+	const startDate = getAbsoluteStartTime(timeRange?.val?.options[0].value)
+	const endDate = getAbsoluteEndTime(timeRange?.val?.options[0].value)
+	const { data: fieldData } = useGetFieldTypesQuery({
+		variables: {
+			project_id: project_id!,
+			start_date: startDate,
+			end_date: endDate,
+		},
+		skip: !project_id,
 	})
-
-	useEffect(() => {
-		if (page !== undefined) {
-			setPaginationToUrlParams(
-				{
-					page: page,
-				},
-				'replaceIn',
-			)
-		}
-	}, [setPaginationToUrlParams, page])
-
-	// Session Segment Deep Linking
-	useEffect(() => {
-		if (selectedSegment && selectedSegment.id && selectedSegment.name) {
-			if (!isEqual(activeSegmentUrlParam, selectedSegment)) {
-				setActiveSegmentUrlParam(selectedSegment, 'replace')
-			}
-		} else if (activeSegmentUrlParam !== undefined) {
-			setActiveSegmentUrlParam(undefined, 'replace')
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedSegment, setActiveSegmentUrlParam])
-
-	useEffect(() => {
-		if (activeSegmentUrlParam) {
-			setSelectedSegment(activeSegmentUrlParam)
-		}
-		// We only want to run this on mount (i.e. when the page first loads).
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	return (
 		<QueryBuilder
-			searchContext={useSearchContext()}
+			searchContext={searchContext}
 			timeRangeField={TIME_RANGE_FIELD}
 			customFields={CUSTOM_FIELDS}
 			fetchFields={fetchFields}
 			fieldData={fieldData}
-			getQueryFromParams={getQueryFromParams}
+			setShowLeftPanel={setShowLeftPanel}
+			useEditAnySegmentMutation={useEditSegmentMutation}
+			useGetAnySegmentsQuery={useGetSegmentsQuery}
+			CreateAnySegmentModal={CreateSegmentModal}
+			DeleteAnySegmentModal={DeleteSessionSegmentModal}
 			{...props}
 		/>
 	)

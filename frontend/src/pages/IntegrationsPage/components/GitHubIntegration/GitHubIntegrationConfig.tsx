@@ -10,10 +10,10 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import React, { useMemo } from 'react'
 
-import styles from './GitHubIntegrationConfig.module.scss'
+import styles from './GitHubIntegrationConfig.module.css'
 
 const GitHubIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>

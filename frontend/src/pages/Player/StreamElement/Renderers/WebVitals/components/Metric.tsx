@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import { motion } from 'framer-motion'
 import React from 'react'
 
-import styles from './Metric.module.scss'
+import styles from './Metric.module.css'
 
 interface Props {
 	configuration: DashboardMetricConfig

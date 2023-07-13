@@ -6,7 +6,7 @@ import Button from '../../../../components/Button/Button/Button'
 import SvgChevronLeftIcon from '../../../../static/ChevronLeftIcon'
 import SvgChevronRightIcon from '../../../../static/ChevronRightIcon'
 import SvgSearchIcon from '../../../../static/SearchIcon'
-import styles from './PanelToggleButton.module.scss'
+import styles from './PanelToggleButton.module.css'
 
 type Props = ButtonProps & PanelToggleButtonProps
 

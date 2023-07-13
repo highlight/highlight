@@ -7,7 +7,19 @@ import (
 	"io"
 	"strconv"
 	"time"
+
+	"github.com/lib/pq"
 )
+
+type Connection interface {
+	IsConnection()
+	GetPageInfo() *PageInfo
+}
+
+type Edge interface {
+	IsEdge()
+	GetCursor() string
+}
 
 type Account struct {
 	ID                   int        `json:"id"`
@@ -62,6 +74,25 @@ type AdminAndWorkspaceDetails struct {
 	WorkspaceName               string  `json:"workspace_name"`
 	AllowedAutoJoinEmailOrigins *string `json:"allowed_auto_join_email_origins"`
 	PromoCode                   *string `json:"promo_code"`
+}
+
+type AllProjectSettings struct {
+	ID                                int            `json:"id"`
+	VerboseID                         string         `json:"verbose_id"`
+	Name                              string         `json:"name"`
+	BillingEmail                      *string        `json:"billing_email"`
+	Secret                            *string        `json:"secret"`
+	WorkspaceID                       int            `json:"workspace_id"`
+	ExcludedUsers                     pq.StringArray `json:"excluded_users"`
+	ErrorFilters                      pq.StringArray `json:"error_filters"`
+	ErrorJSONPaths                    pq.StringArray `json:"error_json_paths"`
+	RageClickWindowSeconds            *int           `json:"rage_click_window_seconds"`
+	RageClickRadiusPixels             *int           `json:"rage_click_radius_pixels"`
+	RageClickCount                    *int           `json:"rage_click_count"`
+	BackendDomains                    pq.StringArray `json:"backend_domains"`
+	FilterChromeExtension             *bool          `json:"filter_chrome_extension"`
+	FilterSessionsWithoutError        bool           `json:"filterSessionsWithoutError"`
+	AutoResolveStaleErrorsDayInterval int            `json:"autoResolveStaleErrorsDayInterval"`
 }
 
 type AverageSessionLength struct {
@@ -268,6 +299,37 @@ type ErrorMetadata struct {
 	Payload         *string    `json:"payload"`
 }
 
+type ErrorObjectConnection struct {
+	Edges    []*ErrorObjectEdge `json:"edges"`
+	PageInfo *PageInfo          `json:"pageInfo"`
+}
+
+func (ErrorObjectConnection) IsConnection()               {}
+func (this ErrorObjectConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
+type ErrorObjectEdge struct {
+	Cursor string           `json:"cursor"`
+	Node   *ErrorObjectNode `json:"node"`
+}
+
+func (ErrorObjectEdge) IsEdge()                {}
+func (this ErrorObjectEdge) GetCursor() string { return this.Cursor }
+
+type ErrorObjectNode struct {
+	ID                 int                     `json:"id"`
+	CreatedAt          time.Time               `json:"createdAt"`
+	Event              string                  `json:"event"`
+	Timestamp          time.Time               `json:"timestamp"`
+	Session            *ErrorObjectNodeSession `json:"session"`
+	ErrorGroupSecureID string                  `json:"errorGroupSecureID"`
+}
+
+type ErrorObjectNodeSession struct {
+	SecureID   string  `json:"secureID"`
+	AppVersion *string `json:"appVersion"`
+	Email      *string `json:"email"`
+}
+
 type ErrorSearchParamsInput struct {
 	DateRange  *DateRangeInput `json:"date_range"`
 	Os         *string         `json:"os"`
@@ -397,19 +459,25 @@ type LogAlertInput struct {
 	Query               string                        `json:"query"`
 }
 
+type LogConnection struct {
+	Edges    []*LogEdge `json:"edges"`
+	PageInfo *PageInfo  `json:"pageInfo"`
+}
+
+func (LogConnection) IsConnection()               {}
+func (this LogConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
 type LogEdge struct {
 	Cursor string `json:"cursor"`
 	Node   *Log   `json:"node"`
 }
 
+func (LogEdge) IsEdge()                {}
+func (this LogEdge) GetCursor() string { return this.Cursor }
+
 type LogKey struct {
 	Name string     `json:"name"`
 	Type LogKeyType `json:"type"`
-}
-
-type LogsConnection struct {
-	Edges    []*LogEdge `json:"edges"`
-	PageInfo *PageInfo  `json:"pageInfo"`
 }
 
 type LogsHistogram struct {
@@ -568,6 +636,16 @@ type SessionCommentTagInput struct {
 	Name string `json:"name"`
 }
 
+type SessionInsight struct {
+	ID      int    `json:"id"`
+	Insight string `json:"insight"`
+}
+
+type SessionQuery struct {
+	ID        int `json:"id"`
+	ProjectID int `json:"project_id"`
+}
+
 type SlackSyncResponse struct {
 	Success               bool `json:"success"`
 	NewChannelsAddedCount int  `json:"newChannelsAddedCount"`
@@ -712,20 +790,22 @@ func (e DashboardChartType) MarshalGQL(w io.Writer) {
 type EmailOptOutCategory string
 
 const (
-	EmailOptOutCategoryAll     EmailOptOutCategory = "All"
-	EmailOptOutCategoryDigests EmailOptOutCategory = "Digests"
-	EmailOptOutCategoryBilling EmailOptOutCategory = "Billing"
+	EmailOptOutCategoryAll            EmailOptOutCategory = "All"
+	EmailOptOutCategoryDigests        EmailOptOutCategory = "Digests"
+	EmailOptOutCategoryBilling        EmailOptOutCategory = "Billing"
+	EmailOptOutCategorySessionDigests EmailOptOutCategory = "SessionDigests"
 )
 
 var AllEmailOptOutCategory = []EmailOptOutCategory{
 	EmailOptOutCategoryAll,
 	EmailOptOutCategoryDigests,
 	EmailOptOutCategoryBilling,
+	EmailOptOutCategorySessionDigests,
 }
 
 func (e EmailOptOutCategory) IsValid() bool {
 	switch e {
-	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests, EmailOptOutCategoryBilling:
+	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests, EmailOptOutCategoryBilling, EmailOptOutCategorySessionDigests:
 		return true
 	}
 	return false
@@ -1471,7 +1551,6 @@ const (
 	SessionAlertTypeNewUserAlert         SessionAlertType = "NEW_USER_ALERT"
 	SessionAlertTypeTrackPropertiesAlert SessionAlertType = "TRACK_PROPERTIES_ALERT"
 	SessionAlertTypeUserPropertiesAlert  SessionAlertType = "USER_PROPERTIES_ALERT"
-	SessionAlertTypeSessionFeedbackAlert SessionAlertType = "SESSION_FEEDBACK_ALERT"
 	SessionAlertTypeRageClickAlert       SessionAlertType = "RAGE_CLICK_ALERT"
 	SessionAlertTypeNewSessionAlert      SessionAlertType = "NEW_SESSION_ALERT"
 )
@@ -1481,14 +1560,13 @@ var AllSessionAlertType = []SessionAlertType{
 	SessionAlertTypeNewUserAlert,
 	SessionAlertTypeTrackPropertiesAlert,
 	SessionAlertTypeUserPropertiesAlert,
-	SessionAlertTypeSessionFeedbackAlert,
 	SessionAlertTypeRageClickAlert,
 	SessionAlertTypeNewSessionAlert,
 }
 
 func (e SessionAlertType) IsValid() bool {
 	switch e {
-	case SessionAlertTypeErrorAlert, SessionAlertTypeNewUserAlert, SessionAlertTypeTrackPropertiesAlert, SessionAlertTypeUserPropertiesAlert, SessionAlertTypeSessionFeedbackAlert, SessionAlertTypeRageClickAlert, SessionAlertTypeNewSessionAlert:
+	case SessionAlertTypeErrorAlert, SessionAlertTypeNewUserAlert, SessionAlertTypeTrackPropertiesAlert, SessionAlertTypeUserPropertiesAlert, SessionAlertTypeRageClickAlert, SessionAlertTypeNewSessionAlert:
 		return true
 	}
 	return false
@@ -1559,20 +1637,24 @@ func (e SessionCommentType) MarshalGQL(w io.Writer) {
 type SessionExcludedReason string
 
 const (
-	SessionExcludedReasonInitializing            SessionExcludedReason = "Initializing"
-	SessionExcludedReasonNoActivity              SessionExcludedReason = "NoActivity"
-	SessionExcludedReasonNoUserInteractionEvents SessionExcludedReason = "NoUserInteractionEvents"
-	SessionExcludedReasonNoError                 SessionExcludedReason = "NoError"
-	SessionExcludedReasonIgnoredUser             SessionExcludedReason = "IgnoredUser"
-	SessionExcludedReasonBillingQuotaExceeded    SessionExcludedReason = "BillingQuotaExceeded"
-	SessionExcludedReasonRetentionPeriodExceeded SessionExcludedReason = "RetentionPeriodExceeded"
+	SessionExcludedReasonInitializing              SessionExcludedReason = "Initializing"
+	SessionExcludedReasonNoActivity                SessionExcludedReason = "NoActivity"
+	SessionExcludedReasonNoUserInteractionEvents   SessionExcludedReason = "NoUserInteractionEvents"
+	SessionExcludedReasonNoTimelineIndicatorEvents SessionExcludedReason = "NoTimelineIndicatorEvents"
+	SessionExcludedReasonNoError                   SessionExcludedReason = "NoError"
+	SessionExcludedReasonNoUserEvents              SessionExcludedReason = "NoUserEvents"
+	SessionExcludedReasonIgnoredUser               SessionExcludedReason = "IgnoredUser"
+	SessionExcludedReasonBillingQuotaExceeded      SessionExcludedReason = "BillingQuotaExceeded"
+	SessionExcludedReasonRetentionPeriodExceeded   SessionExcludedReason = "RetentionPeriodExceeded"
 )
 
 var AllSessionExcludedReason = []SessionExcludedReason{
 	SessionExcludedReasonInitializing,
 	SessionExcludedReasonNoActivity,
 	SessionExcludedReasonNoUserInteractionEvents,
+	SessionExcludedReasonNoTimelineIndicatorEvents,
 	SessionExcludedReasonNoError,
+	SessionExcludedReasonNoUserEvents,
 	SessionExcludedReasonIgnoredUser,
 	SessionExcludedReasonBillingQuotaExceeded,
 	SessionExcludedReasonRetentionPeriodExceeded,
@@ -1580,7 +1662,7 @@ var AllSessionExcludedReason = []SessionExcludedReason{
 
 func (e SessionExcludedReason) IsValid() bool {
 	switch e {
-	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoError, SessionExcludedReasonIgnoredUser, SessionExcludedReasonBillingQuotaExceeded, SessionExcludedReasonRetentionPeriodExceeded:
+	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonNoUserEvents, SessionExcludedReasonIgnoredUser, SessionExcludedReasonBillingQuotaExceeded, SessionExcludedReasonRetentionPeriodExceeded:
 		return true
 	}
 	return false
@@ -1702,6 +1784,7 @@ type SourceMappingErrorCode string
 const (
 	SourceMappingErrorCodeFileNameMissingFromSourcePath         SourceMappingErrorCode = "File_Name_Missing_From_Source_Path"
 	SourceMappingErrorCodeErrorParsingStackTraceFileURL         SourceMappingErrorCode = "Error_Parsing_Stack_Trace_File_Url"
+	SourceMappingErrorCodeErrorConstructingSourceMapURL         SourceMappingErrorCode = "Error_Constructing_Source_Map_URL"
 	SourceMappingErrorCodeMissingSourceMapFileInS3              SourceMappingErrorCode = "Missing_Source_Map_File_In_S3"
 	SourceMappingErrorCodeMinifiedFileMissingInS3AndURL         SourceMappingErrorCode = "Minified_File_Missing_In_S3_And_URL"
 	SourceMappingErrorCodeSourcemapFileMissingInS3AndURL        SourceMappingErrorCode = "Sourcemap_File_Missing_In_S3_And_URL"
@@ -1715,6 +1798,7 @@ const (
 var AllSourceMappingErrorCode = []SourceMappingErrorCode{
 	SourceMappingErrorCodeFileNameMissingFromSourcePath,
 	SourceMappingErrorCodeErrorParsingStackTraceFileURL,
+	SourceMappingErrorCodeErrorConstructingSourceMapURL,
 	SourceMappingErrorCodeMissingSourceMapFileInS3,
 	SourceMappingErrorCodeMinifiedFileMissingInS3AndURL,
 	SourceMappingErrorCodeSourcemapFileMissingInS3AndURL,
@@ -1727,7 +1811,7 @@ var AllSourceMappingErrorCode = []SourceMappingErrorCode{
 
 func (e SourceMappingErrorCode) IsValid() bool {
 	switch e {
-	case SourceMappingErrorCodeFileNameMissingFromSourcePath, SourceMappingErrorCodeErrorParsingStackTraceFileURL, SourceMappingErrorCodeMissingSourceMapFileInS3, SourceMappingErrorCodeMinifiedFileMissingInS3AndURL, SourceMappingErrorCodeSourcemapFileMissingInS3AndURL, SourceMappingErrorCodeMinifiedFileLarger, SourceMappingErrorCodeSourceMapFileLarger, SourceMappingErrorCodeInvalidSourceMapURL, SourceMappingErrorCodeSourcemapLibraryCouldntParse, SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource:
+	case SourceMappingErrorCodeFileNameMissingFromSourcePath, SourceMappingErrorCodeErrorParsingStackTraceFileURL, SourceMappingErrorCodeErrorConstructingSourceMapURL, SourceMappingErrorCodeMissingSourceMapFileInS3, SourceMappingErrorCodeMinifiedFileMissingInS3AndURL, SourceMappingErrorCodeSourcemapFileMissingInS3AndURL, SourceMappingErrorCodeMinifiedFileLarger, SourceMappingErrorCodeSourceMapFileLarger, SourceMappingErrorCodeInvalidSourceMapURL, SourceMappingErrorCodeSourcemapLibraryCouldntParse, SourceMappingErrorCodeSourcemapLibraryCouldntRetrieveSource:
 		return true
 	}
 	return false

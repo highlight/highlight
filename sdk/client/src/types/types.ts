@@ -1,7 +1,6 @@
 import {
 	ConsoleMethods,
 	DebugOptions,
-	FeedbackWidgetOptions,
 	IntegrationOptions,
 	NetworkRecordingOptions,
 	SessionShortcutOptions,
@@ -103,7 +102,7 @@ export declare type HighlightOptions = {
 	disableSessionRecording?: boolean
 	/**
 	 * Specifies whether Highlight will report `console.error` invocations as Highlight Errors.
-	 * @default true
+	 * @default false
 	 */
 	reportConsoleErrors?: boolean
 	/**
@@ -171,10 +170,8 @@ export declare type HighlightOptions = {
 	 */
 	recordCrossOriginIframe?: boolean
 	/**
-	 * Specifies that the current app is a cross origin iframe in an app where Highlight is also enabled.
-	 * This flag should only be set in the iframe, not in the parent application hosting the iframe.
-	 * This allows the iframe to forward its recording to the parent to be included as part of the session.
-	 * @default false
+	 * Deprecated: this setting is now inferred automatically. Passing this option does nothing.
+	 * @deprecated
 	 */
 	isCrossOriginIframe?: boolean
 	integrations?: IntegrationOptions
@@ -183,10 +180,6 @@ export declare type HighlightOptions = {
 	 * @see {@link https://docs.highlight.run/session-shortcut} for more information.
 	 */
 	sessionShortcut?: SessionShortcutOptions
-	/**
-	 * Specifies whether to show the Highlight feedback widget. This allows users to submit feedback for their current session.
-	 */
-	feedbackWidget?: FeedbackWidgetOptions
 }
 
 export declare interface HighlightPublicInterface {
@@ -236,10 +229,6 @@ export declare interface HighlightPublicInterface {
 	 * Calling this will add a feedback comment to the session.
 	 */
 	addSessionFeedback: (feedbackOptions: SessionFeedbackOptions) => void
-	/**
-	 * Calling this will toggle the visibility of the feedback modal.
-	 */
-	toggleSessionFeedbackModal: () => void
 }
 
 export declare interface SessionDetails {

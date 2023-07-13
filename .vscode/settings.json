@@ -90,7 +90,10 @@
 		"autoinject",
 		"Autoinjected",
 		"Blocklist",
-		"interactable"
+		"interactable",
+		"munge",
+		"snapshotting",
+		"unobfuscated"
 	],
 	"[yaml]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -104,14 +107,9 @@
 	"[markdown]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
-	"editor.wordWrapColumn": 120,
-	"editor.wordWrap": "wordWrapColumn",
 	"[css]": {
 		"editor.defaultFormatter": "vscode.css-language-features"
 	},
-	"typescript.preferences.autoImportFileExcludePatterns": [
-		"**/packages/ui"
-	],
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"[typescript]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -119,6 +117,12 @@
 	"[jsonc]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+	"json.schemas": [{
+		"fileMatch": [".reflame.config.jsonc"],
+		"schema": {
+			"allowTrailingCommas": true
+		}
+	}],
 	"workbench.colorCustomizations": {
 		"activityBar.background": "#301e79",
 		"titleBar.activeBackground": "#0d0225",

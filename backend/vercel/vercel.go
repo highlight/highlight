@@ -4,12 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/go-chi/chi"
-	model2 "github.com/highlight-run/highlight/backend/model"
-	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
-	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
-	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"net/url"
@@ -17,6 +11,13 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/go-chi/chi"
+	model2 "github.com/highlight-run/highlight/backend/model"
+	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
+	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
+	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/pkg/errors"
@@ -121,6 +122,9 @@ func SetEnvVariable(projectId string, apiKey string, accessToken string, teamId 
 	b, err := io.ReadAll(res.Body)
 
 	if res.StatusCode != 200 {
+		if method == "PATCH" {
+			return errors.New(fmt.Sprintf("Could not patch environment variable %s - If this environment variable is already defined in Vercel, please remove it from your Vercel project and retry.", key))
+		}
 		return errors.New("Vercel Project Env API responded with error; status_code=" + res.Status + "; body=" + string(b))
 	}
 
@@ -159,6 +163,39 @@ func RemoveConfiguration(configId string, accessToken string, teamId *string) er
 
 	if err != nil {
 		return errors.Wrap(err, "error reading response body from Vercel env endpoint")
+	}
+
+	return nil
+}
+
+func RemoveLogDrain(logDrainId string, accessToken string, teamId *string) error {
+	client := &http.Client{}
+
+	teamIdParam := ""
+	if teamId != nil {
+		teamIdParam = "?teamId=" + *teamId
+	}
+
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/v1/integrations/log-drains/%s%s", ApiBaseUrl, logDrainId, teamIdParam), nil)
+	if err != nil {
+		return errors.Wrap(err, "error creating api request to Vercel")
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		return errors.Wrap(err, "error getting response from Vercel log drains endpoint")
+	}
+
+	b, err := io.ReadAll(res.Body)
+
+	if res.StatusCode != 204 {
+		return errors.New("Vercel log drains API responded with error; status_code=" + res.Status + "; body=" + string(b))
+	}
+
+	if err != nil {
+		return errors.Wrap(err, "error reading response body from Vercel log drains endpoint")
 	}
 
 	return nil
@@ -226,6 +263,52 @@ func GetProjects(accessToken string, teamId *string) ([]*model.VercelProject, er
 	}
 
 	return projects, nil
+}
+
+func RemoveLogDrains(ctx context.Context, vercelTeamID *string, accessToken string) error {
+	client := &http.Client{}
+
+	u := fmt.Sprintf("%s/v2/integrations/log-drains", ApiBaseUrl)
+	if vercelTeamID != nil {
+		u = fmt.Sprintf("%s?teamId=%s", u, *vercelTeamID)
+	}
+	req, err := http.NewRequest("GET", u, strings.NewReader(""))
+	if err != nil {
+		return errors.Wrap(err, "error creating log drains request to Vercel")
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+	res, err := client.Do(req)
+
+	if err != nil {
+		return errors.Wrap(err, "error getting response from Vercel log-drain endpoint")
+	}
+
+	b, err := io.ReadAll(res.Body)
+
+	if res.StatusCode != 200 {
+		return errors.New("Vercel log drains API responded with error; status_code=" + res.Status + "; body=" + string(b))
+	}
+
+	if err != nil {
+		return errors.Wrap(err, "error reading response body from Vercel log drains endpoint")
+	}
+
+	var logDrainsResponse []struct {
+		Id string `json:"id"`
+	}
+	err = json.Unmarshal(b, &logDrainsResponse)
+	if err != nil {
+		return errors.Wrap(err, "error unmarshaling Vercel log drains response")
+	}
+
+	for _, ld := range logDrainsResponse {
+		if err := RemoveLogDrain(ld.Id, accessToken, vercelTeamID); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func CreateLogDrain(ctx context.Context, vercelTeamID *string, vercelProjectIDs []string, projectVerboseID string, name string, accessToken string) error {

@@ -9,7 +9,6 @@ import {
 	AmplitudeIntegrationOptions,
 	ConsoleMethods,
 	DebugOptions,
-	FeedbackWidgetOptions,
 	MetricCategory,
 	MetricName,
 	MixpanelIntegrationOptions,
@@ -46,7 +45,6 @@ import { FocusListener } from './listeners/focus-listener/focus-listener'
 import { SESSION_STORAGE_KEYS } from './utils/sessionStorage/sessionStorageKeys'
 import SessionShortcutListener from './listeners/session-shortcut/session-shortcut-listener'
 import { WebVitalsListener } from './listeners/web-vitals-listener/web-vitals-listener'
-import { initializeFeedbackWidget } from './ui/feedback-widget/feedback-widget'
 import { getPerformanceMethods } from './utils/performance/performance'
 import {
 	PerformanceListener,
@@ -73,6 +71,12 @@ import {
 	JankListener,
 	JankPayload,
 } from './listeners/jank-listener/jank-listener'
+import {
+	HighlightIframeMessage,
+	HighlightIframeReponse,
+	IFRAME_PARENT_READY,
+	IFRAME_PARENT_RESPONSE,
+} from './types/iframe'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -101,13 +105,11 @@ export type HighlightClassOptions = {
 	samplingStrategy?: SamplingStrategy
 	inlineImages?: boolean
 	inlineStylesheet?: boolean
-	isCrossOriginIframe?: boolean
 	recordCrossOriginIframe?: boolean
 	firstloadVersion?: string
 	environment?: 'development' | 'production' | 'staging' | string
 	appVersion?: string
 	sessionShortcut?: SessionShortcutOptions
-	feedbackWidget?: FeedbackWidgetOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 }
 
@@ -133,6 +135,7 @@ const SEND_FREQUENCY = 1000 * 2
  * Maximum length of a session
  */
 const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000
+const EXTENDED_MAX_SESSION_LENGTH = 12 * 60 * 60 * 1000
 
 const HIGHLIGHT_URL = 'app.highlight.run'
 
@@ -189,11 +192,11 @@ export class Highlight {
 	_isOnLocalHost!: boolean
 	_onToggleFeedbackFormVisibility!: () => void
 	_firstLoadListeners!: FirstLoadListeners
+	_isCrossOriginIframe!: boolean
 	_eventBytesSinceSnapshot!: number
 	_lastSnapshotTime!: number
 	_lastVisibilityChangeTime!: number
 	pushPayloadTimerId!: ReturnType<typeof setTimeout> | undefined
-	feedbackWidgetOptions!: FeedbackWidgetOptions
 	hasSessionUnloaded!: boolean
 	hasPushedData!: boolean
 	reloaded!: boolean
@@ -274,6 +277,14 @@ export class Highlight {
 		// Old firstLoad versions (Feb 2022) do not pass in FirstLoadListeners, so we have to fallback to creating it
 		this._firstLoadListeners =
 			firstLoadListeners || new FirstLoadListeners(this.options)
+		try {
+			// throws if parent is cross-origin
+			if (window.parent.document) {
+				this._isCrossOriginIframe = false
+			}
+		} catch (e) {
+			this._isCrossOriginIframe = true
+		}
 		this._initMembers(this.options)
 	}
 
@@ -370,14 +381,6 @@ export class Highlight {
 			this.organizationID === '1' || this.organizationID === '1jdkoe52'
 		this.firstloadVersion = options.firstloadVersion || 'unknown'
 		this.sessionShortcut = options.sessionShortcut || false
-		this.feedbackWidgetOptions = {
-			enabled: options.feedbackWidget?.enabled || false,
-			subTitle: options.feedbackWidget?.subTitle,
-			submitButtonLabel: options.feedbackWidget?.submitButtonLabel,
-			title: options.feedbackWidget?.title,
-			onSubmit: options.feedbackWidget?.onSubmit,
-			onCancel: options.feedbackWidget?.onCancel,
-		}
 		this._onToggleFeedbackFormVisibility = () => {}
 		// We only want to store a subset of the options for debugging purposes. Firstload version is stored as another field so we don't need to store it here.
 		const { firstloadVersion: _, ...optionsInternal } = options
@@ -478,10 +481,20 @@ export class Highlight {
 	}
 
 	addProperties(properties_obj = {}, typeArg?: PropertyType) {
+		// Remove any properties which throw on structuredClone
+		// (structuredClone is used when posting messages to the worker)
+		const obj = { ...properties_obj } as any
+		Object.entries(obj).forEach(([key, val]) => {
+			try {
+				structuredClone(val)
+			} catch {
+				delete obj[key]
+			}
+		})
 		this._worker.postMessage({
 			message: {
 				type: MessageType.Properties,
-				propertiesObject: properties_obj,
+				propertiesObject: obj,
 				propertyType: typeArg,
 			},
 		})
@@ -511,13 +524,6 @@ export class Highlight {
 				// effectively 'restart' recording by starting the new payload with a full snapshot
 				this.takeFullSnapshot()
 				return
-			}
-
-			if (this.feedbackWidgetOptions.enabled) {
-				const { onToggleFeedbackFormVisibility } =
-					initializeFeedbackWidget(this.feedbackWidgetOptions)
-				this._onToggleFeedbackFormVisibility =
-					onToggleFeedbackFormVisibility
 			}
 
 			const recordingStartTime = window.sessionStorage.getItem(
@@ -570,7 +576,10 @@ export class Highlight {
 				destinationDomains =
 					this.options.networkRecording.destinationDomains
 			}
-			if (!this.options.isCrossOriginIframe) {
+			if (this._isCrossOriginIframe) {
+				// wait for 'cross-origin iframe ready' message
+				await this._setupCrossOriginIframe()
+			} else {
 				const gr = await this.graphqlSDK.initializeSession({
 					organization_verbose_id: this.organizationID,
 					enable_strict_privacy: this.enableStrictPrivacy,
@@ -655,7 +664,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				clearTimeout(this.pushPayloadTimerId)
 				this.pushPayloadTimerId = undefined
 			}
-			if (!this.options.isCrossOriginIframe) {
+			if (!this._isCrossOriginIframe) {
 				this.pushPayloadTimerId = setTimeout(() => {
 					this._save()
 				}, FIRST_SEND_FREQUENCY)
@@ -733,6 +742,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					plugins: [getRecordSequentialIdPlugin()],
 					logger,
 				})
+				if (this.options.recordCrossOriginIframe) {
+					this._setupCrossOriginIframeParent()
+				}
 				// recordStop is not part of listeners because we do not actually want to stop rrweb
 				// rrweb has some bugs that make the stop -> restart workflow broken (eg iframe listeners)
 				const viewport = {
@@ -826,6 +838,64 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				this.stopRecording()
 			}
 		}
+	}
+
+	async _setupCrossOriginIframe() {
+		this.logger.log(`highlight in cross-origin iframe is waiting `)
+		// wait until we get a initialization message from the parent window
+		await new Promise<void>((r) => {
+			const listener = (message: MessageEvent) => {
+				if (message.data.highlight === IFRAME_PARENT_READY) {
+					const msg = message.data as HighlightIframeMessage
+					this.logger.log(`highlight got window message `, msg)
+					this.sessionData.projectID = msg.projectID
+					this.sessionData.sessionSecureID = msg.sessionSecureID
+					// reply back that we got the message and are set up
+					window.parent.postMessage(
+						{
+							highlight: IFRAME_PARENT_RESPONSE,
+						} as HighlightIframeReponse,
+						'*',
+					)
+					// stop listening to parent messages
+					window.removeEventListener('message', listener)
+					r()
+				}
+			}
+			window.addEventListener('message', listener)
+		})
+	}
+
+	_setupCrossOriginIframeParent() {
+		this.logger.log(
+			`highlight setting up cross origin iframe parent notification`,
+		)
+		// notify iframes that highlight is ready
+		const iframeInterval = setInterval(() => {
+			window.document.querySelectorAll('iframe').forEach((iframe) => {
+				iframe.contentWindow?.postMessage(
+					{
+						highlight: IFRAME_PARENT_READY,
+						projectID: this.sessionData.projectID,
+						sessionSecureID: this.sessionData.sessionSecureID,
+					} as HighlightIframeMessage,
+					'*',
+				)
+			})
+		}, 100) as unknown as number
+		// once an iframe responds that it got our message and it ready, clear the interval
+		const listener = (message: MessageEvent) => {
+			if (message.data.highlight === IFRAME_PARENT_RESPONSE) {
+				this.logger.log(
+					`highlight got response from initialized iframe`,
+				)
+				// stop sending iframe messages
+				window.clearInterval(iframeInterval)
+				// stop listening to parent messages
+				window.removeEventListener('message', listener)
+			}
+		}
+		window.addEventListener('message', listener)
 	}
 
 	_setupWindowListeners() {
@@ -1130,16 +1200,6 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		return null
 	}
 
-	toggleFeedbackWidgetVisibility() {
-		if (this.feedbackWidgetOptions.enabled) {
-			this._onToggleFeedbackFormVisibility()
-		} else {
-			console.warn(
-				`Highlight's toggleFeedbackWidgetVisibility() was called. You need to configure feedbackWidget in the Highlight options to show the feedback widget.`,
-			)
-		}
-	}
-
 	addSessionFeedback({
 		timestamp,
 		verbatim,
@@ -1166,12 +1226,15 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	// Reset the events array and push to a backend.
 	async _save() {
 		try {
+			let maxLength = MAX_SESSION_LENGTH
+			if (this.organizationID === 'odzl0xep') {
+				maxLength = EXTENDED_MAX_SESSION_LENGTH
+			}
 			if (
 				this.state === 'Recording' &&
 				this.listeners &&
 				this.sessionData.sessionStartTime &&
-				Date.now() - this.sessionData.sessionStartTime >
-					MAX_SESSION_LENGTH
+				Date.now() - this.sessionData.sessionStartTime > maxLength
 			) {
 				await this._reset()
 			}
@@ -1230,6 +1293,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 			this._firstLoadListeners,
 			this._recordingStartTime,
 		)
+		const webSocketEvents = FirstLoadListeners.getRecordedWebSocketEvents(
+			this._firstLoadListeners,
+		)
 		const events = [...this.events]
 		const messages = [...this._firstLoadListeners.messages]
 		const errors = [...this._firstLoadListeners.errors]
@@ -1260,6 +1326,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 				events: { events } as ReplayEventsInput,
 				messages: stringify({ messages: messages }),
 				resources: JSON.stringify({ resources: resources }),
+				web_socket_events: JSON.stringify({
+					webSocketEvents: webSocketEvents,
+				}),
 				errors,
 				is_beacon: isBeacon,
 				has_session_unloaded: this.hasSessionUnloaded,
@@ -1274,6 +1343,9 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					messages,
 					errors,
 					resourcesString: JSON.stringify({ resources: resources }),
+					webSocketEventsString: JSON.stringify({
+						webSocketEvents: webSocketEvents,
+					}),
 					isBeacon,
 					hasSessionUnloaded: this.hasSessionUnloaded,
 					highlightLogs: highlightLogs,
@@ -1316,7 +1388,7 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 	}
 }
 
-;(window as any).Highlight = Highlight
+;(window as any).HighlightIO = Highlight
 
 interface HighlightWindow extends Window {
 	Highlight: Highlight

@@ -8,7 +8,7 @@ import azure.functions as func
 import highlight_io
 from highlight_io.integrations.azure import observe_handler
 
-H = highlight_io.H("1", record_logs=True)
+H = highlight_io.H("1", instrument_logging=True)
 
 
 @observe_handler
@@ -27,7 +27,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
                 "customer": req.headers.get("customer") or "unknown",
                 "idx": idx,
                 "float": 1.2345,
-                "duration": datetime.now() - start,
+                "duration": (datetime.now() - start).total_seconds(),
             },
         )
 
@@ -51,7 +51,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             "customer": req.headers.get("customer") or "unknown",
             "name": name,
             "float": 1.2345,
-            "duration": datetime.now() - start,
+            "duration": (datetime.now() - start).total_seconds(),
         },
     )
 

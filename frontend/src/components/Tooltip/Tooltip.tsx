@@ -6,7 +6,7 @@ import {
 } from 'antd'
 import React from 'react'
 
-import styles from './Tooltip.module.scss'
+import styles from './Tooltip.module.css'
 
 type TooltipProps = Pick<
 	AntDesignTooltipProps,
@@ -19,11 +19,12 @@ type TooltipProps = Pick<
 >
 
 /**
+ * Deprecated: use the UI package's tooltip instead of this tooltip
  * A proxy for Ant Design's tooltip. This component should be used instead of directly using Ant Design's.
  */
 const Tooltip: React.FC<React.PropsWithChildren<TooltipProps>> = ({
 	children,
-	mouseEnterDelay = 1,
+	mouseEnterDelay = 0.5,
 	...props
 }) => {
 	return (

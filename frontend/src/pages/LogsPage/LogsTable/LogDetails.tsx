@@ -44,9 +44,10 @@ type Props = {
 	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
 }
 
-export const getLogURL = (row: Row<LogEdge>) => {
+export const getLogURL = (projectId: string, row: Row<LogEdge>) => {
 	const currentUrl = new URL(window.location.href)
-	const path = generatePath('/logs/:log_cursor', {
+	const path = generatePath('/:project_id/logs/:log_cursor', {
+		project_id: projectId,
 		log_cursor: row.original.cursor,
 	})
 	return currentUrl.origin + path
@@ -226,7 +227,7 @@ export const LogDetails: React.FC<Props> = ({
 						kind="secondary"
 						emphasis="low"
 						onClick={(e) => {
-							const url = getLogURL(row)
+							const url = getLogURL(projectId, row)
 							e.stopPropagation()
 							navigator.clipboard.writeText(url)
 							antdMessage.success('Copied link!')
@@ -341,7 +342,7 @@ const LogDetailsObject: React.FC<{
 			<LogAttributeLine>
 				{open ? <IconExpanded /> : <IconCollapsed />}
 				<Box py="6">
-					<Text color="weak" family="monospace" weight="bold">
+					<Text color="weak" family="monospace">
 						{label}
 					</Text>
 				</Box>
@@ -390,9 +391,7 @@ export const LogValue: React.FC<{
 				py="6"
 				onClick={(e: any) => e.stopPropagation()}
 			>
-				<Text family="monospace" weight="bold">
-					"{label}":
-				</Text>
+				<Text family="monospace">"{label}":</Text>
 			</Box>
 			<Box
 				display="flex"
@@ -402,12 +401,7 @@ export const LogValue: React.FC<{
 				onClick={(e: any) => e.stopPropagation()}
 			>
 				<Box borderRadius="4" p="6">
-					<Text
-						family="monospace"
-						weight="bold"
-						color="caution"
-						break="word"
-					>
+					<Text family="monospace" color="caution" break="word">
 						{queryMatch ? (
 							stringParts.map((part, index) => (
 								<React.Fragment key={index}>
@@ -462,9 +456,12 @@ export const LogValue: React.FC<{
 									}}
 								/>
 							}
+							delayed
 						>
 							<Box p="4">
-								<Text size="small">Apply as filter</Text>
+								<Text userSelect="none" color="n11">
+									Apply as filter
+								</Text>
 							</Box>
 						</Tooltip>
 					</Box>
@@ -484,9 +481,12 @@ export const LogValue: React.FC<{
 									}}
 								/>
 							}
+							delayed
 						>
 							<Box p="4">
-								<Text size="small">Copy to your clipboard</Text>
+								<Text userSelect="none" color="n11">
+									Copy to your clipboard
+								</Text>
 							</Box>
 						</Tooltip>
 					</Box>

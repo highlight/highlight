@@ -7,13 +7,22 @@ slug: getting-started
 Stay up to date with what we work on week over week:
 
 <DocsCardGroup>
-    <DocsCard title="Changelog 18" href="./changelog-15.md">
-    {"Erro boundary improvements, GitHub ticket integration, etc.."}
+    <DocsCard title="Changelog 21" href="./changelog-21.md">
+    {"GitHub Auth, Invite detection, AllContributor App"}
     </DocsCard>
-    <DocsCard title="Changelog 17" href="./changelog-15.md">
-    {"New Setup Page, Session caching, etc.."}
+    <DocsCard title="Changelog 20" href="./changelog-20.md">
+    {"User Management, New logging connectors"}
     </DocsCard>
-    <DocsCard title="Changelog 16" href="./changelog-15.md">
+    <DocsCard title="Changelog 19" href="./changelog-19.md">
+    {"Demo project, Comment UI facelift, etc."}
+    </DocsCard>
+    <DocsCard title="Changelog 18" href="./changelog-18.md">
+    {"Error boundary improvements, GitHub ticket integration, etc."}
+    </DocsCard>
+    <DocsCard title="Changelog 17" href="./changelog-17.md">
+    {"New Setup Page, Session caching, etc."}
+    </DocsCard>
+    <DocsCard title="Changelog 16" href="./changelog-16.md">
     {"Logging is in Alpha!"}
     </DocsCard>
     <DocsCard title="Changelog 15" href="./changelog-15.md">
@@ -23,7 +32,7 @@ Stay up to date with what we work on week over week:
     {"New Signup Flow, Python Guides, & Session Replay Fixes!"}
     </DocsCard>
     <DocsCard title="Changelog 13" href="./changelog-13.md">
-    {"HackerNews Launch, SDK Docs, DocSearch, etc.."}
+    {"HackerNews Launch, SDK Docs, DocSearch, etc."}
     </DocsCard>
     <DocsCard title="Changelog 12" href="./changelog-12.md">
     {"Open Source, Smoother UX, & New SDKs!"}

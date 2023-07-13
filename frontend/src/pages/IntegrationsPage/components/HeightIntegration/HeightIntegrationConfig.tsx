@@ -11,7 +11,7 @@ import {
 	IntegrationAction,
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import useMap from '@util/useMap'
 import { GetBaseURL } from '@util/window'
@@ -19,7 +19,7 @@ import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 
-import styles from './HeightIntegrationConfig.module.scss'
+import styles from './HeightIntegrationConfig.module.css'
 
 const HEIGHT_CLIENT_ID = import.meta.env.HEIGHT_CLIENT_ID
 

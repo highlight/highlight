@@ -48,14 +48,13 @@ import {
 	getTrialEndDateMessage,
 } from '@pages/Billing/utils/utils'
 import useLocalStorage from '@rehooks/local-storage'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
-import { client } from '@util/graph'
 import { titleCaseString } from '@util/string'
-import { showIntercom } from '@util/window'
+import { showIntercomMessage } from '@util/window'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -66,7 +65,7 @@ import { useSessionStorage } from 'react-use'
 import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
 
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
-import styles from './Header.module.scss'
+import styles from './Header.module.css'
 
 type Props = {
 	fullyIntegrated?: boolean
@@ -115,7 +114,7 @@ export const useBillingHook = ({
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId } = useProjectId()
-	const { isLoggedIn } = useAuthContext()
+	const { isLoggedIn, signOut } = useAuthContext()
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
@@ -128,7 +127,6 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 
 	const { toggleShowKeyboardShortcutsGuide, commandBarDialog } =
 		useGlobalContext()
-	const { admin } = useAuthContext()
 
 	const pages = [
 		{
@@ -574,9 +572,9 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												</Menu.Item>
 											</Link>
 											<Menu.Item
-												onClick={() =>
-													showIntercom({ admin })
-												}
+												onClick={() => {
+													showIntercomMessage()
+												}}
 											>
 												<Box
 													display="flex"
@@ -650,11 +648,10 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											<Menu.Item
 												onClick={async () => {
 													try {
-														auth.signOut()
+														signOut()
 													} catch (e) {
 														console.log(e)
 													}
-													await client.clearStore()
 												}}
 											>
 												<Box

@@ -51,27 +51,30 @@ export const SetupDocs: React.FC<Props> = ({ projectVerboseId }) => {
 								defaultOpen
 							>
 								<ReactMarkdown>{entry.content}</ReactMarkdown>
-								{entry.code && (
-									<CodeBlock
-										language={entry.code.language}
-										onCopy={() => {
-											analytics.track(
-												'Copied Setup Code',
-												{
-													copied: 'script',
-													language:
-														entry.code?.language,
-												},
-											)
-										}}
-										text={entry.code.text.replaceAll(
-											'<YOUR_PROJECT_ID>',
-											projectVerboseId,
-										)}
-										className={clsx(styles.codeBlock)}
-										customStyle={{}} // removes unwanted bottom padding
-									/>
-								)}
+								<Stack gap="4">
+									{entry.code?.map((codeBlock) => (
+										<CodeBlock
+											key={codeBlock.key}
+											language={codeBlock.language}
+											onCopy={() => {
+												analytics.track(
+													'Copied Setup Code',
+													{
+														copied: 'script',
+														language:
+															codeBlock.language,
+													},
+												)
+											}}
+											text={codeBlock.text.replaceAll(
+												'<YOUR_PROJECT_ID>',
+												projectVerboseId,
+											)}
+											className={clsx(styles.codeBlock)}
+											customStyle={{}} // removes unwanted bottom padding
+										/>
+									))}
+								</Stack>
 							</Section>
 						)
 					})}

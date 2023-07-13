@@ -2,14 +2,12 @@ import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import { BackendSearchQuery } from '@context/BaseSearchContext'
 import {
 	GetEnhancedUserDetailsDocument,
-	GetErrorDistributionDocument,
 	GetErrorGroupDocument,
 	GetErrorGroupsOpenSearchDocument,
 	GetErrorInstanceDocument,
 	GetErrorsHistogramDocument,
 	GetEventChunksDocument,
 	GetEventChunkUrlDocument,
-	GetRecentErrorsDocument,
 	GetSessionDocument,
 	GetSessionIntervalsDocument,
 	GetSessionPayloadDocument,
@@ -28,8 +26,9 @@ import { H } from 'highlight.run'
 import moment from 'moment'
 import { useEffect, useRef } from 'react'
 
-const CONCURRENT_PRELOADS = 1
-const PREVIOUS_ERROR_OBJECTS_TO_FETCH = 2
+const CONCURRENT_SESSION_PRELOADS = 1
+const CONCURRENT_ERROR_PRELOADS = 10
+const PREVIOUS_ERROR_OBJECTS_TO_FETCH = 3
 // Max brotlied resource file allowed. Note that a brotli file with some binary data
 // has a compression ratio of >5x, so unbrotlied this file will take up much more memory.
 const RESOURCE_FILE_SIZE_LIMIT_BYTES = 16 * 1024 * 1024
@@ -109,7 +108,7 @@ export const usePreloadSessions = function ({
 			const promises: Promise<void>[] = []
 			for (const _s of sessions?.sessions_opensearch.sessions || []) {
 				promises.push(loadSession(_s.secure_id))
-				if (promises.length === CONCURRENT_PRELOADS) {
+				if (promises.length === CONCURRENT_SESSION_PRELOADS) {
 					await Promise.all(promises)
 					promises.length = 0
 				}
@@ -190,7 +189,7 @@ export const usePreloadErrors = function ({
 			for (const _eg of errors?.error_groups_opensearch.error_groups ||
 				[]) {
 				promises.push(loadErrorGroup(project_id!, _eg.secure_id))
-				if (promises.length === CONCURRENT_PRELOADS) {
+				if (promises.length === CONCURRENT_ERROR_PRELOADS) {
 					await Promise.all(promises)
 					promises.length = 0
 				}
@@ -312,21 +311,12 @@ export const loadSession = async function (secureID: string) {
 			},
 		])
 	} catch (e: any) {
-		const msg = `failed to preload session ${secureID}`
-		console.warn(msg)
-		H.consumeError(e, msg)
+		log('preload.ts', `failed to preload session ${secureID}`)
 	}
 }
 
 const loadErrorGroup = async function (projectID: string, secureID: string) {
-	if (
-		await IndexedDBLink.has('GetErrorGroup', {
-			secure_id: secureID,
-		})
-	) {
-		log('preload.ts', `skipping loaded error group ${secureID}`)
-		return
-	}
+	// we repeat loading error groups since they are lightweight and we can benefit from loading apollo in-memory cache
 	const start = window.performance.now()
 	log('preload.ts', `preloading error group ${secureID}`)
 	try {
@@ -358,16 +348,6 @@ const loadErrorGroup = async function (projectID: string, secureID: string) {
 							  },
 				})
 			)?.data?.error_instance as ErrorInstance
-			const sessionSecureID =
-				errorInstance.error_object.session?.secure_id
-			if (sessionSecureID) {
-				log('preload.ts', 'loading session from error object', {
-					errorGroupSecureID: secureID,
-					errorInstance,
-					sessionSecureID,
-				})
-				await loadSession(sessionSecureID)
-			}
 			if (
 				errorInstance?.previous_id?.length &&
 				errorInstance.previous_id !== '0'
@@ -377,28 +357,6 @@ const loadErrorGroup = async function (projectID: string, secureID: string) {
 				break
 			}
 		}
-		await client.query({
-			query: GetRecentErrorsDocument,
-			variables: {
-				secure_id: secureID,
-			},
-		})
-		await client.query({
-			query: GetErrorDistributionDocument,
-			variables: {
-				error_group_secure_id: secureID,
-				project_id: projectID,
-				property: 'os',
-			},
-		})
-		await client.query({
-			query: GetErrorDistributionDocument,
-			variables: {
-				error_group_secure_id: secureID,
-				project_id: projectID,
-				property: 'browser',
-			},
-		})
 		const preloadTime = window.performance.now() - start
 		log(
 			'preload.ts',
@@ -417,8 +375,6 @@ const loadErrorGroup = async function (projectID: string, secureID: string) {
 			},
 		])
 	} catch (e: any) {
-		const msg = `failed to preload error group ${secureID}`
-		console.warn(msg)
-		H.consumeError(e, msg)
+		log('preload.ts', `failed to preload session ${secureID}`)
 	}
 }

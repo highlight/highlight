@@ -26,8 +26,6 @@ export const DOCS_REDIRECTS = {
 	'api/hrecordmetric': '/docs/sdk/nodejs#Hrecord-metric',
 	'api/hstart': '/docs/sdk/client#Hstart',
 	'api/hstop': '/docs/sdk/client#Hstop',
-	'api/htogglesessionfeedbackmodal':
-		'/docs/sdk/client#Htoggle-session-feedback-modal',
 	'api/htrack': '/docs/sdk/client#Htrack',
 	'api/ljQK-hconsumeerror': '/docs/sdk/client#Hconsume-error',
 	'api/metrics': '/docs/sdk/client#Hmetrics',

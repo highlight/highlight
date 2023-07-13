@@ -1,2 +1,2 @@
-sed -i '1s;^;"use client"\;;' dist/HighlightInit.js
-sed -i '1s;^;"use client"\;;' dist/HighlightInit.mjs
+printf '%s%s' '"use client";' "$(cat dist/HighlightInit.js)" > dist/HighlightInit.js
+printf '%s%s' '"use client";' "$(cat dist/HighlightInit.mjs)" > dist/HighlightInit.mjs

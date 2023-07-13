@@ -15,7 +15,7 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { validateEmail } from '@util/string'
 import { message } from 'antd'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 export const ResetPassword: React.FC = () => {
@@ -28,6 +28,8 @@ export const ResetPassword: React.FC = () => {
 			email: initialEmail ?? '',
 		},
 	})
+
+	useEffect(() => analytics.page(), [])
 
 	return (
 		<Form

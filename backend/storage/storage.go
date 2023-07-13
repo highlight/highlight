@@ -8,9 +8,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/go-chi/chi"
-	"github.com/rs/cors"
-	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"os"
@@ -18,6 +15,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/go-chi/chi"
+	"github.com/rs/cors"
+	"github.com/samber/lo"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
@@ -30,6 +31,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/cloudfront/sign"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3Types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/payload"
 	"github.com/highlight-run/highlight/backend/util"
@@ -57,19 +59,18 @@ type PayloadType string
 
 const (
 	NetworkResources           PayloadType = "network-resources"
-	ConsoleMessages            PayloadType = "console-messages"
 	SessionContentsCompressed  PayloadType = "session-contents-compressed"
 	NetworkResourcesCompressed PayloadType = "network-resources-compressed"
-	ConsoleMessagesCompressed  PayloadType = "console-messages-compressed"
 	TimelineIndicatorEvents    PayloadType = "timeline-indicator-events"
+	WebSocketEventsCompressed  PayloadType = "web-socket-events-compressed"
 )
 
 // StoredPayloadTypes configures what payloads are uploaded with this config.
 var StoredPayloadTypes = map[payload.FileType]PayloadType{
-	payload.EventsCompressed:        SessionContentsCompressed,
-	payload.ResourcesCompressed:     NetworkResourcesCompressed,
-	payload.MessagesCompressed:      ConsoleMessagesCompressed,
-	payload.TimelineIndicatorEvents: TimelineIndicatorEvents,
+	payload.EventsCompressed:          SessionContentsCompressed,
+	payload.ResourcesCompressed:       NetworkResourcesCompressed,
+	payload.TimelineIndicatorEvents:   TimelineIndicatorEvents,
+	payload.WebSocketEventsCompressed: WebSocketEventsCompressed,
 }
 
 func GetChunkedPayloadType(offset int) PayloadType {
@@ -87,8 +88,8 @@ type Client interface {
 	PushFiles(ctx context.Context, sessionId, projectId int, payloadManager *payload.PayloadManager) (int64, error)
 	PushRawEvents(ctx context.Context, sessionId, projectId int, payloadType model.RawPayloadType, events []redis.Z) error
 	PushSourceMapFile(ctx context.Context, projectId int, version *string, fileName string, fileBytes []byte) (*int64, error)
-	ReadMessages(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
 	ReadResources(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
+	ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error)
 	ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error)
 	ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error)
 	UploadAsset(ctx context.Context, uuid string, contentType string, reader io.Reader) error
@@ -255,15 +256,6 @@ func (f *FilesystemClient) PushSourceMapFile(ctx context.Context, projectId int,
 	}
 }
 
-func (f *FilesystemClient) ReadMessages(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	var messages []interface{}
-	err := f.readCompressed(ctx, sessionId, projectId, ConsoleMessagesCompressed, &messages)
-	if err != nil {
-		return nil, err
-	}
-	return messages, nil
-}
-
 func (f *FilesystemClient) ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error) {
 	var events []*model.TimelineIndicatorEvent
 	err := f.readCompressed(ctx, sessionId, projectId, TimelineIndicatorEvents, &events)
@@ -280,6 +272,15 @@ func (f *FilesystemClient) ReadResources(ctx context.Context, sessionId int, pro
 		return nil, err
 	}
 	return resources, nil
+}
+
+func (f *FilesystemClient) ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
+	var webSocketEvents []interface{}
+	err := f.readCompressed(ctx, sessionId, projectId, WebSocketEventsCompressed, &webSocketEvents)
+	if err != nil {
+		return nil, err
+	}
+	return webSocketEvents, nil
 }
 
 func (f *FilesystemClient) ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error) {
@@ -524,8 +525,8 @@ func (s *S3Client) pushFileToS3WithOptions(ctx context.Context, sessionId, proje
 // PushCompressedFile pushes a compressed file to S3, adding the relevant metadata
 func (s *S3Client) PushCompressedFile(ctx context.Context, sessionId, projectId int, file *os.File, payloadType PayloadType) (*int64, error) {
 	options := s3.PutObjectInput{
-		ContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
-		ContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+		ContentType:     ptr.String(MIME_TYPE_JSON),
+		ContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
 	}
 	return s.pushFileToS3WithOptions(ctx, sessionId, projectId, file, payloadType, options)
 }
@@ -651,8 +652,8 @@ func (s *S3Client) ReadResources(ctx context.Context, sessionId int, projectId i
 	output, err := client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket:                  bucket,
 		Key:                     bucketKey(sessionId, projectId, NetworkResourcesCompressed),
-		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
-		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+		ResponseContentType:     ptr.String(MIME_TYPE_JSON),
+		ResponseContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
 	})
 	if err != nil {
 		// compressed file doesn't exist, fall back to reading uncompressed
@@ -673,6 +674,35 @@ func (s *S3Client) ReadResources(ctx context.Context, sessionId int, projectId i
 		return nil, errors.Wrap(err, "error decoding resource data")
 	}
 	return resources, nil
+}
+
+func (s *S3Client) ReadWebSocketEvents(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
+	client, bucket := s.getSessionClientAndBucket(sessionId)
+	output, err := client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket:                  bucket,
+		Key:                     bucketKey(sessionId, projectId, WebSocketEventsCompressed),
+		ResponseContentType:     ptr.String(MIME_TYPE_JSON),
+		ResponseContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
+	})
+	if err != nil {
+		// compressed file doesn't exist, fall back to reading uncompressed
+		return s.ReadUncompressedResourcesFromS3(ctx, sessionId, projectId)
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	buf, err = decompress(buf)
+	if err != nil {
+		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
+	}
+
+	var webSocketEvents []interface{}
+	if err := json.Unmarshal(buf.Bytes(), &webSocketEvents); err != nil {
+		return nil, errors.Wrap(err, "error decoding web socket event data")
+	}
+	return webSocketEvents, nil
 }
 
 // ReadUncompressedResourcesFromS3 is deprecated. Serves legacy uncompressed network data from S3.
@@ -706,66 +736,6 @@ func (s *S3Client) ReadUncompressedResourcesFromS3(ctx context.Context, sessionI
 	return retResources, nil
 }
 
-func (s *S3Client) ReadMessages(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	client, bucket := s.getSessionClientAndBucket(sessionId)
-	output, err := client.GetObject(ctx, &s3.GetObjectInput{
-		Bucket:                  bucket,
-		Key:                     bucketKey(sessionId, projectId, ConsoleMessagesCompressed),
-		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
-		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
-	})
-	if err != nil {
-		// compressed file doesn't exist, fall back to reading uncompressed
-		return s.ReadUncompressedMessagesFromS3(ctx, sessionId, projectId)
-	}
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(output.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
-	}
-	buf, err = decompress(buf)
-	if err != nil {
-		return nil, errors.Wrap(err, "error decompressing compressed buffer from s3")
-	}
-
-	var messages []interface{}
-	if err := json.Unmarshal(buf.Bytes(), &messages); err != nil {
-		return nil, errors.Wrap(err, "error decoding message data")
-	}
-	return messages, nil
-}
-
-// ReadUncompressedMessagesFromS3 is deprecated. Serves legacy uncompressed message data from S3.
-func (s *S3Client) ReadUncompressedMessagesFromS3(ctx context.Context, sessionId int, projectId int) ([]interface{}, error) {
-	client, bucket := s.getSessionClientAndBucket(sessionId)
-	output, err := client.GetObject(ctx, &s3.GetObjectInput{Bucket: bucket,
-		Key: bucketKey(sessionId, projectId, ConsoleMessages)})
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting object from s3")
-	}
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(output.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading from s3 buffer")
-	}
-	type messages struct {
-		Messages []interface{}
-	}
-	messagesSlice := strings.Split(buf.String(), "\n\n\n")
-	var retMessages []interface{}
-	for _, e := range messagesSlice {
-		if e == "" {
-			continue
-		}
-		var tempResources messages
-		if err := json.Unmarshal([]byte(e), &tempResources); err != nil {
-			return nil, errors.Wrap(err, "error decoding message data")
-		}
-		retMessages = append(retMessages, tempResources.Messages...)
-	}
-	return retMessages, nil
-}
-
 func (s *S3Client) ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error) {
 	client, bucket := s.getSessionClientAndBucket(sessionId)
 
@@ -773,8 +743,8 @@ func (s *S3Client) ReadTimelineIndicatorEvents(ctx context.Context, sessionId in
 	output, err := client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket:                  bucket,
 		Key:                     bucketKey(sessionId, projectId, TimelineIndicatorEvents),
-		ResponseContentType:     util.MakeStringPointer(MIME_TYPE_JSON),
-		ResponseContentEncoding: util.MakeStringPointer(CONTENT_ENCODING_BROTLI),
+		ResponseContentType:     ptr.String(MIME_TYPE_JSON),
+		ResponseContentEncoding: ptr.String(CONTENT_ENCODING_BROTLI),
 	})
 	if err != nil {
 		if strings.Contains(err.Error(), "NoSuchKey") {

@@ -1,1 +1,1 @@
-import{a}from"../../../../../chunk-LMWHBVI4.js";var e=a({defaultClassName:"v8kz6z0",variantClassNames:{current:{false:"v8kz6z1",true:"v8kz6z2"}},defaultVariants:{current:!1},compoundVariants:[]});export{e as variants};
+import{createRuntimeFn as a}from"@vanilla-extract/recipes/createRuntimeFn";var e=a({defaultClassName:"v8kz6z0",variantClassNames:{current:{false:"v8kz6z1",true:"v8kz6z2"}},defaultVariants:{current:!1},compoundVariants:[]});export{e as variants};

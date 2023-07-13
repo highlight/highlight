@@ -11,6 +11,7 @@ import {
 } from '@context/AppLoadingContext'
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
 import { ErrorObject, Maybe, Project, Workspace } from '@graph/schemas'
+import { Ariakit } from '@highlight-run/ui'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
 import {
@@ -19,30 +20,26 @@ import {
 	RightPlayerTab,
 } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
-import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks'
 import useLocalStorage from '@rehooks/local-storage'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
-import WithErrorSearchContext from '@routers/ProjectRouter/WithErrorSearchContext'
-import WithSessionSearchContext from '@routers/ProjectRouter/WithSessionSearchContext'
 import { auth } from '@util/auth'
 import { setIndexedDBEnabled } from '@util/db'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { useDialogState } from 'ariakit/dialog'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
+import { PRIVATE_GRAPH_URI } from '@/constants'
 import {
 	useClientIntegration,
 	useLogsIntegration,
 	useServerIntegration,
 } from '@/util/integrated'
 
-import commonStyles from '../../Common.module.scss'
+import commonStyles from '../../Common.module.css'
 import ApplicationRouter from './ApplicationRouter'
-import { ApplicationContextProvider } from './context/ApplicationContext'
 
 export const ProjectRouter = () => {
 	const { isLoggedIn } = useAuthContext()
@@ -53,7 +50,7 @@ export const ProjectRouter = () => {
 	const { projectId } = useNumericProjectId()
 	const { setLoadingState } = useAppLoadingContext()
 
-	const { data, loading, error } = useGetProjectDropdownOptionsQuery({
+	const { data, error } = useGetProjectDropdownOptionsQuery({
 		variables: { project_id: projectId! },
 		skip: !isLoggedIn || !projectId, // Higher level routers decide when guests are allowed to hit this router
 	})
@@ -75,14 +72,11 @@ export const ProjectRouter = () => {
 	}, [projectId])
 
 	useEffect(() => {
-		const uri =
-			import.meta.env.REACT_APP_PRIVATE_GRAPH_URI ??
-			window.location.origin + '/private'
 		let intervalId: NodeJS.Timeout
 
 		auth.currentUser?.getIdToken().then((t) => {
 			const fetchToken = () => {
-				fetch(`${uri}/project-token/${projectId}`, {
+				fetch(`${PRIVATE_GRAPH_URI}/project-token/${projectId}`, {
 					credentials: 'include',
 					headers: {
 						token: t,
@@ -127,20 +121,8 @@ export const ProjectRouter = () => {
 	}, [])
 
 	useEffect(() => {
-		if (!error) {
-			setLoadingState((previousLoadingState) => {
-				if (previousLoadingState !== AppLoadingState.EXTENDED_LOADING) {
-					return loading
-						? AppLoadingState.LOADING
-						: AppLoadingState.LOADED
-				}
-
-				return AppLoadingState.EXTENDED_LOADING
-			})
-		} else {
-			setLoadingState(AppLoadingState.LOADED)
-		}
-	}, [error, loading, setLoadingState])
+		setLoadingState(AppLoadingState.LOADED)
+	}, [setLoadingState])
 
 	// if the user can join this workspace, give them that option via the ErrorState
 	const joinableWorkspace = data?.joinable_workspaces
@@ -159,10 +141,6 @@ export const ProjectRouter = () => {
 		undefined,
 	)
 
-	const [activeNetworkResource, setActiveNetworkResource] = useState<
-		NetworkResource | undefined
-	>(undefined)
-
 	const [selectedRightPanelTab, setSelectedRightPanelTab] =
 		useLocalStorage<RightPlayerTab>(
 			'tabs-PlayerRightPanel-active-tab',
@@ -171,6 +149,8 @@ export const ProjectRouter = () => {
 
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
+
+	const commandBarDialog = Ariakit.useDialogState()
 
 	const playerUIContext = {
 		isPlayerFullscreen,
@@ -182,16 +162,8 @@ export const ProjectRouter = () => {
 		setActiveEvent,
 		activeError,
 		setActiveError,
-		activeNetworkResource,
-		setActiveNetworkResource,
 		rightPanelView,
 		setRightPanelView,
-	}
-
-	const commandBarDialog = useDialogState()
-
-	if (loading) {
-		return null
 	}
 
 	return (
@@ -204,56 +176,30 @@ export const ProjectRouter = () => {
 				commandBarDialog,
 			}}
 		>
-			<ApplicationContextProvider
-				value={{
-					currentProject: data?.project ?? undefined,
-					allProjects: data?.workspace?.projects ?? [],
-					currentWorkspace: data?.workspace ?? undefined,
-					workspaces: data?.workspaces ?? [],
-				}}
-			>
-				<PlayerUIContextProvider value={playerUIContext}>
-					<WithSessionSearchContext>
-						<WithErrorSearchContext>
-							<Routes>
-								<Route
-									path=":project_id/front"
-									element={<FrontPlugin />}
-								/>
-								<Route
-									path=":project_id/*"
-									element={
-										<>
-											<Header
-												fullyIntegrated={
-													fullyIntegrated
-												}
-											/>
-											<KeyboardShortcutsEducation />
-											<div
-												className={clsx(
-													commonStyles.bodyWrapper,
-													{
-														[commonStyles.bannerShown]:
-															showBanner,
-													},
-												)}
-											>
-												<ApplicationOrError
-													error={error}
-													joinableWorkspace={
-														joinableWorkspace
-													}
-												/>
-											</div>
-										</>
-									}
-								/>
-							</Routes>
-						</WithErrorSearchContext>
-					</WithSessionSearchContext>
-				</PlayerUIContextProvider>
-			</ApplicationContextProvider>
+			<PlayerUIContextProvider value={playerUIContext}>
+				<Routes>
+					<Route path=":project_id/front" element={<FrontPlugin />} />
+					<Route
+						path=":project_id/*"
+						element={
+							<>
+								<Header fullyIntegrated={fullyIntegrated} />
+								<KeyboardShortcutsEducation />
+								<div
+									className={clsx(commonStyles.bodyWrapper, {
+										[commonStyles.bannerShown]: showBanner,
+									})}
+								>
+									<ApplicationOrError
+										error={error}
+										joinableWorkspace={joinableWorkspace}
+									/>
+								</div>
+							</>
+						}
+					/>
+				</Routes>
+			</PlayerUIContextProvider>
 		</GlobalContextProvider>
 	)
 }

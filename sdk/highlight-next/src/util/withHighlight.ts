@@ -95,7 +95,6 @@ export const Highlight =
 			try {
 				return await origHandler(req, res)
 			} catch (e) {
-				NodeH.consumeEvent(secureSessionId)
 				if (e instanceof Error) {
 					NodeH.consumeError(e, secureSessionId, requestId)
 					await NodeH.flush()

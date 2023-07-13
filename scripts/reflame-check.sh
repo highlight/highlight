@@ -10,4 +10,6 @@ fi
 
 echo "Please run \`yarn reflame-build\` and commit the following updated files:"
 git ls-files -om --exclude-standard
+# Uncomment to debug by showing detailed diff 
+# git diff
 exit 1
