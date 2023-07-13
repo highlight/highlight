@@ -2,7 +2,12 @@ import express from 'express'
 import { Configuration, OpenAIApi } from 'openai'
 import cors from 'cors'
 import { getEvents } from './s3'
-import { getInsightsForEvents } from './utils'
+import {
+	getInsightsForEvents,
+	getMostActiveChunks,
+	parseEventsForInput,
+} from './utils'
+import { getSessionHighlightPrompt } from 'src/prompts'
 
 const configuration = new Configuration({
 	organization: 'org-q9w5AyJeJV2vbW0t1g74sCB0',
@@ -19,7 +24,10 @@ app.post('/session/insight', async (req, res) => {
 	const { id, project_id } = req.body
 	const events = JSON.parse(await getEvents(project_id, id))
 	const responseString = await getInsightsForEvents(openai, events)
-	return res.json({ id: id, insight: responseString })
+	return res.json({
+		id: id,
+		insight: responseString,
+	})
 })
 
 app.listen(port, () => {
