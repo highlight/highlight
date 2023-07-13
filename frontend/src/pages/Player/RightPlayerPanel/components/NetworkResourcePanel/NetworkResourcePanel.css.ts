@@ -17,3 +17,7 @@ export const pageContainer = sprinkles({
 	overflowY: 'scroll',
 	position: 'relative',
 })
+
+export const pageContainerFull = sprinkles({
+	height: 'full',
+})

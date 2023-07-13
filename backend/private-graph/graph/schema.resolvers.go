@@ -3924,6 +3924,23 @@ func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecu
 	return timelineIndicatorEvents, nil
 }
 
+// WebsocketEvents is the resolver for the websocket_events field.
+func (r *queryResolver) WebsocketEvents(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
+	session, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	webSocketEvents, err := r.StorageClient.ReadWebSocketEvents(ctx, session.ID, session.ProjectID)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to get websocket events from S3")
+	}
+
+	return webSocketEvents, nil
+}
+
 // RageClicks is the resolver for the rage_clicks field.
 func (r *queryResolver) RageClicks(ctx context.Context, sessionSecureID string) ([]*model.RageClickEvent, error) {
 	if !(util.IsDevEnv() && sessionSecureID == "repro") {

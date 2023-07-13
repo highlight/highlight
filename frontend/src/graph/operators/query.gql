@@ -519,6 +519,10 @@ query GetTimelineIndicatorEvents($session_secure_id: String!) {
 	}
 }
 
+query GetWebSocketEvents($session_secure_id: String!) {
+	websocket_events(session_secure_id: $session_secure_id)
+}
+
 query GetFieldTypes(
 	$project_id: ID!
 	$start_date: Timestamp
