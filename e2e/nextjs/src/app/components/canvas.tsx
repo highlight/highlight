@@ -27,13 +27,14 @@ export const Canvas = ({
 	sceneOptions?: any
 }) => {
 	const onRender = (scene: Scene) => {
-		console.debug('onRender', scene)
+		// console.debug('onRender', scene)
 	}
 	const onSceneReady = (scene: Scene) => {
 		console.debug('onSceneReady', scene)
 	}
 	const reactCanvas = useRef(null)
 	const loadTimer = useRef<number>()
+	const load = useRef<() => void>()
 
 	const [loaded, setLoaded] = useState(false)
 	const [canvas, setCanvas] = useState<{
@@ -61,7 +62,7 @@ export const Canvas = ({
 	}, [canvas])
 
 	useEffect(() => {
-		const load = () => {
+		load.current = () => {
 			setLoaded(true)
 			const engine = new Engine(
 				reactCanvas.current,
@@ -163,9 +164,6 @@ export const Canvas = ({
 
 			loadTimer.current = undefined
 		}
-		if (!loaded) {
-			loadTimer.current = window.setTimeout(load, 1000)
-		}
 
 		return () => {
 			if (loadTimer.current) {
@@ -182,6 +180,19 @@ export const Canvas = ({
 
 	return (
 		<div>
+			<button
+				onClick={() => {
+					H.track('loading canvas')
+					if (load.current) {
+						loadTimer.current = window.setTimeout(
+							load.current,
+							1000,
+						)
+					}
+				}}
+			>
+				init
+			</button>
 			<button
 				onClick={() => {
 					H.track('render loop start')
