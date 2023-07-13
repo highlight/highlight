@@ -121,7 +121,7 @@ const getWebSocketEventMessage = (event: any) => {
 }
 
 const getWebSocketEventSize = (event: any) => {
-	return event.type === 'open' ? '' : event.type === 'close' ? '' : event.size
+	return event.type === 'open' || event.type === 'close' ? '' : event.size
 }
 
 const WebSocketRow = ({

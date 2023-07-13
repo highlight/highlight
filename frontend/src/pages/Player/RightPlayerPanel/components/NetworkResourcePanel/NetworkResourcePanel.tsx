@@ -335,6 +335,28 @@ function WebSocketDetails({
 
 	const { webSocketEvents, webSocketLoading } = useWebSocket(session)
 
+	const webSocketEventsMap = useMemo(() => {
+		const eventsMap: { [k: string]: any[] } = {}
+		webSocketEvents.forEach((e) => {
+			eventsMap[e.socketId] = []
+		})
+		webSocketEvents.forEach((e) => {
+			eventsMap[e.socketId].push(e)
+		})
+		return eventsMap
+	}, [webSocketEvents])
+
+	const selectedWebSocketEvents = useMemo(() => {
+		if (
+			resource.socketId &&
+			webSocketEventsMap.hasOwnProperty(resource.socketId)
+		) {
+			return [resource, ...webSocketEventsMap[resource.socketId]]
+		} else {
+			return []
+		}
+	}, [resource, webSocketEventsMap])
+
 	useHotkeys(
 		'h',
 		() => {
@@ -456,7 +478,7 @@ function WebSocketDetails({
 							<WebSocketMessages
 								startEvent={resource}
 								eventsLoading={webSocketLoading}
-								events={webSocketEvents}
+								events={selectedWebSocketEvents}
 							/>
 						),
 					},
