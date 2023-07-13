@@ -14,7 +14,6 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@microlabs/otel-cf-workers": "^1.0.0-rc.6",
 		"diary": "^0.4.4",
 		"opentelemetry-sdk-workers": "^0.6.2"
 	},
