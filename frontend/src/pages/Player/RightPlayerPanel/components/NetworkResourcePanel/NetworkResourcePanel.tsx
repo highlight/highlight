@@ -1,19 +1,19 @@
-import CollapsibleSection from '@components/CollapsibleSection'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import { TableList, TableListItem } from '@components/TableList/TableList'
 import { ErrorObject } from '@graph/schemas'
 import {
+	Ariakit,
 	Badge,
 	Box,
 	ButtonIcon,
+	Heading,
 	IconSolidArrowCircleRight,
-	IconSolidCheveronDown,
-	IconSolidCheveronUp,
 	IconSolidX,
+	sprinkles,
+	Tabs,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
@@ -29,166 +29,257 @@ import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
-const NetworkResourceDetails = React.memo(
-	({ resource }: { resource: NetworkResource }) => {
-		const { setActiveNetworkResource } = usePlayerUIContext()
-		const { resources } = useResourcesContext()
-		const {
-			sessionMetadata: { startTime },
-			setTime,
-			session,
-		} = useReplayerContext()
+import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
 
-		const networkResources = useMemo(() => {
-			return (
-				(resources.map((event) => ({
-					...event,
-					timestamp: event.startTime,
-				})) as NetworkResource[]) ?? []
-			)
-		}, [resources])
+import * as styles from './NetworkResourcePanel.css'
 
-		const resourceIdx = resources.findIndex((r) => resource.id === r.id)
-		const [prev, next] = [resourceIdx - 1, resourceIdx + 1]
-		const canMoveBackward = !!resources[prev]
-		const canMoveForward = !!resources[next]
+enum NetworkRequestTabs {
+	Info = 'Info',
+	// These tabs will be built out in a future PR.
+	// Errors = 'Errors',
+	// Logs = 'Logs',
+}
 
-		const { showPlayerAbsoluteTime } = usePlayerConfiguration()
-		const timestamp = useMemo(() => {
-			return new Date(resource.timestamp).getTime() - startTime
-		}, [resource.timestamp, startTime])
+export const NetworkResourcePanel = () => {
+	const networkResourceDialog = Ariakit.useDialogState()
+	const { activeNetworkResourceId, setActiveNetworkResourceId } =
+		useActiveNetworkResourceId()
 
-		useHotkeys(
-			'h',
-			() => {
-				if (canMoveBackward) {
-					analytics.track('PrevNetworkResourceKeyboardShortcut')
-					setActiveNetworkResource(networkResources[prev])
-				}
-			},
-			[canMoveBackward, prev],
-		)
+	const { resources } = useResourcesContext()
+	const resourceIdx = resources.findIndex(
+		(r) => activeNetworkResourceId === r.id,
+	)
+	const resource = resources[resourceIdx] as NetworkResource | undefined
 
-		useHotkeys(
-			'l',
-			() => {
-				if (canMoveForward) {
-					analytics.track('NextNetworkResourceKeyboardShortcut')
-					setActiveNetworkResource(networkResources[next])
-				}
-			},
-			[canMoveForward, next],
-		)
+	const hide = useCallback(() => {
+		setActiveNetworkResourceId(undefined)
+		networkResourceDialog.hide()
+	}, [networkResourceDialog, setActiveNetworkResourceId])
 
+	useHotkeys('Escape', hide, [])
+
+	useEffect(() => {
+		if (resource?.id !== undefined) {
+			networkResourceDialog.show()
+		}
+	}, [networkResourceDialog, resource?.id])
+
+	// Close the dialog and reset the active resource when the user interacts with
+	// the page outside the dialog.
+	const previousVisibleRef = React.useRef(networkResourceDialog.open)
+	useEffect(() => {
+		if (
+			previousVisibleRef.current !== networkResourceDialog.open &&
+			!networkResourceDialog.open
+		) {
+			hide()
+		}
+
+		previousVisibleRef.current = networkResourceDialog.open
+	}, [hide, networkResourceDialog.open])
+
+	return (
+		<Ariakit.Dialog
+			state={networkResourceDialog}
+			modal={false}
+			className={sprinkles({
+				backgroundColor: 'white',
+				display: 'flex',
+				flexDirection: 'column',
+				border: 'dividerWeak',
+				borderTopRightRadius: '6',
+				borderBottomRightRadius: '6',
+				boxShadow: 'small',
+				overflow: 'hidden',
+			})}
+			style={{
+				width: '45%',
+				minWidth: 400,
+				right: 8,
+				top: 8,
+				bottom: 8,
+				zIndex: 8,
+				position: 'absolute',
+			}}
+		>
+			{resource && (
+				<NetworkResourceDetails resource={resource} hide={hide} />
+			)}
+		</Ariakit.Dialog>
+	)
+}
+
+function NetworkResourceDetails({
+	resource,
+	hide,
+}: {
+	resource: NetworkResource
+	hide: () => void
+}) {
+	const { resources } = useResourcesContext()
+	const [activeTab, setActiveTab] = useState<NetworkRequestTabs>(
+		NetworkRequestTabs.Info,
+	)
+	const {
+		sessionMetadata: { startTime },
+		setTime,
+		session,
+	} = useReplayerContext()
+	const { activeNetworkResourceId, setActiveNetworkResourceId } =
+		useActiveNetworkResourceId()
+
+	const networkResources = useMemo(() => {
 		return (
+			(resources.map((event) => ({
+				...event,
+				timestamp: event.startTime,
+			})) as NetworkResource[]) ?? []
+		)
+	}, [resources])
+
+	const resourceIdx = resources.findIndex(
+		(r) => activeNetworkResourceId === r.id,
+	)
+
+	const [prev, next] = [resourceIdx - 1, resourceIdx + 1]
+	const canMoveBackward = !!resources[prev]
+	const canMoveForward = !!resources[next]
+
+	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
+	const timestamp = useMemo(() => {
+		return new Date(resource.startTime).getTime()
+	}, [resource.startTime])
+
+	useHotkeys(
+		'h',
+		() => {
+			if (canMoveBackward) {
+				analytics.track('PrevNetworkResourceKeyboardShortcut')
+				setActiveNetworkResourceId(networkResources[prev].id)
+			}
+		},
+		[canMoveBackward, prev],
+	)
+
+	useHotkeys(
+		'l',
+		() => {
+			if (canMoveForward) {
+				analytics.track('NextNetworkResourceKeyboardShortcut')
+				setActiveNetworkResourceId(networkResources[next].id)
+			}
+		},
+		[canMoveForward, next],
+	)
+
+	return (
+		<>
 			<Box
+				pl="12"
+				pr="8"
+				py="6"
 				display="flex"
-				flexDirection="column"
-				overflowX="hidden"
-				overflowY="auto"
+				alignItems="center"
+				justifyContent="space-between"
+				borderBottom="divider"
 			>
-				<Box pl="12" pr="8" py="6" display="flex">
-					<Box display="flex" gap="6" alignItems="center">
-						<PreviousNextGroup
-							onPrev={() =>
-								setActiveNetworkResource(networkResources[prev])
-							}
-							canMoveBackward={canMoveBackward}
-							prevShortcut="h"
-							onNext={() =>
-								setActiveNetworkResource(networkResources[next])
-							}
-							canMoveForward={canMoveForward}
-							nextShortcut="l"
-						/>
-						<Text size="xSmall" weight="medium" color="weak">
-							{resourceIdx + 1} / {networkResources.length}
-						</Text>
-					</Box>
-					<Box ml="auto" display="flex" alignItems="center">
-						<ButtonIcon
-							kind="secondary"
-							size="small"
-							shape="square"
-							emphasis="low"
-							icon={<IconSolidX />}
-							onClick={() => {
-								setActiveNetworkResource(undefined)
-							}}
-						/>
-					</Box>
-				</Box>
-				<Box
-					px="12"
-					py="8"
-					display="flex"
-					flexDirection="column"
-					gap="8"
-				>
-					<Text
+				<Box display="flex" gap="6" alignItems="center">
+					<PreviousNextGroup
+						onPrev={() =>
+							setActiveNetworkResourceId(
+								networkResources[prev].id,
+							)
+						}
+						canMoveBackward={canMoveBackward}
+						prevShortcut="h"
+						onNext={() =>
+							setActiveNetworkResourceId(
+								networkResources[next].id,
+							)
+						}
+						canMoveForward={canMoveForward}
+						nextShortcut="l"
 						size="small"
-						weight="medium"
-						color="strong"
-						wrap="breakWord"
-						lines="4"
-					>
-						{resource.displayName ?? resource.name}
+					/>
+					<Text size="xSmall" weight="medium" color="weak">
+						{resourceIdx + 1} / {networkResources.length}
 					</Text>
-					<Box
-						display="flex"
-						alignItems="center"
-						justifyContent="space-between"
-					>
-						<Badge
-							label={String(
-								showPlayerAbsoluteTime
-									? playerTimeToSessionAbsoluteTime({
-											sessionStartTime: startTime,
-											relativeTime: timestamp,
-									  })
-									: MillisToMinutesAndSeconds(timestamp),
-							)}
-							size="small"
-							shape="basic"
-							variant="gray"
-							flexShrink={0}
-						/>
-						<Tag
-							shape="basic"
-							kind="secondary"
-							size="medium"
-							emphasis="low"
-							iconRight={<IconSolidArrowCircleRight />}
-							onClick={() => {
-								setTime(
-									new Date(resource.timestamp).getTime() -
-										startTime,
-								)
-							}}
-							style={{
-								marginLeft: 'auto',
-								flexShrink: 0,
-							}}
-						>
-							Go to request
-						</Tag>
-					</Box>
 				</Box>
-				<NetworkResourceData
-					selectedNetworkResource={resource}
-					networkRecordingEnabledForSession={
-						session?.enable_recording_network_contents || false
-					}
+				<ButtonIcon
+					kind="secondary"
+					size="small"
+					shape="square"
+					emphasis="low"
+					icon={<IconSolidX />}
+					onClick={hide}
 				/>
 			</Box>
-		)
-	},
-)
+			<Box px="12" py="8" display="flex" flexDirection="column" gap="8">
+				<Heading level="h4">Network request</Heading>
 
-export default NetworkResourceDetails
+				<Box display="flex" alignItems="center" gap="4">
+					<Badge
+						label={String(
+							showPlayerAbsoluteTime
+								? playerTimeToSessionAbsoluteTime({
+										sessionStartTime: startTime,
+										relativeTime: timestamp,
+								  })
+								: MillisToMinutesAndSeconds(timestamp),
+						)}
+						size="medium"
+						shape="basic"
+						variant="gray"
+						flexShrink={0}
+					/>
+					<Tag
+						shape="basic"
+						kind="secondary"
+						size="medium"
+						emphasis="low"
+						iconRight={<IconSolidArrowCircleRight />}
+						onClick={() => {
+							setTime(timestamp)
+						}}
+					>
+						Go to
+					</Tag>
+				</Box>
+			</Box>
+
+			<Tabs<NetworkRequestTabs>
+				tab={activeTab}
+				setTab={(tab) => setActiveTab(tab)}
+				pages={{
+					[NetworkRequestTabs.Info]: {
+						page: (
+							<NetworkResourceData
+								selectedNetworkResource={resource}
+								networkRecordingEnabledForSession={
+									session?.enable_recording_network_contents ||
+									false
+								}
+							/>
+						),
+					},
+					// [NetworkRequestTabs.Errors]: {
+					// 	page: <Box>Errors</Box>,
+					// },
+					// [NetworkRequestTabs.Logs]: {
+					// 	page: <Box>Logs</Box>,
+					// },
+				}}
+				noHandle
+				containerClass={styles.container}
+				tabsContainerClass={styles.tabsContainer}
+				pageContainerClass={styles.pageContainer}
+			/>
+		</>
+	)
+}
 
 enum NetworkResourceMeta {
 	General = 'General',
@@ -198,6 +289,7 @@ enum NetworkResourceMeta {
 	ResponsePayload = 'Response Payload',
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function NetworkResourceData({
 	selectedNetworkResource,
 	networkRecordingEnabledForSession,
@@ -428,10 +520,6 @@ function NetworkResourceData({
 		},
 	]
 
-	const [expanded, setExpanded] = useState<NetworkResourceMeta | undefined>(
-		NetworkResourceMeta.General,
-	)
-
 	const sections: [NetworkResourceMeta, TableListItem[]][] = [
 		[NetworkResourceMeta.General, generalData],
 	]
@@ -461,81 +549,45 @@ function NetworkResourceData({
 	}
 
 	return (
-		<>
+		<Box>
 			{showRequestMetrics && (
 				<RequestMetrics resource={selectedNetworkResource} />
 			)}
 
-			{sections.map(([key, value]) => {
-				const isExpanded = expanded === key
-				const title = (
+			{sections.map(([key, value]) => (
+				<Box key={key} p="20">
 					<Box
-						py="8"
-						px="12"
-						bb={isExpanded ? undefined : 'secondary'}
+						pb="12"
+						bb="secondary"
 						display="flex"
 						justifyContent="space-between"
 						alignItems="center"
 					>
-						<Text
-							color="secondaryContentOnEnabled"
-							as="span"
-							size="small"
-							weight="medium"
-						>
+						<Text size="large" weight="bold" color="strong">
 							{key}
 						</Text>
-
-						<Box display="flex" gap="4" alignItems="center">
-							<ButtonIcon
-								icon={
-									isExpanded ? (
-										<IconSolidCheveronUp size={12} />
-									) : (
-										<IconSolidCheveronDown size={12} />
-									)
-								}
-								kind="secondary"
-								size="minimal"
-								emphasis="low"
-							/>
-						</Box>
 					</Box>
-				)
-				return (
-					<CollapsibleSection
-						key={key}
-						title={title}
-						expanded={isExpanded}
-						setExpanded={(e) => {
-							if (e) {
-								setExpanded(key as NetworkResourceMeta)
-							} else {
-								setExpanded(undefined)
-							}
-						}}
+
+					<Box
+						mt="12"
+						display="flex"
+						justifyContent="space-between"
+						alignItems="center"
 					>
-						<Box
-							px="12"
-							display="flex"
-							justifyContent="space-between"
-							alignItems="center"
-						>
-							<TableList
-								data={value}
-								noDataMessage={
-									networkRecordingEnabledForSession ? (
-										<NoRecordingMessage />
-									) : (
-										<NetworkRecordingEducationMessage />
-									)
-								}
-							/>
-						</Box>
-					</CollapsibleSection>
-				)
-			})}
-		</>
+						<TableList
+							data={value}
+							noDataMessage={
+								networkRecordingEnabledForSession ? (
+									<NoRecordingMessage />
+								) : (
+									<NetworkRecordingEducationMessage />
+								)
+							}
+						/>
+					</Box>
+				</Box>
+			))}
+		</Box>
 	)
 }
 

@@ -1,29 +1,31 @@
 import { QuickStartContent } from '../QuickstartContent'
-import { clone, dashboard, troubleshoot } from './shared-snippets'
+import { clone, dashboard, dependencies, troubleshoot } from './shared-snippets'
 
 export const SelfHostContent: QuickStartContent = {
 	title: 'Self-hosted (Hobby) Deployment',
 	subtitle:
 		'Learn how to set up the self-hosted hobby deployment of highlight.io.',
 	entries: [
+		dependencies,
+		clone,
 		{
-			title: 'Prerequisites',
+			title: 'Configure networking.',
 			content:
-				'Before we get started, you should have the latest version of [Docker](https://docs.docker.com/engine/install/) (19.03.0+) ' +
-				'and [Git](https://git-scm.com/downloads) (2.13+) installed. ' +
-				'For a local hobby deploy, we suggest [configuring docker](https://docs.docker.com/desktop/settings/mac/#resources) ' +
-				'to use at least 8GB of RAM, 4 CPUs, and 64 GB of disk space.',
+				'If this hobby deploy is running on a remote server, make changes to the `docker/.env` file for your deployment. ' +
+				'Update the following values to your backend IP address.',
 			code: [
 				{
+					text: `PRIVATE_GRAPH_URI=https://your-ip-address:8082/private
+PUBLIC_GRAPH_URI=https://your-ip-address:8082/public
+REACT_APP_PRIVATE_GRAPH_URI=https://your-ip-address:8082/private
+REACT_APP_PUBLIC_GRAPH_URI=https://your-ip-address:8082/public
+REACT_APP_FRONTEND_URI=https://your-ip-address:3000
+REACT_APP_FRONTEND_URI=https://your-ip-address:3000
+`,
 					language: 'bash',
-					text: `$ docker --version
-Docker version 20.10.23, build 7155243
-$ docker compose version
-Docker Compose version v2.15.1`,
 				},
 			],
 		},
-		clone,
 		{
 			title: 'Start highlight.',
 			content:

@@ -185,6 +185,7 @@ export const SessionLevelBarV2: React.FC<
 							}
 						}}
 						canMoveForward={!!canMoveForward}
+						size="small"
 					/>
 					{session && (
 						<Stack direction="row" gap="4" align="center">

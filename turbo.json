@@ -87,6 +87,10 @@
 			"cache": false,
 			"persistent": true
 		},
+		"dev:watch": {
+			"cache": false,
+			"persistent": true
+		},
 		"enforce-size": {
 			"dependsOn": ["build"]
 		},

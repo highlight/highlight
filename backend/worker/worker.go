@@ -419,6 +419,17 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
+	case kafkaqueue.HubSpotCreateContactCompanyAssociation:
+		if task.HubSpotCreateContactCompanyAssociation == nil {
+			break
+		}
+		if err := w.PublicResolver.HubspotApi.CreateContactCompanyAssociationImpl(ctx,
+			task.HubSpotCreateContactCompanyAssociation.AdminID,
+			task.HubSpotCreateContactCompanyAssociation.WorkspaceID,
+		); err != nil {
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			return err
+		}
 	case kafkaqueue.HealthCheck:
 	default:
 		log.WithContext(ctx).Errorf("Unknown task type %+v", task.Type)

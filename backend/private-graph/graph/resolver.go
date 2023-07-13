@@ -76,6 +76,7 @@ const ErrorGroupLookbackDays = 7
 const SessionActiveMetricName = "sessionActiveLength"
 const SessionProcessedMetricName = "sessionProcessed"
 
+var AuthenticationError = errors.New("401 - AuthenticationError")
 var AuthorizationError = errors.New("403 - AuthorizationError")
 
 var (
@@ -182,7 +183,12 @@ func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
 }
 
 func (r *Resolver) getCurrentAdmin(ctx context.Context) (*model.Admin, error) {
-	return r.Query().Admin(ctx)
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, AuthenticationError
+	}
+
+	return admin, nil
 }
 
 func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -374,7 +380,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.New("500: error querying admin")
+		return nil, err
 	}
 
 	inviteLink := &model.WorkspaceInviteLink{}
@@ -424,7 +430,7 @@ func (r *Resolver) addAdminMembership(ctx context.Context, workspaceId int, invi
 func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, adminID int) (*int, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.New("error querying admin while deleting admin association")
+		return nil, err
 	}
 	if admin.ID == adminID {
 		return nil, e.New("Admin tried deleting their own association")
@@ -449,7 +455,7 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return nil, e.Wrap(err, "error retrieving user")
+		return nil, err
 	}
 
 	span.SetTag("AdminID", admin.ID)
@@ -487,6 +493,10 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 	if err != nil {
 		return nil, e.Wrap(err, "error querying projects")
 	}
+	if len(projects) == 0 {
+		return nil, AuthenticationError
+	}
+
 	for _, p := range projects {
 		if p.ID == project_id {
 			span.SetTag("WorkspaceID", p.WorkspaceID)
@@ -866,7 +876,7 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 
 	_, err := r.isAdminInProjectOrDemoProject(ctx, eg.ProjectID)
 	if err != nil {
-		return eg, false, e.Wrap(err, "error validating admin in project")
+		return eg, false, err
 	}
 
 	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg); err != nil {
@@ -923,12 +933,12 @@ func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecur
 func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id string) (session *model.Session, ownsSession bool, err error) {
 	session = &model.Session{}
 	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: session_secure_id}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
-		return nil, false, e.New("error querying session by secure_id: " + session_secure_id)
+		return nil, false, AuthorizationError
 	}
 
 	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
 	if err != nil {
-		return session, false, e.Wrap(err, "error validating admin in project")
+		return session, false, err
 	}
 	return session, true, nil
 }
@@ -947,7 +957,7 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id st
 	} else if session.ProjectID == r.demoProjectID(ctx) {
 		return session, nil
 	}
-	return nil, e.New("session access unauthorized")
+	return nil, AuthorizationError
 }
 
 func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id string) (*model.Session, error) {
@@ -969,7 +979,7 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in project")
+		return nil, err
 	}
 	return segment, nil
 }
@@ -983,7 +993,7 @@ func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_i
 	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, segment.ProjectID)
 	if err != nil {
-		return nil, e.Wrap(err, "error validating admin in project")
+		return nil, err
 	}
 	return segment, nil
 }
@@ -1398,7 +1408,7 @@ func (r *Resolver) validateAdminRole(ctx context.Context, workspaceID int) error
 
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
-		return e.Wrap(err, "error retrieving admin")
+		return err
 	}
 
 	role, err := r.GetAdminRole(ctx, admin.ID, workspaceID)
@@ -3039,8 +3049,10 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 	getConversationsParam := slack.GetConversationsParameters{
 		Limit: 1000,
 		// public_channel is for public channels in the Slack workspace
+		// private is for private channels in the Slack workspace that the Bot is included in
 		// im is for all individuals in the Slack workspace
-		Types: []string{"public_channel", "im"},
+		// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
+		Types: []string{"public_channel", "private_channel", "mpim", "im"},
 	}
 	allSlackChannelsFromAPI := []slack.Channel{}
 

@@ -34,9 +34,10 @@ import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
 import { message } from 'antd'
 import _ from 'lodash'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
+import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter'
@@ -67,22 +68,12 @@ export const NetworkPage = ({
 		sessionMetadata,
 	} = useReplayerContext()
 	const startTime = sessionMetadata.startTime
-	const {
-		setShowDevTools,
-		setSelectedDevToolsTab,
-		setShowRightPanel,
-		showPlayerAbsoluteTime,
-	} = usePlayerConfiguration()
-	const {
-		setActiveError,
-		setActiveNetworkResource,
-		rightPanelView,
-		setRightPanelView,
-	} = usePlayerUIContext()
+	const { setShowDevTools, setSelectedDevToolsTab, showPlayerAbsoluteTime } =
+		usePlayerConfiguration()
+	const { setActiveError, setRightPanelView } = usePlayerUIContext()
+	const { setActiveNetworkResourceId } = useActiveNetworkResourceId()
 
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
-
-	const [currentActiveIndex, setCurrentActiveIndex] = useState<number>()
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const errorId = new URLSearchParams(location.search).get(
@@ -149,6 +140,12 @@ export const NetworkPage = ({
 							return requestStatuses.includes(
 								RequestStatus.Unknown,
 							)
+						} else if (
+							request.initiatorType === RequestType.WebSocket
+						) {
+							return requestStatuses.includes(
+								RequestStatus['1XX'],
+							)
 						} else {
 							// this is a network request with no status code, so we assume 2xx
 							return requestStatuses.includes(
@@ -156,11 +153,7 @@ export const NetworkPage = ({
 							)
 						}
 					}
-				})
-				.map((event) => ({
-					...event,
-					timestamp: event.startTime + startTime,
-				})) as NetworkResource[]) ?? []
+				}) as NetworkResource[]) ?? []
 
 		if (filter !== '') {
 			return current.filter((resource) => {
@@ -175,7 +168,7 @@ export const NetworkPage = ({
 		}
 
 		return current
-	}, [parsedResources, filter, requestTypes, requestStatuses, startTime])
+	}, [parsedResources, filter, requestTypes, requestStatuses])
 
 	const currentResourceIdx = useMemo(() => {
 		return findLastActiveEventIndex(
@@ -219,7 +212,7 @@ export const NetworkPage = ({
 					resourcesToRender,
 				)
 				if (resource) {
-					setActiveNetworkResource(resource)
+					setActiveNetworkResourceId(resource.id)
 					setTime(resource.startTime)
 					scrollFunction(resourcesToRender.indexOf(resource))
 					message.success(
@@ -262,49 +255,6 @@ export const NetworkPage = ({
 			scrollFunction(currentResourceIdx)
 		}
 	}, [autoScroll, currentResourceIdx, scrollFunction, state, time])
-
-	// Sets up a keydown listener to allow the user to quickly view network requests details in the resource panel by using the up/down arrow key.
-	/* Note - this event collides with the "CMD + up" and "CMD + down" command for controlling player speed */
-	useEffect(() => {
-		const listener = (e: KeyboardEvent) => {
-			let direction: undefined | number = undefined
-			if (e.key === 'ArrowUp') {
-				direction = -1
-			} else if (e.key === 'ArrowDown') {
-				direction = 1
-			}
-
-			if (direction !== undefined) {
-				e.preventDefault()
-				let nextIndex = (currentActiveIndex || 0) + direction
-				if (nextIndex < 0) {
-					nextIndex = 0
-				} else if (nextIndex >= resourcesToRender.length) {
-					nextIndex = resourcesToRender.length - 1
-				}
-
-				setCurrentActiveIndex(nextIndex)
-				const isPanelOpen =
-					rightPanelView === RightPanelView.NetworkResource
-				if (isPanelOpen) {
-					requestAnimationFrame(() => {
-						setActiveNetworkResource(resourcesToRender[nextIndex])
-						virtuoso.current?.scrollToIndex(nextIndex - 1)
-					})
-				}
-			}
-		}
-		document.addEventListener('keydown', listener, { passive: false })
-
-		return () => {
-			document.removeEventListener('keydown', listener)
-		}
-	}, [
-		currentActiveIndex,
-		resourcesToRender,
-		rightPanelView,
-		setActiveNetworkResource,
-	])
 
 	return (
 		<Box className={styles.container}>
@@ -351,7 +301,6 @@ export const NetworkPage = ({
 								return (
 									<ResourceRow
 										key={index.toString()}
-										index={index}
 										resource={resource}
 										networkRange={networkRange}
 										isCurrentResource={
@@ -359,18 +308,12 @@ export const NetworkPage = ({
 										}
 										searchTerm={filter}
 										onClickHandler={() => {
-											setCurrentActiveIndex(index)
-											setActiveNetworkResource(resource)
-											setShowRightPanel(true)
-											setRightPanelView(
-												RightPanelView.NetworkResource,
+											setActiveNetworkResourceId(
+												resource.id,
 											)
 										}}
-										setCurrentActiveIndex={
-											setCurrentActiveIndex
-										}
-										setActiveNetworkResource={
-											setActiveNetworkResource
+										setActiveNetworkResourceId={
+											setActiveNetworkResourceId
 										}
 										setTime={setTime}
 										playerStartTime={startTime}
@@ -403,18 +346,12 @@ export const NetworkPage = ({
 }
 
 interface ResourceRowProps {
-	index: number
 	resource: NetworkResource
 	networkRange: number
 	isCurrentResource: boolean
 	searchTerm: string
 	onClickHandler: () => void
-	setCurrentActiveIndex: React.Dispatch<
-		React.SetStateAction<number | undefined>
-	>
-	setActiveNetworkResource: React.Dispatch<
-		React.SetStateAction<NetworkResource | undefined>
-	>
+	setActiveNetworkResourceId: (resource: number | undefined) => void
 	setTime: (time: number) => void
 	networkRequestAndResponseRecordingEnabled: boolean
 	playerStartTime: number
@@ -423,14 +360,12 @@ interface ResourceRowProps {
 }
 
 const ResourceRow = ({
-	index,
 	resource,
 	networkRange,
 	isCurrentResource,
 	searchTerm,
 	onClickHandler,
-	setCurrentActiveIndex,
-	setActiveNetworkResource,
+	setActiveNetworkResourceId,
 	networkRequestAndResponseRecordingEnabled,
 	setTime,
 	playerStartTime,
@@ -443,9 +378,10 @@ const ResourceRow = ({
 		0.1,
 	)
 	const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent
-	const { activeNetworkResource } = usePlayerUIContext()
 
-	const showingDetails = activeNetworkResource?.id === resource.id
+	const { activeNetworkResourceId } = useActiveNetworkResourceId()
+	const showingDetails = activeNetworkResourceId === resource.id
+
 	return (
 		<Box key={resource.id.toString()} onClick={onClickHandler}>
 			<Box
@@ -478,6 +414,8 @@ const ResourceRow = ({
 									}
 								/>
 						  )
+						: resource.initiatorType === 'websocket'
+						? '101'
 						: '200'}
 				</Text>
 				<Text
@@ -508,7 +446,9 @@ const ResourceRow = ({
 						: MillisToMinutesAndSeconds(resource.startTime)}
 				</Text>
 				<Text size="small" weight={showingDetails ? 'bold' : 'medium'}>
-					{formatTime(resource.responseEnd - resource.startTime)}
+					{resource.responseEnd && resource.startTime
+						? formatTime(resource.responseEnd - resource.startTime)
+						: 'N/A'}
 				</Text>
 				<Box className={styles.timingBarWrapper}>
 					<Box
@@ -536,10 +476,9 @@ const ResourceRow = ({
 					kind="secondary"
 					size="medium"
 					onClick={(event) => {
+						event.stopPropagation() // prevent panel from closing when clicking a resource
 						setTime(resource.startTime)
-						event.stopPropagation() /* Prevents opening of right panel by parent row's onClick handler */
-						setCurrentActiveIndex(index)
-						setActiveNetworkResource(resource)
+						setActiveNetworkResourceId(resource.id)
 					}}
 				>
 					<IconSolidArrowCircleRight />

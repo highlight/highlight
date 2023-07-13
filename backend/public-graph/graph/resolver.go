@@ -227,18 +227,30 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", session.ID))
 	defer outerSpan.Finish()
 
-	if err := r.DB.
-		Clauses(clause.Returning{}, clause.OnConflict{
+	result := r.DB.
+		Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "project_id"}, {Name: "type"}, {Name: "name"}, {Name: "value"}},
 			DoNothing: true}).
-		Create(&fields).Error; err != nil {
+		Create(&fields)
+
+	if err := result.Error; err != nil {
 		return e.Wrap(err, "error inserting new fields")
 	}
 
-	// New fields have an ID after the insert above
-	newFields := lo.Filter(fields, func(field *model.Field, _ int) bool {
-		return field.ID != 0
-	})
+	updateCount := result.RowsAffected
+
+	var allFields []*model.Field
+	inClause := [][]interface{}{}
+	for _, f := range fields {
+		inClause = append(inClause, []interface{}{f.ProjectID, f.Type, f.Name, f.Value})
+	}
+	if err := r.DB.Where("(project_id, type, name, value) IN ?", inClause).Order("id DESC").
+		Find(&allFields).Error; err != nil {
+		return e.Wrap(err, "error retrieving all fields")
+	}
+
+	// the first N fields ordered by id DESC were added in the prior insert
+	newFields := allFields[:updateCount]
 
 	for _, field := range newFields {
 		if err := r.OpenSearch.IndexSynchronous(ctx,
@@ -249,16 +261,6 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 			}); err != nil {
 			return e.Wrap(err, "error indexing new field")
 		}
-	}
-
-	var allFields []*model.Field
-	inClause := [][]interface{}{}
-	for _, f := range fields {
-		inClause = append(inClause, []interface{}{f.ProjectID, f.Type, f.Name, f.Value})
-	}
-	if err := r.DB.Where("(project_id, type, name, value) IN ?", inClause).
-		Find(&allFields).Error; err != nil {
-		return e.Wrap(err, "error retrieving all fields")
 	}
 
 	openSearchFields := make([]interface{}, len(allFields))
@@ -979,7 +981,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		AppVersion:                     input.AppVersion,
 		VerboseID:                      input.ProjectVerboseID,
 		Fields:                         []*model.Field{},
-		LastUserInteractionTime:        time.Now(),
 		ViewedByAdmins:                 []model.Admin{},
 		ClientID:                       input.ClientID,
 		Excluded:                       true, // A session is excluded by default until it receives events
@@ -1324,6 +1325,10 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	session.FirstTime = firstTime
 	if userIdentifier != "" {
 		session.Identifier = userIdentifier
+	}
+
+	if userProperties["email"] != "" {
+		session.Email = ptr.String(userProperties["email"])
 	}
 
 	if !backfill {
@@ -2372,7 +2377,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 
 			if !lastUserInteractionTimestamp.IsZero() {
-				if err := r.DB.Model(&sessionObj).Update("LastUserInteractionTime", lastUserInteractionTimestamp).Error; err != nil {
+				if err := r.DB.Model(&sessionObj).Updates(&model.Session{
+					LastUserInteractionTime: lastUserInteractionTimestamp,
+				}).Error; err != nil {
 					return e.Wrap(err, "error updating LastUserInteractionTime")
 				}
 			}
@@ -2606,7 +2613,14 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	} else if excluded {
 		// Only update the excluded flag and reason if either have changed
-		if sessionObj.Excluded != excluded || sessionObj.ExcludedReason != reason {
+		var reasonDeref, newReasonDeref privateModel.SessionExcludedReason
+		if sessionObj.ExcludedReason != nil {
+			reasonDeref = *sessionObj.ExcludedReason
+		}
+		if reason != nil {
+			newReasonDeref = *reason
+		}
+		if sessionObj.Excluded != excluded || reasonDeref != newReasonDeref {
 			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
 				Select("Excluded", "ExcludedReason").Updates(&model.Session{
 				Excluded:       excluded,
@@ -3028,7 +3042,16 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 		reason = privateModel.SessionExcludedReasonNoError
 	}
 
+	if r.isSessionExcludedForNoUserEvents(ctx, s) {
+		excluded = true
+		reason = privateModel.SessionExcludedReasonNoUserEvents
+	}
+
 	return excluded, &reason
+}
+
+func (r *Resolver) isSessionExcludedForNoUserEvents(ctx context.Context, s *model.Session) bool {
+	return s.LastUserInteractionTime.Unix() == 0
 }
 
 func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {

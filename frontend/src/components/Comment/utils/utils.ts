@@ -1,9 +1,9 @@
+import * as Types from '@graph/schemas'
 import {
 	Maybe,
 	SanitizedSlackChannel,
 	SanitizedSlackChannelInput,
 } from '@graph/schemas'
-import * as Types from '@graph/schemas'
 import { MentionItem, SuggestionDataItem } from '@highlight-run/react-mentions'
 import { message } from 'antd'
 import { useNavigate } from 'react-router-dom'
@@ -19,7 +19,6 @@ import {
 	CommentSuggestion,
 	getFeedbackCommentSessionTimestamp,
 } from '@/util/comment/util'
-import { delayedRefetch } from '@/util/gql'
 
 export function filterMentionedAdmins(
 	admins: Maybe<
@@ -100,7 +99,6 @@ export const useDeleteComment = (comment: ParsedSessionComment) => {
 			namedOperations.Query.GetSessionComments,
 			namedOperations.Query.GetSessionsOpenSearch,
 		],
-		onQueryUpdated: delayedRefetch,
 	})
 
 	return async () => {
