@@ -5,6 +5,7 @@ import {
 	Box,
 	Combobox,
 	Form,
+	IconSolidExternalLink,
 	IconSolidPlus,
 	IconSolidSearch,
 	IconSolidSwitchVertical,
@@ -46,6 +47,10 @@ type Props = {
 	presets: Preset[]
 	minDate: Date
 	timeMode: TIME_MODE
+	disableSearch?: boolean
+	addLinkToViewInLogViewer?: boolean
+	hideDatePicker?: boolean
+	hideCreateAlert?: boolean
 }
 
 const MAX_ITEMS = 10
@@ -59,6 +64,10 @@ const SearchForm = ({
 	presets,
 	minDate,
 	timeMode,
+	disableSearch,
+	addLinkToViewInLogViewer,
+	hideDatePicker,
+	hideCreateAlert,
 }: Props) => {
 	const navigate = useNavigate()
 	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
@@ -105,42 +114,75 @@ const SearchForm = ({
 					endDate={endDate}
 					keys={keysData?.logs_keys}
 					keysLoading={keysLoading}
+					disableSearch={disableSearch}
 				/>
 				<Box display="flex" pr="8" py="6" gap="6">
-					<PreviousDateRangePicker
-						emphasis="low"
-						selectedDates={selectedDates}
-						onDatesChange={handleDatesChange}
-						presets={presets}
-						minDate={minDate}
-						disabled={timeMode === 'permalink'}
-					/>
-					<Button
-						kind="secondary"
-						trackingId="create-alert"
-						onClick={() => {
-							const encodedQuery = encodeQueryParams(
-								{
-									query: StringParam,
-									start_date: DateTimeParam,
-									end_date: DateTimeParam,
-								},
-								{
-									query: formState.values.query,
-									start_date: startDate,
-									end_date: endDate,
-								},
-							)
-							navigate({
-								pathname: `/${projectId}/alerts/logs/new`,
-								search: stringify(encodedQuery),
-							})
-						}}
-						emphasis="medium"
-						iconLeft={<IconSolidPlus />}
-					>
-						Create alert
-					</Button>{' '}
+					{addLinkToViewInLogViewer && (
+						<Button
+							kind="secondary"
+							trackingId="view-in-log-viewer"
+							onClick={() => {
+								const encodedQuery = encodeQueryParams(
+									{
+										query: StringParam,
+										start_date: DateTimeParam,
+										end_date: DateTimeParam,
+									},
+									{
+										query: formState.values.query,
+										start_date: startDate,
+										end_date: endDate,
+									},
+								)
+								navigate({
+									pathname: `/${projectId}/logs`,
+									search: stringify(encodedQuery),
+								})
+							}}
+							emphasis="medium"
+							iconLeft={<IconSolidExternalLink />}
+						>
+							View in log viewer
+						</Button>
+					)}
+					{!hideDatePicker && (
+						<PreviousDateRangePicker
+							emphasis="low"
+							selectedDates={selectedDates}
+							onDatesChange={handleDatesChange}
+							presets={presets}
+							minDate={minDate}
+							disabled={timeMode === 'permalink'}
+						/>
+					)}
+					{!hideCreateAlert && (
+						<Button
+							kind="secondary"
+							trackingId="create-alert"
+							onClick={() => {
+								const encodedQuery = encodeQueryParams(
+									{
+										query: StringParam,
+										start_date: DateTimeParam,
+										end_date: DateTimeParam,
+									},
+									{
+										query: formState.values.query,
+										start_date: startDate,
+										end_date: endDate,
+									},
+								)
+								navigate({
+									pathname: `/${projectId}/alerts/logs/new`,
+									search: stringify(encodedQuery),
+								})
+							}}
+							emphasis="medium"
+							iconLeft={<IconSolidPlus />}
+						>
+							Create alert
+						</Button>
+					)}
 				</Box>
 			</Box>
 		</Form>
@@ -157,6 +199,7 @@ export const Search: React.FC<{
 	hideIcon?: boolean
 	className?: string
 	keysLoading: boolean
+	disableSearch?: boolean
 }> = ({
 	initialQuery,
 	startDate,
@@ -165,6 +208,7 @@ export const Search: React.FC<{
 	className,
 	keys,
 	keysLoading,
+	disableSearch,
 }) => {
 	const formState = useForm()
 	const { project_id } = useParams()
@@ -299,6 +343,7 @@ export const Search: React.FC<{
 			>
 				<Combobox
 					ref={inputRef}
+					disabled={disableSearch}
 					autoSelect
 					state={state}
 					name="search"
@@ -321,7 +366,7 @@ export const Search: React.FC<{
 					}}
 				/>
 
-				{isDirty ? (
+				{isDirty && !disableSearch && (
 					<IconSolidXCircle
 						size={16}
 						onClick={(e) => {
@@ -333,7 +378,7 @@ export const Search: React.FC<{
 						}}
 						style={{ cursor: 'pointer' }}
 					/>
-				) : null}
+				)}
 			</Box>
 
 			{showResults && (

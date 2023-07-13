@@ -1,6 +1,6 @@
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import { TableList, TableListItem } from '@components/TableList/TableList'
-import { ErrorObject, LogLevel } from '@graph/schemas'
+import { ErrorObject } from '@graph/schemas'
 import {
 	Ariakit,
 	Badge,
@@ -31,19 +31,14 @@ import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useQueryParam } from 'use-query-params'
 
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
-import { LOG_TIME_PRESETS, thirtyDaysAgo } from '@/pages/LogsPage/constants'
-import LogsCount from '@/pages/LogsPage/LogsCount/LogsCount'
-import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
-import {
-	EndDateParam,
-	FixedRangeStartDateParam,
-	QueryParam,
-} from '@/pages/LogsPage/LogsPage'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@/pages/LogsPage/SearchForm/SearchForm'
+import {
+	DEFAULT_LOGS_OPERATOR,
+	stringifyLogsQuery,
+} from '@/pages/LogsPage/SearchForm/utils'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
 import { useParams } from '@/util/react-router/useParams'
 
@@ -282,7 +277,12 @@ function NetworkResourceDetails({
 					// 	page: <Box>Errors</Box>,
 					// },
 					[NetworkRequestTabs.Logs]: {
-						page: <NetworkResourceLogs resource={resource} />,
+						page: (
+							<NetworkResourceLogs
+								resource={resource}
+								sessionStartTime={startTime}
+							/>
+						),
 					},
 				}}
 				noHandle
@@ -638,19 +638,36 @@ function NetworkRecordingEducationMessage() {
 	)
 }
 
-const NetworkResourceLogs: React.FC<{ resource: NetworkResource }> = ({}) => {
+// The amount of time before and after the request started/ended we want to show
+// logs for.
+const TIME_BUFFER = 200000
+
+const NetworkResourceLogs: React.FC<{
+	resource: NetworkResource
+	sessionStartTime: number
+}> = ({ resource, sessionStartTime }) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const [query, setQuery] = useQueryParam('query', QueryParam)
-	const [startDate, setStartDate] = useQueryParam(
-		'start_date',
-		FixedRangeStartDateParam,
+	const [query, setQuery] = useState(
+		stringifyLogsQuery([
+			{
+				key: 'trace_id',
+				operator: DEFAULT_LOGS_OPERATOR,
+				value: String(resource.id),
+				offsetStart: 0,
+			},
+		]),
 	)
-
 	const tableContainerRef = useRef<HTMLDivElement>(null)
-
-	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
+	const startDate = useMemo(
+		() => new Date(sessionStartTime + resource.startTime - TIME_BUFFER),
+		[sessionStartTime, resource.startTime],
+	)
+	const endDate = useMemo(
+		() => new Date(sessionStartTime + resource.responseEnd + TIME_BUFFER),
+		[resource.responseEnd, sessionStartTime],
+	)
 
 	const {
 		logEdges,
@@ -668,21 +685,12 @@ const NetworkResourceLogs: React.FC<{ resource: NetworkResource }> = ({}) => {
 		endDate,
 	})
 
-	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
-		setStartDate(newStartDate)
-		setEndDate(newEndDate)
-	}
-
-	const handleLevelChange = (level: LogLevel) => {
-		setQuery(`${query} level:${level}`)
-	}
-
 	const fetchMoreWhenScrolled = React.useCallback(
 		(containerRefElement?: HTMLDivElement | null) => {
 			if (containerRefElement) {
 				const { scrollHeight, scrollTop, clientHeight } =
 					containerRefElement
-				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
+
 				if (scrollHeight - scrollTop - clientHeight < 100) {
 					fetchMoreForward()
 				} else if (scrollTop === 0) {
@@ -700,6 +708,8 @@ const NetworkResourceLogs: React.FC<{ resource: NetworkResource }> = ({}) => {
 				flex="stretch"
 				justifyContent="stretch"
 				display="flex"
+				overflow="hidden"
+				maxHeight="full"
 			>
 				<Box
 					borderRadius="6"
@@ -714,23 +724,14 @@ const NetworkResourceLogs: React.FC<{ resource: NetworkResource }> = ({}) => {
 						onFormSubmit={(value) => setQuery(value)}
 						startDate={startDate}
 						endDate={endDate}
-						onDatesChange={handleDatesChange}
-						presets={LOG_TIME_PRESETS}
-						minDate={thirtyDaysAgo}
+						onDatesChange={() => null}
+						presets={[]}
+						minDate={new Date(sessionStartTime)}
 						timeMode="permalink"
-					/>
-					<LogsCount
-						query={query}
-						startDate={startDate}
-						endDate={endDate}
-						presets={LOG_TIME_PRESETS}
-					/>
-					<LogsHistogram
-						query={query}
-						startDate={startDate}
-						endDate={endDate}
-						onDatesChange={handleDatesChange}
-						onLevelChange={handleLevelChange}
+						disableSearch
+						addLinkToViewInLogViewer
+						hideDatePicker
+						hideCreateAlert
 					/>
 					<Box
 						borderTop="dividerWeak"
