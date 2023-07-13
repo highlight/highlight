@@ -1,6 +1,6 @@
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import { TableList, TableListItem } from '@components/TableList/TableList'
-import { ErrorObject } from '@graph/schemas'
+import { ErrorObject, LogLevel } from '@graph/schemas'
 import {
 	Ariakit,
 	Badge,
@@ -29,10 +29,23 @@ import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { useQueryParam } from 'use-query-params'
 
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
+import { LOG_TIME_PRESETS, thirtyDaysAgo } from '@/pages/LogsPage/constants'
+import LogsCount from '@/pages/LogsPage/LogsCount/LogsCount'
+import LogsHistogram from '@/pages/LogsPage/LogsHistogram/LogsHistogram'
+import {
+	EndDateParam,
+	FixedRangeStartDateParam,
+	QueryParam,
+} from '@/pages/LogsPage/LogsPage'
+import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
+import { SearchForm } from '@/pages/LogsPage/SearchForm/SearchForm'
+import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
+import { useParams } from '@/util/react-router/useParams'
 
 import * as styles from './NetworkResourcePanel.css'
 
@@ -40,7 +53,7 @@ enum NetworkRequestTabs {
 	Info = 'Info',
 	// These tabs will be built out in a future PR.
 	// Errors = 'Errors',
-	// Logs = 'Logs',
+	Logs = 'Logs',
 }
 
 export const NetworkResourcePanel = () => {
@@ -268,9 +281,9 @@ function NetworkResourceDetails({
 					// [NetworkRequestTabs.Errors]: {
 					// 	page: <Box>Errors</Box>,
 					// },
-					// [NetworkRequestTabs.Logs]: {
-					// 	page: <Box>Logs</Box>,
-					// },
+					[NetworkRequestTabs.Logs]: {
+						page: <NetworkResourceLogs resource={resource} />,
+					},
 				}}
 				noHandle
 				containerClass={styles.container}
@@ -622,5 +635,128 @@ function NetworkRecordingEducationMessage() {
 				.
 			</Text>
 		</Box>
+	)
+}
+
+const NetworkResourceLogs: React.FC<{ resource: NetworkResource }> = ({}) => {
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
+	const [query, setQuery] = useQueryParam('query', QueryParam)
+	const [startDate, setStartDate] = useQueryParam(
+		'start_date',
+		FixedRangeStartDateParam,
+	)
+
+	const tableContainerRef = useRef<HTMLDivElement>(null)
+
+	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
+
+	const {
+		logEdges,
+		loading,
+		error,
+		loadingAfter,
+		fetchMoreForward,
+		fetchMoreBackward,
+		refetch,
+	} = useGetLogs({
+		query,
+		project_id,
+		logCursor: undefined,
+		startDate,
+		endDate,
+	})
+
+	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
+		setStartDate(newStartDate)
+		setEndDate(newEndDate)
+	}
+
+	const handleLevelChange = (level: LogLevel) => {
+		setQuery(`${query} level:${level}`)
+	}
+
+	const fetchMoreWhenScrolled = React.useCallback(
+		(containerRefElement?: HTMLDivElement | null) => {
+			if (containerRefElement) {
+				const { scrollHeight, scrollTop, clientHeight } =
+					containerRefElement
+				//once the user has scrolled within 100px of the bottom of the table, fetch more data if there is any
+				if (scrollHeight - scrollTop - clientHeight < 100) {
+					fetchMoreForward()
+				} else if (scrollTop === 0) {
+					fetchMoreBackward()
+				}
+			}
+		},
+		[fetchMoreForward, fetchMoreBackward],
+	)
+
+	return (
+		<>
+			<Box
+				padding="8"
+				flex="stretch"
+				justifyContent="stretch"
+				display="flex"
+			>
+				<Box
+					borderRadius="6"
+					flexDirection="column"
+					display="flex"
+					flexGrow={1}
+					border="dividerWeak"
+					shadow="medium"
+				>
+					<SearchForm
+						initialQuery={query}
+						onFormSubmit={(value) => setQuery(value)}
+						startDate={startDate}
+						endDate={endDate}
+						onDatesChange={handleDatesChange}
+						presets={LOG_TIME_PRESETS}
+						minDate={thirtyDaysAgo}
+						timeMode="permalink"
+					/>
+					<LogsCount
+						query={query}
+						startDate={startDate}
+						endDate={endDate}
+						presets={LOG_TIME_PRESETS}
+					/>
+					<LogsHistogram
+						query={query}
+						startDate={startDate}
+						endDate={endDate}
+						onDatesChange={handleDatesChange}
+						onLevelChange={handleLevelChange}
+					/>
+					<Box
+						borderTop="dividerWeak"
+						height="screen"
+						pt="4"
+						px="12"
+						pb="12"
+						overflowY="auto"
+						onScroll={(e) =>
+							fetchMoreWhenScrolled(e.target as HTMLDivElement)
+						}
+						ref={tableContainerRef}
+					>
+						<LogsTable
+							logEdges={logEdges}
+							loading={loading}
+							error={error}
+							refetch={refetch}
+							loadingAfter={loadingAfter}
+							query={query}
+							tableContainerRef={tableContainerRef}
+							selectedCursor={undefined}
+						/>
+					</Box>
+				</Box>
+			</Box>
+		</>
 	)
 }
