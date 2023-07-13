@@ -175,7 +175,10 @@ export const CanvasPage = function () {
 					></video>
 				</Box>
 				<Box border="dividerStrong">
-					<Button onClick={() => setNumCanvases((n) => n + 1)} />
+					<Button
+						trackingId="canvasIncrement"
+						onClick={() => setNumCanvases((n) => n + 1)}
+					/>
 				</Box>
 			</Box>
 		</Box>
