@@ -21,16 +21,13 @@
 	"publishConfig": {
 		"access": "public"
 	},
-	"installConfig": {
-		"hoistingLimits": "dependencies"
-	},
 	"dependencies": {
 		"@opentelemetry/api": "^1.4.1",
-		"@opentelemetry/auto-instrumentations-node": "0.36.5",
-		"@opentelemetry/exporter-trace-otlp-http": "0.38.0",
-		"@opentelemetry/resources": "^1.13.0",
-		"@opentelemetry/sdk-node": "0.38.0",
-		"@opentelemetry/sdk-trace-base": "1.12.0",
+		"@opentelemetry/auto-instrumentations-node": "0.38.0",
+		"@opentelemetry/exporter-trace-otlp-http": "0.41.0",
+		"@opentelemetry/resources": "^1.15.0",
+		"@opentelemetry/sdk-node": "0.41.0",
+		"@opentelemetry/sdk-trace-base": "1.15.0",
 		"error-stack-parser": "2.0.7",
 		"highlight.run": "workspace:*",
 		"lru-cache": "^7.14.0",
