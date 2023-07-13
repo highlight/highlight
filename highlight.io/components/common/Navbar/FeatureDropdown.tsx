@@ -1,12 +1,12 @@
 import { Popover, Transition } from '@headlessui/react'
-import { Typography } from '../Typography/Typography'
 import { useState } from 'react'
+import { Typography } from '../Typography/Typography'
 
 import { FaChevronDown } from 'react-icons/fa'
 import * as Icons from 'react-icons/hi'
 
-import styles from './ResourceDropdown.module.scss'
 import classNames from 'classnames'
+import styles from './ResourceDropdown.module.scss'
 
 const FeatureDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 	const [isShowing, setIsShowing] = useState(false)
@@ -28,6 +28,12 @@ const FeatureDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 			title: 'Logging',
 			icon: <Icons.HiLightningBolt className={styles.copyOnLight} />,
 			link: '/logging',
+			sameTab: true,
+		},
+		{
+			title: 'Integrations',
+			icon: <Icons.HiLightningBolt className={styles.copyOnLight} />,
+			link: '/integrations',
 			sameTab: true,
 		},
 	]

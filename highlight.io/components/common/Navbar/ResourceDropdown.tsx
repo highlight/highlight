@@ -1,7 +1,8 @@
 import { Popover, Transition } from '@headlessui/react'
 import { useState } from 'react'
-import { AiFillGithub } from 'react-icons/ai'
 import { Typography } from '../Typography/Typography'
+
+import { BsCodeSlash } from 'react-icons/bs'
 
 import { FaChevronDown } from 'react-icons/fa'
 import * as Icons from 'react-icons/hi'
@@ -34,9 +35,9 @@ const ResourceDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 			link: 'https://highlight.io/community',
 		},
 		{
-			title: 'Github',
-			icon: <AiFillGithub className={styles.copyOnLight} />,
-			link: 'https://github.com/highlight/highlight',
+			title: 'Frameworks',
+			icon: <BsCodeSlash className={styles.copyOnLight} />,
+			link: '/frameworks',
 		},
 		{
 			title: 'Our Competitors',
