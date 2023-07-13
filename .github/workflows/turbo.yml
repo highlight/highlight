@@ -76,6 +76,8 @@ jobs:
               run: yarn test:render
 
             - name: Validate session screenshot lambda size
+              # this can only run after `yarn test:render` runs
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               run: yarn workspace render zip && yarn workspace render check
 
             - name: Validate project is ready to be published

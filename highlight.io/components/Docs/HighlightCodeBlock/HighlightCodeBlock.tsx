@@ -1,24 +1,19 @@
-import styles from '../Docs.module.scss'
-import { CodeBlock } from 'react-code-blocks'
-import {
-	PropsWithChildren,
-	useState,
-	Fragment,
-	Key,
-	CSSProperties,
-} from 'react'
-import highlightCodeTheme from '../../../components/common/CodeBlock/highlight-code-theme'
-import Image from 'next/legacy/image'
-import CopyIcon from '../../../public/images/document-duplicate.svg'
-import CheckmarkIcon from '../../../public/images/checkmark_circle.svg'
-import { Typography } from '../../common/Typography/Typography'
-import classNames from 'classnames'
 import { Listbox, Transition } from '@headlessui/react'
 import { ChevronUpDownIcon } from '@heroicons/react/20/solid'
+import classNames from 'classnames'
+import Image from 'next/legacy/image'
+import { CSSProperties, Fragment, Key, useState } from 'react'
+import { CodeBlock } from 'react-code-blocks'
+import highlightCodeTheme from '../../../components/common/CodeBlock/highlight-code-theme'
+import CheckmarkIcon from '../../../public/images/checkmark_circle.svg'
+import CopyIcon from '../../../public/images/document-duplicate.svg'
+import { Typography } from '../../common/Typography/Typography'
+import styles from '../Docs.module.scss'
 
 export const HighlightCodeBlock = (props: {
 	language: string
 	text?: string
+	copy?: string
 	topbar?: boolean
 	showLineNumbers?: boolean
 	product?: any
@@ -112,7 +107,9 @@ export const HighlightCodeBlock = (props: {
 					`${props.topbar ? 'mt-1' : ''}`,
 				)}
 				onClick={() => {
-					navigator.clipboard.writeText(props.text ?? '')
+					navigator.clipboard.writeText(
+						props.copy ?? props.text ?? '',
+					)
 					setCopied(true)
 					setTimeout(() => setCopied(false), 1000)
 				}}

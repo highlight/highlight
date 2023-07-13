@@ -20,6 +20,7 @@ import (
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
 	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
+	journey_handlers "github.com/highlight-run/highlight/backend/lambda-functions/journeys/handlers"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/payload"
@@ -601,6 +602,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	payloadManager.SeekStart(ctx)
 
+	var normalness float64
 	if len(accumulator.EventsForTimelineIndicator) > 0 {
 		var eventsForTimelineIndicator []*model.TimelineIndicatorEvent
 		for _, customEvent := range accumulator.EventsForTimelineIndicator {
@@ -628,6 +630,42 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			if err := payloadManager.TimelineIndicatorEvents.Close(); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "error closing TimelineIndicatorEvents writer"))
 			}
+
+			// Extract and save the user journey steps from the timeline indicator events
+			userJourneySteps, err := journey_handlers.GetUserJourneySteps(s.ProjectID, s.ID, eventBytes)
+			if err != nil {
+				return err
+			}
+			if err := w.Resolver.DB.Model(&model.UserJourneyStep{}).Save(&userJourneySteps).Error; err != nil {
+				return err
+			}
+
+			// Calculate the "normalness" score using the trailing 30 days
+			// of user journeys in the same project
+			normalnessSpan, _ := tracer.StartSpanFromContext(ctx, "worker.normalnessQuery", tracer.ResourceName("worker.normalnessQuery"))
+			if err := w.Resolver.DB.Raw(`
+				with frequencies as (select url, next_url, count(*)
+							from user_journey_steps
+							where created_at > now() - interval '30 days'
+							  and project_id = ?
+							group by 1, 2)
+				select exp(sum(ln(normalness))) as normalness
+				from (select session_id,
+					index,
+					sum(case when f.url = u.url and f.next_url = u.next_url then count else 0 end)
+						* (sum(case when f.url = u.url then count else 0 end))
+						/ sum((case when f.url = u.url then count else 0 end) ^ 2) as normalness
+				from frequencies f
+					  inner join user_journey_steps u
+								 on f.url = u.url or f.next_url = u.next_url
+				group by session_id, index
+				order by session_id, index) a
+				where a.session_id = ?
+				group by a.session_id
+			`, s.ProjectID, s.ID).Scan(&normalness).Error; err != nil {
+				return err
+			}
+			normalnessSpan.Finish()
 		} else {
 			if err := w.Resolver.DB.Create(eventsForTimelineIndicator).Error; err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "error creating events for timeline indicator"))
@@ -802,6 +840,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			HasOutOfOrderEvents: accumulator.AreEventsOutOfOrder,
 			PagesVisited:        pagesVisited,
 			WithinBillingQuota:  &withinBillingQuota,
+			Normalness:          &normalness,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
