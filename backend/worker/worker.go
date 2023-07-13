@@ -632,7 +632,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			// Extract and save the user journey steps from the timeline indicator events
-			userJourneySteps, err := journey_handlers.GetUserJourneySteps(s.ID, eventBytes)
+			userJourneySteps, err := journey_handlers.GetUserJourneySteps(s.ProjectID, s.ID, eventBytes)
 			if err != nil {
 				return err
 			}
@@ -645,12 +645,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			normalnessSpan, _ := tracer.StartSpanFromContext(ctx, "worker.normalnessQuery", tracer.ResourceName("worker.normalnessQuery"))
 			if err := w.Resolver.DB.Raw(`
 				with frequencies as (select url, next_url, count(*)
-							from user_journey_steps ujs
-									 inner join sessions s
-												on s.id = ujs.session_id
-							where not s.excluded
-							  and s.created_at > now() - interval '30 days'
-							  and s.project_id = ?
+							from user_journey_steps
+							where created_at > now() - interval '30 days'
+							  and project_id = ?
 							group by 1, 2)
 				select exp(sum(ln(normalness))) as normalness
 				from (select session_id,

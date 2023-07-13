@@ -1203,6 +1203,8 @@ type BillingEmailHistory struct {
 }
 
 type UserJourneyStep struct {
+	CreatedAt time.Time `json:"created_at" deep:"-"`
+	ProjectID int
 	SessionID int `gorm:"primary_key;not null"`
 	Index     int `gorm:"primary_key;not null"`
 	Url       string

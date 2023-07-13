@@ -173,7 +173,7 @@ func (h *handlers) GetSessions(ctx context.Context, projectId int) ([]int, error
 }
 
 // Returns a list of user journey steps from a `timeline-indicator-events` file
-func GetUserJourneySteps(sessionId int, data []byte) ([]model.UserJourneyStep, error) {
+func GetUserJourneySteps(projectId int, sessionId int, data []byte) ([]model.UserJourneyStep, error) {
 	var events []navigateEvent
 	if err := json.Unmarshal(data, &events); err != nil {
 		return nil, err
@@ -197,6 +197,7 @@ func GetUserJourneySteps(sessionId int, data []byte) ([]model.UserJourneyStep, e
 			}
 			if curUrl != normalizedUrl && curDelta >= 1000 {
 				steps = append(steps, model.UserJourneyStep{
+					ProjectID: projectId,
 					SessionID: sessionId,
 					Url:       curUrl,
 					Index:     idx,
@@ -209,6 +210,7 @@ func GetUserJourneySteps(sessionId int, data []byte) ([]model.UserJourneyStep, e
 	}
 	if curUrl != "" {
 		steps = append(steps, model.UserJourneyStep{
+			ProjectID: projectId,
 			SessionID: sessionId,
 			Url:       curUrl,
 			NextUrl:   "END",
@@ -245,7 +247,7 @@ func (h *handlers) GetJourney(ctx context.Context, input utils.JourneyInput) (*u
 		return nil, err
 	}
 
-	steps, err := GetUserJourneySteps(input.SessionID, out.Bytes())
+	steps, err := GetUserJourneySteps(input.ProjectID, input.SessionID, out.Bytes())
 	if err != nil {
 		return nil, err
 	}
