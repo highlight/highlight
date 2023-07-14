@@ -1748,7 +1748,6 @@ export type Query = {
 	workspace?: Maybe<Workspace>
 	workspacePendingInvites: Array<Maybe<WorkspaceInviteLink>>
 	workspaceSettings?: Maybe<AllWorkspaceSettings>
-	workspaceSuggestion: Array<Maybe<Workspace>>
 	workspace_admins: Array<WorkspaceAdminRole>
 	workspace_admins_by_project_id: Array<WorkspaceAdminRole>
 	workspace_for_invite_link: WorkspaceForInviteLink
@@ -2322,10 +2321,6 @@ export type QueryWorkspacePendingInvitesArgs = {
 
 export type QueryWorkspaceSettingsArgs = {
 	workspace_id: Scalars['ID']
-}
-
-export type QueryWorkspaceSuggestionArgs = {
-	query: Scalars['String']
 }
 
 export type QueryWorkspace_AdminsArgs = {
