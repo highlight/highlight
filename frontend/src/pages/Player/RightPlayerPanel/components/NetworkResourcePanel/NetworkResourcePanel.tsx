@@ -6,6 +6,7 @@ import {
 	Badge,
 	Box,
 	ButtonIcon,
+	Callout,
 	Heading,
 	IconSolidArrowCircleRight,
 	IconSolidX,
@@ -21,6 +22,7 @@ import RequestMetrics from '@pages/Player/Toolbar/DevToolsWindow/ResourcePage/co
 import { UnknownRequestStatusCode } from '@pages/Player/Toolbar/DevToolsWindowV2/NetworkPage/NetworkPage'
 import {
 	formatSize,
+	getHighlightRequestId,
 	getNetworkResourcesDisplayName,
 	NetworkResource,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
@@ -29,10 +31,15 @@ import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
+import clsx from 'clsx'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
+import LoadingBox from '@/components/LoadingBox'
+import { useGetErrorGroupsOpenSearchQuery } from '@/graph/generated/hooks'
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
+import { useProjectId } from '@/hooks/useProjectId'
+import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@/pages/LogsPage/SearchForm/SearchForm'
 import {
@@ -40,15 +47,25 @@ import {
 	stringifyLogsQuery,
 } from '@/pages/LogsPage/SearchForm/utils'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
+import {
+	RightPanelView,
+	usePlayerUIContext,
+} from '@/pages/Player/context/PlayerUIContext'
+import { WebSocketMessages } from '@/pages/Player/RightPlayerPanel/components/WebSocketMessages/WebSocketMessages'
+import { useWebSocket } from '@/pages/Player/WebSocketContext/WebSocketContext'
 import { useParams } from '@/util/react-router/useParams'
 
 import * as styles from './NetworkResourcePanel.css'
 
 enum NetworkRequestTabs {
 	Info = 'Info',
-	// These tabs will be built out in a future PR.
-	// Errors = 'Errors',
+	Errors = 'Errors',
 	Logs = 'Logs',
+}
+
+enum WebSocketTabs {
+	Headers = 'Headers',
+	Messages = 'Messages',
 }
 
 export const NetworkResourcePanel = () => {
@@ -72,8 +89,10 @@ export const NetworkResourcePanel = () => {
 	useEffect(() => {
 		if (resource?.id !== undefined) {
 			networkResourceDialog.show()
+		} else {
+			hide()
 		}
-	}, [networkResourceDialog, resource?.id])
+	}, [hide, networkResourceDialog, resource?.id])
 
 	// Close the dialog and reset the active resource when the user interacts with
 	// the page outside the dialog.
@@ -93,6 +112,7 @@ export const NetworkResourcePanel = () => {
 		<Ariakit.Dialog
 			state={networkResourceDialog}
 			modal={false}
+			autoFocusOnShow={false}
 			className={sprinkles({
 				backgroundColor: 'white',
 				display: 'flex',
@@ -113,9 +133,12 @@ export const NetworkResourcePanel = () => {
 				position: 'absolute',
 			}}
 		>
-			{resource && (
-				<NetworkResourceDetails resource={resource} hide={hide} />
-			)}
+			{resource &&
+				(resource.initiatorType === 'websocket' ? (
+					<WebSocketDetails resource={resource} hide={hide} />
+				) : (
+					<NetworkResourceDetails resource={resource} hide={hide} />
+				))}
 		</Ariakit.Dialog>
 	)
 }
@@ -225,8 +248,218 @@ function NetworkResourceDetails({
 					onClick={hide}
 				/>
 			</Box>
-			<Box px="12" py="8" display="flex" flexDirection="column" gap="8">
+			<Box
+				pt="16"
+				px="12"
+				pb="12"
+				display="flex"
+				flexDirection="column"
+				gap="12"
+			>
 				<Heading level="h4">Network request</Heading>
+
+				<Box display="flex" alignItems="center" gap="4">
+					<Badge
+						label={String(
+							showPlayerAbsoluteTime
+								? playerTimeToSessionAbsoluteTime({
+										sessionStartTime: startTime,
+										relativeTime: timestamp,
+								  })
+								: MillisToMinutesAndSeconds(timestamp),
+						)}
+						size="medium"
+						shape="basic"
+						variant="gray"
+						flexShrink={0}
+					/>
+					<Tag
+						shape="basic"
+						kind="secondary"
+						size="medium"
+						emphasis="low"
+						iconRight={<IconSolidArrowCircleRight />}
+						onClick={() => {
+							setTime(timestamp)
+							hide()
+						}}
+					>
+						Go to
+					</Tag>
+				</Box>
+			</Box>
+
+			<Tabs<NetworkRequestTabs>
+				tab={activeTab}
+				setTab={(tab) => setActiveTab(tab)}
+				pages={{
+					[NetworkRequestTabs.Info]: {
+						page: (
+							<NetworkResourceData
+								selectedNetworkResource={resource}
+								networkRecordingEnabledForSession={
+									session?.enable_recording_network_contents ||
+									false
+								}
+							/>
+						),
+					},
+					[NetworkRequestTabs.Errors]: {
+						page: <ErrorsData resource={resource} hide={hide} />,
+					},
+					[NetworkRequestTabs.Logs]: {
+						page: (
+							<NetworkResourceLogs
+								resource={resource}
+								sessionStartTime={startTime}
+							/>
+						),
+					},
+				}}
+				noHandle
+				containerClass={styles.container}
+				tabsContainerClass={styles.tabsContainer}
+				pageContainerClass={styles.pageContainer}
+			/>
+		</>
+	)
+}
+
+function WebSocketDetails({
+	resource,
+	hide,
+}: {
+	resource: NetworkResource
+	hide: () => void
+}) {
+	const { resources } = useResourcesContext()
+	const [activeTab, setActiveTab] = useState<WebSocketTabs>(
+		WebSocketTabs.Headers,
+	)
+	const {
+		sessionMetadata: { startTime },
+		setTime,
+		session,
+	} = useReplayerContext()
+	const { activeNetworkResourceId, setActiveNetworkResourceId } =
+		useActiveNetworkResourceId()
+
+	const networkResources = useMemo(() => {
+		return (
+			(resources.map((event) => ({
+				...event,
+				timestamp: event.startTime,
+			})) as NetworkResource[]) ?? []
+		)
+	}, [resources])
+
+	const resourceIdx = resources.findIndex(
+		(r) => activeNetworkResourceId === r.id,
+	)
+
+	const [prev, next] = [resourceIdx - 1, resourceIdx + 1]
+	const canMoveBackward = !!resources[prev]
+	const canMoveForward = !!resources[next]
+
+	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
+	const timestamp = useMemo(() => {
+		return new Date(resource.startTime).getTime()
+	}, [resource.startTime])
+
+	const { webSocketEvents, webSocketLoading } = useWebSocket(session)
+
+	const webSocketEventsMap = useMemo(() => {
+		const eventsMap: { [k: string]: any[] } = {}
+		webSocketEvents.forEach((e) => {
+			eventsMap[e.socketId] = []
+		})
+		webSocketEvents.forEach((e) => {
+			eventsMap[e.socketId].push(e)
+		})
+		return eventsMap
+	}, [webSocketEvents])
+
+	const selectedWebSocketEvents = useMemo(() => {
+		if (
+			resource.socketId &&
+			webSocketEventsMap.hasOwnProperty(resource.socketId)
+		) {
+			return [resource, ...webSocketEventsMap[resource.socketId]]
+		} else {
+			return []
+		}
+	}, [resource, webSocketEventsMap])
+
+	useHotkeys(
+		'h',
+		() => {
+			if (canMoveBackward) {
+				analytics.track('PrevNetworkResourceKeyboardShortcut')
+				setActiveNetworkResourceId(networkResources[prev].id)
+			}
+		},
+		[canMoveBackward, prev],
+	)
+
+	useHotkeys(
+		'l',
+		() => {
+			if (canMoveForward) {
+				analytics.track('NextNetworkResourceKeyboardShortcut')
+				setActiveNetworkResourceId(networkResources[next].id)
+			}
+		},
+		[canMoveForward, next],
+	)
+
+	return (
+		<>
+			<Box
+				pl="12"
+				pr="8"
+				py="6"
+				display="flex"
+				alignItems="center"
+				justifyContent="space-between"
+				borderBottom="divider"
+			>
+				<Box display="flex" gap="6" alignItems="center">
+					<PreviousNextGroup
+						onPrev={() =>
+							setActiveNetworkResourceId(
+								networkResources[prev].id,
+							)
+						}
+						canMoveBackward={canMoveBackward}
+						prevShortcut="h"
+						onNext={() =>
+							setActiveNetworkResourceId(
+								networkResources[next].id,
+							)
+						}
+						canMoveForward={canMoveForward}
+						nextShortcut="l"
+						size="small"
+					/>
+					<Text size="xSmall" weight="medium" color="weak">
+						{resourceIdx + 1} / {networkResources.length}
+					</Text>
+				</Box>
+				<ButtonIcon
+					kind="secondary"
+					size="small"
+					shape="square"
+					emphasis="low"
+					icon={<IconSolidX />}
+					onClick={hide}
+				/>
+			</Box>
+			<Box px="12" py="8" display="flex" flexDirection="column" gap="8">
+				<Heading level="h4">
+					{resource.initiatorType === 'websocket'
+						? resource.name
+						: `WebSocket`}
+				</Heading>
 
 				<Box display="flex" alignItems="center" gap="4">
 					<Badge
@@ -258,11 +491,11 @@ function NetworkResourceDetails({
 				</Box>
 			</Box>
 
-			<Tabs<NetworkRequestTabs>
+			<Tabs<WebSocketTabs>
 				tab={activeTab}
 				setTab={(tab) => setActiveTab(tab)}
 				pages={{
-					[NetworkRequestTabs.Info]: {
+					[WebSocketTabs.Headers]: {
 						page: (
 							<NetworkResourceData
 								selectedNetworkResource={resource}
@@ -273,22 +506,22 @@ function NetworkResourceDetails({
 							/>
 						),
 					},
-					// [NetworkRequestTabs.Errors]: {
-					// 	page: <Box>Errors</Box>,
-					// },
-					[NetworkRequestTabs.Logs]: {
+					[WebSocketTabs.Messages]: {
 						page: (
-							<NetworkResourceLogs
-								resource={resource}
-								sessionStartTime={startTime}
+							<WebSocketMessages
+								startEvent={resource}
+								eventsLoading={webSocketLoading}
+								events={selectedWebSocketEvents}
 							/>
 						),
 					},
 				}}
 				noHandle
-				containerClass={styles.container}
 				tabsContainerClass={styles.tabsContainer}
-				pageContainerClass={styles.pageContainer}
+				pageContainerClass={clsx(
+					styles.pageContainer,
+					styles.pageContainerFull,
+				)}
 			/>
 		</>
 	)
@@ -328,14 +561,17 @@ function NetworkResourceData({
 		},
 		{
 			keyDisplayValue: 'Status',
-			valueDisplayValue: selectedNetworkResource?.requestResponsePairs
-				?.response.status ?? (
-				<UnknownRequestStatusCode
-					networkRequestAndResponseRecordingEnabled={
-						networkRecordingEnabledForSession
-					}
-				/>
-			),
+			valueDisplayValue:
+				selectedNetworkResource?.initiatorType === 'websocket'
+					? 101
+					: selectedNetworkResource?.requestResponsePairs?.response
+							.status ?? (
+							<UnknownRequestStatusCode
+								networkRequestAndResponseRecordingEnabled={
+									networkRecordingEnabledForSession
+								}
+							/>
+					  ),
 			valueInfoTooltipMessage:
 				selectedNetworkResource?.requestResponsePairs?.response
 					.status === 0 &&
@@ -357,25 +593,35 @@ function NetworkResourceData({
 				selectedNetworkResource?.initiatorType || '',
 			),
 		},
-		{
-			keyDisplayValue: 'Size',
-			valueDisplayValue: selectedNetworkResource?.requestResponsePairs
-				?.response.size ? (
-				formatSize(
-					selectedNetworkResource.requestResponsePairs.response.size,
-				)
-			) : selectedNetworkResource?.requestResponsePairs?.response
-					.status === 0 ? (
-				'-'
-			) : selectedNetworkResource?.requestResponsePairs?.urlBlocked ||
-			  selectedNetworkResource?.transferSize == null ? (
-				'-'
-			) : selectedNetworkResource?.transferSize === 0 ? (
-				'Cached'
-			) : (
-				<>{formatSize(selectedNetworkResource.transferSize)}</>
-			),
-		},
+		...(selectedNetworkResource?.initiatorType === 'websocket'
+			? []
+			: [
+					{
+						keyDisplayValue: 'Size',
+						valueDisplayValue: selectedNetworkResource
+							?.requestResponsePairs?.response.size ? (
+							formatSize(
+								selectedNetworkResource.requestResponsePairs
+									.response.size,
+							)
+						) : selectedNetworkResource?.requestResponsePairs
+								?.response.status === 0 ? (
+							'-'
+						) : selectedNetworkResource?.requestResponsePairs
+								?.urlBlocked ||
+						  selectedNetworkResource?.transferSize == null ? (
+							'-'
+						) : selectedNetworkResource?.transferSize === 0 ? (
+							'Cached'
+						) : (
+							<>
+								{formatSize(
+									selectedNetworkResource.transferSize,
+								)}
+							</>
+						),
+					},
+			  ]),
 	]
 
 	const showRequestMetrics =
@@ -759,5 +1005,72 @@ const NetworkResourceLogs: React.FC<{
 				</Box>
 			</Box>
 		</>
+	)
+}
+
+const ErrorsData: React.FC<{ resource: NetworkResource; hide: () => void }> = ({
+	resource,
+	hide,
+}) => {
+	const { projectId } = useProjectId()
+	const { errors: sessionErrors } = useReplayerContext()
+	const requestId = getHighlightRequestId(resource)
+	const errors = sessionErrors.filter((e) => e.request_id === requestId)
+	const errorGroupSecureIds = errors.map((e) => e.error_group_secure_id)
+	const { data, loading } = useGetErrorGroupsOpenSearchQuery({
+		variables: {
+			query: `{
+				"bool": {
+					"must": {
+						"terms": {
+							"secure_id.keyword": [${errorGroupSecureIds.map((id) => `"${id}"`).join(',')}]
+						}
+					}
+				}
+			}`.replace(/\s+/g, ''),
+			project_id: projectId,
+			count: errorGroupSecureIds.length,
+		},
+		skip: errors.length === 0,
+	})
+
+	const { setActiveError, setRightPanelView } = usePlayerUIContext()
+	const { setShowRightPanel } = usePlayerConfiguration()
+
+	return (
+		<Box py="8" px="12">
+			{data?.error_groups_opensearch.error_groups?.length ? (
+				data?.error_groups_opensearch.error_groups.map(
+					(errorGroup, idx) => (
+						<ErrorFeedCard
+							errorGroup={errorGroup}
+							key={idx}
+							onClick={() => {
+								const error = errors.find(
+									(e) =>
+										e.error_group_secure_id ===
+										errorGroup.secure_id,
+								)
+								setActiveError(error)
+								setShowRightPanel(true)
+								setRightPanelView(RightPanelView.Error)
+								hide()
+							}}
+						/>
+					),
+				)
+			) : loading ? (
+				<LoadingBox />
+			) : (
+				<Callout title="No errors">
+					<Box mb="6">
+						<Text>
+							There are no errors associated with this network
+							request.
+						</Text>
+					</Box>
+				</Callout>
+			)}
+		</Box>
 	)
 }

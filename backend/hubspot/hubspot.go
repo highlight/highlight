@@ -393,11 +393,11 @@ func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, ad
 	}
 
 	admin := &model.Admin{}
-	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
+	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
 		return err
 	}
 	workspace := &model.Workspace{}
-	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
+	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
 		return err
 	}
 	if workspace.HubspotCompanyID == nil {
@@ -505,6 +505,11 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 		}()
 	}
 
+	workspace := &model.Workspace{}
+	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
+		return nil, err
+	}
+
 	var domain string
 	if !emailproviders.Exists(adminEmail) {
 		components := strings.Split(adminEmail, "@")
@@ -531,6 +536,13 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 				Value:    hexLink,
 			},
 		},
+	}
+	if workspace.TrialEndDate != nil {
+		companyProperties.Properties = append(companyProperties.Properties, hubspot.Property{
+			Property: "trial_end_date",
+			Name:     "trial_end_date",
+			Value:    *workspace.TrialEndDate,
+		})
 	}
 
 	if companyID, err = pollHubspot(func() (*int, error) {
@@ -564,7 +576,7 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 
 	if adminEmail != "" {
 		admin := model.Admin{}
-		if err = h.db.Model(&model.Admin{}).Where(&model.Admin{Email: &adminEmail}).First(&admin).Error; err != nil {
+		if err = h.db.Model(&model.Admin{}).Where(&model.Admin{Email: &adminEmail}).Take(&admin).Error; err != nil {
 			return
 		}
 		if err := h.CreateContactCompanyAssociation(ctx, admin.ID, workspaceID); err != nil {
@@ -586,7 +598,7 @@ func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, pro
 
 func (h *HubspotApi) UpdateContactPropertyImpl(ctx context.Context, adminID int, properties []hubspot.Property) error {
 	admin := &model.Admin{}
-	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
+	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
 		return err
 	}
 	hubspotContactID := admin.HubspotContactID
@@ -627,7 +639,7 @@ func (h *HubspotApi) UpdateCompanyProperty(ctx context.Context, workspaceID int,
 
 func (h *HubspotApi) UpdateCompanyPropertyImpl(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
 	workspace := &model.Workspace{}
-	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
+	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
 		return err
 	}
 	hubspotWorkspaceID := workspace.HubspotCompanyID
