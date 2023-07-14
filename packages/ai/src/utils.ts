@@ -14,28 +14,33 @@ export enum EventType {
 export const parseEventsForInput = (events: any[]) => {
 	const parsedEvents: any[] = []
 	events.forEach(({ _sid, ...e }, idx) => {
-		switch (e.type) {
-			case EventType.FullSnapshot:
-				parsedEvents.push({ type: e.type, timestamp: e.timestamp })
-				return
-			case EventType.IncrementalSnapshot:
-				const nextEvent = events[Math.min(idx + 1, events.length)]
-				if (nextEvent.type !== e.type) {
+		if (e != null) {
+			switch (e.type) {
+				case EventType.FullSnapshot:
 					parsedEvents.push({ type: e.type, timestamp: e.timestamp })
-				}
-				return
-			case EventType.Custom:
-				const stringifiedData = JSON.stringify(e.data).toLowerCase()
-				if (
-					!stringifiedData.includes('identify') &&
-					!stringifiedData.includes('authenticate') &&
-					!stringifiedData.includes('performance')
-				) {
+					return
+				case EventType.IncrementalSnapshot:
+					const nextEvent = events[Math.min(idx + 1, events.length)]
+					if (nextEvent.type !== e.type) {
+						parsedEvents.push({
+							type: e.type,
+							timestamp: e.timestamp,
+						})
+					}
+					return
+				case EventType.Custom:
+					const stringifiedData = JSON.stringify(e.data).toLowerCase()
+					if (
+						!stringifiedData.includes('identify') &&
+						!stringifiedData.includes('authenticate') &&
+						!stringifiedData.includes('performance')
+					) {
+						parsedEvents.push(e)
+					}
+					return
+				default:
 					parsedEvents.push(e)
-				}
-				return
-			default:
-				parsedEvents.push(e)
+			}
 		}
 	})
 	return parsedEvents
