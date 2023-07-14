@@ -15,80 +15,81 @@ updatedAt: 2023-05-10T00:00:00.000Z
 ## Installation
 
 ```shell
-# with npm
-npm install @highlight-run/next @highlight-run/react highlight.run
-```
-
-```shell
 # with yarn
 yarn add @highlight-run/next @highlight-run/react highlight.run
 ```
 
-## Environment Configuration (Very optional)
+## Instrument the client
 
-> This section is extra opinionated about Next.js constants. It's not for everyone. We like how `zod` and TypeScript work together to validate `process.env` inputs... but this is a suggestion. Do your own thing!
+This implementation requires React 17 or greater. If you're behind on React versions, follow our [React.js docs](../3_client-sdk/1_reactjs.md)
 
-1. Edit `.env` to add your projectID to `NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID`
-2. To send data to a locally-running instance of Highlight, create `.env.local` at your project root with variables for your local `otlpEndpoint` and `backendUrl`:
-
-```bash
-# .env.local
-NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID='1jdkoe52'
-
-# omit to send data to app.highlight.io
-NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT='http://localhost:4318' 
-NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL='https://localhost:8082/public'
-```
-
-3. Feed your environment variables into the application with a constants file. We're using `zod` for this example, because it creates a validated, typed `CONSTANTS` object that plays nicely with TypeScript.
+1. For the `/pages` directory, you'll want to add `HighlightInit` to `_app.tsx`.
 
 ```javascript
-// src/app/constants.ts
-import { z } from 'zod'
+// pages/_app.tsx
+import { AppProps } from 'next/app'
+import CONSTANTS from '@/app/constants'
+import { HighlightInit } from '@highlight-run/next/highlight-init'
 
-const stringOrUndefined = z.preprocess(
-	(val) => val || undefined,
-	z.string().optional(),
-)
+export default function MyApp({ Component, pageProps }: AppProps) {
+	return (
+		<>
+			<HighlightInit
+				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
+				tracingOrigins
+				networkRecording={{
+					enabled: true,
+					recordHeadersAndBody: true
+				}}
+				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
+			/>
 
-// Must assign NEXT_PUBLIC_* env vars to a variable to force Next to inline them
-const publicEnv = {
-	NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID:
-		process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
-	NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT:
-		process.env.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
-	NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL:
-		process.env.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL,
+			<Component {...pageProps} />
+		</>
+	)
 }
+```
 
-const CONSTANTS = z
-	.object({
-		NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: z.string(),
-		NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT: stringOrUndefined,
-		NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL: stringOrUndefined,
-	})
-	.parse(publicEnv)
+2. For Next.js 13 App Directory, add `HighlightInit` to your `layout.tsx` file.
 
-export default CONSTANTS
+```javascript
+// src/app/layout.tsx
+import './globals.css'
+
+import CONSTANTS from '@/app/constants'
+import { HighlightInit } from '@highlight-run/next/highlight-init'
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+	return (
+		<>
+			<HighlightInit
+				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
+				tracingOrigins
+				networkRecording={{
+					enabled: true,
+					recordHeadersAndBody: true
+				}}
+				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
+			/>
+
+			<html lang="en">
+				<body>{children}</body>
+			</html>
+		</>
+	)
+}
 ```
 
 ## Instrument your API routes
- 1. Create a file to export your `Highlight` wrapper function:
+1. Create a file to export your `Highlight` wrapper function:
 
  ```javascript
 // src/app/utils/highlight.config.ts:
 import CONSTANTS from '@/app/constants'
 import { Highlight } from '@highlight-run/next'
 
-if (process.env.NODE_ENV === 'development') {
-  // Highlight's dev instance expects HTTPS. Disable HTTPS errors in development.
-	process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
-}
-
 export const withHighlight = Highlight({
-	projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
-	otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
-	backendUrl: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL,
+	projectID: '<YOUR_PROJECT_ID>',
 })
  ```
 
@@ -99,17 +100,14 @@ export const withHighlight = Highlight({
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import { withHighlight } from '@/app/utils/highlight.config'
-import { z } from 'zod'
 
 export default withHighlight(function handler(
 	req: NextApiRequest,
 	res: NextApiResponse,
 ) {
-	const success = z.enum(['true', 'false']).parse(req.query.success)
-
 	console.info('Here: /api/app-directory-test', { success })
 
-	if (success === 'true') {
+	if (Math.random() < 0.8) {
 		res.send('Success: /api/app-directory-test')
 	} else {
 		throw new Error('Error: /api/app-directory-test')
@@ -120,15 +118,16 @@ export default withHighlight(function handler(
 ## Instrument the server
 
 ```hint
-⚠️ Excluding the Vercel edge runtime (which is a work in progress), Session Replay, Vercel Log Drain and Error Monitoring are fully operational for App Directory
+Excluding the Vercel edge runtime (which is a work in progress), Session Replay, Vercel Log Drain and Error Monitoring are fully operational for Next.js 13 App Directory
 ```
 
-
-Next.js comes out of the box instrumented for Open Telemetry. Our example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on our Next.js server. There are probably other ways to configure Open Telemetry with Next... but this is our favorite.
+Next.js comes out of the box instrumented for Open Telemetry. Our example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on our Next.js server. There are probably other ways to configure Open Telemetry with Next, but this is our favorite.
 
 
 1. Install `next-build-id` with `npm install next-build-id`.
-2.  Turn on `instrumentationHook`. We've also turned on `productionBrowserSourceMaps` because Highlight is much easier to use with source maps.
+2. Turn on `instrumentationHook`. We've also turned on `productionBrowserSourceMaps` because Highlight is much easier to use with source maps.
+
+If you use a `next.config.js` file:
 
 ```javascript
 // next.config.js
@@ -147,7 +146,7 @@ const nextConfig = {
 module.exports = nextConfig
 ```
 
-You may have trouble with a missing `__dirname` environment variable. This can happen with Next.js middleware. The following example uses a `next.config.mjs` file instead of the CJS-style `next.config.js` pattern. It calculates `__dirname` using native Node.js utility packages.
+If you use a `next.config.mjs` file:
 
 ```javascript
 // next.config.mjs
@@ -176,106 +175,17 @@ export default nextConfig
 ```javascript
 // instrumentation.ts
 import CONSTANTS from '@/app/constants'
-import { registerHighlight } from '@highlight-run/next'
-
-export async function register() {
-	registerHighlight({
-		projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
-		otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
-	})
-}
-```
-
-> You'll need to do a conditional import if you're using [Next Middleware](https://nextjs.org/docs/pages/building-your-application/routing/middleware).
-
-```javascript
-// instrumentation.ts
-import CONSTANTS from '@/app/constants'
 
 export async function register() {
 	if (process.env.NEXT_RUNTIME === 'nodejs') {
-		/**
-		 * Conditional import required for use with Next middleware
-		 * 
-		 * Avoids the following error:
-		 * An error occurred while loading instrumentation hook: (0 , _highlight_run_next__WEBPACK_IMPORTED_MODULE_1__.registerHighlight) is not a function
-		 */
+		/** Conditional import required for use with Next middleware to avoid a webpack error 
+         * https://nextjs.org/docs/pages/building-your-application/routing/middleware */
 		const { registerHighlight } = await import('@highlight-run/next')
 
 		registerHighlight({
 			projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
-			otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
 		})
 	}
-}
-
-```
-
-## Instrument the client
-
-This implementation requires React 17 or greater. If you're behind on React versions, follow our [React.js docs](../3_client-sdk/1_reactjs.md)
-
-1. For the `/pages` directory, you'll want to add `HighlightInit` to `_app.tsx`.
-
-```javascript
-// pages/_app.tsx
-import { AppProps } from 'next/app'
-import CONSTANTS from '@/app/constants'
-import { HighlightInit } from '@highlight-run/next/highlight-init'
-
-export default function MyApp({ Component, pageProps }: AppProps) {
-	return (
-		<>
-			<HighlightInit
-				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
-				tracingOrigins
-				networkRecording={{
-					enabled: true,
-					recordHeadersAndBody: true,
-					urlBlocklist: [],
-				}}
-				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
-			/>
-
-			<Component {...pageProps} />
-		</>
-	)
-}
-```
-
-2. For App Directory, add `HighlightInit` to your `layout.tsx` file.
-
-```javascript
-// src/app/layout.tsx
-import './globals.css'
-
-import CONSTANTS from '@/app/constants'
-import { HighlightInit } from '@highlight-run/next/highlight-init'
-
-export const metadata = {
-	title: 'Highlight Next Demo',
-	description: 'Check out how Highlight works with Next.js',
-}
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-	return (
-		<>
-			<HighlightInit
-				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
-				tracingOrigins
-				networkRecording={{
-					enabled: true,
-					recordHeadersAndBody: true,
-					urlBlocklist: [],
-				}}
-				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
-			/>
-
-			<html lang="en">
-				<body>{children}</body>
-			</html>
-		</>
-	)
 }
 ```
 
@@ -288,7 +198,7 @@ You likely want to associate your back-end errors to client sessions.
 ## Test source maps
 
 ```hint
-⚠️ Source maps do not work in development mode. Run `yarn build && yarn start` to test compiled source maps in Highlight.
+Source maps do not work in development mode. Run `yarn build && yarn start` to test compiled source maps in Highlight.
 ```
 
 We recommend shipping your source maps to your production server. Your client-side JavaScript is always public, and code decompilation tools are so powerful that obscuring your source code may not be helpful.
