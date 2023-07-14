@@ -1,5 +1,6 @@
 import {
 	Box,
+	BoxProps,
 	Callout,
 	Form,
 	FormState,
@@ -67,8 +68,9 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 				canMoveForward={false}
 				form={form}
 				onSubmit={handleSubmit}
+				verticallyAlign
 			>
-				<LoadingBox height={156} />
+				<LoadingBox />
 			</ErrorInstancesContainer>
 		)
 	}
@@ -148,6 +150,7 @@ type ErrorInstancesContainerProps = {
 	onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
 	onPrevious?: () => void
 	onNext?: () => void
+	verticallyAlign?: boolean
 }
 
 const ErrorInstancesContainer: React.FC<
@@ -160,9 +163,20 @@ const ErrorInstancesContainer: React.FC<
 	onSubmit,
 	form,
 	children,
+	verticallyAlign = false,
 }) => {
+	const childrenBoxProps: BoxProps = {
+		mb: '20',
+		borderBottom: 'secondary',
+		style: { minHeight: '300px' },
+	}
+
+	if (verticallyAlign) {
+		childrenBoxProps.alignItems = 'center'
+	}
+
 	return (
-		<>
+		<Stack direction="column">
 			<Box my="8">
 				<Form state={form} onSubmit={onSubmit}>
 					<Box
@@ -184,9 +198,7 @@ const ErrorInstancesContainer: React.FC<
 					</Box>
 				</Form>
 			</Box>
-			<Box mb="20" borderBottom="secondary">
-				{children}
-			</Box>
+			<Box {...childrenBoxProps}>{children}</Box>
 			<Stack direction="row" justifyContent="flex-end">
 				<Button
 					kind="secondary"
@@ -205,6 +217,6 @@ const ErrorInstancesContainer: React.FC<
 					Next
 				</Button>
 			</Stack>
-		</>
+		</Stack>
 	)
 }
