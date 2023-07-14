@@ -168,7 +168,7 @@ const ErrorInstancesContainer: React.FC<
 	const childrenBoxProps: BoxProps = {
 		mb: '20',
 		borderBottom: 'secondary',
-		style: { minHeight: '300px' },
+		style: { minHeight: '351px' },
 	}
 
 	if (verticallyAlign) {
