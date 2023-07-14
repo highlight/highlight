@@ -172,6 +172,7 @@ const ErrorInstancesContainer: React.FC<
 	}
 
 	if (verticallyAlign) {
+		childrenBoxProps.display = 'flex'
 		childrenBoxProps.alignItems = 'center'
 	}
 
