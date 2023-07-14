@@ -5833,17 +5833,6 @@ func (r *queryResolver) ProjectSuggestion(ctx context.Context, query string) ([]
 	return projects, nil
 }
 
-// WorkspaceSuggestion is the resolver for the workspaceSuggestion field.
-func (r *queryResolver) WorkspaceSuggestion(ctx context.Context, query string) ([]*model.Workspace, error) {
-	workspaces := []*model.Workspace{}
-	if r.isWhitelistedAccount(ctx) {
-		if err := r.DB.Model(&model.Workspace{}).Where("name ILIKE ?", "%"+query+"%").Find(&workspaces).Error; err != nil {
-			return nil, e.Wrap(err, "error getting workspace suggestions")
-		}
-	}
-	return workspaces, nil
-}
-
 // EnvironmentSuggestion is the resolver for the environment_suggestion field.
 func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, projectID int) ([]*model.Field, error) {
 	if _, err := r.isAdminInProjectOrDemoProject(ctx, projectID); err != nil {
