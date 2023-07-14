@@ -6,12 +6,6 @@ createdAt: 2023-05-10T00:00:00.000Z
 updatedAt: 2023-05-10T00:00:00.000Z
 ---
 
-## Limitations 
-
-⚠️ App Directory support on Vercel is a work-in-progress. Session Replay, Vercel Log Drain and non-Vercel-deployed Error Monitoring are fully operational; however, Vercel's `edge` runtime is not yet compatible with OpenTelemetry. Vercel's `nodejs` runtime **is** instrumented for OpenTelemetry, but we're having trouble ingesting Server-side Rendering (SSR) errors. We expect to solve the `nodejs` runtime issues first. In the meantime, we're hoping to find an `edge` runtime-compatible version of OpenTelemetry.
-
-⚠️ Source maps do not work in development mode. Run `yarn build && yarn start` to test compiled source maps in Highlight.
-
 ## Installation
 
 ```shell
@@ -118,6 +112,11 @@ export default withHighlight(function handler(
 ```
 
 ## Instrument the server
+
+```hint
+⚠️ Excluding the Vercel edge runtime (which is a work in progress), Session Replay, Vercel Log Drain and Error Monitoring are fully operational for App Directory
+```
+
 
 Next.js comes out of the box instrumented for Open Telemetry. Our example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on our Next.js server. There are probably other ways to configure Open Telemetry with Next... but this is our favorite.
 
@@ -281,6 +280,10 @@ See [Fullstack Mapping](https://www.highlight.io/docs/getting-started/frontend-b
 You likely want to associate your back-end errors to client sessions.
 
 ## Test source maps
+
+```hint
+⚠️ Source maps do not work in development mode. Run `yarn build && yarn start` to test compiled source maps in Highlight.
+```
 
 We recommend shipping your source maps to your production server. Your client-side JavaScript is always public, and code decompilation tools are so powerful that obscuring your source code may not be helpful.
 
