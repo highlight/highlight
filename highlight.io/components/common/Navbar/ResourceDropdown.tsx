@@ -30,9 +30,9 @@ const ResourceDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 			link: 'https://www.highlight.io/docs/general/changelog/overview',
 		},
 		{
-			title: 'Feedback',
+			title: 'Blog',
 			icon: <Icons.HiChat className={styles.copyOnLight} />,
-			link: 'https://highlight.io/community',
+			link: 'https://highlight.io/blog',
 		},
 		{
 			title: 'Frameworks',
