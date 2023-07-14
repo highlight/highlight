@@ -30,8 +30,8 @@
 
 -   Adds ability to record `console` methods.
 
-## 3.1.2
+### 3.1.2
 
 ### Minor Changes
 
-- Updating to `@highlight-run/node@3.1.1`
+- Bumping to match `@highlight-run/node`
