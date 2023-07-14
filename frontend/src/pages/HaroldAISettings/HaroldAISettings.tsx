@@ -46,7 +46,7 @@ export const HaroldAISettings = () => {
 						<Text weight="medium" size="small" color="default">
 							Highlight's Harold is an AI assistant helping you
 							better understand the context around your data.
-							Harold is based on OpenAI GPT-4.
+							Harold is based on OpenAI GPT-3.5.
 						</Text>
 					</Stack>
 					<BorderBox>
@@ -56,7 +56,7 @@ export const HaroldAISettings = () => {
 									Learn more about Highlight's AI
 								</Text>
 								<Text color="moderate">
-									Curious about how we use OpenAI's GPT-4 to
+									Curious about how we use OpenAI's GPT-3.5 to
 									power our AI services? Read the blog post!
 								</Text>
 							</Stack>
