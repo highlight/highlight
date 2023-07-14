@@ -25,13 +25,14 @@ type InterestingSessionSql struct {
 }
 
 type InterestingSession struct {
-	Identifier   string   `json:"identifier"`
-	AvatarUrl    string   `json:"avatarUrl"`
-	Country      string   `json:"country"`
-	ActiveLength string   `json:"activeLength"`
-	URL          string   `json:"url"`
-	Insights     []string `json:"insights"`
-	Id           int      `json:"id"`
+	Identifier    string   `json:"identifier"`
+	AvatarUrl     string   `json:"avatarUrl"`
+	Country       string   `json:"country"`
+	ActiveLength  string   `json:"activeLength"`
+	Url           string   `json:"url"`
+	ScreenshotUrl string   `json:"screenshotUrl"`
+	Insights      []string `json:"insights"`
+	Id            int      `json:"id"`
 }
 
 type SessionInsightsData struct {

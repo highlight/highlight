@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/highlight-run/highlight/backend/email"
@@ -130,7 +131,7 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 			AvatarUrl:    getAvatarUrl(item.UserProperties),
 			Country:      getLocation(item.Country),
 			ActiveLength: formatDurationMinute(item.ActiveLength * time.Millisecond),
-			URL:          formatSessionURL(input.ProjectId, item.SecureId),
+			Url:          formatSessionURL(input.ProjectId, item.SecureId),
 			Id:           item.Id,
 			Insights:     insightStrs,
 		})
@@ -240,8 +241,8 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 	}
 
 	images := map[int]string{}
-	for _, session := range input.InterestingSessions {
-		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, nil, nil, nil)
+	for idx, session := range input.InterestingSessions {
+		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, pointy.Int(1), pointy.Int(0), nil)
 		if err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
 				Warnf("failed to get session screenshot with error %#v", err)
@@ -257,6 +258,7 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 			return err
 		}
 		images[session.Id] = base64.StdEncoding.EncodeToString(imageBytes)
+		input.InterestingSessions[idx].ScreenshotUrl = fmt.Sprintf("cid:session%d", session.Id)
 	}
 
 	for _, toAddr := range toAddrs {

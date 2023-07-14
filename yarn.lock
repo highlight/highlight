@@ -47904,12 +47904,13 @@ __metadata:
     "@radix-ui/react-toggle-group": 1.0.1
     "@radix-ui/react-tooltip": 1.0.2
     "@react-email/components": 0.0.6
-    "@react-email/render": 0.0.7
+    "@react-email/render": ^0.0.7
     "@types/classnames": 2.3.1
     "@types/node": 18.11.9
     "@types/react": 18.0.25
     "@types/react-dom": 18.0.9
     autoprefixer: 10.4.13
+    aws-lambda: ^1.0.7
     classnames: 2.3.2
     eslint: 8.36.0
     eslint-config-next: 13.2.4
