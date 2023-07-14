@@ -3,8 +3,10 @@
 import { Button } from '@/app/components/button'
 import { ErrorBoundary } from '@/app/components/error-boundary'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export function PathButtons() {
+	const router = useRouter()
 	return (
 		<div
 			className="path-buttons"
@@ -33,7 +35,6 @@ export function PathButtons() {
 					<Button>Standard ISR: Error</Button>
 				</Link>
 				<hr />
-
 				<Link href="/app-directory/isr">
 					<Button>App Directory: Success</Button>
 				</Link>
@@ -41,6 +42,21 @@ export function PathButtons() {
 				<Link href="/app-directory/isr?error=true">
 					<Button>App Directory: Error</Button>
 				</Link>
+				<hr />
+				<Link href="/redirect">
+					<Button>Redirect (link)</Button>
+				</Link>
+				<Link href="/app-directory/redirect">
+					<Button>App Directory: Redirect (link)</Button>
+				</Link>
+				<Button
+					onClick={() => {
+						router.push(`/redirect`)
+					}}
+				>
+					Redirect (redirect)
+				</Button>
+				<hr />
 			</ErrorBoundary>
 		</div>
 	)
