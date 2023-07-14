@@ -4400,7 +4400,10 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 									__typename?: 'ErrorObjectNodeSession'
 								} & Pick<
 									Types.ErrorObjectNodeSession,
-									'secureID' | 'email' | 'appVersion'
+									| 'secureID'
+									| 'email'
+									| 'appVersion'
+									| 'fingerprint'
 								>
 							>
 						}

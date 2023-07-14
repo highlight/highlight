@@ -622,6 +622,7 @@ type ErrorObjectNodeSession {
 	secureID: String!
 	appVersion: String
 	email: String
+	fingerprint: Int
 }
 
 type ErrorObjectNode {

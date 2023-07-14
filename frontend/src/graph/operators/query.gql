@@ -2111,6 +2111,7 @@ query GetErrorObjects(
 					secureID
 					email
 					appVersion
+					fingerprint
 				}
 			}
 		}

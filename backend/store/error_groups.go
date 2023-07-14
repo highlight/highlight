@@ -27,7 +27,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 
 	var errorObjects []model.ErrorObject
 
-	query := store.db.
+	query := store.db.Debug().
 		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(LIMIT + 1)
 
 	if params.Query != "" {
@@ -116,9 +116,10 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 			session, exists := sessionMap[*errorObject.SessionID]
 			if exists {
 				edge.Node.Session = &privateModel.ErrorObjectNodeSession{
-					SecureID:   session.SecureID,
-					Email:      session.Email,
-					AppVersion: session.AppVersion,
+					SecureID:    session.SecureID,
+					Email:       session.Email,
+					AppVersion:  session.AppVersion,
+					Fingerprint: &session.Fingerprint,
 				}
 			}
 		}
