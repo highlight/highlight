@@ -1,5 +1,5 @@
 ---
-title: New Feature: Network Request Details Panel
+title: 'New Feature: Network Request Details Panel'
 createdAt: 2023-06-14T12:00:00Z
 readingTime: 5
 authorFirstName: Chris
@@ -10,12 +10,9 @@ authorLinkedIn: 'https://www.linkedin.com/in/ccschmitz'
 authorGithub: 'https://github.com/ccschmitz'
 authorWebsite: ''
 authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75'
-tags: AI
+tags: Developer Tooling
 metaTitle: Tying it all together with the new network request details panel
 ---
-
-
-# New Feature: Network Request Details Panel
 
 Network requests are the link between our client and server interactions. They contain a ton of critical information that helps with troubleshooting issues impacting the user experience. They are often the starting point for us when trying to understand UX and performance issues.
 
