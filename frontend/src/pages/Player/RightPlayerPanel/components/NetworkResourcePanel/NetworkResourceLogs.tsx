@@ -68,16 +68,19 @@ export const NetworkResourceLogs: React.FC<{
 	)
 
 	useEffect(() => {
+		const requestId = resource.requestResponsePairs?.request?.id
+
 		setQuery(
 			stringifyLogsQuery([
 				{
 					key: 'trace_id',
 					operator: DEFAULT_LOGS_OPERATOR,
-					value: String(resource.id),
+					value: String(requestId),
 					offsetStart: 0,
 				},
 			]),
 		)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [resource.id])
 
 	return (
