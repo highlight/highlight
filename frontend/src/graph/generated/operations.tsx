@@ -2085,6 +2085,15 @@ export type GetTimelineIndicatorEventsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetWebSocketEventsQueryVariables = Types.Exact<{
+	session_secure_id: Types.Scalars['String']
+}>
+
+export type GetWebSocketEventsQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'websocket_events'
+>
+
 export type GetFieldTypesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	start_date?: Types.Maybe<Types.Scalars['Timestamp']>
@@ -4391,7 +4400,10 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 									__typename?: 'ErrorObjectNodeSession'
 								} & Pick<
 									Types.ErrorObjectNodeSession,
-									'secureID' | 'email' | 'appVersion'
+									| 'secureID'
+									| 'email'
+									| 'appVersion'
+									| 'fingerprint'
 								>
 							>
 						}
@@ -4428,6 +4440,7 @@ export const namedOperations = {
 		GetOnboardingSteps: 'GetOnboardingSteps' as const,
 		GetSessionIntervals: 'GetSessionIntervals' as const,
 		GetTimelineIndicatorEvents: 'GetTimelineIndicatorEvents' as const,
+		GetWebSocketEvents: 'GetWebSocketEvents' as const,
 		GetFieldTypes: 'GetFieldTypes' as const,
 		GetFieldsOpensearch: 'GetFieldsOpensearch' as const,
 		GetQuickFieldsOpensearch: 'GetQuickFieldsOpensearch' as const,

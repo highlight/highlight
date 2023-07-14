@@ -6413,6 +6413,60 @@ export type GetTimelineIndicatorEventsQueryResult = Apollo.QueryResult<
 	Types.GetTimelineIndicatorEventsQuery,
 	Types.GetTimelineIndicatorEventsQueryVariables
 >
+export const GetWebSocketEventsDocument = gql`
+	query GetWebSocketEvents($session_secure_id: String!) {
+		websocket_events(session_secure_id: $session_secure_id)
+	}
+`
+
+/**
+ * __useGetWebSocketEventsQuery__
+ *
+ * To run a query within a React component, call `useGetWebSocketEventsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWebSocketEventsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWebSocketEventsQuery({
+ *   variables: {
+ *      session_secure_id: // value for 'session_secure_id'
+ *   },
+ * });
+ */
+export function useGetWebSocketEventsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWebSocketEventsQuery,
+		Types.GetWebSocketEventsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWebSocketEventsQuery,
+		Types.GetWebSocketEventsQueryVariables
+	>(GetWebSocketEventsDocument, baseOptions)
+}
+export function useGetWebSocketEventsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWebSocketEventsQuery,
+		Types.GetWebSocketEventsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWebSocketEventsQuery,
+		Types.GetWebSocketEventsQueryVariables
+	>(GetWebSocketEventsDocument, baseOptions)
+}
+export type GetWebSocketEventsQueryHookResult = ReturnType<
+	typeof useGetWebSocketEventsQuery
+>
+export type GetWebSocketEventsLazyQueryHookResult = ReturnType<
+	typeof useGetWebSocketEventsLazyQuery
+>
+export type GetWebSocketEventsQueryResult = Apollo.QueryResult<
+	Types.GetWebSocketEventsQuery,
+	Types.GetWebSocketEventsQueryVariables
+>
 export const GetFieldTypesDocument = gql`
 	query GetFieldTypes(
 		$project_id: ID!
@@ -13006,6 +13060,7 @@ export const GetErrorObjectsDocument = gql`
 						secureID
 						email
 						appVersion
+						fingerprint
 					}
 				}
 			}

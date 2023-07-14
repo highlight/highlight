@@ -544,6 +544,7 @@ export type ErrorObjectNodeSession = {
 	__typename?: 'ErrorObjectNodeSession'
 	appVersion?: Maybe<Scalars['String']>
 	email?: Maybe<Scalars['String']>
+	fingerprint?: Maybe<Scalars['Int']>
 	secureID: Scalars['String']
 }
 
@@ -1743,6 +1744,7 @@ export type Query = {
 	vercel_project_mappings: Array<VercelProjectMapping>
 	vercel_projects: Array<VercelProject>
 	web_vitals: Array<Metric>
+	websocket_events?: Maybe<Array<Maybe<Scalars['Any']>>>
 	workspace?: Maybe<Workspace>
 	workspacePendingInvites: Array<Maybe<WorkspaceInviteLink>>
 	workspaceSettings?: Maybe<AllWorkspaceSettings>
@@ -2306,6 +2308,10 @@ export type QueryWeb_VitalsArgs = {
 	session_secure_id: Scalars['String']
 }
 
+export type QueryWebsocket_EventsArgs = {
+	session_secure_id: Scalars['String']
+}
+
 export type QueryWorkspaceArgs = {
 	id: Scalars['ID']
 }
@@ -2815,6 +2821,16 @@ export type VercelProjectMappingInput = {
 	new_project_name?: InputMaybe<Scalars['String']>
 	project_id?: InputMaybe<Scalars['ID']>
 	vercel_project_id: Scalars['String']
+}
+
+export type WebSocketEvent = {
+	__typename?: 'WebSocketEvent'
+	message: Scalars['String']
+	name: Scalars['String']
+	size: Scalars['Int']
+	socketId: Scalars['String']
+	timeStamp: Scalars['Float']
+	type: Scalars['String']
 }
 
 export type WebhookDestination = {

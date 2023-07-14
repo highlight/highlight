@@ -11,7 +11,7 @@ func (store *Store) GetProject(id int) (model.Project, error) {
 		Model: model.Model{
 			ID: id,
 		},
-	}).First(&project).Error
+	}).Take(&project).Error
 
 	return project, err
 }

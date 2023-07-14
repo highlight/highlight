@@ -80,8 +80,9 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 		store.db.Create(&errorGroup)
 
 		session := model.Session{
-			AppVersion: ptr.String("123"),
-			Email:      ptr.String("chilly@mcwilly.com"),
+			AppVersion:  ptr.String("123"),
+			Email:       ptr.String("chilly@mcwilly.com"),
+			Fingerprint: 1234,
 		}
 
 		store.db.Create(&session)
@@ -104,9 +105,10 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 		assert.Equal(t, errorObject.Event, edge.Node.Event)
 		assert.Equal(t, errorGroup.SecureID, edge.Node.ErrorGroupSecureID)
 		assert.Equal(t, &privateModel.ErrorObjectNodeSession{
-			SecureID:   session.SecureID,
-			Email:      session.Email,
-			AppVersion: session.AppVersion,
+			SecureID:    session.SecureID,
+			Email:       session.Email,
+			AppVersion:  session.AppVersion,
+			Fingerprint: &session.Fingerprint,
 		}, edge.Node.Session)
 
 		assert.Equal(t, &privateModel.PageInfo{

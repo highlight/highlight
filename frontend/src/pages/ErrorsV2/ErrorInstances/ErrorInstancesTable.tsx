@@ -86,7 +86,10 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 				let sessionLink = ''
 
 				if (session) {
-					content = session.email ? session.email : '(no value)'
+					content =
+						session.email ??
+						session.fingerprint?.toString() ??
+						'(no value)'
 					const params = createSearchParams({
 						tsAbs: timestamp,
 						[PlayerSearchParameters.errorId]: errorObjectId,

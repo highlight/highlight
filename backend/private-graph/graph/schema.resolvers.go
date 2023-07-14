@@ -66,7 +66,7 @@ import (
 // Author is the resolver for the author field.
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
-	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
+	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).Take(&admin).Error; err != nil {
 		return nil, e.Wrap(err, "Error finding admin author for comment reply")
 	}
 
@@ -111,7 +111,7 @@ func (r *errorAlertResolver) DailyFrequency(ctx context.Context, obj *model.Erro
 // Author is the resolver for the author field.
 func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
-	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
+	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).Take(&admin).Error; err != nil {
 		return nil, e.Wrap(err, "Error finding admin for comment")
 	}
 
@@ -226,7 +226,7 @@ func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObjec
 		return nil, nil
 	}
 	session := &model.Session{}
-	if err := r.DB.Where("id = ?", obj.SessionID).First(&session).Error; err != nil {
+	if err := r.DB.Where("id = ?", obj.SessionID).Take(&session).Error; err != nil {
 		return nil, e.Wrap(err, "error reading session from error object")
 	}
 	return session, nil
@@ -642,7 +642,7 @@ func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceI
 func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model.ErrorGroup, error) {
 	eg, err := r.canAdminModifyErrorGroup(ctx, errorSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not error group owner")
+		return nil, err
 	}
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
@@ -706,7 +706,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 	updatedFields := &model.ErrorGroup{
 		Viewed: viewed,
 	}
-	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: eg.ID}}).First(&newErrorGroup).Updates(updatedFields).Error; err != nil {
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: eg.ID}}).Take(&newErrorGroup).Updates(updatedFields).Error; err != nil {
 		return nil, e.Wrap(err, "error writing error as viewed")
 	}
 
@@ -800,7 +800,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 	updatedFields := &model.Session{
 		Viewed: viewed,
 	}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&newSession).Updates(updatedFields).Error; err != nil {
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&newSession).Updates(updatedFields).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
 
@@ -833,7 +833,7 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID st
 		return nil, err
 	}
 	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&session).Updates(&model.Session{
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&session).Updates(&model.Session{
 		Starred: starred,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as starred")
@@ -949,6 +949,7 @@ func (r *mutationResolver) JoinWorkspace(ctx context.Context, workspaceID int) (
 	if err != nil {
 		return nil, e.Wrap(err, "error getting custom verified admin email domain")
 	}
+	// if more than one workspace has the auto join email origin, pick the first (oldest) one
 	workspace := &model.Workspace{Model: model.Model{ID: workspaceID}}
 	if err := r.DB.Model(&workspace).Where("jsonb_exists(allowed_auto_join_email_origins::jsonb, LOWER(?))", domain).First(workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace")
@@ -1381,7 +1382,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	}
 
 	var project model.Project
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 		return nil, err
 	}
 
@@ -1618,7 +1619,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 // CreateIssueForSessionComment is the resolver for the createIssueForSessionComment field.
 func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, projectID int, sessionURL string, sessionCommentID int, authorName string, textForAttachment string, time float64, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.SessionComment, error) {
 	var project model.Project
-	if err := r.DB.Where("id = ?", projectID).First(&project).Error; err != nil {
+	if err := r.DB.Where("id = ?", projectID).Take(&project).Error; err != nil {
 		return nil, err
 	}
 
@@ -1677,7 +1678,7 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 // DeleteSessionComment is the resolver for the deleteSessionComment field.
 func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*bool, error) {
 	var sessionComment model.SessionComment
-	if err := r.DB.Where(model.SessionComment{Model: model.Model{ID: id}}).First(&sessionComment).Error; err != nil {
+	if err := r.DB.Where(model.SessionComment{Model: model.Model{ID: id}}).Take(&sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comment")
 	}
 
@@ -1725,7 +1726,7 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 // MuteSessionCommentThread is the resolver for the muteSessionCommentThread field.
 func (r *mutationResolver) MuteSessionCommentThread(ctx context.Context, id int, hasMuted *bool) (*bool, error) {
 	var sessionComment model.SessionComment
-	if err := r.DB.Where(model.SessionComment{Model: model.Model{ID: id}}).First(&sessionComment).Error; err != nil {
+	if err := r.DB.Where(model.SessionComment{Model: model.Model{ID: id}}).Take(&sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comment")
 	}
 
@@ -1740,7 +1741,7 @@ func (r *mutationResolver) MuteSessionCommentThread(ctx context.Context, id int,
 	}
 
 	var commentFollower model.CommentFollower
-	if err := r.DB.Where(&model.CommentFollower{SessionCommentID: id, AdminId: admin.ID}).First(&commentFollower).Updates(
+	if err := r.DB.Where(&model.CommentFollower{SessionCommentID: id, AdminId: admin.ID}).Take(&commentFollower).Updates(
 		&model.CommentFollower{
 			HasMuted: hasMuted,
 		}).Error; err != nil {
@@ -1758,7 +1759,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	}
 
 	var sessionComment model.SessionComment
-	if err := r.DB.Preload("Followers").Preload("Threads").Where(model.SessionComment{Model: model.Model{ID: commentID}}).First(&sessionComment).Error; err != nil {
+	if err := r.DB.Preload("Followers").Preload("Threads").Where(model.SessionComment{Model: model.Model{ID: commentID}}).Take(&sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comment")
 	}
 
@@ -1769,7 +1770,7 @@ func (r *mutationResolver) ReplyToSessionComment(ctx context.Context, commentID 
 	}
 
 	var project model.Project
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: sessionComment.ProjectID}}).First(&project).Error; err != nil {
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: sessionComment.ProjectID}}).Take(&project).Error; err != nil {
 		return nil, err
 	}
 
@@ -1868,7 +1869,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 	}
 
 	var project model.Project
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 		return nil, err
 	}
 
@@ -2096,7 +2097,7 @@ func (r *mutationResolver) MuteErrorCommentThread(ctx context.Context, id int, h
 // CreateIssueForErrorComment is the resolver for the createIssueForErrorComment field.
 func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, projectID int, errorURL string, errorCommentID int, authorName string, textForAttachment string, issueTitle *string, issueDescription *string, issueTeamID *string, integrations []*modelInputs.IntegrationType) (*model.ErrorComment, error) {
 	var project model.Project
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 		return nil, err
 	}
 
@@ -2198,17 +2199,17 @@ func (r *mutationResolver) ReplyToErrorComment(ctx context.Context, commentID in
 	}
 
 	var errorComment model.ErrorComment
-	if err := r.DB.Preload("Threads").Preload("Followers").Where(model.ErrorComment{Model: model.Model{ID: commentID}}).First(&errorComment).Error; err != nil {
+	if err := r.DB.Preload("Threads").Preload("Followers").Where(model.ErrorComment{Model: model.Model{ID: commentID}}).Take(&errorComment).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comment")
 	}
 
 	_, err := r.canAdminViewErrorGroup(ctx, errorComment.ErrorSecureId)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not authorized to view error group")
+		return nil, err
 	}
 
 	var project model.Project
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: errorComment.ProjectID}}).First(&project).Error; err != nil {
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: errorComment.ProjectID}}).Take(&project).Error; err != nil {
 		return nil, err
 	}
 
@@ -3155,7 +3156,7 @@ func (r *mutationResolver) RequestAccess(ctx context.Context, projectID int) (*b
 	}
 
 	var project model.Project
-	if err := r.DB.Select("workspace_id").Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+	if err := r.DB.Select("workspace_id").Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 		log.WithContext(ctx).Error(err)
 		return &model.T, nil
 	}
@@ -3313,7 +3314,7 @@ func (r *mutationResolver) UpsertDashboard(ctx context.Context, id *int, project
 // DeleteDashboard is the resolver for the deleteDashboard field.
 func (r *mutationResolver) DeleteDashboard(ctx context.Context, id int) (bool, error) {
 	var dashboard model.Dashboard
-	if result := r.DB.First(&dashboard, id); result.Error != nil {
+	if result := r.DB.Take(&dashboard, id); result.Error != nil {
 		return false, result.Error
 	}
 
@@ -3558,7 +3559,7 @@ func (r *mutationResolver) UpdateIntegrationProjectMappings(ctx context.Context,
 	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
 		WorkspaceID:     workspace.ID,
 		IntegrationType: integrationType,
-	}).First(&workspaceMapping).Error; err != nil {
+	}).Take(&workspaceMapping).Error; err != nil {
 		return false, e.Wrap(err, fmt.Sprintf("workspace does not have a %s integration", integrationType))
 	}
 
@@ -3837,7 +3838,7 @@ func (r *queryResolver) AccountDetails(ctx context.Context, workspaceID int) (*m
 func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Session, error) {
 	if util.IsDevEnv() && secureID == "repro" {
 		sessionObj := &model.Session{}
-		if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).First(&sessionObj).Error; err != nil {
+		if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: 0}}).Take(&sessionObj).Error; err != nil {
 			return nil, e.Wrap(err, "error reading from session")
 		}
 		return sessionObj, nil
@@ -3922,6 +3923,23 @@ func (r *queryResolver) TimelineIndicatorEvents(ctx context.Context, sessionSecu
 	}
 
 	return timelineIndicatorEvents, nil
+}
+
+// WebsocketEvents is the resolver for the websocket_events field.
+func (r *queryResolver) WebsocketEvents(ctx context.Context, sessionSecureID string) ([]interface{}, error) {
+	session, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if !(util.IsDevEnv() && sessionSecureID == "repro") {
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	webSocketEvents, err := r.StorageClient.ReadWebSocketEvents(ctx, session.ID, session.ProjectID)
+	if err != nil {
+		return nil, e.Wrap(err, "failed to get websocket events from S3")
+	}
+
+	return webSocketEvents, nil
 }
 
 // RageClicks is the resolver for the rage_clicks field.
@@ -4093,7 +4111,7 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model
 func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorObject, error) {
 	errorObject, err := r.canAdminViewErrorObject(ctx, id)
 	if err != nil {
-		return nil, e.Wrap(err, "not authorized to view error object")
+		return nil, err
 	}
 	return errorObject, nil
 }
@@ -4102,7 +4120,7 @@ func (r *queryResolver) ErrorObject(ctx context.Context, id int) (*model.ErrorOb
 func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID string, after *string, before *string, query string) (*modelInputs.ErrorObjectConnection, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "not authorized to view error group")
+		return nil, err
 	}
 
 	connection, err := r.Store.ListErrorObjects(*errorGroup, store.ListErrorObjectsParams{
@@ -4117,12 +4135,12 @@ func (r *queryResolver) ErrorObjects(ctx context.Context, errorGroupSecureID str
 // ErrorObjectForLog is the resolver for the error_object_for_log field.
 func (r *queryResolver) ErrorObjectForLog(ctx context.Context, logCursor string) (*model.ErrorObject, error) {
 	errorObject := &model.ErrorObject{}
-	if err := r.DB.Order("log_cursor").Model(&errorObject).Where(&model.ErrorObject{LogCursor: pointy.String(logCursor)}).Limit(1).Find(&errorObject).Error; err != nil || errorObject.ID == 0 {
+	if err := r.DB.Model(&errorObject).Where(&model.ErrorObject{LogCursor: pointy.String(logCursor)}).Take(&errorObject).Error; err != nil {
 		return nil, e.New("no error found for log cursor " + logCursor)
 	}
 	errorObject, err := r.canAdminViewErrorObject(ctx, errorObject.ID)
 	if err != nil {
-		return nil, e.Wrap(err, "not authorized to view error object")
+		return nil, err
 	}
 	return errorObject, nil
 }
@@ -4131,7 +4149,7 @@ func (r *queryResolver) ErrorObjectForLog(ctx context.Context, logCursor string)
 func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID string, errorObjectID *int) (*model.ErrorInstance, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "not authorized to view error group")
+		return nil, err
 	}
 
 	retentionDate, err := r.GetProjectRetentionDate(errorGroup.ProjectID)
@@ -4147,7 +4165,7 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 			return nil, e.Wrap(err, "error reading error object for instance")
 		}
 	} else {
-		if err := errorObjectQuery.Where(&model.ErrorObject{Model: model.Model{ID: *errorObjectID}}).First(&errorObject).Error; err != nil {
+		if err := errorObjectQuery.Where(&model.ErrorObject{Model: model.Model{ID: *errorObjectID}}).Take(&errorObject).Error; err != nil {
 			return nil, e.Wrap(err, "error reading error object for instance")
 		}
 	}
@@ -4177,10 +4195,12 @@ func (r *queryResolver) ErrorInstance(ctx context.Context, errorGroupSecureID st
 		return nil, e.Wrap(err, "error reading previous error object in group")
 	}
 
-	errorInstance := model.ErrorInstance{
-		ErrorObject: errorObject,
-		NextID:      &nextID,
-		PreviousID:  &previousID,
+	errorInstance := model.ErrorInstance{ErrorObject: errorObject}
+	if nextID != 0 {
+		errorInstance.NextID = &nextID
+	}
+	if previousID != 0 {
+		errorInstance.PreviousID = &previousID
 	}
 
 	return &errorInstance, nil
@@ -4206,7 +4226,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 	// preload `Fields` children
 	sessionObj := &model.Session{}
 	// TODO: filter fields by type='user'.
-	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).First(&sessionObj).Error; err != nil {
+	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&sessionObj).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from session")
 	}
 	details := &modelInputs.EnhancedUserDetailsResult{}
@@ -4227,7 +4247,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 		// If so, return it
 		userDetailsModel := &model.EnhancedUserDetails{}
 		p, co := clearbit.Person{}, clearbit.Company{}
-		if err := r.DB.Where(&model.EnhancedUserDetails{Email: &email}).First(&userDetailsModel).Error; err != nil {
+		if err := r.DB.Where(&model.EnhancedUserDetails{Email: &email}).Take(&userDetailsModel).Error; err != nil {
 			if !w.ClearbitEnabled {
 				return nil, nil
 			}
@@ -4449,7 +4469,7 @@ func (r *queryResolver) IsSessionPending(ctx context.Context, sessionSecureID st
 func (r *queryResolver) ErrorIssue(ctx context.Context, errorGroupSecureID string) ([]*model.ExternalAttachment, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not error owner")
+		return nil, err
 	}
 
 	errorIssues := []*model.ExternalAttachment{}
@@ -4482,7 +4502,7 @@ func (r *queryResolver) ErrorIssue(ctx context.Context, errorGroupSecureID strin
 func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupSecureID string) ([]*model.ErrorComment, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not error owner")
+		return nil, err
 	}
 
 	errorComments := []*model.ErrorComment{}
@@ -4573,7 +4593,7 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, projectID int) (*bool,
 	}
 
 	firstSession := model.Session{}
-	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).First(&firstSession).Error
+	err := r.DB.Model(&model.Session{}).Where("project_id = ?", projectID).Take(&firstSession).Error
 	if e.Is(err, gorm.ErrRecordNotFound) {
 		return &model.F, nil
 	}
@@ -4611,8 +4631,10 @@ func (r *queryResolver) ClientIntegration(ctx context.Context, projectID int) (*
 	}
 
 	setupEvent := model.SetupEvent{}
-	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeSession).Limit(1).Find(&setupEvent).Error; err != nil {
-		return nil, e.Wrap(err, "error querying logging setup event")
+	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeSession).Take(&setupEvent).Error; err != nil {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.Wrap(err, "error querying logging setup event")
+		}
 	}
 
 	if setupEvent.ID != 0 {
@@ -4634,8 +4656,10 @@ func (r *queryResolver) ServerIntegration(ctx context.Context, projectID int) (*
 	}
 
 	setupEvent := model.SetupEvent{}
-	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeError).Limit(1).Find(&setupEvent).Error; err != nil {
-		return nil, e.Wrap(err, "error querying error setup event")
+	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeError).Take(&setupEvent).Error; err != nil {
+		if !e.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.Wrap(err, "error querying error setup event")
+		}
 	}
 
 	if setupEvent.ID != 0 {
@@ -4658,9 +4682,11 @@ func (r *queryResolver) LogsIntegration(ctx context.Context, projectID int) (*mo
 	}
 
 	setupEvent := model.SetupEvent{}
-	err = r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeLogs).Limit(1).Find(&setupEvent).Error
+	err = r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, model.MarkBackendSetupTypeLogs).Take(&setupEvent).Error
 	if err != nil {
-		return nil, e.Wrap(err, "error querying logging setup event")
+		if !e.Is(err, gorm.ErrRecordNotFound) {
+			return nil, e.Wrap(err, "error querying logging setup event")
+		}
 	}
 
 	if setupEvent.ID != 0 {
@@ -4728,7 +4754,7 @@ func (r *queryResolver) LiveUsersCount(ctx context.Context, projectID int) (*int
 func (r *queryResolver) AdminHasCreatedComment(ctx context.Context, adminID int) (*bool, error) {
 	if err := r.DB.Model(&model.SessionComment{}).Where(&model.SessionComment{
 		AdminId: adminID,
-	}).First(&model.SessionComment{}).Error; err != nil {
+	}).Take(&model.SessionComment{}).Error; err != nil {
 		return &model.F, nil
 	}
 
@@ -4742,7 +4768,7 @@ func (r *queryResolver) ProjectHasViewedASession(ctx context.Context, projectID 
 	}
 
 	session := model.Session{}
-	if err := r.DB.Model(&session).Where("project_id = ?", projectID).Where(&model.Session{Viewed: &model.T, Excluded: false}).First(&session).Error; err != nil {
+	if err := r.DB.Model(&session).Where("project_id = ?", projectID).Where(&model.Session{Viewed: &model.T, Excluded: false}).Take(&session).Error; err != nil {
 		return &session, nil
 	}
 	return &session, nil
@@ -4798,7 +4824,7 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dat
 func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]int64, error) {
 	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin is not authorized to view error group")
+		return nil, err
 	}
 
 	if projectID == 0 {
@@ -4824,7 +4850,7 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 	for _, errorGroupSecureID := range errorGroupSecureIds {
 		errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 		if err != nil {
-			return nil, e.Wrap(err, "admin not error group owner")
+			return nil, err
 		}
 		errorGroupIDs = append(errorGroupIDs, errorGroup.ID)
 	}
@@ -4838,7 +4864,7 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID string) ([]*modelInputs.ErrorGroupTagAggregation, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
-		return nil, e.Wrap(err, "admin not error group owner")
+		return nil, err
 	}
 
 	query := fmt.Sprintf(`
@@ -6028,7 +6054,7 @@ func (r *queryResolver) IsWorkspaceIntegratedWith(ctx context.Context, integrati
 		if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
 			WorkspaceID:     workspace.ID,
 			IntegrationType: integrationType,
-		}).First(&workspaceMapping).Error; err != nil {
+		}).Take(&workspaceMapping).Error; err != nil {
 			return false, nil
 		}
 
@@ -6402,7 +6428,7 @@ func (r *queryResolver) Workspace(ctx context.Context, id int) (*model.Workspace
 // WorkspaceForInviteLink is the resolver for the workspace_for_invite_link field.
 func (r *queryResolver) WorkspaceForInviteLink(ctx context.Context, secret string) (*modelInputs.WorkspaceForInviteLink, error) {
 	var workspaceInviteLink model.WorkspaceInviteLink
-	if err := r.DB.Where(&model.WorkspaceInviteLink{Secret: &secret}).First(&workspaceInviteLink).Error; err != nil {
+	if err := r.DB.Where(&model.WorkspaceInviteLink{Secret: &secret}).Take(&workspaceInviteLink).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace invite link")
 	}
 
@@ -6411,13 +6437,13 @@ func (r *queryResolver) WorkspaceForInviteLink(ctx context.Context, secret strin
 	}
 
 	var workspace model.Workspace
-	if err := r.DB.Model(&model.Workspace{}).Where("id = ?", *workspaceInviteLink.WorkspaceID).First(&workspace).Error; err != nil {
+	if err := r.DB.Model(&model.Workspace{}).Where("id = ?", *workspaceInviteLink.WorkspaceID).Take(&workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace for invite link")
 	}
 
 	var admin *model.Admin
 	if workspaceInviteLink.InviteeEmail != nil {
-		if err := r.DB.Model(&model.Admin{Email: workspaceInviteLink.InviteeEmail}).First(&admin).Error; err != nil {
+		if err := r.DB.Model(&model.Admin{Email: workspaceInviteLink.InviteeEmail}).Take(&admin).Error; err != nil {
 			return nil, e.Wrap(err, "error querying admin for invitee_email")
 		}
 	}
@@ -6444,7 +6470,7 @@ func (r *queryResolver) WorkspaceInviteLinks(ctx context.Context, workspaceID in
 	var workspaceInviteLink *model.WorkspaceInviteLink
 	shouldCreateNewInviteLink := false
 
-	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: nil}).Where("invitee_email IS NULL").Order("created_at desc").First(&workspaceInviteLink).Error; err != nil {
+	if err := r.DB.Where(&model.WorkspaceInviteLink{WorkspaceID: &workspaceID, InviteeEmail: nil}).Where("invitee_email IS NULL").Order("created_at desc").Take(&workspaceInviteLink).Error; err != nil {
 		if e.Is(err, gorm.ErrRecordNotFound) {
 			shouldCreateNewInviteLink = true
 		} else {
@@ -6543,7 +6569,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	adminSpan, ctx := tracer.StartSpanFromContext(ctx, "resolver.getAdmin", tracer.ResourceName("db.admin"),
 		tracer.Tag("admin_uid", admin.UID))
 
-	if err := r.DB.Where(&model.Admin{UID: admin.UID}).First(&admin).Error; err != nil {
+	if err := r.DB.Where(&model.Admin{UID: admin.UID}).Take(&admin).Error; err != nil {
 		if e.Is(err, gorm.ErrRecordNotFound) {
 			// Sometimes users don't exist in our DB because they authenticated with
 			// Google auth and never went through the sign up flow. In this case, we
@@ -7193,8 +7219,11 @@ func (r *queryResolver) SourcemapVersions(ctx context.Context, projectID int) ([
 
 // OauthClientMetadata is the resolver for the oauth_client_metadata field.
 func (r *queryResolver) OauthClientMetadata(ctx context.Context, clientID string) (*modelInputs.OAuthClient, error) {
+	if clientID == "" {
+		return nil, e.New("oauth client query received empty client id")
+	}
 	client := &model.OAuthClientStore{ID: clientID}
-	if err := r.DB.Model(&client).Select("id", "created_at", "app_name").Where(&client).First(&client).Error; err != nil {
+	if err := r.DB.Model(&client).Select("id", "created_at", "app_name").Where(&client).Take(&client).Error; err != nil {
 		return nil, e.Wrap(err, "error querying oauth client")
 	}
 	return &modelInputs.OAuthClient{
@@ -7543,7 +7572,7 @@ func (r *sessionResolver) DeviceMemory(ctx context.Context, obj *model.Session) 
 	  SELECT metrics.*
 	  FROM metrics
 	  WHERE metrics.name = ?
-	  AND metric_group_id in (SELECT * FROM filtered_group_ids)`, obj.ID, "DeviceMemory").First(&metric).Error; err != nil {
+	  AND metric_group_id in (SELECT * FROM filtered_group_ids)`, obj.ID, "DeviceMemory").Take(&metric).Error; err != nil {
 		if !e.Is(err, gorm.ErrRecordNotFound) {
 			log.WithContext(ctx).Error(err)
 		}
@@ -7632,7 +7661,7 @@ func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionC
 		return feedbackAdmin, nil
 	}
 
-	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
+	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).Take(&admin).Error; err != nil {
 		return nil, e.Wrap(err, "Error finding admin for comment")
 	}
 

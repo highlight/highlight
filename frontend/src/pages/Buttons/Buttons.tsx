@@ -19,10 +19,12 @@ import {
 	DefaultError,
 	NestedError,
 	RandomError,
+	WebSocketEvent,
 } from './ButtonsHelper'
 
 export const Buttons = () => {
 	const [hasError, setHasError] = useState(false)
+	const [showWebSocket, setShowWebSocket] = useState(false)
 	const [sendEmail, { loading }] = useSendEmailSignupMutation()
 	if (hasError) {
 		throw new Error('got an error')
@@ -161,6 +163,15 @@ export const Buttons = () => {
 					>
 						{loading ? 'loading...' : 'Send an email'}
 					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={() => {
+							setShowWebSocket((p) => !p)
+						}}
+					>
+						Toggle WebSocket Event
+					</button>
+					{showWebSocket && <WebSocketEvent />}
 					<button
 						className={commonStyles.submitButton}
 						onClick={() => {

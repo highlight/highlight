@@ -58,7 +58,7 @@ func getTokenStore() *oredis.TokenStore {
 
 func (s *Server) getClientSecret(clientID string) (clientSecret string, err error) {
 	client := &model.OAuthClientStore{}
-	if err := s.db.Model(&client).Where(&model.OAuthClientStore{ID: clientID}).First(&client).Error; err != nil {
+	if err := s.db.Model(&client).Where(&model.OAuthClientStore{ID: clientID}).Take(&client).Error; err != nil {
 		return "", errors.ErrInvalidClient
 	}
 
@@ -142,7 +142,7 @@ func CreateServer(ctx context.Context, db *gorm.DB) (*Server, error) {
 func (s *Server) UserAuthorizationHandler(_ http.ResponseWriter, r *http.Request) (userID string, err error) {
 	uid := fmt.Sprintf("%v", r.Context().Value(model.ContextKeys.UID))
 	admin := &model.Admin{UID: &uid}
-	if err := s.db.Where(&model.Admin{UID: &uid}).First(&admin).Error; err != nil {
+	if err := s.db.Where(&model.Admin{UID: &uid}).Take(&admin).Error; err != nil {
 		return "", errors.ErrUnauthorizedClient
 	}
 	return fmt.Sprintf("%s:%s", *admin.UID, *admin.Email), nil

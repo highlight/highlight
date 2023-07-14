@@ -204,18 +204,20 @@ const Navbar = ({
 							>
 								<FeatureDropdown isOpen={scrolled && !fixed} />
 								<Link
+									href="/integrations"
+									className={styles.headerButton}
+								>
+									<Typography type="copy2">
+										Integrations
+									</Typography>
+								</Link>
+								<Link
 									href="/pricing"
 									className={styles.headerButton}
 								>
 									<Typography type="copy2">
 										Pricing
 									</Typography>
-								</Link>
-								<Link
-									href="/blog"
-									className={styles.headerButton}
-								>
-									<Typography type="copy2">Blog</Typography>
 								</Link>
 								<ResourceDropdown isOpen={scrolled && !fixed} />
 							</div>

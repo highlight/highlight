@@ -109,7 +109,7 @@
 }
 
 .headerButton {
-	padding: 0 var(--size-medium);
+	padding: 0 var(--size-small);
 	display: inline-flex;
 	align-items: center;
 	gap: var(--size-small);
@@ -223,7 +223,6 @@
 	border-radius: var(--size-xSmall);
 
 	&:hover {
-		// border-color: var(--color-secondary-300) !important;
 		background-color: var(--color-secondary-300) !important;
 		color: var(--color-primary-background) !important;
 	}
@@ -275,7 +274,6 @@
 	cursor: pointer;
 
 	&:hover {
-		// border-color: var(--color-secondary-300) !important;
 		background-color: var(--color-secondary-300) !important;
 		color: var(--color-primary-background) !important;
 	}
