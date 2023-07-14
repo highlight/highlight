@@ -31,15 +31,16 @@ import { CodeBlock } from '@pages/Setup/CodeBlock/CodeBlock'
 import analytics from '@util/analytics'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
-import clsx from 'clsx'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
+import { LinkButton } from '@/components/LinkButton'
 import LoadingBox from '@/components/LoadingBox'
 import { useGetErrorGroupsOpenSearchQuery } from '@/graph/generated/hooks'
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
 import { useProjectId } from '@/hooks/useProjectId'
 import { ErrorFeedCard } from '@/pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
+import { FullScreenContainer } from '@/pages/LogsPage/LogsTable/FullScreenContainer'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@/pages/LogsPage/SearchForm/SearchForm'
 import {
@@ -518,10 +519,7 @@ function WebSocketDetails({
 				}}
 				noHandle
 				tabsContainerClass={styles.tabsContainer}
-				pageContainerClass={clsx(
-					styles.pageContainer,
-					styles.pageContainerFull,
-				)}
+				pageContainerClass={styles.pageContainer}
 			/>
 		</>
 	)
@@ -980,7 +978,6 @@ const NetworkResourceLogs: React.FC<{
 						hideCreateAlert
 					/>
 					<Box
-						borderTop="dividerWeak"
 						height="screen"
 						pt="4"
 						px="12"
@@ -991,16 +988,20 @@ const NetworkResourceLogs: React.FC<{
 						}
 						ref={tableContainerRef}
 					>
-						<LogsTable
-							logEdges={logEdges}
-							loading={loading}
-							error={error}
-							refetch={refetch}
-							loadingAfter={loadingAfter}
-							query={query}
-							tableContainerRef={tableContainerRef}
-							selectedCursor={undefined}
-						/>
+						{logEdges.length === 0 ? (
+							<NoLogsFound />
+						) : (
+							<LogsTable
+								logEdges={logEdges}
+								loading={loading}
+								error={error}
+								refetch={refetch}
+								loadingAfter={loadingAfter}
+								query={query}
+								tableContainerRef={tableContainerRef}
+								selectedCursor={undefined}
+							/>
+						)}
 					</Box>
 				</Box>
 			</Box>
@@ -1038,39 +1039,82 @@ const ErrorsData: React.FC<{ resource: NetworkResource; hide: () => void }> = ({
 	const { setShowRightPanel } = usePlayerConfiguration()
 
 	return (
-		<Box py="8" px="12">
+		<>
 			{data?.error_groups_opensearch.error_groups?.length ? (
 				data?.error_groups_opensearch.error_groups.map(
 					(errorGroup, idx) => (
-						<ErrorFeedCard
-							errorGroup={errorGroup}
+						<Box
+							py="8"
+							px="12"
+							flex="stretch"
+							justifyContent="stretch"
+							display="flex"
 							key={idx}
-							onClick={() => {
-								const error = errors.find(
-									(e) =>
-										e.error_group_secure_id ===
-										errorGroup.secure_id,
-								)
-								setActiveError(error)
-								setShowRightPanel(true)
-								setRightPanelView(RightPanelView.Error)
-								hide()
-							}}
-						/>
+						>
+							<ErrorFeedCard
+								errorGroup={errorGroup}
+								onClick={() => {
+									const error = errors.find(
+										(e) =>
+											e.error_group_secure_id ===
+											errorGroup.secure_id,
+									)
+									setActiveError(error)
+									setShowRightPanel(true)
+									setRightPanelView(RightPanelView.Error)
+									hide()
+								}}
+							/>
+						</Box>
 					),
 				)
 			) : loading ? (
 				<LoadingBox />
 			) : (
-				<Callout title="No errors">
-					<Box mb="6">
-						<Text>
-							There are no errors associated with this network
-							request.
+				<FullScreenContainer>
+					<Box style={{ maxWidth: 300 }}>
+						<Callout title="No errors">
+							<Box mb="6">
+								<Text>
+									There are no errors associated with this
+									network request.
+								</Text>
+							</Box>
+						</Callout>
+					</Box>
+				</FullScreenContainer>
+			)}
+		</>
+	)
+}
+
+const NoLogsFound = () => {
+	return (
+		<FullScreenContainer>
+			<Box style={{ maxWidth: 300 }}>
+				<Callout title="No associated logs found">
+					<Box
+						display="flex"
+						flexDirection="column"
+						gap="16"
+						alignItems="flex-start"
+					>
+						<Text color="moderate">
+							To match backend logs to network request make sure
+							to enable "full stack mapping."
 						</Text>
+
+						<LinkButton
+							trackingId="logs-empty-state_specification-docs"
+							kind="secondary"
+							to="https://www.highlight.io/docs/getting-started/frontend-backend-mapping"
+							target="_blank"
+						>
+							Learn more
+						</LinkButton>
 					</Box>
 				</Callout>
-			)}
-		</Box>
+			</Box>
+		</FullScreenContainer>
 	)
 }

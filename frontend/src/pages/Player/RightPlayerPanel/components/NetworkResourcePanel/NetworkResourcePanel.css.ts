@@ -5,7 +5,7 @@ import { style } from '@vanilla-extract/css'
 // should be removed once we upgrade our Tabs component:
 // https://github.com/highlight/highlight/issues/5771
 export const container = style({
-	height: 'auto !important',
+	height: '100%',
 	overflowY: 'hidden',
 })
 
@@ -14,10 +14,7 @@ export const tabsContainer = sprinkles({
 })
 
 export const pageContainer = sprinkles({
+	height: 'full',
 	overflowY: 'scroll',
 	position: 'relative',
-})
-
-export const pageContainerFull = sprinkles({
-	height: 'full',
 })
