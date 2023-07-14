@@ -24,6 +24,7 @@ export const NetworkResourceLogs: React.FC<{
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
+	const requestId = resource.requestResponsePairs?.request?.id
 	const [query, setQuery] = useState('')
 	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const startDate = useMemo(
@@ -68,22 +69,19 @@ export const NetworkResourceLogs: React.FC<{
 	)
 
 	useEffect(() => {
-		const requestId = resource.requestResponsePairs?.request?.id
-
 		setQuery(
 			requestId
 				? stringifyLogsQuery([
 						{
 							key: 'trace_id',
 							operator: DEFAULT_LOGS_OPERATOR,
-							value: String(requestId),
+							value: requestId,
 							offsetStart: 0,
 						},
 				  ])
 				: '',
 		)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [resource.id])
+	}, [requestId])
 
 	return (
 		<>
@@ -128,7 +126,7 @@ export const NetworkResourceLogs: React.FC<{
 						}
 						ref={tableContainerRef}
 					>
-						{logEdges.length === 0 ? (
+						{logEdges.length === 0 || !requestId ? (
 							<NoLogsFound />
 						) : (
 							<LogsTable
