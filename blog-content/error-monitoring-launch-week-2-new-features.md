@@ -1,7 +1,7 @@
 ---
 title: Error Monitoring - Auto Resolver, Extension Filtering, and the Instance View
 createdAt: 2023-07-17T12:00:00Z
-readingTime: 3
+readingTime: 2
 authorFirstName: Eric
 authorLastName: Thomas
 authorTitle: Software Engineer
