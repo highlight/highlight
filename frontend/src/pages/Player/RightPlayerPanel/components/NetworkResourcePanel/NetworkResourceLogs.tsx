@@ -71,14 +71,16 @@ export const NetworkResourceLogs: React.FC<{
 		const requestId = resource.requestResponsePairs?.request?.id
 
 		setQuery(
-			stringifyLogsQuery([
-				{
-					key: 'trace_id',
-					operator: DEFAULT_LOGS_OPERATOR,
-					value: String(requestId),
-					offsetStart: 0,
-				},
-			]),
+			requestId
+				? stringifyLogsQuery([
+						{
+							key: 'trace_id',
+							operator: DEFAULT_LOGS_OPERATOR,
+							value: String(requestId),
+							offsetStart: 0,
+						},
+				  ])
+				: '',
 		)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [resource.id])
