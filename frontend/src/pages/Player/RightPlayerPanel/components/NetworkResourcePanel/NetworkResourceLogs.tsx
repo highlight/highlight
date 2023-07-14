@@ -161,7 +161,7 @@ const NoLogsFound = () => {
 						alignItems="flex-start"
 					>
 						<Text color="moderate">
-							To match backend logs to network request make sure
+							To match backend logs to network requests, make sure
 							to enable "full stack mapping."
 						</Text>
 
