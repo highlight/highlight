@@ -1,5 +1,5 @@
 import { Box, Callout, Text } from '@highlight-run/ui'
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import { LinkButton } from '@/components/LinkButton'
 import { FullScreenContainer } from '@/pages/LogsPage/LogsTable/FullScreenContainer'
@@ -24,16 +24,7 @@ export const NetworkResourceLogs: React.FC<{
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const [query, setQuery] = useState(
-		stringifyLogsQuery([
-			{
-				key: 'trace_id',
-				operator: DEFAULT_LOGS_OPERATOR,
-				value: String(resource.id),
-				offsetStart: 0,
-			},
-		]),
-	)
+	const [query, setQuery] = useState('')
 	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const startDate = useMemo(
 		() => new Date(sessionStartTime + resource.startTime - TIME_BUFFER),
@@ -75,6 +66,19 @@ export const NetworkResourceLogs: React.FC<{
 		},
 		[fetchMoreForward, fetchMoreBackward],
 	)
+
+	useEffect(() => {
+		setQuery(
+			stringifyLogsQuery([
+				{
+					key: 'trace_id',
+					operator: DEFAULT_LOGS_OPERATOR,
+					value: String(resource.id),
+					offsetStart: 0,
+				},
+			]),
+		)
+	}, [resource.id])
 
 	return (
 		<>
