@@ -115,7 +115,7 @@ var PromoCodes = map[string]PromoCode{
 }
 
 func isAuthError(err error) bool {
-	return e.Is(err, AuthenticationError) || e.Is(err, AuthenticationError)
+	return e.Is(err, AuthenticationError) || e.Is(err, AuthorizationError)
 }
 
 type Resolver struct {
