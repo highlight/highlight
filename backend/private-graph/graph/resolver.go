@@ -114,6 +114,10 @@ var PromoCodes = map[string]PromoCode{
 	},
 }
 
+func isAuthError(err error) bool {
+	return e.Is(err, AuthenticationError) || e.Is(err, AuthenticationError)
+}
+
 type Resolver struct {
 	DB                     *gorm.DB
 	TDB                    timeseries.DB
@@ -957,7 +961,7 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id st
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewSession"))
 	defer authSpan.Finish()
 	session, isOwner, err := r._doesAdminOwnSession(ctx, session_secure_id)
-	if err != nil {
+	if err != nil && !isAuthError(err) {
 		return nil, err
 	}
 	if isOwner {
