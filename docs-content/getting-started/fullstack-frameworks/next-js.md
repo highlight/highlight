@@ -1,5 +1,5 @@
 ---
-title: Next.js
+title: Next.js Walkthrough
 slug: next-js
 heading: Next.js Walkthrough
 createdAt: 2023-05-10T00:00:00.000Z
@@ -12,6 +12,14 @@ updatedAt: 2023-05-10T00:00:00.000Z
   allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 />
 
+## Overview
+
+Our Next.js SDK gives you access to frontend session replays and server-side monitoring,
+all-in-one. 
+
+1. On the frontend, the `<HighlightInit/>` component sets up client-side session replays.
+2. On the backend, the `withHighlight` wrapper captures server-side errors and logs. It also automatically proxies highlight data to avoid ad-blockers and uploads source maps so your frontend errors include stack traces to your source code.
+
 ## Installation
 
 ```shell
@@ -19,7 +27,7 @@ updatedAt: 2023-05-10T00:00:00.000Z
 yarn add @highlight-run/next @highlight-run/react highlight.run
 ```
 
-## Instrument the client
+## Client Instrumentation
 
 This implementation requires React 17 or greater. If you're behind on React versions, follow our [React.js docs](../3_client-sdk/1_reactjs.md)
 
@@ -80,7 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-## Instrument your API routes
+## API Route Instrumentation
 1. Create a file to export your `Highlight` wrapper function:
 
  ```javascript
@@ -115,7 +123,7 @@ export default withHighlight(function handler(
 })
 ```
 
-## Instrument the server
+## Server Instrumentation
 
 ```hint
 Excluding the Vercel edge runtime (which is a work in progress), Session Replay, Vercel Log Drain and Error Monitoring are fully operational for Next.js 13 App Directory
@@ -195,7 +203,7 @@ See [Fullstack Mapping](https://www.highlight.io/docs/getting-started/frontend-b
 
 You likely want to associate your back-end errors to client sessions.
 
-## Test source maps
+## Source Map Validation
 
 ```hint
 Source maps do not work in development mode. Run `yarn build && yarn start` to test compiled source maps in Highlight.
