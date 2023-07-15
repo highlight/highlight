@@ -1,4 +1,4 @@
-import { ApolloError, NetworkStatus } from '@apollo/client'
+import { ApolloError } from '@apollo/client'
 import { Button } from '@components/Button'
 import { useGetErrorResolutionSuggestionLazyQuery } from '@graph/hooks'
 import {
@@ -31,7 +31,7 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 		null,
 	)
 	const [error, setError] = useState<ApolloError | null>(null)
-	const [getErrorResolutionSuggestion, { loading, networkStatus, refetch }] =
+	const [getErrorResolutionSuggestion, { loading, refetch }] =
 		useGetErrorResolutionSuggestionLazyQuery({
 			notifyOnNetworkStatusChange: true,
 			onCompleted: (data) => {
@@ -213,7 +213,7 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 						kind="secondary"
 						emphasis="medium"
 						trackingId="error-instance_refresh-ai-suggestion"
-						loading={networkStatus === NetworkStatus.refetch}
+						loading={loading}
 						iconLeft={<IconSolidRefresh />}
 					>
 						Refresh Suggestion
