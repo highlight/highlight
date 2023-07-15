@@ -18,7 +18,8 @@ Our Next.js SDK gives you access to frontend session replays and server-side mon
 all-in-one. 
 
 1. On the frontend, the `<HighlightInit/>` component sets up client-side session replays.
-2. On the backend, the `withHighlight` wrapper captures server-side errors and logs. It also automatically proxies highlight data to avoid ad-blockers and uploads source maps so your frontend errors include stack traces to your source code.
+2. On the backend, the `withHighlight` wrapper captures server-side errors and logs from your API.
+3. It also automatically proxies highlight data to avoid ad-blockers and uploads source maps so your frontend errors include stack traces to your source code.
 
 ## Installation
 
@@ -131,15 +132,18 @@ Excluding the Vercel edge runtime (which is a work in progress), Session Replay,
 
 Next.js comes out of the box instrumented for Open Telemetry. Our example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on our Next.js server. There are probably other ways to configure Open Telemetry with Next, but this is our favorite.
 
+Adding the `withHighlightConfig` to your next config will configure highlight frontend proxying. This means that frontend session recording and error capture data will be piped through your domain on `/highlight-events` to avoid ad-blockers from stopping this traffic.
 
 1. Install `next-build-id` with `npm install next-build-id`.
-2. Turn on `instrumentationHook`. We've also turned on `productionBrowserSourceMaps` because Highlight is much easier to use with source maps.
+2. Turn on `instrumentationHook`.
+3. Wrap the config with `withHighlightConfig`.
 
 If you use a `next.config.js` file:
 
 ```javascript
 // next.config.js
 const nextBuildId = require('next-build-id')
+const { withHighlightConfig } = require('@highlight-run/next')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -151,7 +155,7 @@ const nextConfig = {
 	productionBrowserSourceMaps: true,
 }
 
-module.exports = nextConfig
+module.exports = withHighlightConfig(nextConfig)
 ```
 
 If you use a `next.config.mjs` file:
@@ -161,19 +165,20 @@ If you use a `next.config.mjs` file:
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import nextBuildId from 'next-build-id'
+import { withHighlightConfig } from '@highlight-run/next'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig = withHighlightConfig({
 	generateBuildId: () => nextBuildId({ dir: __dirname }),
 	experimental: {
 		appDir: true,
 		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: true,
-}
+})
 
 export default nextConfig
 ```
@@ -206,16 +211,14 @@ You likely want to associate your back-end errors to client sessions.
 ## Source Map Validation
 
 ```hint
-Source maps do not work in development mode. Run `yarn build && yarn start` to test compiled source maps in Highlight.
+Source maps work differently in development mode than in production. Run `yarn build && yarn start` to test compiled source maps in Highlight.
 ```
 
 We recommend shipping your source maps to your production server. Your client-side JavaScript is always public, and code decompilation tools are so powerful that obscuring your source code may not be helpful.
 
-Shipping source maps to production with Next.js is as easy as setting `productionBrowserSourceMaps: true` in your `nextConfig`.
+Shipping source maps to production with Next.js is as easy as setting `productionBrowserSourceMaps: true` in your `nextConfig`. Alternatively, you can upload source maps directly to Highlight using our `withHighlightConfig` function.
 
-Alternatively, you can upload source maps directly to Highlight using our `withHighlightConfig` function.
-
-Make sure to implement `nextConfig.generateBuildId` so that our source map uploader can version your source maps correctly. Make sure to omit `productionBrowserSourceMaps` or set it to false to enable the source map uploader.
+Make sure to implement `nextConfig.generateBuildId` so that our source map uploader can version your source maps correctly.
 
 ```javascript
 // next.config.js
