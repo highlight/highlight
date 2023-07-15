@@ -10,7 +10,6 @@ import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/Button'
-import LoadingBox from '@/components/LoadingBox'
 import { useGetSessionInsightLazyQuery } from '@/graph/generated/hooks'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'
@@ -50,7 +49,24 @@ const SessionInsights = () => {
 	return (
 		<Box p="8" height="full" overflow="auto">
 			{loading ? (
-				<LoadingBox />
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="center"
+					style={{
+						height: '100%',
+						width: '100%',
+					}}
+				>
+					<Button
+						kind="secondary"
+						emphasis="low"
+						loading
+						trackingId="loading"
+					>
+						Harold is thinking...
+					</Button>
+				</Box>
 			) : insightData ? (
 				<Box
 					cssClass={clsx(style.insightPanel, {
@@ -143,7 +159,7 @@ const SessionInsights = () => {
 						}}
 						iconLeft={<IconSolidSparkles />}
 					>
-						Generate summary
+						Summarize session
 					</Button>
 				</Box>
 			)}
