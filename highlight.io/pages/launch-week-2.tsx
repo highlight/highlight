@@ -28,10 +28,10 @@ const IntegrationsPage = () => {
 						July 20th - 25th, 2023
 					</Typography>
 				</div>
-				<div className="flex flex-col lg:flex-row items-center gap-3 w-full max-w-[1200px] mx-auto mt-20 px-8">
+				<div className="flex flex-col lg:flex-row items-center justify-center gap-3 mt-20 px-8">
 					<Link
 						href="https://highlight.io"
-						className="flex justify-between items-center p-4 max-w-[350px] w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md"
+						className="flex justify-between items-center p-4 max-w-[350px] w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-darker-copy-on-dark transition-all"
 					>
 						<div className="flex gap-3 items-center">
 							<Typography
@@ -54,7 +54,7 @@ const IntegrationsPage = () => {
 
 					<Link
 						href="https://twitter.com"
-						className="flex justify-between p-4 max-w-[350px] w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md"
+						className="flex justify-between p-4 max-w-[350px] w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-darker-copy-on-dark transition-all"
 					>
 						<div className="flex gap-3 items-center">
 							<BsTwitter className="w-6 h-6" />
@@ -66,12 +66,12 @@ const IntegrationsPage = () => {
 								Keep in touch on Twitter
 							</Typography>
 						</div>
-						<BiChevronRight className="text-darker-copy-on-dark h-6 w-6 bg-white bg-opacity-10 p-1 rounded-full" />
+						<BiChevronRight className="text-darker-copy-on-dark h-7 w-7 bg-white bg-opacity-10 p-1 rounded-full" />
 					</Link>
 
 					<Link
 						href="https://hackernews.com"
-						className="flex justify-between p-4 max-w-[350px] w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md"
+						className="flex justify-between p-4 max-w-[350px] w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-darker-copy-on-dark transition-all"
 					>
 						<div className="flex gap-3 items-center">
 							<Image
@@ -88,7 +88,7 @@ const IntegrationsPage = () => {
 								Check in on Hacker News
 							</Typography>
 						</div>
-						<BiChevronRight className="text-darker-copy-on-dark h-6 w-6 bg-white bg-opacity-10 p-1 rounded-full" />
+						<BiChevronRight className="text-darker-copy-on-dark h-7 w-7 bg-white bg-opacity-10 p-1 rounded-full" />
 					</Link>
 				</div>
 				<div className="flex flex-col lg:flex-row items-center gap-3 w-full max-w-[1200px] mx-auto mt-10 px-8">
