@@ -1,4 +1,7 @@
+import classNames from 'classnames'
+import { BiChevronRight } from 'react-icons/bi'
 import { Typography } from '../common/Typography/Typography'
+import styles from './Launch.module.scss'
 
 const BoxOverlay = ({
 	header,
@@ -13,7 +16,7 @@ const BoxOverlay = ({
 		<div className="absolute left-4 bottom-4">
 			<Typography
 				className="text-darker-copy-on-dark"
-				type="copy3"
+				type="copy4"
 				emphasis
 			>
 				{subheader}
@@ -24,11 +27,14 @@ const BoxOverlay = ({
 					{header}
 				</Typography>
 				<Typography
-					className="text-color-selected-light rounded-full border-[1px] border-color-selected-light px-2 py-[1px]"
+					className="flex items-center text-color-selected-light rounded-full border-[1px] border-color-selected-light px-2 py-[1px]"
 					type="copy4"
 					emphasis
 				>
 					{badge}
+					<BiChevronRight
+						className={classNames(styles.chevronRight, 'h-5 w-5')}
+					/>
 				</Typography>
 			</div>
 		</div>

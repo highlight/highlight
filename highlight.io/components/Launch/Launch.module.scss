@@ -10,6 +10,10 @@
 	border-radius: 6px;
 	background: var(--color-primary-500);
 	overflow: hidden;
+
+	transition-property: all;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 150ms;
 }
 
 .gridTitle {
@@ -20,4 +24,16 @@
 	font-weight: 600;
 	line-height: 100%; /* 42px */
 	color: var(--color-copy-on-dark);
+}
+
+.chevronRight {
+}
+
+.gridItem:hover {
+	.chevronRight {
+		transform: translateX(4px);
+		transition-property: all;
+		transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+		transition-duration: 150ms;
+	}
 }

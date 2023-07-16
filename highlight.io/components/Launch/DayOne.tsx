@@ -1,5 +1,6 @@
 import classNames from 'classnames'
 import Image from 'next/image'
+import Link from 'next/link'
 import { Typography } from '../common/Typography/Typography'
 import BoxOverlay from './BoxOverlay'
 import styles from './Launch.module.scss'
@@ -49,7 +50,7 @@ const DayOne = () => {
 					</div>
 					<div
 						className={classNames(
-							'h-full w-full col-span-2',
+							'h-full w-full col-span-2 hover:border-darker-copy-on-dark',
 							styles.gridItem,
 						)}
 					>
@@ -68,9 +69,10 @@ const DayOne = () => {
 					</div>
 				</div>
 
-				<div
+				<Link
+					href="https://highlight.io"
 					className={classNames(
-						'bg-black h-[250px] md:h-[450px] w-full col-span-1',
+						'bg-black h-[250px] md:h-[450px] w-full col-span-1 hover:border-darker-copy-on-dark',
 						styles.gridItem,
 					)}
 				>
@@ -87,7 +89,7 @@ const DayOne = () => {
 						subheader="Day 1: July 20th"
 						badge="Blog Post"
 					/>
-				</div>
+				</Link>
 			</div>
 		</div>
 	)

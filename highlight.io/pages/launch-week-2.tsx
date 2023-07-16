@@ -24,37 +24,40 @@ const IntegrationsPage = () => {
 							It&apos;s Hype.
 						</span>{' '}
 					</h2>
-					<Typography type="copy1" className="text-copy-on-dark">
+					<Typography
+						type="copy1"
+						className="text-darker-copy-on-dark"
+					>
 						July 20th - 25th, 2023
 					</Typography>
 				</div>
-				<div className="flex flex-col lg:flex-row items-center justify-center gap-3 mt-20 px-8">
+				<div className="grid grid-cols-1 lg:grid-cols-3 items-center justify-center gap-3 mt-20 px-8 max-w-[550px] md:max-w-[1200px] mx-auto">
 					<Link
 						href="https://highlight.io"
-						className="flex justify-between items-center p-4 max-w-[350px] w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-darker-copy-on-dark transition-all"
+						className="flex justify-between items-center p-4 w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-darker-copy-on-dark transition-all"
 					>
+						<Typography
+							className="text-copy-on-dark"
+							type="copy4"
+							emphasis
+						>
+							Go to Day 1
+						</Typography>
 						<div className="flex gap-3 items-center">
 							<Typography
 								className="text-color-selected-light rounded-full border-[1px] border-color-selected-light px-2 py-[1px]"
 								type="copy4"
 								emphasis
 							>
-								New drop
+								Today&apos;s launch
 							</Typography>
-							<Typography
-								className="text-copy-on-dark"
-								type="copy4"
-								emphasis
-							>
-								Go to Day 3
-							</Typography>
+							<BiChevronRight className="text-darker-copy-on-dark h-7 w-7 bg-white bg-opacity-10 p-1 rounded-full" />
 						</div>
-						<BiChevronRight className="text-darker-copy-on-dark h-7 w-7 bg-white bg-opacity-10 p-1 rounded-full" />
 					</Link>
 
 					<Link
-						href="https://twitter.com"
-						className="flex justify-between p-4 max-w-[350px] w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-darker-copy-on-dark transition-all"
+						href="https://twitter.com/highlightio?lang=en"
+						className="flex justify-between p-4 w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-darker-copy-on-dark transition-all"
 					>
 						<div className="flex gap-3 items-center">
 							<BsTwitter className="w-6 h-6" />
@@ -70,8 +73,8 @@ const IntegrationsPage = () => {
 					</Link>
 
 					<Link
-						href="https://hackernews.com"
-						className="flex justify-between p-4 max-w-[350px] w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-darker-copy-on-dark transition-all"
+						href="https://news.ycombinator.com/item?id=34897645"
+						className="flex justify-between p-4 w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-darker-copy-on-dark transition-all"
 					>
 						<div className="flex gap-3 items-center">
 							<Image
