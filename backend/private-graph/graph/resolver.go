@@ -114,6 +114,10 @@ var PromoCodes = map[string]PromoCode{
 	},
 }
 
+func isAuthError(err error) bool {
+	return e.Is(err, AuthenticationError) || e.Is(err, AuthorizationError)
+}
+
 type Resolver struct {
 	DB                     *gorm.DB
 	TDB                    timeseries.DB
@@ -958,7 +962,14 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id st
 	defer authSpan.Finish()
 	session, isOwner, err := r._doesAdminOwnSession(ctx, session_secure_id)
 	if err != nil {
-		return nil, err
+		if !isAuthError(err) {
+			return nil, err
+		} else {
+			if session == nil {
+				return nil, AuthorizationError
+			}
+			// auth error, but we should check if this is demo / public session
+		}
 	}
 	if isOwner {
 		return session, nil
@@ -1257,7 +1268,7 @@ func (r *Resolver) GetSessionChunk(ctx context.Context, sessionID int, ts int) (
 }
 
 func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts int, chunk int) ([]byte, error) {
-	res, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, sessionID, ts, chunk)
+	res, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, sessionID, pointy.Int(ts), pointy.Int(chunk), nil)
 	if err != nil {
 		return nil, e.Wrap(err, "failed to make screenshot render request")
 	}

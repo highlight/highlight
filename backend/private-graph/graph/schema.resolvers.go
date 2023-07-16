@@ -7435,7 +7435,7 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 	)
 
 	if err != nil {
-		fmt.Printf("ChatCompletion error: %v\n", err)
+		log.WithContext(ctx).Error(err, "ChatCompletion error")
 		return "", err
 	}
 
