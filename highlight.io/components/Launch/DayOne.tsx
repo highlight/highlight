@@ -1,20 +1,48 @@
 import classNames from 'classnames'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useState } from 'react'
 import { Typography } from '../common/Typography/Typography'
 import BoxOverlay from './BoxOverlay'
+
+import { AiFillCheckCircle, AiOutlineLink } from 'react-icons/ai'
 import styles from './Launch.module.scss'
 
 const DayOne = () => {
+	const [copy, setCopy] = useState(false)
+
+	function handleCopy(str: string) {
+		navigator.clipboard.writeText(
+			process.env.NEXT_PUBLIC_VERCEL_URL + '/launch-week-2' + str,
+		)
+
+		setCopy(true)
+		setTimeout(() => {
+			setCopy(false)
+		}, 1000)
+	}
+
 	return (
-		<div className="w-full max-w-[550px] md:max-w-none">
-			<Typography
-				className="text-darker-copy-on-dark"
-				type="copy3"
-				emphasis
+		<div id="day-1" className="w-full max-w-[550px] md:max-w-none">
+			<div
+				onClick={() => handleCopy('#day-1')}
+				className="group flex items-center gap-2 cursor-pointer"
 			>
-				Day 1: July 20th
-			</Typography>
+				<Typography
+					className="text-darker-copy-on-dark"
+					type="copy3"
+					emphasis
+				>
+					Day 1: July 20th
+				</Typography>
+				{!copy && (
+					<AiOutlineLink className="text-copy-on-light h-5 w-5 invisible group-hover:visible" />
+				)}
+				{copy && (
+					<AiFillCheckCircle className="text-copy-on-light h-5 w-5 invisible group-hover:visible" />
+				)}
+			</div>
+
 			<div
 				className={classNames(
 					styles.gridContainer,
