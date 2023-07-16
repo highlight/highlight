@@ -23,10 +23,21 @@
 	font-style: normal;
 	font-weight: 600;
 	line-height: 100%; /* 42px */
-	color: var(--color-copy-on-dark);
-}
 
-.chevronRight {
+	background: linear-gradient(
+		to right,
+		#fff,
+		#fff,
+		#fff,
+		#fff,
+		#7828f5,
+		#2d1b53,
+		#2d1b53
+	);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+
+	-webkit-text-stroke: 0.5px white;
 }
 
 .gridItem:hover {
