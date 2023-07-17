@@ -204,7 +204,6 @@ interface addLiveEvents {
 interface loadSession {
 	type: PlayerActionType.loadSession
 	data: GetSessionQuery
-	fetchEventChunkURL: FetchEventChunkURLFn
 }
 
 interface reset {
@@ -361,7 +360,6 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.loadSession:
 			s.session_secure_id = action.data!.session?.secure_id ?? ''
-			s.fetchEventChunkURL = action.fetchEventChunkURL
 			if (action.data.session) {
 				s.session = action.data?.session as Session
 				s.isLiveMode = false
