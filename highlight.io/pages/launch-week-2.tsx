@@ -26,7 +26,7 @@ const LaunchPage = () => {
 				absoluteImageUrl={`https://${process.env.NEXT_PUBLIC_VERCEL_URL}${preview.src}`}
 				canonical="/launch-week-2"
 			/>
-			<Navbar />
+			<Navbar hideBanner />
 			<main>
 				<div className="flex flex-col gap-2 mt-20 text-center px-8">
 					<h2>
