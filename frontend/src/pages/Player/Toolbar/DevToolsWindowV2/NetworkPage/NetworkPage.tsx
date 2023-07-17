@@ -37,6 +37,7 @@ import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
+import { ErrorObject } from '@/graph/generated/schemas'
 import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
@@ -295,7 +296,7 @@ export const NetworkPage = ({
 							itemContent={(index, resource) => {
 								const requestId =
 									getHighlightRequestId(resource)
-								const error = errors.find(
+								const requestErrors = errors.filter(
 									(e) => e.request_id === requestId,
 								)
 								return (
@@ -317,7 +318,7 @@ export const NetworkPage = ({
 										}
 										setTime={setTime}
 										playerStartTime={startTime}
-										hasError={!!error}
+										errors={requestErrors}
 										networkRequestAndResponseRecordingEnabled={
 											session.enable_recording_network_contents ||
 											false
@@ -355,7 +356,7 @@ interface ResourceRowProps {
 	setTime: (time: number) => void
 	networkRequestAndResponseRecordingEnabled: boolean
 	playerStartTime: number
-	hasError?: boolean
+	errors?: ErrorObject[]
 	showPlayerAbsoluteTime?: boolean
 }
 
@@ -369,7 +370,7 @@ const ResourceRow = ({
 	networkRequestAndResponseRecordingEnabled,
 	setTime,
 	playerStartTime,
-	hasError,
+	errors,
 	showPlayerAbsoluteTime,
 }: ResourceRowProps) => {
 	const leftPaddingPercent = (resource.startTime / networkRange) * 100
@@ -381,21 +382,23 @@ const ResourceRow = ({
 
 	const { activeNetworkResourceId } = useActiveNetworkResourceId()
 	const showingDetails = activeNetworkResourceId === resource.id
+	const responseStatus = resource.requestResponsePairs?.response.status
+	const hasError =
+		!!errors?.length ||
+		!!resource.errors?.length ||
+		!!(responseStatus && (responseStatus === 0 || responseStatus >= 400))
 
 	return (
-		<Box key={resource.id.toString()} onClick={onClickHandler}>
+		<Box
+			key={resource.id.toString()}
+			onClick={onClickHandler}
+			cursor="pointer"
+		>
 			<Box
 				borderBottom="dividerWeak"
 				cssClass={styles.networkRowVariants({
 					current: isCurrentResource,
-					failedResource: !!(
-						hasError ||
-						(resource.requestResponsePairs?.response.status &&
-							(resource.requestResponsePairs.response.status ===
-								0 ||
-								resource.requestResponsePairs.response.status >=
-									400))
-					),
+					failedResource: hasError,
 					showingDetails,
 				})}
 			>
