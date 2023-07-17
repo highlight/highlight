@@ -202,6 +202,13 @@ export async function register() {
 }
 ```
 
+4. If you're using the App Router, copy `instrumentation.ts` to `src/instrumentation.ts`. See this [Next.js discussion](https://github.com/vercel/next.js/discussions/48273#discussioncomment-5587441) regarding `instrumentation.ts` with App Router. You could also simply export the `register` function from `instrumentation.ts` in `src/instrumentation.ts` like so:
+
+```javascript
+// src/instrumentation.ts:
+export { register } from '../instrumentation'
+```
+
 ## Configure `tracingOrigins` and `networkRecording`
 
 See [Fullstack Mapping](https://www.highlight.io/docs/getting-started/frontend-backend-mapping#how-can-i-start-using-this) for details.
