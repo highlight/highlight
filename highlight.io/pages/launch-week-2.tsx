@@ -106,7 +106,7 @@ const LaunchPage = () => {
 					<HiddenDay title="Day 2: July 18th" />
 					<HiddenDay title="Day 3: July 19th" />
 					<HiddenDay title="Day 4: July 20th" />
-					<HiddenDay title="Day 5: July 21th" />
+					<HiddenDay title="Day 5: July 21st" />
 				</div>
 				<Section>
 					<CompaniesReel />
