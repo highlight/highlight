@@ -95,6 +95,10 @@ slug: client
           <h5>urlBlocklist <code>string[]</code> <code>optional</code></h5>
           <p>Specifies a list of URLs to block <b>before</b> sending events to the Highlight back end. URLs can be fully-qualified or partial substring matches. Example: urlBlocklist: ["//www.high", "light.io"]</p>
         </aside>
+        <aside className="parameter">
+          <h5>inlineImages <code>boolean</code> <code>optional</code></h5>
+          <p>Specifies whether to record image content. We default inlineImages to true on localhost and false on other domains. Inlined images that are otherwise only available on localhost can be sent to Highlight's servers and used in session replay; however, this can cause CORS errors. Explicitly set inlineImages to false to resolve CORS errors.</p>
+        </aside>
       </article>
     </aside>
   </div>
