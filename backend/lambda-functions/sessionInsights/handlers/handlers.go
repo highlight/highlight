@@ -75,16 +75,26 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 
 	var interestingSessionsSql []utils.InterestingSessionSql
 	if err := h.db.Raw(`
-		SELECT s.identifier, s.user_properties, s.fingerprint, s.country, s.active_length, s.secure_id, s.id
+		SELECT a.*, (
+			SELECT FLOOR(AVG(chunk_index)) 
+			AS chunk_index 
+			FROM event_chunks 
+			WHERE session_id = a.id)
+		FROM
+		(SELECT s.identifier, s.user_properties, s.fingerprint, s.country, s.active_length, s.secure_id, s.id
 		FROM sessions s
-		WHERE s.project_id = ?
-		AND s.created_at >= ?
-		AND s.created_at < ?
-		AND NOT s.excluded
-		AND s.processed
-		AND s.within_billing_quota
+		WHERE s.id in
+			(SELECT DISTINCT ON (s.fingerprint) s.id
+			FROM sessions s
+			WHERE s.project_id = ?
+			AND s.created_at >= ?
+			AND s.created_at < ?
+			AND NOT s.excluded
+			AND s.processed
+			AND s.within_billing_quota
+			ORDER BY s.fingerprint, s.normalness)
 		ORDER BY s.normalness
-		LIMIT 3
+		LIMIT 3) a
 	`, input.ProjectId, input.Start, input.End).Scan(&interestingSessionsSql).Error; err != nil {
 		return nil, errors.Wrap(err, "error querying interesting sessions")
 	}
@@ -134,6 +144,7 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 			Url:          formatSessionURL(input.ProjectId, item.SecureId),
 			Id:           item.Id,
 			Insights:     insightStrs,
+			ChunkIndex:   item.ChunkIndex,
 		})
 	}
 
@@ -242,7 +253,7 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 
 	images := map[int]string{}
 	for idx, session := range input.InterestingSessions {
-		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, pointy.Int(1), pointy.Int(0), nil)
+		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, pointy.Int(1000000), pointy.Int(session.ChunkIndex), nil)
 		if err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
 				Warnf("failed to get session screenshot with error %#v", err)

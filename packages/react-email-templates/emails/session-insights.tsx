@@ -295,7 +295,7 @@ const sessionProperty = {
 	color: '#ffffff',
 	backgroundColor: 'rgba(255,255,255,0.32)',
 	borderRadius: '100px',
-	height: '26px',
+	lineHeight: '26px',
 	padding: '2px 12px',
 	marginRight: '6px',
 }
@@ -311,5 +311,5 @@ const insightText = {
 	...text,
 	paddingLeft: '8px',
 	textAlign: 'left' as const,
-	lineBreak: 'anywhere' as const,
+	wordBreak: 'break-word' as const,
 }
