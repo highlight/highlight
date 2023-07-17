@@ -1,4 +1,5 @@
 import classNames from 'classnames'
+import { BsTwitter } from 'react-icons/bs'
 import { Typography } from '../common/Typography/Typography'
 
 import styles from './Launch.module.scss'
@@ -41,9 +42,11 @@ const HiddenDay = ({ title }: { title: string }) => {
 								target="_blank"
 								href="https://twitter.com/highlightio"
 								rel="noopener noreferrer"
+								className="group flex gap-2 items-center "
 							>
+								<BsTwitter className="h-5 w-5 text-[#26a7de]" />
 								<Typography
-									className="text-darker-copy-on-dark"
+									className="text-darker-copy-on-dark group-hover:text-[#26a7de]"
 									type="copy3"
 									emphasis
 								>

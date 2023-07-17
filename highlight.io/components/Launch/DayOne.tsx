@@ -76,9 +76,10 @@ const DayOne = () => {
 							</div>
 						</div>
 					</div>
-					<div
+					<Link
+						href="/blog/error-monitoring-launch-week-2-new-features"
 						className={classNames(
-							'h-full w-full col-span-2 hover:border-darker-copy-on-dark',
+							'h-full w-full col-span-2 hover:border-darker-copy-on-dark cursor-pointer',
 							styles.gridItem,
 						)}
 					>
@@ -94,13 +95,13 @@ const DayOne = () => {
 							subheader="Day 1: July 20th"
 							badge="Blog Post"
 						/>
-					</div>
+					</Link>
 				</div>
 
 				<Link
-					href="https://highlight.io"
+					href="/blog/error-monitoring-launch-week-2-new-features"
 					className={classNames(
-						'bg-black h-[250px] md:h-[450px] w-full col-span-1 hover:border-darker-copy-on-dark',
+						'bg-black h-[250px] md:h-[450px] w-full col-span-1 cursor-pointer hover:border-darker-copy-on-dark ',
 						styles.gridItem,
 					)}
 				>

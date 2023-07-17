@@ -13,7 +13,9 @@ import styles from '../components/Home/Home.module.scss'
 import DayOne from '../components/Launch/DayOne'
 import HiddenDay from '../components/Launch/HiddenDay'
 
-const IntegrationsPage = () => {
+const LaunchPage = () => {
+	const day = 1
+
 	return (
 		<div>
 			<Navbar />
@@ -34,7 +36,11 @@ const IntegrationsPage = () => {
 				</div>
 				<div className="grid grid-cols-1 lg:grid-cols-3 items-center justify-center gap-3 mt-20 px-8 max-w-[550px] md:max-w-[1200px] mx-auto">
 					<Link
-						href="https://highlight.io/launch-week-2#day-1"
+						href={
+							process.env.NEXT_PUBLIC_VERCEL_URL +
+							'/launch-week-2#day-' +
+							day.toString()
+						}
 						className="flex justify-between items-center p-4 w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-darker-copy-on-dark transition-all"
 					>
 						<Typography
@@ -42,7 +48,7 @@ const IntegrationsPage = () => {
 							type="copy4"
 							emphasis
 						>
-							Go to Day 1
+							Go to Day {day}
 						</Typography>
 						<div className="flex gap-3 items-center">
 							<Typography
@@ -125,4 +131,4 @@ const IntegrationsPage = () => {
 	)
 }
 
-export default IntegrationsPage
+export default LaunchPage
