@@ -13,7 +13,7 @@ Highlight monkey patches the `WebSocket` object to add event listeners to the re
 
 ## Recording WebSocket Events
 
-Highlight can also record the WebSocket events. In the session Developer Tools, WebSockets will display the initial open connection with the other network requests. The WebSocket request can be clicked on to view the related messages and events.
+Highlight can also record WebSocket events. WebSockets will display the initial open connection with the other network requests in the session Developer Tools. The WebSocket request can be clicked on to view the related messages and events.
 
 ```typescript
 H.init('<YOUR_PROJECT_ID>', {
