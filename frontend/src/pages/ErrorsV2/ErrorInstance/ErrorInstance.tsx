@@ -181,6 +181,18 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				<ErrorBodyText errorBody={errorInstance.error_object.event} />
 			</Box>
 
+			<Box display="flex" flexDirection="column" mb="40">
+				<Stack direction="row" align="center" pb="20" gap="8">
+					<Text size="large" weight="bold">
+						Harold AI
+					</Text>
+					<Badge label="Beta" size="medium" variant="purple" />
+				</Stack>
+				<AiErrorSuggestion
+					errorObjectId={errorInstance.error_object.id}
+				/>
+			</Box>
+
 			<Box display="flex" flexDirection="column" mb="40" gap="40">
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
 					<Metadata errorObject={errorInstance.error_object} />
@@ -203,18 +215,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						</Box>
 					</>
 				)}
-
-			<Box display="flex" flexDirection="column" mb="40">
-				<Stack direction="row" align="center" pb="20" gap="8">
-					<Text size="large" weight="bold">
-						Harold AI
-					</Text>
-					<Badge label="Beta" size="medium" variant="purple" />
-				</Stack>
-				<AiErrorSuggestion
-					errorObjectId={errorInstance.error_object.id}
-				/>
-			</Box>
 
 			{(errorInstance.error_object.stack_trace !== '' &&
 				errorInstance.error_object.stack_trace !== 'null') ||

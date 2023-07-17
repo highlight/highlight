@@ -3024,11 +3024,6 @@ export type GetProjectSuggestionQuery = { __typename?: 'Query' } & {
 			>
 		>
 	>
-	workspaceSuggestion: Array<
-		Types.Maybe<
-			{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
-		>
-	>
 }
 
 export type GetErrorFieldSuggestionQueryVariables = Types.Exact<{

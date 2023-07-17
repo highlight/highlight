@@ -157,6 +157,8 @@ const ERROR_EVENT_MAX_LENGTH = 10000
 
 const SESSION_FIELD_MAX_LENGTH = 2000
 
+var NumberRegex = regexp.MustCompile(`^\d+$`)
+
 var ErrNoisyError = e.New("Filtering out noisy error")
 var ErrQuotaExceeded = e.New(string(publicModel.PublicGraphErrorBillingQuotaExceeded))
 var ErrUserFilteredError = e.New("User filtered error")
@@ -186,6 +188,9 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 			log.WithContext(ctx).Warnf("property %s from session %d exceeds max expected field length, skipping", k, sessionID)
 		} else if fv == "" {
 			// Skip when the field value is blank
+		} else if NumberRegex.MatchString(k) {
+			// Skip when the field name is a number
+			// (this can be sent by clients if a string is passed as an `addProperties` payload)
 		} else {
 			modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: k, Value: fv, Type: string(propType)})
 		}
