@@ -123,6 +123,7 @@ export declare type HighlightOptions = {
 	/**
 	 * Specifies the version of your application.
 	 * This is commonly a Git hash or a semantic version.
+	 * @deprecated use service.version
 	 */
 	version?: string
 	/**

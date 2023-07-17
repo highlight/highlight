@@ -156,4 +156,9 @@ export declare type ServiceOptions = {
 	 * Assign the name of this service (e.g. "shopping-cart-frontend")
 	 */
 	name?: string
+	/**
+	 * Specifies the version of your application.
+	 * This is commonly a Git hash or a semantic version.
+	 */
+	version?: string
 }
