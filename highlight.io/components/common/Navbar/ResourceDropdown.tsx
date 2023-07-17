@@ -17,7 +17,7 @@ const ResourceDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 		{
 			title: 'Status Page',
 			icon: <Icons.HiCloud className={styles.copyOnLight} />,
-			link: 'https://highlight.hyperping.io/',
+			link: 'https://status.highlight.io/',
 		},
 		{
 			title: 'Community',
