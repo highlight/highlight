@@ -95,5 +95,13 @@ if (process.env.DEV?.length) {
 				tsEnd: '20000',
 			},
 		} as unknown as APIGatewayEvent),
+		handler({
+			queryStringParameters: {
+				project: '1',
+				session: '262083663',
+				ts: '1',
+				chunk: '0',
+			},
+		} as unknown as APIGatewayEvent),
 	])
 }
