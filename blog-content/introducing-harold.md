@@ -32,7 +32,7 @@ Ever wonder what to do with that 4 hour long session? Harold can now analyze the
 
 ![Harold suggesting how to summarize a session](/images/blog/introducing-harold/session-insights.png)
 
-These insights, paired with [Interesting Sessions](https://highlight.io/interesting-sessions), power a new weekly email digest that summarizes the interesting things happening in your product so you can quickly see new or unexpected usage patterns.
+These insights, paired with [Interesting Sessions](https://highlight.io/blog/interesting-sessions), power a new weekly email digest that summarizes the interesting things happening in your product so you can quickly see new or unexpected usage patterns.
 
 ## What’s Next for Harold
 
