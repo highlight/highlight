@@ -8,7 +8,7 @@ import BoxOverlay from './BoxOverlay'
 import { AiFillCheckCircle, AiOutlineLink } from 'react-icons/ai'
 import styles from './Launch.module.scss'
 
-const DayOne = () => {
+const DayTwo = () => {
 	const [copy, setCopy] = useState(false)
 
 	function handleCopy(str: string) {
@@ -33,7 +33,7 @@ const DayOne = () => {
 					type="copy3"
 					emphasis
 				>
-					Day 1: July 17th
+					Day 2: July 18th
 				</Typography>
 				{!copy && (
 					<AiOutlineLink className="text-copy-on-light h-5 w-5 invisible group-hover:visible" />
@@ -46,26 +46,26 @@ const DayOne = () => {
 			<div
 				className={classNames(
 					styles.gridContainer,
-					'md:grid-cols-2 max-w-[550px] md:max-w-none mx-auto',
+					'grid-cols-3 max-w-[550px] md:max-w-none mx-auto',
 				)}
 			>
-				<div className="grid grid-cols-2 md:grid-rows-2 gap-2">
+				<div className="grid col-span-2 grid-cols-1 md:grid-rows-2 gap-2">
 					<div
 						className={classNames(
-							'hidden md:block h-full w-full col-span-2',
+							'hidden md:block h-full w-full col-span-1',
 							styles.gridItem,
 						)}
 					>
 						<div className="absolute">
 							<Image
-								src="/images/launch/errormonitoring.png"
+								src="/images/launch/sessionreplay.png"
 								alt=""
-								height="294"
-								width="594"
+								height="218"
+								width="793"
 							/>
 						</div>
 						<div className="absolute left-0 right-0 top-4">
-							<p className={styles.gridTitle}>Error Monitoring</p>
+							<p className={styles.gridTitle}>Session Replay</p>
 							<div className="flex justify-center">
 								<Image
 									src="/images/launch/errormonitoringlogo.svg"
@@ -79,7 +79,7 @@ const DayOne = () => {
 					<Link
 						href="/blog/error-monitoring-launch-week-2-new-features"
 						className={classNames(
-							'h-full w-full col-span-2 hover:border-darker-copy-on-dark cursor-pointer',
+							'h-full w-full col-span-1 hover:border-darker-copy-on-dark cursor-pointer',
 							styles.gridItem,
 						)}
 					>
@@ -91,8 +91,8 @@ const DayOne = () => {
 						/>
 
 						<BoxOverlay
-							header="Auto-resolve Errors"
-							subheader="Day 1: July 17th"
+							header="Network Request Summary"
+							subheader="Day 2: July 18th"
 							badge="Blog Post"
 						/>
 					</Link>
@@ -101,7 +101,7 @@ const DayOne = () => {
 				<Link
 					href="/blog/error-monitoring-launch-week-2-new-features"
 					className={classNames(
-						'bg-black h-[250px] md:h-[450px] w-full col-span-1 cursor-pointer hover:border-darker-copy-on-dark ',
+						'bg-black h-[250px] md:h-[450px] col-span-1 cursor-pointer hover:border-darker-copy-on-dark ',
 						styles.gridItem,
 					)}
 				>
@@ -115,7 +115,7 @@ const DayOne = () => {
 					</div>
 					<BoxOverlay
 						header="Error Instance View"
-						subheader="Day 1: July 17th"
+						subheader="Day 1: July 20th"
 						badge="Blog Post"
 					/>
 				</Link>
@@ -124,4 +124,4 @@ const DayOne = () => {
 	)
 }
 
-export default DayOne
+export default DayTwo

@@ -11,6 +11,7 @@ import { CompaniesReel } from '../components/Home/CompaniesReel/CompaniesReel'
 import { CustomerReviewTrack } from '../components/Home/CustomerReviewTrack'
 import styles from '../components/Home/Home.module.scss'
 import DayOne from '../components/Launch/DayOne'
+import DayTwo from '../components/Launch/DayTwo'
 import HiddenDay from '../components/Launch/HiddenDay'
 
 const LaunchPage = () => {
@@ -99,7 +100,7 @@ const LaunchPage = () => {
 				</div>
 				<div className="flex flex-col items-center gap-16 w-full max-w-[1200px] mx-auto my-10 px-8">
 					<DayOne />
-					<HiddenDay title="Day 2: July 18th" />
+					<DayTwo />
 					<HiddenDay title="Day 3: July 19th" />
 					<HiddenDay title="Day 4: July 20th" />
 					<HiddenDay title="Day 5: July 21st" />
