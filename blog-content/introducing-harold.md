@@ -38,4 +38,4 @@ These insights, paired with [Interesting Sessions](https://highlight.io/blog/int
 
 We hope to give Harold more superpowers soon, especially if our users are finding a lot of value from these initial features. Please let us know what you think of these features and if you find them useful!
 
-Beyond these AI features, we have a [slew of other updates](https://highlight.io/launch-week) to help you wrangle errors and get to the most important user events in your sessions. Check out our new [auto-resolving errors functionality](https://highlight.io/auto-resolving-errors), option for [filtering errors from browser extensions](https://highlight.io/filtering-browser-extensions-errors), and [interesting sessions](https://highlight.io/interesting-sessions)!
+Beyond these AI features, we have a [slew of other updates](https://highlight.io/launch-week) to help you wrangle errors and get to the most important user events in your sessions. 
