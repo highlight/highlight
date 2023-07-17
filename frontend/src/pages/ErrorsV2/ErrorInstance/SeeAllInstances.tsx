@@ -1,7 +1,7 @@
-import { IconSolidArrowSmLeft } from '@highlight-run/ui'
+import { IconSolidArrowSmLeft, Tag } from '@highlight-run/ui'
 
 import { useAuthContext } from '@/authentication/AuthContext'
-import { LinkButton } from '@/components/LinkButton'
+import { Link } from '@/components/Link'
 import { GetErrorInstanceQuery } from '@/graph/generated/operations'
 import { useProjectId } from '@/hooks/useProjectId'
 
@@ -16,16 +16,17 @@ export const SeeAllInstances = ({ data }: Props) => {
 		data?.error_instance?.error_object.error_group_secure_id
 
 	return (
-		<LinkButton
-			kind="secondary"
-			size="xSmall"
-			emphasis="medium"
-			trackingId="seeAllInstance"
-			iconLeft={<IconSolidArrowSmLeft />}
-			disabled={!isLoggedIn || !errorGroupSecureID}
-			to={`/${projectId}/errors/${errorGroupSecureID}/instances`}
-		>
-			See all instances
-		</LinkButton>
+		<Link to={`/${projectId}/errors/${errorGroupSecureID}/instances`}>
+			<Tag
+				kind="secondary"
+				emphasis="medium"
+				size="medium"
+				shape="basic"
+				iconLeft={<IconSolidArrowSmLeft />}
+				disabled={!isLoggedIn || !errorGroupSecureID}
+			>
+				See all instances
+			</Tag>
+		</Link>
 	)
 }
