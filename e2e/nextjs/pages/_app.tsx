@@ -12,7 +12,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 				networkRecording={{
 					enabled: true,
 					recordHeadersAndBody: true,
-					urlBlocklist: [],
 				}}
 				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
 			/>

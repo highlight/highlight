@@ -27,9 +27,12 @@ import {
 import { OverageCard } from '@/pages/LogsPage/OverageCard/OverageCard'
 
 export const QueryParam = withDefault(StringParam, '')
-const FixedRangeStartDateParam = withDefault(DateTimeParam, fifteenMinutesAgo)
-const PermalinkStartDateParam = withDefault(DateTimeParam, thirtyDaysAgo)
-const EndDateParam = withDefault(DateTimeParam, now.toDate())
+export const FixedRangeStartDateParam = withDefault(
+	DateTimeParam,
+	fifteenMinutesAgo,
+)
+export const PermalinkStartDateParam = withDefault(DateTimeParam, thirtyDaysAgo)
+export const EndDateParam = withDefault(DateTimeParam, now.toDate())
 
 const LogsPage = () => {
 	const { log_cursor } = useParams<{

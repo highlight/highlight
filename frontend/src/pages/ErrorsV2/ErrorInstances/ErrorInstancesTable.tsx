@@ -114,7 +114,7 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 	})
 
 	return (
-		<>
+		<Box>
 			{table.getRowModel().rows.map((row) => {
 				return (
 					<Link
@@ -145,6 +145,6 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 					</Link>
 				)
 			})}
-		</>
+		</Box>
 	)
 }
