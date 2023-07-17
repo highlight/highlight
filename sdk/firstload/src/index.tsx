@@ -116,9 +116,10 @@ const H: HighlightPublicInterface = {
 				recordCrossOriginIframe: options?.recordCrossOriginIframe,
 				firstloadVersion,
 				environment: options?.environment || 'production',
-				appVersion: options?.version,
+				appVersion: options?.service?.version ?? options?.version,
 				sessionShortcut: options?.sessionShortcut,
 				sessionSecureID: sessionSecureID,
+				service: options?.service,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
 			if (!options?.manualStart) {

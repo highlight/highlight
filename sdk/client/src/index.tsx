@@ -13,6 +13,7 @@ import {
 	MetricName,
 	MixpanelIntegrationOptions,
 	NetworkRecordingOptions,
+	ServiceOptions,
 	SessionShortcutOptions,
 } from './types/client'
 import {
@@ -111,6 +112,7 @@ export type HighlightClassOptions = {
 	appVersion?: string
 	sessionShortcut?: SessionShortcutOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
+	service?: ServiceOptions
 }
 
 /**
