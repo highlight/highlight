@@ -270,6 +270,7 @@ const sessionScreenshot = {
 	width: '368px',
 	height: '200px',
 	borderRadius: '6px',
+	objectFit: 'cover' as const,
 }
 
 const identifier = {
