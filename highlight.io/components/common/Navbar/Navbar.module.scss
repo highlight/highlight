@@ -253,6 +253,10 @@
 	width: calc(100% / 3);
 }
 
+.headerRightBlog {
+	flex-shrink: 0;
+}
+
 .socialButtonContainer {
 	display: flex;
 	margin-left: var(--size-medium);
