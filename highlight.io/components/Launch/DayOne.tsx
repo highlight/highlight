@@ -93,7 +93,7 @@ const DayOne = () => {
 
 						<BoxOverlay
 							header="Auto-resolve Errors"
-							subheader="Day 1: July 20th"
+							subheader="Day 1: July 17th"
 							badge="Blog Post"
 						/>
 					</Link>
@@ -117,7 +117,7 @@ const DayOne = () => {
 					</div>
 					<BoxOverlay
 						header="Error Instance View"
-						subheader="Day 1: July 20th"
+						subheader="Day 1: July 17th"
 						badge="Blog Post"
 					/>
 				</Link>
