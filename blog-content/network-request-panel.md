@@ -10,7 +10,7 @@ authorLinkedIn: 'https://www.linkedin.com/in/ccschmitz'
 authorGithub: 'https://github.com/ccschmitz'
 authorWebsite: ''
 authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75'
-tags: Developer Tooling
+tags: Developer Tooling, Launch Week 2
 metaTitle: Tying it all together with the new network request details panel
 ---
 
@@ -37,6 +37,5 @@ Once you navigate into a request you’ll see a new panel that integrates all th
 We have more in store to help you understand what’s happening from your client interactions all the way down to your database. Here’s a glimpse from a mockup for something we have in our roadmap.
 
 ![Preview of the future state of the network request panel](/images/blog/network-request-panel/network-request-traces.png)
-
 
 You can infer a lot about some future Highlight features from this 😉 - stay tuned for more!
