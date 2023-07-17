@@ -64,7 +64,17 @@ jobs:
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
 
-            - name: Build & test
+            - name: Build & test (with render environment)
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              run: doppler run -- bash -c 'RENDER_PREVIEW=false yarn test:all'
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
+                  GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
+                  NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
+                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+
+            - name: Build & test (in a fork without render environment)
+              if: github.event.pull_request.head.repo.full_name != 'highlight/highlight' && github.ref != 'refs/heads/main'
               run: doppler run -- bash -c 'RENDER_PREVIEW=false yarn test:all'
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
