@@ -87,15 +87,6 @@ const roundOff = (value: number, decimal = 1) => {
 	return Math.round(value * base) / base
 }
 
-export const findResourceWithMatchingHighlightHeader = (
-	headerValue: string,
-	resources: NetworkResource[],
-) => {
-	return resources.find(
-		(resource) => getHighlightRequestId(resource) === headerValue,
-	)
-}
-
 export const getHighlightRequestId = (resource?: NetworkResource) => {
 	return resource?.requestResponsePairs?.request?.id
 }
