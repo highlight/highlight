@@ -103,7 +103,6 @@ const Navbar = ({
 					[styles.fixed]: fixed,
 				})}
 			>
-				<LaunchWeekBanner />
 				<header
 					className={classNames({
 						[styles.mobileHeader]: isOpen,
