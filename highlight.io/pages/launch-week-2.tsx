@@ -36,11 +36,7 @@ const LaunchPage = () => {
 				</div>
 				<div className="grid grid-cols-1 lg:grid-cols-3 items-center justify-center gap-3 mt-20 px-8 max-w-[550px] md:max-w-[1200px] mx-auto">
 					<Link
-						href={
-							process.env.NEXT_PUBLIC_VERCEL_URL +
-							'/launch-week-2#day-' +
-							day.toString()
-						}
+						href={'/launch-week-2#day-' + day.toString()}
 						className="flex justify-between items-center p-4 w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-darker-copy-on-dark transition-all"
 					>
 						<Typography
