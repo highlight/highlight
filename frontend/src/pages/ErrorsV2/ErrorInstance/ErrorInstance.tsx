@@ -102,7 +102,11 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	useEffect(() => analytics.page(), [])
 
 	if (loading) {
-		return <LoadingBox />
+		return (
+			<Box mt="10">
+				<LoadingBox />
+			</Box>
+		)
 	}
 
 	const errorInstance = data?.error_instance
