@@ -895,7 +895,7 @@ const LaunchWeekBanner = () => {
 	] as const
 
 	const day = moment().diff(moment('2023-07-17T16:00:00Z'), 'days') + 1
-	if (day > 5) {
+	if (day < 1 || day > 5) {
 		toggleShowBanner(false)
 		return null
 	}
@@ -913,7 +913,7 @@ const LaunchWeekBanner = () => {
 			>
 				Follow along
 			</a>{' '}
-			to see what we've been building.
+			to see what we've been building!
 		</span>
 	)
 
