@@ -229,10 +229,8 @@
 }
 
 .headerLeft {
-	display: flex;
 	gap: var(--size-xSmall);
 	justify-content: flex-start;
-	width: 33.33%;
 	width: calc(100% / 3);
 }
 
@@ -240,6 +238,7 @@
 	display: flex;
 	gap: var(--size-xSmall);
 	justify-content: flex-start;
+	width: 80%;
 }
 
 .headerCenter {
@@ -248,8 +247,8 @@
 }
 
 .headerRight {
+	flex-shrink: 0;
 	justify-content: flex-end;
-	width: calc(100% / 3);
 }
 
 .socialButtonContainer {
@@ -308,6 +307,7 @@
 
 .urlStyle {
 	text-decoration: none;
+	flex-shrink: 0;
 }
 
 .dropdownItem {
@@ -374,6 +374,10 @@
 	line-height: 32px;
 	color: var(--copy-on-dark);
 	margin: 0 var(--size-large);
+	width: 80%;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
 }
 
 .loadingBar {
