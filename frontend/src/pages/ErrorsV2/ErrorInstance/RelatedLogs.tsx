@@ -66,7 +66,7 @@ export const RelatedLogs = ({ data }: Props) => {
 		<Link to={logsLink}>
 			<Tag
 				kind="secondary"
-				emphasis="low"
+				emphasis="high"
 				size="medium"
 				shape="basic"
 				disabled={!isLoggedIn || logsLink === ''}

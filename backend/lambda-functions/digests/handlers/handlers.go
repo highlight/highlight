@@ -59,12 +59,12 @@ func (h *handlers) GetProjectIds(ctx context.Context, input utils.DigestsInput) 
 
 	var projectIds []int
 	if err := h.db.Raw(`
-		SELECT s.project_id
-		FROM sessions s
-		WHERE s.created_at >= ?
-		AND s.created_at < ?
-		GROUP BY s.project_id
-		HAVING count(*) >= 50
+		SELECT project_id
+		FROM daily_session_counts_view
+		WHERE date >= ?
+		AND date < ?
+		GROUP BY 1
+		HAVING sum(count) >= 50
 	`, start, end).Scan(&projectIds).Error; err != nil {
 		return nil, errors.Wrap(err, "error getting project ids")
 	}

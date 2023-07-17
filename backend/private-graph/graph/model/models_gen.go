@@ -325,9 +325,10 @@ type ErrorObjectNode struct {
 }
 
 type ErrorObjectNodeSession struct {
-	SecureID   string  `json:"secureID"`
-	AppVersion *string `json:"appVersion"`
-	Email      *string `json:"email"`
+	SecureID    string  `json:"secureID"`
+	AppVersion  *string `json:"appVersion"`
+	Email       *string `json:"email"`
+	Fingerprint *int    `json:"fingerprint"`
 }
 
 type ErrorSearchParamsInput struct {
@@ -728,6 +729,15 @@ type VercelProjectMappingInput struct {
 	VercelProjectID string  `json:"vercel_project_id"`
 	NewProjectName  *string `json:"new_project_name"`
 	ProjectID       *int    `json:"project_id"`
+}
+
+type WebSocketEvent struct {
+	Message   string  `json:"message"`
+	Name      string  `json:"name"`
+	SocketID  string  `json:"socketId"`
+	Type      string  `json:"type"`
+	TimeStamp float64 `json:"timeStamp"`
+	Size      int     `json:"size"`
 }
 
 type WebhookDestinationInput struct {

@@ -93,6 +93,15 @@ type TimelineIndicatorEvent {
 	type: Int!
 }
 
+type WebSocketEvent {
+	message: String!
+	name: String!
+	socketId: String!
+	type: String!
+	timeStamp: Float!
+	size: Int!
+}
+
 type RageClickEvent {
 	id: ID!
 	project_id: ID!
@@ -613,6 +622,7 @@ type ErrorObjectNodeSession {
 	secureID: String!
 	appVersion: String
 	email: String
+	fingerprint: Int
 }
 
 type ErrorObjectNode {
@@ -1445,6 +1455,7 @@ type Query {
 	timeline_indicator_events(
 		session_secure_id: String!
 	): [TimelineIndicatorEvent!]!
+	websocket_events(session_secure_id: String!): [Any]
 	rage_clicks(session_secure_id: String!): [RageClickEvent!]!
 	rageClicksForProject(
 		project_id: ID!
@@ -1590,7 +1601,6 @@ type Query {
 	log_alerts(project_id: ID!): [LogAlert]!
 	log_alert(id: ID!): LogAlert!
 	projectSuggestion(query: String!): [Project]!
-	workspaceSuggestion(query: String!): [Workspace]!
 	environment_suggestion(project_id: ID!): [Field]
 	app_version_suggestion(project_id: ID!): [String]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!

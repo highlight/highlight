@@ -219,12 +219,6 @@ const Navbar = ({
 										Pricing
 									</Typography>
 								</Link>
-								<Link
-									href="/blog"
-									className={styles.headerButton}
-								>
-									<Typography type="copy2">Blog</Typography>
-								</Link>
 								<ResourceDropdown isOpen={scrolled && !fixed} />
 							</div>
 						)}
