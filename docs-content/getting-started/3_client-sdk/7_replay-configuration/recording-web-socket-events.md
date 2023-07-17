@@ -26,7 +26,7 @@ H.init('<YOUR_PROJECT_ID>', {
 
 ## Disabling WebSocket Events
 
-WebSocket event recording can be disabled, without affecting the other network requests, by setting `networkRecording.disableWebSocketEventRecordings` to `true`.
+WebSocket event recording can be disabled without affecting the other network requests by setting `networkRecording.disableWebSocketEventRecordings` to `true`.
 
 ```typescript
 H.init('<YOUR_PROJECT_ID>', {
