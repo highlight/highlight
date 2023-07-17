@@ -59,7 +59,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		error_object_id: string
 	}>()
 	const client = useApolloClient()
-	const { isHighlightAdmin } = useAuthContext()
 
 	const { loading, data } = useGetErrorInstanceQuery({
 		variables: {
@@ -111,7 +110,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			<Box id="error-instance-container">
 				<Stack direction="row" my="12">
 					<Stack direction="row" flexGrow={1}>
-						{isHighlightAdmin && <SeeAllInstances data={data} />}
+						<SeeAllInstances data={data} />
 						<PreviousNextInstance data={data} />
 					</Stack>
 					<Stack direction="row" gap="4">
@@ -158,7 +157,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		<Box id="error-instance-container">
 			<Stack direction="row" my="12">
 				<Stack direction="row" flexGrow={1}>
-					{isHighlightAdmin && <SeeAllInstances data={data} />}
+					<SeeAllInstances data={data} />
 					<PreviousNextInstance data={data} />
 				</Stack>
 				<Stack direction="row" gap="4">
