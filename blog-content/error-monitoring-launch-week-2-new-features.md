@@ -24,7 +24,7 @@ Today we are launching several new features to help make every developer’s err
 
 When we take a sharper lens to individual errors, most of them are not of the “wake up in the middle of the night” flavor. Most of them tend to be a transient blip or a rare bug from an esoteric browser. Software moves quickly and an error that happened once a couple weeks ago isn’t worth spending developer cycles on.
 
-Our new auto resolver feature will automatically resolve errors that haven’t occurred in a given interval.
+Our new auto resolver feature [project setting](https://app.highlight.io/settings/errors) will automatically resolve errors that haven’t occurred in a given interval.
 
 ![](/images/blog/error-monitoring-launch-week-2-new-features/autoresolve.png)
 
@@ -32,7 +32,7 @@ This can dramatically declutter your view and make looking at your product’s e
 
 ## Auto-filtering browser extension errors
 
-Browser extension errors are one of the more frustrating errors to see in Highlight. Because the barrier to entry on writing an extension is low, they tend to leak errors out into your application. Unfortunately, there’s nothing you can do to actually fix this minus contacting the browser extension author. Given this isn’t the best use of your time, we’ve added a feature to filter out extensions that we detect are sourced from browser extensions.
+Browser extension errors are one of the more frustrating errors to see in Highlight. Because the barrier to entry on writing an extension is low, they tend to leak errors out into your application. Unfortunately, there’s nothing you can do to actually fix this minus contacting the browser extension author. Given this isn’t the best use of your time, we’ve added a [project setting](https://app.highlight.io/settings/errors) feature to filter out extensions that we detect are sourced from browser extensions.
 
 ![](/images/blog/error-monitoring-launch-week-2-new-features/extension-errors.png)
 
@@ -45,3 +45,5 @@ Picture this: a customer writes in about an issue they’re facing. They give yo
 ![](/images/blog/error-monitoring-launch-week-2-new-features/instances.png)
 
 Highlight now provides a more friendly list view so you can easily see all instances of a given error along with the ability to search by a user’s email address. This allows you to find the exact error instance belonging to that user along with their session to see exactly what they did to trigger the bug.
+
+To use this feature, head over to your [error feed](https://app.highlight.io/errors), click any error, and click the "See all instances" butto.
