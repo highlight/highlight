@@ -59,7 +59,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		error_object_id: string
 	}>()
 	const client = useApolloClient()
-	const { isHighlightAdmin } = useAuthContext()
 
 	const { loading, data } = useGetErrorInstanceQuery({
 		variables: {
@@ -111,7 +110,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			<Box id="error-instance-container">
 				<Stack direction="row" my="12">
 					<Stack direction="row" flexGrow={1}>
-						{isHighlightAdmin && <SeeAllInstances data={data} />}
+						<SeeAllInstances data={data} />
 						<PreviousNextInstance data={data} />
 					</Stack>
 					<Stack direction="row" gap="4">
@@ -158,7 +157,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		<Box id="error-instance-container">
 			<Stack direction="row" my="12">
 				<Stack direction="row" flexGrow={1}>
-					{isHighlightAdmin && <SeeAllInstances data={data} />}
+					<SeeAllInstances data={data} />
 					<PreviousNextInstance data={data} />
 				</Stack>
 				<Stack direction="row" gap="4">
@@ -179,6 +178,18 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 					<Text color="moderate">Instance Error Body</Text>
 				</Box>
 				<ErrorBodyText errorBody={errorInstance.error_object.event} />
+			</Box>
+
+			<Box display="flex" flexDirection="column" mb="40">
+				<Stack direction="row" align="center" pb="20" gap="8">
+					<Text size="large" weight="bold">
+						Harold AI
+					</Text>
+					<Badge label="Beta" size="medium" variant="purple" />
+				</Stack>
+				<AiErrorSuggestion
+					errorObjectId={errorInstance.error_object.id}
+				/>
 			</Box>
 
 			<Box display="flex" flexDirection="column" mb="40" gap="40">
@@ -203,18 +214,6 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 						</Box>
 					</>
 				)}
-
-			<Box display="flex" flexDirection="column" mb="40">
-				<Stack direction="row" align="center" pb="20" gap="8">
-					<Text size="large" weight="bold">
-						Harold AI
-					</Text>
-					<Badge label="Beta" size="medium" variant="purple" />
-				</Stack>
-				<AiErrorSuggestion
-					errorObjectId={errorInstance.error_object.id}
-				/>
-			</Box>
 
 			{(errorInstance.error_object.stack_trace !== '' &&
 				errorInstance.error_object.stack_trace !== 'null') ||

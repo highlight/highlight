@@ -185,6 +185,7 @@ var Models = []interface{}{
 	&ProjectFilterSettings{},
 	&AllWorkspaceSettings{},
 	&ErrorGroupActivityLog{},
+	&UserJourneyStep{},
 }
 
 func init() {
@@ -374,7 +375,7 @@ type ProjectFilterSettings struct {
 
 type AllWorkspaceSettings struct {
 	Model
-	WorkspaceID int
+	WorkspaceID int  `gorm:"uniqueIndex"`
 	AIInsights  bool `gorm:"default:false"`
 }
 
@@ -665,6 +666,7 @@ type Session struct {
 	Chunked              *bool
 	ProcessWithRedis     bool
 	AvoidPostgresStorage bool
+	Normalness           *float64
 }
 
 type SessionAdminsView struct {
@@ -1198,6 +1200,15 @@ type BillingEmailHistory struct {
 	Active      bool
 	WorkspaceID int
 	Type        Email.EmailType
+}
+
+type UserJourneyStep struct {
+	CreatedAt time.Time `json:"created_at" deep:"-"`
+	ProjectID int
+	SessionID int `gorm:"primary_key;not null"`
+	Index     int `gorm:"primary_key;not null"`
+	Url       string
+	NextUrl   string
 }
 
 type RetryableType string

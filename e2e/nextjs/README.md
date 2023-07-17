@@ -173,8 +173,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 				tracingOrigins
 				networkRecording={{
 					enabled: true,
-					recordHeadersAndBody: true,
-					urlBlocklist: [],
+					recordHeadersAndBody: true
 				}}
 				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
 			/>
@@ -207,8 +206,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 				tracingOrigins
 				networkRecording={{
 					enabled: true,
-					recordHeadersAndBody: true,
-					urlBlocklist: [],
+					recordHeadersAndBody: true
 				}}
 				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
 			/>

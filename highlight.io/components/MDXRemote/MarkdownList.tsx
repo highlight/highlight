@@ -4,7 +4,6 @@ export function MarkdownList(
 		HTMLUListElement | HTMLOListElement
 	>,
 ) {
-	console.log('HI')
 	return (
 		<>
 			{Array.isArray(props.children) &&

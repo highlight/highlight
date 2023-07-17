@@ -67,6 +67,7 @@ export type QuickStartCodeBlock = {
 	key?: string
 	text: string
 	language: string
+	copy?: string
 }
 
 export type QuickStartStep = {

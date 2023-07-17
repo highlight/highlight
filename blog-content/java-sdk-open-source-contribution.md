@@ -1,7 +1,7 @@
 ---
 title: Supporting Outside Contributions at Highlight
 createdAt: 2023-05-09T12:00:00Z
-readingTime: 4
+readingTime: 7
 authorFirstName: Vadim
 authorLastName: Korolik
 authorTitle: CTO @ Highlight 
@@ -22,6 +22,8 @@ Most open-source GitHub repositories want external contributors. But does open-s
    We even create product proposals ([we call these “RFC”s](https://github.com/highlight/highlight/tree/main/internal-docs/rfcs)) publicly to get engagement from the community, and we open public [GitHub discussions](https://github.com/highlight/highlight/discussions) to get feedback from our customers.
 
 - **We obsess over the developer experience.** We've optimized our docker stack for the developer workflow, making sure the setup was smooth and key productivity-boosters like code hot-reloading and breakpoint debugging worked out of the box. Moreover, we’ve made self-hosting highlight a breeze by supporting different runtime environments with a [pre-build cross-platform docker image](https://www.highlight.io/docs/getting-started/self-host/self-hosted-hobby-guide). Plus open source contributors have a [dedicated channel](https://discord.com/channels/1026884757667188757/1067576228674011136) to ask about their setup and voice opinions regarding the DX.
+
+- **We prioritize customer issues.** Who better knows how to improve our product than the folks actively using it? We get a substantial number of ideas, enhancements, and issues reported to our open source GitHub daily, and we do our best to stay on top of them. Plus, the conversations often create an engaging platform for folks using highlight to discuss their top features.
 
 - **We built a [supportive community](https://highlight.io/community).** Our discord has been a great way to engage with contributors and users of the product alike. It has given open-source developers a way to message our engineers with questions and quickly resolve blockers. It has also unlocked a new stream of feedback and suggestions from our customers allowing us to further improve the product.
 

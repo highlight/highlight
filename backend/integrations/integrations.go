@@ -83,7 +83,7 @@ func (c *Client) GetWorkspaceAccessToken(ctx context.Context, workspace *model.W
 	if err := c.db.Where(&model.IntegrationWorkspaceMapping{
 		WorkspaceID:     workspace.ID,
 		IntegrationType: integrationType,
-	}).First(&workspaceMapping).Error; err != nil {
+	}).Take(&workspaceMapping).Error; err != nil {
 		return nil, nil
 	}
 
@@ -121,7 +121,7 @@ func (c *Client) IsProjectIntegrated(ctx context.Context, project *model.Project
 		if err := c.db.Where(&model.IntegrationProjectMapping{
 			ProjectID:       project.ID,
 			IntegrationType: integrationType,
-		}).First(&projectMapping).Error; err != nil {
+		}).Take(&projectMapping).Error; err != nil {
 			return false, nil
 		}
 
@@ -133,7 +133,7 @@ func (c *Client) IsProjectIntegrated(ctx context.Context, project *model.Project
 	}
 
 	var workspace model.Workspace
-	if err := c.db.Where(&model.Workspace{Model: model.Model{ID: project.WorkspaceID}}).First(&workspace).Error; err != nil {
+	if err := c.db.Where(&model.Workspace{Model: model.Model{ID: project.WorkspaceID}}).Take(&workspace).Error; err != nil {
 		return false, nil
 	}
 
@@ -151,7 +151,7 @@ func (c *Client) IsProjectIntegrated(ctx context.Context, project *model.Project
 	if err := c.db.Where(&model.IntegrationProjectMapping{
 		ProjectID:       project.ID,
 		IntegrationType: integrationType,
-	}).First(&projectMapping).Error; err != nil {
+	}).Take(&projectMapping).Error; err != nil {
 		return false, nil
 	}
 

@@ -1,11 +1,4 @@
-import {
-	Badge,
-	Box,
-	IconSolidPlayCircle,
-	Stack,
-	Tag,
-	Text,
-} from '@highlight-run/ui'
+import { Box, IconSolidPlayCircle, Stack, Tag, Text } from '@highlight-run/ui'
 import {
 	createColumnHelper,
 	flexRender,
@@ -68,11 +61,9 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 				}
 
 				return (
-					<Badge
-						size="medium"
-						color="weak"
-						label={truncateVersion(session.appVersion)}
-					></Badge>
+					<Tag shape="basic" kind="secondary">
+						{truncateVersion(session.appVersion)}
+					</Tag>
 				)
 			},
 		}),
@@ -86,7 +77,10 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 				let sessionLink = ''
 
 				if (session) {
-					content = session.email ? session.email : '(no value)'
+					content =
+						session.email ??
+						session.fingerprint?.toString() ??
+						'(no value)'
 					const params = createSearchParams({
 						tsAbs: timestamp,
 						[PlayerSearchParameters.errorId]: errorObjectId,
@@ -120,7 +114,7 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 	})
 
 	return (
-		<>
+		<Box>
 			{table.getRowModel().rows.map((row) => {
 				return (
 					<Link
@@ -130,6 +124,7 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 						<Stack
 							key={row.id}
 							direction="row"
+							gap="4"
 							mb="8"
 							px="8"
 							py="2"
@@ -150,6 +145,6 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 					</Link>
 				)
 			})}
-		</>
+		</Box>
 	)
 }
