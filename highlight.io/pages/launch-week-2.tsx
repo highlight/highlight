@@ -31,7 +31,7 @@ const LaunchPage = () => {
 						type="copy1"
 						className="text-darker-copy-on-dark"
 					>
-						July 20th - 25th, 2023
+						July 17th - 21st, 2023
 					</Typography>
 				</div>
 				<div className="grid grid-cols-1 lg:grid-cols-3 items-center justify-center gap-3 mt-20 px-8 max-w-[550px] md:max-w-[1200px] mx-auto">
@@ -103,10 +103,10 @@ const LaunchPage = () => {
 				</div>
 				<div className="flex flex-col items-center gap-16 w-full max-w-[1200px] mx-auto my-10 px-8">
 					<DayOne />
-					<HiddenDay title="Day 2: July 21st" />
-					<HiddenDay title="Day 3: July 22nd" />
-					<HiddenDay title="Day 4: July 24th" />
-					<HiddenDay title="Day 5: July 25th" />
+					<HiddenDay title="Day 2: July 18th" />
+					<HiddenDay title="Day 3: July 19th" />
+					<HiddenDay title="Day 4: July 20th" />
+					<HiddenDay title="Day 5: July 21th" />
 				</div>
 				<Section>
 					<CompaniesReel />
