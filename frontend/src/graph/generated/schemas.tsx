@@ -2468,6 +2468,11 @@ export type Segment = {
 	project_id: Scalars['ID']
 }
 
+export enum ServiceSdkType {
+	Go = 'GO',
+	Python = 'PYTHON',
+}
+
 export type Session = {
 	__typename?: 'Session'
 	active_length?: Maybe<Scalars['Int']>

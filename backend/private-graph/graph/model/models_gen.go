@@ -1554,6 +1554,47 @@ func (e RetentionPeriod) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type ServiceSDKType string
+
+const (
+	ServiceSDKTypeGo     ServiceSDKType = "GO"
+	ServiceSDKTypePython ServiceSDKType = "PYTHON"
+)
+
+var AllServiceSDKType = []ServiceSDKType{
+	ServiceSDKTypeGo,
+	ServiceSDKTypePython,
+}
+
+func (e ServiceSDKType) IsValid() bool {
+	switch e {
+	case ServiceSDKTypeGo, ServiceSDKTypePython:
+		return true
+	}
+	return false
+}
+
+func (e ServiceSDKType) String() string {
+	return string(e)
+}
+
+func (e *ServiceSDKType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ServiceSDKType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ServiceSDKType", str)
+	}
+	return nil
+}
+
+func (e ServiceSDKType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type SessionAlertType string
 
 const (

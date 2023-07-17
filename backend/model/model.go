@@ -40,6 +40,7 @@ import (
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
@@ -179,6 +180,7 @@ var Models = []interface{}{
 	&EmailOptOut{},
 	&BillingEmailHistory{},
 	&Retryable{},
+	&Service{},
 	&SetupEvent{},
 	&SessionAdminsView{},
 	&ErrorGroupAdminsView{},
@@ -1936,6 +1938,13 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 
 		}
 	}
+}
+
+type Service struct {
+	Model
+	ProjectID int    `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Name      string `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	SDKType   model.ServiceSDKType
 }
 
 type LogAlert struct {
