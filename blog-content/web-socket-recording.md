@@ -9,7 +9,7 @@ authorTwitter: 'https://twitter.com/SpennyNDaJets'
 authorLinkedIn: 'https://www.linkedin.com/in/spencer-amarantides/'
 authorGithub: 'https://github.com/SpennyNDaJets'
 authorWebsite: ''
-authorPFP: 'TODO - spenny'
+authorPFP: 'https://lh3.google.com/u/0/ogw/AGvuzYYcxLXVI9fxSgSPXbQoBw2mpUKll1Kt5hR3LxEh=s64-c-mo'
 tags: Developer Tooling, Launch Week 2
 metaTitle: Session replay now supports recording WebSocket events
 ---
