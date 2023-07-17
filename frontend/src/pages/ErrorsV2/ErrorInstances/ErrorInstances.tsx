@@ -35,7 +35,7 @@ export interface SearchFormState {
 }
 
 export const ErrorInstances = ({ errorGroup }: Props) => {
-	const [currentSearchedEmail, setCurrentSearchEmail] = React.useState('')
+	const [currentSearchEmail, setCurrentSearchEmail] = React.useState('')
 	const form = useFormState<SearchFormState>({
 		defaultValues: {
 			email: '',
@@ -142,7 +142,7 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 		>
 			<ErrorInstancesTable
 				edges={edges}
-				searchedEmail={currentSearchedEmail}
+				searchedEmail={currentSearchEmail}
 			/>
 		</ErrorInstancesContainer>
 	)
