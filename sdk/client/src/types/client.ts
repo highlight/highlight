@@ -150,3 +150,10 @@ export enum MetricCategory {
 	Frontend = 'Frontend',
 	Backend = 'Backend',
 }
+
+export declare type ServiceOptions = {
+	/**
+	 * Assign the name of this service (e.g. "shopping-cart-frontend")
+	 */
+	name?: string
+}

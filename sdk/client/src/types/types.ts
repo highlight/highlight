@@ -3,6 +3,7 @@ import {
 	DebugOptions,
 	IntegrationOptions,
 	NetworkRecordingOptions,
+	ServiceOptions,
 	SessionShortcutOptions,
 } from './client'
 
@@ -124,6 +125,10 @@ export declare type HighlightOptions = {
 	 * This is commonly a Git hash or a semantic version.
 	 */
 	version?: string
+	/**
+	 * Assign this service's metadata.
+	 */
+	service?: ServiceOptions
 	/**
 	 * Specifies whether Highlight should redact data during recording.
 	 * Enabling this will disable recording of text data on the page. This is useful if you do not want to record personally identifiable information and don't want to manually annotate your code with the class name "highlight-block".

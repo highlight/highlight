@@ -103,8 +103,8 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 	useEffect(() => analytics.page(), [])
 
-	if (!errorInstance || !errorInstance?.error_object) {
-		if (!loading) return null
+	if (!errorInstance || !errorInstance?.error_object || true) {
+		if (!loading && false) return null
 
 		return (
 			<Box id="error-instance-container">
