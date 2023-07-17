@@ -386,6 +386,12 @@
 	position: relative;
 }
 
+.launchWeekText {
+	text-align: center;
+	width: 100%;
+	font-weight: 300;
+}
+
 @media screen and (max-width: 800px) {
 	.navPostTitle {
 		display: none;
