@@ -19,7 +19,7 @@ all-in-one.
 
 1. On the frontend, the `<HighlightInit/>` component sets up client-side session replays.
 2. On the backend, the `withHighlight` wrapper captures server-side errors and logs from your API.
-3. It also automatically proxies highlight data to avoid ad-blockers and uploads source maps so your frontend errors include stack traces to your source code.
+3. The `withHighlightConfig` configuration wrapper automatically proxies highlight data to bypass ad-blockers and uploads source maps so your frontend errors include stack traces to your source code.
 
 ## Installation
 
