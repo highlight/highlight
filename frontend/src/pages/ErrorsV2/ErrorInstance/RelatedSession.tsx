@@ -41,7 +41,7 @@ export const RelatedSession = ({ data }: Props) => {
 		<Link to={sessionLink}>
 			<Tag
 				kind="secondary"
-				emphasis="low"
+				emphasis="high"
 				size="medium"
 				shape="basic"
 				disabled={!isLoggedIn || sessionLink === ''}
