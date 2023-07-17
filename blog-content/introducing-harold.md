@@ -10,7 +10,7 @@ authorLinkedIn: 'https://www.linkedin.com/in/ccschmitz'
 authorGithub: 'https://github.com/ccschmitz'
 authorWebsite: ''
 authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75'
-tags: AI, Developer Tooling
+tags: AI, Developer Tooling, Launch Week 2
 metaTitle: Get help pulling insights from sessions and fixing errors from Harold, Highlight's AI engineering partner
 ---
 
@@ -38,4 +38,4 @@ These insights, paired with [Interesting Sessions](https://highlight.io/blog/int
 
 We hope to give Harold more superpowers soon, especially if our users are finding a lot of value from these initial features. Please let us know what you think of these features and if you find them useful!
 
-Beyond these AI features, we have a [slew of other updates](https://highlight.io/launch-week) to help you wrangle errors and get to the most important user events in your sessions. 
+Beyond these AI features, we have a [slew of other updates](https://highlight.io/launch-week) to help you wrangle errors and get to the most important user events in your sessions. Stay tuned to everything we're announcing as part of launch week!
