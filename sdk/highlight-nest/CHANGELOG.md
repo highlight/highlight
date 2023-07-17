@@ -11,3 +11,7 @@
 ### Initial Release
 
 - Adds the `HighlightInterceptor` to be used for catching errors.
+
+### 3.1.2
+
+- Bumping to match `@highlight-run/node`

@@ -316,16 +316,19 @@ func (ErrorObjectEdge) IsEdge()                {}
 func (this ErrorObjectEdge) GetCursor() string { return this.Cursor }
 
 type ErrorObjectNode struct {
-	ID        int                     `json:"id"`
-	CreatedAt time.Time               `json:"createdAt"`
-	Event     string                  `json:"event"`
-	Session   *ErrorObjectNodeSession `json:"session"`
+	ID                 int                     `json:"id"`
+	CreatedAt          time.Time               `json:"createdAt"`
+	Event              string                  `json:"event"`
+	Timestamp          time.Time               `json:"timestamp"`
+	Session            *ErrorObjectNodeSession `json:"session"`
+	ErrorGroupSecureID string                  `json:"errorGroupSecureID"`
 }
 
 type ErrorObjectNodeSession struct {
-	SecureID       string  `json:"secureID"`
-	UserProperties string  `json:"userProperties"`
-	AppVersion     *string `json:"appVersion"`
+	SecureID    string  `json:"secureID"`
+	AppVersion  *string `json:"appVersion"`
+	Email       *string `json:"email"`
+	Fingerprint *int    `json:"fingerprint"`
 }
 
 type ErrorSearchParamsInput struct {
@@ -728,6 +731,15 @@ type VercelProjectMappingInput struct {
 	ProjectID       *int    `json:"project_id"`
 }
 
+type WebSocketEvent struct {
+	Message   string  `json:"message"`
+	Name      string  `json:"name"`
+	SocketID  string  `json:"socketId"`
+	Type      string  `json:"type"`
+	TimeStamp float64 `json:"timeStamp"`
+	Size      int     `json:"size"`
+}
+
 type WebhookDestinationInput struct {
 	URL           string  `json:"url"`
 	Authorization *string `json:"authorization"`
@@ -788,20 +800,22 @@ func (e DashboardChartType) MarshalGQL(w io.Writer) {
 type EmailOptOutCategory string
 
 const (
-	EmailOptOutCategoryAll     EmailOptOutCategory = "All"
-	EmailOptOutCategoryDigests EmailOptOutCategory = "Digests"
-	EmailOptOutCategoryBilling EmailOptOutCategory = "Billing"
+	EmailOptOutCategoryAll            EmailOptOutCategory = "All"
+	EmailOptOutCategoryDigests        EmailOptOutCategory = "Digests"
+	EmailOptOutCategoryBilling        EmailOptOutCategory = "Billing"
+	EmailOptOutCategorySessionDigests EmailOptOutCategory = "SessionDigests"
 )
 
 var AllEmailOptOutCategory = []EmailOptOutCategory{
 	EmailOptOutCategoryAll,
 	EmailOptOutCategoryDigests,
 	EmailOptOutCategoryBilling,
+	EmailOptOutCategorySessionDigests,
 }
 
 func (e EmailOptOutCategory) IsValid() bool {
 	switch e {
-	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests, EmailOptOutCategoryBilling:
+	case EmailOptOutCategoryAll, EmailOptOutCategoryDigests, EmailOptOutCategoryBilling, EmailOptOutCategorySessionDigests:
 		return true
 	}
 	return false
@@ -1638,6 +1652,7 @@ const (
 	SessionExcludedReasonNoUserInteractionEvents   SessionExcludedReason = "NoUserInteractionEvents"
 	SessionExcludedReasonNoTimelineIndicatorEvents SessionExcludedReason = "NoTimelineIndicatorEvents"
 	SessionExcludedReasonNoError                   SessionExcludedReason = "NoError"
+	SessionExcludedReasonNoUserEvents              SessionExcludedReason = "NoUserEvents"
 	SessionExcludedReasonIgnoredUser               SessionExcludedReason = "IgnoredUser"
 )
 
@@ -1647,12 +1662,13 @@ var AllSessionExcludedReason = []SessionExcludedReason{
 	SessionExcludedReasonNoUserInteractionEvents,
 	SessionExcludedReasonNoTimelineIndicatorEvents,
 	SessionExcludedReasonNoError,
+	SessionExcludedReasonNoUserEvents,
 	SessionExcludedReasonIgnoredUser,
 }
 
 func (e SessionExcludedReason) IsValid() bool {
 	switch e {
-	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonIgnoredUser:
+	case SessionExcludedReasonInitializing, SessionExcludedReasonNoActivity, SessionExcludedReasonNoUserInteractionEvents, SessionExcludedReasonNoTimelineIndicatorEvents, SessionExcludedReasonNoError, SessionExcludedReasonNoUserEvents, SessionExcludedReasonIgnoredUser:
 		return true
 	}
 	return false

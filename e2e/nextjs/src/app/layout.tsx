@@ -22,7 +22,6 @@ export default function RootLayout({
 				networkRecording={{
 					enabled: true,
 					recordHeadersAndBody: true,
-					urlBlocklist: [],
 				}}
 				// inlineImages={false}
 				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}

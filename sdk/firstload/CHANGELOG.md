@@ -290,3 +290,15 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 
 - Add easier testing of local `@highlight-run/client` and `highlight.run` scripts.
 - Look for `window.HighlightIO` instead of `window.Highlight` when waiting for client script to load.
+
+## 7.3.5
+
+### Patch Changes
+
+- Remove any properties that throw a `structuredClone` error in `addProperties` before calling `postMessage`
+
+## 7.3.6
+
+### Patch Changes
+
+- Track identify metadata in the mixpanel integration as a tracked event.

@@ -1,10 +1,11 @@
 import { ErrorButtons } from '@/app/components/error-buttons'
 import { FetchTests } from '@/app/components/fetch-tests'
 import { HighlightIdentify } from '@/app/components/highlight-identify'
+import { HighlightButtons } from './components/highlight-buttons'
 import Image from 'next/image'
+import Link from 'next/link'
 import { PathButtons } from '@/app/components/path-buttons'
 import { TrpcQueries } from '@/app/components/trpc-queries'
-import { HighlightButtons } from './components/highlight-buttons'
 
 export default function Home() {
 	return (
@@ -33,6 +34,8 @@ export default function Home() {
 
 			<h3>Fetch</h3>
 			<FetchTests />
+
+			<Link href="/another-page">Navigation Test</Link>
 		</main>
 	)
 }

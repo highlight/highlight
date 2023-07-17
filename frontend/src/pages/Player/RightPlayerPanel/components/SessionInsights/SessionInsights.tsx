@@ -10,7 +10,6 @@ import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/Button'
-import LoadingBox from '@/components/LoadingBox'
 import { useGetSessionInsightLazyQuery } from '@/graph/generated/hooks'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@/pages/Player/ReplayerContext'
@@ -50,7 +49,24 @@ const SessionInsights = () => {
 	return (
 		<Box p="8" height="full" overflow="auto">
 			{loading ? (
-				<LoadingBox />
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="center"
+					style={{
+						height: '100%',
+						width: '100%',
+					}}
+				>
+					<Button
+						kind="secondary"
+						emphasis="low"
+						loading
+						trackingId="loading"
+					>
+						Harold is thinking...
+					</Button>
+				</Box>
 			) : insightData ? (
 				<Box
 					cssClass={clsx(style.insightPanel, {
@@ -64,63 +80,62 @@ const SessionInsights = () => {
 						flexDirection="column"
 						position="relative"
 					>
-						{[
-							...JSON.parse(insightData),
-							...JSON.parse(insightData),
-						].map((insight: SessionInsight, idx: number) => {
-							const timeSinceStart =
-								new Date(insight.timestamp).getTime() -
-								startTime
-							return (
-								<Box cursor="pointer" key={idx}>
-									<Box
-										className={style.insight}
-										onClick={() => {
-											setTime(timeSinceStart)
-										}}
-									>
-										<Box display="flex" gap="4">
-											<Badge
-												size="small"
-												variant="purple"
-												label={String(idx + 1)}
-											/>
-											<Tag
-												kind="secondary"
-												size="small"
-												shape="basic"
-												emphasis="low"
-												iconRight={
-													<IconSolidArrowCircleRight />
-												}
-											>
-												{showPlayerAbsoluteTime
-													? playerTimeToSessionAbsoluteTime(
-															{
-																sessionStartTime:
-																	startTime,
-																relativeTime:
-																	timeSinceStart,
-															},
-													  )
-													: MillisToMinutesAndSeconds(
-															timeSinceStart,
-													  )}
-											</Tag>
-										</Box>
-										<Box overflowWrap="breakWord">
-											<Text
-												size="small"
-												weight="medium"
-												color="strong"
-											>
-												{insight.insight}
-											</Text>
+						{[...JSON.parse(insightData)].map(
+							(insight: SessionInsight, idx: number) => {
+								const timeSinceStart =
+									new Date(insight.timestamp).getTime() -
+									startTime
+								return (
+									<Box cursor="pointer" key={idx}>
+										<Box
+											className={style.insight}
+											onClick={() => {
+												setTime(timeSinceStart)
+											}}
+										>
+											<Box display="flex" gap="4">
+												<Badge
+													size="small"
+													variant="purple"
+													label={String(idx + 1)}
+												/>
+												<Tag
+													kind="secondary"
+													size="small"
+													shape="basic"
+													emphasis="low"
+													iconRight={
+														<IconSolidArrowCircleRight />
+													}
+												>
+													{showPlayerAbsoluteTime
+														? playerTimeToSessionAbsoluteTime(
+																{
+																	sessionStartTime:
+																		startTime,
+																	relativeTime:
+																		timeSinceStart,
+																},
+														  )
+														: MillisToMinutesAndSeconds(
+																timeSinceStart,
+														  )}
+												</Tag>
+											</Box>
+											<Box overflowWrap="breakWord">
+												<Text
+													size="small"
+													weight="medium"
+													color="strong"
+												>
+													{insight.insight}
+												</Text>
+											</Box>
 										</Box>
 									</Box>
-								</Box>
-							)
-						})}
+								)
+							},
+						)}
 					</Box>
 				</Box>
 			) : (
@@ -144,7 +159,7 @@ const SessionInsights = () => {
 						}}
 						iconLeft={<IconSolidSparkles />}
 					>
-						Generate summary
+						Summarize session
 					</Button>
 				</Box>
 			)}

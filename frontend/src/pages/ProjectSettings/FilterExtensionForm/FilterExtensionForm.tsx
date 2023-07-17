@@ -29,7 +29,7 @@ export const FilterExtensionForm = () => {
 	const categories = [
 		{
 			key: 'Extension errors',
-			message: 'Filter out errors thrown by chrome extensions',
+			message: 'Filter out errors thrown by browser extensions',
 			checked: filterChromeExtension,
 		},
 	]

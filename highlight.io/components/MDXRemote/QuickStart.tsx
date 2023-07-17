@@ -79,6 +79,7 @@ export function QuickStart({ content: c }: Props) {
 												}}
 												language={codeBlock.language}
 												text={codeBlock.text}
+												copy={codeBlock.copy}
 												showLineNumbers={false}
 											/>
 										)

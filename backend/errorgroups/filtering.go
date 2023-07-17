@@ -13,13 +13,17 @@ func IsErrorTraceFiltered(project model.Project, structuredStackTrace []*private
 		return false
 	}
 
-	hasChromeExtensionFrame := lo.SomeBy(structuredStackTrace, func(frame *privateModel.ErrorTrace) bool {
-		return IsFrameChromeExtension(*frame)
+	hasBrowserExtensionFrame := lo.SomeBy(structuredStackTrace, func(frame *privateModel.ErrorTrace) bool {
+		return IsFrameChromeExtension(*frame) || IsFrameFirefoxExtension(*frame)
 	})
 
-	return hasChromeExtensionFrame
+	return hasBrowserExtensionFrame
 }
 
 func IsFrameChromeExtension(frame privateModel.ErrorTrace) bool {
 	return frame.FileName != nil && strings.HasPrefix(*frame.FileName, "chrome-extension")
+}
+
+func IsFrameFirefoxExtension(frame privateModel.ErrorTrace) bool {
+	return frame.FileName != nil && strings.HasPrefix(*frame.FileName, "moz-extension")
 }

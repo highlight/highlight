@@ -15,7 +15,42 @@ import styles from './Navbar.module.scss'
 import ResourceDropdown from './ResourceDropdown'
 
 import '@docsearch/css'
+import moment from 'moment'
+import Banner from '../Banner/Banner'
 import FeatureDropdown from './FeatureDropdown'
+
+const LaunchWeekBanner = () => {
+	const LaunchWeekSchedule = [
+		'',
+		'error monitoring',
+		'session replay',
+		'logging',
+		'AI',
+		'our community',
+	] as const
+
+	const day = moment().diff(moment('2023-07-17T16:00:00Z'), 'days') + 1
+	if (day < 1 || day > 5) {
+		return null
+	}
+
+	const bannerMessage = (
+		<div className={styles.launchWeekText}>
+			Launch Week 2 is here! Day {day} is all about{' '}
+			{LaunchWeekSchedule[day]}.{' '}
+			<a
+				target="_blank"
+				href={`https://www.highlight.io/launch-week-2#day-${day}`}
+				rel="noreferrer"
+			>
+				Follow along
+			</a>{' '}
+			to see what we&apos;ve been building!
+		</div>
+	)
+
+	return <Banner>{bannerMessage}</Banner>
+}
 
 const Navbar = ({
 	hideFreeTrialText,
@@ -58,6 +93,7 @@ const Navbar = ({
 					[styles.fixed]: fixed,
 				})}
 			>
+				<LaunchWeekBanner />
 				<header
 					className={classNames({
 						[styles.mobileHeader]: isOpen,
@@ -204,18 +240,20 @@ const Navbar = ({
 							>
 								<FeatureDropdown isOpen={scrolled && !fixed} />
 								<Link
+									href="/integrations"
+									className={styles.headerButton}
+								>
+									<Typography type="copy2">
+										Integrations
+									</Typography>
+								</Link>
+								<Link
 									href="/pricing"
 									className={styles.headerButton}
 								>
 									<Typography type="copy2">
 										Pricing
 									</Typography>
-								</Link>
-								<Link
-									href="/blog"
-									className={styles.headerButton}
-								>
-									<Typography type="copy2">Blog</Typography>
 								</Link>
 								<ResourceDropdown isOpen={scrolled && !fixed} />
 							</div>

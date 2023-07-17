@@ -22,7 +22,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 				networkRecording={{
 					enabled: true,
 					recordHeadersAndBody: true,
-					urlBlocklist: [],
 				}}
 				// inlineImages={true} // Set to false to disable inline images and resolve CORS issue
 				// run `yarn dev` from the sdk/client directory to serve the scriptUrl

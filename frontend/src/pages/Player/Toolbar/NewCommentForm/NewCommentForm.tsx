@@ -39,7 +39,6 @@ import ISSUE_TRACKER_INTEGRATIONS, {
 import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'
-import { delayedRefetch } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -91,7 +90,6 @@ export const NewCommentForm = ({
 			namedOperations.Query.GetSessionComments,
 			namedOperations.Query.GetSessionsOpenSearch,
 		],
-		onQueryUpdated: delayedRefetch,
 	})
 	const [createErrorComment] = useCreateErrorCommentMutation()
 	const { admin, isLoggedIn } = useAuthContext()

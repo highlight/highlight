@@ -133,7 +133,12 @@ export class IndexedDBCache {
 		})
 	}
 	deleteItem = async function (key: { operation: string; variables: any }) {
-		await db.apollo.delete(JSON.stringify(key))
+		const q = db.apollo.where('key').equals(JSON.stringify(key))
+		log('db.ts', 'IndexedDBLink cache deleting', {
+			key,
+			count: await q.count(),
+		})
+		await q.delete()
 	}
 }
 

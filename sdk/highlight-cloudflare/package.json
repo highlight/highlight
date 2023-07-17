@@ -6,8 +6,9 @@
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
 	"scripts": {
-		"typegen": "tsup src/index.ts --dts-only",
-		"build": "tsup src/index.ts --format cjs,esm --dts"
+		"dev": "yarn build --watch",
+		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"typegen": "tsup src/index.ts --dts-only"
 	},
 	"publishConfig": {
 		"access": "public"
@@ -18,6 +19,7 @@
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20230518.0",
+		"@opentelemetry/resources": "^1.15.0",
 		"tsup": "^6.7.0"
 	}
 }

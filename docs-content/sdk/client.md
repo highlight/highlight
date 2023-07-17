@@ -48,6 +48,10 @@ slug: client
           <p>The value here will be ignored if disabledConsoleRecording is true. The default value is ['assert', 'count', 'countReset', 'debug', 'dir', 'dirxml', 'error', 'group', 'groupCollapsed', 'groupEnd', 'info', 'log', 'table', 'time', 'timeEnd', 'timeLog', 'trace', 'warn'].</p>
         </aside>
         <aside className="parameter">
+          <h5>reportConsoleErrors <code>boolean</code> <code>optional</code></h5>
+          <p>If true, console.error calls will be logged as errors. The default value is false.</p>
+        </aside>
+        <aside className="parameter">
           <h5>enableSegmentIntegration <code>boolean</code> <code>optional</code></h5>
           <p>Allows patching of segment requests to enhance data automatically in your application (i.e. identify, track, etc.). The default value is false.</p>
         </aside>

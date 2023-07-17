@@ -23,8 +23,6 @@ import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
-import * as Sentry from '@sentry/react'
-import { BrowserTracing } from '@sentry/tracing'
 import analytics from '@util/analytics'
 import { getAttributionData, setAttributionData } from '@util/attribution'
 import { auth } from '@util/auth'
@@ -82,6 +80,7 @@ const options: HighlightOptions = {
 		urlBlocklist: [
 			'network-resources-compressed',
 			'session-contents-compressed',
+			'web-socket-events-compressed',
 		],
 	},
 	tracingOrigins: [
@@ -93,6 +92,9 @@ const options: HighlightOptions = {
 	integrations: {
 		amplitude: {
 			apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
+		},
+		mixpanel: {
+			projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',
 		},
 	},
 	enableSegmentIntegration: true,
@@ -135,14 +137,6 @@ analytics.track('attribution', getAttributionData())
 if (!isOnPrem) {
 	H.start()
 	loadIntercom()
-
-	if (!dev) {
-		Sentry.init({
-			dsn: 'https://e8052ada7c10490b823e0f939c519903@o4504696930631680.ingest.sentry.io/4504697059934208',
-			integrations: [new BrowserTracing()],
-			tracesSampleRate: 1.0,
-		})
-	}
 }
 
 showHiringMessage()

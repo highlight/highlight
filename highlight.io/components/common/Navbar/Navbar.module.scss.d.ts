@@ -23,6 +23,7 @@ export const hide: string
 export const hideNavbar: string
 export const innerGridContainer: string
 export const innerPopoverPanel: string
+export const launchWeekText: string
 export const loadingBar: string
 export const menuButtons: string
 export const menuDropdown: string
