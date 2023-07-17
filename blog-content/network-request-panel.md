@@ -1,5 +1,5 @@
 ---
-title: 'New Feature: Network Request Details Panel'
+title: 'The Network Request Details Panel'
 createdAt: 2023-06-14T12:00:00Z
 readingTime: 5
 authorFirstName: Chris
