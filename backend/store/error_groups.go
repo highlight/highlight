@@ -36,7 +36,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 		if parsedQuery["email"] != "" {
 			query.Joins("LEFT JOIN sessions ON error_objects.session_id = sessions.id").
 				Where("sessions.project_id = ?", errorGroup.ProjectID). // Attaching project id so we can utilize the composite index sessions
-				Where("sessions.email = ?", parsedQuery["email"])
+				Where("sessions.email ILIKE ?", "%"+parsedQuery["email"]+"%")
 		}
 	}
 

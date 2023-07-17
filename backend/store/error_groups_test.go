@@ -158,6 +158,13 @@ func TestListErrorObjectsSearchByEmail(t *testing.T) {
 		assert.NoError(t, err)
 
 		assert.Len(t, connection.Edges, 1)
+
+		connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{
+			Query: "email:mcwoutie",
+		})
+		assert.NoError(t, err)
+
+		assert.Len(t, connection.Edges, 1)
 	})
 }
 

@@ -35,6 +35,7 @@ export interface SearchFormState {
 }
 
 export const ErrorInstances = ({ errorGroup }: Props) => {
+	const [currentSearchedEmail, setCurrentSearchEmail] = React.useState('')
 	const form = useFormState<SearchFormState>({
 		defaultValues: {
 			email: '',
@@ -59,6 +60,7 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 		setQuery(`email:${form.values.email}`)
+		setCurrentSearchEmail(form.values.email)
 	}
 
 	if (loading) {
@@ -138,7 +140,10 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			form={form}
 			onSubmit={handleSubmit}
 		>
-			<ErrorInstancesTable edges={edges} />
+			<ErrorInstancesTable
+				edges={edges}
+				searchedEmail={currentSearchedEmail}
+			/>
 		</ErrorInstancesContainer>
 	)
 }
