@@ -46,4 +46,4 @@ Picture this: a customer writes in about an issue they’re facing. They give yo
 
 Highlight now provides a more friendly list view so you can easily see all instances of a given error along with the ability to search by a user’s email address. This allows you to find the exact error instance belonging to that user along with their session to see exactly what they did to trigger the bug.
 
-To use this feature, head over to your [error feed](https://app.highlight.io/errors), click any error, and click the "See all instances" butto.
+To use this feature, head over to your [error feed](https://app.highlight.io/errors), click any error, and click the "See all instances" button.
