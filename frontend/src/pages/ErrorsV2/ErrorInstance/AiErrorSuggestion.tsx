@@ -13,7 +13,7 @@ import {
 } from '@highlight-run/ui'
 import { message } from 'antd'
 import clsx from 'clsx'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 
 import { GetErrorResolutionSuggestionQuery } from '@/graph/generated/operations'
@@ -33,17 +33,33 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 	const [error, setError] = useState<ApolloError | null>(null)
 	const [getErrorResolutionSuggestion, { loading, refetch }] =
 		useGetErrorResolutionSuggestionLazyQuery({
+			nextFetchPolicy: 'standby',
 			notifyOnNetworkStatusChange: true,
 			onCompleted: (data) => {
-				setError(null)
-				setData(data)
+				if (initialId && initialId === errorObjectId) {
+					setError(null)
+					setData(data)
+				}
 			},
 			onError: (error) => {
-				setError(error)
-				setData(null)
+				if (initialId && initialId === errorObjectId) {
+					setError(error)
+					setData(null)
+				}
 			},
 		})
 	const [voted, setVoted] = useState(false)
+	const [initialId, setInitialId] = useState('')
+
+	const suggestionLoading = useMemo(
+		() => loading && initialId === errorObjectId,
+		[errorObjectId, initialId, loading],
+	)
+
+	useEffect(() => {
+		setData(null)
+		setError(null)
+	}, [errorObjectId])
 
 	return (
 		<Box
@@ -53,7 +69,7 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 				[styles.aiSuggestionPrompt]: !data?.error_resolution_suggestion,
 			})}
 		>
-			{data?.error_resolution_suggestion ? (
+			{data?.error_resolution_suggestion && !loading ? (
 				<Stack flexDirection="column">
 					<AiErrorSuggestionCard
 						content={
@@ -175,6 +191,7 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 				<Box display="flex" mt="12" gap="4">
 					<Button
 						onClick={() => {
+							setInitialId(errorObjectId)
 							getErrorResolutionSuggestion({
 								variables: {
 									error_object_id: errorObjectId,
@@ -184,10 +201,12 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 						kind="primary"
 						emphasis="high"
 						trackingId="error-instance_get-ai-suggestion"
-						loading={loading}
+						loading={suggestionLoading}
 						iconLeft={<IconSolidSparkles />}
 					>
-						Get error help
+						{suggestionLoading
+							? 'Harold is thinking...'
+							: 'Get error help'}
 					</Button>
 					<Button
 						kind="secondary"
@@ -207,16 +226,19 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 				<Box display="flex" justifyContent="center" mt="12" gap="4">
 					<Button
 						onClick={(_event) => {
+							setInitialId(errorObjectId)
 							refetch()
 							setVoted(false)
 						}}
 						kind="secondary"
 						emphasis="medium"
 						trackingId="error-instance_refresh-ai-suggestion"
-						loading={loading}
+						loading={suggestionLoading}
 						iconLeft={<IconSolidRefresh />}
 					>
-						Refresh Suggestion
+						{suggestionLoading
+							? 'Harold is thinking...'
+							: 'Refresh Suggestion'}
 					</Button>
 					<Button
 						kind="secondary"
