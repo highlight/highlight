@@ -30,7 +30,7 @@ After generating a suggestion on how to fix an error, you’ll be prompted to pr
 
 Ever wonder what to do with that 4 hour long session? Harold can now analyze the events in a session and summarize them for you, providing a handful of insights about what the user did in that session. This can help with quickly understanding their flow in the app and allow you to quickly jump to the interesting portions of the session.
 
-![Harold suggesting how to fix an error](/images/blog/introducing-harold/session-insights.png)
+![Harold suggesting how to summarize a session](/images/blog/introducing-harold/session-insights.png)
 
 These insights, paired with [Interesting Sessions](https://highlight.io/interesting-sessions), power a new weekly email digest that summarizes the interesting things happening in your product so you can quickly see new or unexpected usage patterns.
 
