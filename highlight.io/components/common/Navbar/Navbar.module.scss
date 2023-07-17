@@ -229,8 +229,10 @@
 }
 
 .headerLeft {
+	display: flex;
 	gap: var(--size-xSmall);
 	justify-content: flex-start;
+	width: 33%;
 	width: calc(100% / 3);
 }
 
@@ -247,8 +249,8 @@
 }
 
 .headerRight {
-	flex-shrink: 0;
 	justify-content: flex-end;
+	width: calc(100% / 3);
 }
 
 .socialButtonContainer {
