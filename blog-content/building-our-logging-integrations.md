@@ -10,7 +10,7 @@ authorLinkedIn: 'https://www.linkedin.com/in/vkorolik/'
 authorGithub: 'https://github.com/Vadman97'
 authorWebsite: 'https://vadweb.us'
 authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1y4EKjfbodEYiY=s96-c'
-tags: Highlight Engineering
+tags: Launch Week 2
 metaTitle: Building Logging Integrations at Highlight.io.
 ---
 Engineers can build full stack web applications in a myriad different languages. For each of the popular ones, there are dozens of frameworks that help make the process easy and efficient, each with its own opinions on common patterns for web development.
