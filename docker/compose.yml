@@ -52,6 +52,7 @@ services:
     postgres:
         logging: *highlight-logging
         container_name: postgres
+        # a postgres image with pgvector installed
         image: ankane/pgvector
         ports:
             - 5432:5432
