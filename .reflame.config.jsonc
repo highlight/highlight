@@ -19,7 +19,7 @@
 		"version": 1,
 	},
 	"themeColor": "#5629c6",
-	"filesIgnored": ["**/**.css.ts", "**/**.scss"],
+	"filesIgnored": ["**/**.css.ts"],
 	"environments": {
 		"production": {
 			"REACT_APP_FIREBASE_CONFIG_OBJECT": "{    apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',    authDomain: 'auth.highlight.run',    databaseURL: 'https://highlight-f5c5b.firebaseio.com',    projectId: 'highlight-f5c5b',    storageBucket: 'highlight-f5c5b.appspot.com',    messagingSenderId: '263184175068',    appId: '1:263184175068:web:f8190c20320087d1c6c919',}",
@@ -142,7 +142,7 @@
 		},
 		{
 			"from": "/__generated/index.css",
-			"to": "/index.scss",
+			"to": "/style/tailwind.css",
 		},
 		{
 			"from": "/__generated/rr/rr.js",
@@ -159,11 +159,6 @@
 		{
 			"from": "^/__generated/ve/(.*).css.js$",
 			"to": "/$1.css",
-			"phase": "pre",
-		},
-		{
-			"from": "^/__generated/scss/(.*).scss.js$",
-			"to": "/$1.scss",
 			"phase": "pre",
 		},
 		{
@@ -243,6 +238,7 @@
 			"sourceDirectory": "sdk/client/src",
 			"entryPoints": {
 				"/src/listeners/first-load-listeners": "/listeners/first-load-listeners.tsx",
+				"/src/listeners/network-listener/utils/utils": "/listeners/network-listener/utils/utils.ts",
 				"/src/utils/secure-id": "/utils/secure-id.ts",
 				"/src/utils/sessionStorage/highlightSession": "/utils/sessionStorage/highlightSession.ts",
 			},
@@ -271,9 +267,6 @@
 		"@vanilla-extract/recipes": {
 			"entryPoints": ["/createRuntimeFn"],
 		},
-		"ariakit": {
-			"entryPoints": ["/", "/dialog", "/form"],
-		},
 		// TODO: create a library for this
 		// Might need a shim entry point for .css?
 		"@highlight-run/react": {
@@ -294,9 +287,6 @@
 		},
 		"firebase": {
 			"entryPoints": ["/compat/auth", "/compat/app"],
-		},
-		"intro.js": {
-			"entryPoints": ["/", "/introjs.css"],
 		},
 		"lodash": {
 			"entryPoints": ["/", "/isEqual"],
@@ -353,12 +343,5 @@
 		"use-query-params": {
 			"entryPoints": ["/", "/adapters/react-router-6"],
 		},
-	},
-	"npmPackageOverrides": {
-		"react": "18.2.0",
-		"react-dom": "18.2.0",
-		"graphql": "16.6.0",
-		"react-transition-group": "4.4.1",
-		"lodash": "npm:lodash-es",
 	},
 }

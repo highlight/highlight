@@ -11,7 +11,7 @@ import { GetBaseURL } from '@util/window'
 import { message } from 'antd'
 import React, { useEffect } from 'react'
 
-import styles from './DiscordIntegrationConfig.module.scss'
+import styles from './DiscordIntegrationConfig.module.css'
 
 const DISCORD_CLIENT_ID = import.meta.env.DISCORD_CLIENT_ID
 

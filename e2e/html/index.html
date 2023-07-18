@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<title>Highlight HTML</title>
+		<style></style>
+		<!-- <script src="https://unpkg.com/highlight.run"></script> -->
+		<script src="http://localhost:8888/dist/index.umd.js"></script>
+		<script>
+			// See https://www.highlight.io/docs/getting-started/client-sdk/other
+			H.init('2', {
+				// Get your project ID from https://app.highlight.io/setup
+				environment: 'production',
+				scriptUrl: 'http://localhost:8080/dist/index.js',
+				networkRecording: {
+					enabled: true,
+					recordHeadersAndBody: true,
+					urlBlocklist: [
+						// insert full or partial urls that you don't want to record here
+						// Out of the box, Highlight will not record these URLs (they can be safely removed):
+						'https://www.googleapis.com/identitytoolkit',
+						'https://securetoken.googleapis.com',
+					],
+				},
+			})
+		</script>
+	</head>
+
+	<body>
+		<h1>Highlight HTML Test</h1>
+	</body>
+</html>

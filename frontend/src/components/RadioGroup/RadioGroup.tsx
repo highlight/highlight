@@ -1,6 +1,6 @@
 import React from 'react'
 
-import styles from './RadioGroup.module.scss'
+import styles from './RadioGroup.module.css'
 
 export const RadioGroup = <T extends string | number>({
 	onSelect,

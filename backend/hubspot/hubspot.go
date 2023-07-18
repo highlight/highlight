@@ -29,9 +29,25 @@ import (
 
 const Retries = 5
 
-// ClientSideCreationTimeout is the time we will wait for the object to be created by the hubspot client-side snippet
-const ClientSideCreationTimeout = 3 * time.Minute
+// ClientSideContactCreationTimeout is the time we will wait for the object to be created by the hubspot client-side snippet
+const ClientSideContactCreationTimeout = 3 * time.Minute
+
+// ClientSideCompanyCreationTimeout is double the contact creation time because we expect contact creation to create a company.
+// The company creation backend task can be kicked off at the same time that contact creation is kicked off, so
+// we want to wait (in the worst-case) for the contact creation to time out, manually create a contact, and then
+// wait for the company creation to time out with the same delay of 3 minutes.
+const ClientSideCompanyCreationTimeout = 2 * ClientSideContactCreationTimeout
+
 const ClientSideCreationPollInterval = 5 * time.Second
+
+var (
+	OAuthToken = os.Getenv("HUBSPOT_OAUTH_TOKEN")
+	APIKey     = os.Getenv("HUBSPOT_API_KEY")
+	// APICookie and CSRFToken are reverse engineered from the frontend request flow.
+	// they only need to be set for the doppelgänger functionality.
+	APICookie = os.Getenv("HUBSPOT_API_COOKIE")
+	CSRFToken = os.Getenv("HUBSPOT_CSRF_TOKEN")
+)
 
 func retry[T *int](fn func() (T, error)) (ret T, err error) {
 	for i := 0; i < Retries; i++ {
@@ -44,7 +60,7 @@ func retry[T *int](fn func() (T, error)) (ret T, err error) {
 	return
 }
 
-func pollHubspot[T *int](fn func() (T, error)) (result T, err error) {
+func pollHubspot[T *int](fn func() (T, error), timeout time.Duration) (result T, err error) {
 	start := time.Now()
 	ticker := time.NewTicker(ClientSideCreationPollInterval)
 	defer ticker.Stop()
@@ -53,7 +69,7 @@ func pollHubspot[T *int](fn func() (T, error)) (result T, err error) {
 		if result != nil {
 			return
 		}
-		if t.Sub(start) > ClientSideCreationTimeout {
+		if t.Sub(start) > timeout {
 			break
 		}
 	}
@@ -105,15 +121,85 @@ type CompaniesResponse struct {
 	Total   int                `json:"total"`
 }
 
-func (h *HubspotApi) doRequest(url string, result interface{}, params map[string]string) error {
-	req, _ := http.NewRequest("GET", fmt.Sprintf("https://api.hubapi.com%s", url), nil)
+type DoppelgangersPropertyVersion struct {
+	Name      string   `json:"name"`
+	Source    string   `json:"source"`
+	SourceID  string   `json:"sourceId"`
+	SourceVid []string `json:"sourceVid"`
+	Timestamp int      `json:"timestamp"`
+	Value     string   `json:"value"`
+}
+
+type DoppelgangersProperty struct {
+	PersistenceTimestamp *int                            `json:"persistenceTimestamp"`
+	Source               string                          `json:"source"`
+	SourceID             string                          `json:"sourceId"`
+	Timestamp            *int                            `json:"timestamp"`
+	UpdatedByUserID      *int                            `json:"updatedByUserId"`
+	Value                *string                         `json:"value"`
+	Versions             []*DoppelgangersPropertyVersion `json:"versions"`
+}
+
+type DoppelgangersObject struct {
+	ObjectType string                            `json:"objectType"`
+	ObjectID   int                               `json:"objectId"`
+	PortalID   int                               `json:"portalId"`
+	Properties map[string]*DoppelgangersProperty `json:"properties"`
+}
+
+type DoppelgangersResult struct {
+	FeedbackID      string  `json:"feedbackId"`
+	ID1             int     `json:"id1"`
+	ID2             int     `json:"id2"`
+	SimilarityScore float64 `json:"similarityScore"`
+}
+
+type DoppelgangersUserSavedPropertyOption struct {
+	DisplayOrder int    `json:"displayOrder"`
+	Hidden       bool   `json:"hidden"`
+	Label        string `json:"label"`
+	ReadOnly     bool   `json:"readOnly"`
+	Value        string `json:"value"`
+}
+
+type DoppelgangersUserSavedProperty struct {
+	ExternalOptionsReferenceType *string                                 `json:"externalOptionsReferenceType"`
+	FieldType                    string                                  `json:"fieldType"`
+	Hidden                       bool                                    `json:"hidden"`
+	HubspotDefined               bool                                    `json:"hubspotDefined"`
+	Label                        string                                  `json:"label"`
+	Name                         string                                  `json:"name"`
+	Type                         string                                  `json:"type"`
+	Options                      []*DoppelgangersUserSavedPropertyOption `json:"options"`
+}
+
+type DoppelgangersResponse struct {
+	Results             []*DoppelgangersResult            `json:"results"`
+	Objects             map[int]*DoppelgangersObject      `json:"objects"`
+	UserSavedProperties []*DoppelgangersUserSavedProperty `json:"userSavedProperties"`
+	HasMore             bool                              `json:"hasMore"`
+	Offset              int                               `json:"offset"`
+	Total               int                               `json:"total"`
+	LastScoredTimestamp int64                             `json:"lastScoredTimestamp"`
+}
+
+func (h *HubspotApi) doRequest(url string, result interface{}, params map[string]string, method string, b io.Reader) error {
+	req, _ := http.NewRequest(method, fmt.Sprintf("https://api.hubapi.com%s", url), b)
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", "Bearer "+os.Getenv("HUBSPOT_OAUTH_TOKEN"))
+	req.Header.Add("Authorization", "Bearer "+OAuthToken)
 	q := req.URL.Query()
-	q.Add("hapikey", os.Getenv("HUBSPOT_API_KEY"))
+	q.Add("hapikey", APIKey)
 	for k, v := range params {
 		q.Add(k, v)
+	}
+	if APICookie != "" {
+		req.AddCookie(&http.Cookie{Name: "hubspotapi", Value: APICookie})
+	}
+	if CSRFToken != "" {
+		req.Header.Add("X-Hubspot-Csrf-Hubspotapi", CSRFToken)
+		req.AddCookie(&http.Cookie{Name: "hubspotapi-csrf", Value: CSRFToken})
+		req.AddCookie(&http.Cookie{Name: "csrf.app", Value: CSRFToken})
 	}
 	req.URL.RawQuery = q.Encode()
 
@@ -131,9 +217,11 @@ func (h *HubspotApi) doRequest(url string, result interface{}, params map[string
 		return err
 	}
 
-	err = json.Unmarshal(body, &result)
-	if err != nil {
-		return err
+	if result != nil {
+		err = json.Unmarshal(body, &result)
+		if err != nil {
+			return err
+		}
 	}
 
 	if resp.StatusCode != 200 && resp.StatusCode != 204 {
@@ -143,6 +231,36 @@ func (h *HubspotApi) doRequest(url string, result interface{}, params map[string
 	return nil
 }
 
+func (h *HubspotApi) getDoppelgangers(ctx context.Context) (results []*DoppelgangersResult, objects map[int]*DoppelgangersObject, err error) {
+	objects = make(map[int]*DoppelgangersObject)
+	for {
+		r := DoppelgangersResponse{}
+		if err = h.doRequest("/doppelganger/v1/similar/company/resultPage", &r, map[string]string{
+			"pageSize":   "50",
+			"offset":     strconv.Itoa(len(results)),
+			"properties": "name,domain,hs_num_child_companies,hs_parent_company_id,hs_last_sales_activity_timestamp,createdate,hs_lastmodifieddate",
+			"portalId":   "20473940",
+		}, "GET", nil); err != nil {
+			return
+		} else {
+			for k, v := range r.Objects {
+				objects[k] = v
+			}
+			results = append(results, r.Results...)
+			if !r.HasMore {
+				break
+			}
+		}
+	}
+	return
+}
+
+func (h *HubspotApi) mergeCompanies(keepID, mergeID int) error {
+	return h.doRequest(fmt.Sprintf("/companies/v2/companies/%d/merge", keepID), nil, map[string]string{
+		"portalId": "20473940",
+	}, "PUT", strings.NewReader(fmt.Sprintf(`{"companyIdToMerge":%d}`, mergeID)))
+}
+
 func (h *HubspotApi) getAllCompanies(ctx context.Context) (companies []*CompanyResponse, err error) {
 	if h.redisClient != nil {
 		err = h.redisClient.GetHubspotCompanies(ctx, &companies)
@@ -150,19 +268,17 @@ func (h *HubspotApi) getAllCompanies(ctx context.Context) (companies []*CompanyR
 			return companies, nil
 		}
 	}
-	offset := 0
 	for {
 		r := CompaniesResponse{}
 		if err = h.doRequest("/companies/v2/companies/recent/created", &r, map[string]string{
-			"count": "100", "offset": strconv.Itoa(offset),
-		}); err != nil {
+			"count": "100", "offset": strconv.Itoa(len(companies)),
+		}, "GET", nil); err != nil {
 			return
 		} else {
 			companies = append(companies, r.Results...)
 			if !r.HasMore {
 				break
 			}
-			offset = r.Offset
 		}
 	}
 	if h.redisClient != nil {
@@ -171,20 +287,22 @@ func (h *HubspotApi) getAllCompanies(ctx context.Context) (companies []*CompanyR
 	return
 }
 
-func (h *HubspotApi) getCompany(ctx context.Context, name string) (*int, error) {
+func (h *HubspotApi) getCompany(ctx context.Context, name, domain string) (*int, error) {
 	companies, err := h.getAllCompanies(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if company, ok := lo.Find(companies, func(response *CompanyResponse) bool {
 		for prop, data := range response.Properties {
-			if prop == "name" {
+			if domain != "" && prop == "domain" {
+				return strings.EqualFold(data.Value, domain)
+			} else if name != "" && prop == "name" {
 				return strings.EqualFold(data.Value, name)
 			}
 		}
 		return false
 	}); !ok {
-		return nil, e.New(fmt.Sprintf("failed to find company with name %s", name))
+		return nil, e.New(fmt.Sprintf("failed to find company with name %s domain %s", name, domain))
 	} else {
 		return pointy.Int(company.CompanyID), nil
 	}
@@ -253,12 +371,33 @@ func (h *HubspotApi) createContactForAdmin(ctx context.Context, email string, us
 }
 
 func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error {
+	return h.kafkaProducer.Submit(ctx, &kafka_queue.Message{
+		Type: kafka_queue.HubSpotCreateContactCompanyAssociation,
+		HubSpotCreateContactCompanyAssociation: &kafka_queue.HubSpotCreateContactCompanyAssociationArgs{
+			AdminID:     adminID,
+			WorkspaceID: workspaceID,
+		},
+	}, "")
+}
+
+func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, adminID int, workspaceID int) error {
+	key := fmt.Sprintf("hubspot-association-%d-%d", adminID, workspaceID)
+	if err := h.redisClient.AcquireLock(ctx, key, ClientSideCreationPollInterval); err != nil {
+		return e.New("failed to acquire hubspot association lock")
+	} else {
+		defer func() {
+			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("url", key).Error("failed to release hubspot association lock")
+			}
+		}()
+	}
+
 	admin := &model.Admin{}
-	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
+	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
 		return err
 	}
 	workspace := &model.Workspace{}
-	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
+	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
 		return err
 	}
 	if workspace.HubspotCompanyID == nil {
@@ -304,23 +443,33 @@ func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, ema
 }
 
 func (h *HubspotApi) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
+	key := fmt.Sprintf("contact-%s", email)
+	if err := h.redisClient.AcquireLock(ctx, key, ClientSideContactCreationTimeout); err != nil {
+		return nil, e.New("failed to acquire hubspot contact creation lock")
+	} else {
+		defer func() {
+			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("url", key).Error("failed to release hubspot contact creation lock")
+			}
+		}()
+	}
+
 	if contactId, err = pollHubspot(func() (*int, error) {
 		return h.getContactForAdmin(email)
-	}); contactId != nil {
-		return
+	}, ClientSideContactCreationTimeout); contactId == nil {
+		log.WithContext(ctx).
+			WithField("email", email).
+			Warnf("failed to get client-side hubspot contact. creating")
+		contactId, err = retry(func() (*int, error) {
+			return h.createContactForAdmin(ctx, email, userDefinedRole, userDefinedPersona, first, last, phone, referral)
+		})
+
+		if err != nil || contactId == nil {
+			return nil, err
+		}
+		log.WithContext(ctx).Infof("succesfully created a hubspot contact with id: %v", contactId)
 	}
 
-	log.WithContext(ctx).
-		WithField("email", email).
-		Warnf("failed to get client-side hubspot contact. creating")
-	contactId, err = retry(func() (*int, error) {
-		return h.createContactForAdmin(ctx, email, userDefinedRole, userDefinedPersona, first, last, phone, referral)
-	})
-
-	if err != nil || contactId == nil {
-		return nil, err
-	}
-	log.WithContext(ctx).Infof("succesfully created a hubspot contact with id: %v", contactId)
 	if err := h.db.Model(&model.Admin{Model: model.Model{ID: adminID}}).
 		Updates(&model.Admin{HubspotContactID: contactId}).Error; err != nil {
 		return nil, err
@@ -345,13 +494,28 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 		return
 	}
 
-	if emailproviders.Exists(adminEmail) {
-		adminEmail = ""
+	key := fmt.Sprintf("company-%s", name)
+	if err := h.redisClient.AcquireLock(ctx, key, ClientSideCompanyCreationTimeout); err != nil {
+		return nil, e.New("failed to acquire hubspot company creation lock")
+	} else {
+		defer func() {
+			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("url", key).Error("failed to release hubspot company creation lock")
+			}
+		}()
 	}
-	components := strings.Split(adminEmail, "@")
+
+	workspace := &model.Workspace{}
+	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
+		return nil, err
+	}
+
 	var domain string
-	if len(components) > 1 {
-		domain = components[1]
+	if !emailproviders.Exists(adminEmail) {
+		components := strings.Split(adminEmail, "@")
+		if len(components) > 1 {
+			domain = components[1]
+		}
 	}
 	hexLink := fmt.Sprintf("https://workspace-details.highlight.io?_workspace_id=%v", workspaceID)
 	companyProperties := hubspot.CompaniesRequest{
@@ -373,36 +537,53 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 			},
 		},
 	}
+	if workspace.TrialEndDate != nil {
+		companyProperties.Properties = append(companyProperties.Properties, hubspot.Property{
+			Property: "trial_end_date",
+			Name:     "trial_end_date",
+			Value:    *workspace.TrialEndDate,
+		})
+	}
 
 	if companyID, err = pollHubspot(func() (*int, error) {
-		return h.getCompany(ctx, name)
-	}); companyID != nil {
+		return h.getCompany(ctx, name, domain)
+	}, ClientSideCompanyCreationTimeout); companyID != nil {
 		log.WithContext(ctx).
 			WithField("name", name).
+			WithField("domain", domain).
 			Infof("company already exists in Hubspot. updating")
 
-		_, er := h.hubspotClient.Companies().Update(*companyID, companyProperties)
-		if er != nil {
-			return nil, er
+		if _, err := h.hubspotClient.Companies().Update(*companyID, companyProperties); err != nil {
+			return nil, err
 		}
+	} else {
+		log.WithContext(ctx).
+			WithField("name", name).
+			Warnf("failed to get client-side hubspot company. creating")
 
+		resp, err := h.hubspotClient.Companies().Create(companyProperties)
+		if err != nil {
+			return nil, err
+		}
+		companyID = &resp.CompanyID
+		log.WithContext(ctx).Infof("succesfully created a hubspot company with id: %v", resp.CompanyID)
+	}
+
+	if err = h.db.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).
+		Updates(&model.Workspace{HubspotCompanyID: companyID}).Error; err != nil {
 		return
 	}
 
-	log.WithContext(ctx).
-		WithField("name", name).
-		Warnf("failed to get client-side hubspot company. creating")
-
-	resp, err := h.hubspotClient.Companies().Create(companyProperties)
-	if err != nil {
-		return nil, err
+	if adminEmail != "" {
+		admin := model.Admin{}
+		if err = h.db.Model(&model.Admin{}).Where(&model.Admin{Email: &adminEmail}).Take(&admin).Error; err != nil {
+			return
+		}
+		if err := h.CreateContactCompanyAssociation(ctx, admin.ID, workspaceID); err != nil {
+			return companyID, err
+		}
 	}
-	log.WithContext(ctx).Infof("succesfully created a hubspot company with id: %v", resp.CompanyID)
-	if err := h.db.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).
-		Updates(&model.Workspace{HubspotCompanyID: &resp.CompanyID}).Error; err != nil {
-		return &resp.CompanyID, err
-	}
-	return &resp.CompanyID, nil
+	return
 }
 
 func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error {
@@ -417,7 +598,7 @@ func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, pro
 
 func (h *HubspotApi) UpdateContactPropertyImpl(ctx context.Context, adminID int, properties []hubspot.Property) error {
 	admin := &model.Admin{}
-	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).First(&admin).Error; err != nil {
+	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
 		return err
 	}
 	hubspotContactID := admin.HubspotContactID
@@ -458,7 +639,7 @@ func (h *HubspotApi) UpdateCompanyProperty(ctx context.Context, workspaceID int,
 
 func (h *HubspotApi) UpdateCompanyPropertyImpl(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
 	workspace := &model.Workspace{}
-	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
+	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
 		return err
 	}
 	hubspotWorkspaceID := workspace.HubspotCompanyID

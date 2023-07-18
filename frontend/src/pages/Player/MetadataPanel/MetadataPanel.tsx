@@ -40,7 +40,7 @@ const MetadataPanel = () => {
 		MetadataSection.Session,
 	)
 	const { session, browserExtensionScriptURLs } = useReplayerContext()
-	const { setSearchParams, removeSelectedSegment } = useSearchContext()
+	const { setSearchQuery, removeSelectedSegment } = useSearchContext()
 	const { isHighlightAdmin } = useAuthContext()
 
 	const [parsedFields, setParsedFields] = useState<Field[]>([])
@@ -230,12 +230,12 @@ const MetadataPanel = () => {
 							`Showing sessions created by device #${session.fingerprint}`,
 						)
 						removeSelectedSegment()
-						setSearchParams({
-							query: buildQueryStateString({
+						setSearchQuery(
+							buildQueryStateString({
 								session_device_id:
 									session.fingerprint?.toString(),
 							}),
-						})
+						)
 					}}
 				>
 					#{session?.fingerprint}

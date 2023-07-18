@@ -3,7 +3,7 @@ import { promisify } from 'util'
 import path from 'path'
 import { tmpdir } from 'os'
 import chromium from '@sparticuz/chromium'
-import puppeteer from 'puppeteer-core'
+import puppeteer, { Browser } from 'puppeteer-core'
 
 const getHtml = (): string => {
 	return `<html lang="en"><head><title></title><style>
@@ -30,26 +30,38 @@ export async function render(
 	workers: number,
 	fps?: number,
 	ts?: number,
+	tsEnd?: number,
 	dir?: string,
 ) {
 	if (ts === undefined && fps === undefined) {
 		throw new Error('timestamp or fps must be provided')
 	}
 	events = events.replace(/\\/g, '\\\\')
+	events = events.replace(/`/g, '\\`')
+	events = events.replace(/\$/g, '\\$')
 	console.log('events', { events })
 	if (!dir?.length) {
 		const prefix = path.join(tmpdir(), 'render_')
 		dir = await promisify(mkdtemp)(prefix)
 	}
 
-	console.log(`starting puppeteer`)
-	const browser = await puppeteer.launch({
-		args: chromium.args,
-		defaultViewport: chromium.defaultViewport,
-		executablePath: await chromium.executablePath(),
-		headless: chromium.headless,
-		ignoreHTTPSErrors: true,
-	})
+	let browser: Browser
+	if (process.env.DEV?.length) {
+		console.log(`starting puppeteer for dev`)
+		browser = await puppeteer.launch({
+			channel: 'chrome',
+			headless: 'new',
+		})
+	} else {
+		console.log(`starting puppeteer for lambda`)
+		browser = await puppeteer.launch({
+			args: chromium.args,
+			defaultViewport: chromium.defaultViewport,
+			executablePath: await chromium.executablePath(),
+			headless: chromium.headless,
+			ignoreHTTPSErrors: true,
+		})
+	}
 
 	const page = await browser.newPage()
 	await page.goto('about:blank')
@@ -101,23 +113,38 @@ export async function render(
 
 	let interval = 1000
 	let start = ts || meta.startTime
-	let end = ts || meta.endTime
+	let end = tsEnd || ts || meta.endTime
 	if (fps) {
 		interval = Math.round(1000 / fps)
-		start = Math.floor((meta.totalTime / workers) * worker)
-		end = Math.floor((meta.totalTime / workers) * (worker + 1))
+		start = ts || Math.floor((meta.totalTime / workers) * worker)
+		end =
+			tsEnd || ts || Math.floor((meta.totalTime / workers) * (worker + 1))
 	}
 
-	console.log(`starting screenshotting`, { start, end, interval })
+	console.log(`starting screenshotting`, {
+		start,
+		end,
+		interval,
+		fps,
+		ts,
+		tsEnd,
+	})
 	const files: string[] = []
 	for (let i = start; i <= end; i += interval) {
-		const file = path.join(dir, `${i}.png`)
+		const idx = files.length
+		const file = path.join(dir, `${idx}.png`)
 		await page.evaluate(`r.pause(${i})`)
 		await page.screenshot({ path: file })
-		console.log(`screenshotted`, { start, end, interval, i })
+		console.log(`screenshotted`, { start, end, interval, i, idx })
 		files.push(file)
 	}
 
+	// puppeteer shutdown should not happen in lambda as it causes the lambda to hang
+	if (process.env.DEV?.length) {
+		await page.close()
+		await browser.close()
+	}
 	console.log(`done`, { files })
+
 	return files
 }

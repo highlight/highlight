@@ -37,6 +37,7 @@ export type AsyncEventsMessage = {
 	messages: ConsoleMessage[]
 	errors: ErrorMessage[]
 	resourcesString: string
+	webSocketEventsString: string
 }
 
 export type AsyncEventsResponse = {

@@ -185,19 +185,22 @@ export const SessionLevelBarV2: React.FC<
 							}
 						}}
 						canMoveForward={!!canMoveForward}
+						size="small"
 					/>
 					{session && (
 						<Stack direction="row" gap="4" align="center">
-							<Badge
-								iconStart={
-									<IconSolidTemplate color={colors.n9} />
-								}
-								size="medium"
-								variant="gray"
-								shape="basic"
-								label={`${viewport?.width}x${viewport?.height}`}
-								title="Application viewport size (pixels)"
-							/>
+							{viewport?.width && viewport?.height && (
+								<Badge
+									iconStart={
+										<IconSolidTemplate color={colors.n9} />
+									}
+									size="medium"
+									variant="gray"
+									shape="basic"
+									label={`${viewport?.width}x${viewport?.height}`}
+									title="Application viewport size (pixels)"
+								/>
+							)}
 							<Badge
 								variant="gray"
 								size="medium"

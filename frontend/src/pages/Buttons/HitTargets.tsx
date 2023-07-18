@@ -1,7 +1,7 @@
 import React from 'react'
 import { useToggle } from 'react-use'
 
-import styles from './Buttons.module.scss'
+import styles from './Buttons.module.css'
 
 const HitTargets = () => {
 	const [isTrue, toggleTrue] = useToggle(false)

@@ -54,7 +54,7 @@ import analytics from '@util/analytics'
 import { auth } from '@util/auth'
 import { isProjectWithinTrial } from '@util/billing/billing'
 import { titleCaseString } from '@util/string'
-import { showIntercom } from '@util/window'
+import { showIntercomMessage } from '@util/window'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useEffect } from 'react'
@@ -65,7 +65,7 @@ import { useSessionStorage } from 'react-use'
 import { useIsSettingsPath } from '@/hooks/useIsSettingsPath'
 
 import { CommandBar as CommandBarV1 } from './CommandBar/CommandBar'
-import styles from './Header.module.scss'
+import styles from './Header.module.css'
 
 type Props = {
 	fullyIntegrated?: boolean
@@ -114,7 +114,7 @@ export const useBillingHook = ({
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId } = useProjectId()
-	const { admin, isLoggedIn, signOut } = useAuthContext()
+	const { isLoggedIn, signOut } = useAuthContext()
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
@@ -572,9 +572,9 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 												</Menu.Item>
 											</Link>
 											<Menu.Item
-												onClick={() =>
-													showIntercom({ admin })
-												}
+												onClick={() => {
+													showIntercomMessage()
+												}}
 											>
 												<Box
 													display="flex"
@@ -773,8 +773,16 @@ const BillingBanner: React.FC = () => {
 	}
 
 	if (!bannerMessage && !hasTrial) {
-		toggleShowBanner(false)
-		return null
+		const isLaunchWeek = moment().isBetween(
+			'2023-07-17T00:00:00Z',
+			'2023-07-22T00:00:00Z',
+		)
+		if (isLaunchWeek) {
+			return <LaunchWeekBanner />
+		} else {
+			toggleShowBanner(false)
+			return null
+		}
 	}
 
 	if (hasTrial) {
@@ -870,6 +878,38 @@ const MaintenanceBanner = () => {
 
 	return (
 		<div className={clsx(styles.trialWrapper, styles.maintenance)}>
+			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
+		</div>
+	)
+}
+
+const LaunchWeekBanner = () => {
+	const { toggleShowBanner } = useGlobalContext()
+
+	const day = moment().diff(moment('2023-07-17T16:00:00Z'), 'days') + 1
+	if (day < 1 || day > 5) {
+		toggleShowBanner(false)
+		return null
+	}
+	toggleShowBanner(true)
+
+	const bannerMessage = (
+		<span>
+			Launch Week 2 is here.{' '}
+			<a
+				target="_blank"
+				href="https://www.highlight.io/launch-week-2"
+				className={styles.trialLink}
+				rel="noreferrer"
+			>
+				Follow along
+			</a>{' '}
+			to see what we've been building!
+		</span>
+	)
+
+	return (
+		<div className={clsx(styles.trialWrapper, styles.launchWeek)}>
 			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
 		</div>
 	)

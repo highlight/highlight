@@ -71,7 +71,6 @@ export const MAX_CHUNK_COUNT = 8
 export enum SessionViewability {
 	VIEWABLE,
 	EMPTY_SESSION,
-	OVER_BILLING_QUOTA,
 	ERROR,
 }
 
@@ -145,7 +144,6 @@ export enum PlayerActionType {
 	seek,
 	setCurrentEvent,
 	setIsLiveMode,
-	setLastActiveString,
 	setScale,
 	setSessionResults,
 	setTime,
@@ -168,7 +166,6 @@ type PlayerAction =
 	| seek
 	| setCurrentEvent
 	| setIsLiveMode
-	| setLastActiveString
 	| setScale
 	| setSessionResults
 	| setTime
@@ -258,11 +255,6 @@ interface onSessionPayloadLoaded {
 		TimelineIndicatorEvent,
 		'timestamp' | 'data' | 'type' | 'sid'
 	>[]
-}
-
-interface setLastActiveString {
-	type: PlayerActionType.setLastActiveString
-	lastActiveString: SetStateAction<string | null>
 }
 
 interface setScale {
@@ -373,20 +365,12 @@ export const PlayerReducer = (
 				s.session = action.data?.session as Session
 				s.isLiveMode = false
 			}
-			if (action.data.session === null) {
+			if (!action.data.session || action.data.session.excluded) {
 				s.sessionViewability = SessionViewability.ERROR
 			} else if (
 				action.data.session?.within_billing_quota ||
 				s.isHighlightAdmin
 			) {
-				if (
-					!action.data.session?.within_billing_quota &&
-					s.isHighlightAdmin
-				) {
-					alert(
-						"btw this session is outside of the project's billing quota.",
-					)
-				}
 				if (action.data.session?.last_user_interaction_time) {
 					s.lastActiveTimestamp = new Date(
 						action.data.session?.last_user_interaction_time,
@@ -408,7 +392,7 @@ export const PlayerReducer = (
 				}
 				s.sessionViewability = SessionViewability.VIEWABLE
 			} else {
-				s.sessionViewability = SessionViewability.OVER_BILLING_QUOTA
+				s.sessionViewability = SessionViewability.ERROR
 			}
 			break
 		case PlayerActionType.reset:
@@ -466,9 +450,7 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.onChunksLoad:
-			if (
-				s.sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
-			) {
+			if (s.sessionViewability !== SessionViewability.ERROR) {
 				s.sessionViewability = SessionViewability.VIEWABLE
 			}
 
@@ -497,13 +479,9 @@ export const PlayerReducer = (
 			const time = getTimeFromReplayer(s.replayer, s.sessionMetadata)
 			// Compute the string rather than number here, so that dependencies don't
 			// have to re-render on every tick
-			if (
-				s.isLiveMode &&
-				s.lastActiveTimestamp != 0 &&
-				s.lastActiveTimestamp < time - 5000
-			) {
+			if (s.isLiveMode && s.lastActiveTimestamp != 0) {
 				if (s.lastActiveTimestamp > time - 1000 * 60) {
-					s.lastActiveString = 'less than a minute ago'
+					s.lastActiveString = 'less than 1 minute ago'
 				} else {
 					s.lastActiveString = moment(s.lastActiveTimestamp).from(
 						time,
@@ -553,12 +531,6 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.setScale:
 			s.scale = handleSetStateAction(s.scale, action.scale)
-			break
-		case PlayerActionType.setLastActiveString:
-			s.lastActiveString = handleSetStateAction(
-				s.lastActiveString,
-				action.lastActiveString,
-			)
 			break
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)

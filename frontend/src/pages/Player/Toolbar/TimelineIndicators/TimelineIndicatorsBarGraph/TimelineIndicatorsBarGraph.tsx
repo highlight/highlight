@@ -346,7 +346,7 @@ const TimelineIndicatorsBarGraph = ({
 	const zoom = useCallback(
 		(clientX: number, dz: number) => {
 			const viewportDiv = viewportRef.current
-			if (!viewportDiv) {
+			if (!viewportDiv || isLiveMode) {
 				return
 			}
 
@@ -378,7 +378,7 @@ const TimelineIndicatorsBarGraph = ({
 				return { x, zoom }
 			})
 		},
-		[maxZoom, viewportWidth],
+		[isLiveMode, maxZoom, viewportWidth],
 	)
 
 	const pan = useCallback(
@@ -984,15 +984,6 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}
 
-	if (isLiveMode) {
-		return (
-			<div className={style.timelineContainer} style={{ width }}>
-				<div className={style.liveProgressBar} />
-				<ToolbarControlBar />
-			</div>
-		)
-	}
-
 	return (
 		<div className={style.timelineContainer} style={{ width }}>
 			{progressBar}
@@ -1024,19 +1015,21 @@ const TimelineIndicatorsBarGraph = ({
 							transform: `translateX(${timeIndicatorStart}px)`,
 						}}
 					>
-						<div className={style.timeIndicator}>
-							<span
-								className={style.timeIndicatorTop}
-								ref={timeIndicatorTopRef}
-							/>
-							<Box
-								as="span"
-								className={clsx(style.timeIndicatorHair, {
-									[style.hairHidden]: !showHistogram,
-								})}
-								ref={timeIndicatorHairRef}
-							/>
-						</div>
+						{!isLiveMode && (
+							<div className={style.timeIndicator}>
+								<span
+									className={style.timeIndicatorTop}
+									ref={timeIndicatorTopRef}
+								/>
+								<Box
+									as="span"
+									className={clsx(style.timeIndicatorHair, {
+										[style.hairHidden]: !showHistogram,
+									})}
+									ref={timeIndicatorHairRef}
+								/>
+							</div>
+						)}
 					</div>
 				</div>
 				<div className={style.timeAxis} ref={timeAxisRef}>
@@ -1075,6 +1068,7 @@ const TimelineIndicatorsBarGraph = ({
 						{
 							[style.hidden]:
 								!showHistogram || isPlayerFullscreen,
+							[style.noPointerEvents]: isLiveMode,
 						},
 					])}
 					ref={canvasRef}
@@ -1109,6 +1103,7 @@ const TimelineIndicatorsBarGraph = ({
 										bucket={bucket}
 										width={bucketPercentWidth}
 										height={relativeHeight}
+										disabled={isLiveMode}
 										viewportRef={viewportRef}
 									/>
 								)

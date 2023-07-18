@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import React from 'react'
 
 import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg'
-import styles from './index.module.scss'
+import styles from './index.module.css'
 
 interface GoToButtonComponentProps {
 	label?: string

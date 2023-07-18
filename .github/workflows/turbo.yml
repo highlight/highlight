@@ -18,9 +18,6 @@ jobs:
             TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
         steps:
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
-
             - name: Checkout
               uses: actions/checkout@v3
               with:
@@ -56,20 +53,42 @@ jobs:
             - name: Check formatting
               run: yarn format-check
 
-            - name: Build & test
-              run: yarn test:all
-              env:
-                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
-                  GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
-                  NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
-
             - name: Configure AWS credentials
-              if: steps.filter.outputs.npm-changed == 'true' && (github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main')
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               uses: aws-actions/configure-aws-credentials@v2
               with:
                   aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
                   aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   aws-region: us-east-2
+
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v2
+
+            - name: Build & test (with render environment)
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              run: doppler run -- bash -c 'RENDER_PREVIEW=false yarn test:all'
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
+                  GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
+                  NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
+                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+
+            - name: Build & test (in a fork without doppler)
+              if: github.event.pull_request.head.repo.full_name != 'highlight/highlight' && github.ref != 'refs/heads/main'
+              run: yarn test:all
+              env:
+                  GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
+                  NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
+                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+
+            - name: Test session screenshot lambda
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              run: yarn test:render
+
+            - name: Validate session screenshot lambda size
+              # this can only run after `yarn test:render` runs
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              run: yarn workspace render zip && yarn workspace render check
 
             - name: Validate project is ready to be published
               if: steps.filter.outputs.npm-changed == 'true' && (github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main')
@@ -80,7 +99,7 @@ jobs:
             # any previous builds, while doing this in PR will allow the PR frontend preview
             # to reference the PR's latest version of client
             - name: Publish client bundle
-              if: steps.filter.outputs.npm-changed == 'true' && (github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main')
+              if: steps.filter.outputs.npm-changed == 'true' && github.ref == 'refs/heads/main'
               run: yarn publish:client
 
             - name: Upload frontend sourcemaps
@@ -104,3 +123,11 @@ jobs:
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
                   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+            - name: Publish render lambda
+              if: github.ref == 'refs/heads/main'
+              run: yarn publish:render
+
+            - name: Publish ai lambda
+              if: github.ref == 'refs/heads/main'
+              run: yarn publish:ai

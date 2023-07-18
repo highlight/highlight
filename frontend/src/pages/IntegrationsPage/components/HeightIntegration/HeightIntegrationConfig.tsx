@@ -19,7 +19,7 @@ import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect } from 'react'
 
-import styles from './HeightIntegrationConfig.module.scss'
+import styles from './HeightIntegrationConfig.module.css'
 
 const HEIGHT_CLIENT_ID = import.meta.env.HEIGHT_CLIENT_ID
 

@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"net/mail"
-	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -158,6 +157,8 @@ const ERROR_EVENT_MAX_LENGTH = 10000
 
 const SESSION_FIELD_MAX_LENGTH = 2000
 
+var NumberRegex = regexp.MustCompile(`^\d+$`)
+
 var ErrNoisyError = e.New("Filtering out noisy error")
 var ErrQuotaExceeded = e.New(string(publicModel.PublicGraphErrorBillingQuotaExceeded))
 var ErrUserFilteredError = e.New("User filtered error")
@@ -174,7 +175,7 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 	loadSessionSpan, _ := tracer.StartSpanFromContext(outerCtx, "public-graph.AppendProperties",
 		tracer.ResourceName("go.sessions.AppendProperties.loadSessions"), tracer.Tag("sessionID", sessionID))
 	session := &model.Session{}
-	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
+	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).Take(&session)
 	if err := res.Error; err != nil {
 		return e.Wrapf(err, "error getting session(id=%d) in append properties(type=%s)", sessionID, propType)
 	}
@@ -187,6 +188,9 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 			log.WithContext(ctx).Warnf("property %s from session %d exceeds max expected field length, skipping", k, sessionID)
 		} else if fv == "" {
 			// Skip when the field value is blank
+		} else if NumberRegex.MatchString(k) {
+			// Skip when the field name is a number
+			// (this can be sent by clients if a string is passed as an `addProperties` payload)
 		} else {
 			modelFields = append(modelFields, &model.Field{ProjectID: projectID, Name: k, Value: fv, Type: string(propType)})
 		}
@@ -205,7 +209,7 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 	}
 
 	project := &model.Project{}
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).First(&project).Error; err != nil {
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).Take(&project).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
 		return err
 	}
@@ -228,18 +232,30 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", session.ID))
 	defer outerSpan.Finish()
 
-	if err := r.DB.
-		Clauses(clause.Returning{}, clause.OnConflict{
+	result := r.DB.
+		Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "project_id"}, {Name: "type"}, {Name: "name"}, {Name: "value"}},
 			DoNothing: true}).
-		Create(&fields).Error; err != nil {
+		Create(&fields)
+
+	if err := result.Error; err != nil {
 		return e.Wrap(err, "error inserting new fields")
 	}
 
-	// New fields have an ID after the insert above
-	newFields := lo.Filter(fields, func(field *model.Field, _ int) bool {
-		return field.ID != 0
-	})
+	updateCount := result.RowsAffected
+
+	var allFields []*model.Field
+	inClause := [][]interface{}{}
+	for _, f := range fields {
+		inClause = append(inClause, []interface{}{f.ProjectID, f.Type, f.Name, f.Value})
+	}
+	if err := r.DB.Where("(project_id, type, name, value) IN ?", inClause).Order("id DESC").
+		Find(&allFields).Error; err != nil {
+		return e.Wrap(err, "error retrieving all fields")
+	}
+
+	// the first N fields ordered by id DESC were added in the prior insert
+	newFields := allFields[:updateCount]
 
 	for _, field := range newFields {
 		if err := r.OpenSearch.IndexSynchronous(ctx,
@@ -250,16 +266,6 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 			}); err != nil {
 			return e.Wrap(err, "error indexing new field")
 		}
-	}
-
-	var allFields []*model.Field
-	inClause := [][]interface{}{}
-	for _, f := range fields {
-		inClause = append(inClause, []interface{}{f.ProjectID, f.Type, f.Name, f.Value})
-	}
-	if err := r.DB.Where("(project_id, type, name, value) IN ?", inClause).
-		Find(&allFields).Error; err != nil {
-		return e.Wrap(err, "error retrieving all fields")
 	}
 
 	openSearchFields := make([]interface{}, len(allFields))
@@ -386,7 +392,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 	} else {
 		if err := r.DB.Where(&model.ErrorGroup{
 			Model: model.Model{ID: *match},
-		}).First(&errorGroup).Error; err != nil {
+		}).Take(&errorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "error retrieving top matched error group")
 		}
 
@@ -750,7 +756,7 @@ func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorF
 			AND name = ?
 			AND value = ?
 			AND md5(value)::uuid = md5(?)::uuid
-			`, f.ProjectID, f.Name, f.Value, f.Value).First(&field)
+			`, f.ProjectID, f.Name, f.Value, f.Value).Take(&field)
 		// If the field doesn't exist, we create it.
 		if err := res.Error; err != nil || e.Is(err, gorm.ErrRecordNotFound) {
 			if err := r.DB.Create(f).Error; err != nil {
@@ -859,7 +865,10 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 
 func (r *Resolver) getExistingSession(ctx context.Context, projectID int, secureID string) (*model.Session, error) {
 	existingSessionObj := &model.Session{}
-	if err := r.DB.Order("secure_id").Model(&existingSessionObj).Where(&model.Session{SecureID: secureID}).Limit(1).Find(&existingSessionObj).Error; err != nil {
+	if err := r.DB.Model(&existingSessionObj).Where(&model.Session{SecureID: secureID}).Take(&existingSessionObj).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		log.WithContext(ctx).Errorf("init session error, couldn't fetch session duplicate: %s", secureID)
 		return nil, e.Wrap(err, "init session error, couldn't fetch session duplicate")
 	}
@@ -940,7 +949,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 
 	setupSpan, _ := tracer.StartSpanFromContext(initCtx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.setup"))
 	project := &model.Project{}
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 		return nil, e.Wrapf(err, "project doesn't exist project_id:%d", projectID)
 	}
 	workspace, err := r.getWorkspace(project.WorkspaceID)
@@ -980,7 +989,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		AppVersion:                     input.AppVersion,
 		VerboseID:                      input.ProjectVerboseID,
 		Fields:                         []*model.Field{},
-		LastUserInteractionTime:        time.Now(),
 		ViewedByAdmins:                 []model.Admin{},
 		ClientID:                       input.ClientID,
 		Excluded:                       true, // A session is excluded by default until it receives events
@@ -1174,7 +1182,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	metadata["timestamp"] = input.Timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at").Where(&model.Session{SecureID: input.SessionSecureID}).First(&session).Error; err != nil {
+	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at").Where(&model.Session{SecureID: input.SessionSecureID}).Take(&session).Error; err != nil {
 		return e.Wrap(err, "error querying session by sessionSecureID for adding session feedback")
 	}
 
@@ -1278,7 +1286,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		return e.New("IdentifySessionImpl called without secureID")
 	}
 	session := &model.Session{}
-	if err := r.DB.Order("secure_id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
+	if err := r.DB.Where(&model.Session{SecureID: sessionSecureID}).Take(&session).Error; err != nil {
 		return e.New("[IdentifySession] error querying session by sessionID")
 	}
 	getSessionSpan.Finish()
@@ -1325,6 +1333,10 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	session.FirstTime = firstTime
 	if userIdentifier != "" {
 		session.Identifier = userIdentifier
+	}
+
+	if userProperties["email"] != "" {
+		session.Email = ptr.String(userProperties["email"])
 	}
 
 	if !backfill {
@@ -1420,7 +1432,7 @@ func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionID int, 
 
 func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
 	var workspace model.Workspace
-	if err := r.DB.Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).First(&workspace).Error; err != nil {
+	if err := r.DB.Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).Take(&workspace).Error; err != nil {
 		return nil, e.Wrap(err, "error querying workspace")
 	}
 	return &workspace, nil
@@ -1428,7 +1440,7 @@ func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
 
 func (r *Resolver) getProject(projectID int) (*model.Project, error) {
 	var project model.Project
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 		return nil, e.Wrap(err, "error querying project")
 	}
 	return &project, nil
@@ -1528,10 +1540,11 @@ func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.Produc
 		return false, 1
 	}
 
+	basePrice := pricing.ProductToBasePriceCents(productType, stripePlan)
 	retentionPeriod := cfg.retentionPeriod(workspace)
 	overage := meter - includedQuantity
 	cost := float64(overage) *
-		pricing.ProductToBasePriceCents(productType) *
+		basePrice *
 		pricing.RetentionMultiplier(retentionPeriod)
 
 	return cost <= float64(*maxCostCents), cost / float64(*maxCostCents)
@@ -1628,15 +1641,15 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			numAlerts := int64(-1)
 			if err := r.DB.Raw(`
 				SELECT COUNT(*)
-				FROM alert_events
+				FROM error_alert_events ev
+				INNER JOIN error_objects obj
+				ON obj.id = ev.error_object_id
 				WHERE
-					project_id=?
-					AND type=?
-					AND (error_group_id IS NOT NULL
-						AND error_group_id=?)
-					AND alert_id=?
-					AND created_at > NOW() - ? * (INTERVAL '1 SECOND')
-			`, projectID, model.AlertType.ERROR, group.ID, errorAlert.ID, errorAlert.Frequency).Scan(&numAlerts).Error; err != nil {
+					(obj.error_group_id IS NOT NULL
+						AND obj.error_group_id=?)
+					AND ev.error_alert_id=?
+					AND ev.sent_at > NOW() - ? * (INTERVAL '1 SECOND')
+			`, group.ID, errorAlert.ID, errorAlert.Frequency).Scan(&numAlerts).Error; err != nil {
 				log.WithContext(ctx).Error(e.Wrapf(err, "error counting alert events from past %d seconds", errorAlert.Frequency))
 				return
 			}
@@ -1646,7 +1659,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			}
 
 			var project model.Project
-			if err := r.DB.Model(&model.Project{}).Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+			if err := r.DB.Model(&model.Project{}).Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
 				return
 			}
@@ -1711,7 +1724,7 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*publicMo
 
 func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name string, value float64) (int, error) {
 	session := &model.Session{}
-	if err := r.DB.Model(&model.Session{}).Where("id = ?", sessionID).First(&session).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).Where("id = ?", sessionID).Take(&session).Error; err != nil {
 		return -1, e.Wrapf(err, "error querying device metric session")
 	}
 	return r.SubmitMetricsMessage(ctx, []*publicModel.MetricInput{{
@@ -1732,7 +1745,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 		return nil
 	}
 	session := &model.Session{}
-	if err := r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session).Error; err != nil || session.ID == 0 {
+	if err := r.DB.Model(&session).Where(&model.Session{SecureID: sessionSecureID}).Take(&session).Error; err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "no session found for push metrics: %s", sessionSecureID))
 		return e.New("no session found for push metrics: " + sessionSecureID)
 	}
@@ -1788,7 +1801,7 @@ func (r *Resolver) PushMetricsImpl(ctx context.Context, sessionSecureID string, 
 				if err := r.DB.Where(&model.MetricGroup{
 					GroupName: groupName,
 					SessionID: sessionID,
-				}).First(&mg).Error; err != nil {
+				}).Take(&mg).Error; err != nil {
 					return err
 				}
 			}
@@ -1892,7 +1905,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	var sessionID *int
 	session := &model.Session{}
 	if sessionSecureID != nil {
-		if r.DB.Order("secure_id").Model(&session).Where(&model.Session{SecureID: *sessionSecureID}).Limit(1).Find(&session); session.ID == 0 {
+		if r.DB.Model(&session).Where(&model.Session{SecureID: *sessionSecureID}).Take(&session); session.ID == 0 {
 			retErr := e.New("ProcessBackendPayloadImpl failed to find session " + *sessionSecureID)
 			querySessionSpan.Finish(tracer.WithError(retErr))
 			log.WithContext(ctx).Error(retErr)
@@ -1914,7 +1927,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	querySessionSpan.Finish()
 
 	var project model.Project
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 		log.WithContext(ctx).WithError(err).WithField("project", project).WithField("projectVerboseID", projectVerboseID).Error("failed to find project")
 	}
 
@@ -1990,7 +2003,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		err = json.Unmarshal([]byte(v.StackTrace), &structuredStackTrace)
 		if err != nil {
-			structuredStackTrace, err = stacktraces.StructureStackTrace(v.StackTrace)
+			structuredStackTrace, err = stacktraces.StructureOTELStackTrace(v.StackTrace)
 			if err != nil {
 				log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
 			}
@@ -2055,7 +2068,7 @@ func (r *Resolver) RecordErrorGroupMetrics(ctx context.Context, errorGroup *mode
 			var sess model.Session
 			if err := r.DB.Model(&model.Session{}).Where(
 				&model.Session{Model: model.Model{ID: *e.SessionID}},
-			).First(&sess).Error; err != nil {
+			).Take(&sess).Error; err != nil {
 				return err
 			}
 			sessions[*e.SessionID] = &sess
@@ -2215,11 +2228,18 @@ func (r *Resolver) SaveSessionData(ctx context.Context, projectId, sessionId, pa
 	return nil
 }
 
-func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
+func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, events publicModel.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*publicModel.ErrorObjectInput, isBeacon bool, hasSessionUnloaded bool, highlightLogs *string, payloadId *int) error {
+	// old clients do not send web socket events, so the value can be nil.
+	// use this str as a simpler way to reference
+	webSocketEventsStr := ""
+	if webSocketEvents != nil {
+		webSocketEventsStr = *webSocketEvents
+	}
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionSecureID", sessionSecureID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
 	querySessionSpan.SetTag("resourcesLength", len(resources))
+	querySessionSpan.SetTag("webSocketEventsLength", len(webSocketEventsStr))
 	querySessionSpan.SetTag("numberOfErrors", len(errors))
 	querySessionSpan.SetTag("numberOfEvents", len(events.Events))
 	if highlightLogs != nil {
@@ -2234,8 +2254,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		return e.New("ProcessPayload called without secureID")
 	}
 	sessionObj := &model.Session{}
-	if err := r.DB.Order("secure_id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&sessionObj).Error; err != nil || sessionObj.ID == 0 {
-		retErr := e.New("error reading from session %v" + sessionSecureID)
+	if err := r.DB.Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Take(&sessionObj).Error; err != nil {
+		retErr := e.Wrapf(err, "error reading from session %v", sessionSecureID)
+		log.WithContext(ctx).Error(retErr)
 		querySessionSpan.Finish(tracer.WithError(retErr))
 		return retErr
 	}
@@ -2365,7 +2386,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			}
 
 			if !lastUserInteractionTimestamp.IsZero() {
-				if err := r.DB.Model(&sessionObj).Update("LastUserInteractionTime", lastUserInteractionTimestamp).Error; err != nil {
+				if err := r.DB.Model(&sessionObj).Updates(&model.Session{
+					LastUserInteractionTime: lastUserInteractionTimestamp,
+				}).Error; err != nil {
 					return e.Wrap(err, "error updating LastUserInteractionTime")
 				}
 			}
@@ -2394,26 +2417,23 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			tracer.ResourceName("go.unmarshal.resources"), tracer.Tag("project_id", projectID))
 		defer unmarshalResourcesSpan.Finish()
 
-		if sessionObj.AvoidPostgresStorage {
-			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
-				return e.Wrap(err, "error saving resources data")
-			}
-		} else {
-			if hasBeacon {
-				r.DB.Where(&model.ResourcesObject{SessionID: sessionID, IsBeacon: true}).Delete(&model.ResourcesObject{})
-			}
-			resourcesParsed := make(map[string][]NetworkResource)
-			if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-				return nil
-			}
-			if len(resourcesParsed["resources"]) > 0 {
-				if err := r.submitFrontendNetworkMetric(ctx, sessionObj, resourcesParsed["resources"]); err != nil {
-					return err
-				}
-				obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources, IsBeacon: isBeacon}
-				if err := r.DB.Create(obj).Error; err != nil {
-					return e.Wrap(err, "error creating resources object")
-				}
+		if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeResources, []byte(resources)); err != nil {
+			return e.Wrap(err, "error saving resources data")
+		}
+
+		return nil
+	})
+
+	// unmarshal WebSocket events
+	g.Go(func() error {
+		defer util.Recover()
+		if webSocketEventsStr != "" {
+			unmarshalWebSocketEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
+				tracer.ResourceName("go.unmarshal.web_socket_events"), tracer.Tag("project_id", projectID))
+			defer unmarshalWebSocketEventsSpan.Finish()
+
+			if err := r.SaveSessionData(ctx, projectID, sessionID, payloadIdDeref, false, isBeacon, model.PayloadTypeWebSocketEvents, []byte(webSocketEventsStr)); err != nil {
+				return e.Wrap(err, "error saving web socket events data")
 			}
 		}
 
@@ -2428,7 +2448,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 
 		var project model.Project
-		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).First(&project).Error; err != nil {
+		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 			return e.Wrap(err, "error querying project")
 		}
 		workspace, err := r.getWorkspace(project.WorkspaceID)
@@ -2602,12 +2622,26 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	} else if excluded {
 		// Only update the excluded flag and reason if either have changed
-		if sessionObj.Excluded != excluded || sessionObj.ExcludedReason != reason {
+		var reasonDeref, newReasonDeref privateModel.SessionExcludedReason
+		if sessionObj.ExcludedReason != nil {
+			reasonDeref = *sessionObj.ExcludedReason
+		}
+		if reason != nil {
+			newReasonDeref = *reason
+		}
+		if sessionObj.Excluded != excluded || reasonDeref != newReasonDeref {
 			if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).
 				Select("Excluded", "ExcludedReason").Updates(&model.Session{
 				Excluded:       excluded,
 				ExcludedReason: reason,
 			}).Error; err != nil {
+				return err
+			}
+			if err := r.OpenSearch.UpdateAsync(ctx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
+				"Excluded":       excluded,
+				"ExcludedReason": reason,
+			}); err != nil {
+				log.WithContext(ctx).Error(e.Wrap(err, "error updating session in opensearch"))
 				return err
 			}
 		}
@@ -2682,7 +2716,7 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 	}
 
 	sessionObj := &model.Session{}
-	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj).Error; err != nil {
+	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: sessionID}}).Take(&sessionObj).Error; err != nil {
 		retErr := e.Wrapf(err, "error reading from session %v", sessionID)
 		log.WithContext(ctx).Error(retErr)
 		return nil
@@ -2874,7 +2908,7 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 	}
 
 	refetchedSession := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: session.ID}}).First(&refetchedSession).Error; err != nil {
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: session.ID}}).Take(&refetchedSession).Error; err != nil {
 		retErr := e.Wrapf(err, "error reading from session %v", session.ID)
 		log.WithContext(ctx).Error(retErr)
 		return err
@@ -3024,7 +3058,16 @@ func (r *Resolver) isSessionExcluded(ctx context.Context, s *model.Session, sess
 		reason = privateModel.SessionExcludedReasonNoError
 	}
 
+	if r.isSessionExcludedForNoUserEvents(ctx, s) {
+		excluded = true
+		reason = privateModel.SessionExcludedReasonNoUserEvents
+	}
+
 	return excluded, &reason
+}
+
+func (r *Resolver) isSessionExcludedForNoUserEvents(ctx context.Context, s *model.Session) bool {
+	return s.LastUserInteractionTime.Unix() == 0
 }
 
 func (r *Resolver) isSessionExcludedForNoError(ctx context.Context, s *model.Session, project model.Project, sessionHasErrors bool) bool {
@@ -3096,65 +3139,4 @@ func isExcludedError(ctx context.Context, errorFilters []string, errorEvent stri
 		}
 	}
 	return false
-}
-
-func (r *Resolver) submitFrontendNetworkMetric(ctx context.Context, sessionObj *model.Session, resources []NetworkResource) error {
-	project := &model.Project{}
-	if err := r.DB.Model(&model.Project{}).Select("backend_domains").Where("id = ?", sessionObj.ProjectID).First(&project).Error; err != nil {
-		return e.Wrap(err, "error querying project")
-	}
-
-	var points []timeseries.Point
-	for _, re := range resources {
-		tags := map[string]string{
-			"session_id": strconv.Itoa(sessionObj.ID),
-			"group_name": re.RequestResponsePairs.Request.ID,
-		}
-		fields := map[string]interface{}{}
-		for key, value := range map[privateModel.NetworkRequestAttribute]float64{
-			privateModel.NetworkRequestAttributeBodySize:     float64(len(re.RequestResponsePairs.Request.Body)),
-			privateModel.NetworkRequestAttributeResponseSize: re.RequestResponsePairs.Response.Size,
-			privateModel.NetworkRequestAttributeStatus:       re.RequestResponsePairs.Response.Status,
-			privateModel.NetworkRequestAttributeLatency:      float64((time.Millisecond * time.Duration(re.ResponseEnd-re.StartTime)).Nanoseconds()),
-		} {
-			fields[key.String()] = value
-		}
-		categories := map[privateModel.NetworkRequestAttribute]string{
-			privateModel.NetworkRequestAttributeMethod:        re.RequestResponsePairs.Request.Method,
-			privateModel.NetworkRequestAttributeInitiatorType: re.InitiatorType,
-			privateModel.NetworkRequestAttributeRequestID:     re.RequestResponsePairs.Request.ID,
-		}
-		requestBody := make(map[string]interface{})
-		// if the request body is json and contains the graphql key operationName, treat it as an operation
-		if err := json.Unmarshal([]byte(re.RequestResponsePairs.Request.Body), &requestBody); err == nil {
-			if _, ok := requestBody["operationName"]; ok {
-				categories[privateModel.NetworkRequestAttributeGraphqlOperation] = requestBody["operationName"].(string)
-			}
-		}
-
-		// only record urls for network requests that match config to limit metric cardinality
-		u, err := url.Parse(re.Name)
-		if err == nil {
-			for _, d := range project.BackendDomains {
-				if u.Host == d {
-					u.RawQuery = ""
-					u.Fragment = ""
-					categories[privateModel.NetworkRequestAttributeURL] = u.String()
-				}
-			}
-		}
-
-		for key, value := range categories {
-			tags[key.String()] = value
-		}
-		// request time is relative to session start
-		d, _ := time.ParseDuration(fmt.Sprintf("%fms", re.StartTime))
-		points = append(points, timeseries.Point{
-			Time:   sessionObj.CreatedAt.Add(d),
-			Tags:   tags,
-			Fields: fields,
-		})
-	}
-	r.TDB.Write(ctx, strconv.Itoa(sessionObj.ProjectID), timeseries.Metrics, points)
-	return nil
 }

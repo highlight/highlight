@@ -9,7 +9,7 @@ func (store *Store) GetSession(sessionID int) (model.Session, error) {
 		Model: model.Model{
 			ID: sessionID,
 		},
-	}).First(&session).Error
+	}).Take(&session).Error
 
 	return session, err
 }

@@ -25,6 +25,10 @@ const getLocalStorage = function (): Storage | undefined {
 }
 
 export const isIndexedDBEnabled = function () {
+	// disabled indexeddb altogether if we cannot read indexeddb memory usage
+	if (!navigator?.storage?.estimate) {
+		return false
+	}
 	const defaultEnabled = import.meta.env.MODE !== 'development'
 	const storage = getLocalStorage()
 	if (!storage) {
@@ -129,7 +133,12 @@ export class IndexedDBCache {
 		})
 	}
 	deleteItem = async function (key: { operation: string; variables: any }) {
-		await db.apollo.delete(JSON.stringify(key))
+		const q = db.apollo.where('key').equals(JSON.stringify(key))
+		log('db.ts', 'IndexedDBLink cache deleting', {
+			key,
+			count: await q.count(),
+		})
+		await q.delete()
 	}
 }
 

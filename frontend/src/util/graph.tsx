@@ -18,27 +18,27 @@ import {
 import { namedOperations } from '@graph/operations'
 import { auth } from '@util/auth'
 import { IndexedDBLink } from '@util/db'
+import { invalidateRefetch } from '@util/gql'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 
 import {
 	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { PRIVATE_GRAPH_URI } from '@/constants'
 
-const uri =
-	import.meta.env.REACT_APP_PRIVATE_GRAPH_URI ??
-	window.location.origin + '/private'
 const highlightGraph = new IndexedDBLink(
 	createHttpLink({
-		uri,
+		uri: PRIVATE_GRAPH_URI,
 		credentials: 'include',
 	}),
 )
 let splitLink = null
 try {
-	const socketUri = uri
-		.replace('http://', 'ws://')
-		.replace('https://', 'wss://')
+	const socketUri = PRIVATE_GRAPH_URI.replace('http://', 'ws://').replace(
+		'https://',
+		'wss://',
+	)
 	const highlightSocket = new WebSocketLink({
 		uri: socketUri,
 		options: {
@@ -71,7 +71,7 @@ const graphCdnGraph = new HttpLink({
 	uri: 'https://graphcdn.highlight.run',
 })
 if (isOnPrem) {
-	console.log('Private Graph URI: ', uri)
+	console.log('Private Graph URI: ', PRIVATE_GRAPH_URI)
 }
 
 const authLink = setContext((_, { headers }) => {
@@ -161,6 +161,11 @@ export const client = new ApolloClient({
 			authLink.concat(splitLink || highlightGraph),
 		),
 	]),
+	defaultOptions: {
+		mutate: {
+			onQueryUpdated: invalidateRefetch,
+		},
+	},
 	cache,
 	assumeImmutableResults: true,
 	connectToDevTools: import.meta.env.DEV,

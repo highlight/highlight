@@ -14,7 +14,9 @@ import React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
-import styles from './ErrorTabContent.module.scss'
+import { ErrorInstances } from '@/pages/ErrorsV2/ErrorInstances/ErrorInstances'
+
+import styles from './ErrorTabContent.module.css'
 
 type Props = React.PropsWithChildren & {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -22,15 +24,13 @@ type Props = React.PropsWithChildren & {
 
 const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 	const navigate = useNavigate()
-	const {
-		project_id,
-		error_secure_id,
-		error_tab_key = 'instances',
-	} = useParams<{
-		project_id: string
-		error_secure_id: string
-		error_tab_key?: 'instances' | 'metrics'
-	}>()
+	const { project_id, error_secure_id, error_object_id, error_tab_key } =
+		useParams<{
+			project_id: string
+			error_secure_id: string
+			error_object_id?: string
+			error_tab_key?: 'instances' | 'metrics'
+		}>()
 
 	useHotkeys(
 		'm',
@@ -56,6 +56,12 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 		[project_id, error_secure_id, error_tab_key],
 	)
 
+	// /:project_id/errors/:error_group_secure_id -> load latest instance
+	// /:project_id/errors/:error_group_secure_id/instances -> load instances list view
+	// /:project_id/errors/:error_group_secure_id/instances/:error_object_id -> load instance
+	const showAllInstances =
+		error_tab_key === 'instances' && error_object_id === undefined
+
 	return (
 		<Tabs
 			animated={false}
@@ -64,12 +70,17 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 			noHeaderPadding
 			noPadding
 			unsetOverflowY
-			activeKeyOverride={error_tab_key}
-			onChange={(activeKey) =>
-				navigate(
-					`/${project_id}/errors/${error_secure_id}/${activeKey}`,
-				)
-			}
+			activeKeyOverride={error_tab_key ?? 'instances'}
+			onChange={(activeKey) => {
+				if (activeKey === 'instances') {
+					// we want instances to load the latest instance, not the list view
+					navigate(`/${project_id}/errors/${error_secure_id}`)
+				} else {
+					navigate(
+						`/${project_id}/errors/${error_secure_id}/${activeKey}`,
+					)
+				}
+			}}
 			tabs={[
 				{
 					key: 'instances',
@@ -80,7 +91,11 @@ const ErrorTabContent: React.FC<Props> = ({ errorGroup }) => {
 							shortcut="i"
 						/>
 					),
-					panelContent: <ErrorInstance errorGroup={errorGroup} />,
+					panelContent: showAllInstances ? (
+						<ErrorInstances errorGroup={errorGroup} />
+					) : (
+						<ErrorInstance errorGroup={errorGroup} />
+					),
 				},
 				{
 					key: 'metrics',

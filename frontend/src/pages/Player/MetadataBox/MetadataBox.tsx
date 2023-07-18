@@ -22,7 +22,6 @@ import {
 } from '@pages/Sessions/SessionsFeedV3/MinimalSessionCard/utils/utils'
 import { useParams } from '@util/react-router/useParams'
 import { copyToClipboard, validateEmail } from '@util/string'
-import { buildQueryStateString } from '@util/url/params'
 import { message } from 'antd'
 import clsx from 'clsx'
 import { capitalize } from 'lodash'
@@ -35,6 +34,8 @@ import {
 	FaTwitterSquare,
 } from 'react-icons/fa'
 
+import { buildQueryStateString } from '@/util/url/params'
+
 import { useReplayerContext } from '../ReplayerContext'
 import * as style from './MetadataBox.css'
 import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
@@ -42,7 +43,7 @@ import { getAbsoluteUrl, getMajorVersion } from './utils/utils'
 export const MetadataBox = React.memo(() => {
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 	const { session } = useReplayerContext()
-	const { searchParams, setSearchParams } = useSearchContext()
+	const { setSearchQuery } = useSearchContext()
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	const [enhancedAvatar, setEnhancedAvatar] = React.useState<string>()
@@ -188,16 +189,15 @@ export const MetadataBox = React.memo(() => {
 		const displayName = getDisplayName(session)
 		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
 
-		setSearchParams((params) => ({
-			...params,
-			query: buildQueryStateString({
-				query: searchParams.query,
+		setSearchQuery((query) =>
+			buildQueryStateString({
+				query,
 				[`user_${userParam}`]: displayName,
 			}),
-		}))
+		)
 
 		setShowLeftPanel(true)
-	}, [searchParams.query, session, setSearchParams, setShowLeftPanel])
+	}, [session, setSearchQuery, setShowLeftPanel])
 
 	return (
 		<Box display="flex" flexDirection="column" style={{ width: 300 }}>

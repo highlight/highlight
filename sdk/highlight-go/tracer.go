@@ -95,7 +95,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
-	if resp != nil && resp.Errors != nil {
+	if resp != nil {
 		RecordMetric(ctx, name+".errorsCount", float64(len(resp.Errors)))
 	}
 	return resp

@@ -20,9 +20,9 @@ import { Link } from 'react-router-dom'
 import * as style from './ErrorFeedCard.css'
 interface Props {
 	errorGroup: Maybe<Omit<ErrorGroup, 'metadata_log'>>
-	urlParams?: string
+	onClick?: React.MouseEventHandler<HTMLAnchorElement>
 }
-export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
+export const ErrorFeedCard = ({ errorGroup, onClick }: Props) => {
 	const { projectId } = useProjectId()
 	const { error_secure_id } = useParams<{
 		error_secure_id?: string
@@ -38,9 +38,15 @@ export const ErrorFeedCard = ({ errorGroup, urlParams }: Props) => {
 
 	return (
 		<Link
-			to={`/${projectId}/errors/${errorGroup?.secure_id}${
-				urlParams || ''
-			}`}
+			to={
+				onClick
+					? {}
+					: {
+							pathname: `/${projectId}/errors/${errorGroup?.secure_id}`,
+							search: location.search,
+					  }
+			}
+			onClick={onClick}
 		>
 			<Box
 				paddingTop="8"

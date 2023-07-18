@@ -1,12 +1,17 @@
 import { ErrorButtons } from '@/app/components/error-buttons'
 import { FetchTests } from '@/app/components/fetch-tests'
+import { HighlightIdentify } from '@/app/components/highlight-identify'
+import { HighlightButtons } from './components/highlight-buttons'
 import Image from 'next/image'
+import Link from 'next/link'
 import { PathButtons } from '@/app/components/path-buttons'
 import { TrpcQueries } from '@/app/components/trpc-queries'
 
 export default function Home() {
 	return (
 		<main style={{ padding: '2rem' }}>
+			<HighlightIdentify />
+
 			<Image
 				alt="Highlight logo"
 				src="highlight/logo-and-text-on-dark.svg"
@@ -15,8 +20,10 @@ export default function Home() {
 				priority
 			/>
 
-			<h3>Error Buttons</h3>
+			<h3>H Buttons</h3>
+			<HighlightButtons />
 
+			<h3>Error Buttons</h3>
 			<ErrorButtons />
 
 			<h3>Paths</h3>
@@ -27,6 +34,8 @@ export default function Home() {
 
 			<h3>Fetch</h3>
 			<FetchTests />
+
+			<Link href="/another-page">Navigation Test</Link>
 		</main>
 	)
 }

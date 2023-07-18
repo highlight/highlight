@@ -1,0 +1,29 @@
+{
+	"name": "emails",
+	"private": true,
+	"version": "0.0.0",
+	"type": "module",
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"scripts": {
+		"build": "tsup",
+		"dev": "email dev",
+		"zip": "zip -r function.zip node_modules package.json -x node_modules/typescript/\\* -x node_modules/tsup/\\* -x node_modules/@types/\\* -x node_modules/@highlight-run/node/node_modules/typescript/\\* && cd dist && zip ../function.zip * && cd ..",
+		"publish": "yarn zip && aws s3 cp function.zip s3://highlight-lambda-code/session-insights-email.zip && rm function.zip && aws lambda update-function-code --function-name session-insights-email --s3-bucket highlight-lambda-code --s3-key session-insights-email.zip"
+	},
+	"dependencies": {
+		"@react-email/components": "0.0.6",
+		"@react-email/render": "^0.0.7",
+		"aws-lambda": "^1.0.7",
+		"tsup": "^7.1.0",
+		"typescript": "^5.1.6"
+	},
+	"installConfig": {
+		"hoistingLimits": "dependencies"
+	},
+	"devDependencies": {
+		"@types/aws-lambda": "^8.10.119",
+		"react-email": "^1.9.4"
+	},
+	"packageManager": "yarn@3.2.0"
+}

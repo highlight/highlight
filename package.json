@@ -38,11 +38,13 @@
 		"dev:frontend": "doppler run -- yarn turbo run dev --filter frontend... --filter=!@highlight-run/rrweb... --filter=!@highlight-run/ui...",
 		"dev:highlight.io": "doppler run -- yarn turbo run dev --filter highlight.io",
 		"dev:ui": "yarn turbo run dev --filter @highlight-run/ui...",
+		"dev:watch": "yarn turbo run dev:watch --concurrency=30",
 		"reflame": "cd frontend && yarn reflame",
 		"reflame-build": "cd frontend && yarn reflame-build",
 		"reflame-check": "./scripts/reflame-check.sh",
 		"dev:redis": "redis-server",
 		"docker:frontend": "yarn turbo run dev --filter frontend --filter highlight.run --filter @highlight-run/client",
+		"e2e:cloudflare": "yarn turbo run dev --filter cloudflare-worker...",
 		"e2e:nestjs": "yarn turbo run dev --filter nestjs",
 		"e2e:nextjs": "yarn turbo run dev --filter nextjs...",
 		"enforce-size": "yarn turbo run enforce-size --filter frontend...",
@@ -57,11 +59,13 @@
 		"validate": "yarn workspace scripts validate:client",
 		"private-gen": "cd backend && make private-gen",
 		"public-gen": "cd backend && make public-gen",
-		"publish:all": "run-p --print-label publish:client publish:turbo publish:render",
+		"publish:all": "run-p --print-label publish:ai publish:client publish:turbo publish:render",
+		"publish:ai": "yarn workspace ai publish",
 		"publish:client": "yarn workspace scripts publish:client",
 		"publish:render": "yarn workspace render publish",
 		"publish:turbo": "yarn workspaces foreach --no-private --from '@highlight-run/*' npm publish --access public --tolerate-republish && yarn workspace highlight.run npm publish --access public --tolerate-republish",
-		"test:all": "yarn turbo run test --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs",
+		"test:all": "yarn turbo run test --filter=!render --filter=!@highlight-run/rrweb --filter=!@highlight-run/rrweb-types --filter=!@highlight-run/rrweb-snapshot --filter=!@highlight-run/rrweb-player --filter=!@highlight-run/rrdom --filter=!@highlight-run/rrdom-nodejs",
+		"test:render": "yarn turbo run test --filter=render",
 		"sourcemaps:frontend": "yarn workspace @highlight-run/frontend sourcemaps"
 	},
 	"devDependencies": {
@@ -118,6 +122,6 @@
 		"ua-parser-js": "0.7.33",
 		"undici": "5.19.1",
 		"webpack": "5.76.0",
-		"ws": "7.4.6"
+		"ws": "8.11.0"
 	}
 }

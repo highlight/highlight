@@ -28,7 +28,7 @@ import {
 } from 'recharts'
 import { AxisDomain } from 'recharts/types/util/types'
 
-import styles from './LineChart.module.scss'
+import styles from './LineChart.module.css'
 
 export const CLICK_NEARBY_THRESHOLD = 4
 export const MAX_LEGEND_ITEMS = 16

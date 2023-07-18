@@ -7,7 +7,7 @@ from highlight_io import H
 
 def test_azure(mocker):
     mocker.patch("random.random", return_value=0.1)
-    mock_trace = mocker.patch("highlight_io.H.trace")
+    mock_trace = mocker.spy(H, "trace")
     # Construct a mock HTTP request.
     req = func.HttpRequest(
         method="GET",
@@ -20,4 +20,4 @@ def test_azure(mocker):
     with pytest.raises(expected_exception=ValueError):
         main(req)
 
-    mock_trace.assert_called_with("a1b2c3", "1234")
+    mock_trace.assert_called_with(H.get_instance(), "a1b2c3", "1234")
