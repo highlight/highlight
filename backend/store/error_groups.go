@@ -27,8 +27,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 
 	var errorObjects []model.ErrorObject
 
-	query := store.db.Debug().
-		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(LIMIT + 1)
+	query := store.db.Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(LIMIT + 1)
 
 	if params.Query != "" {
 		parsedQuery := queryparser.Parse(params.Query)

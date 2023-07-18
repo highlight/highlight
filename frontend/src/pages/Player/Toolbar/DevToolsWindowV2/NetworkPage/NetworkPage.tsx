@@ -7,11 +7,6 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
-import {
-	RightPanelView,
-	usePlayerUIContext,
-} from '@pages/Player/context/PlayerUIContext'
-import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	LoadingError,
@@ -20,7 +15,6 @@ import {
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import {
 	findLastActiveEventIndex,
-	findResourceWithMatchingHighlightHeader,
 	getHighlightRequestId,
 	getNetworkResourcesDisplayName,
 	NetworkResource,
@@ -28,11 +22,9 @@ import {
 	RequestType,
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
-import { message } from 'antd'
 import _ from 'lodash'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
@@ -59,27 +51,14 @@ export const NetworkPage = ({
 	requestTypes: RequestType[]
 	requestStatuses: RequestStatus[]
 }) => {
-	const {
-		state,
-		session,
-		isPlayerReady,
-		errors,
-		replayer,
-		setTime,
-		sessionMetadata,
-	} = useReplayerContext()
+	const { state, session, isPlayerReady, errors, setTime, sessionMetadata } =
+		useReplayerContext()
 	const startTime = sessionMetadata.startTime
-	const { setShowDevTools, setSelectedDevToolsTab, showPlayerAbsoluteTime } =
-		usePlayerConfiguration()
-	const { setActiveError, setRightPanelView } = usePlayerUIContext()
+	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
 	const { setActiveNetworkResourceId } = useActiveNetworkResourceId()
-
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
-	const errorId = new URLSearchParams(location.search).get(
-		PlayerSearchParameters.errorId,
-	)
 
 	const {
 		resources: parsedResources,
@@ -194,55 +173,6 @@ export const NetworkPage = ({
 		}, 1000 / 60),
 		[],
 	)
-
-	useEffect(() => {
-		if (
-			errorId &&
-			!loading &&
-			!!session &&
-			!!resourcesToRender &&
-			resourcesToRender.length > 0 &&
-			!!errors &&
-			errors.length > 0 &&
-			isPlayerReady
-		) {
-			const matchingError = errors.find((e) => e.id === errorId)
-			if (matchingError && matchingError.request_id) {
-				const resource = findResourceWithMatchingHighlightHeader(
-					matchingError.request_id,
-					resourcesToRender,
-				)
-				if (resource) {
-					setActiveNetworkResourceId(resource.id)
-					setTime(resource.startTime)
-					scrollFunction(resourcesToRender.indexOf(resource))
-					message.success(
-						`Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
-							resource.startTime,
-						)}.`,
-					)
-				} else {
-					setSelectedDevToolsTab(Tab.Errors)
-					setActiveError(matchingError)
-					setRightPanelView(RightPanelView.Error)
-					analytics.track(
-						'FailedToMatchHighlightResourceHeaderWithResource',
-					)
-				}
-			}
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		resourcesToRender,
-		errors,
-		isPlayerReady,
-		loading,
-		replayer,
-		scrollFunction,
-		session,
-		setSelectedDevToolsTab,
-		setShowDevTools,
-	])
 
 	useEffect(() => {
 		if (autoScroll && state === ReplayerState.Playing) {

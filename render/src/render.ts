@@ -109,7 +109,7 @@ export async function render(
 	const width = Number(await page.evaluate(`viewport.width`))
 	const height = Number(await page.evaluate(`viewport.height`))
 	console.log(`puppeteer meta`, { meta, width, height })
-	await page.setViewport({ width: width + 16, height: height + 16 })
+	await page.setViewport({ width: width, height: height })
 
 	let interval = 1000
 	let start = ts || meta.startTime
