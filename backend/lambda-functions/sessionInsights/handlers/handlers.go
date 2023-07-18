@@ -247,6 +247,7 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 	}
 
 	if input.DryRun {
+		fmt.Printf("%#v\n", toAddrs)
 		toAddrs = []struct {
 			AdminID int
 			Email   string
