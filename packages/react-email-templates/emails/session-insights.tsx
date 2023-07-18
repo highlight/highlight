@@ -117,6 +117,7 @@ export const SessionInsightsEmail = ({
 								</Column>
 								<Column>
 									<Img
+										style={activityGraph}
 										src={s.activityGraphUrl}
 										width="120"
 										height="60"
@@ -316,4 +317,8 @@ const insightText = {
 	paddingLeft: '8px',
 	textAlign: 'left' as const,
 	wordBreak: 'break-word' as const,
+}
+
+const activityGraph = {
+	marginTop: '4px',
 }
