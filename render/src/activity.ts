@@ -79,6 +79,12 @@ const svgToPng = async (svg: string) => {
 			height: HEIGHT,
 		},
 	})
+
+	if (process.env.DEV?.length) {
+		await page.close()
+		await browser.close()
+	}
+
 	return res
 }
 
@@ -134,5 +140,9 @@ if (process.env.DEV?.length) {
 		handler({
 			body: '[0,1,0,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,2,0,0,0,0,0,0,2,0,0,0,0,0,0,0,2,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,2,3,5,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0]',
 		} as unknown as APIGatewayEvent),
-	])
+	]).then((res) => {
+		for (const r of res) {
+			console.log(r.body)
+		}
+	})
 }
