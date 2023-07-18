@@ -26,7 +26,7 @@ Router.events.on('routeChangeComplete', () => {
 	nProgress.done()
 })
 
-H.init('<YOUR_PROJECT_ID>', {
+H.init('4d7k1xeo', {
 	networkRecording: {
 		enabled: true,
 		recordHeadersAndBody: true,
