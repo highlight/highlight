@@ -747,6 +747,10 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 }
 
 func (r *Resolver) BatchGenerateEmbeddings(ctx context.Context, errorObjects []*model.ErrorObject) error {
+	if len(errorObjects) == 0 {
+		return nil
+	}
+
 	embeddings, err := errorgroups.GetEmbeddings(ctx, errorObjects)
 	if err != nil {
 		return err
