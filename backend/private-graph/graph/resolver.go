@@ -944,12 +944,10 @@ func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecur
 	return nil, err
 }
 
-func (r *Resolver) _doesAdminOwnSession(ctx context.Context, session_secure_id string) (session *model.Session, ownsSession bool, err error) {
-	session = &model.Session{}
-	if err := r.DB.Model(&session).Where(&model.Session{SecureID: session_secure_id}).Take(&session).Error; err != nil {
+func (r *Resolver) _doesAdminOwnSession(ctx context.Context, sessionSecureId string) (session *model.Session, ownsSession bool, err error) {
+	if session, err = r.Store.GetSessionFromSecureID(ctx, sessionSecureId); err != nil {
 		return nil, false, AuthorizationError
 	}
-
 	_, err = r.isAdminInProjectOrDemoProject(ctx, session.ProjectID)
 	if err != nil {
 		return session, false, err

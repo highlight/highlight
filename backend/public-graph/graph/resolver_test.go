@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/redis"
 	"os"
 	"reflect"
 	"strconv"
@@ -43,7 +44,7 @@ func TestMain(m *testing.M) {
 	resolver = &Resolver{
 		DB:    db,
 		TDB:   timeseries.New(context.TODO()),
-		Store: store.NewStore(db, &opensearch.Client{}),
+		Store: store.NewStore(db, &opensearch.Client{}, redis.NewClient()),
 	}
 	code := m.Run()
 	os.Exit(code)
