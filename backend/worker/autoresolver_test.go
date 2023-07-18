@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/redis"
 	"os"
 	"testing"
 	"time"
@@ -26,7 +27,7 @@ func createAutoResolver() *AutoResolver {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 
-	store := store.NewStore(db, &opensearch.Client{})
+	store := store.NewStore(db, &opensearch.Client{}, redis.NewClient())
 	return NewAutoResolver(store, db)
 }
 

@@ -382,9 +382,9 @@ func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminI
 
 func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, adminID int, workspaceID int) error {
 	key := fmt.Sprintf("hubspot-association-%d-%d", adminID, workspaceID)
-	if err := h.redisClient.AcquireLock(ctx, key, ClientSideCreationPollInterval); err != nil {
-		return e.New("failed to acquire hubspot association lock")
-	} else {
+	// wait for up to 5 seconds in case another worker is creating the same association
+	// we don't expect the action to take longer than 5 seconds
+	if acquired := h.redisClient.AcquireLock(ctx, key, 5*time.Second); acquired {
 		defer func() {
 			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
 				log.WithContext(ctx).WithError(err).WithField("url", key).Error("failed to release hubspot association lock")
@@ -444,9 +444,7 @@ func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, ema
 
 func (h *HubspotApi) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	key := fmt.Sprintf("contact-%s", email)
-	if err := h.redisClient.AcquireLock(ctx, key, ClientSideContactCreationTimeout); err != nil {
-		return nil, e.New("failed to acquire hubspot contact creation lock")
-	} else {
+	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideContactCreationTimeout); acquired {
 		defer func() {
 			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
 				log.WithContext(ctx).WithError(err).WithField("url", key).Error("failed to release hubspot contact creation lock")
@@ -495,9 +493,7 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 	}
 
 	key := fmt.Sprintf("company-%s", name)
-	if err := h.redisClient.AcquireLock(ctx, key, ClientSideCompanyCreationTimeout); err != nil {
-		return nil, e.New("failed to acquire hubspot company creation lock")
-	} else {
+	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideCompanyCreationTimeout); acquired {
 		defer func() {
 			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
 				log.WithContext(ctx).WithError(err).WithField("url", key).Error("failed to release hubspot company creation lock")
