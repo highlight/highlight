@@ -16,6 +16,11 @@
 	transition-duration: 150ms;
 }
 
+.gridItemInteractive:hover {
+	border: 1px solid #9479d9;
+	cursor: pointer;
+}
+
 .gridTitle {
 	text-align: center;
 	font-family: Poppins;
