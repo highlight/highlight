@@ -20,15 +20,6 @@ import Banner from '../Banner/Banner'
 import FeatureDropdown from './FeatureDropdown'
 
 const LaunchWeekBanner = () => {
-	const LaunchWeekSchedule = [
-		'',
-		'error monitoring',
-		'session replay',
-		'logging',
-		'AI',
-		'our community',
-	] as const
-
 	const day = moment().diff(moment('2023-07-17T16:00:00Z'), 'days') + 1
 	if (day < 1 || day > 5) {
 		return null
@@ -36,11 +27,10 @@ const LaunchWeekBanner = () => {
 
 	const bannerMessage = (
 		<div className={styles.launchWeekText}>
-			Launch Week 2 is here! Day {day} is all about{' '}
-			{LaunchWeekSchedule[day]}.{' '}
+			Launch Week 2 is here.{' '}
 			<a
 				target="_blank"
-				href={`https://www.highlight.io/launch-week-2#day-${day}`}
+				href="https://www.highlight.io/launch-week-2"
 				rel="noreferrer"
 			>
 				Follow along
