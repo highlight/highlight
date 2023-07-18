@@ -2956,7 +2956,7 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending alert to zapier", session.ProjectID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: refetchedSession.SecureID, UserIdentifier: refetchedSession.Identifier, UserProperties: userProperties, UserObject: refetchedSession.UserObject})
+		sessionAlert.SendAlerts(r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: refetchedSession.SecureID, UserIdentifier: refetchedSession.Identifier, UserProperties: userProperties, UserObject: refetchedSession.UserObject})
 		if err = alerts.SendNewUserAlert(alerts.SendNewUserAlertEvent{
 			Session:      session,
 			SessionAlert: sessionAlert,
