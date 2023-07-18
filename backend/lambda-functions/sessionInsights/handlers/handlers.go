@@ -146,6 +146,7 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 			Id:           item.Id,
 			Insights:     insightStrs,
 			ChunkIndex:   item.ChunkIndex,
+			EventCounts:  item.EventCounts,
 		})
 	}
 
