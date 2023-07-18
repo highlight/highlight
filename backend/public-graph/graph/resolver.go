@@ -754,7 +754,7 @@ func (r *Resolver) BatchGenerateEmbeddings(ctx context.Context, errorObjects []*
 	return r.Store.PutEmbeddings(lo.MapToSlice(embeddings, func(errorObjectID int, embedding []float32) *model.ErrorObjectEmbeddings {
 		return &model.ErrorObjectEmbeddings{
 			ErrorObjectID: errorObjectID,
-			Embeddings:    embedding,
+			Embedding:     embedding,
 		}
 	}))
 }
