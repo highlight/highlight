@@ -688,6 +688,11 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil, e.Wrap(err, "Error performing error insert for error")
 	}
 
+	embeddings, err := errorgroups.GetEmbeddings(ctx, errorObj)
+	if err := r.Store.PutEmbeddings(errorObj, embeddings); err != nil {
+		log.WithContext(ctx).WithError(err).WithField("errorObj", errorObj).Error("failed to write embeddings")
+	}
+
 	opensearchErrorObject := &opensearch.OpenSearchErrorObject{
 		Url:         errorObj.URL,
 		Os:          errorObj.OS,

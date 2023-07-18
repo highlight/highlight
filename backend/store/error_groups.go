@@ -3,8 +3,10 @@ package store
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -22,6 +24,25 @@ type ListErrorObjectsParams struct {
 
 // Number of results per page
 const LIMIT = 10
+
+func (store *Store) PutEmbeddings(error *model.ErrorObject, embeddings []float32) error {
+	if err := store.db.Debug().Exec(`CREATE EXTENSION IF NOT EXISTS vector`).Error; err != nil {
+		return err
+	}
+	if err := store.db.Debug().Exec(`
+	CREATE TABLE IF NOT EXISTS error_object_embeddings (id bigserial PRIMARY KEY, error_object_id bigint NOT NULL, embedding vector(1536));`).Error; err != nil {
+		return err
+	}
+	embeddingsString := fmt.Sprintf(`[%s]`, strings.Join(lo.Map(embeddings, func(item float32, _ int) string {
+		return strconv.FormatFloat(float64(item), 'f', 20, 64)
+	}), ","))
+	if err := store.db.Debug().Exec(`
+	INSERT INTO error_object_embeddings (error_object_id, embedding) VALUES (?, ?);
+`, error.ID, embeddingsString).Error; err != nil {
+		return err
+	}
+	return nil
+}
 
 func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErrorObjectsParams) (privateModel.ErrorObjectConnection, error) {
 
