@@ -10,13 +10,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type Referrer string
-
-const (
-	Discord Referrer = "discord"
-	Webhook Referrer = "webhook"
-)
-
 func getErrorURL(errorAlert *model.ErrorAlert, errorGroup *model.ErrorGroup, errorObject *model.ErrorObject) string {
 	projectId := errorAlert.ProjectID
 	frontendURL := os.Getenv("FRONTEND_URI")
