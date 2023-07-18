@@ -19,6 +19,7 @@ interface InterestingSession {
 	identifier: string
 	avatarUrl: string
 	screenshotUrl: string
+	activityGraphUrl: string
 	country: string
 	activeLength: string
 	url: string
@@ -38,6 +39,8 @@ const sessionExample = {
 	url: 'https://app.highlight.io/1/sessions/123',
 	identifier: 'jay@highlight.io',
 	screenshotUrl: '',
+	activityGraphUrl:
+		'https://static.highlight.io/assets/session-insights/activity.png',
 	avatarUrl:
 		'https://lh3.googleusercontent.com/a-/AOh14Gg3zY3_wfixRrZjjMuj2eTrBAOKDZrDWeYlHsjL=s96-c',
 	country: 'Germany',
@@ -114,7 +117,7 @@ export const SessionInsightsEmail = ({
 								</Column>
 								<Column>
 									<Img
-										src="https://static.highlight.io/assets/session-insights/activity.png"
+										src={s.activityGraphUrl}
 										width="120"
 										height="60"
 										alt="activity"
