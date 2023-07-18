@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { Typography } from '../common/Typography/Typography'
 import BoxOverlay from './BoxOverlay'
 
@@ -10,8 +10,6 @@ import styles from './Launch.module.scss'
 
 const DayTwo = () => {
 	const [copy, setCopy] = useState(false)
-	const windowSize = useRef([window.innerWidth, window.innerHeight])
-	const width = windowSize.current[0]
 
 	function handleCopy(str: string) {
 		navigator.clipboard.writeText(
@@ -79,9 +77,9 @@ const DayTwo = () => {
 						</div>
 					</div>
 					<Link
-						href="/blog/error-monitoring-launch-week-2-new-features"
+						href="/blog/network-request-panel"
 						className={classNames(
-							'hover:border-[#9479D9] cursor-pointer h-1/2',
+							'h-full w-full hover:border-[#9479D9] cursor-pointer md:h-1/2',
 							styles.gridItem,
 						)}
 					>
@@ -101,7 +99,7 @@ const DayTwo = () => {
 				</div>
 
 				<Link
-					href="/blog/error-monitoring-launch-week-2-new-features"
+					href="/blog/web-socket-recording"
 					className={classNames(
 						'bg-black h-[250px] md:h-[450px] w-full cursor-pointer hover:border-[#9479D9]',
 						styles.gridItem,
@@ -119,7 +117,7 @@ const DayTwo = () => {
 						header="Websocket Recording"
 						subheader="Day 2: July 18th"
 						badge="Blog Post"
-						badgeUnder={width < 1130 && width > 768}
+						badgeUnder={true}
 					/>
 				</Link>
 			</div>

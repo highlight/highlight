@@ -15,7 +15,7 @@ import DayTwo from '../components/Launch/DayTwo'
 import HiddenDay from '../components/Launch/HiddenDay'
 
 const LaunchPage = () => {
-	const day = 1
+	const day = 2
 
 	return (
 		<div>
@@ -77,7 +77,7 @@ const LaunchPage = () => {
 					</Link>
 
 					<Link
-						href="https://news.ycombinator.com/item?id=34897645"
+						href="https://dub.sh/O3ayz3t"
 						className="flex justify-between p-4 w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-darker-copy-on-dark transition-all"
 					>
 						<div className="flex gap-3 items-center">
