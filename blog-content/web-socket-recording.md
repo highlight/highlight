@@ -26,7 +26,7 @@ We were between two options for how to display WebSocket messages to our users:
   <li>Pull out the messages to their own panel</li>
 </ol>
 
-The first option would allow us to better see the relationship between WebSocket messages and other HTTP requests, as they would be in the same table by chronological order. However, the big concern is the WebSocket messages would inundate the table, making it hard to decipher which messages were important. As a result, the WebSocket's open connection request is placed in the request table with the other HTTP requests, but the individual messages related to a WebSocket are pulled out into their own chronological table. While the messages are not intertwined, they will still include a timestamp that can be used to related to the other requests.
+The first option would allow us to better see the relationship between WebSocket messages and other HTTP requests, as they would be in the same table by chronological order. However, the big concern with that approach was that the WebSocket messages would inundate the table, making it hard to decipher which messages were important. As a result, we decided to put the WebSocket's open connection request in the request table with the other HTTP requests, and keep the individual messages related to a WebSocket pulled out into their own chronological table. While the messages are not intertwined, they will still include a timestamp that can be used to related to the other requests.
 
 ![WebSocket messages example](/images/blog/web-socket-recording/messages.png)
 
