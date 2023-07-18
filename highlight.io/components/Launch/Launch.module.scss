@@ -41,15 +41,18 @@
 	);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
-
 	-webkit-text-stroke: 0.5px white;
 }
 
-.gridItem:hover {
-	.chevronRight {
-		transform: translateX(4px);
-		transition-property: all;
-		transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-		transition-duration: 150ms;
-	}
+.gridItem .chevronRight {
+	transition-property: all;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 150ms;
+}
+
+.gridItem:hover .chevronRight {
+	transition-property: all;
+	transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+	transition-duration: 150ms;
+	transform: translateX(4px);
 }

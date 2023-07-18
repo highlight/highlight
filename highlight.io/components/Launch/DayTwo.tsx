@@ -13,7 +13,7 @@ const DayTwo = () => {
 
 	function handleCopy(str: string) {
 		navigator.clipboard.writeText(
-			process.env.NEXT_PUBLIC_VERCEL_URL + '/launch-week-2' + str,
+			'https://highlight.io/launch-week-2' + str,
 		)
 
 		setCopy(true)

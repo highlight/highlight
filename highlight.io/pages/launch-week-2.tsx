@@ -19,6 +19,14 @@ import preview from '../public/images/launch/preview.png'
 const LaunchPage = () => {
 	const day = 2
 
+	function scrollToDay(day: number) {
+		if (document && document.getElementById('day-' + day.toString())) {
+			document
+				.getElementById('day-' + day.toString())!
+				.scrollIntoView({ behavior: 'smooth' })
+		}
+	}
+
 	return (
 		<div>
 			<Meta
@@ -28,7 +36,7 @@ const LaunchPage = () => {
 				canonical="/launch-week-2"
 			/>
 			<Navbar hideBanner />
-			<main>
+			<main className="scroll-smooth">
 				<div className="flex flex-col gap-2 mt-20 text-center px-8">
 					<h2>
 						Launch Week 2.{' '}
@@ -45,14 +53,14 @@ const LaunchPage = () => {
 				</div>
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-20 max-w-[550px] md:max-w-[1200px] mx-auto px-8">
 					<Link
+						onClick={(e) => {
+							e.preventDefault()
+							scrollToDay(day)
+						}}
 						href={'/launch-week-2#day-' + day.toString()}
-						className="flex justify-between items-center p-4 w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-[#9479D9] transition-all"
+						className="flex justify-between items-center text-copy-on-dark p-4 w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-[#9479D9] transition-all"
 					>
-						<Typography
-							className="text-copy-on-dark"
-							type="copy4"
-							emphasis
-						>
+						<Typography type="copy4" emphasis>
 							Go to Day {day}
 						</Typography>
 						<div className="flex gap-3 items-center">
