@@ -9,7 +9,7 @@ authorTwitter: 'https://twitter.com/SpennyNDaJets'
 authorLinkedIn: 'https://www.linkedin.com/in/spencer-amarantides/'
 authorGithub: 'https://github.com/SpennyNDaJets'
 authorWebsite: ''
-authorPFP: 'https://lh3.google.com/u/0/ogw/AGvuzYYcxLXVI9fxSgSPXbQoBw2mpUKll1Kt5hR3LxEh=s64-c-mo'
+authorPFP: 'https://lh3.googleusercontent.com/a/AAcHTteOYM6knTAD-uOPM1JP56Yn4WlsGya6Dpnhq_ak6UJUY3Q=s576-c-no'
 tags: Developer Tooling, Launch Week 2
 metaTitle: Session replay now supports recording WebSocket events
 ---
@@ -21,10 +21,8 @@ Highlight's session replay feature now supports recording WebSocket events. In t
 ## Frontend UI/UX
 
 We were between two options for how to display WebSocket messages to our users:
-<ol>
-  <li>Display messages intertwined with other network requests</li>
-  <li>Pull out the messages to their own panel</li>
-</ol>
+  1 Display messages intertwined with other network requests
+  2 Pull out the messages to their own panel
 
 The first option would allow us to better see the relationship between WebSocket messages and other HTTP requests, as they would be in the same table by chronological order. However, the big concern with that approach was that the WebSocket messages would inundate the table, making it hard to decipher which messages were important. As a result, we decided to put the WebSocket's open connection request in the request table with the other HTTP requests, and keep the individual messages related to a WebSocket pulled out into their own chronological table. While the messages are not intertwined, they will still include a timestamp that can be used to related to the other requests.
 
