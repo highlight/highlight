@@ -21,8 +21,10 @@ Highlight's session replay feature now supports recording WebSocket events. In t
 ## Frontend UI/UX
 
 We were between two options for how to display WebSocket messages to our users:
-  1 Display messages intertwined with other network requests
-  2 Pull out the messages to their own panel
+<ol>
+  <li>1. Display messages intertwined with other network request</li>
+  <li>2. Pull out the messages to their own panel</li>
+</ol>
 
 The first option would allow us to better see the relationship between WebSocket messages and other HTTP requests, as they would be in the same table by chronological order. However, the big concern with that approach was that the WebSocket messages would inundate the table, making it hard to decipher which messages were important. As a result, we decided to put the WebSocket's open connection request in the request table with the other HTTP requests, and keep the individual messages related to a WebSocket pulled out into their own chronological table. While the messages are not intertwined, they will still include a timestamp that can be used to related to the other requests.
 
@@ -36,7 +38,7 @@ The WebSocket events are uploaded to S3 storage, but are kept in different files
 
 The `send`, `received`, and `error` events are stored in a different S3 file. Therefore, at query time, this file is requested when the user clicks on a specific WebSocket request to avoid loading in unecessary data to the client. It also helps performance since these events do not need to be plucked from a larger list of network resources, but have they own array of relevent events to display.
 
-## Getting Started
+## Getting started
 
 Ready to get started with WebSockets? The good news is it is very simple - starting in Highlight version `7.3.0`, apps that have set `networkRecording.recordHeadersAndBody` to `true` will start recording WebSocket traffic as well. If you want to disable recording WebSocket events, then you can set `networkRecording.disableWebSocketEventRecordings` to `true`, which will not affect the recordings of your other network requests. More information can be found in the docs: [Recording WebSocket Events](https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-web-socket-events).
 
