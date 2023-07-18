@@ -38,7 +38,7 @@ The WebSocket events are uploaded to S3 storage, but are kept in different files
 
 The `send`, `received`, and `error` events are stored in a different S3 file. Therefore, at query time, this file is requested when the user clicks on a specific WebSocket request to avoid loading in unecessary data to the client. It also helps performance since these events do not need to be plucked from a larger list of network resources, but have they own array of relevent events to display.
 
-## Getting Started
+## Getting started
 
 Ready to get started with WebSockets? The good news is it is very simple - starting in Highlight version `7.3.0`, apps that have set `networkRecording.recordHeadersAndBody` to `true` will start recording WebSocket traffic as well. If you want to disable recording WebSocket events, then you can set `networkRecording.disableWebSocketEventRecordings` to `true`, which will not affect the recordings of your other network requests. More information can be found in the docs: [Recording WebSocket Events](https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-web-socket-events).
 
