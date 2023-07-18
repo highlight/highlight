@@ -40,6 +40,6 @@ The `send`, `received`, and `error` events are stored in a different S3 file. Th
 
 ## Getting Started
 
-Ready to get started with WebSockets? The good news is this feature is on by default for apps using Highlight version `7.3.0` or later. All you need to do is make sure that `networkRecording.recordHeadersAndBody` is set to `true`. If you want to disable WebSocket events from being disabled, then you can set `disableWebSocketEventRecordings` to `true`. More information can be found in the docs: [Recording WebSocket Events](https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-web-socket-events).
+Ready to get started with WebSockets? The good news is it is very simple - starting in Highlight version `7.3.0`, apps that have set `networkRecording.recordHeadersAndBody` to `true` will start recording WebSocket traffic as well. If you want to disable recording WebSocket events, then you can set `networkRecording.disableWebSocketEventRecordings` to `true`, which will not affect the recordings of your other network requests. More information can be found in the docs: [Recording WebSocket Events](https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/recording-web-socket-events).
 
 Thanks for reading and stay tuned to everything we're announcing as part of [launch week](https://highlight.io/launch-week)!
