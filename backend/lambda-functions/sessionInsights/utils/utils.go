@@ -22,6 +22,7 @@ type InterestingSessionSql struct {
 	ActiveLength   time.Duration `json:"activeLength"`
 	SecureId       string        `json:"secureId"`
 	Id             int           `json:"id"`
+	ChunkIndex     int           `json:"chunkIndex"`
 }
 
 type InterestingSession struct {
@@ -33,6 +34,7 @@ type InterestingSession struct {
 	ScreenshotUrl string   `json:"screenshotUrl"`
 	Insights      []string `json:"insights"`
 	Id            int      `json:"id"`
+	ChunkIndex    int      `json:"chunkIndex"`
 }
 
 type SessionInsightsData struct {
