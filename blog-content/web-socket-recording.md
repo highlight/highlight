@@ -14,7 +14,7 @@ tags: Developer Tooling, Launch Week 2
 metaTitle: Session replay now supports recording WebSocket events
 ---
 
-Highlight's session replay feature now supports recording WebSocket events! When viewing a session, you were able to view the network requests and their responses in the Developer Tools. However, any communications using WebSockets were missing from the record. Starting in version `7.3.0`, Highlight will record your WebSocket events and display them to help you debug what may be happening behind the scenes. In this blog post, I want to share some of the decisions we may in supporting WebSocket recording and how you can start using it.
+Highlight's session replay feature now supports recording WebSocket events. In the past, when viewing a session, you were able to view the network requests and their responses in the Developer Tools. However, any communications using WebSockets were missing from the recording. Starting in version `7.3.0`, Highlight will now record your WebSocket events and display them to help you debug what may be happening behind the scenes. In this blog post, I'll share some of the decisions we made in supporting WebSocket recording and how you can start using it.
 
 ![New WebSocket recording feature](/images/blog/web-socket-recording/overview.png)
 
