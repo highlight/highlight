@@ -7,10 +7,14 @@
 	"module": "./dist/index.js",
 	"scripts": {
 		"build": "tsup",
-		"test": "DEV=true node dist/index.js",
+		"test:screenshots": "DEV=true node dist/index.js",
+		"test:activity": "DEV=true node dist/activity.js",
+		"test": "yarn test:activity && yarn test:screenshots",
 		"zip": "zip -9 -r function.zip node_modules package.json -x node_modules/typescript/\\* -x node_modules/tsup/\\* -x node_modules/@types/\\* -x node_modules/@highlight-run/node/node_modules/typescript/\\* -x node_modules/@highlight-run/rrweb/node_modules/typescript/\\* && cd dist && zip ../function.zip * && cd ..",
 		"check": "node dist/check.js",
-		"publish": "yarn zip && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip"
+		"update:screenshots": "aws lambda update-function-code --function-name session-screenshots --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip",
+		"update:activity": "aws lambda update-function-code --function-name session-activity --s3-bucket highlight-lambda-code --s3-key session-screenshots.zip",
+		"publish": "yarn zip && aws s3 cp function.zip s3://highlight-lambda-code/session-screenshots.zip && rm function.zip && yarn update:screenshots && yarn update:activity"
 	},
 	"installConfig": {
 		"hoistingLimits": "dependencies"
