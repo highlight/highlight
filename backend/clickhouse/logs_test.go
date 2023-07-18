@@ -643,7 +643,6 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 		Query:     `colon_delimited:foo:bar`,
 	}, Pagination{})
 	assert.NoError(t, err)
-	// This is currently failing. Only colon_delimited:foo:bar should match but apparently everything is matching.
 	assert.Len(t, payload.Edges, 1)
 }
 
