@@ -48,7 +48,7 @@ import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import * as styles from './styles.css'
 
-type Params = { project_id: string; error_secure_id: string }
+type Params = { project_id: string; error_secure_id: string; referrer?: string }
 
 export default function ErrorsV2() {
 	const { project_id, error_secure_id } = useParams<Params>()
@@ -355,7 +355,7 @@ function ErrorDisplay({
 }
 
 function useErrorGroup() {
-	const { error_secure_id } = useParams<Params>()
+	const { error_secure_id, referrer } = useParams<Params>()
 	const [markErrorGroupAsViewed] = useMarkErrorGroupAsViewedMutation()
 	const { isLoggedIn } = useAuthContext()
 	const {
@@ -374,7 +374,7 @@ function useErrorGroup() {
 					},
 				}).catch(console.error)
 			}
-			analytics.track('Viewed error', { is_guest: !isLoggedIn })
+			analytics.track('Viewed error', { is_guest: !isLoggedIn, referrer })
 		},
 	})
 
