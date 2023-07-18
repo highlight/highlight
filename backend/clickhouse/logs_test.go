@@ -594,6 +594,11 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 				"service": "different processor",
 			}, map[string]any{}, map[string]any{}, false),
 		),
+		NewLogRow(now, 1,
+			WithLogAttributes(ctx, map[string]any{
+				"colon_delimited": "foo:bar",
+			}, map[string]any{}, map[string]any{}, false),
+		),
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
@@ -632,6 +637,14 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 2)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     `colon_delimited:foo:bar`,
+	}, Pagination{})
+	assert.NoError(t, err)
+	// This is currently failing. Only colon_delimited:foo:bar should match but apparently everything is matching.
+	assert.Len(t, payload.Edges, 1)
 }
 
 func TestReadLogsWithLevelFilter(t *testing.T) {
