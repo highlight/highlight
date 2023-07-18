@@ -7,13 +7,15 @@ const BoxOverlay = ({
 	header,
 	subheader,
 	badge,
+	badgeUnder,
 }: {
 	header: string
 	subheader: string
 	badge: string
+	badgeUnder?: boolean
 }) => {
 	return (
-		<div className="absolute left-4 bottom-4">
+		<div className="absolute bottom-4 px-3">
 			<Typography
 				className="text-darker-copy-on-dark"
 				type="copy4"
@@ -22,7 +24,13 @@ const BoxOverlay = ({
 				{subheader}
 			</Typography>
 
-			<div className="flex gap-3 items-center">
+			<div
+				className={
+					badgeUnder
+						? 'flex flex-col items-start'
+						: 'flex gap-3 items-center'
+				}
+			>
 				<Typography className="text-white" type="copy2" emphasis>
 					{header}
 				</Typography>

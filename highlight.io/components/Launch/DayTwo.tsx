@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Typography } from '../common/Typography/Typography'
 import BoxOverlay from './BoxOverlay'
 
@@ -10,6 +10,8 @@ import styles from './Launch.module.scss'
 
 const DayTwo = () => {
 	const [copy, setCopy] = useState(false)
+	const windowSize = useRef([window.innerWidth, window.innerHeight])
+	const width = windowSize.current[0]
 
 	function handleCopy(str: string) {
 		navigator.clipboard.writeText(
@@ -23,9 +25,9 @@ const DayTwo = () => {
 	}
 
 	return (
-		<div id="day-1" className="w-full max-w-[550px] md:max-w-none">
+		<div id="day-2" className="w-full max-w-[550px] md:max-w-none">
 			<div
-				onClick={() => handleCopy('#day-1')}
+				onClick={() => handleCopy('#day-2')}
 				className="group flex items-center gap-2 cursor-pointer"
 			>
 				<Typography
@@ -45,30 +47,30 @@ const DayTwo = () => {
 
 			<div
 				className={classNames(
-					styles.gridContainer,
-					'grid-cols-3 max-w-[550px] md:max-w-none mx-auto',
+					'flex flex-col md:flex-row gap-2 max-w-[550px] md:max-w-none mx-auto',
 				)}
 			>
-				<div className="grid col-span-2 grid-cols-1 md:grid-rows-2 gap-2">
+				<div className="flex flex-col md:w-2/3 gap-2 max-h-[450px]">
 					<div
 						className={classNames(
-							'hidden md:block h-full w-full col-span-1',
+							'hidden md:block h-1/2 w-full col-span-1',
 							styles.gridItem,
 						)}
 					>
-						<div className="absolute">
+						<div className="object-cover">
 							<Image
+								className="object-fit"
 								src="/images/launch/sessionreplay.png"
 								alt=""
-								height="218"
-								width="793"
+								height="400"
+								width="1000"
 							/>
 						</div>
 						<div className="absolute left-0 right-0 top-4">
 							<p className={styles.gridTitle}>Session Replay</p>
 							<div className="flex justify-center">
 								<Image
-									src="/images/launch/errormonitoringlogo.svg"
+									src="/images/launch/sessionreplaylogo.svg"
 									alt=""
 									height="60"
 									width="60"
@@ -79,15 +81,15 @@ const DayTwo = () => {
 					<Link
 						href="/blog/error-monitoring-launch-week-2-new-features"
 						className={classNames(
-							'h-full w-full col-span-1 hover:border-darker-copy-on-dark cursor-pointer',
+							'hover:border-[#9479D9] cursor-pointer h-1/2',
 							styles.gridItem,
 						)}
 					>
 						<Image
-							src="/images/launch/autoresolve.svg"
+							src="/images/launch/networkrequest.svg"
 							alt=""
-							height="500"
-							width="594"
+							height="218"
+							width="1000"
 						/>
 
 						<BoxOverlay
@@ -101,22 +103,23 @@ const DayTwo = () => {
 				<Link
 					href="/blog/error-monitoring-launch-week-2-new-features"
 					className={classNames(
-						'bg-black h-[250px] md:h-[450px] col-span-1 cursor-pointer hover:border-darker-copy-on-dark ',
+						'bg-black h-[250px] md:h-[450px] w-full cursor-pointer hover:border-[#9479D9]',
 						styles.gridItem,
 					)}
 				>
 					<div className="absolute">
 						<Image
-							src="/images/launch/errorinstance.svg"
+							src="/images/launch/websocket.svg"
 							alt=""
-							height="500"
-							width="594"
+							height="450"
+							width="550"
 						/>
 					</div>
 					<BoxOverlay
-						header="Error Instance View"
-						subheader="Day 1: July 20th"
+						header="Websocket Recording"
+						subheader="Day 2: July 18th"
 						badge="Blog Post"
+						badgeUnder={width < 1130 && width > 768}
 					/>
 				</Link>
 			</div>
