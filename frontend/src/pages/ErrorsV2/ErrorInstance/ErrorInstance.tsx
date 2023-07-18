@@ -55,8 +55,9 @@ const METADATA_LABELS: { [key: string]: string } = {
 } as const
 
 const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
-	const { error_object_id } = useParams<{
+	const { error_object_id, referrer } = useParams<{
 		error_object_id: string
+		referrer?: string
 	}>()
 	const client = useApolloClient()
 
@@ -66,6 +67,10 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			error_object_id,
 		},
 		onCompleted: (data) => {
+			if (referrer) {
+				analytics.track('Viewed error from referrer', { referrer })
+			}
+
 			const previousErrorObjectId = data?.error_instance?.previous_id
 			const nextErrorObjectId = data?.error_instance?.next_id
 
