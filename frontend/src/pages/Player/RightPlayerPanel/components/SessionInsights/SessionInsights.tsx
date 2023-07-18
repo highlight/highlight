@@ -82,9 +82,11 @@ const SessionInsights = () => {
 					>
 						{[...JSON.parse(insightData)].map(
 							(insight: SessionInsight, idx: number) => {
-								const timeSinceStart =
+								const timeSinceStart = Math.max(
 									new Date(insight.timestamp).getTime() -
-									startTime
+										startTime,
+									0,
+								)
 								return (
 									<Box cursor="pointer" key={idx}>
 										<Box
