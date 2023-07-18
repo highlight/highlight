@@ -84,10 +84,19 @@ const DayTwo = () => {
 						)}
 					>
 						<Image
+							className="hidden md:flex"
 							src="/images/launch/networkrequest.svg"
 							alt=""
 							height="218"
 							width="1000"
+						/>
+
+						<Image
+							className="md:hidden"
+							src="/images/launch/networkrequestmobile.svg"
+							alt=""
+							height="218"
+							width="500"
 						/>
 
 						<BoxOverlay
