@@ -382,7 +382,9 @@ func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminI
 
 func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, adminID int, workspaceID int) error {
 	key := fmt.Sprintf("hubspot-association-%d-%d", adminID, workspaceID)
-	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideCreationPollInterval); acquired {
+	// wait for up to 5 seconds in case another worker is creating the same association
+	// we don't expect the action to take longer than 5 seconds
+	if acquired := h.redisClient.AcquireLock(ctx, key, 5*time.Second); acquired {
 		defer func() {
 			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
 				log.WithContext(ctx).WithError(err).WithField("url", key).Error("failed to release hubspot association lock")

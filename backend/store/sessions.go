@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+// cachedEval will return the value at cacheKey if it exists.
+// If it does not exist or is nil, cachedEval calls `fn()` to evaluate the result, and stores it at the cache key.
 func cachedEval[T any](ctx context.Context, redis *redis.Client, cacheKey string, lockTimeout, cacheExpiration time.Duration, fn func() (*T, error)) (value *T, err error) {
 	// wait here to check the cache in case another process is waiting for db query
 	if acquired := redis.AcquireLock(ctx, cacheKey, lockTimeout); acquired {
