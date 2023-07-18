@@ -77,13 +77,22 @@ const Navbar = ({
 	return (
 		<>
 			<GithubPopup />
+			{!hideBanner && (
+				<Link
+					href="/launch-week-2"
+					className="flex justify-center items-center w-full h-[40px] bg-color-primary-200 text-white hover:bg-opacity-90"
+				>
+					<Typography type="copy3">
+						It&apos;s Launch Week! Click here to follow along.
+					</Typography>
+				</Link>
+			)}
 			<div
 				className={classNames(styles.container, {
 					[styles.hide]: scrolled && !fixed,
 					[styles.fixed]: fixed,
 				})}
 			>
-				<LaunchWeekBanner />
 				<header
 					className={classNames({
 						[styles.mobileHeader]: isOpen,

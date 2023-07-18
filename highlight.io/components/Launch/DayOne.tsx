@@ -79,8 +79,9 @@ const DayOne = () => {
 					<Link
 						href="/blog/error-monitoring-launch-week-2-new-features"
 						className={classNames(
-							'h-full w-full col-span-2 hover:border-darker-copy-on-dark cursor-pointer',
+							'h-full w-full col-span-2',
 							styles.gridItem,
+							styles.gridItemInteractive,
 						)}
 					>
 						<Image
@@ -92,7 +93,7 @@ const DayOne = () => {
 
 						<BoxOverlay
 							header="Auto-resolve Errors"
-							subheader="Day 1: July 20th"
+							subheader="Day 1: July 17th"
 							badge="Blog Post"
 						/>
 					</Link>
@@ -101,8 +102,9 @@ const DayOne = () => {
 				<Link
 					href="/blog/error-monitoring-launch-week-2-new-features"
 					className={classNames(
-						'bg-black h-[250px] md:h-[450px] w-full col-span-1 cursor-pointer hover:border-darker-copy-on-dark ',
+						'bg-black h-[250px] md:h-[450px] w-full col-span-1',
 						styles.gridItem,
+						styles.gridItemInteractive,
 					)}
 				>
 					<div className="absolute">
@@ -115,7 +117,7 @@ const DayOne = () => {
 					</div>
 					<BoxOverlay
 						header="Error Instance View"
-						subheader="Day 1: July 20th"
+						subheader="Day 1: July 17th"
 						badge="Blog Post"
 					/>
 				</Link>
