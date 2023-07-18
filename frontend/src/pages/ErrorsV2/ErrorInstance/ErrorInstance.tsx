@@ -119,33 +119,24 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 					</Stack>
 				</Stack>
 
-				<Box
-					display="flex"
-					flexDirection={{ mobile: 'column', desktop: 'row' }}
-					mb="40"
-					gap={{ mobile: '40', desktop: '24' }}
-				>
-					<div style={{ flexBasis: 0, flexGrow: 1 }}>
-						<Box>
-							<Box bb="secondary" pb="20" my="12">
-								<Text weight="bold" size="large">
-									Instance metadata
-								</Text>
-							</Box>
-							<LoadingBox height={128} />
+				<Box display="flex" flexDirection="row" mb="40" gap="40">
+					<Box flexBasis={0} flexGrow={1}>
+						<Box bb="secondary" pb="20" my="12">
+							<Text weight="bold" size="large">
+								Instance metadata
+							</Text>
 						</Box>
-					</div>
+						<LoadingBox height={128} />
+					</Box>
 
-					<div style={{ flexBasis: 0, flexGrow: 1 }}>
-						<Box width="full">
-							<Box pb="20" mt="12">
-								<Text weight="bold" size="large">
-									User details
-								</Text>
-							</Box>
-							<LoadingBox height={128} />
+					<Box flexBasis={0} flexGrow={1}>
+						<Box pb="20" mt="12">
+							<Text weight="bold" size="large">
+								User details
+							</Text>
 						</Box>
-					</div>
+						<LoadingBox height={128} />
+					</Box>
 				</Box>
 
 				<Text size="large" weight="bold">
@@ -197,16 +188,14 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				/>
 			</Box>
 
-			<Box
-				display="flex"
-				flexDirection={{ desktop: 'row', mobile: 'column' }}
-				flexGrow={1}
-				mb="40"
-				gap="40"
-			>
-				<Metadata errorObject={errorInstance.error_object} />
+			<Box display="flex" flexDirection="row" mb="40" gap="40">
+				<div style={{ flexBasis: 0, flexGrow: 1 }}>
+					<Metadata errorObject={errorInstance.error_object} />
+				</div>
 
-				<User errorObject={errorInstance.error_object} />
+				<div style={{ flexBasis: 0, flexGrow: 1 }}>
+					<User errorObject={errorInstance.error_object} />
+				</div>
 			</Box>
 
 			{errorGroup?.type === 'console.error' &&
