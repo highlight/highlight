@@ -61,12 +61,17 @@ export const NetworkResourcePanel = () => {
 	useHotkeys('Escape', hide, [])
 
 	useEffect(() => {
+		if (!resources?.length) {
+			return
+		}
+
 		if (resource?.id !== undefined) {
 			networkResourceDialog.show()
 		} else {
 			hide()
 		}
-	}, [hide, networkResourceDialog, resource?.id])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [resource?.id])
 
 	// Close the dialog and reset the active resource when the user interacts with
 	// the page outside the dialog.
