@@ -36,7 +36,7 @@ In order to record WebSocket events, the window's `WebSocket` object was monkeyp
 
 The WebSocket events are uploaded to S3 storage, but are kept in different files. The `open` and `close` events are stored with the HTTP resources, in order to more easily display them in the Network tab in the correct chronological order. The open event is used to determine the WebSocket's placement, while the close event is used to determine the latency and waterfall fields. Its important to note that the latency represents the time the WebSocket was opened, and not the roundtrip time for a request.
 
-The `send`, `received`, and `error` events are stored in a different S3 file. This file is requested when the user clicks on a specific WebSocket request to avoid loading in unecessary data to the client. It also helps performance since these events do not need to be plucked from a larger list of network resources, but have they own array of relevent events to display.
+The `send`, `received`, and `error` events are stored in a different S3 file. Therefore, at query time, this file is requested when the user clicks on a specific WebSocket request to avoid loading in unecessary data to the client. It also helps performance since these events do not need to be plucked from a larger list of network resources, but have they own array of relevent events to display.
 
 ## Getting Started
 
