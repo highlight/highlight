@@ -1,6 +1,7 @@
 package alerts
 
 import (
+	"context"
 	"net/url"
 	"strings"
 	"time"
@@ -25,7 +26,7 @@ type SendErrorAlertEvent struct {
 	VisitedURL  string
 }
 
-func SendErrorAlert(event SendErrorAlertEvent) error {
+func SendErrorAlert(ctx context.Context, event SendErrorAlertEvent) error {
 	errorAlertPayload := integrations.ErrorAlertPayload{
 		ErrorCount:      event.ErrorCount,
 		ErrorTitle:      event.ErrorGroup.Event,
@@ -40,7 +41,9 @@ func SendErrorAlert(event SendErrorAlertEvent) error {
 
 	var g errgroup.Group
 	g.Go(func() error {
+		errorAlertPayload.ErrorURL = attachReferrer(ctx, errorAlertPayload.ErrorURL, Webhook)
 		for _, wh := range event.ErrorAlert.WebhookDestinations {
+
 			if err := webhook.SendErrorAlert(wh, &errorAlertPayload); err != nil {
 				return err
 			}
@@ -58,6 +61,7 @@ func SendErrorAlert(event SendErrorAlertEvent) error {
 			return err
 		}
 
+		errorAlertPayload.ErrorURL = attachReferrer(ctx, errorAlertPayload.ErrorURL, Discord)
 		for _, channel := range event.ErrorAlert.DiscordChannelsToNotify {
 			err = bot.SendErrorAlert(channel.ID, errorAlertPayload)
 
