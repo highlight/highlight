@@ -68,7 +68,7 @@ const DayThree = () => {
 							<p className={styles.gridTitle}>Logging</p>
 							<div className="flex justify-center">
 								<Image
-									src="/images/launch/sessionreplaylogo.svg"
+									src="/images/launch/logginglogo.svg"
 									alt=""
 									height="60"
 									width="60"

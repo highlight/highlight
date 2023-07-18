@@ -95,7 +95,7 @@ const LaunchPage = () => {
 
 					<Link
 						href="https://dub.sh/O3ayz3t"
-						className="flex justify-between p-4 w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-darker-copy-on-dark transition-all"
+						className="flex justify-between p-4 w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-[#9479D9] transition-all"
 					>
 						<div className="flex gap-3 items-center">
 							<Image
