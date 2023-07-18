@@ -19,6 +19,7 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/routing"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
 
@@ -1751,6 +1752,7 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 
 	frontendURL := os.Getenv("FRONTEND_URI")
 	errorURL := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
+	errorURL = routing.AttachReferrer(ctx, errorURL, routing.Email)
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
 
 	for _, email := range emailsToNotify {
@@ -2668,6 +2670,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 			shortEvent = input.Group.Event[:50] + "..."
 		}
 		errorLink := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
+		errorLink = routing.AttachReferrer(ctx, errorLink, routing.Slack)
 		// construct Slack message
 		previewText = fmt.Sprintf("Highlight: Error Alert: %s", shortEvent)
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/|View>", *input.ErrorsCount, shortEvent, errorLink), false, false)
@@ -2697,7 +2700,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 					false,
 				),
 			)
-			button.URL = fmt.Sprintf("%s?action=%s", errorLink, strings.ToLower(string(action)))
+			button.URL = routing.AttachQueryParam(ctx, errorLink, "action", strings.ToLower(string(action)))
 			actionBlock = append(actionBlock, button)
 		}
 
@@ -2711,7 +2714,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 				false,
 			),
 		)
-		snoozeButton.URL = fmt.Sprintf("%s?action=snooze", errorLink)
+		snoozeButton.URL = routing.AttachQueryParam(ctx, errorLink, "action", "snooze")
 		actionBlock = append(actionBlock, snoozeButton)
 
 		blockSet = append(blockSet, slack.NewActionBlock(
