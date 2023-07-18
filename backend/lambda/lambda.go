@@ -99,7 +99,7 @@ func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessio
 }
 
 func (s *Client) GetActivityGraph(ctx context.Context, eventCounts string) (*http.Response, error) {
-	url := "https://4clivkkbxw5ckv6xxhyegvwajy0taeyp.lambda-url.us-east-2.on.aws/"
+	url := "https://4clivkkbxw5ckv6xxhyegvwajy0taeyp.lambda-url.us-east-2.on.aws/session-activity"
 	req, _ := http.NewRequest(http.MethodPost, url, strings.NewReader(eventCounts))
 	req = req.WithContext(ctx)
 
