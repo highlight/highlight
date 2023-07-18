@@ -126,6 +126,7 @@ var Models = []interface{}{
 	&MessagesObject{},
 	&EventsObject{},
 	&ErrorObject{},
+	&ErrorObjectEmbeddings{},
 	&ErrorGroup{},
 	&ErrorField{},
 	&ErrorSegment{},
@@ -923,6 +924,12 @@ type ErrorObject struct {
 	IsBeacon         bool    `gorm:"default:false"`
 }
 
+type ErrorObjectEmbeddings struct {
+	Model
+	ErrorObjectID int
+	Embeddings    Vector `gorm:"type:vector(1536)"`
+}
+
 type ErrorGroup struct {
 	Model
 	// The ID used publicly for the URL on the client; used for sharing
@@ -1304,6 +1311,9 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
 		return false, e.Wrap(err, "Error installing pgcrypto")
 	}
+	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS vector;").Error; err != nil {
+		return false, e.Wrap(err, "Error installing vector")
+	}
 
 	// Unguessable, cryptographically random url-safe ID for users to share links
 	if err := DB.Exec(`
@@ -1539,6 +1549,28 @@ func (j JSONB) Value() (driver.Value, error) {
 }
 
 func (j *JSONB) Scan(value interface{}) error {
+	switch v := value.(type) {
+	case string:
+		if err := json.Unmarshal([]byte(v), &j); err != nil {
+			return err
+		}
+	case []byte:
+		if err := json.Unmarshal(v, &j); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Vector is serialized as '[-0.0123,0.456]' aka like a json list
+type Vector []float32
+
+func (j Vector) Value() (driver.Value, error) {
+	valueString, err := json.Marshal(j)
+	return string(valueString), err
+}
+
+func (j *Vector) Scan(value interface{}) error {
 	switch v := value.(type) {
 	case string:
 		if err := json.Unmarshal([]byte(v), &j); err != nil {

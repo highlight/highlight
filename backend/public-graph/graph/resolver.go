@@ -688,11 +688,6 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil, e.Wrap(err, "Error performing error insert for error")
 	}
 
-	embeddings, err := errorgroups.GetEmbeddings(ctx, errorObj)
-	if err := r.Store.PutEmbeddings(errorObj, embeddings); err != nil {
-		log.WithContext(ctx).WithError(err).WithField("errorObj", errorObj).Error("failed to write embeddings")
-	}
-
 	opensearchErrorObject := &opensearch.OpenSearchErrorObject{
 		Url:         errorObj.URL,
 		Os:          errorObj.OS,
@@ -749,6 +744,19 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 
 	return errorGroup, nil
+}
+
+func (r *Resolver) BatchGenerateEmbeddings(ctx context.Context, errorObjects []*model.ErrorObject) error {
+	embeddings, err := errorgroups.GetEmbeddings(ctx, errorObjects)
+	if err != nil {
+		return err
+	}
+	return r.Store.PutEmbeddings(lo.MapToSlice(embeddings, func(errorObjectID int, embedding []float32) *model.ErrorObjectEmbeddings {
+		return &model.ErrorObjectEmbeddings{
+			ErrorObjectID: errorObjectID,
+			Embeddings:    embedding,
+		}
+	}))
 }
 
 func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorField, errorGroup *model.ErrorGroup) error {
@@ -2041,7 +2049,9 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
 	}
 
+	var newInstances []*model.ErrorObject
 	for _, errorInstances := range groupedErrors {
+		newInstances = append(newInstances, errorInstances...)
 		instance := errorInstances[len(errorInstances)-1]
 		data := groups[instance.ErrorGroupID]
 		r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
@@ -2059,6 +2069,17 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 	}
 	influxSpan.Finish()
+
+	// error object embedding storage is gated for project 1
+	if projectID == 1 {
+		eSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
+			tracer.ResourceName("BatchGenerateEmbeddings"))
+		if err = r.BatchGenerateEmbeddings(ctx, newInstances); err != nil {
+			log.WithContext(ctx).WithError(err).WithField("project_id", projectID).Error("failed to generate embeddings")
+		}
+		eSpan.Finish(tracer.WithError(err))
+	}
+
 	putErrorsToDBSpan.Finish()
 }
 
@@ -2545,7 +2566,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
 		}
 
-		influxSpan := tracer.StartSpan("public-graph.recordErrorGroupMetrics", tracer.ChildOf(putErrorsToDBSpan.Context()),
+		influxSpan := tracer.StartSpan("public-graph.pushPayload", tracer.ChildOf(putErrorsToDBSpan.Context()),
 			tracer.ResourceName("influx.errors"))
 		for groupID, errorObjects := range groupedErrors {
 			errorGroup := groups[groupID].Group
@@ -2558,10 +2579,22 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 		influxSpan.Finish()
 
+		var newInstances []*model.ErrorObject
 		for _, errorInstances := range groupedErrors {
+			newInstances = append(newInstances, errorInstances...)
 			instance := errorInstances[len(errorInstances)-1]
 			data := groups[instance.ErrorGroupID]
 			r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
+		}
+
+		// error object embedding storage is gated for project 1
+		if sessionObj.ProjectID == 1 {
+			eSpan := tracer.StartSpan("public-graph.pushPayload", tracer.ChildOf(putErrorsToDBSpan.Context()),
+				tracer.ResourceName("BatchGenerateEmbeddings"))
+			if err = r.BatchGenerateEmbeddings(ctx, newInstances); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("session_secure_id", sessionObj.SecureID).Error("failed to generate embeddings")
+			}
+			eSpan.Finish(tracer.WithError(err))
 		}
 
 		putErrorsToDBSpan.Finish()
