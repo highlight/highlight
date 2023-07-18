@@ -2605,6 +2605,7 @@ export enum SessionCommentType {
 }
 
 export enum SessionExcludedReason {
+	BillingQuotaExceeded = 'BillingQuotaExceeded',
 	IgnoredUser = 'IgnoredUser',
 	Initializing = 'Initializing',
 	NoActivity = 'NoActivity',
@@ -2612,6 +2613,7 @@ export enum SessionExcludedReason {
 	NoTimelineIndicatorEvents = 'NoTimelineIndicatorEvents',
 	NoUserEvents = 'NoUserEvents',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
+	RetentionPeriodExceeded = 'RetentionPeriodExceeded',
 }
 
 export type SessionInsight = {

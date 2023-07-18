@@ -5,14 +5,17 @@
 	"scripts": {
 		"dev": "next dev -p 3005",
 		"build": "next build",
+		"deploy": "yarn build && npx vercel build && npx vercel deploy --prebuilt",
 		"start": "next start",
+		"vercel:deploy": "yarn build && vercel build && vercel deploy --prebuilt",
 		"lint": "next lint"
 	},
 	"dependencies": {
+		"@highlight-run/cloudflare": "workspace:*",
 		"@highlight-run/next": "workspace:*",
 		"@highlight-run/node": "workspace:*",
 		"@highlight-run/react": "workspace:*",
-		"@next/env": "^13.3.4",
+		"@next/env": "^13.4.9",
 		"@tanstack/react-query": "^4.29.7",
 		"@trpc/client": "^10.26.0",
 		"@trpc/next": "^10.26.0",
@@ -23,15 +26,18 @@
 		"@types/react-dom": "18.0.11",
 		"classnames": "^2.3.2",
 		"eslint": "8.39.0",
-		"eslint-config-next": "13.3.4",
+		"eslint-config-next": "13.4.9",
 		"highlight.run": "workspace:*",
 		"ky": "^0.33.3",
-		"next": "13.3.4",
+		"next": "13.4.9",
 		"next-build-id": "^3.0.0",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
 		"typescript": "5.0.4",
 		"winston": "^3.8.2",
 		"zod": "^3.21.4"
+	},
+	"devDependencies": {
+		"vercel": "^31.0.2"
 	}
 }

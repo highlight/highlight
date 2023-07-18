@@ -37,6 +37,8 @@ export async function render(
 		throw new Error('timestamp or fps must be provided')
 	}
 	events = events.replace(/\\/g, '\\\\')
+	events = events.replace(/`/g, '\\`')
+	events = events.replace(/\$/g, '\\$')
 	console.log('events', { events })
 	if (!dir?.length) {
 		const prefix = path.join(tmpdir(), 'render_')

@@ -68,7 +68,7 @@ export const INTEGRATIONS: {
 		{
 			name: 'AWS',
 			description:
-				'Stream AWS application and infrastructure logs to highlight.io.',
+				'Stream Amazon Web Services application and infrastructure logs to highlight.io.',
 			link: '/docs/getting-started/backend-logging/hosting/aws',
 			image: '/images/companies/icons/aws.png',
 		},
@@ -78,6 +78,13 @@ export const INTEGRATIONS: {
 				'Stream GCP application and infrastructure logs to highlight.io.',
 			link: '/docs/getting-started/backend-logging/hosting/gcp',
 			image: '/images/companies/icons/gcp.png',
+		},
+		{
+			name: 'Azure',
+			description:
+				'Stream Microsoft Azure application and infrastructure logs to highlight.io.',
+			link: '/docs/getting-started/backend-logging/hosting/azure',
+			image: '/images/companies/icons/azure.png',
 		},
 		{
 			name: 'Fly.io',

@@ -202,6 +202,19 @@ export async function register() {
 }
 ```
 
+4. If you're using the App Router, copy `instrumentation.ts` to `src/instrumentation.ts`. See this [Next.js discussion](https://github.com/vercel/next.js/discussions/48273#discussioncomment-5587441) regarding `instrumentation.ts` with App Router. You could also simply export the `register` function from `instrumentation.ts` in `src/instrumentation.ts` like so:
+
+```javascript
+// src/instrumentation.ts:
+export { register } from '../instrumentation'
+```
+
+## Configure `inlineImages`
+
+We use a package called [rrweb](https://www.rrweb.io/) to record web sessions. rrweb supports inlining images into sessions to improve replay accuracy, so that images that are only available from your local network can be saved; however, the inlined images can cause CORS issues in some situations.
+
+We currently default `inlineImages` to `true` on `localhost`. Explicitly set `inlineImages={false}` if you run into trouble loading images on your page while Highlight is running. This will degrade tracking on localhost and other domains that are inaccessible to `app.highlight.io`.
+
 ## Configure `tracingOrigins` and `networkRecording`
 
 See [Fullstack Mapping](https://www.highlight.io/docs/getting-started/frontend-backend-mapping#how-can-i-start-using-this) for details.
