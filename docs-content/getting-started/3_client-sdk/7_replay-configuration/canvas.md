@@ -33,6 +33,10 @@ With these settings, the canvas is serialized as a 480p video at 2FPS.
 
 `samplingStrategy.canvasMaxSnapshotDimension`: max recording resolution of the largest dimension of the canvas.
 
+`samplingStrategy.canvasClearWebGLBuffer`: (advanced) set to false to disable webgl buffer clearing (if the canvas flickers when recording).
+
+`samplingStrategy.canvasInitialSnapshotDelay`: (advanced) time (in milliseconds) to wait before the initial snapshot of canvas/video elements.
+
 ```hint
 [Privacy](../../../general/6_product-features/1_session-replay/privacy.md) controls do not apply to canvas recording at this time.
 ```

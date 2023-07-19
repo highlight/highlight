@@ -46,6 +46,10 @@ export declare type SamplingStrategy = {
 	 * Set to false to disable the clearing (in case there are visual glitches in the canvas).
 	 */
 	canvasClearWebGLBuffer?: boolean
+	/**
+	 * Time (in milliseconds) to wait before the initial snapshot of canvas/video elements.
+	 */
+	canvasInitialSnapshotDelay?: number
 }
 
 export declare type HighlightOptions = {
