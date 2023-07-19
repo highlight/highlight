@@ -27,6 +27,8 @@ Router.events.on('routeChangeComplete', () => {
 })
 
 H.init('4d7k1xeo', {
+	inlineStylesheet: true,
+	inlineImages: true,
 	networkRecording: {
 		enabled: true,
 		recordHeadersAndBody: true,
