@@ -755,12 +755,7 @@ func (r *Resolver) BatchGenerateEmbeddings(ctx context.Context, errorObjects []*
 	if err != nil {
 		return err
 	}
-	return r.Store.PutEmbeddings(lo.MapToSlice(embeddings, func(errorObjectID int, embedding []float32) *model.ErrorObjectEmbeddings {
-		return &model.ErrorObjectEmbeddings{
-			ErrorObjectID: errorObjectID,
-			Embedding:     embedding,
-		}
-	}))
+	return r.Store.PutEmbeddings(embeddings)
 }
 
 func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorField, errorGroup *model.ErrorGroup) error {

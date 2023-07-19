@@ -926,8 +926,10 @@ type ErrorObject struct {
 
 type ErrorObjectEmbeddings struct {
 	Model
-	ErrorObjectID int
-	Embedding     Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	ErrorObjectID       int
+	TitleEmbedding      Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	StackTraceEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	PayloadEmbedding    Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
 }
 
 type ErrorGroup struct {
