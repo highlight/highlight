@@ -40,6 +40,12 @@ export declare type SamplingStrategy = {
 	 * in either dimension (while preserving the original canvas aspect ratio).
 	 */
 	canvasMaxSnapshotDimension?: number
+	/**
+	 * Default behavior for WebGL canvas elements with `preserveDrawingBuffer: false` is to clear the buffer to
+	 * load the canvas into memory to avoid getting a transparent bitmap.
+	 * Set to false to disable the clearing (in case there are visual glitches in the canvas).
+	 */
+	canvasClearWebGLBuffer?: boolean
 }
 
 export declare type HighlightOptions = {

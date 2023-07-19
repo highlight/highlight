@@ -1,5 +1,6 @@
 'use client'
 
+import type { EngineOptions, SceneOptions } from 'babylonjs'
 import {
 	Engine,
 	Scene,
@@ -22,9 +23,9 @@ export const Canvas = ({
 	...rest
 }: {
 	antialias?: boolean
-	engineOptions?: any
+	engineOptions?: EngineOptions
 	adaptToDeviceRatio?: boolean
-	sceneOptions?: any
+	sceneOptions?: SceneOptions
 }) => {
 	const onRender = (scene: Scene) => {
 		// console.debug('onRender', scene)

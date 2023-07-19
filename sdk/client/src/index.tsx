@@ -725,6 +725,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						canvas: {
 							fps: this.samplingStrategy.canvas,
 							resizeFactor: this.samplingStrategy.canvasFactor,
+							canvasClearWebGLBuffer:
+								this.samplingStrategy.canvasClearWebGLBuffer,
 							dataURLOptions: {
 								type: 'image/webp',
 								quality: 0.9,

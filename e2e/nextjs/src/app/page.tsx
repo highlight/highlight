@@ -50,7 +50,7 @@ export default function Home() {
 			/>
 
 			<h3>Canvas</h3>
-			<Canvas />
+			<Canvas engineOptions={{ preserveDrawingBuffer: true }} />
 		</main>
 	)
 }
