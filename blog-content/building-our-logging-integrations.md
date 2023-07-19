@@ -13,17 +13,12 @@ authorPFP: 'https://lh3.googleusercontent.com/a-/AOh14Gh1k7XsVMGxHMLJZ7qesyddqn1
 tags: Launch Week 2
 metaTitle: Building Logging Integrations at Highlight.io.
 ---
+
 Engineers can build full stack web applications in a myriad different languages. For each of the popular ones, there are dozens of frameworks that help make the process easy and efficient, each with its own opinions on common patterns for web development.
 
-A framework typically has layers of abstraction to simplify HTTP path routing, compression, or JSON response marshaling. But as you may have guessed from the title, web frameworks often come with opinions on logging, a way for the developer to see what code actually ran during a session. Many differ in how they allow engineers to report errors or extra metadata that helps debug an issue in production.
+A framework typically has layers of abstraction to simplify HTTP path routing, compression, or JSON response marshaling. But as you may have guessed from the title, web frameworks often come with opinions on logging, a way for the developer to see what code actually ran when someone visits the site. Many differ in how they allow engineers to report errors or extra metadata that help debug issues in production.
 
-When we set out to build a logging product, we knew we would need to support all the possible configurations out there for ingesting logs. We also wanted to support a consistent efficient experience with all frameworks, supporting structured logs that would be correctly associated with frontend user sessions.
-
-We started by building an interface for displaying and searching logs. This came with a few requirements:
-Search that could return results in seconds for up to 30 days
-Ability to view additional structured attributes for each log line
-Cohesive association of log lines with frontend user sessions and server-side errors
-Meeting the criteria was easy with much of the search powered by ClickHouse, a column-oriented database management system designed for online analytical processing (OLAP) that allowed us to quickly search large volumes of logs. The UX had to be built right, but our typescript design system (read more about it here) made this a straightforward exercise.
+When we set out to build a logging product, we knew we would need to support all the configurations for ingesting logs. We also wanted to support a consistent experience with all frameworks i.e. structured logs.
 
 ![](/images/blog/building-our-logging-integrations/logs-ui.png)
 
@@ -45,6 +40,7 @@ We also wanted to simplify the process for our customers to send logs to us. We,
 Powered by the OpenTelemetry collector, we also have built a series of integrations with application hosting providers to make it even easier to ingest logs. For example, AWS ECS containers can export logs directly to our collector via fluentd. Integrations include:
 - Vercel 1-click logs ingest
 - Fly.io vector logs shipper
+- AWS/GCP/Azure infrastructure logs
 - Trigger.dev server-side monitoring
 
 Our customers merely needed to initialize the SDK and add a few lines of code to their application. The SDK took over from there - capturing logs, enriching them with context, and transmitting them to our ingest endpoint in the required format.
