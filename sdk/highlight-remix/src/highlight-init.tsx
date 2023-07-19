@@ -6,8 +6,6 @@ interface Props extends HighlightOptions {
 	projectId?: string
 }
 
-console.log('HighlightInit React', React.version)
-
 export function HighlightInit({ projectId, ...highlightOptions }: Props) {
 	useEffect(() => {
 		projectId && H.init(projectId, highlightOptions)

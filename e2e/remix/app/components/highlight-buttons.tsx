@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { H } from 'highlight.run'
 
 export function HighlightButtons() {
 	return (
@@ -19,6 +20,24 @@ export function HighlightButtons() {
 			</button>
 
 			<ThrowerOfErrors />
+
+			<hr />
+
+			<button
+				onClick={() => {
+					H.identify('chris.esplin@highlight.io', { userId: 1 })
+				}}
+			>
+				Identify
+			</button>
+
+			<button
+				onClick={() => {
+					H.track('test H.track', { attribute: 'hello world' })
+				}}
+			>
+				Track
+			</button>
 		</div>
 	)
 }

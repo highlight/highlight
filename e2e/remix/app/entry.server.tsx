@@ -6,13 +6,12 @@
 
 import type { AppLoadContext, EntryContext } from '@remix-run/node'
 
-import { CONSTANTS } from '~/constants'
-import { H } from '@highlight-run/node'
 import { PassThrough } from 'node:stream'
 import { RemixServer } from '@remix-run/react'
 import { Response } from '@remix-run/node'
 import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
+import { initHighlight } from '~/utils/init-highlight'
 
 const ABORT_DELAY = 5_000
 
@@ -23,7 +22,7 @@ export default function handleRequest(
 	remixContext: EntryContext,
 	loadContext: AppLoadContext,
 ) {
-	H.init({ projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID })
+	initHighlight()
 
 	console.log('Remix logging is live! 📦🚀')
 

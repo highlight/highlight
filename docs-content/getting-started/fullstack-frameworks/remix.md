@@ -24,7 +24,7 @@ all-in-one.
 
 ```shell
 # with yarn
-yarn add @highlight-run/remix @highlight-run/node
+yarn add @highlight-run/remix @highlight-run/node highlight.run
 ```
 
 ## Client Instrumentation
@@ -72,8 +72,23 @@ export default function App() {
 
 Use `H.init` from `@highlight-run/node` to instrument the Remix server on Node.js.
 
+1. Create an `initHighlight` function:
+
 ```javascript
+// ./app/utils/init-highlight.ts
+import { CONSTANTS } from '~/constants'
 import { H } from '@highlight-run/node'
+
+export function initHighlight() {
+	H.init({ projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID })
+}
+```
+
+2. Instrument your root request handler
+
+```javascript
+// ./entry.server.tsx
+import { initHighlight } from '~/utils/init-highlight'
 
 export default function handleRequest(
 	request: Request,
@@ -82,10 +97,23 @@ export default function handleRequest(
 	remixContext: EntryContext,
 	loadContext: AppLoadContext,
 ) {
-	H.init({ projectID: process.env.HIGHLIGHT_PROJECT_ID })
+	initHighlight();
 
 	console.log('Remix logging is live! 📦🚀')
 
 	// Handle request
+}
+```
+
+3. Instrument individual loaders.
+
+```javascript
+// app/routes/any-route.tsx
+import { initHighlight } from '~/utils/init-highlight'
+
+export async function loader({ request }: LoaderArgs) {
+	initHighlight()
+
+	// Handle loader
 }
 ```
