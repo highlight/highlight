@@ -12,10 +12,30 @@ export const meta: V2_MetaFunction = () => {
 
 export default function Index() {
 	return (
-		<div style={{ fontFamily: 'system-ui, sans-serif', lineHeight: '1.8' }}>
+		<div
+			style={{
+				fontFamily: 'system-ui, sans-serif',
+				lineHeight: '1.8',
+				display: 'flex',
+				flexDirection: 'column',
+				gap: '2rem',
+			}}
+		>
 			<h1>Welcome to Remix</h1>
 
+			<a
+				href="https://remix.run/docs/"
+				target="__blank"
+				rel="noopener noreferrer"
+			>
+				Remix Docs
+			</a>
+
 			<HighlightButtons />
+
+			<a href="/maybe-error?error=false">Success Route</a>
+			<a href="/maybe-error?error=loader">Loader Error Route</a>
+			<a href="/maybe-error?error=render">Render Error Route</a>
 		</div>
 	)
 }
