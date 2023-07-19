@@ -6,6 +6,12 @@ createdAt: 2023-07-20T00:00:00.000Z
 updatedAt: 2023-07-20T00:00:00.000Z
 ---
 
+## Experimental Remix Support
+
+We're experimenting with Remix and developing best practices to integrate Highlight into Remix.
+
+Our `@highlight-run/remix` sdk is currently unstable. We're optimistic that we can validate and move to a `v1` in short order.
+
 ## Overview
 
 Our Remix SDK gives you access to frontend session replays and server-side monitoring,

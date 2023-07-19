@@ -36,6 +36,7 @@ jobs:
                         - 'sdk/highlight-next/**'
                         - 'sdk/highlight-node/**'
                         - 'sdk/highlight-react/**'
+                        - 'sdk/highlight-remix/**'
 
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
