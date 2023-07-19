@@ -11,6 +11,7 @@ import { Typography } from '../components/common/Typography/Typography'
 import { CompaniesReel } from '../components/Home/CompaniesReel/CompaniesReel'
 import { CustomerReviewTrack } from '../components/Home/CustomerReviewTrack'
 import styles from '../components/Home/Home.module.scss'
+import DayFour from '../components/Launch/DayFour'
 import DayOne from '../components/Launch/DayOne'
 import DayThree from '../components/Launch/DayThree'
 import DayTwo from '../components/Launch/DayTwo'
@@ -119,7 +120,7 @@ const LaunchPage = () => {
 					<DayOne />
 					<DayTwo />
 					<DayThree />
-					<HiddenDay title="Day 4: July 20th" />
+					<DayFour />
 					<HiddenDay title="Day 5: July 21st" />
 				</div>
 				<Section>
