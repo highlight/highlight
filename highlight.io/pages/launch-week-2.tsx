@@ -12,12 +12,13 @@ import { CompaniesReel } from '../components/Home/CompaniesReel/CompaniesReel'
 import { CustomerReviewTrack } from '../components/Home/CustomerReviewTrack'
 import styles from '../components/Home/Home.module.scss'
 import DayOne from '../components/Launch/DayOne'
+import DayThree from '../components/Launch/DayThree'
 import DayTwo from '../components/Launch/DayTwo'
 import HiddenDay from '../components/Launch/HiddenDay'
 import preview from '../public/images/launch/preview.png'
 
 const LaunchPage = () => {
-	const day = 2
+	const day = 3
 
 	function scrollToDay(day: number) {
 		if (document && document.getElementById('day-' + day.toString())) {
@@ -94,7 +95,7 @@ const LaunchPage = () => {
 
 					<Link
 						href="https://dub.sh/O3ayz3t"
-						className="flex justify-between p-4 w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-darker-copy-on-dark transition-all"
+						className="flex justify-between p-4 w-full bg-[#150831] border-[1px] border-divider-on-dark rounded-md flex-shrink-0 hover:border-[#9479D9] transition-all"
 					>
 						<div className="flex gap-3 items-center">
 							<Image
@@ -117,7 +118,7 @@ const LaunchPage = () => {
 				<div className="flex flex-col items-center gap-16 w-full max-w-[550px] md:max-w-[1200px] mx-auto my-10 px-8">
 					<DayOne />
 					<DayTwo />
-					<HiddenDay title="Day 3: July 19th" />
+					<DayThree />
 					<HiddenDay title="Day 4: July 20th" />
 					<HiddenDay title="Day 5: July 21st" />
 				</div>
