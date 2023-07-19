@@ -622,26 +622,32 @@ func makeFilters(query string) filtersWithReservedKeys {
 	filtersWithReservedKeys.body = filters.Body
 	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyLevel.String()]; ok {
 		filtersWithReservedKeys.level = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeyLevel.String())
 	}
 
 	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyTraceID.String()]; ok {
 		filtersWithReservedKeys.trace_id = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeyTraceID.String())
 	}
 
 	if val, ok := filters.Attributes[modelInputs.ReservedLogKeySpanID.String()]; ok {
 		filtersWithReservedKeys.span_id = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeySpanID.String())
 	}
 
 	if val, ok := filters.Attributes[modelInputs.ReservedLogKeySecureSessionID.String()]; ok {
 		filtersWithReservedKeys.secure_session_id = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeySecureSessionID.String())
 	}
 
 	if val, ok := filters.Attributes[modelInputs.ReservedLogKeySource.String()]; ok {
 		filtersWithReservedKeys.source = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeySource.String())
 	}
 
 	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyServiceName.String()]; ok {
 		filtersWithReservedKeys.service_name = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeyServiceName.String())
 	}
 
 	filtersWithReservedKeys.attributes = filters.Attributes
