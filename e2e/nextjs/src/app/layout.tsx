@@ -19,7 +19,6 @@ export default function RootLayout({
 			<HighlightInit
 				debug={{ clientInteractions: true, domRecording: true }}
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
-				scriptUrl={'http://localhost:8080/dist/index.js'}
 				tracingOrigins
 				networkRecording={{
 					enabled: true,
