@@ -34,3 +34,11 @@ func TestParseBody(t *testing.T) {
 	}
 	assert.Equal(t, want, Parse("email"))
 }
+
+func TestParseBodyWithWildcard(t *testing.T) {
+	want := Filters{
+		Body:       []string{"%email%"},
+		Attributes: map[string][]string{},
+	}
+	assert.Equal(t, want, Parse("*email*"))
+}

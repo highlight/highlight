@@ -6,12 +6,12 @@ import (
 	"math"
 	"strings"
 	"time"
-	"unicode"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/huandu/go-sqlbuilder"
 	flat "github.com/nqd/flat"
 	e "github.com/pkg/errors"
@@ -602,7 +602,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 	return sb, nil
 }
 
-type filters struct {
+type filtersWithReservedKeys struct {
 	body              []string
 	level             []string
 	trace_id          []string
@@ -613,55 +613,40 @@ type filters struct {
 	attributes        map[string][]string
 }
 
-func makeFilters(query string) filters {
-	filters := filters{
+func makeFilters(query string) filtersWithReservedKeys {
+	filters := queryparser.Parse(query)
+	filtersWithReservedKeys := filtersWithReservedKeys{
 		attributes: make(map[string][]string),
 	}
 
-	queries := splitQuery(query)
-
-	for _, q := range queries {
-		parts := strings.SplitN(q, ":", 2)
-
-		if len(parts) == 1 && len(parts[0]) > 0 {
-			body := parts[0]
-
-			if strings.Contains(body, "*") {
-				body = strings.ReplaceAll(body, "*", "%")
-				filters.body = append(filters.body, body)
-			} else {
-				splitBody := strings.FieldsFunc(body, isSeparator)
-				filters.body = append(filters.body, splitBody...)
-			}
-		} else if len(parts) == 2 {
-			key, value := parts[0], parts[1]
-
-			wildcardValue := strings.ReplaceAll(value, "*", "%")
-
-			switch key {
-			case modelInputs.ReservedLogKeyLevel.String():
-				filters.level = append(filters.level, wildcardValue)
-			case modelInputs.ReservedLogKeySecureSessionID.String():
-				filters.secure_session_id = append(filters.secure_session_id, wildcardValue)
-			case modelInputs.ReservedLogKeySpanID.String():
-				filters.span_id = append(filters.span_id, wildcardValue)
-			case modelInputs.ReservedLogKeyTraceID.String():
-				filters.trace_id = append(filters.trace_id, wildcardValue)
-			case modelInputs.ReservedLogKeySource.String():
-				filters.source = append(filters.source, wildcardValue)
-			case modelInputs.ReservedLogKeyServiceName.String():
-				filters.service_name = append(filters.service_name, wildcardValue)
-			default:
-				filters.attributes[key] = append(filters.attributes[key], wildcardValue)
-			}
-		}
+	filtersWithReservedKeys.body = filters.Body
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyLevel.String()]; ok {
+		filtersWithReservedKeys.level = val
 	}
 
-	return filters
-}
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyTraceID.String()]; ok {
+		filtersWithReservedKeys.trace_id = val
+	}
 
-func isSeparator(r rune) bool {
-	return !unicode.IsLetter(r) && !unicode.IsDigit(r)
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeySpanID.String()]; ok {
+		filtersWithReservedKeys.span_id = val
+	}
+
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeySecureSessionID.String()]; ok {
+		filtersWithReservedKeys.secure_session_id = val
+	}
+
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeySource.String()]; ok {
+		filtersWithReservedKeys.source = val
+	}
+
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyServiceName.String()]; ok {
+		filtersWithReservedKeys.service_name = val
+	}
+
+	filtersWithReservedKeys.attributes = filters.Attributes
+
+	return filtersWithReservedKeys
 }
 
 func makeFilterConditions(sb *sqlbuilder.SelectBuilder, filters []string, column string) {
@@ -677,28 +662,6 @@ func makeFilterConditions(sb *sqlbuilder.SelectBuilder, filters []string, column
 	if len(conditions) > 0 {
 		sb.Where(sb.Or(conditions...))
 	}
-}
-
-// Splits the query by spaces _unless_ it is quoted
-// "some thing" => ["some", "thing"]
-// "some thing 'spaced string' else" => ["some", "thing", "spaced string", "else"]
-func splitQuery(query string) []string {
-	var result []string
-	inquote := false
-	i := 0
-	for j, c := range query {
-		if c == '"' {
-			inquote = !inquote
-		} else if c == ' ' && !inquote {
-			result = append(result, unquoteAndTrim(query[i:j]))
-			i = j + 1
-		}
-	}
-	return append(result, unquoteAndTrim(query[i:]))
-}
-
-func unquoteAndTrim(s string) string {
-	return strings.ReplaceAll(strings.Trim(s, " "), `"`, "")
 }
 
 func expandJSON(logAttributes map[string]string) map[string]interface{} {
