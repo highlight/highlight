@@ -225,11 +225,7 @@ func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObjec
 	if obj.SessionID == nil {
 		return nil, nil
 	}
-	session := &model.Session{}
-	if err := r.DB.Where("id = ?", obj.SessionID).Take(&session).Error; err != nil {
-		return nil, e.Wrap(err, "error reading session from error object")
-	}
-	return session, nil
+	return r.Store.GetSession(ctx, *obj.SessionID)
 }
 
 // Params is the resolver for the params field.
