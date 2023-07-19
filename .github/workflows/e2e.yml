@@ -42,6 +42,8 @@ jobs:
               uses: dopplerhq/cli-action@v2
 
             - name: Start docker containers & run cypress
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
               run: |
                   start_time=$(date -Isecond)
 
