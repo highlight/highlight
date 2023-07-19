@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/openlyinc/pointy"
@@ -81,7 +82,7 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 			FROM event_chunks 
 			WHERE session_id = a.id)
 		FROM
-		(SELECT s.identifier, s.user_properties, s.fingerprint, s.country, s.active_length, s.secure_id, s.id
+		(SELECT s.identifier, s.user_properties, s.fingerprint, s.country, s.active_length, s.secure_id, s.id, s.event_counts
 		FROM sessions s
 		WHERE s.id in
 			(SELECT DISTINCT ON (s.fingerprint) s.id
@@ -145,6 +146,7 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 			Id:           item.Id,
 			Insights:     insightStrs,
 			ChunkIndex:   item.ChunkIndex,
+			EventCounts:  item.EventCounts,
 		})
 	}
 
@@ -245,13 +247,14 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 	}
 
 	if input.DryRun {
+		fmt.Printf("%#v\n", toAddrs)
 		toAddrs = []struct {
 			AdminID int
 			Email   string
 		}{{AdminID: 5141, Email: "zane@highlight.io"}}
 	}
 
-	images := map[int]string{}
+	images := map[string]string{}
 	for idx, session := range input.InterestingSessions {
 		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, pointy.Int(1000000), pointy.Int(session.ChunkIndex), nil)
 		if err != nil {
@@ -268,8 +271,26 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 		if err != nil {
 			return err
 		}
-		images[session.Id] = base64.StdEncoding.EncodeToString(imageBytes)
+		images["session"+strconv.Itoa(session.Id)] = base64.StdEncoding.EncodeToString(imageBytes)
 		input.InterestingSessions[idx].ScreenshotUrl = fmt.Sprintf("cid:session%d", session.Id)
+
+		res, err = h.lambdaClient.GetActivityGraph(ctx, session.EventCounts)
+		if err != nil {
+			log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
+				Warnf("failed to get activity graph with error %#v", err)
+			continue
+		}
+		if res.StatusCode != 200 {
+			log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
+				Warnf("failed to get activity graph with status code %d", res.StatusCode)
+			continue
+		}
+		imageBytes, err = io.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+		images["activity"+strconv.Itoa(session.Id)] = base64.StdEncoding.EncodeToString(imageBytes)
+		input.InterestingSessions[idx].ActivityGraphUrl = fmt.Sprintf("cid:activity%d", session.Id)
 	}
 
 	for _, toAddr := range toAddrs {
@@ -288,14 +309,14 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 		subject := fmt.Sprintf("[Highlight] Session Insights - %s", input.ProjectName)
 		m := mail.NewV3MailInit(from, subject, to, mail.NewContent("text/html", html))
 
-		for sessionId, img := range images {
-			log.WithContext(ctx).Infof("attaching image for session %d", sessionId)
+		for imageId, img := range images {
+			log.WithContext(ctx).Infof("attaching image %s", imageId)
 			a := mail.NewAttachment()
 			a.SetContent(img)
 			a.SetType("image/png")
-			a.SetFilename(fmt.Sprintf("session-image-%d.png", sessionId))
+			a.SetFilename(fmt.Sprintf("%s.png", imageId))
 			a.SetDisposition("inline")
-			a.SetContentID(fmt.Sprintf("session%d", sessionId))
+			a.SetContentID(imageId)
 			m.AddAttachment(a)
 		}
 
