@@ -43,10 +43,10 @@ export function PathButtons() {
 					<Button>App Directory: Error</Button>
 				</Link>
 				<hr />
-				<Link href="/redirect">
+				<Link href="/redirect?shouldRedirect=true">
 					<Button>Redirect (link)</Button>
 				</Link>
-				<Link href="/app-directory/redirect">
+				<Link href="/app-directory/redirect?shouldRedirect=true">
 					<Button>App Directory: Redirect (link)</Button>
 				</Link>
 				<Button
