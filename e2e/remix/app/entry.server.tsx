@@ -4,11 +4,13 @@
  * For more information, see https://remix.run/file-conventions/entry.server
  */
 
-import { PassThrough } from 'node:stream'
-
 import type { AppLoadContext, EntryContext } from '@remix-run/node'
-import { Response } from '@remix-run/node'
+
+import { CONSTANTS } from '~/constants'
+import { H } from '@highlight-run/node'
+import { PassThrough } from 'node:stream'
 import { RemixServer } from '@remix-run/react'
+import { Response } from '@remix-run/node'
 import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
 
@@ -21,6 +23,10 @@ export default function handleRequest(
 	remixContext: EntryContext,
 	loadContext: AppLoadContext,
 ) {
+	H.init({ projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID })
+
+	console.log('Remix logging is live! 📦🚀')
+
 	return isbot(request.headers.get('user-agent'))
 		? handleBotRequest(
 				request,

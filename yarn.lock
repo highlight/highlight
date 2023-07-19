@@ -52400,6 +52400,7 @@ __metadata:
     "@types/react": ^18.0.35
     "@types/react-dom": ^18.0.11
     eslint: ^8.38.0
+    highlight.run: "workspace:*"
     isbot: ^3.6.8
     react: ^18.2.0
     react-dom: ^18.2.0

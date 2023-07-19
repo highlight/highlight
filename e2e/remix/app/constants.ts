@@ -1,0 +1,7 @@
+// src/app/constants.ts
+
+export const CONSTANTS = {
+	HIGHLIGHT_PROJECT_ID: process.env.HIGHLIGHT_PROJECT_ID || '1',
+	HIGHLIGHT_OTLP_ENDPOINT: process.env.HIGHLIGHT_OTLP_ENDPOINT,
+	HIGHLIGHT_BACKEND_URL: process.env.HIGHLIGHT_BACKEND_URL,
+}
