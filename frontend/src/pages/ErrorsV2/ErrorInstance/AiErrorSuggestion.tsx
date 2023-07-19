@@ -1,6 +1,6 @@
-import { ApolloError } from '@apollo/client'
+import { useApolloClient } from '@apollo/client'
 import { Button } from '@components/Button'
-import { useGetErrorResolutionSuggestionLazyQuery } from '@graph/hooks'
+import { GetErrorResolutionSuggestionDocument } from '@graph/hooks'
 import {
 	Box,
 	ButtonIcon,
@@ -13,10 +13,9 @@ import {
 } from '@highlight-run/ui'
 import { message } from 'antd'
 import clsx from 'clsx'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 
-import { GetErrorResolutionSuggestionQuery } from '@/graph/generated/operations'
 import AiErrorSuggestionCard from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestionCard'
 import analytics from '@/util/analytics'
 
@@ -27,34 +26,31 @@ type Props = {
 }
 
 export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
-	const [data, setData] = useState<GetErrorResolutionSuggestionQuery | null>(
-		null,
-	)
-	const [error, setError] = useState<ApolloError | null>(null)
-	const [getErrorResolutionSuggestion, { loading, refetch }] =
-		useGetErrorResolutionSuggestionLazyQuery({
-			nextFetchPolicy: 'standby',
-			notifyOnNetworkStatusChange: true,
-			onCompleted: (data) => {
-				if (initialId && initialId === errorObjectId) {
-					setError(null)
-					setData(data)
-				}
-			},
-			onError: (error) => {
-				if (initialId && initialId === errorObjectId) {
-					setError(error)
-					setData(null)
-				}
-			},
-		})
+	const [data, setData] = useState<any | null>(null)
+	const [error, setError] = useState<unknown | null>(null)
+	const client = useApolloClient()
 	const [voted, setVoted] = useState(false)
-	const [initialId, setInitialId] = useState('')
+	const [loading, setLoading] = useState(false)
 
-	const suggestionLoading = useMemo(
-		() => loading && initialId === errorObjectId,
-		[errorObjectId, initialId, loading],
-	)
+	const getErrorResolutionRequest = async () => {
+		try {
+			setLoading(true)
+			const response = await client.query({
+				query: GetErrorResolutionSuggestionDocument,
+				variables: {
+					error_object_id: errorObjectId,
+				},
+				fetchPolicy: 'no-cache',
+			})
+			setError(null)
+			setData(response.data)
+			setLoading(false)
+		} catch (e) {
+			setError(e)
+			setData(null)
+			setLoading(false)
+		}
+	}
 
 	useEffect(() => {
 		setData(null)
@@ -69,7 +65,7 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 				[styles.aiSuggestionPrompt]: !data?.error_resolution_suggestion,
 			})}
 		>
-			{data?.error_resolution_suggestion && !loading ? (
+			{data?.error_resolution_suggestion ? (
 				<Stack flexDirection="column">
 					<AiErrorSuggestionCard
 						content={
@@ -191,22 +187,16 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 				<Box display="flex" mt="12" gap="4">
 					<Button
 						onClick={() => {
-							setInitialId(errorObjectId)
-							getErrorResolutionSuggestion({
-								variables: {
-									error_object_id: errorObjectId,
-								},
-							})
+							getErrorResolutionRequest()
+							setVoted(false)
 						}}
 						kind="primary"
 						emphasis="high"
 						trackingId="error-instance_get-ai-suggestion"
-						loading={suggestionLoading}
+						loading={loading}
 						iconLeft={<IconSolidSparkles />}
 					>
-						{suggestionLoading
-							? 'Harold is thinking...'
-							: 'Get error help'}
+						{loading ? 'Harold is thinking...' : 'Get error help'}
 					</Button>
 					<Button
 						kind="secondary"
@@ -226,17 +216,16 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 				<Box display="flex" justifyContent="center" mt="12" gap="4">
 					<Button
 						onClick={(_event) => {
-							setInitialId(errorObjectId)
-							refetch()
+							getErrorResolutionRequest()
 							setVoted(false)
 						}}
 						kind="secondary"
 						emphasis="medium"
 						trackingId="error-instance_refresh-ai-suggestion"
-						loading={suggestionLoading}
+						loading={loading}
 						iconLeft={<IconSolidRefresh />}
 					>
-						{suggestionLoading
+						{loading
 							? 'Harold is thinking...'
 							: 'Refresh Suggestion'}
 					</Button>
