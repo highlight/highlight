@@ -27,6 +27,27 @@ func TestParseEmptyString(t *testing.T) {
 	assert.Equal(t, want, Parse(""))
 }
 
+func TestParseMultipleValues(t *testing.T) {
+	want := Filters{
+		Attributes: map[string][]string{"email": {"foo@bar.com", "baz@buzz.com"}},
+	}
+	assert.Equal(t, want, Parse("email:foo@bar.com email:baz@buzz.com"))
+}
+
+func TestParseMultipleKeys(t *testing.T) {
+	want := Filters{
+		Attributes: map[string][]string{"email": {"foo@bar.com"}, "service": {"image-processor"}},
+	}
+	assert.Equal(t, want, Parse("email:foo@bar.com service:image-processor"))
+}
+
+func TestParseWildcard(t *testing.T) {
+	want := Filters{
+		Attributes: map[string][]string{"email": {"%bar.com"}},
+	}
+	assert.Equal(t, want, Parse("email:*bar.com"))
+}
+
 func TestParseBody(t *testing.T) {
 	want := Filters{
 		Body:       []string{"email"},

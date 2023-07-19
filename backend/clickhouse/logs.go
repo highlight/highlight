@@ -620,6 +620,7 @@ func makeFilters(query string) filtersWithReservedKeys {
 	}
 
 	filtersWithReservedKeys.body = filters.Body
+
 	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyLevel.String()]; ok {
 		filtersWithReservedKeys.level = val
 		delete(filters.Attributes, modelInputs.ReservedLogKeyLevel.String())
