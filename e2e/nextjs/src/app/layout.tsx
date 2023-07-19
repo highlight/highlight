@@ -26,12 +26,12 @@ export default function RootLayout({
 					recordHeadersAndBody: true,
 				}}
 				// inlineImages={false}
-                enableCanvasRecording={true}
-                samplingStrategy={{
-                    canvas: 1,
-                    canvasMaxSnapshotDimension: 480,
-                    canvasFactor: 0.5,
-                }}
+				enableCanvasRecording={true}
+				samplingStrategy={{
+					canvas: 1,
+					canvasMaxSnapshotDimension: 480,
+					canvasFactor: 0.5,
+				}}
 				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
 				scriptUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_SCRIPT_URL}
 			/>
