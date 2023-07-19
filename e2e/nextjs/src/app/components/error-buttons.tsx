@@ -33,6 +33,13 @@ export function ErrorButtons() {
 				<Button onClick={() => setIsErrored(true)}>
 					Trigger error boundary
 				</Button>
+				<Button
+					onClick={async () => {
+						throw new Error('an async error occurred')
+					}}
+				>
+					Trigger promise error
+				</Button>
 
 				<hr />
 

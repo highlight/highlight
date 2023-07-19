@@ -302,3 +302,9 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Patch Changes
 
 - Track identify metadata in the mixpanel integration as a tracked event.
+
+## 7.3.8
+
+### Patch Changes
+
+- Fix `window.Promise` monkeypatch to work in Next.js frontends.

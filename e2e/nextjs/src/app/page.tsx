@@ -36,6 +36,17 @@ export default function Home() {
 			<FetchTests />
 
 			<Link href="/another-page">Navigation Test</Link>
+			<Image
+				alt={'cross origin test'}
+				height={200}
+				width={200}
+				src="https://i.travelapi.com/lodging/11000000/10140000/10130300/10130300/c9095011_z.jpg"
+			/>
+			<img
+				height={200}
+				width={200}
+				src="https://i.travelapi.com/lodging/11000000/10140000/10130300/10130300/c9095011_z.jpg"
+			/>
 		</main>
 	)
 }
