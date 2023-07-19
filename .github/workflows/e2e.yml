@@ -49,6 +49,7 @@ jobs:
                   ./run-backend.sh >> /tmp/highlight.log 2>&1 &
                   yarn install >> /tmp/highlight.log 2>&1;
                   yarn build:frontend >> /tmp/highlight.log 2>&1;
+                  yarn workspace @highlight-run/client dev &
                   yarn workspace @highlight-run/frontend vite preview --port 3000 &
                   popd;
 
