@@ -1,0 +1,43 @@
+{
+	"name": "@highlight-run/remix",
+	"version": "0.0.0",
+	"description": "Client for interfacing with Highlight in Remix",
+	"packageManager": "yarn@3.5.0",
+	"author": "",
+	"license": "ISC",
+	"files": [
+		"dist",
+		"highlight-init.d.ts",
+		"index.d.ts"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.js"
+		},
+		"./highlight-init": {
+			"types": "./dist/highlight-init.d.ts",
+			"import": "./dist/highlight-init.mjs",
+			"require": "./dist/highlight-init.js"
+		}
+	},
+	"scripts": {
+		"typegen": "tsup --dts-only",
+		"dev": "tsup --watch",
+		"build": "tsup"
+	},
+	"peerDependencies": {
+		"highlight.run": ">=3.0.0",
+		"react": ">=18"
+	},
+	"dependencies": {
+		"@highlight-run/react": "workspace:*",
+		"highlight.run": "workspace:*"
+	},
+	"devDependencies": {
+		"@remix-run/react": "^1.18.1",
+		"tsup": "^7.1.0",
+		"typescript": "^5.1.6"
+	}
+}

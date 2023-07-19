@@ -13211,6 +13211,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@highlight-run/remix@workspace:*, @highlight-run/remix@workspace:sdk/highlight-remix":
+  version: 0.0.0-use.local
+  resolution: "@highlight-run/remix@workspace:sdk/highlight-remix"
+  dependencies:
+    "@highlight-run/react": "workspace:*"
+    "@remix-run/react": ^1.18.1
+    highlight.run: "workspace:*"
+    tsup: ^7.1.0
+    typescript: ^5.1.6
+  peerDependencies:
+    highlight.run: ">=3.0.0"
+    react: ">=18"
+  languageName: unknown
+  linkType: soft
+
 "@highlight-run/rrdom-nodejs@workspace:rrweb/packages/rrdom-nodejs":
   version: 0.0.0-use.local
   resolution: "@highlight-run/rrdom-nodejs@workspace:rrweb/packages/rrdom-nodejs"
@@ -52390,7 +52405,7 @@ __metadata:
   resolution: "remix@workspace:e2e/remix"
   dependencies:
     "@highlight-run/node": "workspace:*"
-    "@highlight-run/react": "workspace:*"
+    "@highlight-run/remix": "workspace:*"
     "@remix-run/css-bundle": ^1.18.1
     "@remix-run/dev": ^1.18.1
     "@remix-run/eslint-config": ^1.18.1

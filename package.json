@@ -19,6 +19,7 @@
 		"sdk/highlight-next",
 		"sdk/highlight-node",
 		"sdk/highlight-react",
+		"sdk/highlight-remix",
 		"render",
 		"rrweb/packages/*",
 		"scripts",

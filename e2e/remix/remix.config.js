@@ -5,6 +5,7 @@ module.exports = {
 	// assetsBuildDirectory: "public/build",
 	// serverBuildPath: "build/index.js",
 	// publicPath: "/build/",
+	watchPaths: ['../../sdk/highlight-remix/dist'],
 	serverModuleFormat: 'cjs',
 	future: {
 		v2_dev: true,

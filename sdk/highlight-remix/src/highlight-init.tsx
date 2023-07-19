@@ -1,10 +1,12 @@
 import { H } from 'highlight.run'
 import type { HighlightOptions } from 'highlight.run'
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 
 interface Props extends HighlightOptions {
 	projectId?: string
 }
+
+console.log('HighlightInit React', React.version)
 
 export function HighlightInit({ projectId, ...highlightOptions }: Props) {
 	useEffect(() => {

@@ -8,7 +8,7 @@ import {
 	useLoaderData,
 } from '@remix-run/react'
 
-import { HighlightInit } from '~/components/highlight-init'
+import { HighlightInit } from '@highlight-run/remix/highlight-init'
 import type { LinksFunction } from '@remix-run/node'
 import { cssBundleHref } from '@remix-run/css-bundle'
 import { json } from '@remix-run/node'

@@ -2,7 +2,7 @@ import { isRouteErrorResponse, useRouteError } from '@remix-run/react'
 
 import type { ErrorBoundaryProps } from '@highlight-run/react'
 
-import { ReportDialog } from '@highlight-run/react'
+import { ReportDialog } from '@highlight-run/remix'
 
 export function ErrorBoundary({
 	children,
