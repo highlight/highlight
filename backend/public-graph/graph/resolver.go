@@ -1678,7 +1678,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				log.WithContext(ctx).Error(e.Wrapf(err, "error sending error alert to Zapier (error alert id: %d)", errorAlert.ID))
 			}
 
-			if err := alerts.SendErrorAlert(alerts.SendErrorAlertEvent{
+			if err := alerts.SendErrorAlert(ctx, alerts.SendErrorAlertEvent{
 				Session:     sessionObj,
 				ErrorAlert:  errorAlert,
 				ErrorGroup:  group,
