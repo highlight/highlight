@@ -25,7 +25,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 				}}
 				// inlineImages={true} // Set to false to disable inline images and resolve CORS issue
 				// run `yarn dev` from the sdk/client directory to serve the scriptUrl
-				// scriptUrl="http://localhost:8080/dist/index.js"
+				scriptUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_SCRIPT_URL}
 				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
 			/>
 

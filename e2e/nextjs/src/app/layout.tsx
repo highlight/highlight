@@ -25,7 +25,7 @@ export default function RootLayout({
 				}}
 				// inlineImages={false}
 				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
-				scriptUrl={'http://localhost:8080/dist/index.js'}
+				scriptUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_SCRIPT_URL}
 			/>
 
 			<html lang="en">
