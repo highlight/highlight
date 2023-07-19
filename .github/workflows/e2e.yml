@@ -46,7 +46,8 @@ jobs:
                   start_time=$(date -Isecond)
 
                   # setup environment
-                  source env.sh;
+                  ls
+                  source ./env.sh
 
                   # start highlight
                   pushd docker;
