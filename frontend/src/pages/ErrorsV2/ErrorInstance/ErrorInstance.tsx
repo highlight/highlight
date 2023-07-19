@@ -16,6 +16,7 @@ import {
 	IconSolidCode,
 	IconSolidExternalLink,
 	Stack,
+	Tag,
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -458,15 +459,21 @@ const User: React.FC<{
 										py="10"
 										display="flex"
 										overflow="hidden"
-										onClick={() =>
-											copyToClipboard(userProperties[key])
-										}
-										title={userProperties[key]}
 										style={{ width: '67%' }}
 									>
-										<Text lines="1" as="span">
+										<Tag
+											onClick={() =>
+												copyToClipboard(
+													userProperties[key],
+												)
+											}
+											title={userProperties[key]}
+											kind="secondary"
+											emphasis="low"
+											shape="basic"
+										>
 											{userProperties[key]}
-										</Text>
+										</Tag>
 									</Box>
 								</Box>
 							))}
