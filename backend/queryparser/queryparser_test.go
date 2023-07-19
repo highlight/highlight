@@ -41,6 +41,13 @@ func TestParseMultipleKeys(t *testing.T) {
 	assert.Equal(t, want, Parse("email:foo@bar.com service:image-processor"))
 }
 
+func TestParseValueWithColon(t *testing.T) {
+	want := Filters{
+		Attributes: map[string][]string{"service": {"foo:bar:buzz"}},
+	}
+	assert.Equal(t, want, Parse("service:foo:bar:buzz"))
+}
+
 func TestParseWildcard(t *testing.T) {
 	want := Filters{
 		Attributes: map[string][]string{"email": {"%bar.com"}},
