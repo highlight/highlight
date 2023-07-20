@@ -1,2 +1,2 @@
 alter table logs
-    drop column ServiceName;
+    add column ServiceVersion;
