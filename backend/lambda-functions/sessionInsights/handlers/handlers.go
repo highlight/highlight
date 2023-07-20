@@ -97,6 +97,8 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 			AND NOT s.excluded
 			AND s.processed
 			AND s.within_billing_quota
+			AND s.normalness IS NOT NULL
+			AND s.normalness > 0
 			ORDER BY s.fingerprint, s.normalness)
 		ORDER BY s.normalness
 		LIMIT 3) a
