@@ -31,12 +31,13 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 
 	if params.Query != "" {
 		filters := queryparser.Parse(params.Query)
-		emails := filters.Attributes["email"]
 
-		if len(emails) > 0 && emails[0] == "" {
-			query.Joins("LEFT JOIN sessions ON error_objects.session_id = sessions.id").
-				Where("sessions.project_id = ?", errorGroup.ProjectID). // Attaching project id so we can utilize the composite index sessions
-				Where("sessions.email ILIKE ?", "%"+emails[0]+"%")
+		if val, ok := filters.Attributes["email"]; ok {
+			if len(val) > 0 && val[0] != "" {
+				query.Joins("LEFT JOIN sessions ON error_objects.session_id = sessions.id").
+					Where("sessions.project_id = ?", errorGroup.ProjectID). // Attaching project id so we can utilize the composite index sessions
+					Where("sessions.email ILIKE ?", "%"+val[0]+"%")
+			}
 		}
 	}
 

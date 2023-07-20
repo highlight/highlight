@@ -78,7 +78,7 @@ func TestParseBodyWithWildcard(t *testing.T) {
 	assert.Equal(t, want, Parse("*email*"))
 }
 
-// TODO(et) - https://github.com/highlight/highlight/issues/4713
+// Failing test to be fixed by https://github.com/highlight/highlight/issues/4713
 // func TestParseBodyWithQuotes(t *testing.T) {
 // 	want := Filters{
 // 		Body:       []string{"something went wrong"},
