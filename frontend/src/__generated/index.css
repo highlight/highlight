@@ -5348,12 +5348,13 @@ body {
   align-items: center;
   background-color: #ffffff;
   border: var(--_1pyqka91o) solid 1px;
-  border-radius: 6px;
+  border-radius: 20px;
   color: var(--_1pyqka9c);
   display: flex;
   font-size: 13px;
   gap: 4px;
-  padding: 0 8px;
+  height: 20px;
+  padding: 0 6px;
 }
 ._1oemo0l1:hover {
   cursor: pointer;
@@ -5380,7 +5381,7 @@ body {
 }
 ._1oemo0l4 {
   border: var(--_1pyqka91o) solid 1px;
-  border-radius: 6px;
+  border-radius: 4px;
   display: flex;
   padding: 1px;
 }
