@@ -31,6 +31,7 @@ import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { loadIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
+import { version as firstloadVersion } from 'highlight.run/package.json'
 import { parse, stringify } from 'query-string'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -49,8 +50,6 @@ import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 import { PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
-
-import { version as firstloadVersion } from '../../sdk/firstload/package.json'
 
 document.body.className = 'highlight-light-theme'
 
