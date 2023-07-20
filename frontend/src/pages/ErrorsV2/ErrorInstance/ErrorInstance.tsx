@@ -68,8 +68,6 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 			skip: !project_id,
 		})
 
-	console.log('AI Settings', workspaceSettingsData)
-
 	const { loading, error, data } = useGetErrorInstanceQuery({
 		variables: {
 			error_group_secure_id: String(errorGroup?.secure_id),
