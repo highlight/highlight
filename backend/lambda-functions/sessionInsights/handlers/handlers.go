@@ -121,29 +121,25 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 			var insights []insightType
 
 			res, err := h.lambdaClient.GetSessionInsight(ctx, input.ProjectId, item.Id)
-			if err == nil && res.StatusCode == 200 {
-				b, err := io.ReadAll(res.Body)
-				if err != nil {
-					return nil, err
-				}
-				if err := json.Unmarshal(b, &insight); err != nil {
-					return nil, err
-				}
-				if err := json.Unmarshal([]byte(insight.Insight), &insights); err != nil {
-					return nil, err
-				}
-				for _, i := range insights {
-					insightStrs = append(insightStrs, i.Insight)
-				}
-			} else {
-				if err != nil {
-					log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": item.Id}).
-						Warnf("failed to get session insight with error %#v ", err)
+			if err != nil {
+				return nil, err
+			}
+			if res.StatusCode != 200 {
+				return nil, errors.New(fmt.Sprintf("session insight lambda returned %d", res.StatusCode))
+			}
 
-				} else if res.StatusCode != 200 {
-					log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": item.Id}).
-						Warnf("failed to get session insight with status code %d", res.StatusCode)
-				}
+			b, err := io.ReadAll(res.Body)
+			if err != nil {
+				return nil, err
+			}
+			if err := json.Unmarshal(b, &insight); err != nil {
+				return nil, err
+			}
+			if err := json.Unmarshal([]byte(insight.Insight), &insights); err != nil {
+				return nil, err
+			}
+			for _, i := range insights {
+				insightStrs = append(insightStrs, i.Insight)
 			}
 		}
 
@@ -268,14 +264,10 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 	for idx, session := range input.InterestingSessions {
 		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, pointy.Int(1000000), pointy.Int(session.ChunkIndex), nil)
 		if err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
-				Warnf("failed to get session screenshot with error %#v", err)
-			continue
+			return err
 		}
 		if res.StatusCode != 200 {
-			log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
-				Warnf("failed to get session screenshot with status code %d", res.StatusCode)
-			continue
+			return errors.New(fmt.Sprintf("session screenshot lambda returned %d", res.StatusCode))
 		}
 		imageBytes, err := io.ReadAll(res.Body)
 		if err != nil {
@@ -297,14 +289,10 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 
 		res, err = h.lambdaClient.GetActivityGraph(ctx, session.EventCounts)
 		if err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
-				Warnf("failed to get activity graph with error %#v", err)
-			continue
+			return err
 		}
 		if res.StatusCode != 200 {
-			log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
-				Warnf("failed to get activity graph with status code %d", res.StatusCode)
-			continue
+			return errors.New(fmt.Sprintf("activity graph lambda returned %d", res.StatusCode))
 		}
 		imageBytes, err = io.ReadAll(res.Body)
 		if err != nil {
