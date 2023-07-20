@@ -1,10 +1,14 @@
 package handlers
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/png"
 	"io"
 	"os"
 	"strconv"
@@ -12,6 +16,7 @@ import (
 
 	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/image/draw"
 
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/lambda"
@@ -271,7 +276,17 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 		if err != nil {
 			return err
 		}
-		images["session"+strconv.Itoa(session.Id)] = base64.StdEncoding.EncodeToString(imageBytes)
+
+		src, _ := png.Decode(bytes.NewReader(imageBytes))
+		dst := image.NewRGBA(image.Rect(0, 0, 800, 436))
+		draw.CatmullRom.Scale(dst, dst.Rect, src, src.Bounds(), draw.Over, nil)
+		var b bytes.Buffer
+		output := bufio.NewWriter(&b)
+		if err := png.Encode(output, dst); err != nil {
+			return err
+		}
+
+		images["session"+strconv.Itoa(session.Id)] = base64.StdEncoding.EncodeToString(b.Bytes())
 		input.InterestingSessions[idx].ScreenshotUrl = fmt.Sprintf("cid:session%d", session.Id)
 
 		res, err = h.lambdaClient.GetActivityGraph(ctx, session.EventCounts)
