@@ -109,7 +109,7 @@ const DayFour = () => {
 					</Link>
 				</div>
 				<Link
-					href="/blog/building-our-logging-integrations"
+					href="/blog/introducing-harold"
 					className={classNames(
 						'h-1/2 max-h-[350px] md:max-h-[450px] w-full hover:border-[#9479D9] cursor-pointer',
 						styles.gridItem,
@@ -139,7 +139,7 @@ const DayFour = () => {
 				</Link>
 
 				<Link
-					href="/blog/building-our-logging-integrations"
+					href="/blog/interesting-sessions"
 					className={classNames(
 						'h-1/2 max-h-[350px] md:max-h-[450px] w-full hover:border-[#9479D9] cursor-pointer',
 						styles.gridItem,
