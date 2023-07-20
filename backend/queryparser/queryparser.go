@@ -10,6 +10,11 @@ type Filters struct {
 	Attributes map[string][]string
 }
 
+// Parses a query string into Attributes and Body (not keyed attributes)
+// Example: some message email:foo@bar.com service:image-processor email:baz@buzz.com
+// =>
+// Body -> []string{"some", "message"}
+// Attributes -> map[string][]string{"email": {"foo@bar.com", "baz@buzz.com"}, "service": {"image-processor"}}
 func Parse(query string) Filters {
 	filters := Filters{
 		Attributes: make(map[string][]string),

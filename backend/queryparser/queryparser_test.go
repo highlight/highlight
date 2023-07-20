@@ -48,6 +48,13 @@ func TestParseValueWithColon(t *testing.T) {
 	assert.Equal(t, want, Parse("service:foo:bar:buzz"))
 }
 
+func TestParseWithSpaces(t *testing.T) {
+	want := Filters{
+		Attributes: map[string][]string{"service": {"image processor"}},
+	}
+	assert.Equal(t, want, Parse("service:\"image processor\""))
+}
+
 func TestParseWildcard(t *testing.T) {
 	want := Filters{
 		Attributes: map[string][]string{"email": {"%bar.com"}},
@@ -69,4 +76,21 @@ func TestParseBodyWithWildcard(t *testing.T) {
 		Attributes: map[string][]string{},
 	}
 	assert.Equal(t, want, Parse("*email*"))
+}
+
+// TODO(et) - https://github.com/highlight/highlight/issues/4713
+// func TestParseBodyWithQuotes(t *testing.T) {
+// 	want := Filters{
+// 		Body:       []string{"something went wrong"},
+// 		Attributes: map[string][]string{},
+// 	}
+// 	assert.Equal(t, want, Parse("\"something went wrong\""))
+// }
+
+func TestParseBodyWithAttributes(t *testing.T) {
+	want := Filters{
+		Body:       []string{"some", "message"},
+		Attributes: map[string][]string{"email": {"foo@bar.com", "baz@buzz.com"}, "service": {"image-processor"}},
+	}
+	assert.Equal(t, want, Parse("some message email:foo@bar.com service:image-processor email:baz@buzz.com"))
 }
