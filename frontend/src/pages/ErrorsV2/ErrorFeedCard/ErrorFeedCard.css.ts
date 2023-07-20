@@ -20,11 +20,12 @@ export const errorCard = style({
 })
 
 export const errorCardSelected = style({
-	background: vars.theme.interactive.overlay.secondary.pressed,
-	boxShadow: `0 -1px 0 0 rgba(0, 0, 0, 0.1) inset`,
+	background: themeVars.interactive.overlay.secondary.selected.default,
+	boxShadow: borders.secondaryInner,
 	selectors: {
 		'&:hover': {
-			backgroundColor: vars.theme.interactive.overlay.secondary.pressed,
+			backgroundColor:
+				themeVars.interactive.overlay.secondary.selected.default,
 		},
 	},
 })
