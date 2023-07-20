@@ -27,7 +27,7 @@ type AiFeature = {
 const AI_FEATURES: AiFeature[] = [
 	{
 		label: 'Enable Harold',
-		info: 'Get AI assistance throughout the app',
+		info: 'Enable error suggestions and session summarization across the app',
 		key: 'ai_application',
 		feature: 'Application',
 	},
