@@ -64,7 +64,6 @@ export const PlayerModeSwitch: React.FC = () => {
 						emphasis={mode === 'inspect' ? 'high' : 'low'}
 						size="xSmall"
 						onClick={() => {
-							setShowRightPanel(false)
 							setEnableInspectElement(true)
 						}}
 					/>

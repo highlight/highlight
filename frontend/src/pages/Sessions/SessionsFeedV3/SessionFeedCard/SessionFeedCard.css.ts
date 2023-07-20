@@ -40,7 +40,7 @@ export const sessionCardSelected = style({
 	selectors: {
 		'&:hover': {
 			backgroundColor:
-				themeVars.interactive.overlay.secondary.selected.default,
+				themeVars.interactive.overlay.secondary.selected.hover,
 		},
 	},
 })
