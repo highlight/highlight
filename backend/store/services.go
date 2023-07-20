@@ -4,7 +4,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 )
 
-func (store *Store) FindOrCreateService(project model.Project, name string) (model.Project, error) {
+func (store *Store) FindOrCreateService(project model.Project, name string) (model.Service, error) {
 	var service model.Service
 
 	err := store.db.Where(&model.Service{
@@ -12,5 +12,5 @@ func (store *Store) FindOrCreateService(project model.Project, name string) (mod
 		Name:      name,
 	}).FirstOrCreate(&service).Error
 
-	return project, err
+	return service, err
 }
