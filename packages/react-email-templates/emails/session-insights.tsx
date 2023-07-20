@@ -51,6 +51,13 @@ const sessionExample = {
 	],
 }
 
+const css = `
+    a {
+        color: unset;
+		text-decoration: none;
+    }
+`
+
 export const SessionInsightsEmail = ({
 	projectName = 'Highlight Production (app.highlight.io)',
 	toEmail = 'zane@highlight.io',
@@ -59,10 +66,12 @@ export const SessionInsightsEmail = ({
 	interestingSessions = [sessionExample, sessionExample, sessionExample],
 }: SessionInsightsEmailProps) => (
 	<Html>
-		<Head />
+		<Head>
+			<style>{css}</style>
+		</Head>
 		<Preview>Session insights for {projectName}</Preview>
 		<Body style={main}>
-			<Container style={container}>
+			<Container width={600} style={container}>
 				<Img
 					src="https://static.highlight.io/assets/digest/logo-on-dark.png"
 					width="32"
@@ -78,25 +87,28 @@ export const SessionInsightsEmail = ({
 					Session Insights
 				</Heading>
 				<Text style={subtitleText}>
-					Three interesting sessions recorded in your project this
-					week.
+					Here are 3 interesting sessions recorded in your project
+					this week:
 				</Text>
 				<Hr style={hr} />
 				{interestingSessions.map((s, idx) => (
 					<>
 						<Section width={400}>
-							<Link href={s.url}>
-								<Img
-									src={s.screenshotUrl}
-									style={sessionScreenshot}
-									width="400"
-									height="218"
-								/>
-							</Link>
+							<Img
+								alt="session"
+								src={s.screenshotUrl}
+								style={sessionScreenshot}
+								width={400}
+								height={218}
+							/>
 						</Section>
 						<Section width={400} style={sessionAttributes}>
-							<Column width={280} style={sessionProperties}>
-								<Section>
+							<Column
+								align="left"
+								width={280}
+								style={sessionProperties}
+							>
+								<Section align="left" style={leftAlign}>
 									<Text style={identifier}>
 										{s.avatarUrl && (
 											<>
@@ -114,7 +126,7 @@ export const SessionInsightsEmail = ({
 										</a>
 									</Text>
 								</Section>
-								<Section>
+								<Section align="left" style={leftAlign}>
 									<span style={sessionProperty}>
 										{s.country}
 									</span>
@@ -144,9 +156,6 @@ export const SessionInsightsEmail = ({
 									style={{ wordBreak: 'break-all' }}
 								>
 									<Text style={insightText}>{i}</Text>
-									{/* <Link style={hoverAnchor} href={s.url}>
-										<Text style={insightText}>{i}</Text>
-									</Link> */}
 								</Column>
 							</Section>
 						))}
@@ -202,13 +211,14 @@ const main = {
 }
 
 const container = {
+	width: '600px',
 	padding: '0 16px',
-	marginBottom: '64px',
 	textAlign: 'center' as const,
 }
 
 const hr = {
-	borderColor: '#30294e',
+	color: '#30294e',
+	borderTop: '1px solid #30294e',
 	margin: '20px 0',
 }
 
@@ -261,11 +271,10 @@ const numberLabel = {
 }
 
 const sessionScreenshot = {
-	backgroundColor: '#6c37f4',
-	width: '400px',
-	height: '218px',
 	borderRadius: '6px',
 	objectFit: 'cover' as const,
+	width: '400px',
+	height: '218px',
 }
 
 const identifier = {
@@ -274,6 +283,7 @@ const identifier = {
 	fontSize: '16px',
 	height: '24px',
 	overflow: 'hidden',
+	textAlign: 'left' as const,
 }
 
 const identifierText = {
@@ -289,6 +299,10 @@ const sessionAttributes = {
 const subtitleText = {
 	...text,
 	fontSize: '16px',
+}
+
+const leftAlign = {
+	textAlign: 'left' as const,
 }
 
 const sessionProperties = {
