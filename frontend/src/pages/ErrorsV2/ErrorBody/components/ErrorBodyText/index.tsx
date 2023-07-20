@@ -31,7 +31,7 @@ const ErrorBodyText = ({ errorBody }: Props) => {
 					family="monospace"
 					lines={truncated ? '3' : undefined}
 					ref={bodyRef}
-					size="xSmall"
+					size="small"
 					color="moderate"
 				>
 					{body}
