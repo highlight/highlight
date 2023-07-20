@@ -4,7 +4,6 @@ import { Avatar } from '@components/Avatar/Avatar'
 import { Button } from '@components/Button'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
 import LoadingBox from '@components/LoadingBox'
-import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	GetErrorInstanceDocument,
 	useGetErrorInstanceQuery,
@@ -13,6 +12,7 @@ import { ErrorObjectFragment, GetErrorGroupQuery } from '@graph/operations'
 import {
 	Badge,
 	Box,
+	Callout,
 	IconSolidCode,
 	IconSolidExternalLink,
 	Stack,
@@ -60,7 +60,7 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	}>()
 	const client = useApolloClient()
 
-	const { loading, data } = useGetErrorInstanceQuery({
+	const { loading, error, data } = useGetErrorInstanceQuery({
 		variables: {
 			error_group_secure_id: String(errorGroup?.secure_id),
 			error_object_id,
@@ -99,56 +99,27 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		},
 	})
 
-	const errorInstance = data?.error_instance
-
 	useEffect(() => analytics.page(), [])
 
-	if (!errorInstance || !errorInstance?.error_object) {
-		if (!loading) return null
-
+	if (loading) {
 		return (
-			<Box id="error-instance-container">
-				<Stack direction="row" my="12">
-					<Stack direction="row" flexGrow={1}>
-						<SeeAllInstances data={data} />
-						<PreviousNextInstance data={data} />
-					</Stack>
-					<Stack direction="row" gap="4">
-						<RelatedSession data={data} />
-						<RelatedLogs data={data} />
-					</Stack>
-				</Stack>
+			<Box mt="10">
+				<LoadingBox />
+			</Box>
+		)
+	}
 
-				<Box display="flex" flexDirection="row" mb="40" gap="40">
-					<div style={{ flexBasis: 0, flexGrow: 1 }}>
-						<Box>
-							<Box bb="secondary" pb="20" my="12">
-								<Text weight="bold" size="large">
-									Instance metadata
-								</Text>
-							</Box>
-							<LoadingBox height={128} />
-						</Box>
-					</div>
-
-					<div style={{ flexBasis: 0, flexGrow: 1 }}>
-						<Box width="full">
-							<Box pb="20" mt="12">
-								<Text weight="bold" size="large">
-									User details
-								</Text>
-							</Box>
-							<LoadingBox height={128} />
-						</Box>
-					</div>
-				</Box>
-
-				<Text size="large" weight="bold">
-					Stack trace
-				</Text>
-				<Box bt="secondary" mt="12" pt="16">
-					<Skeleton count={10} />
-				</Box>
+	const errorInstance = data?.error_instance
+	if (error || !errorInstance) {
+		return (
+			<Box m="auto" mt="10" style={{ maxWidth: 300 }}>
+				<Callout title="Failed to load error instance" kind="error">
+					<Box mb="6">
+						<Text color="moderate">
+							There was an error loading this error instance.
+						</Text>
+					</Box>
+				</Callout>
 			</Box>
 		)
 	}

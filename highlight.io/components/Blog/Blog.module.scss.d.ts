@@ -7,6 +7,7 @@ export const blogImageContainer: string
 export const blogPost: string
 export const blogPostSmall: string
 export const blogSection: string
+export const blogTable: string
 export const blogText: string
 export const bodyText: string
 export const cardImage: string

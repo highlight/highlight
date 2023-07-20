@@ -194,7 +194,7 @@ const LogsTableInner = ({
 	useEffect(() => {
 		// Collapse all rows when search changes
 		table.toggleAllRowsExpanded(false)
-	}, [logEdges, table])
+	}, [query, table])
 
 	useEffect(() => {
 		const foundRow = rows.find(

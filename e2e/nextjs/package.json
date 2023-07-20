@@ -24,6 +24,7 @@
 		"@types/node": "18.15.11",
 		"@types/react": "18.0.35",
 		"@types/react-dom": "18.0.11",
+		"babylonjs": "^6.11.2",
 		"classnames": "^2.3.2",
 		"eslint": "8.39.0",
 		"eslint-config-next": "13.4.9",
