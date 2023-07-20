@@ -19,7 +19,7 @@ import HiddenDay from '../components/Launch/HiddenDay'
 import preview from '../public/images/launch/preview.png'
 
 const LaunchPage = () => {
-	const day = 3
+	const day = 4
 
 	function scrollToDay(day: number) {
 		if (document && document.getElementById('day-' + day.toString())) {
