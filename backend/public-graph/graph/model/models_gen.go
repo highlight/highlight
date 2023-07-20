@@ -22,6 +22,8 @@ type BackendErrorObjectInput struct {
 	StackTrace      string    `json:"stackTrace"`
 	Timestamp       time.Time `json:"timestamp"`
 	Payload         *string   `json:"payload"`
+	Service         *string   `json:"service"`
+	Version         *string   `json:"version"`
 }
 
 type ErrorObjectInput struct {

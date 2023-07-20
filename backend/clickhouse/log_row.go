@@ -3,10 +3,11 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/util"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/util"
 
 	model2 "github.com/highlight-run/highlight/backend/model"
 	e "github.com/pkg/errors"
@@ -41,6 +42,7 @@ type LogRow struct {
 	SeverityNumber  int32
 	Source          modelInputs.LogSource
 	ServiceName     string
+	ServiceVersion  string
 	Body            string
 	LogAttributes   map[string]string
 }
@@ -127,6 +129,12 @@ func WithBody(ctx context.Context, body string) LogRowOption {
 func WithServiceName(serviceName string) LogRowOption {
 	return func(l *LogRow) {
 		l.ServiceName = serviceName
+	}
+}
+
+func WithServiceVersion(version string) LogRowOption {
+	return func(l *LogRow) {
+		l.ServiceVersion = version
 	}
 }
 

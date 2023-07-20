@@ -47,6 +47,8 @@ input BackendErrorObjectInput {
 	stackTrace: String!
 	timestamp: Timestamp!
 	payload: String
+	service: String
+	version: String
 }
 
 input MetricTag {

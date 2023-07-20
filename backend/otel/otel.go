@@ -6,11 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"regexp"
 	"time"
+
+	"github.com/samber/lo"
 
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 
@@ -57,7 +58,7 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 	return c
 }
 
-func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID *string, source *modelInputs.LogSource, service, host *string) {
+func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID *string, source *modelInputs.LogSource, service, host, version *string) {
 	ptrs := map[string]*string{
 		highlight.DeprecatedProjectIDAttribute: projectID,
 		highlight.DeprecatedSessionIDAttribute: sessionID,
@@ -67,6 +68,7 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 		highlight.RequestIDAttribute:           requestID,
 		string(semconv.ServiceNameKey):         service,
 		string(semconv.HostNameKey):            host,
+		string(semconv.ServiceVersionKey):      version,
 	}
 	for k, ptr := range ptrs {
 		if ptr == nil {
@@ -109,7 +111,7 @@ func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestI
 	}
 }
 
-func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, requestID, traceID, spanID, logMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source modelInputs.LogSource, service string) (*clickhouse.LogRow, error) {
+func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, requestID, traceID, spanID, logMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source modelInputs.LogSource, service string, version string) (*clickhouse.LogRow, error) {
 	projectIDInt, err := clickhouse.ProjectToInt(projectID)
 
 	if err != nil {
@@ -131,10 +133,11 @@ func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, req
 		clickhouse.WithServiceName(service),
 		clickhouse.WithSeverityText(lvl),
 		clickhouse.WithSource(source),
+		clickhouse.WithVersion(version),
 	), nil
 }
 
-func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, requestID, traceID, spanID string, logCursor *string, excMessage string, source modelInputs.LogSource, host string, resourceAttributes, spanAttributes, eventAttributes map[string]any) (bool, *model.BackendErrorObjectInput) {
+func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, requestID, traceID, spanID string, logCursor *string, excMessage string, source modelInputs.LogSource, host string, resourceAttributes, spanAttributes, eventAttributes map[string]any, service string, version string) (bool, *model.BackendErrorObjectInput) {
 	excType := cast(eventAttributes[string(semconv.ExceptionTypeKey)], source.String())
 	errorUrl := cast(eventAttributes[highlight.ErrorURLAttribute], source.String())
 	stackTrace := cast(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
@@ -160,6 +163,8 @@ func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, re
 		Timestamp:       ts,
 		Payload:         pointy.String(string(payloadBytes)),
 		URL:             errorUrl,
+		Service:         pointy.String(service),
+		Version:         pointy.String(version),
 	}
 	if sessionID != "" {
 		return false, err
@@ -236,23 +241,23 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 	spans := req.Traces().ResourceSpans()
 	for i := 0; i < spans.Len(); i++ {
-		var projectID, sessionID, requestID, service, host string
+		var projectID, sessionID, requestID, service, version, host string
 		var source modelInputs.LogSource
 		resource := spans.At(i).Resource()
 		resourceAttributes := resource.Attributes().AsRaw()
-		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source, &service, &host)
+		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source, &service, &host, &version)
 		scopeScans := spans.At(i).ScopeSpans()
 		for j := 0; j < scopeScans.Len(); j++ {
 			spans := scopeScans.At(j).Spans()
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
 				spanAttributes := span.Attributes().AsRaw()
-				setHighlightAttributes(spanAttributes, &projectID, &sessionID, &requestID, &source, &service, &host)
+				setHighlightAttributes(spanAttributes, &projectID, &sessionID, &requestID, &source, &service, &host, &version)
 				events := span.Events()
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
 					eventAttributes := event.Attributes().AsRaw()
-					setHighlightAttributes(eventAttributes, &projectID, &sessionID, &requestID, &source, &service, &host)
+					setHighlightAttributes(eventAttributes, &projectID, &sessionID, &requestID, &source, &service, &host, &version)
 					ts := event.Timestamp().AsTime()
 					traceID := cast(requestID, span.TraceID().String())
 					spanID := span.SpanID().String()
@@ -260,7 +265,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						excMessage := cast(eventAttributes[string(semconv.ExceptionMessageKey)], "")
 
 						var logCursor *string
-						logRow, err := getLogRow(ctx, ts, "ERROR", projectID, sessionID, requestID, traceID, spanID, excMessage, resourceAttributes, spanAttributes, eventAttributes, source, service)
+						logRow, err := getLogRow(ctx, ts, "ERROR", projectID, sessionID, requestID, traceID, spanID, excMessage, resourceAttributes, spanAttributes, eventAttributes, source, service, version)
 
 						if err != nil {
 							lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create log row")
@@ -270,7 +275,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						projectLogs[projectID] = append(projectLogs[projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
 
-						isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, excMessage, source, host, resourceAttributes, spanAttributes, eventAttributes)
+						isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, excMessage, source, host, resourceAttributes, spanAttributes, eventAttributes, service, version)
 						if backendError == nil {
 							lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).Error("otel span error got no session and no project")
 						} else {
@@ -290,7 +295,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 						logRow, err := getLogRow(
 							ctx, ts, logSev, projectID, sessionID, requestID, traceID, spanID,
-							logMessage, resourceAttributes, spanAttributes, eventAttributes, source, service,
+							logMessage, resourceAttributes, spanAttributes, eventAttributes, source, service, version,
 						)
 
 						if err != nil {
@@ -401,11 +406,11 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 	resourceLogs := req.Logs().ResourceLogs()
 	for i := 0; i < resourceLogs.Len(); i++ {
-		var projectID, sessionID, requestID, service string
+		var projectID, sessionID, requestID, service, version string
 		var source modelInputs.LogSource
 		resource := resourceLogs.At(i).Resource()
 		resourceAttributes := resource.Attributes().AsRaw()
-		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source, &service, nil)
+		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source, &service, nil, &version)
 		scopeLogs := resourceLogs.At(i).ScopeLogs()
 		for j := 0; j < scopeLogs.Len(); j++ {
 			scopeLogs := scopeLogs.At(j)
@@ -414,9 +419,9 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 			for k := 0; k < logRecords.Len(); k++ {
 				logRecord := logRecords.At(k)
 				logAttributes := logRecord.Attributes().AsRaw()
-				setHighlightAttributes(logAttributes, &projectID, &sessionID, &requestID, &source, &service, nil)
+				setHighlightAttributes(logAttributes, &projectID, &sessionID, &requestID, &source, &service, nil, &version)
 
-				logRow, err := getLogRow(ctx, logRecord.Timestamp().AsTime(), logRecord.SeverityText(), projectID, sessionID, requestID, logRecord.TraceID().String(), logRecord.SpanID().String(), logRecord.Body().Str(), resourceAttributes, scopeAttributes, logAttributes, source, service)
+				logRow, err := getLogRow(ctx, logRecord.Timestamp().AsTime(), logRecord.SeverityText(), projectID, sessionID, requestID, logRecord.TraceID().String(), logRecord.SpanID().String(), logRecord.Body().Str(), resourceAttributes, scopeAttributes, logAttributes, source, service, version)
 
 				if err != nil {
 					lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, scopeAttributes, logAttributes).Errorf("otel log got invalid log record")

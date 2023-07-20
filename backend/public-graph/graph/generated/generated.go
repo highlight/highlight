@@ -376,6 +376,8 @@ input BackendErrorObjectInput {
 	stackTrace: String!
 	timestamp: Timestamp!
 	payload: String
+	service: String
+	version: String
 }
 
 input MetricTag {
@@ -3610,7 +3612,7 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session_secure_id", "request_id", "trace_id", "span_id", "log_cursor", "event", "type", "url", "source", "stackTrace", "timestamp", "payload"}
+	fieldsInOrder := [...]string{"session_secure_id", "request_id", "trace_id", "span_id", "log_cursor", "event", "type", "url", "source", "stackTrace", "timestamp", "payload", "service", "version"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3710,6 +3712,22 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payload"))
 			it.Payload, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "service":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service"))
+			it.Service, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "version":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("version"))
+			it.Version, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
