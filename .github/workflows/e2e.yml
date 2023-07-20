@@ -55,6 +55,7 @@ jobs:
                   yarn install >> /tmp/highlight.log 2>&1;
                   doppler run -- yarn build:frontend >> /tmp/highlight.log 2>&1;
                   yarn workspace @highlight-run/client dev &
+                  yarn workspace highlight.run dev &
                   yarn workspace @highlight-run/frontend vite preview --port 3000 &
                   popd;
 
