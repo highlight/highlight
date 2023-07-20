@@ -3630,15 +3630,6 @@ func (r *mutationResolver) UpdateEmailOptOut(ctx context.Context, token *string,
 	return true, nil
 }
 
-// SystemConfiguration is the resolver for the system_configuration field.
-func (r *mutationResolver) SystemConfiguration(ctx context.Context) (*model.SystemConfiguration, error) {
-	var config model.SystemConfiguration
-	if err := r.DB.Model(&config).Where(&model.SystemConfiguration{Active: true}).Take(&config).Error; err != nil {
-		return nil, err
-	}
-	return &config, nil
-}
-
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
@@ -7487,6 +7478,15 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 	}
 
 	return insight, nil
+}
+
+// SystemConfiguration is the resolver for the system_configuration field.
+func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemConfiguration, error) {
+	var config model.SystemConfiguration
+	if err := r.DB.Model(&config).Where(&model.SystemConfiguration{Active: true}).Take(&config).Error; err != nil {
+		return nil, err
+	}
+	return &config, nil
 }
 
 // Params is the resolver for the params field.
