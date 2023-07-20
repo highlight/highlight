@@ -1439,6 +1439,11 @@ type OAuthClient {
 	app_name: String!
 }
 
+type SystemConfiguration {
+	maintenance_start: Timestamp!
+	maintenance_end: Timestamp!
+}
+
 enum EmailOptOutCategory {
 	All
 	Digests
@@ -1702,6 +1707,7 @@ type Query {
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
+	system_configuration: SystemConfiguration!
 }
 
 type Mutation {

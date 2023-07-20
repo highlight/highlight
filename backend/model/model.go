@@ -188,6 +188,7 @@ var Models = []interface{}{
 	&AllWorkspaceSettings{},
 	&ErrorGroupActivityLog{},
 	&UserJourneyStep{},
+	&SystemConfiguration{},
 }
 
 func init() {
@@ -1211,6 +1212,12 @@ type UserJourneyStep struct {
 	Index     int `gorm:"primary_key;not null"`
 	Url       string
 	NextUrl   string
+}
+
+type SystemConfiguration struct {
+	Active           bool `gorm:"primary_key;default:true"`
+	MaintenanceStart time.Time
+	MaintenanceEnd   time.Time
 }
 
 type RetryableType string

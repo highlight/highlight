@@ -10,6 +10,7 @@ import {
 	useGetBillingDetailsForProjectQuery,
 	useGetProjectQuery,
 	useGetSubscriptionDetailsQuery,
+	useGetSystemConfigurationQuery,
 } from '@graph/hooks'
 import { Maybe, PlanType, ProductType, Project } from '@graph/schemas'
 import {
@@ -38,6 +39,7 @@ import {
 	Menu,
 	Stack,
 	Text,
+	TextLink,
 } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
 import { useProjectId } from '@hooks/useProjectId'
@@ -693,6 +695,10 @@ const BillingBanner: React.FC = () => {
 	const { currentWorkspace } = useApplicationContext()
 	const { projectId } = useProjectId()
 
+	const { data: systemData } = useGetSystemConfigurationQuery({
+		// check for updates every minute
+		pollInterval: 1000 * 60,
+	})
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: projectId! },
 		skip: !projectId,
@@ -721,8 +727,8 @@ const BillingBanner: React.FC = () => {
 	])
 
 	const isMaintenance = moment().isBetween(
-		'2023-03-05T23:30:00Z',
-		'2023-03-06T01:45:00Z',
+		systemData?.system_configuration?.maintenance_start,
+		systemData?.system_configuration?.maintenance_end,
 	)
 	if (isMaintenance) {
 		return <MaintenanceBanner />
@@ -858,28 +864,22 @@ const DemoWorkspaceBanner = () => {
 
 const MaintenanceBanner = () => {
 	const { toggleShowBanner } = useGlobalContext()
-
 	toggleShowBanner(true)
 
-	const bannerMessage = (
-		<span>
-			We are performance maintenance which may result in delayed data.
-			Apologies for the inconvenience.{' '}
-			<a
-				target="_blank"
-				href="https://highlight.io/community"
-				className={styles.trialLink}
-				rel="noreferrer"
-			>
-				Follow on Discord #incidents for updates.
-			</a>
-		</span>
-	)
-
 	return (
-		<div className={clsx(styles.trialWrapper, styles.maintenance)}>
-			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
-		</div>
+		<Box
+			className={clsx(styles.trialWrapper)}
+			style={{ backgroundColor: vars.color.y9 }}
+		>
+			<Text color="black">
+				We are performance maintenance which may delay data. Apologies
+				for the inconvenience. Follow on Discord{' '}
+				<TextLink color="none" href="https://highlight.io/community">
+					#incidents
+				</TextLink>{' '}
+				for updates.
+			</Text>
+		</Box>
 	)
 }
 
