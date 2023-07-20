@@ -9110,11 +9110,6 @@ enum SessionAlertType {
 	NEW_SESSION_ALERT
 }
 
-enum ServiceSDKType {
-	GO
-	PYTHON
-}
-
 enum LogLevel {
 	trace
 	debug

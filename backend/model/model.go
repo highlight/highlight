@@ -40,7 +40,6 @@ import (
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
@@ -1944,7 +1943,6 @@ type Service struct {
 	Model
 	ProjectID int    `gorm:"not null;uniqueIndex:idx_project_id_name"`
 	Name      string `gorm:"not null;uniqueIndex:idx_project_id_name"`
-	SDKType   model.ServiceSDKType
 }
 
 type LogAlert struct {
