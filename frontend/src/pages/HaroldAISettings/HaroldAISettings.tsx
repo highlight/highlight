@@ -17,6 +17,28 @@ import {
 import { namedOperations } from '@/graph/generated/operations'
 import { useParams } from '@/util/react-router/useParams'
 
+type AiFeature = {
+	label: string
+	info: string
+	key: 'ai_application' | 'ai_insights'
+	feature: string
+}
+
+const AI_FEATURES: AiFeature[] = [
+	{
+		label: 'Enable Harold',
+		info: 'Get AI assistance throughout the app',
+		key: 'ai_application',
+		feature: 'Application',
+	},
+	{
+		label: 'Session Insight Digest',
+		info: 'Supercharge your session insight digests with AI',
+		key: 'ai_insights',
+		feature: 'Session Insights Digests',
+	},
+]
+
 export const HaroldAISettings = () => {
 	const { workspace_id } = useParams<{ workspace_id: string }>()
 
@@ -27,13 +49,6 @@ export const HaroldAISettings = () => {
 		variables: { workspace_id: workspace_id! },
 		skip: !workspace_id,
 	})
-
-	const features = [
-		{
-			label: 'Session Insight Digest',
-			info: 'Supercharge your session insight digests with AI',
-		},
-	]
 
 	return (
 		<Box>
@@ -80,21 +95,21 @@ export const HaroldAISettings = () => {
 						<Text weight="bold" size="small" color="default">
 							Features
 						</Text>
-						{features.map((c) => (
-							<BorderBox key={c.label}>
+						{AI_FEATURES.map((c) => (
+							<BorderBox key={c.key}>
 								{ToggleRow(
 									c.label,
 									c.info,
-									data?.workspaceSettings?.ai_insights ??
-										false,
+									data?.workspaceSettings?.[c.key] ?? false,
 									(isOptIn: boolean) => {
 										if (!workspace_id) {
 											return
 										}
 										editWorkspaceSettings({
 											variables: {
+												...data?.workspaceSettings,
 												workspace_id: workspace_id,
-												ai_insights: isOptIn,
+												[c.key]: isOptIn,
 											},
 										})
 											.then(() => {
@@ -103,7 +118,9 @@ export const HaroldAISettings = () => {
 														isOptIn
 															? 'Enabled'
 															: 'Disabled'
-													} Harold AI for Session Insights Digests.`,
+													} Harold for your ${
+														c.feature
+													}.`,
 												)
 											})
 											.catch((reason: any) => {

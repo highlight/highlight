@@ -390,6 +390,7 @@ type AllProjectSettings {
 
 type AllWorkspaceSettings {
 	workspace_id: ID!
+	ai_application: Boolean!
 	ai_insights: Boolean!
 }
 
@@ -1743,6 +1744,7 @@ type Mutation {
 	editWorkspace(id: ID!, name: String): Workspace
 	editWorkspaceSettings(
 		workspace_id: ID!
+		ai_application: Boolean
 		ai_insights: Boolean
 	): AllWorkspaceSettings
 	markErrorGroupAsViewed(
