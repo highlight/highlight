@@ -59,7 +59,7 @@ const RightPanelTabs = () => {
 					),
 				},
 				...(showSessionInsights &&
-				data?.workspaceSettingsForProject?.ai_insights
+				data?.workspaceSettingsForProject?.ai_application
 					? {
 							['AI Insights']: {
 								page: <SessionInsights />,
