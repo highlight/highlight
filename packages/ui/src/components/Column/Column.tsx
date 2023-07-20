@@ -11,7 +11,7 @@ const ColumnsContext = React.createContext<{ gap: BoxProps['padding'] }>({
 })
 
 type ColumnsProps = React.PropsWithChildren & {
-	gap?: BoxProps['gap']
+	gap?: BoxProps['padding']
 }
 
 const Columns: React.FC<ColumnsProps> = ({ children, gap }) => (
