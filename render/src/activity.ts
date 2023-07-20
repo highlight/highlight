@@ -3,7 +3,7 @@ import puppeteer, { Browser } from 'puppeteer-core'
 import chromium from '@sparticuz/chromium'
 
 const WIDTH = 480
-const HEIGHT = 240
+const HEIGHT = 208
 const STROKE_WIDTH = 6.4
 
 const graphAsSvg = (yValues: number[]) => `
