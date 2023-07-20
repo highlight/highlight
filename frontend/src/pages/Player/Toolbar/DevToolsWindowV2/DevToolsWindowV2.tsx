@@ -232,7 +232,7 @@ const DevToolsWindowV2: React.FC<
 									<Box
 										display="flex"
 										justifyContent="space-between"
-										gap={searchShown ? '4' : '0'}
+										gap="4"
 										align="center"
 									>
 										<Form state={form}>
@@ -240,7 +240,7 @@ const DevToolsWindowV2: React.FC<
 												display="flex"
 												justifyContent="space-between"
 												align="center"
-												gap="4"
+												gap={searchShown ? '4' : '0'}
 											>
 												<Box
 													cursor="pointer"
