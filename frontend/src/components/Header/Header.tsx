@@ -39,6 +39,7 @@ import {
 	Menu,
 	Stack,
 	Text,
+	TextLink,
 } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
 import { useProjectId } from '@hooks/useProjectId'
@@ -860,28 +861,22 @@ const DemoWorkspaceBanner = () => {
 
 const MaintenanceBanner = () => {
 	const { toggleShowBanner } = useGlobalContext()
-
 	toggleShowBanner(true)
 
-	const bannerMessage = (
-		<span>
-			We are performance maintenance which may result in delayed data.
-			Apologies for the inconvenience.{' '}
-			<a
-				target="_blank"
-				href="https://highlight.io/community"
-				className={styles.trialLink}
-				rel="noreferrer"
-			>
-				Follow on Discord #incidents for updates.
-			</a>
-		</span>
-	)
-
 	return (
-		<div className={clsx(styles.trialWrapper, styles.maintenance)}>
-			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
-		</div>
+		<Box
+			className={clsx(styles.trialWrapper)}
+			style={{ backgroundColor: vars.color.y9 }}
+		>
+			<Text color="black">
+				We are performance maintenance which may delay data. Apologies
+				for the inconvenience. Follow on Discord{' '}
+				<TextLink color="none" href="https://highlight.io/community">
+					#incidents
+				</TextLink>{' '}
+				for updates.
+			</Text>
+		</Box>
 	)
 }
 
