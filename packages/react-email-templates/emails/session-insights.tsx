@@ -94,13 +94,15 @@ export const SessionInsightsEmail = ({
 				{interestingSessions.map((s, idx) => (
 					<>
 						<Section width={400}>
-							<Img
-								alt="session"
-								src={s.screenshotUrl}
-								style={sessionScreenshot}
-								width={400}
-								height={218}
-							/>
+							<Link href={s.url}>
+								<Img
+									alt="session"
+									src={s.screenshotUrl}
+									style={sessionScreenshot}
+									width={400}
+									height={218}
+								/>
+							</Link>
 						</Section>
 						<Section width={400} style={sessionAttributes}>
 							<Column
@@ -135,8 +137,16 @@ export const SessionInsightsEmail = ({
 										{s.activeLength}
 									</span>
 								</Section>
+								<Section
+									align="left"
+									style={{ ...leftAlign, marginTop: '8px' }}
+								>
+									<Link style={viewSessionText} href={s.url}>
+										View Session →
+									</Link>
+								</Section>
 							</Column>
-							<Column width={120}>
+							<Column width={120} style={activityGraphColumn}>
 								<Img
 									style={activityGraph}
 									src={s.activityGraphUrl}
@@ -296,6 +306,11 @@ const sessionAttributes = {
 	marginTop: '8px',
 }
 
+const viewSessionText = {
+	...anchor,
+	fontSize: '16px',
+}
+
 const subtitleText = {
 	...text,
 	fontSize: '16px',
@@ -335,9 +350,13 @@ const insightText = {
 }
 
 const activityGraph = {
-	marginTop: '8px',
 	width: '120px',
 	height: '52px',
+}
+
+const activityGraphColumn = {
+	paddingTop: '8px',
+	verticalAlign: 'middle',
 }
 
 const headingText = {
