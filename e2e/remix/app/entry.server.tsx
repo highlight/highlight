@@ -15,6 +15,8 @@ import { initHighlight } from '~/utils/init-highlight'
 
 const ABORT_DELAY = 5_000
 
+initHighlight()
+
 export default function handleRequest(
 	request: Request,
 	responseStatusCode: number,
@@ -22,10 +24,6 @@ export default function handleRequest(
 	remixContext: EntryContext,
 	loadContext: AppLoadContext,
 ) {
-	initHighlight()
-
-	console.log('Remix logging is live! 📦🚀')
-
 	return isbot(request.headers.get('user-agent'))
 		? handleBotRequest(
 				request,

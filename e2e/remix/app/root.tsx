@@ -13,6 +13,8 @@ import type { LinksFunction } from '@remix-run/node'
 import { cssBundleHref } from '@remix-run/css-bundle'
 import { json } from '@remix-run/node'
 
+export { ErrorBoundary } from '~/components/error-boundary'
+
 export const links: LinksFunction = () => [
 	...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
 ]
@@ -50,6 +52,11 @@ export default function App() {
 			<body>
 				<Outlet />
 				<ScrollRestoration />
+				<script
+					dangerouslySetInnerHTML={{
+						__html: `window.ENV = ${JSON.stringify(ENV)}`,
+					}}
+				/>
 				<Scripts />
 				<LiveReload />
 			</body>

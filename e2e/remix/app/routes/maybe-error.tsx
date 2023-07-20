@@ -13,6 +13,7 @@ export async function loader({ request }: LoaderArgs) {
 		console.error('throwing loader error')
 		throw new Error('loader error')
 	} else {
+		console.info('maybe-error success')
 		return json({ error })
 	}
 }
