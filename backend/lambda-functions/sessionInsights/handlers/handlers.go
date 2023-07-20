@@ -7,16 +7,15 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"image"
 	"image/png"
 	"io"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/disintegration/imaging"
 	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/image/draw"
 
 	"github.com/highlight-run/highlight/backend/email"
 	"github.com/highlight-run/highlight/backend/lambda"
@@ -278,11 +277,10 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 		}
 
 		src, _ := png.Decode(bytes.NewReader(imageBytes))
-		dst := image.NewRGBA(image.Rect(0, 0, 800, 436))
-		draw.CatmullRom.Scale(dst, dst.Rect, src, src.Bounds(), draw.Over, nil)
+		dstImageFill := imaging.Fill(src, 800, 436, imaging.Top, imaging.Lanczos)
 		var b bytes.Buffer
 		output := bufio.NewWriter(&b)
-		if err := png.Encode(output, dst); err != nil {
+		if err := png.Encode(output, dstImageFill); err != nil {
 			return err
 		}
 
