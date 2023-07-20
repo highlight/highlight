@@ -85,4 +85,4 @@ group by u.session_id, index
 order by u.session_id, index
 ```
 
-Finally, we can calculate this score when a session is completed and save the value so that we can sort on it to find the most interesting sessions later on. We’re excited to use this logic across the Highlight.io application, and as a first step, we’re using this score for our new Session Insights email digest. This weekly summary of the most interesting sessions aims to help Highlight users find interesting behaviors in their apps they might not yet be aware of.
+Finally, we can calculate this score when a session is completed and save the value so that we can sort on it to find the most interesting sessions later on. We’re excited to use this logic across the Highlight.io application, and as a first step, we’re using this score for our new [Session Insights](/docs/general/product-features/general-features/digests) email digest. This weekly summary of the most interesting sessions aims to help Highlight users find interesting behaviors in their apps they might not yet be aware of.
