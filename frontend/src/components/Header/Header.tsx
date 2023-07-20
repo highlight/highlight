@@ -10,6 +10,7 @@ import {
 	useGetBillingDetailsForProjectQuery,
 	useGetProjectQuery,
 	useGetSubscriptionDetailsQuery,
+	useGetSystemConfigurationQuery,
 } from '@graph/hooks'
 import { Maybe, PlanType, ProductType, Project } from '@graph/schemas'
 import {
@@ -693,6 +694,7 @@ const BillingBanner: React.FC = () => {
 	const { currentWorkspace } = useApplicationContext()
 	const { projectId } = useProjectId()
 
+	const { data: systemData } = useGetSystemConfigurationQuery()
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: projectId! },
 		skip: !projectId,
@@ -721,8 +723,8 @@ const BillingBanner: React.FC = () => {
 	])
 
 	const isMaintenance = moment().isBetween(
-		'2023-03-05T23:30:00Z',
-		'2023-03-06T01:45:00Z',
+		systemData?.system_configuration?.maintenance_start,
+		systemData?.system_configuration?.maintenance_end,
 	)
 	if (isMaintenance) {
 		return <MaintenanceBanner />

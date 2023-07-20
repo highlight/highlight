@@ -2084,6 +2084,13 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 	}
 }
 
+query GetSystemConfiguration {
+	system_configuration {
+		maintenance_start
+		maintenance_end
+	}
+}
+
 query GetErrorObjects(
 	$errorGroupSecureID: String!
 	$after: String

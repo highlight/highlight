@@ -716,6 +716,7 @@ type ComplexityRoot struct {
 		SendAdminWorkspaceInvite         func(childComplexity int, workspaceID int, email string, baseURL string, role string) int
 		SubmitRegistrationForm           func(childComplexity int, workspaceID int, teamSize string, role string, useCase string, heardAbout string, pun *string) int
 		SyncSlackIntegration             func(childComplexity int, projectID int) int
+		SystemConfiguration              func(childComplexity int) int
 		UpdateAdminAboutYouDetails       func(childComplexity int, adminDetails model.AdminAboutYouDetails) int
 		UpdateAdminAndCreateWorkspace    func(childComplexity int, adminAndWorkspaceDetails model.AdminAndWorkspaceDetails) int
 		UpdateAllowMeterOverage          func(childComplexity int, workspaceID int, allowMeterOverage bool) int
@@ -1162,6 +1163,11 @@ type ComplexityRoot struct {
 		LastInvoice     func(childComplexity int) int
 	}
 
+	SystemConfiguration struct {
+		MaintenanceEnd   func(childComplexity int) int
+		MaintenanceStart func(childComplexity int) int
+	}
+
 	TimelineIndicatorEvent struct {
 		Data            func(childComplexity int) int
 		SID             func(childComplexity int) int
@@ -1405,6 +1411,7 @@ type MutationResolver interface {
 	UpdateClickUpProjectMappings(ctx context.Context, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) (bool, error)
 	UpdateIntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType model.IntegrationType, projectMappings []*model.IntegrationProjectMappingInput) (bool, error)
 	UpdateEmailOptOut(ctx context.Context, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool, projectID *int) (bool, error)
+	SystemConfiguration(ctx context.Context) (*model1.SystemConfiguration, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -4951,6 +4958,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SyncSlackIntegration(childComplexity, args["project_id"].(int)), true
 
+	case "Mutation.system_configuration":
+		if e.complexity.Mutation.SystemConfiguration == nil {
+			break
+		}
+
+		return e.complexity.Mutation.SystemConfiguration(childComplexity), true
+
 	case "Mutation.updateAdminAboutYouDetails":
 		if e.complexity.Mutation.UpdateAdminAboutYouDetails == nil {
 			break
@@ -8174,6 +8188,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SubscriptionDetails.LastInvoice(childComplexity), true
 
+	case "SystemConfiguration.maintenance_end":
+		if e.complexity.SystemConfiguration.MaintenanceEnd == nil {
+			break
+		}
+
+		return e.complexity.SystemConfiguration.MaintenanceEnd(childComplexity), true
+
+	case "SystemConfiguration.maintenance_start":
+		if e.complexity.SystemConfiguration.MaintenanceStart == nil {
+			break
+		}
+
+		return e.complexity.SystemConfiguration.MaintenanceStart(childComplexity), true
+
 	case "TimelineIndicatorEvent.data":
 		if e.complexity.TimelineIndicatorEvent.Data == nil {
 			break
@@ -10211,6 +10239,11 @@ type OAuthClient {
 	app_name: String!
 }
 
+type SystemConfiguration {
+	maintenance_start: Timestamp!
+	maintenance_end: Timestamp!
+}
+
 enum EmailOptOutCategory {
 	All
 	Digests
@@ -10837,6 +10870,8 @@ type Mutation {
 		is_opt_out: Boolean!
 		project_id: Int
 	): Boolean!
+
+	system_configuration: SystemConfiguration!
 }
 
 type Subscription {
@@ -39091,6 +39126,55 @@ func (ec *executionContext) fieldContext_Mutation_updateEmailOptOut(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_system_configuration(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_system_configuration(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().SystemConfiguration(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.SystemConfiguration)
+	fc.Result = res
+	return ec.marshalNSystemConfiguration2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSystemConfiguration(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_system_configuration(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "maintenance_start":
+				return ec.fieldContext_SystemConfiguration_maintenance_start(ctx, field)
+			case "maintenance_end":
+				return ec.fieldContext_SystemConfiguration_maintenance_end(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SystemConfiguration", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _NamedCount_name(ctx context.Context, field graphql.CollectedField, obj *model.NamedCount) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_NamedCount_name(ctx, field)
 	if err != nil {
@@ -57036,6 +57120,94 @@ func (ec *executionContext) fieldContext_SubscriptionDetails_lastInvoice(ctx con
 	return fc, nil
 }
 
+func (ec *executionContext) _SystemConfiguration_maintenance_start(ctx context.Context, field graphql.CollectedField, obj *model1.SystemConfiguration) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemConfiguration_maintenance_start(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MaintenanceStart, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemConfiguration_maintenance_start(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemConfiguration",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemConfiguration_maintenance_end(ctx context.Context, field graphql.CollectedField, obj *model1.SystemConfiguration) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SystemConfiguration_maintenance_end(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MaintenanceEnd, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SystemConfiguration_maintenance_end(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemConfiguration",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Timestamp does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _TimelineIndicatorEvent_session_secure_id(ctx context.Context, field graphql.CollectedField, obj *model1.TimelineIndicatorEvent) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_TimelineIndicatorEvent_session_secure_id(ctx, field)
 	if err != nil {
@@ -68222,6 +68394,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_updateEmailOptOut(ctx, field)
 			})
 
+		case "system_configuration":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_system_configuration(ctx, field)
+			})
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -72927,6 +73105,41 @@ func (ec *executionContext) _SubscriptionDetails(ctx context.Context, sel ast.Se
 
 			out.Values[i] = ec._SubscriptionDetails_lastInvoice(ctx, field, obj)
 
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var systemConfigurationImplementors = []string{"SystemConfiguration"}
+
+func (ec *executionContext) _SystemConfiguration(ctx context.Context, sel ast.SelectionSet, obj *model1.SystemConfiguration) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, systemConfigurationImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SystemConfiguration")
+		case "maintenance_start":
+
+			out.Values[i] = ec._SystemConfiguration_maintenance_start(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "maintenance_end":
+
+			out.Values[i] = ec._SystemConfiguration_maintenance_end(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -77834,6 +78047,20 @@ func (ec *executionContext) unmarshalNSubscriptionInterval2githubᚗcomᚋhighli
 
 func (ec *executionContext) marshalNSubscriptionInterval2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSubscriptionInterval(ctx context.Context, sel ast.SelectionSet, v model.SubscriptionInterval) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNSystemConfiguration2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSystemConfiguration(ctx context.Context, sel ast.SelectionSet, v model1.SystemConfiguration) graphql.Marshaler {
+	return ec._SystemConfiguration(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSystemConfiguration2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSystemConfiguration(ctx context.Context, sel ast.SelectionSet, v *model1.SystemConfiguration) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._SystemConfiguration(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNTimelineIndicatorEvent2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐTimelineIndicatorEventᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.TimelineIndicatorEvent) graphql.Marshaler {
