@@ -105,6 +105,10 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 	}
 
 	interestingSessions := []utils.InterestingSession{}
+	if len(interestingSessionsSql) != 3 {
+		return nil, errors.New(fmt.Sprintf("expected 3 interesting sessions, returned %d", len(interestingSessionsSql)))
+	}
+
 	for _, item := range interestingSessionsSql {
 		insightStrs := []string{}
 		if result.AiInsights {
@@ -276,6 +280,8 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 			return err
 		}
 
+		// Resize the image to 2x what's shown in the email,
+		// preserving aspect ratio and cropping centered at the top
 		src, _ := png.Decode(bytes.NewReader(imageBytes))
 		dstImageFill := imaging.Fill(src, 800, 436, imaging.Top, imaging.Lanczos)
 		var b bytes.Buffer
