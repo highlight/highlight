@@ -773,8 +773,16 @@ const BillingBanner: React.FC = () => {
 	}
 
 	if (!bannerMessage && !hasTrial) {
-		toggleShowBanner(false)
-		return null
+		const isLaunchWeek = moment().isBetween(
+			'2023-07-17T00:00:00Z',
+			'2023-07-22T00:00:00Z',
+		)
+		if (isLaunchWeek) {
+			return <LaunchWeekBanner />
+		} else {
+			toggleShowBanner(false)
+			return null
+		}
 	}
 
 	if (hasTrial) {
@@ -870,6 +878,38 @@ const MaintenanceBanner = () => {
 
 	return (
 		<div className={clsx(styles.trialWrapper, styles.maintenance)}>
+			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
+		</div>
+	)
+}
+
+const LaunchWeekBanner = () => {
+	const { toggleShowBanner } = useGlobalContext()
+
+	const day = moment().diff(moment('2023-07-17T16:00:00Z'), 'days') + 1
+	if (day < 1 || day > 5) {
+		toggleShowBanner(false)
+		return null
+	}
+	toggleShowBanner(true)
+
+	const bannerMessage = (
+		<span>
+			Launch Week 2 is here.{' '}
+			<a
+				target="_blank"
+				href="https://www.highlight.io/launch-week-2"
+				className={styles.trialLink}
+				rel="noreferrer"
+			>
+				Follow along
+			</a>{' '}
+			to see what we've been building!
+		</span>
+	)
+
+	return (
+		<div className={clsx(styles.trialWrapper, styles.launchWeek)}>
 			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
 		</div>
 	)

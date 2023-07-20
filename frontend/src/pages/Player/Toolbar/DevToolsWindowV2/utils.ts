@@ -87,15 +87,6 @@ const roundOff = (value: number, decimal = 1) => {
 	return Math.round(value * base) / base
 }
 
-export const findResourceWithMatchingHighlightHeader = (
-	headerValue: string,
-	resources: NetworkResource[],
-) => {
-	return resources.find(
-		(resource) => getHighlightRequestId(resource) === headerValue,
-	)
-}
-
 export const getHighlightRequestId = (resource?: NetworkResource) => {
 	return resource?.requestResponsePairs?.request?.id
 }
@@ -131,6 +122,7 @@ export enum RequestType {
 	Link = 'link',
 	Other = 'other',
 	Script = 'script',
+	WebSocket = 'websocket',
 	XHR = 'xmlhttprequest',
 }
 
@@ -143,6 +135,7 @@ export interface ICountPerRequestType {
 	link: number
 	other: number
 	script: number
+	websocket: number
 	xmlhttprequest: number
 }
 

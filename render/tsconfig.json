@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"target": "es2020",
+		"target": "esnext",
 		"strict": true,
 		"preserveConstEnums": true,
 		"noEmit": true,

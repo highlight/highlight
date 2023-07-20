@@ -19,7 +19,10 @@ app.post('/session/insight', async (req, res) => {
 	const { id, project_id } = req.body
 	const events = JSON.parse(await getEvents(project_id, id))
 	const responseString = await getInsightsForEvents(openai, events)
-	return res.json({ id: id, insight: responseString })
+	return res.json({
+		id: id,
+		insight: responseString,
+	})
 })
 
 app.listen(port, () => {

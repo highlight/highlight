@@ -55,3 +55,9 @@
 
 - Adds a `Handlers.serverlessFunction` for use as a error wrapper in AWS Lambda.
 - Adds a `H.stop()` method for shutting down the SDK and flushing unsent data.
+
+## 3.1.2
+
+### Minor Changes
+
+- Removing `package.json` hoisting limits to repair missing dependencies.

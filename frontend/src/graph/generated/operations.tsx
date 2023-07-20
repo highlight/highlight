@@ -1683,6 +1683,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
 			| 'payload_size'
 			| 'processed'
 			| 'excluded'
+			| 'excluded_reason'
 			| 'has_rage_clicks'
 			| 'has_errors'
 			| 'within_billing_quota'
@@ -1693,6 +1694,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
 			| 'event_counts'
 			| 'direct_download_url'
 			| 'resources_url'
+			| 'web_socket_events_url'
 			| 'timeline_indicators_url'
 			| 'deviceMemory'
 			| 'last_user_interaction_time'
@@ -2083,6 +2085,15 @@ export type GetTimelineIndicatorEventsQuery = { __typename?: 'Query' } & {
 		>
 	>
 }
+
+export type GetWebSocketEventsQueryVariables = Types.Exact<{
+	session_secure_id: Types.Scalars['String']
+}>
+
+export type GetWebSocketEventsQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'websocket_events'
+>
 
 export type GetFieldTypesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
@@ -2953,36 +2964,6 @@ export type GetErrorInstanceQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetRecentErrorsQueryVariables = Types.Exact<{
-	secure_id: Types.Scalars['String']
-}>
-
-export type GetRecentErrorsQuery = { __typename?: 'Query' } & {
-	error_group?: Types.Maybe<
-		{ __typename?: 'ErrorGroup' } & Pick<Types.ErrorGroup, 'secure_id'> & {
-				metadata_log: Array<
-					Types.Maybe<
-						{ __typename?: 'ErrorMetadata' } & Pick<
-							Types.ErrorMetadata,
-							| 'error_id'
-							| 'session_secure_id'
-							| 'environment'
-							| 'timestamp'
-							| 'os'
-							| 'browser'
-							| 'visited_url'
-							| 'fingerprint'
-							| 'identifier'
-							| 'user_properties'
-							| 'request_id'
-							| 'payload'
-						>
-					>
-				>
-			}
-	>
-}
-
 export type GetResourcesQueryVariables = Types.Exact<{
 	session_secure_id: Types.Scalars['String']
 }>
@@ -3042,11 +3023,6 @@ export type GetProjectSuggestionQuery = { __typename?: 'Query' } & {
 				Types.Project,
 				'id' | 'name' | 'workspace_id'
 			>
-		>
-	>
-	workspaceSuggestion: Array<
-		Types.Maybe<
-			{ __typename?: 'Workspace' } & Pick<Types.Workspace, 'id' | 'name'>
 		>
 	>
 }
@@ -3498,23 +3474,6 @@ export type GetDailyErrorFrequencyQuery = { __typename?: 'Query' } & Pick<
 	Types.Query,
 	'dailyErrorFrequency'
 >
-
-export type GetErrorDistributionQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-	error_group_secure_id: Types.Scalars['String']
-	property: Types.Scalars['String']
-}>
-
-export type GetErrorDistributionQuery = { __typename?: 'Query' } & {
-	errorDistribution: Array<
-		Types.Maybe<
-			{ __typename?: 'ErrorDistributionItem' } & Pick<
-				Types.ErrorDistributionItem,
-				'name' | 'value'
-			>
-		>
-	>
-}
 
 export type GetSlackChannelSuggestionQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
@@ -4388,6 +4347,15 @@ export type GetWorkspacePendingInvitesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorResolutionSuggestionQueryVariables = Types.Exact<{
+	error_object_id: Types.Scalars['ID']
+}>
+
+export type GetErrorResolutionSuggestionQuery = { __typename?: 'Query' } & Pick<
+	Types.Query,
+	'error_resolution_suggestion'
+>
+
 export type GetWorkspaceSettingsQueryVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
 }>
@@ -4399,6 +4367,49 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			'workspace_id' | 'ai_insights'
 		>
 	>
+}
+
+export type GetErrorObjectsQueryVariables = Types.Exact<{
+	errorGroupSecureID: Types.Scalars['String']
+	after?: Types.Maybe<Types.Scalars['String']>
+	before?: Types.Maybe<Types.Scalars['String']>
+	query: Types.Scalars['String']
+}>
+
+export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
+	error_objects: { __typename?: 'ErrorObjectConnection' } & {
+		edges: Array<
+			{ __typename?: 'ErrorObjectEdge' } & Pick<
+				Types.ErrorObjectEdge,
+				'cursor'
+			> & {
+					node: { __typename?: 'ErrorObjectNode' } & Pick<
+						Types.ErrorObjectNode,
+						| 'id'
+						| 'createdAt'
+						| 'event'
+						| 'timestamp'
+						| 'errorGroupSecureID'
+					> & {
+							session?: Types.Maybe<
+								{
+									__typename?: 'ErrorObjectNodeSession'
+								} & Pick<
+									Types.ErrorObjectNodeSession,
+									| 'secureID'
+									| 'email'
+									| 'appVersion'
+									| 'fingerprint'
+								>
+							>
+						}
+				}
+		>
+		pageInfo: { __typename?: 'PageInfo' } & Pick<
+			Types.PageInfo,
+			'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
+		>
+	}
 }
 
 export const namedOperations = {
@@ -4425,6 +4436,7 @@ export const namedOperations = {
 		GetOnboardingSteps: 'GetOnboardingSteps' as const,
 		GetSessionIntervals: 'GetSessionIntervals' as const,
 		GetTimelineIndicatorEvents: 'GetTimelineIndicatorEvents' as const,
+		GetWebSocketEvents: 'GetWebSocketEvents' as const,
 		GetFieldTypes: 'GetFieldTypes' as const,
 		GetFieldsOpensearch: 'GetFieldsOpensearch' as const,
 		GetQuickFieldsOpensearch: 'GetQuickFieldsOpensearch' as const,
@@ -4454,7 +4466,6 @@ export const namedOperations = {
 		GetErrorObjectForLog: 'GetErrorObjectForLog' as const,
 		GetErrorObject: 'GetErrorObject' as const,
 		GetErrorInstance: 'GetErrorInstance' as const,
-		GetRecentErrors: 'GetRecentErrors' as const,
 		GetResources: 'GetResources' as const,
 		GetFieldSuggestion: 'GetFieldSuggestion' as const,
 		GetEnvironments: 'GetEnvironments' as const,
@@ -4481,7 +4492,6 @@ export const namedOperations = {
 		GetDailyErrorsCount: 'GetDailyErrorsCount' as const,
 		GetRageClicksForProject: 'GetRageClicksForProject' as const,
 		GetDailyErrorFrequency: 'GetDailyErrorFrequency' as const,
-		GetErrorDistribution: 'GetErrorDistribution' as const,
 		GetSlackChannelSuggestion: 'GetSlackChannelSuggestion' as const,
 		GetWorkspaceIsIntegratedWithSlack:
 			'GetWorkspaceIsIntegratedWithSlack' as const,
@@ -4531,7 +4541,9 @@ export const namedOperations = {
 		GetLogsErrorObjects: 'GetLogsErrorObjects' as const,
 		GetProjectSettings: 'GetProjectSettings' as const,
 		GetWorkspacePendingInvites: 'GetWorkspacePendingInvites' as const,
+		GetErrorResolutionSuggestion: 'GetErrorResolutionSuggestion' as const,
 		GetWorkspaceSettings: 'GetWorkspaceSettings' as const,
+		GetErrorObjects: 'GetErrorObjects' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,

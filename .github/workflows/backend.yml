@@ -103,6 +103,10 @@ jobs:
                 image: clickhouse/clickhouse-server
                 ports:
                     - 9000:9000
+            redis:
+                image: redis
+                ports:
+                    - 6379:6379
         env:
             CLICKHOUSE_ADDRESS: 'localhost:9000'
             CLICKHOUSE_DATABASE: 'default'

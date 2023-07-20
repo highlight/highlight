@@ -33,6 +33,13 @@ export function ErrorButtons() {
 				<Button onClick={() => setIsErrored(true)}>
 					Trigger error boundary
 				</Button>
+				<Button
+					onClick={async () => {
+						throw new Error('an async error occurred')
+					}}
+				>
+					Trigger promise error
+				</Button>
 
 				<hr />
 
@@ -76,6 +83,26 @@ export function ErrorButtons() {
 					}
 				>
 					App Directory: Error&nbsp;&nbsp;&nbsp;
+				</Button>
+
+				<Button
+					onClick={() =>
+						fetch('/api/edge-test?success=true')
+							.then((res) => res.text())
+							.then((data) => console.log(data))
+					}
+				>
+					Edge Function: Success
+				</Button>
+
+				<Button
+					onClick={() =>
+						fetch('/api/edge-test?success=false')
+							.then((res) => res.text())
+							.then((data) => console.log(data))
+					}
+				>
+					Edge Function: Error&nbsp;&nbsp;&nbsp;
 				</Button>
 			</ErrorBoundary>
 		</div>

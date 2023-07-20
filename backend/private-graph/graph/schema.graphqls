@@ -22,6 +22,8 @@ enum SessionExcludedReason {
 	NoError
 	NoUserEvents
 	IgnoredUser
+	BillingQuotaExceeded
+	RetentionPeriodExceeded
 }
 
 type Session {
@@ -70,6 +72,7 @@ type Session {
 	event_counts: String
 	direct_download_url: String
 	resources_url: String
+	web_socket_events_url: String
 	timeline_indicators_url: String
 	deviceMemory: Int
 	last_user_interaction_time: Timestamp!
@@ -90,6 +93,15 @@ type TimelineIndicatorEvent {
 	sid: Float!
 	data: Any
 	type: Int!
+}
+
+type WebSocketEvent {
+	message: String!
+	name: String!
+	socketId: String!
+	type: String!
+	timeStamp: Float!
+	size: Int!
 }
 
 type RageClickEvent {
@@ -610,15 +622,18 @@ type LogConnection implements Connection {
 
 type ErrorObjectNodeSession {
 	secureID: String!
-	userProperties: String!
 	appVersion: String
+	email: String
+	fingerprint: Int
 }
 
 type ErrorObjectNode {
 	id: ID!
 	createdAt: Timestamp!
 	event: String!
+	timestamp: Timestamp!
 	session: ErrorObjectNodeSession
+	errorGroupSecureID: String!
 }
 
 type ErrorObjectEdge implements Edge {
@@ -1442,6 +1457,7 @@ type Query {
 	timeline_indicator_events(
 		session_secure_id: String!
 	): [TimelineIndicatorEvent!]!
+	websocket_events(session_secure_id: String!): [Any]
 	rage_clicks(session_secure_id: String!): [RageClickEvent!]!
 	rageClicksForProject(
 		project_id: ID!
@@ -1464,6 +1480,7 @@ type Query {
 		error_group_secure_id: String!
 		after: String
 		before: String
+		query: String!
 	): ErrorObjectConnection!
 	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(
@@ -1507,11 +1524,6 @@ type Query {
 		error_group_secure_id: String!
 		date_offset: Int!
 	): [Int64!]!
-	errorDistribution(
-		project_id: ID!
-		error_group_secure_id: String!
-		property: String!
-	): [ErrorDistributionItem]!
 	errorGroupFrequencies(
 		project_id: ID!
 		error_group_secure_ids: [String!]
@@ -1591,7 +1603,6 @@ type Query {
 	log_alerts(project_id: ID!): [LogAlert]!
 	log_alert(id: ID!): LogAlert!
 	projectSuggestion(query: String!): [Project]!
-	workspaceSuggestion(query: String!): [Workspace]!
 	environment_suggestion(project_id: ID!): [Field]
 	app_version_suggestion(project_id: ID!): [String]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
@@ -1689,6 +1700,7 @@ type Query {
 		date_range: DateRangeRequiredInput!
 	): [String!]!
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
+	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
 }
 

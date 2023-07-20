@@ -29,6 +29,10 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { useSlackSync } from '@hooks/useSlackSync'
+import {
+	DEFAULT_FREQUENCY,
+	FREQUENCIES,
+} from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import { useLogAlertsContext } from '@pages/Alerts/LogAlert/context'
 import {
 	dedupeEnvironments,
@@ -109,7 +113,7 @@ export const LogAlertPage = () => {
 			webhookDestinations: [],
 			emails: [],
 			threshold: undefined,
-			frequency: 15,
+			frequency: Number(DEFAULT_FREQUENCY),
 			loaded: false,
 		},
 	})
@@ -567,11 +571,14 @@ const LogAlertForm = ({
 							<option value="" disabled>
 								Select alert frequency
 							</option>
-							<option value={15}>15 seconds</option>
-							<option value={60}>1 minute</option>
-							<option value={300}>5 minutes</option>
-							<option value={900}>15 minutes</option>
-							<option value={1800}>30 minutes</option>
+							{FREQUENCIES.map((freq: any) => (
+								<option
+									key={freq.id}
+									value={Number(freq.value)}
+								>
+									{freq.displayValue}
+								</option>
+							))}
 						</Form.Select>
 					</Column>
 				</Column.Container>

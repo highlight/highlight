@@ -19,6 +19,7 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/routing"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
 
@@ -185,6 +186,7 @@ var Models = []interface{}{
 	&ProjectFilterSettings{},
 	&AllWorkspaceSettings{},
 	&ErrorGroupActivityLog{},
+	&UserJourneyStep{},
 }
 
 func init() {
@@ -374,7 +376,7 @@ type ProjectFilterSettings struct {
 
 type AllWorkspaceSettings struct {
 	Model
-	WorkspaceID int
+	WorkspaceID int  `gorm:"uniqueIndex"`
 	AIInsights  bool `gorm:"default:false"`
 }
 
@@ -580,9 +582,10 @@ type Session struct {
 	Identified  bool `json:"identified" gorm:"default:false;not null"`
 	Fingerprint int  `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
-	Identifier     string `json:"identifier"`
-	OrganizationID int    `json:"organization_id"`
-	ProjectID      int    `json:"project_id"`
+	Identifier     string  `json:"identifier"`
+	OrganizationID int     `json:"organization_id"`
+	ProjectID      int     `json:"project_id" gorm:"index:idx_project_id_email"`
+	Email          *string `json:"email" gorm:"index:idx_project_id_email"`
 	// Location data based off user ip (see InitializeSession)
 	City      string  `json:"city"`
 	State     string  `json:"state"`
@@ -664,6 +667,7 @@ type Session struct {
 	Chunked              *bool
 	ProcessWithRedis     bool
 	AvoidPostgresStorage bool
+	Normalness           *float64
 }
 
 type SessionAdminsView struct {
@@ -1197,6 +1201,15 @@ type BillingEmailHistory struct {
 	Active      bool
 	WorkspaceID int
 	Type        Email.EmailType
+}
+
+type UserJourneyStep struct {
+	CreatedAt time.Time `json:"created_at" deep:"-"`
+	ProjectID int
+	SessionID int `gorm:"primary_key;not null"`
+	Index     int `gorm:"primary_key;not null"`
+	Url       string
+	NextUrl   string
 }
 
 type RetryableType string
@@ -1739,6 +1752,7 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 
 	frontendURL := os.Getenv("FRONTEND_URI")
 	errorURL := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
+	errorURL = routing.AttachReferrer(ctx, errorURL, routing.Email)
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
 
 	for _, email := range emailsToNotify {
@@ -2656,9 +2670,10 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 			shortEvent = input.Group.Event[:50] + "..."
 		}
 		errorLink := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
+		errorLink = routing.AttachReferrer(ctx, errorLink, routing.Slack)
 		// construct Slack message
 		previewText = fmt.Sprintf("Highlight: Error Alert: %s", shortEvent)
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/|View>", *input.ErrorsCount, shortEvent, errorLink), false, false)
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s|View>", *input.ErrorsCount, shortEvent, errorLink), false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+identifier, false, false))
 		if input.URL != nil && *input.URL != "" {
 			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*input.URL, false, false))
@@ -2685,7 +2700,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 					false,
 				),
 			)
-			button.URL = fmt.Sprintf("%s?action=%s", errorLink, strings.ToLower(string(action)))
+			button.URL = routing.AttachQueryParam(ctx, errorLink, "action", strings.ToLower(string(action)))
 			actionBlock = append(actionBlock, button)
 		}
 
@@ -2699,7 +2714,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 				false,
 			),
 		)
-		snoozeButton.URL = fmt.Sprintf("%s?action=snooze", errorLink)
+		snoozeButton.URL = routing.AttachQueryParam(ctx, errorLink, "action", "snooze")
 		actionBlock = append(actionBlock, snoozeButton)
 
 		blockSet = append(blockSet, slack.NewActionBlock(

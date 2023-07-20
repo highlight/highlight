@@ -621,7 +621,7 @@ func makeFilters(query string) filters {
 	queries := splitQuery(query)
 
 	for _, q := range queries {
-		parts := strings.Split(q, ":")
+		parts := strings.SplitN(q, ":", 2)
 
 		if len(parts) == 1 && len(parts[0]) > 0 {
 			body := parts[0]

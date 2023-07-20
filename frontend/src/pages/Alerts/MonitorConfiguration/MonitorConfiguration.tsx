@@ -518,7 +518,7 @@ const MonitorConfiguration = ({
 					<p>
 						Add webhook destinations for this alert, sent as JSON
 						over HTTP. See the{' '}
-						<Link to="https://www.highlight.io/docs/general/product-features/general-features/alerts/webhooks">
+						<Link to="https://www.highlight.io/docs/general/product-features/general-features/webhooks">
 							docs
 						</Link>{' '}
 						for more info.

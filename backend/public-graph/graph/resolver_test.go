@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/redis"
 	"os"
 	"reflect"
 	"strconv"
@@ -43,7 +44,7 @@ func TestMain(m *testing.M) {
 	resolver = &Resolver{
 		DB:    db,
 		TDB:   timeseries.New(context.TODO()),
-		Store: store.NewStore(db, &opensearch.Client{}),
+		Store: store.NewStore(db, &opensearch.Client{}, redis.NewClient()),
 	}
 	code := m.Run()
 	os.Exit(code)
@@ -72,7 +73,7 @@ func TestProcessBackendPayloadImpl(t *testing.T) {
 		var result *model.ErrorObject
 		err := resolver.DB.Model(&model.ErrorObject{
 			ProjectID: project.ID,
-		}).Where(&model.ErrorObject{Event: "dummy event"}).First(&result).Error
+		}).Where(&model.ErrorObject{Event: "dummy event"}).Take(&result).Error
 		assert.NoError(t, err)
 
 		if *result.StackTrace != trpcTraceStr {

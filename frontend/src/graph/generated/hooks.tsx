@@ -5344,6 +5344,7 @@ export const GetSessionDocument = gql`
 			payload_size
 			processed
 			excluded
+			excluded_reason
 			has_rage_clicks
 			has_errors
 			within_billing_quota
@@ -5354,6 +5355,7 @@ export const GetSessionDocument = gql`
 			event_counts
 			direct_download_url
 			resources_url
+			web_socket_events_url
 			timeline_indicators_url
 			deviceMemory
 			last_user_interaction_time
@@ -6411,6 +6413,60 @@ export type GetTimelineIndicatorEventsLazyQueryHookResult = ReturnType<
 export type GetTimelineIndicatorEventsQueryResult = Apollo.QueryResult<
 	Types.GetTimelineIndicatorEventsQuery,
 	Types.GetTimelineIndicatorEventsQueryVariables
+>
+export const GetWebSocketEventsDocument = gql`
+	query GetWebSocketEvents($session_secure_id: String!) {
+		websocket_events(session_secure_id: $session_secure_id)
+	}
+`
+
+/**
+ * __useGetWebSocketEventsQuery__
+ *
+ * To run a query within a React component, call `useGetWebSocketEventsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWebSocketEventsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWebSocketEventsQuery({
+ *   variables: {
+ *      session_secure_id: // value for 'session_secure_id'
+ *   },
+ * });
+ */
+export function useGetWebSocketEventsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetWebSocketEventsQuery,
+		Types.GetWebSocketEventsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetWebSocketEventsQuery,
+		Types.GetWebSocketEventsQueryVariables
+	>(GetWebSocketEventsDocument, baseOptions)
+}
+export function useGetWebSocketEventsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetWebSocketEventsQuery,
+		Types.GetWebSocketEventsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetWebSocketEventsQuery,
+		Types.GetWebSocketEventsQueryVariables
+	>(GetWebSocketEventsDocument, baseOptions)
+}
+export type GetWebSocketEventsQueryHookResult = ReturnType<
+	typeof useGetWebSocketEventsQuery
+>
+export type GetWebSocketEventsLazyQueryHookResult = ReturnType<
+	typeof useGetWebSocketEventsLazyQuery
+>
+export type GetWebSocketEventsQueryResult = Apollo.QueryResult<
+	Types.GetWebSocketEventsQuery,
+	Types.GetWebSocketEventsQueryVariables
 >
 export const GetFieldTypesDocument = gql`
 	query GetFieldTypes(
@@ -8454,76 +8510,6 @@ export type GetErrorInstanceQueryResult = Apollo.QueryResult<
 	Types.GetErrorInstanceQuery,
 	Types.GetErrorInstanceQueryVariables
 >
-export const GetRecentErrorsDocument = gql`
-	query GetRecentErrors($secure_id: String!) {
-		error_group(secure_id: $secure_id) {
-			secure_id
-			metadata_log {
-				error_id
-				session_secure_id
-				environment
-				timestamp
-				os
-				browser
-				visited_url
-				fingerprint
-				identifier
-				user_properties
-				request_id
-				payload
-			}
-		}
-	}
-`
-
-/**
- * __useGetRecentErrorsQuery__
- *
- * To run a query within a React component, call `useGetRecentErrorsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetRecentErrorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetRecentErrorsQuery({
- *   variables: {
- *      secure_id: // value for 'secure_id'
- *   },
- * });
- */
-export function useGetRecentErrorsQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetRecentErrorsQuery,
-		Types.GetRecentErrorsQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetRecentErrorsQuery,
-		Types.GetRecentErrorsQueryVariables
-	>(GetRecentErrorsDocument, baseOptions)
-}
-export function useGetRecentErrorsLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetRecentErrorsQuery,
-		Types.GetRecentErrorsQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetRecentErrorsQuery,
-		Types.GetRecentErrorsQueryVariables
-	>(GetRecentErrorsDocument, baseOptions)
-}
-export type GetRecentErrorsQueryHookResult = ReturnType<
-	typeof useGetRecentErrorsQuery
->
-export type GetRecentErrorsLazyQueryHookResult = ReturnType<
-	typeof useGetRecentErrorsLazyQuery
->
-export type GetRecentErrorsQueryResult = Apollo.QueryResult<
-	Types.GetRecentErrorsQuery,
-	Types.GetRecentErrorsQueryVariables
->
 export const GetResourcesDocument = gql`
 	query GetResources($session_secure_id: String!) {
 		resources(session_secure_id: $session_secure_id)
@@ -8758,10 +8744,6 @@ export const GetProjectSuggestionDocument = gql`
 			id
 			name
 			workspace_id
-		}
-		workspaceSuggestion(query: $query) {
-			id
-			name
 		}
 	}
 `
@@ -10164,73 +10146,6 @@ export type GetDailyErrorFrequencyLazyQueryHookResult = ReturnType<
 export type GetDailyErrorFrequencyQueryResult = Apollo.QueryResult<
 	Types.GetDailyErrorFrequencyQuery,
 	Types.GetDailyErrorFrequencyQueryVariables
->
-export const GetErrorDistributionDocument = gql`
-	query GetErrorDistribution(
-		$project_id: ID!
-		$error_group_secure_id: String!
-		$property: String!
-	) {
-		errorDistribution(
-			project_id: $project_id
-			error_group_secure_id: $error_group_secure_id
-			property: $property
-		) {
-			name
-			value
-		}
-	}
-`
-
-/**
- * __useGetErrorDistributionQuery__
- *
- * To run a query within a React component, call `useGetErrorDistributionQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetErrorDistributionQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetErrorDistributionQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *      error_group_secure_id: // value for 'error_group_secure_id'
- *      property: // value for 'property'
- *   },
- * });
- */
-export function useGetErrorDistributionQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetErrorDistributionQuery,
-		Types.GetErrorDistributionQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetErrorDistributionQuery,
-		Types.GetErrorDistributionQueryVariables
-	>(GetErrorDistributionDocument, baseOptions)
-}
-export function useGetErrorDistributionLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetErrorDistributionQuery,
-		Types.GetErrorDistributionQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetErrorDistributionQuery,
-		Types.GetErrorDistributionQueryVariables
-	>(GetErrorDistributionDocument, baseOptions)
-}
-export type GetErrorDistributionQueryHookResult = ReturnType<
-	typeof useGetErrorDistributionQuery
->
-export type GetErrorDistributionLazyQueryHookResult = ReturnType<
-	typeof useGetErrorDistributionLazyQuery
->
-export type GetErrorDistributionQueryResult = Apollo.QueryResult<
-	Types.GetErrorDistributionQuery,
-	Types.GetErrorDistributionQueryVariables
 >
 export const GetSlackChannelSuggestionDocument = gql`
 	query GetSlackChannelSuggestion($project_id: ID!) {
@@ -13006,6 +12921,60 @@ export type GetWorkspacePendingInvitesQueryResult = Apollo.QueryResult<
 	Types.GetWorkspacePendingInvitesQuery,
 	Types.GetWorkspacePendingInvitesQueryVariables
 >
+export const GetErrorResolutionSuggestionDocument = gql`
+	query GetErrorResolutionSuggestion($error_object_id: ID!) {
+		error_resolution_suggestion(error_object_id: $error_object_id)
+	}
+`
+
+/**
+ * __useGetErrorResolutionSuggestionQuery__
+ *
+ * To run a query within a React component, call `useGetErrorResolutionSuggestionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorResolutionSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorResolutionSuggestionQuery({
+ *   variables: {
+ *      error_object_id: // value for 'error_object_id'
+ *   },
+ * });
+ */
+export function useGetErrorResolutionSuggestionQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorResolutionSuggestionQuery,
+		Types.GetErrorResolutionSuggestionQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorResolutionSuggestionQuery,
+		Types.GetErrorResolutionSuggestionQueryVariables
+	>(GetErrorResolutionSuggestionDocument, baseOptions)
+}
+export function useGetErrorResolutionSuggestionLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorResolutionSuggestionQuery,
+		Types.GetErrorResolutionSuggestionQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorResolutionSuggestionQuery,
+		Types.GetErrorResolutionSuggestionQueryVariables
+	>(GetErrorResolutionSuggestionDocument, baseOptions)
+}
+export type GetErrorResolutionSuggestionQueryHookResult = ReturnType<
+	typeof useGetErrorResolutionSuggestionQuery
+>
+export type GetErrorResolutionSuggestionLazyQueryHookResult = ReturnType<
+	typeof useGetErrorResolutionSuggestionLazyQuery
+>
+export type GetErrorResolutionSuggestionQueryResult = Apollo.QueryResult<
+	Types.GetErrorResolutionSuggestionQuery,
+	Types.GetErrorResolutionSuggestionQueryVariables
+>
 export const GetWorkspaceSettingsDocument = gql`
 	query GetWorkspaceSettings($workspace_id: ID!) {
 		workspaceSettings(workspace_id: $workspace_id) {
@@ -13062,4 +13031,94 @@ export type GetWorkspaceSettingsLazyQueryHookResult = ReturnType<
 export type GetWorkspaceSettingsQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceSettingsQuery,
 	Types.GetWorkspaceSettingsQueryVariables
+>
+export const GetErrorObjectsDocument = gql`
+	query GetErrorObjects(
+		$errorGroupSecureID: String!
+		$after: String
+		$before: String
+		$query: String!
+	) {
+		error_objects(
+			error_group_secure_id: $errorGroupSecureID
+			after: $after
+			before: $before
+			query: $query
+		) {
+			edges {
+				cursor
+				node {
+					id
+					createdAt
+					event
+					timestamp
+					errorGroupSecureID
+					session {
+						secureID
+						email
+						appVersion
+						fingerprint
+					}
+				}
+			}
+			pageInfo {
+				hasNextPage
+				hasPreviousPage
+				startCursor
+				endCursor
+			}
+		}
+	}
+`
+
+/**
+ * __useGetErrorObjectsQuery__
+ *
+ * To run a query within a React component, call `useGetErrorObjectsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorObjectsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorObjectsQuery({
+ *   variables: {
+ *      errorGroupSecureID: // value for 'errorGroupSecureID'
+ *      after: // value for 'after'
+ *      before: // value for 'before'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetErrorObjectsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorObjectsQuery,
+		Types.GetErrorObjectsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorObjectsQuery,
+		Types.GetErrorObjectsQueryVariables
+	>(GetErrorObjectsDocument, baseOptions)
+}
+export function useGetErrorObjectsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorObjectsQuery,
+		Types.GetErrorObjectsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorObjectsQuery,
+		Types.GetErrorObjectsQueryVariables
+	>(GetErrorObjectsDocument, baseOptions)
+}
+export type GetErrorObjectsQueryHookResult = ReturnType<
+	typeof useGetErrorObjectsQuery
+>
+export type GetErrorObjectsLazyQueryHookResult = ReturnType<
+	typeof useGetErrorObjectsLazyQuery
+>
+export type GetErrorObjectsQueryResult = Apollo.QueryResult<
+	Types.GetErrorObjectsQuery,
+	Types.GetErrorObjectsQueryVariables
 >

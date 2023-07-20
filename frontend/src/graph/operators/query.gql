@@ -241,6 +241,7 @@ query GetSession($secure_id: String!) {
 		payload_size
 		processed
 		excluded
+		excluded_reason
 		has_rage_clicks
 		has_errors
 		within_billing_quota
@@ -251,6 +252,7 @@ query GetSession($secure_id: String!) {
 		event_counts
 		direct_download_url
 		resources_url
+		web_socket_events_url
 		timeline_indicators_url
 		deviceMemory
 		last_user_interaction_time
@@ -516,6 +518,10 @@ query GetTimelineIndicatorEvents($session_secure_id: String!) {
 		type
 		sid
 	}
+}
+
+query GetWebSocketEvents($session_secure_id: String!) {
+	websocket_events(session_secure_id: $session_secure_id)
 }
 
 query GetFieldTypes(
@@ -1152,26 +1158,6 @@ query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
 	}
 }
 
-query GetRecentErrors($secure_id: String!) {
-	error_group(secure_id: $secure_id) {
-		secure_id
-		metadata_log {
-			error_id
-			session_secure_id
-			environment
-			timestamp
-			os
-			browser
-			visited_url
-			fingerprint
-			identifier
-			user_properties
-			request_id
-			payload
-		}
-	}
-}
-
 query GetResources($session_secure_id: String!) {
 	resources(session_secure_id: $session_secure_id)
 }
@@ -1199,10 +1185,6 @@ query GetProjectSuggestion($query: String!) {
 		id
 		name
 		workspace_id
-	}
-	workspaceSuggestion(query: $query) {
-		id
-		name
 	}
 }
 
@@ -1476,21 +1458,6 @@ query GetDailyErrorFrequency(
 		error_group_secure_id: $error_group_secure_id
 		date_offset: $date_offset
 	)
-}
-
-query GetErrorDistribution(
-	$project_id: ID!
-	$error_group_secure_id: String!
-	$property: String!
-) {
-	errorDistribution(
-		project_id: $project_id
-		error_group_secure_id: $error_group_secure_id
-		property: $property
-	) {
-		name
-		value
-	}
 }
 
 query GetSlackChannelSuggestion($project_id: ID!) {
@@ -2106,9 +2073,50 @@ query GetWorkspacePendingInvites($workspace_id: ID!) {
 	}
 }
 
+query GetErrorResolutionSuggestion($error_object_id: ID!) {
+	error_resolution_suggestion(error_object_id: $error_object_id)
+}
+
 query GetWorkspaceSettings($workspace_id: ID!) {
 	workspaceSettings(workspace_id: $workspace_id) {
 		workspace_id
 		ai_insights
+	}
+}
+
+query GetErrorObjects(
+	$errorGroupSecureID: String!
+	$after: String
+	$before: String
+	$query: String!
+) {
+	error_objects(
+		error_group_secure_id: $errorGroupSecureID
+		after: $after
+		before: $before
+		query: $query
+	) {
+		edges {
+			cursor
+			node {
+				id
+				createdAt
+				event
+				timestamp
+				errorGroupSecureID
+				session {
+					secureID
+					email
+					appVersion
+					fingerprint
+				}
+			}
+		}
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
 	}
 }
