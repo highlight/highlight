@@ -1,5 +1,5 @@
 ---
-title: Interesting Sessions with Markov Chains
+title: Finding Interesting Sessions with Markov Chains
 createdAt: 2023-07-20T00:00:00Z
 readingTime: 6
 authorFirstName: Zane
@@ -11,7 +11,7 @@ authorLinkedIn: 'https://www.linkedin.com/in/zane-mayberry-688161165/'
 authorGithub: 'https://github.com/mayberryzane'
 authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FvrMpBimsRzOGGJSWWppg&w=1920&q=75'
 tags: Launch Week 2
-metaTitle: Interesting Sessions with Markov Chains
+metaTitle: Finding Interesting Sessions with Markov Chains
 ---
 At Highlight, we wanted to identify and summarize interesting user sessions to make it easier for our customers understand their users. One way to analyze a session is to look at the user’s journey, summarized by the order of page visits and the time spent per page. The thought is that sessions with unusual user journeys would uncover insights into how users may be experiencing frustration or using the app in an unexpected way. 
 
