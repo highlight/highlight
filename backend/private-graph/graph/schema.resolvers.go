@@ -6541,6 +6541,21 @@ func (r *queryResolver) WorkspaceSettings(ctx context.Context, workspaceID int) 
 	return &workspaceSettings, nil
 }
 
+// WorkspaceSettingsForProject is the resolver for the workspaceSettingsForProject field.
+func (r *queryResolver) WorkspaceSettingsForProject(ctx context.Context, projectID int) (*model.AllWorkspaceSettings, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	workspaceSettings := model.AllWorkspaceSettings{}
+	if err := r.DB.Where(model.AllWorkspaceSettings{WorkspaceID: project.WorkspaceID}).First(&workspaceSettings).Error; err != nil {
+		return nil, err
+	}
+
+	return &workspaceSettings, nil
+}
+
 // WorkspaceForProject is the resolver for the workspace_for_project field.
 func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) (*model.Workspace, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)

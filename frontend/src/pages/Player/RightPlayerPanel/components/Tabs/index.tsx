@@ -11,7 +11,9 @@ import {
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
 import MetadataPanel from '@pages/Player/MetadataPanel/MetadataPanel'
+import { useParams } from '@util/react-router/useParams'
 
+import { useGetWorkspaceSettingsForProjectQuery } from '@/graph/generated/hooks'
 import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
 import SessionInsights from '@/pages/Player/RightPlayerPanel/components/SessionInsights/SessionInsights'
 
@@ -19,6 +21,13 @@ const RightPanelTabs = () => {
 	const { selectedRightPanelTab, setSelectedRightPanelTab } =
 		usePlayerUIContext()
 	const showSessionInsights = useFeatureFlag(Feature.AiSessionInsights)
+
+	const { project_id } = useParams<{ project_id: string }>()
+
+	const { data } = useGetWorkspaceSettingsForProjectQuery({
+		variables: { project_id: project_id! },
+		skip: !project_id,
+	})
 
 	return (
 		<Tabs<RightPlayerTab>
@@ -49,7 +58,8 @@ const RightPanelTabs = () => {
 						/>
 					),
 				},
-				...(showSessionInsights
+				...(showSessionInsights &&
+				data?.workspaceSettingsForProject?.ai_insights
 					? {
 							['AI Insights']: {
 								page: <SessionInsights />,

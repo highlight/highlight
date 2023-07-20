@@ -1644,6 +1644,7 @@ type Query {
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
 	workspacePendingInvites(workspace_id: ID!): [WorkspaceInviteLink]!
 	workspaceSettings(workspace_id: ID!): AllWorkspaceSettings
+	workspaceSettingsForProject(project_id: ID!): AllWorkspaceSettings
 	workspace_for_project(project_id: ID!): Workspace
 	admin: Admin
 	admin_role(workspace_id: ID!): WorkspaceAdminRole

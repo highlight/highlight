@@ -34,6 +34,7 @@ import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { useGetWorkspaceSettingsForProjectQuery } from '@/graph/generated/hooks'
 import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
 import { AiErrorSuggestion } from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestion'
 import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionMissingOrExcluded'
@@ -54,11 +55,20 @@ const METADATA_LABELS: { [key: string]: string } = {
 	id: 'ID',
 } as const
 
-const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
-	const { error_object_id } = useParams<{
+export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
+	const { project_id, error_object_id } = useParams<{
 		error_object_id: string
+		project_id: string
 	}>()
 	const client = useApolloClient()
+
+	const { data: workspaceSettingsData } =
+		useGetWorkspaceSettingsForProjectQuery({
+			variables: { project_id: project_id! },
+			skip: !project_id,
+		})
+
+	console.log('AI Settings', workspaceSettingsData)
 
 	const { loading, error, data } = useGetErrorInstanceQuery({
 		variables: {
@@ -151,17 +161,21 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				<ErrorBodyText errorBody={errorInstance.error_object.event} />
 			</Box>
 
-			<Box display="flex" flexDirection="column" mb="40">
-				<Stack direction="row" align="center" pb="20" gap="8">
-					<Text size="large" weight="bold">
-						Harold AI
-					</Text>
-					<Badge label="Beta" size="medium" variant="purple" />
-				</Stack>
-				<AiErrorSuggestion
-					errorObjectId={errorInstance.error_object.id}
-				/>
-			</Box>
+			{workspaceSettingsData?.workspaceSettingsForProject
+				?.ai_application && (
+				<Box display="flex" flexDirection="column" mb="40">
+					<Stack direction="row" align="center" pb="20" gap="8">
+						<Text size="large" weight="bold">
+							Harold AI
+						</Text>
+						<Badge label="Beta" size="medium" variant="purple" />
+					</Stack>
+
+					<AiErrorSuggestion
+						errorObjectId={errorInstance.error_object.id}
+					/>
+				</Box>
+			)}
 
 			<Box display="flex" flexDirection="column" mb="40" gap="40">
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
@@ -477,5 +491,3 @@ const User: React.FC<{
 		</Box>
 	)
 }
-
-export default ErrorInstance
