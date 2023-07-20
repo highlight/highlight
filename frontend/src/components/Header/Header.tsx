@@ -695,7 +695,10 @@ const BillingBanner: React.FC = () => {
 	const { currentWorkspace } = useApplicationContext()
 	const { projectId } = useProjectId()
 
-	const { data: systemData } = useGetSystemConfigurationQuery()
+	const { data: systemData } = useGetSystemConfigurationQuery({
+		// check for updates every minute
+		pollInterval: 1000 * 60,
+	})
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: projectId! },
 		skip: !projectId,
