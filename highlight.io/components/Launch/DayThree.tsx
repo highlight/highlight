@@ -90,7 +90,7 @@ const DayThree = () => {
 							src="/images/launch/loggingintegrations.svg"
 							alt=""
 							height="448"
-							width="887"
+							width="900"
 						/>
 
 						<Image
