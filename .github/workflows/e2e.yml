@@ -43,7 +43,7 @@ jobs:
 
             - name: Start docker containers & run cypress
               env:
-                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
               run: |
                   start_time=$(date -Isecond)
 
