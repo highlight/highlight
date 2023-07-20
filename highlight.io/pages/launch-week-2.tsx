@@ -11,15 +11,15 @@ import { Typography } from '../components/common/Typography/Typography'
 import { CompaniesReel } from '../components/Home/CompaniesReel/CompaniesReel'
 import { CustomerReviewTrack } from '../components/Home/CustomerReviewTrack'
 import styles from '../components/Home/Home.module.scss'
+import DayFive from '../components/Launch/DayFive'
 import DayFour from '../components/Launch/DayFour'
 import DayOne from '../components/Launch/DayOne'
 import DayThree from '../components/Launch/DayThree'
 import DayTwo from '../components/Launch/DayTwo'
-import HiddenDay from '../components/Launch/HiddenDay'
 import preview from '../public/images/launch/preview.png'
 
 const LaunchPage = () => {
-	const day = 3
+	const day = 5
 
 	function scrollToDay(day: number) {
 		if (document && document.getElementById('day-' + day.toString())) {
@@ -121,7 +121,7 @@ const LaunchPage = () => {
 					<DayTwo />
 					<DayThree />
 					<DayFour />
-					<HiddenDay title="Day 5: July 21st" />
+					<DayFive />
 				</div>
 				<Section>
 					<CompaniesReel />
