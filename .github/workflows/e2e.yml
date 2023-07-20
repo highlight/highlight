@@ -38,7 +38,12 @@ jobs:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+            - name: Install Doppler CLI
+              uses: dopplerhq/cli-action@v2
+
             - name: Start docker containers & run cypress
+              env:
+                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
               run: |
                   start_time=$(date -Isecond)
 
@@ -46,7 +51,12 @@ jobs:
                   pushd docker;
                   ./start-infra.sh > /tmp/highlight.log 2>&1;
                   docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
-                  ./run-frontend.sh  >> /tmp/highlight.log 2>&1 & ./run-backend.sh >> /tmp/highlight.log 2>&1 &
+                  ./run-backend.sh >> /tmp/highlight.log 2>&1 &
+                  yarn install >> /tmp/highlight.log 2>&1;
+                  doppler run -- yarn build:frontend >> /tmp/highlight.log 2>&1;
+                  yarn workspace @highlight-run/client dev &
+                  yarn workspace highlight.run dev &
+                  yarn workspace @highlight-run/frontend vite preview --port 3000 &
                   popd;
 
                   # run opentelemetry file watcher
@@ -55,7 +65,7 @@ jobs:
                   popd;
 
                   # wait for highlight to be ready
-                  yarn dlx wait-on -l -s 4 https://127.0.0.1:3000/index.html  https://127.0.0.1:3000/src/routers/AppRouter/AppRouter.tsx http://127.0.0.1:8080/dist/index.js https://127.0.0.1:8082/health;
+                  yarn dlx wait-on -l -s 4 https://127.0.0.1:3000/index.html http://127.0.0.1:8080/dist/index.js https://127.0.0.1:8082/health;
 
                   # run cypress tests
                   yarn cy:run;

@@ -49,7 +49,7 @@ const DayFive = () => {
 				)}
 			>
 				<Link
-					href="/blog/introducing-harold"
+					href="/blog/using-github-as-a-headless-cms"
 					className={classNames(
 						'h-full max-h-[450px] md:w-1/3 lg:w-1/2  hover:border-[#9479D9] cursor-pointer',
 						styles.gridItem,
@@ -70,7 +70,7 @@ const DayFive = () => {
 					/>
 				</Link>
 				<Link
-					href="/blog/introducing-harold"
+					href="https://www.highlight.io/blog/java-sdk-open-source-contribution"
 					className={classNames(
 						'h-1/2 max-h-[350px] md:max-h-[450px]  md:w-1/3 lg:w-1/4 hover:border-[#9479D9] cursor-pointer',
 						styles.gridItem,
