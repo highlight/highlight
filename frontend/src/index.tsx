@@ -50,6 +50,8 @@ import { PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
 
+import { version as firstloadVersion } from '../../sdk/firstload/package.json'
+
 document.body.className = 'highlight-light-theme'
 
 analytics.initialize()
@@ -125,12 +127,19 @@ if (dev) {
 	if (favicon) {
 		favicon.href = `/favicon-localhost.ico`
 	}
-} else if (window.location.href.includes('onrender')) {
+} else if (
+	window.location.href.includes('onrender') ||
+	window.location.href.includes('preview')
+) {
 	if (favicon) {
 		favicon.href = `/favicon-pr.ico`
 	}
 	window.document.title = `📸 ${window.document.title}`
 	options.environment = 'Pull Request Preview'
+	const version = `v${firstloadVersion}-${
+		import.meta.env.REACT_APP_COMMIT_SHA
+	}`
+	options.scriptUrl = `https://static.highlight.io/${version}/index.js`
 }
 H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 analytics.track('attribution', getAttributionData())

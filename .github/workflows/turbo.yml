@@ -91,15 +91,17 @@ jobs:
               run: yarn workspace render zip && yarn workspace render check
 
             - name: Validate project is ready to be published
-              if: steps.filter.outputs.npm-changed == 'true' && (github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main')
-              run: yarn validate
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight'
+              run: yarn validate --has-sdk-changes=${{ steps.filter.outputs.npm-changed }}
 
-            # always publish client, even in PRs
-            # this is ok because the final push to main of the version will replace
-            # any previous builds, while doing this in PR will allow the PR frontend preview
-            # to reference the PR's latest version of client
+            - name: Publish client bundle (preview)
+              if: github.ref != 'refs/heads/main'
+              run: yarn publish:client --preview ${GIT_SHA} --replace
+              env:
+                  GIT_SHA: ${{ github.sha }}
+
             - name: Publish client bundle
-              if: steps.filter.outputs.npm-changed == 'true' && github.ref == 'refs/heads/main'
+              if: github.ref == 'refs/heads/main'
               run: yarn publish:client
 
             - name: Upload frontend sourcemaps
