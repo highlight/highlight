@@ -23,7 +23,7 @@ const DayFour = () => {
 	}
 
 	return (
-		<div id="day-3" className="w-full max-w-[550px] md:max-w-none">
+		<div id="day-4" className="w-full max-w-[550px] md:max-w-none">
 			<div
 				onClick={() => handleCopy('#day-4')}
 				className="group flex items-center gap-2 cursor-pointer"
