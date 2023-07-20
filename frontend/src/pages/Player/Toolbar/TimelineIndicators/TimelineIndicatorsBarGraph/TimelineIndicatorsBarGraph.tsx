@@ -18,7 +18,6 @@ import {
 } from '@pages/Player/ReplayerContext'
 import { getEventRenderDetails } from '@pages/Player/StreamElement/StreamElement'
 import TimelineBar from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
-import TimelineZoom from '@pages/Player/Toolbar/TimelineIndicators/TimelineZoom/TimelineZoom'
 import ZoomArea from '@pages/Player/Toolbar/TimelineIndicators/ZoomArea/ZoomArea'
 import {
 	useToolbarItemsContext,
@@ -1130,17 +1129,6 @@ const TimelineIndicatorsBarGraph = ({
 					minZoomAreaPercent={(100 * zoomAdjustment) / maxZoom}
 				/>
 			</div>
-			<TimelineZoom
-				isHidden={!showZoomButtons || !showHistogram}
-				zoom={(percent: number) =>
-					zoom(
-						(viewportBbox?.left ?? 0) +
-							TIMELINE_MARGIN +
-							viewportWidth / 2,
-						-percent / ZOOM_SCALING_FACTOR,
-					)
-				}
-			/>
 			<Box
 				ref={timeIndicatorTextRef}
 				background="n12"
