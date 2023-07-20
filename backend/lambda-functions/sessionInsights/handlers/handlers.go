@@ -1,15 +1,19 @@
 package handlers
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image/png"
 	"io"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/disintegration/imaging"
 	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
 
@@ -93,6 +97,8 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 			AND NOT s.excluded
 			AND s.processed
 			AND s.within_billing_quota
+			AND s.normalness IS NOT NULL
+			AND s.normalness > 0
 			ORDER BY s.fingerprint, s.normalness)
 		ORDER BY s.normalness
 		LIMIT 3) a
@@ -101,6 +107,10 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 	}
 
 	interestingSessions := []utils.InterestingSession{}
+	if len(interestingSessionsSql) != 3 {
+		return nil, errors.New(fmt.Sprintf("expected 3 interesting sessions, returned %d", len(interestingSessionsSql)))
+	}
+
 	for _, item := range interestingSessionsSql {
 		insightStrs := []string{}
 		if result.AiInsights {
@@ -271,7 +281,18 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 		if err != nil {
 			return err
 		}
-		images["session"+strconv.Itoa(session.Id)] = base64.StdEncoding.EncodeToString(imageBytes)
+
+		// Resize the image to 2x what's shown in the email,
+		// preserving aspect ratio and cropping centered at the top
+		src, _ := png.Decode(bytes.NewReader(imageBytes))
+		dstImageFill := imaging.Fill(src, 800, 436, imaging.Top, imaging.Lanczos)
+		var b bytes.Buffer
+		output := bufio.NewWriter(&b)
+		if err := png.Encode(output, dstImageFill); err != nil {
+			return err
+		}
+
+		images["session"+strconv.Itoa(session.Id)] = base64.StdEncoding.EncodeToString(b.Bytes())
 		input.InterestingSessions[idx].ScreenshotUrl = fmt.Sprintf("cid:session%d", session.Id)
 
 		res, err = h.lambdaClient.GetActivityGraph(ctx, session.EventCounts)
