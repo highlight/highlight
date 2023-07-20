@@ -872,7 +872,7 @@ const MaintenanceBanner = () => {
 			style={{ backgroundColor: vars.color.y9 }}
 		>
 			<Text color="black">
-				We are performance maintenance which may delay data. Apologies
+				We are performing maintenance which may delay data. Apologies
 				for the inconvenience. Follow on Discord{' '}
 				<TextLink color="none" href="https://highlight.io/community">
 					#incidents
