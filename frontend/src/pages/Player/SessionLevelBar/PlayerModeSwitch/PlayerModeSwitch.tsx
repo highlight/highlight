@@ -65,6 +65,7 @@ export const PlayerModeSwitch: React.FC = () => {
 						size="xSmall"
 						onClick={() => {
 							setEnableInspectElement(true)
+							setShowRightPanel(false)
 						}}
 					/>
 				}
