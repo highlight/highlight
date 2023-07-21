@@ -34,12 +34,14 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 	query := store.db.Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(LIMIT + 1)
 
 	if params.Query != "" {
-		parsedQuery := queryparser.Parse(params.Query)
+		filters := queryparser.Parse(params.Query)
 
-		if parsedQuery["email"] != "" {
-			query.Joins("LEFT JOIN sessions ON error_objects.session_id = sessions.id").
-				Where("sessions.project_id = ?", errorGroup.ProjectID). // Attaching project id so we can utilize the composite index sessions
-				Where("sessions.email ILIKE ?", "%"+parsedQuery["email"]+"%")
+		if val, ok := filters.Attributes["email"]; ok {
+			if len(val) > 0 && val[0] != "" {
+				query.Joins("LEFT JOIN sessions ON error_objects.session_id = sessions.id").
+					Where("sessions.project_id = ?", errorGroup.ProjectID). // Attaching project id so we can utilize the composite index sessions
+					Where("sessions.email ILIKE ?", "%"+val[0]+"%")
+			}
 		}
 	}
 
