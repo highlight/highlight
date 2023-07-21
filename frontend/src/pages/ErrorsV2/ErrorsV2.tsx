@@ -336,7 +336,7 @@ function ErrorDisplay({
 							) : (
 								<>
 									<IntegrationCta />
-									<Box pt="16" pb="32">
+									<Box pt="24" pb="32">
 										<ErrorTitle errorGroup={errorGroup} />
 
 										<ErrorBody errorGroup={errorGroup} />
