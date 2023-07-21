@@ -67,6 +67,7 @@ const TimelineIndicatorsBar = ({
 	useEffect(() => {
 		if (
 			activeError?.error_group_secure_id &&
+			bucket.identifier.Errors &&
 			bucket.identifier.Errors.includes(
 				serializeErrorIdentifier(activeError) as string,
 			)
