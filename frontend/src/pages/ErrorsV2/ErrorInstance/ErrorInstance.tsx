@@ -287,7 +287,6 @@ const Metadata: React.FC<{
 											value && copyToClipboard(value)
 										}
 									}}
-									// break="word"
 									lines={
 										typeof value === 'string'
 											? '4'
@@ -295,6 +294,7 @@ const Metadata: React.FC<{
 									}
 									title={String(value)}
 									style={{ width: '100%' }}
+									wordBreak="word"
 								>
 									{value}
 								</Tag>
