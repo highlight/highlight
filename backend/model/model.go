@@ -126,6 +126,7 @@ var Models = []interface{}{
 	&MessagesObject{},
 	&EventsObject{},
 	&ErrorObject{},
+	&ErrorObjectEmbeddings{},
 	&ErrorGroup{},
 	&ErrorField{},
 	&ErrorSegment{},
@@ -179,6 +180,7 @@ var Models = []interface{}{
 	&EmailOptOut{},
 	&BillingEmailHistory{},
 	&Retryable{},
+	&Service{},
 	&SetupEvent{},
 	&SessionAdminsView{},
 	&ErrorGroupAdminsView{},
@@ -187,6 +189,7 @@ var Models = []interface{}{
 	&AllWorkspaceSettings{},
 	&ErrorGroupActivityLog{},
 	&UserJourneyStep{},
+	&SystemConfiguration{},
 }
 
 func init() {
@@ -922,6 +925,14 @@ type ErrorObject struct {
 	IsBeacon         bool    `gorm:"default:false"`
 }
 
+type ErrorObjectEmbeddings struct {
+	Model
+	ErrorObjectID       int
+	EventEmbedding      Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	StackTraceEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	PayloadEmbedding    Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+}
+
 type ErrorGroup struct {
 	Model
 	// The ID used publicly for the URL on the client; used for sharing
@@ -1213,6 +1224,12 @@ type UserJourneyStep struct {
 	NextUrl   string
 }
 
+type SystemConfiguration struct {
+	Active           bool `gorm:"primary_key;default:true"`
+	MaintenanceStart time.Time
+	MaintenanceEnd   time.Time
+}
+
 type RetryableType string
 
 const (
@@ -1296,6 +1313,9 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	log.WithContext(ctx).Printf("Running DB migrations... \n")
 	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
 		return false, e.Wrap(err, "Error installing pgcrypto")
+	}
+	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS vector;").Error; err != nil {
+		return false, e.Wrap(err, "Error installing vector")
 	}
 
 	// Unguessable, cryptographically random url-safe ID for users to share links
@@ -1532,6 +1552,31 @@ func (j JSONB) Value() (driver.Value, error) {
 }
 
 func (j *JSONB) Scan(value interface{}) error {
+	switch v := value.(type) {
+	case string:
+		if err := json.Unmarshal([]byte(v), &j); err != nil {
+			return err
+		}
+	case []byte:
+		if err := json.Unmarshal(v, &j); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Vector is serialized as '[-0.0123,0.456]' aka like a json list
+type Vector []float32
+
+func (j Vector) Value() (driver.Value, error) {
+	if len(j) == 0 {
+		return nil, nil
+	}
+	valueString, err := json.Marshal(j)
+	return string(valueString), err
+}
+
+func (j *Vector) Scan(value interface{}) error {
 	switch v := value.(type) {
 	case string:
 		if err := json.Unmarshal([]byte(v), &j); err != nil {
@@ -1937,6 +1982,12 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 
 		}
 	}
+}
+
+type Service struct {
+	Model
+	ProjectID int    `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Name      string `gorm:"not null;uniqueIndex:idx_project_id_name"`
 }
 
 type LogAlert struct {

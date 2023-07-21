@@ -1,6 +1,5 @@
 import {
 	Body,
-	Button,
 	Column,
 	Container,
 	Head,
@@ -46,11 +45,18 @@ const sessionExample = {
 	country: 'Germany',
 	activeLength: '1h 25m',
 	insights: [
-		`The user viewed an error page with the URL 'https://app.highlight.io/1/errors/7YboUB1obqGbOZV95X40gZrTGyRC/instances/196875448/?page=1&query=and%7C%7Cerror_state%2Cis%2COPEN%7C%7Cerror-field_timestamp%2Cbetween_date%2C2023-06-05T18%3A32%3A16.319Z_2023-07-05T18%3A32%3A16.319Z'`,
+		`The user viewed an error page with the URL 'https://app.highlight.io/1/errors/7YboUB1obqGbOZV95X40gZrTGyRC/instances/196875448/?page=1&query=and%7C%7Cerror_state%2Cis%2COPEN%7C%7Cerror-field_timestamp%2Cbetween_date%2C2023-06-05T18%3A32%3A16.319Z_2023-07-05T18%3A32%3A16.319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z319Z'`,
 		'The customer changed their billing settings on the billing page. This is a really long insight. I wonder what happens when the insight is this long.',
 		'The customer logged out at 45:32.',
 	],
 }
+
+const css = `
+    a {
+        color: unset;
+		text-decoration: none;
+    }
+`
 
 export const SessionInsightsEmail = ({
 	projectName = 'Highlight Production (app.highlight.io)',
@@ -60,124 +66,146 @@ export const SessionInsightsEmail = ({
 	interestingSessions = [sessionExample, sessionExample, sessionExample],
 }: SessionInsightsEmailProps) => (
 	<Html>
-		<Head />
+		<Head>
+			<style>{css}</style>
+		</Head>
 		<Preview>Session insights for {projectName}</Preview>
 		<Body style={main}>
-			<Container style={container}>
-				<Container style={contentContainer}>
-					<Section>
-						<Img
-							src="https://static.highlight.io/assets/digest/logo-on-dark.png"
-							width="32"
-							height="32"
-							alt="Highlight"
-							style={logo}
-						/>
-						<Heading style={{ ...text, fontSize: '36px' }}>
-							<a style={highlightedText}>{projectName}</a>
-							<br />
-							Session Insights
-						</Heading>
-					</Section>
-					{interestingSessions.map((s, idx) => (
-						<Section key={idx} style={infoCard}>
+			<Container width={600} style={container}>
+				<Img
+					src="https://static.highlight.io/assets/digest/logo-on-dark.png"
+					width="32"
+					height="32"
+					alt="Highlight logo"
+					style={logo}
+				/>
+				<Heading style={headingText}>
+					<span style={highlightedText}>
+						<a style={highlightedText}>{projectName}</a>
+					</span>
+					<br />
+					Session Insights
+				</Heading>
+				<Text style={subtitleText}>
+					Here are 3 interesting sessions recorded in your project
+					this week:
+				</Text>
+				<Hr style={hr} />
+				{interestingSessions.map((s, idx) => (
+					<>
+						<Section width={568}>
 							<Link href={s.url}>
 								<Img
+									alt="Session screenshot"
 									src={s.screenshotUrl}
 									style={sessionScreenshot}
-									width="368"
-									height="200"
+									width={568}
+									height={310}
 								/>
 							</Link>
-							<Section>
-								<Column style={sessionProperties}>
-									<Section>
-										<Text style={identifier}>
-											{s.avatarUrl && (
+						</Section>
+						<Section width={568} style={sessionAttributes}>
+							<Column
+								align="left"
+								width={398}
+								style={sessionProperties}
+							>
+								<Section align="left" style={leftAlign}>
+									<Text style={identifier}>
+										{s.avatarUrl && (
+											<>
 												<Img
 													src={s.avatarUrl}
 													width="22"
 													height="22"
 													style={avatar}
+													alt="User avatar"
 												/>
-											)}
-											<a style={identifierText}>
-												{s.identifier}
-											</a>
-										</Text>
-									</Section>
-									<Section>
-										<span style={sessionProperty}>
-											{s.country}
-										</span>
-										<span style={sessionProperty}>
-											{s.activeLength}
-										</span>
-									</Section>
+												&nbsp;
+											</>
+										)}
+										<a style={identifierText}>
+											{s.identifier}
+										</a>
+									</Text>
+								</Section>
+								<Section align="left" style={leftAlign}>
+									<span style={sessionProperty}>
+										{s.country}
+									</span>
+									&nbsp;
+									<span style={sessionProperty}>
+										{s.activeLength}
+									</span>
+								</Section>
+								<Section
+									align="left"
+									style={{ ...leftAlign, marginTop: '8px' }}
+								>
+									<Link style={viewSessionText} href={s.url}>
+										View Session →
+									</Link>
+								</Section>
+							</Column>
+							<Column width={170} style={activityGraphColumn}>
+								<Img
+									style={activityGraph}
+									src={s.activityGraphUrl}
+									width="170"
+									height="85"
+									alt="Session activity graph"
+								/>
+							</Column>
+						</Section>
+						{s.insights.map((i, idx) => (
+							<Section width={568} key={idx} style={insight}>
+								<Column width={24} style={numberLabel}>
+									{idx + 1}
 								</Column>
-								<Column>
-									<Img
-										style={activityGraph}
-										src={s.activityGraphUrl}
-										width="120"
-										height="60"
-										alt="activity"
-									/>
+								<Column
+									width={528}
+									style={{ wordBreak: 'break-all' }}
+								>
+									<Text style={insightText}>{i}</Text>
 								</Column>
 							</Section>
-							{s.insights.map((i, idx) => (
-								<Section key={idx} style={insight}>
-									<Column style={numberLabel} width={24}>
-										{idx + 1}
-									</Column>
-									<Column width={326}>
-										<Link style={hoverAnchor} href={s.url}>
-											<Text style={insightText}>{i}</Text>
-										</Link>
-									</Column>
-								</Section>
-							))}
-						</Section>
-					))}
-				</Container>
-
+						))}
+						<Hr style={hr} />
+					</>
+				))}
 				{!useHarold && (
-					<Section style={paragraph}>
-						<Text style={text}>
-							Your workspace has AI insights turned off. If you
-							would like this digest to include a summary of each
-							session, you can turn on AI insights{' '}
-							<Link
-								style={anchor}
-								href="https://app.highlight.io/w/harold-ai"
-							>
-								here
-							</Link>
-							.
-						</Text>
-					</Section>
-				)}
-
-				<Section style={paragraph}>
-					<Text style={text}>
-						This digest was sent to{' '}
-						<Link style={anchor} href={`mailto:${toEmail}`}>
-							{toEmail}
-						</Link>
-						. If you don't want to receive emails like this in the
-						future, you can{' '}
-						<Link style={anchor} href={unsubscribeUrl}>
-							unsubscribe
+					<Text style={paragraph}>
+						Your workspace has AI insights turned off. If you would
+						like this digest to include a summary of each session,
+						you can turn on AI insights{' '}
+						<Link
+							style={anchor}
+							href="https://app.highlight.io/w/harold-ai"
+						>
+							here
 						</Link>
 						.
 					</Text>
-				</Section>
+				)}
+				<Text style={paragraph}>
+					This digest was sent to{' '}
+					<Link style={anchor} href={`mailto:${toEmail}`}>
+						{toEmail}
+					</Link>
+					. If you don't want to receive emails like this in the
+					future, you can{' '}
+					<Link style={anchor} href={unsubscribeUrl}>
+						unsubscribe
+					</Link>
+					.
+				</Text>
 				<Hr style={hr} />
 				<Img
 					style={logoFull}
 					src="https://static.highlight.io/assets/digest/highlight-logo.png"
 					width="70"
 					height="16"
+					alt="Highlight logo"
 				/>
 				<Text style={footer}>Seattle, WA 98122</Text>
 			</Container>
@@ -195,14 +223,14 @@ const main = {
 }
 
 const container = {
-	margin: '0 auto',
+	width: '600px',
 	padding: '0 16px',
-	marginBottom: '64px',
 	textAlign: 'center' as const,
 }
 
 const hr = {
-	borderColor: '#30294e',
+	color: '#30294e',
+	borderTop: '1px solid #30294e',
 	margin: '20px 0',
 }
 
@@ -212,10 +240,6 @@ const text = {
 
 const highlightedText = {
 	color: '#ebff5e',
-}
-
-const hoverAnchor = {
-	color: '#ffffff',
 }
 
 const anchor = {
@@ -241,17 +265,7 @@ const paragraph = {
 	fontSize: '14px',
 	fontWeight: '600',
 	lineHeight: '22px',
-}
-
-const infoCard = {
-	border: '1px solid #30294e',
-	borderRadius: '12px',
-	padding: '16px',
-	marginBottom: '24px',
-}
-
-const contentContainer = {
-	width: '400px',
+	color: '#ffffff',
 }
 
 const insight = {
@@ -259,7 +273,6 @@ const insight = {
 	borderRadius: '6px',
 	padding: '8px',
 	marginTop: '8px',
-	minHeight: '68px',
 	fontSize: '14px',
 }
 
@@ -270,11 +283,12 @@ const numberLabel = {
 }
 
 const sessionScreenshot = {
-	backgroundColor: '#6c37f4',
-	width: '368px',
-	height: '200px',
+	backgroundImage:
+		'url("https://static.highlight.io/assets/session-insights/session.png")',
 	borderRadius: '6px',
 	objectFit: 'cover' as const,
+	width: '568px',
+	height: '310px',
 }
 
 const identifier = {
@@ -283,6 +297,7 @@ const identifier = {
 	fontSize: '16px',
 	height: '24px',
 	overflow: 'hidden',
+	textAlign: 'left' as const,
 }
 
 const identifierText = {
@@ -290,10 +305,28 @@ const identifierText = {
 	textDecoration: 'none',
 }
 
+const sessionAttributes = {
+	marginBottom: '16px',
+	marginTop: '8px',
+}
+
+const viewSessionText = {
+	...anchor,
+	fontSize: '16px',
+}
+
+const subtitleText = {
+	...text,
+	fontSize: '16px',
+}
+
+const leftAlign = {
+	textAlign: 'left' as const,
+}
+
 const sessionProperties = {
 	textAlign: 'left' as const,
 	fontSize: '16px',
-	width: '248px',
 }
 
 const sessionProperty = {
@@ -317,8 +350,21 @@ const insightText = {
 	paddingLeft: '8px',
 	textAlign: 'left' as const,
 	wordBreak: 'break-word' as const,
+	margin: '8px 0',
 }
 
 const activityGraph = {
-	marginTop: '4px',
+	width: '170px',
+	height: '85px',
+}
+
+const activityGraphColumn = {
+	paddingTop: '8px',
+	verticalAlign: 'middle',
+}
+
+const headingText = {
+	...text,
+	fontSize: '36px',
+	lineHeight: '44px',
 }

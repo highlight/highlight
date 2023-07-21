@@ -7497,6 +7497,15 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 	return insight, nil
 }
 
+// SystemConfiguration is the resolver for the system_configuration field.
+func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemConfiguration, error) {
+	var config model.SystemConfiguration
+	if err := r.DB.Model(&config).Where(&model.SystemConfiguration{Active: true}).Take(&config).Error; err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}

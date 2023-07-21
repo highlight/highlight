@@ -4383,6 +4383,17 @@ export type GetWorkspaceSettingsForProjectQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetSystemConfigurationQueryVariables = Types.Exact<{
+	[key: string]: never
+}>
+
+export type GetSystemConfigurationQuery = { __typename?: 'Query' } & {
+	system_configuration: { __typename?: 'SystemConfiguration' } & Pick<
+		Types.SystemConfiguration,
+		'maintenance_start' | 'maintenance_end'
+	>
+}
+
 export type GetErrorObjectsQueryVariables = Types.Exact<{
 	errorGroupSecureID: Types.Scalars['String']
 	after?: Types.Maybe<Types.Scalars['String']>
@@ -4559,6 +4570,7 @@ export const namedOperations = {
 		GetWorkspaceSettings: 'GetWorkspaceSettings' as const,
 		GetWorkspaceSettingsForProject:
 			'GetWorkspaceSettingsForProject' as const,
+		GetSystemConfiguration: 'GetSystemConfiguration' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
 	},
 	Mutation: {

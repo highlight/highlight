@@ -1737,6 +1737,7 @@ export type Query = {
 	sourcemap_versions: Array<Scalars['String']>
 	subscription_details: SubscriptionDetails
 	suggested_metrics: Array<Scalars['String']>
+	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
 	topUsers: Array<Maybe<TopUsersPayload>>
 	track_properties_alerts: Array<Maybe<SessionAlert>>
@@ -2745,6 +2746,12 @@ export type SubscriptionDetails = {
 export enum SubscriptionInterval {
 	Annual = 'Annual',
 	Monthly = 'Monthly',
+}
+
+export type SystemConfiguration = {
+	__typename?: 'SystemConfiguration'
+	maintenance_end: Scalars['Timestamp']
+	maintenance_start: Scalars['Timestamp']
 }
 
 export type TimelineIndicatorEvent = {
