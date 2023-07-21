@@ -321,7 +321,6 @@ const LogDetailsObject: React.FC<{
 		} catch {}
 	}
 
-	const isObject = typeof attribute === 'object'
 	const queryKey = queryBaseKeys.join('.') || label
 	const queryMatch = matchedAttributes[queryKey]
 
@@ -329,7 +328,7 @@ const LogDetailsObject: React.FC<{
 		setOpen(allExpanded)
 	}, [allExpanded])
 
-	return isObject ? (
+	return typeof attribute === 'object' ? (
 		<Box
 			cssClass={styles.line}
 			onClick={(e) => {
