@@ -76,7 +76,7 @@ export const SessionInsightsEmail = ({
 					src="https://static.highlight.io/assets/digest/logo-on-dark.png"
 					width="32"
 					height="32"
-					alt="Highlight"
+					alt="Highlight logo"
 					style={logo}
 				/>
 				<Heading style={headingText}>
@@ -93,21 +93,21 @@ export const SessionInsightsEmail = ({
 				<Hr style={hr} />
 				{interestingSessions.map((s, idx) => (
 					<>
-						<Section width={400}>
+						<Section width={568}>
 							<Link href={s.url}>
 								<Img
-									alt="session"
+									alt="Session screenshot"
 									src={s.screenshotUrl}
 									style={sessionScreenshot}
-									width={400}
-									height={218}
+									width={568}
+									height={310}
 								/>
 							</Link>
 						</Section>
-						<Section width={400} style={sessionAttributes}>
+						<Section width={568} style={sessionAttributes}>
 							<Column
 								align="left"
-								width={280}
+								width={398}
 								style={sessionProperties}
 							>
 								<Section align="left" style={leftAlign}>
@@ -119,6 +119,7 @@ export const SessionInsightsEmail = ({
 													width="22"
 													height="22"
 													style={avatar}
+													alt="User avatar"
 												/>
 												&nbsp;
 											</>
@@ -146,23 +147,23 @@ export const SessionInsightsEmail = ({
 									</Link>
 								</Section>
 							</Column>
-							<Column width={120} style={activityGraphColumn}>
+							<Column width={170} style={activityGraphColumn}>
 								<Img
 									style={activityGraph}
 									src={s.activityGraphUrl}
-									width="120"
-									height="52"
-									alt="activity"
+									width="170"
+									height="85"
+									alt="Session activity graph"
 								/>
 							</Column>
 						</Section>
 						{s.insights.map((i, idx) => (
-							<Section width={400} key={idx} style={insight}>
+							<Section width={568} key={idx} style={insight}>
 								<Column width={24} style={numberLabel}>
 									{idx + 1}
 								</Column>
 								<Column
-									width={360}
+									width={528}
 									style={{ wordBreak: 'break-all' }}
 								>
 									<Text style={insightText}>{i}</Text>
@@ -204,6 +205,7 @@ export const SessionInsightsEmail = ({
 					src="https://static.highlight.io/assets/digest/highlight-logo.png"
 					width="70"
 					height="16"
+					alt="Highlight logo"
 				/>
 				<Text style={footer}>Seattle, WA 98122</Text>
 			</Container>
@@ -281,10 +283,12 @@ const numberLabel = {
 }
 
 const sessionScreenshot = {
+	backgroundImage:
+		'url("https://static.highlight.io/assets/session-insights/session.png")',
 	borderRadius: '6px',
 	objectFit: 'cover' as const,
-	width: '400px',
-	height: '218px',
+	width: '568px',
+	height: '310px',
 }
 
 const identifier = {
@@ -350,8 +354,8 @@ const insightText = {
 }
 
 const activityGraph = {
-	width: '120px',
-	height: '52px',
+	width: '170px',
+	height: '85px',
 }
 
 const activityGraphColumn = {

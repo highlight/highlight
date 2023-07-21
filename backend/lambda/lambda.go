@@ -88,29 +88,29 @@ func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessio
 	}
 	log.WithContext(ctx).Infof("requesting session screenshot for %s", url)
 
-	req, _ := http.NewRequest(http.MethodGet, url, nil)
+	req, _ := retryablehttp.NewRequest(http.MethodGet, url, nil)
 	req = req.WithContext(ctx)
 
 	signer := v4.NewSigner()
-	if err := signer.SignHTTP(ctx, *s.Credentials, req, NilPayloadHash, string(LambdaAPI), "us-east-2", time.Now()); err != nil {
+	if err := signer.SignHTTP(ctx, *s.Credentials, req.Request, NilPayloadHash, string(LambdaAPI), "us-east-2", time.Now()); err != nil {
 		return nil, err
 	}
-	return s.HTTPClient.Do(req)
+	return s.RetryableHTTPClient.Do(req)
 }
 
 func (s *Client) GetActivityGraph(ctx context.Context, eventCounts string) (*http.Response, error) {
 	url := "https://4clivkkbxw5ckv6xxhyegvwajy0taeyp.lambda-url.us-east-2.on.aws/session-activity"
-	req, _ := http.NewRequest(http.MethodPost, url, strings.NewReader(eventCounts))
+	req, _ := retryablehttp.NewRequest(http.MethodPost, url, strings.NewReader(eventCounts))
 	req = req.WithContext(ctx)
 	req.Header = http.Header{
 		"Content-Type": []string{"text/plain"},
 	}
 
 	signer := v4.NewSigner()
-	if err := signer.SignHTTP(ctx, *s.Credentials, req, NilPayloadHash, string(LambdaAPI), "us-east-2", time.Now()); err != nil {
+	if err := signer.SignHTTP(ctx, *s.Credentials, req.Request, NilPayloadHash, string(LambdaAPI), "us-east-2", time.Now()); err != nil {
 		return nil, err
 	}
-	return s.HTTPClient.Do(req)
+	return s.RetryableHTTPClient.Do(req)
 }
 
 func (s *Client) GetSessionInsight(ctx context.Context, projectID int, sessionID int) (*http.Response, error) {
