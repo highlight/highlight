@@ -5,6 +5,8 @@ import {
 	Stack,
 	Text,
 } from '@highlight-run/ui'
+import { useAuthorization } from '@util/authorization/authorization'
+import { POLICY_NAMES } from '@util/authorization/authorizationPolicies'
 import { message } from 'antd'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
@@ -17,14 +19,14 @@ import {
 import { namedOperations } from '@/graph/generated/operations'
 import { useParams } from '@/util/react-router/useParams'
 
-type AiFeature = {
+type AiSetting = {
 	label: string
 	info: string
 	key: 'ai_application' | 'ai_insights'
 	feature: string
 }
 
-const AI_FEATURES: AiFeature[] = [
+const AI_FEATURES: AiSetting[] = [
 	{
 		label: 'Enable Harold',
 		info: 'Enable error suggestions and session summarization across the app',
@@ -49,6 +51,34 @@ export const HaroldAISettings = () => {
 		variables: { workspace_id: workspace_id! },
 		skip: !workspace_id,
 	})
+
+	const { checkPolicyAccess } = useAuthorization()
+	const canEdit = checkPolicyAccess({
+		policyName: POLICY_NAMES.HaroldSettingsUpdate,
+	})
+
+	const handleSwitch = (setting: AiSetting) => (isOptIn: boolean) => {
+		if (!workspace_id) {
+			return
+		}
+		editWorkspaceSettings({
+			variables: {
+				...data?.workspaceSettings,
+				workspace_id: workspace_id,
+				[setting.key]: isOptIn,
+			},
+		})
+			.then(() => {
+				message.success(
+					`${isOptIn ? 'Enabled' : 'Disabled'} Harold for your ${
+						setting.feature
+					}.`,
+				)
+			})
+			.catch((reason: any) => {
+				message.error(String(reason))
+			})
+	}
 
 	return (
 		<Box>
@@ -101,33 +131,11 @@ export const HaroldAISettings = () => {
 									c.label,
 									c.info,
 									data?.workspaceSettings?.[c.key] ?? false,
-									(isOptIn: boolean) => {
-										if (!workspace_id) {
-											return
-										}
-										editWorkspaceSettings({
-											variables: {
-												...data?.workspaceSettings,
-												workspace_id: workspace_id,
-												[c.key]: isOptIn,
-											},
-										})
-											.then(() => {
-												message.success(
-													`${
-														isOptIn
-															? 'Enabled'
-															: 'Disabled'
-													} Harold for your ${
-														c.feature
-													}.`,
-												)
-											})
-											.catch((reason: any) => {
-												message.error(String(reason))
-											})
-									},
-									loading,
+									handleSwitch(c),
+									loading || !canEdit,
+									canEdit
+										? ''
+										: 'Please contact your admin to update',
 								)}
 							</BorderBox>
 						))}
