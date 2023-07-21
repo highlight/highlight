@@ -628,6 +628,10 @@ func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceI
 		return nil, err
 	}
 
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
+		return nil, err
+	}
+
 	workspaceSettings := &model.AllWorkspaceSettings{}
 	workspaceSettingsUpdates := map[string]interface{}{
 		"AIApplication": *aiApplication,
@@ -6783,7 +6787,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	}
 
 	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	customerParams := &stripe.CustomerParams{}
