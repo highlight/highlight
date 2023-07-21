@@ -316,9 +316,10 @@ const LogDetailsObject: React.FC<{
 	const [open, setOpen] = useState(false)
 
 	let stringIsJson = false
+	let parsedJson = ''
 	if (typeof attribute === 'string') {
 		try {
-			const parsedJson = JSON.parse(attribute)
+			parsedJson = JSON.parse(attribute)
 			stringIsJson = typeof parsedJson === 'object'
 		} catch {}
 	}
@@ -349,17 +350,19 @@ const LogDetailsObject: React.FC<{
 			</LogAttributeLine>
 
 			{open &&
-				Object.entries(attribute).map(([key, value], index) => (
-					<LogDetailsObject
-						key={index}
-						allExpanded={allExpanded}
-						attribute={value}
-						label={key}
-						matchedAttributes={matchedAttributes}
-						queryTerms={queryTerms}
-						queryBaseKeys={[...queryBaseKeys, key]}
-					/>
-				))}
+				Object.entries(stringIsJson ? parsedJson : attribute).map(
+					([key, value], index) => (
+						<LogDetailsObject
+							key={index}
+							allExpanded={allExpanded}
+							attribute={value}
+							label={key}
+							matchedAttributes={matchedAttributes}
+							queryTerms={queryTerms}
+							queryBaseKeys={[...queryBaseKeys, key]}
+						/>
+					),
+				)}
 		</Box>
 	) : (
 		<Box cssClass={styles.line}>
