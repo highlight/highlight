@@ -1683,6 +1683,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
 			| 'payload_size'
 			| 'processed'
 			| 'excluded'
+			| 'excluded_reason'
 			| 'has_rage_clicks'
 			| 'has_errors'
 			| 'within_billing_quota'
@@ -4368,6 +4369,17 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetSystemConfigurationQueryVariables = Types.Exact<{
+	[key: string]: never
+}>
+
+export type GetSystemConfigurationQuery = { __typename?: 'Query' } & {
+	system_configuration: { __typename?: 'SystemConfiguration' } & Pick<
+		Types.SystemConfiguration,
+		'maintenance_start' | 'maintenance_end'
+	>
+}
+
 export type GetErrorObjectsQueryVariables = Types.Exact<{
 	errorGroupSecureID: Types.Scalars['String']
 	after?: Types.Maybe<Types.Scalars['String']>
@@ -4542,6 +4554,7 @@ export const namedOperations = {
 		GetWorkspacePendingInvites: 'GetWorkspacePendingInvites' as const,
 		GetErrorResolutionSuggestion: 'GetErrorResolutionSuggestion' as const,
 		GetWorkspaceSettings: 'GetWorkspaceSettings' as const,
+		GetSystemConfiguration: 'GetSystemConfiguration' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
 	},
 	Mutation: {

@@ -1,6 +1,6 @@
 {
 	"name": "highlight.run",
-	"version": "7.3.6",
+	"version": "7.3.9",
 	"description": "Open source, fullstack monitoring. Capture frontend errors, record server side logs, and visualize what broke with session replay.",
 	"keywords": [
 		"highlight",
@@ -26,8 +26,9 @@
 	},
 	"scripts": {
 		"build": "yarn typegen && vite build",
+		"build:watch": "yarn build --watch",
 		"dev": "vite dev",
-		"dev:watch": "yarn dev & yarn build --watch",
+		"dev:watch": "run-p dev build:watch",
 		"enforce-size": "size-limit",
 		"test": "vitest --run",
 		"typegen": "tsc && node scripts/replace-client-imports.mjs"

@@ -241,6 +241,7 @@ query GetSession($secure_id: String!) {
 		payload_size
 		processed
 		excluded
+		excluded_reason
 		has_rage_clicks
 		has_errors
 		within_billing_quota
@@ -2080,6 +2081,13 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 	workspaceSettings(workspace_id: $workspace_id) {
 		workspace_id
 		ai_insights
+	}
+}
+
+query GetSystemConfiguration {
+	system_configuration {
+		maintenance_start
+		maintenance_end
 	}
 }
 

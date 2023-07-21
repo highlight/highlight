@@ -21,7 +21,7 @@ export const parseEventsForInput = (events: any[]) => {
 					return
 				case EventType.IncrementalSnapshot:
 					const nextEvent = events[Math.min(idx + 1, events.length)]
-					if (nextEvent.type !== e.type) {
+					if (nextEvent != null && nextEvent.type !== e.type) {
 						parsedEvents.push({
 							type: e.type,
 							timestamp: e.timestamp,

@@ -1,6 +1,6 @@
-import { ApolloError } from '@apollo/client'
+import { useApolloClient } from '@apollo/client'
 import { Button } from '@components/Button'
-import { useGetErrorResolutionSuggestionLazyQuery } from '@graph/hooks'
+import { GetErrorResolutionSuggestionDocument } from '@graph/hooks'
 import {
 	Box,
 	ButtonIcon,
@@ -13,10 +13,9 @@ import {
 } from '@highlight-run/ui'
 import { message } from 'antd'
 import clsx from 'clsx'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 
-import { GetErrorResolutionSuggestionQuery } from '@/graph/generated/operations'
 import AiErrorSuggestionCard from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestionCard'
 import analytics from '@/util/analytics'
 
@@ -27,23 +26,36 @@ type Props = {
 }
 
 export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
-	const [data, setData] = useState<GetErrorResolutionSuggestionQuery | null>(
-		null,
-	)
-	const [error, setError] = useState<ApolloError | null>(null)
-	const [getErrorResolutionSuggestion, { loading, refetch }] =
-		useGetErrorResolutionSuggestionLazyQuery({
-			notifyOnNetworkStatusChange: true,
-			onCompleted: (data) => {
-				setError(null)
-				setData(data)
-			},
-			onError: (error) => {
-				setError(error)
-				setData(null)
-			},
-		})
+	const [data, setData] = useState<any | null>(null)
+	const [error, setError] = useState<unknown | null>(null)
+	const client = useApolloClient()
 	const [voted, setVoted] = useState(false)
+	const [loading, setLoading] = useState(false)
+
+	const getErrorResolutionRequest = async () => {
+		try {
+			setLoading(true)
+			const response = await client.query({
+				query: GetErrorResolutionSuggestionDocument,
+				variables: {
+					error_object_id: errorObjectId,
+				},
+				fetchPolicy: 'no-cache',
+			})
+			setError(null)
+			setData(response.data)
+			setLoading(false)
+		} catch (e) {
+			setError(e)
+			setData(null)
+			setLoading(false)
+		}
+	}
+
+	useEffect(() => {
+		setData(null)
+		setError(null)
+	}, [errorObjectId])
 
 	return (
 		<Box
@@ -175,11 +187,8 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 				<Box display="flex" mt="12" gap="4">
 					<Button
 						onClick={() => {
-							getErrorResolutionSuggestion({
-								variables: {
-									error_object_id: errorObjectId,
-								},
-							})
+							getErrorResolutionRequest()
+							setVoted(false)
 						}}
 						kind="primary"
 						emphasis="high"
@@ -187,7 +196,7 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 						loading={loading}
 						iconLeft={<IconSolidSparkles />}
 					>
-						Get error help
+						{loading ? 'Harold is thinking...' : 'Get error help'}
 					</Button>
 					<Button
 						kind="secondary"
@@ -207,7 +216,7 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 				<Box display="flex" justifyContent="center" mt="12" gap="4">
 					<Button
 						onClick={(_event) => {
-							refetch()
+							getErrorResolutionRequest()
 							setVoted(false)
 						}}
 						kind="secondary"
@@ -216,7 +225,9 @@ export const AiErrorSuggestion = ({ errorObjectId }: Props) => {
 						loading={loading}
 						iconLeft={<IconSolidRefresh />}
 					>
-						Refresh Suggestion
+						{loading
+							? 'Harold is thinking...'
+							: 'Refresh Suggestion'}
 					</Button>
 					<Button
 						kind="secondary"

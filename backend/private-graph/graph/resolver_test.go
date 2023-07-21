@@ -2,6 +2,9 @@ package graph
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/opensearch"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/store"
 	"os"
 	"strconv"
 	"testing"
@@ -449,7 +452,7 @@ func TestResolver_canAdminViewSession(t *testing.T) {
 	for _, v := range tests {
 		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 			ctx := context.Background()
-			r := &queryResolver{Resolver: &Resolver{DB: DB}}
+			r := &queryResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, &opensearch.Client{}, redis.NewClient())}}
 
 			w := model.Workspace{}
 			if err := DB.Create(&w).Error; err != nil {

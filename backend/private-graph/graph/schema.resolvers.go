@@ -3855,10 +3855,21 @@ func (r *queryResolver) Session(ctx context.Context, secureID string) (*model.Se
 	}
 	sessionObj := &model.Session{}
 	if err := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: s.ID}}).
-		Where("created_at > ?", retentionDate).
 		First(&sessionObj).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from session")
 	}
+
+	var excludedReason modelInputs.SessionExcludedReason
+	if sessionObj.WithinBillingQuota != nil && !*sessionObj.WithinBillingQuota {
+		excludedReason = modelInputs.SessionExcludedReasonBillingQuotaExceeded
+		sessionObj.Excluded = true
+		sessionObj.ExcludedReason = &excludedReason
+	} else if sessionObj.CreatedAt.Before(retentionDate) {
+		excludedReason = modelInputs.SessionExcludedReasonRetentionPeriodExceeded
+		sessionObj.Excluded = true
+		sessionObj.ExcludedReason = &excludedReason
+	}
+
 	return sessionObj, nil
 }
 
@@ -7467,6 +7478,15 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 	}
 
 	return insight, nil
+}
+
+// SystemConfiguration is the resolver for the system_configuration field.
+func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemConfiguration, error) {
+	var config model.SystemConfiguration
+	if err := r.DB.Model(&config).Where(&model.SystemConfiguration{Active: true}).Take(&config).Error; err != nil {
+		return nil, err
+	}
+	return &config, nil
 }
 
 // Params is the resolver for the params field.

@@ -17,7 +17,7 @@ const ResourceDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 		{
 			title: 'Status Page',
 			icon: <Icons.HiCloud className={styles.copyOnLight} />,
-			link: 'https://highlight.hyperping.io/',
+			link: 'https://status.highlight.io/',
 		},
 		{
 			title: 'Community',
@@ -27,17 +27,19 @@ const ResourceDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 		{
 			title: 'Changelog',
 			icon: <Icons.HiClipboardList className={styles.copyOnLight} />,
-			link: 'https://www.highlight.io/docs/general/changelog/overview',
+			link: '/docs/general/changelog/overview',
 		},
 		{
 			title: 'Blog',
 			icon: <Icons.HiChat className={styles.copyOnLight} />,
-			link: 'https://highlight.io/blog',
+			link: '/blog',
+			sameTab: true,
 		},
 		{
 			title: 'Frameworks',
 			icon: <BsCodeSlash className={styles.copyOnLight} />,
 			link: '/frameworks',
+			sameTab: true,
 		},
 		{
 			title: 'Our Competitors',

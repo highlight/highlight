@@ -150,7 +150,7 @@ const Home: NextPage = () => {
 
 	return (
 		<div>
-			<Navbar hideBanner />
+			<Navbar />
 			<main>
 				<Section className={styles.heroVideoWrapper}>
 					<AnimateBugLeft loaded={leftBugLoaded && rightBugLoaded}>

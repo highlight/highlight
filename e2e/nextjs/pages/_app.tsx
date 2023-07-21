@@ -1,9 +1,19 @@
 // pages/_app.tsx
 import { AppProps } from 'next/app'
 import CONSTANTS from '@/app/constants'
+import { H } from 'highlight.run'
 import { HighlightInit } from '@highlight-run/next/highlight-init'
+import { useEffect } from 'react'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
+	useEffect(() => {
+		H.identify('chris.esplin@highlight.io', {
+			highlightDisplayName: 'Chris Esplin',
+			accountType: 'fake',
+			hasUsedFeature: true,
+		})
+	}, [])
+
 	return (
 		<>
 			<HighlightInit
@@ -13,10 +23,15 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 					enabled: true,
 					recordHeadersAndBody: true,
 				}}
+				// inlineImages={true} // Set to false to disable inline images and resolve CORS issue
+				// run `yarn dev` from the sdk/client directory to serve the scriptUrl
+				scriptUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_SCRIPT_URL}
 				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
 			/>
 
 			<Component {...pageProps} />
+
+			<img src="https://i.travelapi.com/lodging/11000000/10140000/10130300/10130300/c9095011_z.jpg" />
 		</>
 	)
 }

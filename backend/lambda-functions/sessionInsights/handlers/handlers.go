@@ -1,14 +1,19 @@
 package handlers
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image/png"
 	"io"
 	"os"
+	"strconv"
 	"time"
 
+	"github.com/disintegration/imaging"
 	"github.com/openlyinc/pointy"
 	log "github.com/sirupsen/logrus"
 
@@ -75,21 +80,37 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 
 	var interestingSessionsSql []utils.InterestingSessionSql
 	if err := h.db.Raw(`
-		SELECT s.identifier, s.user_properties, s.fingerprint, s.country, s.active_length, s.secure_id, s.id
+		SELECT a.*, (
+			SELECT FLOOR(AVG(chunk_index)) 
+			AS chunk_index 
+			FROM event_chunks 
+			WHERE session_id = a.id)
+		FROM
+		(SELECT s.identifier, s.user_properties, s.fingerprint, s.country, s.active_length, s.secure_id, s.id, s.event_counts
 		FROM sessions s
-		WHERE s.project_id = ?
-		AND s.created_at >= ?
-		AND s.created_at < ?
-		AND NOT s.excluded
-		AND s.processed
-		AND s.within_billing_quota
+		WHERE s.id in
+			(SELECT DISTINCT ON (s.fingerprint) s.id
+			FROM sessions s
+			WHERE s.project_id = ?
+			AND s.created_at >= ?
+			AND s.created_at < ?
+			AND NOT s.excluded
+			AND s.processed
+			AND s.within_billing_quota
+			AND s.normalness IS NOT NULL
+			AND s.normalness > 0
+			ORDER BY s.fingerprint, s.normalness)
 		ORDER BY s.normalness
-		LIMIT 3
+		LIMIT 3) a
 	`, input.ProjectId, input.Start, input.End).Scan(&interestingSessionsSql).Error; err != nil {
 		return nil, errors.Wrap(err, "error querying interesting sessions")
 	}
 
 	interestingSessions := []utils.InterestingSession{}
+	if len(interestingSessionsSql) != 3 {
+		return nil, errors.New(fmt.Sprintf("expected 3 interesting sessions, returned %d", len(interestingSessionsSql)))
+	}
+
 	for _, item := range interestingSessionsSql {
 		insightStrs := []string{}
 		if result.AiInsights {
@@ -100,29 +121,25 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 			var insights []insightType
 
 			res, err := h.lambdaClient.GetSessionInsight(ctx, input.ProjectId, item.Id)
-			if err == nil && res.StatusCode == 200 {
-				b, err := io.ReadAll(res.Body)
-				if err != nil {
-					return nil, err
-				}
-				if err := json.Unmarshal(b, &insight); err != nil {
-					return nil, err
-				}
-				if err := json.Unmarshal([]byte(insight.Insight), &insights); err != nil {
-					return nil, err
-				}
-				for _, i := range insights {
-					insightStrs = append(insightStrs, i.Insight)
-				}
-			} else {
-				if err != nil {
-					log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": item.Id}).
-						Warnf("failed to get session insight with error %#v ", err)
+			if err != nil {
+				return nil, err
+			}
+			if res.StatusCode != 200 {
+				return nil, errors.New(fmt.Sprintf("session insight lambda returned %d", res.StatusCode))
+			}
 
-				} else if res.StatusCode != 200 {
-					log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": item.Id}).
-						Warnf("failed to get session insight with status code %d", res.StatusCode)
-				}
+			b, err := io.ReadAll(res.Body)
+			if err != nil {
+				return nil, err
+			}
+			if err := json.Unmarshal(b, &insight); err != nil {
+				return nil, err
+			}
+			if err := json.Unmarshal([]byte(insight.Insight), &insights); err != nil {
+				return nil, err
+			}
+			for _, i := range insights {
+				insightStrs = append(insightStrs, i.Insight)
 			}
 		}
 
@@ -134,6 +151,8 @@ func (h *handlers) GetSessionInsightsData(ctx context.Context, input utils.Proje
 			Url:          formatSessionURL(input.ProjectId, item.SecureId),
 			Id:           item.Id,
 			Insights:     insightStrs,
+			ChunkIndex:   item.ChunkIndex,
+			EventCounts:  item.EventCounts,
 		})
 	}
 
@@ -234,31 +253,53 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 	}
 
 	if input.DryRun {
+		fmt.Printf("%#v\n", toAddrs)
 		toAddrs = []struct {
 			AdminID int
 			Email   string
 		}{{AdminID: 5141, Email: "zane@highlight.io"}}
 	}
 
-	images := map[int]string{}
+	images := map[string]string{}
 	for idx, session := range input.InterestingSessions {
-		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, pointy.Int(1), pointy.Int(0), nil)
+		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, pointy.Int(1000000), pointy.Int(session.ChunkIndex), nil)
 		if err != nil {
-			log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
-				Warnf("failed to get session screenshot with error %#v", err)
-			continue
+			return err
 		}
 		if res.StatusCode != 200 {
-			log.WithContext(ctx).WithFields(log.Fields{"project_id": input.ProjectId, "session_id": session.Id}).
-				Warnf("failed to get session screenshot with status code %d", res.StatusCode)
-			continue
+			return errors.New(fmt.Sprintf("session screenshot lambda returned %d", res.StatusCode))
 		}
 		imageBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
-		images[session.Id] = base64.StdEncoding.EncodeToString(imageBytes)
+
+		// Resize the image to 2x what's shown in the email,
+		// preserving aspect ratio and cropping centered at the top
+		src, _ := png.Decode(bytes.NewReader(imageBytes))
+		dstImageFill := imaging.Fill(src, 1136, 620, imaging.Top, imaging.Lanczos)
+		var b bytes.Buffer
+		output := bufio.NewWriter(&b)
+		if err := png.Encode(output, dstImageFill); err != nil {
+			return err
+		}
+
+		images["session"+strconv.Itoa(session.Id)] = base64.StdEncoding.EncodeToString(b.Bytes())
 		input.InterestingSessions[idx].ScreenshotUrl = fmt.Sprintf("cid:session%d", session.Id)
+
+		res, err = h.lambdaClient.GetActivityGraph(ctx, session.EventCounts)
+		if err != nil {
+			return err
+		}
+		if res.StatusCode != 200 {
+			return errors.New(fmt.Sprintf("activity graph lambda returned %d", res.StatusCode))
+		}
+		imageBytes, err = io.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+		images["activity"+strconv.Itoa(session.Id)] = base64.StdEncoding.EncodeToString(imageBytes)
+		input.InterestingSessions[idx].ActivityGraphUrl = fmt.Sprintf("cid:activity%d", session.Id)
 	}
 
 	for _, toAddr := range toAddrs {
@@ -277,14 +318,14 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 		subject := fmt.Sprintf("[Highlight] Session Insights - %s", input.ProjectName)
 		m := mail.NewV3MailInit(from, subject, to, mail.NewContent("text/html", html))
 
-		for sessionId, img := range images {
-			log.WithContext(ctx).Infof("attaching image for session %d", sessionId)
+		for imageId, img := range images {
+			log.WithContext(ctx).Infof("attaching image %s", imageId)
 			a := mail.NewAttachment()
 			a.SetContent(img)
 			a.SetType("image/png")
-			a.SetFilename(fmt.Sprintf("session-image-%d.png", sessionId))
+			a.SetFilename(fmt.Sprintf("%s.png", imageId))
 			a.SetDisposition("inline")
-			a.SetContentID(fmt.Sprintf("session%d", sessionId))
+			a.SetContentID(imageId)
 			m.AddAttachment(a)
 		}
 

@@ -5344,6 +5344,7 @@ export const GetSessionDocument = gql`
 			payload_size
 			processed
 			excluded
+			excluded_reason
 			has_rage_clicks
 			has_errors
 			within_billing_quota
@@ -13030,6 +13031,62 @@ export type GetWorkspaceSettingsLazyQueryHookResult = ReturnType<
 export type GetWorkspaceSettingsQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceSettingsQuery,
 	Types.GetWorkspaceSettingsQueryVariables
+>
+export const GetSystemConfigurationDocument = gql`
+	query GetSystemConfiguration {
+		system_configuration {
+			maintenance_start
+			maintenance_end
+		}
+	}
+`
+
+/**
+ * __useGetSystemConfigurationQuery__
+ *
+ * To run a query within a React component, call `useGetSystemConfigurationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSystemConfigurationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSystemConfigurationQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetSystemConfigurationQuery(
+	baseOptions?: Apollo.QueryHookOptions<
+		Types.GetSystemConfigurationQuery,
+		Types.GetSystemConfigurationQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetSystemConfigurationQuery,
+		Types.GetSystemConfigurationQueryVariables
+	>(GetSystemConfigurationDocument, baseOptions)
+}
+export function useGetSystemConfigurationLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetSystemConfigurationQuery,
+		Types.GetSystemConfigurationQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetSystemConfigurationQuery,
+		Types.GetSystemConfigurationQueryVariables
+	>(GetSystemConfigurationDocument, baseOptions)
+}
+export type GetSystemConfigurationQueryHookResult = ReturnType<
+	typeof useGetSystemConfigurationQuery
+>
+export type GetSystemConfigurationLazyQueryHookResult = ReturnType<
+	typeof useGetSystemConfigurationLazyQuery
+>
+export type GetSystemConfigurationQueryResult = Apollo.QueryResult<
+	Types.GetSystemConfigurationQuery,
+	Types.GetSystemConfigurationQueryVariables
 >
 export const GetErrorObjectsDocument = gql`
 	query GetErrorObjects(

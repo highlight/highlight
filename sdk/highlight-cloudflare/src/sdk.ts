@@ -1,11 +1,11 @@
 /* Required to patch missing performance API in Cloudflare Workers. */
 import 'opentelemetry-sdk-workers/performance'
 
-import { WorkersSDK } from 'opentelemetry-sdk-workers'
-import { Resource } from '@opentelemetry/resources'
-import { OTLPProtoTraceExporter } from 'opentelemetry-sdk-workers/exporters/OTLPProtoTraceExporter'
 import { OTLPProtoLogExporter } from 'opentelemetry-sdk-workers/exporters/OTLPProtoLogExporter'
+import { OTLPProtoTraceExporter } from 'opentelemetry-sdk-workers/exporters/OTLPProtoTraceExporter'
+import { Resource } from '@opentelemetry/resources'
 import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
+import { WorkersSDK } from 'opentelemetry-sdk-workers'
 
 const HIGHLIGHT_PROJECT_ENV = 'HIGHLIGHT_PROJECT_ID'
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
@@ -63,8 +63,17 @@ export const H: HighlightInterface = {
 				['highlight.trace_id']: requestID,
 			}),
 		})
+
 		for (const m of RECORDED_CONSOLE_METHODS) {
-			console[m] = sdk.logger[m]
+			const originalConsoleMethod = console[m]
+
+			console[m] = (message: string, ...args: unknown[]) => {
+				sdk.logger[m].apply(sdk.logger, [message, ...args])
+				originalConsoleMethod.apply(originalConsoleMethod, [
+					message,
+					...args,
+				])
+			}
 		}
 		return sdk
 	},
@@ -77,6 +86,7 @@ export const H: HighlightInterface = {
 			)
 			return
 		}
+		console.log('H.consumeError', error)
 		sdk.captureException(error)
 	},
 

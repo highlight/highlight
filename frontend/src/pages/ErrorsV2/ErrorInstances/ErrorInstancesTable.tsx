@@ -11,6 +11,7 @@ import { createSearchParams } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { Link } from '@/components/Link'
+import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
 import { ErrorObjectEdge } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
@@ -22,6 +23,7 @@ const toYearMonthDay = (timestamp: string) => {
 
 type Props = {
 	edges: ErrorObjectEdge[]
+	searchedEmail: string
 }
 
 function truncateVersion(version: string) {
@@ -33,7 +35,7 @@ function truncateVersion(version: string) {
 	}
 }
 
-export const ErrorInstancesTable = ({ edges }: Props) => {
+export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 	const { projectId } = useProjectId()
 	const { isLoggedIn } = useAuthContext()
 	const columnHelper = createColumnHelper<ErrorObjectEdge>()
@@ -73,14 +75,22 @@ export const ErrorInstancesTable = ({ edges }: Props) => {
 				const timestamp = getValue().timestamp
 				const session = getValue().session
 
-				let content = 'no session'
+				let content = <>no session</>
 				let sessionLink = ''
 
 				if (session) {
-					content =
-						session.email ??
-						session.fingerprint?.toString() ??
-						'(no value)'
+					if (session.email) {
+						content = (
+							<TextHighlighter
+								searchWords={[searchedEmail]}
+								textToHighlight={session.email}
+							/>
+						)
+					} else {
+						content = <>{session.fingerprint?.toString()}</> ?? (
+							<>(no value)</>
+						)
+					}
 					const params = createSearchParams({
 						tsAbs: timestamp,
 						[PlayerSearchParameters.errorId]: errorObjectId,

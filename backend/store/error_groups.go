@@ -23,20 +23,25 @@ type ListErrorObjectsParams struct {
 // Number of results per page
 const LIMIT = 10
 
+func (store *Store) PutEmbeddings(embeddings []*model.ErrorObjectEmbeddings) error {
+	return store.db.Model(&model.ErrorObjectEmbeddings{}).CreateInBatches(embeddings, 64).Error
+}
+
 func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErrorObjectsParams) (privateModel.ErrorObjectConnection, error) {
 
 	var errorObjects []model.ErrorObject
 
-	query := store.db.Debug().
-		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(LIMIT + 1)
+	query := store.db.Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(LIMIT + 1)
 
 	if params.Query != "" {
-		parsedQuery := queryparser.Parse(params.Query)
+		filters := queryparser.Parse(params.Query)
 
-		if parsedQuery["email"] != "" {
-			query.Joins("LEFT JOIN sessions ON error_objects.session_id = sessions.id").
-				Where("sessions.project_id = ?", errorGroup.ProjectID). // Attaching project id so we can utilize the composite index sessions
-				Where("sessions.email = ?", parsedQuery["email"])
+		if val, ok := filters.Attributes["email"]; ok {
+			if len(val) > 0 && val[0] != "" {
+				query.Joins("LEFT JOIN sessions ON error_objects.session_id = sessions.id").
+					Where("sessions.project_id = ?", errorGroup.ProjectID). // Attaching project id so we can utilize the composite index sessions
+					Where("sessions.email ILIKE ?", "%"+val[0]+"%")
+			}
 		}
 	}
 

@@ -22,17 +22,22 @@ type InterestingSessionSql struct {
 	ActiveLength   time.Duration `json:"activeLength"`
 	SecureId       string        `json:"secureId"`
 	Id             int           `json:"id"`
+	ChunkIndex     int           `json:"chunkIndex"`
+	EventCounts    string        `json:"eventCounts"`
 }
 
 type InterestingSession struct {
-	Identifier    string   `json:"identifier"`
-	AvatarUrl     string   `json:"avatarUrl"`
-	Country       string   `json:"country"`
-	ActiveLength  string   `json:"activeLength"`
-	Url           string   `json:"url"`
-	ScreenshotUrl string   `json:"screenshotUrl"`
-	Insights      []string `json:"insights"`
-	Id            int      `json:"id"`
+	Identifier       string   `json:"identifier"`
+	AvatarUrl        string   `json:"avatarUrl"`
+	Country          string   `json:"country"`
+	ActiveLength     string   `json:"activeLength"`
+	Url              string   `json:"url"`
+	ScreenshotUrl    string   `json:"screenshotUrl"`
+	ActivityGraphUrl string   `json:"activityGraphUrl"`
+	Insights         []string `json:"insights"`
+	Id               int      `json:"id"`
+	ChunkIndex       int      `json:"chunkIndex"`
+	EventCounts      string   `json:"eventCounts"`
 }
 
 type SessionInsightsData struct {

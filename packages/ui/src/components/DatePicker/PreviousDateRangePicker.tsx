@@ -168,7 +168,7 @@ export const getLabel = ({
 		return foundPreset.label
 	}
 
-	if (selectedDates.length == 2) {
+	if (selectedDates.length == 2 && selectedDates[1] && selectedDates[0]) {
 		const showYear =
 			selectedDates[1].getFullYear() > selectedDates[0].getFullYear()
 
