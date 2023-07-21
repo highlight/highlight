@@ -1,6 +1,5 @@
-import { Button } from '@components/Button'
 import { Maybe } from '@graph/schemas'
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Tag, Text } from '@highlight-run/ui'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { useEffect, useRef, useState } from 'react'
 
@@ -40,15 +39,14 @@ const ErrorBodyText = ({ errorBody }: Props) => {
 
 			{truncateable && (
 				<Box display="flex">
-					<Button
+					<Tag
 						onClick={() => setTruncated(!truncated)}
 						kind="secondary"
 						emphasis="medium"
-						size="xSmall"
-						trackingId="errorBodyToggleContent"
+						shape="basic"
 					>
 						Show {truncated ? 'more' : 'less'}
-					</Button>
+					</Tag>
 				</Box>
 			)}
 		</Box>
