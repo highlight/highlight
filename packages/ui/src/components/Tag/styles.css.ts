@@ -261,8 +261,6 @@ export const variants = recipe({
 				},
 			},
 		},
-		// NOTE: All gap values are increased by 1 to account for some spacing
-		// around text that we get in Figma.
 		{
 			variants: {
 				size: 'small',
