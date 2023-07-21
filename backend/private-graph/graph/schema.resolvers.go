@@ -225,11 +225,7 @@ func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObjec
 	if obj.SessionID == nil {
 		return nil, nil
 	}
-	session := &model.Session{}
-	if err := r.DB.Where("id = ?", obj.SessionID).Take(&session).Error; err != nil {
-		return nil, e.Wrap(err, "error reading session from error object")
-	}
-	return session, nil
+	return r.Store.GetSession(ctx, *obj.SessionID)
 }
 
 // Params is the resolver for the params field.
@@ -4015,7 +4011,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model.ErrorResults, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -4070,7 +4066,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -4586,12 +4582,12 @@ func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([
 func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model.WorkspaceAdminRole, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	return r.WorkspaceAdmins(ctx, workspace.ID)
@@ -5420,7 +5416,7 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	return r.BillingDetails(ctx, project.WorkspaceID)
@@ -6543,7 +6539,7 @@ func (r *queryResolver) WorkspaceSettings(ctx context.Context, workspaceID int) 
 func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) (*model.Workspace, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)

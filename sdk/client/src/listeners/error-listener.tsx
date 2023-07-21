@@ -14,14 +14,12 @@ function handleError(
 	error: Error,
 ) {
 	let res: ErrorStackParser.StackFrame[] = []
+	try {
+		res = ErrorStackParser.parse(error)
+	} catch {}
 
 	if (event instanceof Error) {
-		res = ErrorStackParser.parse(event)
 		event = event.message
-	} else {
-		try {
-			res = ErrorStackParser.parse(error)
-		} catch {} // @eslint-ignore
 	}
 	const framesToUse = removeHighlightFrameIfExists(res)
 	callback({

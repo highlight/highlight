@@ -1735,8 +1735,8 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*publicMo
 }
 
 func (r *Resolver) AddLegacyMetric(ctx context.Context, sessionID int, name string, value float64) (int, error) {
-	session := &model.Session{}
-	if err := r.DB.Model(&model.Session{}).Where("id = ?", sessionID).Take(&session).Error; err != nil {
+	session, err := r.Store.GetSession(ctx, sessionID)
+	if err != nil {
 		return -1, e.Wrapf(err, "error querying device metric session")
 	}
 	return r.SubmitMetricsMessage(ctx, []*publicModel.MetricInput{{
@@ -2090,13 +2090,11 @@ func (r *Resolver) RecordErrorGroupMetrics(ctx context.Context, errorGroup *mode
 			continue
 		}
 		if _, ok := sessions[*e.SessionID]; !ok {
-			var sess model.Session
-			if err := r.DB.Model(&model.Session{}).Where(
-				&model.Session{Model: model.Model{ID: *e.SessionID}},
-			).Take(&sess).Error; err != nil {
+			sess, err := r.Store.GetSession(ctx, *e.SessionID)
+			if err != nil {
 				return err
 			}
-			sessions[*e.SessionID] = &sess
+			sessions[*e.SessionID] = sess
 		}
 		tags := map[string]string{
 			"ErrorGroupID": strconv.Itoa(errorGroup.ID),
