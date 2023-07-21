@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/otel"
 	"github.com/highlight-run/highlight/backend/util"
 
 	model2 "github.com/highlight-run/highlight/backend/model"
@@ -95,9 +94,9 @@ func WithSecureSessionID(secureSessionID string) LogRowOption {
 	}
 }
 
-func WithLogAttributes(ctx context.Context, fields otel.HighlightFields, resourceAttributes, spanAttributes, eventAttributes map[string]any) LogRowOption {
+func WithLogAttributes(ctx context.Context, source modelInputs.LogSource, resourceAttributes, spanAttributes, eventAttributes map[string]any) LogRowOption {
 	return func(l *LogRow) {
-		l.LogAttributes = GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, fields.source == modelInputs.LogSourceFrontend)
+		l.LogAttributes = GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, source == modelInputs.LogSourceFrontend)
 	}
 }
 
