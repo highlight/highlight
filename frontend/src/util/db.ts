@@ -26,8 +26,9 @@ const getLocalStorage = function (): Storage | undefined {
 }
 
 export const isIndexedDBEnabled = function () {
-	console.log('indexedDBKillswitch', indexedDBKillswitch)
-	if (indexedDBKillswitch) return false
+	if (indexedDBKillswitch) {
+		return false
+	}
 
 	// disabled indexeddb altogether if we cannot read indexeddb memory usage
 	if (!navigator?.storage?.estimate) {
