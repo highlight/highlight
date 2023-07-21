@@ -927,7 +927,7 @@ type ErrorObject struct {
 type ErrorObjectEmbeddings struct {
 	Model
 	ErrorObjectID       int
-	TitleEmbedding      Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	EventEmbedding      Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
 	StackTraceEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
 	PayloadEmbedding    Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
 }
@@ -1568,6 +1568,9 @@ func (j *JSONB) Scan(value interface{}) error {
 type Vector []float32
 
 func (j Vector) Value() (driver.Value, error) {
+	if len(j) == 0 {
+		return nil, nil
+	}
 	valueString, err := json.Marshal(j)
 	return string(valueString), err
 }
