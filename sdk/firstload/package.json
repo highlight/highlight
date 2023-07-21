@@ -34,16 +34,16 @@
 		"typegen": "tsc && node scripts/replace-client-imports.mjs"
 	},
 	"type": "module",
-	"main": "./dist/index.es.js",
-	"unpkg": "./dist/index.umd.js",
-	"jsdelivr": "./dist/index.umd.js",
+	"main": "./dist/index.js",
+	"unpkg": "./dist/index.umd.cjs",
+	"jsdelivr": "./dist/index.umd.cjs",
 	"types": "./dist/firstload/src/index.d.ts",
 	"exports": {
 		"types": "./dist/firstload/src/index.d.ts",
-		"import": "./dist/index.es.js",
+		"import": "./dist/index.js",
 		"require": "./dist/index.cjs",
 		"node": "./dist/index.cjs",
-		"default": "./dist/index.es.js"
+		"default": "./dist/index.js"
 	},
 	"files": [
 		"dist"
