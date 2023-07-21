@@ -18,3 +18,4 @@ scripts/venv
 **/.eslintrc.json
 .yarnrc.yml
 __generated
+.reflame.config.jsonc
