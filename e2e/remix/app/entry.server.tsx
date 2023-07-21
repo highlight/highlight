@@ -11,11 +11,14 @@ import { RemixServer } from '@remix-run/react'
 import { Response } from '@remix-run/node'
 import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
-import { initHighlight } from '~/utils/init-highlight'
+import { CONSTANTS } from '~/constants'
+import { H } from '@highlight-run/node'
+
+export { handleError } from '@highlight-run/remix'
 
 const ABORT_DELAY = 5_000
 
-initHighlight()
+H.init({ projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID })
 
 export default function handleRequest(
 	request: Request,

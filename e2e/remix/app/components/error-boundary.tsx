@@ -3,8 +3,6 @@ import { ReportDialog } from '@highlight-run/remix'
 
 import { CONSTANTS } from '~/constants'
 
-import { H } from 'highlight.run'
-
 export function ErrorBoundary() {
 	const error = useRouteError()
 
@@ -18,8 +16,6 @@ export function ErrorBoundary() {
 			</div>
 		)
 	} else if (error instanceof Error) {
-		H.consumeError(error)
-
 		return (
 			<div>
 				<script src="https://unpkg.com/highlight.run"></script>
@@ -35,7 +31,7 @@ export function ErrorBoundary() {
 				<p>The stack trace is:</p>
 				<pre>{error.stack}</pre>
 
-				{typeof window === 'object' ? <ReportDialog /> : null}
+				<ReportDialog />
 			</div>
 		)
 	} else {

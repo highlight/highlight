@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-	entry: ['src/index.ts', 'src/highlight-init.tsx'],
+	entry: ['src/index.tsx', 'src/highlight-init.tsx'],
 	format: ['cjs', 'esm'],
 	minify: 'terser',
 	dts: true,
