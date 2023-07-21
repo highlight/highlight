@@ -6533,12 +6533,7 @@ func (r *queryResolver) WorkspaceSettings(ctx context.Context, workspaceID int) 
 		return nil, err
 	}
 
-	workspaceSettings := model.AllWorkspaceSettings{}
-	if err := r.DB.Where(model.AllWorkspaceSettings{WorkspaceID: workspaceID}).FirstOrCreate(&workspaceSettings).Error; err != nil {
-		return nil, err
-	}
-
-	return &workspaceSettings, nil
+	return r.Store.GetAllWorkspaceSettings(workspaceID)
 }
 
 // WorkspaceForProject is the resolver for the workspace_for_project field.
