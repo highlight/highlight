@@ -13218,6 +13218,7 @@ __metadata:
     "@highlight-run/react": "workspace:*"
     "@remix-run/react": ^1.18.1
     highlight.run: "workspace:*"
+    js-cookie: ^3.0.5
     tsup: ^7.1.0
     typescript: ^5.1.6
   peerDependencies:
@@ -41977,6 +41978,13 @@ __metadata:
   version: 3.0.1
   resolution: "js-cookie@npm:3.0.1"
   checksum: bb48de67e2a6bd1ae3dfd6b2d5a167c33dd0c5a37e909206161eb0358c98f17cb55acd55827a58e9eea3630d89444e7479f7938ef4420dda443218b8c434a4c3
+  languageName: node
+  linkType: hard
+
+"js-cookie@npm:^3.0.5":
+  version: 3.0.5
+  resolution: "js-cookie@npm:3.0.5"
+  checksum: 2dbd2809c6180fbcf060c6957cb82dbb47edae0ead6bd71cbeedf448aa6b6923115003b995f7d3e3077bfe2cb76295ea6b584eb7196cca8ba0a09f389f64967a
   languageName: node
   linkType: hard
 

@@ -8,6 +8,7 @@
 	"files": [
 		"dist",
 		"highlight-init.d.ts",
+		"handle-error.d.ts",
 		"index.d.ts"
 	],
 	"exports": {
@@ -20,6 +21,11 @@
 			"types": "./dist/highlight-init.d.ts",
 			"import": "./dist/highlight-init.mjs",
 			"require": "./dist/highlight-init.js"
+		},
+		"./handle-error": {
+			"types": "./dist/handle-error.d.ts",
+			"import": "./dist/handle-error.mjs",
+			"require": "./dist/handle-error.js"
 		}
 	},
 	"scripts": {
@@ -33,7 +39,8 @@
 	},
 	"dependencies": {
 		"@highlight-run/react": "workspace:*",
-		"highlight.run": "workspace:*"
+		"highlight.run": "workspace:*",
+		"js-cookie": "^3.0.5"
 	},
 	"devDependencies": {
 		"@remix-run/react": "^1.18.1",

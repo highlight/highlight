@@ -2,6 +2,7 @@ import {
 	AmplitudeAPI,
 	setupAmplitudeIntegration,
 } from './integrations/amplitude'
+import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys'
 import type {
 	Highlight,
 	HighlightClassOptions,
@@ -20,7 +21,10 @@ import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
 import { HighlightSegmentMiddleware } from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
 import firstloadVersion from './__generated/version'
-import { getPreviousSessionData } from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
+import {
+	SessionData,
+	getPreviousSessionData,
+} from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
 import { initializeFetchListener } from './listeners/fetch'
 import { initializeWebSocketListener } from './listeners/web-socket'
 import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
@@ -75,9 +79,26 @@ const H: HighlightPublicInterface = {
 				return
 			}
 
+			let previousSession = getPreviousSessionData()
+			let sessionSecureID = GenerateSecureID()
+			if (previousSession?.sessionSecureID) {
+				sessionSecureID = previousSession.sessionSecureID
+			} else {
+				const sessionData: SessionData = {
+					...previousSession,
+					projectID: +projectID,
+					sessionSecureID,
+				}
+
+				window.sessionStorage.setItem(
+					SESSION_STORAGE_KEYS.SESSION_DATA,
+					JSON.stringify(sessionData),
+				)
+			}
+
 			// `init` was already called, do not reinitialize
 			if (init_called) {
-				return
+				return { sessionSecureID }
 			}
 			init_called = true
 
@@ -89,11 +110,6 @@ const H: HighlightPublicInterface = {
 			script.setAttribute('type', 'text/javascript')
 			document.getElementsByTagName('head')[0].appendChild(script)
 
-			let previousSession = getPreviousSessionData()
-			let sessionSecureID = GenerateSecureID()
-			if (previousSession?.sessionSecureID) {
-				sessionSecureID = previousSession.sessionSecureID
-			}
 			const client_options: HighlightClassOptions = {
 				organizationID: projectID,
 				debug: options?.debug,
@@ -162,6 +178,8 @@ const H: HighlightPublicInterface = {
 			) {
 				setupAmplitudeIntegration(options.integrations.amplitude)
 			}
+
+			return { sessionSecureID }
 		} catch (e) {
 			HighlightWarning('init', e)
 		}

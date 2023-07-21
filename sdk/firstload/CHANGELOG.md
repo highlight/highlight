@@ -318,8 +318,10 @@ Reserved for the Boeing 737
 
 - Fix recording of WebGL2 `<canvas>` elements that leverage `preserveDrawingBuffer: false`
 
-## 7.3.10
+## 7.4.0
 
 ### Patch Changes
 
 - Link `node` and `require` imports to `index.cjs` rather than `index.cjs.js`
+- Return `{ sessionSecureID }` from `H.init` for consumption by Remix SDK
+- Persist `sessionSecureID` to `sessionStorage`

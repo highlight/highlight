@@ -13,12 +13,15 @@ import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
 import { CONSTANTS } from '~/constants'
 import { H } from '@highlight-run/node'
+import { HandleError } from '@highlight-run/remix/handle-error'
 
-export { handleError } from '@highlight-run/remix'
+const nodeOptions = { projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID }
+
+export const handleError = HandleError(nodeOptions)
+
+H.init(nodeOptions) // TODO: Determine if this H.init is even necessary after HandleError
 
 const ABORT_DELAY = 5_000
-
-H.init({ projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID })
 
 export default function handleRequest(
 	request: Request,
