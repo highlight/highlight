@@ -101,7 +101,7 @@ const DayFive = () => {
 				</Link>
 
 				<Link
-					href="/blog/interesting-sessions"
+					href="https://www.youtube.com/@highlight-io"
 					className={classNames(
 						'h-1/2 max-h-[350px] md:max-h-[450px] md:w-1/3 lg:w-1/4 hover:border-[#9479D9] cursor-pointer',
 						styles.gridItem,
