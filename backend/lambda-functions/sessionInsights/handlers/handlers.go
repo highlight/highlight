@@ -277,7 +277,7 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 		// Resize the image to 2x what's shown in the email,
 		// preserving aspect ratio and cropping centered at the top
 		src, _ := png.Decode(bytes.NewReader(imageBytes))
-		dstImageFill := imaging.Fill(src, 1136, 620, imaging.Top, imaging.Lanczos)
+		dstImageFill := imaging.Fill(src, 852, 465, imaging.Top, imaging.Lanczos)
 		var b bytes.Buffer
 		output := bufio.NewWriter(&b)
 		if err := png.Encode(output, dstImageFill); err != nil {

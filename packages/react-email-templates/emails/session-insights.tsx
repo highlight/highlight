@@ -37,7 +37,7 @@ export interface SessionInsightsEmailProps {
 const sessionExample = {
 	url: 'https://app.highlight.io/1/sessions/123',
 	identifier: 'jay@highlight.io',
-	screenshotUrl: '',
+	screenshotUrl: 'https://zane.test/404',
 	activityGraphUrl:
 		'https://static.highlight.io/assets/session-insights/activity.png',
 	avatarUrl:
@@ -87,7 +87,7 @@ export const SessionInsightsEmail = ({
 					Session Insights
 				</Heading>
 				<Text style={subtitleText}>
-					Here are 3 interesting sessions recorded in your project
+					Here are 3 interesting* sessions recorded in your project
 					this week:
 				</Text>
 				<Hr style={hr} />
@@ -173,6 +173,17 @@ export const SessionInsightsEmail = ({
 						<Hr style={hr} />
 					</>
 				))}
+				<Text style={paragraph}>
+					* These are sessions with unusual user journeys. You can
+					read more about our methodology{' '}
+					<Link
+						style={anchor}
+						href="https://www.highlight.io/blog/interesting-sessions"
+					>
+						here
+					</Link>
+					.
+				</Text>
 				{!useHarold && (
 					<Text style={paragraph}>
 						Your workspace has AI insights turned off. If you would
@@ -284,7 +295,7 @@ const numberLabel = {
 
 const sessionScreenshot = {
 	backgroundImage:
-		'url("https://static.highlight.io/assets/session-insights/session.png")',
+		'url("https://static.highlight.io/assets/session-insights/session3.png")',
 	borderRadius: '6px',
 	objectFit: 'cover' as const,
 	width: '568px',
