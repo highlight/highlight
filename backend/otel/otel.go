@@ -439,13 +439,6 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					clickhouse.WithSource(fields.source),
 				)
 
-				logRow, err := getLogRow(ctx, logRecord.Timestamp().AsTime(), logRecord.SeverityText(), fields.projectID, fields.sessionID, fields.requestID, logRecord.TraceID().String(), logRecord.SpanID().String(), logRecord.Body().Str(), resourceAttributes, scopeAttributes, logAttributes, fields.source, fields.serviceName)
-
-				if err != nil {
-					lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, scopeAttributes, logAttributes).Errorf("otel log got invalid log record")
-					continue
-				}
-
 				if fields.projectID != "" {
 					if _, ok := projectLogs[fields.projectID]; !ok {
 						projectLogs[fields.projectID] = []*clickhouse.LogRow{}
