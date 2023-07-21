@@ -39,12 +39,12 @@ type Handler struct {
 
 var fluentProjectPattern = regexp.MustCompile(fmt.Sprintf(`%s=([\S]+)`, highlight.ProjectIDAttribute))
 
-func lg(ctx context.Context, projectID, sessionID, traceID string, source modelInputs.LogSource, resourceAttrs, spanAttrs, eventAttrs map[string]any) *log.Entry {
+func lg(ctx context.Context, fields HighlightFields, resourceAttrs, spanAttrs, eventAttrs map[string]any) *log.Entry {
 	return log.WithContext(ctx).
-		WithField("project_id", projectID).
-		WithField("session_id", sessionID).
-		WithField("trace_id", traceID).
-		WithField("source", source).
+		WithField("project_id", fields.projectID).
+		WithField("session_id", fields.sessionID).
+		WithField("request_id", fields.requestID).
+		WithField("source", fields.source).
 		WithField("resource_attributes", resourceAttrs).
 		WithField("span_attributes", spanAttrs).
 		WithField("event_attributes", eventAttrs)
@@ -135,43 +135,43 @@ func getHighlightFields(attrs map[string]any) (HighlightFields, error) {
 	return fields, nil
 }
 
-func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, requestID, traceID, spanID string, logCursor *string, excMessage string, source modelInputs.LogSource, host string, resourceAttributes, spanAttributes, eventAttributes map[string]any) (bool, *model.BackendErrorObjectInput) {
-	excType := cast(eventAttributes[string(semconv.ExceptionTypeKey)], source.String())
-	errorUrl := cast(eventAttributes[highlight.ErrorURLAttribute], source.String())
+func getBackendError(ctx context.Context, ts time.Time, fields HighlightFields, traceID, spanID string, logCursor *string, excMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any) (bool, *model.BackendErrorObjectInput) {
+	excType := cast(eventAttributes[string(semconv.ExceptionTypeKey)], fields.source.String())
+	errorUrl := cast(eventAttributes[highlight.ErrorURLAttribute], fields.source.String())
 	stackTrace := cast(eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
 	if excType == "" && excMessage == "" {
-		lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).Error("otel received exception with no type and no message")
+		lg(ctx, fields, resourceAttributes, spanAttributes, eventAttributes).Error("otel received exception with no type and no message")
 		return false, nil
 	} else if stackTrace == "" || stackTrace == "null" {
-		lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).Warn("otel received exception with no stacktrace")
+		lg(ctx, fields, resourceAttributes, spanAttributes, eventAttributes).Warn("otel received exception with no stacktrace")
 		stackTrace = ""
 	}
 	stackTrace = stacktraces.FormatStructureStackTrace(ctx, stackTrace)
 	payloadBytes, _ := json.Marshal(clickhouse.GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, false))
 	err := &model.BackendErrorObjectInput{
-		SessionSecureID: &sessionID,
-		RequestID:       &requestID,
+		SessionSecureID: &fields.sessionID,
+		RequestID:       &fields.requestID,
 		TraceID:         pointy.String(traceID),
 		SpanID:          pointy.String(spanID),
 		LogCursor:       logCursor,
 		Event:           excMessage,
 		Type:            excType,
-		Source:          source.String(),
+		Source:          fields.source.String(),
 		StackTrace:      stackTrace,
 		Timestamp:       ts,
 		Payload:         pointy.String(string(payloadBytes)),
 		URL:             errorUrl,
 	}
-	if sessionID != "" {
+	if fields.sessionID != "" {
 		return false, err
-	} else if projectID != "" {
+	} else if fields.projectID != "" {
 		return true, err
 	} else {
 		return false, nil
 	}
 }
 
-func getMetric(ctx context.Context, ts time.Time, projectID, sessionID, requestID, traceID, spanID string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source modelInputs.LogSource, service string) (*model.MetricInput, error) {
+func getMetric(ctx context.Context, ts time.Time, fields HighlightFields, traceID, spanID string, resourceAttributes, spanAttributes, eventAttributes map[string]any) (*model.MetricInput, error) {
 	name, ok := eventAttributes[highlight.MetricEventName].(string)
 	if !ok {
 		return nil, e.New("otel received metric with no name")
@@ -182,11 +182,11 @@ func getMetric(ctx context.Context, ts time.Time, projectID, sessionID, requestI
 	}
 	attrs := clickhouse.GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, false)
 	return &model.MetricInput{
-		SessionSecureID: sessionID,
-		Group:           pointy.String(requestID),
+		SessionSecureID: fields.sessionID,
+		Group:           pointy.String(fields.requestID),
 		Name:            name,
 		Value:           value,
-		Category:        pointy.String(source.String()),
+		Category:        pointy.String(fields.source.String()),
 		Timestamp:       ts,
 		Tags: lo.Map(lo.Entries(attrs), func(t lo.Entry[string, string], i int) *model.MetricTag {
 			return &model.MetricTag{
@@ -252,7 +252,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 					fields, err := getHighlightFields(mergeMaps(resourceAttributes, spanAttributes, eventAttributes))
 					if err != nil {
-						lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to extract highlight fields")
+						lg(ctx, fields, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to extract highlight fields")
 					}
 
 					ts := event.Timestamp().AsTime()
@@ -269,7 +269,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithSpanID(spanID),
 							clickhouse.WithSecureSessionID(fields.sessionID),
 							clickhouse.WithBody(ctx, excMessage),
-							clickhouse.WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, fields.source == modelInputs.LogSourceFrontend),
+							clickhouse.WithLogAttributes(ctx, fields, resourceAttributes, spanAttributes, eventAttributes),
 							clickhouse.WithServiceName(fields.serviceName),
 							clickhouse.WithSeverityText("ERROR"),
 							clickhouse.WithSource(fields.source),
@@ -278,9 +278,9 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
 
-						isProjectError, backendError := getBackendError(ctx, ts, fields.projectID, fields.sessionID, fields.requestID, traceID, spanID, logCursor, excMessage, fields.source, fields.host, resourceAttributes, spanAttributes, eventAttributes)
+						isProjectError, backendError := getBackendError(ctx, ts, fields, traceID, spanID, logCursor, excMessage, resourceAttributes, spanAttributes, eventAttributes)
 						if backendError == nil {
-							lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, spanAttributes, eventAttributes).Error("otel span error got no session and no project")
+							lg(ctx, fields, resourceAttributes, spanAttributes, eventAttributes).Error("otel span error got no session and no project")
 						} else {
 							if isProjectError {
 								projectErrors[fields.projectID] = append(projectErrors[fields.projectID], backendError)
@@ -292,7 +292,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						logSev := cast(eventAttributes[string(hlog.LogSeverityKey)], "unknown")
 						logMessage := cast(eventAttributes[string(hlog.LogMessageKey)], "")
 						if logMessage == "" {
-							lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, spanAttributes, eventAttributes).Warn("otel received log with no message")
+							lg(ctx, fields, resourceAttributes, spanAttributes, eventAttributes).Warn("otel received log with no message")
 							continue
 						}
 
@@ -302,7 +302,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithSpanID(spanID),
 							clickhouse.WithSecureSessionID(fields.sessionID),
 							clickhouse.WithBody(ctx, logMessage),
-							clickhouse.WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, fields.source == modelInputs.LogSourceFrontend),
+							clickhouse.WithLogAttributes(ctx, fields, resourceAttributes, spanAttributes, eventAttributes),
 							clickhouse.WithServiceName(fields.serviceName),
 							clickhouse.WithSeverityText(logSev),
 							clickhouse.WithSource(fields.source),
@@ -310,15 +310,15 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 					} else if event.Name() == highlight.MetricEvent {
-						metric, err := getMetric(ctx, ts, fields.projectID, fields.sessionID, fields.requestID, traceID, spanID, resourceAttributes, spanAttributes, eventAttributes, fields.source, fields.serviceName)
+						metric, err := getMetric(ctx, ts, fields, traceID, spanID, resourceAttributes, spanAttributes, eventAttributes)
 						if err != nil {
-							lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create metric")
+							lg(ctx, fields, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create metric")
 							continue
 						}
 
 						traceMetrics[fields.sessionID] = append(traceMetrics[fields.sessionID], metric)
 					} else {
-						lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, spanAttributes, eventAttributes).Warnf("otel received unknown event %s", event.Name())
+						lg(ctx, fields, resourceAttributes, spanAttributes, eventAttributes).Warnf("otel received unknown event %s", event.Name())
 					}
 				}
 			}
@@ -424,7 +424,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 				fields, err := getHighlightFields(mergeMaps(resourceAttributes, logAttributes))
 				if err != nil {
-					lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, scopeAttributes, logAttributes).WithError(err).Error("failed to extract highlight fields")
+					lg(ctx, fields, resourceAttributes, scopeAttributes, logAttributes).WithError(err).Error("failed to extract highlight fields")
 				}
 
 				logRow := clickhouse.NewLogRow(
@@ -433,7 +433,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					clickhouse.WithSpanID(logRecord.SpanID().String()),
 					clickhouse.WithSecureSessionID(fields.sessionID),
 					clickhouse.WithBody(ctx, logRecord.Body().Str()),
-					clickhouse.WithLogAttributes(ctx, resourceAttributes, scopeAttributes, logAttributes, fields.source == modelInputs.LogSourceFrontend),
+					clickhouse.WithLogAttributes(ctx, fields, resourceAttributes, scopeAttributes, logAttributes),
 					clickhouse.WithServiceName(fields.serviceName),
 					clickhouse.WithSeverityText(logRecord.SeverityText()),
 					clickhouse.WithSource(fields.source),
@@ -445,7 +445,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					}
 					projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 				} else {
-					lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, scopeAttributes, logAttributes).Errorf("otel log got no project")
+					lg(ctx, fields, resourceAttributes, scopeAttributes, logAttributes).Errorf("otel log got no project")
 					continue
 				}
 			}
