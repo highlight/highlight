@@ -217,10 +217,12 @@ export const Search: React.FC<{
 	const store = useComboboxStore({
 		defaultValue: initialQuery ?? '',
 	})
+	const value = store.useState('value')
+
 	const [getLogsKeyValues, { data, loading: valuesLoading }] =
 		useGetLogsKeyValuesLazyQuery()
 
-	const queryTerms = parseLogsQuery(store.useState('value'))
+	const queryTerms = parseLogsQuery(value)
 	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
@@ -233,13 +235,13 @@ export const Search: React.FC<{
 
 	const visibleItems = showValues
 		? getVisibleValues(activeTerm, data?.logs_key_values)
-		: getVisibleKeys(store.useState('value'), queryTerms, activeTerm, keys)
+		: getVisibleKeys(value, queryTerms, activeTerm, keys)
 
 	// Limit number of items shown
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
 
 	const showResults = loading || visibleItems.length > 0 || showTermSelect
-	const isDirty = store.useState('value') !== ''
+	const isDirty = value !== ''
 
 	const submitQuery = (query: string) => {
 		formState.setValue('query', query)
@@ -279,17 +281,17 @@ export const Search: React.FC<{
 	useEffect(() => {
 		// links combobox and form states;
 		// necessary to update the URL when the query changes
-		formState.setValue('query', store.useState('value'))
+		formState.setValue('query', value)
 
 		// Clear the selected item if the combobox is empty. Need to flush execution
 		// queue before clearing the active item.
-		if (store.useState('value') === '') {
+		if (value === '') {
 			setTimeout(() => {
 				store.setActiveId(null)
 				// store.setMoves(0)
 			}, 0)
 		}
-	}, [formState, store])
+	}, [formState, store, value])
 
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
@@ -350,17 +352,14 @@ export const Search: React.FC<{
 						paddingLeft: hideIcon ? undefined : 40,
 					}}
 					onBlur={() => {
-						submitQuery(store.useState('value'))
-						formState.setValue('query', store.useState('value'))
+						submitQuery(value)
+						formState.setValue('query', value)
 						inputRef?.current?.blur()
 					}}
 					onKeyDown={(e) => {
-						if (
-							e.key === 'Enter' &&
-							store.useState('value') === ''
-						) {
+						if (e.key === 'Enter' && value === '') {
 							e.preventDefault()
-							submitQuery(store.useState('value'))
+							submitQuery(value)
 							store.setOpen(false)
 						}
 					}}
