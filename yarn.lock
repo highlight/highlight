@@ -611,6 +611,39 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ariakit/core@npm:0.2.7":
+  version: 0.2.7
+  resolution: "@ariakit/core@npm:0.2.7"
+  checksum: 0953cbc5f968e04848a39fc5f22d5d10a633ec7ccfb52b92bc2a5f5624c2ee0e478147999944aee0348bcfa8df1c9b8909e2ccecd9bc366e027af00bb3ac422c
+  languageName: node
+  linkType: hard
+
+"@ariakit/react-core@npm:0.2.12":
+  version: 0.2.12
+  resolution: "@ariakit/react-core@npm:0.2.12"
+  dependencies:
+    "@ariakit/core": 0.2.7
+    "@floating-ui/dom": ^1.0.0
+    use-sync-external-store: ^1.2.0
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+  checksum: f90bb4f4aa15a0b4764b09dc71e167362e6f552d6d232efa8cd02caa2ce81450d4a63e1a986f6eb5fe74de9f1905a3a71dde0476023bfa8c681888ec92dd5afc
+  languageName: node
+  linkType: hard
+
+"@ariakit/react@npm:^0.2.12":
+  version: 0.2.12
+  resolution: "@ariakit/react@npm:0.2.12"
+  dependencies:
+    "@ariakit/react-core": 0.2.12
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+  checksum: 357a54e452471cbec534d61d6d9bdb8977ca1a56b60d55eb4f67373bcc228a9ced77376222748051b383b5a87f71b31415b65476fb7bcbdd6efd735a319fee56
+  languageName: node
+  linkType: hard
+
 "@aws-crypto/crc32@npm:2.0.0":
   version: 2.0.0
   resolution: "@aws-crypto/crc32@npm:2.0.0"
@@ -13407,6 +13440,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@highlight-run/ui@workspace:packages/ui"
   dependencies:
+    "@ariakit/react": ^0.2.12
     "@babel/core": ^7.19.3
     "@capsizecss/core": ^3.0.0
     "@capsizecss/metrics": ^0.3.0

@@ -18,6 +18,7 @@
 		"tokens:generate": "npx ts-node-esm ./scripts/generate-tokens.ts"
 	},
 	"dependencies": {
+		"@ariakit/react": "^0.2.12",
 		"@rehookify/datepicker": "^4.1.5",
 		"@vanilla-extract/css": "^1.9.2",
 		"@vanilla-extract/recipes": "^0.2.5",

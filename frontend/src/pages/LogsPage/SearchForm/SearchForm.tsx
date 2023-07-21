@@ -14,7 +14,7 @@ import {
 	PreviousDateRangePicker,
 	Stack,
 	Text,
-	useComboboxState,
+	useComboboxStore,
 	useForm,
 	useFormState,
 } from '@highlight-run/ui'
@@ -214,15 +214,13 @@ export const Search: React.FC<{
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const inputRef = useRef<HTMLInputElement | null>(null)
-	const state = useComboboxState({
-		gutter: 10,
-		sameWidth: true,
+	const store = useComboboxStore({
 		defaultValue: initialQuery ?? '',
 	})
 	const [getLogsKeyValues, { data, loading: valuesLoading }] =
 		useGetLogsKeyValuesLazyQuery()
 
-	const queryTerms = parseLogsQuery(state.value)
+	const queryTerms = parseLogsQuery(store.useState('value'))
 	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
@@ -235,13 +233,13 @@ export const Search: React.FC<{
 
 	const visibleItems = showValues
 		? getVisibleValues(activeTerm, data?.logs_key_values)
-		: getVisibleKeys(state.value, queryTerms, activeTerm, keys)
+		: getVisibleKeys(store.useState('value'), queryTerms, activeTerm, keys)
 
 	// Limit number of items shown
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
 
 	const showResults = loading || visibleItems.length > 0 || showTermSelect
-	const isDirty = state.value !== ''
+	const isDirty = store.useState('value') !== ''
 
 	const submitQuery = (query: string) => {
 		formState.setValue('query', query)
@@ -274,25 +272,24 @@ export const Search: React.FC<{
 
 	useEffect(() => {
 		// necessary to update the combobox with the URL state
-		state.setValue(initialQuery.trim())
+		store.setValue(initialQuery.trim())
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [initialQuery])
 
 	useEffect(() => {
 		// links combobox and form states;
 		// necessary to update the URL when the query changes
-		formState.setValue('query', state.value)
+		formState.setValue('query', store.useState('value'))
 
 		// Clear the selected item if the combobox is empty. Need to flush execution
 		// queue before clearing the active item.
-		if (state.value === '') {
+		if (store.useState('value') === '') {
 			setTimeout(() => {
-				state.setActiveId(null)
-				state.setMoves(0)
+				store.setActiveId(null)
+				// store.setMoves(0)
 			}, 0)
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [state.value])
+	}, [formState, store])
 
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
@@ -311,15 +308,15 @@ export const Search: React.FC<{
 		}
 
 		const newQuery = stringifyLogsQuery(queryTerms)
-		state.setValue(newQuery)
+		store.setValue(newQuery)
 
 		if (isValueSelect) {
 			submitQuery(newQuery)
-			state.setOpen(false)
+			store.setOpen(false)
 		}
 
-		state.setActiveId(null)
-		state.setMoves(0)
+		store.setActiveId(null)
+		// store.setMoves(0)
 	}
 
 	return (
@@ -345,7 +342,7 @@ export const Search: React.FC<{
 					ref={inputRef}
 					disabled={disableSearch}
 					autoSelect
-					state={state}
+					store={store}
 					name="search"
 					placeholder="Search your logs..."
 					className={className ?? styles.combobox}
@@ -353,15 +350,18 @@ export const Search: React.FC<{
 						paddingLeft: hideIcon ? undefined : 40,
 					}}
 					onBlur={() => {
-						submitQuery(state.value)
-						formState.setValue('query', state.value)
+						submitQuery(store.useState('value'))
+						formState.setValue('query', store.useState('value'))
 						inputRef?.current?.blur()
 					}}
 					onKeyDown={(e) => {
-						if (e.key === 'Enter' && state.value === '') {
+						if (
+							e.key === 'Enter' &&
+							store.useState('value') === ''
+						) {
 							e.preventDefault()
-							submitQuery(state.value)
-							state.setOpen(false)
+							submitQuery(store.useState('value'))
+							store.setOpen(false)
 						}
 					}}
 				/>
@@ -373,7 +373,7 @@ export const Search: React.FC<{
 							e.preventDefault()
 							e.stopPropagation()
 
-							state.setValue('')
+							store.setValue('')
 							submitQuery('')
 						}}
 						style={{ cursor: 'pointer' }}
@@ -384,20 +384,22 @@ export const Search: React.FC<{
 			{showResults && (
 				<Combobox.Popover
 					className={styles.comboboxPopover}
+					gutter={10}
+					sameWidth
 					style={{
 						left: hideIcon ? undefined : 6,
 					}}
-					state={state}
+					store={store}
 				>
 					<Box pt="4">
-						<Combobox.GroupLabel state={state}>
+						<Combobox.GroupLabel store={store}>
 							{activeTerm.value && (
 								<Combobox.Item
 									className={styles.comboboxItem}
 									onClick={() =>
 										handleItemSelect(activeTerm.value, true)
 									}
-									state={state}
+									store={store}
 								>
 									<Stack direction="row" gap="8">
 										<Text lines="1">
@@ -418,7 +420,7 @@ export const Search: React.FC<{
 					</Box>
 					<Combobox.Group
 						className={styles.comboboxGroup}
-						state={state}
+						store={store}
 					>
 						{loading && (
 							<Combobox.Item
@@ -433,7 +435,7 @@ export const Search: React.FC<{
 								className={styles.comboboxItem}
 								key={index}
 								onClick={() => handleItemSelect(key)}
-								state={state}
+								store={store}
 							>
 								{typeof key === 'string' ? (
 									<Text>{key}</Text>
