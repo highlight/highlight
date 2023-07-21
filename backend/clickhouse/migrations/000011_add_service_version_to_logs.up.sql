@@ -1,2 +1,2 @@
 alter table logs
-    add column ServiceVersion;
+    add column ServiceVersion String;
