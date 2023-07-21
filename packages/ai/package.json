@@ -5,7 +5,7 @@
 		"build": "tsc --build ./",
 		"dev": "DEV=true nodemon",
 		"publish": "yarn zip && aws s3 cp function.zip s3://highlight-lambda-code/ai-insights.zip && rm function.zip && yarn update",
-		"update": "aws lambda update-function-code --function-name ai-insights --s3-bucket highlight-lambda-code --s3-key ai-insights.zip > /dev/null && echo 'session-activity lambda updated'",
+		"update": "aws lambda update-function-code --function-name ai-insights --s3-bucket highlight-lambda-code --s3-key ai-insights.zip > /dev/null && echo 'ai-insights lambda updated'",
 		"zip": "zip -r function.zip node_modules package.json && cd dist && zip ../function.zip *.js && cd .. "
 	},
 	"type": "commonjs",
