@@ -323,3 +323,9 @@ Reserved for the Boeing 737
 ### Patch Changes
 
 - Fix error capture of `new Error()` objects.
+
+## 7.3.11
+
+### Patch Changes
+
+- Improve `canvasInitialSnapshotDelay` logic for `<canvas>` recording to delay per-canvas.
