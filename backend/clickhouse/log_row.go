@@ -48,6 +48,11 @@ type LogRow struct {
 }
 
 func NewLogRow(timestamp time.Time, projectID uint32, opts ...LogRowOption) *LogRow {
+	// if the timestamp is zero, set time
+	if timestamp.Before(time.Unix(0, 1).UTC()) {
+		timestamp = time.Now()
+	}
+
 	logRow := &LogRow{
 		// ensure timestamp is written at second precision,
 		// since clickhouse schema will truncate to second precision anyways.

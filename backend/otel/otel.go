@@ -59,15 +59,16 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 }
 
 type HighlightFields struct {
-	projectID   string
-	sessionID   string
-	requestID   string
-	source      modelInputs.LogSource
-	serviceName string
-	host        string
+	projectID    string
+	projectIDInt int
+	sessionID    string
+	requestID    string
+	source       modelInputs.LogSource
+	serviceName  string
+	host         string
 }
 
-func getHighlightFields(attrs map[string]any) HighlightFields {
+func getHighlightFields(attrs map[string]any) (HighlightFields, error) {
 	fields := HighlightFields{
 		source: modelInputs.LogSourceBackend,
 	}
@@ -123,32 +124,15 @@ func getHighlightFields(attrs map[string]any) HighlightFields {
 		}
 	}
 
-	return fields
-}
-
-func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, requestID, traceID, spanID, logMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source modelInputs.LogSource, service string) (*clickhouse.LogRow, error) {
-	projectIDInt, err := clickhouse.ProjectToInt(projectID)
+	projectIDInt, err := clickhouse.ProjectToInt(fields.projectID)
 
 	if err != nil {
-		return nil, err
+		return fields, err
 	}
 
-	// if the timestamp is zero, set time
-	if ts.Before(time.Unix(0, 1).UTC()) {
-		ts = time.Now()
-	}
+	fields.projectIDInt = projectIDInt
 
-	return clickhouse.NewLogRow(
-		ts, uint32(projectIDInt),
-		clickhouse.WithTraceID(traceID),
-		clickhouse.WithSpanID(spanID),
-		clickhouse.WithSecureSessionID(sessionID),
-		clickhouse.WithBody(ctx, logMessage),
-		clickhouse.WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, source == modelInputs.LogSourceFrontend),
-		clickhouse.WithServiceName(service),
-		clickhouse.WithSeverityText(lvl),
-		clickhouse.WithSource(source),
-	), nil
+	return fields, nil
 }
 
 func getBackendError(ctx context.Context, ts time.Time, projectID, sessionID, requestID, traceID, spanID string, logCursor *string, excMessage string, source modelInputs.LogSource, host string, resourceAttributes, spanAttributes, eventAttributes map[string]any) (bool, *model.BackendErrorObjectInput) {
@@ -266,7 +250,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					event := events.At(l)
 					eventAttributes := event.Attributes().AsRaw()
 
-					fields := getHighlightFields(mergeMaps(resourceAttributes, spanAttributes, eventAttributes))
+					fields, err := getHighlightFields(mergeMaps(resourceAttributes, spanAttributes, eventAttributes))
+					if err != nil {
+						lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to extract highlight fields")
+					}
+
 					ts := event.Timestamp().AsTime()
 					traceID := cast(fields.requestID, span.TraceID().String())
 					spanID := span.SpanID().String()
@@ -274,12 +262,18 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						excMessage := cast(eventAttributes[string(semconv.ExceptionMessageKey)], "")
 
 						var logCursor *string
-						logRow, err := getLogRow(ctx, ts, "ERROR", fields.projectID, fields.sessionID, fields.requestID, traceID, spanID, excMessage, resourceAttributes, spanAttributes, eventAttributes, fields.source, fields.serviceName)
 
-						if err != nil {
-							lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create log row")
-							continue
-						}
+						logRow := clickhouse.NewLogRow(
+							ts, uint32(fields.projectIDInt),
+							clickhouse.WithTraceID(traceID),
+							clickhouse.WithSpanID(spanID),
+							clickhouse.WithSecureSessionID(fields.sessionID),
+							clickhouse.WithBody(ctx, excMessage),
+							clickhouse.WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, fields.source == modelInputs.LogSourceFrontend),
+							clickhouse.WithServiceName(fields.serviceName),
+							clickhouse.WithSeverityText("ERROR"),
+							clickhouse.WithSource(fields.source),
+						)
 
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
@@ -302,15 +296,17 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							continue
 						}
 
-						logRow, err := getLogRow(
-							ctx, ts, logSev, fields.projectID, fields.sessionID, fields.requestID, traceID, spanID,
-							logMessage, resourceAttributes, spanAttributes, eventAttributes, fields.source, fields.serviceName,
+						logRow := clickhouse.NewLogRow(
+							ts, uint32(fields.projectIDInt),
+							clickhouse.WithTraceID(traceID),
+							clickhouse.WithSpanID(spanID),
+							clickhouse.WithSecureSessionID(fields.sessionID),
+							clickhouse.WithBody(ctx, logMessage),
+							clickhouse.WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, fields.source == modelInputs.LogSourceFrontend),
+							clickhouse.WithServiceName(fields.serviceName),
+							clickhouse.WithSeverityText(logSev),
+							clickhouse.WithSource(fields.source),
 						)
-
-						if err != nil {
-							lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create log row")
-							continue
-						}
 
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 					} else if event.Name() == highlight.MetricEvent {
@@ -426,7 +422,22 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				logRecord := logRecords.At(k)
 				logAttributes := logRecord.Attributes().AsRaw()
 
-				fields := getHighlightFields(mergeMaps(resourceAttributes, logAttributes))
+				fields, err := getHighlightFields(mergeMaps(resourceAttributes, logAttributes))
+				if err != nil {
+					lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, scopeAttributes, logAttributes).WithError(err).Error("failed to extract highlight fields")
+				}
+
+				logRow := clickhouse.NewLogRow(
+					logRecord.Timestamp().AsTime(), uint32(fields.projectIDInt),
+					clickhouse.WithTraceID(logRecord.TraceID().String()),
+					clickhouse.WithSpanID(logRecord.SpanID().String()),
+					clickhouse.WithSecureSessionID(fields.sessionID),
+					clickhouse.WithBody(ctx, logRecord.Body().Str()),
+					clickhouse.WithLogAttributes(ctx, resourceAttributes, scopeAttributes, logAttributes, fields.source == modelInputs.LogSourceFrontend),
+					clickhouse.WithServiceName(fields.serviceName),
+					clickhouse.WithSeverityText(logRecord.SeverityText()),
+					clickhouse.WithSource(fields.source),
+				)
 
 				logRow, err := getLogRow(ctx, logRecord.Timestamp().AsTime(), logRecord.SeverityText(), fields.projectID, fields.sessionID, fields.requestID, logRecord.TraceID().String(), logRecord.SpanID().String(), logRecord.Body().Str(), resourceAttributes, scopeAttributes, logAttributes, fields.source, fields.serviceName)
 
