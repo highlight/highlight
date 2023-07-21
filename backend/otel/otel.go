@@ -6,11 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"regexp"
 	"time"
+
+	"github.com/samber/lo"
 
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 
@@ -57,56 +58,72 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 	return c
 }
 
-func setHighlightAttributes(attrs map[string]any, projectID, sessionID, requestID *string, source *modelInputs.LogSource, service, host *string) {
-	ptrs := map[string]*string{
-		highlight.DeprecatedProjectIDAttribute: projectID,
-		highlight.DeprecatedSessionIDAttribute: sessionID,
-		highlight.DeprecatedRequestIDAttribute: requestID,
-		highlight.ProjectIDAttribute:           projectID,
-		highlight.SessionIDAttribute:           sessionID,
-		highlight.RequestIDAttribute:           requestID,
-		string(semconv.ServiceNameKey):         service,
-		string(semconv.HostNameKey):            host,
+type HighlightFields struct {
+	projectID   string
+	sessionID   string
+	requestID   string
+	source      modelInputs.LogSource
+	serviceName string
+	host        string
+}
+
+func getHighlightFields(attrs map[string]any) HighlightFields {
+	fields := HighlightFields{
+		source: modelInputs.LogSourceBackend,
 	}
-	for k, ptr := range ptrs {
-		if ptr == nil {
-			continue
-		}
-		if p, ok := attrs[k]; ok {
-			if v, _ := p.(string); v != "" {
-				*ptr = v
-			}
+
+	if val, ok := attrs[highlight.DeprecatedProjectIDAttribute]; ok {
+		fields.projectID = val.(string)
+	}
+
+	if val, ok := attrs[highlight.ProjectIDAttribute]; ok {
+		fields.projectID = val.(string)
+	}
+
+	if val, ok := attrs[highlight.DeprecatedSessionIDAttribute]; ok {
+		fields.sessionID = val.(string)
+	}
+
+	if val, ok := attrs[highlight.SessionIDAttribute]; ok {
+		fields.sessionID = val.(string)
+	}
+
+	if val, ok := attrs[string(semconv.ServiceNameKey)]; ok {
+		fields.serviceName = val.(string)
+	}
+
+	if val, ok := attrs[highlight.RequestIDAttribute]; ok {
+		fields.requestID = val.(string)
+	}
+
+	if val, ok := attrs[highlight.RequestIDAttribute]; ok {
+		fields.requestID = val.(string)
+	}
+
+	if val, ok := attrs[highlight.DeprecatedSourceAttribute]; ok {
+		if val == modelInputs.LogSourceFrontend.String() {
+			fields.source = modelInputs.LogSourceFrontend
 		}
 	}
 
-	for k, ptr := range map[string]*modelInputs.LogSource{
-		highlight.DeprecatedSourceAttribute: source,
-		highlight.SourceAttribute:           source,
-	} {
-		if ptr == nil {
-			continue
-		}
-		if p, ok := attrs[k]; ok {
-			if v, _ := p.(string); v != "" {
-				if v == modelInputs.LogSourceFrontend.String() {
-					*ptr = modelInputs.LogSourceFrontend
-				} else {
-					*ptr = modelInputs.LogSourceBackend
-				}
-			}
+	if val, ok := attrs[highlight.SourceAttribute]; ok {
+		if val == modelInputs.LogSourceFrontend.String() {
+			fields.source = modelInputs.LogSourceFrontend
 		}
 	}
 
-	if projectID != nil {
+	if fields.projectID != "" {
 		if tag := attrs["fluent.tag"]; tag != nil {
 			if v, _ := tag.(string); v != "" {
 				project := fluentProjectPattern.FindStringSubmatch(v)
 				if project != nil {
-					*projectID = project[1]
+					fields.projectID = project[1]
 				}
 			}
 		}
 	}
+
+	return fields
 }
 
 func getLogRow(ctx context.Context, ts time.Time, lvl, projectID, sessionID, requestID, traceID, spanID, logMessage string, resourceAttributes, spanAttributes, eventAttributes map[string]any, source modelInputs.LogSource, service string) (*clickhouse.LogRow, error) {
@@ -236,79 +253,76 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 	spans := req.Traces().ResourceSpans()
 	for i := 0; i < spans.Len(); i++ {
-		var projectID, sessionID, requestID, service, host string
-		var source modelInputs.LogSource
 		resource := spans.At(i).Resource()
 		resourceAttributes := resource.Attributes().AsRaw()
-		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source, &service, &host)
 		scopeScans := spans.At(i).ScopeSpans()
 		for j := 0; j < scopeScans.Len(); j++ {
 			spans := scopeScans.At(j).Spans()
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
 				spanAttributes := span.Attributes().AsRaw()
-				setHighlightAttributes(spanAttributes, &projectID, &sessionID, &requestID, &source, &service, &host)
 				events := span.Events()
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
 					eventAttributes := event.Attributes().AsRaw()
-					setHighlightAttributes(eventAttributes, &projectID, &sessionID, &requestID, &source, &service, &host)
+
+					fields := getHighlightFields(mergeMaps(resourceAttributes, spanAttributes, eventAttributes))
 					ts := event.Timestamp().AsTime()
-					traceID := cast(requestID, span.TraceID().String())
+					traceID := cast(fields.requestID, span.TraceID().String())
 					spanID := span.SpanID().String()
 					if event.Name() == semconv.ExceptionEventName {
 						excMessage := cast(eventAttributes[string(semconv.ExceptionMessageKey)], "")
 
 						var logCursor *string
-						logRow, err := getLogRow(ctx, ts, "ERROR", projectID, sessionID, requestID, traceID, spanID, excMessage, resourceAttributes, spanAttributes, eventAttributes, source, service)
+						logRow, err := getLogRow(ctx, ts, "ERROR", fields.projectID, fields.sessionID, fields.requestID, traceID, spanID, excMessage, resourceAttributes, spanAttributes, eventAttributes, fields.source, fields.serviceName)
 
 						if err != nil {
-							lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create log row")
+							lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create log row")
 							continue
 						}
 
-						projectLogs[projectID] = append(projectLogs[projectID], logRow)
+						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
 
-						isProjectError, backendError := getBackendError(ctx, ts, projectID, sessionID, requestID, traceID, spanID, logCursor, excMessage, source, host, resourceAttributes, spanAttributes, eventAttributes)
+						isProjectError, backendError := getBackendError(ctx, ts, fields.projectID, fields.sessionID, fields.requestID, traceID, spanID, logCursor, excMessage, fields.source, fields.host, resourceAttributes, spanAttributes, eventAttributes)
 						if backendError == nil {
-							lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).Error("otel span error got no session and no project")
+							lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, spanAttributes, eventAttributes).Error("otel span error got no session and no project")
 						} else {
 							if isProjectError {
-								projectErrors[projectID] = append(projectErrors[projectID], backendError)
+								projectErrors[fields.projectID] = append(projectErrors[fields.projectID], backendError)
 							} else {
-								traceErrors[sessionID] = append(traceErrors[sessionID], backendError)
+								traceErrors[fields.sessionID] = append(traceErrors[fields.sessionID], backendError)
 							}
 						}
 					} else if event.Name() == highlight.LogEvent {
 						logSev := cast(eventAttributes[string(hlog.LogSeverityKey)], "unknown")
 						logMessage := cast(eventAttributes[string(hlog.LogMessageKey)], "")
 						if logMessage == "" {
-							lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).Warn("otel received log with no message")
+							lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, spanAttributes, eventAttributes).Warn("otel received log with no message")
 							continue
 						}
 
 						logRow, err := getLogRow(
-							ctx, ts, logSev, projectID, sessionID, requestID, traceID, spanID,
-							logMessage, resourceAttributes, spanAttributes, eventAttributes, source, service,
+							ctx, ts, logSev, fields.projectID, fields.sessionID, fields.requestID, traceID, spanID,
+							logMessage, resourceAttributes, spanAttributes, eventAttributes, fields.source, fields.serviceName,
 						)
 
 						if err != nil {
-							lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create log row")
+							lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create log row")
 							continue
 						}
 
-						projectLogs[projectID] = append(projectLogs[projectID], logRow)
+						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 					} else if event.Name() == highlight.MetricEvent {
-						metric, err := getMetric(ctx, ts, projectID, sessionID, requestID, traceID, spanID, resourceAttributes, spanAttributes, eventAttributes, source, service)
+						metric, err := getMetric(ctx, ts, fields.projectID, fields.sessionID, fields.requestID, traceID, spanID, resourceAttributes, spanAttributes, eventAttributes, fields.source, fields.serviceName)
 						if err != nil {
-							lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create metric")
+							lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, spanAttributes, eventAttributes).WithError(err).Error("failed to create metric")
 							continue
 						}
 
-						traceMetrics[sessionID] = append(traceMetrics[sessionID], metric)
+						traceMetrics[fields.sessionID] = append(traceMetrics[fields.sessionID], metric)
 					} else {
-						lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).Warnf("otel received unknown event %s", event.Name())
+						lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, spanAttributes, eventAttributes).Warnf("otel received unknown event %s", event.Name())
 					}
 				}
 			}
@@ -401,11 +415,8 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 	resourceLogs := req.Logs().ResourceLogs()
 	for i := 0; i < resourceLogs.Len(); i++ {
-		var projectID, sessionID, requestID, service string
-		var source modelInputs.LogSource
 		resource := resourceLogs.At(i).Resource()
 		resourceAttributes := resource.Attributes().AsRaw()
-		setHighlightAttributes(resourceAttributes, &projectID, &sessionID, &requestID, &source, &service, nil)
 		scopeLogs := resourceLogs.At(i).ScopeLogs()
 		for j := 0; j < scopeLogs.Len(); j++ {
 			scopeLogs := scopeLogs.At(j)
@@ -414,22 +425,23 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 			for k := 0; k < logRecords.Len(); k++ {
 				logRecord := logRecords.At(k)
 				logAttributes := logRecord.Attributes().AsRaw()
-				setHighlightAttributes(logAttributes, &projectID, &sessionID, &requestID, &source, &service, nil)
 
-				logRow, err := getLogRow(ctx, logRecord.Timestamp().AsTime(), logRecord.SeverityText(), projectID, sessionID, requestID, logRecord.TraceID().String(), logRecord.SpanID().String(), logRecord.Body().Str(), resourceAttributes, scopeAttributes, logAttributes, source, service)
+				fields := getHighlightFields(mergeMaps(resourceAttributes, logAttributes))
+
+				logRow, err := getLogRow(ctx, logRecord.Timestamp().AsTime(), logRecord.SeverityText(), fields.projectID, fields.sessionID, fields.requestID, logRecord.TraceID().String(), logRecord.SpanID().String(), logRecord.Body().Str(), resourceAttributes, scopeAttributes, logAttributes, fields.source, fields.serviceName)
 
 				if err != nil {
-					lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, scopeAttributes, logAttributes).Errorf("otel log got invalid log record")
+					lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, scopeAttributes, logAttributes).Errorf("otel log got invalid log record")
 					continue
 				}
 
-				if projectID != "" {
-					if _, ok := projectLogs[projectID]; !ok {
-						projectLogs[projectID] = []*clickhouse.LogRow{}
+				if fields.projectID != "" {
+					if _, ok := projectLogs[fields.projectID]; !ok {
+						projectLogs[fields.projectID] = []*clickhouse.LogRow{}
 					}
-					projectLogs[projectID] = append(projectLogs[projectID], logRow)
+					projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 				} else {
-					lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, scopeAttributes, logAttributes).Errorf("otel log got no project")
+					lg(ctx, fields.projectID, fields.sessionID, fields.requestID, fields.source, resourceAttributes, scopeAttributes, logAttributes).Errorf("otel log got no project")
 					continue
 				}
 			}
@@ -471,4 +483,16 @@ func New(resolver *graph.Resolver) *Handler {
 	return &Handler{
 		resolver: resolver,
 	}
+}
+
+func mergeMaps(maps ...map[string]any) map[string]any {
+	combinedMap := make(map[string]any)
+
+	for _, m := range maps {
+		for key, value := range m {
+			combinedMap[key] = value
+		}
+	}
+
+	return combinedMap
 }
