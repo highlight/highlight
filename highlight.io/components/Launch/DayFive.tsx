@@ -33,7 +33,7 @@ const DayFive = () => {
 					type="copy3"
 					emphasis
 				>
-					Day 4: July 20th
+					Day 5: July 21th
 				</Typography>
 				{!copy && (
 					<AiOutlineLink className="text-copy-on-light h-5 w-5 invisible group-hover:visible" />
