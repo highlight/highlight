@@ -99,7 +99,7 @@ jobs:
             # any previous builds, while doing this in PR will allow the PR frontend preview
             # to reference the PR's latest version of client
             - name: Publish client bundle
-              if: steps.filter.outputs.npm-changed == 'true' && github.ref == 'refs/heads/main'
+              # if: steps.filter.outputs.npm-changed == 'true' && github.ref == 'refs/heads/main'
               run: yarn publish:client
 
             - name: Upload frontend sourcemaps
