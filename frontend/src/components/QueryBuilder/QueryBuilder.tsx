@@ -1111,7 +1111,8 @@ export const deserializeGroup = (
 	}
 }
 
-export const deserializeRules = (ruleGroups: any): RuleProps[] => {
+export const deserializeRules = (ruleGroups: Array<string[]>): RuleProps[] => {
+	ruleGroups = ruleGroups.filter((g) => g.length)
 	if (!ruleGroups) {
 		return []
 	}
