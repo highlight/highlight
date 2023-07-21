@@ -229,14 +229,13 @@ export default SessionInsightsEmail
 const main = {
 	backgroundColor: '#0d0225',
 	fontFamily: 'Helvetica, sans-serif',
-	width: '100%',
-	height: '100%',
 }
 
 const container = {
 	width: '600px',
 	padding: '0 16px',
 	textAlign: 'center' as const,
+	margin: '0 auto',
 }
 
 const hr = {
