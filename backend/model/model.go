@@ -179,6 +179,7 @@ var Models = []interface{}{
 	&EmailOptOut{},
 	&BillingEmailHistory{},
 	&Retryable{},
+	&Service{},
 	&SetupEvent{},
 	&SessionAdminsView{},
 	&ErrorGroupAdminsView{},
@@ -187,6 +188,7 @@ var Models = []interface{}{
 	&AllWorkspaceSettings{},
 	&ErrorGroupActivityLog{},
 	&UserJourneyStep{},
+	&SystemConfiguration{},
 }
 
 func init() {
@@ -1212,6 +1214,12 @@ type UserJourneyStep struct {
 	NextUrl   string
 }
 
+type SystemConfiguration struct {
+	Active           bool `gorm:"primary_key;default:true"`
+	MaintenanceStart time.Time
+	MaintenanceEnd   time.Time
+}
+
 type RetryableType string
 
 const (
@@ -1936,6 +1944,12 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 
 		}
 	}
+}
+
+type Service struct {
+	Model
+	ProjectID int    `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Name      string `gorm:"not null;uniqueIndex:idx_project_id_name"`
 }
 
 type LogAlert struct {
