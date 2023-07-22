@@ -4370,19 +4370,6 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetWorkspaceSettingsForProjectQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
-
-export type GetWorkspaceSettingsForProjectQuery = { __typename?: 'Query' } & {
-	workspaceSettingsForProject?: Types.Maybe<
-		{ __typename?: 'AllWorkspaceSettings' } & Pick<
-			Types.AllWorkspaceSettings,
-			'workspace_id' | 'ai_application' | 'ai_insights'
-		>
-	>
-}
-
 export type GetSystemConfigurationQueryVariables = Types.Exact<{
 	[key: string]: never
 }>
@@ -4568,8 +4555,6 @@ export const namedOperations = {
 		GetWorkspacePendingInvites: 'GetWorkspacePendingInvites' as const,
 		GetErrorResolutionSuggestion: 'GetErrorResolutionSuggestion' as const,
 		GetWorkspaceSettings: 'GetWorkspaceSettings' as const,
-		GetWorkspaceSettingsForProject:
-			'GetWorkspaceSettingsForProject' as const,
 		GetSystemConfiguration: 'GetSystemConfiguration' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
 	},

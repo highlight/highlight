@@ -2085,14 +2085,6 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 	}
 }
 
-query GetWorkspaceSettingsForProject($project_id: ID!) {
-	workspaceSettingsForProject(project_id: $project_id) {
-		workspace_id
-		ai_application
-		ai_insights
-	}
-}
-
 query GetSystemConfiguration {
 	system_configuration {
 		maintenance_start

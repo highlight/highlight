@@ -34,7 +34,7 @@ import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { useGetWorkspaceSettingsForProjectQuery } from '@/graph/generated/hooks'
+import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
 import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
 import { AiErrorSuggestion } from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestion'
 import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionMissingOrExcluded'
@@ -43,6 +43,7 @@ import { RelatedLogs } from '@/pages/ErrorsV2/ErrorInstance/RelatedLogs'
 import { RelatedSession } from '@/pages/ErrorsV2/ErrorInstance/RelatedSession'
 import { SeeAllInstances } from '@/pages/ErrorsV2/ErrorInstance/SeeAllInstances'
 import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
@@ -56,17 +57,14 @@ const METADATA_LABELS: { [key: string]: string } = {
 } as const
 
 export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
-	const { project_id, error_object_id } = useParams<{
-		error_object_id: string
-		project_id: string
-	}>()
+	const { error_object_id } = useParams<{ error_object_id: string }>()
 	const client = useApolloClient()
+	const { currentWorkspace } = useApplicationContext()
 
-	const { data: workspaceSettingsData } =
-		useGetWorkspaceSettingsForProjectQuery({
-			variables: { project_id: project_id! },
-			skip: !project_id,
-		})
+	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
 
 	const { loading, error, data } = useGetErrorInstanceQuery({
 		variables: {
@@ -159,8 +157,7 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				<ErrorBodyText errorBody={errorInstance.error_object.event} />
 			</Box>
 
-			{workspaceSettingsData?.workspaceSettingsForProject
-				?.ai_application && (
+			{workspaceSettingsData?.workspaceSettings?.ai_application && (
 				<Box display="flex" flexDirection="column" mb="40">
 					<Stack direction="row" align="center" pb="20" gap="8">
 						<Text size="large" weight="bold">

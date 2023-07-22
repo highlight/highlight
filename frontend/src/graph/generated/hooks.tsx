@@ -13040,64 +13040,6 @@ export type GetWorkspaceSettingsQueryResult = Apollo.QueryResult<
 	Types.GetWorkspaceSettingsQuery,
 	Types.GetWorkspaceSettingsQueryVariables
 >
-export const GetWorkspaceSettingsForProjectDocument = gql`
-	query GetWorkspaceSettingsForProject($project_id: ID!) {
-		workspaceSettingsForProject(project_id: $project_id) {
-			workspace_id
-			ai_application
-			ai_insights
-		}
-	}
-`
-
-/**
- * __useGetWorkspaceSettingsForProjectQuery__
- *
- * To run a query within a React component, call `useGetWorkspaceSettingsForProjectQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWorkspaceSettingsForProjectQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetWorkspaceSettingsForProjectQuery({
- *   variables: {
- *      project_id: // value for 'project_id'
- *   },
- * });
- */
-export function useGetWorkspaceSettingsForProjectQuery(
-	baseOptions: Apollo.QueryHookOptions<
-		Types.GetWorkspaceSettingsForProjectQuery,
-		Types.GetWorkspaceSettingsForProjectQueryVariables
-	>,
-) {
-	return Apollo.useQuery<
-		Types.GetWorkspaceSettingsForProjectQuery,
-		Types.GetWorkspaceSettingsForProjectQueryVariables
-	>(GetWorkspaceSettingsForProjectDocument, baseOptions)
-}
-export function useGetWorkspaceSettingsForProjectLazyQuery(
-	baseOptions?: Apollo.LazyQueryHookOptions<
-		Types.GetWorkspaceSettingsForProjectQuery,
-		Types.GetWorkspaceSettingsForProjectQueryVariables
-	>,
-) {
-	return Apollo.useLazyQuery<
-		Types.GetWorkspaceSettingsForProjectQuery,
-		Types.GetWorkspaceSettingsForProjectQueryVariables
-	>(GetWorkspaceSettingsForProjectDocument, baseOptions)
-}
-export type GetWorkspaceSettingsForProjectQueryHookResult = ReturnType<
-	typeof useGetWorkspaceSettingsForProjectQuery
->
-export type GetWorkspaceSettingsForProjectLazyQueryHookResult = ReturnType<
-	typeof useGetWorkspaceSettingsForProjectLazyQuery
->
-export type GetWorkspaceSettingsForProjectQueryResult = Apollo.QueryResult<
-	Types.GetWorkspaceSettingsForProjectQuery,
-	Types.GetWorkspaceSettingsForProjectQueryVariables
->
 export const GetSystemConfigurationDocument = gql`
 	query GetSystemConfiguration {
 		system_configuration {
