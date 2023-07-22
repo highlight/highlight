@@ -115,7 +115,6 @@ const TimelineIndicatorsBarGraph = ({
 	const timeIndicatorTextRef = useRef<HTMLElement>(null)
 	const timeIndicatorTopRef = useRef<HTMLDivElement>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
-	const viewportBbox = viewportRef.current?.getBoundingClientRect()
 
 	useLayoutEffect(() => {
 		setViewportWidth(calculateViewportWidth())
@@ -392,7 +391,6 @@ const TimelineIndicatorsBarGraph = ({
 		[viewportWidth],
 	)
 
-	const [showZoomButtons, setShowZoomButtons] = useState(false)
 	const [showIndicatorText, setShowIndicatorText] = useState(false)
 
 	useHTMLElementEvent(
@@ -551,7 +549,6 @@ const TimelineIndicatorsBarGraph = ({
 				return
 			}
 
-			setShowZoomButtons(isInsideViewport)
 			if (!isInsideViewport) {
 				setShowIndicatorText(false)
 				return
