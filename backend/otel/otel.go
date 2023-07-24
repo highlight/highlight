@@ -64,7 +64,7 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 	return c
 }
 
-type HighlightFields struct {
+type extractedFields struct {
 	projectID          string
 	projectIDInt       int
 	sessionID          string
@@ -79,7 +79,7 @@ type HighlightFields struct {
 	modifiedAttributes map[string]string
 }
 
-type getHighlightFieldsParams struct {
+type extractFieldsParams struct {
 	resource  pcommon.Resource
 	span      ptrace.Span
 	event     ptrace.SpanEvent
@@ -87,8 +87,8 @@ type getHighlightFieldsParams struct {
 	logRecord plog.LogRecord
 }
 
-func getHighlightFields(ctx context.Context, params getHighlightFieldsParams) (HighlightFields, error) {
-	fields := HighlightFields{
+func extractFields(ctx context.Context, params extractFieldsParams) (extractedFields, error) {
+	fields := extractedFields{
 		source:             modelInputs.LogSourceBackend,
 		resourceAttributes: params.resource.Attributes().AsRaw(),
 		spanAttributes:     params.span.Attributes().AsRaw(),
@@ -195,7 +195,7 @@ func getHighlightFields(ctx context.Context, params getHighlightFieldsParams) (H
 	return fields, nil
 }
 
-func getBackendError(ctx context.Context, ts time.Time, fields HighlightFields, traceID, spanID string, logCursor *string, excMessage string) (bool, *model.BackendErrorObjectInput) {
+func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string, logCursor *string, excMessage string) (bool, *model.BackendErrorObjectInput) {
 	excType := cast(fields.eventAttributes[string(semconv.ExceptionTypeKey)], fields.source.String())
 	errorUrl := cast(fields.eventAttributes[highlight.ErrorURLAttribute], fields.source.String())
 	stackTrace := cast(fields.eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
@@ -231,7 +231,7 @@ func getBackendError(ctx context.Context, ts time.Time, fields HighlightFields, 
 	}
 }
 
-func getMetric(ctx context.Context, ts time.Time, fields HighlightFields, traceID, spanID string) (*model.MetricInput, error) {
+func getMetric(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string) (*model.MetricInput, error) {
 	name, ok := fields.eventAttributes[highlight.MetricEventName].(string)
 	if !ok {
 		return nil, e.New("otel received metric with no name")
@@ -307,7 +307,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					event := events.At(l)
 					eventAttributes := event.Attributes().AsRaw()
 
-					fields, err := getHighlightFields(ctx, getHighlightFieldsParams{
+					fields, err := extractFields(ctx, extractFieldsParams{
 						resource: resource,
 						span:     span,
 						event:    event,
@@ -480,7 +480,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 			for k := 0; k < logRecords.Len(); k++ {
 				logRecord := logRecords.At(k)
 
-				fields, err := getHighlightFields(ctx, getHighlightFieldsParams{
+				fields, err := extractFields(ctx, extractFieldsParams{
 					resource:  resource,
 					logRecord: logRecord,
 				})
