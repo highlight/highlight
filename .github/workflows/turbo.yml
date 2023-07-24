@@ -98,7 +98,9 @@ jobs:
               if: github.ref != 'refs/heads/main'
               run: yarn publish:client --preview ${GIT_SHA} --replace
               env:
-                  GIT_SHA: ${{ github.sha }}
+                  # this does not use ${{ github.sha }} as that commit will be a merge ref
+                  # that is not consistent with the frontend PR preview value
+                  GIT_SHA: ${{ github.event.pull_request.head.sha }}
 
             - name: Publish client bundle
               if: github.ref == 'refs/heads/main'
