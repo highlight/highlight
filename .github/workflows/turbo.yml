@@ -172,7 +172,7 @@ jobs:
             - name: Start docker containers & run cypress
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
-                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+                  CYPRESS_COMMIT_SHA: ${{ github.sha }}
               run: |
                   start_time=$(date -Isecond)
 
