@@ -2080,6 +2080,7 @@ query GetErrorResolutionSuggestion($error_object_id: ID!) {
 query GetWorkspaceSettings($workspace_id: ID!) {
 	workspaceSettings(workspace_id: $workspace_id) {
 		workspace_id
+		ai_application
 		ai_insights
 	}
 }

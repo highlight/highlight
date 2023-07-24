@@ -11,7 +11,7 @@ const BoxOverlay = ({
 }: {
 	header: string
 	subheader: string
-	badge: string
+	badge?: string
 	badgeUnder?: boolean
 }) => {
 	return (
@@ -35,16 +35,21 @@ const BoxOverlay = ({
 				<Typography className="text-white" type="copy2" emphasis>
 					{header}
 				</Typography>
-				<Typography
-					className="flex flex-shrink-0 items-center text-color-selected-light rounded-full bg-color-primary-500 border-[1px] border-color-selected-light px-2 py-[1px]"
-					type="copy4"
-					emphasis
-				>
-					{badge}
-					<BiChevronRight
-						className={classNames(styles.chevronRight, 'h-5 w-5')}
-					/>
-				</Typography>
+				{badge && (
+					<Typography
+						className="flex flex-shrink-0 items-center text-color-selected-light rounded-full bg-color-primary-500 border-[1px] border-color-selected-light px-2 py-[1px]"
+						type="copy4"
+						emphasis
+					>
+						{badge}
+						<BiChevronRight
+							className={classNames(
+								styles.chevronRight,
+								'h-5 w-5',
+							)}
+						/>
+					</Typography>
+				)}
 			</div>
 		</div>
 	)

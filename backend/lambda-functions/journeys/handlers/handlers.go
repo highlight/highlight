@@ -24,11 +24,13 @@ import (
 	"gorm.io/gorm"
 )
 
+const normalnessTimeout = 10 * 60 * 1000
+
 var nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z]+`)
 var capitalsRegex = regexp.MustCompile(`[A-Z]+`)
 
 type Handlers interface {
-	GetProjectIds(context.Context, utils.JourneyInput) ([]utils.JourneyResponse, error)
+	UpdateNormalnessScores(ctx context.Context) error
 }
 
 type handlers struct {
@@ -259,4 +261,51 @@ func (h *handlers) GetJourney(ctx context.Context, input utils.JourneyInput) (*u
 		SessionID: input.SessionID,
 		Count:     len(steps),
 	}, nil
+}
+
+func (h *handlers) UpdateNormalnessScores(ctx context.Context) error {
+	err := h.db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Exec(fmt.Sprintf("SET LOCAL statement_timeout TO %d", normalnessTimeout)).Error
+		if err != nil {
+			return err
+		}
+
+		return tx.Exec(`
+			with frequencies as (
+				select project_id, url, next_url, count(*)
+				from user_journey_steps
+				where created_at > now() - interval '30 days'
+				group by 1, 2, 3),
+			unscored_sessions as (
+				select id
+				from sessions
+				where created_at > now() - interval '1 day'
+				and (normalness is null or normalness = 0)
+				and processed
+				and not excluded
+			),
+			new_normals as (
+				select session_id, exp(sum(ln(normalness))) as normalness
+				from (select session_id,
+					index,
+					sum(case when f.url = u.url and f.next_url = u.next_url then count else 0 end)
+						* (sum(case when f.url = u.url then count else 0 end))
+						/ sum((case when f.url = u.url then count else 0 end) ^ 2) as normalness
+				from unscored_sessions s
+					inner join user_journey_steps u
+						on s.id = u.session_id
+					inner join frequencies f
+						on (f.url = u.url or f.next_url = u.next_url) and f.project_id = u.project_id
+				group by session_id, index
+				order by session_id, index) a
+				group by a.session_id
+			)
+			update sessions s
+			set normalness = n.normalness
+			from new_normals n
+			where s.id = n.session_id
+		`).Error
+	})
+
+	return err
 }

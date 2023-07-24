@@ -318,9 +318,21 @@ Reserved for the Boeing 737
 
 - Fix recording of WebGL2 `<canvas>` elements that leverage `preserveDrawingBuffer: false`
 
-## 7.4.0
+## 7.3.10
 
 ### Patch Changes
+
+- Fix error capture of `new Error()` objects.
+
+## 7.3.11
+
+### Patch Changes
+
+- Improve `canvasInitialSnapshotDelay` logic for `<canvas>` recording to delay per-canvas.
+
+## 7.4.0
+
+### Minor Changes
 
 - Link `node` and `require` imports to `index.cjs` rather than `index.cjs.js`
 - Return `{ sessionSecureID }` from `H.init` for consumption by Remix SDK

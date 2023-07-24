@@ -133,8 +133,9 @@ type ComplexityRoot struct {
 	}
 
 	AllWorkspaceSettings struct {
-		AIInsights  func(childComplexity int) int
-		WorkspaceID func(childComplexity int) int
+		AIApplication func(childComplexity int) int
+		AIInsights    func(childComplexity int) int
+		WorkspaceID   func(childComplexity int) int
 	}
 
 	AverageSessionLength struct {
@@ -697,7 +698,7 @@ type ComplexityRoot struct {
 		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput, name string) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
-		EditWorkspaceSettings            func(childComplexity int, workspaceID int, aiInsights *bool) int
+		EditWorkspaceSettings            func(childComplexity int, workspaceID int, aiApplication *bool, aiInsights *bool) int
 		EmailSignup                      func(childComplexity int, email string) int
 		JoinWorkspace                    func(childComplexity int, workspaceID int) int
 		MarkErrorGroupAsViewed           func(childComplexity int, errorSecureID string, viewed *bool) int
@@ -1342,7 +1343,7 @@ type MutationResolver interface {
 	EditProject(ctx context.Context, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) (*model1.Project, error)
 	EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) (*model.AllProjectSettings, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
-	EditWorkspaceSettings(ctx context.Context, workspaceID int, aiInsights *bool) (*model1.AllWorkspaceSettings, error)
+	EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool) (*model1.AllWorkspaceSettings, error)
 	MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model1.ErrorGroup, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
 	MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model1.Session, error)
@@ -1987,6 +1988,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AllProjectSettings.WorkspaceID(childComplexity), true
+
+	case "AllWorkspaceSettings.ai_application":
+		if e.complexity.AllWorkspaceSettings.AIApplication == nil {
+			break
+		}
+
+		return e.complexity.AllWorkspaceSettings.AIApplication(childComplexity), true
 
 	case "AllWorkspaceSettings.ai_insights":
 		if e.complexity.AllWorkspaceSettings.AIInsights == nil {
@@ -4740,7 +4748,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditWorkspaceSettings(childComplexity, args["workspace_id"].(int), args["ai_insights"].(*bool)), true
+		return e.complexity.Mutation.EditWorkspaceSettings(childComplexity, args["workspace_id"].(int), args["ai_application"].(*bool), args["ai_insights"].(*bool)), true
 
 	case "Mutation.emailSignup":
 		if e.complexity.Mutation.EmailSignup == nil {
@@ -9190,6 +9198,7 @@ type AllProjectSettings {
 
 type AllWorkspaceSettings {
 	workspace_id: ID!
+	ai_application: Boolean!
 	ai_insights: Boolean!
 }
 
@@ -10549,6 +10558,7 @@ type Mutation {
 	editWorkspace(id: ID!, name: String): Workspace
 	editWorkspaceSettings(
 		workspace_id: ID!
+		ai_application: Boolean
 		ai_insights: Boolean
 	): AllWorkspaceSettings
 	markErrorGroupAsViewed(
@@ -12505,14 +12515,23 @@ func (ec *executionContext) field_Mutation_editWorkspaceSettings_args(ctx contex
 	}
 	args["workspace_id"] = arg0
 	var arg1 *bool
-	if tmp, ok := rawArgs["ai_insights"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ai_insights"))
+	if tmp, ok := rawArgs["ai_application"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ai_application"))
 		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["ai_insights"] = arg1
+	args["ai_application"] = arg1
+	var arg2 *bool
+	if tmp, ok := rawArgs["ai_insights"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ai_insights"))
+		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["ai_insights"] = arg2
 	return args, nil
 }
 
@@ -18995,6 +19014,50 @@ func (ec *executionContext) fieldContext_AllWorkspaceSettings_workspace_id(ctx c
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllWorkspaceSettings_ai_application(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AllWorkspaceSettings_ai_application(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AIApplication, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AllWorkspaceSettings_ai_application(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllWorkspaceSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -34389,7 +34452,7 @@ func (ec *executionContext) _Mutation_editWorkspaceSettings(ctx context.Context,
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditWorkspaceSettings(rctx, fc.Args["workspace_id"].(int), fc.Args["ai_insights"].(*bool))
+		return ec.resolvers.Mutation().EditWorkspaceSettings(rctx, fc.Args["workspace_id"].(int), fc.Args["ai_application"].(*bool), fc.Args["ai_insights"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -34412,6 +34475,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspaceSettings(ctx cont
 			switch field.Name {
 			case "workspace_id":
 				return ec.fieldContext_AllWorkspaceSettings_workspace_id(ctx, field)
+			case "ai_application":
+				return ec.fieldContext_AllWorkspaceSettings_ai_application(ctx, field)
 			case "ai_insights":
 				return ec.fieldContext_AllWorkspaceSettings_ai_insights(ctx, field)
 			}
@@ -47337,6 +47402,8 @@ func (ec *executionContext) fieldContext_Query_workspaceSettings(ctx context.Con
 			switch field.Name {
 			case "workspace_id":
 				return ec.fieldContext_AllWorkspaceSettings_workspace_id(ctx, field)
+			case "ai_application":
+				return ec.fieldContext_AllWorkspaceSettings_ai_application(ctx, field)
 			case "ai_insights":
 				return ec.fieldContext_AllWorkspaceSettings_ai_insights(ctx, field)
 			}
@@ -64197,6 +64264,13 @@ func (ec *executionContext) _AllWorkspaceSettings(ctx context.Context, sel ast.S
 		case "workspace_id":
 
 			out.Values[i] = ec._AllWorkspaceSettings_workspace_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "ai_application":
+
+			out.Values[i] = ec._AllWorkspaceSettings_ai_application(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

@@ -315,15 +315,12 @@ const LogDetailsObject: React.FC<{
 }) => {
 	const [open, setOpen] = useState(false)
 
-	let stringIsJson = false
 	if (typeof attribute === 'string') {
 		try {
-			const parsedJson = JSON.parse(attribute)
-			stringIsJson = typeof parsedJson === 'object'
+			attribute = JSON.parse(attribute)
 		} catch {}
 	}
 
-	const isObject = typeof attribute === 'object' || stringIsJson
 	const queryKey = queryBaseKeys.join('.') || label
 	const queryMatch = matchedAttributes[queryKey]
 
@@ -331,7 +328,7 @@ const LogDetailsObject: React.FC<{
 		setOpen(allExpanded)
 	}, [allExpanded])
 
-	return isObject ? (
+	return typeof attribute === 'object' ? (
 		<Box
 			cssClass={styles.line}
 			onClick={(e) => {

@@ -126,6 +126,7 @@ export type AllProjectSettings = {
 
 export type AllWorkspaceSettings = {
 	__typename?: 'AllWorkspaceSettings'
+	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
 	workspace_id: Scalars['ID']
 }
@@ -1276,6 +1277,7 @@ export type MutationEditWorkspaceArgs = {
 }
 
 export type MutationEditWorkspaceSettingsArgs = {
+	ai_application?: InputMaybe<Scalars['Boolean']>
 	ai_insights?: InputMaybe<Scalars['Boolean']>
 	workspace_id: Scalars['ID']
 }
