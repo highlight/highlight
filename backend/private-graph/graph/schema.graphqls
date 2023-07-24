@@ -647,6 +647,14 @@ type ErrorObjectConnection implements Connection {
 	pageInfo: PageInfo!
 }
 
+type Service {
+	id: ID!
+	projectID: ID!
+	name: String!
+	status: String!
+	githubRepoPath: String
+}
+
 enum ReservedLogKey {
 	"""
 	Keep this in alpha order
@@ -1709,6 +1717,7 @@ type Query {
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
 	system_configuration: SystemConfiguration!
+	services(project_id: ID!): [Service!]!
 }
 
 type Mutation {
@@ -2073,6 +2082,7 @@ type Mutation {
 		is_opt_out: Boolean!
 		project_id: Int
 	): Boolean!
+	editService(id: ID!, project_id: ID!, github_repo_path: String): Service
 }
 
 type Subscription {

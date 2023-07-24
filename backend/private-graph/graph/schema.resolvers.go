@@ -3632,6 +3632,30 @@ func (r *mutationResolver) UpdateEmailOptOut(ctx context.Context, token *string,
 	return true, nil
 }
 
+// EditService is the resolver for the editService field.
+func (r *mutationResolver) EditService(ctx context.Context, id int, projectID int, githubRepoPath *string) (*model.Service, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	serviceUpdates := map[string]interface{}{}
+	if githubRepoPath != nil {
+		serviceUpdates["GithubRepoPath"] = *githubRepoPath
+		serviceUpdates["Status"] = "healthy"
+	} else {
+		serviceUpdates["GithubRepoPath"] = ""
+		serviceUpdates["Status"] = "created"
+	}
+
+	service := &model.Service{}
+	updateErr := r.DB.Where(&model.Service{Model: model.Model{ID: id}, ProjectID: project.ID}).Take(&service).Updates(&serviceUpdates).Error
+	if updateErr != nil {
+		return nil, updateErr
+	}
+	return service, nil
+}
+
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
@@ -7489,6 +7513,21 @@ func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemC
 		return nil, err
 	}
 	return &config, nil
+}
+
+// Services is the resolver for the services field.
+func (r *queryResolver) Services(ctx context.Context, projectID int) ([]*model.Service, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	services := []*model.Service{}
+	if err := r.DB.Order("name ASC").Model(&model.Service{}).Where(&model.Service{ProjectID: project.ID}).Scan(&services).Error; err != nil {
+		return nil, e.Wrap(err, "error getting associated services")
+	}
+
+	return services, nil
 }
 
 // Params is the resolver for the params field.
