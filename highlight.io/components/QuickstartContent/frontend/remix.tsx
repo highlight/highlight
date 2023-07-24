@@ -1,4 +1,8 @@
-import { identifySnippet, verifySnippet } from './shared-snippets'
+import {
+	identifyingUsersLink,
+	sessionSearchLink,
+	verifySnippet,
+} from './shared-snippets'
 
 import { siteUrl } from '../../../utils/urls'
 import { QuickStartContent } from '../QuickstartContent'
@@ -13,13 +17,13 @@ export const RemixContent: QuickStartContent = {
 		{
 			title: 'Install the npm package & SDK.',
 			content:
-				'Install the following npm packages in your terminal: `highlight.run`,`@highlight-run/remix` and `@highlight-run/node`.',
+				'Install the `@highlight-run/remix` npm package in your terminal.',
 			code: [
 				{
 					key: 'npm',
 					text: `
 # with npm
-npm install @highlight-run/remix @highlight-run/node highlight.run
+npm install @highlight-run/remix
 					`,
 					language: 'bash',
 				},
@@ -27,7 +31,7 @@ npm install @highlight-run/remix @highlight-run/node highlight.run
 					key: 'yarn',
 					text: `
 # with yarn
-yarn add @highlight-run/remix @highlight-run/node highlight.run
+yarn add @highlight-run/remix
 				`,
 					language: 'bash',
 				},
@@ -35,7 +39,7 @@ yarn add @highlight-run/remix @highlight-run/node highlight.run
 					key: 'pnpm',
 					text: `
 # with pnpm
-pnpm add @highlight-run/remix @highlight-run/node highlight.run
+pnpm add @highlight-run/remix
 				`,
 					language: 'bash',
 				},
@@ -48,10 +52,10 @@ pnpm add @highlight-run/remix @highlight-run/node highlight.run
 			code: [
 				{
 					text: `
-// ./app/root.tsx
+// app/root.tsx
 import { useLoaderData } from '@remix-run/react'
 
-import { HighlightInit } from '@highlight-run/remix/highlight-init'
+import { HighlightInit } from '@highlight-run/remix/client'
 import { json } from '@remix-run/node'
 
 
@@ -84,16 +88,16 @@ export default function App() {
 			],
 		},
 		{
-			title: 'Export a custom `ErrorBoundary` handler from `./app/root.tsx` (optional)',
-			content: `The ErrorBoundary component wraps your component tree and catches crashes/exceptions from your react app. When a crash happens, your users will be prompted with a modal to share details about what led up to the crash. Read more [here](${siteUrl(
+			title: 'Export a custom ErrorBoundary handler (optional)',
+			content: `The \`ErrorBoundary\` component wraps your component tree and catches crashes/exceptions from your react app. When a crash happens, your users will be prompted with a modal to share details about what led up to the crash. Read more [here](${siteUrl(
 				'/docs/getting-started/client-sdk/replay-configuration',
 			)}).`,
 			code: [
 				{
 					text: `
-// ./app/components/error-boundary.tsx
+// app/components/error-boundary.tsx
 import { isRouteErrorResponse, useRouteError } from '@remix-run/react'
-import { ReportDialog } from '@highlight-run/remix'
+import { ReportDialog } from '@highlight-run/remix/report-dialog'
 
 export function ErrorBoundary() {
 	const error = useRouteError()
@@ -135,7 +139,7 @@ export function ErrorBoundary() {
 				},
 				{
 					text: `
-// ./app/root.tsx
+// app/root.tsx
 export { ErrorBoundary } from '~/components/error-boundary'
 }
 			`,
@@ -143,7 +147,52 @@ export { ErrorBoundary } from '~/components/error-boundary'
 				},
 			],
 		},
-		identifySnippet,
+		{
+			title: 'Identify users.',
+			content: `Identify users after the authentication flow of your web app. We recommend doing this in a \`useEffect\` call or in any asynchronous, client-side context. \n\n\nThe first argument of \`identify\` will be searchable via the property \`identifier\`, and the second property is searchable by the key of each item in the object. \n\n\nFor more details, read about [session search](${sessionSearchLink}) or how to [identify users](${identifyingUsersLink}).`,
+			code: [
+				{
+					text: `
+import { H } from '@highlight-run/remix/client';
+
+function RenderFunction() {
+
+	useEffect(() => {
+		// login logic...
+		
+		H.identify('jay@highlight.io', {
+			id: 'very-secure-id',
+			phone: '867-5309',
+			bestFriend: 'jenny'
+		});
+	}, [])
+
+	return null; // Or your app's rendering code.
+}
+		`,
+					language: 'js',
+				},
+			],
+		},
+		{
+			title: 'Initialize the server SDK.',
+			content: `Send errors to Highlight from your Remix server using the \`entry.server.tsx\` file.`,
+			code: [
+				{
+					text: `
+// app/entry.server.tsx
+import { H, HandleError } from '@highlight-run/remix/server'
+
+const nodeOptions = { projectID: process.env.HIGHLIGHT_PROJECT_ID }
+
+export const handleError = HandleError(nodeOptions)
+
+// Handle server requests				
+				`,
+					language: 'js',
+				},
+			],
+		},
 		verifySnippet,
 		{
 			title: 'More Remix features?',

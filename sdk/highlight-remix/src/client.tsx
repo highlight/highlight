@@ -4,6 +4,8 @@ import React, { useEffect } from 'react'
 import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys'
 import Cookies from 'js-cookie'
 
+export { H } from 'highlight.run'
+
 interface Props extends HighlightOptions {
 	projectId?: string
 }

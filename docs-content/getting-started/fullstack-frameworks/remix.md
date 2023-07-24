@@ -24,7 +24,7 @@ all-in-one.
 
 ```shell
 # with yarn
-yarn add @highlight-run/remix @highlight-run/node highlight.run
+yarn add @highlight-run/remix
 ```
 
 ## Client Instrumentation
@@ -35,10 +35,10 @@ yarn add @highlight-run/remix @highlight-run/node highlight.run
 See [Fullstack Mapping](https://www.highlight.io/docs/getting-started/frontend-backend-mapping#how-can-i-start-using-this) for details.
 
 ```javascript
-// ./app/root.tsx
+// app/root.tsx
 import { useLoaderData } from '@remix-run/react'
 
-import { HighlightInit } from '@highlight-run/remix/highlight-init'
+import { HighlightInit } from '@highlight-run/remix/client'
 import { json } from '@remix-run/node'
 
 
@@ -67,19 +67,67 @@ export default function App() {
 }
 
 ```
+
+- Optionally Create an `ErrorBoundary` component and export it from `app/root.tsx`
+
+```javascript
+// app/components/error-boundary.tsx
+import { isRouteErrorResponse, useRouteError } from '@remix-run/react'
+import { ReportDialog } from '@highlight-run/remix/report-dialog'
+
+export function ErrorBoundary() {
+	const error = useRouteError()
+
+	if (isRouteErrorResponse(error)) {
+		return (
+			<div>
+				<h1>
+					{error.status} {error.statusText}
+				</h1>
+				<p>{error.data}</p>
+			</div>
+		)
+	} else if (error instanceof Error) {
+		return (
+			<div>
+				<script src="https://unpkg.com/highlight.run"></script>
+				<script
+					dangerouslySetInnerHTML={{
+						__html: `
+							H.init('\${process.env.HIGHLIGHT_PROJECT_ID}');
+						`,
+					}}
+				/>
+				<h1>Error</h1>
+				<p>{error.message}</p>
+				<p>The stack trace is:</p>
+				<pre>{error.stack}</pre>
+
+				<ReportDialog />
+			</div>
+		)
+	} else {
+		return <h1>Unknown Error</h1>
+	}
+}
+```
+
+```javascript
+// app/root.tsx
+export { ErrorBoundary } from '~/components/error-boundary'
+```
  
 ## Server Instrumentation
 
-1. Use `H.init` from `@highlight-run/node` to instrument the Remix server on Node.js.
-1. Import `HandleError` from `@highlight-run/remix/handle-error` and export `handleError` after setting `nodeOptions`.
+1. Use `H.init` from `@highlight-run/remix/server` to instrument the Remix server on Node.js.
+1. Import `HandleError` from `@highlight-run/remix/server` and export `handleError` after setting `nodeOptions`.
 
 
 ```javascript
-// .app/entry.server.tsx
-import { H } from '@highlight-run/node'
-import { HandleError } from '@highlight-run/remix/handle-error'
+// app/entry.server.tsx
+import { H, HandleError } from '@highlight-run/remix/server'
 
-const nodeOptions = { projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID }
+const nodeOptions = { projectID: process.env.HIGHLIGHT_PROJECT_ID }
 
 export const handleError = HandleError(nodeOptions)
 
@@ -90,11 +138,10 @@ export const handleError = HandleError(nodeOptions)
 Alternatively, you can wrap Highlight's error handler and execute your own custom error handling code as well.
 
 ```javascript
-// ./app/entry.server.tsx
+// app/entry.server.tsx
 import type { DataFunctionArgs } from '@remix-run/node'
 
-import { H } from '@highlight-run/node'
-import { HandleError } from '@highlight-run/remix/handle-error'
+import { H, HandleError } from '@highlight-run/remix/server'
 
 const nodeOptions = { projectID: process.env.HIGHLIGHT_PROJECT_ID }
 

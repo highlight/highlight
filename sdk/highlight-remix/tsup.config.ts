@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-	entry: ['src/index.tsx', 'src/handle-error.ts', 'src/highlight-init.tsx'],
+	entry: ['src/client.tsx', 'src/report-dialog.tsx', 'src/server.ts'],
 	format: ['cjs', 'esm'],
 	minify: 'terser',
 	dts: true,

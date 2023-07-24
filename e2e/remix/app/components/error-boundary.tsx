@@ -1,5 +1,5 @@
 import { isRouteErrorResponse, useRouteError } from '@remix-run/react'
-import { ReportDialog } from '@highlight-run/remix'
+import { ReportDialog } from '@highlight-run/remix/report-dialog'
 
 import { CONSTANTS } from '~/constants'
 

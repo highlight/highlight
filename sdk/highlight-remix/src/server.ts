@@ -2,6 +2,8 @@ import { H, NodeOptions } from '@highlight-run/node'
 import type { DataFunctionArgs } from '@remix-run/node'
 import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys'
 
+export { H } from '@highlight-run/node'
+
 export function HandleError(nodeOptions: NodeOptions) {
 	H.init(nodeOptions)
 

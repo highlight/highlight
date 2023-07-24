@@ -16,8 +16,7 @@ import { Response } from '@remix-run/node'
 import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
 import { CONSTANTS } from '~/constants'
-import { H } from '@highlight-run/node'
-import { HandleError } from '@highlight-run/remix/handle-error'
+import { H, HandleError } from '@highlight-run/remix/server'
 
 const nodeOptions = { projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID }
 

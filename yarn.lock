@@ -52470,7 +52470,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "remix@workspace:e2e/remix"
   dependencies:
-    "@highlight-run/node": "workspace:*"
     "@highlight-run/remix": "workspace:*"
     "@remix-run/css-bundle": ^1.18.1
     "@remix-run/dev": ^1.18.1
@@ -52481,7 +52480,6 @@ __metadata:
     "@types/react": ^18.0.35
     "@types/react-dom": ^18.0.11
     eslint: ^8.38.0
-    highlight.run: "workspace:*"
     isbot: ^3.6.8
     react: ^18.2.0
     react-dom: ^18.2.0
