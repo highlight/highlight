@@ -19,7 +19,8 @@ func TestGetAllWorkspaceSettings(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, 1, newSettings.WorkspaceID)
 
-		_, err = store.GetAllWorkspaceSettings(context.Background(), 2)
-		assert.Error(t, err)
+		w2Settings, _ := store.GetAllWorkspaceSettings(context.Background(), 2)
+		assert.NoError(t, err)
+		assert.Equal(t, 2, w2Settings.WorkspaceID)
 	})
 }
