@@ -4,7 +4,11 @@
  * For more information, see https://remix.run/file-conventions/entry.server
  */
 
-import type { AppLoadContext, EntryContext } from '@remix-run/node'
+import type {
+	AppLoadContext,
+	DataFunctionArgs,
+	EntryContext,
+} from '@remix-run/node'
 
 import { PassThrough } from 'node:stream'
 import { RemixServer } from '@remix-run/react'
@@ -17,9 +21,18 @@ import { HandleError } from '@highlight-run/remix/handle-error'
 
 const nodeOptions = { projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID }
 
-export const handleError = HandleError(nodeOptions)
+export function handleError(
+	error: unknown,
+	dataFunctionArgs: DataFunctionArgs,
+) {
+	const handleError = HandleError(nodeOptions)
 
-H.init(nodeOptions) // TODO: Determine if this H.init is even necessary after HandleError
+	handleError(error, dataFunctionArgs)
+
+	// custom error handling logic here
+}
+
+H.init(nodeOptions)
 
 const ABORT_DELAY = 5_000
 

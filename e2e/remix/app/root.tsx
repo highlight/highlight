@@ -12,6 +12,7 @@ import { HighlightInit } from '@highlight-run/remix/highlight-init'
 import type { LinksFunction } from '@remix-run/node'
 import { cssBundleHref } from '@remix-run/css-bundle'
 import { json } from '@remix-run/node'
+import { CONSTANTS } from '~/constants'
 
 export { ErrorBoundary } from '~/components/error-boundary'
 
@@ -22,9 +23,7 @@ export const links: LinksFunction = () => [
 export async function loader() {
 	return json({
 		ENV: {
-			HIGHLIGHT_PROJECT_ID: process.env.HIGHLIGHT_PROJECT_ID || '1',
-			HIGHLIGHT_OTLP_ENDPOINT: process.env.HIGHLIGHT_OTLP_ENDPOINT,
-			HIGHLIGHT_BACKEND_URL: process.env.HIGHLIGHT_BACKEND_URL,
+			HIGHLIGHT_PROJECT_ID: CONSTANTS.HIGHLIGHT_PROJECT_ID,
 		},
 	})
 }

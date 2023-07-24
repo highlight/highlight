@@ -18,7 +18,7 @@ Our Remix SDK gives you access to frontend session replays and server-side monit
 all-in-one. 
 
 1. Use `<HighlightInit />` to track session replay and client-side errors.
-1. Use `H.init` from to instrument Remix's `nodejs` server.
+1. Use `H.init` to instrument Remix's `nodejs` server.
 
 ## Installation
 
@@ -45,7 +45,7 @@ import { json } from '@remix-run/node'
 export async function loader() {
 	return json({
 		ENV: {
-			HIGHLIGHT_PROJECT_ID: process.env.HIGHLIGHT_PROJECT_ID || '1',
+			HIGHLIGHT_PROJECT_ID: process.env.HIGHLIGHT_PROJECT_ID,
 		},
 	})
 }
@@ -70,50 +70,46 @@ export default function App() {
  
 ## Server Instrumentation
 
-Use `H.init` from `@highlight-run/node` to instrument the Remix server on Node.js.
+1. Use `H.init` from `@highlight-run/node` to instrument the Remix server on Node.js.
+1. Import `HandleError` from `@highlight-run/remix/handle-error` and export `handleError` after setting `nodeOptions`.
 
-1. Create an `initHighlight` function:
 
 ```javascript
-// ./app/utils/init-highlight.ts
-import { CONSTANTS } from '~/constants'
+// .app/entry.server.tsx
 import { H } from '@highlight-run/node'
+import { HandleError } from '@highlight-run/remix/handle-error'
 
-export function initHighlight() {
-	H.init({ projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID })
-}
+const nodeOptions = { projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID }
+
+export const handleError = HandleError(nodeOptions)
+
+// Handle server requests
+
 ```
 
-2. Instrument your root request handler
+Alternatively, you can wrap Highlight's error handler and execute your own custom error handling code as well.
 
 ```javascript
-// ./entry.server.tsx
-import { initHighlight } from '~/utils/init-highlight'
+// ./app/entry.server.tsx
+import type { DataFunctionArgs } from '@remix-run/node'
 
-export default function handleRequest(
-	request: Request,
-	responseStatusCode: number,
-	responseHeaders: Headers,
-	remixContext: EntryContext,
-	loadContext: AppLoadContext,
+import { H } from '@highlight-run/node'
+import { HandleError } from '@highlight-run/remix/handle-error'
+
+const nodeOptions = { projectID: process.env.HIGHLIGHT_PROJECT_ID }
+
+export function handleError(
+	error: unknown,
+	dataFunctionArgs: DataFunctionArgs,
 ) {
-	initHighlight();
+	const handleError = HandleError(nodeOptions)
 
-	console.log('Remix logging is live! 📦🚀')
+	handleError(error, dataFunctionArgs)
 
-	// Handle request
+	// custom error handling logic here
 }
-```
 
-3. Instrument individual loaders.
+H.init(nodeOptions)
 
-```javascript
-// app/routes/any-route.tsx
-import { initHighlight } from '~/utils/init-highlight'
-
-export async function loader({ request }: LoaderArgs) {
-	initHighlight()
-
-	// Handle loader
-}
+// Handle server requests
 ```
