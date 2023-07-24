@@ -92,7 +92,7 @@ const upload = async function (
 			await client.send(get)
 			exists = true
 		} catch (e: any) {
-			if (e.name === 'NoSuchKey') {
+			if (e.name === 'NoSuchKey' || e.name === 'AccessDenied') {
 				exists = false
 			} else {
 				throw e
