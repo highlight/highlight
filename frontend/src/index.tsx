@@ -134,7 +134,7 @@ if (dev) {
 	}
 	window.document.title = `📸 ${window.document.title}`
 	options.environment = 'Pull Request Preview'
-	options.scriptUrl = `https://static.highlight.io/${
+	options.scriptUrl = `https://static.highlight.io/dev-${
 		import.meta.env.REACT_APP_COMMIT_SHA
 	}/index.js`
 }

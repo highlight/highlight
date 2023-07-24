@@ -9,7 +9,7 @@ describe('web client recording spec', () => {
 					req.alias = req.body.operationName
 				})
 				cy.exec(
-					`window.scriptUrl = 'https://static.highlight.io/${process.env.REACT_APP_COMMIT_SHA}/index.js'`,
+					`window.scriptUrl = 'https://static.highlight.io/dev-${process.env.REACT_APP_COMMIT_SHA}/index.js'`,
 				)
 				cy.visit(`./cypress/pages/${source}.html`)
 				cy.window().then((win) => {

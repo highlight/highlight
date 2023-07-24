@@ -39,9 +39,9 @@ const publish = async function (opts: Options) {
 	const buildDir = join(opts.workspace, opts.buildDir)
 	const promises = []
 	for await (const file of getFiles(join(rootDir, buildDir))) {
-		let version = highlightRunPackageJson.version
+		let version = `v${highlightRunPackageJson.version}`
 		if (opts.preview) {
-			version = `${opts.preview}`
+			version = `dev-${opts.preview}`
 		}
 		promises.push(upload(version, file, opts))
 	}
@@ -79,7 +79,7 @@ const upload = async function (
 	const fileRelPath = fileAbsPath
 		.split(`${join(opts.workspace, opts.buildDir)}/`)
 		.pop()!
-	const key = `v${version}/${fileRelPath}`
+	const key = `${version}/${fileRelPath}`
 
 	// if --no-replace, check that the files do not exist
 	if (!opts.replace) {
