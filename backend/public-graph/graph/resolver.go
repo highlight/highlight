@@ -2069,7 +2069,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	}
 	influxSpan.Finish()
 
-	if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddings {
+	if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddingsWrite {
 		eSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
 			tracer.ResourceName("BatchGenerateEmbeddings"))
 		if err = r.BatchGenerateEmbeddings(ctx, newInstances); err != nil {
@@ -2583,7 +2583,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
 		}
 
-		if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddings {
+		if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddingsWrite {
 			eSpan := tracer.StartSpan("public-graph.pushPayload", tracer.ChildOf(putErrorsToDBSpan.Context()),
 				tracer.ResourceName("BatchGenerateEmbeddings"))
 			if err = r.BatchGenerateEmbeddings(ctx, newInstances); err != nil {
