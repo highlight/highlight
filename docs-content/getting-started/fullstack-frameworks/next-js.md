@@ -28,6 +28,39 @@ all-in-one.
 yarn add @highlight-run/next @highlight-run/react highlight.run
 ```
 
+## Environment Configuration (optional)
+
+> This section is extra opinionated about Next.js constants. It's not for everyone. We like how `zod` and TypeScript work together to validate `process.env` inputs... but this is a suggestion. Do your own thing!
+
+1. Install Zod: `yarn add zod`
+1. Edit `.env` to add your projectID to `NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID`
+
+```bash
+# .env
+NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID='1jdkoe52'
+```
+
+3. Feed your environment variables into the application with a constants file. We're using `zod` for this example, because it creates a validated, typed `CONSTANTS` object that plays nicely with TypeScript.
+
+```javascript
+// src/app/constants.ts
+import { z } from 'zod'
+
+// Must assign NEXT_PUBLIC_* env vars to a variable to force Next to inline them
+const publicEnv = {
+	NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID:
+		process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+}
+
+const CONSTANTS = z
+	.object({
+		NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: z.string(),
+	})
+	.parse(publicEnv)
+
+export default CONSTANTS
+```
+
 ## Client Instrumentation
 
 This implementation requires React 17 or greater. If you're behind on React versions, follow our [React.js docs](../3_client-sdk/1_reactjs.md)
