@@ -6533,7 +6533,7 @@ func (r *queryResolver) WorkspaceSettings(ctx context.Context, workspaceID int) 
 		return nil, err
 	}
 
-	return r.Store.GetAllWorkspaceSettings(workspaceID)
+	return r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
 }
 
 // WorkspaceForProject is the resolver for the workspace_for_project field.
