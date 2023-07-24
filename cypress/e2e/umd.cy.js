@@ -8,6 +8,9 @@ describe('web client recording spec', () => {
 				cy.intercept('POST', '/public', (req) => {
 					req.alias = req.body.operationName
 				})
+				cy.exec(
+					`window.scriptUrl = 'https://static.highlight.io/${process.env.REACT_APP_COMMIT_SHA}/index.js'`,
+				)
 				cy.visit(`./cypress/pages/${source}.html`)
 				cy.window().then((win) => {
 					// delay can be long because the client test might run first, and waiting for vite to have the dev bundle ready can take a while.

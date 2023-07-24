@@ -31,7 +31,6 @@ import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { loadIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
-import { version as firstloadVersion } from 'highlight.run/package.json'
 import { parse, stringify } from 'query-string'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
@@ -135,10 +134,9 @@ if (dev) {
 	}
 	window.document.title = `📸 ${window.document.title}`
 	options.environment = 'Pull Request Preview'
-	const version = `v${firstloadVersion}-${
+	options.scriptUrl = `https://static.highlight.io/${
 		import.meta.env.REACT_APP_COMMIT_SHA
-	}`
-	options.scriptUrl = `https://static.highlight.io/${version}/index.js`
+	}/index.js`
 }
 H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 analytics.track('attribution', getAttributionData())

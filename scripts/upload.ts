@@ -41,7 +41,7 @@ const publish = async function (opts: Options) {
 	for await (const file of getFiles(join(rootDir, buildDir))) {
 		let version = highlightRunPackageJson.version
 		if (opts.preview) {
-			version = `${version}-${opts.preview}`
+			version = `${opts.preview}`
 		}
 		promises.push(upload(version, file, opts))
 	}
