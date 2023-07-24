@@ -382,6 +382,10 @@ type AllWorkspaceSettings struct {
 	WorkspaceID   int  `gorm:"uniqueIndex"`
 	AIApplication bool `gorm:"default:true"`
 	AIInsights    bool `gorm:"default:false"`
+	// store embeddings for errors in this workspace
+	ErrorEmbeddingsWrite bool `gorm:"default:false"`
+	// use embeddings to group errors in this workspace
+	ErrorEmbeddingsGroup bool `gorm:"default:false"`
 }
 
 type HasSecret interface {

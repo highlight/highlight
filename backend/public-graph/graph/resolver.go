@@ -2069,8 +2069,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	}
 	influxSpan.Finish()
 
-	// error object embedding storage is gated for project 1
-	if projectID == 1 {
+	if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddingsWrite {
 		eSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
 			tracer.ResourceName("BatchGenerateEmbeddings"))
 		if err = r.BatchGenerateEmbeddings(ctx, newInstances); err != nil {
@@ -2584,8 +2583,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
 		}
 
-		// error object embedding storage is gated for project 1
-		if sessionObj.ProjectID == 1 {
+		if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddingsWrite {
 			eSpan := tracer.StartSpan("public-graph.pushPayload", tracer.ChildOf(putErrorsToDBSpan.Context()),
 				tracer.ResourceName("BatchGenerateEmbeddings"))
 			if err = r.BatchGenerateEmbeddings(ctx, newInstances); err != nil {
