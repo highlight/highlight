@@ -71,7 +71,7 @@ jobs:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
                   GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
-                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+                  REACT_APP_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Build & test (in a fork without doppler)
               if: github.event.pull_request.head.repo.full_name != 'highlight/highlight' && github.ref != 'refs/heads/main'
@@ -79,7 +79,7 @@ jobs:
               env:
                   GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
-                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+                  REACT_APP_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Test session screenshot lambda
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
@@ -98,9 +98,9 @@ jobs:
               if: github.ref != 'refs/heads/main'
               run: yarn publish:client --preview ${GIT_SHA} --replace
               env:
-                  # this does not use ${{ github.sha }} as that commit will be a merge ref
+                  # this cannot use ${{ github.sha }} as that commit will be a merge ref
                   # that is not consistent with the frontend PR preview value
-                  GIT_SHA: ${{ github.event.pull_request.head.sha }}
+                  GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Publish client bundle
               if: github.ref == 'refs/heads/main'
@@ -111,7 +111,7 @@ jobs:
               run: yarn && yarn sourcemaps:frontend
               env:
                   HIGHLIGHT_API_KEY: ${{ secrets.HIGHLIGHT_SOURCEMAP_API_KEY }}
-                  APP_VERSION: ${{ github.sha }}
+                  APP_VERSION: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Configure yarn npm registry credentials
               if: github.ref == 'refs/heads/main'
@@ -174,7 +174,7 @@ jobs:
             - name: Start docker containers & run cypress
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
-                  CYPRESS_COMMIT_SHA: ${{ github.sha }}
+                  CYPRESS_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
               run: |
                   start_time=$(date -Isecond)
 
