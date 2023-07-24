@@ -59,6 +59,10 @@ fragment SessionAlertFragment on SessionAlert {
 	DiscordChannelsToNotify {
 		...DiscordChannelFragment
 	}
+	WebhookDestinations {
+		url
+		authorization
+	}
 	CountThreshold
 	DailyFrequency
 	disabled

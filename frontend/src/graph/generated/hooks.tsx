@@ -71,6 +71,10 @@ export const SessionAlertFragmentFragmentDoc = gql`
 		DiscordChannelsToNotify {
 			...DiscordChannelFragment
 		}
+		WebhookDestinations {
+			url
+			authorization
+		}
 		CountThreshold
 		DailyFrequency
 		disabled
