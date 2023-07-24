@@ -14,9 +14,9 @@ import moment from 'moment'
 import React, { useEffect, useRef, useState } from 'react'
 import { StringParam, useQueryParam } from 'use-query-params'
 
-import commonStyles from '../../../Common.module.scss'
+import commonStyles from '../../../Common.module.css'
 import Button from '../../../components/Button/Button/Button'
-import styles from './InviteMemberModal.module.scss'
+import styles from './InviteMemberModal.module.css'
 
 function InviteMemberModal({
 	showModal,

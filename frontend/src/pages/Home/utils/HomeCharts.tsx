@@ -23,7 +23,7 @@ import { updateQueriedTimeRange } from '@/components/QueryBuilder/QueryBuilder'
 import { TIME_RANGE_FIELD } from '@/pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { serializeAbsoluteTimeRange } from '@/util/time'
 
-import styles from './HomeCharts.module.scss'
+import styles from './HomeCharts.module.css'
 
 type DailyCount = {
 	date: moment.Moment

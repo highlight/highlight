@@ -36,7 +36,6 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
@@ -57,12 +56,13 @@ import { useToggle } from 'react-use'
 
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
+import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
 import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
 
 import { DropdownMenu } from '../../pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/SessionFeedConfigurationV2/SessionFeedConfigurationV2'
 import * as newStyle from './QueryBuilder.css'
-import styles from './QueryBuilder.module.scss'
+import styles from './QueryBuilder.module.css'
 export interface RuleProps {
 	field: SelectOption | undefined
 	op: Operator | undefined
@@ -737,10 +737,10 @@ const PopoutContent = ({
 const SelectPopoutV2 = ({
 	value,
 	disabled,
-	cssClass,
-	limitWidth,
+	// cssClass,
+	// limitWidth,
 	loadOptions,
-	type,
+	// type,
 	onChange,
 }: PopoutProps &
 	PopoutContentProps & {
@@ -844,7 +844,7 @@ const SelectPopoutV2 = ({
 					value.options[0].label}
 			</Menu.Button>
 			<Menu.List cssClass={styles.menuList}>
-				<PopoutContent />
+				{/* <PopoutContent /> */}
 				<input
 					type="text"
 					placeholder="Filter..."
@@ -869,6 +869,7 @@ const SelectPopoutV2 = ({
 	)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const SelectPopout = ({
 	value,
 	disabled,
@@ -1261,7 +1262,8 @@ export const deserializeGroup = (
 	}
 }
 
-export const deserializeRules = (ruleGroups: any): RuleProps[] => {
+export const deserializeRules = (ruleGroups: Array<string[]>): RuleProps[] => {
+	ruleGroups = ruleGroups.filter((g) => g.length)
 	if (!ruleGroups) {
 		return []
 	}

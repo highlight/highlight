@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import React, { useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
-import styles from './PopoverListContent.module.scss'
+import styles from './PopoverListContent.module.css'
 
 interface Props {
 	listItems: React.ReactNode[]

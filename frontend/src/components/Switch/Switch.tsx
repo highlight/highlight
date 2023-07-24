@@ -4,7 +4,7 @@ import { Switch as AntDesignSwitch, SwitchProps } from 'antd'
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './Switch.module.scss'
+import styles from './Switch.module.css'
 
 type Props = Pick<
 	SwitchProps,

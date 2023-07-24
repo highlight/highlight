@@ -6,7 +6,7 @@ import {
 } from 'antd'
 import React from 'react'
 
-import styles from './TransparentPopover.module.scss'
+import styles from './TransparentPopover.module.css'
 
 type TransparentPopoverProps = Pick<
 	AntDesignPopoverProps,

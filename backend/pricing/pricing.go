@@ -207,39 +207,36 @@ func GetLimitAmount(limitCostCents *int, productType ProductType, planType backe
 	if limitCostCents == nil {
 		return nil
 	}
-	basePrice := ProductToBasePriceCents(productType)
-	if planType != backend.PlanTypeUsageBased {
-		basePrice = ProductToBasePriceCentsNonUsageBased(productType)
-	}
+	basePrice := ProductToBasePriceCents(productType, planType)
 	retentionMultiplier := RetentionMultiplier(retentionPeriod)
 
 	return pointy.Int64(int64(
 		float64(*limitCostCents)/basePrice/retentionMultiplier) + included)
 }
 
-func ProductToBasePriceCentsNonUsageBased(productType ProductType) float64 {
-	switch productType {
-	case ProductTypeSessions:
-		return .5
-	case ProductTypeErrors:
-		return .02
-	case ProductTypeLogs:
-		return .00015
-	default:
-		return 0
-	}
-}
-
-func ProductToBasePriceCents(productType ProductType) float64 {
-	switch productType {
-	case ProductTypeSessions:
-		return 2
-	case ProductTypeErrors:
-		return .02
-	case ProductTypeLogs:
-		return .00015
-	default:
-		return 0
+func ProductToBasePriceCents(productType ProductType, planType backend.PlanType) float64 {
+	if planType == backend.PlanTypeUsageBased {
+		switch productType {
+		case ProductTypeSessions:
+			return 2
+		case ProductTypeErrors:
+			return .02
+		case ProductTypeLogs:
+			return .00015
+		default:
+			return 0
+		}
+	} else {
+		switch productType {
+		case ProductTypeSessions:
+			return .5
+		case ProductTypeErrors:
+			return .02
+		case ProductTypeLogs:
+			return .00015
+		default:
+			return 0
+		}
 	}
 }
 
@@ -522,7 +519,7 @@ func ReportUsageForWorkspace(ctx context.Context, DB *gorm.DB, ccClient *clickho
 
 func reportUsage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, stripeClient *client.API, mailClient *sendgrid.Client, workspaceID int, productType *ProductType) error {
 	var workspace model.Workspace
-	if err := DB.Model(&workspace).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
+	if err := DB.Model(&workspace).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
 		return e.Wrap(err, "error querying workspace")
 	}
 	var projects []model.Project

@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './Space.module.scss'
+import styles from './Space.module.css'
 
 interface Props {
 	direction?: 'horizontal' | 'vertical'

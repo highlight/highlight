@@ -1,17 +1,17 @@
 ---
-title: Building a Type-Safe Tailwind with vanilla-extract 
+title: Building a Type-Safe Tailwind with vanilla-extract
 createdAt: 2023-04-18T12:00:00Z
 readingTime: 13
 authorFirstName: Chris
 authorLastName: Schmitz
-authorTitle: Software Engineer 
-authorTwitter: ''
-authorLinkedIn: ''
-authorGithub: ''
+authorTitle: Software Engineer @ Highlight
+authorTwitter: 'https://twitter.com/ccschmitz'
+authorLinkedIn: 'https://www.linkedin.com/in/ccschmitz'
+authorGithub: 'https://github.com/ccschmitz'
 authorWebsite: ''
 authorPFP: 'https://www.highlight.io/_next/image?url=https%3A%2F%2Fmedia.graphassets.com%2FViK27IG7TCe0YDK20tFy&w=3840&q=75'
 tags: Launch Week 1
-metaTitle: Building a Type-Safe Tailwind with vanilla-extract 
+metaTitle: Building a Type-Safe Tailwind with vanilla-extract
 ---
 
 [_Tailwind CSS_](https://tailwindcss.com/ "https://tailwindcss.com/") is a popular utility-first CSS framework that provides a great workflow for building UI. I encourage you to try it out if you haven’t already; there’s a reason it’s [_growing so quickly_](https://npmtrends.com/tailwindcss "https://npmtrends.com/tailwindcss") in popularity.

@@ -3,29 +3,47 @@ package store
 import (
 	"context"
 	"errors"
+	"sort"
 	"strconv"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/samber/lo"
 )
 
 type ListErrorObjectsParams struct {
 	After  *string
 	Before *string
+	Query  string
 }
 
 // Number of results per page
 const LIMIT = 10
 
+func (store *Store) PutEmbeddings(embeddings []*model.ErrorObjectEmbeddings) error {
+	return store.db.Model(&model.ErrorObjectEmbeddings{}).CreateInBatches(embeddings, 64).Error
+}
+
 func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErrorObjectsParams) (privateModel.ErrorObjectConnection, error) {
 
 	var errorObjects []model.ErrorObject
 
-	query := store.db.
-		Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(LIMIT + 1)
+	query := store.db.Where(&model.ErrorObject{ErrorGroupID: errorGroup.ID}).Limit(LIMIT + 1)
+
+	if params.Query != "" {
+		filters := queryparser.Parse(params.Query)
+
+		if val, ok := filters.Attributes["email"]; ok {
+			if len(val) > 0 && val[0] != "" {
+				query.Joins("LEFT JOIN sessions ON error_objects.session_id = sessions.id").
+					Where("sessions.project_id = ?", errorGroup.ProjectID). // Attaching project id so we can utilize the composite index sessions
+					Where("sessions.email ILIKE ?", "%"+val[0]+"%")
+			}
+		}
+	}
 
 	var (
 		endCursor       string
@@ -35,19 +53,32 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 	)
 
 	if params.After != nil {
-		query = query.Order("id ASC").Where("id > ?", *params.After)
+		query = query.Order("error_objects.id DESC").Where("error_objects.id < ?", *params.After)
 	} else if params.Before != nil {
-		query = query.Order("id DESC").Where("id < ?", *params.Before)
+		query = query.Order("error_objects.id ASC").Where("error_objects.id > ?", *params.Before)
 	} else {
-		query = query.Order("id ASC")
+		query = query.Order("error_objects.id DESC")
 	}
 
 	if err := query.Find(&errorObjects).Error; err != nil {
-		return privateModel.ErrorObjectConnection{}, err
+		return privateModel.ErrorObjectConnection{
+			Edges:    []*privateModel.ErrorObjectEdge{},
+			PageInfo: &privateModel.PageInfo{},
+		}, err
+	}
+
+	if params.Before != nil {
+		// Reverse the slice to maintain a descending order view
+		sort.Slice(errorObjects, func(i, j int) bool {
+			return errorObjects[i].ID < errorObjects[j].ID
+		})
 	}
 
 	if len(errorObjects) == 0 {
-		return privateModel.ErrorObjectConnection{}, nil
+		return privateModel.ErrorObjectConnection{
+			Edges:    []*privateModel.ErrorObjectEdge{},
+			PageInfo: &privateModel.PageInfo{},
+		}, nil
 	}
 
 	// Extract the non-null session IDs
@@ -77,9 +108,11 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 		edge := &privateModel.ErrorObjectEdge{
 			Cursor: strconv.Itoa(errorObject.ID),
 			Node: &privateModel.ErrorObjectNode{
-				ID:        errorObject.ID,
-				CreatedAt: errorObject.CreatedAt,
-				Event:     errorObject.Event,
+				ID:                 errorObject.ID,
+				CreatedAt:          errorObject.CreatedAt,
+				Event:              errorObject.Event,
+				Timestamp:          errorObject.Timestamp,
+				ErrorGroupSecureID: errorGroup.SecureID,
 			},
 		}
 
@@ -88,9 +121,10 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 			session, exists := sessionMap[*errorObject.SessionID]
 			if exists {
 				edge.Node.Session = &privateModel.ErrorObjectNodeSession{
-					SecureID:       session.SecureID,
-					UserProperties: session.UserProperties,
-					AppVersion:     session.AppVersion,
+					SecureID:    session.SecureID,
+					Email:       session.Email,
+					AppVersion:  session.AppVersion,
+					Fingerprint: &session.Fingerprint,
 				}
 			}
 		}
@@ -161,7 +195,7 @@ func (store *Store) updateErrorGroupState(ctx context.Context,
 		Model: model.Model{
 			ID: params.ID,
 		},
-	}).First(&errorGroup).Updates(map[string]interface{}{
+	}).Take(&errorGroup).Updates(map[string]interface{}{
 		"State":        params.State,
 		"SnoozedUntil": params.SnoozedUntil,
 	}).Error; err != nil {

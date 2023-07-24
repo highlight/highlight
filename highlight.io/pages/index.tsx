@@ -150,7 +150,7 @@ const Home: NextPage = () => {
 
 	return (
 		<div>
-			<Navbar hideBanner />
+			<Navbar />
 			<main>
 				<Section className={styles.heroVideoWrapper}>
 					<AnimateBugLeft loaded={leftBugLoaded && rightBugLoaded}>
@@ -241,15 +241,15 @@ const Home: NextPage = () => {
 					<LandingInfoRow
 						title={`Support for all the modern frameworks.`}
 						desc={`We support all the fancy new frameworks and our platform is powered by open source, scalable technologies.`}
-						link={'/docs/general/welcome'}
-						linkText={'Read the docs'}
+						link={'/frameworks'}
+						linkText={'View all frameworks'}
 						imgSrc={'/images/landingInfoRow2.png'}
 					/>
 					<LandingInfoRow
 						title={`Integrations with your favorite tools.`}
 						desc="Connect your favorite issue tracker, support tool, or even analytics software and we’ll give you a way to push and pull data in the right places."
-						link={'/docs/general/integrations/overview'}
-						linkText={'Read the docs'}
+						link={'/integrations'}
+						linkText={'View all integrations'}
 						imgSrc={'/images/landingInfoRow3.png'}
 						invert
 					/>

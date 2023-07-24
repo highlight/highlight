@@ -23,7 +23,7 @@ import TextTransition from 'react-text-transition'
 import ActivityGraph from '../ActivityGraph/ActivityGraph'
 import { formatDatetime } from '../SessionQueryBuilder/components/SessionFeedConfiguration/SessionFeedConfiguration'
 import { SessionFeedConfigurationContext } from '../SessionQueryBuilder/context/SessionFeedConfigurationContext'
-import styles from './MinimalSessionCard.module.scss'
+import styles from './MinimalSessionCard.module.css'
 import { getDisplayName, getIdentifiedUserProfileImage } from './utils/utils'
 
 interface Props {

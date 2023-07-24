@@ -2,7 +2,7 @@ import Sparkles2Icon from '@icons/Sparkles2Icon'
 import { IntegrationConfigProps } from '@pages/IntegrationsPage/components/Integration'
 import React from 'react'
 
-import styles from './FrontPluginConfig.module.scss'
+import styles from './FrontPluginConfig.module.css'
 
 const FrontPluginConfig: React.FC<IntegrationConfigProps> = ({}) => {
 	return (

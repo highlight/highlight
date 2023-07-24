@@ -29,7 +29,7 @@ type Client struct {
 	Cache       *cache.Cache
 }
 
-const LockPollInterval = 100 * time.Millisecond
+const LockPollInterval = 50 * time.Millisecond
 
 var (
 	ServerAddr = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
@@ -41,6 +41,10 @@ func EventsKey(sessionId int) string {
 
 func NetworkResourcesKey(sessionId int) string {
 	return fmt.Sprintf("network-resources-%d", sessionId)
+}
+
+func WebSocketEventsKey(sessionId int) string {
+	return fmt.Sprintf("web-socket-events-%d", sessionId)
 }
 
 func SessionInitializedKey(sessionSecureId string) string {
@@ -145,6 +149,8 @@ func GetKey(sessionId int, payloadType model.RawPayloadType) string {
 		return EventsKey(sessionId)
 	case model.PayloadTypeResources:
 		return NetworkResourcesKey(sessionId)
+	case model.PayloadTypeWebSocketEvents:
+		return WebSocketEventsKey(sessionId)
 	default:
 		return ""
 	}
@@ -474,12 +480,9 @@ func (r *Client) GetHubspotCompanies(ctx context.Context, companies interface{})
 	return
 }
 
-func (r *Client) AcquireLock(ctx context.Context, key string, timeout time.Duration) (err error) {
+func (r *Client) AcquireLock(ctx context.Context, key string, timeout time.Duration) (acquired bool) {
 	start := time.Now()
 	for {
-		if time.Since(start) > timeout {
-			break
-		}
 		cmd := r.redisClient.SetArgs(ctx, key, "1", redis.SetArgs{
 			TTL:  timeout,
 			Mode: "NX",
@@ -487,11 +490,13 @@ func (r *Client) AcquireLock(ctx context.Context, key string, timeout time.Durat
 		})
 		// error means value is not set
 		if cmd.Err() != nil {
-			return nil
+			return true
+		}
+		if time.Since(start) > timeout {
+			return false
 		}
 		time.Sleep(LockPollInterval)
 	}
-	return errors.New("timed out acquiring lock")
 }
 
 func (r *Client) ReleaseLock(ctx context.Context, key string) (err error) {

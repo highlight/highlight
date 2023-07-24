@@ -2,7 +2,7 @@ import { Box, Callout, Text } from '@highlight-run/ui'
 import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
 import React, { useEffect } from 'react'
 
-import styles from './NoActiveErrorCard.module.scss'
+import styles from './NoActiveErrorCard.module.css'
 
 const NoActiveErrorCard = () => {
 	const { setShowLeftPanel } = useErrorPageConfiguration()

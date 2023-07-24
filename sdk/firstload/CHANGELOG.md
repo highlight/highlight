@@ -259,3 +259,73 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Minor Changes
 
 - Capture unhandled promise exceptions in highlight errors.
+
+## 7.3.0
+
+### Minor Changes
+
+- Update format of data sent in for WebSocket events
+
+## 7.3.1
+
+### Patch Changes
+
+- Increase data transmission retry delays.
+
+## 7.3.2
+
+### Patch Changes
+
+- Ensure compatibility with native `window.Highlight` [class](https://developer.mozilla.org/en-US/docs/Web/API/Highlight).
+
+## 7.3.3
+
+### Patch Changes
+
+- Ensure `console.error` caught stack traces are not missing the top frame.
+
+## 7.3.4
+
+### Patch Changes
+
+- Add easier testing of local `@highlight-run/client` and `highlight.run` scripts.
+- Look for `window.HighlightIO` instead of `window.Highlight` when waiting for client script to load.
+
+## 7.3.5
+
+### Patch Changes
+
+- Remove any properties that throw a `structuredClone` error in `addProperties` before calling `postMessage`
+
+## 7.3.6
+
+### Patch Changes
+
+- Track identify metadata in the mixpanel integration as a tracked event.
+
+## 7.3.7
+Reserved for the Boeing 737
+
+## 7.3.8
+
+### Patch Changes
+
+- Fix `window.Promise` monkeypatch to work in Next.js frontends.
+
+## 7.3.9
+
+### Patch Changes
+
+- Fix recording of WebGL2 `<canvas>` elements that leverage `preserveDrawingBuffer: false`
+
+## 7.3.10
+
+### Patch Changes
+
+- Fix error capture of `new Error()` objects.
+
+## 7.3.11
+
+### Patch Changes
+
+- Improve `canvasInitialSnapshotDelay` logic for `<canvas>` recording to delay per-canvas.

@@ -45,6 +45,7 @@ require (
 	github.com/bradleyfalzon/ghinstallation/v2 v2.3.0
 	github.com/clearbit/clearbit-go v1.0.1
 	github.com/dchest/uniuri v0.0.0-20200228104902-7aecb25e1fe5
+	github.com/disintegration/imaging v1.6.2
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-oauth2/oauth2/v4 v4.5.1
 	github.com/go-oauth2/redis/v4 v4.1.1
@@ -74,6 +75,7 @@ require (
 	github.com/rs/cors v1.7.0
 	github.com/rs/xid v1.4.0
 	github.com/samber/lo v1.38.1
+	github.com/sashabaranov/go-openai v1.10.1
 	github.com/segmentio/kafka-go v0.4.38
 	github.com/sendgrid/sendgrid-go v3.7.0+incompatible
 	github.com/shirou/gopsutil v3.21.11+incompatible
@@ -88,7 +90,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.13.0
 	golang.org/x/oauth2 v0.6.0
 	golang.org/x/sync v0.2.0
-	golang.org/x/text v0.8.0
+	golang.org/x/text v0.11.0
 	google.golang.org/api v0.110.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.43.1
 	gorm.io/driver/postgres v1.0.8
@@ -172,6 +174,7 @@ require (
 	go.uber.org/multierr v1.9.0 // indirect
 	go4.org/intern v0.0.0-20211027215823-ae77deb06f29 // indirect
 	go4.org/unsafe/assume-no-moving-gc v0.0.0-20220617031537-928513b29760 // indirect
+	golang.org/x/image v0.9.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	inet.af/netaddr v0.0.0-20220617031823-097006376321 // indirect
 	nhooyr.io/websocket v1.8.7 // indirect

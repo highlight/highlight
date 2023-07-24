@@ -2,7 +2,7 @@ import React from 'react'
 import { components, OptionProps } from 'react-select'
 
 import TextHighlighter from '../TextHighlighter/TextHighlighter'
-import styles from './Option.module.scss'
+import styles from './Option.module.css'
 
 const SearchMatch = ({
 	label,

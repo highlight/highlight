@@ -14,6 +14,7 @@ const nextConfig = {
 		instrumentationHook: true,
 	},
 	productionBrowserSourceMaps: true,
+	images: { domains: ['i.travelapi.com'] },
 }
 
 export default nextConfig

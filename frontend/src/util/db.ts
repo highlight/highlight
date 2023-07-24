@@ -10,6 +10,7 @@ import moment from 'moment'
 
 import log from './log'
 
+let indexedDBKillswitch = false
 const CLEANUP_CHECK_MS = 1000
 const CLEANUP_DELAY_MS = 10000
 const CLEANUP_THRESHOLD_MB = 4000
@@ -25,6 +26,14 @@ const getLocalStorage = function (): Storage | undefined {
 }
 
 export const isIndexedDBEnabled = function () {
+	if (indexedDBKillswitch) {
+		return false
+	}
+
+	// disabled indexeddb altogether if we cannot read indexeddb memory usage
+	if (!navigator?.storage?.estimate) {
+		return false
+	}
 	const defaultEnabled = import.meta.env.MODE !== 'development'
 	const storage = getLocalStorage()
 	if (!storage) {
@@ -96,23 +105,28 @@ export class IndexedDBCache {
 		GetSession: moment.duration(15, 'minutes').asMilliseconds(),
 	}
 	getItem = async function (key: { operation: string; variables: any }) {
-		const result = await db.apollo
-			.where('key')
-			.equals(JSON.stringify(key))
-			.first()
-		if (result) {
-			if (IndexedDBCache.expiryMS[key.operation]) {
-				if (
-					moment().diff(moment(result.created)) >=
-					IndexedDBCache.expiryMS[key.operation]
-				) {
-					db.apollo.delete(result.key)
-					return null
+		try {
+			const result = await db.apollo
+				.where('key')
+				.equals(JSON.stringify(key))
+				.first()
+			if (result) {
+				if (IndexedDBCache.expiryMS[key.operation]) {
+					if (
+						moment().diff(moment(result.created)) >=
+						IndexedDBCache.expiryMS[key.operation]
+					) {
+						db.apollo.delete(result.key)
+						return null
+					}
 				}
+				db.apollo.update(result.key, { updated: moment().format() })
 			}
-			db.apollo.update(result.key, { updated: moment().format() })
+			return result?.data ?? null
+		} catch {
+			indexedDBKillswitch = true
+			return null
 		}
-		return result?.data ?? null
 	}
 	setItem = async function (
 		key: {
@@ -121,15 +135,28 @@ export class IndexedDBCache {
 		},
 		value: FetchResult<Record<string, any>>,
 	) {
-		await db.apollo.put({
-			key: JSON.stringify(key),
-			created: moment().format(),
-			updated: moment().format(),
-			data: value,
-		})
+		try {
+			await db.apollo.put({
+				key: JSON.stringify(key),
+				created: moment().format(),
+				updated: moment().format(),
+				data: value,
+			})
+		} catch {
+			indexedDBKillswitch = true
+		}
 	}
 	deleteItem = async function (key: { operation: string; variables: any }) {
-		await db.apollo.delete(JSON.stringify(key))
+		try {
+			const q = db.apollo.where('key').equals(JSON.stringify(key))
+			log('db.ts', 'IndexedDBLink cache deleting', {
+				key,
+				count: await q.count(),
+			})
+			await q.delete()
+		} catch {
+			indexedDBKillswitch = true
+		}
 	}
 }
 

@@ -14,7 +14,7 @@ import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 
-import styles from './SegmentButtons.module.scss'
+import styles from './SegmentButtons.module.css'
 
 interface Props {
 	showModal: boolean

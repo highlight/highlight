@@ -1,25 +1,10 @@
 import { ErrorMessage } from '../types/shared-types'
 import stringify from 'json-stringify-safe'
 import ErrorStackParser from 'error-stack-parser'
-import { instanceOf } from 'graphql/jsutils/instanceOf'
 
-const g = typeof window !== 'undefined' ? window : global
-
-class HighlightPromise<T> extends g.Promise<T> {
-	private readonly promiseCreationError: Error
-	constructor(
-		executor: (
-			resolve: (value: T | PromiseLike<T>) => void,
-			reject: (reason?: any) => void,
-		) => void,
-	) {
-		super(executor)
-		this.promiseCreationError = new Error()
-	}
-
-	getStack(): Error {
-		return this.promiseCreationError
-	}
+interface HighlightPromise<T> extends Promise<T> {
+	promiseCreationError: Error
+	getStack(): Error
 }
 
 function handleError(
@@ -29,20 +14,18 @@ function handleError(
 	error: Error,
 ) {
 	let res: ErrorStackParser.StackFrame[] = []
+	try {
+		res = ErrorStackParser.parse(error)
+	} catch {}
 
 	if (event instanceof Error) {
-		res = ErrorStackParser.parse(event)
 		event = event.message
-	} else {
-		try {
-			res = ErrorStackParser.parse(error)
-		} catch {} // @eslint-ignore
 	}
 	const framesToUse = removeHighlightFrameIfExists(res)
 	callback({
 		event: stringify(event),
 		type: 'window.onerror',
-		url: g.location.href,
+		url: window.location.href,
 		source: source ?? '',
 		lineNumber: framesToUse[0]?.lineNumber ? framesToUse[0]?.lineNumber : 0,
 		columnNumber: framesToUse[0]?.columnNumber
@@ -54,11 +37,9 @@ function handleError(
 }
 
 export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
-	const initialOnError = g.onerror
-	const initialOnUnhandledRejection = g.onunhandledrejection
-	const initialPromise = g.Promise
+	if (typeof window === 'undefined') return () => {}
 
-	g.onerror = (
+	const initialOnError = (window.onerror = (
 		event: any,
 		source: string | undefined,
 		lineno: number | undefined,
@@ -68,13 +49,14 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 		if (error) {
 			handleError(callback, event, source, error)
 		}
-	}
-	g.onunhandledrejection = function (event: PromiseRejectionEvent): void {
+	})
+
+	const initialOnUnhandledRejection = (window.onunhandledrejection = (
+		event: PromiseRejectionEvent,
+	) => {
 		if (event.reason) {
-			const hPromise = event.promise as
-				| Promise<any>
-				| HighlightPromise<any>
-			if (hPromise instanceof HighlightPromise) {
+			const hPromise = event.promise as HighlightPromise<any>
+			if (hPromise.getStack) {
 				handleError(
 					callback,
 					event.reason,
@@ -85,12 +67,30 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 				handleError(callback, event.reason, event.type, Error())
 			}
 		}
+	})
+
+	const initialPromise = window.Promise.constructor
+	window.Promise.constructor = function (
+		executor: (
+			resolve: (value: any | PromiseLike<any>) => void,
+			reject: (reason?: any) => void,
+		) => void,
+	) {
+		initialPromise(executor)
+		// @ts-ignore
+		this.promiseCreationError = new Error()
 	}
-	g.Promise = HighlightPromise
+
+	// @ts-ignore
+	window.Promise.prototype.getStack = function () {
+		// @ts-ignore
+		return this.promiseCreationError
+	}
+
 	return () => {
-		g.Promise = initialPromise
-		g.onunhandledrejection = initialOnUnhandledRejection
-		g.onerror = initialOnError
+		window.Promise.constructor = initialPromise
+		window.onunhandledrejection = initialOnUnhandledRejection
+		window.onerror = initialOnError
 	}
 }
 

@@ -3,32 +3,23 @@ import { useAuthContext } from '@authentication/AuthContext'
 import { Avatar } from '@components/Avatar/Avatar'
 import { Button } from '@components/Button'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
-import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
-import { LinkButton } from '@components/LinkButton'
 import LoadingBox from '@components/LoadingBox'
-import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	GetErrorInstanceDocument,
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { ErrorObjectFragment, GetErrorGroupQuery } from '@graph/operations'
-import { Maybe, ReservedLogKey } from '@graph/schemas'
 import {
+	Badge,
 	Box,
-	Heading,
+	Callout,
 	IconSolidCode,
 	IconSolidExternalLink,
-	IconSolidLogs,
+	Stack,
 	Text,
-	Tooltip,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
-import {
-	DEFAULT_LOGS_OPERATOR,
-	LogsSearchParam,
-	stringifyLogsQuery,
-} from '@pages/LogsPage/SearchForm/utils'
 import {
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
@@ -41,13 +32,18 @@ import { copyToClipboard } from '@util/string'
 import { buildQueryURLString } from '@util/url/params'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
-import { useHotkeys } from 'react-hotkeys-hook'
-import { createSearchParams, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
+import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
 import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
+import { AiErrorSuggestion } from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestion'
 import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionMissingOrExcluded'
-import { ShowSessionButton } from '@/pages/ErrorsV2/ErrorInstance/ShowSessionButton'
+import { PreviousNextInstance } from '@/pages/ErrorsV2/ErrorInstance/PreviousNextInstance'
+import { RelatedLogs } from '@/pages/ErrorsV2/ErrorInstance/RelatedLogs'
+import { RelatedSession } from '@/pages/ErrorsV2/ErrorInstance/RelatedSession'
+import { SeeAllInstances } from '@/pages/ErrorsV2/ErrorInstance/SeeAllInstances'
 import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
@@ -60,52 +56,17 @@ const METADATA_LABELS: { [key: string]: string } = {
 	id: 'ID',
 } as const
 
-const getLogsLink = (errorObject: ErrorObjectFragment): string => {
-	const queryParams: LogsSearchParam[] = []
-	let offsetStart = 1
-	if (errorObject.session?.secure_id) {
-		queryParams.push({
-			key: ReservedLogKey.SecureSessionId,
-			operator: DEFAULT_LOGS_OPERATOR,
-			value: errorObject.session?.secure_id,
-			offsetStart: offsetStart++,
-		})
-	}
-	if (errorObject.trace_id) {
-		queryParams.push({
-			key: ReservedLogKey.TraceId,
-			operator: DEFAULT_LOGS_OPERATOR,
-			value: errorObject.trace_id,
-			offsetStart: offsetStart++,
-		})
-	}
-	const query = stringifyLogsQuery(queryParams)
-	const logCursor = errorObject.log_cursor
-	const params = createSearchParams({
-		query,
-		start_date: moment(errorObject.timestamp)
-			.add(-5, 'minutes')
-			.toISOString(),
-		end_date: moment(errorObject.timestamp).add(5, 'minutes').toISOString(),
-	})
-	if (logCursor) {
-		return `/${errorObject.project_id}/logs/${logCursor}?${params}`
-	} else {
-		return `/${errorObject.project_id}/logs?${params}`
-	}
-}
-
-const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
-	const { error_object_id, error_secure_id } = useParams<{
-		error_secure_id: string
-		error_object_id: string
-	}>()
-	const { projectId } = useProjectId()
-	const navigate = useNavigate()
+export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
+	const { error_object_id } = useParams<{ error_object_id: string }>()
 	const client = useApolloClient()
-	const { isLoggedIn } = useAuthContext()
+	const { currentWorkspace } = useApplicationContext()
 
-	const { loading, data } = useGetErrorInstanceQuery({
+	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
+
+	const { loading, error, data } = useGetErrorInstanceQuery({
 		variables: {
 			error_group_secure_id: String(errorGroup?.secure_id),
 			error_object_id,
@@ -144,198 +105,43 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		},
 	})
 
-	const errorInstance = data?.error_instance
-
 	useEffect(() => analytics.page(), [])
 
-	useHotkeys(']', () => goToErrorInstance(errorInstance?.next_id, 'next'), [
-		errorInstance?.next_id,
-	])
-	useHotkeys(
-		'[',
-		() => goToErrorInstance(errorInstance?.previous_id, 'previous'),
-		[errorInstance?.previous_id],
-	)
-
-	const goToErrorInstance = (
-		errorInstanceId: Maybe<string> | undefined,
-		direction: 'next' | 'previous',
-	) => {
-		if (!errorInstanceId || Number(errorInstanceId) === 0) {
-			return
-		}
-
-		navigate({
-			pathname: `/${projectId}/errors/${error_secure_id}/instances/${errorInstanceId}`,
-			search: window.location.search,
-		})
-
-		analytics.track('Viewed error instance', {
-			direction,
-		})
+	if (loading) {
+		return (
+			<Box mt="10">
+				<LoadingBox />
+			</Box>
+		)
 	}
 
-	if (!errorInstance || !errorInstance?.error_object) {
-		if (!loading) return null
-
+	const errorInstance = data?.error_instance
+	if (error || !errorInstance) {
 		return (
-			<Box id="error-instance-container">
-				<Box my="28" display="flex" justifyContent="space-between">
-					<Box display="flex" flexDirection="column" gap="16">
-						<Heading level="h4">Instance Details</Heading>
+			<Box m="auto" mt="10" style={{ maxWidth: 300 }}>
+				<Callout title="Failed to load error instance" kind="error">
+					<Box mb="6">
+						<Text color="moderate">
+							There was an error loading this error instance.
+						</Text>
 					</Box>
-
-					<Box>
-						<Box display="flex" gap="8" alignItems="center">
-							<Button
-								disabled={true}
-								kind="secondary"
-								emphasis="low"
-								trackingId="errorInstanceOlder"
-							>
-								Older
-							</Button>
-							<Box
-								borderRight="secondary"
-								style={{ height: 18 }}
-							/>
-							<Button
-								disabled={true}
-								kind="secondary"
-								emphasis="low"
-								trackingId="errorInstanceNewer"
-							>
-								Newer
-							</Button>
-							<Button
-								kind="primary"
-								emphasis="high"
-								disabled={true}
-								iconLeft={<IconSolidLogs />}
-								trackingId="errorInstanceShowLogs"
-							>
-								Show logs
-							</Button>
-							<ShowSessionButton />
-						</Box>
-					</Box>
-				</Box>
-
-				<Box display="flex" flexDirection="row" mb="40" gap="40">
-					<div style={{ flexBasis: 0, flexGrow: 1 }}>
-						<Box>
-							<Box bb="secondary" pb="20" my="12">
-								<Text weight="bold" size="large">
-									Instance metadata
-								</Text>
-							</Box>
-							<LoadingBox height={128} />
-						</Box>
-					</div>
-
-					<div style={{ flexBasis: 0, flexGrow: 1 }}>
-						<Box width="full">
-							<Box pb="20" mt="12">
-								<Text weight="bold" size="large">
-									User details
-								</Text>
-							</Box>
-							<LoadingBox height={128} />
-						</Box>
-					</div>
-				</Box>
-
-				<Text size="large" weight="bold">
-					Stack trace
-				</Text>
-				<Box bt="secondary" mt="12" pt="16">
-					<Skeleton count={10} />
-				</Box>
+				</Callout>
 			</Box>
 		)
 	}
 
 	return (
 		<Box id="error-instance-container">
-			<Box my="28" display="flex" justifyContent="space-between">
-				<Box display="flex" flexDirection="column" gap="16">
-					<Heading level="h4">Instance Details</Heading>
-				</Box>
-
-				<Box>
-					<Box display="flex" gap="8" alignItems="center">
-						<Tooltip
-							trigger={
-								<Button
-									onClick={() => {
-										goToErrorInstance(
-											errorInstance.previous_id,
-											'previous',
-										)
-									}}
-									disabled={
-										Number(errorInstance.previous_id) === 0
-									}
-									kind="secondary"
-									emphasis="low"
-									trackingId="errorInstanceOlder"
-								>
-									Older
-								</Button>
-							}
-						>
-							<KeyboardShortcut label="Previous" shortcut="[" />
-						</Tooltip>
-
-						<Box borderRight="secondary" style={{ height: 18 }} />
-						<Tooltip
-							trigger={
-								<Button
-									onClick={() => {
-										goToErrorInstance(
-											errorInstance.next_id,
-											'next',
-										)
-									}}
-									disabled={
-										Number(errorInstance.next_id) === 0
-									}
-									kind="secondary"
-									emphasis="low"
-									trackingId="errorInstanceNewer"
-								>
-									Newer
-								</Button>
-							}
-						>
-							<KeyboardShortcut label="Next" shortcut="]" />
-						</Tooltip>
-						<LinkButton
-							kind="primary"
-							emphasis="high"
-							to={getLogsLink(errorInstance.error_object)}
-							disabled={
-								!isLoggedIn ||
-								!errorInstance.error_object.session
-							}
-							trackingId="error-related_logs_link"
-						>
-							<Box
-								display="flex"
-								alignItems="center"
-								flexDirection="row"
-								gap="4"
-							>
-								<IconSolidLogs />
-								Show logs
-							</Box>
-						</LinkButton>
-						<ShowSessionButton
-							errorObject={errorInstance.error_object}
-						/>
-					</Box>
-				</Box>
-			</Box>
+			<Stack direction="row" my="12">
+				<Stack direction="row" flexGrow={1}>
+					<SeeAllInstances data={data} />
+					<PreviousNextInstance data={data} />
+				</Stack>
+				<Stack direction="row" gap="4">
+					<RelatedSession data={data} />
+					<RelatedLogs data={data} />
+				</Stack>
+			</Stack>
 
 			<Box py="16" px="16" mb="40" border="secondary" borderRadius="8">
 				<Box
@@ -350,6 +156,21 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				</Box>
 				<ErrorBodyText errorBody={errorInstance.error_object.event} />
 			</Box>
+
+			{workspaceSettingsData?.workspaceSettings?.ai_application && (
+				<Box display="flex" flexDirection="column" mb="40">
+					<Stack direction="row" align="center" pb="20" gap="8">
+						<Text size="large" weight="bold">
+							Harold AI
+						</Text>
+						<Badge label="Beta" size="medium" variant="purple" />
+					</Stack>
+
+					<AiErrorSuggestion
+						errorObjectId={errorInstance.error_object.id}
+					/>
+				</Box>
+			)}
 
 			<Box display="flex" flexDirection="column" mb="40" gap="40">
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
@@ -665,5 +486,3 @@ const User: React.FC<{
 		</Box>
 	)
 }
-
-export default ErrorInstance
