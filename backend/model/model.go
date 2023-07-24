@@ -379,8 +379,9 @@ type ProjectFilterSettings struct {
 
 type AllWorkspaceSettings struct {
 	Model
-	WorkspaceID int  `gorm:"uniqueIndex"`
-	AIInsights  bool `gorm:"default:false"`
+	WorkspaceID   int  `gorm:"uniqueIndex"`
+	AIApplication bool `gorm:"default:true"`
+	AIInsights    bool `gorm:"default:false"`
 }
 
 type HasSecret interface {
