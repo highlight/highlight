@@ -12686,7 +12686,6 @@ __metadata:
   dependencies:
     "@cloudflare/workers-types": ^4.20230518.0
     "@opentelemetry/resources": 1.15.1
-    diary: ^0.4.4
     opentelemetry-sdk-workers: ^0.6.2
     tsup: ^6.7.0
   languageName: unknown
@@ -12880,7 +12879,6 @@ __metadata:
     highlight.run: "workspace:*"
     jest: ^29.2.0
     next: ^13.3.4
-    npm-run-all: 4.1.5
     ts-jest: ^29.0.3
     tsup: ^6.7.0
     typescript: ^5.0.4
@@ -12906,11 +12904,8 @@ __metadata:
     "@types/jest": ^29.2.0
     "@types/lru-cache": ^7.10.10
     "@types/node": 17.0.13
-    error-stack-parser: 2.0.7
     highlight.run: "workspace:*"
     jest: ^29.2.2
-    lru-cache: ^7.14.0
-    npm-run-all: 4.1.5
     ts-jest: ^29.0.3
     tsup: ^6.2.3
     typescript: ^5.0.4
@@ -29735,13 +29730,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diary@npm:^0.4.4":
-  version: 0.4.4
-  resolution: "diary@npm:0.4.4"
-  checksum: 906a276d05fae33e7d8330b26846448d09ce5d8d7457e8a559e938d8267788bb667718bbcd74b184b4203602d0acebf1259c229fbfb639b7f4226285deca824a
-  languageName: node
-  linkType: hard
-
 "didyoumean@npm:^1.2.1, didyoumean@npm:^1.2.2":
   version: 1.2.2
   resolution: "didyoumean@npm:1.2.2"
@@ -30438,15 +30426,6 @@ __metadata:
   dependencies:
     stackframe: ^1.1.1
   checksum: bd8e048fcb1c0c74ab201271fec3b39c097a7c24bdef1718828d053c0584da5d7ad845253b5e4773803ee8e7450b23b0920e60a3b60dd403c1568c843058cb12
-  languageName: node
-  linkType: hard
-
-"error-stack-parser@npm:2.0.7":
-  version: 2.0.7
-  resolution: "error-stack-parser@npm:2.0.7"
-  dependencies:
-    stackframe: ^1.1.1
-  checksum: fe30bba934db08487dd2c5a8dfe785f64debf4948b5c79a531b610b4468d96b918a806c0f3d44f634e70945533d23f44cb3af0a2d2f934b1c698930307d1b73b
   languageName: node
   linkType: hard
 
@@ -40765,7 +40744,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lru-cache@npm:*, lru-cache@npm:^7.14.0, lru-cache@npm:^7.7.1":
+"lru-cache@npm:*, lru-cache@npm:^7.7.1":
   version: 7.14.0
   resolution: "lru-cache@npm:7.14.0"
   checksum: efdd329f2c1bb790b71d497c6c59272e6bc2d7dd060ba55fc136becd3dd31fc8346edb446275504d94cb60d3c8385dbf5267b79b23789e409b2bdf302d13f0d7
@@ -43196,7 +43175,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"npm-run-all@npm:4.1.5, npm-run-all@npm:^4.1.5":
+"npm-run-all@npm:^4.1.5":
   version: 4.1.5
   resolution: "npm-run-all@npm:4.1.5"
   dependencies:
