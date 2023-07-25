@@ -383,6 +383,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			State:            privateModel.ErrorStateOpen,
 			Fields:           []*model.ErrorField{},
 			Environments:     environmentsString,
+			ServiceName:      errorObj.ServiceName,
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
@@ -691,11 +692,13 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 
 	opensearchErrorObject := &opensearch.OpenSearchErrorObject{
-		Url:         errorObj.URL,
-		Os:          errorObj.OS,
-		Browser:     errorObj.Browser,
-		Timestamp:   errorObj.Timestamp,
-		Environment: errorObj.Environment,
+		Url:            errorObj.URL,
+		Os:             errorObj.OS,
+		Browser:        errorObj.Browser,
+		Timestamp:      errorObj.Timestamp,
+		Environment:    errorObj.Environment,
+		ServiceName:    errorObj.ServiceName,
+		ServiceVersion: errorObj.ServiceVersion,
 	}
 	if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexParams{
 		Index:    opensearch.IndexErrorsCombined,
@@ -2016,22 +2019,24 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 
 		errorToInsert := &model.ErrorObject{
-			ProjectID:   projectID,
-			SessionID:   sessionID,
-			TraceID:     v.TraceID,
-			SpanID:      v.SpanID,
-			LogCursor:   v.LogCursor,
-			Environment: session.Environment,
-			Event:       v.Event,
-			Type:        model.ErrorType.BACKEND,
-			URL:         v.URL,
-			Source:      v.Source,
-			OS:          session.OSName,
-			Browser:     session.BrowserName,
-			StackTrace:  &v.StackTrace,
-			Timestamp:   v.Timestamp,
-			Payload:     v.Payload,
-			RequestID:   v.RequestID,
+			ProjectID:      projectID,
+			SessionID:      sessionID,
+			TraceID:        v.TraceID,
+			SpanID:         v.SpanID,
+			LogCursor:      v.LogCursor,
+			Environment:    session.Environment,
+			Event:          v.Event,
+			Type:           model.ErrorType.BACKEND,
+			URL:            v.URL,
+			Source:         v.Source,
+			OS:             session.OSName,
+			Browser:        session.BrowserName,
+			StackTrace:     &v.StackTrace,
+			Timestamp:      v.Timestamp,
+			Payload:        v.Payload,
+			RequestID:      v.RequestID,
+			ServiceName:    v.Service.Name,
+			ServiceVersion: v.Service.Version,
 		}
 
 		var structuredStackTrace []*privateModel.ErrorTrace

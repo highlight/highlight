@@ -777,11 +777,13 @@ type OpenSearchError struct {
 }
 
 type OpenSearchErrorObject struct {
-	Url         string    `json:"visited_url"`
-	Os          string    `json:"os_name"`
-	Browser     string    `json:"browser"`
-	Timestamp   time.Time `json:"timestamp"`
-	Environment string    `json:"environment"`
+	Url            string    `json:"visited_url"`
+	Os             string    `json:"os_name"`
+	Browser        string    `json:"browser"`
+	Timestamp      time.Time `json:"timestamp"`
+	Environment    string    `json:"environment"`
+	ServiceName    *string   `json:"service_name"`
+	ServiceVersion *string   `json:"service_version"`
 }
 
 type OpenSearchErrorField struct {
