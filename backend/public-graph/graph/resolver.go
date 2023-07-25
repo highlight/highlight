@@ -1287,16 +1287,16 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		return e.New("[IdentifySession] error converting userObject interface type")
 	}
 
-	userProperties := map[string]string{}
+	newUserProperties := map[string]string{}
 	if userIdentifier != "" {
-		userProperties["identifier"] = userIdentifier
+		newUserProperties["identifier"] = userIdentifier
 	}
 
 	// If userIdentifier is a valid email, save as an email field
 	// (this will be overridden if `email` is passed to `H.identify`)
 	_, err := mail.ParseAddress(userIdentifier)
 	if err == nil {
-		userProperties["email"] = userIdentifier
+		newUserProperties["email"] = userIdentifier
 	}
 
 	getSessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
@@ -1313,25 +1313,32 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 
 	setUserPropsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.IdentifySessionImpl",
 		tracer.ResourceName("go.sessions.IdentifySessionImpl.SetUserProperties"), tracer.Tag("sessionID", sessionID))
-	userObj := make(map[string]string)
+	allUserProperties := make(map[string]string)
 	// get existing session user properties in case of multiple identify calls
 	if existingUserProps, err := session.GetUserProperties(); err == nil {
 		for k, v := range existingUserProps {
-			userObj[k] = v
+			allUserProperties[k] = v
 		}
 	}
 	// update overlapping new properties
 	for k, v := range obj {
 		if v != "" {
-			userProperties[k] = fmt.Sprintf("%v", v)
-			userObj[k] = fmt.Sprintf("%v", v)
+			newUserProperties[k] = fmt.Sprintf("%v", v)
+			allUserProperties[k] = fmt.Sprintf("%v", v)
+		}
+	}
+	// auto-set domain if email is provided
+	if em, ok := allUserProperties["email"]; ok {
+		if parts := strings.Split(em, "@"); len(parts) == 2 {
+			newUserProperties["domain"] = parts[1]
+			allUserProperties["domain"] = parts[1]
 		}
 	}
 	// set user properties to session in db
-	if err := session.SetUserProperties(userObj); err != nil {
+	if err := session.SetUserProperties(allUserProperties); err != nil {
 		return e.Wrapf(err, "[IdentifySession] [project_id: %d] error appending user properties to session object {id: %d}", session.ProjectID, sessionID)
 	}
-	if err := r.AppendProperties(outerCtx, sessionID, userProperties, PropertyType.USER); err != nil {
+	if err := r.AppendProperties(outerCtx, sessionID, newUserProperties, PropertyType.USER); err != nil {
 		log.WithContext(ctx).Error(e.Wrapf(err, "[IdentifySession] error adding set of identify properties to db: session: %d", sessionID))
 	}
 	setUserPropsSpan.Finish()
@@ -1354,8 +1361,8 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		session.Identifier = userIdentifier
 	}
 
-	if userProperties["email"] != "" {
-		session.Email = ptr.String(userProperties["email"])
+	if newUserProperties["email"] != "" {
+		session.Email = ptr.String(newUserProperties["email"])
 	}
 
 	if !backfill {
@@ -1386,7 +1393,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		{Name: "Identified", Value: strconv.FormatBool(session.Identified)},
 		{Name: "FirstTime", Value: strconv.FormatBool(*session.FirstTime)},
 	}
-	for k, v := range userObj {
+	for k, v := range allUserProperties {
 		tags = append(tags, &publicModel.MetricTag{Name: k, Value: v})
 	}
 	if err := r.PushMetricsImpl(ctx, session.SecureID, []*publicModel.MetricInput{
