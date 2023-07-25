@@ -41,6 +41,12 @@
 			"require": "./dist/next-client.js"
 		}
 	},
+	"installConfig": {
+		"hoistingLimits": "workspaces"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
 	"scripts": {
 		"typegen": "tsup --dts-only",
 		"dev": "tsup --watch && sh ./bin/clean-dist.sh",

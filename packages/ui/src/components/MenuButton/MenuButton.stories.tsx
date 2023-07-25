@@ -1,12 +1,12 @@
 import React from 'react'
-import { ComponentMeta } from '@storybook/react'
+import { Meta } from '@storybook/react'
 
 import { MenuButton } from '../MenuButton/MenuButton'
 
 export default {
 	title: 'Components/MenuButton',
 	component: MenuButton,
-} as ComponentMeta<typeof MenuButton>
+} as Meta<typeof MenuButton>
 
 export const Basic = () => (
 	<MenuButton
