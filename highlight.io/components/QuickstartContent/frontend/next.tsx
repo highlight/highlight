@@ -55,7 +55,7 @@ If you're using the original Next.js Page router, drop \`<HighlightInit />\` in 
 				{
 					text: `
 // src/app/layout.tsx
-import { HighlightInit } from '@highlight-run/next/highlight-init'
+import { HighlightInit } from '@highlight-run/next/client'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (

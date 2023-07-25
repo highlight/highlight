@@ -71,7 +71,7 @@ This implementation requires React 17 or greater. If you're behind on React vers
 // pages/_app.tsx
 import { AppProps } from 'next/app'
 import CONSTANTS from '@/app/constants'
-import { HighlightInit } from '@highlight-run/next/highlight-init'
+import { HighlightInit } from '@highlight-run/next/client'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
 	return (
@@ -99,7 +99,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 import './globals.css'
 
 import CONSTANTS from '@/app/constants'
-import { HighlightInit } from '@highlight-run/next/highlight-init'
+import { HighlightInit } from '@highlight-run/next/client'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
@@ -128,7 +128,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
  ```javascript
 // src/app/utils/highlight.config.ts:
 import CONSTANTS from '@/app/constants'
-import { Highlight } from '@highlight-run/next'
+import { Highlight } from '@highlight-run/next/server'
 
 export const withHighlight = Highlight({
 	projectID: '<YOUR_PROJECT_ID>',
@@ -176,7 +176,7 @@ If you use a `next.config.js` file:
 ```javascript
 // next.config.js
 const nextBuildId = require('next-build-id')
-const { withHighlightConfig } = require('@highlight-run/next')
+const { withHighlightConfig } = require('@highlight-run/next/server')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -198,7 +198,7 @@ If you use a `next.config.mjs` file:
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import nextBuildId from 'next-build-id'
-import { withHighlightConfig } from '@highlight-run/next'
+import { withHighlightConfig } from '@highlight-run/next/server'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -226,7 +226,7 @@ export async function register() {
 	if (process.env.NEXT_RUNTIME === 'nodejs') {
 		/** Conditional import required for use with Next middleware to avoid a webpack error 
          * https://nextjs.org/docs/pages/building-your-application/routing/middleware */
-		const { registerHighlight } = await import('@highlight-run/next')
+		const { registerHighlight } = await import('@highlight-run/next/server')
 
 		registerHighlight({
 			projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
@@ -269,7 +269,7 @@ Make sure to implement `nextConfig.generateBuildId` so that our source map uploa
 ```javascript
 // next.config.js
 const nextBuildId = require('next-build-id')
-const { withHighlightConfig } = require('@highlight-run/next')
+const { withHighlightConfig } = require('@highlight-run/next/server')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

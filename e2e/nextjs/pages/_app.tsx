@@ -2,7 +2,7 @@
 import { AppProps } from 'next/app'
 import CONSTANTS from '@/app/constants'
 import { H } from 'highlight.run'
-import { HighlightInit } from '@highlight-run/next/highlight-init'
+import { HighlightInit } from '@highlight-run/next/client'
 import { useEffect } from 'react'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
