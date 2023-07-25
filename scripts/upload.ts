@@ -10,7 +10,7 @@ import * as path from 'path'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import yargs from 'yargs'
-import { gte } from 'semver'
+import { gt, gte } from 'semver'
 
 const S3_BUCKET = `highlight-client-bundle`
 const FIRSTLOAD_PACKAGE_JSON = './sdk/firstload/package.json'
@@ -31,13 +31,19 @@ interface Options {
 	buildDir: string
 	replace?: boolean
 	validate?: boolean
+	preview?: string
+	has_sdk_changes?: boolean
 }
 
 const publish = async function (opts: Options) {
 	const buildDir = join(opts.workspace, opts.buildDir)
 	const promises = []
 	for await (const file of getFiles(join(rootDir, buildDir))) {
-		promises.push(upload(highlightRunPackageJson.version, file, opts))
+		let version = `v${highlightRunPackageJson.version}`
+		if (opts.preview) {
+			version = `dev-${opts.preview}`
+		}
+		promises.push(upload(version, file, opts))
 	}
 	await Promise.all(promises)
 }
@@ -73,7 +79,7 @@ const upload = async function (
 	const fileRelPath = fileAbsPath
 		.split(`${join(opts.workspace, opts.buildDir)}/`)
 		.pop()!
-	const key = `v${version}/${fileRelPath}`
+	const key = `${version}/${fileRelPath}`
 
 	// if --no-replace, check that the files do not exist
 	if (!opts.replace) {
@@ -86,7 +92,7 @@ const upload = async function (
 			await client.send(get)
 			exists = true
 		} catch (e: any) {
-			if (e.name === 'NoSuchKey') {
+			if (e.name === 'NoSuchKey' || e.name === 'AccessDenied') {
 				exists = false
 			} else {
 				throw e
@@ -108,11 +114,20 @@ const upload = async function (
 				),
 			)
 		).split('\n')[0]!
-		if (!gte(highlightRunPackageJson.version, publishedVersion)) {
-			console.error(
-				`Current highlight.run version ${highlightRunPackageJson.version} must be >= published version ${publishedVersion}`,
-			)
-			process.exit(1)
+		if (opts.has_sdk_changes) {
+			if (!gt(highlightRunPackageJson.version, publishedVersion)) {
+				console.error(
+					`Current highlight.run version ${highlightRunPackageJson.version} must be > published version ${publishedVersion}`,
+				)
+				process.exit(1)
+			}
+		} else {
+			if (!gte(highlightRunPackageJson.version, publishedVersion)) {
+				console.error(
+					`Current highlight.run version ${highlightRunPackageJson.version} must be >= published version ${publishedVersion}`,
+				)
+				process.exit(1)
+			}
 		}
 		if (!changelogExists(highlightRunPackageJson.version)) {
 			console.error(
@@ -151,6 +166,12 @@ await yargs(process.argv.slice(2))
 		describe: 'the build directory in the workspace',
 		default: 'dist',
 	})
+	.option('preview', {
+		type: 'string',
+		describe: 'the preview string to add to the version',
+		default: 'dist',
+	})
 	.boolean('replace')
 	.boolean('validate')
+	.boolean('has-sdk-changes')
 	.help('help').argv
