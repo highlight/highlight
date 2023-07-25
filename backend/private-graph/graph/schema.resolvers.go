@@ -7524,7 +7524,7 @@ func (r *queryResolver) Services(ctx context.Context, projectID int) ([]*model.S
 
 	services := []*model.Service{}
 	if err := r.DB.Order("name ASC").Model(&model.Service{}).Where(&model.Service{ProjectID: project.ID}).Scan(&services).Error; err != nil {
-		return nil, e.Wrap(err, "error getting associated services")
+		return nil, err
 	}
 
 	return services, nil

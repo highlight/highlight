@@ -647,11 +647,17 @@ type ErrorObjectConnection implements Connection {
 	pageInfo: PageInfo!
 }
 
+enum ServiceStatus {
+	healthy
+	error
+	created
+}
+
 type Service {
 	id: ID!
 	projectID: ID!
 	name: String!
-	status: String!
+	status: ServiceStatus!
 	githubRepoPath: String
 }
 

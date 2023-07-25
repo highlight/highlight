@@ -2489,7 +2489,13 @@ export type Service = {
 	id: Scalars['ID']
 	name: Scalars['String']
 	projectID: Scalars['ID']
-	status: Scalars['String']
+	status: ServiceStatus
+}
+
+export enum ServiceStatus {
+	Created = 'created',
+	Error = 'error',
+	Healthy = 'healthy',
 }
 
 export type Session = {

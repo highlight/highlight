@@ -9526,11 +9526,17 @@ type ErrorObjectConnection implements Connection {
 	pageInfo: PageInfo!
 }
 
+enum ServiceStatus {
+	healthy
+	error
+	created
+}
+
 type Service {
 	id: ID!
 	projectID: ID!
 	name: String!
-	status: String!
+	status: ServiceStatus!
 	githubRepoPath: String
 }
 
@@ -51899,9 +51905,9 @@ func (ec *executionContext) _Service_status(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(model.ServiceStatus)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNServiceStatus2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐServiceStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Service_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -51911,7 +51917,7 @@ func (ec *executionContext) fieldContext_Service_status(ctx context.Context, fie
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			return nil, errors.New("field of type ServiceStatus does not have child fields")
 		},
 	}
 	return fc, nil
@@ -78260,6 +78266,16 @@ func (ec *executionContext) marshalNService2ᚖgithubᚗcomᚋhighlightᚑrunᚋ
 		return graphql.Null
 	}
 	return ec._Service(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNServiceStatus2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐServiceStatus(ctx context.Context, v interface{}) (model.ServiceStatus, error) {
+	var res model.ServiceStatus
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNServiceStatus2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐServiceStatus(ctx context.Context, sel ast.SelectionSet, v model.ServiceStatus) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNSession2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v model1.Session) graphql.Marshaler {
