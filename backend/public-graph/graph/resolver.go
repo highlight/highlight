@@ -1327,8 +1327,12 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 			allUserProperties[k] = fmt.Sprintf("%v", v)
 		}
 	}
+	newUserProperties["identified_email"] = "false"
+	allUserProperties["identified_email"] = "false"
 	// auto-set domain if email is provided
 	if em, ok := allUserProperties["email"]; ok {
+		newUserProperties["identified_email"] = "true"
+		allUserProperties["identified_email"] = "true"
 		if parts := strings.Split(em, "@"); len(parts) == 2 {
 			newUserProperties["domain"] = parts[1]
 			allUserProperties["domain"] = parts[1]
