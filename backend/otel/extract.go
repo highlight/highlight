@@ -118,7 +118,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 		delete(attrs, highlight.RequestIDAttribute)
 	}
 
-	if val, ok := attrs[string(semconv.ServiceNameKey)]; ok {
+	if val, ok := fields.resourceAttributes[string(semconv.ServiceNameKey)]; ok { // we know that service name will be in the resource hash
 		fields.serviceName = val.(string)
 		delete(attrs, string(semconv.ServiceNameKey))
 	}
