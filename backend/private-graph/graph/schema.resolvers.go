@@ -5253,7 +5253,7 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate
 		Aggregation: &opensearch.TermsAggregation{
 			Field:   "fields.Key.raw",
 			Include: pointy.String("(session|track|user)_.*"),
-			Exclude: pointy.String("(session)_[0-9]+"), // Exclude numeric field types
+			Exclude: pointy.String("(session|track|user)_[0-9]+"), // Exclude numeric field types
 			Size:    pointy.Int(500),
 		},
 	}
