@@ -7644,6 +7644,11 @@ func (r *sessionAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj 
 	return ret, nil
 }
 
+// WebhookDestinations is the resolver for the WebhookDestinations field.
+func (r *sessionAlertResolver) WebhookDestinations(ctx context.Context, obj *model.SessionAlert) ([]*model.WebhookDestination, error) {
+	return obj.WebhookDestinations, nil
+}
+
 // EmailsToNotify is the resolver for the EmailsToNotify field.
 func (r *sessionAlertResolver) EmailsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*string, error) {
 	return obj.GetEmailsToNotify()
