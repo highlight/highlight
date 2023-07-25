@@ -41,7 +41,7 @@ type extractedFields struct {
 	// _after_ we extract fields out. In other words, if `serviceName` is extracted, it won't be included
 	// in this map.
 	// This is the data that should be written to the attributes column (e.g. LogAttributes)
-	modifiedAttributes map[string]string
+	attrs map[string]string
 }
 
 type extractFieldsParams struct {
@@ -163,7 +163,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 			attributesMap[key] = value
 		}
 	}
-	fields.modifiedAttributes = attributesMap
+	fields.attrs = attributesMap
 
 	projectIDInt, err := projectToInt(fields.projectID)
 

@@ -40,7 +40,7 @@ func TestExtractFields_ExtractProjectID(t *testing.T) {
 	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
 	assert.Equal(t, fields.projectID, "1")
-	assert.Equal(t, fields.modifiedAttributes, map[string]string{})
+	assert.Equal(t, fields.attrs, map[string]string{})
 
 	resource = newResource(map[string]string{
 		highlight.ProjectIDAttribute: "1",
@@ -48,7 +48,7 @@ func TestExtractFields_ExtractProjectID(t *testing.T) {
 	fields, err = extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
 	assert.Equal(t, fields.projectID, "1")
-	assert.Equal(t, fields.modifiedAttributes, map[string]string{})
+	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
 func TestExtractFields_ExtractSessionID(t *testing.T) {
@@ -60,7 +60,7 @@ func TestExtractFields_ExtractSessionID(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, fields.sessionID, "session_abc")
-	assert.Equal(t, fields.modifiedAttributes, map[string]string{})
+	assert.Equal(t, fields.attrs, map[string]string{})
 
 	resource = newResource(map[string]string{
 		highlight.SessionIDAttribute: "session_abc",
@@ -68,7 +68,7 @@ func TestExtractFields_ExtractSessionID(t *testing.T) {
 	fields, err = extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
 	assert.Equal(t, fields.sessionID, "session_abc")
-	assert.Equal(t, fields.modifiedAttributes, map[string]string{})
+	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
 func TestExtractFields_ExtractSource(t *testing.T) {
@@ -76,7 +76,7 @@ func TestExtractFields_ExtractSource(t *testing.T) {
 	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
 	assert.Equal(t, fields.source, modelInputs.LogSourceBackend) // defaults to backend
-	assert.Equal(t, fields.modifiedAttributes, map[string]string{})
+	assert.Equal(t, fields.attrs, map[string]string{})
 
 	resource = newResource(map[string]string{
 		highlight.DeprecatedSourceAttribute: modelInputs.LogSourceFrontend.String(),
@@ -84,7 +84,7 @@ func TestExtractFields_ExtractSource(t *testing.T) {
 	fields, err = extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
 	assert.Equal(t, fields.source, modelInputs.LogSourceFrontend)
-	assert.Equal(t, fields.modifiedAttributes, map[string]string{})
+	assert.Equal(t, fields.attrs, map[string]string{})
 
 	resource = newResource(map[string]string{
 		highlight.SourceAttribute: modelInputs.LogSourceFrontend.String(),
@@ -92,7 +92,7 @@ func TestExtractFields_ExtractSource(t *testing.T) {
 	fields, err = extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
 	assert.Equal(t, fields.source, modelInputs.LogSourceFrontend)
-	assert.Equal(t, fields.modifiedAttributes, map[string]string{})
+	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
 func TestExtractFields_ExtractRequestID(t *testing.T) {
@@ -102,7 +102,7 @@ func TestExtractFields_ExtractRequestID(t *testing.T) {
 	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
 	assert.Equal(t, fields.requestID, "request_id")
-	assert.Equal(t, fields.modifiedAttributes, map[string]string{})
+	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
 func TestExtractFields_ExtractServiceName(t *testing.T) {
@@ -112,7 +112,7 @@ func TestExtractFields_ExtractServiceName(t *testing.T) {
 	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
 	assert.Equal(t, fields.serviceName, "my_service")
-	assert.Equal(t, fields.modifiedAttributes, map[string]string{})
+	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
 func TestExtractFields_OmitLogSeverity(t *testing.T) {
@@ -122,7 +122,7 @@ func TestExtractFields_OmitLogSeverity(t *testing.T) {
 	})
 	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
-	assert.Equal(t, fields.modifiedAttributes, map[string]string{
+	assert.Equal(t, fields.attrs, map[string]string{
 		"os.description": "Debian GNU/Linux 11 (bullseye)",
 	})
 }
@@ -134,7 +134,7 @@ func TestExtractFields_OmitBackendPropertiesForFrontendSource(t *testing.T) {
 	})
 	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
-	assert.Equal(t, fields.modifiedAttributes, map[string]string{})
+	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
 func TestExtractFields_OmitExceptionProperties(t *testing.T) {
@@ -145,7 +145,7 @@ func TestExtractFields_OmitExceptionProperties(t *testing.T) {
 	})
 	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
-	assert.Equal(t, fields.modifiedAttributes, map[string]string{
+	assert.Equal(t, fields.attrs, map[string]string{
 		"exception.type": "baz",
 	})
 }
@@ -161,7 +161,7 @@ func TestExtractFields_TrimLongFields(t *testing.T) {
 	})
 	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
-	assert.Equal(t, 2048+3, len(fields.modifiedAttributes["foo"]))
+	assert.Equal(t, 2048+3, len(fields.attrs["foo"]))
 }
 
 func TestMergeMaps(t *testing.T) {

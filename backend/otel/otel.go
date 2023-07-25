@@ -66,7 +66,7 @@ func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, 
 		stackTrace = ""
 	}
 	stackTrace = stacktraces.FormatStructureStackTrace(ctx, stackTrace)
-	payloadBytes, _ := json.Marshal(fields.modifiedAttributes)
+	payloadBytes, _ := json.Marshal(fields.attrs)
 	err := &model.BackendErrorObjectInput{
 		SessionSecureID: &fields.sessionID,
 		RequestID:       &fields.requestID,
@@ -106,7 +106,7 @@ func getMetric(ctx context.Context, ts time.Time, fields extractedFields, traceI
 		Value:           value,
 		Category:        pointy.String(fields.source.String()),
 		Timestamp:       ts,
-		Tags: lo.Map(lo.Entries(fields.modifiedAttributes), func(t lo.Entry[string, string], i int) *model.MetricTag {
+		Tags: lo.Map(lo.Entries(fields.attrs), func(t lo.Entry[string, string], i int) *model.MetricTag {
 			return &model.MetricTag{
 				Name:  t.Key,
 				Value: t.Value,
@@ -189,7 +189,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithSpanID(spanID),
 							clickhouse.WithSecureSessionID(fields.sessionID),
 							clickhouse.WithBody(ctx, excMessage),
-							clickhouse.WithLogAttributes(fields.modifiedAttributes),
+							clickhouse.WithLogAttributes(fields.attrs),
 							clickhouse.WithServiceName(fields.serviceName),
 							clickhouse.WithSeverityText("ERROR"),
 							clickhouse.WithSource(fields.source),
@@ -222,7 +222,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithSpanID(spanID),
 							clickhouse.WithSecureSessionID(fields.sessionID),
 							clickhouse.WithBody(ctx, logMessage),
-							clickhouse.WithLogAttributes(fields.modifiedAttributes),
+							clickhouse.WithLogAttributes(fields.attrs),
 							clickhouse.WithServiceName(fields.serviceName),
 							clickhouse.WithSeverityText(logSev),
 							clickhouse.WithSource(fields.source),
@@ -353,7 +353,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					clickhouse.WithSpanID(logRecord.SpanID().String()),
 					clickhouse.WithSecureSessionID(fields.sessionID),
 					clickhouse.WithBody(ctx, logRecord.Body().Str()),
-					clickhouse.WithLogAttributes(fields.modifiedAttributes),
+					clickhouse.WithLogAttributes(fields.attrs),
 					clickhouse.WithServiceName(fields.serviceName),
 					clickhouse.WithSeverityText(logRecord.SeverityText()),
 					clickhouse.WithSource(fields.source),
