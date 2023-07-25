@@ -2863,6 +2863,17 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 	}
 
 	for _, sessionAlert := range sessionAlerts {
+		// skip alerts that have already been sent for this session
+		var count int64
+		if err := r.DB.Model(&model.SessionAlertEvent{}).Where(&model.SessionAlertEvent{
+			SessionAlertID:  sessionAlert.ID,
+			SessionSecureID: session.SecureID,
+		}).Count(&count).Error; err != nil {
+			continue
+		}
+		if count > 0 {
+			continue
+		}
 		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 		if err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error getting excluded environments from track properties alert", session.ProjectID))
@@ -3023,6 +3034,17 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 	}
 
 	for _, sessionAlert := range sessionAlerts {
+		// skip alerts that have already been sent for this session
+		var count int64
+		if err := r.DB.Model(&model.SessionAlertEvent{}).Where(&model.SessionAlertEvent{
+			SessionAlertID:  sessionAlert.ID,
+			SessionSecureID: session.SecureID,
+		}).Count(&count).Error; err != nil {
+			continue
+		}
+		if count > 0 {
+			continue
+		}
 		// check if session was produced from an excluded environment
 		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 		if err != nil {
