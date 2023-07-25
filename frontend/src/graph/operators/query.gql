@@ -75,6 +75,11 @@ fragment SessionAlertFragment on SessionAlert {
 		name
 		value
 	}
+	UserProperties {
+		id
+		name
+		value
+	}
 	Type
 }
 

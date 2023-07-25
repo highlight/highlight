@@ -87,6 +87,11 @@ export const SessionAlertFragmentFragmentDoc = gql`
 			name
 			value
 		}
+		UserProperties {
+			id
+			name
+			value
+		}
 		Type
 	}
 	${DiscordChannelFragmentFragmentDoc}

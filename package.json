@@ -75,7 +75,7 @@
 		"all-contributors-cli": "^6.26.0",
 		"chalk": "^5.0.1",
 		"chokidar": "^3.5.3",
-		"cypress": "^12.9.0",
+		"cypress": "^12.16.0",
 		"esbuild-style-plugin": "^1.6.1",
 		"husky": "^8.0.1",
 		"hygen": "^6.2.7",
@@ -124,7 +124,6 @@
 		"trim-newlines": "3.0.1",
 		"ua-parser-js": "0.7.33",
 		"undici": "5.19.1",
-		"webpack": "5.76.0",
-		"ws": "8.11.0"
+		"webpack": "5.76.0"
 	}
 }
