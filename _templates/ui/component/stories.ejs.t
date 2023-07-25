@@ -3,7 +3,7 @@ to: packages/ui/src/components/<%= name %>/<%= name %>.stories.tsx
 ---
 
 import React from 'react'
-import { ComponentMeta } from '@storybook/react'
+import { ComponentMeta } from '@storybook/react-vite'
 
 import { <%= name %> } from './<%= name %>'
 

@@ -1,0 +1,36 @@
+import {
+	Canvas,
+	Controls,
+	Meta,
+	Primary,
+	Story,
+	Source,
+	Subtitle,
+	Title,
+} from '@storybook/blocks'
+
+import * as ButtonStories from '../components/Button/Button.stories'
+
+<Meta of={ButtonStories} />
+
+<Title />
+
+All about buttons! Here are some examples of buttons in action. This page is all MDX and leverages some of the doc blocks components to build the docs just the way we liek 'em.
+
+We could also create a docs template and rely on autodocs to generate these pages for us.
+
+Here is an exmaple of the controls for a `Button`. It's rendered using `<Controls />` from `@storybook/blocks`.
+
+<Controls />
+
+Here is the primary example from the `Button` story. You render it using the `<Primary />` component from `@storybook/blocks`.
+
+<Primary />
+
+You can also use the `<Story />` or `<Canvas />` components to render specific stories instead of the primary example. The `<Stories />` component can be used to render all the stories. Here is an example using `<Story />`. Note the lack of the "canvas" around the example.
+
+<Story of={ButtonStories.ButtonVariants} />
+
+You can display the source using the `<Source />` component.
+
+<Source of={ButtonStories.ButtonVariants} />
