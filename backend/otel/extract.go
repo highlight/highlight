@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
-	"github.com/highlight-run/highlight/backend/clickhouse"
+	model "github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
+	e "github.com/pkg/errors"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/ptrace"
@@ -163,7 +165,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 	}
 	fields.modifiedAttributes = attributesMap
 
-	projectIDInt, err := clickhouse.ProjectToInt(fields.projectID)
+	projectIDInt, err := projectToInt(fields.projectID)
 
 	if err != nil {
 		return fields, err
@@ -184,4 +186,16 @@ func mergeMaps(maps ...map[string]any) map[string]any {
 	}
 
 	return combinedMap
+}
+
+func projectToInt(projectID string) (int, error) {
+	i, err := strconv.ParseInt(projectID, 10, 32)
+	if err == nil {
+		return int(i), nil
+	}
+	i2, err := model.FromVerboseID(projectID)
+	if err == nil {
+		return i2, nil
+	}
+	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
 }

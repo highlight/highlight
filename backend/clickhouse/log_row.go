@@ -2,32 +2,15 @@ package clickhouse
 
 import (
 	"context"
-	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/util"
 
-	model2 "github.com/highlight-run/highlight/backend/model"
-	e "github.com/pkg/errors"
-
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	log "github.com/sirupsen/logrus"
 )
-
-func ProjectToInt(projectID string) (int, error) {
-	i, err := strconv.ParseInt(projectID, 10, 32)
-	if err == nil {
-		return int(i), nil
-	}
-	i2, err := model2.FromVerboseID(projectID)
-	if err == nil {
-		return i2, nil
-	}
-	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
-}
 
 type LogRow struct {
 	Timestamp       time.Time
