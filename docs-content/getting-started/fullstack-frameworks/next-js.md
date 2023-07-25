@@ -30,10 +30,10 @@ yarn add @highlight-run/next @highlight-run/react highlight.run
 
 ## Environment Configuration (optional)
 
-> This section is extra opinionated about Next.js constants. It's not for everyone. We like how `zod` and TypeScript work together to validate `process.env` inputs... but this is a suggestion. Do your own thing!
+> This section is extra opinionated about Next.js constants. It's not for everyone. We like how `zod` and TypeScript work together to validate `process.env` inputs... but this is a suggestion. Do your own thing and replace our imports (`import CONSTANTS from '@/app/constants'`) with your own!
 
 1. Install Zod: `yarn add zod`
-1. Edit `.env` to add your projectID to `NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID`
+2. Edit `.env` to add your projectID to `NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID`
 
 ```bash
 # .env
@@ -83,7 +83,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 					enabled: true,
 					recordHeadersAndBody: true
 				}}
-				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
 			/>
 
 			<Component {...pageProps} />
@@ -111,7 +110,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 					enabled: true,
 					recordHeadersAndBody: true
 				}}
-				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
 			/>
 
 			<html lang="en">
