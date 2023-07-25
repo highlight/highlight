@@ -1464,6 +1464,14 @@ export type SessionAlertFragmentFragment = {
 				>
 			>
 		>
+		UserProperties: Array<
+			Types.Maybe<
+				{ __typename?: 'UserProperty' } & Pick<
+					Types.UserProperty,
+					'id' | 'name' | 'value'
+				>
+			>
+		>
 	}
 
 export type DiscordChannelFragmentFragment = {

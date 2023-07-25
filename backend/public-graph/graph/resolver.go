@@ -429,6 +429,8 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 	return errorGroup, nil
 }
 
+// TODO(vkorolik) GetTopErrorGroupMatchByEmbedding
+
 func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprints []*model.ErrorFingerprint) (*int, error) {
 	firstCode := ""
 	firstMeta := ""
