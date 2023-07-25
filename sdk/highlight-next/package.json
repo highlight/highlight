@@ -33,16 +33,13 @@
 	"author": "",
 	"license": "ISC",
 	"peerDependencies": {
-		"highlight.run": ">=3.0.0",
+		"@highlight-run/node": "workspace:^",
+		"highlight.run": "workspace:^",
 		"next": ">=12",
 		"react": ">=17"
 	},
 	"dependencies": {
-		"@highlight-run/node": "workspace:*",
-		"@highlight-run/sourcemap-uploader": "workspace:*",
-		"@opentelemetry/api": "^1.4.1",
-		"highlight.run": "workspace:*",
-		"npm-run-all": "4.1.5"
+		"@highlight-run/sourcemap-uploader": "workspace:*"
 	},
 	"devDependencies": {
 		"@trpc/server": "^9.27.4",

@@ -1,6 +1,6 @@
 'use client'
 
-import { H } from 'highlight.run'
+import { H } from '@highlight-run/next/highlight-init'
 import { useEffect } from 'react'
 
 export function HighlightIdentify() {

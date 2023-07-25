@@ -13111,21 +13111,18 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@highlight-run/next@workspace:sdk/highlight-next"
   dependencies:
-    "@highlight-run/node": "workspace:*"
     "@highlight-run/sourcemap-uploader": "workspace:*"
-    "@opentelemetry/api": ^1.4.1
     "@trpc/server": ^9.27.4
     "@types/jest": 27.4.1
     eslint: 8.39.0
-    highlight.run: "workspace:*"
     jest: ^29.2.0
     next: ^13.3.4
-    npm-run-all: 4.1.5
     ts-jest: ^29.0.3
     tsup: ^6.7.0
     typescript: ^5.0.4
   peerDependencies:
-    highlight.run: ">=3.0.0"
+    "@highlight-run/node": "workspace:^"
+    highlight.run: "workspace:^"
     next: ">=12"
     react: ">=17"
   languageName: unknown

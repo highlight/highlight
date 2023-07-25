@@ -13,7 +13,7 @@ import {
 	Color3,
 } from 'babylonjs'
 import React, { useEffect, useRef, useState } from 'react'
-import { H } from 'highlight.run'
+import { H } from '@highlight-run/next/highlight-init'
 
 export const Canvas = ({
 	antialias,
