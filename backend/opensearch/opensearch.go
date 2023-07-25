@@ -79,6 +79,7 @@ type TermsAggregation struct {
 	Missing        *string // Optional: The value to use when the field is missing.
 	SubAggregation Aggregation
 	Include        *string
+	Exclude        *string
 	Size           *int
 }
 
@@ -91,6 +92,11 @@ func (t *TermsAggregation) GetAggsString() string {
 	includePart := ""
 	if t.Include != nil {
 		includePart = fmt.Sprintf(`, "include": "%s"`, *t.Include)
+	}
+
+	excludePart := ""
+	if t.Exclude != nil {
+		excludePart = fmt.Sprintf(`, "exclude": "%s"`, *t.Exclude)
 	}
 
 	sizePart := ""
@@ -109,12 +115,13 @@ func (t *TermsAggregation) GetAggsString() string {
 				%s
 				%s
 				%s
+				%s
 			},
 			"aggs": {
 				%s
 			}
 		}
-	`, t.Field, includePart, sizePart, missing, subAggString)
+	`, t.Field, includePart, excludePart, sizePart, missing, subAggString)
 }
 
 type DateBounds struct {
