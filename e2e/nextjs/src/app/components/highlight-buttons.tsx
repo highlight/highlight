@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/app/components/button'
-import { H } from '@highlight-run/next/highlight-init'
+import { H } from '@highlight-run/next/client'
 
 export function HighlightButtons() {
 	return (
