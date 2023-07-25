@@ -3055,16 +3055,14 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model
 
 func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId int) (*[]model.SlackChannel, int, error) {
 	type result struct {
-		existingChannels *[]model.SlackChannel
-		newChannelsCount int
+		ExistingChannels []model.SlackChannel
+		NewChannelsCount int
 	}
-	res, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf(`slack-channels-workspace-%d`, workspaceId), time.Second, time.Minute, func() (*result, error) {
-		var filteredNewChannels []model.SlackChannel
-
+	res, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf(`slack-channels-workspace-%d`, workspaceId), 5*time.Second, 5*time.Minute, func() (*result, error) {
 		workspace, _ := r.GetWorkspace(workspaceId)
 		// workspace is not integrated with slack
 		if workspace.SlackAccessToken == nil {
-			return &result{&filteredNewChannels, 0}, nil
+			return nil, nil
 		}
 
 		slackClient := slack.New(*workspace.SlackAccessToken)
@@ -3084,7 +3082,7 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 		for {
 			channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
 			if err != nil {
-				return &result{&filteredNewChannels, 0}, e.Wrap(err, "error getting Slack channels from Slack.")
+				return nil, e.Wrap(err, "error getting Slack channels from Slack.")
 			}
 
 			allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
@@ -3129,9 +3127,12 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 			}
 		}
 
-		return &result{&existingChannels, newChannelsCount}, nil
+		return &result{existingChannels, newChannelsCount}, nil
 	})
-	return res.existingChannels, res.newChannelsCount, err
+	if res == nil {
+		return nil, 0, err
+	}
+	return &res.ExistingChannels, res.NewChannelsCount, err
 }
 
 func GetAggregateFluxStatement(ctx context.Context, aggregator modelInputs.MetricAggregator, resMins int) string {
