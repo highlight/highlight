@@ -163,3 +163,19 @@ func TestExtractFields_TrimLongFields(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 2048+3, len(fields.modifiedAttributes["foo"]))
 }
+
+func TestMergeMaps(t *testing.T) {
+	logAttributes := map[string]any{
+		"foo": "bar",
+	}
+
+	resourceAttributes := map[string]any{
+		"baz": "buzz",
+	}
+
+	merged := mergeMaps(resourceAttributes, logAttributes)
+	assert.Equal(t, map[string]any{
+		"foo": "bar",
+		"baz": "buzz",
+	}, merged)
+}

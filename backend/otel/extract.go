@@ -127,7 +127,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 		delete(attrs, string(semconv.ServiceNameKey))
 	}
 
-	if fields.projectID != "" {
+	if fields.projectID == "" {
 		if tag := attrs["fluent.tag"]; tag != nil {
 			if v, _ := tag.(string); v != "" {
 				project := fluentProjectPattern.FindStringSubmatch(v)

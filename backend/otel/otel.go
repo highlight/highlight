@@ -1,4 +1,4 @@
-ackage otel
+package otel
 
 import (
 	"bytes"
