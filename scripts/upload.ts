@@ -72,7 +72,7 @@ const publish = async function (opts: Options) {
 			`Validated highlight.run package version ${highlightRunPackageJson.version}`,
 		)
 		process.exit(0)
-	} else {
+	} else if (!opts.replace) {
 		if (!gt(highlightRunPackageJson.version, publishedVersion)) {
 			console.info(
 				`Current highlight.run version ${highlightRunPackageJson.version} is <= published version ${publishedVersion}. Not uploading!`,
