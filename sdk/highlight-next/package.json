@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/next",
-	"version": "3.1.4",
+	"version": "3.1.5",
 	"description": "Client for interfacing with Highlight in next.js",
 	"files": [
 		"dist",
@@ -24,6 +24,12 @@
 			"require": "./dist/HighlightInit.js"
 		}
 	},
+	"installConfig": {
+		"hoistingLimits": "workspaces"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
 	"scripts": {
 		"typegen": "tsup --dts-only",
 		"dev": "tsup --watch && sh ./bin/clean-highlight-init.sh",
@@ -40,7 +46,6 @@
 	"dependencies": {
 		"@highlight-run/node": "workspace:*",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
-		"@opentelemetry/api": "^1.4.1",
 		"highlight.run": "workspace:*",
 		"npm-run-all": "4.1.5"
 	},
