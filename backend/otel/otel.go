@@ -1,14 +1,12 @@
-package otel
+ackage otel
 
 import (
 	"bytes"
 	"compress/gzip"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-	"regexp"
 	"time"
 
 	"github.com/samber/lo"
@@ -35,8 +33,6 @@ import (
 type Handler struct {
 	resolver *graph.Resolver
 }
-
-var fluentProjectPattern = regexp.MustCompile(fmt.Sprintf(`%s=([\S]+)`, highlight.ProjectIDAttribute))
 
 func lg(ctx context.Context, fields extractedFields) *log.Entry {
 	return log.WithContext(ctx).
@@ -411,16 +407,4 @@ func New(resolver *graph.Resolver) *Handler {
 	return &Handler{
 		resolver: resolver,
 	}
-}
-
-func mergeMaps(maps ...map[string]any) map[string]any {
-	combinedMap := make(map[string]any)
-
-	for _, m := range maps {
-		for key, value := range m {
-			combinedMap[key] = value
-		}
-	}
-
-	return combinedMap
 }

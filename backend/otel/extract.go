@@ -2,6 +2,8 @@ package otel
 
 import (
 	"context"
+	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/highlight-run/highlight/backend/clickhouse"
@@ -13,6 +15,8 @@ import (
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
+
+var fluentProjectPattern = regexp.MustCompile(fmt.Sprintf(`%s=([\S]+)`, highlight.ProjectIDAttribute))
 
 // Extracted fields
 type extractedFields struct {
@@ -168,4 +172,16 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 	fields.projectIDInt = projectIDInt
 
 	return fields, nil
+}
+
+func mergeMaps(maps ...map[string]any) map[string]any {
+	combinedMap := make(map[string]any)
+
+	for _, m := range maps {
+		for key, value := range m {
+			combinedMap[key] = value
+		}
+	}
+
+	return combinedMap
 }
