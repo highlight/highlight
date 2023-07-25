@@ -33,6 +33,11 @@ func TestNewLogRowWithSeverityText(t *testing.T) {
 	assert.Equal(t, int32(4), NewLogRow(now, 1, WithSeverityText("dir")).SeverityNumber, "it handles figuring out the severity number")
 }
 
+func TestNewLogRowWithServiceVersion(t *testing.T) {
+	now := time.Now()
+	assert.Equal(t, "abc123", NewLogRow(now, 1, WithServiceVersion("abc123")).ServiceVersion)
+}
+
 func TestNewLogRowWithException(t *testing.T) {
 	now := time.Now()
 	ctx := context.TODO()
