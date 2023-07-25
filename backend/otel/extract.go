@@ -177,15 +177,15 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 }
 
 func mergeMaps(maps ...map[string]any) map[string]any {
-	combinedMap := make(map[string]any)
+	merged := make(map[string]any)
 
 	for _, m := range maps {
 		for key, value := range m {
-			combinedMap[key] = value
+			merged[key] = value
 		}
 	}
 
-	return combinedMap
+	return merged
 }
 
 func projectToInt(projectID string) (int, error) {

@@ -49,6 +49,13 @@ func TestExtractFields_ExtractProjectID(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, fields.projectID, "1")
 	assert.Equal(t, fields.attrs, map[string]string{})
+
+	resource = pcommon.NewResource()
+	resource.Attributes().PutStr("fluent.tag", "highlight.project_id=99")
+	fields, err = extractFields(context.TODO(), extractFieldsParams{resource: &resource})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.projectID, "99")
+	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
 func TestExtractFields_ExtractSessionID(t *testing.T) {
