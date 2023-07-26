@@ -68,19 +68,7 @@ type Worker struct {
 	StorageClient  storage.Client
 }
 
-func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migrationState *string, payloadManager *payload.PayloadManager) error {
-	if err := w.Resolver.DB.Model(&model.Session{}).Where(
-		&model.Session{Model: model.Model{ID: s.ID}},
-	).Updates(
-		&model.Session{MigrationState: migrationState},
-	).Error; err != nil {
-		return errors.Wrap(err, "error updating session to processed status")
-	}
-
-	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{"migration_state": migrationState}); err != nil {
-		return e.Wrap(err, "error updating session in opensearch")
-	}
-
+func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, payloadManager *payload.PayloadManager) error {
 	totalPayloadSize, err := w.StorageClient.PushFiles(ctx, s.ID, s.ProjectID, payloadManager)
 	// If this is unsuccessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
@@ -102,6 +90,9 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 		"direct_download_enabled": true,
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
+	}
+	if err := w.Resolver.IndexSessionClickhouse(ctx, s); err != nil {
+		return err
 	}
 
 	return nil
@@ -534,6 +525,9 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
+	if err := w.Resolver.IndexSessionClickhouse(ctx, s); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -830,6 +824,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
+	if err := w.Resolver.IndexSessionClickhouse(ctx, s); err != nil {
+		return err
+	}
+
 	if len(visitFields) >= 1 {
 		sessionProperties := map[string]string{
 			"landing_page": visitFields[0].Value,
@@ -974,8 +972,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
-		state := "normal"
-		if err := w.pushToObjectStorage(ctx, s, &state, payloadManager); err != nil {
+		if err := w.pushToObjectStorage(ctx, s, payloadManager); err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error pushing to object and wiping from db"))
 		}
 	}
@@ -1112,6 +1109,9 @@ func (w *Worker) Start(ctx context.Context) {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Warn(e.Wrap(err, "session has reached the max retry count and will be excluded"))
 						if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
+						}
+						if err := w.Resolver.IndexSessionClickhouse(ctx, session); err != nil {
+							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in clickhouse"))
 						}
 						span.Finish()
 					} else {

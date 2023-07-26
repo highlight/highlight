@@ -540,6 +540,19 @@ func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.Error
 	return &results[0].Time, &results[1].Time, nil
 }
 
+func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Session) error {
+	// Only write for project id 1
+	if session.ProjectID != 1 {
+		return nil
+	}
+
+	sessionObj := &model.Session{}
+	if err := r.DB.Preload("Fields").Preload("ViewedByAdmins").Where("id = ?", session.ID).Take(&sessionObj).Error; err != nil {
+		return err
+	}
+	return r.ClickhouseClient.WriteSession(ctx, sessionObj)
+}
+
 func (r *Resolver) GetErrorFrequenciesOpensearch(errorGroups []*model.ErrorGroup, lookbackPeriod int) (map[int][]int64, map[int][]*modelInputs.ErrorDistributionItem, error) {
 	endDate := time.Now().UTC()
 	startDate := endDate.AddDate(0, 0, -1*lookbackPeriod)

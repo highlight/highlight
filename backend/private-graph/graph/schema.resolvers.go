@@ -825,27 +825,11 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
 	}
 
-	return newSession, nil
-}
-
-// MarkSessionAsStarred is the resolver for the markSessionAsStarred field.
-func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model.Session, error) {
-	s, err := r.canAdminModifySession(ctx, secureID)
-	if err != nil {
+	if err := r.IndexSessionClickhouse(ctx, newSession); err != nil {
 		return nil, err
 	}
-	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&session).Updates(&model.Session{
-		Starred: starred,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error writing session as starred")
-	}
 
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{"starred": starred}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
-	}
-
-	return session, nil
+	return newSession, nil
 }
 
 // UpdateErrorGroupState is the resolver for the updateErrorGroupState field.
@@ -3058,10 +3042,6 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 		IsPublic: isPublic,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating session is_public")
-	}
-
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"is_public": isPublic}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
 	return session, nil
