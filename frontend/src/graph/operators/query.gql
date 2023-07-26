@@ -59,6 +59,10 @@ fragment SessionAlertFragment on SessionAlert {
 	DiscordChannelsToNotify {
 		...DiscordChannelFragment
 	}
+	WebhookDestinations {
+		url
+		authorization
+	}
 	CountThreshold
 	DailyFrequency
 	disabled
@@ -71,6 +75,11 @@ fragment SessionAlertFragment on SessionAlert {
 	updated_at
 	ThresholdWindow
 	TrackProperties {
+		id
+		name
+		value
+	}
+	UserProperties {
 		id
 		name
 		value
@@ -2080,6 +2089,7 @@ query GetErrorResolutionSuggestion($error_object_id: ID!) {
 query GetWorkspaceSettings($workspace_id: ID!) {
 	workspaceSettings(workspace_id: $workspace_id) {
 		workspace_id
+		ai_application
 		ai_insights
 	}
 }

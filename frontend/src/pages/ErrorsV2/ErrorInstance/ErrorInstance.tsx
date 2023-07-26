@@ -35,6 +35,7 @@ import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
 import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
 import { AiErrorSuggestion } from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestion'
 import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionMissingOrExcluded'
@@ -43,6 +44,7 @@ import { RelatedLogs } from '@/pages/ErrorsV2/ErrorInstance/RelatedLogs'
 import { RelatedSession } from '@/pages/ErrorsV2/ErrorInstance/RelatedSession'
 import { SeeAllInstances } from '@/pages/ErrorsV2/ErrorInstance/SeeAllInstances'
 import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
@@ -55,11 +57,15 @@ const METADATA_LABELS: { [key: string]: string } = {
 	id: 'ID',
 } as const
 
-const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
-	const { error_object_id } = useParams<{
-		error_object_id: string
-	}>()
+export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
+	const { error_object_id } = useParams<{ error_object_id: string }>()
 	const client = useApolloClient()
+	const { currentWorkspace } = useApplicationContext()
+
+	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
 
 	const { loading, error, data } = useGetErrorInstanceQuery({
 		variables: {
@@ -152,17 +158,19 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				<ErrorBodyText errorBody={errorInstance.error_object.event} />
 			</Box>
 
-			<Box display="flex" flexDirection="column" mb="40">
-				<Stack direction="row" align="center" pb="8" gap="8">
-					<Text size="large" weight="bold" color="strong">
-						Harold AI
-					</Text>
-					<Badge label="Beta" size="medium" variant="purple" />
-				</Stack>
-				<AiErrorSuggestion
-					errorObjectId={errorInstance.error_object.id}
-				/>
-			</Box>
+			{workspaceSettingsData?.workspaceSettings?.ai_application && (
+				<Box display="flex" flexDirection="column" mb="40">
+					<Stack direction="row" align="center" pb="8" gap="8">
+						<Text size="large" weight="bold" color="strong">
+							Harold AI
+						</Text>
+						<Badge label="Beta" size="medium" variant="purple" />
+					</Stack>
+					<AiErrorSuggestion
+						errorObjectId={errorInstance.error_object.id}
+					/>
+				</Box>
+			)}
 
 			<Box
 				display="flex"
@@ -512,5 +520,3 @@ const User: React.FC<{
 		</Box>
 	)
 }
-
-export default ErrorInstance

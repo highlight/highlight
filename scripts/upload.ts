@@ -10,7 +10,7 @@ import * as path from 'path'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 import yargs from 'yargs'
-import { gte } from 'semver'
+import { gt, gte } from 'semver'
 
 const S3_BUCKET = `highlight-client-bundle`
 const FIRSTLOAD_PACKAGE_JSON = './sdk/firstload/package.json'
@@ -31,13 +31,64 @@ interface Options {
 	buildDir: string
 	replace?: boolean
 	validate?: boolean
+	preview?: string
+	has_sdk_changes?: boolean
 }
 
 const publish = async function (opts: Options) {
+	const publishedVersion = (
+		await new Promise<string>((r) =>
+			exec(
+				`npm show ${highlightRunPackageJson.name} version`,
+				(_, stdout) => r(stdout),
+			),
+		)
+	).split('\n')[0]!
+	// if --validate, ensure that a new firstload version is created
+	if (opts.validate) {
+		if (opts.has_sdk_changes) {
+			if (!gt(highlightRunPackageJson.version, publishedVersion)) {
+				console.error(
+					`Current highlight.run version ${highlightRunPackageJson.version} must be > published version ${publishedVersion}`,
+				)
+				process.exit(1)
+			}
+		} else {
+			if (!gte(highlightRunPackageJson.version, publishedVersion)) {
+				console.error(
+					`Current highlight.run version ${highlightRunPackageJson.version} must be >= published version ${publishedVersion}`,
+				)
+				process.exit(1)
+			}
+		}
+		if (!changelogExists(highlightRunPackageJson.version)) {
+			console.error(
+				`Current highlight.run version ${highlightRunPackageJson.version} must have a changelog in ${docsDir}`,
+			)
+			process.exit(1)
+		}
+
+		console.log(
+			`Validated highlight.run package version ${highlightRunPackageJson.version}`,
+		)
+		process.exit(0)
+	} else if (!opts.replace) {
+		if (!gt(highlightRunPackageJson.version, publishedVersion)) {
+			console.info(
+				`Current highlight.run version ${highlightRunPackageJson.version} is <= published version ${publishedVersion}. Not uploading!`,
+			)
+			process.exit(0)
+		}
+	}
+
 	const buildDir = join(opts.workspace, opts.buildDir)
 	const promises = []
 	for await (const file of getFiles(join(rootDir, buildDir))) {
-		promises.push(upload(highlightRunPackageJson.version, file, opts))
+		let version = `v${highlightRunPackageJson.version}`
+		if (opts.preview) {
+			version = `dev-${opts.preview}`
+		}
+		promises.push(upload(version, file, opts))
 	}
 	await Promise.all(promises)
 }
@@ -73,7 +124,7 @@ const upload = async function (
 	const fileRelPath = fileAbsPath
 		.split(`${join(opts.workspace, opts.buildDir)}/`)
 		.pop()!
-	const key = `v${version}/${fileRelPath}`
+	const key = `${version}/${fileRelPath}`
 
 	// if --no-replace, check that the files do not exist
 	if (!opts.replace) {
@@ -86,7 +137,7 @@ const upload = async function (
 			await client.send(get)
 			exists = true
 		} catch (e: any) {
-			if (e.name === 'NoSuchKey') {
+			if (e.name === 'NoSuchKey' || e.name === 'AccessDenied') {
 				exists = false
 			} else {
 				throw e
@@ -96,35 +147,6 @@ const upload = async function (
 			console.error(`File ${key} already exists!`)
 			process.exit(1)
 		}
-	}
-
-	// if --validate, ensure that a new firstload version is created
-	if (opts.validate) {
-		const publishedVersion = (
-			await new Promise<string>((r) =>
-				exec(
-					`npm show ${highlightRunPackageJson.name} version`,
-					(_, stdout) => r(stdout),
-				),
-			)
-		).split('\n')[0]!
-		if (!gte(highlightRunPackageJson.version, publishedVersion)) {
-			console.error(
-				`Current highlight.run version ${highlightRunPackageJson.version} must be >= published version ${publishedVersion}`,
-			)
-			process.exit(1)
-		}
-		if (!changelogExists(highlightRunPackageJson.version)) {
-			console.error(
-				`Current highlight.run version ${highlightRunPackageJson.version} must have a changelog in ${docsDir}`,
-			)
-			process.exit(1)
-		}
-
-		console.log(
-			`Validated highlight.run package version ${highlightRunPackageJson.version}`,
-		)
-		process.exit(0)
 	}
 
 	const put = new PutObjectCommand({
@@ -151,6 +173,8 @@ await yargs(process.argv.slice(2))
 		describe: 'the build directory in the workspace',
 		default: 'dist',
 	})
+	.option('preview', { type: 'string', describe: 'the preview version' })
 	.boolean('replace')
 	.boolean('validate')
+	.boolean('has-sdk-changes')
 	.help('help').argv

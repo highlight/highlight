@@ -379,8 +379,13 @@ type ProjectFilterSettings struct {
 
 type AllWorkspaceSettings struct {
 	Model
-	WorkspaceID int  `gorm:"uniqueIndex"`
-	AIInsights  bool `gorm:"default:false"`
+	WorkspaceID   int  `gorm:"uniqueIndex"`
+	AIApplication bool `gorm:"default:true"`
+	AIInsights    bool `gorm:"default:false"`
+	// store embeddings for errors in this workspace
+	ErrorEmbeddingsWrite bool `gorm:"default:false"`
+	// use embeddings to group errors in this workspace
+	ErrorEmbeddingsGroup bool `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -1985,8 +1990,10 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 
 type Service struct {
 	Model
-	ProjectID int    `gorm:"not null;uniqueIndex:idx_project_id_name"`
-	Name      string `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	ProjectID      int                       `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Name           string                    `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Status         modelInputs.ServiceStatus `gorm:"not null;default:created"`
+	GithubRepoPath *string
 }
 
 type LogAlert struct {

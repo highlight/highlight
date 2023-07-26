@@ -126,6 +126,7 @@ export type AllProjectSettings = {
 
 export type AllWorkspaceSettings = {
 	__typename?: 'AllWorkspaceSettings'
+	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
 	workspace_id: Scalars['ID']
 }
@@ -967,6 +968,7 @@ export type Mutation = {
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
+	editService?: Maybe<Service>
 	editWorkspace?: Maybe<Workspace>
 	editWorkspaceSettings?: Maybe<AllWorkspaceSettings>
 	emailSignup: Scalars['String']
@@ -1270,12 +1272,19 @@ export type MutationEditSegmentArgs = {
 	project_id: Scalars['ID']
 }
 
+export type MutationEditServiceArgs = {
+	github_repo_path?: InputMaybe<Scalars['String']>
+	id: Scalars['ID']
+	project_id: Scalars['ID']
+}
+
 export type MutationEditWorkspaceArgs = {
 	id: Scalars['ID']
 	name?: InputMaybe<Scalars['String']>
 }
 
 export type MutationEditWorkspaceSettingsArgs = {
+	ai_application?: InputMaybe<Scalars['Boolean']>
 	ai_insights?: InputMaybe<Scalars['Boolean']>
 	workspace_id: Scalars['ID']
 }
@@ -1720,6 +1729,7 @@ export type Query = {
 	resources?: Maybe<Array<Maybe<Scalars['Any']>>>
 	segments?: Maybe<Array<Maybe<Segment>>>
 	serverIntegration: IntegrationStatus
+	services: Array<Service>
 	session?: Maybe<Session>
 	sessionLogs: Array<LogEdge>
 	session_comment_tags_for_project: Array<SessionCommentTag>
@@ -2204,6 +2214,10 @@ export type QueryServerIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryServicesArgs = {
+	project_id: Scalars['ID']
+}
+
 export type QuerySessionArgs = {
 	secure_id: Scalars['String']
 }
@@ -2469,6 +2483,21 @@ export type Segment = {
 	project_id: Scalars['ID']
 }
 
+export type Service = {
+	__typename?: 'Service'
+	githubRepoPath?: Maybe<Scalars['String']>
+	id: Scalars['ID']
+	name: Scalars['String']
+	projectID: Scalars['ID']
+	status: ServiceStatus
+}
+
+export enum ServiceStatus {
+	Created = 'created',
+	Error = 'error',
+	Healthy = 'healthy',
+}
+
 export type Session = {
 	__typename?: 'Session'
 	active_length?: Maybe<Scalars['Int']>
@@ -2538,6 +2567,7 @@ export type SessionAlert = {
 	TrackProperties: Array<Maybe<TrackProperty>>
 	Type: Scalars['String']
 	UserProperties: Array<Maybe<UserProperty>>
+	WebhookDestinations: Array<WebhookDestination>
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	updated_at: Scalars['Timestamp']

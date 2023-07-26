@@ -49,6 +49,8 @@ import {
 	LOOKBACK_PERIODS,
 } from './AlertConfigurationConstants'
 
+const SEPARATOR = ':$&'
+
 interface AlertConfiguration {
 	name: string
 	canControlThreshold: boolean
@@ -266,8 +268,11 @@ export const AlertConfigurationCard = ({
 									track_properties: form
 										.getFieldValue('trackProperties')
 										.map((trackProperty: any) => {
-											const [value, name, id] =
-												trackProperty.split(':')
+											const [id, name, value] =
+												trackProperty.split(
+													SEPARATOR,
+													3,
+												)
 											return {
 												id,
 												value,
@@ -292,8 +297,8 @@ export const AlertConfigurationCard = ({
 									user_properties: form
 										.getFieldValue('userProperties')
 										.map((userProperty: any) => {
-											const [value, name, id] =
-												userProperty.split(':')
+											const [id, name, value] =
+												userProperty.split(SEPARATOR, 3)
 											return {
 												id,
 												value,
@@ -361,8 +366,8 @@ export const AlertConfigurationCard = ({
 									user_properties: form
 										.getFieldValue('userProperties')
 										.map((userProperty: any) => {
-											const [value, name, id] =
-												userProperty.split(':')
+											const [id, name, value] =
+												userProperty.split(SEPARATOR, 3)
 											return {
 												id,
 												value,
@@ -389,8 +394,11 @@ export const AlertConfigurationCard = ({
 									track_properties: form
 										.getFieldValue('trackProperties')
 										.map((trackProperty: any) => {
-											const [value, name, id] =
-												trackProperty.split(':')
+											const [id, name, value] =
+												trackProperty.split(
+													SEPARATOR,
+													3,
+												)
 											return {
 												id,
 												value,
@@ -599,7 +607,8 @@ export const AlertConfigurationCard = ({
 	const onUserPropertiesChange = (_value: any, options: any) => {
 		const userProperties = options.map(
 			({ value: valueAndName }: { key: string; value: string }) => {
-				const [value, name, id] = valueAndName.split(':')
+				const [id, name, value] = valueAndName.split(SEPARATOR, 3)
+				console.log('vadim', { valueAndName, value, name, id })
 				return {
 					id,
 					value,
@@ -614,7 +623,7 @@ export const AlertConfigurationCard = ({
 	const onTrackPropertiesChange = (_value: any, options: any) => {
 		const trackProperties = options.map(
 			({ value: valueAndName }: { key: string; value: string }) => {
-				const [value, name, id] = valueAndName.split(':')
+				const [id, name, value] = valueAndName.split(SEPARATOR, 3)
 				return {
 					id,
 					value,
@@ -1200,7 +1209,9 @@ const getPropertiesOption = (option: any) => ({
 				{option?.value}
 			</>
 		) || '',
-	value: `${option?.value}:${option?.name}:${option?.id}` || '',
-	id: `${option?.value}:${option?.name}` || '',
+	value:
+		`${option?.id}${SEPARATOR}${option?.name}${SEPARATOR}${option?.value}` ||
+		'',
+	id: `${option?.name}${SEPARATOR}${option?.value}` || '',
 	name: option?.id || '',
 })

@@ -186,15 +186,6 @@ const staticProperties = defineProperties({
 	},
 })
 
-const responsiveProperties = defineProperties({
-	conditions: mediaQueries,
-	defaultCondition: 'mobile',
-	properties: {
-		flexDirection: ['row', 'column', 'column-reverse'],
-		gap: vars.space,
-	},
-})
-
 const colorProperties = defineProperties({
 	conditions: {
 		default: {},
@@ -226,10 +217,19 @@ const colorProperties = defineProperties({
 	},
 })
 
+const responsiveProperties = defineProperties({
+	conditions: mediaQueries,
+	defaultCondition: 'mobile',
+	properties: {
+		flexDirection: ['row', 'column', 'column-reverse'],
+		gap: vars.space,
+	},
+})
+
 export const sprinkles = createSprinkles(
 	colorProperties,
-	responsiveProperties,
 	staticProperties,
+	responsiveProperties,
 )
 
 export type Sprinkles = Parameters<typeof sprinkles>[0]

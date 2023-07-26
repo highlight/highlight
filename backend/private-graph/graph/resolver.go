@@ -3054,77 +3054,85 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model
 }
 
 func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId int) (*[]model.SlackChannel, int, error) {
-	var filteredNewChannels []model.SlackChannel
-
-	workspace, _ := r.GetWorkspace(workspaceId)
-	// workspace is not integrated with slack
-	if workspace.SlackAccessToken == nil {
-		return &filteredNewChannels, 0, nil
+	type result struct {
+		ExistingChannels []model.SlackChannel
+		NewChannelsCount int
 	}
+	res, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf(`slack-channels-workspace-%d`, workspaceId), 5*time.Second, 5*time.Minute, func() (*result, error) {
+		workspace, _ := r.GetWorkspace(workspaceId)
+		// workspace is not integrated with slack
+		if workspace.SlackAccessToken == nil {
+			return nil, nil
+		}
 
-	slackClient := slack.New(*workspace.SlackAccessToken)
-	existingChannels, _ := workspace.IntegratedSlackChannels()
+		slackClient := slack.New(*workspace.SlackAccessToken)
+		existingChannels, _ := workspace.IntegratedSlackChannels()
 
-	getConversationsParam := slack.GetConversationsParameters{
-		Limit: 1000,
-		// public_channel is for public channels in the Slack workspace
-		// private is for private channels in the Slack workspace that the Bot is included in
-		// im is for all individuals in the Slack workspace
-		// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
-		Types: []string{"public_channel", "private_channel", "mpim", "im"},
-	}
-	allSlackChannelsFromAPI := []slack.Channel{}
+		getConversationsParam := slack.GetConversationsParameters{
+			Limit: 1000,
+			// public_channel is for public channels in the Slack workspace
+			// private is for private channels in the Slack workspace that the Bot is included in
+			// im is for all individuals in the Slack workspace
+			// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
+			Types: []string{"public_channel", "private_channel", "mpim", "im"},
+		}
+		allSlackChannelsFromAPI := []slack.Channel{}
 
-	// Slack paginates the channels/people listing.
-	for {
-		channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
+		// Slack paginates the channels/people listing.
+		for {
+			channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
+			if err != nil {
+				return nil, e.Wrap(err, "error getting Slack channels from Slack.")
+			}
+
+			allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
+
+			if cursor == "" {
+				break
+			}
+
+		}
+
+		// We need to get the users in the Slack channel in order to get their name.
+		// The conversations endpoint only returns the user's ID, we'll use the response from `GetUsers` to get the name.
+		users, err := slackClient.GetUsers()
 		if err != nil {
-			return &filteredNewChannels, 0, e.Wrap(err, "error getting Slack channels from Slack.")
+			log.WithContext(ctx).Error(e.Wrap(err, "failed to get users"))
 		}
 
-		allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
+		newChannelsCount := 0
 
-		if cursor == "" {
-			break
+		channelsAndUsers := map[string]model.SlackChannel{}
+		for _, channel := range existingChannels {
+			channelsAndUsers[channel.WebhookChannelID] = channel
 		}
 
-	}
-
-	// We need to get the users in the Slack channel in order to get their name.
-	// The conversations endpoint only returns the user's ID, we'll use the response from `GetUsers` to get the name.
-	users, err := slackClient.GetUsers()
-	if err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "failed to get users"))
-	}
-
-	newChannelsCount := 0
-
-	channelsAndUsers := map[string]model.SlackChannel{}
-	for _, channel := range existingChannels {
-		channelsAndUsers[channel.WebhookChannelID] = channel
-	}
-
-	for _, channel := range allSlackChannelsFromAPI {
-		_, exists := channelsAndUsers[channel.ID]
-		if !exists && channel.IsChannel && channel.ID != "" {
-			newChannelsCount++
-			slackChannel := model.SlackChannel{WebhookChannelID: channel.ID, WebhookChannel: fmt.Sprintf("#%s", channel.Name)}
-			channelsAndUsers[channel.ID] = slackChannel
-			existingChannels = append(existingChannels, slackChannel)
+		for _, channel := range allSlackChannelsFromAPI {
+			_, exists := channelsAndUsers[channel.ID]
+			if !exists && channel.IsChannel && channel.ID != "" {
+				newChannelsCount++
+				slackChannel := model.SlackChannel{WebhookChannelID: channel.ID, WebhookChannel: fmt.Sprintf("#%s", channel.Name)}
+				channelsAndUsers[channel.ID] = slackChannel
+				existingChannels = append(existingChannels, slackChannel)
+			}
 		}
-	}
 
-	for _, user := range users {
-		_, exists := channelsAndUsers[user.ID]
-		if !exists && !user.IsBot && !user.Deleted && strings.ToLower(user.Name) != "slackbot" {
-			newChannelsCount++
-			slackChannel := model.SlackChannel{WebhookChannelID: user.ID, WebhookChannel: fmt.Sprintf("@%s", user.Name)}
-			channelsAndUsers[user.ID] = slackChannel
-			existingChannels = append(existingChannels, slackChannel)
+		for _, user := range users {
+			_, exists := channelsAndUsers[user.ID]
+			if !exists && !user.IsBot && !user.Deleted && strings.ToLower(user.Name) != "slackbot" {
+				newChannelsCount++
+				slackChannel := model.SlackChannel{WebhookChannelID: user.ID, WebhookChannel: fmt.Sprintf("@%s", user.Name)}
+				channelsAndUsers[user.ID] = slackChannel
+				existingChannels = append(existingChannels, slackChannel)
+			}
 		}
-	}
 
-	return &existingChannels, newChannelsCount, nil
+		return &result{existingChannels, newChannelsCount}, nil
+	})
+	if res == nil {
+		return nil, 0, err
+	}
+	return &res.ExistingChannels, res.NewChannelsCount, err
 }
 
 func GetAggregateFluxStatement(ctx context.Context, aggregator modelInputs.MetricAggregator, resMins int) string {

@@ -340,6 +340,7 @@ export type EditWorkspaceMutation = { __typename?: 'Mutation' } & {
 
 export type EditWorkspaceSettingsMutationVariables = Types.Exact<{
 	workspace_id: Types.Scalars['ID']
+	ai_application?: Types.Maybe<Types.Scalars['Boolean']>
 	ai_insights?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
@@ -347,7 +348,7 @@ export type EditWorkspaceSettingsMutation = { __typename?: 'Mutation' } & {
 	editWorkspaceSettings?: Types.Maybe<
 		{ __typename?: 'AllWorkspaceSettings' } & Pick<
 			Types.AllWorkspaceSettings,
-			'workspace_id' | 'ai_insights'
+			'workspace_id' | 'ai_application' | 'ai_insights'
 		>
 	>
 }
@@ -1455,10 +1456,24 @@ export type SessionAlertFragmentFragment = {
 		DiscordChannelsToNotify: Array<
 			{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
 		>
+		WebhookDestinations: Array<
+			{ __typename?: 'WebhookDestination' } & Pick<
+				Types.WebhookDestination,
+				'url' | 'authorization'
+			>
+		>
 		TrackProperties: Array<
 			Types.Maybe<
 				{ __typename?: 'TrackProperty' } & Pick<
 					Types.TrackProperty,
+					'id' | 'name' | 'value'
+				>
+			>
+		>
+		UserProperties: Array<
+			Types.Maybe<
+				{ __typename?: 'UserProperty' } & Pick<
+					Types.UserProperty,
 					'id' | 'name' | 'value'
 				>
 			>
@@ -4364,7 +4379,7 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 	workspaceSettings?: Types.Maybe<
 		{ __typename?: 'AllWorkspaceSettings' } & Pick<
 			Types.AllWorkspaceSettings,
-			'workspace_id' | 'ai_insights'
+			'workspace_id' | 'ai_application' | 'ai_insights'
 		>
 	>
 }

@@ -225,11 +225,7 @@ func (r *errorObjectResolver) Session(ctx context.Context, obj *model.ErrorObjec
 	if obj.SessionID == nil {
 		return nil, nil
 	}
-	session := &model.Session{}
-	if err := r.DB.Where("id = ?", obj.SessionID).Take(&session).Error; err != nil {
-		return nil, e.Wrap(err, "error reading session from error object")
-	}
-	return session, nil
+	return r.Store.GetSession(ctx, *obj.SessionID)
 }
 
 // Params is the resolver for the params field.
@@ -622,17 +618,23 @@ func (r *mutationResolver) EditWorkspace(ctx context.Context, id int, name *stri
 }
 
 // EditWorkspaceSettings is the resolver for the editWorkspaceSettings field.
-func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceID int, aiInsights *bool) (*model.AllWorkspaceSettings, error) {
+func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool) (*model.AllWorkspaceSettings, error) {
 	_, err := r.isAdminInWorkspace(ctx, workspaceID)
 	if err != nil {
 		return nil, err
 	}
-	workspaceSettings := &model.AllWorkspaceSettings{
-		WorkspaceID: workspaceID,
+
+	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
+		return nil, err
 	}
-	if err := r.DB.Where(workspaceSettings).Updates(&model.AllWorkspaceSettings{
-		AIInsights: *aiInsights,
-	}).Error; err != nil {
+
+	workspaceSettings := &model.AllWorkspaceSettings{}
+	workspaceSettingsUpdates := map[string]interface{}{
+		"AIApplication": *aiApplication,
+		"AIInsights":    *aiInsights,
+	}
+
+	if err := r.DB.Where(&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).Take(&workspaceSettings).Updates(&workspaceSettingsUpdates).Error; err != nil {
 		return nil, err
 	}
 	return workspaceSettings, nil
@@ -3630,6 +3632,30 @@ func (r *mutationResolver) UpdateEmailOptOut(ctx context.Context, token *string,
 	return true, nil
 }
 
+// EditService is the resolver for the editService field.
+func (r *mutationResolver) EditService(ctx context.Context, id int, projectID int, githubRepoPath *string) (*model.Service, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	serviceUpdates := map[string]interface{}{}
+	if githubRepoPath != nil {
+		serviceUpdates["GithubRepoPath"] = *githubRepoPath
+		serviceUpdates["Status"] = "healthy"
+	} else {
+		serviceUpdates["GithubRepoPath"] = ""
+		serviceUpdates["Status"] = "created"
+	}
+
+	service := &model.Service{}
+	updateErr := r.DB.Where(&model.Service{Model: model.Model{ID: id}, ProjectID: project.ID}).Take(&service).Updates(&serviceUpdates).Error
+	if updateErr != nil {
+		return nil, updateErr
+	}
+	return service, nil
+}
+
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
@@ -4015,7 +4041,7 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model.ErrorResults, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -4070,7 +4096,7 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -4586,12 +4612,12 @@ func (r *queryResolver) WorkspaceAdmins(ctx context.Context, workspaceID int) ([
 func (r *queryResolver) WorkspaceAdminsByProjectID(ctx context.Context, projectID int) ([]*model.WorkspaceAdminRole, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	return r.WorkspaceAdmins(ctx, workspace.ID)
@@ -5227,6 +5253,7 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate
 		Aggregation: &opensearch.TermsAggregation{
 			Field:   "fields.Key.raw",
 			Include: pointy.String("(session|track|user)_.*"),
+			Exclude: pointy.String("(session|track|user)_[0-9]+"), // Exclude numeric field types
 			Size:    pointy.Int(500),
 		},
 	}
@@ -5420,7 +5447,7 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 func (r *queryResolver) BillingDetailsForProject(ctx context.Context, projectID int) (*modelInputs.BillingDetails, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	return r.BillingDetails(ctx, project.WorkspaceID)
@@ -6531,19 +6558,14 @@ func (r *queryResolver) WorkspaceSettings(ctx context.Context, workspaceID int) 
 		return nil, err
 	}
 
-	workspaceSettings := model.AllWorkspaceSettings{}
-	if err := r.DB.Where(model.AllWorkspaceSettings{WorkspaceID: workspaceID}).FirstOrCreate(&workspaceSettings).Error; err != nil {
-		return nil, err
-	}
-
-	return &workspaceSettings, nil
+	return r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
 }
 
 // WorkspaceForProject is the resolver for the workspace_for_project field.
 func (r *queryResolver) WorkspaceForProject(ctx context.Context, projectID int) (*model.Workspace, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	workspace, err := r.GetWorkspace(project.WorkspaceID)
@@ -6766,7 +6788,7 @@ func (r *queryResolver) SubscriptionDetails(ctx context.Context, workspaceID int
 	}
 
 	if err := r.validateAdminRole(ctx, workspaceID); err != nil {
-		return nil, nil
+		return nil, err
 	}
 
 	customerParams := &stripe.CustomerParams{}
@@ -7489,6 +7511,21 @@ func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemC
 	return &config, nil
 }
 
+// Services is the resolver for the services field.
+func (r *queryResolver) Services(ctx context.Context, projectID int) ([]*model.Service, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	services := []*model.Service{}
+	if err := r.DB.Order("name ASC").Model(&model.Service{}).Where(&model.Service{ProjectID: project.ID}).Scan(&services).Error; err != nil {
+		return nil, err
+	}
+
+	return services, nil
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
@@ -7605,6 +7642,11 @@ func (r *sessionAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj 
 	ret := obj.DiscordChannelsToNotify
 
 	return ret, nil
+}
+
+// WebhookDestinations is the resolver for the WebhookDestinations field.
+func (r *sessionAlertResolver) WebhookDestinations(ctx context.Context, obj *model.SessionAlert) ([]*model.WebhookDestination, error) {
+	return obj.WebhookDestinations, nil
 }
 
 // EmailsToNotify is the resolver for the EmailsToNotify field.

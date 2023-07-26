@@ -390,6 +390,7 @@ type AllProjectSettings {
 
 type AllWorkspaceSettings {
 	workspace_id: ID!
+	ai_application: Boolean!
 	ai_insights: Boolean!
 }
 
@@ -644,6 +645,20 @@ type ErrorObjectEdge implements Edge {
 type ErrorObjectConnection implements Connection {
 	edges: [ErrorObjectEdge!]!
 	pageInfo: PageInfo!
+}
+
+enum ServiceStatus {
+	healthy
+	error
+	created
+}
+
+type Service {
+	id: ID!
+	projectID: ID!
+	name: String!
+	status: ServiceStatus!
+	githubRepoPath: String
 }
 
 enum ReservedLogKey {
@@ -1197,6 +1212,7 @@ type SessionAlert {
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
 	DiscordChannelsToNotify: [DiscordChannel!]!
+	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
 	CountThreshold: Int!
@@ -1708,6 +1724,7 @@ type Query {
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
 	system_configuration: SystemConfiguration!
+	services(project_id: ID!): [Service!]!
 }
 
 type Mutation {
@@ -1749,6 +1766,7 @@ type Mutation {
 	editWorkspace(id: ID!, name: String): Workspace
 	editWorkspaceSettings(
 		workspace_id: ID!
+		ai_application: Boolean
 		ai_insights: Boolean
 	): AllWorkspaceSettings
 	markErrorGroupAsViewed(
@@ -2071,6 +2089,7 @@ type Mutation {
 		is_opt_out: Boolean!
 		project_id: Int
 	): Boolean!
+	editService(id: ID!, project_id: ID!, github_repo_path: String): Service
 }
 
 type Subscription {

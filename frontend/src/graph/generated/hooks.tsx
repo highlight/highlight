@@ -71,6 +71,10 @@ export const SessionAlertFragmentFragmentDoc = gql`
 		DiscordChannelsToNotify {
 			...DiscordChannelFragment
 		}
+		WebhookDestinations {
+			url
+			authorization
+		}
 		CountThreshold
 		DailyFrequency
 		disabled
@@ -83,6 +87,11 @@ export const SessionAlertFragmentFragmentDoc = gql`
 		updated_at
 		ThresholdWindow
 		TrackProperties {
+			id
+			name
+			value
+		}
+		UserProperties {
 			id
 			name
 			value
@@ -1693,12 +1702,18 @@ export type EditWorkspaceMutationOptions = Apollo.BaseMutationOptions<
 	Types.EditWorkspaceMutationVariables
 >
 export const EditWorkspaceSettingsDocument = gql`
-	mutation EditWorkspaceSettings($workspace_id: ID!, $ai_insights: Boolean) {
+	mutation EditWorkspaceSettings(
+		$workspace_id: ID!
+		$ai_application: Boolean
+		$ai_insights: Boolean
+	) {
 		editWorkspaceSettings(
 			workspace_id: $workspace_id
+			ai_application: $ai_application
 			ai_insights: $ai_insights
 		) {
 			workspace_id
+			ai_application
 			ai_insights
 		}
 	}
@@ -1722,6 +1737,7 @@ export type EditWorkspaceSettingsMutationFn = Apollo.MutationFunction<
  * const [editWorkspaceSettingsMutation, { data, loading, error }] = useEditWorkspaceSettingsMutation({
  *   variables: {
  *      workspace_id: // value for 'workspace_id'
+ *      ai_application: // value for 'ai_application'
  *      ai_insights: // value for 'ai_insights'
  *   },
  * });
@@ -12979,6 +12995,7 @@ export const GetWorkspaceSettingsDocument = gql`
 	query GetWorkspaceSettings($workspace_id: ID!) {
 		workspaceSettings(workspace_id: $workspace_id) {
 			workspace_id
+			ai_application
 			ai_insights
 		}
 	}

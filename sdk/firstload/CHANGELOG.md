@@ -317,3 +317,15 @@ Reserved for the Boeing 737
 ### Patch Changes
 
 - Fix recording of WebGL2 `<canvas>` elements that leverage `preserveDrawingBuffer: false`
+
+## 7.3.10
+
+### Patch Changes
+
+- Fix error capture of `new Error()` objects.
+
+## 7.3.11
+
+### Patch Changes
+
+- Improve `canvasInitialSnapshotDelay` logic for `<canvas>` recording to delay per-canvas.

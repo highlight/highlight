@@ -2,6 +2,7 @@ import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import {
 	downloadSnippet,
+	init,
 	setupFrontendSnippet,
 	setupLogging,
 } from './shared-snippets'
@@ -24,7 +25,7 @@ export const PythonFastAPIContext: QuickStartContent = {
 import highlight_io
 from highlight_io.integrations.fastapi import FastAPIMiddleware
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
+${init}
 
 app = FastAPI()
 app.add_middleware(FastAPIMiddleware)`,
@@ -47,7 +48,7 @@ app.add_middleware(FastAPIMiddleware)`,
 import highlight_io
 from highlight_io.integrations.fastapi import FastAPIMiddleware
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
+${init}
 
 app = FastAPI()
 app.add_middleware(FastAPIMiddleware)
