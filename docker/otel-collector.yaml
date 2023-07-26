@@ -7,6 +7,11 @@ receivers:
                 endpoint: '0.0.0.0:4318'
     fluentforward:
         endpoint: '0.0.0.0:24224'
+    syslog:
+        tcp:
+            listen_address: '0.0.0.0:34302'
+        protocol: rfc5424
+        location: UTC
 exporters:
     otlphttp:
         endpoint: 'https://host.docker.internal:8082/otel'
@@ -35,7 +40,7 @@ service:
             processors: [batch]
             exporters: [otlphttp]
         logs:
-            receivers: [otlp, fluentforward]
+            receivers: [otlp, fluentforward, syslog]
             processors: [batch]
             exporters: [otlphttp]
 extensions:
