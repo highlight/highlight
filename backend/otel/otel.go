@@ -6,11 +6,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/samber/lo"
 	"io"
 	"net/http"
 	"regexp"
 	"time"
+
+	"github.com/samber/lo"
 
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 
@@ -28,6 +29,7 @@ import (
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
+	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
@@ -231,6 +233,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	var traceErrors = make(map[string][]*model.BackendErrorObjectInput)
 
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
+	var projectSpans = make(map[string][]ptrace.Span)
 
 	var traceMetrics = make(map[string][]*model.MetricInput)
 
@@ -311,6 +314,8 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						lg(ctx, projectID, sessionID, requestID, source, resourceAttributes, spanAttributes, eventAttributes).Warnf("otel received unknown event %s", event.Name())
 					}
 				}
+
+				projectSpans[projectID] = append(projectSpans[projectID], span)
 			}
 		}
 	}
@@ -352,6 +357,35 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			}}, uuid.New().String())
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics to public worker queue")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+	}
+
+	// TODO: Send spans to Kafka for processing
+	for projectID, spans := range projectSpans {
+		traceRows := make([]*clickhouse.TraceRow, len(spans))
+		projectIDInt, err := clickhouse.ProjectToInt(projectID)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error(fmt.Sprintf("failed to parse project id: %s", projectID))
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+		projectIDInt32 := uint32(projectIDInt)
+
+		for _, span := range spans {
+			traceRows = append(traceRows, clickhouse.NewTraceRow(span, projectIDInt32))
+		}
+
+		client, err := clickhouse.NewClient(clickhouse.PrimaryDatabase)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to create clickhouse client")
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		}
+		err = client.BatchWriteTraceRows(ctx, traceRows)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to write otel trace rows to clickhouse")
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}

@@ -1,6 +1,8 @@
 
 CREATE TABLE IF NOT EXISTS traces
 (
+    ProjectId UInt32,
+    SecureSessionId String,
     Timestamp DateTime,
     TraceId String,
     SpanId String,
@@ -8,23 +10,23 @@ CREATE TABLE IF NOT EXISTS traces
     TraceState String,
     SpanName LowCardinality(String),
     SpanKind LowCardinality(String),
+    Duration Int64,
     ServiceName LowCardinality(String),
     ResourceAttributes Map(LowCardinality(String), String),
     SpanAttributes Map(LowCardinality(String), String),
-    Duration Int64,
     StatusCode LowCardinality(String),
     StatusMessage String,
-    Events Nested (
-        Timestamp DateTime,
-        Name LowCardinality(String),
-        Attributes Map(LowCardinality(String), String)
-    ),
-    Links Nested (
-        TraceId String,
-        SpanId String,
-        TraceState String,
-        Attributes Map(LowCardinality(String), String)
-    ),
+    -- Events Nested (
+    --     Timestamp DateTime,
+    --     Name LowCardinality(String),
+    --     Attributes Map(LowCardinality(String), String)
+    -- ),
+    -- Links Nested (
+    --     TraceId String,
+    --     SpanId String,
+    --     TraceState String,
+    --     Attributes Map(LowCardinality(String), String)
+    -- ),
     INDEX idx_trace_id TraceId TYPE bloom_filter(0.001) GRANULARITY 1,
     INDEX idx_res_attr_key mapKeys(ResourceAttributes) TYPE bloom_filter(0.01) GRANULARITY 1,
     INDEX idx_res_attr_value mapValues(ResourceAttributes) TYPE bloom_filter(0.01) GRANULARITY 1,
