@@ -61,8 +61,8 @@ func TestListServicesTraversing(t *testing.T) {
 		assert.Equal(t, &privateModel.PageInfo{
 			HasNextPage:     true,
 			HasPreviousPage: false,
-			StartCursor:     "21",
-			EndCursor:       "12",
+			StartCursor:     servicesIds[20],
+			EndCursor:       servicesIds[11],
 		}, connection.PageInfo)
 
 		// Get second page using `After` cursor
