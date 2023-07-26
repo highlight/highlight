@@ -190,6 +190,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithBody(ctx, excMessage),
 							clickhouse.WithLogAttributes(fields.attrs),
 							clickhouse.WithServiceName(fields.serviceName),
+							clickhouse.WithServiceVersion(fields.serviceVersion),
 							clickhouse.WithSeverityText("ERROR"),
 							clickhouse.WithSource(fields.source),
 						)
@@ -223,6 +224,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithBody(ctx, logMessage),
 							clickhouse.WithLogAttributes(fields.attrs),
 							clickhouse.WithServiceName(fields.serviceName),
+							clickhouse.WithServiceVersion(fields.serviceVersion),
 							clickhouse.WithSeverityText(logSev),
 							clickhouse.WithSource(fields.source),
 						)
@@ -354,6 +356,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					clickhouse.WithBody(ctx, logRecord.Body().Str()),
 					clickhouse.WithLogAttributes(fields.attrs),
 					clickhouse.WithServiceName(fields.serviceName),
+					clickhouse.WithServiceVersion(fields.serviceVersion),
 					clickhouse.WithSeverityText(logRecord.SeverityText()),
 					clickhouse.WithSource(fields.source),
 				)
