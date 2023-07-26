@@ -219,7 +219,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithLogAttributes(fields.attrs),
 							clickhouse.WithServiceName(fields.serviceName),
 							clickhouse.WithServiceVersion(fields.serviceVersion),
-							clickhouse.WithSeverityText(logSev),
+							clickhouse.WithSeverityText(fields.logSeverity),
 							clickhouse.WithSource(fields.source),
 						)
 
