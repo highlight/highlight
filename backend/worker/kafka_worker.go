@@ -46,6 +46,8 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 
 			if task == nil {
 				return
+			} else if task.Type == kafkaqueue.HealthCheck {
+				return
 			}
 			s.SetTag("taskType", task.Type)
 			s.SetTag("partition", task.KafkaMessage.Partition)
@@ -71,7 +73,8 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 	}
 }
 
-const BatchFlushSize = 1024
+// BatchFlushSize set per https://clickhouse.com/docs/en/cloud/bestpractices/bulk-inserts
+const BatchFlushSize = 8192
 const BatchedFlushTimeout = 1 * time.Second
 
 type KafkaWorker struct {
@@ -263,6 +266,8 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 			task := k.KafkaQueue.Receive(ctx)
 			s1.Finish()
 			if task == nil {
+				return
+			} else if task.Type == kafkaqueue.HealthCheck {
 				return
 			}
 
