@@ -1,4 +1,3 @@
-
 ---
 title: Fly.io NATS Log Shipper
 slug: fly-io
