@@ -18,7 +18,7 @@ const FrameworksPage = () => {
 	const [copy, setCopy] = useState(false)
 
 	function handleCopy(str: string) {
-		navigator.clipboard.writeText('https://highlight.io/frameworks' + str)
+		navigator.clipboard.writeText('https://highlight.io/frameworks#' + str)
 
 		setCopy(true)
 		setTimeout(() => {
