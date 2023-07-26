@@ -171,11 +171,10 @@ function TocSubtableItem({
 	subEntries: TocEntry[]
 	onEnter: SubNavigationCallback
 }) {
-	/* TODO (fabio): icon in props */
-
 	return (
-		<button
+		<Link
 			onClick={() => onEnter({ children: subEntries, title, slugPath })}
+			href={slugPath}
 		>
 			<div className={entryPlateStyle}>
 				<ArrowRightIcon
@@ -185,7 +184,7 @@ function TocSubtableItem({
 					{title}
 				</Typography>
 			</div>
-		</button>
+		</Link>
 	)
 }
 
