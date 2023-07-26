@@ -22,12 +22,13 @@ var fluentProjectPattern = regexp.MustCompile(fmt.Sprintf(`%s=([\S]+)`, highligh
 
 // Extracted fields
 type extractedFields struct {
-	projectID    string
-	projectIDInt int
-	sessionID    string
-	requestID    string
-	source       modelInputs.LogSource
-	serviceName  string
+	projectID      string
+	projectIDInt   int
+	sessionID      string
+	requestID      string
+	source         modelInputs.LogSource
+	serviceName    string
+	serviceVersion string
 
 	// This represents the merged result of resource, span...log attributes
 	// _after_ we extract fields out. In other words, if `serviceName` is extracted, it won't be included
@@ -120,6 +121,11 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 	if val, ok := resourceAttributes[string(semconv.ServiceNameKey)]; ok { // we know that service name will be in the resource hash
 		fields.serviceName = val.(string)
 		delete(attrs, string(semconv.ServiceNameKey))
+	}
+
+	if val, ok := resourceAttributes[string(semconv.ServiceVersionKey)]; ok { // we know that service version will be in the resource hash
+		fields.serviceVersion = val.(string)
+		delete(attrs, string(semconv.ServiceVersionKey))
 	}
 
 	if fields.projectID == "" {

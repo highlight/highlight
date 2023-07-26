@@ -122,6 +122,16 @@ func TestExtractFields_ExtractServiceName(t *testing.T) {
 	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
+func TestExtractFields_ExtractServiceVersion(t *testing.T) {
+	resource := newResource(map[string]string{
+		"service.version": "abc123",
+	})
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.serviceVersion, "abc123")
+	assert.Equal(t, fields.attrs, map[string]string{})
+}
+
 func TestExtractFields_OmitLogSeverity(t *testing.T) {
 	resource := newResource(map[string]string{
 		"os.description": "Debian GNU/Linux 11 (bullseye)",
