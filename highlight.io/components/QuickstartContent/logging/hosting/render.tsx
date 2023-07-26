@@ -5,7 +5,7 @@ import { verifyLogs } from '../shared-snippets'
 export const HostingRenderLogContent: QuickStartContent = {
 	title: 'Logging with Render.com',
 	subtitle:
-		'Learn how to setup Highlight log ingestion on [Render.com as a log stream](https://render.com/docs/log-streams). ' +
+		'Learn how to setup Highlight log ingestion on Render.com as a log stream. ' +
 		'As a prerequisite, we assume you already have an application ' +
 		'deployed on Render.com.',
 	logoUrl: siteUrl('/images/quickstart/render.svg'),
@@ -20,7 +20,7 @@ export const HostingRenderLogContent: QuickStartContent = {
 		{
 			title: 'Click Add Log Stream and configure the endpoint.',
 			content:
-				'Enter `syslog.highlight.io:34302` for the endpoint and your [highlight project ID](https://app.highlight.io/setup) for the token.',
+				'Enter `syslog.highlight.io:34302` for the [Log Stream](https://render.com/docs/log-streams) endpoint and your [highlight project ID](https://app.highlight.io/setup) for the token.',
 		},
 		verifyLogs,
 	],
