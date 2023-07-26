@@ -98,7 +98,7 @@ func TestListServicesTraversing(t *testing.T) {
 		}, connection.PageInfo)
 
 		// Go back to second page using `Before` cursor
-		connection, err = store.ListServices(project, ListServicesParams{Before: ptr.String("1")})
+		connection, err = store.ListServices(project, ListServicesParams{Before: ptr.String(servicesIds[0])})
 		assert.NoError(t, err)
 
 		assert.Len(t, connection.Edges, 10)
