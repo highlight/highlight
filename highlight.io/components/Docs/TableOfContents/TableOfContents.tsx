@@ -207,7 +207,7 @@ function TocEntry({
 	const focused = route.includes(slugPath)
 
 	return !isIndex ? (
-		<Link href={'/docsnew/' + slugPath} className={entryPlateStyle}>
+		<Link href={'/docs/' + slugPath} className={entryPlateStyle}>
 			<MinusIcon
 				className={classNames(entryIconStyle, 'text-divider-on-dark')}
 			/>
@@ -281,7 +281,7 @@ type SubtableStack = {
 
 export function TableOfContents({ toc: tocEntries }: { toc: TocEntry[] }) {
 	const router = useRouter()
-	const route = router.asPath.replace(/^\/docsnew\//, '')
+	const route = router.asPath.replace(/^\/docs\//, '')
 
 	const [subtableStack, setSubtableStack] = useState<SubtableStack[]>([])
 
