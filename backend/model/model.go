@@ -1990,8 +1990,10 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 
 type Service struct {
 	Model
-	ProjectID int    `gorm:"not null;uniqueIndex:idx_project_id_name"`
-	Name      string `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	ProjectID      int                       `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Name           string                    `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Status         modelInputs.ServiceStatus `gorm:"not null;default:created"`
+	GithubRepoPath *string
 }
 
 type LogAlert struct {

@@ -71,6 +71,10 @@ export const SessionAlertFragmentFragmentDoc = gql`
 		DiscordChannelsToNotify {
 			...DiscordChannelFragment
 		}
+		WebhookDestinations {
+			url
+			authorization
+		}
 		CountThreshold
 		DailyFrequency
 		disabled
@@ -83,6 +87,11 @@ export const SessionAlertFragmentFragmentDoc = gql`
 		updated_at
 		ThresholdWindow
 		TrackProperties {
+			id
+			name
+			value
+		}
+		UserProperties {
 			id
 			name
 			value
