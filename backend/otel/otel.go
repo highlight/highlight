@@ -171,7 +171,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					lg(ctx, fields).WithError(err).Error("failed to extract fields")
 				}
 
-				traceRow := clickhouse.NewTraceRow(span, fields)
+				traceRow := clickhouse.NewTraceRow(span)
 				projectSpans[fields.projectIDInt] = append(projectSpans[fields.projectIDInt], traceRow)
 
 				for l := 0; l < events.Len(); l++ {

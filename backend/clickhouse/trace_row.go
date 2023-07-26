@@ -2,8 +2,11 @@ package clickhouse
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/model"
+	e "github.com/pkg/errors"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
@@ -40,14 +43,15 @@ type Link struct {
 	Attributes map[string]string `json:"attributes,omitempty"`
 }
 
-// TODO: See if we can use types from extracted.go. They can't be imported right
-// now for some reason :thinking:
-type Fields struct {
-	projectIDInt uint32
-}
-
-func NewTraceRow(span ptrace.Span, fields Fields) *TraceRow {
+func NewTraceRow(span ptrace.Span) *TraceRow {
 	attributes := attributesToMap(span.Attributes().AsRaw())
+
+	// TODO: Use extractFields instead of copying logic here. For some reason we
+	// can't import from extract.go.
+	projectId, err := projectToInt(attributes["highlight.project_id"])
+	if err != nil {
+		projectId = 0
+	}
 
 	var traceEvents []Event
 	spanEvents := span.Events()
@@ -73,7 +77,7 @@ func NewTraceRow(span ptrace.Span, fields Fields) *TraceRow {
 	}
 
 	traceRow := &TraceRow{
-		ProjectId:          fields.projectIDInt,
+		ProjectId:          uint32(projectId),
 		SecureSessionId:    attributes["highlight.session_id"],
 		Timestamp:          span.StartTimestamp().AsTime(),
 		TraceId:            span.TraceID().String(),
@@ -101,4 +105,17 @@ func attributesToMap(attributes map[string]any) map[string]string {
 		newAttrMap[k] = fmt.Sprintf("%v", v)
 	}
 	return newAttrMap
+}
+
+// TODO: Import from extract.go instead of copying here
+func projectToInt(projectID string) (int, error) {
+	i, err := strconv.ParseInt(projectID, 10, 32)
+	if err == nil {
+		return int(i), nil
+	}
+	i2, err := model.FromVerboseID(projectID)
+	if err == nil {
+		return i2, nil
+	}
+	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
 }
