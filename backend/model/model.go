@@ -963,7 +963,7 @@ type ErrorGroup struct {
 	FirstOccurrence  *time.Time                           `gorm:"-"`
 	LastOccurrence   *time.Time                           `gorm:"-"`
 	ErrorObjects     []ErrorObject
-	ServiceName      *string
+	ServiceName      string
 
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
