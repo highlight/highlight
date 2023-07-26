@@ -415,11 +415,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 
 func (o *Handler) submitProjectSpans(ctx context.Context, projectTraceRows map[int][]*clickhouse.TraceRow) error {
 	for _, traceRows := range projectTraceRows {
-		traceRows := make([]*clickhouse.TraceRow, len(traceRows))
-
-		for _, traceRow := range traceRows {
-			traceRows = append(traceRows, traceRow)
-		}
+		traceRows := append(traceRows, traceRows...)
 
 		err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushTraces,
