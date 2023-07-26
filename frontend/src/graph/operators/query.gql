@@ -2128,3 +2128,13 @@ query GetErrorObjects(
 		}
 	}
 }
+
+query GetServices($project_id: ID!) {
+	services(project_id: $project_id) {
+		id
+		projectID
+		name
+		status
+		githubRepoPath
+	}
+}

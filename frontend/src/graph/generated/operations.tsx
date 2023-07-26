@@ -1354,6 +1354,21 @@ export type DeleteInviteLinkFromWorkspaceMutation = {
 	__typename?: 'Mutation'
 } & Pick<Types.Mutation, 'deleteInviteLinkFromWorkspace'>
 
+export type EditServiceMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+	project_id: Types.Scalars['ID']
+	github_repo_path?: Types.Maybe<Types.Scalars['String']>
+}>
+
+export type EditServiceMutation = { __typename?: 'Mutation' } & {
+	editService?: Types.Maybe<
+		{ __typename?: 'Service' } & Pick<
+			Types.Service,
+			'id' | 'projectID' | 'name' | 'status' | 'githubRepoPath'
+		>
+	>
+}
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -4424,6 +4439,19 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 	}
 }
 
+export type GetServicesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetServicesQuery = { __typename?: 'Query' } & {
+	services: Array<
+		{ __typename?: 'Service' } & Pick<
+			Types.Service,
+			'id' | 'projectID' | 'name' | 'status' | 'githubRepoPath'
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4557,6 +4585,7 @@ export const namedOperations = {
 		GetWorkspaceSettings: 'GetWorkspaceSettings' as const,
 		GetSystemConfiguration: 'GetSystemConfiguration' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
+		GetServices: 'GetServices' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -4638,6 +4667,7 @@ export const namedOperations = {
 			'UpdateIntegrationProjectSettings' as const,
 		UpdateEmailOptOut: 'UpdateEmailOptOut' as const,
 		DeleteInviteLinkFromWorkspace: 'DeleteInviteLinkFromWorkspace' as const,
+		EditService: 'EditService' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

@@ -24,6 +24,7 @@ import {
 	IconSolidChartPie,
 	IconSolidChat,
 	IconSolidCog,
+	IconSolidDatabase,
 	IconSolidDesktopComputer,
 	IconSolidDocumentText,
 	IconSolidDotsHorizontal,
@@ -317,6 +318,31 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 															}
 														/>
 														Analytics
+													</Box>
+												</Menu.Item>
+											</Link>
+											<Link
+												to={`/${projectId}/services`}
+												className={linkStyle}
+											>
+												<Menu.Item>
+													<Box
+														display="flex"
+														alignItems="center"
+														gap="4"
+													>
+														<IconSolidDatabase
+															size={14}
+															color={
+																vars.theme
+																	.interactive
+																	.fill
+																	.secondary
+																	.content
+																	.text
+															}
+														/>
+														Services
 													</Box>
 												</Menu.Item>
 											</Link>
