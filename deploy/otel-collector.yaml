@@ -18,6 +18,10 @@ exporters:
         compression: gzip
 processors:
     batch:
+    memory_limiter:
+        check_interval: 1s
+        limit_percentage: 75
+        spike_limit_percentage: 15
 service:
     pipelines:
         traces:
@@ -36,3 +40,5 @@ extensions:
     health_check:
         endpoint: '0.0.0.0:4319'
         path: '/health/status'
+    memory_ballast:
+        size_in_percentage: 10

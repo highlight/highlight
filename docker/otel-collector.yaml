@@ -24,6 +24,10 @@ exporters:
             Authorization: 969e17fe-77aa-4f5a-8602-e50ebfccf816
 processors:
     batch:
+    memory_limiter:
+        check_interval: 1s
+        limit_percentage: 75
+        spike_limit_percentage: 15
 service:
     extensions: [health_check]
     pipelines:
@@ -47,3 +51,5 @@ extensions:
     health_check:
         endpoint: '0.0.0.0:4319'
         path: '/health/status'
+    memory_ballast:
+        size_in_percentage: 10
