@@ -29,14 +29,6 @@ type extractedFields struct {
 	source       modelInputs.LogSource
 	serviceName  string
 
-	// The original map data. Should only be used for debugging.
-	// TODO(et) - if we only use this for debugging purposes, should we just omit?
-	resourceAttributes map[string]any
-	spanAttributes     map[string]any
-	eventAttributes    map[string]any
-	scopeAttributes    map[string]any
-	logAttributes      map[string]any
-
 	// This represents the merged result of resource, span...log attributes
 	// _after_ we extract fields out. In other words, if `serviceName` is extracted, it won't be included
 	// in this map.
@@ -57,32 +49,33 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 		source: modelInputs.LogSourceBackend,
 	}
 
+	var resourceAttributes, spanAttributes, eventAttributes, scopeAttributes, logAttributes map[string]any
 	if params.resource != nil {
-		fields.resourceAttributes = params.resource.Attributes().AsRaw()
+		resourceAttributes = params.resource.Attributes().AsRaw()
 	}
 
 	if params.span != nil {
-		fields.spanAttributes = params.span.Attributes().AsRaw()
+		spanAttributes = params.span.Attributes().AsRaw()
 	}
 
 	if params.event != nil {
-		fields.eventAttributes = params.event.Attributes().AsRaw()
+		eventAttributes = params.event.Attributes().AsRaw()
 	}
 
 	if params.scopeLogs != nil {
-		fields.scopeAttributes = params.scopeLogs.Scope().Attributes().AsRaw()
+		scopeAttributes = params.scopeLogs.Scope().Attributes().AsRaw()
 	}
 
 	if params.logRecord != nil {
-		fields.logAttributes = params.logRecord.Attributes().AsRaw()
+		logAttributes = params.logRecord.Attributes().AsRaw()
 	}
 
 	attrs := mergeMaps(
-		fields.resourceAttributes,
-		fields.spanAttributes,
-		fields.eventAttributes,
-		fields.scopeAttributes,
-		fields.logAttributes,
+		resourceAttributes,
+		spanAttributes,
+		eventAttributes,
+		scopeAttributes,
+		logAttributes,
 	)
 
 	if val, ok := attrs[highlight.DeprecatedProjectIDAttribute]; ok {
@@ -124,7 +117,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 		delete(attrs, highlight.RequestIDAttribute)
 	}
 
-	if val, ok := fields.resourceAttributes[string(semconv.ServiceNameKey)]; ok { // we know that service name will be in the resource hash
+	if val, ok := resourceAttributes[string(semconv.ServiceNameKey)]; ok { // we know that service name will be in the resource hash
 		fields.serviceName = val.(string)
 		delete(attrs, string(semconv.ServiceNameKey))
 	}

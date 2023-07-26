@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/samber/lo"
@@ -40,10 +41,7 @@ func lg(ctx context.Context, fields extractedFields) *log.Entry {
 		WithField("session_id", fields.sessionID).
 		WithField("request_id", fields.requestID).
 		WithField("source", fields.source).
-		WithField("resource_attributes", fields.resourceAttributes).
-		WithField("span_attributes", fields.spanAttributes).
-		WithField("event_attributes", fields.eventAttributes).
-		WithField("log_attributes", fields.logAttributes)
+		WithField("attrs", fields.attrs)
 }
 
 func cast[T string | int64 | float64](v interface{}, fallback T) T {
@@ -55,9 +53,9 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 }
 
 func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string, logCursor *string, excMessage string) (bool, *model.BackendErrorObjectInput) {
-	excType := cast(fields.eventAttributes[string(semconv.ExceptionTypeKey)], fields.source.String())
-	errorUrl := cast(fields.eventAttributes[highlight.ErrorURLAttribute], fields.source.String())
-	stackTrace := cast(fields.eventAttributes[string(semconv.ExceptionStacktraceKey)], "")
+	excType := cast(fields.attrs[string(semconv.ExceptionTypeKey)], fields.source.String())
+	errorUrl := cast(fields.attrs[highlight.ErrorURLAttribute], fields.source.String())
+	stackTrace := cast(fields.attrs[string(semconv.ExceptionStacktraceKey)], "")
 	if excType == "" && excMessage == "" {
 		lg(ctx, fields).Error("otel received exception with no type and no message")
 		return false, nil
@@ -91,12 +89,13 @@ func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, 
 }
 
 func getMetric(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string) (*model.MetricInput, error) {
-	name, ok := fields.eventAttributes[highlight.MetricEventName].(string)
+	name, ok := fields.attrs[highlight.MetricEventName]
 	if !ok {
 		return nil, e.New("otel received metric with no name")
 	}
-	value, ok := fields.eventAttributes[highlight.MetricEventValue].(float64)
-	if !ok {
+	value, err := strconv.ParseFloat(fields.attrs[highlight.MetricEventValue], 64)
+
+	if err != nil {
 		return nil, e.New("otel received metric with no value")
 	}
 	return &model.MetricInput{
