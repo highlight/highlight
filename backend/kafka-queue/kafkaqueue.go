@@ -129,7 +129,10 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 		}
 	}
 
+	rebalanceTimeout := 30 * time.Second
 	if util.IsDevOrTestEnv() {
+		// faster rebalance for dev to start processing quicker
+		rebalanceTimeout = time.Second
 		// create per-profile consumer and topic to avoid collisions between dev envs
 		groupID = fmt.Sprintf("%s_%s", EnvironmentPrefix, groupID)
 		_, err := client.CreateTopics(ctx, &kafka.CreateTopicsRequest{
@@ -186,7 +189,7 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 			// override batch limit to be our message max size
 			BatchBytes:   messageSizeBytes,
 			BatchSize:    1,
-			ReadTimeout:  5 * time.Second,
+			ReadTimeout:  KafkaOperationTimeout,
 			WriteTimeout: KafkaOperationTimeout,
 			// low timeout because we don't want to block WriteMessage calls since we are sync mode
 			BatchTimeout: 1 * time.Millisecond,
@@ -200,7 +203,7 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 			Dialer:            dialer,
 			HeartbeatInterval: time.Second,
 			SessionTimeout:    10 * time.Second,
-			RebalanceTimeout:  10 * time.Second,
+			RebalanceTimeout:  rebalanceTimeout,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
 			MinBytes:          prefetchSizeBytes,
