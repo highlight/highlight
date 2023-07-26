@@ -13,6 +13,7 @@ import { ElementNode } from '@graphcms/rich-text-types'
 import { serialize } from 'next-mdx-remote/serialize'
 import Image from 'next/legacy/image'
 import YouTube from 'react-youtube'
+import remarkGfm from 'remark-gfm'
 import { PostAuthor } from '../../components/Blog/Author'
 import styles from '../../components/Blog/Blog.module.scss'
 import BlogNavbar from '../../components/Blog/BlogNavbar/BlogNavbar'
@@ -113,6 +114,15 @@ const components: Record<
 			</code>
 		)
 	},
+	table: (props) => {
+		return (
+			<div className={styles.blogTable}>
+				<Typography type="copy2">
+					<table {...props} />
+				</Typography>
+			</div>
+		)
+	},
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -171,7 +181,11 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		}
 	}
 
-	const mdxSource = await serialize(githubPost.richcontent.markdown)
+	const mdxSource = await serialize(githubPost.richcontent.markdown, {
+		mdxOptions: {
+			remarkPlugins: [remarkGfm],
+		},
+	})
 
 	return {
 		props: {

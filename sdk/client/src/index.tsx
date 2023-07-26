@@ -481,10 +481,20 @@ export class Highlight {
 	}
 
 	addProperties(properties_obj = {}, typeArg?: PropertyType) {
+		// Remove any properties which throw on structuredClone
+		// (structuredClone is used when posting messages to the worker)
+		const obj = { ...properties_obj } as any
+		Object.entries(obj).forEach(([key, val]) => {
+			try {
+				structuredClone(val)
+			} catch {
+				delete obj[key]
+			}
+		})
 		this._worker.postMessage({
 			message: {
 				type: MessageType.Properties,
-				propertiesObject: properties_obj,
+				propertiesObject: obj,
 				propertyType: typeArg,
 			},
 		})
@@ -715,6 +725,11 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 						canvas: {
 							fps: this.samplingStrategy.canvas,
 							resizeFactor: this.samplingStrategy.canvasFactor,
+							clearWebGLBuffer:
+								this.samplingStrategy.canvasClearWebGLBuffer,
+							initialSnapshotDelay:
+								this.samplingStrategy
+									.canvasInitialSnapshotDelay,
 							dataURLOptions: {
 								type: 'image/webp',
 								quality: 0.9,

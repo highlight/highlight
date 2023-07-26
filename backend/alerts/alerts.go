@@ -1,12 +1,14 @@
 package alerts
 
 import (
+	"context"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/routing"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
@@ -25,8 +27,8 @@ type SendErrorAlertEvent struct {
 	VisitedURL  string
 }
 
-func SendErrorAlert(event SendErrorAlertEvent) error {
-	errorAlertPayload := integrations.ErrorAlertPayload{
+func SendErrorAlert(ctx context.Context, event SendErrorAlertEvent) error {
+	payload := integrations.ErrorAlertPayload{
 		ErrorCount:      event.ErrorCount,
 		ErrorTitle:      event.ErrorGroup.Event,
 		UserIdentifier:  event.Session.Identifier,
@@ -40,8 +42,9 @@ func SendErrorAlert(event SendErrorAlertEvent) error {
 
 	var g errgroup.Group
 	g.Go(func() error {
+		payload = attachReferrerToErrorAlertPayload(ctx, payload, routing.Webhook)
 		for _, wh := range event.ErrorAlert.WebhookDestinations {
-			if err := webhook.SendErrorAlert(wh, &errorAlertPayload); err != nil {
+			if err := webhook.SendErrorAlert(wh, &payload); err != nil {
 				return err
 			}
 		}
@@ -58,8 +61,9 @@ func SendErrorAlert(event SendErrorAlertEvent) error {
 			return err
 		}
 
+		payload = attachReferrerToErrorAlertPayload(ctx, payload, routing.Discord)
 		for _, channel := range event.ErrorAlert.DiscordChannelsToNotify {
-			err = bot.SendErrorAlert(channel.ID, errorAlertPayload)
+			err = bot.SendErrorAlert(channel.ID, payload)
 
 			if err != nil {
 				return err
@@ -69,6 +73,15 @@ func SendErrorAlert(event SendErrorAlertEvent) error {
 	})
 
 	return g.Wait()
+}
+
+func attachReferrerToErrorAlertPayload(ctx context.Context, payload integrations.ErrorAlertPayload, referrer routing.Referrer) integrations.ErrorAlertPayload {
+	payload.ErrorURL = routing.AttachReferrer(ctx, payload.ErrorURL, referrer)
+	payload.ErrorResolveURL = routing.AttachReferrer(ctx, payload.ErrorResolveURL, referrer)
+	payload.ErrorIgnoreURL = routing.AttachReferrer(ctx, payload.ErrorIgnoreURL, referrer)
+	payload.ErrorSnoozeURL = routing.AttachReferrer(ctx, payload.ErrorSnoozeURL, referrer)
+
+	return payload
 }
 
 func getUserPropertiesAndAvatar(sessionUserProperties map[string]string) (map[string]string, *string) {
@@ -142,8 +155,7 @@ func SendNewUserAlert(event SendNewUserAlertEvent) error {
 			return err
 		}
 
-		channels := event.SessionAlert.DiscordChannelsToNotify
-		for _, channel := range channels {
+		for _, channel := range event.SessionAlert.DiscordChannelsToNotify {
 			err = bot.SendNewUserAlert(channel.ID, payload)
 
 			if err != nil {

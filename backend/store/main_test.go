@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/redis"
 	"os"
 	"testing"
 
@@ -23,7 +24,7 @@ func TestMain(m *testing.M) {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 
-	store = NewStore(db, &opensearch.Client{})
+	store = NewStore(db, &opensearch.Client{}, redis.NewClient())
 	code := m.Run()
 	os.Exit(code)
 }

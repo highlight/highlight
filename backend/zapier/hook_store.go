@@ -52,7 +52,7 @@ func (s *ZapierResthookStore) Save(sub *resthooks.Subscription, r *http.Request)
 func (s *ZapierResthookStore) FindById(id int) (*resthooks.Subscription, error) {
 	hookSub := model.ResthookSubscription{}
 
-	if err := s.DB.Where(&model.ResthookSubscription{Model: model.Model{ID: id}}).First(&hookSub).Error; err != nil {
+	if err := s.DB.Where(&model.ResthookSubscription{Model: model.Model{ID: id}}).Take(&hookSub).Error; err != nil {
 		return nil, e.Wrap(err, "error finding resthook subscription by id")
 	}
 
@@ -69,7 +69,7 @@ func (s *ZapierResthookStore) FindById(id int) (*resthooks.Subscription, error) 
 func (s *ZapierResthookStore) FindByUserId(project_id int, event string) (*resthooks.Subscription, error) {
 	hookSub := model.ResthookSubscription{}
 
-	if err := s.DB.Where(&model.ResthookSubscription{ProjectID: project_id, Event: &event}).First(&hookSub).Error; err != nil {
+	if err := s.DB.Where(&model.ResthookSubscription{ProjectID: project_id, Event: &event}).Take(&hookSub).Error; err != nil {
 		return nil, e.Wrap(err, "error finding resthook subscription by event and project id")
 	}
 

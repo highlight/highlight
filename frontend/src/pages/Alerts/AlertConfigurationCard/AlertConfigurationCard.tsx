@@ -42,6 +42,14 @@ import Select from '../../../components/Select/Select'
 import { ALERT_TYPE } from '../Alerts'
 import { dedupeEnvironments, getAlertTypeColor } from '../utils/AlertsUtils'
 import styles from './AlertConfigurationCard.module.css'
+import {
+	DEFAULT_FREQUENCY,
+	DEFAULT_LOOKBACK_PERIOD,
+	FREQUENCIES,
+	LOOKBACK_PERIODS,
+} from './AlertConfigurationConstants'
+
+const SEPARATOR = ':$&'
 
 interface AlertConfiguration {
 	name: string
@@ -260,8 +268,11 @@ export const AlertConfigurationCard = ({
 									track_properties: form
 										.getFieldValue('trackProperties')
 										.map((trackProperty: any) => {
-											const [value, name, id] =
-												trackProperty.split(':')
+											const [id, name, value] =
+												trackProperty.split(
+													SEPARATOR,
+													3,
+												)
 											return {
 												id,
 												value,
@@ -286,8 +297,8 @@ export const AlertConfigurationCard = ({
 									user_properties: form
 										.getFieldValue('userProperties')
 										.map((userProperty: any) => {
-											const [value, name, id] =
-												userProperty.split(':')
+											const [id, name, value] =
+												userProperty.split(SEPARATOR, 3)
 											return {
 												id,
 												value,
@@ -355,8 +366,8 @@ export const AlertConfigurationCard = ({
 									user_properties: form
 										.getFieldValue('userProperties')
 										.map((userProperty: any) => {
-											const [value, name, id] =
-												userProperty.split(':')
+											const [id, name, value] =
+												userProperty.split(SEPARATOR, 3)
 											return {
 												id,
 												value,
@@ -383,8 +394,11 @@ export const AlertConfigurationCard = ({
 									track_properties: form
 										.getFieldValue('trackProperties')
 										.map((trackProperty: any) => {
-											const [value, name, id] =
-												trackProperty.split(':')
+											const [id, name, value] =
+												trackProperty.split(
+													SEPARATOR,
+													3,
+												)
 											return {
 												id,
 												value,
@@ -593,7 +607,8 @@ export const AlertConfigurationCard = ({
 	const onUserPropertiesChange = (_value: any, options: any) => {
 		const userProperties = options.map(
 			({ value: valueAndName }: { key: string; value: string }) => {
-				const [value, name, id] = valueAndName.split(':')
+				const [id, name, value] = valueAndName.split(SEPARATOR, 3)
+				console.log('vadim', { valueAndName, value, name, id })
 				return {
 					id,
 					value,
@@ -608,7 +623,7 @@ export const AlertConfigurationCard = ({
 	const onTrackPropertiesChange = (_value: any, options: any) => {
 		const trackProperties = options.map(
 			({ value: valueAndName }: { key: string; value: string }) => {
-				const [value, name, id] = valueAndName.split(':')
+				const [id, name, value] = valueAndName.split(SEPARATOR, 3)
 				return {
 					id,
 					value,
@@ -903,7 +918,7 @@ export const AlertConfigurationCard = ({
 							<p>
 								Add webhook destinations for this alert, sent as
 								JSON over HTTP. See the{' '}
-								<Link to="https://www.highlight.io/docs/general/product-features/general-features/alerts/webhooks">
+								<Link to="https://www.highlight.io/docs/general/product-features/general-features/webhooks">
 									docs
 								</Link>{' '}
 								for more info.
@@ -981,20 +996,9 @@ export const AlertConfigurationCard = ({
 									<b>
 										<TextTransition
 											inline
-											text={
-												frequency === '1' ||
-												frequency === '60'
-													? getFrequencyOption(
-															frequency,
-													  ).displayValue
-													: getFrequencyOption(
-															frequency,
-													  ).displayValue.slice(
-															0,
-															-1,
-													  ) ||
-													  `${DEFAULT_FREQUENCY} second`
-											}
+											text={getSingularFrequencyOption(
+												frequency,
+											)}
 										/>
 									</b>
 									{` `}
@@ -1161,89 +1165,6 @@ export const AlertConfigurationCard = ({
 	)
 }
 
-const FREQUENCIES = [
-	{
-		displayValue: '1 second',
-		value: '1',
-		id: '1s',
-	},
-	{
-		displayValue: '5 seconds',
-		value: '5',
-		id: '5s',
-	},
-	{
-		displayValue: '15 seconds',
-		value: '15',
-		id: '15s',
-	},
-	{
-		displayValue: '30 seconds',
-		value: '30',
-		id: '30s',
-	},
-	{
-		displayValue: '1 minute',
-		value: '60',
-		id: '1m',
-	},
-	{
-		displayValue: '5 minutes',
-		value: '300',
-		id: '5m',
-	},
-	{
-		displayValue: '15 minutes',
-		value: '900',
-		id: '15m',
-	},
-	{
-		displayValue: '30 minutes',
-		value: '1800',
-		id: '30m',
-	},
-]
-
-const LOOKBACK_PERIODS = [
-	{
-		displayValue: '5 minutes',
-		value: '5',
-		id: '5m',
-	},
-	{
-		displayValue: '10 minutes',
-		value: '10',
-		id: '10m',
-	},
-	{
-		displayValue: '30 minutes',
-		value: '30',
-		id: '30m',
-	},
-	{
-		displayValue: '60 minutes',
-		value: '60',
-		id: '60m',
-	},
-	{
-		displayValue: '3 hours',
-		value: `${60 * 3}`,
-		id: '3h',
-	},
-	{
-		displayValue: '12 hours',
-		value: `${60 * 12}`,
-		id: '12h',
-	},
-	{
-		displayValue: '24 hours',
-		value: `${60 * 24}`,
-		id: '24h',
-	},
-]
-
-const DEFAULT_LOOKBACK_PERIOD = '30'
-
 const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
 	const option = LOOKBACK_PERIODS.find(
 		(option) => option.value === minutes?.toString(),
@@ -1260,8 +1181,6 @@ const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
 	return option
 }
 
-const DEFAULT_FREQUENCY = '15'
-
 const getFrequencyOption = (seconds = DEFAULT_FREQUENCY): any => {
 	const option = FREQUENCIES.find(
 		(option) => option.value === seconds?.toString(),
@@ -1274,6 +1193,14 @@ const getFrequencyOption = (seconds = DEFAULT_FREQUENCY): any => {
 	return option
 }
 
+const getSingularFrequencyOption = (seconds = DEFAULT_FREQUENCY): string => {
+	const displayValue = getFrequencyOption(seconds).displayValue
+
+	return displayValue.slice(-1) !== 's'
+		? displayValue
+		: displayValue.slice(0, -1)
+}
+
 const getPropertiesOption = (option: any) => ({
 	displayValue:
 		(
@@ -1282,7 +1209,9 @@ const getPropertiesOption = (option: any) => ({
 				{option?.value}
 			</>
 		) || '',
-	value: `${option?.value}:${option?.name}:${option?.id}` || '',
-	id: `${option?.value}:${option?.name}` || '',
+	value:
+		`${option?.id}${SEPARATOR}${option?.name}${SEPARATOR}${option?.value}` ||
+		'',
+	id: `${option?.name}${SEPARATOR}${option?.value}` || '',
 	name: option?.id || '',
 })

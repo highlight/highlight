@@ -15,21 +15,22 @@ import (
 type PayloadType = int
 
 const (
-	PushPayload                      PayloadType = iota
-	InitializeSession                PayloadType = iota
-	IdentifySession                  PayloadType = iota
-	AddTrackProperties               PayloadType = iota // Deprecated: track events are now processed in pushPayload
-	AddSessionProperties             PayloadType = iota
-	PushBackendPayload               PayloadType = iota
-	PushMetrics                      PayloadType = iota
-	MarkBackendSetup                 PayloadType = iota // Deprecated: setup events are written from other payload processing
-	AddSessionFeedback               PayloadType = iota
-	PushLogs                         PayloadType = iota
-	HubSpotCreateContactForAdmin     PayloadType = iota
-	HubSpotCreateCompanyForWorkspace PayloadType = iota
-	HubSpotUpdateContactProperty     PayloadType = iota
-	HubSpotUpdateCompanyProperty     PayloadType = iota
-	HealthCheck                      PayloadType = math.MaxInt
+	PushPayload                            PayloadType = iota
+	InitializeSession                      PayloadType = iota
+	IdentifySession                        PayloadType = iota
+	AddTrackProperties                     PayloadType = iota // Deprecated: track events are now processed in pushPayload
+	AddSessionProperties                   PayloadType = iota
+	PushBackendPayload                     PayloadType = iota
+	PushMetrics                            PayloadType = iota
+	MarkBackendSetup                       PayloadType = iota // Deprecated: setup events are written from other payload processing
+	AddSessionFeedback                     PayloadType = iota
+	PushLogs                               PayloadType = iota
+	HubSpotCreateContactForAdmin           PayloadType = iota
+	HubSpotCreateCompanyForWorkspace       PayloadType = iota
+	HubSpotUpdateContactProperty           PayloadType = iota
+	HubSpotUpdateCompanyProperty           PayloadType = iota
+	HubSpotCreateContactCompanyAssociation PayloadType = iota
+	HealthCheck                            PayloadType = math.MaxInt
 )
 
 type PushPayloadArgs struct {
@@ -131,24 +132,30 @@ type HubSpotUpdateCompanyPropertyArgs struct {
 	Properties  []hubspot.Property
 }
 
+type HubSpotCreateContactCompanyAssociationArgs struct {
+	AdminID     int
+	WorkspaceID int
+}
+
 type Message struct {
-	Type                             PayloadType
-	Failures                         int
-	MaxRetries                       int
-	KafkaMessage                     *kafka.Message
-	PushPayload                      *PushPayloadArgs
-	InitializeSession                *InitializeSessionArgs
-	IdentifySession                  *IdentifySessionArgs
-	AddTrackProperties               *AddTrackPropertiesArgs
-	AddSessionProperties             *AddSessionPropertiesArgs
-	PushBackendPayload               *PushBackendPayloadArgs
-	PushMetrics                      *PushMetricsArgs
-	AddSessionFeedback               *AddSessionFeedbackArgs
-	PushLogs                         *PushLogsArgs
-	HubSpotCreateContactForAdmin     *HubSpotCreateContactForAdminArgs
-	HubSpotCreateCompanyForWorkspace *HubSpotCreateCompanyForWorkspaceArgs
-	HubSpotUpdateContactProperty     *HubSpotUpdateContactPropertyArgs
-	HubSpotUpdateCompanyProperty     *HubSpotUpdateCompanyPropertyArgs
+	Type                                   PayloadType
+	Failures                               int
+	MaxRetries                             int
+	KafkaMessage                           *kafka.Message
+	PushPayload                            *PushPayloadArgs
+	InitializeSession                      *InitializeSessionArgs
+	IdentifySession                        *IdentifySessionArgs
+	AddTrackProperties                     *AddTrackPropertiesArgs
+	AddSessionProperties                   *AddSessionPropertiesArgs
+	PushBackendPayload                     *PushBackendPayloadArgs
+	PushMetrics                            *PushMetricsArgs
+	AddSessionFeedback                     *AddSessionFeedbackArgs
+	PushLogs                               *PushLogsArgs
+	HubSpotCreateContactForAdmin           *HubSpotCreateContactForAdminArgs
+	HubSpotCreateCompanyForWorkspace       *HubSpotCreateCompanyForWorkspaceArgs
+	HubSpotUpdateContactProperty           *HubSpotUpdateContactPropertyArgs
+	HubSpotUpdateCompanyProperty           *HubSpotUpdateCompanyPropertyArgs
+	HubSpotCreateContactCompanyAssociation *HubSpotCreateContactCompanyAssociationArgs
 }
 
 type PartitionMessage struct {

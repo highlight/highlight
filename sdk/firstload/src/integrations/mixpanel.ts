@@ -88,8 +88,13 @@ export const setupMixpanelIntegration: Integration = ({
 
 const MixpanelBundle = 'https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js'
 
+export interface MixpanelPeopleAPI {
+	set: (metadata: { [k: string]: any }) => void
+}
+
 export interface MixpanelAPI {
 	init: (token: string, config?: any, name?: string) => void
 	track: (event_name: string, properties?: any, options?: any) => void
 	identify: (unique_id: string) => void
+	people: MixpanelPeopleAPI
 }

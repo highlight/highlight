@@ -11,6 +11,7 @@ import {
 } from '@context/AppLoadingContext'
 import { useGetProjectDropdownOptionsQuery } from '@graph/hooks'
 import { ErrorObject, Maybe, Project, Workspace } from '@graph/schemas'
+import { Ariakit } from '@highlight-run/ui'
 import { useNumericProjectId } from '@hooks/useProjectId'
 import FrontPlugin from '@pages/FrontPlugin/FrontPlugin'
 import {
@@ -19,14 +20,12 @@ import {
 	RightPlayerTab,
 } from '@pages/Player/context/PlayerUIContext'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
-import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { usePlayerFullscreen } from '@pages/Player/utils/PlayerHooks'
 import useLocalStorage from '@rehooks/local-storage'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { auth } from '@util/auth'
 import { setIndexedDBEnabled } from '@util/db'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { useDialogState } from 'ariakit/dialog'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
@@ -142,10 +141,6 @@ export const ProjectRouter = () => {
 		undefined,
 	)
 
-	const [activeNetworkResource, setActiveNetworkResource] = useState<
-		NetworkResource | undefined
-	>(undefined)
-
 	const [selectedRightPanelTab, setSelectedRightPanelTab] =
 		useLocalStorage<RightPlayerTab>(
 			'tabs-PlayerRightPanel-active-tab',
@@ -154,6 +149,8 @@ export const ProjectRouter = () => {
 
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
+
+	const commandBarDialog = Ariakit.useDialogState()
 
 	const playerUIContext = {
 		isPlayerFullscreen,
@@ -165,13 +162,9 @@ export const ProjectRouter = () => {
 		setActiveEvent,
 		activeError,
 		setActiveError,
-		activeNetworkResource,
-		setActiveNetworkResource,
 		rightPanelView,
 		setRightPanelView,
 	}
-
-	const commandBarDialog = useDialogState()
 
 	return (
 		<GlobalContextProvider

@@ -1,4 +1,3 @@
-import { NextApiHandler } from 'next'
 import { H, HIGHLIGHT_REQUEST_HEADER } from './sdk.js'
 
 describe('parseHeaders', () => {

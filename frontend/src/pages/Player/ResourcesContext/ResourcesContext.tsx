@@ -1,6 +1,7 @@
 import { useGetResourcesQuery } from '@graph/hooks'
 import { Session } from '@graph/schemas'
 import { RequestResponsePair } from '@highlight-run/client'
+import { RequestType } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { getGraphQLResolverName } from '@pages/Player/utils/utils'
 import { createContext } from '@util/context/context'
 import { indexedDBFetch } from '@util/db'
@@ -22,10 +23,58 @@ interface ResourcesContext {
 	error?: LoadingError
 }
 
-export type NetworkResourceWithID = PerformanceResourceTiming & {
-	id: number
+interface NetworkResource extends PerformanceResourceTiming {
+	// http specific
 	requestResponsePairs?: RequestResponsePair
 	displayName?: string
+	// websocket specific
+	socketId?: string
+	type?: 'open' | 'close'
+}
+
+export type NetworkResourceWithID = { id: number } & NetworkResource
+
+const buildResources = (resources: NetworkResource[]) => {
+	const indexResources = [] as NetworkResourceWithID[]
+	const webSocketHash = {} as { [key: string]: NetworkResource }
+
+	resources?.forEach((resource: NetworkResource) => {
+		if (
+			resource.initiatorType === RequestType.WebSocket &&
+			resource.socketId
+		) {
+			webSocketHash[resource.socketId] = {
+				...webSocketHash?.[resource.socketId],
+				...resource,
+			}
+
+			if (resource.type === 'close') {
+				return
+			}
+		}
+
+		{
+			indexResources.push({
+				...resource,
+				id: indexResources.length,
+			})
+		}
+	})
+
+	return indexResources
+		.sort((a, b) => a.startTime - b.startTime)
+		.map((resource: NetworkResourceWithID) => {
+			const resolverName = getGraphQLResolverName(resource)
+
+			if (resolverName) {
+				return {
+					...resource,
+					displayName: `${resolverName} (${resource.name})`,
+				}
+			}
+
+			return resource
+		})
 }
 
 export const useResources = (
@@ -59,25 +108,7 @@ export const useResources = (
 	const [resources, setResources] = useState<NetworkResourceWithID[]>([])
 	useEffect(() => {
 		setError(undefined)
-		setResources(
-			(
-				data?.resources?.map((r, i) => {
-					return { ...r, id: i }
-				}) ?? []
-			)
-				.sort((a, b) => a.startTime - b.startTime)
-				.map((resource) => {
-					const resolverName = getGraphQLResolverName(resource)
-
-					if (resolverName) {
-						return {
-							...resource,
-							displayName: `${resolverName} (${resource.name})`,
-						}
-					}
-					return resource
-				}),
-		)
+		setResources(buildResources(data?.resources as NetworkResource[]))
 	}, [data?.resources])
 
 	useEffect(() => {
@@ -124,26 +155,7 @@ export const useResources = (
 						.json()
 						.then((data) => {
 							setError(undefined)
-							setResources(
-								(
-									(data as any[] | undefined)?.map((r, i) => {
-										return { ...r, id: i }
-									}) ?? []
-								)
-									.sort((a, b) => a.startTime - b.startTime)
-									.map((resource) => {
-										const resolverName =
-											getGraphQLResolverName(resource)
-
-										if (resolverName) {
-											return {
-												...resource,
-												displayName: `${resolverName} (${resource.name})`,
-											}
-										}
-										return resource
-									}),
-							)
+							setResources(buildResources(data))
 						})
 						.catch((e) => {
 							setError(LoadingError.NetworkResourcesFetchFailed)

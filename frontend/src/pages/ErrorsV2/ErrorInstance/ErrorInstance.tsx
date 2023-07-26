@@ -4,14 +4,15 @@ import { Avatar } from '@components/Avatar/Avatar'
 import { Button } from '@components/Button'
 import JsonViewer from '@components/JsonViewer/JsonViewer'
 import LoadingBox from '@components/LoadingBox'
-import { Skeleton } from '@components/Skeleton/Skeleton'
 import {
 	GetErrorInstanceDocument,
 	useGetErrorInstanceQuery,
 } from '@graph/hooks'
 import { ErrorObjectFragment, GetErrorGroupQuery } from '@graph/operations'
 import {
+	Badge,
 	Box,
+	Callout,
 	IconSolidCode,
 	IconSolidExternalLink,
 	Stack,
@@ -33,12 +34,16 @@ import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
 import ErrorBodyText from '@/pages/ErrorsV2/ErrorBody/components/ErrorBodyText'
+import { AiErrorSuggestion } from '@/pages/ErrorsV2/ErrorInstance/AiErrorSuggestion'
 import { ErrorSessionMissingOrExcluded } from '@/pages/ErrorsV2/ErrorInstance/ErrorSessionMissingOrExcluded'
 import { PreviousNextInstance } from '@/pages/ErrorsV2/ErrorInstance/PreviousNextInstance'
 import { RelatedLogs } from '@/pages/ErrorsV2/ErrorInstance/RelatedLogs'
 import { RelatedSession } from '@/pages/ErrorsV2/ErrorInstance/RelatedSession'
+import { SeeAllInstances } from '@/pages/ErrorsV2/ErrorInstance/SeeAllInstances'
 import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 const MAX_USER_PROPERTIES = 4
 type Props = React.PropsWithChildren & {
@@ -51,13 +56,17 @@ const METADATA_LABELS: { [key: string]: string } = {
 	id: 'ID',
 } as const
 
-const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
-	const { error_object_id } = useParams<{
-		error_object_id: string
-	}>()
+export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
+	const { error_object_id } = useParams<{ error_object_id: string }>()
 	const client = useApolloClient()
+	const { currentWorkspace } = useApplicationContext()
 
-	const { loading, data } = useGetErrorInstanceQuery({
+	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
+
+	const { loading, error, data } = useGetErrorInstanceQuery({
 		variables: {
 			error_group_secure_id: String(errorGroup?.secure_id),
 			error_object_id,
@@ -96,55 +105,27 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 		},
 	})
 
-	const errorInstance = data?.error_instance
-
 	useEffect(() => analytics.page(), [])
 
-	if (!errorInstance || !errorInstance?.error_object) {
-		if (!loading) return null
-
+	if (loading) {
 		return (
-			<Box id="error-instance-container">
-				<Stack direction="row" my="12">
-					<Box flexGrow={1}>
-						<PreviousNextInstance data={data} />
+			<Box mt="10">
+				<LoadingBox />
+			</Box>
+		)
+	}
+
+	const errorInstance = data?.error_instance
+	if (error || !errorInstance) {
+		return (
+			<Box m="auto" mt="10" style={{ maxWidth: 300 }}>
+				<Callout title="Failed to load error instance" kind="error">
+					<Box mb="6">
+						<Text color="moderate">
+							There was an error loading this error instance.
+						</Text>
 					</Box>
-					<Stack direction="row" gap="4">
-						<RelatedSession data={data} />
-						<RelatedLogs data={data} />
-					</Stack>
-				</Stack>
-
-				<Box display="flex" flexDirection="row" mb="40" gap="40">
-					<div style={{ flexBasis: 0, flexGrow: 1 }}>
-						<Box>
-							<Box bb="secondary" pb="20" my="12">
-								<Text weight="bold" size="large">
-									Instance metadata
-								</Text>
-							</Box>
-							<LoadingBox height={128} />
-						</Box>
-					</div>
-
-					<div style={{ flexBasis: 0, flexGrow: 1 }}>
-						<Box width="full">
-							<Box pb="20" mt="12">
-								<Text weight="bold" size="large">
-									User details
-								</Text>
-							</Box>
-							<LoadingBox height={128} />
-						</Box>
-					</div>
-				</Box>
-
-				<Text size="large" weight="bold">
-					Stack trace
-				</Text>
-				<Box bt="secondary" mt="12" pt="16">
-					<Skeleton count={10} />
-				</Box>
+				</Callout>
 			</Box>
 		)
 	}
@@ -152,9 +133,10 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 	return (
 		<Box id="error-instance-container">
 			<Stack direction="row" my="12">
-				<Box flexGrow={1}>
+				<Stack direction="row" flexGrow={1}>
+					<SeeAllInstances data={data} />
 					<PreviousNextInstance data={data} />
-				</Box>
+				</Stack>
 				<Stack direction="row" gap="4">
 					<RelatedSession data={data} />
 					<RelatedLogs data={data} />
@@ -174,6 +156,21 @@ const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				</Box>
 				<ErrorBodyText errorBody={errorInstance.error_object.event} />
 			</Box>
+
+			{workspaceSettingsData?.workspaceSettings?.ai_application && (
+				<Box display="flex" flexDirection="column" mb="40">
+					<Stack direction="row" align="center" pb="20" gap="8">
+						<Text size="large" weight="bold">
+							Harold AI
+						</Text>
+						<Badge label="Beta" size="medium" variant="purple" />
+					</Stack>
+
+					<AiErrorSuggestion
+						errorObjectId={errorInstance.error_object.id}
+					/>
+				</Box>
+			)}
 
 			<Box display="flex" flexDirection="column" mb="40" gap="40">
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
@@ -489,5 +486,3 @@ const User: React.FC<{
 		</Box>
 	)
 }
-
-export default ErrorInstance

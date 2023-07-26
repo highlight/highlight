@@ -20,6 +20,7 @@ import (
 	log_alerts "github.com/highlight-run/highlight/backend/jobs/log-alerts"
 	metric_monitor "github.com/highlight-run/highlight/backend/jobs/metric-monitor"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
+	journey_handlers "github.com/highlight-run/highlight/backend/lambda-functions/journeys/handlers"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/payload"
@@ -271,7 +272,7 @@ func (w *Worker) getSessionID(ctx context.Context, sessionSecureID string) (id i
 		return 0, e.New("getSessionID called with no secure id")
 	}
 	session := &model.Session{}
-	w.Resolver.DB.Order("secure_id").Select("id").Where(&model.Session{SecureID: sessionSecureID}).Limit(1).Find(&session)
+	w.Resolver.DB.Select("id").Where(&model.Session{SecureID: sessionSecureID}).Take(&session)
 	if session.ID == 0 {
 		return 0, e.New(fmt.Sprintf("no session found for secure id: '%s'", sessionSecureID))
 	}
@@ -418,6 +419,17 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
 			return err
 		}
+	case kafkaqueue.HubSpotCreateContactCompanyAssociation:
+		if task.HubSpotCreateContactCompanyAssociation == nil {
+			break
+		}
+		if err := w.PublicResolver.HubspotApi.CreateContactCompanyAssociationImpl(ctx,
+			task.HubSpotCreateContactCompanyAssociation.AdminID,
+			task.HubSpotCreateContactCompanyAssociation.WorkspaceID,
+		); err != nil {
+			log.WithContext(ctx).WithError(err).WithField("type", task.Type).Error("failed to process task")
+			return err
+		}
 	case kafkaqueue.HealthCheck:
 	default:
 		log.WithContext(ctx).Errorf("Unknown task type %+v", task.Type)
@@ -427,7 +439,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 
 func (w *Worker) PublicWorker(ctx context.Context) {
 	const parallelWorkers = 64
-	const parallelBatchWorkers = 8
+	const parallelBatchWorkers = 32
 	// creates N parallel kafka message consumers that process messages.
 	// each consumer is considered part of the same consumer group and gets
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
@@ -528,7 +540,7 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	project := &model.Project{}
-	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).First(&project).Error; err != nil {
+	if err := w.Resolver.DB.Where(&model.Project{Model: model.Model{ID: s.ProjectID}}).Take(&project).Error; err != nil {
 		return e.Wrap(err, "error querying project")
 	}
 
@@ -590,6 +602,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	payloadManager.SeekStart(ctx)
 
+	var normalness float64
 	if len(accumulator.EventsForTimelineIndicator) > 0 {
 		var eventsForTimelineIndicator []*model.TimelineIndicatorEvent
 		for _, customEvent := range accumulator.EventsForTimelineIndicator {
@@ -616,6 +629,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 			if err := payloadManager.TimelineIndicatorEvents.Close(); err != nil {
 				log.WithContext(ctx).Error(e.Wrap(err, "error closing TimelineIndicatorEvents writer"))
+			}
+
+			// Extract and save the user journey steps from the timeline indicator events
+			userJourneySteps, err := journey_handlers.GetUserJourneySteps(s.ProjectID, s.ID, eventBytes)
+			if err != nil {
+				return err
+			}
+			if err := w.Resolver.DB.Model(&model.UserJourneyStep{}).Save(&userJourneySteps).Error; err != nil {
+				return err
 			}
 		} else {
 			if err := w.Resolver.DB.Create(eventsForTimelineIndicator).Error; err != nil {
@@ -791,6 +813,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			HasOutOfOrderEvents: accumulator.AreEventsOutOfOrder,
 			PagesVisited:        pagesVisited,
 			WithinBillingQuota:  &withinBillingQuota,
+			Normalness:          &normalness,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -1243,7 +1266,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 
 	for _, c := range counts {
 		workspace := &model.Workspace{}
-		if err := w.Resolver.DB.Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).First(&workspace).Error; err != nil {
+		if err := w.Resolver.DB.Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).Take(&workspace).Error; err != nil {
 			continue
 		}
 		for _, p := range workspace.Projects {

@@ -97,7 +97,8 @@ const (
 	ErrAssetSizeUnknown = "ErrAssetSizeUnknown"
 	ErrFailedToFetch    = "ErrFailedToFetch"
 	ErrFetchNotOk       = "ErrFetchNotOk"
-	MaxAssetSize        = 10 * 1024 * 1e6
+	// MaxAssetSize = 200 GB storage per ECS node / 64 parallel kafka workers
+	MaxAssetSize = 3 * 1e9
 )
 
 type fetcher interface {
@@ -453,9 +454,7 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 	}, len(urlMap))
 	lo.ForEach(lo.Entries(urlMap), func(u lo.Entry[string, string], i int) {
 		eg.Go(func() error {
-			if err := redis.AcquireLock(ctx, u.Value, 3*time.Minute); err != nil {
-				log.WithContext(ctx).WithError(err).WithField("url", u.Value).Error("failed to acquire asset lock")
-			} else {
+			if acquired := redis.AcquireLock(ctx, u.Value, 3*time.Minute); acquired {
 				defer func() {
 					if err := redis.ReleaseLock(ctx, u.Value); err != nil {
 						log.WithContext(ctx).WithError(err).WithField("url", u.Value).Error("failed to release asset lock")

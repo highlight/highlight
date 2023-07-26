@@ -174,6 +174,8 @@ export class Highlight {
 	}
 
 	async flush() {
-		await this.processor.forceFlush()
+		await this.processor
+			.forceFlush()
+			.catch((e) => console.warn('highlight-node failed to flush: ', e))
 	}
 }

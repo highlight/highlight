@@ -2,7 +2,11 @@ package graph
 
 import (
 	"context"
+	"github.com/highlight-run/highlight/backend/opensearch"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/store"
 	"os"
+	"strconv"
 	"testing"
 
 	pointy "github.com/openlyinc/pointy"
@@ -409,7 +413,7 @@ func TestResolver_GetSlackChannelsFromSlack(t *testing.T) {
 			}
 
 			ctx := context.Background()
-			r := &queryResolver{Resolver: &Resolver{DB: DB}}
+			r := &queryResolver{Resolver: &Resolver{DB: DB, Redis: redis.NewClient()}}
 
 			_, num, err := r.GetSlackChannelsFromSlack(ctx, workspace.ID)
 			if v.expError != (err != nil) {
@@ -426,10 +430,19 @@ func TestResolver_canAdminViewSession(t *testing.T) {
 	tests := map[string]struct {
 		secureID string
 		expError bool
+		public   bool
+		demo     bool
 	}{
 		"valid session": {
 			secureID: "abc123",
-			expError: false,
+		},
+		"public session": {
+			secureID: "abc123",
+			public:   true,
+		},
+		"demo session": {
+			secureID: "abc123",
+			demo:     true,
 		},
 		"invalid session": {
 			secureID: "a1b2c3",
@@ -439,26 +452,34 @@ func TestResolver_canAdminViewSession(t *testing.T) {
 	for _, v := range tests {
 		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
 			ctx := context.Background()
-			r := &queryResolver{Resolver: &Resolver{DB: DB}}
+			r := &queryResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, &opensearch.Client{}, redis.NewClient())}}
 
 			w := model.Workspace{}
 			if err := DB.Create(&w).Error; err != nil {
 				t.Fatal(e.Wrap(err, "error inserting workspace"))
 			}
 
-			admin, _ := r.getCurrentAdmin(ctx)
-			if err := DB.Model(&w).Association("Admins").Append(admin); err != nil {
-				t.Fatal(e.Wrap(err, "error inserting workspace"))
+			if !v.public {
+				admin, _ := r.getCurrentAdmin(ctx)
+				if err := DB.Model(&w).Association("Admins").Append(admin); err != nil {
+					t.Fatal(e.Wrap(err, "error inserting workspace"))
+				}
 			}
 
 			p := model.Project{WorkspaceID: w.ID}
 			if err := DB.Create(&p).Error; err != nil {
 				t.Fatal(e.Wrap(err, "error inserting project"))
 			}
+			if v.demo {
+				_ = os.Setenv("DEMO_PROJECT_ID", strconv.Itoa(p.ID))
+			} else {
+				_ = os.Setenv("DEMO_PROJECT_ID", "0")
+			}
 
 			session := model.Session{
 				SecureID:  "abc123",
 				ProjectID: p.ID,
+				IsPublic:  v.public,
 			}
 			if err := DB.Create(&session).Error; err != nil {
 				t.Fatal(e.Wrap(err, "error inserting session"))
@@ -467,7 +488,7 @@ func TestResolver_canAdminViewSession(t *testing.T) {
 			s, err := r.canAdminViewSession(ctx, v.secureID)
 			if v.expError {
 				if err == nil {
-					t.Fatalf("error result invalid, saw %s", err)
+					t.Fatal("error result invalid, saw nil")
 				}
 			} else if err != nil {
 				t.Fatalf("saw unexpected error %s", err)

@@ -1,12 +1,12 @@
 import React from 'react'
-import { ComponentMeta } from '@storybook/react'
+import { Meta } from '@storybook/react'
 
 import { ButtonLink } from './ButtonLink'
 
 export default {
 	title: 'Components/ButtonLink',
 	component: ButtonLink,
-} as ComponentMeta<typeof ButtonLink>
+} as Meta<typeof ButtonLink>
 
 export const Basic = () => (
 	<>

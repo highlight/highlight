@@ -1,12 +1,12 @@
 import React from 'react'
-import type { ComponentMeta } from '@storybook/react'
+import type { Meta } from '@storybook/react'
 
 import { Card } from './Card'
 
 export default {
 	title: 'Components/Card',
 	component: Card,
-} as ComponentMeta<typeof Card>
+} as Meta<typeof Card>
 
 export const Default = () => <Card>A Standard Card</Card>
 
@@ -22,11 +22,11 @@ export const Sizes = () => (
 
 export const Modes = () => (
 	<>
-		<Card mode="light">A Light Mode Card (Default)</Card>
+		<Card>A Light Mode Card (Default)</Card>
 
 		<br />
 
-		<Card mode="dark">A Dark Mode Card</Card>
+		<Card>A Dark Mode Card</Card>
 	</>
 )
 

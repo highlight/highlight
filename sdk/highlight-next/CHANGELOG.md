@@ -29,3 +29,9 @@
 ### Minor Changes
 
 -   Adds ability to record `console` methods.
+
+### 3.1.2
+
+### Minor Changes
+
+- Bumping to match `@highlight-run/node`

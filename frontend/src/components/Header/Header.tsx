@@ -10,6 +10,7 @@ import {
 	useGetBillingDetailsForProjectQuery,
 	useGetProjectQuery,
 	useGetSubscriptionDetailsQuery,
+	useGetSystemConfigurationQuery,
 } from '@graph/hooks'
 import { Maybe, PlanType, ProductType, Project } from '@graph/schemas'
 import {
@@ -38,6 +39,7 @@ import {
 	Menu,
 	Stack,
 	Text,
+	TextLink,
 } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
 import { useProjectId } from '@hooks/useProjectId'
@@ -693,6 +695,10 @@ const BillingBanner: React.FC = () => {
 	const { currentWorkspace } = useApplicationContext()
 	const { projectId } = useProjectId()
 
+	const { data: systemData } = useGetSystemConfigurationQuery({
+		// check for updates every minute
+		pollInterval: 1000 * 60,
+	})
 	const { data, loading } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: projectId! },
 		skip: !projectId,
@@ -721,8 +727,8 @@ const BillingBanner: React.FC = () => {
 	])
 
 	const isMaintenance = moment().isBetween(
-		'2023-03-05T23:30:00Z',
-		'2023-03-06T01:45:00Z',
+		systemData?.system_configuration?.maintenance_start,
+		systemData?.system_configuration?.maintenance_end,
 	)
 	if (isMaintenance) {
 		return <MaintenanceBanner />
@@ -773,8 +779,16 @@ const BillingBanner: React.FC = () => {
 	}
 
 	if (!bannerMessage && !hasTrial) {
-		toggleShowBanner(false)
-		return null
+		const isLaunchWeek = moment().isBetween(
+			'2023-07-17T00:00:00Z',
+			'2023-07-22T00:00:00Z',
+		)
+		if (isLaunchWeek) {
+			return <LaunchWeekBanner />
+		} else {
+			toggleShowBanner(false)
+			return null
+		}
 	}
 
 	if (hasTrial) {
@@ -850,26 +864,52 @@ const DemoWorkspaceBanner = () => {
 
 const MaintenanceBanner = () => {
 	const { toggleShowBanner } = useGlobalContext()
+	toggleShowBanner(true)
 
+	return (
+		<Box
+			className={clsx(styles.trialWrapper)}
+			style={{ backgroundColor: vars.color.y9 }}
+		>
+			<Text color="black">
+				We are performing maintenance which may delay data ingest.
+				Follow in{' '}
+				<TextLink color="none" href="https://highlight.io/community">
+					#incidents
+				</TextLink>{' '}
+				on our Discord for updates.
+			</Text>
+		</Box>
+	)
+}
+
+const LaunchWeekBanner = () => {
+	const { toggleShowBanner } = useGlobalContext()
+
+	const day = moment().diff(moment('2023-07-17T16:00:00Z'), 'days') + 1
+	if (day < 1 || day > 5) {
+		toggleShowBanner(false)
+		return null
+	}
 	toggleShowBanner(true)
 
 	const bannerMessage = (
 		<span>
-			We are performance maintenance which may result in delayed data.
-			Apologies for the inconvenience.{' '}
+			Launch Week 2 is here.{' '}
 			<a
 				target="_blank"
-				href="https://highlight.io/community"
+				href="https://www.highlight.io/launch-week-2"
 				className={styles.trialLink}
 				rel="noreferrer"
 			>
-				Follow on Discord #incidents for updates.
-			</a>
+				Follow along
+			</a>{' '}
+			to see what we've been building!
 		</span>
 	)
 
 	return (
-		<div className={clsx(styles.trialWrapper, styles.maintenance)}>
+		<div className={clsx(styles.trialWrapper, styles.launchWeek)}>
 			<div className={clsx(styles.trialTimeText)}>{bannerMessage}</div>
 		</div>
 	)

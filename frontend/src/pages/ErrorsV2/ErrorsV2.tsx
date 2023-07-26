@@ -41,6 +41,8 @@ import { useCallback, useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { apiObject } from 'rudder-sdk-js'
+import { StringParam, useQueryParams } from 'use-query-params'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
@@ -48,7 +50,7 @@ import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import * as styles from './styles.css'
 
-type Params = { project_id: string; error_secure_id: string }
+type Params = { project_id: string; error_secure_id: string; referrer?: string }
 
 export default function ErrorsV2() {
 	const { project_id, error_secure_id } = useParams<Params>()
@@ -356,6 +358,9 @@ function ErrorDisplay({
 
 function useErrorGroup() {
 	const { error_secure_id } = useParams<Params>()
+	const [{ referrer }] = useQueryParams({
+		referrer: StringParam,
+	})
 	const [markErrorGroupAsViewed] = useMarkErrorGroupAsViewedMutation()
 	const { isLoggedIn } = useAuthContext()
 	const {
@@ -374,7 +379,14 @@ function useErrorGroup() {
 					},
 				}).catch(console.error)
 			}
-			analytics.track('Viewed error', { is_guest: !isLoggedIn })
+			const properties: apiObject = {
+				is_guest: !isLoggedIn,
+			}
+			if (referrer) {
+				properties.referrer = referrer
+			}
+
+			analytics.track('Viewed error', properties)
 		},
 	})
 

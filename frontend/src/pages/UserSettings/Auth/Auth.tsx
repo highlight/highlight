@@ -16,6 +16,7 @@ import React, {
 } from 'react'
 
 import { useAuthContext } from '@/authentication/AuthContext'
+import { formatPhoneNumber } from '@/pages/UserSettings/Auth/utils'
 
 import styles from './Auth.module.css'
 
@@ -129,14 +130,6 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 		setLoading(true)
 		setError(null)
 
-		if (phoneNumber.length < 10) {
-			setError('Please use a valid phone number')
-			setLoading(false)
-			return
-		}
-
-		const formattedPhoneNumber = `+1${phoneNumber.replace(/\D/g, '')}`
-
 		await recaptchaVerifier.current?.verify()
 
 		const multiFactorSession =
@@ -147,7 +140,7 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 		try {
 			const vId = await phoneAuthProvider.verifyPhoneNumber(
 				{
-					phoneNumber: formattedPhoneNumber,
+					phoneNumber,
 					session: multiFactorSession,
 				},
 				recaptchaVerifier.current,
@@ -158,11 +151,18 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 			if (error.code === 'auth/requires-recent-login') {
 				setStatus(AuthState.Login)
 			} else {
-				setError(error.message)
+				setError(
+					"Please use a valid phone number. Don't forget your regional prefix!",
+				)
+				console.error(`Firebase threw an error: ${error.message}`)
 			}
 		} finally {
 			setLoading(false)
 		}
+	}
+
+	const handleOnBlur = (event: React.FocusEvent<HTMLInputElement>): void => {
+		setPhoneNumber(formatPhoneNumber(event.target.value))
 	}
 
 	return (
@@ -176,10 +176,10 @@ const Enroll: React.FC<Props> = ({ setError, setStatus }) => {
 						</p>
 
 						<Input
-							addonBefore="+1"
 							value={phoneNumber}
 							onChange={(e) => setPhoneNumber(e.target.value)}
-							placeholder="Enter your phone number"
+							placeholder="+1 123-456-7890"
+							onBlur={handleOnBlur}
 						/>
 
 						<Button

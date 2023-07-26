@@ -1,7 +1,8 @@
 import { Popover, Transition } from '@headlessui/react'
 import { useState } from 'react'
-import { AiFillGithub } from 'react-icons/ai'
 import { Typography } from '../Typography/Typography'
+
+import { BsCodeSlash } from 'react-icons/bs'
 
 import { FaChevronDown } from 'react-icons/fa'
 import * as Icons from 'react-icons/hi'
@@ -16,7 +17,7 @@ const ResourceDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 		{
 			title: 'Status Page',
 			icon: <Icons.HiCloud className={styles.copyOnLight} />,
-			link: 'https://highlight.hyperping.io/',
+			link: 'https://status.highlight.io/',
 		},
 		{
 			title: 'Community',
@@ -26,17 +27,19 @@ const ResourceDropdown = ({ isOpen }: { isOpen?: boolean }) => {
 		{
 			title: 'Changelog',
 			icon: <Icons.HiClipboardList className={styles.copyOnLight} />,
-			link: 'https://www.highlight.io/docs/general/changelog/overview',
+			link: '/docs/general/changelog/overview',
 		},
 		{
-			title: 'Feedback',
+			title: 'Blog',
 			icon: <Icons.HiChat className={styles.copyOnLight} />,
-			link: 'https://highlight.io/community',
+			link: '/blog',
+			sameTab: true,
 		},
 		{
-			title: 'Github',
-			icon: <AiFillGithub className={styles.copyOnLight} />,
-			link: 'https://github.com/highlight/highlight',
+			title: 'Frameworks',
+			icon: <BsCodeSlash className={styles.copyOnLight} />,
+			link: '/frameworks',
+			sameTab: true,
 		},
 		{
 			title: 'Our Competitors',

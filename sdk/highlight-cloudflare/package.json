@@ -1,19 +1,20 @@
 {
 	"name": "@highlight-run/cloudflare",
-	"version": "2.0.5",
+	"version": "2.0.7",
 	"packageManager": "yarn@3.2.3",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
 	"types": "./dist/index.d.ts",
 	"scripts": {
-		"typegen": "tsup src/index.ts --dts-only",
-		"build": "tsup src/index.ts --format cjs,esm --dts"
+		"dev": "yarn build --watch",
+		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"typegen": "tsup src/index.ts --dts-only"
 	},
 	"publishConfig": {
 		"access": "public"
 	},
 	"dependencies": {
-		"diary": "^0.4.4",
+		"@opentelemetry/resources": "1.15.1",
 		"opentelemetry-sdk-workers": "^0.6.2"
 	},
 	"devDependencies": {

@@ -26,7 +26,10 @@ func TestListErrorObjectsNoData(t *testing.T) {
 		connection, err := store.ListErrorObjects(errorGroup, ListErrorObjectsParams{})
 		assert.NoError(t, err)
 
-		assert.Equal(t, privateModel.ErrorObjectConnection{}, connection)
+		assert.Equal(t, privateModel.ErrorObjectConnection{
+			Edges:    []*privateModel.ErrorObjectEdge{},
+			PageInfo: &privateModel.PageInfo{},
+		}, connection)
 	})
 }
 
@@ -54,6 +57,8 @@ func TestListErrorObjectsOneObjectNoSession(t *testing.T) {
 		assert.Equal(t, errorObject.ID, edge.Node.ID)
 		assert.WithinDuration(t, errorObject.CreatedAt, edge.Node.CreatedAt, 10*time.Second)
 		assert.Equal(t, errorObject.Event, edge.Node.Event)
+		assert.WithinDuration(t, errorObject.Timestamp, edge.Node.Timestamp, 10*time.Second)
+		assert.Equal(t, errorGroup.SecureID, edge.Node.ErrorGroupSecureID)
 		assert.Nil(t, edge.Node.Session)
 
 		assert.Equal(t, &privateModel.PageInfo{
@@ -74,14 +79,11 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 		}
 		store.db.Create(&errorGroup)
 
-		userProperties := map[string]string{
-			"email": "chilly@mcwilly.com",
-		}
 		session := model.Session{
-			AppVersion: ptr.String("123"),
+			AppVersion:  ptr.String("123"),
+			Email:       ptr.String("chilly@mcwilly.com"),
+			Fingerprint: 1234,
 		}
-		err := session.SetUserProperties(userProperties)
-		assert.NoError(t, err)
 
 		store.db.Create(&session)
 
@@ -101,10 +103,12 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 		assert.Equal(t, errorObject.ID, edge.Node.ID)
 		assert.WithinDuration(t, errorObject.CreatedAt, edge.Node.CreatedAt, 10*time.Second)
 		assert.Equal(t, errorObject.Event, edge.Node.Event)
+		assert.Equal(t, errorGroup.SecureID, edge.Node.ErrorGroupSecureID)
 		assert.Equal(t, &privateModel.ErrorObjectNodeSession{
-			SecureID:       session.SecureID,
-			UserProperties: session.UserProperties,
-			AppVersion:     session.AppVersion,
+			SecureID:    session.SecureID,
+			Email:       session.Email,
+			AppVersion:  session.AppVersion,
+			Fingerprint: &session.Fingerprint,
 		}, edge.Node.Session)
 
 		assert.Equal(t, &privateModel.PageInfo{
@@ -113,6 +117,54 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 			StartCursor:     strconv.Itoa(errorObject.ID),
 			EndCursor:       strconv.Itoa(errorObject.ID),
 		}, connection.PageInfo)
+	})
+}
+
+func TestListErrorObjectsSearchByEmail(t *testing.T) {
+	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
+		errorGroup := model.ErrorGroup{
+			State:     privateModel.ErrorStateOpen,
+			Event:     "something broke!",
+			ProjectID: 1,
+		}
+		store.db.Create(&errorGroup)
+
+		session1 := model.Session{
+			Email:     ptr.String("chilly@mcwilly.com"),
+			ProjectID: 1,
+		}
+
+		session2 := model.Session{
+			Email:     ptr.String("scoutie@mcwoutie.com"),
+			ProjectID: 1,
+		}
+
+		store.db.Create(&session1)
+		store.db.Create(&session2)
+
+		store.db.Create(&model.ErrorObject{
+			ErrorGroupID: errorGroup.ID,
+			SessionID:    &session1.ID,
+		})
+
+		store.db.Create(&model.ErrorObject{
+			ErrorGroupID: errorGroup.ID,
+			SessionID:    &session2.ID,
+		})
+
+		connection, err := store.ListErrorObjects(errorGroup, ListErrorObjectsParams{
+			Query: "email:scoutie@mcwoutie.com",
+		})
+		assert.NoError(t, err)
+
+		assert.Len(t, connection.Edges, 1)
+
+		connection, err = store.ListErrorObjects(errorGroup, ListErrorObjectsParams{
+			Query: "email:mcwoutie",
+		})
+		assert.NoError(t, err)
+
+		assert.Len(t, connection.Edges, 1)
 	})
 }
 
