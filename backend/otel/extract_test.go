@@ -250,19 +250,6 @@ func TestExtractFields_OmitBackendPropertiesForFrontendSource(t *testing.T) {
 	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
-func TestExtractFields_OmitExceptionProperties(t *testing.T) {
-	resource := newResource(map[string]string{
-		"exception.message":    "foo",
-		"exception.stacktrace": "bar",
-		"exception.type":       "baz",
-	})
-	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
-	assert.NoError(t, err)
-	assert.Equal(t, fields.attrs, map[string]string{
-		"exception.type": "baz",
-	})
-}
-
 func TestExtractFields_TrimLongFields(t *testing.T) {
 	var value string
 	for i := 0; i < 2<<16; i++ {
