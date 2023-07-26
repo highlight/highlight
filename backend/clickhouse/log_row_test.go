@@ -10,25 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewLogRowWithLogAttributes(t *testing.T) {
-	attributes := map[string]string{
-		"os.description":   "Debian GNU/Linux 11 (bullseye)",
-		"highlight.source": "frontend",
-		"foo":              "bar",
-		"log.severity":     "info", // should be skipped since this is an internal attribute
-	}
-
-	now := time.Now()
-
-	logRow := NewLogRow(now, 1, WithLogAttributes(attributes))
-
-	assert.Equal(t, map[string]string{"foo": "bar", "os.description": "Debian GNU/Linux 11 (bullseye)"}, logRow.LogAttributes)
-
-	logRow = NewLogRow(now, 1, WithLogAttributes(attributes))
-
-	assert.Equal(t, map[string]string{"foo": "bar"}, logRow.LogAttributes)
-}
-
 func TestNewLogRowWithSeverityText(t *testing.T) {
 	now := time.Now()
 	assert.Equal(t, "warn", NewLogRow(now, 1, WithSeverityText("WARN")).SeverityText, "it downcases")
@@ -39,30 +20,6 @@ func TestNewLogRowWithSeverityText(t *testing.T) {
 func TestNewLogRowWithServiceVersion(t *testing.T) {
 	now := time.Now()
 	assert.Equal(t, "abc123", NewLogRow(now, 1, WithServiceVersion("abc123")).ServiceVersion)
-}
-
-func TestNewLogRowWithException(t *testing.T) {
-	now := time.Now()
-	attributes := map[string]string{
-		"exception.message":    "foo",
-		"exception.stacktrace": "bar",
-		"exception.type":       "baz",
-	}
-	lr := NewLogRow(now, 1, WithLogAttributes(attributes))
-	assert.Equal(t, "", lr.LogAttributes["exception.message"])
-	assert.Equal(t, "", lr.LogAttributes["exception.stacktrace"])
-	assert.Equal(t, "baz", lr.LogAttributes["exception.type"])
-}
-
-func TestNewLogRowWithLongField(t *testing.T) {
-	now := time.Now()
-	var value string
-	for i := 0; i < 2<<16; i++ {
-		value += "a"
-	}
-	attributes := map[string]string{"foo": value}
-	lr := NewLogRow(now, 1, WithLogAttributes(attributes))
-	assert.Equal(t, 2048+3, len(lr.LogAttributes["foo"]))
 }
 
 func TestNewLogRowWithLongBody(t *testing.T) {
@@ -90,4 +47,10 @@ func TestNewLogRowWithTimestamp(t *testing.T) {
 	lr := NewLogRow(ts, 1)
 	// log row should be created with second precision, per clickhouse precision
 	assert.Equal(t, ts.Truncate(time.Second), lr.Timestamp)
+}
+
+func TestNewLogRowWithZeroTimestamp(t *testing.T) {
+	ts := time.Unix(0, 1).UTC().Add(-1 * time.Second)
+	lr := NewLogRow(ts, 1)
+	assert.WithinDuration(t, lr.Timestamp, time.Now(), 10*time.Second)
 }

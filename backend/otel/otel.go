@@ -9,7 +9,6 @@ import (
 	"io"
 	"net/http"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/samber/lo"
@@ -20,20 +19,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/stacktraces"
-	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"go.opentelemetry.io/collector/pdata/pcommon"
-	"go.opentelemetry.io/collector/pdata/plog"
 	"go.opentelemetry.io/collector/pdata/plog/plogotlp"
-	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
@@ -44,7 +38,7 @@ type Handler struct {
 
 var fluentProjectPattern = regexp.MustCompile(fmt.Sprintf(`%s=([\S]+)`, highlight.ProjectIDAttribute))
 
-func lg(ctx context.Context, fields HighlightFields) *log.Entry {
+func lg(ctx context.Context, fields extractedFields) *log.Entry {
 	return log.WithContext(ctx).
 		WithField("project_id", fields.projectID).
 		WithField("session_id", fields.sessionID).
@@ -62,137 +56,6 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 		return fallback
 	}
 	return c
-}
-
-type extractedFields struct {
-	projectID          string
-	projectIDInt       int
-	sessionID          string
-	requestID          string
-	source             modelInputs.LogSource
-	serviceName        string
-	resourceAttributes map[string]any
-	spanAttributes     map[string]any
-	eventAttributes    map[string]any
-	scopeAttributes    map[string]any
-	logAttributes      map[string]any
-	modifiedAttributes map[string]string
-}
-
-type extractFieldsParams struct {
-	resource  pcommon.Resource
-	span      ptrace.Span
-	event     ptrace.SpanEvent
-	scopeLogs plog.ScopeLogs
-	logRecord plog.LogRecord
-}
-
-func extractFields(ctx context.Context, params extractFieldsParams) (extractedFields, error) {
-	fields := extractedFields{
-		source:             modelInputs.LogSourceBackend,
-		resourceAttributes: params.resource.Attributes().AsRaw(),
-		spanAttributes:     params.span.Attributes().AsRaw(),
-		eventAttributes:    params.event.Attributes().AsRaw(),
-		scopeAttributes:    params.scopeLogs.Scope().Attributes().AsRaw(),
-		logAttributes:      params.logRecord.Attributes().AsRaw(),
-	}
-
-	attrs := mergeMaps(
-		fields.resourceAttributes,
-		fields.spanAttributes,
-		fields.eventAttributes,
-		fields.scopeAttributes,
-		fields.logAttributes,
-	)
-
-	if val, ok := attrs[highlight.DeprecatedProjectIDAttribute]; ok {
-		fields.projectID = val.(string)
-		delete(attrs, highlight.DeprecatedProjectIDAttribute)
-	}
-
-	if val, ok := attrs[highlight.ProjectIDAttribute]; ok {
-		fields.projectID = val.(string)
-		delete(attrs, highlight.ProjectIDAttribute)
-	}
-
-	if val, ok := attrs[highlight.DeprecatedSessionIDAttribute]; ok {
-		fields.sessionID = val.(string)
-		delete(attrs, highlight.DeprecatedSessionIDAttribute)
-	}
-
-	if val, ok := attrs[highlight.SessionIDAttribute]; ok {
-		fields.sessionID = val.(string)
-		delete(attrs, highlight.SessionIDAttribute)
-	}
-
-	if val, ok := attrs[string(semconv.ServiceNameKey)]; ok {
-		fields.serviceName = val.(string)
-		delete(attrs, string(semconv.ServiceNameKey))
-	}
-
-	if val, ok := attrs[highlight.RequestIDAttribute]; ok {
-		fields.requestID = val.(string)
-		delete(attrs, highlight.RequestIDAttribute)
-	}
-
-	if val, ok := attrs[highlight.DeprecatedSourceAttribute]; ok {
-		if val == modelInputs.LogSourceFrontend.String() {
-			fields.source = modelInputs.LogSourceFrontend
-		}
-		delete(attrs, highlight.DeprecatedSourceAttribute)
-	}
-
-	if val, ok := attrs[highlight.SourceAttribute]; ok {
-		if val == modelInputs.LogSourceFrontend.String() {
-			fields.source = modelInputs.LogSourceFrontend
-		}
-		delete(attrs, highlight.SourceAttribute)
-	}
-
-	if fields.projectID != "" {
-		if tag := attrs["fluent.tag"]; tag != nil {
-			if v, _ := tag.(string); v != "" {
-				project := fluentProjectPattern.FindStringSubmatch(v)
-				if project != nil {
-					fields.projectID = project[1]
-				}
-			}
-			delete(attrs, "fluent.tag")
-		}
-	}
-
-	attributesMap := make(map[string]string)
-	for k, v := range attrs {
-		prefixes := highlight.InternalAttributePrefixes
-		if fields.source == modelInputs.LogSourceFrontend {
-			prefixes = append(prefixes, highlight.BackendOnlyAttributePrefixes...)
-		}
-
-		shouldSkip := false
-		for _, prefix := range prefixes {
-			if strings.HasPrefix(k, prefix) {
-				shouldSkip = true
-				break
-			}
-		}
-		if shouldSkip {
-			continue
-		}
-
-		for key, value := range util.FormatLogAttributes(ctx, k, v) {
-			attributesMap[key] = value
-		}
-	}
-
-	projectIDInt, err := clickhouse.ProjectToInt(fields.projectID)
-
-	if err != nil {
-		return fields, err
-	}
-
-	fields.projectIDInt = projectIDInt
-
-	return fields, nil
 }
 
 func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string, logCursor *string, excMessage string) (bool, *model.BackendErrorObjectInput) {
@@ -308,12 +171,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					eventAttributes := event.Attributes().AsRaw()
 
 					fields, err := extractFields(ctx, extractFieldsParams{
-						resource: resource,
-						span:     span,
-						event:    event,
+						resource: &resource,
+						span:     &span,
+						event:    &event,
 					})
 					if err != nil {
-						lg(ctx, fields).WithError(err).Error("failed to extract highlight fields")
+						lg(ctx, fields).WithError(err).Error("failed to extract fields")
 					}
 
 					ts := event.Timestamp().AsTime()
@@ -481,8 +344,8 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				logRecord := logRecords.At(k)
 
 				fields, err := extractFields(ctx, extractFieldsParams{
-					resource:  resource,
-					logRecord: logRecord,
+					resource:  &resource,
+					logRecord: &logRecord,
 				})
 				if err != nil {
 					lg(ctx, fields).WithError(err).Error("failed to extract highlight fields")

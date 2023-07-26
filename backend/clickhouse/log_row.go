@@ -48,6 +48,7 @@ type LogRow struct {
 
 func NewLogRow(timestamp time.Time, projectID uint32, opts ...LogRowOption) *LogRow {
 	// if the timestamp is zero, set time
+	// TODO(et) - should we move this up to extractFields?
 	if timestamp.Before(time.Unix(0, 1).UTC()) {
 		timestamp = time.Now()
 	}
