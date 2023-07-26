@@ -1,7 +1,7 @@
 import {
 	ArrowLeftIcon,
 	ArrowRightIcon,
-	ChevronDownIcon,
+	ChevronRightIcon,
 	MinusIcon,
 } from '@heroicons/react/20/solid'
 import { readFile } from 'fs/promises'
@@ -18,9 +18,11 @@ import classNames from 'classnames'
 import { useEffect, useRef, useState } from 'react'
 
 import { useRouter } from 'next/router'
+import { FaDiscord, FaGithub, FaTwitter } from 'react-icons/fa'
 import styles from '../Docs.module.scss'
 
 export const DOCS_CONTENT_PATH = path.join(process.cwd(), '../docs-content')
+const DOCS_GITUB_LINK = `https://github.com/highlight/highlight/blob/main/docs-content/`
 
 export const docMetadataSchema = z.object({
 	title: z.string(),
@@ -118,17 +120,31 @@ export function getTocEntry(docPage: DocPage, allPages: DocPage[]): TocEntry {
 	}
 }
 
+type SubNavigationCallback = (slugPath: {
+	children: TocEntry[]
+	title: string
+	slugPath: string
+}) => void
+
 function TocCategory({
 	title,
 	subEntries,
+	onSubtableNavigation,
+	route,
 }: {
 	title: string
 	subEntries: TocEntry[]
+	onSubtableNavigation: SubNavigationCallback
+	route: string
 }) {
 	return (
 		<div className="border-y">
 			<Typography type="copy4">{title}</Typography>
-			<TableOfContents toc={subEntries} />
+			<TableOfContentsSection
+				tocEntries={subEntries}
+				onSubtableNavigation={onSubtableNavigation}
+				route={route}
+			/>
 		</div>
 	)
 }
@@ -148,15 +164,19 @@ function TocSubtableItem({
 	title,
 	slugPath,
 	onEnter,
+	subEntries,
 }: {
 	title: string
 	slugPath: string
-	onEnter: (slugPath: string) => void
+	subEntries: TocEntry[]
+	onEnter: SubNavigationCallback
 }) {
 	/* TODO (fabio): icon in props */
 
 	return (
-		<button onClick={() => onEnter(slugPath)}>
+		<button
+			onClick={() => onEnter({ children: subEntries, title, slugPath })}
+		>
 			<div className={entryPlateStyle}>
 				<ArrowRightIcon
 					className={classNames(entryIconStyle, 'text-copy-on-light')}
@@ -174,44 +194,75 @@ function TocEntry({
 	slugPath,
 	isIndex,
 	subEntries,
+	onSubtableNavigation,
+	route,
 }: {
 	title: string
 	slugPath: string
 	isIndex: boolean
 	subEntries: TocEntry[]
+	onSubtableNavigation: SubNavigationCallback
+	route: string
 }) {
+	const focused = route.includes(slugPath)
+
 	return !isIndex ? (
 		<Link href={'/docsnew/' + slugPath} className={entryPlateStyle}>
 			<MinusIcon
 				className={classNames(entryIconStyle, 'text-divider-on-dark')}
 			/>
-			<Typography type="copy3" onDark className={entryTextStyle}>
+			<Typography
+				type="copy3"
+				onDark
+				className={classNames(
+					'transition-all text-copy-on-dark',
+					focused
+						? 'opacity-100 text-copy-on-dark'
+						: 'opacity-70 group-hover:opacity-100',
+				)}
+			>
 				{title}
 			</Typography>
 		</Link>
 	) : (
-		<Disclosure>
-			<Disclosure.Button className={entryPlateStyle}>
-				<ChevronDownIcon
-					className={classNames(entryIconStyle, 'text-copy-on-light')}
-				/>
-				<Typography type="copy3" onDark className={entryTextStyle}>
-					{title}
-				</Typography>
-			</Disclosure.Button>
-			<Transition
-			/* enter="transition-transform duration-200 ease-out origin-top"
-				enterFrom="transform scale-y-0 opacity-0"
-				enterTo="transform scale-100"
-				leave="transition-transform duration-200 ease-out origin-top"
-				leaveFrom="transform scale-y-100"
-				leaveTo="transform scale-y-0 opacity-0" */
-			>
-				<Disclosure.Panel className="flex flex-row gap-0.5">
-					<div className="w-0.5 mx-[11px] flex-shrink-0 bg-divider-on-dark" />
-					<TableOfContents toc={subEntries} />
-				</Disclosure.Panel>
-			</Transition>
+		<Disclosure defaultOpen={focused}>
+			{({ open }) => (
+				<>
+					<Disclosure.Button className={entryPlateStyle}>
+						<ChevronRightIcon
+							className={classNames(
+								entryIconStyle,
+								'text-copy-on-light',
+								open && 'rotate-90',
+							)}
+						/>
+						<Typography
+							type="copy3"
+							onDark
+							className={entryTextStyle}
+						>
+							{title}
+						</Typography>
+					</Disclosure.Button>
+					<Transition
+						enter="transition duration-100 ease-out"
+						enterFrom="transform scale-y-95 opacity-0 origin-top"
+						enterTo="transform scale-y-100 opacity-100 origin-top"
+						leave="transition duration-75 ease-out"
+						leaveFrom="transform scale-y-100 opacity-100 origin-top"
+						leaveTo="transform scale-y-95 opacity-0 origin-top"
+					>
+						<Disclosure.Panel className="flex flex-row gap-0.5">
+							<div className="w-0.5 mx-[11px] flex-shrink-0 bg-divider-on-dark" />
+							<TableOfContentsSection
+								tocEntries={subEntries}
+								onSubtableNavigation={onSubtableNavigation}
+								route={route}
+							/>
+						</Disclosure.Panel>
+					</Transition>
+				</>
+			)}
 		</Disclosure>
 	)
 }
@@ -220,38 +271,56 @@ function TocSeparator() {
 	return <div className="h-px my-3 bg-divider-on-dark" />
 }
 
-export function TableOfContents({
-	toc: tocEntries,
-	currentPath = '',
-}: {
-	toc: TocEntry[]
-	currentPath?: string
-}) {
-	const [subtableSlug, setSubtableSlug] = useState(currentPath)
+type SubtableStack = {
+	title: string
+	backLink: string
+	backTitle: string
+	slugPath: string
+	children: TocEntry[]
+}
 
-	const renderedTable = subtableSlug
-		? tocEntries.find(
-				(e) =>
-					subtableSlug && e.docPage.slugPath.startsWith(subtableSlug),
-		  )?.subEntries ?? tocEntries
-		: tocEntries
+export function TableOfContents({ toc: tocEntries }: { toc: TocEntry[] }) {
+	const router = useRouter()
+	const route = router.asPath.replace(/^\/docsnew\//, '')
 
-	const subtables = renderedTable.filter(
-		(t) => t.docPage.metadata.type === 'subtable',
-	)
-	const collapsibles = renderedTable.filter(
-		(t) => t.docPage.isIndex && t.docPage.metadata.type !== 'subtable',
-	)
-	const singleEntries = renderedTable.filter((t) => !t.docPage.isIndex)
+	const [subtableStack, setSubtableStack] = useState<SubtableStack[]>([])
+
+	const subtableStackTop: SubtableStack =
+		subtableStack[subtableStack.length - 1]
+
+	const renderedTable = subtableStackTop?.children ?? tocEntries
+
+	const pushToStack: SubNavigationCallback = ({
+		children,
+		title,
+		slugPath,
+	}) => {
+		setSubtableStack([
+			...subtableStack,
+			{
+				backLink: router.asPath,
+				children,
+				title,
+				slugPath,
+				backTitle: subtableStackTop?.title
+					? `to ${subtableStackTop?.title}`
+					: 'Home',
+			},
+		])
+
+		router.push(slugPath)
+	}
+
+	const popFromStack = () => {
+		setSubtableStack(subtableStack.slice(0, -1))
+		if (subtableStackTop?.backLink) router.push(subtableStackTop?.backLink)
+	}
 
 	return (
 		<div className="flex flex-col self-stretch">
-			{subtableSlug && (
+			{subtableStackTop && (
 				<>
-					<button
-						className={entryPlateStyle}
-						onClick={() => setSubtableSlug('')}
-					>
+					<button className={entryPlateStyle} onClick={popFromStack}>
 						<ArrowLeftIcon
 							className={classNames(
 								entryIconStyle,
@@ -263,29 +332,66 @@ export function TableOfContents({
 							onDark
 							className={entryTextStyle}
 						>
-							Go back home
+							Go back {subtableStackTop.backTitle}
 						</Typography>
 					</button>
 					<TocSeparator />
 					<Typography type="copy3" emphasis onDark className="h-7">
-						{subtableSlug}
+						{subtableStackTop.title}
 					</Typography>
 				</>
+			)}
+
+			<TableOfContentsSection
+				tocEntries={renderedTable}
+				onSubtableNavigation={pushToStack}
+				route={route}
+			/>
+		</div>
+	)
+}
+
+function TableOfContentsSection({
+	tocEntries,
+	onSubtableNavigation,
+	route,
+}: {
+	tocEntries: TocEntry[]
+	onSubtableNavigation: SubNavigationCallback
+	route: string
+}) {
+	const currentPage = tocEntries.find(
+		(e) => e.docPage.slugPath.startsWith(route) && !e.docPage.isIndex,
+	)
+
+	const subtables = tocEntries.filter(
+		(t) => t.docPage.metadata.type === 'subtable',
+	)
+	const singleEntries = tocEntries.filter((t) => !t.docPage.isIndex)
+	const collapsibles = tocEntries.filter(
+		(t) => t.docPage.isIndex && t.docPage.metadata.type !== 'subtable',
+	)
+
+	return (
+		<div className="flex flex-col self-stretch flex-1">
+			{currentPage?.docPage.isSdkDoc && <SdkTableOfContents />}
+			{currentPage?.docPage.isSdkDoc && singleEntries.length > 0 && (
+				<TocSeparator />
 			)}
 			{subtables.map(({ docPage, subEntries }) => {
 				return (
 					<TocSubtableItem
 						key={docPage.slugPath}
 						title={docPage.metadata.title}
+						subEntries={subEntries}
 						slugPath={docPage.slugPath}
-						onEnter={setSubtableSlug}
+						onEnter={onSubtableNavigation}
 					/>
 				)
 			})}
 			{singleEntries.length > 0 && subtables.length > 0 && (
 				<TocSeparator />
 			)}
-			{/* todo fabio: proper check for separators */}
 			{singleEntries.map(({ docPage, subEntries }) => {
 				return (
 					<TocEntry
@@ -294,13 +400,14 @@ export function TableOfContents({
 						title={docPage.metadata.title}
 						slugPath={docPage.slugPath}
 						subEntries={subEntries}
+						onSubtableNavigation={onSubtableNavigation}
+						route={route}
 					/>
 				)
 			})}
 			{collapsibles.length > 0 && singleEntries.length > 0 && (
 				<TocSeparator />
 			)}
-			{/* todo fabio: proper check for separators */}
 			{collapsibles.map(({ docPage, subEntries }) => {
 				return (
 					<TocEntry
@@ -309,6 +416,8 @@ export function TableOfContents({
 						title={docPage.metadata.title}
 						slugPath={docPage.slugPath}
 						subEntries={subEntries}
+						onSubtableNavigation={onSubtableNavigation}
+						route={route}
 					/>
 				)
 			})}
@@ -497,7 +606,7 @@ const useHeadingsData = (headingTag: string) => {
 	return { nestedHeadings }
 }
 
-export function SdkTableOfContents () {
+export function SdkTableOfContents() {
 	const { nestedHeadings } = useHeadingsData('h4')
 	const router = useRouter()
 	const [activeId, setActiveId] = useState<string>()
@@ -517,7 +626,7 @@ export function SdkTableOfContents () {
 			{nestedHeadings.map((heading: HTMLHeadingElement, i: number) => (
 				<Link href={`#${heading.id}`} key={i} legacyBehavior>
 					<a
-						className={styles.tocRow}
+						className={entryPlateStyle}
 						onClick={(e) => {
 							e.preventDefault()
 							document
@@ -540,23 +649,21 @@ export function SdkTableOfContents () {
 					>
 						<MinusIcon
 							className={classNames(
-								styles.tocIcon,
-								styles.tocChild,
-								{
-									[styles.tocItemCurrent]:
-										heading.id === activeId,
-								},
+								entryIconStyle,
+								heading.id === activeId
+									? 'opacity-100 text-copy-on-dark'
+									: 'opacity-70 group-hover:opacity-100 text-copy-on-light',
 							)}
 						/>
 						<Typography
 							type="copy3"
+							onDark
 							className={classNames(
-								styles.tocItem,
-								styles.tocChild,
-								{
-									[styles.tocItemCurrent]:
-										heading.id === activeId,
-								},
+								'transition-all text-copy-on-dark',
+								heading.id === activeId
+									? 'opacity-100 text-copy-on-dark'
+									: 'opacity-70 group-hover:opacity-100',
+								'text-ellipsis overflow-hidden',
 							)}
 						>
 							{heading.innerText || 'nope'}
@@ -565,5 +672,93 @@ export function SdkTableOfContents () {
 				</Link>
 			))}
 		</>
+	)
+}
+
+export const PageRightBar = ({
+	relativePath,
+}: {
+	title: string
+	relativePath: string
+}) => {
+	const { nestedHeadings } = useHeadingsData('h5,h6')
+	const [activeId, setActiveId] = useState<string>()
+	useIntersectionObserver(setActiveId)
+
+	return (
+		<div className={styles.rightBarWrap}>
+			<div className={styles.resourcesSideBar}>
+				<Link
+					className={styles.socialItem}
+					href="https://discord.gg/yxaXEAqgwN"
+					target="_blank"
+					style={{ borderBottom: '1px solid #30294E' }}
+				>
+					<FaDiscord style={{ height: 20, width: 20 }}></FaDiscord>
+					<Typography type="copy3">Community / Support</Typography>
+				</Link>
+				<Link
+					className={styles.socialItem}
+					href={`${DOCS_GITUB_LINK}${relativePath}`.replaceAll(
+						/\/+/g,
+						'/',
+					)}
+					target="_blank"
+				>
+					<FaGithub style={{ height: 20, width: 20 }}></FaGithub>
+					<Typography type="copy3">Suggest Edits?</Typography>
+				</Link>
+				<Link
+					style={{ borderTop: '1px solid #30294E' }}
+					className={styles.socialItem}
+					href="https://twitter.com/highlightio"
+					target="_blank"
+				>
+					<FaTwitter style={{ height: 20, width: 20 }}></FaTwitter>
+					<Typography type="copy3">Follow us!</Typography>
+				</Link>
+			</div>
+			{nestedHeadings.length > 0 && (
+				<div className={styles.pageContentTable}>
+					<div className={styles.pageContentList}>
+						<ul>
+							{nestedHeadings.map(
+								(heading: HTMLHeadingElement) => (
+									<li
+										key={heading.id}
+										className={classNames({
+											[styles.active]:
+												heading.id === activeId,
+										})}
+										style={{ padding: '2px 4px' }}
+									>
+										<Link
+											href={`#${heading.id}`}
+											onClick={(e) => {
+												e.preventDefault()
+												document
+													.querySelector(
+														`#${heading.id}`,
+													)
+													?.scrollIntoView({
+														behavior: 'smooth',
+													})
+												window.history.pushState(
+													{},
+													'',
+													`#${heading.id}`,
+												)
+											}}
+										>
+											<span>{heading.innerText}</span>
+										</Link>
+									</li>
+								),
+							)}
+						</ul>
+					</div>
+				</div>
+			)}
+		</div>
 	)
 }

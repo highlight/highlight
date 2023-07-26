@@ -27,9 +27,9 @@ import {
 	DocPage,
 	DOCS_CONTENT_PATH,
 	getTocEntry,
+	PageRightBar,
 	readDocFile,
 	readMarkdownFile,
-	SdkTableOfContents,
 	TableOfContents,
 	TocEntry,
 } from '../../components/Docs/TableOfContents/TableOfContents'
@@ -214,29 +214,26 @@ async function assertWorkingLinks(
 		)
 }
 
-const getBreadcrumbs = (
-	metadata: DocMetadata,
-	docOptions: DocPage[],
-	docIndex: number,
-) => {
+const getBreadcrumbs = (currentDoc: DocPage, docOptions: DocPage[]) => {
 	const trail: { title: string; path: string }[] = [
 		{ title: 'Docs', path: '/docs' },
 	]
-	if (metadata && docOptions) {
-		const currentDoc = docOptions[docIndex]
-		const pathToSearch: string[] = []
-		currentDoc.slugPath.split('/').forEach((section) => {
-			pathToSearch.push(section)
-			const simplePath = pathToSearch.join('/')
-			const nextBreadcrumb = docOptions.find(
-				(d) => d.slugPath === simplePath,
-			)
-			trail.push({
-				title: nextBreadcrumb?.metadata.title ?? 'Placeholder',
-				path: `/docs/${nextBreadcrumb?.slugPath}`,
-			})
+
+	const pathToSearch: string[] = []
+
+	for (const section of currentDoc.slugPath.split('/')) {
+		pathToSearch.push(section)
+		const simplePath = pathToSearch.join('/')
+		const nextBreadcrumb = docOptions.find((d) => d.slugPath === simplePath)
+
+		if (!nextBreadcrumb) break
+
+		trail.push({
+			title: nextBreadcrumb.metadata.title,
+			path: `/docsnew/${nextBreadcrumb.slugPath}`,
 		})
 	}
+
 	return trail
 }
 
@@ -255,7 +252,7 @@ export const getStaticProps: GetStaticProps<DocProps> = async ({ params }) => {
 	const currentDocIndex = docPages.findIndex((d) => {
 		return (
 			JSON.stringify(d.slugPath.split('/')) ===
-			JSON.stringify(params?.doc || [''])
+			JSON.stringify(params?.doc ?? [''])
 		)
 	})
 
@@ -358,11 +355,7 @@ export default function DocPage({
 				<div className={styles.leftSection}>
 					<div className={styles.tocMenuLarge}>
 						{/* Desktop table of contents */}
-						{docPage.isSdkDoc ? (
-							<SdkTableOfContents />
-						) : (
-							<TableOfContents toc={toc} />
-						)}
+						<TableOfContents toc={toc} />
 					</div>
 					<div
 						className={classNames(styles.tocRow, styles.tocMenu)}
@@ -390,11 +383,6 @@ export default function DocPage({
 						{/* Mobile Tabe of contents */}
 						<div className={classNames('pl-3', styles.tocMenu)}>
 							<TableOfContents toc={toc} />
-							{docPage.isSdkDoc ? (
-								<SdkTableOfContents />
-							) : (
-								<TableOfContents toc={toc} />
-							)}
 						</div>
 					</Collapse>
 				</div>
@@ -412,31 +400,28 @@ export default function DocPage({
 					>
 						<div className={styles.breadcrumb}>
 							{!docPage.isSdkDoc &&
-								getBreadcrumbs(
-									metadata,
-									docPages,
-									docIndex,
-								).map((breadcrumb, i) =>
-									i === 0 ? (
-										<Link
-											key={i}
-											href={breadcrumb.path}
-											legacyBehavior
-										>
-											{breadcrumb.title}
-										</Link>
-									) : (
-										<>
-											{` / `}
+								getBreadcrumbs(docPage, docPages).map(
+									(breadcrumb, i) =>
+										i === 0 ? (
 											<Link
+												key={i}
 												href={breadcrumb.path}
 												legacyBehavior
-												key={i}
 											>
 												{breadcrumb.title}
 											</Link>
-										</>
-									),
+										) : (
+											<>
+												{` / `}
+												<Link
+													href={breadcrumb.path}
+													legacyBehavior
+													key={i}
+												>
+													{breadcrumb.title}
+												</Link>
+											</>
+										),
 								)}
 						</div>
 						<h3
@@ -628,10 +613,10 @@ export default function DocPage({
 					</div>
 					{!docPage.isSdkDoc && !metadata.quickstart && (
 						<div className={styles.rightSection}>
-							{/* <PageRightBar
+							<PageRightBar
 								title={metadata.title}
-								relativePath={docPath.slugPath}
-							/> */}
+								relativePath={docPage.filePath}
+							/>
 						</div>
 					)}
 				</div>
