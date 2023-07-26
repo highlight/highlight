@@ -26,8 +26,8 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 			continue
 		}
 
-		// Was not able to figure out a way to insert nested values using a struct
-		// so had to pull them out to individual arrays.
+		// Was not able to figure out a way to insert nested values using a struct +
+		// AppendStruct, so had to pull them out to individual arrays.
 		traceTimes, traceNames, traceAttrs := convertEvents(traceRow)
 		linkTraceIds, linkSpanIds, linkStates, linkAttrs := convertLinks(traceRow)
 
