@@ -11,17 +11,20 @@ import (
 )
 
 func TestNewLogRowWithLogAttributes(t *testing.T) {
-	resourceAttributes := map[string]any{"os.description": "Debian GNU/Linux 11 (bullseye)"}
-	spanAttributes := map[string]any{"highlight.source": "frontend", "foo": "bar"}
-	eventAttributes := map[string]any{"log.severity": "info"} // should be skipped since this is an internal attribute
+	attributes := map[string]string{
+		"os.description":   "Debian GNU/Linux 11 (bullseye)",
+		"highlight.source": "frontend",
+		"foo":              "bar",
+		"log.severity":     "info", // should be skipped since this is an internal attribute
+	}
 
 	now := time.Now()
 
-	logRow := NewLogRow(now, 1, WithLogAttributes(context.TODO(), resourceAttributes, spanAttributes, eventAttributes, false))
+	logRow := NewLogRow(now, 1, WithLogAttributes(attributes))
 
 	assert.Equal(t, map[string]string{"foo": "bar", "os.description": "Debian GNU/Linux 11 (bullseye)"}, logRow.LogAttributes)
 
-	logRow = NewLogRow(now, 1, WithLogAttributes(context.TODO(), resourceAttributes, spanAttributes, eventAttributes, true))
+	logRow = NewLogRow(now, 1, WithLogAttributes(attributes))
 
 	assert.Equal(t, map[string]string{"foo": "bar"}, logRow.LogAttributes)
 }
@@ -40,14 +43,12 @@ func TestNewLogRowWithServiceVersion(t *testing.T) {
 
 func TestNewLogRowWithException(t *testing.T) {
 	now := time.Now()
-	ctx := context.TODO()
-	var resourceAttributes, spanAttributes, eventAttributes map[string]any
-	resourceAttributes = map[string]any{
+	attributes := map[string]string{
 		"exception.message":    "foo",
 		"exception.stacktrace": "bar",
 		"exception.type":       "baz",
 	}
-	lr := NewLogRow(now, 1, WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, false))
+	lr := NewLogRow(now, 1, WithLogAttributes(attributes))
 	assert.Equal(t, "", lr.LogAttributes["exception.message"])
 	assert.Equal(t, "", lr.LogAttributes["exception.stacktrace"])
 	assert.Equal(t, "baz", lr.LogAttributes["exception.type"])
@@ -55,14 +56,12 @@ func TestNewLogRowWithException(t *testing.T) {
 
 func TestNewLogRowWithLongField(t *testing.T) {
 	now := time.Now()
-	ctx := context.TODO()
-	var resourceAttributes, spanAttributes, eventAttributes map[string]any
 	var value string
 	for i := 0; i < 2<<16; i++ {
 		value += "a"
 	}
-	spanAttributes = map[string]any{"foo": value}
-	lr := NewLogRow(now, 1, WithLogAttributes(ctx, resourceAttributes, spanAttributes, eventAttributes, false))
+	attributes := map[string]string{"foo": value}
+	lr := NewLogRow(now, 1, WithLogAttributes(attributes))
 	assert.Equal(t, 2048+3, len(lr.LogAttributes["foo"]))
 }
 

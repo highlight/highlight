@@ -14,7 +14,6 @@ import (
 
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight/highlight/sdk/highlight-go"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -94,9 +93,9 @@ func WithSecureSessionID(secureSessionID string) LogRowOption {
 	}
 }
 
-func WithLogAttributes(ctx context.Context, source modelInputs.LogSource, resourceAttributes, spanAttributes, eventAttributes map[string]any) LogRowOption {
+func WithLogAttributes(attributes map[string]string) LogRowOption {
 	return func(l *LogRow) {
-		l.LogAttributes = GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, source == modelInputs.LogSourceFrontend)
+		l.LogAttributes = attributes
 	}
 }
 
@@ -141,34 +140,6 @@ func WithServiceVersion(version string) LogRowOption {
 	return func(l *LogRow) {
 		l.ServiceVersion = version
 	}
-}
-
-func GetAttributesMap(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) map[string]string {
-	attributesMap := make(map[string]string)
-	for mIdx, m := range []map[string]any{resourceAttributes, spanAttributes, eventAttributes} {
-		for k, v := range m {
-			prefixes := highlight.InternalAttributePrefixes
-			if isFrontendLog {
-				prefixes = append(prefixes, highlight.BackendOnlyAttributePrefixes...)
-			}
-
-			shouldSkip := false
-			for _, prefix := range prefixes {
-				if strings.HasPrefix(k, prefix) {
-					shouldSkip = true
-					break
-				}
-			}
-			if shouldSkip {
-				continue
-			}
-
-			for key, value := range util.FormatLogAttributes(ctx, mIdx, k, v) {
-				attributesMap[key] = value
-			}
-		}
-	}
-	return attributesMap
 }
 
 func makeLogLevel(severityText string) modelInputs.LogLevel {
