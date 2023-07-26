@@ -2,6 +2,7 @@ import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import {
 	downloadSnippet,
+	init,
 	setupFrontendSnippet,
 	setupLogging,
 } from './shared-snippets'
@@ -20,7 +21,7 @@ export const PythonOtherContext: QuickStartContent = {
 				{
 					text: `import highlight_io
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)`,
+${init}`,
 					language: 'python',
 				},
 			],
@@ -40,7 +41,7 @@ import time
 
 import highlight_io
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
+${init}
 
 
 def main():
