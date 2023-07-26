@@ -56,7 +56,7 @@ func (client *Client) WriteSession(ctx context.Context, session *model.Session) 
 
 	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", SessionsTable))
 	if err != nil {
-		return e.Wrap(err, "failed to create logs batch")
+		return e.Wrap(err, "failed to create sessions batch")
 	}
 	if err := batch.AppendStruct(&ch); err != nil {
 		return err
