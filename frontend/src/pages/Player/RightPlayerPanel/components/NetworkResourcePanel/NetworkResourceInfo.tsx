@@ -1,5 +1,5 @@
 import { Box, Text } from '@highlight-run/ui'
-import { getNetworkStatusCode } from '@pages/Player/helpers'
+import { getResponseStatusCode } from '@pages/Player/helpers'
 
 import { TableList, TableListItem } from '@/components/TableList/TableList'
 import { ErrorObject } from '@/graph/generated/schemas'
@@ -34,7 +34,7 @@ export const NetworkResourceInfo = ({
 	const responseHeadersData: TableListItem[] = []
 	const responsePayloadData: TableListItem[] = []
 
-	const statusCode = getNetworkStatusCode(selectedNetworkResource)
+	const statusCode = getResponseStatusCode(selectedNetworkResource)
 
 	const generalData: TableListItem[] = [
 		{

@@ -1,16 +1,19 @@
 import { NetworkResource } from '@/pages/Player/Toolbar/DevToolsWindowV2/utils'
 
-export const getNetworkStatusCode = (resource?: NetworkResource): string => {
+export const getResponseStatusCode = (resource?: NetworkResource): string => {
 	if (!resource) {
 		return ''
 	}
 
 	// Showing '200' for all requests that aren't 'xmlhttprequest', 'fetch', or 'websocket'
 	if (['xmlhttprequest', 'fetch'].includes(resource.initiatorType)) {
-		return (
-			resource.requestResponsePairs?.response.status?.toString() ||
-			'Unknown'
-		)
+		const status = resource.requestResponsePairs?.response.status
+
+		if (status === 0) {
+			return 'Canceled'
+		}
+
+		return status?.toString() || 'Unknown'
 	}
 
 	if (resource.initiatorType === 'websocket') {

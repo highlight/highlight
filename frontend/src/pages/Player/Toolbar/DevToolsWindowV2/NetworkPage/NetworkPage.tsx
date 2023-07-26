@@ -7,7 +7,7 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
-import { getNetworkStatusCode } from '@pages/Player/helpers'
+import { getResponseStatusCode } from '@pages/Player/helpers'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	LoadingError,
@@ -317,8 +317,8 @@ const ResourceRow = ({
 	const hasError =
 		!!errors?.length ||
 		!!resource.errors?.length ||
-		!!(responseStatus && (responseStatus === 0 || responseStatus >= 400))
-	const reponseStatuscode = getNetworkStatusCode(resource)
+		!!(responseStatus === 0 || (responseStatus && responseStatus >= 400))
+	const reponseStatuscode = getResponseStatusCode(resource)
 
 	return (
 		<Box
