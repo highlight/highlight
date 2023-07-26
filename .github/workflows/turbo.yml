@@ -64,6 +64,8 @@ jobs:
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
 
+            # avoid setting REACT_APP_COMMIT_SHA in CI to allow turborepo caching
+
             - name: Build & test (with render environment)
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               run: doppler run -- bash -c 'RENDER_PREVIEW=false yarn test:all'
@@ -71,7 +73,6 @@ jobs:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
                   GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
-                  REACT_APP_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Build & test (in a fork without doppler)
               if: github.event.pull_request.head.repo.full_name != 'highlight/highlight' && github.ref != 'refs/heads/main'
@@ -79,7 +80,6 @@ jobs:
               env:
                   GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
-                  REACT_APP_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Test session screenshot lambda
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
