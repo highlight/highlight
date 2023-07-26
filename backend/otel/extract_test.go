@@ -8,6 +8,8 @@ import (
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/pdata/pcommon"
+	"go.opentelemetry.io/collector/pdata/ptrace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
 
 func newResource(attrs map[string]string) pcommon.Resource {
@@ -31,6 +33,14 @@ func newResource(attrs map[string]string) pcommon.Resource {
 		resource.Attributes().PutStr(k, v)
 	}
 	return resource
+}
+
+func newEvent(attrs map[string]string) ptrace.SpanEvent {
+	event := ptrace.NewSpanEvent()
+	for k, v := range attrs {
+		event.Attributes().PutStr(k, v)
+	}
+	return event
 }
 
 func TestExtractFields_ExtractProjectID(t *testing.T) {
@@ -112,6 +122,92 @@ func TestExtractFields_ExtractRequestID(t *testing.T) {
 	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
+func TestExtractFields_ExtractMetricEventName(t *testing.T) {
+	resource := newResource(map[string]string{
+		highlight.MetricEventName: "metric_name",
+	})
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.metricEventName, "metric_name")
+	assert.Equal(t, fields.attrs, map[string]string{})
+}
+
+func TestExtractFields_ExtractMetricEventValue(t *testing.T) {
+	resource := newResource(map[string]string{
+		highlight.MetricEventValue: "99",
+	})
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.metricEventValue, "99")
+	assert.Equal(t, fields.attrs, map[string]string{})
+}
+
+func TestExtractFields_ExtractLogSeverity(t *testing.T) {
+	resource := newResource(map[string]string{})
+	event := newEvent(map[string]string{
+		highlight.LogSeverityAttribute: "log_severity",
+	})
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource, event: &event})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.logSeverity, "log_severity")
+	assert.Equal(t, fields.attrs, map[string]string{})
+}
+
+func TestExtractFields_ExtractLogMessage(t *testing.T) {
+	resource := newResource(map[string]string{})
+	event := newEvent(map[string]string{
+		highlight.LogMessageAttribute: "log_message",
+	})
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource, event: &event})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.logMessage, "log_message")
+	assert.Equal(t, fields.attrs, map[string]string{})
+}
+
+func TestExtractFields_ExtractExceptionType(t *testing.T) {
+	resource := newResource(map[string]string{})
+	event := newEvent(map[string]string{
+		string(semconv.ExceptionTypeKey): "exception_type",
+	})
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource, event: &event})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.exceptionType, "exception_type")
+	assert.Equal(t, fields.attrs, map[string]string{})
+}
+
+func TestExtractFields_ExtractExceptionMessage(t *testing.T) {
+	resource := newResource(map[string]string{})
+	event := newEvent(map[string]string{
+		string(semconv.ExceptionMessageKey): "exception_message",
+	})
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource, event: &event})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.exceptionMessage, "exception_message")
+	assert.Equal(t, fields.attrs, map[string]string{})
+}
+
+func TestExtractFields_ExtractExceptionStacktrace(t *testing.T) {
+	resource := newResource(map[string]string{})
+	event := newEvent(map[string]string{
+		string(semconv.ExceptionStacktraceKey): "exception_stacktrace",
+	})
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource, event: &event})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.exceptionStackTrace, "exception_stacktrace")
+	assert.Equal(t, fields.attrs, map[string]string{})
+}
+
+func TestExtractFields_ExtractErrorURL(t *testing.T) {
+	resource := newResource(map[string]string{})
+	event := newEvent(map[string]string{
+		highlight.ErrorURLAttribute: "error_url",
+	})
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource, event: &event})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.errorUrl, "error_url")
+	assert.Equal(t, fields.attrs, map[string]string{})
+}
+
 func TestExtractFields_ExtractServiceName(t *testing.T) {
 	resource := newResource(map[string]string{
 		"service.name": "my_service",
@@ -152,19 +248,6 @@ func TestExtractFields_OmitBackendPropertiesForFrontendSource(t *testing.T) {
 	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
 	assert.Equal(t, fields.attrs, map[string]string{})
-}
-
-func TestExtractFields_OmitExceptionProperties(t *testing.T) {
-	resource := newResource(map[string]string{
-		"exception.message":    "foo",
-		"exception.stacktrace": "bar",
-		"exception.type":       "baz",
-	})
-	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
-	assert.NoError(t, err)
-	assert.Equal(t, fields.attrs, map[string]string{
-		"exception.type": "baz",
-	})
 }
 
 func TestExtractFields_TrimLongFields(t *testing.T) {
