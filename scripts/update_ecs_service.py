@@ -18,6 +18,11 @@ def main():
             "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:173971919437:targetgroup/opentelemetry-group-fluentd/3be463a4f9874cf2",
             "containerName": "highlight-collector",
             "containerPort": 24224
+        },
+        {
+            "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:173971919437:targetgroup/opentelemetry-group-syslog/e610cdefccf1ec24",
+            "containerName": "highlight-collector",
+            "containerPort": 34302
         }
     ])
 

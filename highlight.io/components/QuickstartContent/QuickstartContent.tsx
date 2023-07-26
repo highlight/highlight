@@ -47,6 +47,7 @@ import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
+import { HostingRenderLogContent } from './logging/hosting/render'
 
 export type QuickStartOptions = {
 	title: string
@@ -119,6 +120,7 @@ export enum QuickStartType {
 	RubyRails = 'rails',
 	HostingVercel = 'vercel',
 	HostingFlyIO = 'fly-io',
+	HostingRender = 'render',
 }
 
 export const quickStartContent = {
@@ -250,6 +252,7 @@ export const quickStartContent = {
 				'Select your Hosting provider to setup the Highlight integration and stream logs.',
 			[QuickStartType.HostingVercel]: HostingVercelLogContent,
 			[QuickStartType.HostingFlyIO]: HostingFlyIOLogContent,
+			[QuickStartType.HostingRender]: HostingRenderLogContent,
 		},
 	},
 	other: {
