@@ -174,9 +174,14 @@ jobs:
             - name: Start docker containers & run cypress
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
-                  CYPRESS_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+                  COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+                  REF: ${{ github.ref }}
               run: |
                   start_time=$(date -Isecond)
+
+                  if [[ "$REF" != "refs/heads/main" ]]; then
+                    export CYPRESS_CLIENT_VERSION="dev-${COMMIT_SHA}"
+                  fi
 
                   # start highlight
                   pushd docker;
