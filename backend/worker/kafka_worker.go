@@ -71,7 +71,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 	}
 }
 
-const BatchFlushSize = 128
+const BatchFlushSize = 512
 const BatchedFlushTimeout = 1 * time.Second
 
 type KafkaWorker struct {
@@ -85,6 +85,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
 	defer s.Finish()
 
+	var oldestLogRow *clickhouse.LogRow
 	var logRows []*clickhouse.LogRow
 
 	var received int
@@ -96,6 +97,11 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 				switch lastMsg.Type {
 				case kafkaqueue.PushLogs:
 					logRows = append(logRows, lastMsg.PushLogs.LogRows...)
+					for _, row := range lastMsg.PushLogs.LogRows {
+						if oldestLogRow == nil || row.Timestamp.Before(oldestLogRow.Timestamp) {
+							oldestLogRow = row
+						}
+					}
 					received += len(lastMsg.PushLogs.LogRows)
 				}
 				if received >= BatchFlushSize {
@@ -220,7 +226,10 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	span, ctxT := tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.clickhouse"))
 	span.SetTag("NumLogRows", len(logRows))
 	span.SetTag("NumFilteredRows", len(filteredRows))
-	span.SetTag("PayloadSizeBytes", binary.Size(logRows))
+	span.SetTag("PayloadSizeBytes", binary.Size(filteredRows))
+	if oldestLogRow != nil {
+		span.SetTag("MaxIngestDelay", time.Since(oldestLogRow.Timestamp))
+	}
 	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, filteredRows)
 	if err != nil {
 		log.WithContext(ctxT).WithError(err).Error("failed to batch write to clickhouse")
