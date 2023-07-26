@@ -227,7 +227,9 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	span.SetTag("NumLogRows", len(logRows))
 	span.SetTag("NumFilteredRows", len(filteredRows))
 	span.SetTag("PayloadSizeBytes", binary.Size(filteredRows))
-	span.SetTag("MaxIngestDelay", time.Since(oldestLogRow.Timestamp))
+	if oldestLogRow != nil {
+		span.SetTag("MaxIngestDelay", time.Since(oldestLogRow.Timestamp))
+	}
 	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, filteredRows)
 	if err != nil {
 		log.WithContext(ctxT).WithError(err).Error("failed to batch write to clickhouse")
