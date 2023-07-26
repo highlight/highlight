@@ -15,7 +15,6 @@ import (
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 
 	"github.com/go-chi/chi"
-	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
@@ -266,7 +265,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 				ProjectVerboseID: &projectID,
 				Errors:           errors,
-			}}, uuid.New().String())
+			}}, "")
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel project errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -280,7 +279,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			PushMetrics: &kafkaqueue.PushMetricsArgs{
 				SessionSecureID: sessionID,
 				Metrics:         metrics,
-			}}, uuid.New().String())
+			}}, "")
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -389,7 +388,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 			Type: kafkaqueue.PushLogs,
 			PushLogs: &kafkaqueue.PushLogsArgs{
 				LogRows: logRows,
-			}}, uuid.New().String())
+			}}, "")
 		if err != nil {
 			return e.Wrap(err, "failed to submit otel project logs to public worker queue")
 		}
