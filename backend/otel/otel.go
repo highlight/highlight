@@ -22,7 +22,6 @@ import (
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight/highlight/sdk/highlight-go"
-	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -68,7 +67,7 @@ func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, 
 		TraceID:         pointy.String(traceID),
 		SpanID:          pointy.String(spanID),
 		LogCursor:       logCursor,
-		Event:           excMessage,
+		Event:           fields.exceptionMessage,
 		Type:            fields.exceptionType,
 		Source:          fields.source.String(),
 		StackTrace:      fields.exceptionStackTrace,
@@ -160,7 +159,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				events := span.Events()
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
-					eventAttributes := event.Attributes().AsRaw()
 
 					fields, err := extractFields(ctx, extractFieldsParams{
 						resource: &resource,
@@ -204,11 +202,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							}
 						}
 					} else if event.Name() == highlight.LogEvent {
-						logSev := cast(eventAttributes[string(hlog.LogSeverityKey)], "unknown")
-						logMessage := cast(eventAttributes[string(hlog.LogMessageKey)], "")
-						if logMessage == "" {
+						if fields.logMessage == "" {
 							lg(ctx, fields).Warn("otel received log with no message")
 							continue
+						}
+
+						if fields.logSeverity == "" {
+							fields.logSeverity = "unknown"
 						}
 
 						logRow := clickhouse.NewLogRow(
@@ -216,7 +216,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithTraceID(traceID),
 							clickhouse.WithSpanID(spanID),
 							clickhouse.WithSecureSessionID(fields.sessionID),
-							clickhouse.WithBody(ctx, logMessage),
+							clickhouse.WithBody(ctx, fields.logMessage),
 							clickhouse.WithLogAttributes(fields.attrs),
 							clickhouse.WithServiceName(fields.serviceName),
 							clickhouse.WithServiceVersion(fields.serviceVersion),

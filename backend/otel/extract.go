@@ -29,7 +29,7 @@ type extractedFields struct {
 	source         modelInputs.LogSource
 	serviceName    string
 	serviceVersion string
-	logLevel       string
+	logSeverity    string
 	logMessage     string
 
 	exceptionType       string
@@ -125,14 +125,14 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 		delete(attrs, highlight.RequestIDAttribute)
 	}
 
+	if val, ok := attrs[highlight.LogSeverityAttribute]; ok {
+		fields.logSeverity = val.(string)
+		delete(attrs, highlight.LogSeverityAttribute)
+	}
+
 	if val, ok := attrs[highlight.LogMessageAttribute]; ok {
 		fields.logMessage = val.(string)
 		delete(attrs, highlight.LogMessageAttribute)
-	}
-
-	if val, ok := attrs[highlight.LogSeverityAttribute]; ok {
-		fields.logLevel = val.(string)
-		delete(attrs, highlight.LogSeverityAttribute)
 	}
 
 	if val, ok := eventAttributes[string(semconv.ExceptionTypeKey)]; ok { // we know that exception.type will be in the event attributes map
@@ -145,14 +145,14 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 		delete(attrs, string(semconv.ExceptionMessageKey))
 	}
 
-	if val, ok := eventAttributes[highlight.ErrorURLAttribute]; ok { // we know that URL will be in the event attributes map
-		fields.errorUrl = val.(string)
-		delete(attrs, string(semconv.ExceptionStacktraceKey))
-	}
-
 	if val, ok := eventAttributes[string(semconv.ExceptionStacktraceKey)]; ok { // we know that exception.stacktrace will be in the event attributes map
 		fields.exceptionStackTrace = val.(string)
 		delete(attrs, string(semconv.ExceptionStacktraceKey))
+	}
+
+	if val, ok := eventAttributes[highlight.ErrorURLAttribute]; ok { // we know that URL will be in the event attributes map
+		fields.errorUrl = val.(string)
+		delete(attrs, highlight.ErrorURLAttribute)
 	}
 
 	if val, ok := resourceAttributes[string(semconv.ServiceNameKey)]; ok { // we know that service name will be in the resource map
