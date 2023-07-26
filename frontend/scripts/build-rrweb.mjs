@@ -41,7 +41,7 @@ export const run = async ({ rootDirectory }) => {
 		format: 'esm',
 		platform: 'browser',
 		outdir: path.join(rootDirectory, 'src/__generated/rr'),
-		minify: true,
+		minify: false,
 		target: 'esnext',
 		// external: Object.keys(packageJson.dependencies).concat(
 		//   Object.keys(packageJson.peerDependencies),
