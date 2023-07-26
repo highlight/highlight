@@ -18,8 +18,8 @@ import styles from '../../components/Blog/Blog.module.scss'
 import { getTagUrl, PostTag, TagTab } from '../../components/Blog/Tag'
 import { FooterCallToAction } from '../../components/common/CallToAction/FooterCallToAction'
 import Footer from '../../components/common/Footer/Footer'
+import { readMarkdownFile } from '../../components/Docs/TableOfContents/TableOfContents'
 import { removeOrderingPrefix } from '../api/docs/github'
-import { readMarkdown } from '../docs/[[...doc]]'
 
 export const BLOG_CONTENT_PATH = path.join(process.cwd(), '../blog-content')
 
@@ -34,11 +34,10 @@ export async function loadPostsFromGithub() {
 	let paths = await getBlogPaths(fsp, '')
 	let posts: Post[] = []
 	for (let index = 0; index < paths.length; index++) {
-		const data = await readMarkdown(
-			fsp,
+		const data = await readMarkdownFile(
 			BLOG_CONTENT_PATH + paths[index].rel_path,
 		)
-		const posty = markdownToPost(data.content, data.data)
+		const posty = markdownToPost(data.content, data.metadata)
 		posty.slug = paths[index].rel_path.split('/').at(-1)?.replace('.md', '')
 		posts.push(posty)
 	}
@@ -141,10 +140,11 @@ export const getBlogPaths = async (
 		} else {
 			const simple_path = path.join(base, file_string)
 			const pp = removeOrderingPrefix(simple_path.replace('.md', ''))
-			const { data, links, content } = await readMarkdown(
-				fsp,
-				path.join(total_path || ''),
-			)
+			const {
+				metadata: data,
+				links,
+				content,
+			} = await readMarkdownFile(path.join(total_path || ''))
 			const hasRequiredMetadata = ['title'].every((item) =>
 				data.hasOwnProperty(item),
 			)

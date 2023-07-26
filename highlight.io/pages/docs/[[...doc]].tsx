@@ -60,17 +60,7 @@ function sortByOrderPrefix(a: string, b: string) {
 	return a.localeCompare(b)
 }
 
-function getMarkdownLinks(content: string) {
-	const mdLinkRegex = /[^!]\[.*?\]\((.*?)\)/g
-	const hrefLinkRegex = /href="(.*?)"/g
-	const matchedLinks = [...content.matchAll(mdLinkRegex)].map(
-		([, link]) => link,
-	)
-
-	return new Set<string>(matchedLinks)
-}
-
-async function getDocs(base = ''): Promise<DocPage[]> {
+export async function getDocs(base = ''): Promise<DocPage[]> {
 	const absoluteBasePath = path.join(DOCS_CONTENT_PATH, base)
 	const docsFilePaths = await fs.readdir(absoluteBasePath)
 
@@ -154,7 +144,7 @@ const resolveEmbeddedLinksFromHref = (
 	relativePath: string,
 ): string => {
 	// replace all of the links in the markdown file
-	const newContent = markdownContent.replace(/href="(.*?)"/g, (_, text) => {
+	const newContent = markdownContent.replace(/href="(.*?)"/g, ([_, text]) => {
 		if (
 			text.startsWith('http') ||
 			text.startsWith('mailto') ||

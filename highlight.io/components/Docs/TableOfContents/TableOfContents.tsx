@@ -39,8 +39,19 @@ export const docMetadataSchema = z.object({
 
 export type DocMetadata = z.infer<typeof docMetadataSchema>
 
+function getMarkdownLinks(content: string) {
+	const mdLinkRegex = /[^!]\[.*?\]\((.*?)\)/g
+	const hrefLinkRegex = /href="(.*?)"/g
+	const matchedLinks = [...content.matchAll(mdLinkRegex)].map(
+		([, link]) => link,
+	)
+
+	return new Set<string>(matchedLinks)
+}
+
 export function parseDocMarkdown(fileContents: string): {
 	content: string
+	links: Set<string>
 	metadata: DocMetadata
 } {
 	const { content, data } = matter(fileContents, {
@@ -51,7 +62,8 @@ export function parseDocMarkdown(fileContents: string): {
 	})
 
 	const metadata = docMetadataSchema.parse(data)
-	return { content, metadata }
+	const links = getMarkdownLinks(content)
+	return { content, links, metadata }
 }
 
 export async function readMarkdownFile(filePath: string) {
@@ -306,20 +318,21 @@ export function TableOfContents({ toc: tocEntries }: { toc: TocEntry[] }) {
 					: 'Home',
 			},
 		])
-
-		router.push(slugPath)
 	}
 
 	const popFromStack = () => {
 		setSubtableStack(subtableStack.slice(0, -1))
-		if (subtableStackTop?.backLink) router.push(subtableStackTop?.backLink)
 	}
 
 	return (
 		<div className="flex flex-col self-stretch">
 			{subtableStackTop && (
 				<>
-					<button className={entryPlateStyle} onClick={popFromStack}>
+					<Link
+						className={entryPlateStyle}
+						onClick={popFromStack}
+						href={subtableStackTop?.backLink}
+					>
 						<ArrowLeftIcon
 							className={classNames(
 								entryIconStyle,
@@ -333,7 +346,7 @@ export function TableOfContents({ toc: tocEntries }: { toc: TocEntry[] }) {
 						>
 							Go back {subtableStackTop.backTitle}
 						</Typography>
-					</button>
+					</Link>
 					<TocSeparator />
 					<Typography type="copy3" emphasis onDark className="h-7">
 						{subtableStackTop.title}
