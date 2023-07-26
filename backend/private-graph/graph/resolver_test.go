@@ -413,7 +413,7 @@ func TestResolver_GetSlackChannelsFromSlack(t *testing.T) {
 			}
 
 			ctx := context.Background()
-			r := &queryResolver{Resolver: &Resolver{DB: DB}}
+			r := &queryResolver{Resolver: &Resolver{DB: DB, Redis: redis.NewClient()}}
 
 			_, num, err := r.GetSlackChannelsFromSlack(ctx, workspace.ID)
 			if v.expError != (err != nil) {

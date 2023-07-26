@@ -11,7 +11,10 @@ export function useSlackSync() {
 		variables: {
 			project_id: projectId,
 		},
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+		refetchQueries: [
+			namedOperations.Query.GetAlertsPagePayload,
+			namedOperations.Query.GetCommentMentionSuggestions,
+		],
 	})
 
 	const syncSlack = async () => {
