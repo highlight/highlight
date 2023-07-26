@@ -85,11 +85,10 @@ func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, 
 }
 
 func getMetric(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string) (*model.MetricInput, error) {
-	name, ok := fields.attrs[highlight.MetricEventName]
-	if !ok {
+	if fields.metricEventName == "" {
 		return nil, e.New("otel received metric with no name")
 	}
-	value, err := strconv.ParseFloat(fields.attrs[highlight.MetricEventValue], 64)
+	value, err := strconv.ParseFloat(fields.metricEventValue, 64)
 
 	if err != nil {
 		return nil, e.New("otel received metric with no value")
@@ -97,7 +96,7 @@ func getMetric(ctx context.Context, ts time.Time, fields extractedFields, traceI
 	return &model.MetricInput{
 		SessionSecureID: fields.sessionID,
 		Group:           pointy.String(fields.requestID),
-		Name:            name,
+		Name:            fields.metricEventName,
 		Value:           value,
 		Category:        pointy.String(fields.source.String()),
 		Timestamp:       ts,

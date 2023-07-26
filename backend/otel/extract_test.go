@@ -122,6 +122,26 @@ func TestExtractFields_ExtractRequestID(t *testing.T) {
 	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
+func TestExtractFields_ExtractMetricEventName(t *testing.T) {
+	resource := newResource(map[string]string{
+		highlight.MetricEventName: "metric_name",
+	})
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.metricEventName, "metric_name")
+	assert.Equal(t, fields.attrs, map[string]string{})
+}
+
+func TestExtractFields_ExtractMetricEventValue(t *testing.T) {
+	resource := newResource(map[string]string{
+		highlight.MetricEventValue: "99",
+	})
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.metricEventValue, "99")
+	assert.Equal(t, fields.attrs, map[string]string{})
+}
+
 func TestExtractFields_ExtractLogSeverity(t *testing.T) {
 	resource := newResource(map[string]string{})
 	event := newEvent(map[string]string{

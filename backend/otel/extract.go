@@ -37,6 +37,9 @@ type extractedFields struct {
 	exceptionStackTrace string
 	errorUrl            string
 
+	metricEventName  string
+	metricEventValue string // up to the consumer to parse this into an expected format
+
 	// This represents the merged result of resource, span...log attributes
 	// _after_ we extract fields out. In other words, if `serviceName` is extracted, it won't be included
 	// in this map.
@@ -133,6 +136,16 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 	if val, ok := attrs[highlight.LogMessageAttribute]; ok {
 		fields.logMessage = val.(string)
 		delete(attrs, highlight.LogMessageAttribute)
+	}
+
+	if val, ok := attrs[highlight.MetricEventName]; ok {
+		fields.metricEventName = val.(string)
+		delete(attrs, highlight.MetricEventName)
+	}
+
+	if val, ok := attrs[highlight.MetricEventValue]; ok {
+		fields.metricEventValue = val.(string)
+		delete(attrs, highlight.MetricEventValue)
 	}
 
 	if val, ok := eventAttributes[string(semconv.ExceptionTypeKey)]; ok { // we know that exception.type will be in the event attributes map
