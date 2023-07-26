@@ -52,18 +52,15 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 	return c
 }
 
-func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string, logCursor *string, excMessage string) (bool, *model.BackendErrorObjectInput) {
-	excType := cast(fields.attrs[string(semconv.ExceptionTypeKey)], fields.source.String())
-	errorUrl := cast(fields.attrs[highlight.ErrorURLAttribute], fields.source.String())
-	stackTrace := cast(fields.attrs[string(semconv.ExceptionStacktraceKey)], "")
-	if excType == "" && excMessage == "" {
+func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string, logCursor *string) (bool, *model.BackendErrorObjectInput) {
+	if fields.exceptionType == "" && fields.exceptionMessage == "" {
 		lg(ctx, fields).Error("otel received exception with no type and no message")
 		return false, nil
-	} else if stackTrace == "" || stackTrace == "null" {
+	} else if fields.exceptionStackTrace == "" || fields.exceptionStackTrace == "null" {
 		lg(ctx, fields).Warn("otel received exception with no stacktrace")
-		stackTrace = ""
+		fields.exceptionStackTrace = ""
 	}
-	stackTrace = stacktraces.FormatStructureStackTrace(ctx, stackTrace)
+	fields.exceptionStackTrace = stacktraces.FormatStructureStackTrace(ctx, fields.exceptionStackTrace)
 	payloadBytes, _ := json.Marshal(fields.attrs)
 	err := &model.BackendErrorObjectInput{
 		SessionSecureID: &fields.sessionID,
@@ -72,12 +69,12 @@ func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, 
 		SpanID:          pointy.String(spanID),
 		LogCursor:       logCursor,
 		Event:           excMessage,
-		Type:            excType,
+		Type:            fields.exceptionType,
 		Source:          fields.source.String(),
-		StackTrace:      stackTrace,
+		StackTrace:      fields.exceptionStackTrace,
 		Timestamp:       ts,
 		Payload:         pointy.String(string(payloadBytes)),
-		URL:             errorUrl,
+		URL:             fields.errorUrl,
 	}
 	if fields.sessionID != "" {
 		return false, err
@@ -178,8 +175,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					traceID := cast(fields.requestID, span.TraceID().String())
 					spanID := span.SpanID().String()
 					if event.Name() == semconv.ExceptionEventName {
-						excMessage := cast(eventAttributes[string(semconv.ExceptionMessageKey)], "")
-
 						var logCursor *string
 
 						logRow := clickhouse.NewLogRow(
@@ -187,7 +182,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithTraceID(traceID),
 							clickhouse.WithSpanID(spanID),
 							clickhouse.WithSecureSessionID(fields.sessionID),
-							clickhouse.WithBody(ctx, excMessage),
+							clickhouse.WithBody(ctx, fields.exceptionMessage),
 							clickhouse.WithLogAttributes(fields.attrs),
 							clickhouse.WithServiceName(fields.serviceName),
 							clickhouse.WithServiceVersion(fields.serviceVersion),
@@ -198,7 +193,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
 
-						isProjectError, backendError := getBackendError(ctx, ts, fields, traceID, spanID, logCursor, excMessage)
+						isProjectError, backendError := getBackendError(ctx, ts, fields, traceID, spanID, logCursor)
 						if backendError == nil {
 							lg(ctx, fields).Error("otel span error got no session and no project")
 						} else {
