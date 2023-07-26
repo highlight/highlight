@@ -49,10 +49,10 @@ function getMarkdownLinks(content: string) {
 	return new Set<string>(matchedLinks)
 }
 
-export function parseDocMarkdown(fileContents: string): {
+export function parseMarkdown(fileContents: string): {
 	content: string
 	links: Set<string>
-	metadata: DocMetadata
+	metadata: Record<string, unknown>
 } {
 	const { content, data } = matter(fileContents, {
 		delimiters: ['---', '---'],
@@ -61,14 +61,14 @@ export function parseDocMarkdown(fileContents: string): {
 		},
 	})
 
-	const metadata = docMetadataSchema.parse(data)
+	const metadata = data
 	const links = getMarkdownLinks(content)
 	return { content, links, metadata }
 }
 
 export async function readMarkdownFile(filePath: string) {
 	const fileContents = await readFile(path.join(filePath), 'utf-8')
-	return parseDocMarkdown(fileContents)
+	return parseMarkdown(fileContents)
 }
 
 export async function readDocFile(filePath: string) {
@@ -81,9 +81,10 @@ export async function readDocFile(filePath: string) {
 	const absoluteFilePath = path.join(DOCS_CONTENT_PATH, normalFilePath)
 
 	const { metadata, content } = await readMarkdownFile(absoluteFilePath)
+	const docMetadata = docMetadataSchema.parse(metadata)
 
 	return {
-		metadata,
+		metadata: docMetadata,
 		rawContent: content,
 		isIndex: normalFilePath.endsWith('index.md'),
 		isSdkDoc: slugPath.startsWith('sdk'),

@@ -24,6 +24,7 @@ import { generateIdFromProps } from '../../components/Docs/DocsTypographyRendere
 import { HighlightCodeBlock } from '../../components/Docs/HighlightCodeBlock/HighlightCodeBlock'
 import {
 	DocMetadata,
+	docMetadataSchema,
 	DocPage,
 	DOCS_CONTENT_PATH,
 	getTocEntry,
@@ -236,6 +237,8 @@ export const getStaticProps: GetStaticProps<DocProps> = async ({ params }) => {
 		currentDocPath.absoluteFilePath,
 	)
 
+	const docMetadata = docMetadataSchema.parse(metadata)
+
 	// const sdkPaths = await getSdkPaths(fsp, undefined);
 	const currentDocIndex = docPages.findIndex((d) => {
 		return (
@@ -280,7 +283,7 @@ export const getStaticProps: GetStaticProps<DocProps> = async ({ params }) => {
 		// relPath: currentDoc.filePath,
 		// slug: currentDoc.slugPath,
 		docPages: docPages,
-		metadata,
+		metadata: docMetadata,
 		docIndex: currentDocIndex,
 		// isSdkDoc: currentDoc.isSdkDoc,
 		redirect,
