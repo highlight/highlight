@@ -166,11 +166,11 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 					Timestamp: time.UnixMilli(event.Timestamp).UTC().Format(hlog.TimestampFormat),
 					Level:     "info",
 					Attributes: map[string]string{
-						"service_name": "firehose",
-						"message_type": cloudwatchPayload.MessageType,
-						"owner":        cloudwatchPayload.Owner,
-						"log_group":    cloudwatchPayload.LogGroup,
-						"log_stream":   cloudwatchPayload.LogStream,
+						string(semconv.ServiceNameKey): "firehose",
+						"message_type":                 cloudwatchPayload.MessageType,
+						"owner":                        cloudwatchPayload.Owner,
+						"log_group":                    cloudwatchPayload.LogGroup,
+						"log_stream":                   cloudwatchPayload.LogStream,
 					},
 				}
 				if err := hlog.SubmitHTTPLog(r.Context(), projectID, hl); err != nil {
