@@ -362,33 +362,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// TODO: Send spans to Kafka for processing
-	for projectID, spans := range projectSpans {
-		traceRows := make([]*clickhouse.TraceRow, len(spans))
-		projectIDInt, err := clickhouse.ProjectToInt(projectID)
-		if err != nil {
-			log.WithContext(ctx).WithError(err).Error(fmt.Sprintf("failed to parse project id: %s", projectID))
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
-		}
-		projectIDInt32 := uint32(projectIDInt)
-
-		for _, span := range spans {
-			traceRows = append(traceRows, clickhouse.NewTraceRow(span, projectIDInt32))
-		}
-
-		client, err := clickhouse.NewClient(clickhouse.PrimaryDatabase)
-		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to create clickhouse client")
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
-		}
-		err = client.BatchWriteTraceRows(ctx, traceRows)
-		if err != nil {
-			log.WithContext(ctx).WithError(err).Error("failed to write otel trace rows to clickhouse")
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
-		}
+	if err := o.submitProjectSpans(ctx, projectSpans); err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to submit otel project spans")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
 	}
 
 	if err := o.submitProjectLogs(ctx, projectLogs); err != nil {
@@ -490,6 +467,35 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 			return e.Wrap(err, "failed to submit otel project logs to public worker queue")
 		}
 	}
+	return nil
+}
+
+func (o *Handler) submitProjectSpans(ctx context.Context, projectSpans map[string][]ptrace.Span) error {
+	for projectID, spans := range projectSpans {
+		traceRows := make([]*clickhouse.TraceRow, len(spans))
+
+		projectIDInt, err := clickhouse.ProjectToInt(projectID)
+		if err != nil {
+			return e.Wrap(err, fmt.Sprintf("failed to parse project id: %s", projectID))
+		}
+
+		projectIDInt32 := uint32(projectIDInt)
+		for _, span := range spans {
+			traceRows = append(traceRows, clickhouse.NewTraceRow(span, projectIDInt32))
+		}
+
+		err = o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
+			Type: kafkaqueue.PushTraces,
+			PushTraces: &kafkaqueue.PushTracesArgs{
+				TraceRows: traceRows,
+			},
+		}, uuid.New().String())
+
+		if err != nil {
+			return e.Wrap(err, "failed to submit otel project traces to public worker queue")
+		}
+	}
+
 	return nil
 }
 

@@ -86,6 +86,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	defer s.Finish()
 
 	var logRows []*clickhouse.LogRow
+	var traceRows []*clickhouse.TraceRow
 
 	var received int
 	var lastMsg *kafkaqueue.Message
@@ -97,6 +98,9 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 				case kafkaqueue.PushLogs:
 					logRows = append(logRows, lastMsg.PushLogs.LogRows...)
 					received += len(lastMsg.PushLogs.LogRows)
+				case kafkaqueue.PushTraces:
+					traceRows = append(traceRows, lastMsg.PushTraces.TraceRows...)
+					received += len(lastMsg.PushTraces.TraceRows)
 				}
 				if received >= BatchFlushSize {
 					return
@@ -217,13 +221,23 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 		}
 	}
 
-	span, ctxT := tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.clickhouse"))
+	span, ctxT := tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.clickhouse.logs"))
 	span.SetTag("NumLogRows", len(logRows))
 	span.SetTag("NumFilteredRows", len(filteredRows))
 	span.SetTag("PayloadSizeBytes", binary.Size(logRows))
 	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, filteredRows)
 	if err != nil {
-		log.WithContext(ctxT).WithError(err).Error("failed to batch write to clickhouse")
+		log.WithContext(ctxT).WithError(err).Error("failed to batch write logs to clickhouse")
+	}
+	span.Finish(tracer.WithError(err))
+	wSpan.Finish()
+
+	span, ctxT = tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.clickhouse.traces"))
+	span.SetTag("NumTraceRows", len(traceRows))
+	span.SetTag("PayloadSizeBytes", binary.Size(traceRows))
+	err = k.Worker.PublicResolver.Clickhouse.BatchWriteTraceRows(ctxT, traceRows)
+	if err != nil {
+		log.WithContext(ctxT).WithError(err).Error("failed to batch write traces to clickhouse")
 	}
 	span.Finish(tracer.WithError(err))
 	wSpan.Finish()
