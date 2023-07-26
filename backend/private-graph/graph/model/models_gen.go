@@ -615,6 +615,30 @@ type SearchParamsInput struct {
 	Query                   *string              `json:"query"`
 }
 
+type ServiceConnection struct {
+	Edges    []*ServiceEdge `json:"edges"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+}
+
+func (ServiceConnection) IsConnection()               {}
+func (this ServiceConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
+type ServiceEdge struct {
+	Cursor string       `json:"cursor"`
+	Node   *ServiceNode `json:"node"`
+}
+
+func (ServiceEdge) IsEdge()                {}
+func (this ServiceEdge) GetCursor() string { return this.Cursor }
+
+type ServiceNode struct {
+	ID             int           `json:"id"`
+	ProjectID      int           `json:"projectID"`
+	Name           string        `json:"name"`
+	Status         ServiceStatus `json:"status"`
+	GithubRepoPath *string       `json:"githubRepoPath"`
+}
+
 type SessionAlertInput struct {
 	ProjectID           int                           `json:"project_id"`
 	Name                string                        `json:"name"`

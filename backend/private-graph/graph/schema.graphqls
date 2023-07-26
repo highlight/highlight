@@ -661,6 +661,24 @@ type Service {
 	githubRepoPath: String
 }
 
+type ServiceNode {
+	id: ID!
+	projectID: ID!
+	name: String!
+	status: ServiceStatus!
+	githubRepoPath: String
+}
+
+type ServiceEdge implements Edge {
+	cursor: String!
+	node: ServiceNode!
+}
+
+type ServiceConnection implements Connection {
+	edges: [ServiceEdge]!
+	pageInfo: PageInfo!
+}
+
 enum ReservedLogKey {
 	"""
 	Keep this in alpha order
@@ -1724,7 +1742,12 @@ type Query {
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
 	system_configuration: SystemConfiguration!
-	services(project_id: ID!): [Service!]!
+	services(
+		project_id: ID!
+		after: String
+		before: String
+		query: String
+	): ServiceConnection
 }
 
 type Mutation {
