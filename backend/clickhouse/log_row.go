@@ -2,33 +2,15 @@ package clickhouse
 
 import (
 	"context"
-	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/util"
 
-	model2 "github.com/highlight-run/highlight/backend/model"
-	e "github.com/pkg/errors"
-
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight/highlight/sdk/highlight-go"
 	log "github.com/sirupsen/logrus"
 )
-
-func ProjectToInt(projectID string) (int, error) {
-	i, err := strconv.ParseInt(projectID, 10, 32)
-	if err == nil {
-		return int(i), nil
-	}
-	i2, err := model2.FromVerboseID(projectID)
-	if err == nil {
-		return i2, nil
-	}
-	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
-}
 
 type LogRow struct {
 	Timestamp       time.Time
@@ -48,6 +30,12 @@ type LogRow struct {
 }
 
 func NewLogRow(timestamp time.Time, projectID uint32, opts ...LogRowOption) *LogRow {
+	// if the timestamp is zero, set time
+	// TODO(et) - should we move this up to extractFields?
+	if timestamp.Before(time.Unix(0, 1).UTC()) {
+		timestamp = time.Now()
+	}
+
 	logRow := &LogRow{
 		// ensure timestamp is written at second precision,
 		// since clickhouse schema will truncate to second precision anyways.
@@ -89,9 +77,9 @@ func WithSecureSessionID(secureSessionID string) LogRowOption {
 	}
 }
 
-func WithLogAttributes(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) LogRowOption {
+func WithLogAttributes(attributes map[string]string) LogRowOption {
 	return func(l *LogRow) {
-		l.LogAttributes = GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, isFrontendLog)
+		l.LogAttributes = attributes
 	}
 }
 
@@ -136,34 +124,6 @@ func WithServiceVersion(version string) LogRowOption {
 	return func(l *LogRow) {
 		l.ServiceVersion = version
 	}
-}
-
-func GetAttributesMap(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) map[string]string {
-	attributesMap := make(map[string]string)
-	for mIdx, m := range []map[string]any{resourceAttributes, spanAttributes, eventAttributes} {
-		for k, v := range m {
-			prefixes := highlight.InternalAttributePrefixes
-			if isFrontendLog {
-				prefixes = append(prefixes, highlight.BackendOnlyAttributePrefixes...)
-			}
-
-			shouldSkip := false
-			for _, prefix := range prefixes {
-				if strings.HasPrefix(k, prefix) {
-					shouldSkip = true
-					break
-				}
-			}
-			if shouldSkip {
-				continue
-			}
-
-			for key, value := range util.FormatLogAttributes(ctx, mIdx, k, v) {
-				attributesMap[key] = value
-			}
-		}
-	}
-	return attributesMap
 }
 
 func makeLogLevel(severityText string) modelInputs.LogLevel {

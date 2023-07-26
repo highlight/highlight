@@ -28,7 +28,14 @@ export const curlExample: QuickStartStep = {
       "resourceLogs": [
         {
           "resource": {
-            "attributes": []
+            "attributes": [
+              {
+                  "key": "service.name",
+                  "value": {
+                      "stringValue": "my-service"
+                  }
+              }
+          ]
           },
           "scopeLogs": [
             {
