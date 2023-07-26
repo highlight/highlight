@@ -22,7 +22,7 @@ func (store *Store) FindOrCreateService(project model.Project, name string) (mod
 }
 
 // Number of results per page
-const SERVICE_LIMIT = 2
+const SERVICE_LIMIT = 10
 
 type ListServicesParams struct {
 	After  *string
