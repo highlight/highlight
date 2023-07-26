@@ -356,6 +356,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					clickhouse.WithBody(ctx, logRecord.Body().Str()),
 					clickhouse.WithLogAttributes(fields.attrs),
 					clickhouse.WithServiceName(fields.serviceName),
+					clickhouse.WithServiceVersion(fields.serviceVersion),
 					clickhouse.WithSeverityText(logRecord.SeverityText()),
 					clickhouse.WithSource(fields.source),
 				)
