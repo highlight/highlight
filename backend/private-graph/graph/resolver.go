@@ -872,9 +872,6 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 }
 
 func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, bool, error) {
-	s, ctx := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("doesAdminOwnErrorGroup"))
-	defer s.Finish()
-
 	eg := &model.ErrorGroup{}
 
 	if err := r.DB.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).Take(&eg).Error; err != nil {
@@ -886,13 +883,6 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 		return eg, false, err
 	}
 
-	start := time.Now()
-	defer func() {
-		log.WithContext(ctx).WithField("duration", time.Since(start)).Info("doesAdminOwnErrorGroup.GetErrorGroupOccurrences")
-	}()
-
-	s, ctx = tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("doesAdminOwnErrorGroup.GetErrorGroupOccurrences"))
-	defer s.Finish()
 	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg); err != nil {
 		return nil, false, e.Wrap(err, "error querying error group occurrences")
 	}
