@@ -10,16 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// func TestMain(m *testing.M) {
-// 	_, err := setupClickhouseTestDB()
-// 	if err != nil {
-// 		panic("Failed to setup clickhouse test database")
-// 	}
-// 	code := m.Run()
-// 	// teardown() - we could drop the testing database here
-// 	os.Exit(code)
-// }
-
 func setupSessionsTest(tb testing.TB) (*Client, func(tb testing.TB)) {
 	client, _ := NewClient(TestDatabase)
 

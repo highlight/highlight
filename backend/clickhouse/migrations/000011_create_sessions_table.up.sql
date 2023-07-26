@@ -32,6 +32,3 @@ CREATE TABLE IF NOT EXISTS sessions (
     Normalness Float64
 ) ENGINE = ReplacingMergeTree(UpdatedAt)
 ORDER BY (ProjectID, CreatedAt, ID);
--- @block
-select *
-from sessions final

@@ -2725,8 +2725,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 	}
 
-	// ZANETODO: can we limit how often this runs?
-	if sessionHasErrors {
+	if sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors) {
 		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"has_errors": true,
 		}); err != nil {
