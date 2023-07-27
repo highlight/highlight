@@ -38,7 +38,7 @@ type extractedFields struct {
 	errorUrl            string
 
 	metricEventName  string
-	metricEventValue string // up to the consumer to parse this into an expected format
+	metricEventValue float64
 
 	// This represents the merged result of resource, span...log attributes
 	// _after_ we extract fields out. In other words, if `serviceName` is extracted, it won't be included
@@ -144,7 +144,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 	}
 
 	if val, ok := attrs[highlight.MetricEventValue]; ok {
-		fields.metricEventValue = val.(string)
+		fields.metricEventValue = val.(float64)
 		delete(attrs, highlight.MetricEventValue)
 	}
 

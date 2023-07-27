@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/samber/lo"
@@ -87,16 +86,11 @@ func getMetric(ctx context.Context, ts time.Time, fields extractedFields, traceI
 	if fields.metricEventName == "" {
 		return nil, e.New("otel received metric with no name")
 	}
-	value, err := strconv.ParseFloat(fields.metricEventValue, 64)
-
-	if err != nil {
-		return nil, e.New("otel received metric with no value")
-	}
 	return &model.MetricInput{
 		SessionSecureID: fields.sessionID,
 		Group:           pointy.String(fields.requestID),
 		Name:            fields.metricEventName,
-		Value:           value,
+		Value:           fields.metricEventValue,
 		Category:        pointy.String(fields.source.String()),
 		Timestamp:       ts,
 		Tags: lo.Map(lo.Entries(fields.attrs), func(t lo.Entry[string, string], i int) *model.MetricTag {
