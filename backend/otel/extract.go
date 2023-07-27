@@ -28,8 +28,8 @@ type extractedFields struct {
 	requestID    string
 	source       modelInputs.LogSource
 	serviceName  string
-	events       []map[string]any // TODO: should we be more specific w/ these types?
-	links        []map[string]any // TODO: should we be more specific w/ these types?
+	events       []map[string]any
+	links        []map[string]any
 
 	// This represents the merged result of resource, span...log attributes
 	// _after_ we extract fields out. In other words, if `serviceName` is extracted, it won't be included
