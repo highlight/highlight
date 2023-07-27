@@ -11,7 +11,6 @@ receivers:
         tcp:
             listen_address: '0.0.0.0:34302'
         protocol: rfc5424
-        location: UTC
 exporters:
     otlphttp:
         endpoint: 'https://backend:8082/otel'
@@ -25,19 +24,19 @@ processors:
         limit_percentage: 75
         spike_limit_percentage: 15
 service:
-    extensions: [health_check]
+    extensions: [health_check, memory_ballast]
     pipelines:
         traces:
             receivers: [otlp]
-            processors: [batch]
+            processors: [batch, memory_limiter]
             exporters: [otlphttp]
         metrics:
             receivers: [otlp]
-            processors: [batch]
+            processors: [batch, memory_limiter]
             exporters: [otlphttp]
         logs:
             receivers: [otlp, fluentforward, syslog]
-            processors: [batch]
+            processors: [batch, memory_limiter]
             exporters: [otlphttp]
 extensions:
     health_check:

@@ -131,6 +131,7 @@ services:
             - 4318:4318
             - 4319:4319
             - 24224:24224
+            - 34302:34302
         container_name: collector
         image: otel/opentelemetry-collector-contrib
         command:

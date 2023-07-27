@@ -89,6 +89,11 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 		logAttributes,
 	)
 
+	if val, ok := attrs[highlight.RenderTokenProjectIDAttribute]; ok {
+		fields.projectID = val.(string)
+		delete(attrs, highlight.RenderTokenProjectIDAttribute)
+	}
+
 	if val, ok := attrs[highlight.DeprecatedProjectIDAttribute]; ok {
 		fields.projectID = val.(string)
 		delete(attrs, highlight.DeprecatedProjectIDAttribute)
