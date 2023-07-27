@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/samber/lo"
 
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
