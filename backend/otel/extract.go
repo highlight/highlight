@@ -26,6 +26,7 @@ type extractedFields struct {
 	projectIDInt   int
 	sessionID      string
 	requestID      string
+	logBody        string
 	source         modelInputs.LogSource
 	serviceName    string
 	serviceVersion string
@@ -79,6 +80,16 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 
 	if params.logRecord != nil {
 		logAttributes = params.logRecord.Attributes().AsRaw()
+		// this could be a log record from syslog, with a projectID token prefix. ie:
+		// 1jdkoe52 <1>1 2023-07-27T05:43:22.401882Z render render-log-endpoint-test 1 render-log-endpoint-test - Render test log
+		fields.logBody = params.logRecord.Body().Str()
+		if len(fields.logBody) > 0 && fields.logBody[0] != '<' {
+			parts := strings.SplitN(fields.logBody, " <", 2)
+			if len(parts) == 2 {
+				fields.projectID = parts[0]
+				fields.logBody = "<" + parts[1]
+			}
+		}
 	}
 
 	attrs := mergeMaps(
@@ -88,11 +99,6 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 		scopeAttributes,
 		logAttributes,
 	)
-
-	if val, ok := attrs[highlight.RenderTokenProjectIDAttribute]; ok {
-		fields.projectID = val.(string)
-		delete(attrs, highlight.RenderTokenProjectIDAttribute)
-	}
 
 	if val, ok := attrs[highlight.DeprecatedProjectIDAttribute]; ok {
 		fields.projectID = val.(string)

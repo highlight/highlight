@@ -106,7 +106,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid trace body")
+		log.WithContext(ctx).WithError(err).Error("invalid trace logBody")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -288,7 +288,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid log body")
+		log.WithContext(ctx).WithError(err).Error("invalid log logBody")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -340,7 +340,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					clickhouse.WithTraceID(logRecord.TraceID().String()),
 					clickhouse.WithSpanID(logRecord.SpanID().String()),
 					clickhouse.WithSecureSessionID(fields.sessionID),
-					clickhouse.WithBody(ctx, logRecord.Body().Str()),
+					clickhouse.WithBody(ctx, fields.logBody),
 					clickhouse.WithLogAttributes(fields.attrs),
 					clickhouse.WithServiceName(fields.serviceName),
 					clickhouse.WithServiceVersion(fields.serviceVersion),
