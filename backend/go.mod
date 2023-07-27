@@ -62,6 +62,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.6.6
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/highlight/highlight/sdk/highlight-go v0.9.8
+	github.com/influxdata/go-syslog/v3 v3.0.0
 	github.com/influxdata/influxdb-client-go/v2 v2.12.1
 	github.com/jackc/pgconn v1.10.1
 	github.com/kylelemons/godebug v1.1.0
@@ -135,7 +136,6 @@ require (
 	github.com/hasura/go-graphql-client v0.9.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
-	github.com/influxdata/go-syslog/v3 v3.0.0 // indirect
 	github.com/influxdata/line-protocol v0.0.0-20200327222509-2487e7298839 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
