@@ -170,7 +170,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 	}
 
 	if val, ok := attrs[highlight.MetricEventValue]; ok {
-		fields.metricEventValue = fmt.Sprintf("%v", val);
+		fields.metricEventValue = fmt.Sprintf("%v", val)
 		delete(attrs, highlight.MetricEventValue)
 	}
 
