@@ -144,10 +144,19 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 	}
 
 	if val, ok := attrs[highlight.MetricEventValue]; ok {
-		castedValue, ok := val.(float64)
+		float64Value, ok := val.(float64)
 		if ok {
-			fields.metricEventValue = castedValue
+			fields.metricEventValue = float64Value
 			delete(attrs, highlight.MetricEventValue)
+		} else {
+			stringValue, ok := val.(string)
+			if ok {
+				parsedFloat64Value, err := strconv.ParseFloat(stringValue, 64)
+				if err == nil {
+					fields.metricEventValue = parsedFloat64Value
+					delete(attrs, highlight.MetricEventValue)
+				}
+			}
 		}
 	}
 

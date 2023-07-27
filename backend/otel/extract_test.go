@@ -158,7 +158,7 @@ func TestExtractFields_ExtractMetricEventValueHandlesBadInput(t *testing.T) {
 	})
 	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
-	assert.Equal(t, fields.metricEventValue, float64(0))
+	assert.Equal(t, fields.metricEventValue, float64(99))
 	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
