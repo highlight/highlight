@@ -95,7 +95,7 @@ jobs:
               run: yarn validate --has-sdk-changes=${{ steps.filter.outputs.npm-changed }}
 
             - name: Publish client bundle (preview)
-              if: github.ref != 'refs/heads/main'
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' && github.ref != 'refs/heads/main'
               run: yarn publish:client --preview ${GIT_SHA} --replace
               env:
                   # this cannot use ${{ github.sha }} as that commit will be a merge ref
@@ -174,9 +174,15 @@ jobs:
             - name: Start docker containers & run cypress
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
-                  CYPRESS_COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+                  COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+                  REF: ${{ github.ref }}
+                  REPO: ${{ github.event.pull_request.head.repo.full_name }}
               run: |
                   start_time=$(date -Isecond)
+
+                  if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
+                    export CYPRESS_CLIENT_VERSION="dev-${COMMIT_SHA}"
+                  fi
 
                   # start highlight
                   pushd docker;

@@ -890,7 +890,7 @@ type ComplexityRoot struct {
 		Resources                    func(childComplexity int, sessionSecureID string) int
 		Segments                     func(childComplexity int, projectID int) int
 		ServerIntegration            func(childComplexity int, projectID int) int
-		Services                     func(childComplexity int, projectID int) int
+		Services                     func(childComplexity int, projectID int, after *string, before *string, query *string) int
 		Session                      func(childComplexity int, secureID string) int
 		SessionCommentTagsForProject func(childComplexity int, projectID int) int
 		SessionComments              func(childComplexity int, sessionSecureID string) int
@@ -996,6 +996,24 @@ type ComplexityRoot struct {
 	}
 
 	Service struct {
+		GithubRepoPath func(childComplexity int) int
+		ID             func(childComplexity int) int
+		Name           func(childComplexity int) int
+		ProjectID      func(childComplexity int) int
+		Status         func(childComplexity int) int
+	}
+
+	ServiceConnection struct {
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+	}
+
+	ServiceEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
+	ServiceNode struct {
 		GithubRepoPath func(childComplexity int) int
 		ID             func(childComplexity int) int
 		Name           func(childComplexity int) int
@@ -1562,7 +1580,7 @@ type QueryResolver interface {
 	ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error)
 	SessionInsight(ctx context.Context, secureID string) (*model.SessionInsight, error)
 	SystemConfiguration(ctx context.Context) (*model1.SystemConfiguration, error)
-	Services(ctx context.Context, projectID int) ([]*model1.Service, error)
+	Services(ctx context.Context, projectID int, after *string, before *string, query *string) (*model.ServiceConnection, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -6639,7 +6657,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Services(childComplexity, args["project_id"].(int)), true
+		return e.complexity.Query.Services(childComplexity, args["project_id"].(int), args["after"].(*string), args["before"].(*string), args["query"].(*string)), true
 
 	case "Query.session":
 		if e.complexity.Query.Session == nil {
@@ -7381,6 +7399,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Service.Status(childComplexity), true
+
+	case "ServiceConnection.edges":
+		if e.complexity.ServiceConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.ServiceConnection.Edges(childComplexity), true
+
+	case "ServiceConnection.pageInfo":
+		if e.complexity.ServiceConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.ServiceConnection.PageInfo(childComplexity), true
+
+	case "ServiceEdge.cursor":
+		if e.complexity.ServiceEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.ServiceEdge.Cursor(childComplexity), true
+
+	case "ServiceEdge.node":
+		if e.complexity.ServiceEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.ServiceEdge.Node(childComplexity), true
+
+	case "ServiceNode.githubRepoPath":
+		if e.complexity.ServiceNode.GithubRepoPath == nil {
+			break
+		}
+
+		return e.complexity.ServiceNode.GithubRepoPath(childComplexity), true
+
+	case "ServiceNode.id":
+		if e.complexity.ServiceNode.ID == nil {
+			break
+		}
+
+		return e.complexity.ServiceNode.ID(childComplexity), true
+
+	case "ServiceNode.name":
+		if e.complexity.ServiceNode.Name == nil {
+			break
+		}
+
+		return e.complexity.ServiceNode.Name(childComplexity), true
+
+	case "ServiceNode.projectID":
+		if e.complexity.ServiceNode.ProjectID == nil {
+			break
+		}
+
+		return e.complexity.ServiceNode.ProjectID(childComplexity), true
+
+	case "ServiceNode.status":
+		if e.complexity.ServiceNode.Status == nil {
+			break
+		}
+
+		return e.complexity.ServiceNode.Status(childComplexity), true
 
 	case "Session.active_length":
 		if e.complexity.Session.ActiveLength == nil {
@@ -9549,6 +9630,24 @@ type Service {
 	githubRepoPath: String
 }
 
+type ServiceNode {
+	id: ID!
+	projectID: ID!
+	name: String!
+	status: ServiceStatus!
+	githubRepoPath: String
+}
+
+type ServiceEdge implements Edge {
+	cursor: String!
+	node: ServiceNode!
+}
+
+type ServiceConnection implements Connection {
+	edges: [ServiceEdge]!
+	pageInfo: PageInfo!
+}
+
 enum ReservedLogKey {
 	"""
 	Keep this in alpha order
@@ -10612,7 +10711,12 @@ type Query {
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
 	system_configuration: SystemConfiguration!
-	services(project_id: ID!): [Service!]!
+	services(
+		project_id: ID!
+		after: String
+		before: String
+		query: String
+	): ServiceConnection
 }
 
 type Mutation {
@@ -16094,6 +16198,33 @@ func (ec *executionContext) field_Query_services_args(ctx context.Context, rawAr
 		}
 	}
 	args["project_id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["before"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("before"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg3
 	return args, nil
 }
 
@@ -49735,20 +49866,17 @@ func (ec *executionContext) _Query_services(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Services(rctx, fc.Args["project_id"].(int))
+		return ec.resolvers.Query().Services(rctx, fc.Args["project_id"].(int), fc.Args["after"].(*string), fc.Args["before"].(*string), fc.Args["query"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model1.Service)
+	res := resTmp.(*model.ServiceConnection)
 	fc.Result = res
-	return ec.marshalNService2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐServiceᚄ(ctx, field.Selections, res)
+	return ec.marshalOServiceConnection2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐServiceConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_services(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -49759,18 +49887,12 @@ func (ec *executionContext) fieldContext_Query_services(ctx context.Context, fie
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_Service_id(ctx, field)
-			case "projectID":
-				return ec.fieldContext_Service_projectID(ctx, field)
-			case "name":
-				return ec.fieldContext_Service_name(ctx, field)
-			case "status":
-				return ec.fieldContext_Service_status(ctx, field)
-			case "githubRepoPath":
-				return ec.fieldContext_Service_githubRepoPath(ctx, field)
+			case "edges":
+				return ec.fieldContext_ServiceConnection_edges(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_ServiceConnection_pageInfo(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Service", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ServiceConnection", field.Name)
 		},
 	}
 	defer func() {
@@ -51982,6 +52104,427 @@ func (ec *executionContext) _Service_githubRepoPath(ctx context.Context, field g
 func (ec *executionContext) fieldContext_Service_githubRepoPath(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Service",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.ServiceConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceConnection_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ServiceEdge)
+	fc.Result = res
+	return ec.marshalNServiceEdge2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐServiceEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceConnection_edges(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "cursor":
+				return ec.fieldContext_ServiceEdge_cursor(ctx, field)
+			case "node":
+				return ec.fieldContext_ServiceEdge_node(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.ServiceConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceConnection_pageInfo(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			case "hasPreviousPage":
+				return ec.fieldContext_PageInfo_hasPreviousPage(ctx, field)
+			case "startCursor":
+				return ec.fieldContext_PageInfo_startCursor(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *model.ServiceEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceEdge_cursor(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceEdge_node(ctx context.Context, field graphql.CollectedField, obj *model.ServiceEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.ServiceNode)
+	fc.Result = res
+	return ec.marshalNServiceNode2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐServiceNode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceEdge_node(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ServiceNode_id(ctx, field)
+			case "projectID":
+				return ec.fieldContext_ServiceNode_projectID(ctx, field)
+			case "name":
+				return ec.fieldContext_ServiceNode_name(ctx, field)
+			case "status":
+				return ec.fieldContext_ServiceNode_status(ctx, field)
+			case "githubRepoPath":
+				return ec.fieldContext_ServiceNode_githubRepoPath(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ServiceNode", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceNode_id(ctx context.Context, field graphql.CollectedField, obj *model.ServiceNode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceNode_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceNode_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceNode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceNode_projectID(ctx context.Context, field graphql.CollectedField, obj *model.ServiceNode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceNode_projectID(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProjectID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceNode_projectID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceNode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceNode_name(ctx context.Context, field graphql.CollectedField, obj *model.ServiceNode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceNode_name(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceNode_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceNode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceNode_status(ctx context.Context, field graphql.CollectedField, obj *model.ServiceNode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceNode_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.ServiceStatus)
+	fc.Result = res
+	return ec.marshalNServiceStatus2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐServiceStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceNode_status(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceNode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ServiceStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceNode_githubRepoPath(ctx context.Context, field graphql.CollectedField, obj *model.ServiceNode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceNode_githubRepoPath(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GithubRepoPath, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceNode_githubRepoPath(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceNode",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -64357,6 +64900,13 @@ func (ec *executionContext) _Connection(ctx context.Context, sel ast.SelectionSe
 			return graphql.Null
 		}
 		return ec._ErrorObjectConnection(ctx, sel, obj)
+	case model.ServiceConnection:
+		return ec._ServiceConnection(ctx, sel, &obj)
+	case *model.ServiceConnection:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._ServiceConnection(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -64380,6 +64930,13 @@ func (ec *executionContext) _Edge(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._ErrorObjectEdge(ctx, sel, obj)
+	case model.ServiceEdge:
+		return ec._ServiceEdge(ctx, sel, &obj)
+	case *model.ServiceEdge:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._ServiceEdge(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -72580,6 +73137,129 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
+var serviceConnectionImplementors = []string{"ServiceConnection", "Connection"}
+
+func (ec *executionContext) _ServiceConnection(ctx context.Context, sel ast.SelectionSet, obj *model.ServiceConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serviceConnectionImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServiceConnection")
+		case "edges":
+
+			out.Values[i] = ec._ServiceConnection_edges(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+
+			out.Values[i] = ec._ServiceConnection_pageInfo(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var serviceEdgeImplementors = []string{"ServiceEdge", "Edge"}
+
+func (ec *executionContext) _ServiceEdge(ctx context.Context, sel ast.SelectionSet, obj *model.ServiceEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serviceEdgeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServiceEdge")
+		case "cursor":
+
+			out.Values[i] = ec._ServiceEdge_cursor(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "node":
+
+			out.Values[i] = ec._ServiceEdge_node(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var serviceNodeImplementors = []string{"ServiceNode"}
+
+func (ec *executionContext) _ServiceNode(ctx context.Context, sel ast.SelectionSet, obj *model.ServiceNode) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serviceNodeImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServiceNode")
+		case "id":
+
+			out.Values[i] = ec._ServiceNode_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "projectID":
+
+			out.Values[i] = ec._ServiceNode_projectID(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+
+			out.Values[i] = ec._ServiceNode_name(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "status":
+
+			out.Values[i] = ec._ServiceNode_status(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "githubRepoPath":
+
+			out.Values[i] = ec._ServiceNode_githubRepoPath(ctx, field, obj)
+
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var sessionImplementors = []string{"Session"}
 
 func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, obj *model1.Session) graphql.Marshaler {
@@ -78312,7 +78992,7 @@ func (ec *executionContext) unmarshalNSearchParamsInput2githubᚗcomᚋhighlight
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNService2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐServiceᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.Service) graphql.Marshaler {
+func (ec *executionContext) marshalNServiceEdge2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐServiceEdge(ctx context.Context, sel ast.SelectionSet, v []*model.ServiceEdge) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -78336,7 +79016,7 @@ func (ec *executionContext) marshalNService2ᚕᚖgithubᚗcomᚋhighlightᚑrun
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNService2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐService(ctx, sel, v[i])
+			ret[i] = ec.marshalOServiceEdge2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐServiceEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -78347,23 +79027,17 @@ func (ec *executionContext) marshalNService2ᚕᚖgithubᚗcomᚋhighlightᚑrun
 	}
 	wg.Wait()
 
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
 	return ret
 }
 
-func (ec *executionContext) marshalNService2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐService(ctx context.Context, sel ast.SelectionSet, v *model1.Service) graphql.Marshaler {
+func (ec *executionContext) marshalNServiceNode2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐServiceNode(ctx context.Context, sel ast.SelectionSet, v *model.ServiceNode) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
 		}
 		return graphql.Null
 	}
-	return ec._Service(ctx, sel, v)
+	return ec._ServiceNode(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNServiceStatus2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐServiceStatus(ctx context.Context, v interface{}) (model.ServiceStatus, error) {
@@ -80924,6 +81598,20 @@ func (ec *executionContext) marshalOService2ᚖgithubᚗcomᚋhighlightᚑrunᚋ
 		return graphql.Null
 	}
 	return ec._Service(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOServiceConnection2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐServiceConnection(ctx context.Context, sel ast.SelectionSet, v *model.ServiceConnection) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ServiceConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOServiceEdge2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐServiceEdge(ctx context.Context, sel ast.SelectionSet, v *model.ServiceEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ServiceEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model1.Session) graphql.Marshaler {

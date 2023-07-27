@@ -10,9 +10,10 @@ describe('web client recording spec', () => {
 				})
 				cy.visit(`./cypress/pages/${source}.html`, {
 					onBeforeLoad(win) {
-						win.scriptUrl = `https://static.highlight.io/dev-${Cypress.env(
-							'COMMIT_SHA',
-						)}/index.js`
+						const clientVersion = Cypress.env('CLIENT_VERSION')
+						if (clientVersion) {
+							win.scriptUrl = `https://static.highlight.io/${clientVersion}/index.js`
+						}
 					},
 				})
 				cy.window().then((win) => {

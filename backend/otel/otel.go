@@ -15,14 +15,12 @@ import (
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 
 	"github.com/go-chi/chi"
-	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/public-graph/graph"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight/highlight/sdk/highlight-go"
-	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -52,18 +50,15 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 	return c
 }
 
-func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string, logCursor *string, excMessage string) (bool, *model.BackendErrorObjectInput) {
-	excType := cast(fields.attrs[string(semconv.ExceptionTypeKey)], fields.source.String())
-	errorUrl := cast(fields.attrs[highlight.ErrorURLAttribute], fields.source.String())
-	stackTrace := cast(fields.attrs[string(semconv.ExceptionStacktraceKey)], "")
-	if excType == "" && excMessage == "" {
+func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string, logCursor *string) (bool, *model.BackendErrorObjectInput) {
+	if fields.exceptionType == "" && fields.exceptionMessage == "" {
 		lg(ctx, fields).Error("otel received exception with no type and no message")
 		return false, nil
-	} else if stackTrace == "" || stackTrace == "null" {
+	} else if fields.exceptionStackTrace == "" || fields.exceptionStackTrace == "null" {
 		lg(ctx, fields).Warn("otel received exception with no stacktrace")
-		stackTrace = ""
+		fields.exceptionStackTrace = ""
 	}
-	stackTrace = stacktraces.FormatStructureStackTrace(ctx, stackTrace)
+	fields.exceptionStackTrace = stacktraces.FormatStructureStackTrace(ctx, fields.exceptionStackTrace)
 	payloadBytes, _ := json.Marshal(fields.attrs)
 	err := &model.BackendErrorObjectInput{
 		SessionSecureID: &fields.sessionID,
@@ -71,13 +66,13 @@ func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, 
 		TraceID:         pointy.String(traceID),
 		SpanID:          pointy.String(spanID),
 		LogCursor:       logCursor,
-		Event:           excMessage,
-		Type:            excType,
+		Event:           fields.exceptionMessage,
+		Type:            fields.exceptionType,
 		Source:          fields.source.String(),
-		StackTrace:      stackTrace,
+		StackTrace:      fields.exceptionStackTrace,
 		Timestamp:       ts,
 		Payload:         pointy.String(string(payloadBytes)),
-		URL:             errorUrl,
+		URL:             fields.errorUrl,
 	}
 	if fields.sessionID != "" {
 		return false, err
@@ -89,11 +84,10 @@ func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, 
 }
 
 func getMetric(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string) (*model.MetricInput, error) {
-	name, ok := fields.attrs[highlight.MetricEventName]
-	if !ok {
+	if fields.metricEventName == "" {
 		return nil, e.New("otel received metric with no name")
 	}
-	value, err := strconv.ParseFloat(fields.attrs[highlight.MetricEventValue], 64)
+	value, err := strconv.ParseFloat(fields.metricEventValue, 64)
 
 	if err != nil {
 		return nil, e.New("otel received metric with no value")
@@ -101,7 +95,7 @@ func getMetric(ctx context.Context, ts time.Time, fields extractedFields, traceI
 	return &model.MetricInput{
 		SessionSecureID: fields.sessionID,
 		Group:           pointy.String(fields.requestID),
-		Name:            name,
+		Name:            fields.metricEventName,
 		Value:           value,
 		Category:        pointy.String(fields.source.String()),
 		Timestamp:       ts,
@@ -191,7 +185,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
-					eventAttributes := event.Attributes().AsRaw()
 
 					fields, err := extractFields(ctx, extractFieldsParams{
 						resource: &resource,
@@ -206,8 +199,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					traceID := cast(fields.requestID, span.TraceID().String())
 					spanID := span.SpanID().String()
 					if event.Name() == semconv.ExceptionEventName {
-						excMessage := cast(eventAttributes[string(semconv.ExceptionMessageKey)], "")
-
 						var logCursor *string
 
 						logRow := clickhouse.NewLogRow(
@@ -215,9 +206,10 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithTraceID(traceID),
 							clickhouse.WithSpanID(spanID),
 							clickhouse.WithSecureSessionID(fields.sessionID),
-							clickhouse.WithBody(ctx, excMessage),
+							clickhouse.WithBody(ctx, fields.exceptionMessage),
 							clickhouse.WithLogAttributes(fields.attrs),
 							clickhouse.WithServiceName(fields.serviceName),
+							clickhouse.WithServiceVersion(fields.serviceVersion),
 							clickhouse.WithSeverityText("ERROR"),
 							clickhouse.WithSource(fields.source),
 						)
@@ -225,7 +217,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
 
-						isProjectError, backendError := getBackendError(ctx, ts, fields, traceID, spanID, logCursor, excMessage)
+						isProjectError, backendError := getBackendError(ctx, ts, fields, traceID, spanID, logCursor)
 						if backendError == nil {
 							lg(ctx, fields).Error("otel span error got no session and no project")
 						} else {
@@ -236,11 +228,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							}
 						}
 					} else if event.Name() == highlight.LogEvent {
-						logSev := cast(eventAttributes[string(hlog.LogSeverityKey)], "unknown")
-						logMessage := cast(eventAttributes[string(hlog.LogMessageKey)], "")
-						if logMessage == "" {
+						if fields.logMessage == "" {
 							lg(ctx, fields).Warn("otel received log with no message")
 							continue
+						}
+
+						if fields.logSeverity == "" {
+							fields.logSeverity = "unknown"
 						}
 
 						logRow := clickhouse.NewLogRow(
@@ -248,10 +242,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 							clickhouse.WithTraceID(traceID),
 							clickhouse.WithSpanID(spanID),
 							clickhouse.WithSecureSessionID(fields.sessionID),
-							clickhouse.WithBody(ctx, logMessage),
+							clickhouse.WithBody(ctx, fields.logMessage),
 							clickhouse.WithLogAttributes(fields.attrs),
 							clickhouse.WithServiceName(fields.serviceName),
-							clickhouse.WithSeverityText(logSev),
+							clickhouse.WithServiceVersion(fields.serviceVersion),
+							clickhouse.WithSeverityText(fields.logSeverity),
 							clickhouse.WithSource(fields.source),
 						)
 
@@ -292,7 +287,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 				ProjectVerboseID: &projectID,
 				Errors:           errors,
-			}}, uuid.New().String())
+			}}, "")
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel project errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -306,7 +301,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			PushMetrics: &kafkaqueue.PushMetricsArgs{
 				SessionSecureID: sessionID,
 				Metrics:         metrics,
-			}}, uuid.New().String())
+			}}, "")
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -388,6 +383,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					clickhouse.WithBody(ctx, logRecord.Body().Str()),
 					clickhouse.WithLogAttributes(fields.attrs),
 					clickhouse.WithServiceName(fields.serviceName),
+					clickhouse.WithServiceVersion(fields.serviceVersion),
 					clickhouse.WithSeverityText(logRecord.SeverityText()),
 					clickhouse.WithSource(fields.source),
 				)
@@ -420,7 +416,7 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 			Type: kafkaqueue.PushLogs,
 			PushLogs: &kafkaqueue.PushLogsArgs{
 				LogRows: logRows,
-			}}, uuid.New().String())
+			}}, "")
 		if err != nil {
 			return e.Wrap(err, "failed to submit otel project logs to public worker queue")
 		}

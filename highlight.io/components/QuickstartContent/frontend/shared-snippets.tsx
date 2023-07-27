@@ -96,25 +96,21 @@ H.init('<YOUR_PROJECT_ID>', {
 
 export const identifySnippet: QuickStartStep = {
 	title: 'Identify users.',
-	content: `Identify users after the authentication flow of your web app. We recommend doing this in a \`useEffect\` call or in any asynchronous, client-side context. \n\n\nThe first argument of \`identify\` will be searchable via the property \`identifier\`, and the second property is searchable by the key of each item in the object. \n\n\nFor more details, read about [session search](${sessionSearchLink}) or how to [identify users](${identifyingUsersLink}).`,
+	content: `Identify users after the authentication flow of your web app. We recommend doing this in any asynchronous, client-side context. \n\n\nThe first argument of \`identify\` will be searchable via the property \`identifier\`, and the second property is searchable by the key of each item in the object. \n\n\nFor more details, read about [session search](${sessionSearchLink}) or how to [identify users](${identifyingUsersLink}).`,
 	code: [
 		{
 			text: `
 import { H } from 'highlight.run';
 
-function RenderFunction() {
-
-	useEffect(() => {
-		// login logic...
-		
-		H.identify('jay@highlight.io', {
-			id: 'very-secure-id',
-			phone: '867-5309',
-			bestFriend: 'jenny'
-		});
-	}, [])
-
-	return null; // Or your app's rendering code.
+function Login(username: string, password: string) {
+	// login logic here...
+	// pass the user details from your auth provider to the H.identify call
+	
+	H.identify('jay@highlight.io', {
+		id: 'very-secure-id',
+		phone: '867-5309',
+		bestFriend: 'jenny'
+	});
 }
 `,
 			language: 'js',

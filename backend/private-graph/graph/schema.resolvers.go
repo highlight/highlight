@@ -7512,7 +7512,7 @@ func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemC
 }
 
 // Services is the resolver for the services field.
-func (r *queryResolver) Services(ctx context.Context, projectID int) ([]*model.Service, error) {
+func (r *queryResolver) Services(ctx context.Context, projectID int, after *string, before *string, query *string) (*modelInputs.ServiceConnection, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7523,7 +7523,13 @@ func (r *queryResolver) Services(ctx context.Context, projectID int) ([]*model.S
 		return nil, err
 	}
 
-	return services, nil
+	connection, err := r.Store.ListServices(*project, store.ListServicesParams{
+		After:  after,
+		Before: before,
+		Query:  query,
+	})
+
+	return &connection, err
 }
 
 // Params is the resolver for the params field.

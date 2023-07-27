@@ -59,6 +59,8 @@ const Navbar = ({
 	const [isOpen, setIsOpen] = useState(false)
 	const [prevY, setPrevY] = useState(0)
 
+	hideBanner = true
+
 	const changeBackground = () => {
 		const currentScrollPos = window.pageYOffset
 		if (window.scrollY > 60 && prevY < currentScrollPos) {
