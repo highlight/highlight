@@ -69,8 +69,8 @@ type ReplayEventsInput struct {
 }
 
 type ServiceInput struct {
-	Name    *string `json:"name"`
-	Version *string `json:"version"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
 }
 
 type StackFrameInput struct {

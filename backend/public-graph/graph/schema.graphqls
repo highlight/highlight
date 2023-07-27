@@ -35,8 +35,8 @@ input ErrorObjectInput {
 }
 
 input ServiceInput {
-	name: String
-	version: String
+	name: String!
+	version: String!
 }
 
 input BackendErrorObjectInput {

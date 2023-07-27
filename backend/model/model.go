@@ -928,8 +928,8 @@ type ErrorObject struct {
 	Environment      string
 	RequestID        *string // From X-Highlight-Request header
 	IsBeacon         bool    `gorm:"default:false"`
-	ServiceName      *string
-	ServiceVersion   *string
+	ServiceName      string
+	ServiceVersion   string
 }
 
 type ErrorObjectEmbeddings struct {

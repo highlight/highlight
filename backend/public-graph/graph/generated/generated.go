@@ -365,8 +365,8 @@ input ErrorObjectInput {
 }
 
 input ServiceInput {
-	name: String
-	version: String
+	name: String!
+	version: String!
 }
 
 input BackendErrorObjectInput {
@@ -4036,7 +4036,7 @@ func (ec *executionContext) unmarshalInputServiceInput(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4044,7 +4044,7 @@ func (ec *executionContext) unmarshalInputServiceInput(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("version"))
-			it.Version, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Version, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
