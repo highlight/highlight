@@ -11,15 +11,18 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 var (
-	flushInterval time.Duration
-	interruptChan chan bool
-	signalChan    chan os.Signal
-	wg            sync.WaitGroup
-	otlpEndpoint  string
-	projectID     string
+	flushInterval      time.Duration
+	interruptChan      chan bool
+	signalChan         chan os.Signal
+	wg                 sync.WaitGroup
+	otlpEndpoint       string
+	projectID          string
+	resourceAttributes []attribute.KeyValue
 )
 
 // contextKey represents the keys that highlight may store in the users' context
@@ -166,6 +169,16 @@ func SetDebugMode(l Logger) {
 
 func SetProjectID(id string) {
 	projectID = id
+}
+
+func SetServiceName(serviceName string) {
+	attr := semconv.ServiceNameKey.String(serviceName)
+	resourceAttributes = append(resourceAttributes, attr)
+}
+
+func SetServiceVersion(serviceVersion string) {
+	attr := semconv.ServiceVersionKey.String(serviceVersion)
+	resourceAttributes = append(resourceAttributes, attr)
 }
 
 func GetProjectID() string {

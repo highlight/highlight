@@ -114,6 +114,7 @@ func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (t
 		attribute.String(SessionIDAttribute, sessionID),
 		attribute.String(RequestIDAttribute, requestID),
 	}
+	attrs = append(attrs, resourceAttributes...)
 	attrs = append(attrs, tags...)
 	span.SetAttributes(attrs...)
 	return span, ctx
