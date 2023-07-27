@@ -164,14 +164,29 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				events := span.Events()
 
 				fields, err := extractFields(ctx, extractFieldsParams{
-					resource: &resource,
-					span:     &span,
+					span: &span,
 				})
 				if err != nil {
-					lg(ctx, fields).WithError(err).Error("failed to extract fields")
+					lg(ctx, fields).WithError(err).Error("failed to extract fields from span")
 				}
 
-				traceRow := clickhouse.NewTraceRow(span)
+				traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime()).
+					WithProjectId(fields.projectIDInt).
+					WithSecureSessionId(fields.sessionID).
+					WithTraceId(span.TraceID().String()).
+					WithSpanId(span.SpanID().String()).
+					WithParentSpanId(span.ParentSpanID().String()).
+					WithTraceState(span.TraceState().AsRaw()).
+					WithSpanName(span.Name()).
+					WithSpanKind(span.Kind().String()).
+					WithDuration(span.StartTimestamp().AsTime(), span.EndTimestamp().AsTime()).
+					WithStatusCode(span.Status().Code().String()).
+					WithStatusMessage(span.Status().Message()).
+					WithResourceAttributes(resource.Attributes().AsRaw()).
+					WithSpanAttributes(span.Attributes().AsRaw()).
+					WithEvents(fields.events).
+					WithLinks(fields.links)
+
 				projectSpans[fields.projectIDInt] = append(projectSpans[fields.projectIDInt], traceRow)
 
 				for l := 0; l < events.Len(); l++ {

@@ -28,6 +28,8 @@ type extractedFields struct {
 	requestID    string
 	source       modelInputs.LogSource
 	serviceName  string
+	events       []map[string]any // TODO: should we be more specific w/ these types?
+	links        []map[string]any // TODO: should we be more specific w/ these types?
 
 	// This represents the merged result of resource, span...log attributes
 	// _after_ we extract fields out. In other words, if `serviceName` is extracted, it won't be included
@@ -56,6 +58,29 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 
 	if params.span != nil {
 		spanAttributes = params.span.Attributes().AsRaw()
+
+		spanEvents := params.span.Events()
+		fields.events = make([]map[string]any, spanEvents.Len())
+		for i := 0; i < spanEvents.Len(); i++ {
+			event := spanEvents.At(i)
+			fields.events[i] = map[string]any{
+				"Timestamp":  event.Timestamp().AsTime().String(),
+				"Name":       event.Name(),
+				"Attributes": attributesToMap(event.Attributes().AsRaw()),
+			}
+		}
+
+		spanLinks := params.span.Links()
+		fields.links = make([]map[string]any, spanLinks.Len())
+		for i := 0; i < spanLinks.Len(); i++ {
+			link := spanLinks.At(i)
+			fields.links[i] = map[string]any{
+				"TraceId":    link.TraceID().String(),
+				"SpanId":     link.SpanID().String(),
+				"TraceState": link.TraceState().AsRaw(),
+				"Attributes": attributesToMap(link.Attributes().AsRaw()),
+			}
+		}
 	}
 
 	if params.event != nil {
@@ -191,4 +216,12 @@ func projectToInt(projectID string) (int, error) {
 		return i2, nil
 	}
 	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
+}
+
+func attributesToMap(attributes map[string]any) map[string]string {
+	newAttrMap := make(map[string]string)
+	for k, v := range attributes {
+		newAttrMap[k] = fmt.Sprintf("%v", v)
+	}
+	return newAttrMap
 }

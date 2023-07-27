@@ -21,11 +21,6 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 	}
 
 	for _, traceRow := range traceRows {
-		// TODO: Figure out how we have nil values here
-		if traceRow == nil {
-			continue
-		}
-
 		// Was not able to figure out a way to insert nested values using a struct +
 		// AppendStruct, so had to pull them out to individual arrays.
 		traceTimes, traceNames, traceAttrs := convertEvents(traceRow)

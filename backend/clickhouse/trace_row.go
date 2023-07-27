@@ -7,7 +7,6 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	e "github.com/pkg/errors"
-	"go.opentelemetry.io/collector/pdata/ptrace"
 )
 
 type TraceRow struct {
@@ -31,72 +30,132 @@ type TraceRow struct {
 }
 
 type Event struct {
-	Timestamp  time.Time         `json:"timestamp"`
-	Name       string            `json:"name"`
-	Attributes map[string]string `json:"attributes,omitempty"`
+	Timestamp  time.Time
+	Name       string
+	Attributes map[string]string
 }
 
 type Link struct {
-	TraceId    string            `json:"trace_id"`
-	SpanId     string            `json:"span_id"`
-	TraceState string            `json:"trace_state"`
-	Attributes map[string]string `json:"attributes,omitempty"`
+	TraceId    string
+	SpanId     string
+	TraceState string
+	Attributes map[string]string
 }
 
-func NewTraceRow(span ptrace.Span) *TraceRow {
-	attributes := attributesToMap(span.Attributes().AsRaw())
-
-	// TODO: Use extractFields instead of copying logic here. For some reason we
-	// can't import from extract.go.
-	projectId, err := projectToInt(attributes["highlight.project_id"])
-	if err != nil {
-		projectId = 0
-	}
-
-	var traceEvents []Event
-	spanEvents := span.Events()
-	for i := 0; i < spanEvents.Len(); i++ {
-		event := spanEvents.At(i)
-		traceEvents = append(traceEvents, Event{
-			Timestamp:  event.Timestamp().AsTime(),
-			Name:       event.Name(),
-			Attributes: attributesToMap(event.Attributes().AsRaw()),
-		})
-	}
-
-	var traceLinks []Link
-	spanLinks := span.Links()
-	for l := 0; l < spanLinks.Len(); l++ {
-		link := spanLinks.At(l)
-		traceLinks = append(traceLinks, Link{
-			TraceId:    link.TraceID().String(),
-			SpanId:     link.SpanID().String(),
-			TraceState: link.TraceState().AsRaw(),
-			Attributes: attributesToMap(link.Attributes().AsRaw()),
-		})
-	}
-
+func NewTraceRow(timestamp time.Time) *TraceRow {
 	traceRow := &TraceRow{
-		ProjectId:          uint32(projectId),
-		SecureSessionId:    attributes["highlight.session_id"],
-		Timestamp:          span.StartTimestamp().AsTime(),
-		TraceId:            span.TraceID().String(),
-		SpanId:             span.SpanID().String(),
-		ParentSpanId:       span.ParentSpanID().String(),
-		TraceState:         span.TraceState().AsRaw(),
-		SpanName:           span.Name(),
-		SpanKind:           span.Kind().String(),
-		Duration:           int64(span.EndTimestamp().AsTime().Sub(span.StartTimestamp().AsTime()).Nanoseconds()),
-		ServiceName:        "",
-		ResourceAttributes: attributes,
-		SpanAttributes:     attributes,
-		StatusCode:         span.Status().Code().String(),
-		StatusMessage:      span.Status().Message(),
-		Events:             traceEvents,
-		Links:              traceLinks,
+		Timestamp:   timestamp,
+		ServiceName: "",
 	}
 
 	return traceRow
+}
+
+func (t *TraceRow) WithProjectId(projectId int) *TraceRow {
+	t.ProjectId = uint32(projectId)
+	return t
+}
+
+func (t *TraceRow) WithSecureSessionId(sessionId string) *TraceRow {
+	t.SecureSessionId = sessionId
+	return t
+}
+
+func (t *TraceRow) WithTraceId(traceId string) *TraceRow {
+	t.TraceId = traceId
+	return t
+}
+
+func (t *TraceRow) WithSpanId(spanId string) *TraceRow {
+	t.SpanId = spanId
+	return t
+}
+
+func (t *TraceRow) WithParentSpanId(parentSpanId string) *TraceRow {
+	t.ParentSpanId = parentSpanId
+	return t
+}
+
+func (t *TraceRow) WithTraceState(traceState string) *TraceRow {
+	t.TraceState = traceState
+	return t
+}
+
+func (t *TraceRow) WithSpanName(spanName string) *TraceRow {
+	t.SpanName = spanName
+	return t
+}
+
+func (t *TraceRow) WithSpanKind(spanKind string) *TraceRow {
+	t.SpanKind = spanKind
+	return t
+}
+
+func (t *TraceRow) WithDuration(startTime time.Time, endTime time.Time) *TraceRow {
+	t.Duration = int64(endTime.Sub(startTime).Nanoseconds())
+	return t
+}
+
+func (t *TraceRow) WithServiceName(serviceName string) *TraceRow {
+	t.ServiceName = serviceName
+	return t
+}
+
+func (t *TraceRow) WithStatusCode(statusCode string) *TraceRow {
+	t.StatusCode = statusCode
+	return t
+}
+
+func (t *TraceRow) WithStatusMessage(statusMessage string) *TraceRow {
+	t.StatusMessage = statusMessage
+	return t
+}
+
+func (t *TraceRow) WithResourceAttributes(attributes map[string]any) *TraceRow {
+	resourceAttributes := make(map[string]string)
+	for k, v := range attributes {
+		resourceAttributes[k] = fmt.Sprintf("%v", v)
+	}
+	t.ResourceAttributes = resourceAttributes
+	return t
+}
+
+func (t *TraceRow) WithSpanAttributes(attributes map[string]any) *TraceRow {
+	spanAttributes := make(map[string]string)
+	for k, v := range attributes {
+		spanAttributes[k] = fmt.Sprintf("%v", v)
+	}
+	t.SpanAttributes = spanAttributes
+	return t
+}
+
+func (t *TraceRow) WithEvents(events []map[string]any) *TraceRow {
+	traceEvents := make([]Event, len(events))
+	for i, event := range events {
+		traceEvents[i] = Event{
+			Timestamp:  event["Timestamp"].(time.Time),
+			Name:       event["Name"].(string),
+			Attributes: event["Attributes"].(map[string]string),
+		}
+	}
+
+	t.Events = traceEvents
+	return t
+}
+
+func (t *TraceRow) WithLinks(links []map[string]any) *TraceRow {
+	traceLinks := make([]Link, len(links))
+	for i, link := range links {
+		traceLinks[i] = Link{
+			TraceId:    link["TraceId"].(string),
+			SpanId:     link["SpanId"].(string),
+			TraceState: link["TraceState"].(string),
+			Attributes: link["Attributes"].(map[string]string),
+		}
+	}
+
+	t.Links = traceLinks
+	return t
 }
 
 func attributesToMap(attributes map[string]any) map[string]string {
