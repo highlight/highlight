@@ -37,7 +37,7 @@ export const header = style({
 
 export const resultsContainer = style({
 	width: '100%',
-	height: 'calc(100% - 32px)',
+	height: 500, // TODO(spenny): figure this out
 	display: 'flex',
 	flexDirection: 'column',
 	paddingLeft: 8,

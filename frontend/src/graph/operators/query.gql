@@ -2138,8 +2138,8 @@ query GetErrorObjects(
 	}
 }
 
-query GetServices($project_id: ID!) {
-	services(project_id: $project_id) {
+query GetServices($project_id: ID!, $query: String) {
+	services(project_id: $project_id, query: $query) {
 		edges {
 			cursor
 			node {

@@ -7025,7 +7025,7 @@ body {
 }
 .ybyc324 {
   width: 100%;
-  height: calc(100% - 32px);
+  height: 500px;
   display: flex;
   flex-direction: column;
   padding-left: 8px;

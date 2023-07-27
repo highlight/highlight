@@ -4455,6 +4455,7 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 
 export type GetServicesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
+	query?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type GetServicesQuery = { __typename?: 'Query' } & {

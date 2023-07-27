@@ -13259,8 +13259,8 @@ export type GetErrorObjectsQueryResult = Apollo.QueryResult<
 	Types.GetErrorObjectsQueryVariables
 >
 export const GetServicesDocument = gql`
-	query GetServices($project_id: ID!) {
-		services(project_id: $project_id) {
+	query GetServices($project_id: ID!, $query: String) {
+		services(project_id: $project_id, query: $query) {
 			edges {
 				cursor
 				node {
@@ -13294,6 +13294,7 @@ export const GetServicesDocument = gql`
  * const { data, loading, error } = useGetServicesQuery({
  *   variables: {
  *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
  *   },
  * });
  */
