@@ -1,6 +1,8 @@
 package main
 
 import (
+	"math/rand"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/highlight/highlight/sdk/highlight-go"
@@ -24,11 +26,11 @@ func main() {
 	app.Use(highlightFiber.Middleware())
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		//logrus.WithContext(c.Context()).Infof("hello from highlight.io")
-		//if rand.Float64() < 0.2 {
-		return e.New("random error from go fiber!")
-		//}
-		//return c.SendString("Hello, World!")
+		logrus.WithContext(c.Context()).Infof("hello from highlight.io")
+		if rand.Float64() < 0.2 {
+			return e.New("random error from go fiber!")
+		}
+		return c.SendString("Hello, World!")
 	})
 
 	logrus.Fatal(app.Listen(":3456"))
