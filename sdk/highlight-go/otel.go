@@ -84,6 +84,7 @@ func StartOTLP() (*OTLP, error) {
 		resource.WithContainer(),
 		resource.WithOS(),
 		resource.WithProcess(),
+		resource.WithAttributes(resourceAttributes...),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("creating OTLP resource context: %w", err)
@@ -114,7 +115,6 @@ func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (t
 		attribute.String(SessionIDAttribute, sessionID),
 		attribute.String(RequestIDAttribute, requestID),
 	}
-	attrs = append(attrs, resourceAttributes...)
 	attrs = append(attrs, tags...)
 	span.SetAttributes(attrs...)
 	return span, ctx
