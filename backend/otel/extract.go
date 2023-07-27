@@ -32,10 +32,10 @@ type extractedFields struct {
 	serviceName    string
 	serviceVersion string
 
-	timestamp      time.Time
+	timestamp time.Time
 
-	logSeverity    string
-	logMessage     string
+	logSeverity string
+	logMessage  string
 
 	exceptionType       string
 	exceptionMessage    string
