@@ -342,9 +342,9 @@ export class Highlight {
 		this.inlineImages = options.inlineImages ?? this._isOnLocalHost
 		this.inlineStylesheet = options.inlineStylesheet ?? this._isOnLocalHost
 		this.samplingStrategy = {
-			canvas: 1,
 			canvasFactor: 0.5,
 			canvasMaxSnapshotDimension: 360,
+			canvasClearWebGLBuffer: true,
 			...(options.samplingStrategy ?? {}),
 		}
 		this._backendUrl = options?.backendUrl ?? 'https://pub.highlight.run'
@@ -724,6 +724,8 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 					sampling: {
 						canvas: {
 							fps: this.samplingStrategy.canvas,
+							fpsManual:
+								this.samplingStrategy.canvasManualSnapshot,
 							resizeFactor: this.samplingStrategy.canvasFactor,
 							clearWebGLBuffer:
 								this.samplingStrategy.canvasClearWebGLBuffer,
