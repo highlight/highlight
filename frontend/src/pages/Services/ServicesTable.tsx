@@ -23,7 +23,6 @@ export const ServicesTable = () => {
 	const [query, setQuery] = useState<string>('')
 	const state = useComboboxState()
 	const virtuoso = useRef<VirtuosoHandle>(null)
-	console.log('DATA', data?.services)
 
 	return (
 		<Stack direction="column" gap="4" align="center" paddingRight="4">

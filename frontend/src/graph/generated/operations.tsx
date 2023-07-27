@@ -4458,11 +4458,30 @@ export type GetServicesQueryVariables = Types.Exact<{
 }>
 
 export type GetServicesQuery = { __typename?: 'Query' } & {
-	services: Array<
-		{ __typename?: 'Service' } & Pick<
-			Types.Service,
-			'id' | 'projectID' | 'name' | 'status' | 'githubRepoPath'
-		>
+	services?: Types.Maybe<
+		{ __typename?: 'ServiceConnection' } & {
+			edges: Array<
+				Types.Maybe<
+					{ __typename?: 'ServiceEdge' } & Pick<
+						Types.ServiceEdge,
+						'cursor'
+					> & {
+							node: { __typename?: 'ServiceNode' } & Pick<
+								Types.ServiceNode,
+								| 'id'
+								| 'projectID'
+								| 'name'
+								| 'status'
+								| 'githubRepoPath'
+							>
+						}
+				>
+			>
+			pageInfo: { __typename?: 'PageInfo' } & Pick<
+				Types.PageInfo,
+				'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
+			>
+		}
 	>
 }
 

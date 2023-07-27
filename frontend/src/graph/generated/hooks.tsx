@@ -13261,11 +13261,22 @@ export type GetErrorObjectsQueryResult = Apollo.QueryResult<
 export const GetServicesDocument = gql`
 	query GetServices($project_id: ID!) {
 		services(project_id: $project_id) {
-			id
-			projectID
-			name
-			status
-			githubRepoPath
+			edges {
+				cursor
+				node {
+					id
+					projectID
+					name
+					status
+					githubRepoPath
+				}
+			}
+			pageInfo {
+				hasNextPage
+				hasPreviousPage
+				startCursor
+				endCursor
+			}
 		}
 	}
 `
