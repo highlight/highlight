@@ -38,6 +38,9 @@ const ClientSideContactCreationTimeout = 3 * time.Minute
 // wait for the company creation to time out with the same delay of 3 minutes.
 const ClientSideCompanyCreationTimeout = 2 * ClientSideContactCreationTimeout
 
+// ClientSideAssociationTimeout gives enough time for backend contact and company creation to run
+const ClientSideAssociationTimeout = 3 * ClientSideContactCreationTimeout
+
 const ClientSideCreationPollInterval = 5 * time.Second
 
 var (
@@ -60,7 +63,7 @@ func retry[T *int](fn func() (T, error)) (ret T, err error) {
 	return
 }
 
-func pollHubspot[T *int](fn func() (T, error), timeout time.Duration) (result T, err error) {
+func pollHubspot[T any](fn func() (T, error), timeout time.Duration) (result T, err error) {
 	start := time.Now()
 	ticker := time.NewTicker(ClientSideCreationPollInterval)
 	defer ticker.Stop()
@@ -293,14 +296,15 @@ func (h *HubspotApi) getCompany(ctx context.Context, name, domain string) (*int,
 		return nil, err
 	}
 	if company, ok := lo.Find(companies, func(response *CompanyResponse) bool {
+		var domainMatch, nameMatch bool
 		for prop, data := range response.Properties {
 			if domain != "" && prop == "domain" {
-				return strings.EqualFold(data.Value, domain)
+				domainMatch = domainMatch || strings.EqualFold(data.Value, domain)
 			} else if name != "" && prop == "name" {
-				return strings.EqualFold(data.Value, name)
+				nameMatch = nameMatch || strings.EqualFold(data.Value, name)
 			}
 		}
-		return false
+		return domainMatch || nameMatch
 	}); !ok {
 		return nil, e.New(fmt.Sprintf("failed to find company with name %s domain %s", name, domain))
 	} else {
@@ -392,23 +396,32 @@ func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, ad
 		}()
 	}
 
-	admin := &model.Admin{}
-	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
-		return err
+	data, err := pollHubspot(func() (*struct{ companyID, contactID int }, error) {
+		admin := &model.Admin{}
+		if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
+			return nil, err
+		}
+		workspace := &model.Workspace{}
+		if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
+			return nil, err
+		}
+
+		if workspace.HubspotCompanyID == nil {
+			return nil, e.New("hubspot company id is empty")
+		} else if admin.HubspotContactID == nil {
+			return nil, e.New("hubspot contact id is empty")
+		}
+
+		return &struct{ companyID, contactID int }{*workspace.HubspotCompanyID, *admin.HubspotContactID}, nil
+	}, ClientSideContactCreationTimeout)
+	if err != nil {
+		return e.Wrap(err, "hubspot association failed")
 	}
-	workspace := &model.Workspace{}
-	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
-		return err
-	}
-	if workspace.HubspotCompanyID == nil {
-		return e.New("hubspot company id is empty")
-	} else if admin.HubspotContactID == nil {
-		return e.New("hubspot contact id is empty")
-	}
+
 	if err := h.hubspotClient.CRMAssociations().Create(hubspot.CRMAssociationsRequest{
 		DefinitionID: hubspot.CRMAssociationCompanyToContact,
-		FromObjectID: *workspace.HubspotCompanyID,
-		ToObjectID:   *admin.HubspotContactID,
+		FromObjectID: data.companyID,
+		ToObjectID:   data.contactID,
 	}); err != nil {
 		return err
 	} else {
@@ -416,8 +429,8 @@ func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, ad
 	}
 	if err := h.hubspotClient.CRMAssociations().Create(hubspot.CRMAssociationsRequest{
 		DefinitionID: hubspot.CRMAssociationContactToCompany,
-		FromObjectID: *admin.HubspotContactID,
-		ToObjectID:   *workspace.HubspotCompanyID,
+		FromObjectID: data.contactID,
+		ToObjectID:   data.companyID,
 	}); err != nil {
 		return err
 	} else {
@@ -535,9 +548,9 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 	}
 	if workspace.TrialEndDate != nil {
 		companyProperties.Properties = append(companyProperties.Properties, hubspot.Property{
-			Property: "trial_end_date",
-			Name:     "trial_end_date",
-			Value:    *workspace.TrialEndDate,
+			Property: "date_of_trial_end",
+			Name:     "date_of_trial_end",
+			Value:    workspace.TrialEndDate.UnixMilli(),
 		})
 	}
 
@@ -597,23 +610,9 @@ func (h *HubspotApi) UpdateContactPropertyImpl(ctx context.Context, adminID int,
 	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
 		return err
 	}
-	hubspotContactID := admin.HubspotContactID
-	if hubspotContactID == nil {
-		id, err := h.CreateContactForAdminImpl(
-			ctx,
-			adminID,
-			ptr.ToString(admin.Email),
-			ptr.ToString(admin.UserDefinedRole),
-			ptr.ToString(admin.UserDefinedPersona),
-			ptr.ToString(admin.FirstName),
-			ptr.ToString(admin.LastName),
-			ptr.ToString(admin.Phone),
-			ptr.ToString(admin.Referral),
-		)
-		if err != nil {
-			return err
-		}
-		hubspotContactID = id
+	hubspotContactID, err := h.getContactForAdmin(ptr.ToString(admin.Email))
+	if err != nil {
+		return err
 	}
 	if err := h.hubspotClient.Contacts().Update(ptr.ToInt(hubspotContactID), hubspot.ContactsRequest{
 		Properties: properties,
@@ -638,17 +637,9 @@ func (h *HubspotApi) UpdateCompanyPropertyImpl(ctx context.Context, workspaceID 
 	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
 		return err
 	}
-	hubspotWorkspaceID := workspace.HubspotCompanyID
-	if hubspotWorkspaceID == nil && workspace.ID != 0 {
-		id, err := h.CreateCompanyForWorkspaceImpl(
-			ctx,
-			workspaceID,
-			"", ptr.ToString(workspace.Name),
-		)
-		if err != nil {
-			return err
-		}
-		hubspotWorkspaceID = id
+	hubspotWorkspaceID, err := h.getCompany(ctx, ptr.ToString(workspace.Name), "")
+	if err != nil {
+		return err
 	}
 	if _, err := h.hubspotClient.Companies().Update(ptr.ToInt(hubspotWorkspaceID), hubspot.CompaniesRequest{
 		Properties: properties,

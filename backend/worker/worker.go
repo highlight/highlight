@@ -1248,15 +1248,27 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	}
 
 	type AggregateSessionCount struct {
-		WorkspaceID  int   `json:"workspace_id"`
-		SessionCount int64 `json:"session_count"`
-		ErrorCount   int64 `json:"error_count"`
-		LogCount     int64 `json:"log_count"`
+		WorkspaceID          int   `json:"workspace_id"`
+		SessionCount         int64 `json:"session_count"`
+		ErrorCount           int64 `json:"error_count"`
+		LogCount             int64 `json:"log_count"`
+		SessionCountLastWeek int64 `json:"session_count_last_week"`
+		ErrorCountLastWeek   int64 `json:"error_count_last_week"`
+		LogCountLastWeek     int64 `json:"log_count_last_week"`
+		SessionCountLastDay  int64 `json:"session_count_last_day"`
+		ErrorCountLastDay    int64 `json:"error_count_last_day"`
+		LogCountLastDay      int64 `json:"log_count_last_day"`
 	}
 	var counts []*AggregateSessionCount
 
 	if err := w.Resolver.DB.Raw(`
-		SELECT p.workspace_id, sum(dsc.count) as session_count, sum(dec.count) as error_count
+		SELECT p.workspace_id, 
+		       sum(dsc.count) as session_count, 
+		       sum(dec.count) as error_count,
+		       sum(dsc.count) filter ( where dsc.date > NOW() - interval '1 week' ) as session_count_last_week, 
+		       sum(dec.count) filter ( where dsc.date > NOW() - interval '1 week' ) as error_count_last_week,
+		       sum(dsc.count) filter ( where dsc.date > NOW() - interval '1 day' ) as session_count_last_day, 
+		       sum(dec.count) filter ( where dsc.date > NOW() - interval '1 day' ) as error_count_last_day
 		FROM projects p
 				 LEFT OUTER JOIN daily_session_counts_view dsc on p.id = dsc.project_id
 				 LEFT OUTER JOIN daily_error_counts_view dec on p.id = dec.project_id
@@ -1275,6 +1287,16 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 				EndDate:   time.Now(),
 			}})
 			c.LogCount += int64(count)
+			countWeek, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{DateRange: &backend.DateRangeRequiredInput{
+				StartDate: time.Now().Add(-time.Hour * 24 * 7),
+				EndDate:   time.Now(),
+			}})
+			c.LogCountLastWeek += int64(countWeek)
+			countDay, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{DateRange: &backend.DateRangeRequiredInput{
+				StartDate: time.Now().Add(-time.Hour * 24),
+				EndDate:   time.Now(),
+			}})
+			c.LogCountLastDay += int64(countDay)
 		}
 	}
 
@@ -1285,7 +1307,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			continue
 		}
 
-		if util.IsHubspotEnabled() && (c.SessionCount > 0 || c.ErrorCount > 0) {
+		if util.IsHubspotEnabled() {
 			if err := w.Resolver.HubspotApi.UpdateCompanyProperty(ctx, c.WorkspaceID, []hubspot.Property{{
 				Name:     "highlight_session_count",
 				Property: "highlight_session_count",
@@ -1294,6 +1316,34 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 				Name:     "highlight_error_count",
 				Property: "highlight_error_count",
 				Value:    c.ErrorCount,
+			}, {
+				Name:     "highlight_log_count",
+				Property: "highlight_log_count",
+				Value:    c.LogCount,
+			}, {
+				Name:     "highlight_session_count_last_week",
+				Property: "highlight_session_count_last_week",
+				Value:    c.SessionCountLastWeek,
+			}, {
+				Name:     "highlight_error_count_last_week",
+				Property: "highlight_error_count_last_week",
+				Value:    c.ErrorCountLastWeek,
+			}, {
+				Name:     "highlight_log_count_last_week",
+				Property: "highlight_log_count_last_week",
+				Value:    c.LogCountLastWeek,
+			}, {
+				Name:     "highlight_session_count_last_day",
+				Property: "highlight_session_count_last_day",
+				Value:    c.SessionCountLastDay,
+			}, {
+				Name:     "highlight_error_count_last_day",
+				Property: "highlight_error_count_last_day",
+				Value:    c.ErrorCountLastDay,
+			}, {
+				Name:     "highlight_log_count_last_day",
+				Property: "highlight_log_count_last_day",
+				Value:    c.LogCountLastDay,
 			}}); err != nil {
 				log.WithContext(ctx).WithFields(log.Fields{
 					"workspace_id":  c.WorkspaceID,

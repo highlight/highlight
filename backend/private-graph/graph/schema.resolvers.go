@@ -499,6 +499,11 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 		if err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name); err != nil {
 			log.WithContext(ctx).Error(err, "error creating hubspot company")
 		}
+
+		// associate admin and workspace
+		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID); err != nil {
+			log.WithContext(ctx).Error(err, "error associating hubspot contact and company")
+		}
 	}
 
 	c := &stripe.Customer{}
