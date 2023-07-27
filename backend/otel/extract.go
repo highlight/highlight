@@ -76,9 +76,9 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 		for i := 0; i < spanEvents.Len(); i++ {
 			event := spanEvents.At(i)
 			fields.events[i] = map[string]any{
-				"Timestamp":  event.Timestamp().AsTime().String(),
+				"Timestamp":  event.Timestamp().AsTime(),
 				"Name":       event.Name(),
-				"Attributes": attributesToMap(event.Attributes().AsRaw()),
+				"Attributes": event.Attributes().AsRaw(),
 			}
 		}
 
@@ -90,7 +90,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 				"TraceId":    link.TraceID().String(),
 				"SpanId":     link.SpanID().String(),
 				"TraceState": link.TraceState().AsRaw(),
-				"Attributes": attributesToMap(link.Attributes().AsRaw()),
+				"Attributes": link.Attributes().AsRaw(),
 			}
 		}
 	}
@@ -170,7 +170,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 	}
 
 	if val, ok := attrs[highlight.MetricEventValue]; ok {
-		fields.metricEventValue = val.(string)
+		fields.metricEventValue = fmt.Sprintf("%v", val);
 		delete(attrs, highlight.MetricEventValue)
 	}
 
@@ -273,12 +273,4 @@ func projectToInt(projectID string) (int, error) {
 		return i2, nil
 	}
 	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
-}
-
-func attributesToMap(attributes map[string]any) map[string]string {
-	newAttrMap := make(map[string]string)
-	for k, v := range attributes {
-		newAttrMap[k] = fmt.Sprintf("%v", v)
-	}
-	return newAttrMap
 }

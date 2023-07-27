@@ -28,14 +28,14 @@ type TraceRow struct {
 type Event struct {
 	Timestamp  time.Time
 	Name       string
-	Attributes map[string]any
+	Attributes map[string]string
 }
 
 type Link struct {
 	TraceId    string
 	SpanId     string
 	TraceState string
-	Attributes map[string]any
+	Attributes map[string]string
 }
 
 func NewTraceRow(timestamp time.Time) *TraceRow {
@@ -131,7 +131,7 @@ func (t *TraceRow) WithEvents(events []map[string]any) *TraceRow {
 		traceEvents[i] = Event{
 			Timestamp:  event["Timestamp"].(time.Time),
 			Name:       event["Name"].(string),
-			Attributes: event["Attributes"].(map[string]any),
+			Attributes: attributesToMap(event["Attributes"]),
 		}
 	}
 
@@ -146,10 +146,18 @@ func (t *TraceRow) WithLinks(links []map[string]any) *TraceRow {
 			TraceId:    link["TraceId"].(string),
 			SpanId:     link["SpanId"].(string),
 			TraceState: link["TraceState"].(string),
-			Attributes: link["Attributes"].(map[string]any),
+			Attributes: attributesToMap(link["Attributes"]),
 		}
 	}
 
 	t.Links = traceLinks
 	return t
+}
+
+func attributesToMap(attributes map[string]any) map[string]string {
+	newAttrMap := make(map[string]string)
+	for k, v := range attributes {
+		newAttrMap[k] = fmt.Sprintf("%v", v)
+	}
+	return newAttrMap
 }
