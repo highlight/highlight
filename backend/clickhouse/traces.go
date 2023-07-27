@@ -58,11 +58,11 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 	return batch.Send()
 }
 
-func convertEvents(traceRow *TraceRow) ([]time.Time, []string, []map[string]string) {
+func convertEvents(traceRow *TraceRow) ([]time.Time, []string, []map[string]any) {
 	var (
 		times []time.Time
 		names []string
-		attrs []map[string]string
+		attrs []map[string]any
 	)
 	events := traceRow.Events
 	for _, event := range events {
@@ -73,12 +73,12 @@ func convertEvents(traceRow *TraceRow) ([]time.Time, []string, []map[string]stri
 	return times, names, attrs
 }
 
-func convertLinks(traceRow *TraceRow) ([]string, []string, []string, []map[string]string) {
+func convertLinks(traceRow *TraceRow) ([]string, []string, []string, []map[string]any) {
 	var (
 		traceIDs []string
 		spanIDs  []string
 		states   []string
-		attrs    []map[string]string
+		attrs    []map[string]any
 	)
 	links := traceRow.Links
 	for _, link := range links {
