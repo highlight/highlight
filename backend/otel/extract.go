@@ -144,8 +144,11 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 	}
 
 	if val, ok := attrs[highlight.MetricEventValue]; ok {
-		fields.metricEventValue = val.(float64)
-		delete(attrs, highlight.MetricEventValue)
+		castedValue, ok := val.(float64)
+		if ok {
+			fields.metricEventValue = castedValue
+			delete(attrs, highlight.MetricEventValue)
+		}
 	}
 
 	if val, ok := eventAttributes[string(semconv.ExceptionTypeKey)]; ok { // we know that exception.type will be in the event attributes map
