@@ -1205,6 +1205,10 @@ SessionSecureID: ${this.sessionData.sessionSecureID}`,
 		return null
 	}
 
+	async snapshot(element: HTMLCanvasElement) {
+		await record.snapshotCanvas(element)
+	}
+
 	addSessionFeedback({
 		timestamp,
 		verbatim,

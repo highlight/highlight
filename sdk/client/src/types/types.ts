@@ -239,6 +239,7 @@ export declare interface HighlightPublicInterface {
 	 * Calling this will add a feedback comment to the session.
 	 */
 	addSessionFeedback: (feedbackOptions: SessionFeedbackOptions) => void
+	snapshot: (element: HTMLCanvasElement) => Promise<void>
 }
 
 export declare interface SessionDetails {
