@@ -161,14 +161,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						lg(ctx, fields).WithError(err).Error("failed to extract fields")
 					}
 
-					ts := event.Timestamp().AsTime()
 					traceID := cast(fields.requestID, span.TraceID().String())
 					spanID := span.SpanID().String()
 					if event.Name() == semconv.ExceptionEventName {
 						var logCursor *string
 
 						logRow := clickhouse.NewLogRow(
-							ts, uint32(fields.projectIDInt),
+							fields.timestamp, uint32(fields.projectIDInt),
 							clickhouse.WithTraceID(traceID),
 							clickhouse.WithSpanID(spanID),
 							clickhouse.WithSecureSessionID(fields.sessionID),
@@ -183,7 +182,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
 
-						isProjectError, backendError := getBackendError(ctx, ts, fields, traceID, spanID, logCursor)
+						isProjectError, backendError := getBackendError(ctx, fields.timestamp, fields, traceID, spanID, logCursor)
 						if backendError == nil {
 							lg(ctx, fields).Error("otel span error got no session and no project")
 						} else {
@@ -204,7 +203,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						}
 
 						logRow := clickhouse.NewLogRow(
-							ts, uint32(fields.projectIDInt),
+							fields.timestamp, uint32(fields.projectIDInt),
 							clickhouse.WithTraceID(traceID),
 							clickhouse.WithSpanID(spanID),
 							clickhouse.WithSecureSessionID(fields.sessionID),
@@ -218,7 +217,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 					} else if event.Name() == highlight.MetricEvent {
-						metric, err := getMetric(ctx, ts, fields, traceID, spanID)
+						metric, err := getMetric(ctx, fields.timestamp, fields, traceID, spanID)
 						if err != nil {
 							lg(ctx, fields).WithError(err).Error("failed to create metric")
 							continue
@@ -336,7 +335,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				}
 
 				logRow := clickhouse.NewLogRow(
-					logRecord.Timestamp().AsTime(), uint32(fields.projectIDInt),
+					fields.timestamp, uint32(fields.projectIDInt),
 					clickhouse.WithTraceID(logRecord.TraceID().String()),
 					clickhouse.WithSpanID(logRecord.SpanID().String()),
 					clickhouse.WithSecureSessionID(fields.sessionID),
@@ -344,7 +343,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					clickhouse.WithLogAttributes(fields.attrs),
 					clickhouse.WithServiceName(fields.serviceName),
 					clickhouse.WithServiceVersion(fields.serviceVersion),
-					clickhouse.WithSeverityText(logRecord.SeverityText()),
+					clickhouse.WithSeverityText(fields.logSeverity),
 					clickhouse.WithSource(fields.source),
 				)
 
