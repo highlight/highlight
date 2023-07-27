@@ -88,7 +88,7 @@ func TestHandler_HandleTrace(t *testing.T) {
 	}
 	h.HandleTrace(w, r)
 
-	assert.Equal(t, 3, len(producer.messages), fmt.Sprintf("%+v", producer.messages))
+	assert.Equal(t, 4, len(producer.messages), fmt.Sprintf("%+v", producer.messages))
 
 	_, ok := lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
 		return message.Type == kafkaqueue.PushBackendPayload
@@ -99,6 +99,11 @@ func TestHandler_HandleTrace(t *testing.T) {
 		return message.Type == kafkaqueue.PushLogs
 	})
 	assert.Truef(t, ok, "did not find a PushLogs message")
+
+	_, ok = lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
+		return message.Type == kafkaqueue.PushTraces
+	})
+	assert.Truef(t, ok, "did not find a PushTraces message")
 
 	allPushLogs := lo.Filter(producer.messages, func(message *kafkaqueue.Message, _ int) bool {
 		return message.Type == kafkaqueue.PushLogs
