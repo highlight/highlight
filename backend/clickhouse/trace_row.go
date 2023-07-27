@@ -2,11 +2,7 @@ package clickhouse
 
 import (
 	"fmt"
-	"strconv"
 	"time"
-
-	"github.com/highlight-run/highlight/backend/model"
-	e "github.com/pkg/errors"
 )
 
 type TraceRow struct {
@@ -156,25 +152,4 @@ func (t *TraceRow) WithLinks(links []map[string]any) *TraceRow {
 
 	t.Links = traceLinks
 	return t
-}
-
-func attributesToMap(attributes map[string]any) map[string]string {
-	newAttrMap := make(map[string]string)
-	for k, v := range attributes {
-		newAttrMap[k] = fmt.Sprintf("%v", v)
-	}
-	return newAttrMap
-}
-
-// TODO: Import from extract.go instead of copying here
-func projectToInt(projectID string) (int, error) {
-	i, err := strconv.ParseInt(projectID, 10, 32)
-	if err == nil {
-		return int(i), nil
-	}
-	i2, err := model.FromVerboseID(projectID)
-	if err == nil {
-		return i2, nil
-	}
-	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
 }
