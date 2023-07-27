@@ -48,6 +48,7 @@ import { RubyRailsLogContent } from './logging/ruby/rails'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
 import { HostingRenderLogContent } from './logging/hosting/render'
+import { SyslogContent } from './logging/syslog'
 
 export type QuickStartOptions = {
 	title: string
@@ -113,6 +114,7 @@ export enum QuickStartType {
 	JSWinston = 'winston',
 	JStRPC = 'trpc',
 	HTTPOTLP = 'curl',
+	Syslog = 'syslog',
 	FluentForward = 'fluent-forward',
 	Docker = 'docker',
 	File = 'file',
@@ -229,6 +231,11 @@ export const quickStartContent = {
 			subtitle:
 				'Get started with logging in your application via HTTP or OTLP.',
 			[QuickStartType.HTTPOTLP]: HTTPContent,
+		},
+		syslog: {
+			title: 'Syslog RFC5424',
+			subtitle: 'Send syslog RFC5424 logs to highlight.io.',
+			[QuickStartType.Syslog]: SyslogContent,
 		},
 		other: {
 			title: 'Infrastructure / Other',
