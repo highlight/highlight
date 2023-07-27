@@ -161,10 +161,10 @@ export const Canvas = ({
 			})
 
 			engine.runRenderLoop(() => {
+				scene.render()
 				if (typeof onRender === 'function') {
 					onRender(scene)
 				}
-				scene.render()
 			})
 
 			loadTimer.current = undefined
