@@ -4,6 +4,12 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"encoding/json"
+	"io"
+	"net/http"
+	"regexp"
+	"strings"
+	"time"
+
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 	model2 "github.com/highlight-run/highlight/backend/model"
@@ -13,11 +19,6 @@ import (
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	log "github.com/sirupsen/logrus"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"io"
-	"net/http"
-	"regexp"
-	"strings"
-	"time"
 )
 
 const (
@@ -165,11 +166,11 @@ func HandleFirehoseLog(w http.ResponseWriter, r *http.Request) {
 					Timestamp: time.UnixMilli(event.Timestamp).UTC().Format(hlog.TimestampFormat),
 					Level:     "info",
 					Attributes: map[string]string{
-						"service_name": "firehose",
-						"message_type": cloudwatchPayload.MessageType,
-						"owner":        cloudwatchPayload.Owner,
-						"log_group":    cloudwatchPayload.LogGroup,
-						"log_stream":   cloudwatchPayload.LogStream,
+						string(semconv.ServiceNameKey): "firehose",
+						"message_type":                 cloudwatchPayload.MessageType,
+						"owner":                        cloudwatchPayload.Owner,
+						"log_group":                    cloudwatchPayload.LogGroup,
+						"log_stream":                   cloudwatchPayload.LogStream,
 					},
 				}
 				if err := hlog.SubmitHTTPLog(r.Context(), projectID, hl); err != nil {
@@ -217,7 +218,7 @@ func HandleJSONLog(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		for k, v := range lgAttrs {
-			for key, value := range util.FormatLogAttributes(r.Context(), 0, k, v) {
+			for key, value := range util.FormatLogAttributes(r.Context(), k, v) {
 				lg.Attributes[key] = value
 			}
 		}

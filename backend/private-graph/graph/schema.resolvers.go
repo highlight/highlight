@@ -5253,6 +5253,7 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate
 		Aggregation: &opensearch.TermsAggregation{
 			Field:   "fields.Key.raw",
 			Include: pointy.String("(session|track|user)_.*"),
+			Exclude: pointy.String("(session|track|user)_[0-9]+"), // Exclude numeric field types
 			Size:    pointy.Int(500),
 		},
 	}
@@ -7511,7 +7512,7 @@ func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemC
 }
 
 // Services is the resolver for the services field.
-func (r *queryResolver) Services(ctx context.Context, projectID int) ([]*model.Service, error) {
+func (r *queryResolver) Services(ctx context.Context, projectID int, after *string, before *string, query *string) (*modelInputs.ServiceConnection, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7522,7 +7523,13 @@ func (r *queryResolver) Services(ctx context.Context, projectID int) ([]*model.S
 		return nil, err
 	}
 
-	return services, nil
+	connection, err := r.Store.ListServices(*project, store.ListServicesParams{
+		After:  after,
+		Before: before,
+		Query:  query,
+	})
+
+	return &connection, err
 }
 
 // Params is the resolver for the params field.
@@ -7641,6 +7648,11 @@ func (r *sessionAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj 
 	ret := obj.DiscordChannelsToNotify
 
 	return ret, nil
+}
+
+// WebhookDestinations is the resolver for the WebhookDestinations field.
+func (r *sessionAlertResolver) WebhookDestinations(ctx context.Context, obj *model.SessionAlert) ([]*model.WebhookDestination, error) {
+	return obj.WebhookDestinations, nil
 }
 
 // EmailsToNotify is the resolver for the EmailsToNotify field.
