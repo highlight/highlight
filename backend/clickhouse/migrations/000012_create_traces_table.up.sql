@@ -1,4 +1,3 @@
-
 CREATE TABLE IF NOT EXISTS traces
 (
     ProjectId UInt32,
