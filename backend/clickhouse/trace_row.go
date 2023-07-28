@@ -3,26 +3,29 @@ package clickhouse
 import (
 	"fmt"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type TraceRow struct {
-	ProjectId          uint32
-	SecureSessionId    string
-	Timestamp          time.Time
-	TraceId            string
-	SpanId             string
-	ParentSpanId       string
-	TraceState         string
-	SpanName           string
-	SpanKind           string
-	ServiceName        string
-	ResourceAttributes map[string]string
-	SpanAttributes     map[string]string
-	Duration           int64
-	StatusCode         string
-	StatusMessage      string
-	Events             []Event
-	Links              []Link
+	Timestamp       time.Time
+	UUID            string
+	TraceId         string
+	SpanId          string
+	ParentSpanId    string
+	TraceState      string
+	SpanName        string
+	SpanKind        string
+	ServiceName     string
+	ServiceVersion  string
+	TraceAttributes map[string]string
+	Duration        int64
+	StatusCode      string
+	StatusMessage   string
+	Events          []Event
+	Links           []Link
+	ProjectId       uint32
+	SecureSessionId string
 }
 
 type Event struct {
@@ -38,10 +41,11 @@ type Link struct {
 	Attributes map[string]string
 }
 
-func NewTraceRow(timestamp time.Time) *TraceRow {
+func NewTraceRow(timestamp time.Time, projectID int) *TraceRow {
 	traceRow := &TraceRow{
-		Timestamp:   timestamp,
-		ServiceName: "",
+		Timestamp: timestamp,
+		UUID:      uuid.New().String(),
+		ProjectId: uint32(projectID),
 	}
 
 	return traceRow
@@ -97,6 +101,11 @@ func (t *TraceRow) WithServiceName(serviceName string) *TraceRow {
 	return t
 }
 
+func (t *TraceRow) WithServiceVersion(serviceVersion string) *TraceRow {
+	t.ServiceVersion = serviceVersion
+	return t
+}
+
 func (t *TraceRow) WithStatusCode(statusCode string) *TraceRow {
 	t.StatusCode = statusCode
 	return t
@@ -107,21 +116,8 @@ func (t *TraceRow) WithStatusMessage(statusMessage string) *TraceRow {
 	return t
 }
 
-func (t *TraceRow) WithResourceAttributes(attributes map[string]any) *TraceRow {
-	resourceAttributes := make(map[string]string)
-	for k, v := range attributes {
-		resourceAttributes[k] = fmt.Sprintf("%v", v)
-	}
-	t.ResourceAttributes = resourceAttributes
-	return t
-}
-
-func (t *TraceRow) WithSpanAttributes(attributes map[string]any) *TraceRow {
-	spanAttributes := make(map[string]string)
-	for k, v := range attributes {
-		spanAttributes[k] = fmt.Sprintf("%v", v)
-	}
-	t.SpanAttributes = spanAttributes
+func (t *TraceRow) WithTraceAttributes(attributes map[string]string) *TraceRow {
+	t.TraceAttributes = attributes
 	return t
 }
 

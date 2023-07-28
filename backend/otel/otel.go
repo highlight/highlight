@@ -159,7 +159,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					lg(ctx, fields).WithError(err).Error("failed to extract fields from span")
 				}
 
-				traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime()).
+				traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime(), fields.projectIDInt).
 					WithProjectId(fields.projectIDInt).
 					WithSecureSessionId(fields.sessionID).
 					WithTraceId(span.TraceID().String()).
@@ -169,10 +169,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					WithSpanName(span.Name()).
 					WithSpanKind(span.Kind().String()).
 					WithDuration(span.StartTimestamp().AsTime(), span.EndTimestamp().AsTime()).
+					WithServiceName(fields.serviceName).
+					WithServiceVersion(fields.serviceVersion).
 					WithStatusCode(span.Status().Code().String()).
 					WithStatusMessage(span.Status().Message()).
-					WithResourceAttributes(resource.Attributes().AsRaw()).
-					WithSpanAttributes(span.Attributes().AsRaw()).
+					WithTraceAttributes(fields.attrs).
 					WithEvents(fields.events).
 					WithLinks(fields.links)
 

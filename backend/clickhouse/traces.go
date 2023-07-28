@@ -27,19 +27,19 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 		linkTraceIds, linkSpanIds, linkStates, linkAttrs := convertLinks(traceRow)
 
 		err = batch.Append(
-			traceRow.ProjectId,
-			traceRow.SecureSessionId,
 			traceRow.Timestamp,
+			traceRow.UUID,
 			traceRow.TraceId,
 			traceRow.SpanId,
 			traceRow.ParentSpanId,
+			traceRow.ProjectId,
+			traceRow.SecureSessionId,
 			traceRow.TraceState,
 			traceRow.SpanName,
 			traceRow.SpanKind,
 			traceRow.Duration,
 			traceRow.ServiceName,
-			traceRow.ResourceAttributes,
-			traceRow.SpanAttributes,
+			traceRow.TraceAttributes,
 			traceRow.StatusCode,
 			traceRow.StatusMessage,
 			traceTimes,
