@@ -68,19 +68,7 @@ type Worker struct {
 	StorageClient  storage.Client
 }
 
-func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migrationState *string, payloadManager *payload.PayloadManager) error {
-	if err := w.Resolver.DB.Model(&model.Session{}).Where(
-		&model.Session{Model: model.Model{ID: s.ID}},
-	).Updates(
-		&model.Session{MigrationState: migrationState},
-	).Error; err != nil {
-		return errors.Wrap(err, "error updating session to processed status")
-	}
-
-	if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{"migration_state": migrationState}); err != nil {
-		return e.Wrap(err, "error updating session in opensearch")
-	}
-
+func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, payloadManager *payload.PayloadManager) error {
 	totalPayloadSize, err := w.StorageClient.PushFiles(ctx, s.ID, s.ProjectID, payloadManager)
 	// If this is unsuccessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
@@ -102,6 +90,10 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, migr
 		"direct_download_enabled": true,
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
+	}
+
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+		return err
 	}
 
 	return nil
@@ -446,14 +438,14 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	// is processed serially, so messages in that slice are processed in order.
 
 	wg := sync.WaitGroup{}
-	wg.Add(2)
+	wg.Add(3)
 	go func(_wg *sync.WaitGroup) {
 		wg := sync.WaitGroup{}
 		wg.Add(parallelWorkers)
 		for i := 0; i < parallelWorkers; i++ {
 			go func(workerId int) {
 				k := KafkaWorker{
-					KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Consumer),
+					KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer),
 					Worker:       w,
 					WorkerThread: workerId,
 				}
@@ -468,21 +460,39 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		wg := sync.WaitGroup{}
 		wg.Add(parallelBatchWorkers)
 		buffer := &KafkaBatchBuffer{
-			messageQueue: make(chan *kafkaqueue.Message, BatchFlushSize*(parallelBatchWorkers+1)),
+			messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize*(parallelBatchWorkers+1)),
 		}
 		for i := 0; i < parallelBatchWorkers; i++ {
 			go func(workerId int) {
 				k := KafkaBatchWorker{
-					KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Consumer),
-					Worker:       w,
-					WorkerThread: workerId,
-					BatchBuffer:  buffer,
+					KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer),
+					Worker:              w,
+					WorkerThread:        workerId,
+					BatchBuffer:         buffer,
+					BatchFlushSize:      DefaultBatchFlushSize,
+					BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 				}
-				k.ProcessMessages(ctx)
+				k.ProcessMessages(ctx, k.flushLogs)
 				wg.Done()
 			}(i)
 		}
 		wg.Wait()
+		_wg.Done()
+	}(&wg)
+	go func(_wg *sync.WaitGroup) {
+		flushSize := 1000
+		buffer := &KafkaBatchBuffer{
+			messageQueue: make(chan *kafkaqueue.Message, flushSize+1),
+		}
+		k := KafkaBatchWorker{
+			KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Consumer),
+			Worker:              w,
+			WorkerThread:        0,
+			BatchBuffer:         buffer,
+			BatchFlushSize:      flushSize,
+			BatchedFlushTimeout: 5 * time.Second,
+		}
+		k.ProcessMessages(ctx, k.flushDataSync)
 		_wg.Done()
 	}(&wg)
 	wg.Wait()
@@ -533,6 +543,10 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 		"processed": true,
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
+	}
+
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+		return err
 	}
 
 	return nil
@@ -830,6 +844,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+		return err
+	}
+
 	if len(visitFields) >= 1 {
 		sessionProperties := map[string]string{
 			"landing_page": visitFields[0].Value,
@@ -974,8 +992,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
-		state := "normal"
-		if err := w.pushToObjectStorage(ctx, s, &state, payloadManager); err != nil {
+		if err := w.pushToObjectStorage(ctx, s, payloadManager); err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"session_id": s.ID, "project_id": s.ProjectID}).Error(e.Wrap(err, "error pushing to object and wiping from db"))
 		}
 	}
@@ -1113,6 +1130,11 @@ func (w *Worker) Start(ctx context.Context) {
 						if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
+
+						if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: session.ID}}, strconv.Itoa(session.ID)); err != nil {
+							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error submitting data sync message"))
+						}
+
 						span.Finish()
 					} else {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error processing main session"))

@@ -25,7 +25,6 @@ import (
 const KafkaOperationTimeout = 25 * time.Second
 
 const ConsumerGroupName = "group-default"
-const BatchedTopicSuffix = "batched"
 
 const (
 	taskRetries           = 5
@@ -67,8 +66,16 @@ type MessageQueue interface {
 	LogStats()
 }
 
+type TopicType string
+
+const (
+	TopicTypeDefault  TopicType = "default"
+	TopicTypeBatched  TopicType = "batched"
+	TopicTypeDataSync TopicType = "datasync"
+)
+
 type GetTopicOptions struct {
-	Batched bool
+	Type TopicType
 }
 
 func GetTopic(options GetTopicOptions) string {
@@ -76,8 +83,8 @@ func GetTopic(options GetTopicOptions) string {
 	if util.IsDevOrTestEnv() {
 		topic = fmt.Sprintf("%s_%s", EnvironmentPrefix, topic)
 	}
-	if options.Batched {
-		topic = fmt.Sprintf("%s_%s", topic, BatchedTopicSuffix)
+	if options.Type != TopicTypeDefault {
+		topic = fmt.Sprintf("%s_%s", topic, string(options.Type))
 	}
 	return topic
 }
