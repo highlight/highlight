@@ -928,6 +928,8 @@ type ErrorObject struct {
 	Environment      string
 	RequestID        *string // From X-Highlight-Request header
 	IsBeacon         bool    `gorm:"default:false"`
+	ServiceName      string
+	ServiceVersion   string
 }
 
 type ErrorObjectEmbeddings struct {
@@ -961,6 +963,7 @@ type ErrorGroup struct {
 	FirstOccurrence  *time.Time                           `gorm:"-"`
 	LastOccurrence   *time.Time                           `gorm:"-"`
 	ErrorObjects     []ErrorObject
+	ServiceName      string
 
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`

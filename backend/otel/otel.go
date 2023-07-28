@@ -72,6 +72,10 @@ func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, 
 		Timestamp:       ts,
 		Payload:         pointy.String(string(payloadBytes)),
 		URL:             fields.errorUrl,
+		Service: &model.ServiceInput{
+			Name:    fields.serviceName,
+			Version: fields.serviceVersion,
+		},
 	}
 	if fields.sessionID != "" {
 		return false, err
