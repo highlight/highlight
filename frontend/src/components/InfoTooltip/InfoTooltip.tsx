@@ -4,7 +4,7 @@ import { TooltipPropsWithTitle } from 'antd/es/tooltip'
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './InfoTooltip.module.scss'
+import styles from './InfoTooltip.module.css'
 
 type Props = Pick<
 	TooltipPropsWithTitle,

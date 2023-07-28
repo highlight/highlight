@@ -124,6 +124,13 @@ export type AllProjectSettings = {
 	workspace_id: Scalars['ID']
 }
 
+export type AllWorkspaceSettings = {
+	__typename?: 'AllWorkspaceSettings'
+	ai_application: Scalars['Boolean']
+	ai_insights: Scalars['Boolean']
+	workspace_id: Scalars['ID']
+}
+
 export type AverageSessionLength = {
 	__typename?: 'AverageSessionLength'
 	length: Scalars['Float']
@@ -355,6 +362,7 @@ export enum EmailOptOutCategory {
 	All = 'All',
 	Billing = 'Billing',
 	Digests = 'Digests',
+	SessionDigests = 'SessionDigests',
 }
 
 export type EnhancedUserDetailsResult = {
@@ -526,16 +534,19 @@ export type ErrorObjectEdge = Edge & {
 export type ErrorObjectNode = {
 	__typename?: 'ErrorObjectNode'
 	createdAt: Scalars['Timestamp']
+	errorGroupSecureID: Scalars['String']
 	event: Scalars['String']
 	id: Scalars['ID']
-	session: ErrorObjectNodeSession
+	session?: Maybe<ErrorObjectNodeSession>
+	timestamp: Scalars['Timestamp']
 }
 
 export type ErrorObjectNodeSession = {
 	__typename?: 'ErrorObjectNodeSession'
 	appVersion?: Maybe<Scalars['String']>
+	email?: Maybe<Scalars['String']>
+	fingerprint?: Maybe<Scalars['Int']>
 	secureID: Scalars['String']
-	userProperties: Scalars['String']
 }
 
 export type ErrorResults = {
@@ -957,7 +968,9 @@ export type Mutation = {
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
+	editService?: Maybe<Service>
 	editWorkspace?: Maybe<Workspace>
+	editWorkspaceSettings?: Maybe<AllWorkspaceSettings>
 	emailSignup: Scalars['String']
 	joinWorkspace?: Maybe<Scalars['ID']>
 	markErrorGroupAsViewed?: Maybe<ErrorGroup>
@@ -1259,9 +1272,21 @@ export type MutationEditSegmentArgs = {
 	project_id: Scalars['ID']
 }
 
+export type MutationEditServiceArgs = {
+	github_repo_path?: InputMaybe<Scalars['String']>
+	id: Scalars['ID']
+	project_id: Scalars['ID']
+}
+
 export type MutationEditWorkspaceArgs = {
 	id: Scalars['ID']
 	name?: InputMaybe<Scalars['String']>
+}
+
+export type MutationEditWorkspaceSettingsArgs = {
+	ai_application?: InputMaybe<Scalars['Boolean']>
+	ai_insights?: InputMaybe<Scalars['Boolean']>
+	workspace_id: Scalars['ID']
 }
 
 export type MutationEmailSignupArgs = {
@@ -1399,6 +1424,7 @@ export type MutationUpdateEmailOptOutArgs = {
 	admin_id?: InputMaybe<Scalars['ID']>
 	category: EmailOptOutCategory
 	is_opt_out: Scalars['Boolean']
+	project_id?: InputMaybe<Scalars['Int']>
 	token?: InputMaybe<Scalars['String']>
 }
 
@@ -1628,7 +1654,6 @@ export type Query = {
 	email_opt_outs: Array<EmailOptOutCategory>
 	enhanced_user_details?: Maybe<EnhancedUserDetailsResult>
 	environment_suggestion?: Maybe<Array<Maybe<Field>>>
-	errorDistribution: Array<Maybe<ErrorDistributionItem>>
 	errorGroupFrequencies: Array<Maybe<ErrorDistributionItem>>
 	errorGroupTags: Array<ErrorGroupTagAggregation>
 	error_alerts: Array<Maybe<ErrorAlert>>
@@ -1644,6 +1669,7 @@ export type Query = {
 	error_object?: Maybe<ErrorObject>
 	error_object_for_log?: Maybe<ErrorObject>
 	error_objects: ErrorObjectConnection
+	error_resolution_suggestion: Scalars['String']
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram: ErrorsHistogram
@@ -1703,12 +1729,14 @@ export type Query = {
 	resources?: Maybe<Array<Maybe<Scalars['Any']>>>
 	segments?: Maybe<Array<Maybe<Segment>>>
 	serverIntegration: IntegrationStatus
+	services?: Maybe<ServiceConnection>
 	session?: Maybe<Session>
 	sessionLogs: Array<LogEdge>
 	session_comment_tags_for_project: Array<SessionCommentTag>
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
 	session_comments_for_project: Array<Maybe<SessionComment>>
+	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
 	sessions_histogram: SessionsHistogram
 	sessions_opensearch: SessionResults
@@ -1717,6 +1745,7 @@ export type Query = {
 	sourcemap_versions: Array<Scalars['String']>
 	subscription_details: SubscriptionDetails
 	suggested_metrics: Array<Scalars['String']>
+	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
 	topUsers: Array<Maybe<TopUsersPayload>>
 	track_properties_alerts: Array<Maybe<SessionAlert>>
@@ -1726,9 +1755,10 @@ export type Query = {
 	vercel_project_mappings: Array<VercelProjectMapping>
 	vercel_projects: Array<VercelProject>
 	web_vitals: Array<Metric>
+	websocket_events?: Maybe<Array<Maybe<Scalars['Any']>>>
 	workspace?: Maybe<Workspace>
 	workspacePendingInvites: Array<Maybe<WorkspaceInviteLink>>
-	workspaceSuggestion: Array<Maybe<Workspace>>
+	workspaceSettings?: Maybe<AllWorkspaceSettings>
 	workspace_admins: Array<WorkspaceAdminRole>
 	workspace_admins_by_project_id: Array<WorkspaceAdminRole>
 	workspace_for_invite_link: WorkspaceForInviteLink
@@ -1836,12 +1866,6 @@ export type QueryEnvironment_SuggestionArgs = {
 	project_id: Scalars['ID']
 }
 
-export type QueryErrorDistributionArgs = {
-	error_group_secure_id: Scalars['String']
-	project_id: Scalars['ID']
-	property: Scalars['String']
-}
-
 export type QueryErrorGroupFrequenciesArgs = {
 	error_group_secure_ids?: InputMaybe<Array<Scalars['String']>>
 	metric?: InputMaybe<Scalars['String']>
@@ -1911,6 +1935,11 @@ export type QueryError_ObjectsArgs = {
 	after?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
 	error_group_secure_id: Scalars['String']
+	query: Scalars['String']
+}
+
+export type QueryError_Resolution_SuggestionArgs = {
+	error_object_id: Scalars['ID']
 }
 
 export type QueryError_SegmentsArgs = {
@@ -1947,7 +1976,9 @@ export type QueryField_SuggestionArgs = {
 }
 
 export type QueryField_TypesArgs = {
+	end_date?: InputMaybe<Scalars['Timestamp']>
 	project_id: Scalars['ID']
+	start_date?: InputMaybe<Scalars['Timestamp']>
 }
 
 export type QueryFields_OpensearchArgs = {
@@ -2183,6 +2214,13 @@ export type QueryServerIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryServicesArgs = {
+	after?: InputMaybe<Scalars['String']>
+	before?: InputMaybe<Scalars['String']>
+	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
+}
+
 export type QuerySessionArgs = {
 	secure_id: Scalars['String']
 }
@@ -2204,6 +2242,10 @@ export type QuerySession_Comments_For_ProjectArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QuerySession_InsightArgs = {
+	secure_id: Scalars['String']
+}
+
 export type QuerySession_IntervalsArgs = {
 	session_secure_id: Scalars['String']
 }
@@ -2220,6 +2262,7 @@ export type QuerySessions_OpensearchArgs = {
 	project_id: Scalars['ID']
 	query: Scalars['String']
 	sort_desc: Scalars['Boolean']
+	sort_field?: InputMaybe<Scalars['String']>
 }
 
 export type QuerySlack_Channel_SuggestionArgs = {
@@ -2282,6 +2325,10 @@ export type QueryWeb_VitalsArgs = {
 	session_secure_id: Scalars['String']
 }
 
+export type QueryWebsocket_EventsArgs = {
+	session_secure_id: Scalars['String']
+}
+
 export type QueryWorkspaceArgs = {
 	id: Scalars['ID']
 }
@@ -2290,8 +2337,8 @@ export type QueryWorkspacePendingInvitesArgs = {
 	workspace_id: Scalars['ID']
 }
 
-export type QueryWorkspaceSuggestionArgs = {
-	query: Scalars['String']
+export type QueryWorkspaceSettingsArgs = {
+	workspace_id: Scalars['ID']
 }
 
 export type QueryWorkspace_AdminsArgs = {
@@ -2439,6 +2486,42 @@ export type Segment = {
 	project_id: Scalars['ID']
 }
 
+export type Service = {
+	__typename?: 'Service'
+	githubRepoPath?: Maybe<Scalars['String']>
+	id: Scalars['ID']
+	name: Scalars['String']
+	projectID: Scalars['ID']
+	status: ServiceStatus
+}
+
+export type ServiceConnection = Connection & {
+	__typename?: 'ServiceConnection'
+	edges: Array<Maybe<ServiceEdge>>
+	pageInfo: PageInfo
+}
+
+export type ServiceEdge = Edge & {
+	__typename?: 'ServiceEdge'
+	cursor: Scalars['String']
+	node: ServiceNode
+}
+
+export type ServiceNode = {
+	__typename?: 'ServiceNode'
+	githubRepoPath?: Maybe<Scalars['String']>
+	id: Scalars['ID']
+	name: Scalars['String']
+	projectID: Scalars['ID']
+	status: ServiceStatus
+}
+
+export enum ServiceStatus {
+	Created = 'created',
+	Error = 'error',
+	Healthy = 'healthy',
+}
+
 export type Session = {
 	__typename?: 'Session'
 	active_length?: Maybe<Scalars['Int']>
@@ -2489,6 +2572,7 @@ export type Session = {
 	user_object?: Maybe<Scalars['Any']>
 	user_properties?: Maybe<Scalars['String']>
 	viewed?: Maybe<Scalars['Boolean']>
+	web_socket_events_url?: Maybe<Scalars['String']>
 	within_billing_quota?: Maybe<Scalars['Boolean']>
 }
 
@@ -2507,6 +2591,7 @@ export type SessionAlert = {
 	TrackProperties: Array<Maybe<TrackProperty>>
 	Type: Scalars['String']
 	UserProperties: Array<Maybe<UserProperty>>
+	WebhookDestinations: Array<WebhookDestination>
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	updated_at: Scalars['Timestamp']
@@ -2575,12 +2660,21 @@ export enum SessionCommentType {
 }
 
 export enum SessionExcludedReason {
+	BillingQuotaExceeded = 'BillingQuotaExceeded',
 	IgnoredUser = 'IgnoredUser',
 	Initializing = 'Initializing',
 	NoActivity = 'NoActivity',
 	NoError = 'NoError',
 	NoTimelineIndicatorEvents = 'NoTimelineIndicatorEvents',
+	NoUserEvents = 'NoUserEvents',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
+	RetentionPeriodExceeded = 'RetentionPeriodExceeded',
+}
+
+export type SessionInsight = {
+	__typename?: 'SessionInsight'
+	id: Scalars['ID']
+	insight: Scalars['String']
 }
 
 export type SessionInterval = {
@@ -2605,6 +2699,12 @@ export type SessionPayload = {
 	last_user_interaction_time: Scalars['Timestamp']
 	rage_clicks: Array<RageClickEvent>
 	session_comments: Array<Maybe<SessionComment>>
+}
+
+export type SessionQuery = {
+	__typename?: 'SessionQuery'
+	id: Scalars['ID']
+	project_id: Scalars['ID']
 }
 
 export type SessionResults = {
@@ -2659,6 +2759,7 @@ export type SourceMappingError = {
 }
 
 export enum SourceMappingErrorCode {
+	ErrorConstructingSourceMapUrl = 'Error_Constructing_Source_Map_URL',
 	ErrorParsingStackTraceFileUrl = 'Error_Parsing_Stack_Trace_File_Url',
 	FileNameMissingFromSourcePath = 'File_Name_Missing_From_Source_Path',
 	InvalidSourceMapUrl = 'Invalid_SourceMapURL',
@@ -2692,6 +2793,12 @@ export type SubscriptionDetails = {
 export enum SubscriptionInterval {
 	Annual = 'Annual',
 	Monthly = 'Monthly',
+}
+
+export type SystemConfiguration = {
+	__typename?: 'SystemConfiguration'
+	maintenance_end: Scalars['Timestamp']
+	maintenance_start: Scalars['Timestamp']
 }
 
 export type TimelineIndicatorEvent = {
@@ -2772,6 +2879,16 @@ export type VercelProjectMappingInput = {
 	new_project_name?: InputMaybe<Scalars['String']>
 	project_id?: InputMaybe<Scalars['ID']>
 	vercel_project_id: Scalars['String']
+}
+
+export type WebSocketEvent = {
+	__typename?: 'WebSocketEvent'
+	message: Scalars['String']
+	name: Scalars['String']
+	size: Scalars['Int']
+	socketId: Scalars['String']
+	timeStamp: Scalars['Float']
+	type: Scalars['String']
 }
 
 export type WebhookDestination = {

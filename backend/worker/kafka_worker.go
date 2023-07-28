@@ -34,10 +34,11 @@ func (k *KafkaWorker) processWorkerError(ctx context.Context, task *kafkaqueue.M
 func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 	for {
 		func() {
+			var err error
 			defer util.Recover()
 			s := tracer.StartSpan("processPublicWorkerMessage", tracer.ResourceName("worker.kafka.process"))
 			s.SetTag("worker.goroutine", k.WorkerThread)
-			defer s.Finish()
+			defer s.Finish(tracer.WithError(err))
 
 			s1 := tracer.StartSpan("worker.kafka.receiveMessage", tracer.ChildOf(s.Context()))
 			task := k.KafkaQueue.Receive(ctx)
@@ -45,21 +46,22 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 
 			if task == nil {
 				return
+			} else if task.Type == kafkaqueue.HealthCheck {
+				return
 			}
 			s.SetTag("taskType", task.Type)
 			s.SetTag("partition", task.KafkaMessage.Partition)
 			s.SetTag("partitionKey", string(task.KafkaMessage.Key))
 
-			var err error
 			s2 := tracer.StartSpan("worker.kafka.processMessage", tracer.ChildOf(s.Context()))
 			for i := 0; i <= task.MaxRetries; i++ {
 				if err = k.Worker.processPublicWorkerMessage(tracer.ContextWithSpan(ctx, s), task); err != nil {
 					k.processWorkerError(ctx, task, err)
-					s.SetTag("taskFailures", task.Failures)
 				} else {
 					break
 				}
 			}
+			s.SetTag("taskFailures", task.Failures)
 			s2.Finish(tracer.WithError(err))
 
 			s3 := tracer.StartSpan("worker.kafka.commitMessage", tracer.ChildOf(s.Context()))
@@ -71,7 +73,8 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 	}
 }
 
-const BatchFlushSize = 128
+// BatchFlushSize set per https://clickhouse.com/docs/en/cloud/bestpractices/bulk-inserts
+const BatchFlushSize = 8192
 const BatchedFlushTimeout = 1 * time.Second
 
 type KafkaWorker struct {
@@ -85,6 +88,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
 	defer s.Finish()
 
+	var oldestLogRow *clickhouse.LogRow
 	var logRows []*clickhouse.LogRow
 
 	var received int
@@ -96,6 +100,11 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 				switch lastMsg.Type {
 				case kafkaqueue.PushLogs:
 					logRows = append(logRows, lastMsg.PushLogs.LogRows...)
+					for _, row := range lastMsg.PushLogs.LogRows {
+						if oldestLogRow == nil || row.Timestamp.Before(oldestLogRow.Timestamp) {
+							oldestLogRow = row
+						}
+					}
 					received += len(lastMsg.PushLogs.LogRows)
 				}
 				if received >= BatchFlushSize {
@@ -220,7 +229,10 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	span, ctxT := tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.clickhouse"))
 	span.SetTag("NumLogRows", len(logRows))
 	span.SetTag("NumFilteredRows", len(filteredRows))
-	span.SetTag("PayloadSizeBytes", binary.Size(logRows))
+	span.SetTag("PayloadSizeBytes", binary.Size(filteredRows))
+	if oldestLogRow != nil {
+		span.SetTag("MaxIngestDelay", time.Since(oldestLogRow.Timestamp))
+	}
 	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, filteredRows)
 	if err != nil {
 		log.WithContext(ctxT).WithError(err).Error("failed to batch write to clickhouse")
@@ -254,6 +266,8 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 			task := k.KafkaQueue.Receive(ctx)
 			s1.Finish()
 			if task == nil {
+				return
+			} else if task.Type == kafkaqueue.HealthCheck {
 				return
 			}
 

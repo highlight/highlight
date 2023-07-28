@@ -225,8 +225,11 @@
 	"pidMode": null,
 	"requiresCompatibilities": ["FARGATE"],
 	"networkMode": "awsvpc",
-	"cpu": "2048",
+	"cpu": "4096",
 	"memory": "16384",
+	"ephemeralStorage": {
+		"sizeInGiB": 200
+	},
 	"revision": 40,
 	"status": "ACTIVE",
 	"inferenceAccelerators": null,

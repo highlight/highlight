@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/redis"
 	"os"
 	"reflect"
 	"strconv"
@@ -12,8 +13,10 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/go-test/deep"
 	"github.com/highlight-run/highlight/backend/opensearch"
+	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/timeseries"
+	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
 
 	e "github.com/pkg/errors"
@@ -41,7 +44,7 @@ func TestMain(m *testing.M) {
 	resolver = &Resolver{
 		DB:    db,
 		TDB:   timeseries.New(context.TODO()),
-		Store: store.NewStore(db, &opensearch.Client{}),
+		Store: store.NewStore(db, &opensearch.Client{}, redis.NewClient()),
 	}
 	code := m.Run()
 	os.Exit(code)
@@ -50,7 +53,10 @@ func TestMain(m *testing.M) {
 func TestProcessBackendPayloadImpl(t *testing.T) {
 	trpcTraceStr := "[{\"columnNumber\":11,\"lineNumber\":80,\"fileName\":\"/workspace/src/trpc/instance.ts\",\"source\":\"    at /workspace/src/trpc/instance.ts:80:11\",\"lineContent\":\"    throw new TRPCError({\\n\",\"linesBefore\":\"        organizationId,\\n        supabaseAccessToken,\\n      },\\n    });\\n  } catch (error) {\\n\",\"linesAfter\":\"      code: \\\"UNAUTHORIZED\\\",\\n    });\\n  }\\n});\\n\\n\"},{\"columnNumber\":38,\"lineNumber\":421,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/index.js\",\"functionName\":\"callRecursive\",\"source\":\"    at callRecursive (/workspace/node_modules/@trpc/server/dist/index.js:421:38)\",\"lineContent\":\"                const result = await middleware({\\n\",\"linesBefore\":\"            ctx: opts.ctx\\n        })=\u003e{\\n            try {\\n                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion\\n                const middleware = _def.middlewares[callOpts.index];\\n\",\"linesAfter\":\"                    ctx: callOpts.ctx,\\n                    type: opts.type,\\n                    path: opts.path,\\n                    rawInput: opts.rawInput,\\n                    meta: _def.meta,\\n\"},{\"columnNumber\":30,\"lineNumber\":449,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/index.js\",\"functionName\":\"resolve\",\"source\":\"    at resolve (/workspace/node_modules/@trpc/server/dist/index.js:449:30)\",\"lineContent\":\"        const result = await callRecursive();\\n\",\"linesBefore\":\"                    marker: middlewareMarker\\n                };\\n            }\\n        };\\n        // there's always at least one \\\"next\\\" since we wrap this.resolver in a middleware\\n\",\"linesAfter\":\"        if (!result) {\\n            throw new TRPCError.TRPCError({\\n                code: 'INTERNAL_SERVER_ERROR',\\n                message: 'No result from middlewares - did you forget to `return next()`?'\\n            });\\n\"},{\"columnNumber\":12,\"lineNumber\":228,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/config-7b65d7da.js\",\"functionName\":\"Object.callProcedure\",\"source\":\"    at Object.callProcedure (/workspace/node_modules/@trpc/server/dist/config-7b65d7da.js:228:12)\",\"lineContent\":\"    return procedure(opts);\\n\",\"linesBefore\":\"            code: 'NOT_FOUND',\\n            message: `No \\\"${type}\\\"-procedure on path \\\"${path}\\\"`\\n        });\\n    }\\n    const procedure = opts.procedures[path];\\n\",\"linesAfter\":\"}\\n\\n/**\\n * The default check to see if we're in a server\\n */ const isServerDefault = typeof window === 'undefined' || 'Deno' in window || globalThis.process?.env?.NODE_ENV === 'test' || !!globalThis.process?.env?.JEST_WORKER_ID;\\n\"},{\"columnNumber\":45,\"lineNumber\":125,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/resolveHTTPResponse-83d9b5ff.js\",\"source\":\"    at /workspace/node_modules/@trpc/server/dist/resolveHTTPResponse-83d9b5ff.js:125:45\",\"lineContent\":\"                const output = await config.callProcedure({\\n\",\"linesBefore\":\"        };\\n        const inputs = getInputs();\\n        const rawResults = await Promise.all(paths.map(async (path, index)=\u003e{\\n            const input = inputs[index];\\n            try {\\n\",\"linesAfter\":\"                    procedures: router._def.procedures,\\n                    path,\\n                    rawInput: input,\\n                    ctx,\\n                    type\\n\"},{\"columnNumber\":52,\"lineNumber\":122,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/resolveHTTPResponse-83d9b5ff.js\",\"functionName\":\"Object.resolveHTTPResponse\",\"source\":\"    at Object.resolveHTTPResponse (/workspace/node_modules/@trpc/server/dist/resolveHTTPResponse-83d9b5ff.js:122:52)\",\"lineContent\":\"        const rawResults = await Promise.all(paths.map(async (path, index)=\u003e{\\n\",\"linesBefore\":\"                input[k] = value;\\n            }\\n            return input;\\n        };\\n        const inputs = getInputs();\\n\",\"linesAfter\":\"            const input = inputs[index];\\n            try {\\n                const output = await config.callProcedure({\\n                    procedures: router._def.procedures,\\n                    path,\\n\"},{\"columnNumber\":5,\"lineNumber\":96,\"fileName\":\"node:internal/process/task_queues\",\"functionName\":\"processTicksAndRejections\",\"source\":\"    at processTicksAndRejections (node:internal/process/task_queues:96:5)\"},{\"columnNumber\":20,\"lineNumber\":53,\"fileName\":\"/workspace/node_modules/@trpc/server/dist/nodeHTTPRequestHandler-e6a535cb.js\",\"functionName\":\"Object.nodeHTTPRequestHandler\",\"source\":\"    at Object.nodeHTTPRequestHandler (/workspace/node_modules/@trpc/server/dist/nodeHTTPRequestHandler-e6a535cb.js:53:20)\",\"lineContent\":\"    const result = await resolveHTTPResponse.resolveHTTPResponse({\\n\",\"linesBefore\":\"        method: opts.req.method,\\n        headers: opts.req.headers,\\n        query,\\n        body: bodyResult.ok ? bodyResult.data : undefined\\n    };\\n\",\"linesAfter\":\"        batching: opts.batching,\\n        responseMeta: opts.responseMeta,\\n        path,\\n        createContext,\\n        router,\\n\"}]"
 	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
-		project := model.Project{}
+		workspace := model.Workspace{}
+		resolver.DB.Create(&workspace)
+
+		project := model.Project{WorkspaceID: workspace.ID}
 		resolver.DB.Create(&project)
 
 		resolver.ProcessBackendPayloadImpl(context.Background(), nil, ptr.String(project.VerboseID()), []*publicModel.BackendErrorObjectInput{{
@@ -70,7 +76,7 @@ func TestProcessBackendPayloadImpl(t *testing.T) {
 		var result *model.ErrorObject
 		err := resolver.DB.Model(&model.ErrorObject{
 			ProjectID: project.ID,
-		}).Where(&model.ErrorObject{Event: "dummy event"}).First(&result).Error
+		}).Where(&model.ErrorObject{Event: "dummy event"}).Take(&result).Error
 		assert.NoError(t, err)
 
 		if *result.StackTrace != trpcTraceStr {
@@ -421,4 +427,65 @@ func areErrorGroupsEqual(a *model.ErrorGroup, b *model.ErrorGroup) (bool, []stri
 	isEqual := len(diff) == 0
 
 	return isEqual, diff, nil
+}
+
+func Test_WithinQuota_CommittedPricing(t *testing.T) {
+	ctx := context.TODO()
+
+	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
+		resolver.DB.Create(&model.Project{
+			Model: model.Model{
+				ID: 1,
+			},
+			WorkspaceID: 1,
+		})
+		resolver.DB.Create(&model.Project{
+			Model: model.Model{
+				ID: 2,
+			},
+			WorkspaceID: 2,
+		})
+
+		jan1 := time.Date(2023, time.January, 1, 0, 0, 0, 0, time.UTC)
+		feb1 := jan1.AddDate(0, 1, 0)
+		workspaceBasic := model.Workspace{
+			Model: model.Model{
+				ID: 1,
+			},
+			PlanTier:           privateModel.PlanTypeBasic.String(),
+			SessionsMaxCents:   pointy.Int(500),
+			BillingPeriodStart: &jan1,
+			BillingPeriodEnd:   &feb1,
+		}
+		resolver.DB.Create(&workspaceBasic)
+
+		workspaceUsageBased := model.Workspace{
+			Model: model.Model{
+				ID: 2,
+			},
+			PlanTier:           privateModel.PlanTypeUsageBased.String(),
+			SessionsMaxCents:   pointy.Int(500),
+			BillingPeriodStart: &jan1,
+			BillingPeriodEnd:   &feb1,
+		}
+		resolver.DB.Create(&workspaceUsageBased)
+
+		// workspace 1: basic (10k included), 1k overage, $5 = 1k sessions until limit. within limit.
+		// workspace 2: usage based (500 included), 500 overage, $5 = 250 sessions until limit. not within limit.
+		resolver.DB.Exec(`drop materialized view daily_session_counts_view`)
+		resolver.DB.Exec(`
+			select * into daily_session_counts_view 
+			from (
+				select 1 as project_id, '2023-01-01'::date as date, 11000 as count
+				union all select 1, '2023-01-02'::date, 0
+				union all select 2, '2023-01-01'::date, 1000
+				union all select 2, '2023-01-02'::date, 0) a
+		`)
+
+		basicWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, pricing.ProductTypeSessions, &workspaceBasic, time.Now())
+		assert.True(t, basicWithinBillingQuota)
+
+		usageBasedWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, pricing.ProductTypeSessions, &workspaceUsageBased, time.Now())
+		assert.False(t, usageBasedWithinBillingQuota)
+	})
 }

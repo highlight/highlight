@@ -2,34 +2,15 @@ package clickhouse
 
 import (
 	"context"
-	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
-	model2 "github.com/highlight-run/highlight/backend/model"
-	e "github.com/pkg/errors"
+	"github.com/highlight-run/highlight/backend/util"
 
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight/highlight/sdk/highlight-go"
 	log "github.com/sirupsen/logrus"
 )
-
-const LogAttributeValueLengthLimit = 2 << 10
-const LogAttributeValueWarningLengthLimit = 2 << 8
-
-func ProjectToInt(projectID string) (int, error) {
-	i, err := strconv.ParseInt(projectID, 10, 32)
-	if err == nil {
-		return int(i), nil
-	}
-	i2, err := model2.FromVerboseID(projectID)
-	if err == nil {
-		return i2, nil
-	}
-	return 0, e.New(fmt.Sprintf("invalid project id %s", projectID))
-}
 
 type LogRow struct {
 	Timestamp       time.Time
@@ -43,11 +24,18 @@ type LogRow struct {
 	SeverityNumber  int32
 	Source          modelInputs.LogSource
 	ServiceName     string
+	ServiceVersion  string
 	Body            string
 	LogAttributes   map[string]string
 }
 
 func NewLogRow(timestamp time.Time, projectID uint32, opts ...LogRowOption) *LogRow {
+	// if the timestamp is zero, set time
+	// TODO(et) - should we move this up to extractFields?
+	if timestamp.Before(time.Unix(0, 1).UTC()) {
+		timestamp = time.Now()
+	}
+
 	logRow := &LogRow{
 		// ensure timestamp is written at second precision,
 		// since clickhouse schema will truncate to second precision anyways.
@@ -89,9 +77,9 @@ func WithSecureSessionID(secureSessionID string) LogRowOption {
 	}
 }
 
-func WithLogAttributes(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) LogRowOption {
+func WithLogAttributes(attributes map[string]string) LogRowOption {
 	return func(l *LogRow) {
-		l.LogAttributes = GetAttributesMap(ctx, resourceAttributes, spanAttributes, eventAttributes, isFrontendLog)
+		l.LogAttributes = attributes
 	}
 }
 
@@ -115,12 +103,12 @@ func WithSource(source modelInputs.LogSource) LogRowOption {
 
 func WithBody(ctx context.Context, body string) LogRowOption {
 	return func(l *LogRow) {
-		if len(body) > LogAttributeValueLengthLimit {
+		if len(body) > util.LogAttributeValueLengthLimit {
 			log.WithContext(ctx).
 				WithField("ValueLength", len(body)).
-				WithField("ValueTrunc", body[:LogAttributeValueWarningLengthLimit]).
+				WithField("ValueTrunc", body[:util.LogAttributeValueWarningLengthLimit]).
 				Warnf("log body value is too long %d", len(body))
-			body = body[:LogAttributeValueLengthLimit] + "..."
+			body = body[:util.LogAttributeValueLengthLimit] + "..."
 		}
 		l.Body = body
 	}
@@ -132,62 +120,10 @@ func WithServiceName(serviceName string) LogRowOption {
 	}
 }
 
-func GetAttributesMap(ctx context.Context, resourceAttributes, spanAttributes, eventAttributes map[string]any, isFrontendLog bool) map[string]string {
-	attributesMap := make(map[string]string)
-	for mIdx, m := range []map[string]any{resourceAttributes, spanAttributes, eventAttributes} {
-		for k, v := range m {
-			prefixes := highlight.InternalAttributePrefixes
-			if isFrontendLog {
-				prefixes = append(prefixes, highlight.BackendOnlyAttributePrefixes...)
-			}
-
-			shouldSkip := false
-			for _, prefix := range prefixes {
-				if strings.HasPrefix(k, prefix) {
-					shouldSkip = true
-					break
-				}
-			}
-			if shouldSkip {
-				continue
-			}
-
-			for key, value := range format(ctx, mIdx, k, v) {
-				attributesMap[key] = value
-			}
-		}
+func WithServiceVersion(version string) LogRowOption {
+	return func(l *LogRow) {
+		l.ServiceVersion = version
 	}
-	return attributesMap
-}
-
-func format(ctx context.Context, attrMapIdx int, k string, v interface{}) map[string]string {
-	if vStr, ok := v.(string); ok {
-		if len(vStr) > LogAttributeValueLengthLimit {
-			log.WithContext(ctx).
-				WithField("AttributeMapIdx", attrMapIdx).
-				WithField("Key", k).
-				WithField("ValueLength", len(vStr)).
-				Warnf("attribute value for %s is too long %d", k, len(vStr))
-			vStr = vStr[:LogAttributeValueLengthLimit] + "..."
-		}
-		return map[string]string{k: vStr}
-	}
-	if vInt, ok := v.(int64); ok {
-		return map[string]string{k: strconv.FormatInt(vInt, 10)}
-	}
-	if vFlt, ok := v.(float64); ok {
-		return map[string]string{k: strconv.FormatFloat(vFlt, 'f', -1, 64)}
-	}
-	if vMap, ok := v.(map[string]interface{}); ok {
-		m := make(map[string]string)
-		for mapKey, mapV := range vMap {
-			for k2, v2 := range format(ctx, attrMapIdx, mapKey, mapV) {
-				m[fmt.Sprintf("%s.%s", k, k2)] = v2
-			}
-		}
-		return m
-	}
-	return nil
 }
 
 func makeLogLevel(severityText string) modelInputs.LogLevel {

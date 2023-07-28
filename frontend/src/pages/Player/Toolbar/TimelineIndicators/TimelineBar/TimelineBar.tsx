@@ -14,7 +14,7 @@ import { TooltipPlacement } from 'antd/es/tooltip'
 import clsx from 'clsx'
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 
-import styles from './TimelineBar.module.scss'
+import styles from './TimelineBar.module.css'
 
 interface IBar {
 	bucket: EventBucket
@@ -67,6 +67,7 @@ const TimelineIndicatorsBar = ({
 	useEffect(() => {
 		if (
 			activeError?.error_group_secure_id &&
+			bucket.identifier.Errors &&
 			bucket.identifier.Errors.includes(
 				serializeErrorIdentifier(activeError) as string,
 			)

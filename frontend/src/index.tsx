@@ -1,7 +1,7 @@
 import 'antd/dist/antd.css'
 import '@highlight-run/rrweb/dist/rrweb.min.css'
 import '@fontsource/poppins'
-import './index.scss'
+import './index.css'
 import './style/tailwind.css'
 
 import { ApolloError, ApolloProvider } from '@apollo/client'
@@ -23,15 +23,13 @@ import { Admin } from '@graph/schemas'
 import { ErrorBoundary } from '@highlight-run/react'
 import useLocalStorage from '@rehooks/local-storage'
 import { AppRouter } from '@routers/AppRouter/AppRouter'
-import * as Sentry from '@sentry/react'
-import { BrowserTracing } from '@sentry/tracing'
 import analytics from '@util/analytics'
 import { getAttributionData, setAttributionData } from '@util/attribution'
 import { auth } from '@util/auth'
 import { showHiringMessage } from '@util/console/hiringMessage'
 import { client } from '@util/graph'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
-import { showIntercom } from '@util/window'
+import { loadIntercom } from '@util/window'
 import { H, HighlightOptions } from 'highlight.run'
 import { parse, stringify } from 'query-string'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -48,6 +46,7 @@ import {
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
+import { PUBLIC_GRAPH_URI } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
 
@@ -65,6 +64,7 @@ const options: HighlightOptions = {
 	debug: shouldDebugLog
 		? { clientInteractions: true, domRecording: true }
 		: undefined,
+	backendUrl: PUBLIC_GRAPH_URI,
 	manualStart: true,
 	enableStrictPrivacy: Math.floor(Math.random() * 8) === 0,
 	networkRecording: {
@@ -80,6 +80,7 @@ const options: HighlightOptions = {
 		urlBlocklist: [
 			'network-resources-compressed',
 			'session-contents-compressed',
+			'web-socket-events-compressed',
 		],
 	},
 	tracingOrigins: [
@@ -91,6 +92,9 @@ const options: HighlightOptions = {
 	integrations: {
 		amplitude: {
 			apiKey: 'fb83ae15d6122ef1b3f0ecdaa3393fea',
+		},
+		mixpanel: {
+			projectToken: 'e70039b6a5b93e7c86b8afb02b6d2300',
 		},
 	},
 	enableSegmentIntegration: true,
@@ -108,7 +112,6 @@ const options: HighlightOptions = {
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {
 	options.scriptUrl = 'http://localhost:8080/dist/index.js'
-	options.backendUrl = import.meta.env.REACT_APP_PUBLIC_GRAPH_URI
 
 	options.integrations = undefined
 
@@ -122,26 +125,24 @@ if (dev) {
 	if (favicon) {
 		favicon.href = `/favicon-localhost.ico`
 	}
-} else if (window.location.href.includes('onrender')) {
+} else if (
+	window.location.href.includes('onrender') ||
+	window.location.href.includes('preview')
+) {
 	if (favicon) {
 		favicon.href = `/favicon-pr.ico`
 	}
 	window.document.title = `📸 ${window.document.title}`
 	options.environment = 'Pull Request Preview'
+	options.scriptUrl = `https://static.highlight.io/dev-${
+		import.meta.env.REACT_APP_COMMIT_SHA
+	}/index.js`
 }
 H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 analytics.track('attribution', getAttributionData())
 if (!isOnPrem) {
 	H.start()
-	showIntercom({ hideMessage: true })
-
-	if (!dev) {
-		Sentry.init({
-			dsn: 'https://e8052ada7c10490b823e0f939c519903@o4504696930631680.ingest.sentry.io/4504697059934208',
-			integrations: [new BrowserTracing()],
-			tracesSampleRate: 1.0,
-		})
-	}
+	loadIntercom()
 }
 
 showHiringMessage()

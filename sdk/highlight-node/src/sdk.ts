@@ -7,6 +7,7 @@ export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
 export interface HighlightInterface {
 	init: (options: NodeOptions) => void
+	stop: () => Promise<void>
 	isInitialized: () => boolean
 	parseHeaders: (
 		headers: IncomingHttpHeaders,
@@ -37,6 +38,16 @@ export const H: HighlightInterface = {
 			highlight_obj = new Highlight(options)
 		} catch (e) {
 			console.warn('highlight-node init error: ', e)
+		}
+	},
+	stop: async () => {
+		if (!highlight_obj) {
+			return
+		}
+		try {
+			await highlight_obj.stop()
+		} catch (e) {
+			console.warn('highlight-node stop error: ', e)
 		}
 	},
 	isInitialized: () => !!highlight_obj,

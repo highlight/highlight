@@ -12,5 +12,4 @@ To get started, go to the [integrations](https://app.highlight.io/integrations) 
 ## Features
 
 1.  [Comments](../6_product-features/3_general-features/comments.md) can create a ClickUp task filled out with the body of the comment and link back to the Session.
-
 2.  [Grouping Errors](../6_product-features/2_error-monitoring/grouping-errors.md) shows a shortcut to create a ClickUp task pre-populated with the error linking to the full context of how the error occurred.

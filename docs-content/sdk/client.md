@@ -48,6 +48,10 @@ slug: client
           <p>The value here will be ignored if disabledConsoleRecording is true. The default value is ['assert', 'count', 'countReset', 'debug', 'dir', 'dirxml', 'error', 'group', 'groupCollapsed', 'groupEnd', 'info', 'log', 'table', 'time', 'timeEnd', 'timeLog', 'trace', 'warn'].</p>
         </aside>
         <aside className="parameter">
+          <h5>reportConsoleErrors <code>boolean</code> <code>optional</code></h5>
+          <p>If true, console.error calls will be logged as errors. The default value is false.</p>
+        </aside>
+        <aside className="parameter">
           <h5>enableSegmentIntegration <code>boolean</code> <code>optional</code></h5>
           <p>Allows patching of segment requests to enhance data automatically in your application (i.e. identify, track, etc.). The default value is false.</p>
         </aside>
@@ -90,6 +94,10 @@ slug: client
         <aside className="parameter">
           <h5>urlBlocklist <code>string[]</code> <code>optional</code></h5>
           <p>Specifies a list of URLs to block <b>before</b> sending events to the Highlight back end. URLs can be fully-qualified or partial substring matches. Example: urlBlocklist: ["//www.high", "light.io"]</p>
+        </aside>
+        <aside className="parameter">
+          <h5>inlineImages <code>boolean</code> <code>optional</code></h5>
+          <p>Specifies whether to record image content. We default inlineImages to true on localhost and false on other domains. Inlined images that are otherwise only available on localhost can be sent to Highlight's servers and used in session replay; however, this can cause CORS errors. Explicitly set inlineImages to false to resolve CORS errors.</p>
         </aside>
       </article>
     </aside>

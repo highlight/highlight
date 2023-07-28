@@ -1,4 +1,4 @@
-import { APIGatewayEvent } from 'aws-lambda'
+import type { APIGatewayEvent } from 'aws-lambda'
 import { serialRender } from './serial'
 import { readFileSync } from 'fs'
 import { encodeGIF, encodeMP4 } from './ffmpeg'
@@ -77,21 +77,23 @@ export const handler = (event?: APIGatewayEvent) => {
 }
 
 if (process.env.DEV?.length) {
-	screenshot({
-		queryStringParameters: {
-			project: '1',
-			session: '239571781',
-			ts: '1',
-			chunk: '0',
-		},
-	} as unknown as APIGatewayEvent).then(console.info)
-	media({
-		queryStringParameters: {
-			project: '1',
-			session: '239571781',
-			format: 'image/gif',
-			ts: '15000',
-			tsEnd: '20000',
-		},
-	} as unknown as APIGatewayEvent).then(console.info)
+	Promise.all([
+		handler({
+			queryStringParameters: {
+				project: '1',
+				session: '239571781',
+				ts: '1',
+				chunk: '0',
+			},
+		} as unknown as APIGatewayEvent),
+		handler({
+			queryStringParameters: {
+				format: 'image/gif',
+				project: '1',
+				session: '239571781',
+				ts: '15000',
+				tsEnd: '20000',
+			},
+		} as unknown as APIGatewayEvent),
+	])
 }

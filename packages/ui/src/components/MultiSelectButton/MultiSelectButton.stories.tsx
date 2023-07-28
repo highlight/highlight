@@ -1,12 +1,12 @@
 import React from 'react'
-import { ComponentMeta } from '@storybook/react'
+import { Meta } from '@storybook/react'
 
 import { MultiSelectButton } from './MultiSelectButton'
 
 export default {
 	title: 'Components/MultiSelectButton',
 	component: MultiSelectButton,
-} as ComponentMeta<typeof MultiSelectButton>
+} as Meta<typeof MultiSelectButton>
 
 const OPTIONS = [
 	{ key: 'Apple', render: <div>Apple</div> },
@@ -23,5 +23,7 @@ export const FullExample = () => (
 		defaultValue="Mango"
 		options={OPTIONS}
 		onChange={(values) => console.log(values.join('/'))}
+		value={[]}
+		valueRender={() => <div>Value</div>}
 	/>
 )

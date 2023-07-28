@@ -105,12 +105,12 @@ func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rCli
 	batchedTopic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true})
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		if err := queue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, "health"); err != nil {
+		if err := queue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, ""); err != nil {
 			log.WithContext(ctx).Error(fmt.Sprintf("failed kafka health check: %s", err))
 			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", topic), 500)
 			return
 		}
-		if err := batchedQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, "health"); err != nil {
+		if err := batchedQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, ""); err != nil {
 			log.WithContext(ctx).Error(fmt.Sprintf("failed kafka batched health check: %s", err))
 			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", batchedTopic), 500)
 			return
@@ -362,7 +362,7 @@ func main() {
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
-		Store:                  store.NewStore(db, opensearchClient),
+		Store:                  store.NewStore(db, opensearchClient, redisClient),
 	}
 	private.SetupAuthClient(ctx, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
@@ -483,7 +483,7 @@ func main() {
 			HubspotApi:    hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
 			Redis:         redisClient,
 			RH:            &rh,
-			Store:         store.NewStore(db, opensearchClient),
+			Store:         store.NewStore(db, opensearchClient, redisClient),
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -573,7 +573,7 @@ func main() {
 			Redis:         redisClient,
 			Clickhouse:    clickhouseClient,
 			RH:            &rh,
-			Store:         store.NewStore(db, opensearchClient),
+			Store:         store.NewStore(db, opensearchClient, redisClient),
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {

@@ -13,8 +13,8 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
-import styles from './WorkspaceTeam.module.scss'
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
+import styles from './WorkspaceTeam.module.css'
 
 type MemberKeyType = 'members' | 'invites'
 

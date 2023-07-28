@@ -9,8 +9,10 @@
 	"types": "./dist/src/index.d.ts",
 	"scripts": {
 		"build": "yarn types:check && yarn typegen && vite build",
+		"build:watch": "yarn build --watch",
 		"codegen": "graphql-codegen --config codegen.yml",
 		"dev": "vite dev",
+		"dev:watch": "run-p dev build:watch",
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",
 		"enforce-size": "size-limit",
 		"test": "vitest --run",
@@ -40,8 +42,8 @@
 		"onchange": "^7.1.0",
 		"size-limit": "^8.1.0",
 		"typescript": "^5.0.4",
-		"vite": "^4.3.5",
-		"vitest": "^0.31.0"
+		"vite": "^4.3.9",
+		"vitest": "^0.32.0"
 	},
 	"dependencies": {
 		"@highlight-run/rrweb": "workspace:*",

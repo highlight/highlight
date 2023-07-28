@@ -19,6 +19,7 @@ import (
 
 	"github.com/aws/smithy-go/ptr"
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/routing"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
 
@@ -125,6 +126,7 @@ var Models = []interface{}{
 	&MessagesObject{},
 	&EventsObject{},
 	&ErrorObject{},
+	&ErrorObjectEmbeddings{},
 	&ErrorGroup{},
 	&ErrorField{},
 	&ErrorSegment{},
@@ -178,12 +180,16 @@ var Models = []interface{}{
 	&EmailOptOut{},
 	&BillingEmailHistory{},
 	&Retryable{},
+	&Service{},
 	&SetupEvent{},
 	&SessionAdminsView{},
 	&ErrorGroupAdminsView{},
 	&LogAdminsView{},
 	&ProjectFilterSettings{},
+	&AllWorkspaceSettings{},
 	&ErrorGroupActivityLog{},
+	&UserJourneyStep{},
+	&SystemConfiguration{},
 }
 
 func init() {
@@ -341,6 +347,8 @@ type Project struct {
 	// Minimum count of clicks in a rage click event
 	RageClickCount int `gorm:"default:5"`
 
+	// Applies to all browser extensions
+	// TODO - rename to FilterBrowserExtension #5811
 	FilterChromeExtension *bool `gorm:"default:false"`
 }
 
@@ -367,6 +375,18 @@ type ProjectFilterSettings struct {
 	ProjectID                         int
 	FilterSessionsWithoutError        bool `gorm:"default:false"`
 	AutoResolveStaleErrorsDayInterval int  `gorm:"default:0"`
+}
+
+type AllWorkspaceSettings struct {
+	Model
+	WorkspaceID   int  `gorm:"uniqueIndex"`
+	AIApplication bool `gorm:"default:true"`
+	AIInsights    bool `gorm:"default:false"`
+	// store embeddings for errors in this workspace
+	ErrorEmbeddingsWrite bool `gorm:"default:false"`
+	// use embeddings to group errors in this workspace
+	ErrorEmbeddingsGroup bool `gorm:"default:false"`
+	ReplaceAssets        bool `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -571,9 +591,10 @@ type Session struct {
 	Identified  bool `json:"identified" gorm:"default:false;not null"`
 	Fingerprint int  `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
-	Identifier     string `json:"identifier"`
-	OrganizationID int    `json:"organization_id"`
-	ProjectID      int    `json:"project_id"`
+	Identifier     string  `json:"identifier"`
+	OrganizationID int     `json:"organization_id"`
+	ProjectID      int     `json:"project_id" gorm:"index:idx_project_id_email"`
+	Email          *string `json:"email" gorm:"index:idx_project_id_email"`
 	// Location data based off user ip (see InitializeSession)
 	City      string  `json:"city"`
 	State     string  `json:"state"`
@@ -655,6 +676,7 @@ type Session struct {
 	Chunked              *bool
 	ProcessWithRedis     bool
 	AvoidPostgresStorage bool
+	Normalness           *float64
 }
 
 type SessionAdminsView struct {
@@ -906,6 +928,14 @@ type ErrorObject struct {
 	Environment      string
 	RequestID        *string // From X-Highlight-Request header
 	IsBeacon         bool    `gorm:"default:false"`
+}
+
+type ErrorObjectEmbeddings struct {
+	Model
+	ErrorObjectID       int
+	EventEmbedding      Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	StackTraceEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	PayloadEmbedding    Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
 }
 
 type ErrorGroup struct {
@@ -1170,15 +1200,17 @@ var ErrorType = struct {
 
 type EmailOptOut struct {
 	Model
-	AdminID  int                             `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
-	Category modelInputs.EmailOptOutCategory `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
+	AdminID   int                             `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
+	Category  modelInputs.EmailOptOutCategory `gorm:"uniqueIndex:email_opt_out_admin_category_idx"`
+	ProjectID *int                            `gorm:"uniqueIndex:email_opt_out_admin_category_project_idx"`
 }
 
 type RawPayloadType string
 
 const (
-	PayloadTypeEvents    RawPayloadType = "raw-events"
-	PayloadTypeResources RawPayloadType = "raw-resources"
+	PayloadTypeEvents          RawPayloadType = "raw-events"
+	PayloadTypeResources       RawPayloadType = "raw-resources"
+	PayloadTypeWebSocketEvents RawPayloadType = "raw-web-socket-events"
 )
 
 type BillingEmailHistory struct {
@@ -1186,6 +1218,21 @@ type BillingEmailHistory struct {
 	Active      bool
 	WorkspaceID int
 	Type        Email.EmailType
+}
+
+type UserJourneyStep struct {
+	CreatedAt time.Time `json:"created_at" deep:"-"`
+	ProjectID int
+	SessionID int `gorm:"primary_key;not null"`
+	Index     int `gorm:"primary_key;not null"`
+	Url       string
+	NextUrl   string
+}
+
+type SystemConfiguration struct {
+	Active           bool `gorm:"primary_key;default:true"`
+	MaintenanceStart time.Time
+	MaintenanceEnd   time.Time
 }
 
 type RetryableType string
@@ -1271,6 +1318,9 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	log.WithContext(ctx).Printf("Running DB migrations... \n")
 	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS pgcrypto;").Error; err != nil {
 		return false, e.Wrap(err, "Error installing pgcrypto")
+	}
+	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS vector;").Error; err != nil {
+		return false, e.Wrap(err, "Error installing vector")
 	}
 
 	// Unguessable, cryptographically random url-safe ID for users to share links
@@ -1520,6 +1570,31 @@ func (j *JSONB) Scan(value interface{}) error {
 	return nil
 }
 
+// Vector is serialized as '[-0.0123,0.456]' aka like a json list
+type Vector []float32
+
+func (j Vector) Value() (driver.Value, error) {
+	if len(j) == 0 {
+		return nil, nil
+	}
+	valueString, err := json.Marshal(j)
+	return string(valueString), err
+}
+
+func (j *Vector) Scan(value interface{}) error {
+	switch v := value.(type) {
+	case string:
+		if err := json.Unmarshal([]byte(v), &j); err != nil {
+			return err
+		}
+	case []byte:
+		if err := json.Unmarshal(v, &j); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Params used for reading from search requests.
 type Param struct {
 	Action string `json:"action"`
@@ -1728,6 +1803,7 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 
 	frontendURL := os.Getenv("FRONTEND_URI")
 	errorURL := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
+	errorURL = routing.AttachReferrer(ctx, errorURL, routing.Email)
 	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
 
 	for _, email := range emailsToNotify {
@@ -1911,6 +1987,14 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 
 		}
 	}
+}
+
+type Service struct {
+	Model
+	ProjectID      int                       `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Name           string                    `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Status         modelInputs.ServiceStatus `gorm:"not null;default:created"`
+	GithubRepoPath *string
 }
 
 type LogAlert struct {
@@ -2645,9 +2729,10 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 			shortEvent = input.Group.Event[:50] + "..."
 		}
 		errorLink := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
+		errorLink = routing.AttachReferrer(ctx, errorLink, routing.Slack)
 		// construct Slack message
 		previewText = fmt.Sprintf("Highlight: Error Alert: %s", shortEvent)
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/|View>", *input.ErrorsCount, shortEvent, errorLink), false, false)
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s|View>", *input.ErrorsCount, shortEvent, errorLink), false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+identifier, false, false))
 		if input.URL != nil && *input.URL != "" {
 			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*input.URL, false, false))
@@ -2674,7 +2759,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 					false,
 				),
 			)
-			button.URL = fmt.Sprintf("%s?action=%s", errorLink, strings.ToLower(string(action)))
+			button.URL = routing.AttachQueryParam(ctx, errorLink, "action", strings.ToLower(string(action)))
 			actionBlock = append(actionBlock, button)
 		}
 
@@ -2688,7 +2773,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 				false,
 			),
 		)
-		snoozeButton.URL = fmt.Sprintf("%s?action=snooze", errorLink)
+		snoozeButton.URL = routing.AttachQueryParam(ctx, errorLink, "action", "snooze")
 		actionBlock = append(actionBlock, snoozeButton)
 
 		blockSet = append(blockSet, slack.NewActionBlock(

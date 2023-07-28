@@ -7,7 +7,7 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { styledVerticalScrollbar } from '@/style/common.css'
 
-import styles from './FullCommentList.module.scss'
+import styles from './FullCommentList.module.css'
 
 interface Props {
 	loading: boolean

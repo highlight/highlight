@@ -26,7 +26,7 @@ export const initializeWebSocketListener = () => {
 				const openHandler = (event: Event) => {
 					window._highlightWebSocketRequestCallback({
 						socketId,
-						initiatorType: 'WebSocket',
+						initiatorType: 'websocket',
 						type: 'open',
 						name: webSocket.url,
 						startTime: event.timeStamp,
@@ -36,10 +36,10 @@ export const initializeWebSocketListener = () => {
 				const closeHandler = (event: CloseEvent) => {
 					window._highlightWebSocketRequestCallback({
 						socketId,
-						initiatorType: 'WebSocket',
+						initiatorType: 'websocket',
 						type: 'close',
 						name: webSocket.url,
-						endTime: event.timeStamp,
+						requestEnd: event.timeStamp,
 					})
 
 					webSocket.removeEventListener('open', openHandler)

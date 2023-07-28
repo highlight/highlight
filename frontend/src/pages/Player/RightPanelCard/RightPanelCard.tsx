@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './RightPanelCard.module.scss'
+import styles from './RightPanelCard.module.css'
 
 type Props = {
 	selected: boolean

@@ -5,7 +5,6 @@ import {
 import LoadingBox from '@components/LoadingBox'
 import SearchPagination, {
 	PAGE_SIZE,
-	START_PAGE,
 } from '@components/SearchPagination/SearchPagination'
 import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks'
 import { ErrorGroup, Maybe, ProductType } from '@graph/schemas'
@@ -41,8 +40,6 @@ const SearchPanel = () => {
 
 	const { project_id: projectId } = useParams<{ project_id: string }>()
 
-	const useCachedErrors = searchResultsCount > PAGE_SIZE
-
 	const { data: fetchedData, loading } = useGetErrorGroupsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
@@ -64,14 +61,17 @@ const SearchPanel = () => {
 			)
 		},
 		skip: !backendSearchQuery || !projectId,
-		fetchPolicy: useCachedErrors ? 'cache-first' : 'no-cache',
 	})
 
 	useEffect(() => {
 		setSearchResultsLoading(loading)
 	}, [loading, setSearchResultsLoading])
 
-	const showHistogram = loading || searchResultsCount > 0
+	useEffect(() => {
+		setSearchResultsCount(undefined)
+	}, [backendSearchQuery?.searchQuery, setSearchResultsCount])
+
+	const showHistogram = searchResultsCount !== 0
 
 	const [, setSyncButtonDisabled] = useState<boolean>(false)
 
@@ -126,13 +126,7 @@ const SearchPanel = () => {
 						) : (
 							gqlSanitize(errorGroups).error_groups.map(
 								(eg: Maybe<ErrorGroup>, ind: number) => (
-									<ErrorFeedCard
-										key={ind}
-										errorGroup={eg}
-										urlParams={`?page=${
-											page || START_PAGE
-										}`}
-									/>
+									<ErrorFeedCard key={ind} errorGroup={eg} />
 								),
 							)
 						)}
@@ -142,7 +136,7 @@ const SearchPanel = () => {
 			<SearchPagination
 				page={page}
 				setPage={setPage}
-				totalCount={searchResultsCount}
+				totalCount={searchResultsCount ?? 0}
 				pageSize={PAGE_SIZE}
 			/>
 		</Box>

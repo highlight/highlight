@@ -93,12 +93,12 @@ func processMetricMonitors(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, 
 
 		if value >= metricMonitor.Threshold {
 			var project model.Project
-			if err := DB.Model(&model.Project{}).Where("id = ?", metricMonitor.ProjectID).First(&project).Error; err != nil {
+			if err := DB.Model(&model.Project{}).Where("id = ?", metricMonitor.ProjectID).Take(&project).Error; err != nil {
 				log.WithContext(ctx).Error("error querying project for processMetricMonitor", err)
 				return
 			}
 			var workspace model.Workspace
-			if err := DB.Where(&model.Workspace{Model: model.Model{ID: project.WorkspaceID}}).First(&workspace).Error; err != nil {
+			if err := DB.Where(&model.Workspace{Model: model.Model{ID: project.WorkspaceID}}).Take(&workspace).Error; err != nil {
 				log.WithContext(ctx).Error("error querying workspace for processMetricMonitor", err)
 				return
 			}

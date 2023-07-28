@@ -144,11 +144,11 @@ func processLogAlert(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCl
 
 	if alertCondition {
 		var project model.Project
-		if err := DB.Model(&model.Project{}).Where("id = ?", alert.ProjectID).First(&project).Error; err != nil {
+		if err := DB.Model(&model.Project{}).Where("id = ?", alert.ProjectID).Take(&project).Error; err != nil {
 			return errors.Wrap(err, "error querying project for processMetricMonitor")
 		}
 		var workspace model.Workspace
-		if err := DB.Where(&model.Workspace{Model: model.Model{ID: project.WorkspaceID}}).First(&workspace).Error; err != nil {
+		if err := DB.Where(&model.Workspace{Model: model.Model{ID: project.WorkspaceID}}).Take(&workspace).Error; err != nil {
 			return errors.Wrap(err, "error querying workspace for processMetricMonitor")
 		}
 

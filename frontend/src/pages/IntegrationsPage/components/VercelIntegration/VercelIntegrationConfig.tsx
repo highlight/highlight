@@ -24,7 +24,7 @@ import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
-import styles from './VercelIntegrationConfig.module.scss'
+import styles from './VercelIntegrationConfig.module.css'
 
 const VercelIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 	setModalOpen,

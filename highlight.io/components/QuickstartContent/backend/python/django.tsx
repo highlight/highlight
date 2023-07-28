@@ -23,6 +23,8 @@ export const PythonDjangoContext: QuickStartContent = {
 					text: `import highlight_io
 from highlight_io.integrations.django import DjangoIntegration
 
+# \`instrument_logging=True\` sets up logging instrumentation.
+# if you do not want to send logs or are using \`loguru\`, pass \`instrument_logging=False\`
 H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[DjangoIntegration()], instrument_logging=True)`,
 					language: 'python',
 				},

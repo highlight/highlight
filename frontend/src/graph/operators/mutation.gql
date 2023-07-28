@@ -302,6 +302,22 @@ mutation EditWorkspace($id: ID!, $name: String) {
 	}
 }
 
+mutation EditWorkspaceSettings(
+	$workspace_id: ID!
+	$ai_application: Boolean
+	$ai_insights: Boolean
+) {
+	editWorkspaceSettings(
+		workspace_id: $workspace_id
+		ai_application: $ai_application
+		ai_insights: $ai_insights
+	) {
+		workspace_id
+		ai_application
+		ai_insights
+	}
+}
+
 mutation DeleteSegment($segment_id: ID!) {
 	deleteSegment(segment_id: $segment_id)
 }

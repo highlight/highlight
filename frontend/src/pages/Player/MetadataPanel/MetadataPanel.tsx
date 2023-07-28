@@ -15,7 +15,7 @@ import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils
 import { bytesToPrettyString } from '@util/string'
 import { buildQueryStateString } from '@util/url/params'
 import { message } from 'antd'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { useSearchContext } from '../../Sessions/SearchContext/SearchContext'
 import { useReplayerContext } from '../ReplayerContext'
@@ -40,22 +40,8 @@ const MetadataPanel = () => {
 		MetadataSection.Session,
 	)
 	const { session, browserExtensionScriptURLs } = useReplayerContext()
-	const { setSearchParams, removeSelectedSegment } = useSearchContext()
+	const { setSearchQuery, removeSelectedSegment } = useSearchContext()
 	const { isHighlightAdmin } = useAuthContext()
-
-	const [parsedFields, setParsedFields] = useState<Field[]>([])
-
-	useEffect(() => {
-		const fields = session?.fields?.filter((f) => {
-			return (
-				f &&
-				f.type === 'user' &&
-				f.name !== 'identifier' &&
-				f.value.length
-			)
-		}) as Field[]
-		setParsedFields(fields)
-	}, [session?.fields])
 
 	const sessionData: TableListItem[] = [
 		{
@@ -200,13 +186,11 @@ const MetadataPanel = () => {
 		},
 	]
 
-	if (session?.city) {
-		userData.push({
-			keyDisplayValue: 'Location',
-			valueDisplayValue: `${session?.city}, ${session?.state} ${session?.postal}`,
-		})
-	}
-
+	const parsedFields = session?.fields?.filter((f) => {
+		return (
+			f && f.type === 'user' && f.name !== 'identifier' && f.value.length
+		)
+	}) as Field[]
 	parsedFields?.forEach((field) => {
 		if (field.name !== 'avatar') {
 			userData.push({
@@ -215,6 +199,26 @@ const MetadataPanel = () => {
 			})
 		}
 	})
+
+	if (session?.user_properties) {
+		for (const [k, v] of Object.entries(
+			JSON.parse(session?.user_properties),
+		)) {
+			if (k !== 'avatar') {
+				userData.push({
+					keyDisplayValue: k,
+					valueDisplayValue: v?.toString(),
+				})
+			}
+		}
+	}
+
+	if (session?.city) {
+		userData.push({
+			keyDisplayValue: 'Location',
+			valueDisplayValue: `${session?.city}, ${session?.state} ${session?.postal}`,
+		})
+	}
 
 	const deviceData: TableListItem[] = []
 
@@ -230,12 +234,12 @@ const MetadataPanel = () => {
 							`Showing sessions created by device #${session.fingerprint}`,
 						)
 						removeSelectedSegment()
-						setSearchParams({
-							query: buildQueryStateString({
+						setSearchQuery(
+							buildQueryStateString({
 								session_device_id:
 									session.fingerprint?.toString(),
 							}),
-						})
+						)
 					}}
 				>
 					#{session?.fingerprint}

@@ -1,10 +1,10 @@
-import { useGetProjectSuggestionLazyQuery } from '@graph/hooks'
-import React, { useEffect, useState } from 'react'
+import { useGetProjectSuggestionQuery } from '@graph/hooks'
+import React from 'react'
 import CommandPalette, { Command } from 'react-command-palette'
 import { useNavigate } from 'react-router-dom'
 
 import { useAuthContext } from '../../../authentication/AuthContext'
-import styles from './CommandBar.module.scss'
+import styles from './CommandBar.module.css'
 import {
 	CommandWithoutId,
 	useNavigationCommands,
@@ -32,49 +32,20 @@ const THEME = {
 }
 
 export const CommandBar: React.FC<React.PropsWithChildren> = () => {
-	const [normalizedWorkspaces, setNormalizedWorkspaces] = useState({})
-	const [getProjects, { data }] = useGetProjectSuggestionLazyQuery({
-		onCompleted: (data) => {
-			if (data.workspaceSuggestion.length > 0) {
-				setNormalizedWorkspaces(
-					data.workspaceSuggestion.reduce((acc, cur) => {
-						if (cur) {
-							return {
-								...acc,
-								[cur.id]: cur?.name,
-							}
-						}
-						return {
-							...acc,
-						}
-					}, {}),
-				)
-			}
-		},
-	})
 	const { isHighlightAdmin } = useAuthContext()
+	const { data } = useGetProjectSuggestionQuery({
+		skip: !isHighlightAdmin,
+		variables: { query: '' },
+	})
 	const playerCommands = usePlayerCommands(isHighlightAdmin)
 	const navigate = useNavigate()
-
-	useEffect(() => {
-		if (isHighlightAdmin) {
-			getProjects({
-				variables: { query: '' },
-			})
-		}
-	}, [getProjects, isHighlightAdmin])
 
 	const projectCommands: CommandWithoutId[] =
 		data?.projectSuggestion?.map((project, index) => {
 			return {
 				category: 'Projects',
 				id: project?.id ?? index,
-				name: `${project?.name ?? index.toString()} - ${
-					// @ts-expect-error
-					normalizedWorkspaces[
-						project?.workspace_id.toString() as string
-					]
-				}`,
+				name: `${project?.name ?? index.toString()}`,
 				command() {
 					navigate(`/${project?.id}/sessions`)
 				},

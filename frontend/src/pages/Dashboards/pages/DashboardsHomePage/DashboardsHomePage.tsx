@@ -13,7 +13,7 @@ import { useParams } from '@util/react-router/useParams'
 import React, { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import alertStyles from '../../../Alerts/Alerts.module.scss'
+import alertStyles from '../../../Alerts/Alerts.module.css'
 
 const DashboardsHomePage = () => {
 	const { project_id } = useParams<{ project_id: string }>()
@@ -109,7 +109,7 @@ const TABLE_COLUMNS = [
 		key: 'view',
 		render: (_: any, record: any) => (
 			<Link
-				to={`dashboards/${record.id}`}
+				to={`/${record.project_id}/dashboards/${record.id}`}
 				state={{ dashboardName: record.name }}
 				className={alertStyles.configureButton}
 				onClick={(e) => {
