@@ -1317,39 +1317,35 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 				Property: "highlight_error_count",
 				Value:    c.ErrorCount,
 			}, {
-				Name:     "highlight_log_count",
-				Property: "highlight_log_count",
+				Name:     "highlight_logs_count",
+				Property: "highlight_logs_count",
 				Value:    c.LogCount,
 			}, {
-				Name:     "highlight_session_count_last_week",
-				Property: "highlight_session_count_last_week",
+				Name:     "session_last_week",
+				Property: "session_last_week",
 				Value:    c.SessionCountLastWeek,
 			}, {
-				Name:     "highlight_error_count_last_week",
-				Property: "highlight_error_count_last_week",
+				Name:     "errors_last_week",
+				Property: "errors_last_week",
 				Value:    c.ErrorCountLastWeek,
 			}, {
-				Name:     "highlight_log_count_last_week",
-				Property: "highlight_log_count_last_week",
+				Name:     "logs_last_week",
+				Property: "logs_last_week",
 				Value:    c.LogCountLastWeek,
 			}, {
-				Name:     "highlight_session_count_last_day",
-				Property: "highlight_session_count_last_day",
+				Name:     "sessions_last_day",
+				Property: "sessions_last_day",
 				Value:    c.SessionCountLastDay,
 			}, {
-				Name:     "highlight_error_count_last_day",
-				Property: "highlight_error_count_last_day",
+				Name:     "errors_last_day",
+				Property: "errors_last_day",
 				Value:    c.ErrorCountLastDay,
 			}, {
-				Name:     "highlight_log_count_last_day",
-				Property: "highlight_log_count_last_day",
+				Name:     "logs_last_day",
+				Property: "logs_last_day",
 				Value:    c.LogCountLastDay,
 			}}); err != nil {
-				log.WithContext(ctx).WithFields(log.Fields{
-					"workspace_id":  c.WorkspaceID,
-					"session_count": c.SessionCount,
-					"error_count":   c.ErrorCount,
-				}).Error(e.Wrap(err, "error updating highlight session count in hubspot"))
+				log.WithContext(ctx).WithField("data", *c).Error(e.Wrap(err, "error updating highlight session count in hubspot"))
 			}
 		}
 

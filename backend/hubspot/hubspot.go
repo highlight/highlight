@@ -1,6 +1,7 @@
 package hubspot
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -12,15 +13,13 @@ import (
 	"strings"
 	"time"
 
-	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
-	"github.com/highlight-run/highlight/backend/redis"
-	"github.com/openlyinc/pointy"
-	"github.com/samber/lo"
-
 	"github.com/aws/smithy-go/ptr"
 	"github.com/goware/emailproviders"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/leonelquinteros/hubspot"
+	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 
 	log "github.com/sirupsen/logrus"
@@ -74,6 +73,16 @@ func pollHubspot[T any](fn func() (*T, error), timeout time.Duration) (result *T
 		}
 		if t.Sub(start) > timeout {
 			break
+		}
+	}
+	return
+}
+
+func getDomain(adminEmail string) (domain string) {
+	if !emailproviders.Exists(adminEmail) {
+		components := strings.Split(adminEmail, "@")
+		if len(components) > 1 {
+			domain = components[1]
 		}
 	}
 	return
@@ -291,24 +300,43 @@ func (h *HubspotApi) getAllCompanies(ctx context.Context) (companies []*CompanyR
 }
 
 func (h *HubspotApi) getCompany(ctx context.Context, name, domain string) (*int, error) {
+	r := struct {
+		Results []struct {
+			CompanyId int `json:"companyId"`
+		} `json:"results"`
+	}{}
+	body, _ := json.Marshal(struct {
+		Limit          int `json:"limit"`
+		RequestOptions struct {
+			Properties []string `json:"properties"`
+		} `json:"requestOptions"`
+	}{100, struct {
+		Properties []string `json:"properties"`
+	}{[]string{"domain", "name", "createdate", "hs_lastmodifieddate"}}})
+	err := h.doRequest(fmt.Sprintf("/companies/v2/domains/%s/companies", domain), &r, nil, "POST", bytes.NewReader(body))
+	if err == nil {
+		return pointy.Int(r.Results[0].CompanyId), nil
+	}
+
 	companies, err := h.getAllCompanies(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if company, ok := lo.Find(companies, func(response *CompanyResponse) bool {
-		var domainMatch, nameMatch bool
-		for prop, data := range response.Properties {
-			if domain != "" && prop == "domain" {
-				domainMatch = domainMatch || strings.EqualFold(data.Value, domain)
-			} else if name != "" && prop == "name" {
-				nameMatch = nameMatch || strings.EqualFold(data.Value, name)
+	var nameCompany *CompanyResponse
+	for _, company := range companies {
+		for prop, data := range company.Properties {
+			if name != "" && prop == "name" {
+				if strings.EqualFold(data.Value, name) {
+					nameCompany = company
+				}
 			}
 		}
-		return domainMatch || nameMatch
-	}); !ok {
-		return nil, e.New(fmt.Sprintf("failed to find company with name %s domain %s", name, domain))
+	}
+	if nameCompany != nil {
+		log.WithContext(ctx).WithField("name", name).WithField("domain", "domain").WithField("company_id", nameCompany.CompanyID).Info("hubspot found company based on name")
+		return pointy.Int(nameCompany.CompanyID), nil
 	} else {
-		return pointy.Int(company.CompanyID), nil
+		return nil, e.New(fmt.Sprintf("failed to find company with name %s domain %s", name, domain))
 	}
 }
 
@@ -519,13 +547,7 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 		return nil, err
 	}
 
-	var domain string
-	if !emailproviders.Exists(adminEmail) {
-		components := strings.Split(adminEmail, "@")
-		if len(components) > 1 {
-			domain = components[1]
-		}
-	}
+	domain := getDomain(adminEmail)
 	hexLink := fmt.Sprintf("https://workspace-details.highlight.io?_workspace_id=%v", workspaceID)
 	companyProperties := hubspot.CompaniesRequest{
 		Properties: []hubspot.Property{
@@ -634,10 +656,14 @@ func (h *HubspotApi) UpdateCompanyProperty(ctx context.Context, workspaceID int,
 
 func (h *HubspotApi) UpdateCompanyPropertyImpl(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
 	workspace := &model.Workspace{}
-	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
+	if err := h.db.Model(&model.Workspace{}).Preload("Admins").Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
 		return err
 	}
-	hubspotWorkspaceID, err := h.getCompany(ctx, ptr.ToString(workspace.Name), "")
+	var domain string
+	if len(workspace.Admins) > 0 {
+		domain = getDomain(ptr.ToString(workspace.Admins[0].Email))
+	}
+	hubspotWorkspaceID, err := h.getCompany(ctx, ptr.ToString(workspace.Name), domain)
 	if err != nil {
 		return err
 	}
