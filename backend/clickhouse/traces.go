@@ -39,6 +39,7 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 			traceRow.SpanKind,
 			traceRow.Duration,
 			traceRow.ServiceName,
+			traceRow.ServiceVersion,
 			traceRow.TraceAttributes,
 			traceRow.StatusCode,
 			traceRow.StatusMessage,

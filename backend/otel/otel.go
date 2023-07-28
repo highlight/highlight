@@ -421,7 +421,12 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 }
 
 func (o *Handler) submitProjectSpans(ctx context.Context, projectTraceRows map[int][]*clickhouse.TraceRow) error {
-	for _, traceRows := range projectTraceRows {
+	for projectID, traceRows := range projectTraceRows {
+		// Only enable for Highlight's main project
+		if projectID != 1 {
+			continue
+		}
+
 		traceRows := append(traceRows, traceRows...)
 
 		err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
