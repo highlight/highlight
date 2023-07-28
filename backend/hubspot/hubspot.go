@@ -63,7 +63,7 @@ func retry[T *int](fn func() (T, error)) (ret T, err error) {
 	return
 }
 
-func pollHubspot[T any](fn func() (T, error), timeout time.Duration) (result T, err error) {
+func pollHubspot[T any](fn func() (*T, error), timeout time.Duration) (result *T, err error) {
 	start := time.Now()
 	ticker := time.NewTicker(ClientSideCreationPollInterval)
 	defer ticker.Stop()
