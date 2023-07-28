@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"math/rand"
 
 	"github.com/gofiber/fiber/v2"
@@ -13,11 +14,13 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
 	highlight.SetProjectID("1jdkoe52")
 	highlight.SetOTLPEndpoint("http://localhost:4318")
-	highlight.SetServiceName("go-fiber-app")
-	highlight.SetServiceVersion("abc123")
-	highlight.Start()
+	highlight.StartWithContext(ctx,
+		highlight.WithServiceName("go-fiber-app"),
+		highlight.WithServiceVersion("abc123"),
+	)
 	defer highlight.Stop()
 	hlog.Init()
 
