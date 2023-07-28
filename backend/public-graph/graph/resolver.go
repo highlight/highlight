@@ -693,13 +693,12 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}
 
 	opensearchErrorObject := &opensearch.OpenSearchErrorObject{
-		Url:            errorObj.URL,
-		Os:             errorObj.OS,
-		Browser:        errorObj.Browser,
-		Timestamp:      errorObj.Timestamp,
-		Environment:    errorObj.Environment,
-		ServiceName:    errorObj.ServiceName,
-		ServiceVersion: errorObj.ServiceVersion,
+		Url:         errorObj.URL,
+		Os:          errorObj.OS,
+		Browser:     errorObj.Browser,
+		Timestamp:   errorObj.Timestamp,
+		Environment: errorObj.Environment,
+		ServiceName: errorObj.ServiceName,
 	}
 	if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexParams{
 		Index:    opensearch.IndexErrorsCombined,
