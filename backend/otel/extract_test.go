@@ -279,7 +279,7 @@ func TestExtractFields_ExtractLinks(t *testing.T) {
 }
 
 func TestExtractFields_ExtractEventsLinksNone(t *testing.T) {
-	resource := newResource(map[string]string{})
+	resource := newResource(t, map[string]any{})
 
 	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
 	assert.NoError(t, err)
