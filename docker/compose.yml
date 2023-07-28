@@ -70,7 +70,7 @@ services:
     clickhouse:
         logging: *highlight-logging
         container_name: clickhouse
-        image: clickhouse/clickhouse-server
+        image: clickhouse/clickhouse-server:23.5.1.3174
         ports:
             - 8123:8123
             - 9000:9000
