@@ -160,7 +160,6 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				}
 
 				traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime(), fields.projectIDInt).
-					WithProjectId(fields.projectIDInt).
 					WithSecureSessionId(fields.sessionID).
 					WithTraceId(span.TraceID().String()).
 					WithSpanId(span.SpanID().String()).
