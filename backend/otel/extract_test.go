@@ -258,6 +258,15 @@ func TestExtractFields_ExtractLinks(t *testing.T) {
 	assert.Equal(t, fields.links[0]["TraceState"], "link:state")
 }
 
+func TestExtractFields_ExtractEventsLinksNone(t *testing.T) {
+	resource := newResource(map[string]string{})
+
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
+	assert.NoError(t, err)
+	assert.Equal(t, len(fields.events), 0)
+	assert.Equal(t, len(fields.links), 0)
+}
+
 func TestExtractFields_OmitLogSeverity(t *testing.T) {
 	resource := newResource(map[string]string{
 		"os.description": "Debian GNU/Linux 11 (bullseye)",
