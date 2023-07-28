@@ -1,16 +1,20 @@
+import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
+import Popover from '@components/Popover/Popover'
 import { useGetServicesLazyQuery } from '@graph/hooks'
 import {
 	Box,
-	Button,
 	Combobox,
 	Stack,
+	Tag,
 	Text,
 	useComboboxState,
 } from '@highlight-run/ui'
+import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useParams } from '@util/react-router/useParams'
 import { debounce } from 'lodash'
 import React, { useMemo, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import * as styles from './ServicesTable.css'
@@ -25,6 +29,10 @@ export const ServicesTable = () => {
 	const [loadServices, { error, data, loading }] = useGetServicesLazyQuery()
 	const [query, setQuery] = useState<string>('')
 	const [pagination, setPagination] = useState<Pagination>({})
+
+	const {
+		settings: { isIntegrated },
+	} = useGitHubIntegration()
 
 	React.useEffect(() => {
 		loadServices({
@@ -73,8 +81,8 @@ export const ServicesTable = () => {
 			<Box className={styles.container}>
 				<Box className={styles.header}>
 					<Text color="n11">Service</Text>
-					<Text color="n11">Github repo</Text>
 					<Text color="n11">Status</Text>
+					<Text color="n11">Github repo</Text>
 				</Box>
 				{loading && <LoadingBox height={640} />}
 				{error && error.message}
@@ -87,6 +95,7 @@ export const ServicesTable = () => {
 								<ServiceRow
 									key={service?.cursor}
 									service={service?.node}
+									gitHubIntegrated={isIntegrated}
 								/>
 							)}
 						/>
@@ -96,6 +105,7 @@ export const ServicesTable = () => {
 			<Stack direction="row" justifyContent="flex-end">
 				<Button
 					kind="secondary"
+					trackingId="services-previous-page"
 					disabled={!data?.services?.pageInfo?.hasPreviousPage}
 					onClick={handlePreviousPage}
 				>
@@ -103,6 +113,7 @@ export const ServicesTable = () => {
 				</Button>
 				<Button
 					kind="secondary"
+					trackingId="services-next-page"
 					disabled={!data?.services?.pageInfo?.hasNextPage}
 					onClick={handleNextPage}
 				>
@@ -113,9 +124,11 @@ export const ServicesTable = () => {
 	)
 }
 
-type ServiceRowProps = { service: any }
+type ServiceRowProps = { service: any; gitHubIntegrated?: boolean }
 
-const ServiceRow = ({ service }: ServiceRowProps) => {
+const ServiceRow = ({ service, gitHubIntegrated }: ServiceRowProps) => {
+	const [visible, setVisible] = useState(false)
+
 	return (
 		<Box key={service.id}>
 			<Box
@@ -129,12 +142,33 @@ const ServiceRow = ({ service }: ServiceRowProps) => {
 				</Text>
 
 				<Text size="small" weight="medium">
-					{service.githubRepoPath}
-				</Text>
-
-				<Text size="small" weight="medium">
 					{service.status}
 				</Text>
+
+				<Popover
+					trigger="hover"
+					content={
+						<Box style={{ maxWidth: 250 }} p="8">
+							{!gitHubIntegrated ? (
+								<Link to={`/${service.projectID}/integrations`}>
+									<Text size="small" weight="medium">
+										Integrate GitHub into Highlight
+									</Text>
+								</Link>
+							) : service.githubRepoPath ? (
+								<Text size="small" weight="medium">
+									Edit
+								</Text>
+							) : (
+								<Text size="small" weight="medium">
+									Connect
+								</Text>
+							)}
+						</Box>
+					}
+				>
+					<Tag size="small">{service.githubRepoPath || 'None'}</Tag>
+				</Popover>
 			</Box>
 		</Box>
 	)
