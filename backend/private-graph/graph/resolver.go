@@ -31,6 +31,7 @@ import (
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/integrations"
 	"github.com/highlight-run/highlight/backend/integrations/height"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -137,6 +138,7 @@ type Resolver struct {
 	IntegrationsClient     *integrations.Client
 	ClickhouseClient       *clickhouse.Client
 	Store                  *store.Store
+	DataSyncQueue          kafka_queue.MessageQueue
 }
 
 func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {
@@ -538,19 +540,6 @@ func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.Error
 		return &eg.CreatedAt, &eg.UpdatedAt, nil
 	}
 	return &results[0].Time, &results[1].Time, nil
-}
-
-func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Session) error {
-	// Only write for project id 1
-	if session.ProjectID != 1 {
-		return nil
-	}
-
-	sessionObj := &model.Session{}
-	if err := r.DB.Preload("Fields").Preload("ViewedByAdmins").Where("id = ?", session.ID).Take(&sessionObj).Error; err != nil {
-		return err
-	}
-	return r.ClickhouseClient.WriteSession(ctx, sessionObj)
 }
 
 func (r *Resolver) GetErrorFrequenciesOpensearch(errorGroups []*model.ErrorGroup, lookbackPeriod int) (map[int][]int64, map[int][]*modelInputs.ErrorDistributionItem, error) {

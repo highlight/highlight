@@ -91,7 +91,8 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, payl
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
-	if err := w.Resolver.IndexSessionClickhouse(ctx, s); err != nil {
+
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
 		return err
 	}
 
@@ -444,7 +445,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		for i := 0; i < parallelWorkers; i++ {
 			go func(workerId int) {
 				k := KafkaWorker{
-					KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Consumer),
+					KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer),
 					Worker:       w,
 					WorkerThread: workerId,
 				}
@@ -459,21 +460,39 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		wg := sync.WaitGroup{}
 		wg.Add(parallelBatchWorkers)
 		buffer := &KafkaBatchBuffer{
-			messageQueue: make(chan *kafkaqueue.Message, BatchFlushSize*(parallelBatchWorkers+1)),
+			messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize*(parallelBatchWorkers+1)),
 		}
 		for i := 0; i < parallelBatchWorkers; i++ {
 			go func(workerId int) {
 				k := KafkaBatchWorker{
-					KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Consumer),
-					Worker:       w,
-					WorkerThread: workerId,
-					BatchBuffer:  buffer,
+					KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer),
+					Worker:              w,
+					WorkerThread:        workerId,
+					BatchBuffer:         buffer,
+					BatchFlushSize:      DefaultBatchFlushSize,
+					BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 				}
-				k.ProcessMessages(ctx)
+				k.ProcessMessages(ctx, k.flushLogs)
 				wg.Done()
 			}(i)
 		}
 		wg.Wait()
+		_wg.Done()
+	}(&wg)
+	go func(_wg *sync.WaitGroup) {
+		flushSize := 1000
+		buffer := &KafkaBatchBuffer{
+			messageQueue: make(chan *kafkaqueue.Message, flushSize+1),
+		}
+		k := KafkaBatchWorker{
+			KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Consumer),
+			Worker:              w,
+			WorkerThread:        0,
+			BatchBuffer:         buffer,
+			BatchFlushSize:      flushSize,
+			BatchedFlushTimeout: 5 * time.Second,
+		}
+		k.ProcessMessages(ctx, k.flushDataSync)
 		_wg.Done()
 	}(&wg)
 	wg.Wait()
@@ -525,7 +544,8 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
-	if err := w.Resolver.IndexSessionClickhouse(ctx, s); err != nil {
+
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
 		return err
 	}
 
@@ -824,7 +844,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	if err := w.Resolver.IndexSessionClickhouse(ctx, s); err != nil {
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
 		return err
 	}
 
@@ -1110,9 +1130,11 @@ func (w *Worker) Start(ctx context.Context) {
 						if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
-						if err := w.Resolver.IndexSessionClickhouse(ctx, session); err != nil {
-							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in clickhouse"))
+
+						if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: session.ID}}, strconv.Itoa(session.ID)); err != nil {
+							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error submitting data sync message"))
 						}
+
 						span.Finish()
 					} else {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error processing main session"))

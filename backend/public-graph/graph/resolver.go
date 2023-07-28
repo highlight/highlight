@@ -67,6 +67,7 @@ type Resolver struct {
 	TDB           timeseries.DB
 	ProducerQueue kafka_queue.MessageQueue
 	BatchedQueue  kafka_queue.MessageQueue
+	DataSyncQueue kafka_queue.MessageQueue
 	MailClient    *sendgrid.Client
 	StorageClient storage.Client
 	OpenSearch    *opensearch.Client
@@ -307,7 +308,7 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 		return e.Wrap(err, "error updating fields")
 	}
 
-	if err := r.IndexSessionClickhouse(ctx, session); err != nil {
+	if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}}, strconv.Itoa(session.ID)); err != nil {
 		return err
 	}
 
@@ -901,19 +902,6 @@ func (r *Resolver) getExistingSession(ctx context.Context, projectID int, secure
 	return nil, nil
 }
 
-func (r *Resolver) IndexSessionClickhouse(ctx context.Context, session *model.Session) error {
-	// Only write for project id 1
-	if session.ProjectID != 1 {
-		return nil
-	}
-
-	sessionObj := &model.Session{}
-	if err := r.DB.Preload("Fields").Preload("ViewedByAdmins").Where("id = ?", session.ID).Take(&sessionObj).Error; err != nil {
-		return err
-	}
-	return r.Clickhouse.WriteSession(ctx, sessionObj)
-}
-
 func (r *Resolver) IndexSessionOpensearch(ctx context.Context, session *model.Session) error {
 	osSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.InitializeSessionImpl", tracer.ResourceName("go.sessions.OSIndex"))
 	defer osSpan.Finish()
@@ -940,7 +928,7 @@ func (r *Resolver) IndexSessionOpensearch(ctx context.Context, session *model.Se
 	if err := r.AppendProperties(ctx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
 	}
-	return r.IndexSessionClickhouse(ctx, session)
+	return r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}}, strconv.Itoa(session.ID))
 }
 
 func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue.InitializeSessionArgs) (*model.Session, error) {
@@ -1392,7 +1380,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		return e.Wrap(err, "[IdentifySession] failed to update session")
 	}
 
-	if err := r.IndexSessionClickhouse(ctx, session); err != nil {
+	if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionID}}, strconv.Itoa(sessionID)); err != nil {
 		return err
 	}
 
@@ -2699,7 +2687,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				log.WithContext(ctx).Error(e.Wrap(err, "error updating session in opensearch"))
 				return err
 			}
-			if err := r.IndexSessionClickhouse(ctx, sessionObj); err != nil {
+			if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}, strconv.Itoa(sessionObj.ID)); err != nil {
 				return err
 			}
 		}
@@ -2720,7 +2708,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			log.WithContext(osCtx).Error(e.Wrap(err, "error updating session in opensearch"))
 			return err
 		}
-		if err := r.IndexSessionClickhouse(osCtx, sessionObj); err != nil {
+		if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}, strconv.Itoa(sessionObj.ID)); err != nil {
 			return err
 		}
 	}
@@ -2732,7 +2720,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			log.WithContext(osCtx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
 			return err
 		}
-		if err := r.IndexSessionClickhouse(osCtx, sessionObj); err != nil {
+		if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}, strconv.Itoa(sessionObj.ID)); err != nil {
 			return err
 		}
 	}

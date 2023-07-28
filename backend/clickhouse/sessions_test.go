@@ -24,8 +24,8 @@ func TestWriteSession(t *testing.T) {
 	client, teardown := setupSessionsTest(t)
 	defer teardown(t)
 
-	assert.Error(t, client.WriteSession(ctx, &model.Session{}))
-	assert.NoError(t, client.WriteSession(ctx, &model.Session{
+	assert.Error(t, client.WriteSessions(ctx, []*model.Session{{}}))
+	assert.NoError(t, client.WriteSessions(ctx, []*model.Session{{
 		Model: model.Model{
 			ID:        0,
 			CreatedAt: time.Now(),
@@ -89,5 +89,5 @@ func TestWriteSession(t *testing.T) {
 		ProcessWithRedis:               false,
 		AvoidPostgresStorage:           false,
 		Normalness:                     new(float64),
-	}))
+	}}))
 }
