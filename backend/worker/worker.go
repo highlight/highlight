@@ -1248,39 +1248,53 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	}
 
 	type AggregateSessionCount struct {
-		WorkspaceID          int   `json:"workspace_id"`
-		SessionCount         int64 `json:"session_count"`
-		ErrorCount           int64 `json:"error_count"`
-		LogCount             int64 `json:"log_count"`
-		SessionCountLastWeek int64 `json:"session_count_last_week"`
-		ErrorCountLastWeek   int64 `json:"error_count_last_week"`
-		LogCountLastWeek     int64 `json:"log_count_last_week"`
-		SessionCountLastDay  int64 `json:"session_count_last_day"`
-		ErrorCountLastDay    int64 `json:"error_count_last_day"`
-		LogCountLastDay      int64 `json:"log_count_last_day"`
+		WorkspaceID          int        `json:"workspace_id"`
+		SessionCount         int64      `json:"session_count"`
+		ErrorCount           int64      `json:"error_count"`
+		LogCount             int64      `json:"log_count"`
+		SessionCountLastWeek int64      `json:"session_count_last_week"`
+		ErrorCountLastWeek   int64      `json:"error_count_last_week"`
+		LogCountLastWeek     int64      `json:"log_count_last_week"`
+		SessionCountLastDay  int64      `json:"session_count_last_day"`
+		ErrorCountLastDay    int64      `json:"error_count_last_day"`
+		LogCountLastDay      int64      `json:"log_count_last_day"`
+		TrialEndDate         *time.Time `json:"trial_end_date"`
 	}
 	var counts []*AggregateSessionCount
 
 	if err := w.Resolver.DB.Raw(`
 		SELECT p.workspace_id, 
 		       sum(dsc.count) as session_count, 
-		       sum(dec.count) as error_count,
 		       sum(dsc.count) filter ( where dsc.date > NOW() - interval '1 week' ) as session_count_last_week, 
-		       sum(dec.count) filter ( where dsc.date > NOW() - interval '1 week' ) as error_count_last_week,
-		       sum(dsc.count) filter ( where dsc.date > NOW() - interval '1 day' ) as session_count_last_day, 
-		       sum(dec.count) filter ( where dsc.date > NOW() - interval '1 day' ) as error_count_last_day
+		       sum(dsc.count) filter ( where dsc.date > NOW() - interval '1 day' ) as session_count_last_day
 		FROM projects p
 				 LEFT OUTER JOIN daily_session_counts_view dsc on p.id = dsc.project_id
-				 LEFT OUTER JOIN daily_error_counts_view dec on p.id = dec.project_id
 		GROUP BY p.workspace_id`).Scan(&counts).Error; err != nil {
 		log.WithContext(ctx).Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
 	}
 
-	for _, c := range counts {
+	var errorResults []*AggregateSessionCount
+	if err := w.Resolver.DB.Raw(`
+		SELECT p.workspace_id,
+			   sum(dec.count) as error_count,
+			   sum(dec.count) filter ( where dec.date > NOW() - interval '1 week' ) as error_count_last_week,
+			   sum(dec.count) filter ( where dec.date > NOW() - interval '1 day' ) as error_count_last_day
+		FROM projects p
+				 LEFT OUTER JOIN daily_error_counts_view dec on p.id = dec.project_id
+		GROUP BY p.workspace_id;`).Scan(&errorResults).Error; err != nil {
+		log.WithContext(ctx).Fatal(e.Wrap(err, "Error retrieving session counts for Hubspot update"))
+	}
+
+	for idx, c := range counts {
+		c.ErrorCount += errorResults[idx].ErrorCount
+		c.ErrorCountLastWeek += errorResults[idx].ErrorCountLastWeek
+		c.ErrorCountLastDay += errorResults[idx].ErrorCountLastDay
+
 		workspace := &model.Workspace{}
 		if err := w.Resolver.DB.Preload("Projects").Model(&model.Workspace{}).Where("id = ?", c.WorkspaceID).Take(&workspace).Error; err != nil {
 			continue
 		}
+		c.TrialEndDate = workspace.TrialEndDate
 		for _, p := range workspace.Projects {
 			count, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{DateRange: &backend.DateRangeRequiredInput{
 				StartDate: time.Now().Add(-time.Hour * 24 * 30),
@@ -1344,6 +1358,10 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 				Name:     "logs_last_day",
 				Property: "logs_last_day",
 				Value:    c.LogCountLastDay,
+			}, {
+				Property: "date_of_trial_end",
+				Name:     "date_of_trial_end",
+				Value:    c.TrialEndDate.UTC().Truncate(24 * time.Hour).UnixMilli(),
 			}}); err != nil {
 				log.WithContext(ctx).WithField("data", *c).Error(e.Wrap(err, "error updating highlight session count in hubspot"))
 			}

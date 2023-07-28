@@ -134,12 +134,12 @@ type CompaniesResponse struct {
 }
 
 type DoppelgangersPropertyVersion struct {
-	Name      string   `json:"name"`
-	Source    string   `json:"source"`
-	SourceID  string   `json:"sourceId"`
-	SourceVid []string `json:"sourceVid"`
-	Timestamp int      `json:"timestamp"`
-	Value     string   `json:"value"`
+	Name      string `json:"name"`
+	Source    string `json:"source"`
+	SourceID  string `json:"sourceId"`
+	SourceVid any    `json:"sourceVid"`
+	Timestamp int    `json:"timestamp"`
+	Value     string `json:"value"`
 }
 
 type DoppelgangersProperty struct {
@@ -567,13 +567,6 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 				Value:    hexLink,
 			},
 		},
-	}
-	if workspace.TrialEndDate != nil {
-		companyProperties.Properties = append(companyProperties.Properties, hubspot.Property{
-			Property: "date_of_trial_end",
-			Name:     "date_of_trial_end",
-			Value:    workspace.TrialEndDate.UnixMilli(),
-		})
 	}
 
 	if companyID, err = pollHubspot(func() (*int, error) {
