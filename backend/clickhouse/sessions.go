@@ -2,6 +2,7 @@ package clickhouse
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
@@ -35,13 +36,13 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	}
 
 	for _, session := range sessions {
-		// if session.Fields == nil {
-		// 	return errors.New("session.Fields is required")
-		// }
+		if session.Fields == nil {
+			return errors.New("session.Fields is required")
+		}
 
-		// if session.ViewedByAdmins == nil {
-		// 	return errors.New("session.ViewedByAdmins is required")
-		// }
+		if session.ViewedByAdmins == nil {
+			return errors.New("session.ViewedByAdmins is required")
+		}
 
 		fieldKeys := []string{}
 		fieldKeyValues := []string{}

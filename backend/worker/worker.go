@@ -438,7 +438,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	// is processed serially, so messages in that slice are processed in order.
 
 	wg := sync.WaitGroup{}
-	wg.Add(2)
+	wg.Add(3)
 	go func(_wg *sync.WaitGroup) {
 		wg := sync.WaitGroup{}
 		wg.Add(parallelWorkers)
