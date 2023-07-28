@@ -235,7 +235,18 @@ func main() {
 			highlight.SetOTLPEndpoint("http://collector:4318")
 		}
 	}
-	highlight.Start()
+
+	serviceName := string(runtimeParsed)
+	if runtimeParsed == util.Worker {
+		if handlerFlag != nil {
+			serviceName = *handlerFlag
+		}
+	}
+
+	highlight.Start(
+		highlight.WithServiceName(serviceName),
+		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
+	)
 	defer highlight.Stop()
 	highlight.SetDebugMode(log.StandardLogger())
 
