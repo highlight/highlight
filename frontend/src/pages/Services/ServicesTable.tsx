@@ -1,7 +1,9 @@
 import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
 import Popover from '@components/Popover/Popover'
-import { useGetServicesLazyQuery } from '@graph/hooks'
+import Select from '@components/Select/Select'
+import { useEditServiceMutation, useGetServicesLazyQuery } from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
 import {
 	Box,
 	Combobox,
@@ -32,6 +34,7 @@ export const ServicesTable = () => {
 
 	const {
 		settings: { isIntegrated },
+		data: githubData,
 	} = useGitHubIntegration()
 
 	React.useEffect(() => {
@@ -90,12 +93,13 @@ export const ServicesTable = () => {
 					<Box className={styles.resultsContainer}>
 						<Virtuoso
 							ref={virtuoso}
-							data={data.services.edges}
-							itemContent={(index, service) => (
+							data={data?.services?.edges}
+							itemContent={(_, service) => (
 								<ServiceRow
 									key={service?.cursor}
 									service={service?.node}
 									gitHubIntegrated={isIntegrated}
+									gitHubRepos={githubData?.github_repos}
 								/>
 							)}
 						/>
@@ -124,10 +128,29 @@ export const ServicesTable = () => {
 	)
 }
 
-type ServiceRowProps = { service: any; gitHubIntegrated?: boolean }
+type ServiceRowProps = {
+	service: any
+	gitHubIntegrated?: boolean
+	gitHubRepos?: any[] | null
+}
 
-const ServiceRow = ({ service, gitHubIntegrated }: ServiceRowProps) => {
-	const [visible, setVisible] = useState(false)
+const ServiceRow = ({
+	service,
+	gitHubIntegrated,
+	gitHubRepos,
+}: ServiceRowProps) => {
+	const [editService] = useEditServiceMutation()
+
+	const handleGitHubRepoChange = (repo?: any) => {
+		editService({
+			variables: {
+				id: service.id,
+				project_id: service.projectID!,
+				github_repo_path: repo,
+			},
+			refetchQueries: [namedOperations.Query.GetServices],
+		})
+	}
 
 	return (
 		<Box key={service.id}>
@@ -145,30 +168,58 @@ const ServiceRow = ({ service, gitHubIntegrated }: ServiceRowProps) => {
 					{service.status}
 				</Text>
 
-				<Popover
-					trigger="hover"
-					content={
-						<Box style={{ maxWidth: 250 }} p="8">
-							{!gitHubIntegrated ? (
-								<Link to={`/${service.projectID}/integrations`}>
+				{!gitHubIntegrated ? (
+					<Link to={`/${service.projectID}/integrations`}>
+						<Text size="small" weight="medium">
+							Integrate GitHub
+						</Text>
+					</Link>
+				) : (
+					<Popover
+						trigger="click"
+						content={
+							<Box style={{ maxWidth: 250 }} p="8">
+								{service.githubRepoPath ? (
 									<Text size="small" weight="medium">
-										Integrate GitHub into Highlight
+										Edit
 									</Text>
-								</Link>
-							) : service.githubRepoPath ? (
-								<Text size="small" weight="medium">
-									Edit
-								</Text>
-							) : (
-								<Text size="small" weight="medium">
-									Connect
-								</Text>
-							)}
-						</Box>
-					}
-				>
-					<Tag size="small">{service.githubRepoPath || 'None'}</Tag>
-				</Popover>
+								) : (
+									<Text size="small" weight="medium">
+										Connect
+									</Text>
+								)}
+								<Select
+									aria-label="GitHub Repository"
+									placeholder="Chose repo to connect to service"
+									options={gitHubRepos?.map((repo) => ({
+										value: repo.repo_id.replace(
+											'https://api.github.com/repos/',
+											'',
+										),
+										displayValue: repo.name,
+										id: repo.id,
+									}))}
+									onChange={handleGitHubRepoChange}
+									value={service.githubRepoPath}
+									notFoundContent={<p>No repos found</p>}
+								/>
+								{service.githubRepoPath && (
+									<Button
+										kind="danger"
+										trackingId="remove-repo"
+										onClick={() => handleGitHubRepoChange()}
+									>
+										Remove
+									</Button>
+								)}
+							</Box>
+						}
+					>
+						<Tag size="small">
+							{service.githubRepoPath || 'Connect'}
+						</Tag>
+					</Popover>
+				)}
 			</Box>
 		</Box>
 	)
