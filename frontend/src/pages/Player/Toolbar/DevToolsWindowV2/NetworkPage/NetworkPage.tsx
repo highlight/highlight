@@ -314,7 +314,10 @@ const ResourceRow = ({
 	const { activeNetworkResourceId } = useActiveNetworkResourceId()
 	const showingDetails = activeNetworkResourceId === resource.id
 	const responseStatus = resource.requestResponsePairs?.response.status
+	const bodyErrors = hasErrorsInBody(resource)
+
 	const hasError =
+		bodyErrors ||
 		!!errors?.length ||
 		!!resource.errors?.length ||
 		!!(responseStatus === 0 || (responseStatus && responseStatus >= 400))
@@ -485,4 +488,26 @@ const ResourceLoadingErrorCallout = function ({
 			/>
 		</Box>
 	)
+}
+
+const hasErrorsInBody = (resource: NetworkResource): boolean => {
+	const body = resource?.requestResponsePairs?.response.body
+
+	if (!body) {
+		return false
+	}
+
+	try {
+		let parsedResponseBody: { [key: string]: any } = {}
+		if (typeof body === 'object') {
+			parsedResponseBody = JSON.parse(JSON.stringify(body))
+		} else {
+			parsedResponseBody = JSON.parse(body)
+		}
+
+		const errors = parsedResponseBody.errors
+		return Array.isArray(errors) ? errors.length > 0 : !!errors
+	} catch (error) {
+		return false
+	}
 }
