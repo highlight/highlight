@@ -9,10 +9,10 @@ export default {
 } as Meta<typeof Tag>
 
 export const TagVariants = () => {
-	const emphasis: any[] = ['high', 'medium', 'low']
-	const kind: any[] = ['primary', 'secondary']
-	const shape: any[] = ['basic', 'rounded']
-	const size: any[] = ['small', 'medium', 'large']
+	const emphasis = ['high', 'medium', 'low'] as const
+	const kind = ['primary', 'secondary'] as const
+	const shape = ['basic', 'rounded'] as const
+	const size = ['small', 'medium', 'large'] as const
 
 	return (
 		<Box display="flex" gap="12" flexDirection="column">

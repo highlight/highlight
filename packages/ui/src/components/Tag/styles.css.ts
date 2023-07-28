@@ -24,7 +24,7 @@ export const iconVariants = recipe({
 	variants: {
 		size: {
 			small: { height: 12, width: 12 },
-			medium: { height: 12, width: 12 },
+			medium: { height: 13, width: 13 },
 			large: { height: 16, width: 16 },
 		},
 	},
@@ -185,7 +185,7 @@ export const variants = recipe({
 			style: {
 				backgroundColor: vars.theme.interactive.fill.secondary.enabled,
 				boxShadow: shadows.grey,
-				color: vars.theme.interactive.fill.secondary.content.onEnabled,
+				color: vars.theme.interactive.fill.secondary.content.text,
 				selectors: {
 					'&:hover': {
 						backgroundColor:

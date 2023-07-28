@@ -2,10 +2,10 @@ import { GetErrorInstanceDocument } from '@graph/hooks'
 import { ErrorGroup, Maybe } from '@graph/schemas'
 import {
 	Box,
-	ButtonLink,
 	IconSolidCheveronRight,
 	IconSolidUsers,
 	IconSolidViewGrid,
+	Tag,
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -69,19 +69,15 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								<IconSolidUsers />
 								<Text color="moderate">Affected Users</Text>
 							</Box>
-							<ButtonLink
-								style={{ cursor: 'pointer' }}
+
+							<Tag
+								kind="primary"
+								emphasis="low"
+								iconRight={<IconSolidCheveronRight />}
 								onClick={scrollToInstances}
 							>
-								<Box
-									display="flex"
-									alignItems="center"
-									as="span"
-								>
-									<span>Latest</span>{' '}
-									<IconSolidCheveronRight size={16} />
-								</Box>
-							</ButtonLink>
+								Latest
+							</Tag>
 						</>
 					}
 				>
@@ -100,19 +96,15 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 								<IconSolidViewGrid />
 								<Text color="moderate">Instances</Text>
 							</Box>
-							<ButtonLink
-								style={{ cursor: 'pointer' }}
+
+							<Tag
+								kind="primary"
+								emphasis="low"
+								iconRight={<IconSolidCheveronRight />}
 								onClick={scrollToInstances}
 							>
-								<Box
-									display="flex"
-									alignItems="center"
-									as="span"
-								>
-									<span>Latest</span>{' '}
-									<IconSolidCheveronRight size={16} />
-								</Box>
-							</ButtonLink>
+								Latest
+							</Tag>
 						</>
 					}
 				>
@@ -120,14 +112,30 @@ const ErrorBody: React.FC<React.PropsWithChildren<Props>> = ({
 				</Stat>
 				<Stat
 					noBorderBottom
-					title={<Text color="moderate">Last/first occurrence</Text>}
+					title={
+						<Box
+							display="flex"
+							alignItems="center"
+							style={{ height: 20 }}
+						>
+							<Text color="moderate">Last/first occurrence</Text>
+						</Box>
+					}
 				>
 					<ErrorOccurenceDate errorGroup={errorGroup} />
 				</Stat>
 
 				<Stat
 					noBorderBottom
-					title={<Text color="moderate">Last 30 days</Text>}
+					title={
+						<Box
+							display="flex"
+							alignItems="center"
+							style={{ height: 20 }}
+						>
+							<Text color="moderate">Last 30 days</Text>
+						</Box>
+					}
 					noBorderRight
 				>
 					<ErrorFrequencyChart errorGroup={errorGroup} />
@@ -147,8 +155,7 @@ const Stat: React.FC<
 	<Box
 		borderBottom={noBorderBottom ? undefined : 'secondary'}
 		borderRight={noBorderRight ? undefined : 'secondary'}
-		px="16"
-		py="12"
+		p="12"
 		flex="stretch"
 	>
 		<Box

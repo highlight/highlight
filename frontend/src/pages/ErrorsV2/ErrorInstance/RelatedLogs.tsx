@@ -70,7 +70,7 @@ export const RelatedLogs = ({ data }: Props) => {
 				size="medium"
 				shape="basic"
 				disabled={!isLoggedIn || logsLink === ''}
-				iconLeft={<IconSolidLogs />}
+				iconLeft={<IconSolidLogs size={11} />}
 			>
 				Related logs
 			</Tag>
