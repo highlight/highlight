@@ -1,7 +1,13 @@
-import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
 import { useGetServicesLazyQuery } from '@graph/hooks'
-import { Box, Combobox, Stack, Text, useComboboxState } from '@highlight-run/ui'
+import {
+	Box,
+	Button,
+	Combobox,
+	Stack,
+	Text,
+	useComboboxState,
+} from '@highlight-run/ui'
 import { useParams } from '@util/react-router/useParams'
 import { debounce } from 'lodash'
 import React, { useMemo, useRef, useState } from 'react'
@@ -90,7 +96,6 @@ export const ServicesTable = () => {
 			<Stack direction="row" justifyContent="flex-end">
 				<Button
 					kind="secondary"
-					trackingId="errorInstancesPreviousButton"
 					disabled={!data?.services?.pageInfo?.hasPreviousPage}
 					onClick={handlePreviousPage}
 				>
@@ -98,7 +103,6 @@ export const ServicesTable = () => {
 				</Button>
 				<Button
 					kind="secondary"
-					trackingId="errorInstancesNextButton"
 					disabled={!data?.services?.pageInfo?.hasNextPage}
 					onClick={handleNextPage}
 				>
@@ -114,7 +118,12 @@ type ServiceRowProps = { service: any }
 const ServiceRow = ({ service }: ServiceRowProps) => {
 	return (
 		<Box key={service.id}>
-			<Box borderBottom="dividerWeak" display="flex" flexDirection="row">
+			<Box
+				borderBottom="dividerWeak"
+				display="flex"
+				flexDirection="row"
+				gap="24"
+			>
 				<Text size="small" weight="medium">
 					{service.name}
 				</Text>
