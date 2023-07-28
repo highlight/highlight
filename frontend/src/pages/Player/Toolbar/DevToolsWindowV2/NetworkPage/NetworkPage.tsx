@@ -506,7 +506,6 @@ const hasErrorsInBody = (resource: NetworkResource): boolean => {
 		}
 
 		const errors = parsedResponseBody.errors
-		console.log('::: errors', errors)
 		return Array.isArray(errors) ? errors.length > 0 : !!errors
 	} catch (error) {
 		return false
