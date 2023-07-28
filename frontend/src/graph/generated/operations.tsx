@@ -1442,10 +1442,24 @@ export type SessionAlertFragmentFragment = {
 		DiscordChannelsToNotify: Array<
 			{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
 		>
+		WebhookDestinations: Array<
+			{ __typename?: 'WebhookDestination' } & Pick<
+				Types.WebhookDestination,
+				'url' | 'authorization'
+			>
+		>
 		TrackProperties: Array<
 			Types.Maybe<
 				{ __typename?: 'TrackProperty' } & Pick<
 					Types.TrackProperty,
+					'id' | 'name' | 'value'
+				>
+			>
+		>
+		UserProperties: Array<
+			Types.Maybe<
+				{ __typename?: 'UserProperty' } & Pick<
+					Types.UserProperty,
 					'id' | 'name' | 'value'
 				>
 			>

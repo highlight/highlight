@@ -36,6 +36,51 @@ interface Options {
 }
 
 const publish = async function (opts: Options) {
+	const publishedVersion = (
+		await new Promise<string>((r) =>
+			exec(
+				`npm show ${highlightRunPackageJson.name} version`,
+				(_, stdout) => r(stdout),
+			),
+		)
+	).split('\n')[0]!
+	// if --validate, ensure that a new firstload version is created
+	if (opts.validate) {
+		if (opts.has_sdk_changes) {
+			if (!gt(highlightRunPackageJson.version, publishedVersion)) {
+				console.error(
+					`Current highlight.run version ${highlightRunPackageJson.version} must be > published version ${publishedVersion}`,
+				)
+				process.exit(1)
+			}
+		} else {
+			if (!gte(highlightRunPackageJson.version, publishedVersion)) {
+				console.error(
+					`Current highlight.run version ${highlightRunPackageJson.version} must be >= published version ${publishedVersion}`,
+				)
+				process.exit(1)
+			}
+		}
+		if (!changelogExists(highlightRunPackageJson.version)) {
+			console.error(
+				`Current highlight.run version ${highlightRunPackageJson.version} must have a changelog in ${docsDir}`,
+			)
+			process.exit(1)
+		}
+
+		console.log(
+			`Validated highlight.run package version ${highlightRunPackageJson.version}`,
+		)
+		process.exit(0)
+	} else if (!opts.replace) {
+		if (!gt(highlightRunPackageJson.version, publishedVersion)) {
+			console.info(
+				`Current highlight.run version ${highlightRunPackageJson.version} is <= published version ${publishedVersion}. Not uploading!`,
+			)
+			process.exit(0)
+		}
+	}
+
 	const buildDir = join(opts.workspace, opts.buildDir)
 	const promises = []
 	for await (const file of getFiles(join(rootDir, buildDir))) {
@@ -104,44 +149,6 @@ const upload = async function (
 		}
 	}
 
-	// if --validate, ensure that a new firstload version is created
-	if (opts.validate) {
-		const publishedVersion = (
-			await new Promise<string>((r) =>
-				exec(
-					`npm show ${highlightRunPackageJson.name} version`,
-					(_, stdout) => r(stdout),
-				),
-			)
-		).split('\n')[0]!
-		if (opts.has_sdk_changes) {
-			if (!gt(highlightRunPackageJson.version, publishedVersion)) {
-				console.error(
-					`Current highlight.run version ${highlightRunPackageJson.version} must be > published version ${publishedVersion}`,
-				)
-				process.exit(1)
-			}
-		} else {
-			if (!gte(highlightRunPackageJson.version, publishedVersion)) {
-				console.error(
-					`Current highlight.run version ${highlightRunPackageJson.version} must be >= published version ${publishedVersion}`,
-				)
-				process.exit(1)
-			}
-		}
-		if (!changelogExists(highlightRunPackageJson.version)) {
-			console.error(
-				`Current highlight.run version ${highlightRunPackageJson.version} must have a changelog in ${docsDir}`,
-			)
-			process.exit(1)
-		}
-
-		console.log(
-			`Validated highlight.run package version ${highlightRunPackageJson.version}`,
-		)
-		process.exit(0)
-	}
-
 	const put = new PutObjectCommand({
 		Bucket: S3_BUCKET,
 		Key: key,
@@ -166,11 +173,7 @@ await yargs(process.argv.slice(2))
 		describe: 'the build directory in the workspace',
 		default: 'dist',
 	})
-	.option('preview', {
-		type: 'string',
-		describe: 'the preview string to add to the version',
-		default: 'dist',
-	})
+	.option('preview', { type: 'string', describe: 'the preview version' })
 	.boolean('replace')
 	.boolean('validate')
 	.boolean('has-sdk-changes')

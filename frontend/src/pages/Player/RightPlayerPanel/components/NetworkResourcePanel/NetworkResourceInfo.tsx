@@ -1,4 +1,5 @@
 import { Box, Text } from '@highlight-run/ui'
+import { getResponseStatusCode } from '@pages/Player/helpers'
 
 import { TableList, TableListItem } from '@/components/TableList/TableList'
 import { ErrorObject } from '@/graph/generated/schemas'
@@ -33,6 +34,8 @@ export const NetworkResourceInfo = ({
 	const responseHeadersData: TableListItem[] = []
 	const responsePayloadData: TableListItem[] = []
 
+	const statusCode = getResponseStatusCode(selectedNetworkResource)
+
 	const generalData: TableListItem[] = [
 		{
 			keyDisplayValue: 'Request URL',
@@ -47,16 +50,15 @@ export const NetworkResourceInfo = ({
 		{
 			keyDisplayValue: 'Status',
 			valueDisplayValue:
-				selectedNetworkResource?.initiatorType === 'websocket'
-					? 101
-					: selectedNetworkResource?.requestResponsePairs?.response
-							.status ?? (
-							<UnknownRequestStatusCode
-								networkRequestAndResponseRecordingEnabled={
-									networkRecordingEnabledForSession
-								}
-							/>
-					  ),
+				statusCode === 'Unknown' ? (
+					<UnknownRequestStatusCode
+						networkRequestAndResponseRecordingEnabled={
+							networkRecordingEnabledForSession
+						}
+					/>
+				) : (
+					statusCode
+				),
 			valueInfoTooltipMessage:
 				selectedNetworkResource?.requestResponsePairs?.response
 					.status === 0 &&

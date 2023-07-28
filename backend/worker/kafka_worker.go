@@ -47,6 +47,8 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 
 			if task == nil {
 				return
+			} else if task.Type == kafkaqueue.HealthCheck {
+				return
 			}
 			s.SetTag("taskType", task.Type)
 			s.SetTag("partition", task.KafkaMessage.Partition)
@@ -72,7 +74,8 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 	}
 }
 
-const DefaultBatchFlushSize = 128
+// BatchFlushSize set per https://clickhouse.com/docs/en/cloud/bestpractices/bulk-inserts
+const DefaultBatchFlushSize = 8192
 const DefaultBatchedFlushTimeout = 1 * time.Second
 
 type KafkaWorker struct {
@@ -86,6 +89,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
 	defer s.Finish()
 
+	var oldestLogRow *clickhouse.LogRow
 	var logRows []*clickhouse.LogRow
 
 	var received int
@@ -97,6 +101,11 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 				switch lastMsg.Type {
 				case kafkaqueue.PushLogs:
 					logRows = append(logRows, lastMsg.PushLogs.LogRows...)
+					for _, row := range lastMsg.PushLogs.LogRows {
+						if oldestLogRow == nil || row.Timestamp.Before(oldestLogRow.Timestamp) {
+							oldestLogRow = row
+						}
+					}
 					received += len(lastMsg.PushLogs.LogRows)
 				}
 				if received >= k.BatchFlushSize {
@@ -221,7 +230,10 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 	span, ctxT := tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.clickhouse"))
 	span.SetTag("NumLogRows", len(logRows))
 	span.SetTag("NumFilteredRows", len(filteredRows))
-	span.SetTag("PayloadSizeBytes", binary.Size(logRows))
+	span.SetTag("PayloadSizeBytes", binary.Size(filteredRows))
+	if oldestLogRow != nil {
+		span.SetTag("MaxIngestDelay", time.Since(oldestLogRow.Timestamp))
+	}
 	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, filteredRows)
 	if err != nil {
 		log.WithContext(ctxT).WithError(err).Error("failed to batch write to clickhouse")
@@ -324,6 +336,8 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context, flush func(conte
 			task := k.KafkaQueue.Receive(ctx)
 			s1.Finish()
 			if task == nil {
+				return
+			} else if task.Type == kafkaqueue.HealthCheck {
 				return
 			}
 

@@ -3,18 +3,18 @@ package util
 import (
 	"context"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"strconv"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const LogAttributeValueLengthLimit = 2 << 10
 const LogAttributeValueWarningLengthLimit = 2 << 8
 
-func FormatLogAttributes(ctx context.Context, attrMapIdx int, k string, v interface{}) map[string]string {
+func FormatLogAttributes(ctx context.Context, k string, v interface{}) map[string]string {
 	if vStr, ok := v.(string); ok {
 		if len(vStr) > LogAttributeValueLengthLimit {
 			log.WithContext(ctx).
-				WithField("AttributeMapIdx", attrMapIdx).
 				WithField("Key", k).
 				WithField("ValueLength", len(vStr)).
 				Warnf("attribute value for %s is too long %d", k, len(vStr))
@@ -31,7 +31,7 @@ func FormatLogAttributes(ctx context.Context, attrMapIdx int, k string, v interf
 	if vMap, ok := v.(map[string]interface{}); ok {
 		m := make(map[string]string)
 		for mapKey, mapV := range vMap {
-			for k2, v2 := range FormatLogAttributes(ctx, attrMapIdx, mapKey, mapV) {
+			for k2, v2 := range FormatLogAttributes(ctx, mapKey, mapV) {
 				m[fmt.Sprintf("%s.%s", k, k2)] = v2
 			}
 		}
