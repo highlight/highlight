@@ -51,11 +51,6 @@ func NewTraceRow(timestamp time.Time, projectID int) *TraceRow {
 	return traceRow
 }
 
-func (t *TraceRow) WithProjectId(projectId int) *TraceRow {
-	t.ProjectId = uint32(projectId)
-	return t
-}
-
 func (t *TraceRow) WithSecureSessionId(sessionId string) *TraceRow {
 	t.SecureSessionId = sessionId
 	return t
