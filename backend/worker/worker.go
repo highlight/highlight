@@ -39,6 +39,7 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
+	"github.com/segmentio/kafka-go"
 	"github.com/shirou/gopsutil/mem"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
@@ -445,7 +446,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		for i := 0; i < parallelWorkers; i++ {
 			go func(workerId int) {
 				k := KafkaWorker{
-					KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer),
+					KafkaQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer, nil),
 					Worker:       w,
 					WorkerThread: workerId,
 				}
@@ -464,15 +465,17 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		}
 		for i := 0; i < parallelBatchWorkers; i++ {
 			go func(workerId int) {
+				s, wCtx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.outer"))
+				defer s.Finish()
 				k := KafkaBatchWorker{
-					KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer),
+					KafkaQueue:          kafkaqueue.New(wCtx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer, nil),
 					Worker:              w,
 					WorkerThread:        workerId,
 					BatchBuffer:         buffer,
 					BatchFlushSize:      DefaultBatchFlushSize,
 					BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 				}
-				k.ProcessMessages(ctx, k.flushLogs)
+				k.ProcessMessages(wCtx, k.flushLogs)
 				wg.Done()
 			}(i)
 		}
@@ -484,15 +487,17 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		buffer := &KafkaBatchBuffer{
 			messageQueue: make(chan *kafkaqueue.Message, flushSize+1),
 		}
+		s, wCtx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.datasync.outer"))
+		defer s.Finish()
 		k := KafkaBatchWorker{
-			KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Consumer),
+			KafkaQueue:          kafkaqueue.New(wCtx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Consumer, &kafka.ReaderConfig{QueueCapacity: 1000}),
 			Worker:              w,
 			WorkerThread:        0,
 			BatchBuffer:         buffer,
 			BatchFlushSize:      flushSize,
 			BatchedFlushTimeout: 5 * time.Second,
 		}
-		k.ProcessMessages(ctx, k.flushDataSync)
+		k.ProcessMessages(wCtx, k.flushDataSync)
 		_wg.Done()
 	}(&wg)
 	wg.Wait()

@@ -10,7 +10,7 @@ import (
 
 func main() {
 	ctx := context.TODO()
-	k := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer)
+	k := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Consumer, nil)
 	err := k.Rewind(ctx, 24*7*time.Hour)
 	if err != nil {
 		log.WithContext(ctx).Error(err)
