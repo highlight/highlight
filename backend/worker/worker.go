@@ -1344,7 +1344,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		}
 
 		if util.IsHubspotEnabled() {
-			if err := w.Resolver.HubspotApi.UpdateCompanyProperty(ctx, c.WorkspaceID, []hubspot.Property{{
+			properties := []hubspot.Property{{
 				Name:     "highlight_session_count",
 				Property: "highlight_session_count",
 				Value:    c.SessionCount,
@@ -1380,11 +1380,15 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 				Name:     "logs_last_day",
 				Property: "logs_last_day",
 				Value:    c.LogCountLastDay,
-			}, {
-				Property: "date_of_trial_end",
-				Name:     "date_of_trial_end",
-				Value:    c.TrialEndDate.UTC().Truncate(24 * time.Hour).UnixMilli(),
-			}}); err != nil {
+			}}
+			if c.TrialEndDate != nil {
+				properties = append(properties, hubspot.Property{
+					Property: "date_of_trial_end",
+					Name:     "date_of_trial_end",
+					Value:    c.TrialEndDate.UTC().Truncate(24 * time.Hour).UnixMilli(),
+				})
+			}
+			if err := w.Resolver.HubspotApi.UpdateCompanyProperty(ctx, c.WorkspaceID, properties); err != nil {
 				log.WithContext(ctx).WithField("data", *c).Error(e.Wrap(err, "error updating highlight session count in hubspot"))
 			}
 		}
