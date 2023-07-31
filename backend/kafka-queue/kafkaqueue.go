@@ -89,7 +89,7 @@ func GetTopic(options GetTopicOptions) string {
 	return topic
 }
 
-func New(ctx context.Context, topic string, mode Mode) *Queue {
+func New(ctx context.Context, topic string, mode Mode, configOverride *kafka.ReaderConfig) *Queue {
 	servers := os.Getenv("KAFKA_SERVERS")
 	brokers := strings.Split(servers, ",")
 	groupID := ConsumerGroupName
@@ -154,33 +154,6 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 		}
 	}
 
-	res, err := client.AlterConfigs(ctx, &kafka.AlterConfigsRequest{
-		Addr: kafka.TCP(brokers...),
-		Resources: []kafka.AlterConfigRequestResource{
-			{
-				ResourceType: kafka.ResourceTypeTopic,
-				ResourceName: topic,
-				Configs: []kafka.AlterConfigRequestConfig{
-					{
-						Name:  "cleanup.policy",
-						Value: "delete",
-					},
-				},
-			},
-		},
-	})
-	if err != nil {
-		log.WithContext(ctx).Error(errors.Wrap(err, "failed to update topic retention"))
-	} else {
-		err = res.Errors[kafka.AlterConfigsResponseResource{
-			Type: int8(kafka.ResourceTypeTopic),
-			Name: topic,
-		}]
-		if err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "topic retention failed server-side"))
-		}
-	}
-
 	pool := &Queue{Topic: topic, ConsumerGroup: groupID, Client: client}
 	if mode&1 == 1 {
 		log.WithContext(ctx).Debugf("initializing kafka producer for %s", topic)
@@ -205,7 +178,7 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 	}
 	if (mode>>1)&1 == 1 {
 		log.WithContext(ctx).Debugf("initializing kafka consumer for %s", topic)
-		pool.kafkaC = kafka.NewReader(kafka.ReaderConfig{
+		config := kafka.ReaderConfig{
 			Brokers:           brokers,
 			Dialer:            dialer,
 			HeartbeatInterval: time.Second,
@@ -220,7 +193,15 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval: time.Second,
 			MaxAttempts:    10,
-		})
+		}
+
+		// Allow defaults to be overridden - right now just the `QueueCapacity` field
+		if configOverride != nil {
+			deref := *configOverride
+			config.QueueCapacity = deref.QueueCapacity
+		}
+
+		pool.kafkaC = kafka.NewReader(config)
 	}
 
 	go func() {
