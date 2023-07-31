@@ -24,7 +24,7 @@ If you don't see one of your languages / frameworks below, reach out to us in ou
     <DocsCard title="Fly.io" href="./fly-io.md">
         {"Set up logging in Fly."}
     </DocsCard>
-    <DocsCard title="Render.com" href="./render.md">
+    <DocsCard title="Render" href="./render.md">
         {"Set up logging in Render."}
     </DocsCard>
     <DocsCard title="Trigger.dev" href="./trigger.md">
