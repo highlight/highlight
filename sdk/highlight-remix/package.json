@@ -39,6 +39,7 @@
 	},
 	"dependencies": {
 		"@highlight-run/react": "workspace:^",
+		"@highlight-run/node": "workspace:^",
 		"@opentelemetry/instrumentation": "0.41.1",
 		"highlight.run": "workspace:^",
 		"js-cookie": "^3.0.5"
