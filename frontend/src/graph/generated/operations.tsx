@@ -25,20 +25,6 @@ export type MarkSessionAsViewedMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type MarkSessionAsStarredMutationVariables = Types.Exact<{
-	secure_id: Types.Scalars['String']
-	starred: Types.Scalars['Boolean']
-}>
-
-export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
-	markSessionAsStarred?: Types.Maybe<
-		{ __typename?: 'Session' } & Pick<
-			Types.Session,
-			'secure_id' | 'starred'
-		>
-	>
-}
-
 export type MuteSessionCommentThreadMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 	has_muted?: Types.Maybe<Types.Scalars['Boolean']>
@@ -4575,7 +4561,6 @@ export const namedOperations = {
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
-		MarkSessionAsStarred: 'MarkSessionAsStarred' as const,
 		MuteSessionCommentThread: 'MuteSessionCommentThread' as const,
 		CreateOrUpdateStripeSubscription:
 			'CreateOrUpdateStripeSubscription' as const,

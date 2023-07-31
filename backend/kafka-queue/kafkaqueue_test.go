@@ -27,8 +27,8 @@ func BenchmarkQueue_Submit(b *testing.B) {
 
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	writer := New(ctx, "dev", Producer)
-	reader := New(ctx, "dev", Consumer)
+	writer := New(ctx, "dev", Producer, nil)
+	reader := New(ctx, "dev", Consumer, nil)
 
 	sendWg := sync.WaitGroup{}
 	sendWg.Add(workers)

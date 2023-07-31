@@ -652,12 +652,11 @@ type Session struct {
 	// Number of pages visited during a session
 	PagesVisited int
 
-	ObjectStorageEnabled  *bool   `json:"object_storage_enabled"`
-	DirectDownloadEnabled bool    `json:"direct_download_enabled" gorm:"default:false"`
-	AllObjectsCompressed  bool    `json:"all_resources_compressed" gorm:"default:false"`
-	PayloadSize           *int64  `json:"payload_size"`
-	MigrationState        *string `json:"migration_state"`
-	VerboseID             string  `json:"verbose_id"`
+	ObjectStorageEnabled  *bool  `json:"object_storage_enabled"`
+	DirectDownloadEnabled bool   `json:"direct_download_enabled" gorm:"default:false"`
+	AllObjectsCompressed  bool   `json:"all_resources_compressed" gorm:"default:false"`
+	PayloadSize           *int64 `json:"payload_size"`
+	VerboseID             string `json:"verbose_id"`
 
 	// Excluded will be true when we would typically have deleted the session
 	Excluded       bool `gorm:"default:false"`
@@ -928,6 +927,8 @@ type ErrorObject struct {
 	Environment      string
 	RequestID        *string // From X-Highlight-Request header
 	IsBeacon         bool    `gorm:"default:false"`
+	ServiceName      string
+	ServiceVersion   string
 }
 
 type ErrorObjectEmbeddings struct {
@@ -961,6 +962,7 @@ type ErrorGroup struct {
 	FirstOccurrence  *time.Time                           `gorm:"-"`
 	LastOccurrence   *time.Time                           `gorm:"-"`
 	ErrorObjects     []ErrorObject
+	ServiceName      string
 
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`

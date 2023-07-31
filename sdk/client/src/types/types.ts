@@ -19,10 +19,16 @@ export declare interface Metric {
 export declare type SamplingStrategy = {
 	/**
 	 * 'all' will record every single canvas call.
-	 * a number between 1 and 60, will record an image snapshots in a web-worker a (maximum) number of times per second.
+	 * a number will record an image snapshots in a web-worker a (maximum) number of times per second.
 	 * Number is only supported where [`OffscreenCanvas`](http://mdn.io/offscreencanvas) is supported.
 	 */
 	canvas?: 'all' | number
+	/**
+	 * For manual usage of `H.snapshot(element) from your canvas rendering function.
+	 * See https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/canvas for setup.`
+	 * a number will record an image snapshots in a web-worker a (maximum) number of times per second.
+	 */
+	canvasManualSnapshot?: number
 	/**
 	 * A quality at which to take canvas snapshots. See https://developer.mozilla.org/en-US/docs/Web/API/createImageBitmap
 	 * @deprecated This value is no longer used.
@@ -239,6 +245,7 @@ export declare interface HighlightPublicInterface {
 	 * Calling this will add a feedback comment to the session.
 	 */
 	addSessionFeedback: (feedbackOptions: SessionFeedbackOptions) => void
+	snapshot: (element: HTMLCanvasElement) => Promise<void>
 }
 
 export declare interface SessionDetails {

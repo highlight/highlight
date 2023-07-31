@@ -129,7 +129,8 @@ export const ProjectRouter = () => {
 		?.filter((w) => w?.projects.map((p) => p?.id).includes(projectId))
 		?.pop()
 
-	const [rightPanelView, setRightPanelView] = useState<RightPanelView>(
+	const [rightPanelView, setRightPanelView] = useLocalStorage<RightPanelView>(
+		'tabs-right-panel-view',
 		RightPanelView.Session,
 	)
 

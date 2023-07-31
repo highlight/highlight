@@ -10,6 +10,7 @@ import {
 import { IconSolidCheckCircle, IconSolidMinus } from '../icons'
 
 import * as styles from './styles.css'
+import { Text } from '../Text/Text'
 
 type Option = {
 	key: string
@@ -48,8 +49,12 @@ export const MultiSelectButton: React.FC<Props> = ({
 				{label}
 			</SelectLabel>
 			<Select state={selectState} className={styles.selectButton}>
-				{icon}
-				{valueRender()}
+				<>
+					{icon}
+					<Text size="xSmall" color="secondaryContentText">
+						{valueRender()}
+					</Text>
+				</>
 			</Select>
 			{selectState.mounted && (
 				<SelectPopover

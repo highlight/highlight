@@ -10,9 +10,9 @@ export default {
 } as Meta<typeof Button>
 
 export const ButtonVariants = () => {
-	const kind: any[] = ['primary', 'secondary']
-	const emphasis: any[] = ['high', 'medium', 'low']
-	const size: any[] = ['medium', 'small', 'xSmall']
+	const kind = ['primary', 'secondary'] as const
+	const emphasis = ['high', 'medium', 'low'] as const
+	const size = ['medium', 'small', 'xSmall'] as const
 
 	return (
 		<Box display="flex" gap="12" flexDirection="column">

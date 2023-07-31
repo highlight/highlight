@@ -73,6 +73,10 @@ func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, 
 		Timestamp:       ts,
 		Payload:         pointy.String(string(payloadBytes)),
 		URL:             fields.errorUrl,
+		Service: &model.ServiceInput{
+			Name:    fields.serviceName,
+			Version: fields.serviceVersion,
+		},
 	}
 	if fields.sessionID != "" {
 		return false, err
@@ -107,7 +111,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid trace body")
+		log.WithContext(ctx).WithError(err).Error("invalid trace logBody")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -190,14 +194,13 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						lg(ctx, fields).WithError(err).Error("failed to extract fields")
 					}
 
-					ts := event.Timestamp().AsTime()
 					traceID := cast(fields.requestID, span.TraceID().String())
 					spanID := span.SpanID().String()
 					if event.Name() == semconv.ExceptionEventName {
 						var logCursor *string
 
 						logRow := clickhouse.NewLogRow(
-							ts, uint32(fields.projectIDInt),
+							fields.timestamp, uint32(fields.projectIDInt),
 							clickhouse.WithTraceID(traceID),
 							clickhouse.WithSpanID(spanID),
 							clickhouse.WithSecureSessionID(fields.sessionID),
@@ -212,7 +215,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 						logCursor = pointy.String(logRow.Cursor())
 
-						isProjectError, backendError := getBackendError(ctx, ts, fields, traceID, spanID, logCursor)
+						isProjectError, backendError := getBackendError(ctx, fields.timestamp, fields, traceID, spanID, logCursor)
 						if backendError == nil {
 							lg(ctx, fields).Error("otel span error got no session and no project")
 						} else {
@@ -233,7 +236,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						}
 
 						logRow := clickhouse.NewLogRow(
-							ts, uint32(fields.projectIDInt),
+							fields.timestamp, uint32(fields.projectIDInt),
 							clickhouse.WithTraceID(traceID),
 							clickhouse.WithSpanID(spanID),
 							clickhouse.WithSecureSessionID(fields.sessionID),
@@ -247,7 +250,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 
 						projectLogs[fields.projectID] = append(projectLogs[fields.projectID], logRow)
 					} else if event.Name() == highlight.MetricEvent {
-						metric, err := getMetric(ctx, ts, fields, traceID, spanID)
+						metric, err := getMetric(ctx, fields.timestamp, fields, traceID, spanID)
 						if err != nil {
 							lg(ctx, fields).WithError(err).Error("failed to create metric")
 							continue
@@ -323,7 +326,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		log.WithContext(ctx).WithError(err).Error("invalid log body")
+		log.WithContext(ctx).WithError(err).Error("invalid log logBody")
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -371,15 +374,15 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 				}
 
 				logRow := clickhouse.NewLogRow(
-					logRecord.Timestamp().AsTime(), uint32(fields.projectIDInt),
+					fields.timestamp, uint32(fields.projectIDInt),
 					clickhouse.WithTraceID(logRecord.TraceID().String()),
 					clickhouse.WithSpanID(logRecord.SpanID().String()),
 					clickhouse.WithSecureSessionID(fields.sessionID),
-					clickhouse.WithBody(ctx, logRecord.Body().Str()),
+					clickhouse.WithBody(ctx, fields.logBody),
 					clickhouse.WithLogAttributes(fields.attrs),
 					clickhouse.WithServiceName(fields.serviceName),
 					clickhouse.WithServiceVersion(fields.serviceVersion),
-					clickhouse.WithSeverityText(logRecord.SeverityText()),
+					clickhouse.WithSeverityText(fields.logSeverity),
 					clickhouse.WithSource(fields.source),
 				)
 

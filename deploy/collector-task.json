@@ -32,6 +32,12 @@
 					"containerPort": 24224,
 					"hostPort": 24224,
 					"protocol": "tcp"
+				},
+				{
+					"name": "highlight-collector-34302-tcp",
+					"containerPort": 34302,
+					"hostPort": 34302,
+					"protocol": "tcp"
 				}
 			],
 			"essential": true,

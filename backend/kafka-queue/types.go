@@ -31,6 +31,7 @@ const (
 	HubSpotUpdateContactProperty           PayloadType = iota
 	HubSpotUpdateCompanyProperty           PayloadType = iota
 	HubSpotCreateContactCompanyAssociation PayloadType = iota
+	SessionDataSync                        PayloadType = iota
 	HealthCheck                            PayloadType = math.MaxInt
 )
 
@@ -142,6 +143,10 @@ type HubSpotCreateContactCompanyAssociationArgs struct {
 	WorkspaceID int
 }
 
+type SessionDataSyncArgs struct {
+	SessionID int
+}
+
 type Message struct {
 	Type                                   PayloadType
 	Failures                               int
@@ -162,6 +167,7 @@ type Message struct {
 	HubSpotUpdateContactProperty           *HubSpotUpdateContactPropertyArgs
 	HubSpotUpdateCompanyProperty           *HubSpotUpdateCompanyPropertyArgs
 	HubSpotCreateContactCompanyAssociation *HubSpotCreateContactCompanyAssociationArgs
+	SessionDataSync                        *SessionDataSyncArgs
 }
 
 type PartitionMessage struct {

@@ -4,6 +4,8 @@ on:
         branches:
             - 'main'
         paths:
+            - 'go.work'
+            - 'go.work.sum'
             - 'backend/**'
             - 'deploy/**'
             - '.github/workflows/deploy.yml'

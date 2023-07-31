@@ -82,6 +82,8 @@ export const ErrorSessionMissingOrExcluded = ({ errorObject }: Props) => {
 	)
 
 	const reason = getReason({ errorObject })
+	const hasContent =
+		!session || showProjectSettingsButton({ errorObject }) || learnMoreLink
 
 	return (
 		<>
@@ -93,22 +95,24 @@ export const ErrorSessionMissingOrExcluded = ({ errorObject }: Props) => {
 						</Text>
 					</Box>
 				)}
-				<Box display="flex">
-					{!session && backendSDKSetupButton}
-					{showProjectSettingsButton({ errorObject }) &&
-						projectSettings}
-					{learnMoreLink && (
-						<LinkButton
-							kind="secondary"
-							to={learnMoreLink}
-							trackingId="session-ignoring-docs"
-							emphasis="low"
-							target="_blank"
-						>
-							Learn more
-						</LinkButton>
-					)}
-				</Box>
+				{hasContent && (
+					<Box display="flex">
+						{!session && backendSDKSetupButton}
+						{showProjectSettingsButton({ errorObject }) &&
+							projectSettings}
+						{learnMoreLink && (
+							<LinkButton
+								kind="secondary"
+								to={learnMoreLink}
+								trackingId="session-ignoring-docs"
+								emphasis="low"
+								target="_blank"
+							>
+								Learn more
+							</LinkButton>
+						)}
+					</Box>
+				)}
 			</Callout>
 		</>
 	)

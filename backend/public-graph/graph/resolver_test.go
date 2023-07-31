@@ -3,12 +3,13 @@ package graph
 import (
 	"context"
 	"encoding/json"
-	"github.com/highlight-run/highlight/backend/redis"
 	"os"
 	"reflect"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/redis"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/go-test/deep"
@@ -64,6 +65,7 @@ func TestProcessBackendPayloadImpl(t *testing.T) {
 			RequestID:       nil,
 			TraceID:         nil,
 			SpanID:          nil,
+			LogCursor:       new(string),
 			Event:           "dummy event",
 			Type:            "",
 			URL:             "",
@@ -71,6 +73,10 @@ func TestProcessBackendPayloadImpl(t *testing.T) {
 			StackTrace:      trpcTraceStr,
 			Timestamp:       time.Time{},
 			Payload:         nil,
+			Service: &publicModel.ServiceInput{
+				Name:    "my-app",
+				Version: "abc123",
+			},
 		}})
 
 		var result *model.ErrorObject
@@ -82,6 +88,9 @@ func TestProcessBackendPayloadImpl(t *testing.T) {
 		if *result.StackTrace != trpcTraceStr {
 			t.Fatal("stacktrace changed after processing")
 		}
+
+		assert.Equal(t, "my-app", result.ServiceName)
+		assert.Equal(t, "abc123", result.ServiceVersion)
 	})
 }
 

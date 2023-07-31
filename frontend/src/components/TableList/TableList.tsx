@@ -1,4 +1,3 @@
-import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import LoadingBox from '@components/LoadingBox'
 import TextViewer from '@components/TextViewer'
@@ -119,16 +118,15 @@ export const TableList = ({
 				{!loading && filtered.length === 0 && noDataMessage}
 			</Box>
 			{truncateable && filtered.length > TRUNCATED_ITEMS_LIMIT && (
-				<Box>
-					<Button
+				<Box mt="4">
+					<Tag
 						onClick={() => setTruncated(!truncated)}
 						kind="secondary"
 						emphasis="medium"
-						size="xSmall"
-						trackingId="errorBodyToggleContent"
+						shape="basic"
 					>
 						Show {truncated ? 'more' : 'less'}
-					</Button>
+					</Tag>
 				</Box>
 			)}
 		</Box>

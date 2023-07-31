@@ -703,7 +703,6 @@ type ComplexityRoot struct {
 		EmailSignup                      func(childComplexity int, email string) int
 		JoinWorkspace                    func(childComplexity int, workspaceID int) int
 		MarkErrorGroupAsViewed           func(childComplexity int, errorSecureID string, viewed *bool) int
-		MarkSessionAsStarred             func(childComplexity int, secureID string, starred *bool) int
 		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
 		ModifyClearbitIntegration        func(childComplexity int, workspaceID int, enabled bool) int
 		MuteErrorCommentThread           func(childComplexity int, id int, hasMuted *bool) int
@@ -1375,7 +1374,6 @@ type MutationResolver interface {
 	EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool) (*model1.AllWorkspaceSettings, error)
 	MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model1.ErrorGroup, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
-	MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model1.Session, error)
 	UpdateErrorGroupState(ctx context.Context, secureID string, state model.ErrorState, snoozedUntil *time.Time) (*model1.ErrorGroup, error)
 	DeleteProject(ctx context.Context, id int) (*bool, error)
 	SendAdminWorkspaceInvite(ctx context.Context, workspaceID int, email string, baseURL string, role string) (*string, error)
@@ -4829,18 +4827,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.MarkErrorGroupAsViewed(childComplexity, args["error_secure_id"].(string), args["viewed"].(*bool)), true
-
-	case "Mutation.markSessionAsStarred":
-		if e.complexity.Mutation.MarkSessionAsStarred == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_markSessionAsStarred_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.MarkSessionAsStarred(childComplexity, args["secure_id"].(string), args["starred"].(*bool)), true
 
 	case "Mutation.markSessionAsViewed":
 		if e.complexity.Mutation.MarkSessionAsViewed == nil {
@@ -10766,7 +10752,6 @@ type Mutation {
 		viewed: Boolean
 	): ErrorGroup
 	markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
-	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
 	updateErrorGroupState(
 		secure_id: String!
 		state: ErrorState!
@@ -12844,30 +12829,6 @@ func (ec *executionContext) field_Mutation_markErrorGroupAsViewed_args(ctx conte
 		}
 	}
 	args["viewed"] = arg1
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_markSessionAsStarred_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["secure_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("secure_id"))
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["secure_id"] = arg0
-	var arg1 *bool
-	if tmp, ok := rawArgs["starred"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("starred"))
-		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["starred"] = arg1
 	return args, nil
 }
 
@@ -35015,159 +34976,6 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsViewed(ctx contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_markSessionAsViewed_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Mutation_markSessionAsStarred(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_markSessionAsStarred(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MarkSessionAsStarred(rctx, fc.Args["secure_id"].(string), fc.Args["starred"].(*bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model1.Session)
-	fc.Result = res
-	return ec.marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Mutation_markSessionAsStarred(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Mutation",
-		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Session_id(ctx, field)
-			case "secure_id":
-				return ec.fieldContext_Session_secure_id(ctx, field)
-			case "client_id":
-				return ec.fieldContext_Session_client_id(ctx, field)
-			case "fingerprint":
-				return ec.fieldContext_Session_fingerprint(ctx, field)
-			case "os_name":
-				return ec.fieldContext_Session_os_name(ctx, field)
-			case "os_version":
-				return ec.fieldContext_Session_os_version(ctx, field)
-			case "browser_name":
-				return ec.fieldContext_Session_browser_name(ctx, field)
-			case "browser_version":
-				return ec.fieldContext_Session_browser_version(ctx, field)
-			case "city":
-				return ec.fieldContext_Session_city(ctx, field)
-			case "state":
-				return ec.fieldContext_Session_state(ctx, field)
-			case "country":
-				return ec.fieldContext_Session_country(ctx, field)
-			case "postal":
-				return ec.fieldContext_Session_postal(ctx, field)
-			case "environment":
-				return ec.fieldContext_Session_environment(ctx, field)
-			case "app_version":
-				return ec.fieldContext_Session_app_version(ctx, field)
-			case "client_version":
-				return ec.fieldContext_Session_client_version(ctx, field)
-			case "firstload_version":
-				return ec.fieldContext_Session_firstload_version(ctx, field)
-			case "client_config":
-				return ec.fieldContext_Session_client_config(ctx, field)
-			case "language":
-				return ec.fieldContext_Session_language(ctx, field)
-			case "identifier":
-				return ec.fieldContext_Session_identifier(ctx, field)
-			case "identified":
-				return ec.fieldContext_Session_identified(ctx, field)
-			case "created_at":
-				return ec.fieldContext_Session_created_at(ctx, field)
-			case "payload_updated_at":
-				return ec.fieldContext_Session_payload_updated_at(ctx, field)
-			case "length":
-				return ec.fieldContext_Session_length(ctx, field)
-			case "active_length":
-				return ec.fieldContext_Session_active_length(ctx, field)
-			case "user_object":
-				return ec.fieldContext_Session_user_object(ctx, field)
-			case "user_properties":
-				return ec.fieldContext_Session_user_properties(ctx, field)
-			case "fields":
-				return ec.fieldContext_Session_fields(ctx, field)
-			case "viewed":
-				return ec.fieldContext_Session_viewed(ctx, field)
-			case "starred":
-				return ec.fieldContext_Session_starred(ctx, field)
-			case "processed":
-				return ec.fieldContext_Session_processed(ctx, field)
-			case "excluded":
-				return ec.fieldContext_Session_excluded(ctx, field)
-			case "excluded_reason":
-				return ec.fieldContext_Session_excluded_reason(ctx, field)
-			case "has_rage_clicks":
-				return ec.fieldContext_Session_has_rage_clicks(ctx, field)
-			case "has_errors":
-				return ec.fieldContext_Session_has_errors(ctx, field)
-			case "first_time":
-				return ec.fieldContext_Session_first_time(ctx, field)
-			case "field_group":
-				return ec.fieldContext_Session_field_group(ctx, field)
-			case "enable_strict_privacy":
-				return ec.fieldContext_Session_enable_strict_privacy(ctx, field)
-			case "enable_recording_network_contents":
-				return ec.fieldContext_Session_enable_recording_network_contents(ctx, field)
-			case "object_storage_enabled":
-				return ec.fieldContext_Session_object_storage_enabled(ctx, field)
-			case "payload_size":
-				return ec.fieldContext_Session_payload_size(ctx, field)
-			case "within_billing_quota":
-				return ec.fieldContext_Session_within_billing_quota(ctx, field)
-			case "is_public":
-				return ec.fieldContext_Session_is_public(ctx, field)
-			case "event_counts":
-				return ec.fieldContext_Session_event_counts(ctx, field)
-			case "direct_download_url":
-				return ec.fieldContext_Session_direct_download_url(ctx, field)
-			case "resources_url":
-				return ec.fieldContext_Session_resources_url(ctx, field)
-			case "web_socket_events_url":
-				return ec.fieldContext_Session_web_socket_events_url(ctx, field)
-			case "timeline_indicators_url":
-				return ec.fieldContext_Session_timeline_indicators_url(ctx, field)
-			case "deviceMemory":
-				return ec.fieldContext_Session_deviceMemory(ctx, field)
-			case "last_user_interaction_time":
-				return ec.fieldContext_Session_last_user_interaction_time(ctx, field)
-			case "chunked":
-				return ec.fieldContext_Session_chunked(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Session", field.Name)
-		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_markSessionAsStarred_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -69185,12 +68993,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_markSessionAsViewed(ctx, field)
-			})
-
-		case "markSessionAsStarred":
-
-			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_markSessionAsStarred(ctx, field)
 			})
 
 		case "updateErrorGroupState":
