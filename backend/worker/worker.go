@@ -465,17 +465,16 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		}
 		for i := 0; i < parallelBatchWorkers; i++ {
 			go func(workerId int) {
-				s, wCtx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.outer"))
-				defer s.Finish()
 				k := KafkaBatchWorker{
-					KafkaQueue:          kafkaqueue.New(wCtx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer, nil),
+					KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer, nil),
 					Worker:              w,
 					WorkerThread:        workerId,
 					BatchBuffer:         buffer,
 					BatchFlushSize:      DefaultBatchFlushSize,
 					BatchedFlushTimeout: DefaultBatchedFlushTimeout,
+					Name:                "batched",
 				}
-				k.ProcessMessages(wCtx, k.flushLogs)
+				k.ProcessMessages(ctx, k.flushLogs)
 				wg.Done()
 			}(i)
 		}
@@ -487,17 +486,16 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		buffer := &KafkaBatchBuffer{
 			messageQueue: make(chan *kafkaqueue.Message, flushSize+1),
 		}
-		s, wCtx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.datasync.outer"))
-		defer s.Finish()
 		k := KafkaBatchWorker{
-			KafkaQueue:          kafkaqueue.New(wCtx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Consumer, &kafka.ReaderConfig{QueueCapacity: 1000}),
+			KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Consumer, &kafka.ReaderConfig{QueueCapacity: 1000}),
 			Worker:              w,
 			WorkerThread:        0,
 			BatchBuffer:         buffer,
 			BatchFlushSize:      flushSize,
 			BatchedFlushTimeout: 5 * time.Second,
+			Name:                "datasync",
 		}
-		k.ProcessMessages(wCtx, k.flushDataSync)
+		k.ProcessMessages(ctx, k.flushDataSync)
 		_wg.Done()
 	}(&wg)
 	wg.Wait()
