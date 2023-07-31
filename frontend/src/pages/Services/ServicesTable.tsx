@@ -1,5 +1,4 @@
 import { Button } from '@components/Button'
-import LoadingBox from '@components/LoadingBox'
 import Popover from '@components/Popover/Popover'
 import Select from '@components/Select/Select'
 import { useEditServiceMutation, useGetServicesLazyQuery } from '@graph/hooks'
@@ -8,6 +7,7 @@ import {
 	Box,
 	Combobox,
 	Stack,
+	Table,
 	Tag,
 	Text,
 	useComboboxState,
@@ -15,9 +15,8 @@ import {
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useParams } from '@util/react-router/useParams'
 import { debounce } from 'lodash'
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import * as styles from './ServicesTable.css'
 
@@ -37,6 +36,19 @@ export const ServicesTable = () => {
 		data: githubData,
 	} = useGitHubIntegration()
 
+	const [editService] = useEditServiceMutation()
+
+	const handleGitHubRepoChange = (service: any, repo?: any) => {
+		editService({
+			variables: {
+				id: service.id,
+				project_id: service.projectID!,
+				github_repo_path: repo,
+			},
+			refetchQueries: [namedOperations.Query.GetServices],
+		})
+	}
+
 	React.useEffect(() => {
 		loadServices({
 			variables: {
@@ -49,7 +61,6 @@ export const ServicesTable = () => {
 	}, [loadServices, project_id, query, pagination])
 
 	const state = useComboboxState()
-	const virtuoso = useRef<VirtuosoHandle>(null)
 
 	const handleQueryChange = useMemo(
 		() =>
@@ -72,6 +83,86 @@ export const ServicesTable = () => {
 		})
 	}
 
+	const rows = data?.services?.edges.map((service: any) => service.node)
+
+	const columns = [
+		{
+			name: 'Service',
+			render: (service: any) => service.name,
+		},
+		{
+			name: 'Status',
+			render: (service: any) => service.status,
+		},
+		{
+			name: 'GitHub Repo',
+			render: (service: any) => {
+				if (!isIntegrated) {
+					return (
+						<Link to={`/${service.projectID}/integrations`}>
+							<Text size="small" weight="medium">
+								Integrate GitHub
+							</Text>
+						</Link>
+					)
+				}
+
+				return (
+					<Popover
+						trigger="click"
+						content={
+							<Box style={{ maxWidth: 250 }} p="8">
+								{service.githubRepoPath ? (
+									<Text size="small" weight="medium">
+										Edit
+									</Text>
+								) : (
+									<Text size="small" weight="medium">
+										Connect
+									</Text>
+								)}
+								<Select
+									aria-label="GitHub Repository"
+									placeholder="Chose repo to connect to service"
+									options={githubData?.github_repos?.map(
+										(repo) => ({
+											id: repo.key,
+											value: repo.repo_id.replace(
+												'https://api.github.com/repos/',
+												'',
+											),
+											displayValue: repo.name,
+										}),
+									)}
+									onChange={(repo) =>
+										handleGitHubRepoChange(service, repo)
+									}
+									value={service.githubRepoPath}
+									notFoundContent={<p>No repos found</p>}
+								/>
+								{service.githubRepoPath && (
+									<Button
+										kind="danger"
+										trackingId="remove-repo"
+										onClick={() =>
+											handleGitHubRepoChange(service)
+										}
+									>
+										Remove
+									</Button>
+								)}
+							</Box>
+						}
+					>
+						<Tag size="small">
+							{service.githubRepoPath || 'Connect'}
+						</Tag>
+					</Popover>
+				)
+			},
+		},
+	]
+
 	return (
 		<Stack direction="column" gap="4" align="center" paddingRight="4">
 			<Combobox
@@ -81,31 +172,12 @@ export const ServicesTable = () => {
 				className={styles.combobox}
 				onChange={handleQueryChange}
 			/>
-			<Box className={styles.container}>
-				<Box className={styles.header}>
-					<Text color="n11">Service</Text>
-					<Text color="n11">Status</Text>
-					<Text color="n11">Github repo</Text>
-				</Box>
-				{loading && <LoadingBox height={640} />}
-				{error && error.message}
-				{data?.services?.edges?.length && (
-					<Box className={styles.resultsContainer}>
-						<Virtuoso
-							ref={virtuoso}
-							data={data?.services?.edges}
-							itemContent={(_, service) => (
-								<ServiceRow
-									key={service?.cursor}
-									service={service?.node}
-									gitHubIntegrated={isIntegrated}
-									gitHubRepos={githubData?.github_repos}
-								/>
-							)}
-						/>
-					</Box>
-				)}
-			</Box>
+			<Table
+				loading={loading}
+				error={error}
+				columns={columns}
+				data={rows}
+			/>
 			<Stack direction="row" justifyContent="flex-end">
 				<Button
 					kind="secondary"
@@ -125,102 +197,5 @@ export const ServicesTable = () => {
 				</Button>
 			</Stack>
 		</Stack>
-	)
-}
-
-type ServiceRowProps = {
-	service: any
-	gitHubIntegrated?: boolean
-	gitHubRepos?: any[] | null
-}
-
-const ServiceRow = ({
-	service,
-	gitHubIntegrated,
-	gitHubRepos,
-}: ServiceRowProps) => {
-	const [editService] = useEditServiceMutation()
-
-	const handleGitHubRepoChange = (repo?: any) => {
-		editService({
-			variables: {
-				id: service.id,
-				project_id: service.projectID!,
-				github_repo_path: repo,
-			},
-			refetchQueries: [namedOperations.Query.GetServices],
-		})
-	}
-
-	return (
-		<Box key={service.id}>
-			<Box
-				borderBottom="dividerWeak"
-				display="flex"
-				flexDirection="row"
-				gap="24"
-			>
-				<Text size="small" weight="medium">
-					{service.name}
-				</Text>
-
-				<Text size="small" weight="medium">
-					{service.status}
-				</Text>
-
-				{!gitHubIntegrated ? (
-					<Link to={`/${service.projectID}/integrations`}>
-						<Text size="small" weight="medium">
-							Integrate GitHub
-						</Text>
-					</Link>
-				) : (
-					<Popover
-						trigger="click"
-						content={
-							<Box style={{ maxWidth: 250 }} p="8">
-								{service.githubRepoPath ? (
-									<Text size="small" weight="medium">
-										Edit
-									</Text>
-								) : (
-									<Text size="small" weight="medium">
-										Connect
-									</Text>
-								)}
-								<Select
-									aria-label="GitHub Repository"
-									placeholder="Chose repo to connect to service"
-									options={gitHubRepos?.map((repo) => ({
-										value: repo.repo_id.replace(
-											'https://api.github.com/repos/',
-											'',
-										),
-										displayValue: repo.name,
-										id: repo.id,
-									}))}
-									onChange={handleGitHubRepoChange}
-									value={service.githubRepoPath}
-									notFoundContent={<p>No repos found</p>}
-								/>
-								{service.githubRepoPath && (
-									<Button
-										kind="danger"
-										trackingId="remove-repo"
-										onClick={() => handleGitHubRepoChange()}
-									>
-										Remove
-									</Button>
-								)}
-							</Box>
-						}
-					>
-						<Tag size="small">
-							{service.githubRepoPath || 'Connect'}
-						</Tag>
-					</Popover>
-				)}
-			</Box>
-		</Box>
 	)
 }
