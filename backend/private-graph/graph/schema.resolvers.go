@@ -34,6 +34,7 @@ import (
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/integrations/height"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -499,6 +500,11 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 		if err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name); err != nil {
 			log.WithContext(ctx).Error(err, "error creating hubspot company")
 		}
+
+		// associate admin and workspace
+		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID); err != nil {
+			log.WithContext(ctx).Error(err, "error associating hubspot contact and company")
+		}
 	}
 
 	c := &stripe.Customer{}
@@ -825,27 +831,11 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
 	}
 
-	return newSession, nil
-}
-
-// MarkSessionAsStarred is the resolver for the markSessionAsStarred field.
-func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model.Session, error) {
-	s, err := r.canAdminModifySession(ctx, secureID)
-	if err != nil {
+	if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
 		return nil, err
 	}
-	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&session).Updates(&model.Session{
-		Starred: starred,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error writing session as starred")
-	}
 
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{"starred": starred}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
-	}
-
-	return session, nil
+	return newSession, nil
 }
 
 // UpdateErrorGroupState is the resolver for the updateErrorGroupState field.
@@ -3058,10 +3048,6 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 		IsPublic: isPublic,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating session is_public")
-	}
-
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"is_public": isPublic}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
 	return session, nil
@@ -7512,7 +7498,7 @@ func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemC
 }
 
 // Services is the resolver for the services field.
-func (r *queryResolver) Services(ctx context.Context, projectID int) ([]*model.Service, error) {
+func (r *queryResolver) Services(ctx context.Context, projectID int, after *string, before *string, query *string) (*modelInputs.ServiceConnection, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7523,7 +7509,13 @@ func (r *queryResolver) Services(ctx context.Context, projectID int) ([]*model.S
 		return nil, err
 	}
 
-	return services, nil
+	connection, err := r.Store.ListServices(*project, store.ListServicesParams{
+		After:  after,
+		Before: before,
+		Query:  query,
+	})
+
+	return &connection, err
 }
 
 // Params is the resolver for the params field.
@@ -7642,6 +7634,11 @@ func (r *sessionAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj 
 	ret := obj.DiscordChannelsToNotify
 
 	return ret, nil
+}
+
+// WebhookDestinations is the resolver for the WebhookDestinations field.
+func (r *sessionAlertResolver) WebhookDestinations(ctx context.Context, obj *model.SessionAlert) ([]*model.WebhookDestination, error) {
+	return obj.WebhookDestinations, nil
 }
 
 // EmailsToNotify is the resolver for the EmailsToNotify field.

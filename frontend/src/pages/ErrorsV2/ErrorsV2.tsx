@@ -46,6 +46,9 @@ import { StringParam, useQueryParams } from 'use-query-params'
 
 import { DEMO_PROJECT_ID } from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { GetErrorGroupQuery } from '@/graph/generated/operations'
+import ErrorIssueButton from '@/pages/ErrorsV2/ErrorIssueButton/ErrorIssueButton'
+import ErrorShareButton from '@/pages/ErrorsV2/ErrorShareButton/ErrorShareButton'
+import { ErrorStateSelect } from '@/pages/ErrorsV2/ErrorStateSelect/ErrorStateSelect'
 import { useIntegratedLocalStorage } from '@/util/integrated'
 
 import * as styles from './styles.css'
@@ -151,6 +154,7 @@ export default function ErrorsV2() {
 						shadow="medium"
 					>
 						<TopBar
+							errorGroup={data?.error_group}
 							isLoggedIn={isLoggedIn}
 							isBlocked={isBlocked}
 							projectId={project_id}
@@ -176,12 +180,19 @@ export default function ErrorsV2() {
 }
 
 type TopBarProps = {
+	errorGroup: GetErrorGroupQuery['error_group']
 	isLoggedIn: boolean
 	isBlocked: boolean
 	navigation: ReturnType<typeof useNavigation>
 	projectId?: string
 }
-function TopBar({ isLoggedIn, isBlocked, projectId, navigation }: TopBarProps) {
+function TopBar({
+	errorGroup,
+	isLoggedIn,
+	isBlocked,
+	projectId,
+	navigation,
+}: TopBarProps) {
 	const {
 		showLeftPanel,
 		setShowLeftPanel,
@@ -191,8 +202,15 @@ function TopBar({ isLoggedIn, isBlocked, projectId, navigation }: TopBarProps) {
 		previousSecureId,
 		goToErrorGroup,
 	} = navigation
+
 	return (isLoggedIn || projectId === DEMO_PROJECT_ID) && !isBlocked ? (
-		<Box display="flex" alignItems="center" borderBottom="secondary" p="6">
+		<Box
+			display="flex"
+			alignItems="center"
+			borderBottom="secondary"
+			p="6"
+			justifyContent="space-between"
+		>
 			<Box display="flex" gap="8">
 				{!showLeftPanel && (
 					<Tooltip
@@ -220,6 +238,18 @@ function TopBar({ isLoggedIn, isBlocked, projectId, navigation }: TopBarProps) {
 					onPrev={() => goToErrorGroup(previousSecureId)}
 					onNext={() => goToErrorGroup(nextSecureId)}
 				/>
+			</Box>
+			<Box>
+				{errorGroup && (
+					<Box display="flex" gap="8">
+						<ErrorShareButton errorGroup={errorGroup} />
+						<ErrorStateSelect
+							state={errorGroup.state}
+							snoozedUntil={errorGroup.snoozed_until}
+						/>
+						<ErrorIssueButton errorGroup={errorGroup} />
+					</Box>
+				)}
 			</Box>
 		</Box>
 	) : null
@@ -306,7 +336,7 @@ function ErrorDisplay({
 							) : (
 								<>
 									<IntegrationCta />
-									<Box pt="16" pb="32">
+									<Box pt="24" pb="32">
 										<ErrorTitle errorGroup={errorGroup} />
 
 										<ErrorBody errorGroup={errorGroup} />

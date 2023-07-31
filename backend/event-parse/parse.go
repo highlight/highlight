@@ -97,7 +97,8 @@ const (
 	ErrAssetSizeUnknown = "ErrAssetSizeUnknown"
 	ErrFailedToFetch    = "ErrFailedToFetch"
 	ErrFetchNotOk       = "ErrFetchNotOk"
-	MaxAssetSize        = 10 * 1024 * 1e6
+	// MaxAssetSize = 200 GB storage per ECS node / 64 parallel kafka workers
+	MaxAssetSize = 3 * 1e9
 )
 
 type fetcher interface {

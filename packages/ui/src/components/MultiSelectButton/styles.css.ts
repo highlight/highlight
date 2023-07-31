@@ -3,8 +3,6 @@ import { style } from '@vanilla-extract/css'
 
 import { colors } from '../../css/colors'
 
-const BORDER_RADIUS = 6
-
 export const selectLabel = style({
 	display: 'none',
 })
@@ -13,12 +11,13 @@ export const selectButton = style({
 	alignItems: 'center',
 	backgroundColor: colors.white,
 	border: vars.border.secondary,
-	borderRadius: BORDER_RADIUS,
+	borderRadius: 20,
 	color: vars.theme.static.content.moderate,
 	display: 'flex',
 	fontSize: 13,
 	gap: 4,
-	padding: '0 8px',
+	height: 20,
+	padding: '0 6px',
 
 	selectors: {
 		'&:hover': {
@@ -31,7 +30,7 @@ export const selectButton = style({
 export const selectPopover = style({
 	backgroundColor: colors.white,
 	border: vars.border.secondary,
-	borderRadius: BORDER_RADIUS,
+	borderRadius: 6,
 	minWidth: 150,
 	zIndex: 10,
 })
@@ -54,7 +53,7 @@ export const selectItem = style({
 
 export const checkbox = style({
 	border: vars.border.secondary,
-	borderRadius: BORDER_RADIUS,
+	borderRadius: 4,
 	display: 'flex',
 	padding: 1,
 	selectors: {

@@ -127,5 +127,19 @@
 		"activityBar.background": "#301e79",
 		"titleBar.activeBackground": "#0d0225",
 		"titleBar.activeForeground": "#bea8f1"
-	}
+	},
+	"sqltools.connections": [
+		{
+			"server": "localhost",
+			"port": 8123,
+			"useHTTPS": false,
+			"database": "default",
+			"username": "default",
+			"password": "",
+			"tls": {},
+			"previewLimit": 50,
+			"driver": "ClickHouse",
+			"name": "clickhouse-dev"
+		}
+	]
 }

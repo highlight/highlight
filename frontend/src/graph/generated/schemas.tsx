@@ -974,7 +974,6 @@ export type Mutation = {
 	emailSignup: Scalars['String']
 	joinWorkspace?: Maybe<Scalars['ID']>
 	markErrorGroupAsViewed?: Maybe<ErrorGroup>
-	markSessionAsStarred?: Maybe<Session>
 	markSessionAsViewed?: Maybe<Session>
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
 	muteErrorCommentThread?: Maybe<Scalars['Boolean']>
@@ -1300,11 +1299,6 @@ export type MutationJoinWorkspaceArgs = {
 export type MutationMarkErrorGroupAsViewedArgs = {
 	error_secure_id: Scalars['String']
 	viewed?: InputMaybe<Scalars['Boolean']>
-}
-
-export type MutationMarkSessionAsStarredArgs = {
-	secure_id: Scalars['String']
-	starred?: InputMaybe<Scalars['Boolean']>
 }
 
 export type MutationMarkSessionAsViewedArgs = {
@@ -1729,7 +1723,7 @@ export type Query = {
 	resources?: Maybe<Array<Maybe<Scalars['Any']>>>
 	segments?: Maybe<Array<Maybe<Segment>>>
 	serverIntegration: IntegrationStatus
-	services: Array<Service>
+	services?: Maybe<ServiceConnection>
 	session?: Maybe<Session>
 	sessionLogs: Array<LogEdge>
 	session_comment_tags_for_project: Array<SessionCommentTag>
@@ -2215,7 +2209,10 @@ export type QueryServerIntegrationArgs = {
 }
 
 export type QueryServicesArgs = {
+	after?: InputMaybe<Scalars['String']>
+	before?: InputMaybe<Scalars['String']>
 	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
 }
 
 export type QuerySessionArgs = {
@@ -2492,6 +2489,27 @@ export type Service = {
 	status: ServiceStatus
 }
 
+export type ServiceConnection = Connection & {
+	__typename?: 'ServiceConnection'
+	edges: Array<Maybe<ServiceEdge>>
+	pageInfo: PageInfo
+}
+
+export type ServiceEdge = Edge & {
+	__typename?: 'ServiceEdge'
+	cursor: Scalars['String']
+	node: ServiceNode
+}
+
+export type ServiceNode = {
+	__typename?: 'ServiceNode'
+	githubRepoPath?: Maybe<Scalars['String']>
+	id: Scalars['ID']
+	name: Scalars['String']
+	projectID: Scalars['ID']
+	status: ServiceStatus
+}
+
 export enum ServiceStatus {
 	Created = 'created',
 	Error = 'error',
@@ -2567,6 +2585,7 @@ export type SessionAlert = {
 	TrackProperties: Array<Maybe<TrackProperty>>
 	Type: Scalars['String']
 	UserProperties: Array<Maybe<UserProperty>>
+	WebhookDestinations: Array<WebhookDestination>
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	updated_at: Scalars['Timestamp']

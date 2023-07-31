@@ -7,6 +7,7 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
+import { getResponseStatusCode } from '@pages/Player/helpers'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	LoadingError,
@@ -313,10 +314,14 @@ const ResourceRow = ({
 	const { activeNetworkResourceId } = useActiveNetworkResourceId()
 	const showingDetails = activeNetworkResourceId === resource.id
 	const responseStatus = resource.requestResponsePairs?.response.status
+	const bodyErrors = hasErrorsInBody(resource)
+
 	const hasError =
+		bodyErrors ||
 		!!errors?.length ||
 		!!resource.errors?.length ||
-		!!(responseStatus && (responseStatus === 0 || responseStatus >= 400))
+		!!(responseStatus === 0 || (responseStatus && responseStatus >= 400))
+	const reponseStatuscode = getResponseStatusCode(resource)
 
 	return (
 		<Box
@@ -337,19 +342,15 @@ const ResourceRow = ({
 					weight={showingDetails ? 'bold' : 'medium'}
 					lines="1"
 				>
-					{/* NOTE - Showing '200' for all requests that aren't 'xmlhttprequest' or 'fetch' */}
-					{resource.initiatorType === 'xmlhttprequest' ||
-					resource.initiatorType === 'fetch'
-						? resource.requestResponsePairs?.response.status ?? (
-								<UnknownRequestStatusCode
-									networkRequestAndResponseRecordingEnabled={
-										networkRequestAndResponseRecordingEnabled
-									}
-								/>
-						  )
-						: resource.initiatorType === 'websocket'
-						? '101'
-						: '200'}
+					{reponseStatuscode === 'Unknown' ? (
+						<UnknownRequestStatusCode
+							networkRequestAndResponseRecordingEnabled={
+								networkRequestAndResponseRecordingEnabled
+							}
+						/>
+					) : (
+						reponseStatuscode
+					)}
 				</Text>
 				<Text
 					size="small"
@@ -487,4 +488,26 @@ const ResourceLoadingErrorCallout = function ({
 			/>
 		</Box>
 	)
+}
+
+const hasErrorsInBody = (resource: NetworkResource): boolean => {
+	const body = resource?.requestResponsePairs?.response.body
+
+	if (!body) {
+		return false
+	}
+
+	try {
+		let parsedResponseBody: { [key: string]: any } = {}
+		if (typeof body === 'object') {
+			parsedResponseBody = JSON.parse(JSON.stringify(body))
+		} else {
+			parsedResponseBody = JSON.parse(body)
+		}
+
+		const errors = parsedResponseBody.errors
+		return Array.isArray(errors) ? errors.length > 0 : !!errors
+	} catch (error) {
+		return false
+	}
 }
