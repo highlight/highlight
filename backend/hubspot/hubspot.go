@@ -27,6 +27,7 @@ import (
 	"gorm.io/gorm"
 )
 
+const PartitionKey = "hubspot"
 const Retries = 5
 
 // ClientSideContactCreationTimeout is the time we will wait for the object to be created by the hubspot client-side snippet
@@ -414,7 +415,7 @@ func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminI
 			AdminID:     adminID,
 			WorkspaceID: workspaceID,
 		},
-	}, "")
+	}, PartitionKey)
 }
 
 func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, adminID int, workspaceID int) error {
@@ -474,7 +475,7 @@ func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, ema
 			Phone:              phone,
 			Referral:           referral,
 		},
-	}, "")
+	}, PartitionKey)
 }
 
 func (h *HubspotApi) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
@@ -509,7 +510,7 @@ func (h *HubspotApi) CreateCompanyForWorkspace(ctx context.Context, workspaceID 
 			AdminEmail:  adminEmail,
 			Name:        name,
 		},
-	}, "")
+	}, PartitionKey)
 }
 
 func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspaceID int, adminEmail string, name string) (companyID *int, err error) {
@@ -580,7 +581,7 @@ func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, pro
 			AdminID:    adminID,
 			Properties: properties,
 		},
-	}, "")
+	}, PartitionKey)
 }
 
 func (h *HubspotApi) UpdateContactPropertyImpl(ctx context.Context, adminID int, properties []hubspot.Property) error {
@@ -607,7 +608,7 @@ func (h *HubspotApi) UpdateCompanyProperty(ctx context.Context, workspaceID int,
 			WorkspaceID: workspaceID,
 			Properties:  properties,
 		},
-	}, "")
+	}, PartitionKey)
 }
 
 func (h *HubspotApi) UpdateCompanyPropertyImpl(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
