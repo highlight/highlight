@@ -546,7 +546,7 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 		},
 	}
 
-	if companyID, err = pollHubspot(func() (*int, error) {
+	if companyID, _ = pollHubspot(func() (*int, error) {
 		return h.getCompany(ctx, name, domain)
 	}, ClientSideCompanyCreationTimeout); companyID != nil {
 		log.WithContext(ctx).
