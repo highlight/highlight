@@ -1,10 +1,10 @@
 {
 	"name": "@highlight-run/remix",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Client for interfacing with Highlight in Remix",
 	"packageManager": "yarn@3.5.0",
 	"author": "",
-	"license": "ISC",
+	"license": "Apache-2.0",
 	"files": [
 		"dist",
 		"highlight-init.d.ts",
@@ -34,12 +34,12 @@
 		"build": "tsup"
 	},
 	"peerDependencies": {
-		"highlight.run": ">=3.0.0",
+		"highlight.run": ">=7.4.0",
 		"react": ">=18"
 	},
 	"dependencies": {
-		"@highlight-run/react": "workspace:*",
-		"highlight.run": "workspace:*",
+		"@highlight-run/react": "workspace:^",
+		"highlight.run": "workspace:^",
 		"js-cookie": "^3.0.5"
 	},
 	"devDependencies": {
