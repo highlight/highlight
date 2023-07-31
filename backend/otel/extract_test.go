@@ -238,6 +238,24 @@ func TestExtractFields_ExtractServiceName(t *testing.T) {
 	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
+func TestExtractFields_RewriteServiceName(t *testing.T) {
+	resource := newResource(t, map[string]any{
+		"service.name": "unknown_service:/opt/homebrew/Cellar/node/19.6.0/bin/node",
+	})
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.serviceName, "")
+	assert.Equal(t, fields.attrs, map[string]string{})
+
+	resource = newResource(t, map[string]any{
+		"service.name": "highlight-sdk", // Was accidentally set by the ruby SDK
+	})
+	fields, err = extractFields(context.TODO(), extractFieldsParams{resource: &resource})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.serviceName, "")
+	assert.Equal(t, fields.attrs, map[string]string{})
+}
+
 func TestExtractFields_ExtractServiceVersion(t *testing.T) {
 	resource := newResource(t, map[string]any{
 		"service.version": "abc123",
