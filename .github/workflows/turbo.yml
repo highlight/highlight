@@ -184,6 +184,7 @@ jobs:
 
                   if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
                     export CYPRESS_CLIENT_VERSION="dev-${COMMIT_SHA}"
+                    export REACT_APP_COMMIT_SHA="${COMMIT_SHA}"
                   fi
 
                   # start highlight
