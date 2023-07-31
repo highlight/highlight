@@ -29,7 +29,6 @@ module Highlight
             @otlp_endpoint = otlp_endpoint
 
             OpenTelemetry::SDK.configure do |c|
-                c.service_name = "highlight-sdk"
                 c.add_span_processor(OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
                     OpenTelemetry::Exporter::OTLP::Exporter.new(endpoint: @otlp_endpoint + "/v1/traces")
                 ))

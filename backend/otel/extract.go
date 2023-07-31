@@ -207,6 +207,10 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 
 	if val, ok := resourceAttributes[string(semconv.ServiceNameKey)]; ok { // we know that service name will be in the resource map
 		fields.serviceName = val.(string)
+		if strings.Contains(fields.serviceName, "unknown_service") || fields.serviceName == "highlight-sdk" {
+			fields.serviceName = ""
+		}
+
 		delete(attrs, string(semconv.ServiceNameKey))
 	}
 

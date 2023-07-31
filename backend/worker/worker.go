@@ -1282,6 +1282,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		ErrorCountLastDay    int64      `json:"error_count_last_day"`
 		LogCountLastDay      int64      `json:"log_count_last_day"`
 		TrialEndDate         *time.Time `json:"trial_end_date"`
+		PlanTier             string     `json:"plan_tier"`
 	}
 	var counts []*AggregateSessionCount
 
@@ -1318,6 +1319,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			continue
 		}
 		c.TrialEndDate = workspace.TrialEndDate
+		c.PlanTier = workspace.PlanTier
 		for _, p := range workspace.Projects {
 			count, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{DateRange: &backend.DateRangeRequiredInput{
 				StartDate: time.Now().Add(-time.Hour * 24 * 30),
@@ -1381,6 +1383,10 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 				Name:     "logs_last_day",
 				Property: "logs_last_day",
 				Value:    c.LogCountLastDay,
+			}, {
+				Name:     "plan_tier",
+				Property: "plan_tier",
+				Value:    c.PlanTier,
 			}}
 			if c.TrialEndDate != nil {
 				properties = append(properties, hubspot.Property{

@@ -7427,6 +7427,11 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 		stackTrace = errorObject.StackTrace
 	}
 
+	const MAX_AI_STACKTRACE_LENGTH = 5000
+	if stackTrace != nil && len(*stackTrace) > MAX_AI_STACKTRACE_LENGTH {
+		stackTrace = ptr.String((*stackTrace)[:MAX_AI_STACKTRACE_LENGTH])
+	}
+
 	userPrompt := fmt.Sprintf(`
 	Here is some information about the error.
 
