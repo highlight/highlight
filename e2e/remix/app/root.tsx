@@ -8,11 +8,11 @@ import {
 	useLoaderData,
 } from '@remix-run/react'
 
+import { CONSTANTS } from '~/constants'
 import { HighlightInit } from '@highlight-run/remix/client'
 import type { LinksFunction } from '@remix-run/node'
 import { cssBundleHref } from '@remix-run/css-bundle'
 import { json } from '@remix-run/node'
-import { CONSTANTS } from '~/constants'
 
 export { ErrorBoundary } from '~/components/error-boundary'
 
@@ -37,6 +37,7 @@ export default function App() {
 				projectId={ENV.HIGHLIGHT_PROJECT_ID}
 				tracingOrigins
 				networkRecording={{ enabled: true, recordHeadersAndBody: true }}
+				// scriptUrl="http://localhost:8080/dist/index.js"
 			/>
 
 			<head>
