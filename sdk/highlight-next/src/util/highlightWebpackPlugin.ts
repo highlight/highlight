@@ -25,6 +25,7 @@ export default class HighlightWebpackPlugin {
 				appVersion: this.appVersion,
 				path: this.path,
 				basePath: this.basePath,
+				allowNoop: true,
 			})
 		})
 		return compiler
