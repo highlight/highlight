@@ -472,6 +472,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 					BatchBuffer:         buffer,
 					BatchFlushSize:      DefaultBatchFlushSize,
 					BatchedFlushTimeout: DefaultBatchedFlushTimeout,
+					Name:                "batched",
 				}
 				k.ProcessMessages(ctx, k.flushLogs)
 				wg.Done()
@@ -492,6 +493,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 			BatchBuffer:         buffer,
 			BatchFlushSize:      flushSize,
 			BatchedFlushTimeout: 5 * time.Second,
+			Name:                "datasync",
 		}
 		k.ProcessMessages(ctx, k.flushDataSync)
 		_wg.Done()
