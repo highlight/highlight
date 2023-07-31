@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/samber/lo"
 
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
@@ -436,7 +435,7 @@ func (o *Handler) submitProjectSpans(ctx context.Context, projectTraceRows map[i
 			PushTraces: &kafkaqueue.PushTracesArgs{
 				TraceRows: traceRows,
 			},
-		}, uuid.New().String())
+		}, "")
 
 		if err != nil {
 			return e.Wrap(err, "failed to submit otel project traces to public worker queue")
