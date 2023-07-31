@@ -34,5 +34,6 @@ CREATE TABLE IF NOT EXISTS traces
 )
     ENGINE = MergeTree
         PARTITION BY toDate(Timestamp)
-        ORDER BY (ProjectId, ServiceName, SpanName, Timestamp, TraceId, UUID)
+        ORDER BY (ProjectId, Timestamp, UUID)
+        TTL toDateTime(Timestamp) + toIntervalDay(30)
         SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
