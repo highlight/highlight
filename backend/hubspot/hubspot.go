@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"io"
 	"math"
 	"net/http"
@@ -26,6 +27,7 @@ import (
 	"gorm.io/gorm"
 )
 
+const PartitionKey = "hubspot"
 const Retries = 5
 
 // ClientSideContactCreationTimeout is the time we will wait for the object to be created by the hubspot client-side snippet
@@ -63,6 +65,8 @@ func retry[T *int](fn func() (T, error)) (ret T, err error) {
 }
 
 func pollHubspot[T any](fn func() (*T, error), timeout time.Duration) (result *T, err error) {
+	span := tracer.StartSpan("hubspot.pollHubspot")
+	defer span.Finish()
 	start := time.Now()
 	ticker := time.NewTicker(ClientSideCreationPollInterval)
 	defer ticker.Stop()
@@ -274,6 +278,8 @@ func (h *HubspotApi) mergeCompanies(keepID, mergeID int) error {
 }
 
 func (h *HubspotApi) getAllCompanies(ctx context.Context) (companies []*CompanyResponse, err error) {
+	span, _ := tracer.StartSpanFromContext(ctx, "hubspot.getAllCompanies")
+	defer span.Finish()
 	if h.redisClient != nil {
 		err = h.redisClient.GetHubspotCompanies(ctx, &companies)
 		if err == nil && len(companies) > 0 {
@@ -409,21 +415,10 @@ func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminI
 			AdminID:     adminID,
 			WorkspaceID: workspaceID,
 		},
-	}, "")
+	}, PartitionKey)
 }
 
 func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, adminID int, workspaceID int) error {
-	key := fmt.Sprintf("hubspot-association-%d-%d", adminID, workspaceID)
-	// wait for up to 5 seconds in case another worker is creating the same association
-	// we don't expect the action to take longer than 5 seconds
-	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideAssociationTimeout); acquired {
-		defer func() {
-			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
-				log.WithContext(ctx).WithError(err).WithField("url", key).Error("failed to release hubspot association lock")
-			}
-		}()
-	}
-
 	data, err := pollHubspot(func() (*struct{ companyID, contactID int }, error) {
 		admin := &model.Admin{}
 		if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
@@ -480,19 +475,10 @@ func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, ema
 			Phone:              phone,
 			Referral:           referral,
 		},
-	}, "")
+	}, PartitionKey)
 }
 
 func (h *HubspotApi) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
-	key := fmt.Sprintf("contact-%s", email)
-	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideContactCreationTimeout); acquired {
-		defer func() {
-			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
-				log.WithContext(ctx).WithError(err).WithField("url", key).Error("failed to release hubspot contact creation lock")
-			}
-		}()
-	}
-
 	if contactId, err = pollHubspot(func() (*int, error) {
 		return h.getContactForAdmin(email)
 	}, ClientSideContactCreationTimeout); contactId == nil {
@@ -524,22 +510,13 @@ func (h *HubspotApi) CreateCompanyForWorkspace(ctx context.Context, workspaceID 
 			AdminEmail:  adminEmail,
 			Name:        name,
 		},
-	}, "")
+	}, PartitionKey)
 }
 
 func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspaceID int, adminEmail string, name string) (companyID *int, err error) {
 	// Don't create for Demo account
 	if workspaceID == 0 {
 		return
-	}
-
-	key := fmt.Sprintf("company-%s", name)
-	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideCompanyCreationTimeout); acquired {
-		defer func() {
-			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
-				log.WithContext(ctx).WithError(err).WithField("url", key).Error("failed to release hubspot company creation lock")
-			}
-		}()
 	}
 
 	workspace := &model.Workspace{}
@@ -569,7 +546,7 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 		},
 	}
 
-	if companyID, err = pollHubspot(func() (*int, error) {
+	if companyID, _ = pollHubspot(func() (*int, error) {
 		return h.getCompany(ctx, name, domain)
 	}, ClientSideCompanyCreationTimeout); companyID != nil {
 		log.WithContext(ctx).
@@ -604,7 +581,7 @@ func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, pro
 			AdminID:    adminID,
 			Properties: properties,
 		},
-	}, "")
+	}, PartitionKey)
 }
 
 func (h *HubspotApi) UpdateContactPropertyImpl(ctx context.Context, adminID int, properties []hubspot.Property) error {
@@ -631,7 +608,7 @@ func (h *HubspotApi) UpdateCompanyProperty(ctx context.Context, workspaceID int,
 			WorkspaceID: workspaceID,
 			Properties:  properties,
 		},
-	}, "")
+	}, PartitionKey)
 }
 
 func (h *HubspotApi) UpdateCompanyPropertyImpl(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
