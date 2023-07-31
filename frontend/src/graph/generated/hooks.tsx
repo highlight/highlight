@@ -12338,6 +12338,7 @@ export const GetLogsDocument = gql`
 					secureSessionID
 					source
 					serviceName
+					serviceVersion
 				}
 			}
 			pageInfo {
