@@ -38,8 +38,8 @@
 		"react": ">=18"
 	},
 	"dependencies": {
-		"@highlight-run/react": "workspace:^",
 		"@highlight-run/node": "workspace:^",
+		"@highlight-run/react": "workspace:^",
 		"@opentelemetry/instrumentation": "0.41.1",
 		"highlight.run": "workspace:^",
 		"js-cookie": "^3.0.5"
