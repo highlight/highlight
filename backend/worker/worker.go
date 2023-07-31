@@ -465,7 +465,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		}
 		for i := 0; i < parallelBatchWorkers; i++ {
 			go func(workerId int) {
-				s, wCtx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.outer"))
+				s, wCtx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.outer.logs"))
 				defer s.Finish()
 				k := KafkaBatchWorker{
 					KafkaQueue:          kafkaqueue.New(wCtx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer, nil),
@@ -490,7 +490,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		}
 		for i := 0; i < parallelBatchWorkers; i++ {
 			go func(workerId int) {
-				s, wCtx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.outer"))
+				s, wCtx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.outer.traces"))
 				defer s.Finish()
 				k := KafkaBatchWorker{
 					KafkaQueue:          kafkaqueue.New(wCtx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer, nil),
