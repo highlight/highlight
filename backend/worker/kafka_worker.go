@@ -91,7 +91,6 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 
 	var oldestLogRow *clickhouse.LogRow
 	var logRows []*clickhouse.LogRow
-	var traceRows []*clickhouse.TraceRow
 
 	var received int
 	var lastMsg *kafkaqueue.Message
@@ -108,9 +107,6 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 						}
 					}
 					received += len(lastMsg.PushLogs.LogRows)
-				case kafkaqueue.PushTraces:
-					traceRows = append(traceRows, lastMsg.PushTraces.TraceRows...)
-					received += len(lastMsg.PushTraces.TraceRows)
 				}
 				if received >= k.BatchFlushSize {
 					return
@@ -245,15 +241,47 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 	span.Finish(tracer.WithError(err))
 	wSpan.Finish()
 
-	span, ctxT = tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.clickhouse.traces"))
+	if lastMsg != nil {
+		k.KafkaQueue.Commit(ctx, lastMsg.KafkaMessage)
+	}
+	k.BatchBuffer.lastMessage = nil
+}
+
+func (k *KafkaBatchWorker) flushTraces(ctx context.Context) {
+	s, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.flushTraces"))
+	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
+	defer s.Finish()
+
+	var traceRows []*clickhouse.TraceRow
+
+	var received int
+	var lastMsg *kafkaqueue.Message
+	func() {
+		for {
+			select {
+			case lastMsg = <-k.BatchBuffer.messageQueue:
+				switch lastMsg.Type {
+				case kafkaqueue.PushTraces:
+					traceRows = append(traceRows, lastMsg.PushTraces.TraceRows...)
+					received += len(lastMsg.PushTraces.TraceRows)
+				}
+				if received >= k.BatchFlushSize {
+					return
+				}
+			default:
+				return
+			}
+		}
+	}()
+
+	span, ctxT := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.clickhouse.traces"))
 	span.SetTag("NumTraceRows", len(traceRows))
 	span.SetTag("PayloadSizeBytes", binary.Size(traceRows))
-	err = k.Worker.PublicResolver.Clickhouse.BatchWriteTraceRows(ctxT, traceRows)
+	err := k.Worker.PublicResolver.Clickhouse.BatchWriteTraceRows(ctxT, traceRows)
 	if err != nil {
 		log.WithContext(ctxT).WithError(err).Error("failed to batch write traces to clickhouse")
 	}
 	span.Finish(tracer.WithError(err))
-	wSpan.Finish()
 
 	if lastMsg != nil {
 		k.KafkaQueue.Commit(ctx, lastMsg.KafkaMessage)

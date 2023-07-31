@@ -483,6 +483,31 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		_wg.Done()
 	}(&wg)
 	go func(_wg *sync.WaitGroup) {
+		wg := sync.WaitGroup{}
+		wg.Add(parallelBatchWorkers)
+		buffer := &KafkaBatchBuffer{
+			messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize*(parallelBatchWorkers+1)),
+		}
+		for i := 0; i < parallelBatchWorkers; i++ {
+			go func(workerId int) {
+				s, wCtx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.outer"))
+				defer s.Finish()
+				k := KafkaBatchWorker{
+					KafkaQueue:          kafkaqueue.New(wCtx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer, nil),
+					Worker:              w,
+					WorkerThread:        workerId,
+					BatchBuffer:         buffer,
+					BatchFlushSize:      DefaultBatchFlushSize,
+					BatchedFlushTimeout: DefaultBatchedFlushTimeout,
+				}
+				k.ProcessMessages(wCtx, k.flushTraces)
+				wg.Done()
+			}(i)
+		}
+		wg.Wait()
+		_wg.Done()
+	}(&wg)
+	go func(_wg *sync.WaitGroup) {
 		flushSize := 500
 		buffer := &KafkaBatchBuffer{
 			messageQueue: make(chan *kafkaqueue.Message, flushSize+1),
@@ -1290,9 +1315,9 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	var counts []*AggregateSessionCount
 
 	if err := w.Resolver.DB.Raw(`
-		SELECT p.workspace_id, 
-		       sum(dsc.count) as session_count, 
-		       sum(dsc.count) filter ( where dsc.date > NOW() - interval '1 week' ) as session_count_last_week, 
+		SELECT p.workspace_id,
+		       sum(dsc.count) as session_count,
+		       sum(dsc.count) filter ( where dsc.date > NOW() - interval '1 week' ) as session_count_last_week,
 		       sum(dsc.count) filter ( where dsc.date > NOW() - interval '1 day' ) as session_count_last_day
 		FROM projects p
 				 LEFT OUTER JOIN daily_session_counts_view dsc on p.id = dsc.project_id
