@@ -7428,7 +7428,7 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 	}
 
 	const MAX_AI_STACKTRACE_LENGTH = 5000
-	if len(*stackTrace) > MAX_AI_STACKTRACE_LENGTH {
+	if stackTrace != nil && len(*stackTrace) > MAX_AI_STACKTRACE_LENGTH {
 		stackTrace = ptr.String((*stackTrace)[:MAX_AI_STACKTRACE_LENGTH])
 	}
 
