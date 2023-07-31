@@ -483,7 +483,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		_wg.Done()
 	}(&wg)
 	go func(_wg *sync.WaitGroup) {
-		flushSize := 1000
+		flushSize := 500
 		buffer := &KafkaBatchBuffer{
 			messageQueue: make(chan *kafkaqueue.Message, flushSize+1),
 		}
