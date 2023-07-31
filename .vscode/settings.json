@@ -83,7 +83,6 @@
 		"backend/event-parse/sample-events/*.json": true,
 		"frontend/build/assets/*": true,
 		"**/*.scss.d.ts": true,
-		"e2e/remix/build": false,
 		"backend/payload/*": true,
 		"**/yarn-error.log": true
 	},
