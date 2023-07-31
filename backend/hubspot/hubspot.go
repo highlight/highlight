@@ -29,7 +29,7 @@ import (
 const Retries = 5
 
 // ClientSideContactCreationTimeout is the time we will wait for the object to be created by the hubspot client-side snippet
-const ClientSideContactCreationTimeout = 3 * time.Minute
+const ClientSideContactCreationTimeout = 15 * time.Second
 
 // ClientSideCompanyCreationTimeout is double the contact creation time because we expect contact creation to create a company.
 // The company creation backend task can be kicked off at the same time that contact creation is kicked off, so
@@ -416,7 +416,7 @@ func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, ad
 	key := fmt.Sprintf("hubspot-association-%d-%d", adminID, workspaceID)
 	// wait for up to 5 seconds in case another worker is creating the same association
 	// we don't expect the action to take longer than 5 seconds
-	if acquired := h.redisClient.AcquireLock(ctx, key, 5*time.Second); acquired {
+	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideAssociationTimeout); acquired {
 		defer func() {
 			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
 				log.WithContext(ctx).WithError(err).WithField("url", key).Error("failed to release hubspot association lock")
@@ -441,7 +441,7 @@ func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, ad
 		}
 
 		return &struct{ companyID, contactID int }{*workspace.HubspotCompanyID, *admin.HubspotContactID}, nil
-	}, ClientSideContactCreationTimeout)
+	}, ClientSideAssociationTimeout)
 	if err != nil {
 		return e.Wrap(err, "hubspot association failed")
 	}
@@ -593,20 +593,7 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 		log.WithContext(ctx).Infof("succesfully created a hubspot company with id: %v", resp.CompanyID)
 	}
 
-	if err = h.db.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).
-		Updates(&model.Workspace{HubspotCompanyID: companyID}).Error; err != nil {
-		return
-	}
-
-	if adminEmail != "" {
-		admin := model.Admin{}
-		if err = h.db.Model(&model.Admin{}).Where(&model.Admin{Email: &adminEmail}).Take(&admin).Error; err != nil {
-			return
-		}
-		if err := h.CreateContactCompanyAssociation(ctx, admin.ID, workspaceID); err != nil {
-			return companyID, err
-		}
-	}
+	err = h.db.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Updates(&model.Workspace{HubspotCompanyID: companyID}).Error
 	return
 }
 
