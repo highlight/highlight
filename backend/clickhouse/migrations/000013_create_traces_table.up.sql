@@ -33,7 +33,6 @@ CREATE TABLE IF NOT EXISTS traces
     INDEX idx_duration Duration TYPE minmax GRANULARITY 1
 )
     ENGINE = MergeTree
-        PARTITION BY toDate(Timestamp)
         ORDER BY (ProjectId, Timestamp, UUID)
         TTL toDateTime(Timestamp) + toIntervalDay(30)
         SETTINGS index_granularity = 8192, ttl_only_drop_parts = 1;
