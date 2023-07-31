@@ -782,6 +782,7 @@ type OpenSearchErrorObject struct {
 	Browser     string    `json:"browser"`
 	Timestamp   time.Time `json:"timestamp"`
 	Environment string    `json:"environment"`
+	ServiceName string    `json:"service_name"`
 }
 
 type OpenSearchErrorField struct {

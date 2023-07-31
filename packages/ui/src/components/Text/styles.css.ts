@@ -34,13 +34,13 @@ export const large = createStyleObject({
 
 // Monospace
 const sMonotype = createStyleObject({
-	fontSize: 14,
+	fontSize: 13,
 	leading: 20,
 	fontMetrics: plexoFontMetrics,
 })
 const xsMonotype = createStyleObject({
 	fontSize: 11,
-	leading: 23,
+	leading: 16,
 	fontMetrics: plexoFontMetrics,
 })
 const xxsMonotype = createStyleObject({
@@ -124,15 +124,15 @@ export const variants = recipe({
 	compoundVariants: [
 		{
 			variants: { family: 'monospace', size: 'small' },
-			style: sMonotype,
+			style: { ...sMonotype, letterSpacing: -0.4 },
 		},
 		{
 			variants: { family: 'monospace', size: 'xSmall' },
-			style: xsMonotype,
+			style: { ...xsMonotype, letterSpacing: -0.4 },
 		},
 		{
 			variants: { family: 'monospace', size: 'xxSmall' },
-			style: xxsMonotype,
+			style: { ...xxsMonotype, letterSpacing: -0.4 },
 		},
 	],
 

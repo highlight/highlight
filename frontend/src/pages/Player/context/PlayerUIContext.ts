@@ -24,7 +24,7 @@ interface PlayerUIContext {
 		React.SetStateAction<HighlightEvent | undefined>
 	>
 	rightPanelView: RightPanelView
-	setRightPanelView: React.Dispatch<React.SetStateAction<RightPanelView>>
+	setRightPanelView: (newValue: RightPanelView) => void
 
 	activeError?: ErrorObject
 	setActiveError: React.Dispatch<

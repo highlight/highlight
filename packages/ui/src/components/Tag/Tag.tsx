@@ -15,6 +15,7 @@ export type Props = ButtonProps &
 		iconRight?: React.ReactElement<IconProps>
 		className?: ClassValue | ClassValue[]
 		lines?: TextProps['lines']
+		wordBreak?: TextProps['break']
 		onIconLeftClick?: () => void
 		onIconRightClick?: () => void
 	}
@@ -35,9 +36,10 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 	shape = styles.defaultShape,
 	size = styles.defaultSize,
 	kind = styles.defaultKind,
+	lines,
+	wordBreak,
 	onIconLeftClick,
 	onIconRightClick,
-	lines,
 	...buttonProps
 }) => {
 	const textSize: TextProps['size'] = buttonToTextSize[size]
@@ -74,6 +76,7 @@ export const Tag: React.FC<React.PropsWithChildren<Props>> = ({
 					userSelect="none"
 					color="inherit"
 					display="inline-flex"
+					break={wordBreak}
 				>
 					{children}
 				</Text>

@@ -240,6 +240,7 @@ const DevToolsWindowV2: React.FC<
 												display="flex"
 												justifyContent="space-between"
 												align="center"
+												gap={searchShown ? '4' : '0'}
 											>
 												<Box
 													cursor="pointer"
@@ -256,31 +257,26 @@ const DevToolsWindowV2: React.FC<
 														size={16}
 													/>
 												</Box>
-												<Box gap="6">
-													<Form.Input
-														name={form.names.search}
-														placeholder="Search"
-														size="xSmall"
-														outline={false}
-														collapsed={!searchShown}
-														onKeyDown={(e: any) => {
-															if (
-																e.code ===
-																'Escape'
-															) {
-																e.target?.blur()
-															}
-														}}
-														onBlur={() => {
-															setSearchShown(
-																false,
-															)
-														}}
-														onFocus={() => {
-															setSearchShown(true)
-														}}
-													/>
-												</Box>
+												<Form.Input
+													name={form.names.search}
+													placeholder="Search"
+													size="xSmall"
+													outline={false}
+													collapsed={!searchShown}
+													onKeyDown={(e: any) => {
+														if (
+															e.code === 'Escape'
+														) {
+															e.target?.blur()
+														}
+													}}
+													onBlur={() => {
+														setSearchShown(false)
+													}}
+													onFocus={() => {
+														setSearchShown(true)
+													}}
+												/>
 											</Box>
 										</Form>
 

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	e "github.com/pkg/errors"
+	"github.com/samber/lo"
 
 	"encoding/binary"
 
@@ -74,8 +75,8 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 }
 
 // BatchFlushSize set per https://clickhouse.com/docs/en/cloud/bestpractices/bulk-inserts
-const BatchFlushSize = 8192
-const BatchedFlushTimeout = 1 * time.Second
+const DefaultBatchFlushSize = 8192
+const DefaultBatchedFlushTimeout = 1 * time.Second
 
 type KafkaWorker struct {
 	KafkaQueue   *kafkaqueue.Queue
@@ -83,8 +84,8 @@ type KafkaWorker struct {
 	WorkerThread int
 }
 
-func (k *KafkaBatchWorker) flush(ctx context.Context) {
-	s, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.flush"))
+func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
+	s, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.flushLogs"))
 	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
 	defer s.Finish()
 
@@ -107,7 +108,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 					}
 					received += len(lastMsg.PushLogs.LogRows)
 				}
-				if received >= BatchFlushSize {
+				if received >= k.BatchFlushSize {
 					return
 				}
 			default:
@@ -246,7 +247,76 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) {
 	k.BatchBuffer.lastMessage = nil
 }
 
-func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
+func (k *KafkaBatchWorker) flushDataSync(ctx context.Context) {
+	s, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.flushDataSync"))
+	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
+	defer s.Finish()
+
+	var sessionIds []int
+
+	var lastMsg *kafkaqueue.Message
+	func() {
+		for {
+			select {
+			case lastMsg = <-k.BatchBuffer.messageQueue:
+				switch lastMsg.Type {
+				case kafkaqueue.SessionDataSync:
+					sessionIds = append(sessionIds, lastMsg.SessionDataSync.SessionID)
+				}
+				if len(sessionIds) >= k.BatchFlushSize {
+					return
+				}
+			default:
+				return
+			}
+		}
+	}()
+
+	sessionIds = lo.Uniq(sessionIds)
+	if len(sessionIds) > 0 {
+		sessionObjs := []*model.Session{}
+		if err := k.Worker.PublicResolver.DB.Model(&model.Session{}).Preload("ViewedByAdmins").Where("id in ?", sessionIds).Find(&sessionObjs).Error; err != nil {
+			log.WithContext(ctx).Error(err)
+		}
+		type sessionField struct {
+			SessionID int
+			FieldID   int64
+		}
+
+		fieldObjs := []*model.Field{}
+		if err := k.Worker.PublicResolver.DB.Model(&model.Field{}).Where("id IN (SELECT field_id FROM session_fields sf WHERE sf.session_id IN ?)", sessionIds).Find(&fieldObjs).Error; err != nil {
+			log.WithContext(ctx).Error(err)
+		}
+		fieldsById := lo.KeyBy(fieldObjs, func(f *model.Field) int64 {
+			return f.ID
+		})
+
+		sessionFieldObjs := []*sessionField{}
+		if err := k.Worker.PublicResolver.DB.Table("session_fields").Where("session_id IN ?", sessionIds).Find(&sessionFieldObjs).Error; err != nil {
+			log.WithContext(ctx).Error(err)
+		}
+		sessionToFields := lo.GroupBy(sessionFieldObjs, func(sf *sessionField) int {
+			return sf.SessionID
+		})
+
+		for _, session := range sessionObjs {
+			session.Fields = lo.Map(sessionToFields[session.ID], func(sf *sessionField, _ int) *model.Field {
+				return fieldsById[sf.FieldID]
+			})
+		}
+
+		if err := k.Worker.PublicResolver.Clickhouse.WriteSessions(ctx, sessionObjs); err != nil {
+			log.WithContext(ctx).Error(err)
+		}
+	}
+
+	if lastMsg != nil {
+		k.KafkaQueue.Commit(ctx, lastMsg.KafkaMessage)
+	}
+	k.BatchBuffer.lastMessage = nil
+}
+
+func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context, flush func(context.Context)) {
 	for {
 		func() {
 			defer util.Recover()
@@ -256,9 +326,9 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 			defer s.Finish()
 
 			k.BatchBuffer.flushLock.Lock()
-			if k.BatchBuffer.lastMessage != nil && time.Since(*k.BatchBuffer.lastMessage) > BatchedFlushTimeout {
+			if k.BatchBuffer.lastMessage != nil && time.Since(*k.BatchBuffer.lastMessage) > k.BatchedFlushTimeout {
 				s.SetTag("OldestMessage", time.Since(*k.BatchBuffer.lastMessage))
-				k.flush(ctx)
+				flush(ctx)
 			}
 			k.BatchBuffer.flushLock.Unlock()
 
@@ -278,8 +348,8 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 				t := time.Now()
 				k.BatchBuffer.lastMessage = &t
 			}
-			if len(k.BatchBuffer.messageQueue) >= BatchFlushSize {
-				k.flush(ctx)
+			if len(k.BatchBuffer.messageQueue) >= k.BatchFlushSize {
+				flush(ctx)
 			}
 			k.BatchBuffer.flushLock.Unlock()
 		}()
@@ -287,10 +357,12 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 }
 
 type KafkaBatchWorker struct {
-	KafkaQueue   *kafkaqueue.Queue
-	Worker       *Worker
-	WorkerThread int
-	BatchBuffer  *KafkaBatchBuffer
+	KafkaQueue          *kafkaqueue.Queue
+	Worker              *Worker
+	WorkerThread        int
+	BatchBuffer         *KafkaBatchBuffer
+	BatchFlushSize      int
+	BatchedFlushTimeout time.Duration
 }
 
 type KafkaBatchBuffer struct {

@@ -166,6 +166,13 @@ const H: HighlightPublicInterface = {
 			HighlightWarning('init', e)
 		}
 	},
+	snapshot: async (element: HTMLCanvasElement) => {
+		try {
+			H.onHighlightReady(() => highlight_obj.snapshot(element))
+		} catch (e) {
+			HighlightWarning('snapshot', e)
+		}
+	},
 	addSessionFeedback: ({
 		verbatim,
 		userName,
