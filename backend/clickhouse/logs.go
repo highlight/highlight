@@ -62,7 +62,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
-	selectStr := "Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId, Source, ServiceName"
+	selectStr := "Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId, Source, ServiceName, ServiceVersion"
 
 	orderForward := OrderForwardNatural
 	orderBackward := OrderBackwardNatural
@@ -141,6 +141,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 			SecureSessionId string
 			Source          string
 			ServiceName     string
+			ServiceVersion  string
 		}
 		if err := rows.ScanStruct(&result); err != nil {
 			return nil, err
@@ -158,6 +159,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 				SecureSessionID: &result.SecureSessionId,
 				Source:          &result.Source,
 				ServiceName:     &result.ServiceName,
+				ServiceVersion:  &result.ServiceVersion,
 			},
 		})
 	}
@@ -472,6 +474,12 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.NotEqual("service_name", "")).
 			Limit(KeyValuesLimit)
+	case modelInputs.ReservedLogKeyServiceVersion.String():
+		sb.Select("DISTINCT ServiceVersion service_version").
+			From(LogsTable).
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.NotEqual("service_version", "")).
+			Limit(KeyValuesLimit)
 	default:
 		sb.Select("DISTINCT LogAttributes [" + sb.Var(keyName) + "] as value").
 			From(LogsTable).
@@ -584,6 +592,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 	makeFilterConditions(sb, filters.trace_id, "TraceId")
 	makeFilterConditions(sb, filters.source, "Source")
 	makeFilterConditions(sb, filters.service_name, "ServiceName")
+	makeFilterConditions(sb, filters.service_version, "ServiceVersion")
 
 	conditions := []string{}
 	for key, values := range filters.attributes {
@@ -610,6 +619,7 @@ type filtersWithReservedKeys struct {
 	secure_session_id []string
 	source            []string
 	service_name      []string
+	service_version   []string
 	attributes        map[string][]string
 }
 
@@ -649,6 +659,11 @@ func makeFilters(query string) filtersWithReservedKeys {
 	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyServiceName.String()]; ok {
 		filtersWithReservedKeys.service_name = val
 		delete(filters.Attributes, modelInputs.ReservedLogKeyServiceName.String())
+	}
+
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyServiceVersion.String()]; ok {
+		filtersWithReservedKeys.service_version = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeyServiceVersion.String())
 	}
 
 	filtersWithReservedKeys.attributes = filters.Attributes
