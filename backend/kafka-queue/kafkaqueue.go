@@ -89,7 +89,12 @@ func GetTopic(options GetTopicOptions) string {
 	return topic
 }
 
-func New(ctx context.Context, topic string, mode Mode, configOverride *kafka.ReaderConfig) *Queue {
+type ConfigOverride struct {
+	Async         *bool
+	QueueCapacity *int
+}
+
+func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
 	servers := os.Getenv("KAFKA_SERVERS")
 	brokers := strings.Split(servers, ",")
 	groupID := ConsumerGroupName
@@ -175,6 +180,13 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *kafka.Rea
 			BatchTimeout: 1 * time.Millisecond,
 			MaxAttempts:  10,
 		}
+
+		if configOverride != nil {
+			deref := *configOverride
+			if deref.Async != nil {
+				pool.kafkaP.Async = *deref.Async
+			}
+		}
 	}
 	if (mode>>1)&1 == 1 {
 		log.WithContext(ctx).Debugf("initializing kafka consumer for %s", topic)
@@ -195,10 +207,11 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *kafka.Rea
 			MaxAttempts:    10,
 		}
 
-		// Allow defaults to be overridden - right now just the `QueueCapacity` field
 		if configOverride != nil {
 			deref := *configOverride
-			config.QueueCapacity = deref.QueueCapacity
+			if deref.QueueCapacity != nil {
+				config.QueueCapacity = *deref.QueueCapacity
+			}
 		}
 
 		pool.kafkaC = kafka.NewReader(config)
