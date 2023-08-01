@@ -1,5 +1,8 @@
 import { Box, IconSolidFilter, MultiSelectButton } from '@highlight-run/ui'
-import { LogLevelValue } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import {
+	LogLevelValue,
+	titilize,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import React from 'react'
 
 type Props = {
@@ -49,7 +52,7 @@ const LogLevelFilter = ({ logLevels, setLogLevels }: Props) => {
 		}
 
 		if (logLevels.length === 1) {
-			return `${FILTER_LABEL}: ${logLevels[0]}`
+			return `${FILTER_LABEL}: ${titilize(logLevels[0])}`
 		}
 
 		return `${FILTER_LABEL}: ${logLevels.length} selected`

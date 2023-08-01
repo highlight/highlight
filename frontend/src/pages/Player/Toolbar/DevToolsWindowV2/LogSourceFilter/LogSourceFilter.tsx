@@ -1,5 +1,8 @@
 import { Box, IconSolidFilter, MultiSelectButton } from '@highlight-run/ui'
-import { LogSourceValue } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import {
+	LogSourceValue,
+	titilize,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import React from 'react'
 
 type Props = {
@@ -51,7 +54,7 @@ const LogSourceFilter = ({ logSources, setLogSources }: Props) => {
 		}
 
 		if (logSources.length === 1) {
-			return `${FILTER_LABEL}: ${logSources[0]}`
+			return `${FILTER_LABEL}: ${titilize(logSources[0])}`
 		}
 
 		return `${FILTER_LABEL}: ${logSources.length} selected`
