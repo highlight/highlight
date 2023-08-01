@@ -98,19 +98,16 @@ export enum Tab {
 	Events = 'Events',
 }
 
-export enum LogLevel {
+// TODO(spenny): use enum from schema with 'All' addition
+export enum LogLevelValue {
 	All = 'All',
-	Info = 'Info',
-	Warn = 'Warn',
-	Error = 'Error',
+	Debug = 'debug',
+	Error = 'error',
+	Fatal = 'fatal',
+	Info = 'info',
+	Trace = 'trace',
+	Warn = 'warn',
 }
-
-export const LogLevelVariants = {
-	[LogLevel.All]: 'white',
-	[LogLevel.Info]: 'white',
-	[LogLevel.Warn]: 'yellow',
-	[LogLevel.Error]: 'red',
-} as const
 
 export enum RequestType {
 	/* [displayName]: requestName */

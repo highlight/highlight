@@ -1,6 +1,5 @@
 import { Button } from '@components/Button'
-import { LogSource } from '@graph/schemas'
-import { LogLevel } from '@graph/schemas'
+import { LogLevel, LogSource } from '@graph/schemas'
 import {
 	Box,
 	Callout,
@@ -27,6 +26,7 @@ import {
 	ResizePanel,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/ResizePanel'
 import {
+	LogLevelValue,
 	RequestStatus,
 	RequestType,
 	Tab,
@@ -41,19 +41,10 @@ import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
+import { LogLevelFilter } from './LogLevelFilter/LogLevelFilter'
 import { RequestStatusFilter } from './RequestStatusFilter/RequestStatusFilter'
 import { RequestTypeFilter } from './RequestTypeFilter/RequestTypeFilter'
 import * as styles from './style.css'
-
-const LogLevelValues = [
-	'All',
-	LogLevel.Trace,
-	LogLevel.Debug,
-	LogLevel.Info,
-	LogLevel.Warn,
-	LogLevel.Error,
-	LogLevel.Fatal,
-] as const
 
 const LogSourceValues = ['All', LogSource.Frontend, LogSource.Backend] as const
 
@@ -81,10 +72,16 @@ const DevToolsWindowV2: React.FC<
 	>([RequestStatus.All])
 
 	const [searchShown, setSearchShown] = React.useState<boolean>(false)
-	const [levels, setLevels] = React.useState<LogLevel[]>([])
+	const [levels, setLevels] = React.useState<LogLevelValue[]>([])
 	const [sources, setSources] = React.useState<LogSource[]>(
 		logCursor ? [] : [LogSource.Frontend],
 	)
+
+	// filter out All values to send to via request
+	const relevantLevelsForRequest = levels.filter(
+		(level) => level !== LogLevelValue.All,
+	) as unknown as LogLevel[]
+
 	const form = useFormState({
 		defaultValues: {
 			search: '',
@@ -195,7 +192,7 @@ const DevToolsWindowV2: React.FC<
 										<ConsolePage
 											autoScroll={autoScroll}
 											logCursor={logCursor}
-											levels={levels}
+											levels={relevantLevelsForRequest}
 											sources={sources}
 											filter={filter}
 										/>
@@ -282,28 +279,9 @@ const DevToolsWindowV2: React.FC<
 
 										{selectedDevToolsTab === Tab.Console ? (
 											<>
-												<MenuButton
-													divider
-													size="medium"
-													options={LogLevelValues.map(
-														(level) => ({
-															key: level,
-															render: (
-																<Text case="capital">
-																	{level}
-																</Text>
-															),
-														}),
-													)}
-													onChange={(level) => {
-														if (level === 'All') {
-															setLevels([])
-														} else {
-															setLevels([
-																level as LogLevel,
-															])
-														}
-													}}
+												<LogLevelFilter
+													logLevels={levels}
+													setLogLevels={setLevels}
 												/>
 												<MenuButton
 													divider
@@ -369,7 +347,7 @@ const DevToolsWindowV2: React.FC<
 												to={getLogsURLForSession({
 													projectId,
 													session,
-													levels,
+													levels: relevantLevelsForRequest,
 													sources,
 												})}
 												target="_blank"
