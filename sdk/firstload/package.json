@@ -1,6 +1,6 @@
 {
 	"name": "highlight.run",
-	"version": "7.3.11",
+	"version": "7.3.12",
 	"description": "Open source, fullstack monitoring. Capture frontend errors, record server side logs, and visualize what broke with session replay.",
 	"keywords": [
 		"highlight",
@@ -34,16 +34,16 @@
 		"typegen": "tsc && node scripts/replace-client-imports.mjs"
 	},
 	"type": "module",
-	"main": "./dist/index.es.js",
-	"unpkg": "./dist/index.umd.js",
-	"jsdelivr": "./dist/index.umd.js",
+	"main": "./dist/index.js",
+	"unpkg": "./dist/index.umd.cjs",
+	"jsdelivr": "./dist/index.umd.cjs",
 	"types": "./dist/firstload/src/index.d.ts",
 	"exports": {
 		"types": "./dist/firstload/src/index.d.ts",
-		"import": "./dist/index.es.js",
-		"require": "./dist/index.cjs.js",
-		"node": "./dist/index.cjs.js",
-		"default": "./dist/index.es.js"
+		"import": "./dist/index.js",
+		"require": "./dist/index.cjs",
+		"node": "./dist/index.cjs",
+		"default": "./dist/index.js"
 	},
 	"files": [
 		"dist"

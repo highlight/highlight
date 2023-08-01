@@ -10,18 +10,19 @@ import (
 )
 
 type BackendErrorObjectInput struct {
-	SessionSecureID *string   `json:"session_secure_id"`
-	RequestID       *string   `json:"request_id"`
-	TraceID         *string   `json:"trace_id"`
-	SpanID          *string   `json:"span_id"`
-	LogCursor       *string   `json:"log_cursor"`
-	Event           string    `json:"event"`
-	Type            string    `json:"type"`
-	URL             string    `json:"url"`
-	Source          string    `json:"source"`
-	StackTrace      string    `json:"stackTrace"`
-	Timestamp       time.Time `json:"timestamp"`
-	Payload         *string   `json:"payload"`
+	SessionSecureID *string       `json:"session_secure_id"`
+	RequestID       *string       `json:"request_id"`
+	TraceID         *string       `json:"trace_id"`
+	SpanID          *string       `json:"span_id"`
+	LogCursor       *string       `json:"log_cursor"`
+	Event           string        `json:"event"`
+	Type            string        `json:"type"`
+	URL             string        `json:"url"`
+	Source          string        `json:"source"`
+	StackTrace      string        `json:"stackTrace"`
+	Timestamp       time.Time     `json:"timestamp"`
+	Payload         *string       `json:"payload"`
+	Service         *ServiceInput `json:"service"`
 }
 
 type ErrorObjectInput struct {
@@ -65,6 +66,11 @@ type ReplayEventInput struct {
 
 type ReplayEventsInput struct {
 	Events []*ReplayEventInput `json:"events"`
+}
+
+type ServiceInput struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
 }
 
 type StackFrameInput struct {

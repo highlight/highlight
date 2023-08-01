@@ -11,16 +11,47 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
+
+type config struct {
+	otlpEndpoint       string
+	projectID          string
+	resourceAttributes []attribute.KeyValue
+}
 
 var (
 	flushInterval time.Duration
 	interruptChan chan bool
 	signalChan    chan os.Signal
 	wg            sync.WaitGroup
-	otlpEndpoint  string
-	projectID     string
+	conf          *config
 )
+
+type Option interface {
+	apply(conf *config)
+}
+
+type option func(conf *config)
+
+func (fn option) apply(conf *config) {
+	fn(conf)
+}
+
+func WithServiceName(serviceName string) Option {
+	return option(func(conf *config) {
+		attr := semconv.ServiceNameKey.String(serviceName)
+		conf.resourceAttributes = append(conf.resourceAttributes, attr)
+	})
+}
+
+func WithServiceVersion(serviceVersion string) Option {
+	return option(func(conf *config) {
+		attr := semconv.ServiceVersionKey.String(serviceVersion)
+		conf.resourceAttributes = append(conf.resourceAttributes, attr)
+	})
+}
 
 // contextKey represents the keys that highlight may store in the users' context
 // we append every contextKey with Highlight to avoid collisions
@@ -83,6 +114,7 @@ func (d deadLog) Errorf(_ string, _ ...interface{}) {}
 func init() {
 	interruptChan = make(chan bool, 1)
 	signalChan = make(chan os.Signal, 1)
+	conf = &config{}
 
 	signal.Notify(signalChan, syscall.SIGABRT, syscall.SIGTERM, syscall.SIGINT)
 	SetOTLPEndpoint(OTLPDefaultEndpoint)
@@ -91,14 +123,17 @@ func init() {
 }
 
 // Start is used to start the Highlight client's collection service.
-func Start() {
-	StartWithContext(context.Background())
+func Start(opts ...Option) {
+	StartWithContext(context.Background(), opts...)
 }
 
 // StartWithContext is used to start the Highlight client's collection
 // service, but allows the user to pass in their own context.Context.
 // This allows the user kill the highlight worker by canceling their context.CancelFunc.
-func StartWithContext(ctx context.Context) {
+func StartWithContext(ctx context.Context, opts ...Option) {
+	for _, opt := range opts {
+		opt.apply(conf)
+	}
 	stateMutex.Lock()
 	defer stateMutex.Unlock()
 	if state == started {
@@ -157,7 +192,7 @@ func SetFlushInterval(newFlushInterval time.Duration) {
 // SetOTLPEndpoint allows you to override the otlp address used for sending errors and traces.
 // Use the root http url. Eg: https://otel.highlight.io:4318
 func SetOTLPEndpoint(newOtlpEndpoint string) {
-	otlpEndpoint = newOtlpEndpoint
+	conf.otlpEndpoint = newOtlpEndpoint
 }
 
 func SetDebugMode(l Logger) {
@@ -165,11 +200,11 @@ func SetDebugMode(l Logger) {
 }
 
 func SetProjectID(id string) {
-	projectID = id
+	conf.projectID = id
 }
 
 func GetProjectID() string {
-	return projectID
+	return conf.projectID
 }
 
 // InterceptRequest calls InterceptRequestWithContext using the request object's context

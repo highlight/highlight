@@ -62,7 +62,9 @@
 		"react": ">=17"
 	},
 	"dependencies": {
-		"@highlight-run/sourcemap-uploader": "workspace:*"
+		"@highlight-run/node": "workspace:*",
+		"@highlight-run/sourcemap-uploader": "workspace:*",
+		"highlight.run": "workspace:*"
 	},
 	"devDependencies": {
 		"@trpc/server": "^9.27.4",

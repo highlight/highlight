@@ -1,4 +1,4 @@
-import Tooltip from '@components/Tooltip/Tooltip'
+import { Tooltip } from '@highlight-run/ui'
 import clsx from 'clsx'
 import React from 'react'
 
@@ -40,27 +40,30 @@ const BarChart = ({
 					: minBarHeight ?? 0
 				return (
 					<Tooltip
-						title={`${
+						key={ind}
+						trigger={
+							<div
+								className={style.barDiv}
+								style={{
+									paddingLeft: barGap / 2,
+									paddingRight: barGap / 2,
+								}}
+							>
+								<div
+									className={clsx(style.bar, {
+										[style.barSelected]: !!selected,
+									})}
+									style={{
+										height: `${barHeight}px`,
+										width: 3,
+									}}
+								/>
+							</div>
+						}
+					>
+						{`${
 							data.length - 1 - ind
 						} ${xAxis}(s) ago\n ${num} ${yAxis}(s)`}
-						key={ind}
-					>
-						<div
-							className={style.barDiv}
-							style={{
-								paddingLeft: barGap / 2,
-								paddingRight: barGap / 2,
-							}}
-						>
-							<div
-								className={clsx(style.bar, {
-									[style.barSelected]: !!selected,
-								})}
-								style={{
-									height: `${barHeight}px`,
-								}}
-							/>
-						</div>
 					</Tooltip>
 				)
 			})}

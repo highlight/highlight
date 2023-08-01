@@ -70,7 +70,7 @@ export const NamedSection = ({
 	tag,
 	optional = false,
 }: React.PropsWithChildren<HasLabel>) => {
-	return (
+	return label ? (
 		<Box display="flex" flexDirection="column" width="full" gap="4">
 			<Box display="flex" flexDirection="row" gap="6">
 				{label && <Label label={label} name={name} tag={tag} />}
@@ -80,6 +80,8 @@ export const NamedSection = ({
 			</Box>
 			{children}
 		</Box>
+	) : (
+		<>{children}</>
 	)
 }
 

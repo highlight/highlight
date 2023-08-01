@@ -7,27 +7,36 @@ receivers:
                 endpoint: '0.0.0.0:4318'
     fluentforward:
         endpoint: '0.0.0.0:24224'
+    tcplog:
+        listen_address: '0.0.0.0:34302'
 exporters:
     otlphttp:
         endpoint: 'https://pub.highlight.run/otel'
         compression: gzip
 processors:
     batch:
+    memory_limiter:
+        check_interval: 1s
+        limit_percentage: 75
+        spike_limit_percentage: 15
 service:
+    extensions: [health_check, memory_ballast]
     pipelines:
         traces:
             receivers: [otlp]
-            processors: [batch]
+            processors: [batch, memory_limiter]
             exporters: [otlphttp]
         metrics:
             receivers: [otlp]
-            processors: [batch]
+            processors: [batch, memory_limiter]
             exporters: [otlphttp]
         logs:
-            receivers: [otlp, fluentforward]
-            processors: [batch]
+            receivers: [otlp, fluentforward, tcplog]
+            processors: [batch, memory_limiter]
             exporters: [otlphttp]
 extensions:
     health_check:
         endpoint: '0.0.0.0:4319'
         path: '/health/status'
+    memory_ballast:
+        size_in_percentage: 10

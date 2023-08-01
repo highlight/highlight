@@ -27,11 +27,11 @@ export default function RootLayout({
 				// inlineImages={false}
 				enableCanvasRecording={true}
 				samplingStrategy={{
-					canvas: 1,
+					canvas: undefined,
+					canvasManualSnapshot: 1,
 					canvasMaxSnapshotDimension: 480,
 					canvasFactor: 0.5,
-					canvasClearWebGLBuffer: true,
-					canvasInitialSnapshotDelay: 5000,
+					canvasClearWebGLBuffer: false,
 				}}
 				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
 				scriptUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_SCRIPT_URL}

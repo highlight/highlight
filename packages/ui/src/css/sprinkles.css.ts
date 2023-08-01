@@ -160,6 +160,7 @@ const staticProperties = defineProperties({
 		userSelect: ['all', 'auto', 'none'],
 		visibility: ['hidden', 'visible'],
 		whiteSpace: ['normal', 'nowrap'],
+		wordBreak: ['normal', 'break-all', 'break-word'],
 	},
 	shorthands: {
 		align: ['alignItems'],

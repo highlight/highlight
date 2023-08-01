@@ -25,20 +25,6 @@ export type MarkSessionAsViewedMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type MarkSessionAsStarredMutationVariables = Types.Exact<{
-	secure_id: Types.Scalars['String']
-	starred: Types.Scalars['Boolean']
-}>
-
-export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
-	markSessionAsStarred?: Types.Maybe<
-		{ __typename?: 'Session' } & Pick<
-			Types.Session,
-			'secure_id' | 'starred'
-		>
-	>
-}
-
 export type MuteSessionCommentThreadMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 	has_muted?: Types.Maybe<Types.Scalars['Boolean']>
@@ -1455,6 +1441,12 @@ export type SessionAlertFragmentFragment = {
 		>
 		DiscordChannelsToNotify: Array<
 			{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
+		>
+		WebhookDestinations: Array<
+			{ __typename?: 'WebhookDestination' } & Pick<
+				Types.WebhookDestination,
+				'url' | 'authorization'
+			>
 		>
 		TrackProperties: Array<
 			Types.Maybe<
@@ -2893,6 +2885,7 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 	| 'os'
 	| 'browser'
 	| 'environment'
+	| 'serviceVersion'
 > & {
 		session?: Types.Maybe<
 			{ __typename?: 'Session' } & Pick<
@@ -4569,7 +4562,6 @@ export const namedOperations = {
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
-		MarkSessionAsStarred: 'MarkSessionAsStarred' as const,
 		MuteSessionCommentThread: 'MuteSessionCommentThread' as const,
 		CreateOrUpdateStripeSubscription:
 			'CreateOrUpdateStripeSubscription' as const,

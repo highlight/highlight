@@ -27,12 +27,6 @@ export const Canvas = ({
 	adaptToDeviceRatio?: boolean
 	sceneOptions?: SceneOptions
 }) => {
-	const onRender = (scene: Scene) => {
-		// console.debug('onRender', scene)
-	}
-	const onSceneReady = (scene: Scene) => {
-		console.debug('onSceneReady', scene)
-	}
 	const reactCanvas = useRef(null)
 	const loadTimer = useRef<number>()
 	const load = useRef<() => void>()
@@ -42,6 +36,16 @@ export const Canvas = ({
 		engine: Engine | null
 		scene: Scene | null
 	}>({ engine: null, scene: null })
+
+	const onRender = (scene: Scene) => {
+		// console.debug('onRender', scene)
+		if (reactCanvas.current) {
+			H.snapshot(reactCanvas.current)
+		}
+	}
+	const onSceneReady = (scene: Scene) => {
+		console.debug('onSceneReady', scene)
+	}
 
 	useEffect(() => {
 		H.identify('vadim@highlight.io')
@@ -157,10 +161,10 @@ export const Canvas = ({
 			})
 
 			engine.runRenderLoop(() => {
+				scene.render()
 				if (typeof onRender === 'function') {
 					onRender(scene)
 				}
-				scene.render()
 			})
 
 			loadTimer.current = undefined

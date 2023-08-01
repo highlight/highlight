@@ -7,11 +7,12 @@ type BorderKeys =
 	| 'primaryHover'
 	| 'primaryPressed'
 	| 'primaryDisabled'
-	| 'secondary'
 	| 'error'
+	| 'secondary'
 	| 'secondaryHover'
 	| 'secondaryPressed'
 	| 'secondaryDisabled'
+	| 'secondaryInner'
 	| 'divider'
 	| 'dividerWeak'
 	| 'dividerStrong'
@@ -33,11 +34,12 @@ export const borders: Borders = {
 	primaryPressed: `${themeVars.interactive.outline.primary.pressed} solid ${borderWidths.small}`,
 	primaryDisabled: `${themeVars.interactive.outline.primary.disabled} solid ${borderWidths.small}`,
 
-	secondary: `${themeVars.interactive.outline.secondary.enabled} solid ${borderWidths.small}`,
 	error: `${themeVars.interactive.fill.bad.enabled} solid ${borderWidths.small}`,
+	secondary: `${themeVars.interactive.outline.secondary.enabled} solid ${borderWidths.small}`,
 	secondaryHover: `${themeVars.interactive.outline.secondary.hover} solid ${borderWidths.small}`,
 	secondaryPressed: `${themeVars.interactive.outline.secondary.pressed} solid ${borderWidths.small}`,
 	secondaryDisabled: `${themeVars.interactive.outline.secondary.disabled} solid ${borderWidths.small}`,
+	secondaryInner: `0 -1px 0 0 rgba(0, 0, 0, 0.1) inset`,
 
 	divider: `${themeVars.static.divider.default} solid ${borderWidths.small}`,
 	dividerWeak: `${themeVars.static.divider.weak} solid ${borderWidths.small}`,

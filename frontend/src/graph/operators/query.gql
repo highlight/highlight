@@ -59,6 +59,10 @@ fragment SessionAlertFragment on SessionAlert {
 	DiscordChannelsToNotify {
 		...DiscordChannelFragment
 	}
+	WebhookDestinations {
+		url
+		authorization
+	}
 	CountThreshold
 	DailyFrequency
 	disabled
@@ -1142,6 +1146,7 @@ fragment ErrorObject on ErrorObject {
 	os
 	browser
 	environment
+	serviceVersion
 }
 
 query GetErrorObject($id: ID!) {

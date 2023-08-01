@@ -149,9 +149,7 @@ func TestReadSessionLogs(t *testing.T) {
 		NewLogRow(oneSecondAgo, 1,
 			WithBody(ctx, "Body"),
 			WithSeverityText(modelInputs.LogLevelInfo.String()),
-			WithLogAttributes(ctx, map[string]any{
-				"service": "foo",
-			}, map[string]any{}, map[string]any{}, false)),
+			WithLogAttributes(map[string]string{"service": "foo"})),
 	}
 
 	for i := 1; i <= LogsLimit; i++ {
@@ -583,21 +581,21 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 
 	rows := []*LogRow{
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"service":      "image processor",
 				"workspace_id": "1",
 				"user_id":      "1",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"service": "different processor",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"colon_delimited": "foo:bar",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 	}
 
@@ -700,9 +698,9 @@ func TestReadLogsWithSessionIdFilter(t *testing.T) {
 		NewLogRow(now, 1, WithSecureSessionID("match")),
 		NewLogRow(now, 1, WithSecureSessionID("another")),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"secure_session_id": "no_match",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 	}
 
@@ -749,9 +747,9 @@ func TestReadLogsWithSpanIdFilter(t *testing.T) {
 		NewLogRow(now, 1, WithSpanID("match")),
 		NewLogRow(now, 1, WithSpanID("another")),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"span_id": "no_match",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 	}
 
@@ -798,9 +796,9 @@ func TestReadLogsWithTraceIdFilter(t *testing.T) {
 		NewLogRow(now, 1, WithTraceID("match")),
 		NewLogRow(now, 1, WithTraceID("another")),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"trace_id": "no_match",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 	}
 
@@ -848,9 +846,9 @@ func TestReadLogsWithSourceFilter(t *testing.T) {
 		NewLogRow(now, 1, WithSource(modelInputs.LogSourceBackend)),
 		NewLogRow(now, 1, WithSource(modelInputs.LogSourceFrontend)),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"source": "backend",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 	}
 
@@ -891,9 +889,9 @@ func TestReadLogsWithServiceNameFilter(t *testing.T) {
 		NewLogRow(now, 1, WithServiceName("bar")),
 		NewLogRow(now, 1, WithServiceName("foo")),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"service_name": "bar",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 	}
 
@@ -932,21 +930,21 @@ func TestLogsKeys(t *testing.T) {
 
 	rows := []*LogRow{
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"user_id":      "1",
 				"workspace_id": "2",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"workspace_id": "3",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 		NewLogRow(now, 1, WithSource(modelInputs.LogSourceFrontend), WithServiceName("foo-service")),
 		NewLogRow(now.Add(-time.Second*1), 1, // out of range, should not be included
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"workspace_id": "5",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 	}
 
@@ -1007,47 +1005,46 @@ func TestLogKeyValues(t *testing.T) {
 
 	rows := []*LogRow{
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"workspace_id": "2",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"workspace_id": "2",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"workspace_id": "3",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"workspace_id": "3",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"workspace_id": "3",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"workspace_id": "4",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 		NewLogRow(now.Add(-time.Second*1), 1, // out of range, should not be included
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"workspace_id": "5",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"unrelated_key": "value",
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 	}
-
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
 	values, err := client.LogsKeyValues(ctx, 1, "workspace_id", now, now)
@@ -1074,9 +1071,9 @@ func TestLogKeyValuesLevel(t *testing.T) {
 		NewLogRow(now, 1, WithSeverityText(modelInputs.LogLevelWarn.String())),
 		NewLogRow(now, 1, WithSeverityText(modelInputs.LogLevelInfo.String())),
 		NewLogRow(now, 1,
-			WithLogAttributes(ctx, map[string]any{
+			WithLogAttributes(map[string]string{
 				"level": modelInputs.LogLevelFatal.String(), // should be skipped in the output
-			}, map[string]any{}, map[string]any{}, false),
+			}),
 		),
 	}
 

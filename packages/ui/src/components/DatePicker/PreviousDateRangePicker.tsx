@@ -264,6 +264,11 @@ const PreviousDateRangePickerImpl = ({
 		[selectedDates[1]],
 	)
 
+	const isTimepickerDisabled = useMemo(
+		() => selectedDates.length != 2,
+		[selectedDates],
+	)
+
 	const [buttonLabel, setButtonLabel] = useState<string>(
 		getLabel({ selectedDates, presets }),
 	)
@@ -586,7 +591,11 @@ const PreviousDateRangePickerImpl = ({
 								p={'7'}
 								display={'flex'}
 								justifyContent={'center'}
-								cursor="pointer"
+								cursor={
+									isTimepickerDisabled
+										? 'not-allowed'
+										: 'pointer'
+								}
 								background={'n4'}
 								alignItems={'center'}
 								style={{
@@ -599,6 +608,7 @@ const PreviousDateRangePickerImpl = ({
 										? '0px -1px 0px rgba(0, 0, 0, 0.32) inset'
 										: undefined,
 								}}
+								disabled={isTimepickerDisabled}
 								onClick={handleShowingTimeToggle}
 							>
 								<IconSolidClock

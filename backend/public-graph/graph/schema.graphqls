@@ -34,6 +34,11 @@ input ErrorObjectInput {
 	payload: String
 }
 
+input ServiceInput {
+	name: String!
+	version: String!
+}
+
 input BackendErrorObjectInput {
 	session_secure_id: String
 	request_id: String
@@ -47,6 +52,7 @@ input BackendErrorObjectInput {
 	stackTrace: String!
 	timestamp: Timestamp!
 	payload: String
+	service: ServiceInput!
 }
 
 input MetricTag {
