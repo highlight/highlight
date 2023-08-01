@@ -5,14 +5,31 @@ import * as styles from './styles.css'
 import { Box } from '../Box/Box'
 import { Text } from '../Text/Text'
 
-type Props = {
-	columns: any[]
-	data?: any[]
-	loading: boolean
-	error: any
+type RowFormat = {
+	alignment?: 'left' | 'center' | 'right'
+	size?: string // pixels or percentage as a string
+	grow?: number // 0 is fixed, 1+ determines relative growth
 }
 
-export const Table: React.FC<Props> = ({ loading, error, data, columns }) => {
+type Column = {
+	name: string
+	render: (row: Row) => React.ReactNode
+	rowFormat: RowFormat
+}
+
+type Row = {
+	id: string
+	[key: string]: any
+}
+
+type Props = {
+	columns: Column[]
+	rows?: Row[]
+	loading?: boolean
+	error?: string
+}
+
+export const Table: React.FC<Props> = ({ loading, error, rows, columns }) => {
 	const virtuoso = useRef<VirtuosoHandle>(null)
 
 	return (
@@ -25,23 +42,32 @@ export const Table: React.FC<Props> = ({ loading, error, data, columns }) => {
 				))}
 			</Box>
 			{loading && 'Loading...'}
-			{error && error.message}
-			{data?.length && (
+			{!!error && error}
+			{rows?.length && (
 				<Box className={styles.resultsContainer}>
 					<Virtuoso
 						ref={virtuoso}
-						data={data}
-						itemContent={(_, service) => (
-							<Box key={service.id}>
+						data={rows}
+						itemContent={(_, row) => (
+							<Box key={row.id}>
 								<Box
 									borderBottom="dividerWeak"
 									display="flex"
 									flexDirection="row"
 									gap="24"
 								>
-									{columns.map((column) =>
-										column.render(service),
-									)}
+									{columns.map((column) => (
+										<Box
+											key={column.name}
+											display="flex"
+											// justifySelf={
+											// 	column?.rowFormat?.alignment ||
+											// 	'center'
+											// }
+										>
+											{column.render(row)}
+										</Box>
+									))}
 								</Box>
 							</Box>
 						)}

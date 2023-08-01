@@ -84,82 +84,100 @@ export const ServicesTable = () => {
 	}
 
 	const rows = data?.services?.edges.map((service: any) => service.node)
-
 	const columns = [
 		{
 			name: 'Service',
+			rowFormat: {
+				alignment: 'left' as const,
+			},
 			render: (service: any) => service.name,
 		},
 		{
-			name: 'Status',
-			render: (service: any) => service.status,
-		},
-		{
 			name: 'GitHub Repo',
+			rowFormat: {
+				// TODO(spenny): how to avoid this cast?
+				alignment: 'left' as const,
+			},
 			render: (service: any) => {
-				if (!isIntegrated) {
-					return (
-						<Link to={`/${service.projectID}/integrations`}>
-							<Text size="small" weight="medium">
-								Integrate GitHub
-							</Text>
-						</Link>
-					)
-				}
-
 				return (
 					<Popover
 						trigger="click"
 						content={
 							<Box style={{ maxWidth: 250 }} p="8">
-								{service.githubRepoPath ? (
-									<Text size="small" weight="medium">
-										Edit
-									</Text>
-								) : (
-									<Text size="small" weight="medium">
-										Connect
-									</Text>
-								)}
-								<Select
-									aria-label="GitHub Repository"
-									placeholder="Chose repo to connect to service"
-									options={githubData?.github_repos?.map(
-										(repo) => ({
-											id: repo.key,
-											value: repo.repo_id.replace(
-												'https://api.github.com/repos/',
-												'',
-											),
-											displayValue: repo.name,
-										}),
-									)}
-									onChange={(repo) =>
-										handleGitHubRepoChange(service, repo)
-									}
-									value={service.githubRepoPath}
-									notFoundContent={<p>No repos found</p>}
-								/>
-								{service.githubRepoPath && (
-									<Button
-										kind="danger"
-										trackingId="remove-repo"
-										onClick={() =>
-											handleGitHubRepoChange(service)
-										}
+								{!isIntegrated ? (
+									<Link
+										to={`/${service.projectID}/integrations`}
 									>
-										Remove
-									</Button>
+										<Text size="small" weight="medium">
+											Integrate GitHub
+										</Text>
+									</Link>
+								) : (
+									<>
+										{service.githubRepoPath ? (
+											<Text size="small" weight="medium">
+												Edit
+											</Text>
+										) : (
+											<Text size="small" weight="medium">
+												Connect
+											</Text>
+										)}
+										<Select
+											aria-label="GitHub Repository"
+											placeholder="Chose repo to connect to service"
+											options={githubData?.github_repos?.map(
+												(repo) => ({
+													id: repo.key,
+													value: repo.repo_id.replace(
+														'https://api.github.com/repos/',
+														'',
+													),
+													displayValue: repo.name,
+												}),
+											)}
+											onChange={(repo) =>
+												handleGitHubRepoChange(
+													service,
+													repo,
+												)
+											}
+											value={service.githubRepoPath}
+											notFoundContent={
+												<p>No repos found</p>
+											}
+										/>
+										{service.githubRepoPath && (
+											<Button
+												kind="danger"
+												trackingId="remove-repo"
+												onClick={() =>
+													handleGitHubRepoChange(
+														service,
+													)
+												}
+											>
+												Remove
+											</Button>
+										)}
+									</>
 								)}
 							</Box>
 						}
 					>
 						<Tag size="small">
-							{service.githubRepoPath || 'Connect'}
+							{service.githubRepoPath || 'None'}
 						</Tag>
 					</Popover>
 				)
 			},
+		},
+		{
+			name: 'Status',
+			rowFormat: {
+				alignment: 'center' as const,
+			},
+			render: (service: any) => service.status,
 		},
 	]
 
@@ -172,11 +190,31 @@ export const ServicesTable = () => {
 				className={styles.combobox}
 				onChange={handleQueryChange}
 			/>
+			{/* <Table>
+				<Table.Head>
+					<Table.Header></Table.Header>
+					<Table.Header></Table.Header>
+					<Table.Header></Table.Header>
+					<Table.Header></Table.Header>
+				</Table.Head>
+				<Table.Row>
+					<Table.Cell></Table.Cell>
+					<Table.Cell></Table.Cell>
+					<Table.Cell></Table.Cell>
+					<Table.Cell></Table.Cell>
+				</Table.Row>
+				<Table.Row>
+					<Table.Cell></Table.Cell>
+					<Table.Cell></Table.Cell>
+					<Table.Cell></Table.Cell>
+					<Table.Cell></Table.Cell>
+				</Table.Row>
+			</Table> */}
 			<Table
 				loading={loading}
-				error={error}
+				error={error?.message}
 				columns={columns}
-				data={rows}
+				rows={rows}
 			/>
 			<Stack direction="row" justifyContent="flex-end">
 				<Button
