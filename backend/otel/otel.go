@@ -430,7 +430,7 @@ func (o *Handler) submitProjectSpans(ctx context.Context, projectTraceRows map[i
 
 		traceRows := append(traceRows, traceRows...)
 
-		err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
+		err := o.resolver.TracesQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushTraces,
 			PushTraces: &kafkaqueue.PushTracesArgs{
 				TraceRows: traceRows,
