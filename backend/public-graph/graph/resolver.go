@@ -366,12 +366,7 @@ func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*
 	return newMappedStackTraceString, mappedStackTrace, nil
 }
 
-func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, fingerprints []*model.ErrorFingerprint) (*model.ErrorGroup, error) {
-	match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
-	if err != nil {
-		return nil, e.Wrap(err, "Error getting top error group match")
-	}
-
+func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, match *int) (*model.ErrorGroup, error) {
 	errorGroup := &model.ErrorGroup{}
 
 	if match == nil {
@@ -434,7 +429,34 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 	return errorGroup, nil
 }
 
-// TODO(vkorolik) GetTopErrorGroupMatchByEmbedding
+func (r *Resolver) GetTopErrorGroupMatchByEmbedding(_ context.Context, errorObject *model.ErrorObject) (*int, error) {
+	result := struct {
+		Score         float64
+		ErrorObjectID int `json:"error_object_id"`
+	}{}
+	if err := r.DB.Raw(`
+		with error as (select event_embedding, stack_trace_embedding, payload_embedding
+					   from error_object_embeddings where error_object_id = @error_object_id limit 1)
+		select @event_weight * (error_object_embeddings.event_embedding <=> error.event_embedding)
+		     + @trace_weight * (error_object_embeddings.stack_trace_embedding <=> error.stack_trace_embedding)
+             + @meta_weight * (error_object_embeddings.payload_embedding <=> error.payload_embedding) as score, error_object_id
+		from error_object_embeddings cross join error
+		order by 1 limit 1;
+`,
+		map[string]interface{}{
+			"error_object_id": errorObject.ID,
+			"event_weight":    1,
+			"trace_weight":    0.4,
+			"meta_weight":     0.2,
+		}).
+		Scan(&result).Error; err != nil {
+		return nil, e.Wrap(err, "error querying top error group match")
+	}
+	if result.Score < 0.2 {
+		return &result.ErrorObjectID, nil
+	}
+	return nil, nil
+}
 
 func (r *Resolver) GetTopErrorGroupMatch(event string, projectID int, fingerprints []*model.ErrorFingerprint) (*int, error) {
 	firstCode := ""
@@ -684,13 +706,32 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}
 	}
 
-	var errorGroup *model.ErrorGroup
-	errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, fingerprints)
+	match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
 	if err != nil {
 		return nil, e.Wrap(err, "Error getting top error group match")
 	}
 
-	errorObj.ErrorGroupID = errorGroup.ID
+	var errorGroup, embeddingsErrorGroup *model.ErrorGroup
+	errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, match)
+	if err != nil {
+		return nil, e.Wrap(err, "Error getting or creating error group")
+	}
+
+	if settings, _ := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); settings.ErrorEmbeddingsGroup {
+		match, err = r.GetTopErrorGroupMatchByEmbedding(ctx, errorObj)
+		if err != nil {
+			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
+		}
+		embeddingsErrorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, match)
+		if err != nil {
+			return nil, e.Wrap(err, "Error getting or creating error group")
+		}
+		errorObj.ErrorGroupID = embeddingsErrorGroup.ID
+		errorObj.ErrorGroupIDAlternative = errorGroup.ID
+	} else {
+		errorObj.ErrorGroupID = errorGroup.ID
+	}
+
 	if err := r.DB.Create(errorObj).Error; err != nil {
 		return nil, e.Wrap(err, "Error performing error insert for error")
 	}
