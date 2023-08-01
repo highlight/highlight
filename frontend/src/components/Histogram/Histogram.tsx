@@ -312,7 +312,11 @@ const CustomTooltip: React.FC<{
 							backgroundColor={color}
 							p="4"
 						>
-							<Text color={colorIsDark ? 'white' : 'n12'}>
+							<Text
+								size="xSmall"
+								weight="medium"
+								color={colorIsDark ? 'white' : 'n12'}
+							>
 								{rawValue} {p.name}
 							</Text>
 						</Box>
