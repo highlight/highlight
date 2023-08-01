@@ -42,4 +42,4 @@
 
 - Adding exports for `@highlight-run/next/client` and `@highlight-run/next/server`
     > We're hoping to remove `@highlight-run/next/highlight-init` and the default `@highlight-run/next` imports in favor of the new `/client` and `/server` varieties. For now we'll maintain the original imports as aliases.
-- Moving `@highlight-run/node` to `peerDependencies`
+- Adding `@highlight-run/node` and `highlight.run` to `peerDependencies`
