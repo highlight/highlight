@@ -67,3 +67,4 @@ node_modules/
 
 .yarn
 .env.local
+.cache

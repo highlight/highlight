@@ -1,27 +1,44 @@
 {
 	"name": "@highlight-run/next",
-	"version": "3.1.7",
+	"version": "3.2.0",
 	"description": "Client for interfacing with Highlight in next.js",
 	"files": [
 		"dist",
 		"highlight-init.d.ts",
+		"client.d.ts",
+		"server.d.ts",
 		"index.d.ts"
 	],
 	"exports": {
 		".": {
-			"types": "./dist/index.d.ts",
-			"edge": "./dist/index.edge.js",
-			"edge-light": "./dist/index.edge.js",
-			"browser": "./dist/index.edge.js",
-			"worker": "./dist/index.edge.js",
-			"workerd": "./dist/index.edge.js",
-			"require": "./dist/index.js",
-			"import": "./dist/index.mjs"
+			"types": "./dist/server.d.ts",
+			"edge": "./dist/server.edge.js",
+			"edge-light": "./dist/server.edge.js",
+			"browser": "./dist/server.edge.js",
+			"worker": "./dist/server.edge.js",
+			"workerd": "./dist/server.edge.js",
+			"require": "./dist/server.js",
+			"import": "./dist/server.mjs"
+		},
+		"./server": {
+			"types": "./dist/server.d.ts",
+			"edge": "./dist/server.edge.js",
+			"edge-light": "./dist/server.edge.js",
+			"browser": "./dist/server.edge.js",
+			"worker": "./dist/server.edge.js",
+			"workerd": "./dist/server.edge.js",
+			"require": "./dist/server.js",
+			"import": "./dist/server.mjs"
 		},
 		"./highlight-init": {
-			"types": "./dist/HighlightInit.d.ts",
-			"import": "./dist/HighlightInit.mjs",
-			"require": "./dist/HighlightInit.js"
+			"types": "./dist/next-client.d.ts",
+			"import": "./dist/next-client.mjs",
+			"require": "./dist/next-client.js"
+		},
+		"./client": {
+			"types": "./dist/next-client.d.ts",
+			"import": "./dist/next-client.mjs",
+			"require": "./dist/next-client.js"
 		}
 	},
 	"installConfig": {
@@ -32,14 +49,15 @@
 	},
 	"scripts": {
 		"typegen": "tsup --dts-only",
-		"dev": "tsup --watch && sh ./bin/clean-highlight-init.sh",
-		"build": "tsup && sh ./bin/clean-highlight-init.sh",
+		"dev": "tsup --watch && sh ./bin/clean-dist.sh",
+		"build": "tsup && sh ./bin/clean-dist.sh",
 		"test": "jest"
 	},
 	"author": "",
 	"license": "ISC",
 	"peerDependencies": {
-		"highlight.run": ">=3.0.0",
+		"@highlight-run/node": "workspace:^",
+		"highlight.run": "workspace:^",
 		"next": ">=12",
 		"react": ">=17"
 	},

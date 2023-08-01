@@ -1,4 +1,4 @@
-import { Highlight } from '@highlight-run/next'
+import { Highlight } from '@highlight-run/next/server'
 import winston from 'winston'
 
 const projectID = '1jdkoe52'
