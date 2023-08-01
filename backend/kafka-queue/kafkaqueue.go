@@ -29,7 +29,7 @@ const ConsumerGroupName = "group-default"
 const (
 	taskRetries           = 5
 	prefetchQueueCapacity = 64
-	prefetchSizeBytes     = 16 * 1000 * 1000  // 16 MB
+	prefetchSizeBytes     = 1 * 1000 * 1000   // 1 MB
 	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
 )
 
@@ -136,7 +136,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *kafka.Rea
 		}
 	}
 
-	rebalanceTimeout := 30 * time.Second
+	rebalanceTimeout := 1 * time.Minute
 	if util.IsDevOrTestEnv() {
 		// faster rebalance for dev to start processing quicker
 		rebalanceTimeout = time.Second

@@ -432,7 +432,6 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 
 func (w *Worker) PublicWorker(ctx context.Context) {
 	const parallelWorkers = 64
-	const parallelBatchWorkers = 32
 	// creates N parallel kafka message consumers that process messages.
 	// each consumer is considered part of the same consumer group and gets
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
@@ -458,71 +457,50 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		_wg.Done()
 	}(&wg)
 	go func(_wg *sync.WaitGroup) {
-		wg := sync.WaitGroup{}
-		wg.Add(parallelBatchWorkers)
 		buffer := &KafkaBatchBuffer{
-			messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize*(parallelBatchWorkers+1)),
+			messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
 		}
-		for i := 0; i < parallelBatchWorkers; i++ {
-			go func(workerId int) {
-				s, wCtx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.outer.logs"))
-				defer s.Finish()
-				k := KafkaBatchWorker{
-					KafkaQueue:          kafkaqueue.New(wCtx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer, nil),
-					Worker:              w,
-					WorkerThread:        workerId,
-					BatchBuffer:         buffer,
-					BatchFlushSize:      DefaultBatchFlushSize,
-					BatchedFlushTimeout: DefaultBatchedFlushTimeout,
-				}
-				k.ProcessMessages(wCtx, k.flushLogs)
-				wg.Done()
-			}(i)
+		k := KafkaBatchWorker{
+			KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer, &kafka.ReaderConfig{QueueCapacity: 2 * DefaultBatchFlushSize}),
+			Worker:              w,
+			BatchBuffer:         buffer,
+			BatchFlushSize:      DefaultBatchFlushSize,
+			BatchedFlushTimeout: DefaultBatchedFlushTimeout,
+			Name:                "batched",
 		}
-		wg.Wait()
+		k.ProcessMessages(ctx, k.flushLogs)
 		_wg.Done()
 	}(&wg)
 	go func(_wg *sync.WaitGroup) {
-		wg := sync.WaitGroup{}
-		wg.Add(parallelBatchWorkers)
 		buffer := &KafkaBatchBuffer{
-			messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize*(parallelBatchWorkers+1)),
+			messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
 		}
-		for i := 0; i < parallelBatchWorkers; i++ {
-			go func(workerId int) {
-				s, wCtx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.batched.outer.traces"))
-				defer s.Finish()
-				k := KafkaBatchWorker{
-					KafkaQueue:          kafkaqueue.New(wCtx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer, nil),
-					Worker:              w,
-					WorkerThread:        workerId,
-					BatchBuffer:         buffer,
-					BatchFlushSize:      DefaultBatchFlushSize,
-					BatchedFlushTimeout: DefaultBatchedFlushTimeout,
-				}
-				k.ProcessMessages(wCtx, k.flushTraces)
-				wg.Done()
-			}(i)
+		k := KafkaBatchWorker{
+			KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer, &kafka.ReaderConfig{QueueCapacity: 2 * DefaultBatchFlushSize}),
+			Worker:              w,
+			BatchBuffer:         buffer,
+			BatchFlushSize:      DefaultBatchFlushSize,
+			BatchedFlushTimeout: DefaultBatchedFlushTimeout,
+			Name:                "batched",
 		}
-		wg.Wait()
-		_wg.Done()
+		k.ProcessMessages(ctx, k.flushTraces)
+		wg.Done()
 	}(&wg)
 	go func(_wg *sync.WaitGroup) {
 		flushSize := 500
 		buffer := &KafkaBatchBuffer{
 			messageQueue: make(chan *kafkaqueue.Message, flushSize+1),
 		}
-		s, wCtx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName("worker.kafka.datasync.outer"))
-		defer s.Finish()
 		k := KafkaBatchWorker{
-			KafkaQueue:          kafkaqueue.New(wCtx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Consumer, &kafka.ReaderConfig{QueueCapacity: 1000}),
+			KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Consumer, &kafka.ReaderConfig{QueueCapacity: 2 * flushSize}),
 			Worker:              w,
 			WorkerThread:        0,
 			BatchBuffer:         buffer,
 			BatchFlushSize:      flushSize,
 			BatchedFlushTimeout: 5 * time.Second,
+			Name:                "datasync",
 		}
-		k.ProcessMessages(wCtx, k.flushDataSync)
+		k.ProcessMessages(ctx, k.flushDataSync)
 		_wg.Done()
 	}(&wg)
 	wg.Wait()
@@ -1311,6 +1289,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		ErrorCountLastDay    int64      `json:"error_count_last_day"`
 		LogCountLastDay      int64      `json:"log_count_last_day"`
 		TrialEndDate         *time.Time `json:"trial_end_date"`
+		PlanTier             string     `json:"plan_tier"`
 	}
 	var counts []*AggregateSessionCount
 
@@ -1347,6 +1326,7 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 			continue
 		}
 		c.TrialEndDate = workspace.TrialEndDate
+		c.PlanTier = workspace.PlanTier
 		for _, p := range workspace.Projects {
 			count, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{DateRange: &backend.DateRangeRequiredInput{
 				StartDate: time.Now().Add(-time.Hour * 24 * 30),
@@ -1410,6 +1390,10 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 				Name:     "logs_last_day",
 				Property: "logs_last_day",
 				Value:    c.LogCountLastDay,
+			}, {
+				Name:     "plan_tier",
+				Property: "plan_tier",
+				Value:    c.PlanTier,
 			}}
 			if c.TrialEndDate != nil {
 				properties = append(properties, hubspot.Property{

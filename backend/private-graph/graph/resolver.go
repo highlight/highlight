@@ -1529,6 +1529,45 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 		"TrialEndDate":       nil,
 	}
 
+	if util.IsHubspotEnabled() {
+		props := []hubspot.Property{{
+			Name:     "plan_tier",
+			Property: "plan_tier",
+			Value:    string(tier),
+		}}
+		if workspace.PlanTier != modelInputs.PlanTypeFree.String() && tier == modelInputs.PlanTypeFree {
+			props = append(props, hubspot.Property{
+				Name:     "churn_date",
+				Property: "churn_date",
+				Value:    time.Now().UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if billingPeriodStart != nil {
+			props = append(props, hubspot.Property{
+				Name:     "billing_period_start",
+				Property: "billing_period_start",
+				Value:    billingPeriodStart.UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if billingPeriodEnd != nil {
+			props = append(props, hubspot.Property{
+				Name:     "billing_period_end",
+				Property: "billing_period_end",
+				Value:    billingPeriodEnd.UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if nextInvoiceDate != nil {
+			props = append(props, hubspot.Property{
+				Name:     "next_invoice",
+				Property: "next_invoice",
+				Value:    nextInvoiceDate.UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if err := r.HubspotApi.UpdateCompanyProperty(ctx, workspace.ID, props); err != nil {
+			log.WithContext(ctx).WithField("props", props).Error(e.Wrap(err, "hubspot error processing stripe webhook"))
+		}
+	}
+
 	// Only update retention period if already set
 	// This preserves `nil` values for customers grandfathered into 6 month retention
 	if workspace.RetentionPeriod != nil {
