@@ -7,14 +7,6 @@ export const container = style({
 	height: '100%',
 })
 
-export const header = style({
-	display: 'grid',
-	gridTemplateColumns: '100px 80px 80px',
-	gridGap: 6,
-	borderBottom: `1px solid ${vars.theme.interactive.fill.secondary.pressed}`,
-	padding: '12px 14px 10px',
-})
-
 export const resultsContainer = style({
 	width: '100%',
 	height: 500, // TODO(spenny): figure this out

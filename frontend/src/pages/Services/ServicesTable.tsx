@@ -83,104 +83,6 @@ export const ServicesTable = () => {
 		})
 	}
 
-	const rows = data?.services?.edges.map((service: any) => service.node)
-	const columns = [
-		{
-			name: 'Service',
-			rowFormat: {
-				alignment: 'left' as const,
-			},
-			render: (service: any) => service.name,
-		},
-		{
-			name: 'GitHub Repo',
-			rowFormat: {
-				// TODO(spenny): how to avoid this cast?
-				alignment: 'left' as const,
-			},
-			render: (service: any) => {
-				return (
-					<Popover
-						trigger="click"
-						content={
-							<Box style={{ maxWidth: 250 }} p="8">
-								{!isIntegrated ? (
-									<Link
-										to={`/${service.projectID}/integrations`}
-									>
-										<Text size="small" weight="medium">
-											Integrate GitHub
-										</Text>
-									</Link>
-								) : (
-									<>
-										{service.githubRepoPath ? (
-											<Text size="small" weight="medium">
-												Edit
-											</Text>
-										) : (
-											<Text size="small" weight="medium">
-												Connect
-											</Text>
-										)}
-										<Select
-											aria-label="GitHub Repository"
-											placeholder="Chose repo to connect to service"
-											options={githubData?.github_repos?.map(
-												(repo) => ({
-													id: repo.key,
-													value: repo.repo_id.replace(
-														'https://api.github.com/repos/',
-														'',
-													),
-													displayValue: repo.name,
-												}),
-											)}
-											onChange={(repo) =>
-												handleGitHubRepoChange(
-													service,
-													repo,
-												)
-											}
-											value={service.githubRepoPath}
-											notFoundContent={
-												<p>No repos found</p>
-											}
-										/>
-										{service.githubRepoPath && (
-											<Button
-												kind="danger"
-												trackingId="remove-repo"
-												onClick={() =>
-													handleGitHubRepoChange(
-														service,
-													)
-												}
-											>
-												Remove
-											</Button>
-										)}
-									</>
-								)}
-							</Box>
-						}
-					>
-						<Tag size="small">
-							{service.githubRepoPath || 'None'}
-						</Tag>
-					</Popover>
-				)
-			},
-		},
-		{
-			name: 'Status',
-			rowFormat: {
-				alignment: 'center' as const,
-			},
-			render: (service: any) => service.status,
-		},
-	]
-
 	return (
 		<Stack direction="column" gap="4" align="center" paddingRight="4">
 			<Combobox
@@ -190,32 +92,110 @@ export const ServicesTable = () => {
 				className={styles.combobox}
 				onChange={handleQueryChange}
 			/>
-			{/* <Table>
+			<Table loading={loading} error={error?.message}>
 				<Table.Head>
-					<Table.Header></Table.Header>
-					<Table.Header></Table.Header>
-					<Table.Header></Table.Header>
-					<Table.Header></Table.Header>
+					<Table.Row>
+						<Table.Header>Service</Table.Header>
+						<Table.Header>GitHub repo</Table.Header>
+						<Table.Header>Status</Table.Header>
+					</Table.Row>
 				</Table.Head>
-				<Table.Row>
-					<Table.Cell></Table.Cell>
-					<Table.Cell></Table.Cell>
-					<Table.Cell></Table.Cell>
-					<Table.Cell></Table.Cell>
-				</Table.Row>
-				<Table.Row>
-					<Table.Cell></Table.Cell>
-					<Table.Cell></Table.Cell>
-					<Table.Cell></Table.Cell>
-					<Table.Cell></Table.Cell>
-				</Table.Row>
-			</Table> */}
-			<Table
-				loading={loading}
-				error={error?.message}
-				columns={columns}
-				rows={rows}
-			/>
+				{data?.services?.edges.map((edge: any) => {
+					const service = edge.node
+
+					return (
+						<Table.Row key={service.cursor}>
+							<Table.Cell>{service.name}</Table.Cell>
+							<Table.Cell>
+								<Popover
+									trigger="click"
+									content={
+										<Box style={{ maxWidth: 250 }} p="8">
+											{!isIntegrated ? (
+												<Link
+													to={`/${service.projectID}/integrations`}
+												>
+													<Text
+														size="small"
+														weight="medium"
+													>
+														Integrate GitHub
+													</Text>
+												</Link>
+											) : (
+												<>
+													{service.githubRepoPath ? (
+														<Text
+															size="small"
+															weight="medium"
+														>
+															Edit
+														</Text>
+													) : (
+														<Text
+															size="small"
+															weight="medium"
+														>
+															Connect
+														</Text>
+													)}
+													<Select
+														aria-label="GitHub Repository"
+														placeholder="Chose repo to connect to service"
+														options={githubData?.github_repos?.map(
+															(repo) => ({
+																id: repo.key,
+																value: repo.repo_id.replace(
+																	'https://api.github.com/repos/',
+																	'',
+																),
+																displayValue:
+																	repo.name,
+															}),
+														)}
+														onChange={(repo) =>
+															handleGitHubRepoChange(
+																data,
+																repo,
+															)
+														}
+														value={
+															service.githubRepoPath
+														}
+														notFoundContent={
+															<p>
+																No repos found
+															</p>
+														}
+													/>
+													{service.githubRepoPath && (
+														<Button
+															kind="danger"
+															trackingId="remove-repo"
+															onClick={() =>
+																handleGitHubRepoChange(
+																	service,
+																)
+															}
+														>
+															Remove
+														</Button>
+													)}
+												</>
+											)}
+										</Box>
+									}
+								>
+									<Tag size="small">
+										{service.githubRepoPath || 'None'}
+									</Tag>
+								</Popover>
+							</Table.Cell>
+							<Table.Cell>{service.status}</Table.Cell>
+						</Table.Row>
+					)
+				})}
+			</Table>
 			<Stack direction="row" justifyContent="flex-end">
 				<Button
 					kind="secondary"
