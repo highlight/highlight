@@ -39,7 +39,6 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
-	"github.com/segmentio/kafka-go"
 	"github.com/shirou/gopsutil/mem"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
@@ -461,7 +460,10 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 			messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
 		}
 		k := KafkaBatchWorker{
-			KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer, &kafka.ReaderConfig{QueueCapacity: 2 * DefaultBatchFlushSize}),
+			KafkaQueue: kafkaqueue.New(ctx,
+				kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}),
+				kafkaqueue.Consumer,
+				&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(2 * DefaultBatchFlushSize)}),
 			Worker:              w,
 			BatchBuffer:         buffer,
 			BatchFlushSize:      DefaultBatchFlushSize,
@@ -477,7 +479,10 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 			messageQueue: make(chan *kafkaqueue.Message, flushSize+1),
 		}
 		k := KafkaBatchWorker{
-			KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Consumer, &kafka.ReaderConfig{QueueCapacity: 2 * flushSize}),
+			KafkaQueue: kafkaqueue.New(ctx,
+				kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}),
+				kafkaqueue.Consumer,
+				&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(2 * flushSize)}),
 			Worker:              w,
 			WorkerThread:        0,
 			BatchBuffer:         buffer,
