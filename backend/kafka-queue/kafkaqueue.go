@@ -29,7 +29,7 @@ const ConsumerGroupName = "group-default"
 const (
 	taskRetries           = 5
 	prefetchQueueCapacity = 64
-	prefetchSizeBytes     = 16 * 1000 * 1000  // 16 MB
+	prefetchSizeBytes     = 1 * 1000 * 1000   // 1 MB
 	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
 )
 
@@ -89,7 +89,12 @@ func GetTopic(options GetTopicOptions) string {
 	return topic
 }
 
-func New(ctx context.Context, topic string, mode Mode, configOverride *kafka.ReaderConfig) *Queue {
+type ConfigOverride struct {
+	Async         *bool
+	QueueCapacity *int
+}
+
+func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
 	servers := os.Getenv("KAFKA_SERVERS")
 	brokers := strings.Split(servers, ",")
 	groupID := ConsumerGroupName
@@ -136,7 +141,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *kafka.Rea
 		}
 	}
 
-	rebalanceTimeout := 30 * time.Second
+	rebalanceTimeout := 1 * time.Minute
 	if util.IsDevOrTestEnv() {
 		// faster rebalance for dev to start processing quicker
 		rebalanceTimeout = time.Second
@@ -175,6 +180,13 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *kafka.Rea
 			BatchTimeout: 1 * time.Millisecond,
 			MaxAttempts:  10,
 		}
+
+		if configOverride != nil {
+			deref := *configOverride
+			if deref.Async != nil {
+				pool.kafkaP.Async = *deref.Async
+			}
+		}
 	}
 	if (mode>>1)&1 == 1 {
 		log.WithContext(ctx).Debugf("initializing kafka consumer for %s", topic)
@@ -195,10 +207,11 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *kafka.Rea
 			MaxAttempts:    10,
 		}
 
-		// Allow defaults to be overridden - right now just the `QueueCapacity` field
 		if configOverride != nil {
 			deref := *configOverride
-			config.QueueCapacity = deref.QueueCapacity
+			if deref.QueueCapacity != nil {
+				config.QueueCapacity = *deref.QueueCapacity
+			}
 		}
 
 		pool.kafkaC = kafka.NewReader(config)

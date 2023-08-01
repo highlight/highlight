@@ -465,7 +465,7 @@ func (r *Client) SetHubspotCompanies(ctx context.Context, companies interface{})
 		Ctx:   ctx,
 		Key:   CacheKeyHubspotCompanies,
 		Value: companies,
-		TTL:   time.Minute,
+		TTL:   time.Hour,
 	}); err != nil {
 		span.Finish(tracer.WithError(err))
 		return err
