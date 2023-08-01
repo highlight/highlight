@@ -62,18 +62,17 @@ jobs:
             - name: Update Lambda secrets
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
-                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
               run: |
                   aws lambda update-function-configuration --function-name getSessionIdsByQuery \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '. + {REACT_APP_COMMIT_SHA: ${{github.sha}} }' | jq '{Variables: .}'"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromPostgres \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '. + {REACT_APP_COMMIT_SHA: ${{github.sha}} }' | jq '{Variables: .}'"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromOpenSearch \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '. + {REACT_APP_COMMIT_SHA: ${{github.sha}} }' | jq '{Variables: .}'"
                   aws lambda update-function-configuration --function-name deleteSessionBatchFromS3 \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '. + {REACT_APP_COMMIT_SHA: ${{github.sha}} }' | jq '{Variables: .}'"
                   aws lambda update-function-configuration --function-name sendEmail \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '. + {REACT_APP_COMMIT_SHA: ${{github.sha}} }' | jq '{Variables: .}'"
             - name: Deploy getSessionIdsByQuery
               uses: appleboy/lambda-action@v0.1.9
               with:
@@ -145,14 +144,13 @@ jobs:
             - name: Update Lambda secrets
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
-                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
               run: |
                   aws lambda update-function-configuration --function-name getProjectIds \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '. + {REACT_APP_COMMIT_SHA: ${{github.sha}} }' | jq '{Variables: .}'"
                   aws lambda update-function-configuration --function-name getDigestData \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '. + {REACT_APP_COMMIT_SHA: ${{github.sha}} }' | jq '{Variables: .}'"
                   aws lambda update-function-configuration --function-name sendDigestEmails \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '. + {REACT_APP_COMMIT_SHA: ${{github.sha}} }' | jq '{Variables: .}'"
             - name: Deploy getProjectIds
               uses: appleboy/lambda-action@v0.1.9
               with:
@@ -206,12 +204,11 @@ jobs:
             - name: Update Lambda secrets
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
-                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
               run: |
                   aws lambda update-function-configuration --function-name getSessionInsightsData \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '. + {REACT_APP_COMMIT_SHA: ${{github.sha}} }' | jq '{Variables: .}'"
                   aws lambda update-function-configuration --function-name sendSessionInsightsEmails \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '. + {REACT_APP_COMMIT_SHA: ${{github.sha}} }' | jq '{Variables: .}'"
             - name: Deploy getSessionInsightsData
               uses: appleboy/lambda-action@v0.1.9
               with:
@@ -255,10 +252,9 @@ jobs:
             - name: Update Lambda secrets
               env:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_AWS_LAMBDAS_SECRET }}
-                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
               run: |
                   aws lambda update-function-configuration --function-name updateNormalnessScores \
-                    --environment "$(doppler secrets download --no-file | jq '{Variables: .}')"
+                    --environment "$(doppler secrets download --no-file | jq '. + {REACT_APP_COMMIT_SHA: ${{github.sha}} }' | jq '{Variables: .}'"
             - name: Deploy updateNormalnessScores
               uses: appleboy/lambda-action@v0.1.9
               with:
@@ -290,9 +286,8 @@ jobs:
                   ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
                   ECR_REPOSITORY: highlight-production-ecr-repo
                   IMAGE_TAG: ${{ github.sha }}
-                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
               run: |
-                  docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f deploy/Dockerfile.prod.arm64 .
+                  docker buildx build --build-arg REACT_APP_COMMIT_SHA=${{ github.sha }} --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f deploy/Dockerfile.prod.arm64 .
                   docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64
 
             # Edit and deploy private-graph
@@ -410,7 +405,6 @@ jobs:
                   ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
                   ECR_REPOSITORY: highlight-collector
                   IMAGE_TAG: ${{ github.sha }}
-                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
               run: |
                   cd deploy
                   docker buildx build --platform linux/arm64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG.arm64 -f opentelemetry-collector.Dockerfile .
