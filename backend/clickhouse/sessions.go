@@ -36,17 +36,24 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	}
 
 	for _, session := range sessions {
+		if session == nil {
+			return errors.New("nil session")
+		}
+
 		if session.Fields == nil {
-			return errors.New("session.Fields is required")
+			return fmt.Errorf("session.Fields is required for session %d", session.ID)
 		}
 
 		if session.ViewedByAdmins == nil {
-			return errors.New("session.ViewedByAdmins is required")
+			return fmt.Errorf("session.ViewedByAdmins is required for session %d", session.ID)
 		}
 
 		fieldKeys := []string{}
 		fieldKeyValues := []string{}
 		for _, field := range session.Fields {
+			if field == nil {
+				return fmt.Errorf("nil field for session %d", session.ID)
+			}
 			fieldKeys = append(fieldKeys, field.Type+"_"+field.Name)
 			fieldKeyValues = append(fieldKeyValues, field.Type+"_"+field.Name+"_"+field.Value)
 		}
