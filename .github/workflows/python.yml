@@ -36,6 +36,11 @@ jobs:
               with:
                   coverageFile: ./sdk/highlight-py/coverage.xml
                   token: ${{ secrets.GITHUB_TOKEN }}
+            - name: Upload coverage reports to Codecov
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight'
+              uses: codecov/codecov-action@v3
+              env:
+                  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
             - name: Build
               run: poetry build
             - name: Validate PyProject

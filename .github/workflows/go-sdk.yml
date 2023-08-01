@@ -57,3 +57,8 @@ jobs:
                   go-version-file: 'backend/go.mod'
             - name: Run tests
               run: cd sdk/highlight-go && go test -race -covermode=atomic -coverprofile=coverage.out --v
+            - name: Upload coverage reports to Codecov
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight'
+              uses: codecov/codecov-action@v3
+              env:
+                  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
