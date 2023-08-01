@@ -432,7 +432,6 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 
 func (w *Worker) PublicWorker(ctx context.Context) {
 	const parallelWorkers = 64
-	const parallelBatchWorkers = 32
 	// creates N parallel kafka message consumers that process messages.
 	// each consumer is considered part of the same consumer group and gets
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
@@ -458,27 +457,18 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		_wg.Done()
 	}(&wg)
 	go func(_wg *sync.WaitGroup) {
-		wg := sync.WaitGroup{}
-		wg.Add(parallelBatchWorkers)
 		buffer := &KafkaBatchBuffer{
-			messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize*(parallelBatchWorkers+1)),
+			messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
 		}
-		for i := 0; i < parallelBatchWorkers; i++ {
-			go func(workerId int) {
-				k := KafkaBatchWorker{
-					KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer, nil),
-					Worker:              w,
-					WorkerThread:        workerId,
-					BatchBuffer:         buffer,
-					BatchFlushSize:      DefaultBatchFlushSize,
-					BatchedFlushTimeout: DefaultBatchedFlushTimeout,
-					Name:                "batched",
-				}
-				k.ProcessMessages(ctx, k.flushLogs)
-				wg.Done()
-			}(i)
+		k := KafkaBatchWorker{
+			KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Consumer, &kafka.ReaderConfig{QueueCapacity: 2 * DefaultBatchFlushSize}),
+			Worker:              w,
+			BatchBuffer:         buffer,
+			BatchFlushSize:      DefaultBatchFlushSize,
+			BatchedFlushTimeout: DefaultBatchedFlushTimeout,
+			Name:                "batched",
 		}
-		wg.Wait()
+		k.ProcessMessages(ctx, k.flushLogs)
 		_wg.Done()
 	}(&wg)
 	go func(_wg *sync.WaitGroup) {
@@ -487,7 +477,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 			messageQueue: make(chan *kafkaqueue.Message, flushSize+1),
 		}
 		k := KafkaBatchWorker{
-			KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Consumer, &kafka.ReaderConfig{QueueCapacity: 1000}),
+			KafkaQueue:          kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}), kafkaqueue.Consumer, &kafka.ReaderConfig{QueueCapacity: 2 * flushSize}),
 			Worker:              w,
 			WorkerThread:        0,
 			BatchBuffer:         buffer,
