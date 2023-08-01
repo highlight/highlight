@@ -398,6 +398,7 @@ type ComplexityRoot struct {
 		Payload              func(childComplexity int) int
 		ProjectID            func(childComplexity int) int
 		RequestID            func(childComplexity int) int
+		ServiceVersion       func(childComplexity int) int
 		Session              func(childComplexity int) int
 		SessionID            func(childComplexity int) int
 		Source               func(childComplexity int) int
@@ -3243,6 +3244,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObject.RequestID(childComplexity), true
+
+	case "ErrorObject.serviceVersion":
+		if e.complexity.ErrorObject.ServiceVersion == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.ServiceVersion(childComplexity), true
 
 	case "ErrorObject.session":
 		if e.complexity.ErrorObject.Session == nil {
@@ -9453,6 +9461,7 @@ type ErrorObject {
 	browser: String
 	environment: String
 	session: Session
+	serviceVersion: String
 }
 
 type ErrorInstance {
@@ -25771,6 +25780,8 @@ func (ec *executionContext) fieldContext_ErrorInstance_error_object(ctx context.
 				return ec.fieldContext_ErrorObject_environment(ctx, field)
 			case "session":
 				return ec.fieldContext_ErrorObject_session(ctx, field)
+			case "serviceVersion":
+				return ec.fieldContext_ErrorObject_serviceVersion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
 		},
@@ -27539,6 +27550,47 @@ func (ec *executionContext) fieldContext_ErrorObject_session(ctx context.Context
 				return ec.fieldContext_Session_chunked(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Session", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorObject_serviceVersion(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorObject_serviceVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorObject_serviceVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorObject",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -41593,6 +41645,8 @@ func (ec *executionContext) fieldContext_Query_error_object(ctx context.Context,
 				return ec.fieldContext_ErrorObject_environment(ctx, field)
 			case "session":
 				return ec.fieldContext_ErrorObject_session(ctx, field)
+			case "serviceVersion":
+				return ec.fieldContext_ErrorObject_serviceVersion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
 		},
@@ -41754,6 +41808,8 @@ func (ec *executionContext) fieldContext_Query_error_object_for_log(ctx context.
 				return ec.fieldContext_ErrorObject_environment(ctx, field)
 			case "session":
 				return ec.fieldContext_ErrorObject_session(ctx, field)
+			case "serviceVersion":
+				return ec.fieldContext_ErrorObject_serviceVersion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
 		},
@@ -41979,6 +42035,8 @@ func (ec *executionContext) fieldContext_Query_errors(ctx context.Context, field
 				return ec.fieldContext_ErrorObject_environment(ctx, field)
 			case "session":
 				return ec.fieldContext_ErrorObject_session(ctx, field)
+			case "serviceVersion":
+				return ec.fieldContext_ErrorObject_serviceVersion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
 		},
@@ -49482,6 +49540,8 @@ func (ec *executionContext) fieldContext_Query_logs_error_objects(ctx context.Co
 				return ec.fieldContext_ErrorObject_environment(ctx, field)
 			case "session":
 				return ec.fieldContext_ErrorObject_session(ctx, field)
+			case "serviceVersion":
+				return ec.fieldContext_ErrorObject_serviceVersion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
 		},
@@ -56485,6 +56545,8 @@ func (ec *executionContext) fieldContext_SessionPayload_errors(ctx context.Conte
 				return ec.fieldContext_ErrorObject_environment(ctx, field)
 			case "session":
 				return ec.fieldContext_ErrorObject_session(ctx, field)
+			case "serviceVersion":
+				return ec.fieldContext_ErrorObject_serviceVersion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
 		},
@@ -67120,6 +67182,10 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 				return innerFunc(ctx)
 
 			})
+		case "serviceVersion":
+
+			out.Values[i] = ec._ErrorObject_serviceVersion(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

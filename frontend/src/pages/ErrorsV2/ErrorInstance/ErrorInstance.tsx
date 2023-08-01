@@ -236,6 +236,7 @@ const Metadata: React.FC<{
 		{ key: 'environment', label: errorObject?.environment },
 		{ key: 'browser', label: errorObject?.browser },
 		{ key: 'os', label: errorObject?.os },
+		{ key: 'version', label: errorObject?.serviceVersion },
 		{ key: 'url', label: errorObject?.url },
 		{ key: 'timestamp', label: errorObject?.timestamp },
 		{
