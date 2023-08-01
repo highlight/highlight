@@ -25,7 +25,7 @@
 		}
 	},
 	"scripts": {
-		"build": "yarn typegen && vite build && vite build:umd",
+		"build": "yarn typegen && vite build && yarn build:umd",
 		"build:umd": "cp dist/index.umd.cjs dist/index.umd.js",
 		"build:watch": "yarn build --watch",
 		"dev": "vite dev",
