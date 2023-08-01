@@ -84,6 +84,7 @@ func TestHandler_HandleTrace(t *testing.T) {
 		resolver: &public.Resolver{
 			ProducerQueue: &producer,
 			BatchedQueue:  &producer,
+			TracesQueue:   &producer,
 		},
 	}
 	h.HandleTrace(w, r)
