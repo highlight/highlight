@@ -76,7 +76,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 }
 
 // BatchFlushSize set per https://clickhouse.com/docs/en/cloud/bestpractices/bulk-inserts
-const DefaultBatchFlushSize = 8192
+const DefaultBatchFlushSize = 512
 const DefaultBatchedFlushTimeout = 1 * time.Second
 
 type KafkaWorker struct {
