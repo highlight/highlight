@@ -2,6 +2,7 @@ package clickhouse
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
@@ -36,7 +37,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 
 	for _, session := range sessions {
 		if session == nil {
-			return fmt.Errorf("nil session for session %d", session.ID)
+			return errors.New("nil session")
 		}
 
 		if session.Fields == nil {
