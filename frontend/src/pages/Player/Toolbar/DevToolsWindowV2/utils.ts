@@ -98,9 +98,9 @@ export enum Tab {
 	Events = 'Events',
 }
 
-// TODO(spenny): use enum from schema with 'All' addition
 export enum LogLevelValue {
 	All = 'All',
+	// keep up to date with LogLevel schema
 	Debug = 'debug',
 	Error = 'error',
 	Fatal = 'fatal',
@@ -109,9 +109,9 @@ export enum LogLevelValue {
 	Warn = 'warn',
 }
 
-// TODO(spenny): use enum from schema with 'All' addition
 export enum LogSourceValue {
 	All = 'All',
+	// keep up to date with LogSource schema
 	Backend = 'backend',
 	Frontend = 'frontend',
 }
@@ -163,5 +163,9 @@ export const getNetworkResourcesDisplayName = (value: string): string => {
 			return displayName
 		}
 	}
+	return titilize(value)
+}
+
+export const titilize = (value: string): string => {
 	return value?.charAt(0).toUpperCase() + value?.slice(1)
 }
