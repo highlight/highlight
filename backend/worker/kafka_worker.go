@@ -248,6 +248,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 	k.BatchBuffer.lastMessage = nil
 }
 
+//nolint:unused
 func (k *KafkaBatchWorker) flushDataSync(ctx context.Context) {
 	s, iCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.flush"))
 	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
