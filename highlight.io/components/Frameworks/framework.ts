@@ -17,6 +17,12 @@ export const FRAMEWORKS: {
 			image: '/images/companies/icons/nextjs.svg',
 		},
 		{
+			name: 'Remix',
+			description: 'Set up highlight.io with your Remix application.',
+			link: '/docs/getting-started/client-sdk/remix',
+			image: '/images/companies/icons/remix.png',
+		},
+		{
 			name: 'Vue.js',
 			description: 'Set up highlight.io with your Vue application.',
 			link: '/docs/getting-started/client-sdk/vuejs',
