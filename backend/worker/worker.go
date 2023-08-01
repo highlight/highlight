@@ -92,10 +92,6 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, payl
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -437,7 +433,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	// is processed serially, so messages in that slice are processed in order.
 
 	wg := sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(2)
 	go func(_wg *sync.WaitGroup) {
 		wg := sync.WaitGroup{}
 		wg.Add(parallelWorkers)
@@ -471,26 +467,6 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 			Name:                "batched",
 		}
 		k.ProcessMessages(ctx, k.flushLogs)
-		_wg.Done()
-	}(&wg)
-	go func(_wg *sync.WaitGroup) {
-		flushSize := 500
-		buffer := &KafkaBatchBuffer{
-			messageQueue: make(chan *kafkaqueue.Message, flushSize+1),
-		}
-		k := KafkaBatchWorker{
-			KafkaQueue: kafkaqueue.New(ctx,
-				kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}),
-				kafkaqueue.Consumer,
-				&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(2 * flushSize)}),
-			Worker:              w,
-			WorkerThread:        0,
-			BatchBuffer:         buffer,
-			BatchFlushSize:      flushSize,
-			BatchedFlushTimeout: 5 * time.Second,
-			Name:                "datasync",
-		}
-		k.ProcessMessages(ctx, k.flushDataSync)
 		_wg.Done()
 	}(&wg)
 	wg.Wait()
@@ -541,10 +517,6 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 		"processed": true,
 	}); err != nil {
 		return e.Wrap(err, "error updating session in opensearch")
-	}
-
-	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
-		return err
 	}
 
 	return nil
@@ -842,10 +814,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
-		return err
-	}
-
 	if len(visitFields) >= 1 {
 		sessionProperties := map[string]string{
 			"landing_page": visitFields[0].Value,
@@ -1127,10 +1095,6 @@ func (w *Worker) Start(ctx context.Context) {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Warn(e.Wrap(err, "session has reached the max retry count and will be excluded"))
 						if err := w.Resolver.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"Excluded": true}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
-						}
-
-						if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: session.ID}}, strconv.Itoa(session.ID)); err != nil {
-							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error submitting data sync message"))
 						}
 
 						span.Finish()
