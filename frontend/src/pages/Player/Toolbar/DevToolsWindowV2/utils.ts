@@ -109,6 +109,13 @@ export enum LogLevelValue {
 	Warn = 'warn',
 }
 
+// TODO(spenny): use enum from schema with 'All' addition
+export enum LogSourceValue {
+	All = 'All',
+	Backend = 'backend',
+	Frontend = 'frontend',
+}
+
 export enum RequestType {
 	/* [displayName]: requestName */
 	All = 'All',

@@ -43,8 +43,6 @@ const LogLevelFilter = ({ logLevels, setLogLevels }: Props) => {
 		),
 	}))
 
-	console.log('Options', options)
-
 	const valueRender = () => {
 		if (logLevels.includes(LogLevelValue.All)) {
 			return FILTER_LABEL
