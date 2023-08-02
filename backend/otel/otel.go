@@ -141,6 +141,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	var traceErrors = make(map[string][]*model.BackendErrorObjectInput)
 
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
+	var projectSpans = make(map[int][]*clickhouse.TraceRow)
 
 	var traceMetrics = make(map[string][]*model.MetricInput)
 
@@ -153,6 +154,33 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 			for k := 0; k < spans.Len(); k++ {
 				span := spans.At(k)
 				events := span.Events()
+
+				fields, err := extractFields(ctx, extractFieldsParams{
+					span: &span,
+				})
+				if err != nil {
+					lg(ctx, fields).WithError(err).Error("failed to extract fields from span")
+				}
+
+				traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime(), fields.projectIDInt).
+					WithSecureSessionId(fields.sessionID).
+					WithTraceId(span.TraceID().String()).
+					WithSpanId(span.SpanID().String()).
+					WithParentSpanId(span.ParentSpanID().String()).
+					WithTraceState(span.TraceState().AsRaw()).
+					WithSpanName(span.Name()).
+					WithSpanKind(span.Kind().String()).
+					WithDuration(span.StartTimestamp().AsTime(), span.EndTimestamp().AsTime()).
+					WithServiceName(fields.serviceName).
+					WithServiceVersion(fields.serviceVersion).
+					WithStatusCode(span.Status().Code().String()).
+					WithStatusMessage(span.Status().Message()).
+					WithTraceAttributes(fields.attrs).
+					WithEvents(fields.events).
+					WithLinks(fields.links)
+
+				projectSpans[fields.projectIDInt] = append(projectSpans[fields.projectIDInt], traceRow)
+
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
 
@@ -278,6 +306,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if err := o.submitProjectSpans(ctx, projectSpans); err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to submit otel project spans")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		return
+	}
+
 	if err := o.submitProjectLogs(ctx, projectLogs); err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to submit otel project logs")
 		w.WriteHeader(http.StatusServiceUnavailable)
@@ -384,6 +418,30 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 			return e.Wrap(err, "failed to submit otel project logs to public worker queue")
 		}
 	}
+	return nil
+}
+
+func (o *Handler) submitProjectSpans(ctx context.Context, projectTraceRows map[int][]*clickhouse.TraceRow) error {
+	for projectID, traceRows := range projectTraceRows {
+		// Only enable for Highlight's main project
+		if projectID != 1 {
+			continue
+		}
+
+		traceRows := append(traceRows, traceRows...)
+
+		err := o.resolver.TracesQueue.Submit(ctx, &kafkaqueue.Message{
+			Type: kafkaqueue.PushTraces,
+			PushTraces: &kafkaqueue.PushTracesArgs{
+				TraceRows: traceRows,
+			},
+		}, "")
+
+		if err != nil {
+			return e.Wrap(err, "failed to submit otel project traces to public worker queue")
+		}
+	}
+
 	return nil
 }
 

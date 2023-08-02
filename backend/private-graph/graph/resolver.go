@@ -139,6 +139,7 @@ type Resolver struct {
 	ClickhouseClient       *clickhouse.Client
 	Store                  *store.Store
 	DataSyncQueue          kafka_queue.MessageQueue
+	TracesQueue            kafka_queue.MessageQueue
 }
 
 func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {

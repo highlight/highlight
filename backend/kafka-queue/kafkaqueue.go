@@ -72,6 +72,7 @@ const (
 	TopicTypeDefault  TopicType = "default"
 	TopicTypeBatched  TopicType = "batched"
 	TopicTypeDataSync TopicType = "datasync"
+	TopicTypeTraces   TopicType = "traces"
 )
 
 type GetTopicOptions struct {

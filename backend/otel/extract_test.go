@@ -53,6 +53,16 @@ func newEvent(attrs map[string]string) ptrace.SpanEvent {
 	return event
 }
 
+func newSpan() ptrace.Span {
+	traces := ptrace.NewTraces()
+	rspans := traces.ResourceSpans().AppendEmpty()
+	ispans := rspans.ScopeSpans().AppendEmpty()
+	span := ispans.Spans().AppendEmpty()
+	span.Attributes().PutStr(highlight.ProjectIDAttribute, "1")
+
+	return span
+}
+
 func TestExtractFields_ExtractProjectID(t *testing.T) {
 	resource := newResource(t, map[string]any{
 		highlight.DeprecatedProjectIDAttribute: "1",
@@ -264,6 +274,35 @@ func TestExtractFields_ExtractServiceVersion(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, fields.serviceVersion, "abc123")
 	assert.Equal(t, fields.attrs, map[string]string{})
+}
+
+func TestExtractFields_ExtractEvents(t *testing.T) {
+	span := newSpan()
+	event := span.Events().AppendEmpty()
+	event.SetName("event_123")
+
+	fields, err := extractFields(context.TODO(), extractFieldsParams{span: &span})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.events[0]["Name"], "event_123")
+}
+
+func TestExtractFields_ExtractLinks(t *testing.T) {
+	span := newSpan()
+	link := span.Links().AppendEmpty()
+	link.TraceState().FromRaw("link:state")
+
+	fields, err := extractFields(context.TODO(), extractFieldsParams{span: &span})
+	assert.NoError(t, err)
+	assert.Equal(t, fields.links[0]["TraceState"], "link:state")
+}
+
+func TestExtractFields_ExtractEventsLinksNone(t *testing.T) {
+	resource := newResource(t, map[string]any{})
+
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
+	assert.NoError(t, err)
+	assert.Equal(t, len(fields.events), 0)
+	assert.Equal(t, len(fields.links), 0)
 }
 
 func TestExtractFields_OmitLogSeverity(t *testing.T) {

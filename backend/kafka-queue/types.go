@@ -25,6 +25,7 @@ const (
 	MarkBackendSetup                       PayloadType = iota // Deprecated: setup events are written from other payload processing
 	AddSessionFeedback                     PayloadType = iota
 	PushLogs                               PayloadType = iota
+	PushTraces                             PayloadType = iota
 	HubSpotCreateContactForAdmin           PayloadType = iota
 	HubSpotCreateCompanyForWorkspace       PayloadType = iota
 	HubSpotUpdateContactProperty           PayloadType = iota
@@ -106,6 +107,10 @@ type PushLogsArgs struct {
 	LogRows []*clickhouse.LogRow
 }
 
+type PushTracesArgs struct {
+	TraceRows []*clickhouse.TraceRow
+}
+
 type HubSpotCreateContactForAdminArgs struct {
 	AdminID            int
 	Email              string
@@ -156,6 +161,7 @@ type Message struct {
 	PushMetrics                            *PushMetricsArgs
 	AddSessionFeedback                     *AddSessionFeedbackArgs
 	PushLogs                               *PushLogsArgs
+	PushTraces                             *PushTracesArgs
 	HubSpotCreateContactForAdmin           *HubSpotCreateContactForAdminArgs
 	HubSpotCreateCompanyForWorkspace       *HubSpotCreateCompanyForWorkspaceArgs
 	HubSpotUpdateContactProperty           *HubSpotUpdateContactPropertyArgs
