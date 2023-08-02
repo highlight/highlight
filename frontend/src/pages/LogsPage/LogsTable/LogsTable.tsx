@@ -291,26 +291,8 @@ const LogsTableInner = ({
 			{paddingBottom > 0 && <Box style={{ height: paddingBottom }} />}
 
 			{loadingAfter && (
-				<Box
-					backgroundColor="white"
-					border="dividerWeak"
-					display="flex"
-					flexGrow={1}
-					alignItems="center"
-					justifyContent="center"
-					padding="12"
-					position="absolute"
-					shadow="medium"
-					borderRadius="6"
-					textAlign="center"
-					style={{
-						bottom: 20,
-						left: 'calc(50% - 150px)',
-						width: 300,
-						zIndex: 10,
-					}}
-				>
-					<Text color="weak">Loading...</Text>
+				<Box backgroundColor="nested">
+					<LoadingBox />
 				</Box>
 			)}
 		</div>
