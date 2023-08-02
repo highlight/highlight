@@ -29,6 +29,7 @@ export type BackendErrorObjectInput = {
 	log_cursor?: InputMaybe<Scalars['String']>
 	payload?: InputMaybe<Scalars['String']>
 	request_id?: InputMaybe<Scalars['String']>
+	service: ServiceInput
 	session_secure_id?: InputMaybe<Scalars['String']>
 	source: Scalars['String']
 	span_id?: InputMaybe<Scalars['String']>
@@ -169,6 +170,11 @@ export type ReplayEventInput = {
 
 export type ReplayEventsInput = {
 	events: Array<InputMaybe<ReplayEventInput>>
+}
+
+export type ServiceInput = {
+	name: Scalars['String']
+	version: Scalars['String']
 }
 
 export type Session = {

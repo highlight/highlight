@@ -753,3 +753,57 @@ func UnmarshallMouseInteractionEvent(data json.RawMessage) (*MouseInteractionEve
 	}
 	return &aux, nil
 }
+
+type Event struct {
+	Type      EventType
+	Timestamp int64
+	Data      interface{}
+}
+
+func containsAnyOf(str string, substrings []string) bool {
+	for _, s := range substrings {
+		if len(s) > 0 && len(str) >= len(s) && str != s && (str == s || str[len(str)-len(s):] == s) {
+			return true
+		}
+	}
+	return false
+}
+
+func FilterEventsForInsights(events []interface{}) ([]*Event, error) {
+	var parsedEvents []*Event
+	for _, e := range events {
+		if eMap, ok := e.(map[string]interface{}); ok {
+			if eMap["_sid"] != nil {
+				delete(eMap, "_sid")
+			}
+
+			if eMap["type"] != nil {
+				eventType := EventType(int(eMap["type"].(float64)))
+				timestamp := int64(eMap["timestamp"].(float64))
+
+				switch eventType {
+				case FullSnapshot:
+				case IncrementalSnapshot:
+				case Custom:
+					data, _ := json.Marshal(eMap["data"])
+					stringifiedData := string(data)
+
+					if !containsAnyOf(stringifiedData, []string{"identify", "authenticate", "performance"}) {
+						parsedEvents = append(parsedEvents, &Event{
+							Type:      eventType,
+							Timestamp: timestamp,
+							Data:      eMap["data"],
+						})
+					}
+				default:
+					parsedEvents = append(parsedEvents, &Event{
+						Type:      eventType,
+						Timestamp: timestamp,
+						Data:      eMap["data"],
+					})
+				}
+			}
+		}
+	}
+	return parsedEvents, nil
+}
