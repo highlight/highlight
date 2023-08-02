@@ -5622,26 +5622,14 @@ body {
   color: var(--_1pyqka9x);
 }
 .bzezgw0 {
-  background: var(--_1pyqka90);
   width: 100%;
   height: 100%;
 }
-.bzezgw1 {
-  width: 100%;
-  height: 500px;
-  display: flex;
-  flex-direction: column;
-  padding-left: 8px;
-  overflow-x: hidden;
-  overflow-y: auto;
-  word-wrap: break-word;
-}
-._1o6rn2q0 {
+._65ghl30 {
   display: grid;
-  grid-template-columns: 100px 80px 80px;
-  grid-gap: 6px;
-  border-bottom: 1px solid var(--_1pyqka9u);
+  border: 1px solid var(--_1pyqka9k);
   padding: 12px 14px 10px;
+  width: 100%;
 }
 ._189mxz60 {
   width: 100%;

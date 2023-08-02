@@ -5,7 +5,6 @@ import { Box } from '../Box/Box'
 
 import { Body } from './Body/Body'
 import { Cell } from './Cell/Cell'
-import { Head } from './Head/Head'
 import { Header } from './Header/Header'
 import { Row } from './Row/Row'
 
@@ -35,7 +34,6 @@ const Table: React.FC<Props> & {
 
 Table.Body = Body
 Table.Cell = Cell
-Table.Head = Head
 Table.Header = Header
 Table.Row = Row
 

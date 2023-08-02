@@ -1,19 +1,25 @@
 import React from 'react'
-import { Box } from '../../Box/Box'
+import clsx from 'clsx'
+
+import * as styles from './styles.css'
 
 type Props = {
 	children: React.ReactNode
+	gridColumns: string
+	header?: boolean
 }
 
-export const Row: React.FC<Props> = ({ children }) => {
+export const Row: React.FC<Props> = ({ children, gridColumns, header }) => {
 	return (
-		<Box
-			borderBottom="dividerWeak"
-			display="flex"
-			flexDirection="row"
-			gap="24"
+		<div
+			className={clsx(styles.row, {
+				[styles.header]: header,
+			})}
+			style={{
+				gridTemplateColumns: gridColumns,
+			}}
 		>
 			{children}
-		</Box>
+		</div>
 	)
 }
