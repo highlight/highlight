@@ -2337,6 +2337,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	projectID := sessionObj.ProjectID
 	hasBeacon := sessionObj.BeaconTime != nil
+	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to get workspace settings from project to check asset replacement")
+	}
+
 	g.Go(func() error {
 		defer util.Recover()
 		parseEventsSpan, parseEventsCtx := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
@@ -2378,8 +2383,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					}
 
 					// Replace any static resources with our own, hosted in S3
-					settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
-					if err == nil && settings.ReplaceAssets {
+					if settings != nil && settings.ReplaceAssets {
 						assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
 							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID), tracer.Tag("session_secure_id", sessionSecureID))
 						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB, r.Redis)
@@ -2387,8 +2391,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
 						}
-					} else if err != nil {
-						log.WithContext(ctx).WithError(err).Error("failed to get workspace settings from project to check asset replacement")
 					}
 
 					if event.Type == parse.FullSnapshot {
