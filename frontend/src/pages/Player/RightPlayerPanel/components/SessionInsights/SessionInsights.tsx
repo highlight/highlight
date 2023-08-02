@@ -1,4 +1,11 @@
-import { Badge, Box, IconSolidArrowCircleRight, IconSolidSparkles, Tag, Text } from '@highlight-run/ui'
+import {
+	Badge,
+	Box,
+	IconSolidArrowCircleRight,
+	IconSolidSparkles,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
 import clsx from 'clsx'
 import { useEffect, useState } from 'react'
 
