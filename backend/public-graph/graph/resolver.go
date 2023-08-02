@@ -68,6 +68,7 @@ type Resolver struct {
 	ProducerQueue kafka_queue.MessageQueue
 	BatchedQueue  kafka_queue.MessageQueue
 	DataSyncQueue kafka_queue.MessageQueue
+	TracesQueue   kafka_queue.MessageQueue
 	MailClient    *sendgrid.Client
 	StorageClient storage.Client
 	OpenSearch    *opensearch.Client

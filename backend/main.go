@@ -325,6 +325,7 @@ func main() {
 
 	kafkaProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Producer, nil)
 	kafkaBatchedProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Producer, nil)
+	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, nil)
 	kafkaDataSyncProducer := kafkaqueue.New(ctx,
 		kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}),
 		kafkaqueue.Producer,
@@ -380,6 +381,7 @@ func main() {
 		ClickhouseClient:       clickhouseClient,
 		Store:                  store.NewStore(db, opensearchClient, redisClient),
 		DataSyncQueue:          kafkaDataSyncProducer,
+		TracesQueue:            kafkaTracesProducer,
 	}
 	private.SetupAuthClient(ctx, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
@@ -495,6 +497,7 @@ func main() {
 			ProducerQueue: kafkaProducer,
 			BatchedQueue:  kafkaBatchedProducer,
 			DataSyncQueue: kafkaDataSyncProducer,
+			TracesQueue:   kafkaTracesProducer,
 			MailClient:    sendgrid.NewSendClient(sendgridKey),
 			StorageClient: storageClient,
 			OpenSearch:    opensearchClient,
@@ -585,6 +588,7 @@ func main() {
 			ProducerQueue: kafkaProducer,
 			BatchedQueue:  kafkaBatchedProducer,
 			DataSyncQueue: kafkaDataSyncProducer,
+			TracesQueue:   kafkaTracesProducer,
 			MailClient:    sendgrid.NewSendClient(sendgridKey),
 			StorageClient: storageClient,
 			OpenSearch:    opensearchClient,
