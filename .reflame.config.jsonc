@@ -24,55 +24,27 @@
   ],
   "environments": {
     "production": {
-      "REACT_APP_FIREBASE_CONFIG_OBJECT": "{    apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',    authDomain: 'auth.highlight.run',    databaseURL: 'https://highlight-f5c5b.firebaseio.com',    projectId: 'highlight-f5c5b',    storageBucket: 'highlight-f5c5b.appspot.com',    messagingSenderId: '263184175068',    appId: '1:263184175068:web:f8190c20320087d1c6c919',}",
       "REACT_APP_COMMIT_SHA": {
         "type": "expression",
         "value": "Reflame.gitCommitSha"
       },
-      "REACT_APP_PRIVATE_GRAPH_URI": "https://pri.highlight.io",
-      "REACT_APP_ONPREM": "false",
       "REACT_APP_FRONTEND_URI": {
         "type": "expression",
         "value": "window.location.origin"
       },
-      "REACT_APP_FRONTEND_ORG": "1jdkoe52",
-      "REACT_APP_PUBLIC_GRAPH_URI": "https://pub.highlight.run",
-      "REACT_APP_AUTH_MODE": "firebase",
-      "SLACK_CLIENT_ID": "1354469824468.1868913469441",
-      "REACT_APP_STRIPE_API_PK": "pk_live_51Hlqh1Gz4ry65q42eza36EDSeIpFng39KpZVJzPpsYg5AM7h1rpysaCcZQHnC4J5uNmbjXP6rmSRuf9yr6rfGNOB00aZ73tU9f",
-      "CLICKUP_CLIENT_ID": "7IRYQ44K5NKLWWFPBPJII08BW7KS4063",
-      "DISCORD_CLIENT_ID": "1024079182013149185",
-      "REACT_APP_FRONT_INTEGRATION_CLIENT_ID": "e77eb8f15b02423c9525",
-      "HEIGHT_CLIENT_ID": "w8GzB4GI8gGUE2iEAQMY8Wck44gK2ek2i4Q8q4myKQY",
-      "LINEAR_CLIENT_ID": "f60ff43c7376d0aceaa1e111db39e60d",
-      "DEMO_PROJECT_ID": "1344"
     },
     "development": {
-      "REACT_APP_FIREBASE_CONFIG_OBJECT": "{    apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',    authDomain: 'auth.highlight.run',    databaseURL: 'https://highlight-f5c5b.firebaseio.com',    projectId: 'highlight-f5c5b',    storageBucket: 'highlight-f5c5b.appspot.com',    messagingSenderId: '263184175068',    appId: '1:263184175068:web:f8190c20320087d1c6c919',}",
       "REACT_APP_COMMIT_SHA": {
         "type": "expression",
         "value": "Reflame.gitCommitSha"
       },
-      "REACT_APP_PRIVATE_GRAPH_URI": "https://localhost:8082/private",
-      "REACT_APP_ONPREM": "false",
       "REACT_APP_FRONTEND_URI": {
         "type": "expression",
         "value": "window.location.origin"
       },
-      "REACT_APP_FRONTEND_ORG": "1",
-      "REACT_APP_PUBLIC_GRAPH_URI": "https://localhost:8082/public",
-      "REACT_APP_AUTH_MODE": "firebase",
-      "SLACK_CLIENT_ID": "1354469824468.1868913469441",
-      "REACT_APP_STRIPE_API_PK": "pk_test_51Hlqh1Gz4ry65q42v4lYEnAGIB4Tq5rzWwE7PgpdCpQjqJjg1iVuosCzEGFbaJNTxDpo77F3YwOfrSlUp8g4wZYB00ojMQX0DP",
-      "CLICKUP_CLIENT_ID": "7DAKQO04LB9AT9J9I7ZA37T9HKJO2PPD",
-      "DISCORD_CLIENT_ID": "1024079182013149185",
-      "REACT_APP_FRONT_INTEGRATION_CLIENT_ID": "e77eb8f15b02423c9525",
-      "HEIGHT_CLIENT_ID": "N58AdgpuOi2AmSeG2wKc8Osayo8WIU0UoQGwACiYqyI",
-      "LINEAR_CLIENT_ID": "f60ff43c7376d0aceaa1e111db39e60d",
-      "DEMO_PROJECT_ID": "2"
     },
   },
-  "environment": "production",
+  "defaultEnvironment": "production",
   "scripts": [
     "/intercom.js",
     "/index",
