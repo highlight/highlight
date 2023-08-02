@@ -535,6 +535,7 @@ type ErrorGroup {
 	first_occurrence: Timestamp
 	last_occurrence: Timestamp
 	viewed: Boolean
+	serviceName: String
 }
 
 type ErrorMetadata {

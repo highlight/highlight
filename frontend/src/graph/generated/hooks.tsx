@@ -8241,6 +8241,7 @@ export const GetErrorGroupDocument = gql`
 			is_public
 			last_occurrence
 			first_occurrence
+			serviceName
 		}
 	}
 `

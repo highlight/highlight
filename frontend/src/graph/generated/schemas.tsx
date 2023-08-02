@@ -440,6 +440,7 @@ export type ErrorGroup = {
 	metadata_log: Array<Maybe<ErrorMetadata>>
 	project_id: Scalars['Int']
 	secure_id: Scalars['String']
+	serviceName?: Maybe<Scalars['String']>
 	snoozed_until?: Maybe<Scalars['Timestamp']>
 	stack_trace?: Maybe<Scalars['String']>
 	state: ErrorState
