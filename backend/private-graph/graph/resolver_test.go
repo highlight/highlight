@@ -550,8 +550,12 @@ func TestResolver_isAdminInProjectOrDemoProject(t *testing.T) {
 }
 
 func TestGetSlackChannelsFromSlack(t *testing.T) {
+	token := os.Getenv("TEST_SLACK_ACCESS_TOKEN")
+	if token == "" {
+		t.Skip("TEST_SLACK_ACCESS_TOKEN is not set")
+	}
 	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
-		w := model.Workspace{SlackAccessToken: pointy.String(os.Getenv("TEST_SLACK_ACCESS_TOKEN"))}
+		w := model.Workspace{SlackAccessToken: pointy.String(token)}
 		if err := DB.Create(&w).Error; err != nil {
 			t.Fatal(e.Wrap(err, "error inserting workspace"))
 		}
