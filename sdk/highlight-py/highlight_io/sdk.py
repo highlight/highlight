@@ -88,9 +88,7 @@ class H(object):
             service_name=service_name,
             service_version=service_version,
         )
-        self._trace_provider = TracerProvider(
-            resource=resource
-        )
+        self._trace_provider = TracerProvider(resource=resource)
         self._trace_provider.add_span_processor(
             BatchSpanProcessor(
                 OTLPSpanExporter(
@@ -325,6 +323,7 @@ class H(object):
 
         logging.setLogRecordFactory(factory)
         H._logging_instrumented = True
+
 
 def _build_resource(
     service_name: str,
