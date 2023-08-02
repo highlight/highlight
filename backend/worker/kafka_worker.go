@@ -76,7 +76,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 }
 
 // BatchFlushSize set per https://clickhouse.com/docs/en/cloud/bestpractices/bulk-inserts
-const DefaultBatchFlushSize = 8192
+const DefaultBatchFlushSize = 512
 const DefaultBatchedFlushTimeout = 1 * time.Second
 
 type KafkaWorker struct {
@@ -248,6 +248,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 	k.BatchBuffer.lastMessage = nil
 }
 
+//nolint:unused
 func (k *KafkaBatchWorker) flushDataSync(ctx context.Context) {
 	s, iCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.flush"))
 	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))

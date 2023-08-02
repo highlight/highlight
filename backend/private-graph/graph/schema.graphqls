@@ -498,6 +498,7 @@ type ErrorObject {
 	browser: String
 	environment: String
 	session: Session
+	serviceVersion: String
 }
 
 type ErrorInstance {

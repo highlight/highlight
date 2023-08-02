@@ -1,6 +1,6 @@
 // src/app/utils/highlight.config.ts:
 import CONSTANTS from '@/app/constants'
-import { Highlight } from '@highlight-run/next'
+import { Highlight } from '@highlight-run/next/server'
 
 if (process.env.NODE_ENV === 'development') {
 	// Highlight's dev instance expects HTTPS. Disable HTTPS errors in development.

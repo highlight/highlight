@@ -13,3 +13,7 @@
 ### 3.1.6
 
 - Bumping to match `@highlight-run/node`
+
+### 3.1.7
+
+- Bumping to match `@highlight-run/node`
