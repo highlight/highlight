@@ -150,7 +150,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 			log.WithContext(ctxW).Error(err)
 			continue
 		}
-		if false && exceeded != nil {
+		if exceeded != nil {
 			quotaExceededByProject[projectId] = *exceeded
 		} else {
 			projectsToQuery = append(projectsToQuery, projectId)
