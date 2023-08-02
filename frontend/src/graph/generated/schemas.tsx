@@ -507,6 +507,7 @@ export type ErrorObject = {
 	payload?: Maybe<Scalars['String']>
 	project_id: Scalars['Int']
 	request_id?: Maybe<Scalars['String']>
+	serviceVersion?: Maybe<Scalars['String']>
 	session?: Maybe<Session>
 	session_id?: Maybe<Scalars['Int']>
 	source?: Maybe<Scalars['String']>

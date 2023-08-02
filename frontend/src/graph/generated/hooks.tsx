@@ -161,6 +161,7 @@ export const ErrorObjectFragmentDoc = gql`
 		os
 		browser
 		environment
+		serviceVersion
 	}
 `
 export const MarkErrorGroupAsViewedDocument = gql`

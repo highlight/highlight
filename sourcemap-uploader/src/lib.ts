@@ -21,11 +21,13 @@ export const uploadSourcemaps = async ({
   appVersion,
   path,
   basePath,
+  allowNoop,
 }: {
   apiKey: string;
   appVersion: string;
   path: string;
   basePath: string;
+  allowNoop?: boolean;
 }) => {
   if (!apiKey || apiKey === "") {
     if (process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY) {
@@ -71,7 +73,7 @@ export const uploadSourcemaps = async ({
 
   console.info(`Starting to upload source maps from ${path}`);
 
-  const fileList = await getAllSourceMapFiles([path]);
+  const fileList = await getAllSourceMapFiles([path], { allowNoop });
 
   if (fileList.length === 0) {
     console.error(
@@ -124,7 +126,10 @@ export const uploadSourcemaps = async ({
   );
 };
 
-async function getAllSourceMapFiles(paths: string[]) {
+async function getAllSourceMapFiles(
+  paths: string[],
+  { allowNoop }: { allowNoop?: boolean }
+) {
   const map: { path: string; name: string }[] = [];
 
   await Promise.all(
@@ -141,6 +146,7 @@ async function getAllSourceMapFiles(paths: string[]) {
       }
 
       if (
+        !allowNoop &&
         !globSync("**/*.js.map", {
           cwd: realPath,
           nodir: true,

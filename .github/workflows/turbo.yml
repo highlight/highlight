@@ -184,6 +184,7 @@ jobs:
 
                   if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
                     export CYPRESS_CLIENT_VERSION="dev-${COMMIT_SHA}"
+                    export REACT_APP_COMMIT_SHA="${COMMIT_SHA}"
                   fi
 
                   # start highlight
@@ -192,7 +193,7 @@ jobs:
                   docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
                   ./run-backend.sh >> /tmp/highlight.log 2>&1 &
                   yarn install >> /tmp/highlight.log 2>&1;
-                  doppler run -- yarn build:frontend >> /tmp/highlight.log 2>&1;
+                  doppler run --preserve-env -- yarn build:frontend >> /tmp/highlight.log 2>&1;
                   yarn workspace @highlight-run/client dev &
                   yarn workspace highlight.run dev &
                   yarn workspace @highlight-run/frontend vite preview --port 3000 &

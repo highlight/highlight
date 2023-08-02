@@ -1,16 +1,18 @@
 'use client'
 
-import { H, HighlightOptions } from 'highlight.run'
+import { H as localH, HighlightOptions } from 'highlight.run'
+
+export { localH as H }
 
 import { useEffect } from 'react'
 
-interface Props extends HighlightOptions {
+export interface Props extends HighlightOptions {
 	projectId?: string
 }
 
 export function HighlightInit({ projectId, ...highlightOptions }: Props) {
 	useEffect(() => {
-		projectId && H.init(projectId, highlightOptions)
+		projectId && localH.init(projectId, highlightOptions)
 	}, []) // eslint-disable-line react-hooks/exhaustive-deps
 
 	return null
