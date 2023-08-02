@@ -16,6 +16,7 @@ import (
 	"time"
 
 	github2 "github.com/google/go-github/v50/github"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/integrations/github"
 
 	"gorm.io/gorm/clause"
@@ -1273,19 +1274,24 @@ func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sess
 	return b, nil
 }
 
-func (r *Resolver) getSessionInsight(ctx context.Context, projectID int, sessionID int) ([]byte, error) {
-	res, err := r.LambdaClient.GetSessionInsight(ctx, projectID, sessionID)
+func (r *Resolver) getSessionInsight(ctx context.Context, events []interface{}) (string, error) {
+	parsedEvents, err := parse.FilterEventsForInsights(events)
 	if err != nil {
-		return nil, e.Wrap(err, "failed to make session insight request")
+		return "", e.Wrap(err, "Failed filter session events")
 	}
-	if res.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("session insight returned %d", res.StatusCode))
-	}
-	b, err := io.ReadAll(res.Body)
+
+	b, err := json.Marshal(parsedEvents)
+
 	if err != nil {
-		return nil, e.Wrap(err, "failed to read body of session insight response")
+		return "", err
 	}
-	return b, nil
+
+	userPrompt := fmt.Sprintf(`
+	Input: 
+	%v
+	`, string(b))
+
+	return userPrompt, nil
 }
 
 // Returns the current Admin or an Admin with ID = 0 if the current Admin is a guest
