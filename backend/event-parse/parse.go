@@ -20,6 +20,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/lukasbob/srcset"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -760,15 +761,6 @@ type Event struct {
 	Data      interface{}
 }
 
-func containsAnyOf(str string, substrings []string) bool {
-	for _, s := range substrings {
-		if len(s) > 0 && len(str) >= len(s) && str != s && (str == s || str[len(str)-len(s):] == s) {
-			return true
-		}
-	}
-	return false
-}
-
 func FilterEventsForInsights(events []interface{}) ([]*Event, error) {
 	var parsedEvents []*Event
 	for _, e := range events {
@@ -788,7 +780,7 @@ func FilterEventsForInsights(events []interface{}) ([]*Event, error) {
 					data, _ := json.Marshal(eMap["data"])
 					stringifiedData := string(data)
 
-					if !containsAnyOf(stringifiedData, []string{"identify", "authenticate", "performance"}) {
+					if !util.StringContainsAnyOf(stringifiedData, []string{"identify", "authenticate", "performance"}) {
 						parsedEvents = append(parsedEvents, &Event{
 							Type:      eventType,
 							Timestamp: timestamp,
