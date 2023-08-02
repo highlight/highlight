@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -149,7 +150,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 			log.WithContext(ctxW).Error(err)
 			continue
 		}
-		if exceeded != nil {
+		if false && exceeded != nil {
 			quotaExceededByProject[projectId] = *exceeded
 		} else {
 			projectsToQuery = append(projectsToQuery, projectId)
@@ -215,7 +216,12 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 		if quotaExceededByProject[logRow.ProjectId] {
 			continue
 		}
-		filteredRows = append(filteredRows, logRow)
+
+		// Temporarily filter NextJS logs
+		// TODO - remove this condition when https://github.com/highlight/highlight/issues/6181 is fixed
+		if !strings.HasPrefix(logRow.Body, "ENOENT: no such file or directory") && !strings.HasPrefix(logRow.Body, "connect ECONNREFUSED") {
+			filteredRows = append(filteredRows, logRow)
+		}
 	}
 
 	wSpan, wCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.process"))
