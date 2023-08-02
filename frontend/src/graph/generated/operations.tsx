@@ -4211,6 +4211,7 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 						| 'secureSessionID'
 						| 'source'
 						| 'serviceName'
+						| 'serviceVersion'
 					>
 				}
 		>

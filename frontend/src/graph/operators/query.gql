@@ -1989,6 +1989,7 @@ query GetLogs(
 				secureSessionID
 				source
 				serviceName
+				serviceVersion
 			}
 		}
 		pageInfo {

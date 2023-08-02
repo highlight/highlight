@@ -610,6 +610,7 @@ type Log {
 	secureSessionID: String
 	source: String
 	serviceName: String
+	serviceVersion: String
 }
 
 type LogEdge implements Edge {
@@ -691,6 +692,7 @@ enum ReservedLogKey {
 	trace_id
 	source
 	service_name
+	service_version
 }
 
 enum LogSource {

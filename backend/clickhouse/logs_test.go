@@ -921,6 +921,49 @@ func TestReadLogsWithServiceNameFilter(t *testing.T) {
 	assert.Len(t, payload.Edges, 2)
 }
 
+func TestReadLogsWithServiceVersionFilter(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+	rows := []*LogRow{
+		NewLogRow(now, 1),
+		NewLogRow(now, 1, WithServiceVersion("abc123")),
+		NewLogRow(now, 1, WithServiceVersion("xyz456")),
+		NewLogRow(now, 1,
+			WithLogAttributes(map[string]string{
+				"service_version": "abc123",
+			}),
+		),
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "service_version:abc123",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "abc123", *payload.Edges[0].Node.ServiceVersion)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "service_version:*bc1*",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "abc123", *payload.Edges[0].Node.ServiceVersion)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "service_version:abc123 service_version:xyz456",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 2)
+}
+
 func TestLogsKeys(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)
@@ -990,6 +1033,10 @@ func TestLogsKeys(t *testing.T) {
 		},
 		{
 			Name: "service_name",
+			Type: modelInputs.LogKeyTypeString,
+		},
+		{
+			Name: "service_version",
 			Type: modelInputs.LogKeyTypeString,
 		},
 	}

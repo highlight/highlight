@@ -228,6 +228,7 @@ const LogsTableInner = ({
 						message: log.message,
 						secure_session_id: log.secureSessionID,
 						service_name: log.serviceName,
+						service_version: log.serviceVersion,
 						source: log.source,
 						span_id: log.spanID,
 						trace_id: log.traceID,

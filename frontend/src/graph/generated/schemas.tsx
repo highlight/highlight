@@ -755,6 +755,7 @@ export type Log = {
 	message: Scalars['String']
 	secureSessionID?: Maybe<Scalars['String']>
 	serviceName?: Maybe<Scalars['String']>
+	serviceVersion?: Maybe<Scalars['String']>
 	source?: Maybe<Scalars['String']>
 	spanID?: Maybe<Scalars['String']>
 	timestamp: Scalars['Timestamp']
@@ -2387,6 +2388,7 @@ export enum ReservedLogKey {
 	Message = 'message',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
+	ServiceVersion = 'service_version',
 	Source = 'source',
 	SpanId = 'span_id',
 	TraceId = 'trace_id',
