@@ -109,6 +109,8 @@ type LogsTableInnerProps = {
 	selectedCursor: string | undefined
 }
 
+const LOADING_AFTER_HEIGHT = 28
+
 const LogsTableInner = ({
 	logEdges,
 	loadingAfter,
@@ -186,10 +188,14 @@ const LogsTableInner = ({
 	const totalSize = rowVirtualizer.getTotalSize()
 	const virtualRows = rowVirtualizer.getVirtualItems()
 	const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start || 0 : 0
-	const paddingBottom =
+	let paddingBottom =
 		virtualRows.length > 0
 			? totalSize - (virtualRows[virtualRows.length - 1]?.end || 0)
 			: 0
+
+	if (!loadingAfter) {
+		paddingBottom += LOADING_AFTER_HEIGHT
+	}
 
 	useEffect(() => {
 		// Collapse all rows when search changes
@@ -293,25 +299,12 @@ const LogsTableInner = ({
 
 			{loadingAfter && (
 				<Box
-					backgroundColor="white"
-					border="dividerWeak"
-					display="flex"
-					flexGrow={1}
-					alignItems="center"
-					justifyContent="center"
-					padding="12"
-					position="absolute"
-					shadow="medium"
-					borderRadius="6"
-					textAlign="center"
+					backgroundColor="nested"
 					style={{
-						bottom: 20,
-						left: 'calc(50% - 150px)',
-						width: 300,
-						zIndex: 10,
+						height: `${LOADING_AFTER_HEIGHT}px`,
 					}}
 				>
-					<Text color="weak">Loading...</Text>
+					<LoadingBox />
 				</Box>
 			)}
 		</div>
