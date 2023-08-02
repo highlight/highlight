@@ -38,8 +38,7 @@ export const FeatureConfig: { [key: number]: Config } = {
 	},
 	[Feature.AiSessionInsights]: {
 		workspace: true,
-		percent: 0,
-		projectOverride: new Set<string>(['1']),
+		percent: 100,
 	},
 } as const
 
