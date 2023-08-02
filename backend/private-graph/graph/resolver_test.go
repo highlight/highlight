@@ -5,6 +5,7 @@ import (
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/store"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"strconv"
 	"testing"
@@ -546,4 +547,20 @@ func TestResolver_isAdminInProjectOrDemoProject(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetSlackChannelsFromSlack(t *testing.T) {
+	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+		w := model.Workspace{SlackAccessToken: pointy.String(os.Getenv("TEST_SLACK_ACCESS_TOKEN"))}
+		if err := DB.Create(&w).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting workspace"))
+		}
+
+		r := &queryResolver{Resolver: &Resolver{DB: DB, Redis: redis.NewClient()}}
+		channels, count, err := r.GetSlackChannelsFromSlack(context.Background(), w.ID)
+		assert.NoError(t, err)
+		assert.NotNil(t, channels)
+		assert.Greater(t, count, 0)
+		assert.Greater(t, len(*channels), 0)
+	})
 }

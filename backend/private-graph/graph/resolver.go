@@ -3104,25 +3104,26 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 			Limit: 1000,
 			// public_channel is for public channels in the Slack workspace
 			// private is for private channels in the Slack workspace that the Bot is included in
-			// im is for all individuals in the Slack workspace
 			// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
-			Types: []string{"public_channel", "private_channel", "mpim", "im"},
+			Types: []string{"public_channel", "private_channel", "mpim"},
 		}
 		allSlackChannelsFromAPI := []slack.Channel{}
 
 		// Slack paginates the channels/people listing.
 		for {
 			channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
+			getConversationsParam.Cursor = cursor
 			if err != nil {
 				return nil, e.Wrap(err, "error getting Slack channels from Slack.")
 			}
 
 			allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
 
-			if cursor == "" {
+			if getConversationsParam.Cursor == "" {
 				break
 			}
-
+			// delay the next slack call to avoid getting rate limited
+			time.Sleep(time.Second)
 		}
 
 		// We need to get the users in the Slack channel in order to get their name.
