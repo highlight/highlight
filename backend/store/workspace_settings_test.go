@@ -29,6 +29,6 @@ func BenchmarkStore_GetAllWorkspaceSettings(b *testing.B) {
 	s := model.AllWorkspaceSettings{WorkspaceID: 1}
 	store.db.Create(&s)
 	for i := 0; i < b.N; i++ {
-		store.GetAllWorkspaceSettings(context.Background(), 1)
+		_, _ = store.GetAllWorkspaceSettings(context.Background(), 1)
 	}
 }
