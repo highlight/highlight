@@ -1,0 +1,52 @@
+{
+	"name": "@highlight-run/remix",
+	"version": "0.1.0",
+	"description": "Client for interfacing with Highlight in Remix",
+	"packageManager": "yarn@3.5.0",
+	"author": "",
+	"license": "Apache-2.0",
+	"files": [
+		"dist",
+		"highlight-init.d.ts",
+		"handle-error.d.ts",
+		"index.d.ts"
+	],
+	"exports": {
+		"./server": {
+			"types": "./dist/server.d.ts",
+			"import": "./dist/server.mjs",
+			"require": "./dist/server.js"
+		},
+		"./client": {
+			"types": "./dist/client.d.ts",
+			"import": "./dist/client.mjs",
+			"require": "./dist/client.js"
+		},
+		"./report-dialog": {
+			"types": "./dist/report-dialog.d.ts",
+			"import": "./dist/report-dialog.mjs",
+			"require": "./dist/report-dialog.js"
+		}
+	},
+	"scripts": {
+		"typegen": "tsup --dts-only",
+		"dev": "tsup --watch",
+		"build": "tsup"
+	},
+	"peerDependencies": {
+		"highlight.run": ">=7.4.0",
+		"react": ">=18"
+	},
+	"dependencies": {
+		"@highlight-run/node": "workspace:*",
+		"@highlight-run/react": "workspace:*",
+		"@opentelemetry/instrumentation": "0.41.1",
+		"highlight.run": "workspace:*",
+		"js-cookie": "^3.0.5"
+	},
+	"devDependencies": {
+		"@remix-run/react": "^1.18.1",
+		"tsup": "^7.1.0",
+		"typescript": "^5.1.6"
+	}
+}

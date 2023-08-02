@@ -245,6 +245,7 @@
         "/src/listeners/network-listener/utils/utils": "/listeners/network-listener/utils/utils.ts",
         "/src/utils/secure-id": "/utils/secure-id.ts",
         "/src/utils/sessionStorage/highlightSession": "/utils/sessionStorage/highlightSession.ts",
+        "/src/utils/sessionStorage/sessionStorageKeys": "/utils/sessionStorage/sessionStorageKeys.ts",
       },
       "nodejsCompatibility": {
         "omitModuleExtension": true,
