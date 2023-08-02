@@ -7542,7 +7542,7 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model:       "gpt-3.5-turbo-16k",
+			Model:       openai.GPT3Dot5Turbo16K,
 			Temperature: 0.7,
 			Messages: []openai.ChatCompletionMessage{
 				{
