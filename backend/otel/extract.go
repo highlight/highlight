@@ -45,6 +45,9 @@ type extractedFields struct {
 	metricEventName  string
 	metricEventValue float64
 
+	events []map[string]any
+	links  []map[string]any
+
 	// This represents the merged result of resource, span...log attributes
 	// _after_ we extract fields out. In other words, if `serviceName` is extracted, it won't be included
 	// in this map.
@@ -72,6 +75,29 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 
 	if params.span != nil {
 		spanAttributes = params.span.Attributes().AsRaw()
+
+		spanEvents := params.span.Events()
+		fields.events = make([]map[string]any, spanEvents.Len())
+		for i := 0; i < spanEvents.Len(); i++ {
+			event := spanEvents.At(i)
+			fields.events[i] = map[string]any{
+				"Timestamp":  event.Timestamp().AsTime(),
+				"Name":       event.Name(),
+				"Attributes": event.Attributes().AsRaw(),
+			}
+		}
+
+		spanLinks := params.span.Links()
+		fields.links = make([]map[string]any, spanLinks.Len())
+		for i := 0; i < spanLinks.Len(); i++ {
+			link := spanLinks.At(i)
+			fields.links[i] = map[string]any{
+				"TraceId":    link.TraceID().String(),
+				"SpanId":     link.SpanID().String(),
+				"TraceState": link.TraceState().AsRaw(),
+				"Attributes": link.Attributes().AsRaw(),
+			}
+		}
 	}
 
 	if params.event != nil {

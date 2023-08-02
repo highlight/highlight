@@ -77,7 +77,7 @@ func NewClient() *Client {
 			redisClient: client,
 			Cache: cache.New(&cache.Options{
 				Redis:      client,
-				LocalCache: cache.NewTinyLFU(1000, time.Minute),
+				LocalCache: cache.NewTinyLFU(10000, time.Minute),
 			}),
 		}
 	} else {

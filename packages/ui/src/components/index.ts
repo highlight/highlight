@@ -29,7 +29,7 @@ export { Tabs } from './Tabs/Tabs'
 export { Tag } from './Tag/Tag'
 export { Text } from './Text/Text'
 export { TextLink } from './TextLink/TextLink'
-export { Tooltip } from './Tooltip/Tooltip'
+export { Tooltip, TooltipContent } from './Tooltip/Tooltip'
 export * from './icons'
 
 // Expose Ariakit so you can access the building blocks if needed. Shouldn't be

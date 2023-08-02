@@ -29,7 +29,7 @@ const ConsumerGroupName = "group-default"
 const (
 	taskRetries           = 5
 	prefetchQueueCapacity = 64
-	prefetchSizeBytes     = 1 * 1000 * 1000   // 1 MB
+	prefetchSizeBytes     = 64 * 1000         // 64 KB
 	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
 )
 
@@ -72,6 +72,7 @@ const (
 	TopicTypeDefault  TopicType = "default"
 	TopicTypeBatched  TopicType = "batched"
 	TopicTypeDataSync TopicType = "datasync"
+	TopicTypeTraces   TopicType = "traces"
 )
 
 type GetTopicOptions struct {

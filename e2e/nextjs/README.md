@@ -75,7 +75,7 @@ export default CONSTANTS
  ```javascript
 // src/app/utils/highlight.config.ts:
 import CONSTANTS from '@/app/constants'
-import { Highlight } from '@highlight-run/next'
+import { Highlight } from '@highlight-run/next/server'
 
 if (process.env.NODE_ENV === 'development') {
   // Highlight's dev instance expects HTTPS. Disable HTTPS errors in development.
@@ -121,7 +121,7 @@ Next.js comes out of the box instrumented for Open Telemetry. This example Highl
 
 
 1. Install `next-build-id` with `npm install next-build-id`.
-2.  Turn on `instrumentationHook`. We've also turned on `productionBrowserSourceMaps` because Highlight is much easier to use with sourcemaps. Notice that we're transpiling the `@highlight-run/next/highlight-init` package.
+2.  Turn on `instrumentationHook`. We've also turned on `productionBrowserSourceMaps` because Highlight is much easier to use with sourcemaps. Notice that we're transpiling the `@highlight-run/next/client` package.
 
 ```javascript
 // next.config.js
@@ -145,7 +145,7 @@ module.exports = nextConfig
 ```javascript
 // instrumentation.ts
 import CONSTANTS from '@/app/constants'
-import { registerHighlight } from '@highlight-run/next'
+import { registerHighlight } from '@highlight-run/next/server'
 
 export async function register() {
 	registerHighlight({
@@ -163,7 +163,7 @@ export async function register() {
 // pages/_app.tsx
 import { AppProps } from 'next/app'
 import CONSTANTS from '@/app/constants'
-import { HighlightInit } from '@highlight-run/next/highlight-init'
+import { HighlightInit } from '@highlight-run/next/client'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
 	return (
@@ -191,7 +191,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 import './globals.css'
 
 import CONSTANTS from '@/app/constants'
-import { HighlightInit } from '@highlight-run/next/highlight-init'
+import { HighlightInit } from '@highlight-run/next/client'
 
 export const metadata = {
 	title: 'Highlight Next Demo',
@@ -238,7 +238,7 @@ Make sure to implement `nextConfig.generateBuildId` so that our sourcemap upload
 ```javascript
 // next.config.js
 const nextBuildId = require('next-build-id')
-const { withHighlightConfig } = require('@highlight-run/next')
+const { withHighlightConfig } = require('@highlight-run/next/server')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

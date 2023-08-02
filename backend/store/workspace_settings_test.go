@@ -24,3 +24,11 @@ func TestGetAllWorkspaceSettings(t *testing.T) {
 		assert.Equal(t, 2, w2Settings.WorkspaceID)
 	})
 }
+
+func BenchmarkStore_GetAllWorkspaceSettings(b *testing.B) {
+	s := model.AllWorkspaceSettings{WorkspaceID: 1}
+	store.db.Create(&s)
+	for i := 0; i < b.N; i++ {
+		_, _ = store.GetAllWorkspaceSettings(context.Background(), 1)
+	}
+}

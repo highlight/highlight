@@ -23,6 +23,7 @@ import { ProjectColorLabel } from '@/pages/ProjectSettings/ProjectColorLabel/Pro
 import ProjectSettings from '@/pages/ProjectSettings/ProjectSettings'
 import Auth from '@/pages/UserSettings/Auth/Auth'
 import { PlayerForm } from '@/pages/UserSettings/PlayerForm/PlayerForm'
+import { useGlobalContext } from '@/routers/ProjectRouter/context/GlobalContext'
 import { auth } from '@/util/auth'
 
 import * as styles from './SettingsRouter.css'
@@ -61,6 +62,7 @@ export const SettingsRouter = () => {
 	}>()
 	const { allProjects, currentProject, currentWorkspace } =
 		useApplicationContext()
+	const { toggleShowBanner } = useGlobalContext()
 	const workspaceId = workspace_id || currentWorkspace?.id
 	const projectId = project_id || currentProject?.id
 	// Using useMatch instead of pulling from useParams because :page_id isn't
@@ -72,6 +74,8 @@ export const SettingsRouter = () => {
 		projectMatch?.params.page_id ||
 		sectionId ||
 		''
+
+	toggleShowBanner(false)
 
 	const billingContent = (
 		<Suspense fallback={null}>
