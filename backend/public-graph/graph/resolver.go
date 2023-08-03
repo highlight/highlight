@@ -621,7 +621,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}
 	}
 
-	if errorgroups.IsErrorTraceFiltered(project, structuredStackTrace) {
+	if errorgroups.IsErrorTraceFiltered(*project, structuredStackTrace) {
 		return nil, ErrUserFilteredError
 	}
 
