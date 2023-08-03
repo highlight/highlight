@@ -462,7 +462,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 				Worker:              w,
 				BatchBuffer:         buffer,
 				BatchFlushSize:      4 * DefaultBatchFlushSize,
-				BatchedFlushTimeout: DefaultBatchedFlushTimeout,
+				BatchedFlushTimeout: 5 * time.Second,
 				Name:                "batched",
 			}
 			k.ProcessMessages(ctx, k.flushLogs)
