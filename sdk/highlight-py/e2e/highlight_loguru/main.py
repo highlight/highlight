@@ -17,6 +17,7 @@ logger.add(
     format="{message}",
     level="INFO",
     backtrace=True,
+    serialize=True,
 )
 
 
