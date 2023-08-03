@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"testing"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -10,13 +11,14 @@ import (
 
 func TestGetProject(t *testing.T) {
 	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
-		_, err := store.GetProject(1)
+		ctx := context.Background()
+		_, err := store.GetProject(ctx, 1)
 		assert.Error(t, err)
 
 		project := model.Project{}
 		store.db.Create(&project)
 
-		foundProject, err := store.GetProject(project.ID)
+		foundProject, err := store.GetProject(ctx, project.ID)
 		assert.NoError(t, err)
 		assert.Equal(t, project.ID, foundProject.ID)
 	})
