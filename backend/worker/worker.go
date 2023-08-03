@@ -453,16 +453,16 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	}(&wg)
 	go func(_wg *sync.WaitGroup) {
 		buffer := &KafkaBatchBuffer{
-			messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
+			messageQueue: make(chan *kafkaqueue.Message, 4*DefaultBatchFlushSize),
 		}
 		k := KafkaBatchWorker{
 			KafkaQueue: kafkaqueue.New(ctx,
 				kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}),
 				kafkaqueue.Consumer,
-				&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(2 * DefaultBatchFlushSize)}),
+				&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(8 * DefaultBatchFlushSize)}),
 			Worker:              w,
 			BatchBuffer:         buffer,
-			BatchFlushSize:      DefaultBatchFlushSize,
+			BatchFlushSize:      4 * DefaultBatchFlushSize,
 			BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 			Name:                "batched",
 		}
