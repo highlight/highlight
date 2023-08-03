@@ -7039,17 +7039,6 @@ body {
 ._1gpgayie {
   grid-template-columns: 1fr 300px;
 }
-.ybyc321 {
-  background: transparent;
-  border: 0;
-  color: var(--_1pyqka9b);
-  display: flex;
-  font-size: 13px;
-  width: 100%;
-}
-.ybyc321:focus {
-  outline: 0;
-}
 ._1t72qig0 {
   position: absolute;
   right: 0;
@@ -7127,6 +7116,17 @@ body {
   justify-content: space-between;
   padding: 0 8px;
   width: 325px;
+}
+._13nf89o1 {
+  background: transparent;
+  border: 0;
+  color: var(--_1pyqka9b);
+  display: flex;
+  font-size: 13px;
+  width: 100%;
+}
+._13nf89o1:focus {
+  outline: 0;
 }
 ._4qdycv0 {
   height: 12px;

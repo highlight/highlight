@@ -8,7 +8,6 @@ import ErrorsV2 from '@pages/ErrorsV2/ErrorsV2'
 import IntegrationsPage from '@pages/IntegrationsPage/IntegrationsPage'
 import LogsPage from '@pages/LogsPage/LogsPage'
 import PlayerPage from '@pages/Player/PlayerPage'
-import { ServicesPage } from '@pages/Services/ServicesPage'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { SetupRouter } from '@pages/Setup/SetupRouter/SetupRouter'
 import { usePreloadErrors, usePreloadSessions } from '@util/preload'
@@ -52,7 +51,6 @@ const ApplicationRouter: React.FC = () => {
 					<Route path="settings/*" element={<SettingsRouter />} />
 					<Route path="alerts/*" element={<AlertsRouter />} />
 					<Route path="alerts/logs/*" element={<LogAlertsRouter />} />
-					<Route path="services/*" element={<ServicesPage />} />
 					<Route path="setup/*" element={<SetupRouter />} />
 
 					<Route

@@ -7,6 +7,7 @@ import { ExcludedUsersForm } from '@pages/ProjectSettings/ExcludedUsersForm/Excl
 import { FilterExtensionForm } from '@pages/ProjectSettings/FilterExtensionForm/FilterExtensionForm'
 import { NetworkRecordingForm } from '@pages/ProjectSettings/NetworkRecordingForm/NetworkRecordingForm'
 import { RageClicksForm } from '@pages/ProjectSettings/RageClicksForm/RageClicksForm'
+import { ServicesTable } from '@pages/ProjectSettings/ServicesTable/ServicesTable'
 import SourcemapSettings from '@pages/WorkspaceSettings/SourcemapSettings/SourcemapSettings'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
@@ -114,6 +115,11 @@ const ProjectSettings = () => {
 								id="settingsTabs"
 								tabs={[
 									{
+										key: 'general',
+										title: 'General',
+										panelContent: <DangerForm />,
+									},
+									{
 										key: 'sessions',
 										title: 'Session replay',
 										panelContent: (
@@ -204,9 +210,9 @@ const ProjectSettings = () => {
 										),
 									},
 									{
-										key: 'general',
-										title: 'General',
-										panelContent: <DangerForm />,
+										key: 'services',
+										title: 'Services',
+										panelContent: <ServicesTable />,
 									},
 								]}
 							/>
