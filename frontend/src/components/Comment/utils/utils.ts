@@ -53,6 +53,7 @@ export function filterMentionedSlackUsers(
 				mention.display.includes('@') || mention.display.includes('#'),
 		)
 		.map<SanitizedSlackChannelInput>((mention) => {
+			// TODO(spenny): this could be a long list - M * N, but M is probably small
 			const matchingSlackUser = slackMembers.find((slackUser) => {
 				return slackUser?.webhook_channel_id === mention.id
 			})

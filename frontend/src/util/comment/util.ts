@@ -44,6 +44,7 @@ export const getCommentMentionSuggestions = (
 		return mappedAdmins
 	}
 
+	// TODO(spenny): map and sort here 2 * N
 	return [
 		...mappedAdmins,
 		...suggestions.slack_channel_suggestion.map<CommentSuggestion>(

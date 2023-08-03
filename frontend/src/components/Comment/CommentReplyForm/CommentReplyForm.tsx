@@ -20,7 +20,7 @@ import {
 	IconSolidPaperAirplane,
 	Stack,
 } from '@highlight-run/ui'
-import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
+import { CommentTextBody } from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'
 import { useParams } from '@util/react-router/useParams'
@@ -136,6 +136,7 @@ function CommentReplyForm<T extends CommentReplyAction>({
 		}
 
 		if (mentionSuggestionsData?.slack_channel_suggestion) {
+			// TODO(spenny): can we return smaller list if we need all slack channels here
 			setMentionedSlackUsers(
 				filterMentionedSlackUsers(
 					mentionSuggestionsData.slack_channel_suggestion,
