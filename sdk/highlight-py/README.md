@@ -6,3 +6,17 @@ This directory contains the source code for the Highlight Python SDK.
 
 The `e2e` directory contains supported Python frameworks integrated with our SDK for local development and testing.
 Do not use the snippets verbatim as they are configured for local development and will not work in production without changes.
+
+
+## Install
+
+* Install [poetry](https://python-poetry.org/docs/#installing-with-the-official-installer)
+* `poetry install`
+
+## Run tests
+
+* `poetry run pytest`
+
+## Lint
+
+* poetry run black  .
