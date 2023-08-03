@@ -23,7 +23,7 @@ logger.add(
 
 
 def main():
-    logger.info("hello handler", customer="unknown")
+    logger.info("hello handler", customer_id="99")
     for idx in range(1):
         with H.trace(session_id="session-abc123", request_id="request-abc123"):
             logger.info(f"hello from loguru with trace {idx}")
