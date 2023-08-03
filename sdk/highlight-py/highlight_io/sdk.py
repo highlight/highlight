@@ -292,10 +292,10 @@ class H(object):
                 # See: https://loguru.readthedocs.io/en/stable/api/logger.html#record
                 obj = json.loads(message)
                 extra = obj["record"]["extra"]
-                for key in extra:
-                    attributes[key] = extra[key]
+                message = obj["text"]
 
-                message = obj["message"]
+                for key, value in extra.items():
+                    attributes[key] = value
             except:
                 pass
 
