@@ -2795,8 +2795,8 @@ export enum SubscriptionInterval {
 
 export type SystemConfiguration = {
 	__typename?: 'SystemConfiguration'
-	maintenance_end: Scalars['Timestamp']
-	maintenance_start: Scalars['Timestamp']
+	maintenance_end?: Maybe<Scalars['Timestamp']>
+	maintenance_start?: Maybe<Scalars['Timestamp']>
 }
 
 export type TimelineIndicatorEvent = {
