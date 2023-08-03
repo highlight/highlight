@@ -145,7 +145,7 @@ const RequestStatusFilter = ({
 
 	return (
 		<MultiSelectButton
-			label="Status"
+			label={FILTER_LABEL}
 			icon={<IconSolidFilter />}
 			defaultValue={options[0].key}
 			value={requestStatuses}

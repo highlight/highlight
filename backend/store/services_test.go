@@ -18,32 +18,14 @@ func TestFindOrCreateService(t *testing.T) {
 		project := model.Project{}
 		store.db.Create(&project)
 
-		service, err := store.FindOrCreateService(project, "public-graph", map[string]string{})
+		service, err := store.FindOrCreateService(project, "public-graph")
 		assert.NoError(t, err)
 
 		assert.NotNil(t, service.ID)
 
-		foundService, err := store.FindOrCreateService(project, "public-graph", map[string]string{})
+		foundService, err := store.FindOrCreateService(project, "public-graph")
 		assert.NoError(t, err)
 		assert.Equal(t, service.ID, foundService.ID)
-	})
-}
-
-func TestFindOrCreateServiceWithAttributes(t *testing.T) {
-	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
-		project := model.Project{}
-		store.db.Create(&project)
-
-		service, err := store.FindOrCreateService(project, "public-graph", map[string]string{
-			"process.runtime.name":        "go",
-			"process.runtime.version":     "go1.20.5",
-			"process.runtime.description": "go version go1.20.5 darwin/arm64",
-		})
-		assert.NoError(t, err)
-		assert.NotNil(t, service.ID)
-		assert.Equal(t, ptr.String("go"), service.ProcessName)
-		assert.Equal(t, ptr.String("go1.20.5"), service.ProcessVersion)
-		assert.Equal(t, ptr.String("go version go1.20.5 darwin/arm64"), service.ProcessDescription)
 	})
 }
 

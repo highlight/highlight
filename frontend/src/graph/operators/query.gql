@@ -1075,6 +1075,7 @@ query GetErrorGroup($secure_id: String!) {
 		is_public
 		last_occurrence
 		first_occurrence
+		serviceName
 	}
 }
 

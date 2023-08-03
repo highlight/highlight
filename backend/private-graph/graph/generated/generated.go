@@ -341,6 +341,7 @@ type ComplexityRoot struct {
 		MetadataLog          func(childComplexity int) int
 		ProjectID            func(childComplexity int) int
 		SecureID             func(childComplexity int) int
+		ServiceName          func(childComplexity int) int
 		SnoozedUntil         func(childComplexity int) int
 		StackTrace           func(childComplexity int) int
 		State                func(childComplexity int) int
@@ -2951,6 +2952,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorGroup.SecureID(childComplexity), true
+
+	case "ErrorGroup.serviceName":
+		if e.complexity.ErrorGroup.ServiceName == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.ServiceName(childComplexity), true
 
 	case "ErrorGroup.snoozed_until":
 		if e.complexity.ErrorGroup.SnoozedUntil == nil {
@@ -9506,6 +9514,7 @@ type ErrorGroup {
 	first_occurrence: Timestamp
 	last_occurrence: Timestamp
 	viewed: Boolean
+	serviceName: String
 }
 
 type ErrorMetadata {
@@ -25475,6 +25484,47 @@ func (ec *executionContext) fieldContext_ErrorGroup_viewed(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _ErrorGroup_serviceName(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorGroup_serviceName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorGroup_serviceName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ErrorGroupTagAggregation_key(ctx context.Context, field graphql.CollectedField, obj *model.ErrorGroupTagAggregation) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ErrorGroupTagAggregation_key(ctx, field)
 	if err != nil {
@@ -28331,6 +28381,8 @@ func (ec *executionContext) fieldContext_ErrorResults_error_groups(ctx context.C
 				return ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
 			case "viewed":
 				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_ErrorGroup_serviceName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -34916,6 +34968,8 @@ func (ec *executionContext) fieldContext_Mutation_markErrorGroupAsViewed(ctx con
 				return ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
 			case "viewed":
 				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_ErrorGroup_serviceName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -35164,6 +35218,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorGroupState(ctx cont
 				return ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
 			case "viewed":
 				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_ErrorGroup_serviceName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -38743,6 +38799,8 @@ func (ec *executionContext) fieldContext_Mutation_updateErrorGroupIsPublic(ctx c
 				return ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
 			case "viewed":
 				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_ErrorGroup_serviceName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -41597,6 +41655,8 @@ func (ec *executionContext) fieldContext_Query_error_group(ctx context.Context, 
 				return ec.fieldContext_ErrorGroup_last_occurrence(ctx, field)
 			case "viewed":
 				return ec.fieldContext_ErrorGroup_viewed(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_ErrorGroup_serviceName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorGroup", field.Name)
 		},
@@ -66834,6 +66894,10 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 		case "viewed":
 
 			out.Values[i] = ec._ErrorGroup_viewed(ctx, field, obj)
+
+		case "serviceName":
+
+			out.Values[i] = ec._ErrorGroup_serviceName(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

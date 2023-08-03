@@ -9,6 +9,7 @@ import (
 
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
@@ -23,7 +24,12 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 	if len(logRows) == 0 {
 		return nil
 	}
-	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", LogsTable))
+
+	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+		"async_insert":          1,
+		"wait_for_async_insert": 1,
+	}))
+	batch, err := client.conn.PrepareBatch(chCtx, fmt.Sprintf("INSERT INTO %s", LogsTable))
 
 	if err != nil {
 		return e.Wrap(err, "failed to create logs batch")

@@ -2812,6 +2812,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 			| 'is_public'
 			| 'last_occurrence'
 			| 'first_occurrence'
+			| 'serviceName'
 		> & {
 				structured_stack_trace: Array<
 					Types.Maybe<

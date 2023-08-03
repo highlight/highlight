@@ -2,13 +2,14 @@ package graph
 
 import (
 	"context"
+	"os"
+	"strconv"
+	"testing"
+
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/stretchr/testify/assert"
-	"os"
-	"strconv"
-	"testing"
 
 	pointy "github.com/openlyinc/pointy"
 
@@ -452,8 +453,12 @@ func TestResolver_canAdminViewSession(t *testing.T) {
 	}
 	for _, v := range tests {
 		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+			redisClient := redis.NewClient()
 			ctx := context.Background()
-			r := &queryResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, &opensearch.Client{}, redis.NewClient())}}
+			if err := redisClient.Cache.Delete(ctx, "session-secure-abc123"); err != nil {
+				t.Fatal(err)
+			}
+			r := &queryResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, &opensearch.Client{}, redisClient)}}
 
 			w := model.Workspace{}
 			if err := DB.Create(&w).Error; err != nil {

@@ -98,19 +98,23 @@ export enum Tab {
 	Events = 'Events',
 }
 
-export enum LogLevel {
+export enum LogLevelValue {
 	All = 'All',
-	Info = 'Info',
-	Warn = 'Warn',
-	Error = 'Error',
+	// keep up to date with LogLevel schema
+	Debug = 'debug',
+	Error = 'error',
+	Fatal = 'fatal',
+	Info = 'info',
+	Trace = 'trace',
+	Warn = 'warn',
 }
 
-export const LogLevelVariants = {
-	[LogLevel.All]: 'white',
-	[LogLevel.Info]: 'white',
-	[LogLevel.Warn]: 'yellow',
-	[LogLevel.Error]: 'red',
-} as const
+export enum LogSourceValue {
+	All = 'All',
+	// keep up to date with LogSource schema
+	Backend = 'backend',
+	Frontend = 'frontend',
+}
 
 export enum RequestType {
 	/* [displayName]: requestName */
@@ -159,5 +163,9 @@ export const getNetworkResourcesDisplayName = (value: string): string => {
 			return displayName
 		}
 	}
+	return titilize(value)
+}
+
+export const titilize = (value: string): string => {
 	return value?.charAt(0).toUpperCase() + value?.slice(1)
 }
