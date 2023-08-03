@@ -2670,6 +2670,7 @@ export type SessionInsight = {
 	__typename?: 'SessionInsight'
 	id: Scalars['ID']
 	insight: Scalars['String']
+	session_id: Scalars['Int']
 }
 
 export type SessionInterval = {
