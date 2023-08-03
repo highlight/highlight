@@ -1,6 +1,5 @@
 import { Button } from '@components/Button'
-import { LogSource } from '@graph/schemas'
-import { LogLevel } from '@graph/schemas'
+import { LogLevel, LogSource } from '@graph/schemas'
 import {
 	Box,
 	Callout,
@@ -8,7 +7,6 @@ import {
 	IconSolidLogs,
 	IconSolidSearch,
 	IconSolidSwitchHorizontal,
-	MenuButton,
 	Tabs,
 	Text,
 	useFormState,
@@ -27,6 +25,8 @@ import {
 	ResizePanel,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/ResizePanel'
 import {
+	LogLevelValue,
+	LogSourceValue,
 	RequestStatus,
 	RequestType,
 	Tab,
@@ -37,25 +37,15 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 
 import { useLinkLogCursor } from '@/pages/Player/PlayerHook/utils'
+import { LogSourceFilter } from '@/pages/Player/Toolbar/DevToolsWindowV2/LogSourceFilter/LogSourceFilter'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { ConsolePage } from './ConsolePage/ConsolePage'
 import ErrorsPage from './ErrorsPage/ErrorsPage'
+import { LogLevelFilter } from './LogLevelFilter/LogLevelFilter'
 import { RequestStatusFilter } from './RequestStatusFilter/RequestStatusFilter'
 import { RequestTypeFilter } from './RequestTypeFilter/RequestTypeFilter'
 import * as styles from './style.css'
-
-const LogLevelValues = [
-	'All',
-	LogLevel.Trace,
-	LogLevel.Debug,
-	LogLevel.Info,
-	LogLevel.Warn,
-	LogLevel.Error,
-	LogLevel.Fatal,
-] as const
-
-const LogSourceValues = ['All', LogSource.Frontend, LogSource.Backend] as const
 
 const DevToolsWindowV2: React.FC<
 	React.PropsWithChildren & {
@@ -81,10 +71,21 @@ const DevToolsWindowV2: React.FC<
 	>([RequestStatus.All])
 
 	const [searchShown, setSearchShown] = React.useState<boolean>(false)
-	const [levels, setLevels] = React.useState<LogLevel[]>([])
-	const [sources, setSources] = React.useState<LogSource[]>(
-		logCursor ? [] : [LogSource.Frontend],
+	const [levels, setLevels] = React.useState<LogLevelValue[]>([
+		LogLevelValue.All,
+	])
+	const [sources, setSources] = React.useState<LogSourceValue[]>(
+		logCursor ? [] : [LogSourceValue.Frontend],
 	)
+
+	// filter out All values to send to via request
+	const relevantLevelsForRequest = levels.filter(
+		(level) => level !== LogLevelValue.All,
+	) as unknown as LogLevel[]
+	const relevantSourcesForRequest = sources.filter(
+		(level) => level !== LogSourceValue.All,
+	) as unknown as LogSource[]
+
 	const form = useFormState({
 		defaultValues: {
 			search: '',
@@ -195,8 +196,8 @@ const DevToolsWindowV2: React.FC<
 										<ConsolePage
 											autoScroll={autoScroll}
 											logCursor={logCursor}
-											levels={levels}
-											sources={sources}
+											levels={relevantLevelsForRequest}
+											sources={relevantSourcesForRequest}
 											filter={filter}
 										/>
 									),
@@ -282,58 +283,13 @@ const DevToolsWindowV2: React.FC<
 
 										{selectedDevToolsTab === Tab.Console ? (
 											<>
-												<MenuButton
-													divider
-													size="medium"
-													options={LogLevelValues.map(
-														(level) => ({
-															key: level,
-															render: (
-																<Text case="capital">
-																	{level}
-																</Text>
-															),
-														}),
-													)}
-													onChange={(level) => {
-														if (level === 'All') {
-															setLevels([])
-														} else {
-															setLevels([
-																level as LogLevel,
-															])
-														}
-													}}
+												<LogLevelFilter
+													logLevels={levels}
+													setLogLevels={setLevels}
 												/>
-												<MenuButton
-													divider
-													size="medium"
-													selectedKey={
-														sources.includes(
-															LogSource.Frontend,
-														)
-															? LogSource.Frontend
-															: 'All'
-													}
-													options={LogSourceValues.map(
-														(source) => ({
-															key: source,
-															render: (
-																<Text case="capital">
-																	{source}
-																</Text>
-															),
-														}),
-													)}
-													onChange={(source) => {
-														if (source === 'All') {
-															setSources([])
-														} else {
-															setSources([
-																source as LogSource,
-															])
-														}
-													}}
+												<LogSourceFilter
+													logSources={sources}
+													setLogSources={setSources}
 												/>
 											</>
 										) : selectedDevToolsTab ===
@@ -369,8 +325,9 @@ const DevToolsWindowV2: React.FC<
 												to={getLogsURLForSession({
 													projectId,
 													session,
-													levels,
-													sources,
+													levels: relevantLevelsForRequest,
+													sources:
+														relevantSourcesForRequest,
 												})}
 												target="_blank"
 												style={{ display: 'flex' }}

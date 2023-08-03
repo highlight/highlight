@@ -8304,6 +8304,7 @@ export const GetErrorGroupDocument = gql`
 			is_public
 			last_occurrence
 			first_occurrence
+			serviceName
 		}
 	}
 `
@@ -12402,6 +12403,7 @@ export const GetLogsDocument = gql`
 					secureSessionID
 					source
 					serviceName
+					serviceVersion
 				}
 			}
 			pageInfo {

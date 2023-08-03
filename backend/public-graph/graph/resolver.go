@@ -1142,52 +1142,56 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 }
 
 func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectID int, setupType model.MarkBackendSetupType) error {
-	if setupType == model.MarkBackendSetupTypeLogs || setupType == model.MarkBackendSetupTypeError {
-		// Update Hubspot company and projects.backend_setup
-		var backendSetupCount int64
-		if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
-			return e.Wrap(err, "error querying backend_setup flag")
-		}
-		if backendSetupCount < 1 {
-			project, err := r.getProject(projectID)
-			if err != nil {
-				log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
-			} else {
-				if util.IsHubspotEnabled() {
-					if err := r.HubspotApi.UpdateCompanyProperty(ctx, project.WorkspaceID, []hubspot.Property{{
-						Name:     "backend_setup",
-						Property: "backend_setup",
-						Value:    true,
-					}}); err != nil {
-						log.WithContext(ctx).Errorf("failed to update hubspot")
+	_, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf("mark-backend-setup-%d-%s", projectID, setupType), 150*time.Millisecond, time.Hour, func() (*bool, error) {
+		if setupType == model.MarkBackendSetupTypeLogs || setupType == model.MarkBackendSetupTypeError {
+			// Update Hubspot company and projects.backend_setup
+			var backendSetupCount int64
+			if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
+				return nil, e.Wrap(err, "error querying backend_setup flag")
+			}
+			if backendSetupCount < 1 {
+				project, err := r.getProject(projectID)
+				if err != nil {
+					log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
+				} else {
+					if util.IsHubspotEnabled() {
+						if err := r.HubspotApi.UpdateCompanyProperty(ctx, project.WorkspaceID, []hubspot.Property{{
+							Name:     "backend_setup",
+							Property: "backend_setup",
+							Value:    true,
+						}}); err != nil {
+							log.WithContext(ctx).Errorf("failed to update hubspot")
+						}
 					}
+					phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, project.WorkspaceID, []attribute.KeyValue{
+						attribute.Bool(phonehome.BackendSetup, true),
+					})
 				}
-				phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, project.WorkspaceID, []attribute.KeyValue{
-					attribute.Bool(phonehome.BackendSetup, true),
-				})
-			}
-			if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
-				return e.Wrap(err, "error updating backend_setup flag")
+				if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
+					return nil, e.Wrap(err, "error updating backend_setup flag")
+				}
 			}
 		}
-	}
 
-	// Create setup_events record
-	var setupEventsCount int64
-	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, setupType).Count(&setupEventsCount).Error; err != nil {
-		return e.Wrap(err, "error querying setup events")
-	}
-	if setupEventsCount < 1 {
-		setupEvent := &model.SetupEvent{
-			ProjectID: projectID,
-			Type:      setupType,
+		// Create setup_events record
+		var setupEventsCount int64
+		if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, setupType).Count(&setupEventsCount).Error; err != nil {
+			return nil, e.Wrap(err, "error querying setup events")
 		}
-		if err := r.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&setupEvent).Error; err != nil {
-			return e.Wrap(err, "error creating setup event")
+		if setupEventsCount < 1 {
+			setupEvent := &model.SetupEvent{
+				ProjectID: projectID,
+				Type:      setupType,
+			}
+			if err := r.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&setupEvent).Error; err != nil {
+				return nil, e.Wrap(err, "error creating setup event")
+			}
 		}
-	}
 
-	return nil
+		return pointy.Bool(true), nil
+	})
+
+	return err
 }
 
 func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queue.AddSessionFeedbackArgs) error {
@@ -2337,6 +2341,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	projectID := sessionObj.ProjectID
 	hasBeacon := sessionObj.BeaconTime != nil
+	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to get workspace settings from project to check asset replacement")
+	}
+
 	g.Go(func() error {
 		defer util.Recover()
 		parseEventsSpan, parseEventsCtx := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
@@ -2378,8 +2387,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					}
 
 					// Replace any static resources with our own, hosted in S3
-					settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
-					if err == nil && settings.ReplaceAssets {
+					if settings != nil && settings.ReplaceAssets {
 						assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
 							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID), tracer.Tag("session_secure_id", sessionSecureID))
 						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB, r.Redis)
@@ -2387,8 +2395,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
 						}
-					} else if err != nil {
-						log.WithContext(ctx).WithError(err).Error("failed to get workspace settings from project to check asset replacement")
 					}
 
 					if event.Type == parse.FullSnapshot {

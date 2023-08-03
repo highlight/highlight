@@ -199,7 +199,10 @@ export declare type HighlightOptions = {
 }
 
 export declare interface HighlightPublicInterface {
-	init: (projectID?: string | number, debug?: HighlightOptions) => void
+	init: (
+		projectID?: string | number,
+		debug?: HighlightOptions,
+	) => { sessionSecureID: string } | undefined
 	/**
 	 * Calling this will assign an identifier to the session.
 	 * @example identify('teresa@acme.com', { accountAge: 3, cohort: 8 })
