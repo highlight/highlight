@@ -20,6 +20,20 @@ export const row = style({
 		borderBottomLeftRadius: 8,
 		borderBottomRightRadius: 8,
 	},
+
+	selectors: {
+		'&:hover': {
+			background: vars.theme.static.surface.sentiment.neutral,
+			cursor: 'pointer',
+		},
+	},
 })
 
-export const header = style({})
+export const header = style({
+	selectors: {
+		'&:hover': {
+			background: 'none',
+			cursor: 'unset',
+		},
+	},
+})

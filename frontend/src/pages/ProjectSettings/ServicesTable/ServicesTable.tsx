@@ -8,6 +8,7 @@ import {
 	Box,
 	Combobox,
 	IconSolidCubeTransparent,
+	IconSolidExternalLink,
 	IconSolidGithub,
 	Stack,
 	Table,
@@ -99,7 +100,24 @@ export const ServicesTable = () => {
 					/>
 				),
 			},
-			renderData: (service: any) => service.name,
+			renderData: (service: any) => (
+				<Box
+					display="flex"
+					alignItems="center"
+					justifyContent="space-between"
+					width="full"
+				>
+					<Box>{service.name}</Box>
+					<Table.Discoverable>
+						<Badge
+							variant="outlineGray"
+							label="Open"
+							size="medium"
+							iconEnd={<IconSolidExternalLink />}
+						/>
+					</Table.Discoverable>
+				</Box>
+			),
 		},
 		{
 			name: 'GitHub repo',

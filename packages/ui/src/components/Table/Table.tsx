@@ -7,6 +7,7 @@ import { Body } from './Body/Body'
 import { Cell } from './Cell/Cell'
 import { Header } from './Header/Header'
 import { Row } from './Row/Row'
+import { Discoverable } from './Discoverable/Discoverable'
 
 type Props = {
 	children: React.ReactNode
@@ -30,10 +31,12 @@ const Table: React.FC<Props> & {
 	Head: React.FC<any>
 	Header: React.FC<any>
 	Row: React.FC<any>
+	Discoverable: React.FC<any>
 } = TableComponent as any
 
 Table.Body = Body
 Table.Cell = Cell
+Table.Discoverable = Discoverable
 Table.Header = Header
 Table.Row = Row
 

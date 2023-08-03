@@ -5647,6 +5647,20 @@ body {
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
 }
+._65ghl30:hover {
+  background: var(--_1pyqka99);
+  cursor: pointer;
+}
+._65ghl31:hover {
+  background: none;
+  cursor: unset;
+}
+._1qp9y5j0 {
+  visibility: hidden;
+}
+._65ghl30:hover ._1qp9y5j0 {
+  visibility: visible;
+}
 ._189mxz60 {
   width: 100%;
   height: 100%;

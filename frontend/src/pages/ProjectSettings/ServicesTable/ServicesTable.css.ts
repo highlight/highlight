@@ -20,15 +20,3 @@ export const combobox = style([
 		},
 	},
 ])
-
-// export const row = style({})
-//
-// export const cell = style({
-// 	visibility: 'hidden',
-
-// 	selectors: {
-// 		[`${row}:hover &`]: {
-// 			visibility: 'visible',
-// 		},
-// 	},
-// })
