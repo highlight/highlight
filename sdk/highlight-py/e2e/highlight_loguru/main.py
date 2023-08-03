@@ -10,6 +10,7 @@ H = highlight_io.H(
     instrument_logging=False,
     service_name="my-app",
     service_version="1.0.0",
+    otlp_endpoint="http://localhost:4318",
 )
 
 logger.add(
