@@ -4,16 +4,19 @@ import Select from '@components/Select/Select'
 import { useEditServiceMutation, useGetServicesLazyQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
+	Badge,
 	Box,
 	Combobox,
+	IconSolidCubeTransparent,
+	IconSolidGithub,
 	Stack,
 	Table,
-	Tag,
 	Text,
 	useComboboxState,
 } from '@highlight-run/ui'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useParams } from '@util/react-router/useParams'
+import { capitalize } from 'lodash'
 import { debounce } from 'lodash'
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -87,11 +90,21 @@ export const ServicesTable = () => {
 		{
 			name: 'Service',
 			width: 'auto',
+			dataFormat: {
+				icon: (
+					<Badge
+						variant="outlineGray"
+						p="4"
+						iconStart={<IconSolidCubeTransparent size={12} />}
+					/>
+				),
+			},
 			renderData: (service: any) => service.name,
 		},
 		{
 			name: 'GitHub repo',
 			width: '200px',
+			dataFormat: {},
 			renderData: (service: any) => (
 				<Popover
 					trigger="click"
@@ -149,14 +162,27 @@ export const ServicesTable = () => {
 						</Box>
 					}
 				>
-					<Tag size="small">{service.githubRepoPath || 'None'}</Tag>
+					<Badge
+						variant="outlineGray"
+						iconStart={<IconSolidGithub size={12} />}
+						label={service.githubRepoPath || 'None'}
+						gap="4"
+						size="medium"
+					/>
 				</Popover>
 			),
 		},
 		{
 			name: 'Status',
-			width: '100px',
-			renderData: (service: any) => service.status,
+			width: '80px',
+			dataFormat: {},
+			renderData: (service: any) => (
+				<Badge
+					variant={determineStatusVariant(service.status)}
+					label={capitalize(service.status)}
+					size="medium"
+				/>
+			),
 		},
 	]
 
@@ -188,7 +214,10 @@ export const ServicesTable = () => {
 							gridColumns={gridColumns}
 						>
 							{columns.map((column) => (
-								<Table.Cell key={column.name}>
+								<Table.Cell
+									key={column.name}
+									icon={column.dataFormat.icon}
+								>
 									{column.renderData(service)}
 								</Table.Cell>
 							))}
@@ -216,4 +245,16 @@ export const ServicesTable = () => {
 			</Stack>
 		</Stack>
 	)
+}
+
+export const determineStatusVariant = (status: any) => {
+	switch (status) {
+		case 'healthy':
+			return 'green'
+		case 'error':
+			return 'red'
+		case 'created':
+		default:
+			return 'yellow'
+	}
 }

@@ -5625,11 +5625,27 @@ body {
   width: 100%;
   height: 100%;
 }
+.om6zxf0 {
+  padding: 8px;
+}
+._1xsdgmb0 {
+  padding: 8px;
+}
 ._65ghl30 {
   display: grid;
-  border: 1px solid var(--_1pyqka9k);
-  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--_1pyqka9k);
+  border-left: 1px solid var(--_1pyqka9k);
+  border-right: 1px solid var(--_1pyqka9k);
   width: 100%;
+}
+._65ghl30:first-of-type {
+  border-top: 1px solid var(--_1pyqka9k);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+._65ghl30:last-of-type {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 ._189mxz60 {
   width: 100%;
