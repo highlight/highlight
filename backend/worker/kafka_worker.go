@@ -222,17 +222,6 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 		if !strings.HasPrefix(logRow.Body, "ENOENT: no such file or directory") && !strings.HasPrefix(logRow.Body, "connect ECONNREFUSED") {
 			filteredRows = append(filteredRows, logRow)
 		}
-
-		if logRow.ServiceName != "" {
-			project, err := k.Worker.Resolver.Store.GetProject(int(logRow.ProjectId))
-			if err == nil {
-				_, err := k.Worker.Resolver.Store.FindOrCreateService(project, logRow.ServiceName, logRow.LogAttributes)
-
-				if err != nil {
-					log.WithContext(ctx).Error(e.Wrap(err, "failed to create service"))
-				}
-			}
-		}
 	}
 
 	wSpan, wCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.process"))
