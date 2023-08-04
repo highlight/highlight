@@ -19,10 +19,11 @@ jobs:
                 working-directory: ./sdk/highlight-ruby/highlight
         steps:
             - uses: actions/checkout@v3
-            - name: Install Ruby 3.0
+            - name: Install Ruby 2.6
               uses: ruby/setup-ruby@v1
               with:
-                  ruby-version: '3.0'
+                  ruby-version: '2.6'
+            - run: bundle install
             - name: Test
               run: bundle exec minitest
             #- name: Publish
