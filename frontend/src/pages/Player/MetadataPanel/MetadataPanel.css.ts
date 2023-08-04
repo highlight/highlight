@@ -1,7 +1,16 @@
 import { style } from '@vanilla-extract/css'
 
-export const metadataPanel = style({
+export const container = style({
+	height: '100%',
+	width: '100%',
 	display: 'flex',
-	flexDirection: 'column',
-	rowGap: 4,
+	overflowY: 'auto',
+	position: 'relative',
+})
+
+export const metadataPanel = style({
+	height: '100%',
+	width: '100%',
+	position: 'absolute',
+	top: '0px',
 })
