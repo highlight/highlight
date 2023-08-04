@@ -15,7 +15,7 @@ import (
 	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/huandu/go-sqlbuilder"
 	flat "github.com/nqd/flat"
-	e "github.com/pkg/errors"
+	"github.com/samber/lo"
 )
 
 const LogsTable = "logs"
@@ -25,26 +25,20 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 		return nil
 	}
 
+	rows := lo.Map(logRows, func(l *LogRow, _ int) interface{} {
+		if len(l.UUID) == 0 {
+			l.UUID = uuid.New().String()
+		}
+		return l
+	})
+	ib := sqlbuilder.NewStruct(new(LogRow)).InsertInto(LogsTable, rows...)
+	sql, args := ib.BuildWithFlavor(sqlbuilder.ClickHouse)
+
 	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
 		"async_insert":          1,
 		"wait_for_async_insert": 1,
 	}))
-	batch, err := client.conn.PrepareBatch(chCtx, fmt.Sprintf("INSERT INTO %s", LogsTable))
-
-	if err != nil {
-		return e.Wrap(err, "failed to create logs batch")
-	}
-
-	for _, logRow := range logRows {
-		if len(logRow.UUID) == 0 {
-			logRow.UUID = uuid.New().String()
-		}
-		err = batch.AppendStruct(logRow)
-		if err != nil {
-			return err
-		}
-	}
-	return batch.Send()
+	return client.conn.Exec(chCtx, sql, args...)
 }
 
 const LogsLimit int = 50
