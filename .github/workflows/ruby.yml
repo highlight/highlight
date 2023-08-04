@@ -23,7 +23,8 @@ jobs:
               uses: ruby/setup-ruby@v1
               with:
                   ruby-version: '2.6'
-            - run: bundle install
+            - name: Install dependencies
+              run: bundle install
             - name: Test
               run: bundle exec minitest
             # TODO - replace with https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-ruby#publishing-gems
