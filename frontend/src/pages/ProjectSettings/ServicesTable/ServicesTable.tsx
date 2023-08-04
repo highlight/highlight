@@ -108,14 +108,23 @@ export const ServicesTable = () => {
 					width="full"
 				>
 					<Box>{service.name}</Box>
-					<Table.Discoverable>
-						<Badge
-							variant="outlineGray"
-							label="Open"
-							size="medium"
-							iconEnd={<IconSolidExternalLink />}
-						/>
-					</Table.Discoverable>
+					{service.githubRepoPath && (
+						<Table.Discoverable>
+							<a
+								href={`https://github.com/${service.githubRepoPath}`}
+								target="_blank"
+								rel="noreferrer"
+								style={{ display: 'flex' }}
+							>
+								<Badge
+									variant="outlineGray"
+									label="Open"
+									size="medium"
+									iconEnd={<IconSolidExternalLink />}
+								/>
+							</a>
+						</Table.Discoverable>
+					)}
 				</Box>
 			),
 		},
