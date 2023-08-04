@@ -6632,14 +6632,19 @@ body {
 }
 ._1mjemv0 {
   margin: 0;
-  max-height: calc(100vh - 540px);
-  overflow-y: auto;
-  overflow-x: hidden;
 }
 ._1gzpu1z0 {
+  height: 100%;
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  row-gap: 4px;
+  overflow-y: auto;
+  position: relative;
+}
+._1gzpu1z1 {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0px;
 }
 ._1bsjoph0 {
   border-radius: 6px;

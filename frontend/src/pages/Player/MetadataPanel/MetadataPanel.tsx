@@ -1,26 +1,21 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import CollapsibleSection from '@components/CollapsibleSection'
 import LoadingBox from '@components/LoadingBox'
 import { TableList, TableListItem } from '@components/TableList/TableList'
-import {
-	Box,
-	ButtonIcon,
-	ButtonLink,
-	IconSolidCheveronDown,
-	IconSolidCheveronUp,
-	Text,
-} from '@highlight-run/ui'
+import { Box, ButtonLink } from '@highlight-run/ui'
 import { formatShortTime } from '@pages/Home/components/KeyPerformanceIndicators/utils/utils'
 import { getChromeExtensionURL } from '@pages/Player/SessionLevelBar/utils/utils'
 import { bytesToPrettyString } from '@util/string'
 import { buildQueryStateString } from '@util/url/params'
 import { message } from 'antd'
-import { useState } from 'react'
+import clsx from 'clsx'
+
+import CollapsibleSection from '@/components/CollapsibleSection'
+import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { useSearchContext } from '../../Sessions/SearchContext/SearchContext'
 import { useReplayerContext } from '../ReplayerContext'
 import { formatSize } from '../Toolbar/DevToolsWindowV2/utils'
-import * as styles from './MetadataPanel.css'
+import * as style from './MetadataPanel.css'
 
 enum MetadataSection {
 	Session = 'Session',
@@ -36,9 +31,6 @@ type Field = {
 }
 
 const MetadataPanel = () => {
-	const [expanded, setExpanded] = useState<MetadataSection | undefined>(
-		MetadataSection.Session,
-	)
 	const { session, browserExtensionScriptURLs } = useReplayerContext()
 	const { setSearchQuery, removeSelectedSegment } = useSearchContext()
 	const { isHighlightAdmin } = useAuthContext()
@@ -275,77 +267,38 @@ const MetadataPanel = () => {
 	)
 
 	return (
-		<div className={styles.metadataPanel}>
+		<Box className={style.container}>
 			{!session ? (
 				<LoadingBox />
 			) : (
-				Object.entries({
-					[MetadataSection.Session]: sessionData,
-					[MetadataSection.User]: userData,
-					[MetadataSection.Device]: deviceData,
-					[MetadataSection.Environment]: environmentData,
-				}).map(([key, value]) => {
-					const isExpanded = expanded === key
-					const title = (
-						<Box
-							py="8"
-							px="12"
-							bb={isExpanded ? undefined : 'secondary'}
-							display="flex"
-							justifyContent="space-between"
-							alignItems="center"
-						>
-							<Text
-								color="secondaryContentOnEnabled"
-								as="span"
-								size="small"
-								weight="medium"
-							>
-								{key}
-							</Text>
-
-							<Box display="flex" gap="4" alignItems="center">
-								<ButtonIcon
-									icon={
-										isExpanded ? (
-											<IconSolidCheveronUp size={12} />
-										) : (
-											<IconSolidCheveronDown size={12} />
-										)
-									}
-									kind="secondary"
-									size="minimal"
-									emphasis="low"
-								/>
-							</Box>
-						</Box>
-					)
-					return (
-						<CollapsibleSection
-							key={key}
-							title={title}
-							expanded={isExpanded}
-							setExpanded={(e) => {
-								if (e) {
-									setExpanded(key as MetadataSection)
-								} else {
-									setExpanded(undefined)
-								}
-							}}
-						>
-							<Box
-								px="12"
-								display="flex"
-								justifyContent="space-between"
-								alignItems="center"
-							>
-								<TableList data={value} />
-							</Box>
-						</CollapsibleSection>
-					)
-				})
+				<Box
+					className={clsx(
+						style.metadataPanel,
+						styledVerticalScrollbar,
+					)}
+				>
+					{Object.entries({
+						[MetadataSection.Session]: sessionData,
+						[MetadataSection.User]: userData,
+						[MetadataSection.Device]: deviceData,
+						[MetadataSection.Environment]: environmentData,
+					}).map(([key, value]) => {
+						return (
+							<CollapsibleSection key={key} title={key}>
+								<Box
+									px="12"
+									display="flex"
+									justifyContent="space-between"
+									alignItems="center"
+								>
+									<TableList data={value} />
+								</Box>
+							</CollapsibleSection>
+						)
+					})}
+				</Box>
 			)}
-		</div>
+		</Box>
 	)
 }
 
