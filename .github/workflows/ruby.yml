@@ -26,7 +26,7 @@ jobs:
             - name: Install dependencies
               run: bundle install
             - name: Test
-              run: bundle exec minitest
+              run: bundle exec rake
             # TODO - replace with https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-ruby#publishing-gems
             #- name: Publish
             #  if: github.ref == 'refs/heads/main'
