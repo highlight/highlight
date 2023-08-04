@@ -12,7 +12,7 @@ H = highlight_io.H(
     instrument_logging=True,
     otlp_endpoint="http://localhost:4318",
     service_name="my-fastapi-app",
-    service_version="git-sha",
+    service_version="1.0.0",
 )
 
 app = FastAPI()

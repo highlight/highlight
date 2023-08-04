@@ -33,7 +33,7 @@ H = highlight_io.H(
 	integrations=[FlaskIntegration()],
 	instrument_logging=True,
 	service_name="my-flask-app",
-	service_version="1.0.0",
+	service_version="git-sha",
 )`,
 					language: 'python',
 				},
@@ -67,7 +67,7 @@ H = highlight_io.H(
 	integrations=[FlaskIntegration()],
 	instrument_logging=True,
 	service_name="my-flask-app",
-	service_version="1.0.0",
+	service_version="git-sha",
 )
 
 

@@ -32,7 +32,7 @@ slug: go
     <code>
         highlight.Start(
           highlight.WithServiceName("my-app"),
-          highlight.WithServiceVersion("1.0.0"),
+          highlight.WithServiceVersion("git-sha"),
         )
     </code>
   </div>
@@ -63,7 +63,7 @@ This allows the user kill the highlight worker by canceling their context.Cancel
         ...
         highlight.startWithContext(ctx,
           highlight.WithServiceName("my-app"),
-          highlight.WithServiceVersion("1.0.0"),
+          highlight.WithServiceVersion("git-sha"),
         )
     </code>
   </div>

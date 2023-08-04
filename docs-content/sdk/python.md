@@ -62,7 +62,7 @@ slug: python
           integrations=[FlaskIntegration()],
           instrument_logging=True,
           service_name="my-flask-app",
-          service_version="1.0.0", 
+          service_version="git-sha", 
         )
     </code>
     In Django, you'll add Highlight to your settings.py file:
@@ -74,7 +74,7 @@ slug: python
           integrations=[DjangoIntegration()],
           instrument_logging=True,
           service_name="my-django-app",
-          service_version="1.0.0", 
+          service_version="git-sha", 
         )
     </code>
     In FastAPI, you'll add Highlight as a middleware:
@@ -85,7 +85,7 @@ slug: python
           "<YOUR_PROJECT_ID>",
           instrument_logging=True,
           service_name="my-fastapi-app",
-          service_version="1.0.0", 
+          service_version="git-sha", 
         )
         app = FastAPI()
         app.add_middleware(FastAPIMiddleware)

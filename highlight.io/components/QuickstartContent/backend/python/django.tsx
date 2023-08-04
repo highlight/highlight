@@ -30,7 +30,7 @@ H = highlight_io.H(
 	integrations=[DjangoIntegration()],
 	instrument_logging=True,
 	service_name="my-django-app",
-	service_version="1.0.0",
+	service_version="git-sha",
 )`,
 					language: 'python',
 				},

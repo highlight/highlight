@@ -25,7 +25,7 @@ func main() {
   highlight.SetProjectID("<YOUR_PROJECT_ID>")
   highlight.Start(
     highlight.WithServiceName("my-app"),
-    highlight.WithServiceVersion("1.0.0"),
+    highlight.WithServiceVersion("git-sha"),
   )
   defer highlight.Stop()
 

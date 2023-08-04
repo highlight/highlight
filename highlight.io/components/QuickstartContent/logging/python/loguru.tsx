@@ -38,7 +38,7 @@ H = highlight_io.H(
 	"<YOUR_PROJECT_ID>",
 	instrument_logging=False,
 	service_name="my-app",
-	service_version="1.0.0",
+	service_version="git-sha",
 )
 
 logger.add(
