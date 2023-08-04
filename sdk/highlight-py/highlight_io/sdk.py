@@ -16,6 +16,7 @@ from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.trace import TracerProvider, Span
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import INVALID_SPAN
+from opentelemetry.sdk.resources import Attributes, Resource
 
 from highlight_io.integrations import Integration
 
@@ -56,6 +57,8 @@ class H(object):
         otlp_endpoint: str = "",
         instrument_logging: bool = True,
         log_level=logging.DEBUG,
+        service_name: str = "",
+        service_version: str = "",
     ):
         """
         Setup Highlight backend instrumentation.
@@ -69,6 +72,8 @@ class H(object):
         :param integrations: a list of Integrations that allow connecting with your framework, like Flask or Django.
         :param instrument_logging: defaults to True. set False to disable auto-instrumentation of python `logging` methods.
         :param otlp_endpoint: set to a custom otlp destination
+        :param service_name: a string to name this app
+        :param service_version: a string to set this app's version (typically a Git deploy sha).
         :return: a configured H instance
         """
         H._instance = self
@@ -79,7 +84,11 @@ class H(object):
         if instrument_logging:
             self._instrument_logging()
 
-        self._trace_provider = TracerProvider()
+        resource = _build_resource(
+            service_name=service_name,
+            service_version=service_version,
+        )
+        self._trace_provider = TracerProvider(resource=resource)
         self._trace_provider.add_span_processor(
             BatchSpanProcessor(
                 OTLPSpanExporter(
@@ -92,7 +101,9 @@ class H(object):
         trace.set_tracer_provider(self._trace_provider)
         self.tracer = trace.get_tracer(__name__)
 
-        self._log_provider = LoggerProvider()
+        self._log_provider = LoggerProvider(
+            resource=resource,
+        )
         self._log_provider.add_log_record_processor(
             BatchLogRecordProcessor(
                 OTLPLogExporter(
@@ -306,9 +317,23 @@ class H(object):
                 with manager:
                     return otel_factory(*args, **kwargs)
             except RecursionError:
-                # in case we are hitting a recusrive log from the `self.trace()` invocation
+                # in case we are hitting a recursive log from the `self.trace()` invocation
                 # (happens when we exceed the otel log queue depth)
                 return otel_factory(*args, **kwargs)
 
         logging.setLogRecordFactory(factory)
         H._logging_instrumented = True
+
+
+def _build_resource(
+    service_name: str,
+    service_version: str,
+) -> Resource:
+    attrs = {}
+
+    if service_name:
+        attrs["service.name"] = service_name
+    if service_version:
+        attrs["service.version"] = service_version
+
+    return Resource.create(attrs)

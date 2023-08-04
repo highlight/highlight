@@ -34,7 +34,12 @@ H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=False)`,
 					text: `import highlight_io
 from loguru import logger
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=False)
+H = highlight_io.H(
+	"<YOUR_PROJECT_ID>",
+	instrument_logging=False,
+	service_name="my-app",
+	service_version="git-sha",
+)
 
 logger.add(
 	H.logging_handler,

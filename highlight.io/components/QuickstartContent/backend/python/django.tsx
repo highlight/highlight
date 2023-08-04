@@ -25,7 +25,13 @@ from highlight_io.integrations.django import DjangoIntegration
 
 # \`instrument_logging=True\` sets up logging instrumentation.
 # if you do not want to send logs or are using \`loguru\`, pass \`instrument_logging=False\`
-H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[DjangoIntegration()], instrument_logging=True)`,
+H = highlight_io.H(
+	"<YOUR_PROJECT_ID>",
+	integrations=[DjangoIntegration()],
+	instrument_logging=True,
+	service_name="my-django-app",
+	service_version="git-sha",
+)`,
 					language: 'python',
 				},
 			],
