@@ -168,7 +168,10 @@ export const ServicesTable = () => {
 											}),
 										)}
 										onChange={(repo) =>
-											handleGitHubRepoChange(data, repo)
+											handleGitHubRepoChange(
+												service,
+												repo,
+											)
 										}
 										value={service.githubRepoPath}
 										notFoundContent={<p>No repos found</p>}
