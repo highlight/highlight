@@ -24,7 +24,6 @@ export const row = style({
 	selectors: {
 		'&:hover': {
 			background: vars.theme.static.surface.sentiment.neutral,
-			cursor: 'pointer',
 		},
 	},
 })
@@ -33,7 +32,6 @@ export const header = style({
 	selectors: {
 		'&:hover': {
 			background: 'none',
-			cursor: 'unset',
 		},
 	},
 })
