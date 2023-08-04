@@ -46,10 +46,11 @@ logger.add(
 	format="{message}",
 	level="INFO",
 	backtrace=True,
+	serialize=True,
 )
 
 def main():
-    logger.debug("That's it, beautiful and simple logging!", {"nice": "one"})
+    logger.debug("That's it, beautiful and simple logging!", nice="one")
     context_logger = logger.bind(ip="192.168.0.1", user="someone")
 	context_logger.info("Contextualize your logger easily")
 `,
