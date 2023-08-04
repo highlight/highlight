@@ -1142,52 +1142,56 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 }
 
 func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectID int, setupType model.MarkBackendSetupType) error {
-	if setupType == model.MarkBackendSetupTypeLogs || setupType == model.MarkBackendSetupTypeError {
-		// Update Hubspot company and projects.backend_setup
-		var backendSetupCount int64
-		if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
-			return e.Wrap(err, "error querying backend_setup flag")
-		}
-		if backendSetupCount < 1 {
-			project, err := r.getProject(projectID)
-			if err != nil {
-				log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
-			} else {
-				if util.IsHubspotEnabled() {
-					if err := r.HubspotApi.UpdateCompanyProperty(ctx, project.WorkspaceID, []hubspot.Property{{
-						Name:     "backend_setup",
-						Property: "backend_setup",
-						Value:    true,
-					}}); err != nil {
-						log.WithContext(ctx).Errorf("failed to update hubspot")
+	_, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf("mark-backend-setup-%d-%s", projectID, setupType), 150*time.Millisecond, time.Hour, func() (*bool, error) {
+		if setupType == model.MarkBackendSetupTypeLogs || setupType == model.MarkBackendSetupTypeError {
+			// Update Hubspot company and projects.backend_setup
+			var backendSetupCount int64
+			if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
+				return nil, e.Wrap(err, "error querying backend_setup flag")
+			}
+			if backendSetupCount < 1 {
+				project, err := r.getProject(projectID)
+				if err != nil {
+					log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
+				} else {
+					if util.IsHubspotEnabled() {
+						if err := r.HubspotApi.UpdateCompanyProperty(ctx, project.WorkspaceID, []hubspot.Property{{
+							Name:     "backend_setup",
+							Property: "backend_setup",
+							Value:    true,
+						}}); err != nil {
+							log.WithContext(ctx).Errorf("failed to update hubspot")
+						}
 					}
+					phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, project.WorkspaceID, []attribute.KeyValue{
+						attribute.Bool(phonehome.BackendSetup, true),
+					})
 				}
-				phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, project.WorkspaceID, []attribute.KeyValue{
-					attribute.Bool(phonehome.BackendSetup, true),
-				})
-			}
-			if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
-				return e.Wrap(err, "error updating backend_setup flag")
+				if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
+					return nil, e.Wrap(err, "error updating backend_setup flag")
+				}
 			}
 		}
-	}
 
-	// Create setup_events record
-	var setupEventsCount int64
-	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, setupType).Count(&setupEventsCount).Error; err != nil {
-		return e.Wrap(err, "error querying setup events")
-	}
-	if setupEventsCount < 1 {
-		setupEvent := &model.SetupEvent{
-			ProjectID: projectID,
-			Type:      setupType,
+		// Create setup_events record
+		var setupEventsCount int64
+		if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, setupType).Count(&setupEventsCount).Error; err != nil {
+			return nil, e.Wrap(err, "error querying setup events")
 		}
-		if err := r.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&setupEvent).Error; err != nil {
-			return e.Wrap(err, "error creating setup event")
+		if setupEventsCount < 1 {
+			setupEvent := &model.SetupEvent{
+				ProjectID: projectID,
+				Type:      setupType,
+			}
+			if err := r.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&setupEvent).Error; err != nil {
+				return nil, e.Wrap(err, "error creating setup event")
+			}
 		}
-	}
 
-	return nil
+		return pointy.Bool(true), nil
+	})
+
+	return err
 }
 
 func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queue.AddSessionFeedbackArgs) error {

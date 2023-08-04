@@ -7470,20 +7470,80 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 
 // SessionInsight is the resolver for the session_insight field.
 func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*modelInputs.SessionInsight, error) {
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		return nil, e.New("OPENAI_API_KEY is not set")
+	}
+
 	session, err := r.canAdminViewSession(ctx, secureID)
 	if err != nil {
 		return nil, nil
 	}
 
-	insight := &modelInputs.SessionInsight{}
+	systemPrompt := fmt.Sprint(`
+	Given array of events performed by a user from a session recording for a web application, make inferences and justifications and summarize interesting things about the session in 3 insights.
+	Rules:
+	- Use less than 2 sentences for each point
+	- Provide high level insights, do not mention singular events
+	- Do not mention event types in the insights
+	- Insights must be different to each other
+	- Do not mention identification or authentication events
+	- Don't mention timestamps in <insight>, insights should be interesting inferences from the input
+	- Output timestamp that best represents the insight in <timestamp> of output
+	- Sort the insights by timestamp
 
-	b, err := r.getSessionInsight(ctx, session.ProjectID, session.ID)
+	You must respond ONLY with JSON that looks like this:
+	[{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number }]
+	Do not provide any other output other than this format.
+
+	Context:
+	- The events are JSON objects, where the "timestamp" field represents UNIX time of the event, the "type" field represents the type of event, and the "data" field represents more information about the event
+	- If the event is of type "Custom", the "tag" field provides the type of custom event, and the "payload" field represents more information about the event
+	- If the event is of tag "Track", it is a custom event where the actual type of the event is in the "event" field within "data.payload"
+
+	The "type" field follows this format:
+	0 - DomContentLoaded
+	1 - Load
+	2 -	FullSnapshot, the full page view was loaded
+	3 -	IncrementalSnapshot, some components were updated
+	4 -	Meta
+	5 -	Custom, the "tag" field provides the type of custom event, and the "payload" field represents more information about the event
+	6 -	Plugin
+	`)
+
+	events, err, _ := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	userPrompt, err := r.getSessionInsight(ctx, events)
+
+	const MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH = 32000
+	if len(userPrompt) > MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH {
+		userPrompt = userPrompt[:MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH]
+	}
+
+	client := openai.NewClient(apiKey)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model:       openai.GPT3Dot5Turbo16K,
+			Temperature: 0.7,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: systemPrompt,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: userPrompt,
+				},
+			},
+		},
+	)
+
 	if err != nil {
-		return nil, e.Wrap(err, "failed to get session insight")
+		log.WithContext(ctx).Error(err, "SessionInsight: ChatCompletion error")
+		return nil, err
 	}
-	if err = json.Unmarshal(b, insight); err != nil {
-		return nil, e.Wrap(err, "failed to unmarshal session insight")
-	}
+
+	insight := &modelInputs.SessionInsight{ID: session.ID, Insight: resp.Choices[0].Message.Content}
 
 	return insight, nil
 }

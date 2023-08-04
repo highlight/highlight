@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -77,7 +78,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 
 // BatchFlushSize set per https://clickhouse.com/docs/en/cloud/bestpractices/bulk-inserts
 const DefaultBatchFlushSize = 512
-const DefaultBatchedFlushTimeout = 1 * time.Second
+const DefaultBatchedFlushTimeout = 5 * time.Second
 
 type KafkaWorker struct {
 	KafkaQueue   *kafkaqueue.Queue
@@ -215,7 +216,12 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 		if quotaExceededByProject[logRow.ProjectId] {
 			continue
 		}
-		filteredRows = append(filteredRows, logRow)
+
+		// Temporarily filter NextJS logs
+		// TODO - remove this condition when https://github.com/highlight/highlight/issues/6181 is fixed
+		if !strings.HasPrefix(logRow.Body, "ENOENT: no such file or directory") && !strings.HasPrefix(logRow.Body, "connect ECONNREFUSED") {
+			filteredRows = append(filteredRows, logRow)
+		}
 	}
 
 	wSpan, wCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.process"))

@@ -2,12 +2,14 @@ package graph
 
 import (
 	"context"
-	"github.com/highlight-run/highlight/backend/opensearch"
-	"github.com/highlight-run/highlight/backend/redis"
-	"github.com/highlight-run/highlight/backend/store"
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/highlight-run/highlight/backend/opensearch"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/store"
+	"github.com/stretchr/testify/assert"
 
 	pointy "github.com/openlyinc/pointy"
 
@@ -451,8 +453,12 @@ func TestResolver_canAdminViewSession(t *testing.T) {
 	}
 	for _, v := range tests {
 		util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+			redisClient := redis.NewClient()
 			ctx := context.Background()
-			r := &queryResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, &opensearch.Client{}, redis.NewClient())}}
+			if err := redisClient.Cache.Delete(ctx, "session-secure-abc123"); err != nil {
+				t.Fatal(err)
+			}
+			r := &queryResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, &opensearch.Client{}, redisClient)}}
 
 			w := model.Workspace{}
 			if err := DB.Create(&w).Error; err != nil {
@@ -546,4 +552,24 @@ func TestResolver_isAdminInProjectOrDemoProject(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetSlackChannelsFromSlack(t *testing.T) {
+	token := os.Getenv("TEST_SLACK_ACCESS_TOKEN")
+	if token == "" {
+		t.Skip("TEST_SLACK_ACCESS_TOKEN is not set")
+	}
+	util.RunTestWithDBWipe(t, DB, func(t *testing.T) {
+		w := model.Workspace{SlackAccessToken: pointy.String(token)}
+		if err := DB.Create(&w).Error; err != nil {
+			t.Fatal(e.Wrap(err, "error inserting workspace"))
+		}
+
+		r := &queryResolver{Resolver: &Resolver{DB: DB, Redis: redis.NewClient()}}
+		channels, count, err := r.GetSlackChannelsFromSlack(context.Background(), w.ID)
+		assert.NoError(t, err)
+		assert.NotNil(t, channels)
+		assert.Greater(t, count, 0)
+		assert.Greater(t, len(*channels), 0)
+	})
 }

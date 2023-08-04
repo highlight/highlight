@@ -443,6 +443,7 @@ type Log struct {
 	SecureSessionID *string                `json:"secureSessionID"`
 	Source          *string                `json:"source"`
 	ServiceName     *string                `json:"serviceName"`
+	ServiceVersion  *string                `json:"serviceVersion"`
 }
 
 type LogAlertInput struct {
@@ -1490,6 +1491,7 @@ const (
 	ReservedLogKeyTraceID         ReservedLogKey = "trace_id"
 	ReservedLogKeySource          ReservedLogKey = "source"
 	ReservedLogKeyServiceName     ReservedLogKey = "service_name"
+	ReservedLogKeyServiceVersion  ReservedLogKey = "service_version"
 )
 
 var AllReservedLogKey = []ReservedLogKey{
@@ -1500,11 +1502,12 @@ var AllReservedLogKey = []ReservedLogKey{
 	ReservedLogKeyTraceID,
 	ReservedLogKeySource,
 	ReservedLogKeyServiceName,
+	ReservedLogKeyServiceVersion,
 }
 
 func (e ReservedLogKey) IsValid() bool {
 	switch e {
-	case ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName:
+	case ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion:
 		return true
 	}
 	return false

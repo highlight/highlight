@@ -42,10 +42,13 @@ func TestMain(m *testing.M) {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 
+	redisClient := redis.NewClient()
+
 	resolver = &Resolver{
 		DB:    db,
 		TDB:   timeseries.New(context.TODO()),
-		Store: store.NewStore(db, &opensearch.Client{}, redis.NewClient()),
+		Store: store.NewStore(db, &opensearch.Client{}, redisClient),
+		Redis: redisClient,
 	}
 	code := m.Run()
 	os.Exit(code)

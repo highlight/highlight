@@ -20,6 +20,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/lukasbob/srcset"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -752,4 +753,49 @@ func UnmarshallMouseInteractionEvent(data json.RawMessage) (*MouseInteractionEve
 		return nil, errors.New("all user interaction events must have a source")
 	}
 	return &aux, nil
+}
+
+type Event struct {
+	Type      EventType
+	Timestamp int64
+	Data      interface{}
+}
+
+func FilterEventsForInsights(events []interface{}) ([]*Event, error) {
+	var parsedEvents []*Event
+	for _, e := range events {
+		if eMap, ok := e.(map[string]interface{}); ok {
+			if eMap["_sid"] != nil {
+				delete(eMap, "_sid")
+			}
+
+			if eMap["type"] != nil {
+				eventType := EventType(int(eMap["type"].(float64)))
+				timestamp := int64(eMap["timestamp"].(float64))
+
+				switch eventType {
+				case FullSnapshot:
+				case IncrementalSnapshot:
+				case Custom:
+					data, _ := json.Marshal(eMap["data"])
+					stringifiedData := string(data)
+
+					if !util.StringContainsAnyOf(stringifiedData, []string{"identify", "authenticate", "performance"}) {
+						parsedEvents = append(parsedEvents, &Event{
+							Type:      eventType,
+							Timestamp: timestamp,
+							Data:      eMap["data"],
+						})
+					}
+				default:
+					parsedEvents = append(parsedEvents, &Event{
+						Type:      eventType,
+						Timestamp: timestamp,
+						Data:      eMap["data"],
+					})
+				}
+			}
+		}
+	}
+	return parsedEvents, nil
 }

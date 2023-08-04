@@ -25,6 +25,9 @@ Installing highlight.io in javascript will automatically instrument frontend err
     <DocsCard title="Next.js"  href="./client-sdk/nextjs.md">
         {"Get started in your Next.js app"}
     </DocsCard>
+    <DocsCard title="Remix"  href="./client-sdk/remix.md">
+        {"Get started in your Remix app"}
+    </DocsCard>
     <DocsCard title="VueJS"  href="./client-sdk/vuejs.md">
         {"Get started in your VueJS app"}
     </DocsCard>
