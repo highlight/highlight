@@ -4,7 +4,7 @@ import * as styles from './styles.css'
 
 export type Props = {
 	children: React.ReactNode
-	gridColumns: string
+	gridColumns: string[]
 }
 
 export const Row: React.FC<Props> = ({ children, gridColumns }) => {
@@ -12,7 +12,7 @@ export const Row: React.FC<Props> = ({ children, gridColumns }) => {
 		<div
 			className={styles.row}
 			style={{
-				gridTemplateColumns: gridColumns,
+				gridTemplateColumns: gridColumns.join(' '),
 			}}
 		>
 			{children}

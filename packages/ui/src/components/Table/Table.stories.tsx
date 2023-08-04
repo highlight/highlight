@@ -58,7 +58,7 @@ export const Default = () => {
 		},
 	]
 
-	const gridColumns = columns.map((column) => column.width).join(' ')
+	const gridColumns = columns.map((column) => column.width)
 
 	return (
 		<Table>
