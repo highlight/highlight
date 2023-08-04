@@ -7,6 +7,6 @@ export type Props = {
 	children: React.ReactNode
 }
 
-export const Body: React.FC<Props> = ({ children }) => {
-	return <Box cssClass={styles.body}>{children}</Box>
+export const Head: React.FC<Props> = ({ children }) => {
+	return <Box cssClass={styles.head}>{children}</Box>
 }
