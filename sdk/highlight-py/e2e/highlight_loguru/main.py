@@ -8,14 +8,14 @@ from loguru import logger
 H = highlight_io.H(
     "1",
     instrument_logging=False,
-    service_name="my-app",
+    service_name="my-loguru-app",
     service_version="1.0.0",
     otlp_endpoint="http://localhost:4318",
 )
 
 logger.add(
     H.logging_handler,
-    format="{message}",
+    format="{message} {extra}",
     level="INFO",
     backtrace=True,
     serialize=True,
