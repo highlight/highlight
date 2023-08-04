@@ -232,8 +232,14 @@ func validateRequest(ctx context.Context) (sessionSecureID string, requestID str
 		err = errors.New(consumeErrorWorkerStopped)
 		return
 	}
+	if v := ctx.Value(string(ContextKeys.SessionSecureID)); v != nil {
+		sessionSecureID = v.(string)
+	}
 	if v := ctx.Value(ContextKeys.SessionSecureID); v != nil {
 		sessionSecureID = v.(string)
+	}
+	if v := ctx.Value(string(ContextKeys.RequestID)); v != nil {
+		requestID = v.(string)
 	}
 	if v := ctx.Value(ContextKeys.RequestID); v != nil {
 		requestID = v.(string)
