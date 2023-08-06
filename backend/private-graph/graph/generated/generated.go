@@ -10457,8 +10457,8 @@ type OAuthClient {
 }
 
 type SystemConfiguration {
-	maintenance_start: Timestamp!
-	maintenance_end: Timestamp!
+	maintenance_start: Timestamp
+	maintenance_end: Timestamp
 }
 
 enum EmailOptOutCategory {
@@ -58292,14 +58292,11 @@ func (ec *executionContext) _SystemConfiguration_maintenance_start(ctx context.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SystemConfiguration_maintenance_start(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -58336,14 +58333,11 @@ func (ec *executionContext) _SystemConfiguration_maintenance_end(ctx context.Con
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SystemConfiguration_maintenance_end(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -74544,16 +74538,10 @@ func (ec *executionContext) _SystemConfiguration(ctx context.Context, sel ast.Se
 
 			out.Values[i] = ec._SystemConfiguration_maintenance_start(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "maintenance_end":
 
 			out.Values[i] = ec._SystemConfiguration_maintenance_end(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

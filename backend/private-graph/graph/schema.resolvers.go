@@ -7550,8 +7550,8 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 
 // SystemConfiguration is the resolver for the system_configuration field.
 func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemConfiguration, error) {
-	var config model.SystemConfiguration
-	if err := r.DB.Model(&config).Where(&model.SystemConfiguration{Active: true}).Take(&config).Error; err != nil {
+	config := model.SystemConfiguration{Active: true}
+	if err := r.DB.Model(&config).Where(&config).FirstOrCreate(&config).Error; err != nil {
 		return nil, err
 	}
 	return &config, nil
