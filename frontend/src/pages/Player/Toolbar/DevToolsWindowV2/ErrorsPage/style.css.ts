@@ -40,6 +40,13 @@ export const errorRowVariants = recipe({
 			},
 			false: {},
 		},
+
+		selected: {
+			true: {
+				fontWeight: '600',
+			},
+			false: {},
+		},
 	},
 })
 
