@@ -3,11 +3,15 @@ import React from 'react'
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'
 
-import { Body } from './Body/Body'
-import { Cell } from './Cell/Cell'
-import { Header } from './Header/Header'
-import { Row } from './Row/Row'
-import { Discoverable } from './Discoverable/Discoverable'
+import { Body, Props as BodyProps } from './Body/Body'
+import { Cell, Props as CellProps } from './Cell/Cell'
+import {
+	Discoverable,
+	Props as DiscoverableProps,
+} from './Discoverable/Discoverable'
+import { Head, Props as HeadProps } from './Head/Head'
+import { Header, Props as HeaderProps } from './Header/Header'
+import { Row, Props as RowProps } from './Row/Row'
 
 type Props = {
 	children: React.ReactNode
@@ -25,18 +29,21 @@ const TableComponent: React.FC<Props> = ({ children, loading, error }) => {
 	)
 }
 
-const Table: React.FC<Props> & {
-	Body: React.FC<any>
-	Cell: React.FC<any>
-	Head: React.FC<any>
-	Header: React.FC<any>
-	Row: React.FC<any>
-	Discoverable: React.FC<any>
-} = TableComponent as any
+type TableWithComponents = React.FC<Props> & {
+	Body: React.FC<BodyProps>
+	Cell: React.FC<CellProps>
+	Discoverable: React.FC<DiscoverableProps>
+	Head: React.FC<HeadProps>
+	Header: React.FC<HeaderProps>
+	Row: React.FC<RowProps>
+}
+
+const Table = TableComponent as TableWithComponents
 
 Table.Body = Body
 Table.Cell = Cell
 Table.Discoverable = Discoverable
+Table.Head = Head
 Table.Header = Header
 Table.Row = Row
 

@@ -1,22 +1,18 @@
 import React from 'react'
-import clsx from 'clsx'
 
 import * as styles from './styles.css'
 
-type Props = {
+export type Props = {
 	children: React.ReactNode
-	gridColumns: string
-	header?: boolean
+	gridColumns: string[]
 }
 
-export const Row: React.FC<Props> = ({ children, gridColumns, header }) => {
+export const Row: React.FC<Props> = ({ children, gridColumns }) => {
 	return (
 		<div
-			className={clsx(styles.row, {
-				[styles.header]: header,
-			})}
+			className={styles.row}
 			style={{
-				gridTemplateColumns: gridColumns,
+				gridTemplateColumns: gridColumns.join(' '),
 			}}
 		>
 			{children}

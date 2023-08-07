@@ -427,7 +427,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 
 func (w *Worker) PublicWorker(ctx context.Context) {
 	const parallelWorkers = 64
-	const parallelBatchWorkers = 32
+	const parallelBatchWorkers = 8
 	// creates N parallel kafka message consumers that process messages.
 	// each consumer is considered part of the same consumer group and gets
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
@@ -452,16 +452,16 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	for i := 0; i < parallelBatchWorkers; i++ {
 		go func(workerId int) {
 			buffer := &KafkaBatchBuffer{
-				messageQueue: make(chan *kafkaqueue.Message, 4*DefaultBatchFlushSize),
+				messageQueue: make(chan *kafkaqueue.Message, 8*DefaultBatchFlushSize),
 			}
 			k := KafkaBatchWorker{
 				KafkaQueue: kafkaqueue.New(ctx,
 					kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}),
 					kafkaqueue.Consumer,
-					&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(8 * DefaultBatchFlushSize)}),
+					&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(16 * DefaultBatchFlushSize)}),
 				Worker:              w,
 				BatchBuffer:         buffer,
-				BatchFlushSize:      4 * DefaultBatchFlushSize,
+				BatchFlushSize:      8 * DefaultBatchFlushSize,
 				BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 				Name:                "batched",
 			}

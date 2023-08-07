@@ -54,6 +54,13 @@ export default function App() {
 				tracingOrigins
 				networkRecording={{ enabled: true, recordHeadersAndBody: true }}
 			/>
+			<head>
+				<script
+					dangerouslySetInnerHTML={{
+						__html: `window.ENV = ${JSON.stringify(ENV)}`,
+					}}
+				/>
+			</head>
 
 			{/* Render head, body, <Outlet />, etc. */}
 		</html>
@@ -119,7 +126,7 @@ export { ErrorBoundary } from '~/components/error-boundary'
 
 ```javascript
 // app/entry.server.tsx
-import { H, HandleError } from '@highlight-run/remix/server'
+import { HandleError } from '@highlight-run/remix/server'
 
 const nodeOptions = { projectID: process.env.HIGHLIGHT_PROJECT_ID }
 

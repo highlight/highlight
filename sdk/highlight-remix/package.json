@@ -1,15 +1,15 @@
 {
 	"name": "@highlight-run/remix",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Client for interfacing with Highlight in Remix",
 	"packageManager": "yarn@3.5.0",
 	"author": "",
 	"license": "Apache-2.0",
 	"files": [
 		"dist",
-		"highlight-init.d.ts",
-		"handle-error.d.ts",
-		"index.d.ts"
+		"client.d.ts",
+		"report-dialog.d.ts",
+		"server.d.ts"
 	],
 	"exports": {
 		"./server": {

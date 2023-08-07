@@ -23,7 +23,10 @@ import (
 func main() {
   // setup the highlight SDK
   highlight.SetProjectID("<YOUR_PROJECT_ID>")
-  highlight.Start()
+  highlight.Start(
+    highlight.WithServiceName("my-fiber-app"),
+    highlight.WithServiceVersion("git-sha"),
+  )
   defer highlight.Stop()
 
   // setup highlight logrus hook

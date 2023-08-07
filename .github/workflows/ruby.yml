@@ -1,0 +1,35 @@
+name: Ruby SDK
+
+on:
+    push:
+        branches: ['main']
+    pull_request:
+        types: [opened, synchronize]
+        paths:
+            - 'sdk/highlight-ruby/**'
+            - '.github/workflows/ruby.yml'
+    merge_group:
+
+jobs:
+    build:
+        name: Ruby SDK
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: ./sdk/highlight-ruby/highlight
+        steps:
+            - uses: actions/checkout@v3
+            - name: Install Ruby 2.6
+              uses: ruby/setup-ruby@v1
+              with:
+                  ruby-version: '2.6'
+            - name: Install dependencies
+              run: bundle install
+            - name: Test
+              run: bundle exec rake
+            # TODO - replace with https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-ruby#publishing-gems
+            #- name: Publish
+            #  if: github.ref == 'refs/heads/main'
+            #  run: poetry publish -u $PYPI_USERNAME -p $PYPI_PASSWORD --skip-existing
+            #  env:
+            #      RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}

@@ -130,4 +130,6 @@ H = highlight_io.H(
     integrations=[DjangoIntegration()],
     instrument_logging=True,
     otlp_endpoint="http://localhost:4318",
+    service_name="my-django-app",
+    service_version="git-sha",
 )

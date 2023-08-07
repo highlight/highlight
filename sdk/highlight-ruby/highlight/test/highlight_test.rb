@@ -2,6 +2,7 @@ require_relative "./test_helper"
 
 class HighlightTest < Minitest::Test
   def test_logger
+
     Highlight::H.new("qe9y4yg1")
     logger = Highlight::Logger.new(STDOUT)
     logger.add(Logger::INFO, 'ruby test log add!')

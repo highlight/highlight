@@ -25,7 +25,10 @@ export const initializeGoSdk: QuickStartStep = {
 func main() {
   // ...
   highlight.SetProjectID("<YOUR_PROJECT_ID>")
-  highlight.Start()
+  highlight.Start(
+	highlight.WithServiceName("my-app"),
+	highlight.WithServiceVersion("git-sha"),
+  )
   defer highlight.Stop()
   // ...
 }`,

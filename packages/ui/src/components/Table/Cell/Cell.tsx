@@ -3,7 +3,7 @@ import { Box } from '../../Box/Box'
 
 import * as styles from './styles.css'
 
-type Props = {
+export type Props = {
 	children: React.ReactNode
 	icon?: React.ReactNode
 }

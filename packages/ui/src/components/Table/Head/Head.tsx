@@ -7,10 +7,6 @@ export type Props = {
 	children: React.ReactNode
 }
 
-export const Discoverable: React.FC<Props> = ({ children }) => {
-	return (
-		<Box display="flex" cssClass={styles.discoverable}>
-			{children}
-		</Box>
-	)
+export const Head: React.FC<Props> = ({ children }) => {
+	return <Box cssClass={styles.head}>{children}</Box>
 }
