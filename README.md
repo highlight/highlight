@@ -165,6 +165,7 @@ All of our SDKs for highlight.io can be found in the `sdk` [directory](https://g
       <td align="center" valign="top" width="14.28%"><a href="http://grantmercer.dev"><img src="https://avatars.githubusercontent.com/u/1827631?v=4?s=100" width="100px;" alt="Grant Mercer"/><br /><sub><b>Grant Mercer</b></sub></a><br /><a href="https://github.com/highlight/highlight/commits?author=Syntaf" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/LewisW"><img src="https://avatars.githubusercontent.com/u/17803?v=4?s=100" width="100px;" alt="Lewis"/><br /><sub><b>Lewis</b></sub></a><br /><a href="https://github.com/highlight/highlight/commits?author=LewisW" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://kalibetre.netlify.app"><img src="https://avatars.githubusercontent.com/u/105339878?v=4?s=100" width="100px;" alt="Kalkidan Betre"/><br /><sub><b>Kalkidan Betre</b></sub></a><br /><a href="https://github.com/highlight/highlight/commits?author=kalibetre" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://tooluloope.netlify.com/"><img src="https://avatars.githubusercontent.com/u/31691737?v=4?s=100" width="100px;" alt="Tolulope Adetula"/><br /><sub><b>Tolulope Adetula</b></sub></a><br /><a href="https://github.com/highlight/highlight/commits?author=Tooluloope" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
