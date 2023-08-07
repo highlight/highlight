@@ -216,7 +216,7 @@ export const ServicesTable = () => {
 		},
 	]
 
-	const gridColumns = columns.map((column) => column.width).join(' ')
+	const gridColumns = columns.map((column) => column.width)
 
 	return (
 		<Stack direction="column" gap="4" align="center" paddingRight="4">
@@ -228,32 +228,36 @@ export const ServicesTable = () => {
 				onChange={handleQueryChange}
 			/>
 			<Table loading={loading} error={error?.message}>
-				<Table.Row gridColumns={gridColumns} header>
-					{columns.map((column) => (
-						<Table.Header key={column.name}>
-							{column.name}
-						</Table.Header>
-					))}
-				</Table.Row>
-				{data?.services?.edges.map((edge: any) => {
-					const service = edge.node
+				<Table.Head>
+					<Table.Row gridColumns={gridColumns}>
+						{columns.map((column) => (
+							<Table.Header key={column.name}>
+								{column.name}
+							</Table.Header>
+						))}
+					</Table.Row>
+				</Table.Head>
+				<Table.Body>
+					{data?.services?.edges.map((edge: any) => {
+						const service = edge.node
 
-					return (
-						<Table.Row
-							key={service.cursor}
-							gridColumns={gridColumns}
-						>
-							{columns.map((column) => (
-								<Table.Cell
-									key={column.name}
-									icon={column.dataFormat.icon}
-								>
-									{column.renderData(service)}
-								</Table.Cell>
-							))}
-						</Table.Row>
-					)
-				})}
+						return (
+							<Table.Row
+								key={service.cursor}
+								gridColumns={gridColumns}
+							>
+								{columns.map((column) => (
+									<Table.Cell
+										key={column.name}
+										icon={column.dataFormat.icon}
+									>
+										{column.renderData(service)}
+									</Table.Cell>
+								))}
+							</Table.Row>
+						)
+					})}
+				</Table.Body>
 			</Table>
 			<Stack direction="row" justifyContent="flex-end">
 				<Button
