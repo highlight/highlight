@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.summary       = 'The Highlight SDK for Ruby'
   spec.homepage      = 'https://www.highlight.io'
   spec.license       = 'MIT'
-  spec.required_ruby_version = Gem::Requirement.new('>= 2.3.0')
+  spec.required_ruby_version = Gem::Requirement.new('>= 2.6.0')
 
   spec.metadata['homepage_uri'] = spec.homepage
 

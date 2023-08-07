@@ -3,7 +3,7 @@ require_relative './test_helper'
 class HighlightTest < Minitest::Test
   def test_logger
     Highlight::H.new('qe9y4yg1')
-    logger = Highlight::Logger.new(STDOUT)
+    logger = Highlight::Logger.new($stdout)
     logger.add(Logger::INFO, 'ruby test log add!')
     logger.info('ruby test log info!')
     logger.info { 'ruby test log block!' }
@@ -23,6 +23,6 @@ class HighlightTest < Minitest::Test
       raise 'ruby test error handler!'
     end
     Highlight::H.instance.flush
-  rescue StandardError
+  rescue StandardError # rubocop:disable Lint/SuppressedException
   end
 end

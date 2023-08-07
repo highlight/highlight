@@ -6,14 +6,14 @@ require 'logger'
 
 module Highlight
   class H
-    HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
-    OTLP_HTTP = 'https://otel.highlight.io:4318'
-    HIGHLIGHT_PROJECT_ATTRIBUTE = 'highlight.project_id'
-    HIGHLIGHT_SESSION_ATTRIBUTE = 'highlight.session_id'
-    HIGHLIGHT_TRACE_ATTRIBUTE = 'highlight.trace_id'
-    LOG_EVENT = 'log'
-    LOG_SEVERITY_ATTRIBUTE = 'log.severity'
-    LOG_MESSAGE_ATTRIBUTE = 'log.message'
+    HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'.freeze
+    OTLP_HTTP = 'https://otel.highlight.io:4318'.freeze
+    HIGHLIGHT_PROJECT_ATTRIBUTE = 'highlight.project_id'.freeze
+    HIGHLIGHT_SESSION_ATTRIBUTE = 'highlight.session_id'.freeze
+    HIGHLIGHT_TRACE_ATTRIBUTE = 'highlight.trace_id'.freeze
+    LOG_EVENT = 'log'.freeze
+    LOG_SEVERITY_ATTRIBUTE = 'log.severity'.freeze
+    LOG_MESSAGE_ATTRIBUTE = 'log.message'.freeze
     CODE_FILEPATH = OpenTelemetry::SemanticConventions::Trace::CODE_FILEPATH
     CODE_LINENO = OpenTelemetry::SemanticConventions::Trace::CODE_LINENO
     CODE_FUNCTION = OpenTelemetry::SemanticConventions::Trace::CODE_FUNCTION
@@ -23,14 +23,14 @@ module Highlight
     end
 
     def initialize(project_id, otlp_endpoint = OTLP_HTTP)
-      @@instance = self
+      @@instance = self # rubocop:disable Style/ClassVars
 
       @project_id = project_id
       @otlp_endpoint = otlp_endpoint
 
       OpenTelemetry::SDK.configure do |c|
         c.add_span_processor(OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
-                               OpenTelemetry::Exporter::OTLP::Exporter.new(endpoint: @otlp_endpoint + '/v1/traces')
+                               OpenTelemetry::Exporter::OTLP::Exporter.new(endpoint: "#{@otlp_endpoint}/v1/traces")
                              ))
       end
 
@@ -119,7 +119,7 @@ module Highlight
     def add(severity, message = nil, progname = nil)
       # https://github.com/ruby/logger/blob/master/lib/logger.rb
       severity ||= UNKNOWN
-      return true if @logdev.nil? or severity < level
+      return true if @logdev.nil? or severity < level # rubocop:disable Style/AndOr
 
       progname = @progname if progname.nil?
       if message.nil?
