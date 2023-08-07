@@ -906,6 +906,12 @@ type ErrorSegment struct {
 	OrganizationID int
 	ProjectID      int `json:"project_id"`
 }
+type ErrorGroupingMethod string
+
+const (
+	ErrorGroupingMethodClassic        ErrorGroupingMethod = "Classic"
+	ErrorGroupingMethodAdaEmbeddingV2 ErrorGroupingMethod = "AdaV2"
+)
 
 type ErrorObject struct {
 	Model
@@ -917,7 +923,8 @@ type ErrorObject struct {
 	SpanID                  *string
 	LogCursor               *string `gorm:"index:idx_error_object_log_cursor,option:CONCURRENTLY"`
 	ErrorGroupID            int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
-	ErrorGroupIDAlternative int     // the alternative (not enable) algorithm for grouping the object
+	ErrorGroupIDAlternative int     // the alternative algorithm for grouping the object
+	ErrorGroupingMethod     ErrorGroupingMethod
 	ErrorGroup              ErrorGroup
 	Event                   string
 	Type                    string

@@ -60,6 +60,7 @@ func LastLogTimestampKey(projectId int) string {
 }
 
 func NewClient() *Client {
+	lfu := cache.NewTinyLFU(10000, time.Minute)
 	if util.IsDevOrTestEnv() {
 		client := redis.NewClient(&redis.Options{
 			Addr:         ServerAddr,
@@ -77,7 +78,7 @@ func NewClient() *Client {
 			redisClient: client,
 			Cache: cache.New(&cache.Options{
 				Redis:      client,
-				LocalCache: cache.NewTinyLFU(10000, time.Minute),
+				LocalCache: lfu,
 			}),
 		}
 	} else {
@@ -96,6 +97,10 @@ func NewClient() *Client {
 				return nil
 			},
 		})
+		rCache := cache.New(&cache.Options{
+			Redis:      c,
+			LocalCache: lfu,
+		})
 		go func() {
 			for {
 				stats := c.PoolStats()
@@ -108,15 +113,18 @@ func NewClient() *Client {
 				hlog.Histogram("redis.stale-conns", float64(stats.StaleConns), nil, 1)
 				hlog.Histogram("redis.total-conns", float64(stats.TotalConns), nil, 1)
 				hlog.Histogram("redis.timeouts", float64(stats.Timeouts), nil, 1)
+
+				if stats := rCache.Stats(); stats != nil {
+					hlog.Histogram("redis.cache.hits", float64(stats.Hits), nil, 1)
+					hlog.Histogram("redis.cache.misses", float64(stats.Misses), nil, 1)
+				}
+
 				time.Sleep(time.Second)
 			}
 		}()
 		return &Client{
 			redisClient: c,
-			Cache: cache.New(&cache.Options{
-				Redis:      c,
-				LocalCache: cache.NewTinyLFU(1000, time.Minute),
-			}),
+			Cache:       rCache,
 		}
 	}
 }

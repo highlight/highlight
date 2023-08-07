@@ -14,13 +14,17 @@ import (
 )
 
 func RunTestWithDBWipe(t *testing.T, db *gorm.DB, f func(t *testing.T)) {
+	RunTestWithDBWipeWithName(t, db, t.Name(), f)
+}
+
+func RunTestWithDBWipeWithName(t *testing.T, db *gorm.DB, name string, f func(t *testing.T)) {
 	defer func(db *gorm.DB) {
 		err := ClearTablesInDB(db)
 		if err != nil {
 			t.Fatal(e.Wrap(err, "error clearing database"))
 		}
 	}(db)
-	t.Run(t.Name(), f)
+	t.Run(name, f)
 }
 
 func CreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
