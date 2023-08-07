@@ -29,6 +29,7 @@ class LogHandler(logging.Handler):
     def emit(self, record: logging.LogRecord):
         ctx = contextlib.nullcontext
         span = trace.get_current_span()
+
         if span is None or not span.is_recording():
             ctx = self.highlight.trace
 
@@ -284,6 +285,20 @@ class H(object):
             attributes["code.filepath"] = record.pathname
             attributes["code.lineno"] = record.lineno
             attributes.update(record.args or {})
+
+            message = record.getMessage()
+            try:
+                # Handle loguru's serialize=True format
+                # See: https://loguru.readthedocs.io/en/stable/api/logger.html#record
+                obj = json.loads(message)
+                extra = obj["record"]["extra"]
+                message = obj["text"]
+
+                for key, value in extra.items():
+                    attributes[key] = value
+            except:
+                pass
+
             r = LogRecord(
                 timestamp=ts,
                 trace_id=ctx.trace_id,
@@ -291,7 +306,7 @@ class H(object):
                 trace_flags=ctx.trace_flags,
                 severity_text=record.levelname,
                 severity_number=std_to_otel(record.levelno),
-                body=record.getMessage(),
+                body=message,
                 resource=span.resource,
                 attributes=attributes,
             )

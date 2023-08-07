@@ -37,7 +37,8 @@ const ErrorsPage = ({
 	const { errors, state, session, sessionMetadata, isPlayerReady, setTime } =
 		useReplayerContext()
 
-	const { setActiveError, setRightPanelView } = usePlayerUIContext()
+	const { activeError, setActiveError, setRightPanelView } =
+		usePlayerUIContext()
 	const { setShowRightPanel } = usePlayerConfiguration()
 
 	const loading = state === ReplayerState.Loading
@@ -84,6 +85,12 @@ const ErrorsPage = ({
 		})
 	}, [errors, filter])
 
+	const selectedError = useMemo(() => {
+		if (!activeError) return
+
+		return errors.find((error) => error.id === activeError.id)
+	}, [activeError, errors])
+
 	return (
 		<Box className={styles.errorsContainer}>
 			{loading || !isPlayerReady ? (
@@ -109,6 +116,7 @@ const ErrorsPage = ({
 							setTime={setTime}
 							startTime={sessionMetadata.startTime}
 							searchQuery={filter}
+							selectedError={selectedError?.id === error.id}
 							current={index === lastActiveErrorIndex}
 						/>
 					)}
@@ -126,6 +134,7 @@ export enum ErrorCardState {
 interface Props {
 	error: ErrorObject
 	onClickHandler: () => void
+	selectedError: boolean
 	setActiveError: React.Dispatch<
 		React.SetStateAction<ErrorObject | undefined>
 	>
@@ -139,6 +148,7 @@ const ErrorRow = React.memo(
 	({
 		error,
 		onClickHandler,
+		selectedError,
 		setActiveError,
 		setTime,
 		startTime,
@@ -163,6 +173,7 @@ const ErrorRow = React.memo(
 				key={error.id}
 				className={styles.errorRowVariants({
 					current,
+					selected: selectedError,
 				})}
 				onClick={onClickHandler}
 			>

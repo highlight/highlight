@@ -11,7 +11,29 @@ Do not use the snippets verbatim as they are configured for local development an
 ## Install
 
 * Install [poetry](https://python-poetry.org/docs/#installing-with-the-official-installer)
-* `poetry install`
+* `poetry install --all-extras`
+
+## Run e2e apps
+
+### Django
+
+* `cd e2e/highlight_django`
+* `poetry run python manage.py runserver`
+
+### Flask
+
+* `cd e2e/highlight_flask`
+* `poetry run flask run`
+
+### Fastapi
+
+* `cd e2e/highlight_fastapi`
+* `poetry run uvicorn main:app`
+
+### Loguru
+
+* `cd e2e/highlight_loguru`
+* `poetry run python main.py`
 
 ## Run tests
 
@@ -19,4 +41,4 @@ Do not use the snippets verbatim as they are configured for local development an
 
 ## Lint
 
-* poetry run black  .
+* `poetry run black  .`

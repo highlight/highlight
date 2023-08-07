@@ -1121,8 +1121,9 @@ type ComplexityRoot struct {
 	}
 
 	SessionInsight struct {
-		ID      func(childComplexity int) int
-		Insight func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Insight   func(childComplexity int) int
+		SessionID func(childComplexity int) int
 	}
 
 	SessionInterval struct {
@@ -1579,7 +1580,7 @@ type QueryResolver interface {
 	LogsKeyValues(ctx context.Context, projectID int, keyName string, dateRange model.DateRangeRequiredInput) ([]string, error)
 	LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model1.ErrorObject, error)
 	ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error)
-	SessionInsight(ctx context.Context, secureID string) (*model.SessionInsight, error)
+	SessionInsight(ctx context.Context, secureID string) (*model1.SessionInsight, error)
 	SystemConfiguration(ctx context.Context) (*model1.SystemConfiguration, error)
 	Services(ctx context.Context, projectID int, after *string, before *string, query *string) (*model.ServiceConnection, error)
 }
@@ -8082,6 +8083,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionInsight.Insight(childComplexity), true
 
+	case "SessionInsight.session_id":
+		if e.complexity.SessionInsight.SessionID == nil {
+			break
+		}
+
+		return e.complexity.SessionInsight.SessionID(childComplexity), true
+
 	case "SessionInterval.active":
 		if e.complexity.SessionInterval.Active == nil {
 			break
@@ -10057,6 +10065,7 @@ type SessionComment {
 
 type SessionInsight {
 	id: ID!
+	session_id: Int!
 	insight: String!
 }
 
@@ -10457,8 +10466,8 @@ type OAuthClient {
 }
 
 type SystemConfiguration {
-	maintenance_start: Timestamp!
-	maintenance_end: Timestamp!
+	maintenance_start: Timestamp
+	maintenance_end: Timestamp
 }
 
 enum EmailOptOutCategory {
@@ -49749,9 +49758,9 @@ func (ec *executionContext) _Query_session_insight(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.SessionInsight)
+	res := resTmp.(*model1.SessionInsight)
 	fc.Result = res
-	return ec.marshalOSessionInsight2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionInsight(ctx, field.Selections, res)
+	return ec.marshalOSessionInsight2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionInsight(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_session_insight(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -49764,6 +49773,8 @@ func (ec *executionContext) fieldContext_Query_session_insight(ctx context.Conte
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_SessionInsight_id(ctx, field)
+			case "session_id":
+				return ec.fieldContext_SessionInsight_session_id(ctx, field)
 			case "insight":
 				return ec.fieldContext_SessionInsight_insight(ctx, field)
 			}
@@ -56219,7 +56230,7 @@ func (ec *executionContext) fieldContext_SessionCommentTag_name(ctx context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _SessionInsight_id(ctx context.Context, field graphql.CollectedField, obj *model.SessionInsight) (ret graphql.Marshaler) {
+func (ec *executionContext) _SessionInsight_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionInsight) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SessionInsight_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -56263,7 +56274,51 @@ func (ec *executionContext) fieldContext_SessionInsight_id(ctx context.Context, 
 	return fc, nil
 }
 
-func (ec *executionContext) _SessionInsight_insight(ctx context.Context, field graphql.CollectedField, obj *model.SessionInsight) (ret graphql.Marshaler) {
+func (ec *executionContext) _SessionInsight_session_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionInsight) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_SessionInsight_session_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_SessionInsight_session_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SessionInsight",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SessionInsight_insight(ctx context.Context, field graphql.CollectedField, obj *model1.SessionInsight) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_SessionInsight_insight(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -58292,14 +58347,11 @@ func (ec *executionContext) _SystemConfiguration_maintenance_start(ctx context.C
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SystemConfiguration_maintenance_start(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -58336,14 +58388,11 @@ func (ec *executionContext) _SystemConfiguration_maintenance_end(ctx context.Con
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNTimestamp2timeᚐTime(ctx, field.Selections, res)
+	return ec.marshalOTimestamp2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_SystemConfiguration_maintenance_end(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -74060,7 +74109,7 @@ func (ec *executionContext) _SessionCommentTag(ctx context.Context, sel ast.Sele
 
 var sessionInsightImplementors = []string{"SessionInsight"}
 
-func (ec *executionContext) _SessionInsight(ctx context.Context, sel ast.SelectionSet, obj *model.SessionInsight) graphql.Marshaler {
+func (ec *executionContext) _SessionInsight(ctx context.Context, sel ast.SelectionSet, obj *model1.SessionInsight) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, sessionInsightImplementors)
 	out := graphql.NewFieldSet(fields)
 	var invalids uint32
@@ -74071,6 +74120,13 @@ func (ec *executionContext) _SessionInsight(ctx context.Context, sel ast.Selecti
 		case "id":
 
 			out.Values[i] = ec._SessionInsight_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "session_id":
+
+			out.Values[i] = ec._SessionInsight_session_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -74544,16 +74600,10 @@ func (ec *executionContext) _SystemConfiguration(ctx context.Context, sel ast.Se
 
 			out.Values[i] = ec._SystemConfiguration_maintenance_start(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "maintenance_end":
 
 			out.Values[i] = ec._SystemConfiguration_maintenance_end(ctx, field, obj)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -81693,7 +81743,7 @@ func (ec *executionContext) marshalOSessionExcludedReason2ᚖgithubᚗcomᚋhigh
 	return v
 }
 
-func (ec *executionContext) marshalOSessionInsight2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionInsight(ctx context.Context, sel ast.SelectionSet, v *model.SessionInsight) graphql.Marshaler {
+func (ec *executionContext) marshalOSessionInsight2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionInsight(ctx context.Context, sel ast.SelectionSet, v *model1.SessionInsight) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

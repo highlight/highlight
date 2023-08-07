@@ -11,7 +11,7 @@
 		"@frontapp/plugin-sdk": "^1.1.2",
 		"@highlight-run/client": "workspace:*",
 		"@highlight-run/react": "workspace:*",
-		"@highlight-run/react-mentions": "4.4.1",
+		"@highlight-run/react-mentions": "4.4.2",
 		"@highlight-run/rrweb": "workspace:*",
 		"@highlight-run/ui": "workspace:*",
 		"@rehooks/local-storage": "^2.4.0",

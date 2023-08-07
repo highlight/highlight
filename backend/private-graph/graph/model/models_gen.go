@@ -662,11 +662,6 @@ type SessionCommentTagInput struct {
 	Name string `json:"name"`
 }
 
-type SessionInsight struct {
-	ID      int    `json:"id"`
-	Insight string `json:"insight"`
-}
-
 type SessionQuery struct {
 	ID        int `json:"id"`
 	ProjectID int `json:"project_id"`

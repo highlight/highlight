@@ -780,7 +780,7 @@ func FilterEventsForInsights(events []interface{}) ([]*Event, error) {
 					data, _ := json.Marshal(eMap["data"])
 					stringifiedData := string(data)
 
-					if !util.StringContainsAnyOf(stringifiedData, []string{"identify", "authenticate", "performance"}) {
+					if !util.StringContainsAnyOf(strings.ToLower(stringifiedData), []string{"identify", "authenticate", "performance", "jank"}) {
 						parsedEvents = append(parsedEvents, &Event{
 							Type:      eventType,
 							Timestamp: timestamp,

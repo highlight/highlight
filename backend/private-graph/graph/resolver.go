@@ -18,6 +18,7 @@ import (
 	github2 "github.com/google/go-github/v50/github"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/integrations/github"
+	"github.com/sashabaranov/go-openai"
 
 	"gorm.io/gorm/clause"
 
@@ -1274,7 +1275,7 @@ func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sess
 	return b, nil
 }
 
-func (r *Resolver) getSessionInsight(ctx context.Context, events []interface{}) (string, error) {
+func (r *Resolver) getSessionInsightPrompt(ctx context.Context, events []interface{}) (string, error) {
 	parsedEvents, err := parse.FilterEventsForInsights(events)
 	if err != nil {
 		return "", e.Wrap(err, "Failed filter session events")
@@ -1292,6 +1293,94 @@ func (r *Resolver) getSessionInsight(ctx context.Context, events []interface{}) 
 	`, string(b))
 
 	return userPrompt, nil
+}
+
+func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session) (*model.SessionInsight, error) {
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		return nil, e.New("OPENAI_API_KEY is not set")
+	}
+
+	systemPrompt := `
+	Given array of events performed by a user from a session recording for a web application, make inferences and justifications and summarize interesting things about the session in 3 insights.
+	Rules:
+	- Use less than 2 sentences for each point
+	- Provide high level insights, do not mention singular events
+	- Do not mention event types in the insights
+	- Insights must be different to each other
+	- Do not mention identification or authentication events
+	- Don't mention timestamps in <insight>, insights should be interesting inferences from the input
+	- Output timestamp that best represents the insight in <timestamp> of output
+	- Sort the insights by timestamp
+
+	You must respond ONLY with JSON that looks like this:
+	[{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number }]
+	Do not provide any other output other than this format.
+
+	Context:
+	- The events are JSON objects, where the "timestamp" field represents UNIX time of the event, the "type" field represents the type of event, and the "data" field represents more information about the event
+	- If the event is of type "Custom", the "tag" field provides the type of custom event, and the "payload" field represents more information about the event
+	- If the event is of tag "Track", it is a custom event where the actual type of the event is in the "event" field within "data.payload"
+
+	The "type" field follows this format:
+	0 - DomContentLoaded
+	1 - Load
+	2 -	FullSnapshot, the full page view was loaded
+	3 -	IncrementalSnapshot, some components were updated
+	4 -	Meta
+	5 -	Custom, the "tag" field provides the type of custom event, and the "payload" field represents more information about the event
+	6 -	Plugin
+	`
+
+	events, err, _ := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	if err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: GetEvents error")
+		return nil, err
+	}
+
+	userPrompt, err := r.getSessionInsightPrompt(ctx, events)
+	if err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: Prompt error")
+		return nil, err
+	}
+
+	const MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH = 32000
+	if len(userPrompt) > MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH {
+		userPrompt = userPrompt[:MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH]
+	}
+
+	client := openai.NewClient(apiKey)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model:       openai.GPT3Dot5Turbo16K,
+			Temperature: 0.7,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: systemPrompt,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: userPrompt,
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: ChatCompletion error")
+		return nil, err
+	}
+
+	insight := &model.SessionInsight{SessionID: session.ID, Insight: resp.Choices[0].Message.Content}
+
+	if err := r.DB.Create(insight).Error; err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: Error saving insight")
+		return nil, err
+	}
+
+	return insight, nil
 }
 
 // Returns the current Admin or an Admin with ID = 0 if the current Admin is a guest
