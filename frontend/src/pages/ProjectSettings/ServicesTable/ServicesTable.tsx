@@ -1,6 +1,4 @@
 import { Button } from '@components/Button'
-import Popover from '@components/Popover/Popover'
-import Select from '@components/Select/Select'
 import { useEditServiceMutation, useGetServicesLazyQuery } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
@@ -9,10 +7,8 @@ import {
 	Combobox,
 	IconSolidCubeTransparent,
 	IconSolidExternalLink,
-	IconSolidGithub,
 	Stack,
 	Table,
-	Text,
 	useComboboxState,
 } from '@highlight-run/ui'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
@@ -20,8 +16,8 @@ import { useParams } from '@util/react-router/useParams'
 import { capitalize } from 'lodash'
 import { debounce } from 'lodash'
 import React, { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 
+import { GithubRepoPopover } from '../GithubRepoPopover/GithubRepoPopover'
 import * as styles from './ServicesTable.css'
 
 type Pagination = {
@@ -118,7 +114,7 @@ export const ServicesTable = () => {
 							>
 								<Badge
 									variant="outlineGray"
-									label="Open"
+									label="GitHub"
 									size="medium"
 									iconEnd={<IconSolidExternalLink />}
 								/>
@@ -133,73 +129,12 @@ export const ServicesTable = () => {
 			width: '200px',
 			dataFormat: {},
 			renderData: (service: any) => (
-				<Popover
-					trigger="click"
-					content={
-						<Box style={{ maxWidth: 250 }} p="8">
-							{!isIntegrated ? (
-								<Link to={`/${service.projectID}/integrations`}>
-									<Text size="small" weight="medium">
-										Integrate GitHub
-									</Text>
-								</Link>
-							) : (
-								<>
-									{service.githubRepoPath ? (
-										<Text size="small" weight="medium">
-											Edit
-										</Text>
-									) : (
-										<Text size="small" weight="medium">
-											Connect
-										</Text>
-									)}
-									<Select
-										aria-label="GitHub Repository"
-										placeholder="Chose repo to connect to service"
-										options={githubData?.github_repos?.map(
-											(repo) => ({
-												id: repo.key,
-												value: repo.repo_id.replace(
-													'https://api.github.com/repos/',
-													'',
-												),
-												displayValue: repo.name,
-											}),
-										)}
-										onChange={(repo) =>
-											handleGitHubRepoChange(
-												service,
-												repo,
-											)
-										}
-										value={service.githubRepoPath}
-										notFoundContent={<p>No repos found</p>}
-									/>
-									{service.githubRepoPath && (
-										<Button
-											kind="danger"
-											trackingId="remove-repo"
-											onClick={() =>
-												handleGitHubRepoChange(service)
-											}
-										>
-											Remove
-										</Button>
-									)}
-								</>
-							)}
-						</Box>
-					}
-				>
-					<Badge
-						variant="outlineGray"
-						iconStart={<IconSolidGithub size={12} />}
-						label={service.githubRepoPath || 'None'}
-						gap="4"
-						size="medium"
-					/>
-				</Popover>
+				<GithubRepoPopover
+					service={service}
+					onRepoChange={handleGitHubRepoChange}
+					githubIntegrated={!!isIntegrated}
+					githubRepos={githubData?.github_repos || []}
+				/>
 			),
 		},
 		{
