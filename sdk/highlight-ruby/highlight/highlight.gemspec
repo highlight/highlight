@@ -22,9 +22,9 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_runtime_dependency 'opentelemetry-sdk'
-  spec.add_runtime_dependency 'opentelemetry-exporter-otlp'
-  spec.add_runtime_dependency 'opentelemetry-instrumentation-all'
-  spec.add_runtime_dependency 'opentelemetry-semantic_conventions'
+  spec.add_runtime_dependency 'opentelemetry-sdk', '~> 1.2'
+  spec.add_runtime_dependency 'opentelemetry-exporter-otlp', '~> 0.24.0'
+  spec.add_runtime_dependency 'opentelemetry-instrumentation-all', '~> 0.32.0'
+  spec.add_runtime_dependency 'opentelemetry-semantic_conventions', '~> 1.8.0'
   spec.add_runtime_dependency 'grpc', '~> 1.52'
 end
