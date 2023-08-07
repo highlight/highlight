@@ -154,6 +154,7 @@ export const CommentTextBody = ({
 				data={suggestions}
 				displayTransform={onDisplayTransformHandler}
 				appendSpaceOnAdd
+				suggestionLimit={15}
 				renderSuggestion={(
 					suggestion,
 					search,
