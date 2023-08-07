@@ -1078,6 +1078,7 @@ type SessionComment {
 
 type SessionInsight {
 	id: ID!
+	session_id: Int!
 	insight: String!
 }
 

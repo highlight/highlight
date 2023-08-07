@@ -190,6 +190,7 @@ var Models = []interface{}{
 	&ErrorGroupActivityLog{},
 	&UserJourneyStep{},
 	&SystemConfiguration{},
+	&SessionInsight{},
 }
 
 func init() {
@@ -682,6 +683,12 @@ type SessionAdminsView struct {
 	SessionID int       `gorm:"primaryKey"`
 	AdminID   int       `gorm:"primaryKey"`
 	ViewedAt  time.Time `gorm:"default:NOW()"`
+}
+
+type SessionInsight struct {
+	Model
+	SessionID int `gorm:"index"`
+	Insight   string
 }
 
 type EventChunk struct {
