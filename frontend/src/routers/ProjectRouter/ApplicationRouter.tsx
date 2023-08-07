@@ -51,6 +51,7 @@ const ApplicationRouter: React.FC = () => {
 					<Route path="settings/*" element={<SettingsRouter />} />
 					<Route path="alerts/*" element={<AlertsRouter />} />
 					<Route path="alerts/logs/*" element={<LogAlertsRouter />} />
+
 					<Route path="setup/*" element={<SetupRouter />} />
 
 					<Route

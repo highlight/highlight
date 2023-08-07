@@ -50,6 +50,7 @@ export const getGitHubInstallationOAuthUrl = (
 		workspace_id: workspaceId,
 	}
 
+	// TODO(spenny): revert this before merge
 	return (
 		`https://github.com/apps/spenny-s-highlight-dev/installations/new` +
 		`?state=${btoa(JSON.stringify(state))}&`
