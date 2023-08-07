@@ -5,8 +5,7 @@ import CommentReplyForm, {
 import ReplyList from '@components/Comment/ReplyList/ReplyList'
 import { Box, IconSolidReply, Stack, Tag, Text } from '@highlight-run/ui'
 import { ParsedSessionComment } from '@pages/Player/ReplayerContext'
-import { H } from 'highlight.run'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 
 import {
 	getDeepLinkedCommentId,
@@ -14,8 +13,7 @@ import {
 } from '@/components/Comment/utils/utils'
 import { formatTimeAsHMS } from '@/util/time'
 
-import CommentTextBody from '../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
-import styles from './SessionComment.module.css'
+import { CommentTextBody } from '../../../pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import SessionCommentHeader from './SessionCommentHeader'
 
 interface Props {
@@ -150,37 +148,3 @@ export const SessionComment = ({
 		</>
 	)
 }
-
-type SessionCommentTextBodyProps = Pick<Props, 'comment'>
-export const SessionCommentTextBody = ({
-	comment,
-}: SessionCommentTextBodyProps) => {
-	const [tags, setTags] = useState<string[]>([])
-
-	useEffect(() => {
-		if (comment.tags && comment.tags.length > 0) {
-			try {
-				// @ts-expect-error
-				setTags(JSON.parse(comment.tags[0]))
-			} catch (_e) {
-				const e = _e as Error
-				H.consumeError(e)
-			}
-		}
-	}, [comment.tags])
-
-	return (
-		<>
-			<CommentTextBody commentText={comment.text} />
-			{tags.length > 0 && (
-				<div className={styles.tagsContainer}>
-					{tags.map((tag) => (
-						<Tag key={tag}>{tag}</Tag>
-					))}
-				</div>
-			)}
-		</>
-	)
-}
-
-export default SessionComment
