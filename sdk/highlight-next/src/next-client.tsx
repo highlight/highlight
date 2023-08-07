@@ -3,13 +3,14 @@
 import { HighlightOptions, H as localH } from 'highlight.run'
 
 import { useEffect } from 'react'
+
 export { ErrorBoundary } from '@highlight-run/react'
 
 export { localH as H }
 
 export interface Props extends HighlightOptions {
-	projectId?: string
 	excludedHostnames?: string[]
+	projectId?: string
 }
 
 export function HighlightInit({
