@@ -1,18 +1,30 @@
 'use client'
 
-import { H as localH, HighlightOptions } from 'highlight.run'
+import { HighlightOptions, H as localH } from 'highlight.run'
+
+import { useEffect } from 'react'
+export { ErrorBoundary } from '@highlight-run/react'
 
 export { localH as H }
 
-import { useEffect } from 'react'
-
 export interface Props extends HighlightOptions {
 	projectId?: string
+	excludedHostnames?: string[]
 }
 
-export function HighlightInit({ projectId, ...highlightOptions }: Props) {
+export function HighlightInit({
+	excludedHostnames = [],
+	projectId,
+	...highlightOptions
+}: Props) {
 	useEffect(() => {
-		projectId && localH.init(projectId, highlightOptions)
+		const shouldRender =
+			projectId &&
+			excludedHostnames.every(
+				(hostname) => !window.location.hostname.includes(hostname),
+			)
+
+		shouldRender && localH.init(projectId, highlightOptions)
 	}, []) // eslint-disable-line react-hooks/exhaustive-deps
 
 	return null

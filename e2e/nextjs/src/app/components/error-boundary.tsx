@@ -1,6 +1,6 @@
 'use client'
 
-import { ErrorBoundary as HighlightErrorBoundary } from '@highlight-run/react'
+import { ErrorBoundary as HighlightErrorBoundary } from '@highlight-run/next/client'
 
 export function ErrorBoundary({ children }: { children: React.ReactNode }) {
 	return (
