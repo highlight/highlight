@@ -2,12 +2,11 @@ import {
 	BatchSpanProcessor,
 	SpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
-import { Tracer, trace } from '@opentelemetry/api'
+import { Attributes, Tracer, trace } from '@opentelemetry/api'
 
 import { NodeOptions } from './types.js'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { Resource, ResourceAttributes } from '@opentelemetry/resources'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { hookConsole } from './hooks'
 import log from './log'
@@ -43,7 +42,7 @@ export class Highlight {
 
 		this.processor = new BatchSpanProcessor(exporter, {})
 
-		const attributes: Record<string, any> = {}
+		const attributes: Attributes = {}
 		attributes['highlight.project_id'] = this._projectID
 
 		if (options.serviceName) {
