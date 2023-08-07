@@ -28,8 +28,8 @@ export const FilterSessionsWithoutErrorForm = () => {
 
 	const categories = [
 		{
-			key: 'Exclude sessions without errors',
-			message: 'Filter sessions without an error',
+			key: 'Filter sessions without errors',
+			message: 'Filter sessions without an error.',
 			checked: filterSessionsWithoutError,
 		},
 	]
