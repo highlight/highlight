@@ -29,7 +29,8 @@ export const FilterExtensionForm = () => {
 	const categories = [
 		{
 			key: 'Extension errors',
-			message: 'Filter out errors thrown by browser extensions',
+			message:
+				'Filter out errors thrown by browser extensions. Any error filtered out will not count towards your billing quota.',
 			checked: filterChromeExtension,
 		},
 	]
