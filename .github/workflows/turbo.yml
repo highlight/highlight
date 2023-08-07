@@ -171,12 +171,8 @@ jobs:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
-
             - name: Start docker containers & run cypress
               env:
-                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
                   COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
                   REF: ${{ github.ref }}
                   REPO: ${{ github.event.pull_request.head.repo.full_name }}
