@@ -191,7 +191,7 @@ jobs:
                   ./run-backend.sh >> /tmp/highlight.log 2>&1 &
                   yarn install >> /tmp/highlight.log 2>&1;
                   source ./env.sh;
-                  yarn build:frontend >> /tmp/highlight.log 2>&1;
+                  REACT_APP_AUTH_MODE=simple yarn build:frontend >> /tmp/highlight.log 2>&1;
                   yarn workspace @highlight-run/client dev &
                   yarn workspace highlight.run dev &
                   yarn workspace @highlight-run/frontend vite preview --port 3000 &
