@@ -27,9 +27,9 @@ Take full control over your Canvas snapshots with the [manual snapshotting docs]
 ![Render to Highlight](/images/changelog/22/canvas-snapshot.jpg)
 
 
-## Set "Service Name" and "Service Version" with Python SDK
+## Set "Service Name" and "Service Version" with the Python and Go SDKs
 
-We've added `service_name` and `service_version` parameters to the [Python SDK](https://www.highlight.io/docs/sdk/python#servicename)
+We've added `service_name` and `service_version` parameters to the [Python SDK](https://www.highlight.io/docs/sdk/python#servicename) and the [Go SDK](https://www.highlight.io/docs/sdk/go#highlightStart).
 
 These params make logs much more searchable.
 
