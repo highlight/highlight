@@ -39,13 +39,9 @@ These params make logs much more searchable.
 
 #### Repaired scrolling in metadata
 
-Shout out to to Kalkidan Betre—[@kalibetre](https://github.com/kalibetre) on GitHub—for his open source contribution. He noticed that our Metadata window on the Session Replay screen wasn't scrolling correctly, and he sent in a pull request to fix it.
+Shout out to to Kalkidan Betre—[@kalibetre](https://github.com/kalibetre) on GitHub—for their open source contribution. They noticed that our Metadata window on the Session Replay screen wasn't scrolling correctly, and they sent in a pull request to fix it.
 
 Thanks Kalkidan!
 
 ![Metadata scroll](/images/changelog/22/metadata-scroll.gif)
-
-
-
-
 
