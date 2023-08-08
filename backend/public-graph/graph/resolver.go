@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/embeddings"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -17,6 +16,7 @@ import (
 	"time"
 
 	"github.com/aws/smithy-go/ptr"
+	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
@@ -734,6 +734,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	if workspace != nil {
 		settings, _ = r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
 	}
+	var embedding *model.ErrorObjectEmbeddings
 	if settings != nil && settings.ErrorEmbeddingsGroup {
 		// keep the classic match as the alternative error group
 		errorGroup, errorGroupAlt = nil, errorGroup
@@ -741,14 +742,10 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		if err != nil {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings")
 		}
-		match, err = r.GetTopErrorGroupMatchByEmbedding(ctx, emb[0].CombinedEmbedding, emb[0].EventEmbedding, emb[0].StackTraceEmbedding, emb[0].PayloadEmbedding)
+		embedding = emb[0]
+		match, err = r.GetTopErrorGroupMatchByEmbedding(ctx, embedding.CombinedEmbedding, embedding.EventEmbedding, embedding.StackTraceEmbedding, embedding.PayloadEmbedding)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
-		}
-		if settings.ErrorEmbeddingsWrite {
-			if err := r.Store.PutEmbeddings(emb); err != nil {
-				log.WithContext(ctx).WithError(err).Error("failed to write embeddings")
-			}
 		}
 		errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, match)
 		if err != nil {
@@ -764,6 +761,13 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 
 	if err := r.DB.Create(errorObj).Error; err != nil {
 		return nil, e.Wrap(err, "Error performing error insert for error")
+	}
+
+	if embedding != nil {
+		embedding.ErrorObjectID = errorObj.ID
+		if err := r.Store.PutEmbeddings([]*model.ErrorObjectEmbeddings{embedding}); err != nil {
+			log.WithContext(ctx).WithError(err).Error("failed to write embeddings")
+		}
 	}
 
 	opensearchErrorObject := &opensearch.OpenSearchErrorObject{
