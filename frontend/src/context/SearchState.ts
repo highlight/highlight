@@ -1,4 +1,4 @@
-import { getDefaultPresets, getNow } from '@highlight-run/ui'
+import { defaultPresets, getNow } from '@highlight-run/ui'
 import moment from 'moment'
 import { useCallback, useEffect, useReducer } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -362,8 +362,7 @@ type OpenSearchQuery = {
 }
 
 const getDefaultTimeRangeRule = (timeRangeField: SelectOption): RuleProps => {
-	const presetOptions = getDefaultPresets()
-	const defaultPreset = presetOptions[5]
+	const defaultPreset = defaultPresets[5]
 	const period = {
 		label: defaultPreset.label, // Start at 30 days
 		value: `${defaultPreset.startDate.toISOString()}_${getNow().toISOString()}`, // Start at 30 days

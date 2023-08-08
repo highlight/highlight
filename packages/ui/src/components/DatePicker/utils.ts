@@ -12,10 +12,12 @@ const subtractHours = (date: Date, hours: number) => {
 	return newDate
 }
 
-const now = moment()
+let now = moment()
 export const getNow = () => now.clone()
-export function getDefaultPresets() {
-	return [
+export let defaultPresets: { label: string; startDate: Date }[] = []
+export function resetRelativeDates() {
+	now = moment()
+	defaultPresets = [
 		{
 			label: 'Last 15 minutes',
 			startDate: getNow().subtract(15, 'minutes').toDate(),
@@ -42,5 +44,6 @@ export function getDefaultPresets() {
 		},
 	]
 }
+resetRelativeDates()
 
 export { subtractDays, subtractHours }

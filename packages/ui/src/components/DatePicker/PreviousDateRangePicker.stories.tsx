@@ -7,7 +7,7 @@ import { Stack } from '../Stack/Stack'
 import { Box } from '../Box/Box'
 import {
 	PreviousDateRangePicker,
-	getDefaultPresets,
+	defaultPresets,
 } from './PreviousDateRangePicker'
 import { subtractDays, subtractHours } from './utils'
 import moment from 'moment'
@@ -18,8 +18,6 @@ export default {
 } as Meta<typeof DatePicker>
 
 const now = moment()
-
-const defaultPresets = getDefaultPresets()
 
 export { subtractDays, subtractHours } from './utils'
 
