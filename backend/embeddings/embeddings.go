@@ -41,8 +41,6 @@ func (c *OpenAIClient) GetEmbeddings(ctx context.Context, errors []*model.ErrorO
 		} else {
 			stackTrace = errorObject.StackTrace
 		}
-		eventInputs = append(eventInputs, errorObject.Event)
-		eventErrors = append(eventErrors, errorObject)
 		combinedInput := errorObject.Event
 		if stackTrace != nil {
 			stacktraceInputs = append(stacktraceInputs, *stackTrace)
@@ -54,8 +52,12 @@ func (c *OpenAIClient) GetEmbeddings(ctx context.Context, errors []*model.ErrorO
 			payloadErrors = append(payloadErrors, errorObject)
 			combinedInput = combinedInput + " " + *errorObject.Payload
 		}
-		combinedInputs = append(eventInputs, combinedInput)
+		combinedInputs = append(combinedInputs, combinedInput)
 		combinedErrors = append(combinedErrors, errorObject)
+		if combinedInput != errorObject.Event {
+			eventInputs = append(eventInputs, errorObject.Event)
+			eventErrors = append(eventErrors, errorObject)
+		}
 	}
 
 	results := map[int]*model.ErrorObjectEmbeddings{}

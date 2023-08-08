@@ -464,7 +464,7 @@ limit 1;`, map[string]interface{}{
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
 	}
-	if result.Score > 0 {
+	if result.ErrorGroupID > 0 {
 		lg := log.WithContext(ctx).WithField("combined_score", result.CombinedScore).WithField("score", result.Score).WithField("matched_error_group_id", result.ErrorGroupID)
 		if result.Score < 0.1 {
 			lg.Info("matched error group by embeddings")
