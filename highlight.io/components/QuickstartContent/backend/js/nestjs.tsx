@@ -23,11 +23,11 @@ import { HighlightInterceptor } from '@highlight-run/nest'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
   app.useGlobalInterceptors(
-	new HighlightInterceptor({
-	  projectID: '<YOUR_PROJECT_ID>',
-	  serviceName: 'my-nestjs-app',
-	  serviceVersion: 'git-sha'
-	})
+    new HighlightInterceptor({
+      projectID: '<YOUR_PROJECT_ID>',
+      serviceName: 'my-nestjs-app',
+      serviceVersion: 'git-sha'
+    })
   )
   await app.listen(3000)
 }
