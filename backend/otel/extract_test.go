@@ -53,12 +53,16 @@ func newEvent(attrs map[string]string) ptrace.SpanEvent {
 	return event
 }
 
-func newSpan() ptrace.Span {
+func newSpan(attrs map[string]string) ptrace.Span {
 	traces := ptrace.NewTraces()
 	rspans := traces.ResourceSpans().AppendEmpty()
 	ispans := rspans.ScopeSpans().AppendEmpty()
 	span := ispans.Spans().AppendEmpty()
 	span.Attributes().PutStr(highlight.ProjectIDAttribute, "1")
+
+	for k, v := range attrs {
+		span.Attributes().PutStr(k, v)
+	}
 
 	return span
 }
@@ -248,6 +252,22 @@ func TestExtractFields_ExtractServiceName(t *testing.T) {
 	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
+func TestExtractFields_ExtractServiceNameForFrontendSource(t *testing.T) {
+	resource := newResource(t, map[string]any{
+		"service.name": "my_service",
+	})
+
+	span := newSpan(map[string]string{
+		"highlight.source": string(modelInputs.LogSourceFrontend),
+	})
+	fields, err := extractFields(context.TODO(), extractFieldsParams{
+		resource: &resource,
+		span:     &span,
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "", fields.serviceName)
+}
+
 func TestExtractFields_RewriteServiceName(t *testing.T) {
 	resource := newResource(t, map[string]any{
 		"service.name": "unknown_service:/opt/homebrew/Cellar/node/19.6.0/bin/node",
@@ -277,7 +297,7 @@ func TestExtractFields_ExtractServiceVersion(t *testing.T) {
 }
 
 func TestExtractFields_ExtractEvents(t *testing.T) {
-	span := newSpan()
+	span := newSpan(map[string]string{})
 	event := span.Events().AppendEmpty()
 	event.SetName("event_123")
 
@@ -287,7 +307,7 @@ func TestExtractFields_ExtractEvents(t *testing.T) {
 }
 
 func TestExtractFields_ExtractLinks(t *testing.T) {
-	span := newSpan()
+	span := newSpan(map[string]string{})
 	link := span.Links().AppendEmpty()
 	link.TraceState().FromRaw("link:state")
 
