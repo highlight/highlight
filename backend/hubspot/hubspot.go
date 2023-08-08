@@ -44,6 +44,8 @@ const ClientSideAssociationTimeout = 3 * ClientSideContactCreationTimeout
 
 const ClientSideCreationPollInterval = 5 * time.Second
 
+const DefaultLockTimeout = 15 * time.Second
+
 var (
 	OAuthToken = os.Getenv("HUBSPOT_OAUTH_TOKEN")
 	APIKey     = os.Getenv("HUBSPOT_API_KEY")
@@ -423,6 +425,15 @@ func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminI
 }
 
 func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, adminID int, workspaceID int) error {
+	key := fmt.Sprintf("hubspot-CreateContactCompanyAssociationImpl-%d-%d", adminID, workspaceID)
+	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideCreationPollInterval); acquired {
+		defer func() {
+			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release hubspot lock")
+			}
+		}()
+	}
+
 	data, err := pollHubspot(func() (*struct{ companyID, contactID int }, error) {
 		admin := &model.Admin{}
 		if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
@@ -484,6 +495,15 @@ func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, ema
 }
 
 func (h *HubspotApi) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
+	key := fmt.Sprintf("hubspot-CreateContactForAdminImpl-%d", adminID)
+	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideCreationPollInterval); acquired {
+		defer func() {
+			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release hubspot lock")
+			}
+		}()
+	}
+
 	if contactId, err = pollHubspot(func() (*int, error) {
 		return h.getContactForAdmin(email)
 	}, ClientSideContactCreationTimeout); contactId == nil {
@@ -518,7 +538,16 @@ func (h *HubspotApi) CreateCompanyForWorkspace(ctx context.Context, workspaceID 
 	}, PartitionKey)
 }
 
-func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspaceID int, adminEmail string, name string) (companyID *int, err error) {
+func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspaceID int, adminEmail, name string) (companyID *int, err error) {
+	key := fmt.Sprintf("hubspot-CreateCompanyForWorkspaceImpl-%d-%s-%s", workspaceID, adminEmail, name)
+	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideCreationPollInterval); acquired {
+		defer func() {
+			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release hubspot lock")
+			}
+		}()
+	}
+
 	// Don't create for Demo account
 	if workspaceID == 0 {
 		return
@@ -590,6 +619,15 @@ func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, pro
 }
 
 func (h *HubspotApi) UpdateContactPropertyImpl(ctx context.Context, adminID int, properties []hubspot.Property) error {
+	key := fmt.Sprintf("hubspot-UpdateContactPropertyImpl-%d", adminID)
+	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideCreationPollInterval); acquired {
+		defer func() {
+			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release hubspot lock")
+			}
+		}()
+	}
+
 	admin := &model.Admin{}
 	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
 		return err
@@ -623,6 +661,15 @@ func (h *HubspotApi) UpdateCompanyProperty(ctx context.Context, workspaceID int,
 }
 
 func (h *HubspotApi) UpdateCompanyPropertyImpl(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
+	key := fmt.Sprintf("hubspot-UpdateCompanyPropertyImpl-%d", workspaceID)
+	if acquired := h.redisClient.AcquireLock(ctx, key, DefaultLockTimeout); acquired {
+		defer func() {
+			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release hubspot lock")
+			}
+		}()
+	}
+
 	workspace := &model.Workspace{}
 	if err := h.db.Model(&model.Workspace{}).Preload("Admins").Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
 		return err
