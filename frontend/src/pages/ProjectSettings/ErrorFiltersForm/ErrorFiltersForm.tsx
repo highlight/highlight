@@ -42,7 +42,7 @@ export const ErrorFiltersForm = () => {
 						className={styles.input}
 						mode="tags"
 						placeholder="TypeError: Failed to fetch"
-						value={data?.projectSettings?.error_filters}
+						value={data?.projectSettings?.error_filters || []}
 						notFoundContent={
 							<Text>
 								Provide a regex pattern to filter out errors.
