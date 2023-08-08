@@ -426,7 +426,7 @@ func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminI
 
 func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, adminID int, workspaceID int) error {
 	key := fmt.Sprintf("hubspot-CreateContactCompanyAssociationImpl-%d-%d", adminID, workspaceID)
-	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideCreationPollInterval); acquired {
+	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideAssociationTimeout); acquired {
 		defer func() {
 			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
 				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release hubspot lock")
@@ -496,7 +496,7 @@ func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, ema
 
 func (h *HubspotApi) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	key := fmt.Sprintf("hubspot-CreateContactForAdminImpl-%d", adminID)
-	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideCreationPollInterval); acquired {
+	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideContactCreationTimeout); acquired {
 		defer func() {
 			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
 				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release hubspot lock")
@@ -540,7 +540,7 @@ func (h *HubspotApi) CreateCompanyForWorkspace(ctx context.Context, workspaceID 
 
 func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspaceID int, adminEmail, name string) (companyID *int, err error) {
 	key := fmt.Sprintf("hubspot-CreateCompanyForWorkspaceImpl-%d-%s-%s", workspaceID, adminEmail, name)
-	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideCreationPollInterval); acquired {
+	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideCompanyCreationTimeout); acquired {
 		defer func() {
 			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
 				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release hubspot lock")
@@ -620,7 +620,7 @@ func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, pro
 
 func (h *HubspotApi) UpdateContactPropertyImpl(ctx context.Context, adminID int, properties []hubspot.Property) error {
 	key := fmt.Sprintf("hubspot-UpdateContactPropertyImpl-%d", adminID)
-	if acquired := h.redisClient.AcquireLock(ctx, key, ClientSideCreationPollInterval); acquired {
+	if acquired := h.redisClient.AcquireLock(ctx, key, DefaultLockTimeout); acquired {
 		defer func() {
 			if err := h.redisClient.ReleaseLock(ctx, key); err != nil {
 				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release hubspot lock")
