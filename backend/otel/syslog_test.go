@@ -14,3 +14,15 @@ func Test_extractSyslog(t *testing.T) {
 	assert.Equal(t, "render", fields.attrs["hostname"])
 	assert.Equal(t, "Render test log", fields.logBody)
 }
+
+func Test_extractSyslogWithStructuredData(t *testing.T) {
+	fields := newExtractedFields()
+
+	fields.logBody = "<165>1 2003-10-11T22:14:15.003Z mymachine.example.com evntslog - ID47 [exampleSDID@32473 iut=\"3\" eventSource=\"Application\" eventID=\"1011\"] BOMAn application event log entry"
+	extractSyslog(fields)
+	assert.Equal(t, "mymachine.example.com", fields.attrs["hostname"])
+	assert.Equal(t, "BOMAn application event log entry", fields.logBody)
+	assert.Equal(t, "3", fields.attrs["iut"])
+	assert.Equal(t, "Application", fields.attrs["eventSource"])
+	assert.Equal(t, "1011", fields.attrs["eventID"])
+}

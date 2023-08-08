@@ -38,10 +38,13 @@ func extractSyslog(fields *extractedFields) {
 		if msg.MsgID != nil {
 			fields.attrs["msg_id"] = *msg.MsgID
 		}
-		// if msg.StructuredData != nil {
-		// 	for k, vMap := range *msg.StructuredData {
-		// 		fields.attrs[k] = v
-		// 	}
-		// }
+		if msg.StructuredData != nil {
+
+			for _, vMap := range *msg.StructuredData {
+				for k, v := range vMap {
+					fields.attrs[k] = v
+				}
+			}
+		}
 	}
 }
