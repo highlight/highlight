@@ -217,7 +217,7 @@ export const SessionFeedV3 = React.memo(() => {
 			// if the query end date is close to 'now',
 			// then we are using a default relative time range.
 			// otherwise, we are using a custom date range and should not poll
-			if (moment(lte).diff(getNow(), 'minutes') >= 1) {
+			if (Math.abs(moment(lte).diff(getNow(), 'minutes')) >= 1) {
 				log(
 					'SessionsFeedV3.tsx',
 					'skipping polling for custom time selection',
