@@ -22,9 +22,9 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule)
   app.useLogger(
     new HighlightLogger({
-	  projectID: '<YOUR_PROJECT_ID>',
-	  serviceName: 'my-nestjs-app',
-	  serviceVersion: 'git-sha'
+      projectID: '<YOUR_PROJECT_ID>',
+      serviceName: 'my-nestjs-app',
+      serviceVersion: 'git-sha'
     })
   )
   await app.listen(3000)
