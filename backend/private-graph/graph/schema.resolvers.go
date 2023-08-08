@@ -34,6 +34,7 @@ import (
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/integrations/height"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -828,6 +829,10 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 
 	if err := r.DB.Model(&s).Association("ViewedByAdmins").Append(admin); err != nil {
 		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
+	}
+
+	if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+		return nil, err
 	}
 
 	return newSession, nil

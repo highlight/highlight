@@ -80,6 +80,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 const DefaultBatchFlushSize = 512
 const DefaultBatchedFlushTimeout = 5 * time.Second
 const ClickhouseLogRowBatchSizeTarget = 10000
+const SessionsMaxRowsPostgres = 500
 
 type KafkaWorker struct {
 	KafkaQueue   *kafkaqueue.Queue
@@ -300,7 +301,6 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context) {
 	k.BatchBuffer.lastMessage = nil
 }
 
-//nolint:unused
 func (k *KafkaBatchWorker) flushDataSync(ctx context.Context) {
 	s, iCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.flush"))
 	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
@@ -328,47 +328,52 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context) {
 	}()
 	readSpan.Finish()
 
-	sessionIds = lo.Uniq(sessionIds)
-	if len(sessionIds) > 0 {
-		sessionObjs := []*model.Session{}
-		sessionSpan, _ := tracer.StartSpanFromContext(iCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.readSessions"))
-		if err := k.Worker.PublicResolver.DB.Model(&model.Session{}).Preload("ViewedByAdmins").Where("id in ?", sessionIds).Find(&sessionObjs).Error; err != nil {
-			log.WithContext(ctx).Error(err)
-		}
-		sessionSpan.Finish()
+	sessionIdChunks := lo.Chunk(lo.Uniq(sessionIds), SessionsMaxRowsPostgres)
+	if len(sessionIdChunks) > 0 {
+		allSessionObjs := []*model.Session{}
+		for _, chunk := range sessionIdChunks {
+			sessionObjs := []*model.Session{}
+			sessionSpan, _ := tracer.StartSpanFromContext(iCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.readSessions"))
+			if err := k.Worker.PublicResolver.DB.Model(&model.Session{}).Preload("ViewedByAdmins").Where("id in ?", chunk).Find(&sessionObjs).Error; err != nil {
+				log.WithContext(ctx).Error(err)
+			}
+			sessionSpan.Finish()
 
-		fieldObjs := []*model.Field{}
-		fieldSpan, _ := tracer.StartSpanFromContext(iCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.readFields"))
-		if err := k.Worker.PublicResolver.DB.Model(&model.Field{}).Where("id IN (SELECT field_id FROM session_fields sf WHERE sf.session_id IN ?)", sessionIds).Find(&fieldObjs).Error; err != nil {
-			log.WithContext(ctx).Error(err)
-		}
-		fieldSpan.Finish()
-		fieldsById := lo.KeyBy(fieldObjs, func(f *model.Field) int64 {
-			return f.ID
-		})
-
-		type sessionField struct {
-			SessionID int
-			FieldID   int64
-		}
-		sessionFieldObjs := []*sessionField{}
-		sessionFieldSpan, _ := tracer.StartSpanFromContext(iCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.readSessionFields"))
-		if err := k.Worker.PublicResolver.DB.Table("session_fields").Where("session_id IN ?", sessionIds).Find(&sessionFieldObjs).Error; err != nil {
-			log.WithContext(ctx).Error(err)
-		}
-		sessionFieldSpan.Finish()
-		sessionToFields := lo.GroupBy(sessionFieldObjs, func(sf *sessionField) int {
-			return sf.SessionID
-		})
-
-		for _, session := range sessionObjs {
-			session.Fields = lo.Map(sessionToFields[session.ID], func(sf *sessionField, _ int) *model.Field {
-				return fieldsById[sf.FieldID]
+			fieldObjs := []*model.Field{}
+			fieldSpan, _ := tracer.StartSpanFromContext(iCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.readFields"))
+			if err := k.Worker.PublicResolver.DB.Model(&model.Field{}).Where("id IN (SELECT field_id FROM session_fields sf WHERE sf.session_id IN ?)", chunk).Find(&fieldObjs).Error; err != nil {
+				log.WithContext(ctx).Error(err)
+			}
+			fieldSpan.Finish()
+			fieldsById := lo.KeyBy(fieldObjs, func(f *model.Field) int64 {
+				return f.ID
 			})
+
+			type sessionField struct {
+				SessionID int
+				FieldID   int64
+			}
+			sessionFieldObjs := []*sessionField{}
+			sessionFieldSpan, _ := tracer.StartSpanFromContext(iCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.readSessionFields"))
+			if err := k.Worker.PublicResolver.DB.Table("session_fields").Where("session_id IN ?", chunk).Find(&sessionFieldObjs).Error; err != nil {
+				log.WithContext(ctx).Error(err)
+			}
+			sessionFieldSpan.Finish()
+			sessionToFields := lo.GroupBy(sessionFieldObjs, func(sf *sessionField) int {
+				return sf.SessionID
+			})
+
+			for _, session := range sessionObjs {
+				session.Fields = lo.Map(sessionToFields[session.ID], func(sf *sessionField, _ int) *model.Field {
+					return fieldsById[sf.FieldID]
+				})
+			}
+
+			allSessionObjs = append(allSessionObjs, sessionObjs...)
 		}
 
 		chSpan, _ := tracer.StartSpanFromContext(iCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.writeClickhouse"))
-		if err := k.Worker.PublicResolver.Clickhouse.WriteSessions(ctx, sessionObjs); err != nil {
+		if err := k.Worker.PublicResolver.Clickhouse.WriteSessions(ctx, allSessionObjs); err != nil {
 			log.WithContext(ctx).Error(err)
 		}
 		chSpan.Finish()

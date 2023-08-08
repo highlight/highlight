@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.5.6 (2023-08-07)
+
+### Feature
+
+### Fix
+
+- Update uvicorn version requirement
+
+### Tests
+
+
+
 ## v0.5.5 (2023-08-05)
 
 ### Feature
