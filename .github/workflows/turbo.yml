@@ -192,7 +192,7 @@ jobs:
                   echo "REACT_APP_PUBLIC_GRAPH_URI = $REACT_APP_PUBLIC_GRAPH_URI"
                   echo "REACT_APP_PRIVATE_GRAPH_URI = $REACT_APP_PRIVATE_GRAPH_URI"
                   echo "ENVIRONMENT = $ENVIRONMENT"
-                  DEV=true
+                  export DEV="true"
                   echo "DEV = $DEV"
                   ./start-infra.sh > /tmp/highlight.log 2>&1;
                   docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
