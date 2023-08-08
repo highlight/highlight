@@ -139,24 +139,28 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 		"wait_for_async_insert": 1,
 	}))
 
-	fieldsSql, fieldsArgs := sqlbuilder.
-		NewStruct(new(ClickhouseField)).
-		InsertInto(FieldsTable, chFields...).
-		BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	sessionsSql, sessionsArgs := sqlbuilder.
-		NewStruct(new(ClickhouseSession)).
-		InsertInto(SessionsTable, chSessions...).
-		BuildWithFlavor(sqlbuilder.ClickHouse)
-
 	var g errgroup.Group
-	g.Go(func() error {
-		return client.conn.Exec(chCtx, fieldsSql, fieldsArgs...)
-	})
 
-	g.Go(func() error {
-		return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
-	})
+	if len(chSessions) > 0 {
+		sessionsSql, sessionsArgs := sqlbuilder.
+			NewStruct(new(ClickhouseSession)).
+			InsertInto(SessionsTable, chSessions...).
+			BuildWithFlavor(sqlbuilder.ClickHouse)
+		g.Go(func() error {
+			return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
+		})
+	}
+
+	if len(chFields) > 0 {
+		fieldsSql, fieldsArgs := sqlbuilder.
+			NewStruct(new(ClickhouseField)).
+			InsertInto(FieldsTable, chFields...).
+			BuildWithFlavor(sqlbuilder.ClickHouse)
+
+		g.Go(func() error {
+			return client.conn.Exec(chCtx, fieldsSql, fieldsArgs...)
+		})
+	}
 
 	return g.Wait()
 }
