@@ -179,10 +179,10 @@ jobs:
               run: |
                   start_time=$(date -Isecond)
 
-                  if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
-                    export CYPRESS_CLIENT_VERSION="dev-${COMMIT_SHA}"
-                    export REACT_APP_COMMIT_SHA="${COMMIT_SHA}"
-                  fi
+                  # if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
+                  export CYPRESS_CLIENT_VERSION="dev-${COMMIT_SHA}"
+                  export REACT_APP_COMMIT_SHA="${COMMIT_SHA}"
+                  # fi
 
                   # start highlight
                   pushd docker;
