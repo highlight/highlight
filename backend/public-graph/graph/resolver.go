@@ -464,9 +464,13 @@ limit 1;`, map[string]interface{}{
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
 	}
-	if result.Score > 0 && result.Score < 0.1 {
-		log.WithContext(ctx).WithField("combined_score", result.CombinedScore).WithField("score", result.Score).WithField("matched_error_group_id", result.ErrorGroupID).Info("matched error group by id")
-		return &result.ErrorGroupID, nil
+	if result.Score > 0 {
+		lg := log.WithContext(ctx).WithField("combined_score", result.CombinedScore).WithField("score", result.Score).WithField("matched_error_group_id", result.ErrorGroupID)
+		if result.Score < 0.1 {
+			lg.Info("matched error group by embeddings")
+			return &result.ErrorGroupID, nil
+		}
+		lg.Info("found error group by embeddings but score too high")
 	}
 	return nil, nil
 }
