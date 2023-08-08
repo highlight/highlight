@@ -12,7 +12,6 @@ import { hookConsole } from './hooks'
 import log from './log'
 import { clearInterval } from 'timers'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
-import { merge } from '@opentelemetry/core'
 import { Resource } from '@opentelemetry/resources'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
