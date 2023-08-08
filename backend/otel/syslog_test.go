@@ -22,7 +22,7 @@ func Test_extractSyslogWithStructuredData(t *testing.T) {
 	extractSyslog(fields)
 	assert.Equal(t, "mymachine.example.com", fields.attrs["hostname"])
 	assert.Equal(t, "BOMAn application event log entry", fields.logBody)
-	assert.Equal(t, "3", fields.attrs["iut"])
-	assert.Equal(t, "Application", fields.attrs["eventSource"])
-	assert.Equal(t, "1011", fields.attrs["eventID"])
+	assert.Equal(t, "3", fields.attrs["exampleSDID@32473.iut"])
+	assert.Equal(t, "Application", fields.attrs["exampleSDID@32473.eventSource"])
+	assert.Equal(t, "1011", fields.attrs["exampleSDID@32473.eventID"])
 }

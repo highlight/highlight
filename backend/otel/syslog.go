@@ -40,9 +40,9 @@ func extractSyslog(fields *extractedFields) {
 		}
 		if msg.StructuredData != nil {
 
-			for _, vMap := range *msg.StructuredData {
+			for topLevelKey, vMap := range *msg.StructuredData {
 				for k, v := range vMap {
-					fields.attrs[k] = v
+					fields.attrs[topLevelKey+"."+k] = v
 				}
 			}
 		}
