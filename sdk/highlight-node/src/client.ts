@@ -13,6 +13,7 @@ import log from './log'
 import { clearInterval } from 'timers'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { merge } from '@opentelemetry/core'
+import { Resource } from '@opentelemetry/resources'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -59,7 +60,11 @@ export class Highlight {
 			autoDetectResources: true,
 			resource: {
 				attributes,
-				merge,
+				merge: (resource) =>
+					new Resource({
+						...(resource?.attributes ?? {}),
+						...attributes,
+					}),
 			},
 			spanProcessor: this.processor,
 			traceExporter: exporter,

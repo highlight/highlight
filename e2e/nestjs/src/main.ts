@@ -6,7 +6,7 @@ import { NodeOptions } from '@highlight-run/node'
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule)
 	const highlightOpts: NodeOptions = {
-		projectID: '1',
+		projectID: '1jdkoe52',
 		otlpEndpoint: 'http://localhost:4318',
 		serviceName: 'my-nest-app',
 		serviceVersion: '1.0.0',
