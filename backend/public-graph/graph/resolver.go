@@ -431,26 +431,29 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 	return errorGroup, nil
 }
 
-func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, eventEmbedding, stackTraceEmbedding, payloadEmbedding model.Vector) (*int, error) {
+func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, combinedEmbedding, eventEmbedding, stackTraceEmbedding, payloadEmbedding model.Vector) (*int, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "public-resolver", tracer.ResourceName("GetTopErrorGroupMatchByEmbedding"))
 	defer span.Finish()
 
 	result := struct {
-		Score        float64 `json:"score"`
-		ErrorGroupID int     `json:"error_group_id"`
+		Score         float64 `json:"score"`
+		CombinedScore float64 `json:"combined_score"`
+		ErrorGroupID  int     `json:"error_group_id"`
 	}{}
 	// an alternative query to consider: for M error objects of every error group,
 	// find the average score. then pick the error group
 	// with the lowest average score.
 	if err := r.DB.Raw(`
-select @event_weight * (eoe.event_embedding <=> @event_embedding)
-           + @trace_weight * (eoe.stack_trace_embedding <=> @stack_trace_embedding)
-           + @meta_weight * (eoe.payload_embedding <=> @payload_embedding) as score,
-       eo.error_group_id                                               as error_group_id
+select eoe.combined_embedding <=> @combined_embedding as score,
+       @event_weight * (eoe.event_embedding <=> @event_embedding)
+		   + @trace_weight * (eoe.stack_trace_embedding <=> @stack_trace_embedding)
+		   + @meta_weight * (eoe.payload_embedding <=> @payload_embedding) as combined_score,
+       eo.error_group_id                              as error_group_id
 from error_object_embeddings eoe
          inner join error_objects eo on eo.id = eoe.error_object_id
 order by 1
 limit 1;`, map[string]interface{}{
+		"combined_embedding":    combinedEmbedding,
 		"event_embedding":       eventEmbedding,
 		"stack_trace_embedding": stackTraceEmbedding,
 		"payload_embedding":     payloadEmbedding,
@@ -462,7 +465,7 @@ limit 1;`, map[string]interface{}{
 		return nil, e.Wrap(err, "error querying top error group match")
 	}
 	if result.Score > 0 && result.Score < 0.1 {
-		log.WithContext(ctx).WithField("score", result.Score).WithField("matched_error_group_id", result.ErrorGroupID).Info("matched error group by id")
+		log.WithContext(ctx).WithField("combined_score", result.CombinedScore).WithField("score", result.Score).WithField("matched_error_group_id", result.ErrorGroupID).Info("matched error group by id")
 		return &result.ErrorGroupID, nil
 	}
 	return nil, nil
@@ -738,7 +741,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		if err != nil {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings")
 		}
-		match, err = r.GetTopErrorGroupMatchByEmbedding(ctx, emb[0].EventEmbedding, emb[0].StackTraceEmbedding, emb[0].PayloadEmbedding)
+		match, err = r.GetTopErrorGroupMatchByEmbedding(ctx, emb[0].CombinedEmbedding, emb[0].EventEmbedding, emb[0].StackTraceEmbedding, emb[0].PayloadEmbedding)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
 		}
