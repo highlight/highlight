@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import { LinkButton } from '@components/LinkButton'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import { Box, Form, Stack, Text } from '@highlight-run/ui'
@@ -42,11 +43,26 @@ export const GitHubSettingsModal = ({
 		>
 			<ModalBody>
 				{!githubIntegrated ? (
-					<Link to={`/${service.projectID}/integrations`}>
+					<Stack>
 						<Text size="small" weight="medium">
-							Integrate GitHub
+							It looks like you have not enabled GitHub to
+							integrate with Highlight yet. Visit{' '}
+							<Link to={`/${service.projectID}/integrations`}>
+								Integrations
+							</Link>{' '}
+							to start creating GitHub issues from comments,
+							enhancing your error stacktraces with more context,
+							and more!
 						</Text>
-					</Link>
+						<Box display="flex">
+							<LinkButton
+								to={`/${service.projectID}/integrations`}
+								trackingId="github-settings-integrations-page-link"
+							>
+								Integrate GitHub
+							</LinkButton>
+						</Box>
+					</Stack>
 				) : (
 					<GithubSettingsForm
 						service={service}
