@@ -7,6 +7,7 @@ import {
 	Combobox,
 	IconSolidCubeTransparent,
 	IconSolidExternalLink,
+	IconSolidGithub,
 	Stack,
 	Table,
 	useComboboxState,
@@ -15,9 +16,9 @@ import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubI
 import { useParams } from '@util/react-router/useParams'
 import { capitalize } from 'lodash'
 import { debounce } from 'lodash'
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 
-import { GithubRepoPopover } from '../GithubRepoPopover/GithubRepoPopover'
+import { GitHubSettingsModal } from '../GitHubSettingsModal/GitHubSettingsModal'
 import * as styles from './ServicesTable.css'
 
 type Pagination = {
@@ -30,6 +31,7 @@ export const ServicesTable = () => {
 	const [loadServices, { error, data, loading }] = useGetServicesLazyQuery()
 	const [query, setQuery] = useState<string>('')
 	const [pagination, setPagination] = useState<Pagination>({})
+	const [selectedService, setService] = useState<any>(null)
 
 	const {
 		settings: { isIntegrated },
@@ -38,18 +40,7 @@ export const ServicesTable = () => {
 
 	const [editService] = useEditServiceMutation()
 
-	const handleGitHubRepoChange = (service: any, repo?: any) => {
-		editService({
-			variables: {
-				id: service.id,
-				project_id: service.projectID!,
-				github_repo_path: repo,
-			},
-			refetchQueries: [namedOperations.Query.GetServices],
-		})
-	}
-
-	React.useEffect(() => {
+	useEffect(() => {
 		loadServices({
 			variables: {
 				project_id: project_id!,
@@ -61,7 +52,6 @@ export const ServicesTable = () => {
 	}, [loadServices, project_id, query, pagination])
 
 	const state = useComboboxState()
-
 	const handleQueryChange = useMemo(
 		() =>
 			debounce((e) => {
@@ -80,6 +70,17 @@ export const ServicesTable = () => {
 	const handleNextPage = () => {
 		setPagination({
 			after: data?.services?.pageInfo.endCursor,
+		})
+	}
+
+	const updateServiceSettings = (service: any, repo?: any) => {
+		editService({
+			variables: {
+				id: service.id,
+				project_id: service.projectID!,
+				github_repo_path: repo,
+			},
+			refetchQueries: [namedOperations.Query.GetServices],
 		})
 	}
 
@@ -114,7 +115,7 @@ export const ServicesTable = () => {
 							>
 								<Badge
 									variant="outlineGray"
-									label="GitHub"
+									label="Open in GitHub"
 									size="medium"
 									iconEnd={<IconSolidExternalLink />}
 								/>
@@ -126,16 +127,31 @@ export const ServicesTable = () => {
 		},
 		{
 			name: 'GitHub repo',
-			width: '200px',
+			width: '160px',
 			dataFormat: {},
-			renderData: (service: any) => (
-				<GithubRepoPopover
-					service={service}
-					onRepoChange={handleGitHubRepoChange}
-					githubIntegrated={!!isIntegrated}
-					githubRepos={githubData?.github_repos || []}
-				/>
-			),
+			renderData: (service: any) => {
+				const repoName = service.githubRepoPath?.split('/').pop()
+
+				return (
+					<Button
+						trackingId="edit-github-settings-repo"
+						kind="secondary"
+						size="small"
+						emphasis="low"
+						onClick={() => setService(service)}
+					>
+						<Badge
+							variant="outlineGray"
+							iconStart={
+								repoName && <IconSolidGithub size={12} />
+							}
+							label={repoName || 'None'}
+							gap="4"
+							size="medium"
+						/>
+					</Button>
+				)
+			},
 		},
 		{
 			name: 'Status',
@@ -212,6 +228,15 @@ export const ServicesTable = () => {
 					Next
 				</Button>
 			</Stack>
+			{selectedService && (
+				<GitHubSettingsModal
+					githubIntegrated={!!isIntegrated}
+					githubRepos={githubData?.github_repos || []}
+					service={selectedService}
+					closeModal={() => setService(null)}
+					handleSave={updateServiceSettings}
+				/>
+			)}
 		</Stack>
 	)
 }
