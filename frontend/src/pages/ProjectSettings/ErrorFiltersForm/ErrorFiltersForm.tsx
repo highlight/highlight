@@ -35,7 +35,7 @@ export const ErrorFiltersForm = () => {
 			<Stack gap="8">
 				<BoxLabel
 					label="Error filters"
-					info="Enter regular expression patterns to filter out errors."
+					info="Enter regular expression patterns to filter out errors. Any error filtered out will not count towards your billing quota."
 				/>
 				<div className={styles.inputAndButtonRow}>
 					<Select
