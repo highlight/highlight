@@ -223,7 +223,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 
 	if val, ok := fields.attrs[highlight.MetricEventValue]; ok {
 		float64Value, err := strconv.ParseFloat(val, 64)
-		if err != nil {
+		if err == nil {
 			fields.metricEventValue = float64Value
 		}
 		delete(fields.attrs, highlight.MetricEventValue)
