@@ -1520,7 +1520,7 @@ func (r *Resolver) validateAdminRole(ctx context.Context, workspaceID int) error
 
 	role, err := r.GetAdminRole(ctx, admin.ID, workspaceID)
 	if err != nil || role != model.AdminRole.ADMIN {
-		return e.New("admin does not have role=ADMIN")
+		return AuthorizationError
 	}
 
 	return nil
