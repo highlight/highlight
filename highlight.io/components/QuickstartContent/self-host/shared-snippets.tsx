@@ -3,7 +3,7 @@ import { QuickStartStep } from '../QuickstartContent'
 export const dependencies: QuickStartStep = {
 	title: 'Prerequisites',
 	content:
-		'Before we get started, you should install [Go](https://go.dev/) (1.20), [Node.js](https://nodejs.org/en) (18), and [yarn](https://yarnpkg.com/getting-started/install) (v3+).' +
+		'Before we get started, you should install [Go](https://go.dev/) (1.21), [Node.js](https://nodejs.org/en) (18), and [yarn](https://yarnpkg.com/getting-started/install) (v3+).' +
 		'You should have the latest version of [Docker](https://docs.docker.com/engine/install/) (19.03.0+) ' +
 		'and [Git](https://git-scm.com/downloads) (2.13+) installed. ' +
 		'We suggest [configuring docker](https://docs.docker.com/desktop/settings/mac/#resources) ' +
