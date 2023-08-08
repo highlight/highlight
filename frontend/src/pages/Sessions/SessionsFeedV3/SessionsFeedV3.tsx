@@ -29,8 +29,7 @@ import {
 	ProductType,
 	Session,
 } from '@graph/schemas'
-import { Box, getNow } from '@highlight-run/ui'
-import { resetRelativeDates } from '@highlight-run/ui/src/components/DatePicker/utils'
+import { Box, getNow, resetRelativeDates } from '@highlight-run/ui'
 import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/SessionFeedCard'
 import SessionQueryBuilder, {
 	TIME_RANGE_FIELD,
