@@ -9,7 +9,6 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/huandu/go-sqlbuilder"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -18,9 +17,9 @@ type ClickhouseSession struct {
 	Fingerprint        int32
 	ProjectID          int32
 	PagesVisited       int32
-	ViewedByAdmins     []int32
-	FieldKeys          []string
-	FieldKeyValues     []string
+	ViewedByAdmins     clickhouse.ArraySet
+	FieldKeys          clickhouse.ArraySet
+	FieldKeyValues     clickhouse.ArraySet
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
 	SecureID           string
@@ -75,8 +74,8 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			return fmt.Errorf("session.ViewedByAdmins is required for session %d", session.ID)
 		}
 
-		fieldKeys := []string{}
-		fieldKeyValues := []string{}
+		var fieldKeys clickhouse.ArraySet
+		var fieldKeyValues clickhouse.ArraySet
 		for _, field := range session.Fields {
 			if field == nil {
 				continue
@@ -93,7 +92,7 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			chFields = append(chFields, &chf)
 		}
 
-		viewedByAdmins := []int32{}
+		var viewedByAdmins clickhouse.ArraySet
 		for _, admin := range session.ViewedByAdmins {
 			viewedByAdmins = append(viewedByAdmins, int32(admin.ID))
 		}
@@ -149,10 +148,6 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 		NewStruct(new(ClickhouseSession)).
 		InsertInto(SessionsTable, chSessions...).
 		BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	logrus.WithContext(ctx).Info(fieldsSql)
-	logrus.WithContext(ctx).Info(sessionsSql)
-	logrus.WithContext(ctx).Infof("%#v", sessionsArgs)
 
 	var g errgroup.Group
 	g.Go(func() error {
