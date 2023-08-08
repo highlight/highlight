@@ -105,6 +105,9 @@ const cache = new InMemoryCache({
 		ErrorGroup: {
 			keyFields: ['secure_id'],
 		},
+		ErrorObject: {
+			keyFields: ['id'],
+		},
 		DashboardPayload: {
 			fields: {
 				metrics_histogram: {

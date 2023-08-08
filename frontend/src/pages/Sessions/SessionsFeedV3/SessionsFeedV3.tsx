@@ -38,6 +38,7 @@ import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { useIntegrated } from '@util/integrated'
 import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
+import { POLL_INTERVAL } from '@util/search'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import clsx from 'clsx'
 import moment from 'moment'
@@ -60,8 +61,6 @@ import {
 import * as style from './SessionFeedV3.css'
 import { SessionFeedConfigurationContextProvider } from './SessionQueryBuilder/context/SessionFeedConfigurationContext'
 import { useSessionFeedConfiguration } from './SessionQueryBuilder/hooks/useSessionFeedConfiguration'
-
-const POLL_INTERVAL = 1000
 
 export const SessionsHistogram: React.FC = React.memo(() => {
 	const { project_id } = useParams<{

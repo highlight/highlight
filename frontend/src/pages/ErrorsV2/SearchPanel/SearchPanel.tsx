@@ -2,13 +2,18 @@ import {
 	EmptySearchResults,
 	SearchResultsKind,
 } from '@components/EmptySearchResults/EmptySearchResults'
+import { AdditionalFeedResults } from '@components/FeedResults/FeedResults'
 import LoadingBox from '@components/LoadingBox'
+import { QueryBuilderState } from '@components/QueryBuilder/QueryBuilder'
 import SearchPagination, {
 	PAGE_SIZE,
 } from '@components/SearchPagination/SearchPagination'
-import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks'
+import {
+	useGetErrorGroupsOpenSearchLazyQuery,
+	useGetErrorGroupsOpenSearchQuery,
+} from '@graph/hooks'
 import { ErrorGroup, Maybe, ProductType } from '@graph/schemas'
-import { Box } from '@highlight-run/ui'
+import { Box, getNow, resetRelativeDates } from '@highlight-run/ui'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import ErrorFeedHistogram from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
@@ -16,9 +21,12 @@ import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuild
 import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { gqlSanitize } from '@util/gql'
+import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
+import { POLL_INTERVAL } from '@util/search'
 import clsx from 'clsx'
-import { useEffect, useState } from 'react'
+import moment from 'moment/moment'
+import React, { useEffect, useState } from 'react'
 
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -30,6 +38,8 @@ const SearchPanel = () => {
 	const { showBanner } = useGlobalContext()
 	const {
 		backendSearchQuery,
+		searchQuery,
+		setSearchQuery,
 		page,
 		setPage,
 		setSearchResultsLoading,
@@ -37,6 +47,7 @@ const SearchPanel = () => {
 		setSearchResultsCount,
 		setSearchResultSecureIds,
 	} = useErrorSearchContext()
+	const [moreErrors, setMoreErrors] = useState<number>(0)
 
 	const { project_id: projectId } = useParams<{ project_id: string }>()
 
@@ -62,6 +73,86 @@ const SearchPanel = () => {
 		},
 		skip: !backendSearchQuery || !projectId,
 	})
+
+	const [moreDataQuery] = useGetErrorGroupsOpenSearchLazyQuery({
+		fetchPolicy: 'network-only',
+	})
+
+	useEffect(() => {
+		// setup a polling interval for sessions after the current date range
+		const interval = setInterval(async () => {
+			let query = JSON.parse(backendSearchQuery?.searchQuery || '')
+			const lte =
+				query?.bool?.must[1]?.has_child?.query?.bool?.must[0]?.bool
+					?.should[0]?.range?.timestamp?.lte
+			// if the query end date is close to 'now',
+			// then we are using a default relative time range.
+			// otherwise, we are using a custom date range and should not poll
+			if (Math.abs(moment(lte).diff(getNow(), 'minutes')) >= 1) {
+				log(
+					'ErrorsV2/SearchPanel.tsx',
+					'skipping polling for custom time selection',
+					{ lte, now: getNow().toISOString() },
+				)
+				return
+			}
+			query = {
+				...query,
+				bool: {
+					...query.bool,
+					must: [
+						...query.bool.must.slice(0, query.bool.must.length - 1),
+						{
+							has_child: {
+								type: 'child',
+								query: {
+									bool: {
+										must: [
+											{
+												bool: {
+													should: [
+														{
+															range: {
+																timestamp: {
+																	gte: new Date(
+																		Date.parse(
+																			lte,
+																		),
+																	).toISOString(),
+																},
+															},
+														},
+													],
+												},
+											},
+											{
+												bool: {
+													must: [],
+												},
+											},
+										],
+									},
+								},
+							},
+						},
+					],
+				},
+			}
+			const variables = {
+				query: JSON.stringify(query),
+				count: PAGE_SIZE,
+				page: 1,
+				project_id: projectId!,
+			}
+			const result = await moreDataQuery({ variables })
+			if (
+				result?.data?.error_groups_opensearch.totalCount !== undefined
+			) {
+				setMoreErrors(result.data.error_groups_opensearch.totalCount)
+			}
+		}, POLL_INTERVAL)
+		return () => clearInterval(interval)
+	}, [backendSearchQuery?.searchQuery, moreDataQuery, page, projectId])
 
 	useEffect(() => {
 		setSearchResultsLoading(loading)
@@ -108,7 +199,28 @@ const SearchPanel = () => {
 					<ErrorFeedHistogram />
 				</Box>
 			)}
+			<AdditionalFeedResults
+				more={moreErrors}
+				type="errors"
+				onClick={() => {
+					resetRelativeDates()
+					setMoreErrors(0)
+					const currentState = JSON.parse(
+						searchQuery,
+					) as QueryBuilderState
+					const newRules = currentState.rules.filter(
+						(rule) => rule[0] !== 'error-field_timestamp',
+					)
+					setSearchQuery(
+						JSON.stringify({
+							isAnd: currentState.isAnd,
+							rules: newRules,
+						}),
+					)
+				}}
+			/>
 			<Box
+				paddingTop="4"
 				padding="8"
 				overflowX="hidden"
 				overflowY="auto"
