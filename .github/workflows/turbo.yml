@@ -192,15 +192,16 @@ jobs:
                   echo "REACT_APP_PUBLIC_GRAPH_URI = $REACT_APP_PUBLIC_GRAPH_URI"
                   echo "REACT_APP_PRIVATE_GRAPH_URI = $REACT_APP_PRIVATE_GRAPH_URI"
                   echo "ENVIRONMENT = $ENVIRONMENT"
+                  DEV=true
                   echo "DEV = $DEV"
-                  DEV=true ENVIRONMENT=dev ./start-infra.sh > /tmp/highlight.log 2>&1;
+                  ./start-infra.sh > /tmp/highlight.log 2>&1;
                   docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
-                  DEV=true ENVIRONMENT=dev ./run-backend.sh >> /tmp/highlight.log 2>&1 &
+                  ./run-backend.sh >> /tmp/highlight.log 2>&1 &
                   yarn install >> /tmp/highlight.log 2>&1;
-                  DEV=true ENVIRONMENT=dev yarn build:frontend >> /tmp/highlight.log 2>&1;
-                  DEV=true ENVIRONMENT=dev yarn workspace @highlight-run/client dev &
-                  DEV=true ENVIRONMENT=dev yarn workspace highlight.run dev &
-                  DEV=true ENVIRONMENT=dev yarn workspace @highlight-run/frontend vite preview --port 3000 &
+                  yarn build:frontend >> /tmp/highlight.log 2>&1;
+                  yarn workspace @highlight-run/client dev &
+                  yarn workspace highlight.run dev &
+                  yarn workspace @highlight-run/frontend vite preview --port 3000 &
                   popd;
 
                   # run opentelemetry file watcher
