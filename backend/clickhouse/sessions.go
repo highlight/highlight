@@ -9,6 +9,7 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/huandu/go-sqlbuilder"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -148,6 +149,10 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 		NewStruct(new(ClickhouseSession)).
 		InsertInto(SessionsTable, chSessions...).
 		BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	logrus.WithContext(ctx).Info(fieldsSql)
+	logrus.WithContext(ctx).Info(sessionsSql)
+	logrus.WithContext(ctx).Infof("%#v", sessionsArgs)
 
 	var g errgroup.Group
 	g.Go(func() error {
