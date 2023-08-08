@@ -47,34 +47,29 @@ const LogsCount = ({
 		return `${formatDate(startDate)} to ${formatDate(endDate)}`
 	}, [endDate, presets, startDate])
 
-	if (logCountLoading) {
-		return (
-			<Box px="12" py="2">
-				<LoadingBox justifyContent="flex-start" />
-			</Box>
-		)
-	}
-
 	return (
-		<Stack direction="row" gap="8" px="12" py="8" align="center">
-			{totalCount && (
-				<>
-					<Text
-						size="xSmall"
-						color="weak"
-						cssClass={styles.countText}
-					>
-						{formatNumber(totalCount.logs_total_count)} logs
-					</Text>
-					<Box br="dividerWeak" height="full" />
-					<Text
-						size="xSmall"
-						color="weak"
-						cssClass={styles.countText}
-					>
-						{dateLabel}
-					</Text>
-				</>
+		<Stack
+			direction="row"
+			gap="8"
+			px="12"
+			py="8"
+			align="center"
+			cssClass={styles.container}
+		>
+			{logCountLoading ? (
+				<LoadingBox justifyContent="flex-start" />
+			) : (
+				totalCount && (
+					<>
+						<Text size="xSmall" color="weak">
+							{formatNumber(totalCount.logs_total_count)} logs
+						</Text>
+						<Box br="dividerWeak" height="full" />
+						<Text size="xSmall" color="weak">
+							{dateLabel}
+						</Text>
+					</>
+				)
 			)}
 		</Stack>
 	)
