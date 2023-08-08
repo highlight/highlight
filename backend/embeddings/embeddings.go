@@ -1,9 +1,8 @@
-package errorgroups
+package embeddings
 
 import (
 	"context"
 	"github.com/highlight-run/highlight/backend/model"
-	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
@@ -17,14 +16,20 @@ const EventEmbedding EmbeddingType = "EventEmbedding"
 const StackTraceEmbedding EmbeddingType = "StackTraceEmbedding"
 const PayloadEmbedding EmbeddingType = "PayloadEmbedding"
 
-func GetEmbeddings(ctx context.Context, errors []*model.ErrorObject) ([]*model.ErrorObjectEmbeddings, error) {
-	start := time.Now()
-	apiKey := os.Getenv("OPENAI_API_KEY")
-	if apiKey == "" {
-		return nil, e.New("OPENAI_API_KEY is not set")
-	}
-	client := openai.NewClient(apiKey)
+type Client interface {
+	GetEmbeddings(ctx context.Context, errors []*model.ErrorObject) ([]*model.ErrorObjectEmbeddings, error)
+}
 
+type OpenAIClient struct {
+	client *openai.Client
+}
+
+func New() Client {
+	return &OpenAIClient{client: openai.NewClient(os.Getenv("OPENAI_API_KEY"))}
+}
+
+func (c *OpenAIClient) GetEmbeddings(ctx context.Context, errors []*model.ErrorObject) ([]*model.ErrorObjectEmbeddings, error) {
+	start := time.Now()
 	var eventErrors, stacktraceErrors, payloadErrors []*model.ErrorObject
 	var eventInputs, stacktraceInputs, payloadInputs []string
 	for _, errorObject := range errors {
@@ -59,7 +64,7 @@ func GetEmbeddings(ctx context.Context, errors []*model.ErrorObject) ([]*model.E
 		if len(inputs.inputs) == 0 {
 			continue
 		}
-		resp, err := client.CreateEmbeddings(
+		resp, err := c.client.CreateEmbeddings(
 			context.Background(),
 			openai.EmbeddingRequest{
 				Input: inputs.inputs,

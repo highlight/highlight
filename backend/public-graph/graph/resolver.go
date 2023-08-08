@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/embeddings"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -63,20 +64,21 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB            *gorm.DB
-	TDB           timeseries.DB
-	ProducerQueue kafka_queue.MessageQueue
-	BatchedQueue  kafka_queue.MessageQueue
-	DataSyncQueue kafka_queue.MessageQueue
-	TracesQueue   kafka_queue.MessageQueue
-	MailClient    *sendgrid.Client
-	StorageClient storage.Client
-	OpenSearch    *opensearch.Client
-	HubspotApi    *highlightHubspot.HubspotApi
-	Redis         *redis.Client
-	Clickhouse    *clickhouse.Client
-	RH            *resthooks.Resthook
-	Store         *store.Store
+	DB               *gorm.DB
+	TDB              timeseries.DB
+	ProducerQueue    kafka_queue.MessageQueue
+	BatchedQueue     kafka_queue.MessageQueue
+	DataSyncQueue    kafka_queue.MessageQueue
+	TracesQueue      kafka_queue.MessageQueue
+	MailClient       *sendgrid.Client
+	StorageClient    storage.Client
+	OpenSearch       *opensearch.Client
+	HubspotApi       *highlightHubspot.HubspotApi
+	EmbeddingsClient embeddings.Client
+	Redis            *redis.Client
+	Clickhouse       *clickhouse.Client
+	RH               *resthooks.Resthook
+	Store            *store.Store
 }
 
 type Location struct {
@@ -434,13 +436,13 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, eventEm
 	defer span.Finish()
 
 	result := struct {
-		Score        float64
-		ErrorGroupID int `json:"error_group_id"`
+		Score        float64 `json:"score"`
+		ErrorGroupID int     `json:"error_group_id"`
 	}{}
 	// an alternative query to consider: for M error objects of every error group,
 	// find the average score. then pick the error group
 	// with the lowest average score.
-	if err := r.DB.Debug().Raw(`
+	if err := r.DB.Raw(`
 select @event_weight * (eoe.event_embedding <=> @event_embedding)
            + @trace_weight * (eoe.stack_trace_embedding <=> @stack_trace_embedding)
            + @meta_weight * (eoe.payload_embedding <=> @payload_embedding) as score,
@@ -719,7 +721,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil, e.Wrap(err, "Error getting top error group match")
 	}
 
-	var errorGroup, embeddingsErrorGroup *model.ErrorGroup
+	var errorGroup, errorGroupAlt *model.ErrorGroup
 	errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, match)
 	if err != nil {
 		return nil, e.Wrap(err, "Error getting or creating error group")
@@ -730,7 +732,9 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		settings, _ = r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
 	}
 	if settings != nil && settings.ErrorEmbeddingsGroup {
-		emb, err := errorgroups.GetEmbeddings(ctx, []*model.ErrorObject{errorObj})
+		// keep the classic match as the alternative error group
+		errorGroup, errorGroupAlt = nil, errorGroup
+		emb, err := r.EmbeddingsClient.GetEmbeddings(ctx, []*model.ErrorObject{errorObj})
 		if err != nil {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings")
 		}
@@ -743,12 +747,12 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 				log.WithContext(ctx).WithError(err).Error("failed to write embeddings")
 			}
 		}
-		embeddingsErrorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, match)
+		errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, match)
 		if err != nil {
 			return nil, e.Wrap(err, "Error getting or creating error group")
 		}
-		errorObj.ErrorGroupID = embeddingsErrorGroup.ID
-		errorObj.ErrorGroupIDAlternative = errorGroup.ID
+		errorObj.ErrorGroupID = errorGroup.ID
+		errorObj.ErrorGroupIDAlternative = errorGroupAlt.ID
 		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodAdaEmbeddingV2
 	} else {
 		errorObj.ErrorGroupID = errorGroup.ID
@@ -823,11 +827,11 @@ func (r *Resolver) BatchGenerateEmbeddings(ctx context.Context, errorObjects []*
 		return nil
 	}
 
-	embeddings, err := errorgroups.GetEmbeddings(ctx, errorObjects)
+	emb, err := r.EmbeddingsClient.GetEmbeddings(ctx, errorObjects)
 	if err != nil {
 		return err
 	}
-	return r.Store.PutEmbeddings(embeddings)
+	return r.Store.PutEmbeddings(emb)
 }
 
 func (r *Resolver) AppendErrorFields(ctx context.Context, fields []*model.ErrorField, errorGroup *model.ErrorGroup) error {

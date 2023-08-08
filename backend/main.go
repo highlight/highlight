@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/embeddings"
 	"html/template"
 	"io"
 	"math/rand"
@@ -492,19 +493,20 @@ func main() {
 			defer profiler.Stop()
 		}
 		publicResolver := &public.Resolver{
-			DB:            db,
-			TDB:           tdb,
-			ProducerQueue: kafkaProducer,
-			BatchedQueue:  kafkaBatchedProducer,
-			DataSyncQueue: kafkaDataSyncProducer,
-			TracesQueue:   kafkaTracesProducer,
-			MailClient:    sendgrid.NewSendClient(sendgridKey),
-			StorageClient: storageClient,
-			OpenSearch:    opensearchClient,
-			HubspotApi:    hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
-			Redis:         redisClient,
-			RH:            &rh,
-			Store:         store.NewStore(db, opensearchClient, redisClient),
+			DB:               db,
+			TDB:              tdb,
+			ProducerQueue:    kafkaProducer,
+			BatchedQueue:     kafkaBatchedProducer,
+			DataSyncQueue:    kafkaDataSyncProducer,
+			TracesQueue:      kafkaTracesProducer,
+			MailClient:       sendgrid.NewSendClient(sendgridKey),
+			EmbeddingsClient: embeddings.New(),
+			StorageClient:    storageClient,
+			OpenSearch:       opensearchClient,
+			HubspotApi:       hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
+			Redis:            redisClient,
+			RH:               &rh,
+			Store:            store.NewStore(db, opensearchClient, redisClient),
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
