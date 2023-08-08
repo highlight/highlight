@@ -27,6 +27,8 @@ jobs:
               run: bundle install
             - name: Test
               run: bundle exec rake
+            - name: Rubocop
+              run: bundle exec rubocop
             # TODO - replace with https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-ruby#publishing-gems
             #- name: Publish
             #  if: github.ref == 'refs/heads/main'
