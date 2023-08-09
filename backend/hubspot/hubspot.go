@@ -270,6 +270,26 @@ func (h *HubspotApi) getDoppelgangers(ctx context.Context) (results []*Doppelgan
 			}
 		}
 	}
+
+	for {
+		r := DoppelgangersResponse{}
+		if err = h.doRequest("/doppelganger/v1/similar/contact/resultPage", &r, map[string]string{
+			"pageSize":   "50",
+			"offset":     strconv.Itoa(len(results)),
+			"properties": "firstname,lastname,email,jobtitle,hs_sequences_is_enrolled,hs_last_sales_activity_timestamp,createdate,lastmodifieddate",
+			"portalId":   "20473940",
+		}, "GET", nil); err != nil {
+			return
+		} else {
+			for k, v := range r.Objects {
+				objects[k] = v
+			}
+			results = append(results, r.Results...)
+			if !r.HasMore {
+				break
+			}
+		}
+	}
 	return
 }
 
@@ -277,6 +297,12 @@ func (h *HubspotApi) mergeCompanies(keepID, mergeID int) error {
 	return h.doRequest(fmt.Sprintf("/companies/v2/companies/%d/merge", keepID), nil, map[string]string{
 		"portalId": "20473940",
 	}, "PUT", strings.NewReader(fmt.Sprintf(`{"companyIdToMerge":%d}`, mergeID)))
+}
+
+func (h *HubspotApi) mergeContacts(keepID, mergeID int) error {
+	return h.doRequest(fmt.Sprintf("/contacts/v1/contact/%d/merge", keepID), nil, map[string]string{
+		"portalId": "20473940",
+	}, "POST", strings.NewReader(fmt.Sprintf(`{"vidToMerge":%d}`, mergeID)))
 }
 
 func (h *HubspotApi) getAllCompanies(ctx context.Context) (companies []*CompanyResponse, err error) {
