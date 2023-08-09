@@ -3618,21 +3618,23 @@ func (r *mutationResolver) UpdateEmailOptOut(ctx context.Context, token *string,
 	return true, nil
 }
 
-// EditService is the resolver for the editService field.
-func (r *mutationResolver) EditService(ctx context.Context, id int, projectID int, githubRepoPath *string) (*model.Service, error) {
+// EditServiceGithubSettings is the resolver for the editServiceGithubSettings field.
+func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) (*model.Service, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
 	serviceUpdates := map[string]interface{}{
-		"ErrorDetails": "",
+		"ErrorDetails": nil,
+		"BuildPrefix":  buildPrefix,
+		"GithubPrefix": githubPrefix,
 	}
 	if githubRepoPath != nil {
 		serviceUpdates["GithubRepoPath"] = *githubRepoPath
 		serviceUpdates["Status"] = "healthy"
 	} else {
-		serviceUpdates["GithubRepoPath"] = ""
+		serviceUpdates["GithubRepoPath"] = nil
 		serviceUpdates["Status"] = "created"
 	}
 

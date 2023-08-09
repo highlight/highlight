@@ -971,7 +971,7 @@ export type Mutation = {
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
-	editService?: Maybe<Service>
+	editServiceGithubSettings?: Maybe<Service>
 	editWorkspace?: Maybe<Workspace>
 	editWorkspaceSettings?: Maybe<AllWorkspaceSettings>
 	emailSignup: Scalars['String']
@@ -1274,7 +1274,9 @@ export type MutationEditSegmentArgs = {
 	project_id: Scalars['ID']
 }
 
-export type MutationEditServiceArgs = {
+export type MutationEditServiceGithubSettingsArgs = {
+	build_prefix?: InputMaybe<Scalars['String']>
+	github_prefix?: InputMaybe<Scalars['String']>
 	github_repo_path?: InputMaybe<Scalars['String']>
 	id: Scalars['ID']
 	project_id: Scalars['ID']
