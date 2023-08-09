@@ -4791,13 +4791,13 @@ export type DeleteInviteLinkFromWorkspaceMutationOptions =
 		Types.DeleteInviteLinkFromWorkspaceMutation,
 		Types.DeleteInviteLinkFromWorkspaceMutationVariables
 	>
-export const EditServiceDocument = gql`
-	mutation EditService(
+export const EditServiceGithubSettingsDocument = gql`
+	mutation EditServiceGithubSettings(
 		$id: ID!
 		$project_id: ID!
 		$github_repo_path: String
 	) {
-		editService(
+		editServiceGithubSettings(
 			id: $id
 			project_id: $project_id
 			github_repo_path: $github_repo_path
@@ -4810,23 +4810,23 @@ export const EditServiceDocument = gql`
 		}
 	}
 `
-export type EditServiceMutationFn = Apollo.MutationFunction<
-	Types.EditServiceMutation,
-	Types.EditServiceMutationVariables
+export type EditServiceGithubSettingsMutationFn = Apollo.MutationFunction<
+	Types.EditServiceGithubSettingsMutation,
+	Types.EditServiceGithubSettingsMutationVariables
 >
 
 /**
- * __useEditServiceMutation__
+ * __useEditServiceGithubSettingsMutation__
  *
- * To run a mutation, you first call `useEditServiceMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useEditServiceMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useEditServiceGithubSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditServiceGithubSettingsMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [editServiceMutation, { data, loading, error }] = useEditServiceMutation({
+ * const [editServiceGithubSettingsMutation, { data, loading, error }] = useEditServiceGithubSettingsMutation({
  *   variables: {
  *      id: // value for 'id'
  *      project_id: // value for 'project_id'
@@ -4834,26 +4834,27 @@ export type EditServiceMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useEditServiceMutation(
+export function useEditServiceGithubSettingsMutation(
 	baseOptions?: Apollo.MutationHookOptions<
-		Types.EditServiceMutation,
-		Types.EditServiceMutationVariables
+		Types.EditServiceGithubSettingsMutation,
+		Types.EditServiceGithubSettingsMutationVariables
 	>,
 ) {
 	return Apollo.useMutation<
-		Types.EditServiceMutation,
-		Types.EditServiceMutationVariables
-	>(EditServiceDocument, baseOptions)
+		Types.EditServiceGithubSettingsMutation,
+		Types.EditServiceGithubSettingsMutationVariables
+	>(EditServiceGithubSettingsDocument, baseOptions)
 }
-export type EditServiceMutationHookResult = ReturnType<
-	typeof useEditServiceMutation
+export type EditServiceGithubSettingsMutationHookResult = ReturnType<
+	typeof useEditServiceGithubSettingsMutation
 >
-export type EditServiceMutationResult =
-	Apollo.MutationResult<Types.EditServiceMutation>
-export type EditServiceMutationOptions = Apollo.BaseMutationOptions<
-	Types.EditServiceMutation,
-	Types.EditServiceMutationVariables
->
+export type EditServiceGithubSettingsMutationResult =
+	Apollo.MutationResult<Types.EditServiceGithubSettingsMutation>
+export type EditServiceGithubSettingsMutationOptions =
+	Apollo.BaseMutationOptions<
+		Types.EditServiceGithubSettingsMutation,
+		Types.EditServiceGithubSettingsMutationVariables
+	>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!

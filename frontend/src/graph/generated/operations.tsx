@@ -1340,14 +1340,14 @@ export type DeleteInviteLinkFromWorkspaceMutation = {
 	__typename?: 'Mutation'
 } & Pick<Types.Mutation, 'deleteInviteLinkFromWorkspace'>
 
-export type EditServiceMutationVariables = Types.Exact<{
+export type EditServiceGithubSettingsMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 	project_id: Types.Scalars['ID']
 	github_repo_path?: Types.Maybe<Types.Scalars['String']>
 }>
 
-export type EditServiceMutation = { __typename?: 'Mutation' } & {
-	editService?: Types.Maybe<
+export type EditServiceGithubSettingsMutation = { __typename?: 'Mutation' } & {
+	editServiceGithubSettings?: Types.Maybe<
 		{ __typename?: 'Service' } & Pick<
 			Types.Service,
 			'id' | 'projectID' | 'name' | 'status' | 'githubRepoPath'
@@ -4691,7 +4691,7 @@ export const namedOperations = {
 			'UpdateIntegrationProjectSettings' as const,
 		UpdateEmailOptOut: 'UpdateEmailOptOut' as const,
 		DeleteInviteLinkFromWorkspace: 'DeleteInviteLinkFromWorkspace' as const,
-		EditService: 'EditService' as const,
+		EditServiceGithubSettings: 'EditServiceGithubSettings' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

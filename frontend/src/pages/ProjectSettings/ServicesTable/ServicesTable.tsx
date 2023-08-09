@@ -1,5 +1,8 @@
 import { Button } from '@components/Button'
-import { useEditServiceMutation, useGetServicesLazyQuery } from '@graph/hooks'
+import {
+	useEditServiceGithubSettingsMutation,
+	useGetServicesLazyQuery,
+} from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
 	Badge,
@@ -40,7 +43,7 @@ export const ServicesTable = () => {
 		data: githubData,
 	} = useGitHubIntegration()
 
-	const [editService] = useEditServiceMutation()
+	const [editServiceGithubSettings] = useEditServiceGithubSettingsMutation()
 
 	useEffect(() => {
 		loadServices({
@@ -76,7 +79,7 @@ export const ServicesTable = () => {
 	}
 
 	const updateServiceSettings = (service: Service, repo: string | null) => {
-		editService({
+		editServiceGithubSettings({
 			variables: {
 				id: service.id,
 				project_id: service.projectID!,
