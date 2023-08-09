@@ -382,6 +382,8 @@ export const LogValue: React.FC<{
 	queryMatch?: string
 }> = ({ label, queryKey, queryTerms, value, queryMatch }) => {
 	const [_, setQuery] = useQueryParam('query', QueryParam)
+
+	// replace wildcards for highlighting.
 	const matchPattern = queryMatch?.replace('*', '')
 	const stringParts = matchPattern ? value.split(matchPattern) : [value]
 
