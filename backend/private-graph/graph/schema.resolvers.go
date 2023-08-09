@@ -3618,19 +3618,23 @@ func (r *mutationResolver) UpdateEmailOptOut(ctx context.Context, token *string,
 	return true, nil
 }
 
-// EditService is the resolver for the editService field.
-func (r *mutationResolver) EditService(ctx context.Context, id int, projectID int, githubRepoPath *string) (*model.Service, error) {
+// EditServiceGithubSettings is the resolver for the editServiceGithubSettings field.
+func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) (*model.Service, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	serviceUpdates := map[string]interface{}{}
+	serviceUpdates := map[string]interface{}{
+		"ErrorDetails": make([]string, 0),
+		"BuildPrefix":  buildPrefix,
+		"GithubPrefix": githubPrefix,
+	}
 	if githubRepoPath != nil {
 		serviceUpdates["GithubRepoPath"] = *githubRepoPath
 		serviceUpdates["Status"] = "healthy"
 	} else {
-		serviceUpdates["GithubRepoPath"] = ""
+		serviceUpdates["GithubRepoPath"] = nil
 		serviceUpdates["Status"] = "created"
 	}
 
@@ -7539,6 +7543,11 @@ func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*mode
 	return params, nil
 }
 
+// ErrorDetails is the resolver for the errorDetails field.
+func (r *serviceResolver) ErrorDetails(ctx context.Context, obj *model.Service) ([]string, error) {
+	panic(fmt.Errorf("not implemented: ErrorDetails - errorDetails"))
+}
+
 // UserObject is the resolver for the user_object field.
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
 	return obj.UserObject, nil
@@ -7856,6 +7865,9 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 // Segment returns generated.SegmentResolver implementation.
 func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver{r} }
 
+// Service returns generated.ServiceResolver implementation.
+func (r *Resolver) Service() generated.ServiceResolver { return &serviceResolver{r} }
+
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
@@ -7886,6 +7898,7 @@ type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
+type serviceResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }

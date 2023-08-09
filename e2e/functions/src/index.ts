@@ -17,6 +17,10 @@ export const hey = functions.https.onCall(
 			// ... your handler code here
 			return { result: 'useful call result!' }
 		},
-		{ projectID: '1' },
+		{
+			projectID: '1',
+			serviceName: 'my-firebase-app',
+			serviceVersion: '1.0.0',
+		},
 	),
 )

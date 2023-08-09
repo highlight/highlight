@@ -51,6 +51,7 @@ type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Segment() SegmentResolver
+	Service() ServiceResolver
 	Session() SessionResolver
 	SessionAlert() SessionAlertResolver
 	SessionComment() SessionCommentResolver
@@ -700,7 +701,7 @@ type ComplexityRoot struct {
 		EditProject                      func(childComplexity int, id int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool) int
 		EditProjectSettings              func(childComplexity int, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) int
 		EditSegment                      func(childComplexity int, id int, projectID int, params model.SearchParamsInput, name string) int
-		EditService                      func(childComplexity int, id int, projectID int, githubRepoPath *string) int
+		EditServiceGithubSettings        func(childComplexity int, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) int
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EditWorkspaceSettings            func(childComplexity int, workspaceID int, aiApplication *bool, aiInsights *bool) int
 		EmailSignup                      func(childComplexity int, email string) int
@@ -998,11 +999,15 @@ type ComplexityRoot struct {
 	}
 
 	Service struct {
-		GithubRepoPath func(childComplexity int) int
-		ID             func(childComplexity int) int
-		Name           func(childComplexity int) int
-		ProjectID      func(childComplexity int) int
-		Status         func(childComplexity int) int
+		BuildPrefix     func(childComplexity int) int
+		ErrorDetails    func(childComplexity int) int
+		GithubPrefix    func(childComplexity int) int
+		GithubRepoPath  func(childComplexity int) int
+		ID              func(childComplexity int) int
+		LastSeenVersion func(childComplexity int) int
+		Name            func(childComplexity int) int
+		ProjectID       func(childComplexity int) int
+		Status          func(childComplexity int) int
 	}
 
 	ServiceConnection struct {
@@ -1016,11 +1021,15 @@ type ComplexityRoot struct {
 	}
 
 	ServiceNode struct {
-		GithubRepoPath func(childComplexity int) int
-		ID             func(childComplexity int) int
-		Name           func(childComplexity int) int
-		ProjectID      func(childComplexity int) int
-		Status         func(childComplexity int) int
+		BuildPrefix     func(childComplexity int) int
+		ErrorDetails    func(childComplexity int) int
+		GithubPrefix    func(childComplexity int) int
+		GithubRepoPath  func(childComplexity int) int
+		ID              func(childComplexity int) int
+		LastSeenVersion func(childComplexity int) int
+		Name            func(childComplexity int) int
+		ProjectID       func(childComplexity int) int
+		Status          func(childComplexity int) int
 	}
 
 	Session struct {
@@ -1443,7 +1452,7 @@ type MutationResolver interface {
 	UpdateClickUpProjectMappings(ctx context.Context, workspaceID int, projectMappings []*model.ClickUpProjectMappingInput) (bool, error)
 	UpdateIntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType model.IntegrationType, projectMappings []*model.IntegrationProjectMappingInput) (bool, error)
 	UpdateEmailOptOut(ctx context.Context, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool, projectID *int) (bool, error)
-	EditService(ctx context.Context, id int, projectID int, githubRepoPath *string) (*model1.Service, error)
+	EditServiceGithubSettings(ctx context.Context, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) (*model1.Service, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -1586,6 +1595,9 @@ type QueryResolver interface {
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
+}
+type ServiceResolver interface {
+	ErrorDetails(ctx context.Context, obj *model1.Service) ([]string, error)
 }
 type SessionResolver interface {
 	UserObject(ctx context.Context, obj *model1.Session) (interface{}, error)
@@ -4781,17 +4793,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.EditSegment(childComplexity, args["id"].(int), args["project_id"].(int), args["params"].(model.SearchParamsInput), args["name"].(string)), true
 
-	case "Mutation.editService":
-		if e.complexity.Mutation.EditService == nil {
+	case "Mutation.editServiceGithubSettings":
+		if e.complexity.Mutation.EditServiceGithubSettings == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_editService_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_editServiceGithubSettings_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditService(childComplexity, args["id"].(int), args["project_id"].(int), args["github_repo_path"].(*string)), true
+		return e.complexity.Mutation.EditServiceGithubSettings(childComplexity, args["id"].(int), args["project_id"].(int), args["github_repo_path"].(*string), args["build_prefix"].(*string), args["github_prefix"].(*string)), true
 
 	case "Mutation.editWorkspace":
 		if e.complexity.Mutation.EditWorkspace == nil {
@@ -7376,6 +7388,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Segment.ProjectID(childComplexity), true
 
+	case "Service.buildPrefix":
+		if e.complexity.Service.BuildPrefix == nil {
+			break
+		}
+
+		return e.complexity.Service.BuildPrefix(childComplexity), true
+
+	case "Service.errorDetails":
+		if e.complexity.Service.ErrorDetails == nil {
+			break
+		}
+
+		return e.complexity.Service.ErrorDetails(childComplexity), true
+
+	case "Service.githubPrefix":
+		if e.complexity.Service.GithubPrefix == nil {
+			break
+		}
+
+		return e.complexity.Service.GithubPrefix(childComplexity), true
+
 	case "Service.githubRepoPath":
 		if e.complexity.Service.GithubRepoPath == nil {
 			break
@@ -7389,6 +7422,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Service.ID(childComplexity), true
+
+	case "Service.lastSeenVersion":
+		if e.complexity.Service.LastSeenVersion == nil {
+			break
+		}
+
+		return e.complexity.Service.LastSeenVersion(childComplexity), true
 
 	case "Service.name":
 		if e.complexity.Service.Name == nil {
@@ -7439,6 +7479,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ServiceEdge.Node(childComplexity), true
 
+	case "ServiceNode.buildPrefix":
+		if e.complexity.ServiceNode.BuildPrefix == nil {
+			break
+		}
+
+		return e.complexity.ServiceNode.BuildPrefix(childComplexity), true
+
+	case "ServiceNode.errorDetails":
+		if e.complexity.ServiceNode.ErrorDetails == nil {
+			break
+		}
+
+		return e.complexity.ServiceNode.ErrorDetails(childComplexity), true
+
+	case "ServiceNode.githubPrefix":
+		if e.complexity.ServiceNode.GithubPrefix == nil {
+			break
+		}
+
+		return e.complexity.ServiceNode.GithubPrefix(childComplexity), true
+
 	case "ServiceNode.githubRepoPath":
 		if e.complexity.ServiceNode.GithubRepoPath == nil {
 			break
@@ -7452,6 +7513,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ServiceNode.ID(childComplexity), true
+
+	case "ServiceNode.lastSeenVersion":
+		if e.complexity.ServiceNode.LastSeenVersion == nil {
+			break
+		}
+
+		return e.complexity.ServiceNode.LastSeenVersion(childComplexity), true
 
 	case "ServiceNode.name":
 		if e.complexity.ServiceNode.Name == nil {
@@ -9649,6 +9717,10 @@ type Service {
 	name: String!
 	status: ServiceStatus!
 	githubRepoPath: String
+	buildPrefix: String
+	githubPrefix: String
+	lastSeenVersion: String
+	errorDetails: [String!]
 }
 
 type ServiceNode {
@@ -9657,6 +9729,10 @@ type ServiceNode {
 	name: String!
 	status: ServiceStatus!
 	githubRepoPath: String
+	buildPrefix: String
+	githubPrefix: String
+	lastSeenVersion: String
+	errorDetails: [String!]
 }
 
 type ServiceEdge implements Edge {
@@ -11103,7 +11179,13 @@ type Mutation {
 		is_opt_out: Boolean!
 		project_id: Int
 	): Boolean!
-	editService(id: ID!, project_id: ID!, github_repo_path: String): Service
+	editServiceGithubSettings(
+		id: ID!
+		project_id: ID!
+		github_repo_path: String
+		build_prefix: String
+		github_prefix: String
+	): Service
 }
 
 type Subscription {
@@ -12725,7 +12807,7 @@ func (ec *executionContext) field_Mutation_editSegment_args(ctx context.Context,
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_editService_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_editServiceGithubSettings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -12755,6 +12837,24 @@ func (ec *executionContext) field_Mutation_editService_args(ctx context.Context,
 		}
 	}
 	args["github_repo_path"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["build_prefix"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("build_prefix"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["build_prefix"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["github_prefix"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("github_prefix"))
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["github_prefix"] = arg4
 	return args, nil
 }
 
@@ -39454,8 +39554,8 @@ func (ec *executionContext) fieldContext_Mutation_updateEmailOptOut(ctx context.
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_editService(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_editService(ctx, field)
+func (ec *executionContext) _Mutation_editServiceGithubSettings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_editServiceGithubSettings(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -39468,7 +39568,7 @@ func (ec *executionContext) _Mutation_editService(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditService(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["github_repo_path"].(*string))
+		return ec.resolvers.Mutation().EditServiceGithubSettings(rctx, fc.Args["id"].(int), fc.Args["project_id"].(int), fc.Args["github_repo_path"].(*string), fc.Args["build_prefix"].(*string), fc.Args["github_prefix"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -39481,7 +39581,7 @@ func (ec *executionContext) _Mutation_editService(ctx context.Context, field gra
 	return ec.marshalOService2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐService(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_editService(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_editServiceGithubSettings(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -39499,6 +39599,14 @@ func (ec *executionContext) fieldContext_Mutation_editService(ctx context.Contex
 				return ec.fieldContext_Service_status(ctx, field)
 			case "githubRepoPath":
 				return ec.fieldContext_Service_githubRepoPath(ctx, field)
+			case "buildPrefix":
+				return ec.fieldContext_Service_buildPrefix(ctx, field)
+			case "githubPrefix":
+				return ec.fieldContext_Service_githubPrefix(ctx, field)
+			case "lastSeenVersion":
+				return ec.fieldContext_Service_lastSeenVersion(ctx, field)
+			case "errorDetails":
+				return ec.fieldContext_Service_errorDetails(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Service", field.Name)
 		},
@@ -39510,7 +39618,7 @@ func (ec *executionContext) fieldContext_Mutation_editService(ctx context.Contex
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_editService_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_editServiceGithubSettings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -52106,6 +52214,170 @@ func (ec *executionContext) fieldContext_Service_githubRepoPath(ctx context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _Service_buildPrefix(ctx context.Context, field graphql.CollectedField, obj *model1.Service) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Service_buildPrefix(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BuildPrefix, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Service_buildPrefix(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Service",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Service_githubPrefix(ctx context.Context, field graphql.CollectedField, obj *model1.Service) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Service_githubPrefix(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GithubPrefix, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Service_githubPrefix(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Service",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Service_lastSeenVersion(ctx context.Context, field graphql.CollectedField, obj *model1.Service) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Service_lastSeenVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastSeenVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Service_lastSeenVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Service",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Service_errorDetails(ctx context.Context, field graphql.CollectedField, obj *model1.Service) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Service_errorDetails(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Service().ErrorDetails(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Service_errorDetails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Service",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ServiceConnection_edges(ctx context.Context, field graphql.CollectedField, obj *model.ServiceConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ServiceConnection_edges(ctx, field)
 	if err != nil {
@@ -52303,6 +52575,14 @@ func (ec *executionContext) fieldContext_ServiceEdge_node(ctx context.Context, f
 				return ec.fieldContext_ServiceNode_status(ctx, field)
 			case "githubRepoPath":
 				return ec.fieldContext_ServiceNode_githubRepoPath(ctx, field)
+			case "buildPrefix":
+				return ec.fieldContext_ServiceNode_buildPrefix(ctx, field)
+			case "githubPrefix":
+				return ec.fieldContext_ServiceNode_githubPrefix(ctx, field)
+			case "lastSeenVersion":
+				return ec.fieldContext_ServiceNode_lastSeenVersion(ctx, field)
+			case "errorDetails":
+				return ec.fieldContext_ServiceNode_errorDetails(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ServiceNode", field.Name)
 		},
@@ -52515,6 +52795,170 @@ func (ec *executionContext) _ServiceNode_githubRepoPath(ctx context.Context, fie
 }
 
 func (ec *executionContext) fieldContext_ServiceNode_githubRepoPath(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceNode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceNode_buildPrefix(ctx context.Context, field graphql.CollectedField, obj *model.ServiceNode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceNode_buildPrefix(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BuildPrefix, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceNode_buildPrefix(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceNode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceNode_githubPrefix(ctx context.Context, field graphql.CollectedField, obj *model.ServiceNode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceNode_githubPrefix(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GithubPrefix, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceNode_githubPrefix(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceNode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceNode_lastSeenVersion(ctx context.Context, field graphql.CollectedField, obj *model.ServiceNode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceNode_lastSeenVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastSeenVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceNode_lastSeenVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ServiceNode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ServiceNode_errorDetails(ctx context.Context, field graphql.CollectedField, obj *model.ServiceNode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ServiceNode_errorDetails(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorDetails, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ServiceNode_errorDetails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceNode",
 		Field:      field,
@@ -69621,10 +70065,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_updateEmailOptOut(ctx, field)
 			})
 
-		case "editService":
+		case "editServiceGithubSettings":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_editService(ctx, field)
+				return ec._Mutation_editServiceGithubSettings(ctx, field)
 			})
 
 		default:
@@ -73137,33 +73581,62 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Service_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "projectID":
 
 			out.Values[i] = ec._Service_projectID(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "name":
 
 			out.Values[i] = ec._Service_name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "status":
 
 			out.Values[i] = ec._Service_status(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "githubRepoPath":
 
 			out.Values[i] = ec._Service_githubRepoPath(ctx, field, obj)
 
+		case "buildPrefix":
+
+			out.Values[i] = ec._Service_buildPrefix(ctx, field, obj)
+
+		case "githubPrefix":
+
+			out.Values[i] = ec._Service_githubPrefix(ctx, field, obj)
+
+		case "lastSeenVersion":
+
+			out.Values[i] = ec._Service_lastSeenVersion(ctx, field, obj)
+
+		case "errorDetails":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Service_errorDetails(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -73286,6 +73759,22 @@ func (ec *executionContext) _ServiceNode(ctx context.Context, sel ast.SelectionS
 		case "githubRepoPath":
 
 			out.Values[i] = ec._ServiceNode_githubRepoPath(ctx, field, obj)
+
+		case "buildPrefix":
+
+			out.Values[i] = ec._ServiceNode_buildPrefix(ctx, field, obj)
+
+		case "githubPrefix":
+
+			out.Values[i] = ec._ServiceNode_githubPrefix(ctx, field, obj)
+
+		case "lastSeenVersion":
+
+			out.Values[i] = ec._ServiceNode_lastSeenVersion(ctx, field, obj)
+
+		case "errorDetails":
+
+			out.Values[i] = ec._ServiceNode_errorDetails(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
