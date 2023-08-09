@@ -30,8 +30,7 @@ jobs:
             - name: Rubocop
               run: bundle exec rubocop
             - name: Publish to RubyGems
-              env:
-                  RUBYGEMS_API_KEY: '${{secrets.RUBYGEMS_API_KEY}}'
+              if: github.ref == 'refs/heads/main'
               run: |
                   mkdir -p $HOME/.gem
                   touch $HOME/.gem/credentials
@@ -39,3 +38,5 @@ jobs:
                   printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
                   gem build *.gemspec
                   gem push *.gem
+              env:
+                  RUBYGEMS_API_KEY: '${{secrets.RUBYGEMS_API_KEY}}'
