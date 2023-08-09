@@ -2,7 +2,6 @@ package clickhouse
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
@@ -29,13 +28,13 @@ type ClickhouseTraceRow struct {
 	TraceAttributes  map[string]string
 	StatusCode       string
 	StatusMessage    string
-	EventsTimestamp  []time.Time         `db:"Events.Timestamp"`
-	EventsName       []string            `db:"Events.Name"`
-	EventsAttributes []map[string]string `db:"Events.Attributes"`
-	LinksTraceId     []string            `db:"Links.TraceId"`
-	LinksSpanId      []string            `db:"Links.SpanId"`
-	LinksTraceState  []string            `db:"Links.TraceState"`
-	LinksAttributes  []map[string]string `db:"Links.Attributes"`
+	EventsTimestamp  clickhouse.ArraySet `db:"Events.Timestamp"`
+	EventsName       clickhouse.ArraySet `db:"Events.Name"`
+	EventsAttributes clickhouse.ArraySet `db:"Events.Attributes"`
+	LinksTraceId     clickhouse.ArraySet `db:"Links.TraceId"`
+	LinksSpanId      clickhouse.ArraySet `db:"Links.SpanId"`
+	LinksTraceState  clickhouse.ArraySet `db:"Links.TraceState"`
+	LinksAttributes  clickhouse.ArraySet `db:"Links.Attributes"`
 }
 
 func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*TraceRow) error {
@@ -83,15 +82,14 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 		"async_insert":          1,
 		"wait_for_async_insert": 1,
 	}))
-	fmt.Printf("::: sql (traces): %s\n", sql)
 	return client.conn.Exec(chCtx, sql, args...)
 }
 
-func convertEvents(traceRow *TraceRow) ([]time.Time, []string, []map[string]string) {
+func convertEvents(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet, clickhouse.ArraySet) {
 	var (
-		times []time.Time
-		names []string
-		attrs []map[string]string
+		times clickhouse.ArraySet
+		names clickhouse.ArraySet
+		attrs clickhouse.ArraySet
 	)
 	events := traceRow.Events
 	for _, event := range events {
@@ -102,12 +100,12 @@ func convertEvents(traceRow *TraceRow) ([]time.Time, []string, []map[string]stri
 	return times, names, attrs
 }
 
-func convertLinks(traceRow *TraceRow) ([]string, []string, []string, []map[string]string) {
+func convertLinks(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet, clickhouse.ArraySet, clickhouse.ArraySet) {
 	var (
-		traceIDs []string
-		spanIDs  []string
-		states   []string
-		attrs    []map[string]string
+		traceIDs clickhouse.ArraySet
+		spanIDs  clickhouse.ArraySet
+		states   clickhouse.ArraySet
+		attrs    clickhouse.ArraySet
 	)
 	links := traceRow.Links
 	for _, link := range links {
