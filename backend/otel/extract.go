@@ -55,6 +55,13 @@ type extractedFields struct {
 	attrs map[string]string
 }
 
+func newExtractedFields() *extractedFields {
+	return &extractedFields{
+		source: modelInputs.LogSourceBackend,
+		attrs:  make(map[string]string),
+	}
+}
+
 type extractFieldsParams struct {
 	resource  *pcommon.Resource
 	span      *ptrace.Span
@@ -64,9 +71,7 @@ type extractFieldsParams struct {
 }
 
 func extractFields(ctx context.Context, params extractFieldsParams) (extractedFields, error) {
-	fields := extractedFields{
-		source: modelInputs.LogSourceBackend,
-	}
+	fields := newExtractedFields()
 
 	var resourceAttributes, spanAttributes, eventAttributes, scopeAttributes, logAttributes map[string]any
 	if params.resource != nil {
@@ -127,7 +132,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 		}
 	}
 
-	attrs := mergeMaps(
+	originalAttrs := mergeMaps(
 		resourceAttributes,
 		spanAttributes,
 		eventAttributes,
@@ -135,130 +140,21 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 		logAttributes,
 	)
 
-	// process potential syslog message
-	if len(fields.logBody) > 0 && fields.logBody[0] == '<' {
-		extractSyslog(&fields, attrs)
-	}
-
-	if val, ok := attrs[highlight.DeprecatedProjectIDAttribute]; ok {
-		fields.projectID = val.(string)
-		delete(attrs, highlight.DeprecatedProjectIDAttribute)
-	}
-
-	if val, ok := attrs[highlight.ProjectIDAttribute]; ok {
-		fields.projectID = val.(string)
-		delete(attrs, highlight.ProjectIDAttribute)
-	}
-
-	if val, ok := attrs[highlight.DeprecatedSessionIDAttribute]; ok {
-		fields.sessionID = val.(string)
-		delete(attrs, highlight.DeprecatedSessionIDAttribute)
-	}
-
-	if val, ok := attrs[highlight.SessionIDAttribute]; ok {
-		fields.sessionID = val.(string)
-		delete(attrs, highlight.SessionIDAttribute)
-	}
-
-	if val, ok := attrs[highlight.DeprecatedSourceAttribute]; ok {
+	if val, ok := originalAttrs[highlight.DeprecatedSourceAttribute]; ok {
 		if val == modelInputs.LogSourceFrontend.String() {
 			fields.source = modelInputs.LogSourceFrontend
 		}
-		delete(attrs, highlight.DeprecatedSourceAttribute)
+		delete(originalAttrs, highlight.DeprecatedSourceAttribute)
 	}
 
-	if val, ok := attrs[highlight.SourceAttribute]; ok {
+	if val, ok := originalAttrs[highlight.SourceAttribute]; ok {
 		if val == modelInputs.LogSourceFrontend.String() {
 			fields.source = modelInputs.LogSourceFrontend
 		}
-		delete(attrs, highlight.SourceAttribute)
+		delete(originalAttrs, highlight.SourceAttribute)
 	}
 
-	if val, ok := attrs[highlight.RequestIDAttribute]; ok {
-		fields.requestID = val.(string)
-		delete(attrs, highlight.RequestIDAttribute)
-	}
-
-	if val, ok := attrs[highlight.LogSeverityAttribute]; ok {
-		fields.logSeverity = val.(string)
-		delete(attrs, highlight.LogSeverityAttribute)
-	}
-
-	if val, ok := attrs[highlight.LogMessageAttribute]; ok {
-		fields.logMessage = val.(string)
-		delete(attrs, highlight.LogMessageAttribute)
-	}
-
-	if val, ok := attrs[highlight.MetricEventName]; ok {
-		fields.metricEventName = val.(string)
-		delete(attrs, highlight.MetricEventName)
-	}
-
-	if val, ok := attrs[highlight.MetricEventValue]; ok {
-		float64Value, ok := val.(float64)
-		if ok {
-			fields.metricEventValue = float64Value
-			delete(attrs, highlight.MetricEventValue)
-		} else {
-			stringValue, ok := val.(string)
-			if ok {
-				parsedFloat64Value, err := strconv.ParseFloat(stringValue, 64)
-				if err == nil {
-					fields.metricEventValue = parsedFloat64Value
-					delete(attrs, highlight.MetricEventValue)
-				}
-			}
-		}
-	}
-
-	if val, ok := eventAttributes[string(semconv.ExceptionTypeKey)]; ok { // we know that exception.type will be in the event attributes map
-		fields.exceptionType = val.(string)
-		delete(attrs, string(semconv.ExceptionTypeKey))
-	}
-
-	if val, ok := eventAttributes[string(semconv.ExceptionMessageKey)]; ok { // we know that exception.message will be in the event attributes map
-		fields.exceptionMessage = val.(string)
-		delete(attrs, string(semconv.ExceptionMessageKey))
-	}
-
-	if val, ok := eventAttributes[string(semconv.ExceptionStacktraceKey)]; ok { // we know that exception.stacktrace will be in the event attributes map
-		fields.exceptionStackTrace = val.(string)
-		delete(attrs, string(semconv.ExceptionStacktraceKey))
-	}
-
-	if val, ok := eventAttributes[highlight.ErrorURLAttribute]; ok { // we know that URL will be in the event attributes map
-		fields.errorUrl = val.(string)
-		delete(attrs, highlight.ErrorURLAttribute)
-	}
-
-	if val, ok := resourceAttributes[string(semconv.ServiceNameKey)]; ok { // we know that service name will be in the resource map
-		fields.serviceName = val.(string)
-		if strings.Contains(fields.serviceName, "unknown_service") || fields.serviceName == "highlight-sdk" {
-			fields.serviceName = ""
-		}
-
-		delete(attrs, string(semconv.ServiceNameKey))
-	}
-
-	if val, ok := resourceAttributes[string(semconv.ServiceVersionKey)]; ok { // we know that service version will be in the resource hash
-		fields.serviceVersion = val.(string)
-		delete(attrs, string(semconv.ServiceVersionKey))
-	}
-
-	if fields.projectID == "" {
-		if tag := attrs["fluent.tag"]; tag != nil {
-			if v, _ := tag.(string); v != "" {
-				project := fluentProjectPattern.FindStringSubmatch(v)
-				if project != nil {
-					fields.projectID = project[1]
-				}
-			}
-			delete(attrs, "fluent.tag")
-		}
-	}
-
-	attributesMap := make(map[string]string)
-	for k, v := range attrs {
+	for k, v := range originalAttrs {
 		prefixes := []string{}
 		if fields.source == modelInputs.LogSourceFrontend {
 			prefixes = append(prefixes, highlight.BackendOnlyAttributePrefixes...)
@@ -276,20 +172,116 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 		}
 
 		for key, value := range util.FormatLogAttributes(ctx, k, v) {
-			attributesMap[key] = value
+			fields.attrs[key] = value
 		}
 	}
-	fields.attrs = attributesMap
+
+	// process potential syslog message
+	if len(fields.logBody) > 0 && fields.logBody[0] == '<' {
+		extractSyslog(fields)
+	}
+
+	if val, ok := fields.attrs[highlight.DeprecatedProjectIDAttribute]; ok {
+		fields.projectID = val
+		delete(fields.attrs, highlight.DeprecatedProjectIDAttribute)
+	}
+
+	if val, ok := fields.attrs[highlight.ProjectIDAttribute]; ok {
+		fields.projectID = val
+		delete(fields.attrs, highlight.ProjectIDAttribute)
+	}
+
+	if val, ok := fields.attrs[highlight.DeprecatedSessionIDAttribute]; ok {
+		fields.sessionID = val
+		delete(fields.attrs, highlight.DeprecatedSessionIDAttribute)
+	}
+
+	if val, ok := fields.attrs[highlight.SessionIDAttribute]; ok {
+		fields.sessionID = val
+		delete(fields.attrs, highlight.SessionIDAttribute)
+	}
+
+	if val, ok := fields.attrs[highlight.RequestIDAttribute]; ok {
+		fields.requestID = val
+		delete(fields.attrs, highlight.RequestIDAttribute)
+	}
+
+	if val, ok := fields.attrs[highlight.LogSeverityAttribute]; ok {
+		fields.logSeverity = val
+		delete(fields.attrs, highlight.LogSeverityAttribute)
+	}
+
+	if val, ok := fields.attrs[highlight.LogMessageAttribute]; ok {
+		fields.logMessage = val
+		delete(fields.attrs, highlight.LogMessageAttribute)
+	}
+
+	if val, ok := fields.attrs[highlight.MetricEventName]; ok {
+		fields.metricEventName = val
+		delete(fields.attrs, highlight.MetricEventName)
+	}
+
+	if val, ok := fields.attrs[highlight.MetricEventValue]; ok {
+		float64Value, err := strconv.ParseFloat(val, 64)
+		if err == nil {
+			fields.metricEventValue = float64Value
+		}
+		delete(fields.attrs, highlight.MetricEventValue)
+	}
+
+	if val, ok := eventAttributes[string(semconv.ExceptionTypeKey)]; ok { // we know that exception.type will be in the event attributes map
+		fields.exceptionType = val.(string)
+		delete(fields.attrs, string(semconv.ExceptionTypeKey))
+	}
+
+	if val, ok := eventAttributes[string(semconv.ExceptionMessageKey)]; ok { // we know that exception.message will be in the event attributes map
+		fields.exceptionMessage = val.(string)
+		delete(fields.attrs, string(semconv.ExceptionMessageKey))
+	}
+
+	if val, ok := eventAttributes[string(semconv.ExceptionStacktraceKey)]; ok { // we know that exception.stacktrace will be in the event attributes map
+		fields.exceptionStackTrace = val.(string)
+		delete(fields.attrs, string(semconv.ExceptionStacktraceKey))
+	}
+
+	if val, ok := eventAttributes[highlight.ErrorURLAttribute]; ok { // we know that URL will be in the event attributes map
+		fields.errorUrl = val.(string)
+		delete(fields.attrs, highlight.ErrorURLAttribute)
+	}
+
+	if val, ok := fields.attrs[string(semconv.ServiceNameKey)]; ok {
+		fields.serviceName = val
+		if strings.Contains(fields.serviceName, "unknown_service") || fields.serviceName == "highlight-sdk" {
+			fields.serviceName = ""
+		}
+
+		delete(fields.attrs, string(semconv.ServiceNameKey))
+	}
+
+	if val, ok := fields.attrs[string(semconv.ServiceVersionKey)]; ok {
+		fields.serviceVersion = val
+		delete(fields.attrs, string(semconv.ServiceVersionKey))
+	}
+
+	if fields.projectID == "" {
+		if tag := fields.attrs["fluent.tag"]; tag != "" {
+			project := fluentProjectPattern.FindStringSubmatch(tag)
+			if project != nil {
+				fields.projectID = project[1]
+			}
+			delete(fields.attrs, "fluent.tag")
+		}
+	}
 
 	projectIDInt, err := projectToInt(fields.projectID)
 
 	if err != nil {
-		return fields, err
+		return *fields, err
 	}
 
 	fields.projectIDInt = projectIDInt
 
-	return fields, nil
+	return *fields, nil
 }
 
 func mergeMaps(maps ...map[string]any) map[string]any {

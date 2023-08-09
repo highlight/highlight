@@ -1,2 +1,0 @@
-const ReactComponent = props => <svg width={24} height={24} fill="none" viewBox="4 4 16 16" {...props}><circle cx={12} cy={12} r={7.25} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} /><circle cx={12} cy={12} r={4.25} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} /><circle cx={12} cy={12} r={1.25} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} /></svg>;
-export { ReactComponent };

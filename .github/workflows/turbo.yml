@@ -171,12 +171,8 @@ jobs:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-            - name: Install Doppler CLI
-              uses: dopplerhq/cli-action@v2
-
             - name: Start docker containers & run cypress
               env:
-                  DOPPLER_TOKEN: ${{ secrets.DOPPLER_E2E_TOKEN }}
                   COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
                   REF: ${{ github.ref }}
                   REPO: ${{ github.event.pull_request.head.repo.full_name }}
@@ -190,11 +186,13 @@ jobs:
 
                   # start highlight
                   pushd docker;
+                  source ./env.sh;
                   ./start-infra.sh > /tmp/highlight.log 2>&1;
                   docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
                   ./run-backend.sh >> /tmp/highlight.log 2>&1 &
                   yarn install >> /tmp/highlight.log 2>&1;
-                  doppler run --preserve-env -- yarn build:frontend >> /tmp/highlight.log 2>&1;
+                  unset REACT_APP_IN_DOCKER;
+                  yarn build:frontend >> /tmp/highlight.log 2>&1;
                   yarn workspace @highlight-run/client dev &
                   yarn workspace highlight.run dev &
                   yarn workspace @highlight-run/frontend vite preview --port 3000 &
