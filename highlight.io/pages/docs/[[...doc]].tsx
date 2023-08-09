@@ -31,6 +31,7 @@ import {
 	PageRightBar,
 	readDocFile,
 	readMarkdownFile,
+	resolveDocIndexLink,
 	TableOfContents,
 	TocEntry,
 } from '../../components/Docs/TableOfContents/TableOfContents'
@@ -239,7 +240,6 @@ export const getStaticProps: GetStaticProps<DocProps> = async ({ params }) => {
 
 	const docMetadata = docMetadataSchema.parse(metadata)
 
-	// const sdkPaths = await getSdkPaths(fsp, undefined);
 	const currentDocIndex = docPages.findIndex((d) => {
 		return (
 			JSON.stringify(d.slugPath.split('/')) ===
@@ -258,15 +258,7 @@ export const getStaticProps: GetStaticProps<DocProps> = async ({ params }) => {
 		? await roadmapFetcher()
 		: null
 
-	const nonIndexDocsSlugPaths = docPages
-		.filter((doc) => !doc.isIndex)
-		.map((doc) => doc.slugPath)
-
-	const redirect = !nonIndexDocsSlugPaths.includes(currentDocPath.slugPath)
-		? nonIndexDocsSlugPaths.find((path) =>
-				path.startsWith(currentDocPath.slugPath),
-		  ) ?? null
-		: null
+	const redirect = resolveDocIndexLink(docPages, currentDocPath.slugPath)
 
 	const props: DocProps = {
 		mdContent: !currentDocPath.isSdkDoc
@@ -345,7 +337,7 @@ export default function DocPage({
 				<div className={styles.leftSection}>
 					<div className={styles.tocMenuLarge}>
 						{/* Desktop table of contents */}
-						<TableOfContents toc={toc} />
+						<TableOfContents toc={toc} docPages={docPages} />
 					</div>
 					<div
 						className={classNames(styles.tocRow, styles.tocMenu)}
@@ -372,7 +364,7 @@ export default function DocPage({
 					<Collapse isOpened={mobileTocOpen}>
 						{/* Mobile Tabe of contents */}
 						<div className={classNames('pl-3', styles.tocMenu)}>
-							<TableOfContents toc={toc} />
+							<TableOfContents toc={toc} docPages={docPages} />
 						</div>
 					</Collapse>
 				</div>

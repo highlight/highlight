@@ -144,21 +144,41 @@ function TocCategory({
 	subEntries,
 	onSubtableNavigation,
 	route,
+	docPages,
 }: {
 	title: string
 	subEntries: TocEntry[]
 	onSubtableNavigation: SubNavigationCallback
 	route: string
+	docPages: DocPage[]
 }) {
 	return (
 		<div className="border-y">
 			<Typography type="copy4">{title}</Typography>
 			<TableOfContentsSection
+				docPages={docPages}
 				tocEntries={subEntries}
 				onSubtableNavigation={onSubtableNavigation}
 				route={route}
 			/>
 		</div>
+	)
+}
+
+/** Resolve a path to not lead to an index page, but to its first non-index item instead. if no matching entry found, or `path` is not an index path, returns `null` */
+export function resolveDocIndexLink(
+	docPages: DocPage[],
+	path: string,
+): string | null {
+	const nonIndexDocsSlugPaths = docPages
+		.filter((doc) => !doc.isIndex)
+		.map((doc) => doc.slugPath)
+
+	if (nonIndexDocsSlugPaths.includes(path)) return null // current path is not an index
+
+	return (
+		nonIndexDocsSlugPaths.find((docPath) => docPath.startsWith(path)) ??
+		null
 	)
 }
 
@@ -208,6 +228,7 @@ function TocEntry({
 	subEntries,
 	onSubtableNavigation,
 	route,
+	docPages,
 }: {
 	title: string
 	slugPath: string
@@ -215,6 +236,7 @@ function TocEntry({
 	subEntries: TocEntry[]
 	onSubtableNavigation: SubNavigationCallback
 	route: string
+	docPages: DocPage[]
 }) {
 	const focused = route.includes(slugPath)
 
@@ -267,6 +289,7 @@ function TocEntry({
 						<Disclosure.Panel className="flex flex-row gap-0.5">
 							<div className="w-0.5 mx-[11px] flex-shrink-0 bg-divider-on-dark" />
 							<TableOfContentsSection
+								docPages={docPages}
 								tocEntries={subEntries}
 								onSubtableNavigation={onSubtableNavigation}
 								route={route}
@@ -291,7 +314,13 @@ type SubtableStack = {
 	children: TocEntry[]
 }
 
-export function TableOfContents({ toc: tocEntries }: { toc: TocEntry[] }) {
+export function TableOfContents({
+	toc: tocEntries,
+	docPages,
+}: {
+	toc: TocEntry[]
+	docPages: DocPage[]
+}) {
 	const router = useRouter()
 	const route = router.asPath.replace(/^\/docs\//, '')
 
@@ -356,6 +385,7 @@ export function TableOfContents({ toc: tocEntries }: { toc: TocEntry[] }) {
 			)}
 
 			<TableOfContentsSection
+				docPages={docPages}
 				tocEntries={renderedTable}
 				onSubtableNavigation={pushToStack}
 				route={route}
@@ -368,10 +398,12 @@ function TableOfContentsSection({
 	tocEntries,
 	onSubtableNavigation,
 	route,
+	docPages,
 }: {
 	tocEntries: TocEntry[]
 	onSubtableNavigation: SubNavigationCallback
 	route: string
+	docPages: DocPage[]
 }) {
 	const currentPage = tocEntries.find(
 		(e) => e.docPage.slugPath.startsWith(route) && !e.docPage.isIndex,
@@ -397,7 +429,10 @@ function TableOfContentsSection({
 						key={docPage.slugPath}
 						title={docPage.metadata.title}
 						subEntries={subEntries}
-						slugPath={docPage.slugPath}
+						slugPath={
+							resolveDocIndexLink(docPages, docPage.slugPath) ??
+							docPage.slugPath
+						}
 						onEnter={onSubtableNavigation}
 					/>
 				)
@@ -409,6 +444,7 @@ function TableOfContentsSection({
 				return (
 					<TocEntry
 						key={docPage.slugPath}
+						docPages={docPages}
 						isIndex={docPage.isIndex}
 						title={docPage.metadata.title}
 						slugPath={docPage.slugPath}
@@ -425,6 +461,7 @@ function TableOfContentsSection({
 				return (
 					<TocEntry
 						key={docPage.slugPath}
+						docPages={docPages}
 						isIndex={docPage.isIndex}
 						title={docPage.metadata.title}
 						slugPath={docPage.slugPath}
