@@ -204,7 +204,7 @@ export const SessionFeedV3 = React.memo(() => {
 	})
 
 	const [moreDataQuery] = useGetSessionsOpenSearchLazyQuery({
-		fetchPolicy: 'network-only',
+		fetchPolicy: 'no-cache',
 	})
 
 	useEffect(() => {

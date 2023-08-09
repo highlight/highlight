@@ -1,5 +1,6 @@
+import { AdditionalFeedResults } from '@components/FeedResults/FeedResults'
 import { LogLevel, ProductType } from '@graph/schemas'
-import { Box } from '@highlight-run/ui'
+import { Box, resetRelativeDates } from '@highlight-run/ui'
 import {
 	fifteenMinutesAgo,
 	LOG_TIME_PRESETS,
@@ -14,6 +15,7 @@ import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
+import moment from 'moment'
 import React, { useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import {
@@ -76,6 +78,8 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 
 	const {
 		logEdges,
+		moreLogs,
+		setMoreLogs,
 		loading,
 		error,
 		loadingAfter,
@@ -175,6 +179,18 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 							<OverageCard productType={ProductType.Logs} />
 						</Box>
 						<IntegrationCta />
+						<AdditionalFeedResults
+							more={moreLogs}
+							type="logs"
+							onClick={() => {
+								resetRelativeDates()
+								setMoreLogs(0)
+								handleDatesChange(
+									moment().add(-1, 'hour').toDate(),
+									new Date(),
+								)
+							}}
+						/>
 						<LogsTable
 							logEdges={logEdges}
 							loading={loading}

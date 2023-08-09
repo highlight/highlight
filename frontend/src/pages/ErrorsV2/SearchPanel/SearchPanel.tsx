@@ -75,7 +75,7 @@ const SearchPanel = () => {
 	})
 
 	const [moreDataQuery] = useGetErrorGroupsOpenSearchLazyQuery({
-		fetchPolicy: 'network-only',
+		fetchPolicy: 'no-cache',
 	})
 
 	useEffect(() => {

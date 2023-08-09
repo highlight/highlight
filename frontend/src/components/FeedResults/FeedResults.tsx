@@ -7,7 +7,7 @@ import * as style from './FeedResults.css'
 
 interface Props {
 	more: number
-	type: 'sessions' | 'errors'
+	type: 'sessions' | 'errors' | 'logs'
 	onClick: () => void
 }
 
@@ -23,8 +23,8 @@ export const AdditionalFeedResults = function ({ more, type, onClick }: Props) {
 					transition={{ duration: 0.1 }}
 				>
 					<Box
-						paddingTop="8"
-						px="8"
+						paddingTop={type === 'logs' ? undefined : '8'}
+						px={type === 'logs' ? undefined : '8'}
 						width="full"
 						display="flex"
 						alignItems="center"
@@ -41,7 +41,13 @@ export const AdditionalFeedResults = function ({ more, type, onClick }: Props) {
 							<Box display="flex" alignItems="center" gap="8">
 								<IconOutlineArrowNarrowUp />
 								<Text>
-									{more} new {type}
+									{more}
+									{type === 'logs'
+										? more === 50
+											? '+'
+											: ''
+										: ''}{' '}
+									new {type}
 								</Text>
 							</Box>
 						</Button>

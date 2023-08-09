@@ -1,4 +1,8 @@
-import { useGetLogsErrorObjectsQuery, useGetLogsQuery } from '@graph/hooks'
+import {
+	useGetLogsErrorObjectsQuery,
+	useGetLogsLazyQuery,
+	useGetLogsQuery,
+} from '@graph/hooks'
 import { LogEdge, PageInfo } from '@graph/schemas'
 import * as Types from '@graph/schemas'
 import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
@@ -6,6 +10,7 @@ import {
 	buildLogsQueryForServer,
 	parseLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
+import { POLL_INTERVAL } from '@util/search'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -47,6 +52,7 @@ export const useGetLogs = ({
 	const [windowInfo, setWindowInfo] = useState<PageInfo>(initialWindowInfo)
 	const [loadingAfter, setLoadingAfter] = useState(false)
 	const [loadingBefore, setLoadingBefore] = useState(false)
+	const [moreLogs, setMoreLogs] = useState<number>(0)
 	const queryTerms = parseLogsQuery(query)
 	const serverQuery = buildLogsQueryForServer(queryTerms)
 
@@ -69,6 +75,35 @@ export const useGetLogs = ({
 		},
 		fetchPolicy: 'cache-and-network',
 	})
+
+	const [moreDataQuery] = useGetLogsLazyQuery({
+		fetchPolicy: 'no-cache',
+	})
+
+	useEffect(() => {
+		// setup a polling interval for sessions after the current date range
+		const interval = setInterval(async () => {
+			const variables = {
+				project_id: project_id!,
+				at: logCursor,
+				direction: Types.LogDirection.Desc,
+				params: {
+					query: serverQuery,
+					date_range: {
+						start_date: moment(endDate).format(LOG_TIME_FORMAT),
+						end_date: moment(endDate)
+							.add(1, 'hour')
+							.format(LOG_TIME_FORMAT),
+					},
+				},
+			}
+			const result = await moreDataQuery({ variables })
+			if (result?.data?.logs.edges.length !== undefined) {
+				setMoreLogs(result?.data?.logs.edges.length)
+			}
+		}, POLL_INTERVAL)
+		return () => clearInterval(interval)
+	}, [startDate, endDate, logCursor, moreDataQuery, project_id, serverQuery])
 
 	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({
 		variables: { log_cursors: data?.logs.edges.map((e) => e.cursor) || [] },
@@ -155,6 +190,8 @@ export const useGetLogs = ({
 
 	return {
 		logEdges: logEdgesWithError,
+		moreLogs,
+		setMoreLogs,
 		loading,
 		loadingAfter,
 		loadingBefore,
