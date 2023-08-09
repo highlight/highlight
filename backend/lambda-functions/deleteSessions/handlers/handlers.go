@@ -114,23 +114,28 @@ func (h *handlers) DeleteSessionBatchFromOpenSearch(ctx context.Context, event u
 }
 
 func (h *handlers) DeleteSessionBatchFromPostgres(ctx context.Context, event utils.BatchIdResponse) (*utils.BatchIdResponse, error) {
-	sessionIds, err := utils.GetSessionIdsInBatch(h.db, event.TaskId, event.BatchId)
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting session ids to delete")
-	}
-
 	if !event.DryRun {
 		if err := h.db.Exec(`
 			DELETE FROM session_fields
-			WHERE session_id in (?)
-		`, sessionIds).Error; err != nil {
+			WHERE session_id IN (
+				SELECT session_id 
+				FROM delete_sessions_tasks
+				WHERE task_id = ?
+				AND batch_id = ?
+			)
+		`, event.TaskId, event.BatchId).Error; err != nil {
 			return nil, errors.Wrap(err, "error deleting session fields")
 		}
 
 		if err := h.db.Exec(`
 			DELETE FROM sessions
-			WHERE id in (?)
-		`, sessionIds).Error; err != nil {
+			WHERE id IN (
+				SELECT session_id 
+				FROM delete_sessions_tasks
+				WHERE task_id = ?
+				AND batch_id = ?
+			)
+		`, event.TaskId, event.BatchId).Error; err != nil {
 			return nil, errors.Wrap(err, "error deleting sessions")
 		}
 	}

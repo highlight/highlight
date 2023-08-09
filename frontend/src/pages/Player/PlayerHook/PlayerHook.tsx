@@ -6,7 +6,6 @@ import {
 	useGetSessionIntervalsQuery,
 	useGetSessionPayloadQuery,
 	useGetSessionQuery,
-	useGetTimelineIndicatorEventsQuery,
 	useMarkSessionAsViewedMutation,
 } from '@graph/hooks'
 import { GetSessionQuery } from '@graph/operations'
@@ -28,6 +27,7 @@ import {
 	PlayerReducer,
 	SessionViewability,
 } from '@pages/Player/PlayerHook/PlayerState'
+import { useTimelineIndicators } from '@pages/Player/TimelineIndicatorsContext/TimelineIndicatorsContext'
 import analytics from '@util/analytics'
 import { indexedDBFetch, indexedDBString } from '@util/db'
 import log from '@util/log'
@@ -114,43 +114,38 @@ export const usePlayer = (): ReplayerContextInterface => {
 			!project_id ||
 			CHUNKING_DISABLED_PROJECTS.includes(project_id),
 	})
-	const { data: timelineIndicatorEvents } =
-		useGetTimelineIndicatorEventsQuery({
-			variables: {
-				session_secure_id: session_secure_id!,
-			},
-			skip: !session_secure_id,
-		})
 	const { data: sessionData } = useGetSessionQuery({
 		variables: {
 			secure_id: session_secure_id!,
 		},
-		onCompleted: useCallback(
-			(data: GetSessionQuery) => {
-				dispatch({
-					type: PlayerActionType.loadSession,
-					data,
-					fetchEventChunkURL,
-				})
-			},
-			[fetchEventChunkURL],
-		),
+		onCompleted: useCallback((data: GetSessionQuery) => {
+			dispatch({
+				type: PlayerActionType.loadSession,
+				data,
+			})
+		}, []),
 		onError: useCallback(() => {
 			dispatch({
 				type: PlayerActionType.loadSession,
 				data: { session: undefined },
-				fetchEventChunkURL,
 			})
-		}, [fetchEventChunkURL]),
+		}, []),
 		skip: !session_secure_id,
 		fetchPolicy: 'network-only',
 	})
+	const { timelineIndicatorEvents } = useTimelineIndicators(
+		sessionData?.session || undefined,
+	)
 	const { data: sessionPayload, subscribeToMore: subscribeToSessionPayload } =
 		useGetSessionPayloadQuery({
-			fetchPolicy: 'no-cache',
+			fetchPolicy: sessionData?.session?.processed
+				? undefined
+				: 'no-cache',
 			variables: {
 				session_secure_id: session_secure_id!,
-				skip_events: !!sessionData?.session?.direct_download_url,
+				skip_events: sessionData?.session
+					? !!sessionData.session?.direct_download_url
+					: true,
 			},
 			skip: !session_secure_id,
 		})
@@ -319,6 +314,43 @@ export const usePlayer = (): ReplayerContextInterface => {
 		[getChunkIdx, showPlayerMouseTail, state.sessionMetadata.startTime],
 	)
 
+	const loadEventChunk = useCallback(
+		async (_i: number) => {
+			try {
+				const url = await fetchEventChunkURL({
+					secure_id: session_secure_id!,
+					index: _i,
+				})
+				log('PlayerHook.tsx', 'loading chunk', {
+					url,
+				})
+				const iter = indexedDBFetch(url)
+				const chunkResponse = (await iter.next()).value!
+				log('PlayerHook.tsx', 'chunk data', {
+					chunkResponse,
+				})
+				chunkEventsSet(
+					_i,
+					toHighlightEvents(await chunkResponse.json()),
+				)
+				log(
+					'PlayerHook.tsx:ensureChunksLoaded',
+					'set data for chunk',
+					_i,
+				)
+				return _i
+			} catch (e: any) {
+				log(e, 'Error direct downloading session payload', {
+					chunk: `${_i}`,
+				})
+				return -1
+			} finally {
+				loadingChunks.current.delete(_i)
+			}
+		},
+		[chunkEventsSet, fetchEventChunkURL, session_secure_id],
+	)
+
 	// Ensure all chunks between startTs and endTs are loaded.
 	const ensureChunksLoaded = useCallback(
 		async (
@@ -350,7 +382,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			const lastChunkIdx =
 				eventChunksData?.event_chunks[
 					eventChunksData?.event_chunks.length - 1
-				].chunk_index
+				]?.chunk_index
 			if (lastChunkIdx !== undefined)
 				endIdx = Math.min(lastChunkIdx, endIdx)
 
@@ -391,45 +423,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 						}
 					}
 					loadingChunks.current.add(i)
-					promises.push(
-						(async (_i: number) => {
-							try {
-								const url = await fetchEventChunkURL({
-									secure_id: session_secure_id!,
-									index: _i,
-								})
-								log('PlayerHook.tsx', 'loading chunk', {
-									url,
-								})
-								const iter = indexedDBFetch(url)
-								const chunkResponse = (await iter.next()).value!
-								log('PlayerHook.tsx', 'chunk data', {
-									chunkResponse,
-								})
-								chunkEventsSet(
-									_i,
-									toHighlightEvents(
-										await chunkResponse.json(),
-									),
-								)
-								log(
-									'PlayerHook.tsx:ensureChunksLoaded',
-									'set data for chunk',
-									_i,
-								)
-								return _i
-							} catch (e: any) {
-								log(
-									e,
-									'Error direct downloading session payload',
-									{ chunk: `${_i}` },
-								)
-								return -1
-							} finally {
-								loadingChunks.current.delete(_i)
-							}
-						})(i),
-					)
+					promises.push(loadEventChunk(i))
 				}
 			}
 			if (promises.length) {
@@ -563,9 +557,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			eventChunksData?.event_chunks,
 			dispatchAction,
 			chunkEventsRef,
-			fetchEventChunkURL,
-			session_secure_id,
-			chunkEventsSet,
+			loadEventChunk,
 			getChunksToRemove,
 			chunkEventsRemove,
 		],
@@ -735,7 +727,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 	// Initializes the session state and fetches the session data
 	useEffect(() => {
 		resetPlayer()
-	}, [project_id, session_secure_id, resetPlayer])
+		if (session_secure_id) {
+			loadEventChunk(0)
+		}
+	}, [project_id, session_secure_id, resetPlayer, loadEventChunk])
 
 	useEffect(() => {
 		if (!state.replayer) return
@@ -873,13 +868,17 @@ export const usePlayer = (): ReplayerContextInterface => {
 	}, [download, sessionData?.session?.direct_download_url, session_secure_id])
 
 	useEffect(() => {
-		if (!sessionPayload || !sessionIntervals || !timelineIndicatorEvents)
-			return
 		// If events are returned by getSessionPayloadQuery, set the events payload
 		if (!!sessionPayload?.events?.length) {
 			chunkEventsSet(0, toHighlightEvents(sessionPayload?.events))
 			dispatchAction(0, ReplayerState.Paused)
 		}
+		dispatch({
+			type: PlayerActionType.onChunksLoad,
+			showPlayerMouseTail,
+			time: 0,
+			action: ReplayerState.Paused,
+		})
 		dispatch({
 			type: PlayerActionType.onSessionPayloadLoaded,
 			sessionPayload,
@@ -995,7 +994,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 	useEffect(() => {
 		lastTimeRef.current = state.time
 		if (
-			!state.session?.processed ||
 			state.sessionMetadata.startTime === 0 ||
 			state.replayerState !== ReplayerState.Playing ||
 			session_secure_id !== state.session_secure_id
@@ -1044,7 +1042,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 		state.time,
 		ensureChunksLoaded,
 		state.sessionMetadata.startTime,
-		state.session?.processed,
 		state.replayerState,
 		skipInactive,
 		getInactivityEnd,
@@ -1090,8 +1087,12 @@ export const usePlayer = (): ReplayerContextInterface => {
 			state.scale !== 1 &&
 			state.sessionViewability === SessionViewability.VIEWABLE,
 		setIsLiveMode: (isLiveMode) => {
-			const events = getEvents(chunkEventsRef.current)
-			if (isLiveMode) {
+			if (state.isLiveMode) {
+				// TODO: This probably takes a while, add a loading state or break this
+				// into a separate action. Also, not positive this is working as it
+				// doesn't seem to be adding the latest events to the player.
+				const events = getEvents(chunkEventsRef.current)
+
 				dispatch({
 					type: PlayerActionType.addLiveEvents,
 					lastActiveTimestamp: state.lastActiveTimestamp,
@@ -1104,11 +1105,6 @@ export const usePlayer = (): ReplayerContextInterface => {
 			? state.time / state.sessionMetadata.totalTime
 			: null,
 		sessionStartDateTime: state.sessionMetadata.startTime,
-		setViewingUnauthorizedSession: (viewingUnauthorizedSession) =>
-			dispatch({
-				type: PlayerActionType.setViewingUnauthorizedSession,
-				viewingUnauthorizedSession,
-			}),
 		setCurrentEvent: (currentEvent) =>
 			dispatch({
 				type: PlayerActionType.setCurrentEvent,

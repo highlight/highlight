@@ -14,6 +14,7 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
 	generated1 "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/openlyinc/pointy"
@@ -63,9 +64,8 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 			err = r.Redis.SetIsPendingSession(ctx, sessionSecureID, true)
 		}
 		if err == nil {
-			var exceeded bool
-			exceeded, err = r.Redis.IsBillingQuotaExceeded(ctx, projectID)
-			if err == nil && exceeded {
+			exceeded, err := r.Redis.IsBillingQuotaExceeded(ctx, projectID, pricing.ProductTypeSessions)
+			if err == nil && exceeded != nil && *exceeded {
 				err = e.New(string(customModels.PublicGraphErrorBillingQuotaExceeded))
 			}
 		}
@@ -106,7 +106,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionSecu
 }
 
 // PushPayload is the resolver for the pushPayload field.
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID string, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID string, events customModels.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*customModels.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error) {
 	if payloadID == nil {
 		payloadID = pointy.Int(0)
 	}
@@ -118,6 +118,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 			Events:             events,
 			Messages:           messages,
 			Resources:          resources,
+			WebSocketEvents:    webSocketEvents,
 			Errors:             errors,
 			IsBeacon:           isBeacon,
 			HasSessionUnloaded: hasSessionUnloaded,
@@ -149,7 +150,7 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, projectID *st
 			}}, partitionKey)
 		if err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"project_id": projectID, "secure_id": secureID}).
-				Error(e.Wrap(err, "failed to send kafka message for push backend payload"))
+				Error(e.Wrap(err, "failed to send kafka message for push backend payload."))
 		}
 	}
 	return nil, nil
@@ -160,30 +161,9 @@ func (r *mutationResolver) PushMetrics(ctx context.Context, metrics []*customMod
 	return r.SubmitMetricsMessage(ctx, metrics)
 }
 
-// MarkBackendSetup is the resolver for the markBackendSetup field.
+// Deprecated: MarkBackendSetup is the resolver for the markBackendSetup field. This may be used by old SDKs but is a NOOP
 func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *string, sessionSecureID *string, typeArg *string) (interface{}, error) {
-	var partitionKey string
-	if sessionSecureID != nil {
-		partitionKey = *sessionSecureID
-	} else if projectID != nil {
-		partitionKey = uuid.New().String()
-	}
-
-	var setupType string
-	if typeArg != nil {
-		setupType = *typeArg
-	} else {
-		setupType = model.MarkBackendSetupTypeGeneric
-	}
-
-	err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
-		Type: kafkaqueue.MarkBackendSetup,
-		MarkBackendSetup: &kafkaqueue.MarkBackendSetupArgs{
-			ProjectVerboseID: projectID,
-			SessionSecureID:  sessionSecureID,
-			Type:             setupType,
-		}}, partitionKey)
-	return nil, err
+	return nil, nil
 }
 
 // AddSessionFeedback is the resolver for the addSessionFeedback field.

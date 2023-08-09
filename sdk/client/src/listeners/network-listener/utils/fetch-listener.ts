@@ -1,17 +1,18 @@
-import { getBodyThatShouldBeRecorded } from './xhr-listener'
-import { NetworkListenerCallback } from '../network-listener'
 import {
-	RequestResponsePair,
-	Request as HighlightRequest,
-	Response as HighlightResponse,
-} from './models'
-import {
+	HIGHLIGHT_REQUEST_HEADER,
 	createNetworkRequestId,
 	getHighlightRequestHeader,
-	HIGHLIGHT_REQUEST_HEADER,
 	shouldNetworkRequestBeRecorded,
 	shouldNetworkRequestBeTraced,
 } from './utils'
+import {
+	Request as HighlightRequest,
+	Response as HighlightResponse,
+	RequestResponsePair,
+} from './models'
+
+import { NetworkListenerCallback } from '../network-listener'
+import { getBodyThatShouldBeRecorded } from './xhr-listener'
 
 export interface HighlightFetchWindow extends WindowOrWorkerGlobalScope {
 	_originalFetch: WindowOrWorkerGlobalScope['fetch']
@@ -27,6 +28,7 @@ export const FetchListener = (
 	tracingOrigins: boolean | (string | RegExp)[],
 	urlBlocklist: string[],
 	sessionSecureID: string,
+	bodyKeysToRedact?: string[],
 	bodyKeysToRecord?: string[],
 ) => {
 	const originalFetch = window._fetchProxy
@@ -42,10 +44,18 @@ export const FetchListener = (
 			init = init || {}
 			// Pre-existing headers could be one of three different formats; this reads all of them.
 			let headers = new Headers(init.headers)
+
+			if (input instanceof Request) {
+				;[...input.headers].forEach(([key, value]) =>
+					headers.set(key, value),
+				)
+			}
+
 			headers.set(
 				HIGHLIGHT_REQUEST_HEADER,
 				getHighlightRequestHeader(sessionSecureID, requestId),
 			)
+
 			init.headers = Object.fromEntries(headers.entries())
 		}
 
@@ -65,7 +75,9 @@ export const FetchListener = (
 			)
 			request.body = getBodyThatShouldBeRecorded(
 				init?.body,
+				bodyKeysToRedact,
 				bodyKeysToRecord,
+				init?.headers,
 			)
 		}
 
@@ -75,6 +87,7 @@ export const FetchListener = (
 			request,
 			callback,
 			shouldRecordHeaderAndBody,
+			bodyKeysToRedact,
 			bodyKeysToRecord,
 		)
 		return responsePromise
@@ -116,6 +129,7 @@ const logRequest = (
 	requestPayload: HighlightRequest,
 	callback: NetworkListenerCallback,
 	shouldRecordHeaderAndBody: boolean,
+	bodyKeysToRedact?: string[],
 	bodyKeysToRecord?: string[],
 ) => {
 	const onPromiseResolveHandler = async (response: Response | Error) => {
@@ -166,7 +180,9 @@ const logRequest = (
 						text = result
 						text = getBodyThatShouldBeRecorded(
 							text,
+							bodyKeysToRedact,
 							bodyKeysToRecord,
+							response.headers,
 						)
 					} else {
 						text = ''

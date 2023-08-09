@@ -1,9 +1,7 @@
-import { useGetSessionCommentsQuery } from '@graph/hooks'
 import {
-	Badge,
-	IconSolidChatAlt_2,
 	IconSolidFire,
 	IconSolidHashtag,
+	IconSolidSparkles,
 	Tabs,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
@@ -13,22 +11,23 @@ import {
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
 import MetadataPanel from '@pages/Player/MetadataPanel/MetadataPanel'
-import SessionFullCommentList from '@pages/Player/SessionFullCommentList/SessionFullCommentList'
-import { useParams } from '@util/react-router/useParams'
-import { useRef } from 'react'
+
+import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
+import useFeatureFlag, { Feature } from '@/hooks/useFeatureFlag/useFeatureFlag'
+import SessionInsights from '@/pages/Player/RightPlayerPanel/components/SessionInsights/SessionInsights'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 const RightPanelTabs = () => {
 	const { selectedRightPanelTab, setSelectedRightPanelTab } =
 		usePlayerUIContext()
-	const sessionCommentsRef = useRef(null)
-	const { session_secure_id } = useParams<{ session_secure_id: string }>()
-	const { data: sessionCommentsData, loading: isLoadingComments } =
-		useGetSessionCommentsQuery({
-			variables: {
-				session_secure_id: session_secure_id!,
-			},
-			skip: !session_secure_id,
-		})
+	const showSessionInsights = useFeatureFlag(Feature.AiSessionInsights)
+
+	const { currentWorkspace } = useApplicationContext()
+
+	const { data } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
 
 	return (
 		<Tabs<RightPlayerTab>
@@ -47,46 +46,6 @@ const RightPanelTabs = () => {
 						/>
 					),
 				},
-				['Threads']: {
-					page: (
-						<SessionFullCommentList
-							parentRef={sessionCommentsRef}
-							loading={isLoadingComments}
-							sessionCommentsData={sessionCommentsData}
-						/>
-					),
-					icon: (
-						<IconSolidChatAlt_2
-							color={
-								selectedRightPanelTab === 'Threads'
-									? colors.p9
-									: undefined
-							}
-						/>
-					),
-					badge: (
-						<div
-							style={{
-								display: 'inline-flex',
-								marginLeft: 4,
-							}}
-						>
-							<Badge
-								size="small"
-								variant={
-									selectedRightPanelTab === 'Threads'
-										? 'purple'
-										: 'gray'
-								}
-								shape="rounded"
-								label={`${
-									sessionCommentsData?.session_comments
-										?.length ?? 0
-								}`}
-							/>
-						</div>
-					),
-				},
 				['Metadata']: {
 					page: <MetadataPanel />,
 					icon: (
@@ -99,6 +58,24 @@ const RightPanelTabs = () => {
 						/>
 					),
 				},
+				...(showSessionInsights &&
+				data?.workspaceSettings?.ai_application
+					? {
+							['AI Insights']: {
+								page: <SessionInsights />,
+								icon: (
+									<IconSolidSparkles
+										color={
+											selectedRightPanelTab ===
+											'AI Insights'
+												? colors.p9
+												: undefined
+										}
+									/>
+								),
+							},
+					  }
+					: {}),
 			}}
 		/>
 	)

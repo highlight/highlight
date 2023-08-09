@@ -7,13 +7,14 @@ import { useGetProjectsAndWorkspacesQuery } from '@graph/hooks'
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
+import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
 import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { VercelIntegrationSettings } from '@pages/IntegrationsPage/components/VercelIntegration/VercelIntegrationConfig'
 import { Landing } from '@pages/Landing/Landing'
-import { ApplicationContextProvider } from '@routers/ProjectRouter/context/ApplicationContext'
+import { ApplicationContextProvider } from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { H } from 'highlight.run'
@@ -28,6 +29,8 @@ interface Props {
 }
 
 export const VercelSettingsModalWidth = 672
+
+const WorkspaceIntegrations = new Set<string>(['clickup', 'github', 'height'])
 
 const logError = (e: any) => {
 	H.consumeError(e)
@@ -176,6 +179,7 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 	return (
 		<ApplicationContextProvider
 			value={{
+				loading: false,
 				currentProject: undefined,
 				allProjects: data?.projects || [],
 				currentWorkspace: undefined,
@@ -309,6 +313,24 @@ const HeightIntegrationCallback = ({ code, projectId }: Props) => {
 	)
 }
 
+const GitHubIntegrationCallback = ({
+	projectId,
+	next,
+	installationId,
+}: Omit<Props, 'code'> & { installationId?: string; setupAction?: string }) => {
+	const { addIntegration } = useGitHubIntegration()
+	return (
+		<WorkspaceIntegrationCallback
+			name="GitHub"
+			type="github"
+			addIntegration={addIntegration}
+			code={installationId!}
+			projectId={projectId}
+			next={next}
+		/>
+	)
+}
+
 const IntegrationAuthCallbackPage = () => {
 	const { integrationName } = useParams<{
 		integrationName: string
@@ -319,31 +341,85 @@ const IntegrationAuthCallbackPage = () => {
 		setLoadingState(AppLoadingState.EXTENDED_LOADING)
 	}, [setLoadingState])
 
-	const { code, projectId, next, workspaceId } = useMemo(() => {
-		const urlParams = new URLSearchParams(window.location.search)
-		const code = urlParams.get('code')!
-		const state = urlParams.get('state') || ''
-		let projectId: string | undefined = undefined
-		let next: string | undefined = undefined
-		let workspaceId: string | undefined = undefined
-		if (state) {
-			let parsedState: any
-			try {
-				parsedState = JSON.parse(atob(state))
-			} catch (e) {
-				parsedState = JSON.parse(state)
+	const { code, projectId, workspaceId, next, installationId, setupAction } =
+		useMemo(() => {
+			const urlParams = new URLSearchParams(window.location.search)
+			const code = urlParams.get('code')!
+			const state = urlParams.get('state') || ''
+			const installationId = urlParams.get('installation_id') || ''
+			const setupAction = urlParams.get('setup_action') || ''
+			let projectId: string | undefined = undefined
+			let next: string | undefined = undefined
+			let workspaceId: string | undefined = undefined
+			if (state) {
+				let parsedState: any
+				try {
+					parsedState = JSON.parse(atob(state))
+				} catch (e) {
+					parsedState = JSON.parse(state)
+				}
+				projectId = parsedState['project_id']
+				next = parsedState['next']
+				workspaceId = parsedState['workspace_id']
 			}
-			projectId = parsedState['project_id']
-			next = parsedState['next']
-			workspaceId = parsedState['workspace_id']
+			return {
+				code,
+				projectId,
+				next,
+				workspaceId,
+				installationId,
+				setupAction,
+			}
+		}, [])
+
+	const name = integrationName?.toLowerCase() || ''
+
+	if (WorkspaceIntegrations.has(name)) {
+		let cb = null
+		switch (name) {
+			case 'clickup':
+				cb = (
+					<ClickUpIntegrationCallback
+						code={code}
+						projectId={projectId}
+					/>
+				)
+				break
+			case 'height':
+				cb = (
+					<HeightIntegrationCallback
+						code={code}
+						projectId={projectId}
+					/>
+				)
+				break
+			case 'github':
+				cb = (
+					<GitHubIntegrationCallback
+						projectId={projectId}
+						installationId={installationId}
+						setupAction={setupAction}
+					/>
+				)
+				break
 		}
-		return {
-			code,
-			projectId,
-			next,
-			workspaceId,
-		}
-	}, [])
+		return (
+			<ApplicationContextProvider
+				value={{
+					loading: false,
+					currentProject: undefined,
+					allProjects: [],
+					currentWorkspace: workspaceId
+						? { id: workspaceId, name: '' }
+						: undefined,
+					workspaces: [],
+				}}
+			>
+				{' '}
+				{cb}
+			</ApplicationContextProvider>
+		)
+	}
 
 	switch (integrationName?.toLowerCase()) {
 		case 'slack':
@@ -371,42 +447,6 @@ const IntegrationAuthCallbackPage = () => {
 		case 'discord':
 			return (
 				<DiscordIntegrationCallback code={code} projectId={projectId} />
-			)
-		case 'clickup':
-			return (
-				<ApplicationContextProvider
-					value={{
-						currentProject: undefined,
-						allProjects: [],
-						currentWorkspace: workspaceId
-							? { id: workspaceId, name: '' }
-							: undefined,
-						workspaces: [],
-					}}
-				>
-					<ClickUpIntegrationCallback
-						code={code}
-						projectId={projectId}
-					/>
-				</ApplicationContextProvider>
-			)
-		case 'height':
-			return (
-				<ApplicationContextProvider
-					value={{
-						currentProject: undefined,
-						allProjects: [],
-						currentWorkspace: workspaceId
-							? { id: workspaceId, name: '' }
-							: undefined,
-						workspaces: [],
-					}}
-				>
-					<HeightIntegrationCallback
-						code={code}
-						projectId={projectId}
-					/>
-				</ApplicationContextProvider>
 			)
 	}
 

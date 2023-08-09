@@ -1,0 +1,48 @@
+body {
+	overscroll-behavior: none;
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'Inter';
+	font-style: normal;
+	font-weight: normal;
+	src: local('Inter Regular'), local('InterRegular'),
+		url('./font/Inter-Regular.woff2') format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'Inter';
+	font-style: normal;
+	font-weight: 800;
+	src: local('Inter Black'), local('InterBlack'),
+		url('./font/Inter-Black.woff2') format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'Inter';
+	font-style: normal;
+	font-weight: bold;
+	src: local('Inter Bold'), local('InterBold'),
+		url('./font/Inter-Bold.woff2') format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'Inter';
+	font-style: normal;
+	font-weight: 500;
+	src: local('Inter Medium'), local('InterMedium'),
+		url('./font/Inter-Medium.woff2') format('woff2');
+}
+
+@font-face {
+	font-display: swap;
+	font-family: 'Inter';
+	font-style: normal;
+	font-weight: 300;
+	src: local('Inter Light'), local('InterLight'),
+		url('./font/Inter-Light.woff2') format('woff2');
+}

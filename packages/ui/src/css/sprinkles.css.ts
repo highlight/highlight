@@ -1,12 +1,8 @@
-import {
-	defineProperties,
-	createSprinkles,
-	createMapValueFn,
-} from '@vanilla-extract/sprinkles'
+import { defineProperties, createSprinkles } from '@vanilla-extract/sprinkles'
 import { borders } from './borders'
-import { Breakpoint, mediaQueries } from './breakpoints'
 import { colors } from './colors'
 import { vars } from './vars'
+import { mediaQueries } from './breakpoints'
 
 export const textColors = {
 	...colors,
@@ -59,15 +55,17 @@ export const backgroundColors = {
 	secondaryEnabled: vars.theme.interactive.overlay.secondary.enabled,
 	secondaryHover: vars.theme.interactive.overlay.secondary.hover,
 	secondaryPressed: vars.theme.interactive.overlay.secondary.pressed,
+	secondarySelected:
+		vars.theme.interactive.overlay.secondary.selected.default,
+	secondarySelectedHover:
+		vars.theme.interactive.overlay.secondary.selected.hover,
 	primaryDisabled: vars.theme.interactive.overlay.primary.disabled,
 	primaryEnabled: vars.theme.interactive.overlay.primary.enabled,
 	primaryHover: vars.theme.interactive.overlay.primary.hover,
 	primaryPressed: vars.theme.interactive.overlay.primary.pressed,
 } as const
 
-const responsiveProperties = defineProperties({
-	conditions: mediaQueries,
-	defaultCondition: 'mobile',
+const staticProperties = defineProperties({
 	properties: {
 		alignItems: ['stretch', 'flex-start', 'center', 'flex-end'],
 		borderRadius: vars.borderRadius,
@@ -75,6 +73,7 @@ const responsiveProperties = defineProperties({
 		borderTopRightRadius: vars.borderRadius,
 		borderBottomLeftRadius: vars.borderRadius,
 		borderBottomRightRadius: vars.borderRadius,
+		cursor: ['default', 'pointer', 'not-allowed'],
 		display: [
 			'none',
 			'flex',
@@ -85,13 +84,11 @@ const responsiveProperties = defineProperties({
 		],
 		position: ['absolute', 'fixed', 'relative', 'static', 'sticky'],
 		textAlign: ['left', 'center', 'right'],
-		gap: vars.space,
 		flex: {
 			stretch: '1 1 0',
 			fixed: '0 0 auto',
 		},
 		flexBasis: [0, 1],
-		flexDirection: ['row', 'column', 'column-reverse'],
 		flexGrow: [0, 1],
 		flexShrink: [0],
 		flexWrap: ['wrap', 'nowrap'],
@@ -145,11 +142,25 @@ const responsiveProperties = defineProperties({
 			full: '100%',
 			screen: '100vw',
 		},
+		overflow: vars.overflow,
+		overflowX: vars.overflow,
+		overflowY: vars.overflow,
 		overflowWrap: {
 			normal: 'normal',
 			breakWord: 'break-word',
 		},
+		textTransform: [
+			'none',
+			'capitalize',
+			'uppercase',
+			'lowercase',
+			'full-width',
+			'full-size-kana',
+		],
+		userSelect: ['all', 'auto', 'none'],
+		visibility: ['hidden', 'visible'],
 		whiteSpace: ['normal', 'nowrap'],
+		wordBreak: ['normal', 'break-all', 'break-word'],
 	},
 	shorthands: {
 		align: ['alignItems'],
@@ -175,31 +186,12 @@ const responsiveProperties = defineProperties({
 	},
 })
 
-const staticProperties = defineProperties({
-	properties: {
-		visibility: ['hidden', 'visible'],
-		cursor: ['default', 'pointer'],
-		textTransform: [
-			'none',
-			'capitalize',
-			'uppercase',
-			'lowercase',
-			'full-width',
-			'full-size-kana',
-		],
-		userSelect: ['all', 'auto', 'none'],
-		overflow: vars.overflow,
-		overflowX: vars.overflow,
-		overflowY: vars.overflow,
-	},
-})
-
 const colorProperties = defineProperties({
 	conditions: {
-		lightMode: {},
-		darkMode: { '@media': '(prefers-color-scheme: dark)' },
+		default: {},
+		hover: { selector: '&:hover' },
 	},
-	defaultCondition: 'lightMode',
+	defaultCondition: 'default',
 	properties: {
 		backgroundColor: backgroundColors,
 		border: borders,
@@ -225,16 +217,19 @@ const colorProperties = defineProperties({
 	},
 })
 
+const responsiveProperties = defineProperties({
+	conditions: mediaQueries,
+	defaultCondition: 'mobile',
+	properties: {
+		flexDirection: ['row', 'column', 'column-reverse'],
+		gap: vars.space,
+	},
+})
+
 export const sprinkles = createSprinkles(
-	responsiveProperties,
 	colorProperties,
 	staticProperties,
+	responsiveProperties,
 )
 
 export type Sprinkles = Parameters<typeof sprinkles>[0]
-
-export const mapResponsiveValue = createMapValueFn(responsiveProperties)
-
-export type OptionalResponsiveObject<Value> =
-	| Value
-	| Partial<Record<Breakpoint, Value>>

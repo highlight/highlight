@@ -12,17 +12,19 @@ import React, { useEffect, useState } from 'react'
 
 import analytics from '@/util/analytics'
 
-import commonStyles from '../../Common.module.scss'
-import styles from './Buttons.module.scss'
+import commonStyles from '../../Common.module.css'
+import styles from './Buttons.module.css'
 import {
 	CustomError,
 	DefaultError,
 	NestedError,
 	RandomError,
+	WebSocketEvent,
 } from './ButtonsHelper'
 
 export const Buttons = () => {
 	const [hasError, setHasError] = useState(false)
+	const [showWebSocket, setShowWebSocket] = useState(false)
 	const [sendEmail, { loading }] = useSendEmailSignupMutation()
 	if (hasError) {
 		throw new Error('got an error')
@@ -164,6 +166,15 @@ export const Buttons = () => {
 					<button
 						className={commonStyles.submitButton}
 						onClick={() => {
+							setShowWebSocket((p) => !p)
+						}}
+					>
+						Toggle WebSocket Event
+					</button>
+					{showWebSocket && <WebSocketEvent />}
+					<button
+						className={commonStyles.submitButton}
+						onClick={() => {
 							DefaultError()
 						}}
 					>
@@ -200,6 +211,25 @@ export const Buttons = () => {
 						}}
 					>
 						Console Error
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={() => {
+							for (let i = 0; i < 100; i++) {
+								new Promise<void>((resolve, reject) => {
+									if (Math.random() < 0.1) {
+										throw new Error(
+											'third uncaught error in promise',
+										)
+									} else if (Math.random() < 0.2) {
+										reject('what the')
+									}
+									resolve()
+								}).then()
+							}
+						}}
+					>
+						Async Error
 					</button>
 					<button
 						className={commonStyles.submitButton}
@@ -252,20 +282,20 @@ export const Buttons = () => {
 					<button
 						className={commonStyles.submitButton}
 						onClick={() => {
+							H.start({ forceNew: true })
+						}}
+					>
+						H.Start force new session
+					</button>
+					<button
+						className={commonStyles.submitButton}
+						onClick={() => {
 							H.track(
 								'therewasonceahumblebumblebeeflyingthroughtheforestwhensuddenlyadropofwaterfullyencasedhimittookhimasecondtofigureoutthathesinaraindropsuddenlytheraindrophitthegroundasifhewasdivingintoapoolandheflewawaywithnofurtherissues',
 							)
 						}}
 					>
 						Track
-					</button>
-					<button
-						className={commonStyles.submitButton}
-						onClick={() => {
-							H.toggleSessionFeedbackModal()
-						}}
-					>
-						toggleSessionFeedbackModal
 					</button>
 					<SampleBuggyButton />
 					<button
@@ -546,6 +576,22 @@ export const Buttons = () => {
 							</Box>
 						))}
 					</Box>
+				</Box>
+
+				<Box width="full" style={{ height: 200 }}>
+					<div
+						style={{
+							backgroundImage:
+								'url("https://www.highlight.io/images/quickstart/react.svg")',
+							height: '24%',
+						}}
+					></div>
+					<div
+						style={{
+							backgroundImage:
+								'url("https://www.highlight.io/images/quickstart/react.svg")',
+						}}
+					></div>
 				</Box>
 			</div>
 		</div>

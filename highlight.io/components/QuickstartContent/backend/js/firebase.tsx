@@ -20,8 +20,9 @@ export const JSFirebaseContent: QuickStartContent = {
 		{
 			title: `Add the Firebase Highlight integration.`,
 			content: addIntegrationContent('Node Highlight SDK', 'nodejs'),
-			code: {
-				text: `const highlightNode = require('@highlight-run/node')
+			code: [
+				{
+					text: `const highlightNode = require('@highlight-run/node')
 
 // Callable function wrapper
 exports.exampleCallable = functions.https.onCall(
@@ -30,7 +31,7 @@ exports.exampleCallable = functions.https.onCall(
       // ... your handler code here
       return { result: 'useful result!' }
     },
-    { projectID: '<YOUR_PROJECT_ID>' },
+    { projectID: '<YOUR_PROJECT_ID>', serviceName: 'my-firebase-app', serviceVersion: 'git-sha' },
   ),
 )
 
@@ -44,8 +45,9 @@ exports.exampleHttp = functions.https.onRequest(
     { projectID: '<YOUR_PROJECT_ID>' },
   ),
 )`,
-				language: `js`,
-			},
+					language: `js`,
+				},
+			],
 		},
 		verifyError(
 			'Firebase',
@@ -55,7 +57,7 @@ exports.exampleHttp = functions.https.onRequest(
       throw new Error('example error!')
       return { result: 'useful result!' }
     },
-    { projectID: '<YOUR_PROJECT_ID>' },
+    { projectID: '<YOUR_PROJECT_ID>', serviceName: 'my-firebase-app', serviceVersion: 'git-sha' },
   ),
 )`,
 		),

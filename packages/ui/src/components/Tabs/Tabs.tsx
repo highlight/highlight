@@ -2,7 +2,8 @@ import React from 'react'
 import { Box } from '../Box/Box'
 
 import * as styles from './styles.css'
-import { Button, Text } from '../../components'
+import { Button } from '../../components/Button/Button'
+import { Text } from '../../components/Text/Text'
 
 interface Page {
 	page: React.ReactNode
@@ -10,33 +11,52 @@ interface Page {
 	badge?: React.ReactNode
 }
 
-type Props<T extends string> = styles.Variants & {
+type Props<T extends string> = {
 	pages: {
 		[k: string]: Page
 	}
 	tab: T
-	setTab: (tab: T) => void
 	right?: React.ReactNode
+	setTab: (tab: T) => void
 	handleRef?: (ref: HTMLElement | null) => void
+
+	// These props have been added to override defaults that prevent us from
+	// implementing the UX as designed. They are temporary and will be removed
+	// when we rebuild tabs: https://github.com/highlight/highlight/issues/5771
+	noHandle?: boolean
+	containerClass?: string
+	tabsContainerClass?: string
+	pageContainerClass?: string
 }
 
 export const Tabs = function <T extends string>({
 	pages,
 	tab,
-	setTab,
 	right,
+	containerClass,
+	tabsContainerClass,
+	pageContainerClass,
+	noHandle = false,
+	setTab,
 	handleRef,
 }: Props<T>) {
 	const [hoveredTab, setHoveredTab] = React.useState<string>()
 	const currentPage = pages[tab]
 
 	return (
-		<Box display="flex" flexDirection="column" height="full" width="full">
+		<Box
+			display="flex"
+			flexDirection="column"
+			height="full"
+			width="full"
+			cssClass={containerClass}
+		>
 			<Box
 				px="8"
 				display="flex"
 				alignItems="center"
 				justifyContent="space-between"
+				cssClass={tabsContainerClass}
 			>
 				<Box
 					gap="6"
@@ -49,8 +69,7 @@ export const Tabs = function <T extends string>({
 							display="flex"
 							flexDirection="column"
 							justifyContent="center"
-							paddingTop="4"
-							gap="4"
+							gap="2"
 							key={t}
 							cssClass={styles.controlBarButton}
 							onMouseEnter={() => setHoveredTab(t)}
@@ -85,17 +104,19 @@ export const Tabs = function <T extends string>({
 				{right}
 			</Box>
 			{currentPage && (
-				<Box className={styles.pageWrapper}>
+				<Box cssClass={pageContainerClass ?? styles.pageWrapper}>
 					{pages[tab].page}
-					<Box
-						ref={handleRef}
-						cssClass={[
-							styles.handle,
-							{ [styles.grabbable]: !!handleRef },
-						]}
-					>
-						<Box cssClass={styles.handleLine} />
-					</Box>
+					{!noHandle && (
+						<Box
+							ref={handleRef}
+							cssClass={[
+								styles.handle,
+								{ [styles.grabbable]: !!handleRef },
+							]}
+						>
+							<Box cssClass={styles.handleLine} />
+						</Box>
+					)}
 				</Box>
 			)}
 		</Box>

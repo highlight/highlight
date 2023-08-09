@@ -18,7 +18,6 @@ import {
 } from '@pages/Player/ReplayerContext'
 import { getEventRenderDetails } from '@pages/Player/StreamElement/StreamElement'
 import TimelineBar from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
-import TimelineZoom from '@pages/Player/Toolbar/TimelineIndicators/TimelineZoom/TimelineZoom'
 import ZoomArea from '@pages/Player/Toolbar/TimelineIndicators/ZoomArea/ZoomArea'
 import {
 	useToolbarItemsContext,
@@ -97,12 +96,16 @@ const TimelineIndicatorsBarGraph = ({
 	})
 	const { zoomAreaPercent, setZoomAreaPercent } = useToolbarItemsContext()
 
+	const calculateViewportWidth = useCallback(() => {
+		return Math.max(Math.round(width) - 2 * TIMELINE_MARGIN, 0)
+	}, [width])
+
 	const [camera, setCamera] = useState<Camera>({ x: 0, zoom: 1 })
 	const [dragTime, setDragTime] = useState<number>(0)
 	const [hasActiveScrollbar, setHasActiveScrollbar] = useState<boolean>(false)
 	const [isDragging, setIsDragging] = useState<boolean>(false)
 	const [isRefreshingDOM, setIsRefreshingDOM] = useState<boolean>(false)
-	const [viewportWidth, setViewportWidth] = useState(0)
+	const [viewportWidth, setViewportWidth] = useState(calculateViewportWidth())
 
 	const canvasRef = useRef<HTMLDivElement>(null)
 	const sessionMonitorRef = useRef<HTMLDivElement>(null)
@@ -113,17 +116,9 @@ const TimelineIndicatorsBarGraph = ({
 	const timeIndicatorTopRef = useRef<HTMLDivElement>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
 
-	const viewportBbox = viewportRef.current?.getBoundingClientRect()
 	useLayoutEffect(() => {
-		if (!viewportBbox) {
-			return
-		}
-		const viewportWidth = Math.max(
-			Math.round(viewportBbox.width) - 2 * TIMELINE_MARGIN,
-			0,
-		)
-		setViewportWidth(viewportWidth)
-	}, [width, showHistogram, viewportBbox])
+		setViewportWidth(calculateViewportWidth())
+	}, [width, showHistogram, calculateViewportWidth])
 
 	const inactivityPeriods: [number, number][] = useMemo(() => {
 		return sessionIntervals
@@ -349,7 +344,7 @@ const TimelineIndicatorsBarGraph = ({
 	const zoom = useCallback(
 		(clientX: number, dz: number) => {
 			const viewportDiv = viewportRef.current
-			if (!viewportDiv) {
+			if (!viewportDiv || isLiveMode) {
 				return
 			}
 
@@ -381,7 +376,7 @@ const TimelineIndicatorsBarGraph = ({
 				return { x, zoom }
 			})
 		},
-		[maxZoom, viewportWidth],
+		[isLiveMode, maxZoom, viewportWidth],
 	)
 
 	const pan = useCallback(
@@ -396,7 +391,6 @@ const TimelineIndicatorsBarGraph = ({
 		[viewportWidth],
 	)
 
-	const [showZoomButtons, setShowZoomButtons] = useState(false)
 	const [showIndicatorText, setShowIndicatorText] = useState(false)
 
 	useHTMLElementEvent(
@@ -555,7 +549,6 @@ const TimelineIndicatorsBarGraph = ({
 				return
 			}
 
-			setShowZoomButtons(isInsideViewport)
 			if (!isInsideViewport) {
 				setShowIndicatorText(false)
 				return
@@ -987,15 +980,6 @@ const TimelineIndicatorsBarGraph = ({
 		)
 	}
 
-	if (isLiveMode) {
-		return (
-			<div className={style.timelineContainer} style={{ width }}>
-				<div className={style.liveProgressBar} />
-				<ToolbarControlBar />
-			</div>
-		)
-	}
-
 	return (
 		<div className={style.timelineContainer} style={{ width }}>
 			{progressBar}
@@ -1027,19 +1011,21 @@ const TimelineIndicatorsBarGraph = ({
 							transform: `translateX(${timeIndicatorStart}px)`,
 						}}
 					>
-						<div className={style.timeIndicator}>
-							<span
-								className={style.timeIndicatorTop}
-								ref={timeIndicatorTopRef}
-							/>
-							<Box
-								as="span"
-								className={clsx(style.timeIndicatorHair, {
-									[style.hairHidden]: !showHistogram,
-								})}
-								ref={timeIndicatorHairRef}
-							/>
-						</div>
+						{!isLiveMode && (
+							<div className={style.timeIndicator}>
+								<span
+									className={style.timeIndicatorTop}
+									ref={timeIndicatorTopRef}
+								/>
+								<Box
+									as="span"
+									className={clsx(style.timeIndicatorHair, {
+										[style.hairHidden]: !showHistogram,
+									})}
+									ref={timeIndicatorHairRef}
+								/>
+							</div>
+						)}
 					</div>
 				</div>
 				<div className={style.timeAxis} ref={timeAxisRef}>
@@ -1078,6 +1064,7 @@ const TimelineIndicatorsBarGraph = ({
 						{
 							[style.hidden]:
 								!showHistogram || isPlayerFullscreen,
+							[style.noPointerEvents]: isLiveMode,
 						},
 					])}
 					ref={canvasRef}
@@ -1112,6 +1099,7 @@ const TimelineIndicatorsBarGraph = ({
 										bucket={bucket}
 										width={bucketPercentWidth}
 										height={relativeHeight}
+										disabled={isLiveMode}
 										viewportRef={viewportRef}
 									/>
 								)
@@ -1138,17 +1126,6 @@ const TimelineIndicatorsBarGraph = ({
 					minZoomAreaPercent={(100 * zoomAdjustment) / maxZoom}
 				/>
 			</div>
-			<TimelineZoom
-				isHidden={!showZoomButtons || !showHistogram}
-				zoom={(percent: number) =>
-					zoom(
-						(viewportBbox?.left ?? 0) +
-							TIMELINE_MARGIN +
-							viewportWidth / 2,
-						-percent / ZOOM_SCALING_FACTOR,
-					)
-				}
-			/>
 			<Box
 				ref={timeIndicatorTextRef}
 				background="n12"

@@ -4,9 +4,11 @@ import {
 } from '@pages/Player/RightPlayerPanel/constants'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import useLocalStorage from '@rehooks/local-storage'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 
-import { EventsForTimeline } from '.'
+import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
+
+import { EventsForTimeline } from './index'
 
 export const PLAYBACK_SPEED_OPTIONS: readonly number[] = [1, 2, 4, 8]
 
@@ -113,6 +115,15 @@ const usePlayerConfiguration = () => {
 		() => _showDetailedSessionView,
 		[_showDetailedSessionView],
 	)
+
+	// Open the network tab if there is an active network resource on page load.
+	const { activeNetworkResourceId } = useActiveNetworkResourceId()
+	useEffect(() => {
+		if (activeNetworkResourceId) {
+			setSelectedDevToolsTab(Tab.Network)
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	return {
 		showLeftPanel,

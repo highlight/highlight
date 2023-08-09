@@ -1,5 +1,6 @@
 import {
 	IconSolidClickUp,
+	IconSolidGithub,
 	IconSolidHeight,
 	IconSolidLinear,
 } from '@highlight-run/ui'
@@ -20,6 +21,9 @@ import VercelIntegrationConfig from '@pages/IntegrationsPage/components/VercelIn
 import ZapierIntegrationConfig from '@pages/IntegrationsPage/components/ZapierIntegration/ZapierIntegrationConfig'
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
 import React from 'react'
+
+import GitHubIntegrationConfig from './components/GitHubIntegration/GitHubIntegrationConfig'
+import GitHubRepoSelector from './components/GitHubIntegration/GitHubRepoSelector'
 
 export interface Integration {
 	key: string
@@ -161,6 +165,20 @@ export const HEIGHT_INTEGRATION: IssueTrackerIntegration = {
 	Icon: IconSolidHeight,
 }
 
+export const GITHUB_INTEGRATION: IssueTrackerIntegration = {
+	key: 'github',
+	name: 'GitHub',
+	configurationPath: 'github',
+	description: 'Create GitHub issues from your Highlight comments.',
+	configurationPage: (opts) => <GitHubIntegrationConfig {...opts} />,
+	icon: '/images/integrations/github.svg',
+	hasSettings: false,
+	containerLabel: 'repo',
+	issueLabel: 'issue',
+	containerSelection: (opts) => <GitHubRepoSelector {...opts} />,
+	Icon: IconSolidGithub,
+}
+
 const INTEGRATIONS: Integration[] = [
 	SLACK_INTEGRATION,
 	LINEAR_INTEGRATION,
@@ -171,6 +189,7 @@ const INTEGRATIONS: Integration[] = [
 	DISCORD_INTEGRATION,
 	CLICKUP_INTEGRATION,
 	HEIGHT_INTEGRATION,
+	GITHUB_INTEGRATION,
 ]
 
 export default INTEGRATIONS

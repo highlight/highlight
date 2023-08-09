@@ -4,7 +4,7 @@ import { previousInstallSnippet, verifyLogs } from '../shared-snippets'
 import { logrusExample } from './shared-snippets'
 
 export const GoOtherLogContent: QuickStartContent = {
-	title: 'Go (Other)',
+	title: 'Logging from a Go App',
 	subtitle: 'Learn how to set up highlight.io Go log ingestion with logrus.',
 	logoUrl: siteUrl('/images/quickstart/go.svg'),
 	entries: [
@@ -23,7 +23,10 @@ import (
 func main() {
   // setup the highlight SDK
   highlight.SetProjectID("<YOUR_PROJECT_ID>")
-  highlight.Start()
+  highlight.Start(
+    highlight.WithServiceName("my-app"),
+    highlight.WithServiceVersion("git-sha"),
+  )
   defer highlight.Stop()
 
   // setup highlight logrus hook

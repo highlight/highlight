@@ -28,7 +28,9 @@ type FormComponent = React.FC<Props> & {
 	Error: typeof Error
 	Submit: typeof Submit
 	Field: typeof Field
+	Select: typeof Select
 	NamedSection: typeof NamedSection
+	useFormState: typeof useAriaKitFormState
 }
 
 interface LabelProps {
@@ -68,7 +70,7 @@ export const NamedSection = ({
 	tag,
 	optional = false,
 }: React.PropsWithChildren<HasLabel>) => {
-	return (
+	return label ? (
 		<Box display="flex" flexDirection="column" width="full" gap="4">
 			<Box display="flex" flexDirection="row" gap="6">
 				{label && <Label label={label} name={name} tag={tag} />}
@@ -78,6 +80,8 @@ export const NamedSection = ({
 			</Box>
 			{children}
 		</Box>
+	) : (
+		<>{children}</>
 	)
 }
 
@@ -103,7 +107,7 @@ export const Submit = ({ ...props }: ButtonProps) => {
 	return <Button type="submit" {...props} />
 }
 
-type InputProps = Omit<AriaKitFormInputProps, 'size'> &
+export type InputProps = Omit<AriaKitFormInputProps, 'size'> &
 	Variants &
 	HasLabel & {
 		cssClass?: ClassValue | ClassValue[]
@@ -183,11 +187,29 @@ export const Field = ({
 	)
 }
 
+type FormSelectProps = React.DetailedHTMLProps<
+	React.SelectHTMLAttributes<HTMLSelectElement>,
+	HTMLSelectElement
+> &
+	React.PropsWithChildren<HasLabel>
+
+export const Select = ({ children, label, ...props }: FormSelectProps) => {
+	return (
+		<NamedSection label={label} name={props.name}>
+			<select className={styles.select} {...props}>
+				{children}
+			</select>
+		</NamedSection>
+	)
+}
+
 Form.Input = Input
 Form.Error = Error
 Form.Submit = Submit
 Form.Field = Field
+Form.Select = Select
 Form.NamedSection = NamedSection
 
 export declare type FormState<T> = AriaKitFormState<T>
 export const useFormState = useAriaKitFormState
+Form.useFormState = useFormState

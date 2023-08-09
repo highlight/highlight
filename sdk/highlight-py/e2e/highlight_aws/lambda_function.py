@@ -8,7 +8,7 @@ from highlight_io.integrations.aws import observe_handler
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-H = highlight_io.H("1", record_logs=True)
+H = highlight_io.H("1", instrument_logging=True)
 
 
 @observe_handler

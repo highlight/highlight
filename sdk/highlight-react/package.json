@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/react",
-	"version": "2.0.1",
+	"version": "3.2.1",
 	"description": "The official Highlight SDK for React",
 	"license": "MIT",
 	"peerDependencies": {
@@ -23,7 +23,7 @@
 		"css-tree": "^2.3.1",
 		"esbuild-css-modules-plugin": "^2.7.1",
 		"tsup": "^6.6.3",
-		"typescript": "^4.9.5"
+		"typescript": "^5.0.4"
 	},
 	"files": [
 		"dist",

@@ -5,7 +5,7 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { Exact, IntegrationType } from '@graph/schemas'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useCallback } from 'react'
 
 type SettingsLoadingState = {
@@ -27,6 +27,7 @@ export interface IntegrationActions<SettingsQueryOutput, UpdateMutationInput> {
 	updateIntegration: (settings: UpdateMutationInput) => Promise<unknown>
 	removeIntegration: () => Promise<unknown>
 	settings: Settings<SettingsQueryOutput>
+	data?: SettingsQueryOutput
 }
 
 export const useIntegration = <SettingsQueryOutput, UpdateMutationInput>(
@@ -120,5 +121,6 @@ export const useIntegration = <SettingsQueryOutput, UpdateMutationInput>(
 		removeIntegration,
 		updateIntegration,
 		settings,
+		data,
 	}
 }

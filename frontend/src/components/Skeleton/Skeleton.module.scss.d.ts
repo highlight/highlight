@@ -1,1 +1,0 @@
-export const skeleton: string

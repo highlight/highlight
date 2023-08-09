@@ -1,16 +1,14 @@
 import React from 'react'
-import {
-	Box,
-	IconSolidCheveronLeft,
-	IconSolidCheveronRight,
-} from '@highlight-run/ui'
+import { Box } from '../../Box/Box'
+import { IconSolidCheveronLeft } from '../../icons/IconSolidCheveronLeft'
+import { IconSolidCheveronRight } from '../../icons/IconSolidCheveronRight'
 import { Calendar } from './Calendar'
 import {
 	useContextCalendars,
 	useContextMonthsPropGetters,
 } from '@rehookify/datepicker'
 
-const DatePicker = () => {
+const DatePicker = ({ hasSelectedRange }: { hasSelectedRange?: boolean }) => {
 	const { calendars } = useContextCalendars()
 	const { previousMonthButton, nextMonthButton } =
 		useContextMonthsPropGetters()
@@ -20,6 +18,7 @@ const DatePicker = () => {
 
 	return (
 		<Calendar
+			hasSelectedRange={hasSelectedRange}
 			prevButton={
 				previousMonthButtonProps.disabled ? (
 					<div />

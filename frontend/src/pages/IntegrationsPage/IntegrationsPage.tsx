@@ -5,21 +5,22 @@ import { useClearbitIntegration } from '@pages/IntegrationsPage/components/Clear
 import { useClickUpIntegration } from '@pages/IntegrationsPage/components/ClickUpIntegration/utils'
 import { useDiscordIntegration } from '@pages/IntegrationsPage/components/DiscordIntegration/utils'
 import { useFrontIntegration } from '@pages/IntegrationsPage/components/FrontIntegration/utils'
+import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useHeightIntegration } from '@pages/IntegrationsPage/components/HeightIntegration/utils'
 import Integration from '@pages/IntegrationsPage/components/Integration'
 import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearIntegration/utils'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
 import { useZapierIntegration } from '@pages/IntegrationsPage/components/ZapierIntegration/utils'
 import INTEGRATIONS from '@pages/IntegrationsPage/Integrations'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import React, { useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { StringParam, useQueryParam } from 'use-query-params'
 
-import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss'
-import styles from './IntegrationsPage.module.scss'
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.css'
+import styles from './IntegrationsPage.module.css'
 
 const IntegrationsPage = () => {
 	const { isSlackConnectedToWorkspace, loading: loadingSlack } = useSlackBot()
@@ -53,6 +54,13 @@ const IntegrationsPage = () => {
 
 	const {
 		settings: {
+			isIntegrated: isGitHubIntegratedWithProject,
+			loading: loadingGitHub,
+		},
+	} = useGitHubIntegration()
+
+	const {
+		settings: {
 			isIntegrated: isClickUpIntegratedWithProject,
 			loading: loadingClickUp,
 		},
@@ -74,7 +82,8 @@ const IntegrationsPage = () => {
 		loadingVercel ||
 		loadingDiscord ||
 		loadingClickUp ||
-		loadingHeight
+		loadingHeight ||
+		loadingGitHub
 
 	const integrations = useMemo(() => {
 		return INTEGRATIONS.filter((integration) => {
@@ -110,6 +119,7 @@ const IntegrationsPage = () => {
 				(inter.key === 'front' && isFrontIntegratedWithProject) ||
 				(inter.key === 'vercel' && isVercelIntegratedWithProject) ||
 				(inter.key === 'discord' && isDiscordIntegratedWithProject) ||
+				(inter.key === 'github' && isGitHubIntegratedWithProject) ||
 				(inter.key === 'clickup' && isClickUpIntegratedWithProject) ||
 				(inter.key === 'height' && isHeightIntegratedWithProject),
 		}))
@@ -123,6 +133,7 @@ const IntegrationsPage = () => {
 		isFrontIntegratedWithProject,
 		isVercelIntegratedWithProject,
 		isDiscordIntegratedWithProject,
+		isGitHubIntegratedWithProject,
 		isClickUpIntegratedWithProject,
 		isHeightIntegratedWithProject,
 	])

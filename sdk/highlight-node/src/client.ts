@@ -1,33 +1,24 @@
 import {
-	getSdk,
-	InputMaybe,
-	MetricInput,
-	PushMetricsMutationVariables,
-	Sdk,
-} from './graph/generated/operations'
-import { GraphQLClient } from 'graphql-request'
-import { NodeOptions } from './types.js'
-import log from './log'
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { trace, Tracer } from '@opentelemetry/api'
-import { hookConsole } from './hooks'
-import {
 	BatchSpanProcessor,
 	SpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
+import { Attributes, Tracer, trace } from '@opentelemetry/api'
+
+import { NodeOptions } from './types.js'
 import { NodeSDK } from '@opentelemetry/sdk-node'
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
+import { hookConsole } from './hooks'
+import log from './log'
+import { clearInterval } from 'timers'
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+import { Resource } from '@opentelemetry/resources'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
 export class Highlight {
 	readonly FLUSH_TIMEOUT = 10
-	readonly BACKEND_SETUP_TIMEOUT = 15 * 60 * 1000
-	_graphqlSdk: Sdk
-	_backendUrl: string
 	_intervalFunction: ReturnType<typeof setInterval>
-	metrics: Array<InputMaybe<MetricInput>> = []
-	lastBackendSetupEvent: number = 0
 	_projectID: string
 	_debug: boolean
 	private otel: NodeSDK
@@ -37,16 +28,11 @@ export class Highlight {
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
 		this._projectID = options.projectID
-		this._backendUrl = options.backendUrl || 'https://pub.highlight.run'
 		if (!options.disableConsoleRecording) {
 			hookConsole(options.consoleMethodsToRecord, (c) => {
 				this.log(c.date, c.message, c.level, c.stack)
 			})
 		}
-		const client = new GraphQLClient(this._backendUrl, {
-			headers: {},
-		})
-		this._graphqlSdk = getSdk(client)
 
 		this.tracer = trace.getTracer('highlight-node')
 
@@ -55,9 +41,30 @@ export class Highlight {
 		})
 
 		this.processor = new BatchSpanProcessor(exporter, {})
+
+		const attributes: Attributes = {}
+		attributes['highlight.project_id'] = this._projectID
+
+		if (options.serviceName) {
+			attributes[SemanticResourceAttributes.SERVICE_NAME] =
+				options.serviceName
+		}
+
+		if (options.serviceVersion) {
+			attributes[SemanticResourceAttributes.SERVICE_VERSION] =
+				options.serviceVersion
+		}
+
 		this.otel = new NodeSDK({
 			autoDetectResources: true,
-			defaultAttributes: { 'highlight.project_id': this._projectID },
+			resource: {
+				attributes,
+				merge: (resource) =>
+					new Resource({
+						...(resource?.attributes ?? {}),
+						...attributes,
+					}),
+			},
 			spanProcessor: this.processor,
 			traceExporter: exporter,
 			instrumentations: [getNodeAutoInstrumentations()],
@@ -69,17 +76,27 @@ export class Highlight {
 			this.FLUSH_TIMEOUT * 1000,
 		)
 
-		this._graphqlSdk
-			.MarkBackendSetup({
-				project_id: this._projectID,
+		for (const event of [
+			'beforeExit',
+			'exit',
+			'SIGABRT',
+			'SIGTERM',
+			'SIGINT',
+		]) {
+			process.on(event, async () => {
+				await this.flush()
 			})
-			.then(() => {
-				this.lastBackendSetupEvent = Date.now()
-			})
-			.catch((e) => {
-				console.warn('highlight-node error: ', e)
-			})
+		}
+
 		this._log(`Initialized SDK for project ${this._projectID}`)
+	}
+
+	async stop() {
+		await this.flush()
+		await this.otel.shutdown()
+		if (this._intervalFunction) {
+			clearInterval(this._intervalFunction)
+		}
 	}
 
 	_log(...data: any[]) {
@@ -95,15 +112,27 @@ export class Highlight {
 		requestId?: string,
 		tags?: { name: string; value: string }[],
 	) {
-		this.metrics.push({
-			session_secure_id: secureSessionId,
-			group: requestId,
-			name: name,
-			value: value,
-			category: 'BACKEND',
-			timestamp: new Date().toISOString(),
-			tags: tags,
+		if (!this.tracer) return
+		const span = this.tracer.startSpan('highlight-ctx')
+		span.addEvent('metric', {
+			['highlight.project_id']: this._projectID,
+			['metric.name']: name,
+			['metric.value']: value,
+			...(secureSessionId
+				? {
+						['highlight.session_id']: secureSessionId,
+				  }
+				: {}),
+			...(requestId
+				? {
+						['highlight.trace_id']: requestId,
+				  }
+				: {}),
 		})
+		for (const t of tags || []) {
+			span.setAttribute(t.name, t.value)
+		}
+		span.end()
 	}
 
 	log(
@@ -146,12 +175,7 @@ export class Highlight {
 		secureSessionId: string | undefined,
 		requestId: string | undefined,
 	) {
-		let span = trace.getActiveSpan()
-		let spanCreated = false
-		if (!span) {
-			span = this.tracer.startSpan('highlight-ctx')
-			spanCreated = true
-		}
+		const span = this.tracer.startSpan('highlight-ctx')
 		span.recordException(error)
 		span.setAttributes({ ['highlight.project_id']: this._projectID })
 		if (secureSessionId) {
@@ -160,48 +184,13 @@ export class Highlight {
 		if (requestId) {
 			span.setAttributes({ ['highlight.trace_id']: requestId })
 		}
-		if (spanCreated) {
-			this._log('created error span', span)
-			span.end()
-		} else {
-			this._log('updated current span with error', span)
-		}
-	}
-
-	consumeCustomEvent(secureSessionId?: string) {
-		const sendBackendSetup =
-			Date.now() - this.lastBackendSetupEvent > this.BACKEND_SETUP_TIMEOUT
-		if (sendBackendSetup) {
-			this._graphqlSdk
-				.MarkBackendSetup({
-					project_id: this._projectID,
-					session_secure_id: secureSessionId,
-				})
-				.then(() => {
-					this.lastBackendSetupEvent = Date.now()
-				})
-				.catch((e) => {
-					console.warn('highlight-node error: ', e)
-				})
-		}
-	}
-
-	async flushMetrics() {
-		if (this.metrics.length === 0) {
-			return
-		}
-		const variables: PushMetricsMutationVariables = {
-			metrics: this.metrics,
-		}
-		this.metrics = []
-		try {
-			await this._graphqlSdk.PushMetrics(variables)
-		} catch (e) {
-			console.warn('highlight-node pushMetrics error: ', e)
-		}
+		this._log('created error span', span)
+		span.end()
 	}
 
 	async flush() {
-		await Promise.all([this.flushMetrics(), this.processor.forceFlush()])
+		await this.processor
+			.forceFlush()
+			.catch((e) => console.warn('highlight-node failed to flush: ', e))
 	}
 }

@@ -1,6 +1,8 @@
-import clsx, { ClassValue } from 'clsx'
-import React from 'react'
 import { Sprinkles, sprinkles } from '../../css/sprinkles.css'
+import clsx, { ClassValue } from 'clsx'
+
+import React from 'react'
+import { hiddenScroll } from './Box.css'
 
 export type BoxProps = Sprinkles &
 	React.PropsWithChildren &
@@ -9,6 +11,7 @@ export type BoxProps = Sprinkles &
 		// Can't use className because it does some conversion on its values and
 		// breaks values like arrays, which would otherwise be valid for clsx.
 		cssClass?: ClassValue | ClassValue[]
+		hiddenScroll?: boolean
 	}
 
 export type PaddingProps = {
@@ -37,7 +40,11 @@ export const Box = React.forwardRef<unknown, BoxProps>(
 		}
 
 		return React.createElement(as, {
-			className: clsx([sprinkles(sprinklesProps), userClasses]),
+			className: clsx([
+				sprinkles(sprinklesProps),
+				userClasses,
+				props.hiddenScroll ? hiddenScroll : null,
+			]),
 			ref,
 			...nativeProps,
 		})

@@ -1,5 +1,5 @@
 import {
-	DEMO_WORKSPACE_APPLICATION_ID,
+	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import {
@@ -13,10 +13,8 @@ import {
 	RESET_PAGE_MS,
 	STARTING_PAGE,
 } from '@components/Pagination/Pagination'
-import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import SearchPagination from '@components/SearchPagination/SearchPagination'
 import { SearchResultsHistogram } from '@components/SearchResultsHistogram/SearchResultsHistogram'
-import LimitedSessionCard from '@components/Upsell/LimitedSessionsCard/LimitedSessionsCard'
 import {
 	useGetBillingDetailsForProjectQuery,
 	useGetSessionsHistogramQuery,
@@ -27,14 +25,11 @@ import {
 	DateHistogramBucketSize,
 	Maybe,
 	PlanType,
+	ProductType,
 	Session,
 } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
 import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/SessionFeedCard'
-import {
-	QueryBuilderState,
-	updateQueriedTimeRange,
-} from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/QueryBuilder/QueryBuilder'
 import SessionQueryBuilder, {
 	TIME_RANGE_FIELD,
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
@@ -43,8 +38,13 @@ import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import clsx from 'clsx'
-import React, { useCallback, useEffect, useMemo, useRef } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 
+import {
+	QueryBuilderState,
+	updateQueriedTimeRange,
+} from '@/components/QueryBuilder/QueryBuilder'
+import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import usePlayerConfiguration from '../../Player/PlayerHook/utils/usePlayerConfiguration'
@@ -57,94 +57,83 @@ import * as style from './SessionFeedV3.css'
 import { SessionFeedConfigurationContextProvider } from './SessionQueryBuilder/context/SessionFeedConfigurationContext'
 import { useSessionFeedConfiguration } from './SessionQueryBuilder/hooks/useSessionFeedConfiguration'
 
-interface SessionsHistogramProps {
-	projectHasManySessions: boolean
-}
+export const SessionsHistogram: React.FC = React.memo(() => {
+	const { project_id } = useParams<{
+		project_id: string
+	}>()
+	const { setSearchQuery, backendSearchQuery } = useSearchContext()
 
-export const SessionsHistogram: React.FC<SessionsHistogramProps> = React.memo(
-	({ projectHasManySessions }: SessionsHistogramProps) => {
-		const { project_id } = useParams<{
-			project_id: string
-		}>()
-		const { searchParams, setSearchParams, backendSearchQuery } =
-			useSearchContext()
-
-		const { loading, data } = useGetSessionsHistogramQuery({
-			variables: {
-				project_id: project_id!,
-				query: backendSearchQuery?.searchQuery as string,
-				histogram_options: {
-					bucket_size:
-						backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
-					time_zone:
-						Intl.DateTimeFormat().resolvedOptions().timeZone ??
-						'UTC',
-					bounds: {
-						start_date: roundFeedDate(
-							backendSearchQuery?.startDate.toISOString() ?? null,
-						).format(),
-						end_date: roundFeedDate(
-							backendSearchQuery?.endDate.toISOString() ?? null,
-						).format(),
-					},
+	const { loading, data } = useGetSessionsHistogramQuery({
+		variables: {
+			project_id: project_id!,
+			query: backendSearchQuery?.searchQuery as string,
+			histogram_options: {
+				bucket_size:
+					backendSearchQuery?.histogramBucketSize as DateHistogramBucketSize,
+				time_zone:
+					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
+				bounds: {
+					start_date: roundFeedDate(
+						backendSearchQuery?.startDate.toISOString() ?? null,
+					).format(),
+					end_date: roundFeedDate(
+						backendSearchQuery?.endDate.toISOString() ?? null,
+					).format(),
 				},
 			},
-			skip: !backendSearchQuery || !project_id,
-			fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
-		})
+		},
+		skip: !backendSearchQuery || !project_id,
+	})
 
-		const histogram: {
-			seriesList: Series[]
-			bucketTimes: number[]
-		} = {
-			seriesList: [],
-			bucketTimes: [],
-		}
-		if (data?.sessions_histogram) {
-			histogram.bucketTimes = data?.sessions_histogram.bucket_times.map(
-				(startTime) => new Date(startTime).valueOf(),
+	const histogram: {
+		seriesList: Series[]
+		bucketTimes: number[]
+	} = {
+		seriesList: [],
+		bucketTimes: [],
+	}
+	if (data?.sessions_histogram) {
+		histogram.bucketTimes = data?.sessions_histogram.bucket_times.map(
+			(startTime) => new Date(startTime).valueOf(),
+		)
+		histogram.seriesList = [
+			{
+				label: 'sessions',
+				color: 'n11',
+				counts: data?.sessions_histogram.sessions_without_errors,
+			},
+			{
+				label: 'w/errors',
+				color: 'p11',
+				counts: data?.sessions_histogram.sessions_with_errors,
+			},
+		]
+	}
+
+	const updateTimeRange = useCallback(
+		(newStartTime: Date, newEndTime: Date) => {
+			setSearchQuery((query) =>
+				updateQueriedTimeRange(
+					query || '',
+					TIME_RANGE_FIELD,
+					serializeAbsoluteTimeRange(newStartTime, newEndTime),
+				),
 			)
-			histogram.seriesList = [
-				{
-					label: 'sessions',
-					color: 'n11',
-					counts: data?.sessions_histogram.sessions_without_errors,
-				},
-				{
-					label: 'w/errors',
-					color: 'p11',
-					counts: data?.sessions_histogram.sessions_with_errors,
-				},
-			]
-		}
+		},
+		[setSearchQuery],
+	)
 
-		const updateTimeRange = useCallback(
-			(newStartTime: Date, newEndTime: Date) => {
-				const newSearchParams = {
-					...searchParams,
-					query: updateQueriedTimeRange(
-						searchParams.query || '',
-						TIME_RANGE_FIELD,
-						serializeAbsoluteTimeRange(newStartTime, newEndTime),
-					),
-				}
-				setSearchParams(newSearchParams)
-			},
-			[searchParams, setSearchParams],
-		)
-
-		return (
-			<SearchResultsHistogram
-				seriesList={histogram.seriesList}
-				bucketTimes={histogram.bucketTimes}
-				bucketSize={backendSearchQuery?.histogramBucketSize}
-				loading={loading}
-				updateTimeRange={updateTimeRange}
-				barGap={2.4}
-			/>
-		)
-	},
-)
+	return (
+		<SearchResultsHistogram
+			seriesList={histogram.seriesList}
+			bucketTimes={histogram.bucketTimes}
+			bucketSize={backendSearchQuery?.histogramBucketSize}
+			loading={loading}
+			updateTimeRange={updateTimeRange}
+			barGap={2.4}
+		/>
+	)
+})
 
 export const SessionFeedV3 = React.memo(() => {
 	const { setSessionResults, sessionResults } = useReplayerContext()
@@ -158,9 +147,8 @@ export const SessionFeedV3 = React.memo(() => {
 
 	const totalPages = useRef<number>(0)
 	const {
-		showStarredSessions,
-		searchParams,
-		setSearchParams,
+		searchQuery,
+		setSearchQuery,
 		backendSearchQuery,
 		page,
 		setPage,
@@ -173,20 +161,12 @@ export const SessionFeedV3 = React.memo(() => {
 	const { showLeftPanel } = usePlayerConfiguration()
 	const { showBanner } = useGlobalContext()
 	const searchParamsChanged = useRef<Date>()
-	const projectHasManySessions = searchResultsCount > DEFAULT_PAGE_SIZE
-	const showHistogram = searchResultsLoading || searchResultsCount > 0
+	const showHistogram = searchResultsCount !== 0
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: project_id! },
-		skip: !project_id,
+		skip: !project_id || project_id === DEMO_PROJECT_ID,
 	})
-
-	// Used to determine if we need to show the loading skeleton.
-	// The loading skeleton should only be shown on the first load and when searchParams changes.
-	// It should not show when loading more sessions via infinite scroll.
-	useEffect(() => {
-		setSearchResultsLoading(true)
-	}, [backendSearchQuery, page, setSearchResultsLoading])
 
 	const addSessions = (response: GetSessionsOpenSearchQuery) => {
 		if (response?.sessions_opensearch) {
@@ -214,9 +194,19 @@ export const SessionFeedV3 = React.memo(() => {
 			sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
 		},
 		onCompleted: addSessions,
-		skip: !backendSearchQuery || !project_id,
-		fetchPolicy: projectHasManySessions ? 'cache-first' : 'no-cache',
+		skip: !backendSearchQuery?.searchQuery || !project_id,
 	})
+
+	// Used to determine if we need to show the loading skeleton.
+	// The loading skeleton should only be shown on the first load and when searchParams changes.
+	// It should not show when loading more sessions via infinite scroll.
+	useEffect(() => {
+		setSearchResultsLoading(loading)
+	}, [loading, setSearchResultsLoading])
+
+	useEffect(() => {
+		setSearchResultsCount(undefined)
+	}, [backendSearchQuery?.searchQuery, setSearchResultsCount])
 
 	useEffect(() => {
 		// we just loaded the page for the first time
@@ -229,31 +219,24 @@ export const SessionFeedV3 = React.memo(() => {
 			setPage(STARTING_PAGE)
 		}
 		searchParamsChanged.current = new Date()
-	}, [searchParams, setPage])
+	}, [searchQuery, setPage])
 
 	const enableLiveSessions = useCallback(() => {
-		if (!searchParams.query) {
-			setSearchParams({
-				...searchParams,
-			})
-		} else {
+		if (searchQuery) {
 			// Replace any 'custom_processed' values with ['true', 'false']
 			const processedRule = ['custom_processed', 'is', 'true', 'false']
-			const currentState = JSON.parse(
-				searchParams.query,
-			) as QueryBuilderState
+			const currentState = JSON.parse(searchQuery) as QueryBuilderState
 			const newRules = currentState.rules.map((rule) =>
 				rule[0] === processedRule[0] ? processedRule : rule,
 			)
-			setSearchParams({
-				...searchParams,
-				query: JSON.stringify({
+			setSearchQuery(
+				JSON.stringify({
 					isAnd: currentState.isAnd,
 					rules: newRules,
 				}),
-			})
+			)
 		}
-	}, [searchParams, setSearchParams])
+	}, [searchQuery, setSearchQuery])
 
 	useEffect(() => {
 		// We're showing live sessions for new users.
@@ -262,9 +245,9 @@ export const SessionFeedV3 = React.memo(() => {
 		if (
 			billingDetails?.billingDetailsForProject &&
 			integrated &&
-			project_id !== DEMO_WORKSPACE_APPLICATION_ID &&
+			project_id !== DEMO_PROJECT_ID &&
 			project_id !== DEMO_WORKSPACE_PROXY_APPLICATION_ID &&
-			!showLiveSessions(searchParams)
+			!showLiveSessions(searchQuery)
 		) {
 			if (
 				billingDetails.billingDetailsForProject.plan.type ===
@@ -279,19 +262,8 @@ export const SessionFeedV3 = React.memo(() => {
 		enableLiveSessions,
 		integrated,
 		project_id,
-		searchParams,
-		setSearchParams,
+		searchQuery,
 	])
-
-	const filteredSessions = useMemo(() => {
-		if (loading) {
-			return sessionResults.sessions
-		}
-		if (searchParams.hide_viewed) {
-			return sessionResults.sessions.filter((session) => !session?.viewed)
-		}
-		return sessionResults.sessions
-	}, [loading, searchParams.hide_viewed, sessionResults.sessions])
 
 	return (
 		<SessionFeedConfigurationContextProvider
@@ -312,9 +284,7 @@ export const SessionFeedV3 = React.memo(() => {
 				<SessionQueryBuilder />
 				{showHistogram && (
 					<Box borderBottom="secondary" paddingBottom="8" px="8">
-						<SessionsHistogram
-							projectHasManySessions={projectHasManySessions}
-						/>
+						<SessionsHistogram />
 					</Box>
 				)}
 				<Box
@@ -328,27 +298,14 @@ export const SessionFeedV3 = React.memo(() => {
 						<LoadingBox />
 					) : (
 						<>
+							<OverageCard productType={ProductType.Sessions} />
 							{searchResultsCount === 0 ? (
-								showStarredSessions ? (
-									<SearchEmptyState
-										item="sessions"
-										customTitle="Your project doesn't have starred sessions."
-										customDescription={
-											'Starring a session is like bookmarking a website. ' +
-											'It gives you a way to tag a session that you want to look at again. ' +
-											'You can star a session by clicking the star icon next to the user details ' +
-											"in the session's right panel."
-										}
-									/>
-								) : (
-									<EmptySearchResults
-										kind={SearchResultsKind.Sessions}
-									/>
-								)
+								<EmptySearchResults
+									kind={SearchResultsKind.Sessions}
+								/>
 							) : (
 								<>
-									<LimitedSessionCard />
-									{filteredSessions?.map(
+									{sessionResults.sessions?.map(
 										(s: Maybe<Session>, ind: number) =>
 											s && (
 												<SessionFeedCard
@@ -381,7 +338,7 @@ export const SessionFeedV3 = React.memo(() => {
 				<SearchPagination
 					page={page}
 					setPage={setPage}
-					totalCount={searchResultsCount}
+					totalCount={searchResultsCount ?? 0}
 					pageSize={DEFAULT_PAGE_SIZE}
 				/>
 			</Box>

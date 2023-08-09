@@ -12,6 +12,9 @@ import { message } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { ABOUT_YOU_ROUTE } from '@/routers/AppRouter/AppRouter'
+import { showIntercomBubble } from '@/util/window'
+
 import * as styles from './AuthRouter.css'
 
 export const VerifyEmail: React.FC = () => {
@@ -28,7 +31,7 @@ export const VerifyEmail: React.FC = () => {
 	useEffect(() => {
 		if (isEmailVerified) {
 			stopPolling()
-			navigate('/about_you')
+			navigate(ABOUT_YOU_ROUTE)
 		} else {
 			startPolling(1000)
 		}
@@ -39,13 +42,9 @@ export const VerifyEmail: React.FC = () => {
 
 		// Show the Intercom message after 5 seconds in case the user needs help.
 		setTimeout(() => {
-			window.Intercom('update', {
-				hide_default_launcher: false,
-			})
+			showIntercomBubble()
 		}, 5000)
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	}, [setLoadingState])
 
 	return (
 		<Landing>

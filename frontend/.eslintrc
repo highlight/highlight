@@ -7,7 +7,12 @@
 		"plugin:react-hooks/recommended",
 		"plugin:tailwindcss/recommended"
 	],
-	"plugins": ["simple-import-sort", "unused-imports", "tailwindcss"],
+	"plugins": [
+		"simple-import-sort",
+		"unused-imports",
+		"import",
+		"tailwindcss"
+	],
 	"env": {
 		"commonjs": true,
 		"es6": true,
@@ -25,7 +30,7 @@
 			"jsx": true
 		}
 	},
-	"ignorePatterns": "src/graph/generated/*",
+	"ignorePatterns": ["src/graph/generated/*", "src/__generated/*"],
 	"rules": {
 		"@typescript-eslint/explicit-module-boundary-types": "off",
 		"react/no-unescaped-entities": "off",
@@ -43,6 +48,7 @@
 				"varsIgnorePattern": "^_"
 			}
 		],
+		"import/no-extraneous-dependencies": "error",
 		"unused-imports/no-unused-imports-ts": "error",
 		"@typescript-eslint/no-non-null-assertion": "off",
 		"tailwindcss/no-custom-classname": "off",
@@ -125,6 +131,16 @@
 						"name": "@highlight-run/ui",
 						"importNames": ["Button"],
 						"message": "Please use Button from @components/Button instead."
+					}
+				],
+				"patterns": [
+					{
+						"group": ["**/*/$"],
+						"message": "Import without the trailing / instead."
+					},
+					{
+						"group": ["**/packages/ui/src"],
+						"message": "Import from @highlight-run/ui instead."
 					}
 				]
 			}

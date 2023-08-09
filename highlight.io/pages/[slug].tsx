@@ -1,6 +1,6 @@
 import classNames from 'classnames'
 import { GetStaticPaths, GetStaticProps } from 'next'
-import Image from 'next/image'
+import Image, { StaticImageData } from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { MdKeyboardReturn } from 'react-icons/md'
@@ -37,6 +37,7 @@ import {
 	AnimateFeatureHeroRight,
 	AnimateFeatureHeroXL,
 } from '../components/Animate'
+import { CalendlyPopover } from '../components/Home/CalendlyPopover'
 
 const IMAGE_MAP = {
 	[errorMonitoringHeroKey]: errorMonitoringHero,
@@ -45,7 +46,7 @@ const IMAGE_MAP = {
 	[loggingscreenshotKey]: loggingscreenshot,
 	[monitoringscreenshotKey]: monitoringscreenshot,
 	[sessionscreenshotKey]: sessionscreenshot,
-} as const
+} as Record<string, StaticImageData>
 
 const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 	const [imageLoaded, setImageLoaded] = useState(false)
@@ -80,7 +81,7 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 			/>
 			<Image src={loggingHero} alt="Hero Background" className="hidden" />
 			<Navbar />
-			<div className="hidden md:flex ml-10 my-2">
+			<div className="hidden my-2 ml-10 md:flex">
 				<Link href="/">
 					<Typography type="copy3" emphasis={true}>
 						<div className="flex items-center justify-start gap-2">
@@ -92,17 +93,16 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 			</div>
 			<main>
 				<div className="flex flex-col xl:flex-row justify-between w-screen px-8 mx-auto lg:px-4 lg:py-28 max-w-[1200px] 2xl:max-w-[1400px]">
-					<div className="lg:w-1/2 flex justify-center mt-10">
+					<div className="flex justify-center mt-10 lg:w-1/2">
 						<div className="flex flex-col max-w-4xl gap-8 text-center lg:text-left">
 							<h2 className="text-white">{feature.header}</h2>
-
 							<Typography
 								type="copy1"
 								className="text-copy-on-dark"
 							>
 								{feature.subheader}
 							</Typography>
-							<div className="flex flex-col lg:flex-row justify-start gap-4 w-full lg:w-auto">
+							<div className="flex flex-col justify-start w-full gap-4 lg:flex-row lg:w-auto">
 								<PrimaryButton
 									className={classNames(
 										homeStyles.solidButton,
@@ -125,12 +125,15 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 									</Typography>
 								</PrimaryButton>
 							</div>
+							<div className="-ml-3 justify-self-start">
+								<CalendlyPopover />
+							</div>
 						</div>
 					</div>
 					<div className="flex justify-center mt-12 lg:mt-0 ultra:relative">
 						<AnimateFeatureHeroRight loaded={imageLoaded}>
 							<Image
-								className={`hidden lg:flex ultra:hidden right-0 object-contain top-0`}
+								className={`hidden lg:flex ultra:hidden right-0 object-contain top-0 lg:w-[550px] xl:w-[650px]`}
 								src={IMAGE_MAP[feature.slantedImage]}
 								alt="Feature Spotlight"
 								onLoadingComplete={() => setImageLoaded(true)}
@@ -138,7 +141,7 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 						</AnimateFeatureHeroRight>
 						<AnimateFeatureHeroXL loaded={imageLoaded}>
 							<Image
-								className={`hidden ultra:flex`}
+								className={`hidden ultra:flex w-[500px]`}
 								src={IMAGE_MAP[feature.regularImage]}
 								alt="Feature Spotlight"
 								onLoadingComplete={() => setImageLoaded(true)}
@@ -152,7 +155,7 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 						/>
 					</div>
 				</div>
-				<div className="w-full mx-auto max-w-screen-2xl mt-24 lg:mt-60">
+				<div className="w-full mx-auto mt-24 max-w-screen-2xl lg:mt-60">
 					<Section className="flex flex-col gap-20">
 						<div className="mx-auto max-w-[1100px]">
 							<h2 className="self-center text-center">
@@ -161,7 +164,7 @@ const ShowcasePage = ({ feature }: { feature: iFeature }) => {
 							<div className="px-8 max-w-[700px] mx-auto mt-6 text-center">
 								<Typography
 									type="copy1"
-									className="text-copy-on-dark text-center"
+									className="text-center text-copy-on-dark"
 								>
 									{feature.subheader2}
 								</Typography>

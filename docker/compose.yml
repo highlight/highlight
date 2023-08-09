@@ -1,5 +1,14 @@
+x-logging: &highlight-logging
+    driver: fluentd
+    options:
+        fluentd-address: '127.0.0.1:24224'
+        fluentd-async: 'true'
+        fluentd-sub-second-precision: 'true'
+        tag: 'highlight.project_id=1'
+
 services:
     zookeeper:
+        logging: *highlight-logging
         image: confluentinc/cp-zookeeper:7.3.0
         container_name: zookeeper
         environment:
@@ -7,6 +16,7 @@ services:
             ZOOKEEPER_TICK_TIME: 2000
 
     kafka:
+        logging: *highlight-logging
         image: confluentinc/cp-kafka:7.3.0
         container_name: kafka
         ports:
@@ -15,14 +25,19 @@ services:
             - zookeeper
         environment:
             KAFKA_BROKER_ID: 1
-            KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
             KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+            KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
             KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
             KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
             KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+            KAFKA_CONSUMER_MAX_PARTITION_FETCH_BYTES: 536870912
+            KAFKA_MESSAGE_MAX_BYTES: 536870912
+            KAFKA_PRODUCER_MAX_REQUEST_SIZE: 536870912
+            KAFKA_REPLICA_FETCH_MAX_BYTES: 536870912
 
     redis:
+        logging: *highlight-logging
         container_name: redis
         image: redis
         ports:
@@ -35,8 +50,10 @@ services:
             - --loglevel warning
 
     postgres:
+        logging: *highlight-logging
         container_name: postgres
-        image: postgres
+        # a postgres image with pgvector installed
+        image: ankane/pgvector
         ports:
             - 5432:5432
         environment:
@@ -51,8 +68,9 @@ services:
             retries: 5
 
     clickhouse:
+        logging: *highlight-logging
         container_name: clickhouse
-        image: clickhouse/clickhouse-server
+        image: clickhouse/clickhouse-server:23.5.1.3174
         ports:
             - 8123:8123
             - 9000:9000
@@ -61,6 +79,7 @@ services:
             - clickhouse-logs:/var/log/clickhouse-server
 
     opensearch:
+        logging: *highlight-logging
         container_name: opensearch
         image: opensearchproject/opensearch:1.1.0
         ports:
@@ -89,6 +108,7 @@ services:
             retries: 5
 
     influxdb:
+        logging: *highlight-logging
         container_name: influxdb
         image: influxdb:latest
         ports:
@@ -103,13 +123,17 @@ services:
             retries: 5
 
     collector:
+        logging: *highlight-logging
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
             - 4317:4317
             - 4318:4318
+            - 4319:4319
+            - 24224:24224
+            - 34302:34302
         container_name: collector
-        image: otel/opentelemetry-collector
+        image: otel/opentelemetry-collector-contrib
         command:
             - '--config=/etc/otel-collector-config.yaml'
         volumes:

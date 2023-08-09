@@ -30,6 +30,7 @@ Prior to joining Highlight, ensure you have ordered a laptop that will arrive be
 Your onboarding buddy will help you through the following tasks over your first week but prioritize getting to know the team and understanding the product over delivering work. 
 
 - [ ] https://github.com/highlight/highlight/issues/3951
+    - 
 - [ ] https://github.com/highlight/highlight/issues/4774
 
 ### Day one
@@ -68,19 +69,22 @@ Once you feel like you are fully spun up, open up a pull request to delete your 
 
 ## Access Checklist
 
-- [ ] Rippling
-- [ ] Google Workspace
-- [ ] Slack
-- [ ] Highlight
-- [ ] GitHub
-- [ ] Zoom
-- [ ] Loom
-- [ ] Figma
-- [ ] Doppler
-- [ ] Render
-- [ ] Datadog
-- [ ] Intercom
-- [ ] Notion (much of this outdated)
-- [ ] AWS
-- [ ] SendGrid
+- [x] Rippling
+- [x] Google Workspace
+- [x] Slack
+- [x] Highlight
+- [x] GitHub
+- [x] Zoom
+- [x] Loom
+- [x] Figma
+- [x] Doppler
+- [x] Render
+- [x] Datadog
+- [x] Intercom
+- [x] Notion (much of this outdated)
+- [x] AWS
+- [x] SendGrid
 
+## Learnings
+
+- `H.init` requires a `backendUrl` to send data to non-prod Highlight instances.

@@ -18,6 +18,7 @@ import {
 	ShortcutTextGuide,
 } from '@components/KeyboardShortcutsEducation/KeyboardShortcutsEducation'
 import {
+	Ariakit,
 	Badge,
 	Box,
 	Form,
@@ -35,7 +36,6 @@ import { PreviousDateRangePicker } from '@highlight-run/ui/src/components/DatePi
 import { useHTMLElementEvent } from '@hooks/useHTMLElementEvent'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { isInsideElement } from '@util/dom'
-import { Dialog } from 'ariakit/dialog'
 import isEqual from 'lodash/isEqual'
 import React, { useRef } from 'react'
 
@@ -55,7 +55,7 @@ const CommandBarBox = () => {
 
 	const { commandBarDialog } = useGlobalContext()
 	return (
-		<Dialog
+		<Ariakit.Dialog
 			state={commandBarDialog}
 			className={styles.dialog}
 			onClick={(e) => {
@@ -79,12 +79,12 @@ const CommandBarBox = () => {
 				<SearchBar />
 				<SearchOptions />
 			</Box>
-		</Dialog>
+		</Ariakit.Dialog>
 	)
 }
 const SearchOptions = () => {
 	const form = useCommandBarForm()
-	const query = form.getValue<string>(form.names.search)
+	const query = form.getValue(form.names.search).trim()
 	if (!query) return null
 	return (
 		<>
@@ -97,7 +97,7 @@ const SearchOptions = () => {
 
 const SearchBar = () => {
 	const form = useCommandBarForm()
-	const query = form.getValue<string>(form.names.search)
+	const query = form.getValue(form.names.search).trim()
 	const selectedDates = form.getValue<Date[]>(form.names.selectedDates)
 
 	const inputRef = useRef<HTMLInputElement>(null)
@@ -274,7 +274,7 @@ const SectionRow = ({
 				lines="1"
 				cssClass={styles.query}
 			>
-				{form.getValue(form.names.search)}
+				{form.getValue(form.names.search).trim()}
 			</Text>
 			{selected ? (
 				<Badge

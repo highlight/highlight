@@ -1,5 +1,5 @@
 import {
-	DEMO_WORKSPACE_APPLICATION_ID,
+	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import { useGetKeyPerformanceIndicatorsQuery } from '@graph/hooks'
@@ -22,7 +22,7 @@ const KeyPerformanceIndicators = ({
 }) => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
+		project_id === DEMO_PROJECT_ID
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 	const { timeRange } = useDataTimeRange()

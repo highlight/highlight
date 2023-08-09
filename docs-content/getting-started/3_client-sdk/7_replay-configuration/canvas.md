@@ -4,38 +4,95 @@ slug: canvas
 createdAt: 2021-10-13T22:55:19.000Z
 updatedAt: 2022-09-29T18:01:58.000Z
 ---
+<br/>
 
+<div style={{position: "relative", paddingBottom: "64.90384615384616%", height: 0 }}>
+    <iframe src="https://www.loom.com/embed/ebb971bf5fdd4aaf9ae1924e7e536fb7" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%"}}></iframe>
+</div>
 ## Canvas Recording
 
-Highlight by default does not record the contents of `<canvas>` elements. This is usually why the session replay has blank areas where those areas should be `<canvas>` elements. We provide experimental recording of `<canvas>` contents.
+Highlight can record the contents of `<canvas>` elements, with support for 2D and 3D contexts. Canvas recording can be enabled and configured via the `H.init` options, set up depending on the type of HTML5 Canvas application you are building. For example, a video game WebGL application or three.js visualization may require a higher snapshotting framerate to ensure the replay has enough frames to understand what was happening.
 
 Enable canvas recording by configuring [H.init()](../../../sdk/client.md#Hinit) in the following way:
 
 ```javascript
 H.init('<YOUR_PROJECT_ID>', {
-  enableCanvasRecording: true,
+  enableCanvasRecording: true,        // enable canvas recording
   samplingStrategy: {
-    canvas: 15,
-    canvasQuality: 'low',
-    canvasMaxSnapshotDimension: 480,
+    canvas: 2,                        // snapshot at 2 fps
+    canvasMaxSnapshotDimension: 480,  // snapshot at a max 480p resolution
   },
 })
 ```
 
-`samplingStrategy.canvas` is the frame per second rate used to record the HTML canvas. We recommend a value < 5 to ensure recording performance is not impacted at high resolutions.
+With these settings, the canvas is serialized as a 480p video at 2FPS.
 
-`samplingStrategy.canvasQuality`: 'pixelated' | 'low' | 'medium' | 'high'. This value represents the image compression quality and will affect the size of the canvas images uploaded.
+`samplingStrategy.canvas` is the frame per second rate used to record the HTML canvas. A value < 5 is recommended to ensure the recording is not too large and does not have issues with playback.
+
+`samplingStrategy.canvasManual` is the frame per second rate used in manual snapshotting mode. See `Manual Snapshotting` below.
+
+`samplingStrategy.canvasFactor`: a resolution scaling factor applied to both dimensions of the canvas.
 
 `samplingStrategy.canvasMaxSnapshotDimension`: max recording resolution of the largest dimension of the canvas.
 
-Snapshotting at full resolution and high FPS can produce too much data for our client to upload on devices with low upload bandwidth. We've found that with a safe assumption of upload speed @, 1 MB/s I can support the above snapshotting settings without a problem at 480p 15 fps.
+`samplingStrategy.canvasClearWebGLBuffer`: (advanced) set to false to disable webgl buffer clearing (if the canvas flickers when recording).
 
-Even though this feature is experimental, it should not have any impact on your application. We've recently changed our uploading client to use browser web-workers to ensure that data serialization cannot block the rendering of your application. If you run into any issues please let us know!
+`samplingStrategy.canvasInitialSnapshotDelay`: (advanced) time (in milliseconds) to wait before the initial snapshot of canvas/video elements.
+
+```hint
+[Privacy](../../../general/6_product-features/1_session-replay/privacy.md) controls do not apply to canvas recording at this time.
+```
+
+Enabling canvas recording should not have any impact on the performance your application. We've recently changed our uploading client to use browser web-workers to ensure that data serialization cannot block the rendering of your application. If you run into any issues please [let us know](https://highlight.io/community)!
 
 ## WebGL Recording
 
-In the same vain, Highlight is able to record websites that use WebGL. Recording WebGL is disabled by default. To enable WebGL recording, enable canvas recording by following the instructions for [Canvas](./canvas.md) recording.
+Highlight is able to record websites that use WebGL in the `<canvas>` element. 
 
-## Caveats
+To enable WebGL recording, enable canvas recording by following the steps above.
 
-For both WebGL and canvas recording, [Privacy](../../../general/6_product-features/1_session-replay/privacy.md) controls do not apply to canvas recording right now.
+```hint
+If you use WebGL(2) and fail to see a canvas recorded or see a transparent image, setup manual snapshotting.
+```
+
+## Manual Snapshotting
+
+A canvas may fail to be recorded (recorded as a transparent image) because of WebGL 
+double buffering. The canvas is not accessible from the javascript thread because it may
+no longer be loaded in memory, despite being rendered by the GPU (see this [chrome bug report](https://bugs.chromium.org/p/chromium/issues/detail?id=838108) for additional context). 
+
+Manual snapshotting hooks into your WebGL render function to call `H.snapshot(canvas)` after
+you paint to the WebGL context. To set this up, pass the following options to highlight first:
+
+```javascript
+H.init('<YOUR_PROJECT_ID>', {
+  enableCanvasRecording: true,        // enable canvas recording
+  samplingStrategy: {
+    canvasManual: 2,                        // snapshot at 2 fps
+    canvasMaxSnapshotDimension: 480,  // snapshot at a max 480p resolution
+    // any other settings...
+  },
+})
+```
+
+Now, hook into your WebGL rendering code and call `H.snapshot`.
+```typescript
+// babylon.js
+engine.runRenderLoop(() => {
+    scene.render()
+    H.snapshot(canvasElementRef.current)
+})
+```
+
+Libraries like Three.js export an [onAfterRender](https://threejs.org/docs/#api/en/core/Object3D.onAfterRender) method that you can use to call `H.snapshot`.
+
+## Webcam Recording and Inlining Video Resources
+
+If you use `src=blob:` `<video>` elements in your app (for example, you are using javascript to dynamically generate a video stream) or are streaming a webcam feed to a `<video>` element, you'll need to inline the `<video>` elements for them to appear correctly in the playback. Do this by enabling the `inlineImages` setting.
+
+```javascript
+H.init('<YOUR_PROJECT_ID>', {
+  ..., 
+  inlineImages: true,
+})
+```

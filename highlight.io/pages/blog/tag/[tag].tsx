@@ -1,11 +1,16 @@
 import { GetStaticProps } from 'next'
-import { loadPostsFromHygraph, loadTagsFromHygraph, Blog } from '../index'
+import { getUniqueTags } from '../../../components/Blog/BlogPost/BlogPost'
+import { Tag } from '../../../components/Blog/Tag'
+import { Blog, loadPostsFromGithub, loadTagsFromGithub } from '../index'
 
 export async function getStaticPaths(): Promise<{
 	paths: string[]
 	fallback: string
 }> {
-	const tags = await loadTagsFromHygraph()
+	const posts = await loadPostsFromGithub()
+	let tags = await loadTagsFromGithub(posts)
+
+	tags = getUniqueTags(tags)
 
 	return {
 		paths: tags.map((tag) => `/blog/tag/${tag}`),
@@ -14,9 +19,17 @@ export async function getStaticPaths(): Promise<{
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
-	const postsRequest = loadPostsFromHygraph(params!.tag as string)
-	const tagsRequest = loadTagsFromHygraph()
-	const [posts, tags] = await Promise.all([postsRequest, tagsRequest])
+	let posts = await loadPostsFromGithub()
+	let tags = await loadTagsFromGithub(posts)
+
+	posts = posts.filter((post) => {
+		return post.tags_relations.some((tag: Tag) => {
+			return tag.slug === (params!.tag as string)
+		})
+	})
+
+	tags = getUniqueTags(tags)
+	posts.sort((a, b) => Date.parse(b.postedAt) - Date.parse(a.postedAt))
 
 	return {
 		props: {

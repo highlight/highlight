@@ -4,17 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"os"
 	"sort"
 	"strconv"
 	"time"
+
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	"github.com/go-redis/cache/v8"
 	"github.com/go-redis/redis/v8"
 	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
@@ -24,16 +26,14 @@ const CacheKeyHubspotCompanies = "hubspot-companies"
 
 type Client struct {
 	redisClient redis.Cmdable
-	redisCache  *cache.Cache
+	Cache       *cache.Cache
 }
+
+const LockPollInterval = 50 * time.Millisecond
 
 var (
 	ServerAddr = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
 )
-
-func UseRedis(projectId int, sessionSecureId string) bool {
-	return true
-}
 
 func EventsKey(sessionId int) string {
 	return fmt.Sprintf("events-%d", sessionId)
@@ -43,16 +43,16 @@ func NetworkResourcesKey(sessionId int) string {
 	return fmt.Sprintf("network-resources-%d", sessionId)
 }
 
-func ConsoleMessagesKey(sessionId int) string {
-	return fmt.Sprintf("console-messages-%d", sessionId)
+func WebSocketEventsKey(sessionId int) string {
+	return fmt.Sprintf("web-socket-events-%d", sessionId)
 }
 
 func SessionInitializedKey(sessionSecureId string) string {
 	return fmt.Sprintf("session-init-%s", sessionSecureId)
 }
 
-func BillingQuotaExceededKey(projectId int) string {
-	return fmt.Sprintf("billing-quota-exceeded-%d", projectId)
+func BillingQuotaExceededKey(projectId int, productType pricing.ProductType) string {
+	return fmt.Sprintf("billing-quota-exceeded-%d-%s", projectId, productType)
 }
 
 func LastLogTimestampKey(projectId int) string {
@@ -60,6 +60,7 @@ func LastLogTimestampKey(projectId int) string {
 }
 
 func NewClient() *Client {
+	lfu := cache.NewTinyLFU(10000, time.Minute)
 	if util.IsDevOrTestEnv() {
 		client := redis.NewClient(&redis.Options{
 			Addr:         ServerAddr,
@@ -75,9 +76,9 @@ func NewClient() *Client {
 
 		return &Client{
 			redisClient: client,
-			redisCache: cache.New(&cache.Options{
+			Cache: cache.New(&cache.Options{
 				Redis:      client,
-				LocalCache: cache.NewTinyLFU(1000, time.Minute),
+				LocalCache: lfu,
 			}),
 		}
 	} else {
@@ -96,6 +97,10 @@ func NewClient() *Client {
 				return nil
 			},
 		})
+		rCache := cache.New(&cache.Options{
+			Redis:      c,
+			LocalCache: lfu,
+		})
 		go func() {
 			for {
 				stats := c.PoolStats()
@@ -108,15 +113,18 @@ func NewClient() *Client {
 				hlog.Histogram("redis.stale-conns", float64(stats.StaleConns), nil, 1)
 				hlog.Histogram("redis.total-conns", float64(stats.TotalConns), nil, 1)
 				hlog.Histogram("redis.timeouts", float64(stats.Timeouts), nil, 1)
+
+				if stats := rCache.Stats(); stats != nil {
+					hlog.Histogram("redis.cache.hits", float64(stats.Hits), nil, 1)
+					hlog.Histogram("redis.cache.misses", float64(stats.Misses), nil, 1)
+				}
+
 				time.Sleep(time.Second)
 			}
 		}()
 		return &Client{
 			redisClient: c,
-			redisCache: cache.New(&cache.Options{
-				Redis:      c,
-				LocalCache: cache.NewTinyLFU(1000, time.Minute),
-			}),
+			Cache:       rCache,
 		}
 	}
 }
@@ -149,8 +157,8 @@ func GetKey(sessionId int, payloadType model.RawPayloadType) string {
 		return EventsKey(sessionId)
 	case model.PayloadTypeResources:
 		return NetworkResourcesKey(sessionId)
-	case model.PayloadTypeMessages:
-		return ConsoleMessagesKey(sessionId)
+	case model.PayloadTypeWebSocketEvents:
+		return WebSocketEventsKey(sessionId)
 	default:
 		return ""
 	}
@@ -292,6 +300,45 @@ func (r *Client) GetEvents(ctx context.Context, s *model.Session, cursor model.E
 	return allEvents, nil, newCursor
 }
 
+func (r *Client) GetResources(ctx context.Context, s *model.Session) ([]interface{}, error) {
+	allResources := make([]interface{}, 0)
+
+	redisData, err := r.redisClient.ZRangeByScoreWithScores(ctx, NetworkResourcesKey(s.ID), &redis.ZRangeBy{
+		Min: "-inf",
+		Max: "+inf",
+	}).Result()
+	if err != nil {
+		return nil, errors.Wrap(err, "error retrieving network resources from Redis")
+	}
+
+	for _, z := range redisData {
+		asBytes := []byte(z.Member.(string))
+
+		// Messages may be encoded with `snappy`.
+		// Try decoding them, but if decoding fails, use the original message.
+		decoded, err := snappy.Decode(nil, asBytes)
+		if err != nil {
+			decoded = asBytes
+		}
+
+		resourceObject := model.ResourcesObject{
+			Resources: string(decoded),
+		}
+
+		subResources := make(map[string][]interface{})
+		if err := json.Unmarshal([]byte(resourceObject.Resources), &subResources); err != nil {
+			return nil, errors.Wrap(err, "error decoding resource data")
+		}
+		allResources = append(allResources, subResources["resources"]...)
+	}
+
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting resource objects")
+	}
+
+	return allResources, nil
+}
+
 func (r *Client) AddPayload(ctx context.Context, sessionID int, score float64, payloadType model.RawPayloadType, payload []byte) error {
 	encoded := string(snappy.Encode(nil, payload))
 
@@ -353,6 +400,18 @@ func (r *Client) getFlag(ctx context.Context, key string) (bool, error) {
 	return val == "1" || val == "true", nil
 }
 
+func (r *Client) getFlagOrNil(ctx context.Context, key string) (*bool, error) {
+	val, err := r.redisClient.Get(ctx, key).Result()
+
+	// ignore non-existent keys
+	if err == redis.Nil {
+		return nil, nil
+	} else if err != nil {
+		return pointy.Bool(false), errors.Wrap(err, "error getting flag from Redis")
+	}
+	return pointy.Bool(val == "1" || val == "true"), nil
+}
+
 func (r *Client) IsPendingSession(ctx context.Context, sessionSecureId string) (bool, error) {
 	return r.getFlag(ctx, SessionInitializedKey(sessionSecureId))
 }
@@ -361,12 +420,12 @@ func (r *Client) SetIsPendingSession(ctx context.Context, sessionSecureId string
 	return r.setFlag(ctx, SessionInitializedKey(sessionSecureId), initialized, 24*time.Hour)
 }
 
-func (r *Client) IsBillingQuotaExceeded(ctx context.Context, projectId int) (bool, error) {
-	return r.getFlag(ctx, BillingQuotaExceededKey(projectId))
+func (r *Client) IsBillingQuotaExceeded(ctx context.Context, projectId int, productType pricing.ProductType) (*bool, error) {
+	return r.getFlagOrNil(ctx, BillingQuotaExceededKey(projectId, productType))
 }
 
-func (r *Client) SetBillingQuotaExceeded(ctx context.Context, projectId int) error {
-	return r.setFlag(ctx, BillingQuotaExceededKey(projectId), true, 5*time.Minute)
+func (r *Client) SetBillingQuotaExceeded(ctx context.Context, projectId int, productType pricing.ProductType, exceeded bool) error {
+	return r.setFlag(ctx, BillingQuotaExceededKey(projectId, productType), exceeded, 5*time.Minute)
 }
 
 func (r *Client) GetLastLogTimestamp(ctx context.Context, projectId int) (time.Time, error) {
@@ -410,11 +469,11 @@ func (r *Client) SetLastLogTimestamp(ctx context.Context, projectId int, timesta
 func (r *Client) SetHubspotCompanies(ctx context.Context, companies interface{}) error {
 	span, _ := tracer.StartSpanFromContext(ctx, "redis.cache.SetHubspotCompanies")
 	defer span.Finish()
-	if err := r.redisCache.Set(&cache.Item{
+	if err := r.Cache.Set(&cache.Item{
 		Ctx:   ctx,
 		Key:   CacheKeyHubspotCompanies,
 		Value: companies,
-		TTL:   5 * time.Minute,
+		TTL:   time.Hour,
 	}); err != nil {
 		span.Finish(tracer.WithError(err))
 		return err
@@ -424,7 +483,37 @@ func (r *Client) SetHubspotCompanies(ctx context.Context, companies interface{})
 
 func (r *Client) GetHubspotCompanies(ctx context.Context, companies interface{}) (err error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "redis.cache.GetHubspotCompanies")
-	err = r.redisCache.Get(ctx, CacheKeyHubspotCompanies, companies)
+	err = r.Cache.Get(ctx, CacheKeyHubspotCompanies, companies)
 	span.Finish(tracer.WithError(err))
 	return
+}
+
+func (r *Client) AcquireLock(ctx context.Context, key string, timeout time.Duration) (acquired bool) {
+	start := time.Now()
+	for {
+		cmd := r.redisClient.SetArgs(ctx, key, "1", redis.SetArgs{
+			TTL:  timeout,
+			Mode: "NX",
+			Get:  true,
+		})
+		// error means value is not set
+		if cmd.Err() != nil {
+			return true
+		}
+		if time.Since(start) > timeout {
+			return false
+		}
+		time.Sleep(LockPollInterval)
+	}
+}
+
+func (r *Client) ReleaseLock(ctx context.Context, key string) (err error) {
+	return r.redisClient.Del(ctx, key).Err()
+}
+
+func (r *Client) FlushDB(ctx context.Context) error {
+	if util.IsDevOrTestEnv() {
+		return r.redisClient.FlushDB(ctx).Err()
+	}
+	return nil
 }

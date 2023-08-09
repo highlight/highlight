@@ -1,5 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
-import { Button } from '@components/Button'
 import { LinkButton } from '@components/LinkButton'
 import {
 	Maybe,
@@ -19,7 +17,6 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import SvgCopyIcon from '@icons/CopyIcon'
 import { copyToClipboard } from '@util/string'
-import { showIntercom } from '@util/window'
 import React, { useEffect } from 'react'
 
 import * as styles from './styles.css'
@@ -34,7 +31,7 @@ const originalFileTitle = 'Original File Access Error'
 
 const sourcemapFileError =
 	'There was an issue accessing the sourcemap file for this error'
-const sourcemapFileTitle = 'Sourcemal File Error'
+const sourcemapFileTitle = 'Sourcemap File Error'
 
 const fileSizeLimitError = "We couldn't fetch these files due to size limits"
 const fileSizeLimitTitle = 'File Size Limit Error'
@@ -203,6 +200,19 @@ export const SourcemapErrorDetails: React.FC<Props> = ({ error }) => {
 				<Code>{error.mappedColumnNumber}</Code>
 			</StackSectionError>
 		)
+	} else if (
+		error.errorCode == SourceMappingErrorCode.ErrorConstructingSourceMapUrl
+	) {
+		return (
+			<StackSectionError
+				error={error}
+				keys={sourcemapParseErrorMetadata}
+				title={fileParseTitle}
+			>
+				Failed to construct the sourcemap URL from the stacktrace{' '}
+				<Code>{error.stackTraceFileURL}</Code>
+			</StackSectionError>
+		)
 	} else {
 		return null
 	}
@@ -233,7 +243,6 @@ const StackSectionError: React.FC<
 	const { projectId } = useProjectId()
 	const [showMetadata, setShowMetadata] = React.useState(false)
 	const { mounted } = usePopover()
-	const { admin } = useAuthContext()
 
 	useEffect(() => {
 		if (!mounted) {
@@ -261,8 +270,10 @@ const StackSectionError: React.FC<
 			borderRadius="6"
 			border="secondary"
 			cursor="default"
+			hiddenScroll
 			overflow="scroll"
 			boxShadow="medium"
+			paddingTop="8"
 			style={{ maxWidth: '450px' }}
 		>
 			<Box p="8">
@@ -276,7 +287,7 @@ const StackSectionError: React.FC<
 				</Stack>
 
 				{metadata.length > 0 && (
-					<Box>
+					<Box paddingTop="8">
 						<Tag
 							onClick={(e) => {
 								e.stopPropagation()
@@ -344,16 +355,7 @@ const StackSectionError: React.FC<
 				display="flex"
 				justifyContent="flex-end"
 				width="full"
-				gap="8"
 			>
-				<Button
-					kind="secondary"
-					onClick={() => showIntercom({ admin })}
-					trackingId="sourcemapErrorContact"
-				>
-					Contact
-				</Button>
-
 				<LinkButton
 					to={`/${projectId}/settings/errors`}
 					trackingId="sourcemap-settings-link-click-error-details"

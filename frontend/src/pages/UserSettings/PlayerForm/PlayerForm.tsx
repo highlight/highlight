@@ -1,6 +1,14 @@
+import { Heading, Stack } from '@highlight-run/ui'
 import { isIndexedDBEnabled, setIndexedDBEnabled } from '@util/db'
-import { Checkbox } from 'antd'
 import React from 'react'
+
+import BorderBox from '@/components/BorderBox/BorderBox'
+import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
+
+const dbcache = {
+	label: 'Use IndexedDB Cache',
+	info: 'IndexedDB Browser Cache is used to preload all data in Highlight and speed up repeated loading, but it can increase memory usage.',
+}
 
 export const PlayerForm = () => {
 	const [checked, setChecked] = React.useState<boolean>(isIndexedDBEnabled())
@@ -10,23 +18,19 @@ export const PlayerForm = () => {
 	}, [checked])
 
 	return (
-		<>
-			<h3>App Settings</h3>
-			<form>
-				<p>
-					IndexedDB Browser Cache is used to preload all data in
-					Highlight and speed up repeated loading, but it can increase
-					memory usage.
-				</p>
-				<Checkbox
-					checked={checked}
-					onChange={(e) => {
-						setChecked(e.target.checked)
-					}}
-				>
-					Use IndexedDB Cache
-				</Checkbox>
-			</form>
-		</>
+		<Stack gap="24" direction="column">
+			<Heading mt="16" level="h4">
+				App Settings
+			</Heading>
+			<BorderBox>
+				{ToggleRow(
+					dbcache.label,
+					dbcache.info,
+					checked,
+					setChecked,
+					false,
+				)}
+			</BorderBox>
+		</Stack>
 	)
 }

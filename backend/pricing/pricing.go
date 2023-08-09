@@ -2,6 +2,7 @@ package pricing
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"time"
@@ -17,7 +18,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	stripe "github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
-	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
@@ -50,47 +50,123 @@ func GetWorkspaceMembersMeter(DB *gorm.DB, workspaceID int) int64 {
 	return DB.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Association("Admins").Count()
 }
 
-func GetWorkspaceSessionsMeter(DB *gorm.DB, workspaceID int) (int64, error) {
-	var meter int64
+func GetSessions7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (float64, error) {
+	var avg float64
 	if err := DB.Raw(`
-			SELECT COALESCE(SUM(count), 0) as currentPeriodSessionCount
+			SELECT COALESCE(AVG(count), 0) as trailingAvg
 			FROM daily_session_counts_view
-			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=? AND free_tier = false)
-			AND date >= (
-				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
-				FROM workspaces
-				WHERE id=?)
-			AND date < (
-				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
-				FROM workspaces
-				WHERE id=?)`, workspaceID, workspaceID, workspaceID).
-		Scan(&meter).Error; err != nil {
+			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=?)
+			AND date >= now() - INTERVAL '8 days'
+			AND date < now() - INTERVAL '1 day'`, workspace.ID).
+		Scan(&avg).Error; err != nil {
 		return 0, e.Wrap(err, "error querying for session meter")
 	}
-	return meter, nil
+	return avg, nil
 }
 
-func GetWorkspaceErrorsMeter(DB *gorm.DB, workspaceID int) (int64, error) {
+func GetWorkspaceSessionsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
+	meterSpan, _ := tracer.StartSpanFromContext(ctx, "pricing.GetWorkspaceSessionsMeter",
+		tracer.ResourceName("GetWorkspaceSessionsMeter"),
+		tracer.Tag("workspace_id", workspace.ID))
+	defer meterSpan.Finish()
+
 	var meter int64
 	if err := DB.Raw(`
-			SELECT COALESCE(SUM(count), 0) as currentPeriodErrorsCount
-			FROM daily_error_counts_view
-			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=? AND free_tier = false)
+		WITH materialized_rows AS (
+			SELECT count, date
+			FROM daily_session_counts_view
+			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=@workspace_id)
 			AND date >= (
 				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
 				FROM workspaces
-				WHERE id=?)
+				WHERE id=@workspace_id)
 			AND date < (
 				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
 				FROM workspaces
-				WHERE id=?)`, workspaceID, workspaceID, workspaceID).
+				WHERE id=@workspace_id))
+		SELECT SUM(count) as currentPeriodSessionCount from (
+			SELECT COUNT(*) FROM sessions
+			WHERE project_id IN (SELECT id FROM projects WHERE workspace_id=@workspace_id)
+			AND created_at >= (SELECT MAX(date) FROM materialized_rows)
+			AND created_at < (
+			SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+			FROM workspaces
+			WHERE id=@workspace_id)
+			AND excluded <> true
+			AND within_billing_quota
+			AND (active_length >= 1000 OR (active_length is null and length >= 1000))
+			AND processed = true
+			UNION ALL SELECT COALESCE(SUM(count), 0) FROM materialized_rows
+			WHERE date < (SELECT MAX(date) FROM materialized_rows)
+		) a`, sql.Named("workspace_id", workspace.ID)).
 		Scan(&meter).Error; err != nil {
 		return 0, e.Wrap(err, "error querying for session meter")
 	}
 	return meter, nil
 }
 
-func GetWorkspaceLogsMeter(ctx context.Context, ccClient *clickhouse.Client, workspace model.Workspace) (int64, error) {
+func GetErrors7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (float64, error) {
+	var avg float64
+	if err := DB.Raw(`
+			SELECT COALESCE(AVG(count), 0) as trailingAvg
+			FROM daily_error_counts_view
+			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=?)
+			AND date >= now() - INTERVAL '8 days'
+			AND date < now() - INTERVAL '1 day'`, workspace.ID).
+		Scan(&avg).Error; err != nil {
+		return 0, e.Wrap(err, "error querying for session meter")
+	}
+	return avg, nil
+}
+
+func GetWorkspaceErrorsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
+	meterSpan, _ := tracer.StartSpanFromContext(ctx, "pricing.GetWorkspaceErrorsMeter",
+		tracer.ResourceName("GetWorkspaceErrorsMeter"),
+		tracer.Tag("workspace_id", workspace.ID))
+	defer meterSpan.Finish()
+
+	var meter int64
+	if err := DB.Raw(`
+		WITH materialized_rows AS (
+			SELECT count, date
+			FROM daily_error_counts_view
+			WHERE project_id in (SELECT id FROM projects WHERE workspace_id=@workspace_id)
+			AND date >= (
+				SELECT COALESCE(next_invoice_date - interval '1 month', billing_period_start, date_trunc('month', now(), 'UTC'))
+				FROM workspaces
+				WHERE id=@workspace_id)
+			AND date < (
+				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+				FROM workspaces
+				WHERE id=@workspace_id))
+		SELECT SUM(count) as currentPeriodErrorsCount from (
+			SELECT COUNT(*) FROM error_objects
+			WHERE project_id IN (SELECT id FROM projects WHERE workspace_id=@workspace_id)
+			AND created_at >= (SELECT MAX(date) FROM materialized_rows)
+			AND created_at < (
+				SELECT COALESCE(next_invoice_date, billing_period_end, date_trunc('month', now(), 'UTC') + interval '1 month')
+				FROM workspaces
+				WHERE id=@workspace_id)
+			UNION ALL SELECT COALESCE(SUM(count), 0) FROM materialized_rows
+			WHERE date < (SELECT MAX(date) FROM materialized_rows)
+		) a`, sql.Named("workspace_id", workspace.ID)).
+		Scan(&meter).Error; err != nil {
+		return 0, e.Wrap(err, "error querying for session meter")
+	}
+	return meter, nil
+}
+
+func GetLogs7DayAverage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (float64, error) {
+	startDate := time.Now().AddDate(0, 0, -8)
+	endDate := time.Now().AddDate(0, 0, -1)
+	projectIds := lo.Map(workspace.Projects, func(p model.Project, _ int) int {
+		return p.ID
+	})
+
+	return ccClient.ReadLogsDailyAverage(ctx, projectIds, backend.DateRangeRequiredInput{StartDate: startDate, EndDate: endDate})
+}
+
+func GetWorkspaceLogsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, workspace *model.Workspace) (int64, error) {
 	var startDate time.Time
 	if workspace.NextInvoiceDate != nil {
 		startDate = workspace.NextInvoiceDate.AddDate(0, -1, 0)
@@ -111,47 +187,74 @@ func GetWorkspaceLogsMeter(ctx context.Context, ccClient *clickhouse.Client, wor
 		endDate = time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 1, 0)
 	}
 
-	counts := make([]uint64, len(workspace.Projects))
-	var g errgroup.Group
-	for idx, p := range workspace.Projects {
-		idx := idx
-		p := p
-		g.Go(func() error {
-			count, err := ccClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{
-				DateRange: &backend.DateRangeRequiredInput{StartDate: startDate, EndDate: endDate}})
-			if err != nil {
-				return err
-			}
-			counts[idx] = count
-			return nil
-		})
-	}
+	projectIds := lo.Map(workspace.Projects, func(p model.Project, _ int) int {
+		return p.ID
+	})
 
-	err := g.Wait()
+	count, err := ccClient.ReadLogsDailySum(ctx, projectIds, backend.DateRangeRequiredInput{StartDate: startDate, EndDate: endDate})
 	if err != nil {
 		return 0, err
 	}
 
-	var count int64
-	for _, c := range counts {
-		count += int64(c)
-	}
-
-	return count, nil
+	return int64(count), nil
 }
 
-func GetProjectQuotaOverflow(ctx context.Context, DB *gorm.DB, projectID int) (int64, error) {
-	var queriedSessionsOverQuota int64
-	sessionsOverQuotaCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("db.sessionsOverQuotaCountQuery"), tracer.Tag("project_id", projectID))
-	defer sessionsOverQuotaCountSpan.Finish()
-	if err := DB.Model(&model.Session{}).
-		Where(`project_id = ?
-			AND within_billing_quota = false`, projectID).
-		Count(&queriedSessionsOverQuota).Error; err != nil {
-		return 0, e.Wrap(err, "error querying sessions over quota count")
+func GetLimitAmount(limitCostCents *int, productType ProductType, planType backend.PlanType, retentionPeriod backend.RetentionPeriod) *int64 {
+	included := int64(IncludedAmount(planType, productType))
+	if planType == backend.PlanTypeFree {
+		return pointy.Int64(included)
 	}
-	return queriedSessionsOverQuota, nil
+	if limitCostCents == nil {
+		return nil
+	}
+	basePrice := ProductToBasePriceCents(productType, planType)
+	retentionMultiplier := RetentionMultiplier(retentionPeriod)
+
+	return pointy.Int64(int64(
+		float64(*limitCostCents)/basePrice/retentionMultiplier) + included)
+}
+
+func ProductToBasePriceCents(productType ProductType, planType backend.PlanType) float64 {
+	if planType == backend.PlanTypeUsageBased {
+		switch productType {
+		case ProductTypeSessions:
+			return 2
+		case ProductTypeErrors:
+			return .02
+		case ProductTypeLogs:
+			return .00015
+		default:
+			return 0
+		}
+	} else {
+		switch productType {
+		case ProductTypeSessions:
+			return .5
+		case ProductTypeErrors:
+			return .02
+		case ProductTypeLogs:
+			return .00015
+		default:
+			return 0
+		}
+	}
+}
+
+func RetentionMultiplier(retentionPeriod backend.RetentionPeriod) float64 {
+	switch retentionPeriod {
+	case backend.RetentionPeriodThirtyDays:
+		return 1
+	case backend.RetentionPeriodThreeMonths:
+		return 1
+	case backend.RetentionPeriodSixMonths:
+		return 1.5
+	case backend.RetentionPeriodTwelveMonths:
+		return 2
+	case backend.RetentionPeriodTwoYears:
+		return 2.5
+	default:
+		return 1
+	}
 }
 
 func TypeToMemberLimit(planType backend.PlanType, unlimitedMembers bool) *int {
@@ -169,6 +272,19 @@ func TypeToMemberLimit(planType backend.PlanType, unlimitedMembers bool) *int {
 		return pointy.Int(15)
 	default:
 		return pointy.Int(2)
+	}
+}
+
+func IncludedAmount(planType backend.PlanType, productType ProductType) int {
+	switch productType {
+	case ProductTypeSessions:
+		return TypeToSessionsLimit(planType)
+	case ProductTypeErrors:
+		return TypeToErrorsLimit(planType)
+	case ProductTypeLogs:
+		return TypeToLogsLimit(planType)
+	default:
+		return 0
 	}
 }
 
@@ -244,8 +360,11 @@ func MustUpgradeForClearbit(tier string) bool {
 }
 
 // Returns a Stripe lookup key which maps to a single Stripe Price
-func GetLookupKey(productType ProductType, productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (result string) {
-	result = fmt.Sprintf("%s|%s|%s", string(productType), string(productTier), string(interval))
+func GetBaseLookupKey(productTier backend.PlanType, interval SubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (result string) {
+	if productTier == backend.PlanTypeUsageBased {
+		return fmt.Sprintf("%s|%s", ProductTypeBase, backend.PlanTypeUsageBased)
+	}
+	result = fmt.Sprintf("%s|%s|%s", ProductTypeBase, string(productTier), string(interval))
 	if unlimitedMembers {
 		result += "|UNLIMITED_MEMBERS"
 	}
@@ -255,12 +374,15 @@ func GetLookupKey(productType ProductType, productTier backend.PlanType, interva
 	return
 }
 
-func GetOverageKey(productType ProductType, retentionPeriod backend.RetentionPeriod) string {
-	if retentionPeriod == backend.RetentionPeriodThreeMonths {
-		return string(productType)
-	} else {
-		return string(productType) + "|" + string(retentionPeriod)
+func GetOverageKey(productType ProductType, retentionPeriod backend.RetentionPeriod, planType backend.PlanType) string {
+	result := string(productType)
+	if retentionPeriod != backend.RetentionPeriodThreeMonths {
+		result += "|" + string(retentionPeriod)
 	}
+	if productType == ProductTypeSessions && planType == backend.PlanTypeUsageBased {
+		result += "|UsageBased"
+	}
+	return result
 }
 
 // Returns the Highlight ProductType, Tier, and Interval for the Stripe Price
@@ -344,11 +466,11 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 	if retentionPeriod != nil {
 		rp = *retentionPeriod
 	}
-	baseLookupKey := GetLookupKey(ProductTypeBase, productTier, interval, unlimitedMembers, rp)
+	baseLookupKey := GetBaseLookupKey(productTier, interval, unlimitedMembers, rp)
 
-	sessionsLookupKey := GetOverageKey(ProductTypeSessions, rp)
+	sessionsLookupKey := GetOverageKey(ProductTypeSessions, rp, productTier)
 	membersLookupKey := string(ProductTypeMembers)
-	errorsLookupKey := GetOverageKey(ProductTypeErrors, rp)
+	errorsLookupKey := GetOverageKey(ProductTypeErrors, rp, productTier)
 	logsLookupKey := string(ProductTypeLogs)
 
 	priceListParams := stripe.PriceListParams{}
@@ -397,7 +519,7 @@ func ReportUsageForWorkspace(ctx context.Context, DB *gorm.DB, ccClient *clickho
 
 func reportUsage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, stripeClient *client.API, mailClient *sendgrid.Client, workspaceID int, productType *ProductType) error {
 	var workspace model.Workspace
-	if err := DB.Model(&workspace).Where("id = ?", workspaceID).First(&workspace).Error; err != nil {
+	if err := DB.Model(&workspace).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
 		return e.Wrap(err, "error querying workspace")
 	}
 	var projects []model.Project
@@ -548,7 +670,7 @@ func reportUsage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, 
 	}
 
 	// Update sessions overage
-	sessionsMeter, err := GetWorkspaceSessionsMeter(DB, workspace.ID)
+	sessionsMeter, err := GetWorkspaceSessionsMeter(ctx, DB, ccClient, &workspace)
 	if err != nil {
 		return e.Wrap(err, "error getting sessions meter")
 	}
@@ -561,7 +683,7 @@ func reportUsage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, 
 	}
 
 	// Update errors overage
-	errorsMeter, err := GetWorkspaceErrorsMeter(DB, workspace.ID)
+	errorsMeter, err := GetWorkspaceErrorsMeter(ctx, DB, ccClient, &workspace)
 	if err != nil {
 		return e.Wrap(err, "error getting errors meter")
 	}
@@ -574,7 +696,7 @@ func reportUsage(ctx context.Context, DB *gorm.DB, ccClient *clickhouse.Client, 
 	}
 
 	// Update logs overage
-	logsMeter, err := GetWorkspaceLogsMeter(ctx, ccClient, workspace)
+	logsMeter, err := GetWorkspaceLogsMeter(ctx, DB, ccClient, &workspace)
 	if err != nil {
 		return e.Wrap(err, "error getting errors meter")
 	}

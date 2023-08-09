@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactSlider from 'react-slider'
 
-import styles from './Slider.module.scss'
+import styles from './Slider.module.css'
 
 export const Slider = ({
 	values,

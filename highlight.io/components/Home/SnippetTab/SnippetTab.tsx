@@ -67,7 +67,7 @@ import { ErrorBoundary } from '@highlight-run/react';
 H.init('your-api-key');
 
 ReactDOM.render(
-  <ErrorBoundary showDialog>
+  <ErrorBoundary>
     <App />
   </ErrorBoundary>,
   document.getElementById('root')

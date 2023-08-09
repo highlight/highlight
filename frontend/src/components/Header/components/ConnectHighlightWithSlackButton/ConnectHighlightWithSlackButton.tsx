@@ -1,32 +1,25 @@
-import clsx from 'clsx'
 import React from 'react'
 
+import { LinkButton } from '@/components/LinkButton'
+
 import { useAuthContext } from '../../../../authentication/AuthContext'
-import Button, {
-	GenericHighlightButtonProps,
-} from '../../../Button/Button/Button'
-import styles from './ConnectHighlightWithSlackButton.module.scss'
 import { useSlackBot } from './utils/utils'
 
-type Props = Pick<GenericHighlightButtonProps, 'className' | 'style'>
-
-const ConnectHighlightWithSlackButton = ({ className, style }: Props) => {
+const ConnectHighlightWithSlackButton = () => {
 	const { isLoggedIn } = useAuthContext()
-
 	const { slackUrl: slackBotUrl, isSlackConnectedToWorkspace } = useSlackBot()
 
-	if (!isLoggedIn || isSlackConnectedToWorkspace) return null
+	if (isSlackConnectedToWorkspace) return null
 
 	return (
-		<Button
-			className={clsx(className, styles.connectHighlightWithSlackButton)}
-			type="primary"
+		<LinkButton
+			to={slackBotUrl}
+			kind="primary"
 			trackingId="ConnectHighlightWithSlackButton"
-			href={slackBotUrl}
-			style={style}
+			disabled={!isLoggedIn}
 		>
 			Connect Highlight with Slack
-		</Button>
+		</LinkButton>
 	)
 }
 

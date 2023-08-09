@@ -3,17 +3,19 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 	"time"
-	"unicode"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/huandu/go-sqlbuilder"
 	flat "github.com/nqd/flat"
-	e "github.com/pkg/errors"
+	"github.com/samber/lo"
 )
 
 const LogsTable = "logs"
@@ -22,22 +24,21 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 	if len(logRows) == 0 {
 		return nil
 	}
-	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", LogsTable))
 
-	if err != nil {
-		return e.Wrap(err, "failed to create logs batch")
-	}
+	rows := lo.Map(logRows, func(l *LogRow, _ int) interface{} {
+		if len(l.UUID) == 0 {
+			l.UUID = uuid.New().String()
+		}
+		return l
+	})
+	ib := sqlbuilder.NewStruct(new(LogRow)).InsertInto(LogsTable, rows...)
+	sql, args := ib.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	for _, logRow := range logRows {
-		if len(logRow.UUID) == 0 {
-			logRow.UUID = uuid.New().String()
-		}
-		err = batch.AppendStruct(logRow)
-		if err != nil {
-			return err
-		}
-	}
-	return batch.Send()
+	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+		"async_insert":          1,
+		"wait_for_async_insert": 1,
+	}))
+	return client.conn.Exec(chCtx, sql, args...)
 }
 
 const LogsLimit int = 50
@@ -57,11 +58,11 @@ type Pagination struct {
 	CountOnly bool
 }
 
-func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*modelInputs.LogsConnection, error) {
+func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, pagination Pagination) (*modelInputs.LogConnection, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
-	selectStr := "Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId, Source, ServiceName"
+	selectStr := "Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId, Source, ServiceName, ServiceVersion"
 
 	orderForward := OrderForwardNatural
 	orderBackward := OrderBackwardNatural
@@ -140,6 +141,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 			SecureSessionId string
 			Source          string
 			ServiceName     string
+			ServiceVersion  string
 		}
 		if err := rows.ScanStruct(&result); err != nil {
 			return nil, err
@@ -157,6 +159,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 				SecureSessionID: &result.SecureSessionId,
 				Source:          &result.Source,
 				ServiceName:     &result.ServiceName,
+				ServiceVersion:  &result.ServiceVersion,
 			},
 		})
 	}
@@ -235,6 +238,45 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 	).Scan(&count)
 
 	return count, err
+}
+
+type number interface {
+	uint64 | float64
+}
+
+func (client *Client) ReadLogsDailySum(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (uint64, error) {
+	return readLogsDailyImpl[uint64](ctx, client, "sum", projectIds, dateRange)
+}
+
+func (client *Client) ReadLogsDailyAverage(ctx context.Context, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (float64, error) {
+	return readLogsDailyImpl[float64](ctx, client, "avg", projectIds, dateRange)
+}
+
+func readLogsDailyImpl[N number](ctx context.Context, client *Client, aggFn string, projectIds []int, dateRange modelInputs.DateRangeRequiredInput) (N, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select(fmt.Sprintf("COALESCE(%s(Count), 0) AS Count", aggFn)).
+		From("log_count_daily_mv").
+		Where(sb.In("ProjectId", projectIds)).
+		Where(sb.LessThan("toUInt64(Day)", uint64(dateRange.EndDate.Unix()))).
+		Where(sb.GreaterEqualThan("toUInt64(Day)", uint64(dateRange.StartDate.Unix())))
+
+	sql, args := sb.Build()
+
+	var out N
+	err := client.conn.QueryRow(
+		ctx,
+		sql,
+		args...,
+	).Scan(&out)
+
+	switch v := any(out).(type) {
+	case float64:
+		if math.IsNaN(v) {
+			return 0, err
+		}
+	}
+
+	return out, err
 }
 
 func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, nBuckets int) (*modelInputs.LogsHistogram, error) {
@@ -432,6 +474,12 @@ func (client *Client) LogsKeyValues(ctx context.Context, projectID int, keyName 
 			Where(sb.Equal("ProjectId", projectID)).
 			Where(sb.NotEqual("service_name", "")).
 			Limit(KeyValuesLimit)
+	case modelInputs.ReservedLogKeyServiceVersion.String():
+		sb.Select("DISTINCT ServiceVersion service_version").
+			From(LogsTable).
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.NotEqual("service_version", "")).
+			Limit(KeyValuesLimit)
 	default:
 		sb.Select("DISTINCT LogAttributes [" + sb.Var(keyName) + "] as value").
 			From(LogsTable).
@@ -544,6 +592,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 	makeFilterConditions(sb, filters.trace_id, "TraceId")
 	makeFilterConditions(sb, filters.source, "Source")
 	makeFilterConditions(sb, filters.service_name, "ServiceName")
+	makeFilterConditions(sb, filters.service_version, "ServiceVersion")
 
 	conditions := []string{}
 	for key, values := range filters.attributes {
@@ -562,7 +611,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 	return sb, nil
 }
 
-type filters struct {
+type filtersWithReservedKeys struct {
 	body              []string
 	level             []string
 	trace_id          []string
@@ -570,58 +619,56 @@ type filters struct {
 	secure_session_id []string
 	source            []string
 	service_name      []string
+	service_version   []string
 	attributes        map[string][]string
 }
 
-func makeFilters(query string) filters {
-	filters := filters{
+func makeFilters(query string) filtersWithReservedKeys {
+	filters := queryparser.Parse(query)
+	filtersWithReservedKeys := filtersWithReservedKeys{
 		attributes: make(map[string][]string),
 	}
 
-	queries := splitQuery(query)
+	filtersWithReservedKeys.body = filters.Body
 
-	for _, q := range queries {
-		parts := strings.Split(q, ":")
-
-		if len(parts) == 1 && len(parts[0]) > 0 {
-			body := parts[0]
-
-			if strings.Contains(body, "*") {
-				body = strings.ReplaceAll(body, "*", "%")
-				filters.body = append(filters.body, body)
-			} else {
-				splitBody := strings.FieldsFunc(body, isSeparator)
-				filters.body = append(filters.body, splitBody...)
-			}
-		} else if len(parts) == 2 {
-			key, value := parts[0], parts[1]
-
-			wildcardValue := strings.ReplaceAll(value, "*", "%")
-
-			switch key {
-			case modelInputs.ReservedLogKeyLevel.String():
-				filters.level = append(filters.level, wildcardValue)
-			case modelInputs.ReservedLogKeySecureSessionID.String():
-				filters.secure_session_id = append(filters.secure_session_id, wildcardValue)
-			case modelInputs.ReservedLogKeySpanID.String():
-				filters.span_id = append(filters.span_id, wildcardValue)
-			case modelInputs.ReservedLogKeyTraceID.String():
-				filters.trace_id = append(filters.trace_id, wildcardValue)
-			case modelInputs.ReservedLogKeySource.String():
-				filters.source = append(filters.source, wildcardValue)
-			case modelInputs.ReservedLogKeyServiceName.String():
-				filters.service_name = append(filters.service_name, wildcardValue)
-			default:
-				filters.attributes[key] = append(filters.attributes[key], wildcardValue)
-			}
-		}
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyLevel.String()]; ok {
+		filtersWithReservedKeys.level = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeyLevel.String())
 	}
 
-	return filters
-}
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyTraceID.String()]; ok {
+		filtersWithReservedKeys.trace_id = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeyTraceID.String())
+	}
 
-func isSeparator(r rune) bool {
-	return !unicode.IsLetter(r) && !unicode.IsDigit(r)
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeySpanID.String()]; ok {
+		filtersWithReservedKeys.span_id = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeySpanID.String())
+	}
+
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeySecureSessionID.String()]; ok {
+		filtersWithReservedKeys.secure_session_id = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeySecureSessionID.String())
+	}
+
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeySource.String()]; ok {
+		filtersWithReservedKeys.source = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeySource.String())
+	}
+
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyServiceName.String()]; ok {
+		filtersWithReservedKeys.service_name = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeyServiceName.String())
+	}
+
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyServiceVersion.String()]; ok {
+		filtersWithReservedKeys.service_version = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeyServiceVersion.String())
+	}
+
+	filtersWithReservedKeys.attributes = filters.Attributes
+
+	return filtersWithReservedKeys
 }
 
 func makeFilterConditions(sb *sqlbuilder.SelectBuilder, filters []string, column string) {
@@ -637,28 +684,6 @@ func makeFilterConditions(sb *sqlbuilder.SelectBuilder, filters []string, column
 	if len(conditions) > 0 {
 		sb.Where(sb.Or(conditions...))
 	}
-}
-
-// Splits the query by spaces _unless_ it is quoted
-// "some thing" => ["some", "thing"]
-// "some thing 'spaced string' else" => ["some", "thing", "spaced string", "else"]
-func splitQuery(query string) []string {
-	var result []string
-	inquote := false
-	i := 0
-	for j, c := range query {
-		if c == '"' {
-			inquote = !inquote
-		} else if c == ' ' && !inquote {
-			result = append(result, unquoteAndTrim(query[i:j]))
-			i = j + 1
-		}
-	}
-	return append(result, unquoteAndTrim(query[i:]))
-}
-
-func unquoteAndTrim(s string) string {
-	return strings.ReplaceAll(strings.Trim(s, " "), `"`, "")
 }
 
 func expandJSON(logAttributes map[string]string) map[string]interface{} {

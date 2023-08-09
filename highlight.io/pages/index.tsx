@@ -10,18 +10,16 @@ import HeroBugLeft from '../public/images/hero-bug-left.gif'
 import HeroBugRight from '../public/images/hero-bug-right.gif'
 import LandingInfoRowSecurity from '../public/images/landingInfoRowSecurity.png'
 
-import { Popover } from '@headlessui/react'
-import { ArrowLeftIcon, ArrowRightCircleIcon } from '@heroicons/react/20/solid'
 import { Collapse } from 'antd'
 import classNames from 'classnames'
 import Link from 'next/link'
-import Script from 'next/script'
 import { AnimateBugLeft, AnimateBugRight } from '../components/Animate'
 import { FooterCallToAction } from '../components/common/CallToAction/FooterCallToAction'
 import { OSSCallToAction } from '../components/common/CallToAction/OSSCallToAction'
 import Footer from '../components/common/Footer/Footer'
 import { Typography } from '../components/common/Typography/Typography'
 import { BigHeroArt } from '../components/Home/BigHeroArt'
+import { CalendlyPopover } from '../components/Home/CalendlyPopover'
 import { CompaniesReel } from '../components/Home/CompaniesReel/CompaniesReel'
 import { CustomerReviewTrack } from '../components/Home/CustomerReviewTrack'
 import { FeatureCarousel } from '../components/Home/FeatureCarousel/FeatureCarousel'
@@ -89,60 +87,6 @@ export const CustomerReview = ({
 	)
 }
 
-const CalendlyPopover = () => {
-	return (
-		<Popover className="relative flex flex-col items-center">
-			{({ open, close }) => (
-				<>
-					<Popover.Button
-						className={classNames(
-							'flex items-center gap-1 px-3 transition-colors rounded active:brightness-50',
-							open
-								? 'bg-blue-cta text-dark-background'
-								: 'hover:bg-white/10',
-						)}
-					>
-						<Typography type="copy2" emphasis>
-							Request a Demo
-						</Typography>
-						<ArrowRightCircleIcon className="w-5 h-5" />
-					</Popover.Button>
-
-					<Popover.Overlay className="fixed inset-0 z-20 opacity-70 bg-dark-background" />
-
-					<Popover.Panel
-						static
-						className={classNames(
-							'fixed inset-0 z-50 grid place-items-center w-screen h-screen',
-							!open && 'hidden',
-						)}
-						focus
-					>
-						<div
-							className={classNames(
-								'calendly-inline-widget min-w-[320px] w-screen max-w-5xl min-[1000px]:h-[700px] h-[900px] transition-opacity',
-							)}
-							data-url="https://calendly.com/jaykhatri/highlight-demo-call"
-						></div>
-						<button
-							className="absolute grid w-16 h-16 rounded-full place-content-center bg-dark-background/70 max-[652px]:left-2 max-[652px]:top-2  left-10 top-10 hover:bg-white/20 transition-colors"
-							onClick={close}
-						>
-							<ArrowLeftIcon className="w-10 h-10" />
-						</button>
-					</Popover.Panel>
-					<Script
-						type="text/javascript"
-						src="https://assets.calendly.com/assets/external/widget.js"
-						strategy="lazyOnload"
-						async
-					></Script>
-				</>
-			)}
-		</Popover>
-	)
-}
-
 const Home: NextPage = () => {
 	const reviewsRef = useRef<HTMLDivElement>(null)
 	const scrollYPosition = useRef<number>(0)
@@ -206,7 +150,7 @@ const Home: NextPage = () => {
 
 	return (
 		<div>
-			<Navbar hideBanner />
+			<Navbar />
 			<main>
 				<Section className={styles.heroVideoWrapper}>
 					<AnimateBugLeft loaded={leftBugLoaded && rightBugLoaded}>
@@ -297,15 +241,15 @@ const Home: NextPage = () => {
 					<LandingInfoRow
 						title={`Support for all the modern frameworks.`}
 						desc={`We support all the fancy new frameworks and our platform is powered by open source, scalable technologies.`}
-						link={'/docs/general/welcome'}
-						linkText={'Read the docs'}
+						link={'/frameworks'}
+						linkText={'View all frameworks'}
 						imgSrc={'/images/landingInfoRow2.png'}
 					/>
 					<LandingInfoRow
 						title={`Integrations with your favorite tools.`}
 						desc="Connect your favorite issue tracker, support tool, or even analytics software and we’ll give you a way to push and pull data in the right places."
-						link={'/docs/general/integrations/overview'}
-						linkText={'Read the docs'}
+						link={'/integrations'}
+						linkText={'View all integrations'}
 						imgSrc={'/images/landingInfoRow3.png'}
 						invert
 					/>

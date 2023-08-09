@@ -59,6 +59,10 @@ fragment SessionAlertFragment on SessionAlert {
 	DiscordChannelsToNotify {
 		...DiscordChannelFragment
 	}
+	WebhookDestinations {
+		url
+		authorization
+	}
 	CountThreshold
 	DailyFrequency
 	disabled
@@ -71,6 +75,11 @@ fragment SessionAlertFragment on SessionAlert {
 	updated_at
 	ThresholdWindow
 	TrackProperties {
+		id
+		name
+		value
+	}
+	UserProperties {
 		id
 		name
 		value
@@ -241,6 +250,7 @@ query GetSession($secure_id: String!) {
 		payload_size
 		processed
 		excluded
+		excluded_reason
 		has_rage_clicks
 		has_errors
 		within_billing_quota
@@ -251,7 +261,8 @@ query GetSession($secure_id: String!) {
 		event_counts
 		direct_download_url
 		resources_url
-		messages_url
+		web_socket_events_url
+		timeline_indicators_url
 		deviceMemory
 		last_user_interaction_time
 		length
@@ -297,6 +308,13 @@ query GetWorkspaceAdmins($workspace_id: ID!) {
 	}
 }
 
+query GetSessionInsight($secure_id: String!) {
+	session_insight(secure_id: $secure_id) {
+		id
+		insight
+	}
+}
+
 query GetSessionComments($session_secure_id: String!) {
 	session_comments(session_secure_id: $session_secure_id) {
 		id
@@ -335,40 +353,6 @@ query GetSessionComments($session_secure_id: String!) {
 				photo_url
 			}
 			text
-		}
-	}
-}
-
-query GetNotifications($project_id: ID!) {
-	session_comments_for_project(project_id: $project_id) {
-		id
-		timestamp
-		updated_at
-		session_id
-		session_secure_id
-		text
-		author {
-			id
-			name
-			email
-			photo_url
-		}
-		type
-		metadata
-		tags
-	}
-	error_comments_for_project(project_id: $project_id) {
-		id
-		updated_at
-		project_id
-		text
-		error_id
-		error_secure_id
-		author {
-			id
-			name
-			email
-			photo_url
 		}
 	}
 }
@@ -545,8 +529,20 @@ query GetTimelineIndicatorEvents($session_secure_id: String!) {
 	}
 }
 
-query GetFieldTypes($project_id: ID!) {
-	field_types(project_id: $project_id) {
+query GetWebSocketEvents($session_secure_id: String!) {
+	websocket_events(session_secure_id: $session_secure_id)
+}
+
+query GetFieldTypes(
+	$project_id: ID!
+	$start_date: Timestamp
+	$end_date: Timestamp
+) {
+	field_types(
+		project_id: $project_id
+		start_date: $start_date
+		end_date: $end_date
+	) {
 		type
 		name
 	}
@@ -605,12 +601,14 @@ query GetSessionsOpenSearch(
 	$count: Int!
 	$query: String!
 	$sort_desc: Boolean!
+	$sort_field: String
 	$page: Int
 ) {
 	sessions_opensearch(
 		project_id: $project_id
 		count: $count
 		query: $query
+		sort_field: $sort_field
 		sort_desc: $sort_desc
 		page: $page
 	) {
@@ -649,6 +647,8 @@ query GetSessionsOpenSearch(
 			user_properties
 			event_counts
 			last_user_interaction_time
+			is_public
+			excluded
 		}
 		totalCount
 	}
@@ -958,7 +958,9 @@ query GetBillingDetailsForProject($project_id: ID!) {
 		membersMeter
 		errorsMeter
 		logsMeter
-		sessionsOutOfQuota
+		sessionsBillingLimit
+		errorsBillingLimit
+		logsBillingLimit
 	}
 	workspace_for_project(project_id: $project_id) {
 		id
@@ -985,6 +987,25 @@ query GetBillingDetails($workspace_id: ID!) {
 		membersMeter
 		errorsMeter
 		logsMeter
+		sessionsBillingLimit
+		errorsBillingLimit
+		logsBillingLimit
+		sessionsDailyAverage
+		errorsDailyAverage
+		logsDailyAverage
+	}
+	subscription_details(workspace_id: $workspace_id) {
+		baseAmount
+		discountAmount
+		discountPercent
+		lastInvoice {
+			amountDue
+			amountPaid
+			attemptCount
+			date
+			url
+			status
+		}
 	}
 	workspace(id: $workspace_id) {
 		id
@@ -994,6 +1015,10 @@ query GetBillingDetails($workspace_id: ID!) {
 		allow_meter_overage
 		eligible_for_trial_extension
 		retention_period
+		errors_retention_period
+		sessions_max_cents
+		errors_max_cents
+		logs_max_cents
 	}
 }
 
@@ -1050,6 +1075,7 @@ query GetErrorGroup($secure_id: String!) {
 		is_public
 		last_occurrence
 		first_occurrence
+		serviceName
 	}
 }
 
@@ -1061,45 +1087,72 @@ query GetErrorObjectForLog($log_cursor: String!) {
 	}
 }
 
+fragment ErrorObject on ErrorObject {
+	id
+	created_at
+	project_id
+	session_id
+	trace_id
+	span_id
+	log_cursor
+	session {
+		identifier
+		fingerprint
+		secure_id
+		city
+		state
+		country
+		user_properties
+		processed
+		excluded
+		excluded_reason
+	}
+	error_group_id
+	error_group_secure_id
+	event
+	type
+	url
+	source
+	lineNumber
+	columnNumber
+	stack_trace
+	structured_stack_trace {
+		fileName
+		lineNumber
+		functionName
+		columnNumber
+		lineContent
+		linesBefore
+		linesAfter
+		error
+		sourceMappingErrorMetadata {
+			errorCode
+			stackTraceFileURL
+			sourcemapFetchStrategy
+			sourceMapURL
+			minifiedFetchStrategy
+			actualMinifiedFetchedPath
+			minifiedLineNumber
+			minifiedColumnNumber
+			actualSourcemapFetchedPath
+			sourcemapFileSize
+			minifiedFileSize
+			mappedLineNumber
+			mappedColumnNumber
+		}
+	}
+	timestamp
+	payload
+	request_id
+	os
+	browser
+	environment
+	serviceVersion
+}
+
 query GetErrorObject($id: ID!) {
 	error_object(id: $id) {
-		id
-		created_at
-		project_id
-		session {
-			identifier
-			fingerprint
-			secure_id
-			city
-			state
-			country
-			user_properties
-		}
-		error_group_id
-		error_group_secure_id
-		event
-		type
-		url
-		source
-		lineNumber
-		columnNumber
-		stack_trace
-		structured_stack_trace {
-			fileName
-			lineNumber
-			functionName
-			columnNumber
-			lineContent
-			linesBefore
-			linesAfter
-			error
-		}
-		timestamp
-		payload
-		request_id
-		os
-		browser
-		environment
+		...ErrorObject
 	}
 }
 
@@ -1109,90 +1162,11 @@ query GetErrorInstance($error_group_secure_id: String!, $error_object_id: ID) {
 		error_object_id: $error_object_id
 	) {
 		error_object {
-			id
-			created_at
-			project_id
-			session_id
-			trace_id
-			span_id
-			log_cursor
-			session {
-				identifier
-				fingerprint
-				secure_id
-				city
-				state
-				country
-				user_properties
-			}
-			error_group_id
-			error_group_secure_id
-			event
-			type
-			url
-			source
-			lineNumber
-			columnNumber
-			stack_trace
-			structured_stack_trace {
-				fileName
-				lineNumber
-				functionName
-				columnNumber
-				lineContent
-				linesBefore
-				linesAfter
-				error
-				sourceMappingErrorMetadata {
-					errorCode
-					stackTraceFileURL
-					sourcemapFetchStrategy
-					sourceMapURL
-					minifiedFetchStrategy
-					actualMinifiedFetchedPath
-					minifiedLineNumber
-					minifiedColumnNumber
-					actualSourcemapFetchedPath
-					sourcemapFileSize
-					minifiedFileSize
-					mappedLineNumber
-					mappedColumnNumber
-				}
-			}
-			timestamp
-			payload
-			request_id
-			os
-			browser
-			environment
+			...ErrorObject
 		}
 		next_id
 		previous_id
 	}
-}
-
-query GetRecentErrors($secure_id: String!) {
-	error_group(secure_id: $secure_id) {
-		secure_id
-		metadata_log {
-			error_id
-			session_secure_id
-			environment
-			timestamp
-			os
-			browser
-			visited_url
-			fingerprint
-			identifier
-			user_properties
-			request_id
-			payload
-		}
-	}
-}
-
-query GetMessages($session_secure_id: String!) {
-	messages(session_secure_id: $session_secure_id)
 }
 
 query GetResources($session_secure_id: String!) {
@@ -1222,10 +1196,6 @@ query GetProjectSuggestion($query: String!) {
 		id
 		name
 		workspace_id
-	}
-	workspaceSuggestion(query: $query) {
-		id
-		name
 	}
 }
 
@@ -1360,7 +1330,7 @@ query GetSegments($project_id: ID!) {
 }
 
 query GetErrorSegments($project_id: ID!) {
-	error_segments(project_id: $project_id) {
+	segments: error_segments(project_id: $project_id) {
 		id
 		name
 		params {
@@ -1390,7 +1360,6 @@ query GetClientIntegration($project_id: ID!) {
 	clientIntegration(project_id: $project_id) {
 		integrated
 		resourceType
-		resourceSecureId
 		createdAt
 	}
 }
@@ -1399,7 +1368,6 @@ query GetServerIntegration($project_id: ID!) {
 	serverIntegration(project_id: $project_id) {
 		integrated
 		resourceType
-		resourceSecureId
 		createdAt
 	}
 }
@@ -1408,7 +1376,6 @@ query GetLogsIntegration($project_id: ID!) {
 	logsIntegration(project_id: $project_id) {
 		integrated
 		resourceType
-		resourceSecureId
 		createdAt
 	}
 }
@@ -1502,21 +1469,6 @@ query GetDailyErrorFrequency(
 		error_group_secure_id: $error_group_secure_id
 		date_offset: $date_offset
 	)
-}
-
-query GetErrorDistribution(
-	$project_id: ID!
-	$error_group_secure_id: String!
-	$property: String!
-) {
-	errorDistribution(
-		project_id: $project_id
-		error_group_secure_id: $error_group_secure_id
-		property: $property
-	) {
-		name
-		value
-	}
 }
 
 query GetSlackChannelSuggestion($project_id: ID!) {
@@ -1618,6 +1570,22 @@ query GetHeightIntegrationSettings($workspace_id: ID!) {
 		project_id
 		external_id
 	}
+}
+
+query GetGitHubIntegrationSettings($workspace_id: ID!) {
+	is_integrated: is_workspace_integrated_with(
+		integration_type: GitHub
+		workspace_id: $workspace_id
+	)
+	github_repos(workspace_id: $workspace_id) {
+		repo_id
+		name
+		key
+	}
+}
+
+query GetGitHubIssueLabels($workspace_id: ID!, $repository: String!) {
+	github_issue_labels(workspace_id: $workspace_id, repository: $repository)
 }
 
 query GetProjectIntegratedWith(
@@ -1772,9 +1740,6 @@ query GetAlertsPagePayload($project_id: ID!) {
 		Name
 		DailyFrequency
 		disabled
-	}
-	session_feedback_alerts(project_id: $project_id) {
-		...SessionAlertFragment
 	}
 	new_session_alerts(project_id: $project_id) {
 		...SessionAlertFragment
@@ -2025,6 +1990,7 @@ query GetLogs(
 				secureSessionID
 				source
 				serviceName
+				serviceVersion
 			}
 		}
 		pageInfo {
@@ -2088,5 +2054,89 @@ query GetLogsErrorObjects($log_cursors: [String!]!) {
 		log_cursor
 		error_group_secure_id
 		id
+	}
+}
+
+query GetProjectSettings($projectId: ID!) {
+	projectSettings(projectId: $projectId) {
+		id
+		name
+		verbose_id
+		billing_email
+		excluded_users
+		error_filters
+		error_json_paths
+		filter_chrome_extension
+		rage_click_window_seconds
+		rage_click_radius_pixels
+		rage_click_count
+		backend_domains
+		filterSessionsWithoutError
+		autoResolveStaleErrorsDayInterval
+	}
+}
+
+query GetWorkspacePendingInvites($workspace_id: ID!) {
+	workspacePendingInvites(workspace_id: $workspace_id) {
+		id
+		invitee_email
+		invitee_role
+		created_at
+	}
+}
+
+query GetErrorResolutionSuggestion($error_object_id: ID!) {
+	error_resolution_suggestion(error_object_id: $error_object_id)
+}
+
+query GetWorkspaceSettings($workspace_id: ID!) {
+	workspaceSettings(workspace_id: $workspace_id) {
+		workspace_id
+		ai_application
+		ai_insights
+	}
+}
+
+query GetSystemConfiguration {
+	system_configuration {
+		maintenance_start
+		maintenance_end
+	}
+}
+
+query GetErrorObjects(
+	$errorGroupSecureID: String!
+	$after: String
+	$before: String
+	$query: String!
+) {
+	error_objects(
+		error_group_secure_id: $errorGroupSecureID
+		after: $after
+		before: $before
+		query: $query
+	) {
+		edges {
+			cursor
+			node {
+				id
+				createdAt
+				event
+				timestamp
+				errorGroupSecureID
+				session {
+					secureID
+					email
+					appVersion
+					fingerprint
+				}
+			}
+		}
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
 	}
 }

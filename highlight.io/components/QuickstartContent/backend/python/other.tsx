@@ -2,6 +2,7 @@ import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import {
 	downloadSnippet,
+	init,
 	setupFrontendSnippet,
 	setupLogging,
 } from './shared-snippets'
@@ -16,12 +17,14 @@ export const PythonOtherContext: QuickStartContent = {
 		{
 			title: 'Initialize the Highlight SDK.',
 			content: 'Setup the SDK.',
-			code: {
-				text: `import highlight_io
+			code: [
+				{
+					text: `import highlight_io
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)`,
-				language: 'python',
-			},
+${init}`,
+					language: 'python',
+				},
+			],
 		},
 		{
 			title: 'Verify your installation.',
@@ -30,14 +33,15 @@ H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)`,
 				'Try raising an exception somewhere in your code. ' +
 				'You should see a `DivideByZero` error in the [Highlight errors page](https://app.highlight.io/errors) ' +
 				'within a few moments.',
-			code: {
-				text: `import logging
+			code: [
+				{
+					text: `import logging
 import random
 import time
 
 import highlight_io
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
+${init}
 
 
 def main():
@@ -48,8 +52,9 @@ def main():
 
 if __name__ == "__main__":
     main()`,
-				language: 'python',
-			},
+					language: 'python',
+				},
+			],
 		},
 		setupLogging('other'),
 	],

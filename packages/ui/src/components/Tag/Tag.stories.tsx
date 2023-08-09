@@ -1,20 +1,18 @@
 import { Tag } from './Tag'
-import { Variants } from './styles.css'
-import type { ComponentMeta } from '@storybook/react'
-import React from 'react'
+import type { Meta } from '@storybook/react'
 import { Box } from '../Box/Box'
 import { IconSolidCheveronDown, IconSolidSave } from '../icons'
 
 export default {
 	title: 'Components/Tag',
 	component: Tag,
-} as ComponentMeta<typeof Tag>
+} as Meta<typeof Tag>
 
 export const TagVariants = () => {
-	const emphasis: Variants['emphasis'][] = ['high', 'medium', 'low']
-	const kind: Variants['kind'][] = ['primary', 'secondary']
-	const shape: Variants['shape'][] = ['basic', 'rounded']
-	const size: Variants['size'][] = ['small', 'medium', 'large']
+	const emphasis = ['high', 'medium', 'low'] as const
+	const kind = ['primary', 'secondary'] as const
+	const shape = ['basic', 'rounded'] as const
+	const size = ['small', 'medium', 'large'] as const
 
 	return (
 		<Box display="flex" gap="12" flexDirection="column">
@@ -34,12 +32,16 @@ export const TagVariants = () => {
 											icon={
 												jdx % emphasis.length !== 0 ? (
 													<IconSolidCheveronDown />
-												) : null
+												) : (
+													<></>
+												)
 											}
 											iconRight={
 												jdx % emphasis.length === 0 ? (
 													<IconSolidSave />
-												) : null
+												) : (
+													<></>
+												)
 											}
 											size={$size}
 											kind={$kind}
@@ -59,7 +61,9 @@ export const TagVariants = () => {
 										iconLeft={
 											jdx % emphasis.length !== 0 ? (
 												<IconSolidCheveronDown />
-											) : null
+											) : (
+												<></>
+											)
 										}
 										disabled
 									>

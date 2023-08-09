@@ -1,5 +1,5 @@
-import React from 'react'
-import { Box } from '../Box/Box'
+import * as styles from './styles.css'
+
 import {
 	IconSolidExclamation,
 	IconSolidInformationCircle,
@@ -7,8 +7,9 @@ import {
 	IconSolidXCircle,
 } from '../icons'
 
-import * as styles from './styles.css'
+import { Box } from '../Box/Box'
 import { ButtonIcon } from '../ButtonIcon/ButtonIcon'
+import React from 'react'
 import { Text } from '../Text/Text'
 import { vars } from '../../css/vars'
 
@@ -48,7 +49,7 @@ export const Callout: React.FC<Props> = ({
 						justifyContent="space-between"
 					>
 						<Box mt="6">
-							<Text weight="bold" size="medium">
+							<Text color="strong" weight="bold" size="medium">
 								{title}
 							</Text>
 						</Box>

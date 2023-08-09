@@ -1,16 +1,21 @@
 import LoadingBox from '@components/LoadingBox'
-import { Box, IconSolidArrowCircleRight, Tag, Text } from '@highlight-run/ui'
 import {
-	RightPanelView,
-	usePlayerUIContext,
-} from '@pages/Player/context/PlayerUIContext'
-import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
+	Box,
+	Callout,
+	IconSolidArrowCircleRight,
+	IconSolidExclamation,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
+import { getResponseStatusCode } from '@pages/Player/helpers'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
-import { useResourcesContext } from '@pages/Player/ResourcesContext/ResourcesContext'
+import {
+	LoadingError,
+	useResourcesContext,
+} from '@pages/Player/ResourcesContext/ResourcesContext'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import {
 	findLastActiveEventIndex,
-	findResourceWithMatchingHighlightHeader,
 	getHighlightRequestId,
 	getNetworkResourcesDisplayName,
 	NetworkResource,
@@ -18,15 +23,15 @@ import {
 	RequestType,
 	Tab,
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
-import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
-import { message } from 'antd'
 import _ from 'lodash'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
+import { ErrorObject } from '@/graph/generated/schemas'
+import { useActiveNetworkResourceId } from '@/hooks/useActiveNetworkResourceId'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import TextHighlighter from '../../../../../components/TextHighlighter/TextHighlighter'
@@ -38,51 +43,29 @@ export const NetworkPage = ({
 	time,
 	autoScroll,
 	filter,
-	requestType,
-	requestStatus,
+	requestTypes,
+	requestStatuses,
 }: {
 	time: number
 	autoScroll: boolean
 	filter: string
-	requestType: RequestType
-	requestStatus: RequestStatus
+	requestTypes: RequestType[]
+	requestStatuses: RequestStatus[]
 }) => {
-	const {
-		state,
-		session,
-		isPlayerReady,
-		errors,
-		replayer,
-		setTime,
-		sessionMetadata,
-	} = useReplayerContext()
+	const { state, session, isPlayerReady, errors, setTime, sessionMetadata } =
+		useReplayerContext()
 	const startTime = sessionMetadata.startTime
-	const {
-		setShowDevTools,
-		setSelectedDevToolsTab,
-		setShowRightPanel,
-		showPlayerAbsoluteTime,
-	} = usePlayerConfiguration()
-	const {
-		setActiveError,
-		setActiveNetworkResource,
-		rightPanelView,
-		setRightPanelView,
-	} = usePlayerUIContext()
-
+	const { showPlayerAbsoluteTime } = usePlayerConfiguration()
+	const { setActiveNetworkResourceId } = useActiveNetworkResourceId()
 	const { session_secure_id } = useParams<{ session_secure_id: string }>()
 
-	const [currentActiveIndex, setCurrentActiveIndex] = useState<number>()
-
 	const virtuoso = useRef<VirtuosoHandle>(null)
-	const errorId = new URLSearchParams(location.search).get(
-		PlayerSearchParameters.errorId,
-	)
 
 	const {
 		resources: parsedResources,
 		loadResources,
 		resourcesLoading: loading,
+		error: resourceLoadingError,
 	} = useResourcesContext()
 	useEffect(() => {
 		loadResources()
@@ -103,12 +86,14 @@ export const NetworkPage = ({
 			(parsedResources
 				.filter(
 					(request) =>
-						requestType === RequestType.All ||
-						requestType === request.initiatorType,
+						requestTypes.includes(RequestType.All) ||
+						requestTypes.includes(
+							request.initiatorType as RequestType,
+						),
 				)
 				.filter((request) => {
 					/* No filter for RequestStatus.All */
-					if (requestStatus === RequestStatus.All) {
+					if (requestStatuses.includes(RequestStatus.All)) {
 						return true
 					}
 					/* Filter on RequestStatus */
@@ -117,7 +102,14 @@ export const NetworkPage = ({
 					if (status) {
 						const statusString = status.toString()
 						/* '1', '2', '3', '4', '5', '?' */
-						if (requestStatus[0] === statusString[0]) {
+						const selectedRequestStatusGroups = requestStatuses.map(
+							(status) => status[0],
+						)
+						if (
+							selectedRequestStatusGroups.includes(
+								statusString[0],
+							)
+						) {
 							return true
 						}
 					} else {
@@ -126,17 +118,23 @@ export const NetworkPage = ({
 								request.initiatorType as RequestType,
 							)
 						) {
-							return requestStatus === RequestStatus.Unknown
+							return requestStatuses.includes(
+								RequestStatus.Unknown,
+							)
+						} else if (
+							request.initiatorType === RequestType.WebSocket
+						) {
+							return requestStatuses.includes(
+								RequestStatus['1XX'],
+							)
 						} else {
 							// this is a network request with no status code, so we assume 2xx
-							return requestStatus === RequestStatus['2XX']
+							return requestStatuses.includes(
+								RequestStatus['2XX'],
+							)
 						}
 					}
-				})
-				.map((event) => ({
-					...event,
-					timestamp: event.startTime + startTime,
-				})) as NetworkResource[]) ?? []
+				}) as NetworkResource[]) ?? []
 
 		if (filter !== '') {
 			return current.filter((resource) => {
@@ -151,7 +149,7 @@ export const NetworkPage = ({
 		}
 
 		return current
-	}, [parsedResources, filter, requestType, requestStatus, startTime])
+	}, [parsedResources, filter, requestTypes, requestStatuses])
 
 	const currentResourceIdx = useMemo(() => {
 		return findLastActiveEventIndex(
@@ -178,55 +176,6 @@ export const NetworkPage = ({
 	)
 
 	useEffect(() => {
-		if (
-			errorId &&
-			!loading &&
-			!!session &&
-			!!resourcesToRender &&
-			resourcesToRender.length > 0 &&
-			!!errors &&
-			errors.length > 0 &&
-			isPlayerReady
-		) {
-			const matchingError = errors.find((e) => e.id === errorId)
-			if (matchingError && matchingError.request_id) {
-				const resource = findResourceWithMatchingHighlightHeader(
-					matchingError.request_id,
-					resourcesToRender,
-				)
-				if (resource) {
-					setActiveNetworkResource(resource)
-					setTime(resource.startTime)
-					scrollFunction(resourcesToRender.indexOf(resource))
-					message.success(
-						`Changed player time to when error was thrown at ${MillisToMinutesAndSeconds(
-							resource.startTime,
-						)}.`,
-					)
-				} else {
-					setSelectedDevToolsTab(Tab.Errors)
-					setActiveError(matchingError)
-					setRightPanelView(RightPanelView.Error)
-					analytics.track(
-						'FailedToMatchHighlightResourceHeaderWithResource',
-					)
-				}
-			}
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [
-		resourcesToRender,
-		errors,
-		isPlayerReady,
-		loading,
-		replayer,
-		scrollFunction,
-		session,
-		setSelectedDevToolsTab,
-		setShowDevTools,
-	])
-
-	useEffect(() => {
 		if (autoScroll && state === ReplayerState.Playing) {
 			scrollFunction(currentResourceIdx)
 		}
@@ -239,52 +188,11 @@ export const NetworkPage = ({
 		}
 	}, [autoScroll, currentResourceIdx, scrollFunction, state, time])
 
-	// Sets up a keydown listener to allow the user to quickly view network requests details in the resource panel by using the up/down arrow key.
-	/* Note - this event collides with the "CMD + up" and "CMD + down" command for controlling player speed */
-	useEffect(() => {
-		const listener = (e: KeyboardEvent) => {
-			let direction: undefined | number = undefined
-			if (e.key === 'ArrowUp') {
-				direction = -1
-			} else if (e.key === 'ArrowDown') {
-				direction = 1
-			}
-
-			if (direction !== undefined) {
-				e.preventDefault()
-				let nextIndex = (currentActiveIndex || 0) + direction
-				if (nextIndex < 0) {
-					nextIndex = 0
-				} else if (nextIndex >= resourcesToRender.length) {
-					nextIndex = resourcesToRender.length - 1
-				}
-
-				setCurrentActiveIndex(nextIndex)
-				const isPanelOpen =
-					rightPanelView === RightPanelView.NetworkResource
-				if (isPanelOpen) {
-					requestAnimationFrame(() => {
-						setActiveNetworkResource(resourcesToRender[nextIndex])
-						virtuoso.current?.scrollToIndex(nextIndex - 1)
-					})
-				}
-			}
-		}
-		document.addEventListener('keydown', listener, { passive: false })
-
-		return () => {
-			document.removeEventListener('keydown', listener)
-		}
-	}, [
-		currentActiveIndex,
-		resourcesToRender,
-		rightPanelView,
-		setActiveNetworkResource,
-	])
-
 	return (
 		<Box className={styles.container}>
-			{!isPlayerReady || loading || !session ? (
+			{resourceLoadingError ? (
+				<ResourceLoadingErrorCallout error={resourceLoadingError} />
+			) : !isPlayerReady || loading || !session ? (
 				<LoadingBox />
 			) : resourcesToRender.length > 0 ? (
 				<Box className={styles.container}>
@@ -319,13 +227,12 @@ export const NetworkPage = ({
 							itemContent={(index, resource) => {
 								const requestId =
 									getHighlightRequestId(resource)
-								const error = errors.find(
+								const requestErrors = errors.filter(
 									(e) => e.request_id === requestId,
 								)
 								return (
 									<ResourceRow
 										key={index.toString()}
-										index={index}
 										resource={resource}
 										networkRange={networkRange}
 										isCurrentResource={
@@ -333,22 +240,16 @@ export const NetworkPage = ({
 										}
 										searchTerm={filter}
 										onClickHandler={() => {
-											setCurrentActiveIndex(index)
-											setActiveNetworkResource(resource)
-											setShowRightPanel(true)
-											setRightPanelView(
-												RightPanelView.NetworkResource,
+											setActiveNetworkResourceId(
+												resource.id,
 											)
 										}}
-										setCurrentActiveIndex={
-											setCurrentActiveIndex
-										}
-										setActiveNetworkResource={
-											setActiveNetworkResource
+										setActiveNetworkResourceId={
+											setActiveNetworkResourceId
 										}
 										setTime={setTime}
 										playerStartTime={startTime}
-										hasError={!!error}
+										errors={requestErrors}
 										networkRequestAndResponseRecordingEnabled={
 											session.enable_recording_network_contents ||
 											false
@@ -367,8 +268,8 @@ export const NetworkPage = ({
 					<EmptyDevToolsCallout
 						kind={Tab.Network}
 						filter={filter}
-						requestType={requestType}
-						requestStatus={requestStatus}
+						requestTypes={requestTypes}
+						requestStatuses={requestStatuses}
 					/>
 				)
 			)}
@@ -377,38 +278,30 @@ export const NetworkPage = ({
 }
 
 interface ResourceRowProps {
-	index: number
 	resource: NetworkResource
 	networkRange: number
 	isCurrentResource: boolean
 	searchTerm: string
 	onClickHandler: () => void
-	setCurrentActiveIndex: React.Dispatch<
-		React.SetStateAction<number | undefined>
-	>
-	setActiveNetworkResource: React.Dispatch<
-		React.SetStateAction<NetworkResource | undefined>
-	>
+	setActiveNetworkResourceId: (resource: number | undefined) => void
 	setTime: (time: number) => void
 	networkRequestAndResponseRecordingEnabled: boolean
 	playerStartTime: number
-	hasError?: boolean
+	errors?: ErrorObject[]
 	showPlayerAbsoluteTime?: boolean
 }
 
 const ResourceRow = ({
-	index,
 	resource,
 	networkRange,
 	isCurrentResource,
 	searchTerm,
 	onClickHandler,
-	setCurrentActiveIndex,
-	setActiveNetworkResource,
+	setActiveNetworkResourceId,
 	networkRequestAndResponseRecordingEnabled,
 	setTime,
 	playerStartTime,
-	hasError,
+	errors,
 	showPlayerAbsoluteTime,
 }: ResourceRowProps) => {
 	const leftPaddingPercent = (resource.startTime / networkRange) * 100
@@ -417,23 +310,30 @@ const ResourceRow = ({
 		0.1,
 	)
 	const rightPaddingPercent = 100 - actualPercent - leftPaddingPercent
-	const { activeNetworkResource } = usePlayerUIContext()
 
-	const showingDetails = activeNetworkResource?.id === resource.id
+	const { activeNetworkResourceId } = useActiveNetworkResourceId()
+	const showingDetails = activeNetworkResourceId === resource.id
+	const responseStatus = resource.requestResponsePairs?.response.status
+	const bodyErrors = hasErrorsInBody(resource)
+
+	const hasError =
+		bodyErrors ||
+		!!errors?.length ||
+		!!resource.errors?.length ||
+		!!(responseStatus === 0 || (responseStatus && responseStatus >= 400))
+	const reponseStatuscode = getResponseStatusCode(resource)
+
 	return (
-		<Box key={resource.id.toString()} onClick={onClickHandler}>
+		<Box
+			key={resource.id.toString()}
+			onClick={onClickHandler}
+			cursor="pointer"
+		>
 			<Box
 				borderBottom="dividerWeak"
 				cssClass={styles.networkRowVariants({
 					current: isCurrentResource,
-					failedResource: !!(
-						hasError ||
-						(resource.requestResponsePairs?.response.status &&
-							(resource.requestResponsePairs.response.status ===
-								0 ||
-								resource.requestResponsePairs.response.status >=
-									400))
-					),
+					failedResource: hasError,
 					showingDetails,
 				})}
 			>
@@ -442,17 +342,15 @@ const ResourceRow = ({
 					weight={showingDetails ? 'bold' : 'medium'}
 					lines="1"
 				>
-					{/* NOTE - Showing '200' for all requests that aren't 'xmlhttprequest' or 'fetch' */}
-					{resource.initiatorType === 'xmlhttprequest' ||
-					resource.initiatorType === 'fetch'
-						? resource.requestResponsePairs?.response.status ?? (
-								<UnknownRequestStatusCode
-									networkRequestAndResponseRecordingEnabled={
-										networkRequestAndResponseRecordingEnabled
-									}
-								/>
-						  )
-						: '200'}
+					{reponseStatuscode === 'Unknown' ? (
+						<UnknownRequestStatusCode
+							networkRequestAndResponseRecordingEnabled={
+								networkRequestAndResponseRecordingEnabled
+							}
+						/>
+					) : (
+						reponseStatuscode
+					)}
 				</Text>
 				<Text
 					size="small"
@@ -482,7 +380,9 @@ const ResourceRow = ({
 						: MillisToMinutesAndSeconds(resource.startTime)}
 				</Text>
 				<Text size="small" weight={showingDetails ? 'bold' : 'medium'}>
-					{formatTime(resource.responseEnd - resource.startTime)}
+					{resource.responseEnd && resource.startTime
+						? formatTime(resource.responseEnd - resource.startTime)
+						: 'N/A'}
 				</Text>
 				<Box className={styles.timingBarWrapper}>
 					<Box
@@ -510,10 +410,9 @@ const ResourceRow = ({
 					kind="secondary"
 					size="medium"
 					onClick={(event) => {
+						event.stopPropagation() // prevent panel from closing when clicking a resource
 						setTime(resource.startTime)
-						event.stopPropagation() /* Prevents opening of right panel by parent row's onClick handler */
-						setCurrentActiveIndex(index)
-						setActiveNetworkResource(resource)
+						setActiveNetworkResourceId(resource.id)
 					}}
 				>
 					<IconSolidArrowCircleRight />
@@ -552,4 +451,63 @@ export const UnknownRequestStatusCode = ({
 			Unknown
 		</Tooltip>
 	)
+}
+
+const ResourceLoadingErrorCallout = function ({
+	error,
+}: {
+	error: LoadingError
+}) {
+	return (
+		<Box
+			height="full"
+			width="full"
+			display="flex"
+			alignItems="center"
+			justifyContent="center"
+		>
+			<Callout
+				border
+				title={`Failed to load session network resources: ${error}`}
+				icon={() => (
+					<Box
+						borderRadius="5"
+						style={{
+							alignItems: 'center',
+							backgroundColor: '#E9E9E9',
+							display: 'flex',
+							height: 22,
+							justifyContent: 'center',
+							textAlign: 'center',
+							width: 22,
+						}}
+					>
+						<IconSolidExclamation size={14} color="#777777" />
+					</Box>
+				)}
+			/>
+		</Box>
+	)
+}
+
+const hasErrorsInBody = (resource: NetworkResource): boolean => {
+	const body = resource?.requestResponsePairs?.response.body
+
+	if (!body) {
+		return false
+	}
+
+	try {
+		let parsedResponseBody: { [key: string]: any } = {}
+		if (typeof body === 'object') {
+			parsedResponseBody = JSON.parse(JSON.stringify(body))
+		} else {
+			parsedResponseBody = JSON.parse(body)
+		}
+
+		const errors = parsedResponseBody.errors
+		return Array.isArray(errors) ? errors.length > 0 : !!errors
+	} catch (error) {
+		return false
+	}
 }

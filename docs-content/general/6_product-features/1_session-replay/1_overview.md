@@ -8,7 +8,7 @@ updatedAt: 2022-08-18T22:36:12.000Z
 
 Session replay gives your team visibility into how people use your web app and insight into WHY bugs happen. In [highlight.io](https://highlight.io), we focus heavily on "cohesion", or the mapping of sessions, errors and logs across your stack; that way you get an accurate and comprehensive idea of what happens.
 
-## Get Started.
+## Get Started
 
 <DocsCardGroup>
     <DocsCard title="Get Started."  href="../../../getting-started/1_overview.md">
@@ -16,7 +16,7 @@ Session replay gives your team visibility into how people use your web app and i
     </DocsCard>
 </DocsCardGroup>
 
-## Features.
+## Features
 
 Read more about the features we support in Session Replay below:
 
@@ -36,11 +36,14 @@ Read more about the features we support in Session Replay below:
     <DocsCard title="Extracting the Session URL"  href="./session-url.md">
         {"SDK support for extracting the session URL from your sessions."}
     </DocsCard>
-    <DocsCard title="Ignoring & Excluding Sessions"  href="./ignoring-sessions.md">
-        {"Options for ignoring and excluding sessions."}
+    <DocsCard title="Filtering Sessions"  href="./filtering-sessions.md">
+        {"Options for filtering sessions."}
     </DocsCard>
     <DocsCard title="Tracking Users & Events."  href="./events-and-users.md">
         {"SDK support for tracking users and their corresponding actions throughout a session."}
+    </DocsCard>
+    <DocsCard title="GraphQL"  href="./graphql.md">
+        {"GraphQL operation names and formatted payloads."}
     </DocsCard>
     <DocsCard title="Live Mode."  href="./live-mode.md">
         {"Support for following a user session in real-time."}

@@ -25,6 +25,9 @@ Installing highlight.io in javascript will automatically instrument frontend err
     <DocsCard title="Next.js"  href="./client-sdk/nextjs.md">
         {"Get started in your Next.js app"}
     </DocsCard>
+    <DocsCard title="Remix"  href="./client-sdk/remix.md">
+        {"Get started in your Remix app"}
+    </DocsCard>
     <DocsCard title="VueJS"  href="./client-sdk/vuejs.md">
         {"Get started in your VueJS app"}
     </DocsCard>
@@ -59,6 +62,8 @@ Highlight.io also supports reporting errors from your backend and mapping these 
 
 Highlight.io also supports logging from your backend and mapping these to corresponding errors and sessions. This gives you and your team a full picture of your application's state. Supported frameworks / languages below:
 
+### Application Logging
+
 <DocsCardGroup>
     <DocsCard title="Go" href="./backend-logging/1_go/1_overview.md">
         {"Get started with logging in Go"}
@@ -68,6 +73,29 @@ Highlight.io also supports logging from your backend and mapping these to corres
     </DocsCard>
     <DocsCard title="Ruby" href="./backend-logging/4_ruby/1_overview.md">
         {"Get started with logging in Ruby"}
+    </DocsCard>
+    <DocsCard title="Python" href="./backend-logging/3_python/1_overview.md">
+        {"Get started with logging in Python"}
+    </DocsCard>
+</DocsCardGroup>
+
+### Hosting Platform Logging
+
+<DocsCardGroup>
+    <DocsCard title="Cloud" href="./backend-logging/5_hosting/1_overview.md">
+        {"Log from your Cloud Hosting Environment"}
+    </DocsCard>
+    <DocsCard title="curl" href="./backend-logging/6_http.md">
+        {"Send logs over HTTPS"}
+    </DocsCard>
+    <DocsCard title="Docker" href="./backend-logging/7_docker.md">
+        {"Stream Docker logs"}
+    </DocsCard>
+    <DocsCard title="Fluent Forward" href="./backend-logging/9_fluentforward.md">
+        {"Send Fluent Forward (Fluentd / Fluent Bit) logs"}
+    </DocsCard>
+    <DocsCard title="File" href="./backend-logging/8_file.md">
+        {"Stream any log file"}
     </DocsCard>
 </DocsCardGroup>
 

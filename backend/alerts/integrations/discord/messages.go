@@ -273,7 +273,7 @@ func (bot *Bot) SendUserPropertiesAlert(channelId string, payload integrations.U
 	return err
 }
 
-func (bot *Bot) SendSessionFeedbackAlert(channelId string, payload integrations.SessionFeedbackAlertPayload) error {
+func (bot *Bot) SendErrorFeedbackAlert(channelId string, payload integrations.ErrorFeedbackAlertPayload) error {
 	fields := []*discordgo.MessageEmbedField{}
 	fields = append(fields, &discordgo.MessageEmbedField{
 		Name:   "Comment",
@@ -282,7 +282,7 @@ func (bot *Bot) SendSessionFeedbackAlert(channelId string, payload integrations.
 	})
 
 	embed := newMessageEmbed()
-	embed.Title = "Highlight Feedback Alert"
+	embed.Title = "Highlight Error Feedback Alert"
 	embed.Description = payload.UserIdentifier
 	embed.Fields = fields
 

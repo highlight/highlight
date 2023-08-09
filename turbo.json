@@ -22,12 +22,17 @@
 			"dependsOn": ["^build"]
 		},
 		"codegen": {
-			"inputs": ["./**/*.gql", "./**/*.graphqls"],
+			"inputs": ["../**/*.gql", "../**/*.graphqls"],
 			"outputs": ["src/graph/generated/**"]
 		},
 		"typegen": {
 			"dependsOn": ["^typegen"],
-			"inputs": ["src/**/*.tsx", "src/**/*.ts", "tsconfig.json"],
+			"inputs": [
+				"src/**/*.tsx",
+				"src/**/*.ts",
+				"tsconfig.json",
+				"./**/*.graphqls"
+			],
 			"outputs": [
 				"lib/**",
 				"es/**",
@@ -36,6 +41,14 @@
 				"build/**",
 				"esm/**"
 			]
+		},
+		"reflame": {
+			"dependsOn": [],
+			"cache": false
+		},
+		"reflame-build": {
+			"dependsOn": [],
+			"cache": false
 		},
 		"build": {
 			"dependsOn": ["codegen", "typegen", "^build"],
@@ -49,15 +62,15 @@
 			],
 			"env": [
 				"CLICKUP_CLIENT_ID",
+				"CYPRESS_CLIENT_VERSION",
 				"DD_CLIENT_TOKEN",
-				"DEMO_ERROR_URL",
-				"DEMO_SESSION_URL",
+				"DEMO_PROJECT_ID",
 				"DISCORD_CLIENT_ID",
+				"GITHUB_CLIENT_ID",
 				"HEIGHT_CLIENT_ID",
 				"LINEAR_CLIENT_ID",
 				"REACT_APP_AUTH_MODE",
 				"REACT_APP_COMMIT_SHA",
-				"REACT_APP_DEMO_SESSION",
 				"REACT_APP_FIREBASE_CONFIG_OBJECT",
 				"REACT_APP_FRONTEND_ORG",
 				"REACT_APP_FRONTEND_URI",
@@ -71,8 +84,13 @@
 			]
 		},
 		"dev": {
-			"dependsOn": ["^build"],
-			"cache": false
+			"dependsOn": ["typegen", "^build"],
+			"cache": false,
+			"persistent": true
+		},
+		"dev:watch": {
+			"cache": false,
+			"persistent": true
 		},
 		"enforce-size": {
 			"dependsOn": ["build"]
@@ -97,5 +115,5 @@
 		}
 	},
 	"globalEnv": ["DOPPLER_TOKEN"],
-	"globalDependencies": ["package.json", "yarn.lock"]
+	"globalDependencies": ["package.json", "yarn.lock", "tsconfig.json"]
 }

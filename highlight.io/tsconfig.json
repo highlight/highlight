@@ -6,7 +6,7 @@
 		"allowJs": true,
 		"skipLibCheck": true,
 		"allowSyntheticDefaultImports": true,
-		"strict": false,
+		"strict": true,
 		"forceConsistentCasingInFileNames": true,
 		"incremental": true,
 		"esModuleInterop": true,
@@ -18,6 +18,6 @@
 		"composite": true,
 		"noEmit": true
 	},
-	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "scripts/*.js"],
 	"exclude": ["node_modules", "dist", ".next"]
 }

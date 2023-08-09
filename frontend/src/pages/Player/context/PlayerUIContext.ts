@@ -1,17 +1,16 @@
 import { ErrorObject } from '@graph/schemas'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
-import { NetworkResource } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { createContext } from '@util/context/context'
 import React from 'react'
 
 export enum RightPanelView {
 	Error = 'ERROR',
-	NetworkResource = 'NETWORK_RESOURCE',
+	Comments = 'COMMENTS',
 	Session = 'SESSION',
 	Event = 'EVENT',
 }
 
-export type RightPlayerTab = 'Events' | 'Threads' | 'Metadata'
+export type RightPlayerTab = 'Events' | 'Metadata' | 'AI Insights'
 interface PlayerUIContext {
 	isPlayerFullscreen: boolean
 	setIsPlayerFullscreen: React.Dispatch<React.SetStateAction<boolean>>
@@ -25,16 +24,11 @@ interface PlayerUIContext {
 		React.SetStateAction<HighlightEvent | undefined>
 	>
 	rightPanelView: RightPanelView
-	setRightPanelView: React.Dispatch<React.SetStateAction<RightPanelView>>
+	setRightPanelView: (newValue: RightPanelView) => void
 
 	activeError?: ErrorObject
 	setActiveError: React.Dispatch<
 		React.SetStateAction<ErrorObject | undefined>
-	>
-
-	activeNetworkResource?: NetworkResource
-	setActiveNetworkResource: React.Dispatch<
-		React.SetStateAction<NetworkResource | undefined>
 	>
 }
 

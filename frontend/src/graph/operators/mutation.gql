@@ -12,13 +12,6 @@ mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
 	}
 }
 
-mutation MarkSessionAsStarred($secure_id: String!, $starred: Boolean!) {
-	markSessionAsStarred(secure_id: $secure_id, starred: $starred) {
-		secure_id
-		starred
-	}
-}
-
 mutation MuteSessionCommentThread($id: ID!, $has_muted: Boolean) {
 	muteSessionCommentThread(id: $id, has_muted: $has_muted)
 }
@@ -37,13 +30,33 @@ mutation CreateOrUpdateStripeSubscription(
 	)
 }
 
+mutation SaveBillingPlan(
+	$workspace_id: ID!
+	$sessionsLimitCents: Int
+	$sessionsRetention: RetentionPeriod!
+	$errorsLimitCents: Int
+	$errorsRetention: RetentionPeriod!
+	$logsLimitCents: Int
+	$logsRetention: RetentionPeriod!
+) {
+	saveBillingPlan(
+		workspace_id: $workspace_id
+		sessionsLimitCents: $sessionsLimitCents
+		sessionsRetention: $sessionsRetention
+		errorsLimitCents: $errorsLimitCents
+		errorsRetention: $errorsRetention
+		logsLimitCents: $logsLimitCents
+		logsRetention: $logsRetention
+	)
+}
+
 mutation UpdateBillingDetails($workspace_id: ID!) {
 	updateBillingDetails(workspace_id: $workspace_id)
 }
 
 mutation updateErrorGroupState(
 	$secure_id: String!
-	$state: String!
+	$state: ErrorState!
 	$snoozed_until: Timestamp
 ) {
 	updateErrorGroupState(
@@ -225,6 +238,52 @@ mutation EditProject(
 	}
 }
 
+mutation EditProjectSettings(
+	$projectId: ID!
+	$name: String
+	$billing_email: String
+	$excluded_users: StringArray
+	$error_filters: StringArray
+	$error_json_paths: StringArray
+	$filter_chrome_extension: Boolean
+	$rage_click_window_seconds: Int
+	$rage_click_radius_pixels: Int
+	$rage_click_count: Int
+	$backend_domains: StringArray
+	$filterSessionsWithoutError: Boolean
+	$autoResolveStaleErrorsDayInterval: Int
+) {
+	editProjectSettings(
+		projectId: $projectId
+		name: $name
+		billing_email: $billing_email
+		excluded_users: $excluded_users
+		error_filters: $error_filters
+		error_json_paths: $error_json_paths
+		filter_chrome_extension: $filter_chrome_extension
+		rage_click_window_seconds: $rage_click_window_seconds
+		rage_click_radius_pixels: $rage_click_radius_pixels
+		rage_click_count: $rage_click_count
+		backend_domains: $backend_domains
+		filterSessionsWithoutError: $filterSessionsWithoutError
+		autoResolveStaleErrorsDayInterval: $autoResolveStaleErrorsDayInterval
+	) {
+		id
+		name
+		billing_email
+		excluded_users
+		error_filters
+		error_json_paths
+		filter_chrome_extension
+		rage_click_window_seconds
+		rage_click_radius_pixels
+		rage_click_count
+		backend_domains
+		filterSessionsWithoutError
+		autoResolveStaleErrorsDayInterval
+	}
+}
+
 mutation DeleteProject($id: ID!) {
 	deleteProject(id: $id)
 }
@@ -233,6 +292,22 @@ mutation EditWorkspace($id: ID!, $name: String) {
 	editWorkspace(id: $id, name: $name) {
 		id
 		name
+	}
+}
+
+mutation EditWorkspaceSettings(
+	$workspace_id: ID!
+	$ai_application: Boolean
+	$ai_insights: Boolean
+) {
+	editWorkspaceSettings(
+		workspace_id: $workspace_id
+		ai_application: $ai_application
+		ai_insights: $ai_insights
+	) {
+		workspace_id
+		ai_application
+		ai_insights
 	}
 }
 
@@ -1062,5 +1137,15 @@ mutation UpdateEmailOptOut(
 		admin_id: $admin_id
 		category: $category
 		is_opt_out: $is_opt_out
+	)
+}
+
+mutation DeleteInviteLinkFromWorkspace(
+	$workspace_id: ID!
+	$workspace_invite_link_id: ID!
+) {
+	deleteInviteLinkFromWorkspace(
+		workspace_id: $workspace_id
+		workspace_invite_link_id: $workspace_invite_link_id
 	)
 }

@@ -1,5 +1,6 @@
 import classNames from 'classnames'
 import Link from 'next/link'
+import { AiFillBug } from 'react-icons/ai'
 import {
 	HiChartPie,
 	HiCog,
@@ -8,7 +9,6 @@ import {
 	HiTag,
 	HiTerminal,
 } from 'react-icons/hi'
-import { AiFillBug } from 'react-icons/ai'
 import { IoIosStopwatch } from 'react-icons/io'
 
 import { ReactElement } from 'react-markdown/lib/react-markdown'
@@ -19,7 +19,7 @@ export type Tag = {
 	name: string
 	slug: string
 	description?: string
-	posts: Post[]
+	posts?: Post[]
 }
 
 export const getTagUrl = (slug: string) =>

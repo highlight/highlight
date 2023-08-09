@@ -3,26 +3,28 @@ import { DEFAULT_PAGE_SIZE } from '@components/Pagination/Pagination'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import { useGetSessionsOpenSearchQuery } from '@graph/hooks'
 import {
+	Badge,
 	Box,
 	ButtonIcon,
-	IconSolidChatAlt_2,
 	IconSolidDocumentDuplicate,
 	IconSolidExitRight,
 	IconSolidLockClosed,
 	IconSolidLockOpen,
 	IconSolidMenuAlt_3,
 	IconSolidTemplate,
+	Stack,
 	SwitchButton,
-	Text,
 	TextLink,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { useProjectId } from '@hooks/useProjectId'
-import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
+import {
+	RightPanelView,
+	usePlayerUIContext,
+} from '@pages/Player/context/PlayerUIContext'
 import { changeSession } from '@pages/Player/PlayerHook/utils'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
-import ExplanatoryPopover from '@pages/Player/Toolbar/ExplanatoryPopover/ExplanatoryPopover'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
@@ -32,8 +34,12 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
 
+import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch/PlayerModeSwitch'
+
 import SessionShareButtonV2 from '../SessionShareButton/SessionShareButtonV2'
 import * as styles from './SessionLevelBarV2.css'
+
+const DEFAULT_RIGHT_PANEL_VIEWS = [RightPanelView.Event, RightPanelView.Session]
 
 export const SessionLevelBarV2: React.FC<
 	React.PropsWithChildren & {
@@ -43,7 +49,7 @@ export const SessionLevelBarV2: React.FC<
 	const [copyShown, setCopyShown] = useState<boolean>(false)
 	const delayRef = useRef<number>()
 	const navigate = useNavigate()
-	const { projectId: project_id } = useProjectId()
+	const { projectId } = useProjectId()
 	const { session_secure_id } = useParams<{
 		session_secure_id: string
 	}>()
@@ -57,19 +63,19 @@ export const SessionLevelBarV2: React.FC<
 		showRightPanel,
 		setShowRightPanel,
 	} = usePlayerConfiguration()
-	const { selectedRightPanelTab, setSelectedRightPanelTab } =
-		usePlayerUIContext()
+	const { rightPanelView, setRightPanelView } = usePlayerUIContext()
 	const { data } = useGetSessionsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
 			count: DEFAULT_PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
-			project_id: project_id!,
+			project_id: projectId!,
 			sort_desc: true,
 		},
 		fetchPolicy: 'cache-first',
-		skip: !project_id || !backendSearchQuery?.searchQuery,
+		skip: !projectId || !backendSearchQuery?.searchQuery,
 	})
+	const isDefaultView = DEFAULT_RIGHT_PANEL_VIEWS.includes(rightPanelView)
 
 	const sessionIdx = sessionResults.sessions.findIndex(
 		(s) => s.secure_id === session_secure_id,
@@ -95,16 +101,16 @@ export const SessionLevelBarV2: React.FC<
 		setSessionResults,
 	])
 
-	const canMoveForward = !!project_id && sessionResults.sessions[next]
-	const canMoveBackward = !!project_id && sessionResults.sessions[prev]
+	const canMoveForward = !!projectId && sessionResults.sessions[next]
+	const canMoveBackward = !!projectId && sessionResults.sessions[prev]
 
 	useHotkeys(
 		'j',
 		() => {
-			if (canMoveForward && project_id) {
+			if (canMoveForward && projectId) {
 				analytics.track('NextSessionKeyboardShortcut')
 				changeSession(
-					project_id,
+					projectId,
 					navigate,
 					sessionResults.sessions[next],
 				)
@@ -116,10 +122,10 @@ export const SessionLevelBarV2: React.FC<
 	useHotkeys(
 		'k',
 		() => {
-			if (canMoveBackward && project_id) {
+			if (canMoveBackward && projectId) {
 				analytics.track('PrevSessionKeyboardShortcut')
 				changeSession(
-					project_id,
+					projectId,
 					navigate,
 					sessionResults.sessions[prev],
 				)
@@ -160,9 +166,9 @@ export const SessionLevelBarV2: React.FC<
 					)}
 					<PreviousNextGroup
 						onPrev={() => {
-							if (project_id) {
+							if (projectId) {
 								changeSession(
-									project_id,
+									projectId,
 									navigate,
 									sessionResults.sessions[prev],
 								)
@@ -170,16 +176,51 @@ export const SessionLevelBarV2: React.FC<
 						}}
 						canMoveBackward={!!canMoveBackward}
 						onNext={() => {
-							if (project_id) {
+							if (projectId) {
 								changeSession(
-									project_id,
+									projectId,
 									navigate,
 									sessionResults.sessions[next],
 								)
 							}
 						}}
 						canMoveForward={!!canMoveForward}
+						size="small"
 					/>
+					{session && (
+						<Stack direction="row" gap="4" align="center">
+							{viewport?.width && viewport?.height && (
+								<Badge
+									iconStart={
+										<IconSolidTemplate color={colors.n9} />
+									}
+									size="medium"
+									variant="gray"
+									shape="basic"
+									label={`${viewport?.width}x${viewport?.height}`}
+									title="Application viewport size (pixels)"
+								/>
+							)}
+							<Badge
+								variant="gray"
+								size="medium"
+								iconStart={
+									session?.enable_strict_privacy ? (
+										<IconSolidLockClosed
+											color={colors.n9}
+										/>
+									) : (
+										<IconSolidLockOpen color={colors.n9} />
+									)
+								}
+								title={
+									session?.enable_strict_privacy
+										? 'Strict privacy on'
+										: 'Strict privacy off'
+								}
+							/>
+						</Stack>
+					)}
 					<Box
 						className={styles.currentUrl}
 						onMouseEnter={() => {
@@ -243,105 +284,22 @@ export const SessionLevelBarV2: React.FC<
 				<Box className={styles.rightButtons}>
 					{session && (
 						<>
-							<Box display="flex" align="center" gap="2">
-								<ExplanatoryPopover
-									content={
-										<Text
-											size="medium"
-											color="n11"
-											userSelect="none"
-										>
-											Application viewport size (pixels)
-										</Text>
+							<SessionShareButtonV2 />
+							<PlayerModeSwitch />
+							<SwitchButton
+								size="small"
+								onChange={() => {
+									if (!isDefaultView) {
+										setRightPanelView(RightPanelView.Event)
 									}
-								>
-									<IconSolidTemplate color={colors.n9} />
-									<Text
-										size="medium"
-										color="n11"
-										userSelect="none"
-									>
-										{viewport?.width} x {viewport?.height}
-									</Text>
-								</ExplanatoryPopover>
-							</Box>
-							<Box display="flex" align="center" gap="2">
-								<ExplanatoryPopover
-									content={
-										<Text
-											size="medium"
-											color="n11"
-											userSelect="none"
-										>
-											Recording strict privacy{' '}
-											{session?.enable_strict_privacy
-												? 'on'
-												: 'off'}
-										</Text>
-									}
-								>
-									{session?.enable_strict_privacy ? (
-										<IconSolidLockClosed
-											color={colors.n9}
-										/>
-									) : (
-										<IconSolidLockOpen color={colors.n9} />
-									)}
-								</ExplanatoryPopover>
-							</Box>
-							<Box display="flex" align="center" gap="6">
-								<SessionShareButtonV2 />
-								<ExplanatoryPopover
-									content={
-										<>
-											<Text userSelect="none" color="n11">
-												Comments
-											</Text>
-										</>
-									}
-								>
-									<SwitchButton
-										size="small"
-										onChange={() => {
-											if (
-												selectedRightPanelTab !==
-												'Threads'
-											) {
-												setSelectedRightPanelTab(
-													'Threads',
-												)
-											}
-											setShowRightPanel(
-												!showRightPanel ||
-													selectedRightPanelTab !==
-														'Threads',
-											)
-										}}
-										checked={
-											showRightPanel &&
-											selectedRightPanelTab === 'Threads'
-										}
-										iconLeft={
-											<IconSolidChatAlt_2 size={14} />
-										}
-									/>
-								</ExplanatoryPopover>
-								<ButtonIcon
-									kind="secondary"
-									size="small"
-									shape="square"
-									emphasis={showRightPanel ? 'high' : 'low'}
-									cssClass={
-										showRightPanel
-											? styles.rightPanelButtonShown
-											: styles.rightPanelButtonHidden
-									}
-									icon={<IconSolidMenuAlt_3 />}
-									onClick={() => {
-										setShowRightPanel(!showRightPanel)
-									}}
-								/>
-							</Box>
+
+									setShowRightPanel(
+										!showRightPanel || !isDefaultView,
+									)
+								}}
+								checked={showRightPanel && isDefaultView}
+								iconLeft={<IconSolidMenuAlt_3 size={14} />}
+							/>
 						</>
 					)}
 				</Box>

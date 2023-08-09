@@ -93,7 +93,7 @@ const CompetitorComparisonPage = ({
 				</Link>
 			</div>
 			<main>
-				<div className="flex flex-col xl:flex-row  justify-between w-screen px-8 mx-auto lg:px-4 lg:py-28 max-w-[1200px] 2xl:max-w-[1400px]">
+				<div className="flex flex-col xl:flex-row  justify-between w-screen px-8 mx-auto lg:px-4 lg:py-12 xl:py-28 max-w-[1200px] 2xl:max-w-[1400px]">
 					<div className="lg:w-[60%] flex justify-center mt-10">
 						<div className="flex flex-col max-w-4xl gap-8 text-center lg:text-left">
 							<h2 className="text-white">
@@ -138,7 +138,7 @@ const CompetitorComparisonPage = ({
 					<div className="flex justify-center mt-12 lg:mt-0 ultra:relative">
 						<AnimateFeatureHeroRight loaded={imageLoaded}>
 							<Image
-								className={`hidden lg:flex ultra:hidden right-0 object-contain top-0`}
+								className={`hidden lg:flex ultra:hidden right-0 object-contain top-0 lg:w-[550px] xl:w-[650px]`}
 								src={slantedImage}
 								alt="Feature Spotlight"
 								onLoadingComplete={() => setImageLoaded(true)}
@@ -146,7 +146,7 @@ const CompetitorComparisonPage = ({
 						</AnimateFeatureHeroRight>
 						<AnimateFeatureHeroXL loaded={imageLoaded}>
 							<Image
-								className={`hidden ultra:flex`}
+								className={`hidden ultra:flex w-[650px]`}
 								src={straightImage}
 								alt="Feature Spotlight"
 								onLoadingComplete={() => setImageLoaded(true)}
@@ -181,7 +181,7 @@ const CompetitorComparisonPage = ({
 					<div className="max-w-[880px] mx-auto my-28">
 						<h4 className="mb-8">What makes us different?</h4>
 						<div className="flex flex-col gap-8">
-							{competitor.paragraphs.map((paragraph, index) => (
+							{competitor.paragraphs?.map((paragraph, index) => (
 								<div
 									key={index}
 									className="flex flex-col gap-3"
@@ -258,11 +258,12 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
 	const sources = []
 
-	for (let i = 0; i < competitor.paragraphs.length; i++) {
-		let paragraph = competitor.paragraphs[i]
-		const mdxSource = await serialize(paragraph.body)
-		sources.push(mdxSource)
-	}
+	if (competitor.paragraphs)
+		for (let i = 0; i < competitor.paragraphs.length; i++) {
+			let paragraph = competitor.paragraphs[i]
+			const mdxSource = await serialize(paragraph.body)
+			sources.push(mdxSource)
+		}
 
 	return {
 		props: {

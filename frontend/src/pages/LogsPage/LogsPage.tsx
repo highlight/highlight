@@ -1,4 +1,4 @@
-import { LogLevel } from '@graph/schemas'
+import { LogLevel, ProductType } from '@graph/schemas'
 import { Box } from '@highlight-run/ui'
 import {
 	fifteenMinutesAgo,
@@ -24,10 +24,15 @@ import {
 	withDefault,
 } from 'use-query-params'
 
+import { OverageCard } from '@/pages/LogsPage/OverageCard/OverageCard'
+
 export const QueryParam = withDefault(StringParam, '')
-const FixedRangeStartDateParam = withDefault(DateTimeParam, fifteenMinutesAgo)
-const PermalinkStartDateParam = withDefault(DateTimeParam, thirtyDaysAgo)
-const EndDateParam = withDefault(DateTimeParam, now.toDate())
+export const FixedRangeStartDateParam = withDefault(
+	DateTimeParam,
+	fifteenMinutesAgo,
+)
+export const PermalinkStartDateParam = withDefault(DateTimeParam, thirtyDaysAgo)
+export const EndDateParam = withDefault(DateTimeParam, now.toDate())
 
 const LogsPage = () => {
 	const { log_cursor } = useParams<{
@@ -166,6 +171,9 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						}
 						ref={tableContainerRef}
 					>
+						<Box my="4">
+							<OverageCard productType={ProductType.Logs} />
+						</Box>
 						<IntegrationCta />
 						<LogsTable
 							logEdges={logEdges}

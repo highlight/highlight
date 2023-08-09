@@ -127,7 +127,7 @@ const features: Feature[] = [
 			`cd docker;`,
 			`./run-hobby.sh;`,
 		],
-		link: '/docs/general/company/open-source/self-host-hobby',
+		link: '/docs/general/company/open-source/hosting/self-host-hobby',
 	},
 	{
 		name: 'Open Source',
@@ -147,7 +147,8 @@ const features: Feature[] = [
 		feature2Link: 'https://github.com/highlight/highlight/',
 		featureImage2: <HiDesktopComputer className="h-[20px] w-[20px]" />,
 		feature3: 'Self host highlight.io',
-		feature3Link: '/docs/general/company/open-source/self-host-hobby',
+		feature3Link:
+			'/docs/general/company/open-source/hosting/self-host-hobby',
 		featureImage3: (
 			<ExclamationCircleFilled className="h-[20px] w-[20px]" />
 		),

@@ -1,18 +1,12 @@
-import packageJson from '../package.json'
-import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
 import {
 	AmplitudeAPI,
 	setupAmplitudeIntegration,
 } from './integrations/amplitude'
-import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
-import { initializeFetchListener } from './listeners/fetch'
-import { getPreviousSessionData } from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
-import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners'
-import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
+import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionStorage/sessionStorageKeys'
 import type {
 	Highlight,
 	HighlightClassOptions,
-} from '@highlight-run/client/src/index'
+} from '@highlight-run/client/src'
 import type {
 	HighlightOptions,
 	HighlightPublicInterface,
@@ -20,12 +14,22 @@ import type {
 	Metric,
 	SessionDetails,
 } from '@highlight-run/client/src/types/types'
-import HighlightSegmentMiddleware from './integrations/segment'
+import { MixpanelAPI, setupMixpanelIntegration } from './integrations/mixpanel'
+
+import { FirstLoadListeners } from '@highlight-run/client/src/listeners/first-load-listeners'
+import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
+import { HighlightSegmentMiddleware } from './integrations/segment'
 import configureElectronHighlight from './environments/electron'
+import firstloadVersion from './__generated/version'
+import {
+	SessionData,
+	getPreviousSessionData,
+} from '@highlight-run/client/src/utils/sessionStorage/highlightSession'
+import { initializeFetchListener } from './listeners/fetch'
+import { initializeWebSocketListener } from './listeners/web-socket'
+import { listenToChromeExtensionMessage } from './browserExtension/extensionListener'
 
-initializeFetchListener()
-
-export enum MetricCategory {
+enum MetricCategory {
 	Device = 'Device',
 	WebVital = 'WebVital',
 	Frontend = 'Frontend',
@@ -37,7 +41,7 @@ const HighlightWarning = (context: string, msg: any) => {
 }
 
 interface HighlightWindow extends Window {
-	Highlight: new (
+	HighlightIO: new (
 		options: HighlightClassOptions,
 		firstLoadListeners: FirstLoadListeners,
 	) => Highlight
@@ -49,11 +53,11 @@ interface HighlightWindow extends Window {
 
 declare var window: HighlightWindow
 
-var script: HTMLScriptElement
-var highlight_obj: Highlight
-var first_load_listeners: FirstLoadListeners
-var init_called = false
-export const H: HighlightPublicInterface = {
+let script: HTMLScriptElement
+let highlight_obj: Highlight
+let first_load_listeners: FirstLoadListeners
+let init_called = false
+const H: HighlightPublicInterface = {
 	options: undefined,
 	init: (projectID?: string | number, options?: HighlightOptions) => {
 		try {
@@ -75,25 +79,37 @@ export const H: HighlightPublicInterface = {
 				return
 			}
 
+			let previousSession = getPreviousSessionData()
+			let sessionSecureID = GenerateSecureID()
+			if (previousSession?.sessionSecureID) {
+				sessionSecureID = previousSession.sessionSecureID
+			} else {
+				const sessionData: SessionData = {
+					...previousSession,
+					projectID: +projectID,
+					sessionSecureID,
+				}
+
+				window.sessionStorage.setItem(
+					SESSION_STORAGE_KEYS.SESSION_DATA,
+					JSON.stringify(sessionData),
+				)
+			}
+
 			// `init` was already called, do not reinitialize
 			if (init_called) {
-				return
+				return { sessionSecureID }
 			}
 			init_called = true
 
 			script = document.createElement('script')
 			var scriptSrc = options?.scriptUrl
 				? options.scriptUrl
-				: `https://static.highlight.io/v${packageJson.version}/index.js`
+				: `https://static.highlight.io/v${firstloadVersion}/index.js`
 			script.setAttribute('src', scriptSrc)
 			script.setAttribute('type', 'text/javascript')
 			document.getElementsByTagName('head')[0].appendChild(script)
 
-			let previousSession = getPreviousSessionData()
-			let sessionSecureID = GenerateSecureID()
-			if (previousSession?.sessionSecureID) {
-				sessionSecureID = previousSession.sessionSecureID
-			}
 			const client_options: HighlightClassOptions = {
 				organizationID: projectID,
 				debug: options?.debug,
@@ -114,12 +130,10 @@ export const H: HighlightPublicInterface = {
 				inlineImages: options?.inlineImages,
 				inlineStylesheet: options?.inlineStylesheet,
 				recordCrossOriginIframe: options?.recordCrossOriginIframe,
-				isCrossOriginIframe: options?.isCrossOriginIframe,
-				firstloadVersion: packageJson['version'],
+				firstloadVersion,
 				environment: options?.environment || 'production',
 				appVersion: options?.version,
 				sessionShortcut: options?.sessionShortcut,
-				feedbackWidget: options?.feedbackWidget,
 				sessionSecureID: sessionSecureID,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
@@ -130,7 +144,7 @@ export const H: HighlightPublicInterface = {
 			}
 			script.addEventListener('load', () => {
 				const startFunction = () => {
-					highlight_obj = new window.Highlight(
+					highlight_obj = new window.HighlightIO(
 						client_options,
 						first_load_listeners,
 					)
@@ -139,11 +153,11 @@ export const H: HighlightPublicInterface = {
 					}
 				}
 
-				if ('Highlight' in window) {
+				if ('HighlightIO' in window) {
 					startFunction()
 				} else {
 					const interval = setInterval(() => {
-						if ('Highlight' in window) {
+						if ('HighlightIO' in window) {
 							startFunction()
 							clearInterval(interval)
 						}
@@ -164,8 +178,17 @@ export const H: HighlightPublicInterface = {
 			) {
 				setupAmplitudeIntegration(options.integrations.amplitude)
 			}
+
+			return { sessionSecureID }
 		} catch (e) {
 			HighlightWarning('init', e)
+		}
+	},
+	snapshot: async (element: HTMLCanvasElement) => {
+		try {
+			H.onHighlightReady(() => highlight_obj.snapshot(element))
+		} catch (e) {
+			HighlightWarning('snapshot', e)
 		}
 	},
 	addSessionFeedback: ({
@@ -182,15 +205,6 @@ export const H: HighlightPublicInterface = {
 					user_email: userEmail,
 					user_name: userName,
 				}),
-			)
-		} catch (e) {
-			HighlightWarning('error', e)
-		}
-	},
-	toggleSessionFeedbackModal: () => {
-		try {
-			H.onHighlightReady(() =>
-				highlight_obj.toggleFeedbackWidgetVisibility(),
 			)
 		} catch (e) {
 			HighlightWarning('error', e)
@@ -261,7 +275,7 @@ export const H: HighlightPublicInterface = {
 			if (highlight_obj?.state === 'Recording') {
 				if (!options?.silent) {
 					console.warn(
-						'You cannot called `start()` again. The session is already being recorded.',
+						'Highlight is already recording. Please `H.stop()` the current session before starting a new one.',
 					)
 				}
 				return
@@ -270,7 +284,7 @@ export const H: HighlightPublicInterface = {
 				var interval = setInterval(function () {
 					if (highlight_obj) {
 						clearInterval(interval)
-						highlight_obj.initialize()
+						highlight_obj.initialize(options)
 					}
 				}, 200)
 			}
@@ -295,7 +309,15 @@ export const H: HighlightPublicInterface = {
 		}
 		if (!H.options?.integrations?.mixpanel?.disabled) {
 			if (window.mixpanel?.identify) {
-				window.mixpanel.identify(identifier)
+				window.mixpanel.identify(
+					typeof metadata?.email === 'string'
+						? metadata?.email
+						: identifier,
+				)
+				if (metadata) {
+					window.mixpanel.track('identify', metadata)
+					window.mixpanel.people.set(metadata)
+				}
 			}
 		}
 
@@ -394,6 +416,13 @@ if (typeof window !== 'undefined') {
 }
 
 listenToChromeExtensionMessage()
+initializeFetchListener()
+initializeWebSocketListener()
 
-export { HighlightSegmentMiddleware, configureElectronHighlight }
 export type { HighlightOptions }
+export {
+	H,
+	HighlightSegmentMiddleware,
+	MetricCategory,
+	configureElectronHighlight,
+}

@@ -57,7 +57,7 @@ const onError = (request, error) => {
 
 const pythonSnippet: string = `import highlight_io
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
+H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)
 `
 
 export const FEATURES: { [k: string]: iFeature } = {
@@ -104,8 +104,8 @@ export const FEATURES: { [k: string]: iFeature } = {
 				header: 'Support for all the modern frameworks.',
 				subheader:
 					"Whether it's React, Angular, or even vanilla JS, we got you covered.",
-				link: '/docs/getting-started/overview',
-				linkText: 'Read the docs',
+				link: '/frameworks',
+				linkText: 'View all frameworks',
 				imgSrc: sessionReplay4,
 				invert: false,
 			},
@@ -165,8 +165,8 @@ export const FEATURES: { [k: string]: iFeature } = {
 				header: 'Support for all the modern frameworks.',
 				subheader:
 					'Whether it’s React, Angular, or even vanilla JS, we got you covered. Get started with just a few lines of code.',
-				link: '/docs/getting-started/overview',
-				linkText: 'Read the docs',
+				link: '/frameworks',
+				linkText: 'View all frameworks',
 				imgSrc: sessionReplay4,
 				invert: false,
 			},
@@ -226,8 +226,8 @@ export const FEATURES: { [k: string]: iFeature } = {
 				header: 'Support for all the modern frameworks.',
 				subheader:
 					'Whether its Python, Golang, or even vanilla JS, we got you covered. Get started with just a few lines of code.',
-				link: '/docs/getting-started/overview',
-				linkText: 'Read the docs',
+				link: '/frameworks',
+				linkText: 'View all frameworks',
 				imgSrc: sessionReplay4,
 				invert: false,
 			},

@@ -10,9 +10,10 @@ import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConf
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
 import ErrorDetails from '@pages/Player/RightPlayerPanel/components/ErrorDetails/ErrorDetails'
 import EventDetails from '@pages/Player/RightPlayerPanel/components/EventDetails/EventDetails'
-import NetworkResourceDetails from '@pages/Player/RightPlayerPanel/components/NetworkResourceDetails/NetworkResourceDetails'
 import RightPanelTabs from '@pages/Player/RightPlayerPanel/components/Tabs'
-import React, { useEffect, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
+
+import SessionFullCommentList from '@/pages/Player/SessionFullCommentList/SessionFullCommentList'
 
 import * as style from './style.css'
 
@@ -26,7 +27,6 @@ const RightPlayerPanel = () => {
 		rightPanelView,
 		setRightPanelView,
 		activeError,
-		activeNetworkResource,
 	} = usePlayerUIContext()
 
 	const showRightPanel = showRightPanelPreference && canViewSession
@@ -38,9 +38,11 @@ const RightPlayerPanel = () => {
 
 		if (commentId) {
 			setShowRightPanel(true)
-			setSelectedRightPanelTab('Threads')
+			setRightPanelView(RightPanelView.Comments)
+		} else {
+			setSelectedRightPanelTab('Events')
 		}
-	}, [setSelectedRightPanelTab, setShowRightPanel])
+	}, [setRightPanelView, setSelectedRightPanelTab, setShowRightPanel])
 
 	const content = useMemo(() => {
 		if (!session) {
@@ -55,6 +57,7 @@ const RightPlayerPanel = () => {
 						<RightPanelTabs />
 					</Box>
 				)
+
 			case RightPanelView.Event:
 				if (activeEvent) {
 					return <EventDetails event={activeEvent} />
@@ -70,34 +73,19 @@ const RightPlayerPanel = () => {
 					setRightPanelView(RightPanelView.Session)
 					return null
 				}
-			case RightPanelView.NetworkResource:
-				if (activeNetworkResource) {
-					return (
-						<NetworkResourceDetails
-							resource={activeNetworkResource}
-						/>
-					)
-				} else {
-					setRightPanelView(RightPanelView.Session)
-					return null
-				}
+
+			case RightPanelView.Comments:
+				return <SessionFullCommentList />
 		}
-	}, [
-		activeError,
-		activeEvent,
-		activeNetworkResource,
-		rightPanelView,
-		session,
-		setRightPanelView,
-	])
+	}, [activeError, activeEvent, rightPanelView, session, setRightPanelView])
 
 	return (
 		<Box
+			backgroundColor="white"
 			flexShrink={0}
 			bt="dividerWeak"
 			bl="dividerWeak"
 			cssClass={[
-				style.playerRightPanelContainer,
 				{
 					[style.playerRightPanelContainerHidden]: !showRightPanel,
 				},

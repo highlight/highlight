@@ -7,18 +7,17 @@ import {
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import { useGetWorkspaceDropdownOptionsQuery } from '@graph/hooks'
-import UserSettings from '@pages/UserSettings/UserSettings'
-import { WorkspaceTabs } from '@pages/WorkspaceTabs/WorkspaceTabs'
+import { Ariakit } from '@highlight-run/ui'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 import { useParams } from '@util/react-router/useParams'
-import { useDialogState } from 'ariakit/dialog'
 import React, { useEffect } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
-import commonStyles from '../../Common.module.scss'
-import { ApplicationContextProvider } from './context/ApplicationContext'
+import { SettingsRouter } from '@/pages/SettingsRouter/SettingsRouter'
+
+import commonStyles from '../../Common.module.css'
 
 export const WorkspaceRouter = () => {
 	const { isLoggedIn } = useAuthContext()
@@ -57,7 +56,7 @@ export const WorkspaceRouter = () => {
 		}
 	}, [isLoggedIn, setLoadingState])
 
-	const commandBarDialog = useDialogState()
+	const commandBarDialog = Ariakit.useDialogState()
 
 	if (loading) {
 		return null
@@ -78,43 +77,30 @@ export const WorkspaceRouter = () => {
 				commandBarDialog,
 			}}
 		>
-			<ApplicationContextProvider
-				value={{
-					currentProject: undefined,
-					allProjects: data?.workspace?.projects || [],
-					currentWorkspace: data?.workspace || undefined,
-					workspaces: data?.workspaces || [],
-				}}
-			>
-				<Header />
-				<KeyboardShortcutsEducation />
-				<div className={commonStyles.bodyWrapper}>
-					{isLoggedIn && joinableWorkspace ? (
-						<ErrorState
-							shownWithHeader
-							joinableWorkspace={joinableWorkspace}
-						/>
-					) : isLoggedIn && data?.workspace === null ? (
-						<ErrorState
-							title="Enter this Workspace?"
-							message={
-								`Sadly, you don’t have access to the workspace 😢 ` +
-								`Request access and we'll shoot an email to your workspace admin. ` +
-								`Alternatively, feel free to make an account!`
-							}
-							shownWithHeader
-						/>
-					) : (
-						<Routes>
-							<Route path="*" element={<WorkspaceTabs />} />
-							<Route
-								path="account/:tab?"
-								element={<UserSettings />}
-							/>
-						</Routes>
-					)}
-				</div>
-			</ApplicationContextProvider>
+			<Header />
+			<KeyboardShortcutsEducation />
+			<div className={commonStyles.bodyWrapper}>
+				{isLoggedIn && joinableWorkspace ? (
+					<ErrorState
+						shownWithHeader
+						joinableWorkspace={joinableWorkspace}
+					/>
+				) : isLoggedIn && data?.workspace === null ? (
+					<ErrorState
+						title="Enter this Workspace?"
+						message={
+							`Sadly, you don’t have access to the workspace 😢 ` +
+							`Request access and we'll shoot an email to your workspace admin. ` +
+							`Alternatively, feel free to make an account!`
+						}
+						shownWithHeader
+					/>
+				) : (
+					<Routes>
+						<Route path="*" element={<SettingsRouter />} />
+					</Routes>
+				)}
+			</div>
 		</GlobalContextProvider>
 	)
 }

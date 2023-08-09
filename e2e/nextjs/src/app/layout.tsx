@@ -1,5 +1,13 @@
+// src/app/layout.tsx
 import './globals.css'
-import Highlight from './highlight'
+
+import CONSTANTS from '@/app/constants'
+import { HighlightInit } from '@highlight-run/next/client'
+
+export const metadata = {
+	title: 'Highlight Next Demo',
+	description: 'Check out how Highlight works with Next.js',
+}
 
 export default function RootLayout({
 	children,
@@ -7,16 +15,33 @@ export default function RootLayout({
 	children: React.ReactNode
 }) {
 	return (
-		<html lang="en">
-			{/*
-        <head /> will contain the components returned by the nearest parent
-        head.tsx. Find out more at https://beta.nextjs.org/docs/api-reference/file-conventions/head
-      */}
-			<head />
-			<body>
-				<Highlight />
-				{children}
-			</body>
-		</html>
+		<>
+			<HighlightInit
+				debug={{ clientInteractions: true, domRecording: true }}
+				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
+				tracingOrigins
+				networkRecording={{
+					enabled: true,
+					recordHeadersAndBody: true,
+				}}
+				// inlineImages={false}
+				enableCanvasRecording={true}
+				samplingStrategy={{
+					canvas: undefined,
+					canvasManualSnapshot: 1,
+					canvasMaxSnapshotDimension: 480,
+					canvasFactor: 0.5,
+					canvasClearWebGLBuffer: false,
+				}}
+				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
+				scriptUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_SCRIPT_URL}
+			/>
+
+			<html lang="en">
+				<body>
+					<div>{children}</div>
+				</body>
+			</html>
+		</>
 	)
 }

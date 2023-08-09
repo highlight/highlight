@@ -1,0 +1,391 @@
+{
+  // This is a JSON with Comments file.
+  // It's basically JSON, with the addition of comments, and looser syntax
+  // (trailing commas!).
+  // Reflame uses this to identify your app.
+  "appId": "01GVH35S71FJP26W72V3K7CB2N", // prod
+  // "appId": "01GSXZYQT1W0TZDJAG94P9S4BZ", // prod fork
+  // "appId": "01GR550WASJY2G2NSYZ4P54JJV", // dev
+  // This is what shows up in the browser's tab bar.
+  "title": "Reflame App",
+  // This is the description that shows up in Google search.
+  "description": "A new Reflame app.",
+  // Reflame will watch this directory for your React source code and ship changes
+  // instantly.
+  "sourceDirectory": "frontend/src",
+  // Reflame will use this to keep your app up to date as we make improvements.
+  "foundation": {
+    "name": "ts-react",
+    "version": 1,
+  },
+  "themeColor": "#5629c6",
+  "filesIgnored": [
+    "**/**.css.ts"
+  ],
+  "environments": {
+    "production": {
+      "REACT_APP_COMMIT_SHA": {
+        "type": "expression",
+        "value": "Reflame.gitCommitSha"
+      },
+      "REACT_APP_FRONTEND_URI": {
+        "type": "expression",
+        "value": "window.location.origin"
+      },
+    },
+    "development": {
+      "REACT_APP_COMMIT_SHA": {
+        "type": "expression",
+        "value": "Reflame.gitCommitSha"
+      },
+      "REACT_APP_FRONTEND_URI": {
+        "type": "expression",
+        "value": "window.location.origin"
+      },
+    },
+  },
+  "defaultEnvironment": "production",
+  "scripts": [
+    "/intercom.js",
+    "/index",
+    "/vanilla.js",
+    "/canny.js",
+    "https://js.hs-scripts.com/20473940.js",
+    // TODO: google tag manager
+  ],
+  "stylesheets": [
+    "https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap",
+    "https://unpkg.com/@highlight-run/rrweb@0.9.27/dist/index.css",
+    "/public.css",
+  ],
+  "nodejsCompatibility": {
+    "omitModuleExtension": true,
+    "mapIndexToDirectory": true,
+    "packageJson": {
+      "versionIncluded": true,
+      "dependenciesSynced": true,
+    },
+  },
+  "tailwindCompatibility": {
+    "stylesheetPathname": "/style/tailwind.css",
+    "disablePreflight": true,
+    "theme": {
+      "blur": {
+        "xs": "2px",
+      },
+      "colors": {
+        "primary-1": "#B19CFF",
+        "primary-2": "#6C37F4",
+        "primary-3": "#5420D1",
+        "primary-4": "#0D0225",
+  
+        "secondary-1": "#B9F2FE",
+        "secondary-2": "#72E4FC",
+        "secondary-3": "#23B6E2",
+        "secondary-4": "#0B75AA",
+  
+        "highlight-1": "#EBFF5E",
+        "highlight-2": "#8DC31A",
+  
+        "selection": "#EBFF5E",
+        "error": "#FF5377",
+        "warning": "#FF9457",
+        "success": "#36E79B",
+        "midnight": "#0D0225",
+        "pale-purple": "#645D74",
+      },
+      "fontFamily": {
+        "poppins": ["Poppins", "sans-serif"],
+      },
+    }
+  },
+  "specifierTransforms": [
+    {
+      "from": "/",
+      "to": "@/",
+    },
+    {
+      "from": "/components/",
+      "to": "@components/",
+    },
+    {
+      "from": "/static/",
+      "to": "@icons/",
+    },
+    {
+      "from": "/util/",
+      "to": "@util/",
+    },
+    {
+      "from": "/hooks/",
+      "to": "@hooks/",
+    },
+    {
+      "from": "/pages/",
+      "to": "@pages/",
+    },
+    {
+      "from": "/routers/",
+      "to": "@routers/",
+    },
+    {
+      "from": "/graph/generated/",
+      "to": "@graph/",
+    },
+    {
+      "from": "/authentication/",
+      "to": "@authentication/",
+    },
+    {
+      "from": "/context/",
+      "to": "@context/",
+    },
+    {
+      "from": "/lottie/",
+      "to": "@lottie/",
+    },
+    {
+      "from": "/__generated/rr/rr.js",
+      "to": "@highlight-run/rrweb",
+    },
+    {
+      "from": "/__generated/rr/rrTypes.js",
+      "to": "@highlight-run/rrweb-types",
+    },
+    {
+      "from": "/__generated/rr/rr.min.css",
+      "to": "@highlight-run/rrweb/dist/rrweb.min.css",
+    },
+    {
+      "from": "^/__generated/ve/(.*).css.js$",
+      "to": "/$1.css",
+      "phase": "pre",
+    },
+  ],
+  "libraries": {
+    "@highlight-run/ui": {
+      "sourceDirectory": "packages/ui/src",
+      "entryPoints": {
+        "/": "/index.ts",
+        "/src": "/index.ts",
+        "/src/components/Box/Box": "/components/Box/Box.tsx",
+        "/src/components/DatePicker/PreviousDateRangePicker": "/components/DatePicker/PreviousDateRangePicker.tsx",
+        "/src/css/vars": "/css/vars.ts",
+        "/src/css/colors": "/css/colors.ts",
+        "/src/css/sprinkles.css": "/css/sprinkles.css",
+        "/src/css/theme.css": "/css/theme.css",
+      },
+      "npmPackages": {
+        "ariakit": {
+          "entryPoints": [
+            "/",
+            "/button",
+            "/combobox",
+            "/form",
+            "/checkbox",
+          ],
+        },
+        "@vanilla-extract/sprinkles": {
+          "entryPoints": [
+            "/createRuntimeSprinkles"
+          ],
+        },
+        "@vanilla-extract/recipes": {
+          "entryPoints": [
+            "/createRuntimeFn"
+          ],
+        },
+      },
+      "nodejsCompatibility": {
+        "omitModuleExtension": true,
+        "mapIndexToDirectory": true,
+        "packageJson": {
+          "dependenciesSynced": true,
+        },
+      },
+      "filesIgnored": [
+        "**/**.css.ts"
+      ],
+      "specifierTransforms": {
+        "^/__generated/ve/(.*).css.js$": "/$1.css",
+      },
+    },
+    "highlight.run": {
+      "sourceDirectory": "sdk/firstload/src",
+      "entryPoint": "/index.tsx",
+      "nodejsCompatibility": {
+        "omitModuleExtension": true,
+        "mapIndexToDirectory": true,
+      },
+      "npmPackages": {},
+    },
+    "highlight.io": {
+      "sourceDirectory": "highlight.io",
+      "entryPoint": "/index.ts",
+      "nodejsCompatibility": {
+        "omitModuleExtension": true,
+        "mapIndexToDirectory": true,
+      },
+      "filesIgnored": [
+        "**/**",
+        "!components/**/**",
+        "!content/**/**",
+        "!styles/**/**",
+        "!utils/**/**",
+        "!index.ts",
+      ],
+    },
+    "@highlight-run/client": {
+      "sourceDirectory": "sdk/client/src",
+      "entryPoints": {
+        "/src/listeners/first-load-listeners": "/listeners/first-load-listeners.tsx",
+        "/src/listeners/network-listener/utils/utils": "/listeners/network-listener/utils/utils.ts",
+        "/src/utils/secure-id": "/utils/secure-id.ts",
+        "/src/utils/sessionStorage/highlightSession": "/utils/sessionStorage/highlightSession.ts",
+        "/src/utils/sessionStorage/sessionStorageKeys": "/utils/sessionStorage/sessionStorageKeys.ts",
+      },
+      "nodejsCompatibility": {
+        "omitModuleExtension": true,
+        "mapIndexToDirectory": true,
+        "packageJson": {
+          "dependenciesSynced": true,
+        },
+      },
+      "specifierTransforms": {
+        "/publicGraphURI.ts": "consts:publicGraphURI",
+      },
+      "npmPackages": {},
+    },
+  },
+  // NPM packages listed here will be installed by Reflame every time you update this file.
+  //
+  // It's important to only include packages that will be used by your app in browsers here.
+  // Including dev-time dependencies that run in node can result in deploy failures and poor
+  // performance.
+  "npmPackages": {
+    "@apollo/client": {
+      "entryPoints": [
+        "/",
+        "/link/context",
+        "/link/ws",
+        "/utilities"
+      ],
+    },
+    "@vanilla-extract/recipes": {
+      "entryPoints": [
+        "/createRuntimeFn"
+      ],
+    },
+    // TODO: create a library for this
+    // Might need a shim entry point for .css?
+    "@highlight-run/react": {
+      "version": "^3.2.0",
+    },
+    "antd": {
+      "entryPoints": [
+        "/",
+        "/es/menu",
+        "/es/checkbox",
+        "/es/tooltip",
+        "/es/table",
+        "/es/input",
+        "/es/dropdown",
+        "/es/message",
+        "/dist/antd.css",
+      ],
+    },
+    "firebase": {
+      "entryPoints": [
+        "/compat/auth",
+        "/compat/app"
+      ],
+    },
+    "lodash": {
+      "entryPoints": [
+        "/",
+        "/isEqual"
+      ],
+    },
+    "moment": {
+      "entryPoints": [
+        "/",
+        "/moment"
+      ],
+    },
+    "rc-slider": {
+      "entryPoints": [
+        "/",
+        "/assets/index.css"
+      ],
+    },
+    "react-resizable": {
+      "entryPoints": [
+        "/css/styles.css"
+      ],
+    },
+    "react-awesome-query-builder": {
+      "entryPoints": [
+        "/",
+        "/lib/config/antd",
+        "/lib/css/compact_styles.css",
+        "/lib/css/styles.css",
+      ],
+    },
+    "react-grid-layout": {
+      "entryPoints": [
+        "/",
+        "/css/styles.css"
+      ],
+    },
+    "react-icons": {
+      "entryPoints": [
+        "/fa",
+        "/fi",
+        "/ri",
+        "/vsc"
+      ],
+    },
+    "react-loading-skeleton": {
+      "entryPoints": [
+        "/",
+        "/dist/skeleton.css"
+      ],
+    },
+    "react-select": {
+      "entryPoints": [
+        "/",
+        "/async",
+        "/async-creatable",
+        "/creatable"
+      ],
+    },
+    "react-spinners": {
+      "entryPoints": [
+        "/BarLoader"
+      ],
+    },
+    "react-syntax-highlighter": {
+      "entryPoints": [
+        // FIXME: Seems to create ~1000 chunks with esbuild
+        // https://github.com/evanw/esbuild/issues/1836
+        // "/",
+        "/dist/esm/prism",
+        "/dist/esm/light",
+        "/dist/esm/styles/prism",
+      ],
+    },
+    "react-use": {
+      "entryPoints": [
+        "/",
+        "/esm/useSessionStorage",
+        "/esm/useLocalStorage",
+      ],
+    },
+    "use-query-params": {
+      "entryPoints": [
+        "/",
+        "/adapters/react-router-6"
+      ],
+    },
+  },
+}

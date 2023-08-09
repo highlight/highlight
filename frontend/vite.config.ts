@@ -1,10 +1,9 @@
-/// <reference types="vite/client" />
-/// <reference types="vitest/globals" />
+/// <reference types="vitest" />
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
 import react from '@vitejs/plugin-react-swc'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
-import { defineConfig, loadEnv, UserConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import vitePluginImp from 'vite-plugin-imp'
 import svgr from 'vite-plugin-svgr'
 import tsconfigPaths from 'vite-tsconfig-paths'
@@ -42,7 +41,7 @@ Rename ${key} to something such that "${key}".startsWith("${allowListEnvVar}") r
 	})
 }
 
-export default defineConfig(({ mode }): UserConfig => {
+export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '')
 	validateSafeAllowList(env)
 
@@ -53,6 +52,10 @@ export default defineConfig(({ mode }): UserConfig => {
 			tsconfigPaths(),
 			svgr(),
 			vitePluginImp({
+				// Seems to result in this error:
+				// > Rollup failed to resolve import "lodash/default" from "src/pages/Player/PlayerHook/PlayerHook.tsx"
+				// Likely due to some custom resolution algorithm that doesn't support hoisted monorepos?
+				exclude: ['lodash'],
 				libList: [
 					{
 						libName: 'antd',
@@ -80,6 +83,9 @@ export default defineConfig(({ mode }): UserConfig => {
 			hmr: {
 				clientPort: 3000,
 			},
+			watch: {
+				ignored: ['**/node_modules/**', '**/src/__generated/**'],
+			},
 		},
 		build: {
 			minify: 'esbuild',
@@ -89,6 +95,12 @@ export default defineConfig(({ mode }): UserConfig => {
 			sourcemap: env.RENDER_PREVIEW !== 'true' && mode !== 'development',
 			rollupOptions: {
 				output: {
+					manualChunks: (id: string) => {
+						if (id.endsWith('frontend/src/constants.ts')) {
+							return 'constants'
+						}
+						return null
+					},
 					entryFileNames: `assets/[name].js`,
 					chunkFileNames: `assets/[name].js`,
 					assetFileNames: `assets/[name].[ext]`,

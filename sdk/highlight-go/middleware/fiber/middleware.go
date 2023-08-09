@@ -34,7 +34,6 @@ func Middleware() fiber.Handler {
 		c.SetUserContext(hCtx)
 		err := c.Next()
 
-		highlight.MarkBackendSetup(hCtx)
 		highlight.RecordSpanError(
 			span, err,
 			attribute.String(highlight.SourceAttribute, "GoFiberMiddleware"),

@@ -18,13 +18,13 @@ import {
 	IntegrationConfigProps,
 } from '@pages/IntegrationsPage/components/Integration'
 import { useVercelIntegration } from '@pages/IntegrationsPage/components/VercelIntegration/utils'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import useMap from '@util/useMap'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
 
-import styles from './VercelIntegrationConfig.module.scss'
+import styles from './VercelIntegrationConfig.module.css'
 
 const VercelIntegrationConfig: React.FC<IntegrationConfigProps> = ({
 	setModalOpen,

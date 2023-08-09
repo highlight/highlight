@@ -105,7 +105,7 @@ export const HotjarSpec: Competitor = {
 				{
 					feature: 'Embedded Session Replay',
 					highlight: 1,
-					competitor: 1,
+					competitor: 0,
 				},
 				{
 					feature: 'Error Sharing',

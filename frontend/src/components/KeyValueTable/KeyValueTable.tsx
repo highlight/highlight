@@ -3,7 +3,7 @@ import JsonViewer from '@components/JsonViewer/JsonViewer'
 import clsx from 'clsx'
 import React from 'react'
 
-import styles from './KeyValueTable.module.scss'
+import styles from './KeyValueTable.module.css'
 
 interface Props {
 	data: KeyValueTableRow[]

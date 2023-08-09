@@ -1,20 +1,18 @@
-import React from 'react'
-import { ComponentMeta } from '@storybook/react'
+import { Meta } from '@storybook/react'
 
 import { Button } from './Button'
 import { Box } from '../Box/Box'
-import { Variants } from './styles.css'
 import { IconSolidCheveronDown, IconSolidSave } from '../icons'
 
 export default {
 	title: 'Components/Button',
 	component: Button,
-} as ComponentMeta<typeof Button>
+} as Meta<typeof Button>
 
 export const ButtonVariants = () => {
-	const kind: Variants['kind'][] = ['primary', 'secondary']
-	const emphasis: Variants['emphasis'][] = ['high', 'medium', 'low']
-	const size: Variants['size'][] = ['xSmall', 'small', 'medium']
+	const kind = ['primary', 'secondary'] as const
+	const emphasis = ['high', 'medium', 'low'] as const
+	const size = ['medium', 'small', 'xSmall'] as const
 
 	return (
 		<Box display="flex" gap="12" flexDirection="column">
@@ -23,7 +21,7 @@ export const ButtonVariants = () => {
 					{emphasis.map(($emphasis, jdx) => (
 						<Box
 							display="flex"
-							alignItems="center"
+							alignItems="flex-end"
 							gap="4"
 							key={`emp-${idx}-${jdx}`}
 						>
@@ -32,12 +30,16 @@ export const ButtonVariants = () => {
 									iconLeft={
 										jdx % emphasis.length !== 0 ? (
 											<IconSolidCheveronDown />
-										) : null
+										) : (
+											<></>
+										)
 									}
 									iconRight={
 										jdx % emphasis.length === 0 ? (
 											<IconSolidSave />
-										) : null
+										) : (
+											<></>
+										)
 									}
 									size={$size}
 									kind={$kind}
@@ -55,7 +57,9 @@ export const ButtonVariants = () => {
 								iconLeft={
 									jdx % emphasis.length !== 0 ? (
 										<IconSolidCheveronDown />
-									) : null
+									) : (
+										<></>
+									)
 								}
 								disabled
 							>

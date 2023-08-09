@@ -15,6 +15,7 @@ export type Props = React.PropsWithChildren &
 		userSelect?: BoxProps['userSelect']
 		cssClass?: BoxProps['cssClass']
 		title?: string
+		whiteSpace?: BoxProps['whiteSpace']
 		wrap?: BoxProps['overflowWrap']
 	}
 
@@ -30,6 +31,7 @@ export const Text = React.forwardRef<unknown, Props>(
 			userSelect,
 			cssClass,
 			title,
+			whiteSpace,
 			wrap,
 			...props
 		},
@@ -54,6 +56,7 @@ export const Text = React.forwardRef<unknown, Props>(
 				cssClass={clsx(styles.variants({ ...props }), cssClass)}
 				title={title}
 				overflowWrap={wrap}
+				whiteSpace={whiteSpace}
 			>
 				{content}
 			</Box>

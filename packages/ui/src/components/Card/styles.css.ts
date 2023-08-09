@@ -3,10 +3,6 @@ import { sprinkles } from '../../css/sprinkles.css'
 
 export const variants = recipe({
 	variants: {
-		mode: {
-			light: sprinkles({ background: 'white', color: 'black' }),
-			dark: sprinkles({ background: 'p12', color: 'white' }),
-		},
 		size: {
 			small: sprinkles({ padding: '6' }),
 			medium: sprinkles({ padding: '12' }),

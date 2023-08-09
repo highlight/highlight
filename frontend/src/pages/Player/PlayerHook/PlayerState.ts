@@ -3,13 +3,13 @@ import {
 	GetSessionIntervalsQuery,
 	GetSessionPayloadQuery,
 	GetSessionQuery,
-	GetTimelineIndicatorEventsQuery,
 } from '@graph/operations'
 import {
 	ErrorObject,
 	Session,
 	SessionComment,
 	SessionResults,
+	TimelineIndicatorEvent,
 } from '@graph/schemas'
 import { EventType, Replayer } from '@highlight-run/rrweb'
 import {
@@ -31,6 +31,7 @@ import {
 	getCommentsInSessionIntervalsRelative,
 	getEventsForTimelineIndicator,
 	getSessionIntervals,
+	loadiFrameResources,
 	toHighlightEvents,
 } from '@pages/Player/PlayerHook/utils'
 import {
@@ -70,7 +71,6 @@ export const MAX_CHUNK_COUNT = 8
 export enum SessionViewability {
 	VIEWABLE,
 	EMPTY_SESSION,
-	OVER_BILLING_QUOTA,
 	ERROR,
 }
 
@@ -104,7 +104,12 @@ interface PlayerState {
 	onSessionPayloadLoadedPayload?: {
 		sessionIntervals: GetSessionIntervalsQuery | undefined
 		sessionPayload: GetSessionPayloadQuery | undefined
-		timelineIndicatorEvents: GetTimelineIndicatorEventsQuery | undefined
+		timelineIndicatorEvents:
+			| Pick<
+					TimelineIndicatorEvent,
+					'timestamp' | 'data' | 'type' | 'sid'
+			  >[]
+			| undefined
 	}
 	performancePayloads: Array<HighlightPerformancePayload>
 	project_id: string
@@ -123,7 +128,6 @@ interface PlayerState {
 	sessionViewability: SessionViewability
 	session_secure_id: string
 	time: number
-	viewingUnauthorizedSession: boolean
 	viewport: viewportResizeDimension | undefined
 }
 
@@ -140,11 +144,9 @@ export enum PlayerActionType {
 	seek,
 	setCurrentEvent,
 	setIsLiveMode,
-	setLastActiveString,
 	setScale,
 	setSessionResults,
 	setTime,
-	setViewingUnauthorizedSession,
 	startChunksLoad,
 	updateCurrentUrl,
 	updateEvents,
@@ -164,11 +166,9 @@ type PlayerAction =
 	| seek
 	| setCurrentEvent
 	| setIsLiveMode
-	| setLastActiveString
 	| setScale
 	| setSessionResults
 	| setTime
-	| setViewingUnauthorizedSession
 	| startChunksLoad
 	| updateEvents
 	| updateCurrentUrl
@@ -203,7 +203,6 @@ interface addLiveEvents {
 interface loadSession {
 	type: PlayerActionType.loadSession
 	data: GetSessionQuery
-	fetchEventChunkURL: FetchEventChunkURLFn
 }
 
 interface reset {
@@ -251,12 +250,10 @@ interface onSessionPayloadLoaded {
 	type: PlayerActionType.onSessionPayloadLoaded
 	sessionPayload?: GetSessionPayloadQuery
 	sessionIntervals?: GetSessionIntervalsQuery
-	timelineIndicatorEvents?: GetTimelineIndicatorEventsQuery
-}
-
-interface setLastActiveString {
-	type: PlayerActionType.setLastActiveString
-	lastActiveString: SetStateAction<string | null>
+	timelineIndicatorEvents?: Pick<
+		TimelineIndicatorEvent,
+		'timestamp' | 'data' | 'type' | 'sid'
+	>[]
 }
 
 interface setScale {
@@ -272,11 +269,6 @@ interface setSessionResults {
 interface setIsLiveMode {
 	type: PlayerActionType.setIsLiveMode
 	isLiveMode: SetStateAction<boolean>
-}
-
-interface setViewingUnauthorizedSession {
-	type: PlayerActionType.setViewingUnauthorizedSession
-	viewingUnauthorizedSession: SetStateAction<boolean>
 }
 
 interface setCurrentEvent {
@@ -314,7 +306,6 @@ export const PlayerInitialState = {
 	sessionViewability: SessionViewability.VIEWABLE,
 	session_secure_id: '',
 	time: 0,
-	viewingUnauthorizedSession: false,
 	viewport: undefined,
 }
 
@@ -368,29 +359,16 @@ export const PlayerReducer = (
 			break
 		case PlayerActionType.loadSession:
 			s.session_secure_id = action.data!.session?.secure_id ?? ''
-			s.fetchEventChunkURL = action.fetchEventChunkURL
 			if (action.data.session) {
 				s.session = action.data?.session as Session
 				s.isLiveMode = false
 			}
-			if (action.data.session === null) {
+			if (!action.data.session || action.data.session.excluded) {
 				s.sessionViewability = SessionViewability.ERROR
 			} else if (
 				action.data.session?.within_billing_quota ||
 				s.isHighlightAdmin
 			) {
-				if (
-					!action.data.session?.within_billing_quota &&
-					s.isHighlightAdmin
-				) {
-					alert(
-						"btw this session is outside of the project's billing quota.",
-					)
-				}
-				// Show the authorization form for Highlight staff if they're trying to access a customer session.
-				if (s.isHighlightAdmin && s.project_id !== '1') {
-					s.viewingUnauthorizedSession = true
-				}
 				if (action.data.session?.last_user_interaction_time) {
 					s.lastActiveTimestamp = new Date(
 						action.data.session?.last_user_interaction_time,
@@ -406,13 +384,13 @@ export const PlayerReducer = (
 					analytics.track('Viewed session', {
 						project_id: s.project_id,
 						is_guest: !s.isLoggedIn,
-						is_live: s.isLiveMode,
+						is_session_processed: !!s.session?.processed,
 						secure_id: s.session_secure_id,
 					})
 				}
 				s.sessionViewability = SessionViewability.VIEWABLE
 			} else {
-				s.sessionViewability = SessionViewability.OVER_BILLING_QUOTA
+				s.sessionViewability = SessionViewability.ERROR
 			}
 			break
 		case PlayerActionType.reset:
@@ -470,9 +448,7 @@ export const PlayerReducer = (
 			)
 			break
 		case PlayerActionType.onChunksLoad:
-			if (
-				s.sessionViewability !== SessionViewability.OVER_BILLING_QUOTA
-			) {
+			if (s.sessionViewability !== SessionViewability.ERROR) {
 				s.sessionViewability = SessionViewability.VIEWABLE
 			}
 
@@ -501,13 +477,9 @@ export const PlayerReducer = (
 			const time = getTimeFromReplayer(s.replayer, s.sessionMetadata)
 			// Compute the string rather than number here, so that dependencies don't
 			// have to re-render on every tick
-			if (
-				s.isLiveMode &&
-				s.lastActiveTimestamp != 0 &&
-				s.lastActiveTimestamp < time - 5000
-			) {
+			if (s.isLiveMode && s.lastActiveTimestamp != 0) {
 				if (s.lastActiveTimestamp > time - 1000 * 60) {
-					s.lastActiveString = 'less than a minute ago'
+					s.lastActiveString = 'less than 1 minute ago'
 				} else {
 					s.lastActiveString = moment(s.lastActiveTimestamp).from(
 						time,
@@ -558,21 +530,12 @@ export const PlayerReducer = (
 		case PlayerActionType.setScale:
 			s.scale = handleSetStateAction(s.scale, action.scale)
 			break
-		case PlayerActionType.setLastActiveString:
-			s.lastActiveString = handleSetStateAction(
-				s.lastActiveString,
-				action.lastActiveString,
-			)
-			break
 		case PlayerActionType.setIsLiveMode:
 			s.isLiveMode = handleSetStateAction(s.isLiveMode, action.isLiveMode)
 			s = initReplayer(s, events, !!s.replayer?.config.mouseTail)
-			break
-		case PlayerActionType.setViewingUnauthorizedSession:
-			s.viewingUnauthorizedSession = handleSetStateAction(
-				s.viewingUnauthorizedSession,
-				action.viewingUnauthorizedSession,
-			)
+			analytics.track('Session live mode toggled', {
+				isLiveMode: s.isLiveMode,
+			})
 			break
 		case PlayerActionType.setCurrentEvent:
 			s.currentEvent = handleSetStateAction(
@@ -708,6 +671,9 @@ const replayerAction = (
 				} else {
 					return s
 				}
+				if (s.replayer) {
+					loadiFrameResources(s.replayer, s.project_id)
+				}
 			} catch (e: any) {
 				console.error(
 					'PlayerState.ts replayerAction exception',
@@ -806,11 +772,9 @@ const processSessionMetadata = (
 
 	const parsedTimelineIndicatorEvents =
 		s.onSessionPayloadLoadedPayload.timelineIndicatorEvents &&
-		s.onSessionPayloadLoadedPayload.timelineIndicatorEvents
-			.timeline_indicator_events.length > 0
+		s.onSessionPayloadLoadedPayload.timelineIndicatorEvents.length > 0
 			? toHighlightEvents(
-					s.onSessionPayloadLoadedPayload.timelineIndicatorEvents
-						.timeline_indicator_events,
+					s.onSessionPayloadLoadedPayload.timelineIndicatorEvents,
 			  )
 			: events
 	s.sessionIntervals = getCommentsInSessionIntervalsRelative(

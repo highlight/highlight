@@ -14,6 +14,18 @@ type Field {
 	type: String
 }
 
+enum SessionExcludedReason {
+	Initializing
+	NoActivity
+	NoUserInteractionEvents
+	NoTimelineIndicatorEvents
+	NoError
+	NoUserEvents
+	IgnoredUser
+	BillingQuotaExceeded
+	RetentionPeriodExceeded
+}
+
 type Session {
 	id: ID!
 	secure_id: String!
@@ -45,7 +57,8 @@ type Session {
 	viewed: Boolean
 	starred: Boolean
 	processed: Boolean
-	excluded: Boolean
+	excluded: Boolean!
+	excluded_reason: SessionExcludedReason
 	has_rage_clicks: Boolean
 	has_errors: Boolean
 	first_time: Boolean
@@ -55,11 +68,12 @@ type Session {
 	object_storage_enabled: Boolean
 	payload_size: Int64
 	within_billing_quota: Boolean
-	is_public: Boolean
+	is_public: Boolean!
 	event_counts: String
 	direct_download_url: String
 	resources_url: String
-	messages_url: String
+	web_socket_events_url: String
+	timeline_indicators_url: String
 	deviceMemory: Int
 	last_user_interaction_time: Timestamp!
 	chunked: Boolean
@@ -79,6 +93,15 @@ type TimelineIndicatorEvent {
 	sid: Float!
 	data: Any
 	type: Int!
+}
+
+type WebSocketEvent {
+	message: String!
+	name: String!
+	socketId: String!
+	type: String!
+	timeStamp: Float!
+	size: Int!
 }
 
 type RageClickEvent {
@@ -101,9 +124,14 @@ type BillingDetails {
 	plan: Plan!
 	meter: Int64!
 	membersMeter: Int64!
-	sessionsOutOfQuota: Int64!
 	errorsMeter: Int64!
 	logsMeter: Int64!
+	sessionsDailyAverage: Float!
+	errorsDailyAverage: Float!
+	logsDailyAverage: Float!
+	sessionsBillingLimit: Int64
+	errorsBillingLimit: Int64
+	logsBillingLimit: Int64
 }
 
 type Invoice {
@@ -137,6 +165,7 @@ enum PlanType {
 	Basic
 	Startup
 	Enterprise
+	UsageBased
 }
 
 enum ProductType {
@@ -151,6 +180,7 @@ enum SubscriptionInterval {
 }
 
 enum RetentionPeriod {
+	ThirtyDays
 	ThreeMonths
 	SixMonths
 	TwelveMonths
@@ -178,6 +208,12 @@ type EnhancedUserDetailsResult {
 
 type LinearTeam {
 	team_id: String!
+	name: String!
+	key: String!
+}
+
+type GitHubRepo {
+	repo_id: String!
 	name: String!
 	key: String!
 }
@@ -260,6 +296,7 @@ enum IntegrationType {
 	Discord
 	ClickUp
 	Height
+	GitHub
 }
 
 enum ErrorState {
@@ -271,6 +308,7 @@ enum ErrorState {
 enum SourceMappingErrorCode {
 	File_Name_Missing_From_Source_Path
 	Error_Parsing_Stack_Trace_File_Url
+	Error_Constructing_Source_Map_URL
 	Missing_Source_Map_File_In_S3
 	Minified_File_Missing_In_S3_And_URL
 	Sourcemap_File_Missing_In_S3_And_URL
@@ -296,7 +334,6 @@ enum SessionAlertType {
 	NEW_USER_ALERT
 	TRACK_PROPERTIES_ALERT
 	USER_PROPERTIES_ALERT
-	SESSION_FEEDBACK_ALERT
 	RAGE_CLICK_ALERT
 	NEW_SESSION_ALERT
 }
@@ -330,6 +367,31 @@ type Project {
 	rage_click_count: Int
 	backend_domains: StringArray
 	filter_chrome_extension: Boolean
+}
+
+type AllProjectSettings {
+	id: ID!
+	verbose_id: String!
+	name: String!
+	billing_email: String
+	secret: String
+	workspace_id: ID!
+	excluded_users: StringArray
+	error_filters: StringArray
+	error_json_paths: StringArray
+	rage_click_window_seconds: Int
+	rage_click_radius_pixels: Int
+	rage_click_count: Int
+	backend_domains: StringArray
+	filter_chrome_extension: Boolean
+	filterSessionsWithoutError: Boolean!
+	autoResolveStaleErrorsDayInterval: Int!
+}
+
+type AllWorkspaceSettings {
+	workspace_id: ID!
+	ai_application: Boolean!
+	ai_insights: Boolean!
 }
 
 type Account {
@@ -391,6 +453,10 @@ type Workspace {
 	trial_extension_enabled: Boolean!
 	clearbit_enabled: Boolean!
 	retention_period: RetentionPeriod
+	errors_retention_period: RetentionPeriod
+	sessions_max_cents: Int
+	errors_max_cents: Int
+	logs_max_cents: Int
 }
 
 type Segment {
@@ -432,6 +498,7 @@ type ErrorObject {
 	browser: String
 	environment: String
 	session: Session
+	serviceVersion: String
 }
 
 type ErrorInstance {
@@ -468,6 +535,7 @@ type ErrorGroup {
 	first_occurrence: Timestamp
 	last_occurrence: Timestamp
 	viewed: Boolean
+	serviceName: String
 }
 
 type ErrorMetadata {
@@ -518,6 +586,21 @@ type S3File {
 	key: String
 }
 
+interface Edge {
+	cursor: String!
+}
+
+type PageInfo {
+	hasNextPage: Boolean!
+	hasPreviousPage: Boolean!
+	startCursor: String!
+	endCursor: String!
+}
+
+interface Connection {
+	pageInfo: PageInfo!
+}
+
 type Log {
 	timestamp: Timestamp!
 	level: LogLevel!
@@ -528,22 +611,74 @@ type Log {
 	secureSessionID: String
 	source: String
 	serviceName: String
+	serviceVersion: String
 }
 
-type LogEdge {
+type LogEdge implements Edge {
 	cursor: String!
 	node: Log!
 }
 
-type PageInfo {
-	hasNextPage: Boolean!
-	hasPreviousPage: Boolean!
-	startCursor: String!
-	endCursor: String!
+type LogConnection implements Connection {
+	edges: [LogEdge!]!
+	pageInfo: PageInfo!
 }
 
-type LogsConnection {
-	edges: [LogEdge!]!
+type ErrorObjectNodeSession {
+	secureID: String!
+	appVersion: String
+	email: String
+	fingerprint: Int
+}
+
+type ErrorObjectNode {
+	id: ID!
+	createdAt: Timestamp!
+	event: String!
+	timestamp: Timestamp!
+	session: ErrorObjectNodeSession
+	errorGroupSecureID: String!
+}
+
+type ErrorObjectEdge implements Edge {
+	cursor: String!
+	node: ErrorObjectNode!
+}
+
+type ErrorObjectConnection implements Connection {
+	edges: [ErrorObjectEdge!]!
+	pageInfo: PageInfo!
+}
+
+enum ServiceStatus {
+	healthy
+	error
+	created
+}
+
+type Service {
+	id: ID!
+	projectID: ID!
+	name: String!
+	status: ServiceStatus!
+	githubRepoPath: String
+}
+
+type ServiceNode {
+	id: ID!
+	projectID: ID!
+	name: String!
+	status: ServiceStatus!
+	githubRepoPath: String
+}
+
+type ServiceEdge implements Edge {
+	cursor: String!
+	node: ServiceNode!
+}
+
+type ServiceConnection implements Connection {
+	edges: [ServiceEdge]!
 	pageInfo: PageInfo!
 }
 
@@ -558,6 +693,7 @@ enum ReservedLogKey {
 	trace_id
 	source
 	service_name
+	service_version
 }
 
 enum LogSource {
@@ -940,6 +1076,17 @@ type SessionComment {
 	replies: [CommentReply]!
 }
 
+type SessionInsight {
+	id: ID!
+	session_id: Int!
+	insight: String!
+}
+
+type SessionQuery {
+	id: ID!
+	project_id: ID!
+}
+
 type SlackSyncResponse {
 	success: Boolean!
 	newChannelsAddedCount: Int!
@@ -1088,6 +1235,7 @@ type SessionAlert {
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
 	DiscordChannelsToNotify: [DiscordChannel!]!
+	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
 	CountThreshold: Int!
@@ -1126,6 +1274,7 @@ type WorkspaceInviteLink {
 	invitee_role: String!
 	expiration_date: Timestamp!
 	secret: String!
+	created_at: Timestamp!
 }
 
 type WorkspaceForInviteLink {
@@ -1182,7 +1331,6 @@ type CategoryHistogramPayload {
 type IntegrationStatus {
 	integrated: Boolean!
 	resourceType: String!
-	resourceSecureId: String
 	createdAt: Timestamp
 }
 
@@ -1330,10 +1478,16 @@ type OAuthClient {
 	app_name: String!
 }
 
+type SystemConfiguration {
+	maintenance_start: Timestamp
+	maintenance_end: Timestamp
+}
+
 enum EmailOptOutCategory {
 	All
 	Digests
 	Billing
+	SessionDigests
 }
 
 scalar Upload
@@ -1347,6 +1501,7 @@ type Query {
 	timeline_indicator_events(
 		session_secure_id: String!
 	): [TimelineIndicatorEvent!]!
+	websocket_events(session_secure_id: String!): [Any]
 	rage_clicks(session_secure_id: String!): [RageClickEvent!]!
 	rageClicksForProject(
 		project_id: ID!
@@ -1365,12 +1520,17 @@ type Query {
 	): ErrorsHistogram!
 	error_group(secure_id: String!): ErrorGroup
 	error_object(id: ID!): ErrorObject
+	error_objects(
+		error_group_secure_id: String!
+		after: String
+		before: String
+		query: String!
+	): ErrorObjectConnection!
 	error_object_for_log(log_cursor: String!): ErrorObject
 	error_instance(
 		error_group_secure_id: String!
 		error_object_id: ID
 	): ErrorInstance
-	messages(session_secure_id: String!): [Any]
 	enhanced_user_details(session_secure_id: String!): EnhancedUserDetailsResult
 	errors(session_secure_id: String!): [ErrorObject]
 	resources(session_secure_id: String!): [Any]
@@ -1408,11 +1568,6 @@ type Query {
 		error_group_secure_id: String!
 		date_offset: Int!
 	): [Int64!]!
-	errorDistribution(
-		project_id: ID!
-		error_group_secure_id: String!
-		property: String!
-	): [ErrorDistributionItem]!
 	errorGroupFrequencies(
 		project_id: ID!
 		error_group_secure_ids: [String!]
@@ -1436,6 +1591,7 @@ type Query {
 		project_id: ID!
 		count: Int!
 		query: String!
+		sort_field: String
 		sort_desc: Boolean!
 		page: Int
 	): SessionResults!
@@ -1444,7 +1600,11 @@ type Query {
 		query: String!
 		histogram_options: DateHistogramOptions!
 	): SessionsHistogram!
-	field_types(project_id: ID!): [Field!]!
+	field_types(
+		project_id: ID!
+		start_date: Timestamp
+		end_date: Timestamp
+	): [Field!]!
 	fields_opensearch(
 		project_id: ID!
 		count: Int!
@@ -1479,7 +1639,6 @@ type Query {
 	workspaces_count: Int64!
 	joinable_workspaces: [Workspace]
 	error_alerts(project_id: ID!): [ErrorAlert]!
-	session_feedback_alerts(project_id: ID!): [SessionAlert]!
 	new_user_alerts(project_id: ID!): [SessionAlert]
 	track_properties_alerts(project_id: ID!): [SessionAlert]!
 	user_properties_alerts(project_id: ID!): [SessionAlert]!
@@ -1488,7 +1647,6 @@ type Query {
 	log_alerts(project_id: ID!): [LogAlert]!
 	log_alert(id: ID!): LogAlert!
 	projectSuggestion(query: String!): [Project]!
-	workspaceSuggestion(query: String!): [Workspace]!
 	environment_suggestion(project_id: ID!): [Field]
 	app_version_suggestion(project_id: ID!): [String]!
 	identifier_suggestion(project_id: ID!, query: String!): [String!]!
@@ -1520,10 +1678,15 @@ type Query {
 		integration_type: IntegrationType
 	): [IntegrationProjectMapping!]!
 	linear_teams(project_id: ID!): [LinearTeam!]
+	github_repos(workspace_id: ID!): [GitHubRepo!]
+	github_issue_labels(workspace_id: ID!, repository: String!): [String!]!
 	project(id: ID!): Project
+	projectSettings(projectId: ID!): AllProjectSettings
 	workspace(id: ID!): Workspace
 	workspace_for_invite_link(secret: String!): WorkspaceForInviteLink!
 	workspace_invite_links(workspace_id: ID!): WorkspaceInviteLink!
+	workspacePendingInvites(workspace_id: ID!): [WorkspaceInviteLink]!
+	workspaceSettings(workspace_id: ID!): AllWorkspaceSettings
 	workspace_for_project(project_id: ID!): Workspace
 	admin: Admin
 	admin_role(workspace_id: ID!): WorkspaceAdminRole
@@ -1570,7 +1733,7 @@ type Query {
 		before: String
 		at: String
 		direction: LogDirection!
-	): LogsConnection!
+	): LogConnection!
 	sessionLogs(project_id: ID!, params: LogsParamsInput!): [LogEdge!]!
 	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
 	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
@@ -1581,6 +1744,15 @@ type Query {
 		date_range: DateRangeRequiredInput!
 	): [String!]!
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
+	error_resolution_suggestion(error_object_id: ID!): String!
+	session_insight(secure_id: String!): SessionInsight
+	system_configuration: SystemConfiguration!
+	services(
+		project_id: ID!
+		after: String
+		before: String
+		query: String
+	): ServiceConnection
 }
 
 type Mutation {
@@ -1604,16 +1776,35 @@ type Mutation {
 		backend_domains: StringArray
 		filter_chrome_extension: Boolean
 	): Project
+	editProjectSettings(
+		projectId: ID!
+		name: String
+		billing_email: String
+		excluded_users: StringArray
+		error_filters: StringArray
+		error_json_paths: StringArray
+		rage_click_window_seconds: Int
+		rage_click_radius_pixels: Int
+		rage_click_count: Int
+		backend_domains: StringArray
+		filter_chrome_extension: Boolean
+		filterSessionsWithoutError: Boolean
+		autoResolveStaleErrorsDayInterval: Int
+	): AllProjectSettings
 	editWorkspace(id: ID!, name: String): Workspace
+	editWorkspaceSettings(
+		workspace_id: ID!
+		ai_application: Boolean
+		ai_insights: Boolean
+	): AllWorkspaceSettings
 	markErrorGroupAsViewed(
 		error_secure_id: String!
 		viewed: Boolean
 	): ErrorGroup
 	markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
-	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
 	updateErrorGroupState(
 		secure_id: String!
-		state: String!
+		state: ErrorState!
 		snoozed_until: Timestamp
 	): ErrorGroup
 	deleteProject(id: ID!): Boolean
@@ -1624,6 +1815,10 @@ type Mutation {
 		role: String!
 	): String
 	addAdminToWorkspace(workspace_id: ID!, invite_id: String!): ID
+	deleteInviteLinkFromWorkspace(
+		workspace_id: ID!
+		workspace_invite_link_id: ID!
+	): Boolean!
 	joinWorkspace(workspace_id: ID!): ID
 	updateAllowedEmailOrigins(
 		workspace_id: ID!
@@ -1670,6 +1865,15 @@ type Mutation {
 		retention_period: RetentionPeriod!
 	): String
 	updateBillingDetails(workspace_id: ID!): Boolean
+	saveBillingPlan(
+		workspace_id: ID!
+		sessionsLimitCents: Int
+		sessionsRetention: RetentionPeriod!
+		errorsLimitCents: Int
+		errorsRetention: RetentionPeriod!
+		logsLimitCents: Int
+		logsRetention: RetentionPeriod!
+	): Boolean
 	createSessionComment(
 		project_id: ID!
 		session_secure_id: String!
@@ -1910,7 +2114,9 @@ type Mutation {
 		admin_id: ID
 		category: EmailOptOutCategory!
 		is_opt_out: Boolean!
+		project_id: Int
 	): Boolean!
+	editService(id: ID!, project_id: ID!, github_repo_path: String): Service
 }
 
 type Subscription {

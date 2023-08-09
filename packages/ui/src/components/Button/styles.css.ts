@@ -102,14 +102,6 @@ export const variants = recipe({
 	],
 
 	variants: {
-		display: {
-			inlineBlock: {
-				display: 'inline-block',
-			},
-			inlineFlex: {
-				display: 'inline-flex',
-			},
-		},
 		emphasis: {
 			high: {},
 			medium: {},

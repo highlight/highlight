@@ -32,7 +32,9 @@ jobs:
               with:
                   args: --config ./.golangci.yaml --timeout 5m
                   working-directory: sdk/highlight-go
-                  version: latest
+                  # version: latest
+                  # Pinning the version until https://github.com/golangci/golangci-lint/issues/3862 is solved
+                  version: v1.52.2
 
     build:
         name: build binary
@@ -52,6 +54,6 @@ jobs:
                   fetch-depth: 2
             - uses: actions/setup-go@v4
               with:
-                  go-version: '1.19'
+                  go-version-file: 'backend/go.mod'
             - name: Run tests
               run: cd sdk/highlight-go && go test -race -covermode=atomic -coverprofile=coverage.out --v

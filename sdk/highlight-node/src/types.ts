@@ -11,4 +11,14 @@ export interface NodeOptions extends HighlightOptions {
 	 * @default https://otel.highlight.io:4318
 	 */
 	otlpEndpoint?: string
+
+	/**
+	 * This app's service name.
+	 */
+	serviceName?: string
+
+	/**
+	 * This app's version ideally set to the latest deployed git SHA.
+	 */
+	serviceVersion?: string
 }

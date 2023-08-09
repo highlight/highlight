@@ -27,7 +27,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { StringParam, useQueryParams } from 'use-query-params'
 
 import Button from '../../components/Button/Button/Button'
-import styles from './NewProject.module.scss'
+import styles from './NewProject.module.css'
 
 const NewProjectPage = () => {
 	const { workspace_id } = useParams<{ workspace_id: string }>()

@@ -2,6 +2,7 @@ import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import {
 	downloadSnippet,
+	init,
 	setupFrontendSnippet,
 	setupLogging,
 } from './shared-snippets'
@@ -17,18 +18,20 @@ export const PythonFastAPIContext: QuickStartContent = {
 		{
 			title: 'Initialize the Highlight SDK.',
 			content: 'Setup the SDK to with the FastAPI integration.',
-			code: {
-				text: `from fastapi import FastAPI, Request
+			code: [
+				{
+					text: `from fastapi import FastAPI, Request
 
 import highlight_io
 from highlight_io.integrations.fastapi import FastAPIMiddleware
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
+${init}
 
 app = FastAPI()
 app.add_middleware(FastAPIMiddleware)`,
-				language: 'python',
-			},
+					language: 'python',
+				},
+			],
 		},
 		{
 			title: 'Verify your installation.',
@@ -38,13 +41,14 @@ app.add_middleware(FastAPIMiddleware)`,
 				'Visit http://127.0.0.1:5000/hello in your browser. ' +
 				'You should see a `DivideByZero` error in the [Highlight errors page](https://app.highlight.io/errors) ' +
 				'within a few moments.',
-			code: {
-				text: `from fastapi import FastAPI, Request
+			code: [
+				{
+					text: `from fastapi import FastAPI, Request
 
 import highlight_io
 from highlight_io.integrations.fastapi import FastAPIMiddleware
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
+${init}
 
 app = FastAPI()
 app.add_middleware(FastAPIMiddleware)
@@ -54,8 +58,9 @@ app.add_middleware(FastAPIMiddleware)
 async def root(request: Request):
     return {"message": f"This might not be a great idea {5 / 0}"}
 `,
-				language: 'python',
-			},
+					language: 'python',
+				},
+			],
 		},
 		setupLogging('fastapi'),
 	],

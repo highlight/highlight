@@ -7,14 +7,14 @@ import { sprinkles } from '../../css/sprinkles.css'
 
 export const variants = recipe({
 	variants: {
-		mode: {
-			light: sprinkles({ background: 'white', color: 'black' }),
-			dark: sprinkles({ background: 'p12', color: 'white' }),
+		size: {
+			small: sprinkles({ px: '4', py: '6' }),
+			large: sprinkles({ px: '6', py: '8' }),
 		},
 	},
 
 	defaultVariants: {
-		mode: 'light'
+		size: 'small'
 	},
 })
 

@@ -8,7 +8,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import SvgArrowRightIcon from '@icons/ArrowRightIcon'
 import SvgBriefcase2Icon from '@icons/Briefcase2Icon'
 import SvgSwitch2Icon from '@icons/Switch2Icon'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import {
 	DEMO_PROJECT_NAME,
 	DEMO_WORKSPACE_NAME,
@@ -19,7 +19,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 
 import SvgPlusIcon from '../../../../static/PlusIcon'
 import SvgSettingsIcon from '../../../../static/SettingsIcon'
-import styles from './ApplicationPicker.module.scss'
+import styles from './ApplicationPicker.module.css'
 
 const ApplicationPicker = () => {
 	const { allProjects, currentProject, currentWorkspace } =

@@ -1,41 +1,79 @@
 {
 	"name": "@highlight-run/next",
-	"version": "2.2.6",
+	"version": "3.2.0",
 	"description": "Client for interfacing with Highlight in next.js",
-	"main": "./dist/index.js",
-	"module": "./dist/index.mjs",
-	"types": "./dist/index.d.ts",
+	"files": [
+		"dist",
+		"highlight-init.d.ts",
+		"client.d.ts",
+		"server.d.ts",
+		"index.d.ts"
+	],
 	"exports": {
 		".": {
-			"require": "./dist/index.js",
-			"import": "./dist/index.mjs",
-			"types": "./dist/index.d.ts"
+			"types": "./dist/server.d.ts",
+			"edge": "./dist/server.edge.js",
+			"edge-light": "./dist/server.edge.js",
+			"browser": "./dist/server.edge.js",
+			"worker": "./dist/server.edge.js",
+			"workerd": "./dist/server.edge.js",
+			"require": "./dist/server.js",
+			"import": "./dist/server.mjs"
+		},
+		"./server": {
+			"types": "./dist/server.d.ts",
+			"edge": "./dist/server.edge.js",
+			"edge-light": "./dist/server.edge.js",
+			"browser": "./dist/server.edge.js",
+			"worker": "./dist/server.edge.js",
+			"workerd": "./dist/server.edge.js",
+			"require": "./dist/server.js",
+			"import": "./dist/server.mjs"
+		},
+		"./highlight-init": {
+			"types": "./dist/next-client.d.ts",
+			"import": "./dist/next-client.mjs",
+			"require": "./dist/next-client.js"
+		},
+		"./client": {
+			"types": "./dist/next-client.d.ts",
+			"import": "./dist/next-client.mjs",
+			"require": "./dist/next-client.js"
 		}
 	},
+	"installConfig": {
+		"hoistingLimits": "workspaces"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
 	"scripts": {
-		"typegen": "tsup src/index.ts --dts-only",
-		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"typegen": "tsup --dts-only",
+		"dev": "tsup --watch && sh ./bin/clean-dist.sh",
+		"build": "tsup && sh ./bin/clean-dist.sh",
 		"test": "jest"
 	},
 	"author": "",
 	"license": "ISC",
 	"peerDependencies": {
-		"next": ">=12"
+		"@highlight-run/node": "workspace:^",
+		"highlight.run": "workspace:^",
+		"next": ">=12",
+		"react": ">=17"
 	},
 	"dependencies": {
 		"@highlight-run/node": "workspace:*",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
-		"npm-run-all": "4.1.5"
+		"highlight.run": "workspace:*"
 	},
 	"devDependencies": {
 		"@trpc/server": "^9.27.4",
 		"@types/jest": "27.4.1",
-		"@types/node": "17.0.23",
-		"eslint": "8.12.0",
+		"eslint": "8.39.0",
 		"jest": "^29.2.0",
-		"next": ">=12",
+		"next": "^13.3.4",
 		"ts-jest": "^29.0.3",
-		"tsup": "^6.2.3",
-		"typescript": "^4.8.2"
+		"tsup": "^6.7.0",
+		"typescript": "^5.0.4"
 	}
 }

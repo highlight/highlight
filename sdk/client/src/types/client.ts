@@ -39,6 +39,12 @@ export declare type NetworkRecordingOptions = {
 	 */
 	recordHeadersAndBody?: boolean
 	/**
+	 * This disables recording WebSocket events.
+	 * WebSocket events are recorded by default if recordHeadersAndBody is set.
+	 * @default false
+	 */
+	disableWebSocketEventRecordings?: boolean
+	/**
 	 * Request and response headers where the value is not recorded.
 	 * The header value is replaced with '[REDACTED]'.
 	 * These headers are case-insensitive.
@@ -48,6 +54,21 @@ export declare type NetworkRecordingOptions = {
 	 * networkHeadersToRedact: ['Secret-Header', 'Plain-Text-Password']
 	 */
 	networkHeadersToRedact?: string[]
+	/**
+	 * Specifies the keys for request/response JSON body that should not be recorded.
+	 * The body value is replaced with '[REDACTED]'.
+	 * These keys are case-insensitive.
+	 * `enabled` and `recordHeadersAndBody` need to be `true`. Otherwise this option will be ignored.
+	 * @example bodyKeysToRedact: ['secret-token', 'plain-text-password']
+	 * // Only `body.id` and `body.pageNumber` will be recorded.
+	 * body = {
+	 * 'id': '123',
+	 * 'pageNumber': '1',
+	 * 'secret-token': 'super-sensitive-value',
+	 * 'plain-text-password': 'password123',
+	 * }
+	 */
+	networkBodyKeysToRedact?: string[]
 	/**
 	 * URLs to not record headers and bodies for.
 	 * To disable recording headers and bodies for all URLs, set `recordHeadersAndBody` to `false`.
@@ -69,7 +90,8 @@ export declare type NetworkRecordingOptions = {
 	 */
 	headerKeysToRecord?: string[]
 	/**
-	 * Specifies the keys for request/response headers to record.
+	 * Specifies the keys for request/response JSON body to record.
+	 * This option will override `networkBodyKeysToRedact` if specified.
 	 * `enabled` and `recordHeadersAndBody` need to be `true`. Otherwise this option will be ignored.
 	 * @example bodyKeysToRecord: ['id', 'pageNumber']
 	 * // Only `body.id` and `body.pageNumber` will be recorded.
@@ -98,15 +120,6 @@ export declare type IntegrationOptions = {
 }
 
 export declare type SessionShortcutOptions = false | string
-
-export declare interface FeedbackWidgetOptions {
-	title?: string
-	subTitle?: string
-	submitButtonLabel?: string
-	enabled?: boolean
-	onSubmit?: (name: string, email: string, text: string) => void
-	onCancel?: () => void
-}
 
 type DefaultIntegrationOptions = {
 	disabled?: boolean

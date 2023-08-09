@@ -1,0 +1,20 @@
+.selectMessage {
+	color: var(--color-gray-500);
+}
+
+.notFoundMessage {
+	padding-left: var(--size-xSmall) 0;
+	padding-right: var(--size-xSmall) 0;
+}
+
+.syncButton {
+	color: var(--color-link) !important;
+	display: inline-flex;
+	font-weight: 400;
+	padding: 0;
+}
+
+.small {
+	display: flex;
+	padding: 0;
+}

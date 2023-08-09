@@ -1,24 +1,13 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+* Install [rbenv](https://github.com/rbenv/rbenv)
+* Install ruby `rbenv install`
+* Install bundle `gem install bundler`
 
-Things you may want to cover:
+* Install gems `bundle i`
 
-* Ruby version
+_Note: Above command fail? Using M1? Try this [comment](https://github.com/grpc/grpc/issues/30947#issuecomment-1367300689) if the above fails._
 
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+* Run app `rails s`
+* Open app `open http://127.0.0.1:2343`
+* Similate an error `open http://127.0.0.1:2343/articles`

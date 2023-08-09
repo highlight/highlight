@@ -1,4 +1,5 @@
 import { vi } from 'vitest'
 
-// Mock consts:* imports provided via rollup-plugin-consts
-vi.mock('consts:publicGraphURI', () => ({ default: 'localhost:8082' }))
+vi.mock('import.meta.env.REACT_APP_PUBLIC_GRAPH_URI', () => ({
+	default: 'localhost:8082',
+}))

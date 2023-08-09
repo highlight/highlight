@@ -2,12 +2,13 @@ import { siteUrl } from '../../../../utils/urls'
 import { QuickStartContent } from '../../QuickstartContent'
 import {
 	downloadSnippet,
+	init,
 	setupFrontendSnippet,
 	setupLogging,
 } from './shared-snippets'
 
 export const PythonAWSContext: QuickStartContent = {
-	title: 'Python AWS Lambda',
+	title: 'Logging from Python AWS Lambda',
 	subtitle: 'Learn how to set up highlight.io on AWS Lambda.',
 	logoUrl: siteUrl('/images/quickstart/aws-lambda.svg'),
 	entries: [
@@ -17,11 +18,12 @@ export const PythonAWSContext: QuickStartContent = {
 			title: 'Initialize the Highlight SDK.',
 			content:
 				'Setup the SDK. Add the `@observe_handler` decorator to your lambdas.',
-			code: {
-				text: `import highlight_io
+			code: [
+				{
+					text: `import highlight_io
 from highlight_io.integrations.aws import observe_handler
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
+${init}
 
 
 @observe_handler
@@ -31,8 +33,9 @@ def lambda_handler(event, context):
         "body": f"Hello, {name}. This HTTP triggered function executed successfully.",
     }
 `,
-				language: 'python',
-			},
+					language: 'python',
+				},
+			],
 		},
 		{
 			title: 'Verify your installation.',
@@ -42,11 +45,12 @@ def lambda_handler(event, context):
 				'Setup an HTTP trigger and visit your lambda on the internet. ' +
 				'You should see a `DivideByZero` error in the [Highlight errors page](https://app.highlight.io/errors) ' +
 				'within a few moments.',
-			code: {
-				text: `import highlight_io
+			code: [
+				{
+					text: `import highlight_io
 from highlight_io.integrations.aws import observe_handler
 
-H = highlight_io.H("<YOUR_PROJECT_ID>", record_logs=True)
+${init}
 
 
 @observe_handler
@@ -54,8 +58,9 @@ def lambda_handler(event, context):
     return {
         "body": f"Returning this is a bad idea: {5 / 0}.",
     }`,
-				language: 'python',
-			},
+					language: 'python',
+				},
+			],
 		},
 		setupLogging('aws'),
 	],

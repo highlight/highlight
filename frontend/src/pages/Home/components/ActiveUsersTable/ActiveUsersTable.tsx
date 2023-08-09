@@ -1,5 +1,5 @@
 import {
-	DEMO_WORKSPACE_APPLICATION_ID,
+	DEMO_PROJECT_ID,
 	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
 } from '@components/DemoWorkspaceButton/DemoWorkspaceButton'
 import {
@@ -27,7 +27,7 @@ import ProgressBarTable from '../../../../components/ProgressBarTable/ProgressBa
 import Tooltip from '../../../../components/Tooltip/Tooltip'
 import { DashboardInnerTable } from '../DashboardInnerTable/DashboardInnerTable'
 import { formatShortTime } from '../KeyPerformanceIndicators/utils/utils'
-import styles from './ActiveUsersTable.module.scss'
+import styles from './ActiveUsersTable.module.css'
 
 const ActiveUsersTable = ({
 	filterSearchTerm,
@@ -41,7 +41,7 @@ const ActiveUsersTable = ({
 		project_id: string
 	}>()
 	const projectIdRemapped =
-		project_id === DEMO_WORKSPACE_APPLICATION_ID
+		project_id === DEMO_PROJECT_ID
 			? DEMO_WORKSPACE_PROXY_APPLICATION_ID
 			: project_id
 

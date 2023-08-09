@@ -30,7 +30,7 @@ func TestGetConnectionAfter(t *testing.T) {
 		After: ptr.String("cursor"),
 	})
 
-	assert.Equal(t, &modelInputs.LogsConnection{
+	assert.Equal(t, &modelInputs.LogConnection{
 		Edges: zeroEdges,
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     false,
@@ -44,7 +44,7 @@ func TestGetConnectionAfter(t *testing.T) {
 		After: ptr.String("cursor"),
 	})
 
-	assert.Equal(t, &modelInputs.LogsConnection{
+	assert.Equal(t, &modelInputs.LogConnection{
 		Edges: oneEdge,
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     false,
@@ -58,7 +58,7 @@ func TestGetConnectionAfter(t *testing.T) {
 		After: ptr.String("cursor"),
 	})
 
-	assert.Equal(t, &modelInputs.LogsConnection{
+	assert.Equal(t, &modelInputs.LogConnection{
 		Edges: manyEdges[:LogsLimit],
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     true,
@@ -88,7 +88,7 @@ func TestGetConnectionBefore(t *testing.T) {
 		Before: ptr.String("cursor"),
 	})
 
-	assert.Equal(t, &modelInputs.LogsConnection{
+	assert.Equal(t, &modelInputs.LogConnection{
 		Edges: zeroEdges,
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     true,
@@ -102,7 +102,7 @@ func TestGetConnectionBefore(t *testing.T) {
 		Before: ptr.String("cursor"),
 	})
 
-	assert.Equal(t, &modelInputs.LogsConnection{
+	assert.Equal(t, &modelInputs.LogConnection{
 		Edges: oneEdge,
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     true,
@@ -116,7 +116,7 @@ func TestGetConnectionBefore(t *testing.T) {
 		Before: ptr.String("cursor"),
 	})
 
-	assert.Equal(t, &modelInputs.LogsConnection{
+	assert.Equal(t, &modelInputs.LogConnection{
 		Edges: manyEdges[1:LogsLimit],
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     true,
@@ -138,7 +138,7 @@ func TestGetConnectionNoPagination(t *testing.T) {
 
 	connection := getLogsConnection(zeroEdges, Pagination{})
 
-	assert.Equal(t, &modelInputs.LogsConnection{
+	assert.Equal(t, &modelInputs.LogConnection{
 		Edges: zeroEdges,
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     false,
@@ -150,7 +150,7 @@ func TestGetConnectionNoPagination(t *testing.T) {
 
 	connection = getLogsConnection(manyEdges, Pagination{})
 
-	assert.Equal(t, &modelInputs.LogsConnection{
+	assert.Equal(t, &modelInputs.LogConnection{
 		Edges: manyEdges[:LogsLimit],
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     true,

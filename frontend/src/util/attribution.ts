@@ -1,6 +1,5 @@
+import { GenerateSecureID } from '@highlight-run/client/src/utils/secure-id'
 import Cookies from 'js-cookie'
-
-import { GenerateSecureID } from '../../../sdk/client/src/utils/secure-id'
 
 export const setAttributionData = () => {
 	const urlParams = new URLSearchParams(window.location.search)

@@ -172,3 +172,179 @@ Ensures H.stop() stops recording and that visibility events do not restart recor
 ### Patch Changes
 
 - Packages the web-vitals library as part of the highlight.io client bundle.
+
+## 6.2.0
+
+### Minor Changes
+
+- Supports recording inlined `<video>` elements such as webcams or `src="blob://...`.
+- Limits the size of network request bodies recorded to prevent replay-time crashes.
+
+## 6.3.0
+
+### Minor Changes
+
+- Support the option to redact specific request/response body keys while recording all others.
+
+## 6.4.0
+
+### Minor Changes
+
+- Moves bundling from rollup to vite.
+
+## 6.4.1
+
+### Patch Changes
+
+- Switch to umd default output.
+
+## 6.4.3
+
+### Patch Changes
+
+- Fixes to umd format
+
+## 6.5.0
+
+### Minor Changes
+
+- Adds an `H.start({forceNew: true})` option that allows forcing the start of a new session recording.
+
+## 6.5.1
+
+### Patch Changes
+
+- Turn off client sourcemaps as they cause issues with next.js frontends.
+
+
+## 6.5.2
+
+### Patch Changes
+
+- Target ES6 for library build compatibility.
+
+## 6.5.3
+
+### Patch Changes
+
+- The Highlight `window.fetch` proxy was only forwarding headers from `RequestInit`. It now forwards headers from `RequestInfo` as well.
+- Target ES6 for library build compatability.
+
+## 7.0.0
+
+### Breaking Changes
+
+- Removed the `feedbackWidget` option.
+
+## 7.1.0
+
+### Minor Changes
+
+- Improves the experience of configuring cross-origin `<iframe>` recording.
+
+## 7.1.1
+
+### Patch Changes
+
+- Extends the length of recorded sessions for a given project.
+
+## 7.1.2
+
+### Minor Changes
+
+- Avoid initializing highlight fetch monkeypatch more than once.
+
+## 7.2.0
+
+### Minor Changes
+
+- Capture unhandled promise exceptions in highlight errors.
+
+## 7.3.0
+
+### Minor Changes
+
+- Update format of data sent in for WebSocket events
+
+## 7.3.1
+
+### Patch Changes
+
+- Increase data transmission retry delays.
+
+## 7.3.2
+
+### Patch Changes
+
+- Ensure compatibility with native `window.Highlight` [class](https://developer.mozilla.org/en-US/docs/Web/API/Highlight).
+
+## 7.3.3
+
+### Patch Changes
+
+- Ensure `console.error` caught stack traces are not missing the top frame.
+
+## 7.3.4
+
+### Patch Changes
+
+- Add easier testing of local `@highlight-run/client` and `highlight.run` scripts.
+- Look for `window.HighlightIO` instead of `window.Highlight` when waiting for client script to load.
+
+## 7.3.5
+
+### Patch Changes
+
+- Remove any properties that throw a `structuredClone` error in `addProperties` before calling `postMessage`
+
+## 7.3.6
+
+### Patch Changes
+
+- Track identify metadata in the mixpanel integration as a tracked event.
+
+## 7.3.7
+Reserved for the Boeing 737
+
+## 7.3.8
+
+### Patch Changes
+
+- Fix `window.Promise` monkeypatch to work in Next.js frontends.
+
+## 7.3.9
+
+### Patch Changes
+
+- Fix recording of WebGL2 `<canvas>` elements that leverage `preserveDrawingBuffer: false`
+
+## 7.3.10
+
+### Patch Changes
+
+- Fix error capture of `new Error()` objects.
+
+## 7.3.11
+
+### Patch Changes
+
+- Improve `canvasInitialSnapshotDelay` logic for `<canvas>` recording to delay per-canvas.
+
+## 7.3.12
+
+### Patch Changes
+
+- Update naming of exports for Remix compatability.
+
+## 7.3.13
+
+### Patch Changes
+
+- Fix export names for unpkg / jsdelivr.
+
+## 7.4.0
+
+### Minor Changes
+
+- Return `{ sessionSecureID }` from `H.init` for consumption by Remix SDK
+- Persist `sessionSecureID` to `sessionStorage`

@@ -7,6 +7,7 @@ export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
 export interface HighlightInterface {
 	init: (options: NodeOptions) => void
+	stop: () => Promise<void>
 	isInitialized: () => boolean
 	parseHeaders: (
 		headers: IncomingHttpHeaders,
@@ -16,7 +17,6 @@ export interface HighlightInterface {
 		secureSessionId?: string,
 		requestId?: string,
 	) => void
-	consumeEvent: (secureSessionId?: string) => void
 	recordMetric: (
 		secureSessionId: string,
 		name: string,
@@ -40,6 +40,16 @@ export const H: HighlightInterface = {
 			console.warn('highlight-node init error: ', e)
 		}
 	},
+	stop: async () => {
+		if (!highlight_obj) {
+			return
+		}
+		try {
+			await highlight_obj.stop()
+		} catch (e) {
+			console.warn('highlight-node stop error: ', e)
+		}
+	},
 	isInitialized: () => !!highlight_obj,
 	consumeError: (
 		error: Error,
@@ -50,13 +60,6 @@ export const H: HighlightInterface = {
 			highlight_obj.consumeCustomError(error, secureSessionId, requestId)
 		} catch (e) {
 			console.warn('highlight-node consumeError error: ', e)
-		}
-	},
-	consumeEvent: (secureSessionId?: string) => {
-		try {
-			highlight_obj.consumeCustomEvent(secureSessionId)
-		} catch (e) {
-			console.warn('highlight-node consumeEvent error: ', e)
 		}
 	},
 	recordMetric: (

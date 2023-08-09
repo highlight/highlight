@@ -17,16 +17,27 @@ export const PythonFlaskContext: QuickStartContent = {
 		{
 			title: 'Initialize the Highlight SDK.',
 			content: 'Setup the SDK to with the Flask integration.',
-			code: {
-				text: `from flask import Flask
+			code: [
+				{
+					text: `from flask import Flask
 
 import highlight_io
 from highlight_io.integrations.flask import FlaskIntegration
 
 app = Flask(__name__)
-H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[FlaskIntegration()], record_logs=True)`,
-				language: 'python',
-			},
+
+# \`instrument_logging=True\` sets up logging instrumentation.
+# if you do not want to send logs or are using \`loguru\`, pass \`instrument_logging=False\`
+H = highlight_io.H(
+	"<YOUR_PROJECT_ID>",
+	integrations=[FlaskIntegration()],
+	instrument_logging=True,
+	service_name="my-flask-app",
+	service_version="git-sha",
+)`,
+					language: 'python',
+				},
+			],
 		},
 		{
 			title: 'Verify your installation.',
@@ -36,8 +47,9 @@ H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[FlaskIntegration()], recor
 				'Visit http://127.0.0.1:5000/hello in your browser. ' +
 				'You should see a `DivideByZero` error in the [Highlight errors page](https://app.highlight.io/errors) ' +
 				'within a few moments.',
-			code: {
-				text: `import logging
+			code: [
+				{
+					text: `import logging
 import random
 import time
 
@@ -47,7 +59,16 @@ import highlight_io
 from highlight_io.integrations.flask import FlaskIntegration
 
 app = Flask(__name__)
-H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[FlaskIntegration()], record_logs=True)
+
+# \`instrument_logging=True\` sets up logging instrumentation.
+# if you do not want to send logs or are using \`loguru\`, pass \`instrument_logging=False\`
+H = highlight_io.H(
+	"<YOUR_PROJECT_ID>",
+	integrations=[FlaskIntegration()],
+	instrument_logging=True,
+	service_name="my-flask-app",
+	service_version="git-sha",
+)
 
 
 @app.route("/hello")
@@ -57,8 +78,9 @@ def hello():
 
 if __name__ == "__main__":
     app.run()`,
-				language: 'python',
-			},
+					language: 'python',
+				},
+			],
 		},
 		setupLogging('flask'),
 	],

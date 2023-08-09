@@ -4,6 +4,7 @@ import {
 	ApolloClient,
 	ApolloLink,
 	createHttpLink,
+	from,
 	HttpLink,
 	InMemoryCache,
 	split,
@@ -17,22 +18,27 @@ import {
 import { namedOperations } from '@graph/operations'
 import { auth } from '@util/auth'
 import { IndexedDBLink } from '@util/db'
+import { invalidateRefetch } from '@util/gql'
 import { isOnPrem } from '@util/onPrem/onPremUtils'
 
-const uri =
-	import.meta.env.REACT_APP_PRIVATE_GRAPH_URI ??
-	window.location.origin + '/private'
+import {
+	DEMO_PROJECT_ID,
+	DEMO_WORKSPACE_PROXY_APPLICATION_ID,
+} from '@/components/DemoWorkspaceButton/DemoWorkspaceButton'
+import { PRIVATE_GRAPH_URI } from '@/constants'
+
 const highlightGraph = new IndexedDBLink(
 	createHttpLink({
-		uri,
+		uri: PRIVATE_GRAPH_URI,
 		credentials: 'include',
 	}),
 )
 let splitLink = null
 try {
-	const socketUri = uri
-		.replace('http://', 'ws://')
-		.replace('https://', 'wss://')
+	const socketUri = PRIVATE_GRAPH_URI.replace('http://', 'ws://').replace(
+		'https://',
+		'wss://',
+	)
 	const highlightSocket = new WebSocketLink({
 		uri: socketUri,
 		options: {
@@ -65,7 +71,7 @@ const graphCdnGraph = new HttpLink({
 	uri: 'https://graphcdn.highlight.run',
 })
 if (isOnPrem) {
-	console.log('Private Graph URI: ', uri)
+	console.log('Private Graph URI: ', PRIVATE_GRAPH_URI)
 }
 
 const authLink = setContext((_, { headers }) => {
@@ -121,22 +127,45 @@ const cache = new InMemoryCache({
 	},
 })
 
-export const client = new ApolloClient({
-	link: ApolloLink.split(
-		(operation) => {
-			// Don't query GraphCDN for localhost.
-			// GraphCDN only caches production data.
-			if (import.meta.env.NODE_ENV === 'development') {
-				return false
-			}
+const remappedVariables = ['project_id', 'id']
 
-			// Check to see if the operation is one that we should send to GraphCDN instead of private graph.
-			// @ts-expect-error
-			return GraphCDNOperations.includes(operation.operationName)
+const projectIdLink = new ApolloLink((operation, forward) => {
+	remappedVariables.forEach((variable) => {
+		if (
+			operation.variables[variable] ===
+			DEMO_WORKSPACE_PROXY_APPLICATION_ID
+		) {
+			operation.variables[variable] = DEMO_PROJECT_ID
+		}
+	})
+
+	return forward(operation)
+})
+
+export const client = new ApolloClient({
+	link: from([
+		projectIdLink,
+		ApolloLink.split(
+			(operation) => {
+				// Don't query GraphCDN for localhost.
+				// GraphCDN only caches production data.
+				if (import.meta.env.NODE_ENV === 'development') {
+					return false
+				}
+
+				// Check to see if the operation is one that we should send to GraphCDN instead of private graph.
+				// @ts-expect-error
+				return GraphCDNOperations.includes(operation.operationName)
+			},
+			authLink.concat(graphCdnGraph),
+			authLink.concat(splitLink || highlightGraph),
+		),
+	]),
+	defaultOptions: {
+		mutate: {
+			onQueryUpdated: invalidateRefetch,
 		},
-		authLink.concat(graphCdnGraph),
-		authLink.concat(splitLink || highlightGraph),
-	),
+	},
 	cache,
 	assumeImmutableResults: true,
 	connectToDevTools: import.meta.env.DEV,

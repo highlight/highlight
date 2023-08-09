@@ -1,23 +1,24 @@
 import { AdminAvatar } from '@components/Avatar/Avatar'
-import { AdminSuggestion } from '@components/Comment/CommentHeader'
 import { getSlackUrl } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import SvgSlackLogo from '@components/icons/SlackLogo'
-import { namedOperations } from '@graph/operations'
 import {
 	Mention,
 	MentionsInput,
 	OnChangeHandlerFunc,
 } from '@highlight-run/react-mentions'
-import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
+import { Box, Text } from '@highlight-run/ui'
+import { useSlackSync } from '@hooks/useSlackSync'
 import { useParams } from '@util/react-router/useParams'
 import { splitTaggedUsers } from '@util/string'
 import clsx from 'clsx'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import Linkify from 'react-linkify'
 
-import newCommentFormStyles from '../NewCommentForm.module.scss'
-import styles from './CommentTextBody.module.scss'
-import mentionsClassNames from './mentions.module.scss'
+import { AdminSuggestion } from '@/components/Comment/utils/utils'
+import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
+
+import styles from './CommentTextBody.module.css'
+import mentionsClassNames from './mentions.module.css'
 
 interface Props {
 	commentText: string
@@ -26,37 +27,36 @@ interface Props {
 	suggestions?: AdminSuggestion[]
 	onDisplayTransformHandler?: (_id: string, display: string) => string
 	suggestionsPortalHost?: Element
-
 	newInput?: boolean
+	inputRef?: React.RefObject<HTMLTextAreaElement>
 }
 
-const CommentTextBody = ({
+export const CommentTextBody = ({
 	commentText,
 	placeholder,
 	onChangeHandler,
 	suggestions = [],
 	onDisplayTransformHandler,
 	suggestionsPortalHost,
-
 	newInput,
+	inputRef,
 }: Props) => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
 	const slackUrl = getSlackUrl(project_id ?? '')
-	const [shouldAutoFocus, setShouldAutoFocus] = useState(!!onChangeHandler)
+	const { slackLoading, syncSlack } = useSlackSync()
+	const [slackSynced, setSlackSynced] = useState(false)
 
-	useEffect(() => {
-		if (shouldAutoFocus) {
-			const textarea = document.querySelector(
-				`.${newCommentFormStyles.commentInputContainer} textarea`,
-			) as HTMLTextAreaElement | null
-			if (textarea) {
-				textarea.focus()
-			}
-			setShouldAutoFocus(false)
+	const handleMentionsInputFocus = () => {
+		if (!slackSynced) {
+			setSlackSynced(true)
+			syncSlack()
 		}
-	}, [shouldAutoFocus])
+	}
+
+	const mentions = commentText.split('@')
+	const latestMention = `@${mentions.at(-1)}`
 
 	const isSlackIntegrated = suggestions.some(
 		(suggestion) =>
@@ -69,44 +69,56 @@ const CommentTextBody = ({
 		for (const { matched, value } of splitTaggedUsers(commentText)) {
 			if (matched) {
 				pieces.push(
-					<span className={styles.mentionedUser}>{value}</span>,
+					<Box
+						as="span"
+						cssClass={styles.commentLink}
+						key={pieces.length}
+					>
+						{value}
+					</Box>,
 				)
 			} else {
 				pieces.push(
-					<span className={styles.commentText}>
-						<Linkify
-							componentDecorator={(
-								decoratedHref: string,
-								decoratedText: string,
-								key: number,
-							) => (
-								<a
-									target="_blank"
-									rel="noreferrer"
-									href={decoratedHref}
-									key={key}
-								>
-									{decoratedText}
-								</a>
-							)}
-						>
-							{value}
-						</Linkify>
-					</span>,
+					<Linkify
+						key={pieces.length}
+						componentDecorator={(
+							decoratedHref: string,
+							decoratedText: string,
+							key: number,
+						) => (
+							<a
+								target="_blank"
+								rel="noreferrer"
+								href={decoratedHref}
+								key={key}
+								className={styles.commentLink}
+							>
+								{decoratedText}
+							</a>
+						)}
+					>
+						{value}
+					</Linkify>,
 				)
 			}
 		}
-		return <>{pieces}</>
+
+		return (
+			<Text size="small" color="moderate">
+				{pieces}
+			</Text>
+		)
 	}
 
 	return (
 		<MentionsInput
+			inputRef={inputRef}
 			value={commentText}
 			className="mentions"
 			classNames={mentionsClassNames}
+			onFocus={handleMentionsInputFocus}
 			onChange={onChangeHandler}
 			placeholder={placeholder}
-			autoFocus={shouldAutoFocus}
 			aria-readonly={!onChangeHandler}
 			suggestionsPortalHost={suggestionsPortalHost}
 			allowSuggestionsAboveCursor
@@ -115,15 +127,6 @@ const CommentTextBody = ({
 					{isSlackIntegrated ? (
 						<>
 							<p>Tag a user or Slack account</p>
-							<SyncWithSlackButton
-								isSlackIntegrated={isSlackIntegrated}
-								slackUrl={slackUrl}
-								small
-								refetchQueries={[
-									namedOperations.Query
-										.GetCommentMentionSuggestions,
-								]}
-							/>
 						</>
 					) : (
 						<p>
@@ -136,13 +139,9 @@ const CommentTextBody = ({
 			noResultsMessage={
 				<>
 					<p className={styles.noResultsMessage}>
-						<SyncWithSlackButton
-							isSlackIntegrated={isSlackIntegrated}
-							slackUrl={slackUrl}
-							refetchQueries={[
-								namedOperations.Query
-									.GetCommentMentionSuggestions,
-							]}
+						<SlackLoadOrConnect
+							isLoading={slackLoading}
+							searchQuery={latestMention}
 						/>
 					</p>
 				</>
@@ -154,6 +153,7 @@ const CommentTextBody = ({
 				data={suggestions}
 				displayTransform={onDisplayTransformHandler}
 				appendSpaceOnAdd
+				suggestionLimit={15}
 				renderSuggestion={(
 					suggestion,
 					search,
@@ -173,8 +173,6 @@ const CommentTextBody = ({
 		</MentionsInput>
 	)
 }
-
-export default CommentTextBody
 
 const Suggestion = ({
 	suggestion,

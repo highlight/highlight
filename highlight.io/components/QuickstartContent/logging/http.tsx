@@ -1,8 +1,8 @@
 import { QuickStartContent } from '../QuickstartContent'
-import { curlExample, verifyLogs } from './shared-snippets'
+import { curlExample, curlExampleRaw, verifyLogs } from './shared-snippets'
 
 export const HTTPContent: QuickStartContent = {
-	title: 'OTLP HTTP',
-	subtitle: 'Set up highlight.io log ingestion via OTLP HTTP.',
-	entries: [curlExample, verifyLogs],
+	title: 'Shipping logs over HTTPS with curl',
+	subtitle: 'Set up highlight.io log ingestion over HTTPS.',
+	entries: [curlExampleRaw, curlExample, verifyLogs],
 }

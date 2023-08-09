@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 
 import classnames from 'classnames'
 import styles from './styles.module.css'
@@ -10,8 +10,8 @@ export interface ReportDialogOptions {
 	}
 	title?: string
 	subtitle?: string
-	subtitle2?: string
 	labelName?: string
+	subtitle2?: string
 	labelEmail?: string
 	labelComments?: string
 	placeholderComments?: string
@@ -20,6 +20,8 @@ export interface ReportDialogOptions {
 	successMessage?: string
 	successSubtitle?: string
 	hideHighlightBranding?: boolean
+	// if an error is passed, the ReportDialog will send it to highlight
+	error?: Error
 }
 
 type ReportDialogProps = ReportDialogOptions & {
@@ -27,11 +29,11 @@ type ReportDialogProps = ReportDialogOptions & {
 	onSubmitHandler?: () => void
 }
 
-const ReportDialog = ({
-	labelClose = 'Close',
-	labelComments = 'What happened?',
-	labelEmail = 'Email',
+export function ReportDialog({
+	labelClose = 'Cancel',
+	labelComments = 'Message',
 	labelName = 'Name',
+	labelEmail = 'Email',
 	labelSubmit = 'Submit',
 	subtitle2 = 'If you’d like to help, tell us what happened below.',
 	subtitle = 'Our team has been notified.',
@@ -43,7 +45,8 @@ const ReportDialog = ({
 	onCloseHandler,
 	onSubmitHandler,
 	hideHighlightBranding = false,
-}: ReportDialogProps) => {
+	error,
+}: ReportDialogProps) {
 	const [name, setName] = useState(user?.name || '')
 	const [email, setEmail] = useState(user?.email || '')
 	const [verbatim, setVerbatim] = useState('')
@@ -51,6 +54,19 @@ const ReportDialog = ({
 	const [sentReport, setSentReport] = useState(false)
 	// We want to record when the feedback started, not when the feedback is submitted. If we record the latter, the timing could be way off.
 	const reportDialogOpenTime = useRef(new Date().toISOString())
+	const isValid = useMemo(() => {
+		const isValidEmail = !!email.match(
+			/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
+		)
+
+		return !!name && isValidEmail && !!verbatim
+	}, [name, email, verbatim])
+
+	React.useEffect(() => {
+		if (window?.H?.consumeError && error) {
+			window.H.consumeError(error)
+		}
+	}, [error])
 
 	const handleSubmit = (event: React.SyntheticEvent) => {
 		event.preventDefault()
@@ -79,123 +95,160 @@ const ReportDialog = ({
 	}
 
 	return (
-		<main className={styles.container}>
-			<div className={styles.card}>
-				<div
-					className={classnames(styles.cardContents, {
-						[styles.cardContentsVisible]: !!sentReport,
-					})}
-				>
-					<h1 className={styles.title}>{successMessage}</h1>
-					<h4 className={styles.subtitle}>{successSubtitle}</h4>
-					<button
-						className={classnames(
-							styles.button,
-							styles.confirmationButton,
-						)}
-						onClick={onCloseHandler}
-					>
-						Close
-					</button>
-				</div>
-				<div
-					className={classnames(styles.cardContents, {
-						[styles.cardContentsVisible]: !sentReport,
-					})}
-				>
-					<div>
-						<h1 className={styles.title}>{title}</h1>
-						<h2 className={styles.subtitle}>
-							{subtitle} {subtitle2}
-						</h2>
-					</div>
-					<form className={styles.form} onSubmit={handleSubmit}>
-						<label>
-							{labelName}
-							<input
-								type="text"
-								value={name}
-								name="name"
-								autoFocus
-								onChange={(e) => {
-									setName(e.target.value)
-								}}
-							/>
-						</label>
+		<>
+			<style
+				dangerouslySetInnerHTML={{
+					__html: `
+					@font-face {
+						font-display: swap;
+						font-family: 'Inter';
+						font-style: normal;
+						font-weight: normal;
+						src: local('Inter Regular'), local('InterRegular'),
+							url('https://app.highlight.io/font/Inter-Regular.woff2')
+								format('woff2');
+					}
+					@font-face {
+						font-display: swap;
+						font-family: 'Inter';
+						font-style: normal;
+						font-weight: 500;
+						src: local('Inter Medium'), local('InterMedium'),
+							url('https://app.highlight.io/font/Inter-Medium.woff2')
+								format('woff2');
+					}
 
-						<label>
-							{labelEmail}
-							<input
-								type="email"
-								value={email}
-								name="email"
-								onChange={(e) => {
-									setEmail(e.target.value)
-								}}
-							/>
-						</label>
-
-						<label>
-							{labelComments}
-							<textarea
-								value={verbatim}
-								placeholder={placeholderComments}
-								name="verbatim"
-								rows={3}
-								onChange={(e) => {
-									setVerbatim(e.target.value)
-								}}
-							></textarea>
-						</label>
-
-						<div className={styles.formFooter}>
-							<div className={styles.formActionsContainer}>
-								<button
-									type="submit"
-									className={classnames(styles.button, {
-										[styles.loadingButton]: sendingReport,
-									})}
-								>
-									{labelSubmit}
-								</button>
+					::placeholder {
+						color: var(--color-gray-300);
+					}
+			`,
+				}}
+			/>
+			<main className={styles.container}>
+				<div className={styles.card}>
+					{sentReport ? (
+						<div className={styles.cardContents}>
+							<h1 className={styles.title}>{successMessage}</h1>
+							<h4 className={styles.subtitle}>
+								{successSubtitle}
+							</h4>
+							<div>
 								<button
 									className={classnames(
 										styles.button,
-										styles.closeButton,
+										styles.confirmationButton,
 									)}
 									onClick={onCloseHandler}
-									type="button"
 								>
-									{labelClose}
+									Close
 								</button>
 							</div>
-							{!hideHighlightBranding && (
-								<div className={styles.ad}>
-									<p className={styles.logoContainer}>
-										Crash reports powered by:
-										{/*  eslint-disable-next-line react/jsx-no-target-blank */}
-										<a
-											href="https://highlight.io"
-											target="_blank"
-										>
-											<img
-												src="https://www.highlight.io/images/logo.png"
-												alt="Highlight"
-												height="25"
-												className={`logo`}
-											/>
-										</a>
-									</p>
-								</div>
-							)}
 						</div>
-					</form>
+					) : (
+						<div className={styles.cardContents}>
+							<div>
+								<h1 className={styles.title}>{title}</h1>
+								<h2 className={styles.subtitle}>
+									{subtitle} {subtitle2}
+								</h2>
+							</div>
+							<form
+								className={styles.form}
+								onSubmit={handleSubmit}
+							>
+								<label>
+									{labelName}
+									<input
+										type="text"
+										value={name}
+										name="name"
+										autoFocus
+										onChange={(e) => {
+											setName(e.target.value)
+										}}
+										placeholder="Tom Jerry"
+									/>
+								</label>
+
+								<label>
+									{labelEmail}
+									<input
+										type="email"
+										value={email}
+										name="email"
+										onChange={(e) => {
+											setEmail(e.target.value)
+										}}
+										placeholder="mail@mail.com"
+									/>
+								</label>
+
+								<label className={styles.textareaLabel}>
+									{labelComments}
+									<textarea
+										value={verbatim}
+										placeholder={placeholderComments}
+										name="verbatim"
+										rows={3}
+										onChange={(e) => {
+											setVerbatim(e.target.value)
+										}}
+									/>
+								</label>
+
+								<div className={styles.formFooter}>
+									<div
+										className={styles.formActionsContainer}
+									>
+										<button
+											type="submit"
+											disabled={!isValid || sendingReport}
+										>
+											{labelSubmit}
+										</button>
+
+										<button
+											className={styles.closeButton}
+											onClick={onCloseHandler}
+											type="button"
+										>
+											{labelClose}
+										</button>
+									</div>
+
+									{!hideHighlightBranding && (
+										<div className={styles.ad}>
+											<a
+												href="https://highlight.io"
+												target="_blank"
+											>
+												<div
+													className={
+														styles.logoContainer
+													}
+												>
+													{/*  eslint-disable-next-line react/jsx-no-target-blank */}
+
+													<img
+														src="https://www.highlight.io/images/logo-on-dark.png"
+														alt="Highlight"
+														className={styles.logo}
+													/>
+													<span>
+														Powered by highlight.io
+													</span>
+												</div>
+											</a>
+										</div>
+									)}
+								</div>
+							</form>
+						</div>
+					)}
 				</div>
-			</div>
-		</main>
+			</main>
+		</>
 	)
 }
-
-export default ReportDialog
 
 declare var window: any

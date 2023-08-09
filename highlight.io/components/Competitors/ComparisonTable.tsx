@@ -16,7 +16,7 @@ import {
 	Competitor,
 } from './competitors'
 
-function HeadlessTooltip(props) {
+function HeadlessTooltip(props: { tooltip: string }) {
 	const [isShowing, setIsShowing] = useState(false)
 
 	return (
@@ -89,6 +89,7 @@ export default function ComparisonTable(props: { competitor: Competitor }) {
 									<Image
 										src={highlightlogosmall}
 										alt="Logo"
+										height={32}
 										className="md:hidden"
 									/>
 								</div>

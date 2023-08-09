@@ -17,7 +17,7 @@ WORKER_PREFETCH = 4
 WORKERS = cpu_count() * 4
 MAX_TASKS_WAITING = WORKERS * WORKER_PREFETCH
 
-HIGHLIGHT_FILES = {'session-contents', 'console-messages', 'network-resources'}
+HIGHLIGHT_FILES = {'session-contents', 'network-resources'}
 
 
 class PatchedQueue:

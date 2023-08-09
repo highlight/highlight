@@ -34,6 +34,8 @@ export const vars = {
 	shadows: {
 		small: '0 2px 8px -2px rgba(59, 59, 59, 0.08)',
 		medium: '0 6px 12px -2px rgba(59, 59, 59, 0.12)',
+		innerPrimary: '0 -1px 0 0 rgba(0, 0, 0, 0.32) inset',
+		innerSecondary: '0 -1px 0 0 rgba(0, 0, 0, 0.1) inset',
 	},
 	overflow: ['auto', 'hidden', 'visible', 'scroll'],
 	zIndex: {

@@ -1,4 +1,4 @@
-import { H } from '..'
+import { H } from '../index'
 
 export const listenToChromeExtensionMessage = () => {
 	// typeof checks to see if chrome is defined. chrome is not defined outside of the context of an extension or Chromium browser.

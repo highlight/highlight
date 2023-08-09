@@ -21,8 +21,9 @@ export const JSApolloContent: QuickStartContent = {
 			title: `Add the Apollo Server integration.`,
 			content:
 				'`ApolloServerHighlightPlugin` is an [Apollo Server](https://www.apollographql.com/docs/apollo-server/) plugin to capture errors in your graphql handlers.',
-			code: {
-				text: `import { ApolloServer } from '@apollo/server'
+			code: [
+				{
+					text: `import { ApolloServer } from '@apollo/server'
 import { ApolloServerHighlightPlugin } from '@highlight-run/apollo'
 // on legacy Apollo V3, use the following import 
 // import { ApolloServerV3HighlightPlugin as ApolloServerHighlightPlugin } from '@highlight-run/apollo'
@@ -32,10 +33,11 @@ import { ApolloServerHighlightPlugin } from '@highlight-run/apollo'
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  plugins: [ApolloServerHighlightPlugin({ projectID: '<YOUR_PROJECT_ID>' })],
+  plugins: [ApolloServerHighlightPlugin({ projectID: '<YOUR_PROJECT_ID>', serviceName: 'my-apollo-app', serviceVersion: 'git-sha' })],
 })`,
-				language: `js`,
-			},
+					language: `js`,
+				},
+			],
 		},
 		manualError,
 		verifyError(

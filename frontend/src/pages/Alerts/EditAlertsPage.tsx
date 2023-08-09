@@ -8,7 +8,6 @@ import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
-import React from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
 import { useNavigate } from 'react-router-dom'
@@ -118,7 +117,6 @@ const findAlert = (id: string, alertsPayload?: GetAlertsPagePayloadQuery) => {
 		...alertsPayload.error_alerts,
 		...alertsPayload.new_session_alerts,
 		...(alertsPayload.new_user_alerts || []),
-		...alertsPayload.session_feedback_alerts,
 		...alertsPayload.track_properties_alerts,
 		...alertsPayload.user_properties_alerts,
 		...alertsPayload.rage_click_alerts,

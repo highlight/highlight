@@ -1,7 +1,7 @@
 import { basename, join } from "path";
 import { cwd } from "process";
 import { readFileSync, statSync } from "fs";
-import glob from "glob";
+import { globSync } from "glob";
 import fetch from "cross-fetch";
 
 const VERIFY_API_KEY_QUERY = `
@@ -21,11 +21,13 @@ export const uploadSourcemaps = async ({
   appVersion,
   path,
   basePath,
+  allowNoop,
 }: {
   apiKey: string;
   appVersion: string;
   path: string;
   basePath: string;
+  allowNoop?: boolean;
 }) => {
   if (!apiKey || apiKey === "") {
     if (process.env.HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY) {
@@ -39,7 +41,7 @@ export const uploadSourcemaps = async ({
     api_key: apiKey,
   };
 
-  const res = await fetch("https://pri.highlight.run", {
+  const res = await fetch("https://pri.highlight.io", {
     method: "post",
     headers: {
       "Content-Type": "application/json",
@@ -71,7 +73,7 @@ export const uploadSourcemaps = async ({
 
   console.info(`Starting to upload source maps from ${path}`);
 
-  const fileList = await getAllSourceMapFiles([path]);
+  const fileList = await getAllSourceMapFiles([path], { allowNoop });
 
   if (fileList.length === 0) {
     console.error(
@@ -85,7 +87,7 @@ export const uploadSourcemaps = async ({
     getS3Key(organizationId, appVersion, basePath, name)
   );
 
-  const urlRes = await fetch("https://pri.highlight.run", {
+  const urlRes = await fetch("https://pri.highlight.io", {
     method: "post",
     headers: {
       "Content-Type": "application/json",
@@ -124,11 +126,14 @@ export const uploadSourcemaps = async ({
   );
 };
 
-async function getAllSourceMapFiles(paths: string[]) {
+async function getAllSourceMapFiles(
+  paths: string[],
+  { allowNoop }: { allowNoop?: boolean }
+) {
   const map: { path: string; name: string }[] = [];
 
   await Promise.all(
-    paths.map((path) => {
+    paths.map(async (path) => {
       const realPath = join(cwd(), path);
 
       if (statSync(realPath).isFile()) {
@@ -137,25 +142,32 @@ async function getAllSourceMapFiles(paths: string[]) {
           name: basename(realPath),
         });
 
-        return Promise.resolve();
+        return;
       }
 
-      return new Promise<void>((resolve) => {
-        glob("**/*.js?(.map)", {
+      if (
+        !allowNoop &&
+        !globSync("**/*.js.map", {
           cwd: realPath,
           nodir: true,
           ignore: "**/node_modules/**/*",
-        }).then((files) => {
-          for (const file of files) {
-            map.push({
-              path: join(realPath, file),
-              name: file,
-            });
-          }
+        }).length
+      ) {
+        throw new Error(
+          "No .js.map files found. Please double check that you have generated sourcemaps for your app."
+        );
+      }
 
-          resolve();
+      for (const file of globSync("**/*.js?(.map)", {
+        cwd: realPath,
+        nodir: true,
+        ignore: "**/node_modules/**/*",
+      })) {
+        map.push({
+          path: join(realPath, file),
+          name: file,
         });
-      });
+      }
     })
   );
 

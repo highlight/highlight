@@ -18,19 +18,29 @@ slug: go
 
 <section className="section">
   <div className="left">
-    <h3>H.Start()</h3> 
+    <h3>highlight.Start()</h3>
     <p>Starts the background goroutine for transmitting metrics and errors.</p>
+    <h6>Options</h6>
+    <aside className="parameter">
+      <h5><code>WithServiceName</code> <code>optional</code></h5>
+      <p>The name of your app.</p>
+      <h5><code>WithServiceVersion</code> <code>optional</code></h5>
+      <p>The version of this app. We recommend setting this to the most recent deploy SHA of your app.</p>
+    </aside>
   </div>
   <div className="right">
     <code>
-        H.Start()
+        highlight.Start(
+          highlight.WithServiceName("my-app"),
+          highlight.WithServiceVersion("git-sha"),
+        )
     </code>
   </div>
 </section>
 
 <section className="section">
   <div className="left">
-    <h3>H.StartWithContext()</h3> 
+    <h3>highlight.StartWithContext()</h3>
     <p>StartWithContext is used to start the Highlight client's collection service, 
 but allows the user to pass in their own context.Context. 
 This allows the user kill the highlight worker by canceling their context.CancelFunc.</p>
@@ -39,31 +49,41 @@ This allows the user kill the highlight worker by canceling their context.Cancel
       <h5>ctx <code>context.Context</code> <code>required</code></h5>
       <p>The context provided for starting the Highlight daemon.</p>
     </aside>
+    <h6>Options</h6>
+    <aside className="parameter">
+      <h5><code>WithServiceName</code> <code>optional</code></h5>
+      <p>The name of your app.</p>
+      <h5><code>WithServiceVersion</code> <code>optional</code></h5>
+      <p>The version of this app. We recommend setting this to the most recent deploy SHA of your app.</p>
+    </aside>
   </div>
   <div className="right">
     <code>
         ctx := context.Background()
         ...
-        H.startWithContext(ctx)
+        highlight.startWithContext(ctx,
+          highlight.WithServiceName("my-app"),
+          highlight.WithServiceVersion("git-sha"),
+        )
     </code>
   </div>
 </section>
 
 <section className="section">
   <div className="left">
-    <h3>H.Stop()</h3> 
+    <h3>highlight.Stop()</h3>
     <p>Stop the Highlight client. Does not wait for all un-flushed data to be sent.</p>
   </div>
   <div className="right">
     <code>
-        H.Stop()
+        highlight.Stop()
     </code>
   </div>
 </section>
 
 <section className="section">
   <div className="left">
-    <h3>H.SetProjectID()</h3> 
+    <h3>highlight.SetProjectID()</h3>
     <p>Configure your Highlight project ID. See the [setup page for your project](https://app.highlight.io/setup).</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
@@ -73,19 +93,19 @@ This allows the user kill the highlight worker by canceling their context.Cancel
   </div>
   <div className="right">
     <code>
-        H.SetProjectID("<YOUR_PROJECT_ID>")
+        highlight.SetProjectID("<YOUR_PROJECT_ID>")
     </code>
   </div>
 </section>
 
 <section className="section">
   <div className="left">
-    <h3>H.RecordError()</h3> 
+    <h3>highlight.RecordError()</h3>
     <p>Record errors thrown in your backend.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
       <h5>ctx <code>context.Context</code> <code>required</code></h5>
-      <p>The request context which should have highlight parameters set from H.InterceptRequest().</p>
+      <p>The request context which should have highlight parameters set from highlight.InterceptRequest().</p>
       <h5>err <code>error</code> <code>required</code></h5>
       <p>The error to report.</p>
      <h5>tags <code>...struct{Key: string, Value: string}</code> <code>optional</code></h5>
@@ -97,7 +117,7 @@ This allows the user kill the highlight worker by canceling their context.Cancel
         ctx := context.Background()
         result, err := myOperation(ctx)
         if err != nil {
-            H.RecordError(ctx, err)
+            highlight.RecordError(ctx, err)
         }
     </code>
   </div>
@@ -105,12 +125,12 @@ This allows the user kill the highlight worker by canceling their context.Cancel
 
 <section className="section">
   <div className="left">
-    <h3>H.RecordMetric()</h3> 
+    <h3>highlight.RecordMetric()</h3>
     <p>Record metrics from your backend to be visualized in Highlight charts.</p>
     <h6>Method Parameters</h6>
     <aside className="parameter">
       <h5>ctx <code>context.Context</code> <code>required</code></h5>
-      <p>The request context which should have highlight parameters set from H.InterceptRequest().</p>
+      <p>The request context which should have highlight parameters set from highlight.InterceptRequest().</p>
       <h5>name <code>string</code> <code>required</code></h5>
       <p>The metric name.</p>
       <h5>value <code>float64</code> <code>required</code></h5>
@@ -121,7 +141,7 @@ This allows the user kill the highlight worker by canceling their context.Cancel
     <code>
         start := time.Now()
         defer func() {
-            H.RecordMetric(
+            highlight.RecordMetric(
                 ctx, "my.operation.duration-s", time.Since(start).Seconds(),
             )
         }()
@@ -131,7 +151,7 @@ This allows the user kill the highlight worker by canceling their context.Cancel
 
 <section className="section">
   <div className="left">
-    <h3>H.InterceptRequest()</h3> 
+    <h3>highlight.InterceptRequest()</h3>
     <p>Called under the hood by our middleware web backend handlers to extract the request context.
 Use this if you are using the raw http server package and need to setup the Highlight context.</p>
     <h6>Method Parameters</h6>
@@ -159,11 +179,11 @@ Use this if you are using the raw http server package and need to setup the High
 
 <section className="section">
   <div className="left">
-    <h3>H.NewGraphqlTracer()</h3> 
+    <h3>highlight.NewGraphqlTracer()</h3>
     <p>An http middleware for tracing GraphQL servers.</p>
     <h6>Configuration</h6>
     <aside className="parameter">
-      <h5>H.NewGraphqlTracer().WithRequestFieldLogging()</h5>
+      <h5>highlight.NewGraphqlTracer().WithRequestFieldLogging()</h5>
       <p>Emits highlight logs with details of each graphql operation.</p>
     </aside>
   </div>
@@ -171,14 +191,14 @@ Use this if you are using the raw http server package and need to setup the High
     <code>
         import ghandler "github.com/99designs/gqlgen/graphql/handler"
         privateServer := ghandler.New(privategen.NewExecutableSchema(...)
-        server.Use(H.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
+        server.Use(highlight.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
     </code>
   </div>
 </section>
 
 <section className="section">
   <div className="left">
-    <h3>H.GraphQLRecoverFunc()</h3> 
+    <h3>highlight.GraphQLRecoverFunc()</h3>
     <p>A gqlgen recover function to capture panics.</p>
     <h6>Configuration</h6>
   </div>
@@ -186,14 +206,14 @@ Use this if you are using the raw http server package and need to setup the High
     <code>
         import ghandler "github.com/99designs/gqlgen/graphql/handler"
         privateServer := ghandler.New(privategen.NewExecutableSchema(...)
-        server.SetRecoverFunc(H.GraphQLRecoverFunc())
+        server.SetRecoverFunc(highlight.GraphQLRecoverFunc())
     </code>
   </div>
 </section>
 
 <section className="section">
   <div className="left">
-    <h3>H.GraphQLErrorPresenter()</h3> 
+    <h3>highlight.GraphQLErrorPresenter()</h3>
     <p>A gqlgen error presenter.</p>
     <h6>Configuration</h6>
     <aside className="parameter">
@@ -205,7 +225,7 @@ Use this if you are using the raw http server package and need to setup the High
     <code>
         import ghandler "github.com/99designs/gqlgen/graphql/handler"
         privateServer := ghandler.New(privategen.NewExecutableSchema(...)
-        privateServer.SetErrorPresenter(H.GraphQLErrorPresenter("private"))
+        privateServer.SetErrorPresenter(highlight.GraphQLErrorPresenter("private"))
     </code>
   </div>
 </section>

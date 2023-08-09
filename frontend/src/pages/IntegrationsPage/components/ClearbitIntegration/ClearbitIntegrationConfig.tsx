@@ -11,7 +11,7 @@ import { message } from 'antd'
 import React, { useEffect } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 
-import styles from './ClearbitIntegrationConfig.module.scss'
+import styles from './ClearbitIntegrationConfig.module.css'
 
 const ClearbitIntegrationConfig: React.FC<
 	React.PropsWithChildren<IntegrationConfigProps>
@@ -79,7 +79,7 @@ const ClearbitIntegrationConfig: React.FC<
 		)
 	}
 	if (redirectToBilling) {
-		return <Navigate replace to={`/w/${workspaceID}/upgrade-plan`} />
+		return <Navigate replace to={`/w/${workspaceID}/current-plan`} />
 	}
 
 	return (

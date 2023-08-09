@@ -1,0 +1,1 @@
+import{createRuntimeFn as a}from"@vanilla-extract/recipes/createRuntimeFn";var r=a({defaultClassName:"hqr510",variantClassNames:{underline:{none:"hqr511",solid:"hqr512"},color:{none:"hqr513",default:"hqr514"}},defaultVariants:{underline:"none"},compoundVariants:[]});export{r as variants};

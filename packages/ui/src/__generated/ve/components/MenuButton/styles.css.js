@@ -1,0 +1,1 @@
+import{createRuntimeFn as a}from"@vanilla-extract/recipes/createRuntimeFn";var r=a({defaultClassName:"_12rav3x0",variantClassNames:{size:{medium:"_12rav3x1"}},defaultVariants:{size:"medium"},compoundVariants:[]});export{r as variants};

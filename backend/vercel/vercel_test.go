@@ -32,7 +32,7 @@ func TestCreateLogDrain(t *testing.T) {
 
 		assert.Equal(t, "https://pub.highlight.run/vercel/v1/logs", resp.Url)
 		assert.Equal(t, "Highlight Log Drain", resp.Name)
-		assert.Equal(t, "1", resp.Headers[VercelLogDrainProjectHeader])
+		assert.Equal(t, "1", resp.Headers[LogDrainProjectHeader])
 		assert.Equal(t, []string{"prj_UYboDfJ3kTGcKmmqu4Ydryzy2KQC"}, resp.ProjectIds)
 		assert.Equal(t, "ndjson", resp.DeliveryFormat)
 		assert.Equal(t, "1", resp.Secret)
@@ -42,7 +42,7 @@ func TestCreateLogDrain(t *testing.T) {
 	}))
 	defer server.Close()
 
-	VercelApiBaseUrl = server.URL
+	ApiBaseUrl = server.URL
 	if err := CreateLogDrain(context.TODO(), pointy.String("team_FRV1rjc2RxkhqoTsz8t76fGs"), []string{"prj_UYboDfJ3kTGcKmmqu4Ydryzy2KQC"}, "1", "Highlight Log Drain", "b81LedZpnZtAVrPy5kIdEgWi"); err != nil {
 		t.Errorf("failed to create log drain")
 	}

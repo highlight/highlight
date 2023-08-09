@@ -16,8 +16,10 @@
 		"project": ["./tsconfig.json"]
 	},
 	"plugins": ["@typescript-eslint", "react"],
+	"ignorePatterns": ["src/__generated/*"],
 	"rules": {
-		"react/display-name": "off"
+		"react/display-name": "off",
+		"react/react-in-jsx-scope": "off"
 	},
 	"settings": {
 		"react": {

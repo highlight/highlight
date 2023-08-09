@@ -4,8 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/embeddings"
 	"html/template"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"path"
@@ -26,6 +28,7 @@ import (
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/clickhouse"
 	dd "github.com/highlight-run/highlight/backend/datadog"
+	highlightHttp "github.com/highlight-run/highlight/backend/http"
 	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 	"github.com/highlight-run/highlight/backend/integrations"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -42,16 +45,18 @@ import (
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/stepfunctions"
 	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/vercel"
 	"github.com/highlight-run/highlight/backend/worker"
 	"github.com/highlight-run/highlight/backend/zapier"
 	"github.com/highlight-run/workerpool"
-	H "github.com/highlight/highlight/sdk/highlight-go"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	"github.com/leonelquinteros/hubspot"
+	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
@@ -96,20 +101,18 @@ func init() {
 	runtimeParsed = util.Runtime(*runtimeFlag)
 }
 
-func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client) http.HandlerFunc {
+func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rClient *redis.Client, osClient *opensearch.Client, ccClient *clickhouse.Client, queue *kafkaqueue.Queue, batchedQueue *kafkaqueue.Queue) http.HandlerFunc {
 	// only checks kafka because kafka is the only critical infrastructure needed for public graph to be healthy.
-	topic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false})
-	queue := kafkaqueue.New(context.Background(), topic, kafkaqueue.Producer)
-	batchedTopic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true})
-	batchedQueue := kafkaqueue.New(context.Background(), batchedTopic, kafkaqueue.Producer)
+	topic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault})
+	batchedTopic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched})
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		if err := queue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, "health"); err != nil {
+		if err := queue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, ""); err != nil {
 			log.WithContext(ctx).Error(fmt.Sprintf("failed kafka health check: %s", err))
 			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", topic), 500)
 			return
 		}
-		if err := batchedQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, "health"); err != nil {
+		if err := batchedQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, ""); err != nil {
 			log.WithContext(ctx).Error(fmt.Sprintf("failed kafka batched health check: %s", err))
 			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", batchedTopic), 500)
 			return
@@ -173,7 +176,11 @@ func enhancedHealthCheck(ctx context.Context, db *gorm.DB, tdb timeseries.DB, rC
 		defer wg.Done()
 		ctx, cancel := context.WithTimeout(ctx, Timeout)
 		defer cancel()
-		if err := osClient.IndexSynchronous(ctx, opensearch.IndexSessions, 0, struct{}{}); err != nil {
+		if err := osClient.IndexSynchronous(ctx, opensearch.IndexParams{
+			Index:  opensearch.IndexSessions,
+			ID:     0,
+			Object: struct{}{},
+		}); err != nil {
 			msg := fmt.Sprintf("failed to perform opensearch index: %s", err)
 			log.WithContext(ctx).Error(msg)
 			errors <- e.New(msg)
@@ -204,7 +211,7 @@ func validateOrigin(_ *http.Request, origin string) bool {
 		isRenderPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
 		// Is this an AWS Amplify environment?
 		isAWSEnv := strings.HasPrefix(origin, "https://pr-") && strings.HasSuffix(origin, ".d25bj3loqvp3nx.amplifyapp.com")
-		isReflamePreview := origin == "https://highlight-test-lewisl.reflame.dev"
+		isReflamePreview := origin == "https://preview.highlight.io"
 
 		if origin == frontendURL || origin == "https://app.highlight.run" || origin == "https://app.highlight.io" || origin == landingStagingURL || isRenderPreviewEnv || isAWSEnv || isReflamePreview {
 			return true
@@ -218,21 +225,32 @@ func validateOrigin(_ *http.Request, origin string) bool {
 var defaultPort = "8082"
 
 func main() {
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 	ctx := context.TODO()
 
 	// setup highlight
-	H.SetProjectID("1jdkoe52")
+	highlight.SetProjectID("1jdkoe52")
 	if !util.IsOnPrem() && util.IsDevOrTestEnv() {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql / otlp client address...")
-		H.SetGraphqlClientAddress("https://localhost:8082/public")
-		H.SetOTLPEndpoint("http://localhost:4318")
+		highlight.SetOTLPEndpoint("http://localhost:4318")
 		if util.IsBackendInDocker() {
-			H.SetOTLPEndpoint("http://collector:4318")
+			highlight.SetOTLPEndpoint("http://collector:4318")
 		}
 	}
-	H.Start()
-	defer H.Stop()
-	H.SetDebugMode(log.StandardLogger())
+
+	serviceName := string(runtimeParsed)
+	if runtimeParsed == util.Worker {
+		if handlerFlag != nil {
+			serviceName = *handlerFlag
+		}
+	}
+
+	highlight.Start(
+		highlight.WithServiceName(serviceName),
+		highlight.WithServiceVersion(os.Getenv("REACT_APP_COMMIT_SHA")),
+	)
+	defer highlight.Stop()
+	highlight.SetDebugMode(log.StandardLogger())
 
 	// setup highlight logrus hook
 	hlog.Init()
@@ -293,7 +311,7 @@ func main() {
 		if os.Getenv("OBJECT_STORAGE_FS") != "" {
 			fsRoot = os.Getenv("OBJECT_STORAGE_FS")
 		}
-		if storageClient, err = storage.NewFSClient(ctx, os.Getenv("PRIVATE_GRAPH_URI"), fsRoot); err != nil {
+		if storageClient, err = storage.NewFSClient(ctx, os.Getenv("REACT_APP_PRIVATE_GRAPH_URI"), fsRoot); err != nil {
 			log.WithContext(ctx).Fatalf("error creating filesystem storage client: %v", err)
 		}
 	} else {
@@ -305,6 +323,14 @@ func main() {
 			log.WithContext(ctx).Fatalf("error creating s3 storage client: %v", err)
 		}
 	}
+
+	kafkaProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDefault}), kafkaqueue.Producer, nil)
+	kafkaBatchedProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}), kafkaqueue.Producer, nil)
+	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, nil)
+	kafkaDataSyncProducer := kafkaqueue.New(ctx,
+		kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}),
+		kafkaqueue.Producer,
+		&kafkaqueue.ConfigOverride{Async: pointy.Bool(true)})
 
 	opensearchClient, err := opensearch.NewOpensearchClient(db)
 	if err != nil {
@@ -348,12 +374,15 @@ func main() {
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
 		OpenSearch:             opensearchClient,
-		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), redisClient),
+		HubspotApi:             hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
 		Redis:                  redisClient,
 		StepFunctions:          sfnClient,
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
+		Store:                  store.NewStore(db, opensearchClient, redisClient),
+		DataSyncQueue:          kafkaDataSyncProducer,
+		TracesQueue:            kafkaTracesProducer,
 	}
 	private.SetupAuthClient(ctx, private.GetEnvAuthMode(), oauthSrv, privateResolver.Query().APIKeyToOrgID)
 	r := chi.NewMux()
@@ -374,7 +403,7 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"*"},
 	}).Handler)
-	r.HandleFunc("/health", healthRouter(runtimeParsed, db, tdb, redisClient, opensearchClient, clickhouseClient))
+	r.HandleFunc("/health", healthRouter(runtimeParsed, db, tdb, redisClient, opensearchClient, clickhouseClient, kafkaProducer, kafkaBatchedProducer))
 
 	zapierStore := zapier.ZapierResthookStore{
 		DB: db,
@@ -447,9 +476,9 @@ func main() {
 			})
 
 			privateServer.Use(util.NewTracer(util.PrivateGraph))
-			privateServer.Use(H.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
-			privateServer.SetErrorPresenter(H.GraphQLErrorPresenter(string(util.PrivateGraph)))
-			privateServer.SetRecoverFunc(H.GraphQLRecoverFunc())
+			privateServer.Use(highlight.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
+			privateServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PrivateGraph)))
+			privateServer.SetRecoverFunc(highlight.GraphQLRecoverFunc())
 			r.Handle("/",
 				privateServer,
 			)
@@ -463,20 +492,21 @@ func main() {
 			}
 			defer profiler.Stop()
 		}
-		alertWorkerpool := workerpool.New(40)
-		alertWorkerpool.SetPanicHandler(util.Recover)
 		publicResolver := &public.Resolver{
-			DB:              db,
-			TDB:             tdb,
-			ProducerQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Producer),
-			BatchedQueue:    kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Producer),
-			MailClient:      sendgrid.NewSendClient(sendgridKey),
-			StorageClient:   storageClient,
-			AlertWorkerPool: alertWorkerpool,
-			OpenSearch:      opensearchClient,
-			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), redisClient),
-			Redis:           redisClient,
-			RH:              &rh,
+			DB:               db,
+			TDB:              tdb,
+			ProducerQueue:    kafkaProducer,
+			BatchedQueue:     kafkaBatchedProducer,
+			DataSyncQueue:    kafkaDataSyncProducer,
+			TracesQueue:      kafkaTracesProducer,
+			MailClient:       sendgrid.NewSendClient(sendgridKey),
+			EmbeddingsClient: embeddings.New(),
+			StorageClient:    storageClient,
+			OpenSearch:       opensearchClient,
+			HubspotApi:       hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
+			Redis:            redisClient,
+			RH:               &rh,
+			Store:            store.NewStore(db, opensearchClient, redisClient),
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -491,9 +521,9 @@ func main() {
 					Resolvers: publicResolver,
 				}))
 			publicServer.Use(util.NewTracer(util.PublicGraph))
-			publicServer.Use(H.NewGraphqlTracer(string(util.PublicGraph)))
-			publicServer.SetErrorPresenter(H.GraphQLErrorPresenter(string(util.PublicGraph)))
-			publicServer.SetRecoverFunc(H.GraphQLRecoverFunc())
+			publicServer.Use(highlight.NewGraphqlTracer(string(util.PublicGraph)))
+			publicServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PublicGraph)))
+			publicServer.SetRecoverFunc(highlight.GraphQLRecoverFunc())
 			r.Handle("/",
 				publicServer,
 			)
@@ -501,6 +531,7 @@ func main() {
 		otelHandler := otel.New(publicResolver)
 		otelHandler.Listen(r)
 		vercel.Listen(r)
+		highlightHttp.Listen(r)
 	}
 
 	/*
@@ -553,21 +584,22 @@ func main() {
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
 	if runtimeParsed == util.Worker || runtimeParsed == util.All {
-		alertWorkerpool := workerpool.New(40)
-		alertWorkerpool.SetPanicHandler(util.Recover)
 		publicResolver := &public.Resolver{
-			DB:              db,
-			TDB:             tdb,
-			ProducerQueue:   kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: false}), kafkaqueue.Producer),
-			BatchedQueue:    kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Batched: true}), kafkaqueue.Producer),
-			MailClient:      sendgrid.NewSendClient(sendgridKey),
-			StorageClient:   storageClient,
-			AlertWorkerPool: alertWorkerpool,
-			OpenSearch:      opensearchClient,
-			HubspotApi:      hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), redisClient),
-			Redis:           redisClient,
-			Clickhouse:      clickhouseClient,
-			RH:              &rh,
+			DB:               db,
+			TDB:              tdb,
+			ProducerQueue:    kafkaProducer,
+			BatchedQueue:     kafkaBatchedProducer,
+			DataSyncQueue:    kafkaDataSyncProducer,
+			TracesQueue:      kafkaTracesProducer,
+			MailClient:       sendgrid.NewSendClient(sendgridKey),
+			EmbeddingsClient: embeddings.New(),
+			StorageClient:    storageClient,
+			OpenSearch:       opensearchClient,
+			HubspotApi:       hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
+			Redis:            redisClient,
+			Clickhouse:       clickhouseClient,
+			RH:               &rh,
+			Store:            store.NewStore(db, opensearchClient, redisClient),
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {

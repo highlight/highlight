@@ -21,7 +21,14 @@ export const ${
 
 const VALID_COLORS = ['currentColor', 'none']
 const COLOR_ATTRS = ['stroke', 'fill']
-const KEEPS_ORIGINAL_COLORS = ['Linear', 'ClickUp', 'Height', 'Slack']
+const KEEPS_ORIGINAL_COLORS = [
+	'Linear',
+	'ClickUp',
+	'Height',
+	'Slack',
+	'Github',
+	'Google',
+]
 
 const updateColors = ($el: any) => {
 	COLOR_ATTRS.forEach((attr) => {
@@ -95,16 +102,10 @@ const iconComponentsDir = path.join(baseDir, 'src/components/icons')
 						params: {
 							overrides: {
 								removeViewBox: false,
+								cleanupIds: false,
 							},
 						},
 					},
-					{
-						name: 'inlineStyles',
-						params: {
-							onlyMatchedOnce: false,
-						},
-					},
-					{ name: 'convertStyleToAttrs' },
 				],
 			}).data
 

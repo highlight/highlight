@@ -1,6 +1,3 @@
-import { Header } from '@components/Header/Header'
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
-import Switch from '@components/Switch/Switch'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
@@ -11,46 +8,17 @@ import {
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { EmailOptOutCategory } from '@graph/schemas'
-import { Box } from '@highlight-run/ui'
-import { ApplicationContextProvider } from '@routers/ProjectRouter/context/ApplicationContext'
+import { Ariakit, Heading, Stack, Text } from '@highlight-run/ui'
 import { GlobalContextProvider } from '@routers/ProjectRouter/context/GlobalContext'
 import { message } from 'antd'
-import { useDialogState } from 'ariakit/dialog'
-import { H } from 'highlight.run'
 import { useEffect } from 'react'
 import { StringParam, useQueryParams } from 'use-query-params'
 
-import styles from './EmailOptOut.module.scss'
-
-const OptInRow = (
-	label: string,
-	info: string | undefined,
-	checked: boolean,
-	setState: (n: boolean) => void,
-	disabled: boolean,
-) => {
-	return (
-		<Switch
-			key={label}
-			label={
-				<Box display="flex" alignItems="center" gap="2">
-					{label}
-					{info && (
-						<InfoTooltip
-							placement="right"
-							size="medium"
-							title={info}
-						/>
-					)}
-				</Box>
-			}
-			trackingId={`switch-${label}`}
-			checked={checked}
-			onChange={setState}
-			disabled={disabled}
-		/>
-	)
-}
+import BorderBox from '@/components/BorderBox/BorderBox'
+import { Header } from '@/components/Header/Header'
+import LeadAlignLayout from '@/components/layout/LeadAlignLayout'
+import { ToggleRow } from '@/components/ToggleRow/ToggleRow'
+import { showIntercomBubble } from '@/util/window'
 
 type Props = {
 	token?: string | null
@@ -80,43 +48,32 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 			<>
 				<p>Link is invalid or has expired.</p>
 				<p>
-					Please reach out to us on{' '}
-					<a
-						onClick={async () => {
-							const sessionId = await H.getSessionURL()
-
-							window.Intercom('boot', {
-								app_id: 'gm6369ty',
-								alignment: 'right',
-								hide_default_launcher: true,
-								sessionId,
-							})
-							window.Intercom('showNewMessage')
-						}}
-					>
-						Intercom
-					</a>{' '}
-					or email{' '}
-					<a href="mailto:support@highlight.io">
-						support@highlight.io
-					</a>
-					.
+					Please reach out to us if you have any questions or need
+					assistance.
 				</p>
 			</>
 		)
 	} else {
-		const categories = [
-			{
-				label: 'Digests',
-				info: 'Weekly summaries of user activity and errors for your projects',
-				type: EmailOptOutCategory.Digests,
-			},
+		const general = [
 			{
 				label: 'Billing',
 				info: 'Notifications about billing and plan usage',
 				type: EmailOptOutCategory.Billing,
 			},
 		]
+		const digests = [
+			{
+				label: 'Project Overview',
+				info: 'Weekly summaries of user activity and errors for your projects',
+				type: EmailOptOutCategory.Digests,
+			},
+			{
+				label: 'Session Insights',
+				info: 'Weekly summaries of your most interesting sessions',
+				type: EmailOptOutCategory.SessionDigests,
+			},
+		]
+		const categories = [...general, ...digests]
 
 		let optOutAll = false
 		const optOuts = new Set<EmailOptOutCategory>()
@@ -132,39 +89,78 @@ export const EmailOptOutPanel = ({ token, admin_id }: Props) => {
 		}
 
 		return (
-			<p>
-				<p>I would like to receive the following emails:</p>
-				<p>
-					{categories.map((c) =>
-						OptInRow(
-							c.label,
-							c.info,
-							!optOuts.has(c.type),
-							(isOptIn: boolean) => {
-								updateEmailOptOut({
-									variables: {
-										token,
-										admin_id,
-										category: c.type,
-										is_opt_out: !isOptIn,
-									},
-								})
-									.then(() => {
-										message.success(
-											`Opted ${
-												isOptIn ? 'in to' : 'out of'
-											} ${c.type} emails.`,
-										)
+			<Stack gap="24" direction="column">
+				<Heading mt="16" level="h4">
+					Notifications
+				</Heading>
+				<Stack gap="12" direction="column">
+					{general.map((c) => (
+						<BorderBox key={c.label}>
+							{ToggleRow(
+								c.label,
+								c.info,
+								!optOuts.has(c.type),
+								(isOptIn: boolean) => {
+									updateEmailOptOut({
+										variables: {
+											token,
+											admin_id,
+											category: c.type,
+											is_opt_out: !isOptIn,
+										},
 									})
-									.catch((reason: any) => {
-										message.error(String(reason))
+										.then(() => {
+											message.success(
+												`Opted ${
+													isOptIn ? 'in to' : 'out of'
+												} ${c.type} emails.`,
+											)
+										})
+										.catch((reason: any) => {
+											message.error(String(reason))
+										})
+								},
+								optOutAll,
+							)}
+						</BorderBox>
+					))}
+				</Stack>
+				<Stack gap="12" direction="column" paddingTop="24">
+					<Text weight="bold" size="small" color="default">
+						Digests
+					</Text>
+					{digests.map((c) => (
+						<BorderBox key={c.label}>
+							{ToggleRow(
+								c.label,
+								c.info,
+								!optOuts.has(c.type),
+								(isOptIn: boolean) => {
+									updateEmailOptOut({
+										variables: {
+											token,
+											admin_id,
+											category: c.type,
+											is_opt_out: !isOptIn,
+										},
 									})
-							},
-							optOutAll,
-						),
-					)}
-				</p>
-			</p>
+										.then(() => {
+											message.success(
+												`Opted ${
+													isOptIn ? 'in to' : 'out of'
+												} ${c.type} emails.`,
+											)
+										})
+										.catch((reason: any) => {
+											message.error(String(reason))
+										})
+								},
+								optOutAll,
+							)}
+						</BorderBox>
+					))}
+				</Stack>
+			</Stack>
 		)
 	}
 }
@@ -175,34 +171,30 @@ export const EmailOptOutPage = () => {
 		token: StringParam,
 	})
 
-	const commandBarDialog = useDialogState()
+	const commandBarDialog = Ariakit.useDialogState()
+
+	useEffect(() => {
+		// Show the Intercom message after 5 seconds in case the user needs help.
+		setTimeout(() => {
+			showIntercomBubble()
+		}, 5000)
+	}, [])
 
 	return (
-		<ApplicationContextProvider
+		<GlobalContextProvider
 			value={{
-				currentProject: undefined,
-				allProjects: [],
-				currentWorkspace: undefined,
-				workspaces: [],
+				showKeyboardShortcutsGuide: false,
+				toggleShowKeyboardShortcutsGuide: () => {},
+				showBanner: false,
+				toggleShowBanner: () => {},
+				commandBarDialog,
 			}}
 		>
-			<GlobalContextProvider
-				value={{
-					showKeyboardShortcutsGuide: false,
-					toggleShowKeyboardShortcutsGuide: () => {},
-					showBanner: false,
-					toggleShowBanner: () => {},
-					commandBarDialog,
-				}}
-			>
-				<div>
-					<Header />
-					<div className={styles.contentContainer}>
-						<h1>Email Settings</h1>
-						<EmailOptOutPanel token={token} admin_id={admin_id} />
-					</div>
-				</div>
-			</GlobalContextProvider>
-		</ApplicationContextProvider>
+			<Header />
+			<LeadAlignLayout>
+				<h1>Email Settings</h1>
+				<EmailOptOutPanel token={token} admin_id={admin_id} />
+			</LeadAlignLayout>
+		</GlobalContextProvider>
 	)
 }

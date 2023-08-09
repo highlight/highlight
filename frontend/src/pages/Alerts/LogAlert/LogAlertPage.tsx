@@ -28,6 +28,11 @@ import {
 	useMenu,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
+import { useSlackSync } from '@hooks/useSlackSync'
+import {
+	DEFAULT_FREQUENCY,
+	FREQUENCIES,
+} from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import { useLogAlertsContext } from '@pages/Alerts/LogAlert/context'
 import {
 	dedupeEnvironments,
@@ -42,7 +47,7 @@ import {
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { Search } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useParams } from '@util/react-router/useParams'
-import { Divider, message } from 'antd'
+import { message } from 'antd'
 import { capitalize } from 'lodash'
 import moment from 'moment'
 import { useEffect, useState } from 'react'
@@ -56,9 +61,11 @@ import {
 	DiscordChannelInput,
 	SanitizedSlackChannelInput,
 } from '@/graph/generated/schemas'
-import SyncWithSlackButton from '@/pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
+import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 
 import * as styles from './styles.css'
+
+const LOG_ALERT_MINIMUM_FREQUENCY = 15
 
 export const LogAlertPage = () => {
 	const [startDateParam] = useQueryParam('start_date', DateTimeParam)
@@ -108,7 +115,7 @@ export const LogAlertPage = () => {
 			webhookDestinations: [],
 			emails: [],
 			threshold: undefined,
-			frequency: 15,
+			frequency: Number(DEFAULT_FREQUENCY),
 			loaded: false,
 		},
 	})
@@ -457,6 +464,8 @@ const LogAlertForm = ({
 	const query = form.values.query
 
 	const { alertsPayload } = useLogAlertsContext()
+	const { slackLoading, syncSlack } = useSlackSync()
+	const [slackSearchQuery, setSlackSearchQuery] = useState('')
 
 	const environments = dedupeEnvironments(
 		(alertsPayload?.environment_suggestion ??
@@ -490,14 +499,6 @@ const LogAlertForm = ({
 			value: email,
 			id: email,
 		}))
-
-	const syncSlack = (
-		<SyncWithSlackButton
-			slackUrl={getSlackUrl(projectId ?? '')}
-			isSlackIntegrated={alertsPayload?.is_integrated_with_slack || false}
-			refetchQueries={[namedOperations.Query.GetLogAlertsPagePayload]}
-		/>
-	)
 
 	return (
 		<Box cssClass={styles.grid}>
@@ -558,30 +559,33 @@ const LogAlertForm = ({
 					</Column>
 
 					<Column>
-						<Form.NamedSection
+						<Form.Select
 							label="Alert frequency"
-							name={form.names.frequency}
+							name={form.names.frequency.toString()}
+							value={form.values.frequency}
+							onChange={(e) =>
+								form.setValue(
+									form.names.frequency,
+									e.target.value,
+								)
+							}
 						>
-							<select
-								className={styles.select}
-								value={form.values.frequency}
-								onChange={(e) =>
-									form.setValue(
-										form.names.frequency,
-										e.target.value,
-									)
-								}
-							>
-								<option value="" disabled>
-									Select alert frequency
+							<option value="" disabled>
+								Select alert frequency
+							</option>
+							{FREQUENCIES.filter(
+								(freq) =>
+									Number(freq.value) >=
+									LOG_ALERT_MINIMUM_FREQUENCY,
+							).map((freq: any) => (
+								<option
+									key={freq.id}
+									value={Number(freq.value)}
+								>
+									{freq.displayValue}
 								</option>
-								<option value={15}>15 seconds</option>
-								<option value={60}>1 minute</option>
-								<option value={300}>5 minutes</option>
-								<option value={900}>15 minutes</option>
-								<option value={1800}>30 minutes</option>
-							</select>
-						</Form.NamedSection>
+							))}
+						</Form.Select>
 					</Column>
 				</Column.Container>
 			</Stack>
@@ -645,6 +649,10 @@ const LogAlertForm = ({
 						placeholder="Select Slack channels"
 						options={slackChannels}
 						optionFilterProp="label"
+						onFocus={syncSlack}
+						onSearch={(value) => {
+							setSlackSearchQuery(value)
+						}}
 						onChange={(values) => {
 							form.setValue(
 								form.names.slackChannels,
@@ -656,22 +664,17 @@ const LogAlertForm = ({
 							)
 						}}
 						value={form.values.slackChannels}
-						notFoundContent="Slack channel not found"
-						dropdownRender={(menu) => (
-							<div>
-								{menu}
-								{slackChannels.length > 0 && (
-									<>
-										<Divider
-											style={{
-												margin: '4px 0',
-											}}
-										/>
-										<Box mx="12">{syncSlack}</Box>
-									</>
-								)}
-							</div>
-						)}
+						notFoundContent={
+							<SlackLoadOrConnect
+								isLoading={slackLoading}
+								searchQuery={slackSearchQuery}
+								slackUrl={getSlackUrl(projectId ?? '')}
+								isSlackIntegrated={
+									alertsPayload?.is_integrated_with_slack ??
+									false
+								}
+							/>
+						}
 						className={styles.selectContainer}
 						mode="multiple"
 						labelInValue

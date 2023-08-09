@@ -5,7 +5,7 @@ import { NewCommentForm } from '@pages/Player/Toolbar/NewCommentForm/NewCommentF
 import { getNewCommentFormCoordinates } from '@pages/Player/utils/utils'
 import React from 'react'
 
-import styles from './NewCommentModal.module.scss'
+import * as styles from './styles.css'
 
 interface Props {
 	newCommentModalRef: React.RefObject<HTMLDivElement>
@@ -56,8 +56,8 @@ export function NewCommentModal({
 			}}
 			destroyOnClose
 			minimal
-			minimalPaddingSize="var(--size-large)"
-			width="500px"
+			minimalPaddingSize="0"
+			width="325px"
 			style={{
 				...getNewCommentFormCoordinates(
 					400,
@@ -67,7 +67,7 @@ export function NewCommentModal({
 				margin: 0,
 			}}
 			modalRender={(node) => (
-				<div className={styles.commentModal}>{node}</div>
+				<div className={styles.modalContainer}>{node}</div>
 			)}
 		>
 			<div ref={newCommentModalRef}>

@@ -1,108 +1,56 @@
-import ConsoleButtons from '@/components/ConsoleButtons'
-import ErrorBoundaryButton from '@/components/ErrorBoundaryButton'
-import HelloButton from '@/components/HelloButton'
+import { ErrorButtons } from '@/app/components/error-buttons'
+import { FetchTests } from '@/app/components/fetch-tests'
+import { HighlightIdentify } from '@/app/components/highlight-identify'
+import { HighlightButtons } from './components/highlight-buttons'
 import Image from 'next/image'
-import { Inter } from '@next/font/google'
-import styles from './page.module.css'
-
-const inter = Inter({ subsets: ['latin'] })
+import Link from 'next/link'
+import { PathButtons } from '@/app/components/path-buttons'
+import { TrpcQueries } from '@/app/components/trpc-queries'
+import { Canvas } from '@/app/components/canvas'
 
 export default function Home() {
 	return (
-		<main className={styles.main}>
-			<div className={styles.description}>
-				<p>
-					Get started by editing&nbsp;
-					<code className={styles.code}>src/app/page.tsx</code>
-				</p>
-				<div>
-					<a
-						href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						By{' '}
-						<Image
-							src="/vercel.svg"
-							alt="Vercel Logo"
-							className={styles.vercelLogo}
-							width={100}
-							height={24}
-							priority
-						/>
-					</a>
-				</div>
-			</div>
+		<main style={{ padding: '2rem' }}>
+			<HighlightIdentify />
 
-			<div className={styles.center}>
-				<Image
-					className={styles.logo}
-					src="/next.svg"
-					alt="Next.js Logo"
-					width={180}
-					height={37}
-					priority
-				/>
-				<div className={styles.thirteen}>
-					<Image
-						src="/thirteen.svg"
-						alt="13"
-						width={40}
-						height={31}
-						priority
-					/>
-				</div>
-			</div>
+			<Image
+				alt="Highlight logo"
+				src="highlight/logo-and-text-on-dark.svg"
+				width={167}
+				height={33}
+				priority
+			/>
 
-			<HelloButton />
-			<ConsoleButtons />
-			<ErrorBoundaryButton />
+			<h3>H Buttons</h3>
+			<HighlightButtons />
 
-			<div className={styles.grid}>
-				<a
-					href="https://beta.nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-					className={styles.card}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<h2 className={inter.className}>
-						Docs <span>-&gt;</span>
-					</h2>
-					<p className={inter.className}>
-						Find in-depth information about Next.js features and
-						API.
-					</p>
-				</a>
+			<h3>Error Buttons</h3>
+			<ErrorButtons />
 
-				<a
-					href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-					className={styles.card}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<h2 className={inter.className}>
-						Templates <span>-&gt;</span>
-					</h2>
-					<p className={inter.className}>
-						Explore the Next.js 13 playground.
-					</p>
-				</a>
+			<h3>Paths</h3>
+			<PathButtons />
 
-				<a
-					href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-					className={styles.card}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<h2 className={inter.className}>
-						Deploy <span>-&gt;</span>
-					</h2>
-					<p className={inter.className}>
-						Instantly deploy your Next.js site to a shareable URL
-						with Vercel.
-					</p>
-				</a>
-			</div>
+			<h3>tRPC</h3>
+			<TrpcQueries />
+
+			<h3>Fetch</h3>
+			<FetchTests />
+
+			<Link href="/another-page">Navigation Test</Link>
+			<Image
+				alt={'cross origin test'}
+				height={200}
+				width={200}
+				src="https://i.travelapi.com/lodging/11000000/10140000/10130300/10130300/c9095011_z.jpg"
+			/>
+			<img
+				height={200}
+				width={200}
+				src="https://i.travelapi.com/lodging/11000000/10140000/10130300/10130300/c9095011_z.jpg"
+			/>
+
+			<h3>Canvas</h3>
+			<Canvas engineOptions={{ preserveDrawingBuffer: true }} />
 		</main>
 	)
 }

@@ -19,26 +19,37 @@ import {
 	SessionAlertType,
 	WebhookDestination,
 } from '@graph/schemas'
-import alertConfigurationCardStyles from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard.module.scss'
+import { useSlackSync } from '@hooks/useSlackSync'
+import alertConfigurationCardStyles from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard.module.css'
 import { DiscordChannnelsSection } from '@pages/Alerts/AlertConfigurationCard/DiscordChannelsSection'
-import SyncWithSlackButton from '@pages/Alerts/AlertConfigurationCard/SyncWithSlackButton'
-import { useApplicationContext } from '@routers/ProjectRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
-import { Divider, Form, message } from 'antd'
+import { Form, message, Tag } from 'antd'
 import clsx from 'clsx'
+import { uniq } from 'lodash'
 import React, { useEffect, useState } from 'react'
 import { Helmet } from 'react-helmet'
 import { useNavigate } from 'react-router-dom'
 import { Link, useLocation } from 'react-router-dom'
 import TextTransition from 'react-text-transition'
 
+import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
+
 import Button from '../../../components/Button/Button/Button'
 import InputNumber from '../../../components/InputNumber/InputNumber'
-import layoutStyles from '../../../components/layout/LeadAlignLayout.module.scss'
+import layoutStyles from '../../../components/layout/LeadAlignLayout.module.css'
 import Select from '../../../components/Select/Select'
 import { ALERT_TYPE } from '../Alerts'
 import { dedupeEnvironments, getAlertTypeColor } from '../utils/AlertsUtils'
-import styles from './AlertConfigurationCard.module.scss'
+import styles from './AlertConfigurationCard.module.css'
+import {
+	DEFAULT_FREQUENCY,
+	DEFAULT_LOOKBACK_PERIOD,
+	FREQUENCIES,
+	LOOKBACK_PERIODS,
+} from './AlertConfigurationConstants'
+
+const SEPARATOR = ':$&'
 
 interface AlertConfiguration {
 	name: string
@@ -74,10 +85,10 @@ export const AlertConfigurationCard = ({
 	environmentOptions,
 	channelSuggestions,
 	discordChannelSuggestions,
-	slackUrl,
 	onDeleteHandler,
 	isCreatingNewAlert = false,
 	isSlackIntegrated,
+	slackUrl,
 	isDiscordIntegrated,
 	emailSuggestions,
 }: Props) => {
@@ -87,6 +98,9 @@ export const AlertConfigurationCard = ({
 	const [frequency, setFrequency] = useState(
 		getFrequencyOption(alert?.Frequency).value,
 	)
+	const [customEmail, setCustomEmail] = useState('')
+
+	const { slackLoading, syncSlack } = useSlackSync()
 	const [isDisabled, setIsDisabled] = useState(alert?.disabled || false)
 	const [emailsToNotify, setEmailsToNotify] = useState<string[]>(
 		alert?.EmailsToNotify || [],
@@ -243,23 +257,6 @@ export const AlertConfigurationCard = ({
 							},
 						})
 						break
-					case ALERT_TYPE.SessionFeedback:
-						await createSessionAlert({
-							...requestBody,
-							variables: {
-								input: {
-									...requestVariables,
-									threshold_window: 1,
-									user_properties: [],
-									exclude_rules: [],
-									track_properties: [],
-									emails: emailsToNotify,
-									disabled: false,
-									type: SessionAlertType.SessionFeedbackAlert,
-								},
-							},
-						})
-						break
 					case ALERT_TYPE.TrackProperties:
 						await createSessionAlert({
 							...requestBody,
@@ -271,8 +268,11 @@ export const AlertConfigurationCard = ({
 									track_properties: form
 										.getFieldValue('trackProperties')
 										.map((trackProperty: any) => {
-											const [value, name, id] =
-												trackProperty.split(':')
+											const [id, name, value] =
+												trackProperty.split(
+													SEPARATOR,
+													3,
+												)
 											return {
 												id,
 												value,
@@ -297,8 +297,8 @@ export const AlertConfigurationCard = ({
 									user_properties: form
 										.getFieldValue('userProperties')
 										.map((userProperty: any) => {
-											const [value, name, id] =
-												userProperty.split(':')
+											const [id, name, value] =
+												userProperty.split(SEPARATOR, 3)
 											return {
 												id,
 												value,
@@ -366,8 +366,8 @@ export const AlertConfigurationCard = ({
 									user_properties: form
 										.getFieldValue('userProperties')
 										.map((userProperty: any) => {
-											const [value, name, id] =
-												userProperty.split(':')
+											const [id, name, value] =
+												userProperty.split(SEPARATOR, 3)
 											return {
 												id,
 												value,
@@ -394,8 +394,11 @@ export const AlertConfigurationCard = ({
 									track_properties: form
 										.getFieldValue('trackProperties')
 										.map((trackProperty: any) => {
-											const [value, name, id] =
-												trackProperty.split(':')
+											const [id, name, value] =
+												trackProperty.split(
+													SEPARATOR,
+													3,
+												)
 											return {
 												id,
 												value,
@@ -408,24 +411,6 @@ export const AlertConfigurationCard = ({
 									emails: emailsToNotify,
 									disabled: isDisabled,
 									type: SessionAlertType.TrackPropertiesAlert,
-								},
-							},
-						})
-						break
-					case ALERT_TYPE.SessionFeedback:
-						await updateSessionAlert({
-							...requestBody,
-							variables: {
-								id: alert.id,
-								input: {
-									...requestVariables,
-									threshold_window: lookbackPeriod,
-									user_properties: [],
-									exclude_rules: [],
-									track_properties: [],
-									emails: emailsToNotify,
-									disabled: isDisabled,
-									type: SessionAlertType.SessionFeedbackAlert,
 								},
 							},
 						})
@@ -527,11 +512,23 @@ export const AlertConfigurationCard = ({
 		}),
 	)
 
-	const emails = emailSuggestions.map((email) => ({
+	const emails = uniq([
+		...(emailSuggestions ?? []),
+		// Add values from the form to ensure custom emails are included
+		...(form.getFieldValue('emails') ?? []),
+	]).map((email) => ({
 		displayValue: email,
 		value: email,
 		id: email,
 	}))
+
+	if (!!customEmail.split('@')[1]) {
+		emails.unshift({
+			displayValue: `Send email alerts to: ${customEmail}`,
+			value: customEmail,
+			id: customEmail,
+		})
+	}
 
 	const environments = [
 		...dedupeEnvironments(environmentOptions).map(
@@ -598,6 +595,7 @@ export const AlertConfigurationCard = ({
 		form.setFieldsValue({ emails })
 		setEmailsToNotify(emails)
 		setFormTouched(true)
+		setCustomEmail('')
 	}
 
 	const onWebhooksChange = (webhooks: WebhookDestination[]) => {
@@ -609,7 +607,8 @@ export const AlertConfigurationCard = ({
 	const onUserPropertiesChange = (_value: any, options: any) => {
 		const userProperties = options.map(
 			({ value: valueAndName }: { key: string; value: string }) => {
-				const [value, name, id] = valueAndName.split(':')
+				const [id, name, value] = valueAndName.split(SEPARATOR, 3)
+				console.log('vadim', { valueAndName, value, name, id })
 				return {
 					id,
 					value,
@@ -624,7 +623,7 @@ export const AlertConfigurationCard = ({
 	const onTrackPropertiesChange = (_value: any, options: any) => {
 		const trackProperties = options.map(
 			({ value: valueAndName }: { key: string; value: string }) => {
-				const [value, name, id] = valueAndName.split(':')
+				const [id, name, value] = valueAndName.split(SEPARATOR, 3)
 				return {
 					id,
 					value,
@@ -780,6 +779,7 @@ export const AlertConfigurationCard = ({
 											className={styles.channelSelect}
 											options={channels}
 											mode="multiple"
+											onFocus={syncSlack}
 											onSearch={(value) => {
 												setSearchQuery(value)
 											}}
@@ -799,55 +799,18 @@ export const AlertConfigurationCard = ({
 											placeholder={`Select a channel(s) or person(s) to send ${defaultName} to.`}
 											onChange={onChannelsChange}
 											notFoundContent={
-												<SyncWithSlackButton
+												<SlackLoadOrConnect
+													searchQuery={searchQuery}
+													isLoading={slackLoading}
 													isSlackIntegrated={
 														isSlackIntegrated
 													}
 													slackUrl={slackUrl}
-													refetchQueries={[
-														namedOperations.Query
-															.GetAlertsPagePayload,
-													]}
 												/>
 											}
 											defaultValue={alert?.ChannelsToNotify?.map(
 												(channel: any) =>
 													channel.webhook_channel_id,
-											)}
-											dropdownRender={(menu) => (
-												<div>
-													{menu}
-													{searchQuery.length === 0 &&
-														channelSuggestions.length >
-															0 && (
-															<>
-																<Divider
-																	style={{
-																		margin: '4px 0',
-																	}}
-																/>
-																<div
-																	className={
-																		styles.addContainer
-																	}
-																>
-																	<SyncWithSlackButton
-																		isSlackIntegrated={
-																			isSlackIntegrated
-																		}
-																		slackUrl={
-																			slackUrl
-																		}
-																		refetchQueries={[
-																			namedOperations
-																				.Query
-																				.GetAlertsPagePayload,
-																		]}
-																	/>
-																</div>
-															</>
-														)}
-												</div>
 											)}
 										/>
 									)}
@@ -868,8 +831,7 @@ export const AlertConfigurationCard = ({
 							<h3>Emails to Notify</h3>
 							<p>
 								Pick email addresses to email when an alert is
-								created. These are email addresses for people in
-								your workspace.
+								created.
 							</p>
 							<Form.Item shouldUpdate>
 								{() => (
@@ -877,6 +839,38 @@ export const AlertConfigurationCard = ({
 										className={styles.channelSelect}
 										options={emails}
 										mode="multiple"
+										tagRender={(props) => {
+											const { value, closable, onClose } =
+												props
+
+											const onPreventMouseDown = (
+												event: React.MouseEvent<HTMLSpanElement>,
+											) => {
+												event.preventDefault()
+												event.stopPropagation()
+											}
+
+											return (
+												<Tag
+													onMouseDown={
+														onPreventMouseDown
+													}
+													closable={closable}
+													onClose={onClose}
+													style={{
+														// A few custom styles to match default tags on selects
+														backgroundColor: `var(--color-gray-200)`,
+														border: 0,
+														fontSize: 14,
+														height: 24,
+														lineHeight: `24px`, // set in px to avoid being set as a ratio of the font size
+														marginRight: 4,
+													}}
+												>
+													{value}
+												</Tag>
+											)
+										}}
 										filterOption={(searchValue, option) => {
 											return (
 												option?.children
@@ -887,7 +881,11 @@ export const AlertConfigurationCard = ({
 													) || false
 											)
 										}}
-										placeholder={`Select a email address to send ${defaultName} to.`}
+										onKeyUp={(e: any) => {
+											setCustomEmail(e.target.value)
+										}}
+										onBlur={() => setCustomEmail('')}
+										placeholder={`Select an email address to send ${defaultName} to.`}
 										onChange={onEmailsChange}
 										notFoundContent={
 											<div
@@ -901,8 +899,10 @@ export const AlertConfigurationCard = ({
 													to={`/w/${currentWorkspace?.id}/team`}
 												>
 													invite someone to the
-													workspace?
+													workspace
 												</Link>
+												? Or enter an external email
+												address to send alerts to.
 											</div>
 										}
 										defaultValue={
@@ -918,7 +918,7 @@ export const AlertConfigurationCard = ({
 							<p>
 								Add webhook destinations for this alert, sent as
 								JSON over HTTP. See the{' '}
-								<Link to="https://www.highlight.io/docs/general/product-features/general-features/alerts/webhooks">
+								<Link to="https://www.highlight.io/docs/general/product-features/general-features/webhooks">
 									docs
 								</Link>{' '}
 								for more info.
@@ -996,20 +996,9 @@ export const AlertConfigurationCard = ({
 									<b>
 										<TextTransition
 											inline
-											text={
-												frequency === '1' ||
-												frequency === '60'
-													? getFrequencyOption(
-															frequency,
-													  ).displayValue
-													: getFrequencyOption(
-															frequency,
-													  ).displayValue.slice(
-															0,
-															-1,
-													  ) ||
-													  `${DEFAULT_FREQUENCY} second`
-											}
+											text={getSingularFrequencyOption(
+												frequency,
+											)}
 										/>
 									</b>
 									{` `}
@@ -1176,89 +1165,6 @@ export const AlertConfigurationCard = ({
 	)
 }
 
-const FREQUENCIES = [
-	{
-		displayValue: '1 second',
-		value: '1',
-		id: '1s',
-	},
-	{
-		displayValue: '5 seconds',
-		value: '5',
-		id: '5s',
-	},
-	{
-		displayValue: '15 seconds',
-		value: '15',
-		id: '15s',
-	},
-	{
-		displayValue: '30 seconds',
-		value: '30',
-		id: '30s',
-	},
-	{
-		displayValue: '1 minute',
-		value: '60',
-		id: '1m',
-	},
-	{
-		displayValue: '5 minutes',
-		value: '300',
-		id: '5m',
-	},
-	{
-		displayValue: '15 minutes',
-		value: '900',
-		id: '15m',
-	},
-	{
-		displayValue: '30 minutes',
-		value: '1800',
-		id: '30m',
-	},
-]
-
-const LOOKBACK_PERIODS = [
-	{
-		displayValue: '5 minutes',
-		value: '5',
-		id: '5m',
-	},
-	{
-		displayValue: '10 minutes',
-		value: '10',
-		id: '10m',
-	},
-	{
-		displayValue: '30 minutes',
-		value: '30',
-		id: '30m',
-	},
-	{
-		displayValue: '60 minutes',
-		value: '60',
-		id: '60m',
-	},
-	{
-		displayValue: '3 hours',
-		value: `${60 * 3}`,
-		id: '3h',
-	},
-	{
-		displayValue: '12 hours',
-		value: `${60 * 12}`,
-		id: '12h',
-	},
-	{
-		displayValue: '24 hours',
-		value: `${60 * 24}`,
-		id: '24h',
-	},
-]
-
-const DEFAULT_LOOKBACK_PERIOD = '30'
-
 const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
 	const option = LOOKBACK_PERIODS.find(
 		(option) => option.value === minutes?.toString(),
@@ -1275,8 +1181,6 @@ const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
 	return option
 }
 
-const DEFAULT_FREQUENCY = '15'
-
 const getFrequencyOption = (seconds = DEFAULT_FREQUENCY): any => {
 	const option = FREQUENCIES.find(
 		(option) => option.value === seconds?.toString(),
@@ -1289,6 +1193,14 @@ const getFrequencyOption = (seconds = DEFAULT_FREQUENCY): any => {
 	return option
 }
 
+const getSingularFrequencyOption = (seconds = DEFAULT_FREQUENCY): string => {
+	const displayValue = getFrequencyOption(seconds).displayValue
+
+	return displayValue.slice(-1) !== 's'
+		? displayValue
+		: displayValue.slice(0, -1)
+}
+
 const getPropertiesOption = (option: any) => ({
 	displayValue:
 		(
@@ -1297,7 +1209,9 @@ const getPropertiesOption = (option: any) => ({
 				{option?.value}
 			</>
 		) || '',
-	value: `${option?.value}:${option?.name}:${option?.id}` || '',
-	id: `${option?.value}:${option?.name}` || '',
+	value:
+		`${option?.id}${SEPARATOR}${option?.name}${SEPARATOR}${option?.value}` ||
+		'',
+	id: `${option?.name}${SEPARATOR}${option?.value}` || '',
 	name: option?.id || '',
 })

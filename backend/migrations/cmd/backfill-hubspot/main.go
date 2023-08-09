@@ -24,7 +24,7 @@ func main() {
 
 	r := public.Resolver{
 		DB:         db,
-		HubspotApi: hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), nil),
+		HubspotApi: hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, nil, nil),
 	}
 
 	var admins []model.Admin
@@ -38,7 +38,7 @@ func main() {
 					log.WithContext(ctx).WithField("AdminID", admin.ID).Error("admin is not filled out")
 					continue
 				}
-				hubspotContactId, err := r.HubspotApi.CreateContactForAdmin(
+				hubspotContactId, err := r.HubspotApi.CreateContactForAdminImpl(
 					ctx,
 					admin.ID,
 					*admin.Email,
@@ -60,14 +60,14 @@ func main() {
 						log.WithContext(ctx).WithField("WorkspaceID", workspace.ID).Error("workspace is not filled out")
 						continue
 					}
-					hubspotCompanyId, err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, *workspace.Name, db)
+					hubspotCompanyId, err := r.HubspotApi.CreateCompanyForWorkspaceImpl(ctx, workspace.ID, *admin.Email, *workspace.Name)
 					if hubspotCompanyId != nil {
 						workspace.HubspotCompanyID = hubspotCompanyId
 					} else {
 						log.WithContext(ctx).WithError(err).WithField("WorkspaceID", workspace.ID).Error("error creating hubspot company")
 					}
 
-					if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID, db); err != nil {
+					if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID); err != nil {
 						log.WithContext(ctx).WithError(err).WithField("AdminID", admin.ID).WithField("WorkspaceID", workspace.ID).Error("error creating hubspot association")
 					}
 
