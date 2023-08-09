@@ -2,7 +2,6 @@ package clickhouse
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
@@ -20,6 +19,5 @@ func TestBatchWriteTraceRows(t *testing.T) {
 		NewTraceRow(now, 1).WithServiceName("gqlgen"),
 	}
 
-	fmt.Printf("::: rows: %+v\n", rows[0])
 	assert.NoError(t, client.BatchWriteTraceRows(ctx, rows))
 }
