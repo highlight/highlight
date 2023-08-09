@@ -1,3 +1,4 @@
+import { useAuthContext } from '@authentication/AuthContext'
 import Tabs from '@components/Tabs/Tabs'
 import { Box, Heading, Stack, Text } from '@highlight-run/ui'
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm'
@@ -37,6 +38,7 @@ import { ProjectSettingsContextProvider } from '@/pages/ProjectSettings/ProjectS
 import styles from './ProjectSettings.module.css'
 
 const ProjectSettings = () => {
+	const { isHighlightAdmin } = useAuthContext()
 	const navigate = useNavigate()
 	const { project_id, ...params } = useParams()
 	const [allProjectSettings, setAllProjectSettings] =
@@ -212,6 +214,7 @@ const ProjectSettings = () => {
 									key: 'services',
 									title: 'Services',
 									panelContent: <ServicesTable />,
+									hidden: !isHighlightAdmin,
 								},
 							]}
 						/>
