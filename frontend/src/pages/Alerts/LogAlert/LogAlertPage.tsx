@@ -81,7 +81,20 @@ export const LogAlertPage = () => {
 		endDate,
 	])
 
+	const { projectId } = useProjectId()
+	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
+		variables: {
+			project_id: projectId,
+			date_range: {
+				start_date: moment(startDate).format(LOG_TIME_FORMAT),
+				end_date: moment(endDate).format(LOG_TIME_FORMAT),
+			},
+		},
+	})
+
 	const [queryParam] = useQueryParam('query', StringParam)
+	const [initialQuery, setInitialQuery] = useState(queryParam ?? '')
+	const [submittedQuery, setSubmittedQuery] = useState(queryParam ?? '')
 
 	const { alert_id } = useParams<{
 		alert_id: string
@@ -106,7 +119,7 @@ export const LogAlertPage = () => {
 
 	const form = useFormState<LogMonitorForm>({
 		defaultValues: {
-			query: queryParam ?? '',
+			query: initialQuery,
 			name: '',
 			belowThreshold: false,
 			excludedEnvironments: [],
@@ -120,8 +133,14 @@ export const LogAlertPage = () => {
 		},
 	})
 
+	form.useSubmit(() => {
+		setSubmittedQuery(form.values.query)
+	})
+
 	useEffect(() => {
 		if (!loading && data) {
+			setInitialQuery(data?.log_alert.query)
+			setSubmittedQuery(data?.log_alert.query)
 			form.setValues({
 				query: data?.log_alert.query,
 				name: data?.log_alert.Name,
@@ -179,7 +198,6 @@ export const LogAlertPage = () => {
 
 	const navigate = useNavigate()
 
-	const query = form.values.query
 	const belowThreshold = form.values.belowThreshold
 	const threshold = form.values.threshold
 	const frequency = form.values.frequency
@@ -358,84 +376,101 @@ export const LogAlertPage = () => {
 				{isLoading && <LoadingBox />}
 				{!isLoading && (
 					<>
-						{header}
-						<Container
-							display="flex"
-							flexDirection="column"
-							py="24"
-							gap="40"
-						>
-							<Box
+						<Form state={form} resetOnSubmit={false}>
+							{header}
+							<Container
 								display="flex"
 								flexDirection="column"
-								width="full"
-								height="full"
-								gap="12"
+								py="24"
+								gap="40"
 							>
 								<Box
 									display="flex"
-									alignItems="center"
+									flexDirection="column"
 									width="full"
-									justifyContent="space-between"
+									height="full"
+									gap="12"
 								>
 									<Box
 										display="flex"
 										alignItems="center"
-										gap="4"
-										color="weak"
+										width="full"
+										justifyContent="space-between"
 									>
-										<Tag
+										<Box
+											display="flex"
+											alignItems="center"
+											gap="4"
+											color="weak"
+										>
+											<Tag
+												kind="secondary"
+												size="medium"
+												shape="basic"
+												emphasis="high"
+												iconLeft={
+													<IconSolidSpeakerphone />
+												}
+												onClick={() => {
+													navigate(
+														`/${project_id}/alerts`,
+													)
+												}}
+											>
+												Alerts
+											</Tag>
+											<IconSolidCheveronRight />
+											<Text
+												color="moderate"
+												size="small"
+												weight="medium"
+												userSelect="none"
+											>
+												Log monitor
+											</Text>
+										</Box>
+										<PreviousDateRangePicker
+											selectedDates={selectedDates}
+											onDatesChange={setSelectedDates}
+											presets={LOG_TIME_PRESETS}
+											minDate={thirtyDaysAgo}
 											kind="secondary"
 											size="medium"
-											shape="basic"
-											emphasis="high"
-											iconLeft={<IconSolidSpeakerphone />}
-											onClick={() => {
-												navigate(
-													`/${project_id}/alerts`,
-												)
-											}}
-										>
-											Alerts
-										</Tag>
-										<IconSolidCheveronRight />
-										<Text
-											color="moderate"
-											size="small"
-											weight="medium"
-											userSelect="none"
-										>
-											Log monitor
-										</Text>
+											emphasis="low"
+										/>
 									</Box>
-									<PreviousDateRangePicker
-										selectedDates={selectedDates}
-										onDatesChange={setSelectedDates}
-										presets={LOG_TIME_PRESETS}
-										minDate={thirtyDaysAgo}
-										kind="secondary"
-										size="medium"
-										emphasis="low"
+									<Box cssClass={styles.queryContainer}>
+										<Search
+											initialQuery={initialQuery}
+											keys={keysData?.logs_keys ?? []}
+											startDate={startDate}
+											endDate={endDate}
+											hideIcon
+											className={styles.combobox}
+											keysLoading={keysLoading}
+											placeholder="Define query..."
+										/>
+									</Box>
+									<LogsHistogram
+										query={submittedQuery}
+										startDate={startDate}
+										endDate={endDate}
+										onDatesChange={(startDate, endDate) => {
+											setSelectedDates([
+												startDate,
+												endDate,
+											])
+										}}
+										onLevelChange={() => {}}
+										outline
+										threshold={threshold}
+										belowThreshold={belowThreshold}
+										frequencySeconds={frequency}
 									/>
 								</Box>
-								<LogsHistogram
-									query={query}
-									startDate={startDate}
-									endDate={endDate}
-									onDatesChange={(startDate, endDate) => {
-										setSelectedDates([startDate, endDate])
-									}}
-									onLevelChange={() => {}}
-									outline
-									threshold={threshold}
-									belowThreshold={belowThreshold}
-									frequencySeconds={frequency}
-								/>
-							</Box>
-							<Form state={form} resetOnSubmit={false}>
-								<LogAlertForm {...{ startDate, endDate }} />
-							</Form>
-						</Container>
+								<LogAlertForm />
+							</Container>
+						</Form>
 					</>
 				)}
 			</Box>
@@ -443,25 +478,9 @@ export const LogAlertPage = () => {
 	)
 }
 
-const LogAlertForm = ({
-	startDate,
-	endDate,
-}: {
-	startDate: Date
-	endDate: Date
-}) => {
+const LogAlertForm = () => {
 	const { projectId } = useProjectId()
-	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
-		variables: {
-			project_id: projectId,
-			date_range: {
-				start_date: moment(startDate).format(LOG_TIME_FORMAT),
-				end_date: moment(endDate).format(LOG_TIME_FORMAT),
-			},
-		},
-	})
 	const form = useForm() as FormState<LogMonitorForm>
-	const query = form.values.query
 
 	const { alertsPayload } = useLogAlertsContext()
 	const { slackLoading, syncSlack } = useSlackSync()
@@ -502,257 +521,240 @@ const LogAlertForm = ({
 
 	return (
 		<Box cssClass={styles.grid}>
-			<Stack gap="12">
-				<Box cssClass={styles.sectionHeader}>
-					<Text size="large" weight="bold" color="strong">
-						Define query
-					</Text>
-				</Box>
-				<Box borderTop="dividerWeak" width="full" />
-				<Form.NamedSection label="Search query" name={form.names.query}>
-					<Box cssClass={styles.queryContainer}>
-						<Search
-							initialQuery={query}
-							keys={keysData?.logs_keys ?? []}
-							startDate={startDate}
-							endDate={endDate}
-							hideIcon
-							className={styles.combobox}
-							keysLoading={keysLoading}
-						/>
+			<Stack justifyContent="space-between">
+				<Stack gap="12">
+					<Box
+						cssClass={styles.sectionHeader}
+						justifyContent="space-between"
+					>
+						<Text size="large" weight="bold" color="strong">
+							Alert conditions
+						</Text>
+						<Menu>
+							<ThresholdTypeConfiguration />
+						</Menu>
 					</Box>
-				</Form.NamedSection>
-			</Stack>
-			<Stack gap="12">
-				<Box
-					cssClass={styles.sectionHeader}
-					justifyContent="space-between"
-				>
-					<Text size="large" weight="bold" color="strong">
-						Alert conditions
-					</Text>
-					<Menu>
-						<ThresholdTypeConfiguration />
-					</Menu>
-				</Box>
-				<Box borderTop="dividerWeak" width="full" />
-				<Column.Container gap="12">
-					<Column>
-						<Form.Input
-							name={form.names.threshold}
-							type="number"
-							label="Alert threshold"
-							tag={
-								<Badge
-									shape="basic"
-									variant="red"
-									size="small"
-									label="Red"
-								/>
-							}
-							style={{
-								borderColor: form.errors.threshold
-									? 'var(--color-red-500)'
-									: undefined,
-							}}
-						/>
-					</Column>
+					<Box borderTop="dividerWeak" width="full" />
+					<Column.Container gap="12">
+						<Column>
+							<Form.Input
+								name={form.names.threshold}
+								type="number"
+								label="Alert threshold"
+								tag={
+									<Badge
+										shape="basic"
+										variant="red"
+										size="small"
+										label="Red"
+									/>
+								}
+								style={{
+									borderColor: form.errors.threshold
+										? 'var(--color-red-500)'
+										: undefined,
+								}}
+							/>
+						</Column>
 
-					<Column>
-						<Form.Select
-							label="Alert frequency"
-							name={form.names.frequency.toString()}
-							value={form.values.frequency}
-							onChange={(e) =>
+						<Column>
+							<Form.Select
+								label="Alert frequency"
+								name={form.names.frequency.toString()}
+								value={form.values.frequency}
+								onChange={(e) =>
+									form.setValue(
+										form.names.frequency,
+										e.target.value,
+									)
+								}
+							>
+								<option value="" disabled>
+									Select alert frequency
+								</option>
+								{FREQUENCIES.filter(
+									(freq) =>
+										Number(freq.value) >=
+										LOG_ALERT_MINIMUM_FREQUENCY,
+								).map((freq: any) => (
+									<option
+										key={freq.id}
+										value={Number(freq.value)}
+									>
+										{freq.displayValue}
+									</option>
+								))}
+							</Form.Select>
+						</Column>
+					</Column.Container>
+				</Stack>
+
+				<Stack gap="12">
+					<Box cssClass={styles.sectionHeader}>
+						<Text size="large" weight="bold" color="strong">
+							General
+						</Text>
+					</Box>
+
+					<Box borderTop="dividerWeak" width="full" />
+
+					<Form.Input
+						name={form.names.name}
+						type="text"
+						placeholder="Alert name"
+						label="Name"
+						style={{
+							borderColor: form.errors.name
+								? 'var(--color-red-500)'
+								: undefined,
+						}}
+					/>
+
+					<Form.NamedSection
+						label="Excluded environments"
+						name={form.names.excludedEnvironments}
+					>
+						<Select
+							aria-label="Excluded environments list"
+							placeholder="Select excluded environments"
+							options={environments}
+							onChange={(values: any): any =>
 								form.setValue(
-									form.names.frequency,
-									e.target.value,
+									form.names.excludedEnvironments,
+									values,
 								)
 							}
-						>
-							<option value="" disabled>
-								Select alert frequency
-							</option>
-							{FREQUENCIES.filter(
-								(freq) =>
-									Number(freq.value) >=
-									LOG_ALERT_MINIMUM_FREQUENCY,
-							).map((freq: any) => (
-								<option
-									key={freq.id}
-									value={Number(freq.value)}
-								>
-									{freq.displayValue}
-								</option>
-							))}
-						</Form.Select>
-					</Column>
-				</Column.Container>
-			</Stack>
-
-			<Stack gap="12">
-				<Box cssClass={styles.sectionHeader}>
-					<Text size="large" weight="bold" color="strong">
-						General
-					</Text>
-				</Box>
-
-				<Box borderTop="dividerWeak" width="full" />
-
-				<Form.Input
-					name={form.names.name}
-					type="text"
-					placeholder="Alert name"
-					label="Name"
-					style={{
-						borderColor: form.errors.name
-							? 'var(--color-red-500)'
-							: undefined,
-					}}
-				/>
-
-				<Form.NamedSection
-					label="Excluded environments"
-					name={form.names.excludedEnvironments}
-				>
-					<Select
-						aria-label="Excluded environments list"
-						placeholder="Select excluded environments"
-						options={environments}
-						onChange={(values: any): any =>
-							form.setValue(
-								form.names.excludedEnvironments,
-								values,
-							)
-						}
-						value={form.values.excludedEnvironments}
-						notFoundContent={<p>No environment suggestions</p>}
-						className={styles.selectContainer}
-						mode="multiple"
-					/>
-				</Form.NamedSection>
+							value={form.values.excludedEnvironments}
+							notFoundContent={<p>No environment suggestions</p>}
+							className={styles.selectContainer}
+							mode="multiple"
+						/>
+					</Form.NamedSection>
+				</Stack>
 			</Stack>
 			<Stack gap="12">
-				<Box cssClass={styles.sectionHeader}>
-					<Text size="large" weight="bold" color="strong">
-						Notify team
-					</Text>
-				</Box>
+				<Stack gap="12">
+					<Box cssClass={styles.sectionHeader}>
+						<Text size="large" weight="bold" color="strong">
+							Notify team
+						</Text>
+					</Box>
 
-				<Box borderTop="dividerWeak" width="full" />
-				<Form.NamedSection
-					label="Slack channels to notify"
-					name={form.names.slackChannels}
-				>
-					<Select
-						aria-label="Slack channels to notify"
-						placeholder="Select Slack channels"
-						options={slackChannels}
-						optionFilterProp="label"
-						onFocus={syncSlack}
-						onSearch={(value) => {
-							setSlackSearchQuery(value)
-						}}
-						onChange={(values) => {
-							form.setValue(
-								form.names.slackChannels,
-								values.map((v: any) => ({
-									webhook_channel_name: v.label,
-									webhook_channel_id: v.value,
-									...v,
-								})),
-							)
-						}}
-						value={form.values.slackChannels}
-						notFoundContent={
-							<SlackLoadOrConnect
-								isLoading={slackLoading}
-								searchQuery={slackSearchQuery}
-								slackUrl={getSlackUrl(projectId ?? '')}
-								isSlackIntegrated={
-									alertsPayload?.is_integrated_with_slack ??
-									false
-								}
-							/>
-						}
-						className={styles.selectContainer}
-						mode="multiple"
-						labelInValue
-					/>
-				</Form.NamedSection>
+					<Box borderTop="dividerWeak" width="full" />
+					<Form.NamedSection
+						label="Slack channels to notify"
+						name={form.names.slackChannels}
+					>
+						<Select
+							aria-label="Slack channels to notify"
+							placeholder="Select Slack channels"
+							options={slackChannels}
+							optionFilterProp="label"
+							onFocus={syncSlack}
+							onSearch={(value) => {
+								setSlackSearchQuery(value)
+							}}
+							onChange={(values) => {
+								form.setValue(
+									form.names.slackChannels,
+									values.map((v: any) => ({
+										webhook_channel_name: v.label,
+										webhook_channel_id: v.value,
+										...v,
+									})),
+								)
+							}}
+							value={form.values.slackChannels}
+							notFoundContent={
+								<SlackLoadOrConnect
+									isLoading={slackLoading}
+									searchQuery={slackSearchQuery}
+									slackUrl={getSlackUrl(projectId ?? '')}
+									isSlackIntegrated={
+										alertsPayload?.is_integrated_with_slack ??
+										false
+									}
+								/>
+							}
+							className={styles.selectContainer}
+							mode="multiple"
+							labelInValue
+						/>
+					</Form.NamedSection>
 
-				<Form.NamedSection
-					label="Discord channels to notify"
-					name={form.names.discordChannels}
-				>
-					<Select
-						aria-label="Discord channels to notify"
-						placeholder="Select Discord channels"
-						options={discordChannels}
-						optionFilterProp="label"
-						onChange={(values) => {
-							form.setValue(
-								form.names.discordChannels,
-								values.map((v: any) => ({
-									name: v.label,
-									id: v.value,
-									...v,
-								})),
-							)
-						}}
-						value={form.values.discordChannels}
-						notFoundContent={
-							discordChannels.length === 0 ? (
-								<Link to="/integrations">
-									Connect Highlight with Discord
-								</Link>
-							) : (
-								'Discord channel not found'
-							)
-						}
-						className={styles.selectContainer}
-						mode="multiple"
-						labelInValue
-					/>
-				</Form.NamedSection>
+					<Form.NamedSection
+						label="Discord channels to notify"
+						name={form.names.discordChannels}
+					>
+						<Select
+							aria-label="Discord channels to notify"
+							placeholder="Select Discord channels"
+							options={discordChannels}
+							optionFilterProp="label"
+							onChange={(values) => {
+								form.setValue(
+									form.names.discordChannels,
+									values.map((v: any) => ({
+										name: v.label,
+										id: v.value,
+										...v,
+									})),
+								)
+							}}
+							value={form.values.discordChannels}
+							notFoundContent={
+								discordChannels.length === 0 ? (
+									<Link to="/integrations">
+										Connect Highlight with Discord
+									</Link>
+								) : (
+									'Discord channel not found'
+								)
+							}
+							className={styles.selectContainer}
+							mode="multiple"
+							labelInValue
+						/>
+					</Form.NamedSection>
 
-				<Form.NamedSection
-					label="Emails to notify"
-					name={form.names.emails}
-				>
-					<Select
-						aria-label="Emails to notify"
-						placeholder="Select emails"
-						options={emails}
-						onChange={(values: any): any =>
-							form.setValue(form.names.emails, values)
-						}
-						value={form.values.emails}
-						notFoundContent={<p>No email suggestions</p>}
-						className={styles.selectContainer}
-						mode="multiple"
-					/>
-				</Form.NamedSection>
+					<Form.NamedSection
+						label="Emails to notify"
+						name={form.names.emails}
+					>
+						<Select
+							aria-label="Emails to notify"
+							placeholder="Select emails"
+							options={emails}
+							onChange={(values: any): any =>
+								form.setValue(form.names.emails, values)
+							}
+							value={form.values.emails}
+							notFoundContent={<p>No email suggestions</p>}
+							className={styles.selectContainer}
+							mode="multiple"
+						/>
+					</Form.NamedSection>
 
-				<Form.NamedSection
-					label="Webhooks to notify"
-					name={form.names.emails}
-				>
-					<Select
-						aria-label="Webhooks to notify"
-						placeholder="Enter webhook addresses"
-						onChange={(values: any): any =>
-							form.setValue(
-								form.names.webhookDestinations,
-								values,
-							)
-						}
-						value={form.values.webhookDestinations}
-						notFoundContent={null}
-						className={styles.selectContainer}
-						mode="tags"
-					/>
-				</Form.NamedSection>
+					<Form.NamedSection
+						label="Webhooks to notify"
+						name={form.names.emails}
+					>
+						<Select
+							aria-label="Webhooks to notify"
+							placeholder="Enter webhook addresses"
+							onChange={(values: any): any =>
+								form.setValue(
+									form.names.webhookDestinations,
+									values,
+								)
+							}
+							value={form.values.webhookDestinations}
+							notFoundContent={null}
+							className={styles.selectContainer}
+							mode="tags"
+						/>
+					</Form.NamedSection>
+				</Stack>
 			</Stack>
 		</Box>
 	)

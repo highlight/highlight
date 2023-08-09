@@ -5419,7 +5419,6 @@ body {
 ._155k3sw6 {
   opacity: 0.2;
   left: 0;
-  z-index: 1;
   width: calc(100% - 4px);
   pointer-events: none;
 }
