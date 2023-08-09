@@ -159,8 +159,13 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 
 		g.Go(func() error {
 			return client.conn.Exec(chCtx, fieldsSql, fieldsArgs...)
+			// client.conn.Stats()
 		})
 	}
 
 	return g.Wait()
+}
+
+func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count int, query string, sortField *string, sortDesc bool, page *int, retentionDate time.Time) ([]int64, error) {
+	return nil, nil
 }

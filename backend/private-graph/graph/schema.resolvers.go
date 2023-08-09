@@ -5109,7 +5109,11 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 }
 
 // SessionsOpensearch is the resolver for the sessions_opensearch field.
-func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, clickhouseQuery *string, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+	if clickhouseQuery != nil {
+		return r.SessionsClickhouse(ctx, projectID, count, *clickhouseQuery, sortField, sortDesc, page)
+	}
+
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -5153,6 +5157,31 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 		Sessions:   results,
 		TotalCount: resultCount,
 	}, nil
+}
+
+// SessionsClickhouse is the resolver for the sessions_clickhouse field.
+func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, count int, query string, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	ids, err := r.ClickhouseClient.QuerySessionIds(ctx, projectID, count, query, sortField, sortDesc, page, retentionDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*model.Session
+	if err := r.DB.Model(&model.Session{}).Where("id in ?", ids).Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	return
 }
 
 // SessionsHistogram is the resolver for the sessions_histogram field.
