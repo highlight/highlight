@@ -9,12 +9,19 @@ import * as styles from './styles.css'
 
 export type Props = {
 	children: React.ReactNode
-	// props set from the table parent
+}
+
+// implicit props set from the parent table
+type ParentPassedProps = {
 	loading?: boolean
 	error?: string
 }
 
-export const Body: React.FC<Props> = ({ children, loading, error }) => {
+export const Body: React.FC<Props & ParentPassedProps> = ({
+	children,
+	loading,
+	error,
+}) => {
 	const renderBodyContent = () => {
 		if (loading) {
 			return <LoadingBody />
