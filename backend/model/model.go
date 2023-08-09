@@ -906,41 +906,50 @@ type ErrorSegment struct {
 	OrganizationID int
 	ProjectID      int `json:"project_id"`
 }
+type ErrorGroupingMethod string
+
+const (
+	ErrorGroupingMethodClassic        ErrorGroupingMethod = "Classic"
+	ErrorGroupingMethodAdaEmbeddingV2 ErrorGroupingMethod = "AdaV2"
+)
 
 type ErrorObject struct {
 	Model
-	ID               int `gorm:"primary_key;type:serial;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
-	OrganizationID   int
-	ProjectID        int `json:"project_id"`
-	SessionID        *int
-	TraceID          *string
-	SpanID           *string
-	LogCursor        *string `gorm:"index:idx_error_object_log_cursor,option:CONCURRENTLY"`
-	ErrorGroupID     int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
-	ErrorGroup       ErrorGroup
-	Event            string
-	Type             string
-	URL              string
-	Source           string
-	LineNumber       int
-	ColumnNumber     int
-	OS               string
-	Browser          string
-	Trace            *string `json:"trace"` //DEPRECATED, USE STACKTRACE INSTEAD
-	StackTrace       *string `json:"stack_trace"`
-	MappedStackTrace *string
-	Timestamp        time.Time `json:"timestamp"`
-	Payload          *string   `json:"payload"`
-	Environment      string
-	RequestID        *string // From X-Highlight-Request header
-	IsBeacon         bool    `gorm:"default:false"`
-	ServiceName      string
-	ServiceVersion   string
+	ID                      int `gorm:"primary_key;type:serial;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
+	OrganizationID          int
+	ProjectID               int `json:"project_id"`
+	SessionID               *int
+	TraceID                 *string
+	SpanID                  *string
+	LogCursor               *string `gorm:"index:idx_error_object_log_cursor,option:CONCURRENTLY"`
+	ErrorGroupID            int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
+	ErrorGroupIDAlternative int     // the alternative algorithm for grouping the object
+	ErrorGroupingMethod     ErrorGroupingMethod
+	ErrorGroup              ErrorGroup
+	Event                   string
+	Type                    string
+	URL                     string
+	Source                  string
+	LineNumber              int
+	ColumnNumber            int
+	OS                      string
+	Browser                 string
+	Trace                   *string `json:"trace"` //DEPRECATED, USE STACKTRACE INSTEAD
+	StackTrace              *string `json:"stack_trace"`
+	MappedStackTrace        *string
+	Timestamp               time.Time `json:"timestamp"`
+	Payload                 *string   `json:"payload"`
+	Environment             string
+	RequestID               *string // From X-Highlight-Request header
+	IsBeacon                bool    `gorm:"default:false"`
+	ServiceName             string
+	ServiceVersion          string
 }
 
 type ErrorObjectEmbeddings struct {
 	Model
 	ErrorObjectID       int
+	CombinedEmbedding   Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
 	EventEmbedding      Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
 	StackTraceEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
 	PayloadEmbedding    Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
