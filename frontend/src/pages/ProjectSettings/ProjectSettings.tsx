@@ -214,6 +214,7 @@ const ProjectSettings = () => {
 									key: 'services',
 									title: 'Services',
 									panelContent: <ServicesTable />,
+									// TODO: remove when ready to enable to customers
 									hidden: !isHighlightAdmin,
 								},
 							]}

@@ -4,18 +4,23 @@ import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import { Box, Form, Stack, Text } from '@highlight-run/ui'
 import { Select } from 'antd'
-import _ from 'lodash'
 import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
+
+import { GitHubRepo, Service } from '@/graph/generated/schemas'
 
 import * as styles from './GitHubSettingsModal.css'
 
 type Props = {
-	service: any
-	githubRepos: any[]
-	handleSave: (service: any, repo?: any) => void
+	service: Service
+	githubRepos: GitHubRepo[]
+	handleSave: (service: Service, repo: string | null) => void
 	githubIntegrated: boolean
 	closeModal: () => void
+}
+
+type FormValues = {
+	githubRepo: string | null
 }
 
 export const GitHubSettingsModal = ({
@@ -25,7 +30,7 @@ export const GitHubSettingsModal = ({
 	githubIntegrated,
 	closeModal,
 }: Props) => {
-	const handleSubmit = (formValues: any) => {
+	const handleSubmit = (formValues: FormValues) => {
 		handleSave(service, formValues.githubRepo)
 		closeModal()
 	}
@@ -76,15 +81,22 @@ export const GitHubSettingsModal = ({
 	)
 }
 
+type GithubSettingsFormProps = {
+	service: Service
+	githubRepos: GitHubRepo[]
+	handleSubmit: (formValues: FormValues) => void
+	handleCancel: () => void
+}
+
 const GithubSettingsForm = ({
 	service,
 	githubRepos,
 	handleSubmit,
 	handleCancel,
-}: any) => {
+}: GithubSettingsFormProps) => {
 	const githubOptions = useMemo(
 		() =>
-			githubRepos.map((repo: any) => ({
+			githubRepos.map((repo: GitHubRepo) => ({
 				id: repo.key,
 				label: repo.name.split('/').pop(),
 				value: repo.repo_id.replace(
@@ -95,29 +107,9 @@ const GithubSettingsForm = ({
 		[githubRepos],
 	)
 
-	const [options, setOptions] = React.useState<any[]>(githubOptions)
-	const form = Form.useFormState<{ githubRepo: string }>({
-		defaultValues: { githubRepo: service?.githubRepoPath || null },
+	const form = Form.useFormState<FormValues>({
+		defaultValues: { githubRepo: service?.githubRepoPath },
 	})
-
-	const getRepoOptions = (input: string) => {
-		const filteredOptions = githubOptions.filter((option: any) => {
-			const name = option.repo_id.replace(
-				'https://api.github.com/repos/',
-				'',
-			)
-			return name.toLowerCase().indexOf(input.toLowerCase()) !== -1
-		})
-
-		setOptions(filteredOptions)
-	}
-
-	const loadRepoOptions = useMemo(
-		() => _.debounce(getRepoOptions, 300),
-		// Ignore this so we have a consistent reference so debounce works.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[githubRepos],
-	)
 
 	return (
 		<Form state={form} onSubmit={() => handleSubmit(form.values)}>
@@ -135,11 +127,10 @@ const GithubSettingsForm = ({
 							form.setValue(form.names.githubRepo, repo)
 						}
 						value={form.values.githubRepo?.split('/').pop()}
-						options={options}
+						options={githubOptions}
 						notFoundContent={<span>No repos found</span>}
 						optionFilterProp="label"
 						filterOption
-						onSearch={loadRepoOptions}
 						showSearch
 					/>
 

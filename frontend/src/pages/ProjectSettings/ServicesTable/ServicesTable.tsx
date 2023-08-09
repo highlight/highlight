@@ -18,6 +18,8 @@ import { capitalize } from 'lodash'
 import { debounce } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
 
+import { Service, ServiceStatus } from '@/graph/generated/schemas'
+
 import { GitHubSettingsModal } from '../GitHubSettingsModal/GitHubSettingsModal'
 import * as styles from './ServicesTable.css'
 
@@ -31,7 +33,7 @@ export const ServicesTable = () => {
 	const [loadServices, { error, data, loading }] = useGetServicesLazyQuery()
 	const [query, setQuery] = useState<string>('')
 	const [pagination, setPagination] = useState<Pagination>({})
-	const [selectedService, setService] = useState<any>(null)
+	const [selectedService, setService] = useState<Service | null>(null)
 
 	const {
 		settings: { isIntegrated },
@@ -73,7 +75,7 @@ export const ServicesTable = () => {
 		})
 	}
 
-	const updateServiceSettings = (service: any, repo?: any) => {
+	const updateServiceSettings = (service: Service, repo: string | null) => {
 		editService({
 			variables: {
 				id: service.id,
@@ -97,7 +99,7 @@ export const ServicesTable = () => {
 					/>
 				),
 			},
-			renderData: (service: any) => (
+			renderData: (service: Service) => (
 				<Box
 					display="flex"
 					alignItems="center"
@@ -129,7 +131,7 @@ export const ServicesTable = () => {
 			name: 'GitHub repo',
 			width: '160px',
 			dataFormat: {},
-			renderData: (service: any) => {
+			renderData: (service: Service) => {
 				const repoName = service.githubRepoPath?.split('/').pop()
 
 				return (
@@ -157,7 +159,7 @@ export const ServicesTable = () => {
 			name: 'Status',
 			width: '80px',
 			dataFormat: {},
-			renderData: (service: any) => (
+			renderData: (service: Service) => (
 				<Badge
 					variant={determineStatusVariant(service.status)}
 					label={capitalize(service.status)}
@@ -189,12 +191,12 @@ export const ServicesTable = () => {
 					</Table.Row>
 				</Table.Head>
 				<Table.Body>
-					{data?.services?.edges.map((edge: any) => {
-						const service = edge.node
+					{data?.services?.edges.map((edge) => {
+						const service = edge?.node
 
 						return (
 							<Table.Row
-								key={service.cursor}
+								key={edge?.cursor}
 								gridColumns={gridColumns}
 							>
 								{columns.map((column) => (
@@ -202,7 +204,7 @@ export const ServicesTable = () => {
 										key={column.name}
 										icon={column.dataFormat.icon}
 									>
-										{column.renderData(service)}
+										{column.renderData(service as Service)}
 									</Table.Cell>
 								))}
 							</Table.Row>
@@ -241,7 +243,7 @@ export const ServicesTable = () => {
 	)
 }
 
-export const determineStatusVariant = (status: any) => {
+export const determineStatusVariant = (status: ServiceStatus) => {
 	switch (status) {
 		case 'healthy':
 			return 'green'
