@@ -108,7 +108,7 @@ const GithubSettingsForm = ({
 	)
 
 	const form = Form.useFormState<FormValues>({
-		defaultValues: { githubRepo: service?.githubRepoPath },
+		defaultValues: { githubRepo: service.githubRepoPath || null },
 	})
 
 	return (
