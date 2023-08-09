@@ -504,5 +504,8 @@ func (r *Client) ReleaseLock(ctx context.Context, key string) (err error) {
 }
 
 func (r *Client) FlushDB(ctx context.Context) error {
-	return r.redisClient.FlushDB(ctx).Err()
+	if util.IsDevOrTestEnv() {
+		return r.redisClient.FlushDB(ctx).Err()
+	}
+	return nil
 }
