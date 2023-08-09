@@ -50,6 +50,8 @@ func getJSONLogs(r *http.Request) (logs [][]byte, err error) {
 		return
 	}
 
+	// TODO(vkorolik) support pino json format
+
 	if r.Header.Get("Content-Type") != "application/x-ndjson" {
 		return [][]byte{body}, nil
 	}
