@@ -1591,15 +1591,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [searchQuery, timeRangeField.value, toggleIsAnd])
 
-	// When the query builder is unmounted, reset the state.
-	// Not sure if this is desired behavior in the long term, but
-	// this matches the current prod behavior.
-	useEffect(() => {
-		return () => {
-			removeSelectedSegment()
-		}
-	}, [removeSelectedSegment])
-
 	const [currentStep, setCurrentStep] = useState<number | undefined>(
 		undefined,
 	)
