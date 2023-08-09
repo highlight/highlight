@@ -1,5 +1,11 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import {
+	AdminSuggestion,
+	filterMentionedAdmins,
+	filterMentionedSlackUsers,
+	parseAdminSuggestions,
+} from '@components/Comment/utils/utils'
+import {
 	useCreateErrorCommentMutation,
 	useCreateSessionCommentMutation,
 	useGetCommentMentionSuggestionsQuery,
@@ -36,7 +42,7 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import ISSUE_TRACKER_INTEGRATIONS, {
 	IssueTrackerIntegration,
 } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
-import CommentTextBody from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
+import { CommentTextBody } from '@pages/Player/Toolbar/NewCommentForm/CommentTextBody/CommentTextBody'
 import analytics from '@util/analytics'
 import { getCommentMentionSuggestions } from '@util/comment/util'
 import { useParams } from '@util/react-router/useParams'
@@ -47,10 +53,6 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
 import { CommentMentionButton } from '@/components/Comment/CommentMentionButton'
-import {
-	AdminSuggestion,
-	parseAdminSuggestions,
-} from '@/components/Comment/utils/utils'
 
 import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas'
 import usePlayerConfiguration from '../../PlayerHook/utils/usePlayerConfiguration'
@@ -302,47 +304,21 @@ export const NewCommentForm = ({
 	) => {
 		setCommentTextForEmail(newPlainTextValue)
 
-		setMentionedAdmins(
-			mentions
-				.filter(
-					(mention) =>
-						!mention.display.includes('@') &&
-						!mention.display.includes('#'),
-				)
-				.map((mention) => {
-					const wa = adminsInWorkspace?.admins?.find((wa) => {
-						return wa.admin?.id === mention.id
-					})
-					return { id: mention.id, email: wa?.admin?.email || '' }
-				}),
-		)
+		if (adminsInWorkspace?.admins) {
+			setMentionedAdmins(
+				filterMentionedAdmins(
+					adminsInWorkspace.admins.map((wa) => wa.admin),
+					mentions,
+				),
+			)
+		}
 
 		if (mentionSuggestionsData?.slack_channel_suggestion) {
 			setMentionedSlackUsers(
-				mentions
-					.filter(
-						(mention) =>
-							mention.display.includes('@') ||
-							mention.display.includes('#'),
-					)
-					.map<SanitizedSlackChannelInput>((mention) => {
-						const matchingSlackUser =
-							mentionSuggestionsData.slack_channel_suggestion.find(
-								(suggestion) => {
-									return (
-										suggestion.webhook_channel_id ===
-										mention.id
-									)
-								},
-							)
-
-						return {
-							webhook_channel_id:
-								matchingSlackUser?.webhook_channel_id,
-							webhook_channel_name:
-								matchingSlackUser?.webhook_channel,
-						}
-					}),
+				filterMentionedSlackUsers(
+					mentionSuggestionsData.slack_channel_suggestion,
+					mentions,
+				),
 			)
 		}
 		setCommentText(e.target.value)

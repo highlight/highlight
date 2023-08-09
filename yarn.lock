@@ -12743,7 +12743,7 @@ __metadata:
     "@graphql-codegen/typescript-react-apollo": ^2.2.1
     "@highlight-run/client": "workspace:*"
     "@highlight-run/react": "workspace:*"
-    "@highlight-run/react-mentions": 4.4.1
+    "@highlight-run/react-mentions": 4.4.2
     "@highlight-run/rrweb": "workspace:*"
     "@highlight-run/rrweb-types": "workspace:*"
     "@highlight-run/ui": "workspace:*"
@@ -12936,9 +12936,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/react-mentions@npm:4.4.1":
-  version: 4.4.1
-  resolution: "@highlight-run/react-mentions@npm:4.4.1"
+"@highlight-run/react-mentions@npm:4.4.2":
+  version: 4.4.2
+  resolution: "@highlight-run/react-mentions@npm:4.4.2"
   dependencies:
     "@babel/runtime": 7.4.5
     invariant: ^2.2.4
@@ -12947,7 +12947,7 @@ __metadata:
   peerDependencies:
     react: ">=16.8.3"
     react-dom: ">=16.8.3"
-  checksum: cd37e9a76103d397e155dbeaed9dc9efdf731ba3a1e9e969de66484f5c1ef11f9ac3543b50b72e212bcd7a74617a06ec7fd779594aef94882f1d6c9c856058cb
+  checksum: 82de13e45674fbb2ba33de1baa511b80fc0e9ca758b44d573013cbe54bc808e2e79b3cae8fa0c7a2dc0c5ac5999434dc8fb44853525b39244f7436fa022aa73b
   languageName: node
   linkType: hard
 

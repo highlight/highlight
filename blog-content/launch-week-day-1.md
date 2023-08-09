@@ -35,17 +35,17 @@ Vadim, our CTO, wrote up a blog post on our commitment to OTEL and open source [
 
 Since launching our error monitoring product a few months ago, we've learned a lot from our customers. In fact, we've learned that we've got a long road ahead of us to perfect the alerting and error monitoring experience in highlight. Today, we're launching a few features to make it easy to filter out errors, and in-turn make error alerts much more consumable. Here's the tea:
 
-#### Ignore errors emitted by chrome extensions
+#### Filtering errors emitted by chrome extensions
 
-Everyone knows of a chrome extension on one of our your customers' clients that you get alerted for, but have no impact on the experience of your users. Today we're launching a way to ignore these by default; all highlight.io customers can simply update a setting in their project to ignore them.
+Everyone knows of a chrome extension on one of our your customers' clients that you get alerted for, but have no impact on the experience of your users. Today we're launching a way to filter these by default; all highlight.io customers can simply update a setting in their project to filter them.
 
-More details in our ignoring docs [here](https://www.highlight.io/docs/general/product-features/error-monitoring/ignoring-errors#ignoring-error-groups-from-alerts "https://www.highlight.io/docs/general/product-features/error-monitoring/ignoring-errors#ignoring-error-groups-from-alerts").
+More details in our filtering docs [here](https://www.highlight.io/docs/general/product-features/error-monitoring/filtering-errors).
 
-#### Ignore errors by regex expression
+#### Filter errors by regex expression
 
-In the same vain, we also got feedback that there were errors being thrown on our users' clients that weren't common among everyone (unlike chrome extensions), so we decided to support even more customizability. That is, you can now ignore errors based on a regex expression, which gets applied on the body of the error being thrown.
+In the same vain, we also got feedback that there were errors being thrown on our users' clients that weren't common among everyone (unlike chrome extensions), so we decided to support even more customization. That is, you can now filter errors based on a regex expression, which gets applied on the body of the error being thrown.
 
-Docs on this [here](https://www.highlight.io/docs/general/product-features/error-monitoring/ignoring-errors#ignoring-error-groups-from-alerts "https://www.highlight.io/docs/general/product-features/error-monitoring/ignoring-errors#ignoring-error-groups-from-alerts").
+Docs on this [here](https://www.highlight.io/docs/general/product-features/error-monitoring/filtering-errors)
 
 ## Webhooks on Alerts
 
