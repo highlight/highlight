@@ -2007,7 +2007,7 @@ type Service struct {
 	BuildPrefix     *string
 	GithubPrefix    *string
 	LastSeenVersion *string
-	ErrorDetails    *string
+	ErrorDetails    pq.StringArray `gorm:"type:text[]"`
 }
 
 type LogAlert struct {

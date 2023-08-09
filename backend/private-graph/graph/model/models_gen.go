@@ -641,7 +641,7 @@ type ServiceNode struct {
 	BuildPrefix     *string       `json:"buildPrefix"`
 	GithubPrefix    *string       `json:"githubPrefix"`
 	LastSeenVersion *string       `json:"lastSeenVersion"`
-	ErrorDetails    *string       `json:"errorDetails"`
+	ErrorDetails    []string      `json:"errorDetails"`
 }
 
 type SessionAlertInput struct {

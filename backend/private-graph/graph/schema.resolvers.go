@@ -3626,7 +3626,7 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 	}
 
 	serviceUpdates := map[string]interface{}{
-		"ErrorDetails": nil,
+		"ErrorDetails": make([]string, 0),
 		"BuildPrefix":  buildPrefix,
 		"GithubPrefix": githubPrefix,
 	}
@@ -7543,6 +7543,11 @@ func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*mode
 	return params, nil
 }
 
+// ErrorDetails is the resolver for the errorDetails field.
+func (r *serviceResolver) ErrorDetails(ctx context.Context, obj *model.Service) ([]string, error) {
+	panic(fmt.Errorf("not implemented: ErrorDetails - errorDetails"))
+}
+
 // UserObject is the resolver for the user_object field.
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
 	return obj.UserObject, nil
@@ -7860,6 +7865,9 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 // Segment returns generated.SegmentResolver implementation.
 func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver{r} }
 
+// Service returns generated.ServiceResolver implementation.
+func (r *Resolver) Service() generated.ServiceResolver { return &serviceResolver{r} }
+
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
@@ -7890,6 +7898,7 @@ type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
+type serviceResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }

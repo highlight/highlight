@@ -51,6 +51,7 @@ type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Segment() SegmentResolver
+	Service() ServiceResolver
 	Session() SessionResolver
 	SessionAlert() SessionAlertResolver
 	SessionComment() SessionCommentResolver
@@ -1594,6 +1595,9 @@ type QueryResolver interface {
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
+}
+type ServiceResolver interface {
+	ErrorDetails(ctx context.Context, obj *model1.Service) ([]string, error)
 }
 type SessionResolver interface {
 	UserObject(ctx context.Context, obj *model1.Session) (interface{}, error)
@@ -9716,7 +9720,7 @@ type Service {
 	buildPrefix: String
 	githubPrefix: String
 	lastSeenVersion: String
-	errorDetails: String
+	errorDetails: [String!]
 }
 
 type ServiceNode {
@@ -9728,7 +9732,7 @@ type ServiceNode {
 	buildPrefix: String
 	githubPrefix: String
 	lastSeenVersion: String
-	errorDetails: String
+	errorDetails: [String!]
 }
 
 type ServiceEdge implements Edge {
@@ -52347,7 +52351,7 @@ func (ec *executionContext) _Service_errorDetails(ctx context.Context, field gra
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ErrorDetails, nil
+		return ec.resolvers.Service().ErrorDetails(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -52356,17 +52360,17 @@ func (ec *executionContext) _Service_errorDetails(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Service_errorDetails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Service",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -52949,9 +52953,9 @@ func (ec *executionContext) _ServiceNode_errorDetails(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.([]string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_ServiceNode_errorDetails(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -73577,28 +73581,28 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Service_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "projectID":
 
 			out.Values[i] = ec._Service_projectID(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "name":
 
 			out.Values[i] = ec._Service_name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "status":
 
 			out.Values[i] = ec._Service_status(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "githubRepoPath":
 
@@ -73617,9 +73621,22 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Service_lastSeenVersion(ctx, field, obj)
 
 		case "errorDetails":
+			field := field
 
-			out.Values[i] = ec._Service_errorDetails(ctx, field, obj)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Service_errorDetails(ctx, field, obj)
+				return res
+			}
 
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

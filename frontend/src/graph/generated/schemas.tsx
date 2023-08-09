@@ -2489,7 +2489,7 @@ export type Segment = {
 export type Service = {
 	__typename?: 'Service'
 	buildPrefix?: Maybe<Scalars['String']>
-	errorDetails?: Maybe<Scalars['String']>
+	errorDetails?: Maybe<Array<Scalars['String']>>
 	githubPrefix?: Maybe<Scalars['String']>
 	githubRepoPath?: Maybe<Scalars['String']>
 	id: Scalars['ID']
@@ -2514,7 +2514,7 @@ export type ServiceEdge = Edge & {
 export type ServiceNode = {
 	__typename?: 'ServiceNode'
 	buildPrefix?: Maybe<Scalars['String']>
-	errorDetails?: Maybe<Scalars['String']>
+	errorDetails?: Maybe<Array<Scalars['String']>>
 	githubPrefix?: Maybe<Scalars['String']>
 	githubRepoPath?: Maybe<Scalars['String']>
 	id: Scalars['ID']

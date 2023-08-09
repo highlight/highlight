@@ -665,7 +665,7 @@ type Service {
 	buildPrefix: String
 	githubPrefix: String
 	lastSeenVersion: String
-	errorDetails: String
+	errorDetails: [String!]
 }
 
 type ServiceNode {
@@ -677,7 +677,7 @@ type ServiceNode {
 	buildPrefix: String
 	githubPrefix: String
 	lastSeenVersion: String
-	errorDetails: String
+	errorDetails: [String!]
 }
 
 type ServiceEdge implements Edge {
