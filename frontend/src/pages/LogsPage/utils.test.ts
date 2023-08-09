@@ -51,13 +51,13 @@ describe('findMatchingLogAttributes', () => {
 			},
 			{
 				key: 'level',
-				value: '*ace',
+				value: 'trace',
 				operator: '=',
 				offsetStart: 15,
 			},
 			{
 				key: 'message',
-				value: 'highlight',
+				value: '*light',
 				operator: '=',
 				offsetStart: 27,
 			},
@@ -72,11 +72,11 @@ describe('findMatchingLogAttributes', () => {
 			value: 'darwin',
 		})
 		expect(matchingAttributes['level']).toEqual({
-			match: '*ace',
+			match: 'trace',
 			value: 'trace',
 		})
 		expect(matchingAttributes['message']).toEqual({
-			match: 'highlight',
+			match: '*light',
 			value: 'highlight-heartbeat',
 		})
 	})
