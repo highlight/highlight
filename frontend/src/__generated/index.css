@@ -5625,8 +5625,16 @@ body {
   width: 100%;
   height: 100%;
 }
-.om6zxf0 {
-  padding: 8px;
+@keyframes _11k4duj1 {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+._11k4duj2 {
+  animation: 1s _11k4duj1 linear infinite;
 }
 ._65ghl30 {
   display: grid;
@@ -5649,6 +5657,9 @@ body {
 ._11k4duj0 ._65ghl30:last-of-type {
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
+}
+.om6zxf0 {
+  padding: 8px;
 }
 ._1qp9y5j0 {
   visibility: hidden;
