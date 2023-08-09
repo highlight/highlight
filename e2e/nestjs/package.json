@@ -9,6 +9,7 @@
 	},
 	"dependencies": {
 		"@highlight-run/nest": "workspace:*",
+		"@highlight-run/node": "workspace:*",
 		"@nestjs/axios": "^0.0.7",
 		"@nestjs/common": ">=8",
 		"@nestjs/config": "^2.0.0",
