@@ -8,14 +8,9 @@ updatedAt: 2022-06-27T03:34:47.000Z
 
 [highlight.io](https://highlight.io) allows you to filter sessions that you don't want to see in your session feed. This is useful for sessions that you know are not relevant to your application, or that are not actionable.
 
-<<<<<<<< HEAD:docs-content/6_product-features/1_session-replay/ignoring-sessions.md
-## Ignore sessions by user identifier
-In some cases, you may want to ignore sessions from a specific user. You can do this by adding the user identifier to the "Excluded Sessions" input under the "Session Replay" tab in your [project settings](https://app.highlight.io/settings). Please note that we use the `identifier` (or first argument) sent in your `H.identify` method to ignore against (SDK docs [here](../../sdk/client.md)).
-========
 ```hint
 Filtered sessions do not count towards your billing quota.
 ```
->>>>>>>> main:docs-content/6_product-features/1_session-replay/filtering-sessions.md
 
 ## Filter sessions by user identifier
 In some cases, you may want to filter sessions from a specific user. You can do this by adding the user identifier to the "Filtered Sessions" input under the "Session Replay" tab in your [project settings](https://app.highlight.io/settings). Please note that we use the `identifier` (or first argument) sent in your `H.identify` method to filter against (SDK docs [here](../../../sdk/client.md)).
