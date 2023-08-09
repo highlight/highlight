@@ -161,11 +161,6 @@
       "to": "/$1.css",
       "phase": "pre",
     },
-    {
-      "from": "^/__generated/svgr/(.*).svg.js$",
-      "to": "/$1.svg",
-      "phase": "pre",
-    },
   ],
   "libraries": {
     "@highlight-run/ui": {
