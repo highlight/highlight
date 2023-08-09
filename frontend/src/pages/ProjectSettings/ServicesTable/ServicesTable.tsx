@@ -174,7 +174,7 @@ export const ServicesTable = () => {
 			<Combobox
 				state={state}
 				name="search"
-				placeholder="Search..."
+				placeholder="Search services..."
 				className={styles.combobox}
 				onChange={handleQueryChange}
 			/>

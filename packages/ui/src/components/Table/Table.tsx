@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Children } from 'react'
 
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'
@@ -22,9 +22,16 @@ type Props = {
 const TableComponent: React.FC<Props> = ({ children, loading, error }) => {
 	return (
 		<Box className={styles.container}>
-			{loading && 'Loading...'}
-			{!!error && error}
-			{!loading && !error && children}
+			{Children.map(children, (child: any) => {
+				if (child.type.name === 'Body') {
+					return React.cloneElement(child, {
+						loading,
+						error,
+					})
+				}
+
+				return child
+			})}
 		</Box>
 	)
 }
