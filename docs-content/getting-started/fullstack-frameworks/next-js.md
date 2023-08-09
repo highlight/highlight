@@ -122,6 +122,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
+3. Optionally add a React [Error Boundary](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary).
+
+```javascript
+// src/app/components/error-boundary.tsx
+'use client'
+
+import { ErrorBoundary as HighlightErrorBoundary } from '@highlight-run/next/client'
+
+export function ErrorBoundary({ children }: { children: React.ReactNode }) {
+	return (
+		<HighlightErrorBoundary
+			showDialog={window.location.host !== 'localhost'}
+		>
+			{children}
+		</HighlightErrorBoundary>
+	)
+}
+```
+
 ### Skip Localhost tracking
 
 The `excludedHostnames` prop accepts an array of partial or full hostnames. For example, if you pass in `excludedHostnames={['localhost', 'staging]}`, you'll block `localhost` on all ports, `www.staging.highlight.io` and `staging.highlight.com`.
@@ -155,9 +174,6 @@ export function CustomHighlightStart() {
 
 	return null
 }
-
-
-
 ```
 
 ## API Route Instrumentation
