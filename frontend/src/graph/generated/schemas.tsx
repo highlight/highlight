@@ -2673,6 +2673,7 @@ export type SessionInsight = {
 	__typename?: 'SessionInsight'
 	id: Scalars['ID']
 	insight: Scalars['String']
+	session_id: Scalars['Int']
 }
 
 export type SessionInterval = {
@@ -2795,8 +2796,8 @@ export enum SubscriptionInterval {
 
 export type SystemConfiguration = {
 	__typename?: 'SystemConfiguration'
-	maintenance_end: Scalars['Timestamp']
-	maintenance_start: Scalars['Timestamp']
+	maintenance_end?: Maybe<Scalars['Timestamp']>
+	maintenance_start?: Maybe<Scalars['Timestamp']>
 }
 
 export type TimelineIndicatorEvent = {

@@ -65,6 +65,8 @@ import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadO
 
 import * as styles from './styles.css'
 
+const LOG_ALERT_MINIMUM_FREQUENCY = 15
+
 export const LogAlertPage = () => {
 	const [startDateParam] = useQueryParam('start_date', DateTimeParam)
 	const [endDateParam] = useQueryParam('end_date', DateTimeParam)
@@ -571,7 +573,11 @@ const LogAlertForm = ({
 							<option value="" disabled>
 								Select alert frequency
 							</option>
-							{FREQUENCIES.map((freq: any) => (
+							{FREQUENCIES.filter(
+								(freq) =>
+									Number(freq.value) >=
+									LOG_ALERT_MINIMUM_FREQUENCY,
+							).map((freq: any) => (
 								<option
 									key={freq.id}
 									value={Number(freq.value)}
