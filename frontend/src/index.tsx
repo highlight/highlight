@@ -138,6 +138,11 @@ if (dev) {
 		import.meta.env.REACT_APP_COMMIT_SHA
 	}/index.js`
 }
+if (import.meta.env.CYPRESS_CLIENT_VERSION) {
+	options.scriptUrl = `https://static.highlight.io/${
+		import.meta.env.CYPRESS_CLIENT_VERSION
+	}/index.js`
+}
 H.init(import.meta.env.REACT_APP_FRONTEND_ORG ?? 1, options)
 analytics.track('attribution', getAttributionData())
 if (!isOnPrem) {

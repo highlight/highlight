@@ -1,2 +1,0 @@
-const ReactComponent = props => <svg width={12} height={13} viewBox="0 0 12 13" fill="currentColor" xmlns="http://www.w3.org/2000/svg" {...props}><path d="M1.65494 11.9457C1.20613 12.2049 0.645116 11.881 0.645116 11.3627L0.645116 0.868337C0.645116 0.350096 1.20613 0.0261961 1.65494 0.285317L10.7433 5.53251C11.1922 5.79163 11.1922 6.43943 10.7433 6.69855L1.65494 11.9457Z" fill="white" /></svg>;
-export { ReactComponent };

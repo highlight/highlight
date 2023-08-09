@@ -36,8 +36,8 @@ Read more about the features we support in Session Replay below:
     <DocsCard title="Extracting the Session URL"  href="./session-url.md">
         {"SDK support for extracting the session URL from your sessions."}
     </DocsCard>
-    <DocsCard title="Ignoring & Excluding Sessions"  href="./ignoring-sessions.md">
-        {"Options for ignoring and excluding sessions."}
+    <DocsCard title="Filtering Sessions"  href="./filtering-sessions.md">
+        {"Options for filtering sessions."}
     </DocsCard>
     <DocsCard title="Tracking Users & Events."  href="./events-and-users.md">
         {"SDK support for tracking users and their corresponding actions throughout a session."}

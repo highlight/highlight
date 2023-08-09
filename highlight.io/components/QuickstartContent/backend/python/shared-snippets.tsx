@@ -53,4 +53,9 @@ export const setupLogging: (slug: string) => QuickStartStep = (slug) => ({
 
 export const init = `# \`instrument_logging=True\` sets up logging instrumentation.
 # if you do not want to send logs or are using \`loguru\`, pass \`instrument_logging=False\`
-H = highlight_io.H("<YOUR_PROJECT_ID>", instrument_logging=True)`
+H = highlight_io.H(
+	"<YOUR_PROJECT_ID>",
+	instrument_logging=True,
+	service_name="my-app",
+	service_version="git-sha",
+)`

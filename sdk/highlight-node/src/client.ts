@@ -2,16 +2,17 @@ import {
 	BatchSpanProcessor,
 	SpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
-import { Tracer, trace } from '@opentelemetry/api'
+import { Attributes, Tracer, trace } from '@opentelemetry/api'
 
 import { NodeOptions } from './types.js'
 import { NodeSDK } from '@opentelemetry/sdk-node'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { Resource } from '@opentelemetry/resources'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import { hookConsole } from './hooks'
 import log from './log'
 import { clearInterval } from 'timers'
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+import { Resource } from '@opentelemetry/resources'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -40,14 +41,28 @@ export class Highlight {
 		})
 
 		this.processor = new BatchSpanProcessor(exporter, {})
+
+		const attributes: Attributes = {}
+		attributes['highlight.project_id'] = this._projectID
+
+		if (options.serviceName) {
+			attributes[SemanticResourceAttributes.SERVICE_NAME] =
+				options.serviceName
+		}
+
+		if (options.serviceVersion) {
+			attributes[SemanticResourceAttributes.SERVICE_VERSION] =
+				options.serviceVersion
+		}
+
 		this.otel = new NodeSDK({
 			autoDetectResources: true,
 			resource: {
-				attributes: { 'highlight.project_id': this._projectID },
+				attributes,
 				merge: (resource) =>
 					new Resource({
 						...(resource?.attributes ?? {}),
-						'highlight.project_id': this._projectID,
+						...attributes,
 					}),
 			},
 			spanProcessor: this.processor,

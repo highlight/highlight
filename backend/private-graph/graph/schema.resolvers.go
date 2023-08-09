@@ -34,6 +34,7 @@ import (
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/integrations/height"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -499,6 +500,11 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 		if err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name); err != nil {
 			log.WithContext(ctx).Error(err, "error creating hubspot company")
 		}
+
+		// associate admin and workspace
+		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID); err != nil {
+			log.WithContext(ctx).Error(err, "error associating hubspot contact and company")
+		}
 	}
 
 	c := &stripe.Customer{}
@@ -825,27 +831,11 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
 	}
 
-	return newSession, nil
-}
-
-// MarkSessionAsStarred is the resolver for the markSessionAsStarred field.
-func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model.Session, error) {
-	s, err := r.canAdminModifySession(ctx, secureID)
-	if err != nil {
+	if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
 		return nil, err
 	}
-	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&session).Updates(&model.Session{
-		Starred: starred,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error writing session as starred")
-	}
 
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{"starred": starred}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
-	}
-
-	return session, nil
+	return newSession, nil
 }
 
 // UpdateErrorGroupState is the resolver for the updateErrorGroupState field.
@@ -3058,10 +3048,6 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 		IsPublic: isPublic,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating session is_public")
-	}
-
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"is_public": isPublic}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
 	}
 
 	return session, nil
@@ -7441,6 +7427,11 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 		stackTrace = errorObject.StackTrace
 	}
 
+	const MAX_AI_STACKTRACE_LENGTH = 5000
+	if stackTrace != nil && len(*stackTrace) > MAX_AI_STACKTRACE_LENGTH {
+		stackTrace = ptr.String((*stackTrace)[:MAX_AI_STACKTRACE_LENGTH])
+	}
+
 	userPrompt := fmt.Sprintf(`
 	Here is some information about the error.
 
@@ -7483,20 +7474,24 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 }
 
 // SessionInsight is the resolver for the session_insight field.
-func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*modelInputs.SessionInsight, error) {
+func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*model.SessionInsight, error) {
 	session, err := r.canAdminViewSession(ctx, secureID)
 	if err != nil {
 		return nil, nil
 	}
 
-	insight := &modelInputs.SessionInsight{}
+	var insight *model.SessionInsight
 
-	b, err := r.getSessionInsight(ctx, session.ProjectID, session.ID)
-	if err != nil {
-		return nil, e.Wrap(err, "failed to get session insight")
-	}
-	if err = json.Unmarshal(b, insight); err != nil {
-		return nil, e.Wrap(err, "failed to unmarshal session insight")
+	if err := r.DB.Model(&insight).Where(&model.SessionInsight{SessionID: session.ID}).Take(&insight).Error; err != nil {
+		if e.Is(err, gorm.ErrRecordNotFound) {
+			log.WithContext(ctx).Error(err, "SessionInsight: No record found")
+			insight, err = r.getSessionInsight(ctx, session)
+			if err != nil {
+				log.WithContext(ctx).Error(err, "SessionInsight: Error getting insight")
+			}
+		} else {
+			return nil, err
+		}
 	}
 
 	return insight, nil
@@ -7504,15 +7499,15 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 
 // SystemConfiguration is the resolver for the system_configuration field.
 func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemConfiguration, error) {
-	var config model.SystemConfiguration
-	if err := r.DB.Model(&config).Where(&model.SystemConfiguration{Active: true}).Take(&config).Error; err != nil {
+	config := model.SystemConfiguration{Active: true}
+	if err := r.DB.Model(&config).Where(&config).FirstOrCreate(&config).Error; err != nil {
 		return nil, err
 	}
 	return &config, nil
 }
 
 // Services is the resolver for the services field.
-func (r *queryResolver) Services(ctx context.Context, projectID int) ([]*model.Service, error) {
+func (r *queryResolver) Services(ctx context.Context, projectID int, after *string, before *string, query *string) (*modelInputs.ServiceConnection, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7523,7 +7518,13 @@ func (r *queryResolver) Services(ctx context.Context, projectID int) ([]*model.S
 		return nil, err
 	}
 
-	return services, nil
+	connection, err := r.Store.ListServices(*project, store.ListServicesParams{
+		After:  after,
+		Before: before,
+		Query:  query,
+	})
+
+	return &connection, err
 }
 
 // Params is the resolver for the params field.

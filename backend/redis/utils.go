@@ -77,7 +77,7 @@ func NewClient() *Client {
 			redisClient: client,
 			Cache: cache.New(&cache.Options{
 				Redis:      client,
-				LocalCache: cache.NewTinyLFU(1000, time.Minute),
+				LocalCache: cache.NewTinyLFU(10000, time.Minute),
 			}),
 		}
 	} else {
@@ -465,7 +465,7 @@ func (r *Client) SetHubspotCompanies(ctx context.Context, companies interface{})
 		Ctx:   ctx,
 		Key:   CacheKeyHubspotCompanies,
 		Value: companies,
-		TTL:   time.Minute,
+		TTL:   time.Hour,
 	}); err != nil {
 		span.Finish(tracer.WithError(err))
 		return err

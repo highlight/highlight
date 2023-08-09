@@ -16,7 +16,9 @@ import (
 	"time"
 
 	github2 "github.com/google/go-github/v50/github"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/integrations/github"
+	"github.com/sashabaranov/go-openai"
 
 	"gorm.io/gorm/clause"
 
@@ -31,6 +33,7 @@ import (
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/integrations"
 	"github.com/highlight-run/highlight/backend/integrations/height"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -137,6 +140,8 @@ type Resolver struct {
 	IntegrationsClient     *integrations.Client
 	ClickhouseClient       *clickhouse.Client
 	Store                  *store.Store
+	DataSyncQueue          kafka_queue.MessageQueue
+	TracesQueue            kafka_queue.MessageQueue
 }
 
 func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {
@@ -1270,19 +1275,112 @@ func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sess
 	return b, nil
 }
 
-func (r *Resolver) getSessionInsight(ctx context.Context, projectID int, sessionID int) ([]byte, error) {
-	res, err := r.LambdaClient.GetSessionInsight(ctx, projectID, sessionID)
+func (r *Resolver) getSessionInsightPrompt(ctx context.Context, events []interface{}) (string, error) {
+	parsedEvents, err := parse.FilterEventsForInsights(events)
 	if err != nil {
-		return nil, e.Wrap(err, "failed to make session insight request")
+		return "", e.Wrap(err, "Failed filter session events")
 	}
-	if res.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("session insight returned %d", res.StatusCode))
-	}
-	b, err := io.ReadAll(res.Body)
+
+	b, err := json.Marshal(parsedEvents)
+
 	if err != nil {
-		return nil, e.Wrap(err, "failed to read body of session insight response")
+		return "", err
 	}
-	return b, nil
+
+	userPrompt := fmt.Sprintf(`
+	Input: 
+	%v
+	`, string(b))
+
+	return userPrompt, nil
+}
+
+func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session) (*model.SessionInsight, error) {
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		return nil, e.New("OPENAI_API_KEY is not set")
+	}
+
+	systemPrompt := `
+	Given array of events performed by a user from a session recording for a web application, make inferences and justifications and summarize interesting things about the session in 3 insights.
+	Rules:
+	- Use less than 2 sentences for each point
+	- Provide high level insights, do not mention singular events
+	- Do not mention event types in the insights
+	- Insights must be different to each other
+	- Do not mention identification or authentication events
+	- Don't mention timestamps in <insight>, insights should be interesting inferences from the input
+	- Output timestamp that best represents the insight in <timestamp> of output
+	- Sort the insights by timestamp
+
+	You must respond ONLY with JSON that looks like this:
+	[{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number }]
+	Do not provide any other output other than this format.
+
+	Context:
+	- The events are JSON objects, where the "timestamp" field represents UNIX time of the event, the "type" field represents the type of event, and the "data" field represents more information about the event
+	- If the event is of type "Custom", the "tag" field provides the type of custom event, and the "payload" field represents more information about the event
+	- If the event is of tag "Track", it is a custom event where the actual type of the event is in the "event" field within "data.payload"
+
+	The "type" field follows this format:
+	0 - DomContentLoaded
+	1 - Load
+	2 -	FullSnapshot, the full page view was loaded
+	3 -	IncrementalSnapshot, some components were updated
+	4 -	Meta
+	5 -	Custom, the "tag" field provides the type of custom event, and the "payload" field represents more information about the event
+	6 -	Plugin
+	`
+
+	events, err, _ := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	if err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: GetEvents error")
+		return nil, err
+	}
+
+	userPrompt, err := r.getSessionInsightPrompt(ctx, events)
+	if err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: Prompt error")
+		return nil, err
+	}
+
+	const MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH = 32000
+	if len(userPrompt) > MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH {
+		userPrompt = userPrompt[:MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH]
+	}
+
+	client := openai.NewClient(apiKey)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model:       openai.GPT3Dot5Turbo16K,
+			Temperature: 0.7,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: systemPrompt,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: userPrompt,
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: ChatCompletion error")
+		return nil, err
+	}
+
+	insight := &model.SessionInsight{SessionID: session.ID, Insight: resp.Choices[0].Message.Content}
+
+	if err := r.DB.Create(insight).Error; err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: Error saving insight")
+		return nil, err
+	}
+
+	return insight, nil
 }
 
 // Returns the current Admin or an Admin with ID = 0 if the current Admin is a guest
@@ -1422,7 +1520,7 @@ func (r *Resolver) validateAdminRole(ctx context.Context, workspaceID int) error
 
 	role, err := r.GetAdminRole(ctx, admin.ID, workspaceID)
 	if err != nil || role != model.AdminRole.ADMIN {
-		return e.New("admin does not have role=ADMIN")
+		return AuthorizationError
 	}
 
 	return nil
@@ -1525,6 +1623,45 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 		"BillingPeriodEnd":   billingPeriodEnd,
 		"NextInvoiceDate":    nextInvoiceDate,
 		"TrialEndDate":       nil,
+	}
+
+	if util.IsHubspotEnabled() {
+		props := []hubspot.Property{{
+			Name:     "plan_tier",
+			Property: "plan_tier",
+			Value:    string(tier),
+		}}
+		if workspace.PlanTier != modelInputs.PlanTypeFree.String() && tier == modelInputs.PlanTypeFree {
+			props = append(props, hubspot.Property{
+				Name:     "churn_date",
+				Property: "churn_date",
+				Value:    time.Now().UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if billingPeriodStart != nil {
+			props = append(props, hubspot.Property{
+				Name:     "billing_period_start",
+				Property: "billing_period_start",
+				Value:    billingPeriodStart.UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if billingPeriodEnd != nil {
+			props = append(props, hubspot.Property{
+				Name:     "billing_period_end",
+				Property: "billing_period_end",
+				Value:    billingPeriodEnd.UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if nextInvoiceDate != nil {
+			props = append(props, hubspot.Property{
+				Name:     "next_invoice",
+				Property: "next_invoice",
+				Value:    nextInvoiceDate.UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if err := r.HubspotApi.UpdateCompanyProperty(ctx, workspace.ID, props); err != nil {
+			log.WithContext(ctx).WithField("props", props).Error(e.Wrap(err, "hubspot error processing stripe webhook"))
+		}
 	}
 
 	// Only update retention period if already set
@@ -3062,25 +3199,26 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 			Limit: 1000,
 			// public_channel is for public channels in the Slack workspace
 			// private is for private channels in the Slack workspace that the Bot is included in
-			// im is for all individuals in the Slack workspace
 			// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
-			Types: []string{"public_channel", "private_channel", "mpim", "im"},
+			Types: []string{"public_channel", "private_channel", "mpim"},
 		}
 		allSlackChannelsFromAPI := []slack.Channel{}
 
 		// Slack paginates the channels/people listing.
 		for {
 			channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
+			getConversationsParam.Cursor = cursor
 			if err != nil {
 				return nil, e.Wrap(err, "error getting Slack channels from Slack.")
 			}
 
 			allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
 
-			if cursor == "" {
+			if getConversationsParam.Cursor == "" {
 				break
 			}
-
+			// delay the next slack call to avoid getting rate limited
+			time.Sleep(time.Second)
 		}
 
 		// We need to get the users in the Slack channel in order to get their name.

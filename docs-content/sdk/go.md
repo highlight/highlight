@@ -20,10 +20,20 @@ slug: go
   <div className="left">
     <h3>highlight.Start()</h3>
     <p>Starts the background goroutine for transmitting metrics and errors.</p>
+    <h6>Options</h6>
+    <aside className="parameter">
+      <h5><code>WithServiceName</code> <code>optional</code></h5>
+      <p>The name of your app.</p>
+      <h5><code>WithServiceVersion</code> <code>optional</code></h5>
+      <p>The version of this app. We recommend setting this to the most recent deploy SHA of your app.</p>
+    </aside>
   </div>
   <div className="right">
     <code>
-        highlight.Start()
+        highlight.Start(
+          highlight.WithServiceName("my-app"),
+          highlight.WithServiceVersion("git-sha"),
+        )
     </code>
   </div>
 </section>
@@ -39,12 +49,22 @@ This allows the user kill the highlight worker by canceling their context.Cancel
       <h5>ctx <code>context.Context</code> <code>required</code></h5>
       <p>The context provided for starting the Highlight daemon.</p>
     </aside>
+    <h6>Options</h6>
+    <aside className="parameter">
+      <h5><code>WithServiceName</code> <code>optional</code></h5>
+      <p>The name of your app.</p>
+      <h5><code>WithServiceVersion</code> <code>optional</code></h5>
+      <p>The version of this app. We recommend setting this to the most recent deploy SHA of your app.</p>
+    </aside>
   </div>
   <div className="right">
     <code>
         ctx := context.Background()
         ...
-        highlight.startWithContext(ctx)
+        highlight.startWithContext(ctx,
+          highlight.WithServiceName("my-app"),
+          highlight.WithServiceVersion("git-sha"),
+        )
     </code>
   </div>
 </section>

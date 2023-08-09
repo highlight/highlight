@@ -266,6 +266,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputMetricTag,
 		ec.unmarshalInputReplayEventInput,
 		ec.unmarshalInputReplayEventsInput,
+		ec.unmarshalInputServiceInput,
 		ec.unmarshalInputStackFrameInput,
 	)
 	first := true
@@ -363,6 +364,11 @@ input ErrorObjectInput {
 	payload: String
 }
 
+input ServiceInput {
+	name: String!
+	version: String!
+}
+
 input BackendErrorObjectInput {
 	session_secure_id: String
 	request_id: String
@@ -376,6 +382,7 @@ input BackendErrorObjectInput {
 	stackTrace: String!
 	timestamp: Timestamp!
 	payload: String
+	service: ServiceInput!
 }
 
 input MetricTag {
@@ -3610,7 +3617,7 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"session_secure_id", "request_id", "trace_id", "span_id", "log_cursor", "event", "type", "url", "source", "stackTrace", "timestamp", "payload"}
+	fieldsInOrder := [...]string{"session_secure_id", "request_id", "trace_id", "span_id", "log_cursor", "event", "type", "url", "source", "stackTrace", "timestamp", "payload", "service"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -3710,6 +3717,14 @@ func (ec *executionContext) unmarshalInputBackendErrorObjectInput(ctx context.Co
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payload"))
 			it.Payload, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "service":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service"))
+			it.Service, err = ec.unmarshalNServiceInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐServiceInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -3994,6 +4009,42 @@ func (ec *executionContext) unmarshalInputReplayEventsInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("events"))
 			it.Events, err = ec.unmarshalNReplayEventInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐReplayEventInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputServiceInput(ctx context.Context, obj interface{}) (model.ServiceInput, error) {
+	var it model.ServiceInput
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "version"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "version":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("version"))
+			it.Version, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4797,6 +4848,11 @@ func (ec *executionContext) unmarshalNReplayEventInput2ᚕᚖgithubᚗcomᚋhigh
 func (ec *executionContext) unmarshalNReplayEventsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐReplayEventsInput(ctx context.Context, v interface{}) (model.ReplayEventsInput, error) {
 	res, err := ec.unmarshalInputReplayEventsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNServiceInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐServiceInput(ctx context.Context, v interface{}) (*model.ServiceInput, error) {
+	res, err := ec.unmarshalInputServiceInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNStackFrameInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐStackFrameInput(ctx context.Context, v interface{}) ([]*model.StackFrameInput, error) {

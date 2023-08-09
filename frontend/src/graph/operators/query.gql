@@ -1075,6 +1075,7 @@ query GetErrorGroup($secure_id: String!) {
 		is_public
 		last_occurrence
 		first_occurrence
+		serviceName
 	}
 }
 
@@ -1146,6 +1147,7 @@ fragment ErrorObject on ErrorObject {
 	os
 	browser
 	environment
+	serviceVersion
 }
 
 query GetErrorObject($id: ID!) {
@@ -1988,6 +1990,7 @@ query GetLogs(
 				secureSessionID
 				source
 				serviceName
+				serviceVersion
 			}
 		}
 		pageInfo {

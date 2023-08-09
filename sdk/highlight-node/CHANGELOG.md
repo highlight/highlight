@@ -61,3 +61,9 @@
 ### Minor Changes
 
 - Removing `package.json` hoisting limits to repair missing dependencies.
+
+## 3.1.8
+
+### Minor Changes
+
+- Add `serviceName` and `serviceVersion` as optional parameters to `NodeOptions`

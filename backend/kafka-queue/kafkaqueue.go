@@ -25,12 +25,11 @@ import (
 const KafkaOperationTimeout = 25 * time.Second
 
 const ConsumerGroupName = "group-default"
-const BatchedTopicSuffix = "batched"
 
 const (
 	taskRetries           = 5
 	prefetchQueueCapacity = 64
-	prefetchSizeBytes     = 16 * 1000 * 1000  // 16 MB
+	prefetchSizeBytes     = 64 * 1000         // 64 KB
 	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
 )
 
@@ -67,8 +66,17 @@ type MessageQueue interface {
 	LogStats()
 }
 
+type TopicType string
+
+const (
+	TopicTypeDefault  TopicType = "default"
+	TopicTypeBatched  TopicType = "batched"
+	TopicTypeDataSync TopicType = "datasync"
+	TopicTypeTraces   TopicType = "traces"
+)
+
 type GetTopicOptions struct {
-	Batched bool
+	Type TopicType
 }
 
 func GetTopic(options GetTopicOptions) string {
@@ -76,13 +84,18 @@ func GetTopic(options GetTopicOptions) string {
 	if util.IsDevOrTestEnv() {
 		topic = fmt.Sprintf("%s_%s", EnvironmentPrefix, topic)
 	}
-	if options.Batched {
-		topic = fmt.Sprintf("%s_%s", topic, BatchedTopicSuffix)
+	if options.Type != TopicTypeDefault {
+		topic = fmt.Sprintf("%s_%s", topic, string(options.Type))
 	}
 	return topic
 }
 
-func New(ctx context.Context, topic string, mode Mode) *Queue {
+type ConfigOverride struct {
+	Async         *bool
+	QueueCapacity *int
+}
+
+func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
 	servers := os.Getenv("KAFKA_SERVERS")
 	brokers := strings.Split(servers, ",")
 	groupID := ConsumerGroupName
@@ -129,7 +142,7 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 		}
 	}
 
-	rebalanceTimeout := 30 * time.Second
+	rebalanceTimeout := 1 * time.Minute
 	if util.IsDevOrTestEnv() {
 		// faster rebalance for dev to start processing quicker
 		rebalanceTimeout = time.Second
@@ -144,33 +157,6 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 		})
 		if err != nil {
 			log.WithContext(ctx).Error(errors.Wrap(err, "failed to create dev topic"))
-		}
-	}
-
-	res, err := client.AlterConfigs(ctx, &kafka.AlterConfigsRequest{
-		Addr: kafka.TCP(brokers...),
-		Resources: []kafka.AlterConfigRequestResource{
-			{
-				ResourceType: kafka.ResourceTypeTopic,
-				ResourceName: topic,
-				Configs: []kafka.AlterConfigRequestConfig{
-					{
-						Name:  "cleanup.policy",
-						Value: "delete",
-					},
-				},
-			},
-		},
-	})
-	if err != nil {
-		log.WithContext(ctx).Error(errors.Wrap(err, "failed to update topic retention"))
-	} else {
-		err = res.Errors[kafka.AlterConfigsResponseResource{
-			Type: int8(kafka.ResourceTypeTopic),
-			Name: topic,
-		}]
-		if err != nil {
-			log.WithContext(ctx).Error(errors.Wrap(err, "topic retention failed server-side"))
 		}
 	}
 
@@ -195,10 +181,17 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 			BatchTimeout: 1 * time.Millisecond,
 			MaxAttempts:  10,
 		}
+
+		if configOverride != nil {
+			deref := *configOverride
+			if deref.Async != nil {
+				pool.kafkaP.Async = *deref.Async
+			}
+		}
 	}
 	if (mode>>1)&1 == 1 {
 		log.WithContext(ctx).Debugf("initializing kafka consumer for %s", topic)
-		pool.kafkaC = kafka.NewReader(kafka.ReaderConfig{
+		config := kafka.ReaderConfig{
 			Brokers:           brokers,
 			Dialer:            dialer,
 			HeartbeatInterval: time.Second,
@@ -213,7 +206,16 @@ func New(ctx context.Context, topic string, mode Mode) *Queue {
 			// this means we commit very often to avoid repeating tasks on worker restart.
 			CommitInterval: time.Second,
 			MaxAttempts:    10,
-		})
+		}
+
+		if configOverride != nil {
+			deref := *configOverride
+			if deref.QueueCapacity != nil {
+				config.QueueCapacity = *deref.QueueCapacity
+			}
+		}
+
+		pool.kafkaC = kafka.NewReader(config)
 	}
 
 	go func() {

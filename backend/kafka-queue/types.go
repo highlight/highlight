@@ -25,11 +25,13 @@ const (
 	MarkBackendSetup                       PayloadType = iota // Deprecated: setup events are written from other payload processing
 	AddSessionFeedback                     PayloadType = iota
 	PushLogs                               PayloadType = iota
+	PushTraces                             PayloadType = iota
 	HubSpotCreateContactForAdmin           PayloadType = iota
 	HubSpotCreateCompanyForWorkspace       PayloadType = iota
 	HubSpotUpdateContactProperty           PayloadType = iota
 	HubSpotUpdateCompanyProperty           PayloadType = iota
 	HubSpotCreateContactCompanyAssociation PayloadType = iota
+	SessionDataSync                        PayloadType = iota
 	HealthCheck                            PayloadType = math.MaxInt
 )
 
@@ -105,6 +107,10 @@ type PushLogsArgs struct {
 	LogRows []*clickhouse.LogRow
 }
 
+type PushTracesArgs struct {
+	TraceRows []*clickhouse.TraceRow
+}
+
 type HubSpotCreateContactForAdminArgs struct {
 	AdminID            int
 	Email              string
@@ -137,6 +143,10 @@ type HubSpotCreateContactCompanyAssociationArgs struct {
 	WorkspaceID int
 }
 
+type SessionDataSyncArgs struct {
+	SessionID int
+}
+
 type Message struct {
 	Type                                   PayloadType
 	Failures                               int
@@ -151,11 +161,13 @@ type Message struct {
 	PushMetrics                            *PushMetricsArgs
 	AddSessionFeedback                     *AddSessionFeedbackArgs
 	PushLogs                               *PushLogsArgs
+	PushTraces                             *PushTracesArgs
 	HubSpotCreateContactForAdmin           *HubSpotCreateContactForAdminArgs
 	HubSpotCreateCompanyForWorkspace       *HubSpotCreateCompanyForWorkspaceArgs
 	HubSpotUpdateContactProperty           *HubSpotUpdateContactPropertyArgs
 	HubSpotUpdateCompanyProperty           *HubSpotUpdateCompanyPropertyArgs
 	HubSpotCreateContactCompanyAssociation *HubSpotCreateContactCompanyAssociationArgs
+	SessionDataSync                        *SessionDataSyncArgs
 }
 
 type PartitionMessage struct {

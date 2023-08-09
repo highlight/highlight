@@ -55,10 +55,6 @@
 		"stacktrace-js": "2.0.2",
 		"web-vitals": "^3.3.1"
 	},
-	"resolutions": {
-		"ansi-regex": "5.0.1",
-		"json-schema": "0.4.0"
-	},
 	"size-limit": [
 		{
 			"path": "dist/**.js",

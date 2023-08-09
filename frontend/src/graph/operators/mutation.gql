@@ -12,13 +12,6 @@ mutation MarkSessionAsViewed($secure_id: String!, $viewed: Boolean!) {
 	}
 }
 
-mutation MarkSessionAsStarred($secure_id: String!, $starred: Boolean!) {
-	markSessionAsStarred(secure_id: $secure_id, starred: $starred) {
-		secure_id
-		starred
-	}
-}
-
 mutation MuteSessionCommentThread($id: ID!, $has_muted: Boolean) {
 	muteSessionCommentThread(id: $id, has_muted: $has_muted)
 }

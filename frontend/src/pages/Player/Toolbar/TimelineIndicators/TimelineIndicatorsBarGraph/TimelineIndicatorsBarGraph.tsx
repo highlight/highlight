@@ -18,7 +18,6 @@ import {
 } from '@pages/Player/ReplayerContext'
 import { getEventRenderDetails } from '@pages/Player/StreamElement/StreamElement'
 import TimelineBar from '@pages/Player/Toolbar/TimelineIndicators/TimelineBar/TimelineBar'
-import TimelineZoom from '@pages/Player/Toolbar/TimelineIndicators/TimelineZoom/TimelineZoom'
 import ZoomArea from '@pages/Player/Toolbar/TimelineIndicators/ZoomArea/ZoomArea'
 import {
 	useToolbarItemsContext,
@@ -116,7 +115,6 @@ const TimelineIndicatorsBarGraph = ({
 	const timeIndicatorTextRef = useRef<HTMLElement>(null)
 	const timeIndicatorTopRef = useRef<HTMLDivElement>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
-	const viewportBbox = viewportRef.current?.getBoundingClientRect()
 
 	useLayoutEffect(() => {
 		setViewportWidth(calculateViewportWidth())
@@ -393,7 +391,6 @@ const TimelineIndicatorsBarGraph = ({
 		[viewportWidth],
 	)
 
-	const [showZoomButtons, setShowZoomButtons] = useState(false)
 	const [showIndicatorText, setShowIndicatorText] = useState(false)
 
 	useHTMLElementEvent(
@@ -552,7 +549,6 @@ const TimelineIndicatorsBarGraph = ({
 				return
 			}
 
-			setShowZoomButtons(isInsideViewport)
 			if (!isInsideViewport) {
 				setShowIndicatorText(false)
 				return
@@ -1130,17 +1126,6 @@ const TimelineIndicatorsBarGraph = ({
 					minZoomAreaPercent={(100 * zoomAdjustment) / maxZoom}
 				/>
 			</div>
-			<TimelineZoom
-				isHidden={!showZoomButtons || !showHistogram}
-				zoom={(percent: number) =>
-					zoom(
-						(viewportBbox?.left ?? 0) +
-							TIMELINE_MARGIN +
-							viewportWidth / 2,
-						-percent / ZOOM_SCALING_FACTOR,
-					)
-				}
-			/>
 			<Box
 				ref={timeIndicatorTextRef}
 				background="n12"

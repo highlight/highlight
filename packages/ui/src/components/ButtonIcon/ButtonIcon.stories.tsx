@@ -11,10 +11,10 @@ export default {
 } as Meta<typeof ButtonIcon>
 
 export const AllVariants = () => {
-	const variant: any[] = ['primary', 'secondary']
-	const shape: any[] = ['square', 'thin']
-	const emphasis: any[] = ['high', 'medium', 'low']
-	const size: any[] = ['medium', 'small', 'xSmall', 'minimal']
+	const variant = ['primary', 'secondary'] as const
+	const shape = ['square', 'thin'] as const
+	const emphasis = ['high', 'medium', 'low'] as const
+	const size = ['medium', 'small', 'xSmall', 'minimal'] as const
 
 	return (
 		<Box display="flex" gap="12" flexDirection="column">

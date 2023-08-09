@@ -3,8 +3,8 @@ import { Session } from '@graph/schemas'
 import {
 	Box,
 	IconSolidCursorClick,
-	IconSolidExclamation,
 	IconSolidEyeOff,
+	IconSolidLightningBolt,
 	IconSolidUserCircle,
 	IconSolidUsers,
 	IconSolidVideoCamera,
@@ -114,17 +114,12 @@ export const SessionFeedCard = React.memo(
 							},
 						]}
 					>
-						<Box color="n11" cssClass={style.sessionCardTitle}>
+						<Box color="strong" cssClass={style.sessionCardTitle}>
 							<Box
 								display="inline-flex"
 								gap="6"
 								alignItems="center"
 							>
-								<Avatar
-									seed={getDisplayName(session)}
-									style={{ height: 20, width: 20 }}
-									customImage={customAvatarImage}
-								/>
 								<Text
 									lines="1"
 									size="small"
@@ -143,6 +138,12 @@ export const SessionFeedCard = React.memo(
 									/>
 								)}
 							</Box>
+
+							<Avatar
+								seed={getDisplayName(session)}
+								style={{ height: 20, width: 20 }}
+								customImage={customAvatarImage}
+							/>
 						</Box>
 						<Box
 							alignItems="center"
@@ -161,22 +162,19 @@ export const SessionFeedCard = React.memo(
 									display="flex"
 									gap="4"
 									alignItems="center"
-									style={{ minHeight: 16 }}
+									style={{ minHeight: 18 }}
 								>
-									{!viewed && (
+									{session.has_errors && (
 										<Tag
 											shape="basic"
 											kind="secondary"
 											emphasis="low"
 											size="small"
-											icon={<IconSolidEyeOff size={12} />}
-											onClick={() => {
-												setSearchQuery(
-													buildQueryStateString({
-														custom_viewed: false,
-													}),
-												)
-											}}
+											icon={
+												<IconSolidLightningBolt
+													size={12}
+												/>
+											}
 										/>
 									)}
 									{session.first_time && (
@@ -199,19 +197,6 @@ export const SessionFeedCard = React.memo(
 											}}
 										/>
 									)}
-									{session.has_errors && (
-										<Tag
-											shape="basic"
-											kind="secondary"
-											emphasis="low"
-											size="small"
-											icon={
-												<IconSolidExclamation
-													size={12}
-												/>
-											}
-										/>
-									)}
 									{session.has_rage_clicks && (
 										<Tag
 											shape="basic"
@@ -225,6 +210,22 @@ export const SessionFeedCard = React.memo(
 											}
 										/>
 									)}
+									{!viewed && (
+										<Tag
+											shape="basic"
+											kind="secondary"
+											emphasis="low"
+											size="small"
+											icon={<IconSolidEyeOff size={12} />}
+											onClick={() => {
+												setSearchQuery(
+													buildQueryStateString({
+														custom_viewed: false,
+													}),
+												)
+											}}
+										/>
+									)}
 								</Box>
 								<Box display="flex" gap="4" alignItems="center">
 									{session.processed ? (
@@ -233,11 +234,9 @@ export const SessionFeedCard = React.memo(
 											kind="secondary"
 											size="small"
 										>
-											<Text size="xSmall">
-												{moment
-													.utc(session.active_length)
-													.format('H:mm:ss')}
-											</Text>
+											{moment
+												.utc(session.active_length)
+												.format('H:mm:ss')}
 										</Tag>
 									) : (
 										<Tag
@@ -253,10 +252,15 @@ export const SessionFeedCard = React.memo(
 												)
 											}}
 										>
-											<Text size="xSmall">Live</Text>
+											Live
 										</Tag>
 									)}
-									<Text lines="1" size="xSmall">
+									<Tag
+										size="small"
+										kind="secondary"
+										emphasis="low"
+										shape="basic"
+									>
 										{configuration?.datetimeFormat
 											? formatDatetime(
 													session.created_at,
@@ -269,7 +273,7 @@ export const SessionFeedCard = React.memo(
 													month: 'long',
 													year: 'numeric',
 											  })}`}
-									</Text>
+									</Tag>
 								</Box>
 							</Box>
 							{showDetailedSessionView && eventCounts?.length && (

@@ -29,6 +29,8 @@ With these settings, the canvas is serialized as a 480p video at 2FPS.
 
 `samplingStrategy.canvas` is the frame per second rate used to record the HTML canvas. A value < 5 is recommended to ensure the recording is not too large and does not have issues with playback.
 
+`samplingStrategy.canvasManual` is the frame per second rate used in manual snapshotting mode. See `Manual Snapshotting` below.
+
 `samplingStrategy.canvasFactor`: a resolution scaling factor applied to both dimensions of the canvas.
 
 `samplingStrategy.canvasMaxSnapshotDimension`: max recording resolution of the largest dimension of the canvas.
@@ -48,6 +50,41 @@ Enabling canvas recording should not have any impact on the performance your app
 Highlight is able to record websites that use WebGL in the `<canvas>` element. 
 
 To enable WebGL recording, enable canvas recording by following the steps above.
+
+```hint
+If you use WebGL(2) and fail to see a canvas recorded or see a transparent image, setup manual snapshotting.
+```
+
+## Manual Snapshotting
+
+A canvas may fail to be recorded (recorded as a transparent image) because of WebGL 
+double buffering. The canvas is not accessible from the javascript thread because it may
+no longer be loaded in memory, despite being rendered by the GPU (see this [chrome bug report](https://bugs.chromium.org/p/chromium/issues/detail?id=838108) for additional context). 
+
+Manual snapshotting hooks into your WebGL render function to call `H.snapshot(canvas)` after
+you paint to the WebGL context. To set this up, pass the following options to highlight first:
+
+```javascript
+H.init('<YOUR_PROJECT_ID>', {
+  enableCanvasRecording: true,        // enable canvas recording
+  samplingStrategy: {
+    canvasManual: 2,                        // snapshot at 2 fps
+    canvasMaxSnapshotDimension: 480,  // snapshot at a max 480p resolution
+    // any other settings...
+  },
+})
+```
+
+Now, hook into your WebGL rendering code and call `H.snapshot`.
+```typescript
+// babylon.js
+engine.runRenderLoop(() => {
+    scene.render()
+    H.snapshot(canvasElementRef.current)
+})
+```
+
+Libraries like Three.js export an [onAfterRender](https://threejs.org/docs/#api/en/core/Object3D.onAfterRender) method that you can use to call `H.snapshot`.
 
 ## Webcam Recording and Inlining Video Resources
 

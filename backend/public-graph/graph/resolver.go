@@ -67,6 +67,8 @@ type Resolver struct {
 	TDB           timeseries.DB
 	ProducerQueue kafka_queue.MessageQueue
 	BatchedQueue  kafka_queue.MessageQueue
+	DataSyncQueue kafka_queue.MessageQueue
+	TracesQueue   kafka_queue.MessageQueue
 	MailClient    *sendgrid.Client
 	StorageClient storage.Client
 	OpenSearch    *opensearch.Client
@@ -306,6 +308,11 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 	}).Create(entries).Error; err != nil {
 		return e.Wrap(err, "error updating fields")
 	}
+
+	if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}}, strconv.Itoa(session.ID)); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -383,6 +390,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			State:            privateModel.ErrorStateOpen,
 			Fields:           []*model.ErrorField{},
 			Environments:     environmentsString,
+			ServiceName:      errorObj.ServiceName,
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")
@@ -412,6 +420,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 			Environments:     environmentsString,
 			Event:            errorObj.Event,
 			State:            updatedState,
+			ServiceName:      errorObj.ServiceName,
 		}).Error; err != nil {
 			return nil, e.Wrap(err, "Error updating error group")
 		}
@@ -696,6 +705,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		Browser:     errorObj.Browser,
 		Timestamp:   errorObj.Timestamp,
 		Environment: errorObj.Environment,
+		ServiceName: errorObj.ServiceName,
 	}
 	if err := r.OpenSearch.IndexSynchronous(ctx, opensearch.IndexParams{
 		Index:    opensearch.IndexErrorsCombined,
@@ -924,7 +934,7 @@ func (r *Resolver) IndexSessionOpensearch(ctx context.Context, session *model.Se
 	if err := r.AppendProperties(ctx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
 	}
-	return nil
+	return r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}}, strconv.Itoa(session.ID))
 }
 
 func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue.InitializeSessionArgs) (*model.Session, error) {
@@ -1136,52 +1146,56 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 }
 
 func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectID int, setupType model.MarkBackendSetupType) error {
-	if setupType == model.MarkBackendSetupTypeLogs || setupType == model.MarkBackendSetupTypeError {
-		// Update Hubspot company and projects.backend_setup
-		var backendSetupCount int64
-		if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
-			return e.Wrap(err, "error querying backend_setup flag")
-		}
-		if backendSetupCount < 1 {
-			project, err := r.getProject(projectID)
-			if err != nil {
-				log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
-			} else {
-				if util.IsHubspotEnabled() {
-					if err := r.HubspotApi.UpdateCompanyProperty(ctx, project.WorkspaceID, []hubspot.Property{{
-						Name:     "backend_setup",
-						Property: "backend_setup",
-						Value:    true,
-					}}); err != nil {
-						log.WithContext(ctx).Errorf("failed to update hubspot")
+	_, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf("mark-backend-setup-%d-%s", projectID, setupType), 150*time.Millisecond, time.Hour, func() (*bool, error) {
+		if setupType == model.MarkBackendSetupTypeLogs || setupType == model.MarkBackendSetupTypeError {
+			// Update Hubspot company and projects.backend_setup
+			var backendSetupCount int64
+			if err := r.DB.Model(&model.Project{}).Where("id = ? AND backend_setup=true", projectID).Count(&backendSetupCount).Error; err != nil {
+				return nil, e.Wrap(err, "error querying backend_setup flag")
+			}
+			if backendSetupCount < 1 {
+				project, err := r.getProject(projectID)
+				if err != nil {
+					log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
+				} else {
+					if util.IsHubspotEnabled() {
+						if err := r.HubspotApi.UpdateCompanyProperty(ctx, project.WorkspaceID, []hubspot.Property{{
+							Name:     "backend_setup",
+							Property: "backend_setup",
+							Value:    true,
+						}}); err != nil {
+							log.WithContext(ctx).Errorf("failed to update hubspot")
+						}
 					}
+					phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, project.WorkspaceID, []attribute.KeyValue{
+						attribute.Bool(phonehome.BackendSetup, true),
+					})
 				}
-				phonehome.ReportUsageMetrics(ctx, phonehome.WorkspaceUsage, project.WorkspaceID, []attribute.KeyValue{
-					attribute.Bool(phonehome.BackendSetup, true),
-				})
-			}
-			if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
-				return e.Wrap(err, "error updating backend_setup flag")
+				if err := r.DB.Model(&model.Project{}).Where("id = ?", projectID).Updates(&model.Project{BackendSetup: &model.T}).Error; err != nil {
+					return nil, e.Wrap(err, "error updating backend_setup flag")
+				}
 			}
 		}
-	}
 
-	// Create setup_events record
-	var setupEventsCount int64
-	if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, setupType).Count(&setupEventsCount).Error; err != nil {
-		return e.Wrap(err, "error querying setup events")
-	}
-	if setupEventsCount < 1 {
-		setupEvent := &model.SetupEvent{
-			ProjectID: projectID,
-			Type:      setupType,
+		// Create setup_events record
+		var setupEventsCount int64
+		if err := r.DB.Model(&model.SetupEvent{}).Where("project_id = ? AND type = ?", projectID, setupType).Count(&setupEventsCount).Error; err != nil {
+			return nil, e.Wrap(err, "error querying setup events")
 		}
-		if err := r.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&setupEvent).Error; err != nil {
-			return e.Wrap(err, "error creating setup event")
+		if setupEventsCount < 1 {
+			setupEvent := &model.SetupEvent{
+				ProjectID: projectID,
+				Type:      setupType,
+			}
+			if err := r.DB.Clauses(clause.OnConflict{DoNothing: true}).Create(&setupEvent).Error; err != nil {
+				return nil, e.Wrap(err, "error creating setup event")
+			}
 		}
-	}
 
-	return nil
+		return pointy.Bool(true), nil
+	})
+
+	return err
 }
 
 func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queue.AddSessionFeedbackArgs) error {
@@ -1390,6 +1404,10 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 
 	if err := r.DB.Save(&session).Error; err != nil {
 		return e.Wrap(err, "[IdentifySession] failed to update session")
+	}
+
+	if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionID}}, strconv.Itoa(sessionID)); err != nil {
+		return err
 	}
 
 	tags := []*publicModel.MetricTag{
@@ -2016,22 +2034,24 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 
 		errorToInsert := &model.ErrorObject{
-			ProjectID:   projectID,
-			SessionID:   sessionID,
-			TraceID:     v.TraceID,
-			SpanID:      v.SpanID,
-			LogCursor:   v.LogCursor,
-			Environment: session.Environment,
-			Event:       v.Event,
-			Type:        model.ErrorType.BACKEND,
-			URL:         v.URL,
-			Source:      v.Source,
-			OS:          session.OSName,
-			Browser:     session.BrowserName,
-			StackTrace:  &v.StackTrace,
-			Timestamp:   v.Timestamp,
-			Payload:     v.Payload,
-			RequestID:   v.RequestID,
+			ProjectID:      projectID,
+			SessionID:      sessionID,
+			TraceID:        v.TraceID,
+			SpanID:         v.SpanID,
+			LogCursor:      v.LogCursor,
+			Environment:    session.Environment,
+			Event:          v.Event,
+			Type:           model.ErrorType.BACKEND,
+			URL:            v.URL,
+			Source:         v.Source,
+			OS:             session.OSName,
+			Browser:        session.BrowserName,
+			StackTrace:     &v.StackTrace,
+			Timestamp:      v.Timestamp,
+			Payload:        v.Payload,
+			RequestID:      v.RequestID,
+			ServiceName:    v.Service.Name,
+			ServiceVersion: v.Service.Version,
 		}
 
 		var structuredStackTrace []*privateModel.ErrorTrace
@@ -2329,6 +2349,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 	projectID := sessionObj.ProjectID
 	hasBeacon := sessionObj.BeaconTime != nil
+	settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
+	if err != nil {
+		log.WithContext(ctx).WithError(err).Error("failed to get workspace settings from project to check asset replacement")
+	}
+
 	g.Go(func() error {
 		defer util.Recover()
 		parseEventsSpan, parseEventsCtx := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload",
@@ -2370,8 +2395,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 					}
 
 					// Replace any static resources with our own, hosted in S3
-					settings, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, projectID)
-					if err == nil && settings.ReplaceAssets {
+					if settings != nil && settings.ReplaceAssets {
 						assetsSpan, _ := tracer.StartSpanFromContext(parseEventsCtx, "public-graph.pushPayload",
 							tracer.ResourceName("go.parseEvents.replaceAssets"), tracer.Tag("project_id", projectID), tracer.Tag("session_secure_id", sessionSecureID))
 						err = snapshot.ReplaceAssets(ctx, projectID, r.StorageClient, r.DB, r.Redis)
@@ -2379,8 +2403,6 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 						if err != nil {
 							log.WithContext(ctx).Error(e.Wrap(err, "error replacing assets"))
 						}
-					} else if err != nil {
-						log.WithContext(ctx).WithError(err).Error("failed to get workspace settings from project to check asset replacement")
 					}
 
 					if event.Type == parse.FullSnapshot {
@@ -2700,6 +2722,9 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				log.WithContext(ctx).Error(e.Wrap(err, "error updating session in opensearch"))
 				return err
 			}
+			if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}, strconv.Itoa(sessionObj.ID)); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -2718,13 +2743,19 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			log.WithContext(osCtx).Error(e.Wrap(err, "error updating session in opensearch"))
 			return err
 		}
+		if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}, strconv.Itoa(sessionObj.ID)); err != nil {
+			return err
+		}
 	}
 
-	if sessionHasErrors {
+	if sessionHasErrors && (sessionObj.HasErrors == nil || !*sessionObj.HasErrors) {
 		if err := r.OpenSearch.UpdateAsync(osCtx, opensearch.IndexSessions, sessionObj.ID, map[string]interface{}{
 			"has_errors": true,
 		}); err != nil {
 			log.WithContext(osCtx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
+			return err
+		}
+		if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}, strconv.Itoa(sessionObj.ID)); err != nil {
 			return err
 		}
 	}

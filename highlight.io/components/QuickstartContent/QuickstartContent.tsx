@@ -25,6 +25,7 @@ import { GatsbyContent } from './frontend/gatsby'
 import { NextContent } from './frontend/next'
 import { OtherContext } from './frontend/other'
 import { ReactContent } from './frontend/react'
+import { RemixContent } from './frontend/remix'
 import { SvelteKitContent } from './frontend/sveltekit'
 import { VueContent } from './frontend/vue'
 import { GoFiberLogContent } from './logging/go/fiber'
@@ -47,6 +48,8 @@ import { RubyOtherLogContent } from './logging/ruby/other'
 import { RubyRailsLogContent } from './logging/ruby/rails'
 import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
+import { HostingRenderLogContent } from './logging/hosting/render'
+import { SyslogContent } from './logging/syslog'
 
 export type QuickStartOptions = {
 	title: string
@@ -80,6 +83,7 @@ export type QuickStartStep = {
 export enum QuickStartType {
 	Angular = 'angular',
 	React = 'react',
+	Remix = 'remix',
 	SvelteKit = 'svelte-kit',
 	Next = 'next',
 	Vue = 'vue',
@@ -112,6 +116,7 @@ export enum QuickStartType {
 	JSWinston = 'winston',
 	JStRPC = 'trpc',
 	HTTPOTLP = 'curl',
+	Syslog = 'syslog',
 	FluentForward = 'fluent-forward',
 	Docker = 'docker',
 	File = 'file',
@@ -119,6 +124,7 @@ export enum QuickStartType {
 	RubyRails = 'rails',
 	HostingVercel = 'vercel',
 	HostingFlyIO = 'fly-io',
+	HostingRender = 'render',
 }
 
 export const quickStartContent = {
@@ -134,6 +140,7 @@ export const quickStartContent = {
 			[QuickStartType.React]: ReactContent,
 			[QuickStartType.Angular]: AngularContent,
 			[QuickStartType.Next]: NextContent,
+			[QuickStartType.Remix]: RemixContent,
 			[QuickStartType.Vue]: VueContent,
 			[QuickStartType.SvelteKit]: SvelteKitContent,
 			[QuickStartType.Gatsby]: GatsbyContent,
@@ -228,6 +235,11 @@ export const quickStartContent = {
 				'Get started with logging in your application via HTTP or OTLP.',
 			[QuickStartType.HTTPOTLP]: HTTPContent,
 		},
+		syslog: {
+			title: 'Syslog RFC5424',
+			subtitle: 'Send syslog RFC5424 logs to highlight.io.',
+			[QuickStartType.Syslog]: SyslogContent,
+		},
 		other: {
 			title: 'Infrastructure / Other',
 			subtitle:
@@ -250,6 +262,7 @@ export const quickStartContent = {
 				'Select your Hosting provider to setup the Highlight integration and stream logs.',
 			[QuickStartType.HostingVercel]: HostingVercelLogContent,
 			[QuickStartType.HostingFlyIO]: HostingFlyIOLogContent,
+			[QuickStartType.HostingRender]: HostingRenderLogContent,
 		},
 	},
 	other: {

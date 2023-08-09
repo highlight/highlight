@@ -24,62 +24,31 @@
   ],
   "environments": {
     "production": {
-      "REACT_APP_FIREBASE_CONFIG_OBJECT": "{    apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',    authDomain: 'auth.highlight.run',    databaseURL: 'https://highlight-f5c5b.firebaseio.com',    projectId: 'highlight-f5c5b',    storageBucket: 'highlight-f5c5b.appspot.com',    messagingSenderId: '263184175068',    appId: '1:263184175068:web:f8190c20320087d1c6c919',}",
       "REACT_APP_COMMIT_SHA": {
         "type": "expression",
         "value": "Reflame.gitCommitSha"
       },
-      "REACT_APP_PRIVATE_GRAPH_URI": "https://pri.highlight.io",
-      "REACT_APP_ONPREM": "false",
       "REACT_APP_FRONTEND_URI": {
         "type": "expression",
         "value": "window.location.origin"
       },
-      "REACT_APP_FRONTEND_ORG": "1jdkoe52",
-      "REACT_APP_PUBLIC_GRAPH_URI": "https://pub.highlight.run",
-      "REACT_APP_AUTH_MODE": "firebase",
-      "SLACK_CLIENT_ID": "1354469824468.1868913469441",
-      "REACT_APP_STRIPE_API_PK": "pk_live_51Hlqh1Gz4ry65q42eza36EDSeIpFng39KpZVJzPpsYg5AM7h1rpysaCcZQHnC4J5uNmbjXP6rmSRuf9yr6rfGNOB00aZ73tU9f",
-      "DEMO_ERROR_URL": "/1/errors/RxxaYWFKZPsIa1lF1phmFqTQ04BO",
-      "CLICKUP_CLIENT_ID": "7IRYQ44K5NKLWWFPBPJII08BW7KS4063",
-      "DISCORD_CLIENT_ID": "1024079182013149185",
-      "REACT_APP_FRONT_INTEGRATION_CLIENT_ID": "e77eb8f15b02423c9525",
-      "HEIGHT_CLIENT_ID": "w8GzB4GI8gGUE2iEAQMY8Wck44gK2ek2i4Q8q4myKQY",
-      "DEMO_SESSION_URL": "/1/sessions/SGKFqG4mE8au2UmHjT0BhjO5Q15f",
-      "LINEAR_CLIENT_ID": "f60ff43c7376d0aceaa1e111db39e60d",
-      "DEMO_PROJECT_ID": "1344"
     },
     "development": {
-      "REACT_APP_FIREBASE_CONFIG_OBJECT": "{    apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',    authDomain: 'auth.highlight.run',    databaseURL: 'https://highlight-f5c5b.firebaseio.com',    projectId: 'highlight-f5c5b',    storageBucket: 'highlight-f5c5b.appspot.com',    messagingSenderId: '263184175068',    appId: '1:263184175068:web:f8190c20320087d1c6c919',}",
       "REACT_APP_COMMIT_SHA": {
         "type": "expression",
         "value": "Reflame.gitCommitSha"
       },
-      "REACT_APP_PRIVATE_GRAPH_URI": "https://localhost:8082/private",
-      "REACT_APP_ONPREM": "false",
       "REACT_APP_FRONTEND_URI": {
         "type": "expression",
         "value": "window.location.origin"
       },
-      "REACT_APP_FRONTEND_ORG": "1",
-      "REACT_APP_PUBLIC_GRAPH_URI": "https://localhost:8082/public",
-      "REACT_APP_AUTH_MODE": "firebase",
-      "SLACK_CLIENT_ID": "1354469824468.1868913469441",
-      "REACT_APP_STRIPE_API_PK": "pk_test_51Hlqh1Gz4ry65q42v4lYEnAGIB4Tq5rzWwE7PgpdCpQjqJjg1iVuosCzEGFbaJNTxDpo77F3YwOfrSlUp8g4wZYB00ojMQX0DP",
-      "DEMO_ERROR_URL": "/1/errors/RxxaYWFKZPsIa1lF1phmFqTQ04BO",
-      "CLICKUP_CLIENT_ID": "7DAKQO04LB9AT9J9I7ZA37T9HKJO2PPD",
-      "DISCORD_CLIENT_ID": "1024079182013149185",
-      "REACT_APP_FRONT_INTEGRATION_CLIENT_ID": "e77eb8f15b02423c9525",
-      "HEIGHT_CLIENT_ID": "N58AdgpuOi2AmSeG2wKc8Osayo8WIU0UoQGwACiYqyI",
-      "DEMO_SESSION_URL": "/1/sessions/SGKFqG4mE8au2UmHjT0BhjO5Q15f",
-      "LINEAR_CLIENT_ID": "f60ff43c7376d0aceaa1e111db39e60d",
-      "DEMO_PROJECT_ID": "2"
     },
   },
-  "environment": "production",
+  "defaultEnvironment": "production",
   "scripts": [
     "/intercom.js",
     "/index",
+    "/vanilla.js",
     "/canny.js",
     "https://js.hs-scripts.com/20473940.js",
     // TODO: google tag manager
@@ -96,6 +65,39 @@
       "versionIncluded": true,
       "dependenciesSynced": true,
     },
+  },
+  "tailwindCompatibility": {
+    "stylesheetPathname": "/style/tailwind.css",
+    "disablePreflight": true,
+    "theme": {
+      "blur": {
+        "xs": "2px",
+      },
+      "colors": {
+        "primary-1": "#B19CFF",
+        "primary-2": "#6C37F4",
+        "primary-3": "#5420D1",
+        "primary-4": "#0D0225",
+  
+        "secondary-1": "#B9F2FE",
+        "secondary-2": "#72E4FC",
+        "secondary-3": "#23B6E2",
+        "secondary-4": "#0B75AA",
+  
+        "highlight-1": "#EBFF5E",
+        "highlight-2": "#8DC31A",
+  
+        "selection": "#EBFF5E",
+        "error": "#FF5377",
+        "warning": "#FF9457",
+        "success": "#36E79B",
+        "midnight": "#0D0225",
+        "pale-purple": "#645D74",
+      },
+      "fontFamily": {
+        "poppins": ["Poppins", "sans-serif"],
+      },
+    }
   },
   "specifierTransforms": [
     {
@@ -143,10 +145,6 @@
       "to": "@lottie/",
     },
     {
-      "from": "/__generated/index.css",
-      "to": "/style/tailwind.css",
-    },
-    {
       "from": "/__generated/rr/rr.js",
       "to": "@highlight-run/rrweb",
     },
@@ -161,11 +159,6 @@
     {
       "from": "^/__generated/ve/(.*).css.js$",
       "to": "/$1.css",
-      "phase": "pre",
-    },
-    {
-      "from": "^/__generated/svgr/(.*).svg.js$",
-      "to": "/$1.svg",
       "phase": "pre",
     },
   ],
@@ -249,6 +242,7 @@
         "/src/listeners/network-listener/utils/utils": "/listeners/network-listener/utils/utils.ts",
         "/src/utils/secure-id": "/utils/secure-id.ts",
         "/src/utils/sessionStorage/highlightSession": "/utils/sessionStorage/highlightSession.ts",
+        "/src/utils/sessionStorage/sessionStorageKeys": "/utils/sessionStorage/sessionStorageKeys.ts",
       },
       "nodejsCompatibility": {
         "omitModuleExtension": true,

@@ -329,3 +329,22 @@ Reserved for the Boeing 737
 ### Patch Changes
 
 - Improve `canvasInitialSnapshotDelay` logic for `<canvas>` recording to delay per-canvas.
+
+## 7.3.12
+
+### Patch Changes
+
+- Update naming of exports for Remix compatability.
+
+## 7.3.13
+
+### Patch Changes
+
+- Fix export names for unpkg / jsdelivr.
+
+## 7.4.0
+
+### Minor Changes
+
+- Return `{ sessionSecureID }` from `H.init` for consumption by Remix SDK
+- Persist `sessionSecureID` to `sessionStorage`

@@ -3,12 +3,13 @@ package graph
 import (
 	"context"
 	"encoding/json"
-	"github.com/highlight-run/highlight/backend/redis"
 	"os"
 	"reflect"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/redis"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/go-test/deep"
@@ -41,10 +42,13 @@ func TestMain(m *testing.M) {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 
+	redisClient := redis.NewClient()
+
 	resolver = &Resolver{
 		DB:    db,
 		TDB:   timeseries.New(context.TODO()),
-		Store: store.NewStore(db, &opensearch.Client{}, redis.NewClient()),
+		Store: store.NewStore(db, &opensearch.Client{}, redisClient),
+		Redis: redisClient,
 	}
 	code := m.Run()
 	os.Exit(code)
@@ -64,6 +68,7 @@ func TestProcessBackendPayloadImpl(t *testing.T) {
 			RequestID:       nil,
 			TraceID:         nil,
 			SpanID:          nil,
+			LogCursor:       new(string),
 			Event:           "dummy event",
 			Type:            "",
 			URL:             "",
@@ -71,6 +76,10 @@ func TestProcessBackendPayloadImpl(t *testing.T) {
 			StackTrace:      trpcTraceStr,
 			Timestamp:       time.Time{},
 			Payload:         nil,
+			Service: &publicModel.ServiceInput{
+				Name:    "my-app",
+				Version: "abc123",
+			},
 		}})
 
 		var result *model.ErrorObject
@@ -82,6 +91,9 @@ func TestProcessBackendPayloadImpl(t *testing.T) {
 		if *result.StackTrace != trpcTraceStr {
 			t.Fatal("stacktrace changed after processing")
 		}
+
+		assert.Equal(t, "my-app", result.ServiceName)
+		assert.Equal(t, "abc123", result.ServiceVersion)
 	})
 }
 
