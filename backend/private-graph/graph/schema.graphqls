@@ -662,6 +662,10 @@ type Service {
 	name: String!
 	status: ServiceStatus!
 	githubRepoPath: String
+	buildPrefix: String
+	githubPrefix: String
+	lastSeenVersion: String
+	errorDetails: String
 }
 
 type ServiceNode {
@@ -670,6 +674,10 @@ type ServiceNode {
 	name: String!
 	status: ServiceStatus!
 	githubRepoPath: String
+	buildPrefix: String
+	githubPrefix: String
+	lastSeenVersion: String
+	errorDetails: String
 }
 
 type ServiceEdge implements Edge {

@@ -3625,7 +3625,9 @@ func (r *mutationResolver) EditService(ctx context.Context, id int, projectID in
 		return nil, err
 	}
 
-	serviceUpdates := map[string]interface{}{}
+	serviceUpdates := map[string]interface{}{
+		"ErrorDetails": "",
+	}
 	if githubRepoPath != nil {
 		serviceUpdates["GithubRepoPath"] = *githubRepoPath
 		serviceUpdates["Status"] = "healthy"
