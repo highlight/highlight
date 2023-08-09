@@ -510,3 +510,10 @@ func (r *Client) AcquireLock(ctx context.Context, key string, timeout time.Durat
 func (r *Client) ReleaseLock(ctx context.Context, key string) (err error) {
 	return r.redisClient.Del(ctx, key).Err()
 }
+
+func (r *Client) FlushDB(ctx context.Context) error {
+	if util.IsDevOrTestEnv() {
+		return r.redisClient.FlushDB(ctx).Err()
+	}
+	return nil
+}

@@ -165,9 +165,8 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 		// check if that workspace is within the logs quota,
 		// and write the result to redis.
 		for _, projectId := range projectsToQuery {
-			var project model.Project
-			if err := k.Worker.Resolver.DB.Model(&project).
-				Where("id = ?", projectId).Find(&project).Error; err != nil {
+			project, err := k.Worker.Resolver.Store.GetProject(ctx, int(projectId))
+			if err != nil {
 				log.WithContext(ctxW).Error(e.Wrap(err, "error querying project"))
 				continue
 			}
