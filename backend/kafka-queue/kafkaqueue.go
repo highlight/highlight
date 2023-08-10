@@ -12,7 +12,6 @@ import (
 	"github.com/samber/lo"
 	"github.com/segmentio/kafka-go/sasl"
 
-	"github.com/DmitriyVTitov/size"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
@@ -62,7 +61,7 @@ type Queue struct {
 type MessageQueue interface {
 	Stop(context.Context)
 	Receive(context.Context) *Message
-	Submit(context.Context, *Message, string) error
+	Submit(context.Context, string, ...*Message) error
 	LogStats()
 }
 
@@ -243,27 +242,31 @@ func (p *Queue) Stop(ctx context.Context) {
 	}
 }
 
-func (p *Queue) Submit(ctx context.Context, msg *Message, partitionKey string) error {
+func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Message) error {
 	start := time.Now()
 	if partitionKey == "" {
 		partitionKey = util.GenerateRandomString(32)
 	}
-	msg.MaxRetries = taskRetries
-	msgBytes, err := p.serializeMessage(msg)
-	if err != nil {
-		log.WithContext(ctx).Error(errors.Wrap(err, "failed to serialize message"))
-		return err
-	}
-	ctx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
-	defer cancel()
-	err = p.kafkaP.WriteMessages(ctx,
-		kafka.Message{
+
+	var kMessages []kafka.Message
+	for _, msg := range messages {
+		msg.MaxRetries = taskRetries
+		msgBytes, err := p.serializeMessage(msg)
+		if err != nil {
+			log.WithContext(ctx).Error(errors.Wrap(err, "failed to serialize message"))
+			return err
+		}
+		kMessages = append(kMessages, kafka.Message{
 			Key:   []byte(partitionKey),
 			Value: msgBytes,
-		},
-	)
+		})
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
+	defer cancel()
+	err := p.kafkaP.WriteMessages(ctx, kMessages...)
 	if err != nil {
-		log.WithContext(ctx).Errorf("failed to send message, size %d, key %s, type %d, err %s", size.Of(msgBytes), partitionKey, msg.Type, err.Error())
+		log.WithContext(ctx).WithError(err).WithField("partition_key", partitionKey).WithField("num_messages", len(messages)).Errorf("failed to send kafka messages")
 		return err
 	}
 	hlog.Incr("worker.kafka.produceMessageCount", nil, 1)

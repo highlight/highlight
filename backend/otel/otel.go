@@ -265,12 +265,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for sessionID, errors := range traceErrors {
-		err = o.resolver.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
+		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, &kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 				SessionSecureID: &sessionID,
 				Errors:          errors,
-			}}, sessionID)
+			}})
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel session errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -279,12 +279,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for projectID, errors := range projectErrors {
-		err = o.resolver.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
+		err = o.resolver.ProducerQueue.Submit(ctx, "", &kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 				ProjectVerboseID: &projectID,
 				Errors:           errors,
-			}}, "")
+			}})
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel project errors to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -293,12 +293,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for sessionID, metrics := range traceMetrics {
-		err = o.resolver.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
+		err = o.resolver.ProducerQueue.Submit(ctx, sessionID, &kafkaqueue.Message{
 			Type: kafkaqueue.PushMetrics,
 			PushMetrics: &kafkaqueue.PushMetricsArgs{
 				SessionSecureID: sessionID,
 				Metrics:         metrics,
-			}}, "")
+			}})
 		if err != nil {
 			log.WithContext(ctx).WithError(err).Error("failed to submit otel project metrics to public worker queue")
 			w.WriteHeader(http.StatusServiceUnavailable)
@@ -409,11 +409,15 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow) error {
 	for _, logRows := range projectLogs {
-		err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
-			Type: kafkaqueue.PushLogs,
-			PushLogs: &kafkaqueue.PushLogsArgs{
-				LogRows: logRows,
-			}}, "")
+		var messages []*kafkaqueue.Message
+		for _, logRow := range logRows {
+			messages = append(messages, &kafkaqueue.Message{
+				Type: kafkaqueue.PushLogs,
+				PushLogs: &kafkaqueue.PushLogsArgs{
+					LogRow: logRow,
+				}})
+		}
+		err := o.resolver.BatchedQueue.Submit(ctx, "", messages...)
 		if err != nil {
 			return e.Wrap(err, "failed to submit otel project logs to public worker queue")
 		}
@@ -433,12 +437,12 @@ func (o *Handler) submitProjectSpans(ctx context.Context, projectTraceRows map[i
 
 		traceRows := append(traceRows, traceRows...)
 
-		err := o.resolver.TracesQueue.Submit(ctx, &kafkaqueue.Message{
+		err := o.resolver.TracesQueue.Submit(ctx, "", &kafkaqueue.Message{
 			Type: kafkaqueue.PushTraces,
 			PushTraces: &kafkaqueue.PushTracesArgs{
 				TraceRows: traceRows,
 			},
-		}, "")
+		})
 
 		if err != nil {
 			return e.Wrap(err, "failed to submit otel project traces to public worker queue")
