@@ -9,9 +9,6 @@ import * as styles from './styles.css'
 
 export type Props = {
 	children: React.ReactNode
-	// props set from the table parent
-	loading?: boolean
-	error?: string
 }
 
 // implicit props set from the parent table

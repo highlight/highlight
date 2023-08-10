@@ -22,7 +22,10 @@ export const initializeSdk: QuickStartStep = {
 		{
 			text: `require "highlight"
 
-Highlight::H.new("<YOUR_PROJECT_ID>")`,
+Highlight::H.new("<YOUR_PROJECT_ID>") do |c|
+  c.service_name = "my-app"
+  c.service_version = "1.0.0"
+end`,
 			language: 'ruby',
 		},
 	],

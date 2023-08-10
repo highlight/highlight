@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    highlight_io (0.1.1)
+    highlight_io (0.1.2)
       grpc (~> 1.52)
       opentelemetry-exporter-otlp (~> 0.24.0)
       opentelemetry-instrumentation-all (~> 0.32.0)
@@ -12,7 +12,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.2)
-    google-protobuf (3.23.4)
+    google-protobuf (3.23.4-arm64-darwin)
     googleapis-common-protos-types (1.7.0)
       google-protobuf (~> 3.14)
     grpc (1.56.2)
