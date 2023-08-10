@@ -77,7 +77,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 }
 
 // BatchFlushSize set per https://clickhouse.com/docs/en/cloud/bestpractices/bulk-inserts
-const DefaultBatchFlushSize = 512
+const DefaultBatchFlushSize = 4096
 const DefaultBatchedFlushTimeout = 5 * time.Second
 const ClickhouseLogRowBatchSizeTarget = 10000
 const SessionsMaxRowsPostgres = 500
@@ -273,8 +273,8 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context) {
 			case lastMsg = <-k.BatchBuffer.messageQueue:
 				switch lastMsg.Type {
 				case kafkaqueue.PushTraces:
-					traceRows = append(traceRows, lastMsg.PushTraces.TraceRows...)
-					received += len(lastMsg.PushTraces.TraceRows)
+					traceRows = append(traceRows, lastMsg.PushTraces.Trace)
+					received += 1
 				}
 				if received >= k.BatchFlushSize {
 					return

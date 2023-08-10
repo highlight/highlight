@@ -108,7 +108,7 @@ type PushLogsArgs struct {
 }
 
 type PushTracesArgs struct {
-	TraceRows []*clickhouse.TraceRow
+	Trace *clickhouse.TraceRow
 }
 
 type HubSpotCreateContactForAdminArgs struct {
