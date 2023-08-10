@@ -42,6 +42,10 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 		return nil
 	}
 
+	traceRows = lo.Filter(traceRows, func(traceRow *TraceRow, _ int) bool {
+		return traceRow != nil
+	})
+
 	rows := lo.Map(traceRows, func(traceRow *TraceRow, _ int) interface{} {
 		traceTimes, traceNames, traceAttrs := convertEvents(traceRow)
 		linkTraceIds, linkSpanIds, linkStates, linkAttrs := convertLinks(traceRow)
@@ -91,6 +95,7 @@ func convertEvents(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet
 		names clickhouse.ArraySet
 		attrs clickhouse.ArraySet
 	)
+
 	events := traceRow.Events
 	for _, event := range events {
 		times = append(times, event.Timestamp)
