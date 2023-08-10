@@ -142,7 +142,7 @@ func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
 	)
 	defer highlight.EndTrace(span)
 
-	eventAttrs := []attribute.KeyValue{
+	attrs := []attribute.KeyValue{
 		LogSeverityKey.String(log.Type),
 		LogMessageKey.String(log.Message),
 		semconv.ServiceNameKey.String("vercel-log-drain"),
@@ -154,14 +154,14 @@ func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
 	}
 
 	if log.Proxy.Method != "" {
-		eventAttrs = append(eventAttrs, semconv.HTTPMethodKey.String(log.Proxy.Method))
+		attrs = append(attrs, semconv.HTTPMethodKey.String(log.Proxy.Method))
 	}
 
 	if log.StatusCode != 0 {
-		eventAttrs = append(eventAttrs, semconv.HTTPStatusCodeKey.Int64(log.StatusCode))
+		attrs = append(attrs, semconv.HTTPStatusCodeKey.Int64(log.StatusCode))
 	}
 
-	span.AddEvent(highlight.LogEvent, trace.WithAttributes(eventAttrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))
+	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))
 	if log.Type == "error" {
 		span.SetStatus(codes.Error, log.Message)
 	}
