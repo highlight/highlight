@@ -1,4 +1,13 @@
 import Card from '@components/Card/Card'
+import {
+	Box,
+	Container,
+	IconSolidCheveronRight,
+	IconSolidSpeakerphone,
+	Stack,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
 import SvgMonitorIcon from '@icons/MonitorIcon'
 import { AlertConfigurationCard } from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard'
 import {
@@ -10,7 +19,6 @@ import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils'
 import { useParams } from '@util/react-router/useParams'
 import { snakeCaseString } from '@util/string'
-import React from 'react'
 import { Helmet } from 'react-helmet'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
@@ -39,123 +47,216 @@ const NewAlertPage = () => {
 	}
 
 	return (
-		<div>
+		<Box width="full" background="raised" p="8">
 			<Helmet>
 				<title>Create New Alert</title>
 			</Helmet>
-			{!type ? (
-				<>
-					<p className={layoutStyles.subTitle}>
-						👋 Let's create an alert! Alerts are a way to keep your
-						team in the loop as to what is happening on your app.
-					</p>
-					<div className={styles.cardGrid}>
-						{Object.keys(ALERT_CONFIGURATIONS).map((_key) => {
-							const key =
-								_key as keyof typeof ALERT_CONFIGURATIONS
-							const configuration = ALERT_CONFIGURATIONS[key]
-							const alertColor = getAlertTypeColor(
-								configuration.name,
-							)
-
-							if (configuration.name === 'Metric Monitor') {
-								return null
-							}
-
-							return (
-								<Link
-									className={styles.cardContent}
-									key={key}
-									state={{
-										errorName: `${configuration.name} Alert`,
+			<Box
+				border="dividerWeak"
+				borderRadius="6"
+				width="full"
+				shadow="medium"
+				background="default"
+				display="flex"
+				flexDirection="column"
+				height="full"
+			>
+				<Container display="flex" flexDirection="column" gap="24">
+					<Box style={{ maxWidth: 860 }} my="40" mx="auto">
+						<Stack gap="24">
+							<Box
+								display="flex"
+								alignItems="center"
+								gap="4"
+								color="weak"
+							>
+								<Tag
+									kind="secondary"
+									size="medium"
+									shape="basic"
+									emphasis="high"
+									iconLeft={<IconSolidSpeakerphone />}
+									onClick={() => {
+										navigate(`/${project_id}/alerts`)
 									}}
-									to={`${url}/${snakeCaseString(
-										configuration.name,
-									)}`}
 								>
-									<Card
-										interactable
-										className={styles.cardContainer}
-									>
-										<h2 id={styles.title}>
-											<span
-												className={styles.icon}
-												style={{
-													backgroundColor: alertColor,
-												}}
+									Alerts
+								</Tag>
+								<IconSolidCheveronRight />
+								<Text
+									color="moderate"
+									size="small"
+									weight="medium"
+									userSelect="none"
+								>
+									{type ? 'Session alert' : 'New alert'}
+								</Text>
+							</Box>
+							{!type ? (
+								<>
+									<p className={layoutStyles.subTitle}>
+										👋 Let's create an alert! Alerts are a
+										way to keep your team in the loop as to
+										what is happening on your app.
+									</p>
+									<div className={styles.cardGrid}>
+										{Object.keys(ALERT_CONFIGURATIONS).map(
+											(_key) => {
+												const key =
+													_key as keyof typeof ALERT_CONFIGURATIONS
+												const configuration =
+													ALERT_CONFIGURATIONS[key]
+												const alertColor =
+													getAlertTypeColor(
+														configuration.name,
+													)
+
+												if (
+													configuration.name ===
+													'Metric Monitor'
+												) {
+													return null
+												}
+
+												return (
+													<Link
+														className={
+															styles.cardContent
+														}
+														key={key}
+														state={{
+															errorName: `${configuration.name} Alert`,
+														}}
+														to={`${url}/${snakeCaseString(
+															configuration.name,
+														)}`}
+													>
+														<Card
+															interactable
+															className={
+																styles.cardContainer
+															}
+														>
+															<h2
+																id={
+																	styles.title
+																}
+															>
+																<span
+																	className={
+																		styles.icon
+																	}
+																	style={{
+																		backgroundColor:
+																			alertColor,
+																	}}
+																>
+																	{
+																		ALERT_CONFIGURATIONS[
+																			key
+																		].icon
+																	}
+																</span>
+																{
+																	ALERT_CONFIGURATIONS[
+																		key
+																	].name
+																}
+															</h2>
+															<p
+																className={
+																	styles.description
+																}
+															>
+																{
+																	ALERT_CONFIGURATIONS[
+																		key
+																	]
+																		.description
+																}
+															</p>
+														</Card>
+													</Link>
+												)
+											},
+										)}
+										<Link
+											className={styles.cardContent}
+											to={`${url}/monitor`}
+											state={{
+												errorName: `New Monitor`,
+											}}
+										>
+											<Card
+												interactable
+												className={styles.cardContainer}
 											>
-												{ALERT_CONFIGURATIONS[key].icon}
-											</span>
-											{ALERT_CONFIGURATIONS[key].name}
-										</h2>
-										<p className={styles.description}>
-											{
-												ALERT_CONFIGURATIONS[key]
-													.description
-											}
-										</p>
-									</Card>
-								</Link>
-							)
-						})}
-						<Link
-							className={styles.cardContent}
-							to={`${url}/monitor`}
-							state={{
-								errorName: `New Monitor`,
-							}}
-						>
-							<Card interactable className={styles.cardContainer}>
-								<h2 id={styles.title}>
-									<span
-										className={styles.icon}
-										style={{
-											backgroundColor:
-												'var(--color-orange-500)',
-										}}
-									>
-										<SvgMonitorIcon />
-									</span>
-									Metric Monitor
-								</h2>
-								<p className={styles.description}>
-									Get alerted when a metric value is larger
-									than a threshold.
-								</p>
-							</Card>
-						</Link>
-					</div>
-				</>
-			) : (
-				<AlertConfigurationCard
-					alert={{
-						...getNewAlert(type)?.alert,
-					}}
-					slackUrl={slackUrl}
-					isSlackIntegrated={
-						alertsPayload?.is_integrated_with_slack || false
-					}
-					isDiscordIntegrated={
-						alertsPayload?.is_integrated_with_discord || false
-					}
-					emailSuggestions={(alertsPayload?.admins || []).map(
-						(wa) => wa.admin!.email,
-					)}
-					channelSuggestions={
-						alertsPayload?.slack_channel_suggestion || []
-					}
-					discordChannelSuggestions={
-						alertsPayload?.discord_channel_suggestions || []
-					}
-					environmentOptions={
-						alertsPayload?.environment_suggestion || []
-					}
-					// @ts-expect-error
-					configuration={getNewAlert(type)?.configuration}
-					isCreatingNewAlert
-				/>
-			)}
-		</div>
+												<h2 id={styles.title}>
+													<span
+														className={styles.icon}
+														style={{
+															backgroundColor:
+																'var(--color-orange-500)',
+														}}
+													>
+														<SvgMonitorIcon />
+													</span>
+													Metric Monitor
+												</h2>
+												<p
+													className={
+														styles.description
+													}
+												>
+													Get alerted when a metric
+													value is larger than a
+													threshold.
+												</p>
+											</Card>
+										</Link>
+									</div>
+								</>
+							) : (
+								<AlertConfigurationCard
+									alert={{
+										...getNewAlert(type)?.alert,
+									}}
+									slackUrl={slackUrl}
+									isSlackIntegrated={
+										alertsPayload?.is_integrated_with_slack ||
+										false
+									}
+									isDiscordIntegrated={
+										alertsPayload?.is_integrated_with_discord ||
+										false
+									}
+									emailSuggestions={(
+										alertsPayload?.admins || []
+									).map((wa) => wa.admin!.email)}
+									channelSuggestions={
+										alertsPayload?.slack_channel_suggestion ||
+										[]
+									}
+									discordChannelSuggestions={
+										alertsPayload?.discord_channel_suggestions ||
+										[]
+									}
+									environmentOptions={
+										alertsPayload?.environment_suggestion ||
+										[]
+									}
+									// @ts-expect-error
+									configuration={
+										getNewAlert(type)?.configuration
+									}
+									isCreatingNewAlert
+								/>
+							)}
+						</Stack>
+					</Box>
+				</Container>
+			</Box>
+		</Box>
 	)
 }
 

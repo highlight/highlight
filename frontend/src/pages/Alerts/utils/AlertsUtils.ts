@@ -1,3 +1,13 @@
+import { GetAlertsPagePayloadQuery } from '@/graph/generated/operations'
+import {
+	DiscordChannelInput,
+	SanitizedSlackChannelInput,
+} from '@/graph/generated/schemas'
+import {
+	DEFAULT_FREQUENCY,
+	FREQUENCIES,
+} from '@/pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
+
 export interface EnvironmentSuggestion {
 	name: string
 	value: string
@@ -44,4 +54,59 @@ export const getAlertTypeColor = (type: string) => {
 		default:
 			return '#bdbdbd'
 	}
+}
+
+/**
+ * All form fields for alerts
+ */
+export interface AlertForm {
+	name: string
+	belowThreshold: boolean
+	threshold: number | undefined
+	frequency: number
+	threshold_window: number
+	excludedEnvironments: string[]
+	slackChannels: SanitizedSlackChannelInput[]
+	discordChannels: DiscordChannelInput[]
+	emails: string[]
+	webhookDestinations: string[]
+	loaded: boolean
+}
+
+/**
+ * Gets specific alert given an id
+ * @param id
+ * @param alertsPayload
+ * @returns
+ */
+export const findAlert = (
+	id: string,
+	alertsPayload?: GetAlertsPagePayloadQuery,
+) => {
+	if (!alertsPayload) {
+		return undefined
+	}
+
+	const allAlerts = [
+		...alertsPayload.error_alerts,
+		...alertsPayload.new_session_alerts,
+		...(alertsPayload.new_user_alerts || []),
+		...alertsPayload.track_properties_alerts,
+		...alertsPayload.user_properties_alerts,
+		...alertsPayload.rage_click_alerts,
+	]
+
+	return allAlerts.find((alert) => alert?.id === id)
+}
+
+export const getFrequencyOption = (seconds = DEFAULT_FREQUENCY): any => {
+	const option = FREQUENCIES.find(
+		(option) => option.value === seconds?.toString(),
+	)
+
+	if (!option) {
+		return FREQUENCIES.find((option) => option.value === DEFAULT_FREQUENCY)
+	}
+
+	return option
 }
