@@ -164,7 +164,7 @@ func GetKey(sessionId int, payloadType model.RawPayloadType) string {
 	}
 }
 
-func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType model.RawPayloadType, objects map[int]string) ([]model.SessionData, error) {
+func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType model.RawPayloadType, objects map[int]string) ([]string, error) {
 	key := GetKey(sessionId, payloadType)
 
 	vals, err := r.redisClient.ZRangeByScoreWithScores(ctx, key, &redis.ZRangeBy{
@@ -191,24 +191,13 @@ func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType 
 	}
 	sort.Ints(keys)
 
-	results := []model.SessionData{}
+	results := []string{}
 	if len(keys) == 0 {
 		return results, nil
 	}
 
 	for _, k := range keys {
-		asBytes := []byte(objects[k])
-
-		// Messages may be encoded with `snappy`.
-		// Try decoding them, but if decoding fails, use the original message.
-		decoded, err := snappy.Decode(nil, asBytes)
-		if err != nil {
-			decoded = asBytes
-		}
-
-		results = append(results, model.SessionData{
-			Data: string(decoded),
-		})
+		results = append(results, objects[k])
 	}
 
 	return results, nil
