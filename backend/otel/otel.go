@@ -409,13 +409,15 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string][]*clickhouse.LogRow) error {
 	for _, logRows := range projectLogs {
-		err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
-			Type: kafkaqueue.PushLogs,
-			PushLogs: &kafkaqueue.PushLogsArgs{
-				LogRows: logRows,
-			}}, "")
-		if err != nil {
-			return e.Wrap(err, "failed to submit otel project logs to public worker queue")
+		for _, logRow := range logRows {
+			err := o.resolver.BatchedQueue.Submit(ctx, &kafkaqueue.Message{
+				Type: kafkaqueue.PushLogs,
+				PushLogs: &kafkaqueue.PushLogsArgs{
+					LogRow: logRow,
+				}}, "")
+			if err != nil {
+				return e.Wrap(err, "failed to submit otel project logs to public worker queue")
+			}
 		}
 	}
 	return nil

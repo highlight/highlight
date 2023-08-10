@@ -76,10 +76,9 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 	}
 }
 
-// BatchFlushSize set per https://clickhouse.com/docs/en/cloud/bestpractices/bulk-inserts
-const DefaultBatchFlushSize = 512
+// DefaultBatchFlushSize set per https://clickhouse.com/docs/en/cloud/bestpractices/bulk-inserts
+const DefaultBatchFlushSize = 10000
 const DefaultBatchedFlushTimeout = 5 * time.Second
-const ClickhouseLogRowBatchSizeTarget = 10000
 const SessionsMaxRowsPostgres = 500
 
 type KafkaWorker struct {
@@ -106,15 +105,13 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 				case lastMsg = <-k.BatchBuffer.messageQueue:
 					switch lastMsg.Type {
 					case kafkaqueue.PushLogs:
-						logRows = append(logRows, lastMsg.PushLogs.LogRows...)
-						for _, row := range lastMsg.PushLogs.LogRows {
-							if oldestLogRow == nil || row.Timestamp.Before(oldestLogRow.Timestamp) {
-								oldestLogRow = row
-							}
+						logRows = append(logRows, lastMsg.PushLogs.LogRow)
+						if oldestLogRow == nil || lastMsg.PushLogs.LogRow.Timestamp.Before(oldestLogRow.Timestamp) {
+							oldestLogRow = lastMsg.PushLogs.LogRow
 						}
-						received += len(lastMsg.PushLogs.LogRows)
+						received += 1
 					}
-					if received >= ClickhouseLogRowBatchSizeTarget {
+					if received >= k.BatchFlushSize {
 						return true
 					}
 				default:

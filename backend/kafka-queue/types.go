@@ -104,7 +104,7 @@ type AddSessionFeedbackArgs struct {
 }
 
 type PushLogsArgs struct {
-	LogRows []*clickhouse.LogRow
+	LogRow *clickhouse.LogRow
 }
 
 type PushTracesArgs struct {
@@ -152,22 +152,22 @@ type Message struct {
 	Failures                               int
 	MaxRetries                             int
 	KafkaMessage                           *kafka.Message
-	PushPayload                            *PushPayloadArgs
-	InitializeSession                      *InitializeSessionArgs
-	IdentifySession                        *IdentifySessionArgs
-	AddTrackProperties                     *AddTrackPropertiesArgs
-	AddSessionProperties                   *AddSessionPropertiesArgs
-	PushBackendPayload                     *PushBackendPayloadArgs
-	PushMetrics                            *PushMetricsArgs
-	AddSessionFeedback                     *AddSessionFeedbackArgs
-	PushLogs                               *PushLogsArgs
-	PushTraces                             *PushTracesArgs
-	HubSpotCreateContactForAdmin           *HubSpotCreateContactForAdminArgs
-	HubSpotCreateCompanyForWorkspace       *HubSpotCreateCompanyForWorkspaceArgs
-	HubSpotUpdateContactProperty           *HubSpotUpdateContactPropertyArgs
-	HubSpotUpdateCompanyProperty           *HubSpotUpdateCompanyPropertyArgs
-	HubSpotCreateContactCompanyAssociation *HubSpotCreateContactCompanyAssociationArgs
-	SessionDataSync                        *SessionDataSyncArgs
+	PushPayload                            *PushPayloadArgs                            `json:"PushPayload,omitempty"`
+	InitializeSession                      *InitializeSessionArgs                      `json:"InitializeSession,omitempty"`
+	IdentifySession                        *IdentifySessionArgs                        `json:"IdentifySession,omitempty"`
+	AddTrackProperties                     *AddTrackPropertiesArgs                     `json:"AddTrackProperties,omitempty"`
+	AddSessionProperties                   *AddSessionPropertiesArgs                   `json:"AddSessionProperties,omitempty"`
+	PushBackendPayload                     *PushBackendPayloadArgs                     `json:"PushBackendPayload,omitempty"`
+	PushMetrics                            *PushMetricsArgs                            `json:"PushMetrics,omitempty"`
+	AddSessionFeedback                     *AddSessionFeedbackArgs                     `json:"AddSessionFeedback,omitempty"`
+	PushLogs                               *PushLogsArgs                               `json:"PushLogs,omitempty"`
+	PushTraces                             *PushTracesArgs                             `json:"PushTraces,omitempty"`
+	HubSpotCreateContactForAdmin           *HubSpotCreateContactForAdminArgs           `json:"HubSpotCreateContactForAdmin,omitempty"`
+	HubSpotCreateCompanyForWorkspace       *HubSpotCreateCompanyForWorkspaceArgs       `json:"HubSpotCreateCompanyForWorkspace,omitempty"`
+	HubSpotUpdateContactProperty           *HubSpotUpdateContactPropertyArgs           `json:"HubSpotUpdateContactProperty,omitempty"`
+	HubSpotUpdateCompanyProperty           *HubSpotUpdateCompanyPropertyArgs           `json:"HubSpotUpdateCompanyProperty,omitempty"`
+	HubSpotCreateContactCompanyAssociation *HubSpotCreateContactCompanyAssociationArgs `json:"HubSpotCreateContactCompanyAssociation,omitempty"`
+	SessionDataSync                        *SessionDataSyncArgs                        `json:"SessionDataSync,omitempty"`
 }
 
 type PartitionMessage struct {
