@@ -44,7 +44,6 @@ export const dragSelection = style({
 export const thresholdArea = style({
 	opacity: 0.2,
 	left: 0,
-	zIndex: 1,
 	width: 'calc(100% - 4px)',
 	pointerEvents: 'none',
 })

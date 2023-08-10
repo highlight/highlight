@@ -633,11 +633,15 @@ func (ServiceEdge) IsEdge()                {}
 func (this ServiceEdge) GetCursor() string { return this.Cursor }
 
 type ServiceNode struct {
-	ID             int           `json:"id"`
-	ProjectID      int           `json:"projectID"`
-	Name           string        `json:"name"`
-	Status         ServiceStatus `json:"status"`
-	GithubRepoPath *string       `json:"githubRepoPath"`
+	ID              int           `json:"id"`
+	ProjectID       int           `json:"projectID"`
+	Name            string        `json:"name"`
+	Status          ServiceStatus `json:"status"`
+	GithubRepoPath  *string       `json:"githubRepoPath"`
+	BuildPrefix     *string       `json:"buildPrefix"`
+	GithubPrefix    *string       `json:"githubPrefix"`
+	LastSeenVersion *string       `json:"lastSeenVersion"`
+	ErrorDetails    []string      `json:"errorDetails"`
 }
 
 type SessionAlertInput struct {

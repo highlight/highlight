@@ -662,6 +662,10 @@ type Service {
 	name: String!
 	status: ServiceStatus!
 	githubRepoPath: String
+	buildPrefix: String
+	githubPrefix: String
+	lastSeenVersion: String
+	errorDetails: [String!]
 }
 
 type ServiceNode {
@@ -670,6 +674,10 @@ type ServiceNode {
 	name: String!
 	status: ServiceStatus!
 	githubRepoPath: String
+	buildPrefix: String
+	githubPrefix: String
+	lastSeenVersion: String
+	errorDetails: [String!]
 }
 
 type ServiceEdge implements Edge {
@@ -2116,7 +2124,13 @@ type Mutation {
 		is_opt_out: Boolean!
 		project_id: Int
 	): Boolean!
-	editService(id: ID!, project_id: ID!, github_repo_path: String): Service
+	editServiceGithubSettings(
+		id: ID!
+		project_id: ID!
+		github_repo_path: String
+		build_prefix: String
+		github_prefix: String
+	): Service
 }
 
 type Subscription {
