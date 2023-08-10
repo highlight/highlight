@@ -205,6 +205,11 @@ export type ClickUpTeam = {
 	spaces: Array<ClickUpSpace>
 }
 
+export type ClickhouseQuery = {
+	isAnd: Scalars['Boolean']
+	rules: Array<Array<Scalars['String']>>
+}
+
 export type CommentReply = {
 	__typename?: 'CommentReply'
 	author: SanitizedAdmin
@@ -1735,6 +1740,7 @@ export type Query = {
 	session_comments_for_project: Array<Maybe<SessionComment>>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
+	sessions_clickhouse: SessionResults
 	sessions_histogram: SessionsHistogram
 	sessions_opensearch: SessionResults
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
@@ -2247,6 +2253,15 @@ export type QuerySession_IntervalsArgs = {
 	session_secure_id: Scalars['String']
 }
 
+export type QuerySessions_ClickhouseArgs = {
+	count: Scalars['Int']
+	page?: InputMaybe<Scalars['Int']>
+	project_id: Scalars['ID']
+	query: ClickhouseQuery
+	sort_desc: Scalars['Boolean']
+	sort_field?: InputMaybe<Scalars['String']>
+}
+
 export type QuerySessions_HistogramArgs = {
 	histogram_options: DateHistogramOptions
 	project_id: Scalars['ID']
@@ -2254,6 +2269,7 @@ export type QuerySessions_HistogramArgs = {
 }
 
 export type QuerySessions_OpensearchArgs = {
+	clickhouse_query?: InputMaybe<ClickhouseQuery>
 	count: Scalars['Int']
 	page?: InputMaybe<Scalars['Int']>
 	project_id: Scalars['ID']

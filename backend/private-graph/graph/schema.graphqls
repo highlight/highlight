@@ -833,6 +833,11 @@ input DateHistogramOptions {
 	bounds: DateRangeInput!
 }
 
+input ClickhouseQuery {
+	isAnd: Boolean!
+	rules: [[String!]!]!
+}
+
 enum NetworkRequestAttribute {
 	method
 	initiator_type
@@ -1591,7 +1596,7 @@ type Query {
 		project_id: ID!
 		count: Int!
 		query: String!
-		clickhouse_query: String
+		clickhouse_query: ClickhouseQuery
 		sort_field: String
 		sort_desc: Boolean!
 		page: Int
@@ -1599,7 +1604,7 @@ type Query {
 	sessions_clickhouse(
 		project_id: ID!
 		count: Int!
-		query: String!
+		query: ClickhouseQuery!
 		sort_field: String
 		sort_desc: Boolean!
 		page: Int

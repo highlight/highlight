@@ -5109,7 +5109,7 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 }
 
 // SessionsOpensearch is the resolver for the sessions_opensearch field.
-func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, clickhouseQuery *string, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, clickhouseQuery *modelInputs.ClickhouseQuery, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
 	if clickhouseQuery != nil {
 		return r.SessionsClickhouse(ctx, projectID, count, *clickhouseQuery, sortField, sortDesc, page)
 	}
@@ -5160,7 +5160,7 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 }
 
 // SessionsClickhouse is the resolver for the sessions_clickhouse field.
-func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, count int, query string, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, count int, query modelInputs.ClickhouseQuery, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -5176,12 +5176,15 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 		return nil, err
 	}
 
-	var results []*model.Session
-	if err := r.DB.Model(&model.Session{}).Where("id in ?", ids).Find(&results).Error; err != nil {
+	var results []model.Session
+	if err := r.DB.Model(&model.Session{}).Where("id in ?", ids).Order("created_at DESC").Find(&results).Error; err != nil {
 		return nil, err
 	}
 
-	return
+	return &model.SessionResults{
+		Sessions:   results,
+		TotalCount: 1000,
+	}, nil
 }
 
 // SessionsHistogram is the resolver for the sessions_histogram field.

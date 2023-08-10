@@ -6714,6 +6714,7 @@ export const GetSessionsOpenSearchDocument = gql`
 		$project_id: ID!
 		$count: Int!
 		$query: String!
+		$clickhouse_query: ClickhouseQuery
 		$sort_desc: Boolean!
 		$sort_field: String
 		$page: Int
@@ -6722,6 +6723,7 @@ export const GetSessionsOpenSearchDocument = gql`
 			project_id: $project_id
 			count: $count
 			query: $query
+			clickhouse_query: $clickhouse_query
 			sort_field: $sort_field
 			sort_desc: $sort_desc
 			page: $page
@@ -6784,6 +6786,7 @@ export const GetSessionsOpenSearchDocument = gql`
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
  *      query: // value for 'query'
+ *      clickhouse_query: // value for 'clickhouse_query'
  *      sort_desc: // value for 'sort_desc'
  *      sort_field: // value for 'sort_field'
  *      page: // value for 'page'
