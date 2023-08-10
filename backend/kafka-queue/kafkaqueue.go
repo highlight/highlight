@@ -26,7 +26,7 @@ const KafkaOperationTimeout = 25 * time.Second
 const ConsumerGroupName = "group-default"
 
 const (
-	taskRetries           = 5
+	TaskRetries           = 5
 	prefetchQueueCapacity = 64
 	prefetchSizeBytes     = 64 * 1000         // 64 KB
 	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
@@ -250,7 +250,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Me
 
 	var kMessages []kafka.Message
 	for _, msg := range messages {
-		msg.MaxRetries = taskRetries
+		msg.MaxRetries = TaskRetries
 		msgBytes, err := p.serializeMessage(msg)
 		if err != nil {
 			log.WithContext(ctx).Error(errors.Wrap(err, "failed to serialize message"))
