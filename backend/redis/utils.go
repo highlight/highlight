@@ -477,6 +477,7 @@ func (r *Client) GetHubspotCompanies(ctx context.Context, companies interface{})
 	return
 }
 
+// TODO(vkorolik) redlock
 func (r *Client) AcquireLock(ctx context.Context, key string, timeout time.Duration) (acquired bool) {
 	start := time.Now()
 	for {
