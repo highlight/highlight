@@ -39,15 +39,6 @@ const MetricEvent = "metric"
 const MetricEventName = "metric.name"
 const MetricEventValue = "metric.value"
 
-var BackendOnlyAttributePrefixes = []string{
-	"container.",
-	"host.",
-	"os.",
-	"process.",
-	"exception.",
-	"service.",
-}
-
 type OTLP struct {
 	tracerProvider *sdktrace.TracerProvider
 }
