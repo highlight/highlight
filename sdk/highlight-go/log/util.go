@@ -136,27 +136,23 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 }
 
 func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
-	span, _ := highlight.StartTrace(
+	span, _ := highlight.StartTraceWithoutResourceAttributes(
 		ctx, "highlight-ctx",
-		attribute.String(highlight.SourceAttribute, "SubmitVercelLogs"),
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 	)
 	defer highlight.EndTrace(span)
 
-	attrs := []attribute.KeyValue{
+	eventAttrs := []attribute.KeyValue{
 		LogSeverityKey.String(log.Type),
 		LogMessageKey.String(log.Message),
-	}
-	attrs = append(
-		attrs,
 		semconv.CodeNamespaceKey.String(log.Source),
 		semconv.CodeFilepathKey.String(log.Path),
 		semconv.CodeFunctionKey.String(log.Entrypoint),
 		semconv.HostNameKey.String(log.Host),
 		semconv.HTTPMethodKey.Int64(log.StatusCode),
-	)
+	}
 
-	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))
+	span.AddEvent(highlight.LogEvent, trace.WithAttributes(eventAttrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))
 	if log.Type == "error" {
 		span.SetStatus(codes.Error, log.Message)
 	}
