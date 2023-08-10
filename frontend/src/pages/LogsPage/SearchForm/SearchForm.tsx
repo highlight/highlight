@@ -200,6 +200,7 @@ export const Search: React.FC<{
 	className?: string
 	keysLoading: boolean
 	disableSearch?: boolean
+	placeholder?: string
 }> = ({
 	initialQuery,
 	startDate,
@@ -209,6 +210,7 @@ export const Search: React.FC<{
 	keys,
 	keysLoading,
 	disableSearch,
+	placeholder,
 }) => {
 	const formState = useForm()
 	const { project_id } = useParams()
@@ -347,7 +349,7 @@ export const Search: React.FC<{
 					autoSelect
 					state={state}
 					name="search"
-					placeholder="Search your logs..."
+					placeholder={placeholder ?? 'Search your logs...'}
 					className={className ?? styles.combobox}
 					style={{
 						paddingLeft: hideIcon ? undefined : 40,

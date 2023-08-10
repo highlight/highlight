@@ -30,7 +30,7 @@ const getLearnMoreLink = ({ errorObject }: Props) => {
 
 	switch (excludedReason) {
 		case SessionExcludedReason.IgnoredUser: {
-			return 'https://www.highlight.io/docs/general/product-features/session-replay/ignoring-sessions#ignore-sessions-by-user-identifier'
+			return 'https://www.highlight.io/docs/general/product-features/session-replay/filtering-sessions#filter-sessions-by-user-identifier'
 		}
 		default:
 			return null

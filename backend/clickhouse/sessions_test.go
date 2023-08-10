@@ -16,6 +16,8 @@ func setupSessionsTest(tb testing.TB) (*Client, func(tb testing.TB)) {
 	return client, func(tb testing.TB) {
 		err := client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", SessionsTable))
 		assert.NoError(tb, err)
+		err = client.conn.Exec(context.Background(), fmt.Sprintf("TRUNCATE TABLE %s", FieldsTable))
+		assert.NoError(tb, err)
 	}
 }
 

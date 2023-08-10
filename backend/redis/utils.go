@@ -60,6 +60,7 @@ func LastLogTimestampKey(projectId int) string {
 }
 
 func NewClient() *Client {
+	lfu := cache.NewTinyLFU(10000, time.Minute)
 	if util.IsDevOrTestEnv() {
 		client := redis.NewClient(&redis.Options{
 			Addr:         ServerAddr,
@@ -77,7 +78,7 @@ func NewClient() *Client {
 			redisClient: client,
 			Cache: cache.New(&cache.Options{
 				Redis:      client,
-				LocalCache: cache.NewTinyLFU(10000, time.Minute),
+				LocalCache: lfu,
 			}),
 		}
 	} else {
@@ -96,6 +97,10 @@ func NewClient() *Client {
 				return nil
 			},
 		})
+		rCache := cache.New(&cache.Options{
+			Redis:      c,
+			LocalCache: lfu,
+		})
 		go func() {
 			for {
 				stats := c.PoolStats()
@@ -108,15 +113,18 @@ func NewClient() *Client {
 				hlog.Histogram("redis.stale-conns", float64(stats.StaleConns), nil, 1)
 				hlog.Histogram("redis.total-conns", float64(stats.TotalConns), nil, 1)
 				hlog.Histogram("redis.timeouts", float64(stats.Timeouts), nil, 1)
+
+				if stats := rCache.Stats(); stats != nil {
+					hlog.Histogram("redis.cache.hits", float64(stats.Hits), nil, 1)
+					hlog.Histogram("redis.cache.misses", float64(stats.Misses), nil, 1)
+				}
+
 				time.Sleep(time.Second)
 			}
 		}()
 		return &Client{
 			redisClient: c,
-			Cache: cache.New(&cache.Options{
-				Redis:      c,
-				LocalCache: cache.NewTinyLFU(1000, time.Minute),
-			}),
+			Cache:       rCache,
 		}
 	}
 }
@@ -156,7 +164,7 @@ func GetKey(sessionId int, payloadType model.RawPayloadType) string {
 	}
 }
 
-func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType model.RawPayloadType, objects map[int]string) ([]model.SessionData, error) {
+func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType model.RawPayloadType, objects map[int]string) ([]string, error) {
 	key := GetKey(sessionId, payloadType)
 
 	vals, err := r.redisClient.ZRangeByScoreWithScores(ctx, key, &redis.ZRangeBy{
@@ -183,24 +191,13 @@ func (r *Client) GetSessionData(ctx context.Context, sessionId int, payloadType 
 	}
 	sort.Ints(keys)
 
-	results := []model.SessionData{}
+	results := []string{}
 	if len(keys) == 0 {
 		return results, nil
 	}
 
 	for _, k := range keys {
-		asBytes := []byte(objects[k])
-
-		// Messages may be encoded with `snappy`.
-		// Try decoding them, but if decoding fails, use the original message.
-		decoded, err := snappy.Decode(nil, asBytes)
-		if err != nil {
-			decoded = asBytes
-		}
-
-		results = append(results, model.SessionData{
-			Data: string(decoded),
-		})
+		results = append(results, objects[k])
 	}
 
 	return results, nil
@@ -501,4 +498,11 @@ func (r *Client) AcquireLock(ctx context.Context, key string, timeout time.Durat
 
 func (r *Client) ReleaseLock(ctx context.Context, key string) (err error) {
 	return r.redisClient.Del(ctx, key).Err()
+}
+
+func (r *Client) FlushDB(ctx context.Context) error {
+	if util.IsDevOrTestEnv() {
+		return r.redisClient.FlushDB(ctx).Err()
+	}
+	return nil
 }

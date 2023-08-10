@@ -65,13 +65,13 @@ export const ExcludedUsersForm = () => {
 		<BorderBox>
 			<Stack gap="8">
 				<BoxLabel
-					label="Excluded sessions"
+					label="Filtered sessions"
 					info="
-					Enter user identifiers or emails to hide (regular
+					Enter user identifiers or emails to filter (regular
 					expressions are accepted). On completion, sessions from
 					these users will be excluded from your searches and quota."
 				/>
-				<Form.NamedSection label="Excluded users" name="Excluded users">
+				<Form.NamedSection label="Filtered users" name="Filtered users">
 					<Select
 						mode="tags"
 						placeholder=".*@yourdomain.com"
