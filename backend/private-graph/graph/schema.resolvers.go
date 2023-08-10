@@ -7545,7 +7545,7 @@ func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*mode
 
 // ErrorDetails is the resolver for the errorDetails field.
 func (r *serviceResolver) ErrorDetails(ctx context.Context, obj *model.Service) ([]string, error) {
-	panic(fmt.Errorf("not implemented: ErrorDetails - errorDetails"))
+	return obj.ErrorDetails, nil
 }
 
 // UserObject is the resolver for the user_object field.
