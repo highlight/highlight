@@ -25,9 +25,9 @@ import (
 )
 
 func (k *KafkaWorker) processWorkerError(ctx context.Context, task *kafkaqueue.Message, err error) {
-	log.WithContext(ctx).Errorf("task %+v failed: %s", *task, err)
+	log.WithContext(ctx).WithError(err).WithField("type", task.Type).Errorf("task %+v failed: %s", *task, err)
 	if task.Failures >= task.MaxRetries {
-		log.WithContext(ctx).Errorf("task %+v failed after %d retries", *task, task.Failures)
+		log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("failures", task.Failures).Errorf("task %+v failed after %d retries", *task, task.Failures)
 	} else {
 		hlog.Histogram("worker.kafka.processed.taskFailures", float64(task.Failures), nil, 1)
 	}
@@ -403,7 +403,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context) error {
 }
 
 func (k *KafkaBatchWorker) processWorkerError(ctx context.Context, attempt int, err error) {
-	log.WithContext(ctx).Errorf("batched worker %s task failed attempt %d: %s", k.Name, attempt, err)
+	log.WithContext(ctx).WithError(err).WithField("worker_name", k.Name).WithField("attempt", attempt).Errorf("batched worker task failed: %s", err)
 }
 
 func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context, flush func(context.Context) error) {
