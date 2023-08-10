@@ -16,7 +16,10 @@ export const RubyRailsLogContent: QuickStartContent = {
 				{
 					text: `require "highlight"
 
-Highlight::H.new("<YOUR_PROJECT_ID>")
+Highlight::H.new("<YOUR_PROJECT_ID>") do |c|
+  c.service_name = "my-rails-app"
+  c.service_version = "git-sha"
+end
 
 # you can replace the Rails.logger with Highlight's
 Rails.logger = Highlight::Logger.new(STDOUT)
