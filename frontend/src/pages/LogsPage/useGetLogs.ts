@@ -82,7 +82,8 @@ export const useGetLogs = ({
 
 	useEffect(() => {
 		// setup a polling interval for sessions after the current date range
-		const interval = setInterval(async () => {
+		let timeout: number
+		const poll = async () => {
 			const variables = {
 				project_id: project_id!,
 				at: logCursor,
@@ -101,8 +102,10 @@ export const useGetLogs = ({
 			if (result?.data?.logs.edges.length !== undefined) {
 				setMoreLogs(result?.data?.logs.edges.length)
 			}
-		}, POLL_INTERVAL)
-		return () => clearInterval(interval)
+			timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
+		}
+		timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
+		return () => clearTimeout(timeout)
 	}, [startDate, endDate, logCursor, moreDataQuery, project_id, serverQuery])
 
 	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({

@@ -209,7 +209,8 @@ export const SessionFeedV3 = React.memo(() => {
 
 	useEffect(() => {
 		// setup a polling interval for sessions after the current date range
-		const interval = setInterval(async () => {
+		let timeout: number
+		const poll = async () => {
 			let query = JSON.parse(backendSearchQuery?.searchQuery || '')
 			const lte =
 				query?.bool?.must[0]?.bool?.should[0]?.range?.created_at?.lte
@@ -222,6 +223,7 @@ export const SessionFeedV3 = React.memo(() => {
 					'skipping polling for custom time selection',
 					{ lte, now: getNow().toISOString() },
 				)
+				timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
 				return
 			}
 			query = {
@@ -259,8 +261,10 @@ export const SessionFeedV3 = React.memo(() => {
 			if (result?.data?.sessions_opensearch.totalCount !== undefined) {
 				setMoreSessions(result.data.sessions_opensearch.totalCount)
 			}
-		}, POLL_INTERVAL)
-		return () => clearInterval(interval)
+			timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
+		}
+		timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
+		return () => clearTimeout(timeout)
 	}, [
 		backendSearchQuery?.searchQuery,
 		moreDataQuery,

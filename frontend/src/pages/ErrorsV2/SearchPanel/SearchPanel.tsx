@@ -80,7 +80,8 @@ const SearchPanel = () => {
 
 	useEffect(() => {
 		// setup a polling interval for sessions after the current date range
-		const interval = setInterval(async () => {
+		let timeout: number
+		const poll = async () => {
 			let query = JSON.parse(backendSearchQuery?.searchQuery || '')
 			const lte =
 				query?.bool?.must[1]?.has_child?.query?.bool?.must[0]?.bool
@@ -94,6 +95,7 @@ const SearchPanel = () => {
 					'skipping polling for custom time selection',
 					{ lte, now: getNow().toISOString() },
 				)
+				timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
 				return
 			}
 			query = {
@@ -150,8 +152,10 @@ const SearchPanel = () => {
 			) {
 				setMoreErrors(result.data.error_groups_opensearch.totalCount)
 			}
-		}, POLL_INTERVAL)
-		return () => clearInterval(interval)
+			timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
+		}
+		timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
+		return () => clearTimeout(timeout)
 	}, [backendSearchQuery?.searchQuery, moreDataQuery, page, projectId])
 
 	useEffect(() => {
