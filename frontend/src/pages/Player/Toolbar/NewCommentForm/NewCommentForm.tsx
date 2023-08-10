@@ -243,9 +243,7 @@ export const NewCommentForm = ({
 						? issueDescription
 						: null,
 					additional_context: currentUrl
-						? `• From ${
-								error_secure_id ? 'error' : 'session'
-						  } URL: <${currentUrl}|${currentUrl}>`
+						? `*User\'s URL:* <${currentUrl}|${currentUrl}>`
 						: null,
 				},
 				refetchQueries: [namedOperations.Query.GetSessionComments],
