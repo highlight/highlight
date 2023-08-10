@@ -402,8 +402,8 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context) error {
 	return nil
 }
 
-func (k *KafkaBatchWorker) processWorkerError(ctx context.Context, err error) {
-	log.WithContext(ctx).Errorf("batched worker %s task failed: %s", k.Name, err)
+func (k *KafkaBatchWorker) processWorkerError(ctx context.Context, attempt int, err error) {
+	log.WithContext(ctx).Errorf("batched worker %s task failed attempt %d: %s", k.Name, attempt, err)
 }
 
 func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context, flush func(context.Context) error) {
@@ -421,7 +421,7 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context, flush func(conte
 
 				for i := 0; i <= kafkaqueue.TaskRetries; i++ {
 					if err := flush(ctx); err != nil {
-						k.processWorkerError(ctx, err)
+						k.processWorkerError(ctx, i, err)
 					} else {
 						break
 					}
