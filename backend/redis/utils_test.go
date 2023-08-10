@@ -14,20 +14,22 @@ func TestLock(t *testing.T) {
 	var count = 0
 	var g errgroup.Group
 	g.Go(func() error {
-		acquired := r.AcquireLock(context.Background(), "test-lock", time.Minute)
-		assert.True(t, acquired)
+		mutex, err := r.AcquireLock(context.Background(), "test-lock", time.Minute)
+		assert.NoError(t, err)
 		t.Logf("hello 1")
 		count += 1
-		err := r.ReleaseLock(context.Background(), "test-lock")
+		ok, err := mutex.Unlock()
+		assert.True(t, ok)
 		assert.NoError(t, err)
 		return nil
 	})
 	g.Go(func() error {
-		acquired := r.AcquireLock(context.Background(), "test-lock", time.Minute)
-		assert.True(t, acquired)
+		mutex, err := r.AcquireLock(context.Background(), "test-lock", time.Minute)
+		assert.NoError(t, err)
 		t.Logf("hello 2")
 		count += 1
-		err := r.ReleaseLock(context.Background(), "test-lock")
+		ok, err := mutex.Unlock()
+		assert.True(t, ok)
 		assert.NoError(t, err)
 		return nil
 	})
@@ -38,9 +40,10 @@ func TestLock(t *testing.T) {
 func BenchmarkLock(b *testing.B) {
 	r := NewClient()
 	for i := 0; i < b.N; i++ {
-		acquired := r.AcquireLock(context.Background(), "test-lock", time.Minute)
-		assert.True(b, acquired)
-		err := r.ReleaseLock(context.Background(), "test-lock")
+		mutex, err := r.AcquireLock(context.Background(), "test-lock", time.Minute)
+		assert.NoError(b, err)
+		ok, err := mutex.Unlock()
+		assert.True(b, ok)
 		assert.NoError(b, err)
 	}
 }
