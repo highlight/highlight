@@ -105,11 +105,14 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 				case lastMsg = <-k.BatchBuffer.messageQueue:
 					switch lastMsg.Type {
 					case kafkaqueue.PushLogs:
-						logRows = append(logRows, lastMsg.PushLogs.LogRow)
-						if oldestLogRow == nil || lastMsg.PushLogs.LogRow.Timestamp.Before(oldestLogRow.Timestamp) {
-							oldestLogRow = lastMsg.PushLogs.LogRow
+						if len(lastMsg.PushLogs.LogRows) > 0 {
+							logRows = append(logRows, lastMsg.PushLogs.LogRows...)
+							received += len(lastMsg.PushLogs.LogRows)
 						}
-						received += 1
+						if lastMsg.PushLogs.LogRow != nil {
+							logRows = append(logRows, lastMsg.PushLogs.LogRow)
+							received += 1
+						}
 					}
 					if received >= k.BatchFlushSize {
 						return true
@@ -238,6 +241,11 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) {
 		span.SetTag("NumLogRows", len(logRows))
 		span.SetTag("NumFilteredRows", len(filteredRows))
 		span.SetTag("PayloadSizeBytes", binary.Size(filteredRows))
+		for _, row := range lastMsg.PushLogs.LogRows {
+			if oldestLogRow == nil || row.Timestamp.Before(oldestLogRow.Timestamp) {
+				oldestLogRow = row
+			}
+		}
 		if oldestLogRow != nil {
 			span.SetTag("MaxIngestDelay", time.Since(oldestLogRow.Timestamp))
 		}
