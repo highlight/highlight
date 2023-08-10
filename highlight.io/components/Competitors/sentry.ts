@@ -24,7 +24,8 @@ export const SentrySpec: Competitor = {
 				},
 				{
 					feature: 'Support Ticket Integrations',
-					tooltip: 'Create tickets with clickup, linear, or jira.',
+					tooltip:
+						'Create tickets with Linear, GitHub, Height, or ClickUp.',
 					highlight: 1,
 					competitor: 1,
 				},
@@ -78,14 +79,14 @@ export const SentrySpec: Competitor = {
 				{
 					feature: 'Canvas & WebGL Recording',
 					tooltip:
-						'Ability to record canvas and webgl elements in your application.',
+						'Ability to record canvas and WebGl elements in your application.',
 					highlight: 1,
 					competitor: 0,
 				},
 				{
 					feature: 'Shadow DOM Recording',
 					tooltip:
-						'Ability to record shadow dom elements in your application.',
+						'Ability to record shadow DOM elements in your application.',
 					highlight: 1,
 					competitor: 0,
 				},
@@ -148,10 +149,6 @@ export const SentrySpec: Competitor = {
 		{
 			header: 'Full-stack Observability',
 			body: 'While Sentry provides a comprehensive set of separate features for error monitoring and session replay, it does not support logging. [Highlight.io](https://highlight.io) enables teams to monitor and optimize their entire tech stack, pairing server-side infrastructure with your frontend web applications. This makes Highlight.io a more comprehensive solution for developers who need to monitor their entire tech stack, in a simple, easy to implement solution.',
-		},
-		{
-			header: 'Agent-less Architecture',
-			body: `Datadog's architecture requires you to install an agent on your server. This can be a pain to install and maintain. Highlight.io's architecture is agent-less and requires no installation, but in the case that you want to install an agent long-term, we have an open-source agent/collector that you can install on your servers.`,
 		},
 	],
 }
