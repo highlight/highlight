@@ -2,7 +2,10 @@ require_relative './test_helper'
 
 class HighlightTest < Minitest::Test
   def test_logger
-    Highlight::H.new('qe9y4yg1')
+    Highlight::H.new('qe9y4yg1') do |c|
+      c.service_name = 'my-app'
+      c.service_version = '1.0.0'
+    end
     logger = Highlight::Logger.new($stdout)
     logger.add(Logger::INFO, 'ruby test log add!')
     logger.info('ruby test log info!')

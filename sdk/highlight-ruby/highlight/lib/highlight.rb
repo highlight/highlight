@@ -32,6 +32,7 @@ module Highlight
         c.add_span_processor(OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
                                OpenTelemetry::Exporter::OTLP::Exporter.new(endpoint: "#{@otlp_endpoint}/v1/traces")
                              ))
+        yield c if block_given?
       end
 
       @tracer_provider = OpenTelemetry.tracer_provider
