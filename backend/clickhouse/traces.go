@@ -42,6 +42,7 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 		return nil
 	}
 
+	// TODO: Figure out how we are getting some nil trace rows
 	traceRows = lo.Filter(traceRows, func(traceRow *TraceRow, _ int) bool {
 		return traceRow != nil
 	})
