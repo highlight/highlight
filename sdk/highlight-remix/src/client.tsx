@@ -8,12 +8,23 @@ import { SESSION_STORAGE_KEYS } from '@highlight-run/client/src/utils/sessionSto
 export { H } from 'highlight.run'
 
 interface Props extends HighlightOptions {
+	excludedHostnames?: string[]
 	projectId?: string
 }
 
-export function HighlightInit({ projectId, ...highlightOptions }: Props) {
+export function HighlightInit({
+	excludedHostnames = [],
+	projectId,
+	...highlightOptions
+}: Props) {
 	useEffect(() => {
-		if (projectId) {
+		const shouldRender =
+			projectId &&
+			excludedHostnames.every(
+				(hostname) => !window.location.hostname.includes(hostname),
+			)
+
+		if (shouldRender) {
 			const { sessionSecureID } = H.init(projectId, highlightOptions) || {
 				sessionSecureID: '',
 			}
