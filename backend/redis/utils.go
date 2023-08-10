@@ -29,7 +29,7 @@ type Client struct {
 	Cache       *cache.Cache
 }
 
-const LockPollInterval = 50 * time.Millisecond
+const LockPollInterval = 100 * time.Millisecond
 
 var (
 	ServerAddr = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
