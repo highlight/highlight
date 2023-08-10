@@ -424,9 +424,14 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 func (o *Handler) submitProjectSpans(ctx context.Context, projectTraceRows map[int][]*clickhouse.TraceRow) error {
 	for projectID, traceRows := range projectTraceRows {
 		// Only enable for Highlight's main project
-		if projectID != 1 {
+		// Temporarily TestHandler_HandleTracedisabling so we can monitor
+		// https://highlightcorp.slack.com/archives/C02CJANPHQS/p1690988700412539?thread_ts=1690985864.381839&cid=C02CJANPHQS
+		// When reenabling this, please uncomment the TestHandler_HandleTrace test
+		if projectID != 1 || true {
 			continue
 		}
+
+		traceRows := append(traceRows, traceRows...)
 
 		err := o.resolver.TracesQueue.Submit(ctx, &kafkaqueue.Message{
 			Type: kafkaqueue.PushTraces,
