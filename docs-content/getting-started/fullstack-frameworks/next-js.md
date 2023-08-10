@@ -146,6 +146,8 @@ export function ErrorBoundary({ children }: { children: React.ReactNode }) {
 
 The `excludedHostnames` prop accepts an array of partial or full hostnames. For example, if you pass in `excludedHostnames={['localhost', 'staging]}`, you'll block `localhost` on all ports, `www.staging.highlight.io` and `staging.highlight.com`.
 
+Don't forget to remove `localhost` from `excludedHostnames` when validating that your local build can send data to Highlight.
+
 Alternatively, you could manually call `H.start()` and `H.stop()` to manage invocation on your own.
 
 ```javascript
