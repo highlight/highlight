@@ -14,7 +14,17 @@ export type Props = {
 	error?: string
 }
 
-export const Body: React.FC<Props> = ({ children, loading, error }) => {
+// implicit props set from the parent table
+type ParentPassedProps = {
+	loading?: boolean
+	error?: string
+}
+
+export const Body: React.FC<Props & ParentPassedProps> = ({
+	children,
+	loading,
+	error,
+}) => {
 	const renderBodyContent = () => {
 		if (loading) {
 			return <LoadingBody />
