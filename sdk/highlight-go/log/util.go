@@ -145,11 +145,20 @@ func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
 	eventAttrs := []attribute.KeyValue{
 		LogSeverityKey.String(log.Type),
 		LogMessageKey.String(log.Message),
+		semconv.ServiceNameKey.String("vercel-log-drain"),
+		semconv.ServiceVersionKey.String(log.DeploymentId),
 		semconv.CodeNamespaceKey.String(log.Source),
 		semconv.CodeFilepathKey.String(log.Path),
 		semconv.CodeFunctionKey.String(log.Entrypoint),
 		semconv.HostNameKey.String(log.Host),
-		semconv.HTTPMethodKey.Int64(log.StatusCode),
+	}
+
+	if log.Proxy.Method != "" {
+		eventAttrs = append(eventAttrs, semconv.HTTPMethodKey.String(log.Proxy.Method))
+	}
+
+	if log.StatusCode != 0 {
+		eventAttrs = append(eventAttrs, semconv.HTTPStatusCodeKey.Int64(log.StatusCode))
 	}
 
 	span.AddEvent(highlight.LogEvent, trace.WithAttributes(eventAttrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))
@@ -169,9 +178,8 @@ func SubmitVercelLogs(ctx context.Context, projectID int, logs []VercelLog) {
 }
 
 func SubmitHTTPLog(ctx context.Context, projectID int, lg Log) error {
-	span, _ := highlight.StartTrace(
+	span, _ := highlight.StartTraceWithoutResourceAttributes(
 		ctx, "highlight-ctx",
-		attribute.String(highlight.SourceAttribute, "SubmitHTTPLog"),
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 	)
 	defer highlight.EndTrace(span)

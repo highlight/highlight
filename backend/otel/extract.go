@@ -172,9 +172,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 		}
 
 		for key, value := range util.FormatLogAttributes(ctx, k, v) {
-			if value != "" {
-				fields.attrs[key] = value
-			}
+			fields.attrs[key] = value
 		}
 	}
 
