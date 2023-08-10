@@ -1,5 +1,5 @@
-import datadogsmall from '../../public/images/datadog-small.png'
-import datadogfull from '../../public/images/datadog.png'
+import sentrysmall from '../../public/images/sentry-small.png'
+import sentryfull from '../../public/images/sentry.png'
 import { Competitor } from './competitors'
 import {
 	HighlightIsOpenAndTransparent,
@@ -11,8 +11,8 @@ export const SentrySpec: Competitor = {
 	header: 'A Truly Open Source Sentry Alternative.',
 	subheader:
 		'Session replay of your frontend, fullstack error monitoring, and powerful logging.',
-	logoDesktop: datadogfull,
-	logoMobile: datadogsmall,
+	logoDesktop: sentryfull,
+	logoMobile: sentrysmall,
 	sections: [
 		{
 			title: 'General',
