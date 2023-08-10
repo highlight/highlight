@@ -71,7 +71,7 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 	}
 
 	for _, row := range logRows {
-		span, _ := highlight.StartTrace(
+		span, _ := highlight.StartTraceWithoutResourceAttributes(
 			ctx, "highlight-ctx",
 			attribute.String(highlight.SourceAttribute, modelInputs.LogSourceFrontend.String()),
 			attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
