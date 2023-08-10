@@ -446,7 +446,13 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context, flush func(conte
 				k.BatchBuffer.lastMessage = &t
 			}
 			if len(k.BatchBuffer.messageQueue) >= k.BatchFlushSize {
-				flush(ctx)
+				for i := 0; i <= kafkaqueue.TaskRetries; i++ {
+					if err := flush(ctx); err != nil {
+						k.processWorkerError(ctx, i, err)
+					} else {
+						break
+					}
+				}
 			}
 			k.BatchBuffer.flushLock.Unlock()
 		}()
