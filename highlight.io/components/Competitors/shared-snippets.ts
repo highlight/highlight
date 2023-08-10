@@ -4,7 +4,7 @@ export const HighlightIsOpenAndTransparent = (name: string): CompetitorPara => {
 	return {
 		header: 'Highlight.io is open source and transparent',
 		body: `
-				[Highlight.io](https://highlight.io) is built with transparency at its core. 
+				[Highlight.io](https://highlight.io) is built with transparency at its core, with a [permissive license](https://github.com/highlight/highlight/blob/main/LICENSE). 
 				Not only do we work in the open, but we also expose what we\'re working on, on [our roadmap](https://www.highlight.io/docs/general/roadmap).
 				The fact that [Highlight.io](https://highlight.io) is open source also makes it easy to integrate and build your own tools on-top of it, an advantage closed-source products like ${name} can\'t offer.
 				`,
