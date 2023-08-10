@@ -89,25 +89,18 @@ func TestHandler_HandleTrace(t *testing.T) {
 	}
 	h.HandleTrace(w, r)
 
-	assert.Equal(t, 4, len(producer.messages), fmt.Sprintf("%+v", producer.messages))
+	messageCountsByType := map[kafkaqueue.PayloadType]int{}
+	for _, message := range producer.messages {
+		messageCountsByType[message.Type]++
+	}
 
-	_, ok := lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
-		return message.Type == kafkaqueue.PushBackendPayload
+	expectedMessageCountsByType := fmt.Sprintf("%+v", map[kafkaqueue.PayloadType]int{
+		kafkaqueue.PushBackendPayload: 1,
+		kafkaqueue.PushLogs:           2,
+		kafkaqueue.PushTraces:         512,
 	})
-	assert.Truef(t, ok, "did not find a PushBackendPayload message")
 
-	_, ok = lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
-		return message.Type == kafkaqueue.PushLogs
-	})
-	assert.Truef(t, ok, "did not find a PushLogs message")
-
-	tracesMessage, ok := lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
-		return message.Type == kafkaqueue.PushTraces
-	})
-	assert.Truef(t, ok, "did not find a PushTraces message")
-
-	// 512 traces in sample file
-	assert.Equal(t, 512, len(tracesMessage.PushTraces.TraceRows))
+	assert.Equal(t, expectedMessageCountsByType, fmt.Sprintf("%+v", messageCountsByType))
 
 	allPushLogs := lo.Filter(producer.messages, func(message *kafkaqueue.Message, _ int) bool {
 		return message.Type == kafkaqueue.PushLogs
