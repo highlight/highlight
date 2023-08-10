@@ -2,6 +2,7 @@ import LoadingBox from '@components/LoadingBox'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { ErrorObject } from '@graph/schemas'
 import { Box, IconSolidArrowCircleRight, Tag, Text } from '@highlight-run/ui'
+import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import {
 	RightPanelView,
 	usePlayerUIContext,
@@ -118,6 +119,7 @@ const ErrorsPage = ({
 							searchQuery={filter}
 							selectedError={selectedError?.id === error.id}
 							current={index === lastActiveErrorIndex}
+							past={index <= lastActiveErrorIndex}
 						/>
 					)}
 				/>
@@ -142,6 +144,7 @@ interface Props {
 	startTime: number
 	searchQuery: string
 	current?: boolean
+	past?: boolean
 }
 
 const ErrorRow = React.memo(
@@ -154,6 +157,7 @@ const ErrorRow = React.memo(
 		startTime,
 		searchQuery,
 		current,
+		past,
 	}: Props) => {
 		const body = useMemo(
 			() => parseOptionalJSON(getErrorBody(error.event)),
@@ -169,65 +173,91 @@ const ErrorRow = React.memo(
 		}, [error.timestamp, startTime])
 
 		return (
-			<Box
-				key={error.id}
-				className={styles.errorRowVariants({
-					current,
-					selected: selectedError,
-				})}
-				onClick={onClickHandler}
-			>
-				<Box>
-					<TextHighlighter
-						searchWords={[searchQuery]}
-						textToHighlight={
-							typeof body === 'object'
-								? JSON.stringify(body)
-								: body
-						}
-						className={styles.singleLine}
-					/>
-				</Box>
-				<Box>
-					{context && (
+			<Box key={error.id} mx="4">
+				<Box
+					className={styles.errorRowVariants({
+						current,
+						selected: selectedError,
+					})}
+					onClick={onClickHandler}
+					style={{
+						opacity: past ? 1 : 0.4,
+					}}
+				>
+					<Box>
 						<TextHighlighter
 							searchWords={[searchQuery]}
 							textToHighlight={
-								typeof context === 'object'
-									? JSON.stringify(context)
-									: context
+								typeof body === 'object'
+									? JSON.stringify(body)
+									: body
 							}
-							className={styles.singleLine}
+							className={styles.cellContent}
 						/>
-					)}
-				</Box>
-				<Box display="flex" align="center" justifyContent="flex-end">
-					<Text color="n11">
-						{error.structured_stack_trace[0] &&
-							`Line ${error.structured_stack_trace[0].lineNumber}:` +
-								`${error.structured_stack_trace[0].columnNumber}`}
-					</Text>
-				</Box>
-				<Box display="flex" align="center" justifyContent="flex-end">
-					<Tag kind="secondary" lines="1">
-						{error.type}
-					</Tag>
-				</Box>
-				<Box display="flex" align="center" justifyContent="flex-end">
-					<Tag
-						shape="basic"
-						emphasis="low"
-						kind="secondary"
-						size="medium"
-						onClick={(event) => {
-							setTime(timestamp)
-							event.stopPropagation() /* Prevents opening of right panel by parent row's onClick handler */
-							setActiveError(error)
-						}}
+					</Box>
+					<Box>
+						{context && (
+							<TextHighlighter
+								searchWords={[searchQuery]}
+								textToHighlight={
+									typeof context === 'object'
+										? JSON.stringify(context)
+										: context
+								}
+								className={styles.cellContent}
+							/>
+						)}
+					</Box>
+					<Box
+						display="flex"
+						align="center"
+						justifyContent="flex-end"
 					>
-						<IconSolidArrowCircleRight />
-					</Tag>
+						<Text color="weak">
+							{error.structured_stack_trace[0] &&
+								`Line ${error.structured_stack_trace[0].lineNumber}:` +
+									`${error.structured_stack_trace[0].columnNumber}`}
+						</Text>
+					</Box>
+					<Box
+						display="flex"
+						align="center"
+						justifyContent="flex-end"
+					>
+						<Tag kind="secondary" lines="1">
+							{error.type}
+						</Tag>
+					</Box>
+					<Box
+						display="flex"
+						align="center"
+						justifyContent="flex-end"
+					>
+						<Tag
+							shape="basic"
+							emphasis="low"
+							kind="secondary"
+							size="medium"
+							onClick={(event) => {
+								setTime(timestamp)
+								event.stopPropagation() /* Prevents opening of right panel by parent row's onClick handler */
+								setActiveError(error)
+							}}
+						>
+							<IconSolidArrowCircleRight />
+						</Tag>
+					</Box>
 				</Box>
+				{current && (
+					<Box
+						borderRadius="2"
+						style={{
+							backgroundColor:
+								themeVars.interactive.fill.primary.enabled,
+							height: 2,
+						}}
+					/>
+				)}
 			</Box>
 		)
 	},
