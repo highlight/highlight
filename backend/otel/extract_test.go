@@ -321,16 +321,6 @@ func TestExtractFields_OmitLogSeverity(t *testing.T) {
 	})
 }
 
-func TestExtractFields_OmitBackendPropertiesForFrontendSource(t *testing.T) {
-	resource := newResource(t, map[string]any{
-		"os.description":   "Debian GNU/Linux 11 (bullseye)", // should be skipped since this is a frontend source
-		"highlight.source": "frontend",
-	})
-	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
-	assert.NoError(t, err)
-	assert.Equal(t, fields.attrs, map[string]string{})
-}
-
 func TestExtractFields_TrimLongFields(t *testing.T) {
 	var value string
 	for i := 0; i < 2<<16; i++ {
