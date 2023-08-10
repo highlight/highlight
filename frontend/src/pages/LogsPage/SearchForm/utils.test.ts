@@ -213,4 +213,8 @@ describe('quoteQueryValue', () => {
 	it('handles single quoted strings', () => {
 		expect(quoteQueryValue("'a test query'")).toEqual("'a test query'")
 	})
+
+	it('handles numbers', () => {
+		expect(quoteQueryValue(1234)).toEqual('1234')
+	})
 })
