@@ -6342,7 +6342,6 @@ body {
   height: calc(100% - 32px);
   display: flex;
   flex-direction: column;
-  padding-left: 8px;
   overflow-x: hidden;
   overflow-y: auto;
   word-wrap: break-word;
@@ -6386,6 +6385,9 @@ body {
 }
 .riaubm7:hover {
   background-color: var(--_1pyqka91x);
+}
+.riaubm8 {
+  border-bottom: 2px solid var(--_1pyqka9l);
 }
 .riaubma {
   color: var(--_1pyqka915);
