@@ -188,7 +188,11 @@ export const getLogsURLForSession = ({
 	return `/${projectId}/logs?${stringify(encodedQuery)}`
 }
 
-export const quoteQueryValue = (value: string) => {
+export const quoteQueryValue = (value: string | number) => {
+	if (typeof value !== 'string') {
+		return String(value)
+	}
+
 	if (value.startsWith('"') || value.startsWith("'")) {
 		return value
 	}
