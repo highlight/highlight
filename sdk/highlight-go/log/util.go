@@ -161,6 +161,10 @@ func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
 		attrs = append(attrs, semconv.HTTPStatusCodeKey.Int64(log.StatusCode))
 	}
 
+	if len(log.Proxy.UserAgent) > 0 {
+		attrs = append(attrs, semconv.HTTPUserAgentKey.String(strings.Join(log.Proxy.UserAgent, ",")))
+	}
+
 	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))
 	if log.Type == "error" {
 		span.SetStatus(codes.Error, log.Message)
