@@ -155,31 +155,42 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				span := spans.At(k)
 				events := span.Events()
 
-				fields, err := extractFields(ctx, extractFieldsParams{
-					span: &span,
-				})
-				if err != nil {
-					lg(ctx, fields).WithError(err).Error("failed to extract fields from span")
+				isLog := false
+				for l := 0; l < events.Len() && !isLog; l++ {
+					e := events.At(l)
+					if e.Name() == "log" {
+						isLog = true
+					}
 				}
 
-				traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime(), fields.projectIDInt).
-					WithSecureSessionId(fields.sessionID).
-					WithTraceId(span.TraceID().String()).
-					WithSpanId(span.SpanID().String()).
-					WithParentSpanId(span.ParentSpanID().String()).
-					WithTraceState(span.TraceState().AsRaw()).
-					WithSpanName(span.Name()).
-					WithSpanKind(span.Kind().String()).
-					WithDuration(span.StartTimestamp().AsTime(), span.EndTimestamp().AsTime()).
-					WithServiceName(fields.serviceName).
-					WithServiceVersion(fields.serviceVersion).
-					WithStatusCode(span.Status().Code().String()).
-					WithStatusMessage(span.Status().Message()).
-					WithTraceAttributes(fields.attrs).
-					WithEvents(fields.events).
-					WithLinks(fields.links)
+				// Only process spans that are not logs
+				if !isLog {
+					fields, err := extractFields(ctx, extractFieldsParams{
+						span: &span,
+					})
+					if err != nil {
+						lg(ctx, fields).WithError(err).Error("failed to extract fields from span")
+					}
 
-				projectSpans[fields.projectIDInt] = append(projectSpans[fields.projectIDInt], traceRow)
+					traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime(), fields.projectIDInt).
+						WithSecureSessionId(fields.sessionID).
+						WithTraceId(span.TraceID().String()).
+						WithSpanId(span.SpanID().String()).
+						WithParentSpanId(span.ParentSpanID().String()).
+						WithTraceState(span.TraceState().AsRaw()).
+						WithSpanName(span.Name()).
+						WithSpanKind(span.Kind().String()).
+						WithDuration(span.StartTimestamp().AsTime(), span.EndTimestamp().AsTime()).
+						WithServiceName(fields.serviceName).
+						WithServiceVersion(fields.serviceVersion).
+						WithStatusCode(span.Status().Code().String()).
+						WithStatusMessage(span.Status().Message()).
+						WithTraceAttributes(fields.attrs).
+						WithEvents(fields.events).
+						WithLinks(fields.links)
+
+					projectSpans[fields.projectIDInt] = append(projectSpans[fields.projectIDInt], traceRow)
+				}
 
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)

@@ -13,7 +13,6 @@ import (
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
-	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 )
@@ -89,34 +88,26 @@ func TestHandler_HandleTrace(t *testing.T) {
 	}
 	h.HandleTrace(w, r)
 
+	logCountsBySource := map[model.LogSource]int{}
 	messageCountsByType := map[kafkaqueue.PayloadType]int{}
 	for _, message := range producer.messages {
 		messageCountsByType[message.Type]++
+		if message.Type == kafkaqueue.PushLogs {
+			log := message.PushLogs.LogRow
+			logCountsBySource[log.Source]++
+		}
 	}
 
 	expectedMessageCountsByType := fmt.Sprintf("%+v", map[kafkaqueue.PayloadType]int{
 		kafkaqueue.PushBackendPayload: 1,
-		kafkaqueue.PushLogs:           2,
-		kafkaqueue.PushTraces:         512,
+		kafkaqueue.PushLogs:           15,  // 4 exceptions, 11 logs
+		kafkaqueue.PushTraces:         501, // 512 spans - 11 logs
 	})
-
 	assert.Equal(t, expectedMessageCountsByType, fmt.Sprintf("%+v", messageCountsByType))
 
-	allPushLogs := lo.Filter(producer.messages, func(message *kafkaqueue.Message, _ int) bool {
-		return message.Type == kafkaqueue.PushLogs
+	expectedLogCountsByType := fmt.Sprintf("%+v", map[model.LogSource]int{
+		model.LogSourceFrontend: 1,
+		model.LogSourceBackend:  14,
 	})
-
-	for _, pushLogs := range allPushLogs {
-		if len(pushLogs.PushLogs.LogRows) == 14 {
-			for _, log := range pushLogs.PushLogs.LogRows {
-				assert.Equal(t, model.LogSourceBackend, log.Source)
-			}
-		} else if len(pushLogs.PushLogs.LogRows) == 1 {
-			for _, log := range pushLogs.PushLogs.LogRows {
-				assert.Equal(t, model.LogSourceFrontend, log.Source)
-			}
-		} else {
-			assert.Fail(t, "found a push logs with no log rows")
-		}
-	}
+	assert.Equal(t, expectedLogCountsByType, fmt.Sprintf("%+v", logCountsBySource))
 }
