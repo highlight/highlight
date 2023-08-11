@@ -13,14 +13,12 @@ import { Row, Props as RowProps } from './Row/Row'
 
 import { Box } from '../Box/Box'
 
-import * as styles from './styles.css'
-
 type Props = {
 	children: React.ReactNode
 }
 
 const TableComponent: React.FC<Props> = ({ children }) => {
-	return <Box className={styles.container}>{children}</Box>
+	return <Box>{children}</Box>
 }
 
 type TableWithComponents = React.FC<Props> & {
