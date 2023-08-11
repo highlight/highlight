@@ -481,7 +481,13 @@ func (r *Client) GetHubspotCompanies(ctx context.Context, companies interface{})
 }
 
 func (r *Client) AcquireLock(_ context.Context, key string, timeout time.Duration) (*redsync.Mutex, error) {
-	mutex := r.Redsync.NewMutex(key, redsync.WithRetryDelay(LockPollInterval), redsync.WithTries(int(timeout/LockPollInterval)))
+	mutex := r.Redsync.NewMutex(
+		key,
+		redsync.WithRetryDelay(LockPollInterval),
+		redsync.WithTries(int(timeout/LockPollInterval)),
+		// ecs containers have up to 25 seconds to shut down
+		redsync.WithExpiry(25*time.Second),
+	)
 	return mutex, mutex.Lock()
 }
 

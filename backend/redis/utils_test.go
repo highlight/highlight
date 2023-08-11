@@ -18,11 +18,13 @@ func TestLock(t *testing.T) {
 		assert.NoError(t, err)
 		t.Logf("hello 1")
 		count += 1
+		time.Sleep(time.Second * 3)
 		ok, err := mutex.Unlock()
 		assert.True(t, ok)
 		assert.NoError(t, err)
 		return nil
 	})
+	time.Sleep(time.Second)
 	g.Go(func() error {
 		mutex, err := r.AcquireLock(context.Background(), "test-lock", time.Minute)
 		assert.NoError(t, err)
@@ -33,6 +35,8 @@ func TestLock(t *testing.T) {
 		assert.NoError(t, err)
 		return nil
 	})
+	time.Sleep(time.Second)
+	assert.Equal(t, count, 1)
 	_ = g.Wait()
 	assert.Equal(t, count, 2)
 }
