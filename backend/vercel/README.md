@@ -36,4 +36,4 @@ Wait about a minute for the logs to go through the OTEL pipeline
 
 Observe logs in app with the start date set to 2022 (Vercel hardcodes the timestamp to something really old using Test Log Drain)
 
-![Screenshot 2023-08-10 at 1 07 55 PM](https://github.com/highlight/highlight/assets/58678/32e160ea-07c4-4a2a-88a1-8226a12ab50d)
+![Screenshot 2023-08-10 at 1 07 55 PM](https://user-images.githubusercontent.com/58678/259855002-39529705-c85d-4187-90c5-710171665807.png)
