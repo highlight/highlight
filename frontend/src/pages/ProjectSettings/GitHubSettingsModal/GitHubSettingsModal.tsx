@@ -154,7 +154,7 @@ const GithubSettingsForm = ({
 							target="_blank"
 							rel="noreferrer"
 						>
-							Github
+							GitHub
 						</a>
 						.
 					</Text>

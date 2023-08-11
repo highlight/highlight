@@ -2,7 +2,7 @@ import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
 import {
 	useEditServiceGithubSettingsMutation,
-	useGetServicesLazyQuery,
+	useGetServicesQuery,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
@@ -17,8 +17,8 @@ import {
 	Text,
 	useComboboxState,
 } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
-import { useParams } from '@util/react-router/useParams'
 import { capitalize } from 'lodash'
 import { debounce } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -34,8 +34,18 @@ type Pagination = {
 }
 
 export const ServicesTable: React.FC = () => {
-	const { project_id } = useParams<{ project_id: string }>()
-	const [loadServices, { error, data, loading }] = useGetServicesLazyQuery()
+	const { projectId } = useProjectId()
+	const {
+		error,
+		data,
+		loading,
+		refetch: refetchServices,
+	} = useGetServicesQuery({
+		variables: {
+			project_id: projectId!,
+		},
+		skip: !projectId,
+	})
 	const [query, setQuery] = useState<string>('')
 	const [pagination, setPagination] = useState<Pagination>({})
 	const [selectedService, setService] = useState<Service | null>(null)
@@ -48,15 +58,13 @@ export const ServicesTable: React.FC = () => {
 	const [editServiceGithubSettings] = useEditServiceGithubSettingsMutation()
 
 	useEffect(() => {
-		loadServices({
-			variables: {
-				project_id: project_id!,
-				query: query!,
-				before: pagination.before!,
-				after: pagination.after!,
-			},
+		refetchServices({
+			project_id: projectId!,
+			query: query,
+			before: pagination.before,
+			after: pagination.after,
 		})
-	}, [loadServices, project_id, query, pagination])
+	}, [refetchServices, projectId, query, pagination])
 
 	const state = useComboboxState()
 	const handleQueryChange = useMemo(
