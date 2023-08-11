@@ -2,13 +2,14 @@ package embeddings
 
 import (
 	"context"
+	"math"
+	"os"
+	"time"
+
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
-	"math"
-	"os"
-	"time"
 )
 
 type EmbeddingType string
@@ -20,6 +21,7 @@ const PayloadEmbedding EmbeddingType = "PayloadEmbedding"
 
 type Client interface {
 	GetEmbeddings(ctx context.Context, errors []*model.ErrorObject) ([]*model.ErrorObjectEmbeddings, error)
+	GetErrorTagEmbedding(ctx context.Context, title string, description string) (*model.ErrorTag, error)
 }
 
 type OpenAIClient struct {
@@ -116,4 +118,27 @@ func (c *OpenAIClient) GetEmbeddings(ctx context.Context, errors []*model.ErrorO
 	}
 
 	return lo.Values(results), nil
+}
+
+func (c *OpenAIClient) GetErrorTagEmbedding(ctx context.Context, title string, description string) (*model.ErrorTag, error) {
+	resp, err := c.client.CreateEmbeddings(
+		context.Background(),
+		openai.EmbeddingRequest{
+			Input: []string{title, description},
+			Model: openai.AdaEmbeddingV2,
+			User:  "highlight-io",
+		},
+	)
+	var embedding = resp.Data[0].Embedding
+	errorTag := &model.ErrorTag{
+		Title:       title,
+		Description: description,
+		Embedding:   embedding,
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return errorTag, nil
+
 }

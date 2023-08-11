@@ -61,6 +61,7 @@ import (
 	"github.com/highlight-run/workerpool"
 
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
@@ -142,6 +143,7 @@ type Resolver struct {
 	Store                  *store.Store
 	DataSyncQueue          kafka_queue.MessageQueue
 	TracesQueue            kafka_queue.MessageQueue
+	EmbeddingsClient       embeddings.Client
 }
 
 func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {
@@ -1326,8 +1328,7 @@ func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session
 	- Insights must be different to each other
 	- Do not mention identification or authentication events
 	- Don't mention timestamps in <insight>, insights should be interesting inferences from the input
-	- Output timestamp that best represents the insight in <timestamp> of output
-	- Sort the insights by timestamp
+	- Output timestamp that best represents the insight in <timestamp> of output	- Sort the insights by timestamp
 
 	You must respond ONLY with JSON that looks like this:
 	[{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number }]
@@ -3670,4 +3671,20 @@ func IsOptOutTokenValid(adminID int, token string) bool {
 
 	// If the token matches the prior month's, it's valid
 	return token == Email.GetOptOutToken(adminID, true)
+}
+
+func (r *Resolver) CreateErrorTag(ctx context.Context, title string, description string) (*model.ErrorTag, error) {
+	errorTag, err := r.EmbeddingsClient.GetErrorTagEmbedding(ctx, title, description)
+
+	if err != nil {
+		log.WithContext(ctx).Error(err, "CreateErrorTag: Error creating tag embedding")
+		return nil, err
+	}
+
+	if err := r.DB.Create(errorTag).Error; err != nil {
+		log.WithContext(ctx).Error(err, "CreateErrorTag: Error creating tag")
+		return nil, err
+	}
+
+	return errorTag, nil
 }

@@ -945,6 +945,7 @@ type ErrorObject struct {
 	IsBeacon                bool    `gorm:"default:false"`
 	ServiceName             string
 	ServiceVersion          string
+	ErrorTagID              *string
 }
 
 type ErrorObjectEmbeddings struct {
@@ -984,6 +985,13 @@ type ErrorGroup struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
 	Viewed         *bool   `json:"viewed"`
+}
+
+type ErrorTag struct {
+	Model
+	Title       string
+	Description string
+	Embedding   Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
 }
 
 type ErrorGroupEventType string

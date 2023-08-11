@@ -480,6 +480,7 @@ type ErrorObject {
 	session_id: Int
 	trace_id: String
 	span_id: String
+	error_tag_id: String
 	log_cursor: String
 	error_group_id: Int!
 	error_group_secure_id: String!
@@ -552,6 +553,13 @@ type ErrorMetadata {
 	user_properties: String
 	request_id: String
 	payload: String
+}
+
+type ErrorTag {
+	id: ID!
+	created_at: Timestamp!
+	title: String
+	description: String
 }
 
 type ErrorTrace {
@@ -2131,6 +2139,7 @@ type Mutation {
 		build_prefix: String
 		github_prefix: String
 	): Service
+	createErrorTag(title: String!, description: String!): ErrorTag!
 }
 
 type Subscription {
