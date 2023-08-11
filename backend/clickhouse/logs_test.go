@@ -1013,18 +1013,18 @@ func TestReadLogsWithMultipleFilters(t *testing.T) {
 
 	now := time.Now()
 	rows := []*LogRow{
-		NewLogRow(now, 1, WithServiceName("service-name"), WithLogAttributes(map[string]string{"foo.bar": "buzz"})),
+		NewLogRow(now, 1,
+			WithLogAttributes(map[string]string{"code.lineno": "162", "os.type": "linux"})),
 	}
 
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
 	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
-		Query:     "service_name:service-name foo.bar:*uz*",
+		Query:     "code.lineno:*62-name os.type:linux",
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
-	assert.Equal(t, "service-name", *payload.Edges[0].Node.ServiceName)
 }
 
 func TestLogsKeys(t *testing.T) {
