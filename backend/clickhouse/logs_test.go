@@ -1006,6 +1006,27 @@ func TestReadLogsWithMultipleFilters(t *testing.T) {
 	assert.Len(t, payload.Edges, 2)
 }
 
+func TestReadLogsWithMultipleFilters(t *testing.T) {
+	ctx := context.Background()
+	client, teardown := setupTest(t)
+	defer teardown(t)
+
+	now := time.Now()
+	rows := []*LogRow{
+		NewLogRow(now, 1, WithServiceName("service-name"), WithLogAttributes(map[string]string{"foo.bar": "buzz"})),
+	}
+
+	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
+
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "service_name:service-name foo.bar:*uz*",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 1)
+	assert.Equal(t, "service-name", *payload.Edges[0].Node.ServiceName)
+}
+
 func TestLogsKeys(t *testing.T) {
 	ctx := context.Background()
 	client, teardown := setupTest(t)
