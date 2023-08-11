@@ -93,7 +93,7 @@ export const Loading = () => {
 	const gridColumns = COLUMNS.map((column) => column.width)
 
 	return (
-		<Table loading={true}>
+		<Table>
 			<Table.Head>
 				<Table.Row gridColumns={gridColumns}>
 					{COLUMNS.map((column) => (
@@ -103,7 +103,44 @@ export const Loading = () => {
 					))}
 				</Table.Row>
 			</Table.Head>
-			<Table.Body>
+			<Table.Body loading={true}>
+				{DATA.map((row: DefaultData) => (
+					<Table.Row gridColumns={gridColumns} key={row.name}>
+						{COLUMNS.map((column) => (
+							<Table.Cell
+								key={column.name}
+								icon={column.dataFormat?.icon}
+							>
+								{column.renderData(row)}
+							</Table.Cell>
+						))}
+					</Table.Row>
+				))}
+			</Table.Body>
+		</Table>
+	)
+}
+
+export const CustomLoading = () => {
+	const gridColumns = COLUMNS.map((column) => column.width)
+
+	return (
+		<Table>
+			<Table.Head>
+				<Table.Row gridColumns={gridColumns}>
+					{COLUMNS.map((column) => (
+						<Table.Header key={column.name}>
+							{column.name}
+						</Table.Header>
+					))}
+				</Table.Row>
+			</Table.Head>
+			<Table.Body
+				loading={true}
+				customLoading={
+					<Table.FullRow>Loading students...</Table.FullRow>
+				}
+			>
 				{DATA.map((row: DefaultData) => (
 					<Table.Row gridColumns={gridColumns} key={row.name}>
 						{COLUMNS.map((column) => (
@@ -125,7 +162,7 @@ export const Error = () => {
 	const gridColumns = COLUMNS.map((column) => column.width)
 
 	return (
-		<Table error="There was an issue fetching your data.">
+		<Table>
 			<Table.Head>
 				<Table.Row gridColumns={gridColumns}>
 					{COLUMNS.map((column) => (
@@ -135,7 +172,42 @@ export const Error = () => {
 					))}
 				</Table.Row>
 			</Table.Head>
-			<Table.Body>
+			<Table.Body error="There was an issue fetching your data.">
+				{DATA.map((row: DefaultData) => (
+					<Table.Row gridColumns={gridColumns} key={row.name}>
+						{COLUMNS.map((column) => (
+							<Table.Cell
+								key={column.name}
+								icon={column.dataFormat?.icon}
+							>
+								{column.renderData(row)}
+							</Table.Cell>
+						))}
+					</Table.Row>
+				))}
+			</Table.Body>
+		</Table>
+	)
+}
+
+export const CustomError = () => {
+	const gridColumns = COLUMNS.map((column) => column.width)
+
+	return (
+		<Table>
+			<Table.Head>
+				<Table.Row gridColumns={gridColumns}>
+					{COLUMNS.map((column) => (
+						<Table.Header key={column.name}>
+							{column.name}
+						</Table.Header>
+					))}
+				</Table.Row>
+			</Table.Head>
+			<Table.Body
+				error="There was an issue fetching your data."
+				customError={<Table.FullRow>An error occurred</Table.FullRow>}
+			>
 				{DATA.map((row: DefaultData) => (
 					<Table.Row gridColumns={gridColumns} key={row.name}>
 						{COLUMNS.map((column) => (
@@ -168,6 +240,42 @@ export const Empty = () => {
 				</Table.Row>
 			</Table.Head>
 			<Table.Body>
+				{[].map((row: DefaultData) => (
+					<Table.Row gridColumns={gridColumns} key={row.name}>
+						{COLUMNS.map((column) => (
+							<Table.Cell
+								key={column.name}
+								icon={column.dataFormat?.icon}
+							>
+								{column.renderData(row)}
+							</Table.Cell>
+						))}
+					</Table.Row>
+				))}
+			</Table.Body>
+		</Table>
+	)
+}
+
+export const CustomEmpty = () => {
+	const gridColumns = COLUMNS.map((column) => column.width)
+
+	return (
+		<Table>
+			<Table.Head>
+				<Table.Row gridColumns={gridColumns}>
+					{COLUMNS.map((column) => (
+						<Table.Header key={column.name}>
+							{column.name}
+						</Table.Header>
+					))}
+				</Table.Row>
+			</Table.Head>
+			<Table.Body
+				customEmpty={
+					<Table.FullRow>No students were found</Table.FullRow>
+				}
+			>
 				{[].map((row: DefaultData) => (
 					<Table.Row gridColumns={gridColumns} key={row.name}>
 						{COLUMNS.map((column) => (
