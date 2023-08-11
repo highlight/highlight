@@ -57,8 +57,20 @@ jobs:
                   go-version-file: 'backend/go.mod'
             - name: Run tests
               run: cd sdk/highlight-go && go test -race -covermode=atomic -coverprofile=coverage.out --v
-            - name: Upload coverage reports to Codecov
-              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight'
-              uses: codecov/codecov-action@v3
-              env:
-                  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+            - name: Code Coverage Report
+              uses: irongut/CodeCoverageSummary@v1.3.0
+              with:
+                  filename: sdk/highlight-go/coverage.out
+                  badge: true
+                  fail_below_min: true
+                  format: markdown
+                  output: both
+                  thresholds: '50 80'
+
+            - name: Add Coverage PR Comment
+              uses: marocchino/sticky-pull-request-comment@v2
+              if: github.event_name == 'pull_request'
+              with:
+                  recreate: true
+                  path: code-coverage-results.md
