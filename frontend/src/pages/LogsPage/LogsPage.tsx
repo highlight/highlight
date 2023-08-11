@@ -1,13 +1,12 @@
 import { AdditionalFeedResults } from '@components/FeedResults/FeedResults'
 import { LogLevel, ProductType } from '@graph/schemas'
-import { Box, resetRelativeDates } from '@highlight-run/ui'
 import {
-	fifteenMinutesAgo,
-	LOG_TIME_PRESETS,
-	now,
-	thirtyDaysAgo,
-	TIME_MODE,
-} from '@pages/LogsPage/constants'
+	Box,
+	defaultPresets,
+	getNow,
+	resetRelativeDates,
+} from '@highlight-run/ui'
+import { TIME_MODE } from '@pages/LogsPage/constants'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
@@ -15,7 +14,6 @@ import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
 import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
-import moment from 'moment'
 import React, { useRef } from 'react'
 import { Helmet } from 'react-helmet'
 import {
@@ -31,10 +29,13 @@ import { OverageCard } from '@/pages/LogsPage/OverageCard/OverageCard'
 export const QueryParam = withDefault(StringParam, '')
 export const FixedRangeStartDateParam = withDefault(
 	DateTimeParam,
-	fifteenMinutesAgo,
+	defaultPresets[0].startDate,
 )
-export const PermalinkStartDateParam = withDefault(DateTimeParam, thirtyDaysAgo)
-export const EndDateParam = withDefault(DateTimeParam, now.toDate())
+export const PermalinkStartDateParam = withDefault(
+	DateTimeParam,
+	defaultPresets[5].startDate,
+)
+export const EndDateParam = withDefault(DateTimeParam, getNow().toDate())
 
 const LogsPage = () => {
 	const { log_cursor } = useParams<{
@@ -63,6 +64,7 @@ type Props = {
 }
 
 const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
+	const tableContainerRef = useRef<HTMLDivElement>(null)
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -71,9 +73,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 		'start_date',
 		startDateDefault,
 	)
-
-	const tableContainerRef = useRef<HTMLDivElement>(null)
-
 	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
 
 	const {
@@ -146,15 +145,15 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						startDate={startDate}
 						endDate={endDate}
 						onDatesChange={handleDatesChange}
-						presets={LOG_TIME_PRESETS}
-						minDate={thirtyDaysAgo}
+						presets={defaultPresets}
+						minDate={defaultPresets[5].startDate}
 						timeMode={timeMode}
 					/>
 					<LogsCount
 						query={query}
 						startDate={startDate}
 						endDate={endDate}
-						presets={LOG_TIME_PRESETS}
+						presets={defaultPresets}
 					/>
 					<LogsHistogram
 						query={query}
@@ -186,8 +185,8 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 								resetRelativeDates()
 								setMoreLogs(0)
 								handleDatesChange(
-									moment().add(-1, 'hour').toDate(),
-									new Date(),
+									defaultPresets[0].startDate,
+									getNow().toDate(),
 								)
 							}}
 						/>

@@ -12,8 +12,10 @@ import {
 	Box,
 	Column,
 	Container,
+	defaultPresets,
 	Form,
 	FormState,
+	getNow,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidCheveronUp,
@@ -38,12 +40,7 @@ import {
 	dedupeEnvironments,
 	EnvironmentSuggestion,
 } from '@pages/Alerts/utils/AlertsUtils'
-import {
-	LOG_TIME_FORMAT,
-	LOG_TIME_PRESETS,
-	now,
-	thirtyDaysAgo,
-} from '@pages/LogsPage/constants'
+import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { Search } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useParams } from '@util/react-router/useParams'
@@ -72,10 +69,10 @@ export const LogAlertPage = () => {
 	const [endDateParam] = useQueryParam('end_date', DateTimeParam)
 
 	const [startDate, setStartDate] = useState(
-		startDateParam ?? LOG_TIME_PRESETS[0].startDate,
+		startDateParam ?? defaultPresets[0].startDate,
 	)
 
-	const [endDate, setEndDate] = useState(endDateParam ?? now.toDate())
+	const [endDate, setEndDate] = useState(endDateParam ?? getNow().toDate())
 	const [selectedDates, setSelectedDates] = useState<Date[]>([
 		startDate,
 		endDate,
@@ -432,8 +429,10 @@ export const LogAlertPage = () => {
 										<PreviousDateRangePicker
 											selectedDates={selectedDates}
 											onDatesChange={setSelectedDates}
-											presets={LOG_TIME_PRESETS}
-											minDate={thirtyDaysAgo}
+											presets={defaultPresets}
+											minDate={
+												defaultPresets[5].startDate
+											}
 											kind="secondary"
 											size="medium"
 											emphasis="low"

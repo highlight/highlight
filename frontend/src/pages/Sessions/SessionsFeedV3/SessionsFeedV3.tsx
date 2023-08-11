@@ -257,11 +257,11 @@ export const SessionFeedV3 = React.memo(() => {
 				project_id: project_id!,
 				sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
 			}
+			timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
 			const result = await moreDataQuery({ variables })
 			if (result?.data?.sessions_opensearch.totalCount !== undefined) {
 				setMoreSessions(result.data.sessions_opensearch.totalCount)
 			}
-			timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
 		}
 		timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
 		return () => clearTimeout(timeout)

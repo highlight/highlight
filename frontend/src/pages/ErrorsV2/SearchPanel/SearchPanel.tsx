@@ -146,13 +146,13 @@ const SearchPanel = () => {
 				page: 1,
 				project_id: projectId!,
 			}
+			timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
 			const result = await moreDataQuery({ variables })
 			if (
 				result?.data?.error_groups_opensearch.totalCount !== undefined
 			) {
 				setMoreErrors(result.data.error_groups_opensearch.totalCount)
 			}
-			timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
 		}
 		timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
 		return () => clearTimeout(timeout)

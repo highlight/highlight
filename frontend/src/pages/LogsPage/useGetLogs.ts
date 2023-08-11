@@ -98,11 +98,11 @@ export const useGetLogs = ({
 					},
 				},
 			}
+			timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
 			const result = await moreDataQuery({ variables })
 			if (result?.data?.logs.edges.length !== undefined) {
 				setMoreLogs(result?.data?.logs.edges.length)
 			}
-			timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
 		}
 		timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
 		return () => clearTimeout(timeout)
