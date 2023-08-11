@@ -248,7 +248,7 @@ func HandlePinoLogs(w http.ResponseWriter, r *http.Request, lgJson []byte, logs 
 
 		for k, v := range lgAttrs.Logs[idx] {
 			// skip the keys that are part of the message
-			if has, _ := map[string]bool{"level": true, "time": true, "msg": true}[k]; has {
+			if has := map[string]bool{"level": true, "time": true, "msg": true}[k]; has {
 				continue
 			}
 			for key, value := range util.FormatLogAttributes(r.Context(), k, v) {
