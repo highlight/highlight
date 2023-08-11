@@ -432,17 +432,19 @@ func (o *Handler) submitProjectSpans(ctx context.Context, projectTraceRows map[i
 			continue
 		}
 
+		var messages []*kafkaqueue.Message
 		for _, traceRow := range traceRows {
-			err := o.resolver.TracesQueue.Submit(ctx, &kafkaqueue.Message{
+			messages = append(messages, &kafkaqueue.Message{
 				Type: kafkaqueue.PushTraces,
 				PushTraces: &kafkaqueue.PushTracesArgs{
-					Trace: traceRow,
+					TraceRow: traceRow,
 				},
-			}, "")
+			})
+		}
 
-			if err != nil {
-				return e.Wrap(err, "failed to submit otel project traces to public worker queue")
-			}
+		err := o.resolver.TracesQueue.Submit(ctx, "", messages...)
+		if err != nil {
+			return e.Wrap(err, "failed to submit otel project traces to public worker queue")
 		}
 	}
 

@@ -284,7 +284,7 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context) error {
 			case lastMsg = <-k.BatchBuffer.messageQueue:
 				switch lastMsg.Type {
 				case kafkaqueue.PushTraces:
-					traceRows = append(traceRows, lastMsg.PushTraces.Trace)
+					traceRows = append(traceRows, lastMsg.PushTraces.TraceRow)
 					received += 1
 				}
 			default:
