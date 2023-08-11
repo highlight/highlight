@@ -1,4 +1,5 @@
 import { Button } from '@components/Button'
+import LoadingBox from '@components/LoadingBox'
 import {
 	useEditServiceGithubSettingsMutation,
 	useGetServicesLazyQuery,
@@ -14,7 +15,6 @@ import {
 	Stack,
 	Table,
 	Text,
-	Tooltip,
 	useComboboxState,
 } from '@highlight-run/ui'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
@@ -36,7 +36,7 @@ type Pagination = {
 	before?: string
 }
 
-export const ServicesTable = () => {
+export const ServicesTable: React.FC = () => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const [loadServices, { error, data, loading }] = useGetServicesLazyQuery()
 	const [query, setQuery] = useState<string>('')
@@ -205,6 +205,53 @@ export const ServicesTable = () => {
 
 	const gridColumns = columns.map((column) => column.width)
 
+	const renderTableContent = () => {
+		if (loading) {
+			return (
+				<Table.FullRow>
+					<LoadingBox />
+				</Table.FullRow>
+			)
+		}
+
+		if (error?.message) {
+			return (
+				<Table.FullRow>
+					<Text size="small" color="bad">
+						{error.message}
+					</Text>
+				</Table.FullRow>
+			)
+		}
+
+		if (!data?.services?.edges.length) {
+			return (
+				<Table.FullRow>
+					<Text size="small" color="weak">
+						No services found
+					</Text>
+				</Table.FullRow>
+			)
+		}
+
+		return data?.services?.edges.map((edge) => {
+			const service = edge?.node
+
+			return (
+				<Table.Row key={edge?.cursor} gridColumns={gridColumns}>
+					{columns.map((column) => (
+						<Table.Cell
+							key={column.name}
+							icon={column.dataFormat.icon}
+						>
+							{column.renderData(service as Service)}
+						</Table.Cell>
+					))}
+				</Table.Row>
+			)
+		})
+	}
+
 	return (
 		<Stack direction="column" gap="4" align="center" paddingRight="4">
 			<Combobox
@@ -214,7 +261,7 @@ export const ServicesTable = () => {
 				className={styles.combobox}
 				onChange={handleQueryChange}
 			/>
-			<Table loading={loading} error={error?.message}>
+			<Table>
 				<Table.Head>
 					<Table.Row gridColumns={gridColumns}>
 						{columns.map((column) => (
@@ -224,27 +271,7 @@ export const ServicesTable = () => {
 						))}
 					</Table.Row>
 				</Table.Head>
-				<Table.Body>
-					{data?.services?.edges.map((edge) => {
-						const service = edge?.node
-
-						return (
-							<Table.Row
-								key={edge?.cursor}
-								gridColumns={gridColumns}
-							>
-								{columns.map((column) => (
-									<Table.Cell
-										key={column.name}
-										icon={column.dataFormat.icon}
-									>
-										{column.renderData(service as Service)}
-									</Table.Cell>
-								))}
-							</Table.Row>
-						)
-					})}
-				</Table.Body>
+				<Table.Body>{renderTableContent()}</Table.Body>
 			</Table>
 			<Stack direction="row" justifyContent="flex-end">
 				<Button

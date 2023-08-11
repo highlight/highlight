@@ -1,1 +1,1 @@
-var e="bzezgw0";export{e as container};
+var e="bzezgw0";export{e as table};
