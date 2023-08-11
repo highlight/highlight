@@ -77,7 +77,7 @@ export const useGetLogs = ({
 	})
 
 	const [moreDataQuery] = useGetLogsLazyQuery({
-		fetchPolicy: 'no-cache',
+		fetchPolicy: 'network-only',
 	})
 
 	useEffect(() => {
