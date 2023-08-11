@@ -297,6 +297,8 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	//run tests
 	for name, tc := range tests {
 		util.RunTestWithDBWipeWithName(t, resolver.DB, name, func(t *testing.T) {
+			_ = resolver.Redis.FlushDB(context.Background())
+
 			workspace := model.Workspace{Model: model.Model{ID: workspaceID}}
 			resolver.DB.Create(&workspace)
 
