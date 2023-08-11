@@ -12,6 +12,10 @@ import {
 	useGetErrorGroupsOpenSearchLazyQuery,
 	useGetErrorGroupsOpenSearchQuery,
 } from '@graph/hooks'
+import {
+	GetErrorGroupsOpenSearchQuery,
+	GetErrorGroupsOpenSearchQueryVariables,
+} from '@graph/operations'
 import { ErrorGroup, Maybe, ProductType } from '@graph/schemas'
 import { Box, getNow, resetRelativeDates } from '@highlight-run/ui'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
@@ -21,9 +25,8 @@ import ErrorQueryBuilder from '@pages/ErrorsV2/ErrorQueryBuilder/ErrorQueryBuild
 import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfiguration'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { gqlSanitize } from '@util/gql'
-import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
-import { POLL_INTERVAL } from '@util/search'
+import { usePollQuery } from '@util/search'
 import clsx from 'clsx'
 import moment from 'moment/moment'
 import React, { useEffect, useState } from 'react'
@@ -47,8 +50,6 @@ const SearchPanel = () => {
 		setSearchResultsCount,
 		setSearchResultSecureIds,
 	} = useErrorSearchContext()
-	const [moreErrors, setMoreErrors] = useState<number>(0)
-
 	const { project_id: projectId } = useParams<{ project_id: string }>()
 
 	const { data: fetchedData, loading } = useGetErrorGroupsOpenSearchQuery({
@@ -78,10 +79,11 @@ const SearchPanel = () => {
 		fetchPolicy: 'network-only',
 	})
 
-	useEffect(() => {
-		// setup a polling interval for sessions after the current date range
-		let timeout: number
-		const poll = async () => {
+	const { numMore: moreErrors, reset: resetMoreErrors } = usePollQuery<
+		GetErrorGroupsOpenSearchQuery,
+		GetErrorGroupsOpenSearchQueryVariables
+	>({
+		variableFn: () => {
 			let query = JSON.parse(backendSearchQuery?.searchQuery || '')
 			const lte =
 				query?.bool?.must[1]?.has_child?.query?.bool?.must[0]?.bool
@@ -90,12 +92,6 @@ const SearchPanel = () => {
 			// then we are using a default relative time range.
 			// otherwise, we are using a custom date range and should not poll
 			if (Math.abs(moment(lte).diff(getNow(), 'minutes')) >= 1) {
-				log(
-					'ErrorsV2/SearchPanel.tsx',
-					'skipping polling for custom time selection',
-					{ lte, now: getNow().toISOString() },
-				)
-				timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
 				return
 			}
 			query = {
@@ -140,23 +136,17 @@ const SearchPanel = () => {
 					],
 				},
 			}
-			const variables = {
+			return {
 				query: JSON.stringify(query),
 				count: PAGE_SIZE,
 				page: 1,
 				project_id: projectId!,
 			}
-			timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
-			const result = await moreDataQuery({ variables })
-			if (
-				result?.data?.error_groups_opensearch.totalCount !== undefined
-			) {
-				setMoreErrors(result.data.error_groups_opensearch.totalCount)
-			}
-		}
-		timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
-		return () => clearTimeout(timeout)
-	}, [backendSearchQuery?.searchQuery, moreDataQuery, page, projectId])
+		},
+		moreDataQuery,
+		getResultCount: (result) =>
+			result?.data?.error_groups_opensearch.totalCount,
+	})
 
 	useEffect(() => {
 		setSearchResultsLoading(loading)
@@ -208,7 +198,7 @@ const SearchPanel = () => {
 				type="errors"
 				onClick={() => {
 					resetRelativeDates()
-					setMoreErrors(0)
+					resetMoreErrors()
 					const currentState = JSON.parse(
 						searchQuery,
 					) as QueryBuilderState

@@ -78,7 +78,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 	const {
 		logEdges,
 		moreLogs,
-		setMoreLogs,
+		clearMoreLogs,
 		loading,
 		error,
 		loadingAfter,
@@ -183,7 +183,7 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 							type="logs"
 							onClick={() => {
 								resetRelativeDates()
-								setMoreLogs(0)
+								clearMoreLogs()
 								handleDatesChange(
 									defaultPresets[0].startDate,
 									getNow().toDate(),

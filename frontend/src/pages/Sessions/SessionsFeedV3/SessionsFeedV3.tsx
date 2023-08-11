@@ -21,7 +21,10 @@ import {
 	useGetSessionsOpenSearchLazyQuery,
 	useGetSessionsOpenSearchQuery,
 } from '@graph/hooks'
-import { GetSessionsOpenSearchQuery } from '@graph/operations'
+import {
+	GetSessionsOpenSearchQuery,
+	GetSessionsOpenSearchQueryVariables,
+} from '@graph/operations'
 import {
 	DateHistogramBucketSize,
 	Maybe,
@@ -36,13 +39,12 @@ import SessionQueryBuilder, {
 } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/SessionQueryBuilder'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { useIntegrated } from '@util/integrated'
-import log from '@util/log'
 import { useParams } from '@util/react-router/useParams'
-import { POLL_INTERVAL } from '@util/search'
+import { usePollQuery } from '@util/search'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import clsx from 'clsx'
 import moment from 'moment'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import {
@@ -142,7 +144,6 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 
 export const SessionFeedV3 = React.memo(() => {
 	const { setSessionResults, sessionResults } = useReplayerContext()
-	const [moreSessions, setMoreSessions] = useState<number>(0)
 	const { project_id, session_secure_id } = useParams<{
 		project_id: string
 		session_secure_id: string
@@ -207,10 +208,11 @@ export const SessionFeedV3 = React.memo(() => {
 		fetchPolicy: 'network-only',
 	})
 
-	useEffect(() => {
-		// setup a polling interval for sessions after the current date range
-		let timeout: number
-		const poll = async () => {
+	const { numMore: moreSessions, reset: resetMoreSessions } = usePollQuery<
+		GetSessionsOpenSearchQuery,
+		GetSessionsOpenSearchQueryVariables
+	>({
+		variableFn: () => {
 			let query = JSON.parse(backendSearchQuery?.searchQuery || '')
 			const lte =
 				query?.bool?.must[0]?.bool?.should[0]?.range?.created_at?.lte
@@ -218,13 +220,7 @@ export const SessionFeedV3 = React.memo(() => {
 			// then we are using a default relative time range.
 			// otherwise, we are using a custom date range and should not poll
 			if (Math.abs(moment(lte).diff(getNow(), 'minutes')) >= 1) {
-				log(
-					'SessionsFeedV3.tsx',
-					'skipping polling for custom time selection',
-					{ lte, now: getNow().toISOString() },
-				)
-				timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
-				return
+				return undefined
 			}
 			query = {
 				...query,
@@ -250,28 +246,18 @@ export const SessionFeedV3 = React.memo(() => {
 					],
 				},
 			}
-			const variables = {
+			return {
 				query: JSON.stringify(query),
 				count: DEFAULT_PAGE_SIZE,
 				page: 1,
 				project_id: project_id!,
 				sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
 			}
-			timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
-			const result = await moreDataQuery({ variables })
-			if (result?.data?.sessions_opensearch.totalCount !== undefined) {
-				setMoreSessions(result.data.sessions_opensearch.totalCount)
-			}
-		}
-		timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
-		return () => clearTimeout(timeout)
-	}, [
-		backendSearchQuery?.searchQuery,
+		},
 		moreDataQuery,
-		page,
-		project_id,
-		sessionFeedConfiguration.sortOrder,
-	])
+		getResultCount: (result) =>
+			result?.data?.sessions_opensearch.totalCount,
+	})
 
 	// Used to determine if we need to show the loading skeleton.
 	// The loading skeleton should only be shown on the first load and when searchParams changes.
@@ -368,7 +354,7 @@ export const SessionFeedV3 = React.memo(() => {
 					type="sessions"
 					onClick={() => {
 						resetRelativeDates()
-						setMoreSessions(0)
+						resetMoreSessions()
 						const currentState = JSON.parse(
 							searchQuery,
 						) as QueryBuilderState

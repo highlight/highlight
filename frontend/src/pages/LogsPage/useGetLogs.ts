@@ -3,6 +3,7 @@ import {
 	useGetLogsLazyQuery,
 	useGetLogsQuery,
 } from '@graph/hooks'
+import { GetLogsQuery, GetLogsQueryVariables } from '@graph/operations'
 import { LogEdge, PageInfo } from '@graph/schemas'
 import * as Types from '@graph/schemas'
 import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
@@ -10,7 +11,7 @@ import {
 	buildLogsQueryForServer,
 	parseLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
-import { POLL_INTERVAL } from '@util/search'
+import { usePollQuery } from '@util/search'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -52,7 +53,6 @@ export const useGetLogs = ({
 	const [windowInfo, setWindowInfo] = useState<PageInfo>(initialWindowInfo)
 	const [loadingAfter, setLoadingAfter] = useState(false)
 	const [loadingBefore, setLoadingBefore] = useState(false)
-	const [moreLogs, setMoreLogs] = useState<number>(0)
 	const queryTerms = parseLogsQuery(query)
 	const serverQuery = buildLogsQueryForServer(queryTerms)
 
@@ -80,33 +80,31 @@ export const useGetLogs = ({
 		fetchPolicy: 'network-only',
 	})
 
-	useEffect(() => {
-		// setup a polling interval for sessions after the current date range
-		let timeout: number
-		const poll = async () => {
-			const variables = {
-				project_id: project_id!,
-				at: logCursor,
-				direction: Types.LogDirection.Desc,
-				params: {
-					query: serverQuery,
-					date_range: {
-						start_date: moment(endDate).format(LOG_TIME_FORMAT),
-						end_date: moment(endDate)
-							.add(1, 'hour')
-							.format(LOG_TIME_FORMAT),
-					},
+	const { numMore, reset } = usePollQuery<
+		GetLogsQuery,
+		GetLogsQueryVariables
+	>({
+		variableFn: () => ({
+			project_id: project_id!,
+			at: logCursor,
+			direction: Types.LogDirection.Desc,
+			params: {
+				query: serverQuery,
+				date_range: {
+					start_date: moment(endDate).format(LOG_TIME_FORMAT),
+					end_date: moment(endDate)
+						.add(1, 'hour')
+						.format(LOG_TIME_FORMAT),
 				},
-			}
-			timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
-			const result = await moreDataQuery({ variables })
+			},
+		}),
+		moreDataQuery,
+		getResultCount: (result) => {
 			if (result?.data?.logs.edges.length !== undefined) {
-				setMoreLogs(result?.data?.logs.edges.length)
+				return result?.data?.logs.edges.length
 			}
-		}
-		timeout = setTimeout(poll, POLL_INTERVAL) as unknown as number
-		return () => clearTimeout(timeout)
-	}, [startDate, endDate, logCursor, moreDataQuery, project_id, serverQuery])
+		},
+	})
 
 	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({
 		variables: { log_cursors: data?.logs.edges.map((e) => e.cursor) || [] },
@@ -193,8 +191,8 @@ export const useGetLogs = ({
 
 	return {
 		logEdges: logEdgesWithError,
-		moreLogs,
-		setMoreLogs,
+		moreLogs: numMore,
+		clearMoreLogs: reset,
 		loading,
 		loadingAfter,
 		loadingBefore,
