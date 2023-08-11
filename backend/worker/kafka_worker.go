@@ -287,6 +287,9 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context) error {
 					traceRows = append(traceRows, lastMsg.PushTraces.TraceRow)
 					received += 1
 				}
+				if received >= k.BatchFlushSize {
+					return
+				}
 			default:
 				return
 			}
