@@ -59,6 +59,26 @@ Below are solutions for what we support today. If you'd like us to support a new
 
 - [Python Backend Integration](4_backend-sdk/python)
 
+## Distributed Tracing
+
+Your backend might be a distributed system with multiple services. Say, for example, your
+frontend Next.js application uses a Next.js backend which in turn makes HTTP requests to
+a Python FastAPI microservice. You would want errors and logs from your Python service to be
+attributes to the frontend sessions in Highlight.
+
+Our frontend -> backend tracing is based on the `x-highlight-request` HTTP header. If your Next.js backend issues an HTTP request to a FastAPI backend and you forward the `x-highlight-request` header along, the trace will carry over information about the frontend session.
+
+A more complex application might not make HTTP requests between backend services, but instead
+use a message broker like Kafka to queue up jobs. In that case, you'll need to add a way to
+store the `x-highlight-request` you receive from the frontend along with your enqueued messages.
+The service that consumes the messages can pass the value to the highlight SDK via custom
+error wrapping or logging code.
+
+```javascript
+const parsed = H.parseHeaders(request.headers)
+H.consumeError(error, parsed.secureSessionId, parsed.requestId)
+```
+
 ## Troubleshooting
 
 1.  Ensure `tracingOrigins` and `networkRecording` are properly set.
