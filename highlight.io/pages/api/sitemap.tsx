@@ -16,7 +16,7 @@ const stream = createWriteStream({
 	url: 'https://pub.highlight.io/v1/logs/json?project=4d7k1xeo&service=highlight-io-next-frontend',
 })
 
-const logger = pino({ level: 'info' }, stream)
+const logger = pino({ level: 'debug' }, stream)
 
 async function generateXML(): Promise<string> {
 	logger.info('generating sitemap')
@@ -32,7 +32,7 @@ async function generateXML(): Promise<string> {
 		await getGithubDocsPaths(),
 		await getBlogPaths(fsp, ''),
 	])
-	logger.info('got remote data', { customers, docs, githubBlogPosts })
+	logger.info('got remote data')
 
 	const githubBlogPages = githubBlogPosts.map(
 		(path) => `blog/${path.simple_path}`,
@@ -69,7 +69,7 @@ async function generateXML(): Promise<string> {
 		...featurePages,
 		...competitorPages,
 	]
-	logger.info('build pages', { pages })
+	logger.info({ numPages: pages.length }, 'build pages')
 
 	const addPage = (page: string) => {
 		return `    <url>

@@ -18,6 +18,18 @@ import (
 const TimestampFormat = "2006-01-02T15:04:05.000Z"
 const TimestampFormatNano = "2006-01-02T15:04:05.999999999Z"
 
+type PinoLog struct {
+	Level    uint8  `json:"level"`
+	Time     int64  `json:"time"`
+	PID      int64  `json:"pid"`
+	Hostname string `json:"hostname"`
+	Message  string `json:"msg"`
+}
+
+type PinoLogs struct {
+	Logs []*PinoLog `json:"logs"`
+}
+
 type Log struct {
 	Message    string `json:"message"`
 	Timestamp  string `json:"timestamp"`
