@@ -260,6 +260,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Me
 			Key:   []byte(partitionKey),
 			Value: msgBytes,
 		})
+		hlog.Incr("worker.kafka.produceMessageCount", nil, 1)
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
@@ -269,7 +270,6 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Me
 		log.WithContext(ctx).WithError(err).WithField("partition_key", partitionKey).WithField("num_messages", len(messages)).Errorf("failed to send kafka messages")
 		return err
 	}
-	hlog.Incr("worker.kafka.produceMessageCount", nil, 1)
 	hlog.Histogram("worker.kafka.submitSec", time.Since(start).Seconds(), nil, 1)
 	return nil
 }
