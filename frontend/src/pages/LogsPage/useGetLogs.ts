@@ -67,7 +67,7 @@ export const useGetLogs = ({
 				},
 			},
 		},
-		fetchPolicy: 'no-cache',
+		fetchPolicy: 'network-only',
 	})
 
 	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({
