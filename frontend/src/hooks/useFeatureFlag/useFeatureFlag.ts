@@ -15,6 +15,7 @@ interface Config {
 export enum Feature {
 	HistogramTimelineV2,
 	AiSessionInsights,
+	Analytics,
 }
 
 // configures the criteria and percentage of population for which the feature is active.
@@ -39,6 +40,14 @@ export const FeatureConfig: { [key: number]: Config } = {
 	[Feature.AiSessionInsights]: {
 		workspace: true,
 		percent: 100,
+	},
+	[Feature.Analytics]: {
+		workspace: true,
+		percent: 0,
+		workspaceOverride: new Set<string>([
+			// Numero
+			'701',
+		]),
 	},
 } as const
 

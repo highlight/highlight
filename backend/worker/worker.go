@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/aws/smithy-go/ptr"
+	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/alerts"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -92,7 +93,7 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, payl
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
 		return err
 	}
 
@@ -187,12 +188,25 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 		return errors.Wrap(err, "error retrieving objects from S3")
 	}
 
-	dataObjects, err := w.Resolver.Redis.GetSessionData(ctx, s.ID, payloadType, s3Events)
+	dataStrs, err := w.Resolver.Redis.GetSessionData(ctx, s.ID, payloadType, s3Events)
 	if err != nil {
 		return errors.Wrap(err, "error retrieving objects from Redis")
 	}
 
-	for _, dataObject := range dataObjects {
+	for _, dataStr := range dataStrs {
+		asBytes := []byte(dataStr)
+
+		// Messages may be encoded with `snappy`.
+		// Try decoding them, but if decoding fails, use the original message.
+		decoded, err := snappy.Decode(nil, asBytes)
+		if err != nil {
+			decoded = asBytes
+		}
+
+		dataObject := model.SessionData{
+			Data: string(decoded),
+		}
+
 		if payloadType == model.PayloadTypeEvents {
 			*accumulator = processEventChunk(ctx, *accumulator, model.EventsObject{
 				Events: dataObject.Contents(),
@@ -568,7 +582,7 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
 		return err
 	}
 
@@ -867,7 +881,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
 		return err
 	}
 
@@ -1154,7 +1168,7 @@ func (w *Worker) Start(ctx context.Context) {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
 
-						if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: session.ID}}, strconv.Itoa(session.ID)); err != nil {
+						if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: session.ID}}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error submitting data sync message"))
 						}
 

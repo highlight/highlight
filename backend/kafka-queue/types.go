@@ -104,7 +104,9 @@ type AddSessionFeedbackArgs struct {
 }
 
 type PushLogsArgs struct {
+	// deprecated, write individual LogRow messages instead
 	LogRows []*clickhouse.LogRow
+	LogRow  *clickhouse.LogRow
 }
 
 type PushTracesArgs struct {
