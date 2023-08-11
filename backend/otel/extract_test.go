@@ -252,22 +252,6 @@ func TestExtractFields_ExtractServiceName(t *testing.T) {
 	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
-func TestExtractFields_ExtractServiceNameForFrontendSource(t *testing.T) {
-	resource := newResource(t, map[string]any{
-		"service.name": "my_service",
-	})
-
-	span := newSpan(map[string]string{
-		"highlight.source": string(modelInputs.LogSourceFrontend),
-	})
-	fields, err := extractFields(context.TODO(), extractFieldsParams{
-		resource: &resource,
-		span:     &span,
-	})
-	assert.NoError(t, err)
-	assert.Equal(t, "", fields.serviceName)
-}
-
 func TestExtractFields_RewriteServiceName(t *testing.T) {
 	resource := newResource(t, map[string]any{
 		"service.name": "unknown_service:/opt/homebrew/Cellar/node/19.6.0/bin/node",
@@ -335,16 +319,6 @@ func TestExtractFields_OmitLogSeverity(t *testing.T) {
 	assert.Equal(t, fields.attrs, map[string]string{
 		"os.description": "Debian GNU/Linux 11 (bullseye)",
 	})
-}
-
-func TestExtractFields_OmitBackendPropertiesForFrontendSource(t *testing.T) {
-	resource := newResource(t, map[string]any{
-		"os.description":   "Debian GNU/Linux 11 (bullseye)", // should be skipped since this is a frontend source
-		"highlight.source": "frontend",
-	})
-	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
-	assert.NoError(t, err)
-	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
 func TestExtractFields_TrimLongFields(t *testing.T) {

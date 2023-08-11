@@ -71,7 +71,7 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 	}
 
 	for _, row := range logRows {
-		span, _ := highlight.StartTrace(
+		span, _ := highlight.StartTraceWithoutResourceAttributes(
 			ctx, "highlight-ctx",
 			attribute.String(highlight.SourceAttribute, modelInputs.LogSourceFrontend.String()),
 			attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
@@ -136,9 +136,8 @@ func SubmitFrontendConsoleMessages(ctx context.Context, projectID int, sessionSe
 }
 
 func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
-	span, _ := highlight.StartTrace(
+	span, _ := highlight.StartTraceWithoutResourceAttributes(
 		ctx, "highlight-ctx",
-		attribute.String(highlight.SourceAttribute, "SubmitVercelLogs"),
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 	)
 	defer highlight.EndTrace(span)
@@ -146,15 +145,25 @@ func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
 	attrs := []attribute.KeyValue{
 		LogSeverityKey.String(log.Type),
 		LogMessageKey.String(log.Message),
-	}
-	attrs = append(
-		attrs,
+		semconv.ServiceNameKey.String("vercel-log-drain"),
+		semconv.ServiceVersionKey.String(log.DeploymentId),
 		semconv.CodeNamespaceKey.String(log.Source),
 		semconv.CodeFilepathKey.String(log.Path),
 		semconv.CodeFunctionKey.String(log.Entrypoint),
 		semconv.HostNameKey.String(log.Host),
-		semconv.HTTPMethodKey.Int64(log.StatusCode),
-	)
+	}
+
+	if log.Proxy.Method != "" {
+		attrs = append(attrs, semconv.HTTPMethodKey.String(log.Proxy.Method))
+	}
+
+	if log.StatusCode != 0 {
+		attrs = append(attrs, semconv.HTTPStatusCodeKey.Int64(log.StatusCode))
+	}
+
+	if len(log.Proxy.UserAgent) > 0 {
+		attrs = append(attrs, semconv.HTTPUserAgentKey.String(strings.Join(log.Proxy.UserAgent, ",")))
+	}
 
 	span.AddEvent(highlight.LogEvent, trace.WithAttributes(attrs...), trace.WithTimestamp(time.UnixMilli(log.Timestamp)))
 	if log.Type == "error" {
@@ -173,9 +182,8 @@ func SubmitVercelLogs(ctx context.Context, projectID int, logs []VercelLog) {
 }
 
 func SubmitHTTPLog(ctx context.Context, projectID int, lg Log) error {
-	span, _ := highlight.StartTrace(
+	span, _ := highlight.StartTraceWithoutResourceAttributes(
 		ctx, "highlight-ctx",
-		attribute.String(highlight.SourceAttribute, "SubmitHTTPLog"),
 		attribute.String(highlight.ProjectIDAttribute, strconv.Itoa(projectID)),
 	)
 	defer highlight.EndTrace(span)
