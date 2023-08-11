@@ -15,6 +15,7 @@ import {
 	Stack,
 	Table,
 	Text,
+	Tooltip,
 	useComboboxState,
 } from '@highlight-run/ui'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
