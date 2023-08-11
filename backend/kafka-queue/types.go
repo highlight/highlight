@@ -104,9 +104,7 @@ type AddSessionFeedbackArgs struct {
 }
 
 type PushLogsArgs struct {
-	// deprecated, write individual LogRow messages instead
-	LogRows []*clickhouse.LogRow
-	LogRow  *clickhouse.LogRow
+	LogRow *clickhouse.LogRow
 }
 
 type PushTracesArgs struct {
@@ -153,7 +151,7 @@ type Message struct {
 	Type                                   PayloadType
 	Failures                               int
 	MaxRetries                             int
-	KafkaMessage                           *kafka.Message
+	KafkaMessage                           *kafka.Message                              `json:",omitempty"`
 	PushPayload                            *PushPayloadArgs                            `json:",omitempty"`
 	InitializeSession                      *InitializeSessionArgs                      `json:",omitempty"`
 	IdentifySession                        *IdentifySessionArgs                        `json:",omitempty"`
