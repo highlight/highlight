@@ -62,7 +62,11 @@ func LastLogTimestampKey(projectId int) string {
 }
 
 func NewClient() *Client {
-	lfu := cache.NewTinyLFU(10000, time.Minute)
+	var lfu cache.LocalCache
+	// disable lfu cache locally to allow flushing cache between test-cases
+	if !util.IsTestEnv() {
+		lfu = cache.NewTinyLFU(10000, time.Second)
+	}
 	if util.IsDevOrTestEnv() {
 		client := redis.NewClient(&redis.Options{
 			Addr:            ServerAddr,
@@ -493,7 +497,7 @@ func (r *Client) AcquireLock(_ context.Context, key string, timeout time.Duratio
 
 func (r *Client) FlushDB(ctx context.Context) error {
 	if util.IsDevOrTestEnv() {
-		return r.redisClient.FlushDB(ctx).Err()
+		return r.redisClient.FlushAll(ctx).Err()
 	}
 	return nil
 }
