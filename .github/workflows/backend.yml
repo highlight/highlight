@@ -129,10 +129,17 @@ jobs:
             - name: Run tests
               run: cd backend && go test -p 1 -race -covermode=atomic -coverprofile=coverage.out ./... -v
 
+            - name: Convert coverage
+              working-directory: backend
+              run: |
+                  go get github.com/axw/gocov/gocov
+                  go get github.com/AlekSi/gocov-xml
+                  gocov convert coverage.out | gocov-xml > coverage.xml
+
             - name: Code Coverage Report
               uses: irongut/CodeCoverageSummary@v1.3.0
               with:
-                  filename: backend/coverage.out
+                  filename: backend/coverage.xml
                   badge: true
                   fail_below_min: true
                   format: markdown

@@ -58,10 +58,17 @@ jobs:
             - name: Run tests
               run: cd sdk/highlight-go && go test -race -covermode=atomic -coverprofile=coverage.out --v
 
+            - name: Convert coverage
+              working-directory: sdk/highlight-go
+              run: |
+                  go get github.com/axw/gocov/gocov
+                  go get github.com/AlekSi/gocov-xml
+                  gocov convert coverage.out | gocov-xml > coverage.xml
+
             - name: Code Coverage Report
               uses: irongut/CodeCoverageSummary@v1.3.0
               with:
-                  filename: sdk/highlight-go/coverage.out
+                  filename: sdk/highlight-go/coverage.xml
                   badge: true
                   fail_below_min: true
                   format: markdown
