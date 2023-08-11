@@ -26,7 +26,7 @@ func (m *MockKafkaProducer) Stop(_ context.Context) {}
 
 func (m *MockKafkaProducer) Receive(_ context.Context) *kafkaqueue.Message { return nil }
 
-func (m *MockKafkaProducer) Submit(_ context.Context, message *kafkaqueue.Message, _ string) error {
+func (m *MockKafkaProducer) Submit(_ context.Context, _ string, message *kafkaqueue.Message) error {
 	m.messages = append(m.messages, message)
 	return nil
 }
