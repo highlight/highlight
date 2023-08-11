@@ -1,11 +1,6 @@
 import { AdditionalFeedResults } from '@components/FeedResults/FeedResults'
 import { LogLevel, ProductType } from '@graph/schemas'
-import {
-	Box,
-	defaultPresets,
-	getNow,
-	resetRelativeDates,
-} from '@highlight-run/ui'
+import { Box, defaultPresets, getNow } from '@highlight-run/ui'
 import { TIME_MODE } from '@pages/LogsPage/constants'
 import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
@@ -182,7 +177,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 							more={moreLogs}
 							type="logs"
 							onClick={() => {
-								resetRelativeDates()
 								clearMoreLogs()
 								handleDatesChange(
 									defaultPresets[0].startDate,

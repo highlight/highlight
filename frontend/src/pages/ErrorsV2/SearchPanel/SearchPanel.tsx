@@ -4,7 +4,6 @@ import {
 } from '@components/EmptySearchResults/EmptySearchResults'
 import { AdditionalFeedResults } from '@components/FeedResults/FeedResults'
 import LoadingBox from '@components/LoadingBox'
-import { QueryBuilderState } from '@components/QueryBuilder/QueryBuilder'
 import SearchPagination, {
 	PAGE_SIZE,
 } from '@components/SearchPagination/SearchPagination'
@@ -17,7 +16,7 @@ import {
 	GetErrorGroupsOpenSearchQueryVariables,
 } from '@graph/operations'
 import { ErrorGroup, Maybe, ProductType } from '@graph/schemas'
-import { Box, getNow, resetRelativeDates } from '@highlight-run/ui'
+import { Box, getNow } from '@highlight-run/ui'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import ErrorFeedHistogram from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
@@ -196,22 +195,7 @@ const SearchPanel = () => {
 			<AdditionalFeedResults
 				more={moreErrors}
 				type="errors"
-				onClick={() => {
-					resetRelativeDates()
-					resetMoreErrors()
-					const currentState = JSON.parse(
-						searchQuery,
-					) as QueryBuilderState
-					const newRules = currentState.rules.filter(
-						(rule) => rule[0] !== 'error-field_timestamp',
-					)
-					setSearchQuery(
-						JSON.stringify({
-							isAnd: currentState.isAnd,
-							rules: newRules,
-						}),
-					)
-				}}
+				onClick={resetMoreErrors}
 			/>
 			<Box
 				paddingTop="4"

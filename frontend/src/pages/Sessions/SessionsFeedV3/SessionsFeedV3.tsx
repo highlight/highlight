@@ -32,7 +32,7 @@ import {
 	ProductType,
 	Session,
 } from '@graph/schemas'
-import { Box, getNow, resetRelativeDates } from '@highlight-run/ui'
+import { Box, getNow } from '@highlight-run/ui'
 import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/SessionFeedCard'
 import SessionQueryBuilder, {
 	TIME_RANGE_FIELD,
@@ -352,22 +352,7 @@ export const SessionFeedV3 = React.memo(() => {
 				<AdditionalFeedResults
 					more={moreSessions}
 					type="sessions"
-					onClick={() => {
-						resetRelativeDates()
-						resetMoreSessions()
-						const currentState = JSON.parse(
-							searchQuery,
-						) as QueryBuilderState
-						const newRules = currentState.rules.filter(
-							(rule) => rule[0] !== 'custom_created_at',
-						)
-						setSearchQuery(
-							JSON.stringify({
-								isAnd: currentState.isAnd,
-								rules: newRules,
-							}),
-						)
-					}}
+					onClick={resetMoreSessions}
 				/>
 				<Box
 					paddingTop="4"
