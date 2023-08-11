@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -80,6 +81,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 const DefaultBatchFlushSize = 10000
 const DefaultBatchedFlushTimeout = 5 * time.Second
 const SessionsMaxRowsPostgres = 500
+const MinRetryDelay = 250 * time.Millisecond
 
 type KafkaWorker struct {
 	KafkaQueue   *kafkaqueue.Queue
@@ -404,6 +406,8 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context) error {
 
 func (k *KafkaBatchWorker) processWorkerError(ctx context.Context, attempt int, err error) {
 	log.WithContext(ctx).WithError(err).WithField("worker_name", k.Name).WithField("attempt", attempt).Errorf("batched worker task failed: %s", err)
+	// exponential backoff on retries
+	time.Sleep(MinRetryDelay * time.Duration(math.Pow(2, float64(attempt))))
 }
 
 func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context, flush func(context.Context) error) {
