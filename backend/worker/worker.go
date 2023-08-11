@@ -93,7 +93,7 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, payl
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
 		return err
 	}
 
@@ -470,16 +470,16 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	for i := 0; i < parallelBatchWorkers; i++ {
 		go func(workerId int) {
 			buffer := &KafkaBatchBuffer{
-				messageQueue: make(chan *kafkaqueue.Message, 8*DefaultBatchFlushSize),
+				messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
 			}
 			k := KafkaBatchWorker{
 				KafkaQueue: kafkaqueue.New(ctx,
 					kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}),
 					kafkaqueue.Consumer,
-					&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(16 * DefaultBatchFlushSize)}),
+					&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(2 * DefaultBatchFlushSize)}),
 				Worker:              w,
 				BatchBuffer:         buffer,
-				BatchFlushSize:      8 * DefaultBatchFlushSize,
+				BatchFlushSize:      DefaultBatchFlushSize,
 				BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 				Name:                "batched",
 			}
@@ -582,7 +582,7 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
 		return err
 	}
 
@@ -881,7 +881,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
 		return err
 	}
 
@@ -1168,7 +1168,7 @@ func (w *Worker) Start(ctx context.Context) {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
 
-						if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: session.ID}}, strconv.Itoa(session.ID)); err != nil {
+						if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: session.ID}}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error submitting data sync message"))
 						}
 

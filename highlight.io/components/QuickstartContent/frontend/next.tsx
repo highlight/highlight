@@ -1,6 +1,7 @@
 import {
 	configureSourcemapsCI,
-	identifySnippet,
+	identifyingUsersLink,
+	sessionSearchLink,
 	verifySnippet,
 } from './shared-snippets'
 
@@ -18,13 +19,13 @@ export const NextContent: QuickStartContent = {
 		{
 			title: 'Install the npm package & SDK.',
 			content:
-				'Install the npm package `highlight.run` in your terminal.',
+				'Install the npm package `@highlight-run/next` in your terminal.',
 			code: [
 				{
 					key: 'npm',
 					text: `
 # with npm
-npm install @highlight-run/next highlight.run @highlight-run/react
+npm install @highlight-run/next
 					`,
 					language: 'bash',
 				},
@@ -32,7 +33,7 @@ npm install @highlight-run/next highlight.run @highlight-run/react
 					key: 'yarn',
 					text: `
 # with yarn
-yarn add @highlight-run/next highlight.run @highlight-run/react
+yarn add @highlight-run/next
 				`,
 					language: 'bash',
 				},
@@ -40,7 +41,7 @@ yarn add @highlight-run/next highlight.run @highlight-run/react
 					key: 'pnpm',
 					text: `
 # with pnpm
-pnpm add @highlight-run/next highlight.run @highlight-run/react
+pnpm add @highlight-run/next
 				`,
 					language: 'bash',
 				},
@@ -89,7 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 			code: [
 				{
 					text: `
-import { ErrorBoundary } from '@highlight-run/react';
+import { ErrorBoundary } from '@highlight-run/next/client';
 
 export default function App({ Component, pageProps }: AppProps) {
 
@@ -106,7 +107,29 @@ export default function App({ Component, pageProps }: AppProps) {
 				},
 			],
 		},
-		identifySnippet,
+		{
+			title: 'Identify users.',
+			content: `Identify users after the authentication flow of your web app. We recommend doing this in any asynchronous, client-side context. \n\n\nThe first argument of \`identify\` will be searchable via the property \`identifier\`, and the second property is searchable by the key of each item in the object. \n\n\nFor more details, read about [session search](${sessionSearchLink}) or how to [identify users](${identifyingUsersLink}).`,
+			code: [
+				{
+					text: `
+		import { H } from '@highlight-run/next/client';
+		
+		function Login(username: string, password: string) {
+			// login logic here...
+			// pass the user details from your auth provider to the H.identify call
+			
+			H.identify('jay@highlight.io', {
+				id: 'very-secure-id',
+				phone: '867-5309',
+				bestFriend: 'jenny'
+			});
+		}
+		`,
+					language: 'js',
+				},
+			],
+		},
 		verifySnippet,
 		configureSourcemapsCI(`${GUIDE_URL}#test-source-maps`),
 		{

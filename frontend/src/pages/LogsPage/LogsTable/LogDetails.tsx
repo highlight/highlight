@@ -18,7 +18,6 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import { QueryParam } from '@pages/LogsPage/LogsPage'
 import {
-	findMatchingLogAttributes,
 	IconCollapsed,
 	IconExpanded,
 } from '@pages/LogsPage/LogsTable/LogsTable'
@@ -35,6 +34,8 @@ import { message as antdMessage } from 'antd'
 import React, { Fragment, useEffect, useState } from 'react'
 import { createSearchParams, generatePath } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
+
+import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 
 import * as styles from './LogDetails.css'
 
@@ -381,7 +382,10 @@ export const LogValue: React.FC<{
 	queryMatch?: string
 }> = ({ label, queryKey, queryTerms, value, queryMatch }) => {
 	const [_, setQuery] = useQueryParam('query', QueryParam)
-	const stringParts = queryMatch ? value.split(queryMatch) : [value]
+
+	// replace wildcards for highlighting.
+	const matchPattern = queryMatch?.replace('*', '')
+	const stringParts = matchPattern ? value.split(matchPattern) : [value]
 
 	return (
 		<LogAttributeLine>
@@ -401,7 +405,7 @@ export const LogValue: React.FC<{
 			>
 				<Box borderRadius="4" p="6">
 					<Text family="monospace" color="caution" break="word">
-						{queryMatch ? (
+						{matchPattern ? (
 							stringParts.map((part, index) => (
 								<React.Fragment key={index}>
 									{!!part && <Box as="span">{part}</Box>}
@@ -413,7 +417,7 @@ export const LogValue: React.FC<{
 											px="4"
 											borderRadius="4"
 										>
-											{queryMatch}
+											{matchPattern}
 										</Box>
 									)}
 								</React.Fragment>

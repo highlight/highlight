@@ -121,7 +121,13 @@ const cache = new InMemoryCache({
 		},
 		Query: {
 			fields: {
-				logs: relayStylePagination(),
+				logs: relayStylePagination([
+					'project_id',
+					'at',
+					'direction',
+					'params',
+					['query', 'date_range', ['start_date', 'end_date']],
+				]),
 			},
 		},
 	},
