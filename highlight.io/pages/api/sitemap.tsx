@@ -11,8 +11,6 @@ import pino from 'pino'
 import { GraphQLRequest } from '../../utils/graphql'
 
 const stream = createWriteStream({
-	log: true,
-	method: 'POST',
 	url: 'https://pub.highlight.io/v1/logs/json?project=4d7k1xeo&service=highlight-io-next-frontend',
 })
 

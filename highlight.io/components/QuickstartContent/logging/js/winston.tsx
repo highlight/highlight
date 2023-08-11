@@ -20,7 +20,7 @@ const highlightTransport = new transports.Http({
     path: "/v1/logs/json",
     ssl: true,
     headers: {
-        'x-highlight-project': 'YOUR_PROJECT_ID',
+        'x-highlight-project': '<YOUR_PROJECT_ID>',
         'x-highlight-service': 'EXAMPLE_NODEJS_SERVICE',
     },
 })
