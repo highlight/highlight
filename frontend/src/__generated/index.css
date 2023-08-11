@@ -6338,7 +6338,6 @@ body {
   height: calc(100% - 32px);
   display: flex;
   flex-direction: column;
-  padding-left: 8px;
   overflow-x: hidden;
   overflow-y: auto;
   word-wrap: break-word;
@@ -6382,6 +6381,9 @@ body {
 }
 .riaubm7:hover {
   background-color: var(--_1pyqka91x);
+}
+.riaubm8 {
+  border-bottom: 2px solid var(--_1pyqka9l);
 }
 .riaubma {
   color: var(--_1pyqka915);
@@ -6449,30 +6451,17 @@ body {
   display: grid;
   grid-template-columns: 3fr 1fr auto 100px 20px;
   gap: 8px;
-  margin-bottom: 1px;
   padding: 8px;
 }
 ._1p577ua1:hover {
-  background-color: #eeedef;
-  border-bottom: 1px solid #e4e2e4;
-  box-shadow: inset 0px -1px 0px rgba(0, 0, 0, 0.1);
-  margin-bottom: 0;
-}
-._1p577ua2 {
-  background-color: #eeedef;
-  border-bottom: 1px solid #e4e2e4;
-  box-shadow: inset 0px -1px 0px rgba(0, 0, 0, 0.1);
-  margin-bottom: 0;
+  background-color: var(--_1pyqka91x);
 }
 ._1p577ua4 {
-  font-weight: 600;
+  background-color: var(--_1pyqka91y);
+  box-shadow: inset 0px -1px 0px rgba(0, 0, 0, 0.1);
 }
 ._1p577ua6 {
-  align-items: center;
-  display: flex;
-  word-wrap: break-word;
-}
-._1p577ua7 {
+  color: var(--_1pyqka9w);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
