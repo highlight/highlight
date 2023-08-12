@@ -1,6 +1,5 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/highlight/highlight/sdk/highlight-go)](https://goreportcard.com/report/github.com/highlight/highlight/sdk/highlight-go)
 [![GoDoc](https://godoc.org/github.com/highlight/highlight/sdk/highlight-go?status.svg)](https://godoc.org/github.com/highlight/highlight/sdk/highlight-go)
-[![codecov](https://codecov.io/gh/highlight-run/highlight-go/branch/main/graph/badge.svg)](https://codecov.io/gh/highlight-run/highlight-go)
 
 # highlight-go
 
