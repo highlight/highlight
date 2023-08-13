@@ -52,6 +52,7 @@ import (
 	"github.com/leonelquinteros/hubspot"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
@@ -5171,7 +5172,7 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 	}
 	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
-	ids, err := r.ClickhouseClient.QuerySessionIds(ctx, projectID, count, query, sortField, sortDesc, page, retentionDate)
+	ids, err := r.ClickhouseClient.QuerySessionIds(ctx, projectID, count, query, sortField, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
@@ -5240,7 +5241,13 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, qu
 }
 
 // FieldTypes is the resolver for the field_types field.
-func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate *time.Time, endDate *time.Time) ([]*model.Field, error) {
+func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]*model.Field, error) {
+	if useClickhouse != nil && *useClickhouse {
+		if startDate == nil || endDate == nil {
+			return nil, errors.New("startDate and endDate must not be nil")
+		}
+		return r.FieldTypesClickhouse(ctx, projectID, *startDate, *endDate)
+	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -5295,8 +5302,19 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate
 	}), nil
 }
 
+// FieldTypesClickhouse is the resolver for the field_types_clickhouse field.
+func (r *queryResolver) FieldTypesClickhouse(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
+	return r.ClickhouseClient.QueryFieldNames(ctx, projectID, startDate, endDate)
+}
+
 // FieldsOpensearch is the resolver for the fields_opensearch field.
-func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error) {
+func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]string, error) {
+	if useClickhouse != nil && *useClickhouse {
+		if startDate == nil || endDate == nil {
+			return nil, errors.New("startDate and endDate must not be nil")
+		}
+		return r.FieldsClickhouse(ctx, projectID, count, fieldType, fieldName, query, *startDate, *endDate)
+	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -5346,6 +5364,11 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	}
 
 	return values, nil
+}
+
+// FieldsClickhouse is the resolver for the fields_clickhouse field.
+func (r *queryResolver) FieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
+	return r.ClickhouseClient.QueryFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
 }
 
 // ErrorFieldsOpensearch is the resolver for the error_fields_opensearch field.

@@ -6439,11 +6439,13 @@ export const GetFieldTypesDocument = gql`
 		$project_id: ID!
 		$start_date: Timestamp
 		$end_date: Timestamp
+		$use_clickhouse: Boolean
 	) {
 		field_types(
 			project_id: $project_id
 			start_date: $start_date
 			end_date: $end_date
+			use_clickhouse: $use_clickhouse
 		) {
 			type
 			name
@@ -6466,6 +6468,7 @@ export const GetFieldTypesDocument = gql`
  *      project_id: // value for 'project_id'
  *      start_date: // value for 'start_date'
  *      end_date: // value for 'end_date'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -6508,6 +6511,9 @@ export const GetFieldsOpensearchDocument = gql`
 		$field_type: String!
 		$field_name: String!
 		$query: String!
+		$start_date: Timestamp
+		$end_date: Timestamp
+		$use_clickhouse: Boolean
 	) {
 		fields_opensearch(
 			project_id: $project_id
@@ -6515,6 +6521,9 @@ export const GetFieldsOpensearchDocument = gql`
 			field_type: $field_type
 			field_name: $field_name
 			query: $query
+			start_date: $start_date
+			end_date: $end_date
+			use_clickhouse: $use_clickhouse
 		)
 	}
 `
@@ -6536,6 +6545,9 @@ export const GetFieldsOpensearchDocument = gql`
  *      field_type: // value for 'field_type'
  *      field_name: // value for 'field_name'
  *      query: // value for 'query'
+ *      start_date: // value for 'start_date'
+ *      end_date: // value for 'end_date'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */

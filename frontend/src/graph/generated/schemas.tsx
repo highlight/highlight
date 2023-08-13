@@ -1680,6 +1680,8 @@ export type Query = {
 	events?: Maybe<Array<Maybe<Scalars['Any']>>>
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
 	field_types: Array<Field>
+	field_types_clickhouse: Array<Field>
+	fields_clickhouse: Array<Scalars['String']>
 	fields_opensearch: Array<Scalars['String']>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
@@ -1982,14 +1984,34 @@ export type QueryField_TypesArgs = {
 	end_date?: InputMaybe<Scalars['Timestamp']>
 	project_id: Scalars['ID']
 	start_date?: InputMaybe<Scalars['Timestamp']>
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
-export type QueryFields_OpensearchArgs = {
+export type QueryField_Types_ClickhouseArgs = {
+	end_date: Scalars['Timestamp']
+	project_id: Scalars['ID']
+	start_date: Scalars['Timestamp']
+}
+
+export type QueryFields_ClickhouseArgs = {
 	count: Scalars['Int']
+	end_date: Scalars['Timestamp']
 	field_name: Scalars['String']
 	field_type: Scalars['String']
 	project_id: Scalars['ID']
 	query: Scalars['String']
+	start_date: Scalars['Timestamp']
+}
+
+export type QueryFields_OpensearchArgs = {
+	count: Scalars['Int']
+	end_date?: InputMaybe<Scalars['Timestamp']>
+	field_name: Scalars['String']
+	field_type: Scalars['String']
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	start_date?: InputMaybe<Scalars['Timestamp']>
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryGenerate_Zapier_Access_TokenArgs = {

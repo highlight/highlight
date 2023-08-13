@@ -4,15 +4,42 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/huandu/go-sqlbuilder"
+	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 )
+
+var fieldMap map[string]string = map[string]string{
+	"fingerprint":      "Fingerprint",
+	"pages_visited":    "PagesVisited",
+	"viewed_by_admins": "ViewedByAdmins",
+	"created_at":       "CreatedAt",
+	"updated_at":       "UpdatedAt",
+	"identified":       "Identified",
+	"identifier":       "Identifier",
+	"city":             "City",
+	"country":          "Country",
+	"os_name":          "OSName",
+	"os_version":       "OSVersion",
+	"browser_name":     "BrowserName",
+	"browser_version":  "BrowserVersion",
+	"processed":        "Processed",
+	"has_rage_clicks":  "HasRageClicks",
+	"has_errors":       "HasErrors",
+	"length":           "Length",
+	"active_length":    "ActiveLength",
+	"environment":      "Environment",
+	"app_version":      "AppVersion",
+	"first_time":       "FirstTime",
+	"viewed":           "Viewed",
+}
 
 type ClickhouseSession struct {
 	ID                 int64
@@ -49,15 +76,17 @@ type ClickhouseSession struct {
 }
 
 type ClickhouseField struct {
-	ProjectID int32
-	Type      string
-	Name      string
-	Value     string
-	SessionID int64
+	ProjectID        int32
+	Type             string
+	Name             string
+	SessionCreatedAt time.Time
+	SessionID        int64
+	Value            string
 }
 
 const SessionsTable = "sessions"
 const FieldsTable = "fields"
+const timeRangeField = "custom_created_at"
 
 func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Session) error {
 	chFields := []interface{}{}
@@ -85,11 +114,12 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 			fieldKeys = append(fieldKeys, field.Type+"_"+field.Name)
 			fieldKeyValues = append(fieldKeyValues, field.Type+"_"+field.Name+"_"+field.Value)
 			chf := ClickhouseField{
-				ProjectID: int32(session.ProjectID),
-				Type:      field.Type,
-				Name:      field.Name,
-				Value:     field.Value,
-				SessionID: int64(session.ID),
+				ProjectID:        int32(session.ProjectID),
+				Type:             field.Type,
+				Name:             field.Name,
+				Value:            field.Value,
+				SessionID:        int64(session.ID),
+				SessionCreatedAt: session.CreatedAt,
 			}
 			chFields = append(chFields, &chf)
 		}
@@ -168,31 +198,16 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 	return g.Wait()
 }
 
-// type OpenSearchQuery = {
-// 	query: any
-// 	childQuery?: any
-// }
-
-// const getDefaultTimeRangeRule = (timeRangeField: SelectOption): RuleProps => {
-// 	const presetOptions = getDefaultPresets()
-// 	const defaultPreset = presetOptions[5]
-// 	const period = {
-// 		label: defaultPreset.label, // Start at 30 days
-// 		value: `${defaultPreset.startDate.toISOString()}_${getNow().toISOString()}`, // Start at 30 days
-// 	}
-// 	return {
-// 		field: timeRangeField,
-// 		op: 'between_date',
-// 		val: {
-// 			kind: 'multi',
-// 			options: [period],
-// 		},
-// 	}
-// }
-
 type Operator string
 
 const (
+	Is             Operator = "is"
+	Contains       Operator = "contains"
+	Exists         Operator = "exists"
+	Between        Operator = "between"
+	BetweenTime    Operator = "between_time"
+	BetweenDate    Operator = "between_date"
+	Matches        Operator = "matches"
 	IsNot          Operator = "is_not"
 	NotContains    Operator = "not_contains"
 	NotExists      Operator = "not_exists"
@@ -202,18 +217,14 @@ const (
 	NotMatches     Operator = "not_matches"
 )
 
-func isNegative(o Operator) bool {
-	switch o {
-	case IsNot:
-	case NotContains:
-	case NotExists:
-	case NotBetween:
-	case NotBetweenTime:
-	case NotBetweenDate:
-	case NotMatches:
-		return true
-	}
-	return false
+var negationMap map[Operator]Operator = map[Operator]Operator{
+	IsNot:          Is,
+	NotContains:    Contains,
+	NotExists:      Exists,
+	NotBetween:     Between,
+	NotBetweenTime: BetweenTime,
+	NotBetweenDate: BetweenDate,
+	NotMatches:     Matches,
 }
 
 type Rule struct {
@@ -222,11 +233,17 @@ type Rule struct {
 	Val   []string
 }
 
+type SingleRule struct {
+	Field string
+	Op    Operator
+	Val   string
+}
+
 func deserializeRules(rules [][]string) ([]Rule, error) {
 	ret := []Rule{}
 	for _, r := range rules {
 		if len(r) < 2 {
-			return nil, errors.New("expecting >= 2")
+			return nil, fmt.Errorf("expecting >= 2 fields in rule %#v", r)
 		}
 		ret = append(ret, Rule{
 			Field: r[0],
@@ -237,366 +254,247 @@ func deserializeRules(rules [][]string) ([]Rule, error) {
 	return ret, nil
 }
 
-func parseGroup(isAnd bool) {
-
+func parseRule(rule Rule, projectId int, start string, end string) (string, error) {
+	typ, _, found := strings.Cut(rule.Field, "_")
+	if !found {
+		return "", errors.New("separator not found for field")
+	}
+	if typ == "custom" {
+		return parseSessionRule(rule, projectId)
+	}
+	return parseFieldRule(rule, projectId, start, end)
 }
 
-func getSerializedQuery(sb *sqlbuilder.SelectBuilder, query modelInputs.ClickhouseQuery) *sqlbuilder.SelectBuilder {
-	return nil
-}
-
-// const getSerializedQuery = (
-// 	searchQuery: string,
-// 	admin: Admin | undefined,
-// 	customFields: CustomField[],
-// 	timeRangeField: SelectOption,
-// ): BackendSearchQuery => {
-// 	const defaultTimeRangeRule = getDefaultTimeRangeRule(timeRangeField)
-
-// 	const { isAnd, rules: serializedRules }: { isAnd: boolean; rules: any } =
-// 		JSON.parse(searchQuery)
-// 	const rules = deserializeRules(serializedRules)
-
-// 	const parseGroup = (
-// 		isAnd: boolean,
-// 		rules: RuleProps[],
-// 	): OpenSearchQuery => {
-// 		const parseInner = (
-// 			field: SelectOption,
-// 			op: Operator,
-// 			value?: string,
-// 		): any => {
-// 			const getCustomFieldOptions = (field: SelectOption | undefined) => {
-// 				if (!field) {
-// 					return undefined
-// 				}
-
-// 				const type = getType(field.value)
-// 				if (
-// 					![
-// 						CUSTOM_TYPE,
-// 						SESSION_TYPE,
-// 						ERROR_TYPE,
-// 						ERROR_FIELD_TYPE,
-// 					].includes(type)
-// 				) {
-// 					return undefined
-// 				}
-
-// 				return customFields.find((f) => f.name === field.label)?.options
-// 			}
-
-// 			if (
-// 				[CUSTOM_TYPE, ERROR_TYPE, ERROR_FIELD_TYPE].includes(
-// 					getType(field.value),
-// 				)
-// 			) {
-// 				const name = field.label
-// 				const isKeyword = !(
-// 					getCustomFieldOptions(field)?.type !== 'text'
-// 				)
-
-// 				if (field.label === 'viewed_by_me' && admin) {
-// 					const baseQuery = {
-// 						term: {
-// 							[`viewed_by_admins.id`]: admin.id,
-// 						},
-// 					}
-
-// 					if (value === 'true') {
-// 						return {
-// 							...baseQuery,
-// 						}
-// 					}
-// 					return {
-// 						bool: {
-// 							must_not: {
-// 								...baseQuery,
-// 							},
-// 						},
-// 					}
-// 				}
-
-// 				switch (op) {
-// 					case 'is':
-// 						return {
-// 							term: {
-// 								[`${name}${isKeyword ? '.keyword' : ''}`]:
-// 									value,
-// 							},
-// 						}
-// 					case 'contains':
-// 						return {
-// 							wildcard: {
-// 								[`${name}${
-// 									isKeyword ? '.keyword' : ''
-// 								}`]: `*${value}*`,
-// 							},
-// 						}
-// 					case 'matches':
-// 						return {
-// 							regexp: {
-// 								[`${name}${isKeyword ? '.keyword' : ''}`]:
-// 									value,
-// 							},
-// 						}
-// 					case 'exists':
-// 						return { exists: { field: name } }
-// 					case 'between_date':
-// 						return {
-// 							range: {
-// 								[name]: {
-// 									gte: getAbsoluteStartTime(value),
-// 									lte: getAbsoluteEndTime(value),
-// 								},
-// 							},
-// 						}
-// 					case 'between_time':
-// 						return {
-// 							range: {
-// 								[name]: {
-// 									gte:
-// 										Number(value?.split('_')[0]) *
-// 										60 *
-// 										1000,
-// 									...(Number(value?.split('_')[1]) ===
-// 									TIME_MAX_LENGTH
-// 										? null
-// 										: {
-// 												lte:
-// 													Number(
-// 														value?.split('_')[1],
-// 													) *
-// 													60 *
-// 													1000,
-// 										  }),
-// 								},
-// 							},
-// 						}
-// 					case 'between':
-// 						return {
-// 							range: {
-// 								[name]: {
-// 									gte: Number(value?.split('_')[0]),
-// 									...(Number(value?.split('_')[1]) ===
-// 									RANGE_MAX_LENGTH
-// 										? null
-// 										: {
-// 												lte: Number(
-// 													value?.split('_')[1],
-// 												),
-// 										  }),
-// 								},
-// 							},
-// 						}
-// 				}
-// 			} else {
-// 				const key = field.value
-// 				switch (op) {
-// 					case 'is':
-// 						return {
-// 							term: {
-// 								'fields.KeyValue': `${key}_${value}`,
-// 							},
-// 						}
-// 					case 'contains':
-// 						return {
-// 							wildcard: {
-// 								'fields.KeyValue': `${key}_*${value}*`,
-// 							},
-// 						}
-// 					case 'matches':
-// 						return {
-// 							regexp: {
-// 								'fields.KeyValue': `${key}_${value}`,
-// 							},
-// 						}
-// 					case 'exists':
-// 						return { term: { 'fields.Key': key } }
-// 				}
-// 			}
-// 		}
-
-// 		const NEGATION_MAP: { [K in Operator]: Operator } = {
-// 			is: 'is_not',
-// 			is_not: 'is',
-// 			contains: 'not_contains',
-// 			not_contains: 'contains',
-// 			exists: 'not_exists',
-// 			not_exists: 'exists',
-// 			between: 'not_between',
-// 			not_between: 'between',
-// 			between_time: 'not_between_time',
-// 			not_between_time: 'between_time',
-// 			between_date: 'not_between_date',
-// 			not_between_date: 'between_date',
-// 			matches: 'not_matches',
-// 			not_matches: 'matches',
-// 		}
-
-// 		const parseRuleImpl = (
-// 			field: SelectOption,
-// 			op: Operator,
-// 			multiValue: MultiselectOption,
-// 		): any => {
-// 			if (isNegative(op)) {
-// 				return {
-// 					bool: {
-// 						must_not: {
-// 							...parseRuleImpl(
-// 								field,
-// 								NEGATION_MAP[op],
-// 								multiValue,
-// 							),
-// 						},
-// 					},
-// 				}
-// 			} else if (hasArguments(op)) {
-// 				return {
-// 					bool: {
-// 						should: multiValue.options.map(({ value }) =>
-// 							parseInner(field, op, value),
-// 						),
-// 					},
-// 				}
-// 			} else {
-// 				return parseInner(field, op)
-// 			}
-// 		}
-
-// 		const parseRule = (rule: RuleProps): any => {
-// 			const field = rule.field!
-// 			const multiValue = rule.val!
-// 			const op = rule.op!
-
-// 			return parseRuleImpl(field, op, multiValue)
-// 		}
-
-// 		const condition = isAnd ? 'must' : 'should'
-// 		const filterErrors = rules.some(
-// 			(r) => getType(r.field!.value) === ERROR_FIELD_TYPE,
-// 		)
-// 		const timeRange =
-// 			rules.find(
-// 				(rule) =>
-// 					rule.field?.value === defaultTimeRangeRule.field!.value,
-// 			) ?? defaultTimeRangeRule
-
-// 		const timeRule = parseRule(timeRange)
-
-// 		const errorObjectRules = rules
-// 			.filter(
-// 				(r) =>
-// 					getType(r.field!.value) === ERROR_FIELD_TYPE &&
-// 					r !== timeRange,
-// 			)
-// 			.map(parseRule)
-
-// 		const standardRules = rules
-// 			.filter(
-// 				(r) =>
-// 					getType(r.field!.value) !== ERROR_FIELD_TYPE &&
-// 					r !== timeRange,
-// 			)
-// 			.map(parseRule)
-
-// 		const request: OpenSearchQuery = { query: {} }
-
-// 		if (filterErrors) {
-// 			const errorGroupFilter = {
-// 				bool: {
-// 					[condition]: standardRules,
-// 				},
-// 			}
-// 			const errorObjectFilter = {
-// 				bool: {
-// 					must: [
-// 						timeRule,
-// 						{
-// 							bool: {
-// 								[condition]: errorObjectRules,
-// 							},
-// 						},
-// 					],
-// 				},
-// 			}
-// 			request.query = {
-// 				bool: {
-// 					must: [
-// 						errorGroupFilter,
-// 						{
-// 							has_child: {
-// 								type: 'child',
-// 								query: errorObjectFilter,
-// 							},
-// 						},
-// 					],
-// 				},
-// 			}
-// 			request.childQuery = {
-// 				bool: {
-// 					must: [
-// 						{
-// 							has_parent: {
-// 								parent_type: 'parent',
-// 								query: errorGroupFilter,
-// 							},
-// 						},
-// 						errorObjectFilter,
-// 					],
-// 				},
-// 			}
-// 		} else {
-// 			request.query = {
-// 				bool: {
-// 					must: [
-// 						timeRule,
-// 						{
-// 							bool: {
-// 								[condition]: standardRules,
-// 							},
-// 						},
-// 					],
-// 				},
-// 			}
-// 		}
-// 		return request
-// 	}
-
-// 	const timeRange =
-// 		rules.find(
-// 			(rule) => rule.field?.value === defaultTimeRangeRule.field!.value,
-// 		) ?? defaultTimeRangeRule
-
-// 	const startDate = roundFeedDate(
-// 		getAbsoluteStartTime(timeRange.val?.options[0].value),
-// 	)
-// 	const endDate = roundFeedDate(
-// 		getAbsoluteEndTime(timeRange.val?.options[0].value),
-// 	)
-// 	const backendSearchQuery = parseGroup(isAnd, rules)
-// 	return {
-// 		searchQuery: JSON.stringify(backendSearchQuery.query),
-// 		childSearchQuery: backendSearchQuery.childQuery
-// 			? JSON.stringify(backendSearchQuery.childQuery)
-// 			: undefined,
-// 		startDate,
-// 		endDate,
-// 		histogramBucketSize: GetHistogramBucketSize(
-// 			moment.duration(endDate.diff(startDate)),
-// 		),
-// 	}
-// }
-
-func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, sortField *string, sortDesc bool, page *int, retentionDate time.Time) ([]int64, error) {
-	sortFieldStr := "CreatedAt"
-	if sortField != nil {
-		sortFieldStr = *sortField
+func parseFieldRule(rule Rule, projectId int, start string, end string) (string, error) {
+	negatedOp, isNegative := negationMap[rule.Op]
+	if isNegative {
+		child, err := parseFieldRule(Rule{
+			Field: rule.Field,
+			Op:    negatedOp,
+			Val:   rule.Val,
+		}, projectId, start, end)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("NOT %s", child), nil
 	}
 
-	sortOrder := "desc"
-	if !sortDesc {
-		sortOrder = "asc"
+	var valueBuilder strings.Builder
+	for idx, v := range rule.Val {
+		if idx == 0 {
+			valueBuilder.WriteString("AND (")
+		}
+		if idx > 0 {
+			valueBuilder.WriteString(" OR ")
+		}
+		switch rule.Op {
+		case Is:
+			valueBuilder.WriteString(fmt.Sprintf("Value ILIKE '%s'", v))
+		case Contains:
+			valueBuilder.WriteString(fmt.Sprintf("Value ILIKE '%%%s%%'", v))
+		case Matches:
+			valueBuilder.WriteString(fmt.Sprintf("Value REGEXP '%s'", v))
+		default:
+			return "", errors.New("unsupported operator")
+		}
+		if idx == len(rule.Val)-1 {
+			valueBuilder.WriteString(")")
+		}
+	}
+	typ, name, found := strings.Cut(rule.Field, "_")
+	if !found {
+		return "", errors.New("separator not found for field")
+	}
+
+	return fmt.Sprintf(`ID IN (
+		SELECT SessionID
+		FROM fields
+		WHERE ProjectID = %d
+		AND Type = '%s' 
+		AND Name = '%s'
+		AND SessionCreatedAt BETWEEN parseDateTimeBestEffort('%s') AND parseDateTimeBestEffort('%s')
+		%s
+	)`, projectId, typ, name, start, end, valueBuilder.String()), nil
+}
+
+type FieldType string
+
+const (
+	boolean FieldType = "boolean"
+	text    FieldType = "text"
+	long    FieldType = "long"
+)
+
+var customFieldTypes map[string]FieldType = map[string]FieldType{
+	"viewed":          boolean,
+	"viewed_by_me":    boolean,
+	"has_errors":      boolean,
+	"has_rage_clicks": boolean,
+	"processed":       boolean,
+	"first_time":      boolean,
+	"has_comments":    boolean,
+	"app_version":     text,
+	"active_length":   long,
+	"pages_visited":   long,
+}
+
+func parseSessionRule(rule Rule, projectId int) (string, error) {
+	negatedOp, isNegative := negationMap[rule.Op]
+	if isNegative {
+		child, err := parseSessionRule(Rule{
+			Field: rule.Field,
+			Op:    negatedOp,
+			Val:   rule.Val,
+		}, projectId)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("NOT %s", child), nil
+	}
+
+	_, name, found := strings.Cut(rule.Field, "_")
+	if !found {
+		return "", errors.New("separator not found for field")
+	}
+
+	customFieldType, found := customFieldTypes[name]
+	if !found {
+		customFieldType = text
+	}
+
+	chName, found := fieldMap[name]
+	if found {
+		name = chName
+	}
+
+	var valueBuilder strings.Builder
+	for idx, v := range rule.Val {
+		if idx == 0 {
+			valueBuilder.WriteString("(")
+		}
+		if idx > 0 {
+			valueBuilder.WriteString(" OR ")
+		}
+		switch rule.Op {
+		case Is:
+			switch customFieldType {
+			case text:
+				valueBuilder.WriteString(fmt.Sprintf("%s ILIKE '%s'", name, v))
+			case boolean:
+				valueBuilder.WriteString(fmt.Sprintf("%s = %s", name, v))
+			case long:
+				valueBuilder.WriteString(fmt.Sprintf("%s = %s", name, v))
+			default:
+				return "", errors.New("unsupported custom field type")
+			}
+		case Contains:
+			valueBuilder.WriteString(fmt.Sprintf("%s ILIKE '%%%s%%'", name, v))
+		case Exists:
+			valueBuilder.WriteString(fmt.Sprintf("%s IS NOT NULL", name))
+		case Between:
+			before, after, found := strings.Cut(v, "_")
+			if !found {
+				return "", errors.New("separator not found for between query")
+			}
+			valueBuilder.WriteString(fmt.Sprintf("%s BETWEEN '%s' AND '%s'", name, before, after))
+		case BetweenTime:
+			before, after, found := strings.Cut(v, "_")
+			if !found {
+				return "", errors.New("separator not found for between query")
+			}
+			valueBuilder.WriteString(fmt.Sprintf("%s BETWEEN '%s' AND '%s'", name, before, after))
+		case BetweenDate:
+			before, after, found := strings.Cut(v, "_")
+			if !found {
+				return "", errors.New("separator not found for between query")
+			}
+			valueBuilder.WriteString(fmt.Sprintf("%s BETWEEN parseDateTimeBestEffort('%s') AND parseDateTimeBestEffort('%s')", name, before, after))
+		case Matches:
+			valueBuilder.WriteString(fmt.Sprintf("%s REGEXP '%s'", name, v))
+		default:
+			return "", errors.New("unsupported operator")
+		}
+		if idx == len(rule.Val)-1 {
+			valueBuilder.WriteString(")")
+		}
+	}
+
+	return valueBuilder.String(), nil
+}
+
+func parseGroup(isAnd bool, rules []Rule, projectId int, start string, end string) (string, error) {
+	if len(rules) == 0 {
+		return "", errors.New("unexpected 0 rules")
+	}
+
+	separator := " AND "
+	if !isAnd {
+		separator = " OR "
+	}
+
+	var valueBuilder strings.Builder
+	for idx, r := range rules {
+		if idx > 0 {
+			valueBuilder.WriteString(separator)
+		}
+		str, err := parseRule(r, projectId, start, end)
+		if err != nil {
+			return "", err
+		}
+		valueBuilder.WriteString(str)
+	}
+
+	return valueBuilder.String(), nil
+}
+
+func getClickhouseSessionsQuery(query modelInputs.ClickhouseQuery, projectId int, sortField string, limit int, offset int) (string, error) {
+	rules, err := deserializeRules(query.Rules)
+	if err != nil {
+		return "", err
+	}
+
+	timeRangeRule, found := lo.Find(rules, func(r Rule) bool {
+		return r.Field == timeRangeField
+	})
+	if !found {
+		end := time.Now()
+		start := end.AddDate(0, 0, -30)
+		timeRangeRule = Rule{
+			Field: timeRangeField,
+			Op:    BetweenDate,
+			Val:   []string{fmt.Sprintf("%s_%s", start.Format(time.RFC3339), end.Format(time.RFC3339))},
+		}
+		rules = append(rules, timeRangeRule)
+	}
+	if len(timeRangeRule.Val) != 1 {
+		return "", errors.New("unexpected length of time range value")
+	}
+	start, end, found := strings.Cut(timeRangeRule.Val[0], "_")
+	if !found {
+		return "", errors.New("separator not found for time range")
+	}
+
+	conditions, err := parseGroup(query.IsAnd, rules, projectId, start, end)
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(`SELECT ID
+	FROM sessions FINAL
+	WHERE ProjectID = %d
+	AND NOT Excluded
+	AND WithinBillingQuota
+	AND (ActiveLength >= 1000 OR (ActiveLength IS NULL AND Length >= 1000))
+	AND (%s)
+	ORDER BY %s
+	LIMIT %d
+	OFFSET %d`, projectId, conditions, sortField, limit, offset), nil
+}
+
+func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, sortField *string, page *int, retentionDate time.Time) ([]int64, error) {
+	sortFieldStr := "CreatedAt DESC, ID DESC"
+	if sortField != nil {
+		sortFieldStr = *sortField
 	}
 
 	pageInt := 1
@@ -607,26 +505,23 @@ func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count 
 
 	logrus.WithContext(ctx).Info(query)
 
-	// s.backendSearchQuery = getSerializedQuery(
-	// 	s.searchQuery,
-	// 	action.admin,
-	// 	action.customFields,
-	// 	action.timeRangeField,
-	// )
-
-	sb := sqlbuilder.NewSelectBuilder()
-	sql, args := sb.Select("ID").
-		From(fmt.Sprintf("%s FINAL", SessionsTable)).
-		Where(sb.Equal("ProjectID", projectId)).
-		Where(sb.GreaterEqualThan("CreatedAt", retentionDate)).
-		OrderBy(fmt.Sprintf("%s %s", sortFieldStr, sortOrder)).
-		Limit(count).
-		Offset(offset).
-		BuildWithFlavor(sqlbuilder.ClickHouse)
+	// sb := sqlbuilder.NewSelectBuilder()
+	// sql, args := sb.Select("ID").
+	// 	From(fmt.Sprintf("%s FINAL", SessionsTable)).
+	// 	Where(sb.Equal("ProjectID", projectId)).
+	// 	Where(sb.GreaterEqualThan("CreatedAt", retentionDate)).
+	// 	OrderBy(fmt.Sprintf("%s %s", sortFieldStr, sortOrder)).
+	// 	Limit(count).
+	// 	Offset(offset).
+	// 	BuildWithFlavor(sqlbuilder.ClickHouse)
+	sql, err := getClickhouseSessionsQuery(query, projectId, sortFieldStr, count, offset)
+	if err != nil {
+		return nil, err
+	}
 
 	logrus.WithContext(ctx).Info(sql)
 
-	rows, err := client.conn.Query(ctx, sql, args...)
+	rows, err := client.conn.Query(ctx, sql) //, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -641,4 +536,63 @@ func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count 
 	}
 
 	return ids, nil
+}
+
+func (client *Client) QueryFieldNames(ctx context.Context, projectId int, start time.Time, end time.Time) ([]*model.Field, error) {
+	sql := fmt.Sprintf(`SELECT DISTINCT Type, Name
+		FROM fields
+		WHERE ProjectID = %d
+		AND SessionCreatedAt BETWEEN parseDateTimeBestEffort('%s') AND parseDateTimeBestEffort('%s')`,
+		projectId, start.Format(time.RFC3339), end.Format(time.RFC3339))
+
+	logrus.WithContext(ctx).Info(sql)
+
+	rows, err := client.conn.Query(ctx, sql)
+	if err != nil {
+		return nil, err
+	}
+
+	fields := []*model.Field{}
+	for rows.Next() {
+		var field *model.Field
+		if err := rows.Scan(&field); err != nil {
+			return nil, err
+		}
+		fields = append(fields, field)
+	}
+
+	return fields, nil
+}
+
+func (client *Client) QueryFieldValues(ctx context.Context, projectId int, count int, fieldType string, fieldName string, query string, start time.Time, end time.Time) ([]string, error) {
+	sql := fmt.Sprintf(`
+		SELECT Value
+		FROM fields
+		WHERE ProjectID = %d
+		AND Type = '%s'
+		AND Name = '%s'
+		AND Value ILIKE '%%%s%%'
+		AND SessionCreatedAt BETWEEN parseDateTimeBestEffort('%s') AND parseDateTimeBestEffort('%s')
+		GROUP BY 1
+		ORDER BY count() DESC
+		LIMIT %d`,
+		projectId, fieldType, fieldName, query, start.Format(time.RFC3339), end.Format(time.RFC3339), count)
+
+	logrus.WithContext(ctx).Info(sql)
+
+	rows, err := client.conn.Query(ctx, sql)
+	if err != nil {
+		return nil, err
+	}
+
+	values := []string{}
+	for rows.Next() {
+		var value string
+		if err := rows.Scan(&value); err != nil {
+			return nil, err
+		}
+		values = append(values, value)
+	}
+
+	return values, nil
 }
