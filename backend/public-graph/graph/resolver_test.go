@@ -304,7 +304,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			resolver.DB.Create(&settings)
 
 			if tc.withEmbeddings != nil {
-				resolver.DB.Where(&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).Updates(&model.AllWorkspaceSettings{ErrorEmbeddingsGroup: *tc.withEmbeddings})
+				resolver.DB.Where(&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).Updates(&model.AllWorkspaceSettings{ErrorEmbeddingsGroup: *tc.withEmbeddings, ErrorEmbeddingsThreshold: 0.2})
 			}
 
 			// create the error group to match against
