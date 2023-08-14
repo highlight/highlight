@@ -2,6 +2,7 @@ import { IncomingHttpHeaders } from 'http'
 import { Highlight } from '.'
 import { NodeOptions } from './types.js'
 import log from './log'
+import type { Attributes } from '@opentelemetry/api'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
@@ -16,13 +17,14 @@ export interface HighlightInterface {
 		error: Error,
 		secureSessionId?: string,
 		requestId?: string,
+		metadata?: Attributes,
 	) => void
 	recordMetric: (
 		secureSessionId: string,
 		name: string,
 		value: number,
 		requestId?: string,
-		tags?: { name: string; value: string }[],
+		metadata?: Attributes,
 	) => void
 	flush: () => Promise<void>
 	log: (message: any, level: string, ...optionalParams: any[]) => void
@@ -55,9 +57,15 @@ export const H: HighlightInterface = {
 		error: Error,
 		secureSessionId?: string,
 		requestId?: string,
+		metadata?: Attributes,
 	) => {
 		try {
-			highlight_obj.consumeCustomError(error, secureSessionId, requestId)
+			highlight_obj.consumeCustomError(
+				error,
+				secureSessionId,
+				requestId,
+				metadata,
+			)
 		} catch (e) {
 			console.warn('highlight-node consumeError error: ', e)
 		}
@@ -67,7 +75,7 @@ export const H: HighlightInterface = {
 		name: string,
 		value: number,
 		requestId?: string,
-		tags?: { name: string; value: string }[],
+		metadata?: Attributes,
 	) => {
 		try {
 			highlight_obj.recordMetric(
@@ -75,7 +83,7 @@ export const H: HighlightInterface = {
 				name,
 				value,
 				requestId,
-				tags,
+				metadata,
 			)
 		} catch (e) {
 			console.warn('highlight-node recordMetric error: ', e)
@@ -93,6 +101,7 @@ export const H: HighlightInterface = {
 		level: string,
 		secureSessionId?: string | undefined,
 		requestId?: string | undefined,
+		metadata?: Attributes,
 	) => {
 		const o: { stack: any } = { stack: {} }
 		Error.captureStackTrace(o)
@@ -104,6 +113,7 @@ export const H: HighlightInterface = {
 				o.stack,
 				secureSessionId,
 				requestId,
+				metadata,
 			)
 		} catch (e) {
 			console.warn('highlight-node log error: ', e)
