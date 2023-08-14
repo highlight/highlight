@@ -5172,7 +5172,11 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 	}
 	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
-	ids, err := r.ClickhouseClient.QuerySessionIds(ctx, projectID, count, query, sortField, page, retentionDate)
+	sortFieldStr := "CreatedAt DESC, ID DESC"
+	if !sortDesc {
+		sortFieldStr = "CreatedAt ASC, ID ASC"
+	}
+	ids, err := r.ClickhouseClient.QuerySessionIds(ctx, projectID, count, query, sortFieldStr, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}

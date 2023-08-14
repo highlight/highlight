@@ -12,7 +12,6 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/samber/lo"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -191,7 +190,6 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 
 		g.Go(func() error {
 			return client.conn.Exec(chCtx, fieldsSql, fieldsArgs...)
-			// client.conn.Stats()
 		})
 	}
 
@@ -491,37 +489,19 @@ func getClickhouseSessionsQuery(query modelInputs.ClickhouseQuery, projectId int
 	OFFSET %d`, projectId, conditions, sortField, limit, offset), nil
 }
 
-func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, sortField *string, page *int, retentionDate time.Time) ([]int64, error) {
-	sortFieldStr := "CreatedAt DESC, ID DESC"
-	if sortField != nil {
-		sortFieldStr = *sortField
-	}
-
+func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, sortField string, page *int, retentionDate time.Time) ([]int64, error) {
 	pageInt := 1
 	if page != nil {
 		pageInt = *page
 	}
 	offset := (pageInt - 1) * count
 
-	logrus.WithContext(ctx).Info(query)
-
-	// sb := sqlbuilder.NewSelectBuilder()
-	// sql, args := sb.Select("ID").
-	// 	From(fmt.Sprintf("%s FINAL", SessionsTable)).
-	// 	Where(sb.Equal("ProjectID", projectId)).
-	// 	Where(sb.GreaterEqualThan("CreatedAt", retentionDate)).
-	// 	OrderBy(fmt.Sprintf("%s %s", sortFieldStr, sortOrder)).
-	// 	Limit(count).
-	// 	Offset(offset).
-	// 	BuildWithFlavor(sqlbuilder.ClickHouse)
-	sql, err := getClickhouseSessionsQuery(query, projectId, sortFieldStr, count, offset)
+	sql, err := getClickhouseSessionsQuery(query, projectId, sortField, count, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	logrus.WithContext(ctx).Info(sql)
-
-	rows, err := client.conn.Query(ctx, sql) //, args...)
+	rows, err := client.conn.Query(ctx, sql)
 	if err != nil {
 		return nil, err
 	}
@@ -544,8 +524,6 @@ func (client *Client) QueryFieldNames(ctx context.Context, projectId int, start 
 		WHERE ProjectID = %d
 		AND SessionCreatedAt BETWEEN parseDateTimeBestEffort('%s') AND parseDateTimeBestEffort('%s')`,
 		projectId, start.Format(time.RFC3339), end.Format(time.RFC3339))
-
-	logrus.WithContext(ctx).Info(sql)
 
 	rows, err := client.conn.Query(ctx, sql)
 	if err != nil {
@@ -577,8 +555,6 @@ func (client *Client) QueryFieldValues(ctx context.Context, projectId int, count
 		ORDER BY count() DESC
 		LIMIT %d`,
 		projectId, fieldType, fieldName, query, start.Format(time.RFC3339), end.Format(time.RFC3339), count)
-
-	logrus.WithContext(ctx).Info(sql)
 
 	rows, err := client.conn.Query(ctx, sql)
 	if err != nil {
