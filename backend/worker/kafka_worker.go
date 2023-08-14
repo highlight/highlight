@@ -232,7 +232,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) error {
 			if logRow.ServiceName != "" {
 				project, err := k.Worker.Resolver.Store.GetProject(ctx, int(logRow.ProjectId))
 				if err == nil && project != nil {
-					_, err := k.Worker.Resolver.Store.FindOrCreateService(*project, logRow.ServiceName, logRow.LogAttributes)
+					_, err := k.Worker.Resolver.Store.FindOrCreateService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
 
 					if err != nil {
 						log.WithContext(ctx).Error(e.Wrap(err, "failed to create service"))

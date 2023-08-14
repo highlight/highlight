@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"testing"
@@ -15,25 +16,28 @@ import (
 
 func TestFindOrCreateService(t *testing.T) {
 	defer teardown(t)
+	ctx := context.Background()
 	project := model.Project{}
 	store.db.Create(&project)
 
-	service, err := store.FindOrCreateService(project, "public-graph", map[string]string{})
+	service, err := store.FindOrCreateService(ctx, project, "public-graph", map[string]string{})
 	assert.NoError(t, err)
 
 	assert.NotNil(t, service.ID)
 
-	foundService, err := store.FindOrCreateService(project, "public-graph", map[string]string{})
+	foundService, err := store.FindOrCreateService(ctx, project, "public-graph", map[string]string{})
 	assert.NoError(t, err)
 	assert.Equal(t, service.ID, foundService.ID)
 }
 
 func TestFindOrCreateServiceWithAttributes(t *testing.T) {
+	ctx := context.Background()
+
 	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
 		project := model.Project{}
 		store.db.Create(&project)
 
-		service, err := store.FindOrCreateService(project, "public-graph", map[string]string{
+		service, err := store.FindOrCreateService(ctx, project, "public-graph", map[string]string{
 			"process.runtime.name":        "go",
 			"process.runtime.version":     "go1.20.5",
 			"process.runtime.description": "go version go1.20.5 darwin/arm64",
