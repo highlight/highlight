@@ -1344,13 +1344,22 @@ export type EditServiceGithubSettingsMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 	project_id: Types.Scalars['ID']
 	github_repo_path?: Types.Maybe<Types.Scalars['String']>
+	build_prefix?: Types.Maybe<Types.Scalars['String']>
+	github_prefix?: Types.Maybe<Types.Scalars['String']>
 }>
 
 export type EditServiceGithubSettingsMutation = { __typename?: 'Mutation' } & {
 	editServiceGithubSettings?: Types.Maybe<
 		{ __typename?: 'Service' } & Pick<
 			Types.Service,
-			'id' | 'projectID' | 'name' | 'status' | 'githubRepoPath'
+			| 'id'
+			| 'projectID'
+			| 'name'
+			| 'status'
+			| 'githubRepoPath'
+			| 'buildPrefix'
+			| 'githubPrefix'
+			| 'errorDetails'
 		>
 	>
 }
@@ -4465,6 +4474,9 @@ export type GetServicesQuery = { __typename?: 'Query' } & {
 								| 'name'
 								| 'status'
 								| 'githubRepoPath'
+								| 'buildPrefix'
+								| 'githubPrefix'
+								| 'errorDetails'
 							>
 						}
 				>

@@ -2,69 +2,101 @@ package clickhouse
 
 import (
 	"context"
-	"fmt"
 	"time"
 
-	e "github.com/pkg/errors"
+	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/huandu/go-sqlbuilder"
+	"github.com/samber/lo"
 )
 
 const TracesTable = "traces"
+
+type ClickhouseTraceRow struct {
+	Timestamp        time.Time
+	UUID             string
+	TraceId          string
+	SpanId           string
+	ParentSpanId     string
+	ProjectId        uint32
+	SecureSessionId  string
+	TraceState       string
+	SpanName         string
+	SpanKind         string
+	Duration         int64
+	ServiceName      string
+	ServiceVersion   string
+	TraceAttributes  map[string]string
+	StatusCode       string
+	StatusMessage    string
+	EventsTimestamp  clickhouse.ArraySet `db:"Events.Timestamp"`
+	EventsName       clickhouse.ArraySet `db:"Events.Name"`
+	EventsAttributes clickhouse.ArraySet `db:"Events.Attributes"`
+	LinksTraceId     clickhouse.ArraySet `db:"Links.TraceId"`
+	LinksSpanId      clickhouse.ArraySet `db:"Links.SpanId"`
+	LinksTraceState  clickhouse.ArraySet `db:"Links.TraceState"`
+	LinksAttributes  clickhouse.ArraySet `db:"Links.Attributes"`
+}
 
 func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*TraceRow) error {
 	if len(traceRows) == 0 {
 		return nil
 	}
 
-	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", TracesTable))
-	if err != nil {
-		return e.Wrap(err, "could not prepare traces batch")
-	}
+	// TODO: Figure out how we are getting some nil trace rows
+	traceRows = lo.Filter(traceRows, func(traceRow *TraceRow, _ int) bool {
+		return traceRow != nil
+	})
 
-	for _, traceRow := range traceRows {
-		// Was not able to figure out a way to insert nested values using a struct +
-		// AppendStruct, so had to pull them out to individual arrays.
+	rows := lo.Map(traceRows, func(traceRow *TraceRow, _ int) interface{} {
 		traceTimes, traceNames, traceAttrs := convertEvents(traceRow)
 		linkTraceIds, linkSpanIds, linkStates, linkAttrs := convertLinks(traceRow)
 
-		err = batch.Append(
-			traceRow.Timestamp,
-			traceRow.UUID,
-			traceRow.TraceId,
-			traceRow.SpanId,
-			traceRow.ParentSpanId,
-			traceRow.ProjectId,
-			traceRow.SecureSessionId,
-			traceRow.TraceState,
-			traceRow.SpanName,
-			traceRow.SpanKind,
-			traceRow.Duration,
-			traceRow.ServiceName,
-			traceRow.ServiceVersion,
-			traceRow.TraceAttributes,
-			traceRow.StatusCode,
-			traceRow.StatusMessage,
-			traceTimes,
-			traceNames,
-			traceAttrs,
-			linkTraceIds,
-			linkSpanIds,
-			linkStates,
-			linkAttrs,
-		)
-		if err != nil {
-			return err
+		row := ClickhouseTraceRow{
+			Timestamp:        traceRow.Timestamp,
+			UUID:             traceRow.UUID,
+			TraceId:          traceRow.TraceId,
+			SpanId:           traceRow.SpanId,
+			ParentSpanId:     traceRow.ParentSpanId,
+			ProjectId:        traceRow.ProjectId,
+			SecureSessionId:  traceRow.SecureSessionId,
+			TraceState:       traceRow.TraceState,
+			SpanName:         traceRow.SpanName,
+			SpanKind:         traceRow.SpanKind,
+			Duration:         traceRow.Duration,
+			ServiceName:      traceRow.ServiceName,
+			ServiceVersion:   traceRow.ServiceVersion,
+			TraceAttributes:  traceRow.TraceAttributes,
+			StatusCode:       traceRow.StatusCode,
+			StatusMessage:    traceRow.StatusMessage,
+			EventsTimestamp:  traceTimes,
+			EventsName:       traceNames,
+			EventsAttributes: traceAttrs,
+			LinksTraceId:     linkTraceIds,
+			LinksSpanId:      linkSpanIds,
+			LinksTraceState:  linkStates,
+			LinksAttributes:  linkAttrs,
 		}
-	}
 
-	return batch.Send()
+		return row
+	})
+
+	ib := sqlbuilder.NewStruct(new(ClickhouseTraceRow)).InsertInto(TracesTable, rows...)
+	sql, args := ib.BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
+		"async_insert":          1,
+		"wait_for_async_insert": 1,
+	}))
+	return client.conn.Exec(chCtx, sql, args...)
 }
 
-func convertEvents(traceRow *TraceRow) ([]time.Time, []string, []map[string]string) {
+func convertEvents(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet, clickhouse.ArraySet) {
 	var (
-		times []time.Time
-		names []string
-		attrs []map[string]string
+		times clickhouse.ArraySet
+		names clickhouse.ArraySet
+		attrs clickhouse.ArraySet
 	)
+
 	events := traceRow.Events
 	for _, event := range events {
 		times = append(times, event.Timestamp)
@@ -74,12 +106,12 @@ func convertEvents(traceRow *TraceRow) ([]time.Time, []string, []map[string]stri
 	return times, names, attrs
 }
 
-func convertLinks(traceRow *TraceRow) ([]string, []string, []string, []map[string]string) {
+func convertLinks(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet, clickhouse.ArraySet, clickhouse.ArraySet) {
 	var (
-		traceIDs []string
-		spanIDs  []string
-		states   []string
-		attrs    []map[string]string
+		traceIDs clickhouse.ArraySet
+		spanIDs  clickhouse.ArraySet
+		states   clickhouse.ArraySet
+		attrs    clickhouse.ArraySet
 	)
 	links := traceRow.Links
 	for _, link := range links {

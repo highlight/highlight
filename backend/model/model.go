@@ -386,8 +386,9 @@ type AllWorkspaceSettings struct {
 	// store embeddings for errors in this workspace
 	ErrorEmbeddingsWrite bool `gorm:"default:false"`
 	// use embeddings to group errors in this workspace
-	ErrorEmbeddingsGroup bool `gorm:"default:false"`
-	ReplaceAssets        bool `gorm:"default:false"`
+	ErrorEmbeddingsGroup     bool    `gorm:"default:false"`
+	ErrorEmbeddingsThreshold float64 `gorm:"default:0.2"`
+	ReplaceAssets            bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {

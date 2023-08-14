@@ -4796,17 +4796,24 @@ export const EditServiceGithubSettingsDocument = gql`
 		$id: ID!
 		$project_id: ID!
 		$github_repo_path: String
+		$build_prefix: String
+		$github_prefix: String
 	) {
 		editServiceGithubSettings(
 			id: $id
 			project_id: $project_id
 			github_repo_path: $github_repo_path
+			build_prefix: $build_prefix
+			github_prefix: $github_prefix
 		) {
 			id
 			projectID
 			name
 			status
 			githubRepoPath
+			buildPrefix
+			githubPrefix
+			errorDetails
 		}
 	}
 `
@@ -4831,6 +4838,11 @@ export type EditServiceGithubSettingsMutationFn = Apollo.MutationFunction<
  *      id: // value for 'id'
  *      project_id: // value for 'project_id'
  *      github_repo_path: // value for 'github_repo_path'
+<<<<<<< HEAD
+ *      build_prefix: // value for 'build_prefix'
+ *      github_prefix: // value for 'github_prefix'
+=======
+>>>>>>> main
  *   },
  * });
  */
@@ -13232,6 +13244,9 @@ export const GetServicesDocument = gql`
 					name
 					status
 					githubRepoPath
+					buildPrefix
+					githubPrefix
+					errorDetails
 				}
 			}
 			pageInfo {

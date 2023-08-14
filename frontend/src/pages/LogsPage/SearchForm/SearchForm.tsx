@@ -30,7 +30,7 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import { stringify } from 'query-string'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
@@ -70,7 +70,6 @@ const SearchForm = ({
 	hideCreateAlert,
 }: Props) => {
 	const navigate = useNavigate()
-	const [selectedDates, setSelectedDates] = useState([startDate, endDate])
 	const formState = useFormState({ defaultValues: { query: initialQuery } })
 	const { projectId } = useProjectId()
 	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
@@ -88,8 +87,6 @@ const SearchForm = ({
 	})
 
 	const handleDatesChange = (dates: Date[]) => {
-		setSelectedDates(dates)
-
 		if (dates.length == 2) {
 			onDatesChange(dates[0], dates[1])
 		}
@@ -148,7 +145,7 @@ const SearchForm = ({
 					{!hideDatePicker && (
 						<PreviousDateRangePicker
 							emphasis="low"
-							selectedDates={selectedDates}
+							selectedDates={[startDate, endDate]}
 							onDatesChange={handleDatesChange}
 							presets={presets}
 							minDate={minDate}

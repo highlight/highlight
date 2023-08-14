@@ -9,10 +9,9 @@ import (
 	"strconv"
 	"time"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-
-	"github.com/go-redis/cache/v8"
-	"github.com/go-redis/redis/v8"
+	"github.com/go-redis/cache/v9"
+	"github.com/go-redsync/redsync/v4"
+	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
@@ -20,6 +19,8 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
+	"github.com/redis/go-redis/v9"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 const CacheKeyHubspotCompanies = "hubspot-companies"
@@ -27,9 +28,10 @@ const CacheKeyHubspotCompanies = "hubspot-companies"
 type Client struct {
 	redisClient redis.Cmdable
 	Cache       *cache.Cache
+	Redsync     *redsync.Redsync
 }
 
-const LockPollInterval = 50 * time.Millisecond
+const LockPollInterval = 100 * time.Millisecond
 
 var (
 	ServerAddr = os.Getenv("REDIS_EVENTS_STAGING_ENDPOINT")
@@ -60,38 +62,42 @@ func LastLogTimestampKey(projectId int) string {
 }
 
 func NewClient() *Client {
-	lfu := cache.NewTinyLFU(10000, time.Minute)
+	var lfu cache.LocalCache
+	// disable lfu cache locally to allow flushing cache between test-cases
+	if !util.IsTestEnv() {
+		lfu = cache.NewTinyLFU(10000, time.Second)
+	}
 	if util.IsDevOrTestEnv() {
 		client := redis.NewClient(&redis.Options{
-			Addr:         ServerAddr,
-			Password:     "",
-			ReadTimeout:  5 * time.Second,
-			WriteTimeout: 5 * time.Second,
-			MaxConnAge:   5 * time.Minute,
-			IdleTimeout:  5 * time.Minute,
-			MaxRetries:   5,
-			MinIdleConns: 16,
-			PoolSize:     256,
+			Addr:            ServerAddr,
+			Password:        "",
+			ReadTimeout:     5 * time.Second,
+			WriteTimeout:    5 * time.Second,
+			ConnMaxIdleTime: 5 * time.Minute,
+			ConnMaxLifetime: 5 * time.Minute,
+			MaxRetries:      5,
+			MinIdleConns:    16,
+			PoolSize:        256,
 		})
-
 		return &Client{
 			redisClient: client,
 			Cache: cache.New(&cache.Options{
 				Redis:      client,
 				LocalCache: lfu,
 			}),
+			Redsync: redsync.New(goredis.NewPool(client)),
 		}
 	} else {
 		c := redis.NewClusterClient(&redis.ClusterOptions{
-			Addrs:        []string{ServerAddr},
-			Password:     "",
-			ReadTimeout:  5 * time.Second,
-			WriteTimeout: 5 * time.Second,
-			MaxConnAge:   5 * time.Minute,
-			IdleTimeout:  5 * time.Minute,
-			MaxRetries:   5,
-			MinIdleConns: 16,
-			PoolSize:     256,
+			Addrs:           []string{ServerAddr},
+			Password:        "",
+			ReadTimeout:     5 * time.Second,
+			WriteTimeout:    5 * time.Second,
+			ConnMaxIdleTime: 5 * time.Minute,
+			ConnMaxLifetime: 5 * time.Minute,
+			MaxRetries:      5,
+			MinIdleConns:    16,
+			PoolSize:        256,
 			OnConnect: func(context.Context, *redis.Conn) error {
 				hlog.Incr("redis.new-conn", nil, 1)
 				return nil
@@ -125,6 +131,7 @@ func NewClient() *Client {
 		return &Client{
 			redisClient: c,
 			Cache:       rCache,
+			Redsync:     redsync.New(goredis.NewPool(c)),
 		}
 	}
 }
@@ -477,32 +484,20 @@ func (r *Client) GetHubspotCompanies(ctx context.Context, companies interface{})
 	return
 }
 
-func (r *Client) AcquireLock(ctx context.Context, key string, timeout time.Duration) (acquired bool) {
-	start := time.Now()
-	for {
-		cmd := r.redisClient.SetArgs(ctx, key, "1", redis.SetArgs{
-			TTL:  timeout,
-			Mode: "NX",
-			Get:  true,
-		})
-		// error means value is not set
-		if cmd.Err() != nil {
-			return true
-		}
-		if time.Since(start) > timeout {
-			return false
-		}
-		time.Sleep(LockPollInterval)
-	}
-}
-
-func (r *Client) ReleaseLock(ctx context.Context, key string) (err error) {
-	return r.redisClient.Del(ctx, key).Err()
+func (r *Client) AcquireLock(_ context.Context, key string, timeout time.Duration) (*redsync.Mutex, error) {
+	mutex := r.Redsync.NewMutex(
+		key,
+		redsync.WithRetryDelay(LockPollInterval),
+		redsync.WithTries(int(timeout/LockPollInterval)),
+		// ecs containers have up to 25 seconds to shut down
+		redsync.WithExpiry(25*time.Second),
+	)
+	return mutex, mutex.Lock()
 }
 
 func (r *Client) FlushDB(ctx context.Context) error {
 	if util.IsDevOrTestEnv() {
-		return r.redisClient.FlushDB(ctx).Err()
+		return r.redisClient.FlushAll(ctx).Err()
 	}
 	return nil
 }

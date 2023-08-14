@@ -50,6 +50,7 @@ import { DevDeploymentContent } from './self-host/dev-deploy'
 import { SelfHostContent } from './self-host/self-host'
 import { HostingRenderLogContent } from './logging/hosting/render'
 import { SyslogContent } from './logging/syslog'
+import { JSPinoHTTPJSONLogContent } from './logging/js/pino'
 
 export type QuickStartOptions = {
 	title: string
@@ -114,6 +115,7 @@ export enum QuickStartType {
 	JSNodejs = 'nodejs',
 	JSNestjs = 'nestjs',
 	JSWinston = 'winston',
+	JSPino = 'pino',
 	JStRPC = 'trpc',
 	HTTPOTLP = 'curl',
 	Syslog = 'syslog',
@@ -227,6 +229,7 @@ export const quickStartContent = {
 			[QuickStartType.JSNodejs]: JSOtherLogContent,
 			[QuickStartType.JSNestjs]: JSNestLogContent,
 			[QuickStartType.JSWinston]: JSWinstonHTTPJSONLogContent,
+			[QuickStartType.JSPino]: JSPinoHTTPJSONLogContent,
 			[QuickStartType.JSCloudflare]: JSCloudflareLoggingContent,
 		},
 		http: {

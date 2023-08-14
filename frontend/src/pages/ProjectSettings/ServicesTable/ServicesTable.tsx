@@ -15,6 +15,7 @@ import {
 	Stack,
 	Table,
 	Text,
+	Tooltip,
 	useComboboxState,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -25,7 +26,10 @@ import React, { useEffect, useMemo, useState } from 'react'
 
 import { Service, ServiceStatus } from '@/graph/generated/schemas'
 
-import { GitHubSettingsModal } from '../GitHubSettingsModal/GitHubSettingsModal'
+import {
+	GithubSettingsFormValues,
+	GitHubSettingsModal,
+} from '../GitHubSettingsModal/GitHubSettingsModal'
 import * as styles from './ServicesTable.css'
 
 type Pagination = {
@@ -88,12 +92,17 @@ export const ServicesTable: React.FC = () => {
 		})
 	}
 
-	const updateServiceSettings = (service: Service, repo: string | null) => {
+	const updateServiceSettings = (
+		service: Service,
+		formValues: GithubSettingsFormValues,
+	) => {
 		editServiceGithubSettings({
 			variables: {
 				id: service.id,
 				project_id: service.projectID!,
-				github_repo_path: repo,
+				github_repo_path: formValues.githubRepo,
+				build_prefix: formValues.buildPrefix,
+				github_prefix: formValues.githubPrefix,
 			},
 			refetchQueries: [namedOperations.Query.GetServices],
 		})
@@ -172,13 +181,34 @@ export const ServicesTable: React.FC = () => {
 			name: 'Status',
 			width: '80px',
 			dataFormat: {},
-			renderData: (service: Service) => (
-				<Badge
-					variant={determineStatusVariant(service.status)}
-					label={capitalize(service.status)}
-					size="medium"
-				/>
-			),
+			renderData: (service: Service) => {
+				const renderBadge = () => (
+					<Badge
+						variant={determineStatusVariant(service.status)}
+						label={capitalize(service.status)}
+						size="medium"
+					/>
+				)
+
+				if (
+					service.status === ServiceStatus.Error &&
+					service.errorDetails?.length
+				) {
+					return (
+						<Tooltip trigger={renderBadge()}>
+							<Box style={{ maxWidth: 250 }} p="8">
+								{service.errorDetails?.map((error) => (
+									<Text key={error} color="bad">
+										{error}
+									</Text>
+								))}
+							</Box>
+						</Tooltip>
+					)
+				}
+
+				return renderBadge()
+			},
 		},
 	]
 

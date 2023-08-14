@@ -1,24 +1,26 @@
 import { promises as fsp } from 'fs'
-import { gql, GraphQLClient } from 'graphql-request'
+import { gql } from 'graphql-request'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { COMPETITORS } from '../../components/Competitors/competitors'
 import { FEATURES, iFeature } from '../../components/Features/features'
 import { iProduct, PRODUCTS } from '../../components/Products/products'
 import { getBlogPaths } from '../blog'
 import { getGithubDocsPaths } from './docs/github'
+import { createWriteStream } from 'pino-http-send'
+import pino from 'pino'
+import { GraphQLRequest } from '../../utils/graphql'
+
+const stream = createWriteStream({
+	url: 'https://pub.highlight.io/v1/logs/json?project=4d7k1xeo&service=highlight-io-next-frontend',
+})
+
+const logger = pino({ level: 'debug' }, stream)
 
 async function generateXML(): Promise<string> {
-	const graphcms = new GraphQLClient(
-		'https://api-us-west-2.graphcms.com/v2/cl2tzedef0o3p01yz7c7eetq8/master',
-		{
-			headers: {
-				Authorization: `Bearer ${process.env.GRAPHCMS_TOKEN}`,
-			},
-		},
-	)
+	logger.info('generating sitemap')
 
 	const [{ customers }, docs, githubBlogPosts] = await Promise.all([
-		await graphcms.request(gql`
+		await GraphQLRequest<{ customers: { slug: string }[] }>(gql`
 	      query GetCustomers() {
 	        customers() {
 	          slug
@@ -28,6 +30,7 @@ async function generateXML(): Promise<string> {
 		await getGithubDocsPaths(),
 		await getBlogPaths(fsp, ''),
 	])
+	logger.info('got remote data')
 
 	const githubBlogPages = githubBlogPosts.map(
 		(path) => `blog/${path.simple_path}`,
@@ -64,6 +67,7 @@ async function generateXML(): Promise<string> {
 		...featurePages,
 		...competitorPages,
 	]
+	logger.info({ numPages: pages.length }, 'build pages')
 
 	const addPage = (page: string) => {
 		return `    <url>
