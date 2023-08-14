@@ -2,13 +2,21 @@ import {
 	EmptySearchResults,
 	SearchResultsKind,
 } from '@components/EmptySearchResults/EmptySearchResults'
+import { AdditionalFeedResults } from '@components/FeedResults/FeedResults'
 import LoadingBox from '@components/LoadingBox'
 import SearchPagination, {
 	PAGE_SIZE,
 } from '@components/SearchPagination/SearchPagination'
-import { useGetErrorGroupsOpenSearchQuery } from '@graph/hooks'
+import {
+	useGetErrorGroupsOpenSearchLazyQuery,
+	useGetErrorGroupsOpenSearchQuery,
+} from '@graph/hooks'
+import {
+	GetErrorGroupsOpenSearchQuery,
+	GetErrorGroupsOpenSearchQueryVariables,
+} from '@graph/operations'
 import { ErrorGroup, Maybe, ProductType } from '@graph/schemas'
-import { Box } from '@highlight-run/ui'
+import { Box, getNow } from '@highlight-run/ui'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
 import ErrorFeedHistogram from '@pages/ErrorsV2/ErrorFeedHistogram/ErrorFeedHistogram'
@@ -17,8 +25,10 @@ import useErrorPageConfiguration from '@pages/ErrorsV2/utils/ErrorPageUIConfigur
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { gqlSanitize } from '@util/gql'
 import { useParams } from '@util/react-router/useParams'
+import { usePollQuery } from '@util/search'
 import clsx from 'clsx'
-import { useEffect, useState } from 'react'
+import moment from 'moment/moment'
+import React, { useEffect, useState } from 'react'
 
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -37,7 +47,6 @@ const SearchPanel = () => {
 		setSearchResultsCount,
 		setSearchResultSecureIds,
 	} = useErrorSearchContext()
-
 	const { project_id: projectId } = useParams<{ project_id: string }>()
 
 	const { data: fetchedData, loading } = useGetErrorGroupsOpenSearchQuery({
@@ -61,6 +70,79 @@ const SearchPanel = () => {
 			)
 		},
 		skip: !backendSearchQuery || !projectId,
+	})
+
+	const [moreDataQuery] = useGetErrorGroupsOpenSearchLazyQuery({
+		fetchPolicy: 'network-only',
+	})
+
+	const { numMore: moreErrors, reset: resetMoreErrors } = usePollQuery<
+		GetErrorGroupsOpenSearchQuery,
+		GetErrorGroupsOpenSearchQueryVariables
+	>({
+		variableFn: () => {
+			let query = JSON.parse(backendSearchQuery?.searchQuery || '')
+			const lte =
+				query?.bool?.must[1]?.has_child?.query?.bool?.must[0]?.bool
+					?.should[0]?.range?.timestamp?.lte
+			// if the query end date is close to 'now',
+			// then we are using a default relative time range.
+			// otherwise, we are using a custom date range and should not poll
+			if (Math.abs(moment(lte).diff(getNow(), 'minutes')) >= 1) {
+				return
+			}
+			query = {
+				...query,
+				bool: {
+					...query.bool,
+					must: [
+						...query.bool.must.slice(0, query.bool.must.length - 1),
+						{
+							has_child: {
+								type: 'child',
+								query: {
+									bool: {
+										must: [
+											{
+												bool: {
+													should: [
+														{
+															range: {
+																timestamp: {
+																	gte: new Date(
+																		Date.parse(
+																			lte,
+																		),
+																	).toISOString(),
+																},
+															},
+														},
+													],
+												},
+											},
+											{
+												bool: {
+													must: [],
+												},
+											},
+										],
+									},
+								},
+							},
+						},
+					],
+				},
+			}
+			return {
+				query: JSON.stringify(query),
+				count: PAGE_SIZE,
+				page: 1,
+				project_id: projectId!,
+			}
+		},
+		moreDataQuery,
+		getResultCount: (result) =>
+			result?.data?.error_groups_opensearch.totalCount,
 	})
 
 	useEffect(() => {
@@ -108,7 +190,13 @@ const SearchPanel = () => {
 					<ErrorFeedHistogram />
 				</Box>
 			)}
+			<AdditionalFeedResults
+				more={moreErrors}
+				type="errors"
+				onClick={resetMoreErrors}
+			/>
 			<Box
+				paddingTop="4"
 				padding="8"
 				overflowX="hidden"
 				overflowY="auto"
