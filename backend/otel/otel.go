@@ -155,31 +155,42 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				span := spans.At(k)
 				events := span.Events()
 
-				fields, err := extractFields(ctx, extractFieldsParams{
-					span: &span,
-				})
-				if err != nil {
-					lg(ctx, fields).WithError(err).Error("failed to extract fields from span")
+				isLog := false
+				for l := 0; l < events.Len() && !isLog; l++ {
+					e := events.At(l)
+					if e.Name() == "log" {
+						isLog = true
+					}
 				}
 
-				traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime(), fields.projectIDInt).
-					WithSecureSessionId(fields.sessionID).
-					WithTraceId(span.TraceID().String()).
-					WithSpanId(span.SpanID().String()).
-					WithParentSpanId(span.ParentSpanID().String()).
-					WithTraceState(span.TraceState().AsRaw()).
-					WithSpanName(span.Name()).
-					WithSpanKind(span.Kind().String()).
-					WithDuration(span.StartTimestamp().AsTime(), span.EndTimestamp().AsTime()).
-					WithServiceName(fields.serviceName).
-					WithServiceVersion(fields.serviceVersion).
-					WithStatusCode(span.Status().Code().String()).
-					WithStatusMessage(span.Status().Message()).
-					WithTraceAttributes(fields.attrs).
-					WithEvents(fields.events).
-					WithLinks(fields.links)
+				// Only process spans that are not logs
+				if !isLog {
+					fields, err := extractFields(ctx, extractFieldsParams{
+						span: &span,
+					})
+					if err != nil {
+						lg(ctx, fields).WithError(err).Error("failed to extract fields from span")
+					}
 
-				projectSpans[fields.projectIDInt] = append(projectSpans[fields.projectIDInt], traceRow)
+					traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime(), fields.projectIDInt).
+						WithSecureSessionId(fields.sessionID).
+						WithTraceId(span.TraceID().String()).
+						WithSpanId(span.SpanID().String()).
+						WithParentSpanId(span.ParentSpanID().String()).
+						WithTraceState(span.TraceState().AsRaw()).
+						WithSpanName(span.Name()).
+						WithSpanKind(span.Kind().String()).
+						WithDuration(span.StartTimestamp().AsTime(), span.EndTimestamp().AsTime()).
+						WithServiceName(fields.serviceName).
+						WithServiceVersion(fields.serviceVersion).
+						WithStatusCode(span.Status().Code().String()).
+						WithStatusMessage(span.Status().Message()).
+						WithTraceAttributes(fields.attrs).
+						WithEvents(fields.events).
+						WithLinks(fields.links)
+
+					projectSpans[fields.projectIDInt] = append(projectSpans[fields.projectIDInt], traceRow)
+				}
 
 				for l := 0; l < events.Len(); l++ {
 					event := events.At(l)
@@ -428,22 +439,21 @@ func (o *Handler) submitProjectLogs(ctx context.Context, projectLogs map[string]
 func (o *Handler) submitProjectSpans(ctx context.Context, projectTraceRows map[int][]*clickhouse.TraceRow) error {
 	for projectID, traceRows := range projectTraceRows {
 		// Only enable for Highlight's main project
-		// Temporarily TestHandler_HandleTracedisabling so we can monitor
-		// https://highlightcorp.slack.com/archives/C02CJANPHQS/p1690988700412539?thread_ts=1690985864.381839&cid=C02CJANPHQS
-		// When reenabling this, please uncomment the TestHandler_HandleTrace test
-		if projectID != 1 || true {
+		if projectID != 1 {
 			continue
 		}
 
-		traceRows := append(traceRows, traceRows...)
+		var messages []*kafkaqueue.Message
+		for _, traceRow := range traceRows {
+			messages = append(messages, &kafkaqueue.Message{
+				Type: kafkaqueue.PushTraces,
+				PushTraces: &kafkaqueue.PushTracesArgs{
+					TraceRow: traceRow,
+				},
+			})
+		}
 
-		err := o.resolver.TracesQueue.Submit(ctx, "", &kafkaqueue.Message{
-			Type: kafkaqueue.PushTraces,
-			PushTraces: &kafkaqueue.PushTracesArgs{
-				TraceRows: traceRows,
-			},
-		})
-
+		err := o.resolver.TracesQueue.Submit(ctx, "", messages...)
 		if err != nil {
 			return e.Wrap(err, "failed to submit otel project traces to public worker queue")
 		}
