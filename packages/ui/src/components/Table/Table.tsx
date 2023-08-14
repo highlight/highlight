@@ -18,7 +18,7 @@ type Props = {
 }
 
 const TableComponent: React.FC<Props> = ({ children }) => {
-	return <Box>{children}</Box>
+	return <Box width="full">{children}</Box>
 }
 
 type TableWithComponents = React.FC<Props> & {

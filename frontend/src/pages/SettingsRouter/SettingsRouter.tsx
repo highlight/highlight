@@ -240,7 +240,7 @@ export const SettingsRouter = () => {
 						{projectSettingTabs.map((project) => (
 							<NavLink
 								key={project.key}
-								to={`/${project.key}/settings/sessions`}
+								to={`/${project.key}/settings/general`}
 								className={clsx(styles.menuItem, {
 									[styles.menuItemActive]:
 										projectId === project.key,

@@ -6652,6 +6652,23 @@ body {
   padding: 0 8px;
   width: 325px;
 }
+._1kp6do40 {
+  width: 100%;
+}
+._1kp6do41 {
+  min-width: 100px;
+}
+._13nf89o1 {
+  background: transparent;
+  border: 0;
+  color: var(--_1pyqka9b);
+  display: flex;
+  font-size: 13px;
+  width: 100%;
+}
+._13nf89o1:focus {
+  outline: 0;
+}
 ._4qdycv0 {
   height: 12px;
 }

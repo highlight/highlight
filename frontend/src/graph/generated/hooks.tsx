@@ -4791,6 +4791,70 @@ export type DeleteInviteLinkFromWorkspaceMutationOptions =
 		Types.DeleteInviteLinkFromWorkspaceMutation,
 		Types.DeleteInviteLinkFromWorkspaceMutationVariables
 	>
+export const EditServiceGithubSettingsDocument = gql`
+	mutation EditServiceGithubSettings(
+		$id: ID!
+		$project_id: ID!
+		$github_repo_path: String
+	) {
+		editServiceGithubSettings(
+			id: $id
+			project_id: $project_id
+			github_repo_path: $github_repo_path
+		) {
+			id
+			projectID
+			name
+			status
+			githubRepoPath
+		}
+	}
+`
+export type EditServiceGithubSettingsMutationFn = Apollo.MutationFunction<
+	Types.EditServiceGithubSettingsMutation,
+	Types.EditServiceGithubSettingsMutationVariables
+>
+
+/**
+ * __useEditServiceGithubSettingsMutation__
+ *
+ * To run a mutation, you first call `useEditServiceGithubSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditServiceGithubSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [editServiceGithubSettingsMutation, { data, loading, error }] = useEditServiceGithubSettingsMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      project_id: // value for 'project_id'
+ *      github_repo_path: // value for 'github_repo_path'
+ *   },
+ * });
+ */
+export function useEditServiceGithubSettingsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.EditServiceGithubSettingsMutation,
+		Types.EditServiceGithubSettingsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.EditServiceGithubSettingsMutation,
+		Types.EditServiceGithubSettingsMutationVariables
+	>(EditServiceGithubSettingsDocument, baseOptions)
+}
+export type EditServiceGithubSettingsMutationHookResult = ReturnType<
+	typeof useEditServiceGithubSettingsMutation
+>
+export type EditServiceGithubSettingsMutationResult =
+	Apollo.MutationResult<Types.EditServiceGithubSettingsMutation>
+export type EditServiceGithubSettingsMutationOptions =
+	Apollo.BaseMutationOptions<
+		Types.EditServiceGithubSettingsMutation,
+		Types.EditServiceGithubSettingsMutationVariables
+	>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -13146,4 +13210,86 @@ export type GetErrorObjectsLazyQueryHookResult = ReturnType<
 export type GetErrorObjectsQueryResult = Apollo.QueryResult<
 	Types.GetErrorObjectsQuery,
 	Types.GetErrorObjectsQueryVariables
+>
+export const GetServicesDocument = gql`
+	query GetServices(
+		$project_id: ID!
+		$query: String
+		$after: String
+		$before: String
+	) {
+		services(
+			project_id: $project_id
+			query: $query
+			after: $after
+			before: $before
+		) {
+			edges {
+				cursor
+				node {
+					id
+					projectID
+					name
+					status
+					githubRepoPath
+				}
+			}
+			pageInfo {
+				hasNextPage
+				hasPreviousPage
+				startCursor
+				endCursor
+			}
+		}
+	}
+`
+
+/**
+ * __useGetServicesQuery__
+ *
+ * To run a query within a React component, call `useGetServicesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetServicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetServicesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
+ *      after: // value for 'after'
+ *      before: // value for 'before'
+ *   },
+ * });
+ */
+export function useGetServicesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetServicesQuery,
+		Types.GetServicesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetServicesQuery,
+		Types.GetServicesQueryVariables
+	>(GetServicesDocument, baseOptions)
+}
+export function useGetServicesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetServicesQuery,
+		Types.GetServicesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetServicesQuery,
+		Types.GetServicesQueryVariables
+	>(GetServicesDocument, baseOptions)
+}
+export type GetServicesQueryHookResult = ReturnType<typeof useGetServicesQuery>
+export type GetServicesLazyQueryHookResult = ReturnType<
+	typeof useGetServicesLazyQuery
+>
+export type GetServicesQueryResult = Apollo.QueryResult<
+	Types.GetServicesQuery,
+	Types.GetServicesQueryVariables
 >

@@ -2140,3 +2140,34 @@ query GetErrorObjects(
 		}
 	}
 }
+
+query GetServices(
+	$project_id: ID!
+	$query: String
+	$after: String
+	$before: String
+) {
+	services(
+		project_id: $project_id
+		query: $query
+		after: $after
+		before: $before
+	) {
+		edges {
+			cursor
+			node {
+				id
+				projectID
+				name
+				status
+				githubRepoPath
+			}
+		}
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}

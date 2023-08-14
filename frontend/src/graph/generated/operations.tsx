@@ -1340,6 +1340,21 @@ export type DeleteInviteLinkFromWorkspaceMutation = {
 	__typename?: 'Mutation'
 } & Pick<Types.Mutation, 'deleteInviteLinkFromWorkspace'>
 
+export type EditServiceGithubSettingsMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+	project_id: Types.Scalars['ID']
+	github_repo_path?: Types.Maybe<Types.Scalars['String']>
+}>
+
+export type EditServiceGithubSettingsMutation = { __typename?: 'Mutation' } & {
+	editServiceGithubSettings?: Types.Maybe<
+		{ __typename?: 'Service' } & Pick<
+			Types.Service,
+			'id' | 'projectID' | 'name' | 'status' | 'githubRepoPath'
+		>
+	>
+}
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -4427,6 +4442,41 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 	}
 }
 
+export type GetServicesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	query?: Types.Maybe<Types.Scalars['String']>
+	after?: Types.Maybe<Types.Scalars['String']>
+	before?: Types.Maybe<Types.Scalars['String']>
+}>
+
+export type GetServicesQuery = { __typename?: 'Query' } & {
+	services?: Types.Maybe<
+		{ __typename?: 'ServiceConnection' } & {
+			edges: Array<
+				Types.Maybe<
+					{ __typename?: 'ServiceEdge' } & Pick<
+						Types.ServiceEdge,
+						'cursor'
+					> & {
+							node: { __typename?: 'ServiceNode' } & Pick<
+								Types.ServiceNode,
+								| 'id'
+								| 'projectID'
+								| 'name'
+								| 'status'
+								| 'githubRepoPath'
+							>
+						}
+				>
+			>
+			pageInfo: { __typename?: 'PageInfo' } & Pick<
+				Types.PageInfo,
+				'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
+			>
+		}
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4560,6 +4610,7 @@ export const namedOperations = {
 		GetWorkspaceSettings: 'GetWorkspaceSettings' as const,
 		GetSystemConfiguration: 'GetSystemConfiguration' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
+		GetServices: 'GetServices' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -4640,6 +4691,7 @@ export const namedOperations = {
 			'UpdateIntegrationProjectSettings' as const,
 		UpdateEmailOptOut: 'UpdateEmailOptOut' as const,
 		DeleteInviteLinkFromWorkspace: 'DeleteInviteLinkFromWorkspace' as const,
+		EditServiceGithubSettings: 'EditServiceGithubSettings' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {
