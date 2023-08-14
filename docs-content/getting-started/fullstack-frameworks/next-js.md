@@ -180,9 +180,12 @@ export function CustomHighlightStart() {
 ```
 
 ## API Route Instrumentation
+
+```hint
 This section applies to Next.js Page Router routes only. Each Page Router route must be wrapped individually.
 
-Next.js App Router routes are automatically instrumented using the [Server Instrumentation](#server-instrumentation) instructions in the next section, particularly using `instrumentation.ts`.
+We'll address App Router routes later in this walkthrough. Look for `instrumentation.ts`
+```
 
 1. Create a file to export your `Highlight` wrapper function:
 
@@ -277,7 +280,14 @@ const nextConfig = withHighlightConfig({
 export default nextConfig
 ```
 
-4. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function:
+4. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function.
+
+```hint
+Next.js App Router routes are automatically instrumented using `instrumentation.ts`.
+
+`instrumentation.ts` and the `withHighlight` route wrappers for Page Router do not conflict.
+```
+
 
 ```javascript
 // instrumentation.ts
