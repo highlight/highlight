@@ -8,6 +8,7 @@ import { useEffect, useMemo } from 'react'
 
 const LinearTeamSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
+	disabled,
 }) => {
 	const { teams } = useLinearIntegration()
 
@@ -57,6 +58,7 @@ const LinearTeamSelector: React.FC<ContainerSelectionProps> = ({
 				value={selectedLinearTeamId}
 				notFoundContent={<p>No teams found</p>}
 				className={style.selectContainer}
+				disabled={disabled}
 			/>
 		</Form.NamedSection>
 	)
