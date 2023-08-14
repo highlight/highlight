@@ -2,11 +2,7 @@ import { Button } from '@components/Button'
 import LoadingBox from '@components/LoadingBox'
 import {
 	useEditServiceGithubSettingsMutation,
-<<<<<<< HEAD
-	useGetServicesLazyQuery,
-=======
 	useGetServicesQuery,
->>>>>>> main
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import {
@@ -22,8 +18,8 @@ import {
 	Tooltip,
 	useComboboxState,
 } from '@highlight-run/ui'
-import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { useProjectId } from '@hooks/useProjectId'
+import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
 import { capitalize } from 'lodash'
 import { debounce } from 'lodash'
 import React, { useEffect, useMemo, useState } from 'react'
