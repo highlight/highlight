@@ -445,10 +445,10 @@ func parseGroup(isAnd bool, rules []Rule, projectId int, start string, end strin
 	return valueBuilder.String(), nil
 }
 
-func getClickhouseSessionsQuery(query modelInputs.ClickhouseQuery, projectId int, sortField string, limit int, offset int) (string, error) {
+func getClickhouseSessionsQuery(query modelInputs.ClickhouseQuery, projectId int, sortField string, limit int, offset int) (string, []interface{}, error) {
 	rules, err := deserializeRules(query.Rules)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
 	timeRangeRule, found := lo.Find(rules, func(r Rule) bool {
@@ -465,28 +465,31 @@ func getClickhouseSessionsQuery(query modelInputs.ClickhouseQuery, projectId int
 		rules = append(rules, timeRangeRule)
 	}
 	if len(timeRangeRule.Val) != 1 {
-		return "", errors.New("unexpected length of time range value")
+		return "", nil, errors.New("unexpected length of time range value")
 	}
 	start, end, found := strings.Cut(timeRangeRule.Val[0], "_")
 	if !found {
-		return "", errors.New("separator not found for time range")
+		return "", nil, errors.New("separator not found for time range")
 	}
 
 	conditions, err := parseGroup(query.IsAnd, rules, projectId, start, end)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return fmt.Sprintf(`SELECT ID
-	FROM sessions FINAL
-	WHERE ProjectID = %d
-	AND NOT Excluded
-	AND WithinBillingQuota
-	AND (ActiveLength >= 1000 OR (ActiveLength IS NULL AND Length >= 1000))
-	AND (%s)
-	ORDER BY %s
-	LIMIT %d
-	OFFSET %d`, projectId, conditions, sortField, limit, offset), nil
+	sb := sqlbuilder.NewSelectBuilder()
+	sql, args := sb.Select("ID").From("sessions FINAL").
+		Where(sb.And(sb.Equal("ProjectID", projectId),
+			"NOT Excluded",
+			"WithinBillingQuota",
+			sb.Or(sb.GreaterEqualThan("ActiveLength", 1000), sb.And(sb.IsNull("ActiveLength"), sb.GreaterEqualThan("Length", 1000)))),
+			conditions).
+		OrderBy(sortField).
+		Limit(limit).
+		Offset(offset).
+		BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	return sql, args, nil
 }
 
 func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, sortField string, page *int, retentionDate time.Time) ([]int64, error) {
@@ -496,12 +499,12 @@ func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count 
 	}
 	offset := (pageInt - 1) * count
 
-	sql, err := getClickhouseSessionsQuery(query, projectId, sortField, count, offset)
+	sql, args, err := getClickhouseSessionsQuery(query, projectId, sortField, count, offset)
 	if err != nil {
 		return nil, err
 	}
 
-	rows, err := client.conn.Query(ctx, sql)
+	rows, err := client.conn.Query(ctx, sql, args)
 	if err != nil {
 		return nil, err
 	}
