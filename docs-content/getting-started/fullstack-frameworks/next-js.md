@@ -180,6 +180,10 @@ export function CustomHighlightStart() {
 ```
 
 ## API Route Instrumentation
+Next.js apps using the Page Router need to wrap individual API routes.
+
+Next.js App Router routes are automatically instrumented using the [Server Instrumentation](#server-instrumentation) instructions in the next section, particularly using `instrumentation.ts`.
+
 1. Create a file to export your `Highlight` wrapper function:
 
  ```javascript
@@ -273,7 +277,7 @@ const nextConfig = withHighlightConfig({
 export default nextConfig
 ```
 
-3. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function:
+4. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function:
 
 ```javascript
 // instrumentation.ts
@@ -292,7 +296,7 @@ export async function register() {
 }
 ```
 
-4. If you're using the App Router, copy `instrumentation.ts` to `src/instrumentation.ts`. See this [Next.js discussion](https://github.com/vercel/next.js/discussions/48273#discussioncomment-5587441) regarding `instrumentation.ts` with App Router. You could also simply export the `register` function from `instrumentation.ts` in `src/instrumentation.ts` like so:
+5. If you're using the App Router, copy `instrumentation.ts` to `src/instrumentation.ts`. See this [Next.js discussion](https://github.com/vercel/next.js/discussions/48273#discussioncomment-5587441) regarding `instrumentation.ts` with App Router. You could also simply export the `register` function from `instrumentation.ts` in `src/instrumentation.ts` like so:
 
 ```javascript
 // src/instrumentation.ts:
