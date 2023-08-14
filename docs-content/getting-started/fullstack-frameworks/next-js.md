@@ -180,7 +180,7 @@ export function CustomHighlightStart() {
 ```
 
 ## API Route Instrumentation
-Next.js apps using the Page Router need to wrap individual API routes.
+This section applies to Next.js Page Router routes only. Each Page Router route must be wrapped individually.
 
 Next.js App Router routes are automatically instrumented using the [Server Instrumentation](#server-instrumentation) instructions in the next section, particularly using `instrumentation.ts`.
 
