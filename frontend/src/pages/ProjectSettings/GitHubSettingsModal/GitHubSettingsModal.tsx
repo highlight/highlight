@@ -165,7 +165,7 @@ const GithubSettingsForm = ({
 								target="_blank"
 								rel="noreferrer"
 							>
-								Github
+								GitHub
 							</a>
 							.
 						</Text>
@@ -183,11 +183,11 @@ const GithubSettingsForm = ({
 							<Box display="flex" gap="16">
 								<Form.Input
 									name={form.names.buildPrefix}
-									label="Build prefix"
+									label="Build path prefix"
 								/>
 								<Form.Input
 									name={form.names.githubPrefix}
-									label="GitHub prefix"
+									label="GitHub path prefix"
 								/>
 							</Box>
 						</Stack>
