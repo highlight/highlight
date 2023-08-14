@@ -49,7 +49,8 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-oauth2/oauth2/v4 v4.5.1
 	github.com/go-oauth2/redis/v4 v4.1.1
-	github.com/go-redis/cache/v8 v8.4.4
+	github.com/go-redis/cache/v9 v9.0.0
+	github.com/go-redsync/redsync/v4 v4.8.1
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
 	github.com/golang-jwt/jwt v3.2.2+incompatible
@@ -73,6 +74,7 @@ require (
 	github.com/openlyinc/pointy v1.1.2
 	github.com/opensearch-project/opensearch-go v1.0.0
 	github.com/pkg/errors v0.9.1
+	github.com/redis/go-redis/v9 v9.0.5
 	github.com/rs/cors v1.7.0
 	github.com/rs/xid v1.4.0
 	github.com/samber/lo v1.38.1

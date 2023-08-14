@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/samber/lo"
 	"os"
 	"reflect"
@@ -60,10 +61,12 @@ func TestMain(m *testing.M) {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 
+	redisClient := redis.NewClient()
 	resolver = &Resolver{
 		DB:               db,
 		TDB:              timeseries.New(context.TODO()),
-		Store:            store.NewStore(db, &opensearch.Client{}, nil),
+		Redis:            redisClient,
+		Store:            store.NewStore(db, &opensearch.Client{}, redisClient),
 		EmbeddingsClient: &mockEmbeddingsClient{},
 	}
 	code := m.Run()
@@ -294,6 +297,8 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	//run tests
 	for name, tc := range tests {
 		util.RunTestWithDBWipeWithName(t, resolver.DB, name, func(t *testing.T) {
+			_ = resolver.Redis.FlushDB(context.Background())
+
 			workspace := model.Workspace{Model: model.Model{ID: workspaceID}}
 			resolver.DB.Create(&workspace)
 
