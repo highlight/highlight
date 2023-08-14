@@ -40,8 +40,6 @@ const SearchPanel = () => {
 	const { showBanner } = useGlobalContext()
 	const {
 		backendSearchQuery,
-		searchQuery,
-		setSearchQuery,
 		page,
 		setPage,
 		setSearchResultsLoading,
