@@ -210,13 +210,13 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) error {
 
 		spanW.Finish()
 
-		spanX, ctxX := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.createServiceAndFilterLogs"))
-
 		var markBackendSetupProjectIds []uint32
 		var filteredRows []*clickhouse.LogRow
 		for _, logRow := range logRows {
 			// create service record for any services found in ingested logs
 			if logRow.ServiceName != "" {
+				spanX, ctxX := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.findOrCreateService"))
+
 				project, err := k.Worker.Resolver.Store.GetProject(ctx, int(logRow.ProjectId))
 				if err == nil && project != nil {
 					_, err := k.Worker.Resolver.Store.FindOrCreateService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
@@ -225,6 +225,8 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) error {
 						log.WithContext(ctxX).Error(e.Wrap(err, "failed to create service"))
 					}
 				}
+
+				spanX.Finish()
 			}
 
 			if logRow.Source == privateModel.LogSourceBackend {
@@ -242,8 +244,6 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) error {
 				filteredRows = append(filteredRows, logRow)
 			}
 		}
-
-		spanX.Finish()
 
 		wSpan, wCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.process"))
 		wSpan.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
