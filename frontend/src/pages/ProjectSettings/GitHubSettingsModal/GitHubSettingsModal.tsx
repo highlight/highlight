@@ -14,13 +14,15 @@ import * as styles from './GitHubSettingsModal.css'
 type Props = {
 	service: Service
 	githubRepos: GitHubRepo[]
-	handleSave: (service: Service, repo: string | null) => void
+	handleSave: (service: Service, formValues: GithubSettingsFormValues) => void
 	githubIntegrated: boolean
 	closeModal: () => void
 }
 
-type FormValues = {
+export type GithubSettingsFormValues = {
 	githubRepo: string | null
+	buildPrefix: string | null
+	githubPrefix: string | null
 }
 
 export const GitHubSettingsModal = ({
@@ -30,8 +32,12 @@ export const GitHubSettingsModal = ({
 	githubIntegrated,
 	closeModal,
 }: Props) => {
-	const handleSubmit = (formValues: FormValues) => {
-		handleSave(service, formValues.githubRepo)
+	const handleSubmit = (formValues: GithubSettingsFormValues) => {
+		const submittedValues = formValues.githubRepo
+			? formValues
+			: { githubRepo: null, buildPrefix: null, githubPrefix: null }
+
+		handleSave(service, submittedValues)
 		closeModal()
 	}
 
@@ -84,7 +90,7 @@ export const GitHubSettingsModal = ({
 type GithubSettingsFormProps = {
 	service: Service
 	githubRepos: GitHubRepo[]
-	handleSubmit: (formValues: FormValues) => void
+	handleSubmit: (formValues: GithubSettingsFormValues) => void
 	handleCancel: () => void
 }
 
@@ -107,8 +113,12 @@ const GithubSettingsForm = ({
 		[githubRepos],
 	)
 
-	const form = Form.useFormState<FormValues>({
-		defaultValues: { githubRepo: service.githubRepoPath || null },
+	const form = Form.useFormState<GithubSettingsFormValues>({
+		defaultValues: {
+			githubRepo: service.githubRepoPath || null,
+			buildPrefix: service.buildPrefix || null,
+			githubPrefix: service.githubPrefix || null,
+		},
 	})
 
 	return (
@@ -147,17 +157,41 @@ const GithubSettingsForm = ({
 					</Button>
 				</Box>
 				{form.values.githubRepo && (
-					<Text size="small">
-						Want to double check? Check it out on{' '}
-						<a
-							href={`https://github.com/${form.values.githubRepo}/`}
-							target="_blank"
-							rel="noreferrer"
-						>
-							GitHub
-						</a>
-						.
-					</Text>
+					<>
+						<Text size="small">
+							Want to double check? Check it out on{' '}
+							<a
+								href={`https://github.com/${form.values.githubRepo}/`}
+								target="_blank"
+								rel="noreferrer"
+							>
+								GitHub
+							</a>
+							.
+						</Text>
+
+						<Stack mt="8">
+							<Text size="small" weight="bold">
+								Do you have any build configuration prefixes
+								that can help map your files to GitHub?
+							</Text>
+							<Text size="small">
+								e.g. <i>/build</i> (Docker) → <i>/src</i>{' '}
+								(Removed file path)
+							</Text>
+
+							<Box display="flex" gap="16">
+								<Form.Input
+									name={form.names.buildPrefix}
+									label="Build path prefix"
+								/>
+								<Form.Input
+									name={form.names.githubPrefix}
+									label="GitHub path prefix"
+								/>
+							</Box>
+						</Stack>
+					</>
 				)}
 				<Box
 					display="flex"

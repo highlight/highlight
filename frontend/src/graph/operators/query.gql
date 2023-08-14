@@ -2161,6 +2161,9 @@ query GetServices(
 				name
 				status
 				githubRepoPath
+				buildPrefix
+				githubPrefix
+				errorDetails
 			}
 		}
 		pageInfo {
