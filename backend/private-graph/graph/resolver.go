@@ -3689,10 +3689,11 @@ func (r *Resolver) CreateErrorTag(ctx context.Context, title string, description
 	return errorTag, nil
 }
 
-func (r *Resolver) GetErrorTags() ([]model.ErrorTag, error) {
-	var errorTags []model.ErrorTag
-	if err := r.DB.Model(errorTags).Take(errorTags).Error; err != nil {
-		return nil, e.Wrap(err, "500: error querying workspace")
+func (r *Resolver) GetErrorTags() ([]*model.ErrorTag, error) {
+	var errorTags []*model.ErrorTag
+
+	if err := r.DB.Model(errorTags).Scan(&errorTags).Error; err != nil {
+		return nil, e.Wrap(err, "500: error querying error tags")
 	}
 
 	return errorTags, nil
