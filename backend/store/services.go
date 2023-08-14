@@ -8,10 +8,23 @@ import (
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/samber/lo"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
 
-func (store *Store) FindOrCreateService(project model.Project, name string) (model.Service, error) {
+func (store *Store) FindOrCreateService(project model.Project, name string, attributes map[string]string) (model.Service, error) {
 	var service model.Service
+
+	if val, ok := attributes[string(semconv.ProcessRuntimeNameKey)]; ok {
+		service.ProcessName = &val
+	}
+
+	if val, ok := attributes[string(semconv.ProcessRuntimeVersionKey)]; ok {
+		service.ProcessVersion = &val
+	}
+
+	if val, ok := attributes[string(semconv.ProcessRuntimeDescriptionKey)]; ok {
+		service.ProcessDescription = &val
+	}
 
 	err := store.db.Where(&model.Service{
 		ProjectID: project.ID,
