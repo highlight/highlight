@@ -25,7 +25,7 @@ all-in-one.
 
 ```shell
 # with yarn
-yarn add @highlight-run/next @highlight-run/react highlight.run
+yarn add @highlight-run/next
 ```
 
 ## Environment Configuration (optional)
@@ -77,6 +77,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 	return (
 		<>
 			<HighlightInit
+				excludedHostnames={['localhost']}
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
 				tracingOrigins
 				networkRecording={{
@@ -104,6 +105,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 	return (
 		<>
 			<HighlightInit
+				excludedHostnames={['localhost']}
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
 				tracingOrigins
 				networkRecording={{
@@ -117,6 +119,63 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 			</html>
 		</>
 	)
+}
+```
+
+3. Optionally add a React [Error Boundary](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary).
+
+```javascript
+// src/app/components/error-boundary.tsx
+'use client'
+
+import { ErrorBoundary as HighlightErrorBoundary } from '@highlight-run/next/client'
+
+export function ErrorBoundary({ children }: { children: React.ReactNode }) {
+	const isLocalhost =
+		typeof window === 'object' && window.location.host === 'localhost'
+
+	return (
+		<HighlightErrorBoundary showDialog={!isLocalhost}>
+			{children}
+		</HighlightErrorBoundary>
+	)
+}
+```
+
+### Skip Localhost tracking
+
+The `excludedHostnames` prop accepts an array of partial or full hostnames. For example, if you pass in `excludedHostnames={['localhost', 'staging]}`, you'll block `localhost` on all ports, `www.staging.highlight.io` and `staging.highlight.com`.
+
+Don't forget to remove `localhost` from `excludedHostnames` when validating that your local build can send data to Highlight.
+
+Alternatively, you could manually call `H.start()` and `H.stop()` to manage invocation on your own.
+
+```javascript
+// src/app/layout.tsx
+<HighlightInit
+	manualStart
+	projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
+/>
+<CustomHighlightStart />
+
+// src/app/custom-highlight-start.tsx
+'use client'
+import { H } from '@highlight-run/next/client'
+
+export function CustomHighlightStart() {
+	useEffect(() => {
+		const shouldStartHighlight = window.location.hostname === 'https://www.highlight.io'
+
+		if (shouldStartHighlight) {
+			H.start();
+
+			return () => {
+				H.stop()
+			}
+		}
+	})
+
+	return null
 }
 ```
 

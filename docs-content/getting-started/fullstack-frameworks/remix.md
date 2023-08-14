@@ -24,6 +24,7 @@ yarn add @highlight-run/remix
 ## Client Instrumentation
 
 - Inject `<HighlightInit />` into your app root.
+- Optionally configure `excludedHostnames` to block a full or partial hostname. For example, `excludedHostnames={['staging']}` would not initialize Highlight on `staging.highlight.io`.
 - Configure `tracingOrigins` and `networkRecording`
 
 See [Fullstack Mapping](https://www.highlight.io/docs/getting-started/frontend-backend-mapping#how-can-i-start-using-this) for details.
@@ -50,6 +51,7 @@ export default function App() {
 	return (
 		<html lang="en">
 			<HighlightInit
+				excludedHostnames={['localhost']}
 				projectId={ENV.HIGHLIGHT_PROJECT_ID}
 				tracingOrigins
 				networkRecording={{ enabled: true, recordHeadersAndBody: true }}

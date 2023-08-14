@@ -1,8 +1,6 @@
 // pages/_app.tsx
 import { AppProps } from 'next/app'
-import CONSTANTS from '@/app/constants'
-import { H } from 'highlight.run'
-import { HighlightInit } from '@highlight-run/next/client'
+import { H } from '@highlight-run/next/client'
 import { useEffect } from 'react'
 
 export default function MyApp({ Component, pageProps }: AppProps) {

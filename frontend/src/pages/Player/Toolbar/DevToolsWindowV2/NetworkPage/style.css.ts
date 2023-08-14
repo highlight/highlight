@@ -14,7 +14,6 @@ export const networkBox = style({
 	height: 'calc(100% - 32px)',
 	display: 'flex',
 	flexDirection: 'column',
-	paddingLeft: 8,
 	overflowX: 'hidden',
 	overflowY: 'auto',
 	wordWrap: 'break-word',
@@ -73,7 +72,9 @@ export const networkRowVariants = recipe({
 	},
 	variants: {
 		current: {
-			true: {},
+			true: {
+				borderBottom: `2px solid ${vars.theme.interactive.fill.primary.enabled}`,
+			},
 			false: {},
 		},
 		failedResource: {

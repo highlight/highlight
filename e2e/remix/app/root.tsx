@@ -34,6 +34,7 @@ export default function App() {
 	return (
 		<html lang="en">
 			<HighlightInit
+				excludedHostnames={['localhost']}
 				projectId={ENV.HIGHLIGHT_PROJECT_ID}
 				tracingOrigins
 				networkRecording={{ enabled: true, recordHeadersAndBody: true }}

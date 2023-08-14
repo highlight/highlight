@@ -270,6 +270,26 @@ func (h *HubspotApi) getDoppelgangers(ctx context.Context) (results []*Doppelgan
 			}
 		}
 	}
+
+	for {
+		r := DoppelgangersResponse{}
+		if err = h.doRequest("/doppelganger/v1/similar/contact/resultPage", &r, map[string]string{
+			"pageSize":   "50",
+			"offset":     strconv.Itoa(len(results)),
+			"properties": "firstname,lastname,email,jobtitle,hs_sequences_is_enrolled,hs_last_sales_activity_timestamp,createdate,lastmodifieddate",
+			"portalId":   "20473940",
+		}, "GET", nil); err != nil {
+			return
+		} else {
+			for k, v := range r.Objects {
+				objects[k] = v
+			}
+			results = append(results, r.Results...)
+			if !r.HasMore {
+				break
+			}
+		}
+	}
 	return
 }
 
@@ -277,6 +297,12 @@ func (h *HubspotApi) mergeCompanies(keepID, mergeID int) error {
 	return h.doRequest(fmt.Sprintf("/companies/v2/companies/%d/merge", keepID), nil, map[string]string{
 		"portalId": "20473940",
 	}, "PUT", strings.NewReader(fmt.Sprintf(`{"companyIdToMerge":%d}`, mergeID)))
+}
+
+func (h *HubspotApi) mergeContacts(keepID, mergeID int) error {
+	return h.doRequest(fmt.Sprintf("/contacts/v1/contact/%d/merge", keepID), nil, map[string]string{
+		"portalId": "20473940",
+	}, "POST", strings.NewReader(fmt.Sprintf(`{"vidToMerge":%d}`, mergeID)))
 }
 
 func (h *HubspotApi) getAllCompanies(ctx context.Context) (companies []*CompanyResponse, err error) {
@@ -415,13 +441,13 @@ func (h *HubspotApi) createContactForAdmin(ctx context.Context, email string, us
 }
 
 func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error {
-	return h.kafkaProducer.Submit(ctx, &kafka_queue.Message{
+	return h.kafkaProducer.Submit(ctx, PartitionKey, &kafka_queue.Message{
 		Type: kafka_queue.HubSpotCreateContactCompanyAssociation,
 		HubSpotCreateContactCompanyAssociation: &kafka_queue.HubSpotCreateContactCompanyAssociationArgs{
 			AdminID:     adminID,
 			WorkspaceID: workspaceID,
 		},
-	}, PartitionKey)
+	})
 }
 
 func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, adminID int, workspaceID int) error {
@@ -479,7 +505,7 @@ func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, ad
 }
 
 func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) error {
-	return h.kafkaProducer.Submit(ctx, &kafka_queue.Message{
+	return h.kafkaProducer.Submit(ctx, PartitionKey, &kafka_queue.Message{
 		Type: kafka_queue.HubSpotCreateContactForAdmin,
 		HubSpotCreateContactForAdmin: &kafka_queue.HubSpotCreateContactForAdminArgs{
 			AdminID:            adminID,
@@ -491,7 +517,7 @@ func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, ema
 			Phone:              phone,
 			Referral:           referral,
 		},
-	}, PartitionKey)
+	})
 }
 
 func (h *HubspotApi) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
@@ -528,14 +554,14 @@ func (h *HubspotApi) CreateContactForAdminImpl(ctx context.Context, adminID int,
 }
 
 func (h *HubspotApi) CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) error {
-	return h.kafkaProducer.Submit(ctx, &kafka_queue.Message{
+	return h.kafkaProducer.Submit(ctx, PartitionKey, &kafka_queue.Message{
 		Type: kafka_queue.HubSpotCreateCompanyForWorkspace,
 		HubSpotCreateCompanyForWorkspace: &kafka_queue.HubSpotCreateCompanyForWorkspaceArgs{
 			WorkspaceID: workspaceID,
 			AdminEmail:  adminEmail,
 			Name:        name,
 		},
-	}, PartitionKey)
+	})
 }
 
 func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspaceID int, adminEmail, name string) (companyID *int, err error) {
@@ -609,13 +635,13 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 }
 
 func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error {
-	return h.kafkaProducer.Submit(ctx, &kafka_queue.Message{
+	return h.kafkaProducer.Submit(ctx, PartitionKey, &kafka_queue.Message{
 		Type: kafka_queue.HubSpotUpdateContactProperty,
 		HubSpotUpdateContactProperty: &kafka_queue.HubSpotUpdateContactPropertyArgs{
 			AdminID:    adminID,
 			Properties: properties,
 		},
-	}, PartitionKey)
+	})
 }
 
 func (h *HubspotApi) UpdateContactPropertyImpl(ctx context.Context, adminID int, properties []hubspot.Property) error {
@@ -651,13 +677,13 @@ func (h *HubspotApi) UpdateContactPropertyImpl(ctx context.Context, adminID int,
 }
 
 func (h *HubspotApi) UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
-	return h.kafkaProducer.Submit(ctx, &kafka_queue.Message{
+	return h.kafkaProducer.Submit(ctx, PartitionKey, &kafka_queue.Message{
 		Type: kafka_queue.HubSpotUpdateCompanyProperty,
 		HubSpotUpdateCompanyProperty: &kafka_queue.HubSpotUpdateCompanyPropertyArgs{
 			WorkspaceID: workspaceID,
 			Properties:  properties,
 		},
-	}, PartitionKey)
+	})
 }
 
 func (h *HubspotApi) UpdateCompanyPropertyImpl(ctx context.Context, workspaceID int, properties []hubspot.Property) error {

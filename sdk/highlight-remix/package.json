@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/remix",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "Client for interfacing with Highlight in Remix",
 	"packageManager": "yarn@3.5.0",
 	"author": "",
