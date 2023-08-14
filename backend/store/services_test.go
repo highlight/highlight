@@ -8,6 +8,7 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,12 +18,12 @@ func TestFindOrCreateService(t *testing.T) {
 	project := model.Project{}
 	store.db.Create(&project)
 
-	service, err := store.FindOrCreateService(project, "public-graph", map[string]string{}))
+	service, err := store.FindOrCreateService(project, "public-graph", map[string]string{})
 	assert.NoError(t, err)
 
 	assert.NotNil(t, service.ID)
 
-	foundService, err := store.FindOrCreateService(project, "public-graph", map[string]string{}))
+	foundService, err := store.FindOrCreateService(project, "public-graph", map[string]string{})
 	assert.NoError(t, err)
 	assert.Equal(t, service.ID, foundService.ID)
 }
