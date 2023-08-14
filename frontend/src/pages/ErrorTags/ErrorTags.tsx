@@ -4,9 +4,7 @@ import {
 } from '@/graph/generated/hooks'
 
 export function ErrorTags() {
-	const { data: errorTags, loading } = useGetErrorTagsQuery({
-		variables: { project_id: '' },
-	})
+	const { data: errorTags, loading } = useGetErrorTagsQuery()
 	const [createErrorTag] = useCreateErrorTagMutation()
 
 	console.log(errorTags, loading)

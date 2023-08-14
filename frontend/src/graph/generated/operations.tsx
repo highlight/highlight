@@ -1372,7 +1372,7 @@ export type CreateErrorTagMutationVariables = Types.Exact<{
 export type CreateErrorTagMutation = { __typename?: 'Mutation' } & {
 	createErrorTag: { __typename?: 'ErrorTag' } & Pick<
 		Types.ErrorTag,
-		'id' | 'title' | 'description'
+		'id' | 'created_at' | 'title' | 'description'
 	>
 }
 
@@ -4501,9 +4501,7 @@ export type GetServicesQuery = { __typename?: 'Query' } & {
 	>
 }
 
-export type GetErrorTagsQueryVariables = Types.Exact<{
-	project_id: Types.Scalars['ID']
-}>
+export type GetErrorTagsQueryVariables = Types.Exact<{ [key: string]: never }>
 
 export type GetErrorTagsQuery = { __typename?: 'Query' } & {
 	error_tags?: Types.Maybe<

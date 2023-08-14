@@ -1178,6 +1178,7 @@ mutation EditServiceGithubSettings(
 mutation CreateErrorTag($title: String!, $description: String!) {
 	createErrorTag(title: $title, description: $description) {
 		id
+		created_at
 		title
 		description
 	}

@@ -4868,6 +4868,7 @@ export const CreateErrorTagDocument = gql`
 	mutation CreateErrorTag($title: String!, $description: String!) {
 		createErrorTag(title: $title, description: $description) {
 			id
+			created_at
 			title
 			description
 		}
@@ -13358,8 +13359,8 @@ export type GetServicesQueryResult = Apollo.QueryResult<
 	Types.GetServicesQueryVariables
 >
 export const GetErrorTagsDocument = gql`
-	query GetErrorTags($project_id: ID!) {
-		error_tags(project_id: $project_id) {
+	query GetErrorTags {
+		error_tags {
 			id
 			created_at
 			title
@@ -13380,12 +13381,11 @@ export const GetErrorTagsDocument = gql`
  * @example
  * const { data, loading, error } = useGetErrorTagsQuery({
  *   variables: {
- *      project_id: // value for 'project_id'
  *   },
  * });
  */
 export function useGetErrorTagsQuery(
-	baseOptions: Apollo.QueryHookOptions<
+	baseOptions?: Apollo.QueryHookOptions<
 		Types.GetErrorTagsQuery,
 		Types.GetErrorTagsQueryVariables
 	>,

@@ -1763,7 +1763,7 @@ type Query {
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
 	system_configuration: SystemConfiguration!
-	error_tags(project_id: ID!): [ErrorTag]
+	error_tags: [ErrorTag]
 	services(
 		project_id: ID!
 		after: String

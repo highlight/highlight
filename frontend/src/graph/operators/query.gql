@@ -2175,8 +2175,8 @@ query GetServices(
 	}
 }
 
-query GetErrorTags($project_id: ID!) {
-	error_tags(project_id: $project_id) {
+query GetErrorTags {
+	error_tags {
 		id
 		created_at
 		title

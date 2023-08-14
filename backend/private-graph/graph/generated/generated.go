@@ -844,7 +844,7 @@ type ComplexityRoot struct {
 		ErrorObjects                 func(childComplexity int, errorGroupSecureID string, after *string, before *string, query string) int
 		ErrorResolutionSuggestion    func(childComplexity int, errorObjectID int) int
 		ErrorSegments                func(childComplexity int, projectID int) int
-		ErrorTags                    func(childComplexity int, projectID int) int
+		ErrorTags                    func(childComplexity int) int
 		Errors                       func(childComplexity int, sessionSecureID string) int
 		ErrorsHistogram              func(childComplexity int, projectID int, query string, histogramOptions model.DateHistogramOptions) int
 		EventChunkURL                func(childComplexity int, secureID string, index int) int
@@ -1602,7 +1602,7 @@ type QueryResolver interface {
 	ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error)
 	SessionInsight(ctx context.Context, secureID string) (*model1.SessionInsight, error)
 	SystemConfiguration(ctx context.Context) (*model1.SystemConfiguration, error)
-	ErrorTags(ctx context.Context, projectID int) ([]*model1.ErrorTag, error)
+	ErrorTags(ctx context.Context) ([]*model1.ErrorTag, error)
 	Services(ctx context.Context, projectID int, after *string, before *string, query *string) (*model.ServiceConnection, error)
 }
 type SegmentResolver interface {
@@ -6048,12 +6048,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		args, err := ec.field_Query_error_tags_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.ErrorTags(childComplexity, args["project_id"].(int)), true
+		return e.complexity.Query.ErrorTags(childComplexity), true
 
 	case "Query.errors":
 		if e.complexity.Query.Errors == nil {
@@ -10889,7 +10884,7 @@ type Query {
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
 	system_configuration: SystemConfiguration!
-	error_tags(project_id: ID!): [ErrorTag]
+	error_tags: [ErrorTag]
 	services(
 		project_id: ID!
 		after: String
@@ -15139,21 +15134,6 @@ func (ec *executionContext) field_Query_error_resolution_suggestion_args(ctx con
 }
 
 func (ec *executionContext) field_Query_error_segments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["project_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["project_id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_error_tags_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -50371,7 +50351,7 @@ func (ec *executionContext) _Query_error_tags(ctx context.Context, field graphql
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorTags(rctx, fc.Args["project_id"].(int))
+		return ec.resolvers.Query().ErrorTags(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -50403,17 +50383,6 @@ func (ec *executionContext) fieldContext_Query_error_tags(ctx context.Context, f
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorTag", field.Name)
 		},
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			err = ec.Recover(ctx, r)
-			ec.Error(ctx, err)
-		}
-	}()
-	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_error_tags_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
-		ec.Error(ctx, err)
-		return
 	}
 	return fc, nil
 }

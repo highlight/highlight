@@ -3648,7 +3648,7 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 
 // CreateErrorTag is the resolver for the createErrorTag field.
 func (r *mutationResolver) CreateErrorTag(ctx context.Context, title string, description string) (*model.ErrorTag, error) {
-	panic(fmt.Errorf("not implemented: CreateErrorTag - createErrorTag"))
+	return r.CreateErrorTag(ctx, title, description)
 }
 
 // Accounts is the resolver for the accounts field.
@@ -7516,8 +7516,8 @@ func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemC
 }
 
 // ErrorTags is the resolver for the error_tags field.
-func (r *queryResolver) ErrorTags(ctx context.Context, projectID int) ([]*model.ErrorTag, error) {
-	panic(fmt.Errorf("not implemented: ErrorTags - error_tags"))
+func (r *queryResolver) ErrorTags(ctx context.Context) ([]*model.ErrorTag, error) {
+	return r.GetErrorTags()
 }
 
 // Services is the resolver for the services field.

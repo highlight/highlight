@@ -191,6 +191,7 @@ var Models = []interface{}{
 	&UserJourneyStep{},
 	&SystemConfiguration{},
 	&SessionInsight{},
+	&ErrorTag{},
 }
 
 func init() {

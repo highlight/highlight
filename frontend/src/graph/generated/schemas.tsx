@@ -1961,10 +1961,6 @@ export type QueryError_SegmentsArgs = {
 	project_id: Scalars['ID']
 }
 
-export type QueryError_TagsArgs = {
-	project_id: Scalars['ID']
-}
-
 export type QueryErrorsArgs = {
 	session_secure_id: Scalars['String']
 }
