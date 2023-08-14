@@ -169,7 +169,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						span: &span,
 					})
 					if err != nil {
-						lg(ctx, fields).WithError(err).Error("failed to extract fields from span")
+						continue
 					}
 
 					traceRow := clickhouse.NewTraceRow(span.StartTimestamp().AsTime(), fields.projectIDInt).
@@ -201,7 +201,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						event:    &event,
 					})
 					if err != nil {
-						lg(ctx, fields).WithError(err).Error("failed to extract fields")
+						continue
 					}
 
 					traceID := cast(fields.requestID, span.TraceID().String())
@@ -380,7 +380,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					logRecord: &logRecord,
 				})
 				if err != nil {
-					lg(ctx, fields).WithError(err).Error("failed to extract highlight fields")
+					continue
 				}
 
 				logRow := clickhouse.NewLogRow(
