@@ -1364,6 +1364,18 @@ export type EditServiceGithubSettingsMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type CreateErrorTagMutationVariables = Types.Exact<{
+	title: Types.Scalars['String']
+	description: Types.Scalars['String']
+}>
+
+export type CreateErrorTagMutation = { __typename?: 'Mutation' } & {
+	createErrorTag: { __typename?: 'ErrorTag' } & Pick<
+		Types.ErrorTag,
+		'id' | 'title' | 'description'
+	>
+}
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -4489,6 +4501,23 @@ export type GetServicesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetErrorTagsQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+}>
+
+export type GetErrorTagsQuery = { __typename?: 'Query' } & {
+	error_tags?: Types.Maybe<
+		Array<
+			Types.Maybe<
+				{ __typename?: 'ErrorTag' } & Pick<
+					Types.ErrorTag,
+					'id' | 'created_at' | 'title' | 'description'
+				>
+			>
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4623,6 +4652,7 @@ export const namedOperations = {
 		GetSystemConfiguration: 'GetSystemConfiguration' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
 		GetServices: 'GetServices' as const,
+		GetErrorTags: 'GetErrorTags' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -4704,6 +4734,7 @@ export const namedOperations = {
 		UpdateEmailOptOut: 'UpdateEmailOptOut' as const,
 		DeleteInviteLinkFromWorkspace: 'DeleteInviteLinkFromWorkspace' as const,
 		EditServiceGithubSettings: 'EditServiceGithubSettings' as const,
+		CreateErrorTag: 'CreateErrorTag' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

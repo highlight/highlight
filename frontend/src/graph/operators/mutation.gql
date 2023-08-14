@@ -1174,3 +1174,11 @@ mutation EditServiceGithubSettings(
 		errorDetails
 	}
 }
+
+mutation CreateErrorTag($title: String!, $description: String!) {
+	createErrorTag(title: $title, description: $description) {
+		id
+		title
+		description
+	}
+}

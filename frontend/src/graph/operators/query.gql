@@ -2174,3 +2174,12 @@ query GetServices(
 		}
 	}
 }
+
+query GetErrorTags($project_id: ID!) {
+	error_tags(project_id: $project_id) {
+		id
+		created_at
+		title
+		description
+	}
+}

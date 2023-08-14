@@ -4838,11 +4838,8 @@ export type EditServiceGithubSettingsMutationFn = Apollo.MutationFunction<
  *      id: // value for 'id'
  *      project_id: // value for 'project_id'
  *      github_repo_path: // value for 'github_repo_path'
-<<<<<<< HEAD
  *      build_prefix: // value for 'build_prefix'
  *      github_prefix: // value for 'github_prefix'
-=======
->>>>>>> main
  *   },
  * });
  */
@@ -4867,6 +4864,58 @@ export type EditServiceGithubSettingsMutationOptions =
 		Types.EditServiceGithubSettingsMutation,
 		Types.EditServiceGithubSettingsMutationVariables
 	>
+export const CreateErrorTagDocument = gql`
+	mutation CreateErrorTag($title: String!, $description: String!) {
+		createErrorTag(title: $title, description: $description) {
+			id
+			title
+			description
+		}
+	}
+`
+export type CreateErrorTagMutationFn = Apollo.MutationFunction<
+	Types.CreateErrorTagMutation,
+	Types.CreateErrorTagMutationVariables
+>
+
+/**
+ * __useCreateErrorTagMutation__
+ *
+ * To run a mutation, you first call `useCreateErrorTagMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateErrorTagMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createErrorTagMutation, { data, loading, error }] = useCreateErrorTagMutation({
+ *   variables: {
+ *      title: // value for 'title'
+ *      description: // value for 'description'
+ *   },
+ * });
+ */
+export function useCreateErrorTagMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.CreateErrorTagMutation,
+		Types.CreateErrorTagMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.CreateErrorTagMutation,
+		Types.CreateErrorTagMutationVariables
+	>(CreateErrorTagDocument, baseOptions)
+}
+export type CreateErrorTagMutationHookResult = ReturnType<
+	typeof useCreateErrorTagMutation
+>
+export type CreateErrorTagMutationResult =
+	Apollo.MutationResult<Types.CreateErrorTagMutation>
+export type CreateErrorTagMutationOptions = Apollo.BaseMutationOptions<
+	Types.CreateErrorTagMutation,
+	Types.CreateErrorTagMutationVariables
+>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -13307,4 +13356,63 @@ export type GetServicesLazyQueryHookResult = ReturnType<
 export type GetServicesQueryResult = Apollo.QueryResult<
 	Types.GetServicesQuery,
 	Types.GetServicesQueryVariables
+>
+export const GetErrorTagsDocument = gql`
+	query GetErrorTags($project_id: ID!) {
+		error_tags(project_id: $project_id) {
+			id
+			created_at
+			title
+			description
+		}
+	}
+`
+
+/**
+ * __useGetErrorTagsQuery__
+ *
+ * To run a query within a React component, call `useGetErrorTagsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorTagsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorTagsQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *   },
+ * });
+ */
+export function useGetErrorTagsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetErrorTagsQuery,
+		Types.GetErrorTagsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorTagsQuery,
+		Types.GetErrorTagsQueryVariables
+	>(GetErrorTagsDocument, baseOptions)
+}
+export function useGetErrorTagsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorTagsQuery,
+		Types.GetErrorTagsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorTagsQuery,
+		Types.GetErrorTagsQueryVariables
+	>(GetErrorTagsDocument, baseOptions)
+}
+export type GetErrorTagsQueryHookResult = ReturnType<
+	typeof useGetErrorTagsQuery
+>
+export type GetErrorTagsLazyQueryHookResult = ReturnType<
+	typeof useGetErrorTagsLazyQuery
+>
+export type GetErrorTagsQueryResult = Apollo.QueryResult<
+	Types.GetErrorTagsQuery,
+	Types.GetErrorTagsQueryVariables
 >

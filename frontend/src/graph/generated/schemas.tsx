@@ -500,6 +500,7 @@ export type ErrorObject = {
 	environment?: Maybe<Scalars['String']>
 	error_group_id: Scalars['Int']
 	error_group_secure_id: Scalars['String']
+	error_tag_id?: Maybe<Scalars['String']>
 	event: Array<Maybe<Scalars['String']>>
 	id: Scalars['ID']
 	lineNumber?: Maybe<Scalars['Int']>
@@ -591,6 +592,14 @@ export enum ErrorState {
 	Ignored = 'IGNORED',
 	Open = 'OPEN',
 	Resolved = 'RESOLVED',
+}
+
+export type ErrorTag = {
+	__typename?: 'ErrorTag'
+	created_at: Scalars['Timestamp']
+	description?: Maybe<Scalars['String']>
+	id: Scalars['ID']
+	title?: Maybe<Scalars['String']>
 }
 
 export type ErrorTrace = {
@@ -943,6 +952,7 @@ export type Mutation = {
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
 	createErrorSegment?: Maybe<ErrorSegment>
+	createErrorTag: ErrorTag
 	createIssueForErrorComment?: Maybe<ErrorComment>
 	createIssueForSessionComment?: Maybe<SessionComment>
 	createLogAlert?: Maybe<LogAlert>
@@ -1070,6 +1080,11 @@ export type MutationCreateErrorSegmentArgs = {
 	name: Scalars['String']
 	params: ErrorSearchParamsInput
 	project_id: Scalars['ID']
+}
+
+export type MutationCreateErrorTagArgs = {
+	description: Scalars['String']
+	title: Scalars['String']
 }
 
 export type MutationCreateIssueForErrorCommentArgs = {
@@ -1670,6 +1685,7 @@ export type Query = {
 	error_objects: ErrorObjectConnection
 	error_resolution_suggestion: Scalars['String']
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
+	error_tags?: Maybe<Array<Maybe<ErrorTag>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram: ErrorsHistogram
 	event_chunk_url: Scalars['String']
@@ -1942,6 +1958,10 @@ export type QueryError_Resolution_SuggestionArgs = {
 }
 
 export type QueryError_SegmentsArgs = {
+	project_id: Scalars['ID']
+}
+
+export type QueryError_TagsArgs = {
 	project_id: Scalars['ID']
 }
 
