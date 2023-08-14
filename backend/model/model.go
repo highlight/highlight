@@ -1252,6 +1252,7 @@ type SystemConfiguration struct {
 	Active           bool `gorm:"primary_key;default:true"`
 	MaintenanceStart time.Time
 	MaintenanceEnd   time.Time
+	ErrorFilters     pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
 }
 
 type RetryableType string
