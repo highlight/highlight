@@ -3648,7 +3648,7 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 
 // CreateErrorTag is the resolver for the createErrorTag field.
 func (r *mutationResolver) CreateErrorTag(ctx context.Context, title string, description string) (*model.ErrorTag, error) {
-	return r.CreateErrorTag(ctx, title, description)
+	return r.Resolver.CreateErrorTag(ctx, title, description)
 }
 
 // Accounts is the resolver for the accounts field.

@@ -371,6 +371,7 @@ func main() {
 		StripeClient:           stripeClient,
 		StorageClient:          storageClient,
 		LambdaClient:           lambda,
+		EmbeddingsClient:       embeddings.New(),
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
 		OpenSearch:             opensearchClient,
