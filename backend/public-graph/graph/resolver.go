@@ -381,13 +381,15 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 	// we should lock the write path to make sure we do not write duplicate error groups
 	if match == nil {
 		key := fmt.Sprintf("GetOrCreateErrorGroup-project-%d", errorObj.ProjectID)
-		if mutex, err := r.Redis.AcquireLock(ctx, key, time.Minute); err == nil {
-			defer func() {
-				if _, err := mutex.Unlock(); err != nil {
-					log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release lock")
-				}
-			}()
+		mutex, err := r.Redis.AcquireLock(ctx, key, time.Minute)
+		if err != nil {
+			return nil, err
 		}
+		defer func() {
+			if _, err := mutex.Unlock(); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release lock")
+			}
+		}()
 		// recheck the match with the lock held, then perform the write
 		match, err = matchFn()
 		if err != nil {
