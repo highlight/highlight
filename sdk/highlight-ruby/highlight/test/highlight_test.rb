@@ -22,7 +22,7 @@ class HighlightTest < Minitest::Test
 
   def test_trace
     Highlight::H.new('qe9y4yg1')
-    Highlight::H.instance.trace(nil, nil) do
+    Highlight::H.instance.trace(nil, nil, attrs: { "some.attribute" => 12 }) do
       raise 'ruby test error handler!'
     end
     Highlight::H.instance.flush
