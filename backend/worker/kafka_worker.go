@@ -211,9 +211,23 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) error {
 
 		spanW.Finish()
 
+		spanX, ctxX := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.createServiceAndFilterLogs"))
+
 		var markBackendSetupProjectIds []uint32
 		var filteredRows []*clickhouse.LogRow
 		for _, logRow := range logRows {
+			// create service record for any services found in ingested logs
+			if logRow.ServiceName != "" {
+				project, err := k.Worker.Resolver.Store.GetProject(ctx, int(logRow.ProjectId))
+				if err == nil && project != nil {
+					_, err := k.Worker.Resolver.Store.FindOrCreateService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
+
+					if err != nil {
+						log.WithContext(ctxX).Error(e.Wrap(err, "failed to create service"))
+					}
+				}
+			}
+
 			if logRow.Source == privateModel.LogSourceBackend {
 				markBackendSetupProjectIds = append(markBackendSetupProjectIds, logRow.ProjectId)
 			}
@@ -228,18 +242,9 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) error {
 			if !strings.HasPrefix(logRow.Body, "ENOENT: no such file or directory") && !strings.HasPrefix(logRow.Body, "connect ECONNREFUSED") {
 				filteredRows = append(filteredRows, logRow)
 			}
-
-			if logRow.ServiceName != "" {
-				project, err := k.Worker.Resolver.Store.GetProject(ctx, int(logRow.ProjectId))
-				if err == nil && project != nil {
-					_, err := k.Worker.Resolver.Store.FindOrCreateService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
-
-					if err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to create service"))
-					}
-				}
-			}
 		}
+
+		spanX.Finish()
 
 		wSpan, wCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.process"))
 		wSpan.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
