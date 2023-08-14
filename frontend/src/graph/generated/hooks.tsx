@@ -4838,11 +4838,8 @@ export type EditServiceGithubSettingsMutationFn = Apollo.MutationFunction<
  *      id: // value for 'id'
  *      project_id: // value for 'project_id'
  *      github_repo_path: // value for 'github_repo_path'
-<<<<<<< HEAD
  *      build_prefix: // value for 'build_prefix'
  *      github_prefix: // value for 'github_prefix'
-=======
->>>>>>> main
  *   },
  * });
  */
