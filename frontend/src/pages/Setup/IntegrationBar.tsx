@@ -14,7 +14,6 @@ import moment from 'moment'
 import React from 'react'
 import { useLocation } from 'react-router-dom'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import {
 	useGetErrorGroupsOpenSearchQuery,
 	useGetSessionsOpenSearchQuery,
@@ -52,15 +51,11 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const { projectId } = useProjectId()
 	const integrated = integrationData?.integrated
 	const ctaText = CTA_TITLE_MAP[area!]
-	const { isHighlightAdmin } = useAuthContext()
 
 	const { data: sessionData } = useGetSessionsOpenSearchQuery({
 		variables: {
 			project_id: projectId,
 			query: '{"match_all": {}}',
-			clickhouse_query: isHighlightAdmin
-				? { isAnd: true, rules: [] }
-				: undefined,
 			count: 1,
 			page: 1,
 			sort_desc: true,

@@ -40,7 +40,6 @@ import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import clsx from 'clsx'
 import React, { useCallback, useEffect, useRef } from 'react'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import {
 	QueryBuilderState,
 	updateQueriedTimeRange,
@@ -163,7 +162,6 @@ export const SessionFeedV3 = React.memo(() => {
 	const { showBanner } = useGlobalContext()
 	const searchParamsChanged = useRef<Date>()
 	const showHistogram = searchResultsCount !== 0
-	const { isHighlightAdmin } = useAuthContext()
 
 	const { data: billingDetails } = useGetBillingDetailsForProjectQuery({
 		variables: { project_id: project_id! },
@@ -190,9 +188,6 @@ export const SessionFeedV3 = React.memo(() => {
 	const { loading } = useGetSessionsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
-			clickhouse_query: isHighlightAdmin
-				? JSON.parse(searchQuery)
-				: undefined,
 			count: DEFAULT_PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: project_id!,
