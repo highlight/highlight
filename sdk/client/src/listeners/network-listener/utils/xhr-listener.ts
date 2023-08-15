@@ -7,6 +7,7 @@ import {
 	shouldNetworkRequestBeRecorded,
 	shouldNetworkRequestBeTraced,
 } from './utils'
+import { instanceOf } from 'graphql/jsutils/instanceOf'
 
 interface BrowserXHR extends XMLHttpRequest {
 	_method: string
@@ -150,15 +151,19 @@ export const XHRListener = (
 					// Each character is 8 bytes, total size is number of characters multiplied by 8.
 					responseModel['size'] = this.responseText.length * 8
 				} else if (this.responseType === 'blob') {
-					const blob = this.response as Blob
-					const response = await blob.text()
-					responseModel['body'] = getBodyThatShouldBeRecorded(
-						response,
-						bodyKeysToRedact,
-						bodyKeysToRecord,
-						responseModel.headers,
-					)
-					responseModel['size'] = blob.size
+					if (this.response instanceof Blob) {
+						try {
+							const response = await this.response.text()
+
+							responseModel['body'] = getBodyThatShouldBeRecorded(
+								response,
+								bodyKeysToRedact,
+								bodyKeysToRecord,
+								responseModel.headers,
+							)
+							responseModel['size'] = this.response.size
+						} catch {}
+					}
 				} else {
 					try {
 						responseModel['body'] = getBodyThatShouldBeRecorded(
