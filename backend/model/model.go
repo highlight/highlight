@@ -598,6 +598,7 @@ type Session struct {
 	ProjectID      int     `json:"project_id" gorm:"index:idx_project_id_email"`
 	Email          *string `json:"email" gorm:"index:idx_project_id_email"`
 	// Location data based off user ip (see InitializeSession)
+	IP        string  `json:"ip"`
 	City      string  `json:"city"`
 	State     string  `json:"state"`
 	Postal    string  `json:"postal"`
