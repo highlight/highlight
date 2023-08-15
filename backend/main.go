@@ -227,6 +227,7 @@ var defaultPort = "8082"
 func main() {
 	rand.New(rand.NewSource(time.Now().UnixNano()))
 	ctx := context.TODO()
+	log.SetLevel(log.DebugLevel)
 
 	// setup highlight
 	highlight.SetProjectID("1jdkoe52")
