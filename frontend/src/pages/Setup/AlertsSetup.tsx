@@ -1,11 +1,6 @@
 import { LinkButton } from '@components/LinkButton'
-import {
-	Box,
-	IconSolidCheckCircle,
-	Stack,
-	SwitchButton,
-	Text,
-} from '@highlight-run/ui'
+import Switch from '@components/Switch/Switch'
+import { Box, Stack, Text } from '@highlight-run/ui'
 import { Header } from '@pages/Setup/Header'
 import * as React from 'react'
 import { useMatch } from 'react-router-dom'
@@ -132,11 +127,11 @@ const Picker = function ({
 							</Text>
 						</Stack>
 						{platform ? (
-							<SwitchButton
-								size="small"
-								key={option.name}
-								onChange={(event) => {
-									if (event.target.checked) {
+							<Switch
+								trackingId={`setup-alerts-switch-${option.name}`}
+								size="default"
+								onChange={(checked) => {
+									if (checked) {
 										onAlertsSelected([
 											...alertsSelected,
 											option.name,
@@ -152,12 +147,6 @@ const Picker = function ({
 								}}
 								checked={
 									alertsSelected.indexOf(option.name) !== -1
-								}
-								iconLeft={
-									alertsSelected.indexOf(option.name) !==
-									-1 ? (
-										<IconSolidCheckCircle size={16} />
-									) : undefined
 								}
 							/>
 						) : (
