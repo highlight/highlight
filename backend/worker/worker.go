@@ -513,6 +513,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	wg.Add(1)
 	go func() {
 		flushSize := 10000
+		maxWait := 100 * time.Millisecond
 		buffer := &KafkaBatchBuffer{
 			messageQueue: make(chan *kafkaqueue.Message, flushSize+1),
 		}
@@ -520,7 +521,11 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 			KafkaQueue: kafkaqueue.New(ctx,
 				kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}),
 				kafkaqueue.Consumer,
-				&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(2 * flushSize)}),
+				&kafkaqueue.ConfigOverride{
+					QueueCapacity: pointy.Int(2 * flushSize),
+					MinBytes:      pointy.Int(1),
+					MaxWait:       &maxWait,
+				}),
 			Worker:              w,
 			WorkerThread:        0,
 			BatchBuffer:         buffer,

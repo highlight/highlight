@@ -92,6 +92,8 @@ func GetTopic(options GetTopicOptions) string {
 type ConfigOverride struct {
 	Async         *bool
 	QueueCapacity *int
+	MinBytes      *int
+	MaxWait       *time.Duration
 }
 
 func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
@@ -203,14 +205,21 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			QueueCapacity:     prefetchQueueCapacity,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
-			CommitInterval: time.Second,
-			MaxAttempts:    10,
+			CommitInterval:        time.Second,
+			MaxAttempts:           10,
+			WatchPartitionChanges: true,
 		}
 
 		if configOverride != nil {
 			deref := *configOverride
 			if deref.QueueCapacity != nil {
 				config.QueueCapacity = *deref.QueueCapacity
+			}
+			if deref.MinBytes != nil {
+				config.MinBytes = *deref.MinBytes
+			}
+			if deref.MaxWait != nil {
+				config.MaxWait = *deref.MaxWait
 			}
 		}
 
