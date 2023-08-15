@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/samber/lo"
 	"os"
 	"reflect"
@@ -60,10 +61,12 @@ func TestMain(m *testing.M) {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 
+	redisClient := redis.NewClient()
 	resolver = &Resolver{
 		DB:               db,
 		TDB:              timeseries.New(context.TODO()),
-		Store:            store.NewStore(db, &opensearch.Client{}, nil),
+		Redis:            redisClient,
+		Store:            store.NewStore(db, &opensearch.Client{}, redisClient),
 		EmbeddingsClient: &mockEmbeddingsClient{},
 	}
 	code := m.Run()
@@ -294,6 +297,8 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	//run tests
 	for name, tc := range tests {
 		util.RunTestWithDBWipeWithName(t, resolver.DB, name, func(t *testing.T) {
+			_ = resolver.Redis.FlushDB(context.Background())
+
 			workspace := model.Workspace{Model: model.Model{ID: workspaceID}}
 			resolver.DB.Create(&workspace)
 
@@ -304,7 +309,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			resolver.DB.Create(&settings)
 
 			if tc.withEmbeddings != nil {
-				resolver.DB.Where(&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).Updates(&model.AllWorkspaceSettings{ErrorEmbeddingsGroup: *tc.withEmbeddings})
+				resolver.DB.Where(&model.AllWorkspaceSettings{WorkspaceID: workspaceID}).Updates(&model.AllWorkspaceSettings{ErrorEmbeddingsGroup: *tc.withEmbeddings, ErrorEmbeddingsThreshold: 0.2})
 			}
 
 			// create the error group to match against
@@ -471,10 +476,10 @@ func TestUpdatingErrorState(t *testing.T) {
 }
 
 func TestResolver_isExcludedError(t *testing.T) {
-	assert.False(t, isExcludedError(context.Background(), []string{}, "", 1))
-	assert.True(t, isExcludedError(context.Background(), []string{}, "[{}]", 2))
-	assert.True(t, isExcludedError(context.Background(), []string{".*a+.*"}, "foo bar baz", 3))
-	assert.False(t, isExcludedError(context.Background(), []string{"("}, "foo bar baz", 4))
+	assert.False(t, resolver.isExcludedError(context.Background(), []string{}, "", 1))
+	assert.True(t, resolver.isExcludedError(context.Background(), []string{}, "[{}]", 2))
+	assert.True(t, resolver.isExcludedError(context.Background(), []string{".*a+.*"}, "foo bar baz", 3))
+	assert.False(t, resolver.isExcludedError(context.Background(), []string{"("}, "foo bar baz", 4))
 }
 
 // areErrorGroupsEqual compares two error objects while ignoring the Model and SecureID field

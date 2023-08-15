@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/next",
-	"version": "3.2.0",
+	"version": "4.0.0",
 	"description": "Client for interfacing with Highlight in next.js",
 	"files": [
 		"dist",
@@ -10,16 +10,6 @@
 		"index.d.ts"
 	],
 	"exports": {
-		".": {
-			"types": "./dist/server.d.ts",
-			"edge": "./dist/server.edge.js",
-			"edge-light": "./dist/server.edge.js",
-			"browser": "./dist/server.edge.js",
-			"worker": "./dist/server.edge.js",
-			"workerd": "./dist/server.edge.js",
-			"require": "./dist/server.js",
-			"import": "./dist/server.mjs"
-		},
 		"./server": {
 			"types": "./dist/server.d.ts",
 			"edge": "./dist/server.edge.js",
@@ -29,11 +19,6 @@
 			"workerd": "./dist/server.edge.js",
 			"require": "./dist/server.js",
 			"import": "./dist/server.mjs"
-		},
-		"./highlight-init": {
-			"types": "./dist/next-client.d.ts",
-			"import": "./dist/next-client.mjs",
-			"require": "./dist/next-client.js"
 		},
 		"./client": {
 			"types": "./dist/next-client.d.ts",
@@ -63,6 +48,7 @@
 	},
 	"dependencies": {
 		"@highlight-run/node": "workspace:*",
+		"@highlight-run/react": "workspace:*",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
 		"highlight.run": "workspace:*"
 	},

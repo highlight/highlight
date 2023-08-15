@@ -1,12 +1,20 @@
 package otel
 
 import (
+	"bytes"
+	"compress/gzip"
 	"context"
+	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	public "github.com/highlight-run/highlight/backend/public-graph/graph"
+	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
 )
 
 type MockKafkaProducer struct {
@@ -17,8 +25,8 @@ func (m *MockKafkaProducer) Stop(_ context.Context) {}
 
 func (m *MockKafkaProducer) Receive(_ context.Context) *kafkaqueue.Message { return nil }
 
-func (m *MockKafkaProducer) Submit(_ context.Context, message *kafkaqueue.Message, _ string) error {
-	m.messages = append(m.messages, message)
+func (m *MockKafkaProducer) Submit(_ context.Context, _ string, messages ...*kafkaqueue.Message) error {
+	m.messages = append(m.messages, messages...)
 	return nil
 }
 
@@ -43,77 +51,63 @@ func TestHandler_HandleLog(t *testing.T) {
 	h.HandleLog(w, r)
 }
 
-// Skipping test intentionally for
-// https://highlightcorp.slack.com/archives/C02CJANPHQS/p1690988700412539?thread_ts=1690985864.381839&cid=C02CJANPHQS
-// func TestHandler_HandleTrace(t *testing.T) {
-// 	inputBytes, err := os.ReadFile("./samples/traces.json")
-// 	if err != nil {
-// 		t.Fatalf("error reading: %v", err)
-// 	}
+func TestHandler_HandleTrace(t *testing.T) {
+	inputBytes, err := os.ReadFile("./samples/traces.json")
+	if err != nil {
+		t.Fatalf("error reading: %v", err)
+	}
 
-// 	req := ptraceotlp.NewExportRequest()
-// 	if err := req.UnmarshalJSON(inputBytes); err != nil {
-// 		t.Fatal(err)
-// 	}
+	req := ptraceotlp.NewExportRequest()
+	if err := req.UnmarshalJSON(inputBytes); err != nil {
+		t.Fatal(err)
+	}
 
-// 	body, err := req.MarshalProto()
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
+	body, err := req.MarshalProto()
+	if err != nil {
+		t.Fatal(err)
+	}
 
-// 	b := bytes.Buffer{}
-// 	gz := gzip.NewWriter(&b)
-// 	if _, err := gz.Write(body); err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	if err := gz.Close(); err != nil {
-// 		t.Fatal(err)
-// 	}
+	b := bytes.Buffer{}
+	gz := gzip.NewWriter(&b)
+	if _, err := gz.Write(body); err != nil {
+		t.Fatal(err)
+	}
+	if err := gz.Close(); err != nil {
+		t.Fatal(err)
+	}
 
-// 	producer := MockKafkaProducer{}
-// 	w := &MockResponseWriter{}
-// 	r, _ := http.NewRequest("POST", "", bytes.NewReader(b.Bytes()))
-// 	h := Handler{
-// 		resolver: &public.Resolver{
-// 			ProducerQueue: &producer,
-// 			BatchedQueue:  &producer,
-// 			TracesQueue:   &producer,
-// 		},
-// 	}
-// 	h.HandleTrace(w, r)
+	producer := MockKafkaProducer{}
+	w := &MockResponseWriter{}
+	r, _ := http.NewRequest("POST", "", bytes.NewReader(b.Bytes()))
+	h := Handler{
+		resolver: &public.Resolver{
+			ProducerQueue: &producer,
+			BatchedQueue:  &producer,
+			TracesQueue:   &producer,
+		},
+	}
+	h.HandleTrace(w, r)
 
-// 	assert.Equal(t, 4, len(producer.messages), fmt.Sprintf("%+v", producer.messages))
+	logCountsBySource := map[model.LogSource]int{}
+	messageCountsByType := map[kafkaqueue.PayloadType]int{}
+	for _, message := range producer.messages {
+		messageCountsByType[message.Type]++
+		if message.Type == kafkaqueue.PushLogs {
+			log := message.PushLogs.LogRow
+			logCountsBySource[log.Source]++
+		}
+	}
 
-// 	_, ok := lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
-// 		return message.Type == kafkaqueue.PushBackendPayload
-// 	})
-// 	assert.Truef(t, ok, "did not find a PushBackendPayload message")
+	expectedMessageCountsByType := fmt.Sprintf("%+v", map[kafkaqueue.PayloadType]int{
+		kafkaqueue.PushBackendPayload: 1,
+		kafkaqueue.PushLogs:           15,  // 4 exceptions, 11 logs
+		kafkaqueue.PushTraces:         501, // 512 spans - 11 logs
+	})
+	assert.Equal(t, expectedMessageCountsByType, fmt.Sprintf("%+v", messageCountsByType))
 
-// 	_, ok = lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
-// 		return message.Type == kafkaqueue.PushLogs
-// 	})
-// 	assert.Truef(t, ok, "did not find a PushLogs message")
-
-// 	_, ok = lo.Find(producer.messages, func(message *kafkaqueue.Message) bool {
-// 		return message.Type == kafkaqueue.PushTraces
-// 	})
-// 	assert.Truef(t, ok, "did not find a PushTraces message")
-
-// 	allPushLogs := lo.Filter(producer.messages, func(message *kafkaqueue.Message, _ int) bool {
-// 		return message.Type == kafkaqueue.PushLogs
-// 	})
-
-// 	for _, pushLogs := range allPushLogs {
-// 		if len(pushLogs.PushLogs.LogRows) == 14 {
-// 			for _, log := range pushLogs.PushLogs.LogRows {
-// 				assert.Equal(t, model.LogSourceBackend, log.Source)
-// 			}
-// 		} else if len(pushLogs.PushLogs.LogRows) == 1 {
-// 			for _, log := range pushLogs.PushLogs.LogRows {
-// 				assert.Equal(t, model.LogSourceFrontend, log.Source)
-// 			}
-// 		} else {
-// 			assert.Fail(t, "found a push logs with no log rows")
-// 		}
-// 	}
-// }
+	expectedLogCountsByType := fmt.Sprintf("%+v", map[model.LogSource]int{
+		model.LogSourceFrontend: 1,
+		model.LogSourceBackend:  14,
+	})
+	assert.Equal(t, expectedLogCountsByType, fmt.Sprintf("%+v", logCountsBySource))
+}

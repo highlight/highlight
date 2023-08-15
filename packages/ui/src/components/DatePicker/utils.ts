@@ -1,4 +1,5 @@
 import moment from 'moment'
+import { Preset } from './PreviousDateRangePicker'
 
 const subtractDays = (date: Date, days: number) => {
 	const offset = 24 * 60 * 60 * 1000 * days
@@ -12,10 +13,12 @@ const subtractHours = (date: Date, hours: number) => {
 	return newDate
 }
 
-const now = moment()
+let now = moment()
 export const getNow = () => now.clone()
-export function getDefaultPresets() {
-	return [
+export let defaultPresets: Preset[] = []
+export function resetRelativeDates() {
+	now = moment()
+	defaultPresets = [
 		{
 			label: 'Last 15 minutes',
 			startDate: getNow().subtract(15, 'minutes').toDate(),
@@ -42,5 +45,6 @@ export function getDefaultPresets() {
 		},
 	]
 }
+resetRelativeDates()
 
 export { subtractDays, subtractHours }

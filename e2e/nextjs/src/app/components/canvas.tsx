@@ -1,18 +1,19 @@
 'use client'
 
-import type { EngineOptions, SceneOptions } from 'babylonjs'
 import {
-	Engine,
-	Scene,
-	MeshBuilder,
-	Vector3,
-	HemisphericLight,
 	ArcRotateCamera,
-	ScenePerformancePriority,
-	PBRMaterial,
 	Color3,
+	Engine,
+	HemisphericLight,
+	MeshBuilder,
+	PBRMaterial,
+	Scene,
+	ScenePerformancePriority,
+	Vector3,
 } from 'babylonjs'
+import type { EngineOptions, SceneOptions } from 'babylonjs'
 import React, { useEffect, useRef, useState } from 'react'
+
 import { H } from '@highlight-run/next/client'
 
 export const Canvas = ({
@@ -52,7 +53,7 @@ export const Canvas = ({
 	}, [])
 
 	useEffect(() => {
-		if (window) {
+		if (typeof window === 'object') {
 			const resize = () => {
 				if (canvas.scene) {
 					canvas.scene.getEngine().resize()

@@ -136,6 +136,11 @@ export const NetworkPage = ({
 					}
 				}) as NetworkResource[]) ?? []
 
+		// Need to have timestamp for findLastActiveEventIndex.
+		current.forEach((resource) => {
+			resource.timestamp = resource.startTime + startTime
+		})
+
 		if (filter !== '') {
 			return current.filter((resource) => {
 				if (!resource.name) {
@@ -149,7 +154,7 @@ export const NetworkPage = ({
 		}
 
 		return current
-	}, [parsedResources, filter, requestTypes, requestStatuses])
+	}, [parsedResources, filter, requestTypes, requestStatuses, startTime])
 
 	const currentResourceIdx = useMemo(() => {
 		return findLastActiveEventIndex(
@@ -238,6 +243,9 @@ export const NetworkPage = ({
 										isCurrentResource={
 											currentResourceIdx === index
 										}
+										startedInThePast={
+											currentResourceIdx >= index
+										}
 										searchTerm={filter}
 										onClickHandler={() => {
 											setActiveNetworkResourceId(
@@ -281,6 +289,7 @@ interface ResourceRowProps {
 	resource: NetworkResource
 	networkRange: number
 	isCurrentResource: boolean
+	startedInThePast: boolean
 	searchTerm: string
 	onClickHandler: () => void
 	setActiveNetworkResourceId: (resource: number | undefined) => void
@@ -295,6 +304,7 @@ const ResourceRow = ({
 	resource,
 	networkRange,
 	isCurrentResource,
+	startedInThePast,
 	searchTerm,
 	onClickHandler,
 	setActiveNetworkResourceId,
@@ -328,6 +338,9 @@ const ResourceRow = ({
 			key={resource.id.toString()}
 			onClick={onClickHandler}
 			cursor="pointer"
+			style={{
+				opacity: startedInThePast ? 1 : 0.4,
+			}}
 		>
 			<Box
 				borderBottom="dividerWeak"

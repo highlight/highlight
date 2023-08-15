@@ -43,3 +43,10 @@
 - Adding exports for `@highlight-run/next/client` and `@highlight-run/next/server`
     > We're hoping to remove `@highlight-run/next/highlight-init` and the default `@highlight-run/next` imports in favor of the new `/client` and `/server` varieties. For now we'll maintain the original imports as aliases.
 - Adding `@highlight-run/node` and `highlight.run` to `peerDependencies`
+
+### 4.0.0
+
+### Major changes
+
+- Removing exports for `@highlight-run/next` and `@highlight-run/next/highlight-init`. Import from `@highlight-run/next/server` and `@highlight-run/next/client` instead.
+- Adding `excludedHostnames?: string[]` to `HighlightInit` props. Pass in a list of full or partial hostnames to prevent tracking: `excludedHostnames={['localhost', 'staging']}`.

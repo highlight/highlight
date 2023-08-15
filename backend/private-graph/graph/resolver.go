@@ -1073,6 +1073,8 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 	if subjectScope == "error" {
 		determiner = "an"
 	}
+
+	// Header
 	message := fmt.Sprintf("You were %s in %s %s comment.", action, determiner, subjectScope)
 	if admin.Email != nil && *admin.Email != "" {
 		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Email, action, determiner, subjectScope)
@@ -1080,34 +1082,48 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 	if admin.Name != nil && *admin.Name != "" {
 		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Name, action, determiner, subjectScope)
 	}
+
+	// comment message
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
+	blockSet.BlockSet = append(blockSet.BlockSet,
+		slack.NewSectionBlock(
+			&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)},
+			nil, nil,
+		),
+	)
+
+	// info on the session/error
+	if subjectScope == "error" {
+		blockSet.BlockSet = append(blockSet.BlockSet,
+			slack.NewSectionBlock(
+				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Error*: %s\n %s", viewLink, *additionalContext)},
+				nil, nil,
+			),
+		)
+	} else if subjectScope == "session" {
+		blockSet.BlockSet = append(blockSet.BlockSet,
+			slack.NewSectionBlock(
+				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Session*: %s\n%s", viewLink, *additionalContext)},
+				nil, nil,
+			),
+		)
+	}
 
 	button := slack.NewButtonBlockElement(
 		"",
 		"click",
 		slack.NewTextBlockObject(
 			slack.PlainTextType,
-			"View",
+			"View comment",
 			false,
 			false,
 		),
 	)
+	button.WithStyle("primary")
 	button.URL = viewLink
 	blockSet.BlockSet = append(blockSet.BlockSet,
-		slack.NewSectionBlock(
-			&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)},
-			nil, slack.NewAccessory(button),
-		),
+		slack.NewActionBlock("action_block", button),
 	)
-
-	if additionalContext != nil {
-		blockSet.BlockSet = append(blockSet.BlockSet,
-			slack.NewSectionBlock(
-				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Additional Context*\n %s", *additionalContext)},
-				nil, nil,
-			),
-		)
-	}
 
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
 	return

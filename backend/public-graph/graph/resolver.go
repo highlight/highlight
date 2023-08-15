@@ -311,7 +311,7 @@ func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, sess
 		return e.Wrap(err, "error updating fields")
 	}
 
-	if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}}, strconv.Itoa(session.ID)); err != nil {
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}}); err != nil {
 		return err
 	}
 
@@ -372,7 +372,30 @@ func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*
 	return newMappedStackTraceString, mappedStackTrace, nil
 }
 
-func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, match *int) (*model.ErrorGroup, error) {
+func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error)) (*model.ErrorGroup, error) {
+	match, err := matchFn()
+	if err != nil {
+		return nil, err
+	}
+	// no match means we are planning to create an error group
+	// we should lock the write path to make sure we do not write duplicate error groups
+	if match == nil {
+		key := fmt.Sprintf("GetOrCreateErrorGroup-project-%d", errorObj.ProjectID)
+		mutex, err := r.Redis.AcquireLock(ctx, key, time.Minute)
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			if _, err := mutex.Unlock(); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release lock")
+			}
+		}()
+		// recheck the match with the lock held, then perform the write
+		match, err = matchFn()
+		if err != nil {
+			return nil, err
+		}
+	}
 	errorGroup := &model.ErrorGroup{}
 
 	if match == nil {
@@ -435,7 +458,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 	return errorGroup, nil
 }
 
-func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, combinedEmbedding, eventEmbedding, stackTraceEmbedding, payloadEmbedding model.Vector) (*int, error) {
+func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, combinedEmbedding, eventEmbedding, stackTraceEmbedding, payloadEmbedding model.Vector, threshold float64) (*int, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "public-resolver", tracer.ResourceName("GetTopErrorGroupMatchByEmbedding"))
 	defer span.Finish()
 
@@ -469,8 +492,8 @@ limit 1;`, map[string]interface{}{
 		return nil, e.Wrap(err, "error querying top error group match")
 	}
 	if result.ErrorGroupID > 0 {
-		lg := log.WithContext(ctx).WithField("combined_score", result.CombinedScore).WithField("score", result.Score).WithField("matched_error_group_id", result.ErrorGroupID)
-		if result.Score < 0.1 {
+		lg := log.WithContext(ctx).WithField("combined_score", result.CombinedScore).WithField("score", result.Score).WithField("matched_error_group_id", result.ErrorGroupID).WithField("threshold", threshold)
+		if result.Score < threshold {
 			lg.Info("matched error group by embeddings")
 			return &result.ErrorGroupID, nil
 		}
@@ -727,13 +750,14 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		}
 	}
 
-	match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
-	if err != nil {
-		return nil, e.Wrap(err, "Error getting top error group match")
-	}
-
 	var errorGroup, errorGroupAlt *model.ErrorGroup
-	errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, match)
+	errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
+		match, err := r.GetTopErrorGroupMatch(errorObj.Event, errorObj.ProjectID, fingerprints)
+		if err != nil {
+			return nil, e.Wrap(err, "Error getting top error group match")
+		}
+		return match, err
+	})
 	if err != nil {
 		return nil, e.Wrap(err, "Error getting or creating error group")
 	}
@@ -751,11 +775,13 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings")
 		}
 		embedding = emb[0]
-		match, err = r.GetTopErrorGroupMatchByEmbedding(ctx, embedding.CombinedEmbedding, embedding.EventEmbedding, embedding.StackTraceEmbedding, embedding.PayloadEmbedding)
-		if err != nil {
-			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
-		}
-		errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, match)
+		errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
+			match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, embedding.CombinedEmbedding, embedding.EventEmbedding, embedding.StackTraceEmbedding, embedding.PayloadEmbedding, settings.ErrorEmbeddingsThreshold)
+			if err != nil {
+				log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
+			}
+			return match, err
+		})
 		if err != nil {
 			return nil, e.Wrap(err, "Error getting or creating error group")
 		}
@@ -1013,7 +1039,7 @@ func (r *Resolver) IndexSessionOpensearch(ctx context.Context, session *model.Se
 	if err := r.AppendProperties(ctx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
 	}
-	return r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}}, strconv.Itoa(session.ID))
+	return r.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: session.ID}})
 }
 
 func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue.InitializeSessionArgs) (*model.Session, error) {
@@ -1485,7 +1511,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		return e.Wrap(err, "[IdentifySession] failed to update session")
 	}
 
-	if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionID}}, strconv.Itoa(sessionID)); err != nil {
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionID}}); err != nil {
 		return err
 	}
 
@@ -1840,12 +1866,12 @@ func (r *Resolver) SubmitMetricsMessage(ctx context.Context, metrics []*publicMo
 	}
 
 	for secureID, metrics := range sessionMetrics {
-		err := r.ProducerQueue.Submit(ctx, &kafka_queue.Message{
+		err := r.ProducerQueue.Submit(ctx, secureID, &kafka_queue.Message{
 			Type: kafka_queue.PushMetrics,
 			PushMetrics: &kafka_queue.PushMetricsArgs{
 				SessionSecureID: secureID,
 				Metrics:         metrics,
-			}}, secureID)
+			}})
 		if err != nil {
 			log.WithContext(ctx).Error(err)
 		}
@@ -2071,7 +2097,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 	// Filter out empty errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
-		if isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
+		if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
 			continue
 		}
 		filteredErrors = append(filteredErrors, errorObject)
@@ -2170,7 +2196,9 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		groupedErrors[group.ID] = append(groupedErrors[group.ID], errorToInsert)
 	}
 
+	var newInstances []*model.ErrorObject
 	for _, errorInstances := range groupedErrors {
+		newInstances = append(newInstances, errorInstances...)
 		instance := errorInstances[len(errorInstances)-1]
 		data := groups[instance.ErrorGroupID]
 		r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
@@ -2188,6 +2216,15 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		}
 	}
 	influxSpan.Finish()
+
+	if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddingsWrite {
+		eSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.processBackendPayload",
+			tracer.ResourceName("BatchGenerateEmbeddings"))
+		if err = r.BatchGenerateEmbeddings(ctx, newInstances); err != nil {
+			log.WithContext(ctx).WithError(err).WithField("project_id", projectID).Error("failed to generate embeddings")
+		}
+		eSpan.Finish(tracer.WithError(err))
+	}
 	putErrorsToDBSpan.Finish()
 }
 
@@ -2593,7 +2630,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		// filter out empty errors
 		seenEvents := map[string]*publicModel.ErrorObjectInput{}
 		for _, errorObject := range errors {
-			if isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
+			if r.isExcludedError(ctx, project.ErrorFilters, errorObject.Event, project.ID) {
 				continue
 			}
 			seenEvents[errorObject.Event] = errorObject
@@ -2687,10 +2724,21 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		}
 		influxSpan.Finish()
 
+		var newInstances []*model.ErrorObject
 		for _, errorInstances := range groupedErrors {
+			newInstances = append(newInstances, errorInstances...)
 			instance := errorInstances[len(errorInstances)-1]
 			data := groups[instance.ErrorGroupID]
 			r.sendErrorAlert(ctx, data.Group.ProjectID, data.SessionObj, data.Group, instance, data.VisitedURL)
+		}
+
+		if settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID); err == nil && settings.ErrorEmbeddingsWrite {
+			eSpan := tracer.StartSpan("public-graph.pushPayload", tracer.ChildOf(putErrorsToDBSpan.Context()),
+				tracer.ResourceName("BatchGenerateEmbeddings"))
+			if err = r.BatchGenerateEmbeddings(ctx, newInstances); err != nil {
+				log.WithContext(ctx).WithError(err).WithField("session_secure_id", sessionObj.SecureID).Error("failed to generate embeddings")
+			}
+			eSpan.Finish(tracer.WithError(err))
 		}
 
 		putErrorsToDBSpan.Finish()
@@ -2778,7 +2826,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				log.WithContext(ctx).Error(e.Wrap(err, "error updating session in opensearch"))
 				return err
 			}
-			if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}, strconv.Itoa(sessionObj.ID)); err != nil {
+			if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 				return err
 			}
 		}
@@ -2799,7 +2847,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			log.WithContext(osCtx).Error(e.Wrap(err, "error updating session in opensearch"))
 			return err
 		}
-		if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}, strconv.Itoa(sessionObj.ID)); err != nil {
+		if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 			return err
 		}
 	}
@@ -2811,7 +2859,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 			log.WithContext(osCtx).Error(e.Wrap(err, "error setting has_errors on session in opensearch"))
 			return err
 		}
-		if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}, strconv.Itoa(sessionObj.ID)); err != nil {
+		if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionObj.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionObj.ID}}); err != nil {
 			return err
 		}
 	}
@@ -3277,12 +3325,16 @@ func (r *Resolver) isSessionUserExcluded(ctx context.Context, s *model.Session, 
 	return false
 }
 
-func isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {
+func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, errorEvent string, projectID int) bool {
 	if errorEvent == "[{}]" {
 		log.WithContext(ctx).
 			WithField("project_id", projectID).
 			Warn("ignoring empty error")
 		return true
+	}
+
+	if cfg, err := r.Store.GetSystemConfiguration(ctx); err == nil {
+		errorFilters = append(errorFilters, cfg.ErrorFilters...)
 	}
 
 	// Filter out by project.ErrorFilters, aka regexp filters

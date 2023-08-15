@@ -103,7 +103,12 @@ const cache = new InMemoryCache({
 			keyFields: ['secure_id'],
 		},
 		ErrorGroup: {
-			keyFields: ['secure_id'],
+			// avoid caching error groups because they can change as new error objects match
+			keyFields: false,
+			merge: false,
+		},
+		ErrorObject: {
+			keyFields: ['id'],
 		},
 		DashboardPayload: {
 			fields: {
@@ -121,7 +126,16 @@ const cache = new InMemoryCache({
 		},
 		Query: {
 			fields: {
-				logs: relayStylePagination(),
+				logs: relayStylePagination([
+					'project_id',
+					'at',
+					'direction',
+					'params',
+					['query', 'date_range', ['start_date', 'end_date']],
+				]),
+				error_groups_opensearch: {
+					keyArgs: ['project_id', 'count', 'query', 'page'],
+				},
 			},
 		},
 	},

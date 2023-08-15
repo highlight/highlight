@@ -831,7 +831,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
 	}
 
-	if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
 		return nil, err
 	}
 
@@ -7503,11 +7503,7 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 
 // SystemConfiguration is the resolver for the system_configuration field.
 func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemConfiguration, error) {
-	config := model.SystemConfiguration{Active: true}
-	if err := r.DB.Model(&config).Where(&config).FirstOrCreate(&config).Error; err != nil {
-		return nil, err
-	}
-	return &config, nil
+	return r.Store.GetSystemConfiguration(ctx)
 }
 
 // Services is the resolver for the services field.
@@ -7545,7 +7541,7 @@ func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*mode
 
 // ErrorDetails is the resolver for the errorDetails field.
 func (r *serviceResolver) ErrorDetails(ctx context.Context, obj *model.Service) ([]string, error) {
-	panic(fmt.Errorf("not implemented: ErrorDetails - errorDetails"))
+	return obj.ErrorDetails, nil
 }
 
 // UserObject is the resolver for the user_object field.

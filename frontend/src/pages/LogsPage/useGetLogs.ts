@@ -1,4 +1,9 @@
-import { useGetLogsErrorObjectsQuery, useGetLogsQuery } from '@graph/hooks'
+import {
+	useGetLogsErrorObjectsQuery,
+	useGetLogsLazyQuery,
+	useGetLogsQuery,
+} from '@graph/hooks'
+import { GetLogsQuery, GetLogsQueryVariables } from '@graph/operations'
 import { LogEdge, PageInfo } from '@graph/schemas'
 import * as Types from '@graph/schemas'
 import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
@@ -6,6 +11,7 @@ import {
 	buildLogsQueryForServer,
 	parseLogsQuery,
 } from '@pages/LogsPage/SearchForm/utils'
+import { usePollQuery } from '@util/search'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
 
@@ -68,6 +74,36 @@ export const useGetLogs = ({
 			},
 		},
 		fetchPolicy: 'cache-and-network',
+	})
+
+	const [moreDataQuery] = useGetLogsLazyQuery({
+		fetchPolicy: 'network-only',
+	})
+
+	const { numMore, reset } = usePollQuery<
+		GetLogsQuery,
+		GetLogsQueryVariables
+	>({
+		variableFn: () => ({
+			project_id: project_id!,
+			at: logCursor,
+			direction: Types.LogDirection.Desc,
+			params: {
+				query: serverQuery,
+				date_range: {
+					start_date: moment(endDate).format(LOG_TIME_FORMAT),
+					end_date: moment(endDate)
+						.add(1, 'hour')
+						.format(LOG_TIME_FORMAT),
+				},
+			},
+		}),
+		moreDataQuery,
+		getResultCount: (result) => {
+			if (result?.data?.logs.edges.length !== undefined) {
+				return result?.data?.logs.edges.length
+			}
+		},
 	})
 
 	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({
@@ -155,6 +191,8 @@ export const useGetLogs = ({
 
 	return {
 		logEdges: logEdgesWithError,
+		moreLogs: numMore,
+		clearMoreLogs: reset,
 		loading,
 		loadingAfter,
 		loadingBefore,
