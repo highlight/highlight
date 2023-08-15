@@ -213,6 +213,22 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) error {
 		var markBackendSetupProjectIds []uint32
 		var filteredRows []*clickhouse.LogRow
 		for _, logRow := range logRows {
+			// create service record for any services found in ingested logs
+			if logRow.ServiceName != "" {
+				spanX, ctxX := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.findOrCreateService"))
+
+				project, err := k.Worker.Resolver.Store.GetProject(ctx, int(logRow.ProjectId))
+				if err == nil && project != nil {
+					_, err := k.Worker.Resolver.Store.FindOrCreateService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
+
+					if err != nil {
+						log.WithContext(ctxX).Error(e.Wrap(err, "failed to create service"))
+					}
+				}
+
+				spanX.Finish()
+			}
+
 			if logRow.Source == privateModel.LogSourceBackend {
 				markBackendSetupProjectIds = append(markBackendSetupProjectIds, logRow.ProjectId)
 			}

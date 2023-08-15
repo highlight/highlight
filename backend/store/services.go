@@ -1,24 +1,44 @@
 package store
 
 import (
+	"context"
+	"fmt"
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/samber/lo"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
 
-func (store *Store) FindOrCreateService(project model.Project, name string) (model.Service, error) {
-	var service model.Service
+func (store *Store) FindOrCreateService(ctx context.Context, project model.Project, name string, attributes map[string]string) (*model.Service, error) {
+	return redis.CachedEval(ctx, store.redis, fmt.Sprintf("service-%s-%d", name, project.ID), 150*time.Millisecond, time.Minute, func() (*model.Service, error) {
+		var service model.Service
 
-	err := store.db.Where(&model.Service{
-		ProjectID: project.ID,
-		Name:      name,
-	}).FirstOrCreate(&service).Error
+		if val, ok := attributes[string(semconv.ProcessRuntimeNameKey)]; ok {
+			service.ProcessName = &val
+		}
 
-	return service, err
+		if val, ok := attributes[string(semconv.ProcessRuntimeVersionKey)]; ok {
+			service.ProcessVersion = &val
+		}
+
+		if val, ok := attributes[string(semconv.ProcessRuntimeDescriptionKey)]; ok {
+			service.ProcessDescription = &val
+		}
+
+		err := store.db.Where(&model.Service{
+			ProjectID: project.ID,
+			Name:      name,
+		}).FirstOrCreate(&service).Error
+
+		return &service, err
+	})
+
 }
 
 // Number of results per page
