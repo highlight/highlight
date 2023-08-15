@@ -7,7 +7,6 @@ import {
 	shouldNetworkRequestBeRecorded,
 	shouldNetworkRequestBeTraced,
 } from './utils'
-import { instanceOf } from 'graphql/jsutils/instanceOf'
 
 interface BrowserXHR extends XMLHttpRequest {
 	_method: string
