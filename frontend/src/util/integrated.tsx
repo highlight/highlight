@@ -14,7 +14,7 @@ import { IntegrationStatus } from '@/graph/generated/schemas'
 
 export const useIntegratedLocalStorage = (
 	projectId: string,
-	area: 'client' | 'server' | 'logs',
+	area: 'client' | 'server' | 'logs' | 'alerts' | 'team',
 ) => {
 	return useLocalStorage<LocalStorageIntegrationData>(
 		`highlight-${projectId}-${area}-integration`,
@@ -257,5 +257,27 @@ export const useLogsIntegration = () => {
 		setLocalStorageIntegrated,
 	])
 
+	return localStorageIntegrated
+}
+
+export const useAlertsIntegration = () => {
+	const { projectId } = useNumericProjectId()
+	const [localStorageIntegrated] = useIntegratedLocalStorage(
+		projectId!,
+		'alerts',
+	)
+
+	// TODO(vkorolik)
+	return localStorageIntegrated
+}
+
+export const useTeamIntegration = () => {
+	const { projectId } = useNumericProjectId()
+	const [localStorageIntegrated] = useIntegratedLocalStorage(
+		projectId!,
+		'team',
+	)
+
+	// TODO(vkorolik)
 	return localStorageIntegrated
 }
