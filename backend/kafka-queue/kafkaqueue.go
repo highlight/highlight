@@ -92,6 +92,8 @@ func GetTopic(options GetTopicOptions) string {
 type ConfigOverride struct {
 	Async         *bool
 	QueueCapacity *int
+	MinBytes      *int
+	MaxWait       *time.Duration
 }
 
 func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
@@ -203,14 +205,21 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			QueueCapacity:     prefetchQueueCapacity,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
-			CommitInterval: time.Second,
-			MaxAttempts:    10,
+			CommitInterval:        time.Second,
+			MaxAttempts:           10,
+			WatchPartitionChanges: true,
 		}
 
 		if configOverride != nil {
 			deref := *configOverride
 			if deref.QueueCapacity != nil {
 				config.QueueCapacity = *deref.QueueCapacity
+			}
+			if deref.MinBytes != nil {
+				config.MinBytes = *deref.MinBytes
+			}
+			if deref.MaxWait != nil {
+				config.MaxWait = *deref.MaxWait
 			}
 		}
 
@@ -220,7 +229,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 	go func() {
 		for {
 			pool.LogStats()
-			time.Sleep(time.Second)
+			time.Sleep(5 * time.Second)
 		}
 	}()
 
@@ -356,7 +365,12 @@ func (p *Queue) Commit(ctx context.Context, msg *kafka.Message) {
 func (p *Queue) LogStats() {
 	if p.kafkaP != nil {
 		stats := p.kafkaP.Stats()
-		log.WithContext(context.Background()).Debugf("Kafka Producer Stats: count %d. batchAvg %s. writeAvg %s. waitAvg %s", stats.Messages, stats.BatchTime.Avg, stats.WriteTime.Avg, stats.WaitTime.Avg)
+		lg := log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("stats", stats)
+
+		// write kafka metric logs in production
+		if !util.IsDevOrTestEnv() {
+			lg.Info("Kafka Producer Stats")
+		}
 
 		hlog.Histogram("worker.kafka.produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
 		hlog.Histogram("worker.kafka.produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
@@ -370,7 +384,12 @@ func (p *Queue) LogStats() {
 	}
 	if p.kafkaC != nil {
 		stats := p.kafkaC.Stats()
-		log.WithContext(context.Background()).Debugf("Kafka Consumer Stats: count %d. readAvg %s. waitAvg %s", stats.Messages, stats.ReadTime.Avg, stats.WaitTime.Avg)
+		lg := log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("partition", stats.Partition).WithField("stats", stats)
+
+		// write kafka metric logs in production
+		if !util.IsDevOrTestEnv() {
+			lg.Info("Kafka Consumer Stats")
+		}
 
 		hlog.Histogram("worker.kafka.consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
 		hlog.Histogram("worker.kafka.consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)

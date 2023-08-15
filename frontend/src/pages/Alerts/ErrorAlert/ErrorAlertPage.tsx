@@ -10,8 +10,10 @@ import {
 	Box,
 	Column,
 	Container,
+	defaultPresets,
 	Form,
 	FormState,
+	getNow,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
 	IconSolidCheveronUp,
@@ -35,7 +37,6 @@ import {
 	findAlert,
 	getFrequencyOption,
 } from '@pages/Alerts/utils/AlertsUtils'
-import { LOG_TIME_PRESETS, now } from '@pages/LogsPage/constants'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { capitalize } from 'lodash'
@@ -55,10 +56,10 @@ export const ErrorAlertPage = () => {
 	const [endDateParam] = useQueryParam('end_date', DateTimeParam)
 
 	const [startDate, setStartDate] = useState(
-		startDateParam ?? LOG_TIME_PRESETS[0].startDate,
+		startDateParam ?? defaultPresets[0].startDate,
 	)
 
-	const [endDate, setEndDate] = useState(endDateParam ?? now.toDate())
+	const [endDate, setEndDate] = useState(endDateParam ?? getNow().toDate())
 	const [selectedDates] = useState<Date[]>([startDate, endDate])
 
 	const { alert_id } = useParams<{
