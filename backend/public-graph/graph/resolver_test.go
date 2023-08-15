@@ -476,10 +476,10 @@ func TestUpdatingErrorState(t *testing.T) {
 }
 
 func TestResolver_isExcludedError(t *testing.T) {
-	assert.False(t, isExcludedError(context.Background(), []string{}, "", 1))
-	assert.True(t, isExcludedError(context.Background(), []string{}, "[{}]", 2))
-	assert.True(t, isExcludedError(context.Background(), []string{".*a+.*"}, "foo bar baz", 3))
-	assert.False(t, isExcludedError(context.Background(), []string{"("}, "foo bar baz", 4))
+	assert.False(t, resolver.isExcludedError(context.Background(), []string{}, "", 1))
+	assert.True(t, resolver.isExcludedError(context.Background(), []string{}, "[{}]", 2))
+	assert.True(t, resolver.isExcludedError(context.Background(), []string{".*a+.*"}, "foo bar baz", 3))
+	assert.False(t, resolver.isExcludedError(context.Background(), []string{"("}, "foo bar baz", 4))
 }
 
 // areErrorGroupsEqual compares two error objects while ignoring the Model and SecureID field
