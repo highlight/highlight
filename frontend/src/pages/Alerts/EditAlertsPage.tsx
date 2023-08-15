@@ -2,15 +2,18 @@ import {
 	useDeleteErrorAlertMutation,
 	useDeleteSessionAlertMutation,
 } from '@graph/hooks'
-import { GetAlertsPagePayloadQuery, namedOperations } from '@graph/operations'
+import { namedOperations } from '@graph/operations'
 import { AlertConfigurationCard } from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationCard'
-import { ALERT_CONFIGURATIONS } from '@pages/Alerts/Alerts'
+import { ALERT_CONFIGURATIONS, ALERT_TYPE } from '@pages/Alerts/Alerts'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
+import { useEffect } from 'react'
 import { Helmet } from 'react-helmet'
 import Skeleton from 'react-loading-skeleton'
 import { useNavigate } from 'react-router-dom'
+
+import { findAlert } from '@/pages/Alerts/utils/AlertsUtils'
 
 const EditAlertsPage = () => {
 	const { id, project_id } = useParams<{ id: string; project_id: string }>()
@@ -32,6 +35,15 @@ const EditAlertsPage = () => {
 			cache.gc()
 		},
 	})
+
+	useEffect(() => {
+		if (
+			alert?.Type &&
+			ALERT_CONFIGURATIONS[alert?.Type].type === ALERT_TYPE.Error
+		) {
+			navigate(`/${project_id}/alerts/errors/${id}`)
+		}
+	}, [alert?.Type, id, navigate, project_id])
 
 	return (
 		<>
@@ -107,20 +119,3 @@ const EditAlertsPage = () => {
 }
 
 export default EditAlertsPage
-
-const findAlert = (id: string, alertsPayload?: GetAlertsPagePayloadQuery) => {
-	if (!alertsPayload) {
-		return undefined
-	}
-
-	const allAlerts = [
-		...alertsPayload.error_alerts,
-		...alertsPayload.new_session_alerts,
-		...(alertsPayload.new_user_alerts || []),
-		...alertsPayload.track_properties_alerts,
-		...alertsPayload.user_properties_alerts,
-		...alertsPayload.rage_click_alerts,
-	]
-
-	return allAlerts.find((alert) => alert?.id === id)
-}
