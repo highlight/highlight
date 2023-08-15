@@ -7542,8 +7542,13 @@ func (r *queryResolver) ErrorTags(ctx context.Context) ([]*model.ErrorTag, error
 }
 
 // MatchErrorTag is the resolver for the match_error_tag field.
-func (r *queryResolver) MatchErrorTag(ctx context.Context, text string) (*model.ErrorTag, error) {
-	return r.Resolver.MatchErrorTag(ctx, text)
+func (r *queryResolver) MatchErrorTag(ctx context.Context, query string) (*model.ErrorTag, error) {
+	return r.Resolver.MatchErrorTag(ctx, query)
+}
+
+// FindSimilarErrors is the resolver for the find_similar_errors field.
+func (r *queryResolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.ErrorObject, error) {
+	return r.Resolver.FindSimilarErrors(ctx, query)
 }
 
 // Params is the resolver for the params field.

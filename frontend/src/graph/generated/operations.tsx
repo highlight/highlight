@@ -4515,12 +4515,22 @@ export type GetErrorTagsQuery = { __typename?: 'Query' } & {
 }
 
 export type MatchErrorTagQueryVariables = Types.Exact<{
-	text: Types.Scalars['String']
+	query: Types.Scalars['String']
 }>
 
 export type MatchErrorTagQuery = { __typename?: 'Query' } & {
 	match_error_tag?: Types.Maybe<
 		{ __typename?: 'ErrorTag' } & ErrorTagFragment
+	>
+}
+
+export type FindSimilarErrorsQueryVariables = Types.Exact<{
+	query: Types.Scalars['String']
+}>
+
+export type FindSimilarErrorsQuery = { __typename?: 'Query' } & {
+	find_similar_errors?: Types.Maybe<
+		Array<Types.Maybe<{ __typename?: 'ErrorObject' } & ErrorObjectFragment>>
 	>
 }
 
@@ -4660,6 +4670,7 @@ export const namedOperations = {
 		GetServices: 'GetServices' as const,
 		GetErrorTags: 'GetErrorTags' as const,
 		MatchErrorTag: 'MatchErrorTag' as const,
+		FindSimilarErrors: 'FindSimilarErrors' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,

@@ -1771,7 +1771,8 @@ type Query {
 		query: String
 	): ServiceConnection
 	error_tags: [ErrorTag]
-	match_error_tag(text: String!): ErrorTag
+	match_error_tag(query: String!): ErrorTag
+	find_similar_errors(query: String!): [ErrorObject]
 }
 
 type Mutation {

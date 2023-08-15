@@ -2188,8 +2188,14 @@ query GetErrorTags {
 	}
 }
 
-query MatchErrorTag($text: String!) {
-	match_error_tag(text: $text) {
+query MatchErrorTag($query: String!) {
+	match_error_tag(query: $query) {
 		...ErrorTag
+	}
+}
+
+query FindSimilarErrors($query: String!) {
+	find_similar_errors(query: $query) {
+		...ErrorObject
 	}
 }

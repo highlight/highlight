@@ -1694,6 +1694,7 @@ export type Query = {
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
 	field_types: Array<Field>
 	fields_opensearch: Array<Scalars['String']>
+	find_similar_errors?: Maybe<Array<Maybe<ErrorObject>>>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
 	github_issue_labels: Array<Scalars['String']>
@@ -2005,6 +2006,10 @@ export type QueryFields_OpensearchArgs = {
 	query: Scalars['String']
 }
 
+export type QueryFind_Similar_ErrorsArgs = {
+	query: Scalars['String']
+}
+
 export type QueryGenerate_Zapier_Access_TokenArgs = {
 	project_id: Scalars['ID']
 }
@@ -2123,7 +2128,7 @@ export type QueryLogs_Total_CountArgs = {
 }
 
 export type QueryMatch_Error_TagArgs = {
-	text: Scalars['String']
+	query: Scalars['String']
 }
 
 export type QueryMetric_MonitorsArgs = {

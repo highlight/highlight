@@ -3710,3 +3710,15 @@ func (r *Resolver) MatchErrorTag(ctx context.Context, query string) (*model.Erro
 
 	return errorTag, nil
 }
+
+func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.ErrorObject, error) {
+	stringEmbedding, err := r.EmbeddingsClient.GetStringEmbedding(ctx, query)
+	log.Info(stringEmbedding)
+	var errorObjects []*model.ErrorObject
+
+	if err != nil {
+		return nil, e.Wrap(err, "500: failed to get string embedding")
+	}
+
+	return errorObjects, nil
+}

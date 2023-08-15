@@ -1,18 +1,18 @@
 import { Box, Form, Stack } from '@highlight-run/ui'
 import { useState } from 'react'
 
-import { useMatchErrorTagQuery } from '@/graph/generated/hooks'
+import { useFindSimilarErrorsQuery } from '@/graph/generated/hooks'
 
-export function MatchErrorTag() {
+export function FindSimilarErrors() {
 	const [query, setQuery] = useState('')
-	const { data, loading } = useMatchErrorTagQuery({
-		variables: { query: query },
+	const { data, loading } = useFindSimilarErrorsQuery({
+		variables: { query },
 		skip: !query,
 	})
 
 	console.log({ queryValue: query, data, loading })
 
-	async function onMatchErrorTagSubmit(e: React.FormEvent<HTMLFormElement>) {
+	async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault()
 
 		const formData = new FormData(e.target as HTMLFormElement)
@@ -23,8 +23,8 @@ export function MatchErrorTag() {
 
 	return (
 		<section>
-			<h2>Match Error Tag</h2>
-			<form onSubmit={onMatchErrorTagSubmit}>
+			<h2>Find Similar Errors</h2>
+			<form onSubmit={onSubmit}>
 				<Stack gap="8">
 					<Form.Input name="query" />
 					<Box>
