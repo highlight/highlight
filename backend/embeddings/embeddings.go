@@ -22,6 +22,7 @@ const PayloadEmbedding EmbeddingType = "PayloadEmbedding"
 type Client interface {
 	GetEmbeddings(ctx context.Context, errors []*model.ErrorObject) ([]*model.ErrorObjectEmbeddings, error)
 	GetErrorTagEmbedding(ctx context.Context, title string, description string) (*model.ErrorTag, error)
+	GetStringEmbedding(ctx context.Context, text string) ([]float32, error)
 }
 
 type OpenAIClient struct {
@@ -141,4 +142,21 @@ func (c *OpenAIClient) GetErrorTagEmbedding(ctx context.Context, title string, d
 
 	return errorTag, nil
 
+}
+
+func (c *OpenAIClient) GetStringEmbedding(ctx context.Context, text string) ([]float32, error) {
+	resp, err := c.client.CreateEmbeddings(
+		context.Background(),
+		openai.EmbeddingRequest{
+			Input: []string{text},
+			Model: openai.AdaEmbeddingV2,
+			User:  "highlight-io",
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Data[0].Embedding, nil
 }

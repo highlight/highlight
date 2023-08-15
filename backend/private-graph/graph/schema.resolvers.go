@@ -7515,11 +7515,6 @@ func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemC
 	return &config, nil
 }
 
-// ErrorTags is the resolver for the error_tags field.
-func (r *queryResolver) ErrorTags(ctx context.Context) ([]*model.ErrorTag, error) {
-	return r.GetErrorTags()
-}
-
 // Services is the resolver for the services field.
 func (r *queryResolver) Services(ctx context.Context, projectID int, after *string, before *string, query *string) (*modelInputs.ServiceConnection, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -7539,6 +7534,16 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 	})
 
 	return &connection, err
+}
+
+// ErrorTags is the resolver for the error_tags field.
+func (r *queryResolver) ErrorTags(ctx context.Context) ([]*model.ErrorTag, error) {
+	return r.GetErrorTags()
+}
+
+// MatchErrorTag is the resolver for the match_error_tag field.
+func (r *queryResolver) MatchErrorTag(ctx context.Context, text string) (*model.ErrorTag, error) {
+	return r.Resolver.MatchErrorTag(ctx, text)
 }
 
 // Params is the resolver for the params field.

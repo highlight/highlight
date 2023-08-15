@@ -1,35 +1,17 @@
-import {
-	useCreateErrorTagMutation,
-	useGetErrorTagsQuery,
-} from '@/graph/generated/hooks'
+import { Container, Heading, Stack } from '@highlight-run/ui'
+
+import { ManageErrorTags } from '@/pages/ErrorTags/ManageErrorTag'
+import { MatchErrorTag } from '@/pages/ErrorTags/MatchErrorTag'
 
 export function ErrorTags() {
-	const { data: errorTags, loading } = useGetErrorTagsQuery()
-	const [createErrorTag] = useCreateErrorTagMutation()
-
-	console.log(errorTags, loading)
-
 	return (
-		<div>
-			<h1>Error Tags</h1>
-			<form
-				onSubmit={async (e) => {
-					e.preventDefault()
+		<Container>
+			<Stack py="32" gap="32">
+				<Heading>Error Tags</Heading>
 
-					const formData = new FormData(e.target as HTMLFormElement)
-					const title = (formData.get('title') as string) || ''
-					const description =
-						(formData.get('description') as string) || ''
-
-					await createErrorTag({ variables: { title, description } })
-
-					console.log({ formData, title, description })
-				}}
-			>
-				<input type="text" name="title" />
-				<input type="text" name="description" />
-				<button type="submit">Submit</button>
-			</form>
-		</div>
+				<ManageErrorTags />
+				<MatchErrorTag />
+			</Stack>
+		</Container>
 	)
 }

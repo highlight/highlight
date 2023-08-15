@@ -164,6 +164,14 @@ export const ErrorObjectFragmentDoc = gql`
 		serviceVersion
 	}
 `
+export const ErrorTagFragmentDoc = gql`
+	fragment ErrorTag on ErrorTag {
+		id
+		created_at
+		title
+		description
+	}
+`
 export const MarkErrorGroupAsViewedDocument = gql`
 	mutation MarkErrorGroupAsViewed(
 		$error_secure_id: String!
@@ -13361,12 +13369,10 @@ export type GetServicesQueryResult = Apollo.QueryResult<
 export const GetErrorTagsDocument = gql`
 	query GetErrorTags {
 		error_tags {
-			id
-			created_at
-			title
-			description
+			...ErrorTag
 		}
 	}
+	${ErrorTagFragmentDoc}
 `
 
 /**
@@ -13415,4 +13421,61 @@ export type GetErrorTagsLazyQueryHookResult = ReturnType<
 export type GetErrorTagsQueryResult = Apollo.QueryResult<
 	Types.GetErrorTagsQuery,
 	Types.GetErrorTagsQueryVariables
+>
+export const MatchErrorTagDocument = gql`
+	query MatchErrorTag($text: String!) {
+		match_error_tag(text: $text) {
+			...ErrorTag
+		}
+	}
+	${ErrorTagFragmentDoc}
+`
+
+/**
+ * __useMatchErrorTagQuery__
+ *
+ * To run a query within a React component, call `useMatchErrorTagQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMatchErrorTagQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMatchErrorTagQuery({
+ *   variables: {
+ *      text: // value for 'text'
+ *   },
+ * });
+ */
+export function useMatchErrorTagQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.MatchErrorTagQuery,
+		Types.MatchErrorTagQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.MatchErrorTagQuery,
+		Types.MatchErrorTagQueryVariables
+	>(MatchErrorTagDocument, baseOptions)
+}
+export function useMatchErrorTagLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.MatchErrorTagQuery,
+		Types.MatchErrorTagQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.MatchErrorTagQuery,
+		Types.MatchErrorTagQueryVariables
+	>(MatchErrorTagDocument, baseOptions)
+}
+export type MatchErrorTagQueryHookResult = ReturnType<
+	typeof useMatchErrorTagQuery
+>
+export type MatchErrorTagLazyQueryHookResult = ReturnType<
+	typeof useMatchErrorTagLazyQuery
+>
+export type MatchErrorTagQueryResult = Apollo.QueryResult<
+	Types.MatchErrorTagQuery,
+	Types.MatchErrorTagQueryVariables
 >

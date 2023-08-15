@@ -4501,18 +4501,26 @@ export type GetServicesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type ErrorTagFragment = { __typename?: 'ErrorTag' } & Pick<
+	Types.ErrorTag,
+	'id' | 'created_at' | 'title' | 'description'
+>
+
 export type GetErrorTagsQueryVariables = Types.Exact<{ [key: string]: never }>
 
 export type GetErrorTagsQuery = { __typename?: 'Query' } & {
 	error_tags?: Types.Maybe<
-		Array<
-			Types.Maybe<
-				{ __typename?: 'ErrorTag' } & Pick<
-					Types.ErrorTag,
-					'id' | 'created_at' | 'title' | 'description'
-				>
-			>
-		>
+		Array<Types.Maybe<{ __typename?: 'ErrorTag' } & ErrorTagFragment>>
+	>
+}
+
+export type MatchErrorTagQueryVariables = Types.Exact<{
+	text: Types.Scalars['String']
+}>
+
+export type MatchErrorTagQuery = { __typename?: 'Query' } & {
+	match_error_tag?: Types.Maybe<
+		{ __typename?: 'ErrorTag' } & ErrorTagFragment
 	>
 }
 
@@ -4651,6 +4659,7 @@ export const namedOperations = {
 		GetErrorObjects: 'GetErrorObjects' as const,
 		GetServices: 'GetServices' as const,
 		GetErrorTags: 'GetErrorTags' as const,
+		MatchErrorTag: 'MatchErrorTag' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -4743,5 +4752,6 @@ export const namedOperations = {
 		SessionAlertFragment: 'SessionAlertFragment' as const,
 		DiscordChannelFragment: 'DiscordChannelFragment' as const,
 		ErrorObject: 'ErrorObject' as const,
+		ErrorTag: 'ErrorTag' as const,
 	},
 }

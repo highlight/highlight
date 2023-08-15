@@ -52,7 +52,6 @@ import {
 } from '@/graph/generated/operations'
 import { JoinWorkspace } from '@/pages/Auth/JoinWorkspace'
 import { WorkspaceInvitation } from '@/pages/Auth/WorkspaceInvitation'
-import { ErrorTags } from '@/pages/ErrorTags/ErrorTags'
 import WithErrorSearchContext from '@/routers/ProjectRouter/WithErrorSearchContext'
 import WithSessionSearchContext from '@/routers/ProjectRouter/WithSessionSearchContext'
 
@@ -330,8 +329,6 @@ export const AppRouter = () => {
 									)
 								}
 							/>
-
-							<Route path="/error-tags" element={<ErrorTags />} />
 
 							<Route
 								path="/*"

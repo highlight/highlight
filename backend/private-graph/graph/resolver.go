@@ -3698,3 +3698,15 @@ func (r *Resolver) GetErrorTags() ([]*model.ErrorTag, error) {
 
 	return errorTags, nil
 }
+
+func (r *Resolver) MatchErrorTag(ctx context.Context, query string) (*model.ErrorTag, error) {
+	stringEmbedding, err := r.EmbeddingsClient.GetStringEmbedding(ctx, query)
+	log.Info(stringEmbedding)
+	var errorTag *model.ErrorTag
+
+	if err != nil {
+		return nil, e.Wrap(err, "500: failed to get string embedding")
+	}
+
+	return errorTag, nil
+}

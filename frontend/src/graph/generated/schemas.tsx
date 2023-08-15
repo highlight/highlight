@@ -1720,6 +1720,7 @@ export type Query = {
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<LogKey>
 	logs_total_count: Scalars['UInt64']
+	match_error_tag?: Maybe<ErrorTag>
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>
@@ -2119,6 +2120,10 @@ export type QueryLogs_KeysArgs = {
 export type QueryLogs_Total_CountArgs = {
 	params: LogsParamsInput
 	project_id: Scalars['ID']
+}
+
+export type QueryMatch_Error_TagArgs = {
+	text: Scalars['String']
 }
 
 export type QueryMetric_MonitorsArgs = {

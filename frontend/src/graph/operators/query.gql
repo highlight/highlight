@@ -2175,11 +2175,21 @@ query GetServices(
 	}
 }
 
+fragment ErrorTag on ErrorTag {
+	id
+	created_at
+	title
+	description
+}
+
 query GetErrorTags {
 	error_tags {
-		id
-		created_at
-		title
-		description
+		...ErrorTag
+	}
+}
+
+query MatchErrorTag($text: String!) {
+	match_error_tag(text: $text) {
+		...ErrorTag
 	}
 }
