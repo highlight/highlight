@@ -15,7 +15,7 @@ import styles from './DiscordIntegrationConfig.module.css'
 
 const DISCORD_CLIENT_ID = import.meta.env.DISCORD_CLIENT_ID
 
-const getDiscordOauthUrl = (project_id: string): string => {
+export const getDiscordOauthUrl = (project_id: string): string => {
 	const redirectURI = `${GetBaseURL()}/callback/discord`
 
 	const state = encodeURIComponent(JSON.stringify({ project_id: project_id }))

@@ -20,7 +20,7 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
-import { TeamSetup } from '@pages/Setup/TeamSetup'
+import { TeamSetup } from '@pages/Setup/SetupRouter/TeamSetup'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
 import { message } from 'antd'
@@ -45,7 +45,7 @@ import {
 	useTeamIntegration,
 } from '@/util/integrated'
 
-import { AlertsSetup } from '../AlertsSetup'
+import { AlertsSetup } from './AlertsSetup'
 import * as styles from './SetupRouter.css'
 
 export const SetupRouter = () => {
