@@ -109,12 +109,6 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			const issueDescription =
 				form.getValue(form.names.issueDescription) ?? ''
 
-			console.log({
-				issueTitle,
-				issueDescription,
-				"submitting": "submitting",
-			})
-
 			const issueTeamId = containerId || ''
 			const text = commentText ?? 'Open in Highlight'
 			const author = admin?.name || admin?.email || 'Someone'
