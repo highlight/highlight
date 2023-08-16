@@ -4,7 +4,15 @@ import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import Switch from '@components/Switch/Switch'
 import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
-import { Box, IconSolidSlack, Stack, Text } from '@highlight-run/ui'
+import {
+	Box,
+	IconSolidDiscord,
+	IconSolidNewspaper,
+	IconSolidSlack,
+	Stack,
+	Text,
+	vars,
+} from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { getDiscordOauthUrl } from '@pages/IntegrationsPage/components/DiscordIntegration/DiscordIntegrationConfig'
 import { Header } from '@pages/Setup/Header'
@@ -15,42 +23,47 @@ import { useMatch, useNavigate } from 'react-router-dom'
 
 interface NotificationOption {
 	name: 'Slack' | 'Discord' | 'Email'
-	// TODO(vkorolik)
-	imageUrl: string
+	logo: JSX.Element
 }
 
 const notificationOptions: NotificationOption[] = [
 	{
 		name: 'Slack',
-		imageUrl: 'TODO',
+		logo: <IconSolidSlack height={16} width={16} />,
 	},
 	{
 		name: 'Discord',
-		imageUrl: 'TODO',
+		logo: (
+			<IconSolidDiscord
+				height={16}
+				width={16}
+				fill={vars.theme.static.content.default}
+			/>
+		),
 	},
 	{
 		name: 'Email',
-		imageUrl: 'TODO',
+		logo: <IconSolidNewspaper height={16} width={16} />,
 	},
 ]
 
 interface AlertOption {
 	name: string
-	imageUrl: string
+	destination: string
 }
 
 const alertOptions: AlertOption[] = [
 	{
 		name: 'Error',
-		imageUrl: 'TODO',
+		destination: 'error-alerts',
 	},
 	{
 		name: 'Session',
-		imageUrl: 'TODO',
+		destination: 'session-alerts',
 	},
 	{
 		name: 'Log',
-		imageUrl: 'TODO',
+		destination: 'log-alerts',
 	},
 ]
 
@@ -150,19 +163,7 @@ const PlatformPicker: React.FC = function () {
 								justifyContent="center"
 								style={{ height: 28, width: 28 }}
 							>
-								{option.imageUrl ? (
-									<img
-										alt={option.name}
-										src={option.imageUrl}
-										style={{ height: 20, width: 20 }}
-									/>
-								) : (
-									<Text userSelect="none" weight="bold">
-										{(
-											option.name as string
-										)[0].toUpperCase()}
-									</Text>
-								)}
+								{option.logo}
 							</Box>
 							<Text color="default" weight="bold">
 								{option.name as string}
@@ -220,19 +221,9 @@ const AlertPicker = function ({
 								justifyContent="center"
 								style={{ height: 28, width: 28 }}
 							>
-								{option.imageUrl ? (
-									<img
-										alt={option.name}
-										src={option.imageUrl}
-										style={{ height: 20, width: 20 }}
-									/>
-								) : (
-									<Text userSelect="none" weight="bold">
-										{(
-											option.name as string
-										)[0].toUpperCase()}
-									</Text>
-								)}
+								<Text userSelect="none" weight="bold">
+									{(option.name as string)[0].toUpperCase()}
+								</Text>
 							</Box>
 							<Text color="default" weight="bold">
 								{option.name as string}
@@ -276,16 +267,7 @@ const IntegrationCallout = function ({
 	const name = type === 'slack' ? 'Slack' : 'Discord'
 	const integrateUrl =
 		type === 'slack' ? slackUrl : getDiscordOauthUrl(projectId)
-	const icon =
-		type === 'slack' ? (
-			<IconSolidSlack height={16} width={16} />
-		) : (
-			<img
-				alt="discord"
-				src="/images/integrations/discord.svg"
-				style={{ height: 16, width: 16 }}
-			/>
-		)
+	const icon = notificationOptions.find((n) => n.name === name)?.logo
 	return (
 		<Modal onCancel={onCancel} visible={true} width="600px">
 			<ModalBody>
