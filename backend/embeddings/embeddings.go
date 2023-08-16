@@ -1,12 +1,18 @@
 package embeddings
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/highlight-run/highlight/backend/model"
+	e "github.com/pkg/errors"
 	"github.com/samber/lo"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"math"
+	"net/http"
 	"os"
 	"time"
 )
@@ -24,10 +30,6 @@ type Client interface {
 
 type OpenAIClient struct {
 	client *openai.Client
-}
-
-func New() Client {
-	return &OpenAIClient{client: openai.NewClient(os.Getenv("OPENAI_API_KEY"))}
 }
 
 func (c *OpenAIClient) GetEmbeddings(ctx context.Context, errors []*model.ErrorObject) ([]*model.ErrorObjectEmbeddings, error) {
@@ -116,4 +118,84 @@ func (c *OpenAIClient) GetEmbeddings(ctx context.Context, errors []*model.ErrorO
 	}
 
 	return lo.Values(results), nil
+}
+
+type HuggingfaceModelClient struct {
+	client *http.Client
+	url    string
+	token  string
+}
+
+type HuggingfaceModelInputs struct {
+	Inputs []string `json:"inputs"`
+}
+
+func (c *HuggingfaceModelClient) GetEmbeddings(ctx context.Context, errors []*model.ErrorObject) ([]*model.ErrorObjectEmbeddings, error) {
+	start := time.Now()
+	var combinedInputs []string
+	for _, errorObject := range errors {
+		var stackTrace *string
+		if errorObject.MappedStackTrace != nil {
+			stackTrace = errorObject.MappedStackTrace
+		} else {
+			stackTrace = errorObject.StackTrace
+		}
+		combinedInput := errorObject.Event
+		if stackTrace != nil {
+			combinedInput = combinedInput + " " + *stackTrace
+		}
+		if errorObject.Payload != nil {
+			combinedInput = combinedInput + " " + *errorObject.Payload
+		}
+		combinedInputs = append(combinedInputs, combinedInput)
+	}
+
+	b, err := json.Marshal(HuggingfaceModelInputs{Inputs: combinedInputs})
+	if err != nil {
+		return nil, err
+	}
+	req, _ := http.NewRequest(http.MethodPost, c.url, bytes.NewReader(b))
+	req.Header.Add("Authorization", "Bearer "+c.token)
+	response, err := c.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if response.StatusCode >= 400 {
+		return nil, e.New(fmt.Sprintf("huggingface api request failed: %s", body))
+	}
+
+	var resp [][]float32
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, err
+	}
+
+	log.WithContext(ctx).
+		WithField("time", time.Since(start)).
+		WithField("body", body).
+		WithField("length", response.ContentLength).
+		Info("AI embedding generated.")
+
+	var results []*model.ErrorObjectEmbeddings
+	for idx, embedding := range resp {
+		errorObj := errors[idx]
+		results = append(results, &model.ErrorObjectEmbeddings{
+			ErrorObjectID:     errorObj.ID,
+			CombinedEmbedding: embedding,
+		})
+	}
+	return results, nil
+}
+
+func New() Client {
+	return &HuggingfaceModelClient{
+		client: &http.Client{},
+		url:    os.Getenv("HUGGINGFACE_MODEL_URL"),
+		token:  os.Getenv("HUGGINGFACE_API_TOKEN"),
+	}
 }

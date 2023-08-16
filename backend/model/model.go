@@ -912,8 +912,9 @@ type ErrorSegment struct {
 type ErrorGroupingMethod string
 
 const (
-	ErrorGroupingMethodClassic        ErrorGroupingMethod = "Classic"
-	ErrorGroupingMethodAdaEmbeddingV2 ErrorGroupingMethod = "AdaV2"
+	ErrorGroupingMethodClassic             ErrorGroupingMethod = "Classic"
+	ErrorGroupingMethodAdaEmbeddingV2      ErrorGroupingMethod = "AdaV2"
+	ErrorGroupingMethodGteLargeEmbeddingV2 ErrorGroupingMethod = "gte-large"
 )
 
 type ErrorObject struct {
