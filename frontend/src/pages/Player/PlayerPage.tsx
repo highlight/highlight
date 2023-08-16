@@ -265,10 +265,7 @@ const PlayerPage = () => {
 	const replayerWrapperBbox = replayer?.wrapper.getBoundingClientRect()
 
 	const showSession =
-		(sessionViewability === SessionViewability.VIEWABLE && !!session) ||
-		(replayerState !== ReplayerState.Empty &&
-			sessionViewability !== SessionViewability.ERROR) ||
-		(replayerState === ReplayerState.Empty && !!session_secure_id)
+		sessionViewability === SessionViewability.VIEWABLE && !!session
 
 	const { isPlayerFullscreen, playerCenterPanelRef } = usePlayerUIContext()
 
@@ -365,9 +362,7 @@ const PlayerPage = () => {
 	const sessionFiller = useMemo(() => {
 		switch (sessionViewability) {
 			case SessionViewability.ERROR:
-				if (loading) {
-					return <LoadingBox />
-				} else if (isSessionPendingData?.isSessionPending) {
+				if (isSessionPendingData?.isSessionPending) {
 					return (
 						<Box m="auto" style={{ maxWidth: 300 }}>
 							<Callout
@@ -477,7 +472,6 @@ const PlayerPage = () => {
 	}, [
 		currentWorkspace?.id,
 		isSessionPendingData?.isSessionPending,
-		loading,
 		sessionViewability,
 		integrated,
 		session?.excluded_reason,
