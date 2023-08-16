@@ -4,11 +4,13 @@ import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
 import {
+	Badge,
 	Box,
 	IconSolidDiscord,
 	IconSolidNewspaper,
 	IconSolidSlack,
 	Stack,
+	Tag,
 	Text,
 	vars,
 } from '@highlight-run/ui'
@@ -51,20 +53,24 @@ const notificationOptions: NotificationOption[] = [
 interface AlertOption {
 	name: string
 	destination: string
+	thresholdPerMinute: number
 }
 
 const alertOptions: AlertOption[] = [
 	{
 		name: 'Error',
 		destination: 'error-alerts',
+		thresholdPerMinute: 10,
 	},
 	{
 		name: 'Session',
 		destination: 'session-alerts',
+		thresholdPerMinute: 1,
 	},
 	{
 		name: 'Log',
 		destination: 'log-alerts',
+		thresholdPerMinute: 60,
 	},
 ]
 
@@ -187,6 +193,7 @@ const PlatformPicker: React.FC = function () {
 }
 
 const AlertPicker = function ({
+	platform,
 	alertsSelected,
 	onAlertsSelected,
 }: {
@@ -194,6 +201,9 @@ const AlertPicker = function ({
 	alertsSelected: string[]
 	onAlertsSelected: (alerts: string[]) => void
 }) {
+	const platformIcon = notificationOptions.find(
+		(n) => n.name.toLowerCase() === platform,
+	)?.logo
 	return (
 		<Stack gap="0">
 			{alertOptions.map((option, index) => {
@@ -201,7 +211,7 @@ const AlertPicker = function ({
 					<Stack key={index} gap="0">
 						<Box
 							display="flex"
-							alignItems="center"
+							flexDirection="column"
 							gap="8"
 							padding="12"
 							bb="dividerWeak"
@@ -215,33 +225,52 @@ const AlertPicker = function ({
 									: undefined
 							}
 						>
-							<Switch
-								trackingId={`setup-alerts-switch-${option.name}`}
-								size="small"
-								onChange={(checked) => {
-									if (checked) {
-										onAlertsSelected([
-											...alertsSelected,
-											option.name,
-										])
-									} else {
-										onAlertsSelected(
-											alertsSelected.filter(
-												(alert) =>
-													alert !== option.name,
-											),
-										)
+							<Box display="flex" alignItems="center" gap="8">
+								<Switch
+									trackingId={`setup-alerts-switch-${option.name}`}
+									size="small"
+									onChange={(checked) => {
+										if (checked) {
+											onAlertsSelected([
+												...alertsSelected,
+												option.name,
+											])
+										} else {
+											onAlertsSelected(
+												alertsSelected.filter(
+													(alert) =>
+														alert !== option.name,
+												),
+											)
+										}
+									}}
+									checked={
+										alertsSelected.indexOf(option.name) !==
+										-1
 									}
-								}}
-								checked={
-									alertsSelected.indexOf(option.name) !== -1
-								}
-							/>
-							<Text size="medium" color="strong">
-								{option.name} Alert
-							</Text>
+								/>
+								<Text size="medium" color="strong">
+									{option.name} Alert
+								</Text>
+							</Box>
+							<Box display="flex" alignItems="center" gap="4">
+								<Tag
+									size="medium"
+									shape="basic"
+									kind="secondary"
+									emphasis="medium"
+									iconLeft={platformIcon}
+								>
+									{option.destination}
+								</Tag>
+								<Badge
+									size="medium"
+									shape="rounded"
+									variant="gray"
+									label={`${option.thresholdPerMinute} alerts/min`}
+								/>
+							</Box>
 						</Box>
-						<Box></Box>
 					</Stack>
 				)
 			})}
