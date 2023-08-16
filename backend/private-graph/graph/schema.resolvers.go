@@ -9,6 +9,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -5119,7 +5120,11 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 }
 
 // SessionsOpensearch is the resolver for the sessions_opensearch field.
-func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, clickhouseQuery *modelInputs.ClickhouseQuery, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+	if clickhouseQuery != nil {
+		return r.SessionsClickhouse(ctx, projectID, count, *clickhouseQuery, sortField, sortDesc, page)
+	}
+
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -5162,6 +5167,38 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 	return &model.SessionResults{
 		Sessions:   results,
 		TotalCount: resultCount,
+	}, nil
+}
+
+// SessionsClickhouse is the resolver for the sessions_clickhouse field.
+func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, count int, query modelInputs.ClickhouseQuery, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	sortFieldStr := "CreatedAt DESC, ID DESC"
+	if !sortDesc {
+		sortFieldStr = "CreatedAt ASC, ID ASC"
+	}
+	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, projectID, count, query, sortFieldStr, page, retentionDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []model.Session
+	if err := r.DB.Model(&model.Session{}).Where("id in ?", ids).Order("created_at DESC").Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	return &model.SessionResults{
+		Sessions:   results,
+		TotalCount: total,
 	}, nil
 }
 
@@ -5218,7 +5255,13 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, qu
 }
 
 // FieldTypes is the resolver for the field_types field.
-func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate *time.Time, endDate *time.Time) ([]*model.Field, error) {
+func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]*model.Field, error) {
+	if useClickhouse != nil && *useClickhouse {
+		if startDate == nil || endDate == nil {
+			return nil, errors.New("startDate and endDate must not be nil")
+		}
+		return r.FieldTypesClickhouse(ctx, projectID, *startDate, *endDate)
+	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -5273,8 +5316,19 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate
 	}), nil
 }
 
+// FieldTypesClickhouse is the resolver for the field_types_clickhouse field.
+func (r *queryResolver) FieldTypesClickhouse(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
+	return r.ClickhouseClient.QueryFieldNames(ctx, projectID, startDate, endDate)
+}
+
 // FieldsOpensearch is the resolver for the fields_opensearch field.
-func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error) {
+func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]string, error) {
+	if useClickhouse != nil && *useClickhouse {
+		if startDate == nil || endDate == nil {
+			return nil, errors.New("startDate and endDate must not be nil")
+		}
+		return r.FieldsClickhouse(ctx, projectID, count, fieldType, fieldName, query, *startDate, *endDate)
+	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -5324,6 +5378,11 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	}
 
 	return values, nil
+}
+
+// FieldsClickhouse is the resolver for the fields_clickhouse field.
+func (r *queryResolver) FieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
+	return r.ClickhouseClient.QueryFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
 }
 
 // ErrorFieldsOpensearch is the resolver for the error_fields_opensearch field.

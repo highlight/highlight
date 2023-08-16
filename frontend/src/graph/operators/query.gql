@@ -537,11 +537,13 @@ query GetFieldTypes(
 	$project_id: ID!
 	$start_date: Timestamp
 	$end_date: Timestamp
+	$use_clickhouse: Boolean
 ) {
 	field_types(
 		project_id: $project_id
 		start_date: $start_date
 		end_date: $end_date
+		use_clickhouse: $use_clickhouse
 	) {
 		type
 		name
@@ -554,6 +556,9 @@ query GetFieldsOpensearch(
 	$field_type: String!
 	$field_name: String!
 	$query: String!
+	$start_date: Timestamp
+	$end_date: Timestamp
+	$use_clickhouse: Boolean
 ) {
 	fields_opensearch(
 		project_id: $project_id
@@ -561,6 +566,9 @@ query GetFieldsOpensearch(
 		field_type: $field_type
 		field_name: $field_name
 		query: $query
+		start_date: $start_date
+		end_date: $end_date
+		use_clickhouse: $use_clickhouse
 	)
 }
 
@@ -600,6 +608,7 @@ query GetSessionsOpenSearch(
 	$project_id: ID!
 	$count: Int!
 	$query: String!
+	$clickhouse_query: ClickhouseQuery
 	$sort_desc: Boolean!
 	$sort_field: String
 	$page: Int
@@ -608,6 +617,7 @@ query GetSessionsOpenSearch(
 		project_id: $project_id
 		count: $count
 		query: $query
+		clickhouse_query: $clickhouse_query
 		sort_field: $sort_field
 		sort_desc: $sort_desc
 		page: $page

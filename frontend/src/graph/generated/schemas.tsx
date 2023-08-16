@@ -205,6 +205,11 @@ export type ClickUpTeam = {
 	spaces: Array<ClickUpSpace>
 }
 
+export type ClickhouseQuery = {
+	isAnd: Scalars['Boolean']
+	rules: Array<Array<Scalars['String']>>
+}
+
 export type CommentReply = {
 	__typename?: 'CommentReply'
 	author: SanitizedAdmin
@@ -1677,6 +1682,8 @@ export type Query = {
 	events?: Maybe<Array<Maybe<Scalars['Any']>>>
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
 	field_types: Array<Field>
+	field_types_clickhouse: Array<Field>
+	fields_clickhouse: Array<Scalars['String']>
 	fields_opensearch: Array<Scalars['String']>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
@@ -1737,6 +1744,7 @@ export type Query = {
 	session_comments_for_project: Array<Maybe<SessionComment>>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
+	sessions_clickhouse: SessionResults
 	sessions_histogram: SessionsHistogram
 	sessions_opensearch: SessionResults
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
@@ -1978,14 +1986,34 @@ export type QueryField_TypesArgs = {
 	end_date?: InputMaybe<Scalars['Timestamp']>
 	project_id: Scalars['ID']
 	start_date?: InputMaybe<Scalars['Timestamp']>
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
-export type QueryFields_OpensearchArgs = {
+export type QueryField_Types_ClickhouseArgs = {
+	end_date: Scalars['Timestamp']
+	project_id: Scalars['ID']
+	start_date: Scalars['Timestamp']
+}
+
+export type QueryFields_ClickhouseArgs = {
 	count: Scalars['Int']
+	end_date: Scalars['Timestamp']
 	field_name: Scalars['String']
 	field_type: Scalars['String']
 	project_id: Scalars['ID']
 	query: Scalars['String']
+	start_date: Scalars['Timestamp']
+}
+
+export type QueryFields_OpensearchArgs = {
+	count: Scalars['Int']
+	end_date?: InputMaybe<Scalars['Timestamp']>
+	field_name: Scalars['String']
+	field_type: Scalars['String']
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	start_date?: InputMaybe<Scalars['Timestamp']>
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryGenerate_Zapier_Access_TokenArgs = {
@@ -2249,6 +2277,15 @@ export type QuerySession_IntervalsArgs = {
 	session_secure_id: Scalars['String']
 }
 
+export type QuerySessions_ClickhouseArgs = {
+	count: Scalars['Int']
+	page?: InputMaybe<Scalars['Int']>
+	project_id: Scalars['ID']
+	query: ClickhouseQuery
+	sort_desc: Scalars['Boolean']
+	sort_field?: InputMaybe<Scalars['String']>
+}
+
 export type QuerySessions_HistogramArgs = {
 	histogram_options: DateHistogramOptions
 	project_id: Scalars['ID']
@@ -2256,6 +2293,7 @@ export type QuerySessions_HistogramArgs = {
 }
 
 export type QuerySessions_OpensearchArgs = {
+	clickhouse_query?: InputMaybe<ClickhouseQuery>
 	count: Scalars['Int']
 	page?: InputMaybe<Scalars['Int']>
 	project_id: Scalars['ID']
