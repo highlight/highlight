@@ -2199,6 +2199,10 @@ query MatchErrorTag($query: String!) {
 
 query FindSimilarErrors($query: String!) {
 	find_similar_errors(query: $query) {
-		...ErrorObject
+		id
+		type
+		event
+		stack_trace
+		score
 	}
 }

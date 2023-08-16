@@ -3724,23 +3724,23 @@ func (r *Resolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInp
 	return matchedErrorTags, nil
 }
 
-func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.ErrorObject, error) {
+func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.MatchedErrorObject, error) {
 	stringEmbedding, err := r.EmbeddingsClient.GetStringEmbedding(ctx, query)
 
 	if err != nil {
 		return nil, e.Wrap(err, "500: failed to get string embedding")
 	}
 
-	var errorObjects []*model.ErrorObject
+	var matchedErrorObjects []*model.MatchedErrorObject
 	if err := r.DB.Raw(`
 		select error_object_embeddings.event_embedding <=> @string_embedding as score, error_objects.*
 			from error_object_embeddings
 			join error_objects on error_object_embeddings.error_object_id = error_objects.id 
 			limit 10;
 	`, sql.Named("string_embedding", model.Vector(stringEmbedding))).
-		Scan(&errorObjects).Error; err != nil {
-		return errorObjects, e.Wrap(err, "error querying nearest ErrorTag")
+		Scan(&matchedErrorObjects).Error; err != nil {
+		return matchedErrorObjects, e.Wrap(err, "error querying nearest ErrorTag")
 	}
 
-	return errorObjects, nil
+	return matchedErrorObjects, nil
 }

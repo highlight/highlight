@@ -13484,10 +13484,13 @@ export type MatchErrorTagQueryResult = Apollo.QueryResult<
 export const FindSimilarErrorsDocument = gql`
 	query FindSimilarErrors($query: String!) {
 		find_similar_errors(query: $query) {
-			...ErrorObject
+			id
+			type
+			event
+			stack_trace
+			score
 		}
 	}
-	${ErrorObjectFragmentDoc}
 `
 
 /**

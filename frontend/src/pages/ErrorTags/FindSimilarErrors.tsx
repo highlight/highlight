@@ -10,8 +10,6 @@ export function FindSimilarErrors() {
 		skip: !query,
 	})
 
-	console.log({ queryValue: query, data, loading })
-
 	async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault()
 
@@ -56,7 +54,7 @@ export function FindSimilarErrors() {
 										key={tag.id}
 									>
 										<Table.Cell wordBreak="break-all">
-											{tag.type}
+											{Math.round(tag.score * 100) / 100}
 										</Table.Cell>
 										<Table.Cell>
 											{tag.event.join(', ')}

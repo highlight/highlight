@@ -871,6 +871,37 @@ export type LogsParamsInput = {
 	query: Scalars['String']
 }
 
+export type MatchedErrorObject = {
+	__typename?: 'MatchedErrorObject'
+	browser?: Maybe<Scalars['String']>
+	columnNumber?: Maybe<Scalars['Int']>
+	created_at: Scalars['Timestamp']
+	environment?: Maybe<Scalars['String']>
+	error_group_id: Scalars['Int']
+	error_group_secure_id: Scalars['String']
+	error_tag_id?: Maybe<Scalars['String']>
+	event: Array<Maybe<Scalars['String']>>
+	id: Scalars['ID']
+	lineNumber?: Maybe<Scalars['Int']>
+	log_cursor?: Maybe<Scalars['String']>
+	os?: Maybe<Scalars['String']>
+	payload?: Maybe<Scalars['String']>
+	project_id: Scalars['Int']
+	request_id?: Maybe<Scalars['String']>
+	score: Scalars['Float']
+	serviceVersion?: Maybe<Scalars['String']>
+	session?: Maybe<Session>
+	session_id?: Maybe<Scalars['Int']>
+	source?: Maybe<Scalars['String']>
+	span_id?: Maybe<Scalars['String']>
+	stack_trace: Scalars['String']
+	structured_stack_trace: Array<Maybe<ErrorTrace>>
+	timestamp: Scalars['Timestamp']
+	trace_id?: Maybe<Scalars['String']>
+	type: Scalars['String']
+	url: Scalars['String']
+}
+
 export type MatchedErrorTag = {
 	__typename?: 'MatchedErrorTag'
 	description: Scalars['String']
@@ -1702,7 +1733,7 @@ export type Query = {
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
 	field_types: Array<Field>
 	fields_opensearch: Array<Scalars['String']>
-	find_similar_errors?: Maybe<Array<Maybe<ErrorObject>>>
+	find_similar_errors?: Maybe<Array<Maybe<MatchedErrorObject>>>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
 	github_issue_labels: Array<Scalars['String']>

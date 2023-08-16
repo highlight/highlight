@@ -4537,7 +4537,14 @@ export type FindSimilarErrorsQueryVariables = Types.Exact<{
 
 export type FindSimilarErrorsQuery = { __typename?: 'Query' } & {
 	find_similar_errors?: Types.Maybe<
-		Array<Types.Maybe<{ __typename?: 'ErrorObject' } & ErrorObjectFragment>>
+		Array<
+			Types.Maybe<
+				{ __typename?: 'MatchedErrorObject' } & Pick<
+					Types.MatchedErrorObject,
+					'id' | 'type' | 'event' | 'stack_trace' | 'score'
+				>
+			>
+		>
 	>
 }
 

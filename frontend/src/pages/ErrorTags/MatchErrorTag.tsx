@@ -10,8 +10,6 @@ export function MatchErrorTag() {
 		skip: !query,
 	})
 
-	console.log({ queryValue: query, data, loading })
-
 	async function onMatchErrorTagSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault()
 

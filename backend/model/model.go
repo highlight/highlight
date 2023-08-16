@@ -995,6 +995,11 @@ type ErrorTag struct {
 	Embedding   Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
 }
 
+type MatchedErrorObject struct {
+	ErrorObject
+	Score float64 `json:"score"`
+}
+
 type ErrorGroupEventType string
 
 const (
