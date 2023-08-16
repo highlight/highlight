@@ -2,7 +2,6 @@ import { Button } from '@components/Button'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
-import Switch from '@components/Switch/Switch'
 import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
 import {
 	Box,
@@ -20,6 +19,8 @@ import useLocalStorage from '@rehooks/local-storage'
 import * as React from 'react'
 import { useEffect } from 'react'
 import { useMatch, useNavigate } from 'react-router-dom'
+
+import Switch from '@/components/Switch/Switch'
 
 interface NotificationOption {
 	name: 'Slack' | 'Discord' | 'Email'
@@ -194,64 +195,57 @@ const AlertPicker = function ({
 	onAlertsSelected: (alerts: string[]) => void
 }) {
 	return (
-		<>
+		<Stack gap="0">
 			{alertOptions.map((option, index) => {
 				return (
-					<Box
-						key={index}
-						alignItems="center"
-						backgroundColor="raised"
-						btr={index === 0 ? '6' : undefined}
-						bbr={
-							index === alertOptions.length - 1 ? '6' : undefined
-						}
-						borderTop={index !== 0 ? 'dividerWeak' : undefined}
-						display="flex"
-						flexGrow={1}
-						justifyContent="space-between"
-						py="12"
-						px="16"
-					>
-						<Stack align="center" direction="row" gap="10">
-							<Box
-								alignItems="center"
-								backgroundColor="white"
-								borderRadius="5"
-								display="flex"
-								justifyContent="center"
-								style={{ height: 28, width: 28 }}
-							>
-								<Text userSelect="none" weight="bold">
-									{(option.name as string)[0].toUpperCase()}
-								</Text>
-							</Box>
-							<Text color="default" weight="bold">
-								{option.name as string}
-							</Text>
-						</Stack>
-						<Switch
-							trackingId={`setup-alerts-switch-${option.name}`}
-							size="default"
-							onChange={(checked) => {
-								if (checked) {
-									onAlertsSelected([
-										...alertsSelected,
-										option.name,
-									])
-								} else {
-									onAlertsSelected(
-										alertsSelected.filter(
-											(alert) => alert !== option.name,
-										),
-									)
+					<Stack key={index} gap="0">
+						<Box
+							display="flex"
+							alignItems="center"
+							gap="8"
+							padding="12"
+							bb="dividerWeak"
+							bl="dividerWeak"
+							br="dividerWeak"
+							bt={index === 0 ? 'dividerWeak' : undefined}
+							btr={index === 0 ? '6' : undefined}
+							bbr={
+								index === alertOptions.length - 1
+									? '6'
+									: undefined
+							}
+						>
+							<Switch
+								trackingId={`setup-alerts-switch-${option.name}`}
+								size="small"
+								onChange={(checked) => {
+									if (checked) {
+										onAlertsSelected([
+											...alertsSelected,
+											option.name,
+										])
+									} else {
+										onAlertsSelected(
+											alertsSelected.filter(
+												(alert) =>
+													alert !== option.name,
+											),
+										)
+									}
+								}}
+								checked={
+									alertsSelected.indexOf(option.name) !== -1
 								}
-							}}
-							checked={alertsSelected.indexOf(option.name) !== -1}
-						/>
-					</Box>
+							/>
+							<Text size="medium" color="strong">
+								{option.name} Alert
+							</Text>
+						</Box>
+						<Box></Box>
+					</Stack>
 				)
 			})}
-		</>
+		</Stack>
 	)
 }
 
