@@ -27,12 +27,20 @@ import Switch from '@/components/Switch/Switch'
 interface NotificationOption {
 	name: 'Slack' | 'Discord' | 'Email'
 	logo: JSX.Element
+	logoDisabled: JSX.Element
 }
 
 const notificationOptions: NotificationOption[] = [
 	{
 		name: 'Slack',
 		logo: <IconSolidSlack height={16} width={16} />,
+		logoDisabled: (
+			<IconSolidSlack
+				height={16}
+				width={16}
+				fill={vars.theme.interactive.fill.secondary.content.onDisabled}
+			/>
+		),
 	},
 	{
 		name: 'Discord',
@@ -43,10 +51,24 @@ const notificationOptions: NotificationOption[] = [
 				fill={vars.theme.static.content.default}
 			/>
 		),
+		logoDisabled: (
+			<IconSolidDiscord
+				height={16}
+				width={16}
+				fill={vars.theme.interactive.fill.secondary.content.onDisabled}
+			/>
+		),
 	},
 	{
 		name: 'Email',
 		logo: <IconSolidNewspaper height={16} width={16} />,
+		logoDisabled: (
+			<IconSolidNewspaper
+				height={16}
+				width={16}
+				fill={vars.theme.interactive.fill.secondary.content.onDisabled}
+			/>
+		),
 	},
 ]
 
@@ -78,6 +100,12 @@ export const AlertsSetup: React.FC = function () {
 	const platformMatch = useMatch('/:project_id/setup/alerts/:platform')
 	const platform = platformMatch?.params?.platform
 	const [alertsSelected, onAlertsSelected] = React.useState<string[]>([])
+
+	useEffect(() => {
+		if (alertsSelected.length) {
+			// TODO(vkorolik) create the default alerts
+		}
+	}, [alertsSelected])
 
 	return (
 		<Box>
@@ -201,9 +229,9 @@ const AlertPicker = function ({
 	alertsSelected: string[]
 	onAlertsSelected: (alerts: string[]) => void
 }) {
-	const platformIcon = notificationOptions.find(
+	const notificationOption = notificationOptions.find(
 		(n) => n.name.toLowerCase() === platform,
-	)?.logo
+	)
 	return (
 		<Stack gap="0">
 			{alertOptions.map((option, index) => {
@@ -259,7 +287,16 @@ const AlertPicker = function ({
 									shape="basic"
 									kind="secondary"
 									emphasis="medium"
-									iconLeft={platformIcon}
+									iconLeft={
+										alertsSelected.indexOf(option.name) ===
+										-1
+											? notificationOption?.logoDisabled
+											: notificationOption?.logo
+									}
+									disabled={
+										alertsSelected.indexOf(option.name) ===
+										-1
+									}
 								>
 									{option.destination}
 								</Tag>
