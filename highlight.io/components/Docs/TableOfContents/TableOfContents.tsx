@@ -243,7 +243,13 @@ function TocEntry({
 	return !isIndex ? (
 		<Link href={'/docs/' + slugPath} className={entryPlateStyle}>
 			<MinusIcon
-				className={classNames(entryIconStyle, 'text-divider-on-dark')}
+				className={classNames(
+					entryIconStyle,
+					'transition-all text-copy-on-dark',
+					focused
+						? 'opacity-100 text-copy-on-dark'
+						: 'text-divider-on-dark',
+				)}
 			/>
 			<Typography
 				type="copy3"
