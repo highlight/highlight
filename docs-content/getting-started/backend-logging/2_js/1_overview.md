@@ -20,6 +20,9 @@ If you don't see one of your languages / frameworks below, reach out to us in ou
     <DocsCard title="Winston" href="./winston.md">
         {"Integrate logging in Winston.js."}
     </DocsCard>
+    <DocsCard title="Pino" href="./pino.md">
+        {"Integrate logging in Pino.js."}
+    </DocsCard>
     <DocsCard title="Cloudflare" href="./cloudflare.md">
         {"Integrate logging in Cloudflare Workers."}
     </DocsCard>
