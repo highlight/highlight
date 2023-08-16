@@ -2190,6 +2190,7 @@ query GetErrorTags {
 
 query MatchErrorTag($query: String!) {
 	match_error_tag(query: $query) {
+		id
 		title
 		description
 		score

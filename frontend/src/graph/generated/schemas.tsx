@@ -874,6 +874,7 @@ export type LogsParamsInput = {
 export type MatchedErrorTag = {
 	__typename?: 'MatchedErrorTag'
 	description: Scalars['String']
+	id: Scalars['ID']
 	score: Scalars['Float']
 	title: Scalars['String']
 }

@@ -4524,7 +4524,7 @@ export type MatchErrorTagQuery = { __typename?: 'Query' } & {
 			Types.Maybe<
 				{ __typename?: 'MatchedErrorTag' } & Pick<
 					Types.MatchedErrorTag,
-					'title' | 'description' | 'score'
+					'id' | 'title' | 'description' | 'score'
 				>
 			>
 		>

@@ -563,6 +563,7 @@ type ErrorTag {
 }
 
 type MatchedErrorTag {
+	id: ID!
 	title: String!
 	description: String!
 	score: Float!

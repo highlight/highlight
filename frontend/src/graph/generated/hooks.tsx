@@ -13425,6 +13425,7 @@ export type GetErrorTagsQueryResult = Apollo.QueryResult<
 export const MatchErrorTagDocument = gql`
 	query MatchErrorTag($query: String!) {
 		match_error_tag(query: $query) {
+			id
 			title
 			description
 			score

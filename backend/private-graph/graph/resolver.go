@@ -3702,7 +3702,6 @@ func (r *Resolver) GetErrorTags() ([]*model.ErrorTag, error) {
 
 func (r *Resolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInputs.MatchedErrorTag, error) {
 	stringEmbedding, err := r.EmbeddingsClient.GetStringEmbedding(ctx, query)
-	log.Info("💘💘💘💘💘 MatchError Tag found a string embedding 💗💗💗💗💗")
 	var result []*modelInputs.MatchedErrorTag
 
 	if err != nil {
@@ -3710,17 +3709,17 @@ func (r *Resolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInp
 	}
 
 	if err := r.DB.Raw(`
-select error_tags.embedding <=> @string_embedding as score,
-       error_tags.title as title,
-			 error_tags.description as description
-from error_tags
-order by score desc
-limit 5;`, sql.Named("string_embedding", stringEmbedding)).
+		select error_tags.embedding <=> @string_embedding as score,
+					error_tags.id as id,
+					error_tags.title as title,
+					error_tags.description as description
+		from error_tags
+		order by score asc
+		limit 5;
+	`, sql.Named("string_embedding", model.Vector(stringEmbedding))).
 		Scan(&result).Error; err != nil {
 		return result, e.Wrap(err, "error querying nearest ErrorTag")
 	}
-
-	log.Info(result)
 
 	return result, nil
 }
