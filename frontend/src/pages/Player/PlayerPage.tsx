@@ -105,7 +105,7 @@ const PlayerPage = () => {
 		session_secure_id,
 	])
 
-	const { data: isSessionPendingData, loading } = useIsSessionPendingQuery({
+	const { data: isSessionPendingData } = useIsSessionPendingQuery({
 		variables: {
 			session_secure_id: session_secure_id!,
 		},
