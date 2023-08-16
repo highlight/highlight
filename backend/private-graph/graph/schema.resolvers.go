@@ -5176,7 +5176,7 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 	if !sortDesc {
 		sortFieldStr = "CreatedAt ASC, ID ASC"
 	}
-	ids, err := r.ClickhouseClient.QuerySessionIds(ctx, projectID, count, query, sortFieldStr, page, retentionDate)
+	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, projectID, count, query, sortFieldStr, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
@@ -5188,7 +5188,7 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 
 	return &model.SessionResults{
 		Sessions:   results,
-		TotalCount: 1000,
+		TotalCount: total,
 	}, nil
 }
 

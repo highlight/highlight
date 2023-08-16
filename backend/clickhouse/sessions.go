@@ -522,7 +522,7 @@ func getClickhouseSessionsQuery(query modelInputs.ClickhouseQuery, projectId int
 	}
 
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("ID").From("sessions FINAL").
+	sb.Select("ID, COUNT() OVER() AS total").From("sessions FINAL").
 		Where(sb.And(sb.Equal("ProjectID", projectId),
 			"NOT Excluded",
 			"WithinBillingQuota",
@@ -543,7 +543,7 @@ func getClickhouseSessionsQuery(query modelInputs.ClickhouseQuery, projectId int
 	return sql, args, nil
 }
 
-func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, sortField string, page *int, retentionDate time.Time) ([]int64, error) {
+func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, sortField string, page *int, retentionDate time.Time) ([]int64, int64, error) {
 	pageInt := 1
 	if page != nil {
 		pageInt = *page
@@ -552,24 +552,25 @@ func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count 
 
 	sql, args, err := getClickhouseSessionsQuery(query, projectId, sortField, count, offset)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	ids := []int64{}
+	var total uint64
 	for rows.Next() {
 		var id int64
-		if err := rows.Scan(&id); err != nil {
-			return nil, err
+		if err := rows.Scan(&id, &total); err != nil {
+			return nil, 0, err
 		}
 		ids = append(ids, id)
 	}
 
-	return ids, nil
+	return ids, int64(total), nil
 }
 
 func (client *Client) QueryFieldNames(ctx context.Context, projectId int, start time.Time, end time.Time) ([]*model.Field, error) {
