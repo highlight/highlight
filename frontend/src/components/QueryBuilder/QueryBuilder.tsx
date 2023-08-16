@@ -53,7 +53,7 @@ import AsyncSelect from 'react-select/async'
 import Creatable from 'react-select/creatable'
 import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
-import { useToggle } from 'react-use'
+import { useLocalStorage, useToggle } from 'react-use'
 
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
@@ -1188,6 +1188,9 @@ export type FetchFieldVariables =
 				field_type: string
 				field_name: string
 				query: string
+				start_date: string
+				end_date: string
+				use_clickhouse: boolean
 			}>
 	  >
 	| undefined
@@ -1259,6 +1262,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const { project_id: projectId } = useParams<{
 		project_id: string
 	}>()
+
+	const [useClickhouse] = useLocalStorage(
+		'highlight-session-search-use-clickhouse',
+		false,
+	)
 
 	const { loading: segmentsLoading, data: segmentData } =
 		useGetAnySegmentsQuery({
@@ -1550,6 +1558,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 					field_type: getType(field.value),
 					field_name: label,
 					query: input,
+					start_date: moment(dateRange[0]).toISOString(),
+					end_date: moment(dateRange[1]).toISOString(),
+					use_clickhouse: useClickhouse,
 				}).then((res) => {
 					return res.map((val) => ({
 						label: val,
@@ -1563,6 +1574,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 			fetchFields,
 			getCustomFieldOptions,
 			projectId,
+			dateRange,
+			useClickhouse,
 		],
 	)
 
