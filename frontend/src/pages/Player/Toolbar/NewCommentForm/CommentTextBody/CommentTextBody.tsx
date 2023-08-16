@@ -11,7 +11,7 @@ import { useSlackSync } from '@hooks/useSlackSync'
 import { useParams } from '@util/react-router/useParams'
 import { splitTaggedUsers } from '@util/string'
 import clsx from 'clsx'
-import React from 'react'
+import React, { useState } from 'react'
 import Linkify from 'react-linkify'
 
 import { AdminSuggestion } from '@/components/Comment/utils/utils'
@@ -31,7 +31,7 @@ interface Props {
 	inputRef?: React.RefObject<HTMLTextAreaElement>
 }
 
-const CommentTextBody = ({
+export const CommentTextBody = ({
 	commentText,
 	placeholder,
 	onChangeHandler,
@@ -46,6 +46,14 @@ const CommentTextBody = ({
 	}>()
 	const slackUrl = getSlackUrl(project_id ?? '')
 	const { slackLoading, syncSlack } = useSlackSync()
+	const [slackSynced, setSlackSynced] = useState(false)
+
+	const handleMentionsInputFocus = () => {
+		if (!slackSynced) {
+			setSlackSynced(true)
+			syncSlack()
+		}
+	}
 
 	const mentions = commentText.split('@')
 	const latestMention = `@${mentions.at(-1)}`
@@ -108,7 +116,7 @@ const CommentTextBody = ({
 			value={commentText}
 			className="mentions"
 			classNames={mentionsClassNames}
-			onFocus={syncSlack}
+			onFocus={handleMentionsInputFocus}
 			onChange={onChangeHandler}
 			placeholder={placeholder}
 			aria-readonly={!onChangeHandler}
@@ -145,6 +153,7 @@ const CommentTextBody = ({
 				data={suggestions}
 				displayTransform={onDisplayTransformHandler}
 				appendSpaceOnAdd
+				suggestionLimit={15}
 				renderSuggestion={(
 					suggestion,
 					search,
@@ -164,8 +173,6 @@ const CommentTextBody = ({
 		</MentionsInput>
 	)
 }
-
-export default CommentTextBody
 
 const Suggestion = ({
 	suggestion,

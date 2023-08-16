@@ -59,6 +59,10 @@ fragment SessionAlertFragment on SessionAlert {
 	DiscordChannelsToNotify {
 		...DiscordChannelFragment
 	}
+	WebhookDestinations {
+		url
+		authorization
+	}
 	CountThreshold
 	DailyFrequency
 	disabled
@@ -71,6 +75,11 @@ fragment SessionAlertFragment on SessionAlert {
 	updated_at
 	ThresholdWindow
 	TrackProperties {
+		id
+		name
+		value
+	}
+	UserProperties {
 		id
 		name
 		value
@@ -528,11 +537,13 @@ query GetFieldTypes(
 	$project_id: ID!
 	$start_date: Timestamp
 	$end_date: Timestamp
+	$use_clickhouse: Boolean
 ) {
 	field_types(
 		project_id: $project_id
 		start_date: $start_date
 		end_date: $end_date
+		use_clickhouse: $use_clickhouse
 	) {
 		type
 		name
@@ -545,6 +556,9 @@ query GetFieldsOpensearch(
 	$field_type: String!
 	$field_name: String!
 	$query: String!
+	$start_date: Timestamp
+	$end_date: Timestamp
+	$use_clickhouse: Boolean
 ) {
 	fields_opensearch(
 		project_id: $project_id
@@ -552,6 +566,9 @@ query GetFieldsOpensearch(
 		field_type: $field_type
 		field_name: $field_name
 		query: $query
+		start_date: $start_date
+		end_date: $end_date
+		use_clickhouse: $use_clickhouse
 	)
 }
 
@@ -591,6 +608,7 @@ query GetSessionsOpenSearch(
 	$project_id: ID!
 	$count: Int!
 	$query: String!
+	$clickhouse_query: ClickhouseQuery
 	$sort_desc: Boolean!
 	$sort_field: String
 	$page: Int
@@ -599,6 +617,7 @@ query GetSessionsOpenSearch(
 		project_id: $project_id
 		count: $count
 		query: $query
+		clickhouse_query: $clickhouse_query
 		sort_field: $sort_field
 		sort_desc: $sort_desc
 		page: $page
@@ -1066,6 +1085,7 @@ query GetErrorGroup($secure_id: String!) {
 		is_public
 		last_occurrence
 		first_occurrence
+		serviceName
 	}
 }
 
@@ -1137,6 +1157,7 @@ fragment ErrorObject on ErrorObject {
 	os
 	browser
 	environment
+	serviceVersion
 }
 
 query GetErrorObject($id: ID!) {
@@ -1979,6 +2000,7 @@ query GetLogs(
 				secureSessionID
 				source
 				serviceName
+				serviceVersion
 			}
 		}
 		pageInfo {
@@ -2118,6 +2140,40 @@ query GetErrorObjects(
 					appVersion
 					fingerprint
 				}
+			}
+		}
+		pageInfo {
+			hasNextPage
+			hasPreviousPage
+			startCursor
+			endCursor
+		}
+	}
+}
+
+query GetServices(
+	$project_id: ID!
+	$query: String
+	$after: String
+	$before: String
+) {
+	services(
+		project_id: $project_id
+		query: $query
+		after: $after
+		before: $before
+	) {
+		edges {
+			cursor
+			node {
+				id
+				projectID
+				name
+				status
+				githubRepoPath
+				buildPrefix
+				githubPrefix
+				errorDetails
 			}
 		}
 		pageInfo {

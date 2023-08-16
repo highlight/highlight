@@ -25,7 +25,40 @@ all-in-one.
 
 ```shell
 # with yarn
-yarn add @highlight-run/next @highlight-run/react highlight.run
+yarn add @highlight-run/next
+```
+
+## Environment Configuration (optional)
+
+> This section is extra opinionated about Next.js constants. It's not for everyone. We like how `zod` and TypeScript work together to validate `process.env` inputs... but this is a suggestion. Do your own thing and replace our imports (`import CONSTANTS from '@/app/constants'`) with your own!
+
+1. Install Zod: `yarn add zod`
+2. Edit `.env` to add your projectID to `NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID`
+
+```bash
+# .env
+NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID='1jdkoe52'
+```
+
+3. Feed your environment variables into the application with a constants file. We're using `zod` for this example, because it creates a validated, typed `CONSTANTS` object that plays nicely with TypeScript.
+
+```javascript
+// src/app/constants.ts
+import { z } from 'zod'
+
+// Must assign NEXT_PUBLIC_* env vars to a variable to force Next to inline them
+const publicEnv = {
+	NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID:
+		process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+}
+
+const CONSTANTS = z
+	.object({
+		NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: z.string(),
+	})
+	.parse(publicEnv)
+
+export default CONSTANTS
 ```
 
 ## Client Instrumentation
@@ -38,19 +71,19 @@ This implementation requires React 17 or greater. If you're behind on React vers
 // pages/_app.tsx
 import { AppProps } from 'next/app'
 import CONSTANTS from '@/app/constants'
-import { HighlightInit } from '@highlight-run/next/highlight-init'
+import { HighlightInit } from '@highlight-run/next/client'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
 	return (
 		<>
 			<HighlightInit
+				excludedHostnames={['localhost']}
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
 				tracingOrigins
 				networkRecording={{
 					enabled: true,
 					recordHeadersAndBody: true
 				}}
-				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
 			/>
 
 			<Component {...pageProps} />
@@ -66,19 +99,19 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 import './globals.css'
 
 import CONSTANTS from '@/app/constants'
-import { HighlightInit } from '@highlight-run/next/highlight-init'
+import { HighlightInit } from '@highlight-run/next/client'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<>
 			<HighlightInit
+				excludedHostnames={['localhost']}
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
 				tracingOrigins
 				networkRecording={{
 					enabled: true,
 					recordHeadersAndBody: true
 				}}
-				backendUrl={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL}
 			/>
 
 			<html lang="en">
@@ -89,13 +122,70 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
+3. Optionally add a React [Error Boundary](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary).
+
+```javascript
+// src/app/components/error-boundary.tsx
+'use client'
+
+import { ErrorBoundary as HighlightErrorBoundary } from '@highlight-run/next/client'
+
+export function ErrorBoundary({ children }: { children: React.ReactNode }) {
+	const isLocalhost =
+		typeof window === 'object' && window.location.host === 'localhost'
+
+	return (
+		<HighlightErrorBoundary showDialog={!isLocalhost}>
+			{children}
+		</HighlightErrorBoundary>
+	)
+}
+```
+
+### Skip Localhost tracking
+
+The `excludedHostnames` prop accepts an array of partial or full hostnames. For example, if you pass in `excludedHostnames={['localhost', 'staging]}`, you'll block `localhost` on all ports, `www.staging.highlight.io` and `staging.highlight.com`.
+
+Don't forget to remove `localhost` from `excludedHostnames` when validating that your local build can send data to Highlight.
+
+Alternatively, you could manually call `H.start()` and `H.stop()` to manage invocation on your own.
+
+```javascript
+// src/app/layout.tsx
+<HighlightInit
+	manualStart
+	projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
+/>
+<CustomHighlightStart />
+
+// src/app/custom-highlight-start.tsx
+'use client'
+import { H } from '@highlight-run/next/client'
+
+export function CustomHighlightStart() {
+	useEffect(() => {
+		const shouldStartHighlight = window.location.hostname === 'https://www.highlight.io'
+
+		if (shouldStartHighlight) {
+			H.start();
+
+			return () => {
+				H.stop()
+			}
+		}
+	})
+
+	return null
+}
+```
+
 ## API Route Instrumentation
 1. Create a file to export your `Highlight` wrapper function:
 
  ```javascript
 // src/app/utils/highlight.config.ts:
 import CONSTANTS from '@/app/constants'
-import { Highlight } from '@highlight-run/next'
+import { Highlight } from '@highlight-run/next/server'
 
 export const withHighlight = Highlight({
 	projectID: '<YOUR_PROJECT_ID>',
@@ -143,7 +233,7 @@ If you use a `next.config.js` file:
 ```javascript
 // next.config.js
 const nextBuildId = require('next-build-id')
-const { withHighlightConfig } = require('@highlight-run/next')
+const { withHighlightConfig } = require('@highlight-run/next/server')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -165,7 +255,7 @@ If you use a `next.config.mjs` file:
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import nextBuildId from 'next-build-id'
-import { withHighlightConfig } from '@highlight-run/next'
+import { withHighlightConfig } from '@highlight-run/next/server'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -193,7 +283,7 @@ export async function register() {
 	if (process.env.NEXT_RUNTIME === 'nodejs') {
 		/** Conditional import required for use with Next middleware to avoid a webpack error 
          * https://nextjs.org/docs/pages/building-your-application/routing/middleware */
-		const { registerHighlight } = await import('@highlight-run/next')
+		const { registerHighlight } = await import('@highlight-run/next/server')
 
 		registerHighlight({
 			projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
@@ -236,7 +326,7 @@ Make sure to implement `nextConfig.generateBuildId` so that our source map uploa
 ```javascript
 // next.config.js
 const nextBuildId = require('next-build-id')
-const { withHighlightConfig } = require('@highlight-run/next')
+const { withHighlightConfig } = require('@highlight-run/next/server')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

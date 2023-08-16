@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-	entry: ['src/index.edge.ts', 'src/index.ts', 'src/HighlightInit.tsx'],
+	entry: ['src/server.edge.ts', 'src/server.ts', 'src/next-client.tsx'],
 	format: ['cjs', 'esm'],
 	minify: 'terser',
 	dts: true,

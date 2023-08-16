@@ -905,6 +905,8 @@ export const getTimeFromReplayer = function (
 	)
 }
 
+const MAX_SHORT_INT_SIZE = 65536
+
 export const getEvents = (
 	chunkEvents: Omit<
 		Map<number, HighlightEvent[]>,
@@ -918,6 +920,21 @@ export const getEvents = (
 		for (const val of v) {
 			events.push(val)
 		}
+	}
+
+	// events are passed into an rrweb function which does an array.splice
+	// When the number of events is greater than MAX_SHORT_INT_SIZE, the browser can crash.
+	// Hence, we instead take a sample of events to ensure we stay under MAX_SHORT_INT_SIZE.
+	if (events.length + 1 >= MAX_SHORT_INT_SIZE) {
+		const stepSize = events.length / MAX_SHORT_INT_SIZE
+		const sampledEvents = []
+
+		for (let i = 0; i < events.length; i += stepSize) {
+			const index = Math.floor(i)
+			sampledEvents.push(events[index])
+		}
+
+		return sampledEvents
 	}
 	return events
 }

@@ -2,7 +2,6 @@ import { ApolloError } from '@apollo/client'
 import { Button } from '@components/Button'
 import { Link } from '@components/Link'
 import LoadingBox from '@components/LoadingBox'
-import { ReservedLogKey } from '@graph/schemas'
 import { LogEdge } from '@graph/schemas'
 import {
 	Box,
@@ -18,10 +17,7 @@ import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
-import {
-	LogsSearchParam,
-	parseLogsQuery,
-} from '@pages/LogsPage/SearchForm/utils'
+import { parseLogsQuery } from '@pages/LogsPage/SearchForm/utils'
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import {
 	createColumnHelper,
@@ -34,6 +30,8 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
 import React, { Fragment, useEffect, useState } from 'react'
+
+import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 
 import * as styles from './LogsTable.css'
 
@@ -108,6 +106,8 @@ type LogsTableInnerProps = {
 	tableContainerRef: React.RefObject<HTMLDivElement>
 	selectedCursor: string | undefined
 }
+
+const LOADING_AFTER_HEIGHT = 28
 
 const LogsTableInner = ({
 	logEdges,
@@ -186,10 +186,14 @@ const LogsTableInner = ({
 	const totalSize = rowVirtualizer.getTotalSize()
 	const virtualRows = rowVirtualizer.getVirtualItems()
 	const paddingTop = virtualRows.length > 0 ? virtualRows[0]?.start || 0 : 0
-	const paddingBottom =
+	let paddingBottom =
 		virtualRows.length > 0
 			? totalSize - (virtualRows[virtualRows.length - 1]?.end || 0)
 			: 0
+
+	if (!loadingAfter) {
+		paddingBottom += LOADING_AFTER_HEIGHT
+	}
 
 	useEffect(() => {
 		// Collapse all rows when search changes
@@ -228,6 +232,7 @@ const LogsTableInner = ({
 						message: log.message,
 						secure_session_id: log.secureSessionID,
 						service_name: log.serviceName,
+						service_version: log.serviceVersion,
 						source: log.source,
 						span_id: log.spanID,
 						trace_id: log.traceID,
@@ -292,25 +297,12 @@ const LogsTableInner = ({
 
 			{loadingAfter && (
 				<Box
-					backgroundColor="white"
-					border="dividerWeak"
-					display="flex"
-					flexGrow={1}
-					alignItems="center"
-					justifyContent="center"
-					padding="12"
-					position="absolute"
-					shadow="medium"
-					borderRadius="6"
-					textAlign="center"
+					backgroundColor="nested"
 					style={{
-						bottom: 20,
-						left: 'calc(50% - 150px)',
-						width: 300,
-						zIndex: 10,
+						height: `${LOADING_AFTER_HEIGHT}px`,
 					}}
 				>
-					<Text color="weak">Loading...</Text>
+					<LoadingBox />
 				</Box>
 			)}
 		</div>
@@ -324,57 +316,3 @@ export const IconExpanded: React.FC = () => (
 export const IconCollapsed: React.FC = () => (
 	<IconSolidCheveronRight color="#6F6E77" size="16" />
 )
-
-const bodyKey = ReservedLogKey['Message']
-
-export const findMatchingLogAttributes = (
-	queryTerms: LogsSearchParam[],
-	logAttributes: object | string,
-	matchingAttributes: any = {},
-	attributeKeyBase: string[] = [],
-): { [key: string]: { match: string; value: string } } => {
-	if (!queryTerms?.length || !logAttributes) {
-		return {}
-	}
-
-	const bodyQueryValue = queryTerms.find((term) => term.key === 'body')?.value
-
-	Object.entries(logAttributes).forEach(([key, value]) => {
-		const isString = typeof value === 'string'
-
-		if (!isString) {
-			findMatchingLogAttributes(queryTerms, value, matchingAttributes, [
-				...attributeKeyBase,
-				key,
-			])
-			return
-		}
-
-		let matchingAttribute: string | undefined = undefined
-		if (
-			bodyQueryValue &&
-			key === bodyKey &&
-			value.indexOf(bodyQueryValue) !== -1
-		) {
-			matchingAttribute = bodyQueryValue
-		} else {
-			queryTerms.some((term) => {
-				const queryKey = term.key
-				const queryValue = term.value
-
-				if (queryKey === key && value.indexOf(queryValue) !== -1) {
-					matchingAttribute = queryValue
-				}
-			})
-		}
-
-		if (!!matchingAttribute) {
-			matchingAttributes[[...attributeKeyBase, key].join('.')] = {
-				match: matchingAttribute,
-				value,
-			}
-		}
-	})
-
-	return matchingAttributes
-}

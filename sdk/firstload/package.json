@@ -1,6 +1,6 @@
 {
 	"name": "highlight.run",
-	"version": "7.3.11",
+	"version": "7.4.0",
 	"description": "Open source, fullstack monitoring. Capture frontend errors, record server side logs, and visualize what broke with session replay.",
 	"keywords": [
 		"highlight",
@@ -25,7 +25,8 @@
 		}
 	},
 	"scripts": {
-		"build": "yarn typegen && vite build",
+		"build": "yarn typegen && vite build && yarn build:umd",
+		"build:umd": "cp dist/index.umd.cjs dist/index.umd.js",
 		"build:watch": "yarn build --watch",
 		"dev": "vite dev",
 		"dev:watch": "run-p dev build:watch",
@@ -34,16 +35,16 @@
 		"typegen": "tsc && node scripts/replace-client-imports.mjs"
 	},
 	"type": "module",
-	"main": "./dist/index.es.js",
+	"main": "./dist/index.js",
 	"unpkg": "./dist/index.umd.js",
 	"jsdelivr": "./dist/index.umd.js",
 	"types": "./dist/firstload/src/index.d.ts",
 	"exports": {
 		"types": "./dist/firstload/src/index.d.ts",
-		"import": "./dist/index.es.js",
-		"require": "./dist/index.cjs.js",
-		"node": "./dist/index.cjs.js",
-		"default": "./dist/index.es.js"
+		"import": "./dist/index.js",
+		"require": "./dist/index.cjs",
+		"node": "./dist/index.cjs",
+		"default": "./dist/index.js"
 	},
 	"files": [
 		"dist"
@@ -55,8 +56,8 @@
 		"size-limit": "^8.1.0",
 		"tslib": "^2.4.0",
 		"typescript": "^5.0.4",
-		"vite": "^4.3.5",
-		"vitest": "^0.31.0"
+		"vite": "^4.3.9",
+		"vitest": "^0.32.0"
 	},
 	"size-limit": [
 		{

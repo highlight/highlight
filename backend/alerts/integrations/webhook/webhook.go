@@ -1,6 +1,7 @@
 package webhook
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"github.com/highlight-run/highlight/backend/alerts/integrations"
 	"github.com/highlight-run/highlight/backend/model"
 	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 type ErrorAlertWebhook struct {
@@ -23,6 +25,14 @@ func sendWebhookData(destination *model.WebhookDestination, body []byte) error {
 	}
 
 	if resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusMultipleChoices {
+		logFields := log.Fields{}
+		if err := json.Unmarshal(body, &logFields); err == nil {
+			ctx := context.TODO()
+			logFields["Destination"] = destination
+			logFields["StatusCode"] = resp.StatusCode
+			log.WithContext(ctx).WithFields(logFields).Info("webhook sent successfully")
+		}
+
 		return nil
 	}
 

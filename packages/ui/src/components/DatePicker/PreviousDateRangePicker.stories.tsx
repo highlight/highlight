@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ComponentMeta } from '@storybook/react'
+import { Meta } from '@storybook/react'
 
 import { DatePicker } from './Calendar/DatePicker'
 import { Text } from '../Text/Text'
@@ -7,7 +7,7 @@ import { Stack } from '../Stack/Stack'
 import { Box } from '../Box/Box'
 import {
 	PreviousDateRangePicker,
-	getDefaultPresets,
+	defaultPresets,
 } from './PreviousDateRangePicker'
 import { subtractDays, subtractHours } from './utils'
 import moment from 'moment'
@@ -15,11 +15,9 @@ import moment from 'moment'
 export default {
 	title: 'Components/DatePicker/PreviousDateRangePicker',
 	component: DatePicker,
-} as ComponentMeta<typeof DatePicker>
+} as Meta<typeof DatePicker>
 
 const now = moment()
-
-const defaultPresets = getDefaultPresets()
 
 export { subtractDays, subtractHours } from './utils'
 

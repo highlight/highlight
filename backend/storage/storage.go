@@ -20,9 +20,9 @@ import (
 	"github.com/rs/cors"
 	"github.com/samber/lo"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
 	"github.com/openlyinc/pointy"
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/andybalholm/brotli"

@@ -159,6 +159,11 @@ type ClickUpTeam struct {
 	Spaces []*ClickUpSpace `json:"spaces"`
 }
 
+type ClickhouseQuery struct {
+	IsAnd bool       `json:"isAnd"`
+	Rules [][]string `json:"rules"`
+}
+
 type DashboardDefinition struct {
 	ID                int                      `json:"id"`
 	UpdatedAt         time.Time                `json:"updated_at"`
@@ -443,6 +448,7 @@ type Log struct {
 	SecureSessionID *string                `json:"secureSessionID"`
 	Source          *string                `json:"source"`
 	ServiceName     *string                `json:"serviceName"`
+	ServiceVersion  *string                `json:"serviceVersion"`
 }
 
 type LogAlertInput struct {
@@ -615,6 +621,34 @@ type SearchParamsInput struct {
 	Query                   *string              `json:"query"`
 }
 
+type ServiceConnection struct {
+	Edges    []*ServiceEdge `json:"edges"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+}
+
+func (ServiceConnection) IsConnection()               {}
+func (this ServiceConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
+type ServiceEdge struct {
+	Cursor string       `json:"cursor"`
+	Node   *ServiceNode `json:"node"`
+}
+
+func (ServiceEdge) IsEdge()                {}
+func (this ServiceEdge) GetCursor() string { return this.Cursor }
+
+type ServiceNode struct {
+	ID              int           `json:"id"`
+	ProjectID       int           `json:"projectID"`
+	Name            string        `json:"name"`
+	Status          ServiceStatus `json:"status"`
+	GithubRepoPath  *string       `json:"githubRepoPath"`
+	BuildPrefix     *string       `json:"buildPrefix"`
+	GithubPrefix    *string       `json:"githubPrefix"`
+	LastSeenVersion *string       `json:"lastSeenVersion"`
+	ErrorDetails    []string      `json:"errorDetails"`
+}
+
 type SessionAlertInput struct {
 	ProjectID           int                           `json:"project_id"`
 	Name                string                        `json:"name"`
@@ -635,11 +669,6 @@ type SessionAlertInput struct {
 type SessionCommentTagInput struct {
 	ID   *int   `json:"id"`
 	Name string `json:"name"`
-}
-
-type SessionInsight struct {
-	ID      int    `json:"id"`
-	Insight string `json:"insight"`
 }
 
 type SessionQuery struct {
@@ -1466,6 +1495,7 @@ const (
 	ReservedLogKeyTraceID         ReservedLogKey = "trace_id"
 	ReservedLogKeySource          ReservedLogKey = "source"
 	ReservedLogKeyServiceName     ReservedLogKey = "service_name"
+	ReservedLogKeyServiceVersion  ReservedLogKey = "service_version"
 )
 
 var AllReservedLogKey = []ReservedLogKey{
@@ -1476,11 +1506,12 @@ var AllReservedLogKey = []ReservedLogKey{
 	ReservedLogKeyTraceID,
 	ReservedLogKeySource,
 	ReservedLogKeyServiceName,
+	ReservedLogKeyServiceVersion,
 }
 
 func (e ReservedLogKey) IsValid() bool {
 	switch e {
-	case ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName:
+	case ReservedLogKeyLevel, ReservedLogKeyMessage, ReservedLogKeySecureSessionID, ReservedLogKeySpanID, ReservedLogKeyTraceID, ReservedLogKeySource, ReservedLogKeyServiceName, ReservedLogKeyServiceVersion:
 		return true
 	}
 	return false
@@ -1551,6 +1582,49 @@ func (e *RetentionPeriod) UnmarshalGQL(v interface{}) error {
 }
 
 func (e RetentionPeriod) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ServiceStatus string
+
+const (
+	ServiceStatusHealthy ServiceStatus = "healthy"
+	ServiceStatusError   ServiceStatus = "error"
+	ServiceStatusCreated ServiceStatus = "created"
+)
+
+var AllServiceStatus = []ServiceStatus{
+	ServiceStatusHealthy,
+	ServiceStatusError,
+	ServiceStatusCreated,
+}
+
+func (e ServiceStatus) IsValid() bool {
+	switch e {
+	case ServiceStatusHealthy, ServiceStatusError, ServiceStatusCreated:
+		return true
+	}
+	return false
+}
+
+func (e ServiceStatus) String() string {
+	return string(e)
+}
+
+func (e *ServiceStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ServiceStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ServiceStatus", str)
+	}
+	return nil
+}
+
+func (e ServiceStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

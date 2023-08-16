@@ -38,7 +38,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 	if err != nil {
 		log.WithContext(ctx).Errorf("An unsupported verboseID was used: %s, %s", organizationVerboseID, clientConfig)
 	} else {
-		err = r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
+		err = r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
 			Type: kafkaqueue.InitializeSession,
 			InitializeSession: &kafkaqueue.InitializeSessionArgs{
 				SessionSecureID:                sessionSecureID,
@@ -59,7 +59,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 				NetworkRecordingDomains:        networkRecordingDomains,
 				DisableSessionRecording:        disableSessionRecording,
 			},
-		}, sessionSecureID)
+		})
 		if err == nil {
 			err = r.Redis.SetIsPendingSession(ctx, sessionSecureID, true)
 		}
@@ -82,26 +82,26 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 
 // IdentifySession is the resolver for the identifySession field.
 func (r *mutationResolver) IdentifySession(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}) (string, error) {
-	err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
+	err := r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
 		Type: kafkaqueue.IdentifySession,
 		IdentifySession: &kafkaqueue.IdentifySessionArgs{
 			SessionSecureID: sessionSecureID,
 			UserIdentifier:  userIdentifier,
 			UserObject:      userObject,
 		},
-	}, sessionSecureID)
+	})
 	return sessionSecureID, err
 }
 
 // AddSessionProperties is the resolver for the addSessionProperties field.
 func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionSecureID string, propertiesObject interface{}) (string, error) {
-	err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
+	err := r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
 		Type: kafkaqueue.AddSessionProperties,
 		AddSessionProperties: &kafkaqueue.AddSessionPropertiesArgs{
 			SessionSecureID:  sessionSecureID,
 			PropertiesObject: propertiesObject,
 		},
-	}, sessionSecureID)
+	})
 	return sessionSecureID, err
 }
 
@@ -111,7 +111,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 		payloadID = pointy.Int(0)
 	}
 
-	err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
+	err := r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
 		Type: kafkaqueue.PushPayload,
 		PushPayload: &kafkaqueue.PushPayloadArgs{
 			SessionSecureID:    sessionSecureID,
@@ -124,7 +124,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionSecureID stri
 			HasSessionUnloaded: hasSessionUnloaded,
 			HighlightLogs:      highlightLogs,
 			PayloadID:          payloadID,
-		}}, sessionSecureID)
+		}})
 	return size.Of(events), err
 }
 
@@ -141,13 +141,13 @@ func (r *mutationResolver) PushBackendPayload(ctx context.Context, projectID *st
 		} else if projectID != nil {
 			partitionKey = uuid.New().String()
 		}
-		err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
+		err := r.ProducerQueue.Submit(ctx, partitionKey, &kafkaqueue.Message{
 			Type: kafkaqueue.PushBackendPayload,
 			PushBackendPayload: &kafkaqueue.PushBackendPayloadArgs{
 				ProjectVerboseID: projectID,
 				SessionSecureID:  secureID,
 				Errors:           backendErrors,
-			}}, partitionKey)
+			}})
 		if err != nil {
 			log.WithContext(ctx).WithFields(log.Fields{"project_id": projectID, "secure_id": secureID}).
 				Error(e.Wrap(err, "failed to send kafka message for push backend payload."))
@@ -168,7 +168,7 @@ func (r *mutationResolver) MarkBackendSetup(ctx context.Context, projectID *stri
 
 // AddSessionFeedback is the resolver for the addSessionFeedback field.
 func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionSecureID string, userName *string, userEmail *string, verbatim string, timestamp time.Time) (string, error) {
-	err := r.ProducerQueue.Submit(ctx, &kafkaqueue.Message{
+	err := r.ProducerQueue.Submit(ctx, sessionSecureID, &kafkaqueue.Message{
 		Type: kafkaqueue.AddSessionFeedback,
 		AddSessionFeedback: &kafkaqueue.AddSessionFeedbackArgs{
 			SessionSecureID: sessionSecureID,
@@ -176,7 +176,7 @@ func (r *mutationResolver) AddSessionFeedback(ctx context.Context, sessionSecure
 			UserEmail:       userEmail,
 			Verbatim:        verbatim,
 			Timestamp:       timestamp,
-		}}, sessionSecureID)
+		}})
 
 	return sessionSecureID, err
 }

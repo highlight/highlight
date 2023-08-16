@@ -49,7 +49,8 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/go-oauth2/oauth2/v4 v4.5.1
 	github.com/go-oauth2/redis/v4 v4.1.1
-	github.com/go-redis/cache/v8 v8.4.4
+	github.com/go-redis/cache/v9 v9.0.0
+	github.com/go-redsync/redsync/v4 v4.8.1
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible
 	github.com/go-test/deep v1.0.4
 	github.com/golang-jwt/jwt v3.2.2+incompatible
@@ -62,6 +63,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.6.6
 	github.com/highlight-run/workerpool v1.3.0
 	github.com/highlight/highlight/sdk/highlight-go v0.9.8
+	github.com/influxdata/go-syslog/v3 v3.0.0
 	github.com/influxdata/influxdb-client-go/v2 v2.12.1
 	github.com/jackc/pgconn v1.10.1
 	github.com/kylelemons/godebug v1.1.0
@@ -72,11 +74,12 @@ require (
 	github.com/openlyinc/pointy v1.1.2
 	github.com/opensearch-project/opensearch-go v1.0.0
 	github.com/pkg/errors v0.9.1
+	github.com/redis/go-redis/v9 v9.0.5
 	github.com/rs/cors v1.7.0
 	github.com/rs/xid v1.4.0
 	github.com/samber/lo v1.38.1
-	github.com/sashabaranov/go-openai v1.10.1
-	github.com/segmentio/kafka-go v0.4.38
+	github.com/sashabaranov/go-openai v1.14.1
+	github.com/segmentio/kafka-go v0.4.42
 	github.com/sendgrid/sendgrid-go v3.7.0+incompatible
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/sirupsen/logrus v1.9.0
@@ -163,6 +166,9 @@ require (
 	github.com/vmihailenco/go-tinylfu v0.2.2 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.4 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
+	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
+	github.com/xdg-go/scram v1.1.2 // indirect
+	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.13.0 // indirect
@@ -237,8 +243,6 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/tdewolff/parse v2.3.4+incompatible
 	github.com/tinylib/msgp v1.1.6 // indirect
-	github.com/xdg/scram v1.0.5 // indirect
-	github.com/xdg/stringprep v1.0.3 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/exp v0.0.0-20220303212507-bbda1eaf7a17 // indirect

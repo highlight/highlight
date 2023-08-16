@@ -8,7 +8,7 @@ on:
     merge_group:
 
 jobs:
-    build:
+    yarn-monorepo:
         name: Build Yarn Turborepo
         timeout-minutes: 30
         runs-on: ubuntu-latest
@@ -36,6 +36,7 @@ jobs:
                         - 'sdk/highlight-next/**'
                         - 'sdk/highlight-node/**'
                         - 'sdk/highlight-react/**'
+                        - 'sdk/highlight-remix/**'
 
             # automatically caches dependencies based on yarn.lock
             - name: Setup Node.js environment
@@ -64,6 +65,8 @@ jobs:
             - name: Install Doppler CLI
               uses: dopplerhq/cli-action@v2
 
+            # setting REACT_APP_COMMIT_SHA to a dummy value in CI to allow consistent turborepo remote caching
+
             - name: Build & test (with render environment)
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
               run: doppler run -- bash -c 'RENDER_PREVIEW=false yarn test:all'
@@ -71,7 +74,7 @@ jobs:
                   DOPPLER_TOKEN: ${{ secrets.DOPPLER_PROD_RENDER_SECRET }}
                   GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
-                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+                  REACT_APP_COMMIT_SHA: abcdef1234567890a1b2c3d4e5f6fedcba098765
 
             - name: Build & test (in a fork without doppler)
               if: github.event.pull_request.head.repo.full_name != 'highlight/highlight' && github.ref != 'refs/heads/main'
@@ -79,7 +82,7 @@ jobs:
               env:
                   GRAPHCMS_TOKEN: ${{ secrets.GRAPHCMS_TOKEN }}
                   NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID: 1jdkoe52
-                  REACT_APP_COMMIT_SHA: ${{ github.sha }}
+                  REACT_APP_COMMIT_SHA: abcdef1234567890a1b2c3d4e5f6fedcba098765
 
             - name: Test session screenshot lambda
               if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
@@ -91,15 +94,19 @@ jobs:
               run: yarn workspace render zip && yarn workspace render check
 
             - name: Validate project is ready to be published
-              if: steps.filter.outputs.npm-changed == 'true' && (github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main')
-              run: yarn validate
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight'
+              run: yarn validate --has-sdk-changes=${{ steps.filter.outputs.npm-changed }}
 
-            # always publish client, even in PRs
-            # this is ok because the final push to main of the version will replace
-            # any previous builds, while doing this in PR will allow the PR frontend preview
-            # to reference the PR's latest version of client
+            - name: Publish client bundle (preview)
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' && github.ref != 'refs/heads/main'
+              run: yarn publish:client --preview ${GIT_SHA} --replace
+              env:
+                  # this cannot use ${{ github.sha }} as that commit will be a merge ref
+                  # that is not consistent with the frontend PR preview value
+                  GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
             - name: Publish client bundle
-              if: steps.filter.outputs.npm-changed == 'true' && github.ref == 'refs/heads/main'
+              if: github.ref == 'refs/heads/main'
               run: yarn publish:client
 
             - name: Upload frontend sourcemaps
@@ -107,7 +114,7 @@ jobs:
               run: yarn && yarn sourcemaps:frontend
               env:
                   HIGHLIGHT_API_KEY: ${{ secrets.HIGHLIGHT_SOURCEMAP_API_KEY }}
-                  APP_VERSION: ${{ github.sha }}
+                  APP_VERSION: ${{ github.event.pull_request.head.sha || github.sha }}
 
             - name: Configure yarn npm registry credentials
               if: github.ref == 'refs/heads/main'
@@ -131,3 +138,98 @@ jobs:
             - name: Publish ai lambda
               if: github.ref == 'refs/heads/main'
               run: yarn publish:ai
+
+    e2e-frontend-backend-client:
+        # needs the client build to be uploaded
+        needs: yarn-monorepo
+        name: E2E Client / Frontend / Backend
+        timeout-minutes: 30
+        runs-on: buildjet-4vcpu-ubuntu-2204
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v3
+              with:
+                  submodules: true
+
+            - name: Setup Node.js environment
+              uses: buildjet/setup-node@v3
+              with:
+                  node-version: 18
+                  cache: 'yarn'
+
+            - name: Setup Golang environment
+              uses: buildjet/setup-go@v4
+              with:
+                  go-version-file: 'backend/go.mod'
+                  cache-dependency-path: '**/go.sum'
+
+            - name: Login to Docker Hub
+              if: github.event.pull_request.head.repo.full_name == 'highlight/highlight' || github.ref == 'refs/heads/main'
+              uses: docker/login-action@v2
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Start docker containers & run cypress
+              env:
+                  COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+                  REF: ${{ github.ref }}
+                  REPO: ${{ github.event.pull_request.head.repo.full_name }}
+              run: |
+                  start_time=$(date -Isecond)
+
+                  if [[ "$REF" != "refs/heads/main" && "$REPO" == "highlight/highlight" ]]; then
+                    export CYPRESS_CLIENT_VERSION="dev-${COMMIT_SHA}"
+                    export REACT_APP_COMMIT_SHA="${COMMIT_SHA}"
+                  fi
+
+                  # start highlight
+                  pushd docker;
+                  source ./env.sh;
+                  ./start-infra.sh > /tmp/highlight.log 2>&1;
+                  docker compose exec -e PSQL_HOST -e PSQL_USER -e PSQL_DB postgres bash -c 'psql -h $PSQL_HOST -U $PSQL_USER $PSQL_DB < /root/init.sql' >> /tmp/highlight.log 2>&1;
+                  ./run-backend.sh >> /tmp/highlight.log 2>&1 &
+                  yarn install >> /tmp/highlight.log 2>&1;
+                  unset REACT_APP_IN_DOCKER;
+                  yarn build:frontend >> /tmp/highlight.log 2>&1;
+                  yarn workspace @highlight-run/client dev &
+                  yarn workspace highlight.run dev &
+                  yarn workspace @highlight-run/frontend vite preview --port 3000 &
+                  popd;
+
+                  # run opentelemetry file watcher
+                  pushd e2e/opentelemetry/filelog;
+                  EXAMPLE_LOG_FILE_PATH=/tmp/highlight.log docker compose run -d collector;
+                  popd;
+
+                  # wait for highlight to be ready
+                  yarn dlx wait-on -l -s 4 https://127.0.0.1:3000/index.html http://127.0.0.1:8080/dist/index.js https://127.0.0.1:8082/health;
+
+                  # run cypress tests
+                  yarn cy:run;
+
+                  # look for containers that crashed
+                  num_crashed=$(docker ps -a -f status=exited | grep -E '\(' | grep -cvE '\(\d+\)' || true)
+                  if [ "$num_crashed" -gt 0 ]; then
+                    echo "$num_crashed containers crashed"
+                    docker ps -a -f status=exited
+                    exit 1
+                  fi
+
+            - name: Dump setup logs on failure
+              if: failure()
+              run: cat /tmp/highlight.log
+
+            - name: Dump docker container logs on failure
+              if: failure()
+              run: |
+                  cd docker;
+                  docker compose logs;
+
+            - name: Save videos
+              uses: actions/upload-artifact@v3
+              if: failure()
+              with:
+                  name: cypress-videos
+                  path: cypress/videos

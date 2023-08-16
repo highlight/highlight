@@ -18,9 +18,7 @@ const FrameworksPage = () => {
 	const [copy, setCopy] = useState(false)
 
 	function handleCopy(str: string) {
-		navigator.clipboard.writeText(
-			process.env.NEXT_PUBLIC_VERCEL_URL + '/frameworks#' + str,
-		)
+		navigator.clipboard.writeText('https://highlight.io/frameworks#' + str)
 
 		setCopy(true)
 		setTimeout(() => {

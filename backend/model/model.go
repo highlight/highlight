@@ -190,6 +190,7 @@ var Models = []interface{}{
 	&ErrorGroupActivityLog{},
 	&UserJourneyStep{},
 	&SystemConfiguration{},
+	&SessionInsight{},
 }
 
 func init() {
@@ -382,6 +383,12 @@ type AllWorkspaceSettings struct {
 	WorkspaceID   int  `gorm:"uniqueIndex"`
 	AIApplication bool `gorm:"default:true"`
 	AIInsights    bool `gorm:"default:false"`
+	// store embeddings for errors in this workspace
+	ErrorEmbeddingsWrite bool `gorm:"default:false"`
+	// use embeddings to group errors in this workspace
+	ErrorEmbeddingsGroup     bool    `gorm:"default:false"`
+	ErrorEmbeddingsThreshold float64 `gorm:"default:0.2"`
+	ReplaceAssets            bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -647,12 +654,11 @@ type Session struct {
 	// Number of pages visited during a session
 	PagesVisited int
 
-	ObjectStorageEnabled  *bool   `json:"object_storage_enabled"`
-	DirectDownloadEnabled bool    `json:"direct_download_enabled" gorm:"default:false"`
-	AllObjectsCompressed  bool    `json:"all_resources_compressed" gorm:"default:false"`
-	PayloadSize           *int64  `json:"payload_size"`
-	MigrationState        *string `json:"migration_state"`
-	VerboseID             string  `json:"verbose_id"`
+	ObjectStorageEnabled  *bool  `json:"object_storage_enabled"`
+	DirectDownloadEnabled bool   `json:"direct_download_enabled" gorm:"default:false"`
+	AllObjectsCompressed  bool   `json:"all_resources_compressed" gorm:"default:false"`
+	PayloadSize           *int64 `json:"payload_size"`
+	VerboseID             string `json:"verbose_id"`
 
 	// Excluded will be true when we would typically have deleted the session
 	Excluded       bool `gorm:"default:false"`
@@ -678,6 +684,12 @@ type SessionAdminsView struct {
 	SessionID int       `gorm:"primaryKey"`
 	AdminID   int       `gorm:"primaryKey"`
 	ViewedAt  time.Time `gorm:"default:NOW()"`
+}
+
+type SessionInsight struct {
+	Model
+	SessionID int `gorm:"index"`
+	Insight   string
 }
 
 type EventChunk struct {
@@ -895,39 +907,50 @@ type ErrorSegment struct {
 	OrganizationID int
 	ProjectID      int `json:"project_id"`
 }
+type ErrorGroupingMethod string
+
+const (
+	ErrorGroupingMethodClassic        ErrorGroupingMethod = "Classic"
+	ErrorGroupingMethodAdaEmbeddingV2 ErrorGroupingMethod = "AdaV2"
+)
 
 type ErrorObject struct {
 	Model
-	ID               int `gorm:"primary_key;type:serial;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
-	OrganizationID   int
-	ProjectID        int `json:"project_id"`
-	SessionID        *int
-	TraceID          *string
-	SpanID           *string
-	LogCursor        *string `gorm:"index:idx_error_object_log_cursor,option:CONCURRENTLY"`
-	ErrorGroupID     int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
-	ErrorGroup       ErrorGroup
-	Event            string
-	Type             string
-	URL              string
-	Source           string
-	LineNumber       int
-	ColumnNumber     int
-	OS               string
-	Browser          string
-	Trace            *string `json:"trace"` //DEPRECATED, USE STACKTRACE INSTEAD
-	StackTrace       *string `json:"stack_trace"`
-	MappedStackTrace *string
-	Timestamp        time.Time `json:"timestamp"`
-	Payload          *string   `json:"payload"`
-	Environment      string
-	RequestID        *string // From X-Highlight-Request header
-	IsBeacon         bool    `gorm:"default:false"`
+	ID                      int `gorm:"primary_key;type:serial;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
+	OrganizationID          int
+	ProjectID               int `json:"project_id"`
+	SessionID               *int
+	TraceID                 *string
+	SpanID                  *string
+	LogCursor               *string `gorm:"index:idx_error_object_log_cursor,option:CONCURRENTLY"`
+	ErrorGroupID            int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
+	ErrorGroupIDAlternative int     // the alternative algorithm for grouping the object
+	ErrorGroupingMethod     ErrorGroupingMethod
+	ErrorGroup              ErrorGroup
+	Event                   string
+	Type                    string
+	URL                     string
+	Source                  string
+	LineNumber              int
+	ColumnNumber            int
+	OS                      string
+	Browser                 string
+	Trace                   *string `json:"trace"` //DEPRECATED, USE STACKTRACE INSTEAD
+	StackTrace              *string `json:"stack_trace"`
+	MappedStackTrace        *string
+	Timestamp               time.Time `json:"timestamp"`
+	Payload                 *string   `json:"payload"`
+	Environment             string
+	RequestID               *string // From X-Highlight-Request header
+	IsBeacon                bool    `gorm:"default:false"`
+	ServiceName             string
+	ServiceVersion          string
 }
 
 type ErrorObjectEmbeddings struct {
 	Model
 	ErrorObjectID       int
+	CombinedEmbedding   Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
 	EventEmbedding      Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
 	StackTraceEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
 	PayloadEmbedding    Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
@@ -956,6 +979,7 @@ type ErrorGroup struct {
 	FirstOccurrence  *time.Time                           `gorm:"-"`
 	LastOccurrence   *time.Time                           `gorm:"-"`
 	ErrorObjects     []ErrorObject
+	ServiceName      string
 
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
@@ -1228,6 +1252,7 @@ type SystemConfiguration struct {
 	Active           bool `gorm:"primary_key;default:true"`
 	MaintenanceStart time.Time
 	MaintenanceEnd   time.Time
+	ErrorFilters     pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
 }
 
 type RetryableType string
@@ -1986,8 +2011,17 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 
 type Service struct {
 	Model
-	ProjectID int    `gorm:"not null;uniqueIndex:idx_project_id_name"`
-	Name      string `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	ProjectID          int                       `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Name               string                    `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Status             modelInputs.ServiceStatus `gorm:"not null;default:created"`
+	GithubRepoPath     *string
+	BuildPrefix        *string
+	GithubPrefix       *string
+	LastSeenVersion    *string
+	ErrorDetails       pq.StringArray `gorm:"type:text[]"`
+	ProcessName        *string
+	ProcessVersion     *string
+	ProcessDescription *string
 }
 
 type LogAlert struct {

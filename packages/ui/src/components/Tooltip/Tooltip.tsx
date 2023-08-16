@@ -42,14 +42,16 @@ export const Tooltip: React.FC<TooltipProps> = ({
 			</TooltipAnchor>
 			{!disabled && (
 				<AriakitTooltip state={tooltipState} style={{ zIndex: 100 }}>
-					<TooltipRenderer>{children}</TooltipRenderer>
+					<TooltipContent>{children}</TooltipContent>
 				</AriakitTooltip>
 			)}
 		</>
 	)
 }
 
-const TooltipRenderer: React.FC<React.PropsWithChildren> = ({ children }) => {
+export const TooltipContent: React.FC<React.PropsWithChildren> = ({
+	children,
+}) => {
 	return (
 		<Box
 			backgroundColor="white"

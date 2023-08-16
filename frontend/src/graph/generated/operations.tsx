@@ -25,20 +25,6 @@ export type MarkSessionAsViewedMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
-export type MarkSessionAsStarredMutationVariables = Types.Exact<{
-	secure_id: Types.Scalars['String']
-	starred: Types.Scalars['Boolean']
-}>
-
-export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
-	markSessionAsStarred?: Types.Maybe<
-		{ __typename?: 'Session' } & Pick<
-			Types.Session,
-			'secure_id' | 'starred'
-		>
-	>
-}
-
 export type MuteSessionCommentThreadMutationVariables = Types.Exact<{
 	id: Types.Scalars['ID']
 	has_muted?: Types.Maybe<Types.Scalars['Boolean']>
@@ -1354,6 +1340,30 @@ export type DeleteInviteLinkFromWorkspaceMutation = {
 	__typename?: 'Mutation'
 } & Pick<Types.Mutation, 'deleteInviteLinkFromWorkspace'>
 
+export type EditServiceGithubSettingsMutationVariables = Types.Exact<{
+	id: Types.Scalars['ID']
+	project_id: Types.Scalars['ID']
+	github_repo_path?: Types.Maybe<Types.Scalars['String']>
+	build_prefix?: Types.Maybe<Types.Scalars['String']>
+	github_prefix?: Types.Maybe<Types.Scalars['String']>
+}>
+
+export type EditServiceGithubSettingsMutation = { __typename?: 'Mutation' } & {
+	editServiceGithubSettings?: Types.Maybe<
+		{ __typename?: 'Service' } & Pick<
+			Types.Service,
+			| 'id'
+			| 'projectID'
+			| 'name'
+			| 'status'
+			| 'githubRepoPath'
+			| 'buildPrefix'
+			| 'githubPrefix'
+			| 'errorDetails'
+		>
+	>
+}
+
 export type SessionPayloadFragmentFragment = {
 	__typename?: 'SessionPayload'
 } & Pick<Types.SessionPayload, 'events' | 'last_user_interaction_time'> & {
@@ -1456,10 +1466,24 @@ export type SessionAlertFragmentFragment = {
 		DiscordChannelsToNotify: Array<
 			{ __typename?: 'DiscordChannel' } & DiscordChannelFragmentFragment
 		>
+		WebhookDestinations: Array<
+			{ __typename?: 'WebhookDestination' } & Pick<
+				Types.WebhookDestination,
+				'url' | 'authorization'
+			>
+		>
 		TrackProperties: Array<
 			Types.Maybe<
 				{ __typename?: 'TrackProperty' } & Pick<
 					Types.TrackProperty,
+					'id' | 'name' | 'value'
+				>
+			>
+		>
+		UserProperties: Array<
+			Types.Maybe<
+				{ __typename?: 'UserProperty' } & Pick<
+					Types.UserProperty,
 					'id' | 'name' | 'value'
 				>
 			>
@@ -2100,6 +2124,7 @@ export type GetFieldTypesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	start_date?: Types.Maybe<Types.Scalars['Timestamp']>
 	end_date?: Types.Maybe<Types.Scalars['Timestamp']>
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetFieldTypesQuery = { __typename?: 'Query' } & {
@@ -2114,6 +2139,9 @@ export type GetFieldsOpensearchQueryVariables = Types.Exact<{
 	field_type: Types.Scalars['String']
 	field_name: Types.Scalars['String']
 	query: Types.Scalars['String']
+	start_date?: Types.Maybe<Types.Scalars['Timestamp']>
+	end_date?: Types.Maybe<Types.Scalars['Timestamp']>
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetFieldsOpensearchQuery = { __typename?: 'Query' } & Pick<
@@ -2155,6 +2183,7 @@ export type GetSessionsOpenSearchQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
 	query: Types.Scalars['String']
+	clickhouse_query?: Types.Maybe<Types.ClickhouseQuery>
 	sort_desc: Types.Scalars['Boolean']
 	sort_field?: Types.Maybe<Types.Scalars['String']>
 	page?: Types.Maybe<Types.Scalars['Int']>
@@ -2812,6 +2841,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
 			| 'is_public'
 			| 'last_occurrence'
 			| 'first_occurrence'
+			| 'serviceName'
 		> & {
 				structured_stack_trace: Array<
 					Types.Maybe<
@@ -2885,6 +2915,7 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 	| 'os'
 	| 'browser'
 	| 'environment'
+	| 'serviceVersion'
 > & {
 		session?: Types.Maybe<
 			{ __typename?: 'Session' } & Pick<
@@ -4210,6 +4241,7 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 						| 'secureSessionID'
 						| 'source'
 						| 'serviceName'
+						| 'serviceVersion'
 					>
 				}
 		>
@@ -4424,6 +4456,44 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 	}
 }
 
+export type GetServicesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	query?: Types.Maybe<Types.Scalars['String']>
+	after?: Types.Maybe<Types.Scalars['String']>
+	before?: Types.Maybe<Types.Scalars['String']>
+}>
+
+export type GetServicesQuery = { __typename?: 'Query' } & {
+	services?: Types.Maybe<
+		{ __typename?: 'ServiceConnection' } & {
+			edges: Array<
+				Types.Maybe<
+					{ __typename?: 'ServiceEdge' } & Pick<
+						Types.ServiceEdge,
+						'cursor'
+					> & {
+							node: { __typename?: 'ServiceNode' } & Pick<
+								Types.ServiceNode,
+								| 'id'
+								| 'projectID'
+								| 'name'
+								| 'status'
+								| 'githubRepoPath'
+								| 'buildPrefix'
+								| 'githubPrefix'
+								| 'errorDetails'
+							>
+						}
+				>
+			>
+			pageInfo: { __typename?: 'PageInfo' } & Pick<
+				Types.PageInfo,
+				'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
+			>
+		}
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4557,11 +4627,11 @@ export const namedOperations = {
 		GetWorkspaceSettings: 'GetWorkspaceSettings' as const,
 		GetSystemConfiguration: 'GetSystemConfiguration' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
+		GetServices: 'GetServices' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
 		MarkSessionAsViewed: 'MarkSessionAsViewed' as const,
-		MarkSessionAsStarred: 'MarkSessionAsStarred' as const,
 		MuteSessionCommentThread: 'MuteSessionCommentThread' as const,
 		CreateOrUpdateStripeSubscription:
 			'CreateOrUpdateStripeSubscription' as const,
@@ -4638,6 +4708,7 @@ export const namedOperations = {
 			'UpdateIntegrationProjectSettings' as const,
 		UpdateEmailOptOut: 'UpdateEmailOptOut' as const,
 		DeleteInviteLinkFromWorkspace: 'DeleteInviteLinkFromWorkspace' as const,
+		EditServiceGithubSettings: 'EditServiceGithubSettings' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

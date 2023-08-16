@@ -25,6 +25,9 @@ Installing highlight.io in javascript will automatically instrument frontend err
     <DocsCard title="Next.js"  href="./client-sdk/nextjs.md">
         {"Get started in your Next.js app"}
     </DocsCard>
+    <DocsCard title="Remix"  href="./client-sdk/remix.md">
+        {"Get started in your Remix app"}
+    </DocsCard>
     <DocsCard title="VueJS"  href="./client-sdk/vuejs.md">
         {"Get started in your VueJS app"}
     </DocsCard>
@@ -68,11 +71,11 @@ Highlight.io also supports logging from your backend and mapping these to corres
     <DocsCard title="JS / TS" href="./backend-logging/2_js/1_overview.md">
         {"Get started with logging in Javascript"}
     </DocsCard>
-    <DocsCard title="Ruby" href="./backend-logging/4_ruby/1_overview.md">
-        {"Get started with logging in Ruby"}
-    </DocsCard>
     <DocsCard title="Python" href="./backend-logging/3_python/1_overview.md">
         {"Get started with logging in Python"}
+    </DocsCard>
+    <DocsCard title="Ruby" href="./backend-logging/4_ruby/1_overview.md">
+        {"Get started with logging in Ruby"}
     </DocsCard>
 </DocsCardGroup>
 

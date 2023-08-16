@@ -25,11 +25,13 @@ const (
 	MarkBackendSetup                       PayloadType = iota // Deprecated: setup events are written from other payload processing
 	AddSessionFeedback                     PayloadType = iota
 	PushLogs                               PayloadType = iota
+	PushTraces                             PayloadType = iota
 	HubSpotCreateContactForAdmin           PayloadType = iota
 	HubSpotCreateCompanyForWorkspace       PayloadType = iota
 	HubSpotUpdateContactProperty           PayloadType = iota
 	HubSpotUpdateCompanyProperty           PayloadType = iota
 	HubSpotCreateContactCompanyAssociation PayloadType = iota
+	SessionDataSync                        PayloadType = iota
 	HealthCheck                            PayloadType = math.MaxInt
 )
 
@@ -102,7 +104,11 @@ type AddSessionFeedbackArgs struct {
 }
 
 type PushLogsArgs struct {
-	LogRows []*clickhouse.LogRow
+	LogRow *clickhouse.LogRow
+}
+
+type PushTracesArgs struct {
+	TraceRow *clickhouse.TraceRow
 }
 
 type HubSpotCreateContactForAdminArgs struct {
@@ -137,25 +143,31 @@ type HubSpotCreateContactCompanyAssociationArgs struct {
 	WorkspaceID int
 }
 
+type SessionDataSyncArgs struct {
+	SessionID int
+}
+
 type Message struct {
 	Type                                   PayloadType
 	Failures                               int
 	MaxRetries                             int
-	KafkaMessage                           *kafka.Message
-	PushPayload                            *PushPayloadArgs
-	InitializeSession                      *InitializeSessionArgs
-	IdentifySession                        *IdentifySessionArgs
-	AddTrackProperties                     *AddTrackPropertiesArgs
-	AddSessionProperties                   *AddSessionPropertiesArgs
-	PushBackendPayload                     *PushBackendPayloadArgs
-	PushMetrics                            *PushMetricsArgs
-	AddSessionFeedback                     *AddSessionFeedbackArgs
-	PushLogs                               *PushLogsArgs
-	HubSpotCreateContactForAdmin           *HubSpotCreateContactForAdminArgs
-	HubSpotCreateCompanyForWorkspace       *HubSpotCreateCompanyForWorkspaceArgs
-	HubSpotUpdateContactProperty           *HubSpotUpdateContactPropertyArgs
-	HubSpotUpdateCompanyProperty           *HubSpotUpdateCompanyPropertyArgs
-	HubSpotCreateContactCompanyAssociation *HubSpotCreateContactCompanyAssociationArgs
+	KafkaMessage                           *kafka.Message                              `json:",omitempty"`
+	PushPayload                            *PushPayloadArgs                            `json:",omitempty"`
+	InitializeSession                      *InitializeSessionArgs                      `json:",omitempty"`
+	IdentifySession                        *IdentifySessionArgs                        `json:",omitempty"`
+	AddTrackProperties                     *AddTrackPropertiesArgs                     `json:",omitempty"`
+	AddSessionProperties                   *AddSessionPropertiesArgs                   `json:",omitempty"`
+	PushBackendPayload                     *PushBackendPayloadArgs                     `json:",omitempty"`
+	PushMetrics                            *PushMetricsArgs                            `json:",omitempty"`
+	AddSessionFeedback                     *AddSessionFeedbackArgs                     `json:",omitempty"`
+	PushLogs                               *PushLogsArgs                               `json:",omitempty"`
+	PushTraces                             *PushTracesArgs                             `json:",omitempty"`
+	HubSpotCreateContactForAdmin           *HubSpotCreateContactForAdminArgs           `json:",omitempty"`
+	HubSpotCreateCompanyForWorkspace       *HubSpotCreateCompanyForWorkspaceArgs       `json:",omitempty"`
+	HubSpotUpdateContactProperty           *HubSpotUpdateContactPropertyArgs           `json:",omitempty"`
+	HubSpotUpdateCompanyProperty           *HubSpotUpdateCompanyPropertyArgs           `json:",omitempty"`
+	HubSpotCreateContactCompanyAssociation *HubSpotCreateContactCompanyAssociationArgs `json:",omitempty"`
+	SessionDataSync                        *SessionDataSyncArgs                        `json:",omitempty"`
 }
 
 type PartitionMessage struct {

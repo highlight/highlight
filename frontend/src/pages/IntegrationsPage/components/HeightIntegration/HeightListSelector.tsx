@@ -10,6 +10,7 @@ import * as style from '../style.css'
 
 const HeightListSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
+	disabled,
 }) => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { data, loading } = useGetHeightListsQuery({
@@ -55,6 +56,7 @@ const HeightListSelector: React.FC<ContainerSelectionProps> = ({
 				notFoundContent={<p>No lists found</p>}
 				loading={loading}
 				className={style.selectContainer}
+				disabled={disabled}
 			/>
 		</Form.NamedSection>
 	)

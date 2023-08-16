@@ -92,6 +92,12 @@ export const INTEGRATIONS: {
 			link: '/docs/getting-started/backend-logging/hosting/fly-io',
 			image: '/images/companies/icons/flyio.png',
 		},
+		{
+			name: 'Render',
+			description: 'Setup highlight.io log ingestion on Render.',
+			link: '/docs/getting-started/backend-logging/hosting/render',
+			image: '/images/quickstart/render.png',
+		},
 	],
 	Productivity: [
 		{

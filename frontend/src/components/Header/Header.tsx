@@ -42,6 +42,7 @@ import {
 	TextLink,
 } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
+import useFeatureFlag, { Feature } from '@hooks/useFeatureFlag/useFeatureFlag'
 import { useProjectId } from '@hooks/useProjectId'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import SvgXIcon from '@icons/XIcon'
@@ -117,6 +118,7 @@ export const useBillingHook = ({
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId } = useProjectId()
 	const { isLoggedIn, signOut } = useAuthContext()
+	const showAnalytics = useFeatureFlag(Feature.Analytics)
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
 
@@ -245,31 +247,33 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 											kind="secondary"
 										/>
 										<Menu.List>
-											<Link
-												to={`/${projectId}/dashboards`}
-												className={linkStyle}
-											>
-												<Menu.Item>
-													<Box
-														display="flex"
-														alignItems="center"
-														gap="4"
-													>
-														<IconSolidChartBar
-															size={14}
-															color={
-																vars.theme
-																	.interactive
-																	.fill
-																	.secondary
-																	.content
-																	.text
-															}
-														/>
-														Dashboards
-													</Box>
-												</Menu.Item>
-											</Link>
+											{showAnalytics && (
+												<Link
+													to={`/${projectId}/dashboards`}
+													className={linkStyle}
+												>
+													<Menu.Item>
+														<Box
+															display="flex"
+															alignItems="center"
+															gap="4"
+														>
+															<IconSolidChartBar
+																size={14}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
+																}
+															/>
+															Dashboards
+														</Box>
+													</Menu.Item>
+												</Link>
+											)}
 											<Link
 												to={`/${projectId}/integrations`}
 												className={linkStyle}
@@ -295,31 +299,33 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 													</Box>
 												</Menu.Item>
 											</Link>
-											<Link
-												to={`/${projectId}/analytics`}
-												className={linkStyle}
-											>
-												<Menu.Item>
-													<Box
-														display="flex"
-														alignItems="center"
-														gap="4"
-													>
-														<IconSolidChartPie
-															size={14}
-															color={
-																vars.theme
-																	.interactive
-																	.fill
-																	.secondary
-																	.content
-																	.text
-															}
-														/>
-														Analytics
-													</Box>
-												</Menu.Item>
-											</Link>
+											{showAnalytics && (
+												<Link
+													to={`/${projectId}/analytics`}
+													className={linkStyle}
+												>
+													<Menu.Item>
+														<Box
+															display="flex"
+															alignItems="center"
+															gap="4"
+														>
+															<IconSolidChartPie
+																size={14}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
+																}
+															/>
+															Analytics
+														</Box>
+													</Menu.Item>
+												</Link>
+											)}
 											<Link
 												to={`/${projectId}/setup`}
 												className={linkStyle}

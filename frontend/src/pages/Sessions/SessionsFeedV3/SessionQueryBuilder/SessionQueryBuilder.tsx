@@ -110,6 +110,7 @@ export const CUSTOM_FIELDS: CustomField[] = [
 		name: 'processed',
 		options: {
 			type: 'boolean',
+			operators: BOOLEAN_OPERATORS,
 		},
 	},
 	{
@@ -117,13 +118,7 @@ export const CUSTOM_FIELDS: CustomField[] = [
 		name: 'first_time',
 		options: {
 			type: 'boolean',
-		},
-	},
-	{
-		type: CUSTOM_TYPE,
-		name: 'starred',
-		options: {
-			type: 'boolean',
+			operators: BOOLEAN_OPERATORS,
 		},
 	},
 	{

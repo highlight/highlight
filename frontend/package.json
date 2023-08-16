@@ -11,7 +11,7 @@
 		"@frontapp/plugin-sdk": "^1.1.2",
 		"@highlight-run/client": "workspace:*",
 		"@highlight-run/react": "workspace:*",
-		"@highlight-run/react-mentions": "4.4.1",
+		"@highlight-run/react-mentions": "4.4.2",
 		"@highlight-run/rrweb": "workspace:*",
 		"@highlight-run/ui": "workspace:*",
 		"@rehooks/local-storage": "^2.4.0",
@@ -72,18 +72,17 @@
 		"xss": "^1.0.14"
 	},
 	"scripts": {
-		"dev": "yarn reflame-env && run-p --print-label --race 'dev:**'",
+		"dev": "run-p --print-label --race 'dev:**'",
 		"dev:vite": "vite",
 		"dev:reflame": "node scripts/reflame.mjs --watch",
 		"dev:tsm": "tsm src -w --logLevel=error",
 		"dev:gql": "graphql-codegen --config --watch codegen.yml",
 		"codegen": "graphql-codegen --config codegen.yml",
-		"build": "yarn reflame-env && run-p --print-label 'build:**'",
+		"build": "run-p --print-label 'build:**'",
 		"build:vite": "yarn types:check && NODE_OPTIONS='--max-old-space-size=7168' vite build",
 		"build:reflame": "node scripts/reflame.mjs",
-		"reflame-env": "which doppler && (doppler run -c prod_aws_render --command='node scripts/update-reflame-environment.mjs production' && doppler run -c dev --command='node scripts/update-reflame-environment.mjs development') || exit 0",
-		"reflame": "yarn reflame-env && yarn dev:reflame",
-		"reflame-build": "yarn reflame-env && yarn build:reflame",
+		"reflame": "yarn dev:reflame",
+		"reflame-build": "yarn build:reflame",
 		"lint": "eslint ./src",
 		"lint:fix": "eslint ./src --fix",
 		"sourcemaps": "npx --yes @highlight-run/sourcemap-uploader upload --apiKey \"${HIGHLIGHT_API_KEY}\" --appVersion \"${APP_VERSION}\" --path ./build",
@@ -144,10 +143,10 @@
 		"@types/validator": "^13.1.3",
 		"@typescript-eslint/eslint-plugin": "^5.46.1",
 		"@typescript-eslint/parser": "^5.46.1",
-		"@vanilla-extract/css": "^1.11.0",
+		"@vanilla-extract/css": "^1.11.1",
 		"@vanilla-extract/esbuild-plugin": "^2.2.2",
-		"@vanilla-extract/vite-plugin": "^3.7.0",
-		"@vitejs/plugin-react-swc": "^3.0.1",
+		"@vanilla-extract/vite-plugin": "^3.8.2",
+		"@vitejs/plugin-react-swc": "^3.3.2",
 		"autoprefixer": "^10.4.8",
 		"esbuild": "0.17.17",
 		"eslint": "^7.0.0",
@@ -173,12 +172,9 @@
 		"typed-scss-modules": "^3.4.0",
 		"typescript": "5.1.0-dev.20230502",
 		"vite": "^4.0.4",
-		"vite-plugin-imp": "^2.3.1",
-		"vite-plugin-svgr": "^2.4.0",
-		"vite-tsconfig-paths": "^4.0.3",
-		"vitest": "^0.26.3"
-	},
-	"resolutions": {
-		"react-error-overlay": "6.0.9"
+		"vite-plugin-imp": "^2.4.0",
+		"vite-plugin-svgr": "^3.2.0",
+		"vite-tsconfig-paths": "^4.2.0",
+		"vitest": "^0.32.0"
 	}
 }

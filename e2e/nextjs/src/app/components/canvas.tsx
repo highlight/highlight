@@ -1,19 +1,20 @@
 'use client'
 
-import type { EngineOptions, SceneOptions } from 'babylonjs'
 import {
-	Engine,
-	Scene,
-	MeshBuilder,
-	Vector3,
-	HemisphericLight,
 	ArcRotateCamera,
-	ScenePerformancePriority,
-	PBRMaterial,
 	Color3,
+	Engine,
+	HemisphericLight,
+	MeshBuilder,
+	PBRMaterial,
+	Scene,
+	ScenePerformancePriority,
+	Vector3,
 } from 'babylonjs'
+import type { EngineOptions, SceneOptions } from 'babylonjs'
 import React, { useEffect, useRef, useState } from 'react'
-import { H } from 'highlight.run'
+
+import { H } from '@highlight-run/next/client'
 
 export const Canvas = ({
 	antialias,
@@ -27,12 +28,6 @@ export const Canvas = ({
 	adaptToDeviceRatio?: boolean
 	sceneOptions?: SceneOptions
 }) => {
-	const onRender = (scene: Scene) => {
-		// console.debug('onRender', scene)
-	}
-	const onSceneReady = (scene: Scene) => {
-		console.debug('onSceneReady', scene)
-	}
 	const reactCanvas = useRef(null)
 	const loadTimer = useRef<number>()
 	const load = useRef<() => void>()
@@ -43,12 +38,22 @@ export const Canvas = ({
 		scene: Scene | null
 	}>({ engine: null, scene: null })
 
+	const onRender = (scene: Scene) => {
+		// console.debug('onRender', scene)
+		if (reactCanvas.current) {
+			H.snapshot(reactCanvas.current)
+		}
+	}
+	const onSceneReady = (scene: Scene) => {
+		console.debug('onSceneReady', scene)
+	}
+
 	useEffect(() => {
 		H.identify('vadim@highlight.io')
 	}, [])
 
 	useEffect(() => {
-		if (window) {
+		if (typeof window === 'object') {
 			const resize = () => {
 				if (canvas.scene) {
 					canvas.scene.getEngine().resize()
@@ -157,10 +162,10 @@ export const Canvas = ({
 			})
 
 			engine.runRenderLoop(() => {
+				scene.render()
 				if (typeof onRender === 'function') {
 					onRender(scene)
 				}
-				scene.render()
 			})
 
 			loadTimer.current = undefined

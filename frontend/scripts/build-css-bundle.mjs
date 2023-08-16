@@ -1,9 +1,7 @@
 import { vanillaExtractPlugin } from '@vanilla-extract/esbuild-plugin'
 import esbuild from 'esbuild'
-import stylePlugin from 'esbuild-style-plugin'
 import * as fs from 'node:fs'
 import * as path_ from 'node:path'
-import tailwindcss from 'tailwindcss'
 
 export const run = async ({ rootDirectory }) => {
 	const args = process.argv.slice(2)
@@ -85,25 +83,13 @@ export const run = async ({ rootDirectory }) => {
 						)
 					})
 
-					// We don't need css handled by stylePlugin now that
-					// Reflame has native css modules support
-					// Just need it to handle tailwind for now.
-					onLoad(
-						{ filter: /\.(css)$/, namespace: 'stylePlugin' },
-						({ path }) =>
-							path.endsWith('/tailwind.css')
-								? undefined
-								: {
-										contents: '',
-								  },
-					)
+					// We don't need css handled by esbuild now that
+					// Reflame has native css modules and tailwind support
+					onLoad({ filter: /\.(css)$/ }, () => ({
+						contents: '',
+					}))
 				},
 			},
-			stylePlugin({
-				postcss: {
-					plugins: [tailwindcss()],
-				},
-			}),
 			vanillaExtractPlugin({ identifiers: 'short' }),
 			resultPlugin,
 		],

@@ -1,21 +1,20 @@
 import React from 'react'
-import { ComponentMeta } from '@storybook/react'
+import { Meta } from '@storybook/react'
 
 import { ButtonIcon } from './ButtonIcon'
 import { Box } from '../Box/Box'
 import { IconSolidCheveronDown } from '../icons'
-import { Variants } from './styles.css'
 
 export default {
 	title: 'Components/ButtonIcon',
 	component: ButtonIcon,
-} as ComponentMeta<typeof ButtonIcon>
+} as Meta<typeof ButtonIcon>
 
 export const AllVariants = () => {
-	const variant: Variants['kind'][] = ['primary', 'secondary']
-	const shape: Variants['shape'][] = ['square', 'thin']
-	const emphasis: Variants['emphasis'][] = ['high', 'medium', 'low']
-	const size: Variants['size'][] = ['medium', 'small', 'xSmall', 'minimal']
+	const variant = ['primary', 'secondary'] as const
+	const shape = ['square', 'thin'] as const
+	const emphasis = ['high', 'medium', 'low'] as const
+	const size = ['medium', 'small', 'xSmall', 'minimal'] as const
 
 	return (
 		<Box display="flex" gap="12" flexDirection="column">

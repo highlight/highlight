@@ -205,6 +205,11 @@ export type ClickUpTeam = {
 	spaces: Array<ClickUpSpace>
 }
 
+export type ClickhouseQuery = {
+	isAnd: Scalars['Boolean']
+	rules: Array<Array<Scalars['String']>>
+}
+
 export type CommentReply = {
 	__typename?: 'CommentReply'
 	author: SanitizedAdmin
@@ -440,6 +445,7 @@ export type ErrorGroup = {
 	metadata_log: Array<Maybe<ErrorMetadata>>
 	project_id: Scalars['Int']
 	secure_id: Scalars['String']
+	serviceName?: Maybe<Scalars['String']>
 	snoozed_until?: Maybe<Scalars['Timestamp']>
 	stack_trace?: Maybe<Scalars['String']>
 	state: ErrorState
@@ -507,6 +513,7 @@ export type ErrorObject = {
 	payload?: Maybe<Scalars['String']>
 	project_id: Scalars['Int']
 	request_id?: Maybe<Scalars['String']>
+	serviceVersion?: Maybe<Scalars['String']>
 	session?: Maybe<Session>
 	session_id?: Maybe<Scalars['Int']>
 	source?: Maybe<Scalars['String']>
@@ -754,6 +761,7 @@ export type Log = {
 	message: Scalars['String']
 	secureSessionID?: Maybe<Scalars['String']>
 	serviceName?: Maybe<Scalars['String']>
+	serviceVersion?: Maybe<Scalars['String']>
 	source?: Maybe<Scalars['String']>
 	spanID?: Maybe<Scalars['String']>
 	timestamp: Scalars['Timestamp']
@@ -968,12 +976,12 @@ export type Mutation = {
 	editProject?: Maybe<Project>
 	editProjectSettings?: Maybe<AllProjectSettings>
 	editSegment?: Maybe<Scalars['Boolean']>
+	editServiceGithubSettings?: Maybe<Service>
 	editWorkspace?: Maybe<Workspace>
 	editWorkspaceSettings?: Maybe<AllWorkspaceSettings>
 	emailSignup: Scalars['String']
 	joinWorkspace?: Maybe<Scalars['ID']>
 	markErrorGroupAsViewed?: Maybe<ErrorGroup>
-	markSessionAsStarred?: Maybe<Session>
 	markSessionAsViewed?: Maybe<Session>
 	modifyClearbitIntegration?: Maybe<Scalars['Boolean']>
 	muteErrorCommentThread?: Maybe<Scalars['Boolean']>
@@ -1271,6 +1279,14 @@ export type MutationEditSegmentArgs = {
 	project_id: Scalars['ID']
 }
 
+export type MutationEditServiceGithubSettingsArgs = {
+	build_prefix?: InputMaybe<Scalars['String']>
+	github_prefix?: InputMaybe<Scalars['String']>
+	github_repo_path?: InputMaybe<Scalars['String']>
+	id: Scalars['ID']
+	project_id: Scalars['ID']
+}
+
 export type MutationEditWorkspaceArgs = {
 	id: Scalars['ID']
 	name?: InputMaybe<Scalars['String']>
@@ -1293,11 +1309,6 @@ export type MutationJoinWorkspaceArgs = {
 export type MutationMarkErrorGroupAsViewedArgs = {
 	error_secure_id: Scalars['String']
 	viewed?: InputMaybe<Scalars['Boolean']>
-}
-
-export type MutationMarkSessionAsStarredArgs = {
-	secure_id: Scalars['String']
-	starred?: InputMaybe<Scalars['Boolean']>
 }
 
 export type MutationMarkSessionAsViewedArgs = {
@@ -1671,6 +1682,8 @@ export type Query = {
 	events?: Maybe<Array<Maybe<Scalars['Any']>>>
 	field_suggestion?: Maybe<Array<Maybe<Field>>>
 	field_types: Array<Field>
+	field_types_clickhouse: Array<Field>
+	fields_clickhouse: Array<Scalars['String']>
 	fields_opensearch: Array<Scalars['String']>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
@@ -1722,6 +1735,7 @@ export type Query = {
 	resources?: Maybe<Array<Maybe<Scalars['Any']>>>
 	segments?: Maybe<Array<Maybe<Segment>>>
 	serverIntegration: IntegrationStatus
+	services?: Maybe<ServiceConnection>
 	session?: Maybe<Session>
 	sessionLogs: Array<LogEdge>
 	session_comment_tags_for_project: Array<SessionCommentTag>
@@ -1730,6 +1744,7 @@ export type Query = {
 	session_comments_for_project: Array<Maybe<SessionComment>>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
+	sessions_clickhouse: SessionResults
 	sessions_histogram: SessionsHistogram
 	sessions_opensearch: SessionResults
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
@@ -1971,14 +1986,34 @@ export type QueryField_TypesArgs = {
 	end_date?: InputMaybe<Scalars['Timestamp']>
 	project_id: Scalars['ID']
 	start_date?: InputMaybe<Scalars['Timestamp']>
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
-export type QueryFields_OpensearchArgs = {
+export type QueryField_Types_ClickhouseArgs = {
+	end_date: Scalars['Timestamp']
+	project_id: Scalars['ID']
+	start_date: Scalars['Timestamp']
+}
+
+export type QueryFields_ClickhouseArgs = {
 	count: Scalars['Int']
+	end_date: Scalars['Timestamp']
 	field_name: Scalars['String']
 	field_type: Scalars['String']
 	project_id: Scalars['ID']
 	query: Scalars['String']
+	start_date: Scalars['Timestamp']
+}
+
+export type QueryFields_OpensearchArgs = {
+	count: Scalars['Int']
+	end_date?: InputMaybe<Scalars['Timestamp']>
+	field_name: Scalars['String']
+	field_type: Scalars['String']
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	start_date?: InputMaybe<Scalars['Timestamp']>
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryGenerate_Zapier_Access_TokenArgs = {
@@ -2206,6 +2241,13 @@ export type QueryServerIntegrationArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryServicesArgs = {
+	after?: InputMaybe<Scalars['String']>
+	before?: InputMaybe<Scalars['String']>
+	project_id: Scalars['ID']
+	query?: InputMaybe<Scalars['String']>
+}
+
 export type QuerySessionArgs = {
 	secure_id: Scalars['String']
 }
@@ -2235,6 +2277,15 @@ export type QuerySession_IntervalsArgs = {
 	session_secure_id: Scalars['String']
 }
 
+export type QuerySessions_ClickhouseArgs = {
+	count: Scalars['Int']
+	page?: InputMaybe<Scalars['Int']>
+	project_id: Scalars['ID']
+	query: ClickhouseQuery
+	sort_desc: Scalars['Boolean']
+	sort_field?: InputMaybe<Scalars['String']>
+}
+
 export type QuerySessions_HistogramArgs = {
 	histogram_options: DateHistogramOptions
 	project_id: Scalars['ID']
@@ -2242,6 +2293,7 @@ export type QuerySessions_HistogramArgs = {
 }
 
 export type QuerySessions_OpensearchArgs = {
+	clickhouse_query?: InputMaybe<ClickhouseQuery>
 	count: Scalars['Int']
 	page?: InputMaybe<Scalars['Int']>
 	project_id: Scalars['ID']
@@ -2377,6 +2429,7 @@ export enum ReservedLogKey {
 	Message = 'message',
 	SecureSessionId = 'secure_session_id',
 	ServiceName = 'service_name',
+	ServiceVersion = 'service_version',
 	Source = 'source',
 	SpanId = 'span_id',
 	TraceId = 'trace_id',
@@ -2471,6 +2524,50 @@ export type Segment = {
 	project_id: Scalars['ID']
 }
 
+export type Service = {
+	__typename?: 'Service'
+	buildPrefix?: Maybe<Scalars['String']>
+	errorDetails?: Maybe<Array<Scalars['String']>>
+	githubPrefix?: Maybe<Scalars['String']>
+	githubRepoPath?: Maybe<Scalars['String']>
+	id: Scalars['ID']
+	lastSeenVersion?: Maybe<Scalars['String']>
+	name: Scalars['String']
+	projectID: Scalars['ID']
+	status: ServiceStatus
+}
+
+export type ServiceConnection = Connection & {
+	__typename?: 'ServiceConnection'
+	edges: Array<Maybe<ServiceEdge>>
+	pageInfo: PageInfo
+}
+
+export type ServiceEdge = Edge & {
+	__typename?: 'ServiceEdge'
+	cursor: Scalars['String']
+	node: ServiceNode
+}
+
+export type ServiceNode = {
+	__typename?: 'ServiceNode'
+	buildPrefix?: Maybe<Scalars['String']>
+	errorDetails?: Maybe<Array<Scalars['String']>>
+	githubPrefix?: Maybe<Scalars['String']>
+	githubRepoPath?: Maybe<Scalars['String']>
+	id: Scalars['ID']
+	lastSeenVersion?: Maybe<Scalars['String']>
+	name: Scalars['String']
+	projectID: Scalars['ID']
+	status: ServiceStatus
+}
+
+export enum ServiceStatus {
+	Created = 'created',
+	Error = 'error',
+	Healthy = 'healthy',
+}
+
 export type Session = {
 	__typename?: 'Session'
 	active_length?: Maybe<Scalars['Int']>
@@ -2540,6 +2637,7 @@ export type SessionAlert = {
 	TrackProperties: Array<Maybe<TrackProperty>>
 	Type: Scalars['String']
 	UserProperties: Array<Maybe<UserProperty>>
+	WebhookDestinations: Array<WebhookDestination>
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	updated_at: Scalars['Timestamp']
@@ -2623,6 +2721,7 @@ export type SessionInsight = {
 	__typename?: 'SessionInsight'
 	id: Scalars['ID']
 	insight: Scalars['String']
+	session_id: Scalars['Int']
 }
 
 export type SessionInterval = {
@@ -2745,8 +2844,8 @@ export enum SubscriptionInterval {
 
 export type SystemConfiguration = {
 	__typename?: 'SystemConfiguration'
-	maintenance_end: Scalars['Timestamp']
-	maintenance_start: Scalars['Timestamp']
+	maintenance_end?: Maybe<Scalars['Timestamp']>
+	maintenance_start?: Maybe<Scalars['Timestamp']>
 }
 
 export type TimelineIndicatorEvent = {

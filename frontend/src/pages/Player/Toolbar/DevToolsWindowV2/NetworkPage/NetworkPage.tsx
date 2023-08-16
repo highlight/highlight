@@ -7,6 +7,7 @@ import {
 	Tag,
 	Text,
 } from '@highlight-run/ui'
+import { getResponseStatusCode } from '@pages/Player/helpers'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	LoadingError,
@@ -135,6 +136,11 @@ export const NetworkPage = ({
 					}
 				}) as NetworkResource[]) ?? []
 
+		// Need to have timestamp for findLastActiveEventIndex.
+		current.forEach((resource) => {
+			resource.timestamp = resource.startTime + startTime
+		})
+
 		if (filter !== '') {
 			return current.filter((resource) => {
 				if (!resource.name) {
@@ -148,7 +154,7 @@ export const NetworkPage = ({
 		}
 
 		return current
-	}, [parsedResources, filter, requestTypes, requestStatuses])
+	}, [parsedResources, filter, requestTypes, requestStatuses, startTime])
 
 	const currentResourceIdx = useMemo(() => {
 		return findLastActiveEventIndex(
@@ -237,6 +243,9 @@ export const NetworkPage = ({
 										isCurrentResource={
 											currentResourceIdx === index
 										}
+										startedInThePast={
+											currentResourceIdx >= index
+										}
 										searchTerm={filter}
 										onClickHandler={() => {
 											setActiveNetworkResourceId(
@@ -280,6 +289,7 @@ interface ResourceRowProps {
 	resource: NetworkResource
 	networkRange: number
 	isCurrentResource: boolean
+	startedInThePast: boolean
 	searchTerm: string
 	onClickHandler: () => void
 	setActiveNetworkResourceId: (resource: number | undefined) => void
@@ -294,6 +304,7 @@ const ResourceRow = ({
 	resource,
 	networkRange,
 	isCurrentResource,
+	startedInThePast,
 	searchTerm,
 	onClickHandler,
 	setActiveNetworkResourceId,
@@ -313,16 +324,23 @@ const ResourceRow = ({
 	const { activeNetworkResourceId } = useActiveNetworkResourceId()
 	const showingDetails = activeNetworkResourceId === resource.id
 	const responseStatus = resource.requestResponsePairs?.response.status
+	const bodyErrors = hasErrorsInBody(resource)
+
 	const hasError =
+		bodyErrors ||
 		!!errors?.length ||
 		!!resource.errors?.length ||
-		!!(responseStatus && (responseStatus === 0 || responseStatus >= 400))
+		!!(responseStatus === 0 || (responseStatus && responseStatus >= 400))
+	const reponseStatuscode = getResponseStatusCode(resource)
 
 	return (
 		<Box
 			key={resource.id.toString()}
 			onClick={onClickHandler}
 			cursor="pointer"
+			style={{
+				opacity: startedInThePast ? 1 : 0.4,
+			}}
 		>
 			<Box
 				borderBottom="dividerWeak"
@@ -337,19 +355,15 @@ const ResourceRow = ({
 					weight={showingDetails ? 'bold' : 'medium'}
 					lines="1"
 				>
-					{/* NOTE - Showing '200' for all requests that aren't 'xmlhttprequest' or 'fetch' */}
-					{resource.initiatorType === 'xmlhttprequest' ||
-					resource.initiatorType === 'fetch'
-						? resource.requestResponsePairs?.response.status ?? (
-								<UnknownRequestStatusCode
-									networkRequestAndResponseRecordingEnabled={
-										networkRequestAndResponseRecordingEnabled
-									}
-								/>
-						  )
-						: resource.initiatorType === 'websocket'
-						? '101'
-						: '200'}
+					{reponseStatuscode === 'Unknown' ? (
+						<UnknownRequestStatusCode
+							networkRequestAndResponseRecordingEnabled={
+								networkRequestAndResponseRecordingEnabled
+							}
+						/>
+					) : (
+						reponseStatuscode
+					)}
 				</Text>
 				<Text
 					size="small"
@@ -487,4 +501,26 @@ const ResourceLoadingErrorCallout = function ({
 			/>
 		</Box>
 	)
+}
+
+const hasErrorsInBody = (resource: NetworkResource): boolean => {
+	const body = resource?.requestResponsePairs?.response.body
+
+	if (!body) {
+		return false
+	}
+
+	try {
+		let parsedResponseBody: { [key: string]: any } = {}
+		if (typeof body === 'object') {
+			parsedResponseBody = JSON.parse(JSON.stringify(body))
+		} else {
+			parsedResponseBody = JSON.parse(body)
+		}
+
+		const errors = parsedResponseBody.errors
+		return Array.isArray(errors) ? errors.length > 0 : !!errors
+	} catch (error) {
+		return false
+	}
 }

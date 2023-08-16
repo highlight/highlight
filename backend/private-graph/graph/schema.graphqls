@@ -498,6 +498,7 @@ type ErrorObject {
 	browser: String
 	environment: String
 	session: Session
+	serviceVersion: String
 }
 
 type ErrorInstance {
@@ -534,6 +535,7 @@ type ErrorGroup {
 	first_occurrence: Timestamp
 	last_occurrence: Timestamp
 	viewed: Boolean
+	serviceName: String
 }
 
 type ErrorMetadata {
@@ -609,6 +611,7 @@ type Log {
 	secureSessionID: String
 	source: String
 	serviceName: String
+	serviceVersion: String
 }
 
 type LogEdge implements Edge {
@@ -647,6 +650,46 @@ type ErrorObjectConnection implements Connection {
 	pageInfo: PageInfo!
 }
 
+enum ServiceStatus {
+	healthy
+	error
+	created
+}
+
+type Service {
+	id: ID!
+	projectID: ID!
+	name: String!
+	status: ServiceStatus!
+	githubRepoPath: String
+	buildPrefix: String
+	githubPrefix: String
+	lastSeenVersion: String
+	errorDetails: [String!]
+}
+
+type ServiceNode {
+	id: ID!
+	projectID: ID!
+	name: String!
+	status: ServiceStatus!
+	githubRepoPath: String
+	buildPrefix: String
+	githubPrefix: String
+	lastSeenVersion: String
+	errorDetails: [String!]
+}
+
+type ServiceEdge implements Edge {
+	cursor: String!
+	node: ServiceNode!
+}
+
+type ServiceConnection implements Connection {
+	edges: [ServiceEdge]!
+	pageInfo: PageInfo!
+}
+
 enum ReservedLogKey {
 	"""
 	Keep this in alpha order
@@ -658,6 +701,7 @@ enum ReservedLogKey {
 	trace_id
 	source
 	service_name
+	service_version
 }
 
 enum LogSource {
@@ -795,6 +839,11 @@ input DateHistogramOptions {
 	bucket_size: DateHistogramBucketSize!
 	time_zone: String!
 	bounds: DateRangeInput!
+}
+
+input ClickhouseQuery {
+	isAnd: Boolean!
+	rules: [[String!]!]!
 }
 
 enum NetworkRequestAttribute {
@@ -1042,6 +1091,7 @@ type SessionComment {
 
 type SessionInsight {
 	id: ID!
+	session_id: Int!
 	insight: String!
 }
 
@@ -1198,6 +1248,7 @@ type SessionAlert {
 	Name: String
 	ChannelsToNotify: [SanitizedSlackChannel]!
 	DiscordChannelsToNotify: [DiscordChannel!]!
+	WebhookDestinations: [WebhookDestination!]!
 	EmailsToNotify: [String]!
 	ExcludedEnvironments: [String]!
 	CountThreshold: Int!
@@ -1441,8 +1492,8 @@ type OAuthClient {
 }
 
 type SystemConfiguration {
-	maintenance_start: Timestamp!
-	maintenance_end: Timestamp!
+	maintenance_start: Timestamp
+	maintenance_end: Timestamp
 }
 
 enum EmailOptOutCategory {
@@ -1553,6 +1604,15 @@ type Query {
 		project_id: ID!
 		count: Int!
 		query: String!
+		clickhouse_query: ClickhouseQuery
+		sort_field: String
+		sort_desc: Boolean!
+		page: Int
+	): SessionResults!
+	sessions_clickhouse(
+		project_id: ID!
+		count: Int!
+		query: ClickhouseQuery!
 		sort_field: String
 		sort_desc: Boolean!
 		page: Int
@@ -1566,6 +1626,12 @@ type Query {
 		project_id: ID!
 		start_date: Timestamp
 		end_date: Timestamp
+		use_clickhouse: Boolean
+	): [Field!]!
+	field_types_clickhouse(
+		project_id: ID!
+		start_date: Timestamp!
+		end_date: Timestamp!
 	): [Field!]!
 	fields_opensearch(
 		project_id: ID!
@@ -1573,6 +1639,18 @@ type Query {
 		field_type: String!
 		field_name: String!
 		query: String!
+		start_date: Timestamp
+		end_date: Timestamp
+		use_clickhouse: Boolean
+	): [String!]!
+	fields_clickhouse(
+		project_id: ID!
+		count: Int!
+		field_type: String!
+		field_name: String!
+		query: String!
+		start_date: Timestamp!
+		end_date: Timestamp!
 	): [String!]!
 	error_fields_opensearch(
 		project_id: ID!
@@ -1709,6 +1787,12 @@ type Query {
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
 	system_configuration: SystemConfiguration!
+	services(
+		project_id: ID!
+		after: String
+		before: String
+		query: String
+	): ServiceConnection
 }
 
 type Mutation {
@@ -1758,7 +1842,6 @@ type Mutation {
 		viewed: Boolean
 	): ErrorGroup
 	markSessionAsViewed(secure_id: String!, viewed: Boolean): Session
-	markSessionAsStarred(secure_id: String!, starred: Boolean): Session
 	updateErrorGroupState(
 		secure_id: String!
 		state: ErrorState!
@@ -2073,6 +2156,13 @@ type Mutation {
 		is_opt_out: Boolean!
 		project_id: Int
 	): Boolean!
+	editServiceGithubSettings(
+		id: ID!
+		project_id: ID!
+		github_repo_path: String
+		build_prefix: String
+		github_prefix: String
+	): Service
 }
 
 type Subscription {

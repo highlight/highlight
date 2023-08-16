@@ -3,6 +3,10 @@ package highlight
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"reflect"
+	"strings"
+
 	"github.com/pkg/errors"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -12,9 +16,6 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 	"go.opentelemetry.io/otel/trace"
-	"net/url"
-	"reflect"
-	"strings"
 )
 
 const OTLPDefaultEndpoint = "https://otel.highlight.io:4318"
@@ -38,31 +39,6 @@ const MetricEvent = "metric"
 const MetricEventName = "metric.name"
 const MetricEventValue = "metric.value"
 
-var InternalAttributePrefixes = []string{
-	DeprecatedProjectIDAttribute,
-	DeprecatedSessionIDAttribute,
-	DeprecatedRequestIDAttribute,
-	DeprecatedSourceAttribute,
-	ProjectIDAttribute,
-	SessionIDAttribute,
-	RequestIDAttribute,
-	SourceAttribute,
-	LogMessageAttribute,
-	LogSeverityAttribute,
-	// exception should be parsed as structured and not included as part of log attributes
-	"exception.message",
-	"exception.stacktrace",
-	"fluent.",
-}
-
-var BackendOnlyAttributePrefixes = []string{
-	"container.",
-	"host.",
-	"os.",
-	"process.",
-	"exception.",
-}
-
 type OTLP struct {
 	tracerProvider *sdktrace.TracerProvider
 }
@@ -82,12 +58,12 @@ var (
 
 func StartOTLP() (*OTLP, error) {
 	var options []otlptracehttp.Option
-	if strings.HasPrefix(otlpEndpoint, "http://") {
-		options = append(options, otlptracehttp.WithEndpoint(otlpEndpoint[7:]), otlptracehttp.WithInsecure())
-	} else if strings.HasPrefix(otlpEndpoint, "https://") {
-		options = append(options, otlptracehttp.WithEndpoint(otlpEndpoint[8:]))
+	if strings.HasPrefix(conf.otlpEndpoint, "http://") {
+		options = append(options, otlptracehttp.WithEndpoint(conf.otlpEndpoint[7:]), otlptracehttp.WithInsecure())
+	} else if strings.HasPrefix(conf.otlpEndpoint, "https://") {
+		options = append(options, otlptracehttp.WithEndpoint(conf.otlpEndpoint[8:]))
 	} else {
-		logger.Errorf("an invalid otlp endpoint was configured %s", otlpEndpoint)
+		logger.Errorf("an invalid otlp endpoint was configured %s", conf.otlpEndpoint)
 	}
 	client := otlptracehttp.NewClient(options...)
 	exporter, err := otlptrace.New(context.Background(), client)
@@ -100,6 +76,7 @@ func StartOTLP() (*OTLP, error) {
 		resource.WithContainer(),
 		resource.WithOS(),
 		resource.WithProcess(),
+		resource.WithAttributes(conf.resourceAttributes...),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("creating OTLP resource context: %w", err)
@@ -126,13 +103,35 @@ func StartTrace(ctx context.Context, name string, tags ...attribute.KeyValue) (t
 	sessionID, requestID, _ := validateRequest(ctx)
 	ctx, span := tracer.Start(ctx, name)
 	attrs := []attribute.KeyValue{
-		attribute.String(ProjectIDAttribute, projectID),
+		attribute.String(ProjectIDAttribute, conf.projectID),
 		attribute.String(SessionIDAttribute, sessionID),
 		attribute.String(RequestIDAttribute, requestID),
 	}
 	attrs = append(attrs, tags...)
 	span.SetAttributes(attrs...)
 	return span, ctx
+}
+
+func StartTraceWithoutResourceAttributes(ctx context.Context, name string, tags ...attribute.KeyValue) (trace.Span, context.Context) {
+	resourceAttributes := []attribute.KeyValue{
+		semconv.ServiceNameKey.String(""),
+		semconv.ServiceVersionKey.String(""),
+		semconv.ContainerIDKey.String(""),
+		semconv.HostNameKey.String(""),
+		semconv.OSDescriptionKey.String(""),
+		semconv.OSTypeKey.String(""),
+		semconv.ProcessExecutableNameKey.String(""),
+		semconv.ProcessExecutablePathKey.String(""),
+		semconv.ProcessOwnerKey.String(""),
+		semconv.ProcessPIDKey.String(""),
+		semconv.ProcessRuntimeDescriptionKey.String(""),
+		semconv.ProcessRuntimeNameKey.String(""),
+		semconv.ProcessRuntimeVersionKey.String(""),
+	}
+
+	attrs := append(resourceAttributes, tags...)
+
+	return StartTrace(ctx, name, attrs...)
 }
 
 func EndTrace(span trace.Span) {

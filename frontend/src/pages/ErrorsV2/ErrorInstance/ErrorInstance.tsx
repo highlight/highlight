@@ -16,11 +16,13 @@ import {
 	IconSolidCode,
 	IconSolidExternalLink,
 	Stack,
+	Tag,
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorStackTrace from '@pages/ErrorsV2/ErrorStackTrace/ErrorStackTrace'
 import {
+	getDisplayName,
 	getDisplayNameAndField,
 	getIdentifiedUserProfileImage,
 	getUserProperties,
@@ -28,10 +30,14 @@ import {
 import analytics from '@util/analytics'
 import { loadSession } from '@util/preload'
 import { useParams } from '@util/react-router/useParams'
-import { copyToClipboard } from '@util/string'
-import { buildQueryURLString } from '@util/url/params'
+import { copyToClipboard, validateEmail } from '@util/string'
+import {
+	buildQueryParams,
+	buildQueryStateString,
+	buildQueryURLString,
+} from '@util/url/params'
 import moment from 'moment'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { useGetWorkspaceSettingsQuery } from '@/graph/generated/hooks'
@@ -43,6 +49,7 @@ import { RelatedLogs } from '@/pages/ErrorsV2/ErrorInstance/RelatedLogs'
 import { RelatedSession } from '@/pages/ErrorsV2/ErrorInstance/RelatedSession'
 import { SeeAllInstances } from '@/pages/ErrorsV2/ErrorInstance/SeeAllInstances'
 import { isSessionAvailable } from '@/pages/ErrorsV2/ErrorInstance/utils'
+import { useSearchContext } from '@/pages/Sessions/SearchContext/SearchContext'
 import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 const MAX_USER_PROPERTIES = 4
@@ -159,20 +166,24 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 
 			{workspaceSettingsData?.workspaceSettings?.ai_application && (
 				<Box display="flex" flexDirection="column" mb="40">
-					<Stack direction="row" align="center" pb="20" gap="8">
-						<Text size="large" weight="bold">
+					<Stack direction="row" align="center" pb="8" gap="8">
+						<Text size="large" weight="bold" color="strong">
 							Harold AI
 						</Text>
 						<Badge label="Beta" size="medium" variant="purple" />
 					</Stack>
-
 					<AiErrorSuggestion
 						errorObjectId={errorInstance.error_object.id}
 					/>
 				</Box>
 			)}
 
-			<Box display="flex" flexDirection="column" mb="40" gap="40">
+			<Box
+				display="flex"
+				flexDirection={{ mobile: 'column', desktop: 'row' }}
+				mb="40"
+				gap="40"
+			>
 				<div style={{ flexBasis: 0, flexGrow: 1 }}>
 					<Metadata errorObject={errorInstance.error_object} />
 				</div>
@@ -199,10 +210,10 @@ export const ErrorInstance: React.FC<Props> = ({ errorGroup }) => {
 				errorInstance.error_object.stack_trace !== 'null') ||
 			errorInstance.error_object.structured_stack_trace?.length ? (
 				<>
-					<Text size="large" weight="bold">
-						Stack trace
+					<Text size="large" weight="bold" color="strong">
+						Stacktrace
 					</Text>
-					<Box bt="secondary" mt="12" pt="16">
+					<Box mt="12">
 						<ErrorStackTrace
 							errorObject={errorInstance.error_object}
 						/>
@@ -231,6 +242,7 @@ const Metadata: React.FC<{
 		{ key: 'environment', label: errorObject?.environment },
 		{ key: 'browser', label: errorObject?.browser },
 		{ key: 'os', label: errorObject?.os },
+		{ key: 'version', label: errorObject?.serviceVersion },
 		{ key: 'url', label: errorObject?.url },
 		{ key: 'timestamp', label: errorObject?.timestamp },
 		{
@@ -247,13 +259,13 @@ const Metadata: React.FC<{
 
 	return (
 		<Box>
-			<Box bb="secondary" pb="20" my="12">
-				<Text weight="bold" size="large">
+			<Box bb="secondary" pb="12">
+				<Text weight="bold" size="large" color="strong">
 					Instance metadata
 				</Text>
 			</Box>
 
-			<Box>
+			<Box mt="12">
 				{metadata.map((meta) => {
 					const value =
 						meta.key === 'timestamp'
@@ -264,43 +276,43 @@ const Metadata: React.FC<{
 					return (
 						<Box display="flex" gap="6" key={meta.key}>
 							<Box
-								py="10"
+								py="6"
 								cursor="pointer"
 								onClick={() => copyToClipboard(meta.key)}
 								style={{ width: '33%' }}
 							>
 								<Text
-									color="n11"
+									color="weak"
 									transform="capitalize"
 									align="left"
 									lines="1"
+									size="xSmall"
 								>
 									{METADATA_LABELS[meta.key] ??
 										meta.key.replace('_', ' ')}
 								</Text>
 							</Box>
-							<Box
-								cursor="pointer"
-								py="10"
-								onClick={() => {
-									if (typeof value === 'string') {
-										value && copyToClipboard(value)
-									}
-								}}
-								style={{ width: '67%' }}
-							>
-								<Text
-									align="left"
-									break="word"
+							<Box style={{ width: '67%' }}>
+								<Tag
+									kind="secondary"
+									emphasis="low"
+									shape="basic"
+									onClick={() => {
+										if (typeof value === 'string') {
+											value && copyToClipboard(value)
+										}
+									}}
 									lines={
 										typeof value === 'string'
 											? '4'
 											: undefined
 									}
 									title={String(value)}
+									style={{ width: '100%' }}
+									wordBreak="word"
 								>
 									{value}
-								</Text>
+								</Tag>
 							</Box>
 						</Box>
 					)
@@ -318,9 +330,26 @@ const User: React.FC<{
 	const { isLoggedIn } = useAuthContext()
 	const [truncated, setTruncated] = useState(true)
 
+	const { setSearchQuery } = useSearchContext()
+	const setUserSessionIdentifier = useCallback(() => {
+		if (!errorObject?.session) return
+
+		const displayName = getDisplayName(errorObject?.session)
+		const userParam = validateEmail(displayName) ? 'email' : 'identifier'
+
+		setSearchQuery((query) => {
+			const qp = buildQueryParams({ query }, true)
+			qp.rules = qp.rules.filter((r) => !r[0].startsWith('user_'))
+			return buildQueryStateString({
+				query: JSON.stringify(qp),
+				[`user_${userParam}`]: displayName,
+			})
+		})
+	}, [errorObject?.session, setSearchQuery])
+
 	const userDetailsBox = (
-		<Box pb="20" mt="12">
-			<Text weight="bold" size="large">
+		<Box pb="12">
+			<Text weight="bold" size="large" color="strong">
 				User details
 			</Text>
 		</Box>
@@ -404,6 +433,7 @@ const User: React.FC<{
 									)
 								}
 
+								setUserSessionIdentifier()
 								navigate({
 									pathname: `/${projectId}/sessions`,
 									search: buildQueryURLString(searchParams),
@@ -422,62 +452,91 @@ const User: React.FC<{
 							{userDisplayPropertyKeys.map((key) => (
 								<Box display="flex" gap="6" key={key}>
 									<Box
-										py="10"
+										py="8"
 										overflow="hidden"
 										onClick={() => copyToClipboard(key)}
 										style={{ width: '33%' }}
 									>
 										<Text
-											color="n11"
+											color="weak"
 											align="left"
 											transform="capitalize"
 											lines="1"
 											title={key}
+											size="xSmall"
 										>
 											{METADATA_LABELS[key] ?? key}
 										</Text>
 									</Box>
 
 									<Box
-										py="10"
+										py="2"
 										display="flex"
 										overflow="hidden"
-										onClick={() =>
-											copyToClipboard(userProperties[key])
-										}
-										title={userProperties[key]}
 										style={{ width: '67%' }}
 									>
-										<Text lines="1" as="span">
+										<Tag
+											onClick={() =>
+												copyToClipboard(
+													userProperties[key],
+												)
+											}
+											title={userProperties[key]}
+											kind="secondary"
+											emphasis="low"
+											shape="basic"
+											style={{ width: '100%' }}
+										>
 											{userProperties[key]}
-										</Text>
+										</Tag>
 									</Box>
 								</Box>
 							))}
 
 							<Box display="flex" alignItems="center" gap="6">
-								<Box py="10" style={{ width: '33%' }}>
-									<Text color="n11" align="left">
+								<Box py="8" style={{ width: '33%' }}>
+									<Text
+										color="weak"
+										align="left"
+										transform="capitalize"
+										lines="1"
+										size="xSmall"
+									>
 										Location
 									</Text>
 								</Box>
 
-								<Box py="10" style={{ width: '67%' }}>
-									<Text>{location}</Text>
+								<Box
+									py="2"
+									style={{ width: '67%' }}
+									display="flex"
+									overflow="hidden"
+								>
+									<Tag
+										onClick={() =>
+											copyToClipboard(location)
+										}
+										title={location}
+										kind="secondary"
+										emphasis="low"
+										shape="basic"
+										style={{ width: '100%' }}
+									>
+										{location}
+									</Tag>
 								</Box>
 							</Box>
 						</Box>
 						{truncateable && (
-							<Box>
-								<Button
+							<Box mt="4" display="flex">
+								<Tag
 									onClick={() => setTruncated(!truncated)}
 									kind="secondary"
 									emphasis="medium"
-									size="xSmall"
-									trackingId="errorInstanceToggleProperties"
+									shape="basic"
 								>
 									Show {truncated ? 'more' : 'less'}
-								</Button>
+								</Tag>
 							</Box>
 						)}
 					</Box>

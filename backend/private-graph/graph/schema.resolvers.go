@@ -9,6 +9,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -34,6 +35,7 @@ import (
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/integrations/height"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
@@ -499,6 +501,11 @@ func (r *mutationResolver) CreateWorkspace(ctx context.Context, name string, pro
 		if err := r.HubspotApi.CreateCompanyForWorkspace(ctx, workspace.ID, *admin.Email, name); err != nil {
 			log.WithContext(ctx).Error(err, "error creating hubspot company")
 		}
+
+		// associate admin and workspace
+		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, admin.ID, workspace.ID); err != nil {
+			log.WithContext(ctx).Error(err, "error associating hubspot contact and company")
+		}
 	}
 
 	c := &stripe.Customer{}
@@ -825,27 +832,11 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
 	}
 
-	return newSession, nil
-}
-
-// MarkSessionAsStarred is the resolver for the markSessionAsStarred field.
-func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, secureID string, starred *bool) (*model.Session, error) {
-	s, err := r.canAdminModifySession(ctx, secureID)
-	if err != nil {
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
 		return nil, err
 	}
-	session := &model.Session{}
-	if err := r.DB.Where(&model.Session{Model: model.Model{ID: s.ID}}).Take(&session).Updates(&model.Session{
-		Starred: starred,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error writing session as starred")
-	}
 
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, s.ID, map[string]interface{}{"starred": starred}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
-	}
-
-	return session, nil
+	return newSession, nil
 }
 
 // UpdateErrorGroupState is the resolver for the updateErrorGroupState field.
@@ -3060,10 +3051,6 @@ func (r *mutationResolver) UpdateSessionIsPublic(ctx context.Context, sessionSec
 		return nil, e.Wrap(err, "error updating session is_public")
 	}
 
-	if err := r.OpenSearch.UpdateSynchronous(opensearch.IndexSessions, session.ID, map[string]interface{}{"is_public": isPublic}); err != nil {
-		return nil, e.Wrap(err, "error updating session in opensearch")
-	}
-
 	return session, nil
 }
 
@@ -3632,6 +3619,34 @@ func (r *mutationResolver) UpdateEmailOptOut(ctx context.Context, token *string,
 	return true, nil
 }
 
+// EditServiceGithubSettings is the resolver for the editServiceGithubSettings field.
+func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) (*model.Service, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	serviceUpdates := map[string]interface{}{
+		"ErrorDetails": make([]string, 0),
+		"BuildPrefix":  buildPrefix,
+		"GithubPrefix": githubPrefix,
+	}
+	if githubRepoPath != nil {
+		serviceUpdates["GithubRepoPath"] = *githubRepoPath
+		serviceUpdates["Status"] = "healthy"
+	} else {
+		serviceUpdates["GithubRepoPath"] = nil
+		serviceUpdates["Status"] = "created"
+	}
+
+	service := &model.Service{}
+	updateErr := r.DB.Where(&model.Service{Model: model.Model{ID: id}, ProjectID: project.ID}).Take(&service).Updates(&serviceUpdates).Error
+	if updateErr != nil {
+		return nil, updateErr
+	}
+	return service, nil
+}
+
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {
@@ -4108,6 +4123,9 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
 	eg, err := r.canAdminViewErrorGroup(ctx, secureID)
 	if err != nil {
+		return nil, err
+	}
+	if err := r.loadErrorGroupFrequencies(ctx, eg); err != nil {
 		return nil, err
 	}
 	retentionDate, err := r.GetProjectRetentionDate(eg.ProjectID)
@@ -4839,6 +4857,9 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 	if err != nil {
 		return nil, err
 	}
+	if err := r.loadErrorGroupFrequencies(ctx, errGroup); err != nil {
+		return nil, err
+	}
 
 	if projectID == 0 {
 		// Make error distribution random for demo org so it looks pretty
@@ -5099,7 +5120,11 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 }
 
 // SessionsOpensearch is the resolver for the sessions_opensearch field.
-func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, clickhouseQuery *modelInputs.ClickhouseQuery, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+	if clickhouseQuery != nil {
+		return r.SessionsClickhouse(ctx, projectID, count, *clickhouseQuery, sortField, sortDesc, page)
+	}
+
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -5142,6 +5167,38 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 	return &model.SessionResults{
 		Sessions:   results,
 		TotalCount: resultCount,
+	}, nil
+}
+
+// SessionsClickhouse is the resolver for the sessions_clickhouse field.
+func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, count int, query modelInputs.ClickhouseQuery, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	sortFieldStr := "CreatedAt DESC, ID DESC"
+	if !sortDesc {
+		sortFieldStr = "CreatedAt ASC, ID ASC"
+	}
+	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, projectID, count, query, sortFieldStr, page, retentionDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []model.Session
+	if err := r.DB.Model(&model.Session{}).Where("id in ?", ids).Order("created_at DESC").Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	return &model.SessionResults{
+		Sessions:   results,
+		TotalCount: total,
 	}, nil
 }
 
@@ -5198,7 +5255,13 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, qu
 }
 
 // FieldTypes is the resolver for the field_types field.
-func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate *time.Time, endDate *time.Time) ([]*model.Field, error) {
+func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]*model.Field, error) {
+	if useClickhouse != nil && *useClickhouse {
+		if startDate == nil || endDate == nil {
+			return nil, errors.New("startDate and endDate must not be nil")
+		}
+		return r.FieldTypesClickhouse(ctx, projectID, *startDate, *endDate)
+	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -5229,6 +5292,7 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate
 		Aggregation: &opensearch.TermsAggregation{
 			Field:   "fields.Key.raw",
 			Include: pointy.String("(session|track|user)_.*"),
+			Exclude: pointy.String("(session|track|user)_[0-9]+"), // Exclude numeric field types
 			Size:    pointy.Int(500),
 		},
 	}
@@ -5252,8 +5316,19 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate
 	}), nil
 }
 
+// FieldTypesClickhouse is the resolver for the field_types_clickhouse field.
+func (r *queryResolver) FieldTypesClickhouse(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
+	return r.ClickhouseClient.QueryFieldNames(ctx, projectID, startDate, endDate)
+}
+
 // FieldsOpensearch is the resolver for the fields_opensearch field.
-func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error) {
+func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]string, error) {
+	if useClickhouse != nil && *useClickhouse {
+		if startDate == nil || endDate == nil {
+			return nil, errors.New("startDate and endDate must not be nil")
+		}
+		return r.FieldsClickhouse(ctx, projectID, count, fieldType, fieldName, query, *startDate, *endDate)
+	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -5303,6 +5378,11 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	}
 
 	return values, nil
+}
+
+// FieldsClickhouse is the resolver for the fields_clickhouse field.
+func (r *queryResolver) FieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
+	return r.ClickhouseClient.QueryFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
 }
 
 // ErrorFieldsOpensearch is the resolver for the error_fields_opensearch field.
@@ -6533,12 +6613,7 @@ func (r *queryResolver) WorkspaceSettings(ctx context.Context, workspaceID int) 
 		return nil, err
 	}
 
-	workspaceSettings := model.AllWorkspaceSettings{}
-	if err := r.DB.Where(model.AllWorkspaceSettings{WorkspaceID: workspaceID}).FirstOrCreate(&workspaceSettings).Error; err != nil {
-		return nil, err
-	}
-
-	return &workspaceSettings, nil
+	return r.Store.GetAllWorkspaceSettings(ctx, workspaceID)
 }
 
 // WorkspaceForProject is the resolver for the workspace_for_project field.
@@ -7421,6 +7496,11 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 		stackTrace = errorObject.StackTrace
 	}
 
+	const MAX_AI_STACKTRACE_LENGTH = 5000
+	if stackTrace != nil && len(*stackTrace) > MAX_AI_STACKTRACE_LENGTH {
+		stackTrace = ptr.String((*stackTrace)[:MAX_AI_STACKTRACE_LENGTH])
+	}
+
 	userPrompt := fmt.Sprintf(`
 	Here is some information about the error.
 
@@ -7463,20 +7543,24 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 }
 
 // SessionInsight is the resolver for the session_insight field.
-func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*modelInputs.SessionInsight, error) {
+func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*model.SessionInsight, error) {
 	session, err := r.canAdminViewSession(ctx, secureID)
 	if err != nil {
 		return nil, nil
 	}
 
-	insight := &modelInputs.SessionInsight{}
+	var insight *model.SessionInsight
 
-	b, err := r.getSessionInsight(ctx, session.ProjectID, session.ID)
-	if err != nil {
-		return nil, e.Wrap(err, "failed to get session insight")
-	}
-	if err = json.Unmarshal(b, insight); err != nil {
-		return nil, e.Wrap(err, "failed to unmarshal session insight")
+	if err := r.DB.Model(&insight).Where(&model.SessionInsight{SessionID: session.ID}).Take(&insight).Error; err != nil {
+		if e.Is(err, gorm.ErrRecordNotFound) {
+			log.WithContext(ctx).Error(err, "SessionInsight: No record found")
+			insight, err = r.getSessionInsight(ctx, session)
+			if err != nil {
+				log.WithContext(ctx).Error(err, "SessionInsight: Error getting insight")
+			}
+		} else {
+			return nil, err
+		}
 	}
 
 	return insight, nil
@@ -7484,11 +7568,28 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 
 // SystemConfiguration is the resolver for the system_configuration field.
 func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemConfiguration, error) {
-	var config model.SystemConfiguration
-	if err := r.DB.Model(&config).Where(&model.SystemConfiguration{Active: true}).Take(&config).Error; err != nil {
+	return r.Store.GetSystemConfiguration(ctx)
+}
+
+// Services is the resolver for the services field.
+func (r *queryResolver) Services(ctx context.Context, projectID int, after *string, before *string, query *string) (*modelInputs.ServiceConnection, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
 		return nil, err
 	}
-	return &config, nil
+
+	services := []*model.Service{}
+	if err := r.DB.Order("name ASC").Model(&model.Service{}).Where(&model.Service{ProjectID: project.ID}).Scan(&services).Error; err != nil {
+		return nil, err
+	}
+
+	connection, err := r.Store.ListServices(*project, store.ListServicesParams{
+		After:  after,
+		Before: before,
+		Query:  query,
+	})
+
+	return &connection, err
 }
 
 // Params is the resolver for the params field.
@@ -7501,6 +7602,11 @@ func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*mode
 		return nil, e.Wrapf(err, "error unmarshaling segment params")
 	}
 	return params, nil
+}
+
+// ErrorDetails is the resolver for the errorDetails field.
+func (r *serviceResolver) ErrorDetails(ctx context.Context, obj *model.Service) ([]string, error) {
+	return obj.ErrorDetails, nil
 }
 
 // UserObject is the resolver for the user_object field.
@@ -7607,6 +7713,11 @@ func (r *sessionAlertResolver) DiscordChannelsToNotify(ctx context.Context, obj 
 	ret := obj.DiscordChannelsToNotify
 
 	return ret, nil
+}
+
+// WebhookDestinations is the resolver for the WebhookDestinations field.
+func (r *sessionAlertResolver) WebhookDestinations(ctx context.Context, obj *model.SessionAlert) ([]*model.WebhookDestination, error) {
+	return obj.WebhookDestinations, nil
 }
 
 // EmailsToNotify is the resolver for the EmailsToNotify field.
@@ -7815,6 +7926,9 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 // Segment returns generated.SegmentResolver implementation.
 func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver{r} }
 
+// Service returns generated.ServiceResolver implementation.
+func (r *Resolver) Service() generated.ServiceResolver { return &serviceResolver{r} }
+
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
@@ -7845,6 +7959,7 @@ type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
+type serviceResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }

@@ -2,9 +2,10 @@ package store
 
 import (
 	"context"
-	"github.com/highlight-run/highlight/backend/redis"
 	"os"
 	"testing"
+
+	"github.com/highlight-run/highlight/backend/redis"
 
 	log "github.com/sirupsen/logrus"
 
@@ -27,4 +28,16 @@ func TestMain(m *testing.M) {
 	store = NewStore(db, &opensearch.Client{}, redis.NewClient())
 	code := m.Run()
 	os.Exit(code)
+}
+
+func teardown(t *testing.T) {
+	err := util.ClearTablesInDB(store.db)
+	if err != nil {
+		t.Fatal(e.Wrap(err, "error clearing database"))
+	}
+
+	err = store.redis.FlushDB(context.TODO())
+	if err != nil {
+		t.Fatal(e.Wrap(err, "error clearing database"))
+	}
 }

@@ -25,7 +25,16 @@ import highlight_io
 from highlight_io.integrations.flask import FlaskIntegration
 
 app = Flask(__name__)
-H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[FlaskIntegration()], instrument_logging=True)`,
+
+# \`instrument_logging=True\` sets up logging instrumentation.
+# if you do not want to send logs or are using \`loguru\`, pass \`instrument_logging=False\`
+H = highlight_io.H(
+	"<YOUR_PROJECT_ID>",
+	integrations=[FlaskIntegration()],
+	instrument_logging=True,
+	service_name="my-flask-app",
+	service_version="git-sha",
+)`,
 					language: 'python',
 				},
 			],
@@ -50,7 +59,16 @@ import highlight_io
 from highlight_io.integrations.flask import FlaskIntegration
 
 app = Flask(__name__)
-H = highlight_io.H("<YOUR_PROJECT_ID>", integrations=[FlaskIntegration()], instrument_logging=True)
+
+# \`instrument_logging=True\` sets up logging instrumentation.
+# if you do not want to send logs or are using \`loguru\`, pass \`instrument_logging=False\`
+H = highlight_io.H(
+	"<YOUR_PROJECT_ID>",
+	integrations=[FlaskIntegration()],
+	instrument_logging=True,
+	service_name="my-flask-app",
+	service_version="git-sha",
+)
 
 
 @app.route("/hello")

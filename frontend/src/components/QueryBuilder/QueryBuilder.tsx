@@ -15,7 +15,7 @@ import { ErrorSegment, Exact, Field, Segment } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
-	getDefaultPresets,
+	defaultPresets,
 	getNow,
 	IconSolidCheveronDown,
 	IconSolidCloudUpload,
@@ -1097,8 +1097,7 @@ enum SegmentModalState {
 }
 
 const defaultMinDate = getNow().subtract(90, 'days').toDate()
-const presetOptions = getDefaultPresets()
-const defaultPreset = presetOptions[5]
+const defaultPreset = defaultPresets[5]
 
 function QueryBuilder(props: QueryBuilderProps) {
 	const {
@@ -1639,7 +1638,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 				cssClass={styles.controlBar}
 			>
 				<PreviousDateRangePicker
-					presets={presetOptions}
+					presets={defaultPresets}
 					selectedDates={dateRange}
 					minDate={defaultMinDate}
 					onDatesChange={(dates: Date[]) => {

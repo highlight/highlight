@@ -71,6 +71,10 @@ export const SessionAlertFragmentFragmentDoc = gql`
 		DiscordChannelsToNotify {
 			...DiscordChannelFragment
 		}
+		WebhookDestinations {
+			url
+			authorization
+		}
 		CountThreshold
 		DailyFrequency
 		disabled
@@ -83,6 +87,11 @@ export const SessionAlertFragmentFragmentDoc = gql`
 		updated_at
 		ThresholdWindow
 		TrackProperties {
+			id
+			name
+			value
+		}
+		UserProperties {
 			id
 			name
 			value
@@ -152,6 +161,7 @@ export const ErrorObjectFragmentDoc = gql`
 		os
 		browser
 		environment
+		serviceVersion
 	}
 `
 export const MarkErrorGroupAsViewedDocument = gql`
@@ -261,57 +271,6 @@ export type MarkSessionAsViewedMutationResult =
 export type MarkSessionAsViewedMutationOptions = Apollo.BaseMutationOptions<
 	Types.MarkSessionAsViewedMutation,
 	Types.MarkSessionAsViewedMutationVariables
->
-export const MarkSessionAsStarredDocument = gql`
-	mutation MarkSessionAsStarred($secure_id: String!, $starred: Boolean!) {
-		markSessionAsStarred(secure_id: $secure_id, starred: $starred) {
-			secure_id
-			starred
-		}
-	}
-`
-export type MarkSessionAsStarredMutationFn = Apollo.MutationFunction<
-	Types.MarkSessionAsStarredMutation,
-	Types.MarkSessionAsStarredMutationVariables
->
-
-/**
- * __useMarkSessionAsStarredMutation__
- *
- * To run a mutation, you first call `useMarkSessionAsStarredMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useMarkSessionAsStarredMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [markSessionAsStarredMutation, { data, loading, error }] = useMarkSessionAsStarredMutation({
- *   variables: {
- *      secure_id: // value for 'secure_id'
- *      starred: // value for 'starred'
- *   },
- * });
- */
-export function useMarkSessionAsStarredMutation(
-	baseOptions?: Apollo.MutationHookOptions<
-		Types.MarkSessionAsStarredMutation,
-		Types.MarkSessionAsStarredMutationVariables
-	>,
-) {
-	return Apollo.useMutation<
-		Types.MarkSessionAsStarredMutation,
-		Types.MarkSessionAsStarredMutationVariables
-	>(MarkSessionAsStarredDocument, baseOptions)
-}
-export type MarkSessionAsStarredMutationHookResult = ReturnType<
-	typeof useMarkSessionAsStarredMutation
->
-export type MarkSessionAsStarredMutationResult =
-	Apollo.MutationResult<Types.MarkSessionAsStarredMutation>
-export type MarkSessionAsStarredMutationOptions = Apollo.BaseMutationOptions<
-	Types.MarkSessionAsStarredMutation,
-	Types.MarkSessionAsStarredMutationVariables
 >
 export const MuteSessionCommentThreadDocument = gql`
 	mutation MuteSessionCommentThread($id: ID!, $has_muted: Boolean) {
@@ -4832,6 +4791,79 @@ export type DeleteInviteLinkFromWorkspaceMutationOptions =
 		Types.DeleteInviteLinkFromWorkspaceMutation,
 		Types.DeleteInviteLinkFromWorkspaceMutationVariables
 	>
+export const EditServiceGithubSettingsDocument = gql`
+	mutation EditServiceGithubSettings(
+		$id: ID!
+		$project_id: ID!
+		$github_repo_path: String
+		$build_prefix: String
+		$github_prefix: String
+	) {
+		editServiceGithubSettings(
+			id: $id
+			project_id: $project_id
+			github_repo_path: $github_repo_path
+			build_prefix: $build_prefix
+			github_prefix: $github_prefix
+		) {
+			id
+			projectID
+			name
+			status
+			githubRepoPath
+			buildPrefix
+			githubPrefix
+			errorDetails
+		}
+	}
+`
+export type EditServiceGithubSettingsMutationFn = Apollo.MutationFunction<
+	Types.EditServiceGithubSettingsMutation,
+	Types.EditServiceGithubSettingsMutationVariables
+>
+
+/**
+ * __useEditServiceGithubSettingsMutation__
+ *
+ * To run a mutation, you first call `useEditServiceGithubSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditServiceGithubSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [editServiceGithubSettingsMutation, { data, loading, error }] = useEditServiceGithubSettingsMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      project_id: // value for 'project_id'
+ *      github_repo_path: // value for 'github_repo_path'
+ *      build_prefix: // value for 'build_prefix'
+ *      github_prefix: // value for 'github_prefix'
+ *   },
+ * });
+ */
+export function useEditServiceGithubSettingsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.EditServiceGithubSettingsMutation,
+		Types.EditServiceGithubSettingsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.EditServiceGithubSettingsMutation,
+		Types.EditServiceGithubSettingsMutationVariables
+	>(EditServiceGithubSettingsDocument, baseOptions)
+}
+export type EditServiceGithubSettingsMutationHookResult = ReturnType<
+	typeof useEditServiceGithubSettingsMutation
+>
+export type EditServiceGithubSettingsMutationResult =
+	Apollo.MutationResult<Types.EditServiceGithubSettingsMutation>
+export type EditServiceGithubSettingsMutationOptions =
+	Apollo.BaseMutationOptions<
+		Types.EditServiceGithubSettingsMutation,
+		Types.EditServiceGithubSettingsMutationVariables
+	>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -6480,11 +6512,13 @@ export const GetFieldTypesDocument = gql`
 		$project_id: ID!
 		$start_date: Timestamp
 		$end_date: Timestamp
+		$use_clickhouse: Boolean
 	) {
 		field_types(
 			project_id: $project_id
 			start_date: $start_date
 			end_date: $end_date
+			use_clickhouse: $use_clickhouse
 		) {
 			type
 			name
@@ -6507,6 +6541,7 @@ export const GetFieldTypesDocument = gql`
  *      project_id: // value for 'project_id'
  *      start_date: // value for 'start_date'
  *      end_date: // value for 'end_date'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -6549,6 +6584,9 @@ export const GetFieldsOpensearchDocument = gql`
 		$field_type: String!
 		$field_name: String!
 		$query: String!
+		$start_date: Timestamp
+		$end_date: Timestamp
+		$use_clickhouse: Boolean
 	) {
 		fields_opensearch(
 			project_id: $project_id
@@ -6556,6 +6594,9 @@ export const GetFieldsOpensearchDocument = gql`
 			field_type: $field_type
 			field_name: $field_name
 			query: $query
+			start_date: $start_date
+			end_date: $end_date
+			use_clickhouse: $use_clickhouse
 		)
 	}
 `
@@ -6577,6 +6618,9 @@ export const GetFieldsOpensearchDocument = gql`
  *      field_type: // value for 'field_type'
  *      field_name: // value for 'field_name'
  *      query: // value for 'query'
+ *      start_date: // value for 'start_date'
+ *      end_date: // value for 'end_date'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -6755,6 +6799,7 @@ export const GetSessionsOpenSearchDocument = gql`
 		$project_id: ID!
 		$count: Int!
 		$query: String!
+		$clickhouse_query: ClickhouseQuery
 		$sort_desc: Boolean!
 		$sort_field: String
 		$page: Int
@@ -6763,6 +6808,7 @@ export const GetSessionsOpenSearchDocument = gql`
 			project_id: $project_id
 			count: $count
 			query: $query
+			clickhouse_query: $clickhouse_query
 			sort_field: $sort_field
 			sort_desc: $sort_desc
 			page: $page
@@ -6825,6 +6871,7 @@ export const GetSessionsOpenSearchDocument = gql`
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
  *      query: // value for 'query'
+ *      clickhouse_query: // value for 'clickhouse_query'
  *      sort_desc: // value for 'sort_desc'
  *      sort_field: // value for 'sort_field'
  *      page: // value for 'page'
@@ -8282,6 +8329,7 @@ export const GetErrorGroupDocument = gql`
 			is_public
 			last_occurrence
 			first_occurrence
+			serviceName
 		}
 	}
 `
@@ -12380,6 +12428,7 @@ export const GetLogsDocument = gql`
 					secureSessionID
 					source
 					serviceName
+					serviceVersion
 				}
 			}
 			pageInfo {
@@ -13185,4 +13234,89 @@ export type GetErrorObjectsLazyQueryHookResult = ReturnType<
 export type GetErrorObjectsQueryResult = Apollo.QueryResult<
 	Types.GetErrorObjectsQuery,
 	Types.GetErrorObjectsQueryVariables
+>
+export const GetServicesDocument = gql`
+	query GetServices(
+		$project_id: ID!
+		$query: String
+		$after: String
+		$before: String
+	) {
+		services(
+			project_id: $project_id
+			query: $query
+			after: $after
+			before: $before
+		) {
+			edges {
+				cursor
+				node {
+					id
+					projectID
+					name
+					status
+					githubRepoPath
+					buildPrefix
+					githubPrefix
+					errorDetails
+				}
+			}
+			pageInfo {
+				hasNextPage
+				hasPreviousPage
+				startCursor
+				endCursor
+			}
+		}
+	}
+`
+
+/**
+ * __useGetServicesQuery__
+ *
+ * To run a query within a React component, call `useGetServicesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetServicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetServicesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
+ *      after: // value for 'after'
+ *      before: // value for 'before'
+ *   },
+ * });
+ */
+export function useGetServicesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetServicesQuery,
+		Types.GetServicesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetServicesQuery,
+		Types.GetServicesQueryVariables
+	>(GetServicesDocument, baseOptions)
+}
+export function useGetServicesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetServicesQuery,
+		Types.GetServicesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetServicesQuery,
+		Types.GetServicesQueryVariables
+	>(GetServicesDocument, baseOptions)
+}
+export type GetServicesQueryHookResult = ReturnType<typeof useGetServicesQuery>
+export type GetServicesLazyQueryHookResult = ReturnType<
+	typeof useGetServicesLazyQuery
+>
+export type GetServicesQueryResult = Apollo.QueryResult<
+	Types.GetServicesQuery,
+	Types.GetServicesQueryVariables
 >

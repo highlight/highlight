@@ -16,7 +16,9 @@ import (
 	"time"
 
 	github2 "github.com/google/go-github/v50/github"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/integrations/github"
+	"github.com/sashabaranov/go-openai"
 
 	"gorm.io/gorm/clause"
 
@@ -31,6 +33,7 @@ import (
 	"github.com/highlight-run/highlight/backend/front"
 	"github.com/highlight-run/highlight/backend/integrations"
 	"github.com/highlight-run/highlight/backend/integrations/height"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda"
 	"github.com/highlight-run/highlight/backend/oauth"
 	"github.com/highlight-run/highlight/backend/redis"
@@ -137,6 +140,8 @@ type Resolver struct {
 	IntegrationsClient     *integrations.Client
 	ClickhouseClient       *clickhouse.Client
 	Store                  *store.Store
+	DataSyncQueue          kafka_queue.MessageQueue
+	TracesQueue            kafka_queue.MessageQueue
 }
 
 func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {
@@ -872,9 +877,6 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 }
 
 func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, bool, error) {
-	s, ctx := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("doesAdminOwnErrorGroup"))
-	defer s.Finish()
-
 	eg := &model.ErrorGroup{}
 
 	if err := r.DB.Where(&model.ErrorGroup{SecureID: errorGroupSecureID}).Take(&eg).Error; err != nil {
@@ -886,21 +888,18 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 		return eg, false, err
 	}
 
-	start := time.Now()
-	defer func() {
-		log.WithContext(ctx).WithField("duration", time.Since(start)).Info("doesAdminOwnErrorGroup.GetErrorGroupOccurrences")
-	}()
+	return eg, true, nil
+}
 
-	s, ctx = tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("doesAdminOwnErrorGroup.GetErrorGroupOccurrences"))
-	defer s.Finish()
+func (r *Resolver) loadErrorGroupFrequencies(ctx context.Context, eg *model.ErrorGroup) error {
+	var err error
 	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg); err != nil {
-		return nil, false, e.Wrap(err, "error querying error group occurrences")
+		return e.Wrap(err, "error querying error group occurrences")
 	}
 	if err := r.SetErrorFrequencies(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
-		return nil, false, e.Wrap(err, "error querying error group frequencies")
+		return e.Wrap(err, "error querying error group frequencies")
 	}
-
-	return eg, true, nil
+	return nil
 }
 
 func (r *Resolver) canAdminViewErrorObject(ctx context.Context, errorObjectID int) (*model.ErrorObject, error) {
@@ -1078,6 +1077,8 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 	if subjectScope == "error" {
 		determiner = "an"
 	}
+
+	// Header
 	message := fmt.Sprintf("You were %s in %s %s comment.", action, determiner, subjectScope)
 	if admin.Email != nil && *admin.Email != "" {
 		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Email, action, determiner, subjectScope)
@@ -1085,34 +1086,48 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 	if admin.Name != nil && *admin.Name != "" {
 		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Name, action, determiner, subjectScope)
 	}
+
+	// comment message
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
+	blockSet.BlockSet = append(blockSet.BlockSet,
+		slack.NewSectionBlock(
+			&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)},
+			nil, nil,
+		),
+	)
+
+	// info on the session/error
+	if subjectScope == "error" {
+		blockSet.BlockSet = append(blockSet.BlockSet,
+			slack.NewSectionBlock(
+				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Error*: %s\n %s", viewLink, *additionalContext)},
+				nil, nil,
+			),
+		)
+	} else if subjectScope == "session" {
+		blockSet.BlockSet = append(blockSet.BlockSet,
+			slack.NewSectionBlock(
+				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Session*: %s\n%s", viewLink, *additionalContext)},
+				nil, nil,
+			),
+		)
+	}
 
 	button := slack.NewButtonBlockElement(
 		"",
 		"click",
 		slack.NewTextBlockObject(
 			slack.PlainTextType,
-			"View",
+			"View comment",
 			false,
 			false,
 		),
 	)
+	button.WithStyle("primary")
 	button.URL = viewLink
 	blockSet.BlockSet = append(blockSet.BlockSet,
-		slack.NewSectionBlock(
-			&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)},
-			nil, slack.NewAccessory(button),
-		),
+		slack.NewActionBlock("action_block", button),
 	)
-
-	if additionalContext != nil {
-		blockSet.BlockSet = append(blockSet.BlockSet,
-			slack.NewSectionBlock(
-				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Additional Context*\n %s", *additionalContext)},
-				nil, nil,
-			),
-		)
-	}
 
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
 	return
@@ -1280,19 +1295,112 @@ func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sess
 	return b, nil
 }
 
-func (r *Resolver) getSessionInsight(ctx context.Context, projectID int, sessionID int) ([]byte, error) {
-	res, err := r.LambdaClient.GetSessionInsight(ctx, projectID, sessionID)
+func (r *Resolver) getSessionInsightPrompt(ctx context.Context, events []interface{}) (string, error) {
+	parsedEvents, err := parse.FilterEventsForInsights(events)
 	if err != nil {
-		return nil, e.Wrap(err, "failed to make session insight request")
+		return "", e.Wrap(err, "Failed filter session events")
 	}
-	if res.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("session insight returned %d", res.StatusCode))
-	}
-	b, err := io.ReadAll(res.Body)
+
+	b, err := json.Marshal(parsedEvents)
+
 	if err != nil {
-		return nil, e.Wrap(err, "failed to read body of session insight response")
+		return "", err
 	}
-	return b, nil
+
+	userPrompt := fmt.Sprintf(`
+	Input: 
+	%v
+	`, string(b))
+
+	return userPrompt, nil
+}
+
+func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session) (*model.SessionInsight, error) {
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		return nil, e.New("OPENAI_API_KEY is not set")
+	}
+
+	systemPrompt := `
+	Given array of events performed by a user from a session recording for a web application, make inferences and justifications and summarize interesting things about the session in 3 insights.
+	Rules:
+	- Use less than 2 sentences for each point
+	- Provide high level insights, do not mention singular events
+	- Do not mention event types in the insights
+	- Insights must be different to each other
+	- Do not mention identification or authentication events
+	- Don't mention timestamps in <insight>, insights should be interesting inferences from the input
+	- Output timestamp that best represents the insight in <timestamp> of output
+	- Sort the insights by timestamp
+
+	You must respond ONLY with JSON that looks like this:
+	[{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number }]
+	Do not provide any other output other than this format.
+
+	Context:
+	- The events are JSON objects, where the "timestamp" field represents UNIX time of the event, the "type" field represents the type of event, and the "data" field represents more information about the event
+	- If the event is of type "Custom", the "tag" field provides the type of custom event, and the "payload" field represents more information about the event
+	- If the event is of tag "Track", it is a custom event where the actual type of the event is in the "event" field within "data.payload"
+
+	The "type" field follows this format:
+	0 - DomContentLoaded
+	1 - Load
+	2 -	FullSnapshot, the full page view was loaded
+	3 -	IncrementalSnapshot, some components were updated
+	4 -	Meta
+	5 -	Custom, the "tag" field provides the type of custom event, and the "payload" field represents more information about the event
+	6 -	Plugin
+	`
+
+	events, err, _ := r.getEvents(ctx, session, model.EventsCursor{EventIndex: 0, EventObjectIndex: nil})
+	if err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: GetEvents error")
+		return nil, err
+	}
+
+	userPrompt, err := r.getSessionInsightPrompt(ctx, events)
+	if err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: Prompt error")
+		return nil, err
+	}
+
+	const MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH = 32000
+	if len(userPrompt) > MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH {
+		userPrompt = userPrompt[:MAX_AI_SESSION_INSIGHT_PROMPT_LENGTH]
+	}
+
+	client := openai.NewClient(apiKey)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model:       openai.GPT3Dot5Turbo16K,
+			Temperature: 0.7,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleSystem,
+					Content: systemPrompt,
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: userPrompt,
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: ChatCompletion error")
+		return nil, err
+	}
+
+	insight := &model.SessionInsight{SessionID: session.ID, Insight: resp.Choices[0].Message.Content}
+
+	if err := r.DB.Create(insight).Error; err != nil {
+		log.WithContext(ctx).Error(err, "SessionInsight: Error saving insight")
+		return nil, err
+	}
+
+	return insight, nil
 }
 
 // Returns the current Admin or an Admin with ID = 0 if the current Admin is a guest
@@ -1432,7 +1540,7 @@ func (r *Resolver) validateAdminRole(ctx context.Context, workspaceID int) error
 
 	role, err := r.GetAdminRole(ctx, admin.ID, workspaceID)
 	if err != nil || role != model.AdminRole.ADMIN {
-		return e.New("admin does not have role=ADMIN")
+		return AuthorizationError
 	}
 
 	return nil
@@ -1494,7 +1602,6 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 
 	// Default to free tier
 	tier := modelInputs.PlanTypeFree
-	retentionPeriod := modelInputs.RetentionPeriodSixMonths
 	unlimitedMembers := false
 	var billingPeriodStart *time.Time
 	var billingPeriodEnd *time.Time
@@ -1504,10 +1611,9 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 	// and set the workspace's tier if the Stripe product has one
 	for _, subscription := range subscriptions {
 		for _, subscriptionItem := range subscription.Items.Data {
-			if _, productTier, productUnlimitedMembers, _, priceRetentionPeriod := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
+			if _, productTier, productUnlimitedMembers, _, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
 				tier = *productTier
 				unlimitedMembers = productUnlimitedMembers
-				retentionPeriod = priceRetentionPeriod
 				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
 				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
 				nextInvoiceTimestamp := time.Unix(subscription.NextPendingInvoiceItemInvoice, 0)
@@ -1537,10 +1643,43 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 		"TrialEndDate":       nil,
 	}
 
-	// Only update retention period if already set
-	// This preserves `nil` values for customers grandfathered into 6 month retention
-	if workspace.RetentionPeriod != nil {
-		updates["RetentionPeriod"] = retentionPeriod
+	if util.IsHubspotEnabled() {
+		props := []hubspot.Property{{
+			Name:     "plan_tier",
+			Property: "plan_tier",
+			Value:    string(tier),
+		}}
+		if workspace.PlanTier != modelInputs.PlanTypeFree.String() && tier == modelInputs.PlanTypeFree {
+			props = append(props, hubspot.Property{
+				Name:     "churn_date",
+				Property: "churn_date",
+				Value:    time.Now().UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if billingPeriodStart != nil {
+			props = append(props, hubspot.Property{
+				Name:     "billing_period_start",
+				Property: "billing_period_start",
+				Value:    billingPeriodStart.UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if billingPeriodEnd != nil {
+			props = append(props, hubspot.Property{
+				Name:     "billing_period_end",
+				Property: "billing_period_end",
+				Value:    billingPeriodEnd.UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if nextInvoiceDate != nil {
+			props = append(props, hubspot.Property{
+				Name:     "next_invoice",
+				Property: "next_invoice",
+				Value:    nextInvoiceDate.UTC().Truncate(24 * time.Hour).UnixMilli(),
+			})
+		}
+		if err := r.HubspotApi.UpdateCompanyProperty(ctx, workspace.ID, props); err != nil {
+			log.WithContext(ctx).WithField("props", props).Error(e.Wrap(err, "hubspot error processing stripe webhook"))
+		}
 	}
 
 	if err := r.DB.Model(&model.Workspace{}).
@@ -3054,77 +3193,86 @@ func (r *Resolver) getEvents(ctx context.Context, s *model.Session, cursor model
 }
 
 func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId int) (*[]model.SlackChannel, int, error) {
-	var filteredNewChannels []model.SlackChannel
-
-	workspace, _ := r.GetWorkspace(workspaceId)
-	// workspace is not integrated with slack
-	if workspace.SlackAccessToken == nil {
-		return &filteredNewChannels, 0, nil
+	type result struct {
+		ExistingChannels []model.SlackChannel
+		NewChannelsCount int
 	}
+	res, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf(`slack-channels-workspace-%d`, workspaceId), 5*time.Second, 5*time.Minute, func() (*result, error) {
+		workspace, _ := r.GetWorkspace(workspaceId)
+		// workspace is not integrated with slack
+		if workspace.SlackAccessToken == nil {
+			return nil, nil
+		}
 
-	slackClient := slack.New(*workspace.SlackAccessToken)
-	existingChannels, _ := workspace.IntegratedSlackChannels()
+		slackClient := slack.New(*workspace.SlackAccessToken)
+		existingChannels, _ := workspace.IntegratedSlackChannels()
 
-	getConversationsParam := slack.GetConversationsParameters{
-		Limit: 1000,
-		// public_channel is for public channels in the Slack workspace
-		// private is for private channels in the Slack workspace that the Bot is included in
-		// im is for all individuals in the Slack workspace
-		// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
-		Types: []string{"public_channel", "private_channel", "mpim", "im"},
-	}
-	allSlackChannelsFromAPI := []slack.Channel{}
+		getConversationsParam := slack.GetConversationsParameters{
+			Limit: 1000,
+			// public_channel is for public channels in the Slack workspace
+			// private is for private channels in the Slack workspace that the Bot is included in
+			// mpim is for multi-person conversations in the Slack workspace that the Bot is included in
+			Types: []string{"public_channel", "private_channel", "mpim"},
+		}
+		allSlackChannelsFromAPI := []slack.Channel{}
 
-	// Slack paginates the channels/people listing.
-	for {
-		channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
+		// Slack paginates the channels/people listing.
+		for {
+			channels, cursor, err := slackClient.GetConversations(&getConversationsParam)
+			getConversationsParam.Cursor = cursor
+			if err != nil {
+				return nil, e.Wrap(err, "error getting Slack channels from Slack.")
+			}
+
+			allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
+
+			if getConversationsParam.Cursor == "" {
+				break
+			}
+			// delay the next slack call to avoid getting rate limited
+			time.Sleep(time.Second)
+		}
+
+		// We need to get the users in the Slack channel in order to get their name.
+		// The conversations endpoint only returns the user's ID, we'll use the response from `GetUsers` to get the name.
+		users, err := slackClient.GetUsers()
 		if err != nil {
-			return &filteredNewChannels, 0, e.Wrap(err, "error getting Slack channels from Slack.")
+			log.WithContext(ctx).Error(e.Wrap(err, "failed to get users"))
 		}
 
-		allSlackChannelsFromAPI = append(allSlackChannelsFromAPI, channels...)
+		newChannelsCount := 0
 
-		if cursor == "" {
-			break
+		channelsAndUsers := map[string]model.SlackChannel{}
+		for _, channel := range existingChannels {
+			channelsAndUsers[channel.WebhookChannelID] = channel
 		}
 
-	}
-
-	// We need to get the users in the Slack channel in order to get their name.
-	// The conversations endpoint only returns the user's ID, we'll use the response from `GetUsers` to get the name.
-	users, err := slackClient.GetUsers()
-	if err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "failed to get users"))
-	}
-
-	newChannelsCount := 0
-
-	channelsAndUsers := map[string]model.SlackChannel{}
-	for _, channel := range existingChannels {
-		channelsAndUsers[channel.WebhookChannelID] = channel
-	}
-
-	for _, channel := range allSlackChannelsFromAPI {
-		_, exists := channelsAndUsers[channel.ID]
-		if !exists && channel.IsChannel && channel.ID != "" {
-			newChannelsCount++
-			slackChannel := model.SlackChannel{WebhookChannelID: channel.ID, WebhookChannel: fmt.Sprintf("#%s", channel.Name)}
-			channelsAndUsers[channel.ID] = slackChannel
-			existingChannels = append(existingChannels, slackChannel)
+		for _, channel := range allSlackChannelsFromAPI {
+			_, exists := channelsAndUsers[channel.ID]
+			if !exists && channel.IsChannel && channel.ID != "" {
+				newChannelsCount++
+				slackChannel := model.SlackChannel{WebhookChannelID: channel.ID, WebhookChannel: fmt.Sprintf("#%s", channel.Name)}
+				channelsAndUsers[channel.ID] = slackChannel
+				existingChannels = append(existingChannels, slackChannel)
+			}
 		}
-	}
 
-	for _, user := range users {
-		_, exists := channelsAndUsers[user.ID]
-		if !exists && !user.IsBot && !user.Deleted && strings.ToLower(user.Name) != "slackbot" {
-			newChannelsCount++
-			slackChannel := model.SlackChannel{WebhookChannelID: user.ID, WebhookChannel: fmt.Sprintf("@%s", user.Name)}
-			channelsAndUsers[user.ID] = slackChannel
-			existingChannels = append(existingChannels, slackChannel)
+		for _, user := range users {
+			_, exists := channelsAndUsers[user.ID]
+			if !exists && !user.IsBot && !user.Deleted && strings.ToLower(user.Name) != "slackbot" {
+				newChannelsCount++
+				slackChannel := model.SlackChannel{WebhookChannelID: user.ID, WebhookChannel: fmt.Sprintf("@%s", user.Name)}
+				channelsAndUsers[user.ID] = slackChannel
+				existingChannels = append(existingChannels, slackChannel)
+			}
 		}
-	}
 
-	return &existingChannels, newChannelsCount, nil
+		return &result{existingChannels, newChannelsCount}, nil
+	})
+	if res == nil {
+		return nil, 0, err
+	}
+	return &res.ExistingChannels, res.NewChannelsCount, err
 }
 
 func GetAggregateFluxStatement(ctx context.Context, aggregator modelInputs.MetricAggregator, resMins int) string {
