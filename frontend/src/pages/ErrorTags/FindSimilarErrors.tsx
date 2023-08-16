@@ -1,4 +1,4 @@
-import { Box, Form, Stack } from '@highlight-run/ui'
+import { Box, Form, Heading, Stack, Table } from '@highlight-run/ui'
 import { useState } from 'react'
 
 import { useFindSimilarErrorsQuery } from '@/graph/generated/hooks'
@@ -22,18 +22,55 @@ export function FindSimilarErrors() {
 	}
 
 	return (
-		<section>
-			<h2>Find Similar Errors</h2>
-			<form onSubmit={onSubmit}>
-				<Stack gap="8">
-					<Form.Input name="query" />
-					<Box>
-						<Form.Submit disabled={loading} type="submit">
-							Search
-						</Form.Submit>
-					</Box>
-				</Stack>
-			</form>
-		</section>
+		<Stack gap="32">
+			<Box>
+				<Box paddingBottom="16">
+					<Heading level="h4">Find Similar Errors</Heading>
+				</Box>
+				<form onSubmit={onSubmit}>
+					<Stack gap="8">
+						<Form.Input name="query" />
+						<Box>
+							<Form.Submit disabled={loading} type="submit">
+								Search
+							</Form.Submit>
+						</Box>
+					</Stack>
+				</form>
+			</Box>
+			{data ? (
+				<Box>
+					<Table>
+						<Table.Head>
+							<Table.Row gridColumns={['5rem', '10rem', '1fr']}>
+								<Table.Header>Type</Table.Header>
+								<Table.Header>Title</Table.Header>
+								<Table.Header>Description</Table.Header>
+							</Table.Row>
+						</Table.Head>
+						<Table.Body>
+							{data?.find_similar_errors?.map((tag) =>
+								tag ? (
+									<Table.Row
+										gridColumns={['5rem', '10rem', '1fr']}
+										key={tag.id}
+									>
+										<Table.Cell wordBreak="break-all">
+											{tag.type}
+										</Table.Cell>
+										<Table.Cell>
+											{tag.event.join(', ')}
+										</Table.Cell>
+										<Table.Cell wordBreak="break-all">
+											{tag.stack_trace}
+										</Table.Cell>
+									</Table.Row>
+								) : null,
+							)}
+						</Table.Body>
+					</Table>
+				</Box>
+			) : null}
+		</Stack>
 	)
 }
