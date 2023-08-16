@@ -590,11 +590,12 @@ func (client *Client) QueryFieldNames(ctx context.Context, projectId int, start 
 
 	fields := []*model.Field{}
 	for rows.Next() {
-		var field *model.Field
-		if err := rows.Scan(&field); err != nil {
+		var typ string
+		var name string
+		if err := rows.Scan(&typ, &name); err != nil {
 			return nil, err
 		}
-		fields = append(fields, field)
+		fields = append(fields, &model.Field{Type: typ, Name: name})
 	}
 
 	return fields, nil
@@ -616,7 +617,7 @@ func (client *Client) QueryFieldValues(ctx context.Context, projectId int, count
 		Limit(count).
 		BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	rows, err := client.conn.Query(ctx, sql, args)
+	rows, err := client.conn.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, err
 	}
