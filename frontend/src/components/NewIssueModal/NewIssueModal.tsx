@@ -59,6 +59,18 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 		},
 	})
 
+	React.useEffect(() => {
+		if(!defaultIssueTitle && !commentText ) return
+
+		form.setValues(prev => ({
+			...prev,
+			'issueTitle': defaultIssueTitle,
+			'issueDescription': commentText
+		}))
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [defaultIssueTitle, commentText])
+
 	const [containerId, setContainerId] = useState('')
 
 	const { project_id } = useParams<{
@@ -96,6 +108,12 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			const issueTitle = form.getValue(form.names.issueTitle)
 			const issueDescription =
 				form.getValue(form.names.issueDescription) ?? ''
+
+			console.log({
+				issueTitle,
+				issueDescription,
+				"submitting": "submitting",
+			})
 
 			const issueTeamId = containerId || ''
 			const text = commentText ?? 'Open in Highlight'
