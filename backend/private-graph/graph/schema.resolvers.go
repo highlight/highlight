@@ -7542,7 +7542,7 @@ func (r *queryResolver) ErrorTags(ctx context.Context) ([]*model.ErrorTag, error
 }
 
 // MatchErrorTag is the resolver for the match_error_tag field.
-func (r *queryResolver) MatchErrorTag(ctx context.Context, query string) (*model.ErrorTag, error) {
+func (r *queryResolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInputs.MatchedErrorTag, error) {
 	return r.Resolver.MatchErrorTag(ctx, query)
 }
 

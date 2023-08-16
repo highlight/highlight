@@ -502,6 +502,12 @@ type LogsParamsInput struct {
 	DateRange *DateRangeRequiredInput `json:"date_range"`
 }
 
+type MatchedErrorTag struct {
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Score       float64 `json:"score"`
+}
+
 type MetricPreview struct {
 	Date  time.Time `json:"date"`
 	Value float64   `json:"value"`

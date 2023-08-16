@@ -562,6 +562,12 @@ type ErrorTag {
 	description: String
 }
 
+type MatchedErrorTag {
+	title: String!
+	description: String!
+	score: Float!
+}
+
 type ErrorTrace {
 	fileName: String
 	lineNumber: Int
@@ -1771,7 +1777,7 @@ type Query {
 		query: String
 	): ServiceConnection
 	error_tags: [ErrorTag]
-	match_error_tag(query: String!): ErrorTag
+	match_error_tag(query: String!): [MatchedErrorTag]
 	find_similar_errors(query: String!): [ErrorObject]
 }
 

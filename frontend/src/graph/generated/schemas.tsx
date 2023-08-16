@@ -871,6 +871,13 @@ export type LogsParamsInput = {
 	query: Scalars['String']
 }
 
+export type MatchedErrorTag = {
+	__typename?: 'MatchedErrorTag'
+	description: Scalars['String']
+	score: Scalars['Float']
+	title: Scalars['String']
+}
+
 export type Metric = {
 	__typename?: 'Metric'
 	name: Scalars['String']
@@ -1721,7 +1728,7 @@ export type Query = {
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<LogKey>
 	logs_total_count: Scalars['UInt64']
-	match_error_tag?: Maybe<ErrorTag>
+	match_error_tag?: Maybe<Array<Maybe<MatchedErrorTag>>>
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>

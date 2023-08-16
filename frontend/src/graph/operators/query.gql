@@ -2190,7 +2190,9 @@ query GetErrorTags {
 
 query MatchErrorTag($query: String!) {
 	match_error_tag(query: $query) {
-		...ErrorTag
+		title
+		description
+		score
 	}
 }
 

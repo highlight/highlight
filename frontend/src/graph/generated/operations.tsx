@@ -4520,7 +4520,14 @@ export type MatchErrorTagQueryVariables = Types.Exact<{
 
 export type MatchErrorTagQuery = { __typename?: 'Query' } & {
 	match_error_tag?: Types.Maybe<
-		{ __typename?: 'ErrorTag' } & ErrorTagFragment
+		Array<
+			Types.Maybe<
+				{ __typename?: 'MatchedErrorTag' } & Pick<
+					Types.MatchedErrorTag,
+					'title' | 'description' | 'score'
+				>
+			>
+		>
 	>
 }
 

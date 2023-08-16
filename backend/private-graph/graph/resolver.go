@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -3699,16 +3700,29 @@ func (r *Resolver) GetErrorTags() ([]*model.ErrorTag, error) {
 	return errorTags, nil
 }
 
-func (r *Resolver) MatchErrorTag(ctx context.Context, query string) (*model.ErrorTag, error) {
+func (r *Resolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInputs.MatchedErrorTag, error) {
 	stringEmbedding, err := r.EmbeddingsClient.GetStringEmbedding(ctx, query)
-	log.Info(stringEmbedding)
-	var errorTag *model.ErrorTag
+	log.Info("💘💘💘💘💘 MatchError Tag found a string embedding 💗💗💗💗💗")
+	var result []*modelInputs.MatchedErrorTag
 
 	if err != nil {
-		return nil, e.Wrap(err, "500: failed to get string embedding")
+		return result, e.Wrap(err, "500: failed to get string embedding")
 	}
 
-	return errorTag, nil
+	if err := r.DB.Raw(`
+select error_tags.embedding <=> @string_embedding as score,
+       error_tags.title as title,
+			 error_tags.description as description
+from error_tags
+order by score desc
+limit 5;`, sql.Named("string_embedding", stringEmbedding)).
+		Scan(&result).Error; err != nil {
+		return result, e.Wrap(err, "error querying nearest ErrorTag")
+	}
+
+	log.Info(result)
+
+	return result, nil
 }
 
 func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.ErrorObject, error) {
