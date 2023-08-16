@@ -9,14 +9,14 @@ If you are running Highlight in Electron, a Desktop based JS framework, you can 
 
 Please ensure you are using Highlight SDK version [highlight.run@4.3.4.](https://www.npmjs.com/package/highlight.run/v/4.3.4) or higher. Call `configureElectronHighlight` with a `BrowserWindow` object to instrument Electron events.
 
-```Text
+```js
 const mainWindow = new BrowserWindow(...)
 configureElectronHighlight(mainWindow)
 ```
 
 Under the hood, the function will forward the `focus` and `blur` events to your renderer process so that the highlight recording SDK can track them.
 
-```Text
+```js
 mainWindow.on('focus', () => {
     mainWindow.webContents.send('highlight.run', { visible: true });
 });
