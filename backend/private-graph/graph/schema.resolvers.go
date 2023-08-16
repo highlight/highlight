@@ -4124,6 +4124,9 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model
 	if err != nil {
 		return nil, err
 	}
+	if err := r.loadErrorGroupFrequencies(ctx, eg); err != nil {
+		return nil, err
+	}
 	retentionDate, err := r.GetProjectRetentionDate(eg.ProjectID)
 	if err != nil {
 		return nil, err
@@ -4851,6 +4854,9 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, projectID int, dat
 func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, errorGroupSecureID string, dateOffset int) ([]int64, error) {
 	errGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
+		return nil, err
+	}
+	if err := r.loadErrorGroupFrequencies(ctx, errGroup); err != nil {
 		return nil, err
 	}
 

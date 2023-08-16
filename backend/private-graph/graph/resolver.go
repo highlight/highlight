@@ -888,14 +888,18 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 		return eg, false, err
 	}
 
+	return eg, true, nil
+}
+
+func (r *Resolver) loadErrorGroupFrequencies(ctx context.Context, eg *model.ErrorGroup) error {
+	var err error
 	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg); err != nil {
-		return nil, false, e.Wrap(err, "error querying error group occurrences")
+		return e.Wrap(err, "error querying error group occurrences")
 	}
 	if err := r.SetErrorFrequencies(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
-		return nil, false, e.Wrap(err, "error querying error group frequencies")
+		return e.Wrap(err, "error querying error group frequencies")
 	}
-
-	return eg, true, nil
+	return nil
 }
 
 func (r *Resolver) canAdminViewErrorObject(ctx context.Context, errorObjectID int) (*model.ErrorObject, error) {
