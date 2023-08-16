@@ -2,6 +2,7 @@ import { Button } from '@components/Button'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
+import Select from '@components/Select/Select'
 import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
 import {
 	Badge,
@@ -19,10 +20,12 @@ import { getDiscordOauthUrl } from '@pages/IntegrationsPage/components/DiscordIn
 import { Header } from '@pages/Setup/Header'
 import useLocalStorage from '@rehooks/local-storage'
 import * as React from 'react'
-import { useEffect } from 'react'
-import { useMatch, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useLocation, useMatch, useNavigate } from 'react-router-dom'
 
 import Switch from '@/components/Switch/Switch'
+
+import * as styles from './SetupRouter.css'
 
 interface NotificationOption {
 	name: 'Slack' | 'Discord' | 'Email'
@@ -103,7 +106,7 @@ export const AlertsSetup: React.FC = function () {
 
 	useEffect(() => {
 		if (alertsSelected.length) {
-			// TODO(vkorolik) create the default alerts
+			// TODO(vkorolik) create the alerts
 		}
 	}, [alertsSelected])
 
@@ -140,6 +143,13 @@ const PlatformPicker: React.FC = function () {
 	const { data, loading } = useGetAlertsPagePayloadQuery({
 		variables: { project_id: projectId },
 	})
+	const emails = (data?.admins ?? [])
+		.map((wa) => wa.admin!.email)
+		.map((email) => ({
+			displayValue: email,
+			value: email,
+			id: email,
+		}))
 
 	useEffect(() => {
 		if (
@@ -161,6 +171,16 @@ const PlatformPicker: React.FC = function () {
 	if (loading) return null
 	return (
 		<>
+			{integratePlatform === 'email' ? (
+				<EmailPicker
+					emails={emails}
+					onSubmit={(emails) => {
+						setIntegratePlatform(undefined)
+						navigate(integratePlatform, { state: { emails } })
+					}}
+					onCancel={() => setIntegratePlatform(undefined)}
+				/>
+			) : null}
 			{(integratePlatform === 'slack' &&
 				!data?.is_integrated_with_slack) ||
 			(integratePlatform === 'discord' &&
@@ -229,9 +249,14 @@ const AlertPicker = function ({
 	alertsSelected: string[]
 	onAlertsSelected: (alerts: string[]) => void
 }) {
+	const location = useLocation()
 	const notificationOption = notificationOptions.find(
 		(n) => n.name.toLowerCase() === platform,
 	)
+	let destinations: string[] | undefined
+	if (platform === 'email') {
+		destinations = location.state.emails
+	}
 	return (
 		<Stack gap="0">
 			{alertOptions.map((option, index) => {
@@ -298,7 +323,9 @@ const AlertPicker = function ({
 										-1
 									}
 								>
-									{option.destination}
+									{destinations
+										? destinations.join(', ')
+										: option.destination}
 								</Tag>
 								<Badge
 									size="medium"
@@ -361,6 +388,73 @@ const IntegrationCallout = function ({
 						>
 							Cancel
 						</Button>
+					</Box>
+				</Stack>
+			</ModalBody>
+		</Modal>
+	)
+}
+
+const EmailPicker = function ({
+	emails,
+	onSubmit,
+	onCancel,
+}: {
+	emails: { displayValue: string; value: string; id: string }[]
+	onSubmit: (emails: string[]) => void
+	onCancel: () => void
+}) {
+	const [targetEmails, setTargetEmails] = useState<string[]>([])
+	const icon = notificationOptions.find((n) => n.name === 'Email')?.logo
+	return (
+		<Modal onCancel={onCancel} visible={true} width="600px">
+			<ModalBody>
+				<Stack>
+					<Text size="large" weight="bold">
+						Send alerts to an email
+					</Text>
+					<Text size="medium" color="moderate">
+						Please provide the emails you'd like to notify.
+					</Text>
+					<Box
+						display="flex"
+						justifyContent="space-between"
+						alignItems="center"
+						gap="8"
+					>
+						<Select
+							aria-label="Emails to notify"
+							placeholder="Select emails"
+							options={emails}
+							onChange={(values: string[]): any =>
+								setTargetEmails(values)
+							}
+							value={targetEmails}
+							notFoundContent={<p>No email suggestions</p>}
+							className={styles.selectContainer}
+							mode="multiple"
+						/>
+						<Box display="flex" alignItems="center" gap="8">
+							<Button
+								trackingId="setup-alerts-integration-email"
+								kind="secondary"
+								size="small"
+								emphasis="high"
+								iconLeft={icon}
+								onClick={() => onSubmit(targetEmails)}
+							>
+								Select
+							</Button>
+							<Button
+								trackingId="setup-alerts-integration-email-cancel"
+								kind="secondary"
+								size="small"
+								emphasis="low"
+								onClick={onCancel}
+							>
+								Cancel
+							</Button>
+						</Box>
 					</Box>
 				</Stack>
 			</ModalBody>
