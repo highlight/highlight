@@ -125,7 +125,7 @@ func (c *OpenAIClient) GetErrorTagEmbedding(ctx context.Context, title string, d
 	resp, err := c.client.CreateEmbeddings(
 		context.Background(),
 		openai.EmbeddingRequest{
-			Input: []string{title, description},
+			Input: []string{title + " " + description},
 			Model: openai.AdaEmbeddingV2,
 			User:  "highlight-io",
 		},

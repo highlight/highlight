@@ -3702,12 +3702,12 @@ func (r *Resolver) GetErrorTags() ([]*model.ErrorTag, error) {
 
 func (r *Resolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInputs.MatchedErrorTag, error) {
 	stringEmbedding, err := r.EmbeddingsClient.GetStringEmbedding(ctx, query)
-	var result []*modelInputs.MatchedErrorTag
 
 	if err != nil {
-		return result, e.Wrap(err, "500: failed to get string embedding")
+		return nil, e.Wrap(err, "500: failed to get string embedding")
 	}
 
+	var matchedErrorTags []*modelInputs.MatchedErrorTag
 	if err := r.DB.Raw(`
 		select error_tags.embedding <=> @string_embedding as score,
 					error_tags.id as id,
@@ -3717,20 +3717,29 @@ func (r *Resolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInp
 		order by score asc
 		limit 5;
 	`, sql.Named("string_embedding", model.Vector(stringEmbedding))).
-		Scan(&result).Error; err != nil {
-		return result, e.Wrap(err, "error querying nearest ErrorTag")
+		Scan(&matchedErrorTags).Error; err != nil {
+		return nil, e.Wrap(err, "error querying nearest ErrorTag")
 	}
 
-	return result, nil
+	return matchedErrorTags, nil
 }
 
 func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.ErrorObject, error) {
 	stringEmbedding, err := r.EmbeddingsClient.GetStringEmbedding(ctx, query)
-	log.Info(stringEmbedding)
-	var errorObjects []*model.ErrorObject
 
 	if err != nil {
 		return nil, e.Wrap(err, "500: failed to get string embedding")
+	}
+
+	var errorObjects []*model.ErrorObject
+	if err := r.DB.Raw(`
+		select error_object_embeddings.event_embedding <=> @string_embedding as score, error_objects.*
+			from error_object_embeddings
+			join error_objects on error_object_embeddings.error_object_id = error_objects.id 
+			limit 10;
+	`, sql.Named("string_embedding", model.Vector(stringEmbedding))).
+		Scan(&errorObjects).Error; err != nil {
+		return errorObjects, e.Wrap(err, "error querying nearest ErrorTag")
 	}
 
 	return errorObjects, nil
