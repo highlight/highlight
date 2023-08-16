@@ -13,10 +13,10 @@ import { z } from 'zod'
 import { removeOrderingPrefix } from '../../../pages/api/docs/github'
 import { Typography } from '../../common/Typography/Typography'
 
-import { Disclosure, Transition } from '@headlessui/react'
 import classNames from 'classnames'
 import { useEffect, useRef, useState } from 'react'
 
+import * as Collapsible from '@radix-ui/react-collapsible'
 import { useRouter } from 'next/router'
 import { FaDiscord, FaGithub, FaTwitter } from 'react-icons/fa'
 import styles from '../Docs.module.scss'
@@ -239,6 +239,9 @@ function TocEntry({
 	docPages: DocPage[]
 }) {
 	const focused = route.includes(slugPath)
+	const [opened, setOpened] = useState<boolean | null>(null)
+
+	const open = opened ?? focused
 
 	return !isIndex ? (
 		<Link href={'/docs/' + slugPath} className={entryPlateStyle}>
@@ -265,46 +268,34 @@ function TocEntry({
 			</Typography>
 		</Link>
 	) : (
-		<Disclosure defaultOpen={focused}>
-			{({ open }) => (
-				<>
-					<Disclosure.Button className={entryPlateStyle}>
-						<ChevronRightIcon
-							className={classNames(
-								entryIconStyle,
-								'text-copy-on-light',
-								open && 'rotate-90',
-							)}
-						/>
-						<Typography
-							type="copy3"
-							onDark
-							className={entryTextStyle}
-						>
-							{title}
-						</Typography>
-					</Disclosure.Button>
-					<Transition
-						enter="transition duration-100 ease-out"
-						enterFrom="transform scale-y-95 opacity-0 origin-top"
-						enterTo="transform scale-y-100 opacity-100 origin-top"
-						leave="transition duration-75 ease-out"
-						leaveFrom="transform scale-y-100 opacity-100 origin-top"
-						leaveTo="transform scale-y-95 opacity-0 origin-top"
-					>
-						<Disclosure.Panel className="flex flex-row gap-0.5">
-							<div className="w-0.5 mx-[11px] flex-shrink-0 bg-divider-on-dark" />
-							<TableOfContentsSection
-								docPages={docPages}
-								tocEntries={subEntries}
-								onSubtableNavigation={onSubtableNavigation}
-								route={route}
-							/>
-						</Disclosure.Panel>
-					</Transition>
-				</>
-			)}
-		</Disclosure>
+		<Collapsible.Root open={open}>
+			<>
+				<Collapsible.Trigger
+					className={entryPlateStyle}
+					onClick={() => setOpened(!open)}
+				>
+					<ChevronRightIcon
+						className={classNames(
+							entryIconStyle,
+							'text-copy-on-light',
+							open && 'rotate-90',
+						)}
+					/>
+					<Typography type="copy3" onDark className={entryTextStyle}>
+						{title}
+					</Typography>
+				</Collapsible.Trigger>
+				<Collapsible.Content className="flex flex-row gap-0.5">
+					<div className="w-0.5 mx-[11px] flex-shrink-0 bg-divider-on-dark" />
+					<TableOfContentsSection
+						docPages={docPages}
+						tocEntries={subEntries}
+						onSubtableNavigation={onSubtableNavigation}
+						route={route}
+					/>
+				</Collapsible.Content>
+			</>
+		</Collapsible.Root>
 	)
 }
 
