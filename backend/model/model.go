@@ -914,7 +914,7 @@ type ErrorGroupingMethod string
 const (
 	ErrorGroupingMethodClassic             ErrorGroupingMethod = "Classic"
 	ErrorGroupingMethodAdaEmbeddingV2      ErrorGroupingMethod = "AdaV2"
-	ErrorGroupingMethodGteLargeEmbeddingV2 ErrorGroupingMethod = "gte-large"
+	ErrorGroupingMethodGteLargeEmbeddingV2 ErrorGroupingMethod = "thenlper/gte-large"
 )
 
 type ErrorObject struct {
@@ -952,11 +952,9 @@ type ErrorObject struct {
 
 type ErrorObjectEmbeddings struct {
 	Model
-	ErrorObjectID       int
-	CombinedEmbedding   Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
-	EventEmbedding      Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
-	StackTraceEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
-	PayloadEmbedding    Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	ErrorObjectID     int
+	CombinedEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	GteLargeEmbedding Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large model
 }
 
 type ErrorGroup struct {
