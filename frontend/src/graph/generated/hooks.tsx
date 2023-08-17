@@ -6915,11 +6915,13 @@ export const GetSessionsHistogramDocument = gql`
 		$project_id: ID!
 		$query: String!
 		$histogram_options: DateHistogramOptions!
+		$clickhouse_query: ClickhouseQuery
 	) {
 		sessions_histogram(
 			project_id: $project_id
 			query: $query
 			histogram_options: $histogram_options
+			clickhouse_query: $clickhouse_query
 		) {
 			bucket_times
 			sessions_without_errors
@@ -6944,6 +6946,7 @@ export const GetSessionsHistogramDocument = gql`
  *      project_id: // value for 'project_id'
  *      query: // value for 'query'
  *      histogram_options: // value for 'histogram_options'
+ *      clickhouse_query: // value for 'clickhouse_query'
  *   },
  * });
  */

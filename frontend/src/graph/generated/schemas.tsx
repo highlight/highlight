@@ -1746,6 +1746,7 @@ export type Query = {
 	session_intervals: Array<SessionInterval>
 	sessions_clickhouse: SessionResults
 	sessions_histogram: SessionsHistogram
+	sessions_histogram_clickhouse: SessionsHistogram
 	sessions_opensearch: SessionResults
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
 	sourcemap_files: Array<S3File>
@@ -2287,9 +2288,16 @@ export type QuerySessions_ClickhouseArgs = {
 }
 
 export type QuerySessions_HistogramArgs = {
+	clickhouse_query?: InputMaybe<ClickhouseQuery>
 	histogram_options: DateHistogramOptions
 	project_id: Scalars['ID']
 	query: Scalars['String']
+}
+
+export type QuerySessions_Histogram_ClickhouseArgs = {
+	histogram_options: DateHistogramOptions
+	project_id: Scalars['ID']
+	query: ClickhouseQuery
 }
 
 export type QuerySessions_OpensearchArgs = {
