@@ -10,6 +10,7 @@ import {
 	IconSolidInformationCircle,
 	IconSolidLogs,
 	IconSolidPlus,
+	IconSolidRefresh,
 	Stack,
 	Tag,
 	Text,
@@ -26,6 +27,7 @@ import { AlertEnableSwitch } from '@pages/Alerts/AlertEnableSwitch/AlertEnableSw
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
+import { RiDiscordFill, RiMailFill, RiSlackFill } from 'react-icons/ri'
 import { useNavigate } from 'react-router-dom'
 
 import { LinkButton } from '@/components/LinkButton'
@@ -183,6 +185,18 @@ function AlertsPageLoaded({
 }) {
 	const { project_id } = useParams<{ project_id: string }>()
 	const navigate = useNavigate()
+
+	const navigateToAlert = (record: any) => {
+		if (record.type === ALERT_NAMES['METRIC_MONITOR']) {
+			navigate(`/${project_id}/alerts/monitor/${record.id}`)
+		} else if (record.type === ALERT_NAMES['LOG_ALERT']) {
+			navigate(`/${project_id}/alerts/logs/${record.id}`)
+		} else if (record.type === ALERT_NAMES['ERROR_ALERT']) {
+			navigate(`/${project_id}/alerts/errors/${record.id}`)
+		} else {
+			navigate(`/${project_id}/alerts/${record.id}`)
+		}
+	}
 
 	const alertsAsTableRows = [
 		...(alertsPayload?.error_alerts || [])
@@ -346,6 +360,133 @@ function AlertsPageLoaded({
 																		.description
 																}
 															</Tooltip>
+															{record
+																.ChannelsToNotify
+																.length > 0 && (
+																<Tag
+																	kind="secondary"
+																	size="medium"
+																	shape="basic"
+																	emphasis="medium"
+																	iconLeft={
+																		<RiSlackFill />
+																	}
+																	onClick={() =>
+																		navigateToAlert(
+																			record,
+																		)
+																	}
+																>
+																	{`${
+																		record
+																			.ChannelsToNotify[0]
+																	}${
+																		record
+																			.ChannelsToNotify
+																			.length >
+																		1
+																			? `, +${
+																					record
+																						.ChannelsToNotify
+																						.length -
+																					1
+																			  }`
+																			: ''
+																	}`}
+																</Tag>
+															)}
+															{record
+																.DiscordChannelsToNotify
+																.length > 0 && (
+																<Tag
+																	kind="secondary"
+																	size="medium"
+																	shape="basic"
+																	emphasis="medium"
+																	iconLeft={
+																		<RiDiscordFill />
+																	}
+																	onClick={() =>
+																		navigateToAlert(
+																			record,
+																		)
+																	}
+																>
+																	{`${
+																		record
+																			.DiscordChannelsToNotify[0]
+																			.name
+																	}${
+																		record
+																			.DiscordChannelsToNotify
+																			.length >
+																		1
+																			? `, +${
+																					record
+																						.DiscordChannelsToNotify
+																						.length -
+																					1
+																			  }`
+																			: ''
+																	}`}
+																</Tag>
+															)}
+															{record
+																.EmailsToNotify
+																.length > 0 && (
+																<Tag
+																	kind="secondary"
+																	size="medium"
+																	shape="basic"
+																	emphasis="medium"
+																	iconLeft={
+																		<RiMailFill />
+																	}
+																	onClick={() =>
+																		navigateToAlert(
+																			record,
+																		)
+																	}
+																>
+																	{`${
+																		record
+																			.EmailsToNotify[0]
+																	}${
+																		record
+																			.EmailsToNotify
+																			.length >
+																		1
+																			? `, +${
+																					record
+																						.EmailsToNotify
+																						.length -
+																					1
+																			  }`
+																			: ''
+																	}`}
+																</Tag>
+															)}
+															{record
+																.WebhookDestinations
+																.length > 0 && (
+																<Tag
+																	kind="secondary"
+																	size="medium"
+																	shape="basic"
+																	emphasis="medium"
+																	iconLeft={
+																		<IconSolidRefresh />
+																	}
+																	onClick={() =>
+																		navigateToAlert(
+																			record,
+																		)
+																	}
+																>
+																	Webhook
+																	enabled
+																</Tag>
+															)}
 															<Tag
 																kind="secondary"
 																size="medium"
@@ -354,40 +495,11 @@ function AlertsPageLoaded({
 																iconRight={
 																	<IconSolidCheveronRight />
 																}
-																onClick={() => {
-																	if (
-																		record.type ===
-																		ALERT_NAMES[
-																			'METRIC_MONITOR'
-																		]
-																	) {
-																		navigate(
-																			`/${project_id}/alerts/monitor/${record.id}`,
-																		)
-																	} else if (
-																		record.type ===
-																		ALERT_NAMES[
-																			'LOG_ALERT'
-																		]
-																	) {
-																		navigate(
-																			`/${project_id}/alerts/logs/${record.id}`,
-																		)
-																	} else if (
-																		record.type ===
-																		ALERT_NAMES[
-																			'ERROR_ALERT'
-																		]
-																	) {
-																		navigate(
-																			`/${project_id}/alerts/errors/${record.id}`,
-																		)
-																	} else {
-																		navigate(
-																			`/${project_id}/alerts/${record.id}`,
-																		)
-																	}
-																}}
+																onClick={() =>
+																	navigateToAlert(
+																		record,
+																	)
+																}
 															>
 																Configure
 															</Tag>
