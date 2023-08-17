@@ -45,6 +45,7 @@ var (
 	S3SessionsStagingBucketName    = os.Getenv("AWS_S3_STAGING_BUCKET_NAME")
 	S3SourceMapBucketNameNew       = os.Getenv("AWS_S3_SOURCE_MAP_BUCKET_NAME_NEW")
 	S3ResourcesBucketName          = os.Getenv("AWS_S3_RESOURCES_BUCKET")
+	S3GithubBucketName             = os.Getenv("AWS_S3_GITHUB_BUCKET_NAME")
 	CloudfrontDomain               = os.Getenv("AWS_CLOUDFRONT_DOMAIN")
 	CloudfrontPublicKeyID          = os.Getenv("AWS_CLOUDFRONT_PUBLIC_KEY_ID")
 	CloudfrontPrivateKey           = os.Getenv("AWS_CLOUDFRONT_PRIVATE_KEY")
@@ -93,6 +94,8 @@ type Client interface {
 	ReadSourceMapFile(ctx context.Context, projectId int, version *string, fileName string) ([]byte, error)
 	ReadTimelineIndicatorEvents(ctx context.Context, sessionId int, projectId int) ([]*model.TimelineIndicatorEvent, error)
 	UploadAsset(ctx context.Context, uuid string, contentType string, reader io.Reader) error
+	ReadGithubFile(ctx context.Context, fileName string, version *string) ([]byte, error)
+	PushGithubFile(ctx context.Context, fileName string, version *string, fileBytes []byte) (*int64, error)
 }
 
 type FilesystemClient struct {
@@ -333,6 +336,35 @@ func (f *FilesystemClient) handleUploadSourcemap(ctx context.Context, key string
 	file := parts[2]
 	_, err := f.writeFSBytes(ctx, fmt.Sprintf("%s/sourcemaps/%s/%s/%s", f.fsRoot, projectID, version, file), body)
 	return err
+}
+
+func (f *FilesystemClient) ReadGithubFile(ctx context.Context, fileName string, version *string) ([]byte, error) {
+	if version == nil {
+		version = pointy.String("main")
+	}
+	if b, err := f.readFSBytes(ctx, fmt.Sprintf("%s/%s/%s", f.fsRoot, *version, fileName)); err == nil {
+		return b.Bytes(), nil
+	} else {
+		return nil, err
+	}
+}
+
+func (f *FilesystemClient) PushGithubFile(ctx context.Context, fileName string, version *string, fileBytes []byte) (*int64, error) {
+	buf := new(bytes.Buffer)
+	_, err := buf.Read(fileBytes)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from memory buffer")
+	}
+
+	if version == nil {
+		version = pointy.String("main")
+	}
+
+	if n, err := f.writeFSBytes(ctx, fmt.Sprintf("%s/%s/%s", f.fsRoot, *version, fileName), buf); err != nil {
+		return pointy.Int64(0), err
+	} else {
+		return &n, nil
+	}
 }
 
 func (f *FilesystemClient) readFSBytes(ctx context.Context, key string) (*bytes.Buffer, error) {
@@ -929,4 +961,54 @@ func (s *S3Client) GetSourcemapVersions(ctx context.Context, projectId int) ([]s
 	return lo.Map(output.CommonPrefixes, func(t s3Types.CommonPrefix, i int) string {
 		return *t.Prefix
 	}), nil
+}
+
+func (s *S3Client) githubBucketKey(fileName string, version *string) *string {
+	var key string
+	if util.IsDevEnv() {
+		key = "dev/"
+	}
+	if version == nil {
+		version = pointy.String("main")
+	}
+	key += fmt.Sprintf("%s/%s", *version, fileName)
+	return pointy.String(key)
+}
+
+func (s *S3Client) ReadGithubFile(ctx context.Context, fileName string, version *string) ([]byte, error) {
+	output, err := s.S3ClientEast2.GetObject(ctx, &s3.GetObjectInput{Bucket: pointy.String(S3GithubBucketName),
+		Key: s.githubBucketKey(fileName, version)})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting object from s3")
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	return buf.Bytes(), nil
+}
+
+func (s *S3Client) PushGithubFileReaderToS3(ctx context.Context, fileName string, version *string, file io.Reader) (*int64, error) {
+	key := s.githubBucketKey(fileName, version)
+	_, err := s.S3ClientEast2.PutObject(ctx, &s3.PutObjectInput{
+		Bucket: pointy.String(S3GithubBucketName), Key: key, Body: file,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "error 'put'ing github file in s3 bucket")
+	}
+	headObj := s3.HeadObjectInput{
+		Bucket: pointy.String(S3SourceMapBucketNameNew),
+		Key:    key,
+	}
+	result, err := s.S3ClientEast2.HeadObject(ctx, &headObj)
+	if err != nil {
+		return nil, errors.New("error retrieving head object")
+	}
+	return &result.ContentLength, nil
+}
+
+func (s *S3Client) PushGithubFile(ctx context.Context, fileName string, version *string, fileBytes []byte) (*int64, error) {
+	body := bytes.NewReader(fileBytes)
+	return s.PushGithubFileReaderToS3(ctx, fileName, version, body)
 }

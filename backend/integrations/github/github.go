@@ -2,14 +2,16 @@ package github
 
 import (
 	"context"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v50/github"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"os"
-	"strconv"
 )
 
 type Config struct {
@@ -153,4 +155,13 @@ func (c *Client) DeleteInstallation(ctx context.Context, installation string) er
 
 	_, err = c.jwtClient.Apps.DeleteInstallation(ctx, installationID)
 	return err
+}
+
+func (c *Client) GetRepoContent(ctx context.Context, githubPath string, path string, version *string) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error) {
+	repoPath := strings.Split(githubPath, "/")
+	opts := new(github.RepositoryContentGetOptions)
+	if version != nil {
+		opts.Ref = *version
+	}
+	return c.client.Repositories.GetContents(ctx, repoPath[0], repoPath[1], path, opts)
 }

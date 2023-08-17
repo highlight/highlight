@@ -2,11 +2,13 @@ package graph
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"hash/fnv"
 	"io"
+	"math"
 	"net/http"
 	"net/mail"
 	"regexp"
@@ -18,6 +20,8 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/errorgroups"
+	"github.com/highlight-run/highlight/backend/integrations"
+	"github.com/highlight-run/highlight/backend/integrations/github"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/store"
@@ -64,21 +68,22 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB               *gorm.DB
-	TDB              timeseries.DB
-	ProducerQueue    kafka_queue.MessageQueue
-	BatchedQueue     kafka_queue.MessageQueue
-	DataSyncQueue    kafka_queue.MessageQueue
-	TracesQueue      kafka_queue.MessageQueue
-	MailClient       *sendgrid.Client
-	StorageClient    storage.Client
-	OpenSearch       *opensearch.Client
-	HubspotApi       *highlightHubspot.HubspotApi
-	EmbeddingsClient embeddings.Client
-	Redis            *redis.Client
-	Clickhouse       *clickhouse.Client
-	RH               *resthooks.Resthook
-	Store            *store.Store
+	DB                 *gorm.DB
+	TDB                timeseries.DB
+	ProducerQueue      kafka_queue.MessageQueue
+	BatchedQueue       kafka_queue.MessageQueue
+	DataSyncQueue      kafka_queue.MessageQueue
+	TracesQueue        kafka_queue.MessageQueue
+	MailClient         *sendgrid.Client
+	StorageClient      storage.Client
+	OpenSearch         *opensearch.Client
+	HubspotApi         *highlightHubspot.HubspotApi
+	EmbeddingsClient   embeddings.Client
+	Redis              *redis.Client
+	Clickhouse         *clickhouse.Client
+	RH                 *resthooks.Resthook
+	Store              *store.Store
+	IntegrationsClient *integrations.Client
 }
 
 type Location struct {
@@ -370,6 +375,196 @@ func (r *Resolver) getMappedStackTraceString(ctx context.Context, stackTrace []*
 		newMappedStackTraceString = &mappedStackTraceString
 	}
 	return newMappedStackTraceString, mappedStackTrace, nil
+}
+
+func (r *Resolver) getEnhancedStackTraceString(ctx context.Context, stackTrace string, projectID int, errorObj *model.ErrorObject, serviceName string, serviceVersion string) (*string, []*privateModel.ErrorTrace, error) {
+	var structuredStackTrace []*privateModel.ErrorTrace
+
+	err := json.Unmarshal([]byte(stackTrace), &structuredStackTrace)
+	if err != nil {
+		structuredStackTrace, err = stacktraces.StructureOTELStackTrace(stackTrace)
+		if err != nil {
+			return nil, structuredStackTrace, err
+		}
+	}
+
+	var newMappedStackTraceString *string
+	mappedStackTrace, err := r.GetGithubEnhancedStakeTrace(ctx, structuredStackTrace, projectID, errorObj, serviceName, serviceVersion)
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrapf(err, "error object: %+v", errorObj))
+	} else {
+		mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
+		if err != nil {
+			return nil, nil, e.Wrap(err, "error marshalling mapped stack trace")
+		}
+		mappedStackTraceString := string(mappedStackTraceBytes)
+		newMappedStackTraceString = &mappedStackTraceString
+	}
+
+	return newMappedStackTraceString, mappedStackTrace, nil
+}
+
+func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace []*privateModel.ErrorTrace, projectID int, errorObj *model.ErrorObject, serviceName string, serviceVersion string) ([]*privateModel.ErrorTrace, error) {
+	// TODO(spenny): should we fetch on dev env?
+	// TODO(spenny): check returning errors and how to handle each case
+	if serviceName == "" {
+		return nil, nil
+	}
+
+	workspace := &model.Workspace{}
+	if err := r.DB.Model(&model.Workspace{}).Joins("LEFT JOIN projects ON projects.workspace_id = workspaces.id").Where("projects.id = ?", projectID).Take(&workspace).Error; err != nil {
+		return nil, err
+	}
+
+	gitHubAccessToken, err := r.IntegrationsClient.GetWorkspaceAccessToken(ctx, workspace, privateModel.IntegrationTypeGitHub)
+	if err != nil || gitHubAccessToken == nil {
+		return nil, nil
+	}
+
+	service, err := r.GetErrorService(ctx, projectID, serviceName)
+	if err != nil || service == nil || service.GithubRepoPath == nil || service.Status != "healthy" {
+		return nil, nil
+	}
+
+	newServiceVersion := ptr.String(serviceVersion)
+	// TODO(spenny): check if version available and may be a git hash
+	// TODO(spenny): use main if not
+
+	client, err := github.NewClient(ctx, *gitHubAccessToken)
+	if err != nil {
+		return nil, nil
+	}
+
+	newMappedStackTrace := []*privateModel.ErrorTrace{}
+
+	for idx, trace := range stackTrace {
+		if idx > 5 {
+			newMappedStackTrace = append(newMappedStackTrace, trace)
+			continue
+		}
+
+		fileName := trace.FileName
+		lineNumber := trace.LineNumber
+
+		if fileName == nil {
+			newMappedStackTrace = append(newMappedStackTrace, trace)
+			continue
+		}
+
+		// TODO(spenny): filter out files that should not be fetched (i.e. node modules, go packages, etc)
+		// static constant or system configuration
+
+		if service.BuildPrefix != nil && service.GithubPrefix != nil {
+			fileName = ptr.String(strings.Replace(*fileName, *service.BuildPrefix, *service.GithubPrefix, 1))
+		} else if service.BuildPrefix != nil {
+			fileName = ptr.String(strings.Replace(*fileName, *service.BuildPrefix, "", 1))
+		} else if service.GithubPrefix != nil {
+			fileName = ptr.String(*service.GithubPrefix + *fileName)
+		}
+
+		githubFileBytes, err := r.StorageClient.ReadGithubFile(ctx, *fileName, newServiceVersion)
+
+		if err != nil || githubFileBytes == nil || len(githubFileBytes) == 0 {
+			// TODO(spenny): file too big returns no content
+			fileContent, _, _, err := client.GetRepoContent(ctx, *service.GithubRepoPath, *fileName, newServiceVersion)
+			// TODO(spenny): if main was fetched - use response hash to store and cache in redis
+
+			if fileContent == nil || fileContent.Content == nil || err != nil {
+				newMappedStackTrace = append(newMappedStackTrace, trace)
+				continue
+			}
+
+			githubFileBytes = []byte(*fileContent.Content)
+
+			// TODO(spenny): if not available, try main
+			// TODO(spenny): too many unexpected errors, then put service into error state
+			// TODO(spenny): catch any rate limit errors (maybe set cooldown to try again)
+
+			_, err = r.StorageClient.PushGithubFile(ctx, *fileName, newServiceVersion, githubFileBytes)
+			// TODO(spenny): error reading from memory buffer: EOF
+			if err != nil {
+				log.WithContext(ctx).Error(err)
+			}
+		}
+
+		githubFileString := string(githubFileBytes)
+		rawDecodedText, err := base64.StdEncoding.DecodeString(githubFileString)
+		if err != nil || rawDecodedText == nil || len(rawDecodedText) == 0 {
+			newMappedStackTrace = append(newMappedStackTrace, trace)
+			continue
+		}
+
+		lines := strings.Split(string(rawDecodedText), "\n")
+		if lines == nil {
+			newMappedStackTrace = append(newMappedStackTrace, trace)
+			continue
+		}
+
+		minLine := int(math.Max(1, float64(*lineNumber-5)))
+		maxLine := int(math.Min(float64(len(lines)-1), float64(*lineNumber+5)))
+		renderedLines := lines[minLine-1 : maxLine]
+		if renderedLines == nil {
+			newMappedStackTrace = append(newMappedStackTrace, trace)
+			continue
+		}
+
+		lineContent := ""
+		beforeContent := ""
+		afterContent := ""
+
+		for index, line := range renderedLines {
+			currentLine := index + minLine
+
+			if currentLine == *trace.LineNumber {
+				lineContent = line
+			} else if currentLine < *trace.LineNumber {
+				beforeContent = beforeContent + "\n" + line
+			} else if currentLine > *trace.LineNumber {
+				afterContent = afterContent + "\n" + line
+			}
+		}
+
+		newStackTraceInput := privateModel.ErrorTrace{
+			FileName:                   trace.FileName,
+			LineNumber:                 trace.LineNumber,
+			FunctionName:               trace.FunctionName,
+			Error:                      trace.Error,
+			SourceMappingErrorMetadata: trace.SourceMappingErrorMetadata,
+			LineContent:                &lineContent,
+			LinesBefore:                ptr.String(strings.TrimPrefix(beforeContent, "\n")),
+			LinesAfter:                 ptr.String(strings.TrimPrefix(afterContent, "\n")),
+		}
+		newMappedStackTrace = append(newMappedStackTrace, &newStackTraceInput)
+	}
+
+	return newMappedStackTrace, nil
+}
+
+func (r *Resolver) GetGitHubIntegration(ctx context.Context, workspaceID int) (*model.IntegrationWorkspaceMapping, error) {
+	workspaceMapping := &model.IntegrationWorkspaceMapping{}
+
+	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspaceID,
+		IntegrationType: privateModel.IntegrationTypeGitHub,
+	}).Take(&workspaceMapping).Error; err != nil {
+		return nil, err
+	}
+
+	return workspaceMapping, nil
+}
+
+func (r *Resolver) GetErrorService(ctx context.Context, projectID int, serviceName string) (*model.Service, error) {
+	service := &model.Service{}
+
+	// TODO(spenny): can we cache this same as the logs?
+	if err := r.DB.Where(&model.Service{
+		ProjectID: projectID,
+		Name:      serviceName,
+	}).Take(&service).Error; err != nil {
+		return nil, err
+	}
+
+	return service, nil
 }
 
 func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error)) (*model.ErrorGroup, error) {
@@ -2164,14 +2359,12 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			ServiceVersion: v.Service.Version,
 		}
 
-		var structuredStackTrace []*privateModel.ErrorTrace
+		mappedStackTrace, structuredStackTrace, err := r.getEnhancedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert, v.Service.Name, v.Service.Version)
 
-		err = json.Unmarshal([]byte(v.StackTrace), &structuredStackTrace)
 		if err != nil {
-			structuredStackTrace, err = stacktraces.StructureOTELStackTrace(v.StackTrace)
-			if err != nil {
-				log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
-			}
+			log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
+		} else {
+			errorToInsert.MappedStackTrace = mappedStackTrace
 		}
 
 		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)
