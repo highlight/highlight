@@ -41,11 +41,8 @@ func (c *mockEmbeddingsClient) GetEmbeddings(ctx context.Context, errors []*mode
 	vec[0] += 0.01
 	return []*model.ErrorObjectEmbeddings{
 		{
-			ErrorObjectID:       1,
-			CombinedEmbedding:   vec,
-			EventEmbedding:      vec,
-			StackTraceEmbedding: vec,
-			PayloadEmbedding:    vec,
+			ErrorObjectID:     1,
+			CombinedEmbedding: vec,
 		},
 	}, nil
 }
@@ -150,16 +147,10 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			expectedErrorGroups: []model.ErrorGroup{},
 			embeddingsToInsert: []model.ErrorObjectEmbeddings{
 				{
-					CombinedEmbedding:   vector,
-					EventEmbedding:      vector,
-					StackTraceEmbedding: vector,
-					PayloadEmbedding:    vector,
+					CombinedEmbedding: vector,
 				},
 				{
-					CombinedEmbedding:   vector,
-					EventEmbedding:      vector,
-					StackTraceEmbedding: vector,
-					PayloadEmbedding:    vector,
+					CombinedEmbedding: vector,
 				},
 			},
 			withEmbeddings: pointy.Bool(true),
@@ -321,11 +312,8 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				resolver.DB.Create(&eo)
 
 				embedding := model.ErrorObjectEmbeddings{
-					ErrorObjectID:       eo.ID,
-					CombinedEmbedding:   emb.CombinedEmbedding,
-					EventEmbedding:      emb.EventEmbedding,
-					StackTraceEmbedding: emb.StackTraceEmbedding,
-					PayloadEmbedding:    emb.PayloadEmbedding,
+					ErrorObjectID:     eo.ID,
+					CombinedEmbedding: emb.CombinedEmbedding,
 				}
 				resolver.DB.Create(&embedding)
 			}
