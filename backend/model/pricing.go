@@ -1,18 +1,18 @@
 package model
 
-type ProductType string
+type PricingProductType string
 
 const (
-	ProductTypeBase     ProductType = "BASE"
-	ProductTypeMembers  ProductType = "MEMBERS"
-	ProductTypeSessions ProductType = "SESSIONS"
-	ProductTypeErrors   ProductType = "ERRORS"
-	ProductTypeLogs     ProductType = "LOGS"
+	PricingProductTypeBase     PricingProductType = "BASE"
+	PricingProductTypeMembers  PricingProductType = "MEMBERS"
+	PricingProductTypeSessions PricingProductType = "SESSIONS"
+	PricingProductTypeErrors   PricingProductType = "ERRORS"
+	PricingProductTypeLogs     PricingProductType = "LOGS"
 )
 
-type SubscriptionInterval string
+type PricingSubscriptionInterval string
 
 const (
-	SubscriptionIntervalMonthly SubscriptionInterval = "MONTHLY"
-	SubscriptionIntervalAnnual  SubscriptionInterval = "ANNUAL"
+	PricingSubscriptionIntervalMonthly PricingSubscriptionInterval = "MONTHLY"
+	PricingSubscriptionIntervalAnnual  PricingSubscriptionInterval = "ANNUAL"
 )

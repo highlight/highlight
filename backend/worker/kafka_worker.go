@@ -149,7 +149,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) error {
 		quotaExceededByProject := map[uint32]bool{}
 		projectsToQuery := []uint32{}
 		for projectId := range workspaceByProject {
-			exceeded, err := k.Worker.Resolver.Redis.IsBillingQuotaExceeded(ctxW, int(projectId), model.ProductTypeLogs)
+			exceeded, err := k.Worker.Resolver.Redis.IsBillingQuotaExceeded(ctxW, int(projectId), model.PricingProductTypeLogs)
 			if err != nil {
 				log.WithContext(ctxW).Error(err)
 				continue
@@ -185,9 +185,9 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) error {
 			}
 			workspace.Projects = projects
 
-			withinBillingQuota, quotaPercent := k.Worker.PublicResolver.IsWithinQuota(ctxW, model.ProductTypeLogs, &workspace, time.Now())
+			withinBillingQuota, quotaPercent := k.Worker.PublicResolver.IsWithinQuota(ctxW, model.PricingProductTypeLogs, &workspace, time.Now())
 			quotaExceededByProject[projectId] = !withinBillingQuota
-			if err := k.Worker.Resolver.Redis.SetBillingQuotaExceeded(ctxW, int(projectId), model.ProductTypeLogs, !withinBillingQuota); err != nil {
+			if err := k.Worker.Resolver.Redis.SetBillingQuotaExceeded(ctxW, int(projectId), model.PricingProductTypeLogs, !withinBillingQuota); err != nil {
 				log.WithContext(ctxW).Error(err)
 				return err
 			}

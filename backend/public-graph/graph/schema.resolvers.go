@@ -63,7 +63,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 			err = r.Redis.SetIsPendingSession(ctx, sessionSecureID, true)
 		}
 		if err == nil {
-			exceeded, err := r.Redis.IsBillingQuotaExceeded(ctx, projectID, model.ProductTypeSessions)
+			exceeded, err := r.Redis.IsBillingQuotaExceeded(ctx, projectID, model.PricingProductTypeSessions)
 			if err == nil && exceeded != nil && *exceeded {
 				err = e.New(string(customModels.PublicGraphErrorBillingQuotaExceeded))
 			}

@@ -592,10 +592,10 @@ func Test_WithinQuota_CommittedPricing(t *testing.T) {
 				union all select 2, '2023-01-02'::date, 0) a
 		`)
 
-		basicWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, model.ProductTypeSessions, &workspaceBasic, time.Now())
+		basicWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, model.PricingProductTypeSessions, &workspaceBasic, time.Now())
 		assert.True(t, basicWithinBillingQuota)
 
-		usageBasedWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, model.ProductTypeSessions, &workspaceUsageBased, time.Now())
+		usageBasedWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, model.PricingProductTypeSessions, &workspaceUsageBased, time.Now())
 		assert.False(t, usageBasedWithinBillingQuota)
 	})
 }

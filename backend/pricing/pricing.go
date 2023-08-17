@@ -185,7 +185,7 @@ func GetWorkspaceLogsMeter(ctx context.Context, DB *gorm.DB, ccClient *clickhous
 	return int64(count), nil
 }
 
-func GetLimitAmount(limitCostCents *int, productType model.ProductType, planType backend.PlanType, retentionPeriod backend.RetentionPeriod) *int64 {
+func GetLimitAmount(limitCostCents *int, productType model.PricingProductType, planType backend.PlanType, retentionPeriod backend.RetentionPeriod) *int64 {
 	included := int64(IncludedAmount(planType, productType))
 	if planType == backend.PlanTypeFree {
 		return pointy.Int64(included)
@@ -200,25 +200,25 @@ func GetLimitAmount(limitCostCents *int, productType model.ProductType, planType
 		float64(*limitCostCents)/basePrice/retentionMultiplier) + included)
 }
 
-func ProductToBasePriceCents(productType model.ProductType, planType backend.PlanType) float64 {
+func ProductToBasePriceCents(productType model.PricingProductType, planType backend.PlanType) float64 {
 	if planType == backend.PlanTypeUsageBased {
 		switch productType {
-		case model.ProductTypeSessions:
+		case model.PricingProductTypeSessions:
 			return 2
-		case model.ProductTypeErrors:
+		case model.PricingProductTypeErrors:
 			return .02
-		case model.ProductTypeLogs:
+		case model.PricingProductTypeLogs:
 			return .00015
 		default:
 			return 0
 		}
 	} else {
 		switch productType {
-		case model.ProductTypeSessions:
+		case model.PricingProductTypeSessions:
 			return .5
-		case model.ProductTypeErrors:
+		case model.PricingProductTypeErrors:
 			return .02
-		case model.ProductTypeLogs:
+		case model.PricingProductTypeLogs:
 			return .00015
 		default:
 			return 0
@@ -261,13 +261,13 @@ func TypeToMemberLimit(planType backend.PlanType, unlimitedMembers bool) *int {
 	}
 }
 
-func IncludedAmount(planType backend.PlanType, productType model.ProductType) int {
+func IncludedAmount(planType backend.PlanType, productType model.PricingProductType) int {
 	switch productType {
-	case model.ProductTypeSessions:
+	case model.PricingProductTypeSessions:
 		return TypeToSessionsLimit(planType)
-	case model.ProductTypeErrors:
+	case model.PricingProductTypeErrors:
 		return TypeToErrorsLimit(planType)
-	case model.ProductTypeLogs:
+	case model.PricingProductTypeLogs:
 		return TypeToLogsLimit(planType)
 	default:
 		return 0
@@ -346,11 +346,11 @@ func MustUpgradeForClearbit(tier string) bool {
 }
 
 // Returns a Stripe lookup key which maps to a single Stripe Price
-func GetBaseLookupKey(productTier backend.PlanType, interval model.SubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (result string) {
+func GetBaseLookupKey(productTier backend.PlanType, interval model.PricingSubscriptionInterval, unlimitedMembers bool, retentionPeriod backend.RetentionPeriod) (result string) {
 	if productTier == backend.PlanTypeUsageBased {
-		return fmt.Sprintf("%s|%s", model.ProductTypeBase, backend.PlanTypeUsageBased)
+		return fmt.Sprintf("%s|%s", model.PricingProductTypeBase, backend.PlanTypeUsageBased)
 	}
-	result = fmt.Sprintf("%s|%s|%s", model.ProductTypeBase, string(productTier), string(interval))
+	result = fmt.Sprintf("%s|%s|%s", model.PricingProductTypeBase, string(productTier), string(interval))
 	if unlimitedMembers {
 		result += "|UNLIMITED_MEMBERS"
 	}
@@ -360,22 +360,22 @@ func GetBaseLookupKey(productTier backend.PlanType, interval model.SubscriptionI
 	return
 }
 
-func GetOverageKey(productType model.ProductType, retentionPeriod backend.RetentionPeriod, planType backend.PlanType) string {
+func GetOverageKey(productType model.PricingProductType, retentionPeriod backend.RetentionPeriod, planType backend.PlanType) string {
 	result := string(productType)
 	if retentionPeriod != backend.RetentionPeriodThreeMonths {
 		result += "|" + string(retentionPeriod)
 	}
-	if productType == model.ProductTypeSessions && planType == backend.PlanTypeUsageBased {
+	if productType == model.PricingProductTypeSessions && planType == backend.PlanTypeUsageBased {
 		result += "|UsageBased"
 	}
 	return result
 }
 
-// Returns the Highlight model.ProductType, Tier, and Interval for the Stripe Price
-func GetProductMetadata(price *stripe.Price) (*model.ProductType, *backend.PlanType, bool, model.SubscriptionInterval, backend.RetentionPeriod) {
-	interval := model.SubscriptionIntervalMonthly
+// Returns the Highlight model.PricingProductType, Tier, and Interval for the Stripe Price
+func GetProductMetadata(price *stripe.Price) (*model.PricingProductType, *backend.PlanType, bool, model.PricingSubscriptionInterval, backend.RetentionPeriod) {
+	interval := model.PricingSubscriptionIntervalMonthly
 	if price.Recurring != nil && price.Recurring.Interval == stripe.PriceRecurringIntervalYear {
-		interval = model.SubscriptionIntervalAnnual
+		interval = model.PricingSubscriptionIntervalAnnual
 	}
 
 	retentionPeriod := backend.RetentionPeriodSixMonths
@@ -384,15 +384,15 @@ func GetProductMetadata(price *stripe.Price) (*model.ProductType, *backend.PlanT
 	// return it for backward compatibility
 	oldTier := FromPriceID(price.ID)
 	if oldTier != backend.PlanTypeFree {
-		base := model.ProductTypeBase
+		base := model.PricingProductTypeBase
 		return &base, &oldTier, false, interval, retentionPeriod
 	}
 
-	var productTypePtr *model.ProductType
+	var productTypePtr *model.PricingProductType
 	var tierPtr *backend.PlanType
 
 	if typeStr, ok := price.Product.Metadata[highlightProductType]; ok {
-		productType := model.ProductType(typeStr)
+		productType := model.PricingProductType(typeStr)
 		productTypePtr = &productType
 	}
 
@@ -446,7 +446,7 @@ func FillProducts(stripeClient *client.API, subscriptions []*stripe.Subscription
 }
 
 // Returns the Stripe Prices for the associated tier and interval
-func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval model.SubscriptionInterval, unlimitedMembers bool, retentionPeriod *backend.RetentionPeriod) (map[model.ProductType]*stripe.Price, error) {
+func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, interval model.PricingSubscriptionInterval, unlimitedMembers bool, retentionPeriod *backend.RetentionPeriod) (map[model.PricingProductType]*stripe.Price, error) {
 	// Default to the `RetentionPeriodThreeMonths` prices for customers grandfathered into 6 month retention
 	rp := backend.RetentionPeriodThreeMonths
 	if retentionPeriod != nil {
@@ -454,10 +454,10 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 	}
 	baseLookupKey := GetBaseLookupKey(productTier, interval, unlimitedMembers, rp)
 
-	sessionsLookupKey := GetOverageKey(model.ProductTypeSessions, rp, productTier)
-	membersLookupKey := string(model.ProductTypeMembers)
-	errorsLookupKey := GetOverageKey(model.ProductTypeErrors, rp, productTier)
-	logsLookupKey := string(model.ProductTypeLogs)
+	sessionsLookupKey := GetOverageKey(model.PricingProductTypeSessions, rp, productTier)
+	membersLookupKey := string(model.PricingProductTypeMembers)
+	errorsLookupKey := GetOverageKey(model.PricingProductTypeErrors, rp, productTier)
+	logsLookupKey := string(model.PricingProductTypeLogs)
 
 	priceListParams := stripe.PriceListParams{}
 	priceListParams.LookupKeys = []*string{&baseLookupKey, &sessionsLookupKey, &membersLookupKey, &errorsLookupKey, &logsLookupKey}
@@ -476,19 +476,19 @@ func GetStripePrices(stripeClient *client.API, productTier backend.PlanType, int
 		return nil, e.Errorf("expected %d prices, received %d; searched %#v, found %#v", expected, actual, searchedKeys, foundKeys)
 	}
 
-	priceMap := map[model.ProductType]*stripe.Price{}
+	priceMap := map[model.PricingProductType]*stripe.Price{}
 	for _, price := range prices {
 		switch price.LookupKey {
 		case baseLookupKey:
-			priceMap[model.ProductTypeBase] = price
+			priceMap[model.PricingProductTypeBase] = price
 		case sessionsLookupKey:
-			priceMap[model.ProductTypeSessions] = price
+			priceMap[model.PricingProductTypeSessions] = price
 		case membersLookupKey:
-			priceMap[model.ProductTypeMembers] = price
+			priceMap[model.PricingProductTypeMembers] = price
 		case errorsLookupKey:
-			priceMap[model.ProductTypeErrors] = price
+			priceMap[model.PricingProductTypeErrors] = price
 		case logsLookupKey:
-			priceMap[model.ProductTypeLogs] = price
+			priceMap[model.PricingProductTypeLogs] = price
 		}
 	}
 
@@ -521,7 +521,7 @@ func (w *Worker) ReportUsageForWorkspace(ctx context.Context, workspaceID int) e
 	return w.reportUsage(ctx, workspaceID, nil)
 }
 
-func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *model.ProductType) error {
+func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *model.PricingProductType) error {
 	var workspace model.Workspace
 	if err := w.db.Model(&workspace).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
 		return e.Wrap(err, "error querying workspace")
@@ -610,7 +610,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	}
 
 	// For annual subscriptions, set PendingInvoiceItemInterval to 'month' if not set
-	if interval == model.SubscriptionIntervalAnnual &&
+	if interval == model.PricingSubscriptionIntervalAnnual &&
 		subscription.PendingInvoiceItemInterval.Interval != stripe.SubscriptionPendingInvoiceItemIntervalIntervalMonth {
 		updated, err := w.stripeClient.Subscriptions.Update(subscription.ID, &stripe.SubscriptionParams{
 			PendingInvoiceItemInterval: &stripe.SubscriptionPendingInvoiceItemIntervalParams{
@@ -655,7 +655,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 		}
 	}
 
-	invoiceLines := map[model.ProductType]*stripe.InvoiceLine{}
+	invoiceLines := map[model.PricingProductType]*stripe.InvoiceLine{}
 	for _, line := range invoice.Lines.Data {
 		productType, _, _, _, _ := GetProductMetadata(line.Price)
 		if productType != nil {
@@ -669,7 +669,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	if membersLimit != nil && workspace.MonthlyMembersLimit != nil {
 		membersLimit = workspace.MonthlyMembersLimit
 	}
-	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.ProductTypeMembers], invoiceLines[model.ProductTypeMembers], c, subscription, membersLimit, membersMeter); err != nil {
+	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.PricingProductTypeMembers], invoiceLines[model.PricingProductTypeMembers], c, subscription, membersLimit, membersMeter); err != nil {
 		return e.Wrap(err, "error updating overage item")
 	}
 
@@ -682,7 +682,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	if workspace.MonthlySessionLimit != nil {
 		sessionsLimit = *workspace.MonthlySessionLimit
 	}
-	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.ProductTypeSessions], invoiceLines[model.ProductTypeSessions], c, subscription, &sessionsLimit, sessionsMeter); err != nil {
+	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.PricingProductTypeSessions], invoiceLines[model.PricingProductTypeSessions], c, subscription, &sessionsLimit, sessionsMeter); err != nil {
 		return e.Wrap(err, "error updating overage item")
 	}
 
@@ -695,7 +695,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	if workspace.MonthlyErrorsLimit != nil {
 		errorsLimit = *workspace.MonthlyErrorsLimit
 	}
-	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.ProductTypeErrors], invoiceLines[model.ProductTypeErrors], c, subscription, &errorsLimit, errorsMeter); err != nil {
+	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.PricingProductTypeErrors], invoiceLines[model.PricingProductTypeErrors], c, subscription, &errorsLimit, errorsMeter); err != nil {
 		return e.Wrap(err, "error updating overage item")
 	}
 
@@ -708,7 +708,7 @@ func (w *Worker) reportUsage(ctx context.Context, workspaceID int, productType *
 	if workspace.MonthlyLogsLimit != nil {
 		errorsLimit = *workspace.MonthlyErrorsLimit
 	}
-	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.ProductTypeLogs], invoiceLines[model.ProductTypeLogs], c, subscription, &logsLimit, logsMeter); err != nil {
+	if err := AddOrUpdateOverageItem(w.stripeClient, &workspace, prices[model.PricingProductTypeLogs], invoiceLines[model.PricingProductTypeLogs], c, subscription, &logsLimit, logsMeter); err != nil {
 		return e.Wrap(err, "error updating overage item")
 	}
 

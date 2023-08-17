@@ -855,7 +855,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err != nil {
 		return err
 	}
-	withinBillingQuota, _ := w.PublicResolver.IsWithinQuota(ctx, model.ProductTypeSessions, workspace, time.Now())
+	withinBillingQuota, _ := w.PublicResolver.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now())
 
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
