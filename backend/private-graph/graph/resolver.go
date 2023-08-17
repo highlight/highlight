@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 	"io"
 	"math/big"
 	"net/http"
@@ -133,7 +134,7 @@ type Resolver struct {
 	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
 	RH                     *resthooks.Resthook
-	HubspotApi             HubspotApiInterface
+	HubspotApi             hubspotApi.Api
 	Redis                  *redis.Client
 	StepFunctions          *stepfunctions.Client
 	OAuthServer            *oauth.Server
@@ -212,14 +213,6 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 	}
 
 	return domain, nil
-}
-
-type HubspotApiInterface interface {
-	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) error
-	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) error
-	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error
-	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error
-	UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -1689,7 +1682,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.ReportUsageForWorkspace(ctx, r.DB, r.ClickhouseClient, r.StripeClient, r.MailClient, workspace.ID); err != nil {
+	if err := pricing.NewWorker(r.DB, r.ClickhouseClient, r.StripeClient, r.MailClient, r.HubspotApi).ReportUsageForWorkspace(ctx, workspace.ID); err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
 	}
 

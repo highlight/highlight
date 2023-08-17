@@ -73,7 +73,7 @@ type Resolver struct {
 	MailClient       *sendgrid.Client
 	StorageClient    storage.Client
 	OpenSearch       *opensearch.Client
-	HubspotApi       *highlightHubspot.HubspotApi
+	HubspotApi       *highlightHubspot.Client
 	EmbeddingsClient embeddings.Client
 	Redis            *redis.Client
 	Clickhouse       *clickhouse.Client
@@ -691,7 +691,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil, ErrUserFilteredError
 	}
 
-	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, pricing.ProductTypeErrors, workspace, time.Now())
+	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, model.PricingProductTypeErrors, workspace, time.Now())
 	go func() {
 		defer util.Recover()
 		if quotaPercent >= 1 {
@@ -1132,10 +1132,10 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	}
 
 	// determine if session is within billing quota
-	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, pricing.ProductTypeSessions, workspace, time.Now())
+	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now())
 	setupSpan.Finish()
 
-	if err := r.Redis.SetBillingQuotaExceeded(ctx, projectID, pricing.ProductTypeSessions, !withinBillingQuota); err != nil {
+	if err := r.Redis.SetBillingQuotaExceeded(ctx, projectID, model.PricingProductTypeSessions, !withinBillingQuota); err != nil {
 		return nil, e.Wrap(err, "error setting billing quota exceeded")
 	}
 
@@ -1599,13 +1599,13 @@ func (r *Resolver) getProject(projectID int) (*model.Project, error) {
 	return &project, nil
 }
 
-var productTypeToQuotaConfig = map[pricing.ProductType]struct {
+var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 	maxCostCents    func(*model.Workspace) *int
 	meter           func(context.Context, *gorm.DB, *clickhouse.Client, *model.Workspace) (int64, error)
 	retentionPeriod func(*model.Workspace) privateModel.RetentionPeriod
 	included        func(*model.Workspace) int64
 }{
-	pricing.ProductTypeSessions: {
+	model.PricingProductTypeSessions: {
 		func(w *model.Workspace) *int { return w.SessionsMaxCents },
 		pricing.GetWorkspaceSessionsMeter,
 		func(w *model.Workspace) privateModel.RetentionPeriod {
@@ -1622,7 +1622,7 @@ var productTypeToQuotaConfig = map[pricing.ProductType]struct {
 			return int64(limit)
 		},
 	},
-	pricing.ProductTypeErrors: {
+	model.PricingProductTypeErrors: {
 		func(w *model.Workspace) *int { return w.ErrorsMaxCents },
 		pricing.GetWorkspaceErrorsMeter,
 		func(w *model.Workspace) privateModel.RetentionPeriod {
@@ -1639,7 +1639,7 @@ var productTypeToQuotaConfig = map[pricing.ProductType]struct {
 			return int64(limit)
 		},
 	},
-	pricing.ProductTypeLogs: {
+	model.PricingProductTypeLogs: {
 		func(w *model.Workspace) *int { return w.LogsMaxCents },
 		pricing.GetWorkspaceLogsMeter,
 		func(w *model.Workspace) privateModel.RetentionPeriod {
@@ -1655,7 +1655,7 @@ var productTypeToQuotaConfig = map[pricing.ProductType]struct {
 	},
 }
 
-func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.ProductType, workspace *model.Workspace, now time.Time) (bool, float64) {
+func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingProductType, workspace *model.Workspace, now time.Time) (bool, float64) {
 	if workspace == nil {
 		return true, 0
 	}

@@ -55,7 +55,7 @@ var (
 	CSRFToken = os.Getenv("HUBSPOT_CSRF_TOKEN")
 )
 
-func retry[T *int](fn func() (T, error)) (ret T, err error) {
+func retry[T any](fn func() (T, error)) (ret T, err error) {
 	for i := 0; i < Retries; i++ {
 		ret, err = fn()
 		if err == nil {
@@ -94,15 +94,23 @@ func getDomain(adminEmail string) (domain string) {
 	return
 }
 
-type HubspotApi struct {
+type Api interface {
+	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) error
+	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) error
+	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error
+	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error
+	UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error
+}
+
+type Client struct {
 	db            *gorm.DB
 	hubspotClient hubspot.Client
 	redisClient   *redis.Client
 	kafkaProducer *kafka_queue.Queue
 }
 
-func NewHubspotAPI(client hubspot.Client, db *gorm.DB, redisClient *redis.Client, kafkaProducer *kafka_queue.Queue) *HubspotApi {
-	return &HubspotApi{
+func NewHubspotAPI(client hubspot.Client, db *gorm.DB, redisClient *redis.Client, kafkaProducer *kafka_queue.Queue) *Client {
+	return &Client{
 		db:            db,
 		hubspotClient: client,
 		redisClient:   redisClient,
@@ -201,7 +209,7 @@ type DoppelgangersResponse struct {
 	LastScoredTimestamp int64                             `json:"lastScoredTimestamp"`
 }
 
-func (h *HubspotApi) doRequest(url string, result interface{}, params map[string]string, method string, b io.Reader) error {
+func (h *Client) doRequest(url string, result interface{}, params map[string]string, method string, b io.Reader) error {
 	req, _ := http.NewRequest(method, fmt.Sprintf("https://api.hubapi.com%s", url), b)
 	req.Header.Add("Accept", "application/json")
 	req.Header.Add("Content-Type", "application/json")
@@ -249,7 +257,7 @@ func (h *HubspotApi) doRequest(url string, result interface{}, params map[string
 	return nil
 }
 
-func (h *HubspotApi) getDoppelgangers(ctx context.Context) (results []*DoppelgangersResult, objects map[int]*DoppelgangersObject, err error) {
+func (h *Client) getDoppelgangers(ctx context.Context) (results []*DoppelgangersResult, objects map[int]*DoppelgangersObject, err error) {
 	objects = make(map[int]*DoppelgangersObject)
 	for {
 		r := DoppelgangersResponse{}
@@ -293,19 +301,19 @@ func (h *HubspotApi) getDoppelgangers(ctx context.Context) (results []*Doppelgan
 	return
 }
 
-func (h *HubspotApi) mergeCompanies(keepID, mergeID int) error {
+func (h *Client) mergeCompanies(keepID, mergeID int) error {
 	return h.doRequest(fmt.Sprintf("/companies/v2/companies/%d/merge", keepID), nil, map[string]string{
 		"portalId": "20473940",
 	}, "PUT", strings.NewReader(fmt.Sprintf(`{"companyIdToMerge":%d}`, mergeID)))
 }
 
-func (h *HubspotApi) mergeContacts(keepID, mergeID int) error {
+func (h *Client) mergeContacts(keepID, mergeID int) error {
 	return h.doRequest(fmt.Sprintf("/contacts/v1/contact/%d/merge", keepID), nil, map[string]string{
 		"portalId": "20473940",
 	}, "POST", strings.NewReader(fmt.Sprintf(`{"vidToMerge":%d}`, mergeID)))
 }
 
-func (h *HubspotApi) getAllCompanies(ctx context.Context) (companies []*CompanyResponse, err error) {
+func (h *Client) getAllCompanies(ctx context.Context) (companies []*CompanyResponse, err error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "hubspot.getAllCompanies")
 	defer span.Finish()
 	if h.redisClient != nil {
@@ -333,7 +341,7 @@ func (h *HubspotApi) getAllCompanies(ctx context.Context) (companies []*CompanyR
 	return
 }
 
-func (h *HubspotApi) getCompany(ctx context.Context, name, domain string) (*int, error) {
+func (h *Client) getCompany(ctx context.Context, name, domain string) (*int, error) {
 	r := struct {
 		Results []struct {
 			CompanyId int `json:"companyId"`
@@ -378,7 +386,7 @@ func (h *HubspotApi) getCompany(ctx context.Context, name, domain string) (*int,
 	}
 }
 
-func (h *HubspotApi) getContactForAdmin(email string) (contactId *int, err error) {
+func (h *Client) getContactForAdmin(email string) (contactId *int, err error) {
 	r := CustomContactsResponse{}
 	if err := h.hubspotClient.Contacts().Client.Request("GET", "/contacts/v1/contact/email/"+email+"/profile", nil, &r); err != nil {
 		return nil, err
@@ -387,7 +395,7 @@ func (h *HubspotApi) getContactForAdmin(email string) (contactId *int, err error
 	}
 }
 
-func (h *HubspotApi) createContactForAdmin(ctx context.Context, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
+func (h *Client) createContactForAdmin(ctx context.Context, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	var hubspotContactId int
 	if resp, err := h.hubspotClient.Contacts().Create(hubspot.ContactsRequest{
 		Properties: []hubspot.Property{
@@ -440,7 +448,7 @@ func (h *HubspotApi) createContactForAdmin(ctx context.Context, email string, us
 	return &hubspotContactId, nil
 }
 
-func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error {
+func (h *Client) CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error {
 	return h.kafkaProducer.Submit(ctx, PartitionKey, &kafka_queue.Message{
 		Type: kafka_queue.HubSpotCreateContactCompanyAssociation,
 		HubSpotCreateContactCompanyAssociation: &kafka_queue.HubSpotCreateContactCompanyAssociationArgs{
@@ -450,7 +458,7 @@ func (h *HubspotApi) CreateContactCompanyAssociation(ctx context.Context, adminI
 	})
 }
 
-func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, adminID int, workspaceID int) error {
+func (h *Client) CreateContactCompanyAssociationImpl(ctx context.Context, adminID int, workspaceID int) error {
 	key := fmt.Sprintf("hubspot-CreateContactCompanyAssociationImpl-%d-%d", adminID, workspaceID)
 	if mutex, err := h.redisClient.AcquireLock(ctx, key, ClientSideAssociationTimeout); err == nil {
 		defer func() {
@@ -504,7 +512,7 @@ func (h *HubspotApi) CreateContactCompanyAssociationImpl(ctx context.Context, ad
 	return nil
 }
 
-func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) error {
+func (h *Client) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) error {
 	return h.kafkaProducer.Submit(ctx, PartitionKey, &kafka_queue.Message{
 		Type: kafka_queue.HubSpotCreateContactForAdmin,
 		HubSpotCreateContactForAdmin: &kafka_queue.HubSpotCreateContactForAdminArgs{
@@ -520,7 +528,7 @@ func (h *HubspotApi) CreateContactForAdmin(ctx context.Context, adminID int, ema
 	})
 }
 
-func (h *HubspotApi) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
+func (h *Client) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	key := fmt.Sprintf("hubspot-CreateContactForAdminImpl-%d", adminID)
 	if mutex, err := h.redisClient.AcquireLock(ctx, key, ClientSideContactCreationTimeout); err == nil {
 		defer func() {
@@ -553,7 +561,7 @@ func (h *HubspotApi) CreateContactForAdminImpl(ctx context.Context, adminID int,
 	return
 }
 
-func (h *HubspotApi) CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) error {
+func (h *Client) CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) error {
 	return h.kafkaProducer.Submit(ctx, PartitionKey, &kafka_queue.Message{
 		Type: kafka_queue.HubSpotCreateCompanyForWorkspace,
 		HubSpotCreateCompanyForWorkspace: &kafka_queue.HubSpotCreateCompanyForWorkspaceArgs{
@@ -564,7 +572,7 @@ func (h *HubspotApi) CreateCompanyForWorkspace(ctx context.Context, workspaceID 
 	})
 }
 
-func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspaceID int, adminEmail, name string) (companyID *int, err error) {
+func (h *Client) CreateCompanyForWorkspaceImpl(ctx context.Context, workspaceID int, adminEmail, name string) (companyID *int, err error) {
 	key := fmt.Sprintf("hubspot-CreateCompanyForWorkspaceImpl-%d-%s-%s", workspaceID, adminEmail, name)
 	if mutex, err := h.redisClient.AcquireLock(ctx, key, ClientSideCompanyCreationTimeout); err == nil {
 		defer func() {
@@ -634,7 +642,7 @@ func (h *HubspotApi) CreateCompanyForWorkspaceImpl(ctx context.Context, workspac
 	return
 }
 
-func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error {
+func (h *Client) UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error {
 	return h.kafkaProducer.Submit(ctx, PartitionKey, &kafka_queue.Message{
 		Type: kafka_queue.HubSpotUpdateContactProperty,
 		HubSpotUpdateContactProperty: &kafka_queue.HubSpotUpdateContactPropertyArgs{
@@ -644,7 +652,7 @@ func (h *HubspotApi) UpdateContactProperty(ctx context.Context, adminID int, pro
 	})
 }
 
-func (h *HubspotApi) UpdateContactPropertyImpl(ctx context.Context, adminID int, properties []hubspot.Property) error {
+func (h *Client) UpdateContactPropertyImpl(ctx context.Context, adminID int, properties []hubspot.Property) error {
 	key := fmt.Sprintf("hubspot-UpdateContactPropertyImpl-%d", adminID)
 	if mutex, err := h.redisClient.AcquireLock(ctx, key, DefaultLockTimeout); err == nil {
 		defer func() {
@@ -658,25 +666,30 @@ func (h *HubspotApi) UpdateContactPropertyImpl(ctx context.Context, adminID int,
 	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
 		return err
 	}
-	var hubspotContactID *int
-	if admin.HubspotContactID != nil {
-		hubspotContactID = admin.HubspotContactID
-	} else {
-		var err error
-		hubspotContactID, err = h.getContactForAdmin(ptr.ToString(admin.Email))
-		if err != nil {
-			return err
+	hubspotContactID := admin.HubspotContactID
+	_, err := retry(func() (*int, error) {
+		if hubspotContactID == nil {
+			var err error
+			hubspotContactID, err = h.getContactForAdmin(ptr.ToString(admin.Email))
+			if err != nil {
+				return nil, err
+			}
+			err = h.db.Model(&model.Admin{Model: model.Model{ID: admin.ID}}).Updates(&model.Admin{HubspotContactID: hubspotContactID}).Error
+			if err != nil {
+				return nil, err
+			}
 		}
-	}
-	if err := h.hubspotClient.Contacts().Update(ptr.ToInt(hubspotContactID), hubspot.ContactsRequest{
-		Properties: properties,
-	}); err != nil {
-		return err
-	}
-	return nil
+		if err := h.hubspotClient.Contacts().Update(ptr.ToInt(hubspotContactID), hubspot.ContactsRequest{
+			Properties: properties,
+		}); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
+	return err
 }
 
-func (h *HubspotApi) UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
+func (h *Client) UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
 	return h.kafkaProducer.Submit(ctx, PartitionKey, &kafka_queue.Message{
 		Type: kafka_queue.HubSpotUpdateCompanyProperty,
 		HubSpotUpdateCompanyProperty: &kafka_queue.HubSpotUpdateCompanyPropertyArgs{
@@ -686,7 +699,7 @@ func (h *HubspotApi) UpdateCompanyProperty(ctx context.Context, workspaceID int,
 	})
 }
 
-func (h *HubspotApi) UpdateCompanyPropertyImpl(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
+func (h *Client) UpdateCompanyPropertyImpl(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
 	key := fmt.Sprintf("hubspot-UpdateCompanyPropertyImpl-%d", workspaceID)
 	if mutex, err := h.redisClient.AcquireLock(ctx, key, DefaultLockTimeout); err == nil {
 		defer func() {
@@ -700,25 +713,32 @@ func (h *HubspotApi) UpdateCompanyPropertyImpl(ctx context.Context, workspaceID 
 	if err := h.db.Model(&model.Workspace{}).Preload("Admins").Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
 		return err
 	}
-	var hubspotWorkspaceID *int
-	if workspace.HubspotCompanyID != nil {
-		hubspotWorkspaceID = workspace.HubspotCompanyID
-	} else {
-		var err error
-		var domain string
-		if len(workspace.Admins) > 0 {
-			domain = getDomain(ptr.ToString(workspace.Admins[0].Email))
+	hubspotCompanyId := workspace.HubspotCompanyID
+	_, err := retry(func() (*int, error) {
+		if hubspotCompanyId != nil {
+			var err error
+			var domain string
+			if len(workspace.Admins) > 0 {
+				domain = getDomain(ptr.ToString(workspace.Admins[0].Email))
+			}
+			hubspotCompanyId, err = h.getCompany(ctx, ptr.ToString(workspace.Name), domain)
+			if err != nil {
+				return nil, err
+			}
+			err = h.db.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Updates(&model.Workspace{HubspotCompanyID: hubspotCompanyId}).Error
+			if err != nil {
+				return nil, err
+			}
 		}
-		hubspotWorkspaceID, err = h.getCompany(ctx, ptr.ToString(workspace.Name), domain)
-		if err != nil {
-			return err
-		}
-	}
 
-	if _, err := h.hubspotClient.Companies().Update(ptr.ToInt(hubspotWorkspaceID), hubspot.CompaniesRequest{
-		Properties: properties,
-	}); err != nil {
-		return err
-	}
-	return nil
+		if _, err := h.hubspotClient.Companies().Update(ptr.ToInt(hubspotCompanyId), hubspot.CompaniesRequest{
+			Properties: properties,
+		}); err != nil {
+			// if the request failed, try to clear the hubspot company id to find it
+			hubspotCompanyId = nil
+			return nil, err
+		}
+		return nil, nil
+	})
+	return err
 }
