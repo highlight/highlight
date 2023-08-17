@@ -5357,6 +5357,7 @@ export const GetSessionDocument = gql`
 			browser_version
 			environment
 			app_version
+			ip
 			city
 			state
 			country
