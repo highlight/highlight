@@ -6825,6 +6825,7 @@ export const GetSessionsOpenSearchDocument = gql`
 				os_version
 				browser_name
 				browser_version
+				ip
 				city
 				state
 				country

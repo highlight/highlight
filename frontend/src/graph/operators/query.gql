@@ -634,6 +634,7 @@ query GetSessionsOpenSearch(
 			os_version
 			browser_name
 			browser_version
+			ip
 			city
 			state
 			country

@@ -2208,6 +2208,7 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
 					| 'os_version'
 					| 'browser_name'
 					| 'browser_version'
+					| 'ip'
 					| 'city'
 					| 'state'
 					| 'country'
