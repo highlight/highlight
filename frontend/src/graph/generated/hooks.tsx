@@ -78,6 +78,7 @@ export const SessionAlertFragmentFragmentDoc = gql`
 		CountThreshold
 		DailyFrequency
 		disabled
+		default
 		EmailsToNotify
 		ExcludedEnvironments
 		ExcludeRules
@@ -11385,6 +11386,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			Name
 			DailyFrequency
 			disabled
+			default
 		}
 		new_session_alerts(project_id: $project_id) {
 			...SessionAlertFragment
@@ -11442,6 +11444,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			CountThreshold
 			DailyFrequency
 			disabled
+			default
 			EmailsToNotify
 			ExcludedEnvironments
 			id

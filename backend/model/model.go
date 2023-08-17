@@ -1816,6 +1816,7 @@ type Alert struct {
 	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
 	Frequency            int     `gorm:"default:15"` // time in seconds
 	Disabled             *bool   `gorm:"default:false"`
+	Default              bool    `gorm:"default:false"` // alert created during setup flow
 }
 
 type ErrorAlert struct {

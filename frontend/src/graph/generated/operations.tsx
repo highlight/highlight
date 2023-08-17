@@ -1445,6 +1445,7 @@ export type SessionAlertFragmentFragment = {
 	| 'CountThreshold'
 	| 'DailyFrequency'
 	| 'disabled'
+	| 'default'
 	| 'EmailsToNotify'
 	| 'ExcludedEnvironments'
 	| 'ExcludeRules'
@@ -3854,6 +3855,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				| 'Name'
 				| 'DailyFrequency'
 				| 'disabled'
+				| 'default'
 			> & {
 					ChannelsToNotify: Array<
 						Types.Maybe<
@@ -3958,6 +3960,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				| 'CountThreshold'
 				| 'DailyFrequency'
 				| 'disabled'
+				| 'default'
 				| 'EmailsToNotify'
 				| 'ExcludedEnvironments'
 				| 'id'

@@ -395,6 +395,7 @@ export type ErrorAlert = {
 	ThresholdWindow?: Maybe<Scalars['Int']>
 	Type: Scalars['String']
 	WebhookDestinations: Array<WebhookDestination>
+	default: Scalars['Boolean']
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	updated_at: Scalars['Timestamp']
@@ -782,6 +783,7 @@ export type LogAlert = {
 	ThresholdWindow: Scalars['Int']
 	Type: Scalars['String']
 	WebhookDestinations: Array<WebhookDestination>
+	default: Scalars['Boolean']
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	query: Scalars['String']
@@ -2647,6 +2649,7 @@ export type SessionAlert = {
 	Type: Scalars['String']
 	UserProperties: Array<Maybe<UserProperty>>
 	WebhookDestinations: Array<WebhookDestination>
+	default: Scalars['Boolean']
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	updated_at: Scalars['Timestamp']

@@ -3,7 +3,12 @@ import { useSlackBot } from '@components/Header/components/ConnectHighlightWithS
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import Select from '@components/Select/Select'
-import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
+import {
+	useCreateSessionAlertMutation,
+	useGetAlertsPagePayloadQuery,
+} from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
+import { SessionAlertType } from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -20,7 +25,7 @@ import { getDiscordOauthUrl } from '@pages/IntegrationsPage/components/DiscordIn
 import { Header } from '@pages/Setup/Header'
 import useLocalStorage from '@rehooks/local-storage'
 import * as React from 'react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useMatch, useNavigate } from 'react-router-dom'
 
 import Switch from '@/components/Switch/Switch'
@@ -76,7 +81,7 @@ const notificationOptions: NotificationOption[] = [
 ]
 
 interface AlertOption {
-	name: string
+	name: 'Session' | 'Error' | 'Log'
 	destination: string
 	thresholdPerMinute: number
 }
@@ -100,15 +105,68 @@ const alertOptions: AlertOption[] = [
 ]
 
 export const AlertsSetup: React.FC = function () {
+	const { projectId } = useProjectId()
 	const platformMatch = useMatch('/:project_id/setup/alerts/:platform')
 	const platform = platformMatch?.params?.platform
-	const [alertsSelected, onAlertsSelected] = React.useState<string[]>([])
+	const [alertsSelected, onAlertsSelected] = React.useState<
+		('Session' | 'Error' | 'Log')[]
+	>([])
+	const { data, loading } = useGetAlertsPagePayloadQuery({
+		variables: { project_id: projectId },
+	})
+
+	const [createSessionAlert] = useCreateSessionAlertMutation({
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+	})
+
+	const createAlerts = useCallback(async () => {
+		const requestVariables = {
+			project_id: projectId,
+			count_threshold: 5,
+			name: 'New Session Alert',
+			// TODO(vkorolik)
+			slack_channels: [],
+			discord_channels: [],
+			emails: [],
+			environments: [],
+			webhook_destinations: [],
+		}
+		const requestBody = {
+			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+		}
+
+		for (const [alert] of alertsSelected) {
+			if (alert === 'Session') {
+				if (!data?.new_session_alerts.find((a) => a?.default)) {
+					await createSessionAlert({
+						...requestBody,
+						variables: {
+							input: {
+								...requestVariables,
+								threshold_window: 1,
+								exclude_rules: [],
+								user_properties: [],
+								track_properties: [],
+								disabled: false,
+								type: SessionAlertType.NewSessionAlert,
+							},
+						},
+					})
+				}
+			}
+		}
+	}, [
+		alertsSelected,
+		createSessionAlert,
+		data?.new_session_alerts,
+		projectId,
+	])
 
 	useEffect(() => {
-		if (alertsSelected.length) {
-			// TODO(vkorolik) create the alerts
-		}
-	}, [alertsSelected])
+		createAlerts().then(console.log)
+	}, [createAlerts])
+
+	if (loading) return null
 
 	return (
 		<Box>
@@ -246,8 +304,8 @@ const AlertPicker = function ({
 	onAlertsSelected,
 }: {
 	platform: string
-	alertsSelected: string[]
-	onAlertsSelected: (alerts: string[]) => void
+	alertsSelected: ('Session' | 'Error' | 'Log')[]
+	onAlertsSelected: (alerts: ('Session' | 'Error' | 'Log')[]) => void
 }) {
 	const location = useLocation()
 	const notificationOption = notificationOptions.find(
@@ -423,6 +481,7 @@ const EmailPicker = function ({
 						gap="8"
 					>
 						<Select
+							size="small"
 							aria-label="Emails to notify"
 							placeholder="Select emails"
 							options={emails}
@@ -438,7 +497,7 @@ const EmailPicker = function ({
 							<Button
 								trackingId="setup-alerts-integration-email"
 								kind="secondary"
-								size="small"
+								size="medium"
 								emphasis="high"
 								iconLeft={icon}
 								onClick={() => onSubmit(targetEmails)}
@@ -448,7 +507,7 @@ const EmailPicker = function ({
 							<Button
 								trackingId="setup-alerts-integration-email-cancel"
 								kind="secondary"
-								size="small"
+								size="medium"
 								emphasis="low"
 								onClick={onCancel}
 							>
