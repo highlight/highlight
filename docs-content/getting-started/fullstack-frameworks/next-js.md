@@ -63,7 +63,7 @@ export default CONSTANTS
 
 ## Client Instrumentation
 
-This implementation requires React 17 or greater. If you're behind on React versions, follow our [React.js docs](../3_client-sdk/1_reactjs.md)
+This sections adds session replay and frontend error monitoring to Highlight. This implementation requires React 17 or greater. If you're behind on React versions, follow our [React.js docs](../3_client-sdk/1_reactjs.md)
 
 1. For the `/pages` directory, you'll want to add `HighlightInit` to `_app.tsx`.
 
@@ -144,9 +144,11 @@ export function ErrorBoundary({ children }: { children: React.ReactNode }) {
 
 ### Skip Localhost tracking
 
-The `excludedHostnames` prop accepts an array of partial or full hostnames. For example, if you pass in `excludedHostnames={['localhost', 'staging]}`, you'll block `localhost` on all ports, `www.staging.highlight.io` and `staging.highlight.com`.
+```hint
+We do not recommend enabling this while integrating Highlight for the first time because it will prevent you from validating that your local build can send data to Highlight.
+```
 
-Don't forget to remove `localhost` from `excludedHostnames` when validating that your local build can send data to Highlight.
+In the case that you don't want local sessions being shipped to Highlight The `excludedHostnames` prop accepts an array of partial or full hostnames. For example, if you pass in `excludedHostnames={['localhost', 'staging]}`, you'll block `localhost` on all ports, `www.staging.highlight.io` and `staging.highlight.com`.
 
 Alternatively, you could manually call `H.start()` and `H.stop()` to manage invocation on your own.
 
@@ -179,7 +181,14 @@ export function CustomHighlightStart() {
 }
 ```
 
-## API Route Instrumentation
+## API Route Instrumentation (Page Router)
+
+```hint
+This section applies to Next.js Page Router routes only. Each Page Router route must be wrapped individually.
+
+We'll address App Router routes later in this walkthrough. Look for `instrumentation.ts`
+```
+
 1. Create a file to export your `Highlight` wrapper function:
 
  ```javascript
@@ -214,13 +223,7 @@ export default withHighlight(function handler(
 })
 ```
 
-## Server Instrumentation
-
-```hint
-Excluding the Vercel edge runtime (which is a work in progress), Session Replay, Vercel Log Drain and Error Monitoring are fully operational for Next.js 13 App Directory
-```
-
-Next.js comes out of the box instrumented for Open Telemetry. Our example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on our Next.js server. There are probably other ways to configure Open Telemetry with Next, but this is our favorite.
+## Private Sourcemaps and Request Proxying (optional)
 
 Adding the `withHighlightConfig` to your next config will configure highlight frontend proxying. This means that frontend session recording and error capture data will be piped through your domain on `/highlight-events` to avoid ad-blockers from stopping this traffic.
 
@@ -273,7 +276,22 @@ const nextConfig = withHighlightConfig({
 export default nextConfig
 ```
 
-3. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function:
+## Server Instrumentation (Page + App Router)
+
+```hint
+Excluding the Vercel edge runtime (which is a work in progress), Session Replay, Vercel Log Drain and Error Monitoring are fully operational for Next.js 13
+```
+
+```hint
+If you don't need build logs or edge function logs, this section will cover all of your logging needs for NextJS. Otherwise, we suggest installing the [Vercel Log Drain](../backend-logging/5_hosting/vercel.md) or your respective hosting provider's logging integration.
+```
+
+This section adds server-side error monitoring and log capture to Highlight. 
+
+Next.js comes out of the box instrumented for Open Telemetry. Our example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on our Next.js server. There are probably other ways to configure Open Telemetry with Next, but this is our favorite.
+
+
+4. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function.
 
 ```javascript
 // instrumentation.ts
@@ -292,7 +310,7 @@ export async function register() {
 }
 ```
 
-4. If you're using the App Router, copy `instrumentation.ts` to `src/instrumentation.ts`. See this [Next.js discussion](https://github.com/vercel/next.js/discussions/48273#discussioncomment-5587441) regarding `instrumentation.ts` with App Router. You could also simply export the `register` function from `instrumentation.ts` in `src/instrumentation.ts` like so:
+5. If you're using the App Router, copy `instrumentation.ts` to `src/instrumentation.ts`. See this [Next.js discussion](https://github.com/vercel/next.js/discussions/48273#discussioncomment-5587441) regarding `instrumentation.ts` with App Router. You could also simply export the `register` function from `instrumentation.ts` in `src/instrumentation.ts` like so:
 
 ```javascript
 // src/instrumentation.ts:
