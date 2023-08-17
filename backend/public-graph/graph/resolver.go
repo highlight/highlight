@@ -771,23 +771,26 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		// keep the classic match as the alternative error group
 		errorGroup, errorGroupAlt = nil, errorGroup
 		emb, err := r.EmbeddingsClient.GetEmbeddings(ctx, []*model.ErrorObject{errorObj})
-		if err != nil {
+		if err != nil || len(emb) == 0 {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings")
-		}
-		embedding = emb[0]
-		errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
-			match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, embedding.CombinedEmbedding, embedding.EventEmbedding, embedding.StackTraceEmbedding, embedding.PayloadEmbedding, settings.ErrorEmbeddingsThreshold)
+			errorObj.ErrorGroupID = errorGroupAlt.ID
+			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
+		} else {
+			embedding = emb[0]
+			errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
+				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, embedding.CombinedEmbedding, embedding.EventEmbedding, embedding.StackTraceEmbedding, embedding.PayloadEmbedding, settings.ErrorEmbeddingsThreshold)
+				if err != nil {
+					log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
+				}
+				return match, err
+			})
 			if err != nil {
-				log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
+				return nil, e.Wrap(err, "Error getting or creating error group")
 			}
-			return match, err
-		})
-		if err != nil {
-			return nil, e.Wrap(err, "Error getting or creating error group")
+			errorObj.ErrorGroupID = errorGroup.ID
+			errorObj.ErrorGroupIDAlternative = errorGroupAlt.ID
+			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodAdaEmbeddingV2
 		}
-		errorObj.ErrorGroupID = errorGroup.ID
-		errorObj.ErrorGroupIDAlternative = errorGroupAlt.ID
-		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodAdaEmbeddingV2
 	} else {
 		errorObj.ErrorGroupID = errorGroup.ID
 		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic

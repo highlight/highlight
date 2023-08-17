@@ -356,7 +356,7 @@ func (h *Client) getCompany(ctx context.Context, name, domain string) (*int, err
 		Properties []string `json:"properties"`
 	}{[]string{"domain", "name", "createdate", "hs_lastmodifieddate"}}})
 	err := h.doRequest(fmt.Sprintf("/companies/v2/domains/%s/companies", domain), &r, nil, "POST", bytes.NewReader(body))
-	if err == nil {
+	if err == nil && len(r.Results) > 0 {
 		return pointy.Int(r.Results[0].CompanyId), nil
 	}
 
