@@ -1,15 +1,10 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import {
-	AutoJoinEmailsInput,
-	getEmailDomain,
-} from '@components/AutoJoinEmailsInput'
 import { Button } from '@components/Button'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import {
-	useGetProjectsAndWorkspacesQuery,
 	useGetWorkspacesQuery,
 	useUpdateAdminAboutYouDetailsMutation,
 	useUpdateAdminAndCreateWorkspaceMutation,
@@ -25,6 +20,7 @@ import {
 } from '@highlight-run/ui'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
+import { INVITE_TEAM_ROUTE } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
 import { getAttributionData } from '@util/attribution'
 import { message } from 'antd'
@@ -38,17 +34,7 @@ import { DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY } from '@/pages/Auth/JoinWorks
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
 
-const COMMON_EMAIL_PROVIDERS = [
-	'gmail',
-	'yahoo',
-	'hotmail',
-	'fastmail',
-	'protonmail',
-	'hey.com',
-] as const
-
 export const AdminForm: React.FC = () => {
-	const { refetch: refetchProjects } = useGetProjectsAndWorkspacesQuery()
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
 	const { setLoadingState } = useAppLoadingContext()
 	const { admin, fetchAdmin } = useAuthContext()
@@ -64,7 +50,7 @@ export const AdminForm: React.FC = () => {
 	)
 
 	if (admin?.about_you_details_filled) {
-		navigate('/setup')
+		navigate(INVITE_TEAM_ROUTE)
 	}
 
 	if (
@@ -75,11 +61,6 @@ export const AdminForm: React.FC = () => {
 		navigate('/join_workspace', { replace: true })
 	}
 
-	const adminEmailDomain = getEmailDomain(admin?.email)
-	const isCommonEmailDomain = COMMON_EMAIL_PROVIDERS.some(
-		(p) => adminEmailDomain.indexOf(p) !== -1,
-	)
-
 	const workspace = workspacesData?.workspaces && workspacesData.workspaces[0]
 	const inWorkspace = !!workspace
 
@@ -89,7 +70,6 @@ export const AdminForm: React.FC = () => {
 			lastName: '',
 			role: '',
 			companyName: '',
-			autoJoinDomains: '',
 			promoCode: '',
 		},
 	})
@@ -143,8 +123,6 @@ export const AdminForm: React.FC = () => {
 							last_name: formState.values.lastName,
 							user_defined_role: formState.values.role,
 							workspace_name: formState.values.companyName,
-							allowed_auto_join_email_origins:
-								formState.values.autoJoinDomains,
 							promo_code: formState.values.promoCode || undefined,
 							referral: attributionData.referral,
 						},
@@ -156,15 +134,8 @@ export const AdminForm: React.FC = () => {
 				`Nice to meet you ${formState.values.firstName}, let's get started!`,
 			)
 
-			const projects = await refetchProjects()
 			await fetchAdmin() // updates admin in auth context
-
-			if (projects.data?.projects?.length) {
-				const projectId = projects.data?.projects[0]?.id
-				navigate(`/${projectId}/setup`)
-			} else {
-				navigate('/setup')
-			}
+			navigate(INVITE_TEAM_ROUTE)
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)
@@ -250,18 +221,6 @@ export const AdminForm: React.FC = () => {
 								<option value="Founder">Founder</option>
 							</select>
 						</Form.NamedSection>
-						{!isCommonEmailDomain && !inWorkspace && (
-							<Box mt="4">
-								<AutoJoinEmailsInput
-									onChange={(domains) =>
-										formState.setValue(
-											formState.names.autoJoinDomains,
-											domains.join(', '),
-										)
-									}
-								/>
-							</Box>
-						)}
 						{!inWorkspace &&
 							(showPromoCodeField ? (
 								<Form.Input
