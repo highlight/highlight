@@ -1156,7 +1156,9 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		location = fetchedLocation
 	}
 
-	session.IP = input.IP
+	if s, err := r.Store.GetAllWorkspaceSettings(ctx, project.WorkspaceID); err == nil && s.StoreIP {
+		session.IP = input.IP
+	}
 	session.City = location.City
 	session.State = location.State
 	session.Postal = location.Postal
