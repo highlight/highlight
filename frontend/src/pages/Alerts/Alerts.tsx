@@ -1,21 +1,21 @@
-import BarChart from '@components/BarChart/BarChart'
 import Card from '@components/Card/Card'
 import LoadingBox from '@components/LoadingBox'
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
-import Table from '@components/Table/Table'
-import Tag from '@components/Tag/Tag'
 import { GetAlertsPagePayloadQuery } from '@graph/operations'
 import {
 	Box,
 	Container,
 	Heading,
+	IconSolidCheveronRight,
+	IconSolidInformationCircle,
 	IconSolidLogs,
 	IconSolidPlus,
 	Stack,
+	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui'
 import SvgBugIcon from '@icons/BugIcon'
-import SvgChevronRightIcon from '@icons/ChevronRightIcon'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
 import SvgFaceIdIcon from '@icons/FaceIdIcon'
 import SvgMonitorIcon from '@icons/MonitorIcon'
@@ -24,12 +24,9 @@ import SvgTargetIcon from '@icons/TargetIcon'
 import SvgUserPlusIcon from '@icons/UserPlusIcon'
 import { AlertEnableSwitch } from '@pages/Alerts/AlertEnableSwitch/AlertEnableSwitch'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
-import AlertLastEditedBy from '@pages/Alerts/components/AlertLastEditedBy/AlertLastEditedBy'
-import { getAlertTypeColor } from '@pages/Alerts/utils/AlertsUtils'
 import { useParams } from '@util/react-router/useParams'
-import { compact } from 'lodash'
 import React from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { LinkButton } from '@/components/LinkButton'
 
@@ -147,110 +144,6 @@ export const ALERT_CONFIGURATIONS: { [key: string]: AlertConfiguration } = {
 	},
 } as const
 
-const TABLE_COLUMNS = [
-	{
-		title: 'Name',
-		dataIndex: 'Name',
-		key: 'Name',
-		render: (name: string, record: any) => {
-			return (
-				<div className={styles.nameCell}>
-					<div className={styles.primary}>{name}</div>
-					<div>
-						<AlertLastEditedBy
-							adminId={
-								record.LastAdminToEditID ||
-								record.last_admin_to_edit_id
-							}
-							lastEditedTimestamp={record.updated_at}
-							allAdmins={record.allAdmins}
-							loading={record.loading}
-						/>
-					</div>
-				</div>
-			)
-		},
-	},
-	{
-		title: 'Type',
-		dataIndex: 'type',
-		key: 'type',
-		width: 160,
-		render: (type: string, record: any) => {
-			return (
-				<span className={styles.cellWithTooltip}>
-					<Tag
-						backgroundColor={getAlertTypeColor(type)}
-						color="var(--color-white)"
-						infoTooltipText={record.configuration.description}
-					>
-						{type}
-					</Tag>
-				</span>
-			)
-		},
-	},
-	{
-		title: 'Frequency',
-		dataIndex: 'frequency',
-		key: 'frequency',
-		render: (frequency: any, record: any) => {
-			const hasData = record?.DailyFrequency?.some(
-				(value: number) => value !== 0,
-			)
-
-			return (
-				<div className={styles.chart}>
-					<div className={styles.innerChart}>
-						{hasData ? (
-							<BarChart
-								maxValue={frequency}
-								height={30}
-								data={record.DailyFrequency}
-							/>
-						) : (
-							<p className={styles.frequencyGraphEmptyMessage}>
-								No Recent Alerts
-							</p>
-						)}
-					</div>
-				</div>
-			)
-		},
-	},
-	{
-		title: 'Enable Switch',
-		dataIndex: 'enabled',
-		key: 'enabled',
-		width: 160,
-		render: (_: string, record: any) => (
-			<AlertEnableSwitch record={record} />
-		),
-	},
-	{
-		title: 'Configure',
-		dataIndex: 'configure',
-		key: 'configure',
-		render: (_: any, record: any) => (
-			<Link
-				to={
-					record.type === ALERT_NAMES['METRIC_MONITOR']
-						? `monitor/${record.id}`
-						: record.type === ALERT_NAMES['LOG_ALERT']
-						? `logs/${record.id}`
-						: `${record.id}`
-				}
-				className={styles.configureButton}
-				onClick={(e) => {
-					e.stopPropagation()
-				}}
-			>
-				Configure <SvgChevronRightIcon />
-			</Link>
-		),
-	},
-]
-
 export default function AlertsPage() {
 	const { alertsPayload, loading } = useAlertsContext()
 
@@ -273,6 +166,16 @@ export default function AlertsPage() {
 	)
 }
 
+function formatAlertDataForTable(alert: any, config: AlertConfiguration) {
+	return {
+		...alert,
+		configuration: config,
+		type: config.name,
+		name: alert?.Name || config.name,
+		key: alert?.id,
+	}
+}
+
 function AlertsPageLoaded({
 	alertsPayload,
 }: {
@@ -281,127 +184,78 @@ function AlertsPageLoaded({
 	const { project_id } = useParams<{ project_id: string }>()
 	const navigate = useNavigate()
 
-	const maxNum = (() => {
-		const values = [
-			alertsPayload?.error_alerts,
-			alertsPayload?.new_user_alerts,
-			alertsPayload?.track_properties_alerts,
-			alertsPayload?.user_properties_alerts,
-			alertsPayload?.new_session_alerts,
-			alertsPayload?.rage_click_alerts,
-			alertsPayload?.log_alerts,
-		].flatMap((alerts) => alerts?.flatMap((alert) => alert?.DailyFrequency))
-
-		return Math.max(...compact(values), 5)
-	})()
-
 	const alertsAsTableRows = [
 		...(alertsPayload?.error_alerts || [])
-			.map((alert) => ({
-				...alert,
-				configuration: ALERT_CONFIGURATIONS['ERROR_ALERT'],
-				type: ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
-				Name: alert?.Name || ALERT_CONFIGURATIONS['ERROR_ALERT'].name,
-				key: alert?.id,
-				frequency: maxNum,
-				allAdmins: alertsPayload?.admins || [],
-			}))
+			.map((alert) =>
+				formatAlertDataForTable(
+					alert,
+					ALERT_CONFIGURATIONS['ERROR_ALERT'],
+				),
+			)
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 		...(alertsPayload?.new_user_alerts || [])
-			.map((alert) => ({
-				...alert,
-				configuration: ALERT_CONFIGURATIONS['NEW_USER_ALERT'],
-				type: ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
-				Name:
-					alert?.Name || ALERT_CONFIGURATIONS['NEW_USER_ALERT'].name,
-				key: alert?.id,
-				frequency: maxNum,
-				allAdmins: alertsPayload?.admins || [],
-			}))
+			.map((alert) =>
+				formatAlertDataForTable(
+					alert,
+					ALERT_CONFIGURATIONS['NEW_USER_ALERT'],
+				),
+			)
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 		...(alertsPayload?.track_properties_alerts || [])
-			.map((alert) => ({
-				...alert,
-				configuration: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'],
-				type: ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'].name,
-				Name:
-					alert?.Name ||
-					ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'].name,
-				key: alert?.id,
-				frequency: maxNum,
-				allAdmins: alertsPayload?.admins || [],
-			}))
+			.map((alert) =>
+				formatAlertDataForTable(
+					alert,
+					ALERT_CONFIGURATIONS['TRACK_PROPERTIES_ALERT'],
+				),
+			)
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 		...(alertsPayload?.user_properties_alerts || [])
-			.map((alert) => ({
-				...alert,
-				configuration: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'],
-				type: ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'].name,
-				Name:
-					alert?.Name ||
-					ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'].name,
-				key: alert?.id,
-				frequency: maxNum,
-				allAdmins: alertsPayload?.admins || [],
-			}))
+			.map((alert) =>
+				formatAlertDataForTable(
+					alert,
+					ALERT_CONFIGURATIONS['USER_PROPERTIES_ALERT'],
+				),
+			)
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 		...(alertsPayload?.new_session_alerts || [])
-			.map((alert) => ({
-				...alert,
-				configuration: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'],
-				type: ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
-				Name:
-					alert?.Name ||
-					ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'].name,
-				key: alert?.id,
-				frequency: maxNum,
-				allAdmins: alertsPayload?.admins || [],
-			}))
+			.map((alert) =>
+				formatAlertDataForTable(
+					alert,
+					ALERT_CONFIGURATIONS['NEW_SESSION_ALERT'],
+				),
+			)
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 		...(alertsPayload?.rage_click_alerts || [])
-			.map((alert) => ({
-				...alert,
-				configuration: ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'],
-				type: ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'].name,
-				Name:
-					alert?.Name ||
-					ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'].name,
-				key: alert?.id,
-				frequency: maxNum,
-				allAdmins: alertsPayload?.admins || [],
-			}))
+			.map((alert) =>
+				formatAlertDataForTable(
+					alert,
+					ALERT_CONFIGURATIONS['RAGE_CLICK_ALERT'],
+				),
+			)
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 		...(alertsPayload?.metric_monitors || [])
-			.map((metricMonitor) => ({
-				...metricMonitor,
-				configuration: ALERT_CONFIGURATIONS['METRIC_MONITOR'],
-				type: ALERT_CONFIGURATIONS['METRIC_MONITOR'].name,
-				Name:
-					metricMonitor?.name ||
-					ALERT_CONFIGURATIONS['METRIC_MONITOR'].name,
-				key: metricMonitor?.id,
-				frequency: maxNum,
-				allAdmins: alertsPayload?.admins || [],
-			}))
+			.map((metricMonitor) =>
+				formatAlertDataForTable(
+					metricMonitor,
+					ALERT_CONFIGURATIONS['METRIC_MONITOR'],
+				),
+			)
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 		...(alertsPayload?.log_alerts || [])
-			.map((logAlert) => ({
-				...logAlert,
-				configuration: ALERT_CONFIGURATIONS['LOG_ALERT'],
-				type: ALERT_CONFIGURATIONS['LOG_ALERT'].name,
-				Name: logAlert?.Name || ALERT_CONFIGURATIONS['LOG_ALERT'].name,
-				key: logAlert?.id,
-				frequency: maxNum,
-				allAdmins: alertsPayload?.admins || [],
-			}))
+			.map((logAlert) =>
+				formatAlertDataForTable(
+					logAlert,
+					ALERT_CONFIGURATIONS['LOG_ALERT'],
+				),
+			)
 			.sort((a, b) => a.Name.localeCompare(b.Name)),
 	]
 
 	return (
 		<Container display="flex" flexDirection="column" gap="24">
-			<Box style={{ maxWidth: 860 }} my="40" mx="auto">
-				<Stack gap="24">
-					<Stack gap="16" direction="column">
+			<Box style={{ maxWidth: 560 }} my="40" mx="auto" width="full">
+				<Stack gap="24" width="full">
+					<Stack gap="16" direction="column" width="full">
 						<Heading mt="16" level="h4">
 							Alerts
 						</Heading>
@@ -410,7 +264,7 @@ function AlertsPageLoaded({
 							project.
 						</Text>
 					</Stack>
-					<Stack gap="8">
+					<Stack gap="8" width="full">
 						{alertsAsTableRows.length > 0 && (
 							<Box
 								display="flex"
@@ -432,56 +286,135 @@ function AlertsPageLoaded({
 						)}
 						{alertsPayload && (
 							<Card noPadding>
-								<Table
-									columns={TABLE_COLUMNS}
-									dataSource={alertsAsTableRows}
-									pagination={false}
-									showHeader={false}
-									rowHasPadding
-									renderEmptyComponent={
-										<SearchEmptyState
-											className={styles.emptyContainer}
-											item="alerts"
-											customTitle={`Your project doesn't have any alerts yet 😔`}
-											customDescription={
-												<>
-													<LinkButton
-														iconLeft={
-															<IconSolidPlus />
-														}
-														trackingId="NewAlert"
-														to={`/${project_id}/alerts/new`}
+								{alertsAsTableRows.length > 0 ? (
+									<>
+										{alertsAsTableRows.map(
+											(record, idx) => {
+												return (
+													<Stack
+														key={idx}
+														borderTop={`${
+															idx != 0
+																? 'dividerWeak'
+																: 'none'
+														}`}
+														width="full"
+														p="12"
+														gap="8"
 													>
-														Create new alert
-													</LinkButton>
-												</>
-											}
-										/>
-									}
-									onRow={(record) => ({
-										onClick: () => {
-											if (
-												record.type ===
-												ALERT_NAMES['METRIC_MONITOR']
-											) {
-												navigate(
-													`/${project_id}/alerts/monitor/${record.id}`,
+														<Box
+															display="flex"
+															alignItems="center"
+															gap="8"
+														>
+															<AlertEnableSwitch
+																record={record}
+															/>
+															<Text
+																weight="medium"
+																size="small"
+																color="strong"
+															>
+																{record.name}
+															</Text>
+														</Box>
+														<Box
+															display="flex"
+															alignItems="center"
+															gap="4"
+														>
+															<Tooltip
+																trigger={
+																	<Tag
+																		kind="secondary"
+																		size="medium"
+																		shape="basic"
+																		emphasis="high"
+																		iconRight={
+																			<IconSolidInformationCircle />
+																		}
+																	>
+																		{
+																			record.type
+																		}
+																	</Tag>
+																}
+															>
+																{
+																	record
+																		.configuration
+																		.description
+																}
+															</Tooltip>
+															<Tag
+																kind="secondary"
+																size="medium"
+																shape="basic"
+																emphasis="low"
+																iconRight={
+																	<IconSolidCheveronRight />
+																}
+																onClick={() => {
+																	if (
+																		record.type ===
+																		ALERT_NAMES[
+																			'METRIC_MONITOR'
+																		]
+																	) {
+																		navigate(
+																			`/${project_id}/alerts/monitor/${record.id}`,
+																		)
+																	} else if (
+																		record.type ===
+																		ALERT_NAMES[
+																			'LOG_ALERT'
+																		]
+																	) {
+																		navigate(
+																			`/${project_id}/alerts/logs/${record.id}`,
+																		)
+																	} else if (
+																		record.type ===
+																		ALERT_NAMES[
+																			'ERROR_ALERT'
+																		]
+																	) {
+																		navigate(
+																			`/${project_id}/alerts/errors/${record.id}`,
+																		)
+																	} else {
+																		navigate(
+																			`/${project_id}/alerts/${record.id}`,
+																		)
+																	}
+																}}
+															>
+																Configure
+															</Tag>
+														</Box>
+													</Stack>
 												)
-											} else if (
-												record.type ===
-												ALERT_NAMES['LOG_ALERT']
-											) {
-												navigate(
-													`/${project_id}/alerts/logs/${record.id}`,
-												)
-											} else {
-												navigate(
-													`/${project_id}/alerts/${record.id}`,
-												)
-											}
-										},
-									})}
-								/>
+											},
+										)}
+									</>
+								) : (
+									<SearchEmptyState
+										className={styles.emptyContainer}
+										item="alerts"
+										customTitle={`Your project doesn't have any alerts yet 😔`}
+										customDescription={
+											<>
+												<LinkButton
+													iconLeft={<IconSolidPlus />}
+													trackingId="NewAlert"
+													to={`/${project_id}/alerts/new`}
+												>
+													Create new alert
+												</LinkButton>
+											</>
+										}
+									/>
+								)}
 							</Card>
 						)}
 					</Stack>

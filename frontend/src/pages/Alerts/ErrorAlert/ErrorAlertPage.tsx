@@ -168,7 +168,7 @@ export const ErrorAlertPage = () => {
 					emphasis="low"
 					trackingId="closeErrorAlert"
 					onClick={() => {
-						navigate(`/${project_id}/alerts`)
+						navigate(-1)
 					}}
 				>
 					Cancel
