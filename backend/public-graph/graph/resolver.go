@@ -1035,6 +1035,7 @@ func (r *Resolver) IndexSessionOpensearch(ctx context.Context, session *model.Se
 		"device_id":       strconv.Itoa(session.Fingerprint),
 		"city":            session.City,
 		"country":         session.Country,
+		"ip":              session.IP,
 	}
 	if err := r.AppendProperties(ctx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
@@ -1155,6 +1156,9 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		location = fetchedLocation
 	}
 
+	if s, err := r.Store.GetAllWorkspaceSettings(ctx, project.WorkspaceID); err == nil && s.StoreIP {
+		session.IP = input.IP
+	}
 	session.City = location.City
 	session.State = location.State
 	session.Postal = location.Postal
@@ -1208,6 +1212,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 				{Name: "Bot", Value: fmt.Sprintf("%v", deviceDetails.IsBot)},
 				{Name: "Browser", Value: deviceDetails.BrowserName},
 				{Name: "BrowserVersion", Value: deviceDetails.BrowserVersion},
+				{Name: "IP", Value: session.IP},
 				{Name: "City", Value: session.City},
 				{Name: "ClientID", Value: session.ClientID},
 				{Name: "Country", Value: session.Country},

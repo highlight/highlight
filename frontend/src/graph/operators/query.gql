@@ -224,6 +224,7 @@ query GetSession($secure_id: String!) {
 		browser_version
 		environment
 		app_version
+		ip
 		city
 		state
 		country
@@ -633,6 +634,7 @@ query GetSessionsOpenSearch(
 			os_version
 			browser_name
 			browser_version
+			ip
 			city
 			state
 			country

@@ -1063,6 +1063,7 @@ type ComplexityRoot struct {
 		HasErrors                      func(childComplexity int) int
 		HasRageClicks                  func(childComplexity int) int
 		ID                             func(childComplexity int) int
+		IP                             func(childComplexity int) int
 		Identified                     func(childComplexity int) int
 		Identifier                     func(childComplexity int) int
 		IsPublic                       func(childComplexity int) int
@@ -7773,6 +7774,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.ID(childComplexity), true
 
+	case "Session.ip":
+		if e.complexity.Session.IP == nil {
+			break
+		}
+
+		return e.complexity.Session.IP(childComplexity), true
+
 	case "Session.identified":
 		if e.complexity.Session.Identified == nil {
 			break
@@ -9133,6 +9141,7 @@ type Session {
 	os_version: String!
 	browser_name: String!
 	browser_version: String!
+	ip: String!
 	city: String!
 	state: String!
 	country: String!
@@ -27915,6 +27924,8 @@ func (ec *executionContext) fieldContext_ErrorObject_session(ctx context.Context
 				return ec.fieldContext_Session_browser_name(ctx, field)
 			case "browser_version":
 				return ec.fieldContext_Session_browser_version(ctx, field)
+			case "ip":
+				return ec.fieldContext_Session_ip(ctx, field)
 			case "city":
 				return ec.fieldContext_Session_city(ctx, field)
 			case "state":
@@ -35430,6 +35441,8 @@ func (ec *executionContext) fieldContext_Mutation_markSessionAsViewed(ctx contex
 				return ec.fieldContext_Session_browser_name(ctx, field)
 			case "browser_version":
 				return ec.fieldContext_Session_browser_version(ctx, field)
+			case "ip":
+				return ec.fieldContext_Session_ip(ctx, field)
 			case "city":
 				return ec.fieldContext_Session_city(ctx, field)
 			case "state":
@@ -39011,6 +39024,8 @@ func (ec *executionContext) fieldContext_Mutation_updateSessionIsPublic(ctx cont
 				return ec.fieldContext_Session_browser_name(ctx, field)
 			case "browser_version":
 				return ec.fieldContext_Session_browser_version(ctx, field)
+			case "ip":
+				return ec.fieldContext_Session_ip(ctx, field)
 			case "city":
 				return ec.fieldContext_Session_city(ctx, field)
 			case "state":
@@ -41389,6 +41404,8 @@ func (ec *executionContext) fieldContext_Query_session(ctx context.Context, fiel
 				return ec.fieldContext_Session_browser_name(ctx, field)
 			case "browser_version":
 				return ec.fieldContext_Session_browser_version(ctx, field)
+			case "ip":
+				return ec.fieldContext_Session_ip(ctx, field)
 			case "city":
 				return ec.fieldContext_Session_city(ctx, field)
 			case "state":
@@ -43939,6 +43956,8 @@ func (ec *executionContext) fieldContext_Query_projectHasViewedASession(ctx cont
 				return ec.fieldContext_Session_browser_name(ctx, field)
 			case "browser_version":
 				return ec.fieldContext_Session_browser_version(ctx, field)
+			case "ip":
+				return ec.fieldContext_Session_ip(ctx, field)
 			case "city":
 				return ec.fieldContext_Session_city(ctx, field)
 			case "state":
@@ -53780,6 +53799,50 @@ func (ec *executionContext) fieldContext_Session_browser_version(ctx context.Con
 	return fc, nil
 }
 
+func (ec *executionContext) _Session_ip(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Session_ip(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IP, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Session_ip(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Session_city(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Session_city(ctx, field)
 	if err != nil {
@@ -57949,6 +58012,8 @@ func (ec *executionContext) fieldContext_SessionResults_sessions(ctx context.Con
 				return ec.fieldContext_Session_browser_name(ctx, field)
 			case "browser_version":
 				return ec.fieldContext_Session_browser_version(ctx, field)
+			case "ip":
+				return ec.fieldContext_Session_ip(ctx, field)
 			case "city":
 				return ec.fieldContext_Session_city(ctx, field)
 			case "state":
@@ -74402,6 +74467,13 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 		case "browser_version":
 
 			out.Values[i] = ec._Session_browser_version(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "ip":
+
+			out.Values[i] = ec._Session_ip(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)

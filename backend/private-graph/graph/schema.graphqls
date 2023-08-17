@@ -35,6 +35,7 @@ type Session {
 	os_version: String!
 	browser_name: String!
 	browser_version: String!
+	ip: String!
 	city: String!
 	state: String!
 	country: String!
