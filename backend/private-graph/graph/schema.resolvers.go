@@ -1251,9 +1251,9 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	subscriptions := c.Subscriptions.Data
 	pricing.FillProducts(r.StripeClient, subscriptions)
 
-	pricingInterval := pricing.SubscriptionIntervalMonthly
+	pricingInterval := model.SubscriptionIntervalMonthly
 	if planType != modelInputs.PlanTypeFree && interval == modelInputs.SubscriptionIntervalAnnual {
-		pricingInterval = pricing.SubscriptionIntervalAnnual
+		pricingInterval = model.SubscriptionIntervalAnnual
 	}
 
 	// default to unlimited members pricing
@@ -1262,7 +1262,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
 
-	newBasePrice := prices[pricing.ProductTypeBase]
+	newBasePrice := prices[model.ProductTypeBase]
 
 	// If there's an existing subscription, update it
 	if len(subscriptions) == 1 {
@@ -1276,7 +1276,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		if productType == nil {
 			return nil, e.New(fmt.Sprintf("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - nil product from sub %s price %s", subscription.ID, subscriptionItem.Price.ID))
 		}
-		if *productType != pricing.ProductTypeBase {
+		if *productType != model.ProductTypeBase {
 			return nil, e.New(fmt.Sprintf("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - expecting base product from sub %s price %s: %s", subscription.ID, subscriptionItem.Price.ID, *productType))
 		}
 
@@ -5620,9 +5620,9 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 	var sessionsLimit, errorsLimit, logsLimit *int64
 	if workspace.TrialEndDate == nil || workspace.TrialEndDate.Before(time.Now()) {
-		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, pricing.ProductTypeSessions, planType, retentionPeriod)
-		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, pricing.ProductTypeErrors, planType, retentionPeriod)
-		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, pricing.ProductTypeLogs, planType, retentionPeriod)
+		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, model.ProductTypeSessions, planType, retentionPeriod)
+		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, model.ProductTypeErrors, planType, retentionPeriod)
+		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, model.ProductTypeLogs, planType, retentionPeriod)
 	}
 
 	details := &modelInputs.BillingDetails{

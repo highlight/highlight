@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func MergeSimilarCompanies(ctx context.Context, h *HubspotApi) error {
+func MergeSimilarCompanies(ctx context.Context, h *Client) error {
 	time.Sleep(time.Second * 10)
 	results, objects, err := h.getDoppelgangers(ctx)
 	if err != nil {
@@ -124,14 +124,14 @@ func compareCompanies(ctx context.Context, c1, c2 *DoppelgangersObject) bool {
 	}
 }
 
-func MergeCompanies(ctx context.Context, h *HubspotApi, keep, merge *DoppelgangersObject) {
+func MergeCompanies(ctx context.Context, h *Client, keep, merge *DoppelgangersObject) {
 	log.WithContext(ctx).Infof("merging %d into %d", merge.ObjectID, keep.ObjectID)
 	if err := h.mergeCompanies(keep.ObjectID, merge.ObjectID); err != nil {
 		log.WithContext(ctx).WithError(err).Errorf("failed to merge %d into %d", merge.ObjectID, keep.ObjectID)
 	}
 }
 
-func MergeContacts(ctx context.Context, h *HubspotApi, keep, merge *DoppelgangersObject) {
+func MergeContacts(ctx context.Context, h *Client, keep, merge *DoppelgangersObject) {
 	log.WithContext(ctx).Infof("merging %d into %d", merge.ObjectID, keep.ObjectID)
 	if err := h.mergeContacts(keep.ObjectID, merge.ObjectID); err != nil {
 		log.WithContext(ctx).WithError(err).Errorf("failed to merge %d into %d", merge.ObjectID, keep.ObjectID)
