@@ -1364,11 +1364,17 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		}
 		c.TrialEndDate = workspace.TrialEndDate
 		c.PlanTier = workspace.PlanTier
-		for _, p := range workspace.Projects {
-			sessionRecording, err := w.Resolver.Query().ClientIntegration(ctx, p.ID)
-			if err == nil {
-				c.SessionReplayIntegrated = c.SessionReplayIntegrated || sessionRecording.Integrated
+		for t, ptr := range map[model.MarkBackendSetupType]*bool{
+			model.MarkBackendSetupTypeSession: &c.SessionReplayIntegrated,
+			model.MarkBackendSetupTypeError:   &c.BackendErrorMonitoringIntegrated,
+			model.MarkBackendSetupTypeLogs:    &c.BackendLoggingIntegrated,
+		} {
+			setupEvent := model.SetupEvent{}
+			if err := w.Resolver.DB.Model(&model.SetupEvent{}).Joins("INNER JOIN projects p on p.id = project_id").Joins("INNER JOIN workspaces w on w.id = p.workspace_id").Where("w.id = ? AND type = ?", workspace.ID, t).Take(&setupEvent).Error; err != nil {
+				*ptr = setupEvent.ID != 0
 			}
+		}
+		for _, p := range workspace.Projects {
 			backendErrors, err := w.Resolver.Query().ServerIntegration(ctx, p.ID)
 			if err == nil && backendErrors.Integrated {
 				c.BackendErrorMonitoringIntegrated = c.BackendErrorMonitoringIntegrated || backendErrors.Integrated
