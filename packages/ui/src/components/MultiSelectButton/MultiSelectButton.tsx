@@ -1,4 +1,5 @@
 import React from 'react'
+import classNames from 'classnames'
 import {
 	useSelectState,
 	Select,
@@ -26,6 +27,7 @@ type Props = {
 	valueRender: () => React.ReactNode
 	options: Option[]
 	onChange: (value: string[]) => void
+	className?: string
 }
 
 export const MultiSelectButton: React.FC<Props> = ({
@@ -36,6 +38,7 @@ export const MultiSelectButton: React.FC<Props> = ({
 	valueRender,
 	options,
 	onChange,
+	className,
 }) => {
 	const selectState = useSelectState({
 		defaultValue: defaultValue ? [defaultValue] : [],
@@ -48,11 +51,14 @@ export const MultiSelectButton: React.FC<Props> = ({
 			<SelectLabel state={selectState} className={styles.selectLabel}>
 				{label}
 			</SelectLabel>
-			<Select state={selectState} className={styles.selectButton}>
+			<Select
+				state={selectState}
+				className={classNames(className, styles.selectButton)}
+			>
 				<>
 					{icon}
 					<Text size="xSmall" color="secondaryContentText">
-						{valueRender()}
+						{valueRender()} hey there!
 					</Text>
 				</>
 			</Select>
