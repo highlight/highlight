@@ -55,7 +55,7 @@ var (
 	CSRFToken = os.Getenv("HUBSPOT_CSRF_TOKEN")
 )
 
-func retry[T *int](fn func() (T, error)) (ret T, err error) {
+func retry[T any](fn func() (T, error)) (ret T, err error) {
 	for i := 0; i < Retries; i++ {
 		ret, err = fn()
 		if err == nil {
@@ -666,22 +666,27 @@ func (h *Client) UpdateContactPropertyImpl(ctx context.Context, adminID int, pro
 	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
 		return err
 	}
-	var hubspotContactID *int
-	if admin.HubspotContactID != nil {
-		hubspotContactID = admin.HubspotContactID
-	} else {
-		var err error
-		hubspotContactID, err = h.getContactForAdmin(ptr.ToString(admin.Email))
-		if err != nil {
-			return err
+	hubspotContactID := admin.HubspotContactID
+	_, err := retry(func() (*int, error) {
+		if hubspotContactID == nil {
+			var err error
+			hubspotContactID, err = h.getContactForAdmin(ptr.ToString(admin.Email))
+			if err != nil {
+				return nil, err
+			}
+			err = h.db.Model(&model.Admin{Model: model.Model{ID: admin.ID}}).Updates(&model.Admin{HubspotContactID: hubspotContactID}).Error
+			if err != nil {
+				return nil, err
+			}
 		}
-	}
-	if err := h.hubspotClient.Contacts().Update(ptr.ToInt(hubspotContactID), hubspot.ContactsRequest{
-		Properties: properties,
-	}); err != nil {
-		return err
-	}
-	return nil
+		if err := h.hubspotClient.Contacts().Update(ptr.ToInt(hubspotContactID), hubspot.ContactsRequest{
+			Properties: properties,
+		}); err != nil {
+			return nil, err
+		}
+		return nil, nil
+	})
+	return err
 }
 
 func (h *Client) UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
@@ -708,25 +713,32 @@ func (h *Client) UpdateCompanyPropertyImpl(ctx context.Context, workspaceID int,
 	if err := h.db.Model(&model.Workspace{}).Preload("Admins").Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
 		return err
 	}
-	var hubspotWorkspaceID *int
-	if workspace.HubspotCompanyID != nil {
-		hubspotWorkspaceID = workspace.HubspotCompanyID
-	} else {
-		var err error
-		var domain string
-		if len(workspace.Admins) > 0 {
-			domain = getDomain(ptr.ToString(workspace.Admins[0].Email))
+	hubspotCompanyId := workspace.HubspotCompanyID
+	_, err := retry(func() (*int, error) {
+		if hubspotCompanyId != nil {
+			var err error
+			var domain string
+			if len(workspace.Admins) > 0 {
+				domain = getDomain(ptr.ToString(workspace.Admins[0].Email))
+			}
+			hubspotCompanyId, err = h.getCompany(ctx, ptr.ToString(workspace.Name), domain)
+			if err != nil {
+				return nil, err
+			}
+			err = h.db.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Updates(&model.Workspace{HubspotCompanyID: hubspotCompanyId}).Error
+			if err != nil {
+				return nil, err
+			}
 		}
-		hubspotWorkspaceID, err = h.getCompany(ctx, ptr.ToString(workspace.Name), domain)
-		if err != nil {
-			return err
-		}
-	}
 
-	if _, err := h.hubspotClient.Companies().Update(ptr.ToInt(hubspotWorkspaceID), hubspot.CompaniesRequest{
-		Properties: properties,
-	}); err != nil {
-		return err
-	}
-	return nil
+		if _, err := h.hubspotClient.Companies().Update(ptr.ToInt(hubspotCompanyId), hubspot.CompaniesRequest{
+			Properties: properties,
+		}); err != nil {
+			// if the request failed, try to clear the hubspot company id to find it
+			hubspotCompanyId = nil
+			return nil, err
+		}
+		return nil, nil
+	})
+	return err
 }
