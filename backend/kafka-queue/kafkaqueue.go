@@ -365,12 +365,7 @@ func (p *Queue) Commit(ctx context.Context, msg *kafka.Message) {
 func (p *Queue) LogStats() {
 	if p.kafkaP != nil {
 		stats := p.kafkaP.Stats()
-		lg := log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("stats", stats)
-
-		// write kafka metric logs in production
-		if !util.IsDevOrTestEnv() {
-			lg.Info("Kafka Producer Stats")
-		}
+		log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("stats", stats).Debug("Kafka Producer Stats")
 
 		hlog.Histogram("worker.kafka.produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
 		hlog.Histogram("worker.kafka.produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
@@ -384,12 +379,7 @@ func (p *Queue) LogStats() {
 	}
 	if p.kafkaC != nil {
 		stats := p.kafkaC.Stats()
-		lg := log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("partition", stats.Partition).WithField("stats", stats)
-
-		// write kafka metric logs in production
-		if !util.IsDevOrTestEnv() {
-			lg.Info("Kafka Consumer Stats")
-		}
+		log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("partition", stats.Partition).WithField("stats", stats).Debug("Kafka Consumer Stats")
 
 		hlog.Histogram("worker.kafka.consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
 		hlog.Histogram("worker.kafka.consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
