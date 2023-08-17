@@ -463,6 +463,7 @@ type LogAlertInput struct {
 	Emails              []string                      `json:"emails"`
 	Environments        []string                      `json:"environments"`
 	Disabled            bool                          `json:"disabled"`
+	Default             *bool                         `json:"default"`
 	Query               string                        `json:"query"`
 }
 
@@ -660,6 +661,7 @@ type SessionAlertInput struct {
 	Emails              []string                      `json:"emails"`
 	Environments        []string                      `json:"environments"`
 	Disabled            bool                          `json:"disabled"`
+	Default             *bool                         `json:"default"`
 	Type                SessionAlertType              `json:"type"`
 	UserProperties      []*UserPropertyInput          `json:"user_properties"`
 	ExcludeRules        []string                      `json:"exclude_rules"`

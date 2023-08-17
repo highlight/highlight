@@ -88,14 +88,14 @@ interface AlertOption {
 
 const alertOptions: AlertOption[] = [
 	{
-		name: 'Error',
-		destination: 'error-alerts',
-		thresholdPerMinute: 10,
-	},
-	{
 		name: 'Session',
 		destination: 'session-alerts',
 		thresholdPerMinute: 1,
+	},
+	{
+		name: 'Error',
+		destination: 'error-alerts',
+		thresholdPerMinute: 10,
 	},
 	{
 		name: 'Log',
@@ -105,68 +105,12 @@ const alertOptions: AlertOption[] = [
 ]
 
 export const AlertsSetup: React.FC = function () {
-	const { projectId } = useProjectId()
 	const platformMatch = useMatch('/:project_id/setup/alerts/:platform')
-	const platform = platformMatch?.params?.platform
-	const [alertsSelected, onAlertsSelected] = React.useState<
-		('Session' | 'Error' | 'Log')[]
-	>([])
-	const { data, loading } = useGetAlertsPagePayloadQuery({
-		variables: { project_id: projectId },
-	})
-
-	const [createSessionAlert] = useCreateSessionAlertMutation({
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
-
-	const createAlerts = useCallback(async () => {
-		const requestVariables = {
-			project_id: projectId,
-			count_threshold: 5,
-			name: 'New Session Alert',
-			// TODO(vkorolik)
-			slack_channels: [],
-			discord_channels: [],
-			emails: [],
-			environments: [],
-			webhook_destinations: [],
-		}
-		const requestBody = {
-			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-		}
-
-		for (const [alert] of alertsSelected) {
-			if (alert === 'Session') {
-				if (!data?.new_session_alerts.find((a) => a?.default)) {
-					await createSessionAlert({
-						...requestBody,
-						variables: {
-							input: {
-								...requestVariables,
-								threshold_window: 1,
-								exclude_rules: [],
-								user_properties: [],
-								track_properties: [],
-								disabled: false,
-								type: SessionAlertType.NewSessionAlert,
-							},
-						},
-					})
-				}
-			}
-		}
-	}, [
-		alertsSelected,
-		createSessionAlert,
-		data?.new_session_alerts,
-		projectId,
-	])
-
-	useEffect(() => {
-		createAlerts().then(console.log)
-	}, [createAlerts])
-
-	if (loading) return null
+	const platform = platformMatch?.params?.platform as
+		| 'slack'
+		| 'discord'
+		| 'email'
+		| undefined
 
 	return (
 		<Box>
@@ -179,11 +123,7 @@ export const AlertsSetup: React.FC = function () {
 					}
 				/>
 				{platform ? (
-					<AlertPicker
-						platform={platform}
-						alertsSelected={alertsSelected}
-						onAlertsSelected={onAlertsSelected}
-					/>
+					<AlertPicker platform={platform} />
 				) : (
 					<PlatformPicker />
 				)}
@@ -300,21 +240,102 @@ const PlatformPicker: React.FC = function () {
 
 const AlertPicker = function ({
 	platform,
-	alertsSelected,
-	onAlertsSelected,
 }: {
-	platform: string
-	alertsSelected: ('Session' | 'Error' | 'Log')[]
-	onAlertsSelected: (alerts: ('Session' | 'Error' | 'Log')[]) => void
+	platform: 'slack' | 'discord' | 'email'
 }) {
+	const { projectId } = useProjectId()
 	const location = useLocation()
 	const notificationOption = notificationOptions.find(
 		(n) => n.name.toLowerCase() === platform,
 	)
-	let destinations: string[] | undefined
-	if (platform === 'email') {
-		destinations = location.state.emails
-	}
+	const emailDestinations =
+		platform === 'email' ? location.state.emails : undefined
+
+	const [alertsSelected, onAlertsSelected] = React.useState<
+		('Session' | 'Error' | 'Log')[]
+	>([])
+
+	const { data, loading } = useGetAlertsPagePayloadQuery({
+		variables: { project_id: projectId },
+	})
+
+	const [createSessionAlert] = useCreateSessionAlertMutation({
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+	})
+
+	const createAlerts = useCallback(async () => {
+		const channelID = ''
+		if (platform === 'slack') {
+			// TODO(vkorolik) create the slack channel?
+		} else if (platform === 'discord') {
+			// TODO(vkorolik) create the discord channel?
+		}
+
+		const requestVariables = {
+			project_id: projectId,
+			count_threshold: 5,
+			name: 'New Session Alert',
+			slack_channels:
+				platform === 'slack'
+					? [
+							{
+								webhook_channel_id: channelID,
+								webhook_channel_name:
+									alertOptions[0].destination,
+							},
+					  ]
+					: [],
+			discord_channels:
+				platform === 'discord'
+					? [
+							{
+								id: channelID,
+								name: alertOptions[0].destination,
+							},
+					  ]
+					: [],
+			emails: emailDestinations ?? [],
+			environments: [],
+			webhook_destinations: [],
+		}
+		const requestBody = {
+			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+		}
+
+		for (const [alert] of alertsSelected) {
+			if (alert === 'Session') {
+				if (!data?.new_session_alerts.find((a) => a?.default)) {
+					await createSessionAlert({
+						...requestBody,
+						variables: {
+							input: {
+								...requestVariables,
+								threshold_window: 1,
+								exclude_rules: [],
+								user_properties: [],
+								track_properties: [],
+								disabled: false,
+								type: SessionAlertType.NewSessionAlert,
+							},
+						},
+					})
+				}
+			}
+		}
+	}, [
+		alertsSelected,
+		createSessionAlert,
+		data?.new_session_alerts,
+		emailDestinations,
+		platform,
+		projectId,
+	])
+
+	useEffect(() => {
+		createAlerts().then(console.log)
+	}, [createAlerts])
+
+	if (loading) return null
 	return (
 		<Stack gap="0">
 			{alertOptions.map((option, index) => {
@@ -381,8 +402,8 @@ const AlertPicker = function ({
 										-1
 									}
 								>
-									{destinations
-										? destinations.join(', ')
+									{emailDestinations
+										? emailDestinations.join(', ')
 										: option.destination}
 								</Tag>
 								<Badge
