@@ -32,7 +32,7 @@ func Middleware() echo.MiddlewareFunc {
 			span, hCtx := highlight.StartTrace(ctx, "highlight/echo")
 			defer highlight.EndTrace(span)
 
-			c.SetRequest(c.Request().Clone(hCtx))
+			c.SetRequest(c.Request().WithContext(hCtx))
 			err := next(c)
 
 			span.SetAttributes(attribute.String(highlight.SourceAttribute, "GoGinMiddleware"))
