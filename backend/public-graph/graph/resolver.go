@@ -473,25 +473,39 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 		githubFileBytes, err := r.StorageClient.ReadGithubFile(ctx, *fileName, validServiceVersion)
 
 		if err != nil || githubFileBytes == nil || len(githubFileBytes) == 0 {
-			// TODO(spenny): file too big returns no content - does not get stored and refetched on next error/occurance
-			fileContent, _, _, err := client.GetRepoContent(ctx, *service.GithubRepoPath, *fileName, validServiceVersion)
-			// TODO(spenny): too many unexpected errors, then put service into error state
-			// TODO(spenny): catch any rate limit errors (maybe set cooldown to try again)
-			// TODO(spenny): if not available with version and version is not the same as main, try again with main
-
-			if fileContent == nil || fileContent.Content == nil || err != nil {
+			fileContent, directoryContent, resp, err := client.GetRepoContent(ctx, *service.GithubRepoPath, *fileName, validServiceVersion)
+			if fileContent == nil || err != nil {
 				newMappedStackTrace = append(newMappedStackTrace, trace)
 				continue
 			}
 
-			githubFileBytes = []byte(*fileContent.Content)
+			// TODO(spenny): too many unexpected errors, then put service into error state
+			// TODO(spenny): catch any rate limit errors (maybe set cooldown to try again)
+			// TODO(spenny): if not available with version and version is not the same as main, try again with main
+
+			if directoryContent != nil || resp != nil {
+				log.WithContext(ctx).Info("What should we use")
+			}
+
+			encodedFileContent := fileContent.Content
+			// some files are too large to fetch from the github API so we fetch via a separate API request
+			if *encodedFileContent == "" && fileContent.SHA != nil {
+				blobContent, _, err := client.GetRepoBlob(ctx, *service.GithubRepoPath, *fileContent.SHA)
+				if err != nil {
+					log.WithContext(ctx).Error(err)
+				}
+
+				encodedFileContent = blobContent.Content
+			}
+
+			githubFileBytes = []byte(*encodedFileContent)
 
 			if validServiceVersion == nil && fileContent.SHA != nil {
 				validServiceVersion = fileContent.SHA
 				if err := r.Redis.Cache.Set(&cache.Item{
 					Ctx:   ctx,
 					Key:   GithubMainCacheKey(*service.GithubRepoPath),
-					Value: fileContent.SHA,
+					Value: fileContent.SHA, // TODO(spenny): check that this is the correct sha and not just the file
 					TTL:   time.Hour * 24,
 				}); err != nil {
 					log.WithContext(ctx).Error(err)

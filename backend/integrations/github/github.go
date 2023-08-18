@@ -165,3 +165,8 @@ func (c *Client) GetRepoContent(ctx context.Context, githubPath string, path str
 	}
 	return c.client.Repositories.GetContents(ctx, repoPath[0], repoPath[1], path, opts)
 }
+
+func (c *Client) GetRepoBlob(ctx context.Context, githubPath string, blobSHA string) (*github.Blob, *github.Response, error) {
+	repoPath := strings.Split(githubPath, "/")
+	return c.client.Git.GetBlob(ctx, repoPath[0], repoPath[1], blobSHA)
+}
