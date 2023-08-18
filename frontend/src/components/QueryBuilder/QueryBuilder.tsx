@@ -1,5 +1,4 @@
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
-import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { BaseSearchContext } from '@context/BaseSearchContext'
@@ -109,6 +108,7 @@ interface MultiselectPopoutContentProps {
 interface SelectPopoutContentProps {
 	type: PopoutType
 	value: SelectOption | undefined
+	valueRender?: React.ReactNode
 	onChange: OnSelectChange
 	loadOptions: LoadOptions
 }
@@ -361,6 +361,7 @@ const getOption = (props: any) => {
 	)
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const PopoutContent = ({
 	value,
 	onChange,
@@ -469,8 +470,8 @@ const PopoutContent = ({
 
 const MultiselectPopoutV2 = ({
 	value,
-	disabled,
-	// cssClass,
+	// disabled, ZANETODO
+	cssClass,
 	// limitWidth,
 	loadOptions,
 	type,
@@ -549,6 +550,10 @@ const MultiselectPopoutV2 = ({
 							})),
 						})
 					}}
+					onChangeQuery={(val: string) => {
+						setQuery(val)
+					}}
+					cssClass={cssClass}
 				/>
 			)
 		case 'creatable':
@@ -573,36 +578,21 @@ const MultiselectPopoutV2 = ({
 							})),
 						})
 					}}
+					onChangeQuery={(val: string) => {
+						setQuery(val)
+					}}
+					cssClass={cssClass}
 				/>
 			)
 	}
-
-	return (
-		<Menu placement="bottom-end">
-			<Menu.Button disabled={disabled}>
-				{invalid && '--'}
-				{/* {value?.kind === 'single' && getNameLabel(value.label)} */}
-				{value?.kind === 'multi' &&
-					value.options.length > 1 &&
-					`${value.options.length} selections`}
-				{value?.kind === 'multi' &&
-					value.options.length === 1 &&
-					value.options[0].label}
-			</Menu.Button>
-			<PopoutContent
-				type={type}
-				value={value}
-				onChange={onChange}
-				loadOptions={loadOptions}
-			/>
-		</Menu>
-	)
+	return null
 }
 
 const SelectPopoutV2 = ({
 	value,
+	valueRender,
 	// disabled,
-	// cssClass,
+	cssClass,
 	// limitWidth,
 	loadOptions,
 	onChange,
@@ -657,7 +647,7 @@ const SelectPopoutV2 = ({
 		<SelectButton
 			label=""
 			value={value?.label ?? ''}
-			valueRender={() => label}
+			valueRender={() => valueRender ?? label}
 			options={options.map((o) => ({
 				key: o.value,
 				render: getOption(o),
@@ -670,6 +660,10 @@ const SelectPopoutV2 = ({
 				})
 				console.log('onchange', val, selected, options)
 			}}
+			onChangeQuery={(val: string) => {
+				setQuery(val)
+			}}
+			cssClass={cssClass}
 		/>
 	)
 }
@@ -712,7 +706,7 @@ const QueryRule = ({
 				loadOptions={getKeyOptions}
 				type="select"
 				disabled={readonly}
-				cssClass={[newStyle.flatRight, newStyle.tagKey]}
+				cssClass={[newStyle.tag, newStyle.flatRight, newStyle.tagKey]}
 			/>
 			<SelectPopoutV2
 				value={getOperator(rule.op, rule.val)}
@@ -721,6 +715,7 @@ const QueryRule = ({
 				type="select"
 				disabled={readonly}
 				cssClass={[
+					newStyle.tag,
 					newStyle.tagKey,
 					newStyle.flatLeft,
 					{
@@ -738,7 +733,7 @@ const QueryRule = ({
 					disabled={readonly}
 					limitWidth
 					cssClass={[
-						newStyle.tagValue,
+						newStyle.tag,
 						newStyle.flatLeft,
 						{ [newStyle.flatRight]: !readonly },
 					]}
@@ -1276,14 +1271,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		[isAnd, readonly, setSearchQuery],
 	)
 
-	const addNewRule = () => {
-		setCurrentRule({
-			field: undefined,
-			op: undefined,
-			val: undefined,
-		})
-		setCurrentStep(1)
-	}
 	const addRule = useCallback(
 		(rule: RuleProps) => {
 			setRulesImpl([...rules, rule])
@@ -1468,10 +1455,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [removeSelectedSegment])
 
-	const [currentStep, setCurrentStep] = useState<number | undefined>(
-		undefined,
-	)
-
 	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	const mode = (() => {
@@ -1491,57 +1474,25 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 
 		return (
-			<Popover
-				showArrow={false}
-				trigger="click"
-				content={
-					<></>
-					// <PopoutContent
-					// 	key="popover-step-1"
-					// 	value={undefined}
-					// 	setVisible={() => {
-					// 		setCurrentStep(undefined)
-					// 	}}
-					// 	onChange={(val) => {
-					// 		const field = val as SelectOption | undefined
-					// 		addRule({
-					// 			field: field,
-					// 			op: undefined,
-					// 			val: undefined,
-					// 		})
-					// 	}}
-					// 	loadOptions={getKeyOptions}
-					// 	type="select"
-					// 	placeholder="Filter..."
-					// />
-				}
-				placement="bottomLeft"
-				contentContainerClassName={styles.contentContainer}
-				popoverClassName={styles.popoverContainer}
-				destroyTooltipOnHide
-				onVisibleChange={(isVisible) => {
-					if (!isVisible) {
-						setCurrentStep(undefined)
-					}
+			<SelectPopoutV2
+				value={undefined}
+				valueRender={<IconSolidPlusSm size={12} />}
+				onChange={(val) => {
+					const field = val as SelectOption | undefined
+					addRule({
+						field: field,
+						op: undefined,
+						val: undefined,
+					})
 				}}
-				visible={
-					currentStep === 1 ||
-					(currentStep === 2 && !!currentRule?.field) ||
-					(currentStep === 3 && !!currentRule?.op)
-				}
-			>
-				<ButtonIcon
-					kind="secondary"
-					size="xSmall"
-					emphasis="low"
-					icon={<IconSolidPlusSm size={12} />}
-					onClick={addNewRule}
-					cssClass={newStyle.addButton}
-				/>
-			</Popover>
+				loadOptions={getKeyOptions}
+				type="select"
+				cssClass={[newStyle.tag, newStyle.flatRight, newStyle.tagKey]}
+				disabled={false}
+			/>
 		)
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [addRule, currentRule, currentStep, getKeyOptions, readonly])
+	}, [addRule, currentRule, getKeyOptions, readonly])
 
 	const canUpdateSegment =
 		!!selectedSegment && filterRules.length > 0 && areRulesValid

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import {
 	useSelectState,
 	Select,
@@ -7,7 +7,9 @@ import {
 	SelectPopover,
 } from 'ariakit'
 
-import * as styles from './styles.css'
+import * as styles from '../MultiSelectButton/styles.css'
+import { Text } from '../Text/Text'
+import clsx, { ClassValue } from 'clsx'
 
 type Option = {
 	key: string
@@ -22,6 +24,9 @@ type Props = {
 	valueRender: () => React.ReactNode
 	options: Option[]
 	onChange: (value: string) => void
+	onChangeQuery?: (value: string) => void
+	queryPlaceholder?: string
+	cssClass?: ClassValue | ClassValue[]
 }
 
 export const SelectButton: React.FC<Props> = ({
@@ -32,7 +37,12 @@ export const SelectButton: React.FC<Props> = ({
 	valueRender,
 	options,
 	onChange,
+	onChangeQuery,
+	queryPlaceholder,
+	cssClass,
 }) => {
+	const inputElement = useRef<HTMLInputElement>(null)
+
 	const selectState = useSelectState({
 		defaultValue: defaultValue,
 		setValue: (value: string) => onChange(value),
@@ -44,15 +54,31 @@ export const SelectButton: React.FC<Props> = ({
 			<SelectLabel state={selectState} className={styles.selectLabel}>
 				{label}
 			</SelectLabel>
-			<Select state={selectState} className={styles.selectButton}>
+			<Select
+				state={selectState}
+				className={clsx([styles.selectButton, clsx(cssClass)])}
+			>
 				{icon}
-				{valueRender()}
+				<Text size="xSmall" color="secondaryContentText">
+					{valueRender()}
+				</Text>
 			</Select>
 			{selectState.mounted && (
 				<SelectPopover
 					state={selectState}
 					className={styles.selectPopover}
+					initialFocusRef={inputElement}
 				>
+					{onChangeQuery && (
+						<input
+							ref={inputElement}
+							type="text"
+							onChange={(e) => {
+								onChangeQuery(e.target?.value)
+							}}
+							placeholder={queryPlaceholder}
+						></input>
+					)}
 					{options.map((option: Option) => (
 						<SelectItem
 							key={option.key}

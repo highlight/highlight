@@ -1,5 +1,4 @@
-import React from 'react'
-import classNames from 'classnames'
+import React, { useRef } from 'react'
 import {
 	useSelectState,
 	Select,
@@ -12,6 +11,7 @@ import { IconSolidCheckCircle, IconSolidMinus } from '../icons'
 
 import * as styles from './styles.css'
 import { Text } from '../Text/Text'
+import clsx, { ClassValue } from 'clsx'
 
 type Option = {
 	key: string
@@ -27,7 +27,9 @@ type Props = {
 	valueRender: () => React.ReactNode
 	options: Option[]
 	onChange: (value: string[]) => void
-	className?: string
+	onChangeQuery?: (value: string) => void
+	queryPlaceholder?: string
+	cssClass?: ClassValue | ClassValue[]
 }
 
 export const MultiSelectButton: React.FC<Props> = ({
@@ -38,8 +40,12 @@ export const MultiSelectButton: React.FC<Props> = ({
 	valueRender,
 	options,
 	onChange,
-	className,
+	onChangeQuery,
+	queryPlaceholder,
+	cssClass,
 }) => {
+	const inputElement = useRef<HTMLInputElement>(null)
+
 	const selectState = useSelectState({
 		defaultValue: defaultValue ? [defaultValue] : [],
 		setValue: (value: string[]) => onChange(value),
@@ -53,12 +59,12 @@ export const MultiSelectButton: React.FC<Props> = ({
 			</SelectLabel>
 			<Select
 				state={selectState}
-				className={classNames(className, styles.selectButton)}
+				className={clsx([styles.selectButton, clsx(cssClass)])}
 			>
 				<>
 					{icon}
 					<Text size="xSmall" color="secondaryContentText">
-						{valueRender()} hey there!
+						{valueRender()}
 					</Text>
 				</>
 			</Select>
@@ -66,7 +72,18 @@ export const MultiSelectButton: React.FC<Props> = ({
 				<SelectPopover
 					state={selectState}
 					className={styles.selectPopover}
+					initialFocusRef={inputElement}
 				>
+					{onChangeQuery && (
+						<input
+							ref={inputElement}
+							type="text"
+							onChange={(e) => {
+								onChangeQuery(e.target?.value)
+							}}
+							placeholder={queryPlaceholder}
+						></input>
+					)}
 					{options.map((option: Option) => (
 						<SelectItem
 							key={option.key}

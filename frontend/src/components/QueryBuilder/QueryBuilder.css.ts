@@ -1,4 +1,13 @@
+import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
+
+export const tag = style({
+	padding: '2px 4px',
+	background: colors.n4,
+	boxShadow: 'inset 0 -1px #0000001a',
+	border: 'none',
+	borderRadius: '5px',
+})
 
 export const flatRight = style({
 	borderTopRightRadius: 0,
@@ -21,13 +30,8 @@ export const addButton = style({
 })
 
 export const tagKey = style({
-	flex: 1,
 	wordBreak: 'normal',
 	whiteSpace: 'nowrap',
-})
-
-export const tagValue = style({
-	flex: 1,
 })
 
 export const noShrink = style({
