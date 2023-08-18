@@ -350,17 +350,13 @@ func (f *FilesystemClient) ReadGithubFile(ctx context.Context, fileName string, 
 }
 
 func (f *FilesystemClient) PushGithubFile(ctx context.Context, fileName string, version *string, fileBytes []byte) (*int64, error) {
-	buf := new(bytes.Buffer)
-	_, err := buf.Read(fileBytes)
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading from memory buffer")
-	}
+	body := bytes.NewReader(fileBytes)
 
 	if version == nil {
 		version = pointy.String("main")
 	}
 
-	if n, err := f.writeFSBytes(ctx, fmt.Sprintf("%s/%s/%s", f.fsRoot, *version, fileName), buf); err != nil {
+	if n, err := f.writeFSBytes(ctx, fmt.Sprintf("%s/%s/%s", f.fsRoot, *version, fileName), body); err != nil {
 		return pointy.Int64(0), err
 	} else {
 		return &n, nil

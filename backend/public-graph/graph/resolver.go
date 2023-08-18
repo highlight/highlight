@@ -428,7 +428,7 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 
 	newServiceVersion := ptr.String(serviceVersion)
 	// TODO(spenny): check if version available and may be a git hash
-	// TODO(spenny): use main if not
+	// TODO(spenny): use main hash from redis if not
 
 	client, err := github.NewClient(ctx, *gitHubAccessToken)
 	if err != nil {
@@ -465,9 +465,8 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 		githubFileBytes, err := r.StorageClient.ReadGithubFile(ctx, *fileName, newServiceVersion)
 
 		if err != nil || githubFileBytes == nil || len(githubFileBytes) == 0 {
-			// TODO(spenny): file too big returns no content
+			// TODO(spenny): file too big returns no content - does not get stored and refetched on next error/occurance
 			fileContent, _, _, err := client.GetRepoContent(ctx, *service.GithubRepoPath, *fileName, newServiceVersion)
-			// TODO(spenny): if main was fetched - use response hash to store and cache in redis
 
 			if fileContent == nil || fileContent.Content == nil || err != nil {
 				newMappedStackTrace = append(newMappedStackTrace, trace)
@@ -477,11 +476,11 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 			githubFileBytes = []byte(*fileContent.Content)
 
 			// TODO(spenny): if not available, try main
+			// TODO(spenny): if main was fetched, use response hash to store and cache in redis
 			// TODO(spenny): too many unexpected errors, then put service into error state
 			// TODO(spenny): catch any rate limit errors (maybe set cooldown to try again)
 
 			_, err = r.StorageClient.PushGithubFile(ctx, *fileName, newServiceVersion, githubFileBytes)
-			// TODO(spenny): error reading from memory buffer: EOF
 			if err != nil {
 				log.WithContext(ctx).Error(err)
 			}

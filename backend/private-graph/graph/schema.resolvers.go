@@ -7413,7 +7413,7 @@ func (r *queryResolver) ErrorResolutionSuggestion(ctx context.Context, errorObje
 	}
 
 	errorObject := &model.ErrorObject{}
-	if err := r.DB.Model(&model.ErrorObject{}).Where("id = ?", errorObjectID).Find(&errorObject).Error; err != nil {
+	if err := r.DB.Model(&model.ErrorObject{}).Where("i = ?", errorObjectID).Find(&errorObject).Error; err != nil {
 		return "", e.Wrap(err, "failed to find error object")
 	}
 
