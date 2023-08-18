@@ -17,7 +17,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
+	"github.com/go-redis/cache/v9"
+	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/integrations"
@@ -25,10 +28,6 @@ import (
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/store"
-	"go.opentelemetry.io/otel/attribute"
-
-	"github.com/PaesslerAG/jsonpath"
-	"github.com/highlight-run/go-resthooks"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/mssola/user_agent"
 	"github.com/openlyinc/pointy"
@@ -36,6 +35,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
@@ -426,9 +426,17 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 		return nil, nil
 	}
 
-	newServiceVersion := ptr.String(serviceVersion)
-	// TODO(spenny): check if version available and may be a git hash
-	// TODO(spenny): use main hash from redis if not
+	var validServiceVersion *string
+
+	possibleGitSha := regexp.MustCompile(`\b[0-9a-f]{5,40}\b`).MatchString(serviceVersion)
+	if possibleGitSha {
+		validServiceVersion = &serviceVersion
+	} else {
+		err = r.Redis.Cache.Get(ctx, GithubMainCacheKey(*service.GithubRepoPath), validServiceVersion)
+		if err != nil {
+			validServiceVersion = nil
+		}
+	}
 
 	client, err := github.NewClient(ctx, *gitHubAccessToken)
 	if err != nil {
@@ -452,7 +460,7 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 		}
 
 		// TODO(spenny): filter out files that should not be fetched (i.e. node modules, go packages, etc)
-		// static constant or system configuration
+		// use system configuration
 
 		if service.BuildPrefix != nil && service.GithubPrefix != nil {
 			fileName = ptr.String(strings.Replace(*fileName, *service.BuildPrefix, *service.GithubPrefix, 1))
@@ -462,11 +470,14 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 			fileName = ptr.String(*service.GithubPrefix + *fileName)
 		}
 
-		githubFileBytes, err := r.StorageClient.ReadGithubFile(ctx, *fileName, newServiceVersion)
+		githubFileBytes, err := r.StorageClient.ReadGithubFile(ctx, *fileName, validServiceVersion)
 
 		if err != nil || githubFileBytes == nil || len(githubFileBytes) == 0 {
 			// TODO(spenny): file too big returns no content - does not get stored and refetched on next error/occurance
-			fileContent, _, _, err := client.GetRepoContent(ctx, *service.GithubRepoPath, *fileName, newServiceVersion)
+			fileContent, _, _, err := client.GetRepoContent(ctx, *service.GithubRepoPath, *fileName, validServiceVersion)
+			// TODO(spenny): too many unexpected errors, then put service into error state
+			// TODO(spenny): catch any rate limit errors (maybe set cooldown to try again)
+			// TODO(spenny): if not available with version and version is not the same as main, try again with main
 
 			if fileContent == nil || fileContent.Content == nil || err != nil {
 				newMappedStackTrace = append(newMappedStackTrace, trace)
@@ -475,12 +486,19 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 
 			githubFileBytes = []byte(*fileContent.Content)
 
-			// TODO(spenny): if not available, try main
-			// TODO(spenny): if main was fetched, use response hash to store and cache in redis
-			// TODO(spenny): too many unexpected errors, then put service into error state
-			// TODO(spenny): catch any rate limit errors (maybe set cooldown to try again)
+			if validServiceVersion == nil && fileContent.SHA != nil {
+				validServiceVersion = fileContent.SHA
+				if err := r.Redis.Cache.Set(&cache.Item{
+					Ctx:   ctx,
+					Key:   GithubMainCacheKey(*service.GithubRepoPath),
+					Value: fileContent.SHA,
+					TTL:   time.Hour * 24,
+				}); err != nil {
+					log.WithContext(ctx).Error(err)
+				}
+			}
 
-			_, err = r.StorageClient.PushGithubFile(ctx, *fileName, newServiceVersion, githubFileBytes)
+			_, err = r.StorageClient.PushGithubFile(ctx, *fileName, validServiceVersion, githubFileBytes)
 			if err != nil {
 				log.WithContext(ctx).Error(err)
 			}
@@ -537,6 +555,10 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 	}
 
 	return newMappedStackTrace, nil
+}
+
+func GithubMainCacheKey(repo string) string {
+	return fmt.Sprintf("git-main-hash-%s", repo)
 }
 
 func (r *Resolver) GetGitHubIntegration(ctx context.Context, workspaceID int) (*model.IntegrationWorkspaceMapping, error) {
