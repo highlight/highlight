@@ -40,7 +40,7 @@ func (store *Store) FindOrCreateService(ctx context.Context, project model.Proje
 	})
 }
 
-func (store *Store) FindService(ctx context.Context, projectID int, name string, attributes map[string]string) (*model.Service, error) {
+func (store *Store) FindService(ctx context.Context, projectID int, name string) (*model.Service, error) {
 	// TODO(spenny): is it possible this will cache nil if an error evals before the first log?
 	return redis.CachedEval(ctx, store.redis, CacheServiceKey(name, projectID), 150*time.Millisecond, time.Minute, func() (*model.Service, error) {
 

@@ -420,7 +420,7 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 		return nil, nil
 	}
 
-	service, err := r.GetErrorService(ctx, projectID, serviceName)
+	service, err := r.Store.FindService(ctx, projectID, serviceName)
 	if err != nil || service == nil || service.GithubRepoPath == nil || service.Status != "healthy" {
 		return nil, nil
 	}
@@ -573,20 +573,6 @@ func (r *Resolver) GetGitHubIntegration(ctx context.Context, workspaceID int) (*
 	}
 
 	return workspaceMapping, nil
-}
-
-func (r *Resolver) GetErrorService(ctx context.Context, projectID int, serviceName string) (*model.Service, error) {
-	service := &model.Service{}
-
-	// TODO(spenny): can we cache this same as the logs?
-	if err := r.DB.Where(&model.Service{
-		ProjectID: projectID,
-		Name:      serviceName,
-	}).Take(&service).Error; err != nil {
-		return nil, err
-	}
-
-	return service, nil
 }
 
 func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.ErrorObject, matchFn func() (*int, error)) (*model.ErrorGroup, error) {
