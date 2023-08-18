@@ -480,15 +480,39 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 		githubFileBytes, err := r.StorageClient.ReadGithubFile(ctx, *fileName, *validServiceVersion)
 
 		if err != nil || githubFileBytes == nil || len(githubFileBytes) == 0 {
-			fileContent, _, _, err := client.GetRepoContent(ctx, *service.GithubRepoPath, *fileName, validServiceVersion)
-			if fileContent == nil || err != nil {
+			// check if rate limit is hit
+			rateLimit, err := r.Redis.GetGithubRateLimitTimeout(ctx)
+			if err != nil || rateLimit {
 				newMappedStackTrace = append(newMappedStackTrace, trace)
 				continue
 			}
 
-			// TODO(spenny): too many unexpected errors, then put service into error state
-			// TODO(spenny): catch any rate limit errors (maybe set cooldown to try again)
-			// TODO(spenny): if not available with version and version is not the same as main, try again with main
+			fileContent, _, resp, err := client.GetRepoContent(ctx, *service.GithubRepoPath, *fileName, validServiceVersion)
+			if resp != nil && resp.Rate.Remaining <= 0 {
+				log.WithContext(ctx).Error("GitHub rate limit hit")
+				_ = r.Redis.SetGithubRateLimitTimeout(ctx)
+			}
+
+			if err != nil {
+				// put service in error state if too many errors occur within timeframe
+				errorCount, _ := r.Redis.IncrementServiceErrorCount(ctx, service.ID)
+				if err != nil {
+					log.WithContext(ctx).Error(err)
+				}
+				if errorCount >= 20 {
+					err = r.Store.UpdateServiceErrorState(ctx, service.ID, []string{"Too many errors enhancing errors - Check service configuration."})
+					if err != nil {
+						log.WithContext(ctx).Error(err)
+					}
+				}
+				newMappedStackTrace = append(newMappedStackTrace, trace)
+				continue
+			}
+
+			if fileContent == nil || err != nil {
+				newMappedStackTrace = append(newMappedStackTrace, trace)
+				continue
+			}
 
 			encodedFileContent := fileContent.Content
 			// some files are too large to fetch from the github API so we fetch via a separate API request

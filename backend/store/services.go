@@ -55,6 +55,13 @@ func (store *Store) FindService(ctx context.Context, projectID int, name string)
 	})
 }
 
+func (store *Store) UpdateServiceErrorState(ctx context.Context, serviceID int, errorDetails []string) error {
+	err := store.db.Model(&model.Service{Model: model.Model{ID: serviceID}}).Updates(&model.Service{
+		Status: "error", ErrorDetails: errorDetails}).Error
+
+	return err
+}
+
 func CacheServiceKey(name string, projectID int) string {
 	return fmt.Sprintf("service-%s-%d", name, projectID)
 }
