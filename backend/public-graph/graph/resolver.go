@@ -19,7 +19,6 @@ import (
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
-	"github.com/go-redis/cache/v9"
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/errorgroups"
@@ -426,21 +425,29 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 		return nil, nil
 	}
 
-	var validServiceVersion *string
+	client, err := github.NewClient(ctx, *gitHubAccessToken)
+	if err != nil {
+		return nil, nil
+	}
 
+	var validServiceVersion *string
 	possibleGitSha := regexp.MustCompile(`\b[0-9a-f]{5,40}\b`).MatchString(serviceVersion)
 	if possibleGitSha {
 		validServiceVersion = &serviceVersion
 	} else {
-		err = r.Redis.Cache.Get(ctx, GithubMainCacheKey(*service.GithubRepoPath), validServiceVersion)
-		if err != nil {
-			validServiceVersion = nil
-		}
-	}
+		commitSha, err := redis.CachedEval(ctx, r.Redis, fmt.Sprintf("git-main-hash-%s", *service.GithubRepoPath), 5*time.Second, 24*time.Hour, func() (*string, error) {
+			commitSha, _, err := client.GetLatestCommitHash(ctx, *service.GithubRepoPath)
+			if err != nil {
+				return nil, err
+			}
+			return &commitSha, nil
+		})
 
-	client, err := github.NewClient(ctx, *gitHubAccessToken)
-	if err != nil {
-		return nil, nil
+		if err != nil {
+			return nil, nil
+		}
+
+		validServiceVersion = commitSha
 	}
 
 	newMappedStackTrace := []*privateModel.ErrorTrace{}
@@ -470,10 +477,10 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 			fileName = ptr.String(*service.GithubPrefix + *fileName)
 		}
 
-		githubFileBytes, err := r.StorageClient.ReadGithubFile(ctx, *fileName, validServiceVersion)
+		githubFileBytes, err := r.StorageClient.ReadGithubFile(ctx, *fileName, *validServiceVersion)
 
 		if err != nil || githubFileBytes == nil || len(githubFileBytes) == 0 {
-			fileContent, directoryContent, resp, err := client.GetRepoContent(ctx, *service.GithubRepoPath, *fileName, validServiceVersion)
+			fileContent, _, _, err := client.GetRepoContent(ctx, *service.GithubRepoPath, *fileName, validServiceVersion)
 			if fileContent == nil || err != nil {
 				newMappedStackTrace = append(newMappedStackTrace, trace)
 				continue
@@ -482,10 +489,6 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 			// TODO(spenny): too many unexpected errors, then put service into error state
 			// TODO(spenny): catch any rate limit errors (maybe set cooldown to try again)
 			// TODO(spenny): if not available with version and version is not the same as main, try again with main
-
-			if directoryContent != nil || resp != nil {
-				log.WithContext(ctx).Info("What should we use")
-			}
 
 			encodedFileContent := fileContent.Content
 			// some files are too large to fetch from the github API so we fetch via a separate API request
@@ -500,19 +503,7 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 
 			githubFileBytes = []byte(*encodedFileContent)
 
-			if validServiceVersion == nil && fileContent.SHA != nil {
-				validServiceVersion = fileContent.SHA
-				if err := r.Redis.Cache.Set(&cache.Item{
-					Ctx:   ctx,
-					Key:   GithubMainCacheKey(*service.GithubRepoPath),
-					Value: fileContent.SHA, // TODO(spenny): check that this is the correct sha and not just the file
-					TTL:   time.Hour * 24,
-				}); err != nil {
-					log.WithContext(ctx).Error(err)
-				}
-			}
-
-			_, err = r.StorageClient.PushGithubFile(ctx, *fileName, validServiceVersion, githubFileBytes)
+			_, err = r.StorageClient.PushGithubFile(ctx, *fileName, *validServiceVersion, githubFileBytes)
 			if err != nil {
 				log.WithContext(ctx).Error(err)
 			}
@@ -569,10 +560,6 @@ func (r *Resolver) GetGithubEnhancedStakeTrace(ctx context.Context, stackTrace [
 	}
 
 	return newMappedStackTrace, nil
-}
-
-func GithubMainCacheKey(repo string) string {
-	return fmt.Sprintf("git-main-hash-%s", repo)
 }
 
 func (r *Resolver) GetGitHubIntegration(ctx context.Context, workspaceID int) (*model.IntegrationWorkspaceMapping, error) {

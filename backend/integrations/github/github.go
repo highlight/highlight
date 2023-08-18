@@ -170,3 +170,8 @@ func (c *Client) GetRepoBlob(ctx context.Context, githubPath string, blobSHA str
 	repoPath := strings.Split(githubPath, "/")
 	return c.client.Git.GetBlob(ctx, repoPath[0], repoPath[1], blobSHA)
 }
+
+func (c *Client) GetLatestCommitHash(ctx context.Context, githubPath string) (string, *github.Response, error) {
+	repoPath := strings.Split(githubPath, "/")
+	return c.client.Repositories.GetCommitSHA1(ctx, repoPath[0], repoPath[1], "HEAD", "")
+}
