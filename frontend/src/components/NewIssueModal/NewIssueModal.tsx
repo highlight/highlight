@@ -280,7 +280,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							kind={loading ? 'secondary' : 'primary'}
 							size="small"
 							emphasis="high"
-							disabled={loading}
+							loading={loading}
 						>
 							Submit
 						</Button>

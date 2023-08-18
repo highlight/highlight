@@ -15,20 +15,29 @@ import { useParams } from '@util/react-router/useParams'
 import { GetBaseURL } from '@util/window'
 import moment from 'moment/moment'
 import React, { useEffect, useState } from 'react'
+import { useLocalStorage } from 'react-use'
 
 function HighlightSessions() {
 	const { setLoadingState } = useAppLoadingContext()
-	const { backendSearchQuery, setSearchQuery } = useSearchContext()
+	const { backendSearchQuery, setSearchQuery, searchQuery } =
+		useSearchContext()
 	const frontContext = useFrontContext()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
+	const [useClickhouse] = useLocalStorage(
+		'highlight-session-search-use-clickhouse',
+		false,
+	)
 	const { data, called } = useGetSessionsOpenSearchQuery({
 		variables: {
 			project_id: project_id!,
 			count: 100,
 			page: 1,
 			query: backendSearchQuery?.searchQuery || '',
+			clickhouse_query: useClickhouse
+				? JSON.parse(searchQuery)
+				: undefined,
 			sort_desc: true,
 		},
 		skip: !backendSearchQuery || !project_id,

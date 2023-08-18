@@ -13,6 +13,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment'
 import React from 'react'
 import { useLocation } from 'react-router-dom'
+import { useLocalStorage } from 'react-use'
 
 import {
 	useGetErrorGroupsOpenSearchQuery,
@@ -52,10 +53,18 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const integrated = integrationData?.integrated
 	const ctaText = CTA_TITLE_MAP[area!]
 
+	const [useClickhouse] = useLocalStorage(
+		'highlight-session-search-use-clickhouse',
+		false,
+	)
+
 	const { data: sessionData } = useGetSessionsOpenSearchQuery({
 		variables: {
 			project_id: projectId,
 			query: '{"match_all": {}}',
+			clickhouse_query: useClickhouse
+				? { isAnd: true, rules: [] }
+				: undefined,
 			count: 1,
 			page: 1,
 			sort_desc: true,

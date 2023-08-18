@@ -1,12 +1,19 @@
 import BarChart from '@components/BarChart/BarChart'
-import ButtonLink from '@components/Button/ButtonLink/ButtonLink'
 import Card from '@components/Card/Card'
 import LoadingBox from '@components/LoadingBox'
 import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import Table from '@components/Table/Table'
 import Tag from '@components/Tag/Tag'
 import { GetAlertsPagePayloadQuery } from '@graph/operations'
-import { IconSolidLogs } from '@highlight-run/ui'
+import {
+	Box,
+	Container,
+	Heading,
+	IconSolidLogs,
+	IconSolidPlus,
+	Stack,
+	Text,
+} from '@highlight-run/ui'
 import SvgBugIcon from '@icons/BugIcon'
 import SvgChevronRightIcon from '@icons/ChevronRightIcon'
 import SvgCursorClickIcon from '@icons/CursorClickIcon'
@@ -23,6 +30,8 @@ import { useParams } from '@util/react-router/useParams'
 import { compact } from 'lodash'
 import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+
+import { LinkButton } from '@/components/LinkButton'
 
 import styles from './Alerts.module.css'
 
@@ -245,20 +254,23 @@ const TABLE_COLUMNS = [
 export default function AlertsPage() {
 	const { alertsPayload, loading } = useAlertsContext()
 
-	if (loading) {
-		return (
-			<>
-				<div className={styles.subTitleContainer}>
-					<p>Manage the alerts for your project.</p>
-				</div>
-				<Card noPadding>
-					<LoadingBox height={640} />
-				</Card>
-			</>
-		)
-	}
-
-	return <AlertsPageLoaded alertsPayload={alertsPayload} />
+	return (
+		<Box width="full" background="raised" p="8">
+			<Box
+				border="dividerWeak"
+				borderRadius="6"
+				width="full"
+				shadow="medium"
+				background="default"
+				display="flex"
+				flexDirection="column"
+				height="full"
+			>
+				{loading && <LoadingBox />}
+				{!loading && <AlertsPageLoaded alertsPayload={alertsPayload} />}
+			</Box>
+		</Box>
+	)
 }
 
 function AlertsPageLoaded({
@@ -386,70 +398,95 @@ function AlertsPageLoaded({
 	]
 
 	return (
-		<>
-			<div className={styles.subTitleContainer}>
-				<p>Manage the alerts for your project.</p>
-				{alertsAsTableRows.length > 0 && (
-					<ButtonLink
-						trackingId="NewAlert"
-						className={styles.callToAction}
-						to={`/${project_id}/alerts/new`}
-					>
-						New Alert
-					</ButtonLink>
-				)}
-			</div>
-			{alertsPayload && (
-				<Card noPadding>
-					<Table
-						columns={TABLE_COLUMNS}
-						dataSource={alertsAsTableRows}
-						pagination={false}
-						showHeader={false}
-						rowHasPadding
-						renderEmptyComponent={
-							<SearchEmptyState
-								className={styles.emptyContainer}
-								item="alerts"
-								customTitle={`Your project doesn't have any alerts yet 😔`}
-								customDescription={
-									<>
-										<ButtonLink
-											trackingId="NewAlert"
-											className={styles.callToAction}
-											to={`/${project_id}/alerts/new`}
-										>
-											New Alert
-										</ButtonLink>
-									</>
-								}
-							/>
-						}
-						onRow={(record) => ({
-							onClick: () => {
-								if (
-									record.type ===
-									ALERT_NAMES['METRIC_MONITOR']
-								) {
-									navigate(
-										`/${project_id}/alerts/monitor/${record.id}`,
-									)
-								} else if (
-									record.type === ALERT_NAMES['LOG_ALERT']
-								) {
-									navigate(
-										`/${project_id}/alerts/logs/${record.id}`,
-									)
-								} else {
-									navigate(
-										`/${project_id}/alerts/${record.id}`,
-									)
-								}
-							},
-						})}
-					/>
-				</Card>
-			)}
-		</>
+		<Container display="flex" flexDirection="column" gap="24">
+			<Box style={{ maxWidth: 860 }} my="40" mx="auto">
+				<Stack gap="24">
+					<Stack gap="16" direction="column">
+						<Heading mt="16" level="h4">
+							Alerts
+						</Heading>
+						<Text weight="medium" size="small" color="default">
+							Manage all the alerts for your currently selected
+							project.
+						</Text>
+					</Stack>
+					<Stack gap="8">
+						{alertsAsTableRows.length > 0 && (
+							<Box
+								display="flex"
+								justifyContent="space-between"
+								alignItems="center"
+								width="full"
+							>
+								<Text weight="bold" size="small" color="strong">
+									All alerts
+								</Text>
+								<LinkButton
+									iconLeft={<IconSolidPlus />}
+									trackingId="NewAlert"
+									to={`/${project_id}/alerts/new`}
+								>
+									Create new alert
+								</LinkButton>
+							</Box>
+						)}
+						{alertsPayload && (
+							<Card noPadding>
+								<Table
+									columns={TABLE_COLUMNS}
+									dataSource={alertsAsTableRows}
+									pagination={false}
+									showHeader={false}
+									rowHasPadding
+									renderEmptyComponent={
+										<SearchEmptyState
+											className={styles.emptyContainer}
+											item="alerts"
+											customTitle={`Your project doesn't have any alerts yet 😔`}
+											customDescription={
+												<>
+													<LinkButton
+														iconLeft={
+															<IconSolidPlus />
+														}
+														trackingId="NewAlert"
+														to={`/${project_id}/alerts/new`}
+													>
+														Create new alert
+													</LinkButton>
+												</>
+											}
+										/>
+									}
+									onRow={(record) => ({
+										onClick: () => {
+											if (
+												record.type ===
+												ALERT_NAMES['METRIC_MONITOR']
+											) {
+												navigate(
+													`/${project_id}/alerts/monitor/${record.id}`,
+												)
+											} else if (
+												record.type ===
+												ALERT_NAMES['LOG_ALERT']
+											) {
+												navigate(
+													`/${project_id}/alerts/logs/${record.id}`,
+												)
+											} else {
+												navigate(
+													`/${project_id}/alerts/${record.id}`,
+												)
+											}
+										},
+									})}
+								/>
+							</Card>
+						)}
+					</Stack>
+				</Stack>
+			</Box>
+		</Container>
 	)
 }
