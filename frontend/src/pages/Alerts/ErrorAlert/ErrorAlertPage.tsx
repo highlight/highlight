@@ -133,7 +133,7 @@ export const ErrorAlertPage = () => {
 			})
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	}, [alert])
 
 	const [updateErrorAlertMutation] = useUpdateErrorAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
