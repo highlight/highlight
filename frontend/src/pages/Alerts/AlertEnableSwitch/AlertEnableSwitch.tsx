@@ -1,4 +1,3 @@
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import Switch from '@components/Switch/Switch'
 import {
 	useUpdateErrorAlertIsDisabledMutation,
@@ -11,8 +10,6 @@ import { ALERT_TYPE } from '@pages/Alerts/Alerts'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import React, { useState } from 'react'
-
-import styles from './AlertEnableSwitch.module.css'
 
 export const AlertEnableSwitch: React.FC<
 	React.PropsWithChildren<{ record: any }>
@@ -99,23 +96,13 @@ export const AlertEnableSwitch: React.FC<
 	}
 
 	return (
-		<div className={styles.statusCell} onClick={(e) => e.stopPropagation()}>
-			<Switch
-				trackingId={`AlertEnable-${record.id}`}
-				label={disabled ? 'Disabled' : 'Enabled'}
-				loading={loading}
-				justifySpaceBetween
-				size="small"
-				checked={loading ? disabled : !disabled}
-				onChange={onChange}
-			/>
-			<InfoTooltip
-				title={
-					disabled
-						? 'This alert is not tracking events and will not notify you.'
-						: 'This alert is tracking events.'
-				}
-			/>
-		</div>
+		<Switch
+			trackingId={`AlertEnable-${record.id}`}
+			loading={loading}
+			justifySpaceBetween
+			size="small"
+			checked={loading ? disabled : !disabled}
+			onChange={onChange}
+		/>
 	)
 }
