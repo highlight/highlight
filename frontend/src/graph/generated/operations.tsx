@@ -2249,6 +2249,7 @@ export type GetSessionsHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	query: Types.Scalars['String']
 	histogram_options: Types.DateHistogramOptions
+	clickhouse_query?: Types.Maybe<Types.ClickhouseQuery>
 }>
 
 export type GetSessionsHistogramQuery = { __typename?: 'Query' } & {

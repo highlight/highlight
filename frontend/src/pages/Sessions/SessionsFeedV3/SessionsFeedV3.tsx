@@ -69,7 +69,12 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const { setSearchQuery, backendSearchQuery } = useSearchContext()
+	const { setSearchQuery, backendSearchQuery, searchQuery } =
+		useSearchContext()
+	const [useClickhouse] = useLocalStorage(
+		'highlight-session-search-use-clickhouse',
+		false,
+	)
 
 	const { loading, data } = useGetSessionsHistogramQuery({
 		variables: {
@@ -89,6 +94,9 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 					).format(),
 				},
 			},
+			clickhouse_query: useClickhouse
+				? JSON.parse(searchQuery)
+				: undefined,
 		},
 		skip: !backendSearchQuery || !project_id,
 	})
