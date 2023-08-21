@@ -458,7 +458,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 	return errorGroup, nil
 }
 
-func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, combinedEmbedding, eventEmbedding, stackTraceEmbedding, payloadEmbedding model.Vector, threshold float64) (*int, error) {
+func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, method model.ErrorGroupingMethod, embedding model.Vector, threshold float64) (*int, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "public-resolver", tracer.ResourceName("GetTopErrorGroupMatchByEmbedding"))
 	defer span.Finish()
 
@@ -470,23 +470,24 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, combine
 	// an alternative query to consider: for M error objects of every error group,
 	// find the average score. then pick the error group
 	// with the lowest average score.
-	if err := r.DB.Raw(`
-select eoe.combined_embedding <=> @combined_embedding as score,
-       @event_weight * (eoe.event_embedding <=> @event_embedding)
-		   + @trace_weight * (eoe.stack_trace_embedding <=> @stack_trace_embedding)
-		   + @meta_weight * (eoe.payload_embedding <=> @payload_embedding) as combined_score,
+	var column string
+	switch method {
+	case model.ErrorGroupingMethodAdaEmbeddingV2:
+		column = "combined_embedding"
+	case model.ErrorGroupingMethodGteLargeEmbeddingV2:
+		column = "gte_large_embedding"
+	}
+	if err := r.DB.Raw(fmt.Sprintf(`
+select eoe.%s <=> @embedding as score,
        eo.error_group_id                              as error_group_id
 from error_object_embeddings eoe
          inner join error_objects eo on eo.id = eoe.error_object_id
 order by 1
-limit 1;`, map[string]interface{}{
-		"combined_embedding":    combinedEmbedding,
-		"event_embedding":       eventEmbedding,
-		"stack_trace_embedding": stackTraceEmbedding,
-		"payload_embedding":     payloadEmbedding,
-		"event_weight":          1,
-		"trace_weight":          0.4,
-		"meta_weight":           0.2,
+limit 1;`, column), map[string]interface{}{
+		"embedding":    embedding,
+		"event_weight": 1,
+		"trace_weight": 0.4,
+		"meta_weight":  0.2,
 	}).
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
@@ -778,7 +779,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		} else {
 			embedding = emb[0]
 			errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
-				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, embedding.CombinedEmbedding, embedding.EventEmbedding, embedding.StackTraceEmbedding, embedding.PayloadEmbedding, settings.ErrorEmbeddingsThreshold)
+				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, model.ErrorGroupingMethodGteLargeEmbeddingV2, embedding.GteLargeEmbedding, settings.ErrorEmbeddingsThreshold)
 				if err != nil {
 					log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
 				}
@@ -789,7 +790,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			}
 			errorObj.ErrorGroupID = errorGroup.ID
 			errorObj.ErrorGroupIDAlternative = errorGroupAlt.ID
-			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodAdaEmbeddingV2
+			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodGteLargeEmbeddingV2
 		}
 	} else {
 		errorObj.ErrorGroupID = errorGroup.ID
