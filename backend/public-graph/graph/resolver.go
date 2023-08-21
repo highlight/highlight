@@ -768,7 +768,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		settings, _ = r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
 	}
 	var embedding *model.ErrorObjectEmbeddings
-	if util.IsDevEnv() || (settings != nil && settings.ErrorEmbeddingsGroup) {
+	if settings != nil && settings.ErrorEmbeddingsGroup {
 		// keep the classic match as the alternative error group
 		errorGroup, errorGroupAlt = nil, errorGroup
 		emb, err := r.EmbeddingsClient.GetEmbeddings(ctx, []*model.ErrorObject{errorObj})
