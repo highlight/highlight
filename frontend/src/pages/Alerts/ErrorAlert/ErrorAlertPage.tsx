@@ -133,7 +133,7 @@ export const ErrorAlertPage = () => {
 			})
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [alert])
+	}, [])
 
 	const [updateErrorAlertMutation] = useUpdateErrorAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
@@ -168,7 +168,7 @@ export const ErrorAlertPage = () => {
 					emphasis="low"
 					trackingId="closeErrorAlert"
 					onClick={() => {
-						navigate(-1)
+						navigate(`/${project_id}/alerts`)
 					}}
 				>
 					Cancel
