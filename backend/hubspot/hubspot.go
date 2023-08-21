@@ -668,7 +668,7 @@ func (h *Client) UpdateContactPropertyImpl(ctx context.Context, adminID int, pro
 	}
 	hubspotContactID := admin.HubspotContactID
 	_, err := retry(func() (*int, error) {
-		if hubspotContactID == nil {
+		if ptr.ToInt(hubspotContactID) == 0 {
 			var err error
 			hubspotContactID, err = h.getContactForAdmin(ptr.ToString(admin.Email))
 			if err != nil {
@@ -715,7 +715,7 @@ func (h *Client) UpdateCompanyPropertyImpl(ctx context.Context, workspaceID int,
 	}
 	hubspotCompanyId := workspace.HubspotCompanyID
 	_, err := retry(func() (*int, error) {
-		if hubspotCompanyId != nil {
+		if ptr.ToInt(hubspotCompanyId) == 0 {
 			var err error
 			var domain string
 			if len(workspace.Admins) > 0 {
