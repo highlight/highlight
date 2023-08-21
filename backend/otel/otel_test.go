@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"context"
 	"fmt"
+	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"net/http"
 	"os"
 	"strings"
@@ -110,4 +111,61 @@ func TestHandler_HandleTrace(t *testing.T) {
 		model.LogSourceBackend:  14,
 	})
 	assert.Equal(t, expectedLogCountsByType, fmt.Sprintf("%+v", logCountsBySource))
+}
+
+func TestHandler_HandleTrace_NextJS(t *testing.T) {
+	inputBytes, err := os.ReadFile("./samples/nextjs.json")
+	if err != nil {
+		t.Fatalf("error reading: %v", err)
+	}
+
+	req := ptraceotlp.NewExportRequest()
+	if err := req.UnmarshalJSON(inputBytes); err != nil {
+		t.Fatal(err)
+	}
+
+	body, err := req.MarshalProto()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b := bytes.Buffer{}
+	gz := gzip.NewWriter(&b)
+	if _, err := gz.Write(body); err != nil {
+		t.Fatal(err)
+	}
+	if err := gz.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	producer := MockKafkaProducer{}
+	w := &MockResponseWriter{}
+	r, _ := http.NewRequest("POST", "", bytes.NewReader(b.Bytes()))
+	h := Handler{
+		resolver: &public.Resolver{
+			ProducerQueue: &producer,
+			BatchedQueue:  &producer,
+			TracesQueue:   &producer,
+		},
+	}
+	h.HandleTrace(w, r)
+
+	var appDirError *model2.BackendErrorObjectInput
+	messageCountsByType := map[kafkaqueue.PayloadType]int{}
+	for _, message := range producer.messages {
+		messageCountsByType[message.Type]++
+		if message.Type == kafkaqueue.PushBackendPayload {
+			appDirError = message.PushBackendPayload.Errors[0]
+		}
+	}
+
+	assert.Equal(t, appDirError.Event, "Error: /api/app-directory-test")
+	assert.Greater(t, len(appDirError.StackTrace), 100)
+
+	expectedMessageCountsByType := fmt.Sprintf("%+v", map[kafkaqueue.PayloadType]int{
+		kafkaqueue.PushBackendPayload: 1,
+		kafkaqueue.PushLogs:           3,
+		kafkaqueue.PushTraces:         6,
+	})
+	assert.Equal(t, expectedMessageCountsByType, fmt.Sprintf("%+v", messageCountsByType))
 }
