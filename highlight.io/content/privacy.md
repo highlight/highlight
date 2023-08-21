@@ -44,7 +44,7 @@ While using our Service, we may ask you to provide us with certain personally id
 
 3. Phone number
 
-4. Address, State, Province, ZIP/Postal code, City
+4. IP Address, Address, State, Province, ZIP/Postal code, City
 
 5. Cookies and Usage Data
 

@@ -12802,7 +12802,7 @@ __metadata:
     eslint-plugin-unused-imports: ^1.1.2
     firebase: ^9.19.1
     framer-motion: ^6.3.15
-    graphql: ^15.5.0
+    graphql: ^15.7.2
     happy-dom: ^6.0.4
     highlight.io: "workspace:*"
     highlight.run: "workspace:*"
@@ -35754,10 +35754,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:^15.5.0":
-  version: 15.5.0
-  resolution: "graphql@npm:15.5.0"
-  checksum: 58a69f7274ae94c690bfa2517f96bbaf1327e1ca1fc46606e772ba2f7ca517adeb375346301373351e693022f448b7866163034209623d7c5315819ef8c5e7c0
+"graphql@npm:^15.7.2":
+  version: 15.8.0
+  resolution: "graphql@npm:15.8.0"
+  checksum: 423325271db8858428641b9aca01699283d1fe5b40ef6d4ac622569ecca927019fce8196208b91dd1d8eb8114f00263fe661d241d0eb40c10e5bfd650f86ec5e
   languageName: node
   linkType: hard
 
