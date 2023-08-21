@@ -9,7 +9,7 @@ import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 const getSessionLink = (data: GetErrorInstanceQuery | undefined): string => {
 	const errorObject = data?.error_instance?.error_object
 
-	if (!errorObject || !errorObject.session) {
+	if (!errorObject?.session) {
 		return ''
 	}
 
