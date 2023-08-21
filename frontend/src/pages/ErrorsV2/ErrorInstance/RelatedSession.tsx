@@ -9,7 +9,7 @@ import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 const getSessionLink = (data: GetErrorInstanceQuery | undefined): string => {
 	const errorObject = data?.error_instance?.error_object
 
-	if (!errorObject) {
+	if (!errorObject || !errorObject.session) {
 		return ''
 	}
 
@@ -36,6 +36,10 @@ type Props = {
 export const RelatedSession = ({ data }: Props) => {
 	const { isLoggedIn } = useAuthContext()
 	const sessionLink = getSessionLink(data)
+
+	if (!sessionLink) {
+		return null
+	}
 
 	const tag = (
 		<Link to={sessionLink}>
