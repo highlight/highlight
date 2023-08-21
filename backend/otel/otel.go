@@ -158,10 +158,16 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				span := spans.At(k)
 				events := span.Events()
 
+				// skip a subset of spans (ie. fs spans
+				skipped := false
 				for _, prefix := range IgnoredSpanNamePrefixes {
 					if strings.HasPrefix(span.Name(), prefix) {
-						continue
+						skipped = true
+						break
 					}
+				}
+				if skipped {
+					continue
 				}
 
 				isLog := false
