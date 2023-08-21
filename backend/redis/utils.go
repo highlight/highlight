@@ -496,7 +496,7 @@ func (r *Client) GetGithubRateLimitExceeded(ctx context.Context) (bool, error) {
 	return r.getFlag(ctx, GithubRateLimitKey)
 }
 
-func (r *Client) IncrementServiceErrorCount(ctx context.Context, projectId int) (int, error) {
+func (r *Client) IncrementServiceErrorCount(ctx context.Context, projectId int) (int64, error) {
 	serviceKey := ServiceGithubErrorCountKey(projectId)
 	count, err := r.redisClient.Incr(ctx, serviceKey).Result()
 
@@ -504,7 +504,12 @@ func (r *Client) IncrementServiceErrorCount(ctx context.Context, projectId int) 
 		r.redisClient.Expire(ctx, serviceKey, time.Hour)
 	}
 
-	return int(count), err
+	return count, err
+}
+
+func (r *Client) ResetServiceErrorCount(ctx context.Context, projectId int) (int64, error) {
+	serviceKey := ServiceGithubErrorCountKey(projectId)
+	return r.redisClient.Del(ctx, serviceKey).Result()
 }
 
 func (r *Client) AcquireLock(_ context.Context, key string, timeout time.Duration) (*redsync.Mutex, error) {

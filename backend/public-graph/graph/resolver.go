@@ -2082,7 +2082,8 @@ func (r *Resolver) FetchFileFromGitHub(ctx context.Context, trace *privateModel.
 	if err != nil {
 		// put service in error state if too many errors occur within timeframe
 		errorCount, _ := r.Redis.IncrementServiceErrorCount(ctx, service.ID)
-		if errorCount >= 20 {
+		var MAX_ERROR_KILLSWITCH int64 = 20
+		if errorCount >= MAX_ERROR_KILLSWITCH {
 			err = r.Store.UpdateServiceErrorState(ctx, service.ID, []string{"Too many errors enhancing errors - Check service configuration."})
 			if err != nil {
 				return nil, err
@@ -2123,7 +2124,7 @@ func (r *Resolver) GitHubFilePath(ctx context.Context, fileName string, buildPre
 
 func (r *Resolver) ExpandedStackTrace(ctx context.Context, lines []string, lineNumber int, additionalLines int) (string, string, string) {
 	minLine := int(math.Max(1, float64(lineNumber-additionalLines)))
-	maxLine := int(math.Min(float64(len(lines)-1), float64(lineNumber+additionalLines)))
+	maxLine := int(math.Min(float64(len(lines)), float64(lineNumber+additionalLines+1)))
 	renderedLines := lines[minLine-1 : maxLine]
 
 	var lineContent, beforeContent, afterContent string
@@ -2152,6 +2153,9 @@ func (r *Resolver) EnhanceTraceWithGithub(ctx context.Context, trace *privateMod
 
 	// TODO(spenny): filter out files that should not be fetched (i.e. node modules, go packages, etc)
 	// use system configuration
+	if regexp.MustCompile(`\b\/go\/pkg\/mod\b`).MatchString(fileName) {
+		return trace, nil
+	}
 
 	githubFileBytes, err := r.StorageClient.ReadGithubFile(ctx, fileName, serviceVersion)
 

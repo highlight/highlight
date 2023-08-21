@@ -3644,6 +3644,8 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 	if updateErr != nil {
 		return nil, updateErr
 	}
+
+	_, _ = r.Redis.ResetServiceErrorCount(ctx, projectID)
 	return service, nil
 }
 
