@@ -5365,26 +5365,6 @@ body {
 ._1kpm5g60:focus-visible {
   outline: revert !important;
 }
-._10haslo0 {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  justify-content: flex-end;
-}
-._10haslo1 {
-  background-color: #908e96;
-  border-radius: 4px;
-  height: 0;
-  width: 100%;
-}
-._10haslo2 {
-  background-color: #744ed4;
-}
-._10haslo3 {
-  align-items: flex-end;
-  display: flex;
-  justify-content: flex-end;
-}
 ._1hht64e1 {
   height: 20px;
 }
@@ -5615,6 +5595,26 @@ body {
 ._1tecd1ua .ant-select-selection-item {
   display: flex;
   align-items: center;
+}
+._10haslo0 {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: flex-end;
+}
+._10haslo1 {
+  background-color: #908e96;
+  border-radius: 4px;
+  height: 0;
+  width: 100%;
+}
+._10haslo2 {
+  background-color: #744ed4;
+}
+._10haslo3 {
+  align-items: flex-end;
+  display: flex;
+  justify-content: flex-end;
 }
 .ah2zbm0 {
   background-color: var(--_1pyqka90);

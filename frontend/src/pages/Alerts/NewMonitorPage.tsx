@@ -7,6 +7,15 @@ import {
 	MetricTagFilter,
 	WebhookDestination,
 } from '@graph/schemas'
+import {
+	Box,
+	Container,
+	IconSolidCheveronRight,
+	IconSolidSpeakerphone,
+	Stack,
+	Tag,
+	Text,
+} from '@highlight-run/ui'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import MonitorConfiguration from '@pages/Alerts/MonitorConfiguration/MonitorConfiguration'
 import { useParams } from '@util/react-router/useParams'
@@ -96,58 +105,106 @@ const NewMonitorPage = ({
 	}, [location.pathname, navigate])
 
 	return (
-		<div>
+		<Box width="full" background="raised" p="8">
 			<Helmet>
 				<title>Create New Metric Monitor</title>
 			</Helmet>
-			<>
-				<p className={layoutStyles.subTitle}>
-					Monitors are a special type of alert. Monitors will send you
-					an alert when a metric exceeds a value.
-				</p>
-				<Card>
-					<MonitorConfiguration
-						onAggregateFunctionChange={setAggregator}
-						onAggregatePeriodChange={(p) =>
-							setPeriodMinutes(Number(p))
-						}
-						onMonitorNameChange={setMonitorName}
-						onMetricToMonitorNameChange={setMetricToMonitorName}
-						onSlackChannelsChange={setSlackChannels}
-						slackChannels={slackChannels}
-						discordChannels={discordChannels}
-						onDiscordChannelsChange={setDiscordChannels}
-						webhooks={webhooks}
-						onWebhooksChange={setWebhooks}
-						onThresholdChange={setThreshold}
-						onFiltersChange={setFilters}
-						aggregator={aggregator}
-						aggregatePeriodMinutes={periodMinutes}
-						loading={loading}
-						metricToMonitorName={metricToMonitorName}
-						monitorName={monitorName}
-						threshold={threshold}
-						filters={filters}
-						units={units}
-						onUnitsChange={setUnits}
-						channelSuggestions={channelSuggestions}
-						discordChannelSuggestions={discordChannelSuggestions}
-						onFormSubmit={onFinish}
-						isSlackIntegrated={isSlackIntegrated}
-						isDiscordIntegrated={isDiscordIntegrated}
-						slackUrl={slackUrl}
-						onFormCancel={() => {
-							navigate(`/${project_id}/alerts/new`)
-						}}
-						formCancelButtonLabel="Cancel"
-						formSubmitButtonLabel="Create"
-						emailSuggestions={emailSuggestions}
-						emails={emails}
-						onEmailsChange={setEmails}
-					/>
-				</Card>
-			</>
-		</div>
+			<Box
+				border="dividerWeak"
+				borderRadius="6"
+				width="full"
+				shadow="medium"
+				background="default"
+				display="flex"
+				flexDirection="column"
+				height="full"
+			>
+				<Container display="flex" flexDirection="column" gap="24">
+					<Box style={{ maxWidth: 860 }} my="40" mx="auto">
+						<Stack gap="24">
+							<Box
+								display="flex"
+								alignItems="center"
+								gap="4"
+								color="weak"
+							>
+								<Tag
+									kind="secondary"
+									size="medium"
+									shape="basic"
+									emphasis="high"
+									iconLeft={<IconSolidSpeakerphone />}
+									onClick={() => {
+										navigate(`/${project_id}/alerts`)
+									}}
+								>
+									Alerts
+								</Tag>
+								<IconSolidCheveronRight />
+								<Text
+									color="moderate"
+									size="small"
+									weight="medium"
+									userSelect="none"
+								>
+									Metric monitor
+								</Text>
+							</Box>
+							<p className={layoutStyles.subTitle}>
+								Monitors are a special type of alert. Monitors
+								will send you an alert when a metric exceeds a
+								value.
+							</p>
+							<Card>
+								<MonitorConfiguration
+									onAggregateFunctionChange={setAggregator}
+									onAggregatePeriodChange={(p) =>
+										setPeriodMinutes(Number(p))
+									}
+									onMonitorNameChange={setMonitorName}
+									onMetricToMonitorNameChange={
+										setMetricToMonitorName
+									}
+									onSlackChannelsChange={setSlackChannels}
+									slackChannels={slackChannels}
+									discordChannels={discordChannels}
+									onDiscordChannelsChange={setDiscordChannels}
+									webhooks={webhooks}
+									onWebhooksChange={setWebhooks}
+									onThresholdChange={setThreshold}
+									onFiltersChange={setFilters}
+									aggregator={aggregator}
+									aggregatePeriodMinutes={periodMinutes}
+									loading={loading}
+									metricToMonitorName={metricToMonitorName}
+									monitorName={monitorName}
+									threshold={threshold}
+									filters={filters}
+									units={units}
+									onUnitsChange={setUnits}
+									channelSuggestions={channelSuggestions}
+									discordChannelSuggestions={
+										discordChannelSuggestions
+									}
+									onFormSubmit={onFinish}
+									isSlackIntegrated={isSlackIntegrated}
+									isDiscordIntegrated={isDiscordIntegrated}
+									slackUrl={slackUrl}
+									onFormCancel={() => {
+										navigate(`/${project_id}/alerts/new`)
+									}}
+									formCancelButtonLabel="Cancel"
+									formSubmitButtonLabel="Create"
+									emailSuggestions={emailSuggestions}
+									emails={emails}
+									onEmailsChange={setEmails}
+								/>
+							</Card>
+						</Stack>
+					</Box>
+				</Container>
+			</Box>
+		</Box>
 	)
 }
 
