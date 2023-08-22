@@ -184,6 +184,10 @@ function formatAlertDataForTable(alert: any, config: AlertConfiguration) {
 	}
 }
 
+function getAlertNotifyField(alert: any, field: string) {
+	return alert[field] || []
+}
+
 function AlertsPageLoaded({
 	alertsPayload,
 }: {
@@ -468,20 +472,22 @@ function AlertsPageLoaded({
 																	/>
 																</Box>
 															</Box>
-															{(record
-																.ChannelsToNotify
-																.length > 0 ||
-																record
-																	.DiscordChannelsToNotify
-																	.length >
-																	0 ||
-																record
-																	.EmailsToNotify
-																	.length >
-																	0 ||
-																record
-																	.WebhookDestinations
-																	.length >
+															{(getAlertNotifyField(
+																record,
+																'ChannelsToNotify',
+															).length > 0 ||
+																getAlertNotifyField(
+																	record,
+																	'DiscordChannelsToNotify',
+																).length > 0 ||
+																getAlertNotifyField(
+																	record,
+																	'EmailsToNotify',
+																).length > 0 ||
+																getAlertNotifyField(
+																	record,
+																	'WebhookDestinations',
+																).length >
 																	0) && (
 																<Stack gap="8">
 																	<Text
@@ -500,7 +506,10 @@ function AlertsPageLoaded({
 																		flexWrap="wrap"
 																		gap="4"
 																	>
-																		{record.ChannelsToNotify.map(
+																		{getAlertNotifyField(
+																			record,
+																			'ChannelsToNotify',
+																		).map(
 																			(
 																				channel: SanitizedSlackChannel,
 																			) => (
@@ -528,7 +537,10 @@ function AlertsPageLoaded({
 																				</Tag>
 																			),
 																		)}
-																		{record.DiscordChannelsToNotify.map(
+																		{getAlertNotifyField(
+																			record,
+																			'DiscordChannelsToNotify',
+																		).map(
 																			(
 																				channel: DiscordChannel,
 																			) => (
@@ -556,7 +568,10 @@ function AlertsPageLoaded({
 																				</Tag>
 																			),
 																		)}
-																		{record.EmailsToNotify.map(
+																		{getAlertNotifyField(
+																			record,
+																			'EmailsToNotify',
+																		).map(
 																			(
 																				email: string,
 																			) => (
@@ -584,8 +599,10 @@ function AlertsPageLoaded({
 																				</Tag>
 																			),
 																		)}
-																		{record
-																			.WebhookDestinations
+																		{getAlertNotifyField(
+																			record,
+																			'WebhookDestinations',
+																		)
 																			.length >
 																			0 && (
 																			<Tag
