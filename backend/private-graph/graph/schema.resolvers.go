@@ -7627,7 +7627,12 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 
 // Traces is the resolver for the traces field.
 func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.TracesParamsInput) ([]*modelInputs.Trace, error) {
-	panic(fmt.Errorf("not implemented: Traces - traces"))
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadTraces(ctx, project.ID, params)
 }
 
 // Params is the resolver for the params field.

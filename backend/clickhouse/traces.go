@@ -6,6 +6,7 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/queryparser"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/samber/lo"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -125,20 +126,22 @@ func convertLinks(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet,
 	return traceIDs, spanIDs, states, attrs
 }
 
-func (client *Client) ReadTraces(ctx context.Context, projectID int, params map[string]string) ([]*modelInputs.Trace, error) {
+func (client *Client) ReadTraces(ctx context.Context, projectID int, params modelInputs.TracesParamsInput) ([]*modelInputs.Trace, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
 
-	sb.From("Traces").
-		Select("Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId, Source, ServiceName, ServiceVersion").
+	sb.From("traces").
+		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, TraceAttributes, StatusCode, StatusMessage").
 		Where(sb.Equal("ProjectId", projectID))
 
-	for key, value := range params {
-		sb.Where(sb.Equal(key, value))
+	// Very basic filtering for now. Will add better support + pagination later.
+	queryParams := queryparser.Parse(params.Query)
+	for key, value := range queryParams.Attributes {
+		sb.Where(sb.Equal(key, value[0]))
 	}
 
-	sb.OrderBy("Timestamp", "desc").Limit(100)
+	sb.OrderBy("Timestamp DESC").Limit(100)
 	sql, args := sb.Build()
 
 	span, _ := tracer.StartSpanFromContext(ctx, "traces", tracer.ResourceName("ReadTraces"))

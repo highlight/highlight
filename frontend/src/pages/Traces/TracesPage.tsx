@@ -1,22 +1,41 @@
-import { Box, Text } from '@highlight-run/ui'
+import { Box, Table, Text } from '@highlight-run/ui'
+import moment from 'moment'
 import React from 'react'
 import { Helmet } from 'react-helmet'
+import { useNavigate } from 'react-router-dom'
+import { useQueryParam } from 'use-query-params'
 
 import { useGetTracesQuery } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
+import { LOG_TIME_FORMAT } from '@/pages/LogsPage/constants'
+import {
+	EndDateParam,
+	FixedRangeStartDateParam,
+	QueryParam,
+} from '@/pages/LogsPage/LogsPage'
+import {
+	buildLogsQueryForServer,
+	parseLogsQuery,
+} from '@/pages/LogsPage/SearchForm/utils'
 
 export const TracesPage: React.FC = () => {
 	const { projectId } = useProjectId()
+	const navigate = useNavigate()
+	const [query] = useQueryParam('query', QueryParam)
+	const [startDate] = useQueryParam('start_date', FixedRangeStartDateParam)
+	const [endDate] = useQueryParam('end_date', EndDateParam)
+	const queryTerms = parseLogsQuery(query)
+	const serverQuery = buildLogsQueryForServer(queryTerms)
 
 	const { data, loading } = useGetTracesQuery({
 		variables: {
 			project_id: projectId,
 			params: {
 				date_range: {
-					start_date: '2021-08-01T00:00:00Z',
-					end_date: '2023-08-31T23:59:59Z',
+					start_date: moment(startDate).format(LOG_TIME_FORMAT),
+					end_date: moment(endDate).format(LOG_TIME_FORMAT),
 				},
-				query: '',
+				query: serverQuery,
 			},
 		},
 	})
@@ -34,24 +53,50 @@ export const TracesPage: React.FC = () => {
 				justifyContent="stretch"
 				display="flex"
 			>
-				<Box
-					background="white"
-					borderRadius="6"
-					flexDirection="column"
-					display="flex"
-					flexGrow={1}
-					border="dividerWeak"
-					shadow="medium"
-				>
-					{loading ? (
-						<Text>Loading...</Text>
-					) : (
-						<>
-							<Text>Traces</Text>
-							<Text>{JSON.stringify(data)}</Text>
-						</>
-					)}
-				</Box>
+				{loading ? (
+					<Text>Loading...</Text>
+				) : (
+					<Table>
+						<Table.Head>
+							<Table.Row>
+								<Table.Header>Span</Table.Header>
+								<Table.Header>Service</Table.Header>
+								<Table.Header>Span ID</Table.Header>
+								<Table.Header>Parent Span ID</Table.Header>
+								<Table.Header>Secure Session ID</Table.Header>
+								<Table.Header>Status</Table.Header>
+							</Table.Row>
+						</Table.Head>
+						{data?.traces.map((trace, index) => (
+							<Table.Row key={index}>
+								<Table.Cell>{trace.spanName}</Table.Cell>
+								<Table.Cell>{trace.serviceName}</Table.Cell>
+								<Table.Cell>{trace.spanID}</Table.Cell>
+								<Table.Cell
+									onClick={() => {
+										navigate(
+											`/${projectId}/traces?query=${window.encodeURIComponent(
+												`ParentSpanId:${trace.parentSpanID}`,
+											)}`,
+										)
+									}}
+								>
+									{trace.parentSpanID}
+								</Table.Cell>
+								<Table.Cell
+									onClick={() => {
+										navigate(
+											`/${projectId}/sessions/${trace.secureSessionID}`,
+										)
+									}}
+								>
+									{trace.secureSessionID}
+								</Table.Cell>
+								<Table.Cell>{trace.statusMessage}</Table.Cell>
+							</Table.Row>
+						))}
+					</Table>
+				)}
 			</Box>
 		</>
 	)
