@@ -184,9 +184,7 @@ export function CustomHighlightStart() {
 ## API Route Instrumentation (Page Router)
 
 ```hint
-This section applies to Next.js Page Router routes only. Each Page Router route must be wrapped individually.
-
-We'll address App Router routes later in this walkthrough. Look for `instrumentation.ts`
+This section applies to Next.js Page Router routes only. Each Page Router route must be wrapped individually. We'll address App Router routes later in this walkthrough. Look for `instrumentation.ts`
 ```
 
 1. Create a file to export your `Highlight` wrapper function:
@@ -221,6 +219,43 @@ export default withHighlight(function handler(
 		throw new Error('Error: /api/app-directory-test')
 	}
 })
+```
+
+## Server Instrumentation (App Router)
+
+```hint
+This section applies to Next.js App Router routes only (Next 13+). Excluding the Vercel edge runtime (which is a work in progress) and edge function logs, this section will cover all of your error monitoring and logging needs for NextJS. If you do require those logs, we recommend the [Vercel Log Drain](../backend-logging/5_hosting/vercel.md).
+```
+
+This section adds server-side error monitoring and log capture to Highlight. 
+
+Next.js comes out of the box instrumented for Open Telemetry. Our example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on our Next.js server. There are probably other ways to configure Open Telemetry with Next, but this is our favorite.
+
+
+4. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function.
+
+```javascript
+// instrumentation.ts
+import CONSTANTS from '@/app/constants'
+
+export async function register() {
+	if (process.env.NEXT_RUNTIME === 'nodejs') {
+		/** Conditional import required for use with Next middleware to avoid a webpack error 
+         * https://nextjs.org/docs/pages/building-your-application/routing/middleware */
+		const { registerHighlight } = await import('@highlight-run/next/server')
+
+		registerHighlight({
+			projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+		})
+	}
+}
+```
+
+5. If you're using the App Router, copy `instrumentation.ts` to `src/instrumentation.ts`. See this [Next.js discussion](https://github.com/vercel/next.js/discussions/48273#discussioncomment-5587441) regarding `instrumentation.ts` with App Router. You could also simply export the `register` function from `instrumentation.ts` in `src/instrumentation.ts` like so:
+
+```javascript
+// src/instrumentation.ts:
+export { register } from '../instrumentation'
 ```
 
 ## Private Sourcemaps and Request Proxying (optional)
@@ -276,46 +311,6 @@ const nextConfig = withHighlightConfig({
 export default nextConfig
 ```
 
-## Server Instrumentation (Page + App Router)
-
-```hint
-Excluding the Vercel edge runtime (which is a work in progress), Session Replay, Vercel Log Drain and Error Monitoring are fully operational for Next.js 13
-```
-
-```hint
-If you don't need build logs or edge function logs, this section will cover all of your logging needs for NextJS. Otherwise, we suggest installing the [Vercel Log Drain](../backend-logging/5_hosting/vercel.md) or your respective hosting provider's logging integration.
-```
-
-This section adds server-side error monitoring and log capture to Highlight. 
-
-Next.js comes out of the box instrumented for Open Telemetry. Our example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on our Next.js server. There are probably other ways to configure Open Telemetry with Next, but this is our favorite.
-
-
-4. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function.
-
-```javascript
-// instrumentation.ts
-import CONSTANTS from '@/app/constants'
-
-export async function register() {
-	if (process.env.NEXT_RUNTIME === 'nodejs') {
-		/** Conditional import required for use with Next middleware to avoid a webpack error 
-         * https://nextjs.org/docs/pages/building-your-application/routing/middleware */
-		const { registerHighlight } = await import('@highlight-run/next/server')
-
-		registerHighlight({
-			projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
-		})
-	}
-}
-```
-
-5. If you're using the App Router, copy `instrumentation.ts` to `src/instrumentation.ts`. See this [Next.js discussion](https://github.com/vercel/next.js/discussions/48273#discussioncomment-5587441) regarding `instrumentation.ts` with App Router. You could also simply export the `register` function from `instrumentation.ts` in `src/instrumentation.ts` like so:
-
-```javascript
-// src/instrumentation.ts:
-export { register } from '../instrumentation'
-```
 
 ## Configure `inlineImages`
 

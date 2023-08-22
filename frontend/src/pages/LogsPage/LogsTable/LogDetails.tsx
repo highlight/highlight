@@ -504,7 +504,7 @@ const LogAttributeLine: React.FC<React.PropsWithChildren> = ({ children }) => {
 		<Box
 			cssClass={styles.logAttributeLine}
 			display="flex"
-			alignItems="center"
+			alignItems="flex-start"
 			flexDirection="row"
 			gap="4"
 			flexShrink={0}

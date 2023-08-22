@@ -12,6 +12,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/huandu/go-sqlbuilder"
+	"github.com/openlyinc/pointy"
 	"github.com/samber/lo"
 	"golang.org/x/sync/errgroup"
 )
@@ -488,7 +489,7 @@ func parseGroup(isAnd bool, rules []Rule, projectId int, start time.Time, end ti
 	return valueBuilder.String(), nil
 }
 
-func getClickhouseSessionsQuery(query modelInputs.ClickhouseQuery, projectId int, sortField string, limit int, offset int) (string, []interface{}, error) {
+func getSessionsQueryImpl(query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
 	rules, err := deserializeRules(query.Rules)
 	if err != nil {
 		return "", nil, err
@@ -524,11 +525,13 @@ func getClickhouseSessionsQuery(query modelInputs.ClickhouseQuery, projectId int
 	}
 
 	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select("ID, COUNT() OVER() AS total").From("sessions FINAL").
+	sb.Select(selectColumns).
+		From("sessions FINAL").
 		Where(sb.And(sb.Equal("ProjectID", projectId),
 			"NOT Excluded",
 			"WithinBillingQuota",
 			sb.Or(sb.GreaterEqualThan("ActiveLength", 1000), sb.And(sb.IsNull("ActiveLength"), sb.GreaterEqualThan("Length", 1000)))),
+			sb.GreaterThan("CreatedAt", retentionDate),
 		)
 
 	conditions, err := parseGroup(query.IsAnd, rules, projectId, startTime, endTime, sb)
@@ -536,11 +539,21 @@ func getClickhouseSessionsQuery(query modelInputs.ClickhouseQuery, projectId int
 		return "", nil, err
 	}
 
-	sql, args := sb.Where(conditions).
-		OrderBy(sortField).
-		Limit(limit).
-		Offset(offset).
-		BuildWithFlavor(sqlbuilder.ClickHouse)
+	sb = sb.Where(conditions)
+	if groupBy != nil {
+		sb = sb.GroupBy(*groupBy)
+	}
+	if orderBy != nil {
+		sb = sb.OrderBy(*orderBy)
+	}
+	if limit != nil {
+		sb = sb.Limit(*limit)
+	}
+	if offset != nil {
+		sb = sb.Offset(*offset)
+	}
+
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	return sql, args, nil
 }
@@ -552,7 +565,7 @@ func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count 
 	}
 	offset := (pageInt - 1) * count
 
-	sql, args, err := getClickhouseSessionsQuery(query, projectId, sortField, count, offset)
+	sql, args, err := getSessionsQueryImpl(query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
 	if err != nil {
 		return nil, 0, err
 	}
@@ -573,6 +586,78 @@ func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count 
 	}
 
 	return ids, int64(total), nil
+}
+
+func (client *Client) QuerySessionHistogram(ctx context.Context, projectId int, query modelInputs.ClickhouseQuery, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, []int64, []int64, error) {
+	var aggFn string
+	var addFn string
+	switch options.BucketSize.CalendarInterval {
+	case modelInputs.OpenSearchCalendarIntervalMinute:
+		aggFn = "toRelativeMinuteNum"
+		addFn = "addMinutes"
+	case modelInputs.OpenSearchCalendarIntervalHour:
+		aggFn = "toRelativeHourNum"
+		addFn = "addHours"
+	case modelInputs.OpenSearchCalendarIntervalDay:
+		aggFn = "toRelativeDayNum"
+		addFn = "addDays"
+	case modelInputs.OpenSearchCalendarIntervalWeek:
+		aggFn = "toRelativeWeekNum"
+		addFn = "addWeeks"
+	case modelInputs.OpenSearchCalendarIntervalMonth:
+		aggFn = "toRelativeMonthNum"
+		addFn = "addMonths"
+	case modelInputs.OpenSearchCalendarIntervalQuarter:
+		aggFn = "toRelativeQuarterNum"
+		addFn = "addQuarters"
+	case modelInputs.OpenSearchCalendarIntervalYear:
+		aggFn = "toRelativeYearNum"
+		addFn = "addYears"
+	default:
+		return nil, nil, nil, nil, fmt.Errorf("invalid calendar interval: %s", options.BucketSize.CalendarInterval)
+	}
+
+	location, err := time.LoadLocation(options.TimeZone)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	selectCols := fmt.Sprintf("%s(CreatedAt, '%s') as time, count() as count, sum(if(HasErrors, 1, 0)) as has_errors", aggFn, location.String())
+
+	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
+
+	sql, args, err := getSessionsQueryImpl(query, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	args = append(args, *options.Bounds.StartDate, *options.Bounds.EndDate)
+	sql = fmt.Sprintf("SELECT %s(makeDate(0, 0), time), count, has_errors from (%s)", addFn, sql)
+
+	fmt.Println(sql)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+
+	bucketTimes := []time.Time{}
+	totals := []int64{}
+	withErrors := []int64{}
+	withoutErrors := []int64{}
+	for rows.Next() {
+		var time time.Time
+		var total uint64
+		var withError uint64
+		if err := rows.Scan(&time, &total, &withError); err != nil {
+			return nil, nil, nil, nil, err
+		}
+		bucketTimes = append(bucketTimes, time)
+		totals = append(totals, int64(total))
+		withErrors = append(withErrors, int64(withError))
+		withoutErrors = append(withoutErrors, int64(total-withError))
+	}
+
+	return bucketTimes, totals, withErrors, withoutErrors, nil
 }
 
 func (client *Client) QueryFieldNames(ctx context.Context, projectId int, start time.Time, end time.Time) ([]*model.Field, error) {
