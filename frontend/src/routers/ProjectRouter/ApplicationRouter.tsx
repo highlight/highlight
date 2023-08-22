@@ -32,7 +32,7 @@ const ApplicationRouter: React.FC = () => {
 		page: errorPage || 1,
 		backendSearchQuery: errorBackendSearchQuery,
 	})
-	const { isLoggedIn } = useAuthContext()
+	const { isHighlightAdmin, isLoggedIn } = useAuthContext()
 
 	return (
 		<Routes>
@@ -48,7 +48,9 @@ const ApplicationRouter: React.FC = () => {
 
 			{isLoggedIn || projectId === DEMO_PROJECT_ID ? (
 				<>
-					<Route path="traces/*" element={<TracesPage />} />
+					{isHighlightAdmin && (
+						<Route path="traces/*" element={<TracesPage />} />
+					)}
 					<Route path="logs/:log_cursor?" element={<LogsPage />} />
 					<Route path="settings/*" element={<SettingsRouter />} />
 					<Route path="alerts/*" element={<AlertsRouter />} />
