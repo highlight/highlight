@@ -54,13 +54,13 @@ func (store *Store) ExpandedStackTrace(ctx context.Context, lines []string, line
 	return lineContent, strings.TrimPrefix(beforeContent, "\n"), strings.TrimPrefix(afterContent, "\n")
 }
 
-func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, fileName string, serviceVersion string, githubClient *github.Client) (*string, error) {
+func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, fileName string, serviceVersion string, gitHubClient *github.Client) (*string, error) {
 	rateLimit, _ := store.redis.GetGithubRateLimitExceeded(ctx)
 	if rateLimit {
 		return nil, errors.New("Exceeded GitHub rate limit")
 	}
 
-	fileContent, _, resp, err := githubClient.GetRepoContent(ctx, *service.GithubRepoPath, fileName, serviceVersion)
+	fileContent, _, resp, err := gitHubClient.GetRepoContent(ctx, *service.GithubRepoPath, fileName, serviceVersion)
 	if resp != nil && resp.Rate.Remaining <= 0 {
 		log.WithContext(ctx).Warn("GitHub rate limit hit")
 		_ = store.redis.SetGithubRateLimitExceeded(ctx)
@@ -84,9 +84,9 @@ func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel
 	}
 
 	encodedFileContent := fileContent.Content
-	// some files are too large to fetch from the github API so we fetch via a separate API request
+	// some files are too large to fetch from the GitHub API so we fetch via a separate API request
 	if *encodedFileContent == "" && fileContent.SHA != nil {
-		blobContent, _, err := githubClient.GetRepoBlob(ctx, *service.GithubRepoPath, *fileContent.SHA)
+		blobContent, _, err := gitHubClient.GetRepoBlob(ctx, *service.GithubRepoPath, *fileContent.SHA)
 		if err != nil {
 			return nil, err
 		}
@@ -97,7 +97,7 @@ func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel
 	return encodedFileContent, nil
 }
 
-func (store *Store) EnhanceTraceWithGithub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, serviceVersion string, ignoredFiles []string, githubClient *github.Client) (*privateModel.ErrorTrace, error) {
+func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, serviceVersion string, ignoredFiles []string, gitHubClient *github.Client) (*privateModel.ErrorTrace, error) {
 	if trace.FileName == nil || trace.LineNumber == nil {
 		return trace, fmt.Errorf("Cannot enhance trace with GitHub with invalid values: %+v", trace)
 	}
@@ -111,24 +111,24 @@ func (store *Store) EnhanceTraceWithGithub(ctx context.Context, trace *privateMo
 		}
 	}
 
-	githubFileBytes, err := store.storageClient.ReadGithubFile(ctx, fileName, serviceVersion)
+	gitHubFileBytes, err := store.storageClient.ReadGithubFile(ctx, fileName, serviceVersion)
 
-	if err != nil || githubFileBytes == nil {
-		encodedFileContent, err := store.FetchFileFromGitHub(ctx, trace, service, fileName, serviceVersion, githubClient)
+	if err != nil || gitHubFileBytes == nil {
+		encodedFileContent, err := store.FetchFileFromGitHub(ctx, trace, service, fileName, serviceVersion, gitHubClient)
 		if err != nil {
 			return trace, err
 		}
 
-		githubFileBytes = []byte(*encodedFileContent)
+		gitHubFileBytes = []byte(*encodedFileContent)
 
-		_, err = store.storageClient.PushGithubFile(ctx, fileName, serviceVersion, githubFileBytes)
+		_, err = store.storageClient.PushGithubFile(ctx, fileName, serviceVersion, gitHubFileBytes)
 		if err != nil {
 			log.WithContext(ctx).Error(err)
 		}
 	}
 
-	githubFileString := string(githubFileBytes)
-	rawDecodedText, err := base64.StdEncoding.DecodeString(githubFileString)
+	gitHubFileString := string(gitHubFileBytes)
+	rawDecodedText, err := base64.StdEncoding.DecodeString(gitHubFileString)
 	if err != nil || len(rawDecodedText) == 0 {
 		return trace, err
 	}
@@ -167,7 +167,7 @@ func (store *Store) GitHubGitSHA(ctx context.Context, gitHubRepoPath string, ser
 	})
 }
 
-func (store *Store) EnhanceStakeTraceWithGithub(ctx context.Context, stackTrace []*privateModel.ErrorTrace, projectID int, errorObj *model.ErrorObject, serviceName string, serviceVersion string) ([]*privateModel.ErrorTrace, error) {
+func (store *Store) GitHubEnhancedStakeTrace(ctx context.Context, stackTrace []*privateModel.ErrorTrace, projectID int, errorObj *model.ErrorObject, serviceName string, serviceVersion string) ([]*privateModel.ErrorTrace, error) {
 	if serviceName == "" {
 		return nil, nil
 	}
@@ -182,7 +182,6 @@ func (store *Store) EnhanceStakeTraceWithGithub(ctx context.Context, stackTrace 
 		return nil, err
 	}
 
-	// TODO(spenny): fix error
 	gitHubAccessToken, err := store.integrationsClient.GetWorkspaceAccessToken(ctx, workspace, privateModel.IntegrationTypeGitHub)
 	if err != nil || gitHubAccessToken == nil {
 		return nil, err
@@ -211,7 +210,7 @@ func (store *Store) EnhanceStakeTraceWithGithub(ctx context.Context, stackTrace 
 			continue
 		}
 
-		enhancedTrace, err := store.EnhanceTraceWithGithub(ctx, trace, service, *validServiceVersion, cfg.IgnoredFiles, client)
+		enhancedTrace, err := store.EnhanceTraceWithGitHub(ctx, trace, service, *validServiceVersion, cfg.IgnoredFiles, client)
 		if err != nil {
 			log.WithContext(ctx).Error(err)
 		}
@@ -232,14 +231,14 @@ func (store *Store) StructuredStackTrace(ctx context.Context, stackTrace string)
 	return structuredStackTrace, err
 }
 
-func (store *Store) EnhancedStackTraceString(ctx context.Context, stackTrace string, projectID int, errorObj *model.ErrorObject, serviceName string, serviceVersion string) (*string, []*privateModel.ErrorTrace, error) {
+func (store *Store) EnhancedStackTrace(ctx context.Context, stackTrace string, projectID int, errorObj *model.ErrorObject, serviceName string, serviceVersion string) (*string, []*privateModel.ErrorTrace, error) {
 	structuredStackTrace, err := store.StructuredStackTrace(ctx, stackTrace)
 	if err != nil {
 		return nil, structuredStackTrace, err
 	}
 
 	var newMappedStackTraceString *string
-	mappedStackTrace, err := store.EnhanceStakeTraceWithGithub(ctx, structuredStackTrace, projectID, errorObj, serviceName, serviceVersion)
+	mappedStackTrace, err := store.GitHubEnhancedStakeTrace(ctx, structuredStackTrace, projectID, errorObj, serviceName, serviceVersion)
 	if err != nil || mappedStackTrace == nil {
 		return nil, structuredStackTrace, err
 	}
