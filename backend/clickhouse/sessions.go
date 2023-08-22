@@ -320,9 +320,10 @@ func parseFieldRule(rule Rule, projectId int, start time.Time, end time.Time, sb
 			return "", fmt.Errorf("unsupported operator %s", rule.Op)
 		}
 		if idx == len(rule.Val)-1 {
-			valueBuilder.WriteString("))")
+			valueBuilder.WriteString(")")
 		}
 	}
+	valueBuilder.WriteString(")")
 
 	return str + valueBuilder.String(), nil
 }
