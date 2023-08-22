@@ -29,6 +29,12 @@ const WithDevToolsTooltip = ({ children }: React.PropsWithChildren) => {
 	)
 }
 
+const NoSessionTooltip = ({ children }: React.PropsWithChildren) => {
+	return (
+		<Tooltip trigger={children}>No session found for this error.</Tooltip>
+	)
+}
+
 type Props = {
 	data: GetErrorInstanceQuery | undefined
 }
@@ -36,10 +42,6 @@ type Props = {
 export const RelatedSession = ({ data }: Props) => {
 	const { isLoggedIn } = useAuthContext()
 	const sessionLink = getSessionLink(data)
-
-	if (!sessionLink) {
-		return null
-	}
 
 	const tag = (
 		<Link to={sessionLink}>
@@ -56,7 +58,11 @@ export const RelatedSession = ({ data }: Props) => {
 		</Link>
 	)
 
-	if (data?.error_instance?.error_object.session?.processed === false) {
+	if (sessionLink === '') {
+		return <NoSessionTooltip>{tag}</NoSessionTooltip>
+	} else if (
+		data?.error_instance?.error_object.session?.processed === false
+	) {
 		return <WithDevToolsTooltip>{tag}</WithDevToolsTooltip>
 	} else {
 		return tag
