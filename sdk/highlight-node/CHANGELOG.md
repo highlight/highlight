@@ -67,3 +67,15 @@
 ### Minor Changes
 
 - Add `serviceName` and `serviceVersion` as optional parameters to `NodeOptions`
+
+## 3.1.9
+
+### Patch Changes
+
+- Updates opentelemetry dependencies to the next patch version.
+
+## 3.1.10
+
+### Patch Changes
+
+- Ensures `console.log(...args)`-type arguments are serialized correctly.

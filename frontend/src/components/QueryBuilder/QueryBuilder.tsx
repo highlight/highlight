@@ -46,8 +46,9 @@ import clsx, { ClassValue } from 'clsx'
 import { isEqual } from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useToggle } from 'react-use'
+import { useLocalStorage, useToggle } from 'react-use'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -839,9 +840,7 @@ export const RANGE_OPERATORS: Operator[] = ['between', 'not_between']
 
 export const TIME_OPERATORS: Operator[] = ['between_time', 'not_between_time']
 
-export const BOOLEAN_OPERATORS: Operator[] = ['is', 'is_not']
-
-export const VIEWED_BY_OPERATORS: Operator[] = ['is']
+export const BOOLEAN_OPERATORS: Operator[] = ['is']
 
 const LABEL_MAP: { [key: string]: string } = {
 	referrer: 'Referrer',
@@ -1054,6 +1053,9 @@ export type FetchFieldVariables =
 				field_type: string
 				field_name: string
 				query: string
+				start_date: string
+				end_date: string
+				use_clickhouse: boolean
 			}>
 	  >
 	| undefined
@@ -1122,6 +1124,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const { project_id: projectId } = useParams<{
 		project_id: string
 	}>()
+
+	const { isHighlightAdmin } = useAuthContext()
+	const [useClickhouse] = useLocalStorage(
+		'highlight-session-search-use-clickhouse-v2',
+		isHighlightAdmin || Number(projectId) % 2 == 0,
+	)
 
 	const { loading: segmentsLoading, data: segmentData } =
 		useGetAnySegmentsQuery({
@@ -1406,6 +1414,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 					field_type: getType(field.value),
 					field_name: label,
 					query: input,
+					start_date: moment(dateRange[0]).toISOString(),
+					end_date: moment(dateRange[1]).toISOString(),
+					use_clickhouse: useClickhouse,
 				}).then((res) => {
 					return res.map((val) => ({
 						label: val,
@@ -1419,6 +1430,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 			fetchFields,
 			getCustomFieldOptions,
 			projectId,
+			dateRange,
+			useClickhouse,
 		],
 	)
 
@@ -1479,9 +1492,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 				valueRender={<IconSolidPlusSm size={12} />}
 				onChange={(val) => {
 					const field = val as SelectOption | undefined
+					const operators =
+						field && getCustomFieldOptions(field)?.operators
 					addRule({
 						field: field,
-						op: undefined,
+						op:
+							operators && operators.length === 1
+								? operators[0]
+								: undefined,
 						val: undefined,
 					})
 				}}

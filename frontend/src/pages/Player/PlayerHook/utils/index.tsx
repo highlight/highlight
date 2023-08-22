@@ -220,15 +220,21 @@ export const useSetPlayerTimestampFromSearchParam = (
 				searchParamsObject.get(PlayerSearchParameters.tsAbs)
 			) {
 				const startTimestamp = moment(sessionStartTimeMilliseconds)
-				const absoluteTimestamp = moment(
-					searchParamsObject.get(
-						PlayerSearchParameters.tsAbs,
-					) as string,
+				const tsParam = searchParamsObject.get(
+					PlayerSearchParameters.tsAbs,
 				)
-				const relativeTimestampMilliseconds = absoluteTimestamp.diff(
-					startTimestamp,
-					'milliseconds',
-				)
+
+				// Sometimes we have a timestamp in milliseconds, other times it's a
+				// formatted time string. This accounts for both cases. I believe
+				// formatted time strings are built in the client, and millisecond
+				// values are being sent in alerts.
+				const absoluteTimestamp = isNaN(Number(tsParam))
+					? tsParam
+					: Number(tsParam)
+
+				const relativeTimestampMilliseconds = moment(
+					absoluteTimestamp,
+				).diff(startTimestamp, 'milliseconds')
 
 				setTime(relativeTimestampMilliseconds)
 				setHasSearchParam(true)

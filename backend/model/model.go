@@ -389,6 +389,7 @@ type AllWorkspaceSettings struct {
 	ErrorEmbeddingsGroup     bool    `gorm:"default:false"`
 	ErrorEmbeddingsThreshold float64 `gorm:"default:0.2"`
 	ReplaceAssets            bool    `gorm:"default:false"`
+	StoreIP                  bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -598,6 +599,7 @@ type Session struct {
 	ProjectID      int     `json:"project_id" gorm:"index:idx_project_id_email"`
 	Email          *string `json:"email" gorm:"index:idx_project_id_email"`
 	// Location data based off user ip (see InitializeSession)
+	IP        string  `json:"ip"`
 	City      string  `json:"city"`
 	State     string  `json:"state"`
 	Postal    string  `json:"postal"`
@@ -910,8 +912,9 @@ type ErrorSegment struct {
 type ErrorGroupingMethod string
 
 const (
-	ErrorGroupingMethodClassic        ErrorGroupingMethod = "Classic"
-	ErrorGroupingMethodAdaEmbeddingV2 ErrorGroupingMethod = "AdaV2"
+	ErrorGroupingMethodClassic             ErrorGroupingMethod = "Classic"
+	ErrorGroupingMethodAdaEmbeddingV2      ErrorGroupingMethod = "AdaV2"
+	ErrorGroupingMethodGteLargeEmbeddingV2 ErrorGroupingMethod = "thenlper/gte-large"
 )
 
 type ErrorObject struct {
@@ -949,11 +952,9 @@ type ErrorObject struct {
 
 type ErrorObjectEmbeddings struct {
 	Model
-	ErrorObjectID       int
-	CombinedEmbedding   Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
-	EventEmbedding      Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
-	StackTraceEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
-	PayloadEmbedding    Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	ErrorObjectID     int
+	CombinedEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	GteLargeEmbedding Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large model
 }
 
 type ErrorGroup struct {

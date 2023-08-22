@@ -41,6 +41,7 @@ func TestWriteSession(t *testing.T) {
 		OrganizationID:                 0,
 		ProjectID:                      0,
 		Email:                          new(string),
+		IP:                             "",
 		City:                           "",
 		State:                          "",
 		Postal:                         "",

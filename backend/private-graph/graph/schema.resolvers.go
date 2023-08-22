@@ -660,6 +660,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 
 	// Update the the number of error groups viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		// Check if this admin has already viewed
 		if _, err := r.isAdminInProject(ctx, eg.ProjectID); err != nil {
 			log.WithContext(ctx).Infof("not adding error groups count to admin in hubspot; this is probably a demo project, with id [%v]", eg.ProjectID)
@@ -754,6 +755,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 
 	// Update the the number of sessions viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		// Check if this admin has already viewed
 		if _, err := r.isAdminInProject(ctx, s.ProjectID); err != nil {
 			log.WithContext(ctx).Infof("not adding session count to admin in hubspot; this is probably a demo project, with id [%v]", s.ProjectID)
@@ -896,10 +898,7 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		log.WithContext(ctx).Error(e.Wrap(err, "failed to add admin to workspace"))
 		return adminID, err
 	}
-	r.PrivateWorkerPool.SubmitRecover(func() {
-		if adminID == nil {
-			return
-		}
+	if adminID != nil {
 		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, *adminID, workspaceID); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(
 				err,
@@ -908,7 +907,7 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 				workspaceID,
 			))
 		}
-	})
+	}
 
 	return adminID, nil
 }
@@ -1077,6 +1076,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 	})
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		if contact, err := apolloio.CreateContact(email); err != nil {
 			log.WithContext(ctx).Errorf("error creating apollo contact: %v", err)
 		} else {
@@ -1251,9 +1251,9 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	subscriptions := c.Subscriptions.Data
 	pricing.FillProducts(r.StripeClient, subscriptions)
 
-	pricingInterval := pricing.SubscriptionIntervalMonthly
+	pricingInterval := model.PricingSubscriptionIntervalMonthly
 	if planType != modelInputs.PlanTypeFree && interval == modelInputs.SubscriptionIntervalAnnual {
-		pricingInterval = pricing.SubscriptionIntervalAnnual
+		pricingInterval = model.PricingSubscriptionIntervalAnnual
 	}
 
 	// default to unlimited members pricing
@@ -1262,7 +1262,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
 
-	newBasePrice := prices[pricing.ProductTypeBase]
+	newBasePrice := prices[model.PricingProductTypeBase]
 
 	// If there's an existing subscription, update it
 	if len(subscriptions) == 1 {
@@ -1276,7 +1276,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		if productType == nil {
 			return nil, e.New(fmt.Sprintf("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - nil product from sub %s price %s", subscription.ID, subscriptionItem.Price.ID))
 		}
-		if *productType != pricing.ProductTypeBase {
+		if *productType != model.PricingProductTypeBase {
 			return nil, e.New(fmt.Sprintf("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - expecting base product from sub %s price %s: %s", subscription.ID, subscriptionItem.Price.ID, *productType))
 		}
 
@@ -1463,10 +1463,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	muteLink := fmt.Sprintf("%v?commentId=%v&ts=%v&muted=1", sessionURL, sessionComment.ID, time)
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		c := context.Background()
+		ctx := context.Background()
 		chunkIdx, chunkTs := r.GetSessionChunk(ctx, session.ID, sessionTimestamp)
 		log.WithContext(ctx).Infof("got chunk %d ts %d for session %d ts %d", chunkIdx, chunkTs, session.ID, sessionTimestamp)
-		imageBytes, err := r.getSessionScreenshot(c, projectID, session.ID, chunkTs, chunkIdx)
+		imageBytes, err := r.getSessionScreenshot(ctx, projectID, session.ID, chunkTs, chunkIdx)
 		if err != nil {
 			log.WithContext(ctx).Errorf("failed to render screenshot for %d %d %d %s", projectID, session.ID, sessionTimestamp, err)
 		} else {
@@ -1484,7 +1484,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 		if len(taggedAdmins) > 0 && !isGuest {
 			r.sendCommentPrimaryNotification(
-				c,
+				ctx,
 				admin,
 				*admin.Name,
 				taggedAdmins,
@@ -1504,7 +1504,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 		if len(taggedSlackUsers) > 0 && !isGuest {
 			r.sendCommentMentionNotification(
-				c,
+				ctx,
 				admin,
 				taggedSlackUsers,
 				workspace,
@@ -4295,6 +4295,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			} else if len(p.ID) > 0 {
 				// Store the data for this email in the DB.
 				r.PrivateWorkerPool.SubmitRecover(func() {
+					ctx := context.Background()
 					log.WithContext(ctx).Infof("caching response data in the db")
 					modelToSave := &model.EnhancedUserDetails{}
 					modelToSave.Email = &email
@@ -5186,7 +5187,13 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 	if !sortDesc {
 		sortFieldStr = "CreatedAt ASC, ID ASC"
 	}
-	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, projectID, count, query, sortFieldStr, page, retentionDate)
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, sortFieldStr, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
@@ -5203,7 +5210,10 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 }
 
 // SessionsHistogram is the resolver for the sessions_histogram field.
-func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
+func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions, clickhouseQuery *modelInputs.ClickhouseQuery) (*model.SessionsHistogram, error) {
+	if clickhouseQuery != nil {
+		return r.SessionsHistogramClickhouse(ctx, projectID, *clickhouseQuery, histogramOptions)
+	}
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -5251,6 +5261,41 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, qu
 		SessionsWithoutErrors: MergeHistogramBucketCounts(noErrorsCounts, histogramOptions.BucketSize.Multiple),
 		SessionsWithErrors:    MergeHistogramBucketCounts(withErrorsCounts, histogramOptions.BucketSize.Multiple),
 		TotalSessions:         MergeHistogramBucketCounts(totalCounts, histogramOptions.BucketSize.Multiple),
+	}, nil
+}
+
+// SessionsHistogramClickhouse is the resolver for the sessions_histogram_clickhouse field.
+func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, query, retentionDate, histogramOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(bucketTimes) > 0 {
+		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
+	}
+
+	return &model.SessionsHistogram{
+		BucketTimes:           MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		SessionsWithoutErrors: MergeHistogramBucketCounts(withoutErrors, histogramOptions.BucketSize.Multiple),
+		SessionsWithErrors:    MergeHistogramBucketCounts(withErrors, histogramOptions.BucketSize.Multiple),
+		TotalSessions:         MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
 	}, nil
 }
 
@@ -5620,9 +5665,9 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 	var sessionsLimit, errorsLimit, logsLimit *int64
 	if workspace.TrialEndDate == nil || workspace.TrialEndDate.Before(time.Now()) {
-		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, pricing.ProductTypeSessions, planType, retentionPeriod)
-		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, pricing.ProductTypeErrors, planType, retentionPeriod)
-		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, pricing.ProductTypeLogs, planType, retentionPeriod)
+		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, model.PricingProductTypeSessions, planType, retentionPeriod)
+		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, model.PricingProductTypeErrors, planType, retentionPeriod)
+		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, model.PricingProductTypeLogs, planType, retentionPeriod)
 	}
 
 	details := &modelInputs.BillingDetails{
@@ -7351,6 +7396,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 
 	// Update the the number of logs viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		var totalLogCount int64
 		if err := r.DB.Raw(`
 			select count(*)
@@ -7846,6 +7892,7 @@ GROUP BY
 func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
 	ch := make(chan *model.SessionPayload)
 	r.SubscriptionWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		defer close(ch)
 		log.WithContext(ctx).Infof("Polling for events on %s starting from index %d, number of waiting tasks %d",
 			sessionSecureID,

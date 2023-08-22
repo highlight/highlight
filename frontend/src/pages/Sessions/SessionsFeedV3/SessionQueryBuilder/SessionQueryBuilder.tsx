@@ -7,6 +7,7 @@ import {
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
+import { useLocalStorage } from 'react-use'
 
 import QueryBuilder, {
 	BOOLEAN_OPERATORS,
@@ -19,7 +20,6 @@ import QueryBuilder, {
 	RANGE_OPERATORS,
 	SelectOption,
 	TIME_OPERATORS,
-	VIEWED_BY_OPERATORS,
 } from '@/components/QueryBuilder/QueryBuilder'
 import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
 import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
@@ -79,6 +79,7 @@ export const CUSTOM_FIELDS: CustomField[] = [
 		name: 'viewed',
 		options: {
 			type: 'boolean',
+			operators: BOOLEAN_OPERATORS,
 		},
 	},
 	{
@@ -86,7 +87,7 @@ export const CUSTOM_FIELDS: CustomField[] = [
 		name: 'viewed_by_me',
 		options: {
 			type: 'boolean',
-			operators: VIEWED_BY_OPERATORS,
+			operators: BOOLEAN_OPERATORS,
 		},
 	},
 	{
@@ -152,6 +153,11 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 		(rule) => rule.field?.value === TIME_RANGE_FIELD.value,
 	)
 
+	const [useClickhouse] = useLocalStorage(
+		'highlight-session-search-use-clickhouse-v2',
+		false,
+	)
+
 	const startDate = getAbsoluteStartTime(timeRange?.val?.options[0].value)
 	const endDate = getAbsoluteEndTime(timeRange?.val?.options[0].value)
 	const { data: fieldData } = useGetFieldTypesQuery({
@@ -159,6 +165,7 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 			project_id: project_id!,
 			start_date: startDate,
 			end_date: endDate,
+			use_clickhouse: useClickhouse,
 		},
 		skip: !project_id,
 	})

@@ -14,7 +14,6 @@ import (
 	"github.com/aws/smithy-go/ptr"
 	"github.com/go-test/deep"
 	"github.com/highlight-run/highlight/backend/opensearch"
-	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/highlight-run/highlight/backend/timeseries"
 	"github.com/openlyinc/pointy"
@@ -42,11 +41,8 @@ func (c *mockEmbeddingsClient) GetEmbeddings(ctx context.Context, errors []*mode
 	vec[0] += 0.01
 	return []*model.ErrorObjectEmbeddings{
 		{
-			ErrorObjectID:       1,
-			CombinedEmbedding:   vec,
-			EventEmbedding:      vec,
-			StackTraceEmbedding: vec,
-			PayloadEmbedding:    vec,
+			ErrorObjectID:     1,
+			CombinedEmbedding: vec,
 		},
 	}, nil
 }
@@ -151,16 +147,10 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			expectedErrorGroups: []model.ErrorGroup{},
 			embeddingsToInsert: []model.ErrorObjectEmbeddings{
 				{
-					CombinedEmbedding:   vector,
-					EventEmbedding:      vector,
-					StackTraceEmbedding: vector,
-					PayloadEmbedding:    vector,
+					CombinedEmbedding: vector,
 				},
 				{
-					CombinedEmbedding:   vector,
-					EventEmbedding:      vector,
-					StackTraceEmbedding: vector,
-					PayloadEmbedding:    vector,
+					CombinedEmbedding: vector,
 				},
 			},
 			withEmbeddings: pointy.Bool(true),
@@ -322,11 +312,8 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				resolver.DB.Create(&eo)
 
 				embedding := model.ErrorObjectEmbeddings{
-					ErrorObjectID:       eo.ID,
-					CombinedEmbedding:   emb.CombinedEmbedding,
-					EventEmbedding:      emb.EventEmbedding,
-					StackTraceEmbedding: emb.StackTraceEmbedding,
-					PayloadEmbedding:    emb.PayloadEmbedding,
+					ErrorObjectID:     eo.ID,
+					CombinedEmbedding: emb.CombinedEmbedding,
 				}
 				resolver.DB.Create(&embedding)
 			}
@@ -593,10 +580,10 @@ func Test_WithinQuota_CommittedPricing(t *testing.T) {
 				union all select 2, '2023-01-02'::date, 0) a
 		`)
 
-		basicWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, pricing.ProductTypeSessions, &workspaceBasic, time.Now())
+		basicWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, model.PricingProductTypeSessions, &workspaceBasic, time.Now())
 		assert.True(t, basicWithinBillingQuota)
 
-		usageBasedWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, pricing.ProductTypeSessions, &workspaceUsageBased, time.Now())
+		usageBasedWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, model.PricingProductTypeSessions, &workspaceUsageBased, time.Now())
 		assert.False(t, usageBasedWithinBillingQuota)
 	})
 }

@@ -224,6 +224,7 @@ query GetSession($secure_id: String!) {
 		browser_version
 		environment
 		app_version
+		ip
 		city
 		state
 		country
@@ -633,6 +634,7 @@ query GetSessionsOpenSearch(
 			os_version
 			browser_name
 			browser_version
+			ip
 			city
 			state
 			country
@@ -668,11 +670,13 @@ query GetSessionsHistogram(
 	$project_id: ID!
 	$query: String!
 	$histogram_options: DateHistogramOptions!
+	$clickhouse_query: ClickhouseQuery
 ) {
 	sessions_histogram(
 		project_id: $project_id
 		query: $query
 		histogram_options: $histogram_options
+		clickhouse_query: $clickhouse_query
 	) {
 		bucket_times
 		sessions_without_errors

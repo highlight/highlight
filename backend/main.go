@@ -632,6 +632,13 @@ func main() {
 			}()
 			// for the 'All' worker, explicitly run the PublicWorker as well
 			go w.PublicWorker(ctx)
+			// in `all` mode, report stripe usage every hour
+			go func() {
+				w.ReportStripeUsage(ctx)
+				for range time.Tick(time.Hour) {
+					w.ReportStripeUsage(ctx)
+				}
+			}()
 			// in `all` mode, refresh materialized views every hour
 			go func() {
 				w.RefreshMaterializedViews(ctx)
