@@ -611,6 +611,39 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ariakit/core@npm:0.2.8":
+  version: 0.2.8
+  resolution: "@ariakit/core@npm:0.2.8"
+  checksum: 927ef7f7472a1c64b26fc0cfe017ea2380e834714c73f153ced9230bba610547f813055e213b7884c657f44491b3aac4e9bc747e05d533a93c99723f295cf63d
+  languageName: node
+  linkType: hard
+
+"@ariakit/react-core@npm:0.2.16":
+  version: 0.2.16
+  resolution: "@ariakit/react-core@npm:0.2.16"
+  dependencies:
+    "@ariakit/core": 0.2.8
+    "@floating-ui/dom": ^1.0.0
+    use-sync-external-store: ^1.2.0
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+  checksum: c72b65ed3ab50764411dca0695bed49a75799a7527aaaf91eb7da10878dbda673ef5c4b39007408b579c3a3cad779ef7e85f8087bd532542e6a1b6fa7100c68e
+  languageName: node
+  linkType: hard
+
+"@ariakit/react@npm:^0.2.16":
+  version: 0.2.16
+  resolution: "@ariakit/react@npm:0.2.16"
+  dependencies:
+    "@ariakit/react-core": 0.2.16
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+  checksum: 2ad8bfda5366ea6097dcef678604bf1b12f0e7d1412bfbc3414598b1ec8d5ec6c7c57e24152cafc9be57404c10e0650fa2eaaad9e89e16a28143f7067a42fde4
+  languageName: node
+  linkType: hard
+
 "@aw-web-design/x-default-browser@npm:1.4.126":
   version: 1.4.126
   resolution: "@aw-web-design/x-default-browser@npm:1.4.126"
@@ -13207,6 +13240,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@highlight-run/ui@workspace:packages/ui"
   dependencies:
+    "@ariakit/react": ^0.2.16
     "@babel/core": ^7.19.3
     "@capsizecss/core": ^3.0.0
     "@capsizecss/metrics": ^0.3.0

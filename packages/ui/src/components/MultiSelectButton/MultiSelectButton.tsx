@@ -1,11 +1,15 @@
 import React, { useRef } from 'react'
 import {
-	useSelectState,
+	useComboboxStore,
+	useSelectStore,
+	ComboboxList,
+	ComboboxItem,
+	Combobox,
 	Select,
 	SelectItem,
 	SelectLabel,
 	SelectPopover,
-} from 'ariakit'
+} from '@ariakit/react'
 
 import { IconSolidCheckCircle, IconSolidMinus } from '../icons'
 
@@ -46,19 +50,27 @@ export const MultiSelectButton: React.FC<Props> = ({
 }) => {
 	const inputElement = useRef<HTMLInputElement>(null)
 
-	const selectState = useSelectState({
+	const combobox = useComboboxStore({ resetValueOnHide: true })
+	const select = useSelectStore({
+		combobox,
 		defaultValue: defaultValue ? [defaultValue] : [],
 		setValue: (value: string[]) => onChange(value),
 		value: value,
 	})
 
+	// const selectState = useSelectState({
+	// 	defaultValue: defaultValue ? [defaultValue] : [],
+	// 	setValue: (value: string[]) => onChange(value),
+	// 	value: value,
+	// })
+
 	return (
 		<>
-			<SelectLabel state={selectState} className={styles.selectLabel}>
+			<SelectLabel store={select} className={styles.selectLabel}>
 				{label}
 			</SelectLabel>
 			<Select
-				state={selectState}
+				store={select}
 				className={clsx([styles.selectButton, clsx(cssClass)])}
 			>
 				<>
@@ -68,41 +80,40 @@ export const MultiSelectButton: React.FC<Props> = ({
 					</Text>
 				</>
 			</Select>
-			{selectState.mounted && (
-				<SelectPopover
-					state={selectState}
-					className={styles.selectPopover}
-					initialFocusRef={inputElement}
-				>
-					{onChangeQuery && (
-						<input
-							ref={inputElement}
-							type="text"
-							onChange={(e) => {
-								onChangeQuery(e.target?.value)
-							}}
-							placeholder={queryPlaceholder}
-						></input>
-					)}
+			<SelectPopover store={select} className={styles.selectPopover}>
+				{onChangeQuery && (
+					<Combobox
+						store={combobox}
+						ref={inputElement}
+						type="text"
+						onChange={(e) => {
+							onChangeQuery(e.target?.value)
+						}}
+						placeholder={queryPlaceholder}
+					></Combobox>
+				)}
+				<ComboboxList store={combobox}>
 					{options.map((option: Option) => (
-						<SelectItem
-							key={option.key}
-							value={option.key}
-							className={styles.selectItem}
-						>
-							<div className={styles.checkbox}>
-								{option.clearsOnClick &&
-								!value.includes(option.key) ? (
-									<IconSolidMinus color="grey" />
-								) : (
-									<IconSolidCheckCircle color="white" />
-								)}
-							</div>
-							{option.render}
-						</SelectItem>
+						<ComboboxItem key={option.key}>
+							<SelectItem
+								key={option.key}
+								value={option.key}
+								className={styles.selectItem}
+							>
+								<div className={styles.checkbox}>
+									{option.clearsOnClick &&
+									!value.includes(option.key) ? (
+										<IconSolidMinus color="grey" />
+									) : (
+										<IconSolidCheckCircle color="white" />
+									)}
+								</div>
+								{option.render}
+							</SelectItem>
+						</ComboboxItem>
 					))}
-				</SelectPopover>
-			)}
+				</ComboboxList>
+			</SelectPopover>
 		</>
 	)
 }
