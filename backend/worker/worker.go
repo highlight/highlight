@@ -1136,8 +1136,8 @@ func (w *Worker) Start(ctx context.Context) {
 
 		for _, session := range sessions {
 			session := session
-			ctx := ctx
 			wp.SubmitRecover(func() {
+				ctx := context.Background()
 				vmStat, _ := mem.VirtualMemory()
 
 				// If WORKER_MAX_MEMORY_THRESHOLD is defined,
@@ -1504,6 +1504,7 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 
 	for rows.Next() {
 		backfiller.SubmitRecover(func() {
+			ctx := context.Background()
 			modelObj := &model.ErrorObject{}
 			if err := w.Resolver.DB.ScanRows(rows, modelObj); err != nil {
 				log.WithContext(ctx).Fatalf("error scanning rows: %+v", err)

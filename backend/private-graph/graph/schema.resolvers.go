@@ -660,6 +660,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 
 	// Update the the number of error groups viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		// Check if this admin has already viewed
 		if _, err := r.isAdminInProject(ctx, eg.ProjectID); err != nil {
 			log.WithContext(ctx).Infof("not adding error groups count to admin in hubspot; this is probably a demo project, with id [%v]", eg.ProjectID)
@@ -754,6 +755,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 
 	// Update the the number of sessions viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		// Check if this admin has already viewed
 		if _, err := r.isAdminInProject(ctx, s.ProjectID); err != nil {
 			log.WithContext(ctx).Infof("not adding session count to admin in hubspot; this is probably a demo project, with id [%v]", s.ProjectID)
@@ -896,10 +898,7 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		log.WithContext(ctx).Error(e.Wrap(err, "failed to add admin to workspace"))
 		return adminID, err
 	}
-	r.PrivateWorkerPool.SubmitRecover(func() {
-		if adminID == nil {
-			return
-		}
+	if adminID != nil {
 		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, *adminID, workspaceID); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(
 				err,
@@ -908,7 +907,7 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 				workspaceID,
 			))
 		}
-	})
+	}
 
 	return adminID, nil
 }
@@ -1077,6 +1076,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 	})
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		if contact, err := apolloio.CreateContact(email); err != nil {
 			log.WithContext(ctx).Errorf("error creating apollo contact: %v", err)
 		} else {
@@ -1463,10 +1463,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	muteLink := fmt.Sprintf("%v?commentId=%v&ts=%v&muted=1", sessionURL, sessionComment.ID, time)
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		c := context.Background()
+		ctx := context.Background()
 		chunkIdx, chunkTs := r.GetSessionChunk(ctx, session.ID, sessionTimestamp)
 		log.WithContext(ctx).Infof("got chunk %d ts %d for session %d ts %d", chunkIdx, chunkTs, session.ID, sessionTimestamp)
-		imageBytes, err := r.getSessionScreenshot(c, projectID, session.ID, chunkTs, chunkIdx)
+		imageBytes, err := r.getSessionScreenshot(ctx, projectID, session.ID, chunkTs, chunkIdx)
 		if err != nil {
 			log.WithContext(ctx).Errorf("failed to render screenshot for %d %d %d %s", projectID, session.ID, sessionTimestamp, err)
 		} else {
@@ -1484,7 +1484,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 		if len(taggedAdmins) > 0 && !isGuest {
 			r.sendCommentPrimaryNotification(
-				c,
+				ctx,
 				admin,
 				*admin.Name,
 				taggedAdmins,
@@ -1504,7 +1504,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 		if len(taggedSlackUsers) > 0 && !isGuest {
 			r.sendCommentMentionNotification(
-				c,
+				ctx,
 				admin,
 				taggedSlackUsers,
 				workspace,
@@ -4295,6 +4295,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			} else if len(p.ID) > 0 {
 				// Store the data for this email in the DB.
 				r.PrivateWorkerPool.SubmitRecover(func() {
+					ctx := context.Background()
 					log.WithContext(ctx).Infof("caching response data in the db")
 					modelToSave := &model.EnhancedUserDetails{}
 					modelToSave.Email = &email
@@ -7384,6 +7385,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 
 	// Update the the number of logs viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		var totalLogCount int64
 		if err := r.DB.Raw(`
 			select count(*)
@@ -7879,6 +7881,7 @@ GROUP BY
 func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
 	ch := make(chan *model.SessionPayload)
 	r.SubscriptionWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		defer close(ch)
 		log.WithContext(ctx).Infof("Polling for events on %s starting from index %d, number of waiting tasks %d",
 			sessionSecureID,
