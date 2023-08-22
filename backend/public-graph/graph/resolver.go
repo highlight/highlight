@@ -73,7 +73,7 @@ type Resolver struct {
 	MailClient       *sendgrid.Client
 	StorageClient    storage.Client
 	OpenSearch       *opensearch.Client
-	HubspotApi       *highlightHubspot.HubspotApi
+	HubspotApi       *highlightHubspot.Client
 	EmbeddingsClient embeddings.Client
 	Redis            *redis.Client
 	Clickhouse       *clickhouse.Client
@@ -458,7 +458,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 	return errorGroup, nil
 }
 
-func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, combinedEmbedding, eventEmbedding, stackTraceEmbedding, payloadEmbedding model.Vector, threshold float64) (*int, error) {
+func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, method model.ErrorGroupingMethod, embedding model.Vector, threshold float64) (*int, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "public-resolver", tracer.ResourceName("GetTopErrorGroupMatchByEmbedding"))
 	defer span.Finish()
 
@@ -470,23 +470,24 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, combine
 	// an alternative query to consider: for M error objects of every error group,
 	// find the average score. then pick the error group
 	// with the lowest average score.
-	if err := r.DB.Raw(`
-select eoe.combined_embedding <=> @combined_embedding as score,
-       @event_weight * (eoe.event_embedding <=> @event_embedding)
-		   + @trace_weight * (eoe.stack_trace_embedding <=> @stack_trace_embedding)
-		   + @meta_weight * (eoe.payload_embedding <=> @payload_embedding) as combined_score,
+	var column string
+	switch method {
+	case model.ErrorGroupingMethodAdaEmbeddingV2:
+		column = "combined_embedding"
+	case model.ErrorGroupingMethodGteLargeEmbeddingV2:
+		column = "gte_large_embedding"
+	}
+	if err := r.DB.Raw(fmt.Sprintf(`
+select eoe.%s <=> @embedding as score,
        eo.error_group_id                              as error_group_id
 from error_object_embeddings eoe
          inner join error_objects eo on eo.id = eoe.error_object_id
 order by 1
-limit 1;`, map[string]interface{}{
-		"combined_embedding":    combinedEmbedding,
-		"event_embedding":       eventEmbedding,
-		"stack_trace_embedding": stackTraceEmbedding,
-		"payload_embedding":     payloadEmbedding,
-		"event_weight":          1,
-		"trace_weight":          0.4,
-		"meta_weight":           0.2,
+limit 1;`, column), map[string]interface{}{
+		"embedding":    embedding,
+		"event_weight": 1,
+		"trace_weight": 0.4,
+		"meta_weight":  0.2,
 	}).
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
@@ -691,7 +692,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		return nil, ErrUserFilteredError
 	}
 
-	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, pricing.ProductTypeErrors, workspace, time.Now())
+	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, model.PricingProductTypeErrors, workspace, time.Now())
 	go func() {
 		defer util.Recover()
 		if quotaPercent >= 1 {
@@ -771,23 +772,26 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		// keep the classic match as the alternative error group
 		errorGroup, errorGroupAlt = nil, errorGroup
 		emb, err := r.EmbeddingsClient.GetEmbeddings(ctx, []*model.ErrorObject{errorObj})
-		if err != nil {
+		if err != nil || len(emb) == 0 {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings")
-		}
-		embedding = emb[0]
-		errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
-			match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, embedding.CombinedEmbedding, embedding.EventEmbedding, embedding.StackTraceEmbedding, embedding.PayloadEmbedding, settings.ErrorEmbeddingsThreshold)
+			errorObj.ErrorGroupID = errorGroupAlt.ID
+			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
+		} else {
+			embedding = emb[0]
+			errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
+				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, model.ErrorGroupingMethodGteLargeEmbeddingV2, embedding.GteLargeEmbedding, settings.ErrorEmbeddingsThreshold)
+				if err != nil {
+					log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
+				}
+				return match, err
+			})
 			if err != nil {
-				log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
+				return nil, e.Wrap(err, "Error getting or creating error group")
 			}
-			return match, err
-		})
-		if err != nil {
-			return nil, e.Wrap(err, "Error getting or creating error group")
+			errorObj.ErrorGroupID = errorGroup.ID
+			errorObj.ErrorGroupIDAlternative = errorGroupAlt.ID
+			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodGteLargeEmbeddingV2
 		}
-		errorObj.ErrorGroupID = errorGroup.ID
-		errorObj.ErrorGroupIDAlternative = errorGroupAlt.ID
-		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodAdaEmbeddingV2
 	} else {
 		errorObj.ErrorGroupID = errorGroup.ID
 		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
@@ -1035,6 +1039,7 @@ func (r *Resolver) IndexSessionOpensearch(ctx context.Context, session *model.Se
 		"device_id":       strconv.Itoa(session.Fingerprint),
 		"city":            session.City,
 		"country":         session.Country,
+		"ip":              session.IP,
 	}
 	if err := r.AppendProperties(ctx, session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error adding set of properties to db"))
@@ -1132,10 +1137,10 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	}
 
 	// determine if session is within billing quota
-	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, pricing.ProductTypeSessions, workspace, time.Now())
+	withinBillingQuota, quotaPercent := r.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now())
 	setupSpan.Finish()
 
-	if err := r.Redis.SetBillingQuotaExceeded(ctx, projectID, pricing.ProductTypeSessions, !withinBillingQuota); err != nil {
+	if err := r.Redis.SetBillingQuotaExceeded(ctx, projectID, model.PricingProductTypeSessions, !withinBillingQuota); err != nil {
 		return nil, e.Wrap(err, "error setting billing quota exceeded")
 	}
 
@@ -1155,6 +1160,9 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		location = fetchedLocation
 	}
 
+	if s, err := r.Store.GetAllWorkspaceSettings(ctx, project.WorkspaceID); err == nil && s.StoreIP {
+		session.IP = input.IP
+	}
 	session.City = location.City
 	session.State = location.State
 	session.Postal = location.Postal
@@ -1208,6 +1216,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 				{Name: "Bot", Value: fmt.Sprintf("%v", deviceDetails.IsBot)},
 				{Name: "Browser", Value: deviceDetails.BrowserName},
 				{Name: "BrowserVersion", Value: deviceDetails.BrowserVersion},
+				{Name: "IP", Value: session.IP},
 				{Name: "City", Value: session.City},
 				{Name: "ClientID", Value: session.ClientID},
 				{Name: "Country", Value: session.Country},
@@ -1599,13 +1608,13 @@ func (r *Resolver) getProject(projectID int) (*model.Project, error) {
 	return &project, nil
 }
 
-var productTypeToQuotaConfig = map[pricing.ProductType]struct {
+var productTypeToQuotaConfig = map[model.PricingProductType]struct {
 	maxCostCents    func(*model.Workspace) *int
 	meter           func(context.Context, *gorm.DB, *clickhouse.Client, *model.Workspace) (int64, error)
 	retentionPeriod func(*model.Workspace) privateModel.RetentionPeriod
 	included        func(*model.Workspace) int64
 }{
-	pricing.ProductTypeSessions: {
+	model.PricingProductTypeSessions: {
 		func(w *model.Workspace) *int { return w.SessionsMaxCents },
 		pricing.GetWorkspaceSessionsMeter,
 		func(w *model.Workspace) privateModel.RetentionPeriod {
@@ -1622,7 +1631,7 @@ var productTypeToQuotaConfig = map[pricing.ProductType]struct {
 			return int64(limit)
 		},
 	},
-	pricing.ProductTypeErrors: {
+	model.PricingProductTypeErrors: {
 		func(w *model.Workspace) *int { return w.ErrorsMaxCents },
 		pricing.GetWorkspaceErrorsMeter,
 		func(w *model.Workspace) privateModel.RetentionPeriod {
@@ -1639,7 +1648,7 @@ var productTypeToQuotaConfig = map[pricing.ProductType]struct {
 			return int64(limit)
 		},
 	},
-	pricing.ProductTypeLogs: {
+	model.PricingProductTypeLogs: {
 		func(w *model.Workspace) *int { return w.LogsMaxCents },
 		pricing.GetWorkspaceLogsMeter,
 		func(w *model.Workspace) privateModel.RetentionPeriod {
@@ -1655,7 +1664,7 @@ var productTypeToQuotaConfig = map[pricing.ProductType]struct {
 	},
 }
 
-func (r *Resolver) IsWithinQuota(ctx context.Context, productType pricing.ProductType, workspace *model.Workspace, now time.Time) (bool, float64) {
+func (r *Resolver) IsWithinQuota(ctx context.Context, productType model.PricingProductType, workspace *model.Workspace, now time.Time) (bool, float64) {
 	if workspace == nil {
 		return true, 0
 	}

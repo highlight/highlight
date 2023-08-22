@@ -1,0 +1,505 @@
+{
+	"resourceSpans": [
+		{
+			"resource": {
+				"attributes": [
+					{
+						"key": "service.name",
+						"value": {
+							"stringValue": "unknown_service:/home/vkorolik/.local/share/nvm/v18.16.0/bin/node"
+						}
+					},
+					{
+						"key": "telemetry.sdk.language",
+						"value": { "stringValue": "nodejs" }
+					},
+					{
+						"key": "telemetry.sdk.name",
+						"value": { "stringValue": "opentelemetry" }
+					},
+					{
+						"key": "telemetry.sdk.version",
+						"value": { "stringValue": "1.15.2" }
+					},
+					{
+						"key": "highlight.project_id",
+						"value": { "stringValue": "1" }
+					}
+				]
+			},
+			"scopeSpans": [
+				{
+					"scope": {
+						"name": "@opentelemetry/instrumentation-http",
+						"version": "0.41.0"
+					},
+					"spans": [
+						{
+							"traceId": "fac38f0e83dff2d0b09cab93acb2753f",
+							"spanId": "d6a6a8e465ac625e",
+							"parentSpanId": "38c100c79c6b9943",
+							"name": "GET",
+							"kind": 3,
+							"startTimeUnixNano": "1692652030507000000",
+							"endTimeUnixNano": "1692652030508813000",
+							"attributes": [
+								{
+									"key": "http.url",
+									"value": {
+										"stringValue": "http://127.0.0.1:36663/?key=b278380e14755cbbd0d28fe4baabd0fa7c99fb72b7824ae3497acbd9dbc9f2ca\u0026method=ensurePage\u0026args=%5B%7B%22match%22%3A%7B%22definition%22%3A%7B%22kind%22%3A%22APP_ROUTE%22%2C%22pathname%22%3A%22%2Fapi%2Fapp-directory-test%22%2C%22page%22%3A%22%2Fapi%2Fapp-directory-test%2Froute%22%2C%22bundlePath%22%3A%22app%2Fapi%2Fapp-directory-test%2Froute%22%2C%22filename%22%3A%22%2Fhome%2Fvkorolik%2Fwork%2Fhighlight%2Fe2e%2Fnextjs%2Fsrc%2Fapp%2Fapi%2Fapp-directory-test%2Froute.ts%22%7D%7D%2C%22page%22%3A%22%2Fapi%2Fapp-directory-test%2Froute%22%2C%22clientOnly%22%3Afalse%7D%5D"
+									}
+								},
+								{
+									"key": "http.method",
+									"value": { "stringValue": "GET" }
+								},
+								{
+									"key": "http.target",
+									"value": {
+										"stringValue": "/?key=b278380e14755cbbd0d28fe4baabd0fa7c99fb72b7824ae3497acbd9dbc9f2ca\u0026method=ensurePage\u0026args=%5B%7B%22match%22%3A%7B%22definition%22%3A%7B%22kind%22%3A%22APP_ROUTE%22%2C%22pathname%22%3A%22%2Fapi%2Fapp-directory-test%22%2C%22page%22%3A%22%2Fapi%2Fapp-directory-test%2Froute%22%2C%22bundlePath%22%3A%22app%2Fapi%2Fapp-directory-test%2Froute%22%2C%22filename%22%3A%22%2Fhome%2Fvkorolik%2Fwork%2Fhighlight%2Fe2e%2Fnextjs%2Fsrc%2Fapp%2Fapi%2Fapp-directory-test%2Froute.ts%22%7D%7D%2C%22page%22%3A%22%2Fapi%2Fapp-directory-test%2Froute%22%2C%22clientOnly%22%3Afalse%7D%5D"
+									}
+								},
+								{
+									"key": "net.peer.name",
+									"value": { "stringValue": "127.0.0.1" }
+								},
+								{
+									"key": "http.host",
+									"value": {
+										"stringValue": "127.0.0.1:36663"
+									}
+								},
+								{
+									"key": "net.peer.ip",
+									"value": { "stringValue": "127.0.0.1" }
+								},
+								{
+									"key": "net.peer.port",
+									"value": { "intValue": "36663" }
+								},
+								{
+									"key": "http.response_content_length_uncompressed",
+									"value": { "intValue": "2" }
+								},
+								{
+									"key": "http.status_code",
+									"value": { "intValue": "200" }
+								},
+								{
+									"key": "http.status_text",
+									"value": { "stringValue": "OK" }
+								},
+								{
+									"key": "http.flavor",
+									"value": { "stringValue": "1.1" }
+								},
+								{
+									"key": "net.transport",
+									"value": { "stringValue": "ip_tcp" }
+								}
+							],
+							"status": {}
+						},
+						{
+							"traceId": "fac38f0e83dff2d0b09cab93acb2753f",
+							"spanId": "06adc36be1e8a305",
+							"parentSpanId": "38c100c79c6b9943",
+							"name": "GET",
+							"kind": 3,
+							"startTimeUnixNano": "1692652030510000000",
+							"endTimeUnixNano": "1692652030511381000",
+							"attributes": [
+								{
+									"key": "http.url",
+									"value": {
+										"stringValue": "http://127.0.0.1:36663/?key=b278380e14755cbbd0d28fe4baabd0fa7c99fb72b7824ae3497acbd9dbc9f2ca\u0026method=ensurePage\u0026args=%5B%7B%22match%22%3A%7B%22definition%22%3A%7B%22kind%22%3A%22APP_ROUTE%22%2C%22pathname%22%3A%22%2Fapi%2Fapp-directory-test%22%2C%22page%22%3A%22%2Fapi%2Fapp-directory-test%2Froute%22%2C%22bundlePath%22%3A%22app%2Fapi%2Fapp-directory-test%2Froute%22%2C%22filename%22%3A%22%2Fhome%2Fvkorolik%2Fwork%2Fhighlight%2Fe2e%2Fnextjs%2Fsrc%2Fapp%2Fapi%2Fapp-directory-test%2Froute.ts%22%7D%7D%2C%22page%22%3A%22%2Fapi%2Fapp-directory-test%2Froute%22%2C%22clientOnly%22%3Afalse%7D%5D"
+									}
+								},
+								{
+									"key": "http.method",
+									"value": { "stringValue": "GET" }
+								},
+								{
+									"key": "http.target",
+									"value": {
+										"stringValue": "/?key=b278380e14755cbbd0d28fe4baabd0fa7c99fb72b7824ae3497acbd9dbc9f2ca\u0026method=ensurePage\u0026args=%5B%7B%22match%22%3A%7B%22definition%22%3A%7B%22kind%22%3A%22APP_ROUTE%22%2C%22pathname%22%3A%22%2Fapi%2Fapp-directory-test%22%2C%22page%22%3A%22%2Fapi%2Fapp-directory-test%2Froute%22%2C%22bundlePath%22%3A%22app%2Fapi%2Fapp-directory-test%2Froute%22%2C%22filename%22%3A%22%2Fhome%2Fvkorolik%2Fwork%2Fhighlight%2Fe2e%2Fnextjs%2Fsrc%2Fapp%2Fapi%2Fapp-directory-test%2Froute.ts%22%7D%7D%2C%22page%22%3A%22%2Fapi%2Fapp-directory-test%2Froute%22%2C%22clientOnly%22%3Afalse%7D%5D"
+									}
+								},
+								{
+									"key": "net.peer.name",
+									"value": { "stringValue": "127.0.0.1" }
+								},
+								{
+									"key": "http.host",
+									"value": {
+										"stringValue": "127.0.0.1:36663"
+									}
+								},
+								{
+									"key": "net.peer.ip",
+									"value": { "stringValue": "127.0.0.1" }
+								},
+								{
+									"key": "net.peer.port",
+									"value": { "intValue": "36663" }
+								},
+								{
+									"key": "http.response_content_length_uncompressed",
+									"value": { "intValue": "2" }
+								},
+								{
+									"key": "http.status_code",
+									"value": { "intValue": "200" }
+								},
+								{
+									"key": "http.status_text",
+									"value": { "stringValue": "OK" }
+								},
+								{
+									"key": "http.flavor",
+									"value": { "stringValue": "1.1" }
+								},
+								{
+									"key": "net.transport",
+									"value": { "stringValue": "ip_tcp" }
+								}
+							],
+							"status": {}
+						},
+						{
+							"traceId": "fac38f0e83dff2d0b09cab93acb2753f",
+							"spanId": "5e88997360e63bbf",
+							"parentSpanId": "38c100c79c6b9943",
+							"name": "GET",
+							"kind": 3,
+							"startTimeUnixNano": "1692652030511000000",
+							"endTimeUnixNano": "1692652030511957200",
+							"attributes": [
+								{
+									"key": "http.url",
+									"value": {
+										"stringValue": "http://127.0.0.1:36663/?key=b278380e14755cbbd0d28fe4baabd0fa7c99fb72b7824ae3497acbd9dbc9f2ca\u0026method=getCompilationError\u0026args=%5B%22%2Fapi%2Fapp-directory-test%2Froute%22%5D"
+									}
+								},
+								{
+									"key": "http.method",
+									"value": { "stringValue": "GET" }
+								},
+								{
+									"key": "http.target",
+									"value": {
+										"stringValue": "/?key=b278380e14755cbbd0d28fe4baabd0fa7c99fb72b7824ae3497acbd9dbc9f2ca\u0026method=getCompilationError\u0026args=%5B%22%2Fapi%2Fapp-directory-test%2Froute%22%5D"
+									}
+								},
+								{
+									"key": "net.peer.name",
+									"value": { "stringValue": "127.0.0.1" }
+								},
+								{
+									"key": "http.host",
+									"value": {
+										"stringValue": "127.0.0.1:36663"
+									}
+								},
+								{
+									"key": "net.peer.ip",
+									"value": { "stringValue": "127.0.0.1" }
+								},
+								{
+									"key": "net.peer.port",
+									"value": { "intValue": "36663" }
+								},
+								{
+									"key": "http.response_content_length_uncompressed",
+									"value": { "intValue": "2" }
+								},
+								{
+									"key": "http.status_code",
+									"value": { "intValue": "200" }
+								},
+								{
+									"key": "http.status_text",
+									"value": { "stringValue": "OK" }
+								},
+								{
+									"key": "http.flavor",
+									"value": { "stringValue": "1.1" }
+								},
+								{
+									"key": "net.transport",
+									"value": { "stringValue": "ip_tcp" }
+								}
+							],
+							"status": {}
+						},
+						{
+							"traceId": "fac38f0e83dff2d0b09cab93acb2753f",
+							"spanId": "5e66c7bc054bfad5",
+							"parentSpanId": "5ffdc8bbaaa82aef",
+							"name": "GET",
+							"kind": 2,
+							"startTimeUnixNano": "1692652030505000000",
+							"endTimeUnixNano": "1692652030527929300",
+							"attributes": [
+								{
+									"key": "http.url",
+									"value": {
+										"stringValue": "http://localhost:3005/api/app-directory-test?success=false"
+									}
+								},
+								{
+									"key": "http.host",
+									"value": { "stringValue": "localhost:3005" }
+								},
+								{
+									"key": "net.host.name",
+									"value": { "stringValue": "localhost" }
+								},
+								{
+									"key": "http.method",
+									"value": { "stringValue": "GET" }
+								},
+								{
+									"key": "http.scheme",
+									"value": { "stringValue": "http" }
+								},
+								{
+									"key": "http.client_ip",
+									"value": { "stringValue": "::1" }
+								},
+								{
+									"key": "http.target",
+									"value": {
+										"stringValue": "/api/app-directory-test?success=false"
+									}
+								},
+								{
+									"key": "http.user_agent",
+									"value": {
+										"stringValue": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
+									}
+								},
+								{
+									"key": "http.flavor",
+									"value": { "stringValue": "1.1" }
+								},
+								{
+									"key": "net.transport",
+									"value": { "stringValue": "ip_tcp" }
+								},
+								{
+									"key": "net.host.ip",
+									"value": { "stringValue": "127.0.0.1" }
+								},
+								{
+									"key": "net.host.port",
+									"value": { "intValue": "43843" }
+								},
+								{
+									"key": "net.peer.ip",
+									"value": { "stringValue": "127.0.0.1" }
+								},
+								{
+									"key": "net.peer.port",
+									"value": { "intValue": "55564" }
+								},
+								{
+									"key": "http.status_code",
+									"value": { "intValue": "500" }
+								},
+								{
+									"key": "http.status_text",
+									"value": {
+										"stringValue": "INTERNAL SERVER ERROR"
+									}
+								}
+							],
+							"status": { "code": 2 }
+						}
+					]
+				},
+				{
+					"scope": { "name": "highlight-node" },
+					"spans": [
+						{
+							"traceId": "fac38f0e83dff2d0b09cab93acb2753f",
+							"spanId": "80f61318613c3f27",
+							"parentSpanId": "7eec5681722614d8",
+							"name": "highlight-ctx",
+							"kind": 1,
+							"startTimeUnixNano": "1692652030527000000",
+							"endTimeUnixNano": "1692652030527045400",
+							"events": [
+								{
+									"timeUnixNano": "1692652030527000000",
+									"name": "log",
+									"attributes": [
+										{
+											"key": "exception.stacktrace",
+											"value": {
+												"stringValue": "\"Error\\n    at console.\u003ccomputed\u003e [as info] (webpack-internal:///../../sdk/highlight-node/dist/index.mjs:153:15)\\n    at GET (webpack-internal:///(rsc)/./src/app/api/app-directory-test/route.ts:17:13)\\n    at eval (webpack-internal:///(rsc)/./node_modules/next/dist/server/future/route-modules/app-route/module.js:253:43)\\n    at eval (webpack-internal:///(rsc)/./node_modules/next/dist/server/lib/trace/tracer.js:111:36)\\n    at AsyncLocalStorage.run (node:async_hooks:338:14)\\n    at AsyncLocalStorageContextManager.with (webpack-internal:///../../sdk/highlight-node/node_modules/@opentelemetry/context-async-hooks/build/src/AsyncLocalStorageContextManager.js:33:40)\\n    at ContextAPI.with (webpack-internal:///../../sdk/highlight-node/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)\\n    at Tracer.startActiveSpan (webpack-internal:///../../sdk/highlight-node/node_modules/@opentelemetry/sdk-trace-base/build/src/Tracer.js:122:32)\\n    at eval (webpack-internal:///(rsc)/./node_modules/next/dist/server/lib/trace/tracer.js:100:107)\\n    at AsyncLocalStorage.run (node:async_hooks:338:14)\\n    at AsyncLocalStorageContextManager.with (webpack-internal:///../../sdk/highlight-node/node_modules/@opentelemetry/context-async-hooks/build/src/AsyncLocalStorageContextManager.js:33:40)\\n    at ContextAPI.with (webpack-internal:///(rsc)/../../node_modules/@opentelemetry/api/build/src/api/context.js:55:46)\\n    at NextTracerImpl.trace (webpack-internal:///(rsc)/./node_modules/next/dist/server/lib/trace/tracer.js:100:32)\\n    at eval (webpack-internal:///(rsc)/./node_modules/next/dist/server/future/route-modules/app-route/module.js:241:53)\\n    at AsyncLocalStorage.run (node:async_hooks:338:14)\\n    at Object.wrap (webpack-internal:///(rsc)/./node_modules/next/dist/server/async-storage/static-generation-async-storage-wrapper.js:42:24)\\n    at eval (webpack-internal:///(rsc)/./node_modules/next/dist/server/future/route-modules/app-route/module.js:195:97)\\n    at AsyncLocalStorage.run (node:async_hooks:338:14)\\n    at Object.wrap (webpack-internal:///(rsc)/./node_modules/next/dist/server/async-storage/request-async-storage-wrapper.js:77:24)\\n    at eval (webpack-internal:///(rsc)/./node_modules/next/dist/server/future/route-modules/app-route/module.js:194:75)\\n    at AsyncLocalStorage.run (node:async_hooks:338:14)\\n    at AppRouteRouteModule.execute (webpack-internal:///(rsc)/./node_modules/next/dist/server/future/route-modules/app-route/module.js:191:56)\\n    at AppRouteRouteModule.handle (webpack-internal:///(rsc)/./node_modules/next/dist/server/future/route-modules/app-route/module.js:314:41)\\n    at RouteHandlerManager.handle (/home/vkorolik/work/highlight/e2e/nextjs/node_modules/next/dist/server/future/route-handler-managers/route-handler-manager.js:24:29)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\\n    at async doRender (/home/vkorolik/work/highlight/e2e/nextjs/node_modules/next/dist/server/base-server.js:1009:38)\\n    at async cacheEntry.responseCache.get.incrementalCache.incrementalCache (/home/vkorolik/work/highlight/e2e/nextjs/node_modules/next/dist/server/base-server.js:1218:28)\\n    at async /home/vkorolik/work/highlight/e2e/nextjs/node_modules/next/dist/server/response-cache/index.js:99:36\""
+											}
+										},
+										{
+											"key": "highlight.project_id",
+											"value": { "stringValue": "1" }
+										},
+										{
+											"key": "log.severity",
+											"value": { "stringValue": "info" }
+										},
+										{
+											"key": "log.message",
+											"value": {
+												"stringValue": "Here: /api/app-directory-test/route.ts [object Object]"
+											}
+										}
+									]
+								}
+							],
+							"status": {}
+						},
+						{
+							"traceId": "fac38f0e83dff2d0b09cab93acb2753f",
+							"spanId": "61453d01a5b0c54b",
+							"parentSpanId": "38c100c79c6b9943",
+							"name": "highlight-ctx",
+							"kind": 1,
+							"startTimeUnixNano": "1692652030527000000",
+							"endTimeUnixNano": "1692652030527018800",
+							"events": [
+								{
+									"timeUnixNano": "1692652030527000000",
+									"name": "log",
+									"attributes": [
+										{
+											"key": "exception.stacktrace",
+											"value": {
+												"stringValue": "\"Error\\n    at console.\u003ccomputed\u003e (webpack-internal:///../../sdk/highlight-node/dist/index.mjs:153:15)\\n    at console.error (/home/vkorolik/work/highlight/e2e/nextjs/node_modules/next/dist/compiled/@next/react-dev-overlay/dist/client.js:1:912)\\n    at Object.error (/home/vkorolik/work/highlight/e2e/nextjs/node_modules/next/dist/build/output/log.js:70:13)\\n    at doRender (/home/vkorolik/work/highlight/e2e/nextjs/node_modules/next/dist/server/base-server.js:1044:26)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\\n    at async cacheEntry.responseCache.get.incrementalCache.incrementalCache (/home/vkorolik/work/highlight/e2e/nextjs/node_modules/next/dist/server/base-server.js:1218:28)\\n    at async /home/vkorolik/work/highlight/e2e/nextjs/node_modules/next/dist/server/response-cache/index.js:99:36\""
+											}
+										},
+										{
+											"key": "highlight.project_id",
+											"value": { "stringValue": "1" }
+										},
+										{
+											"key": "log.severity",
+											"value": { "stringValue": "error" }
+										},
+										{
+											"key": "log.message",
+											"value": {
+												"stringValue": "- \u001b[31merror\u001b[39m Error: Error: /api/app-directory-test"
+											}
+										}
+									]
+								}
+							],
+							"status": {}
+						}
+					]
+				},
+				{
+					"scope": { "name": "next.js", "version": "0.0.1" },
+					"spans": [
+						{
+							"traceId": "fac38f0e83dff2d0b09cab93acb2753f",
+							"spanId": "7eec5681722614d8",
+							"parentSpanId": "38c100c79c6b9943",
+							"name": "executing api route (app) /api/app-directory-test/route",
+							"kind": 1,
+							"startTimeUnixNano": "1692652030526000000",
+							"endTimeUnixNano": "1692652030526570800",
+							"attributes": [
+								{
+									"key": "next.span_name",
+									"value": {
+										"stringValue": "executing api route (app) /api/app-directory-test/route"
+									}
+								},
+								{
+									"key": "next.span_type",
+									"value": {
+										"stringValue": "AppRouteRouteHandlers.runHandler"
+									}
+								},
+								{
+									"key": "next.route",
+									"value": {
+										"stringValue": "/api/app-directory-test/route"
+									}
+								}
+							],
+							"events": [
+								{
+									"timeUnixNano": "1692652030526563300",
+									"name": "exception",
+									"attributes": [
+										{
+											"key": "exception.type",
+											"value": { "stringValue": "Error" }
+										},
+										{
+											"key": "exception.message",
+											"value": {
+												"stringValue": "Error: /api/app-directory-test"
+											}
+										},
+										{
+											"key": "exception.stacktrace",
+											"value": {
+												"stringValue": "Error: Error: /api/app-directory-test\n    at GET (webpack-internal:///(rsc)/./src/app/api/app-directory-test/route.ts:23:15)\n    at eval (webpack-internal:///(rsc)/./node_modules/next/dist/server/future/route-modules/app-route/module.js:253:43)\n    at eval (webpack-internal:///(rsc)/./node_modules/next/dist/server/lib/trace/tracer.js:111:36)\n    at AsyncLocalStorage.run (node:async_hooks:338:14)\n    at AsyncLocalStorageContextManager.with (webpack-internal:///../../sdk/highlight-node/node_modules/@opentelemetry/context-async-hooks/build/src/AsyncLocalStorageContextManager.js:33:40)\n    at ContextAPI.with (webpack-internal:///../../sdk/highlight-node/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)\n    at Tracer.startActiveSpan (webpack-internal:///../../sdk/highlight-node/node_modules/@opentelemetry/sdk-trace-base/build/src/Tracer.js:122:32)\n    at eval (webpack-internal:///(rsc)/./node_modules/next/dist/server/lib/trace/tracer.js:100:107)\n    at AsyncLocalStorage.run (node:async_hooks:338:14)\n    at AsyncLocalStorageContextManager.with (webpack-internal:///../../sdk/highlight-node/node_modules/@opentelemetry/context-async-hooks/build/src/AsyncLocalStorageContextManager.js:33:40)\n    at ContextAPI.with (webpack-internal:///(rsc)/../../node_modules/@opentelemetry/api/build/src/api/context.js:55:46)\n    at NextTracerImpl.trace (webpack-internal:///(rsc)/./node_modules/next/dist/server/lib/trace/tracer.js:100:32)\n    at eval (webpack-internal:///(rsc)/./node_modules/next/dist/server/future/route-modules/app-route/module.js:241:53)\n    at AsyncLocalStorage.run (node:async_hooks:338:14)\n    at Object.wrap (webpack-internal:///(rsc)/./node_modules/next/dist/server/async-storage/static-generation-async-storage-wrapper.js:42:24)\n    at eval (webpack-internal:///(rsc)/./node_modules/next/dist/server/future/route-modules/app-route/module.js:195:97)\n    at AsyncLocalStorage.run (node:async_hooks:338:14)\n    at Object.wrap (webpack-internal:///(rsc)/./node_modules/next/dist/server/async-storage/request-async-storage-wrapper.js:77:24)\n    at eval (webpack-internal:///(rsc)/./node_modules/next/dist/server/future/route-modules/app-route/module.js:194:75)\n    at AsyncLocalStorage.run (node:async_hooks:338:14)\n    at AppRouteRouteModule.execute (webpack-internal:///(rsc)/./node_modules/next/dist/server/future/route-modules/app-route/module.js:191:56)\n    at AppRouteRouteModule.handle (webpack-internal:///(rsc)/./node_modules/next/dist/server/future/route-modules/app-route/module.js:314:41)\n    at RouteHandlerManager.handle (/home/vkorolik/work/highlight/e2e/nextjs/node_modules/next/dist/server/future/route-handler-managers/route-handler-manager.js:24:29)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async doRender (/home/vkorolik/work/highlight/e2e/nextjs/node_modules/next/dist/server/base-server.js:1009:38)\n    at async cacheEntry.responseCache.get.incrementalCache.incrementalCache (/home/vkorolik/work/highlight/e2e/nextjs/node_modules/next/dist/server/base-server.js:1218:28)\n    at async /home/vkorolik/work/highlight/e2e/nextjs/node_modules/next/dist/server/response-cache/index.js:99:36"
+											}
+										}
+									]
+								}
+							],
+							"status": {
+								"message": "Error: /api/app-directory-test",
+								"code": 2
+							}
+						},
+						{
+							"traceId": "fac38f0e83dff2d0b09cab93acb2753f",
+							"spanId": "38c100c79c6b9943",
+							"parentSpanId": "5e66c7bc054bfad5",
+							"name": "GET /api/app-directory-test?success=false",
+							"kind": 2,
+							"startTimeUnixNano": "1692652030505000000",
+							"endTimeUnixNano": "1692652030527231000",
+							"attributes": [
+								{
+									"key": "next.span_name",
+									"value": {
+										"stringValue": "GET /api/app-directory-test?success=false"
+									}
+								},
+								{
+									"key": "next.span_type",
+									"value": {
+										"stringValue": "BaseServer.handleRequest"
+									}
+								},
+								{
+									"key": "http.method",
+									"value": { "stringValue": "GET" }
+								},
+								{
+									"key": "http.target",
+									"value": {
+										"stringValue": "/api/app-directory-test?success=false"
+									}
+								},
+								{
+									"key": "http.status_code",
+									"value": { "intValue": "500" }
+								}
+							],
+							"status": {}
+						}
+					]
+				}
+			]
+		}
+	]
+}

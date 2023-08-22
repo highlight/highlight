@@ -18,7 +18,6 @@ import (
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/pricing"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	log "github.com/sirupsen/logrus"
@@ -150,7 +149,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) error {
 		quotaExceededByProject := map[uint32]bool{}
 		projectsToQuery := []uint32{}
 		for projectId := range workspaceByProject {
-			exceeded, err := k.Worker.Resolver.Redis.IsBillingQuotaExceeded(ctxW, int(projectId), pricing.ProductTypeLogs)
+			exceeded, err := k.Worker.Resolver.Redis.IsBillingQuotaExceeded(ctxW, int(projectId), model.PricingProductTypeLogs)
 			if err != nil {
 				log.WithContext(ctxW).Error(err)
 				continue
@@ -186,9 +185,9 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context) error {
 			}
 			workspace.Projects = projects
 
-			withinBillingQuota, quotaPercent := k.Worker.PublicResolver.IsWithinQuota(ctxW, pricing.ProductTypeLogs, &workspace, time.Now())
+			withinBillingQuota, quotaPercent := k.Worker.PublicResolver.IsWithinQuota(ctxW, model.PricingProductTypeLogs, &workspace, time.Now())
 			quotaExceededByProject[projectId] = !withinBillingQuota
-			if err := k.Worker.Resolver.Redis.SetBillingQuotaExceeded(ctxW, int(projectId), pricing.ProductTypeLogs, !withinBillingQuota); err != nil {
+			if err := k.Worker.Resolver.Redis.SetBillingQuotaExceeded(ctxW, int(projectId), model.PricingProductTypeLogs, !withinBillingQuota); err != nil {
 				log.WithContext(ctxW).Error(err)
 				return err
 			}

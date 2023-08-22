@@ -1687,6 +1687,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
 			| 'browser_version'
 			| 'environment'
 			| 'app_version'
+			| 'ip'
 			| 'city'
 			| 'state'
 			| 'country'
@@ -2207,6 +2208,7 @@ export type GetSessionsOpenSearchQuery = { __typename?: 'Query' } & {
 					| 'os_version'
 					| 'browser_name'
 					| 'browser_version'
+					| 'ip'
 					| 'city'
 					| 'state'
 					| 'country'
@@ -2247,6 +2249,7 @@ export type GetSessionsHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	query: Types.Scalars['String']
 	histogram_options: Types.DateHistogramOptions
+	clickhouse_query?: Types.Maybe<Types.ClickhouseQuery>
 }>
 
 export type GetSessionsHistogramQuery = { __typename?: 'Query' } & {
