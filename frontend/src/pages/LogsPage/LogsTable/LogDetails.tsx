@@ -133,7 +133,7 @@ export const LogDetails: React.FC<Props> = ({
 						) : (
 							<LogValue
 								label={key}
-								value={value as string}
+								value={String(value)}
 								queryKey={key}
 								queryTerms={queryTerms}
 							/>
@@ -303,7 +303,7 @@ export const LogDetails: React.FC<Props> = ({
 
 const LogDetailsObject: React.FC<{
 	allExpanded: boolean
-	attribute: string | object
+	attribute: string | object | number
 	label: string
 	queryBaseKeys: string[]
 	queryTerms: LogsSearchParam[]
@@ -365,7 +365,7 @@ const LogDetailsObject: React.FC<{
 		<Box cssClass={styles.line}>
 			<LogValue
 				label={label}
-				value={attribute}
+				value={String(attribute)}
 				queryKey={queryKey}
 				queryTerms={queryTerms}
 				queryMatch={queryMatch?.match}
