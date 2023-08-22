@@ -255,7 +255,6 @@ const AlertPicker = function ({
 	const emailDestinations =
 		platform === 'email' ? location.state.emails : undefined
 
-	// TODO(vkorolik) this should load from existing alerts?
 	const [alertsSelected, onAlertsSelected] = React.useState<
 		('Session' | 'Error' | 'Log')[]
 	>([])
@@ -282,6 +281,20 @@ const AlertPicker = function ({
 	const [upsertDiscordChannel] = useUpsertDiscordChannelMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
+
+	const hasDefaultSessionAlert = data?.new_session_alerts.find(
+		(a) => a?.default,
+	)
+	const hasDefaultErrorAlert = data?.error_alerts.find((a) => a?.default)
+	const hasDefaultLogAlert = data?.log_alerts.find((a) => a?.default)
+
+	useEffect(() => {
+		onAlertsSelected([
+			...(hasDefaultSessionAlert ? (['Session'] as const) : []),
+			...(hasDefaultErrorAlert ? (['Error'] as const) : []),
+			...(hasDefaultLogAlert ? (['Log'] as const) : []),
+		])
+	}, [hasDefaultErrorAlert, hasDefaultLogAlert, hasDefaultSessionAlert])
 
 	const createAlerts = useCallback(async () => {
 		const destination = alertOptions[0].destination
@@ -337,7 +350,7 @@ const AlertPicker = function ({
 
 		for (const alert of alertsSelected) {
 			if (alert === 'Session') {
-				if (!data?.new_session_alerts.find((a) => a?.default)) {
+				if (!hasDefaultSessionAlert) {
 					await createSessionAlert({
 						...requestBody,
 						variables: {
@@ -354,7 +367,7 @@ const AlertPicker = function ({
 					})
 				}
 			} else if (alert === 'Error') {
-				if (!data?.error_alerts.find((a) => a?.default)) {
+				if (!hasDefaultErrorAlert) {
 					await createErrorAlert({
 						...requestBody,
 						variables: {
@@ -366,7 +379,7 @@ const AlertPicker = function ({
 					})
 				}
 			} else if (alert === 'Log') {
-				if (!data?.log_alerts.find((a) => a?.default)) {
+				if (!hasDefaultLogAlert) {
 					await createLogAlert({
 						...requestBody,
 						variables: {
@@ -387,10 +400,10 @@ const AlertPicker = function ({
 		createErrorAlert,
 		createLogAlert,
 		createSessionAlert,
-		data?.error_alerts,
-		data?.log_alerts,
-		data?.new_session_alerts,
 		emailDestinations,
+		hasDefaultErrorAlert,
+		hasDefaultLogAlert,
+		hasDefaultSessionAlert,
 		platform,
 		projectId,
 		upsertDiscordChannel,
@@ -398,7 +411,7 @@ const AlertPicker = function ({
 	])
 
 	useEffect(() => {
-		createAlerts().then(console.log)
+		createAlerts().then()
 	}, [createAlerts])
 
 	if (loading) return null
