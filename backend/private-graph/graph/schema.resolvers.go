@@ -3660,10 +3660,31 @@ func (r *mutationResolver) UpsertSlackChannel(ctx context.Context, projectID int
 	}
 
 	channel, err := r.CreateSlackChannel(project.WorkspaceID, name)
+	if err == nil {
+		return &modelInputs.SanitizedSlackChannel{
+			WebhookChannel:   &channel.WebhookChannel,
+			WebhookChannelID: &channel.WebhookChannelID,
+		}, nil
+	}
+
+	if err.Error() != "name_taken" {
+		return nil, err
+	}
+
+	channels, _, err := r.GetSlackChannelsFromSlack(ctx, project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	ch, ok := lo.Find(*channels, func(channel model.SlackChannel) bool {
+		return strings.EqualFold(channel.WebhookChannel, "#"+name)
+	})
+	if !ok {
+		return nil, e.New("failed to find conflicting slack channel")
+	}
 
 	return &modelInputs.SanitizedSlackChannel{
-		WebhookChannel:   &channel.WebhookChannel,
-		WebhookChannelID: &channel.WebhookChannelID,
+		WebhookChannel:   &ch.WebhookChannel,
+		WebhookChannelID: &ch.WebhookChannelID,
 	}, nil
 }
 

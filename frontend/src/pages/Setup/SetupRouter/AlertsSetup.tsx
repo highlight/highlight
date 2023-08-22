@@ -255,6 +255,7 @@ const AlertPicker = function ({
 	const emailDestinations =
 		platform === 'email' ? location.state.emails : undefined
 
+	// TODO(vkorolik) this should load from existing alerts?
 	const [alertsSelected, onAlertsSelected] = React.useState<
 		('Session' | 'Error' | 'Log')[]
 	>([])
@@ -272,17 +273,14 @@ const AlertPicker = function ({
 	})
 
 	const [createLogAlert] = useCreateLogAlertMutation({
-		refetchQueries: [namedOperations.Query.GetLogAlertsPagePayload],
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 
 	const [upsertSlackChannel] = useUpsertSlackChannelMutation({
-		refetchQueries: [namedOperations.Query.GetSlackChannelSuggestion],
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 	const [upsertDiscordChannel] = useUpsertDiscordChannelMutation({
-		refetchQueries: [
-			namedOperations.Query.GetLogAlertsPagePayload,
-			namedOperations.Query.GetAlertsPagePayload,
-		],
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 
 	const createAlerts = useCallback(async () => {
@@ -295,7 +293,7 @@ const AlertPicker = function ({
 					name: destination,
 				},
 			})
-			channelID = data?.upsertSlackChannel[0].webhook_channel_id ?? ''
+			channelID = data?.upsertSlackChannel.webhook_channel_id ?? ''
 		} else if (platform === 'discord') {
 			const { data } = await upsertDiscordChannel({
 				variables: {
@@ -303,7 +301,7 @@ const AlertPicker = function ({
 					name: destination,
 				},
 			})
-			channelID = data?.upsertDiscordChannel[0].id ?? ''
+			channelID = data?.upsertDiscordChannel.id ?? ''
 		}
 
 		const requestVariables = {
@@ -337,7 +335,7 @@ const AlertPicker = function ({
 			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 		}
 
-		for (const [alert] of alertsSelected) {
+		for (const alert of alertsSelected) {
 			if (alert === 'Session') {
 				if (!data?.new_session_alerts.find((a) => a?.default)) {
 					await createSessionAlert({
