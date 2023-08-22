@@ -9,7 +9,7 @@ import { PlayerSearchParameters } from '@/pages/Player/PlayerHook/utils'
 const getSessionLink = (data: GetErrorInstanceQuery | undefined): string => {
 	const errorObject = data?.error_instance?.error_object
 
-	if (!errorObject) {
+	if (!errorObject?.session) {
 		return ''
 	}
 
@@ -26,6 +26,12 @@ const WithDevToolsTooltip = ({ children }: React.PropsWithChildren) => {
 			This session is still live -- some Dev tools may not work as
 			expected.
 		</Tooltip>
+	)
+}
+
+const NoSessionTooltip = ({ children }: React.PropsWithChildren) => {
+	return (
+		<Tooltip trigger={children}>No session found for this error.</Tooltip>
 	)
 }
 
@@ -52,7 +58,11 @@ export const RelatedSession = ({ data }: Props) => {
 		</Link>
 	)
 
-	if (data?.error_instance?.error_object.session?.processed === false) {
+	if (sessionLink === '') {
+		return <NoSessionTooltip>{tag}</NoSessionTooltip>
+	} else if (
+		data?.error_instance?.error_object.session?.processed === false
+	) {
 		return <WithDevToolsTooltip>{tag}</WithDevToolsTooltip>
 	} else {
 		return tag
