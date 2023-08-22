@@ -312,10 +312,11 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				resolver.DB.Create(&eo)
 
 				embedding := model.ErrorObjectEmbeddings{
+					ProjectID:         projectID,
 					ErrorObjectID:     eo.ID,
 					GteLargeEmbedding: emb.GteLargeEmbedding,
 				}
-				resolver.DB.Create(&embedding)
+				resolver.DB.Table("error_object_embeddings_partitioned").Create(&embedding)
 			}
 
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
