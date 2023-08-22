@@ -2143,7 +2143,7 @@ func (r *Resolver) ExpandedStackTrace(ctx context.Context, lines []string, lineN
 	return lineContent, strings.TrimPrefix(beforeContent, "\n"), strings.TrimPrefix(afterContent, "\n")
 }
 
-func (r *Resolver) EnhanceTraceWithGithub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, serviceVersion string, githubClient *github.Client) (*privateModel.ErrorTrace, error) {
+func (r *Resolver) EnhanceTraceWithGithub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, serviceVersion string, ignoredFiles []string, githubClient *github.Client) (*privateModel.ErrorTrace, error) {
 	if trace.FileName == nil || trace.LineNumber == nil {
 		return trace, fmt.Errorf("Cannot enhance trace with GitHub with invalid values: %+v", trace)
 	}
@@ -2151,10 +2151,10 @@ func (r *Resolver) EnhanceTraceWithGithub(ctx context.Context, trace *privateMod
 	fileName := r.GitHubFilePath(ctx, *trace.FileName, service.BuildPrefix, service.GithubPrefix)
 	lineNumber := trace.LineNumber
 
-	// TODO(spenny): filter out files that should not be fetched (i.e. node modules, go packages, etc)
-	// use system configuration
-	if regexp.MustCompile(`\b\/go\/pkg\/mod\b`).MatchString(fileName) {
-		return trace, nil
+	for _, fileExpr := range ignoredFiles {
+		if regexp.MustCompile(fileExpr).MatchString(fileName) {
+			return trace, nil
+		}
 	}
 
 	githubFileBytes, err := r.StorageClient.ReadGithubFile(ctx, fileName, serviceVersion)
@@ -2244,6 +2244,11 @@ func (r *Resolver) EnhanceStakeTraceWithGithub(ctx context.Context, stackTrace [
 		return nil, err
 	}
 
+	cfg, err := r.Store.GetSystemConfiguration(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	newMappedStackTrace := []*privateModel.ErrorTrace{}
 	MAX_ENHANCED_DEPTH := 5
 	for idx, trace := range stackTrace {
@@ -2252,7 +2257,7 @@ func (r *Resolver) EnhanceStakeTraceWithGithub(ctx context.Context, stackTrace [
 			continue
 		}
 
-		enhancedTrace, err := r.EnhanceTraceWithGithub(ctx, trace, service, *validServiceVersion, client)
+		enhancedTrace, err := r.EnhanceTraceWithGithub(ctx, trace, service, *validServiceVersion, cfg.IgnoredFiles, client)
 		if err != nil {
 			log.WithContext(ctx).Error(err)
 		}
