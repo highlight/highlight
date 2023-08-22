@@ -2176,6 +2176,8 @@ type Mutation {
 		build_prefix: String
 		github_prefix: String
 	): Service
+	upsertSlackChannel(project_id: ID!, name: String!): SanitizedSlackChannel!
+	upsertDiscordChannel(project_id: ID!, name: String!): DiscordChannel!
 }
 
 type Subscription {

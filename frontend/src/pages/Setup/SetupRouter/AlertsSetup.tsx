@@ -4,8 +4,12 @@ import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import Select from '@components/Select/Select'
 import {
+	useCreateErrorAlertMutation,
+	useCreateLogAlertMutation,
 	useCreateSessionAlertMutation,
 	useGetAlertsPagePayloadQuery,
+	useUpsertDiscordChannelMutation,
+	useUpsertSlackChannelMutation,
 } from '@graph/hooks'
 import { namedOperations } from '@graph/operations'
 import { SessionAlertType } from '@graph/schemas'
@@ -263,25 +267,55 @@ const AlertPicker = function ({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 
+	const [createErrorAlert] = useCreateErrorAlertMutation({
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+	})
+
+	const [createLogAlert] = useCreateLogAlertMutation({
+		refetchQueries: [namedOperations.Query.GetLogAlertsPagePayload],
+	})
+
+	const [upsertSlackChannel] = useUpsertSlackChannelMutation({
+		refetchQueries: [namedOperations.Query.GetSlackChannelSuggestion],
+	})
+	const [upsertDiscordChannel] = useUpsertDiscordChannelMutation({
+		refetchQueries: [
+			namedOperations.Query.GetLogAlertsPagePayload,
+			namedOperations.Query.GetAlertsPagePayload,
+		],
+	})
+
 	const createAlerts = useCallback(async () => {
-		const channelID = ''
+		const destination = alertOptions[0].destination
+		let channelID = ''
 		if (platform === 'slack') {
-			// TODO(vkorolik) create the slack channel?
+			const { data } = await upsertSlackChannel({
+				variables: {
+					project_id: projectId,
+					name: destination,
+				},
+			})
+			channelID = data?.upsertSlackChannel[0].webhook_channel_id ?? ''
 		} else if (platform === 'discord') {
-			// TODO(vkorolik) create the discord channel?
+			const { data } = await upsertDiscordChannel({
+				variables: {
+					project_id: projectId,
+					name: destination,
+				},
+			})
+			channelID = data?.upsertDiscordChannel[0].id ?? ''
 		}
 
 		const requestVariables = {
 			project_id: projectId,
-			count_threshold: 5,
+			count_threshold: 1,
 			name: 'New Session Alert',
 			slack_channels:
 				platform === 'slack'
 					? [
 							{
 								webhook_channel_id: channelID,
-								webhook_channel_name:
-									alertOptions[0].destination,
+								webhook_channel_name: destination,
 							},
 					  ]
 					: [],
@@ -290,13 +324,14 @@ const AlertPicker = function ({
 					? [
 							{
 								id: channelID,
-								name: alertOptions[0].destination,
+								name: destination,
 							},
 					  ]
 					: [],
 			emails: emailDestinations ?? [],
 			environments: [],
 			webhook_destinations: [],
+			default: true,
 		}
 		const requestBody = {
 			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
@@ -320,15 +355,48 @@ const AlertPicker = function ({
 						},
 					})
 				}
+			} else if (alert === 'Error') {
+				if (!data?.error_alerts.find((a) => a?.default)) {
+					await createErrorAlert({
+						...requestBody,
+						variables: {
+							...requestVariables,
+							threshold_window: 1,
+							regex_groups: [],
+							frequency: 3600,
+						},
+					})
+				}
+			} else if (alert === 'Log') {
+				if (!data?.log_alerts.find((a) => a?.default)) {
+					await createLogAlert({
+						...requestBody,
+						variables: {
+							input: {
+								...requestVariables,
+								threshold_window: 1,
+								below_threshold: false,
+								disabled: false,
+								query: 'level:error',
+							},
+						},
+					})
+				}
 			}
 		}
 	}, [
 		alertsSelected,
+		createErrorAlert,
+		createLogAlert,
 		createSessionAlert,
+		data?.error_alerts,
+		data?.log_alerts,
 		data?.new_session_alerts,
 		emailDestinations,
 		platform,
 		projectId,
+		upsertDiscordChannel,
+		upsertSlackChannel,
 	])
 
 	useEffect(() => {

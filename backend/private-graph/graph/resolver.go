@@ -3272,6 +3272,51 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 	}
 	return &res.ExistingChannels, res.NewChannelsCount, err
 }
+func (r *Resolver) CreateSlackChannel(workspaceId int, name string) (*model.SlackChannel, error) {
+	workspace, _ := r.GetWorkspace(workspaceId)
+	// workspace is not integrated with slack
+	if workspace.SlackAccessToken == nil {
+		return nil, e.New("no slack access token provided")
+	}
+
+	slackClient := slack.New(*workspace.SlackAccessToken)
+	channel, err := slackClient.CreateConversation(name, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.SlackChannel{
+		WebhookChannel:   channel.Name,
+		WebhookChannelID: channel.ID,
+	}, nil
+}
+
+func (r *Resolver) CreateDiscordChannel(workspaceId int, name string) (*model.DiscordChannel, error) {
+	workspace, err := r.GetWorkspace(workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	guildId := workspace.DiscordGuildId
+	if guildId == nil {
+		return nil, nil
+	}
+
+	bot, err := discord.NewDiscordBot(*guildId)
+	if err != nil {
+		return nil, err
+	}
+
+	channel, err := bot.CreateChannel(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.DiscordChannel{
+		Name: channel.Name,
+		ID:   channel.ID,
+	}, nil
+}
 
 func GetAggregateFluxStatement(ctx context.Context, aggregator modelInputs.MetricAggregator, resMins int) string {
 	fn := "mean"

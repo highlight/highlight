@@ -744,6 +744,8 @@ type ComplexityRoot struct {
 		UpdateSessionIsPublic            func(childComplexity int, sessionSecureID string, isPublic bool) int
 		UpdateVercelProjectMappings      func(childComplexity int, projectID int, projectMappings []*model.VercelProjectMappingInput) int
 		UpsertDashboard                  func(childComplexity int, id *int, projectID int, name string, metrics []*model.DashboardMetricConfigInput, layout *string, isDefault *bool) int
+		UpsertDiscordChannel             func(childComplexity int, projectID int, name string) int
+		UpsertSlackChannel               func(childComplexity int, projectID int, name string) int
 	}
 
 	NamedCount struct {
@@ -1461,6 +1463,8 @@ type MutationResolver interface {
 	UpdateIntegrationProjectMappings(ctx context.Context, workspaceID int, integrationType model.IntegrationType, projectMappings []*model.IntegrationProjectMappingInput) (bool, error)
 	UpdateEmailOptOut(ctx context.Context, token *string, adminID *int, category model.EmailOptOutCategory, isOptOut bool, projectID *int) (bool, error)
 	EditServiceGithubSettings(ctx context.Context, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) (*model1.Service, error)
+	UpsertSlackChannel(ctx context.Context, projectID int, name string) (*model.SanitizedSlackChannel, error)
+	UpsertDiscordChannel(ctx context.Context, projectID int, name string) (*model1.DiscordChannel, error)
 }
 type QueryResolver interface {
 	Accounts(ctx context.Context) ([]*model.Account, error)
@@ -5310,6 +5314,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpsertDashboard(childComplexity, args["id"].(*int), args["project_id"].(int), args["name"].(string), args["metrics"].([]*model.DashboardMetricConfigInput), args["layout"].(*string), args["is_default"].(*bool)), true
+
+	case "Mutation.upsertDiscordChannel":
+		if e.complexity.Mutation.UpsertDiscordChannel == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_upsertDiscordChannel_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpsertDiscordChannel(childComplexity, args["project_id"].(int), args["name"].(string)), true
+
+	case "Mutation.upsertSlackChannel":
+		if e.complexity.Mutation.UpsertSlackChannel == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_upsertSlackChannel_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpsertSlackChannel(childComplexity, args["project_id"].(int), args["name"].(string)), true
 
 	case "NamedCount.count":
 		if e.complexity.NamedCount.Count == nil {
@@ -11320,6 +11348,8 @@ type Mutation {
 		build_prefix: String
 		github_prefix: String
 	): Service
+	upsertSlackChannel(project_id: ID!, name: String!): SanitizedSlackChannel!
+	upsertDiscordChannel(project_id: ID!, name: String!): DiscordChannel!
 }
 
 type Subscription {
@@ -14390,6 +14420,54 @@ func (ec *executionContext) field_Mutation_upsertDashboard_args(ctx context.Cont
 		}
 	}
 	args["is_default"] = arg5
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_upsertDiscordChannel_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_upsertSlackChannel_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg1
 	return args, nil
 }
 
@@ -40129,6 +40207,126 @@ func (ec *executionContext) fieldContext_Mutation_editServiceGithubSettings(ctx 
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_editServiceGithubSettings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_upsertSlackChannel(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_upsertSlackChannel(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpsertSlackChannel(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.SanitizedSlackChannel)
+	fc.Result = res
+	return ec.marshalNSanitizedSlackChannel2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_upsertSlackChannel(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "webhook_channel":
+				return ec.fieldContext_SanitizedSlackChannel_webhook_channel(ctx, field)
+			case "webhook_channel_id":
+				return ec.fieldContext_SanitizedSlackChannel_webhook_channel_id(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type SanitizedSlackChannel", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_upsertSlackChannel_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_upsertDiscordChannel(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_upsertDiscordChannel(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpsertDiscordChannel(rctx, fc.Args["project_id"].(int), fc.Args["name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model1.DiscordChannel)
+	fc.Result = res
+	return ec.marshalNDiscordChannel2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDiscordChannel(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_upsertDiscordChannel(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_DiscordChannel_id(ctx, field)
+			case "name":
+				return ec.fieldContext_DiscordChannel_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type DiscordChannel", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_upsertDiscordChannel_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -70999,6 +71197,18 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 				return ec._Mutation_editServiceGithubSettings(ctx, field)
 			})
 
+		case "upsertSlackChannel":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_upsertSlackChannel(ctx, field)
+			})
+
+		case "upsertDiscordChannel":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_upsertDiscordChannel(ctx, field)
+			})
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -78024,6 +78234,10 @@ func (ec *executionContext) unmarshalNDateRangeRequiredInput2ᚖgithubᚗcomᚋh
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalNDiscordChannel2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDiscordChannel(ctx context.Context, sel ast.SelectionSet, v model1.DiscordChannel) graphql.Marshaler {
+	return ec._DiscordChannel(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNDiscordChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDiscordChannelᚄ(ctx context.Context, sel ast.SelectionSet, v []*model1.DiscordChannel) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -80395,6 +80609,10 @@ func (ec *executionContext) unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋh
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) marshalNSanitizedSlackChannel2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx context.Context, sel ast.SelectionSet, v model.SanitizedSlackChannel) graphql.Marshaler {
+	return ec._SanitizedSlackChannel(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNSanitizedSlackChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx context.Context, sel ast.SelectionSet, v []*model.SanitizedSlackChannel) graphql.Marshaler {

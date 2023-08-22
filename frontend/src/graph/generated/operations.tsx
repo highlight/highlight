@@ -754,6 +754,7 @@ export type CreateErrorAlertMutationVariables = Types.Exact<{
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
 	frequency: Types.Scalars['Int']
+	default?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
@@ -1361,6 +1362,30 @@ export type EditServiceGithubSettingsMutation = { __typename?: 'Mutation' } & {
 			| 'githubPrefix'
 			| 'errorDetails'
 		>
+	>
+}
+
+export type UpsertSlackChannelMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	name: Types.Scalars['String']
+}>
+
+export type UpsertSlackChannelMutation = { __typename?: 'Mutation' } & {
+	upsertSlackChannel: { __typename?: 'SanitizedSlackChannel' } & Pick<
+		Types.SanitizedSlackChannel,
+		'webhook_channel' | 'webhook_channel_id'
+	>
+}
+
+export type UpsertDiscordChannelMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	name: Types.Scalars['String']
+}>
+
+export type UpsertDiscordChannelMutation = { __typename?: 'Mutation' } & {
+	upsertDiscordChannel: { __typename?: 'DiscordChannel' } & Pick<
+		Types.DiscordChannel,
+		'id' | 'name'
 	>
 }
 
@@ -4715,6 +4740,8 @@ export const namedOperations = {
 		UpdateEmailOptOut: 'UpdateEmailOptOut' as const,
 		DeleteInviteLinkFromWorkspace: 'DeleteInviteLinkFromWorkspace' as const,
 		EditServiceGithubSettings: 'EditServiceGithubSettings' as const,
+		UpsertSlackChannel: 'UpsertSlackChannel' as const,
+		UpsertDiscordChannel: 'UpsertDiscordChannel' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {

@@ -3652,6 +3652,31 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 	return service, nil
 }
 
+// UpsertSlackChannel is the resolver for the upsertSlackChannel field.
+func (r *mutationResolver) UpsertSlackChannel(ctx context.Context, projectID int, name string) (*modelInputs.SanitizedSlackChannel, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	channel, err := r.CreateSlackChannel(project.WorkspaceID, name)
+
+	return &modelInputs.SanitizedSlackChannel{
+		WebhookChannel:   &channel.WebhookChannel,
+		WebhookChannelID: &channel.WebhookChannelID,
+	}, nil
+}
+
+// UpsertDiscordChannel is the resolver for the upsertDiscordChannel field.
+func (r *mutationResolver) UpsertDiscordChannel(ctx context.Context, projectID int, name string) (*model.DiscordChannel, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.CreateDiscordChannel(project.WorkspaceID, name)
+}
+
 // Accounts is the resolver for the accounts field.
 func (r *queryResolver) Accounts(ctx context.Context) ([]*modelInputs.Account, error) {
 	if !r.isWhitelistedAccount(ctx) {

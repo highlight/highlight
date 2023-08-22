@@ -1176,3 +1176,17 @@ mutation EditServiceGithubSettings(
 		errorDetails
 	}
 }
+
+mutation UpsertSlackChannel($project_id: ID!, $name: String!) {
+	upsertSlackChannel(project_id: $project_id, name: $name) {
+		webhook_channel
+		webhook_channel_id
+	}
+}
+
+mutation UpsertDiscordChannel($project_id: ID!, $name: String!) {
+	upsertDiscordChannel(project_id: $project_id, name: $name) {
+		id
+		name
+	}
+}
