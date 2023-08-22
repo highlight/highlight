@@ -1526,7 +1526,7 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	if err := DB.Exec(`
 		CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned
 		(LIKE error_object_embeddings INCLUDING DEFAULTS INCLUDING IDENTITY)
-		PARTITION BY RANGE (project_id);
+		PARTITION BY LIST (project_id);
 	`).Error; err != nil {
 		return false, e.Wrap(err, "Error creating error_object_embeddings_partitioned")
 	}
@@ -1535,23 +1535,18 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 	if err := DB.Raw("SELECT coalesce(max(id), 1) FROM projects").Scan(&lastVal).Error; err != nil {
 		return false, e.Wrap(err, "Error selecting max project id")
 	}
-	partitionSize := 1
-	start := lastVal / partitionSize * partitionSize
 
 	// Make sure partitions are created for the next 1k projects
 	for i := 0; i < 1000; i++ {
-		end := start + partitionSize
 		sql := fmt.Sprintf(`
 			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d
 			PARTITION OF error_object_embeddings_partitioned
-			FOR VALUES FROM (%d) TO (%d);
-		`, start, start, end)
+			FOR VALUES IN ('%d');
+		`, i, i)
 
 		if err := DB.Exec(sql).Error; err != nil {
 			return false, e.Wrapf(err, "Error creating partitioned error_object_embeddings for index %d", i)
 		}
-
-		start = end
 	}
 
 	// Create sequence for session_fields.id manually. This started as a join
