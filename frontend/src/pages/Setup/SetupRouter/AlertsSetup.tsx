@@ -138,9 +138,8 @@ export const AlertsSetup: React.FC = function () {
 
 const PlatformPicker: React.FC = function () {
 	const navigate = useNavigate()
-	const [integratePlatform, setIntegratePlatform] = useLocalStorage<
-		string | undefined
-	>('setup-alerts-platform')
+	const [integratePlatform, setIntegratePlatform, clearIntegratePlatform] =
+		useLocalStorage<string | undefined>('setup-alerts-platform')
 	const { projectId } = useProjectId()
 	const { data, loading } = useGetAlertsPagePayloadQuery({
 		variables: { project_id: projectId },
@@ -159,7 +158,7 @@ const PlatformPicker: React.FC = function () {
 			(integratePlatform === 'discord' &&
 				data?.is_integrated_with_discord)
 		) {
-			setIntegratePlatform(undefined)
+			clearIntegratePlatform()
 			navigate(integratePlatform)
 		}
 	}, [
@@ -167,7 +166,7 @@ const PlatformPicker: React.FC = function () {
 		data?.is_integrated_with_slack,
 		data?.is_integrated_with_discord,
 		navigate,
-		setIntegratePlatform,
+		clearIntegratePlatform,
 	])
 
 	if (loading) return null
@@ -177,10 +176,10 @@ const PlatformPicker: React.FC = function () {
 				<EmailPicker
 					emails={emails}
 					onSubmit={(emails) => {
-						setIntegratePlatform(undefined)
+						clearIntegratePlatform()
 						navigate(integratePlatform, { state: { emails } })
 					}}
-					onCancel={() => setIntegratePlatform(undefined)}
+					onCancel={() => clearIntegratePlatform()}
 				/>
 			) : null}
 			{(integratePlatform === 'slack' &&
@@ -189,7 +188,7 @@ const PlatformPicker: React.FC = function () {
 				!data?.is_integrated_with_discord) ? (
 				<IntegrationCallout
 					type={integratePlatform}
-					onCancel={() => setIntegratePlatform(undefined)}
+					onCancel={() => clearIntegratePlatform()}
 				/>
 			) : null}
 			{notificationOptions.map((option, index) => {
@@ -297,58 +296,58 @@ const AlertPicker = function ({
 	}, [hasDefaultErrorAlert, hasDefaultLogAlert, hasDefaultSessionAlert])
 
 	const createAlerts = useCallback(async () => {
-		const destination = alertOptions[0].destination
-		let channelID = ''
-		if (platform === 'slack') {
-			const { data } = await upsertSlackChannel({
-				variables: {
-					project_id: projectId,
-					name: destination,
-				},
-			})
-			channelID = data?.upsertSlackChannel.webhook_channel_id ?? ''
-		} else if (platform === 'discord') {
-			const { data } = await upsertDiscordChannel({
-				variables: {
-					project_id: projectId,
-					name: destination,
-				},
-			})
-			channelID = data?.upsertDiscordChannel.id ?? ''
-		}
-
-		const requestVariables = {
-			project_id: projectId,
-			count_threshold: 1,
-			name: 'New Session Alert',
-			slack_channels:
-				platform === 'slack'
-					? [
-							{
-								webhook_channel_id: channelID,
-								webhook_channel_name: destination,
-							},
-					  ]
-					: [],
-			discord_channels:
-				platform === 'discord'
-					? [
-							{
-								id: channelID,
-								name: destination,
-							},
-					  ]
-					: [],
-			emails: emailDestinations ?? [],
-			environments: [],
-			webhook_destinations: [],
-			default: true,
-		}
-		const requestBody = {
-			refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-		}
-
 		for (const alert of alertsSelected) {
+			const destination =
+				alertOptions.find((a) => a.name === alert)?.destination ?? ''
+			let channelID = ''
+			if (platform === 'slack') {
+				const { data } = await upsertSlackChannel({
+					variables: {
+						project_id: projectId,
+						name: destination,
+					},
+				})
+				channelID = data?.upsertSlackChannel.webhook_channel_id ?? ''
+			} else if (platform === 'discord') {
+				const { data } = await upsertDiscordChannel({
+					variables: {
+						project_id: projectId,
+						name: destination,
+					},
+				})
+				channelID = data?.upsertDiscordChannel.id ?? ''
+			}
+
+			const requestVariables = {
+				project_id: projectId,
+				count_threshold: 1,
+				slack_channels:
+					platform === 'slack'
+						? [
+								{
+									webhook_channel_id: channelID,
+									webhook_channel_name: destination,
+								},
+						  ]
+						: [],
+				discord_channels:
+					platform === 'discord'
+						? [
+								{
+									id: channelID,
+									name: destination,
+								},
+						  ]
+						: [],
+				emails: emailDestinations ?? [],
+				environments: [],
+				webhook_destinations: [],
+				default: true,
+			}
+			const requestBody = {
+				refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
+			}
+
 			if (alert === 'Session') {
 				if (!hasDefaultSessionAlert) {
 					await createSessionAlert({
@@ -356,6 +355,7 @@ const AlertPicker = function ({
 						variables: {
 							input: {
 								...requestVariables,
+								name: 'New Session Alert',
 								threshold_window: 1,
 								exclude_rules: [],
 								user_properties: [],
@@ -372,6 +372,7 @@ const AlertPicker = function ({
 						...requestBody,
 						variables: {
 							...requestVariables,
+							name: 'Error Alert',
 							threshold_window: 1,
 							regex_groups: [],
 							frequency: 3600,
@@ -385,6 +386,7 @@ const AlertPicker = function ({
 						variables: {
 							input: {
 								...requestVariables,
+								name: 'Error Log Alert',
 								threshold_window: 1,
 								below_threshold: false,
 								disabled: false,
@@ -508,10 +510,15 @@ const IntegrationCallout = function ({
 	onCancel: () => void
 }) {
 	const { projectId } = useProjectId()
-	const { slackUrl } = useSlackBot()
+	const { slackUrl } = useSlackBot(`setup/alerts/slack`)
 	const name = type === 'slack' ? 'Slack' : 'Discord'
 	const integrateUrl =
-		type === 'slack' ? slackUrl : getDiscordOauthUrl(projectId)
+		type === 'slack'
+			? slackUrl
+			: getDiscordOauthUrl(
+					projectId,
+					`/${projectId}/setup/alerts/discord`,
+			  )
 	const icon = notificationOptions.find((n) => n.name === name)?.logo
 	return (
 		<Modal onCancel={onCancel} visible={true} width="600px">

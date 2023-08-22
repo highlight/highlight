@@ -3695,7 +3695,7 @@ func (r *mutationResolver) UpsertDiscordChannel(ctx context.Context, projectID i
 		return nil, err
 	}
 
-	return r.CreateDiscordChannel(project.WorkspaceID, name)
+	return r.Resolver.UpsertDiscordChannel(project.WorkspaceID, name)
 }
 
 // Accounts is the resolver for the accounts field.

@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/bwmarrin/discordgo"
 	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 	"io"
 	"math/big"
@@ -3291,7 +3292,7 @@ func (r *Resolver) CreateSlackChannel(workspaceId int, name string) (*model.Slac
 	}, nil
 }
 
-func (r *Resolver) CreateDiscordChannel(workspaceId int, name string) (*model.DiscordChannel, error) {
+func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.DiscordChannel, error) {
 	workspace, err := r.GetWorkspace(workspaceId)
 	if err != nil {
 		return nil, err
@@ -3305,6 +3306,20 @@ func (r *Resolver) CreateDiscordChannel(workspaceId int, name string) (*model.Di
 	bot, err := discord.NewDiscordBot(*guildId)
 	if err != nil {
 		return nil, err
+	}
+
+	channels, err := bot.GetChannels()
+	if err != nil {
+		return nil, err
+	}
+
+	if channel, has := lo.Find(channels, func(item *discordgo.Channel) bool {
+		return strings.EqualFold(item.Name, name)
+	}); has {
+		return &model.DiscordChannel{
+			Name: channel.Name,
+			ID:   channel.ID,
+		}, nil
 	}
 
 	channel, err := bot.CreateChannel(name)
