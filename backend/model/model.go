@@ -952,6 +952,7 @@ type ErrorObject struct {
 
 type ErrorObjectEmbeddings struct {
 	Model
+	ProjectID         int
 	ErrorObjectID     int
 	CombinedEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
 	GteLargeEmbedding Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large model
@@ -1520,6 +1521,32 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		END;
 	`, PARTITION_SESSION_ID, PARTITION_SESSION_ID).Error; err != nil {
 		return false, e.Wrap(err, "Error setting session id sequence to 30000000")
+	}
+
+	if err := DB.Exec(`
+		CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned
+		(LIKE error_object_embeddings INCLUDING DEFAULTS INCLUDING IDENTITY)
+		PARTITION BY LIST (project_id);
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error creating error_object_embeddings_partitioned")
+	}
+
+	var lastVal int
+	if err := DB.Raw("SELECT coalesce(max(id), 1) FROM projects").Scan(&lastVal).Error; err != nil {
+		return false, e.Wrap(err, "Error selecting max project id")
+	}
+
+	// Make sure partitions are created for the next 1k projects
+	for i := 0; i < 1000; i++ {
+		sql := fmt.Sprintf(`
+			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d
+			PARTITION OF error_object_embeddings_partitioned
+			FOR VALUES IN ('%d');
+		`, i, i)
+
+		if err := DB.Exec(sql).Error; err != nil {
+			return false, e.Wrapf(err, "Error creating partitioned error_object_embeddings for index %d", i)
+		}
 	}
 
 	// Create sequence for session_fields.id manually. This started as a join

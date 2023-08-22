@@ -458,7 +458,7 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 	return errorGroup, nil
 }
 
-func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, method model.ErrorGroupingMethod, embedding model.Vector, threshold float64) (*int, error) {
+func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, projectID int, method model.ErrorGroupingMethod, embedding model.Vector, threshold float64) (*int, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "public-resolver", tracer.ResourceName("GetTopErrorGroupMatchByEmbedding"))
 	defer span.Finish()
 
@@ -480,14 +480,14 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, method 
 	if err := r.DB.Raw(fmt.Sprintf(`
 select eoe.%s <=> @embedding as score,
        eo.error_group_id                              as error_group_id
-from error_object_embeddings eoe
+from error_object_embeddings_partitioned eoe
          inner join error_objects eo on eo.id = eoe.error_object_id
+where eoe.project_id = @projectID
+    and eoe.%s is not null
 order by 1
-limit 1;`, column), map[string]interface{}{
-		"embedding":    embedding,
-		"event_weight": 1,
-		"trace_weight": 0.4,
-		"meta_weight":  0.2,
+limit 1;`, column, column), map[string]interface{}{
+		"embedding": embedding,
+		"projectID": projectID,
 	}).
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
@@ -779,7 +779,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		} else {
 			embedding = emb[0]
 			errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
-				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, model.ErrorGroupingMethodGteLargeEmbeddingV2, embedding.GteLargeEmbedding, settings.ErrorEmbeddingsThreshold)
+				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, errorObj.ProjectID, model.ErrorGroupingMethodGteLargeEmbeddingV2, embedding.GteLargeEmbedding, settings.ErrorEmbeddingsThreshold)
 				if err != nil {
 					log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
 				}
