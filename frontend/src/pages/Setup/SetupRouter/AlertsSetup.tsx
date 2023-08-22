@@ -16,12 +16,14 @@ import { SessionAlertType } from '@graph/schemas'
 import {
 	Badge,
 	Box,
+	IconSolidCheveronRight,
 	IconSolidDiscord,
 	IconSolidNewspaper,
 	IconSolidSlack,
 	Stack,
 	Tag,
 	Text,
+	TextLink,
 	vars,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -498,6 +500,26 @@ const AlertPicker = function ({
 					</Stack>
 				)
 			})}
+
+			<Box
+				mt="8"
+				alignItems="center"
+				display="flex"
+				gap="4"
+				color="weak"
+				flexWrap="nowrap"
+			>
+				<Text size="medium" color="moderate" lines="1">
+					We've prefilled the alert configurations based on typical
+					use-cases.{' '}
+				</Text>
+				<TextLink href="/alerts">
+					<Box alignItems="center" display="flex" gap="2">
+						<Text size="medium">Go to alerts</Text>
+						<IconSolidCheveronRight />
+					</Box>
+				</TextLink>
+			</Box>
 		</Stack>
 	)
 }

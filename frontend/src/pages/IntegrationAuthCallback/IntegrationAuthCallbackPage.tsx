@@ -244,6 +244,7 @@ const DiscordIntegrationCallback = ({ code, projectId, next }: Props) => {
 		code,
 		projectId,
 		navigate,
+		next,
 	])
 
 	return null
