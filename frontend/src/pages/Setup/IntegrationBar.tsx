@@ -15,6 +15,7 @@ import React from 'react'
 import { useLocation } from 'react-router-dom'
 import { useLocalStorage } from 'react-use'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import {
 	useGetErrorGroupsOpenSearchQuery,
 	useGetSessionsOpenSearchQuery,
@@ -53,9 +54,10 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const integrated = integrationData?.integrated
 	const ctaText = CTA_TITLE_MAP[area!]
 
+	const { isHighlightAdmin } = useAuthContext()
 	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse',
-		false,
+		'highlight-session-search-use-clickhouse-v2',
+		isHighlightAdmin || Number(projectId) % 2 == 0,
 	)
 
 	const { data: sessionData } = useGetSessionsOpenSearchQuery({
