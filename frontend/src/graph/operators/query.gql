@@ -2184,3 +2184,23 @@ query GetServices(
 		}
 	}
 }
+
+query GetTraces($project_id: ID!, $params: TracesParamsInput!) {
+	traces(project_id: $project_id, params: $params) {
+		timestamp
+		traceID
+		spanID
+		parentSpanID
+		projectID
+		secureSessionID
+		traceState
+		spanName
+		spanKind
+		duration
+		serviceName
+		serviceVersion
+		traceAttributes
+		statusCode
+		statusMessage
+	}
+}

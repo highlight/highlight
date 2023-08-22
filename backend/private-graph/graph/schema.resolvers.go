@@ -7592,6 +7592,11 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 	return &connection, err
 }
 
+// Traces is the resolver for the traces field.
+func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.TracesParamsInput) ([]*modelInputs.Trace, error) {
+	panic(fmt.Errorf("not implemented: Traces - traces"))
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}

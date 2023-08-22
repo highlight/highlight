@@ -1755,6 +1755,7 @@ export type Query = {
 	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
 	topUsers: Array<Maybe<TopUsersPayload>>
+	traces: Array<Trace>
 	track_properties_alerts: Array<Maybe<SessionAlert>>
 	unprocessedSessionsCount?: Maybe<Scalars['Int64']>
 	userFingerprintCount?: Maybe<UserFingerprintCount>
@@ -2333,6 +2334,11 @@ export type QueryTopUsersArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QueryTracesArgs = {
+	params: TracesParamsInput
+	project_id: Scalars['ID']
+}
+
 export type QueryTrack_Properties_AlertsArgs = {
 	project_id: Scalars['ID']
 }
@@ -2864,6 +2870,47 @@ export type TopUsersPayload = {
 	identifier: Scalars['String']
 	total_active_time: Scalars['Int']
 	user_properties: Scalars['String']
+}
+
+export type Trace = {
+	__typename?: 'Trace'
+	duration: Scalars['Int']
+	events?: Maybe<Array<Maybe<TraceEvent>>>
+	links?: Maybe<Array<Maybe<TraceLink>>>
+	parentSpanID: Scalars['String']
+	projectID: Scalars['Int']
+	secureSessionID: Scalars['String']
+	serviceName: Scalars['String']
+	serviceVersion: Scalars['String']
+	spanID: Scalars['String']
+	spanKind: Scalars['String']
+	spanName: Scalars['String']
+	statusCode: Scalars['String']
+	statusMessage: Scalars['String']
+	timestamp: Scalars['Timestamp']
+	traceAttributes: Scalars['Map']
+	traceID: Scalars['String']
+	traceState: Scalars['String']
+}
+
+export type TraceEvent = {
+	__typename?: 'TraceEvent'
+	attributes: Scalars['Map']
+	name: Scalars['String']
+	timestamp: Scalars['Timestamp']
+}
+
+export type TraceLink = {
+	__typename?: 'TraceLink'
+	attributes: Scalars['Map']
+	spanID: Scalars['String']
+	traceID: Scalars['String']
+	traceState: Scalars['String']
+}
+
+export type TracesParamsInput = {
+	date_range: DateRangeRequiredInput
+	query: Scalars['String']
 }
 
 export type TrackProperty = {

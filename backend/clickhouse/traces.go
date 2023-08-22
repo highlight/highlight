@@ -5,8 +5,10 @@ import (
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/samber/lo"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 const TracesTable = "traces"
@@ -121,4 +123,66 @@ func convertLinks(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet,
 		attrs = append(attrs, link.Attributes)
 	}
 	return traceIDs, spanIDs, states, attrs
+}
+
+func (client *Client) ReadTraces(ctx context.Context, projectID int, params map[string]string) ([]*modelInputs.Trace, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	var err error
+	var args []interface{}
+
+	sb.From("Traces").
+		Select("Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId, Source, ServiceName, ServiceVersion").
+		Where(sb.Equal("ProjectId", projectID))
+
+	for key, value := range params {
+		sb.Where(sb.Equal(key, value))
+	}
+
+	sb.OrderBy("Timestamp", "desc").Limit(100)
+	sql, args := sb.Build()
+
+	span, _ := tracer.StartSpanFromContext(ctx, "traces", tracer.ResourceName("ReadTraces"))
+	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	if err != nil {
+		span.Finish(tracer.WithError(err))
+		return nil, err
+	}
+	span.SetTag("Query", query)
+	span.SetTag("Params", params)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		span.Finish(tracer.WithError(err))
+		return nil, err
+	}
+
+	var traces []*modelInputs.Trace
+	for rows.Next() {
+		var result ClickhouseTraceRow
+		if err := rows.ScanStruct(&result); err != nil {
+			return nil, err
+		}
+
+		traces = append(traces, &modelInputs.Trace{
+			Timestamp:       result.Timestamp,
+			TraceID:         result.TraceId,
+			SpanID:          result.SpanId,
+			ParentSpanID:    result.ParentSpanId,
+			ProjectID:       int(result.ProjectId),
+			SecureSessionID: result.SecureSessionId,
+			TraceState:      result.TraceState,
+			SpanName:        result.SpanName,
+			SpanKind:        result.SpanKind,
+			Duration:        int(result.Duration),
+			ServiceName:     result.ServiceName,
+			ServiceVersion:  result.ServiceVersion,
+			TraceAttributes: expandJSON(result.TraceAttributes),
+			StatusCode:      result.StatusCode,
+			StatusMessage:   result.StatusMessage,
+		})
+	}
+	rows.Close()
+
+	span.Finish(tracer.WithError(rows.Err()))
+	return traces, rows.Err()
 }
