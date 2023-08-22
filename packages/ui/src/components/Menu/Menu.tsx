@@ -5,13 +5,14 @@ import {
 	Menu as AriakitMenu,
 	MenuSeparator,
 	MenuSeparatorProps,
-	MenuState,
-	useMenuState,
+	MenuStoreProps,
+	MenuStore,
+	useMenuStore,
 	MenuProps,
 	MenuButtonProps as AriakitMenuButtonProps,
 	MenuHeading as AriakitMenuHeading,
 	MenuHeadingProps,
-} from 'ariakit'
+} from '@ariakit/react'
 import clsx, { ClassValue } from 'clsx'
 import React, { forwardRef } from 'react'
 import {
@@ -22,10 +23,10 @@ import {
 import { ButtonIcon, Props as ButtonIconProps } from '../ButtonIcon/ButtonIcon'
 import * as styles from './styles.css'
 
-const MenuContext = React.createContext<MenuState>({} as MenuState)
+const MenuContext = React.createContext<MenuStore>({} as MenuStore)
 export const useMenu = () => React.useContext(MenuContext)
 
-type Props = React.PropsWithChildren<Partial<MenuState>>
+type Props = React.PropsWithChildren<Partial<MenuStoreProps>>
 
 type MenuComponent = React.FC<Props> & {
 	Button: typeof Button
@@ -36,7 +37,7 @@ type MenuComponent = React.FC<Props> & {
 }
 
 export const Menu: MenuComponent = ({ children, ...props }: Props) => {
-	const menu = useMenuState({ gutter: 6, ...props })
+	const menu = useMenuStore(props)
 
 	return <MenuContext.Provider value={menu}>{children}</MenuContext.Provider>
 }
@@ -52,13 +53,13 @@ export type MenuButtonProps = React.PropsWithChildren<{
 		size?: ButtonProps['size'] | ButtonIconProps['size']
 	}
 
-const Button = forwardRef<HTMLButtonElement, MenuButtonProps>(
+const Button = forwardRef<HTMLButtonElement, Omit<MenuButtonProps, 'store'>>(
 	({ children, ...props }, ref) => {
 		const menu = useMenu()
 		const Component = props.icon && !children ? ButtonIcon : OriginalButton
 
 		return (
-			<MenuButton as={Component} state={menu} ref={ref} {...props}>
+			<MenuButton as={Component} store={menu} ref={ref} {...props}>
 				{children}
 			</MenuButton>
 		)
@@ -76,9 +77,10 @@ const List = forwardRef<HTMLDivElement, ListProps>(
 
 		return (
 			<AriakitMenu
-				state={menu}
+				store={menu}
 				className={clsx(styles.menuList, cssClass)}
 				ref={ref}
+				gutter={6}
 				{...props}
 			>
 				{children}
