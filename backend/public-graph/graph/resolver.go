@@ -20,7 +20,6 @@ import (
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/errorgroups"
-	"github.com/highlight-run/highlight/backend/integrations"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/store"
@@ -64,22 +63,21 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB                 *gorm.DB
-	TDB                timeseries.DB
-	ProducerQueue      kafka_queue.MessageQueue
-	BatchedQueue       kafka_queue.MessageQueue
-	DataSyncQueue      kafka_queue.MessageQueue
-	TracesQueue        kafka_queue.MessageQueue
-	MailClient         *sendgrid.Client
-	StorageClient      storage.Client
-	OpenSearch         *opensearch.Client
-	HubspotApi         *highlightHubspot.Client
-	EmbeddingsClient   embeddings.Client
-	Redis              *redis.Client
-	Clickhouse         *clickhouse.Client
-	RH                 *resthooks.Resthook
-	Store              *store.Store
-	IntegrationsClient *integrations.Client
+	DB               *gorm.DB
+	TDB              timeseries.DB
+	ProducerQueue    kafka_queue.MessageQueue
+	BatchedQueue     kafka_queue.MessageQueue
+	DataSyncQueue    kafka_queue.MessageQueue
+	TracesQueue      kafka_queue.MessageQueue
+	MailClient       *sendgrid.Client
+	StorageClient    storage.Client
+	OpenSearch       *opensearch.Client
+	HubspotApi       *highlightHubspot.Client
+	EmbeddingsClient embeddings.Client
+	Redis            *redis.Client
+	Clickhouse       *clickhouse.Client
+	RH               *resthooks.Resthook
+	Store            *store.Store
 }
 
 type Location struct {
