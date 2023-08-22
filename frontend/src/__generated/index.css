@@ -5948,10 +5948,13 @@ body {
   grid-template-columns: 90px 1fr;
   grid-gap: 8px;
   cursor: pointer;
-  align-items: center;
+  align-items: flex-start;
 }
 ._1ubqgtn2 {
   display: block;
+}
+._1ubqgtn3 {
+  padding: 6px;
 }
 ._1ecj17q0 {
   height: 28px;
