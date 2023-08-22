@@ -5186,7 +5186,13 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 	if !sortDesc {
 		sortFieldStr = "CreatedAt ASC, ID ASC"
 	}
-	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, projectID, count, query, sortFieldStr, page, retentionDate)
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, sortFieldStr, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
@@ -5269,7 +5275,12 @@ func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, project
 	}
 	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
-	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogram(ctx, projectID, query, retentionDate, histogramOptions)
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, query, retentionDate, histogramOptions)
 	if err != nil {
 		return nil, err
 	}
