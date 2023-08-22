@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/integrations/github"
 	"github.com/highlight-run/highlight/backend/model"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -33,9 +34,13 @@ func (store *Store) GitHubFilePath(ctx context.Context, fileName string, buildPr
 	return fileName
 }
 
-func (store *Store) ExpandedStackTrace(ctx context.Context, lines []string, lineNumber int) (string, string, string) {
+func (store *Store) ExpandedStackTrace(ctx context.Context, lines []string, lineNumber int) (*string, *string, *string, error) {
+	if lineNumber > len(lines) || lineNumber <= 0 {
+		return nil, nil, nil, errors.New("Invalid line number")
+	}
+
 	minLine := int(math.Max(1, float64(lineNumber-GITHUB_ERROR_CONTEXT_LINES)))
-	maxLine := int(math.Min(float64(len(lines)), float64(lineNumber+GITHUB_ERROR_CONTEXT_LINES+1)))
+	maxLine := int(math.Min(float64(len(lines)), float64(lineNumber+GITHUB_ERROR_CONTEXT_LINES)))
 	renderedLines := lines[minLine-1 : maxLine]
 
 	var lineContent, beforeContent, afterContent string
@@ -51,7 +56,7 @@ func (store *Store) ExpandedStackTrace(ctx context.Context, lines []string, line
 		}
 	}
 
-	return lineContent, strings.TrimPrefix(beforeContent, "\n"), strings.TrimPrefix(afterContent, "\n")
+	return ptr.String(lineContent), ptr.String(strings.TrimPrefix(beforeContent, "\n")), ptr.String(strings.TrimPrefix(afterContent, "\n")), nil
 }
 
 func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, fileName string, serviceVersion string, gitHubClient *github.Client) (*string, error) {
@@ -134,11 +139,10 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 	}
 
 	lines := strings.Split(string(rawDecodedText), "\n")
-	if len(lines) < *lineNumber {
-		return trace, nil
+	lineContent, beforeContent, afterContent, err := store.ExpandedStackTrace(ctx, lines, *lineNumber)
+	if err != nil {
+		return trace, err
 	}
-
-	lineContent, beforeContent, afterContent := store.ExpandedStackTrace(ctx, lines, *lineNumber)
 
 	newStackTraceInput := privateModel.ErrorTrace{
 		FileName:                   trace.FileName,
@@ -146,9 +150,9 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 		FunctionName:               trace.FunctionName,
 		Error:                      trace.Error,
 		SourceMappingErrorMetadata: trace.SourceMappingErrorMetadata,
-		LineContent:                &lineContent,
-		LinesBefore:                &beforeContent,
-		LinesAfter:                 &afterContent,
+		LineContent:                lineContent,
+		LinesBefore:                beforeContent,
+		LinesAfter:                 afterContent,
 	}
 	return &newStackTraceInput, nil
 }
