@@ -55,6 +55,7 @@ import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
 import { useLocalStorage, useToggle } from 'react-use'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
 import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
@@ -1263,9 +1264,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 		project_id: string
 	}>()
 
+	const { isHighlightAdmin } = useAuthContext()
 	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse',
-		false,
+		'highlight-session-search-use-clickhouse-v2',
+		isHighlightAdmin || Number(projectId) % 2 == 0,
 	)
 
 	const { loading: segmentsLoading, data: segmentData } =

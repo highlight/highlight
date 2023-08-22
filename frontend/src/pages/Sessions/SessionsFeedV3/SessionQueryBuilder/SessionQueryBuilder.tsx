@@ -155,7 +155,7 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 	)
 
 	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse',
+		'highlight-session-search-use-clickhouse-v2',
 		false,
 	)
 
