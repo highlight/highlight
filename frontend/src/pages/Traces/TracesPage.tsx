@@ -73,13 +73,17 @@ export const TracesPage: React.FC = () => {
 								<Table.Cell>{trace.serviceName}</Table.Cell>
 								<Table.Cell>{trace.spanID}</Table.Cell>
 								<Table.Cell
-									onClick={() => {
-										navigate(
-											`/${projectId}/traces?query=${window.encodeURIComponent(
-												`ParentSpanId:${trace.parentSpanID}`,
-											)}`,
-										)
-									}}
+									onClick={
+										trace.parentSpanID
+											? () => {
+													navigate(
+														`/${projectId}/traces?query=${window.encodeURIComponent(
+															`ParentSpanId:${trace.parentSpanID}`,
+														)}`,
+													)
+											  }
+											: undefined
+									}
 								>
 									{trace.parentSpanID}
 								</Table.Cell>
