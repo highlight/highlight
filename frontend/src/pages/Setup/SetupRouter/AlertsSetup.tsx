@@ -31,7 +31,7 @@ import { getDiscordOauthUrl } from '@pages/IntegrationsPage/components/DiscordIn
 import { Header } from '@pages/Setup/Header'
 import useLocalStorage from '@rehooks/local-storage'
 import * as React from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useMatch, useNavigate } from 'react-router-dom'
 
 import Switch from '@/components/Switch/Switch'
@@ -248,6 +248,9 @@ const AlertPicker = function ({
 }: {
 	platform: 'slack' | 'discord' | 'email'
 }) {
+	const alertsCreated = useRef<Set<'Session' | 'Error' | 'Log'>>(
+		new Set<'Session' | 'Error' | 'Log'>(),
+	)
 	const { projectId } = useProjectId()
 	const location = useLocation()
 	const notificationOption = notificationOptions.find(
@@ -299,6 +302,8 @@ const AlertPicker = function ({
 
 	const createAlerts = useCallback(async () => {
 		for (const alert of alertsSelected) {
+			if (alertsCreated.current.has(alert)) continue
+			alertsCreated.current.add(alert)
 			const destination =
 				alertOptions.find((a) => a.name === alert)?.destination ?? ''
 			let channelID = ''
