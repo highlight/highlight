@@ -11,7 +11,7 @@ const SUBDOMAIN_LANDING_PAGES = {
 }
 
 export const DOCS_REDIRECTS = {
-	'amplitude-integration': '/docs/general/integrations/amplitude-integration',
+	'amplitude-integration': '/docs/integrations/amplitude-integration',
 	'api/changelog': '/changelogs',
 	'api/haddsessionfeedback': '/docs/sdk/client#Hadd-session-feedback',
 	'api/hconsumeerror': '/docs/sdk/nodejs#Hconsume-error',
@@ -39,7 +39,7 @@ export const DOCS_REDIRECTS = {
 	'content-security-policy': '/docs/tips/content-security-policy',
 	'electron-integration': '/docs/integrations/electron-integration',
 	'error-monitoring/sourcemaps':
-		'/docs/general/product-features/error-monitoring/sourcemaps',
+		'/docs/product-features/error-monitoring/sourcemaps',
 	'express-backend': '/docs/getting-started/4_backend-sdk/nextjs',
 	'front-plugin': '/docs/integrations/front-plugin',
 	'frontend-observability':
@@ -54,20 +54,16 @@ export const DOCS_REDIRECTS = {
 	'grouping-errors': '/docs/error-monitoring/grouping-errors',
 	'html-iframe-recording': '/docs/session-replay/html-iframe-recording',
 	'identifying-users': '/docs/session-replay/identifying-sessions',
-	'integrations/amplitude-integration':
-		'/docs/general/integrations/amplitude-integration',
-	'integrations/mixpanel-integration':
-		'/docs/general/integrations/mixpanel-integration',
 	'integrations/reactjs-integration':
 		'/docs/getting-started/client-sdk/replay-configuration/react-error-boundary',
 	'integrations/sentry-integration':
-		'/docs/general/product-features/error-monitoring/overview',
+		'/docs/product-features/error-monitoring/overview',
 	'intercom-integration': '/docs/integrations/intercom-integration',
 	'keyboard-shortcuts': '/docs/product-features/keyboard-shortcuts',
 	'linear-integration': '/docs/integrations/linear-integration',
 	'live-mode': '/docs/session-replay/live-mode',
 	'local-development': '/docs/tips/local-development',
-	'mixpanel-integration': '/docs/general/integrations/mixpanel-integration',
+	'mixpanel-integration': '/docs/integrations/mixpanel-integration',
 	'monkey-patches': '/docs/tips/monkey-patches',
 	'network-devtools': '/docs/session-replay/network-devtools',
 	'nextjs-backend': '/docs/getting-started/4_backend-sdk/express',
@@ -75,25 +71,24 @@ export const DOCS_REDIRECTS = {
 	'nodejs-backend': '/docs/getting-started/4_backend-sdk/nodejs',
 	'performance-data': '/docs/product-features/performance-data',
 	'performance-impact': '/docs/tips/performance-impact',
-	'product-features/canvas':
-		'/docs/general/product-features/session-replay/canvas',
+	'product-features/canvas': '/docs/product-features/session-replay/canvas',
 	'product-features/console-messages':
-		'/docs/general/product-features/session-replay/console-messages',
+		'/docs/product-features/session-replay/console-messages',
 	'product-features/cross-origin-iframes':
-		'/docs/general/product-features/session-replay/cross-origin-iframes',
+		'/docs/product-features/session-replay/cross-origin-iframes',
 	'product-features/frontend-observability':
-		'/docs/general/product-features/session-replay/overview',
+		'/docs/product-features/session-replay/overview',
 	'product-features/html-iframe-recording':
-		'/docs/general/product-features/session-replay/html-iframe-recording',
+		'/docs/product-features/session-replay/html-iframe-recording',
 	'product-features/live-mode':
-		'/docs/general/product-features/session-replay/live-mode',
+		'/docs/product-features/session-replay/live-mode',
 	'product-features/session-search':
-		'/docs/general/product-features/session-replay/session-search',
+		'/docs/product-features/session-replay/session-search',
 	'product-features/user-feedback':
-		'/docs/general/product-features/session-replay/overview',
+		'/docs/product-features/session-replay/overview',
 	'product-features/versioning-sessions':
-		'/docs/general/product-features/session-replay/versioning-sessions',
-	'product-features/web-vitals': '/docs/general/tips/performance-impact',
+		'/docs/product-features/session-replay/versioning-sessions',
+	'product-features/web-vitals': '/docs/tips/performance-impact',
 	'proxying-highlight':
 		'/docs/getting-started/client-sdk/replay-configuration/proxying-highlight',
 	'rage-clicks': '/docs/session-replay/rage-clicks',
@@ -104,15 +99,14 @@ export const DOCS_REDIRECTS = {
 	'segment-integration': '/docs/integrations/segment-integration',
 	'sentry-integration': '/docs/integrations/sentry-integration',
 	'session-replay/identifying-sessions':
-		'/docs/general/product-features/session-replay/identifying-sessions',
-	'session-replay/privacy':
-		'/docs/general/product-features/session-replay/privacy',
+		'/docs/product-features/session-replay/identifying-sessions',
+	'session-replay/privacy': '/docs/product-features/session-replay/privacy',
 	'session-replay/rage-clicks':
-		'/docs/general/product-features/session-replay/rage-clicks',
+		'/docs/product-features/session-replay/rage-clicks',
 	'session-replay/recording-network-requests-and-responses':
-		'/docs/general/product-features/session-replay/recording-network-requests-and-responses',
+		'/docs/product-features/session-replay/recording-network-requests-and-responses',
 	'session-replay/tracking-events':
-		'/docs/general/product-features/session-replay/tracking-events',
+		'/docs/product-features/session-replay/tracking-events',
 	'session-search': '/docs/product-features/session-search',
 	'session-search-deep-linking': '/docs/tips/sessions-search-deep-linking',
 	'session-sharing': '/docs/session-replay/session-sharing',
