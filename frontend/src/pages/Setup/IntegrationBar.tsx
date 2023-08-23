@@ -1,5 +1,12 @@
 import { LinkButton } from '@components/LinkButton'
-import { ErrorGroup, IntegrationStatus, Session } from '@graph/schemas'
+import {
+	ErrorAlert,
+	ErrorGroup,
+	IntegrationStatus,
+	LogAlert,
+	Session,
+	SessionAlert,
+} from '@graph/schemas'
 import {
 	Badge,
 	Box,
@@ -17,6 +24,7 @@ import { useLocalStorage } from 'react-use'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import {
+	useGetAlertsPagePayloadQuery,
 	useGetErrorGroupsOpenSearchQuery,
 	useGetSessionsOpenSearchQuery,
 } from '@/graph/generated/hooks'
@@ -27,24 +35,27 @@ type Props = React.PropsWithChildren & {
 	integrationData?: IntegrationStatus
 }
 
-type Area = 'client' | 'backend' | 'backend-logging'
+type Area = 'client' | 'backend' | 'backend-logging' | 'alerts'
 
 const AREA_TITLE_MAP: { [key in Area]: string } = {
 	client: 'Frontend monitoring + session replay',
 	backend: 'Backend monitoring',
 	'backend-logging': 'Backend logging',
+	alerts: 'Alerts',
 }
 
 const CTA_TITLE_MAP: { [key in Area]: string } = {
 	client: 'View a session',
 	backend: 'View an error',
 	'backend-logging': 'View logs',
+	alerts: 'Configure an alert',
 }
 
 const CTA_PATH_MAP: { [key in Area]: string } = {
 	client: 'sessions',
 	backend: 'errors',
 	'backend-logging': 'logs',
+	alerts: 'alerts',
 }
 
 export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
@@ -85,13 +96,26 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 		fetchPolicy: 'no-cache',
 	})
 
+	const { data: alertsData } = useGetAlertsPagePayloadQuery({
+		variables: { project_id: projectId! },
+		skip: area !== 'alerts' || !integrated,
+		fetchPolicy: 'no-cache',
+	})
+
 	const resource =
 		area === 'client'
 			? sessionData?.sessions_opensearch.sessions[0]
 			: area === 'backend'
 			? errorGroupData?.error_groups_opensearch.error_groups[0]
 			: undefined
-	const path = buildResourcePath(area!, projectId, resource)
+	const alert =
+		area === 'alerts'
+			? alertsData?.new_session_alerts[0] ??
+			  alertsData?.error_alerts[0] ??
+			  alertsData?.log_alerts[0] ??
+			  undefined
+			: undefined
+	const path = buildResourcePath(area!, projectId, resource, alert)
 	const complete = path && integrated
 
 	return (
@@ -169,6 +193,7 @@ const buildResourcePath = (
 	area: Area,
 	projectId: string,
 	resource?: Partial<Session> | Partial<ErrorGroup>,
+	alert?: Partial<SessionAlert> | Partial<ErrorAlert> | Partial<LogAlert>,
 ) => {
 	const basePath = `/${projectId}/${CTA_PATH_MAP[area!]}`
 	let path
@@ -182,6 +207,16 @@ const buildResourcePath = (
 		const endDate = moment(logDate).add(2, 'minutes')
 
 		path = `${basePath}?start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`
+	} else if (alert) {
+		const prefix =
+			alert.__typename === 'SessionAlert'
+				? ''
+				: alert.__typename === 'ErrorAlert'
+				? 'errors/'
+				: alert.__typename === 'LogAlert'
+				? 'logs/'
+				: ''
+		path = `${basePath}/${prefix}${alert.id}`
 	}
 
 	return path

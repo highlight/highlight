@@ -395,6 +395,7 @@ export type ErrorAlert = {
 	ThresholdWindow?: Maybe<Scalars['Int']>
 	Type: Scalars['String']
 	WebhookDestinations: Array<WebhookDestination>
+	default: Scalars['Boolean']
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	updated_at: Scalars['Timestamp']
@@ -782,6 +783,7 @@ export type LogAlert = {
 	ThresholdWindow: Scalars['Int']
 	Type: Scalars['String']
 	WebhookDestinations: Array<WebhookDestination>
+	default: Scalars['Boolean']
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	query: Scalars['String']
@@ -791,6 +793,7 @@ export type LogAlert = {
 export type LogAlertInput = {
 	below_threshold: Scalars['Boolean']
 	count_threshold: Scalars['Int']
+	default?: InputMaybe<Scalars['Boolean']>
 	disabled: Scalars['Boolean']
 	discord_channels: Array<DiscordChannelInput>
 	emails: Array<Scalars['String']>
@@ -1017,6 +1020,8 @@ export type Mutation = {
 	updateSessionIsPublic?: Maybe<Session>
 	updateVercelProjectMappings: Scalars['Boolean']
 	upsertDashboard: Scalars['ID']
+	upsertDiscordChannel: DiscordChannel
+	upsertSlackChannel: SanitizedSlackChannel
 }
 
 export type MutationAddAdminToWorkspaceArgs = {
@@ -1044,6 +1049,7 @@ export type MutationChangeAdminRoleArgs = {
 
 export type MutationCreateErrorAlertArgs = {
 	count_threshold: Scalars['Int']
+	default?: InputMaybe<Scalars['Boolean']>
 	discord_channels: Array<DiscordChannelInput>
 	emails: Array<InputMaybe<Scalars['String']>>
 	environments: Array<InputMaybe<Scalars['String']>>
@@ -1531,6 +1537,16 @@ export type MutationUpsertDashboardArgs = {
 	is_default?: InputMaybe<Scalars['Boolean']>
 	layout?: InputMaybe<Scalars['String']>
 	metrics: Array<DashboardMetricConfigInput>
+	name: Scalars['String']
+	project_id: Scalars['ID']
+}
+
+export type MutationUpsertDiscordChannelArgs = {
+	name: Scalars['String']
+	project_id: Scalars['ID']
+}
+
+export type MutationUpsertSlackChannelArgs = {
 	name: Scalars['String']
 	project_id: Scalars['ID']
 }
@@ -2647,6 +2663,7 @@ export type SessionAlert = {
 	Type: Scalars['String']
 	UserProperties: Array<Maybe<UserProperty>>
 	WebhookDestinations: Array<WebhookDestination>
+	default: Scalars['Boolean']
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	updated_at: Scalars['Timestamp']
@@ -2654,6 +2671,7 @@ export type SessionAlert = {
 
 export type SessionAlertInput = {
 	count_threshold: Scalars['Int']
+	default?: InputMaybe<Scalars['Boolean']>
 	disabled: Scalars['Boolean']
 	discord_channels: Array<DiscordChannelInput>
 	emails: Array<Scalars['String']>

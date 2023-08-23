@@ -216,14 +216,13 @@ const VercelIntegrationCallback = ({ code }: Props) => {
 	)
 }
 
-const DiscordIntegrationCallback = ({ code, projectId }: Props) => {
+const DiscordIntegrationCallback = ({ code, projectId, next }: Props) => {
 	const navigate = useNavigate()
 	const { setLoadingState } = useAppLoadingContext()
 	const { addDiscordIntegrationToProject } = useDiscordIntegration()
 
 	useEffect(() => {
 		if (!projectId || !code) return
-		const next = `/${projectId}/integrations`
 		;(async () => {
 			try {
 				await addDiscordIntegrationToProject(code, projectId)
@@ -235,7 +234,7 @@ const DiscordIntegrationCallback = ({ code, projectId }: Props) => {
 					'Failed to add integration to project. Please try again.',
 				)
 			} finally {
-				navigate(next)
+				navigate(next ?? `/${projectId}/integrations`)
 				setLoadingState(AppLoadingState.LOADED)
 			}
 		})()
@@ -245,6 +244,7 @@ const DiscordIntegrationCallback = ({ code, projectId }: Props) => {
 		code,
 		projectId,
 		navigate,
+		next,
 	])
 
 	return null
@@ -446,7 +446,11 @@ const IntegrationAuthCallbackPage = () => {
 			return <VercelIntegrationCallback code={code} />
 		case 'discord':
 			return (
-				<DiscordIntegrationCallback code={code} projectId={projectId} />
+				<DiscordIntegrationCallback
+					code={code}
+					projectId={projectId}
+					next={next}
+				/>
 			)
 	}
 

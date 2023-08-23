@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/bwmarrin/discordgo"
 	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 	"io"
 	"math/big"
@@ -3271,6 +3272,65 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 		return nil, 0, err
 	}
 	return &res.ExistingChannels, res.NewChannelsCount, err
+}
+func (r *Resolver) CreateSlackChannel(workspaceId int, name string) (*model.SlackChannel, error) {
+	workspace, _ := r.GetWorkspace(workspaceId)
+	// workspace is not integrated with slack
+	if workspace.SlackAccessToken == nil {
+		return nil, e.New("no slack access token provided")
+	}
+
+	slackClient := slack.New(*workspace.SlackAccessToken)
+	channel, err := slackClient.CreateConversation(name, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.SlackChannel{
+		WebhookChannel:   channel.Name,
+		WebhookChannelID: channel.ID,
+	}, nil
+}
+
+func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.DiscordChannel, error) {
+	workspace, err := r.GetWorkspace(workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	guildId := workspace.DiscordGuildId
+	if guildId == nil {
+		return nil, nil
+	}
+
+	bot, err := discord.NewDiscordBot(*guildId)
+	if err != nil {
+		return nil, err
+	}
+
+	channels, err := bot.GetChannels()
+	if err != nil {
+		return nil, err
+	}
+
+	if channel, has := lo.Find(channels, func(item *discordgo.Channel) bool {
+		return strings.EqualFold(item.Name, name)
+	}); has {
+		return &model.DiscordChannel{
+			Name: channel.Name,
+			ID:   channel.ID,
+		}, nil
+	}
+
+	channel, err := bot.CreateChannel(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.DiscordChannel{
+		Name: channel.Name,
+		ID:   channel.ID,
+	}, nil
 }
 
 func GetAggregateFluxStatement(ctx context.Context, aggregator modelInputs.MetricAggregator, resMins int) string {

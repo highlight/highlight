@@ -66,6 +66,7 @@ fragment SessionAlertFragment on SessionAlert {
 	CountThreshold
 	DailyFrequency
 	disabled
+	default
 	EmailsToNotify
 	ExcludedEnvironments
 	ExcludeRules
@@ -1754,6 +1755,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 		Name
 		DailyFrequency
 		disabled
+		default
 	}
 	new_session_alerts(project_id: $project_id) {
 		...SessionAlertFragment
@@ -1811,6 +1813,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 		CountThreshold
 		DailyFrequency
 		disabled
+		default
 		EmailsToNotify
 		ExcludedEnvironments
 		id
