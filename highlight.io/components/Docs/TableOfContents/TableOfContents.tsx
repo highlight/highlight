@@ -133,22 +133,14 @@ export function getTocEntry(docPage: DocPage, allPages: DocPage[]): TocEntry {
 	}
 }
 
-type SubNavigationCallback = (slugPath: {
-	children: TocEntry[]
-	title: string
-	slugPath: string
-}) => void
-
 function TocCategory({
 	title,
 	subEntries,
-	onSubtableNavigation,
 	route,
 	docPages,
 }: {
 	title: string
 	subEntries: TocEntry[]
-	onSubtableNavigation: SubNavigationCallback
 	route: string
 	docPages: DocPage[]
 }) {
@@ -158,7 +150,6 @@ function TocCategory({
 			<TableOfContentsSection
 				docPages={docPages}
 				tocEntries={subEntries}
-				onSubtableNavigation={onSubtableNavigation}
 				route={route}
 			/>
 		</div>
@@ -196,19 +187,14 @@ const entryTextStyle = classNames(
 function TocSubtableItem({
 	title,
 	slugPath,
-	onEnter,
 	subEntries,
 }: {
 	title: string
 	slugPath: string
 	subEntries: TocEntry[]
-	onEnter: SubNavigationCallback
 }) {
 	return (
-		<Link
-			onClick={() => onEnter({ children: subEntries, title, slugPath })}
-			href={slugPath}
-		>
+		<Link href={slugPath}>
 			<div className={entryPlateStyle}>
 				<ArrowRightIcon
 					className={classNames(entryIconStyle, 'text-copy-on-light')}
@@ -226,7 +212,6 @@ function TocEntry({
 	slugPath,
 	isIndex,
 	subEntries,
-	onSubtableNavigation,
 	route,
 	docPages,
 }: {
@@ -234,7 +219,6 @@ function TocEntry({
 	slugPath: string
 	isIndex: boolean
 	subEntries: TocEntry[]
-	onSubtableNavigation: SubNavigationCallback
 	route: string
 	docPages: DocPage[]
 }) {
@@ -290,7 +274,6 @@ function TocEntry({
 					<TableOfContentsSection
 						docPages={docPages}
 						tocEntries={subEntries}
-						onSubtableNavigation={onSubtableNavigation}
 						route={route}
 					/>
 				</Collapsible.Content>
@@ -314,51 +297,67 @@ type SubtableStack = {
 export function TableOfContents({
 	toc: tocEntries,
 	docPages,
+	route,
 }: {
 	toc: TocEntry[]
 	docPages: DocPage[]
+	route: string
 }) {
-	const router = useRouter()
-	const route = router.asPath.replace(/^\/docs\//, '')
+	const docRoute = route.replace(/^\/docs\//, '')
 
-	const [subtableStack, setSubtableStack] = useState<SubtableStack[]>([])
+	const subtableIndex = [...docPages].reverse().find((page) => {
+		return (
+			page.isIndex &&
+			page.metadata.type === 'subtable' &&
+			docRoute.startsWith(page.slugPath)
+		)
+	})
 
-	const subtableStackTop: SubtableStack =
-		subtableStack[subtableStack.length - 1]
+	console.log(docPages.map((p) => p.slugPath))
 
-	const renderedTable = subtableStackTop?.children ?? tocEntries
+	const backIndex = [...docPages].find((backPage) => {
+		if (
+			backPage.isIndex &&
+			(backPage.metadata.type === 'subtable' ||
+				backPage.slug === 'welcome')
+		)
+			console.log({
+				backSlug: backPage.slugPath,
+				subtableSlug:
+					subtableIndex?.slugPath.replace(/\/?[^\/]+$/, '') ||
+					'welcome',
+			})
 
-	const pushToStack: SubNavigationCallback = ({
-		children,
-		title,
-		slugPath,
-	}) => {
-		setSubtableStack([
-			...subtableStack,
-			{
-				backLink: router.asPath,
-				children,
-				title,
-				slugPath,
-				backTitle: subtableStackTop?.title
-					? `to ${subtableStackTop?.title}`
-					: 'Home',
-			},
-		])
+		return (
+			backPage.isIndex &&
+			(backPage.metadata.type === 'subtable' || backPage.slug === '') &&
+			backPage.slugPath.startsWith(
+				subtableIndex?.slugPath.replace(/\/?[^\/]+$/, '') || 'welcome',
+			)
+		)
+	})
+
+	console.log(backIndex)
+
+	const subtableTop: SubtableStack | undefined = subtableIndex && {
+		title: subtableIndex.metadata.title ?? 'Home',
+		backLink:
+			resolveDocIndexLink(docPages, backIndex?.slugPath ?? '') ??
+			'/docs/',
+		backTitle: backIndex?.metadata.title ?? 'Home',
+		slugPath: subtableIndex.slugPath ?? '/',
+		children: getTocEntry(subtableIndex, docPages).subEntries,
 	}
 
-	const popFromStack = () => {
-		setSubtableStack(subtableStack.slice(0, -1))
-	}
+	const renderedTable = subtableTop?.children ?? tocEntries
 
 	return (
 		<div className="flex flex-col self-stretch">
-			{subtableStackTop && (
+			{subtableIndex && (
 				<>
 					<Link
 						className={entryPlateStyle}
-						onClick={popFromStack}
-						href={subtableStackTop?.backLink}
+						href={subtableTop?.backLink ?? '/docs/'}
 					>
 						<ArrowLeftIcon
 							className={classNames(
@@ -371,12 +370,12 @@ export function TableOfContents({
 							onDark
 							className={entryTextStyle}
 						>
-							Go back {subtableStackTop.backTitle}
+							Go back {subtableTop?.backTitle ?? 'Home'}
 						</Typography>
 					</Link>
 					<TocSeparator />
 					<Typography type="copy3" emphasis onDark className="h-7">
-						{subtableStackTop.title}
+						{subtableTop?.title ?? 'Home'}
 					</Typography>
 				</>
 			)}
@@ -384,8 +383,7 @@ export function TableOfContents({
 			<TableOfContentsSection
 				docPages={docPages}
 				tocEntries={renderedTable}
-				onSubtableNavigation={pushToStack}
-				route={route}
+				route={docRoute}
 			/>
 		</div>
 	)
@@ -393,12 +391,10 @@ export function TableOfContents({
 
 function TableOfContentsSection({
 	tocEntries,
-	onSubtableNavigation,
 	route,
 	docPages,
 }: {
 	tocEntries: TocEntry[]
-	onSubtableNavigation: SubNavigationCallback
 	route: string
 	docPages: DocPage[]
 }) {
@@ -430,7 +426,6 @@ function TableOfContentsSection({
 							resolveDocIndexLink(docPages, docPage.slugPath) ??
 							docPage.slugPath
 						}
-						onEnter={onSubtableNavigation}
 					/>
 				)
 			})}
@@ -446,7 +441,6 @@ function TableOfContentsSection({
 						title={docPage.metadata.title}
 						slugPath={docPage.slugPath}
 						subEntries={subEntries}
-						onSubtableNavigation={onSubtableNavigation}
 						route={route}
 					/>
 				)
@@ -463,7 +457,6 @@ function TableOfContentsSection({
 						title={docPage.metadata.title}
 						slugPath={docPage.slugPath}
 						subEntries={subEntries}
-						onSubtableNavigation={onSubtableNavigation}
 						route={route}
 					/>
 				)
@@ -471,132 +464,6 @@ function TableOfContentsSection({
 		</div>
 	)
 }
-
-/* export const TableOfContentsOld = ({
-	toc,
-	docPaths,
-	openParent,
-	openTopLevel = false,
-	onNavigate,
-}: {
-	toc: TocEntry
-	openParent: boolean
-	openTopLevel?: boolean
-	docPaths: DocPage[]
-	onNavigate?: () => void
-}) => {
-	const hasChildren = !!toc?.children.length
-
-	const [isCurrentPage, setIsCurrentPage] = useState(false)
-	const isTopLevel =
-		toc.slug === docPaths[toc.tocIndex || 0]?.slugPath.split('/')[0]
-	const [open, setOpen] = useState(isTopLevel || openTopLevel)
-
-	useEffect(() => {
-		const currentPage = path.join(
-			'/docs',
-			docPaths[toc.tocIndex || 0]?.slugPath || '',
-		)
-		setIsCurrentPage(currentPage === window.location.pathname)
-		const isParentOfCurrentPage = window.location.pathname.includes(
-			docPaths[toc.tocIndex || 0]?.slugPath,
-		)
-		setOpen((prevOpenState) => prevOpenState || isParentOfCurrentPage)
-		onNavigate?.()
-	}, [docPaths, toc.tocIndex, onNavigate])
-
-	return (
-		<div className="max-w-full">
-			{hasChildren ? (
-				<div
-					className={styles.tocRow}
-					onClick={() => setOpen((o) => !o)}
-				>
-					<ChevronDownIcon
-						className={classNames(styles.tocIcon, {
-							[styles.tocItemChevronClosed]: hasChildren && !open,
-							[styles.tocItemOpen]: hasChildren && open,
-							[styles.tocItemCurrent]:
-								!hasChildren && open && isCurrentPage,
-							[styles.tocChild]: !isTopLevel,
-						})}
-					/>
-					<Typography
-						type="copy3"
-						emphasis={isTopLevel}
-						className={classNames(styles.tocItem, {
-							[styles.tocItemOpen]: hasChildren && open,
-							[styles.tocItemCurrent]:
-								(!hasChildren || open) && isCurrentPage,
-							[styles.tocChild]: !isTopLevel,
-						})}
-					>
-						{toc.heading}
-					</Typography>
-				</div>
-			) : (
-				<Link
-					href={path.join(
-						'/docs',
-						docPaths[toc.tocIndex || 0]?.slugPath || '',
-					)}
-					legacyBehavior
-				>
-					<a
-						className={styles.tocRow}
-						onClick={() => {
-							setOpen((o) => !o)
-							if (window.scrollY >= 124) {
-								sessionStorage.setItem('scrollPosition', '124')
-							} else {
-								sessionStorage.setItem('scrollPosition', '0')
-							}
-						}}
-					>
-						<MinusIcon
-							className={classNames(styles.tocIcon, {
-								[styles.tocItemOpen]: hasChildren,
-								[styles.tocItemCurrent]:
-									!hasChildren && isCurrentPage,
-								[styles.tocChild]: !isTopLevel,
-							})}
-						/>
-						<Typography
-							type="copy3"
-							emphasis={isTopLevel}
-							className={classNames(styles.tocItem, {
-								[styles.tocItemOpen]: hasChildren && open,
-								[styles.tocItemCurrent]:
-									(!hasChildren || open) && isCurrentPage,
-								[styles.tocChild]: !isTopLevel,
-							})}
-						>
-							{toc?.heading || 'nope'}
-						</Typography>
-					</a>
-				</Link>
-			)}
-			<Collapse isOpened={open}>
-				<div className={styles.tocChildren}>
-					<div className={styles.tocChildrenLineWrapper}>
-						<div className={styles.tocChildrenLine}></div>
-					</div>
-					<div className={styles.tocChildrenContent}>
-						{toc?.children.map((t) => (
-							// TODO(jaykhatri) - this 'docPaths' concept has to be stateful 🤔.
-							<TableOfContents
-								openParent={open && !isTopLevel}
-								docPaths={docPaths}
-								key={t.tocIndex}
-								toc={t}
-							/>
-						))}
-					</div>
-				</div>
-			</Collapse>
-		</div>
-	)
-} */
 
 // Checks which header is currently in view, and highlights the table of content item on the right.
 const useIntersectionObserver = (setActiveId: (s: string) => void) => {

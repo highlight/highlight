@@ -337,7 +337,11 @@ export default function DocPage({
 				<div className={styles.leftSection}>
 					<div className={styles.tocMenuLarge}>
 						{/* Desktop table of contents */}
-						<TableOfContents toc={toc} docPages={docPages} />
+						<TableOfContents
+							toc={toc}
+							docPages={docPages}
+							route={router.asPath}
+						/>
 					</div>
 					<div
 						className={classNames(styles.tocRow, styles.tocMenu)}
@@ -364,7 +368,11 @@ export default function DocPage({
 					<Collapse isOpened={mobileTocOpen}>
 						{/* Mobile Tabe of contents */}
 						<div className={classNames('pl-3', styles.tocMenu)}>
-							<TableOfContents toc={toc} docPages={docPages} />
+							<TableOfContents
+								toc={toc}
+								docPages={docPages}
+								route={router.asPath}
+							/>
 						</div>
 					</Collapse>
 				</div>
