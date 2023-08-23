@@ -605,7 +605,7 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 		}
 	}
 	if len(conditions) > 0 {
-		sb.Where(sb.Or(conditions...))
+		sb.Where(sb.And(conditions...))
 	}
 
 	return sb, nil
