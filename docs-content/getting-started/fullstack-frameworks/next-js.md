@@ -20,16 +20,15 @@ all-in-one.
 1. On the frontend, the `<HighlightInit/>` component sets up client-side session replays.
 2. On the backend, the `withHighlight` wrapper captures server-side errors and logs from Page Router API endpoints.
 3. On the backend, `instrumentation.ts` and `registerHighlight` capture Page Router SSR errors and App Router API endpoint errors.
-4. The `withHighlightConfig` configuration wrapper automatically proxies highlight data to bypass ad-blockers and uploads source maps so your frontend errors include stack traces to your source code.
+4. The `withHighlightConfig` configuration wrapper automatically proxies Highlight data to bypass ad-blockers and uploads source maps so your frontend errors include stack traces to your source code.
 
 ### How Highlight captures Next.js errors
 
 |              | Page Router         | App Router          |
 |--------------|---------------------|---------------------|
-| API Errors   | withHighlight       | instrumentation.ts  |
-| SSR Errors   | instrumentation.ts  | error.tsx           |
+| API Errors   | `withHighlight`     | `instrumentation.ts`|
+| SSR Errors   | `instrumentation.ts`| `error.tsx`         |
 | Client       | `<HighlightInit />` | `<HighlightInit />` |
-| Edge runtime | not supported       | not supported       |
 
 ## Installation
 
@@ -270,7 +269,7 @@ export { register } from '../instrumentation'
 
 ## `error.tsx` (App Router)
 
-`instrumentation.ts` does not catch SSR errors from the App Router. App Router instead uses [`error.tsx`](https://nextjs.org/docs/app/api-reference/file-conventions/error) to send server-side rendering errors to the client. We can catch and consume those error with a custom error page.
+`instrumentation.ts` does not catch SSR errors from the App Router. App Router instead uses [error.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/error) to send server-side rendering errors to the client. We can catch and consume those error with a custom error page.
 
 These error will display as client errors, even though we know that they're 
 
