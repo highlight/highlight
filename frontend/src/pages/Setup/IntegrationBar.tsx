@@ -208,15 +208,15 @@ const buildResourcePath = (
 
 		path = `${basePath}?start_date=${startDate.toISOString()}&end_date=${endDate.toISOString()}`
 	} else if (alert) {
-		const type =
+		const prefix =
 			alert.__typename === 'SessionAlert'
-				? 'sessions'
+				? ''
 				: alert.__typename === 'ErrorAlert'
-				? 'errors'
+				? 'errors/'
 				: alert.__typename === 'LogAlert'
-				? 'logs'
+				? 'logs/'
 				: ''
-		path = `${basePath}/${type}/${alert.id}`
+		path = `${basePath}/${prefix}${alert.id}`
 	}
 
 	return path

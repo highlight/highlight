@@ -265,6 +265,7 @@ const AlertPicker = function ({
 
 	const { data, loading } = useGetAlertsPagePayloadQuery({
 		variables: { project_id: projectId },
+		fetchPolicy: 'network-only',
 	})
 
 	const [createSessionAlert] = useCreateSessionAlertMutation({
