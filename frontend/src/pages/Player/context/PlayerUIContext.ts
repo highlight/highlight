@@ -23,6 +23,10 @@ interface PlayerUIContext {
 	setActiveEvent: React.Dispatch<
 		React.SetStateAction<HighlightEvent | undefined>
 	>
+
+	activeEventIndex?: number
+	setActiveEventIndex: React.Dispatch<React.SetStateAction<number>>
+
 	rightPanelView: RightPanelView
 	setRightPanelView: (newValue: RightPanelView) => void
 

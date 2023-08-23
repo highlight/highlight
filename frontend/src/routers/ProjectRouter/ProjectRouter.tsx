@@ -138,6 +138,8 @@ export const ProjectRouter = () => {
 		undefined,
 	)
 
+	const [activeEventIndex, setActiveEventIndex] = useState<number>(0)
+
 	const [activeError, setActiveError] = useState<ErrorObject | undefined>(
 		undefined,
 	)
@@ -161,6 +163,8 @@ export const ProjectRouter = () => {
 		setSelectedRightPanelTab,
 		activeEvent,
 		setActiveEvent,
+		activeEventIndex,
+		setActiveEventIndex,
 		activeError,
 		setActiveError,
 		rightPanelView,
