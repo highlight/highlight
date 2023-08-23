@@ -147,7 +147,7 @@ class H(object):
 
         :param session_id: the highlight session that initiated this network request.
         :param request_id: the identifier of the current network request.
-        :param attributes: additional metadata to attribute to this error.
+        :param attributes: additional attributes to attribute to this error.
         :return: Span
         """
         # in case the otel library is in a non-recording context, do nothing

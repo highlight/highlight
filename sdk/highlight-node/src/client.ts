@@ -111,12 +111,11 @@ export class Highlight {
 		name: string,
 		value: number,
 		requestId?: string,
-		metadata?: Attributes,
+		tags?: { name: string; value: string }[],
 	) {
 		if (!this.tracer) return
 		const span = this.tracer.startSpan('highlight-ctx')
 		span.addEvent('metric', {
-			...(metadata ?? {}),
 			['highlight.project_id']: this._projectID,
 			['metric.name']: name,
 			['metric.value']: value,
@@ -131,6 +130,9 @@ export class Highlight {
 				  }
 				: {}),
 		})
+		for (const t of tags || []) {
+			span.setAttribute(t.name, t.value)
+		}
 		span.end()
 	}
 
