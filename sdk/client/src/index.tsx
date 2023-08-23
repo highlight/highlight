@@ -291,7 +291,10 @@ export class Highlight {
 				this._isCrossOriginIframe = false
 			}
 		} catch (e) {
-			this._isCrossOriginIframe = true
+			// if recordCrossOriginIframe is set to false, operate as if highlight is only recording the iframe as a dedicated web app.
+			// this is useful if you are running highlight on your app that is used in a cross-origin iframe with no access to the parent page.
+			this._isCrossOriginIframe =
+				this.options.recordCrossOriginIframe ?? true
 		}
 		this._initMembers(this.options)
 	}

@@ -360,3 +360,9 @@ Reserved for the Boeing 737
 ### Patch Changes
 
 - Add support for a new `storageMode` setting to avoid using `window.localStorage`.
+
+## 7.4.3
+
+### Patch Changes
+
+- Support passing `recordCrossOriginIframe: false` in a cross-origin iframe to record a session for the iframe contents.
