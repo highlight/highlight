@@ -59,7 +59,7 @@ func (store *Store) ExpandedStackTrace(ctx context.Context, lines []string, line
 	return ptr.String(lineContent), ptr.String(strings.TrimPrefix(beforeContent, "\n")), ptr.String(strings.TrimPrefix(afterContent, "\n")), nil
 }
 
-func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, fileName string, serviceVersion string, gitHubClient *github.Client) (*string, error) {
+func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, fileName string, serviceVersion string, gitHubClient github.ClientInterface) (*string, error) {
 	rateLimit, _ := store.redis.GetGithubRateLimitExceeded(ctx)
 	if rateLimit {
 		return nil, errors.New("Exceeded GitHub rate limit")
@@ -102,7 +102,7 @@ func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel
 	return encodedFileContent, nil
 }
 
-func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, serviceVersion string, ignoredFiles []string, gitHubClient *github.Client) (*privateModel.ErrorTrace, error) {
+func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, serviceVersion string, ignoredFiles []string, gitHubClient github.ClientInterface) (*privateModel.ErrorTrace, error) {
 	if trace.FileName == nil || trace.LineNumber == nil {
 		return trace, fmt.Errorf("Cannot enhance trace with GitHub with invalid values: %+v", trace)
 	}
@@ -157,7 +157,7 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 	return &newStackTraceInput, nil
 }
 
-func (store *Store) GitHubGitSHA(ctx context.Context, gitHubRepoPath string, serviceVersion string, gitHubClient *github.Client) (*string, error) {
+func (store *Store) GitHubGitSHA(ctx context.Context, gitHubRepoPath string, serviceVersion string, gitHubClient github.ClientInterface) (*string, error) {
 	if regexp.MustCompile(`\b[0-9a-f]{5,40}\b`).MatchString(serviceVersion) {
 		return &serviceVersion, nil
 	}

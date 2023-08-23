@@ -50,6 +50,16 @@ func parseInstallation(installation string) (int64, error) {
 	return installationID, nil
 }
 
+type ClientInterface interface {
+	CreateIssue(ctx context.Context, repo string, issueRequest *github.IssueRequest) (*github.Issue, error)
+	ListLabels(ctx context.Context, repo string) ([]*github.Label, error)
+	ListRepos(ctx context.Context) ([]*github.Repository, error)
+	DeleteInstallation(ctx context.Context, installation string) error
+	GetRepoContent(ctx context.Context, githubPath string, path string, version string) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error)
+	GetRepoBlob(ctx context.Context, githubPath string, blobSHA string) (*github.Blob, *github.Response, error)
+	GetLatestCommitHash(ctx context.Context, githubPath string) (string, *github.Response, error)
+}
+
 type Client struct {
 	client *github.Client
 	// the regular client can authenticate all calls except `Apps.Get()` and `Apps.GetInstallation()`

@@ -2,9 +2,13 @@ package store
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/aws/smithy-go/ptr"
+	github2 "github.com/google/go-github/v50/github"
+	"github.com/highlight-run/highlight/backend/model"
+	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -103,59 +107,92 @@ func TestExpandedStackTrace(t *testing.T) {
 	}
 }
 
-// func TestFetchFileFromGitHub(t *testing.T) {
-// 	defer teardown(t)
-// 	var tests = []struct {
-// 		Trace              *privateModel.ErrorTrace
-// 		Service            *model.Service
-// 		FileName           string
-// 		ServiceVersion     string
-// 		GitHubClient       *github.Client
-// 		ExpectedStackTrace string
-// 		ExpectedError      bool
-// 	}{
-// 		{
-// 			Trace: []modelInput.ErrorTrace{
-// 				{
-// 					FileName:     ptr.String("lodash.js"),
-// 					LineNumber:   ptr.Int(634),
-// 					ColumnNumber: ptr.Int(4),
-// 					FunctionName: ptr.String(""),
-// 				},
-// 				{
-// 					FileName:     ptr.String("lodash.js"),
-// 					LineNumber:   ptr.Int(633),
-// 					ColumnNumber: ptr.Int(11),
-// 					FunctionName: ptr.String("arrayIncludesWith"),
-// 				},
-// 				{
-// 					FileName:     ptr.String("pages/Buttons/Buttons.tsx"),
-// 					LineNumber:   ptr.Int(13),
-// 					ColumnNumber: ptr.Int(30),
-// 					LineContent:  ptr.String("                        throw new Error('errors page');\n"),
-// 					FunctionName: ptr.String(""),
-// 					LinesBefore:  ptr.String("        <div className={styles.buttonBody}>\n            <div>\n                <button\n                    className={commonStyles.submitButton}\n                    onClick={() => {\n"),
-// 					LinesAfter:   ptr.String("                    }}\n                >\n                    Throw an Error\n                </button>\n                <button\n"),
-// 				},
-// 			},
-// 			Service: &model.Service{
-// 				ID: 1,
-// 				GithubRepoPath: "highlight/highlight",
-// 			},
-// 		}
-// 	}
+func TestFetchFileFromGitHub(t *testing.T) {
+	defer teardown(t)
+	var tests = []struct {
+		Trace           *privateModel.ErrorTrace
+		Service         *model.Service
+		FileName        string
+		ServiceVersion  string
+		ExpectedContent *string
+		ExpectedError   bool
+	}{
+		{
+			Trace: &privateModel.ErrorTrace{
+				FileName:     ptr.String("/build/file.js"),
+				LineNumber:   ptr.Int(634),
+				ColumnNumber: ptr.Int(4),
+				FunctionName: ptr.String(""),
+			},
+			Service: &model.Service{
+				GithubRepoPath: ptr.String("highlight/highlight"),
+			},
+			FileName:        "/file.js",
+			ServiceVersion:  "1234567890",
+			ExpectedContent: ptr.String("console.log('hello world')"),
+			ExpectedError:   false,
+		},
+		{
+			Trace: &privateModel.ErrorTrace{
+				FileName:     ptr.String("/build/error.js"),
+				LineNumber:   ptr.Int(634),
+				ColumnNumber: ptr.Int(4),
+				FunctionName: ptr.String(""),
+			},
+			Service: &model.Service{
+				GithubRepoPath: ptr.String("highlight/highlight"),
+			},
+			FileName:        "/error.js",
+			ServiceVersion:  "1234567890",
+			ExpectedContent: nil,
+			ExpectedError:   true,
+		},
+		{
+			Trace: &privateModel.ErrorTrace{
+				FileName:     ptr.String("/build/blob-file.js"),
+				LineNumber:   ptr.Int(634),
+				ColumnNumber: ptr.Int(4),
+				FunctionName: ptr.String(""),
+			},
+			Service: &model.Service{
+				GithubRepoPath: ptr.String("highlight/highlight"),
+			},
+			FileName:        "/blob-file.js",
+			ServiceVersion:  "1234567890",
+			ExpectedContent: ptr.String("console.log('hello big world')"),
+			ExpectedError:   false,
+		},
+		{
+			Trace: &privateModel.ErrorTrace{
+				FileName:     ptr.String("/build/blob-error.js"),
+				LineNumber:   ptr.Int(634),
+				ColumnNumber: ptr.Int(4),
+				FunctionName: ptr.String(""),
+			},
+			Service: &model.Service{
+				GithubRepoPath: ptr.String("highlight/highlight"),
+			},
+			FileName:        "/blob-error.js",
+			ServiceVersion:  "1234567890",
+			ExpectedContent: nil,
+			ExpectedError:   true,
+		},
+	}
 
-// 	ctx := context.Background()
-// 	for _, tt := range tests {
-// 		stackTrace, err := store.FetchFileFromGitHub(ctx, tt.Trace, tt.Service, tt.FileName, tt.ServiceVersion, tt.GitHubClient)
-// 		assert.Equal(t, tt.ExpectedStackTrace, stackTrace)
-// 		if tt.ExpectedError {
-// 			assert.Error(t, err)
-// 		} else {
-// 			assert.NoError(t, err)
-// 		}
-// 	}
-// }
+	ctx := context.Background()
+	githubClientMock := MockGithubClient{}
+
+	for _, tt := range tests {
+		content, err := store.FetchFileFromGitHub(ctx, tt.Trace, tt.Service, tt.FileName, tt.ServiceVersion, &githubClientMock)
+		if tt.ExpectedError {
+			assert.Nil(t, content)
+			assert.Error(t, err)
+		} else {
+			assert.Equal(t, *tt.ExpectedContent, *content)
+			assert.NoError(t, err)
+		}
+	}
+}
 
 // func TestEnhanceTraceWithGitHub(t *testing.T) {
 // 	defer teardown(t)
@@ -186,3 +223,62 @@ func TestExpandedStackTrace(t *testing.T) {
 // 	store.EnhancedStackTrace(context.Background())
 // 	assert.NoError(t, err)
 // }
+
+type MockGithubClient struct{}
+
+func (c *MockGithubClient) GetRepoContent(ctx context.Context, githubPath string, path string, version string) (fileContent *github2.RepositoryContent, directoryContent []*github2.RepositoryContent, resp *github2.Response, err error) {
+	if path == "/error.js" {
+		return nil, nil, nil, errors.New("repo error")
+	}
+	if path == "/file.js" {
+		fileContent := github2.RepositoryContent{
+			Content: ptr.String("console.log('hello world')"),
+		}
+		return &fileContent, nil, nil, nil
+	}
+	if path == "/blob-error.js" {
+		emptyContent := github2.RepositoryContent{
+			Content: ptr.String(""),
+			SHA:     ptr.String("blob-error"),
+		}
+		return &emptyContent, nil, nil, nil
+	}
+	if path == "/blob-file.js" {
+		emptyContent := github2.RepositoryContent{
+			Content: ptr.String(""),
+			SHA:     ptr.String("blob-file"),
+		}
+		return &emptyContent, nil, nil, nil
+	}
+	return nil, nil, nil, nil
+}
+func (c *MockGithubClient) GetRepoBlob(ctx context.Context, githubPath string, blobSHA string) (*github2.Blob, *github2.Response, error) {
+	if blobSHA == "blob-error" {
+		return nil, nil, errors.New("blob error")
+	}
+	if blobSHA == "blob-file" {
+		blobContent := github2.Blob{
+			Content: ptr.String("console.log('hello big world')"),
+		}
+		return &blobContent, nil, nil
+	}
+
+	return nil, nil, nil
+}
+
+// other methods not used in this test but needed for interface
+func (c *MockGithubClient) CreateIssue(ctx context.Context, repo string, issueRequest *github2.IssueRequest) (*github2.Issue, error) {
+	return nil, nil
+}
+func (c *MockGithubClient) ListLabels(ctx context.Context, repo string) ([]*github2.Label, error) {
+	return nil, nil
+}
+func (c *MockGithubClient) ListRepos(ctx context.Context) ([]*github2.Repository, error) {
+	return nil, nil
+}
+func (c *MockGithubClient) DeleteInstallation(ctx context.Context, installation string) error {
+	return nil
+}
+func (c *MockGithubClient) GetLatestCommitHash(ctx context.Context, githubPath string) (string, *github2.Response, error) {
+	return "", nil, nil
+}
