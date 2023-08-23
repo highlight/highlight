@@ -101,6 +101,10 @@ slug: python
       <h5>e <code>Exception</code> <code>optional</code></h5>
       <p>The exception to record. The contents and stacktrace will be recorded.</p>
     </aside>
+    <aside className="parameter">
+      <h5>attributes <code>dict[str, any]</code> <code>optional</code></h5>
+      <p>Metadata to associate with this exception.</p>
+    </aside>
   </div>
   <div className="right">
     <code>
@@ -130,6 +134,10 @@ the error will be associated with the project ID passed to H().</p>
     <aside className="parameter">
       <h5>request_id <code>string</code> <code>optional</code></h5>
       <p>A Highlight network request ID that initiated the handler raising this error.</p>
+    </aside>
+    <aside className="parameter">
+      <h5>attributes <code>dict[str, any]</code> <code>optional</code></h5>
+      <p>Metadata to associate with this exception.</p>
     </aside>
   </div>
   <div className="right">

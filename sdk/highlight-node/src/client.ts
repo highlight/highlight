@@ -2,7 +2,8 @@ import {
 	BatchSpanProcessor,
 	SpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
-import { Attributes, Tracer, trace } from '@opentelemetry/api'
+import { trace } from '@opentelemetry/api'
+import type { Attributes, Tracer } from '@opentelemetry/api'
 
 import { NodeOptions } from './types.js'
 import { NodeSDK } from '@opentelemetry/sdk-node'
@@ -142,6 +143,7 @@ export class Highlight {
 		stack: object,
 		secureSessionId?: string,
 		requestId?: string,
+		metadata?: Attributes,
 	) {
 		if (!this.tracer) return
 		const span = this.tracer.startSpan('highlight-ctx')
@@ -149,6 +151,7 @@ export class Highlight {
 		span.addEvent(
 			'log',
 			{
+				...(metadata ?? {}),
 				// pass stack so that error creation on our end can show a structured stacktrace for errors
 				['exception.stacktrace']: JSON.stringify(stack),
 				['highlight.project_id']: this._projectID,
@@ -174,9 +177,13 @@ export class Highlight {
 		error: Error,
 		secureSessionId: string | undefined,
 		requestId: string | undefined,
+		metadata?: Attributes,
 	) {
 		const span = this.tracer.startSpan('highlight-ctx')
 		span.recordException(error)
+		if (metadata != undefined) {
+			span.setAttributes(metadata)
+		}
 		span.setAttributes({ ['highlight.project_id']: this._projectID })
 		if (secureSessionId) {
 			span.setAttributes({ ['highlight.session_id']: secureSessionId })
