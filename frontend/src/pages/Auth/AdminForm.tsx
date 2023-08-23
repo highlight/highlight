@@ -34,6 +34,17 @@ import { DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY } from '@/pages/Auth/JoinWorks
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
 
+enum TeamSize {
+	One = '1',
+	Two = '2',
+	Ten = '3-10',
+	Thirty = '11-30',
+	Fifty = '31-50',
+	Hundred = '51-100',
+	FiveHundred = '101-500',
+	Thousand = '501-1000+',
+}
+
 export const AdminForm: React.FC = () => {
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
 	const { setLoadingState } = useAppLoadingContext()
@@ -71,6 +82,7 @@ export const AdminForm: React.FC = () => {
 			role: '',
 			companyName: '',
 			promoCode: '',
+			teamSize: '',
 		},
 	})
 
@@ -107,6 +119,7 @@ export const AdminForm: React.FC = () => {
 							last_name: formState.values.lastName,
 							user_defined_role: formState.values.role,
 							user_defined_persona: '',
+							user_defined_team_size: formState.values.teamSize,
 							referral: attributionData.referral,
 						},
 					},
@@ -122,6 +135,7 @@ export const AdminForm: React.FC = () => {
 							first_name: formState.values.firstName,
 							last_name: formState.values.lastName,
 							user_defined_role: formState.values.role,
+							user_defined_team_size: formState.values.teamSize,
 							workspace_name: formState.values.companyName,
 							promo_code: formState.values.promoCode || undefined,
 							referral: attributionData.referral,
@@ -181,17 +195,26 @@ export const AdminForm: React.FC = () => {
 				</AuthHeader>
 				<AuthBody>
 					<Stack gap="12">
-						<Form.Input
-							name={formState.names.firstName}
-							label="First Name"
-							autoFocus
-							required
-						/>
-						<Form.Input
-							name={formState.names.lastName}
-							label="Last Name"
-							required
-						/>
+						<Form.NamedSection
+							label="Your Name"
+							name={formState.names.role}
+						>
+							<Stack gap="0">
+								<Form.Input
+									name={formState.names.firstName}
+									placeholder="First Name"
+									autoFocus
+									required
+									rounded="first"
+								/>
+								<Form.Input
+									name={formState.names.lastName}
+									placeholder="Last Name"
+									required
+									rounded="last"
+								/>
+							</Stack>
+						</Form.NamedSection>
 						<Form.Input
 							name={formState.names.companyName}
 							label="Company"
@@ -203,8 +226,9 @@ export const AdminForm: React.FC = () => {
 							name={formState.names.role}
 							optional
 						>
-							<select
+							<Form.Select
 								className={styles.select}
+								name={formState.names.role.toString()}
 								value={formState.values.role}
 								onChange={(e) =>
 									formState.setValue(
@@ -219,7 +243,30 @@ export const AdminForm: React.FC = () => {
 								<option value="Product">Product</option>
 								<option value="Engineer">Engineering</option>
 								<option value="Founder">Founder</option>
-							</select>
+							</Form.Select>
+						</Form.NamedSection>
+						<Form.NamedSection
+							label="Team Size"
+							name={formState.names.teamSize}
+							optional
+						>
+							<Form.Select
+								className={styles.select}
+								name={formState.names.teamSize.toString()}
+								value={formState.values.teamSize}
+								onChange={(e) =>
+									formState.setValue(
+										formState.names.teamSize,
+										e.target.value,
+									)
+								}
+							>
+								{Object.entries(TeamSize).map(([k, v]) => (
+									<option value={k} key={k}>
+										{v}
+									</option>
+								))}
+							</Form.Select>
 						</Form.NamedSection>
 						{!inWorkspace &&
 							(showPromoCodeField ? (

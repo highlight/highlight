@@ -112,6 +112,7 @@ type ComplexityRoot struct {
 		UID                   func(childComplexity int) int
 		UserDefinedPersona    func(childComplexity int) int
 		UserDefinedRole       func(childComplexity int) int
+		UserDefinedTeamSize   func(childComplexity int) int
 	}
 
 	AllProjectSettings struct {
@@ -1938,6 +1939,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.UserDefinedRole(childComplexity), true
+
+	case "Admin.user_defined_team_size":
+		if e.complexity.Admin.UserDefinedTeamSize == nil {
+			break
+		}
+
+		return e.complexity.Admin.UserDefinedTeamSize(childComplexity), true
 
 	case "AllProjectSettings.autoResolveStaleErrorsDayInterval":
 		if e.complexity.AllProjectSettings.AutoResolveStaleErrorsDayInterval == nil {
@@ -10062,6 +10070,7 @@ input AdminAboutYouDetails {
 	last_name: String!
 	user_defined_role: String!
 	user_defined_persona: String!
+	user_defined_team_size: String!
 	referral: String!
 	phone: String
 }
@@ -10071,6 +10080,7 @@ input AdminAndWorkspaceDetails {
 	first_name: String!
 	last_name: String!
 	user_defined_role: String!
+	user_defined_team_size: String!
 	referral: String!
 
 	# Workspace
@@ -10186,6 +10196,7 @@ type Admin {
 	email_verified: Boolean
 	referral: String
 	user_defined_role: String
+	user_defined_team_size: String
 	about_you_details_filled: Boolean
 	user_defined_persona: String
 }
@@ -19051,6 +19062,47 @@ func (ec *executionContext) _Admin_user_defined_role(ctx context.Context, field 
 }
 
 func (ec *executionContext) fieldContext_Admin_user_defined_role(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Admin_user_defined_team_size(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Admin_user_defined_team_size(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserDefinedTeamSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Admin_user_defined_team_size(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Admin",
 		Field:      field,
@@ -35053,6 +35105,8 @@ func (ec *executionContext) fieldContext_Mutation_createAdmin(ctx context.Contex
 				return ec.fieldContext_Admin_referral(ctx, field)
 			case "user_defined_role":
 				return ec.fieldContext_Admin_user_defined_role(ctx, field)
+			case "user_defined_team_size":
+				return ec.fieldContext_Admin_user_defined_team_size(ctx, field)
 			case "about_you_details_filled":
 				return ec.fieldContext_Admin_about_you_details_filled(ctx, field)
 			case "user_defined_persona":
@@ -48997,6 +49051,8 @@ func (ec *executionContext) fieldContext_Query_admin(ctx context.Context, field 
 				return ec.fieldContext_Admin_referral(ctx, field)
 			case "user_defined_role":
 				return ec.fieldContext_Admin_user_defined_role(ctx, field)
+			case "user_defined_team_size":
+				return ec.fieldContext_Admin_user_defined_team_size(ctx, field)
 			case "about_you_details_filled":
 				return ec.fieldContext_Admin_about_you_details_filled(ctx, field)
 			case "user_defined_persona":
@@ -62387,6 +62443,8 @@ func (ec *executionContext) fieldContext_WorkspaceAdminRole_admin(ctx context.Co
 				return ec.fieldContext_Admin_referral(ctx, field)
 			case "user_defined_role":
 				return ec.fieldContext_Admin_user_defined_role(ctx, field)
+			case "user_defined_team_size":
+				return ec.fieldContext_Admin_user_defined_team_size(ctx, field)
 			case "about_you_details_filled":
 				return ec.fieldContext_Admin_about_you_details_filled(ctx, field)
 			case "user_defined_persona":
@@ -64741,7 +64799,7 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"first_name", "last_name", "user_defined_role", "user_defined_persona", "referral", "phone"}
+	fieldsInOrder := [...]string{"first_name", "last_name", "user_defined_role", "user_defined_persona", "user_defined_team_size", "referral", "phone"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -64780,6 +64838,14 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "user_defined_team_size":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_defined_team_size"))
+			it.UserDefinedTeamSize, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "referral":
 			var err error
 
@@ -64809,7 +64875,7 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"first_name", "last_name", "user_defined_role", "referral", "workspace_name", "allowed_auto_join_email_origins", "promo_code"}
+	fieldsInOrder := [...]string{"first_name", "last_name", "user_defined_role", "user_defined_team_size", "referral", "workspace_name", "allowed_auto_join_email_origins", "promo_code"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -64837,6 +64903,14 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_defined_role"))
 			it.UserDefinedRole, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "user_defined_team_size":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_defined_team_size"))
+			it.UserDefinedTeamSize, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -66832,6 +66906,10 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 		case "user_defined_role":
 
 			out.Values[i] = ec._Admin_user_defined_role(ctx, field, obj)
+
+		case "user_defined_team_size":
+
+			out.Values[i] = ec._Admin_user_defined_team_size(ctx, field, obj)
 
 		case "about_you_details_filled":
 

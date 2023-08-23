@@ -4727,6 +4727,15 @@ body {
 }
 .in1xv99 {
   border-radius: 6px;
+}
+.in1xv9a {
+  border-radius: 0;
+}
+.in1xv9b {
+  border-radius: 0 6px;
+}
+.in1xv9c {
+  border-radius: 6px;
   border: var(--_1pyqka91o) solid 1px;
   cursor: pointer;
   display: block;
@@ -4739,13 +4748,13 @@ body {
   background-repeat: no-repeat;
   background-position: right 4px center;
 }
-.in1xv99::placeholder {
+.in1xv9c::placeholder {
   color: var(--_1pyqka9x);
 }
-.in1xv99:disabled {
+.in1xv9c:disabled {
   background: #e9e8ea;
 }
-.in1xv99:focus {
+.in1xv9c:focus {
   border: var(--_1pyqka91q) solid 1px;
 }
 ._1e9eref2 {
