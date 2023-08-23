@@ -130,7 +130,7 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 		}
 	}
 
-	gitHubFileBytes, err := store.storageClient.ReadGithubFile(ctx, fileName, serviceVersion)
+	gitHubFileBytes, err := store.storageClient.ReadGitHubFile(ctx, *service.GithubRepoPath, fileName, serviceVersion)
 
 	if err != nil || gitHubFileBytes == nil {
 		encodedFileContent, err := store.FetchFileFromGitHub(ctx, trace, service, fileName, serviceVersion, gitHubClient)
@@ -140,7 +140,7 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 
 		gitHubFileBytes = []byte(*encodedFileContent)
 
-		_, err = store.storageClient.PushGithubFile(ctx, fileName, serviceVersion, gitHubFileBytes)
+		_, err = store.storageClient.PushGitHubFile(ctx, *service.GithubRepoPath, fileName, serviceVersion, gitHubFileBytes)
 		if err != nil {
 			log.WithContext(ctx).Error(err)
 		}
