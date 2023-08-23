@@ -32,6 +32,7 @@ import {
 	IconSolidOfficeBuilding,
 	IconSolidPlayCircle,
 	IconSolidSearch,
+	IconSolidSparkles,
 	IconSolidSpeakerphone,
 	IconSolidSwitchHorizontal,
 	IconSolidUserCircle,
@@ -117,7 +118,7 @@ export const useBillingHook = ({
 
 export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 	const { projectId } = useProjectId()
-	const { isLoggedIn, signOut } = useAuthContext()
+	const { isHighlightAdmin, isLoggedIn, signOut } = useAuthContext()
 	const showAnalytics = useFeatureFlag(Feature.Analytics)
 	const { currentProject, currentWorkspace } = useApplicationContext()
 	const workspaceId = currentWorkspace?.id
@@ -351,6 +352,33 @@ export const Header: React.FC<Props> = ({ fullyIntegrated }) => {
 													</Box>
 												</Menu.Item>
 											</Link>
+											{isHighlightAdmin && (
+												<Link
+													to={`/${projectId}/traces`}
+													className={linkStyle}
+												>
+													<Menu.Item>
+														<Box
+															display="flex"
+															alignItems="center"
+															gap="4"
+														>
+															<IconSolidSparkles
+																size={14}
+																color={
+																	vars.theme
+																		.interactive
+																		.fill
+																		.secondary
+																		.content
+																		.text
+																}
+															/>
+															Traces
+														</Box>
+													</Menu.Item>
+												</Link>
+											)}
 										</Menu.List>
 									</Menu>
 								</Box>

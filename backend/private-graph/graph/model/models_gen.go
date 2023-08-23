@@ -719,6 +719,44 @@ type TopUsersPayload struct {
 	UserProperties       string  `json:"user_properties"`
 }
 
+type Trace struct {
+	Timestamp       time.Time              `json:"timestamp"`
+	TraceID         string                 `json:"traceID"`
+	SpanID          string                 `json:"spanID"`
+	ParentSpanID    string                 `json:"parentSpanID"`
+	ProjectID       int                    `json:"projectID"`
+	SecureSessionID string                 `json:"secureSessionID"`
+	TraceState      string                 `json:"traceState"`
+	SpanName        string                 `json:"spanName"`
+	SpanKind        string                 `json:"spanKind"`
+	Duration        int                    `json:"duration"`
+	ServiceName     string                 `json:"serviceName"`
+	ServiceVersion  string                 `json:"serviceVersion"`
+	TraceAttributes map[string]interface{} `json:"traceAttributes"`
+	StatusCode      string                 `json:"statusCode"`
+	StatusMessage   string                 `json:"statusMessage"`
+	Events          []*TraceEvent          `json:"events"`
+	Links           []*TraceLink           `json:"links"`
+}
+
+type TraceEvent struct {
+	Timestamp  time.Time              `json:"timestamp"`
+	Name       string                 `json:"name"`
+	Attributes map[string]interface{} `json:"attributes"`
+}
+
+type TraceLink struct {
+	TraceID    string                 `json:"traceID"`
+	SpanID     string                 `json:"spanID"`
+	TraceState string                 `json:"traceState"`
+	Attributes map[string]interface{} `json:"attributes"`
+}
+
+type TracesParamsInput struct {
+	Query     string                  `json:"query"`
+	DateRange *DateRangeRequiredInput `json:"date_range"`
+}
+
 type TrackPropertyInput struct {
 	ID    *int   `json:"id"`
 	Name  string `json:"name"`

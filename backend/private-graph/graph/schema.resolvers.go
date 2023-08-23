@@ -7689,6 +7689,16 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 	return &connection, err
 }
 
+// Traces is the resolver for the traces field.
+func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.TracesParamsInput) ([]*modelInputs.Trace, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadTraces(ctx, project.ID, params)
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}

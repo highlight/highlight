@@ -625,6 +625,39 @@ type LogConnection implements Connection {
 	pageInfo: PageInfo!
 }
 
+type Trace {
+	timestamp: Timestamp!
+	traceID: String!
+	spanID: String!
+	parentSpanID: String!
+	projectID: Int!
+	secureSessionID: String!
+	traceState: String!
+	spanName: String!
+	spanKind: String!
+	duration: Int!
+	serviceName: String!
+	serviceVersion: String!
+	traceAttributes: Map!
+	statusCode: String!
+	statusMessage: String!
+	events: [TraceEvent]
+	links: [TraceLink]
+}
+
+type TraceEvent {
+	timestamp: Timestamp!
+	name: String!
+	attributes: Map!
+}
+
+type TraceLink {
+	traceID: String!
+	spanID: String!
+	traceState: String!
+	attributes: Map!
+}
+
 type ErrorObjectNodeSession {
 	secureID: String!
 	appVersion: String
@@ -810,6 +843,11 @@ input ErrorGroupFrequenciesParamsInput {
 }
 
 input LogsParamsInput {
+	query: String!
+	date_range: DateRangeRequiredInput!
+}
+
+input TracesParamsInput {
 	query: String!
 	date_range: DateRangeRequiredInput!
 }
@@ -1805,6 +1843,7 @@ type Query {
 		before: String
 		query: String
 	): ServiceConnection
+	traces(project_id: ID!, params: TracesParamsInput!): [Trace!]!
 }
 
 type Mutation {
