@@ -3,11 +3,11 @@ title: Changelog 23 (08/22)
 slug: changelog-23
 ---
 
-## Visual indicator in Session Replay error list 
+## Visual indicator in Session Replay devtools
 
-Sessions can be long and contain huge lists of errors.
+Sessions can be long and contain huge lists of items.
 
-As you watch your session replay, you can now see the user progress through the error list. This helps to associate errors with user actions.
+As you watch your session replay, you can now see the items progress through the list automatically, with an indicator that tells you if the item is before or after the current timestamp.
 
 <EmbeddedVideo 
   src="https://www.loom.com/embed/1f1b97e2bdf145869ae41efb5b182c13?sid=80aded93-467c-419c-91c1-d5d8eaa16d9f"
@@ -17,7 +17,7 @@ As you watch your session replay, you can now see the user progress through the 
 
 ## Poll for new session, errors and logs
 
-We often found ourselves refreshing our Highlight dashboard when we were testing our integrations.
+We often found ourselves refreshing our Highlight dashboard to update our data.
 
 Highlight's web app now polls for new sessions, errors and logs, so you don't have to refresh the page every few seconds.
 
