@@ -14,7 +14,8 @@ const AlertNotifyForm = () => {
 	const { alertsPayload, slackUrl } = useAlertsContext()
 	const { slackLoading, syncSlack } = useSlackSync()
 	const [slackSearchQuery, setSlackSearchQuery] = useState('')
-	const form = useForm() as FormState<AlertForm>
+	const formStore = useForm() as FormState<AlertForm>
+	const formState = formStore.getState()
 
 	const slackChannels = (alertsPayload?.slack_channel_suggestion ?? []).map(
 		({ webhook_channel, webhook_channel_id }) => ({
@@ -51,7 +52,7 @@ const AlertNotifyForm = () => {
 			<Box borderTop="dividerWeak" width="full" />
 			<Form.NamedSection
 				label="Slack channels to notify"
-				name={form.names.slackChannels}
+				name={formStore.names.slackChannels}
 			>
 				<Select
 					aria-label="Slack channels to notify"
@@ -63,8 +64,8 @@ const AlertNotifyForm = () => {
 						setSlackSearchQuery(value)
 					}}
 					onChange={(values) => {
-						form.setValue(
-							form.names.slackChannels,
+						formStore.setValue(
+							formStore.names.slackChannels,
 							values.map((v: any) => ({
 								webhook_channel_name: v.label,
 								webhook_channel_id: v.value,
@@ -72,7 +73,7 @@ const AlertNotifyForm = () => {
 							})),
 						)
 					}}
-					value={form.values.slackChannels}
+					value={formState.values.slackChannels}
 					notFoundContent={
 						<SlackLoadOrConnect
 							isLoading={slackLoading}
@@ -91,7 +92,7 @@ const AlertNotifyForm = () => {
 
 			<Form.NamedSection
 				label="Discord channels to notify"
-				name={form.names.discordChannels}
+				name={formStore.names.discordChannels}
 			>
 				<Select
 					aria-label="Discord channels to notify"
@@ -99,8 +100,8 @@ const AlertNotifyForm = () => {
 					options={discordChannels}
 					optionFilterProp="label"
 					onChange={(values) => {
-						form.setValue(
-							form.names.discordChannels,
+						formStore.setValue(
+							formStore.names.discordChannels,
 							values.map((v: any) => ({
 								name: v.label,
 								id: v.value,
@@ -108,7 +109,7 @@ const AlertNotifyForm = () => {
 							})),
 						)
 					}}
-					value={form.values.discordChannels}
+					value={formState.values.discordChannels}
 					notFoundContent={
 						discordChannels.length === 0 ? (
 							<Link to="/integrations">
@@ -126,16 +127,16 @@ const AlertNotifyForm = () => {
 
 			<Form.NamedSection
 				label="Emails to notify"
-				name={form.names.emails}
+				name={formStore.names.emails}
 			>
 				<Select
 					aria-label="Emails to notify"
 					placeholder="Select emails"
 					options={emails}
 					onChange={(values: any): any =>
-						form.setValue(form.names.emails, values)
+						formStore.setValue(formStore.names.emails, values)
 					}
-					value={form.values.emails}
+					value={formState.values.emails}
 					notFoundContent={<p>No email suggestions</p>}
 					className={styles.selectContainer}
 					mode="multiple"
@@ -144,15 +145,18 @@ const AlertNotifyForm = () => {
 
 			<Form.NamedSection
 				label="Webhooks to notify"
-				name={form.names.emails}
+				name={formStore.names.emails}
 			>
 				<Select
 					aria-label="Webhooks to notify"
 					placeholder="Enter webhook addresses"
 					onChange={(values: any): any =>
-						form.setValue(form.names.webhookDestinations, values)
+						formStore.setValue(
+							formStore.names.webhookDestinations,
+							values,
+						)
 					}
-					value={form.values.webhookDestinations}
+					value={formState.values.webhookDestinations}
 					notFoundContent={null}
 					className={styles.selectContainer}
 					mode="tags"

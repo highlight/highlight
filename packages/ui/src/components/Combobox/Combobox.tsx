@@ -1,6 +1,6 @@
 import React from 'react'
 import {
-	useComboboxState as ariakitUseComboboxState,
+	useComboboxStore as ariakitUseComboboxStore,
 	Combobox as AriakitCombobox,
 	ComboboxProps as AriakitComboboxProps,
 	ComboboxItem as AriakitComboboxItem,
@@ -11,9 +11,9 @@ import {
 	ComboboxGroupLabelProps as AriakitComboboxGroupLabelProps,
 	ComboboxPopover as AriakitComboboxPopover,
 	ComboboxPopoverProps as AriakitComboboxPopoverProps,
-} from 'ariakit/combobox'
+} from '@ariakit/react'
 
-export const useComboboxState = ariakitUseComboboxState
+export const useComboboxStore = ariakitUseComboboxStore
 
 type Props = React.PropsWithChildren & AriakitComboboxProps
 

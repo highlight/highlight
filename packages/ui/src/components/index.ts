@@ -37,4 +37,4 @@ export * from './icons'
 // Expose Ariakit so you can access the building blocks if needed. Shouldn't be
 // necessary in the future once we create our own versions of the components.
 // Originally exported for dialogs.
-export * as Ariakit from 'ariakit'
+export * as Ariakit from '@ariakit/react'

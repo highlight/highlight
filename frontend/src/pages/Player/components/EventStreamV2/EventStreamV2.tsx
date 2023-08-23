@@ -1,6 +1,6 @@
 import LoadingBox from '@components/LoadingBox'
 import { useGetWebVitalsQuery } from '@graph/hooks'
-import { Box, Form, IconSolidSearch, useFormState } from '@highlight-run/ui'
+import { Box, Form, IconSolidSearch, useFormStore } from '@highlight-run/ui'
 import { useEventTypeFilters } from '@pages/Player/components/EventStream/hooks/useEventTypeFilters'
 import { StreamEventV2 } from '@pages/Player/components/EventStreamV2/StreamEventV2/StreamEventV2'
 import {
@@ -41,12 +41,13 @@ const EventStreamV2 = function () {
 	const [isInteractingWithStreamEvents, setIsInteractingWithStreamEvents] =
 		useState(false)
 	const [events, setEvents] = useState<HighlightEvent[]>([])
-	const form = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			search: '',
 		},
 	})
-	const searchQuery = form.getValue('search')
+	const formState = formStore.getState()
+	const searchQuery = formState.values.search
 	const eventTypeFilters = useEventTypeFilters()
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const { data } = useGetWebVitalsQuery({
@@ -127,7 +128,7 @@ const EventStreamV2 = function () {
 					flexDirection="column"
 				>
 					<Box px="12" py="8">
-						<Form state={form}>
+						<Form store={formStore}>
 							<Box
 								display="flex"
 								justifyContent="space-between"
@@ -138,7 +139,7 @@ const EventStreamV2 = function () {
 							>
 								<IconSolidSearch size={16} />
 								<Form.Input
-									name={form.names.search}
+									name={formStore.names.search}
 									placeholder="Search"
 									size="xSmall"
 									outline={false}

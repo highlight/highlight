@@ -26,7 +26,7 @@ import {
 	Tag,
 	Text,
 	useForm,
-	useFormState,
+	useFormStore,
 	useMenu,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -114,7 +114,7 @@ export const LogAlertPage = () => {
 		skip: !alert_id,
 	})
 
-	const form = useFormState<LogMonitorForm>({
+	const form = useFormStore<LogMonitorForm>({
 		defaultValues: {
 			query: initialQuery,
 			name: '',
@@ -129,9 +129,10 @@ export const LogAlertPage = () => {
 			loaded: false,
 		},
 	})
+	const formValues = form.getState().values
 
 	form.useSubmit(() => {
-		setSubmittedQuery(form.values.query)
+		setSubmittedQuery(formValues.query)
 	})
 
 	useEffect(() => {
@@ -195,9 +196,9 @@ export const LogAlertPage = () => {
 
 	const navigate = useNavigate()
 
-	const belowThreshold = form.values.belowThreshold
-	const threshold = form.values.threshold
-	const frequency = form.values.frequency
+	const belowThreshold = formValues.belowThreshold
+	const threshold = formValues.threshold
+	const frequency = formValues.frequency
 
 	const header = (
 		<Box
@@ -260,7 +261,7 @@ export const LogAlertPage = () => {
 								form.names.belowThreshold,
 							),
 							disabled: false,
-							discord_channels: form.values.discordChannels.map(
+							discord_channels: formValues.discordChannels.map(
 								(c) => ({
 									name: c.name,
 									id: c.id,
@@ -272,7 +273,7 @@ export const LogAlertPage = () => {
 							),
 							name: form.getValue(form.names.name),
 							project_id: project_id || '0',
-							slack_channels: form.values.slackChannels.map(
+							slack_channels: formValues.slackChannels.map(
 								(c) => ({
 									webhook_channel_id: c.webhook_channel_id,
 									webhook_channel_name:
@@ -356,7 +357,7 @@ export const LogAlertPage = () => {
 		</Box>
 	)
 
-	const isLoading = !isCreate && !form.values.loaded
+	const isLoading = !isCreate && !formValues.loaded
 
 	return (
 		<Box width="full" background="raised" p="8">
@@ -373,7 +374,7 @@ export const LogAlertPage = () => {
 				{isLoading && <LoadingBox />}
 				{!isLoading && (
 					<>
-						<Form state={form} resetOnSubmit={false}>
+						<Form store={form} resetOnSubmit={false}>
 							{header}
 							<Container
 								display="flex"
@@ -480,6 +481,7 @@ export const LogAlertPage = () => {
 const LogAlertForm = () => {
 	const { projectId } = useProjectId()
 	const form = useForm() as FormState<LogMonitorForm>
+	const formState = form.getState()
 
 	const { alertsPayload } = useLogAlertsContext()
 	const { slackLoading, syncSlack } = useSlackSync()
@@ -549,7 +551,7 @@ const LogAlertForm = () => {
 									/>
 								}
 								style={{
-									borderColor: form.errors.threshold
+									borderColor: formState.errors.threshold
 										? 'var(--color-red-500)'
 										: undefined,
 								}}
@@ -560,7 +562,7 @@ const LogAlertForm = () => {
 							<Form.Select
 								label="Alert frequency"
 								name={form.names.frequency.toString()}
-								value={form.values.frequency}
+								value={formState.values.frequency}
 								onChange={(e) =>
 									form.setValue(
 										form.names.frequency,
@@ -603,7 +605,7 @@ const LogAlertForm = () => {
 						placeholder="Alert name"
 						label="Name"
 						style={{
-							borderColor: form.errors.name
+							borderColor: formState.errors.name
 								? 'var(--color-red-500)'
 								: undefined,
 						}}
@@ -623,7 +625,7 @@ const LogAlertForm = () => {
 									values,
 								)
 							}
-							value={form.values.excludedEnvironments}
+							value={formState.values.excludedEnvironments}
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
@@ -663,7 +665,7 @@ const LogAlertForm = () => {
 									})),
 								)
 							}}
-							value={form.values.slackChannels}
+							value={formState.values.slackChannels}
 							notFoundContent={
 								<SlackLoadOrConnect
 									isLoading={slackLoading}
@@ -700,7 +702,7 @@ const LogAlertForm = () => {
 									})),
 								)
 							}}
-							value={form.values.discordChannels}
+							value={formState.values.discordChannels}
 							notFoundContent={
 								discordChannels.length === 0 ? (
 									<Link to="/integrations">
@@ -727,7 +729,7 @@ const LogAlertForm = () => {
 							onChange={(values: any): any =>
 								form.setValue(form.names.emails, values)
 							}
-							value={form.values.emails}
+							value={formState.values.emails}
 							notFoundContent={<p>No email suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
@@ -747,7 +749,7 @@ const LogAlertForm = () => {
 									values,
 								)
 							}
-							value={form.values.webhookDestinations}
+							value={formState.values.webhookDestinations}
 							notFoundContent={null}
 							className={styles.selectContainer}
 							mode="tags"
@@ -762,7 +764,8 @@ const LogAlertForm = () => {
 const ThresholdTypeConfiguration = () => {
 	const form = useForm()
 	const menu = useMenu()
-	const belowThreshold = form.values.belowThreshold
+	const menuState = menu.getState()
+	const belowThreshold = form.getState().values.belowThreshold
 	return (
 		<>
 			<Menu.Button
@@ -771,7 +774,7 @@ const ThresholdTypeConfiguration = () => {
 				emphasis="high"
 				cssClass={styles.thresholdTypeButton}
 				iconRight={
-					menu.open ? (
+					menuState.open ? (
 						<IconSolidCheveronUp />
 					) : (
 						<IconSolidCheveronDown />

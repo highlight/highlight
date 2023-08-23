@@ -14,9 +14,9 @@ import {
 	PreviousDateRangePicker,
 	Stack,
 	Text,
-	useComboboxState,
+	useComboboxStore,
 	useForm,
-	useFormState,
+	useFormStore,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { LOG_TIME_FORMAT, TIME_MODE } from '@pages/LogsPage/constants'
@@ -70,7 +70,8 @@ const SearchForm = ({
 	hideCreateAlert,
 }: Props) => {
 	const navigate = useNavigate()
-	const formState = useFormState({ defaultValues: { query: initialQuery } })
+	const formStore = useFormStore({ defaultValues: { query: initialQuery } })
+	const formState = formStore.getState()
 	const { projectId } = useProjectId()
 	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
 		variables: {
@@ -82,7 +83,7 @@ const SearchForm = ({
 		},
 	})
 
-	formState.useSubmit(() => {
+	formStore.useSubmit(() => {
 		onFormSubmit(formState.values.query)
 	})
 
@@ -96,7 +97,7 @@ const SearchForm = ({
 		<Form
 			resetOnSubmit={false}
 			style={{ position: 'relative' }}
-			state={formState}
+			store={formStore}
 		>
 			<Box
 				alignItems="stretch"
@@ -213,15 +214,17 @@ export const Search: React.FC<{
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const inputRef = useRef<HTMLInputElement | null>(null)
-	const state = useComboboxState({
-		gutter: 10,
-		sameWidth: true,
+	const comboboxStore = useComboboxStore({
+		// TODO: Figure out how to pass these values in
+		// gutter: 10,
+		// sameWidth: true,
 		defaultValue: initialQuery ?? '',
 	})
+	const comboboxState = comboboxStore.getState()
 	const [getLogsKeyValues, { data, loading: valuesLoading }] =
 		useGetLogsKeyValuesLazyQuery()
 
-	const queryTerms = parseLogsQuery(state.value)
+	const queryTerms = parseLogsQuery(comboboxState.value)
 	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
@@ -234,13 +237,13 @@ export const Search: React.FC<{
 
 	const visibleItems = showValues
 		? getVisibleValues(activeTerm, data?.logs_key_values)
-		: getVisibleKeys(state.value, queryTerms, activeTerm, keys)
+		: getVisibleKeys(comboboxState.value, queryTerms, activeTerm, keys)
 
 	// Limit number of items shown
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
 
 	const showResults = loading || visibleItems.length > 0 || showTermSelect
-	const isDirty = state.value !== ''
+	const isDirty = comboboxState.value !== ''
 
 	const submitQuery = (query: string) => {
 		formState.setValue('query', query)
@@ -273,25 +276,25 @@ export const Search: React.FC<{
 
 	useEffect(() => {
 		// necessary to update the combobox with the URL state
-		state.setValue(initialQuery.trim())
+		comboboxStore.setValue(initialQuery.trim())
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [initialQuery])
 
 	useEffect(() => {
 		// links combobox and form states;
 		// necessary to update the URL when the query changes
-		formState.setValue('query', state.value)
+		formState.setValue('query', comboboxState.value)
 
 		// Clear the selected item if the combobox is empty. Need to flush execution
 		// queue before clearing the active item.
-		if (state.value === '') {
+		if (comboboxState.value === '') {
 			setTimeout(() => {
-				state.setActiveId(null)
-				state.setMoves(0)
+				comboboxStore.setActiveId(null)
+				comboboxStore.setState('moves', 0)
 			}, 0)
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [state.value])
+	}, [comboboxState.value])
 
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
@@ -310,15 +313,15 @@ export const Search: React.FC<{
 		}
 
 		const newQuery = stringifyLogsQuery(queryTerms)
-		state.setValue(newQuery)
+		comboboxStore.setValue(newQuery)
 
 		if (isValueSelect) {
 			submitQuery(newQuery)
-			state.setOpen(false)
+			comboboxStore.setOpen(false)
 		}
 
-		state.setActiveId(null)
-		state.setMoves(0)
+		comboboxStore.setActiveId(null)
+		comboboxStore.setState('moves', 0)
 	}
 
 	return (
@@ -344,7 +347,7 @@ export const Search: React.FC<{
 					ref={inputRef}
 					disabled={disableSearch}
 					autoSelect
-					state={state}
+					store={comboboxStore}
 					name="search"
 					placeholder={placeholder ?? 'Search your logs...'}
 					className={className ?? styles.combobox}
@@ -352,15 +355,15 @@ export const Search: React.FC<{
 						paddingLeft: hideIcon ? undefined : 40,
 					}}
 					onBlur={() => {
-						submitQuery(state.value)
-						formState.setValue('query', state.value)
+						submitQuery(comboboxState.value)
+						formState.setValue('query', comboboxState.value)
 						inputRef?.current?.blur()
 					}}
 					onKeyDown={(e) => {
-						if (e.key === 'Enter' && state.value === '') {
+						if (e.key === 'Enter' && comboboxState.value === '') {
 							e.preventDefault()
-							submitQuery(state.value)
-							state.setOpen(false)
+							submitQuery(comboboxState.value)
+							comboboxStore.setOpen(false)
 						}
 					}}
 				/>
@@ -372,7 +375,7 @@ export const Search: React.FC<{
 							e.preventDefault()
 							e.stopPropagation()
 
-							state.setValue('')
+							comboboxStore.setValue('')
 							submitQuery('')
 						}}
 						style={{ cursor: 'pointer' }}
@@ -386,17 +389,19 @@ export const Search: React.FC<{
 					style={{
 						left: hideIcon ? undefined : 6,
 					}}
-					state={state}
+					store={comboboxStore}
+					gutter={10}
+					sameWidth
 				>
 					<Box pt="4">
-						<Combobox.GroupLabel state={state}>
+						<Combobox.GroupLabel store={comboboxStore}>
 							{activeTerm.value && (
 								<Combobox.Item
 									className={styles.comboboxItem}
 									onClick={() =>
 										handleItemSelect(activeTerm.value, true)
 									}
-									state={state}
+									store={comboboxStore}
 								>
 									<Stack direction="row" gap="8">
 										<Text lines="1">
@@ -417,7 +422,7 @@ export const Search: React.FC<{
 					</Box>
 					<Combobox.Group
 						className={styles.comboboxGroup}
-						state={state}
+						store={comboboxStore}
 					>
 						{loading && (
 							<Combobox.Item
@@ -432,7 +437,7 @@ export const Search: React.FC<{
 								className={styles.comboboxItem}
 								key={index}
 								onClick={() => handleItemSelect(key)}
-								state={state}
+								store={comboboxStore}
 							>
 								{typeof key === 'string' ? (
 									<Text>{key}</Text>

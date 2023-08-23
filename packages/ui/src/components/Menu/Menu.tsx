@@ -45,7 +45,7 @@ export const Menu: MenuComponent = ({ children, ...props }: Props) => {
 export type MenuButtonProps = React.PropsWithChildren<{
 	cssClass?: ClassValue | ClassValue[]
 }> &
-	Omit<AriakitMenuButtonProps, 'state'> &
+	Omit<AriakitMenuButtonProps, 'store'> &
 	Pick<ButtonProps, 'iconLeft' | 'iconRight'> & {
 		emphasis?: ButtonProps['emphasis']
 		icon?: ButtonIconProps['icon']

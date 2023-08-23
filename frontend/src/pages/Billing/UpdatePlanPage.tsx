@@ -18,7 +18,7 @@ import {
 	Tag,
 	Text,
 	Tooltip,
-	useFormState,
+	useFormStore,
 } from '@highlight-run/ui'
 import { loadStripe } from '@stripe/stripe-js'
 import { message } from 'antd'
@@ -486,7 +486,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 
 	const navigate = useNavigate()
 
-	const formState = useFormState<UpdatePlanForm>({
+	const formStore = useFormStore<UpdatePlanForm>({
 		defaultValues: {
 			sessionsRetention: RetentionPeriod.ThreeMonths,
 			sessionsLimitCents: undefined,
@@ -496,6 +496,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			logsLimitCents: undefined,
 		},
 	})
+	const formState = formStore.getState()
 
 	const [saveBillingPlan, { loading: billingPlanLoading }] =
 		useSaveBillingPlanMutation({
@@ -507,7 +508,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 			workspace_id: workspace_id!,
 		},
 		onCompleted: (data) => {
-			formState.setValues({
+			formStore.setValues({
 				sessionsRetention:
 					data.workspace?.retention_period ??
 					RetentionPeriod.SixMonths,
@@ -829,7 +830,7 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 							</Text>
 						</Box>
 					</Stack>
-					<Form state={formState}>
+					<Form store={formStore}>
 						<Box
 							display="flex"
 							flexDirection="column"
@@ -843,15 +844,15 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 									formState.values.sessionsRetention
 								}
 								setRetentionPeriod={(rp) =>
-									formState.setValue(
-										formState.names.sessionsRetention,
+									formStore.setValue(
+										formStore.names.sessionsRetention,
 										rp,
 									)
 								}
 								limitCents={formState.values.sessionsLimitCents}
 								setLimitCents={(l) =>
-									formState.setValue(
-										formState.names.sessionsLimitCents,
+									formStore.setValue(
+										formStore.names.sessionsLimitCents,
 										l,
 									)
 								}
@@ -868,15 +869,15 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 									formState.values.errorsRetention
 								}
 								setRetentionPeriod={(rp) =>
-									formState.setValue(
-										formState.names.errorsRetention,
+									formStore.setValue(
+										formStore.names.errorsRetention,
 										rp,
 									)
 								}
 								limitCents={formState.values.errorsLimitCents}
 								setLimitCents={(l) =>
-									formState.setValue(
-										formState.names.errorsLimitCents,
+									formStore.setValue(
+										formStore.names.errorsLimitCents,
 										l,
 									)
 								}
@@ -891,15 +892,15 @@ const UpdatePlanPage = ({}: BillingPageProps) => {
 								productType="Logs"
 								retentionPeriod={formState.values.logsRetention}
 								setRetentionPeriod={(rp) =>
-									formState.setValue(
-										formState.names.logsRetention,
+									formStore.setValue(
+										formStore.names.logsRetention,
 										rp,
 									)
 								}
 								limitCents={formState.values.logsLimitCents}
 								setLimitCents={(l) =>
-									formState.setValue(
-										formState.names.logsLimitCents,
+									formStore.setValue(
+										formStore.names.logsLimitCents,
 										l,
 									)
 								}

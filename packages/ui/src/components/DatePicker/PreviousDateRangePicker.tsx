@@ -186,11 +186,11 @@ type Props = {
 	onDatesChange: (selectedDates: Date[]) => void
 	presets: Preset[]
 	minDate: Date
-} & Omit<MenuButtonProps, 'ref'>
+} & Omit<MenuButtonProps, 'ref' | 'store'>
 
 export const PreviousDateRangePicker: React.FC<Props> = (props) => (
 	<Menu placement="bottom-end">
-		{/* Rendering inside wrapper so we can work with menu state via useMenu. */}
+		{/* Rendering inside wrapper so we can work with menu store via useMenu. */}
 		<PreviousDateRangePickerImpl {...props} />
 	</Menu>
 )
@@ -224,11 +224,13 @@ const PreviousDateRangePickerImpl = ({
 	const [endTimeIsValid, setEndTimeIsValid] = useState<boolean>(true)
 
 	const menu = useMenu()
+	const open = menu.getState().open
+
 	useEffect(() => {
-		if (!menu.open) {
+		if (!open) {
 			setMenuState(MenuState.Default)
 		}
-	}, [menu.open])
+	}, [open])
 
 	// Close the time picker when the menu is closed
 	useEffect(() => {

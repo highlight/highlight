@@ -10,9 +10,10 @@ import {
 	FormInputProps as AriaKitFormInputProps,
 	FormField as AriaKitFormField,
 	FormFieldProps as AriaKitFormFieldProps,
-	FormState as AriaKitFormState,
-	useFormState as useAriaKitFormState,
-} from 'ariakit/form'
+	FormStore as AriaKitFormStore,
+	FormStoreState as AriaKitFormStoreState,
+	useFormStore as useAriaKitFormStore,
+} from '@ariakit/react'
 
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'
@@ -29,7 +30,7 @@ type FormComponent = React.FC<Props> & {
 	Field: typeof Field
 	Select: typeof Select
 	NamedSection: typeof NamedSection
-	useFormState: typeof useAriaKitFormState
+	useFormStore: typeof useAriaKitFormStore
 }
 
 interface LabelProps {
@@ -84,15 +85,15 @@ export const NamedSection = ({
 	)
 }
 
-const FormContext = React.createContext<AriaKitFormState>(
-	{} as AriaKitFormState,
+const FormContext = React.createContext<AriaKitFormStore>(
+	{} as AriaKitFormStore,
 )
 export const useForm = () => React.useContext(FormContext)
 
 type Props = AriaKitFormProps
 export const Form: FormComponent = ({ children, ...props }: Props) => {
 	return (
-		<FormContext.Provider value={props.state}>
+		<FormContext.Provider value={props.store}>
 			<AriaKitForm {...props}>{children}</AriaKitForm>
 		</FormContext.Provider>
 	)
@@ -209,6 +210,9 @@ Form.Field = Field
 Form.Select = Select
 Form.NamedSection = NamedSection
 
-export declare type FormState<T> = AriaKitFormState<T>
-export const useFormState = useAriaKitFormState
-Form.useFormState = useFormState
+export const useFormStore = useAriaKitFormStore
+Form.useFormStore = useFormStore
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export declare type FormState<T extends Record<string, any>> =
+	AriaKitFormStore<T>

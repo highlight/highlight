@@ -1,6 +1,6 @@
 import { last30Days } from '@components/CommandBar/constants'
 import { nextAttribute, useAttributeSearch } from '@components/CommandBar/utils'
-import { FormState, useFormState } from '@highlight-run/ui'
+import { FormState, useFormStore } from '@highlight-run/ui'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { createContext } from '@util/context/context'
 import { validateEmail } from '@util/string'
@@ -97,18 +97,19 @@ export const CommandBarContextProvider: React.FC<React.PropsWithChildren> = ({
 	children,
 }) => {
 	const { commandBarDialog } = useGlobalContext()
-	const form = useFormState<CommandBarSearch>({
+	const formStore = useFormStore<CommandBarSearch>({
 		defaultValues: {
 			search: '',
 			selectedDates: [last30Days.startDate, moment().toDate()],
 		},
 	})
+	const formState = formStore.getState()
 
-	const query = form.getValue(form.names.search).trim()
-	const selectedDates = form.getValue<[Date, Date]>(form.names.selectedDates)
-	const searchAttribute = useAttributeSearch(form)
+	const query = formState.values.search.trim()
+	const selectedDates = formState.values.selectedDates
+	const searchAttribute = useAttributeSearch(formStore)
 
-	form.useSubmit(() => {
+	formStore.useSubmit(() => {
 		if (query) {
 			searchAttribute(currentAttribute, {
 				withDate:
@@ -147,7 +148,7 @@ export const CommandBarContextProvider: React.FC<React.PropsWithChildren> = ({
 		'cmd+k, ctrl+k, /',
 		(e) => {
 			e.preventDefault()
-			form.reset()
+			formStore.reset()
 			api.setCurrentAttribute(ATTRIBUTES[0])
 			commandBarDialog.toggle()
 		},
@@ -184,7 +185,7 @@ export const CommandBarContextProvider: React.FC<React.PropsWithChildren> = ({
 		<CurrentAttributeProvider value={currentAttribute}>
 			<CommandBarAPIProvider value={api}>
 				<CommandBarStateProvider value={{ touched }}>
-					<CommandBarFormProvider value={form}>
+					<CommandBarFormProvider value={formStore}>
 						{children}
 					</CommandBarFormProvider>
 				</CommandBarStateProvider>

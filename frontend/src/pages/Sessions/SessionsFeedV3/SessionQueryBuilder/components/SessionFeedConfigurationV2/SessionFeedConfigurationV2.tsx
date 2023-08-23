@@ -140,7 +140,7 @@ export const DropdownMenu = function ({
 						>
 							Order
 						</Text>
-						<Menu gutter={8}>
+						<Menu>
 							<Menu.Button kind="secondary" emphasis="medium">
 								{getSortOrderDisplayName(
 									sessionFeedConfiguration.sortOrder,
@@ -184,7 +184,7 @@ export const DropdownMenu = function ({
 						>
 							Datetime Format
 						</Text>
-						<Menu gutter={8}>
+						<Menu>
 							<Menu.Button kind="secondary" emphasis="medium">
 								{formatDatetime(
 									new Date().toISOString(),
@@ -233,7 +233,7 @@ export const DropdownMenu = function ({
 							Count Format
 						</Text>
 
-						<Menu gutter={8}>
+						<Menu>
 							<Menu.Button kind="secondary" emphasis="medium">
 								{formatCount(
 									12321,

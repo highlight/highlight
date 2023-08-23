@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button as AriakitButton, ButtonProps } from 'ariakit/button'
+import { Button as AriakitButton, ButtonProps } from '@ariakit/react'
 import { Text } from '../Text/Text'
 
 import * as styles from './styles.css'

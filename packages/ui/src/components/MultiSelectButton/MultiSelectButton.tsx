@@ -1,11 +1,11 @@
 import React from 'react'
 import {
-	useSelectState,
+	useSelectStore,
 	Select,
 	SelectItem,
 	SelectLabel,
 	SelectPopover,
-} from 'ariakit'
+} from '@ariakit/react'
 
 import { IconSolidCheckCircle, IconSolidMinus } from '../icons'
 
@@ -37,18 +37,19 @@ export const MultiSelectButton: React.FC<Props> = ({
 	options,
 	onChange,
 }) => {
-	const selectState = useSelectState({
+	const selectStore = useSelectStore({
 		defaultValue: defaultValue ? [defaultValue] : [],
 		setValue: (value: string[]) => onChange(value),
 		value: value,
 	})
+	const selectState = selectStore.getState()
 
 	return (
 		<>
-			<SelectLabel state={selectState} className={styles.selectLabel}>
+			<SelectLabel store={selectStore} className={styles.selectLabel}>
 				{label}
 			</SelectLabel>
-			<Select state={selectState} className={styles.selectButton}>
+			<Select store={selectStore} className={styles.selectButton}>
 				<>
 					{icon}
 					<Text size="xSmall" color="secondaryContentText">
@@ -58,7 +59,7 @@ export const MultiSelectButton: React.FC<Props> = ({
 			</Select>
 			{selectState.mounted && (
 				<SelectPopover
-					state={selectState}
+					store={selectStore}
 					className={styles.selectPopover}
 				>
 					{options.map((option: Option) => (

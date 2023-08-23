@@ -242,7 +242,8 @@ const StackSectionError: React.FC<
 > = ({ children, error, keys, title }) => {
 	const { projectId } = useProjectId()
 	const [showMetadata, setShowMetadata] = React.useState(false)
-	const { mounted } = usePopover()
+	const popoverStore = usePopover()
+	const mounted = popoverStore.getState().mounted
 
 	useEffect(() => {
 		if (!mounted) {

@@ -2,18 +2,19 @@ import {
 	Popover as AriakitPopover,
 	PopoverDisclosure,
 	PopoverOptions,
-	PopoverState,
-	usePopoverState,
-} from 'ariakit'
+	PopoverStore,
+	PopoverStoreProps,
+	usePopoverStore,
+} from '@ariakit/react'
 import React from 'react'
 import { Button, ButtonProps as ButtonProps } from '../Button/Button'
 import { Tag, Props as TagProps } from '../Tag/Tag'
 import { Box, BoxProps } from '../Box/Box'
 
-const PopoverContext = React.createContext<PopoverState>({} as PopoverState)
+const PopoverContext = React.createContext<PopoverStore>({} as PopoverStore)
 export const usePopover = () => React.useContext(PopoverContext)
 
-export type PopoverProps = React.PropsWithChildren<Partial<PopoverState>>
+export type PopoverProps = React.PropsWithChildren<Partial<PopoverStoreProps>>
 
 type PopoverComponent = React.FC<PopoverProps> & {
 	ButtonTrigger: typeof ButtonTrigger
@@ -26,14 +27,13 @@ export const Popover: PopoverComponent = ({
 	children,
 	...props
 }: PopoverProps) => {
-	const popoverState = usePopoverState({
+	const popoverStore = usePopoverStore({
 		placement: 'bottom',
-		gutter: 4,
 		...props,
 	})
 
 	return (
-		<PopoverContext.Provider value={popoverState}>
+		<PopoverContext.Provider value={popoverStore}>
 			{children}
 		</PopoverContext.Provider>
 	)
@@ -49,7 +49,7 @@ const ButtonTrigger: React.FC<React.PropsWithChildren<ButtonProps>> = ({
 	const popover = usePopover()
 
 	return (
-		<PopoverDisclosure state={popover} as={Button} {...props}>
+		<PopoverDisclosure store={popover} as={Button} {...props}>
 			{children}
 		</PopoverDisclosure>
 	)
@@ -62,7 +62,7 @@ const TagTrigger: React.FC<React.PropsWithChildren<TagProps>> = ({
 	const popover = usePopover()
 
 	return (
-		<PopoverDisclosure state={popover} as={Tag} {...props}>
+		<PopoverDisclosure store={popover} as={Tag} {...props}>
 			{children}
 		</PopoverDisclosure>
 	)
@@ -75,19 +75,19 @@ const BoxTrigger: React.FC<React.PropsWithChildren<BoxProps>> = ({
 	const popover = usePopover()
 
 	return (
-		<PopoverDisclosure state={popover} as={Box} {...props}>
+		<PopoverDisclosure store={popover} as={Box} {...props}>
 			{children}
 		</PopoverDisclosure>
 	)
 }
 
 const Content: React.FC<
-	React.PropsWithChildren<Omit<PopoverOptions<'div'>, 'state'>>
+	React.PropsWithChildren<Omit<PopoverOptions<'div'>, 'store'>>
 > = ({ children, ...props }) => {
 	const popover = usePopover()
 
 	return (
-		<AriakitPopover state={popover} {...props}>
+		<AriakitPopover gutter={4} {...props} store={popover}>
 			{children}
 		</AriakitPopover>
 	)

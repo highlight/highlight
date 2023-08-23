@@ -113,16 +113,17 @@ const GithubSettingsForm = ({
 		[githubRepos],
 	)
 
-	const form = Form.useFormState<GithubSettingsFormValues>({
+	const formStore = Form.useFormStore<GithubSettingsFormValues>({
 		defaultValues: {
 			githubRepo: service.githubRepoPath || null,
 			buildPrefix: service.buildPrefix || null,
 			githubPrefix: service.githubPrefix || null,
 		},
 	})
+	const formState = formStore.getState()
 
 	return (
-		<Form state={form} onSubmit={() => handleSubmit(form.values)}>
+		<Form store={formStore} onSubmit={() => handleSubmit(formState.values)}>
 			<Stack>
 				<Text size="small">
 					Connect <i>{service.name}</i> to a GitHub repository to
@@ -134,9 +135,9 @@ const GithubSettingsForm = ({
 						className={styles.repoSelect}
 						placeholder="Search repos..."
 						onSelect={(repo: string) =>
-							form.setValue(form.names.githubRepo, repo)
+							formStore.setValue(formStore.names.githubRepo, repo)
 						}
-						value={form.values.githubRepo?.split('/').pop()}
+						value={formState.values.githubRepo?.split('/').pop()}
 						options={githubOptions}
 						notFoundContent={<span>No repos found</span>}
 						optionFilterProp="label"
@@ -149,19 +150,19 @@ const GithubSettingsForm = ({
 						trackingId="remove-repo-from-service"
 						size="medium"
 						onClick={() =>
-							form.setValue(form.names.githubRepo, null)
+							formStore.setValue(formStore.names.githubRepo, null)
 						}
-						disabled={!form.values.githubRepo}
+						disabled={!formState.values.githubRepo}
 					>
 						Disconnect
 					</Button>
 				</Box>
-				{form.values.githubRepo && (
+				{formState.values.githubRepo && (
 					<>
 						<Text size="small">
 							Want to double check? Check it out on{' '}
 							<a
-								href={`https://github.com/${form.values.githubRepo}/`}
+								href={`https://github.com/${formState.values.githubRepo}/`}
 								target="_blank"
 								rel="noreferrer"
 							>
@@ -182,11 +183,11 @@ const GithubSettingsForm = ({
 
 							<Box display="flex" gap="16">
 								<Form.Input
-									name={form.names.buildPrefix}
+									name={formStore.names.buildPrefix}
 									label="Build path prefix"
 								/>
 								<Form.Input
-									name={form.names.githubPrefix}
+									name={formStore.names.githubPrefix}
 									label="GitHub path prefix"
 								/>
 							</Box>

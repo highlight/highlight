@@ -23,7 +23,7 @@ import {
 	Tag,
 	Text,
 	useForm,
-	useFormState,
+	useFormStore,
 	useMenu,
 } from '@highlight-run/ui'
 import {
@@ -81,7 +81,7 @@ export const ErrorAlertPage = () => {
 		? (findAlert(alert_id, alertsPayload) as any)
 		: undefined
 
-	const form = useFormState<ErrorAlertFormItem>({
+	const form = useFormStore<ErrorAlertFormItem>({
 		defaultValues: {
 			name: '',
 			belowThreshold: false,
@@ -97,8 +97,7 @@ export const ErrorAlertPage = () => {
 			loaded: false,
 		},
 	})
-
-	console.log(alert)
+	const formValues = form.getState().values
 
 	useEffect(() => {
 		if (alert) {
@@ -211,7 +210,7 @@ export const ErrorAlertPage = () => {
 								form.names.threshold,
 							),
 							disabled: false,
-							discord_channels: form.values.discordChannels.map(
+							discord_channels: formValues.discordChannels.map(
 								(c) => ({
 									name: c.name,
 									id: c.id,
@@ -223,7 +222,7 @@ export const ErrorAlertPage = () => {
 							),
 							name: form.getValue(form.names.name),
 							project_id: project_id || '0',
-							slack_channels: form.values.slackChannels.map(
+							slack_channels: formValues.slackChannels.map(
 								(c) => ({
 									webhook_channel_id: c.webhook_channel_id,
 									webhook_channel_name:
@@ -313,7 +312,7 @@ export const ErrorAlertPage = () => {
 		</Box>
 	)
 
-	const isLoading = !isCreate && !form.values.loaded
+	const isLoading = !isCreate && !formValues.loaded
 
 	return (
 		<Box width="full" background="raised" p="8">
@@ -383,7 +382,7 @@ export const ErrorAlertPage = () => {
 								</Box>
 							</Box>
 
-							<Form state={form} resetOnSubmit={false}>
+							<Form store={form} resetOnSubmit={false}>
 								<ErrorAlertForm />
 							</Form>
 						</Container>
@@ -396,6 +395,7 @@ export const ErrorAlertPage = () => {
 
 const ErrorAlertForm = () => {
 	const form = useForm() as FormState<ErrorAlertFormItem>
+	const formState = form.getState()
 
 	const { alertsPayload } = useAlertsContext()
 	const environments = dedupeEnvironments(
@@ -433,7 +433,7 @@ const ErrorAlertForm = () => {
 							onChange={(values: any): any =>
 								form.setValue(form.names.regex_groups, values)
 							}
-							value={form.values.regex_groups}
+							value={formState.values.regex_groups}
 							className={styles.selectContainer}
 							mode="tags"
 						/>
@@ -453,7 +453,7 @@ const ErrorAlertForm = () => {
 									/>
 								}
 								style={{
-									borderColor: form.errors.threshold
+									borderColor: formState.errors.threshold
 										? 'var(--color-red-500)'
 										: undefined,
 								}}
@@ -464,7 +464,7 @@ const ErrorAlertForm = () => {
 							<Form.Select
 								label="Alert threshold window"
 								name={form.names.threshold_window.toString()}
-								value={form.values.threshold_window}
+								value={formState.values.threshold_window}
 								onChange={(e) =>
 									form.setValue(
 										form.names.threshold_window,
@@ -489,7 +489,7 @@ const ErrorAlertForm = () => {
 					<Form.Select
 						label="Alert frequency"
 						name={form.names.frequency.toString()}
-						value={form.values.frequency}
+						value={formState.values.frequency}
 						onChange={(e) =>
 							form.setValue(form.names.frequency, e.target.value)
 						}
@@ -520,7 +520,7 @@ const ErrorAlertForm = () => {
 						placeholder="Alert name"
 						label="Name"
 						style={{
-							borderColor: form.errors.name
+							borderColor: formState.errors.name
 								? 'var(--color-red-500)'
 								: undefined,
 						}}
@@ -540,7 +540,7 @@ const ErrorAlertForm = () => {
 									values,
 								)
 							}
-							value={form.values.excludedEnvironments}
+							value={formState.values.excludedEnvironments}
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
@@ -554,9 +554,11 @@ const ErrorAlertForm = () => {
 }
 
 const ThresholdTypeConfiguration = () => {
-	const form = useForm()
+	const form = useForm() as FormState<ErrorAlertFormItem>
+	const formState = form.getState()
 	const menu = useMenu()
-	const belowThreshold = form.values.belowThreshold
+	const menuState = menu.getState()
+	const belowThreshold = formState.values.belowThreshold
 	return (
 		<>
 			<Menu.Button
@@ -565,7 +567,7 @@ const ThresholdTypeConfiguration = () => {
 				emphasis="high"
 				cssClass={styles.thresholdTypeButton}
 				iconRight={
-					menu.open ? (
+					menuState.open ? (
 						<IconSolidCheveronUp />
 					) : (
 						<IconSolidCheveronDown />

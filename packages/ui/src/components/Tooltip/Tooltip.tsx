@@ -1,15 +1,15 @@
 import {
 	Tooltip as AriakitTooltip,
 	TooltipAnchor,
-	TooltipState,
-	useTooltipState,
-} from 'ariakit'
+	TooltipStoreProps,
+	useTooltipStore,
+} from '@ariakit/react'
 import React from 'react'
 import { Box } from '../Box/Box'
 
 const STANDARD_DELAY = 500
 
-export type TooltipProps = Partial<TooltipState> &
+export type TooltipProps = Partial<TooltipStoreProps> &
 	React.PropsWithChildren<{
 		trigger: React.ReactNode
 		disabled?: boolean
@@ -25,9 +25,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
 	delayed,
 	...props
 }: TooltipProps) => {
-	const tooltipState = useTooltipState({
+	const tooltipState = useTooltipStore({
 		placement: 'top',
-		gutter: 4,
 		timeout: delayed ? STANDARD_DELAY : 0,
 		...props,
 	})
@@ -35,13 +34,17 @@ export const Tooltip: React.FC<TooltipProps> = ({
 	return (
 		<>
 			<TooltipAnchor
-				state={tooltipState}
+				store={tooltipState}
 				style={{ display: 'flex', ...style }}
 			>
 				{trigger}
 			</TooltipAnchor>
 			{!disabled && (
-				<AriakitTooltip state={tooltipState} style={{ zIndex: 100 }}>
+				<AriakitTooltip
+					store={tooltipState}
+					gutter={4}
+					style={{ zIndex: 100 }}
+				>
 					<TooltipContent>{children}</TooltipContent>
 				</AriakitTooltip>
 			)}

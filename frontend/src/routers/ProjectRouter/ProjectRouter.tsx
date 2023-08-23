@@ -151,7 +151,7 @@ export const ProjectRouter = () => {
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
 
-	const commandBarDialog = Ariakit.useDialogState()
+	const commandBarDialog = Ariakit.useDialogStore()
 
 	const playerUIContext = {
 		isPlayerFullscreen,
