@@ -10,6 +10,7 @@ import React from 'react'
 
 export interface ContainerSelectionProps {
 	setSelectionId: (id: string) => void
+	disabled: boolean
 }
 
 export type IssueTrackerIntegration = Integration & {

@@ -72,6 +72,7 @@ func WatchLogAlerts(ctx context.Context, DB *gorm.DB, TDB timeseries.DB, MailCli
 					alert := alert
 					alertWorkerpool.SubmitRecover(
 						func() {
+							ctx := context.Background()
 							err := processLogAlert(ctx, DB, TDB, MailClient, alert, rh, redis, ccClient)
 							if err != nil {
 								log.WithContext(ctx).Error(err)

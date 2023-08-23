@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-
-	log "github.com/sirupsen/logrus"
 )
 
 const LogAttributeValueLengthLimit = 2 << 10
@@ -14,10 +12,6 @@ const LogAttributeValueWarningLengthLimit = 2 << 8
 func FormatLogAttributes(ctx context.Context, k string, v interface{}) map[string]string {
 	if vStr, ok := v.(string); ok {
 		if len(vStr) > LogAttributeValueLengthLimit {
-			log.WithContext(ctx).
-				WithField("Key", k).
-				WithField("ValueLength", len(vStr)).
-				Warnf("attribute value for %s is too long %d", k, len(vStr))
 			vStr = vStr[:LogAttributeValueLengthLimit] + "..."
 		}
 		return map[string]string{k: vStr}

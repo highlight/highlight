@@ -159,6 +159,11 @@ type ClickUpTeam struct {
 	Spaces []*ClickUpSpace `json:"spaces"`
 }
 
+type ClickhouseQuery struct {
+	IsAnd bool       `json:"isAnd"`
+	Rules [][]string `json:"rules"`
+}
+
 type DashboardDefinition struct {
 	ID                int                      `json:"id"`
 	UpdatedAt         time.Time                `json:"updated_at"`
@@ -458,6 +463,7 @@ type LogAlertInput struct {
 	Emails              []string                      `json:"emails"`
 	Environments        []string                      `json:"environments"`
 	Disabled            bool                          `json:"disabled"`
+	Default             *bool                         `json:"default"`
 	Query               string                        `json:"query"`
 }
 
@@ -633,11 +639,15 @@ func (ServiceEdge) IsEdge()                {}
 func (this ServiceEdge) GetCursor() string { return this.Cursor }
 
 type ServiceNode struct {
-	ID             int           `json:"id"`
-	ProjectID      int           `json:"projectID"`
-	Name           string        `json:"name"`
-	Status         ServiceStatus `json:"status"`
-	GithubRepoPath *string       `json:"githubRepoPath"`
+	ID              int           `json:"id"`
+	ProjectID       int           `json:"projectID"`
+	Name            string        `json:"name"`
+	Status          ServiceStatus `json:"status"`
+	GithubRepoPath  *string       `json:"githubRepoPath"`
+	BuildPrefix     *string       `json:"buildPrefix"`
+	GithubPrefix    *string       `json:"githubPrefix"`
+	LastSeenVersion *string       `json:"lastSeenVersion"`
+	ErrorDetails    []string      `json:"errorDetails"`
 }
 
 type SessionAlertInput struct {
@@ -651,6 +661,7 @@ type SessionAlertInput struct {
 	Emails              []string                      `json:"emails"`
 	Environments        []string                      `json:"environments"`
 	Disabled            bool                          `json:"disabled"`
+	Default             *bool                         `json:"default"`
 	Type                SessionAlertType              `json:"type"`
 	UserProperties      []*UserPropertyInput          `json:"user_properties"`
 	ExcludeRules        []string                      `json:"exclude_rules"`

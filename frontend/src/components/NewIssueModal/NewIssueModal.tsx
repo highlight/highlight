@@ -59,6 +59,18 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 		},
 	})
 
+	React.useEffect(() => {
+		if (!defaultIssueTitle && !commentText) return
+
+		form.setValues((prev) => ({
+			...prev,
+			issueTitle: defaultIssueTitle,
+			issueDescription: commentText,
+		}))
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [defaultIssueTitle, commentText])
+
 	const [containerId, setContainerId] = useState('')
 
 	const { project_id } = useParams<{
@@ -210,6 +222,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 								}
 							/>
 						}
+						disabled={loading}
 					/>
 				</Box>
 			}
@@ -230,6 +243,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 					>
 						{selectedIntegration.containerSelection({
 							setSelectionId: setContainerId,
+							disabled: loading,
 						})}
 						<Form.Input
 							name={form.names.issueTitle}
@@ -238,6 +252,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							outline
 							truncate
 							required
+							disabled={loading}
 						/>
 						<Form.Input
 							name={form.names.issueDescription}
@@ -248,6 +263,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							outline
 							aria-multiline
 							rows={5}
+							disabled={loading}
 						/>
 					</Box>
 					<Box
@@ -266,6 +282,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							kind="secondary"
 							size="small"
 							emphasis="high"
+							disabled={loading}
 						>
 							Cancel
 						</Button>
@@ -275,6 +292,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 							kind={loading ? 'secondary' : 'primary'}
 							size="small"
 							emphasis="high"
+							loading={loading}
 						>
 							Submit
 						</Button>

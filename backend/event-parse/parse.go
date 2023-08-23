@@ -455,9 +455,9 @@ func getOrCreateUrls(ctx context.Context, projectId int, originalUrls []string, 
 	}, len(urlMap))
 	lo.ForEach(lo.Entries(urlMap), func(u lo.Entry[string, string], i int) {
 		eg.Go(func() error {
-			if acquired := redis.AcquireLock(ctx, u.Value, 3*time.Minute); acquired {
+			if mutex, err := redis.AcquireLock(ctx, u.Value, 3*time.Minute); err == nil {
 				defer func() {
-					if err := redis.ReleaseLock(ctx, u.Value); err != nil {
+					if _, err := mutex.Unlock(); err != nil {
 						log.WithContext(ctx).WithError(err).WithField("url", u.Value).Error("failed to release asset lock")
 					}
 				}()

@@ -17,7 +17,7 @@ import { colors } from '../../css/colors'
 import { TimeInput } from './TimeInput'
 import { DateInput } from './DateInput'
 
-export { getDefaultPresets, getNow } from './utils'
+export { defaultPresets, getNow, resetRelativeDates } from './utils'
 
 const DATE_INPUT_FORMAT_WITH_COMMA = 'MMM DD, YYYY'
 const DATE_INPUT_FORMAT_WITH_SINGLE_DAY = 'MMM D, YYYY'

@@ -671,6 +671,7 @@ mutation CreateErrorAlert(
 	$environments: [String]!
 	$regex_groups: [String]!
 	$frequency: Int!
+	$default: Boolean
 ) {
 	createErrorAlert(
 		project_id: $project_id
@@ -684,6 +685,7 @@ mutation CreateErrorAlert(
 		threshold_window: $threshold_window
 		regex_groups: $regex_groups
 		frequency: $frequency
+		default: $default
 	) {
 		id
 		ChannelsToNotify {
@@ -1148,4 +1150,43 @@ mutation DeleteInviteLinkFromWorkspace(
 		workspace_id: $workspace_id
 		workspace_invite_link_id: $workspace_invite_link_id
 	)
+}
+
+mutation EditServiceGithubSettings(
+	$id: ID!
+	$project_id: ID!
+	$github_repo_path: String
+	$build_prefix: String
+	$github_prefix: String
+) {
+	editServiceGithubSettings(
+		id: $id
+		project_id: $project_id
+		github_repo_path: $github_repo_path
+		build_prefix: $build_prefix
+		github_prefix: $github_prefix
+	) {
+		id
+		projectID
+		name
+		status
+		githubRepoPath
+		buildPrefix
+		githubPrefix
+		errorDetails
+	}
+}
+
+mutation UpsertSlackChannel($project_id: ID!, $name: String!) {
+	upsertSlackChannel(project_id: $project_id, name: $name) {
+		webhook_channel
+		webhook_channel_id
+	}
+}
+
+mutation UpsertDiscordChannel($project_id: ID!, $name: String!) {
+	upsertDiscordChannel(project_id: $project_id, name: $name) {
+		id
+		name
+	}
 }

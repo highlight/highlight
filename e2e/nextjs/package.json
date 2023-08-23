@@ -13,8 +13,6 @@
 	"dependencies": {
 		"@highlight-run/cloudflare": "workspace:*",
 		"@highlight-run/next": "workspace:*",
-		"@highlight-run/node": "workspace:*",
-		"@highlight-run/react": "workspace:*",
 		"@next/env": "^13.4.12",
 		"@tanstack/react-query": "^4.29.7",
 		"@trpc/client": "^10.26.0",
@@ -28,7 +26,6 @@
 		"classnames": "^2.3.2",
 		"eslint": "8.39.0",
 		"eslint-config-next": "13.4.12",
-		"highlight.run": "workspace:*",
 		"ky": "^0.33.3",
 		"next": "13.4.12",
 		"next-build-id": "^3.0.0",

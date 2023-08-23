@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/aws/smithy-go/ptr"
+	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/alerts"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/hlog"
@@ -92,7 +93,7 @@ func (w *Worker) pushToObjectStorage(ctx context.Context, s *model.Session, payl
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
 		return err
 	}
 
@@ -187,12 +188,25 @@ func (w *Worker) writeSessionDataFromRedis(ctx context.Context, manager *payload
 		return errors.Wrap(err, "error retrieving objects from S3")
 	}
 
-	dataObjects, err := w.Resolver.Redis.GetSessionData(ctx, s.ID, payloadType, s3Events)
+	dataStrs, err := w.Resolver.Redis.GetSessionData(ctx, s.ID, payloadType, s3Events)
 	if err != nil {
 		return errors.Wrap(err, "error retrieving objects from Redis")
 	}
 
-	for _, dataObject := range dataObjects {
+	for _, dataStr := range dataStrs {
+		asBytes := []byte(dataStr)
+
+		// Messages may be encoded with `snappy`.
+		// Try decoding them, but if decoding fails, use the original message.
+		decoded, err := snappy.Decode(nil, asBytes)
+		if err != nil {
+			decoded = asBytes
+		}
+
+		dataObject := model.SessionData{
+			Data: string(decoded),
+		}
+
 		if payloadType == model.PayloadTypeEvents {
 			*accumulator = processEventChunk(ctx, *accumulator, model.EventsObject{
 				Events: dataObject.Contents(),
@@ -431,7 +445,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 
 func (w *Worker) PublicWorker(ctx context.Context) {
 	const parallelWorkers = 64
-	const parallelBatchWorkers = 8
+	const parallelBatchWorkers = 32
 	// creates N parallel kafka message consumers that process messages.
 	// each consumer is considered part of the same consumer group and gets
 	// allocated a slice of all partitions. this ensures that a particular subset of partitions
@@ -456,16 +470,16 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	for i := 0; i < parallelBatchWorkers; i++ {
 		go func(workerId int) {
 			buffer := &KafkaBatchBuffer{
-				messageQueue: make(chan *kafkaqueue.Message, 8*DefaultBatchFlushSize),
+				messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
 			}
 			k := KafkaBatchWorker{
 				KafkaQueue: kafkaqueue.New(ctx,
 					kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}),
 					kafkaqueue.Consumer,
-					&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(16 * DefaultBatchFlushSize)}),
+					&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(2 * DefaultBatchFlushSize)}),
 				Worker:              w,
 				BatchBuffer:         buffer,
-				BatchFlushSize:      8 * DefaultBatchFlushSize,
+				BatchFlushSize:      DefaultBatchFlushSize,
 				BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 				Name:                "batched",
 			}
@@ -499,6 +513,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	wg.Add(1)
 	go func() {
 		flushSize := 10000
+		maxWait := 100 * time.Millisecond
 		buffer := &KafkaBatchBuffer{
 			messageQueue: make(chan *kafkaqueue.Message, flushSize+1),
 		}
@@ -506,7 +521,11 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 			KafkaQueue: kafkaqueue.New(ctx,
 				kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}),
 				kafkaqueue.Consumer,
-				&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(2 * flushSize)}),
+				&kafkaqueue.ConfigOverride{
+					QueueCapacity: pointy.Int(2 * flushSize),
+					MinBytes:      pointy.Int(1),
+					MaxWait:       &maxWait,
+				}),
 			Worker:              w,
 			WorkerThread:        0,
 			BatchBuffer:         buffer,
@@ -568,7 +587,7 @@ func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason ba
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
 		return err
 	}
 
@@ -836,7 +855,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err != nil {
 		return err
 	}
-	withinBillingQuota, _ := w.PublicResolver.IsWithinQuota(ctx, pricing.ProductTypeSessions, workspace, time.Now())
+	withinBillingQuota, _ := w.PublicResolver.IsWithinQuota(ctx, model.PricingProductTypeSessions, workspace, time.Now())
 
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
@@ -867,7 +886,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return e.Wrap(err, "error updating session in opensearch")
 	}
 
-	if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+	if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
 		return err
 	}
 
@@ -1117,8 +1136,8 @@ func (w *Worker) Start(ctx context.Context) {
 
 		for _, session := range sessions {
 			session := session
-			ctx := ctx
 			wp.SubmitRecover(func() {
+				ctx := context.Background()
 				vmStat, _ := mem.VirtualMemory()
 
 				// If WORKER_MAX_MEMORY_THRESHOLD is defined,
@@ -1154,7 +1173,7 @@ func (w *Worker) Start(ctx context.Context) {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error updating session in opensearch"))
 						}
 
-						if err := w.Resolver.DataSyncQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: session.ID}}, strconv.Itoa(session.ID)); err != nil {
+						if err := w.Resolver.DataSyncQueue.Submit(ctx, strconv.Itoa(session.ID), &kafkaqueue.Message{Type: kafkaqueue.SessionDataSync, SessionDataSync: &kafkaqueue.SessionDataSyncArgs{SessionID: session.ID}}); err != nil {
 							log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error submitting data sync message"))
 						}
 
@@ -1179,7 +1198,7 @@ func (w *Worker) Start(ctx context.Context) {
 }
 
 func (w *Worker) ReportStripeUsage(ctx context.Context) {
-	pricing.ReportAllUsage(ctx, w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.StripeClient, w.Resolver.MailClient)
+	pricing.NewWorker(w.Resolver.DB, w.Resolver.ClickhouseClient, w.Resolver.StripeClient, w.Resolver.MailClient, w.Resolver.HubspotApi).ReportAllUsage(ctx)
 }
 
 func (w *Worker) UpdateOpenSearchIndex(ctx context.Context) {
@@ -1293,18 +1312,21 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 	}
 
 	type AggregateSessionCount struct {
-		WorkspaceID          int        `json:"workspace_id"`
-		SessionCount         int64      `json:"session_count"`
-		ErrorCount           int64      `json:"error_count"`
-		LogCount             int64      `json:"log_count"`
-		SessionCountLastWeek int64      `json:"session_count_last_week"`
-		ErrorCountLastWeek   int64      `json:"error_count_last_week"`
-		LogCountLastWeek     int64      `json:"log_count_last_week"`
-		SessionCountLastDay  int64      `json:"session_count_last_day"`
-		ErrorCountLastDay    int64      `json:"error_count_last_day"`
-		LogCountLastDay      int64      `json:"log_count_last_day"`
-		TrialEndDate         *time.Time `json:"trial_end_date"`
-		PlanTier             string     `json:"plan_tier"`
+		WorkspaceID                      int        `json:"workspace_id"`
+		SessionCount                     int64      `json:"session_count"`
+		ErrorCount                       int64      `json:"error_count"`
+		LogCount                         int64      `json:"log_count"`
+		SessionCountLastWeek             int64      `json:"session_count_last_week"`
+		ErrorCountLastWeek               int64      `json:"error_count_last_week"`
+		LogCountLastWeek                 int64      `json:"log_count_last_week"`
+		SessionCountLastDay              int64      `json:"session_count_last_day"`
+		ErrorCountLastDay                int64      `json:"error_count_last_day"`
+		LogCountLastDay                  int64      `json:"log_count_last_day"`
+		TrialEndDate                     *time.Time `json:"trial_end_date"`
+		PlanTier                         string     `json:"plan_tier"`
+		SessionReplayIntegrated          bool       `json:"session_replay_integrated"`
+		BackendErrorMonitoringIntegrated bool       `json:"backend_error_monitoring_integrated"`
+		BackendLoggingIntegrated         bool       `json:"backend_logging_integrated"`
 	}
 	var counts []*AggregateSessionCount
 
@@ -1342,7 +1364,25 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 		}
 		c.TrialEndDate = workspace.TrialEndDate
 		c.PlanTier = workspace.PlanTier
+		for t, ptr := range map[model.MarkBackendSetupType]*bool{
+			model.MarkBackendSetupTypeSession: &c.SessionReplayIntegrated,
+			model.MarkBackendSetupTypeError:   &c.BackendErrorMonitoringIntegrated,
+			model.MarkBackendSetupTypeLogs:    &c.BackendLoggingIntegrated,
+		} {
+			setupEvent := model.SetupEvent{}
+			if err := w.Resolver.DB.Model(&model.SetupEvent{}).Joins("INNER JOIN projects p on p.id = project_id").Joins("INNER JOIN workspaces w on w.id = p.workspace_id").Where("w.id = ? AND type = ?", workspace.ID, t).Take(&setupEvent).Error; err == nil {
+				*ptr = setupEvent.ID != 0
+			}
+		}
 		for _, p := range workspace.Projects {
+			backendErrors, err := w.Resolver.Query().ServerIntegration(ctx, p.ID)
+			if err == nil && backendErrors.Integrated {
+				c.BackendErrorMonitoringIntegrated = c.BackendErrorMonitoringIntegrated || backendErrors.Integrated
+			}
+			logs, err := w.Resolver.Query().LogsIntegration(ctx, p.ID)
+			if err == nil && logs.Integrated {
+				c.BackendLoggingIntegrated = c.BackendLoggingIntegrated || logs.Integrated
+			}
 			count, _ := w.Resolver.ClickhouseClient.ReadLogsTotalCount(ctx, p.ID, backend.LogsParamsInput{DateRange: &backend.DateRangeRequiredInput{
 				StartDate: time.Now().Add(-time.Hour * 24 * 30),
 				EndDate:   time.Now(),
@@ -1409,6 +1449,18 @@ func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
 				Name:     "plan_tier",
 				Property: "plan_tier",
 				Value:    c.PlanTier,
+			}, {
+				Name:     "is_session_replay_integrated",
+				Property: "is_session_replay_integrated",
+				Value:    c.SessionReplayIntegrated,
+			}, {
+				Name:     "is_backend_error_monitoring_integrated",
+				Property: "is_backend_error_monitoring_integrated",
+				Value:    c.BackendErrorMonitoringIntegrated,
+			}, {
+				Name:     "is_backend_logging_integrated",
+				Property: "is_backend_logging_integrated",
+				Value:    c.BackendLoggingIntegrated,
 			}}
 			if c.TrialEndDate != nil {
 				properties = append(properties, hubspot.Property{
@@ -1452,6 +1504,7 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 
 	for rows.Next() {
 		backfiller.SubmitRecover(func() {
+			ctx := context.Background()
 			modelObj := &model.ErrorObject{}
 			if err := w.Resolver.DB.ScanRows(rows, modelObj); err != nil {
 				log.WithContext(ctx).Fatalf("error scanning rows: %+v", err)

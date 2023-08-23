@@ -386,8 +386,10 @@ type AllWorkspaceSettings struct {
 	// store embeddings for errors in this workspace
 	ErrorEmbeddingsWrite bool `gorm:"default:false"`
 	// use embeddings to group errors in this workspace
-	ErrorEmbeddingsGroup bool `gorm:"default:false"`
-	ReplaceAssets        bool `gorm:"default:false"`
+	ErrorEmbeddingsGroup     bool    `gorm:"default:false"`
+	ErrorEmbeddingsThreshold float64 `gorm:"default:0.2"`
+	ReplaceAssets            bool    `gorm:"default:false"`
+	StoreIP                  bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -597,6 +599,7 @@ type Session struct {
 	ProjectID      int     `json:"project_id" gorm:"index:idx_project_id_email"`
 	Email          *string `json:"email" gorm:"index:idx_project_id_email"`
 	// Location data based off user ip (see InitializeSession)
+	IP        string  `json:"ip"`
 	City      string  `json:"city"`
 	State     string  `json:"state"`
 	Postal    string  `json:"postal"`
@@ -906,44 +909,53 @@ type ErrorSegment struct {
 	OrganizationID int
 	ProjectID      int `json:"project_id"`
 }
+type ErrorGroupingMethod string
+
+const (
+	ErrorGroupingMethodClassic             ErrorGroupingMethod = "Classic"
+	ErrorGroupingMethodAdaEmbeddingV2      ErrorGroupingMethod = "AdaV2"
+	ErrorGroupingMethodGteLargeEmbeddingV2 ErrorGroupingMethod = "thenlper/gte-large"
+)
 
 type ErrorObject struct {
 	Model
-	ID               int `gorm:"primary_key;type:serial;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
-	OrganizationID   int
-	ProjectID        int `json:"project_id"`
-	SessionID        *int
-	TraceID          *string
-	SpanID           *string
-	LogCursor        *string `gorm:"index:idx_error_object_log_cursor,option:CONCURRENTLY"`
-	ErrorGroupID     int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
-	ErrorGroup       ErrorGroup
-	Event            string
-	Type             string
-	URL              string
-	Source           string
-	LineNumber       int
-	ColumnNumber     int
-	OS               string
-	Browser          string
-	Trace            *string `json:"trace"` //DEPRECATED, USE STACKTRACE INSTEAD
-	StackTrace       *string `json:"stack_trace"`
-	MappedStackTrace *string
-	Timestamp        time.Time `json:"timestamp"`
-	Payload          *string   `json:"payload"`
-	Environment      string
-	RequestID        *string // From X-Highlight-Request header
-	IsBeacon         bool    `gorm:"default:false"`
-	ServiceName      string
-	ServiceVersion   string
+	ID                      int `gorm:"primary_key;type:serial;index:idx_error_group_id_id,priority:2,option:CONCURRENTLY" json:"id" deep:"-"`
+	OrganizationID          int
+	ProjectID               int `json:"project_id"`
+	SessionID               *int
+	TraceID                 *string
+	SpanID                  *string
+	LogCursor               *string `gorm:"index:idx_error_object_log_cursor,option:CONCURRENTLY"`
+	ErrorGroupID            int     `gorm:"index:idx_error_group_id_id,priority:1,option:CONCURRENTLY"`
+	ErrorGroupIDAlternative int     // the alternative algorithm for grouping the object
+	ErrorGroupingMethod     ErrorGroupingMethod
+	ErrorGroup              ErrorGroup
+	Event                   string
+	Type                    string
+	URL                     string
+	Source                  string
+	LineNumber              int
+	ColumnNumber            int
+	OS                      string
+	Browser                 string
+	Trace                   *string `json:"trace"` //DEPRECATED, USE STACKTRACE INSTEAD
+	StackTrace              *string `json:"stack_trace"`
+	MappedStackTrace        *string
+	Timestamp               time.Time `json:"timestamp"`
+	Payload                 *string   `json:"payload"`
+	Environment             string
+	RequestID               *string // From X-Highlight-Request header
+	IsBeacon                bool    `gorm:"default:false"`
+	ServiceName             string
+	ServiceVersion          string
 }
 
 type ErrorObjectEmbeddings struct {
 	Model
-	ErrorObjectID       int
-	EventEmbedding      Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
-	StackTraceEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
-	PayloadEmbedding    Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	ProjectID         int
+	ErrorObjectID     int
+	CombinedEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	GteLargeEmbedding Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large model
 }
 
 type ErrorGroup struct {
@@ -1242,6 +1254,7 @@ type SystemConfiguration struct {
 	Active           bool `gorm:"primary_key;default:true"`
 	MaintenanceStart time.Time
 	MaintenanceEnd   time.Time
+	ErrorFilters     pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
 }
 
 type RetryableType string
@@ -1508,6 +1521,32 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		END;
 	`, PARTITION_SESSION_ID, PARTITION_SESSION_ID).Error; err != nil {
 		return false, e.Wrap(err, "Error setting session id sequence to 30000000")
+	}
+
+	if err := DB.Exec(`
+		CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned
+		(LIKE error_object_embeddings INCLUDING DEFAULTS INCLUDING IDENTITY)
+		PARTITION BY LIST (project_id);
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error creating error_object_embeddings_partitioned")
+	}
+
+	var lastVal int
+	if err := DB.Raw("SELECT coalesce(max(id), 1) FROM projects").Scan(&lastVal).Error; err != nil {
+		return false, e.Wrap(err, "Error selecting max project id")
+	}
+
+	// Make sure partitions are created for the next 1k projects
+	for i := 0; i < lastVal+1000; i++ {
+		sql := fmt.Sprintf(`
+			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d
+			PARTITION OF error_object_embeddings_partitioned
+			FOR VALUES IN ('%d');
+		`, i, i)
+
+		if err := DB.Exec(sql).Error; err != nil {
+			return false, e.Wrapf(err, "Error creating partitioned error_object_embeddings for index %d", i)
+		}
 	}
 
 	// Create sequence for session_fields.id manually. This started as a join
@@ -1777,6 +1816,7 @@ type Alert struct {
 	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
 	Frequency            int     `gorm:"default:15"` // time in seconds
 	Disabled             *bool   `gorm:"default:false"`
+	Default              bool    `gorm:"default:false"` // alert created during setup flow
 }
 
 type ErrorAlert struct {
@@ -2000,10 +2040,17 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 
 type Service struct {
 	Model
-	ProjectID      int                       `gorm:"not null;uniqueIndex:idx_project_id_name"`
-	Name           string                    `gorm:"not null;uniqueIndex:idx_project_id_name"`
-	Status         modelInputs.ServiceStatus `gorm:"not null;default:created"`
-	GithubRepoPath *string
+	ProjectID          int                       `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Name               string                    `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Status             modelInputs.ServiceStatus `gorm:"not null;default:created"`
+	GithubRepoPath     *string
+	BuildPrefix        *string
+	GithubPrefix       *string
+	LastSeenVersion    *string
+	ErrorDetails       pq.StringArray `gorm:"type:text[]"`
+	ProcessName        *string
+	ProcessVersion     *string
+	ProcessDescription *string
 }
 
 type LogAlert struct {

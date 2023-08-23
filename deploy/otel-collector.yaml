@@ -16,9 +16,9 @@ exporters:
 processors:
     batch:
     memory_limiter:
-        check_interval: 1s
-        limit_percentage: 75
-        spike_limit_percentage: 15
+        check_interval: 0.1s
+        limit_mib: 2048
+        spike_limit_mib: 128
 service:
     extensions: [health_check, memory_ballast]
     pipelines:
@@ -39,4 +39,4 @@ extensions:
         endpoint: '0.0.0.0:4319'
         path: '/health/status'
     memory_ballast:
-        size_in_percentage: 10
+        size_mib: 512

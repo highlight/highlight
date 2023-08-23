@@ -12,7 +12,6 @@ import (
 	"github.com/samber/lo"
 	"github.com/segmentio/kafka-go/sasl"
 
-	"github.com/DmitriyVTitov/size"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
@@ -27,7 +26,7 @@ const KafkaOperationTimeout = 25 * time.Second
 const ConsumerGroupName = "group-default"
 
 const (
-	taskRetries           = 5
+	TaskRetries           = 5
 	prefetchQueueCapacity = 64
 	prefetchSizeBytes     = 64 * 1000         // 64 KB
 	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
@@ -62,7 +61,7 @@ type Queue struct {
 type MessageQueue interface {
 	Stop(context.Context)
 	Receive(context.Context) *Message
-	Submit(context.Context, *Message, string) error
+	Submit(context.Context, string, ...*Message) error
 	LogStats()
 }
 
@@ -93,6 +92,8 @@ func GetTopic(options GetTopicOptions) string {
 type ConfigOverride struct {
 	Async         *bool
 	QueueCapacity *int
+	MinBytes      *int
+	MaxWait       *time.Duration
 }
 
 func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOverride) *Queue {
@@ -204,14 +205,21 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			QueueCapacity:     prefetchQueueCapacity,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
-			CommitInterval: time.Second,
-			MaxAttempts:    10,
+			CommitInterval:        time.Second,
+			MaxAttempts:           10,
+			WatchPartitionChanges: true,
 		}
 
 		if configOverride != nil {
 			deref := *configOverride
 			if deref.QueueCapacity != nil {
 				config.QueueCapacity = *deref.QueueCapacity
+			}
+			if deref.MinBytes != nil {
+				config.MinBytes = *deref.MinBytes
+			}
+			if deref.MaxWait != nil {
+				config.MaxWait = *deref.MaxWait
 			}
 		}
 
@@ -221,7 +229,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 	go func() {
 		for {
 			pool.LogStats()
-			time.Sleep(time.Second)
+			time.Sleep(5 * time.Second)
 		}
 	}()
 
@@ -243,30 +251,34 @@ func (p *Queue) Stop(ctx context.Context) {
 	}
 }
 
-func (p *Queue) Submit(ctx context.Context, msg *Message, partitionKey string) error {
+func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Message) error {
 	start := time.Now()
 	if partitionKey == "" {
 		partitionKey = util.GenerateRandomString(32)
 	}
-	msg.MaxRetries = taskRetries
-	msgBytes, err := p.serializeMessage(msg)
-	if err != nil {
-		log.WithContext(ctx).Error(errors.Wrap(err, "failed to serialize message"))
-		return err
-	}
-	ctx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
-	defer cancel()
-	err = p.kafkaP.WriteMessages(ctx,
-		kafka.Message{
+
+	var kMessages []kafka.Message
+	for _, msg := range messages {
+		msg.MaxRetries = TaskRetries
+		msgBytes, err := p.serializeMessage(msg)
+		if err != nil {
+			log.WithContext(ctx).Error(errors.Wrap(err, "failed to serialize message"))
+			return err
+		}
+		kMessages = append(kMessages, kafka.Message{
 			Key:   []byte(partitionKey),
 			Value: msgBytes,
-		},
-	)
+		})
+		hlog.Incr("worker.kafka.produceMessageCount", nil, 1)
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
+	defer cancel()
+	err := p.kafkaP.WriteMessages(ctx, kMessages...)
 	if err != nil {
-		log.WithContext(ctx).Errorf("failed to send message, size %d, key %s, type %d, err %s", size.Of(msgBytes), partitionKey, msg.Type, err.Error())
+		log.WithContext(ctx).WithError(err).WithField("partition_key", partitionKey).WithField("num_messages", len(messages)).Errorf("failed to send kafka messages")
 		return err
 	}
-	hlog.Incr("worker.kafka.produceMessageCount", nil, 1)
 	hlog.Histogram("worker.kafka.submitSec", time.Since(start).Seconds(), nil, 1)
 	return nil
 }
@@ -353,7 +365,7 @@ func (p *Queue) Commit(ctx context.Context, msg *kafka.Message) {
 func (p *Queue) LogStats() {
 	if p.kafkaP != nil {
 		stats := p.kafkaP.Stats()
-		log.WithContext(context.Background()).Debugf("Kafka Producer Stats: count %d. batchAvg %s. writeAvg %s. waitAvg %s", stats.Messages, stats.BatchTime.Avg, stats.WriteTime.Avg, stats.WaitTime.Avg)
+		log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("stats", stats).Debug("Kafka Producer Stats")
 
 		hlog.Histogram("worker.kafka.produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
 		hlog.Histogram("worker.kafka.produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
@@ -367,7 +379,7 @@ func (p *Queue) LogStats() {
 	}
 	if p.kafkaC != nil {
 		stats := p.kafkaC.Stats()
-		log.WithContext(context.Background()).Debugf("Kafka Consumer Stats: count %d. readAvg %s. waitAvg %s", stats.Messages, stats.ReadTime.Avg, stats.WaitTime.Avg)
+		log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("partition", stats.Partition).WithField("stats", stats).Debug("Kafka Consumer Stats")
 
 		hlog.Histogram("worker.kafka.consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
 		hlog.Histogram("worker.kafka.consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)

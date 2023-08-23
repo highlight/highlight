@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/highlight-run/highlight/backend/embeddings"
 	"html/template"
 	"io"
 	"math/rand"
@@ -106,12 +107,12 @@ func healthRouter(runtimeFlag util.Runtime, db *gorm.DB, tdb timeseries.DB, rCli
 	batchedTopic := kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched})
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		if err := queue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, ""); err != nil {
+		if err := queue.Submit(ctx, "", &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}); err != nil {
 			log.WithContext(ctx).Error(fmt.Sprintf("failed kafka health check: %s", err))
 			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", topic), 500)
 			return
 		}
-		if err := batchedQueue.Submit(ctx, &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}, ""); err != nil {
+		if err := batchedQueue.Submit(ctx, "", &kafkaqueue.Message{Type: kafkaqueue.HealthCheck}); err != nil {
 			log.WithContext(ctx).Error(fmt.Sprintf("failed kafka batched health check: %s", err))
 			http.Error(w, fmt.Sprintf("failed to write message to kafka %s", batchedTopic), 500)
 			return
@@ -492,19 +493,20 @@ func main() {
 			defer profiler.Stop()
 		}
 		publicResolver := &public.Resolver{
-			DB:            db,
-			TDB:           tdb,
-			ProducerQueue: kafkaProducer,
-			BatchedQueue:  kafkaBatchedProducer,
-			DataSyncQueue: kafkaDataSyncProducer,
-			TracesQueue:   kafkaTracesProducer,
-			MailClient:    sendgrid.NewSendClient(sendgridKey),
-			StorageClient: storageClient,
-			OpenSearch:    opensearchClient,
-			HubspotApi:    hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
-			Redis:         redisClient,
-			RH:            &rh,
-			Store:         store.NewStore(db, opensearchClient, redisClient),
+			DB:               db,
+			TDB:              tdb,
+			ProducerQueue:    kafkaProducer,
+			BatchedQueue:     kafkaBatchedProducer,
+			DataSyncQueue:    kafkaDataSyncProducer,
+			TracesQueue:      kafkaTracesProducer,
+			MailClient:       sendgrid.NewSendClient(sendgridKey),
+			EmbeddingsClient: embeddings.New(),
+			StorageClient:    storageClient,
+			OpenSearch:       opensearchClient,
+			HubspotApi:       hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
+			Redis:            redisClient,
+			RH:               &rh,
+			Store:            store.NewStore(db, opensearchClient, redisClient),
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -583,20 +585,21 @@ func main() {
 	log.Println("process running....")
 	if runtimeParsed == util.Worker || runtimeParsed == util.All {
 		publicResolver := &public.Resolver{
-			DB:            db,
-			TDB:           tdb,
-			ProducerQueue: kafkaProducer,
-			BatchedQueue:  kafkaBatchedProducer,
-			DataSyncQueue: kafkaDataSyncProducer,
-			TracesQueue:   kafkaTracesProducer,
-			MailClient:    sendgrid.NewSendClient(sendgridKey),
-			StorageClient: storageClient,
-			OpenSearch:    opensearchClient,
-			HubspotApi:    hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
-			Redis:         redisClient,
-			Clickhouse:    clickhouseClient,
-			RH:            &rh,
-			Store:         store.NewStore(db, opensearchClient, redisClient),
+			DB:               db,
+			TDB:              tdb,
+			ProducerQueue:    kafkaProducer,
+			BatchedQueue:     kafkaBatchedProducer,
+			DataSyncQueue:    kafkaDataSyncProducer,
+			TracesQueue:      kafkaTracesProducer,
+			MailClient:       sendgrid.NewSendClient(sendgridKey),
+			EmbeddingsClient: embeddings.New(),
+			StorageClient:    storageClient,
+			OpenSearch:       opensearchClient,
+			HubspotApi:       hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
+			Redis:            redisClient,
+			Clickhouse:       clickhouseClient,
+			RH:               &rh,
+			Store:            store.NewStore(db, opensearchClient, redisClient),
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
@@ -629,6 +632,13 @@ func main() {
 			}()
 			// for the 'All' worker, explicitly run the PublicWorker as well
 			go w.PublicWorker(ctx)
+			// in `all` mode, report stripe usage every hour
+			go func() {
+				w.ReportStripeUsage(ctx)
+				for range time.Tick(time.Hour) {
+					w.ReportStripeUsage(ctx)
+				}
+			}()
 			// in `all` mode, refresh materialized views every hour
 			go func() {
 				w.RefreshMaterializedViews(ctx)

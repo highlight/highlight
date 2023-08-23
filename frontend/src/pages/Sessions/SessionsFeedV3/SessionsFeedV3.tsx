@@ -18,9 +18,13 @@ import { SearchResultsHistogram } from '@components/SearchResultsHistogram/Searc
 import {
 	useGetBillingDetailsForProjectQuery,
 	useGetSessionsHistogramQuery,
+	useGetSessionsOpenSearchLazyQuery,
 	useGetSessionsOpenSearchQuery,
 } from '@graph/hooks'
-import { GetSessionsOpenSearchQuery } from '@graph/operations'
+import {
+	GetSessionsOpenSearchQuery,
+	GetSessionsOpenSearchQueryVariables,
+} from '@graph/operations'
 import {
 	DateHistogramBucketSize,
 	Maybe,
@@ -28,7 +32,7 @@ import {
 	ProductType,
 	Session,
 } from '@graph/schemas'
-import { Box } from '@highlight-run/ui'
+import { Box, getNow } from '@highlight-run/ui'
 import { SessionFeedCard } from '@pages/Sessions/SessionsFeedV3/SessionFeedCard/SessionFeedCard'
 import SessionQueryBuilder, {
 	TIME_RANGE_FIELD,
@@ -36,10 +40,15 @@ import SessionQueryBuilder, {
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import { useIntegrated } from '@util/integrated'
 import { useParams } from '@util/react-router/useParams'
+import { usePollQuery } from '@util/search'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import clsx from 'clsx'
+import moment from 'moment'
 import React, { useCallback, useEffect, useRef } from 'react'
+import { useLocalStorage } from 'react-use'
 
+import { useAuthContext } from '@/authentication/AuthContext'
+import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import {
 	QueryBuilderState,
 	updateQueriedTimeRange,
@@ -61,7 +70,13 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const { setSearchQuery, backendSearchQuery } = useSearchContext()
+	const { setSearchQuery, backendSearchQuery, searchQuery } =
+		useSearchContext()
+	const { isHighlightAdmin } = useAuthContext()
+	const [useClickhouse] = useLocalStorage(
+		'highlight-session-search-use-clickhouse-v2',
+		isHighlightAdmin || Number(project_id) % 2 == 0,
+	)
 
 	const { loading, data } = useGetSessionsHistogramQuery({
 		variables: {
@@ -81,6 +96,9 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 					).format(),
 				},
 			},
+			clickhouse_query: useClickhouse
+				? JSON.parse(searchQuery)
+				: undefined,
 		},
 		skip: !backendSearchQuery || !project_id,
 	})
@@ -185,9 +203,18 @@ export const SessionFeedV3 = React.memo(() => {
 		setSearchResultsLoading(false)
 	}
 
+	const { isHighlightAdmin } = useAuthContext()
+	const [useClickhouse] = useLocalStorage(
+		'highlight-session-search-use-clickhouse-v2',
+		isHighlightAdmin || Number(project_id) % 2 == 0,
+	)
+
 	const { loading } = useGetSessionsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
+			clickhouse_query: useClickhouse
+				? JSON.parse(searchQuery)
+				: undefined,
 			count: DEFAULT_PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: project_id!,
@@ -195,6 +222,61 @@ export const SessionFeedV3 = React.memo(() => {
 		},
 		onCompleted: addSessions,
 		skip: !backendSearchQuery?.searchQuery || !project_id,
+	})
+
+	const [moreDataQuery] = useGetSessionsOpenSearchLazyQuery({
+		fetchPolicy: 'network-only',
+	})
+
+	const { numMore: moreSessions, reset: resetMoreSessions } = usePollQuery<
+		GetSessionsOpenSearchQuery,
+		GetSessionsOpenSearchQueryVariables
+	>({
+		variableFn: () => {
+			let query = JSON.parse(backendSearchQuery?.searchQuery || '')
+			const lte =
+				query?.bool?.must[0]?.bool?.should[0]?.range?.created_at?.lte
+			// if the query end date is close to 'now',
+			// then we are using a default relative time range.
+			// otherwise, we are using a custom date range and should not poll
+			if (Math.abs(moment(lte).diff(getNow(), 'minutes')) >= 1) {
+				return undefined
+			}
+			query = {
+				...query,
+				bool: {
+					...query.bool,
+					must: [
+						{
+							bool: {
+								should: [
+									{
+										range: {
+											created_at: {
+												gte: new Date(
+													Date.parse(lte),
+												).toISOString(),
+											},
+										},
+									},
+								],
+							},
+						},
+						...query.bool.must.slice(1),
+					],
+				},
+			}
+			return {
+				query: JSON.stringify(query),
+				count: DEFAULT_PAGE_SIZE,
+				page: 1,
+				project_id: project_id!,
+				sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
+			}
+		},
+		moreDataQuery,
+		getResultCount: (result) =>
+			result?.data?.sessions_opensearch.totalCount,
 	})
 
 	// Used to determine if we need to show the loading skeleton.
@@ -287,7 +369,13 @@ export const SessionFeedV3 = React.memo(() => {
 						<SessionsHistogram />
 					</Box>
 				)}
+				<AdditionalFeedResults
+					more={moreSessions}
+					type="sessions"
+					onClick={resetMoreSessions}
+				/>
 				<Box
+					paddingTop="4"
 					padding="8"
 					overflowX="hidden"
 					overflowY="auto"

@@ -9,6 +9,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -659,6 +660,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 
 	// Update the the number of error groups viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		// Check if this admin has already viewed
 		if _, err := r.isAdminInProject(ctx, eg.ProjectID); err != nil {
 			log.WithContext(ctx).Infof("not adding error groups count to admin in hubspot; this is probably a demo project, with id [%v]", eg.ProjectID)
@@ -753,6 +755,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 
 	// Update the the number of sessions viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		// Check if this admin has already viewed
 		if _, err := r.isAdminInProject(ctx, s.ProjectID); err != nil {
 			log.WithContext(ctx).Infof("not adding session count to admin in hubspot; this is probably a demo project, with id [%v]", s.ProjectID)
@@ -831,7 +834,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 		return nil, e.Wrap(err, "error adding admin to ViewedByAdmins")
 	}
 
-	if err := r.DataSyncQueue.Submit(ctx, &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: s.ID}}, strconv.Itoa(s.ID)); err != nil {
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(s.ID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: s.ID}}); err != nil {
 		return nil, err
 	}
 
@@ -895,10 +898,7 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		log.WithContext(ctx).Error(e.Wrap(err, "failed to add admin to workspace"))
 		return adminID, err
 	}
-	r.PrivateWorkerPool.SubmitRecover(func() {
-		if adminID == nil {
-			return
-		}
+	if adminID != nil {
 		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, *adminID, workspaceID); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(
 				err,
@@ -907,7 +907,7 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 				workspaceID,
 			))
 		}
-	})
+	}
 
 	return adminID, nil
 }
@@ -1076,6 +1076,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 	})
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		if contact, err := apolloio.CreateContact(email); err != nil {
 			log.WithContext(ctx).Errorf("error creating apollo contact: %v", err)
 		} else {
@@ -1250,9 +1251,9 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 	subscriptions := c.Subscriptions.Data
 	pricing.FillProducts(r.StripeClient, subscriptions)
 
-	pricingInterval := pricing.SubscriptionIntervalMonthly
+	pricingInterval := model.PricingSubscriptionIntervalMonthly
 	if planType != modelInputs.PlanTypeFree && interval == modelInputs.SubscriptionIntervalAnnual {
-		pricingInterval = pricing.SubscriptionIntervalAnnual
+		pricingInterval = model.PricingSubscriptionIntervalAnnual
 	}
 
 	// default to unlimited members pricing
@@ -1261,7 +1262,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		return nil, e.Wrap(err, "STRIPE_INTEGRATION_ERROR cannot update stripe subscription - failed to get Stripe prices")
 	}
 
-	newBasePrice := prices[pricing.ProductTypeBase]
+	newBasePrice := prices[model.PricingProductTypeBase]
 
 	// If there's an existing subscription, update it
 	if len(subscriptions) == 1 {
@@ -1275,7 +1276,7 @@ func (r *mutationResolver) CreateOrUpdateStripeSubscription(ctx context.Context,
 		if productType == nil {
 			return nil, e.New(fmt.Sprintf("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - nil product from sub %s price %s", subscription.ID, subscriptionItem.Price.ID))
 		}
-		if *productType != pricing.ProductTypeBase {
+		if *productType != model.PricingProductTypeBase {
 			return nil, e.New(fmt.Sprintf("STRIPE_INTEGRATION_ERROR cannot update stripe subscription - expecting base product from sub %s price %s: %s", subscription.ID, subscriptionItem.Price.ID, *productType))
 		}
 
@@ -1462,10 +1463,10 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	muteLink := fmt.Sprintf("%v?commentId=%v&ts=%v&muted=1", sessionURL, sessionComment.ID, time)
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		c := context.Background()
+		ctx := context.Background()
 		chunkIdx, chunkTs := r.GetSessionChunk(ctx, session.ID, sessionTimestamp)
 		log.WithContext(ctx).Infof("got chunk %d ts %d for session %d ts %d", chunkIdx, chunkTs, session.ID, sessionTimestamp)
-		imageBytes, err := r.getSessionScreenshot(c, projectID, session.ID, chunkTs, chunkIdx)
+		imageBytes, err := r.getSessionScreenshot(ctx, projectID, session.ID, chunkTs, chunkIdx)
 		if err != nil {
 			log.WithContext(ctx).Errorf("failed to render screenshot for %d %d %d %s", projectID, session.ID, sessionTimestamp, err)
 		} else {
@@ -1483,7 +1484,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 		if len(taggedAdmins) > 0 && !isGuest {
 			r.sendCommentPrimaryNotification(
-				c,
+				ctx,
 				admin,
 				*admin.Name,
 				taggedAdmins,
@@ -1503,7 +1504,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 		if len(taggedSlackUsers) > 0 && !isGuest {
 			r.sendCommentMentionNotification(
-				c,
+				ctx,
 				admin,
 				taggedSlackUsers,
 				workspace,
@@ -2603,7 +2604,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateErrorAlert is the resolver for the createErrorAlert field.
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int, defaultArg *bool) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2632,6 +2633,10 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 		return nil, err
 	}
 
+	if defaultArg == nil {
+		defaultArg = pointy.Bool(false)
+	}
+
 	newAlert := &model.ErrorAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
@@ -2645,6 +2650,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			Name:                 &name,
 			LastAdminToEditID:    admin.ID,
 			Frequency:            frequency,
+			Default:              *defaultArg,
 		},
 		RegexGroups: &regexGroupsString,
 		AlertIntegrations: model.AlertIntegrations{
@@ -3618,19 +3624,23 @@ func (r *mutationResolver) UpdateEmailOptOut(ctx context.Context, token *string,
 	return true, nil
 }
 
-// EditService is the resolver for the editService field.
-func (r *mutationResolver) EditService(ctx context.Context, id int, projectID int, githubRepoPath *string) (*model.Service, error) {
+// EditServiceGithubSettings is the resolver for the editServiceGithubSettings field.
+func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int, projectID int, githubRepoPath *string, buildPrefix *string, githubPrefix *string) (*model.Service, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	if err != nil {
 		return nil, err
 	}
 
-	serviceUpdates := map[string]interface{}{}
+	serviceUpdates := map[string]interface{}{
+		"ErrorDetails": make([]string, 0),
+		"BuildPrefix":  buildPrefix,
+		"GithubPrefix": githubPrefix,
+	}
 	if githubRepoPath != nil {
 		serviceUpdates["GithubRepoPath"] = *githubRepoPath
 		serviceUpdates["Status"] = "healthy"
 	} else {
-		serviceUpdates["GithubRepoPath"] = ""
+		serviceUpdates["GithubRepoPath"] = nil
 		serviceUpdates["Status"] = "created"
 	}
 
@@ -3640,6 +3650,52 @@ func (r *mutationResolver) EditService(ctx context.Context, id int, projectID in
 		return nil, updateErr
 	}
 	return service, nil
+}
+
+// UpsertSlackChannel is the resolver for the upsertSlackChannel field.
+func (r *mutationResolver) UpsertSlackChannel(ctx context.Context, projectID int, name string) (*modelInputs.SanitizedSlackChannel, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	channel, err := r.CreateSlackChannel(project.WorkspaceID, name)
+	if err == nil {
+		return &modelInputs.SanitizedSlackChannel{
+			WebhookChannel:   &channel.WebhookChannel,
+			WebhookChannelID: &channel.WebhookChannelID,
+		}, nil
+	}
+
+	if err.Error() != "name_taken" {
+		return nil, err
+	}
+
+	channels, _, err := r.GetSlackChannelsFromSlack(ctx, project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	ch, ok := lo.Find(*channels, func(channel model.SlackChannel) bool {
+		return strings.EqualFold(channel.WebhookChannel, "#"+name)
+	})
+	if !ok {
+		return nil, e.New("failed to find conflicting slack channel")
+	}
+
+	return &modelInputs.SanitizedSlackChannel{
+		WebhookChannel:   &ch.WebhookChannel,
+		WebhookChannelID: &ch.WebhookChannelID,
+	}, nil
+}
+
+// UpsertDiscordChannel is the resolver for the upsertDiscordChannel field.
+func (r *mutationResolver) UpsertDiscordChannel(ctx context.Context, projectID int, name string) (*model.DiscordChannel, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.Resolver.UpsertDiscordChannel(project.WorkspaceID, name)
 }
 
 // Accounts is the resolver for the accounts field.
@@ -4120,6 +4176,9 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model
 	if err != nil {
 		return nil, err
 	}
+	if err := r.loadErrorGroupFrequencies(ctx, eg); err != nil {
+		return nil, err
+	}
 	retentionDate, err := r.GetProjectRetentionDate(eg.ProjectID)
 	if err != nil {
 		return nil, err
@@ -4287,6 +4346,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			} else if len(p.ID) > 0 {
 				// Store the data for this email in the DB.
 				r.PrivateWorkerPool.SubmitRecover(func() {
+					ctx := context.Background()
 					log.WithContext(ctx).Infof("caching response data in the db")
 					modelToSave := &model.EnhancedUserDetails{}
 					modelToSave.Email = &email
@@ -4849,6 +4909,9 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 	if err != nil {
 		return nil, err
 	}
+	if err := r.loadErrorGroupFrequencies(ctx, errGroup); err != nil {
+		return nil, err
+	}
 
 	if projectID == 0 {
 		// Make error distribution random for demo org so it looks pretty
@@ -5109,7 +5172,11 @@ func (r *queryResolver) UserFingerprintCount(ctx context.Context, projectID int,
 }
 
 // SessionsOpensearch is the resolver for the sessions_opensearch field.
-func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, count int, query string, clickhouseQuery *modelInputs.ClickhouseQuery, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+	if clickhouseQuery != nil {
+		return r.SessionsClickhouse(ctx, projectID, count, *clickhouseQuery, sortField, sortDesc, page)
+	}
+
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -5155,8 +5222,49 @@ func (r *queryResolver) SessionsOpensearch(ctx context.Context, projectID int, c
 	}, nil
 }
 
+// SessionsClickhouse is the resolver for the sessions_clickhouse field.
+func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, count int, query modelInputs.ClickhouseQuery, sortField *string, sortDesc bool, page *int) (*model.SessionResults, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	sortFieldStr := "CreatedAt DESC, ID DESC"
+	if !sortDesc {
+		sortFieldStr = "CreatedAt ASC, ID ASC"
+	}
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, sortFieldStr, page, retentionDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []model.Session
+	if err := r.DB.Model(&model.Session{}).Where("id in ?", ids).Order("created_at DESC").Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	return &model.SessionResults{
+		Sessions:   results,
+		TotalCount: total,
+	}, nil
+}
+
 // SessionsHistogram is the resolver for the sessions_histogram field.
-func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
+func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions, clickhouseQuery *modelInputs.ClickhouseQuery) (*model.SessionsHistogram, error) {
+	if clickhouseQuery != nil {
+		return r.SessionsHistogramClickhouse(ctx, projectID, *clickhouseQuery, histogramOptions)
+	}
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -5207,8 +5315,49 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, qu
 	}, nil
 }
 
+// SessionsHistogramClickhouse is the resolver for the sessions_histogram_clickhouse field.
+func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, query, retentionDate, histogramOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(bucketTimes) > 0 {
+		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
+	}
+
+	return &model.SessionsHistogram{
+		BucketTimes:           MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		SessionsWithoutErrors: MergeHistogramBucketCounts(withoutErrors, histogramOptions.BucketSize.Multiple),
+		SessionsWithErrors:    MergeHistogramBucketCounts(withErrors, histogramOptions.BucketSize.Multiple),
+		TotalSessions:         MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
+	}, nil
+}
+
 // FieldTypes is the resolver for the field_types field.
-func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate *time.Time, endDate *time.Time) ([]*model.Field, error) {
+func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]*model.Field, error) {
+	if useClickhouse != nil && *useClickhouse {
+		if startDate == nil || endDate == nil {
+			return nil, errors.New("startDate and endDate must not be nil")
+		}
+		return r.FieldTypesClickhouse(ctx, projectID, *startDate, *endDate)
+	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -5263,8 +5412,19 @@ func (r *queryResolver) FieldTypes(ctx context.Context, projectID int, startDate
 	}), nil
 }
 
+// FieldTypesClickhouse is the resolver for the field_types_clickhouse field.
+func (r *queryResolver) FieldTypesClickhouse(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
+	return r.ClickhouseClient.QueryFieldNames(ctx, projectID, startDate, endDate)
+}
+
 // FieldsOpensearch is the resolver for the fields_opensearch field.
-func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error) {
+func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]string, error) {
+	if useClickhouse != nil && *useClickhouse {
+		if startDate == nil || endDate == nil {
+			return nil, errors.New("startDate and endDate must not be nil")
+		}
+		return r.FieldsClickhouse(ctx, projectID, count, fieldType, fieldName, query, *startDate, *endDate)
+	}
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -5314,6 +5474,11 @@ func (r *queryResolver) FieldsOpensearch(ctx context.Context, projectID int, cou
 	}
 
 	return values, nil
+}
+
+// FieldsClickhouse is the resolver for the fields_clickhouse field.
+func (r *queryResolver) FieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
+	return r.ClickhouseClient.QueryFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
 }
 
 // ErrorFieldsOpensearch is the resolver for the error_fields_opensearch field.
@@ -5551,9 +5716,9 @@ func (r *queryResolver) BillingDetails(ctx context.Context, workspaceID int) (*m
 
 	var sessionsLimit, errorsLimit, logsLimit *int64
 	if workspace.TrialEndDate == nil || workspace.TrialEndDate.Before(time.Now()) {
-		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, pricing.ProductTypeSessions, planType, retentionPeriod)
-		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, pricing.ProductTypeErrors, planType, retentionPeriod)
-		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, pricing.ProductTypeLogs, planType, retentionPeriod)
+		sessionsLimit = pricing.GetLimitAmount(workspace.SessionsMaxCents, model.PricingProductTypeSessions, planType, retentionPeriod)
+		errorsLimit = pricing.GetLimitAmount(workspace.ErrorsMaxCents, model.PricingProductTypeErrors, planType, retentionPeriod)
+		logsLimit = pricing.GetLimitAmount(workspace.LogsMaxCents, model.PricingProductTypeLogs, planType, retentionPeriod)
 	}
 
 	details := &modelInputs.BillingDetails{
@@ -7282,6 +7447,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 
 	// Update the the number of logs viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		var totalLogCount int64
 		if err := r.DB.Raw(`
 			select count(*)
@@ -7499,11 +7665,7 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 
 // SystemConfiguration is the resolver for the system_configuration field.
 func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemConfiguration, error) {
-	config := model.SystemConfiguration{Active: true}
-	if err := r.DB.Model(&config).Where(&config).FirstOrCreate(&config).Error; err != nil {
-		return nil, err
-	}
-	return &config, nil
+	return r.Store.GetSystemConfiguration(ctx)
 }
 
 // Services is the resolver for the services field.
@@ -7537,6 +7699,11 @@ func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*mode
 		return nil, e.Wrapf(err, "error unmarshaling segment params")
 	}
 	return params, nil
+}
+
+// ErrorDetails is the resolver for the errorDetails field.
+func (r *serviceResolver) ErrorDetails(ctx context.Context, obj *model.Service) ([]string, error) {
+	return obj.ErrorDetails, nil
 }
 
 // UserObject is the resolver for the user_object field.
@@ -7776,6 +7943,7 @@ GROUP BY
 func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
 	ch := make(chan *model.SessionPayload)
 	r.SubscriptionWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		defer close(ch)
 		log.WithContext(ctx).Infof("Polling for events on %s starting from index %d, number of waiting tasks %d",
 			sessionSecureID,
@@ -7856,6 +8024,9 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 // Segment returns generated.SegmentResolver implementation.
 func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver{r} }
 
+// Service returns generated.ServiceResolver implementation.
+func (r *Resolver) Service() generated.ServiceResolver { return &serviceResolver{r} }
+
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
@@ -7886,6 +8057,7 @@ type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
+type serviceResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }

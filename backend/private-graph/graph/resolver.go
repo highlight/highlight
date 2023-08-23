@@ -6,6 +6,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/bwmarrin/discordgo"
+	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 	"io"
 	"math/big"
 	"net/http"
@@ -133,7 +135,7 @@ type Resolver struct {
 	OpenSearch             *opensearch.Client
 	SubscriptionWorkerPool *workerpool.WorkerPool
 	RH                     *resthooks.Resthook
-	HubspotApi             HubspotApiInterface
+	HubspotApi             hubspotApi.Api
 	Redis                  *redis.Client
 	StepFunctions          *stepfunctions.Client
 	OAuthServer            *oauth.Server
@@ -212,14 +214,6 @@ func (r *Resolver) getCustomVerifiedAdminEmailDomain(admin *model.Admin) (string
 	}
 
 	return domain, nil
-}
-
-type HubspotApiInterface interface {
-	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) error
-	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) error
-	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error
-	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error
-	UpdateCompanyProperty(ctx context.Context, workspaceID int, properties []hubspot.Property) error
 }
 
 func (r *Resolver) getVerifiedAdminEmailDomain(admin *model.Admin) (string, error) {
@@ -888,14 +882,18 @@ func (r *Resolver) doesAdminOwnErrorGroup(ctx context.Context, errorGroupSecureI
 		return eg, false, err
 	}
 
+	return eg, true, nil
+}
+
+func (r *Resolver) loadErrorGroupFrequencies(ctx context.Context, eg *model.ErrorGroup) error {
+	var err error
 	if eg.FirstOccurrence, eg.LastOccurrence, err = r.GetErrorGroupOccurrences(ctx, eg); err != nil {
-		return nil, false, e.Wrap(err, "error querying error group occurrences")
+		return e.Wrap(err, "error querying error group occurrences")
 	}
 	if err := r.SetErrorFrequencies(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
-		return nil, false, e.Wrap(err, "error querying error group frequencies")
+		return e.Wrap(err, "error querying error group frequencies")
 	}
-
-	return eg, true, nil
+	return nil
 }
 
 func (r *Resolver) canAdminViewErrorObject(ctx context.Context, errorObjectID int) (*model.ErrorObject, error) {
@@ -1073,6 +1071,8 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 	if subjectScope == "error" {
 		determiner = "an"
 	}
+
+	// Header
 	message := fmt.Sprintf("You were %s in %s %s comment.", action, determiner, subjectScope)
 	if admin.Email != nil && *admin.Email != "" {
 		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Email, action, determiner, subjectScope)
@@ -1080,34 +1080,48 @@ func (r *Resolver) CreateSlackBlocks(admin *model.Admin, viewLink, commentText, 
 	if admin.Name != nil && *admin.Name != "" {
 		message = fmt.Sprintf("%s %s you in %s %s comment.", *admin.Name, action, determiner, subjectScope)
 	}
+
+	// comment message
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewHeaderBlock(&slack.TextBlockObject{Type: slack.PlainTextType, Text: message}))
+	blockSet.BlockSet = append(blockSet.BlockSet,
+		slack.NewSectionBlock(
+			&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)},
+			nil, nil,
+		),
+	)
+
+	// info on the session/error
+	if subjectScope == "error" {
+		blockSet.BlockSet = append(blockSet.BlockSet,
+			slack.NewSectionBlock(
+				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Error*: %s\n %s", viewLink, *additionalContext)},
+				nil, nil,
+			),
+		)
+	} else if subjectScope == "session" {
+		blockSet.BlockSet = append(blockSet.BlockSet,
+			slack.NewSectionBlock(
+				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Session*: %s\n%s", viewLink, *additionalContext)},
+				nil, nil,
+			),
+		)
+	}
 
 	button := slack.NewButtonBlockElement(
 		"",
 		"click",
 		slack.NewTextBlockObject(
 			slack.PlainTextType,
-			"View",
+			"View comment",
 			false,
 			false,
 		),
 	)
+	button.WithStyle("primary")
 	button.URL = viewLink
 	blockSet.BlockSet = append(blockSet.BlockSet,
-		slack.NewSectionBlock(
-			&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("> %s", commentText)},
-			nil, slack.NewAccessory(button),
-		),
+		slack.NewActionBlock("action_block", button),
 	)
-
-	if additionalContext != nil {
-		blockSet.BlockSet = append(blockSet.BlockSet,
-			slack.NewSectionBlock(
-				&slack.TextBlockObject{Type: slack.MarkdownType, Text: fmt.Sprintf("*Additional Context*\n %s", *additionalContext)},
-				nil, nil,
-			),
-		)
-	}
 
 	blockSet.BlockSet = append(blockSet.BlockSet, slack.NewDividerBlock())
 	return
@@ -1582,7 +1596,6 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 
 	// Default to free tier
 	tier := modelInputs.PlanTypeFree
-	retentionPeriod := modelInputs.RetentionPeriodSixMonths
 	unlimitedMembers := false
 	var billingPeriodStart *time.Time
 	var billingPeriodEnd *time.Time
@@ -1592,10 +1605,9 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 	// and set the workspace's tier if the Stripe product has one
 	for _, subscription := range subscriptions {
 		for _, subscriptionItem := range subscription.Items.Data {
-			if _, productTier, productUnlimitedMembers, _, priceRetentionPeriod := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
+			if _, productTier, productUnlimitedMembers, _, _ := pricing.GetProductMetadata(subscriptionItem.Price); productTier != nil {
 				tier = *productTier
 				unlimitedMembers = productUnlimitedMembers
-				retentionPeriod = priceRetentionPeriod
 				startTimestamp := time.Unix(subscription.CurrentPeriodStart, 0)
 				endTimestamp := time.Unix(subscription.CurrentPeriodEnd, 0)
 				nextInvoiceTimestamp := time.Unix(subscription.NextPendingInvoiceItemInvoice, 0)
@@ -1664,12 +1676,6 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 		}
 	}
 
-	// Only update retention period if already set
-	// This preserves `nil` values for customers grandfathered into 6 month retention
-	if workspace.RetentionPeriod != nil {
-		updates["RetentionPeriod"] = retentionPeriod
-	}
-
 	if err := r.DB.Model(&model.Workspace{}).
 		Where(model.Workspace{Model: model.Model{ID: workspace.ID}}).
 		Updates(updates).Error; err != nil {
@@ -1677,7 +1683,7 @@ func (r *Resolver) updateBillingDetails(ctx context.Context, stripeCustomerID st
 	}
 
 	// Plan has been updated, report the latest usage data to Stripe
-	if err := pricing.ReportUsageForWorkspace(ctx, r.DB, r.ClickhouseClient, r.StripeClient, r.MailClient, workspace.ID); err != nil {
+	if err := pricing.NewWorker(r.DB, r.ClickhouseClient, r.StripeClient, r.MailClient, r.HubspotApi).ReportUsageForWorkspace(ctx, workspace.ID); err != nil {
 		return e.Wrap(err, "STRIPE_INTEGRATION_ERROR error reporting usage after updating details")
 	}
 
@@ -2997,6 +3003,7 @@ func (r *Resolver) sendFollowedCommentNotification(
 
 	if len(threadIDs) > 0 {
 		r.PrivateWorkerPool.SubmitRecover(func() {
+			ctx := context.Background()
 			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
 				tracer.ResourceName("slackBot.sendCommentFollowerUpdate"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("subjectScope", subjectScope))
 			defer commentMentionSlackSpan.Finish()
@@ -3010,6 +3017,7 @@ func (r *Resolver) sendFollowedCommentNotification(
 
 	if len(tos) > 0 {
 		r.PrivateWorkerPool.SubmitRecover(func() {
+			ctx := context.Background()
 			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
 				tracer.ResourceName("sendgrid.sendFollowerEmail"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
 			defer commentMentionEmailSpan.Finish()
@@ -3035,6 +3043,7 @@ func (r *Resolver) sendFollowedCommentNotification(
 
 func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string, additionalContext *string) {
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentMentionNotification",
 			tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
@@ -3095,6 +3104,7 @@ func (r *Resolver) sendCommentPrimaryNotification(
 	}
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentPrimaryNotification",
 			tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionEmailSpan.Finish()
@@ -3117,6 +3127,7 @@ func (r *Resolver) sendCommentPrimaryNotification(
 	})
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentPrimaryNotification",
 			tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
@@ -3261,6 +3272,65 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 		return nil, 0, err
 	}
 	return &res.ExistingChannels, res.NewChannelsCount, err
+}
+func (r *Resolver) CreateSlackChannel(workspaceId int, name string) (*model.SlackChannel, error) {
+	workspace, _ := r.GetWorkspace(workspaceId)
+	// workspace is not integrated with slack
+	if workspace.SlackAccessToken == nil {
+		return nil, e.New("no slack access token provided")
+	}
+
+	slackClient := slack.New(*workspace.SlackAccessToken)
+	channel, err := slackClient.CreateConversation(name, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.SlackChannel{
+		WebhookChannel:   channel.Name,
+		WebhookChannelID: channel.ID,
+	}, nil
+}
+
+func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.DiscordChannel, error) {
+	workspace, err := r.GetWorkspace(workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	guildId := workspace.DiscordGuildId
+	if guildId == nil {
+		return nil, nil
+	}
+
+	bot, err := discord.NewDiscordBot(*guildId)
+	if err != nil {
+		return nil, err
+	}
+
+	channels, err := bot.GetChannels()
+	if err != nil {
+		return nil, err
+	}
+
+	if channel, has := lo.Find(channels, func(item *discordgo.Channel) bool {
+		return strings.EqualFold(item.Name, name)
+	}); has {
+		return &model.DiscordChannel{
+			Name: channel.Name,
+			ID:   channel.ID,
+		}, nil
+	}
+
+	channel, err := bot.CreateChannel(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.DiscordChannel{
+		Name: channel.Name,
+		ID:   channel.ID,
+	}, nil
 }
 
 func GetAggregateFluxStatement(ctx context.Context, aggregator modelInputs.MetricAggregator, resMins int) string {

@@ -78,6 +78,7 @@ export const SessionAlertFragmentFragmentDoc = gql`
 		CountThreshold
 		DailyFrequency
 		disabled
+		default
 		EmailsToNotify
 		ExcludedEnvironments
 		ExcludeRules
@@ -2840,6 +2841,7 @@ export const CreateErrorAlertDocument = gql`
 		$environments: [String]!
 		$regex_groups: [String]!
 		$frequency: Int!
+		$default: Boolean
 	) {
 		createErrorAlert(
 			project_id: $project_id
@@ -2853,6 +2855,7 @@ export const CreateErrorAlertDocument = gql`
 			threshold_window: $threshold_window
 			regex_groups: $regex_groups
 			frequency: $frequency
+			default: $default
 		) {
 			id
 			ChannelsToNotify {
@@ -2900,6 +2903,7 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
  *      frequency: // value for 'frequency'
+ *      default: // value for 'default'
  *   },
  * });
  */
@@ -4791,6 +4795,181 @@ export type DeleteInviteLinkFromWorkspaceMutationOptions =
 		Types.DeleteInviteLinkFromWorkspaceMutation,
 		Types.DeleteInviteLinkFromWorkspaceMutationVariables
 	>
+export const EditServiceGithubSettingsDocument = gql`
+	mutation EditServiceGithubSettings(
+		$id: ID!
+		$project_id: ID!
+		$github_repo_path: String
+		$build_prefix: String
+		$github_prefix: String
+	) {
+		editServiceGithubSettings(
+			id: $id
+			project_id: $project_id
+			github_repo_path: $github_repo_path
+			build_prefix: $build_prefix
+			github_prefix: $github_prefix
+		) {
+			id
+			projectID
+			name
+			status
+			githubRepoPath
+			buildPrefix
+			githubPrefix
+			errorDetails
+		}
+	}
+`
+export type EditServiceGithubSettingsMutationFn = Apollo.MutationFunction<
+	Types.EditServiceGithubSettingsMutation,
+	Types.EditServiceGithubSettingsMutationVariables
+>
+
+/**
+ * __useEditServiceGithubSettingsMutation__
+ *
+ * To run a mutation, you first call `useEditServiceGithubSettingsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditServiceGithubSettingsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [editServiceGithubSettingsMutation, { data, loading, error }] = useEditServiceGithubSettingsMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      project_id: // value for 'project_id'
+ *      github_repo_path: // value for 'github_repo_path'
+ *      build_prefix: // value for 'build_prefix'
+ *      github_prefix: // value for 'github_prefix'
+ *   },
+ * });
+ */
+export function useEditServiceGithubSettingsMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.EditServiceGithubSettingsMutation,
+		Types.EditServiceGithubSettingsMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.EditServiceGithubSettingsMutation,
+		Types.EditServiceGithubSettingsMutationVariables
+	>(EditServiceGithubSettingsDocument, baseOptions)
+}
+export type EditServiceGithubSettingsMutationHookResult = ReturnType<
+	typeof useEditServiceGithubSettingsMutation
+>
+export type EditServiceGithubSettingsMutationResult =
+	Apollo.MutationResult<Types.EditServiceGithubSettingsMutation>
+export type EditServiceGithubSettingsMutationOptions =
+	Apollo.BaseMutationOptions<
+		Types.EditServiceGithubSettingsMutation,
+		Types.EditServiceGithubSettingsMutationVariables
+	>
+export const UpsertSlackChannelDocument = gql`
+	mutation UpsertSlackChannel($project_id: ID!, $name: String!) {
+		upsertSlackChannel(project_id: $project_id, name: $name) {
+			webhook_channel
+			webhook_channel_id
+		}
+	}
+`
+export type UpsertSlackChannelMutationFn = Apollo.MutationFunction<
+	Types.UpsertSlackChannelMutation,
+	Types.UpsertSlackChannelMutationVariables
+>
+
+/**
+ * __useUpsertSlackChannelMutation__
+ *
+ * To run a mutation, you first call `useUpsertSlackChannelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpsertSlackChannelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [upsertSlackChannelMutation, { data, loading, error }] = useUpsertSlackChannelMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useUpsertSlackChannelMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpsertSlackChannelMutation,
+		Types.UpsertSlackChannelMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpsertSlackChannelMutation,
+		Types.UpsertSlackChannelMutationVariables
+	>(UpsertSlackChannelDocument, baseOptions)
+}
+export type UpsertSlackChannelMutationHookResult = ReturnType<
+	typeof useUpsertSlackChannelMutation
+>
+export type UpsertSlackChannelMutationResult =
+	Apollo.MutationResult<Types.UpsertSlackChannelMutation>
+export type UpsertSlackChannelMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpsertSlackChannelMutation,
+	Types.UpsertSlackChannelMutationVariables
+>
+export const UpsertDiscordChannelDocument = gql`
+	mutation UpsertDiscordChannel($project_id: ID!, $name: String!) {
+		upsertDiscordChannel(project_id: $project_id, name: $name) {
+			id
+			name
+		}
+	}
+`
+export type UpsertDiscordChannelMutationFn = Apollo.MutationFunction<
+	Types.UpsertDiscordChannelMutation,
+	Types.UpsertDiscordChannelMutationVariables
+>
+
+/**
+ * __useUpsertDiscordChannelMutation__
+ *
+ * To run a mutation, you first call `useUpsertDiscordChannelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpsertDiscordChannelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [upsertDiscordChannelMutation, { data, loading, error }] = useUpsertDiscordChannelMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useUpsertDiscordChannelMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpsertDiscordChannelMutation,
+		Types.UpsertDiscordChannelMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpsertDiscordChannelMutation,
+		Types.UpsertDiscordChannelMutationVariables
+	>(UpsertDiscordChannelDocument, baseOptions)
+}
+export type UpsertDiscordChannelMutationHookResult = ReturnType<
+	typeof useUpsertDiscordChannelMutation
+>
+export type UpsertDiscordChannelMutationResult =
+	Apollo.MutationResult<Types.UpsertDiscordChannelMutation>
+export type UpsertDiscordChannelMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpsertDiscordChannelMutation,
+	Types.UpsertDiscordChannelMutationVariables
+>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -5284,6 +5463,7 @@ export const GetSessionDocument = gql`
 			browser_version
 			environment
 			app_version
+			ip
 			city
 			state
 			country
@@ -6439,11 +6619,13 @@ export const GetFieldTypesDocument = gql`
 		$project_id: ID!
 		$start_date: Timestamp
 		$end_date: Timestamp
+		$use_clickhouse: Boolean
 	) {
 		field_types(
 			project_id: $project_id
 			start_date: $start_date
 			end_date: $end_date
+			use_clickhouse: $use_clickhouse
 		) {
 			type
 			name
@@ -6466,6 +6648,7 @@ export const GetFieldTypesDocument = gql`
  *      project_id: // value for 'project_id'
  *      start_date: // value for 'start_date'
  *      end_date: // value for 'end_date'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -6508,6 +6691,9 @@ export const GetFieldsOpensearchDocument = gql`
 		$field_type: String!
 		$field_name: String!
 		$query: String!
+		$start_date: Timestamp
+		$end_date: Timestamp
+		$use_clickhouse: Boolean
 	) {
 		fields_opensearch(
 			project_id: $project_id
@@ -6515,6 +6701,9 @@ export const GetFieldsOpensearchDocument = gql`
 			field_type: $field_type
 			field_name: $field_name
 			query: $query
+			start_date: $start_date
+			end_date: $end_date
+			use_clickhouse: $use_clickhouse
 		)
 	}
 `
@@ -6536,6 +6725,9 @@ export const GetFieldsOpensearchDocument = gql`
  *      field_type: // value for 'field_type'
  *      field_name: // value for 'field_name'
  *      query: // value for 'query'
+ *      start_date: // value for 'start_date'
+ *      end_date: // value for 'end_date'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -6714,6 +6906,7 @@ export const GetSessionsOpenSearchDocument = gql`
 		$project_id: ID!
 		$count: Int!
 		$query: String!
+		$clickhouse_query: ClickhouseQuery
 		$sort_desc: Boolean!
 		$sort_field: String
 		$page: Int
@@ -6722,6 +6915,7 @@ export const GetSessionsOpenSearchDocument = gql`
 			project_id: $project_id
 			count: $count
 			query: $query
+			clickhouse_query: $clickhouse_query
 			sort_field: $sort_field
 			sort_desc: $sort_desc
 			page: $page
@@ -6737,6 +6931,7 @@ export const GetSessionsOpenSearchDocument = gql`
 				os_version
 				browser_name
 				browser_version
+				ip
 				city
 				state
 				country
@@ -6784,6 +6979,7 @@ export const GetSessionsOpenSearchDocument = gql`
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
  *      query: // value for 'query'
+ *      clickhouse_query: // value for 'clickhouse_query'
  *      sort_desc: // value for 'sort_desc'
  *      sort_field: // value for 'sort_field'
  *      page: // value for 'page'
@@ -6827,11 +7023,13 @@ export const GetSessionsHistogramDocument = gql`
 		$project_id: ID!
 		$query: String!
 		$histogram_options: DateHistogramOptions!
+		$clickhouse_query: ClickhouseQuery
 	) {
 		sessions_histogram(
 			project_id: $project_id
 			query: $query
 			histogram_options: $histogram_options
+			clickhouse_query: $clickhouse_query
 		) {
 			bucket_times
 			sessions_without_errors
@@ -6856,6 +7054,7 @@ export const GetSessionsHistogramDocument = gql`
  *      project_id: // value for 'project_id'
  *      query: // value for 'query'
  *      histogram_options: // value for 'histogram_options'
+ *      clickhouse_query: // value for 'clickhouse_query'
  *   },
  * });
  */
@@ -11292,6 +11491,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			Name
 			DailyFrequency
 			disabled
+			default
 		}
 		new_session_alerts(project_id: $project_id) {
 			...SessionAlertFragment
@@ -11349,6 +11549,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			CountThreshold
 			DailyFrequency
 			disabled
+			default
 			EmailsToNotify
 			ExcludedEnvironments
 			id
@@ -13146,4 +13347,89 @@ export type GetErrorObjectsLazyQueryHookResult = ReturnType<
 export type GetErrorObjectsQueryResult = Apollo.QueryResult<
 	Types.GetErrorObjectsQuery,
 	Types.GetErrorObjectsQueryVariables
+>
+export const GetServicesDocument = gql`
+	query GetServices(
+		$project_id: ID!
+		$query: String
+		$after: String
+		$before: String
+	) {
+		services(
+			project_id: $project_id
+			query: $query
+			after: $after
+			before: $before
+		) {
+			edges {
+				cursor
+				node {
+					id
+					projectID
+					name
+					status
+					githubRepoPath
+					buildPrefix
+					githubPrefix
+					errorDetails
+				}
+			}
+			pageInfo {
+				hasNextPage
+				hasPreviousPage
+				startCursor
+				endCursor
+			}
+		}
+	}
+`
+
+/**
+ * __useGetServicesQuery__
+ *
+ * To run a query within a React component, call `useGetServicesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetServicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetServicesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      query: // value for 'query'
+ *      after: // value for 'after'
+ *      before: // value for 'before'
+ *   },
+ * });
+ */
+export function useGetServicesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetServicesQuery,
+		Types.GetServicesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetServicesQuery,
+		Types.GetServicesQueryVariables
+	>(GetServicesDocument, baseOptions)
+}
+export function useGetServicesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetServicesQuery,
+		Types.GetServicesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetServicesQuery,
+		Types.GetServicesQueryVariables
+	>(GetServicesDocument, baseOptions)
+}
+export type GetServicesQueryHookResult = ReturnType<typeof useGetServicesQuery>
+export type GetServicesLazyQueryHookResult = ReturnType<
+	typeof useGetServicesLazyQuery
+>
+export type GetServicesQueryResult = Apollo.QueryResult<
+	Types.GetServicesQuery,
+	Types.GetServicesQueryVariables
 >

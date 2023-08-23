@@ -155,24 +155,10 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 	}
 
 	for k, v := range originalAttrs {
-		prefixes := []string{}
-		if fields.source == modelInputs.LogSourceFrontend {
-			prefixes = append(prefixes, highlight.BackendOnlyAttributePrefixes...)
-		}
-
-		shouldSkip := false
-		for _, prefix := range prefixes {
-			if strings.HasPrefix(k, prefix) {
-				shouldSkip = true
-				break
-			}
-		}
-		if shouldSkip {
-			continue
-		}
-
 		for key, value := range util.FormatLogAttributes(ctx, k, v) {
-			fields.attrs[key] = value
+			if v != "" {
+				fields.attrs[key] = value
+			}
 		}
 	}
 
