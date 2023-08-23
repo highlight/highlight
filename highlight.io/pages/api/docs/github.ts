@@ -68,21 +68,13 @@ export const removeOrderingPrefix = (path: string) => {
 	return cleanPath.join('/')
 }
 
-export const processDocPath = function (
-	base: string,
-	fileString: string,
-): string {
-	const simple_path = path.join(base, fileString)
-	let pp: string
-	if (fileString.includes('index.md')) {
-		// index.md contains the title of a subheading, which can't have content. get rid of "index.md" at the end
-		pp = simple_path.split('/').slice(0, -1).join('/')
-	} else {
-		// strip out any notion of ".md"
-		pp = simple_path.replace('.md', '')
-		const pp_array = pp.split('/')
-	}
-	return removeOrderingPrefix(pp)
+/** remove "/index.md" or ".md" from the end of the path */
+export function trimMdPath(base: string, fileString: string): string {
+	const trimmedPath = path
+		.join(base, fileString)
+		.replace(/(\/?index)?.md$/, '') // remove "/index.md" or ".md" from the end of the path
+
+	return removeOrderingPrefix(trimmedPath)
 }
 
 export const getGithubDocsPaths = async (path: string = 'docs-content/') => {
@@ -103,7 +95,7 @@ export const getGithubDocsPaths = async (path: string = 'docs-content/') => {
 		} else if (path.type === 'file') {
 			childPromises.push(
 				(async () => {
-					const slug = processDocPath('', path.path)
+					const slug = trimMdPath('', path.path)
 					const file = await fetch(path.download_url, {
 						headers: { ...githubHeaders, accept: '' },
 					})

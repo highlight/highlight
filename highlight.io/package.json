@@ -20,6 +20,7 @@
 		"@headlessui/react": "^1.7.4",
 		"@heroicons/react": "^2.0.13",
 		"@highlight-run/next": "workspace:*",
+		"@radix-ui/react-collapsible": "^1.0.3",
 		"@radix-ui/react-slider": "^1.1.0",
 		"@supabase/supabase-js": "^2.7.1",
 		"@vercel/og": "^0.0.27",
@@ -71,7 +72,8 @@
 		"rudder-sdk-js": "^2.20.0",
 		"sass": "^1.56.1",
 		"sharp": "^0.31.3",
-		"uuidv4": "^6.2.13"
+		"uuidv4": "^6.2.13",
+		"zod": "^3.21.4"
 	},
 	"devDependencies": {
 		"@svgr/webpack": "^6.5.1",

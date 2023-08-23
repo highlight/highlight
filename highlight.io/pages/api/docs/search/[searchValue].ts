@@ -1,9 +1,8 @@
-import { promises as fsp } from 'fs'
-import path from 'path'
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { getDocsPaths, readMarkdown } from '../../../docs/[[...doc]]'
-import RangeTuple from 'fuse.js'
+import path from 'path'
 import removeMd from 'remove-markdown'
+import { readMarkdownFile } from '../../../../components/Docs/TableOfContents/TableOfContents'
+import { getDocs } from '../../../docs/[[...doc]]'
 
 export const SEARCH_RESULT_BLURB_LENGTH = 100
 
@@ -22,17 +21,16 @@ export default async function handler(
 	res: NextApiResponse,
 ) {
 	const searchValue = [req.query.searchValue].flat().join('').toLowerCase()
-	const docPaths = await getDocsPaths(fsp, undefined)
+	const docPaths = await getDocs()
 	const paths: SearchResult[] = await Promise.all(
 		docPaths.map(async (doc) => {
-			const { content } = await readMarkdown(
-				fsp,
-				path.join(doc?.total_path || ''),
+			const { content } = await readMarkdownFile(
+				path.join(doc.absoluteFilePath || ''),
 			)
 			return {
-				title: doc?.metadata.title,
-				path: doc?.simple_path,
-				indexPath: doc?.indexPath,
+				title: doc.metadata.title,
+				path: doc.slugPath,
+				indexPath: doc.isIndex,
 				content: content,
 			}
 		}),

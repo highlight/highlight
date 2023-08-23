@@ -152,12 +152,12 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 		i < Math.min(NUM_SUGGESTED_POSTS, githubPosts.length - 1);
 		i++
 	) {
-		let suggestedPost = otherPosts.splice(
+		let suggestedPost: Post | undefined = otherPosts.splice(
 			Math.floor(Math.random() * otherPosts.length),
 			1,
 		)[0]
 
-		if (suggestedPost.image.url == null) {
+		if (suggestedPost?.image.url == null) {
 			const params = new URLSearchParams()
 			params.set('title', suggestedPost.title || '')
 			params.set('fname', suggestedPost.author?.firstName || '')
@@ -171,7 +171,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 			suggestedPost.image.url = metaImageURL
 		}
 
-		suggestedPosts.push(suggestedPost)
+		if (suggestedPost) suggestedPosts.push(suggestedPost)
 	}
 
 	const githubPost = await getGithubPostBySlug(slug, githubPosts)
