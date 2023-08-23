@@ -30,6 +30,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import { getDiscordOauthUrl } from '@pages/IntegrationsPage/components/DiscordIntegration/DiscordIntegrationConfig'
 import { Header } from '@pages/Setup/Header'
 import useLocalStorage from '@rehooks/local-storage'
+import analytics from '@util/analytics'
 import * as React from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useMatch, useNavigate } from 'react-router-dom'
@@ -325,6 +326,13 @@ const AlertPicker = function ({
 				})
 				channelID = data?.upsertDiscordChannel.id ?? ''
 			}
+			analytics.track(`setup-alerts-create-${alert}`, {
+				platform,
+				destination,
+				channelID,
+				emailDestinations,
+				projectId,
+			})
 
 			const requestVariables = {
 				project_id: projectId,
