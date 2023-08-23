@@ -22,10 +22,19 @@ class HighlightTest < Minitest::Test
 
   def test_trace
     Highlight::H.new('qe9y4yg1')
-    Highlight::H.instance.trace(nil, nil, { 'some.attribute' => 12 }) do
+    Highlight::H.instance.trace(1, nil, { 'some.attribute' => 12 }) do
+      logger = Highlight::Logger.new($stdout)
+      logger.info('ruby test trace!')
       raise 'ruby test error handler!'
     end
     Highlight::H.instance.flush
+    expect_any_instance_of(OpenTelemetryTracer).to have_received(:in_span).with(
+      'highlight-ctx',
+      hash_including(
+        "some.attribute": 12,
+        "project_id": nil
+      )
+    )
   rescue StandardError # rubocop:disable Lint/SuppressedException
   end
 end
