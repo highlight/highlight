@@ -636,22 +636,26 @@ function AlertsPageLoaded({
 										)}
 									</>
 								) : (
-									<SearchEmptyState
-										className={styles.emptyContainer}
-										item="alerts"
-										customTitle={`Your project doesn't have any alerts yet 😔`}
-										customDescription={
-											<>
-												<LinkButton
-													iconLeft={<IconSolidPlus />}
-													trackingId="NewAlert"
-													to={`/${project_id}/alerts/new`}
-												>
-													Create new alert
-												</LinkButton>
-											</>
-										}
-									/>
+									<>
+										<SearchEmptyState
+											className={styles.emptyContainer}
+											item="alerts"
+											customTitle={`Your project doesn't have any alerts yet 😔`}
+											customDescription={
+												<>
+													<LinkButton
+														iconLeft={
+															<IconSolidPlus />
+														}
+														trackingId="NewAlert"
+														to={`/${project_id}/alerts/new`}
+													>
+														Create new alert
+													</LinkButton>
+												</>
+											}
+										/>
+									</>
 								)}
 							</Stack>
 						)}

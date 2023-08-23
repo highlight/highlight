@@ -30,3 +30,11 @@ Below is a list of our subprocessors:
 | Datadog                   | Metrics                     | USA                 |
 | Stripe                    | Payment Processing          | USA                 |
 | Clickhouse                | Data storage                | USA                 |
+
+## Avoiding Cookie Consent (disabling localStorage)
+
+If you're using the highlight.io browser client and would like to avoid requesting cookie consent from your users,
+you can pass the `storageMode: 'sessionStorage'` option to `H.init` to make sure that highlight will not persist
+any data in `window.localStorage`. This will mean that if a user leaves your site and returns later, a new
+highlight recording will start regardless of the time since they left, 
+since we will not persist any metadata in the browser.

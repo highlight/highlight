@@ -196,6 +196,13 @@ export declare type HighlightOptions = {
 	 * @see {@link https://docs.highlight.run/session-shortcut} for more information.
 	 */
 	sessionShortcut?: SessionShortcutOptions
+	/**
+	 * Set to `sessionStorage` to bypass all `window.localStorage` usage.
+	 * This can help with compliance for cookie-consent regulation.
+	 * Using `sessionStorage` will cause app close+reopens to start a new highlight session,
+	 * as the session ID will not persist.
+	 */
+	storageMode?: 'sessionStorage' | 'localStorage'
 }
 
 export declare interface HighlightPublicInterface {

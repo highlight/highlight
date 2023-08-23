@@ -65,9 +65,10 @@ export const SessionLevelBarV2: React.FC<
 		setShowRightPanel,
 	} = usePlayerConfiguration()
 	const { rightPanelView, setRightPanelView } = usePlayerUIContext()
+	const { isHighlightAdmin } = useAuthContext()
 	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse',
-		false,
+		'highlight-session-search-use-clickhouse-v2',
+		isHighlightAdmin || Number(projectId) % 2 == 0,
 	)
 	const { data } = useGetSessionsOpenSearchQuery({
 		variables: {

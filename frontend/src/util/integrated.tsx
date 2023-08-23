@@ -1,5 +1,6 @@
 import { useAuthContext } from '@authentication/AuthContext'
 import {
+	useGetAlertsPagePayloadQuery,
 	useGetClientIntegrationQuery,
 	useGetLogsIntegrationQuery,
 	useGetServerIntegrationQuery,
@@ -12,9 +13,11 @@ import { useEffect, useState } from 'react'
 
 import { IntegrationStatus } from '@/graph/generated/schemas'
 
+const POLL_INTERVAL_MS = 5000
+
 export const useIntegratedLocalStorage = (
 	projectId: string,
-	area: 'client' | 'server' | 'logs',
+	area: 'client' | 'server' | 'logs' | 'alerts' | 'team',
 ) => {
 	return useLocalStorage<LocalStorageIntegrationData>(
 		`highlight-${projectId}-${area}-integration`,
@@ -52,7 +55,7 @@ export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
 				} else {
 					clearInterval(timer)
 				}
-			}, 5000)
+			}, POLL_INTERVAL_MS)
 			return () => {
 				clearInterval(timer)
 			}
@@ -113,7 +116,7 @@ export const useClientIntegration = () => {
 	useEffect(() => {
 		if (!isLoggedIn) return
 		if (!localStorageIntegrated.integrated) {
-			startPolling(5000)
+			startPolling(POLL_INTERVAL_MS)
 
 			return () => {
 				stopPolling()
@@ -167,7 +170,7 @@ export const useServerIntegration = () => {
 	useEffect(() => {
 		if (!isLoggedIn) return
 		if (!localStorageIntegrated.integrated) {
-			startPolling(5000)
+			startPolling(POLL_INTERVAL_MS)
 
 			return () => {
 				stopPolling()
@@ -221,7 +224,7 @@ export const useLogsIntegration = () => {
 	useEffect(() => {
 		if (!isLoggedIn) return
 		if (!localStorageIntegrated.integrated) {
-			startPolling(5000)
+			startPolling(POLL_INTERVAL_MS)
 
 			return () => {
 				stopPolling()
@@ -257,5 +260,81 @@ export const useLogsIntegration = () => {
 		setLocalStorageIntegrated,
 	])
 
+	return localStorageIntegrated
+}
+
+export const useAlertsIntegration = () => {
+	const { isLoggedIn } = useAuthContext()
+	const { projectId } = useNumericProjectId()
+	const [localStorageIntegrated, setLocalStorageIntegrated] =
+		useIntegratedLocalStorage(projectId!, 'alerts')
+
+	const { data, startPolling, stopPolling } = useGetAlertsPagePayloadQuery({
+		variables: { project_id: projectId! },
+		skip: localStorageIntegrated.integrated,
+		fetchPolicy: 'cache-and-network',
+	})
+
+	useEffect(() => {
+		if (!isLoggedIn) return
+		if (!localStorageIntegrated.integrated) {
+			startPolling(POLL_INTERVAL_MS)
+
+			return () => {
+				stopPolling()
+			}
+		} else {
+			stopPolling()
+		}
+	}, [
+		localStorageIntegrated.integrated,
+		isLoggedIn,
+		startPolling,
+		stopPolling,
+	])
+
+	useEffect(() => {
+		if (
+			(data?.log_alerts?.length ?? 0) +
+				(data?.error_alerts?.length ?? 0) +
+				(data?.new_session_alerts?.length ?? 0) +
+				(data?.rage_click_alerts?.length ?? 0) +
+				(data?.new_user_alerts?.length ?? 0) +
+				(data?.track_properties_alerts?.length ?? 0) +
+				(data?.user_properties_alerts?.length ?? 0) >
+			0
+		) {
+			analytics.track('integrated-logs', { id: projectId })
+
+			setLocalStorageIntegrated({
+				loading: false,
+				integrated: true,
+				resourceType: 'alerts',
+			})
+		}
+	}, [
+		data?.error_alerts?.length,
+		data?.log_alerts?.length,
+		data?.new_session_alerts?.length,
+		data?.new_user_alerts?.length,
+		data?.rage_click_alerts?.length,
+		data?.track_properties_alerts?.length,
+		data?.user_properties_alerts?.length,
+		localStorageIntegrated.integrated,
+		projectId,
+		setLocalStorageIntegrated,
+	])
+
+	return localStorageIntegrated
+}
+
+export const useTeamIntegration = () => {
+	const { projectId } = useNumericProjectId()
+	const [localStorageIntegrated] = useIntegratedLocalStorage(
+		projectId!,
+		'team',
+	)
+
+	// TODO(vkorolik)
 	return localStorageIntegrated
 }

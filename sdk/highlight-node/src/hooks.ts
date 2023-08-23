@@ -62,7 +62,11 @@ export function hookConsole(
 				cb({
 					date,
 					level: highlightLevel,
-					message: data.join(' '),
+					message: data
+						.map((o) =>
+							typeof o === 'object' ? JSON.stringify(o) : o,
+						)
+						.join(' '),
 					stack: o.stack,
 				})
 			}

@@ -671,6 +671,7 @@ mutation CreateErrorAlert(
 	$environments: [String]!
 	$regex_groups: [String]!
 	$frequency: Int!
+	$default: Boolean
 ) {
 	createErrorAlert(
 		project_id: $project_id
@@ -684,6 +685,7 @@ mutation CreateErrorAlert(
 		threshold_window: $threshold_window
 		regex_groups: $regex_groups
 		frequency: $frequency
+		default: $default
 	) {
 		id
 		ChannelsToNotify {
@@ -1172,5 +1174,19 @@ mutation EditServiceGithubSettings(
 		buildPrefix
 		githubPrefix
 		errorDetails
+	}
+}
+
+mutation UpsertSlackChannel($project_id: ID!, $name: String!) {
+	upsertSlackChannel(project_id: $project_id, name: $name) {
+		webhook_channel
+		webhook_channel_id
+	}
+}
+
+mutation UpsertDiscordChannel($project_id: ID!, $name: String!) {
+	upsertDiscordChannel(project_id: $project_id, name: $name) {
+		id
+		name
 	}
 }

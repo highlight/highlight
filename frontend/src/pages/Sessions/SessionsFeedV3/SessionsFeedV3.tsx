@@ -47,6 +47,7 @@ import moment from 'moment'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { useLocalStorage } from 'react-use'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import {
 	QueryBuilderState,
@@ -71,9 +72,10 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 	}>()
 	const { setSearchQuery, backendSearchQuery, searchQuery } =
 		useSearchContext()
+	const { isHighlightAdmin } = useAuthContext()
 	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse',
-		false,
+		'highlight-session-search-use-clickhouse-v2',
+		isHighlightAdmin || Number(project_id) % 2 == 0,
 	)
 
 	const { loading, data } = useGetSessionsHistogramQuery({
@@ -201,9 +203,10 @@ export const SessionFeedV3 = React.memo(() => {
 		setSearchResultsLoading(false)
 	}
 
+	const { isHighlightAdmin } = useAuthContext()
 	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse',
-		false,
+		'highlight-session-search-use-clickhouse-v2',
+		isHighlightAdmin || Number(project_id) % 2 == 0,
 	)
 
 	const { loading } = useGetSessionsOpenSearchQuery({
