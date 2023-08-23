@@ -9961,7 +9961,6 @@ type LogConnection implements Connection {
 	pageInfo: PageInfo!
 }
 
-# TODO: Finish filling this in
 type Trace {
 	timestamp: Timestamp!
 	traceID: String!
