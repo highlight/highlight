@@ -2102,6 +2102,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 	}
 
+	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error querying all_workspace_settings"))
+	}
+
 	// Filter out empty errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
@@ -2175,8 +2180,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		var mappedStackTrace *string
 		var structuredStackTrace []*privateModel.ErrorTrace
 
-		// TODO: turn this on for more projects
-		if projectID == 1 {
+		if settings.EnableEnhancedErrors {
 			mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, projectID, errorToInsert, v.Service.Name, v.Service.Version)
 		} else {
 			structuredStackTrace, err = r.Store.StructuredStackTrace(ctx, v.StackTrace)

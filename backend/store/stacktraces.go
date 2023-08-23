@@ -21,6 +21,8 @@ import (
 )
 
 const GITHUB_ERROR_CONTEXT_LINES = 5
+const MAX_ERROR_KILLSWITCH = 20
+const MAX_ENHANCED_DEPTH = 5
 
 func (store *Store) GitHubFilePath(ctx context.Context, fileName string, buildPrefix *string, gitHubPrefix *string) string {
 	if buildPrefix != nil && gitHubPrefix != nil {
@@ -68,13 +70,12 @@ func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel
 	fileContent, _, resp, err := gitHubClient.GetRepoContent(ctx, *service.GithubRepoPath, fileName, serviceVersion)
 	if resp != nil && resp.Rate.Remaining <= 0 {
 		log.WithContext(ctx).Warn("GitHub rate limit hit")
-		_ = store.redis.SetGithubRateLimitExceeded(ctx)
+		_ = store.redis.SetGithubRateLimitExceeded(ctx, resp.Rate.Reset.Time)
 	}
 
 	if err != nil {
 		// put service in error state if too many errors occur within timeframe
 		errorCount, _ := store.redis.IncrementServiceErrorCount(ctx, service.ID)
-		var MAX_ERROR_KILLSWITCH int64 = 20
 		if errorCount >= MAX_ERROR_KILLSWITCH {
 			err = store.UpdateServiceErrorState(ctx, service.ID, []string{"Too many errors enhancing errors - Check service configuration."})
 			if err != nil {
@@ -207,7 +208,6 @@ func (store *Store) GitHubEnhancedStakeTrace(ctx context.Context, stackTrace []*
 	}
 
 	newMappedStackTrace := []*privateModel.ErrorTrace{}
-	MAX_ENHANCED_DEPTH := 5
 	for idx, trace := range stackTrace {
 		if idx >= MAX_ENHANCED_DEPTH {
 			newMappedStackTrace = append(newMappedStackTrace, trace)
