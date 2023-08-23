@@ -27,15 +27,15 @@ class HighlightTest < Minitest::Test
     end
 
     begin
-        OpenTelemetry::Trace::Tracer.stub :new, mock do
-          Highlight::H.new('qe9y4yg1')
-          Highlight::H.instance.trace(1, nil, { 'some.attribute' => 12 }) do
-            logger = Highlight::Logger.new($stdout)
-            logger.info('ruby test trace!')
-            raise 'ruby test error handler!'
-          end
-          Highlight::H.instance.flush
+      OpenTelemetry::Trace::Tracer.stub :new, mock do
+        Highlight::H.new('qe9y4yg1')
+        Highlight::H.instance.trace(1, nil, { 'some.attribute' => 12 }) do
+          logger = Highlight::Logger.new($stdout)
+          logger.info('ruby test trace!')
+          raise 'ruby test error handler!'
         end
+        Highlight::H.instance.flush
+      end
     ensure
       assert_mock mock
     end
