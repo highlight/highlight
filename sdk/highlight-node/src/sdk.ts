@@ -24,7 +24,7 @@ export interface HighlightInterface {
 		name: string,
 		value: number,
 		requestId?: string,
-		metadata?: Attributes,
+		tags?: { name: string; value: string }[],
 	) => void
 	flush: () => Promise<void>
 	log: (message: any, level: string, ...optionalParams: any[]) => void
@@ -75,7 +75,7 @@ export const H: HighlightInterface = {
 		name: string,
 		value: number,
 		requestId?: string,
-		metadata?: Attributes,
+		tags?: { name: string; value: string }[],
 	) => {
 		try {
 			highlight_obj.recordMetric(
@@ -83,7 +83,7 @@ export const H: HighlightInterface = {
 				name,
 				value,
 				requestId,
-				metadata,
+				tags,
 			)
 		} catch (e) {
 			console.warn('highlight-node recordMetric error: ', e)
