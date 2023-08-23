@@ -1,4 +1,5 @@
 import { LoadingBar } from '@components/Loading/Loading'
+import { Box, IconSolidExclamation } from '@highlight-run/ui'
 import { useEffect, useState } from 'react'
 
 import BorderBox from '@/components/BorderBox/BorderBox'
@@ -30,8 +31,10 @@ export const FilterSessionsWithoutErrorForm = () => {
 		{
 			key: 'Filter sessions without errors',
 			message:
-				'Filter newly created sessions without an error. Any session filtered out will not count towards your billing quota.',
+				'Filter created sessions without an error. Any session filtered out will not count towards your billing quota.',
 			checked: filterSessionsWithoutError,
+			warning:
+				'Excluding sessions without errors will not store any session without an error.',
 		},
 	]
 
@@ -58,6 +61,22 @@ export const FilterSessionsWithoutErrorForm = () => {
 							)
 						},
 						false,
+					)}
+					{c.warning && (
+						<Box
+							p="8"
+							borderRadius="8"
+							border="dividerWeak"
+							backgroundColor="neutral"
+							style={{
+								alignItems: 'center',
+								display: 'flex',
+								flexDirection: 'row',
+							}}
+						>
+							<IconSolidExclamation size={14} color="neutral" />
+							{c.warning}
+						</Box>
 					)}
 				</BorderBox>
 			))}
