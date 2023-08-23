@@ -77,6 +77,7 @@ import {
 	IFRAME_PARENT_READY,
 	IFRAME_PARENT_RESPONSE,
 } from './types/iframe'
+import { getItem, setItem, setStorageMode } from './utils/storage'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -111,6 +112,7 @@ export type HighlightClassOptions = {
 	appVersion?: string
 	sessionShortcut?: SessionShortcutOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
+	storageMode?: 'sessionStorage' | 'localStorage'
 }
 
 /**
@@ -225,6 +227,12 @@ export class Highlight {
 			this.debugOptions = this.options?.debug ?? {}
 		}
 		this.logger = new Logger(this.debugOptions.clientInteractions)
+		if (options.storageMode === 'sessionStorage') {
+			this.logger.log(
+				'initializing in sessionStorage non-persistent session mode',
+			)
+			setStorageMode('sessionStorage')
+		}
 
 		this._worker =
 			new HighlightClientWorker() as HighlightClientRequestWorker
@@ -539,16 +547,11 @@ export class Highlight {
 				this._recordingStartTime = parseInt(recordingStartTime, 10)
 			}
 
-			let clientID = window.localStorage.getItem(
-				LOCAL_STORAGE_KEYS['CLIENT_ID'],
-			)
+			let clientID = getItem(LOCAL_STORAGE_KEYS['CLIENT_ID'])
 
 			if (!clientID) {
 				clientID = GenerateSecureID()
-				window.localStorage.setItem(
-					LOCAL_STORAGE_KEYS['CLIENT_ID'],
-					clientID,
-				)
+				setItem(LOCAL_STORAGE_KEYS['CLIENT_ID'], clientID)
 			}
 
 			// To handle the 'Duplicate Tab' function, remove id from storage until page unload
