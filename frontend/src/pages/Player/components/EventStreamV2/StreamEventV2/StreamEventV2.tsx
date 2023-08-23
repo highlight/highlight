@@ -109,6 +109,19 @@ export const StreamEventV2 = function ({
 							size="small"
 							emphasis="high"
 							shape="basic"
+							onClick={(e) => {
+								// Stopping the event from propagating up to the parent button. This is to allow the element to stay opened when the user clicks on the GoToButton. Without this the element would close.
+								e.stopPropagation()
+								// Sets the current event as null. It will be reset as the player continues.
+								pause(timeSinceStart)
+								message.success(
+									`Changed player time showing you ${
+										details.title
+									} at ${MillisToMinutesAndSeconds(
+										timeSinceStart,
+									)}`,
+								)
+							}}
 						>
 							<Text>
 								{showPlayerAbsoluteTime
