@@ -1,4 +1,5 @@
 import LoadingBox from '@components/LoadingBox'
+import { SearchEmptyState } from '@components/SearchEmptyState/SearchEmptyState'
 import { GetAlertsPagePayloadQuery } from '@graph/operations'
 import {
 	Box,
@@ -26,7 +27,6 @@ import SvgTargetIcon from '@icons/TargetIcon'
 import SvgUserPlusIcon from '@icons/UserPlusIcon'
 import { AlertEnableSwitch } from '@pages/Alerts/AlertEnableSwitch/AlertEnableSwitch'
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
-import { CompleteSetup } from '@pages/Alerts/CompleteSetup/CompleteSetup'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
 import { RiDiscordFill, RiMailFill, RiSlackFill } from 'react-icons/ri'
@@ -37,6 +37,8 @@ import {
 	DiscordChannel,
 	SanitizedSlackChannel,
 } from '@/graph/generated/schemas'
+
+import styles from './Alerts.module.css'
 
 // TODO(et) - replace these with the graphql generated SessionAlertType
 export enum ALERT_TYPE {
@@ -634,7 +636,26 @@ function AlertsPageLoaded({
 										)}
 									</>
 								) : (
-									<CompleteSetup />
+									<>
+										<SearchEmptyState
+											className={styles.emptyContainer}
+											item="alerts"
+											customTitle={`Your project doesn't have any alerts yet 😔`}
+											customDescription={
+												<>
+													<LinkButton
+														iconLeft={
+															<IconSolidPlus />
+														}
+														trackingId="NewAlert"
+														to={`/${project_id}/alerts/new`}
+													>
+														Create new alert
+													</LinkButton>
+												</>
+											}
+										/>
+									</>
 								)}
 							</Stack>
 						)}
