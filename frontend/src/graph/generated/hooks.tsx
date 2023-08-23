@@ -78,6 +78,7 @@ export const SessionAlertFragmentFragmentDoc = gql`
 		CountThreshold
 		DailyFrequency
 		disabled
+		default
 		EmailsToNotify
 		ExcludedEnvironments
 		ExcludeRules
@@ -2840,6 +2841,7 @@ export const CreateErrorAlertDocument = gql`
 		$environments: [String]!
 		$regex_groups: [String]!
 		$frequency: Int!
+		$default: Boolean
 	) {
 		createErrorAlert(
 			project_id: $project_id
@@ -2853,6 +2855,7 @@ export const CreateErrorAlertDocument = gql`
 			threshold_window: $threshold_window
 			regex_groups: $regex_groups
 			frequency: $frequency
+			default: $default
 		) {
 			id
 			ChannelsToNotify {
@@ -2900,6 +2903,7 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
  *      frequency: // value for 'frequency'
+ *      default: // value for 'default'
  *   },
  * });
  */
@@ -4864,6 +4868,108 @@ export type EditServiceGithubSettingsMutationOptions =
 		Types.EditServiceGithubSettingsMutation,
 		Types.EditServiceGithubSettingsMutationVariables
 	>
+export const UpsertSlackChannelDocument = gql`
+	mutation UpsertSlackChannel($project_id: ID!, $name: String!) {
+		upsertSlackChannel(project_id: $project_id, name: $name) {
+			webhook_channel
+			webhook_channel_id
+		}
+	}
+`
+export type UpsertSlackChannelMutationFn = Apollo.MutationFunction<
+	Types.UpsertSlackChannelMutation,
+	Types.UpsertSlackChannelMutationVariables
+>
+
+/**
+ * __useUpsertSlackChannelMutation__
+ *
+ * To run a mutation, you first call `useUpsertSlackChannelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpsertSlackChannelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [upsertSlackChannelMutation, { data, loading, error }] = useUpsertSlackChannelMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useUpsertSlackChannelMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpsertSlackChannelMutation,
+		Types.UpsertSlackChannelMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpsertSlackChannelMutation,
+		Types.UpsertSlackChannelMutationVariables
+	>(UpsertSlackChannelDocument, baseOptions)
+}
+export type UpsertSlackChannelMutationHookResult = ReturnType<
+	typeof useUpsertSlackChannelMutation
+>
+export type UpsertSlackChannelMutationResult =
+	Apollo.MutationResult<Types.UpsertSlackChannelMutation>
+export type UpsertSlackChannelMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpsertSlackChannelMutation,
+	Types.UpsertSlackChannelMutationVariables
+>
+export const UpsertDiscordChannelDocument = gql`
+	mutation UpsertDiscordChannel($project_id: ID!, $name: String!) {
+		upsertDiscordChannel(project_id: $project_id, name: $name) {
+			id
+			name
+		}
+	}
+`
+export type UpsertDiscordChannelMutationFn = Apollo.MutationFunction<
+	Types.UpsertDiscordChannelMutation,
+	Types.UpsertDiscordChannelMutationVariables
+>
+
+/**
+ * __useUpsertDiscordChannelMutation__
+ *
+ * To run a mutation, you first call `useUpsertDiscordChannelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpsertDiscordChannelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [upsertDiscordChannelMutation, { data, loading, error }] = useUpsertDiscordChannelMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useUpsertDiscordChannelMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpsertDiscordChannelMutation,
+		Types.UpsertDiscordChannelMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpsertDiscordChannelMutation,
+		Types.UpsertDiscordChannelMutationVariables
+	>(UpsertDiscordChannelDocument, baseOptions)
+}
+export type UpsertDiscordChannelMutationHookResult = ReturnType<
+	typeof useUpsertDiscordChannelMutation
+>
+export type UpsertDiscordChannelMutationResult =
+	Apollo.MutationResult<Types.UpsertDiscordChannelMutation>
+export type UpsertDiscordChannelMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpsertDiscordChannelMutation,
+	Types.UpsertDiscordChannelMutationVariables
+>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -11385,6 +11491,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			Name
 			DailyFrequency
 			disabled
+			default
 		}
 		new_session_alerts(project_id: $project_id) {
 			...SessionAlertFragment
@@ -11442,6 +11549,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			CountThreshold
 			DailyFrequency
 			disabled
+			default
 			EmailsToNotify
 			ExcludedEnvironments
 			id

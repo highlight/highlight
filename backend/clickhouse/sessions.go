@@ -20,28 +20,28 @@ import (
 const timeFormat = "2006-01-02T15:04:05.000Z"
 
 var fieldMap map[string]string = map[string]string{
-	"fingerprint":      "Fingerprint",
-	"pages_visited":    "PagesVisited",
-	"viewed_by_admins": "ViewedByAdmins",
-	"created_at":       "CreatedAt",
-	"updated_at":       "UpdatedAt",
-	"identified":       "Identified",
-	"identifier":       "Identifier",
-	"city":             "City",
-	"country":          "Country",
-	"os_name":          "OSName",
-	"os_version":       "OSVersion",
-	"browser_name":     "BrowserName",
-	"browser_version":  "BrowserVersion",
-	"processed":        "Processed",
-	"has_rage_clicks":  "HasRageClicks",
-	"has_errors":       "HasErrors",
-	"length":           "Length",
-	"active_length":    "ActiveLength",
-	"environment":      "Environment",
-	"app_version":      "AppVersion",
-	"first_time":       "FirstTime",
-	"viewed":           "Viewed",
+	"fingerprint":     "Fingerprint",
+	"pages_visited":   "PagesVisited",
+	"viewed_by_me":    "ViewedByAdmins",
+	"created_at":      "CreatedAt",
+	"updated_at":      "UpdatedAt",
+	"identified":      "Identified",
+	"identifier":      "Identifier",
+	"city":            "City",
+	"country":         "Country",
+	"os_name":         "OSName",
+	"os_version":      "OSVersion",
+	"browser_name":    "BrowserName",
+	"browser_version": "BrowserVersion",
+	"processed":       "Processed",
+	"has_rage_clicks": "HasRageClicks",
+	"has_errors":      "HasErrors",
+	"length":          "Length",
+	"active_length":   "ActiveLength",
+	"environment":     "Environment",
+	"app_version":     "AppVersion",
+	"first_time":      "FirstTime",
+	"viewed":          "Viewed",
 }
 
 type ClickhouseSession struct {
@@ -258,13 +258,13 @@ func deserializeRules(rules [][]string) ([]Rule, error) {
 	return ret, nil
 }
 
-func parseRule(rule Rule, projectId int, start time.Time, end time.Time, sb *sqlbuilder.SelectBuilder) (string, error) {
+func parseRule(admin *model.Admin, rule Rule, projectId int, start time.Time, end time.Time, sb *sqlbuilder.SelectBuilder) (string, error) {
 	typ, _, found := strings.Cut(rule.Field, "_")
 	if !found {
 		return "", fmt.Errorf("separator not found for field %s", rule.Field)
 	}
 	if typ == "custom" {
-		return parseSessionRule(rule, projectId, sb)
+		return parseSessionRule(admin, rule, projectId, sb)
 	}
 	return parseFieldRule(rule, projectId, start, end, sb)
 }
@@ -320,9 +320,10 @@ func parseFieldRule(rule Rule, projectId int, start time.Time, end time.Time, sb
 			return "", fmt.Errorf("unsupported operator %s", rule.Op)
 		}
 		if idx == len(rule.Val)-1 {
-			valueBuilder.WriteString("))")
+			valueBuilder.WriteString(")")
 		}
 	}
+	valueBuilder.WriteString(")")
 
 	return str + valueBuilder.String(), nil
 }
@@ -330,14 +331,15 @@ func parseFieldRule(rule Rule, projectId int, start time.Time, end time.Time, sb
 type FieldType string
 
 const (
-	boolean FieldType = "boolean"
-	text    FieldType = "text"
-	long    FieldType = "long"
+	boolean    FieldType = "boolean"
+	text       FieldType = "text"
+	long       FieldType = "long"
+	viewedByMe FieldType = "viewedByMe"
 )
 
 var customFieldTypes map[string]FieldType = map[string]FieldType{
 	"viewed":          boolean,
-	"viewed_by_me":    boolean,
+	"viewed_by_me":    viewedByMe,
 	"has_errors":      boolean,
 	"has_rage_clicks": boolean,
 	"processed":       boolean,
@@ -348,10 +350,10 @@ var customFieldTypes map[string]FieldType = map[string]FieldType{
 	"pages_visited":   long,
 }
 
-func parseSessionRule(rule Rule, projectId int, sb *sqlbuilder.SelectBuilder) (string, error) {
+func parseSessionRule(admin *model.Admin, rule Rule, projectId int, sb *sqlbuilder.SelectBuilder) (string, error) {
 	negatedOp, isNegative := negationMap[rule.Op]
 	if isNegative {
-		child, err := parseSessionRule(Rule{
+		child, err := parseSessionRule(admin, Rule{
 			Field: rule.Field,
 			Op:    negatedOp,
 			Val:   rule.Val,
@@ -372,7 +374,7 @@ func parseSessionRule(rule Rule, projectId int, sb *sqlbuilder.SelectBuilder) (s
 		customFieldType = text
 	}
 
-	name, found = fieldMap[name]
+	mappedName, found := fieldMap[name]
 	if !found {
 		return "", fmt.Errorf("unknown column %s", name)
 	}
@@ -389,26 +391,35 @@ func parseSessionRule(rule Rule, projectId int, sb *sqlbuilder.SelectBuilder) (s
 		case Is:
 			switch customFieldType {
 			case text:
-				valueBuilder.WriteString(fmt.Sprintf(`"%s" ILIKE %s`, name, sb.Var(v)))
+				valueBuilder.WriteString(fmt.Sprintf(`"%s" ILIKE %s`, mappedName, sb.Var(v)))
 			case boolean:
 				val, err := strconv.ParseBool(v)
 				if err != nil {
 					return "", err
 				}
-				valueBuilder.WriteString(sb.Equal(name, val))
+				valueBuilder.WriteString(sb.Equal(mappedName, val))
 			case long:
 				val, err := strconv.ParseInt(v, 10, 64)
 				if err != nil {
 					return "", err
 				}
-				valueBuilder.WriteString(sb.Equal(name, val))
+				valueBuilder.WriteString(sb.Equal(mappedName, val))
+			case viewedByMe:
+				switch v {
+				case "true":
+					valueBuilder.WriteString(fmt.Sprintf(`has("%s", %d)`, mappedName, admin.ID))
+				case "false":
+					valueBuilder.WriteString(fmt.Sprintf(`NOT has("%s", %d)`, mappedName, admin.ID))
+				default:
+					return "", fmt.Errorf("unsupported value for viewed_by_me: %s", v)
+				}
 			default:
 				return "", fmt.Errorf("unsupported custom field type %s", customFieldType)
 			}
 		case Contains:
-			valueBuilder.WriteString(fmt.Sprintf(`"%s" ILIKE %s`, name, sb.Var("%"+v+"%")))
+			valueBuilder.WriteString(fmt.Sprintf(`"%s" ILIKE %s`, mappedName, sb.Var("%"+v+"%")))
 		case Exists:
-			valueBuilder.WriteString(sb.IsNotNull(name))
+			valueBuilder.WriteString(sb.IsNotNull(mappedName))
 		case Between:
 			before, after, found := strings.Cut(v, "_")
 			if !found {
@@ -422,7 +433,7 @@ func parseSessionRule(rule Rule, projectId int, sb *sqlbuilder.SelectBuilder) (s
 			if err != nil {
 				return "", err
 			}
-			valueBuilder.WriteString(sb.Between(name, start, end))
+			valueBuilder.WriteString(sb.Between(mappedName, start, end))
 		case BetweenTime:
 			before, after, found := strings.Cut(v, "_")
 			if !found {
@@ -436,7 +447,7 @@ func parseSessionRule(rule Rule, projectId int, sb *sqlbuilder.SelectBuilder) (s
 			if err != nil {
 				return "", err
 			}
-			valueBuilder.WriteString(sb.Between(name, start, end))
+			valueBuilder.WriteString(sb.Between(mappedName, start, end))
 		case BetweenDate:
 			before, after, found := strings.Cut(v, "_")
 			if !found {
@@ -450,9 +461,9 @@ func parseSessionRule(rule Rule, projectId int, sb *sqlbuilder.SelectBuilder) (s
 			if err != nil {
 				return "", err
 			}
-			valueBuilder.WriteString(sb.Between(name, startTime, endTime))
+			valueBuilder.WriteString(sb.Between(mappedName, startTime, endTime))
 		case Matches:
-			valueBuilder.WriteString(fmt.Sprintf(`"%s" REGEXP %s`, sb.Var(name), sb.Var(v)))
+			valueBuilder.WriteString(fmt.Sprintf(`"%s" REGEXP %s`, sb.Var(mappedName), sb.Var(v)))
 		default:
 			return "", fmt.Errorf("unsupported operator %s", rule.Op)
 		}
@@ -464,7 +475,7 @@ func parseSessionRule(rule Rule, projectId int, sb *sqlbuilder.SelectBuilder) (s
 	return valueBuilder.String(), nil
 }
 
-func parseGroup(isAnd bool, rules []Rule, projectId int, start time.Time, end time.Time, sb *sqlbuilder.SelectBuilder) (string, error) {
+func parseGroup(admin *model.Admin, isAnd bool, rules []Rule, projectId int, start time.Time, end time.Time, sb *sqlbuilder.SelectBuilder) (string, error) {
 	if len(rules) == 0 {
 		return "", errors.New("unexpected 0 rules")
 	}
@@ -479,7 +490,7 @@ func parseGroup(isAnd bool, rules []Rule, projectId int, start time.Time, end ti
 		if idx > 0 {
 			valueBuilder.WriteString(separator)
 		}
-		str, err := parseRule(r, projectId, start, end, sb)
+		str, err := parseRule(admin, r, projectId, start, end, sb)
 		if err != nil {
 			return "", err
 		}
@@ -489,7 +500,7 @@ func parseGroup(isAnd bool, rules []Rule, projectId int, start time.Time, end ti
 	return valueBuilder.String(), nil
 }
 
-func getSessionsQueryImpl(query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
+func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
 	rules, err := deserializeRules(query.Rules)
 	if err != nil {
 		return "", nil, err
@@ -530,11 +541,13 @@ func getSessionsQueryImpl(query modelInputs.ClickhouseQuery, projectId int, rete
 		Where(sb.And(sb.Equal("ProjectID", projectId),
 			"NOT Excluded",
 			"WithinBillingQuota",
-			sb.Or(sb.GreaterEqualThan("ActiveLength", 1000), sb.And(sb.IsNull("ActiveLength"), sb.GreaterEqualThan("Length", 1000)))),
+			sb.Or("NOT Processed",
+				sb.GreaterEqualThan("ActiveLength", 1000),
+				sb.And(sb.IsNull("ActiveLength"), sb.GreaterEqualThan("Length", 1000)))),
 			sb.GreaterThan("CreatedAt", retentionDate),
 		)
 
-	conditions, err := parseGroup(query.IsAnd, rules, projectId, startTime, endTime, sb)
+	conditions, err := parseGroup(admin, query.IsAnd, rules, projectId, startTime, endTime, sb)
 	if err != nil {
 		return "", nil, err
 	}
@@ -558,14 +571,14 @@ func getSessionsQueryImpl(query modelInputs.ClickhouseQuery, projectId int, rete
 	return sql, args, nil
 }
 
-func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, sortField string, page *int, retentionDate time.Time) ([]int64, int64, error) {
+func (client *Client) QuerySessionIds(ctx context.Context, admin *model.Admin, projectId int, count int, query modelInputs.ClickhouseQuery, sortField string, page *int, retentionDate time.Time) ([]int64, int64, error) {
 	pageInt := 1
 	if page != nil {
 		pageInt = *page
 	}
 	offset := (pageInt - 1) * count
 
-	sql, args, err := getSessionsQueryImpl(query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
+	sql, args, err := getSessionsQueryImpl(admin, query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
 	if err != nil {
 		return nil, 0, err
 	}
@@ -588,7 +601,7 @@ func (client *Client) QuerySessionIds(ctx context.Context, projectId int, count 
 	return ids, int64(total), nil
 }
 
-func (client *Client) QuerySessionHistogram(ctx context.Context, projectId int, query modelInputs.ClickhouseQuery, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, []int64, []int64, error) {
+func (client *Client) QuerySessionHistogram(ctx context.Context, admin *model.Admin, projectId int, query modelInputs.ClickhouseQuery, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, []int64, []int64, error) {
 	var aggFn string
 	var addFn string
 	switch options.BucketSize.CalendarInterval {
@@ -626,14 +639,12 @@ func (client *Client) QuerySessionHistogram(ctx context.Context, projectId int, 
 
 	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
 
-	sql, args, err := getSessionsQueryImpl(query, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
+	sql, args, err := getSessionsQueryImpl(admin, query, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 	args = append(args, *options.Bounds.StartDate, *options.Bounds.EndDate)
 	sql = fmt.Sprintf("SELECT %s(makeDate(0, 0), time), count, has_errors from (%s)", addFn, sql)
-
-	fmt.Println(sql)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 	if err != nil {

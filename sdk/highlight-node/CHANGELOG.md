@@ -73,3 +73,9 @@
 ### Patch Changes
 
 - Updates opentelemetry dependencies to the next patch version.
+
+## 3.1.10
+
+### Patch Changes
+
+- Ensures `console.log(...args)`-type arguments are serialized correctly.

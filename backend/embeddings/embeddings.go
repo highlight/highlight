@@ -91,7 +91,10 @@ func (c *OpenAIClient) GetEmbeddings(ctx context.Context, errors []*model.ErrorO
 
 		for idx, errorObject := range inputs.errors {
 			if _, ok := results[errorObject.ID]; !ok {
-				results[errorObject.ID] = &model.ErrorObjectEmbeddings{ErrorObjectID: errorObject.ID}
+				results[errorObject.ID] = &model.ErrorObjectEmbeddings{
+					ProjectID:     errorObject.ProjectID,
+					ErrorObjectID: errorObject.ID,
+				}
 			}
 			switch inputs.embedding {
 			case CombinedEmbedding:
@@ -170,6 +173,7 @@ func (c *HuggingfaceModelClient) GetEmbeddings(ctx context.Context, errors []*mo
 		}
 
 		results = append(results, &model.ErrorObjectEmbeddings{
+			ProjectID:         errors[idx].ProjectID,
 			ErrorObjectID:     errors[idx].ID,
 			GteLargeEmbedding: resp.Embeddings,
 		})

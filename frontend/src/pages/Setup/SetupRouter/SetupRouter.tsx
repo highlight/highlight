@@ -3,9 +3,13 @@ import { useGetProjectQuery } from '@graph/hooks'
 import {
 	Box,
 	ButtonIcon,
+	IconSolidBell,
 	IconSolidCheckCircle,
 	IconSolidClipboard,
+	IconSolidDesktopComputer,
 	IconSolidGlobe,
+	IconSolidLogs,
+	IconSolidTerminal,
 	IconSolidUserAdd,
 	IconSolidViewGridAdd,
 	Stack,
@@ -16,6 +20,7 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
+import { TeamSetup } from '@pages/Setup/SetupRouter/TeamSetup'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
 import { message } from 'antd'
@@ -33,11 +38,14 @@ import {
 
 import { IntegrationBar } from '@/pages/Setup/IntegrationBar'
 import {
+	useAlertsIntegration,
 	useClientIntegration,
 	useLogsIntegration,
 	useServerIntegration,
+	useTeamIntegration,
 } from '@/util/integrated'
 
+import { AlertsSetup } from './AlertsSetup'
 import * as styles from './SetupRouter.css'
 
 export const SetupRouter = () => {
@@ -47,6 +55,8 @@ export const SetupRouter = () => {
 	const clientIntegration = useClientIntegration()
 	const serverIntegration = useServerIntegration()
 	const logsIntegration = useLogsIntegration()
+	const alertsIntegration = useAlertsIntegration()
+	const teamIntegration = useTeamIntegration()
 	const integrationData =
 		area === 'backend'
 			? serverIntegration
@@ -54,6 +64,10 @@ export const SetupRouter = () => {
 			? clientIntegration
 			: area === 'backend-logging'
 			? logsIntegration
+			: area === 'alerts'
+			? alertsIntegration
+			: area === 'team'
+			? teamIntegration
 			: undefined
 	const { projectId } = useProjectId()
 	const { data } = useGetProjectQuery({ variables: { id: projectId! } })
@@ -111,11 +125,21 @@ export const SetupRouter = () => {
 							})
 						}
 					>
-						<Stack direction="row" align="center" gap="4">
+						<Stack
+							direction="row"
+							align="center"
+							justify="space-between"
+							pr="8"
+						>
+							<Stack direction="row" align="center" gap="4">
+								<IconSolidDesktopComputer />
+								<Text>
+									Frontend monitoring + session replay
+								</Text>
+							</Stack>
 							{clientIntegration?.integrated && (
 								<IconSolidCheckCircle />
 							)}
-							<Text>Frontend monitoring + session replay</Text>
 						</Stack>
 					</NavLink>
 					<NavLink
@@ -126,11 +150,19 @@ export const SetupRouter = () => {
 							})
 						}
 					>
-						<Stack direction="row" align="center" gap="4">
+						<Stack
+							direction="row"
+							align="center"
+							justify="space-between"
+							pr="8"
+						>
+							<Stack direction="row" align="center" gap="4">
+								<IconSolidTerminal />
+								<Text>Backend error monitoring</Text>
+							</Stack>
 							{serverIntegration?.integrated && (
 								<IconSolidCheckCircle />
 							)}
-							<Text>Backend error monitoring</Text>
 						</Stack>
 					</NavLink>
 					<NavLink
@@ -141,11 +173,66 @@ export const SetupRouter = () => {
 							})
 						}
 					>
-						<Stack direction="row" align="center" gap="4">
+						<Stack
+							direction="row"
+							align="center"
+							justify="space-between"
+							pr="8"
+						>
+							<Stack direction="row" align="center" gap="4">
+								<IconSolidLogs />
+								<Text>Logging</Text>
+							</Stack>
 							{logsIntegration?.integrated && (
 								<IconSolidCheckCircle />
 							)}
-							<Text>Logging</Text>
+						</Stack>
+					</NavLink>
+					<NavLink
+						to="alerts"
+						className={({ isActive }) =>
+							clsx(styles.menuItem, {
+								[styles.menuItemActive]: isActive,
+							})
+						}
+					>
+						<Stack
+							direction="row"
+							align="center"
+							justify="space-between"
+							pr="8"
+						>
+							<Stack direction="row" align="center" gap="4">
+								<IconSolidBell />
+								<Text>Add alerts</Text>
+							</Stack>
+							{alertsIntegration?.integrated && (
+								<IconSolidCheckCircle />
+							)}
+						</Stack>
+					</NavLink>
+					<NavLink
+						// TODO(vkorolik) this should point to <TeamSetup/> once that is ready
+						to="/w/team"
+						className={({ isActive }) =>
+							clsx(styles.menuItem, {
+								[styles.menuItemActive]: isActive,
+							})
+						}
+					>
+						<Stack
+							direction="row"
+							align="center"
+							justify="space-between"
+							pr="8"
+						>
+							<Stack direction="row" align="center" gap="4">
+								<IconSolidUserAdd />
+								<Text>Invite team</Text>
+							</Stack>
+							{teamIntegration?.integrated && (
+								<IconSolidCheckCircle />
+							)}
 						</Stack>
 					</NavLink>
 				</Stack>
@@ -161,19 +248,13 @@ export const SetupRouter = () => {
 						</Text>
 					</Box>
 					<Link
-						to={`/${projectId}/alerts`}
+						to={`/${projectId}/integrations`}
 						className={styles.menuItemSecondary}
 					>
 						<IconSolidViewGridAdd
 							color={vars.theme.static.content.weak}
 						/>
-						<Text>Add integrations & alerts</Text>
-					</Link>
-					<Link to="/w/team" className={styles.menuItemSecondary}>
-						<IconSolidUserAdd
-							color={vars.theme.static.content.weak}
-						/>
-						<Text>Invite team</Text>
+						<Text>Enable integrations</Text>
 					</Link>
 					<Link
 						to="https://discord.gg/yxaXEAqgwN"
@@ -205,6 +286,11 @@ export const SetupRouter = () => {
 
 					<Box overflowY="scroll" height="full">
 						<Routes>
+							<Route path="team" element={<TeamSetup />} />
+							<Route
+								path="alerts/:platform?"
+								element={<AlertsSetup />}
+							/>
 							<Route
 								path=":area/:language?"
 								element={<SetupOptionsList />}
