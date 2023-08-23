@@ -31,7 +31,7 @@ export const FilterSessionsWithoutErrorForm = () => {
 		{
 			key: 'Filter sessions without errors',
 			message:
-				'Filter created sessions without an error. Any session filtered out will not count towards your billing quota.',
+				'Filter newly created sessions without an error. Any session filtered out will not count towards your billing quota.',
 			checked: filterSessionsWithoutError,
 			warning:
 				'Excluding sessions without errors will not store any session without an error.',
