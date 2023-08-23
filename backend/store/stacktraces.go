@@ -102,6 +102,20 @@ func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel
 	return encodedFileContent, nil
 }
 
+func (store *Store) GitHubGitSHA(ctx context.Context, gitHubRepoPath string, serviceVersion string, gitHubClient github.ClientInterface) (*string, error) {
+	if regexp.MustCompile(`\b[0-9a-f]{5,40}\b`).MatchString(serviceVersion) {
+		return &serviceVersion, nil
+	}
+
+	return redis.CachedEval(ctx, store.redis, fmt.Sprintf("git-main-hash-%s", gitHubRepoPath), 5*time.Second, 24*time.Hour, func() (*string, error) {
+		commitSha, _, err := gitHubClient.GetLatestCommitHash(ctx, gitHubRepoPath)
+		if err != nil {
+			return nil, err
+		}
+		return &commitSha, nil
+	})
+}
+
 func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, serviceVersion string, ignoredFiles []string, gitHubClient github.ClientInterface) (*privateModel.ErrorTrace, error) {
 	if trace.FileName == nil || trace.LineNumber == nil {
 		return trace, fmt.Errorf("Cannot enhance trace with GitHub with invalid values: %+v", trace)
@@ -155,20 +169,6 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 		LinesAfter:                 afterContent,
 	}
 	return &newStackTraceInput, nil
-}
-
-func (store *Store) GitHubGitSHA(ctx context.Context, gitHubRepoPath string, serviceVersion string, gitHubClient github.ClientInterface) (*string, error) {
-	if regexp.MustCompile(`\b[0-9a-f]{5,40}\b`).MatchString(serviceVersion) {
-		return &serviceVersion, nil
-	}
-
-	return redis.CachedEval(ctx, store.redis, fmt.Sprintf("git-main-hash-%s", gitHubRepoPath), 5*time.Second, 24*time.Hour, func() (*string, error) {
-		commitSha, _, err := gitHubClient.GetLatestCommitHash(ctx, gitHubRepoPath)
-		if err != nil {
-			return nil, err
-		}
-		return &commitSha, nil
-	})
 }
 
 func (store *Store) GitHubEnhancedStakeTrace(ctx context.Context, stackTrace []*privateModel.ErrorTrace, projectID int, errorObj *model.ErrorObject, serviceName string, serviceVersion string) ([]*privateModel.ErrorTrace, error) {

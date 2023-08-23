@@ -129,7 +129,7 @@ func TestFetchFileFromGitHub(t *testing.T) {
 			},
 			FileName:        "/file.js",
 			ServiceVersion:  "1234567890",
-			ExpectedContent: ptr.String("console.log('hello world')"),
+			ExpectedContent: ptr.String("Y29uc29sZS5sb2coJ2hlbGxvIHdvcmxkJyk="),
 			ExpectedError:   false,
 		},
 		{
@@ -159,7 +159,7 @@ func TestFetchFileFromGitHub(t *testing.T) {
 			},
 			FileName:        "/blob-file.js",
 			ServiceVersion:  "1234567890",
-			ExpectedContent: ptr.String("console.log('hello big world')"),
+			ExpectedContent: ptr.String("Y29uc29sZS5sb2coJ2hlbGxvIGJpZyB3b3JsZCcp"),
 			ExpectedError:   false,
 		},
 		{
@@ -194,35 +194,132 @@ func TestFetchFileFromGitHub(t *testing.T) {
 	}
 }
 
-// func TestEnhanceTraceWithGitHub(t *testing.T) {
-// 	defer teardown(t)
-// 	store.EnhanceTraceWithGitHub(context.Background())
-// 	assert.NoError(t, err)
-// }
+func TestGitHubGitSHA(t *testing.T) {
+	defer teardown(t)
+	var tests = []struct {
+		GitHubRepoPath string
+		ServiceVersion string
+		ExpectedSHA    *string
+		ExpectedError  bool
+	}{
+		{
+			GitHubRepoPath: "highlight/highlight",
+			ServiceVersion: "1234567890",
+			ExpectedSHA:    ptr.String("1234567890"),
+			ExpectedError:  false,
+		},
+		{
+			GitHubRepoPath: "highlight/error",
+			ServiceVersion: "invalid-sha",
+			ExpectedSHA:    nil,
+			ExpectedError:  true,
+		},
+		{
+			GitHubRepoPath: "highlight/found",
+			ServiceVersion: "invalid-sha",
+			ExpectedSHA:    ptr.String("0987654321"),
+			ExpectedError:  false,
+		},
+	}
 
-// func TestGitHubGitSHA(t *testing.T) {
-// 	defer teardown(t)
-// 	store.GitHubGitSHA(context.Background())
-// 	assert.NoError(t, err)
-// }
+	ctx := context.Background()
+	githubClientMock := MockGithubClient{}
 
-// func TestGitHubEnhancedStakeTrace(t *testing.T) {
-// 	defer teardown(t)
-// 	store.GitHubEnhancedStakeTrace(context.Background())
-// 	assert.NoError(t, err)
-// }
+	for _, tt := range tests {
+		sha, err := store.GitHubGitSHA(ctx, tt.GitHubRepoPath, tt.ServiceVersion, &githubClientMock)
+		if tt.ExpectedError {
+			assert.Nil(t, sha)
+			assert.Error(t, err)
+		} else {
+			assert.Equal(t, *tt.ExpectedSHA, *sha)
+			assert.NoError(t, err)
+		}
+	}
+}
 
-// func TestStructuredStackTrace(t *testing.T) {
-// 	defer teardown(t)
-// 	store.StructuredStackTrace(context.Background())
-// 	assert.NoError(t, err)
-// }
+func TestEnhanceTraceWithGitHub(t *testing.T) {
+	defer teardown(t)
+	// test no file name or line number, test matches ignore config, found
+	var tests = []struct {
+		Trace              *privateModel.ErrorTrace
+		Service            *model.Service
+		ServiceVersion     string
+		IgnoredFiles       []string
+		ExpectedErrorTrace *privateModel.ErrorTrace
+		ExpectedError      bool
+	}{
+		{
+			Trace: &privateModel.ErrorTrace{
+				FileName:     ptr.String("/file.js"),
+				LineNumber:   ptr.Int(1),
+				ColumnNumber: ptr.Int(4),
+				FunctionName: ptr.String(""),
+			},
+			Service: &model.Service{
+				GithubRepoPath: ptr.String("highlight/highlight"),
+			},
+			ServiceVersion: "1234567890",
+			IgnoredFiles:   []string{".*/node_modules/.*", ".*/go/pkg/mod/.*"},
+			ExpectedErrorTrace: &privateModel.ErrorTrace{
+				LineContent: ptr.String("console.log('hello world')"),
+			},
+			ExpectedError: false,
+		},
+		{
+			Trace: &privateModel.ErrorTrace{
+				FileName:     ptr.String("/file.js"),
+				LineNumber:   nil,
+				ColumnNumber: ptr.Int(4),
+				FunctionName: ptr.String(""),
+			},
+			Service: &model.Service{
+				GithubRepoPath: ptr.String("highlight/highlight"),
+			},
+			ServiceVersion:     "1234567890",
+			IgnoredFiles:       []string{".*/node_modules/.*", ".*/go/pkg/mod/.*"},
+			ExpectedErrorTrace: nil,
+			ExpectedError:      true,
+		},
+		{
+			Trace: &privateModel.ErrorTrace{
+				FileName:     ptr.String("/backend/go/pkg/mod/file.js"),
+				LineNumber:   ptr.Int(1),
+				ColumnNumber: ptr.Int(4),
+				FunctionName: ptr.String(""),
+			},
+			Service: &model.Service{
+				GithubRepoPath: ptr.String("highlight/highlight"),
+			},
+			ServiceVersion:     "1234567890",
+			IgnoredFiles:       []string{".*/node_modules/.*", ".*/go/pkg/mod/.*"},
+			ExpectedErrorTrace: nil,
+			ExpectedError:      false,
+		},
+	}
 
-// func TestEnhancedStackTrace(t *testing.T) {
-// 	defer teardown(t)
-// 	store.EnhancedStackTrace(context.Background())
-// 	assert.NoError(t, err)
-// }
+	ctx := context.Background()
+	githubClientMock := MockGithubClient{}
+
+	for _, tt := range tests {
+		errorTrace, err := store.EnhanceTraceWithGitHub(ctx, tt.Trace, tt.Service, tt.ServiceVersion, tt.IgnoredFiles, &githubClientMock)
+
+		if tt.ExpectedError {
+			assert.Error(t, err)
+		} else {
+			assert.NoError(t, err)
+		}
+
+		if tt.ExpectedErrorTrace != nil {
+			// builds new trace off initial trace
+			assert.Equal(t, *tt.Trace.FileName, *errorTrace.FileName)
+			assert.Equal(t, *tt.ExpectedErrorTrace.LineContent, *errorTrace.LineContent)
+		} else {
+			// returns intial trace
+			assert.Equal(t, *tt.Trace.FileName, *errorTrace.FileName)
+			assert.Nil(t, errorTrace.LineContent)
+		}
+	}
+}
 
 type MockGithubClient struct{}
 
@@ -232,7 +329,8 @@ func (c *MockGithubClient) GetRepoContent(ctx context.Context, githubPath string
 	}
 	if path == "/file.js" {
 		fileContent := github2.RepositoryContent{
-			Content: ptr.String("console.log('hello world')"),
+			// base64 for console.log('hello world')
+			Content: ptr.String("Y29uc29sZS5sb2coJ2hlbGxvIHdvcmxkJyk="),
 		}
 		return &fileContent, nil, nil, nil
 	}
@@ -252,18 +350,30 @@ func (c *MockGithubClient) GetRepoContent(ctx context.Context, githubPath string
 	}
 	return nil, nil, nil, nil
 }
+
 func (c *MockGithubClient) GetRepoBlob(ctx context.Context, githubPath string, blobSHA string) (*github2.Blob, *github2.Response, error) {
 	if blobSHA == "blob-error" {
 		return nil, nil, errors.New("blob error")
 	}
 	if blobSHA == "blob-file" {
 		blobContent := github2.Blob{
-			Content: ptr.String("console.log('hello big world')"),
+			// base64 for console.log('hello big world')
+			Content: ptr.String("Y29uc29sZS5sb2coJ2hlbGxvIGJpZyB3b3JsZCcp"),
 		}
 		return &blobContent, nil, nil
 	}
 
 	return nil, nil, nil
+}
+
+func (c *MockGithubClient) GetLatestCommitHash(ctx context.Context, githubPath string) (string, *github2.Response, error) {
+	if githubPath == "highlight/error" {
+		return "", nil, errors.New("error")
+	}
+	if githubPath == "highlight/found" {
+		return "0987654321", nil, nil
+	}
+	return "", nil, nil
 }
 
 // other methods not used in this test but needed for interface
@@ -278,7 +388,4 @@ func (c *MockGithubClient) ListRepos(ctx context.Context) ([]*github2.Repository
 }
 func (c *MockGithubClient) DeleteInstallation(ctx context.Context, installation string) error {
 	return nil
-}
-func (c *MockGithubClient) GetLatestCommitHash(ctx context.Context, githubPath string) (string, *github2.Response, error) {
-	return "", nil, nil
 }
