@@ -142,7 +142,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 	}
 
 	sb.OrderBy("Timestamp DESC").Limit(100)
-	sql, args := sb.Build()
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	span, _ := tracer.StartSpanFromContext(ctx, "traces", tracer.ResourceName("ReadTraces"))
 	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
