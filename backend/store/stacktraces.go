@@ -172,18 +172,13 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 	return &newStackTraceInput, nil
 }
 
-func (store *Store) GitHubEnhancedStakeTrace(ctx context.Context, stackTrace []*privateModel.ErrorTrace, projectID int, errorObj *model.ErrorObject, serviceName string, serviceVersion string) ([]*privateModel.ErrorTrace, error) {
+func (store *Store) GitHubEnhancedStakeTrace(ctx context.Context, stackTrace []*privateModel.ErrorTrace, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject, serviceName string, serviceVersion string) ([]*privateModel.ErrorTrace, error) {
 	if serviceName == "" {
 		return nil, nil
 	}
 
-	service, err := store.FindService(ctx, projectID, serviceName)
+	service, err := store.FindService(ctx, project.ID, serviceName)
 	if err != nil || service == nil || service.GithubRepoPath == nil || service.Status != "healthy" {
-		return nil, err
-	}
-
-	workspace := &model.Workspace{}
-	if err := store.db.Model(&model.Workspace{}).Joins("LEFT JOIN projects ON projects.workspace_id = workspaces.id").Where("projects.id = ?", projectID).Take(&workspace).Error; err != nil {
 		return nil, err
 	}
 
@@ -235,14 +230,14 @@ func (store *Store) StructuredStackTrace(ctx context.Context, stackTrace string)
 	return structuredStackTrace, err
 }
 
-func (store *Store) EnhancedStackTrace(ctx context.Context, stackTrace string, projectID int, errorObj *model.ErrorObject, serviceName string, serviceVersion string) (*string, []*privateModel.ErrorTrace, error) {
+func (store *Store) EnhancedStackTrace(ctx context.Context, stackTrace string, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject, serviceName string, serviceVersion string) (*string, []*privateModel.ErrorTrace, error) {
 	structuredStackTrace, err := store.StructuredStackTrace(ctx, stackTrace)
 	if err != nil {
 		return nil, structuredStackTrace, err
 	}
 
 	var newMappedStackTraceString *string
-	mappedStackTrace, err := store.GitHubEnhancedStakeTrace(ctx, structuredStackTrace, projectID, errorObj, serviceName, serviceVersion)
+	mappedStackTrace, err := store.GitHubEnhancedStakeTrace(ctx, structuredStackTrace, workspace, project, errorObj, serviceName, serviceVersion)
 	if err != nil || mappedStackTrace == nil {
 		return nil, structuredStackTrace, err
 	}
