@@ -509,6 +509,7 @@ export type ErrorObject = {
 	environment?: Maybe<Scalars['String']>
 	error_group_id: Scalars['Int']
 	error_group_secure_id: Scalars['String']
+	error_tag_id?: Maybe<Scalars['String']>
 	event: Array<Maybe<Scalars['String']>>
 	id: Scalars['ID']
 	lineNumber?: Maybe<Scalars['Int']>
@@ -600,6 +601,14 @@ export enum ErrorState {
 	Ignored = 'IGNORED',
 	Open = 'OPEN',
 	Resolved = 'RESOLVED',
+}
+
+export type ErrorTag = {
+	__typename?: 'ErrorTag'
+	created_at: Scalars['Timestamp']
+	description?: Maybe<Scalars['String']>
+	id: Scalars['ID']
+	title?: Maybe<Scalars['String']>
 }
 
 export type ErrorTrace = {
@@ -873,6 +882,23 @@ export type LogsParamsInput = {
 	query: Scalars['String']
 }
 
+export type MatchedErrorObject = {
+	__typename?: 'MatchedErrorObject'
+	event: Array<Maybe<Scalars['String']>>
+	id: Scalars['ID']
+	score: Scalars['Float']
+	stack_trace: Scalars['String']
+	type: Scalars['String']
+}
+
+export type MatchedErrorTag = {
+	__typename?: 'MatchedErrorTag'
+	description: Scalars['String']
+	id: Scalars['ID']
+	score: Scalars['Float']
+	title: Scalars['String']
+}
+
 export type Metric = {
 	__typename?: 'Metric'
 	name: Scalars['String']
@@ -954,6 +980,7 @@ export type Mutation = {
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
 	createErrorSegment?: Maybe<ErrorSegment>
+	createErrorTag: ErrorTag
 	createIssueForErrorComment?: Maybe<ErrorComment>
 	createIssueForSessionComment?: Maybe<SessionComment>
 	createLogAlert?: Maybe<LogAlert>
@@ -1084,6 +1111,11 @@ export type MutationCreateErrorSegmentArgs = {
 	name: Scalars['String']
 	params: ErrorSearchParamsInput
 	project_id: Scalars['ID']
+}
+
+export type MutationCreateErrorTagArgs = {
+	description: Scalars['String']
+	title: Scalars['String']
 }
 
 export type MutationCreateIssueForErrorCommentArgs = {
@@ -1694,6 +1726,7 @@ export type Query = {
 	error_objects: ErrorObjectConnection
 	error_resolution_suggestion: Scalars['String']
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
+	error_tags?: Maybe<Array<Maybe<ErrorTag>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram: ErrorsHistogram
 	event_chunk_url: Scalars['String']
@@ -1704,6 +1737,7 @@ export type Query = {
 	field_types_clickhouse: Array<Field>
 	fields_clickhouse: Array<Scalars['String']>
 	fields_opensearch: Array<Scalars['String']>
+	find_similar_errors?: Maybe<Array<Maybe<MatchedErrorObject>>>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
 	github_issue_labels: Array<Scalars['String']>
@@ -1730,6 +1764,7 @@ export type Query = {
 	logs_key_values: Array<Scalars['String']>
 	logs_keys: Array<LogKey>
 	logs_total_count: Scalars['UInt64']
+	match_error_tag?: Maybe<Array<Maybe<MatchedErrorTag>>>
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>
@@ -2037,6 +2072,10 @@ export type QueryFields_OpensearchArgs = {
 	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
+export type QueryFind_Similar_ErrorsArgs = {
+	query: Scalars['String']
+}
+
 export type QueryGenerate_Zapier_Access_TokenArgs = {
 	project_id: Scalars['ID']
 }
@@ -2152,6 +2191,10 @@ export type QueryLogs_KeysArgs = {
 export type QueryLogs_Total_CountArgs = {
 	params: LogsParamsInput
 	project_id: Scalars['ID']
+}
+
+export type QueryMatch_Error_TagArgs = {
+	query: Scalars['String']
 }
 
 export type QueryMetric_MonitorsArgs = {

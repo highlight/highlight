@@ -50,6 +50,28 @@ func (c *mockEmbeddingsClient) GetEmbeddings(ctx context.Context, errors []*mode
 	}, nil
 }
 
+func (c *mockEmbeddingsClient) GetErrorTagEmbedding(ctx context.Context, title string, description string) (*model.ErrorTag, error) {
+	var vec []float32
+	vec = append(vec, vector...)
+	vec[0] += 0.01
+
+	errorTag := &model.ErrorTag{
+		Title:       title,
+		Description: description,
+		Embedding:   vec,
+	}
+
+	return errorTag, nil
+}
+
+func (c *mockEmbeddingsClient) GetStringEmbedding(ctx context.Context, input string) ([]float32, error) {
+	var vec []float32
+	vec = append(vec, vector...)
+	vec[0] += 0.01
+
+	return vec, nil
+}
+
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"

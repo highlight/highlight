@@ -2192,6 +2192,38 @@ query GetServices(
 	}
 }
 
+fragment ErrorTag on ErrorTag {
+	id
+	created_at
+	title
+	description
+}
+
+query GetErrorTags {
+	error_tags {
+		...ErrorTag
+	}
+}
+
+query MatchErrorTag($query: String!) {
+	match_error_tag(query: $query) {
+		id
+		title
+		description
+		score
+	}
+}
+
+query FindSimilarErrors($query: String!) {
+	find_similar_errors(query: $query) {
+		id
+		type
+		event
+		stack_trace
+		score
+	}
+}
+
 query GetTraces($project_id: ID!, $params: TracesParamsInput!) {
 	traces(project_id: $project_id, params: $params) {
 		timestamp

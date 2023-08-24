@@ -191,6 +191,7 @@ var Models = []interface{}{
 	&UserJourneyStep{},
 	&SystemConfiguration{},
 	&SessionInsight{},
+	&ErrorTag{},
 }
 
 func init() {
@@ -950,6 +951,7 @@ type ErrorObject struct {
 	IsBeacon                bool    `gorm:"default:false"`
 	ServiceName             string
 	ServiceVersion          string
+	ErrorTagID              *string
 }
 
 type ErrorObjectEmbeddings struct {
@@ -988,6 +990,18 @@ type ErrorGroup struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
 	Viewed         *bool   `json:"viewed"`
+}
+
+type ErrorTag struct {
+	Model
+	Title       string
+	Description string
+	Embedding   Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large
+}
+
+type MatchedErrorObject struct {
+	ErrorObject
+	Score float64 `json:"score"`
 }
 
 type ErrorGroupEventType string

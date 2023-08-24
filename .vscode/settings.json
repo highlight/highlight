@@ -141,5 +141,6 @@
 			"driver": "ClickHouse",
 			"name": "clickhouse-dev"
 		}
-	]
+	],
+	"sort-imports.on-save": false
 }

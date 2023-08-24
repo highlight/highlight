@@ -481,6 +481,7 @@ type ErrorObject {
 	session_id: Int
 	trace_id: String
 	span_id: String
+	error_tag_id: String
 	log_cursor: String
 	error_group_id: Int!
 	error_group_secure_id: String!
@@ -553,6 +554,28 @@ type ErrorMetadata {
 	user_properties: String
 	request_id: String
 	payload: String
+}
+
+type ErrorTag {
+	id: ID!
+	created_at: Timestamp!
+	title: String
+	description: String
+}
+
+type MatchedErrorTag {
+	id: ID!
+	title: String!
+	description: String!
+	score: Float!
+}
+
+type MatchedErrorObject {
+	id: ID!
+	event: [String]!
+	type: String!
+	stack_trace: String!
+	score: Float!
 }
 
 type ErrorTrace {
@@ -1840,12 +1863,16 @@ type Query {
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
 	system_configuration: SystemConfiguration!
+
 	services(
 		project_id: ID!
 		after: String
 		before: String
 		query: String
 	): ServiceConnection
+	error_tags: [ErrorTag]
+	match_error_tag(query: String!): [MatchedErrorTag]
+	find_similar_errors(query: String!): [MatchedErrorObject]
 	traces(project_id: ID!, params: TracesParamsInput!): [Trace!]!
 }
 
@@ -2218,6 +2245,7 @@ type Mutation {
 		build_prefix: String
 		github_prefix: String
 	): Service
+	createErrorTag(title: String!, description: String!): ErrorTag!
 	upsertSlackChannel(project_id: ID!, name: String!): SanitizedSlackChannel!
 	upsertDiscordChannel(project_id: ID!, name: String!): DiscordChannel!
 }
