@@ -1272,6 +1272,7 @@ type SystemConfiguration struct {
 	MaintenanceEnd   time.Time
 	ErrorFilters     pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
 	IgnoredFiles     pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\"}'"`
+	TraceWorkers     int            `gorm:"default:1"`
 }
 
 type RetryableType string
