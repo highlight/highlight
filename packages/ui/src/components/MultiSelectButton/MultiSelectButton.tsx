@@ -39,8 +39,9 @@ export const MultiSelectButton: React.FC<Props> = ({
 }) => {
 	const selectStore = useSelectStore({
 		defaultValue: defaultValue ? [defaultValue] : [],
-		setValue: (value: string[]) => onChange(value),
+		gutter: 4,
 		value: value,
+		setValue: (value: string[]) => onChange(value),
 	})
 	const selectState = selectStore.getState()
 
