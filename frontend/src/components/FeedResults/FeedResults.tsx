@@ -47,7 +47,10 @@ export const AdditionalFeedResults = function ({ more, type, onClick }: Props) {
 											? '+'
 											: ''
 										: ''}{' '}
-									new {type}
+									new{' '}
+									{more === 1
+										? type.slice(0, type.length - 1)
+										: type}
 								</Text>
 							</Box>
 						</Button>
