@@ -41,7 +41,7 @@ export function FindSimilarErrors() {
 					<Table>
 						<Table.Head>
 							<Table.Row gridColumns={['5rem', '10rem', '1fr']}>
-								<Table.Header>Type</Table.Header>
+								<Table.Header>Score</Table.Header>
 								<Table.Header>Title</Table.Header>
 								<Table.Header>Description</Table.Header>
 							</Table.Row>

@@ -3789,13 +3789,13 @@ func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*mode
 
 	var matchedErrorObjects []*model.MatchedErrorObject
 	if err := r.DB.Raw(`
-		select eoep.gte_large_embedding <-> @string_embedding as score,
-			   error_objects.*
+		select distinct on (1, error_group_id) eoep.gte_large_embedding <-> @string_embedding as score,
+											   eo.*
 		from error_object_embeddings_partitioned eoep
-				 inner join error_objects on eoep.error_object_id = error_objects.id
+				 inner join error_objects eo on eoep.error_object_id = eo.id
 		where eoep.gte_large_embedding is not null
 		  and eoep.project_id = 1
-		order by score
+		order by 1
 		limit 10;
 	`, sql.Named("string_embedding", model.Vector(stringEmbedding))).
 		Scan(&matchedErrorObjects).Error; err != nil {
