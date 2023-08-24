@@ -13,6 +13,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	clickhouseMigrate "github.com/golang-migrate/migrate/v4/database/clickhouse"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/projectpath"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -31,7 +32,21 @@ var (
 )
 
 func NewClient(dbName string) (*Client, error) {
-	conn, err := clickhouse.Open(getClickhouseOptions(dbName))
+	opts := getClickhouseOptions(dbName)
+	opts.MaxIdleConns = 10
+	opts.MaxOpenConns = 100
+
+	conn, err := clickhouse.Open(opts)
+
+	go func() {
+		for {
+			stats := conn.Stats()
+			log.WithContext(context.Background()).WithField("Open", stats.Open).WithField("Idle", stats.Idle).WithField("MaxOpenConns", stats.MaxOpenConns).WithField("MaxIdleConns", stats.MaxIdleConns).Debug("Clickhouse Connection Stats")
+			hlog.Histogram("clickhouse.open", float64(stats.Open), nil, 1)
+			hlog.Histogram("clickhouse.idle", float64(stats.Idle), nil, 1)
+			time.Sleep(5 * time.Second)
+		}
+	}()
 
 	return &Client{
 		conn: conn,

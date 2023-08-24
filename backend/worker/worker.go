@@ -468,18 +468,19 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	}
 
 	wg.Add(parallelBatchWorkers)
+	batchedBuffer := &KafkaBatchBuffer{
+		messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
+	}
 	for i := 0; i < parallelBatchWorkers; i++ {
 		go func(workerId int) {
-			buffer := &KafkaBatchBuffer{
-				messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
-			}
 			k := KafkaBatchWorker{
-				KafkaQueue: kafkaqueue.New(ctx,
+				KafkaQueue: kafkaqueue.New(
+					ctx,
 					kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}),
-					kafkaqueue.Consumer,
-					&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(2 * DefaultBatchFlushSize)}),
+					kafkaqueue.Consumer, nil,
+				),
 				Worker:              w,
-				BatchBuffer:         buffer,
+				BatchBuffer:         batchedBuffer,
 				BatchFlushSize:      DefaultBatchFlushSize,
 				BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 				Name:                "batched",
@@ -490,18 +491,19 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	}
 
 	wg.Add(parallelBatchWorkers)
+	traceBuffer := &KafkaBatchBuffer{
+		messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
+	}
 	for i := 0; i < parallelBatchWorkers; i++ {
 		go func(workerId int) {
-			buffer := &KafkaBatchBuffer{
-				messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
-			}
 			k := KafkaBatchWorker{
-				KafkaQueue: kafkaqueue.New(ctx,
+				KafkaQueue: kafkaqueue.New(
+					ctx,
 					kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}),
-					kafkaqueue.Consumer,
-					&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(2 * DefaultBatchFlushSize)}),
+					kafkaqueue.Consumer, nil,
+				),
 				Worker:              w,
-				BatchBuffer:         buffer,
+				BatchBuffer:         traceBuffer,
 				BatchFlushSize:      DefaultBatchFlushSize,
 				BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 				Name:                "traces",
@@ -512,26 +514,23 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	}
 
 	wg.Add(1)
+	datasyncBuffer := &KafkaBatchBuffer{
+		messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
+	}
 	go func() {
-		flushSize := 10000
-		maxWait := 100 * time.Millisecond
-		buffer := &KafkaBatchBuffer{
-			messageQueue: make(chan *kafkaqueue.Message, flushSize+1),
-		}
 		k := KafkaBatchWorker{
 			KafkaQueue: kafkaqueue.New(ctx,
 				kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}),
 				kafkaqueue.Consumer,
 				&kafkaqueue.ConfigOverride{
-					QueueCapacity: pointy.Int(2 * flushSize),
+					QueueCapacity: pointy.Int(2 * DefaultBatchFlushSize),
 					MinBytes:      pointy.Int(1),
-					MaxWait:       &maxWait,
 				}),
 			Worker:              w,
 			WorkerThread:        0,
-			BatchBuffer:         buffer,
-			BatchFlushSize:      flushSize,
-			BatchedFlushTimeout: 5 * time.Second,
+			BatchBuffer:         datasyncBuffer,
+			BatchFlushSize:      DefaultBatchFlushSize,
+			BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 			Name:                "datasync",
 		}
 		k.ProcessMessages(ctx, k.flushDataSync)
