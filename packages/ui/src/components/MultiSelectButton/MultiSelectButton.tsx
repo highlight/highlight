@@ -1,7 +1,9 @@
-import React, { useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 import {
 	useComboboxStore,
 	useSelectStore,
+	// useComboboxState,
+	// useSelectState,
 	ComboboxList,
 	ComboboxItem,
 	Combobox,
@@ -31,9 +33,12 @@ type Props = {
 	valueRender: () => React.ReactNode
 	options: Option[]
 	onChange: (value: string[]) => void
+	query?: string
 	onChangeQuery?: (value: string) => void
 	queryPlaceholder?: string
 	cssClass?: ClassValue | ClassValue[]
+	open?: boolean
+	onToggle?: (isOpen: boolean) => void
 }
 
 export const MultiSelectButton: React.FC<Props> = ({
@@ -47,73 +52,130 @@ export const MultiSelectButton: React.FC<Props> = ({
 	onChangeQuery,
 	queryPlaceholder,
 	cssClass,
+	open,
+	onToggle,
+	query,
 }) => {
 	const inputElement = useRef<HTMLInputElement>(null)
 
-	const combobox = useComboboxStore({ resetValueOnHide: true })
-	const select = useSelectStore({
-		combobox,
-		defaultValue: defaultValue ? [defaultValue] : [],
-		setValue: (value: string[]) => onChange(value),
-		value: value,
-	})
-
-	// const selectState = useSelectState({
+	// const combobox = useComboboxStore({ resetValueOnHide: true })
+	// const select = useSelectStore({
+	// 	combobox,
 	// 	defaultValue: defaultValue ? [defaultValue] : [],
 	// 	setValue: (value: string[]) => onChange(value),
 	// 	value: value,
 	// })
 
+	const combobox = useComboboxStore({
+		// gutter: 4,
+		// sameWidth: true,
+		open,
+		setOpen: (open) => {
+			// if (combobox.open !== open) {
+			onToggle?.(open)
+			// }
+		},
+		value: query,
+		setValue: (value) => {
+			// if (combobox.value !== value) {
+			onChangeQuery?.(value)
+			// }
+		},
+		// virtualFocus: true,
+	})
+
+	const select = useSelectStore({
+		...combobox,
+		defaultValue: defaultValue ? [defaultValue] : [],
+		setValue: (value: string[]) => onChange(value),
+		value: value,
+	})
+
+	// useEffect(() => {
+	// 	if (select.mounted) return
+	// 	combobox.setValue('')
+	// }, [select.mounted, combobox.setValue])
+
 	return (
-		<>
-			<SelectLabel store={select} className={styles.selectLabel}>
+		<div>
+			{/* <SelectLabel state={select} className={styles.selectLabel}>
 				{label}
-			</SelectLabel>
+			</SelectLabel> */}
 			<Select
+				moveOnKeyDown={false}
+				// state={select}
 				store={select}
 				className={clsx([styles.selectButton, clsx(cssClass)])}
 			>
-				<>
+				{/* <>
 					{icon}
 					<Text size="xSmall" color="secondaryContentText">
 						{valueRender()}
 					</Text>
-				</>
+				</> */}
 			</Select>
-			<SelectPopover store={select} className={styles.selectPopover}>
-				{onChangeQuery && (
-					<Combobox
-						store={combobox}
-						ref={inputElement}
-						type="text"
-						onChange={(e) => {
-							onChangeQuery(e.target?.value)
-						}}
-						placeholder={queryPlaceholder}
-					></Combobox>
-				)}
-				<ComboboxList store={combobox}>
+			<SelectPopover
+				// state={select}
+				store={select}
+				className={styles.selectPopover}
+				// initialFocusRef={inputElement}
+				// initialFocus={inputElement}
+				focusable={false}
+				focusOnMove={false}
+				moveOnKeyPress={false}
+			>
+				<Combobox
+					// state={combobox}
+					store={combobox}
+					// ref={inputElement}
+					type="text"
+					// autoSelect
+					placeholder={queryPlaceholder}
+				></Combobox>
+				<ComboboxList
+					// state={combobox}
+					tabIndex={0}
+					store={combobox}
+				>
 					{options.map((option: Option) => (
-						<ComboboxItem key={option.key}>
-							<SelectItem
-								key={option.key}
-								value={option.key}
-								className={styles.selectItem}
-							>
-								<div className={styles.checkbox}>
-									{option.clearsOnClick &&
-									!value.includes(option.key) ? (
-										<IconSolidMinus color="grey" />
-									) : (
-										<IconSolidCheckCircle color="white" />
-									)}
-								</div>
-								{option.render}
-							</SelectItem>
+						<ComboboxItem
+							key={option.key}
+							value={option.key}
+							className={styles.selectItem}
+							// state={combobox}
+							store={combobox}
+							focusOnHover
+							render={
+								<SelectItem value={option.key}>
+									<div className={styles.checkbox}>
+										{option.clearsOnClick &&
+										!value.includes(option.key) ? (
+											<IconSolidMinus color="grey" />
+										) : (
+											<IconSolidCheckCircle color="white" />
+										)}
+									</div>
+									{option.render}
+								</SelectItem>
+							}
+						>
+							{/* {(props) => (
+								<SelectItem {...props} value={option.key}>
+									<div className={styles.checkbox}>
+										{option.clearsOnClick &&
+										!value.includes(option.key) ? (
+											<IconSolidMinus color="grey" />
+										) : (
+											<IconSolidCheckCircle color="white" />
+										)}
+									</div>
+									{option.render}
+								</SelectItem>
+							)} */}
 						</ComboboxItem>
 					))}
 				</ComboboxList>
 			</SelectPopover>
-		</>
+		</div>
 	)
 }
