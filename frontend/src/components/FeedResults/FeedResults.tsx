@@ -33,9 +33,9 @@ export const AdditionalFeedResults = function ({ more, type, onClick }: Props) {
 						<Button
 							kind="secondary"
 							size="small"
-							emphasis="high"
+							emphasis={type === 'logs' ? 'low' : 'medium'}
 							trackingId="SessionsFeedMore"
-							className={style.moreButton}
+							className={style.variants({ type })}
 							onClick={onClick}
 						>
 							<Box display="flex" alignItems="center" gap="8">
@@ -47,7 +47,10 @@ export const AdditionalFeedResults = function ({ more, type, onClick }: Props) {
 											? '+'
 											: ''
 										: ''}{' '}
-									new {type}
+									new{' '}
+									{more === 1
+										? type.slice(0, type.length - 1)
+										: type}
 								</Text>
 							</Box>
 						</Button>

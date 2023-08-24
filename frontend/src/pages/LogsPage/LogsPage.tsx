@@ -157,6 +157,19 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 						onDatesChange={handleDatesChange}
 						onLevelChange={handleLevelChange}
 					/>
+					<Box width="full">
+						<AdditionalFeedResults
+							more={moreLogs}
+							type="logs"
+							onClick={() => {
+								clearMoreLogs()
+								handleDatesChange(
+									defaultPresets[0].startDate,
+									getNow().toDate(),
+								)
+							}}
+						/>
+					</Box>
 					<Box
 						borderTop="dividerWeak"
 						height="screen"
@@ -173,17 +186,6 @@ const LogsPageInner = ({ timeMode, logCursor, startDateDefault }: Props) => {
 							<OverageCard productType={ProductType.Logs} />
 						</Box>
 						<IntegrationCta />
-						<AdditionalFeedResults
-							more={moreLogs}
-							type="logs"
-							onClick={() => {
-								clearMoreLogs()
-								handleDatesChange(
-									defaultPresets[0].startDate,
-									getNow().toDate(),
-								)
-							}}
-						/>
 						<LogsTable
 							logEdges={logEdges}
 							loading={loading}
