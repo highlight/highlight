@@ -477,7 +477,7 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, project
 		column = "gte_large_embedding"
 	}
 	if err := r.DB.Raw(fmt.Sprintf(`
-select eoe.%s <=> @embedding as score,
+select eoe.%s <-> @embedding as score,
        eo.error_group_id                              as error_group_id
 from error_object_embeddings_partitioned eoe
          inner join error_objects eo on eo.id = eoe.error_object_id
