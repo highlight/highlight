@@ -78,6 +78,7 @@ export type Admin = {
 	uid: Scalars['String']
 	user_defined_persona?: Maybe<Scalars['String']>
 	user_defined_role?: Maybe<Scalars['String']>
+	user_defined_team_size?: Maybe<Scalars['String']>
 }
 
 export type AdminAboutYouDetails = {
