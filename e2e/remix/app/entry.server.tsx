@@ -9,14 +9,14 @@ import type {
 	DataFunctionArgs,
 	EntryContext,
 } from '@remix-run/node'
+import { H, HandleError } from '@highlight-run/remix/server'
 
+import { CONSTANTS } from '~/constants'
 import { PassThrough } from 'node:stream'
 import { RemixServer } from '@remix-run/react'
 import { Response } from '@remix-run/node'
 import isbot from 'isbot'
 import { renderToPipeableStream } from 'react-dom/server'
-import { CONSTANTS } from '~/constants'
-import { H, HandleError } from '@highlight-run/remix/server'
 
 const nodeOptions = { projectID: CONSTANTS.HIGHLIGHT_PROJECT_ID }
 
@@ -145,7 +145,7 @@ function handleBrowserRequest(
 					// errors encountered during initial shell rendering since they'll
 					// reject and get logged in handleDocumentRequest.
 					if (shellRendered) {
-						console.error(error)
+						logError(error, request)
 					}
 				},
 			},
@@ -153,4 +153,22 @@ function handleBrowserRequest(
 
 		setTimeout(abort, ABORT_DELAY)
 	})
+}
+
+function logError(error: unknown, request?: Request) {
+	const parsed = request
+		? H.parseHeaders(Object.fromEntries(request.headers))
+		: undefined
+
+	if (error instanceof Error) {
+		H.consumeError(error, parsed?.secureSessionId, parsed?.requestId)
+	} else {
+		H.consumeError(
+			new Error(`Unknown error: ${JSON.stringify(error)}`),
+			parsed?.secureSessionId,
+			parsed?.requestId,
+		)
+	}
+
+	console.error(error)
 }
