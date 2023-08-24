@@ -485,7 +485,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 				BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 				Name:                "batched",
 			}
-			k.ProcessMessages(ctx, k.flushLogs)
+			k.ProcessMessages(ctx)
 			wg.Done()
 		}(i)
 	}
@@ -514,7 +514,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 				BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 				Name:                "traces",
 			}
-			k.ProcessMessages(ctx, k.flushTraces)
+			k.ProcessMessages(ctx)
 			wg.Done()
 		}(i)
 	}
@@ -539,7 +539,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 			BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 			Name:                "datasync",
 		}
-		k.ProcessMessages(ctx, k.flushDataSync)
+		k.ProcessMessages(ctx)
 		wg.Done()
 	}()
 
