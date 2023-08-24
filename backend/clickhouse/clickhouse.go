@@ -96,8 +96,8 @@ func getClickhouseOptions(dbName string) *clickhouse.Options {
 			Password: Password,
 		},
 		DialTimeout:  time.Duration(25) * time.Second,
-		MaxIdleConns: 8,
-		MaxOpenConns: 64,
+		MaxIdleConns: 10,
+		MaxOpenConns: 100,
 	}
 
 	if useTLS() {
