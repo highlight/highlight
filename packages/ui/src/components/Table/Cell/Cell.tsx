@@ -18,6 +18,7 @@ export const Cell: React.FC<Props> = ({ children, icon, ...boxProps }) => {
 			display="flex"
 			flexDirection="row"
 			alignItems="center"
+			cursor={boxProps.onClick ? 'pointer' : undefined}
 			gap="6"
 			cssClass={styles.cell}
 			{...boxProps}

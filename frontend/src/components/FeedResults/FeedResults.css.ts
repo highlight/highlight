@@ -1,5 +1,22 @@
-import { style } from '@vanilla-extract/css'
+import { vars } from '@highlight-run/ui'
+import { recipe, RecipeVariants } from '@vanilla-extract/recipes'
 
-export const moreButton = style({
-	width: '100%',
+export const variants = recipe({
+	base: {
+		width: '100%',
+		border: vars.border.secondary,
+	},
+	variants: {
+		type: {
+			sessions: {},
+			errors: {},
+			logs: {
+				border: 'none',
+				borderTop: vars.border.dividerWeak,
+				borderRadius: 0,
+			},
+		},
+	},
 })
+
+export type Variants = RecipeVariants<typeof variants>

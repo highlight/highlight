@@ -13433,3 +13433,72 @@ export type GetServicesQueryResult = Apollo.QueryResult<
 	Types.GetServicesQuery,
 	Types.GetServicesQueryVariables
 >
+export const GetTracesDocument = gql`
+	query GetTraces($project_id: ID!, $params: TracesParamsInput!) {
+		traces(project_id: $project_id, params: $params) {
+			timestamp
+			traceID
+			spanID
+			parentSpanID
+			projectID
+			secureSessionID
+			traceState
+			spanName
+			spanKind
+			duration
+			serviceName
+			serviceVersion
+			traceAttributes
+			statusCode
+			statusMessage
+		}
+	}
+`
+
+/**
+ * __useGetTracesQuery__
+ *
+ * To run a query within a React component, call `useGetTracesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTracesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTracesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *   },
+ * });
+ */
+export function useGetTracesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTracesQuery,
+		Types.GetTracesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<Types.GetTracesQuery, Types.GetTracesQueryVariables>(
+		GetTracesDocument,
+		baseOptions,
+	)
+}
+export function useGetTracesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTracesQuery,
+		Types.GetTracesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTracesQuery,
+		Types.GetTracesQueryVariables
+	>(GetTracesDocument, baseOptions)
+}
+export type GetTracesQueryHookResult = ReturnType<typeof useGetTracesQuery>
+export type GetTracesLazyQueryHookResult = ReturnType<
+	typeof useGetTracesLazyQuery
+>
+export type GetTracesQueryResult = Apollo.QueryResult<
+	Types.GetTracesQuery,
+	Types.GetTracesQueryVariables
+>

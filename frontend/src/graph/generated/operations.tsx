@@ -4525,6 +4525,34 @@ export type GetServicesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetTracesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.TracesParamsInput
+}>
+
+export type GetTracesQuery = { __typename?: 'Query' } & {
+	traces: Array<
+		{ __typename?: 'Trace' } & Pick<
+			Types.Trace,
+			| 'timestamp'
+			| 'traceID'
+			| 'spanID'
+			| 'parentSpanID'
+			| 'projectID'
+			| 'secureSessionID'
+			| 'traceState'
+			| 'spanName'
+			| 'spanKind'
+			| 'duration'
+			| 'serviceName'
+			| 'serviceVersion'
+			| 'traceAttributes'
+			| 'statusCode'
+			| 'statusMessage'
+		>
+	>
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4659,6 +4687,7 @@ export const namedOperations = {
 		GetSystemConfiguration: 'GetSystemConfiguration' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
 		GetServices: 'GetServices' as const,
+		GetTraces: 'GetTraces' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,

@@ -28,7 +28,7 @@ import { useParams } from '@util/react-router/useParams'
 import { usePollQuery } from '@util/search'
 import clsx from 'clsx'
 import moment from 'moment/moment'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -80,7 +80,7 @@ const SearchPanel = () => {
 		GetErrorGroupsOpenSearchQuery,
 		GetErrorGroupsOpenSearchQueryVariables
 	>({
-		variableFn: () => {
+		variableFn: useCallback(() => {
 			let query = JSON.parse(backendSearchQuery?.searchQuery || '')
 			const lte =
 				query?.bool?.must[1]?.has_child?.query?.bool?.must[0]?.bool
@@ -139,10 +139,12 @@ const SearchPanel = () => {
 				page: 1,
 				project_id: projectId!,
 			}
-		},
+		}, [backendSearchQuery?.searchQuery, projectId]),
 		moreDataQuery,
-		getResultCount: (result) =>
-			result?.data?.error_groups_opensearch.totalCount,
+		getResultCount: useCallback(
+			(result) => result?.data?.error_groups_opensearch.totalCount,
+			[],
+		),
 	})
 
 	useEffect(() => {

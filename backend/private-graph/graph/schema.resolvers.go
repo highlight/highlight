@@ -349,11 +349,12 @@ func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, ad
 	if err := r.Transaction(func(transactionR *mutationResolver) error {
 		// Update admin details
 		if _, err := transactionR.UpdateAdminAboutYouDetails(ctx, modelInputs.AdminAboutYouDetails{
-			FirstName:          adminAndWorkspaceDetails.FirstName,
-			LastName:           adminAndWorkspaceDetails.LastName,
-			UserDefinedRole:    adminAndWorkspaceDetails.UserDefinedRole,
-			UserDefinedPersona: "",
-			Referral:           adminAndWorkspaceDetails.Referral,
+			FirstName:           adminAndWorkspaceDetails.FirstName,
+			LastName:            adminAndWorkspaceDetails.LastName,
+			UserDefinedRole:     adminAndWorkspaceDetails.UserDefinedRole,
+			UserDefinedPersona:  "",
+			UserDefinedTeamSize: adminAndWorkspaceDetails.UserDefinedTeamSize,
+			Referral:            adminAndWorkspaceDetails.Referral,
 		}); err != nil {
 			return e.Wrap(err, "error updating admin details")
 		}
@@ -365,7 +366,7 @@ func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, ad
 		}
 
 		// Assign auto joinable domains for workspace
-		if *adminAndWorkspaceDetails.AllowedAutoJoinEmailOrigins != "" {
+		if ptr.ToString(adminAndWorkspaceDetails.AllowedAutoJoinEmailOrigins) != "" {
 			if _, err := transactionR.UpdateAllowedEmailOrigins(ctx, workspace.ID, *adminAndWorkspaceDetails.AllowedAutoJoinEmailOrigins); err != nil {
 				return e.Wrap(err, "error assigning auto joinable email origins")
 			}
@@ -403,6 +404,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.LastName = &adminDetails.LastName
 	admin.Name = &fullName
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
+	admin.UserDefinedTeamSize = &adminDetails.UserDefinedTeamSize
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
 	admin.Phone = pointy.String("")
@@ -415,6 +417,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 			*admin.Email,
 			*admin.UserDefinedRole,
 			*admin.UserDefinedPersona,
+			*admin.UserDefinedTeamSize,
 			*admin.FirstName,
 			*admin.LastName,
 			*admin.Phone,
@@ -3649,6 +3652,8 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 	if updateErr != nil {
 		return nil, updateErr
 	}
+
+	_, _ = r.Redis.ResetServiceErrorCount(ctx, projectID)
 	return service, nil
 }
 
@@ -7687,6 +7692,16 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 	})
 
 	return &connection, err
+}
+
+// Traces is the resolver for the traces field.
+func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.TracesParamsInput) ([]*modelInputs.Trace, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadTraces(ctx, project.ID, params)
 }
 
 // Params is the resolver for the params field.

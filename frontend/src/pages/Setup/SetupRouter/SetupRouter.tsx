@@ -20,7 +20,6 @@ import {
 import { useProjectId } from '@hooks/useProjectId'
 import { SetupDocs } from '@pages/Setup/SetupDocs'
 import { SetupOptionsList } from '@pages/Setup/SetupOptionsList'
-import { TeamSetup } from '@pages/Setup/SetupRouter/TeamSetup'
 import { useGlobalContext } from '@routers/ProjectRouter/context/GlobalContext'
 import analytics from '@util/analytics'
 import { message } from 'antd'
@@ -212,7 +211,6 @@ export const SetupRouter = () => {
 						</Stack>
 					</NavLink>
 					<NavLink
-						// TODO(vkorolik) this should point to <TeamSetup/> once that is ready
 						to="/w/team"
 						className={({ isActive }) =>
 							clsx(styles.menuItem, {
@@ -286,7 +284,6 @@ export const SetupRouter = () => {
 
 					<Box overflowY="scroll" height="full">
 						<Routes>
-							<Route path="team" element={<TeamSetup />} />
 							<Route
 								path="alerts/:platform?"
 								element={<AlertsSetup />}
