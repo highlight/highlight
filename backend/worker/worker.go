@@ -491,8 +491,9 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	}
 
 	wg.Add(parallelBatchWorkers)
+	traceFlushSize := 10 * DefaultBatchFlushSize
 	traceBuffer := &KafkaBatchBuffer{
-		messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
+		messageQueue: make(chan *kafkaqueue.Message, traceFlushSize),
 	}
 	for i := 0; i < parallelBatchWorkers; i++ {
 		go func(workerId int) {
@@ -500,11 +501,11 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 				KafkaQueue: kafkaqueue.New(
 					ctx,
 					kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}),
-					kafkaqueue.Consumer, nil,
+					kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(traceFlushSize)},
 				),
 				Worker:              w,
 				BatchBuffer:         traceBuffer,
-				BatchFlushSize:      DefaultBatchFlushSize,
+				BatchFlushSize:      traceFlushSize,
 				BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 				Name:                "traces",
 			}
