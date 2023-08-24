@@ -25,7 +25,7 @@ type MenuComponent = React.FC<Props> & {
 }
 
 export const Menu: MenuComponent = ({ children, ...props }: Props) => {
-	props.gutter = props.gutter ?? 6
+	props.gutter = props.gutter ?? 4
 	const menu = Ariakit.useMenuStore(props)
 
 	return <MenuContext.Provider value={menu}>{children}</MenuContext.Provider>
