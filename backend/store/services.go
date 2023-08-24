@@ -16,7 +16,7 @@ import (
 )
 
 func (store *Store) FindOrCreateService(ctx context.Context, project model.Project, name string, attributes map[string]string) (*model.Service, error) {
-	return redis.CachedEval(ctx, store.redis, fmt.Sprintf("service-%s-%d", name, project.ID), 150*time.Millisecond, time.Minute, func() (*model.Service, error) {
+	return redis.CachedEval(ctx, store.redis, CacheServiceKey(name, project.ID), 150*time.Millisecond, time.Minute, func() (*model.Service, error) {
 		var service model.Service
 
 		if val, ok := attributes[string(semconv.ProcessRuntimeNameKey)]; ok {
@@ -38,7 +38,31 @@ func (store *Store) FindOrCreateService(ctx context.Context, project model.Proje
 
 		return &service, err
 	})
+}
 
+func (store *Store) FindService(ctx context.Context, projectID int, name string) (*model.Service, error) {
+	return redis.CachedEval(ctx, store.redis, CacheServiceKey(name, projectID), 150*time.Millisecond, time.Minute, func() (*model.Service, error) {
+
+		service := &model.Service{}
+
+		err := store.db.Where(&model.Service{
+			ProjectID: projectID,
+			Name:      name,
+		}).Take(&service).Error
+
+		return service, err
+	})
+}
+
+func (store *Store) UpdateServiceErrorState(ctx context.Context, serviceID int, errorDetails []string) error {
+	err := store.db.Model(&model.Service{Model: model.Model{ID: serviceID}}).Updates(&model.Service{
+		Status: "error", ErrorDetails: errorDetails}).Error
+
+	return err
+}
+
+func CacheServiceKey(name string, projectID int) string {
+	return fmt.Sprintf("service-%s-%d", name, projectID)
 }
 
 // Number of results per page

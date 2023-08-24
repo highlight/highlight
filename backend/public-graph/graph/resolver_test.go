@@ -3,13 +3,16 @@ package graph
 import (
 	"context"
 	"encoding/json"
-	"github.com/highlight-run/highlight/backend/redis"
-	"github.com/samber/lo"
 	"os"
 	"reflect"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/integrations"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/samber/lo"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/go-test/deep"
@@ -62,7 +65,7 @@ func TestMain(m *testing.M) {
 		DB:               db,
 		TDB:              timeseries.New(context.TODO()),
 		Redis:            redisClient,
-		Store:            store.NewStore(db, &opensearch.Client{}, redisClient),
+		Store:            store.NewStore(db, &opensearch.Client{}, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}),
 		EmbeddingsClient: &mockEmbeddingsClient{},
 	}
 	code := m.Run()

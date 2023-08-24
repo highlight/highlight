@@ -15,16 +15,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
+	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/store"
-	"go.opentelemetry.io/otel/attribute"
-
-	"github.com/PaesslerAG/jsonpath"
-	"github.com/highlight-run/go-resthooks"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/mssola/user_agent"
 	"github.com/openlyinc/pointy"
@@ -32,6 +30,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
@@ -2103,6 +2102,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 	}
 
+	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error querying all_workspace_settings"))
+	}
+
 	// Filter out empty errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
@@ -2173,14 +2177,19 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			ServiceVersion: v.Service.Version,
 		}
 
+		var mappedStackTrace *string
 		var structuredStackTrace []*privateModel.ErrorTrace
 
-		err = json.Unmarshal([]byte(v.StackTrace), &structuredStackTrace)
+		if settings.EnableEnhancedErrors {
+			mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, v.Service.Name, v.Service.Version)
+		} else {
+			structuredStackTrace, err = r.Store.StructuredStackTrace(ctx, v.StackTrace)
+		}
+
 		if err != nil {
-			structuredStackTrace, err = stacktraces.StructureOTELStackTrace(v.StackTrace)
-			if err != nil {
-				log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
-			}
+			log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
+		} else if mappedStackTrace != nil {
+			errorToInsert.MappedStackTrace = mappedStackTrace
 		}
 
 		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)
