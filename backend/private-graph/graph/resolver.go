@@ -7,8 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/bwmarrin/discordgo"
-	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 	"io"
 	"math/big"
 	"net/http"
@@ -17,6 +15,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 
 	github2 "github.com/google/go-github/v50/github"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -1327,7 +1328,8 @@ func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session
 	- Insights must be different to each other
 	- Do not mention identification or authentication events
 	- Don't mention timestamps in <insight>, insights should be interesting inferences from the input
-	- Output timestamp that best represents the insight in <timestamp> of output	- Sort the insights by timestamp
+	- Output timestamp that best represents the insight in <timestamp> of output	
+	- Sort the insights by timestamp
 
 	You must respond ONLY with JSON that looks like this:
 	[{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number },{"insight": "<Insight>", timestamp: number }]
