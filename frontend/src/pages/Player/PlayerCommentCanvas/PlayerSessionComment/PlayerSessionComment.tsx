@@ -64,17 +64,17 @@ const PlayerSessionComment = ({ comment }: Props) => {
 		}
 	}, [comment?.id, deepLinkedCommentId])
 
-	useEffect(() => {
-		const onKeyDown = (e: KeyboardEvent) => {
-			if (e.key == 'Escape') {
-				setVisible(false)
-			}
-		}
-		window.addEventListener('keydown', onKeyDown)
-		return () => {
-			window.removeEventListener('keydown', onKeyDown)
-		}
-	}, [])
+	// useEffect(() => {
+	// 	const onKeyDown = (e: KeyboardEvent) => {
+	// 		if (e.key == 'Escape') {
+	// 			setVisible(false)
+	// 		}
+	// 	}
+	// 	window.addEventListener('keydown', onKeyDown)
+	// 	return () => {
+	// 		window.removeEventListener('keydown', onKeyDown)
+	// 	}
+	// }, [])
 
 	const handleClick: EventListener = useCallback(
 		(e) => {

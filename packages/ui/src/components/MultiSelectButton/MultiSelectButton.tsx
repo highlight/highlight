@@ -4,6 +4,7 @@ import {
 	useSelectStore,
 	// useComboboxState,
 	// useSelectState,
+	ComboboxPopover,
 	ComboboxList,
 	ComboboxItem,
 	Combobox,
@@ -11,6 +12,7 @@ import {
 	SelectItem,
 	SelectLabel,
 	SelectPopover,
+	PopoverArrow,
 } from '@ariakit/react'
 
 import { IconSolidCheckCircle, IconSolidMinus } from '../icons'
@@ -69,82 +71,98 @@ export const MultiSelectButton: React.FC<Props> = ({
 	const combobox = useComboboxStore({
 		// gutter: 4,
 		// sameWidth: true,
-		open,
-		setOpen: (open) => {
-			// if (combobox.open !== open) {
-			onToggle?.(open)
-			// }
-		},
+		// open,
+		// setOpen: (open) => {
+		// 	// if (combobox.open !== open) {
+		// 	onToggle?.(open)
+		// 	// }
+		// },
 		value: query,
 		setValue: (value) => {
 			// if (combobox.value !== value) {
 			onChangeQuery?.(value)
 			// }
 		},
+		resetValueOnHide: true,
 		// virtualFocus: true,
 	})
 
 	const select = useSelectStore({
-		...combobox,
+		combobox,
 		defaultValue: defaultValue ? [defaultValue] : [],
 		setValue: (value: string[]) => onChange(value),
 		value: value,
 	})
 
-	// useEffect(() => {
-	// 	if (select.mounted) return
-	// 	combobox.setValue('')
-	// }, [select.mounted, combobox.setValue])
-
 	return (
-		<div>
-			{/* <SelectLabel state={select} className={styles.selectLabel}>
-				{label}
-			</SelectLabel> */}
+		<div className="wrapper">
+			<SelectLabel store={select} className={styles.selectLabel}>
+				label
+			</SelectLabel>
 			<Select
-				moveOnKeyDown={false}
+				// moveOnKeyDown={false}
 				// state={select}
 				store={select}
-				className={clsx([styles.selectButton, clsx(cssClass)])}
+				className={clsx([
+					styles.selectButton,
+					clsx(cssClass),
+					'select',
+				])}
 			>
-				{/* <>
-					{icon}
-					<Text size="xSmall" color="secondaryContentText">
-						{valueRender()}
-					</Text>
-				</> */}
+				{icon}
+				<Text size="xSmall" color="secondaryContentText">
+					{valueRender()}
+				</Text>
 			</Select>
 			<SelectPopover
 				// state={select}
 				store={select}
-				className={styles.selectPopover}
+				className={clsx([styles.selectPopover, 'popover'])}
 				// initialFocusRef={inputElement}
 				// initialFocus={inputElement}
-				focusable={false}
-				focusOnMove={false}
-				moveOnKeyPress={false}
+				// focusable={false}
+				// focusOnMove={false}
+				// moveOnKeyPress={false}
 			>
-				<Combobox
-					// state={combobox}
-					store={combobox}
-					// ref={inputElement}
-					type="text"
-					// autoSelect
-					placeholder={queryPlaceholder}
-				></Combobox>
+				<PopoverArrow size={0} />
+				{/* <div>
+					<Combobox store={combobox} placeholder="e.g., Apple" />
+					<ComboboxList store={combobox}>
+						{options.length ? (
+							options.map((value) => (
+								<ComboboxItem
+									key={value.key}
+									value={value.key}
+								/>
+							))
+						) : (
+							<div>No results found</div>
+						)}
+					</ComboboxList>
+				</div> */}
+				<div className="combobox-wrapper">
+					<Combobox
+						// state={combobox}
+						store={combobox}
+						// ref={inputElement}
+						type="text"
+						// eslint-disable-next-line jsx-a11y/no-autofocus
+						autoSelect
+						placeholder={queryPlaceholder}
+						className="combobox"
+					></Combobox>
+				</div>
 				<ComboboxList
 					// state={combobox}
-					tabIndex={0}
 					store={combobox}
 				>
 					{options.map((option: Option) => (
 						<ComboboxItem
 							key={option.key}
-							value={option.key}
-							className={styles.selectItem}
+							className={clsx([styles.selectItem, 'select-item'])}
 							// state={combobox}
-							store={combobox}
-							focusOnHover
+							// store={combobox}
+							// focusOnHover
 							render={
 								<SelectItem value={option.key}>
 									<div className={styles.checkbox}>
@@ -158,21 +176,7 @@ export const MultiSelectButton: React.FC<Props> = ({
 									{option.render}
 								</SelectItem>
 							}
-						>
-							{/* {(props) => (
-								<SelectItem {...props} value={option.key}>
-									<div className={styles.checkbox}>
-										{option.clearsOnClick &&
-										!value.includes(option.key) ? (
-											<IconSolidMinus color="grey" />
-										) : (
-											<IconSolidCheckCircle color="white" />
-										)}
-									</div>
-									{option.render}
-								</SelectItem>
-							)} */}
-						</ComboboxItem>
+						></ComboboxItem>
 					))}
 				</ComboboxList>
 			</SelectPopover>

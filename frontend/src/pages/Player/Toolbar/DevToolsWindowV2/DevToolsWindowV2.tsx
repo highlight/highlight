@@ -264,13 +264,13 @@ const DevToolsWindowV2: React.FC<
 													size="xSmall"
 													outline={false}
 													collapsed={!searchShown}
-													onKeyDown={(e: any) => {
-														if (
-															e.code === 'Escape'
-														) {
-															e.target?.blur()
-														}
-													}}
+													// onKeyDown={(e: any) => {
+													// 	if (
+													// 		e.code === 'Escape'
+													// 	) {
+													// 		e.target?.blur()
+													// 	}
+													// }}
 													onBlur={() => {
 														setSearchShown(false)
 													}}
