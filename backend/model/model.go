@@ -390,6 +390,8 @@ type AllWorkspaceSettings struct {
 	ErrorEmbeddingsGroup     bool    `gorm:"default:false"`
 	ErrorEmbeddingsThreshold float64 `gorm:"default:0.2"`
 	ReplaceAssets            bool    `gorm:"default:false"`
+	StoreIP                  bool    `gorm:"default:false"`
+	EnableEnhancedErrors     bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -599,6 +601,7 @@ type Session struct {
 	ProjectID      int     `json:"project_id" gorm:"index:idx_project_id_email"`
 	Email          *string `json:"email" gorm:"index:idx_project_id_email"`
 	// Location data based off user ip (see InitializeSession)
+	IP        string  `json:"ip"`
 	City      string  `json:"city"`
 	State     string  `json:"state"`
 	Postal    string  `json:"postal"`
@@ -911,8 +914,9 @@ type ErrorSegment struct {
 type ErrorGroupingMethod string
 
 const (
-	ErrorGroupingMethodClassic        ErrorGroupingMethod = "Classic"
-	ErrorGroupingMethodAdaEmbeddingV2 ErrorGroupingMethod = "AdaV2"
+	ErrorGroupingMethodClassic             ErrorGroupingMethod = "Classic"
+	ErrorGroupingMethodAdaEmbeddingV2      ErrorGroupingMethod = "AdaV2"
+	ErrorGroupingMethodGteLargeEmbeddingV2 ErrorGroupingMethod = "thenlper/gte-large"
 )
 
 type ErrorObject struct {
@@ -951,11 +955,10 @@ type ErrorObject struct {
 
 type ErrorObjectEmbeddings struct {
 	Model
-	ErrorObjectID       int
-	CombinedEmbedding   Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
-	EventEmbedding      Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
-	StackTraceEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
-	PayloadEmbedding    Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	ProjectID         int
+	ErrorObjectID     int
+	CombinedEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	GteLargeEmbedding Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large model
 }
 
 type ErrorGroup struct {
@@ -1266,6 +1269,8 @@ type SystemConfiguration struct {
 	Active           bool `gorm:"primary_key;default:true"`
 	MaintenanceStart time.Time
 	MaintenanceEnd   time.Time
+	ErrorFilters     pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
+	IgnoredFiles     pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\"}'"`
 }
 
 type RetryableType string
@@ -1532,6 +1537,32 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		END;
 	`, PARTITION_SESSION_ID, PARTITION_SESSION_ID).Error; err != nil {
 		return false, e.Wrap(err, "Error setting session id sequence to 30000000")
+	}
+
+	if err := DB.Exec(`
+		CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned
+		(LIKE error_object_embeddings INCLUDING DEFAULTS INCLUDING IDENTITY)
+		PARTITION BY LIST (project_id);
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error creating error_object_embeddings_partitioned")
+	}
+
+	var lastVal int
+	if err := DB.Raw("SELECT coalesce(max(id), 1) FROM projects").Scan(&lastVal).Error; err != nil {
+		return false, e.Wrap(err, "Error selecting max project id")
+	}
+
+	// Make sure partitions are created for the next 1k projects
+	for i := 0; i < lastVal+1000; i++ {
+		sql := fmt.Sprintf(`
+			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d
+			PARTITION OF error_object_embeddings_partitioned
+			FOR VALUES IN ('%d');
+		`, i, i)
+
+		if err := DB.Exec(sql).Error; err != nil {
+			return false, e.Wrapf(err, "Error creating partitioned error_object_embeddings for index %d", i)
+		}
 	}
 
 	// Create sequence for session_fields.id manually. This started as a join
@@ -1801,6 +1832,7 @@ type Alert struct {
 	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
 	Frequency            int     `gorm:"default:15"` // time in seconds
 	Disabled             *bool   `gorm:"default:false"`
+	Default              bool    `gorm:"default:false"` // alert created during setup flow
 }
 
 type ErrorAlert struct {
@@ -2024,14 +2056,17 @@ func (obj *SessionAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient
 
 type Service struct {
 	Model
-	ProjectID       int                       `gorm:"not null;uniqueIndex:idx_project_id_name"`
-	Name            string                    `gorm:"not null;uniqueIndex:idx_project_id_name"`
-	Status          modelInputs.ServiceStatus `gorm:"not null;default:created"`
-	GithubRepoPath  *string
-	BuildPrefix     *string
-	GithubPrefix    *string
-	LastSeenVersion *string
-	ErrorDetails    pq.StringArray `gorm:"type:text[]"`
+	ProjectID          int                       `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Name               string                    `gorm:"not null;uniqueIndex:idx_project_id_name"`
+	Status             modelInputs.ServiceStatus `gorm:"not null;default:created"`
+	GithubRepoPath     *string
+	BuildPrefix        *string
+	GithubPrefix       *string
+	LastSeenVersion    *string
+	ErrorDetails       pq.StringArray `gorm:"type:text[]"`
+	ProcessName        *string
+	ProcessVersion     *string
+	ProcessDescription *string
 }
 
 type LogAlert struct {

@@ -28,6 +28,9 @@ We respect our competitors. In fact, we're not in the business of trying to conv
     <DocsCard title="Datadog" href="https://highlight.io/compare/highlight-vs-datadog">
         {"Learn more about how we compare to Datadog."}
     </DocsCard>
+    <DocsCard title="Sentry" href="https://highlight.io/compare/highlight-vs-sentry">
+        {"Learn more about how we compare to Sentry."}
+    </DocsCard>
 </DocsCardGroup>
 
 ## Error Monitoring Competitors

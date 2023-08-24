@@ -15,7 +15,6 @@ import (
 	"github.com/golang/snappy"
 	"github.com/highlight-run/highlight/backend/hlog"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
@@ -24,6 +23,7 @@ import (
 )
 
 const CacheKeyHubspotCompanies = "hubspot-companies"
+const GithubRateLimitKey = "github-rate-limit-exceeded"
 
 type Client struct {
 	redisClient redis.Cmdable
@@ -53,12 +53,16 @@ func SessionInitializedKey(sessionSecureId string) string {
 	return fmt.Sprintf("session-init-%s", sessionSecureId)
 }
 
-func BillingQuotaExceededKey(projectId int, productType pricing.ProductType) string {
+func BillingQuotaExceededKey(projectId int, productType model.PricingProductType) string {
 	return fmt.Sprintf("billing-quota-exceeded-%d-%s", projectId, productType)
 }
 
 func LastLogTimestampKey(projectId int) string {
 	return fmt.Sprintf("last-log-timestamp-%d", projectId)
+}
+
+func ServiceGithubErrorCountKey(serviceId int) string {
+	return fmt.Sprintf("service-github-errors-%d", serviceId)
 }
 
 func NewClient() *Client {
@@ -416,11 +420,11 @@ func (r *Client) SetIsPendingSession(ctx context.Context, sessionSecureId string
 	return r.setFlag(ctx, SessionInitializedKey(sessionSecureId), initialized, 24*time.Hour)
 }
 
-func (r *Client) IsBillingQuotaExceeded(ctx context.Context, projectId int, productType pricing.ProductType) (*bool, error) {
+func (r *Client) IsBillingQuotaExceeded(ctx context.Context, projectId int, productType model.PricingProductType) (*bool, error) {
 	return r.getFlagOrNil(ctx, BillingQuotaExceededKey(projectId, productType))
 }
 
-func (r *Client) SetBillingQuotaExceeded(ctx context.Context, projectId int, productType pricing.ProductType, exceeded bool) error {
+func (r *Client) SetBillingQuotaExceeded(ctx context.Context, projectId int, productType model.PricingProductType, exceeded bool) error {
 	return r.setFlag(ctx, BillingQuotaExceededKey(projectId, productType), exceeded, 5*time.Minute)
 }
 
@@ -482,6 +486,30 @@ func (r *Client) GetHubspotCompanies(ctx context.Context, companies interface{})
 	err = r.Cache.Get(ctx, CacheKeyHubspotCompanies, companies)
 	span.Finish(tracer.WithError(err))
 	return
+}
+
+func (r *Client) SetGithubRateLimitExceeded(ctx context.Context, expirationTime time.Time) error {
+	return r.setFlag(ctx, GithubRateLimitKey, true, time.Until(expirationTime))
+}
+
+func (r *Client) GetGithubRateLimitExceeded(ctx context.Context) (bool, error) {
+	return r.getFlag(ctx, GithubRateLimitKey)
+}
+
+func (r *Client) IncrementServiceErrorCount(ctx context.Context, projectId int) (int64, error) {
+	serviceKey := ServiceGithubErrorCountKey(projectId)
+	count, err := r.redisClient.Incr(ctx, serviceKey).Result()
+
+	if count == 1 {
+		r.redisClient.Expire(ctx, serviceKey, time.Hour)
+	}
+
+	return count, err
+}
+
+func (r *Client) ResetServiceErrorCount(ctx context.Context, projectId int) (int64, error) {
+	serviceKey := ServiceGithubErrorCountKey(projectId)
+	return r.redisClient.Del(ctx, serviceKey).Result()
 }
 
 func (r *Client) AcquireLock(_ context.Context, key string, timeout time.Duration) (*redsync.Mutex, error) {

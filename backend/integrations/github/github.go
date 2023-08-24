@@ -2,14 +2,16 @@ package github
 
 import (
 	"context"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v50/github"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"net/http"
-	"os"
-	"strconv"
 )
 
 type Config struct {
@@ -46,6 +48,16 @@ func parseInstallation(installation string) (int64, error) {
 		return 0, err
 	}
 	return installationID, nil
+}
+
+type ClientInterface interface {
+	CreateIssue(ctx context.Context, repo string, issueRequest *github.IssueRequest) (*github.Issue, error)
+	ListLabels(ctx context.Context, repo string) ([]*github.Label, error)
+	ListRepos(ctx context.Context) ([]*github.Repository, error)
+	DeleteInstallation(ctx context.Context, installation string) error
+	GetRepoContent(ctx context.Context, githubPath string, path string, version string) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error)
+	GetRepoBlob(ctx context.Context, githubPath string, blobSHA string) (*github.Blob, *github.Response, error)
+	GetLatestCommitHash(ctx context.Context, githubPath string) (string, *github.Response, error)
 }
 
 type Client struct {
@@ -153,4 +165,21 @@ func (c *Client) DeleteInstallation(ctx context.Context, installation string) er
 
 	_, err = c.jwtClient.Apps.DeleteInstallation(ctx, installationID)
 	return err
+}
+
+func (c *Client) GetRepoContent(ctx context.Context, githubPath string, path string, version string) (fileContent *github.RepositoryContent, directoryContent []*github.RepositoryContent, resp *github.Response, err error) {
+	repoPath := strings.Split(githubPath, "/")
+	opts := new(github.RepositoryContentGetOptions)
+	opts.Ref = version
+	return c.client.Repositories.GetContents(ctx, repoPath[0], repoPath[1], path, opts)
+}
+
+func (c *Client) GetRepoBlob(ctx context.Context, githubPath string, blobSHA string) (*github.Blob, *github.Response, error) {
+	repoPath := strings.Split(githubPath, "/")
+	return c.client.Git.GetBlob(ctx, repoPath[0], repoPath[1], blobSHA)
+}
+
+func (c *Client) GetLatestCommitHash(ctx context.Context, githubPath string) (string, *github.Response, error) {
+	repoPath := strings.Split(githubPath, "/")
+	return c.client.Repositories.GetCommitSHA1(ctx, repoPath[0], repoPath[1], "HEAD", "")
 }

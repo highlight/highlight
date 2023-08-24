@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/embeddings"
 	"html/template"
 	"io"
 	"math/rand"
@@ -14,6 +13,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/embeddings"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -381,7 +382,7 @@ func main() {
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
-		Store:                  store.NewStore(db, opensearchClient, redisClient),
+		Store:                  store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient),
 		DataSyncQueue:          kafkaDataSyncProducer,
 		TracesQueue:            kafkaTracesProducer,
 	}
@@ -507,7 +508,7 @@ func main() {
 			HubspotApi:       hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
 			Redis:            redisClient,
 			RH:               &rh,
-			Store:            store.NewStore(db, opensearchClient, redisClient),
+			Store:            store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient),
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -600,7 +601,7 @@ func main() {
 			Redis:            redisClient,
 			Clickhouse:       clickhouseClient,
 			RH:               &rh,
-			Store:            store.NewStore(db, opensearchClient, redisClient),
+			Store:            store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient),
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {
@@ -633,6 +634,13 @@ func main() {
 			}()
 			// for the 'All' worker, explicitly run the PublicWorker as well
 			go w.PublicWorker(ctx)
+			// in `all` mode, report stripe usage every hour
+			go func() {
+				w.ReportStripeUsage(ctx)
+				for range time.Tick(time.Hour) {
+					w.ReportStripeUsage(ctx)
+				}
+			}()
 			// in `all` mode, refresh materialized views every hour
 			go func() {
 				w.RefreshMaterializedViews(ctx)

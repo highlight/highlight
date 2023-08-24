@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/samber/lo"
@@ -31,6 +32,8 @@ import (
 type Handler struct {
 	resolver *graph.Resolver
 }
+
+var IgnoredSpanNamePrefixes = []string{"fs "}
 
 func lg(ctx context.Context, fields extractedFields) *log.Entry {
 	return log.WithContext(ctx).
@@ -155,6 +158,18 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				span := spans.At(k)
 				events := span.Events()
 
+				// skip a subset of spans (ie. fs spans
+				skipped := false
+				for _, prefix := range IgnoredSpanNamePrefixes {
+					if strings.HasPrefix(span.Name(), prefix) {
+						skipped = true
+						break
+					}
+				}
+				if skipped {
+					continue
+				}
+
 				isLog := false
 				for l := 0; l < events.Len() && !isLog; l++ {
 					e := events.At(l)
@@ -166,9 +181,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				// Only process spans that are not logs
 				if !isLog {
 					fields, err := extractFields(ctx, extractFieldsParams{
-						span: &span,
+						resource: &resource,
+						span:     &span,
 					})
 					if err != nil {
+						lg(ctx, fields).WithError(err).Error("failed to extract fields from span")
 						continue
 					}
 
@@ -201,6 +218,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						event:    &event,
 					})
 					if err != nil {
+						lg(ctx, fields).WithError(err).Error("failed to extract fields from span")
 						continue
 					}
 
@@ -380,6 +398,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					logRecord: &logRecord,
 				})
 				if err != nil {
+					lg(ctx, fields).WithError(err).Error("failed to extract fields from log")
 					continue
 				}
 

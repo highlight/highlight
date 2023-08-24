@@ -135,6 +135,7 @@ const H: HighlightPublicInterface = {
 				appVersion: options?.version,
 				sessionShortcut: options?.sessionShortcut,
 				sessionSecureID: sessionSecureID,
+				storageMode: options?.storageMode,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
 			if (!options?.manualStart) {

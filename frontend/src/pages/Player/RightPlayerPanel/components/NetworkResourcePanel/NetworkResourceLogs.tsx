@@ -126,7 +126,7 @@ export const NetworkResourceLogs: React.FC<{
 						}
 						ref={tableContainerRef}
 					>
-						{logEdges.length === 0 || !requestId ? (
+						{(!loading && logEdges.length === 0) || !requestId ? (
 							<NoLogsFound />
 						) : (
 							<LogsTable

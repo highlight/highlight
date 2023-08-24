@@ -11,6 +11,7 @@ import { useEffect, useMemo } from 'react'
 
 const GitHubRepoSelector: React.FC<ContainerSelectionProps> = ({
 	setSelectionId,
+	disabled,
 }) => {
 	const { data } = useGitHubIntegration()
 
@@ -60,6 +61,7 @@ const GitHubRepoSelector: React.FC<ContainerSelectionProps> = ({
 				value={selectedGitHubRepoId}
 				notFoundContent={<p>No repos found</p>}
 				className={style.selectContainer}
+				disabled={disabled}
 			/>
 		</Form.NamedSection>
 	)

@@ -35,6 +35,7 @@ type Session {
 	os_version: String!
 	browser_name: String!
 	browser_version: String!
+	ip: String!
 	city: String!
 	state: String!
 	country: String!
@@ -647,6 +648,39 @@ type LogConnection implements Connection {
 	pageInfo: PageInfo!
 }
 
+type Trace {
+	timestamp: Timestamp!
+	traceID: String!
+	spanID: String!
+	parentSpanID: String!
+	projectID: Int!
+	secureSessionID: String!
+	traceState: String!
+	spanName: String!
+	spanKind: String!
+	duration: Int!
+	serviceName: String!
+	serviceVersion: String!
+	traceAttributes: Map!
+	statusCode: String!
+	statusMessage: String!
+	events: [TraceEvent]
+	links: [TraceLink]
+}
+
+type TraceEvent {
+	timestamp: Timestamp!
+	name: String!
+	attributes: Map!
+}
+
+type TraceLink {
+	traceID: String!
+	spanID: String!
+	traceState: String!
+	attributes: Map!
+}
+
 type ErrorObjectNodeSession {
 	secureID: String!
 	appVersion: String
@@ -836,6 +870,11 @@ input LogsParamsInput {
 	date_range: DateRangeRequiredInput!
 }
 
+input TracesParamsInput {
+	query: String!
+	date_range: DateRangeRequiredInput!
+}
+
 enum MetricTagFilterOp {
 	equals
 	contains
@@ -862,6 +901,11 @@ input DateHistogramOptions {
 	bucket_size: DateHistogramBucketSize!
 	time_zone: String!
 	bounds: DateRangeInput!
+}
+
+input ClickhouseQuery {
+	isAnd: Boolean!
+	rules: [[String!]!]!
 }
 
 enum NetworkRequestAttribute {
@@ -946,6 +990,7 @@ input SessionAlertInput {
 	emails: [String!]!
 	environments: [String!]!
 	disabled: Boolean!
+	default: Boolean
 	type: SessionAlertType!
 	user_properties: [UserPropertyInput!]!
 	exclude_rules: [String!]!
@@ -964,6 +1009,7 @@ input LogAlertInput {
 	emails: [String!]!
 	environments: [String!]!
 	disabled: Boolean!
+	default: Boolean
 	query: String!
 }
 
@@ -1246,6 +1292,7 @@ type ErrorAlert {
 	Frequency: Int!
 	DailyFrequency: [Int64]!
 	disabled: Boolean!
+	default: Boolean!
 }
 
 type TrackProperty {
@@ -1278,6 +1325,7 @@ type SessionAlert {
 	ExcludeRules: [String]!
 	DailyFrequency: [Int64]!
 	disabled: Boolean!
+	default: Boolean!
 }
 
 type LogAlert {
@@ -1297,6 +1345,7 @@ type LogAlert {
 	disabled: Boolean!
 	query: String!
 	BelowThreshold: Boolean!
+	default: Boolean!
 }
 
 type WorkspaceInviteLink {
@@ -1622,6 +1671,15 @@ type Query {
 		project_id: ID!
 		count: Int!
 		query: String!
+		clickhouse_query: ClickhouseQuery
+		sort_field: String
+		sort_desc: Boolean!
+		page: Int
+	): SessionResults!
+	sessions_clickhouse(
+		project_id: ID!
+		count: Int!
+		query: ClickhouseQuery!
 		sort_field: String
 		sort_desc: Boolean!
 		page: Int
@@ -1630,11 +1688,23 @@ type Query {
 		project_id: ID!
 		query: String!
 		histogram_options: DateHistogramOptions!
+		clickhouse_query: ClickhouseQuery
+	): SessionsHistogram!
+	sessions_histogram_clickhouse(
+		project_id: ID!
+		query: ClickhouseQuery!
+		histogram_options: DateHistogramOptions!
 	): SessionsHistogram!
 	field_types(
 		project_id: ID!
 		start_date: Timestamp
 		end_date: Timestamp
+		use_clickhouse: Boolean
+	): [Field!]!
+	field_types_clickhouse(
+		project_id: ID!
+		start_date: Timestamp!
+		end_date: Timestamp!
 	): [Field!]!
 	fields_opensearch(
 		project_id: ID!
@@ -1642,6 +1712,18 @@ type Query {
 		field_type: String!
 		field_name: String!
 		query: String!
+		start_date: Timestamp
+		end_date: Timestamp
+		use_clickhouse: Boolean
+	): [String!]!
+	fields_clickhouse(
+		project_id: ID!
+		count: Int!
+		field_type: String!
+		field_name: String!
+		query: String!
+		start_date: Timestamp!
+		end_date: Timestamp!
 	): [String!]!
 	error_fields_opensearch(
 		project_id: ID!
@@ -1788,6 +1870,7 @@ type Query {
 	error_tags: [ErrorTag]
 	match_error_tag(query: String!): [MatchedErrorTag]
 	find_similar_errors(query: String!): [MatchedErrorObject]
+	traces(project_id: ID!, params: TracesParamsInput!): [Trace!]!
 }
 
 type Mutation {
@@ -2049,6 +2132,7 @@ type Mutation {
 		environments: [String]!
 		regex_groups: [String]!
 		frequency: Int!
+		default: Boolean
 	): ErrorAlert
 	updateErrorAlert(
 		project_id: ID!
@@ -2159,6 +2243,8 @@ type Mutation {
 		github_prefix: String
 	): Service
 	createErrorTag(title: String!, description: String!): ErrorTag!
+	upsertSlackChannel(project_id: ID!, name: String!): SanitizedSlackChannel!
+	upsertDiscordChannel(project_id: ID!, name: String!): DiscordChannel!
 }
 
 type Subscription {

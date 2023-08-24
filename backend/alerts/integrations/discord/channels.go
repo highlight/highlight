@@ -27,3 +27,7 @@ func (bot *Bot) GetChannels() ([]*discordgo.Channel, error) {
 
 	return filterChannels(channels), nil
 }
+
+func (bot *Bot) CreateChannel(name string) (*discordgo.Channel, error) {
+	return bot.Session.GuildChannelCreate(bot.GuildID, name, discordgo.ChannelTypeGuildText)
+}

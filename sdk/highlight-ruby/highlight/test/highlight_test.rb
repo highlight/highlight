@@ -21,11 +21,23 @@ class HighlightTest < Minitest::Test
   end
 
   def test_trace
-    Highlight::H.new('qe9y4yg1')
-    Highlight::H.instance.trace(nil, nil) do
-      raise 'ruby test error handler!'
+    mock = MiniTest::Mock.new
+    mock.expect :in_span, true do |attributes:|
+      attributes == { 'highlight.project_id' => 'qe9y4yg1', 'highlight.session_id' => 1, 'some.attribute' => 12 }
     end
-    Highlight::H.instance.flush
-  rescue StandardError # rubocop:disable Lint/SuppressedException
+
+    begin
+      OpenTelemetry::Trace::Tracer.stub :new, mock do
+        Highlight::H.new('qe9y4yg1')
+        Highlight::H.instance.trace(1, nil, { 'some.attribute' => 12 }) do
+          logger = Highlight::Logger.new($stdout)
+          logger.info('ruby test trace!')
+          raise 'ruby test error handler!'
+        end
+        Highlight::H.instance.flush
+      end
+    ensure
+      assert_mock mock
+    end
   end
 end

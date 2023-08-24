@@ -159,6 +159,11 @@ type ClickUpTeam struct {
 	Spaces []*ClickUpSpace `json:"spaces"`
 }
 
+type ClickhouseQuery struct {
+	IsAnd bool       `json:"isAnd"`
+	Rules [][]string `json:"rules"`
+}
+
 type DashboardDefinition struct {
 	ID                int                      `json:"id"`
 	UpdatedAt         time.Time                `json:"updated_at"`
@@ -458,6 +463,7 @@ type LogAlertInput struct {
 	Emails              []string                      `json:"emails"`
 	Environments        []string                      `json:"environments"`
 	Disabled            bool                          `json:"disabled"`
+	Default             *bool                         `json:"default"`
 	Query               string                        `json:"query"`
 }
 
@@ -662,6 +668,7 @@ type SessionAlertInput struct {
 	Emails              []string                      `json:"emails"`
 	Environments        []string                      `json:"environments"`
 	Disabled            bool                          `json:"disabled"`
+	Default             *bool                         `json:"default"`
 	Type                SessionAlertType              `json:"type"`
 	UserProperties      []*UserPropertyInput          `json:"user_properties"`
 	ExcludeRules        []string                      `json:"exclude_rules"`
@@ -717,6 +724,44 @@ type TopUsersPayload struct {
 	TotalActiveTime      int     `json:"total_active_time"`
 	ActiveTimePercentage float64 `json:"active_time_percentage"`
 	UserProperties       string  `json:"user_properties"`
+}
+
+type Trace struct {
+	Timestamp       time.Time              `json:"timestamp"`
+	TraceID         string                 `json:"traceID"`
+	SpanID          string                 `json:"spanID"`
+	ParentSpanID    string                 `json:"parentSpanID"`
+	ProjectID       int                    `json:"projectID"`
+	SecureSessionID string                 `json:"secureSessionID"`
+	TraceState      string                 `json:"traceState"`
+	SpanName        string                 `json:"spanName"`
+	SpanKind        string                 `json:"spanKind"`
+	Duration        int                    `json:"duration"`
+	ServiceName     string                 `json:"serviceName"`
+	ServiceVersion  string                 `json:"serviceVersion"`
+	TraceAttributes map[string]interface{} `json:"traceAttributes"`
+	StatusCode      string                 `json:"statusCode"`
+	StatusMessage   string                 `json:"statusMessage"`
+	Events          []*TraceEvent          `json:"events"`
+	Links           []*TraceLink           `json:"links"`
+}
+
+type TraceEvent struct {
+	Timestamp  time.Time              `json:"timestamp"`
+	Name       string                 `json:"name"`
+	Attributes map[string]interface{} `json:"attributes"`
+}
+
+type TraceLink struct {
+	TraceID    string                 `json:"traceID"`
+	SpanID     string                 `json:"spanID"`
+	TraceState string                 `json:"traceState"`
+	Attributes map[string]interface{} `json:"attributes"`
+}
+
+type TracesParamsInput struct {
+	Query     string                  `json:"query"`
+	DateRange *DateRangeRequiredInput `json:"date_range"`
 }
 
 type TrackPropertyInput struct {

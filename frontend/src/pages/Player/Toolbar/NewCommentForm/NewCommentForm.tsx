@@ -459,23 +459,27 @@ export const NewCommentForm = ({
 									kind="secondary"
 									emphasis="low"
 									icon={<IconSolidX size={14} />}
+									disabled={isCreatingComment}
 								/>
 							</Stack>
 						</Box>
 						<Stack direction="column" gap="12" p="12">
 							{issueServiceDetail?.containerSelection({
+								disabled: isCreatingComment,
 								setSelectionId: setContainerId,
 							})}
 							<Form.Input
 								name="issueTitle"
 								label="Title"
 								placeholder="Title"
+								disabled={isCreatingComment}
 							/>
 							<Form.Input
 								name="issueDescription"
 								label="Description"
 								// @ts-expect-error
 								as="textarea"
+								disabled={isCreatingComment}
 							/>
 						</Stack>
 						<Stack
@@ -503,6 +507,7 @@ export const NewCommentForm = ({
 									setSelectedIssueService(undefined)
 									setSection(CommentFormSection.CommentForm)
 								}}
+								disabled={isCreatingComment}
 							>
 								Cancel
 							</Button>
@@ -514,6 +519,7 @@ export const NewCommentForm = ({
 								onClick={() => {
 									setSection(CommentFormSection.CommentForm)
 								}}
+								disabled={isCreatingComment}
 							>
 								Save
 							</Button>
