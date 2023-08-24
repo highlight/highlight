@@ -995,7 +995,7 @@ type ErrorTag struct {
 	Model
 	Title       string
 	Description string
-	Embedding   Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	Embedding   Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large
 }
 
 type MatchedErrorObject struct {
