@@ -215,9 +215,8 @@ export const Search: React.FC<{
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const inputRef = useRef<HTMLInputElement | null>(null)
 	const comboboxStore = useComboboxStore({
-		// TODO: Figure out how to pass these values in
-		// gutter: 10,
-		// sameWidth: true,
+		gutter: 10,
+		sameWidth: true,
 		defaultValue: initialQuery ?? '',
 	})
 	const comboboxState = comboboxStore.getState()
@@ -390,8 +389,6 @@ export const Search: React.FC<{
 						left: hideIcon ? undefined : 6,
 					}}
 					store={comboboxStore}
-					gutter={10}
-					sameWidth
 				>
 					<Box pt="4">
 						<Combobox.GroupLabel store={comboboxStore}>

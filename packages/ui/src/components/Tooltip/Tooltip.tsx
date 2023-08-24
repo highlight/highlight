@@ -25,7 +25,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
 	delayed,
 	...props
 }: TooltipProps) => {
-	const tooltipState = useTooltipStore({
+	const tooltipStore = useTooltipStore({
+		gutter: 4,
 		placement: 'top',
 		timeout: delayed ? STANDARD_DELAY : 0,
 		...props,
@@ -34,17 +35,13 @@ export const Tooltip: React.FC<TooltipProps> = ({
 	return (
 		<>
 			<TooltipAnchor
-				store={tooltipState}
+				store={tooltipStore}
 				style={{ display: 'flex', ...style }}
 			>
 				{trigger}
 			</TooltipAnchor>
 			{!disabled && (
-				<AriakitTooltip
-					store={tooltipState}
-					gutter={4}
-					style={{ zIndex: 100 }}
-				>
+				<AriakitTooltip store={tooltipStore} style={{ zIndex: 100 }}>
 					<TooltipContent>{children}</TooltipContent>
 				</AriakitTooltip>
 			)}

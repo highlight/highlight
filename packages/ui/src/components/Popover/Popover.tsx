@@ -28,6 +28,7 @@ export const Popover: PopoverComponent = ({
 	...props
 }: PopoverProps) => {
 	const popoverStore = usePopoverStore({
+		gutter: 4,
 		placement: 'bottom',
 		...props,
 	})
@@ -87,7 +88,7 @@ const Content: React.FC<
 	const popover = usePopover()
 
 	return (
-		<AriakitPopover gutter={4} {...props} store={popover}>
+		<AriakitPopover {...props} store={popover}>
 			{children}
 		</AriakitPopover>
 	)
