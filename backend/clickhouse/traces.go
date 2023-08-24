@@ -45,6 +45,7 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 		return nil
 	}
 
+	span, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.flushTraces.prepareRows"))
 	rows := lo.Map(traceRows, func(traceRow *TraceRow, _ int) interface{} {
 		traceTimes, traceNames, traceAttrs := convertEvents(traceRow)
 		linkTraceIds, linkSpanIds, linkStates, linkAttrs := convertLinks(traceRow)
@@ -77,6 +78,7 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 
 		return row
 	})
+	span.Finish()
 
 	ib := sqlbuilder.NewStruct(new(ClickhouseTraceRow)).InsertInto(TracesTable, rows...)
 	sql, args := ib.BuildWithFlavor(sqlbuilder.ClickHouse)
