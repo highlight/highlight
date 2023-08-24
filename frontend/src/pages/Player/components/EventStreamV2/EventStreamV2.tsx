@@ -35,6 +35,10 @@ const EventStreamV2 = function () {
 		state,
 		replayer,
 		currentEvent,
+		activeEventIndex,
+		setActiveEventIndex,
+		searchTerm,
+		setSearchTerm,
 		setCurrentEvent,
 	} = useReplayerContext()
 	const { setActiveEvent, setRightPanelView } = usePlayerUIContext()
@@ -43,7 +47,7 @@ const EventStreamV2 = function () {
 	const [events, setEvents] = useState<HighlightEvent[]>([])
 	const form = useFormState({
 		defaultValues: {
-			search: '',
+			search: searchTerm,
 		},
 	})
 	const searchQuery = form.getValue('search')
@@ -55,6 +59,10 @@ const EventStreamV2 = function () {
 		},
 		skip: !session_secure_id,
 	})
+
+	useEffect(() => {
+		setSearchTerm(searchQuery)
+	}, [searchQuery])
 
 	useEffect(() => {
 		if (data?.web_vitals && data.web_vitals?.length > 0) {
@@ -157,6 +165,7 @@ const EventStreamV2 = function () {
 							ref={virtuoso}
 							data={filteredEvents}
 							totalCount={filteredEvents.length}
+							initialTopMostItemIndex={activeEventIndex}
 							className={styledVerticalScrollbar}
 							itemContent={(index, event) => (
 								<StreamEventV2
@@ -171,6 +180,7 @@ const EventStreamV2 = function () {
 										setCurrentEvent(e)
 										setActiveEvent(event)
 										setRightPanelView(RightPanelView.Event)
+										setActiveEventIndex(index)
 									}}
 								/>
 							)}

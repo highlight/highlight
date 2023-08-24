@@ -1,5 +1,5 @@
 import { EventType } from '@highlight-run/rrweb'
-import { Badge, Box, Tag, Text } from '@highlight-run/ui'
+import { Badge, Box, IconSolidArrowCircleRight, Text } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { HighlightEvent } from '@pages/Player/HighlightEvent'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -97,33 +97,25 @@ export const StreamEventV2 = function ({
 				<Text lines="1" display="flex">
 					{details.displayValue}
 				</Text>
-				<Box display="flex" alignItems="center" gap="4">
+				<Box
+					display="flex"
+					alignItems="center"
+					gap="4"
+					justifyContent="space-between"
+				>
 					<Badge
 						size="small"
 						variant={EVENT_TYPES_TO_VARIANTS[displayName]}
 						label={displayName}
 					/>
 					{shouldShowTimestamp && (
-						<Tag
-							kind="secondary"
-							size="small"
-							emphasis="high"
-							shape="basic"
-							onClick={(e) => {
-								// Stopping the event from propagating up to the parent button. This is to allow the element to stay opened when the user clicks on the GoToButton. Without this the element would close.
-								e.stopPropagation()
-								// Sets the current event as null. It will be reset as the player continues.
-								pause(timeSinceStart)
-								message.success(
-									`Changed player time showing you ${
-										details.title
-									} at ${MillisToMinutesAndSeconds(
-										timeSinceStart,
-									)}`,
-								)
-							}}
+						<Box
+							display="flex"
+							alignItems="center"
+							gap="2"
+							justifyContent="space-between"
 						>
-							<Text>
+							<Text size="xxSmall">
 								{showPlayerAbsoluteTime
 									? playerTimeToSessionAbsoluteTime({
 											sessionStartTime: start,
@@ -131,7 +123,20 @@ export const StreamEventV2 = function ({
 									  })
 									: MillisToMinutesAndSeconds(timeSinceStart)}
 							</Text>
-						</Tag>
+							<IconSolidArrowCircleRight
+								onClick={(e) => {
+									e.stopPropagation()
+									pause(timeSinceStart)
+									message.success(
+										`Changed player time showing you ${
+											details.title
+										} at ${MillisToMinutesAndSeconds(
+											timeSinceStart,
+										)}`,
+									)
+								}}
+							/>
+						</Box>
 					)}
 				</Box>
 			</Box>

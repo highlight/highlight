@@ -142,6 +142,10 @@ export const ProjectRouter = () => {
 		undefined,
 	)
 
+	const [searchTerm, setSearchTerm] = useState<ErrorObject | undefined>(
+		undefined,
+	)
+
 	const [selectedRightPanelTab, setSelectedRightPanelTab] =
 		useLocalStorage<RightPlayerTab>(
 			'tabs-PlayerRightPanel-active-tab',
@@ -161,6 +165,8 @@ export const ProjectRouter = () => {
 		setSelectedRightPanelTab,
 		activeEvent,
 		setActiveEvent,
+		setSearchTerm,
+		searchTerm,
 		activeError,
 		setActiveError,
 		rightPanelView,

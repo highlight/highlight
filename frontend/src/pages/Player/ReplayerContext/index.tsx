@@ -113,6 +113,10 @@ export interface ReplayerContextInterface {
 	sessionMetadata: playerMetaData
 	currentEvent: string
 	setCurrentEvent: React.Dispatch<React.SetStateAction<string>>
+	searchTerm: string
+	setSearchTerm: React.Dispatch<React.SetStateAction<string>>
+	activeEventIndex?: number
+	setActiveEventIndex: React.Dispatch<React.SetStateAction<number>>
 }
 
 export const [useReplayerContext, ReplayerContextProvider] =
