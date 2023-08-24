@@ -112,14 +112,15 @@ type PushTracesArgs struct {
 }
 
 type HubSpotCreateContactForAdminArgs struct {
-	AdminID            int
-	Email              string
-	UserDefinedRole    string
-	UserDefinedPersona string
-	First              string
-	Last               string
-	Phone              string
-	Referral           string
+	AdminID             int
+	Email               string
+	UserDefinedRole     string
+	UserDefinedPersona  string
+	UserDefinedTeamSize string
+	First               string
+	Last                string
+	Phone               string
+	Referral            string
 }
 
 type HubSpotCreateCompanyForWorkspaceArgs struct {

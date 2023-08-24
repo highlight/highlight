@@ -95,7 +95,7 @@ func getDomain(adminEmail string) (domain string) {
 }
 
 type Api interface {
-	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) error
+	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first, last string, phone, referral string) error
 	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) error
 	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error
 	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error
@@ -395,7 +395,7 @@ func (h *Client) getContactForAdmin(email string) (contactId *int, err error) {
 	}
 }
 
-func (h *Client) createContactForAdmin(ctx context.Context, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
+func (h *Client) createContactForAdmin(ctx context.Context, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	var hubspotContactId int
 	if resp, err := h.hubspotClient.Contacts().Create(hubspot.ContactsRequest{
 		Properties: []hubspot.Property{
@@ -413,6 +413,11 @@ func (h *Client) createContactForAdmin(ctx context.Context, email string, userDe
 				Property: "user_defined_persona",
 				Name:     "user_defined_persona",
 				Value:    userDefinedPersona,
+			},
+			{
+				Property: "user_defined_team_size",
+				Name:     "user_defined_team_size",
+				Value:    userDefinedTeamSize,
 			},
 			{
 				Property: "firstname",
@@ -569,23 +574,24 @@ func (h *Client) CreateContactCompanyAssociationImpl(ctx context.Context, adminI
 	return nil
 }
 
-func (h *Client) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) error {
+func (h *Client) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first string, last string, phone string, referral string) error {
 	return h.kafkaProducer.Submit(ctx, PartitionKey, &kafka_queue.Message{
 		Type: kafka_queue.HubSpotCreateContactForAdmin,
 		HubSpotCreateContactForAdmin: &kafka_queue.HubSpotCreateContactForAdminArgs{
-			AdminID:            adminID,
-			Email:              email,
-			UserDefinedRole:    userDefinedRole,
-			UserDefinedPersona: userDefinedPersona,
-			First:              first,
-			Last:               last,
-			Phone:              phone,
-			Referral:           referral,
+			AdminID:             adminID,
+			Email:               email,
+			UserDefinedRole:     userDefinedRole,
+			UserDefinedPersona:  userDefinedPersona,
+			UserDefinedTeamSize: userDefinedTeamSize,
+			First:               first,
+			Last:                last,
+			Phone:               phone,
+			Referral:            referral,
 		},
 	})
 }
 
-func (h *Client) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) (contactId *int, err error) {
+func (h *Client) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	key := fmt.Sprintf("hubspot-CreateContactForAdminImpl-%d", adminID)
 	if mutex, err := h.redisClient.AcquireLock(ctx, key, ClientSideContactCreationTimeout); err == nil {
 		defer func() {
@@ -602,7 +608,7 @@ func (h *Client) CreateContactForAdminImpl(ctx context.Context, adminID int, ema
 			WithField("email", email).
 			Warnf("failed to get client-side hubspot contact. creating")
 		contactId, err = retry(func() (*int, error) {
-			return h.createContactForAdmin(ctx, email, userDefinedRole, userDefinedPersona, first, last, phone, referral)
+			return h.createContactForAdmin(ctx, email, userDefinedRole, userDefinedPersona, userDefinedTeamSize, first, last, phone, referral)
 		})
 
 		if err != nil || contactId == nil {

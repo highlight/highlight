@@ -78,6 +78,7 @@ export type Admin = {
 	uid: Scalars['String']
 	user_defined_persona?: Maybe<Scalars['String']>
 	user_defined_role?: Maybe<Scalars['String']>
+	user_defined_team_size?: Maybe<Scalars['String']>
 }
 
 export type AdminAboutYouDetails = {
@@ -87,6 +88,7 @@ export type AdminAboutYouDetails = {
 	referral: Scalars['String']
 	user_defined_persona: Scalars['String']
 	user_defined_role: Scalars['String']
+	user_defined_team_size: Scalars['String']
 }
 
 export type AdminAndWorkspaceDetails = {
@@ -96,6 +98,7 @@ export type AdminAndWorkspaceDetails = {
 	promo_code?: InputMaybe<Scalars['String']>
 	referral: Scalars['String']
 	user_defined_role: Scalars['String']
+	user_defined_team_size: Scalars['String']
 	workspace_name: Scalars['String']
 }
 

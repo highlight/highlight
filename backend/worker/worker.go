@@ -383,6 +383,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			task.HubSpotCreateContactForAdmin.Email,
 			task.HubSpotCreateContactForAdmin.UserDefinedRole,
 			task.HubSpotCreateContactForAdmin.UserDefinedPersona,
+			task.HubSpotCreateContactForAdmin.UserDefinedTeamSize,
 			task.HubSpotCreateContactForAdmin.First,
 			task.HubSpotCreateContactForAdmin.Last,
 			task.HubSpotCreateContactForAdmin.Phone,
