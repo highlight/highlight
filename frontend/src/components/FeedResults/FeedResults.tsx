@@ -33,9 +33,9 @@ export const AdditionalFeedResults = function ({ more, type, onClick }: Props) {
 						<Button
 							kind="secondary"
 							size="small"
-							emphasis="high"
+							emphasis={type === 'logs' ? 'low' : 'medium'}
 							trackingId="SessionsFeedMore"
-							className={style.moreButton}
+							className={style.variants({ type })}
 							onClick={onClick}
 						>
 							<Box display="flex" alignItems="center" gap="8">
