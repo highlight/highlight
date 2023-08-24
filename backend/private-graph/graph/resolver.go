@@ -3765,12 +3765,12 @@ func (r *Resolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInp
 
 	var matchedErrorTags []*modelInputs.MatchedErrorTag
 	if err := r.DB.Raw(`
-		select error_tags.embedding <=> @string_embedding as score,
+		select error_tags.embedding <-> @string_embedding as score,
 					error_tags.id as id,
 					error_tags.title as title,
 					error_tags.description as description
 		from error_tags
-		order by score asc
+		order by score
 		limit 5;
 	`, sql.Named("string_embedding", model.Vector(stringEmbedding))).
 		Scan(&matchedErrorTags).Error; err != nil {
@@ -3789,10 +3789,13 @@ func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*mode
 
 	var matchedErrorObjects []*model.MatchedErrorObject
 	if err := r.DB.Raw(`
-		select error_object_embeddings.gte_large_embedding <=> @string_embedding as score, 			
-			error_objects.*
-		from error_object_embeddings
-		join error_objects on error_object_embeddings.error_object_id = error_objects.id 
+		select distinct on (1, error_group_id) eoep.gte_large_embedding <-> @string_embedding as score,
+											   eo.*
+		from error_object_embeddings_partitioned eoep
+				 inner join error_objects eo on eoep.error_object_id = eo.id
+		where eoep.gte_large_embedding is not null
+		  and eoep.project_id = 1
+		order by 1
 		limit 10;
 	`, sql.Named("string_embedding", model.Vector(stringEmbedding))).
 		Scan(&matchedErrorObjects).Error; err != nil {
