@@ -1,8 +1,5 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import {
-	AutoJoinEmailsInput,
-	getEmailDomain,
-} from '@components/AutoJoinEmailsInput'
+import { getEmailDomain } from '@components/AutoJoinEmailsInput'
 import { Button } from '@components/Button'
 import {
 	AppLoadingState,
@@ -17,8 +14,10 @@ import {
 	Box,
 	Callout,
 	Form,
+	IconSolidCheckCircle,
 	IconSolidPlusSm,
 	Stack,
+	SwitchButton,
 	Text,
 	useFormState,
 } from '@highlight-run/ui'
@@ -62,7 +61,7 @@ export const InviteTeamForm: React.FC = () => {
 
 	const formState = useFormState({
 		defaultValues: {
-			autoJoinDomains: [],
+			autoJoinDomain: true,
 			inviteEmails: '',
 			numTeamEmails: 1,
 		},
@@ -88,7 +87,7 @@ export const InviteTeamForm: React.FC = () => {
 
 		try {
 			if (inWorkspace) {
-				const emails: string[] = [formState.values.inviteEmails]
+				let emails: string[] = [formState.values.inviteEmails]
 				for (let i = 0; i < formState.values.numTeamEmails; i++) {
 					emails.push(
 						(formState.values as any)[
@@ -96,28 +95,42 @@ export const InviteTeamForm: React.FC = () => {
 						] as string,
 					)
 				}
-				await Promise.all([
-					updateAllowedEmailOrigins({
-						variables: {
-							workspace_id: workspace.id,
-							allowed_auto_join_email_origins:
-								formState.values.autoJoinDomains.join(','),
-						},
-					}),
-					...emails.map((email) =>
-						sendInviteEmail({
+				emails = emails.filter((e) => e?.length)
+				try {
+					await Promise.all([
+						updateAllowedEmailOrigins({
 							variables: {
 								workspace_id: workspace.id,
-								email,
-								base_url: window.location.origin,
-								role: role.toString(),
+								allowed_auto_join_email_origins: formState
+									.values.autoJoinDomain
+									? getEmailDomain(admin?.email)
+									: '',
 							},
 						}),
-					),
-				])
-			}
+						...emails.map((email) =>
+							sendInviteEmail({
+								variables: {
+									workspace_id: workspace.id,
+									email,
+									base_url: window.location.origin,
+									role: role.toString(),
+								},
+							}),
+						),
+					])
+				} catch (e) {
+					message.error(
+						`An error occurred inviting your team. Please try again later.`,
+					)
+					return navigate(SETUP_ROUTE)
+				}
 
-			message.success(`Thanks for inviting your team!`)
+				if (emails.length) {
+					message.success(`Thanks for inviting your team!`)
+				} else {
+					message.info(`You can always invite your team later.`)
+				}
+			}
 
 			navigate(SETUP_ROUTE)
 		} catch (e: any) {
@@ -141,15 +154,8 @@ export const InviteTeamForm: React.FC = () => {
 	useEffect(() => {
 		if (!workspacesLoading) {
 			setLoadingState(AppLoadingState.LOADED)
-
-			if (inWorkspace) {
-				formState.setValue(formState.names.autoJoinDomains, [
-					workspace.name,
-				])
-			}
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [workspace?.name, workspacesLoading])
+	}, [setLoadingState, workspacesLoading])
 
 	if (workspacesLoading) {
 		return null
@@ -163,45 +169,37 @@ export const InviteTeamForm: React.FC = () => {
 				resetOnSubmit={false}
 			>
 				<AuthHeader>
-					<Text color="moderate">Tell us a bit more</Text>
+					<Text color="moderate">Invite your team</Text>
 				</AuthHeader>
 				<AuthBody>
 					<Stack gap="12">
-						{!isCommonEmailDomain && (
-							<Box mt="4">
-								<AutoJoinEmailsInput
-									onChange={(domains) =>
-										formState.setValue(
-											formState.names.autoJoinDomains,
-											domains.join(', '),
-										)
-									}
-								/>
-							</Box>
-						)}
 						<Text
 							userSelect="none"
 							size="xSmall"
-							weight="bold"
+							weight="medium"
 							color="weak"
 						>
 							Invite coworkers to your project
 						</Text>
-						<Form.Input
-							name={formState.names.inviteEmails}
-							placeholder="name@example.com"
-							required
-						/>
-						{Array(formState.values.numTeamEmails - 1)
-							.fill(0)
-							.map((_, idx) => (
-								<Form.Input
-									key={idx}
-									name={`${formState.names.inviteEmails}-${idx}`}
-									placeholder="name@example.com"
-									required
-								/>
-							))}
+						<Stack gap="6">
+							<Form.Input
+								name={formState.names.inviteEmails}
+								placeholder="name@example.com"
+								type="email"
+								autoFocus
+								autoComplete="email"
+							/>
+							{Array(formState.values.numTeamEmails - 1)
+								.fill(0)
+								.map((_, idx) => (
+									<Form.Input
+										key={idx}
+										name={`${formState.names.inviteEmails}-${idx}`}
+										placeholder="name@example.com"
+										autoComplete="email"
+									/>
+								))}
+						</Stack>
 						<Box display="flex">
 							<Button
 								kind="secondary"
@@ -226,30 +224,73 @@ export const InviteTeamForm: React.FC = () => {
 					</Stack>
 				</AuthBody>
 				<AuthFooter>
-					<Box display="flex" width="full" gap="6">
-						<Button
-							trackingId="about-you-team-skip"
-							disabled={disableForm}
-							loading={disableForm}
-							kind="secondary"
-							emphasis="medium"
-							className={styles.formButton}
-							onClick={() => {}}
-						>
-							Skip
-						</Button>
-						<Button
-							trackingId="about-you-team-submit"
-							disabled={disableForm}
-							loading={disableForm}
-							type="submit"
-							className={styles.formButton}
-						>
-							{formState.values.inviteEmails.length
-								? 'Invite'
-								: 'Save'}
-						</Button>
-					</Box>
+					<Stack gap="12">
+						<Box display="flex" width="full">
+							{!isCommonEmailDomain && (
+								<Box width="full">
+									<Callout icon={false}>
+										<Stack gap="8">
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="6"
+											>
+												<SwitchButton
+													type="button"
+													size="xxSmall"
+													iconLeft={
+														<IconSolidCheckCircle
+															size={12}
+														/>
+													}
+													checked={
+														formState.values
+															.autoJoinDomain
+													}
+													onChange={() => {
+														formState.setValue(
+															formState.names
+																.autoJoinDomain,
+															!formState.values
+																.autoJoinDomain,
+														)
+													}}
+												/>
+												<Text
+													size="small"
+													weight="bold"
+													color="strong"
+												>
+													Allow joining by email
+													domain
+												</Text>
+											</Box>
+											<Text size="small" weight="medium">
+												Allow everyone with a{' '}
+												<b>
+													{getEmailDomain(
+														admin?.email,
+													)}
+												</b>{' '}
+												email to join your workspace.
+											</Text>
+										</Stack>
+									</Callout>
+								</Box>
+							)}
+						</Box>
+						<Box display="flex" width="full">
+							<Button
+								trackingId="about-you-team-submit"
+								disabled={disableForm}
+								loading={disableForm}
+								type="submit"
+								className={styles.formButton}
+							>
+								Next
+							</Button>
+						</Box>
+					</Stack>
 				</AuthFooter>
 			</Form>
 		</Landing>
