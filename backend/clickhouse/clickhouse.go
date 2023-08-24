@@ -111,6 +111,9 @@ func getClickhouseOptions(dbName string) *clickhouse.Options {
 			Password: Password,
 		},
 		DialTimeout: time.Duration(25) * time.Second,
+		Compression: &clickhouse.Compression{
+			Method: clickhouse.CompressionZSTD,
+		},
 	}
 
 	if useTLS() {
