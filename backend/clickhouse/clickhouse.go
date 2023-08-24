@@ -32,7 +32,11 @@ var (
 )
 
 func NewClient(dbName string) (*Client, error) {
-	conn, err := clickhouse.Open(getClickhouseOptions(dbName))
+	opts := getClickhouseOptions(dbName)
+	opts.MaxIdleConns = 10
+	opts.MaxOpenConns = 100
+
+	conn, err := clickhouse.Open(opts)
 
 	go func() {
 		for {
@@ -106,9 +110,7 @@ func getClickhouseOptions(dbName string) *clickhouse.Options {
 			Username: Username,
 			Password: Password,
 		},
-		DialTimeout:  time.Duration(25) * time.Second,
-		MaxIdleConns: 10,
-		MaxOpenConns: 100,
+		DialTimeout: time.Duration(25) * time.Second,
 	}
 
 	if useTLS() {
