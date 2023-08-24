@@ -3789,10 +3789,11 @@ func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*mode
 
 	var matchedErrorObjects []*model.MatchedErrorObject
 	if err := r.DB.Raw(`
-		select error_object_embeddings.event_embedding <=> @string_embedding as score, error_objects.*
-			from error_object_embeddings
-			join error_objects on error_object_embeddings.error_object_id = error_objects.id 
-			limit 10;
+		select error_object_embeddings.gte_large_embedding <=> @string_embedding as score, 			
+			error_objects.*
+		from error_object_embeddings
+		join error_objects on error_object_embeddings.error_object_id = error_objects.id 
+		limit 10;
 	`, sql.Named("string_embedding", model.Vector(stringEmbedding))).
 		Scan(&matchedErrorObjects).Error; err != nil {
 		return matchedErrorObjects, e.Wrap(err, "error querying nearest ErrorTag")
