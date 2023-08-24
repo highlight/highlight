@@ -19,8 +19,6 @@ export default {
 
 const now = moment()
 
-export { subtractDays, subtractHours } from './utils'
-
 export const Basic = () => {
 	const [selectedDates, onDatesChange] = useState<Date[]>([
 		subtractHours(now.toDate(), 4),
