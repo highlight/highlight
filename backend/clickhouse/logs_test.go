@@ -629,14 +629,12 @@ func TestReadLogsWithKeyFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 1)
 
-	// TODO: Re-enable if we want to support applying multiple conditions to the
-	// same key as an OR clause.
-	// payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
-	// 	DateRange: makeDateWithinRange(now),
-	// 	Query:     `service:"image processor" service:"different processor"`,
-	// }, Pagination{})
-	// assert.NoError(t, err)
-	// assert.Len(t, payload.Edges, 2)
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     `service:"image processor" service:"different processor"`,
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 2)
 
 	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
 		DateRange: makeDateWithinRange(now),
@@ -977,6 +975,9 @@ func TestReadLogsWithMultipleFilters(t *testing.T) {
 		NewLogRow(now, 1,
 			WithServiceName("matched"),
 			WithLogAttributes(map[string]string{"code.lineno": "162", "os.type": "linux"})),
+		NewLogRow(now, 1,
+			WithServiceName("matched"),
+			WithLogAttributes(map[string]string{"code.lineno": "163", "os.type": "darwin"})),
 		NewLogRow(now, 1, WithServiceName(("no-match"))),
 	}
 
@@ -996,6 +997,13 @@ func TestReadLogsWithMultipleFilters(t *testing.T) {
 	}, Pagination{})
 	assert.NoError(t, err)
 	assert.Len(t, payload.Edges, 0)
+
+	payload, err = client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+		DateRange: makeDateWithinRange(now),
+		Query:     "code.lineno:*63 code.lineno:*62 service_name:matched",
+	}, Pagination{})
+	assert.NoError(t, err)
+	assert.Len(t, payload.Edges, 2)
 }
 
 func TestLogsKeys(t *testing.T) {
