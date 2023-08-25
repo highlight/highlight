@@ -17,6 +17,7 @@ import {
 	Badge,
 	Box,
 	Form,
+	IconSolidCheck,
 	IconSolidCheveronRight,
 	IconSolidDiscord,
 	IconSolidNewspaper,
@@ -61,13 +62,7 @@ const notificationOptions: NotificationOption[] = [
 	},
 	{
 		name: 'Discord',
-		logo: (
-			<IconSolidDiscord
-				height={16}
-				width={16}
-				fill={vars.theme.static.content.default}
-			/>
-		),
+		logo: <IconSolidDiscord height={16} width={16} />,
 		logoDisabled: (
 			<IconSolidDiscord
 				height={16}
@@ -239,15 +234,38 @@ const PlatformPicker: React.FC = function () {
 								{option.name as string}
 							</Text>
 						</Stack>
-						<Button
-							onClick={() =>
-								setIntegratePlatform(option.name.toLowerCase())
-							}
-							trackingId={`setup-option-${option.name}`}
-							kind="secondary"
-						>
-							Select
-						</Button>
+						<Box display="flex" alignItems="center" gap="8">
+							{(option.name === 'Slack' &&
+								data?.is_integrated_with_slack) ||
+							(option.name === 'Discord' &&
+								data?.is_integrated_with_discord) ? (
+								<Badge
+									size="medium"
+									variant="purple"
+									label="Connected"
+									iconStart={<IconSolidCheck />}
+								/>
+							) : null}
+							<Button
+								onClick={() =>
+									setIntegratePlatform(
+										option.name.toLowerCase(),
+									)
+								}
+								trackingId={`setup-option-${option.name}`}
+								kind="secondary"
+							>
+								{option.name === 'Slack'
+									? data?.is_integrated_with_slack
+										? 'Continue'
+										: 'Connect'
+									: option.name === 'Discord'
+									? data?.is_integrated_with_discord
+										? 'Continue'
+										: 'Connect'
+									: 'Continue'}
+							</Button>
+						</Box>
 					</Box>
 				)
 			})}
