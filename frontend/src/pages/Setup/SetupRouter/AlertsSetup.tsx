@@ -458,6 +458,22 @@ const AlertPicker = function ({
 		upsertSlackChannel,
 	])
 
+	const onSave = useCallback(async () => {
+		try {
+			createLoading.current = true
+			await createAlerts()
+			message.success(
+				`${alertsSelected.length} alert${
+					alertsSelected.length > 1 ? 's' : ''
+				} updated!`,
+			)
+		} catch (e) {
+			message.error(`An error occurred creating alerts.`)
+		} finally {
+			createLoading.current = false
+		}
+	}, [alertsSelected.length, createAlerts])
+
 	if (loading) return <LoadingBox width={111} />
 	return (
 		<Stack gap="0">
@@ -551,23 +567,7 @@ const AlertPicker = function ({
 						iconRight={<IconSolidCheveronRight />}
 						loading={createLoading.current}
 						disabled={createLoading.current}
-						onClick={async () => {
-							try {
-								createLoading.current = true
-								await createAlerts()
-								message.success(
-									`${alertsSelected.length} alert${
-										alertsSelected.length > 1 ? 's' : ''
-									} updated!`,
-								)
-							} catch (e) {
-								message.error(
-									`An error occurred creating alerts.`,
-								)
-							} finally {
-								createLoading.current = false
-							}
-						}}
+						onClick={onSave}
 					>
 						Save & continue
 					</Button>
