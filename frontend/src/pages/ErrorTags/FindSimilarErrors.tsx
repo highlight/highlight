@@ -23,7 +23,7 @@ export function FindSimilarErrors() {
 		<Stack gap="32">
 			<Box>
 				<Box paddingBottom="16">
-					<Heading level="h4">Find Similar Errors</Heading>
+					<Heading>Find related errors</Heading>
 				</Box>
 				<form onSubmit={onSubmit}>
 					<Stack gap="8">
