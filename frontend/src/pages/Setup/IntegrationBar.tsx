@@ -20,9 +20,7 @@ import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment'
 import React from 'react'
 import { useLocation } from 'react-router-dom'
-import { useLocalStorage } from 'react-use'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import {
 	useGetAlertsPagePayloadQuery,
 	useGetErrorGroupsOpenSearchQuery,
@@ -65,19 +63,11 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 	const integrated = integrationData?.integrated
 	const ctaText = CTA_TITLE_MAP[area!]
 
-	const { isHighlightAdmin } = useAuthContext()
-	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse-v2',
-		isHighlightAdmin || Number(projectId) % 2 == 0,
-	)
-
 	const { data: sessionData } = useGetSessionsOpenSearchQuery({
 		variables: {
 			project_id: projectId,
 			query: '{"match_all": {}}',
-			clickhouse_query: useClickhouse
-				? { isAnd: true, rules: [] }
-				: undefined,
+			clickhouse_query: { isAnd: true, rules: [] },
 			count: 1,
 			page: 1,
 			sort_desc: true,

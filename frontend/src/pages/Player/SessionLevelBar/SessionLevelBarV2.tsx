@@ -33,7 +33,6 @@ import { delay } from 'lodash'
 import React, { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
-import { useLocalStorage } from 'react-use'
 
 import { PlayerModeSwitch } from '@/pages/Player/SessionLevelBar/PlayerModeSwitch/PlayerModeSwitch'
 
@@ -65,17 +64,10 @@ export const SessionLevelBarV2: React.FC<
 		setShowRightPanel,
 	} = usePlayerConfiguration()
 	const { rightPanelView, setRightPanelView } = usePlayerUIContext()
-	const { isHighlightAdmin } = useAuthContext()
-	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse-v2',
-		isHighlightAdmin || Number(projectId) % 2 == 0,
-	)
 	const { data } = useGetSessionsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
-			clickhouse_query: useClickhouse
-				? JSON.parse(searchQuery)
-				: undefined,
+			clickhouse_query: JSON.parse(searchQuery),
 			count: DEFAULT_PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: projectId!,
