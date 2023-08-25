@@ -71,6 +71,8 @@ jobs:
                   filename: sdk/highlight-go/coverage.xml
                   badge: true
                   fail_below_min: true
+                  hide_branch_rate: true
+                  hide_complexity: true
                   format: markdown
                   output: both
                   thresholds: '50 80'

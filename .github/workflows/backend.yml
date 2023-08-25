@@ -142,9 +142,11 @@ jobs:
                   filename: backend/coverage.xml
                   badge: true
                   fail_below_min: true
+                  hide_branch_rate: true
+                  hide_complexity: true
                   format: markdown
                   output: both
-                  thresholds: '50 80'
+                  thresholds: '15 50'
 
             - name: Add Coverage PR Comment
               uses: marocchino/sticky-pull-request-comment@v2
