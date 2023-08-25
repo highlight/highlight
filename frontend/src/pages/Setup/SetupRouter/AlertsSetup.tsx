@@ -125,7 +125,7 @@ export const AlertsSetup: React.FC = function () {
 		| 'email'
 		| undefined
 
-	if (alertsSetup) {
+	if (alertsSetup?.integrated) {
 		return null
 	}
 
