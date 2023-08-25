@@ -197,6 +197,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			HeartbeatInterval: time.Second,
 			SessionTimeout:    10 * time.Second,
 			RebalanceTimeout:  rebalanceTimeout,
+			ReadBatchTimeout:  KafkaOperationTimeout,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
 			MaxBytes:          messageSizeBytes,
