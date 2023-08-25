@@ -11,7 +11,7 @@ const NoActiveSessionCard = () => {
 
 	return (
 		<Box margin="auto" style={{ maxWidth: 300 }}>
-			<Callout title="Ready to see your app?">
+			<Callout title="!!!our app?">
 				<Box mb="6">
 					<Text color="moderate">
 						View a recent session or find a specific identifier,
