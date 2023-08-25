@@ -2,6 +2,8 @@ package clickhouse
 
 import (
 	"context"
+	"fmt"
+	e "github.com/pkg/errors"
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
@@ -31,13 +33,13 @@ type ClickhouseTraceRow struct {
 	TraceAttributes  map[string]string
 	StatusCode       string
 	StatusMessage    string
-	EventsTimestamp  clickhouse.ArraySet `db:"Events.Timestamp"`
-	EventsName       clickhouse.ArraySet `db:"Events.Name"`
-	EventsAttributes clickhouse.ArraySet `db:"Events.Attributes"`
-	LinksTraceId     clickhouse.ArraySet `db:"Links.TraceId"`
-	LinksSpanId      clickhouse.ArraySet `db:"Links.SpanId"`
-	LinksTraceState  clickhouse.ArraySet `db:"Links.TraceState"`
-	LinksAttributes  clickhouse.ArraySet `db:"Links.Attributes"`
+	EventsTimestamp  clickhouse.ArraySet `ch:"Events.Timestamp"`
+	EventsName       clickhouse.ArraySet `ch:"Events.Name"`
+	EventsAttributes clickhouse.ArraySet `ch:"Events.Attributes"`
+	LinksTraceId     clickhouse.ArraySet `ch:"Links.TraceId"`
+	LinksSpanId      clickhouse.ArraySet `ch:"Links.SpanId"`
+	LinksTraceState  clickhouse.ArraySet `ch:"Links.TraceState"`
+	LinksAttributes  clickhouse.ArraySet `ch:"Links.Attributes"`
 }
 
 func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*TraceRow) error {
@@ -46,11 +48,12 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 	}
 
 	span, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.flushTraces.prepareRows"))
-	rows := lo.Map(traceRows, func(traceRow *TraceRow, _ int) interface{} {
+	span.SetTag("BatchSize", len(traceRows))
+	rows := lo.Map(traceRows, func(traceRow *TraceRow, _ int) *ClickhouseTraceRow {
 		traceTimes, traceNames, traceAttrs := convertEvents(traceRow)
 		linkTraceIds, linkSpanIds, linkStates, linkAttrs := convertLinks(traceRow)
 
-		row := ClickhouseTraceRow{
+		return &ClickhouseTraceRow{
 			Timestamp:        traceRow.Timestamp,
 			UUID:             traceRow.UUID,
 			TraceId:          traceRow.TraceId,
@@ -75,19 +78,24 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 			LinksTraceState:  linkStates,
 			LinksAttributes:  linkAttrs,
 		}
-
-		return row
 	})
+
+	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", TracesTable))
+	if err != nil {
+		span.Finish(tracer.WithError(err))
+		return e.Wrap(err, "failed to create logs batch")
+	}
+
+	for _, traceRow := range rows {
+		err = batch.AppendStruct(traceRow)
+		if err != nil {
+			span.Finish(tracer.WithError(err))
+			return err
+		}
+	}
 	span.Finish()
 
-	ib := sqlbuilder.NewStruct(new(ClickhouseTraceRow)).InsertInto(TracesTable, rows...)
-	sql, args := ib.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
-		"async_insert":          1,
-		"wait_for_async_insert": 1,
-	}))
-	return client.conn.Exec(chCtx, sql, args...)
+	return batch.Send()
 }
 
 func convertEvents(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet, clickhouse.ArraySet) {

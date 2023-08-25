@@ -314,6 +314,7 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context) error {
 	err := k.Worker.PublicResolver.Clickhouse.BatchWriteTraceRows(ctxT, traceRows)
 	if err != nil {
 		log.WithContext(ctxT).WithError(err).Error("failed to batch write traces to clickhouse")
+		span.Finish(tracer.WithError(err))
 		return err
 	}
 	span.Finish(tracer.WithError(err))
