@@ -590,144 +590,146 @@ const SessionAlertForm = ({
 	return (
 		<Box cssClass={styles.grid}>
 			<Stack gap="40">
-				<Stack gap="12">
-					<Box
-						cssClass={styles.sectionHeader}
-						justifyContent="space-between"
-					>
-						<Text size="large" weight="bold" color="strong">
-							Alert conditions
-						</Text>
-						<Menu>
-							<ThresholdTypeConfiguration />
-						</Menu>
-					</Box>
-					<Box borderTop="dividerWeak" width="full" />
-					{configuration.canControlThreshold && (
-						<Column.Container gap="12">
-							<Column>
-								<Form.Input
-									name={form.names.threshold}
-									type="number"
-									label="Alert threshold"
-									tag={
-										<Badge
-											shape="basic"
-											variant="red"
-											size="small"
-											label="Red"
-										/>
-									}
-									style={{
-										borderColor: form.errors.threshold
-											? 'var(--color-red-500)'
-											: undefined,
-									}}
-									onChange={(e) => {
-										form.setValue(
-											form.names.threshold,
-											e.target.value,
-										)
-									}}
-								/>
-							</Column>
-							<Column>
-								<Form.Select
-									label="Alert threshold window"
-									name={form.names.threshold_window.toString()}
-									value={form.values.threshold_window}
-									onChange={(e) =>
-										form.setValue(
-											form.names.threshold_window,
-											e.target.value,
-										)
-									}
-								>
-									<option value="" disabled>
-										Select alert threshold window
-									</option>
-									{FREQUENCIES.map((freq: any) => (
-										<option
-											key={freq.id}
-											value={Number(freq.value)}
-										>
-											{freq.displayValue}
+				{type !== SessionAlertType.NewUserAlert && (
+					<Stack gap="12">
+						<Box
+							cssClass={styles.sectionHeader}
+							justifyContent="space-between"
+						>
+							<Text size="large" weight="bold" color="strong">
+								Alert conditions
+							</Text>
+							<Menu>
+								<ThresholdTypeConfiguration />
+							</Menu>
+						</Box>
+						<Box borderTop="dividerWeak" width="full" />
+						{configuration.canControlThreshold && (
+							<Column.Container gap="12">
+								<Column>
+									<Form.Input
+										name={form.names.threshold}
+										type="number"
+										label="Alert threshold"
+										tag={
+											<Badge
+												shape="basic"
+												variant="red"
+												size="small"
+												label="Red"
+											/>
+										}
+										style={{
+											borderColor: form.errors.threshold
+												? 'var(--color-red-500)'
+												: undefined,
+										}}
+										onChange={(e) => {
+											form.setValue(
+												form.names.threshold,
+												e.target.value,
+											)
+										}}
+									/>
+								</Column>
+								<Column>
+									<Form.Select
+										label="Alert threshold window"
+										name={form.names.threshold_window.toString()}
+										value={form.values.threshold_window}
+										onChange={(e) =>
+											form.setValue(
+												form.names.threshold_window,
+												e.target.value,
+											)
+										}
+									>
+										<option value="" disabled>
+											Select alert threshold window
 										</option>
-									))}
-								</Form.Select>
-							</Column>
-						</Column.Container>
-					)}
-					{configuration.supportsExcludeRules && (
-						<Form.NamedSection
-							label="Excluded identifiers"
-							name={form.names.excludeRules}
-						>
-							<Select
-								aria-label="Excluded identifiers list"
-								value={form.values.excludeRules}
-								notFoundContent={
-									<p>No identifier suggestions</p>
-								}
-								onSearch={handleIdentifierSearch}
-								options={identifierSuggestions}
-								mode="tags"
-								placeholder="Select a identifier(s) that should not trigger alerts."
-								onChange={(values: any): any => {
-									handleIdentifierSearch('')
-									form.setValue(
-										form.names.excludeRules,
-										values,
-									)
-								}}
-								className={styles.selectContainer}
-							/>
-						</Form.NamedSection>
-					)}
+										{FREQUENCIES.map((freq: any) => (
+											<option
+												key={freq.id}
+												value={Number(freq.value)}
+											>
+												{freq.displayValue}
+											</option>
+										))}
+									</Form.Select>
+								</Column>
+							</Column.Container>
+						)}
+						{configuration.supportsExcludeRules && (
+							<Form.NamedSection
+								label="Excluded identifiers"
+								name={form.names.excludeRules}
+							>
+								<Select
+									aria-label="Excluded identifiers list"
+									value={form.values.excludeRules}
+									notFoundContent={
+										<p>No identifier suggestions</p>
+									}
+									onSearch={handleIdentifierSearch}
+									options={identifierSuggestions}
+									mode="tags"
+									placeholder="Select a identifier(s) that should not trigger alerts."
+									onChange={(values: any): any => {
+										handleIdentifierSearch('')
+										form.setValue(
+											form.names.excludeRules,
+											values,
+										)
+									}}
+									className={styles.selectContainer}
+								/>
+							</Form.NamedSection>
+						)}
 
-					{type === SessionAlertType.UserPropertiesAlert && (
-						<Form.NamedSection
-							label="User Properties"
-							name={form.names.userProperties}
-						>
-							<Select
-								onSearch={handleUserPropertiesSearch}
-								options={userPropertiesSuggestions}
-								className={styles.selectContainer}
-								value={form.values.userProperties}
-								mode="multiple"
-								placeholder="Pick the user properties that you would like to get alerted for."
-								onChange={(values: any): any =>
-									form.setValue(
-										form.names.userProperties,
-										values,
-									)
-								}
-							/>
-						</Form.NamedSection>
-					)}
-					{type === SessionAlertType.TrackPropertiesAlert && (
-						<Form.NamedSection
-							label="Track Properties"
-							name={form.names.trackProperties}
-						>
-							<Select
-								onSearch={handleTrackPropertiesSearch}
-								options={trackPropertiesSuggestions}
-								className={styles.selectContainer}
-								value={form.values.trackProperties}
-								mode="multiple"
-								placeholder="Pick the track properties that you would like to get alerted for."
-								onChange={(values: any): any =>
-									form.setValue(
-										form.names.trackProperties,
-										values,
-									)
-								}
-							/>
-						</Form.NamedSection>
-					)}
-				</Stack>
+						{type === SessionAlertType.UserPropertiesAlert && (
+							<Form.NamedSection
+								label="User Properties"
+								name={form.names.userProperties}
+							>
+								<Select
+									onSearch={handleUserPropertiesSearch}
+									options={userPropertiesSuggestions}
+									className={styles.selectContainer}
+									value={form.values.userProperties}
+									mode="multiple"
+									placeholder="Pick the user properties that you would like to get alerted for."
+									onChange={(values: any): any =>
+										form.setValue(
+											form.names.userProperties,
+											values,
+										)
+									}
+								/>
+							</Form.NamedSection>
+						)}
+						{type === SessionAlertType.TrackPropertiesAlert && (
+							<Form.NamedSection
+								label="Track Properties"
+								name={form.names.trackProperties}
+							>
+								<Select
+									onSearch={handleTrackPropertiesSearch}
+									options={trackPropertiesSuggestions}
+									className={styles.selectContainer}
+									value={form.values.trackProperties}
+									mode="multiple"
+									placeholder="Pick the track properties that you would like to get alerted for."
+									onChange={(values: any): any =>
+										form.setValue(
+											form.names.trackProperties,
+											values,
+										)
+									}
+								/>
+							</Form.NamedSection>
+						)}
+					</Stack>
+				)}
 
 				<Stack gap="12">
 					<Box cssClass={styles.sectionHeader}>
