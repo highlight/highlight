@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	e "github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"time"
@@ -171,31 +172,39 @@ func (client *Client) WriteSessions(ctx context.Context, sessions []*model.Sessi
 		chSessions = append(chSessions, &chs)
 	}
 
-	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
-		"async_insert":          1,
-		"wait_for_async_insert": 1,
-	}))
-
 	var g errgroup.Group
 
 	if len(chSessions) > 0 {
-		sessionsSql, sessionsArgs := sqlbuilder.
-			NewStruct(new(ClickhouseSession)).
-			InsertInto(SessionsTable, chSessions...).
-			BuildWithFlavor(sqlbuilder.ClickHouse)
 		g.Go(func() error {
-			return client.conn.Exec(chCtx, sessionsSql, sessionsArgs...)
+			batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", SessionsTable))
+			if err != nil {
+				return e.Wrap(err, "failed to create sessions batch")
+			}
+
+			for _, session := range chSessions {
+				err = batch.AppendStruct(session)
+				if err != nil {
+					return err
+				}
+			}
+			return batch.Send()
 		})
 	}
 
 	if len(chFields) > 0 {
-		fieldsSql, fieldsArgs := sqlbuilder.
-			NewStruct(new(ClickhouseField)).
-			InsertInto(FieldsTable, chFields...).
-			BuildWithFlavor(sqlbuilder.ClickHouse)
-
 		g.Go(func() error {
-			return client.conn.Exec(chCtx, fieldsSql, fieldsArgs...)
+			batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", FieldsTable))
+			if err != nil {
+				return e.Wrap(err, "failed to create session fields batch")
+			}
+
+			for _, field := range chFields {
+				err = batch.AppendStruct(field)
+				if err != nil {
+					return err
+				}
+			}
+			return batch.Send()
 		})
 	}
 
