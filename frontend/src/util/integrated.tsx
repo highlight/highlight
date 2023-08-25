@@ -97,7 +97,7 @@ export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
 	return { integrated: integrated || false, loading: loadingState }
 }
 
-type LocalStorageIntegrationData = {
+export type LocalStorageIntegrationData = {
 	loading: boolean
 } & IntegrationStatus
 

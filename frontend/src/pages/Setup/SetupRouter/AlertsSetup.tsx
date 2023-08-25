@@ -39,6 +39,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useLocation, useMatch, useNavigate } from 'react-router-dom'
 
 import Switch from '@/components/Switch/Switch'
+import { LocalStorageIntegrationData } from '@/util/integrated'
 
 interface NotificationOption {
 	name: 'Slack' | 'Discord' | 'Email'
@@ -113,12 +114,20 @@ const alertOptions: AlertOption[] = [
 ]
 
 export const AlertsSetup: React.FC = function () {
+	const { projectId } = useProjectId()
+	const [alertsSetup] = useLocalStorage<LocalStorageIntegrationData>(
+		`highlight-${projectId}-alerts-integration`,
+	)
 	const platformMatch = useMatch('/:project_id/setup/alerts/:platform')
 	const platform = platformMatch?.params?.platform as
 		| 'slack'
 		| 'discord'
 		| 'email'
 		| undefined
+
+	if (alertsSetup) {
+		return null
+	}
 
 	return (
 		<Box>
@@ -242,11 +251,15 @@ const AlertPicker = function ({
 }: {
 	platform: 'slack' | 'discord' | 'email'
 }) {
+	const navigate = useNavigate()
+	const { projectId } = useProjectId()
+	const [_, setAlertsSetup] = useLocalStorage<LocalStorageIntegrationData>(
+		`highlight-${projectId}-alerts-integration`,
+	)
 	const createLoading = useRef<boolean>(false)
 	const alertsCreated = useRef<Set<'Session' | 'Error' | 'Log'>>(
 		new Set<'Session' | 'Error' | 'Log'>(),
 	)
-	const { projectId } = useProjectId()
 	const location = useLocation()
 	const notificationOption = notificationOptions.find(
 		(n) => n.name.toLowerCase() === platform,
@@ -524,6 +537,15 @@ const AlertPicker = function ({
 										alertsSelected.length > 1 ? 's' : ''
 									} updated!`,
 								)
+								await new Promise((r) => {
+									setTimeout(r, 1000)
+								})
+								navigate(`/alerts`)
+								setAlertsSetup({
+									loading: false,
+									integrated: true,
+									resourceType: 'alerts',
+								})
 							} catch (e) {
 								message.error(
 									`An error occurred creating alerts.`,
@@ -578,7 +600,13 @@ const IntegrationCallout = function ({
 			  )
 	const icon = notificationOptions.find((n) => n.name === name)?.logo
 	return (
-		<Modal onCancel={onCancel} visible={true} width="600px">
+		<Modal
+			onCancel={onCancel}
+			visible={true}
+			width="360px"
+			minimal
+			minimalPaddingSize="12px"
+		>
 			<ModalBody>
 				<Stack>
 					<Text size="large" weight="bold">
