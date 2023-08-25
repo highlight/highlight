@@ -80,7 +80,7 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 
 // DefaultBatchFlushSize set per https://clickhouse.com/docs/en/cloud/bestpractices/bulk-inserts
 const DefaultBatchFlushSize = 10000
-const DefaultBatchedFlushTimeout = 30 * time.Second
+const DefaultBatchedFlushTimeout = 5 * time.Second
 const SessionsMaxRowsPostgres = 500
 const MinRetryDelay = 250 * time.Millisecond
 
