@@ -510,7 +510,8 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		}
 		wg.Add(cfg.Workers)
 		for i := 0; i < cfg.Workers; i++ {
-			go func(config *WorkerConfig, workerId int) {
+			go func(config WorkerConfig, workerId int) {
+				ctx := context.Background()
 				buffer := &KafkaBatchBuffer{
 					messageQueue: make(chan *kafkaqueue.Message, config.FlushSize),
 				}
@@ -528,7 +529,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 				}
 				k.ProcessMessages(ctx)
 				wg.Done()
-			}(&cfg, i)
+			}(cfg, i)
 		}
 	}
 
