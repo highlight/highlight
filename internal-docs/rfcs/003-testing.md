@@ -38,14 +38,25 @@ associated code when jumping in to make changes.
 
 ## Proposed Implementation
 
+We are introducing automated test coverage for our primary backend languages (Golang and others used by SDKs).
+Test coverage will be tracked incrementally on each Pull Request to help identify new features that may
+be introducing gaps in coverage.
+
 ## Success Metrics
+
+We would like to achieve 50%+ test coverage of our backend code and 80%+ test coverage of our SDK code.
 
 ## Drawbacks
 
+Focusing on test coverage may slow down development. However, keeping it incremental can ensure
+some tests are added with each feature (while it is fresh) without requiring too much additional development time.
+
 ## Alternatives
 
-## Open Questions
+A strategy of only-QA testing is an alternative to unit testing, but as discussed above, has challenges
+with testing all parts of our product.
 
-## Rollout
+## Future Work
 
-## Tasks
+In the future, we can have centralized tracking of our coverage over time, and integrate coverage into our E2E
+full-stack tests and frontend tests.
