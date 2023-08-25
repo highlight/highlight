@@ -35,7 +35,7 @@ import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
 import { message } from 'antd'
 import * as React from 'react'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useMatch, useNavigate } from 'react-router-dom'
 
 import Switch from '@/components/Switch/Switch'
@@ -118,6 +118,7 @@ export const AlertsSetup: React.FC = function () {
 	const [alertsSetup] = useLocalStorage<LocalStorageIntegrationData>(
 		`highlight-${projectId}-alerts-integration`,
 	)
+	const [hidden, setHidden] = useState<boolean>()
 	const platformMatch = useMatch('/:project_id/setup/alerts/:platform')
 	const platform = platformMatch?.params?.platform as
 		| 'slack'
@@ -125,7 +126,15 @@ export const AlertsSetup: React.FC = function () {
 		| 'email'
 		| undefined
 
-	if (alertsSetup?.integrated) {
+	// cache the state of the alerts setup so that we only decide
+	// to not show the flow if the setup wasn't completed from the start
+	useEffect(() => {
+		if (hidden === undefined) {
+			setHidden(alertsSetup?.integrated)
+		}
+	}, [alertsSetup, hidden])
+
+	if (hidden) {
 		return null
 	}
 
@@ -251,11 +260,7 @@ const AlertPicker = function ({
 }: {
 	platform: 'slack' | 'discord' | 'email'
 }) {
-	const navigate = useNavigate()
 	const { projectId } = useProjectId()
-	const [_, setAlertsSetup] = useLocalStorage<LocalStorageIntegrationData>(
-		`highlight-${projectId}-alerts-integration`,
-	)
 	const createLoading = useRef<boolean>(false)
 	const alertsCreated = useRef<Set<'Session' | 'Error' | 'Log'>>(
 		new Set<'Session' | 'Error' | 'Log'>(),
@@ -537,15 +542,6 @@ const AlertPicker = function ({
 										alertsSelected.length > 1 ? 's' : ''
 									} updated!`,
 								)
-								await new Promise((r) => {
-									setTimeout(r, 1000)
-								})
-								navigate(`/alerts`)
-								setAlertsSetup({
-									loading: false,
-									integrated: true,
-									resourceType: 'alerts',
-								})
 							} catch (e) {
 								message.error(
 									`An error occurred creating alerts.`,
