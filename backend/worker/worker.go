@@ -512,9 +512,6 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		for i := 0; i < cfg.Workers; i++ {
 			go func(config WorkerConfig, workerId int) {
 				ctx := context.Background()
-				buffer := &KafkaBatchBuffer{
-					messageQueue: make(chan *kafkaqueue.Message, config.FlushSize),
-				}
 				k := KafkaBatchWorker{
 					KafkaQueue: kafkaqueue.New(
 						ctx,
@@ -522,7 +519,6 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 						kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(config.FlushSize)},
 					),
 					Worker:              w,
-					BatchBuffer:         buffer,
 					BatchFlushSize:      config.FlushSize,
 					BatchedFlushTimeout: config.FlushTimeout,
 					Name:                string(config.Topic),

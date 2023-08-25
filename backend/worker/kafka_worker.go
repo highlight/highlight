@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"strings"
-	"sync"
 	"time"
 
 	e "github.com/pkg/errors"
@@ -92,61 +91,56 @@ type KafkaWorker struct {
 
 func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	s, _ := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush", k.Name)))
-	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
+	s.SetTag("BatchSize", len(k.messages))
 	defer s.Finish()
 
 	var dataSyncRows []int
 	var logRows []*clickhouse.LogRow
 	var traceRows []*clickhouse.TraceRow
 
-	var received int
 	var lastMsg *kafkaqueue.Message
 	var oldestMsg = time.Now()
 	readSpan, _ := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.readMessages", k.Name)))
-	func() {
-		for {
-			select {
-			case lastMsg = <-k.BatchBuffer.messageQueue:
-				if lastMsg.KafkaMessage.Time.Before(oldestMsg) {
-					oldestMsg = lastMsg.KafkaMessage.Time
-				}
-				switch lastMsg.Type {
-				case kafkaqueue.SessionDataSync:
-					dataSyncRows = append(dataSyncRows, lastMsg.SessionDataSync.SessionID)
-					received += 1
-				case kafkaqueue.PushLogs:
-					logRows = append(logRows, lastMsg.PushLogs.LogRow)
-					received += 1
-				case kafkaqueue.PushTraces:
-					traceRow := lastMsg.PushTraces.TraceRow
-					if traceRow != nil {
-						traceRows = append(traceRows, traceRow)
-						received += 1
-					}
-				}
-				if received >= k.BatchFlushSize {
-					return
-				}
-			default:
-				return
+	for _, msg := range k.messages {
+		if msg.KafkaMessage.Time.Before(oldestMsg) {
+			oldestMsg = msg.KafkaMessage.Time
+		}
+		switch msg.Type {
+		case kafkaqueue.SessionDataSync:
+			dataSyncRows = append(dataSyncRows, msg.SessionDataSync.SessionID)
+		case kafkaqueue.PushLogs:
+			logRow := msg.PushLogs.LogRow
+			if logRow != nil {
+				logRows = append(logRows, logRow)
+			}
+		case kafkaqueue.PushTraces:
+			traceRow := msg.PushTraces.TraceRow
+			if traceRow != nil {
+				traceRows = append(traceRows, traceRow)
 			}
 		}
-	}()
+	}
 	readSpan.SetTag("MaxIngestDelay", time.Since(oldestMsg))
 	readSpan.Finish()
 
 	workSpan, wCtx := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.work", k.Name)))
-	if err := k.flushDataSync(wCtx, dataSyncRows); err != nil {
-		workSpan.Finish(tracer.WithError(err))
-		return err
+	if len(dataSyncRows) > 0 {
+		if err := k.flushDataSync(wCtx, dataSyncRows); err != nil {
+			workSpan.Finish(tracer.WithError(err))
+			return err
+		}
 	}
-	if err := k.flushLogs(wCtx, logRows); err != nil {
-		workSpan.Finish(tracer.WithError(err))
-		return err
+	if len(logRows) > 0 {
+		if err := k.flushLogs(wCtx, logRows); err != nil {
+			workSpan.Finish(tracer.WithError(err))
+			return err
+		}
 	}
-	if err := k.flushTraces(wCtx, traceRows); err != nil {
-		workSpan.Finish(tracer.WithError(err))
-		return err
+	if len(traceRows) > 0 {
+		if err := k.flushTraces(wCtx, traceRows); err != nil {
+			workSpan.Finish(tracer.WithError(err))
+			return err
+		}
 	}
 	workSpan.Finish()
 
@@ -154,7 +148,7 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	if lastMsg != nil {
 		k.KafkaQueue.Commit(cCtx, lastMsg.KafkaMessage)
 	}
-	k.BatchBuffer.lastMessage = nil
+	k.lastMessage = nil
 	commitSpan.Finish()
 
 	return nil
@@ -283,7 +277,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 	}
 
 	wSpan, wCtx := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.process", k.Name)))
-	wSpan.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
+	wSpan.SetTag("BatchSize", len(k.messages))
 	wSpan.SetTag("NumProjects", len(workspaceByProject))
 	for _, projectId := range markBackendSetupProjectIds {
 		err := k.Worker.PublicResolver.MarkBackendSetupImpl(wCtx, int(projectId), model.MarkBackendSetupTypeLogs)
@@ -391,7 +385,7 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 			defer util.Recover()
 			s, ctx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.process", k.Name)))
 			s.SetTag("worker.goroutine", k.WorkerThread)
-			s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
+			s.SetTag("BatchSize", len(k.messages))
 			defer s.Finish()
 
 			s1, _ := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.receive", k.Name)))
@@ -403,15 +397,12 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 				return
 			}
 
-			k.BatchBuffer.messageQueue <- task
+			k.messages = append(k.messages, task)
 
-			k.BatchBuffer.flushLock.Lock()
-			defer k.BatchBuffer.flushLock.Unlock()
-
-			if k.BatchBuffer.lastMessage != nil && time.Since(*k.BatchBuffer.lastMessage) > k.BatchedFlushTimeout ||
-				len(k.BatchBuffer.messageQueue) >= k.BatchFlushSize {
-				if k.BatchBuffer.lastMessage != nil {
-					s.SetTag("OldestMessage", time.Since(*k.BatchBuffer.lastMessage))
+			if k.lastMessage != nil && time.Since(*k.lastMessage) > k.BatchedFlushTimeout ||
+				len(k.messages) >= k.BatchFlushSize {
+				if k.lastMessage != nil {
+					s.SetTag("OldestMessage", time.Since(*k.lastMessage))
 				}
 
 				for i := 0; i <= kafkaqueue.TaskRetries; i++ {
@@ -422,9 +413,9 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 					}
 				}
 			}
-			if k.BatchBuffer.lastMessage == nil {
+			if k.lastMessage == nil {
 				t := time.Now()
-				k.BatchBuffer.lastMessage = &t
+				k.lastMessage = &t
 			}
 		}()
 	}
@@ -434,14 +425,10 @@ type KafkaBatchWorker struct {
 	KafkaQueue          *kafkaqueue.Queue
 	Worker              *Worker
 	WorkerThread        int
-	BatchBuffer         *KafkaBatchBuffer
 	BatchFlushSize      int
 	BatchedFlushTimeout time.Duration
 	Name                string
-}
 
-type KafkaBatchBuffer struct {
-	lastMessage  *time.Time
-	messageQueue chan *kafkaqueue.Message
-	flushLock    sync.Mutex
+	lastMessage *time.Time
+	messages    []*kafkaqueue.Message
 }
