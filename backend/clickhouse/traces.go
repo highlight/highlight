@@ -33,13 +33,13 @@ type ClickhouseTraceRow struct {
 	TraceAttributes  map[string]string
 	StatusCode       string
 	StatusMessage    string
-	EventsTimestamp  clickhouse.ArraySet `db:"Events.Timestamp"`
-	EventsName       clickhouse.ArraySet `db:"Events.Name"`
-	EventsAttributes clickhouse.ArraySet `db:"Events.Attributes"`
-	LinksTraceId     clickhouse.ArraySet `db:"Links.TraceId"`
-	LinksSpanId      clickhouse.ArraySet `db:"Links.SpanId"`
-	LinksTraceState  clickhouse.ArraySet `db:"Links.TraceState"`
-	LinksAttributes  clickhouse.ArraySet `db:"Links.Attributes"`
+	EventsTimestamp  clickhouse.ArraySet `ch:"Events.Timestamp"`
+	EventsName       clickhouse.ArraySet `ch:"Events.Name"`
+	EventsAttributes clickhouse.ArraySet `ch:"Events.Attributes"`
+	LinksTraceId     clickhouse.ArraySet `ch:"Links.TraceId"`
+	LinksSpanId      clickhouse.ArraySet `ch:"Links.SpanId"`
+	LinksTraceState  clickhouse.ArraySet `ch:"Links.TraceState"`
+	LinksAttributes  clickhouse.ArraySet `ch:"Links.Attributes"`
 }
 
 func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*TraceRow) error {
