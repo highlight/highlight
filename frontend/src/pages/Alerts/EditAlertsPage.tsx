@@ -51,6 +51,16 @@ const EditAlertsPage = () => {
 			ALERT_CONFIGURATIONS[alert?.Type].type === ALERT_TYPE.Error
 		) {
 			navigate(`/${project_id}/alerts/errors/${id}`)
+		} else if (
+			alert?.Type &&
+			ALERT_CONFIGURATIONS[alert?.Type].type === ALERT_TYPE.MetricMonitor
+		) {
+			navigate(`/${project_id}/alerts/monitor/${id}`)
+		} else if (
+			alert?.Type &&
+			ALERT_CONFIGURATIONS[alert?.Type].type !== ALERT_TYPE.Error
+		) {
+			navigate(`/${project_id}/alerts/session/${id}`)
 		}
 	}, [alert?.Type, id, navigate, project_id])
 

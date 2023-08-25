@@ -5,13 +5,16 @@ import {
 	Box,
 	Container,
 	Heading,
+	IconSolidCheveronDown,
 	IconSolidCheveronRight,
+	IconSolidExclamation,
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
 	IconSolidPlus,
 	IconSolidRefresh,
+	Menu,
 	Stack,
 	Tag,
 	Text,
@@ -32,6 +35,7 @@ import React from 'react'
 import { RiDiscordFill, RiMailFill, RiSlackFill } from 'react-icons/ri'
 import { useNavigate } from 'react-router-dom'
 
+import { Link } from '@/components/Link'
 import { LinkButton } from '@/components/LinkButton'
 import {
 	DiscordChannel,
@@ -63,7 +67,7 @@ export enum ALERT_NAMES {
 	LOG_ALERT = 'Logs',
 }
 
-interface AlertConfiguration {
+export interface AlertConfiguration {
 	name: string
 	canControlThreshold: boolean
 	type: ALERT_TYPE
@@ -177,6 +181,15 @@ export default function AlertsPage() {
 function formatAlertDataForTable(alert: any, config: AlertConfiguration) {
 	return {
 		...alert,
+		ChannelsToNotify:
+			alert?.ChannelsToNotify || alert?.channels_to_notify || [],
+		DiscordChannelsToNotify:
+			alert?.DiscordChannelsToNotify ||
+			alert?.discord_channels_to_notify ||
+			[],
+		EmailsToNotify: alert?.EmailsToNotify || alert?.emails_to_notify || [],
+		WebhookDestinations:
+			alert?.WebhookDestinations || alert?.webhook_destinations || [],
 		configuration: config,
 		type: config.name,
 		name: alert?.Name || config.name,
@@ -204,7 +217,7 @@ function AlertsPageLoaded({
 		} else if (record.type === ALERT_NAMES['ERROR_ALERT']) {
 			navigate(`/${project_id}/alerts/errors/${record.id}`)
 		} else {
-			navigate(`/${project_id}/alerts/${record.id}`)
+			navigate(`/${project_id}/alerts/session/${record.id}`)
 		}
 	}
 
@@ -299,13 +312,7 @@ function AlertsPageLoaded({
 								<Text weight="bold" size="small" color="strong">
 									All alerts
 								</Text>
-								<LinkButton
-									iconLeft={<IconSolidPlus />}
-									trackingId="NewAlert"
-									to={`/${project_id}/alerts/new`}
-								>
-									Create new alert
-								</LinkButton>
+								<NewAlertMenu />
 							</Box>
 						)}
 						{alertsPayload && (
@@ -346,7 +353,7 @@ function AlertsPageLoaded({
 																	'LOG_ALERT'
 																].name ? (
 																	<IconSolidLogs
-																		size="20"
+																		size="16"
 																		color={
 																			record.disabled
 																				? vars
@@ -472,51 +479,144 @@ function AlertsPageLoaded({
 																	/>
 																</Box>
 															</Box>
-															{(getAlertNotifyField(
-																record,
-																'ChannelsToNotify',
-															).length > 0 ||
-																getAlertNotifyField(
-																	record,
-																	'DiscordChannelsToNotify',
-																).length > 0 ||
-																getAlertNotifyField(
-																	record,
-																	'EmailsToNotify',
-																).length > 0 ||
-																getAlertNotifyField(
-																	record,
-																	'WebhookDestinations',
-																).length >
-																	0) && (
-																<Stack gap="8">
-																	<Text
-																		weight="medium"
-																		size="xSmall"
-																		color={
-																			record.disabled
-																				? 'secondaryContentOnDisabled'
-																				: 'weak'
-																		}
-																	>
-																		Channels
-																	</Text>
-																	<Box
-																		display="flex"
-																		flexWrap="wrap"
-																		gap="4"
-																	>
-																		{getAlertNotifyField(
-																			record,
-																			'ChannelsToNotify',
-																		).map(
-																			(
-																				channel: SanitizedSlackChannel,
-																			) => (
+															<Stack gap="8">
+																<Text
+																	weight="medium"
+																	size="xSmall"
+																	color={
+																		record.disabled
+																			? 'secondaryContentOnDisabled'
+																			: 'weak'
+																	}
+																>
+																	Channels
+																</Text>
+																<Box
+																	display="flex"
+																	flexWrap="wrap"
+																	gap="4"
+																>
+																	{getAlertNotifyField(
+																		record,
+																		'ChannelsToNotify',
+																	).length >
+																		0 ||
+																	getAlertNotifyField(
+																		record,
+																		'DiscordChannelsToNotify',
+																	).length >
+																		0 ||
+																	getAlertNotifyField(
+																		record,
+																		'EmailsToNotify',
+																	).length >
+																		0 ||
+																	getAlertNotifyField(
+																		record,
+																		'WebhookDestinations',
+																	).length >
+																		0 ? (
+																		<>
+																			{getAlertNotifyField(
+																				record,
+																				'ChannelsToNotify',
+																			).map(
+																				(
+																					channel: SanitizedSlackChannel,
+																				) => (
+																					<Tag
+																						key={
+																							channel.webhook_channel_id
+																						}
+																						kind="secondary"
+																						size="medium"
+																						shape="basic"
+																						emphasis="medium"
+																						disabled={
+																							record.disabled
+																						}
+																						iconLeft={
+																							<RiSlackFill />
+																						}
+																						onClick={() =>
+																							navigateToAlert(
+																								record,
+																							)
+																						}
+																					>
+																						{`${channel.webhook_channel}`}
+																					</Tag>
+																				),
+																			)}
+																			{getAlertNotifyField(
+																				record,
+																				'DiscordChannelsToNotify',
+																			).map(
+																				(
+																					channel: DiscordChannel,
+																				) => (
+																					<Tag
+																						key={
+																							channel.id
+																						}
+																						kind="secondary"
+																						size="medium"
+																						shape="basic"
+																						emphasis="medium"
+																						disabled={
+																							record.disabled
+																						}
+																						iconLeft={
+																							<RiDiscordFill />
+																						}
+																						onClick={() =>
+																							navigateToAlert(
+																								record,
+																							)
+																						}
+																					>
+																						{`${channel.name}`}
+																					</Tag>
+																				),
+																			)}
+																			{getAlertNotifyField(
+																				record,
+																				'EmailsToNotify',
+																			).map(
+																				(
+																					email: string,
+																				) => (
+																					<Tag
+																						key={
+																							email
+																						}
+																						kind="secondary"
+																						size="medium"
+																						shape="basic"
+																						emphasis="medium"
+																						disabled={
+																							record.disabled
+																						}
+																						iconLeft={
+																							<RiMailFill />
+																						}
+																						onClick={() =>
+																							navigateToAlert(
+																								record,
+																							)
+																						}
+																					>
+																						{`${email}`}
+																					</Tag>
+																				),
+																			)}
+																			{getAlertNotifyField(
+																				record,
+																				'WebhookDestinations',
+																			)
+																				.length >
+																				0 && (
 																				<Tag
-																					key={
-																						channel.webhook_channel_id
-																					}
 																					kind="secondary"
 																					size="medium"
 																					shape="basic"
@@ -525,7 +625,7 @@ function AlertsPageLoaded({
 																						record.disabled
 																					}
 																					iconLeft={
-																						<RiSlackFill />
+																						<IconSolidRefresh />
 																					}
 																					onClick={() =>
 																						navigateToAlert(
@@ -533,102 +633,36 @@ function AlertsPageLoaded({
 																						)
 																					}
 																				>
-																					{`${channel.webhook_channel}`}
+																					Webhook
+																					enabled
 																				</Tag>
-																			),
-																		)}
-																		{getAlertNotifyField(
-																			record,
-																			'DiscordChannelsToNotify',
-																		).map(
-																			(
-																				channel: DiscordChannel,
-																			) => (
-																				<Tag
-																					key={
-																						channel.id
-																					}
-																					kind="secondary"
-																					size="medium"
-																					shape="basic"
-																					emphasis="medium"
-																					disabled={
-																						record.disabled
-																					}
-																					iconLeft={
-																						<RiDiscordFill />
-																					}
-																					onClick={() =>
-																						navigateToAlert(
-																							record,
-																						)
-																					}
-																				>
-																					{`${channel.name}`}
-																				</Tag>
-																			),
-																		)}
-																		{getAlertNotifyField(
-																			record,
-																			'EmailsToNotify',
-																		).map(
-																			(
-																				email: string,
-																			) => (
-																				<Tag
-																					key={
-																						email
-																					}
-																					kind="secondary"
-																					size="medium"
-																					shape="basic"
-																					emphasis="medium"
-																					disabled={
-																						record.disabled
-																					}
-																					iconLeft={
-																						<RiMailFill />
-																					}
-																					onClick={() =>
-																						navigateToAlert(
-																							record,
-																						)
-																					}
-																				>
-																					{`${email}`}
-																				</Tag>
-																			),
-																		)}
-																		{getAlertNotifyField(
-																			record,
-																			'WebhookDestinations',
-																		)
-																			.length >
-																			0 && (
-																			<Tag
-																				kind="secondary"
-																				size="medium"
-																				shape="basic"
-																				emphasis="medium"
-																				disabled={
-																					record.disabled
-																				}
-																				iconLeft={
-																					<IconSolidRefresh />
-																				}
-																				onClick={() =>
-																					navigateToAlert(
-																						record,
-																					)
-																				}
-																			>
-																				Webhook
-																				enabled
-																			</Tag>
-																		)}
-																	</Box>
-																</Stack>
-															)}
+																			)}
+																		</>
+																	) : (
+																		<Tag
+																			kind="secondary"
+																			size="medium"
+																			shape="basic"
+																			emphasis="medium"
+																			disabled={
+																				record.disabled
+																			}
+																			iconLeft={
+																				<IconSolidExclamation />
+																			}
+																			onClick={() =>
+																				navigateToAlert(
+																					record,
+																				)
+																			}
+																		>
+																			No
+																			notifications
+																			enabled
+																		</Tag>
+																	)}
+																</Box>
+															</Stack>
 														</Stack>
 													</Box>
 												)
@@ -663,5 +697,51 @@ function AlertsPageLoaded({
 				</Stack>
 			</Box>
 		</Container>
+	)
+}
+
+function NewAlertMenu() {
+	const { project_id } = useParams<{ project_id: string }>()
+
+	const NEW_ALERT_OPTIONS = [
+		{
+			title: 'Session alert',
+			icon: <IconSolidPlayCircle />,
+			href: `/${project_id}/alerts/session/new`,
+		},
+		{
+			title: 'Error alert',
+			icon: <IconSolidLightningBolt />,
+			href: `/${project_id}/alerts/errors/new`,
+		},
+		{
+			title: 'Log alert',
+			icon: <IconSolidLogs />,
+			href: `/${project_id}/alerts/logs/new`,
+		},
+	]
+	return (
+		<Menu>
+			<Menu.Button iconRight={<IconSolidCheveronDown />}>
+				Create new alert
+			</Menu.Button>
+			<Menu.List>
+				{NEW_ALERT_OPTIONS.map((option) => (
+					<Link key={option.title} to={option.href}>
+						<Menu.Item>
+							<Box
+								display="flex"
+								alignItems="center"
+								gap="4"
+								py="2"
+							>
+								{option.icon}
+								<Text>{option.title}</Text>
+							</Box>
+						</Menu.Item>
+					</Link>
+				))}
+			</Menu.List>
+		</Menu>
 	)
 }
