@@ -445,10 +445,10 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 }
 
 type WorkerConfig struct {
-	Name      string
-	Workers   int
-	FlushSize int
-	Topic     kafkaqueue.TopicType
+	Workers      int
+	FlushSize    int
+	FlushTimeout time.Duration
+	Topic        kafkaqueue.TopicType
 }
 
 func (w *Worker) PublicWorker(ctx context.Context) {
@@ -458,42 +458,30 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	// is processed serially, so messages in that slice are processed in order.
 
 	mainWorkers := 64
-	cfg, cfgErr := w.PublicResolver.Store.GetSystemConfiguration(ctx)
+	sys, cfgErr := w.PublicResolver.Store.GetSystemConfiguration(ctx)
 	if cfgErr == nil {
-		mainWorkers = cfg.MainWorkers
+		mainWorkers = sys.MainWorkers
 	}
 
 	logsConfig := WorkerConfig{
-		Name:      "logs",
-		Workers:   1,
-		FlushSize: DefaultBatchFlushSize,
-		Topic:     kafkaqueue.TopicTypeBatched,
-	}
-	if cfgErr == nil {
-		logsConfig.Workers = cfg.LogsWorkers
-		logsConfig.FlushSize = cfg.LogsFlushSize
+		Topic:        kafkaqueue.TopicTypeBatched,
+		Workers:      sys.LogsWorkers,
+		FlushSize:    sys.LogsFlushSize,
+		FlushTimeout: sys.LogsFlushTimeout,
 	}
 
 	tracesConfig := WorkerConfig{
-		Name:      "traces",
-		Workers:   1,
-		FlushSize: DefaultBatchFlushSize,
-		Topic:     kafkaqueue.TopicTypeTraces,
-	}
-	if cfgErr == nil {
-		tracesConfig.Workers = cfg.TraceWorkers
-		tracesConfig.FlushSize = cfg.TraceFlushSize
+		Topic:        kafkaqueue.TopicTypeTraces,
+		Workers:      sys.TraceWorkers,
+		FlushSize:    sys.TraceFlushSize,
+		FlushTimeout: sys.TraceFlushTimeout,
 	}
 
 	dataSyncConfig := WorkerConfig{
-		Name:      "datasync",
-		Workers:   1,
-		FlushSize: DefaultBatchFlushSize,
-		Topic:     kafkaqueue.TopicTypeDataSync,
-	}
-	if cfgErr == nil {
-		dataSyncConfig.Workers = cfg.DataSyncWorkers
-		dataSyncConfig.FlushSize = cfg.DataSyncFlushSize
+		Topic:        kafkaqueue.TopicTypeDataSync,
+		Workers:      sys.DataSyncWorkers,
+		FlushSize:    sys.DataSyncFlushSize,
+		FlushTimeout: sys.DataSyncTimeout,
 	}
 
 	wg := sync.WaitGroup{}
@@ -511,6 +499,15 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	}
 
 	for _, cfg := range []WorkerConfig{logsConfig, tracesConfig, dataSyncConfig} {
+		if cfg.Workers == 0 {
+			cfg.Workers = 1
+		}
+		if cfg.FlushSize == 0 {
+			cfg.FlushSize = DefaultBatchFlushSize
+		}
+		if cfg.FlushTimeout == 0 {
+			cfg.FlushTimeout = DefaultBatchedFlushTimeout
+		}
 		wg.Add(cfg.Workers)
 		for i := 0; i < cfg.Workers; i++ {
 			go func(workerId int) {
@@ -520,14 +517,14 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 				k := KafkaBatchWorker{
 					KafkaQueue: kafkaqueue.New(
 						ctx,
-						kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}),
+						kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: cfg.Topic}),
 						kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(cfg.FlushSize)},
 					),
 					Worker:              w,
 					BatchBuffer:         buffer,
 					BatchFlushSize:      cfg.FlushSize,
-					BatchedFlushTimeout: DefaultBatchedFlushTimeout,
-					Name:                cfg.Name,
+					BatchedFlushTimeout: cfg.FlushTimeout,
+					Name:                string(cfg.Topic),
 				}
 				k.ProcessMessages(ctx)
 				wg.Done()
