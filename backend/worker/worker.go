@@ -498,10 +498,10 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	}
 	wg.Add(traceWorkers)
 	for i := 0; i < traceWorkers; i++ {
-		traceBuffer := &KafkaBatchBuffer{
-			messageQueue: make(chan *kafkaqueue.Message, traceFlushSize),
-		}
 		go func(workerId int) {
+			traceBuffer := &KafkaBatchBuffer{
+				messageQueue: make(chan *kafkaqueue.Message, traceFlushSize),
+			}
 			k := KafkaBatchWorker{
 				KafkaQueue: kafkaqueue.New(
 					ctx,
