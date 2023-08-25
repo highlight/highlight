@@ -510,25 +510,25 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		}
 		wg.Add(cfg.Workers)
 		for i := 0; i < cfg.Workers; i++ {
-			go func(workerId int) {
+			go func(config *WorkerConfig, workerId int) {
 				buffer := &KafkaBatchBuffer{
-					messageQueue: make(chan *kafkaqueue.Message, cfg.FlushSize),
+					messageQueue: make(chan *kafkaqueue.Message, config.FlushSize),
 				}
 				k := KafkaBatchWorker{
 					KafkaQueue: kafkaqueue.New(
 						ctx,
-						kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: cfg.Topic}),
-						kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(cfg.FlushSize)},
+						kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: config.Topic}),
+						kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(config.FlushSize)},
 					),
 					Worker:              w,
 					BatchBuffer:         buffer,
-					BatchFlushSize:      cfg.FlushSize,
-					BatchedFlushTimeout: cfg.FlushTimeout,
-					Name:                string(cfg.Topic),
+					BatchFlushSize:      config.FlushSize,
+					BatchedFlushTimeout: config.FlushTimeout,
+					Name:                string(config.Topic),
 				}
 				k.ProcessMessages(ctx)
 				wg.Done()
-			}(i)
+			}(&cfg, i)
 		}
 	}
 
