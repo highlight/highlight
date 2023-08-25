@@ -114,7 +114,7 @@ export const LogAlertPage = () => {
 		skip: !alert_id,
 	})
 
-	const form = useFormStore<LogMonitorForm>({
+	const formStore = useFormStore<LogMonitorForm>({
 		defaultValues: {
 			query: initialQuery,
 			name: '',
@@ -129,17 +129,22 @@ export const LogAlertPage = () => {
 			loaded: false,
 		},
 	})
-	const formValues = form.getState().values
+	const formValues = formStore.getState().values
 
-	form.useSubmit(() => {
-		setSubmittedQuery(formValues.query)
+	const [query, setQuery] = useState(initialQuery)
+	const handleSearchSubmit = (query: string) => {
+		setSubmittedQuery(query)
+	}
+
+	formStore.useSubmit(() => {
+		setSubmittedQuery(query)
 	})
 
 	useEffect(() => {
 		if (!loading && data) {
 			setInitialQuery(data?.log_alert.query)
 			setSubmittedQuery(data?.log_alert.query)
-			form.setValues({
+			formStore.setValues({
 				query: data?.log_alert.query,
 				name: data?.log_alert.Name,
 				belowThreshold: data?.log_alert.BelowThreshold,
@@ -254,12 +259,8 @@ export const LogAlertPage = () => {
 					trackingId="saveLogMonitoringAlert"
 					onClick={() => {
 						const input = {
-							count_threshold: form.getValue(
-								form.names.threshold,
-							),
-							below_threshold: form.getValue(
-								form.names.belowThreshold,
-							),
+							count_threshold: formValues.threshold!,
+							below_threshold: formValues.belowThreshold,
 							disabled: false,
 							discord_channels: formValues.discordChannels.map(
 								(c) => ({
@@ -267,11 +268,9 @@ export const LogAlertPage = () => {
 									id: c.id,
 								}),
 							),
-							emails: form.getValue(form.names.emails),
-							environments: form.getValue(
-								form.names.excludedEnvironments,
-							),
-							name: form.getValue(form.names.name),
+							emails: formValues.emails,
+							environments: formValues.excludedEnvironments,
+							name: formValues.name,
 							project_id: project_id || '0',
 							slack_channels: formValues.slackChannels.map(
 								(c) => ({
@@ -280,13 +279,11 @@ export const LogAlertPage = () => {
 										c.webhook_channel_name,
 								}),
 							),
-							webhook_destinations: form
-								.getValue(form.names.webhookDestinations)
+							webhook_destinations: formStore
+								.getValue(formStore.names.webhookDestinations)
 								.map((d: string) => ({ url: d })),
-							threshold_window: form.getValue(
-								form.names.frequency,
-							),
-							query: form.getValue(form.names.query),
+							threshold_window: formValues.frequency,
+							query: formValues.query,
 						}
 
 						const nameErr = !input.name
@@ -294,16 +291,16 @@ export const LogAlertPage = () => {
 						if (nameErr || thresholdErr) {
 							const errs = []
 							if (nameErr) {
-								form.setError(
-									form.names.name,
+								formStore.setError(
+									formStore.names.name,
 									'Name is required',
 								)
 								errs.push('name')
 							}
 
 							if (thresholdErr) {
-								form.setError(
-									form.names.threshold,
+								formStore.setError(
+									formStore.names.threshold,
 									'Threshold is required',
 								)
 								errs.push('threshold')
@@ -374,7 +371,7 @@ export const LogAlertPage = () => {
 				{isLoading && <LoadingBox />}
 				{!isLoading && (
 					<>
-						<Form store={form} resetOnSubmit={false}>
+						<Form store={formStore} resetOnSubmit={false}>
 							{header}
 							<Container
 								display="flex"
@@ -449,6 +446,9 @@ export const LogAlertPage = () => {
 											className={styles.combobox}
 											keysLoading={keysLoading}
 											placeholder="Define query..."
+											query={query}
+											setQuery={setQuery}
+											onFormSubmit={handleSearchSubmit}
 										/>
 									</Box>
 									<LogsHistogram
