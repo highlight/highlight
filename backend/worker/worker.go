@@ -491,10 +491,11 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	}
 
 	traceWorkers := 1
+	traceFlushSize := DefaultBatchFlushSize
 	if cfg, err := w.PublicResolver.Store.GetSystemConfiguration(ctx); err == nil {
 		traceWorkers = cfg.TraceWorkers
+		traceFlushSize = cfg.TraceFlushSize
 	}
-	traceFlushSize := DefaultBatchFlushSize
 	wg.Add(traceWorkers)
 	for i := 0; i < traceWorkers; i++ {
 		traceBuffer := &KafkaBatchBuffer{

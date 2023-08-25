@@ -2,6 +2,8 @@ package clickhouse
 
 import (
 	"context"
+	"fmt"
+	e "github.com/pkg/errors"
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
@@ -46,6 +48,7 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 	}
 
 	span, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.flushTraces.prepareRows"))
+	span.SetTag("BatchSize", len(traceRows))
 	rows := lo.Map(traceRows, func(traceRow *TraceRow, _ int) interface{} {
 		traceTimes, traceNames, traceAttrs := convertEvents(traceRow)
 		linkTraceIds, linkSpanIds, linkStates, linkAttrs := convertLinks(traceRow)
@@ -78,16 +81,23 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 
 		return row
 	})
+
+	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", TracesTable))
+	if err != nil {
+		span.Finish(tracer.WithError(err))
+		return e.Wrap(err, "failed to create logs batch")
+	}
+
+	for _, traceRow := range rows {
+		err = batch.AppendStruct(traceRow)
+		if err != nil {
+			span.Finish(tracer.WithError(err))
+			return err
+		}
+	}
 	span.Finish()
 
-	ib := sqlbuilder.NewStruct(new(ClickhouseTraceRow)).InsertInto(TracesTable, rows...)
-	sql, args := ib.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
-		"async_insert":          1,
-		"wait_for_async_insert": 1,
-	}))
-	return client.conn.Exec(chCtx, sql, args...)
+	return batch.Send()
 }
 
 func convertEvents(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet, clickhouse.ArraySet) {
