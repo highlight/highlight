@@ -5,16 +5,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/model"
-	e "github.com/pkg/errors"
-	"github.com/samber/lo"
-	"github.com/sashabaranov/go-openai"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"math"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/model"
+	e "github.com/pkg/errors"
+	"github.com/samber/lo"
+	"github.com/sashabaranov/go-openai"
+	log "github.com/sirupsen/logrus"
 )
 
 type EmbeddingType string
@@ -26,6 +27,8 @@ const PayloadEmbedding EmbeddingType = "PayloadEmbedding"
 
 type Client interface {
 	GetEmbeddings(ctx context.Context, errors []*model.ErrorObject) ([]*model.ErrorObjectEmbeddings, error)
+	GetErrorTagEmbedding(ctx context.Context, title string, description string) (*model.ErrorTag, error)
+	GetStringEmbedding(ctx context.Context, text string) ([]float32, error)
 }
 
 type OpenAIClient struct {
@@ -104,6 +107,42 @@ func (c *OpenAIClient) GetEmbeddings(ctx context.Context, errors []*model.ErrorO
 	}
 
 	return lo.Values(results), nil
+}
+
+func (c *HuggingfaceModelClient) GetErrorTagEmbedding(ctx context.Context, title string, description string) (*model.ErrorTag, error) {
+	input := title + " " + description
+	embedding, err := c.GetStringEmbedding(ctx, input)
+
+	if err != nil {
+		return nil, err
+	}
+
+	errorTag := &model.ErrorTag{
+		Title:       title,
+		Description: description,
+		Embedding:   embedding,
+	}
+
+	return errorTag, nil
+}
+
+func (c *HuggingfaceModelClient) GetStringEmbedding(ctx context.Context, input string) ([]float32, error) {
+	b, err := json.Marshal(HuggingfaceModelInputs{Inputs: input})
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := c.makeRequest(b)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp struct{ Embeddings []float32 }
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, err
+	}
+
+	return resp.Embeddings, nil
 }
 
 type HuggingfaceModelClient struct {

@@ -114,7 +114,17 @@ export type InputProps = Omit<AriaKitFormInputProps, 'size'> &
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
 	(
-		{ label, cssClass, size, collapsed, truncate, outline, name, ...props },
+		{
+			label,
+			cssClass,
+			size,
+			collapsed,
+			truncate,
+			outline,
+			name,
+			rounded,
+			...props
+		},
 		ref,
 	) => {
 		const _ref = useRef<HTMLInputElement>(null)
@@ -139,6 +149,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 							collapsed,
 							outline,
 							truncate,
+							rounded,
 						}),
 						cssClass,
 					)}

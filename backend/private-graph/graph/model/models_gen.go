@@ -58,18 +58,20 @@ type AccountDetailsMember struct {
 }
 
 type AdminAboutYouDetails struct {
-	FirstName          string  `json:"first_name"`
-	LastName           string  `json:"last_name"`
-	UserDefinedRole    string  `json:"user_defined_role"`
-	UserDefinedPersona string  `json:"user_defined_persona"`
-	Referral           string  `json:"referral"`
-	Phone              *string `json:"phone"`
+	FirstName           string  `json:"first_name"`
+	LastName            string  `json:"last_name"`
+	UserDefinedRole     string  `json:"user_defined_role"`
+	UserDefinedPersona  string  `json:"user_defined_persona"`
+	UserDefinedTeamSize string  `json:"user_defined_team_size"`
+	Referral            string  `json:"referral"`
+	Phone               *string `json:"phone"`
 }
 
 type AdminAndWorkspaceDetails struct {
 	FirstName                   string  `json:"first_name"`
 	LastName                    string  `json:"last_name"`
 	UserDefinedRole             string  `json:"user_defined_role"`
+	UserDefinedTeamSize         string  `json:"user_defined_team_size"`
 	Referral                    string  `json:"referral"`
 	WorkspaceName               string  `json:"workspace_name"`
 	AllowedAutoJoinEmailOrigins *string `json:"allowed_auto_join_email_origins"`
@@ -506,6 +508,13 @@ type LogsHistogramBucketCount struct {
 type LogsParamsInput struct {
 	Query     string                  `json:"query"`
 	DateRange *DateRangeRequiredInput `json:"date_range"`
+}
+
+type MatchedErrorTag struct {
+	ID          int     `json:"id"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Score       float64 `json:"score"`
 }
 
 type MetricPreview struct {

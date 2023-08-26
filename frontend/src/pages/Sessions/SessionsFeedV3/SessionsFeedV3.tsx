@@ -232,7 +232,7 @@ export const SessionFeedV3 = React.memo(() => {
 		GetSessionsOpenSearchQuery,
 		GetSessionsOpenSearchQueryVariables
 	>({
-		variableFn: () => {
+		variableFn: useCallback(() => {
 			let query = JSON.parse(backendSearchQuery?.searchQuery || '')
 			const lte =
 				query?.bool?.must[0]?.bool?.should[0]?.range?.created_at?.lte
@@ -273,10 +273,16 @@ export const SessionFeedV3 = React.memo(() => {
 				project_id: project_id!,
 				sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
 			}
-		},
+		}, [
+			backendSearchQuery?.searchQuery,
+			project_id,
+			sessionFeedConfiguration.sortOrder,
+		]),
 		moreDataQuery,
-		getResultCount: (result) =>
-			result?.data?.sessions_opensearch.totalCount,
+		getResultCount: useCallback(
+			(result) => result?.data?.sessions_opensearch.totalCount,
+			[],
+		),
 	})
 
 	// Used to determine if we need to show the loading skeleton.

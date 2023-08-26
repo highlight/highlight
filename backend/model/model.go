@@ -191,6 +191,7 @@ var Models = []interface{}{
 	&UserJourneyStep{},
 	&SystemConfiguration{},
 	&SessionInsight{},
+	&ErrorTag{},
 }
 
 func init() {
@@ -390,6 +391,7 @@ type AllWorkspaceSettings struct {
 	ErrorEmbeddingsThreshold float64 `gorm:"default:0.2"`
 	ReplaceAssets            bool    `gorm:"default:false"`
 	StoreIP                  bool    `gorm:"default:false"`
+	EnableEnhancedErrors     bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -561,8 +563,9 @@ type Admin struct {
 	// How/where this user was referred from to sign up to Highlight.
 	Referral *string `json:"referral"`
 	// This is the role the Admin has specified. This is their role in their organization, not within Highlight. This should not be used for authorization checks.
-	UserDefinedRole    *string `json:"user_defined_role"`
-	UserDefinedPersona *string `json:"user_defined_persona"`
+	UserDefinedRole     *string `json:"user_defined_role"`
+	UserDefinedTeamSize *string `json:"user_defined_team_size"`
+	UserDefinedPersona  *string `json:"user_defined_persona"`
 }
 
 type EmailSignup struct {
@@ -948,6 +951,7 @@ type ErrorObject struct {
 	IsBeacon                bool    `gorm:"default:false"`
 	ServiceName             string
 	ServiceVersion          string
+	ErrorTagID              *string
 }
 
 type ErrorObjectEmbeddings struct {
@@ -986,6 +990,18 @@ type ErrorGroup struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
 	Viewed         *bool   `json:"viewed"`
+}
+
+type ErrorTag struct {
+	Model
+	Title       string
+	Description string
+	Embedding   Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large
+}
+
+type MatchedErrorObject struct {
+	ErrorObject
+	Score float64 `json:"score"`
 }
 
 type ErrorGroupEventType string
@@ -1255,6 +1271,9 @@ type SystemConfiguration struct {
 	MaintenanceStart time.Time
 	MaintenanceEnd   time.Time
 	ErrorFilters     pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
+	IgnoredFiles     pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\"}'"`
+	TraceWorkers     int            `gorm:"default:1"`
+	TraceFlushSize   int            `gorm:"type:bigint;default:10000"`
 }
 
 type RetryableType string

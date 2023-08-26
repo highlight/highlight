@@ -3,13 +3,16 @@ package graph
 import (
 	"context"
 	"encoding/json"
-	"github.com/highlight-run/highlight/backend/redis"
-	"github.com/samber/lo"
 	"os"
 	"reflect"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/integrations"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/storage"
+	"github.com/samber/lo"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/go-test/deep"
@@ -47,6 +50,28 @@ func (c *mockEmbeddingsClient) GetEmbeddings(ctx context.Context, errors []*mode
 	}, nil
 }
 
+func (c *mockEmbeddingsClient) GetErrorTagEmbedding(ctx context.Context, title string, description string) (*model.ErrorTag, error) {
+	var vec []float32
+	vec = append(vec, vector...)
+	vec[0] += 0.01
+
+	errorTag := &model.ErrorTag{
+		Title:       title,
+		Description: description,
+		Embedding:   vec,
+	}
+
+	return errorTag, nil
+}
+
+func (c *mockEmbeddingsClient) GetStringEmbedding(ctx context.Context, input string) ([]float32, error) {
+	var vec []float32
+	vec = append(vec, vector...)
+	vec[0] += 0.01
+
+	return vec, nil
+}
+
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
@@ -62,7 +87,7 @@ func TestMain(m *testing.M) {
 		DB:               db,
 		TDB:              timeseries.New(context.TODO()),
 		Redis:            redisClient,
-		Store:            store.NewStore(db, &opensearch.Client{}, redisClient),
+		Store:            store.NewStore(db, &opensearch.Client{}, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}),
 		EmbeddingsClient: &mockEmbeddingsClient{},
 	}
 	code := m.Run()

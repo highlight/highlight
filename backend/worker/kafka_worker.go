@@ -293,8 +293,11 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context) error {
 			case lastMsg = <-k.BatchBuffer.messageQueue:
 				switch lastMsg.Type {
 				case kafkaqueue.PushTraces:
-					traceRows = append(traceRows, lastMsg.PushTraces.TraceRow)
-					received += 1
+					traceRow := lastMsg.PushTraces.TraceRow
+					if traceRow != nil {
+						traceRows = append(traceRows, traceRow)
+						received += 1
+					}
 				}
 				if received >= k.BatchFlushSize {
 					return
@@ -311,6 +314,7 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context) error {
 	err := k.Worker.PublicResolver.Clickhouse.BatchWriteTraceRows(ctxT, traceRows)
 	if err != nil {
 		log.WithContext(ctxT).WithError(err).Error("failed to batch write traces to clickhouse")
+		span.Finish(tracer.WithError(err))
 		return err
 	}
 	span.Finish(tracer.WithError(err))

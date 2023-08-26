@@ -1365,6 +1365,18 @@ export type EditServiceGithubSettingsMutation = { __typename?: 'Mutation' } & {
 	>
 }
 
+export type CreateErrorTagMutationVariables = Types.Exact<{
+	title: Types.Scalars['String']
+	description: Types.Scalars['String']
+}>
+
+export type CreateErrorTagMutation = { __typename?: 'Mutation' } & {
+	createErrorTag: { __typename?: 'ErrorTag' } & Pick<
+		Types.ErrorTag,
+		'id' | 'created_at' | 'title' | 'description'
+	>
+}
+
 export type UpsertSlackChannelMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	name: Types.Scalars['String']
@@ -4525,6 +4537,53 @@ export type GetServicesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type ErrorTagFragment = { __typename?: 'ErrorTag' } & Pick<
+	Types.ErrorTag,
+	'id' | 'created_at' | 'title' | 'description'
+>
+
+export type GetErrorTagsQueryVariables = Types.Exact<{ [key: string]: never }>
+
+export type GetErrorTagsQuery = { __typename?: 'Query' } & {
+	error_tags?: Types.Maybe<
+		Array<Types.Maybe<{ __typename?: 'ErrorTag' } & ErrorTagFragment>>
+	>
+}
+
+export type MatchErrorTagQueryVariables = Types.Exact<{
+	query: Types.Scalars['String']
+}>
+
+export type MatchErrorTagQuery = { __typename?: 'Query' } & {
+	match_error_tag?: Types.Maybe<
+		Array<
+			Types.Maybe<
+				{ __typename?: 'MatchedErrorTag' } & Pick<
+					Types.MatchedErrorTag,
+					'id' | 'title' | 'description' | 'score'
+				>
+			>
+		>
+	>
+}
+
+export type FindSimilarErrorsQueryVariables = Types.Exact<{
+	query: Types.Scalars['String']
+}>
+
+export type FindSimilarErrorsQuery = { __typename?: 'Query' } & {
+	find_similar_errors?: Types.Maybe<
+		Array<
+			Types.Maybe<
+				{ __typename?: 'MatchedErrorObject' } & Pick<
+					Types.MatchedErrorObject,
+					'id' | 'type' | 'event' | 'stack_trace' | 'score'
+				>
+			>
+		>
+	>
+}
+
 export type GetTracesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	params: Types.TracesParamsInput
@@ -4687,6 +4746,9 @@ export const namedOperations = {
 		GetSystemConfiguration: 'GetSystemConfiguration' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
 		GetServices: 'GetServices' as const,
+		GetErrorTags: 'GetErrorTags' as const,
+		MatchErrorTag: 'MatchErrorTag' as const,
+		FindSimilarErrors: 'FindSimilarErrors' as const,
 		GetTraces: 'GetTraces' as const,
 	},
 	Mutation: {
@@ -4769,6 +4831,7 @@ export const namedOperations = {
 		UpdateEmailOptOut: 'UpdateEmailOptOut' as const,
 		DeleteInviteLinkFromWorkspace: 'DeleteInviteLinkFromWorkspace' as const,
 		EditServiceGithubSettings: 'EditServiceGithubSettings' as const,
+		CreateErrorTag: 'CreateErrorTag' as const,
 		UpsertSlackChannel: 'UpsertSlackChannel' as const,
 		UpsertDiscordChannel: 'UpsertDiscordChannel' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
@@ -4781,5 +4844,6 @@ export const namedOperations = {
 		SessionAlertFragment: 'SessionAlertFragment' as const,
 		DiscordChannelFragment: 'DiscordChannelFragment' as const,
 		ErrorObject: 'ErrorObject' as const,
+		ErrorTag: 'ErrorTag' as const,
 	},
 }
