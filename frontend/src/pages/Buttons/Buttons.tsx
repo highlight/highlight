@@ -108,7 +108,7 @@ export const Buttons = () => {
 					title="Highlight Landing"
 					src={
 						import.meta.env.DEV
-							? 'http://localhost:3001/'
+							? 'http://localhost:4000/'
 							: 'https://www.highlight.io/'
 					}
 					height={300}

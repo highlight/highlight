@@ -24,6 +24,10 @@ export const variants = recipe({
 
 	variants: {
 		size: {
+			xxSmall: {
+				height: 16,
+				width: 16,
+			},
 			xSmall: {
 				height: 24,
 				width: 24,

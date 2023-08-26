@@ -22,8 +22,8 @@ type TraceRow struct {
 	Duration        int64
 	StatusCode      string
 	StatusMessage   string
-	Events          []Event
-	Links           []Link
+	Events          []*Event
+	Links           []*Link
 	ProjectId       uint32
 	SecureSessionId string
 }
@@ -117,9 +117,9 @@ func (t *TraceRow) WithTraceAttributes(attributes map[string]string) *TraceRow {
 }
 
 func (t *TraceRow) WithEvents(events []map[string]any) *TraceRow {
-	traceEvents := make([]Event, len(events))
+	traceEvents := make([]*Event, len(events))
 	for i, event := range events {
-		traceEvents[i] = Event{
+		traceEvents[i] = &Event{
 			Timestamp:  event["Timestamp"].(time.Time),
 			Name:       event["Name"].(string),
 			Attributes: attributesToMap(event["Attributes"].(map[string]any)),
@@ -131,9 +131,9 @@ func (t *TraceRow) WithEvents(events []map[string]any) *TraceRow {
 }
 
 func (t *TraceRow) WithLinks(links []map[string]any) *TraceRow {
-	traceLinks := make([]Link, len(links))
+	traceLinks := make([]*Link, len(links))
 	for i, link := range links {
-		traceLinks[i] = Link{
+		traceLinks[i] = &Link{
 			TraceId:    link["TraceId"].(string),
 			SpanId:     link["SpanId"].(string),
 			TraceState: link["TraceState"].(string),

@@ -72,6 +72,11 @@ export const inputVariants = recipe({
 				border: 'none',
 			},
 		},
+		rounded: {
+			first: { borderRadius: '6px 6px 0 0' },
+			middle: { borderRadius: 0 },
+			last: { borderRadius: '0 0 6px 6px' },
+		},
 	},
 	defaultVariants: {
 		outline: true,

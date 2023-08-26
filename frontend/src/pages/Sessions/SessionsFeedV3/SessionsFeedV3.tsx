@@ -47,6 +47,7 @@ import moment from 'moment'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { useLocalStorage } from 'react-use'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import {
 	QueryBuilderState,
@@ -69,7 +70,13 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const { setSearchQuery, backendSearchQuery } = useSearchContext()
+	const { setSearchQuery, backendSearchQuery, searchQuery } =
+		useSearchContext()
+	const { isHighlightAdmin } = useAuthContext()
+	const [useClickhouse] = useLocalStorage(
+		'highlight-session-search-use-clickhouse-v2',
+		isHighlightAdmin || Number(project_id) % 2 == 0,
+	)
 
 	const { loading, data } = useGetSessionsHistogramQuery({
 		variables: {
@@ -89,6 +96,9 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 					).format(),
 				},
 			},
+			clickhouse_query: useClickhouse
+				? JSON.parse(searchQuery)
+				: undefined,
 		},
 		skip: !backendSearchQuery || !project_id,
 	})
@@ -193,9 +203,10 @@ export const SessionFeedV3 = React.memo(() => {
 		setSearchResultsLoading(false)
 	}
 
+	const { isHighlightAdmin } = useAuthContext()
 	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse',
-		false,
+		'highlight-session-search-use-clickhouse-v2',
+		isHighlightAdmin || Number(project_id) % 2 == 0,
 	)
 
 	const { loading } = useGetSessionsOpenSearchQuery({
@@ -221,7 +232,7 @@ export const SessionFeedV3 = React.memo(() => {
 		GetSessionsOpenSearchQuery,
 		GetSessionsOpenSearchQueryVariables
 	>({
-		variableFn: () => {
+		variableFn: useCallback(() => {
 			let query = JSON.parse(backendSearchQuery?.searchQuery || '')
 			const lte =
 				query?.bool?.must[0]?.bool?.should[0]?.range?.created_at?.lte
@@ -262,10 +273,16 @@ export const SessionFeedV3 = React.memo(() => {
 				project_id: project_id!,
 				sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
 			}
-		},
+		}, [
+			backendSearchQuery?.searchQuery,
+			project_id,
+			sessionFeedConfiguration.sortOrder,
+		]),
 		moreDataQuery,
-		getResultCount: (result) =>
-			result?.data?.sessions_opensearch.totalCount,
+		getResultCount: useCallback(
+			(result) => result?.data?.sessions_opensearch.totalCount,
+			[],
+		),
 	})
 
 	// Used to determine if we need to show the loading skeleton.

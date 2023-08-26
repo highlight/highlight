@@ -481,6 +481,7 @@ type ErrorObject {
 	session_id: Int
 	trace_id: String
 	span_id: String
+	error_tag_id: String
 	log_cursor: String
 	error_group_id: Int!
 	error_group_secure_id: String!
@@ -555,6 +556,28 @@ type ErrorMetadata {
 	payload: String
 }
 
+type ErrorTag {
+	id: ID!
+	created_at: Timestamp!
+	title: String
+	description: String
+}
+
+type MatchedErrorTag {
+	id: ID!
+	title: String!
+	description: String!
+	score: Float!
+}
+
+type MatchedErrorObject {
+	id: ID!
+	event: [String]!
+	type: String!
+	stack_trace: String!
+	score: Float!
+}
+
 type ErrorTrace {
 	fileName: String
 	lineNumber: Int
@@ -623,6 +646,39 @@ type LogEdge implements Edge {
 type LogConnection implements Connection {
 	edges: [LogEdge!]!
 	pageInfo: PageInfo!
+}
+
+type Trace {
+	timestamp: Timestamp!
+	traceID: String!
+	spanID: String!
+	parentSpanID: String!
+	projectID: Int!
+	secureSessionID: String!
+	traceState: String!
+	spanName: String!
+	spanKind: String!
+	duration: Int!
+	serviceName: String!
+	serviceVersion: String!
+	traceAttributes: Map!
+	statusCode: String!
+	statusMessage: String!
+	events: [TraceEvent]
+	links: [TraceLink]
+}
+
+type TraceEvent {
+	timestamp: Timestamp!
+	name: String!
+	attributes: Map!
+}
+
+type TraceLink {
+	traceID: String!
+	spanID: String!
+	traceState: String!
+	attributes: Map!
 }
 
 type ErrorObjectNodeSession {
@@ -814,6 +870,11 @@ input LogsParamsInput {
 	date_range: DateRangeRequiredInput!
 }
 
+input TracesParamsInput {
+	query: String!
+	date_range: DateRangeRequiredInput!
+}
+
 enum MetricTagFilterOp {
 	equals
 	contains
@@ -890,6 +951,7 @@ input AdminAboutYouDetails {
 	last_name: String!
 	user_defined_role: String!
 	user_defined_persona: String!
+	user_defined_team_size: String!
 	referral: String!
 	phone: String
 }
@@ -899,6 +961,7 @@ input AdminAndWorkspaceDetails {
 	first_name: String!
 	last_name: String!
 	user_defined_role: String!
+	user_defined_team_size: String!
 	referral: String!
 
 	# Workspace
@@ -929,6 +992,7 @@ input SessionAlertInput {
 	emails: [String!]!
 	environments: [String!]!
 	disabled: Boolean!
+	default: Boolean
 	type: SessionAlertType!
 	user_properties: [UserPropertyInput!]!
 	exclude_rules: [String!]!
@@ -947,6 +1011,7 @@ input LogAlertInput {
 	emails: [String!]!
 	environments: [String!]!
 	disabled: Boolean!
+	default: Boolean
 	query: String!
 }
 
@@ -1012,6 +1077,7 @@ type Admin {
 	email_verified: Boolean
 	referral: String
 	user_defined_role: String
+	user_defined_team_size: String
 	about_you_details_filled: Boolean
 	user_defined_persona: String
 }
@@ -1229,6 +1295,7 @@ type ErrorAlert {
 	Frequency: Int!
 	DailyFrequency: [Int64]!
 	disabled: Boolean!
+	default: Boolean!
 }
 
 type TrackProperty {
@@ -1261,6 +1328,7 @@ type SessionAlert {
 	ExcludeRules: [String]!
 	DailyFrequency: [Int64]!
 	disabled: Boolean!
+	default: Boolean!
 }
 
 type LogAlert {
@@ -1280,6 +1348,7 @@ type LogAlert {
 	disabled: Boolean!
 	query: String!
 	BelowThreshold: Boolean!
+	default: Boolean!
 }
 
 type WorkspaceInviteLink {
@@ -1622,6 +1691,12 @@ type Query {
 		project_id: ID!
 		query: String!
 		histogram_options: DateHistogramOptions!
+		clickhouse_query: ClickhouseQuery
+	): SessionsHistogram!
+	sessions_histogram_clickhouse(
+		project_id: ID!
+		query: ClickhouseQuery!
+		histogram_options: DateHistogramOptions!
 	): SessionsHistogram!
 	field_types(
 		project_id: ID!
@@ -1788,12 +1863,17 @@ type Query {
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
 	system_configuration: SystemConfiguration!
+
 	services(
 		project_id: ID!
 		after: String
 		before: String
 		query: String
 	): ServiceConnection
+	error_tags: [ErrorTag]
+	match_error_tag(query: String!): [MatchedErrorTag]
+	find_similar_errors(query: String!): [MatchedErrorObject]
+	traces(project_id: ID!, params: TracesParamsInput!): [Trace!]!
 }
 
 type Mutation {
@@ -2055,6 +2135,7 @@ type Mutation {
 		environments: [String]!
 		regex_groups: [String]!
 		frequency: Int!
+		default: Boolean
 	): ErrorAlert
 	updateErrorAlert(
 		project_id: ID!
@@ -2164,6 +2245,9 @@ type Mutation {
 		build_prefix: String
 		github_prefix: String
 	): Service
+	createErrorTag(title: String!, description: String!): ErrorTag!
+	upsertSlackChannel(project_id: ID!, name: String!): SanitizedSlackChannel!
+	upsertDiscordChannel(project_id: ID!, name: String!): DiscordChannel!
 }
 
 type Subscription {

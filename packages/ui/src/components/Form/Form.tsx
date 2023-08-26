@@ -12,7 +12,6 @@ import {
 	FormFieldProps as AriaKitFormFieldProps,
 	FormState as AriaKitFormState,
 	useFormState as useAriaKitFormState,
-	FormState as AriakitFormState,
 } from 'ariakit/form'
 
 import * as styles from './styles.css'
@@ -85,8 +84,8 @@ export const NamedSection = ({
 	)
 }
 
-const FormContext = React.createContext<AriakitFormState>(
-	{} as AriakitFormState,
+const FormContext = React.createContext<AriaKitFormState>(
+	{} as AriaKitFormState,
 )
 export const useForm = () => React.useContext(FormContext)
 
@@ -115,7 +114,17 @@ export type InputProps = Omit<AriaKitFormInputProps, 'size'> &
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
 	(
-		{ label, cssClass, size, collapsed, truncate, outline, name, ...props },
+		{
+			label,
+			cssClass,
+			size,
+			collapsed,
+			truncate,
+			outline,
+			name,
+			rounded,
+			...props
+		},
 		ref,
 	) => {
 		const _ref = useRef<HTMLInputElement>(null)
@@ -140,6 +149,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 							collapsed,
 							outline,
 							truncate,
+							rounded,
 						}),
 						cssClass,
 					)}

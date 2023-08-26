@@ -45,7 +45,9 @@ def test_record_exception(mock_otlp, project_id, session_id, request_id):
         logging.info(f"hey there! {i}")
         with h.trace(session_id, request_id):
             logging.info(f"trace! {i}")
-        h.record_exception(FileNotFoundError(f"test! {i}"))
+        h.record_exception(
+            FileNotFoundError(f"test! {i}"), attributes={"hello": "there"}
+        )
 
 
 def test_log_no_trace(mocker):

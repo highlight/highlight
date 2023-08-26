@@ -10,6 +10,7 @@ import {
 	SIGN_IN_ROUTE,
 	SIGN_UP_ROUTE,
 } from '@pages/Auth/AuthRouter'
+import { InviteTeamForm } from '@pages/Auth/InviteTeam'
 import { VerifyEmail } from '@pages/Auth/VerifyEmail'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
@@ -57,6 +58,8 @@ import WithSessionSearchContext from '@/routers/ProjectRouter/WithSessionSearchC
 
 export const VERIFY_EMAIL_ROUTE = '/verify_email'
 export const ABOUT_YOU_ROUTE = '/about_you'
+export const INVITE_TEAM_ROUTE = '/invite_team'
+export const SETUP_ROUTE = '/setup'
 
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
@@ -222,6 +225,10 @@ export const AppRouter = () => {
 							<Route
 								path={ABOUT_YOU_ROUTE}
 								element={<AdminForm />}
+							/>
+							<Route
+								path={INVITE_TEAM_ROUTE}
+								element={<InviteTeamForm />}
 							/>
 
 							<Route

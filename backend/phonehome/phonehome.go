@@ -31,6 +31,7 @@ const LogViewCount = "highlight-log-view-count"
 const AboutYouSpanName = "highlight-about-you"
 const AboutYouSpanReferral = "highlight-about-you-referral"
 const AboutYouSpanRole = "highlight-about-you-role"
+const AboutYouSpanTeamSize = "highlight-about-you-team-size"
 const HeartbeatInterval = 5 * time.Second
 const HeartbeatSpanName = "highlight-heartbeat"
 const HighlightProjectID = "1"
@@ -103,6 +104,9 @@ func ReportAdminAboutYouDetails(ctx context.Context, admin *model.Admin) {
 	tags, _ := GetDefaultAttributes()
 	if admin.UserDefinedRole != nil {
 		tags = append(tags, attribute.String(AboutYouSpanRole, *admin.UserDefinedRole))
+	}
+	if admin.UserDefinedTeamSize != nil {
+		tags = append(tags, attribute.String(AboutYouSpanTeamSize, *admin.UserDefinedTeamSize))
 	}
 	if admin.Referral != nil {
 		tags = append(tags, attribute.String(AboutYouSpanReferral, *admin.Referral))

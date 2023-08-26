@@ -383,6 +383,7 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 			task.HubSpotCreateContactForAdmin.Email,
 			task.HubSpotCreateContactForAdmin.UserDefinedRole,
 			task.HubSpotCreateContactForAdmin.UserDefinedPersona,
+			task.HubSpotCreateContactForAdmin.UserDefinedTeamSize,
 			task.HubSpotCreateContactForAdmin.First,
 			task.HubSpotCreateContactForAdmin.Last,
 			task.HubSpotCreateContactForAdmin.Phone,
@@ -467,18 +468,19 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	}
 
 	wg.Add(parallelBatchWorkers)
+	batchedBuffer := &KafkaBatchBuffer{
+		messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
+	}
 	for i := 0; i < parallelBatchWorkers; i++ {
 		go func(workerId int) {
-			buffer := &KafkaBatchBuffer{
-				messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
-			}
 			k := KafkaBatchWorker{
-				KafkaQueue: kafkaqueue.New(ctx,
+				KafkaQueue: kafkaqueue.New(
+					ctx,
 					kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeBatched}),
-					kafkaqueue.Consumer,
-					&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(2 * DefaultBatchFlushSize)}),
+					kafkaqueue.Consumer, nil,
+				),
 				Worker:              w,
-				BatchBuffer:         buffer,
+				BatchBuffer:         batchedBuffer,
 				BatchFlushSize:      DefaultBatchFlushSize,
 				BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 				Name:                "batched",
@@ -488,20 +490,27 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 		}(i)
 	}
 
-	wg.Add(parallelBatchWorkers)
-	for i := 0; i < parallelBatchWorkers; i++ {
+	traceWorkers := 1
+	traceFlushSize := DefaultBatchFlushSize
+	if cfg, err := w.PublicResolver.Store.GetSystemConfiguration(ctx); err == nil {
+		traceWorkers = cfg.TraceWorkers
+		traceFlushSize = cfg.TraceFlushSize
+	}
+	wg.Add(traceWorkers)
+	for i := 0; i < traceWorkers; i++ {
 		go func(workerId int) {
-			buffer := &KafkaBatchBuffer{
-				messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
+			traceBuffer := &KafkaBatchBuffer{
+				messageQueue: make(chan *kafkaqueue.Message, traceFlushSize),
 			}
 			k := KafkaBatchWorker{
-				KafkaQueue: kafkaqueue.New(ctx,
+				KafkaQueue: kafkaqueue.New(
+					ctx,
 					kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}),
-					kafkaqueue.Consumer,
-					&kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(2 * DefaultBatchFlushSize)}),
+					kafkaqueue.Consumer, &kafkaqueue.ConfigOverride{QueueCapacity: pointy.Int(traceFlushSize)},
+				),
 				Worker:              w,
-				BatchBuffer:         buffer,
-				BatchFlushSize:      DefaultBatchFlushSize,
+				BatchBuffer:         traceBuffer,
+				BatchFlushSize:      traceFlushSize,
 				BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 				Name:                "traces",
 			}
@@ -511,26 +520,23 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	}
 
 	wg.Add(1)
+	datasyncBuffer := &KafkaBatchBuffer{
+		messageQueue: make(chan *kafkaqueue.Message, DefaultBatchFlushSize),
+	}
 	go func() {
-		flushSize := 10000
-		maxWait := 100 * time.Millisecond
-		buffer := &KafkaBatchBuffer{
-			messageQueue: make(chan *kafkaqueue.Message, flushSize+1),
-		}
 		k := KafkaBatchWorker{
 			KafkaQueue: kafkaqueue.New(ctx,
 				kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}),
 				kafkaqueue.Consumer,
 				&kafkaqueue.ConfigOverride{
-					QueueCapacity: pointy.Int(2 * flushSize),
+					QueueCapacity: pointy.Int(2 * DefaultBatchFlushSize),
 					MinBytes:      pointy.Int(1),
-					MaxWait:       &maxWait,
 				}),
 			Worker:              w,
 			WorkerThread:        0,
-			BatchBuffer:         buffer,
-			BatchFlushSize:      flushSize,
-			BatchedFlushTimeout: 5 * time.Second,
+			BatchBuffer:         datasyncBuffer,
+			BatchFlushSize:      DefaultBatchFlushSize,
+			BatchedFlushTimeout: DefaultBatchedFlushTimeout,
 			Name:                "datasync",
 		}
 		k.ProcessMessages(ctx, k.flushDataSync)
@@ -1136,8 +1142,8 @@ func (w *Worker) Start(ctx context.Context) {
 
 		for _, session := range sessions {
 			session := session
-			ctx := ctx
 			wp.SubmitRecover(func() {
+				ctx := context.Background()
 				vmStat, _ := mem.VirtualMemory()
 
 				// If WORKER_MAX_MEMORY_THRESHOLD is defined,
@@ -1504,6 +1510,7 @@ func (w *Worker) BackfillStackFrames(ctx context.Context) {
 
 	for rows.Next() {
 		backfiller.SubmitRecover(func() {
+			ctx := context.Background()
 			modelObj := &model.ErrorObject{}
 			if err := w.Resolver.DB.ScanRows(rows, modelObj); err != nil {
 				log.WithContext(ctx).Fatalf("error scanning rows: %+v", err)
