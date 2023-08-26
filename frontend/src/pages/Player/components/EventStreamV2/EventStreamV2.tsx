@@ -42,15 +42,18 @@ const EventStreamV2 = function () {
 		setRightPanelView,
 		activeEventIndex,
 		setActiveEventIndex,
+		searchItem,
+		setSearchItem,
 	} = usePlayerUIContext()
 	const [isInteractingWithStreamEvents, setIsInteractingWithStreamEvents] =
 		useState(false)
 	const [events, setEvents] = useState<HighlightEvent[]>([])
 	const form = useFormState({
 		defaultValues: {
-			search: '',
+			search: searchItem,
 		},
 	})
+
 	const searchQuery = form.getValue('search')
 	const eventTypeFilters = useEventTypeFilters()
 	const virtuoso = useRef<VirtuosoHandle>(null)
@@ -178,6 +181,7 @@ const EventStreamV2 = function () {
 										setActiveEvent(event)
 										setRightPanelView(RightPanelView.Event)
 										setActiveEventIndex(index)
+										setSearchItem(searchQuery)
 									}}
 								/>
 							)}

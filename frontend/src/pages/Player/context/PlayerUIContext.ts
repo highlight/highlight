@@ -27,6 +27,9 @@ interface PlayerUIContext {
 	activeEventIndex?: number
 	setActiveEventIndex: React.Dispatch<React.SetStateAction<number>>
 
+	searchItem?: string
+	setSearchItem: React.Dispatch<React.SetStateAction<string | undefined>>
+
 	rightPanelView: RightPanelView
 	setRightPanelView: (newValue: RightPanelView) => void
 

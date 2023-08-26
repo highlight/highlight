@@ -140,6 +140,8 @@ export const ProjectRouter = () => {
 
 	const [activeEventIndex, setActiveEventIndex] = useState<number>(0)
 
+	const [searchItem, setSearchItem] = useState<string | undefined>('')
+
 	const [activeError, setActiveError] = useState<ErrorObject | undefined>(
 		undefined,
 	)
@@ -165,6 +167,8 @@ export const ProjectRouter = () => {
 		setActiveEvent,
 		activeEventIndex,
 		setActiveEventIndex,
+		searchItem,
+		setSearchItem,
 		activeError,
 		setActiveError,
 		rightPanelView,
