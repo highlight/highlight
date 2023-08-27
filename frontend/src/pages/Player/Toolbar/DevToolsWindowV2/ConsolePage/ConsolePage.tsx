@@ -12,7 +12,10 @@ import { COLOR_MAPPING, LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import { buildSessionParams } from '@pages/LogsPage/SearchForm/utils'
 import { ReplayerState } from '@pages/Player/ReplayerContext'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
-import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
+import {
+	findLastActiveEventIndex,
+	Tab,
+} from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import clsx from 'clsx'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
@@ -82,6 +85,25 @@ export const ConsolePage = ({
 		return data.sessionLogs
 	}, [filter, data?.sessionLogs])
 
+	const messageNodes = messagesToRender.map((message) => {
+		return message.node
+	})
+
+	const hasTimestamp =
+		!loading &&
+		messagesToRender?.every((message) => !!message.node.timestamp)
+
+	const lastActiveLogIndex = useMemo(() => {
+		if (hasTimestamp) {
+			return findLastActiveEventIndex(
+				time,
+				sessionMetadata.startTime,
+				messageNodes,
+			)
+		}
+		return -1
+	}, [messageNodes, hasTimestamp, sessionMetadata.startTime, time])
+
 	// Logic for scrolling to current entry.
 	useEffect(() => {
 		if (state !== ReplayerState.Playing || !autoScroll) {
@@ -149,6 +171,7 @@ export const ConsolePage = ({
 		sessionMetadata.startTime,
 		setTime,
 		state,
+		lastActiveLogIndex,
 	])
 
 	return (
@@ -170,6 +193,7 @@ export const ConsolePage = ({
 							onSelect={() => {
 								setSelectedCursor(logEdge.cursor)
 							}}
+							past={_index <= lastActiveLogIndex}
 						/>
 					)}
 				/>
@@ -184,10 +208,12 @@ const MessageRow = React.memo(function ({
 	logEdge,
 	onSelect,
 	current,
+	past,
 }: {
 	logEdge: SessionLogEdge
 	onSelect: () => void
 	current?: boolean
+	past?: boolean
 }) {
 	return (
 		<Box
@@ -199,6 +225,9 @@ const MessageRow = React.memo(function ({
 			)}
 			borderBottom="dividerWeak"
 			py="8"
+			style={{
+				opacity: past ? 1 : 0.4,
+			}}
 		>
 			<Stack direction="row">
 				<Box flexGrow={1}>
