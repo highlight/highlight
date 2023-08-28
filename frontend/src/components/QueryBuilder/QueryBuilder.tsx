@@ -1,4 +1,3 @@
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { BaseSearchContext } from '@context/BaseSearchContext'
@@ -14,26 +13,45 @@ import { ErrorSegment, Exact, Field, Segment } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
+	ComboboxSelect,
 	defaultPresets,
 	getNow,
+	IconSolidCalendar,
+	IconSolidChat,
 	IconSolidCheveronDown,
+	IconSolidClock,
 	IconSolidCloudUpload,
+	IconSolidCube,
+	IconSolidCursorClick,
+	IconSolidDesktopComputer,
+	IconSolidDocumentAdd,
 	IconSolidDocumentDuplicate,
+	IconSolidDocumentRemove,
+	IconSolidDocumentText,
+	IconSolidEye,
+	IconSolidGlobe,
+	IconSolidGlobeAlt,
+	IconSolidLightningBolt,
+	IconSolidLink,
 	IconSolidLogout,
 	IconSolidPencil,
 	IconSolidPlusCircle,
 	IconSolidPlusSm,
+	IconSolidQuestionMarkCircle,
 	IconSolidRefresh,
 	IconSolidSave,
 	IconSolidSegment,
+	IconSolidTag,
+	IconSolidTerminal,
 	IconSolidTrash,
+	IconSolidUser,
+	IconSolidUserAdd,
 	IconSolidX,
 	Menu,
-	MultiSelectButton,
 	PreviousDateRangePicker,
-	SelectButton,
 	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
@@ -109,6 +127,7 @@ interface MultiselectPopoutContentProps {
 interface SelectPopoutContentProps {
 	type: PopoutType
 	value: SelectOption | undefined
+	icon?: React.ReactNode
 	valueRender?: React.ReactNode
 	onChange: OnSelectChange
 	loadOptions: LoadOptions
@@ -125,8 +144,6 @@ interface SetVisible {
 
 export const TIME_MAX_LENGTH = 60
 export const RANGE_MAX_LENGTH = 200
-
-const TOOLTIP_MESSAGE = 'This property was automatically collected by Highlight'
 
 function useScroll<T extends HTMLElement>(): [() => void, React.RefObject<T>] {
 	const ref = useRef<T>(null)
@@ -312,51 +329,32 @@ const getStateLabel = (value: string): string => {
 	}
 }
 
-const getOption = (props: any) => {
-	const {
-		label,
-		value,
-		// selectProps: { inputValue },
-	} = props
-	const type = getType(value)
+const getOption = (option: Option, query: string) => {
+	const { label, value } = option
 	const nameLabel = getNameLabel(label)
-	const typeLabel = getTypeLabel(value)
+	const icon = getIcon(value)
 	const tooltipMessage = TOOLTIP_MESSAGES[value]
-	// const searchWords = [inputValue]
 
 	return (
-		<div className={styles.optionLabelContainer}>
-			{!!typeLabel && (
-				<div className={styles.labelTypeContainer}>
-					<div className={styles.optionLabelType}>
-						{typeLabel}
-						{/* <TextHighlighter
-									searchWords={searchWords}
-									textToHighlight={typeLabel}
-								/> */}
-					</div>
-				</div>
-			)}
-			<div className={styles.optionLabelName}>
-				{/* <TextHighlighter
-							searchWords={searchWords}
-							textToHighlight={nameLabel}
-						/> */}
-				{nameLabel}
-			</div>
-			{(!!tooltipMessage ||
-				type === SESSION_TYPE ||
-				type === CUSTOM_TYPE ||
-				type === ERROR_TYPE ||
-				type === ERROR_FIELD_TYPE ||
-				value === 'user_identifier') && (
-				<InfoTooltip
-					title={tooltipMessage ?? TOOLTIP_MESSAGE}
-					size="medium"
-					hideArrow
+		<div className={newStyle.optionLabelContainer}>
+			{icon}
+			<TextHighlighter
+				searchWords={[query]}
+				textToHighlight={nameLabel}
+			/>
+			{!!tooltipMessage && (
+				<Tooltip
 					placement="right"
-					className={styles.optionTooltip}
-				/>
+					trigger={
+						<Box display="flex">
+							<IconSolidQuestionMarkCircle size={18} />
+						</Box>
+					}
+				>
+					<Text color="moderate" size="xSmall">
+						{tooltipMessage}
+					</Text>
+				</Tooltip>
 			)}
 		</div>
 	)
@@ -469,11 +467,9 @@ const PopoutContent = ({
 	return null
 }
 
-const MultiselectPopoutV2 = ({
+const MultiselectPopout = ({
 	value,
-	// disabled, ZANETODO
 	cssClass,
-	// limitWidth,
 	loadOptions,
 	type,
 	onChange,
@@ -482,15 +478,17 @@ const MultiselectPopoutV2 = ({
 		cssClass?: ClassValue | ClassValue[]
 		limitWidth?: boolean
 	}) => {
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const [query, setQuery] = useState('') // ZANETODO: initialize!
+	const [query, setQuery] = useState('')
 	const [options, setOptions] = useState<Option[]>([])
 	useMemo(() => {
 		loadOptions(query).then((v) => setOptions(v ?? []))
-	}, [loadOptions, query])
-	console.log('options', options)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [query])
 
 	const invalid = value === undefined || value.options.length === 0
+	if (invalid) {
+		cssClass = clsx([cssClass, styles.invalid])
+	}
 
 	let label = '--'
 	if (invalid) {
@@ -501,48 +499,20 @@ const MultiselectPopoutV2 = ({
 		label = value.options[0].label
 	}
 
-	console.log('value', value)
-
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	// const getValue = () => {
-	// 	if (invalid) {
-	// 		return '--'
-	// 	}
-	// 	if (value?.kind === 'single') {
-	// 		return getNameLabel(value.label)
-	// 	}
-	// 	if (value?.kind === 'multi' && value.options.length > 1) {
-	// 		return `${value.options.length} selections`
-	// 	}
-	// 	return value.options[0].label
-	// }
-
-	// const tooltipMessage =
-	// 	(value?.kind === 'multi' &&
-	// 		value.options.map((o) => o.label).join(', ')) ||
-	// 	undefined
-
-	// ZANETODO: add tooltip!
-	// ZANETODO: add invalid color!
-
-	// const options = await loadOptions()
-	// console.log('zane options', options)
 	let multiValue: string[] = []
 	switch (type) {
 		case 'multiselect':
-			multiValue = value?.options.map((o) => o.label) ?? []
+			multiValue = value?.options.map((o) => o.value) ?? []
 			return (
-				<MultiSelectButton
-					label=""
+				<ComboboxSelect
+					label="value"
 					value={multiValue}
-					valueRender={() => label}
+					valueRender={label}
 					options={options.map((o) => ({
 						key: o.value,
-						render: getOption(o),
+						render: getOption(o, query),
 					}))}
 					onChange={(val: string[]) => {
-						console.log('options', options)
-						console.log('onChange', val)
 						onChange({
 							kind: 'multi',
 							options: val.map((i) => ({
@@ -555,22 +525,18 @@ const MultiselectPopoutV2 = ({
 						setQuery(val)
 					}}
 					cssClass={cssClass}
+					queryPlaceholder="Filter..."
 				/>
 			)
 		case 'creatable':
-			multiValue = value?.options.map((o) => o.label) ?? []
+			multiValue = value?.options.map((o) => o.value) ?? []
 			return (
-				<MultiSelectButton
-					label=""
+				<ComboboxSelect
+					label="value"
 					value={multiValue}
-					valueRender={() => label}
-					options={options.map((o) => ({
-						key: o.value,
-						render: getOption(o),
-					}))}
+					valueRender={label}
+					options={[]}
 					onChange={(val: string[]) => {
-						console.log('options', options)
-						console.log('onChange', val)
 						onChange({
 							kind: 'multi',
 							options: val.map((i) => ({
@@ -583,18 +549,24 @@ const MultiselectPopoutV2 = ({
 						setQuery(val)
 					}}
 					cssClass={cssClass}
+					queryPlaceholder="Add..."
+					creatableRender={(query) =>
+						getOption({ label: query, value: query }, '')
+					}
 				/>
 			)
+		case 'date_range':
+		case 'time_range':
+		case 'range':
 	}
 	return null
 }
 
-const SelectPopoutV2 = ({
+const SelectPopout = ({
 	value,
 	valueRender,
-	// disabled,
+	icon,
 	cssClass,
-	// limitWidth,
 	loadOptions,
 	onChange,
 }: PopoutProps &
@@ -602,13 +574,11 @@ const SelectPopoutV2 = ({
 		cssClass?: ClassValue | ClassValue[]
 		limitWidth?: boolean
 	}) => {
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const [query, setQuery] = useState('') // ZANETODO: initialize!
+	const [query, setQuery] = useState('')
 	const [options, setOptions] = useState<Option[]>([])
 	useMemo(() => {
 		loadOptions(query).then((v) => setOptions(v ?? []))
 	}, [loadOptions, query])
-	console.log('options', options)
 
 	const invalid = value === undefined
 
@@ -619,52 +589,28 @@ const SelectPopoutV2 = ({
 		label = getNameLabel(value.label)
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	// const getValue = () => {
-	// 	if (invalid) {
-	// 		return '--'
-	// 	}
-	// 	if (value?.kind === 'single') {
-	// 		return getNameLabel(value.label)
-	// 	}
-	// 	if (value?.kind === 'multi' && value.options.length > 1) {
-	// 		return `${value.options.length} selections`
-	// 	}
-	// 	return value.options[0].label
-	// }
-
-	// const tooltipMessage =
-	// 	(value?.kind === 'multi' &&
-	// 		value.options.map((o) => o.label).join(', ')) ||
-	// 	undefined
-
-	// ZANETODO: add tooltip!
-	// ZANETODO: add invalid color!
-
-	// const options = await loadOptions()
-	// console.log('zane options', options)
-
 	return (
-		<SelectButton
+		<ComboboxSelect
 			label=""
+			icon={icon}
 			value={value?.label ?? ''}
-			valueRender={() => valueRender ?? label}
+			valueRender={valueRender !== undefined ? valueRender : label}
 			options={options.map((o) => ({
 				key: o.value,
-				render: getOption(o),
+				render: getOption(o, query),
 			}))}
-			onChange={(val) => {
+			onChange={(val: string) => {
 				const selected = options.find((o) => o.value === val)!
 				onChange({
 					kind: 'single',
 					...selected,
 				})
-				console.log('onchange', val, selected, options)
 			}}
 			onChangeQuery={(val: string) => {
 				setQuery(val)
 			}}
 			cssClass={cssClass}
+			queryPlaceholder="Filter..."
 		/>
 	)
 }
@@ -698,10 +644,9 @@ const QueryRule = ({
 	onRemove,
 	readonly,
 }: { rule: RuleProps } & RuleSettings) => {
-	console.log('rule', rule)
 	return (
 		<Box display="inline-flex" gap="1">
-			<SelectPopoutV2
+			<SelectPopout
 				value={rule.field}
 				onChange={onChangeKey}
 				loadOptions={getKeyOptions}
@@ -709,7 +654,7 @@ const QueryRule = ({
 				disabled={readonly}
 				cssClass={[newStyle.tag, newStyle.flatRight, newStyle.tagKey]}
 			/>
-			<SelectPopoutV2
+			<SelectPopout
 				value={getOperator(rule.op, rule.val)}
 				onChange={onChangeOperator}
 				loadOptions={getOperatorOptions}
@@ -726,7 +671,7 @@ const QueryRule = ({
 				]}
 			/>
 			{!!rule.op && hasArguments(rule.op) && (
-				<MultiselectPopoutV2
+				<MultiselectPopout
 					value={rule.val}
 					onChange={onChangeValue}
 					loadOptions={getValueOptions}
@@ -995,11 +940,83 @@ const isComplete = (rule: RuleProps) =>
 
 const getNameLabel = (label: string) => LABEL_MAP[label] ?? label
 
-const getTypeLabel = (value: string) => {
+const getIcon = (value: string): JSX.Element | undefined => {
+	switch (value) {
+		case 'custom_app_version':
+			return <IconSolidDesktopComputer />
+		case 'session_browser_name':
+			return <IconSolidGlobeAlt />
+		case 'session_browser_version':
+			return <IconSolidGlobeAlt />
+		case 'session_city':
+			return <IconSolidGlobe />
+		case 'session_clickSelector':
+			return <IconSolidCursorClick />
+		case 'session_clickTextContent':
+			return <IconSolidDocumentText />
+		case 'session_country':
+			return <IconSolidGlobe />
+		case 'session_device_id':
+			return <IconSolidUser />
+		case 'session_environment':
+			return <IconSolidTerminal />
+		case 'track_event':
+			return <IconSolidCalendar />
+		case 'session_exit_page':
+			return <IconSolidDocumentRemove />
+		case 'custom_first_time':
+			return <IconSolidUserAdd />
+		case 'custom_has_comments':
+			return <IconSolidChat />
+		case 'custom_has_errors':
+			return <IconSolidLightningBolt />
+		case 'custom_has_rage_clicks':
+			return <IconSolidCursorClick />
+		case 'session_landing_page':
+			return <IconSolidDocumentAdd />
+		case 'custom_active_length':
+			return <IconSolidClock />
+		case 'session_os_name':
+			return <IconSolidDesktopComputer />
+		case 'session_os_version':
+			return <IconSolidDesktopComputer />
+		case 'session_reload':
+			return <IconSolidRefresh />
+		case 'custom_processed':
+			return <IconSolidTag />
+		case 'custom_viewed':
+			return <IconSolidEye />
+		case 'custom_viewed_by_me':
+			return <IconSolidEye />
+		case 'session_visited-url':
+			return <IconSolidLink />
+		case 'error-field_browser':
+			return <IconSolidGlobeAlt />
+		case 'error-field_environment':
+			return <IconSolidTerminal />
+		case 'error_Event':
+			return <IconSolidCalendar />
+		case 'error-field_os_name':
+			return <IconSolidDesktopComputer />
+		case 'error_state':
+			return <IconSolidTag />
+		case 'error_Type':
+			return <IconSolidCube />
+		case 'error-field_visited_url':
+			return <IconSolidLink />
+	}
 	const type = getType(value)
 	const mapped = type === CUSTOM_TYPE ? 'session' : type
+	switch (type) {
+		case 'session':
+			return <IconSolidDesktopComputer />
+		case 'user':
+			return <IconSolidUser />
+		case 'track':
+			return <IconSolidDesktopComputer />
+	}
 	if (!!mapped && ['track', 'user', 'session'].includes(mapped)) {
-		return mapped
+		return <IconSolidUser />
 	}
 	return undefined
 }
@@ -1319,11 +1336,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 					value: ft.type + '_' + ft.name,
 				}))
 				.filter((ft) =>
-					(
-						getTypeLabel(ft.value)?.toLowerCase() +
-						':' +
-						getNameLabel(ft.label).toLowerCase()
-					).includes(input.toLowerCase()),
+					getNameLabel(ft.label)
+						.toLowerCase()
+						.includes(input.toLowerCase()),
 				)
 				.sort((a, b) => {
 					const aLower = getNameLabel(a.label).toLowerCase()
@@ -1487,9 +1502,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 
 		return (
-			<SelectPopoutV2
+			<SelectPopout
 				value={undefined}
-				valueRender={<IconSolidPlusSm size={12} />}
+				icon={<IconSolidPlusSm size={12} />}
 				onChange={(val) => {
 					const field = val as SelectOption | undefined
 					const operators =
@@ -1503,9 +1518,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 						val: undefined,
 					})
 				}}
+				valueRender={null}
 				loadOptions={getKeyOptions}
 				type="select"
-				cssClass={[newStyle.tag, newStyle.flatRight, newStyle.tagKey]}
+				cssClass={[newStyle.addButton]}
 				disabled={false}
 			/>
 		)
@@ -1799,7 +1815,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 							key={`rule-${index}`}
 							rule={rule}
 							onChangeKey={(val) => {
-								console.log('onChangeKey', val)
 								// Default to 'is' when rule is not defined yet
 								if (rule.op === undefined) {
 									updateRule(rule, {
@@ -1816,7 +1831,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 							}}
 							getKeyOptions={getKeyOptions}
 							onChangeOperator={(val) => {
-								console.log('onChangeOperator', val)
 								if (val?.kind === 'single') {
 									updateRule(rule, { op: val.value })
 								}
@@ -1826,7 +1840,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 								rule.val,
 							)}
 							onChangeValue={(val) => {
-								console.log('onChangeValue', val)
 								updateRule(rule, { val: val })
 							}}
 							getValueOptions={getValueOptionsCallback(

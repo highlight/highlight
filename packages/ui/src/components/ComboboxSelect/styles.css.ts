@@ -27,7 +27,31 @@ export const selectButton = style({
 	},
 })
 
-export const combobox = style({})
+export const combobox = style({
+	width: '100%',
+	border: 'none',
+	borderRadius: '6px 6px 0 0',
+	fontSize: '13px',
+	fontWeight: '500 !important',
+	selectors: {
+		'&:focus-visible': {
+			outline: 'none',
+		},
+		'&::placeholder': {
+			color: vars.theme.interactive.fill.secondary.content.onDisabled,
+		},
+	},
+})
+
+export const comboboxWrapper = style({
+	padding: '6px 8px',
+	borderBottom: `1px solid ${vars.color.n7}`,
+})
+
+export const comboboxList = style({
+	maxHeight: '400px',
+	overflowY: 'auto',
+})
 
 export const selectPopover = style({
 	backgroundColor: colors.white,
@@ -35,14 +59,15 @@ export const selectPopover = style({
 	borderRadius: 6,
 	minWidth: 150,
 	zIndex: 10,
+	maxWidth: '50vw',
 })
 
 export const selectItem = style({
 	alignItems: 'center',
 	display: 'flex',
 	fontSize: 13,
-	gap: 4,
-	padding: '4px 8px',
+	gap: 6,
+	padding: '6px 8px',
 
 	selectors: {
 		'&[data-active-item]': {

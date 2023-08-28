@@ -25,8 +25,9 @@ export const tagPopoverAnchor = style({
 })
 
 export const addButton = style({
-	height: 20,
-	width: 20,
+	padding: '2px 4px',
+	border: 'none',
+	borderRadius: '5px',
 })
 
 export const tagKey = style({
@@ -40,4 +41,16 @@ export const noShrink = style({
 
 export const maxHalfWidth = style({
 	maxWidth: '50%',
+})
+
+export const optionLabelContainer = style({
+	alignItems: 'center',
+	display: 'flex',
+	overflow: 'hidden',
+	position: 'relative',
+	textOverflow: 'ellipsis',
+	width: '100%',
+	padding: '0',
+	color: colors.n11,
+	gap: 6,
 })

@@ -20,6 +20,7 @@ import { IconSolidCheckCircle, IconSolidMinus } from '../icons'
 import * as styles from './styles.css'
 import { Text } from '../Text/Text'
 import clsx, { ClassValue } from 'clsx'
+import { vars } from '../../css/vars'
 
 type Option = {
 	key: string
@@ -27,14 +28,14 @@ type Option = {
 	clearsOnClick?: boolean
 }
 
-type Props = {
+type Props<T extends string | string[]> = {
 	label: string
 	icon?: React.ReactNode
 	defaultValue?: string
 	value: string[]
 	valueRender: () => React.ReactNode
 	options: Option[]
-	onChange: (value: string[]) => void
+	onChange: (value: T) => void
 	query?: string
 	onChangeQuery?: (value: string) => void
 	queryPlaceholder?: string
@@ -43,7 +44,7 @@ type Props = {
 	onToggle?: (isOpen: boolean) => void
 }
 
-export const MultiSelectButton: React.FC<Props> = ({
+export const MultiSelectButton = <T extends string | string[]>({
 	label,
 	icon,
 	defaultValue,
@@ -57,7 +58,7 @@ export const MultiSelectButton: React.FC<Props> = ({
 	open,
 	onToggle,
 	query,
-}) => {
+}: Props<T>) => {
 	const inputElement = useRef<HTMLInputElement>(null)
 
 	// const combobox = useComboboxStore({ resetValueOnHide: true })
@@ -71,7 +72,7 @@ export const MultiSelectButton: React.FC<Props> = ({
 	const combobox = useComboboxStore({
 		// gutter: 4,
 		// sameWidth: true,
-		// open,
+		open,
 		// setOpen: (open) => {
 		// 	// if (combobox.open !== open) {
 		// 	onToggle?.(open)
@@ -90,9 +91,11 @@ export const MultiSelectButton: React.FC<Props> = ({
 	const select = useSelectStore({
 		combobox,
 		defaultValue: defaultValue ? [defaultValue] : [],
-		setValue: (value: string[]) => onChange(value),
+		setValue: (value: T) => onChange(value),
 		value: value,
 	})
+
+	const valueSet = new Set(value)
 
 	return (
 		<div className="wrapper">
@@ -146,6 +149,7 @@ export const MultiSelectButton: React.FC<Props> = ({
 						store={combobox}
 						// ref={inputElement}
 						type="text"
+						// autoSelect
 						// eslint-disable-next-line jsx-a11y/no-autofocus
 						autoSelect
 						placeholder={queryPlaceholder}
@@ -161,13 +165,22 @@ export const MultiSelectButton: React.FC<Props> = ({
 							key={option.key}
 							className={clsx([styles.selectItem, 'select-item'])}
 							// state={combobox}
-							// store={combobox}
 							// focusOnHover
 							render={
 								<SelectItem value={option.key}>
-									<div className={styles.checkbox}>
+									<div
+										className={styles.checkbox}
+										style={{
+											backgroundColor: valueSet.has(
+												option.key,
+											)
+												? vars.theme.interactive.fill
+														.primary.enabled
+												: 'white',
+										}}
+									>
 										{option.clearsOnClick &&
-										!value.includes(option.key) ? (
+										!valueSet.has(option.key) ? (
 											<IconSolidMinus color="grey" />
 										) : (
 											<IconSolidCheckCircle color="white" />
