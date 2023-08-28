@@ -1,15 +1,13 @@
 CREATE TABLE IF NOT EXISTS error_groups (
     ProjectID Int32,
-    Browser String,
-    Environment String,
-    OSName String,
     CreatedAt DateTime64(6),
-    ErrorGroupID Int64
+    ErrorGroupID Int64,
+    Event String,
+    Status LowCardinality(String),
+    Type LowCardinality(String),
 ) ENGINE = ReplacingMergeTree
 ORDER BY (
         ProjectID,
-        Type,
-        Name,
         CreatedAt,
         ErrorGroupID
     );

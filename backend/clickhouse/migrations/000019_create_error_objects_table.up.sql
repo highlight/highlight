@@ -1,15 +1,13 @@
 CREATE TABLE IF NOT EXISTS error_objects (
     ProjectID Int32,
+    CreatedAt DateTime64(6),
+    ErrorGroupID Int64,
     Browser String,
     Environment String,
-    OSName String,
-    CreatedAt DateTime64(6),
-    ErrorGroupID Int64
+    OSName String
 ) ENGINE = ReplacingMergeTree
 ORDER BY (
         ProjectID,
-        Type,
-        Name,
         CreatedAt,
         ErrorGroupID
     );
