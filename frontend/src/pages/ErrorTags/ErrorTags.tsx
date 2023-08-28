@@ -1,42 +1,58 @@
 import {
+	Badge,
 	Box,
 	Form,
-	Heading,
-	IconSolidQuestionMarkCircle,
+	IconSolidCheveronRight,
+	IconSolidLightningBolt,
 	Stack,
 	Table,
+	Text,
 	Tooltip,
 } from '@highlight-run/ui'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
-import { setErrorTagsQuery } from '@/pages/ErrorTags/store-query'
+
+import styles from './ErrorTags.module.css'
 
 const DEFAULT_QUERIES = [
 	'error creating session, user agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36: ERROR: duplicate key value violates unique constraint "idx_sessions_secure_id" (SQLSTATE 23505) ERROR: duplicate key value ERROR: duplicate key value violates unique constraint "idx_sessions_secure_id" (SQLSTATE 23505)',
 	`Uncaught ServerError: Response not successful: Received status code 500`,
 	`Firebase: A network AuthError (such as timeout, interrupted connection or unreachable host) has occurred. (auth/network-request-failed).`,
+	'strconv.Atoi: parsing "w": invalid syntax\nstrconv.Atoi: parsing "w": invalid syntax',
 ]
 
 export function ErrorTags() {
 	const [inputValue, setInputValue] = useState('')
 	const navigate = useNavigate()
-	function setAndNavigate(q: string) {
-		setErrorTagsQuery(q)
-		navigate('/error-tags/search')
+	function navigateToSearch(q: string) {
+		const encodedQuery = btoa(q)
+		navigate(`/error-tags/search?q=${encodedQuery}`)
 	}
 	function onSubmit(e: React.FormEvent<HTMLFormElement>) {
 		e.preventDefault()
 
 		if (inputValue) {
-			setAndNavigate(inputValue)
+			navigateToSearch(inputValue)
 		}
 	}
 
 	return (
-		<Stack py="32" gap="32">
-			<Heading>Find related errors</Heading>
+		<Stack py="32" gap="12" cssClass={styles.narrowWrapper}>
+			<Box
+				style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+			>
+				<Badge
+					iconStart={<IconSolidLightningBolt />}
+					variant="purple"
+					size="medium"
+					// className={styles.headerIcon}
+				/>
+				<Text cssClass={styles.headerText}>
+					Highlight.io Error Embeddings
+				</Text>
+			</Box>
 			<form onSubmit={onSubmit}>
 				<Stack gap="8">
 					<Form.Input
@@ -48,11 +64,11 @@ export function ErrorTags() {
 					<Box
 						style={{
 							display: 'flex',
-							justifyContent: 'center',
+							justifyContent: 'right',
 							gap: '0.5rem',
 						}}
 					>
-						<Tooltip
+						{/* <Tooltip
 							trigger={
 								<Box
 									style={{
@@ -69,59 +85,71 @@ export function ErrorTags() {
 						>
 							Test semantic search against errors logged on this
 							application, app.highlight.io.
-						</Tooltip>
-						<Form.Submit type="submit">Search</Form.Submit>
+						</Tooltip> */}
+						<Form.Submit
+							type="submit"
+							iconRight={<IconSolidCheveronRight />}
+							disabled={!inputValue}
+						>
+							Categorize error
+						</Form.Submit>
 					</Box>
 				</Stack>
 			</form>
 
-			<Table>
-				<Table.Head>
-					<Table.Row gridColumns={['1fr', '7rem']}>
-						<Table.Cell>Query</Table.Cell>
-						<Table.Cell justifyContent="center">Action</Table.Cell>
-					</Table.Row>
-				</Table.Head>
-				<Table.Body>
-					{DEFAULT_QUERIES.map((query, i) => (
-						<Table.Row
-							key={`query-${i}`}
-							gridColumns={['1fr', '7rem']}
-						>
-							<Table.Cell
-								style={{
-									display: 'block',
-									whiteSpace: 'nowrap',
-									overflow: 'hidden',
-								}}
+			<Box>
+				<Text cssClass={styles.subtitle}>Error examples</Text>
+
+				<Table className={styles.table}>
+					<Table.Body>
+						{DEFAULT_QUERIES.map((query, i) => (
+							<Table.Row
+								key={`query-${i}`}
+								gridColumns={['3rem', '1fr', '10rem']}
 							>
-								<Tooltip
-									trigger={
-										<Box
-											style={{
-												overflow: 'hidden',
-												textOverflow: 'ellipsis',
-											}}
-										>
-											{query}
-										</Box>
-									}
+								<Table.Cell>
+									<Badge
+										iconEnd={<IconSolidLightningBolt />}
+										size="large"
+										variant="gray"
+									/>
+								</Table.Cell>
+								<Table.Cell
+									style={{
+										display: 'block',
+										whiteSpace: 'nowrap',
+										overflow: 'hidden',
+									}}
 								>
-									{query}
-								</Tooltip>
-							</Table.Cell>
-							<Table.Cell justifyContent="center">
-								<Button
-									trackingId="error-tags-test-default-query-1"
-									onClick={() => setAndNavigate(query)}
-								>
-									Test Query
-								</Button>
-							</Table.Cell>
-						</Table.Row>
-					))}
-				</Table.Body>
-			</Table>
+									<Tooltip
+										trigger={
+											<Box
+												style={{
+													overflow: 'hidden',
+													textOverflow: 'ellipsis',
+												}}
+											>
+												{query}
+											</Box>
+										}
+									>
+										{query}
+									</Tooltip>
+								</Table.Cell>
+								<Table.Cell justifyContent="center">
+									<Button
+										trackingId="error-tags-test-default-query-1"
+										onClick={() => navigateToSearch(query)}
+										kind="secondary"
+									>
+										Show categorization
+									</Button>
+								</Table.Cell>
+							</Table.Row>
+						))}
+					</Table.Body>
+				</Table>
+			</Box>
 		</Stack>
 	)
 }
