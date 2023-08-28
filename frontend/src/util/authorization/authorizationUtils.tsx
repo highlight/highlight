@@ -10,4 +10,6 @@ export const onlyAllowAdminRole = (admin?: Admin, role?: string) =>
 	role === AdminRole.Admin
 
 export const onlyAllowHighlightStaff = (admin?: Maybe<Admin>) =>
-	HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) => admin?.email.includes(d)) || false
+	import.meta.env.DEV ||
+	HIGHLIGHT_ADMIN_EMAIL_DOMAINS.some((d) => admin?.email.includes(d)) ||
+	false

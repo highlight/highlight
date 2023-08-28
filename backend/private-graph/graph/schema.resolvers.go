@@ -284,6 +284,11 @@ func (r *logAlertResolver) DailyFrequency(ctx context.Context, obj *model.LogAle
 	return obj.GetDailyLogEventFrequency(r.DB, obj.ID)
 }
 
+// Event is the resolver for the event field.
+func (r *matchedErrorObjectResolver) Event(ctx context.Context, obj *model.MatchedErrorObject) ([]*string, error) {
+	return util.JsonStringToStringArray(obj.Event), nil
+}
+
 // ChannelsToNotify is the resolver for the channels_to_notify field.
 func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*modelInputs.SanitizedSlackChannel, error) {
 	if obj == nil {
@@ -349,11 +354,12 @@ func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, ad
 	if err := r.Transaction(func(transactionR *mutationResolver) error {
 		// Update admin details
 		if _, err := transactionR.UpdateAdminAboutYouDetails(ctx, modelInputs.AdminAboutYouDetails{
-			FirstName:          adminAndWorkspaceDetails.FirstName,
-			LastName:           adminAndWorkspaceDetails.LastName,
-			UserDefinedRole:    adminAndWorkspaceDetails.UserDefinedRole,
-			UserDefinedPersona: "",
-			Referral:           adminAndWorkspaceDetails.Referral,
+			FirstName:           adminAndWorkspaceDetails.FirstName,
+			LastName:            adminAndWorkspaceDetails.LastName,
+			UserDefinedRole:     adminAndWorkspaceDetails.UserDefinedRole,
+			UserDefinedPersona:  "",
+			UserDefinedTeamSize: adminAndWorkspaceDetails.UserDefinedTeamSize,
+			Referral:            adminAndWorkspaceDetails.Referral,
 		}); err != nil {
 			return e.Wrap(err, "error updating admin details")
 		}
@@ -365,7 +371,7 @@ func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, ad
 		}
 
 		// Assign auto joinable domains for workspace
-		if *adminAndWorkspaceDetails.AllowedAutoJoinEmailOrigins != "" {
+		if ptr.ToString(adminAndWorkspaceDetails.AllowedAutoJoinEmailOrigins) != "" {
 			if _, err := transactionR.UpdateAllowedEmailOrigins(ctx, workspace.ID, *adminAndWorkspaceDetails.AllowedAutoJoinEmailOrigins); err != nil {
 				return e.Wrap(err, "error assigning auto joinable email origins")
 			}
@@ -403,6 +409,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.LastName = &adminDetails.LastName
 	admin.Name = &fullName
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
+	admin.UserDefinedTeamSize = &adminDetails.UserDefinedTeamSize
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
 	admin.Phone = pointy.String("")
@@ -415,6 +422,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 			*admin.Email,
 			*admin.UserDefinedRole,
 			*admin.UserDefinedPersona,
+			*admin.UserDefinedTeamSize,
 			*admin.FirstName,
 			*admin.LastName,
 			*admin.Phone,
@@ -2604,7 +2612,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateErrorAlert is the resolver for the createErrorAlert field.
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int, defaultArg *bool) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2633,6 +2641,10 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 		return nil, err
 	}
 
+	if defaultArg == nil {
+		defaultArg = pointy.Bool(false)
+	}
+
 	newAlert := &model.ErrorAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
@@ -2646,6 +2658,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			Name:                 &name,
 			LastAdminToEditID:    admin.ID,
 			Frequency:            frequency,
+			Default:              *defaultArg,
 		},
 		RegexGroups: &regexGroupsString,
 		AlertIntegrations: model.AlertIntegrations{
@@ -3644,7 +3657,60 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 	if updateErr != nil {
 		return nil, updateErr
 	}
+
+	_, _ = r.Redis.ResetServiceErrorCount(ctx, projectID)
 	return service, nil
+}
+
+// CreateErrorTag is the resolver for the createErrorTag field.
+func (r *mutationResolver) CreateErrorTag(ctx context.Context, title string, description string) (*model.ErrorTag, error) {
+	return r.Resolver.CreateErrorTag(ctx, title, description)
+}
+
+// UpsertSlackChannel is the resolver for the upsertSlackChannel field.
+func (r *mutationResolver) UpsertSlackChannel(ctx context.Context, projectID int, name string) (*modelInputs.SanitizedSlackChannel, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	channel, err := r.CreateSlackChannel(project.WorkspaceID, name)
+	if err == nil {
+		return &modelInputs.SanitizedSlackChannel{
+			WebhookChannel:   &channel.WebhookChannel,
+			WebhookChannelID: &channel.WebhookChannelID,
+		}, nil
+	}
+
+	if err.Error() != "name_taken" {
+		return nil, err
+	}
+
+	channels, _, err := r.GetSlackChannelsFromSlack(ctx, project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	ch, ok := lo.Find(*channels, func(channel model.SlackChannel) bool {
+		return strings.EqualFold(channel.WebhookChannel, "#"+name)
+	})
+	if !ok {
+		return nil, e.New("failed to find conflicting slack channel")
+	}
+
+	return &modelInputs.SanitizedSlackChannel{
+		WebhookChannel:   &ch.WebhookChannel,
+		WebhookChannelID: &ch.WebhookChannelID,
+	}, nil
+}
+
+// UpsertDiscordChannel is the resolver for the upsertDiscordChannel field.
+func (r *mutationResolver) UpsertDiscordChannel(ctx context.Context, projectID int, name string) (*model.DiscordChannel, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.Resolver.UpsertDiscordChannel(project.WorkspaceID, name)
 }
 
 // Accounts is the resolver for the accounts field.
@@ -7638,6 +7704,31 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 	return &connection, err
 }
 
+// ErrorTags is the resolver for the error_tags field.
+func (r *queryResolver) ErrorTags(ctx context.Context) ([]*model.ErrorTag, error) {
+	return r.GetErrorTags()
+}
+
+// MatchErrorTag is the resolver for the match_error_tag field.
+func (r *queryResolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInputs.MatchedErrorTag, error) {
+	return r.Resolver.MatchErrorTag(ctx, query)
+}
+
+// FindSimilarErrors is the resolver for the find_similar_errors field.
+func (r *queryResolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.MatchedErrorObject, error) {
+	return r.Resolver.FindSimilarErrors(ctx, query)
+}
+
+// Traces is the resolver for the traces field.
+func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.TracesParamsInput) ([]*modelInputs.Trace, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadTraces(ctx, project.ID, params)
+}
+
 // Params is the resolver for the params field.
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
@@ -7961,6 +8052,11 @@ func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &error
 // LogAlert returns generated.LogAlertResolver implementation.
 func (r *Resolver) LogAlert() generated.LogAlertResolver { return &logAlertResolver{r} }
 
+// MatchedErrorObject returns generated.MatchedErrorObjectResolver implementation.
+func (r *Resolver) MatchedErrorObject() generated.MatchedErrorObjectResolver {
+	return &matchedErrorObjectResolver{r}
+}
+
 // MetricMonitor returns generated.MetricMonitorResolver implementation.
 func (r *Resolver) MetricMonitor() generated.MetricMonitorResolver { return &metricMonitorResolver{r} }
 
@@ -8002,6 +8098,7 @@ type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
 type logAlertResolver struct{ *Resolver }
+type matchedErrorObjectResolver struct{ *Resolver }
 type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

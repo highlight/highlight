@@ -129,6 +129,7 @@ class H(object):
         self,
         session_id: typing.Optional[str] = "",
         request_id: typing.Optional[str] = "",
+        attributes: typing.Optional[typing.Dict[str, any]] = None,
     ) -> Span:
         """
         Catch exceptions raised by your app using this context manager.
@@ -146,6 +147,7 @@ class H(object):
 
         :param session_id: the highlight session that initiated this network request.
         :param request_id: the identifier of the current network request.
+        :param attributes: additional attributes to attribute to this error.
         :return: Span
         """
         # in case the otel library is in a non-recording context, do nothing
@@ -160,12 +162,15 @@ class H(object):
             try:
                 yield span
             except Exception as e:
-                self.record_exception(e)
+                self.record_exception(e, attributes=attributes)
                 raise
 
     @staticmethod
     def record_http_error(
-        status_code: int, detail: str, headers: typing.Dict[str, str]
+        status_code: int,
+        detail: str,
+        headers: typing.Dict[str, str],
+        attributes: typing.Optional[typing.Dict[str, any]] = None,
     ) -> None:
         """
         Record an http error from your app.
@@ -193,6 +198,7 @@ class H(object):
         :param status_code: the http status code to report
         :param detail: the error status details
         :param headers: the headers of the http request
+        :param attributes: additional metadata to attribute to this error.
         :return: None
         """
         span = trace.get_current_span()
@@ -213,22 +219,25 @@ class H(object):
         # we cannot use `span.record_exception()` here because that uses `traceback.format_exc()` which
         # relies there being an exception raised. we manually `traceback.format_stack()` to get the current
         # execution stack for recording an http exception.
-        attributes = {
+        attrs = {
             "exception.type": "HTTPException",
             "exception.message": detail,
             "exception.stacktrace": "".join(traceback.format_stack()),
             "http.status_code": status_code,
         }
+        attrs.update(attributes or dict())
         for k, v in headers.items():
             if type(v) in [bool, str, bytes, int, float]:
-                attributes[f"http.headers.{k}"] = v
-        span.add_event(name="exception", attributes=attributes)
+                attrs[f"http.headers.{k}"] = v
+        span.add_event(name="exception", attributes=attrs)
         logging.exception(
             f"Highlight caught an http error (status_code={status_code}, detail={detail})"
         )
 
     @staticmethod
-    def record_exception(e: Exception) -> None:
+    def record_exception(
+        e: Exception, attributes: typing.Optional[typing.Dict[str, any]] = None
+    ) -> None:
         """
         Record arbitrary exceptions raised within your app.
 
@@ -246,12 +255,13 @@ class H(object):
 
 
         :param e: the exception to record. the contents and stacktrace will be recorded.
+        :param attributes: additional metadata to attribute to this error.
         :return: None
         """
         span = trace.get_current_span()
         if not span:
             raise RuntimeError("H.record_exception called without a span context")
-        span.record_exception(e)
+        span.record_exception(e, attributes)
         logging.exception("Highlight caught an error", exc_info=e)
 
     @property

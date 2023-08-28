@@ -1,15 +1,10 @@
 import { useAuthContext } from '@authentication/AuthContext'
-import {
-	AutoJoinEmailsInput,
-	getEmailDomain,
-} from '@components/AutoJoinEmailsInput'
 import { Button } from '@components/Button'
 import {
 	AppLoadingState,
 	useAppLoadingContext,
 } from '@context/AppLoadingContext'
 import {
-	useGetProjectsAndWorkspacesQuery,
 	useGetWorkspacesQuery,
 	useUpdateAdminAboutYouDetailsMutation,
 	useUpdateAdminAndCreateWorkspaceMutation,
@@ -25,6 +20,7 @@ import {
 } from '@highlight-run/ui'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
+import { INVITE_TEAM_ROUTE } from '@routers/AppRouter/AppRouter'
 import analytics from '@util/analytics'
 import { getAttributionData } from '@util/attribution'
 import { message } from 'antd'
@@ -38,17 +34,18 @@ import { DISMISS_JOIN_WORKSPACE_LOCAL_STORAGE_KEY } from '@/pages/Auth/JoinWorks
 import * as styles from './AdminForm.css'
 import * as authRouterStyles from './AuthRouter.css'
 
-const COMMON_EMAIL_PROVIDERS = [
-	'gmail',
-	'yahoo',
-	'hotmail',
-	'fastmail',
-	'protonmail',
-	'hey.com',
-] as const
+enum TeamSize {
+	One = '1',
+	Two = '2',
+	Ten = '3-10',
+	Thirty = '11-30',
+	Fifty = '31-50',
+	Hundred = '51-100',
+	FiveHundred = '101-500',
+	Thousand = '501-1000+',
+}
 
 export const AdminForm: React.FC = () => {
-	const { refetch: refetchProjects } = useGetProjectsAndWorkspacesQuery()
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
 	const { setLoadingState } = useAppLoadingContext()
 	const { admin, fetchAdmin } = useAuthContext()
@@ -64,7 +61,7 @@ export const AdminForm: React.FC = () => {
 	)
 
 	if (admin?.about_you_details_filled) {
-		navigate('/setup')
+		navigate(INVITE_TEAM_ROUTE)
 	}
 
 	if (
@@ -75,11 +72,6 @@ export const AdminForm: React.FC = () => {
 		navigate('/join_workspace', { replace: true })
 	}
 
-	const adminEmailDomain = getEmailDomain(admin?.email)
-	const isCommonEmailDomain = COMMON_EMAIL_PROVIDERS.some(
-		(p) => adminEmailDomain.indexOf(p) !== -1,
-	)
-
 	const workspace = workspacesData?.workspaces && workspacesData.workspaces[0]
 	const inWorkspace = !!workspace
 
@@ -89,8 +81,8 @@ export const AdminForm: React.FC = () => {
 			lastName: '',
 			role: '',
 			companyName: '',
-			autoJoinDomains: '',
 			promoCode: '',
+			teamSize: '',
 		},
 	})
 
@@ -127,6 +119,7 @@ export const AdminForm: React.FC = () => {
 							last_name: formState.values.lastName,
 							user_defined_role: formState.values.role,
 							user_defined_persona: '',
+							user_defined_team_size: formState.values.teamSize,
 							referral: attributionData.referral,
 						},
 					},
@@ -142,9 +135,8 @@ export const AdminForm: React.FC = () => {
 							first_name: formState.values.firstName,
 							last_name: formState.values.lastName,
 							user_defined_role: formState.values.role,
+							user_defined_team_size: formState.values.teamSize,
 							workspace_name: formState.values.companyName,
-							allowed_auto_join_email_origins:
-								formState.values.autoJoinDomains,
 							promo_code: formState.values.promoCode || undefined,
 							referral: attributionData.referral,
 						},
@@ -156,15 +148,8 @@ export const AdminForm: React.FC = () => {
 				`Nice to meet you ${formState.values.firstName}, let's get started!`,
 			)
 
-			const projects = await refetchProjects()
 			await fetchAdmin() // updates admin in auth context
-
-			if (projects.data?.projects?.length) {
-				const projectId = projects.data?.projects[0]?.id
-				navigate(`/${projectId}/setup`)
-			} else {
-				navigate('/setup')
-			}
+			navigate(INVITE_TEAM_ROUTE)
 		} catch (e: any) {
 			if (import.meta.env.DEV) {
 				console.error(e)
@@ -210,17 +195,26 @@ export const AdminForm: React.FC = () => {
 				</AuthHeader>
 				<AuthBody>
 					<Stack gap="12">
-						<Form.Input
-							name={formState.names.firstName}
-							label="First Name"
-							autoFocus
-							required
-						/>
-						<Form.Input
-							name={formState.names.lastName}
-							label="Last Name"
-							required
-						/>
+						<Form.NamedSection
+							label="Your Name"
+							name={formState.names.role}
+						>
+							<Stack gap="0">
+								<Form.Input
+									name={formState.names.firstName}
+									placeholder="First Name"
+									autoFocus
+									required
+									rounded="first"
+								/>
+								<Form.Input
+									name={formState.names.lastName}
+									placeholder="Last Name"
+									required
+									rounded="last"
+								/>
+							</Stack>
+						</Form.NamedSection>
 						<Form.Input
 							name={formState.names.companyName}
 							label="Company"
@@ -232,8 +226,9 @@ export const AdminForm: React.FC = () => {
 							name={formState.names.role}
 							optional
 						>
-							<select
+							<Form.Select
 								className={styles.select}
+								name={formState.names.role.toString()}
 								value={formState.values.role}
 								onChange={(e) =>
 									formState.setValue(
@@ -248,20 +243,31 @@ export const AdminForm: React.FC = () => {
 								<option value="Product">Product</option>
 								<option value="Engineer">Engineering</option>
 								<option value="Founder">Founder</option>
-							</select>
+							</Form.Select>
 						</Form.NamedSection>
-						{!isCommonEmailDomain && !inWorkspace && (
-							<Box mt="4">
-								<AutoJoinEmailsInput
-									onChange={(domains) =>
-										formState.setValue(
-											formState.names.autoJoinDomains,
-											domains.join(', '),
-										)
-									}
-								/>
-							</Box>
-						)}
+						<Form.NamedSection
+							label="Team Size"
+							name={formState.names.teamSize}
+							optional
+						>
+							<Form.Select
+								className={styles.select}
+								name={formState.names.teamSize.toString()}
+								value={formState.values.teamSize}
+								onChange={(e) =>
+									formState.setValue(
+										formState.names.teamSize,
+										e.target.value,
+									)
+								}
+							>
+								{Object.entries(TeamSize).map(([k, v]) => (
+									<option value={k} key={k}>
+										{v}
+									</option>
+								))}
+							</Form.Select>
+						</Form.NamedSection>
 						{!inWorkspace &&
 							(showPromoCodeField ? (
 								<Form.Input

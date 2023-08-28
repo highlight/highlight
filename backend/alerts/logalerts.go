@@ -24,6 +24,11 @@ func BuildLogAlert(project *model.Project, workspace *model.Workspace, admin *mo
 		return nil, err
 	}
 
+	defaultArg := input.Default
+	if defaultArg == nil {
+		defaultArg = pointy.Bool(true)
+	}
+
 	return &model.LogAlert{
 		Alert: model.Alert{
 			ProjectID:            input.ProjectID,
@@ -37,6 +42,7 @@ func BuildLogAlert(project *model.Project, workspace *model.Workspace, admin *mo
 			Name:                 &input.Name,
 			LastAdminToEditID:    admin.ID,
 			Disabled:             &input.Disabled,
+			Default:              *defaultArg,
 			Frequency:            input.ThresholdWindow,
 		},
 		BelowThreshold: input.BelowThreshold,

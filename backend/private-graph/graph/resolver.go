@@ -3,10 +3,10 @@ package graph
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 	"io"
 	"math/big"
 	"net/http"
@@ -15,6 +15,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/bwmarrin/discordgo"
+	hubspotApi "github.com/highlight-run/highlight/backend/hubspot"
 
 	github2 "github.com/google/go-github/v50/github"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -62,6 +65,7 @@ import (
 	"github.com/highlight-run/workerpool"
 
 	Email "github.com/highlight-run/highlight/backend/email"
+	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/pricing"
@@ -143,6 +147,7 @@ type Resolver struct {
 	Store                  *store.Store
 	DataSyncQueue          kafka_queue.MessageQueue
 	TracesQueue            kafka_queue.MessageQueue
+	EmbeddingsClient       embeddings.Client
 }
 
 func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) error {
@@ -1323,7 +1328,7 @@ func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session
 	- Insights must be different to each other
 	- Do not mention identification or authentication events
 	- Don't mention timestamps in <insight>, insights should be interesting inferences from the input
-	- Output timestamp that best represents the insight in <timestamp> of output
+	- Output timestamp that best represents the insight in <timestamp> of output	
 	- Sort the insights by timestamp
 
 	You must respond ONLY with JSON that looks like this:
@@ -3272,6 +3277,65 @@ func (r *Resolver) GetSlackChannelsFromSlack(ctx context.Context, workspaceId in
 	}
 	return &res.ExistingChannels, res.NewChannelsCount, err
 }
+func (r *Resolver) CreateSlackChannel(workspaceId int, name string) (*model.SlackChannel, error) {
+	workspace, _ := r.GetWorkspace(workspaceId)
+	// workspace is not integrated with slack
+	if workspace.SlackAccessToken == nil {
+		return nil, e.New("no slack access token provided")
+	}
+
+	slackClient := slack.New(*workspace.SlackAccessToken)
+	channel, err := slackClient.CreateConversation(name, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.SlackChannel{
+		WebhookChannel:   channel.Name,
+		WebhookChannelID: channel.ID,
+	}, nil
+}
+
+func (r *Resolver) UpsertDiscordChannel(workspaceId int, name string) (*model.DiscordChannel, error) {
+	workspace, err := r.GetWorkspace(workspaceId)
+	if err != nil {
+		return nil, err
+	}
+
+	guildId := workspace.DiscordGuildId
+	if guildId == nil {
+		return nil, nil
+	}
+
+	bot, err := discord.NewDiscordBot(*guildId)
+	if err != nil {
+		return nil, err
+	}
+
+	channels, err := bot.GetChannels()
+	if err != nil {
+		return nil, err
+	}
+
+	if channel, has := lo.Find(channels, func(item *discordgo.Channel) bool {
+		return strings.EqualFold(item.Name, name)
+	}); has {
+		return &model.DiscordChannel{
+			Name: channel.Name,
+			ID:   channel.ID,
+		}, nil
+	}
+
+	channel, err := bot.CreateChannel(name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.DiscordChannel{
+		Name: channel.Name,
+		ID:   channel.ID,
+	}, nil
+}
 
 func GetAggregateFluxStatement(ctx context.Context, aggregator modelInputs.MetricAggregator, resMins int) string {
 	fn := "mean"
@@ -3664,4 +3728,79 @@ func IsOptOutTokenValid(adminID int, token string) bool {
 
 	// If the token matches the prior month's, it's valid
 	return token == Email.GetOptOutToken(adminID, true)
+}
+
+func (r *Resolver) CreateErrorTag(ctx context.Context, title string, description string) (*model.ErrorTag, error) {
+	errorTag, err := r.EmbeddingsClient.GetErrorTagEmbedding(ctx, title, description)
+
+	if err != nil {
+		log.WithContext(ctx).Error(err, "CreateErrorTag: Error creating tag embedding")
+		return nil, err
+	}
+
+	if err := r.DB.Create(errorTag).Error; err != nil {
+		log.WithContext(ctx).Error(err, "CreateErrorTag: Error creating tag")
+		return nil, err
+	}
+
+	return errorTag, nil
+}
+
+func (r *Resolver) GetErrorTags() ([]*model.ErrorTag, error) {
+	var errorTags []*model.ErrorTag
+
+	if err := r.DB.Model(errorTags).Scan(&errorTags).Error; err != nil {
+		return nil, e.Wrap(err, "500: error querying error tags")
+	}
+
+	return errorTags, nil
+}
+
+func (r *Resolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInputs.MatchedErrorTag, error) {
+	stringEmbedding, err := r.EmbeddingsClient.GetStringEmbedding(ctx, query)
+
+	if err != nil {
+		return nil, e.Wrap(err, "500: failed to get string embedding")
+	}
+
+	var matchedErrorTags []*modelInputs.MatchedErrorTag
+	if err := r.DB.Raw(`
+		select error_tags.embedding <-> @string_embedding as score,
+					error_tags.id as id,
+					error_tags.title as title,
+					error_tags.description as description
+		from error_tags
+		order by score
+		limit 5;
+	`, sql.Named("string_embedding", model.Vector(stringEmbedding))).
+		Scan(&matchedErrorTags).Error; err != nil {
+		return nil, e.Wrap(err, "error querying nearest ErrorTag")
+	}
+
+	return matchedErrorTags, nil
+}
+
+func (r *Resolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.MatchedErrorObject, error) {
+	stringEmbedding, err := r.EmbeddingsClient.GetStringEmbedding(ctx, query)
+
+	if err != nil {
+		return nil, e.Wrap(err, "500: failed to get string embedding")
+	}
+
+	var matchedErrorObjects []*model.MatchedErrorObject
+	if err := r.DB.Raw(`
+		select distinct on (1, error_group_id) eoep.gte_large_embedding <-> @string_embedding as score,
+											   eo.*
+		from error_object_embeddings_partitioned eoep
+				 inner join error_objects eo on eoep.error_object_id = eo.id
+		where eoep.gte_large_embedding is not null
+		  and eoep.project_id = 1
+		order by 1
+		limit 10;
+	`, sql.Named("string_embedding", model.Vector(stringEmbedding))).
+		Scan(&matchedErrorObjects).Error; err != nil {
+		return matchedErrorObjects, e.Wrap(err, "error querying nearest ErrorTag")
+	}
+
+	return matchedErrorObjects, nil
 }
