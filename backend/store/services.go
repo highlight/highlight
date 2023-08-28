@@ -130,15 +130,14 @@ func (store *Store) ListServices(project model.Project, params ListServicesParam
 		edge := &privateModel.ServiceEdge{
 			Cursor: strconv.Itoa(service.ID),
 			Node: &privateModel.ServiceNode{
-				ID:              service.ID,
-				ProjectID:       service.ProjectID,
-				Name:            service.Name,
-				Status:          service.Status,
-				GithubRepoPath:  service.GithubRepoPath,
-				BuildPrefix:     service.BuildPrefix,
-				GithubPrefix:    service.GithubPrefix,
-				LastSeenVersion: service.LastSeenVersion,
-				ErrorDetails:    service.ErrorDetails,
+				ID:             service.ID,
+				ProjectID:      service.ProjectID,
+				Name:           service.Name,
+				Status:         service.Status,
+				GithubRepoPath: service.GithubRepoPath,
+				BuildPrefix:    service.BuildPrefix,
+				GithubPrefix:   service.GithubPrefix,
+				ErrorDetails:   service.ErrorDetails,
 			},
 		}
 
