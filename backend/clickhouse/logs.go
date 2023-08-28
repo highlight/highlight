@@ -596,16 +596,27 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 
 	conditions := []string{}
 	for key, values := range filters.attributes {
-		for _, value := range values {
+		if len(values) == 1 {
+			value := values[0]
 			if strings.Contains(value, "%") {
 				conditions = append(conditions, sb.Var(sqlbuilder.Buildf("LogAttributes[%s] LIKE %s", key, value)))
 			} else {
 				conditions = append(conditions, sb.Var(sqlbuilder.Buildf("LogAttributes[%s] = %s", key, value)))
 			}
+		} else {
+			innerConditions := []string{}
+			for _, value := range values {
+				if strings.Contains(value, "%") {
+					innerConditions = append(innerConditions, sb.Var(sqlbuilder.Buildf("LogAttributes[%s] LIKE %s", key, value)))
+				} else {
+					innerConditions = append(innerConditions, sb.Var(sqlbuilder.Buildf("LogAttributes[%s] = %s", key, value)))
+				}
+			}
+			conditions = append(conditions, sb.Or(innerConditions...))
 		}
 	}
 	if len(conditions) > 0 {
-		sb.Where(sb.Or(conditions...))
+		sb.Where(sb.And(conditions...))
 	}
 
 	return sb, nil

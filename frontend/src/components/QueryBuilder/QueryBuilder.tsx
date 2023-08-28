@@ -48,6 +48,7 @@ import clsx, { ClassValue } from 'clsx'
 import { isEqual } from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { components } from 'react-select'
 import AsyncSelect from 'react-select/async'
 import Creatable from 'react-select/creatable'
@@ -1262,7 +1263,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		project_id: string
 	}>()
 
+	const location = useLocation()
+	const isOnErrorsPage = location.pathname.includes('errors')
+
 	const { isHighlightAdmin } = useAuthContext()
+
 	const [useClickhouse] = useLocalStorage(
 		'highlight-session-search-use-clickhouse-v2',
 		isHighlightAdmin || Number(projectId) % 2 == 0,
@@ -1883,10 +1888,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 					}}
 				/>
 				<Box marginLeft="auto" display="flex" gap="4">
-					<DropdownMenu
-						sessionCount={searchResultsCount || 0}
-						sessionQuery={backendSearchQuery?.searchQuery || ''}
-					/>
+					{!isOnErrorsPage && (
+						<DropdownMenu
+							sessionCount={searchResultsCount || 0}
+							sessionQuery={backendSearchQuery?.searchQuery || ''}
+						/>
+					)}
 
 					<ButtonIcon
 						kind="secondary"
@@ -1906,6 +1913,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		updateRule,
 		timeRangeRule,
 		setShowLeftPanel,
+		isOnErrorsPage,
 	])
 
 	const alteredSegmentSettings = useMemo(() => {
