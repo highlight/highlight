@@ -120,6 +120,8 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 			}
 		}
 	}
+	k.messages = []*kafkaqueue.Message{}
+
 	readSpan.SetTag("MaxIngestDelay", time.Since(oldestMsg))
 	readSpan.Finish()
 
@@ -148,7 +150,6 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	if lastMsg != nil {
 		k.KafkaQueue.Commit(cCtx, lastMsg.KafkaMessage)
 	}
-	k.lastMessage = nil
 	commitSpan.Finish()
 
 	return nil
@@ -399,11 +400,8 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 
 			k.messages = append(k.messages, task)
 
-			if k.lastMessage != nil && time.Since(*k.lastMessage) > k.BatchedFlushTimeout ||
-				len(k.messages) >= k.BatchFlushSize {
-				if k.lastMessage != nil {
-					s.SetTag("OldestMessage", time.Since(*k.lastMessage))
-				}
+			if time.Since(k.lastFlush) > k.BatchedFlushTimeout || len(k.messages) >= k.BatchFlushSize {
+				s.SetTag("FlushDelay", time.Since(k.lastFlush))
 
 				for i := 0; i <= kafkaqueue.TaskRetries; i++ {
 					if err := k.flush(ctx); err != nil {
@@ -412,10 +410,7 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 						break
 					}
 				}
-			}
-			if k.lastMessage == nil {
-				t := time.Now()
-				k.lastMessage = &t
+				k.lastFlush = time.Now()
 			}
 		}()
 	}
@@ -429,6 +424,6 @@ type KafkaBatchWorker struct {
 	BatchedFlushTimeout time.Duration
 	Name                string
 
-	lastMessage *time.Time
-	messages    []*kafkaqueue.Message
+	lastFlush time.Time
+	messages  []*kafkaqueue.Message
 }
