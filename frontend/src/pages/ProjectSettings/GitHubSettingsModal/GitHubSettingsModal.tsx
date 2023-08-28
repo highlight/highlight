@@ -6,13 +6,16 @@ import {
 	Box,
 	ButtonIcon,
 	Form,
+	IconSolidInformationCircle,
+	IconSolidQuestionMarkCircle,
 	IconSolidTrash,
 	IconSolidX,
 	Stack,
 	Text,
 	TextLink,
+	Tooltip,
+	vars,
 } from '@highlight-run/ui'
-import { vars } from '@highlight-run/ui/src/css/vars'
 import { Select } from 'antd'
 import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
@@ -220,11 +223,48 @@ const GithubSettingsForm = ({
 								name={form.names.buildPrefix}
 								label="Build path prefix"
 								placeholder="/build"
+								icon={
+									<Tooltip
+										trigger={
+											<IconSolidQuestionMarkCircle
+												color={
+													vars.theme.static.content
+														.weak
+												}
+												size={14}
+											/>
+										}
+										renderInLine
+									>
+										The path added in the deployment process
+										to host your files, and should be
+										removed when trying to map your files to
+										GitHub.
+									</Tooltip>
+								}
 							/>
 							<Form.Input
 								name={form.names.githubPrefix}
 								label="GitHub path prefix"
 								placeholder="/src"
+								icon={
+									<Tooltip
+										trigger={
+											<IconSolidQuestionMarkCircle
+												color={
+													vars.theme.static.content
+														.weak
+												}
+												size={14}
+											/>
+										}
+										renderInLine
+									>
+										The path removed in the deployment
+										process to host your files, which can be
+										seen in your GitHub repo.
+									</Tooltip>
+								}
 							/>
 						</Box>
 
@@ -234,6 +274,17 @@ const GithubSettingsForm = ({
 							gap="4"
 							cssClass={styles.example}
 						>
+							<Tooltip
+								trigger={
+									<IconSolidInformationCircle
+										color={vars.theme.static.content.weak}
+										size={14}
+									/>
+								}
+								renderInLine
+							>
+								An example using the configuration provided.
+							</Tooltip>
 							<Text break="all">
 								e.g. <i>{form.values.buildPrefix}/README.md</i>{' '}
 								→{' '}
