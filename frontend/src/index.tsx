@@ -108,6 +108,7 @@ const options: HighlightOptions = {
 	inlineImages: true,
 	sessionShortcut: 'alt+1,command+`,alt+esc',
 	version: import.meta.env.REACT_APP_COMMIT_SHA || undefined,
+	serviceName: 'frontend',
 }
 const favicon = document.querySelector("link[rel~='icon']") as any
 if (dev) {

@@ -110,10 +110,10 @@ export type HighlightClassOptions = {
 	firstloadVersion?: string
 	environment?: 'development' | 'production' | 'staging' | string
 	appVersion?: string
+	serviceName?: string
 	sessionShortcut?: SessionShortcutOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 	storageMode?: 'sessionStorage' | 'localStorage'
-	serviceName?: string
 }
 
 /**

@@ -78,6 +78,10 @@ quickstart: true
       <p>API key used to link to your Highlight project when uploading source maps. This can also be set through the HIGHLIGHT_SOURCEMAP_UPLOAD_API_KEY environment variable.</p>
     </aside>
     <aside className="parameter">
+      <h5>serviceName <code>string</code> <code>optional</code></h5>
+      <p>Name of your app.</p>
+    </aside>
+    <aside className="parameter">
       <h5>appVersion <code>string</code> <code>optional</code></h5>
       <p>App version used when uploading source maps.</p>
     </aside>

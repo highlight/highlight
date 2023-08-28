@@ -50,6 +50,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 				ClientConfig:                   clientConfig,
 				Environment:                    environment,
 				AppVersion:                     appVersion,
+				ServiceName:                    *serviceName,
 				Fingerprint:                    fingerprint,
 				UserAgent:                      userAgentString,
 				AcceptLanguage:                 acceptLanguageString,
