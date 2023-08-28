@@ -54,10 +54,16 @@
 
 .titleText {
 	color: var(--static-content-strong, #1A1523);
+	font-size: 0.8125rem;
 	font-weight: 600;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	line-height: 2rem;
+}
+
+.titleDescription {
+	font-size: 0.8125rem;
 }
 
 .searchTableHead {

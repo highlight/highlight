@@ -69,6 +69,14 @@ export function ErrorTagsSearch() {
 					<IconSolidCode />
 					<Text>Imported error text</Text>
 				</Box>
+				<Box
+					style={{
+						fontSize: '0.8125rem',
+						marginTop: '0.75rem',
+					}}
+				>
+					{query}
+				</Box>
 			</Box>
 
 			<Box>
@@ -101,7 +109,13 @@ export function ErrorTagsSearch() {
 											{tag?.title}
 										</Text>
 									</Table.Cell>
-									<Table.Cell>{tag?.description}</Table.Cell>
+									<Table.Cell>
+										<Text
+											cssClass={styles.titleDescription}
+										>
+											{tag?.description}
+										</Text>
+									</Table.Cell>
 									<Table.Cell>
 										<Score score={tag?.score} />
 									</Table.Cell>
@@ -140,7 +154,11 @@ export function ErrorTagsSearch() {
 										</Text>
 									</Table.Cell>
 									<Table.Cell>
-										{error?.stack_trace}
+										<Text
+											cssClass={styles.titleDescription}
+										>
+											{error?.stack_trace}
+										</Text>
 									</Table.Cell>
 									<Table.Cell>
 										<Score score={error?.score} />
