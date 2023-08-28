@@ -78,6 +78,7 @@ const getDefaultOpts = async (
 		configureHighlightProxy: highlightOpts?.configureHighlightProxy ?? true,
 		apiKey: highlightOpts?.apiKey ?? '',
 		appVersion: highlightOpts?.appVersion ?? version ?? '',
+		serviceName: highlightOpts?.serviceName ?? '',
 		sourceMapsPath: highlightOpts?.sourceMapsPath ?? '.next/',
 		sourceMapsBasePath: highlightOpts?.sourceMapsBasePath ?? '_next/',
 	}
