@@ -1,8 +1,8 @@
 import { Button } from '@components/Button'
 import { useSlackBot } from '@components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
+import LoadingBox from '@components/LoadingBox'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
-import Select from '@components/Select/Select'
 import {
 	useCreateErrorAlertMutation,
 	useCreateLogAlertMutation,
@@ -16,6 +16,8 @@ import { SessionAlertType } from '@graph/schemas'
 import {
 	Badge,
 	Box,
+	Form,
+	IconSolidCheck,
 	IconSolidCheveronRight,
 	IconSolidDiscord,
 	IconSolidNewspaper,
@@ -24,6 +26,7 @@ import {
 	Tag,
 	Text,
 	TextLink,
+	useFormState,
 	vars,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -31,13 +34,13 @@ import { getDiscordOauthUrl } from '@pages/IntegrationsPage/components/DiscordIn
 import { Header } from '@pages/Setup/Header'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
+import { message } from 'antd'
 import * as React from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useMatch, useNavigate } from 'react-router-dom'
 
 import Switch from '@/components/Switch/Switch'
-
-import * as styles from './SetupRouter.css'
+import { LocalStorageIntegrationData } from '@/util/integrated'
 
 interface NotificationOption {
 	name: 'Slack' | 'Discord' | 'Email'
@@ -59,13 +62,7 @@ const notificationOptions: NotificationOption[] = [
 	},
 	{
 		name: 'Discord',
-		logo: (
-			<IconSolidDiscord
-				height={16}
-				width={16}
-				fill={vars.theme.static.content.default}
-			/>
-		),
+		logo: <IconSolidDiscord height={16} width={16} />,
 		logoDisabled: (
 			<IconSolidDiscord
 				height={16}
@@ -112,12 +109,29 @@ const alertOptions: AlertOption[] = [
 ]
 
 export const AlertsSetup: React.FC = function () {
+	const { projectId } = useProjectId()
+	const [alertsSetup] = useLocalStorage<LocalStorageIntegrationData>(
+		`highlight-${projectId}-alerts-integration`,
+	)
+	const [hidden, setHidden] = useState<boolean>()
 	const platformMatch = useMatch('/:project_id/setup/alerts/:platform')
 	const platform = platformMatch?.params?.platform as
 		| 'slack'
 		| 'discord'
 		| 'email'
 		| undefined
+
+	// cache the state of the alerts setup so that we only decide
+	// to not show the flow if the setup wasn't completed from the start
+	useEffect(() => {
+		if (hidden === undefined) {
+			setHidden(alertsSetup?.integrated)
+		}
+	}, [alertsSetup, hidden])
+
+	if (hidden) {
+		return null
+	}
 
 	return (
 		<Box>
@@ -147,13 +161,6 @@ const PlatformPicker: React.FC = function () {
 	const { data, loading } = useGetAlertsPagePayloadQuery({
 		variables: { project_id: projectId },
 	})
-	const emails = (data?.admins ?? [])
-		.map((wa) => wa.admin!.email)
-		.map((email) => ({
-			displayValue: email,
-			value: email,
-			id: email,
-		}))
 
 	useEffect(() => {
 		if (
@@ -172,15 +179,14 @@ const PlatformPicker: React.FC = function () {
 		clearIntegratePlatform,
 	])
 
-	if (loading) return null
+	if (loading) return <LoadingBox width={111} />
 	return (
 		<>
 			{integratePlatform === 'email' ? (
 				<EmailPicker
-					emails={emails}
-					onSubmit={(emails) => {
+					onSubmit={(email) => {
 						clearIntegratePlatform()
-						navigate(integratePlatform, { state: { emails } })
+						navigate(integratePlatform, { state: { email } })
 					}}
 					onCancel={() => clearIntegratePlatform()}
 				/>
@@ -228,15 +234,38 @@ const PlatformPicker: React.FC = function () {
 								{option.name as string}
 							</Text>
 						</Stack>
-						<Button
-							onClick={() =>
-								setIntegratePlatform(option.name.toLowerCase())
-							}
-							trackingId={`setup-option-${option.name}`}
-							kind="secondary"
-						>
-							Select
-						</Button>
+						<Box display="flex" alignItems="center" gap="8">
+							{(option.name === 'Slack' &&
+								data?.is_integrated_with_slack) ||
+							(option.name === 'Discord' &&
+								data?.is_integrated_with_discord) ? (
+								<Badge
+									size="medium"
+									variant="purple"
+									label="Connected"
+									iconStart={<IconSolidCheck />}
+								/>
+							) : null}
+							<Button
+								onClick={() =>
+									setIntegratePlatform(
+										option.name.toLowerCase(),
+									)
+								}
+								trackingId={`setup-option-${option.name}`}
+								kind="secondary"
+							>
+								{option.name === 'Slack'
+									? data?.is_integrated_with_slack
+										? 'Continue'
+										: 'Connect'
+									: option.name === 'Discord'
+									? data?.is_integrated_with_discord
+										? 'Continue'
+										: 'Connect'
+									: 'Continue'}
+							</Button>
+						</Box>
 					</Box>
 				)
 			})}
@@ -249,16 +278,17 @@ const AlertPicker = function ({
 }: {
 	platform: 'slack' | 'discord' | 'email'
 }) {
+	const { projectId } = useProjectId()
+	const createLoading = useRef<boolean>(false)
 	const alertsCreated = useRef<Set<'Session' | 'Error' | 'Log'>>(
 		new Set<'Session' | 'Error' | 'Log'>(),
 	)
-	const { projectId } = useProjectId()
 	const location = useLocation()
 	const notificationOption = notificationOptions.find(
 		(n) => n.name.toLowerCase() === platform,
 	)
-	const emailDestinations =
-		platform === 'email' ? location.state.emails : undefined
+	const emailDestination =
+		platform === 'email' ? (location.state.email as string) : undefined
 
 	const [alertsSelected, onAlertsSelected] = React.useState<
 		('Session' | 'Error' | 'Log')[]
@@ -330,7 +360,7 @@ const AlertPicker = function ({
 				platform,
 				destination,
 				channelID,
-				emailDestinations,
+				emailDestination,
 				projectId,
 			})
 
@@ -355,7 +385,7 @@ const AlertPicker = function ({
 								},
 						  ]
 						: [],
-				emails: emailDestinations ?? [],
+				emails: emailDestination ? [emailDestination] : [],
 				environments: [],
 				webhook_destinations: [],
 				default: true,
@@ -418,7 +448,7 @@ const AlertPicker = function ({
 		createErrorAlert,
 		createLogAlert,
 		createSessionAlert,
-		emailDestinations,
+		emailDestination,
 		hasDefaultErrorAlert,
 		hasDefaultLogAlert,
 		hasDefaultSessionAlert,
@@ -428,11 +458,23 @@ const AlertPicker = function ({
 		upsertSlackChannel,
 	])
 
-	useEffect(() => {
-		createAlerts().then()
-	}, [createAlerts])
+	const onSave = useCallback(async () => {
+		try {
+			createLoading.current = true
+			await createAlerts()
+			message.success(
+				`${alertsSelected.length} alert${
+					alertsSelected.length > 1 ? 's' : ''
+				} updated!`,
+			)
+		} catch (e) {
+			message.error(`An error occurred creating alerts.`)
+		} finally {
+			createLoading.current = false
+		}
+	}, [alertsSelected.length, createAlerts])
 
-	if (loading) return null
+	if (loading) return <LoadingBox width={111} />
 	return (
 		<Stack gap="0">
 			{alertOptions.map((option, index) => {
@@ -499,8 +541,8 @@ const AlertPicker = function ({
 										-1
 									}
 								>
-									{emailDestinations
-										? emailDestinations.join(', ')
+									{emailDestination
+										? emailDestination
 										: option.destination}
 								</Tag>
 								<Badge
@@ -515,25 +557,40 @@ const AlertPicker = function ({
 				)
 			})}
 
-			<Box
-				mt="8"
-				alignItems="center"
-				display="flex"
-				gap="4"
-				color="weak"
-				flexWrap="nowrap"
-			>
-				<Text size="medium" color="moderate" lines="1">
-					We've prefilled the alert configurations based on typical
-					use-cases.{' '}
-				</Text>
-				<TextLink href="/alerts">
-					<Box alignItems="center" display="flex" gap="2">
-						<Text size="medium">Go to alerts</Text>
-						<IconSolidCheveronRight />
-					</Box>
-				</TextLink>
-			</Box>
+			<Stack gap="4" mt="24">
+				<Box>
+					<Button
+						trackingId="save-alerts"
+						kind="primary"
+						size="small"
+						emphasis="high"
+						iconRight={<IconSolidCheveronRight />}
+						loading={createLoading.current}
+						disabled={createLoading.current}
+						onClick={onSave}
+					>
+						Save & continue
+					</Button>
+				</Box>
+				<Box
+					alignItems="center"
+					display="flex"
+					gap="4"
+					color="weak"
+					flexWrap="nowrap"
+				>
+					<Text size="medium" color="moderate" lines="1">
+						We've prefilled the alert configurations based on
+						typical use-cases.{' '}
+					</Text>
+					<TextLink href="/alerts">
+						<Box alignItems="center" display="flex" gap="2">
+							<Text size="medium">Go to alerts</Text>
+							<IconSolidCheveronRight />
+						</Box>
+					</TextLink>
+				</Box>
+			</Stack>
 		</Stack>
 	)
 }
@@ -557,7 +614,13 @@ const IntegrationCallout = function ({
 			  )
 	const icon = notificationOptions.find((n) => n.name === name)?.logo
 	return (
-		<Modal onCancel={onCancel} visible={true} width="600px">
+		<Modal
+			onCancel={onCancel}
+			visible={true}
+			width="360px"
+			minimal
+			minimalPaddingSize="12px"
+		>
 			<ModalBody>
 				<Stack>
 					<Text size="large" weight="bold">
@@ -597,67 +660,76 @@ const IntegrationCallout = function ({
 }
 
 const EmailPicker = function ({
-	emails,
 	onSubmit,
 	onCancel,
 }: {
-	emails: { displayValue: string; value: string; id: string }[]
-	onSubmit: (emails: string[]) => void
+	onSubmit: (email: string) => void
 	onCancel: () => void
 }) {
-	const [targetEmails, setTargetEmails] = useState<string[]>([])
-	const icon = notificationOptions.find((n) => n.name === 'Email')?.logo
+	const formState = useFormState({
+		defaultValues: {
+			email: '',
+		},
+	})
+	formState.useSubmit(async () => {
+		onSubmit(formState.values.email)
+	})
 	return (
-		<Modal onCancel={onCancel} visible={true} width="600px">
+		<Modal
+			onCancel={onCancel}
+			visible={true}
+			width="360px"
+			minimal
+			minimalPaddingSize="12px"
+		>
 			<ModalBody>
-				<Stack>
+				<Stack gap="8">
 					<Text size="large" weight="bold">
 						Send alerts to an email
 					</Text>
 					<Text size="medium" color="moderate">
-						Please provide the emails you'd like to notify.
+						In order to send alerts to an email, please type in your
+						preferred email address.
 					</Text>
-					<Box
-						display="flex"
-						justifyContent="space-between"
-						alignItems="center"
-						gap="8"
-					>
-						<Select
-							size="small"
-							aria-label="Emails to notify"
-							placeholder="Select emails"
-							options={emails}
-							onChange={(values: string[]): any =>
-								setTargetEmails(values)
-							}
-							value={targetEmails}
-							notFoundContent={<p>No email suggestions</p>}
-							className={styles.selectContainer}
-							mode="multiple"
-						/>
-						<Box display="flex" alignItems="center" gap="8">
-							<Button
-								trackingId="setup-alerts-integration-email"
-								kind="secondary"
-								size="medium"
-								emphasis="high"
-								iconLeft={icon}
-								onClick={() => onSubmit(targetEmails)}
+					<Form state={formState}>
+						<Stack gap="8">
+							<Box
+								display="flex"
+								justifyContent="space-between"
+								alignItems="center"
+								gap="8"
 							>
-								Select
-							</Button>
-							<Button
-								trackingId="setup-alerts-integration-email-cancel"
-								kind="secondary"
-								size="medium"
-								emphasis="low"
-								onClick={onCancel}
-							>
-								Cancel
-							</Button>
-						</Box>
-					</Box>
+								<Form.Input
+									placeholder="Enter email"
+									type="email"
+									autoComplete="email"
+									autoFocus
+									required
+									name={formState.names.email}
+								/>
+							</Box>
+							<Box display="flex" alignItems="center" gap="8">
+								<Button
+									type="submit"
+									trackingId="setup-alerts-integration-email"
+									size="small"
+									kind="primary"
+									emphasis="high"
+								>
+									Select
+								</Button>
+								<Button
+									trackingId="setup-alerts-integration-email-cancel"
+									size="small"
+									kind="secondary"
+									emphasis="low"
+									onClick={onCancel}
+								>
+									Cancel
+								</Button>
+							</Box>
+						</Stack>
+					</Form>
 				</Stack>
 			</ModalBody>
 		</Modal>

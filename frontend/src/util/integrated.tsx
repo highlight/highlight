@@ -3,7 +3,9 @@ import {
 	useGetAlertsPagePayloadQuery,
 	useGetClientIntegrationQuery,
 	useGetLogsIntegrationQuery,
+	useGetProjectQuery,
 	useGetServerIntegrationQuery,
+	useGetWorkspaceAdminsQuery,
 	useIsIntegratedLazyQuery,
 } from '@graph/hooks'
 import { useNumericProjectId } from '@hooks/useProjectId'
@@ -97,7 +99,7 @@ export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
 	return { integrated: integrated || false, loading: loadingState }
 }
 
-type LocalStorageIntegrationData = {
+export type LocalStorageIntegrationData = {
 	loading: boolean
 } & IntegrationStatus
 
@@ -329,12 +331,54 @@ export const useAlertsIntegration = () => {
 }
 
 export const useTeamIntegration = () => {
+	const { isLoggedIn } = useAuthContext()
 	const { projectId } = useNumericProjectId()
-	const [localStorageIntegrated] = useIntegratedLocalStorage(
-		projectId!,
-		'team',
-	)
+	const [localStorageIntegrated, setLocalStorageIntegrated] =
+		useIntegratedLocalStorage(projectId!, 'team')
+	const { data: projectData } = useGetProjectQuery({
+		variables: { id: projectId ?? '' },
+		skip: !projectId,
+	})
+	const { data, startPolling, stopPolling } = useGetWorkspaceAdminsQuery({
+		variables: { workspace_id: projectData?.workspace?.id ?? '' },
+		skip: localStorageIntegrated.integrated || !projectData?.workspace?.id,
+		fetchPolicy: 'cache-and-network',
+	})
 
-	// TODO(vkorolik)
+	useEffect(() => {
+		if (!isLoggedIn) return
+		if (!localStorageIntegrated.integrated) {
+			startPolling(POLL_INTERVAL_MS)
+
+			return () => {
+				stopPolling()
+			}
+		} else {
+			stopPolling()
+		}
+	}, [
+		localStorageIntegrated.integrated,
+		isLoggedIn,
+		startPolling,
+		stopPolling,
+	])
+
+	useEffect(() => {
+		if ((data?.admins.length ?? 0) > 1) {
+			analytics.track('integrated-team', { id: projectId })
+
+			setLocalStorageIntegrated({
+				loading: false,
+				integrated: true,
+				resourceType: 'team',
+			})
+		}
+	}, [
+		data?.admins.length,
+		localStorageIntegrated.integrated,
+		projectId,
+		setLocalStorageIntegrated,
+	])
+
 	return localStorageIntegrated
 }
