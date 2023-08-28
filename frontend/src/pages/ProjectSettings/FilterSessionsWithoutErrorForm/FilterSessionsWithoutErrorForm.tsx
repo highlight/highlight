@@ -62,19 +62,34 @@ export const FilterSessionsWithoutErrorForm = () => {
 						},
 						false,
 					)}
+					<hr
+						style={{
+							border: 0,
+							height: '1px',
+							backgroundColor: '#E4E2E4',
+						}}
+					/>
 					{c.warning && (
 						<Box
 							p="8"
+							gap="8"
 							borderRadius="8"
 							border="dividerWeak"
-							backgroundColor="neutral"
 							style={{
-								alignItems: 'center',
 								display: 'flex',
+								color: '#6F6E77',
+								fontWeight: '500',
 								flexDirection: 'row',
+								alignItems: 'center',
+								backgroundColor: '#F4F2F4',
+								fontSize: '13px',
 							}}
 						>
-							<IconSolidExclamation size={14} color="neutral" />
+							<IconSolidExclamation
+								size={14}
+								opacity="0.8"
+								color="#6F6E77"
+							/>
 							{c.warning}
 						</Box>
 					)}
