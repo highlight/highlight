@@ -380,6 +380,7 @@ export class Highlight {
 		)
 		this.environment = options.environment ?? 'production'
 		this.appVersion = options.appVersion
+		this.serviceName = options.serviceName ?? ''
 
 		if (typeof options.organizationID === 'string') {
 			this.organizationID = options.organizationID
