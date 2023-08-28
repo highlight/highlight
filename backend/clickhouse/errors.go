@@ -58,8 +58,8 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 
 	if len(chGroups) > 0 {
 		sql, args := sqlbuilder.
-			NewStruct(new(ClickhouseSession)).
-			InsertInto(SessionsTable, chGroups...).
+			NewStruct(new(ClickhouseErrorGroup)).
+			InsertInto(ErrorGroupsTable, chGroups...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
 		return client.conn.Exec(chCtx, sql, args...)
 	}
@@ -94,8 +94,8 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 
 	if len(chObjects) > 0 {
 		sql, args := sqlbuilder.
-			NewStruct(new(ClickhouseSession)).
-			InsertInto(SessionsTable, chObjects...).
+			NewStruct(new(ClickhouseErrorObject)).
+			InsertInto(ErrorObjectsTable, chObjects...).
 			BuildWithFlavor(sqlbuilder.ClickHouse)
 		return client.conn.Exec(chCtx, sql, args...)
 	}

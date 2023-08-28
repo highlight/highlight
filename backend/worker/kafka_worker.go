@@ -347,9 +347,9 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context) error {
 				case kafkaqueue.SessionDataSync:
 					sessionIds = append(sessionIds, lastMsg.SessionDataSync.SessionID)
 				case kafkaqueue.ErrorGroupDataSync:
-					errorGroupIds = append(sessionIds, lastMsg.ErrorGroupDataSync.ErrorGroupID)
+					errorGroupIds = append(errorGroupIds, lastMsg.ErrorGroupDataSync.ErrorGroupID)
 				case kafkaqueue.ErrorObjectDataSync:
-					errorObjectIds = append(sessionIds, lastMsg.ErrorObjectDataSync.ErrorObjectID)
+					errorObjectIds = append(errorObjectIds, lastMsg.ErrorObjectDataSync.ErrorObjectID)
 				}
 			default:
 				return
