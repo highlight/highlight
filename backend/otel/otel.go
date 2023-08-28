@@ -35,7 +35,7 @@ type Handler struct {
 
 var IgnoredSpanNamePrefixes = []string{"fs "}
 
-func lg(ctx context.Context, fields extractedFields) *log.Entry {
+func lg(ctx context.Context, fields *extractedFields) *log.Entry {
 	return log.WithContext(ctx).
 		WithField("project_id", fields.projectID).
 		WithField("session_id", fields.sessionID).
@@ -52,7 +52,7 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 	return c
 }
 
-func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string, logCursor *string) (bool, *model.BackendErrorObjectInput) {
+func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields, traceID, spanID string, logCursor *string) (bool, *model.BackendErrorObjectInput) {
 	if fields.exceptionType == "" && fields.exceptionMessage == "" {
 		lg(ctx, fields).Error("otel received exception with no type and no message")
 		return false, nil
@@ -89,7 +89,7 @@ func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, 
 	}
 }
 
-func getMetric(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string) (*model.MetricInput, error) {
+func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, traceID, spanID string) (*model.MetricInput, error) {
 	if fields.metricEventName == "" {
 		return nil, e.New("otel received metric with no name")
 	}
@@ -225,8 +225,12 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 					traceID := cast(fields.requestID, span.TraceID().String())
 					spanID := span.SpanID().String()
 					if event.Name() == semconv.ExceptionEventName {
-						var logCursor *string
+						if fields.external {
+							lg(ctx, fields).WithError(err).Info("dropping external exception")
+							continue
+						}
 
+						var logCursor *string
 						logRow := clickhouse.NewLogRow(
 							fields.timestamp, uint32(fields.projectIDInt),
 							clickhouse.WithTraceID(traceID),
