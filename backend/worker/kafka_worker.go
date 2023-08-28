@@ -101,20 +101,20 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	var lastMsg *kafkaqueue.Message
 	var oldestMsg = time.Now()
 	readSpan, _ := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.readMessages", k.Name)))
-	for _, msg := range k.messages {
-		if msg.KafkaMessage.Time.Before(oldestMsg) {
-			oldestMsg = msg.KafkaMessage.Time
+	for _, lastMsg = range k.messages {
+		if lastMsg.KafkaMessage.Time.Before(oldestMsg) {
+			oldestMsg = lastMsg.KafkaMessage.Time
 		}
-		switch msg.Type {
+		switch lastMsg.Type {
 		case kafkaqueue.SessionDataSync:
-			dataSyncRows = append(dataSyncRows, msg.SessionDataSync.SessionID)
+			dataSyncRows = append(dataSyncRows, lastMsg.SessionDataSync.SessionID)
 		case kafkaqueue.PushLogs:
-			logRow := msg.PushLogs.LogRow
+			logRow := lastMsg.PushLogs.LogRow
 			if logRow != nil {
 				logRows = append(logRows, logRow)
 			}
 		case kafkaqueue.PushTraces:
-			traceRow := msg.PushTraces.TraceRow
+			traceRow := lastMsg.PushTraces.TraceRow
 			if traceRow != nil {
 				traceRows = append(traceRows, traceRow)
 			}

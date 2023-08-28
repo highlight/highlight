@@ -237,7 +237,7 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 }
 
 func (p *Queue) metricPrefix() string {
-	return fmt.Sprintf("worker.kafka.%s", p.Topic)
+	return fmt.Sprintf("worker.kafka.%s.", p.Topic)
 }
 
 func (p *Queue) Stop(ctx context.Context) {
