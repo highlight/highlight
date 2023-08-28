@@ -54,9 +54,8 @@ import AsyncSelect from 'react-select/async'
 import Creatable from 'react-select/creatable'
 import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
-import { useLocalStorage, useToggle } from 'react-use'
+import { useToggle } from 'react-use'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
 import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
@@ -1266,13 +1265,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const location = useLocation()
 	const isOnErrorsPage = location.pathname.includes('errors')
 
-	const { isHighlightAdmin } = useAuthContext()
-
-	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse-v2',
-		isHighlightAdmin || Number(projectId) % 2 == 0,
-	)
-
 	const { loading: segmentsLoading, data: segmentData } =
 		useGetAnySegmentsQuery({
 			variables: { project_id: projectId! },
@@ -1565,7 +1557,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					query: input,
 					start_date: moment(dateRange[0]).toISOString(),
 					end_date: moment(dateRange[1]).toISOString(),
-					use_clickhouse: useClickhouse,
+					use_clickhouse: true,
 				}).then((res) => {
 					return res.map((val) => ({
 						label: val,
@@ -1580,7 +1572,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 			getCustomFieldOptions,
 			projectId,
 			dateRange,
-			useClickhouse,
 		],
 	)
 
