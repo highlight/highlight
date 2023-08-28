@@ -27,8 +27,6 @@ export const selectButton = style({
 	},
 })
 
-export const combobox = style({})
-
 export const selectPopover = style({
 	backgroundColor: colors.white,
 	border: vars.border.secondary,
