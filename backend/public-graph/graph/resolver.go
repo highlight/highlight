@@ -2680,6 +2680,11 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 			traceString := string(traceBytes)
 
+			serviceVersion := ""
+			if sessionObj.AppVersion != nil {
+				serviceVersion = *sessionObj.AppVersion
+			}
+
 			errorToInsert := &model.ErrorObject{
 				ProjectID:      projectID,
 				SessionID:      &sessionID,
@@ -2697,7 +2702,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				Payload:        v.Payload,
 				RequestID:      nil,
 				IsBeacon:       isBeacon,
-				ServiceVersion: *sessionObj.AppVersion,
+				ServiceVersion: serviceVersion,
 			}
 
 			mappedStackTrace, structuredStackTrace, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)
