@@ -188,7 +188,7 @@ export class Highlight {
 	sessionShortcut!: SessionShortcutOptions
 	/** The end-user's app version. This isn't Highlight's version. */
 	appVersion!: string | undefined
-	serviceName!: string | undefined
+	serviceName!: string
 	_worker!: HighlightClientRequestWorker
 	_optionsInternal!: HighlightClassOptionsInternal
 	_backendUrl!: string
