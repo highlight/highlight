@@ -1,5 +1,10 @@
 import { Button } from '@components/Button'
-import { Box, Callout, IconSolidCubeTransparent, Text } from '@highlight-run/ui'
+import {
+	Box,
+	Callout,
+	IconSolidInformationCircle,
+	Text,
+} from '@highlight-run/ui'
 import {
 	RequestStatus,
 	RequestType,
@@ -62,7 +67,7 @@ export const EmptyDevToolsCallout = ({
 							width: 22,
 						}}
 					>
-						<IconSolidCubeTransparent size={14} color="#777777" />
+						<IconSolidInformationCircle size={14} color="#777777" />
 					</Box>
 				)}
 			>
@@ -102,17 +107,17 @@ export const EmptyDevToolsCallout = ({
 					<>
 						<Text color="n11">
 							Double check your <code>H.init</code> settings to
-							ensure this is recorded.
-						</Text>
-						<Text color="n11">
-							If you think something's wrong, feel free to reach
-							out to us!
+							ensure this is recorded. If you think something's
+							wrong, feel free to reach out to us!
 						</Text>
 					</>
 				)}
 				<Button
+					style={{
+						maxWidth: 'max-content',
+					}}
 					kind="secondary"
-					emphasis="low"
+					emphasis="high"
 					onClick={() => {
 						window.open(
 							kind === Tab.Console
