@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"strings"
-	"sync"
 	"time"
 
 	e "github.com/pkg/errors"
@@ -23,6 +22,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
+
+const KafkaBatchWorkerOp = "KafkaBatchWorker"
 
 func (k *KafkaWorker) processWorkerError(ctx context.Context, task *kafkaqueue.Message, err error) {
 	log.WithContext(ctx).WithError(err).WithField("type", task.Type).Errorf("task %+v failed: %s", *task, err)
@@ -88,277 +89,238 @@ type KafkaWorker struct {
 	WorkerThread int
 }
 
-func (k *KafkaBatchWorker) flushLogs(ctx context.Context) error {
-	s, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.flushLogs"))
-	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
+func (k *KafkaBatchWorker) flush(ctx context.Context) error {
+	s, _ := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush", k.Name)))
+	s.SetTag("BatchSize", len(k.messages))
 	defer s.Finish()
 
-	hasMore := true
-	for hasMore {
-		var oldestLogRow *clickhouse.LogRow
-		var logRows []*clickhouse.LogRow
+	var dataSyncRows []int
+	var logRows []*clickhouse.LogRow
+	var traceRows []*clickhouse.TraceRow
 
-		var received int
-		var lastMsg *kafkaqueue.Message
-		hasMore = func() bool {
-			for {
-				select {
-				case lastMsg = <-k.BatchBuffer.messageQueue:
-					switch lastMsg.Type {
-					case kafkaqueue.PushLogs:
-						if lastMsg.PushLogs.LogRow != nil {
-							logRows = append(logRows, lastMsg.PushLogs.LogRow)
-							received += 1
-							if oldestLogRow == nil || lastMsg.PushLogs.LogRow.Timestamp.Before(oldestLogRow.Timestamp) {
-								oldestLogRow = lastMsg.PushLogs.LogRow
-							}
-						}
-					}
-					if received >= k.BatchFlushSize {
-						return true
-					}
-				default:
-					return false
-				}
-			}
-		}()
-
-		timestampByProject := map[uint32]time.Time{}
-		workspaceByProject := map[uint32]*model.Workspace{}
-		for _, row := range logRows {
-			if row.Timestamp.After(timestampByProject[row.ProjectId]) {
-				timestampByProject[row.ProjectId] = row.Timestamp
-				workspaceByProject[row.ProjectId] = nil
-			}
+	var lastMsg *kafkaqueue.Message
+	var oldestMsg = time.Now()
+	readSpan, _ := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.readMessages", k.Name)))
+	for _, msg := range k.messages {
+		if msg.KafkaMessage.Time.Before(oldestMsg) {
+			oldestMsg = msg.KafkaMessage.Time
 		}
-
-		spanTs, ctxTs := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.setTimestamps"))
-		for projectId, timestamp := range timestampByProject {
-			err := k.Worker.Resolver.Redis.SetLastLogTimestamp(ctxTs, int(projectId), timestamp)
-			if err != nil {
-				log.WithContext(ctxTs).WithError(err).Errorf("failed to set last log timestamp for project %d", projectId)
+		switch msg.Type {
+		case kafkaqueue.SessionDataSync:
+			dataSyncRows = append(dataSyncRows, msg.SessionDataSync.SessionID)
+		case kafkaqueue.PushLogs:
+			logRow := msg.PushLogs.LogRow
+			if logRow != nil {
+				logRows = append(logRows, logRow)
 			}
-		}
-		spanTs.Finish()
-
-		spanW, ctxW := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.checkBillingQuotas"))
-
-		// If it's saved in Redis that a project has exceeded / not exceeded
-		// its quota, use that value. Else, add the projectId to a list of
-		// projects to query.
-		quotaExceededByProject := map[uint32]bool{}
-		projectsToQuery := []uint32{}
-		for projectId := range workspaceByProject {
-			exceeded, err := k.Worker.Resolver.Redis.IsBillingQuotaExceeded(ctxW, int(projectId), model.PricingProductTypeLogs)
-			if err != nil {
-				log.WithContext(ctxW).Error(err)
-				continue
+		case kafkaqueue.PushTraces:
+			traceRow := msg.PushTraces.TraceRow
+			if traceRow != nil {
+				traceRows = append(traceRows, traceRow)
 			}
-			if exceeded != nil {
-				quotaExceededByProject[projectId] = *exceeded
-			} else {
-				projectsToQuery = append(projectsToQuery, projectId)
-			}
-		}
-
-		// For any projects to query, get the associated workspace,
-		// check if that workspace is within the logs quota,
-		// and write the result to redis.
-		for _, projectId := range projectsToQuery {
-			project, err := k.Worker.Resolver.Store.GetProject(ctx, int(projectId))
-			if err != nil {
-				log.WithContext(ctxW).Error(e.Wrap(err, "error querying project"))
-				continue
-			}
-
-			var workspace model.Workspace
-			if err := k.Worker.Resolver.DB.Model(&workspace).
-				Where("id = ?", project.WorkspaceID).Find(&workspace).Error; err != nil {
-				log.WithContext(ctxW).Error(e.Wrap(err, "error querying workspace"))
-				continue
-			}
-
-			projects := []model.Project{}
-			if err := k.Worker.Resolver.DB.Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
-				log.WithContext(ctxW).Error(e.Wrap(err, "error querying associated projects"))
-				continue
-			}
-			workspace.Projects = projects
-
-			withinBillingQuota, quotaPercent := k.Worker.PublicResolver.IsWithinQuota(ctxW, model.PricingProductTypeLogs, &workspace, time.Now())
-			quotaExceededByProject[projectId] = !withinBillingQuota
-			if err := k.Worker.Resolver.Redis.SetBillingQuotaExceeded(ctxW, int(projectId), model.PricingProductTypeLogs, !withinBillingQuota); err != nil {
-				log.WithContext(ctxW).Error(err)
-				return err
-			}
-
-			// Send alert emails if above the relevant thresholds
-			go func() {
-				defer util.Recover()
-				if quotaPercent >= 1 {
-					if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, email.BillingLogsUsage100Percent, &workspace); err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
-					}
-				} else if quotaPercent >= .8 {
-					if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, email.BillingLogsUsage80Percent, &workspace); err != nil {
-						log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
-					}
-				}
-			}()
-		}
-
-		spanW.Finish()
-
-		var markBackendSetupProjectIds []uint32
-		var filteredRows []*clickhouse.LogRow
-		for _, logRow := range logRows {
-			// create service record for any services found in ingested logs
-			if logRow.ServiceName != "" {
-				spanX, ctxX := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.findOrCreateService"))
-
-				project, err := k.Worker.Resolver.Store.GetProject(ctx, int(logRow.ProjectId))
-				if err == nil && project != nil {
-					_, err := k.Worker.Resolver.Store.FindOrCreateService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
-
-					if err != nil {
-						log.WithContext(ctxX).Error(e.Wrap(err, "failed to create service"))
-					}
-				}
-
-				spanX.Finish()
-			}
-
-			if logRow.Source == privateModel.LogSourceBackend {
-				markBackendSetupProjectIds = append(markBackendSetupProjectIds, logRow.ProjectId)
-			}
-
-			// Filter out any log rows for projects where the log quota has been exceeded
-			if quotaExceededByProject[logRow.ProjectId] {
-				continue
-			}
-
-			// Temporarily filter NextJS logs
-			// TODO - remove this condition when https://github.com/highlight/highlight/issues/6181 is fixed
-			if !strings.HasPrefix(logRow.Body, "ENOENT: no such file or directory") && !strings.HasPrefix(logRow.Body, "connect ECONNREFUSED") {
-				filteredRows = append(filteredRows, logRow)
-			}
-		}
-
-		wSpan, wCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.process"))
-		wSpan.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
-		wSpan.SetTag("NumProjects", len(workspaceByProject))
-		for _, projectId := range markBackendSetupProjectIds {
-			err := k.Worker.PublicResolver.MarkBackendSetupImpl(wCtx, int(projectId), model.MarkBackendSetupTypeLogs)
-			if err != nil {
-				log.WithContext(wCtx).WithError(err).Error("failed to mark backend logs setup")
-				return err
-			}
-		}
-
-		span, ctxT := tracer.StartSpanFromContext(wCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.clickhouse.logs"))
-		span.SetTag("NumLogRows", len(logRows))
-		span.SetTag("NumFilteredRows", len(filteredRows))
-		span.SetTag("PayloadSizeBytes", binary.Size(filteredRows))
-		if oldestLogRow != nil {
-			span.SetTag("MaxIngestDelay", time.Since(oldestLogRow.Timestamp))
-		}
-		err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, filteredRows)
-		if err != nil {
-			log.WithContext(ctxT).WithError(err).Error("failed to batch write logs to clickhouse")
-			return err
-		}
-		span.Finish(tracer.WithError(err))
-		wSpan.Finish()
-
-		if lastMsg != nil {
-			k.KafkaQueue.Commit(ctx, lastMsg.KafkaMessage)
 		}
 	}
-	k.BatchBuffer.lastMessage = nil
+	readSpan.SetTag("MaxIngestDelay", time.Since(oldestMsg))
+	readSpan.Finish()
+
+	workSpan, wCtx := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.work", k.Name)))
+	if len(dataSyncRows) > 0 {
+		if err := k.flushDataSync(wCtx, dataSyncRows); err != nil {
+			workSpan.Finish(tracer.WithError(err))
+			return err
+		}
+	}
+	if len(logRows) > 0 {
+		if err := k.flushLogs(wCtx, logRows); err != nil {
+			workSpan.Finish(tracer.WithError(err))
+			return err
+		}
+	}
+	if len(traceRows) > 0 {
+		if err := k.flushTraces(wCtx, traceRows); err != nil {
+			workSpan.Finish(tracer.WithError(err))
+			return err
+		}
+	}
+	workSpan.Finish()
+
+	commitSpan, cCtx := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.commit", k.Name)))
+	if lastMsg != nil {
+		k.KafkaQueue.Commit(cCtx, lastMsg.KafkaMessage)
+	}
+	k.lastMessage = nil
+	commitSpan.Finish()
+
 	return nil
 }
 
-func (k *KafkaBatchWorker) flushTraces(ctx context.Context) error {
-	s, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.flushTraces"))
-	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
-	defer s.Finish()
-
-	var traceRows []*clickhouse.TraceRow
-
-	var received int
-	var lastMsg *kafkaqueue.Message
-	func() {
-		for {
-			select {
-			case lastMsg = <-k.BatchBuffer.messageQueue:
-				switch lastMsg.Type {
-				case kafkaqueue.PushTraces:
-					traceRow := lastMsg.PushTraces.TraceRow
-					if traceRow != nil {
-						traceRows = append(traceRows, traceRow)
-						received += 1
-					}
-				}
-				if received >= k.BatchFlushSize {
-					return
-				}
-			default:
-				return
-			}
+func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.LogRow) error {
+	timestampByProject := map[uint32]time.Time{}
+	workspaceByProject := map[uint32]*model.Workspace{}
+	for _, row := range logRows {
+		if row.Timestamp.After(timestampByProject[row.ProjectId]) {
+			timestampByProject[row.ProjectId] = row.Timestamp
+			workspaceByProject[row.ProjectId] = nil
 		}
-	}()
+	}
 
-	span, ctxT := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.clickhouse.traces"))
+	spanTs, ctxTs := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.setTimestamps", k.Name)))
+	for projectId, timestamp := range timestampByProject {
+		err := k.Worker.Resolver.Redis.SetLastLogTimestamp(ctxTs, int(projectId), timestamp)
+		if err != nil {
+			log.WithContext(ctxTs).WithError(err).Errorf("failed to set last log timestamp for project %d", projectId)
+		}
+	}
+	spanTs.Finish()
+
+	spanW, ctxW := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.checkBillingQuotas", k.Name)))
+
+	// If it's saved in Redis that a project has exceeded / not exceeded
+	// its quota, use that value. Else, add the projectId to a list of
+	// projects to query.
+	quotaExceededByProject := map[uint32]bool{}
+	projectsToQuery := []uint32{}
+	for projectId := range workspaceByProject {
+		exceeded, err := k.Worker.Resolver.Redis.IsBillingQuotaExceeded(ctxW, int(projectId), model.PricingProductTypeLogs)
+		if err != nil {
+			log.WithContext(ctxW).Error(err)
+			continue
+		}
+		if exceeded != nil {
+			quotaExceededByProject[projectId] = *exceeded
+		} else {
+			projectsToQuery = append(projectsToQuery, projectId)
+		}
+	}
+
+	// For any projects to query, get the associated workspace,
+	// check if that workspace is within the logs quota,
+	// and write the result to redis.
+	for _, projectId := range projectsToQuery {
+		project, err := k.Worker.Resolver.Store.GetProject(ctx, int(projectId))
+		if err != nil {
+			log.WithContext(ctxW).Error(e.Wrap(err, "error querying project"))
+			continue
+		}
+
+		var workspace model.Workspace
+		if err := k.Worker.Resolver.DB.Model(&workspace).
+			Where("id = ?", project.WorkspaceID).Find(&workspace).Error; err != nil {
+			log.WithContext(ctxW).Error(e.Wrap(err, "error querying workspace"))
+			continue
+		}
+
+		projects := []model.Project{}
+		if err := k.Worker.Resolver.DB.Order("name ASC").Model(&workspace).Association("Projects").Find(&projects); err != nil {
+			log.WithContext(ctxW).Error(e.Wrap(err, "error querying associated projects"))
+			continue
+		}
+		workspace.Projects = projects
+
+		withinBillingQuota, quotaPercent := k.Worker.PublicResolver.IsWithinQuota(ctxW, model.PricingProductTypeLogs, &workspace, time.Now())
+		quotaExceededByProject[projectId] = !withinBillingQuota
+		if err := k.Worker.Resolver.Redis.SetBillingQuotaExceeded(ctxW, int(projectId), model.PricingProductTypeLogs, !withinBillingQuota); err != nil {
+			log.WithContext(ctxW).Error(err)
+			return err
+		}
+
+		// Send alert emails if above the relevant thresholds
+		go func() {
+			defer util.Recover()
+			if quotaPercent >= 1 {
+				if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, email.BillingLogsUsage100Percent, &workspace); err != nil {
+					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+				}
+			} else if quotaPercent >= .8 {
+				if err := model.SendBillingNotifications(ctx, k.Worker.PublicResolver.DB, k.Worker.PublicResolver.MailClient, email.BillingLogsUsage80Percent, &workspace); err != nil {
+					log.WithContext(ctx).Error(e.Wrap(err, "failed to send billing notifications"))
+				}
+			}
+		}()
+	}
+
+	spanW.Finish()
+
+	var markBackendSetupProjectIds []uint32
+	var filteredRows []*clickhouse.LogRow
+	for _, logRow := range logRows {
+		// create service record for any services found in ingested logs
+		if logRow.ServiceName != "" {
+			spanX, ctxX := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.findOrCreateService", k.Name)))
+
+			project, err := k.Worker.Resolver.Store.GetProject(ctx, int(logRow.ProjectId))
+			if err == nil && project != nil {
+				_, err := k.Worker.Resolver.Store.FindOrCreateService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
+
+				if err != nil {
+					log.WithContext(ctxX).Error(e.Wrap(err, "failed to create service"))
+				}
+			}
+
+			spanX.Finish()
+		}
+
+		if logRow.Source == privateModel.LogSourceBackend {
+			markBackendSetupProjectIds = append(markBackendSetupProjectIds, logRow.ProjectId)
+		}
+
+		// Filter out any log rows for projects where the log quota has been exceeded
+		if quotaExceededByProject[logRow.ProjectId] {
+			continue
+		}
+
+		// Temporarily filter NextJS logs
+		// TODO - remove this condition when https://github.com/highlight/highlight/issues/6181 is fixed
+		if !strings.HasPrefix(logRow.Body, "ENOENT: no such file or directory") && !strings.HasPrefix(logRow.Body, "connect ECONNREFUSED") {
+			filteredRows = append(filteredRows, logRow)
+		}
+	}
+
+	wSpan, wCtx := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.process", k.Name)))
+	wSpan.SetTag("BatchSize", len(k.messages))
+	wSpan.SetTag("NumProjects", len(workspaceByProject))
+	for _, projectId := range markBackendSetupProjectIds {
+		err := k.Worker.PublicResolver.MarkBackendSetupImpl(wCtx, int(projectId), model.MarkBackendSetupTypeLogs)
+		if err != nil {
+			log.WithContext(wCtx).WithError(err).Error("failed to mark backend logs setup")
+			return err
+		}
+	}
+
+	span, ctxT := tracer.StartSpanFromContext(wCtx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.clickhouse.logs", k.Name)))
+	span.SetTag("NumLogRows", len(logRows))
+	span.SetTag("NumFilteredRows", len(filteredRows))
+	err := k.Worker.PublicResolver.Clickhouse.BatchWriteLogRows(ctxT, filteredRows)
+	span.Finish(tracer.WithError(err))
+	if err != nil {
+		log.WithContext(ctxT).WithError(err).Error("failed to batch write logs to clickhouse")
+		return err
+	}
+	wSpan.Finish()
+	return nil
+}
+
+func (k *KafkaBatchWorker) flushTraces(ctx context.Context, traceRows []*clickhouse.TraceRow) error {
+	span, ctxT := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.clickhouse", k.Name)))
 	span.SetTag("NumTraceRows", len(traceRows))
 	span.SetTag("PayloadSizeBytes", binary.Size(traceRows))
 	err := k.Worker.PublicResolver.Clickhouse.BatchWriteTraceRows(ctxT, traceRows)
+	defer span.Finish(tracer.WithError(err))
 	if err != nil {
 		log.WithContext(ctxT).WithError(err).Error("failed to batch write traces to clickhouse")
 		span.Finish(tracer.WithError(err))
 		return err
 	}
-	span.Finish(tracer.WithError(err))
-
-	if lastMsg != nil {
-		k.KafkaQueue.Commit(ctx, lastMsg.KafkaMessage)
-	}
-	k.BatchBuffer.lastMessage = nil
 	return nil
 }
 
-func (k *KafkaBatchWorker) flushDataSync(ctx context.Context) error {
-	s, iCtx := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.flush"))
-	s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
-	defer s.Finish()
-
-	var sessionIds []int
-
-	readSpan, _ := tracer.StartSpanFromContext(iCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.readMessages"))
-	var lastMsg *kafkaqueue.Message
-	func() {
-		for {
-			select {
-			case lastMsg = <-k.BatchBuffer.messageQueue:
-				switch lastMsg.Type {
-				case kafkaqueue.SessionDataSync:
-					sessionIds = append(sessionIds, lastMsg.SessionDataSync.SessionID)
-				}
-				if len(sessionIds) >= k.BatchFlushSize {
-					return
-				}
-			default:
-				return
-			}
-		}
-	}()
-	readSpan.Finish()
-
+func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int) error {
 	sessionIdChunks := lo.Chunk(lo.Uniq(sessionIds), SessionsMaxRowsPostgres)
 	if len(sessionIdChunks) > 0 {
 		allSessionObjs := []*model.Session{}
 		for _, chunk := range sessionIdChunks {
 			sessionObjs := []*model.Session{}
-			sessionSpan, _ := tracer.StartSpanFromContext(iCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.readSessions"))
+			sessionSpan, _ := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.readSessions", k.Name)))
 			if err := k.Worker.PublicResolver.DB.Model(&model.Session{}).Preload("ViewedByAdmins").Where("id in ?", chunk).Find(&sessionObjs).Error; err != nil {
 				log.WithContext(ctx).Error(err)
 				return err
@@ -366,7 +328,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context) error {
 			sessionSpan.Finish()
 
 			fieldObjs := []*model.Field{}
-			fieldSpan, _ := tracer.StartSpanFromContext(iCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.readFields"))
+			fieldSpan, _ := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.readFields", k.Name)))
 			if err := k.Worker.PublicResolver.DB.Model(&model.Field{}).Where("id IN (SELECT field_id FROM session_fields sf WHERE sf.session_id IN ?)", chunk).Find(&fieldObjs).Error; err != nil {
 				log.WithContext(ctx).Error(err)
 				return err
@@ -381,7 +343,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context) error {
 				FieldID   int64
 			}
 			sessionFieldObjs := []*sessionField{}
-			sessionFieldSpan, _ := tracer.StartSpanFromContext(iCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.readSessionFields"))
+			sessionFieldSpan, _ := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.readSessionFields", k.Name)))
 			if err := k.Worker.PublicResolver.DB.Table("session_fields").Where("session_id IN ?", chunk).Find(&sessionFieldObjs).Error; err != nil {
 				log.WithContext(ctx).Error(err)
 				return err
@@ -400,20 +362,14 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context) error {
 			allSessionObjs = append(allSessionObjs, sessionObjs...)
 		}
 
-		chSpan, _ := tracer.StartSpanFromContext(iCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.writeClickhouse"))
-		if err := k.Worker.PublicResolver.Clickhouse.WriteSessions(ctx, allSessionObjs); err != nil {
+		chSpan, _ := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.clickhouse", k.Name)))
+		err := k.Worker.PublicResolver.Clickhouse.WriteSessions(ctx, allSessionObjs)
+		defer chSpan.Finish(tracer.WithError(err))
+		if err != nil {
 			log.WithContext(ctx).Error(err)
 			return err
 		}
-		chSpan.Finish()
 	}
-
-	kafkaSpan, _ := tracer.StartSpanFromContext(iCtx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.commit"))
-	if lastMsg != nil {
-		k.KafkaQueue.Commit(ctx, lastMsg.KafkaMessage)
-	}
-	kafkaSpan.Finish()
-	k.BatchBuffer.lastMessage = nil
 	return nil
 }
 
@@ -423,28 +379,14 @@ func (k *KafkaBatchWorker) processWorkerError(ctx context.Context, attempt int, 
 	time.Sleep(MinRetryDelay * time.Duration(math.Pow(2, float64(attempt))))
 }
 
-func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context, flush func(context.Context) error) {
+func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 	for {
 		func() {
 			defer util.Recover()
 			s, ctx := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.process", k.Name)))
 			s.SetTag("worker.goroutine", k.WorkerThread)
-			s.SetTag("BatchSize", len(k.BatchBuffer.messageQueue))
+			s.SetTag("BatchSize", len(k.messages))
 			defer s.Finish()
-
-			k.BatchBuffer.flushLock.Lock()
-			if k.BatchBuffer.lastMessage != nil && time.Since(*k.BatchBuffer.lastMessage) > k.BatchedFlushTimeout {
-				s.SetTag("OldestMessage", time.Since(*k.BatchBuffer.lastMessage))
-
-				for i := 0; i <= kafkaqueue.TaskRetries; i++ {
-					if err := flush(ctx); err != nil {
-						k.processWorkerError(ctx, i, err)
-					} else {
-						break
-					}
-				}
-			}
-			k.BatchBuffer.flushLock.Unlock()
 
 			s1, _ := tracer.StartSpanFromContext(ctx, "kafkaWorker", tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.receive", k.Name)))
 			task := k.KafkaQueue.Receive(ctx)
@@ -455,23 +397,26 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context, flush func(conte
 				return
 			}
 
-			k.BatchBuffer.messageQueue <- task
+			k.messages = append(k.messages, task)
 
-			k.BatchBuffer.flushLock.Lock()
-			if k.BatchBuffer.lastMessage == nil {
-				t := time.Now()
-				k.BatchBuffer.lastMessage = &t
-			}
-			if len(k.BatchBuffer.messageQueue) >= k.BatchFlushSize {
+			if k.lastMessage != nil && time.Since(*k.lastMessage) > k.BatchedFlushTimeout ||
+				len(k.messages) >= k.BatchFlushSize {
+				if k.lastMessage != nil {
+					s.SetTag("OldestMessage", time.Since(*k.lastMessage))
+				}
+
 				for i := 0; i <= kafkaqueue.TaskRetries; i++ {
-					if err := flush(ctx); err != nil {
+					if err := k.flush(ctx); err != nil {
 						k.processWorkerError(ctx, i, err)
 					} else {
 						break
 					}
 				}
 			}
-			k.BatchBuffer.flushLock.Unlock()
+			if k.lastMessage == nil {
+				t := time.Now()
+				k.lastMessage = &t
+			}
 		}()
 	}
 }
@@ -480,14 +425,10 @@ type KafkaBatchWorker struct {
 	KafkaQueue          *kafkaqueue.Queue
 	Worker              *Worker
 	WorkerThread        int
-	BatchBuffer         *KafkaBatchBuffer
 	BatchFlushSize      int
 	BatchedFlushTimeout time.Duration
 	Name                string
-}
 
-type KafkaBatchBuffer struct {
-	lastMessage  *time.Time
-	messageQueue chan *kafkaqueue.Message
-	flushLock    sync.Mutex
+	lastMessage *time.Time
+	messages    []*kafkaqueue.Message
 }

@@ -57,7 +57,6 @@ import (
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	"github.com/leonelquinteros/hubspot"
-	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
@@ -330,8 +329,7 @@ func main() {
 	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, nil)
 	kafkaDataSyncProducer := kafkaqueue.New(ctx,
 		kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}),
-		kafkaqueue.Producer,
-		&kafkaqueue.ConfigOverride{Async: pointy.Bool(true)})
+		kafkaqueue.Producer, nil)
 
 	opensearchClient, err := opensearch.NewOpensearchClient(db)
 	if err != nil {
