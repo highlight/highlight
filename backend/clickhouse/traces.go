@@ -83,7 +83,7 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", TracesTable))
 	if err != nil {
 		span.Finish(tracer.WithError(err))
-		return e.Wrap(err, "failed to create traces batch")
+		return e.Wrap(err, "failed to create logs batch")
 	}
 
 	for _, traceRow := range rows {

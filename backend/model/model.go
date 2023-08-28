@@ -1267,21 +1267,13 @@ type UserJourneyStep struct {
 }
 
 type SystemConfiguration struct {
-	Active            bool `gorm:"primary_key;default:true"`
-	MaintenanceStart  time.Time
-	MaintenanceEnd    time.Time
-	ErrorFilters      pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
-	IgnoredFiles      pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\"}'"`
-	MainWorkers       int            `gorm:"default:64"`
-	LogsWorkers       int            `gorm:"default:1"`
-	LogsFlushSize     int            `gorm:"type:bigint;default:10000"`
-	LogsFlushTimeout  time.Duration  `gorm:"type:bigint;default:5000000000"`
-	DataSyncWorkers   int            `gorm:"default:1"`
-	DataSyncFlushSize int            `gorm:"type:bigint;default:10000"`
-	DataSyncTimeout   time.Duration  `gorm:"type:bigint;default:5000000000"`
-	TraceWorkers      int            `gorm:"default:1"`
-	TraceFlushSize    int            `gorm:"type:bigint;default:10000"`
-	TraceFlushTimeout time.Duration  `gorm:"type:bigint;default:5000000000"`
+	Active           bool `gorm:"primary_key;default:true"`
+	MaintenanceStart time.Time
+	MaintenanceEnd   time.Time
+	ErrorFilters     pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
+	IgnoredFiles     pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\"}'"`
+	TraceWorkers     int            `gorm:"default:1"`
+	TraceFlushSize   int            `gorm:"type:bigint;default:10000"`
 }
 
 type RetryableType string
