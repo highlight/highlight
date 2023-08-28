@@ -382,7 +382,7 @@ func main() {
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
-		Store:                  store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient),
+		Store:                  store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
 		DataSyncQueue:          kafkaDataSyncProducer,
 		TracesQueue:            kafkaTracesProducer,
 	}
@@ -508,7 +508,7 @@ func main() {
 			HubspotApi:       hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
 			Redis:            redisClient,
 			RH:               &rh,
-			Store:            store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient),
+			Store:            store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -601,7 +601,7 @@ func main() {
 			Redis:            redisClient,
 			Clickhouse:       clickhouseClient,
 			RH:               &rh,
-			Store:            store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient),
+			Store:            store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {

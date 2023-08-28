@@ -32,6 +32,8 @@ const (
 	HubSpotUpdateCompanyProperty           PayloadType = iota
 	HubSpotCreateContactCompanyAssociation PayloadType = iota
 	SessionDataSync                        PayloadType = iota
+	ErrorGroupDataSync                     PayloadType = iota
+	ErrorObjectDataSync                    PayloadType = iota
 	HealthCheck                            PayloadType = math.MaxInt
 )
 
@@ -148,6 +150,14 @@ type SessionDataSyncArgs struct {
 	SessionID int
 }
 
+type ErrorGroupDataSyncArgs struct {
+	ErrorGroupID int
+}
+
+type ErrorObjectDataSyncArgs struct {
+	ErrorObjectID int
+}
+
 type Message struct {
 	Type                                   PayloadType
 	Failures                               int
@@ -169,6 +179,8 @@ type Message struct {
 	HubSpotUpdateCompanyProperty           *HubSpotUpdateCompanyPropertyArgs           `json:",omitempty"`
 	HubSpotCreateContactCompanyAssociation *HubSpotCreateContactCompanyAssociationArgs `json:",omitempty"`
 	SessionDataSync                        *SessionDataSyncArgs                        `json:",omitempty"`
+	ErrorGroupDataSync                     *ErrorGroupDataSyncArgs                     `json:",omitempty"`
+	ErrorObjectDataSync                    *ErrorObjectDataSyncArgs                    `json:",omitempty"`
 }
 
 type PartitionMessage struct {
