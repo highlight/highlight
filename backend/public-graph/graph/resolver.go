@@ -2703,6 +2703,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 				RequestID:      nil,
 				IsBeacon:       isBeacon,
 				ServiceVersion: serviceVersion,
+				ServiceName:    sessionObj.ServiceName,
 			}
 
 			mappedStackTrace, structuredStackTrace, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)
