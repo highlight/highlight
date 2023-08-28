@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/integrations"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/samber/lo"
@@ -87,7 +88,7 @@ func TestMain(m *testing.M) {
 		DB:               db,
 		TDB:              timeseries.New(context.TODO()),
 		Redis:            redisClient,
-		Store:            store.NewStore(db, &opensearch.Client{}, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, nil),
+		Store:            store.NewStore(db, &opensearch.Client{}, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}),
 		EmbeddingsClient: &mockEmbeddingsClient{},
 	}
 	code := m.Run()

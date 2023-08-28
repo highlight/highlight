@@ -1,6 +1,7 @@
 package kafka_queue
 
 import (
+	"context"
 	"math"
 	"time"
 
@@ -186,4 +187,22 @@ type Message struct {
 type PartitionMessage struct {
 	Message   *Message
 	Partition int32
+}
+
+type MockMessageQueue struct{}
+
+func (k *MockMessageQueue) Stop(context.Context) {
+
+}
+
+func (k *MockMessageQueue) Receive(context.Context) *Message {
+	return nil
+}
+
+func (k *MockMessageQueue) Submit(context.Context, string, ...*Message) error {
+	return nil
+}
+
+func (k *MockMessageQueue) LogStats() {
+
 }
