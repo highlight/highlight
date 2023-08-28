@@ -203,6 +203,11 @@ export declare type HighlightOptions = {
 	 * as the session ID will not persist.
 	 */
 	storageMode?: 'sessionStorage' | 'localStorage'
+
+	/**
+	 * The name of your app.
+	 */
+	serviceName?: string
 }
 
 export declare interface HighlightPublicInterface {

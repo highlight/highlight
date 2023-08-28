@@ -8,6 +8,7 @@ interface HighlightConfigOptionsDefault {
 	configureHighlightProxy: boolean
 	apiKey: string
 	appVersion: string
+	serviceName: string
 	sourceMapsPath: string
 	sourceMapsBasePath: string
 }
@@ -35,6 +36,10 @@ export interface HighlightConfigOptions {
 	 * App version used when uploading source maps.
 	 */
 	appVersion?: string
+	/**
+	 * Name of your app.
+	 */
+	serviceName?: string
 	/**
 	 * File system root directory containing all your source map files.
 	 * @default '.next/'

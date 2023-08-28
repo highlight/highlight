@@ -113,6 +113,7 @@ export type HighlightClassOptions = {
 	sessionShortcut?: SessionShortcutOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
 	storageMode?: 'sessionStorage' | 'localStorage'
+	serviceName?: string
 }
 
 /**
@@ -187,6 +188,7 @@ export class Highlight {
 	sessionShortcut!: SessionShortcutOptions
 	/** The end-user's app version. This isn't Highlight's version. */
 	appVersion!: string | undefined
+	serviceName!: string | undefined
 	_worker!: HighlightClientRequestWorker
 	_optionsInternal!: HighlightClassOptionsInternal
 	_backendUrl!: string
@@ -589,6 +591,7 @@ export class Highlight {
 					environment: this.environment,
 					id: clientID,
 					appVersion: this.appVersion,
+					serviceName: this.serviceName,
 					session_secure_id: this.sessionData.sessionSecureID,
 					client_id: clientID,
 					network_recording_domains: destinationDomains,
