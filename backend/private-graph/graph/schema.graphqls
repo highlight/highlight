@@ -721,7 +721,6 @@ type Service {
 	githubRepoPath: String
 	buildPrefix: String
 	githubPrefix: String
-	lastSeenVersion: String
 	errorDetails: [String!]
 }
 
@@ -733,7 +732,6 @@ type ServiceNode {
 	githubRepoPath: String
 	buildPrefix: String
 	githubPrefix: String
-	lastSeenVersion: String
 	errorDetails: [String!]
 }
 
