@@ -1120,6 +1120,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ClientConfig:                   &input.ClientConfig,
 		Environment:                    input.Environment,
 		AppVersion:                     input.AppVersion,
+		ServiceName:                    input.ServiceName,
 		VerboseID:                      input.ProjectVerboseID,
 		Fields:                         []*model.Field{},
 		ViewedByAdmins:                 []model.Admin{},
