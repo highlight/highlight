@@ -2,7 +2,7 @@ import type { APIGatewayEvent } from 'aws-lambda'
 import { serialRender } from './serial'
 import { readFileSync } from 'fs'
 import { encodeGIF } from './ffmpeg'
-import { uploadRenderExport } from './s3'
+import { getRenderExport, uploadRenderExport } from './s3'
 
 interface Args {
 	project?: string
@@ -43,8 +43,7 @@ const media = async (event?: APIGatewayEvent) => {
 		ts: args?.ts ? Number(args.ts) : undefined,
 		tsEnd: args?.tsEnd ? Number(args.tsEnd) : undefined,
 	}
-	// TODO(vkorolik)
-	let key = undefined // await getRenderExport(project, session, format, ts, tsEnd)
+	let key = await getRenderExport(project, session, format, ts, tsEnd)
 	if (key === undefined) {
 		const { dir, files } = await serialRender(project, session, {
 			ts,
@@ -83,30 +82,11 @@ export const handler = (event?: APIGatewayEvent) => {
 }
 
 if (process.env.DEV?.length) {
-	await Promise.all([
-		handler({
-			queryStringParameters: {
-				project: '1',
-				session: '239571781',
-				ts: '1',
-				chunk: '0',
-			},
-		} as unknown as APIGatewayEvent),
-		handler({
-			queryStringParameters: {
-				format: 'image/gif',
-				project: '1',
-				session: '239571781',
-				ts: '15000',
-				tsEnd: '20000',
-			},
-		} as unknown as APIGatewayEvent),
-		handler({
-			queryStringParameters: {
-				format: 'video/mp4',
-				project: '1',
-				session: '306361953',
-			},
-		} as unknown as APIGatewayEvent),
-	])
+	await handler({
+		queryStringParameters: {
+			format: 'video/mp4',
+			project: '1',
+			session: '306361953',
+		},
+	} as unknown as APIGatewayEvent)
 }

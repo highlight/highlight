@@ -54,7 +54,7 @@ export async function render(
 		console.log(`starting puppeteer for dev`)
 		browser = await puppeteer.launch({
 			channel: 'chrome',
-			headless: 'new',
+			headless: false,
 		})
 	} else {
 		console.log(`starting puppeteer for lambda`)
@@ -69,12 +69,6 @@ export async function render(
 
 	const page = await browser.newPage()
 	await page.goto('about:blank')
-	await page.exposeFunction(
-		'onReplayProgressUpdate',
-		(data: { payload: number }) => {
-			console.log(data.payload)
-		},
-	)
 	const finishedPromise = new Promise<void>(
 		async (r) => await page.exposeFunction('onReplayFinish', () => r()),
 	)
@@ -108,16 +102,41 @@ export async function render(
 			events +
 			'`' +
 			`);
+        const intervals = JSON.parse(` +
+			'`' +
+			JSON.stringify(intervals) +
+			'`' +
+			`);
         window.r = new rrweb.Replayer(events, {
         	target: document.body,
             triggerFocus: true,
             mouseTail: true,
             UNSAFE_replayCanvas: true,
             liveMode: false,
-            speed: 16
+            speed: 8
         });
+        window.getInactivityEnd = (time) => {
+			for (const interval of intervals) {
+				if (time >= interval.start_time && time < interval.end_time) {
+					if (!interval.active) {
+						return interval.end_time
+					} else {
+                        return undefined
+					}
+				}
+			}
+		}
         window.r.on('resize', (e) => {viewport = e});
-     	window.r.on('ui-update-progress', (p) => window.onReplayProgressUpdate(p));
+     	window.r.on('event-cast', (e) => {
+		    // skip inactive intervals
+		    const start = window.r.getMetaData().startTime
+		    const timestamp = window.r.getCurrentTime() + start
+     		const end = window.getInactivityEnd(timestamp)
+     		if (end !== undefined) {
+                 console.log('skipping from ' + timestamp + ' to ' + end + ' due to inactivity')
+                 window.r.play(end - start)
+     		}
+     	})
         window.r.on('finish', () => window.onReplayFinish());
         window.r.pause(0);
         
@@ -161,7 +180,6 @@ export async function render(
 			tsEnd,
 		})
 		await page.evaluate(`r.play(${ts})`)
-		// TODO(vkorolik) use intervals and onReplayProgressUpdate to skip
 		await finishedPromise
 		await recorder.stop()
 	} else {
