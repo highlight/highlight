@@ -6,9 +6,9 @@ export const repoSelect = style({
 })
 
 export const example = style({
-	background: '#e9e8ea',
+	background: vars.color.n5,
 	border: `${vars.theme.interactive.outline.secondary.enabled} solid 1px`,
 	borderRadius: 6,
 	color: vars.theme.static.content.moderate,
-	padding: `6px`,
+	padding: 6,
 })
