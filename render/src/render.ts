@@ -113,7 +113,7 @@ export async function render(
             mouseTail: false,
             UNSAFE_replayCanvas: true,
             liveMode: false,
-            speed: 8
+            speed: 4
         });
         window.getInactivityEnd = (time) => {
 			for (const interval of intervals) {
@@ -157,13 +157,15 @@ export async function render(
 	await page.setViewport({ width: width, height: height })
 
 	if (video) {
+		// force viewport to 16:9 for video
+		await page.setViewport({ width: 1920, height: 1080 })
 		// @ts-ignore - complains about the use of puppeteer-core instead of puppeteer
 		const recorder = new PuppeteerScreenRecorder(page, {
 			followNewTab: true,
 			fps,
 			videoFrame: {
-				width,
-				height,
+				width: 1920,
+				height: 1080,
 			},
 			ffmpeg_Path: process.env.DEV?.length
 				? undefined
