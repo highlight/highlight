@@ -136,9 +136,10 @@ type ComplexityRoot struct {
 	}
 
 	AllWorkspaceSettings struct {
-		AIApplication func(childComplexity int) int
-		AIInsights    func(childComplexity int) int
-		WorkspaceID   func(childComplexity int) int
+		AIApplication        func(childComplexity int) int
+		AIInsights           func(childComplexity int) int
+		EnableEnhancedErrors func(childComplexity int) int
+		WorkspaceID          func(childComplexity int) int
 	}
 
 	AverageSessionLength struct {
@@ -1037,15 +1038,14 @@ type ComplexityRoot struct {
 	}
 
 	Service struct {
-		BuildPrefix     func(childComplexity int) int
-		ErrorDetails    func(childComplexity int) int
-		GithubPrefix    func(childComplexity int) int
-		GithubRepoPath  func(childComplexity int) int
-		ID              func(childComplexity int) int
-		LastSeenVersion func(childComplexity int) int
-		Name            func(childComplexity int) int
-		ProjectID       func(childComplexity int) int
-		Status          func(childComplexity int) int
+		BuildPrefix    func(childComplexity int) int
+		ErrorDetails   func(childComplexity int) int
+		GithubPrefix   func(childComplexity int) int
+		GithubRepoPath func(childComplexity int) int
+		ID             func(childComplexity int) int
+		Name           func(childComplexity int) int
+		ProjectID      func(childComplexity int) int
+		Status         func(childComplexity int) int
 	}
 
 	ServiceConnection struct {
@@ -1059,15 +1059,14 @@ type ComplexityRoot struct {
 	}
 
 	ServiceNode struct {
-		BuildPrefix     func(childComplexity int) int
-		ErrorDetails    func(childComplexity int) int
-		GithubPrefix    func(childComplexity int) int
-		GithubRepoPath  func(childComplexity int) int
-		ID              func(childComplexity int) int
-		LastSeenVersion func(childComplexity int) int
-		Name            func(childComplexity int) int
-		ProjectID       func(childComplexity int) int
-		Status          func(childComplexity int) int
+		BuildPrefix    func(childComplexity int) int
+		ErrorDetails   func(childComplexity int) int
+		GithubPrefix   func(childComplexity int) int
+		GithubRepoPath func(childComplexity int) int
+		ID             func(childComplexity int) int
+		Name           func(childComplexity int) int
+		ProjectID      func(childComplexity int) int
+		Status         func(childComplexity int) int
 	}
 
 	Session struct {
@@ -2142,6 +2141,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AllWorkspaceSettings.AIInsights(childComplexity), true
+
+	case "AllWorkspaceSettings.enable_enhanced_errors":
+		if e.complexity.AllWorkspaceSettings.EnableEnhancedErrors == nil {
+			break
+		}
+
+		return e.complexity.AllWorkspaceSettings.EnableEnhancedErrors(childComplexity), true
 
 	case "AllWorkspaceSettings.workspace_id":
 		if e.complexity.AllWorkspaceSettings.WorkspaceID == nil {
@@ -7756,13 +7762,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Service.ID(childComplexity), true
 
-	case "Service.lastSeenVersion":
-		if e.complexity.Service.LastSeenVersion == nil {
-			break
-		}
-
-		return e.complexity.Service.LastSeenVersion(childComplexity), true
-
 	case "Service.name":
 		if e.complexity.Service.Name == nil {
 			break
@@ -7846,13 +7845,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ServiceNode.ID(childComplexity), true
-
-	case "ServiceNode.lastSeenVersion":
-		if e.complexity.ServiceNode.LastSeenVersion == nil {
-			break
-		}
-
-		return e.complexity.ServiceNode.LastSeenVersion(childComplexity), true
 
 	case "ServiceNode.name":
 		if e.complexity.ServiceNode.Name == nil {
@@ -9965,6 +9957,7 @@ type AllWorkspaceSettings {
 	workspace_id: ID!
 	ai_application: Boolean!
 	ai_insights: Boolean!
+	enable_enhanced_errors: Boolean!
 }
 
 type Account {
@@ -10293,7 +10286,6 @@ type Service {
 	githubRepoPath: String
 	buildPrefix: String
 	githubPrefix: String
-	lastSeenVersion: String
 	errorDetails: [String!]
 }
 
@@ -10305,7 +10297,6 @@ type ServiceNode {
 	githubRepoPath: String
 	buildPrefix: String
 	githubPrefix: String
-	lastSeenVersion: String
 	errorDetails: [String!]
 }
 
@@ -20528,6 +20519,50 @@ func (ec *executionContext) _AllWorkspaceSettings_ai_insights(ctx context.Contex
 }
 
 func (ec *executionContext) fieldContext_AllWorkspaceSettings_ai_insights(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AllWorkspaceSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AllWorkspaceSettings_enable_enhanced_errors(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_AllWorkspaceSettings_enable_enhanced_errors(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnableEnhancedErrors, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_enhanced_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AllWorkspaceSettings",
 		Field:      field,
@@ -36742,6 +36777,8 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspaceSettings(ctx cont
 				return ec.fieldContext_AllWorkspaceSettings_ai_application(ctx, field)
 			case "ai_insights":
 				return ec.fieldContext_AllWorkspaceSettings_ai_insights(ctx, field)
+			case "enable_enhanced_errors":
+				return ec.fieldContext_AllWorkspaceSettings_enable_enhanced_errors(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllWorkspaceSettings", field.Name)
 		},
@@ -41391,8 +41428,6 @@ func (ec *executionContext) fieldContext_Mutation_editServiceGithubSettings(ctx 
 				return ec.fieldContext_Service_buildPrefix(ctx, field)
 			case "githubPrefix":
 				return ec.fieldContext_Service_githubPrefix(ctx, field)
-			case "lastSeenVersion":
-				return ec.fieldContext_Service_lastSeenVersion(ctx, field)
 			case "errorDetails":
 				return ec.fieldContext_Service_errorDetails(ctx, field)
 			}
@@ -50099,6 +50134,8 @@ func (ec *executionContext) fieldContext_Query_workspaceSettings(ctx context.Con
 				return ec.fieldContext_AllWorkspaceSettings_ai_application(ctx, field)
 			case "ai_insights":
 				return ec.fieldContext_AllWorkspaceSettings_ai_insights(ctx, field)
+			case "enable_enhanced_errors":
+				return ec.fieldContext_AllWorkspaceSettings_enable_enhanced_errors(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllWorkspaceSettings", field.Name)
 		},
@@ -54804,47 +54841,6 @@ func (ec *executionContext) fieldContext_Service_githubPrefix(ctx context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _Service_lastSeenVersion(ctx context.Context, field graphql.CollectedField, obj *model1.Service) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Service_lastSeenVersion(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastSeenVersion, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Service_lastSeenVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Service",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Service_errorDetails(ctx context.Context, field graphql.CollectedField, obj *model1.Service) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Service_errorDetails(ctx, field)
 	if err != nil {
@@ -55087,8 +55083,6 @@ func (ec *executionContext) fieldContext_ServiceEdge_node(ctx context.Context, f
 				return ec.fieldContext_ServiceNode_buildPrefix(ctx, field)
 			case "githubPrefix":
 				return ec.fieldContext_ServiceNode_githubPrefix(ctx, field)
-			case "lastSeenVersion":
-				return ec.fieldContext_ServiceNode_lastSeenVersion(ctx, field)
 			case "errorDetails":
 				return ec.fieldContext_ServiceNode_errorDetails(ctx, field)
 			}
@@ -55385,47 +55379,6 @@ func (ec *executionContext) _ServiceNode_githubPrefix(ctx context.Context, field
 }
 
 func (ec *executionContext) fieldContext_ServiceNode_githubPrefix(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ServiceNode",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ServiceNode_lastSeenVersion(ctx context.Context, field graphql.CollectedField, obj *model.ServiceNode) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ServiceNode_lastSeenVersion(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.LastSeenVersion, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ServiceNode_lastSeenVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ServiceNode",
 		Field:      field,
@@ -69652,6 +69605,13 @@ func (ec *executionContext) _AllWorkspaceSettings(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "enable_enhanced_errors":
+
+			out.Values[i] = ec._AllWorkspaceSettings_enable_enhanced_errors(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -77751,10 +77711,6 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = ec._Service_githubPrefix(ctx, field, obj)
 
-		case "lastSeenVersion":
-
-			out.Values[i] = ec._Service_lastSeenVersion(ctx, field, obj)
-
 		case "errorDetails":
 			field := field
 
@@ -77902,10 +77858,6 @@ func (ec *executionContext) _ServiceNode(ctx context.Context, sel ast.SelectionS
 		case "githubPrefix":
 
 			out.Values[i] = ec._ServiceNode_githubPrefix(ctx, field, obj)
-
-		case "lastSeenVersion":
-
-			out.Values[i] = ec._ServiceNode_lastSeenVersion(ctx, field, obj)
 
 		case "errorDetails":
 

@@ -131,6 +131,7 @@ export type AllWorkspaceSettings = {
 	__typename?: 'AllWorkspaceSettings'
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
+	enable_enhanced_errors: Scalars['Boolean']
 	workspace_id: Scalars['ID']
 }
 
@@ -2607,7 +2608,6 @@ export type Service = {
 	githubPrefix?: Maybe<Scalars['String']>
 	githubRepoPath?: Maybe<Scalars['String']>
 	id: Scalars['ID']
-	lastSeenVersion?: Maybe<Scalars['String']>
 	name: Scalars['String']
 	projectID: Scalars['ID']
 	status: ServiceStatus
@@ -2632,7 +2632,6 @@ export type ServiceNode = {
 	githubPrefix?: Maybe<Scalars['String']>
 	githubRepoPath?: Maybe<Scalars['String']>
 	id: Scalars['ID']
-	lastSeenVersion?: Maybe<Scalars['String']>
 	name: Scalars['String']
 	projectID: Scalars['ID']
 	status: ServiceStatus

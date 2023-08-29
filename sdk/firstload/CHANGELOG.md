@@ -366,3 +366,9 @@ Reserved for the Boeing 737
 ### Patch Changes
 
 - Support passing `recordCrossOriginIframe: false` in a cross-origin iframe to record a session for the iframe contents.
+
+## 7.4.4
+
+### Patch Changes
+
+- Ensure stacktraces from Promises are parsed correctly.
