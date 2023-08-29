@@ -82,11 +82,30 @@ export const handler = (event?: APIGatewayEvent) => {
 }
 
 if (process.env.DEV?.length) {
-	await handler({
-		queryStringParameters: {
-			format: 'video/mp4',
-			project: '1',
-			session: '306361953',
-		},
-	} as unknown as APIGatewayEvent)
+	await Promise.all([
+		handler({
+			queryStringParameters: {
+				project: '1',
+				session: '239571781',
+				ts: '1',
+				chunk: '0',
+			},
+		} as unknown as APIGatewayEvent),
+		handler({
+			queryStringParameters: {
+				format: 'image/gif',
+				project: '1',
+				session: '239571781',
+				ts: '15000',
+				tsEnd: '20000',
+			},
+		} as unknown as APIGatewayEvent),
+		handler({
+			queryStringParameters: {
+				format: 'video/mp4',
+				project: '1',
+				session: '306361953',
+			},
+		} as unknown as APIGatewayEvent),
+	])
 }
