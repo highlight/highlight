@@ -67,7 +67,6 @@ type InitializeSessionArgs struct {
 	NetworkRecordingDomains        []string
 	DisableSessionRecording        *bool
 	ServiceName                    string
-	ServiceVersion                 string
 }
 
 type IdentifySessionArgs struct {
