@@ -165,6 +165,9 @@ export async function render(
 				width,
 				height,
 			},
+			ffmpeg_Path: process.env.DEV?.length
+				? undefined
+				: '/opt/bin/ffmpeg',
 			videoCrf: 20,
 			videoCodec: 'libx264',
 			videoPreset: 'fast',
