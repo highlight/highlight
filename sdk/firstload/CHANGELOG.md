@@ -377,4 +377,4 @@ Reserved for the Boeing 737
 
 ### Minor Changes
 
-- Added support specify `serviceName`.
+- Added support to specify `serviceName`.
