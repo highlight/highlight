@@ -17,6 +17,7 @@ export async function getSessionIntervals(_: number, session: number) {
 			database: process.env.PSQL_DB,
 			user: process.env.PSQL_USER,
 			password: process.env.PSQL_PASSWORD,
+			connectionTimeoutMillis: 5000,
 		})
 		await client.connect()
 

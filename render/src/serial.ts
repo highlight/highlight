@@ -26,8 +26,8 @@ export async function serialRender(
 		getSessionIntervals(project, session),
 	])
 	console.log(
-		`got events ${
-			events.length
+		`got events ${events.length} got intervals ${
+			intervals.length
 		} serial render for ${project} ${session} ${ts}-${tsEnd} ${
 			chunk || ''
 		}`,
