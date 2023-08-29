@@ -1535,7 +1535,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			SessionCommentID: sessionComment.ID,
 		}
 		title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
-		desc += "\n\nSee the error page on Highlight:\n"
+		desc += "See the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear &&
@@ -1643,7 +1643,7 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 		}
 
 		title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
-		desc += "\n\nSee the error page on Highlight:\n"
+		desc += "See the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
@@ -2119,7 +2119,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 	}
 
 	title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
-	desc += "\n\nSee the error page on Highlight:\n"
+	desc += "See the error page on Highlight:\n"
 	desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 
 	for _, s := range integrations {
