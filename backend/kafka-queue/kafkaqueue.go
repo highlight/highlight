@@ -28,7 +28,6 @@ const ConsumerGroupName = "group-default"
 const (
 	TaskRetries           = 5
 	prefetchQueueCapacity = 64
-	prefetchSizeBytes     = 64 * 1000         // 64 KB
 	messageSizeBytes      = 500 * 1000 * 1000 // 500 MB
 )
 
@@ -198,10 +197,11 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			HeartbeatInterval: time.Second,
 			SessionTimeout:    10 * time.Second,
 			RebalanceTimeout:  rebalanceTimeout,
+			ReadBatchTimeout:  KafkaOperationTimeout,
 			Topic:             pool.Topic,
 			GroupID:           pool.ConsumerGroup,
-			MinBytes:          prefetchSizeBytes,
 			MaxBytes:          messageSizeBytes,
+			MaxWait:           time.Second,
 			QueueCapacity:     prefetchQueueCapacity,
 			// in the future, we would commit only on successful processing of a message.
 			// this means we commit very often to avoid repeating tasks on worker restart.
@@ -234,6 +234,10 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 	}()
 
 	return pool
+}
+
+func (p *Queue) metricPrefix() string {
+	return fmt.Sprintf("worker.kafka.%s.", p.Topic)
 }
 
 func (p *Queue) Stop(ctx context.Context) {
@@ -269,7 +273,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Me
 			Key:   []byte(partitionKey),
 			Value: msgBytes,
 		})
-		hlog.Incr("worker.kafka.produceMessageCount", nil, 1)
+		hlog.Incr(p.metricPrefix()+"produceMessageCount", nil, 1)
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, KafkaOperationTimeout)
@@ -279,7 +283,7 @@ func (p *Queue) Submit(ctx context.Context, partitionKey string, messages ...*Me
 		log.WithContext(ctx).WithError(err).WithField("partition_key", partitionKey).WithField("num_messages", len(messages)).Errorf("failed to send kafka messages")
 		return err
 	}
-	hlog.Histogram("worker.kafka.submitSec", time.Since(start).Seconds(), nil, 1)
+	hlog.Histogram(p.metricPrefix()+"submitSec", time.Since(start).Seconds(), nil, 1)
 	return nil
 }
 
@@ -300,8 +304,8 @@ func (p *Queue) Receive(ctx context.Context) (msg *Message) {
 		return nil
 	}
 	msg.KafkaMessage = &m
-	hlog.Incr("worker.kafka.consumeMessageCount", nil, 1)
-	hlog.Histogram("worker.kafka.receiveSec", time.Since(start).Seconds(), nil, 1)
+	hlog.Incr(p.metricPrefix()+"consumeMessageCount", nil, 1)
+	hlog.Histogram(p.metricPrefix()+"receiveSec", time.Since(start).Seconds(), nil, 1)
 	return
 }
 
@@ -357,8 +361,8 @@ func (p *Queue) Commit(ctx context.Context, msg *kafka.Message) {
 	if err != nil {
 		log.WithContext(ctx).Error(errors.Wrap(err, "failed to commit message"))
 	} else {
-		hlog.Incr("worker.kafka.commitMessageCount", nil, 1)
-		hlog.Histogram("worker.kafka.commitSec", time.Since(start).Seconds(), nil, 1)
+		hlog.Incr(p.metricPrefix()+"commitMessageCount", nil, 1)
+		hlog.Histogram(p.metricPrefix()+"commitSec", time.Since(start).Seconds(), nil, 1)
 	}
 }
 
@@ -367,28 +371,28 @@ func (p *Queue) LogStats() {
 		stats := p.kafkaP.Stats()
 		log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("stats", stats).Debug("Kafka Producer Stats")
 
-		hlog.Histogram("worker.kafka.produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram("worker.kafka.produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram("worker.kafka.produceWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram("worker.kafka.produceBatchSize", float64(stats.BatchSize.Avg), nil, 1)
-		hlog.Histogram("worker.kafka.produceBatchBytes", float64(stats.BatchBytes.Avg), nil, 1)
-		hlog.Histogram("worker.kafka.produceQueueCapacity", float64(stats.QueueCapacity), nil, 1)
-		hlog.Histogram("worker.kafka.produceQueueLength", float64(stats.QueueLength), nil, 1)
-		hlog.Histogram("worker.kafka.produceBytes", float64(stats.Bytes), nil, 1)
-		hlog.Histogram("worker.kafka.produceErrors", float64(stats.Errors), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"produceBatchAvgSec", stats.BatchTime.Avg.Seconds(), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"produceWriteAvgSec", stats.WriteTime.Avg.Seconds(), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"produceWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"produceBatchSize", float64(stats.BatchSize.Avg), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"produceBatchBytes", float64(stats.BatchBytes.Avg), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"produceQueueCapacity", float64(stats.QueueCapacity), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"produceQueueLength", float64(stats.QueueLength), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"produceBytes", float64(stats.Bytes), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"produceErrors", float64(stats.Errors), nil, 1)
 	}
 	if p.kafkaC != nil {
 		stats := p.kafkaC.Stats()
 		log.WithContext(context.Background()).WithField("topic", stats.Topic).WithField("partition", stats.Partition).WithField("stats", stats).Debug("Kafka Consumer Stats")
 
-		hlog.Histogram("worker.kafka.consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram("worker.kafka.consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
-		hlog.Histogram("worker.kafka.consumeFetchSize", float64(stats.FetchSize.Avg), nil, 1)
-		hlog.Histogram("worker.kafka.consumeFetchBytes", float64(stats.FetchBytes.Avg), nil, 1)
-		hlog.Histogram("worker.kafka.consumeQueueCapacity", float64(stats.QueueCapacity), nil, 1)
-		hlog.Histogram("worker.kafka.consumeQueueLength", float64(stats.QueueLength), nil, 1)
-		hlog.Histogram("worker.kafka.consumeBytes", float64(stats.Bytes), nil, 1)
-		hlog.Histogram("worker.kafka.consumeErrors", float64(stats.Errors), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"consumeReadAvgSec", stats.ReadTime.Avg.Seconds(), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"consumeWaitAvgSec", stats.WaitTime.Avg.Seconds(), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"consumeFetchSize", float64(stats.FetchSize.Avg), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"consumeFetchBytes", float64(stats.FetchBytes.Avg), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"consumeQueueCapacity", float64(stats.QueueCapacity), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"consumeQueueLength", float64(stats.QueueLength), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"consumeBytes", float64(stats.Bytes), nil, 1)
+		hlog.Histogram(p.metricPrefix()+"consumeErrors", float64(stats.Errors), nil, 1)
 	}
 }
 
