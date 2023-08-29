@@ -39,7 +39,6 @@ export const MultiSelectButton: React.FC<Props> = ({
 }) => {
 	const selectStore = useSelectStore({
 		defaultValue: defaultValue ? [defaultValue] : [],
-		gutter: 4,
 		value: value,
 		setValue: (value: string[]) => onChange(value),
 	})
@@ -61,6 +60,7 @@ export const MultiSelectButton: React.FC<Props> = ({
 			{selectState.mounted && (
 				<SelectPopover
 					store={selectStore}
+					gutter={4}
 					className={styles.selectPopover}
 				>
 					{options.map((option: Option) => (

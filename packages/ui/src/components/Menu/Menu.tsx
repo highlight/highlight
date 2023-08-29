@@ -1,6 +1,6 @@
 import * as Ariakit from '@ariakit/react'
 import clsx, { ClassValue } from 'clsx'
-import React, { forwardRef } from 'react'
+import React from 'react'
 import {
 	Button as OriginalButton,
 	ButtonProps as ButtonProps,
@@ -25,7 +25,6 @@ type MenuComponent = React.FC<Props> & {
 }
 
 export const Menu: MenuComponent = ({ children, ...props }: Props) => {
-	props.gutter = props.gutter ?? 4
 	const menu = Ariakit.useMenuStore(props)
 
 	return <MenuContext.Provider value={menu}>{children}</MenuContext.Provider>
@@ -67,9 +66,17 @@ const List: React.FC<ListProps> = ({ children, cssClass, ...props }) => {
 	return (
 		<Ariakit.Menu
 			store={menu}
+			gutter={4}
 			className={clsx(styles.menuList, cssClass)}
 			{...props}
 		>
+			{/*
+			There is a bug in v0.2.17 of Ariakit where you need to have this arrow
+			rendered or else positioning of the popover breaks. We render it, but hide
+			it by setting size={0}. This is an issue with anything using a popover
+			coming from the floating-ui library.
+			*/}
+			<Ariakit.MenuArrow size={0} />
 			{children}
 		</Ariakit.Menu>
 	)
