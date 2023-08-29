@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"net/http"
 	"os"
@@ -59,6 +60,7 @@ func TestHandler_HandleTrace(t *testing.T) {
 		expectedLogCounts     map[model.LogSource]int
 		expectedErrors        *int
 		expectedErrorEvent    *string
+		external              bool
 	}{
 		"./samples/traces.json": {
 			expectedMessageCounts: map[kafkaqueue.PayloadType]int{
@@ -71,6 +73,14 @@ func TestHandler_HandleTrace(t *testing.T) {
 				model.LogSourceBackend:  14,
 			},
 		},
+		"./samples/external.json": {
+			expectedMessageCounts: map[kafkaqueue.PayloadType]int{
+				// no errors expected
+				kafkaqueue.PushLogs:   11,  // 11 logs
+				kafkaqueue.PushTraces: 501, // 512 spans - 11 logs
+			},
+			external: true,
+		},
 		"./samples/nextjs.json": {
 			expectedErrorEvent: pointy.String("Error: /api/app-directory-test"),
 		},
@@ -78,6 +88,12 @@ func TestHandler_HandleTrace(t *testing.T) {
 			expectedErrors: pointy.Int(0),
 		},
 	} {
+		if tc.external {
+			util.DopplerConfig = "prod_aws"
+		} else {
+			util.DopplerConfig = ""
+		}
+
 		inputBytes, err := os.ReadFile(file)
 		if err != nil {
 			t.Fatalf("error reading: %v", err)

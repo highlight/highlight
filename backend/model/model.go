@@ -2065,7 +2065,6 @@ type Service struct {
 	GithubRepoPath     *string
 	BuildPrefix        *string
 	GithubPrefix       *string
-	LastSeenVersion    *string
 	ErrorDetails       pq.StringArray `gorm:"type:text[]"`
 	ProcessName        *string
 	ProcessVersion     *string
