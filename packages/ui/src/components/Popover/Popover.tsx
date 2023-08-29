@@ -1,20 +1,17 @@
-import {
-	Popover as AriakitPopover,
-	PopoverDisclosure,
-	PopoverOptions,
-	PopoverStore,
-	PopoverStoreProps,
-	usePopoverStore,
-} from '@ariakit/react'
+import * as Ariakit from '@ariakit/react'
 import React from 'react'
 import { Button, ButtonProps as ButtonProps } from '../Button/Button'
 import { Tag, Props as TagProps } from '../Tag/Tag'
 import { Box, BoxProps } from '../Box/Box'
 
-const PopoverContext = React.createContext<PopoverStore>({} as PopoverStore)
+const PopoverContext = React.createContext<Ariakit.PopoverStore>(
+	{} as Ariakit.PopoverStore,
+)
 export const usePopover = () => React.useContext(PopoverContext)
 
-export type PopoverProps = React.PropsWithChildren<Partial<PopoverStoreProps>>
+export type PopoverProps = React.PropsWithChildren<
+	Partial<Ariakit.PopoverStoreProps>
+>
 
 type PopoverComponent = React.FC<PopoverProps> & {
 	ButtonTrigger: typeof ButtonTrigger
@@ -27,7 +24,7 @@ export const Popover: PopoverComponent = ({
 	children,
 	...props
 }: PopoverProps) => {
-	const popoverStore = usePopoverStore({
+	const popoverStore = Ariakit.usePopoverStore({
 		placement: 'bottom',
 		...props,
 	})
@@ -49,9 +46,9 @@ const ButtonTrigger: React.FC<React.PropsWithChildren<ButtonProps>> = ({
 	const popover = usePopover()
 
 	return (
-		<PopoverDisclosure store={popover} as={Button} {...props}>
+		<Ariakit.PopoverDisclosure store={popover} as={Button} {...props}>
 			{children}
-		</PopoverDisclosure>
+		</Ariakit.PopoverDisclosure>
 	)
 }
 
@@ -62,9 +59,9 @@ const TagTrigger: React.FC<React.PropsWithChildren<TagProps>> = ({
 	const popover = usePopover()
 
 	return (
-		<PopoverDisclosure store={popover} as={Tag} {...props}>
+		<Ariakit.PopoverDisclosure store={popover} as={Tag} {...props}>
 			{children}
-		</PopoverDisclosure>
+		</Ariakit.PopoverDisclosure>
 	)
 }
 
@@ -75,21 +72,28 @@ const BoxTrigger: React.FC<React.PropsWithChildren<BoxProps>> = ({
 	const popover = usePopover()
 
 	return (
-		<PopoverDisclosure store={popover} as={Box} {...props}>
+		<Ariakit.PopoverDisclosure store={popover} as={Box} {...props}>
 			{children}
-		</PopoverDisclosure>
+		</Ariakit.PopoverDisclosure>
 	)
 }
 
 const Content: React.FC<
-	React.PropsWithChildren<Omit<PopoverOptions<'div'>, 'store'>>
+	React.PropsWithChildren<Omit<Ariakit.PopoverOptions<'div'>, 'store'>>
 > = ({ children, ...props }) => {
 	const popover = usePopover()
 
 	return (
-		<AriakitPopover {...props} store={popover} gutter={4}>
+		<Ariakit.Popover {...props} store={popover} gutter={4}>
+			{/*
+			There is a bug in v0.2.17 of Ariakit where you need to have this arrow
+			rendered or else positioning of the popover breaks. We render it, but hide
+			it by setting size={0}. This is an issue with anything using a popover
+			coming from the floating-ui library.
+			*/}
+			<Ariakit.PopoverArrow size={0} />
 			{children}
-		</AriakitPopover>
+		</Ariakit.Popover>
 	)
 }
 
