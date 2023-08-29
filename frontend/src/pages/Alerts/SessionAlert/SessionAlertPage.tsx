@@ -113,7 +113,7 @@ export const SessionAlertPage = () => {
 	useEffect(() => {
 		if (alert) {
 			form.setValues({
-				name: alert.Name ?? 'Error',
+				name: alert.Name ?? '',
 				belowThreshold: false,
 				excludedEnvironments: alert.ExcludedEnvironments,
 				slackChannels: alert.ChannelsToNotify.map((c: any) => ({
@@ -473,7 +473,7 @@ export const SessionAlertPage = () => {
 										))}
 									</Box>
 									<Stack gap="40">
-										<AlertTitleField form={form} />
+										<AlertTitleField />
 										<SessionAlertForm
 											type={alertType}
 											configuration={configuration}
@@ -609,6 +609,7 @@ const SessionAlertForm = ({
 								<Column>
 									<Form.Input
 										name={form.names.threshold}
+										value={form.values.threshold}
 										type="number"
 										label="Alert threshold"
 										tag={
@@ -623,12 +624,6 @@ const SessionAlertForm = ({
 											borderColor: form.errors.threshold
 												? 'var(--color-red-500)'
 												: undefined,
-										}}
-										onChange={(e) => {
-											form.setValue(
-												form.names.threshold,
-												e.target.value,
-											)
 										}}
 									/>
 								</Column>

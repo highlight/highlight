@@ -1,12 +1,15 @@
-import { Form, FormState } from '@highlight-run/ui'
+import { Form, FormState, useForm } from '@highlight-run/ui'
+
+import { AlertForm } from '@/pages/Alerts/utils/AlertsUtils'
 
 import * as styles from './styles.css'
 
-const AlertTitleField = ({ form }: { form: FormState<any> }) => {
+const AlertTitleField = () => {
+	const form = useForm() as FormState<AlertForm>
 	return (
 		<Form.Input
-			name={String(form.names.name)}
-			type="text"
+			name={form.names.name}
+			value={form.values.name}
 			placeholder="Type name..."
 			style={{
 				borderColor: form.errors.name

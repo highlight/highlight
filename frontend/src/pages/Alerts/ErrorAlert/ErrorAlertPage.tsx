@@ -386,7 +386,7 @@ export const ErrorAlertPage = () => {
 
 							<Form state={form} resetOnSubmit={false}>
 								<Stack gap="40">
-									<AlertTitleField form={form} />
+									<AlertTitleField />
 									<ErrorAlertForm />
 								</Stack>
 							</Form>
@@ -446,6 +446,7 @@ const ErrorAlertForm = () => {
 						<Column>
 							<Form.Input
 								name={form.names.threshold}
+								value={form.values.threshold}
 								type="number"
 								label="Alert threshold"
 								tag={
