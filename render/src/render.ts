@@ -54,7 +54,7 @@ export async function render(
 		console.log(`starting puppeteer for dev`)
 		browser = await puppeteer.launch({
 			channel: 'chrome',
-			headless: false,
+			headless: 'new',
 		})
 	} else {
 		console.log(`starting puppeteer for lambda`)
