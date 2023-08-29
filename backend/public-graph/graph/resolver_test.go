@@ -90,6 +90,7 @@ func TestMain(m *testing.M) {
 		Redis:            redisClient,
 		Store:            store.NewStore(db, &opensearch.Client{}, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}),
 		EmbeddingsClient: &mockEmbeddingsClient{},
+		DataSyncQueue:    &kafka_queue.MockMessageQueue{},
 	}
 	code := m.Run()
 	os.Exit(code)
