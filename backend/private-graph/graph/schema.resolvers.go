@@ -284,6 +284,11 @@ func (r *logAlertResolver) DailyFrequency(ctx context.Context, obj *model.LogAle
 	return obj.GetDailyLogEventFrequency(r.DB, obj.ID)
 }
 
+// Event is the resolver for the event field.
+func (r *matchedErrorObjectResolver) Event(ctx context.Context, obj *model.MatchedErrorObject) ([]*string, error) {
+	return util.JsonStringToStringArray(obj.Event), nil
+}
+
 // ChannelsToNotify is the resolver for the channels_to_notify field.
 func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*modelInputs.SanitizedSlackChannel, error) {
 	if obj == nil {
@@ -3655,6 +3660,11 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 
 	_, _ = r.Redis.ResetServiceErrorCount(ctx, projectID)
 	return service, nil
+}
+
+// CreateErrorTag is the resolver for the createErrorTag field.
+func (r *mutationResolver) CreateErrorTag(ctx context.Context, title string, description string) (*model.ErrorTag, error) {
+	return r.Resolver.CreateErrorTag(ctx, title, description)
 }
 
 // UpsertSlackChannel is the resolver for the upsertSlackChannel field.
@@ -7694,6 +7704,21 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 	return &connection, err
 }
 
+// ErrorTags is the resolver for the error_tags field.
+func (r *queryResolver) ErrorTags(ctx context.Context) ([]*model.ErrorTag, error) {
+	return r.GetErrorTags()
+}
+
+// MatchErrorTag is the resolver for the match_error_tag field.
+func (r *queryResolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInputs.MatchedErrorTag, error) {
+	return r.Resolver.MatchErrorTag(ctx, query)
+}
+
+// FindSimilarErrors is the resolver for the find_similar_errors field.
+func (r *queryResolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.MatchedErrorObject, error) {
+	return r.Resolver.FindSimilarErrors(ctx, query)
+}
+
 // Traces is the resolver for the traces field.
 func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.TracesParamsInput) ([]*modelInputs.Trace, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
@@ -8027,6 +8052,11 @@ func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &error
 // LogAlert returns generated.LogAlertResolver implementation.
 func (r *Resolver) LogAlert() generated.LogAlertResolver { return &logAlertResolver{r} }
 
+// MatchedErrorObject returns generated.MatchedErrorObjectResolver implementation.
+func (r *Resolver) MatchedErrorObject() generated.MatchedErrorObjectResolver {
+	return &matchedErrorObjectResolver{r}
+}
+
 // MetricMonitor returns generated.MetricMonitorResolver implementation.
 func (r *Resolver) MetricMonitor() generated.MetricMonitorResolver { return &metricMonitorResolver{r} }
 
@@ -8068,6 +8098,7 @@ type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
 type logAlertResolver struct{ *Resolver }
+type matchedErrorObjectResolver struct{ *Resolver }
 type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }

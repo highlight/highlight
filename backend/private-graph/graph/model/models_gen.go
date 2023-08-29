@@ -510,6 +510,13 @@ type LogsParamsInput struct {
 	DateRange *DateRangeRequiredInput `json:"date_range"`
 }
 
+type MatchedErrorTag struct {
+	ID          int     `json:"id"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Score       float64 `json:"score"`
+}
+
 type MetricPreview struct {
 	Date  time.Time `json:"date"`
 	Value float64   `json:"value"`
@@ -641,15 +648,14 @@ func (ServiceEdge) IsEdge()                {}
 func (this ServiceEdge) GetCursor() string { return this.Cursor }
 
 type ServiceNode struct {
-	ID              int           `json:"id"`
-	ProjectID       int           `json:"projectID"`
-	Name            string        `json:"name"`
-	Status          ServiceStatus `json:"status"`
-	GithubRepoPath  *string       `json:"githubRepoPath"`
-	BuildPrefix     *string       `json:"buildPrefix"`
-	GithubPrefix    *string       `json:"githubPrefix"`
-	LastSeenVersion *string       `json:"lastSeenVersion"`
-	ErrorDetails    []string      `json:"errorDetails"`
+	ID             int           `json:"id"`
+	ProjectID      int           `json:"projectID"`
+	Name           string        `json:"name"`
+	Status         ServiceStatus `json:"status"`
+	GithubRepoPath *string       `json:"githubRepoPath"`
+	BuildPrefix    *string       `json:"buildPrefix"`
+	GithubPrefix   *string       `json:"githubPrefix"`
+	ErrorDetails   []string      `json:"errorDetails"`
 }
 
 type SessionAlertInput struct {

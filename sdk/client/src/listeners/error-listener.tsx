@@ -4,7 +4,7 @@ import ErrorStackParser from 'error-stack-parser'
 
 interface HighlightPromise<T> extends Promise<T> {
 	promiseCreationError: Error
-	getStack(): Error
+	getStack(): Error | undefined
 }
 
 function handleError(
@@ -13,11 +13,7 @@ function handleError(
 	source: string | undefined,
 	error: Error,
 ) {
-	let res: ErrorStackParser.StackFrame[] = []
-	try {
-		res = ErrorStackParser.parse(error)
-	} catch {}
-
+	const res = ErrorStackParser.parse(error)
 	if (event instanceof Error) {
 		event = event.message
 	}
@@ -46,9 +42,7 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 		colno: number | undefined,
 		error: Error | undefined,
 	): void => {
-		if (error) {
-			handleError(callback, event, source, error)
-		}
+		handleError(callback, event, source, error ?? Error())
 	})
 
 	const initialOnUnhandledRejection = (window.onunhandledrejection = (
@@ -61,7 +55,7 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 					callback,
 					event.reason,
 					event.type,
-					hPromise.getStack(),
+					hPromise.getStack() ?? Error(),
 				)
 			} else {
 				handleError(callback, event.reason, event.type, Error())
@@ -76,9 +70,9 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
 			reject: (reason?: any) => void,
 		) => void,
 	) {
-		initialPromise(executor)
 		// @ts-ignore
 		this.promiseCreationError = new Error()
+		initialPromise(executor)
 	}
 
 	// @ts-ignore

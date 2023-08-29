@@ -19,6 +19,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
 
+var ExternalHighlightData = e.New("dropping otel data from external highlight instance")
 var fluentProjectPattern = regexp.MustCompile(fmt.Sprintf(`%s=([\S]+)`, highlight.ProjectIDAttribute))
 
 // Extracted fields
@@ -53,6 +54,9 @@ type extractedFields struct {
 	// in this map.
 	// This is the data that should be written to the attributes column (e.g. LogAttributes)
 	attrs map[string]string
+
+	// external means that this otel data is coming from a hobby highlight instance routed to our cloud project 1
+	external bool
 }
 
 func newExtractedFields() *extractedFields {
@@ -70,7 +74,7 @@ type extractFieldsParams struct {
 	logRecord *plog.LogRecord
 }
 
-func extractFields(ctx context.Context, params extractFieldsParams) (extractedFields, error) {
+func extractFields(ctx context.Context, params extractFieldsParams) (*extractedFields, error) {
 	fields := newExtractedFields()
 
 	var resourceAttributes, spanAttributes, eventAttributes, scopeAttributes, logAttributes map[string]any
@@ -262,12 +266,19 @@ func extractFields(ctx context.Context, params extractFieldsParams) (extractedFi
 	projectIDInt, err := projectToInt(fields.projectID)
 
 	if err != nil {
-		return *fields, err
+		return nil, err
 	}
 
 	fields.projectIDInt = projectIDInt
 
-	return *fields, nil
+	if fields.projectIDInt == 1 && util.IsProduction() {
+		if fields.serviceName == "all" || fields.serviceName == "" {
+			fields.external = true
+			fields.attrs["service.external"] = "true"
+		}
+	}
+
+	return fields, nil
 }
 
 func mergeMaps(maps ...map[string]any) map[string]any {

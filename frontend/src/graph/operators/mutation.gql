@@ -1177,6 +1177,15 @@ mutation EditServiceGithubSettings(
 	}
 }
 
+mutation CreateErrorTag($title: String!, $description: String!) {
+	createErrorTag(title: $title, description: $description) {
+		id
+		created_at
+		title
+		description
+	}
+}
+
 mutation UpsertSlackChannel($project_id: ID!, $name: String!) {
 	upsertSlackChannel(project_id: $project_id, name: $name) {
 		webhook_channel

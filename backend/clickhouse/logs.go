@@ -3,13 +3,13 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	e "github.com/pkg/errors"
 	"math"
 	"strings"
 	"time"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
-	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
@@ -31,14 +31,20 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 		}
 		return l
 	})
-	ib := sqlbuilder.NewStruct(new(LogRow)).InsertInto(LogsTable, rows...)
-	sql, args := ib.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
-		"async_insert":          1,
-		"wait_for_async_insert": 1,
-	}))
-	return client.conn.Exec(chCtx, sql, args...)
+	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", LogsTable))
+	if err != nil {
+		return e.Wrap(err, "failed to create logs batch")
+	}
+
+	for _, logRow := range rows {
+		err = batch.AppendStruct(logRow)
+		if err != nil {
+			return err
+		}
+	}
+
+	return batch.Send()
 }
 
 const LogsLimit int = 50
@@ -596,16 +602,27 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 
 	conditions := []string{}
 	for key, values := range filters.attributes {
-		for _, value := range values {
+		if len(values) == 1 {
+			value := values[0]
 			if strings.Contains(value, "%") {
 				conditions = append(conditions, sb.Var(sqlbuilder.Buildf("LogAttributes[%s] LIKE %s", key, value)))
 			} else {
 				conditions = append(conditions, sb.Var(sqlbuilder.Buildf("LogAttributes[%s] = %s", key, value)))
 			}
+		} else {
+			innerConditions := []string{}
+			for _, value := range values {
+				if strings.Contains(value, "%") {
+					innerConditions = append(innerConditions, sb.Var(sqlbuilder.Buildf("LogAttributes[%s] LIKE %s", key, value)))
+				} else {
+					innerConditions = append(innerConditions, sb.Var(sqlbuilder.Buildf("LogAttributes[%s] = %s", key, value)))
+				}
+			}
+			conditions = append(conditions, sb.Or(innerConditions...))
 		}
 	}
 	if len(conditions) > 0 {
-		sb.Where(sb.Or(conditions...))
+		sb.Where(sb.And(conditions...))
 	}
 
 	return sb, nil
