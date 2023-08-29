@@ -5,8 +5,10 @@ package util
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -32,6 +34,7 @@ func (t Tracer) Validate(graphql.ExecutableSchema) error {
 }
 
 func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (interface{}, error) {
+	start := time.Now()
 	// taken from: https://docs.datadoghq.com/tracing/setup_overview/custom_instrumentation/go/#manually-creating-a-new-span
 	fc := graphql.GetFieldContext(ctx)
 	fieldSpan, ctx := tracer.StartSpanFromContext(ctx, "operation.field", tracer.ResourceName(fc.Field.Name))
@@ -41,16 +44,27 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 			fieldSpan.SetTag("field.arguments", bs)
 		}
 	}
-	start := graphql.Now()
 	res, err := next(ctx)
-	end := graphql.Now()
-	fieldSpan.SetTag("field.duration", end.Sub(start))
 	fieldSpan.Finish(tracer.WithError(err))
 
+	if t.serverType == PrivateGraph {
+		fields := log.Fields{
+			"duration":        time.Since(start),
+			"operation.field": fc.Field.Name,
+			"graph":           t.serverType,
+		}
+		if err != nil {
+			fields["error"] = err
+		}
+		log.WithContext(ctx).
+			WithFields(fields).
+			Debugf("graphql field")
+	}
 	return res, err
 }
 
 func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
+	start := time.Now()
 	var oc *graphql.OperationContext
 	if graphql.HasOperationContext(ctx) {
 		oc = graphql.GetOperationContext(ctx)
@@ -71,6 +85,19 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 			errs = append(errs, tracer.WithError(err))
 		}
 		span.Finish(errs...)
+	}
+	if t.serverType == PrivateGraph {
+		fields := log.Fields{
+			"duration":          time.Since(start),
+			"graphql.operation": opName,
+			"graph":             t.serverType,
+		}
+		if len(resp.Errors) > 0 {
+			fields["errors"] = resp.Errors
+		}
+		log.WithContext(ctx).
+			WithFields(fields).
+			Infof("graphql request")
 	}
 	return resp
 }
