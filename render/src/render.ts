@@ -113,7 +113,7 @@ export async function render(
             mouseTail: true,
             UNSAFE_replayCanvas: true,
             liveMode: false,
-            speed: 4
+            speed: 2
         });
         window.getInactivityEnd = (time) => {
 			for (const interval of intervals) {

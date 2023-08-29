@@ -48,7 +48,7 @@ const media = async (event?: APIGatewayEvent) => {
 		const { dir, files } = await serialRender(project, session, {
 			ts,
 			tsEnd,
-			fps: 120,
+			fps: 60,
 			video: args?.format === 'video/mp4',
 		})
 		let path = ''
