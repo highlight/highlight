@@ -231,10 +231,12 @@ const GithubSettingsForm = ({
 										}
 										renderInLine
 									>
-										The path added in the deployment process
-										to host your files, and should be
-										removed when trying to map your files to
-										GitHub.
+										<Box cssClass={styles.tooltipContent}>
+											The path added in the deployment
+											process to host your files, and
+											should be removed when trying to map
+											your files to GitHub.
+										</Box>
 									</Tooltip>
 								}
 							/>
@@ -255,9 +257,11 @@ const GithubSettingsForm = ({
 										}
 										renderInLine
 									>
-										The path removed in the deployment
-										process to host your files, which can be
-										seen in your GitHub repo.
+										<Box cssClass={styles.tooltipContent}>
+											The path removed in the deployment
+											process to host your files, which
+											can be seen in your GitHub repo.
+										</Box>
 									</Tooltip>
 								}
 							/>
@@ -278,7 +282,9 @@ const GithubSettingsForm = ({
 								}
 								renderInLine
 							>
-								An example using the configuration provided.
+								<Box cssClass={styles.tooltipContent}>
+									An example using the configuration provided.
+								</Box>
 							</Tooltip>
 							<Text break="all">
 								e.g. <i>{form.values.buildPrefix}/README.md</i>{' '}

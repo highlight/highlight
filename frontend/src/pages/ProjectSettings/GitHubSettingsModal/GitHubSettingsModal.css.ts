@@ -12,3 +12,7 @@ export const example = style({
 	color: vars.theme.static.content.moderate,
 	padding: 6,
 })
+
+export const tooltipContent = style({
+	color: vars.theme.static.content.moderate,
+})
