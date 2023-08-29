@@ -1,5 +1,4 @@
 import { Button } from '@components/Button'
-import { LinkButton } from '@components/LinkButton'
 import Modal from '@components/Modal/Modal'
 import ModalBody from '@components/ModalBody/ModalBody'
 import {
@@ -10,17 +9,18 @@ import {
 	IconSolidQuestionMarkCircle,
 	IconSolidTrash,
 	IconSolidX,
-	Stack,
 	Text,
 	TextLink,
 	Tooltip,
 	vars,
 } from '@highlight-run/ui'
+import { IntegrationAction } from '@pages/IntegrationsPage/components/Integration'
+import { GITHUB_INTEGRATION } from '@pages/IntegrationsPage/Integrations'
 import { Select } from 'antd'
 import React, { useMemo } from 'react'
-import { Link } from 'react-router-dom'
 
 import { GitHubRepo, Service } from '@/graph/generated/schemas'
+import { IntegrationModal } from '@/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
 
 import * as styles from './GitHubSettingsModal.css'
 
@@ -45,6 +45,7 @@ export const GitHubSettingsModal = ({
 	githubIntegrated,
 	closeModal,
 }: Props) => {
+	const { configurationPage } = GITHUB_INTEGRATION
 	const handleSubmit = (formValues: GithubSettingsFormValues) => {
 		const submittedValues = formValues.githubRepo
 			? formValues
@@ -56,6 +57,23 @@ export const GitHubSettingsModal = ({
 
 	if (!service) {
 		return null
+	}
+
+	if (!githubIntegrated) {
+		return (
+			<IntegrationModal
+				title="Configuring GitHub Integration"
+				visible={!!service}
+				onCancel={closeModal}
+				configurationPage={() =>
+					configurationPage({
+						setModalOpen: closeModal,
+						setIntegrationEnabled: () => {},
+						action: IntegrationAction.Setup,
+					})
+				}
+			/>
+		)
 	}
 
 	return (
@@ -97,35 +115,12 @@ export const GitHubSettingsModal = ({
 			}
 		>
 			<ModalBody>
-				{!githubIntegrated ? (
-					<Stack>
-						<Text size="small" weight="medium">
-							It looks like you have not enabled GitHub to
-							integrate with Highlight yet. Visit{' '}
-							<Link to={`/${service.projectID}/integrations`}>
-								Integrations
-							</Link>{' '}
-							to start creating GitHub issues from comments,
-							enhancing your error stacktraces with more context,
-							and more!
-						</Text>
-						<Box display="flex">
-							<LinkButton
-								to={`/${service.projectID}/integrations`}
-								trackingId="github-settings-integrations-page-link"
-							>
-								Integrate GitHub
-							</LinkButton>
-						</Box>
-					</Stack>
-				) : (
-					<GithubSettingsForm
-						service={service}
-						githubRepos={githubRepos}
-						handleSubmit={handleSubmit}
-						handleCancel={closeModal}
-					/>
-				)}
+				<GithubSettingsForm
+					service={service}
+					githubRepos={githubRepos}
+					handleSubmit={handleSubmit}
+					handleCancel={closeModal}
+				/>
 			</ModalBody>
 		</Modal>
 	)
