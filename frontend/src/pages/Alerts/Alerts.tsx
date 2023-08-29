@@ -12,7 +12,6 @@ import {
 	IconSolidLightningBolt,
 	IconSolidLogs,
 	IconSolidPlayCircle,
-	IconSolidPlus,
 	IconSolidRefresh,
 	Menu,
 	Stack,
@@ -36,7 +35,6 @@ import { RiDiscordFill, RiMailFill, RiSlackFill } from 'react-icons/ri'
 import { useNavigate } from 'react-router-dom'
 
 import { Link } from '@/components/Link'
-import { LinkButton } from '@/components/LinkButton'
 import {
 	DiscordChannel,
 	SanitizedSlackChannel,
@@ -302,19 +300,17 @@ function AlertsPageLoaded({
 						</Text>
 					</Stack>
 					<Stack gap="8" width="full">
-						{alertsAsTableRows.length > 0 && (
-							<Box
-								display="flex"
-								justifyContent="space-between"
-								alignItems="center"
-								width="full"
-							>
-								<Text weight="bold" size="small" color="strong">
-									All alerts
-								</Text>
-								<NewAlertMenu />
-							</Box>
-						)}
+						<Box
+							display="flex"
+							justifyContent="space-between"
+							alignItems="center"
+							width="full"
+						>
+							<Text weight="bold" size="small" color="strong">
+								All alerts
+							</Text>
+							<NewAlertMenu />
+						</Box>
 						{alertsPayload && (
 							<Stack gap="6">
 								{alertsAsTableRows.length > 0 ? (
@@ -675,19 +671,6 @@ function AlertsPageLoaded({
 											className={styles.emptyContainer}
 											item="alerts"
 											customTitle={`Your project doesn't have any alerts yet 😔`}
-											customDescription={
-												<>
-													<LinkButton
-														iconLeft={
-															<IconSolidPlus />
-														}
-														trackingId="NewAlert"
-														to={`/${project_id}/alerts/new`}
-													>
-														Create new alert
-													</LinkButton>
-												</>
-											}
 										/>
 									</>
 								)}
