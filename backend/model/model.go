@@ -1272,6 +1272,8 @@ type SystemConfiguration struct {
 	MaintenanceEnd   time.Time
 	ErrorFilters     pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
 	IgnoredFiles     pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\"}'"`
+	TraceWorkers     int            `gorm:"default:1"`
+	TraceFlushSize   int            `gorm:"type:bigint;default:10000"`
 }
 
 type RetryableType string
@@ -2063,7 +2065,6 @@ type Service struct {
 	GithubRepoPath     *string
 	BuildPrefix        *string
 	GithubPrefix       *string
-	LastSeenVersion    *string
 	ErrorDetails       pq.StringArray `gorm:"type:text[]"`
 	ProcessName        *string
 	ProcessVersion     *string

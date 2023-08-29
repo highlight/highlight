@@ -48,14 +48,14 @@ import clsx, { ClassValue } from 'clsx'
 import { isEqual } from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { components } from 'react-select'
 import AsyncSelect from 'react-select/async'
 import Creatable from 'react-select/creatable'
 import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
-import { useLocalStorage, useToggle } from 'react-use'
+import { useToggle } from 'react-use'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
 import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
@@ -1262,11 +1262,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 		project_id: string
 	}>()
 
-	const { isHighlightAdmin } = useAuthContext()
-	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse-v2',
-		isHighlightAdmin || Number(projectId) % 2 == 0,
-	)
+	const location = useLocation()
+	const isOnErrorsPage = location.pathname.includes('errors')
 
 	const { loading: segmentsLoading, data: segmentData } =
 		useGetAnySegmentsQuery({
@@ -1560,7 +1557,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					query: input,
 					start_date: moment(dateRange[0]).toISOString(),
 					end_date: moment(dateRange[1]).toISOString(),
-					use_clickhouse: useClickhouse,
+					use_clickhouse: true,
 				}).then((res) => {
 					return res.map((val) => ({
 						label: val,
@@ -1575,7 +1572,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 			getCustomFieldOptions,
 			projectId,
 			dateRange,
-			useClickhouse,
 		],
 	)
 
@@ -1883,10 +1879,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 					}}
 				/>
 				<Box marginLeft="auto" display="flex" gap="4">
-					<DropdownMenu
-						sessionCount={searchResultsCount || 0}
-						sessionQuery={backendSearchQuery?.searchQuery || ''}
-					/>
+					{!isOnErrorsPage && (
+						<DropdownMenu
+							sessionCount={searchResultsCount || 0}
+							sessionQuery={backendSearchQuery?.searchQuery || ''}
+						/>
+					)}
 
 					<ButtonIcon
 						kind="secondary"
@@ -1906,6 +1904,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		updateRule,
 		timeRangeRule,
 		setShowLeftPanel,
+		isOnErrorsPage,
 	])
 
 	const alteredSegmentSettings = useMemo(() => {
