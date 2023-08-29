@@ -2608,7 +2608,6 @@ export type Service = {
 	githubPrefix?: Maybe<Scalars['String']>
 	githubRepoPath?: Maybe<Scalars['String']>
 	id: Scalars['ID']
-	lastSeenVersion?: Maybe<Scalars['String']>
 	name: Scalars['String']
 	projectID: Scalars['ID']
 	status: ServiceStatus
@@ -2633,7 +2632,6 @@ export type ServiceNode = {
 	githubPrefix?: Maybe<Scalars['String']>
 	githubRepoPath?: Maybe<Scalars['String']>
 	id: Scalars['ID']
-	lastSeenVersion?: Maybe<Scalars['String']>
 	name: Scalars['String']
 	projectID: Scalars['ID']
 	status: ServiceStatus

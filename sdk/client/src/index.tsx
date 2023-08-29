@@ -470,14 +470,7 @@ export class Highlight {
 	}
 
 	async consumeCustomError(error: Error, message?: string, payload?: string) {
-		let res: ErrorStackParser.StackFrame[] = []
-		try {
-			res = ErrorStackParser.parse(error)
-		} catch (e) {
-			if (this._isOnLocalHost) {
-				console.error(e)
-			}
-		}
+		const res = ErrorStackParser.parse(error)
 		this._firstLoadListeners.errors.push({
 			event: message ? message + ':' + error.message : error.message,
 			type: 'custom',

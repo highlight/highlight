@@ -1,6 +1,9 @@
 package util
 
-import "os"
+import (
+	"os"
+	"strings"
+)
 
 var (
 	env           = os.Getenv("ENVIRONMENT")
@@ -41,6 +44,6 @@ func IsBackendInDocker() bool {
 	return InDockerGo == "true"
 }
 
-func IsOnRender() bool {
-	return DopplerConfig == "prod_aws_render"
+func IsProduction() bool {
+	return strings.HasPrefix(DopplerConfig, "prod")
 }

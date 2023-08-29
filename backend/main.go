@@ -477,8 +477,8 @@ func main() {
 				Cache: lru.New(100),
 			})
 
-			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.Use(highlight.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
+			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			privateServer.SetRecoverFunc(highlight.GraphQLRecoverFunc())
 			r.Handle("/",
@@ -522,8 +522,8 @@ func main() {
 				publicgen.Config{
 					Resolvers: publicResolver,
 				}))
-			publicServer.Use(util.NewTracer(util.PublicGraph))
 			publicServer.Use(highlight.NewGraphqlTracer(string(util.PublicGraph)))
+			publicServer.Use(util.NewTracer(util.PublicGraph))
 			publicServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PublicGraph)))
 			publicServer.SetRecoverFunc(highlight.GraphQLRecoverFunc())
 			r.Handle("/",
