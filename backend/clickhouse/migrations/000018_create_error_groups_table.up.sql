@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS error_groups (
     ProjectID Int32,
     CreatedAt DateTime64(6),
-    ErrorGroupID Int64,
+    ID Int64,
     Event String,
     Status LowCardinality(String),
     Type LowCardinality(String),
@@ -9,5 +9,5 @@ CREATE TABLE IF NOT EXISTS error_groups (
 ORDER BY (
         ProjectID,
         CreatedAt,
-        ErrorGroupID
+        ID
     );

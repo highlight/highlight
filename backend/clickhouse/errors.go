@@ -8,24 +8,29 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/huandu/go-sqlbuilder"
+	"github.com/samber/lo"
 )
 
 type ClickhouseErrorGroup struct {
-	ProjectID    int32
-	CreatedAt    time.Time
-	ErrorGroupID int64
-	Event        string
-	Status       string
-	Type         string
+	ProjectID int32
+	CreatedAt time.Time
+	ID        int64
+	Event     string
+	Status    string
+	Type      string
 }
 
 type ClickhouseErrorObject struct {
-	ProjectID    int32
-	CreatedAt    time.Time
-	ErrorGroupID int64
-	Browser      string
-	Environment  string
-	OSName       string
+	ProjectID      int32
+	CreatedAt      time.Time
+	ErrorGroupID   int64
+	ID             int64
+	Browser        string
+	Environment    string
+	OSName         string
+	ServiceName    string
+	ServiceVersion string
+	ClientID       string
 }
 
 const ErrorGroupsTable = "error_groups"
@@ -40,12 +45,12 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 		}
 
 		chEg := ClickhouseErrorGroup{
-			ProjectID:    int32(group.ProjectID),
-			CreatedAt:    group.CreatedAt,
-			ErrorGroupID: int64(group.ID),
-			Event:        group.Event,
-			Status:       string(group.State),
-			Type:         group.Type,
+			ProjectID: int32(group.ProjectID),
+			CreatedAt: group.CreatedAt,
+			ID:        int64(group.ID),
+			Event:     group.Event,
+			Status:    string(group.State),
+			Type:      group.Type,
 		}
 
 		chGroups = append(chGroups, &chEg)
@@ -67,21 +72,37 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 	return nil
 }
 
-func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.ErrorObject) error {
+func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.ErrorObject, sessions []*model.Session) error {
 	chObjects := []interface{}{}
+
+	sessionsById := lo.KeyBy(sessions, func(session *model.Session) int {
+		return session.ID
+	})
 
 	for _, object := range objects {
 		if object == nil {
 			return errors.New("nil object")
 		}
 
+		clientId := ""
+		if object.SessionID != nil {
+			relatedSession := sessionsById[*object.SessionID]
+			if relatedSession != nil {
+				clientId = relatedSession.ClientID
+			}
+		}
+
 		chEg := ClickhouseErrorObject{
-			ProjectID:    int32(object.ProjectID),
-			CreatedAt:    object.CreatedAt,
-			ErrorGroupID: int64(object.ID),
-			Browser:      object.Browser,
-			Environment:  object.Environment,
-			OSName:       object.OS,
+			ProjectID:      int32(object.ProjectID),
+			CreatedAt:      object.CreatedAt,
+			ErrorGroupID:   int64(object.ErrorGroupID),
+			ID:             int64(object.ID),
+			Browser:        object.Browser,
+			Environment:    object.Environment,
+			OSName:         object.OS,
+			ServiceName:    object.ServiceName,
+			ServiceVersion: object.ServiceVersion,
+			ClientID:       clientId,
 		}
 
 		chObjects = append(chObjects, &chEg)
