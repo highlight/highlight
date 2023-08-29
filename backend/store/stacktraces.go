@@ -62,15 +62,15 @@ func (store *Store) ExpandedStackTrace(ctx context.Context, lines []string, line
 }
 
 func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, fileName string, serviceVersion string, gitHubClient github.ClientInterface) (*string, error) {
-	rateLimit, _ := store.redis.GetGithubRateLimitExceeded(ctx)
+	rateLimit, _ := store.redis.GetGithubRateLimitExceeded(ctx, *service.GithubRepoPath)
 	if rateLimit {
 		return nil, errors.New("Exceeded GitHub rate limit")
 	}
 
 	fileContent, _, resp, err := gitHubClient.GetRepoContent(ctx, *service.GithubRepoPath, fileName, serviceVersion)
 	if resp != nil && resp.Rate.Remaining <= 0 {
-		log.WithContext(ctx).Warn("GitHub rate limit hit")
-		_ = store.redis.SetGithubRateLimitExceeded(ctx, resp.Rate.Reset.Time)
+		log.WithContext(ctx).WithField("GitHub Repo", *service.GithubRepoPath).Warn("GitHub rate limit hit")
+		_ = store.redis.SetGithubRateLimitExceeded(ctx, *service.GithubRepoPath, resp.Rate.Reset.Time)
 	}
 
 	if err != nil {
