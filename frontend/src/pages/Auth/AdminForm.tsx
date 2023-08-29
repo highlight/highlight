@@ -196,10 +196,11 @@ export const AdminForm: React.FC = () => {
 				</AuthHeader>
 				<AuthBody>
 					<Stack gap="12">
-						<Form.NamedSection
-							label="Your Name"
-							name={formStore.names.role}
-						>
+						<Stack direction="column" gap="4">
+							<Form.Label
+								label="Your Name"
+								name={formStore.names.firstName}
+							/>
 							<Stack gap="0">
 								<Form.Input
 									name={formStore.names.firstName}
@@ -215,60 +216,42 @@ export const AdminForm: React.FC = () => {
 									rounded="last"
 								/>
 							</Stack>
-						</Form.NamedSection>
+						</Stack>
 						<Form.Input
 							name={formStore.names.companyName}
 							label="Company"
 							disabled={inWorkspace}
 							required
 						/>
-						<Form.NamedSection
-							label="Role"
+
+						<Form.Select
+							className={styles.select}
 							name={formStore.names.role}
+							label="Role"
 							optional
 						>
-							<Form.Select
-								className={styles.select}
-								name={formStore.names.role.toString()}
-								value={formState.values.role}
-								onChange={(e) =>
-									formStore.setValue(
-										formStore.names.role,
-										e.target.value,
-									)
-								}
-							>
-								<option value="" disabled>
-									Select your role
-								</option>
-								<option value="Product">Product</option>
-								<option value="Engineer">Engineering</option>
-								<option value="Founder">Founder</option>
-							</Form.Select>
-						</Form.NamedSection>
-						<Form.NamedSection
-							label="Team Size"
+							<option value="" disabled>
+								Select your role
+							</option>
+							<option value="Product">Product</option>
+							<option value="Engineer">Engineering</option>
+							<option value="Founder">Founder</option>
+						</Form.Select>
+						<Form.Select
+							className={styles.select}
 							name={formStore.names.teamSize}
+							label="Team Size"
 							optional
 						>
-							<Form.Select
-								className={styles.select}
-								name={formStore.names.teamSize.toString()}
-								value={formState.values.teamSize}
-								onChange={(e) =>
-									formStore.setValue(
-										formStore.names.teamSize,
-										e.target.value,
-									)
-								}
-							>
-								{Object.entries(TeamSize).map(([k, v]) => (
-									<option value={k} key={k}>
-										{v}
-									</option>
-								))}
-							</Form.Select>
-						</Form.NamedSection>
+							<option value="" disabled>
+								Select your team size
+							</option>
+							{Object.entries(TeamSize).map(([k, v]) => (
+								<option value={k} key={k}>
+									{v}
+								</option>
+							))}
+						</Form.Select>
 						{!inWorkspace &&
 							(showPromoCodeField ? (
 								<Form.Input

@@ -11,13 +11,13 @@ import {
 	FormField as AriaKitFormField,
 	FormFieldProps as AriaKitFormFieldProps,
 	FormStore as AriaKitFormStore,
-	FormStoreState as AriaKitFormStoreState,
 	useFormStore as useAriaKitFormStore,
 } from '@ariakit/react'
 
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'
 import { Text } from '../Text/Text'
+import { Stack } from '../Stack/Stack'
 import { Button, ButtonProps } from '../Button/Button'
 import clsx, { ClassValue } from 'clsx'
 import { Variants } from './styles.css'
@@ -30,6 +30,7 @@ type FormComponent = React.FC<Props> & {
 	Field: typeof Field
 	Select: typeof Select
 	NamedSection: typeof NamedSection
+	Label: typeof Label
 	useFormStore: typeof useAriaKitFormStore
 }
 
@@ -37,22 +38,33 @@ interface LabelProps {
 	label: string
 	name: AriaKitFormInputProps['name']
 	tag?: ReactNode
+	optional?: boolean
 }
 
-export const Label = ({ label, name, tag }: LabelProps) => {
+export const Label: React.FC<LabelProps> = ({ label, name, tag, optional }) => {
 	return (
-		<Box display="flex" alignItems="center" gap="6" style={{ height: 16 }}>
-			<AriaKitFormLabel name={name}>
-				<Text
-					userSelect="none"
-					size="xSmall"
-					weight="medium"
-					color="weak"
+		<Box display="flex" flexDirection="row" gap="6">
+			{label && (
+				<Box
+					display="flex"
+					alignItems="center"
+					gap="6"
+					style={{ height: 16 }}
 				>
-					{label}
-				</Text>
-			</AriaKitFormLabel>
-			{tag}
+					<AriaKitFormLabel name={name}>
+						<Text
+							userSelect="none"
+							size="xSmall"
+							weight="medium"
+							color="weak"
+						>
+							{label}
+						</Text>
+					</AriaKitFormLabel>
+					{tag}
+				</Box>
+			)}
+			{optional && <Badge shape="basic" size="small" label="Optional" />}
 		</Box>
 	)
 }
@@ -198,19 +210,27 @@ export const Field = ({
 	)
 }
 
-type FormSelectProps = React.DetailedHTMLProps<
-	React.SelectHTMLAttributes<HTMLSelectElement>,
-	HTMLSelectElement
-> &
-	React.PropsWithChildren<HasLabel>
+type FormSelectProps = AriaKitFormInputProps & React.PropsWithChildren<HasLabel>
 
-export const Select = ({ children, label, ...props }: FormSelectProps) => {
+export const Select = ({
+	children,
+	label = '',
+	tag,
+	optional,
+	...props
+}: FormSelectProps) => {
 	return (
-		<NamedSection label={label} name={props.name}>
-			<select className={styles.select} {...props}>
+		<Stack direction="column" gap="4">
+			<Label
+				label={label}
+				name={props.name}
+				tag={tag}
+				optional={optional}
+			/>
+			<AriaKitFormInput as="select" className={styles.select} {...props}>
 				{children}
-			</select>
-		</NamedSection>
+			</AriaKitFormInput>
+		</Stack>
 	)
 }
 
@@ -218,6 +238,7 @@ Form.Input = Input
 Form.Error = Error
 Form.Submit = Submit
 Form.Field = Field
+Form.Label = Label
 Form.Select = Select
 Form.NamedSection = NamedSection
 
