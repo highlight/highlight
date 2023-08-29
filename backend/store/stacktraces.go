@@ -62,15 +62,15 @@ func (store *Store) ExpandedStackTrace(ctx context.Context, lines []string, line
 }
 
 func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, fileName string, serviceVersion string, gitHubClient github.ClientInterface) (*string, error) {
-	rateLimit, _ := store.redis.GetGithubRateLimitExceeded(ctx)
+	rateLimit, _ := store.redis.GetGithubRateLimitExceeded(ctx, *service.GithubRepoPath)
 	if rateLimit {
 		return nil, errors.New("Exceeded GitHub rate limit")
 	}
 
 	fileContent, _, resp, err := gitHubClient.GetRepoContent(ctx, *service.GithubRepoPath, fileName, serviceVersion)
 	if resp != nil && resp.Rate.Remaining <= 0 {
-		log.WithContext(ctx).Warn("GitHub rate limit hit")
-		_ = store.redis.SetGithubRateLimitExceeded(ctx, resp.Rate.Reset.Time)
+		log.WithContext(ctx).WithField("GitHub Repo", *service.GithubRepoPath).Warn("GitHub rate limit hit")
+		_ = store.redis.SetGithubRateLimitExceeded(ctx, *service.GithubRepoPath, resp.Rate.Reset.Time)
 	}
 
 	if err != nil {
@@ -117,20 +117,8 @@ func (store *Store) GitHubGitSHA(ctx context.Context, gitHubRepoPath string, ser
 	})
 }
 
-func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, serviceVersion string, ignoredFiles []string, gitHubClient github.ClientInterface) (*privateModel.ErrorTrace, error) {
-	if trace.FileName == nil || trace.LineNumber == nil {
-		return trace, fmt.Errorf("Cannot enhance trace with GitHub with invalid values: %+v", trace)
-	}
-
-	fileName := store.GitHubFilePath(ctx, *trace.FileName, service.BuildPrefix, service.GithubPrefix)
+func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateModel.ErrorTrace, service *model.Service, serviceVersion string, fileName string, gitHubClient github.ClientInterface) (*privateModel.ErrorTrace, error) {
 	lineNumber := trace.LineNumber
-
-	for _, fileExpr := range ignoredFiles {
-		if regexp.MustCompile(fileExpr).MatchString(fileName) {
-			return trace, nil
-		}
-	}
-
 	gitHubFileBytes, err := store.storageClient.ReadGitHubFile(ctx, *service.GithubRepoPath, fileName, serviceVersion)
 
 	if err != nil || gitHubFileBytes == nil {
@@ -203,16 +191,34 @@ func (store *Store) GitHubEnhancedStakeTrace(ctx context.Context, stackTrace []*
 	}
 
 	newMappedStackTrace := []*privateModel.ErrorTrace{}
-	for idx, trace := range stackTrace {
-		if idx >= MAX_ENHANCED_DEPTH {
+	filesEnhanced := 0
+
+	for _, trace := range stackTrace {
+		if filesEnhanced >= MAX_ENHANCED_DEPTH {
 			newMappedStackTrace = append(newMappedStackTrace, trace)
 			continue
 		}
 
-		enhancedTrace, err := store.EnhanceTraceWithGitHub(ctx, trace, service, *validServiceVersion, cfg.IgnoredFiles, client)
+		if trace.FileName == nil || trace.LineNumber == nil {
+			log.WithContext(ctx).Error(fmt.Errorf("Cannot enhance trace with GitHub with invalid values: %+v", trace))
+			newMappedStackTrace = append(newMappedStackTrace, trace)
+			continue
+		}
+
+		fileName := store.GitHubFilePath(ctx, *trace.FileName, service.BuildPrefix, service.GithubPrefix)
+		for _, fileExpr := range cfg.IgnoredFiles {
+			if regexp.MustCompile(fileExpr).MatchString(fileName) {
+				newMappedStackTrace = append(newMappedStackTrace, trace)
+				continue
+			}
+		}
+
+		enhancedTrace, err := store.EnhanceTraceWithGitHub(ctx, trace, service, *validServiceVersion, fileName, client)
 		if err != nil {
 			log.WithContext(ctx).Error(err)
 		}
+
+		filesEnhanced += 1
 		newMappedStackTrace = append(newMappedStackTrace, enhancedTrace)
 	}
 
