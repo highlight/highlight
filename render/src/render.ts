@@ -110,10 +110,10 @@ export async function render(
         window.r = new rrweb.Replayer(events, {
         	target: document.body,
             triggerFocus: true,
-            mouseTail: true,
+            mouseTail: false,
             UNSAFE_replayCanvas: true,
             liveMode: false,
-            speed: 2
+            speed: 8
         });
         window.getInactivityEnd = (time) => {
 			for (const interval of intervals) {
@@ -168,7 +168,7 @@ export async function render(
 			ffmpeg_Path: process.env.DEV?.length
 				? undefined
 				: '/opt/bin/ffmpeg',
-			videoCrf: 20,
+			videoCrf: 23,
 			videoCodec: 'libx264',
 			videoPreset: 'ultrafast',
 			videoBitrate: 1000,
