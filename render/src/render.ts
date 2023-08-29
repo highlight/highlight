@@ -113,7 +113,7 @@ export async function render(
             mouseTail: true,
             UNSAFE_replayCanvas: true,
             liveMode: false,
-            speed: 8
+            speed: 4
         });
         window.getInactivityEnd = (time) => {
 			for (const interval of intervals) {
@@ -170,7 +170,7 @@ export async function render(
 				: '/opt/bin/ffmpeg',
 			videoCrf: 20,
 			videoCodec: 'libx264',
-			videoPreset: 'fast',
+			videoPreset: 'ultrafast',
 			videoBitrate: 1000,
 			aspectRatio: '16:9',
 		})
