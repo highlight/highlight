@@ -141,10 +141,6 @@ export declare type HighlightOptions = {
 	 */
 	version?: string
 	/**
-	 * Specifies the name of your app.
-	 */
-	serviceName?: string
-	/**
 	 * Specifies whether Highlight should redact data during recording.
 	 * Enabling this will disable recording of text data on the page. This is useful if you do not want to record personally identifiable information and don't want to manually annotate your code with the class name "highlight-block".
 	 * @example

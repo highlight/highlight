@@ -1127,7 +1127,6 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ClientConfig:                   &input.ClientConfig,
 		Environment:                    input.Environment,
 		AppVersion:                     input.AppVersion,
-		ServiceName:                    input.ServiceName,
 		VerboseID:                      input.ProjectVerboseID,
 		Fields:                         []*model.Field{},
 		ViewedByAdmins:                 []model.Admin{},
@@ -2688,30 +2687,23 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 			traceString := string(traceBytes)
 
-			serviceVersion := ""
-			if sessionObj.AppVersion != nil {
-				serviceVersion = *sessionObj.AppVersion
-			}
-
 			errorToInsert := &model.ErrorObject{
-				ProjectID:      projectID,
-				SessionID:      &sessionID,
-				Environment:    sessionObj.Environment,
-				Event:          v.Event,
-				Type:           v.Type,
-				URL:            v.URL,
-				Source:         v.Source,
-				LineNumber:     v.LineNumber,
-				ColumnNumber:   v.ColumnNumber,
-				OS:             sessionObj.OSName,
-				Browser:        sessionObj.BrowserName,
-				StackTrace:     &traceString,
-				Timestamp:      v.Timestamp,
-				Payload:        v.Payload,
-				RequestID:      nil,
-				IsBeacon:       isBeacon,
-				ServiceVersion: serviceVersion,
-				ServiceName:    sessionObj.ServiceName,
+				ProjectID:    projectID,
+				SessionID:    &sessionID,
+				Environment:  sessionObj.Environment,
+				Event:        v.Event,
+				Type:         v.Type,
+				URL:          v.URL,
+				Source:       v.Source,
+				LineNumber:   v.LineNumber,
+				ColumnNumber: v.ColumnNumber,
+				OS:           sessionObj.OSName,
+				Browser:      sessionObj.BrowserName,
+				StackTrace:   &traceString,
+				Timestamp:    v.Timestamp,
+				Payload:      v.Payload,
+				RequestID:    nil,
+				IsBeacon:     isBeacon,
 			}
 
 			mappedStackTrace, structuredStackTrace, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)

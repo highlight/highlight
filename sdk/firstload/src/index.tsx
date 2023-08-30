@@ -133,7 +133,6 @@ const H: HighlightPublicInterface = {
 				firstloadVersion,
 				environment: options?.environment || 'production',
 				appVersion: options?.version,
-				serviceName: options?.serviceName,
 				sessionShortcut: options?.sessionShortcut,
 				sessionSecureID: sessionSecureID,
 				storageMode: options?.storageMode,

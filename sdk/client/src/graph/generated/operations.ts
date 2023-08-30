@@ -117,7 +117,6 @@ export type MutationInitializeSessionArgs = {
 	firstloadVersion: Scalars['String']
 	network_recording_domains?: InputMaybe<Array<Scalars['String']>>
 	organization_verbose_id: Scalars['String']
-	serviceName: Scalars['String']
 	session_secure_id: Scalars['String']
 }
 
@@ -269,7 +268,6 @@ export type InitializeSessionMutationVariables = Exact<{
 	environment: Scalars['String']
 	id: Scalars['String']
 	appVersion?: InputMaybe<Scalars['String']>
-	serviceName: Scalars['String']
 	client_id: Scalars['String']
 	network_recording_domains?: InputMaybe<
 		Array<Scalars['String']> | Scalars['String']
@@ -377,7 +375,6 @@ export const InitializeSessionDocument = gql`
 		$environment: String!
 		$id: String!
 		$appVersion: String
-		$serviceName: String!
 		$client_id: String!
 		$network_recording_domains: [String!]
 		$disable_session_recording: Boolean
@@ -392,7 +389,6 @@ export const InitializeSessionDocument = gql`
 			clientConfig: $clientConfig
 			environment: $environment
 			appVersion: $appVersion
-			serviceName: $serviceName
 			fingerprint: $id
 			client_id: $client_id
 			network_recording_domains: $network_recording_domains
