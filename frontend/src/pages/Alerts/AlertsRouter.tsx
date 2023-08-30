@@ -14,6 +14,7 @@ import { Helmet } from 'react-helmet'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import ErrorAlertPage from '@/pages/Alerts/ErrorAlert/ErrorAlertPage'
+import SessionAlertPage from '@/pages/Alerts/SessionAlert/SessionAlertPage'
 
 const AlertsRouter = () => {
 	const { project_id } = useParams<{ project_id: string }>()
@@ -107,7 +108,22 @@ const AlertsRouter = () => {
 						/>
 					}
 				/>
-				<Route path="new/errors" element={<ErrorAlertPage />} />
+
+				<Route
+					path="new/errors"
+					element={
+						<Navigate
+							to={`/${projectId}/alerts/errors/new`}
+							replace
+						/>
+					}
+				/>
+				<Route path="session/new" element={<SessionAlertPage />} />
+				<Route
+					path="session/:alert_id"
+					element={<SessionAlertPage />}
+				/>
+				<Route path="errors/new" element={<ErrorAlertPage />} />
 				<Route path="errors/:alert_id" element={<ErrorAlertPage />} />
 				<Route path="new/:type" element={<NewAlertPage />} />
 				<Route path=":id" element={<EditAlertsPage />} />

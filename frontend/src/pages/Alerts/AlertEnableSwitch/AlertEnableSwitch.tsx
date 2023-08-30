@@ -100,7 +100,7 @@ export const AlertEnableSwitch: React.FC<
 			trackingId={`AlertEnable-${record.id}`}
 			loading={loading}
 			justifySpaceBetween
-			size="small"
+			size="default"
 			checked={loading ? disabled : !disabled}
 			onChange={onChange}
 		/>
