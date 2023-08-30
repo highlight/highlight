@@ -533,6 +533,9 @@ func (r *Client) FlushDB(ctx context.Context) error {
 	return nil
 }
 
-func (r *Client) Del(ctx context.Context, key string) (int64, error) {
-	return r.redisClient.Del(ctx, key).Result()
+func (r *Client) Del(ctx context.Context, key string) error {
+	if util.IsDevOrTestEnv() {
+		return r.redisClient.Del(ctx, key).Err()
+	}
+	return nil
 }

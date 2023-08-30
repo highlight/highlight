@@ -38,7 +38,7 @@ func TestUpsertServiceWithAttributes(t *testing.T) {
 		store.db.Create(&project)
 
 		cacheKey := fmt.Sprintf("service-public-graph-%d", project.ID)
-		_, err := store.redis.Del(context.TODO(), cacheKey)
+		err := store.redis.Del(context.TODO(), cacheKey)
 		assert.NoError(t, err)
 
 		service, err := store.UpsertService(ctx, project, "public-graph", map[string]string{
@@ -52,7 +52,7 @@ func TestUpsertServiceWithAttributes(t *testing.T) {
 		assert.Equal(t, ptr.String("go1.20.5"), service.ProcessVersion)
 		assert.Equal(t, ptr.String("go version go1.20.5 darwin/arm64"), service.ProcessDescription)
 
-		_, err = store.redis.Del(context.TODO(), cacheKey)
+		err = store.redis.Del(context.TODO(), cacheKey)
 		assert.NoError(t, err)
 
 		service, err = store.UpsertService(ctx, project, "public-graph", map[string]string{
