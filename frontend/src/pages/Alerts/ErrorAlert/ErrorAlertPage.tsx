@@ -40,7 +40,7 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { capitalize } from 'lodash'
-import { ChangeEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DateTimeParam, useQueryParam } from 'use-query-params'
 
@@ -400,8 +400,8 @@ export const ErrorAlertPage = () => {
 }
 
 const ErrorAlertForm = () => {
-	const form = useForm() as FormState<ErrorAlertFormItem>
-	const formState = form.getState()
+	const formStore = useForm() as FormState<ErrorAlertFormItem>
+	const formState = formStore.getState()
 
 	const { alertsPayload } = useAlertsContext()
 	const environments = dedupeEnvironments(
@@ -431,13 +431,16 @@ const ErrorAlertForm = () => {
 					<Box borderTop="dividerWeak" width="full" />
 					<Form.NamedSection
 						label="Regex Patterns to Ignore"
-						name={form.names.regex_groups}
+						name={formStore.names.regex_groups}
 					>
 						<Select
 							aria-label="Regex Patterns to Ignore list"
 							placeholder={`Input any valid regex, like: \\d{5}(-\\d{4})?, Hello\\nworld, [b-chm-pP]at|ot`}
 							onChange={(values: any): any =>
-								form.setValue(form.names.regex_groups, values)
+								formStore.setValue(
+									formStore.names.regex_groups,
+									values,
+								)
 							}
 							value={formState.values.regex_groups}
 							className={styles.selectContainer}
@@ -447,8 +450,8 @@ const ErrorAlertForm = () => {
 					<Column.Container gap="12">
 						<Column>
 							<Form.Input
-								name={form.names.threshold}
-								value={form.values.threshold}
+								name={formStore.names.threshold}
+								value={formState.values.threshold}
 								type="number"
 								label="Alert threshold"
 								tag={
@@ -470,11 +473,11 @@ const ErrorAlertForm = () => {
 						<Column>
 							<Form.Select
 								label="Alert threshold window"
-								name={form.names.threshold_window.toString()}
+								name={formStore.names.threshold_window.toString()}
 								value={formState.values.threshold_window}
-								onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-									form.setValue(
-										form.names.threshold_window,
+								onChange={(e) =>
+									formStore.setValue(
+										formStore.names.threshold_window,
 										e.target.value,
 									)
 								}
@@ -495,10 +498,13 @@ const ErrorAlertForm = () => {
 					</Column.Container>
 					<Form.Select
 						label="Alert frequency"
-						name={form.names.frequency.toString()}
+						name={formStore.names.frequency.toString()}
 						value={formState.values.frequency}
-						onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-							form.setValue(form.names.frequency, e.target.value)
+						onChange={(e) =>
+							formStore.setValue(
+								formStore.names.frequency,
+								e.target.value,
+							)
 						}
 					>
 						<option value="" disabled>
@@ -523,15 +529,15 @@ const ErrorAlertForm = () => {
 
 					<Form.NamedSection
 						label="Excluded environments"
-						name={form.names.excludedEnvironments}
+						name={formStore.names.excludedEnvironments}
 					>
 						<Select
 							aria-label="Excluded environments list"
 							placeholder="Select excluded environments"
 							options={environments}
 							onChange={(values: any): any =>
-								form.setValue(
-									form.names.excludedEnvironments,
+								formStore.setValue(
+									formStore.names.excludedEnvironments,
 									values,
 								)
 							}
