@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect } from 'react'
 import {
 	useComboboxStore,
 	useSelectStore,
@@ -12,7 +12,7 @@ import {
 	PopoverArrow,
 } from '@ariakit/react'
 
-import { IconSolidCheckCircle } from '../icons'
+import { IconSolidCheckCircle, IconSolidSearch } from '../icons'
 
 import * as styles from './styles.css'
 import { Text } from '../Text/Text'
@@ -35,6 +35,7 @@ type Props<T extends string | string[]> = {
 	queryPlaceholder?: string
 	cssClass?: ClassValue | ClassValue[]
 	creatableRender?: (key: string) => React.ReactNode | undefined
+	defaultOpen?: boolean
 }
 
 export const ComboboxSelect = <T extends string | string[]>({
@@ -48,6 +49,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 	queryPlaceholder,
 	cssClass,
 	creatableRender,
+	defaultOpen,
 }: Props<T>) => {
 	const isMultiselect = typeof value === 'object'
 
@@ -56,6 +58,12 @@ export const ComboboxSelect = <T extends string | string[]>({
 			onChangeQuery?.(value)
 		},
 		resetValueOnHide: true,
+		defaultOpen: defaultOpen,
+		setOpen: (open) => {
+			console.log('setOpen', open)
+			// eslint-disable-next-line no-debugger
+			// debugger
+		},
 	})
 
 	const select = useSelectStore({
@@ -104,13 +112,20 @@ export const ComboboxSelect = <T extends string | string[]>({
 				store={select}
 				className={styles.selectPopover}
 				gutter={4}
+				hideOnInteractOutside={(event) => {
+					console.log('hideOnInteractOutside', event)
+					return true
+				}}
+				autoFocusOnHide={false}
 			>
 				<PopoverArrow size={0} />
 				<div className={styles.comboboxWrapper}>
+					<IconSolidSearch />
 					<Combobox
 						store={combobox}
 						type="text"
 						autoSelect
+						autoComplete="none"
 						placeholder={queryPlaceholder}
 						className={styles.combobox}
 					></Combobox>

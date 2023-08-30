@@ -92,20 +92,26 @@ export interface MultiselectOption {
 	options: readonly Option[]
 }
 
-// type OnChangeInput = SelectOption | MultiselectOption | undefined
 type Option = { label: string; value: string }
 type OnSelectChange = (val: SelectOption) => void
 type OnMultiselectChange = (val: MultiselectOption) => void
 type LoadOptions = (input: string) => Promise<Option[] | undefined>
+type UpdateRule = (targetRule: RuleProps, newProps: any) => void
+type RemoveRule = (targetRule: RuleProps) => void
 
 interface RuleSettings {
-	onChangeKey: OnSelectChange
 	getKeyOptions: LoadOptions
-	onChangeOperator: OnSelectChange
-	getOperatorOptions: LoadOptions
-	onChangeValue: OnMultiselectChange
-	getValueOptions: LoadOptions
-	onRemove: () => void
+	getOperatorOptionsCallback: (
+		options: FieldOptions | undefined,
+		val: MultiselectOption | undefined,
+	) => LoadOptions
+	getValueOptionsCallback: (field: SelectOption | undefined) => LoadOptions
+	getCustomFieldOptions: (
+		field: SelectOption | undefined,
+	) => FieldOptions | undefined
+	getDefaultOperator: (field: SelectOption | undefined) => Operator
+	updateRule: UpdateRule
+	removeRule: RemoveRule
 	readonly: boolean
 }
 
@@ -131,6 +137,7 @@ interface SelectPopoutContentProps {
 	valueRender?: React.ReactNode
 	onChange: OnSelectChange
 	loadOptions: LoadOptions
+	defaultOpen?: boolean
 }
 
 interface PopoutProps {
@@ -467,6 +474,24 @@ const PopoutContent = ({
 	return null
 }
 
+function useDebouncedState<T>(
+	initialState: T,
+	delay: number,
+): [T, React.Dispatch<React.SetStateAction<T>>] {
+	const [value, setValue] = useState<T>(initialState)
+	const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+	useEffect(() => {
+		const timer = setTimeout(() => setDebouncedValue(value), delay)
+
+		return () => {
+			clearTimeout(timer)
+		}
+	}, [value, delay])
+
+	return [debouncedValue, setValue]
+}
+
 const MultiselectPopout = ({
 	value,
 	cssClass,
@@ -478,17 +503,20 @@ const MultiselectPopout = ({
 		cssClass?: ClassValue | ClassValue[]
 		limitWidth?: boolean
 	}) => {
-	const [query, setQuery] = useState('')
+	const [query, setQuery] = useDebouncedState('', 300)
+	const [lastQuery, setLastQuery] = useState('')
 	const [options, setOptions] = useState<Option[]>([])
 	useMemo(() => {
-		loadOptions(query).then((v) => setOptions(v ?? []))
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [query])
+		loadOptions(query).then((v) => {
+			setOptions(v ?? [])
+			setLastQuery(query)
+		})
+	}, [loadOptions, query])
 
 	const invalid = value === undefined || value.options.length === 0
-	if (invalid) {
-		cssClass = clsx([cssClass, styles.invalid])
-	}
+	// if (invalid) {
+	// 	cssClass = clsx([cssClass, styles.invalid])
+	// }
 
 	let label = '--'
 	if (invalid) {
@@ -510,7 +538,7 @@ const MultiselectPopout = ({
 					valueRender={label}
 					options={options.map((o) => ({
 						key: o.value,
-						render: getOption(o, query),
+						render: getOption(o, lastQuery),
 					}))}
 					onChange={(val: string[]) => {
 						onChange({
@@ -526,6 +554,7 @@ const MultiselectPopout = ({
 					}}
 					cssClass={cssClass}
 					queryPlaceholder="Filter..."
+					defaultOpen={invalid}
 				/>
 			)
 		case 'creatable':
@@ -549,10 +578,11 @@ const MultiselectPopout = ({
 						setQuery(val)
 					}}
 					cssClass={cssClass}
-					queryPlaceholder="Add..."
+					queryPlaceholder="Filter..."
 					creatableRender={(query) =>
 						getOption({ label: query, value: query }, '')
 					}
+					defaultOpen={invalid}
 				/>
 			)
 		case 'date_range':
@@ -569,6 +599,7 @@ const SelectPopout = ({
 	cssClass,
 	loadOptions,
 	onChange,
+	defaultOpen,
 }: PopoutProps &
 	SelectPopoutContentProps & {
 		cssClass?: ClassValue | ClassValue[]
@@ -580,14 +611,16 @@ const SelectPopout = ({
 		loadOptions(query).then((v) => setOptions(v ?? []))
 	}, [loadOptions, query])
 
-	const invalid = value === undefined
+	// const invalid = value === undefined && icon === undefined
 
 	let label = '--'
-	if (invalid) {
-		label = '--'
-	} else {
+	if (value !== undefined) {
 		label = getNameLabel(value.label)
 	}
+
+	// if (invalid) {
+	// 	cssClass = clsx([cssClass, styles.invalid])
+	// }
 
 	return (
 		<ComboboxSelect
@@ -611,6 +644,7 @@ const SelectPopout = ({
 			}}
 			cssClass={cssClass}
 			queryPlaceholder="Filter..."
+			defaultOpen={defaultOpen}
 		/>
 	)
 }
@@ -635,15 +669,60 @@ const getPopoutType = (op: Operator | undefined): PopoutType => {
 
 const QueryRule = ({
 	rule,
-	onChangeKey,
 	getKeyOptions,
-	onChangeOperator,
-	getOperatorOptions,
-	onChangeValue,
-	getValueOptions,
-	onRemove,
+	getOperatorOptionsCallback,
+	getValueOptionsCallback,
+	removeRule,
+	updateRule,
 	readonly,
+	getCustomFieldOptions,
+	getDefaultOperator,
 }: { rule: RuleProps } & RuleSettings) => {
+	const onChangeKey = useCallback(
+		(val: SelectOption) => {
+			// Default to 'is' when rule is not defined yet
+			if (rule.op === undefined) {
+				updateRule(rule, {
+					field: val,
+					op: getDefaultOperator(rule.field),
+					val: undefined,
+				})
+			} else {
+				updateRule(rule, {
+					field: val,
+					val: undefined,
+				})
+			}
+		},
+		[getDefaultOperator, rule, updateRule],
+	)
+
+	const onChangeOperator = useCallback(
+		(val: SelectOption) => {
+			if (val?.kind === 'single') {
+				updateRule(rule, { op: val.value })
+			}
+		},
+		[rule, updateRule],
+	)
+
+	const onChangeValue = useCallback(
+		(val: MultiselectOption) => {
+			updateRule(rule, { val: val })
+		},
+		[rule, updateRule],
+	)
+
+	const getOperatorOptions = getOperatorOptionsCallback(
+		getCustomFieldOptions(rule.field),
+		rule.val,
+	)
+
+	const getValueOptions = useCallback(
+		(input: string) => getValueOptionsCallback(rule.field)(input),
+		[getValueOptionsCallback, rule.field],
+	)
+
 	return (
 		<Box display="inline-flex" gap="1">
 			<SelectPopout
@@ -669,6 +748,7 @@ const QueryRule = ({
 							(!!rule.op && hasArguments(rule.op)) || !readonly,
 					},
 				]}
+				defaultOpen={rule.op === undefined}
 			/>
 			{!!rule.op && hasArguments(rule.op) && (
 				<MultiselectPopout
@@ -692,7 +772,7 @@ const QueryRule = ({
 					shape="basic"
 					className={newStyle.flatLeft}
 					onClick={() => {
-						onRemove()
+						removeRule(rule)
 					}}
 					iconRight={<IconSolidX size={12} />}
 				/>
@@ -1813,39 +1893,16 @@ function QueryBuilder(props: QueryBuilderProps) {
 						<QueryRule
 							key={`rule-${index}`}
 							rule={rule}
-							onChangeKey={(val) => {
-								// Default to 'is' when rule is not defined yet
-								if (rule.op === undefined) {
-									updateRule(rule, {
-										field: val,
-										op: getDefaultOperator(rule.field),
-										val: undefined,
-									})
-								} else {
-									updateRule(rule, {
-										field: val,
-										val: undefined,
-									})
-								}
-							}}
+							getDefaultOperator={getDefaultOperator}
 							getKeyOptions={getKeyOptions}
-							onChangeOperator={(val) => {
-								if (val?.kind === 'single') {
-									updateRule(rule, { op: val.value })
-								}
-							}}
-							getOperatorOptions={getOperatorOptionsCallback(
-								getCustomFieldOptions(rule.field),
-								rule.val,
-							)}
-							onChangeValue={(val) => {
-								updateRule(rule, { val: val })
-							}}
-							getValueOptions={getValueOptionsCallback(
-								rule.field,
-							)}
-							onRemove={() => removeRule(rule)}
+							getOperatorOptionsCallback={
+								getOperatorOptionsCallback
+							}
+							getCustomFieldOptions={getCustomFieldOptions}
+							getValueOptionsCallback={getValueOptionsCallback}
+							removeRule={removeRule}
 							readonly={readonly ?? false}
+							updateRule={updateRule}
 						/>,
 					])}
 					{addFilterButton}

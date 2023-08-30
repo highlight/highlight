@@ -4962,9 +4962,12 @@ body {
 .n4pjg83 {
   padding: 6px 8px;
   border-bottom: 1px solid #dcdbdd;
+  display: flex;
+  gap: 4px;
+  align-items: center;
 }
 .n4pjg84 {
-  max-height: 400px;
+  max-height: 380px;
   overflow-y: auto;
 }
 .n4pjg85 {
@@ -5419,6 +5422,7 @@ body {
   padding: 0;
   color: #6f6e77;
   gap: 6px;
+  font-weight: 500;
 }
 ._1ek953u0 {
   z-index: 99999;

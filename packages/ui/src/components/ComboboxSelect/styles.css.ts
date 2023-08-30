@@ -46,10 +46,13 @@ export const combobox = style({
 export const comboboxWrapper = style({
 	padding: '6px 8px',
 	borderBottom: `1px solid ${vars.color.n7}`,
+	display: 'flex',
+	gap: 4,
+	alignItems: 'center',
 })
 
 export const comboboxList = style({
-	maxHeight: '400px',
+	maxHeight: '380px',
 	overflowY: 'auto',
 })
 

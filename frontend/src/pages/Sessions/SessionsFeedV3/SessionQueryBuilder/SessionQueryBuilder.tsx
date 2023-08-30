@@ -6,7 +6,7 @@ import {
 } from '@graph/hooks'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useLocalStorage } from 'react-use'
 
 import QueryBuilder, {
@@ -136,8 +136,11 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 	const { refetch } = useGetFieldsOpensearchQuery({
 		skip: true,
 	})
-	const fetchFields = (variables: FetchFieldVariables) =>
-		refetch(variables).then((r) => r.data.fields_opensearch)
+	const fetchFields = useCallback(
+		(variables: FetchFieldVariables) =>
+			refetch(variables).then((r) => r.data.fields_opensearch),
+		[refetch],
+	)
 
 	const { project_id } = useParams<{
 		project_id: string

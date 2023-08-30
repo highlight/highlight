@@ -53,4 +53,5 @@ export const optionLabelContainer = style({
 	padding: '0',
 	color: colors.n11,
 	gap: 6,
+	fontWeight: 500,
 })
