@@ -127,6 +127,10 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 			return trace, err
 		}
 
+		if encodedFileContent == nil {
+			return trace, fmt.Errorf("Unable to fetch %s in %s", fileName, *service.GithubRepoPath)
+		}
+
 		gitHubFileBytes = []byte(*encodedFileContent)
 
 		_, err = store.storageClient.PushGitHubFile(ctx, *service.GithubRepoPath, fileName, serviceVersion, gitHubFileBytes)
