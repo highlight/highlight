@@ -77,6 +77,7 @@ mutation initializeSession(
 	$environment: String!
 	$id: String!
 	$appVersion: String
+	$serviceName: String!
 	$client_id: String!
 	$network_recording_domains: [String!]
 	$disable_session_recording: Boolean
@@ -91,6 +92,7 @@ mutation initializeSession(
 		clientConfig: $clientConfig
 		environment: $environment
 		appVersion: $appVersion
+		serviceName: $serviceName
 		fingerprint: $id
 		client_id: $client_id
 		network_recording_domains: $network_recording_domains

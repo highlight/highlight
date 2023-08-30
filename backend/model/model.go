@@ -630,8 +630,9 @@ type Session struct {
 	Fields         []*Field `json:"fields" gorm:"many2many:session_fields;"`
 	Environment    string   `json:"environment"`
 	AppVersion     *string  `json:"app_version"`
-	UserObject     JSONB    `json:"user_object" sql:"type:jsonb"`
-	UserProperties string   `json:"user_properties"`
+	ServiceName    string
+	UserObject     JSONB  `json:"user_object" sql:"type:jsonb"`
+	UserProperties string `json:"user_properties"`
 	// Whether this is the first session created by this user.
 	FirstTime               *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt        *time.Time `json:"payload_updated_at"`

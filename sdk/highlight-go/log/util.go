@@ -157,7 +157,7 @@ func submitVercelLog(ctx context.Context, projectID int, log VercelLog) {
 	attrs := []attribute.KeyValue{
 		LogSeverityKey.String(log.Type),
 		LogMessageKey.String(log.Message),
-		semconv.ServiceNameKey.String("vercel-log-drain"),
+		semconv.ServiceNameKey.String("vercel-log-drain-" + log.ProjectId),
 		semconv.ServiceVersionKey.String(log.DeploymentId),
 		semconv.CodeNamespaceKey.String(log.Source),
 		semconv.CodeFilepathKey.String(log.Path),
