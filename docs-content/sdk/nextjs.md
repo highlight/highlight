@@ -82,6 +82,10 @@ quickstart: true
       <p>App version used when uploading source maps.</p>
     </aside>
     <aside className="parameter">
+      <h5>serviceName <code>string</code> <code>optional</code></h5>
+      <p>Name of your app.</p>
+    </aside>
+    <aside className="parameter">
       <h5>sourceMapsPath <code>string</code> <code>optional</code></h5>
       <p>The file system root directory containing all your source map files.</p>
     </aside>

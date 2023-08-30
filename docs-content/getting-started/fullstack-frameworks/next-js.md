@@ -88,7 +88,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 			<HighlightInit
 				excludedHostnames={['localhost']}
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
-				serviceName="my-nextjs-app"
+				serviceName="my-nextjs-frontend"
 				tracingOrigins
 				networkRecording={{
 					enabled: true,
@@ -117,7 +117,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 			<HighlightInit
 				excludedHostnames={['localhost']}
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
-				serviceName="my-nextjs-app"
+				serviceName="my-nextjs-frontend"
 				tracingOrigins
 				networkRecording={{
 					enabled: true,
@@ -168,7 +168,7 @@ Alternatively, you could manually call `H.start()` and `H.stop()` to manage invo
 <HighlightInit
 	manualStart
 	projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
-	serviceName="my-nextjs-app"
+	serviceName="my-nextjs-frontend"
 />
 <CustomHighlightStart />
 
