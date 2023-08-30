@@ -26,7 +26,7 @@ type ClickhouseErrorGroup struct {
 
 type ClickhouseErrorObject struct {
 	ProjectID      int32
-	CreatedAt      time.Time
+	Timestamp      time.Time
 	ErrorGroupID   int64
 	ID             int64
 	Browser        string
@@ -98,7 +98,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 
 		chEg := ClickhouseErrorObject{
 			ProjectID:      int32(object.ProjectID),
-			CreatedAt:      object.CreatedAt,
+			Timestamp:      object.Timestamp,
 			ErrorGroupID:   int64(object.ErrorGroupID),
 			ID:             int64(object.ID),
 			Browser:        object.Browser,
