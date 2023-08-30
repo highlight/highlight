@@ -81,6 +81,8 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 const DefaultBatchFlushSize = 10000
 const DefaultBatchedFlushTimeout = 5 * time.Second
 const SessionsMaxRowsPostgres = 500
+const ErrorGroupsMaxRowsPostgres = 500
+const ErrorObjectsMaxRowsPostgres = 500
 const MinRetryDelay = 250 * time.Millisecond
 
 type KafkaWorker struct {
@@ -94,7 +96,9 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	s.SetTag("BatchSize", len(k.messages))
 	defer s.Finish()
 
-	var dataSyncRows []int
+	var syncSessionIds []int
+	var syncErrorGroupIds []int
+	var syncErrorObjectIds []int
 	var logRows []*clickhouse.LogRow
 	var traceRows []*clickhouse.TraceRow
 
@@ -107,7 +111,11 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 		}
 		switch lastMsg.Type {
 		case kafkaqueue.SessionDataSync:
-			dataSyncRows = append(dataSyncRows, lastMsg.SessionDataSync.SessionID)
+			syncSessionIds = append(syncSessionIds, lastMsg.SessionDataSync.SessionID)
+		case kafkaqueue.ErrorGroupDataSync:
+			syncErrorGroupIds = append(syncErrorGroupIds, lastMsg.ErrorGroupDataSync.ErrorGroupID)
+		case kafkaqueue.ErrorObjectDataSync:
+			syncErrorObjectIds = append(syncErrorObjectIds, lastMsg.ErrorObjectDataSync.ErrorObjectID)
 		case kafkaqueue.PushLogs:
 			logRow := lastMsg.PushLogs.LogRow
 			if logRow != nil {
@@ -126,8 +134,8 @@ func (k *KafkaBatchWorker) flush(ctx context.Context) error {
 	readSpan.Finish()
 
 	workSpan, wCtx := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.work", k.Name)))
-	if len(dataSyncRows) > 0 {
-		if err := k.flushDataSync(wCtx, dataSyncRows); err != nil {
+	if len(syncSessionIds) > 0 || len(syncErrorGroupIds) > 0 || len(syncErrorObjectIds) > 0 {
+		if err := k.flushDataSync(wCtx, syncSessionIds, syncErrorGroupIds, syncErrorObjectIds); err != nil {
 			workSpan.Finish(tracer.WithError(err))
 			return err
 		}
@@ -315,7 +323,7 @@ func (k *KafkaBatchWorker) flushTraces(ctx context.Context, traceRows []*clickho
 	return nil
 }
 
-func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int) error {
+func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, errorGroupIds []int, errorObjectIds []int) error {
 	sessionIdChunks := lo.Chunk(lo.Uniq(sessionIds), SessionsMaxRowsPostgres)
 	if len(sessionIdChunks) > 0 {
 		allSessionObjs := []*model.Session{}
@@ -371,6 +379,72 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int) 
 			return err
 		}
 	}
+
+	errorGroupIdChunks := lo.Chunk(lo.Uniq(errorGroupIds), ErrorGroupsMaxRowsPostgres)
+	if len(errorGroupIdChunks) > 0 {
+		allErrorGroups := []*model.ErrorGroup{}
+		for _, chunk := range errorGroupIdChunks {
+			errorGroups := []*model.ErrorGroup{}
+			errorGroupSpan, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.readErrorGroups"))
+			if err := k.Worker.PublicResolver.DB.Model(&model.ErrorGroup{}).Where("id in ?", chunk).Find(&errorGroups).Error; err != nil {
+				log.WithContext(ctx).Error(err)
+				return err
+			}
+			errorGroupSpan.Finish()
+
+			allErrorGroups = append(allErrorGroups, errorGroups...)
+		}
+
+		chSpan, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.writeClickhouse.errorGroups"))
+		if err := k.Worker.PublicResolver.Clickhouse.WriteErrorGroups(ctx, allErrorGroups); err != nil {
+			log.WithContext(ctx).Error(err)
+			return err
+		}
+		chSpan.Finish()
+	}
+
+	errorObjectIdChunks := lo.Chunk(lo.Uniq(errorObjectIds), ErrorObjectsMaxRowsPostgres)
+	if len(errorObjectIdChunks) > 0 {
+		allErrorObjects := []*model.ErrorObject{}
+		for _, chunk := range errorObjectIdChunks {
+			errorObjects := []*model.ErrorObject{}
+			errorObjectSpan, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.readErrorObjects"))
+			if err := k.Worker.PublicResolver.DB.Model(&model.ErrorObject{}).Where("id in ?", chunk).Find(&errorObjects).Error; err != nil {
+				log.WithContext(ctx).Error(err)
+				return err
+			}
+			errorObjectSpan.Finish()
+
+			allErrorObjects = append(allErrorObjects, errorObjects...)
+		}
+
+		// error objects -> filter non nil -> get session id -> get unique
+		uniqueSessionIds := lo.Uniq(lo.Map(lo.Filter(
+			allErrorObjects,
+			func(eo *model.ErrorObject, _ int) bool { return eo.SessionID != nil }),
+			func(eo *model.ErrorObject, _ int) int { return *eo.SessionID }))
+		sessionIdChunks := lo.Chunk(uniqueSessionIds, SessionsMaxRowsPostgres)
+		allSessions := []*model.Session{}
+		for _, chunk := range sessionIdChunks {
+			sessions := []*model.Session{}
+			sessionSpan, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.readErrorObjectSessions"))
+			if err := k.Worker.PublicResolver.DB.Model(&model.Session{}).Where("id in ?", chunk).Find(&sessions).Error; err != nil {
+				log.WithContext(ctx).Error(err)
+				return err
+			}
+			sessionSpan.Finish()
+
+			allSessions = append(allSessions, sessions...)
+		}
+
+		chSpan, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.datasync.writeClickhouse.errorObjects"))
+		if err := k.Worker.PublicResolver.Clickhouse.WriteErrorObjects(ctx, allErrorObjects, allSessions); err != nil {
+			log.WithContext(ctx).Error(err)
+			return err
+		}
+		chSpan.Finish()
+	}
+
 	return nil
 }
 

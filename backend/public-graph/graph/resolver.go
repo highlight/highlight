@@ -454,6 +454,10 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorGroup.ID), &kafka_queue.Message{Type: kafka_queue.ErrorGroupDataSync, ErrorGroupDataSync: &kafka_queue.ErrorGroupDataSyncArgs{ErrorGroupID: errorGroup.ID}}); err != nil {
+		return nil, err
+	}
+
 	return errorGroup, nil
 }
 
@@ -822,6 +826,9 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		Object:   opensearchErrorObject,
 	}); err != nil {
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
+	}
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorObj.ID), &kafka_queue.Message{Type: kafka_queue.ErrorObjectDataSync, ErrorObjectDataSync: &kafka_queue.ErrorObjectDataSyncArgs{ErrorObjectID: errorObj.ID}}); err != nil {
+		return nil, err
 	}
 
 	if err := r.AppendErrorFields(ctx, fields, errorGroup); err != nil {
