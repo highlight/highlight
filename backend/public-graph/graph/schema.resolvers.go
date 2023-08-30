@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/DmitriyVTitov/size"
+	"github.com/aws/smithy-go/ptr"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/hlog"
 	kafkaqueue "github.com/highlight-run/highlight/backend/kafka-queue"
@@ -23,7 +24,7 @@ import (
 )
 
 // InitializeSession is the resolver for the initializeSession field.
-func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool) (*customModels.InitializeSessionResponse, error) {
+func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool) (*customModels.InitializeSessionResponse, error) {
 	s, _ := tracer.StartSpanFromContext(ctx, "InitializeSession", tracer.ResourceName("gql.initializeSession"))
 	s.SetTag("secure_id", sessionSecureID)
 	s.SetTag("client_version", clientVersion)
@@ -50,7 +51,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 				ClientConfig:                   clientConfig,
 				Environment:                    environment,
 				AppVersion:                     appVersion,
-				ServiceName:                    serviceName,
+				ServiceName:                    ptr.ToString(serviceName),
 				Fingerprint:                    fingerprint,
 				UserAgent:                      userAgentString,
 				AcceptLanguage:                 acceptLanguageString,
