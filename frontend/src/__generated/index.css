@@ -6822,7 +6822,14 @@ body {
   width: 100%;
 }
 ._1kp6do41 {
-  min-width: 100px;
+  background: #e9e8ea;
+  border: var(--_1pyqka91o) solid 1px;
+  border-radius: 6px;
+  color: var(--_1pyqka9c);
+  padding: 6px;
+}
+._1kp6do42 {
+  color: var(--_1pyqka9c);
 }
 ._13nf89o1 {
   background: transparent;
