@@ -74,6 +74,7 @@ To get started, we recommend setting \`tracingOrigins\` and \`networkRecording\`
 import { H } from 'highlight.run';
 
 H.init('<YOUR_PROJECT_ID>', {
+	serviceName: "frontend-app",
 	tracingOrigins: true,
 	networkRecording: {
 		enabled: true,

@@ -97,6 +97,7 @@ type Mutation {
 		clientConfig: String!
 		environment: String!
 		appVersion: String
+		serviceName: String!
 		fingerprint: String!
 		client_id: String!
 		network_recording_domains: [String!]

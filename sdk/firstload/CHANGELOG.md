@@ -372,3 +372,9 @@ Reserved for the Boeing 737
 ### Patch Changes
 
 - Ensure stacktraces from Promises are parsed correctly.
+
+## 7.5.0
+
+### Minor Changes
+
+- Added support to specify `serviceName`.
