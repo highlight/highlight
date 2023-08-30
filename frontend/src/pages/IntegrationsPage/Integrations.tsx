@@ -170,7 +170,7 @@ export const GITHUB_INTEGRATION: IssueTrackerIntegration = {
 	name: 'GitHub',
 	configurationPath: 'github',
 	description:
-		'Create GitHub issues from comments and enhance your backend errors.',
+		'Create GitHub issues from comments and enhance your stacktraces.',
 	configurationPage: (opts) => <GitHubIntegrationConfig {...opts} />,
 	icon: '/images/integrations/github.svg',
 	hasSettings: false,
