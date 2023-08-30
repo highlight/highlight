@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/integrations"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 
@@ -30,7 +31,7 @@ func createAutoResolver() *AutoResolver {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 
-	store := store.NewStore(db, &opensearch.Client{}, redis.NewClient(), integrations.NewIntegrationsClient(db), &storage.FilesystemClient{})
+	store := store.NewStore(db, &opensearch.Client{}, redis.NewClient(), integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{})
 	return NewAutoResolver(store, db)
 }
 
