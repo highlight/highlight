@@ -263,12 +263,13 @@ func parseRule(admin *model.Admin, rule Rule, projectId int, start time.Time, en
 	if !found {
 		return "", fmt.Errorf("separator not found for field %s", rule.Field)
 	}
-	if typ == "custom" {
-		return parseSessionRule(admin, rule, projectId, sb)
+	if typ == "custom" || typ == "error" {
+		return parseColumnRule(admin, rule, projectId, sb)
 	}
 	return parseFieldRule(rule, projectId, start, end, sb)
 }
 
+// parseFieldRule applies a filter using the `fields` table
 func parseFieldRule(rule Rule, projectId int, start time.Time, end time.Time, sb *sqlbuilder.SelectBuilder) (string, error) {
 	negatedOp, isNegative := negationMap[rule.Op]
 	if isNegative {
@@ -350,10 +351,11 @@ var customFieldTypes map[string]FieldType = map[string]FieldType{
 	"pages_visited":   long,
 }
 
-func parseSessionRule(admin *model.Admin, rule Rule, projectId int, sb *sqlbuilder.SelectBuilder) (string, error) {
+// parseColumnRule applies a top-level column filter
+func parseColumnRule(admin *model.Admin, rule Rule, projectId int, sb *sqlbuilder.SelectBuilder) (string, error) {
 	negatedOp, isNegative := negationMap[rule.Op]
 	if isNegative {
-		child, err := parseSessionRule(admin, Rule{
+		child, err := parseColumnRule(admin, Rule{
 			Field: rule.Field,
 			Op:    negatedOp,
 			Val:   rule.Val,
