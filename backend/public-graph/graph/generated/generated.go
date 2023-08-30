@@ -54,7 +54,7 @@ type ComplexityRoot struct {
 		AddSessionFeedback   func(childComplexity int, sessionSecureID string, userName *string, userEmail *string, verbatim string, timestamp time.Time) int
 		AddSessionProperties func(childComplexity int, sessionSecureID string, propertiesObject interface{}) int
 		IdentifySession      func(childComplexity int, sessionSecureID string, userIdentifier string, userObject interface{}) int
-		InitializeSession    func(childComplexity int, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool) int
+		InitializeSession    func(childComplexity int, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool) int
 		MarkBackendSetup     func(childComplexity int, projectID *string, sessionSecureID *string, typeArg *string) int
 		PushBackendPayload   func(childComplexity int, projectID *string, errors []*model.BackendErrorObjectInput) int
 		PushMetrics          func(childComplexity int, metrics []*model.MetricInput) int
@@ -74,7 +74,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool) (*model.InitializeSessionResponse, error)
+	InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool) (*model.InitializeSessionResponse, error)
 	IdentifySession(ctx context.Context, sessionSecureID string, userIdentifier string, userObject interface{}) (string, error)
 	AddSessionProperties(ctx context.Context, sessionSecureID string, propertiesObject interface{}) (string, error)
 	PushPayload(ctx context.Context, sessionSecureID string, events model.ReplayEventsInput, messages string, resources string, webSocketEvents *string, errors []*model.ErrorObjectInput, isBeacon *bool, hasSessionUnloaded *bool, highlightLogs *string, payloadID *int) (int, error)
@@ -162,7 +162,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InitializeSession(childComplexity, args["session_secure_id"].(string), args["organization_verbose_id"].(string), args["enable_strict_privacy"].(bool), args["enable_recording_network_contents"].(bool), args["clientVersion"].(string), args["firstloadVersion"].(string), args["clientConfig"].(string), args["environment"].(string), args["appVersion"].(*string), args["serviceName"].(string), args["fingerprint"].(string), args["client_id"].(string), args["network_recording_domains"].([]string), args["disable_session_recording"].(*bool)), true
+		return e.complexity.Mutation.InitializeSession(childComplexity, args["session_secure_id"].(string), args["organization_verbose_id"].(string), args["enable_strict_privacy"].(bool), args["enable_recording_network_contents"].(bool), args["clientVersion"].(string), args["firstloadVersion"].(string), args["clientConfig"].(string), args["environment"].(string), args["appVersion"].(*string), args["serviceName"].(*string), args["fingerprint"].(string), args["client_id"].(string), args["network_recording_domains"].([]string), args["disable_session_recording"].(*bool)), true
 
 	case "Mutation.markBackendSetup":
 		if e.complexity.Mutation.MarkBackendSetup == nil {
@@ -427,7 +427,7 @@ type Mutation {
 		clientConfig: String!
 		environment: String!
 		appVersion: String
-		serviceName: String!
+		serviceName: String
 		fingerprint: String!
 		client_id: String!
 		network_recording_domains: [String!]
@@ -680,10 +680,10 @@ func (ec *executionContext) field_Mutation_initializeSession_args(ctx context.Co
 		}
 	}
 	args["appVersion"] = arg8
-	var arg9 string
+	var arg9 *string
 	if tmp, ok := rawArgs["serviceName"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceName"))
-		arg9, err = ec.unmarshalNString2string(ctx, tmp)
+		arg9, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1066,7 +1066,7 @@ func (ec *executionContext) _Mutation_initializeSession(ctx context.Context, fie
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InitializeSession(rctx, fc.Args["session_secure_id"].(string), fc.Args["organization_verbose_id"].(string), fc.Args["enable_strict_privacy"].(bool), fc.Args["enable_recording_network_contents"].(bool), fc.Args["clientVersion"].(string), fc.Args["firstloadVersion"].(string), fc.Args["clientConfig"].(string), fc.Args["environment"].(string), fc.Args["appVersion"].(*string), fc.Args["serviceName"].(string), fc.Args["fingerprint"].(string), fc.Args["client_id"].(string), fc.Args["network_recording_domains"].([]string), fc.Args["disable_session_recording"].(*bool))
+		return ec.resolvers.Mutation().InitializeSession(rctx, fc.Args["session_secure_id"].(string), fc.Args["organization_verbose_id"].(string), fc.Args["enable_strict_privacy"].(bool), fc.Args["enable_recording_network_contents"].(bool), fc.Args["clientVersion"].(string), fc.Args["firstloadVersion"].(string), fc.Args["clientConfig"].(string), fc.Args["environment"].(string), fc.Args["appVersion"].(*string), fc.Args["serviceName"].(*string), fc.Args["fingerprint"].(string), fc.Args["client_id"].(string), fc.Args["network_recording_domains"].([]string), fc.Args["disable_session_recording"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
