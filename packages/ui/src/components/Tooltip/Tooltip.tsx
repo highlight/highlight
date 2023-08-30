@@ -1,15 +1,10 @@
-import {
-	Tooltip as AriakitTooltip,
-	TooltipAnchor,
-	TooltipStoreProps,
-	useTooltipStore,
-} from '@ariakit/react'
+import * as Ariakit from '@ariakit/react'
 import React from 'react'
 import { Box } from '../Box/Box'
 
 const STANDARD_DELAY = 500
 
-export type TooltipProps = Partial<TooltipStoreProps> &
+export type TooltipProps = Partial<Ariakit.TooltipStoreProps> &
 	React.PropsWithChildren<{
 		trigger: React.ReactNode
 		disabled?: boolean
@@ -25,7 +20,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
 	delayed,
 	...props
 }: TooltipProps) => {
-	const tooltipStore = useTooltipStore({
+	const tooltipStore = Ariakit.useTooltipStore({
 		placement: 'top',
 		timeout: delayed ? STANDARD_DELAY : 0,
 		...props,
@@ -33,20 +28,27 @@ export const Tooltip: React.FC<TooltipProps> = ({
 
 	return (
 		<>
-			<TooltipAnchor
+			<Ariakit.TooltipAnchor
 				store={tooltipStore}
 				style={{ display: 'flex', ...style }}
 			>
 				{trigger}
-			</TooltipAnchor>
+			</Ariakit.TooltipAnchor>
 			{!disabled && (
-				<AriakitTooltip
+				<Ariakit.Tooltip
 					store={tooltipStore}
 					gutter={4}
 					style={{ zIndex: 100 }}
 				>
+					{/*
+					There is a bug in v0.2.17 of Ariakit where you need to have this arrow
+					rendered or else positioning of the popover breaks. We render it, but
+					hide it by setting size={0}. This is an issue with anything using a
+					popover coming from the floating-ui library.
+					*/}
+					<Ariakit.TooltipArrow size={0} />
 					<TooltipContent>{children}</TooltipContent>
-				</AriakitTooltip>
+				</Ariakit.Tooltip>
 			)}
 		</>
 	)
