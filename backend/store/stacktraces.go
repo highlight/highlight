@@ -128,7 +128,7 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 		}
 
 		if encodedFileContent == nil {
-			return trace, fmt.Errorf("GitHub returned empty content for %s in %s", fileName, *service.GithubRepoPath)
+			return trace, fmt.Errorf("Unable to fetch %s in %s", fileName, *service.GithubRepoPath)
 		}
 
 		gitHubFileBytes = []byte(*encodedFileContent)
