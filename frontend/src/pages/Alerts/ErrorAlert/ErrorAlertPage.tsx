@@ -212,7 +212,7 @@ export const ErrorAlertPage = () => {
 							),
 							disabled: false,
 							discord_channels: formValues.discordChannels.map(
-								(c: any) => ({
+								(c) => ({
 									name: c.name,
 									id: c.id,
 								}),
@@ -224,7 +224,7 @@ export const ErrorAlertPage = () => {
 							name: formStore.getValue(formStore.names.name),
 							project_id: project_id || '0',
 							slack_channels: formValues.slackChannels.map(
-								(c: any) => ({
+								(c) => ({
 									webhook_channel_id: c.webhook_channel_id,
 									webhook_channel_name:
 										c.webhook_channel_name,
