@@ -127,6 +127,10 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 			return trace, err
 		}
 
+		if encodedFileContent == nil {
+			return trace, fmt.Errorf("GitHub returned empty content for %s in %s", fileName, *service.GithubRepoPath)
+		}
+
 		gitHubFileBytes = []byte(*encodedFileContent)
 
 		_, err = store.storageClient.PushGitHubFile(ctx, *service.GithubRepoPath, fileName, serviceVersion, gitHubFileBytes)
