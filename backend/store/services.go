@@ -17,29 +17,31 @@ import (
 )
 
 func (store *Store) UpsertService(ctx context.Context, project model.Project, name string, attributes map[string]string) (*model.Service, error) {
-	service := model.Service{
-		Name:      name,
-		ProjectID: project.ID,
-	}
+	return redis.CachedEval(ctx, store.redis, CacheServiceKey(name, project.ID), 150*time.Millisecond, time.Minute, func() (*model.Service, error) {
+		service := model.Service{
+			Name:      name,
+			ProjectID: project.ID,
+		}
 
-	if val, ok := attributes[string(semconv.ProcessRuntimeNameKey)]; ok {
-		service.ProcessName = &val
-	}
+		if val, ok := attributes[string(semconv.ProcessRuntimeNameKey)]; ok {
+			service.ProcessName = &val
+		}
 
-	if val, ok := attributes[string(semconv.ProcessRuntimeVersionKey)]; ok {
-		service.ProcessVersion = &val
-	}
+		if val, ok := attributes[string(semconv.ProcessRuntimeVersionKey)]; ok {
+			service.ProcessVersion = &val
+		}
 
-	if val, ok := attributes[string(semconv.ProcessRuntimeDescriptionKey)]; ok {
-		service.ProcessDescription = &val
-	}
+		if val, ok := attributes[string(semconv.ProcessRuntimeDescriptionKey)]; ok {
+			service.ProcessDescription = &val
+		}
 
-	err := store.db.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "name"}, {Name: "project_id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"process_name", "process_version", "process_description"}),
-	}).Create(&service).Error
+		err := store.db.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "name"}, {Name: "project_id"}},
+			DoUpdates: clause.AssignmentColumns([]string{"process_name", "process_version", "process_description"}),
+		}).Create(&service).Error
 
-	return &service, err
+		return &service, err
+	})
 }
 
 func (store *Store) FindService(ctx context.Context, projectID int, name string) (*model.Service, error) {
