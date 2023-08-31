@@ -53,6 +53,12 @@ import {
 } from '@/graph/generated/operations'
 import { JoinWorkspace } from '@/pages/Auth/JoinWorkspace'
 import { WorkspaceInvitation } from '@/pages/Auth/WorkspaceInvitation'
+import {
+	ErrorTags,
+	ErrorTagsAdmin,
+	ErrorTagsContainer,
+	ErrorTagsSearch,
+} from '@/pages/ErrorTags'
 import WithErrorSearchContext from '@/routers/ProjectRouter/WithErrorSearchContext'
 import WithSessionSearchContext from '@/routers/ProjectRouter/WithSessionSearchContext'
 
@@ -211,6 +217,25 @@ export const AppRouter = () => {
 				<WithSessionSearchContext>
 					<WithErrorSearchContext>
 						<Routes>
+							<Route
+								path="/error-tags"
+								element={<ErrorTagsContainer />}
+							>
+								<Route index element={<ErrorTags />} />
+
+								{isHighlightAdmin && (
+									<Route
+										path="/error-tags/admin"
+										element={<ErrorTagsAdmin />}
+									/>
+								)}
+
+								<Route
+									path="/error-tags/search"
+									element={<ErrorTagsSearch />}
+								/>
+							</Route>
+
 							<Route
 								path="/join_workspace"
 								element={<JoinWorkspace />}

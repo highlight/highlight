@@ -3,7 +3,7 @@ import { vars } from '../../../css/vars'
 import * as headStyles from '../Head/styles.css'
 import * as bodyStyles from '../Body/styles.css'
 
-const BORDER = `1px solid ${vars.theme.static.divider.weak}`
+export const BORDER = `1px solid ${vars.theme.static.divider.weak}`
 
 export const row = style({
 	display: 'grid',
