@@ -80,3 +80,19 @@
 	font-weight: 600;
 	padding: 2rem;
 }
+
+.alert {
+	position: absolute;
+	top: 5rem;
+	left: 0;
+	right: 0;
+
+	display: flex;
+	justify-content: center;
+}
+
+.alert>div {
+	padding: 0.25rem 0.5rem;
+	background: #DCDBDD;
+	border-radius: 6px;
+}

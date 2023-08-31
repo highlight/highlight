@@ -6,7 +6,7 @@ import {
 	Table,
 	Text,
 } from '@highlight-run/ui'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
@@ -49,13 +49,7 @@ export function ErrorTagsSearch() {
 						Go back
 					</Button>
 				</a>
-				<Button
-					trackingId="error-tags-search-go-back"
-					kind="secondary"
-					cssClass={styles.shareButton}
-				>
-					Share
-				</Button>
+				<ShareButton />
 			</Box>
 
 			<Box cssClass={styles.bordered}>
@@ -217,4 +211,34 @@ function Score({ score }: { score?: number }) {
 
 function NoResults() {
 	return <Box className={styles.noResults}>No results</Box>
+}
+
+function ShareButton() {
+	const [isPopoverOpen, setIsPopoverOpen] = useState(false)
+
+	function onShareClick() {
+		navigator.clipboard?.writeText(window.location.href)
+		setIsPopoverOpen(true)
+
+		setTimeout(() => setIsPopoverOpen(false), 2000)
+	}
+
+	return (
+		<>
+			{isPopoverOpen && (
+				<Box className={styles.alert}>
+					<Box>Copied URL</Box>
+				</Box>
+			)}
+
+			<Button
+				trackingId="error-tags-search-go-back"
+				kind="secondary"
+				cssClass={styles.shareButton}
+				onClick={onShareClick}
+			>
+				Share
+			</Button>
+		</>
+	)
 }
