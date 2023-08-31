@@ -74,7 +74,7 @@ export default function App() {
 		<html lang="en">
 			<HighlightInit
 				projectId={ENV.HIGHLIGHT_PROJECT_ID}
-				erviceName="my-remix-app"
+				serviceName="my-remix-frontend"
 				tracingOrigins
 				networkRecording={{ enabled: true, recordHeadersAndBody: true }}
 			/>
