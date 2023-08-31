@@ -14,8 +14,8 @@
 		"access": "public"
 	},
 	"dependencies": {
-		"@opentelemetry/resources": "1.15.1",
-		"opentelemetry-sdk-workers": "^0.6.2"
+		"@highlight-run/opentelemetry-sdk-workers": "workspace:^",
+		"@opentelemetry/resources": "1.15.1"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20230518.0",

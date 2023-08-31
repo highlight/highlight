@@ -1,4 +1,4 @@
-import { H, HighlightEnv } from '@highlight-run/cloudflare'
+import { H, HighlightEnv } from '@highlight-run/next/edge'
 import type { NextFetchEvent, NextRequest } from 'next/server'
 
 import { NextResponse } from 'next/server'
@@ -8,12 +8,17 @@ const env: HighlightEnv = {
 	HIGHLIGHT_PROJECT_ID: '1',
 }
 
-export const GET = async function GET(
+type Handler = (
+	request: NextRequest,
+	context: NextFetchEvent,
+) => Promise<Response>
+
+export const GET = withHighlight(async function GET(
 	request: NextRequest,
 	context: NextFetchEvent,
 ) {
-	console.log('initializing cloudflare GET')
 	H.init(request, env, context)
+
 	const { searchParams } = new URL(request.url)
 	const success = z.enum(['true', 'false']).parse(searchParams.get('success'))
 
@@ -22,19 +27,18 @@ export const GET = async function GET(
 	if (success === 'true') {
 		return new Response('Success: /api/edge-test')
 	} else {
-		const error = new Error('Error: /api/edge-test')
-
-		H.consumeError(error)
-		throw error
+		throw new Error(
+			'Error: /api/edge-test using new @highlight-run/next/edge import',
+		)
 	}
-}
+})
 
 export const POST = async function POST(
 	request: NextRequest,
 	context: NextFetchEvent,
 ) {
-	console.log('initializing cloudflare POST')
 	H.init(request, env, context)
+
 	const headers = Object.fromEntries(request.headers.entries())
 
 	return NextResponse.json({
@@ -43,3 +47,27 @@ export const POST = async function POST(
 }
 
 export const runtime = 'edge'
+
+function withHighlight(handler: Handler) {
+	return async function (request: NextRequest, context: NextFetchEvent) {
+		H.init(request, env, context)
+
+		try {
+			const response = await handler(request, context)
+
+			H.sendResponse(response)
+
+			console.log('sending response', response)
+
+			return response
+		} catch (error) {
+			console.log('🤖 error')
+			if (error instanceof Error) {
+				console.log('🤖 error.message')
+				H.consumeError(error)
+			}
+
+			throw error
+		}
+	}
+}

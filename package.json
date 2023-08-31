@@ -22,6 +22,7 @@
 		"sdk/highlight-remix",
 		"render",
 		"rrweb/packages/*",
+		"opentelemetry-sdk-workers/packages/opentelemetry-sdk-workers",
 		"scripts",
 		"sourcemap-uploader"
 	],
@@ -36,7 +37,7 @@
 		"dev": "run-p --print-label --race 'dev:*'",
 		"dev:backend": "cd backend && make start",
 		"dev:components": "yarn turbo run dev --filter @highlight-run/component-preview...",
-		"dev:frontend": "doppler run -- yarn turbo run dev --filter frontend... --filter=!@highlight-run/rrweb... --filter=!@highlight-run/ui...",
+		"dev:frontend": "doppler run -- yarn turbo run dev --filter frontend... --filter=!@highlight-run/rrweb... --filter=!@highlight-run/opentelemetry-sdk-workers --filter=!@highlight-run/ui... --concurrency=30",
 		"dev:highlight.io": "doppler run -- yarn turbo run dev --filter highlight.io",
 		"dev:ui": "yarn turbo run dev --filter @highlight-run/ui...",
 		"dev:watch": "yarn turbo run dev:watch --concurrency=30",

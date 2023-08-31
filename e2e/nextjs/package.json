@@ -13,7 +13,6 @@
 		"hoistingLimits": "dependencies"
 	},
 	"dependencies": {
-		"@highlight-run/cloudflare": "workspace:*",
 		"@highlight-run/next": "workspace:*",
 		"@next/env": "^13.4.12",
 		"@tanstack/react-query": "^4.29.7",
