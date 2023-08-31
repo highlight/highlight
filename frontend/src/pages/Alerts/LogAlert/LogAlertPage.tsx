@@ -373,14 +373,14 @@ export const LogAlertPage = () => {
 				{isLoading && <LoadingBox />}
 				{!isLoading && (
 					<>
-						<Form state={form} resetOnSubmit={false}>
-							{header}
-							<Container
-								display="flex"
-								flexDirection="column"
-								py="24"
-								gap="40"
-							>
+						{header}
+						<Container
+							display="flex"
+							flexDirection="column"
+							py="24"
+							gap="40"
+						>
+							<Form state={form} resetOnSubmit={false}>
 								<Box
 									display="flex"
 									flexDirection="column"
@@ -468,8 +468,8 @@ export const LogAlertPage = () => {
 									/>
 								</Box>
 								<LogAlertForm />
-							</Container>
-						</Form>
+							</Form>
+						</Container>
 					</>
 				)}
 			</Box>

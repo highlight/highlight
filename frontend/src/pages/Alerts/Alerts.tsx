@@ -7,6 +7,7 @@ import {
 	Heading,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
+	IconSolidDiscord,
 	IconSolidExclamation,
 	IconSolidInformationCircle,
 	IconSolidLightningBolt,
@@ -31,7 +32,7 @@ import { AlertEnableSwitch } from '@pages/Alerts/AlertEnableSwitch/AlertEnableSw
 import { useAlertsContext } from '@pages/Alerts/AlertsContext/AlertsContext'
 import { useParams } from '@util/react-router/useParams'
 import React from 'react'
-import { RiDiscordFill, RiMailFill, RiSlackFill } from 'react-icons/ri'
+import { RiMailFill, RiSlackFill } from 'react-icons/ri'
 import { useNavigate } from 'react-router-dom'
 
 import { Link } from '@/components/Link'
@@ -563,7 +564,20 @@ function AlertsPageLoaded({
 																							record.disabled
 																						}
 																						iconLeft={
-																							<RiDiscordFill />
+																							<IconSolidDiscord
+																								size={
+																									12
+																								}
+																								fill={
+																									vars
+																										.theme
+																										.interactive
+																										.fill
+																										.secondary
+																										.content
+																										.text
+																								}
+																							/>
 																						}
 																						onClick={() =>
 																							navigateToAlert(
