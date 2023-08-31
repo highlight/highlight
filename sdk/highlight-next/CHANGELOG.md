@@ -56,6 +56,7 @@
 ### Minor changes
 
 - Added support for setting metadata on `consumeError`
+
 ### 4.2.0
 
 ### Minor changes
