@@ -186,26 +186,11 @@ export class Highlight {
 		if (metadata != undefined) {
 			span.setAttributes(metadata)
 		}
-		span.setAttributes({ ['highlight.project_id']: this._projectID })
 		if (secureSessionId) {
 			span.setAttributes({ ['highlight.session_id']: secureSessionId })
 		}
 		if (requestId) {
 			span.setAttributes({ ['highlight.trace_id']: requestId })
-		}
-
-		if (this._options.serviceName) {
-			span.setAttributes({
-				[SemanticResourceAttributes.SERVICE_NAME]:
-					this._options.serviceName,
-			})
-		}
-
-		if (this._options.serviceVersion) {
-			span.setAttributes({
-				[SemanticResourceAttributes.SERVICE_VERSION]:
-					this._options.serviceVersion,
-			})
 		}
 
 		this._log('created error span', span)
