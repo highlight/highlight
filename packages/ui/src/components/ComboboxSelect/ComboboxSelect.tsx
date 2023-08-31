@@ -69,8 +69,9 @@ export const ComboboxSelect = <T extends string | string[]>({
 	const select = useSelectStore({
 		combobox,
 		setValue: (value: T) => {
+			console.log('setValue', value)
 			onChange(value)
-			combobox.setValue('')
+			// combobox.setValue('')
 		},
 		value,
 	})
