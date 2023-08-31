@@ -47,6 +47,8 @@ export const FeatureConfig: { [key: number]: Config } = {
 		workspaceOverride: new Set<string>([
 			// Numero
 			'701',
+			// MediaJel
+			'9634',
 		]),
 	},
 } as const

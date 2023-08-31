@@ -74,21 +74,24 @@ type HasLabel = {
 	label?: string
 	optional?: boolean
 	tag?: ReactNode
+	icon?: ReactNode
 }
 export const NamedSection = ({
 	children,
 	label,
 	name,
 	tag,
+	icon,
 	optional = false,
 }: React.PropsWithChildren<HasLabel>) => {
 	return label ? (
 		<Box display="flex" flexDirection="column" width="full" gap="4">
-			<Box display="flex" flexDirection="row" gap="6">
+			<Box display="flex" flexDirection="row" gap="6" alignItems="center">
 				{label && <Label label={label} name={name} tag={tag} />}
 				{optional && (
 					<Badge shape="basic" size="small" label="Optional" />
 				)}
+				{icon}
 			</Box>
 			{children}
 		</Box>
@@ -129,6 +132,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 	(
 		{
 			label,
+			icon,
 			cssClass,
 			size,
 			collapsed,
@@ -152,7 +156,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 			collapsed = false
 		}
 		return (
-			<NamedSection label={label} name={name}>
+			<NamedSection label={label} name={name} icon={icon}>
 				<AriaKitFormInput
 					ref={ref}
 					name={name}

@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import Tabs from '@components/Tabs/Tabs'
 import { Box, Heading, Stack, Text } from '@highlight-run/ui'
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm'
@@ -26,6 +25,7 @@ import {
 	useEditProjectSettingsMutation,
 	useGetProjectQuery,
 	useGetProjectSettingsQuery,
+	useGetWorkspaceSettingsQuery,
 } from '@/graph/generated/hooks'
 import {
 	GetProjectSettingsQuery,
@@ -34,13 +34,14 @@ import {
 import { AutoresolveStaleErrorsForm } from '@/pages/ProjectSettings/AutoresolveStaleErrorsForm/AutoresolveStaleErrorsForm'
 import { FilterSessionsWithoutErrorForm } from '@/pages/ProjectSettings/FilterSessionsWithoutErrorForm/FilterSessionsWithoutErrorForm'
 import { ProjectSettingsContextProvider } from '@/pages/ProjectSettings/ProjectSettingsContext/ProjectSettingsContext'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 import styles from './ProjectSettings.module.css'
 
 const ProjectSettings = () => {
-	const { isHighlightAdmin } = useAuthContext()
 	const navigate = useNavigate()
 	const { project_id, ...params } = useParams()
+	const { currentWorkspace } = useApplicationContext()
 	const [allProjectSettings, setAllProjectSettings] =
 		useState<GetProjectSettingsQuery>()
 
@@ -55,6 +56,10 @@ const ProjectSettings = () => {
 			projectId: project_id!,
 		},
 		skip: !project_id,
+	})
+	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
 	})
 
 	const [editProjectSettings, { loading: editProjectSettingsLoading }] =
@@ -214,8 +219,9 @@ const ProjectSettings = () => {
 									key: 'services',
 									title: 'Services',
 									panelContent: <ServicesTable />,
-									// TODO: remove when ready to enable to customers
-									hidden: !isHighlightAdmin,
+									hidden: !workspaceSettingsData
+										?.workspaceSettings
+										?.enable_enhanced_errors,
 								},
 							]}
 						/>

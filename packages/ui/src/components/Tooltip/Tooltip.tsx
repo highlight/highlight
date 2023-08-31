@@ -10,6 +10,8 @@ export type TooltipProps = Partial<Ariakit.TooltipStoreProps> &
 		disabled?: boolean
 		style?: React.CSSProperties
 		delayed?: boolean
+		tooltipRef?: React.RefObject<HTMLElement>
+		renderInLine?: boolean // used when trying to display a tooltip in a modal
 	}>
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -18,6 +20,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
 	disabled,
 	style,
 	delayed,
+	renderInLine,
 	...props
 }: TooltipProps) => {
 	const tooltipStore = Ariakit.useTooltipStore({
@@ -39,6 +42,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
 					store={tooltipStore}
 					gutter={4}
 					style={{ zIndex: 100 }}
+					portal={!renderInLine}
 				>
 					{/*
 					There is a bug in v0.2.17 of Ariakit where you need to have this arrow

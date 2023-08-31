@@ -4440,7 +4440,10 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 	workspaceSettings?: Types.Maybe<
 		{ __typename?: 'AllWorkspaceSettings' } & Pick<
 			Types.AllWorkspaceSettings,
-			'workspace_id' | 'ai_application' | 'ai_insights'
+			| 'workspace_id'
+			| 'ai_application'
+			| 'ai_insights'
+			| 'enable_enhanced_errors'
 		>
 	>
 }
