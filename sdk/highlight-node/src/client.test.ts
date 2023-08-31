@@ -1,3 +1,4 @@
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { Highlight } from './client.js'
 
 describe('client', () => {
@@ -9,9 +10,20 @@ describe('client', () => {
 		const sdk = client.otel
 		const resource = sdk['_resource']
 
-		expect(resource.attributes['process.runtime.name']).toEqual('nodejs')
-		expect(resource.attributes['process.runtime.description']).toEqual(
-			'Node.js',
-		)
+		expect(
+			resource.attributes[
+				SemanticResourceAttributes.PROCESS_RUNTIME_NAME
+			],
+		).toEqual('nodejs')
+		expect(
+			resource.attributes[
+				SemanticResourceAttributes.PROCESS_RUNTIME_DESCRIPTION
+			],
+		).toEqual('Node.js')
+		expect(
+			resource.attributes[
+				SemanticResourceAttributes.PROCESS_RUNTIME_VERSION
+			],
+		).toBeDefined()
 	})
 })

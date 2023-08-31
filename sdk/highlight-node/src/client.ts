@@ -60,7 +60,7 @@ export class Highlight {
 
 		this.otel = new NodeSDK({
 			autoDetectResources: true,
-			resourceDetectors: [envDetectorSync, processDetectorSync],
+			resourceDetectors: [processDetectorSync],
 			resource: {
 				attributes,
 				merge: (resource) =>
