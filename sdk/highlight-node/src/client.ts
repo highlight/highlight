@@ -21,7 +21,6 @@ export class Highlight {
 	readonly FLUSH_TIMEOUT = 10
 	_intervalFunction: ReturnType<typeof setInterval>
 	_projectID: string
-	_options: NodeOptions
 	_debug: boolean
 	otel: NodeSDK
 	private tracer: Tracer
@@ -30,7 +29,6 @@ export class Highlight {
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
 		this._projectID = options.projectID
-		this._options = options
 		if (!options.disableConsoleRecording) {
 			hookConsole(options.consoleMethodsToRecord, (c) => {
 				this.log(c.date, c.message, c.level, c.stack)
@@ -193,7 +191,6 @@ export class Highlight {
 		if (requestId) {
 			span.setAttributes({ ['highlight.trace_id']: requestId })
 		}
-
 		this._log('created error span', span)
 		span.end()
 	}
