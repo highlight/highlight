@@ -222,10 +222,14 @@ export const AppRouter = () => {
 								element={<ErrorTagsContainer />}
 							>
 								<Route index element={<ErrorTags />} />
-								<Route
-									path="/error-tags/admin"
-									element={<ErrorTagsAdmin />}
-								/>
+
+								{isHighlightAdmin && (
+									<Route
+										path="/error-tags/admin"
+										element={<ErrorTagsAdmin />}
+									/>
+								)}
+
 								<Route
 									path="/error-tags/search"
 									element={<ErrorTagsSearch />}
