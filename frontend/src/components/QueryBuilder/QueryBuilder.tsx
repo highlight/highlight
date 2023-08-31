@@ -48,12 +48,13 @@ import clsx, { ClassValue } from 'clsx'
 import { isEqual } from 'lodash'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { components } from 'react-select'
 import AsyncSelect from 'react-select/async'
 import Creatable from 'react-select/creatable'
 import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
-import { useLocalStorage, useToggle } from 'react-use'
+import { useToggle } from 'react-use'
 
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
@@ -973,9 +974,7 @@ export const RANGE_OPERATORS: Operator[] = ['between', 'not_between']
 
 export const TIME_OPERATORS: Operator[] = ['between_time', 'not_between_time']
 
-export const BOOLEAN_OPERATORS: Operator[] = ['is', 'is_not']
-
-export const VIEWED_BY_OPERATORS: Operator[] = ['is']
+export const BOOLEAN_OPERATORS: Operator[] = ['is']
 
 const LABEL_MAP: { [key: string]: string } = {
 	referrer: 'Referrer',
@@ -1263,10 +1262,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 		project_id: string
 	}>()
 
-	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse',
-		false,
-	)
+	const location = useLocation()
+	const isOnErrorsPage = location.pathname.includes('errors')
 
 	const { loading: segmentsLoading, data: segmentData } =
 		useGetAnySegmentsQuery({
@@ -1560,7 +1557,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					query: input,
 					start_date: moment(dateRange[0]).toISOString(),
 					end_date: moment(dateRange[1]).toISOString(),
-					use_clickhouse: useClickhouse,
+					use_clickhouse: true,
 				}).then((res) => {
 					return res.map((val) => ({
 						label: val,
@@ -1575,7 +1572,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 			getCustomFieldOptions,
 			projectId,
 			dateRange,
-			useClickhouse,
 		],
 	)
 
@@ -1648,9 +1644,15 @@ function QueryBuilder(props: QueryBuilderProps) {
 							}}
 							onChange={(val) => {
 								const field = val as SelectOption | undefined
+								const operators =
+									field &&
+									getCustomFieldOptions(field)?.operators
 								addRule({
 									field: field,
-									op: undefined,
+									op:
+										operators && operators.length === 1
+											? operators[0]
+											: undefined,
 									val: undefined,
 								})
 							}}
@@ -1877,10 +1879,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 					}}
 				/>
 				<Box marginLeft="auto" display="flex" gap="4">
-					<DropdownMenu
-						sessionCount={searchResultsCount || 0}
-						sessionQuery={backendSearchQuery?.searchQuery || ''}
-					/>
+					{!isOnErrorsPage && (
+						<DropdownMenu
+							sessionCount={searchResultsCount || 0}
+							sessionQuery={backendSearchQuery?.searchQuery || ''}
+						/>
+					)}
 
 					<ButtonIcon
 						kind="secondary"
@@ -1900,6 +1904,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 		updateRule,
 		timeRangeRule,
 		setShowLeftPanel,
+		isOnErrorsPage,
 	])
 
 	const alteredSegmentSettings = useMemo(() => {

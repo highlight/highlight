@@ -48,6 +48,7 @@ import LoadingBox from '@/components/LoadingBox'
 import { namedOperations } from '@/graph/generated/operations'
 import { useAlertsContext } from '@/pages/Alerts/AlertsContext/AlertsContext'
 import AlertNotifyForm from '@/pages/Alerts/components/AlertNotifyForm/AlertNotifyForm'
+import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
 
 import * as styles from './styles.css'
 
@@ -133,7 +134,7 @@ export const ErrorAlertPage = () => {
 			})
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	}, [alert])
 
 	const [updateErrorAlertMutation] = useUpdateErrorAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
@@ -168,7 +169,7 @@ export const ErrorAlertPage = () => {
 					emphasis="low"
 					trackingId="closeErrorAlert"
 					onClick={() => {
-						navigate(`/${project_id}/alerts`)
+						navigate(-1)
 					}}
 				>
 					Cancel
@@ -384,7 +385,10 @@ export const ErrorAlertPage = () => {
 							</Box>
 
 							<Form state={form} resetOnSubmit={false}>
-								<ErrorAlertForm />
+								<Stack gap="40">
+									<AlertTitleField />
+									<ErrorAlertForm />
+								</Stack>
 							</Form>
 						</Container>
 					</>
@@ -442,6 +446,7 @@ const ErrorAlertForm = () => {
 						<Column>
 							<Form.Input
 								name={form.names.threshold}
+								value={form.values.threshold}
 								type="number"
 								label="Alert threshold"
 								tag={
@@ -513,18 +518,6 @@ const ErrorAlertForm = () => {
 					</Box>
 
 					<Box borderTop="dividerWeak" width="full" />
-
-					<Form.Input
-						name={form.names.name}
-						type="text"
-						placeholder="Alert name"
-						label="Name"
-						style={{
-							borderColor: form.errors.name
-								? 'var(--color-red-500)'
-								: undefined,
-						}}
-					/>
 
 					<Form.NamedSection
 						label="Excluded environments"

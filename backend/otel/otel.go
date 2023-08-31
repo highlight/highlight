@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/samber/lo"
@@ -32,7 +33,9 @@ type Handler struct {
 	resolver *graph.Resolver
 }
 
-func lg(ctx context.Context, fields extractedFields) *log.Entry {
+var IgnoredSpanNamePrefixes = []string{"fs "}
+
+func lg(ctx context.Context, fields *extractedFields) *log.Entry {
 	return log.WithContext(ctx).
 		WithField("project_id", fields.projectID).
 		WithField("session_id", fields.sessionID).
@@ -49,7 +52,7 @@ func cast[T string | int64 | float64](v interface{}, fallback T) T {
 	return c
 }
 
-func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string, logCursor *string) (bool, *model.BackendErrorObjectInput) {
+func getBackendError(ctx context.Context, ts time.Time, fields *extractedFields, traceID, spanID string, logCursor *string) (bool, *model.BackendErrorObjectInput) {
 	if fields.exceptionType == "" && fields.exceptionMessage == "" {
 		lg(ctx, fields).Error("otel received exception with no type and no message")
 		return false, nil
@@ -86,7 +89,7 @@ func getBackendError(ctx context.Context, ts time.Time, fields extractedFields, 
 	}
 }
 
-func getMetric(ctx context.Context, ts time.Time, fields extractedFields, traceID, spanID string) (*model.MetricInput, error) {
+func getMetric(ctx context.Context, ts time.Time, fields *extractedFields, traceID, spanID string) (*model.MetricInput, error) {
 	if fields.metricEventName == "" {
 		return nil, e.New("otel received metric with no name")
 	}
@@ -155,6 +158,18 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				span := spans.At(k)
 				events := span.Events()
 
+				// skip a subset of spans (ie. fs spans
+				skipped := false
+				for _, prefix := range IgnoredSpanNamePrefixes {
+					if strings.HasPrefix(span.Name(), prefix) {
+						skipped = true
+						break
+					}
+				}
+				if skipped {
+					continue
+				}
+
 				isLog := false
 				for l := 0; l < events.Len() && !isLog; l++ {
 					e := events.At(l)
@@ -166,9 +181,11 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 				// Only process spans that are not logs
 				if !isLog {
 					fields, err := extractFields(ctx, extractFieldsParams{
-						span: &span,
+						resource: &resource,
+						span:     &span,
 					})
 					if err != nil {
+						lg(ctx, fields).WithError(err).Error("failed to extract fields from span")
 						continue
 					}
 
@@ -201,14 +218,19 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						event:    &event,
 					})
 					if err != nil {
+						lg(ctx, fields).WithError(err).Error("failed to extract fields from span")
 						continue
 					}
 
 					traceID := cast(fields.requestID, span.TraceID().String())
 					spanID := span.SpanID().String()
 					if event.Name() == semconv.ExceptionEventName {
-						var logCursor *string
+						if fields.external {
+							lg(ctx, fields).WithError(err).Info("dropping external exception")
+							continue
+						}
 
+						var logCursor *string
 						logRow := clickhouse.NewLogRow(
 							fields.timestamp, uint32(fields.projectIDInt),
 							clickhouse.WithTraceID(traceID),
@@ -380,6 +402,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					logRecord: &logRecord,
 				})
 				if err != nil {
+					lg(ctx, fields).WithError(err).Error("failed to extract fields from log")
 					continue
 				}
 

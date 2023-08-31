@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/highlight-run/highlight/backend/embeddings"
 	"html/template"
 	"io"
 	"math/rand"
@@ -14,6 +13,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/embeddings"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -56,7 +57,6 @@ import (
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 	highlightChi "github.com/highlight/highlight/sdk/highlight-go/middleware/chi"
 	"github.com/leonelquinteros/hubspot"
-	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
@@ -329,8 +329,7 @@ func main() {
 	kafkaTracesProducer := kafkaqueue.New(ctx, kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeTraces}), kafkaqueue.Producer, nil)
 	kafkaDataSyncProducer := kafkaqueue.New(ctx,
 		kafkaqueue.GetTopic(kafkaqueue.GetTopicOptions{Type: kafkaqueue.TopicTypeDataSync}),
-		kafkaqueue.Producer,
-		&kafkaqueue.ConfigOverride{Async: pointy.Bool(true)})
+		kafkaqueue.Producer, nil)
 
 	opensearchClient, err := opensearch.NewOpensearchClient(db)
 	if err != nil {
@@ -371,6 +370,7 @@ func main() {
 		StripeClient:           stripeClient,
 		StorageClient:          storageClient,
 		LambdaClient:           lambda,
+		EmbeddingsClient:       embeddings.New(),
 		PrivateWorkerPool:      privateWorkerpool,
 		SubscriptionWorkerPool: subscriptionWorkerPool,
 		OpenSearch:             opensearchClient,
@@ -380,7 +380,7 @@ func main() {
 		OAuthServer:            oauthSrv,
 		IntegrationsClient:     integrationsClient,
 		ClickhouseClient:       clickhouseClient,
-		Store:                  store.NewStore(db, opensearchClient, redisClient),
+		Store:                  store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
 		DataSyncQueue:          kafkaDataSyncProducer,
 		TracesQueue:            kafkaTracesProducer,
 	}
@@ -475,8 +475,8 @@ func main() {
 				Cache: lru.New(100),
 			})
 
-			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.Use(highlight.NewGraphqlTracer(string(util.PrivateGraph)).WithRequestFieldLogging())
+			privateServer.Use(util.NewTracer(util.PrivateGraph))
 			privateServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PrivateGraph)))
 			privateServer.SetRecoverFunc(highlight.GraphQLRecoverFunc())
 			r.Handle("/",
@@ -506,7 +506,7 @@ func main() {
 			HubspotApi:       hubspotApi.NewHubspotAPI(hubspot.NewClient(hubspot.NewClientConfig()), db, redisClient, kafkaProducer),
 			Redis:            redisClient,
 			RH:               &rh,
-			Store:            store.NewStore(db, opensearchClient, redisClient),
+			Store:            store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
 		}
 		publicEndpoint := "/public"
 		if runtimeParsed == util.PublicGraph {
@@ -520,8 +520,8 @@ func main() {
 				publicgen.Config{
 					Resolvers: publicResolver,
 				}))
-			publicServer.Use(util.NewTracer(util.PublicGraph))
 			publicServer.Use(highlight.NewGraphqlTracer(string(util.PublicGraph)))
+			publicServer.Use(util.NewTracer(util.PublicGraph))
 			publicServer.SetErrorPresenter(highlight.GraphQLErrorPresenter(string(util.PublicGraph)))
 			publicServer.SetRecoverFunc(highlight.GraphQLRecoverFunc())
 			r.Handle("/",
@@ -599,7 +599,7 @@ func main() {
 			Redis:            redisClient,
 			Clickhouse:       clickhouseClient,
 			RH:               &rh,
-			Store:            store.NewStore(db, opensearchClient, redisClient),
+			Store:            store.NewStore(db, opensearchClient, redisClient, integrationsClient, storageClient, kafkaDataSyncProducer),
 		}
 		w := &worker.Worker{Resolver: privateResolver, PublicResolver: publicResolver, StorageClient: storageClient}
 		if runtimeParsed == util.Worker {

@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	privateModel "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -24,7 +25,7 @@ type ListErrorObjectsParams struct {
 const LIMIT = 10
 
 func (store *Store) PutEmbeddings(embeddings []*model.ErrorObjectEmbeddings) error {
-	return store.db.Model(&model.ErrorObjectEmbeddings{}).CreateInBatches(embeddings, 64).Error
+	return store.db.Table("error_object_embeddings_partitioned").Model(&model.ErrorObjectEmbeddings{}).CreateInBatches(embeddings, 64).Error
 }
 
 func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErrorObjectsParams) (privateModel.ErrorObjectConnection, error) {
@@ -226,6 +227,10 @@ func (store *Store) updateErrorGroupState(ctx context.Context,
 
 	if err := store.opensearch.UpdateSynchronous(opensearch.IndexErrorsCombined, errorGroup.ID, errorGroup); err != nil {
 		return errorGroup, errors.New("error updating error group state in OpenSearch")
+	}
+
+	if err := store.dataSyncQueue.Submit(ctx, strconv.Itoa(errorGroup.ID), &kafka_queue.Message{Type: kafka_queue.ErrorGroupDataSync, ErrorGroupDataSync: &kafka_queue.ErrorGroupDataSyncArgs{ErrorGroupID: errorGroup.ID}}); err != nil {
+		return errorGroup, err
 	}
 
 	return errorGroup, nil

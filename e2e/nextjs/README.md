@@ -23,19 +23,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Environment Configuration (Very optional)
 
-> This section is extra opinionated about Next.js constants. It's not for everyone. We like how `zod` and TypeScript work together to validate `process.env` inputs... but this is a suggestion. Do your own thing!
-
-1. Edit `.env` to add your projectID to `NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID`
-2. To send data to a locally-running instance of Highlight, create `.env.local` at your project root with variables for your local `otlpEndpoint` and `backendUrl`:
-
-```bash
-# .env.local
-
-NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID='1jdkoe52'
-NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT='http://localhost:4318'
-NEXT_PUBLIC_HIGHLIGHT_BACKEND_URL='https://localhost:8082/public'
-
-```
+The e2e app is already configured to work out of the box for local development (for project_id=1) but if you need to, you can override the configuration by adjusting the values in `e2e/nestjs/.env`.
 
 3. Feed your environment variables into the application with a constants file. We're using `zod` for this example, because it creates a validated, typed `CONSTANTS` object that plays nicely with TypeScript.
 

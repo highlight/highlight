@@ -66,6 +66,7 @@ fragment SessionAlertFragment on SessionAlert {
 	CountThreshold
 	DailyFrequency
 	disabled
+	default
 	EmailsToNotify
 	ExcludedEnvironments
 	ExcludeRules
@@ -670,11 +671,13 @@ query GetSessionsHistogram(
 	$project_id: ID!
 	$query: String!
 	$histogram_options: DateHistogramOptions!
+	$clickhouse_query: ClickhouseQuery
 ) {
 	sessions_histogram(
 		project_id: $project_id
 		query: $query
 		histogram_options: $histogram_options
+		clickhouse_query: $clickhouse_query
 	) {
 		bucket_times
 		sessions_without_errors
@@ -1752,6 +1755,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 		Name
 		DailyFrequency
 		disabled
+		default
 	}
 	new_session_alerts(project_id: $project_id) {
 		...SessionAlertFragment
@@ -1809,6 +1813,7 @@ query GetAlertsPagePayload($project_id: ID!) {
 		CountThreshold
 		DailyFrequency
 		disabled
+		default
 		EmailsToNotify
 		ExcludedEnvironments
 		id
@@ -2106,6 +2111,7 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 		workspace_id
 		ai_application
 		ai_insights
+		enable_enhanced_errors
 	}
 }
 
@@ -2184,5 +2190,57 @@ query GetServices(
 			startCursor
 			endCursor
 		}
+	}
+}
+
+fragment ErrorTag on ErrorTag {
+	id
+	created_at
+	title
+	description
+}
+
+query GetErrorTags {
+	error_tags {
+		...ErrorTag
+	}
+}
+
+query MatchErrorTag($query: String!) {
+	match_error_tag(query: $query) {
+		id
+		title
+		description
+		score
+	}
+}
+
+query FindSimilarErrors($query: String!) {
+	find_similar_errors(query: $query) {
+		id
+		type
+		event
+		stack_trace
+		score
+	}
+}
+
+query GetTraces($project_id: ID!, $params: TracesParamsInput!) {
+	traces(project_id: $project_id, params: $params) {
+		timestamp
+		traceID
+		spanID
+		parentSpanID
+		projectID
+		secureSessionID
+		traceState
+		spanName
+		spanKind
+		duration
+		serviceName
+		serviceVersion
+		traceAttributes
+		statusCode
+		statusMessage
 	}
 }

@@ -84,26 +84,29 @@ export const useGetLogs = ({
 		GetLogsQuery,
 		GetLogsQueryVariables
 	>({
-		variableFn: () => ({
-			project_id: project_id!,
-			at: logCursor,
-			direction: Types.LogDirection.Desc,
-			params: {
-				query: serverQuery,
-				date_range: {
-					start_date: moment(endDate).format(LOG_TIME_FORMAT),
-					end_date: moment(endDate)
-						.add(1, 'hour')
-						.format(LOG_TIME_FORMAT),
+		variableFn: useCallback(
+			() => ({
+				project_id: project_id!,
+				at: logCursor,
+				direction: Types.LogDirection.Desc,
+				params: {
+					query: serverQuery,
+					date_range: {
+						start_date: moment(endDate).format(LOG_TIME_FORMAT),
+						end_date: moment(endDate)
+							.add(1, 'hour')
+							.format(LOG_TIME_FORMAT),
+					},
 				},
-			},
-		}),
+			}),
+			[endDate, logCursor, project_id, serverQuery],
+		),
 		moreDataQuery,
-		getResultCount: (result) => {
+		getResultCount: useCallback((result) => {
 			if (result?.data?.logs.edges.length !== undefined) {
 				return result?.data?.logs.edges.length
 			}
-		},
+		}, []),
 	})
 
 	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({

@@ -45,7 +45,6 @@ import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import clsx from 'clsx'
 import moment from 'moment'
 import React, { useCallback, useEffect, useRef } from 'react'
-import { useLocalStorage } from 'react-use'
 
 import { AdditionalFeedResults } from '@/components/FeedResults/FeedResults'
 import {
@@ -69,7 +68,8 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
-	const { setSearchQuery, backendSearchQuery } = useSearchContext()
+	const { setSearchQuery, backendSearchQuery, searchQuery } =
+		useSearchContext()
 
 	const { loading, data } = useGetSessionsHistogramQuery({
 		variables: {
@@ -89,6 +89,7 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 					).format(),
 				},
 			},
+			clickhouse_query: JSON.parse(searchQuery),
 		},
 		skip: !backendSearchQuery || !project_id,
 	})
@@ -193,17 +194,10 @@ export const SessionFeedV3 = React.memo(() => {
 		setSearchResultsLoading(false)
 	}
 
-	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse',
-		false,
-	)
-
 	const { loading } = useGetSessionsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
-			clickhouse_query: useClickhouse
-				? JSON.parse(searchQuery)
-				: undefined,
+			clickhouse_query: JSON.parse(searchQuery),
 			count: DEFAULT_PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: project_id!,
@@ -221,7 +215,7 @@ export const SessionFeedV3 = React.memo(() => {
 		GetSessionsOpenSearchQuery,
 		GetSessionsOpenSearchQueryVariables
 	>({
-		variableFn: () => {
+		variableFn: useCallback(() => {
 			let query = JSON.parse(backendSearchQuery?.searchQuery || '')
 			const lte =
 				query?.bool?.must[0]?.bool?.should[0]?.range?.created_at?.lte
@@ -262,10 +256,16 @@ export const SessionFeedV3 = React.memo(() => {
 				project_id: project_id!,
 				sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
 			}
-		},
+		}, [
+			backendSearchQuery?.searchQuery,
+			project_id,
+			sessionFeedConfiguration.sortOrder,
+		]),
 		moreDataQuery,
-		getResultCount: (result) =>
-			result?.data?.sessions_opensearch.totalCount,
+		getResultCount: useCallback(
+			(result) => result?.data?.sessions_opensearch.totalCount,
+			[],
+		),
 	})
 
 	// Used to determine if we need to show the loading skeleton.

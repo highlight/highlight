@@ -6,8 +6,11 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/highlight-run/highlight/backend/integrations"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/stretchr/testify/assert"
 
@@ -86,7 +89,7 @@ func TestResolver_GetSessionChunk(t *testing.T) {
 
 type HubspotMock struct{}
 
-func (h *HubspotMock) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole string, userDefinedPersona string, first string, last string, phone string, referral string) error {
+func (h *HubspotMock) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first string, last string, phone string, referral string) error {
 	return nil
 }
 
@@ -458,7 +461,7 @@ func TestResolver_canAdminViewSession(t *testing.T) {
 			if err := redisClient.Cache.Delete(ctx, "session-secure-abc123"); err != nil {
 				t.Fatal(err)
 			}
-			r := &queryResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, &opensearch.Client{}, redisClient)}}
+			r := &queryResolver{Resolver: &Resolver{DB: DB, Store: store.NewStore(DB, &opensearch.Client{}, redisClient, integrations.NewIntegrationsClient(DB), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{})}}
 
 			w := model.Workspace{}
 			if err := DB.Create(&w).Error; err != nil {

@@ -7,6 +7,9 @@ slug: getting-started
 Stay up to date with what we work on week over week:
 
 <DocsCardGroup>
+    <DocsCard title="Changelog 23" href="./changelog-23.md">
+    {"Error list visual indicator, Poll for new sessions, Pino.js support, Alerts redesign "}
+    </DocsCard>
     <DocsCard title="Changelog 22" href="./changelog-22.md">
     {"Remix SDK, Render.com Log Stream, Go & Python SDK updates"}
     </DocsCard>

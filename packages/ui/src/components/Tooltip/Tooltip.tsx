@@ -15,6 +15,8 @@ export type TooltipProps = Partial<TooltipState> &
 		disabled?: boolean
 		style?: React.CSSProperties
 		delayed?: boolean
+		tooltipRef?: React.RefObject<HTMLElement>
+		renderInLine?: boolean // used when trying to display a tooltip in a modal
 	}>
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -23,6 +25,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
 	disabled,
 	style,
 	delayed,
+	renderInLine,
 	...props
 }: TooltipProps) => {
 	const tooltipState = useTooltipState({
@@ -41,7 +44,11 @@ export const Tooltip: React.FC<TooltipProps> = ({
 				{trigger}
 			</TooltipAnchor>
 			{!disabled && (
-				<AriakitTooltip state={tooltipState} style={{ zIndex: 100 }}>
+				<AriakitTooltip
+					state={tooltipState}
+					style={{ zIndex: 100 }}
+					portal={!renderInLine}
+				>
 					<TooltipContent>{children}</TooltipContent>
 				</AriakitTooltip>
 			)}

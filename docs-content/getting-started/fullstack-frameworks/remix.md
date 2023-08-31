@@ -56,14 +56,6 @@ export default function App() {
 				tracingOrigins
 				networkRecording={{ enabled: true, recordHeadersAndBody: true }}
 			/>
-			<head>
-				<script
-					dangerouslySetInnerHTML={{
-						__html: `window.ENV = ${JSON.stringify(ENV)}`,
-					}}
-				/>
-			</head>
-
 			{/* Render head, body, <Outlet />, etc. */}
 		</html>
 	)
@@ -162,4 +154,55 @@ export function handleError(
 H.init(nodeOptions)
 
 // Handle server requests
+```
+
+Handle streaming HTML responses using the `onError` handler of [`renderToPipeableStream`](https://remix.run/docs/en/1.19.3/guides/streaming#enable-react-18-streaming)
+
+
+```javascript
+function handleBrowserRequest(
+	request: Request,
+	responseStatusCode: number,
+	responseHeaders: Headers,
+	remixContext: EntryContext,
+) {
+	return new Promise((resolve, reject) => {
+		let shellRendered = false
+		const { pipe, abort } = renderToPipeableStream(
+			<RemixServer
+				context={remixContext}
+				url={request.url}
+				abortDelay={ABORT_DELAY}
+			/>,
+			{
+				// onShellReady and onShellError handlers...
+				onError(error: unknown) {
+					if (shellRendered) {
+						logError(error, request)
+					}
+				},
+			},
+		)
+
+		setTimeout(abort, ABORT_DELAY)
+	})
+}
+
+function logError(error: unknown, request?: Request) {
+	const parsed = request
+		? H.parseHeaders(Object.fromEntries(request.headers))
+		: undefined
+
+	if (error instanceof Error) {
+		H.consumeError(error, parsed?.secureSessionId, parsed?.requestId)
+	} else {
+		H.consumeError(
+			new Error(`Unknown error: ${JSON.stringify(error)}`),
+			parsed?.secureSessionId,
+			parsed?.requestId,
+		)
+	}
+
+	console.error(error)
+}
 ```

@@ -12,7 +12,6 @@ import {
 	FormFieldProps as AriaKitFormFieldProps,
 	FormState as AriaKitFormState,
 	useFormState as useAriaKitFormState,
-	FormState as AriakitFormState,
 } from 'ariakit/form'
 
 import * as styles from './styles.css'
@@ -62,21 +61,24 @@ type HasLabel = {
 	label?: string
 	optional?: boolean
 	tag?: ReactNode
+	icon?: ReactNode
 }
 export const NamedSection = ({
 	children,
 	label,
 	name,
 	tag,
+	icon,
 	optional = false,
 }: React.PropsWithChildren<HasLabel>) => {
 	return label ? (
 		<Box display="flex" flexDirection="column" width="full" gap="4">
-			<Box display="flex" flexDirection="row" gap="6">
+			<Box display="flex" flexDirection="row" gap="6" alignItems="center">
 				{label && <Label label={label} name={name} tag={tag} />}
 				{optional && (
 					<Badge shape="basic" size="small" label="Optional" />
 				)}
+				{icon}
 			</Box>
 			{children}
 		</Box>
@@ -85,8 +87,8 @@ export const NamedSection = ({
 	)
 }
 
-const FormContext = React.createContext<AriakitFormState>(
-	{} as AriakitFormState,
+const FormContext = React.createContext<AriaKitFormState>(
+	{} as AriaKitFormState,
 )
 export const useForm = () => React.useContext(FormContext)
 
@@ -115,7 +117,18 @@ export type InputProps = Omit<AriaKitFormInputProps, 'size'> &
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
 	(
-		{ label, cssClass, size, collapsed, truncate, outline, name, ...props },
+		{
+			label,
+			icon,
+			cssClass,
+			size,
+			collapsed,
+			truncate,
+			outline,
+			name,
+			rounded,
+			...props
+		},
 		ref,
 	) => {
 		const _ref = useRef<HTMLInputElement>(null)
@@ -130,7 +143,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 			collapsed = false
 		}
 		return (
-			<NamedSection label={label} name={name}>
+			<NamedSection label={label} name={name} icon={icon}>
 				<AriaKitFormInput
 					ref={ref}
 					name={name}
@@ -140,6 +153,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 							collapsed,
 							outline,
 							truncate,
+							rounded,
 						}),
 						cssClass,
 					)}

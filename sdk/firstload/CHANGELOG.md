@@ -348,3 +348,33 @@ Reserved for the Boeing 737
 
 - Return `{ sessionSecureID }` from `H.init` for consumption by Remix SDK
 - Persist `sessionSecureID` to `sessionStorage`
+
+## 7.4.1
+
+### Patch Changes
+
+- Ensure compatibility with older browser XHR implementations.
+
+## 7.4.2
+
+### Patch Changes
+
+- Add support for a new `storageMode` setting to avoid using `window.localStorage`.
+
+## 7.4.3
+
+### Patch Changes
+
+- Support passing `recordCrossOriginIframe: false` in a cross-origin iframe to record a session for the iframe contents.
+
+## 7.4.4
+
+### Patch Changes
+
+- Ensure stacktraces from Promises are parsed correctly.
+
+## 7.5.0
+
+### Minor Changes
+
+- Added support to specify `serviceName`.

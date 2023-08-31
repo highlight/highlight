@@ -15,16 +15,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
+	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/store"
-	"go.opentelemetry.io/otel/attribute"
-
-	"github.com/PaesslerAG/jsonpath"
-	"github.com/highlight-run/go-resthooks"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/mssola/user_agent"
 	"github.com/openlyinc/pointy"
@@ -32,6 +30,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
@@ -455,10 +454,14 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorGroup.ID), &kafka_queue.Message{Type: kafka_queue.ErrorGroupDataSync, ErrorGroupDataSync: &kafka_queue.ErrorGroupDataSyncArgs{ErrorGroupID: errorGroup.ID}}); err != nil {
+		return nil, err
+	}
+
 	return errorGroup, nil
 }
 
-func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, combinedEmbedding, eventEmbedding, stackTraceEmbedding, payloadEmbedding model.Vector, threshold float64) (*int, error) {
+func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, projectID int, method model.ErrorGroupingMethod, embedding model.Vector, threshold float64) (*int, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "public-resolver", tracer.ResourceName("GetTopErrorGroupMatchByEmbedding"))
 	defer span.Finish()
 
@@ -470,23 +473,24 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, combine
 	// an alternative query to consider: for M error objects of every error group,
 	// find the average score. then pick the error group
 	// with the lowest average score.
-	if err := r.DB.Raw(`
-select eoe.combined_embedding <=> @combined_embedding as score,
-       @event_weight * (eoe.event_embedding <=> @event_embedding)
-		   + @trace_weight * (eoe.stack_trace_embedding <=> @stack_trace_embedding)
-		   + @meta_weight * (eoe.payload_embedding <=> @payload_embedding) as combined_score,
+	var column string
+	switch method {
+	case model.ErrorGroupingMethodAdaEmbeddingV2:
+		column = "combined_embedding"
+	case model.ErrorGroupingMethodGteLargeEmbeddingV2:
+		column = "gte_large_embedding"
+	}
+	if err := r.DB.Raw(fmt.Sprintf(`
+select eoe.%s <-> @embedding as score,
        eo.error_group_id                              as error_group_id
-from error_object_embeddings eoe
+from error_object_embeddings_partitioned eoe
          inner join error_objects eo on eo.id = eoe.error_object_id
+where eoe.project_id = @projectID
+    and eoe.%s is not null
 order by 1
-limit 1;`, map[string]interface{}{
-		"combined_embedding":    combinedEmbedding,
-		"event_embedding":       eventEmbedding,
-		"stack_trace_embedding": stackTraceEmbedding,
-		"payload_embedding":     payloadEmbedding,
-		"event_weight":          1,
-		"trace_weight":          0.4,
-		"meta_weight":           0.2,
+limit 1;`, column, column), map[string]interface{}{
+		"embedding": embedding,
+		"projectID": projectID,
 	}).
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
@@ -778,7 +782,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		} else {
 			embedding = emb[0]
 			errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
-				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, embedding.CombinedEmbedding, embedding.EventEmbedding, embedding.StackTraceEmbedding, embedding.PayloadEmbedding, settings.ErrorEmbeddingsThreshold)
+				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, errorObj.ProjectID, model.ErrorGroupingMethodGteLargeEmbeddingV2, embedding.GteLargeEmbedding, settings.ErrorEmbeddingsThreshold)
 				if err != nil {
 					log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
 				}
@@ -789,7 +793,7 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 			}
 			errorObj.ErrorGroupID = errorGroup.ID
 			errorObj.ErrorGroupIDAlternative = errorGroupAlt.ID
-			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodAdaEmbeddingV2
+			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodGteLargeEmbeddingV2
 		}
 	} else {
 		errorObj.ErrorGroupID = errorGroup.ID
@@ -822,6 +826,9 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		Object:   opensearchErrorObject,
 	}); err != nil {
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
+	}
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorObj.ID), &kafka_queue.Message{Type: kafka_queue.ErrorObjectDataSync, ErrorObjectDataSync: &kafka_queue.ErrorObjectDataSyncArgs{ErrorObjectID: errorObj.ID}}); err != nil {
+		return nil, err
 	}
 
 	if err := r.AppendErrorFields(ctx, fields, errorGroup); err != nil {
@@ -1120,6 +1127,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ClientConfig:                   &input.ClientConfig,
 		Environment:                    input.Environment,
 		AppVersion:                     input.AppVersion,
+		ServiceName:                    input.ServiceName,
 		VerboseID:                      input.ProjectVerboseID,
 		Fields:                         []*model.Field{},
 		ViewedByAdmins:                 []model.Admin{},
@@ -2102,6 +2110,11 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 	}
 
+	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
+	if err != nil {
+		log.WithContext(ctx).Error(e.Wrap(err, "error querying all_workspace_settings"))
+	}
+
 	// Filter out empty errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
@@ -2172,14 +2185,19 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			ServiceVersion: v.Service.Version,
 		}
 
+		var mappedStackTrace *string
 		var structuredStackTrace []*privateModel.ErrorTrace
 
-		err = json.Unmarshal([]byte(v.StackTrace), &structuredStackTrace)
+		if settings.EnableEnhancedErrors {
+			mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, v.Service.Name, v.Service.Version)
+		} else {
+			structuredStackTrace, err = r.Store.StructuredStackTrace(ctx, v.StackTrace)
+		}
+
 		if err != nil {
-			structuredStackTrace, err = stacktraces.StructureOTELStackTrace(v.StackTrace)
-			if err != nil {
-				log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
-			}
+			log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
+		} else if mappedStackTrace != nil {
+			errorToInsert.MappedStackTrace = mappedStackTrace
 		}
 
 		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)
@@ -2670,23 +2688,30 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 			traceString := string(traceBytes)
 
+			serviceVersion := ""
+			if sessionObj.AppVersion != nil {
+				serviceVersion = *sessionObj.AppVersion
+			}
+
 			errorToInsert := &model.ErrorObject{
-				ProjectID:    projectID,
-				SessionID:    &sessionID,
-				Environment:  sessionObj.Environment,
-				Event:        v.Event,
-				Type:         v.Type,
-				URL:          v.URL,
-				Source:       v.Source,
-				LineNumber:   v.LineNumber,
-				ColumnNumber: v.ColumnNumber,
-				OS:           sessionObj.OSName,
-				Browser:      sessionObj.BrowserName,
-				StackTrace:   &traceString,
-				Timestamp:    v.Timestamp,
-				Payload:      v.Payload,
-				RequestID:    nil,
-				IsBeacon:     isBeacon,
+				ProjectID:      projectID,
+				SessionID:      &sessionID,
+				Environment:    sessionObj.Environment,
+				Event:          v.Event,
+				Type:           v.Type,
+				URL:            v.URL,
+				Source:         v.Source,
+				LineNumber:     v.LineNumber,
+				ColumnNumber:   v.ColumnNumber,
+				OS:             sessionObj.OSName,
+				Browser:        sessionObj.BrowserName,
+				StackTrace:     &traceString,
+				Timestamp:      v.Timestamp,
+				Payload:        v.Payload,
+				RequestID:      nil,
+				IsBeacon:       isBeacon,
+				ServiceVersion: serviceVersion,
+				ServiceName:    sessionObj.ServiceName,
 			}
 
 			mappedStackTrace, structuredStackTrace, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)

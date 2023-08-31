@@ -3,6 +3,7 @@ package alerts
 import (
 	"encoding/json"
 	"github.com/highlight-run/highlight/backend/alerts/integrations/webhook"
+	"github.com/openlyinc/pointy"
 
 	"github.com/pkg/errors"
 
@@ -82,6 +83,11 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 
 	inputType := string(input.Type)
 
+	defaultArg := input.Default
+	if defaultArg == nil {
+		defaultArg = pointy.Bool(true)
+	}
+
 	return &model.SessionAlert{
 		Alert: model.Alert{
 			ProjectID:            input.ProjectID,
@@ -95,6 +101,7 @@ func BuildSessionAlert(project *model.Project, workspace *model.Workspace, admin
 			Name:                 &input.Name,
 			LastAdminToEditID:    admin.ID,
 			Disabled:             &input.Disabled,
+			Default:              *defaultArg,
 		},
 		UserProperties:  &userPropertiesString,
 		TrackProperties: &trackPropertiesString,

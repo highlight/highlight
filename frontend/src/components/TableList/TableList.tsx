@@ -49,6 +49,7 @@ export const TableList = ({
 							as="span"
 							color="weak"
 							wrap="breakWord"
+							cssClass={style.keyDisplayValue}
 						>
 							{item.keyDisplayValue}
 						</Text>

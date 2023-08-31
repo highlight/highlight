@@ -34,7 +34,8 @@ const GitHubIntegrationConfig: React.FC<
 			<>
 				<p className={styles.modalSubTitle}>
 					Disconnecting your GitHub workspace from Highlight will
-					prevent you from linking issues to future comments
+					prevent you from linking issues to future comments and your
+					stacktraces will not be enhanced.
 				</p>
 				<footer>
 					<Button
@@ -69,8 +70,8 @@ const GitHubIntegrationConfig: React.FC<
 	return (
 		<>
 			<p className={styles.modalSubTitle}>
-				Connect GitHub to your Highlight workspace to create issues from
-				comments.
+				Connect GitHub to your Highlight workspace to enhance
+				stacktraces and create issues from comments.
 			</p>
 			<footer>
 				<Button

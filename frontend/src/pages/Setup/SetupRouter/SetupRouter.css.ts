@@ -55,3 +55,13 @@ export const copyProjectIdIdButton = style({
 	padding: '0 8px',
 	width: 325,
 })
+
+export const selectContainer = style({
+	width: 240,
+	color: `${vars.theme.static.content.default} !important`,
+	selectors: {
+		'&:hover': {
+			background: vars.theme.interactive.overlay.secondary.hover,
+		},
+	},
+})

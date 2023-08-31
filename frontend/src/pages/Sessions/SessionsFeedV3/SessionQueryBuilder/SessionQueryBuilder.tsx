@@ -21,7 +21,6 @@ import QueryBuilder, {
 	RANGE_OPERATORS,
 	SelectOption,
 	TIME_OPERATORS,
-	VIEWED_BY_OPERATORS,
 } from '@/components/QueryBuilder/QueryBuilder'
 import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
 import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
@@ -81,6 +80,7 @@ export const CUSTOM_FIELDS: CustomField[] = [
 		name: 'viewed',
 		options: {
 			type: 'boolean',
+			operators: BOOLEAN_OPERATORS,
 		},
 	},
 	{
@@ -88,7 +88,7 @@ export const CUSTOM_FIELDS: CustomField[] = [
 		name: 'viewed_by_me',
 		options: {
 			type: 'boolean',
-			operators: VIEWED_BY_OPERATORS,
+			operators: BOOLEAN_OPERATORS,
 		},
 	},
 	{
@@ -155,7 +155,7 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 	)
 
 	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse',
+		'highlight-session-search-use-clickhouse-v2',
 		false,
 	)
 
