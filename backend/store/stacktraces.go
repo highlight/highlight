@@ -210,11 +210,16 @@ func (store *Store) GitHubEnhancedStakeTrace(ctx context.Context, stackTrace []*
 		}
 
 		fileName := store.GitHubFilePath(ctx, *trace.FileName, service.BuildPrefix, service.GithubPrefix)
+		shouldIgnoreFile := false
 		for _, fileExpr := range cfg.IgnoredFiles {
 			if regexp.MustCompile(fileExpr).MatchString(fileName) {
-				newMappedStackTrace = append(newMappedStackTrace, trace)
-				continue
+				shouldIgnoreFile = true
+				break
 			}
+		}
+		if shouldIgnoreFile {
+			newMappedStackTrace = append(newMappedStackTrace, trace)
+			continue
 		}
 
 		enhancedTrace, err := store.EnhanceTraceWithGitHub(ctx, trace, service, *validServiceVersion, fileName, client)
