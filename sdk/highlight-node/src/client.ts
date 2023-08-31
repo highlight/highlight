@@ -13,7 +13,13 @@ import { hookConsole } from './hooks'
 import log from './log'
 import { clearInterval } from 'timers'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
-import { Resource } from '@opentelemetry/resources'
+import {
+	Resource,
+	envDetector,
+	envDetectorSync,
+	processDetector,
+	processDetectorSync,
+} from '@opentelemetry/resources'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -23,7 +29,7 @@ export class Highlight {
 	_projectID: string
 	_options: NodeOptions
 	_debug: boolean
-	private otel: NodeSDK
+	otel: NodeSDK
 	private tracer: Tracer
 	private processor: SpanProcessor
 
@@ -60,6 +66,7 @@ export class Highlight {
 
 		this.otel = new NodeSDK({
 			autoDetectResources: true,
+			resourceDetectors: [envDetectorSync, processDetectorSync],
 			resource: {
 				attributes,
 				merge: (resource) =>
