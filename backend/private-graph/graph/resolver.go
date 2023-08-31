@@ -779,6 +779,40 @@ func (r *Resolver) SetErrorFrequencies(ctx context.Context, projectID int, error
 	return nil
 }
 
+func (r *Resolver) SetErrorFrequenciesClickhouse(ctx context.Context, projectID int, errorGroups []*model.ErrorGroup, lookbackPeriod int) error {
+	params := modelInputs.ErrorGroupFrequenciesParamsInput{
+		DateRange: &modelInputs.DateRangeRequiredInput{
+			StartDate: time.Now().Add(time.Duration(-24*lookbackPeriod) * time.Hour),
+			EndDate:   time.Now(),
+		},
+		ResolutionMinutes: 24 * 60,
+	}
+
+	errorGroupsById := map[int]*model.ErrorGroup{}
+	for _, errorGroup := range errorGroups {
+		errorGroup.ErrorMetrics = []*modelInputs.ErrorDistributionItem{}
+		errorGroupsById[errorGroup.ID] = errorGroup
+	}
+
+	results, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, lo.Keys(errorGroupsById), params)
+	if err != nil {
+		return err
+	}
+
+	for _, r := range results {
+		eg := errorGroupsById[r.ErrorGroupID]
+		if eg == nil {
+			continue
+		}
+		if r.Name == "count" {
+			eg.ErrorFrequency = append(eg.ErrorFrequency, r.Value)
+		}
+		eg.ErrorMetrics = append(eg.ErrorMetrics, &modelInputs.ErrorDistributionItem{ErrorGroupID: eg.ID, Date: r.Date, Name: r.Name, Value: r.Value})
+	}
+
+	return nil
+}
+
 func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
 	// Parse the inputType into the regular type.
 	modelParams := &model.SearchParams{

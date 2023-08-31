@@ -30,13 +30,13 @@ export const getErrorGroupStats = function (
 		weekly.count.push(
 			errorGroup?.error_metrics
 				?.filter((x) => x?.name === 'count')
-				?.slice(i * 7, (i + 1) * 14)
+				?.slice(i * 7, (i + 1) * 7)
 				?.reduce((a, b) => a + b.value, 0) || 0,
 		)
 		weekly.users.push(
 			errorGroup?.error_metrics
 				?.filter((x) => x?.name === 'identifierCount')
-				?.slice(i * 7, (i + 1) * 14)
+				?.slice(i * 7, (i + 1) * 7)
 				?.reduce((a, b) => a + b.value, 0) || 0,
 		)
 	}

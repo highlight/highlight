@@ -4167,63 +4167,23 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 
 	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
-	sortFieldStr := "UpdatedAt DESC, ID DESC"
-
-	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, sortFieldStr, page, retentionDate)
+	ids, total, err := r.ClickhouseClient.QueryErrorGroupIds(ctx, projectID, count, query, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
 
-	var results []model.Session
-	if err := r.DB.Model(&model.Session{}).Where("id in ?", ids).Order("created_at DESC").Find(&results).Error; err != nil {
+	var results []*model.ErrorGroup
+	if err := r.DB.Model(&model.ErrorGroup{}).Where("id in ?", ids).Order("updated_at DESC").Find(&results).Error; err != nil {
 		return nil, err
 	}
 
-	return &model.SessionResults{
-		Sessions:   results,
-		TotalCount: total,
-	}, nil
-
-	results := []opensearch.OpenSearchError{}
-	options := opensearch.SearchOptions{
-		MaxResults:    ptr.Int(count),
-		SortField:     ptr.String("updated_at"),
-		SortOrder:     ptr.String("desc"),
-		ReturnCount:   ptr.Bool(true),
-		ExcludeFields: []string{"FieldGroup", "fields"}, // Excluding certain fields for performance
-	}
-	if page != nil {
-		// page param is 1 indexed
-		options.ResultsFrom = ptr.Int((*page - 1) * count)
-	}
-	errorGroupsOpensearchSearchSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("resolver.errorGroupsOpensearchSearchQuery"), tracer.Tag("project_id", projectID))
-	q := FormatErrorGroupsQuery(query, GetRetentionDate(workspace.ErrorsRetentionPeriod))
-	resultCount, _, err := r.OpenSearch.Search([]opensearch.Index{opensearch.IndexErrorsCombined}, projectID, q, options, &results)
-	errorGroupsOpensearchSearchSpan.Finish()
-
-	if err != nil {
-		return nil, err
-	}
-
-	asErrorGroups := []*model.ErrorGroup{}
-	for _, result := range results {
-		asErrorGroups = append(asErrorGroups, result.ErrorGroup)
-	}
-
-	errorFrequencyInfluxSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal",
-		tracer.ResourceName("resolver.errorFrequencyInflux"), tracer.Tag("project_id", projectID))
-
-	err = r.SetErrorFrequencies(ctx, projectID, asErrorGroups, ErrorGroupLookbackDays)
-	errorFrequencyInfluxSpan.Finish()
-
-	if err != nil {
+	if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, results, ErrorGroupLookbackDays); err != nil {
 		return nil, err
 	}
 
 	return &model.ErrorResults{
-		ErrorGroups: lo.Map(asErrorGroups, func(eg *model.ErrorGroup, idx int) model.ErrorGroup { return *eg }),
-		TotalCount:  resultCount,
+		ErrorGroups: lo.Map(results, func(eg *model.ErrorGroup, idx int) model.ErrorGroup { return *eg }),
+		TotalCount:  total,
 	}, nil
 }
 
@@ -5336,9 +5296,11 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 	}
 	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
-	sortFieldStr := "CreatedAt DESC, ID DESC"
+	chSortStr := "CreatedAt DESC, ID DESC"
+	pgSortStr := "created_at DESC"
 	if !sortDesc {
-		sortFieldStr = "CreatedAt ASC, ID ASC"
+		chSortStr = "CreatedAt ASC, ID ASC"
+		pgSortStr = "created_at ASC"
 	}
 
 	admin, err := r.getCurrentAdmin(ctx)
@@ -5346,13 +5308,16 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 		return nil, err
 	}
 
-	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, sortFieldStr, page, retentionDate)
+	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, chSortStr, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
 
 	var results []model.Session
-	if err := r.DB.Model(&model.Session{}).Where("id in ?", ids).Order("created_at DESC").Find(&results).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).
+		Where("id in ?", ids).
+		Order(pgSortStr).
+		Find(&results).Error; err != nil {
 		return nil, err
 	}
 

@@ -165,7 +165,7 @@ func getErrorGroupsQueryImpl(query modelInputs.ClickhouseQuery, projectId int, r
 
 	sb := sqlbuilder.NewSelectBuilder()
 	sb.Select(selectColumns).
-		From("errors FINAL").
+		From("error_groups FINAL").
 		Where(sb.And(
 			sb.Equal("ProjectID", projectId),
 			sb.GreaterThan("UpdatedAt", retentionDate)))
@@ -194,14 +194,14 @@ func getErrorGroupsQueryImpl(query modelInputs.ClickhouseQuery, projectId int, r
 	return sql, args, nil
 }
 
-func (client *Client) QueryErrorGroupIds(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, sortField string, page *int, retentionDate time.Time) ([]int64, int64, error) {
+func (client *Client) QueryErrorGroupIds(ctx context.Context, projectId int, count int, query modelInputs.ClickhouseQuery, page *int, retentionDate time.Time) ([]int64, int64, error) {
 	pageInt := 1
 	if page != nil {
 		pageInt = *page
 	}
 	offset := (pageInt - 1) * count
 
-	sql, args, err := getErrorGroupsQueryImpl(query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String(sortField), pointy.Int(count), pointy.Int(offset))
+	sql, args, err := getErrorGroupsQueryImpl(query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String("UpdatedAt DESC, ID DESC"), pointy.Int(count), pointy.Int(offset))
 	if err != nil {
 		return nil, 0, err
 	}
@@ -222,4 +222,62 @@ func (client *Client) QueryErrorGroupIds(ctx context.Context, projectId int, cou
 	}
 
 	return ids, int64(total), nil
+}
+
+func (client *Client) QueryErrorGroupFrequencies(ctx context.Context, errorGroupIds []int, params modelInputs.ErrorGroupFrequenciesParamsInput) ([]*modelInputs.ErrorDistributionItem, error) {
+	if params.DateRange == nil {
+		return nil, errors.New("params.DateRange must not be nil")
+	}
+
+	sb := sqlbuilder.NewSelectBuilder()
+
+	mins := params.ResolutionMinutes
+
+	builders := []sqlbuilder.Builder{}
+	sbInner := sqlbuilder.NewSelectBuilder()
+	sbInner.Select(fmt.Sprintf("ErrorGroupID, intDiv(toRelativeMinuteNum(CreatedAt), %s) AS index, count(*) AS count", sbInner.Var(mins))).
+		From("error_objects FINAL").
+		Where(sbInner.In("ErrorGroupID", errorGroupIds)).
+		Where(sbInner.Between("Timestamp", params.DateRange.StartDate, params.DateRange.EndDate)).
+		GroupBy("1, 2")
+	builders = append(builders, sbInner)
+
+	for _, id := range errorGroupIds {
+		defaultInner := sqlbuilder.NewSelectBuilder()
+		defaultInner.Select(fmt.Sprintf("%s as ErrorGroupID, intDiv(toRelativeMinuteNum(%s), %s), 0",
+			defaultInner.Var(id), defaultInner.Var(params.DateRange.StartDate), defaultInner.Var(mins)))
+		builders = append(builders, defaultInner)
+	}
+
+	sql, args := sb.Select(fmt.Sprintf("ErrorGroupID, addMinutes(makeDate(0, 0), index * %s), sum(count)", sb.Var(mins))).
+		From(sb.BuilderAs(sqlbuilder.UnionAll(builders...), "inner")).
+		GroupBy("1, 2").
+		OrderBy("1, 2").
+		BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	items := []*modelInputs.ErrorDistributionItem{}
+
+	for rows.Next() {
+		var errorGroupId int
+		var date time.Time
+		var count int64
+
+		if err := rows.Scan(&errorGroupId, &date, &count); err != nil {
+			return nil, err
+		}
+
+		items = append(items, &modelInputs.ErrorDistributionItem{
+			ErrorGroupID: errorGroupId,
+			Date:         date,
+			Name:         "count",
+			Value:        count,
+		})
+	}
+
+	return items, err
 }
