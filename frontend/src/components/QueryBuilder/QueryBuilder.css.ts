@@ -1,3 +1,4 @@
+import { borders } from '@highlight-run/ui/src/css/borders'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
 
@@ -54,4 +55,13 @@ export const optionLabelContainer = style({
 	color: colors.n11,
 	gap: 6,
 	fontWeight: 500,
+})
+
+export const selectPopover = style({
+	backgroundColor: colors.white,
+	border: borders.secondary,
+	borderRadius: 6,
+	minWidth: 150,
+	zIndex: 10,
+	maxWidth: '50vw',
 })

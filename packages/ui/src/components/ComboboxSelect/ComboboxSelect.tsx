@@ -36,6 +36,7 @@ type Props<T extends string | string[]> = {
 	cssClass?: ClassValue | ClassValue[]
 	creatableRender?: (key: string) => React.ReactNode | undefined
 	defaultOpen?: boolean
+	disabled?: boolean
 }
 
 export const ComboboxSelect = <T extends string | string[]>({
@@ -50,6 +51,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 	cssClass,
 	creatableRender,
 	defaultOpen,
+	disabled,
 }: Props<T>) => {
 	const isMultiselect = typeof value === 'object'
 
@@ -59,19 +61,15 @@ export const ComboboxSelect = <T extends string | string[]>({
 		},
 		resetValueOnHide: true,
 		defaultOpen: defaultOpen,
-		setOpen: (open) => {
-			console.log('setOpen', open)
-			// eslint-disable-next-line no-debugger
-			// debugger
-		},
 	})
 
 	const select = useSelectStore({
 		combobox,
 		setValue: (value: T) => {
-			console.log('setValue', value)
 			onChange(value)
-			// combobox.setValue('')
+			if (isMultiselect && defaultOpen) {
+				combobox.setOpen(false)
+			}
 		},
 		value,
 	})
@@ -101,6 +99,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 			<Select
 				store={select}
 				className={clsx([styles.selectButton, cssClass])}
+				disabled={disabled}
 			>
 				{icon}
 				{valueRender && (
@@ -131,7 +130,10 @@ export const ComboboxSelect = <T extends string | string[]>({
 						className={styles.combobox}
 					></Combobox>
 				</div>
-				<ComboboxList store={combobox} className={styles.comboboxList}>
+				<ComboboxList
+					store={combobox}
+					className={clsx([styles.comboboxList, 'hide-scrollbar'])}
+				>
 					{allOptions.map((option: Option) => (
 						<ComboboxItem
 							key={option.key}

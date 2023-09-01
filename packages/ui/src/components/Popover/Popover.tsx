@@ -3,6 +3,7 @@ import {
 	PopoverDisclosure,
 	PopoverOptions,
 	PopoverState,
+	PopoverStateProps,
 	usePopoverState,
 } from 'ariakit'
 import React from 'react'
@@ -13,7 +14,7 @@ import { Box, BoxProps } from '../Box/Box'
 const PopoverContext = React.createContext<PopoverState>({} as PopoverState)
 export const usePopover = () => React.useContext(PopoverContext)
 
-export type PopoverProps = React.PropsWithChildren<Partial<PopoverState>>
+export type PopoverProps = React.PropsWithChildren<Partial<PopoverStateProps>>
 
 type PopoverComponent = React.FC<PopoverProps> & {
 	ButtonTrigger: typeof ButtonTrigger
@@ -82,12 +83,14 @@ const BoxTrigger: React.FC<React.PropsWithChildren<BoxProps>> = ({
 }
 
 const Content: React.FC<
-	React.PropsWithChildren<Omit<PopoverOptions<'div'>, 'state'>>
-> = ({ children, ...props }) => {
+	React.PropsWithChildren<Omit<PopoverOptions<'div'>, 'state'>> & {
+		className?: string
+	}
+> = ({ children, className, ...props }) => {
 	const popover = usePopover()
 
 	return (
-		<AriakitPopover state={popover} {...props}>
+		<AriakitPopover state={popover} {...props} className={className}>
 			{children}
 		</AriakitPopover>
 	)

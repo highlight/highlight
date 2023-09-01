@@ -48,6 +48,7 @@ import {
 	IconSolidUserAdd,
 	IconSolidX,
 	Menu,
+	Popover,
 	PreviousDateRangePicker,
 	Tag,
 	Text,
@@ -60,10 +61,9 @@ import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import { message } from 'antd'
-import clsx, { ClassValue } from 'clsx'
-import { isEqual } from 'lodash'
+import { ClassValue } from 'clsx'
 import moment, { unitOfTime } from 'moment'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useToggle } from 'react-use'
 
@@ -144,107 +144,8 @@ interface PopoutProps {
 	disabled: boolean
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface SetVisible {
-	setVisible: (val: boolean) => void
-}
-
 export const TIME_MAX_LENGTH = 60
 export const RANGE_MAX_LENGTH = 200
-
-function useScroll<T extends HTMLElement>(): [() => void, React.RefObject<T>] {
-	const ref = useRef<T>(null)
-	const doScroll = useCallback(() => {
-		ref?.current?.scrollIntoView({ inline: 'center' })
-	}, [])
-
-	return [doScroll, ref]
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const OptionLabelName: React.FC<React.PropsWithChildren> = (props) => {
-	const ref = useRef<HTMLDivElement>(null)
-
-	const [className, setClassName] = useState<string>(styles.shadowContainer)
-
-	const setScrollShadow = (target: any) => {
-		const { scrollLeft, offsetWidth, scrollWidth } = target
-		const showRightShadow = scrollLeft + offsetWidth < scrollWidth
-		const showLeftShadow = scrollLeft > 0
-		setClassName(
-			clsx(styles.shadowContainer, {
-				[styles.shadowRight]: showRightShadow && !showLeftShadow,
-				[styles.shadowLeft]: showLeftShadow && !showRightShadow,
-				[styles.shadowBoth]: showLeftShadow && showRightShadow,
-			}),
-		)
-	}
-
-	useEffect(() => {
-		if (!!ref?.current) {
-			setScrollShadow(ref.current)
-			const onScroll = (ev: any) => {
-				setScrollShadow(ev.target)
-			}
-			ref.current.removeEventListener('scroll', onScroll)
-			ref.current.addEventListener('scroll', onScroll, { passive: true })
-			return () => window.removeEventListener('scroll', onScroll)
-		}
-	}, [ref])
-
-	return (
-		<div className={styles.shadowParent}>
-			<div className={className} />
-			<div className={styles.optionLabelName} ref={ref}>
-				{props.children}
-			</div>
-		</div>
-	)
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const ScrolledTextHighlighter = ({
-	searchWords,
-	textToHighlight,
-}: {
-	searchWords: string[]
-	textToHighlight: string
-}) => {
-	const [memoText, setMemoText] = useState<string>(textToHighlight)
-	if (!isEqual(memoText, textToHighlight)) {
-		setMemoText(textToHighlight)
-	}
-	const [doScroll, ref] = useScroll()
-
-	useEffect(() => {
-		doScroll()
-	}, [doScroll, textToHighlight])
-
-	const ScrolledMark = (props: any) => {
-		if (props.highlightIndex === 0) {
-			// Attach the ref to the first matching instance
-			return (
-				<mark className={styles.highlighterStyles} ref={ref}>
-					{props.children}
-				</mark>
-			)
-		} else {
-			return (
-				<mark className={styles.highlighterStyles}>
-					{props.children}
-				</mark>
-			)
-		}
-	}
-
-	return (
-		<TextHighlighter
-			highlightTag={ScrolledMark}
-			searchWords={searchWords}
-			textToHighlight={textToHighlight}
-		/>
-	)
-}
 
 const getDateLabel = (value: string): string => {
 	if (!value.includes('_')) {
@@ -367,7 +268,6 @@ const getOption = (option: Option, query: string) => {
 	)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const PopoutContent = ({
 	value,
 	onChange,
@@ -498,6 +398,7 @@ const MultiselectPopout = ({
 	loadOptions,
 	type,
 	onChange,
+	disabled,
 }: PopoutProps &
 	MultiselectPopoutContentProps & {
 		cssClass?: ClassValue | ClassValue[]
@@ -514,9 +415,6 @@ const MultiselectPopout = ({
 	}, [loadOptions, query])
 
 	const invalid = value === undefined || value.options.length === 0
-	// if (invalid) {
-	// 	cssClass = clsx([cssClass, styles.invalid])
-	// }
 
 	let label = '--'
 	if (invalid) {
@@ -555,6 +453,7 @@ const MultiselectPopout = ({
 					cssClass={cssClass}
 					queryPlaceholder="Filter..."
 					defaultOpen={invalid}
+					disabled={disabled}
 				/>
 			)
 		case 'creatable':
@@ -583,11 +482,38 @@ const MultiselectPopout = ({
 						getOption({ label: query, value: query }, '')
 					}
 					defaultOpen={invalid}
+					disabled={disabled}
 				/>
 			)
 		case 'date_range':
 		case 'time_range':
 		case 'range':
+			return (
+				<Popover placement="bottom-start">
+					<span className={newStyle.tagPopoverAnchor}>
+						<Popover.TagTrigger
+							kind="secondary"
+							shape="basic"
+							size="medium"
+							lines="1"
+							className={[newStyle.flatLeft, newStyle.flatRight]}
+						>
+							{label}
+						</Popover.TagTrigger>
+					</span>
+					<Popover.Content
+						disabled={disabled}
+						className={newStyle.selectPopover}
+					>
+						<PopoutContent
+							value={value}
+							type={type}
+							onChange={onChange}
+							loadOptions={loadOptions}
+						/>
+					</Popover.Content>
+				</Popover>
+			)
 	}
 	return null
 }
@@ -600,6 +526,7 @@ const SelectPopout = ({
 	loadOptions,
 	onChange,
 	defaultOpen,
+	disabled,
 }: PopoutProps &
 	SelectPopoutContentProps & {
 		cssClass?: ClassValue | ClassValue[]
@@ -611,16 +538,10 @@ const SelectPopout = ({
 		loadOptions(query).then((v) => setOptions(v ?? []))
 	}, [loadOptions, query])
 
-	// const invalid = value === undefined && icon === undefined
-
 	let label = '--'
 	if (value !== undefined) {
 		label = getNameLabel(value.label)
 	}
-
-	// if (invalid) {
-	// 	cssClass = clsx([cssClass, styles.invalid])
-	// }
 
 	return (
 		<ComboboxSelect
@@ -645,6 +566,7 @@ const SelectPopout = ({
 			cssClass={cssClass}
 			queryPlaceholder="Filter..."
 			defaultOpen={defaultOpen}
+			disabled={disabled}
 		/>
 	)
 }

@@ -5424,6 +5424,14 @@ body {
   gap: 6px;
   font-weight: 500;
 }
+.ti67jy9 {
+  background-color: #ffffff;
+  border: var(--_1pyqka91o) solid 1px;
+  border-radius: 6px;
+  min-width: 150px;
+  z-index: 10;
+  max-width: 50vw;
+}
 ._1ek953u0 {
   z-index: 99999;
   background-color: rgba(111, 110, 119, 0.48);
