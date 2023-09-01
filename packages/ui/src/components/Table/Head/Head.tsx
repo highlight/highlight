@@ -1,8 +1,8 @@
 import React from 'react'
 import { Box } from '../../Box/Box'
-import classnames from 'classnames'
 
 import * as styles from './styles.css'
+import clsx from 'clsx'
 
 export type Props = {
 	children: React.ReactNode
@@ -10,5 +10,5 @@ export type Props = {
 }
 
 export const Head: React.FC<Props> = ({ children, className }) => {
-	return <Box cssClass={classnames(styles.head, className)}>{children}</Box>
+	return <Box cssClass={clsx(styles.head, className)}>{children}</Box>
 }
