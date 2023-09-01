@@ -21,6 +21,7 @@ export const RECORDED_CONSOLE_METHODS = [
 
 export interface HighlightEnv {
 	[HIGHLIGHT_PROJECT_ENV]: string
+	HIGHLIGHT_OTLP_ENDPOINT?: string
 }
 
 export interface HighlightInterface {
@@ -40,14 +41,17 @@ export const H: HighlightInterface = {
 	// Initialize the highlight SDK. This monkeypatches the console methods to start sending console logs to highlight.
 	init: (
 		request: Request,
-		{ [HIGHLIGHT_PROJECT_ENV]: projectID }: HighlightEnv,
+		{
+			[HIGHLIGHT_PROJECT_ENV]: projectID,
+			HIGHLIGHT_OTLP_ENDPOINT: otlpEndpoint,
+		}: HighlightEnv,
 		ctx: ExecutionContext,
 		service?: string,
 	) => {
 		const [sessionID, requestID] = (
 			request.headers.get(HIGHLIGHT_REQUEST_HEADER) || ''
 		).split('/')
-		const endpoints = { default: HIGHLIGHT_OTLP_BASE }
+		const endpoints = { default: otlpEndpoint || HIGHLIGHT_OTLP_BASE }
 		sdk = new WorkersSDK(request, ctx, {
 			service: service || 'cloudflare-worker',
 			consoleLogEnabled: false,

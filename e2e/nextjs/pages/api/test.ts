@@ -10,7 +10,7 @@ export default withHighlight(function handler(
 ) {
 	const success = z.enum(['true', 'false']).parse(req.query.success)
 
-	console.info('Here: /pages/api/test.ts', { success })
+	console.info('Here: /pages/api/test.ts 🤗🤗🤗', { success })
 
 	if (success === 'true') {
 		res.send('Success: /pages/api/test.ts')

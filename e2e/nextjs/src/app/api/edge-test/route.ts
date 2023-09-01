@@ -1,28 +1,23 @@
-import { H, HighlightEnv } from '@highlight-run/next/edge'
+import { H, Highlight, HighlightEnv } from '@highlight-run/next/edge'
 import type { NextFetchEvent, NextRequest } from 'next/server'
 
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 const env: HighlightEnv = {
-	HIGHLIGHT_PROJECT_ID: '1',
+	HIGHLIGHT_PROJECT_ID: process.env.HIGHLIGHT_PROJECT_ID || '2',
+	HIGHLIGHT_OTLP_ENDPOINT: process.env.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
 }
 
-type Handler = (
-	request: NextRequest,
-	context: NextFetchEvent,
-) => Promise<Response>
+const withHighlight = Highlight(env)
 
-export const GET = withHighlight(async function GET(
-	request: NextRequest,
-	context: NextFetchEvent,
-) {
-	H.init(request, env, context)
-
+export const GET = withHighlight(async function GET(request: NextRequest) {
 	const { searchParams } = new URL(request.url)
 	const success = z.enum(['true', 'false']).parse(searchParams.get('success'))
 
-	console.info('Here: /api/edge-test/route.ts', { success })
+	H.setAttributes({ runtime: 'edge', test: '🌠🌠🌠 stars!!! 🌠🌠🌠' })
+
+	console.info('Here: /api/edge-test/route.ts 🌚🌚🌚', { success })
 
 	if (success === 'true') {
 		return new Response('Success: /api/edge-test')
@@ -33,7 +28,7 @@ export const GET = withHighlight(async function GET(
 	}
 })
 
-export const POST = async function POST(
+export const POST = withHighlight(async function POST(
 	request: NextRequest,
 	context: NextFetchEvent,
 ) {
@@ -44,30 +39,6 @@ export const POST = async function POST(
 	return NextResponse.json({
 		body: { headers },
 	})
-}
+})
 
 export const runtime = 'edge'
-
-function withHighlight(handler: Handler) {
-	return async function (request: NextRequest, context: NextFetchEvent) {
-		H.init(request, env, context)
-
-		try {
-			const response = await handler(request, context)
-
-			H.sendResponse(response)
-
-			console.log('sending response', response)
-
-			return response
-		} catch (error) {
-			console.log('🤖 error')
-			if (error instanceof Error) {
-				console.log('🤖 error.message')
-				H.consumeError(error)
-			}
-
-			throw error
-		}
-	}
-}
