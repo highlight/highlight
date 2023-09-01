@@ -18,6 +18,12 @@ jobs:
             TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
         steps:
+            # See https://github.com/actions/runner/issues/2468#issuecomment-1651313943
+            - name: Set Swap Space
+              uses: pierotofy/set-swap-space@master
+              with:
+                  swap-size-gb: 10
+
             - name: Checkout
               uses: actions/checkout@v3
               with:
