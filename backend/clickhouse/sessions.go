@@ -42,6 +42,13 @@ var fieldMap map[string]string = map[string]string{
 	"app_version":     "AppVersion",
 	"first_time":      "FirstTime",
 	"viewed":          "Viewed",
+	"Type":            "Type",
+	"Event":           "Event",
+	"event":           "Event",
+	"state":           "Status",
+	"browser":         "Browser",
+	"visited_url":     "VisitedURL",
+	"timestamp":       "Timestamp",
 }
 
 type ClickhouseSession struct {
@@ -265,8 +272,89 @@ func parseRule(admin *model.Admin, rule Rule, projectId int, start time.Time, en
 	}
 	if typ == "custom" || typ == "error" {
 		return parseColumnRule(admin, rule, projectId, sb)
+	} else if typ == "error-field" {
+		return parseErrorFieldRule(rule, projectId, start, end, sb)
+	} else {
+		return parseFieldRule(rule, projectId, start, end, sb)
 	}
-	return parseFieldRule(rule, projectId, start, end, sb)
+}
+
+// parseErrorFieldRule applies a filter using the `fields` table
+func parseErrorFieldRule(rule Rule, projectId int, start time.Time, end time.Time, sb *sqlbuilder.SelectBuilder) (string, error) {
+	negatedOp, isNegative := negationMap[rule.Op]
+	if isNegative {
+		child, err := parseFieldRule(Rule{
+			Field: rule.Field,
+			Op:    negatedOp,
+			Val:   rule.Val,
+		}, projectId, start, end, sb)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("NOT %s", child), nil
+	}
+
+	_, name, found := strings.Cut(rule.Field, "_")
+	if !found {
+		return "", fmt.Errorf("separator not found for field %s", rule.Field)
+	}
+
+	mappedName, found := fieldMap[name]
+	if !found {
+		return "", fmt.Errorf("unknown column %s", name)
+	}
+
+	str := fmt.Sprintf(`ID IN (
+		SELECT ErrorGroupID
+		FROM error_objects
+		WHERE ProjectID = %s
+		AND Timestamp BETWEEN %s AND %s`,
+		sb.Var(projectId),
+		sb.Var(start),
+		sb.Var(end))
+
+	var valueBuilder strings.Builder
+	for idx, v := range rule.Val {
+		if idx == 0 {
+			valueBuilder.WriteString("AND (")
+		}
+		if idx > 0 {
+			valueBuilder.WriteString(" OR ")
+		}
+		switch rule.Op {
+		case Is:
+			valueBuilder.WriteString(fmt.Sprintf(`"%s" ILIKE %s`, mappedName, sb.Var(v)))
+		case Contains:
+			valueBuilder.WriteString(fmt.Sprintf(`"%s" ILIKE %s`, mappedName, sb.Var("%"+v+"%")))
+		case Exists:
+			valueBuilder.WriteString(sb.IsNotNull(mappedName))
+		case BetweenDate:
+			before, after, found := strings.Cut(v, "_")
+			if !found {
+				return "", fmt.Errorf("separator not found for between query %s", v)
+			}
+			startTime, err := time.Parse(timeFormat, before)
+			if err != nil {
+				return "", err
+			}
+			endTime, err := time.Parse(timeFormat, after)
+			if err != nil {
+				return "", err
+			}
+			valueBuilder.WriteString(sb.Between(mappedName, startTime, endTime))
+		case Matches:
+			valueBuilder.WriteString(fmt.Sprintf(`"%s" REGEXP %s`, sb.Var(mappedName), sb.Var(v)))
+		default:
+			return "", fmt.Errorf("unsupported operator %s", rule.Op)
+		}
+		if idx == len(rule.Val)-1 {
+			valueBuilder.WriteString(")")
+		}
+	}
+
+	valueBuilder.WriteString(")")
+
+	return str + valueBuilder.String(), nil
 }
 
 // parseFieldRule applies a filter using the `fields` table

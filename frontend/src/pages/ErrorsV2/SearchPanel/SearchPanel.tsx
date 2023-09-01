@@ -29,6 +29,7 @@ import { usePollQuery } from '@util/search'
 import clsx from 'clsx'
 import moment from 'moment/moment'
 import React, { useCallback, useEffect, useState } from 'react'
+import { useLocalStorage } from 'react-use'
 
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -39,6 +40,7 @@ const SearchPanel = () => {
 	const { showLeftPanel } = useErrorPageConfiguration()
 	const { showBanner } = useGlobalContext()
 	const {
+		searchQuery,
 		backendSearchQuery,
 		page,
 		setPage,
@@ -49,9 +51,17 @@ const SearchPanel = () => {
 	} = useErrorSearchContext()
 	const { project_id: projectId } = useParams<{ project_id: string }>()
 
+	const [useClickhouse] = useLocalStorage(
+		'highlight-clickhouse-errors',
+		false,
+	)
+
 	const { data: fetchedData, loading } = useGetErrorGroupsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
+			clickhouse_query: useClickhouse
+				? JSON.parse(searchQuery)
+				: undefined,
 			count: PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: projectId!,

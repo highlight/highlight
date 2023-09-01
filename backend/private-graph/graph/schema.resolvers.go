@@ -4177,8 +4177,10 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 		return nil, err
 	}
 
-	if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, results, ErrorGroupLookbackDays); err != nil {
-		return nil, err
+	if len(results) > 0 {
+		if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, results, ErrorGroupLookbackDays); err != nil {
+			return nil, err
+		}
 	}
 
 	return &model.ErrorResults{
@@ -4229,7 +4231,30 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 
 // ErrorsHistogramClickhouse is the resolver for the errors_histogram_clickhouse field.
 func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
-	panic(fmt.Errorf("not implemented: ErrorsHistogramClickhouse - errors_histogram_clickhouse"))
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogram(ctx, projectID, query, retentionDate, histogramOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(bucketTimes) > 0 {
+		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
+	}
+
+	return &model.ErrorsHistogram{
+		BucketTimes:  MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		ErrorObjects: MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
+	}, nil
 }
 
 // ErrorGroup is the resolver for the error_group field.
@@ -5608,7 +5633,7 @@ func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int
 
 // ErrorFieldsClickhouse is the resolver for the error_fields_clickhouse field.
 func (r *queryResolver) ErrorFieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
-	panic(fmt.Errorf("not implemented: ErrorFieldsClickhouse - error_fields_clickhouse"))
+	return r.ClickhouseClient.QueryErrorFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
 }
 
 // QuickFieldsOpensearch is the resolver for the quickFields_opensearch field.

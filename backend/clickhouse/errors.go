@@ -18,6 +18,7 @@ import (
 type ClickhouseErrorGroup struct {
 	ProjectID int32
 	CreatedAt time.Time
+	UpdatedAt time.Time
 	ID        int64
 	Event     string
 	Status    string
@@ -35,10 +36,12 @@ type ClickhouseErrorObject struct {
 	ServiceName    string
 	ServiceVersion string
 	ClientID       string
+	VisitedURL     string
 }
 
 const ErrorGroupsTable = "error_groups"
 const ErrorObjectsTable = "error_objects"
+const errorsTimeRangeField = "error-field_timestamp"
 
 func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.ErrorGroup) error {
 	chGroups := []interface{}{}
@@ -51,6 +54,7 @@ func (client *Client) WriteErrorGroups(ctx context.Context, groups []*model.Erro
 		chEg := ClickhouseErrorGroup{
 			ProjectID: int32(group.ProjectID),
 			CreatedAt: group.CreatedAt,
+			UpdatedAt: group.UpdatedAt,
 			ID:        int64(group.ID),
 			Event:     group.Event,
 			Status:    string(group.State),
@@ -107,6 +111,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 			ServiceName:    object.ServiceName,
 			ServiceVersion: object.ServiceVersion,
 			ClientID:       clientId,
+			VisitedURL:     object.URL,
 		}
 
 		chObjects = append(chObjects, &chEg)
@@ -135,13 +140,13 @@ func getErrorGroupsQueryImpl(query modelInputs.ClickhouseQuery, projectId int, r
 	}
 
 	timeRangeRule, found := lo.Find(rules, func(r Rule) bool {
-		return r.Field == timeRangeField
+		return r.Field == errorsTimeRangeField
 	})
 	if !found {
 		end := time.Now()
 		start := end.AddDate(0, 0, -30)
 		timeRangeRule = Rule{
-			Field: timeRangeField,
+			Field: errorsTimeRangeField,
 			Op:    BetweenDate,
 			Val:   []string{fmt.Sprintf("%s_%s", start.Format(timeFormat), end.Format(timeFormat))},
 		}
@@ -235,7 +240,7 @@ func (client *Client) QueryErrorGroupFrequencies(ctx context.Context, errorGroup
 
 	builders := []sqlbuilder.Builder{}
 	sbInner := sqlbuilder.NewSelectBuilder()
-	sbInner.Select(fmt.Sprintf("ErrorGroupID, intDiv(toRelativeMinuteNum(CreatedAt), %s) AS index, count(*) AS count", sbInner.Var(mins))).
+	sbInner.Select(fmt.Sprintf("ErrorGroupID, intDiv(toRelativeMinuteNum(Timestamp), %s) AS index, count(*) AS count", sbInner.Var(mins))).
 		From("error_objects FINAL").
 		Where(sbInner.In("ErrorGroupID", errorGroupIds)).
 		Where(sbInner.Between("Timestamp", params.DateRange.StartDate, params.DateRange.EndDate)).
@@ -243,9 +248,8 @@ func (client *Client) QueryErrorGroupFrequencies(ctx context.Context, errorGroup
 	builders = append(builders, sbInner)
 
 	for _, id := range errorGroupIds {
-		defaultInner := sqlbuilder.NewSelectBuilder()
-		defaultInner.Select(fmt.Sprintf("%s as ErrorGroupID, intDiv(toRelativeMinuteNum(%s), %s), 0",
-			defaultInner.Var(id), defaultInner.Var(params.DateRange.StartDate), defaultInner.Var(mins)))
+		defaultInner := sqlbuilder.Buildf("SELECT %s as ErrorGroupID, intDiv(toRelativeMinuteNum(%s), %s), 0",
+			id, params.DateRange.StartDate, mins)
 		builders = append(builders, defaultInner)
 	}
 
@@ -263,21 +267,217 @@ func (client *Client) QueryErrorGroupFrequencies(ctx context.Context, errorGroup
 	items := []*modelInputs.ErrorDistributionItem{}
 
 	for rows.Next() {
-		var errorGroupId int
+		var errorGroupId int64
 		var date time.Time
-		var count int64
+		var count uint64
 
 		if err := rows.Scan(&errorGroupId, &date, &count); err != nil {
 			return nil, err
 		}
 
 		items = append(items, &modelInputs.ErrorDistributionItem{
-			ErrorGroupID: errorGroupId,
+			ErrorGroupID: int(errorGroupId),
 			Date:         date,
 			Name:         "count",
-			Value:        count,
+			Value:        int64(count),
 		})
 	}
 
 	return items, err
+}
+
+func (client *Client) QueryErrorGroupAggregateFrequency(ctx context.Context, errorGroupIds []int) ([]*modelInputs.ErrorDistributionItem, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	sql, args := sb.Select(`ErrorGroupID,
+		countIf(CreatedAt >= now() - INTERVAL 30 DAY) as monthCount,
+		uniqIf(ClientID, CreatedAt >= now() - INTERVAL 30 DAY) as monthIdentifierCount,
+		countIf(CreatedAt >= now() - INTERVAL 7 DAY) as weekCount,
+		uniqIf(ClientID, CreatedAt >= now() - INTERVAL 7 DAY) as weekIdentifierCount,
+		countIf(CreatedAt BETWEEN now() - INTERVAL 14 DAY AND now() - INTERVAL 7 DAY) as prevWeekCount,
+		uniqIf(ClientID, CreatedAt BETWEEN now() - INTERVAL 14 DAY AND now() - INTERVAL 7 DAY) as prevWeekIdentifierCount`).
+		From("error_objects FINAL").
+		Where(sb.In("ErrorGroupID", errorGroupIds)).
+		GroupBy("1").
+		BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	items := []*modelInputs.ErrorDistributionItem{}
+
+	for rows.Next() {
+		var errorGroupId int
+		var now time.Time
+		var monthCount int64
+		var monthIdentifierCount int64
+		var weekCount int64
+		var weekIdentifierCount int64
+		var prevWeekCount int64
+		var prevWeekIdentifierCount int64
+
+		if err := rows.Scan(&errorGroupId, &now, &monthCount, &monthIdentifierCount,
+			&weekCount, &weekIdentifierCount, &prevWeekCount, &prevWeekIdentifierCount); err != nil {
+			return nil, err
+		}
+
+		items = append(items, &modelInputs.ErrorDistributionItem{
+			ErrorGroupID: errorGroupId,
+			Date:         now.AddDate(0, 0, -30),
+			Name:         "monthCount",
+			Value:        monthCount,
+		})
+
+		items = append(items, &modelInputs.ErrorDistributionItem{
+			ErrorGroupID: errorGroupId,
+			Date:         now.AddDate(0, 0, -30),
+			Name:         "monthIdentifierCount",
+			Value:        monthIdentifierCount,
+		})
+
+		items = append(items, &modelInputs.ErrorDistributionItem{
+			ErrorGroupID: errorGroupId,
+			Date:         now.AddDate(0, 0, -7),
+			Name:         "weekCount",
+			Value:        weekCount,
+		})
+
+		items = append(items, &modelInputs.ErrorDistributionItem{
+			ErrorGroupID: errorGroupId,
+			Date:         now.AddDate(0, 0, -7),
+			Name:         "weekIdentifierCount",
+			Value:        weekIdentifierCount,
+		})
+
+		items = append(items, &modelInputs.ErrorDistributionItem{
+			ErrorGroupID: errorGroupId,
+			Date:         now.AddDate(0, 0, -14),
+			Name:         "weekCount",
+			Value:        prevWeekCount,
+		})
+
+		items = append(items, &modelInputs.ErrorDistributionItem{
+			ErrorGroupID: errorGroupId,
+			Date:         now.AddDate(0, 0, -14),
+			Name:         "weekIdentifierCount",
+			Value:        prevWeekIdentifierCount,
+		})
+	}
+
+	return items, err
+}
+
+func (client *Client) QueryErrorFieldValues(ctx context.Context, projectId int, count int, fieldType string, fieldName string, query string, start time.Time, end time.Time) ([]string, error) {
+	mappedName, found := fieldMap[fieldName]
+	if !found {
+		return nil, fmt.Errorf("unknown column %s", fieldName)
+	}
+
+	table := ErrorGroupsTable
+	if fieldType == "error-field" {
+		table = ErrorObjectsTable
+	}
+
+	sb := sqlbuilder.NewSelectBuilder()
+	sb = sb.
+		Select(mappedName).
+		From(table).
+		Where(sb.Equal("ProjectID", projectId)).
+		Where(fmt.Sprintf("%s ILIKE %s", mappedName, sb.Var("%"+query+"%"))).
+		Where(fmt.Sprintf("%s <> ''", mappedName))
+
+	if table == ErrorGroupsTable {
+		sb = sb.Where(sb.Or(
+			sb.Between("CreatedAt", start, end),
+			sb.Between("UpdatedAt", start, end)))
+	} else {
+		sb = sb.Where(sb.Between("Timestamp", start, end))
+	}
+
+	sql, args := sb.GroupBy("1").
+		OrderBy("count() DESC").
+		Limit(count).
+		BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	values := []string{}
+	for rows.Next() {
+		var value string
+		if err := rows.Scan(&value); err != nil {
+			return nil, err
+		}
+		values = append(values, value)
+	}
+
+	return values, nil
+}
+
+func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, query modelInputs.ClickhouseQuery, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {
+	var aggFn string
+	var addFn string
+	switch options.BucketSize.CalendarInterval {
+	case modelInputs.OpenSearchCalendarIntervalMinute:
+		aggFn = "toRelativeMinuteNum"
+		addFn = "addMinutes"
+	case modelInputs.OpenSearchCalendarIntervalHour:
+		aggFn = "toRelativeHourNum"
+		addFn = "addHours"
+	case modelInputs.OpenSearchCalendarIntervalDay:
+		aggFn = "toRelativeDayNum"
+		addFn = "addDays"
+	case modelInputs.OpenSearchCalendarIntervalWeek:
+		aggFn = "toRelativeWeekNum"
+		addFn = "addWeeks"
+	case modelInputs.OpenSearchCalendarIntervalMonth:
+		aggFn = "toRelativeMonthNum"
+		addFn = "addMonths"
+	case modelInputs.OpenSearchCalendarIntervalQuarter:
+		aggFn = "toRelativeQuarterNum"
+		addFn = "addQuarters"
+	case modelInputs.OpenSearchCalendarIntervalYear:
+		aggFn = "toRelativeYearNum"
+		addFn = "addYears"
+	default:
+		return nil, nil, fmt.Errorf("invalid calendar interval: %s", options.BucketSize.CalendarInterval)
+	}
+
+	location, err := time.LoadLocation(options.TimeZone)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	selectCols := fmt.Sprintf("%s(CreatedAt, '%s') as time, count() as count", aggFn, location.String())
+
+	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
+
+	sql, args, err := getErrorGroupsQueryImpl(query, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	args = append(args, *options.Bounds.StartDate, *options.Bounds.EndDate)
+	sql = fmt.Sprintf("SELECT %s(makeDate(0, 0), time), count from (%s)", addFn, sql)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	bucketTimes := []time.Time{}
+	totals := []int64{}
+	for rows.Next() {
+		var time time.Time
+		var total uint64
+		if err := rows.Scan(&time, &total); err != nil {
+			return nil, nil, err
+		}
+		bucketTimes = append(bucketTimes, time)
+		totals = append(totals, int64(total))
+	}
+
+	return bucketTimes, totals, nil
 }
