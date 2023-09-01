@@ -61,7 +61,7 @@ import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import { message } from 'antd'
-import { ClassValue } from 'clsx'
+import clsx, { ClassValue } from 'clsx'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -496,7 +496,10 @@ const MultiselectPopout = ({
 							shape="basic"
 							size="medium"
 							lines="1"
-							className={[newStyle.flatLeft, newStyle.flatRight]}
+							className={clsx([
+								newStyle.flatLeft,
+								newStyle.flatRight,
+							])}
 						>
 							{label}
 						</Popover.TagTrigger>
