@@ -127,6 +127,10 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 			return trace, err
 		}
 
+		if encodedFileContent == nil {
+			return trace, fmt.Errorf("Unable to fetch %s in %s", fileName, *service.GithubRepoPath)
+		}
+
 		gitHubFileBytes = []byte(*encodedFileContent)
 
 		_, err = store.storageClient.PushGitHubFile(ctx, *service.GithubRepoPath, fileName, serviceVersion, gitHubFileBytes)
@@ -206,11 +210,16 @@ func (store *Store) GitHubEnhancedStakeTrace(ctx context.Context, stackTrace []*
 		}
 
 		fileName := store.GitHubFilePath(ctx, *trace.FileName, service.BuildPrefix, service.GithubPrefix)
+		shouldIgnoreFile := false
 		for _, fileExpr := range cfg.IgnoredFiles {
 			if regexp.MustCompile(fileExpr).MatchString(fileName) {
-				newMappedStackTrace = append(newMappedStackTrace, trace)
-				continue
+				shouldIgnoreFile = true
+				break
 			}
+		}
+		if shouldIgnoreFile {
+			newMappedStackTrace = append(newMappedStackTrace, trace)
+			continue
 		}
 
 		enhancedTrace, err := store.EnhanceTraceWithGitHub(ctx, trace, service, *validServiceVersion, fileName, client)

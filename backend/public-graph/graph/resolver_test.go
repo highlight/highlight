@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/integrations"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/storage"
 	"github.com/samber/lo"
@@ -87,8 +88,9 @@ func TestMain(m *testing.M) {
 		DB:               db,
 		TDB:              timeseries.New(context.TODO()),
 		Redis:            redisClient,
-		Store:            store.NewStore(db, &opensearch.Client{}, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}),
+		Store:            store.NewStore(db, &opensearch.Client{}, redisClient, integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{}),
 		EmbeddingsClient: &mockEmbeddingsClient{},
+		DataSyncQueue:    &kafka_queue.MockMessageQueue{},
 	}
 	code := m.Run()
 	os.Exit(code)
@@ -611,5 +613,32 @@ func Test_WithinQuota_CommittedPricing(t *testing.T) {
 
 		usageBasedWithinBillingQuota, _ := resolver.IsWithinQuota(ctx, model.PricingProductTypeSessions, &workspaceUsageBased, time.Now())
 		assert.False(t, usageBasedWithinBillingQuota)
+	})
+}
+
+func TestInitializeSessionImpl(t *testing.T) {
+	ctx := context.TODO()
+
+	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
+		workspace := model.Workspace{}
+		resolver.DB.Create(&workspace)
+
+		project := model.Project{
+			WorkspaceID: workspace.ID,
+		}
+
+		resolver.DB.Create(&project)
+
+		session, err := resolver.InitializeSessionImpl(ctx, &kafka_queue.InitializeSessionArgs{
+			ProjectVerboseID: project.VerboseID(),
+			ServiceName:      "my-frontend-app",
+		})
+		assert.NoError(t, err)
+		assert.NotNil(t, session.ID)
+
+		service, err := resolver.Store.FindService(ctx, project.ID, "my-frontend-app")
+
+		assert.NoError(t, err)
+		assert.NotNil(t, service.ID)
 	})
 }

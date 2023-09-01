@@ -1534,8 +1534,8 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			IntegrationType:  *s,
 			SessionCommentID: sessionComment.ID,
 		}
-		desc := *issueDescription
-		desc += "\n\nSee the error page on Highlight:\n"
+		title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
+		desc += "See the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear &&
@@ -1561,7 +1561,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			if err := r.CreateClickUpTaskAndAttachment(
 				workspace,
 				attachment,
-				*issueTitle,
+				title,
 				desc,
 				issueTeamID,
 			); err != nil {
@@ -1574,7 +1574,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 				ctx,
 				workspace,
 				attachment,
-				*issueTitle,
+				title,
 				desc,
 				issueTeamID,
 			); err != nil {
@@ -1587,7 +1587,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 				ctx,
 				workspace,
 				attachment,
-				*issueTitle,
+				title,
 				desc,
 				issueTeamID,
 				tags,
@@ -1642,8 +1642,8 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 			SessionCommentID: sessionComment.ID,
 		}
 
-		desc := *issueDescription
-		desc += "\n\nSee the error page on Highlight:\n"
+		title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
+		desc += "See the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
@@ -1653,19 +1653,19 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
+			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, title, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeGitHub {
-			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID, nil); err != nil {
+			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID, nil); err != nil {
 				return nil, e.Wrap(err, "error creating GitHub task")
 			}
 
@@ -1953,8 +1953,8 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			ErrorCommentID:  errorComment.ID,
 		}
 
-		desc := *issueDescription
-		desc += "\n\nSee the error page on Highlight:\n"
+		title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
+		desc += "See the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
@@ -1976,7 +1976,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			if err := r.CreateClickUpTaskAndAttachment(
 				workspace,
 				attachment,
-				*issueTitle,
+				title,
 				desc,
 				issueTeamID,
 			); err != nil {
@@ -1985,13 +1985,13 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeGitHub {
-			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID, nil); err != nil {
+			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID, nil); err != nil {
 				return nil, e.Wrap(err, "error creating GitHub task")
 			}
 
@@ -2118,8 +2118,8 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 		return nil, e.New("issue description cannot be nil")
 	}
 
-	desc := *issueDescription
-	desc += "\n\nSee the error page on Highlight:\n"
+	title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
+	desc += "See the error page on Highlight:\n"
 	desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 
 	for _, s := range integrations {
@@ -2147,7 +2147,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 			if err := r.CreateClickUpTaskAndAttachment(
 				workspace,
 				attachment,
-				*issueTitle,
+				title,
 				desc,
 				issueTeamID,
 			); err != nil {
@@ -2156,13 +2156,13 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeGitHub {
-			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID, nil); err != nil {
+			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID, nil); err != nil {
 				return nil, e.Wrap(err, "error creating GitHub task")
 			}
 

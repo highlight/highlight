@@ -14,30 +14,34 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFindOrCreateService(t *testing.T) {
+func TestUpsertService(t *testing.T) {
 	defer teardown(t)
 	ctx := context.Background()
 	project := model.Project{}
 	store.db.Create(&project)
 
-	service, err := store.FindOrCreateService(ctx, project, "public-graph", map[string]string{})
+	service, err := store.UpsertService(ctx, project, "public-graph", map[string]string{})
 	assert.NoError(t, err)
 
 	assert.NotNil(t, service.ID)
 
-	foundService, err := store.FindOrCreateService(ctx, project, "public-graph", map[string]string{})
+	foundService, err := store.UpsertService(ctx, project, "public-graph", map[string]string{})
 	assert.NoError(t, err)
 	assert.Equal(t, service.ID, foundService.ID)
 }
 
-func TestFindOrCreateServiceWithAttributes(t *testing.T) {
+func TestUpsertServiceWithAttributes(t *testing.T) {
 	ctx := context.Background()
 
 	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
 		project := model.Project{}
 		store.db.Create(&project)
 
-		service, err := store.FindOrCreateService(ctx, project, "public-graph", map[string]string{
+		cacheKey := fmt.Sprintf("service-public-graph-%d", project.ID)
+		err := store.redis.Del(context.TODO(), cacheKey)
+		assert.NoError(t, err)
+
+		service, err := store.UpsertService(ctx, project, "public-graph", map[string]string{
 			"process.runtime.name":        "go",
 			"process.runtime.version":     "go1.20.5",
 			"process.runtime.description": "go version go1.20.5 darwin/arm64",
@@ -47,6 +51,21 @@ func TestFindOrCreateServiceWithAttributes(t *testing.T) {
 		assert.Equal(t, ptr.String("go"), service.ProcessName)
 		assert.Equal(t, ptr.String("go1.20.5"), service.ProcessVersion)
 		assert.Equal(t, ptr.String("go version go1.20.5 darwin/arm64"), service.ProcessDescription)
+
+		err = store.redis.Del(context.TODO(), cacheKey)
+		assert.NoError(t, err)
+
+		service, err = store.UpsertService(ctx, project, "public-graph", map[string]string{
+			"process.runtime.name":        "ruby",
+			"process.runtime.version":     "2.6.10",
+			"process.runtime.description": "ruby 2.6.10p210 (2022-04-12 revision 67958) [x86_64-linux]",
+		})
+
+		assert.NoError(t, err)
+		assert.NotNil(t, service.ID)
+		assert.Equal(t, ptr.String("ruby"), service.ProcessName)
+		assert.Equal(t, ptr.String("2.6.10"), service.ProcessVersion)
+		assert.Equal(t, ptr.String("ruby 2.6.10p210 (2022-04-12 revision 67958) [x86_64-linux]"), service.ProcessDescription)
 	})
 }
 
