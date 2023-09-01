@@ -69,6 +69,10 @@
 						"message": "Please use TextHighlighter from /src/components/TextHighlighter instead."
 					},
 					{
+						"name": "classnames",
+						"message": "Please use clx instead."
+					},
+					{
 						"name": "antd",
 						"importNames": ["Popover"],
 						"message": "Please use Popover from /src/components/Popover instead."
