@@ -30,7 +30,13 @@ jobs:
             - name: Rubocop
               run: bundle exec rubocop
             - name: Publish to RubyGems
-              if: github.ref == 'refs/heads/main'
+              - uses: dorny/paths-filter@v2
+                id: filter
+                with:
+                  filters: |
+                      version-file-changed:
+                        - lib/highlight/version.rb
+              if: github.ref == 'refs/heads/main' && steps.changes.output.version-file-changed == 'true'
               run: |
                   mkdir -p $HOME/.gem
                   touch $HOME/.gem/credentials
