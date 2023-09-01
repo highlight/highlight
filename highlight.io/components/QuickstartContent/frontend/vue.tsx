@@ -24,6 +24,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 
 H.init('<YOUR_PROJECT_ID>', {
+    backendUrl: '<YOUR_BACKEND_URL>',
     environment: 'production',
     version: 'commit:abcdefg12345',
 	networkRecording: {

@@ -35,6 +35,7 @@ import {
 	useMatch,
 } from 'react-router-dom'
 
+import { PUBLIC_GRAPH_URI } from '@/constants'
 import { IntegrationBar } from '@/pages/Setup/IntegrationBar'
 import {
 	useAlertsIntegration,
@@ -297,6 +298,7 @@ export const SetupRouter = () => {
 								element={
 									<SetupDocs
 										projectVerboseId={projectVerboseId}
+										backendUrl={PUBLIC_GRAPH_URI}
 									/>
 								}
 							/>

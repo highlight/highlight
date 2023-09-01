@@ -63,6 +63,7 @@ export async function loader() {
 	return json({
 		ENV: {
 			HIGHLIGHT_PROJECT_ID: process.env.HIGHLIGHT_PROJECT_ID,
+			HIGHLIGHT_BACKEND_URL: process.env.HIGHLIGHT_BACKEND_URL,
 		},
 	})
 }
@@ -74,6 +75,7 @@ export default function App() {
 		<html lang="en">
 			<HighlightInit
 				projectId={ENV.HIGHLIGHT_PROJECT_ID}
+				backendUrl={ENV.HIGHLIGHT_BACKEND_URL}
 				serviceName="my-remix-frontend"
 				tracingOrigins
 				networkRecording={{ enabled: true, recordHeadersAndBody: true }}

@@ -16,6 +16,7 @@ const svelteKitInitCodeSnippet = `// hooks.client.ts
 import { H } from 'highlight.run';
 
 H.init('<YOUR_PROJECT_ID>', {
+    backendUrl: '<YOUR_BACKEND_URL>',
     environment: 'production',
     version: 'commit:abcdefg12345',
     tracingOrigins: true,

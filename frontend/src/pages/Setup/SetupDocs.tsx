@@ -27,15 +27,24 @@ export type OptionListItem = {
 
 type Props = {
 	projectVerboseId: string
+	backendUrl: string
 	integrationData?: IntegrationStatus
 }
 
-export const SetupDocs: React.FC<Props> = ({ projectVerboseId }) => {
+export const SetupDocs: React.FC<Props> = ({
+	projectVerboseId,
+	backendUrl,
+}) => {
 	const match = useMatch('/:project_id/setup/:area/:language/:framework')
 	const { area, framework, language } = match!.params
 	const guide = (quickStartContent as any)[area!][language!][
 		framework!
 	] as QuickStartContent
+
+	const replacements = [
+		['<YOUR_PROJECT_ID>', projectVerboseId],
+		['<YOUR_BACKEND_URL>', backendUrl],
+	]
 
 	return (
 		<Box>
@@ -66,9 +75,14 @@ export const SetupDocs: React.FC<Props> = ({ projectVerboseId }) => {
 													},
 												)
 											}}
-											text={codeBlock.text.replaceAll(
-												'<YOUR_PROJECT_ID>',
-												projectVerboseId,
+											text={replacements.reduce(
+												(acc, [search, replace]) => {
+													return acc.replaceAll(
+														search,
+														replace,
+													)
+												},
+												codeBlock.text,
 											)}
 											className={clsx(styles.codeBlock)}
 											customStyle={{}} // removes unwanted bottom padding

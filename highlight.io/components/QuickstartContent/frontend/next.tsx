@@ -63,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 		<>
 			<HighlightInit
 				projectId={'<YOUR_PROJECT_ID>'}
+				backendUrl={'<YOUR_BACKEND_URL>'}
 				serviceName="my-nextjs-frontend"
 				tracingOrigins
 				networkRecording={{

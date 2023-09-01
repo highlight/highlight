@@ -46,6 +46,7 @@ To get started, we recommend setting \`environment\`, \`version\`, and \`network
     <script src="https://unpkg.com/highlight.run"></script>
     <script>
         H.init('<YOUR_PROJECT_ID>', { // Get your project ID from https://app.highlight.io/setup
+            backendUrl: '<YOUR_BACKEND_URL>',
             environment: 'production',
             version: 'commit:abcdefg12345',
             networkRecording: {
