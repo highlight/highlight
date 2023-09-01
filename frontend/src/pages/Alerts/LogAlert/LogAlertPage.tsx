@@ -37,6 +37,7 @@ import {
 } from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import { useLogAlertsContext } from '@pages/Alerts/LogAlert/context'
 import {
+	AlertForm,
 	dedupeEnvironments,
 	EnvironmentSuggestion,
 } from '@pages/Alerts/utils/AlertsUtils'
@@ -54,11 +55,8 @@ import { DateTimeParam, StringParam, useQueryParam } from 'use-query-params'
 import { getSlackUrl } from '@/components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LoadingBox from '@/components/LoadingBox'
 import { namedOperations } from '@/graph/generated/operations'
-import {
-	DiscordChannelInput,
-	SanitizedSlackChannelInput,
-} from '@/graph/generated/schemas'
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
+import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
 
 import * as styles from './styles.css'
 
@@ -125,6 +123,7 @@ export const LogAlertPage = () => {
 			webhookDestinations: [],
 			emails: [],
 			threshold: undefined,
+			threshold_window: Number(DEFAULT_FREQUENCY),
 			frequency: Number(DEFAULT_FREQUENCY),
 			loaded: false,
 		},
@@ -163,6 +162,7 @@ export const LogAlertPage = () => {
 				),
 				emails: data?.log_alert.EmailsToNotify,
 				threshold: data?.log_alert.CountThreshold,
+				threshold_window: Number(DEFAULT_FREQUENCY),
 				frequency: data?.log_alert.ThresholdWindow,
 				loaded: true,
 			})
@@ -373,103 +373,109 @@ export const LogAlertPage = () => {
 				{isLoading && <LoadingBox />}
 				{!isLoading && (
 					<>
-						<Form state={form} resetOnSubmit={false}>
-							{header}
-							<Container
-								display="flex"
-								flexDirection="column"
-								py="24"
-								gap="40"
-							>
-								<Box
-									display="flex"
-									flexDirection="column"
-									width="full"
-									height="full"
-									gap="12"
-								>
+						{header}
+						<Container
+							display="flex"
+							flexDirection="column"
+							py="24"
+							gap="40"
+						>
+							<Form state={form} resetOnSubmit={false}>
+								<Stack gap="40">
 									<Box
 										display="flex"
-										alignItems="center"
+										flexDirection="column"
 										width="full"
-										justifyContent="space-between"
+										height="full"
+										gap="12"
 									>
 										<Box
 											display="flex"
 											alignItems="center"
-											gap="4"
-											color="weak"
+											width="full"
+											justifyContent="space-between"
 										>
-											<Tag
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+												color="weak"
+											>
+												<Tag
+													kind="secondary"
+													size="medium"
+													shape="basic"
+													emphasis="high"
+													iconLeft={
+														<IconSolidSpeakerphone />
+													}
+													onClick={() => {
+														navigate(
+															`/${project_id}/alerts`,
+														)
+													}}
+												>
+													Alerts
+												</Tag>
+												<IconSolidCheveronRight />
+												<Text
+													color="moderate"
+													size="small"
+													weight="medium"
+													userSelect="none"
+												>
+													Log monitor
+												</Text>
+											</Box>
+											<PreviousDateRangePicker
+												selectedDates={selectedDates}
+												onDatesChange={setSelectedDates}
+												presets={defaultPresets}
+												minDate={
+													defaultPresets[5].startDate
+												}
 												kind="secondary"
 												size="medium"
-												shape="basic"
-												emphasis="high"
-												iconLeft={
-													<IconSolidSpeakerphone />
-												}
-												onClick={() => {
-													navigate(
-														`/${project_id}/alerts`,
-													)
-												}}
-											>
-												Alerts
-											</Tag>
-											<IconSolidCheveronRight />
-											<Text
-												color="moderate"
-												size="small"
-												weight="medium"
-												userSelect="none"
-											>
-												Log monitor
-											</Text>
+												emphasis="low"
+											/>
 										</Box>
-										<PreviousDateRangePicker
-											selectedDates={selectedDates}
-											onDatesChange={setSelectedDates}
-											presets={defaultPresets}
-											minDate={
-												defaultPresets[5].startDate
-											}
-											kind="secondary"
-											size="medium"
-											emphasis="low"
-										/>
-									</Box>
-									<Box cssClass={styles.queryContainer}>
-										<Search
-											initialQuery={initialQuery}
-											keys={keysData?.logs_keys ?? []}
+										<AlertTitleField />
+										<Box cssClass={styles.queryContainer}>
+											<Search
+												initialQuery={initialQuery}
+												keys={keysData?.logs_keys ?? []}
+												startDate={startDate}
+												endDate={endDate}
+												hideIcon
+												className={styles.combobox}
+												keysLoading={keysLoading}
+												placeholder="Define query..."
+											/>
+										</Box>
+										<LogsHistogram
+											query={submittedQuery}
 											startDate={startDate}
 											endDate={endDate}
-											hideIcon
-											className={styles.combobox}
-											keysLoading={keysLoading}
-											placeholder="Define query..."
-										/>
-									</Box>
-									<LogsHistogram
-										query={submittedQuery}
-										startDate={startDate}
-										endDate={endDate}
-										onDatesChange={(startDate, endDate) => {
-											setSelectedDates([
+											onDatesChange={(
 												startDate,
 												endDate,
-											])
-										}}
-										onLevelChange={() => {}}
-										outline
-										threshold={threshold}
-										belowThreshold={belowThreshold}
-										frequencySeconds={frequency}
-									/>
-								</Box>
-								<LogAlertForm />
-							</Container>
-						</Form>
+											) => {
+												setSelectedDates([
+													startDate,
+													endDate,
+												])
+											}}
+											onLevelChange={() => {}}
+											outline
+											threshold={threshold}
+											belowThreshold={belowThreshold}
+											frequencySeconds={frequency}
+										/>
+									</Box>
+									<LogAlertForm />
+								</Stack>
+							</Form>
+						</Container>
 					</>
 				)}
 			</Box>
@@ -538,6 +544,7 @@ const LogAlertForm = () => {
 						<Column>
 							<Form.Input
 								name={form.names.threshold}
+								value={form.values.threshold}
 								type="number"
 								label="Alert threshold"
 								tag={
@@ -596,18 +603,6 @@ const LogAlertForm = () => {
 					</Box>
 
 					<Box borderTop="dividerWeak" width="full" />
-
-					<Form.Input
-						name={form.names.name}
-						type="text"
-						placeholder="Alert name"
-						label="Name"
-						style={{
-							borderColor: form.errors.name
-								? 'var(--color-red-500)'
-								: undefined,
-						}}
-					/>
 
 					<Form.NamedSection
 						label="Excluded environments"
@@ -800,18 +795,8 @@ const ThresholdTypeConfiguration = () => {
 	)
 }
 
-interface LogMonitorForm {
+interface LogMonitorForm extends AlertForm {
 	query: string
-	name: string
-	belowThreshold: boolean
-	threshold: number | undefined
-	frequency: number
-	excludedEnvironments: string[]
-	slackChannels: SanitizedSlackChannelInput[]
-	discordChannels: DiscordChannelInput[]
-	emails: string[]
-	webhookDestinations: string[]
-	loaded: boolean
 }
 
 export default LogAlertPage
