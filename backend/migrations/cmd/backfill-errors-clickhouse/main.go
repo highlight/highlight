@@ -30,6 +30,7 @@ func main() {
 	if err := db.Raw(`
 			SELECT id
 			FROM error_groups
+			WHERE updated_at > now() - interval '3 months'
 		`).Scan(&errorGroupIds).Error; err != nil {
 		log.WithContext(ctx).Fatal(err)
 	}
@@ -45,6 +46,7 @@ func main() {
 	if err := db.Raw(`
 			SELECT id
 			FROM error_objects
+			WHERE timestamp > now() - interval '3 months'
 		`).Scan(&errorObjectIds).Error; err != nil {
 		log.WithContext(ctx).Fatal(err)
 	}
