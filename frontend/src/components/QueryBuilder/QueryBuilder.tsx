@@ -1579,11 +1579,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 			}
 		},
 		[
-			appVersionData?.app_version_suggestion,
-			fetchFields,
 			getCustomFieldOptions,
+			chLocalStorage,
+			fetchFields,
 			projectId,
 			dateRange,
+			appVersionData?.app_version_suggestion,
 		],
 	)
 
