@@ -36,13 +36,8 @@ jobs:
                   filters: |
                       version-file-changed:
                         - lib/highlight/version.rb
-              if: github.ref == 'refs/heads/main' && steps.changes.output.version-file-changed == 'true'
+              if: steps.changes.output.version-file-changed == 'true'
               run: |
-                  mkdir -p $HOME/.gem
-                  touch $HOME/.gem/credentials
-                  chmod 0600 $HOME/.gem/credentials
-                  printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
-                  gem build *.gemspec
-                  gem push *.gem
+                  echo "publish step"
               env:
                   RUBYGEMS_API_KEY: '${{secrets.RUBYGEMS_API_KEY}}'
