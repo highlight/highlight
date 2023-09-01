@@ -248,8 +248,12 @@ func (client *Client) QueryErrorGroupFrequencies(ctx context.Context, errorGroup
 	builders = append(builders, sbInner)
 
 	for _, id := range errorGroupIds {
-		defaultInner := sqlbuilder.Buildf("SELECT %s as ErrorGroupID, intDiv(toRelativeMinuteNum(%s), %s), 0",
-			id, params.DateRange.StartDate, mins)
+		defaultInner := sqlbuilder.Buildf(`
+			SELECT %s as ErrorGroupID, intDiv(toRelativeMinuteNum(%s), %s), 0
+			ORDER BY 
+				1 WITH FILL,
+				2 WITH FILL FROM intDiv(toRelativeMinuteNum(%s), %s) TO intDiv(toRelativeMinuteNum(%s), %s)`,
+			id, params.DateRange.StartDate, mins, params.DateRange.StartDate, mins, params.DateRange.EndDate, mins)
 		builders = append(builders, defaultInner)
 	}
 
