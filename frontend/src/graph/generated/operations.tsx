@@ -1284,6 +1284,15 @@ export type DeleteSessionsMutation = { __typename?: 'Mutation' } & Pick<
 	'deleteSessions'
 >
 
+export type ExportSessionMutationVariables = Types.Exact<{
+	session_id: Types.Scalars['ID']
+}>
+
+export type ExportSessionMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'exportSession'
+>
+
 export type UpdateVercelSettingsMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	project_mappings:
@@ -4832,6 +4841,7 @@ export const namedOperations = {
 		UpsertDashboard: 'UpsertDashboard' as const,
 		DeleteDashboard: 'DeleteDashboard' as const,
 		DeleteSessions: 'DeleteSessions' as const,
+		ExportSession: 'ExportSession' as const,
 		UpdateVercelSettings: 'UpdateVercelSettings' as const,
 		UpdateClickUpSettings: 'UpdateClickUpSettings' as const,
 		UpdateIntegrationProjectSettings:

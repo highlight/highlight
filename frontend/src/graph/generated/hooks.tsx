@@ -4521,6 +4521,53 @@ export type DeleteSessionsMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteSessionsMutation,
 	Types.DeleteSessionsMutationVariables
 >
+export const ExportSessionDocument = gql`
+	mutation ExportSession($session_id: ID!) {
+		exportSession(session_id: $session_id)
+	}
+`
+export type ExportSessionMutationFn = Apollo.MutationFunction<
+	Types.ExportSessionMutation,
+	Types.ExportSessionMutationVariables
+>
+
+/**
+ * __useExportSessionMutation__
+ *
+ * To run a mutation, you first call `useExportSessionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useExportSessionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [exportSessionMutation, { data, loading, error }] = useExportSessionMutation({
+ *   variables: {
+ *      session_id: // value for 'session_id'
+ *   },
+ * });
+ */
+export function useExportSessionMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.ExportSessionMutation,
+		Types.ExportSessionMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.ExportSessionMutation,
+		Types.ExportSessionMutationVariables
+	>(ExportSessionDocument, baseOptions)
+}
+export type ExportSessionMutationHookResult = ReturnType<
+	typeof useExportSessionMutation
+>
+export type ExportSessionMutationResult =
+	Apollo.MutationResult<Types.ExportSessionMutation>
+export type ExportSessionMutationOptions = Apollo.BaseMutationOptions<
+	Types.ExportSessionMutation,
+	Types.ExportSessionMutationVariables
+>
 export const UpdateVercelSettingsDocument = gql`
 	mutation UpdateVercelSettings(
 		$project_id: ID!

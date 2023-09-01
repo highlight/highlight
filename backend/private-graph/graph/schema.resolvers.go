@@ -655,6 +655,39 @@ func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceI
 	return workspaceSettings, nil
 }
 
+// ExportSession is the resolver for the exportSession field.
+func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID string) (bool, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	session, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return false, err
+	}
+
+	go func() {
+		_, err := r.getSessionScreenshot(context.Background(), session.ProjectID, session.ID, model.SessionExportFormatMP4, nil, nil)
+		if err != nil {
+			log.WithContext(context.Background()).WithError(err).Error("failed to export session video")
+		}
+
+		// TODO(vkorolik) what if ^ times out of the lambda dies?
+
+		user := session.Identifier
+		if session.Email != nil {
+			user = *session.Email
+		}
+
+		err = Email.SendSessionExportEmail(ctx, r.MailClient, session.ProjectID, session.SecureID, user, *admin.Email)
+		if err != nil {
+			log.WithContext(context.Background()).WithError(err).Error("failed to export session video")
+		}
+	}()
+	return true, nil
+}
+
 // MarkErrorGroupAsViewed is the resolver for the markErrorGroupAsViewed field.
 func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model.ErrorGroup, error) {
 	eg, err := r.canAdminModifyErrorGroup(ctx, errorSecureID)
@@ -1474,11 +1507,11 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		ctx := context.Background()
 		chunkIdx, chunkTs := r.GetSessionChunk(ctx, session.ID, sessionTimestamp)
 		log.WithContext(ctx).Infof("got chunk %d ts %d for session %d ts %d", chunkIdx, chunkTs, session.ID, sessionTimestamp)
-		imageBytes, err := r.getSessionScreenshot(ctx, projectID, session.ID, chunkTs, chunkIdx)
+		resp, err := r.getSessionScreenshot(ctx, projectID, session.ID, model.SessionExportFormatPng, pointy.Int(chunkTs), pointy.Int(chunkIdx))
 		if err != nil {
 			log.WithContext(ctx).Errorf("failed to render screenshot for %d %d %d %s", projectID, session.ID, sessionTimestamp, err)
 		} else {
-			sessionImageStr = base64.StdEncoding.EncodeToString(imageBytes)
+			sessionImageStr = base64.StdEncoding.EncodeToString(resp.Image)
 			sessionImage = &sessionImageStr
 			if err := r.DB.Model(&model.SessionComment{}).Where(
 				&model.SessionComment{Model: model.Model{ID: sessionComment.ID}},

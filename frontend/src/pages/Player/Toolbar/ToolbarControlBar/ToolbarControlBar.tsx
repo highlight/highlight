@@ -8,6 +8,7 @@ import {
 import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
+import { useExportSessionMutation } from '@graph/hooks'
 import {
 	Badge,
 	Box,
@@ -16,6 +17,7 @@ import {
 	IconSolidChartBar,
 	IconSolidClock,
 	IconSolidCog,
+	IconSolidDownload,
 	IconSolidPause,
 	IconSolidPlay,
 	IconSolidRefresh,
@@ -54,8 +56,9 @@ import analytics from '@util/analytics'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
+import { message } from 'antd'
 import clsx from 'clsx'
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useState } from 'react'
 
 import timelinePopoverStyle from '../TimelineIndicators/TimelinePopover/TimelinePopover.module.css'
@@ -413,6 +416,25 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 		selectedTimelineAnnotationTypes,
 		setSelectedTimelineAnnotationTypes,
 	} = usePlayerConfiguration()
+	const { session } = useReplayerContext()
+	const [exportSessionMutation] = useExportSessionMutation()
+
+	const exportSession = useCallback(async () => {
+		if (session?.id) {
+			try {
+				await exportSessionMutation({
+					variables: {
+						session_id: session.id,
+					},
+				})
+				message.info(
+					'You will receive an email once the session is ready. Track here.',
+				)
+			} catch (e) {
+				message.error(`An error occurred exporting the session: ${e}`)
+			}
+		}
+	}, [exportSessionMutation, session?.id])
 
 	const { isLiveMode } = useReplayerContext()
 	const options = (
@@ -422,7 +444,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setShowHistogram(!showHistogram)}
 			>
 				<IconSolidChartBar />
-				<p>Timeline</p>
+				<Text color="secondaryContentText">Timeline</Text>
 				<ShortcutTextGuide
 					shortcut={TimelineShortcut}
 					className={style.moveRight}
@@ -442,7 +464,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setShowDevTools(!showDevTools)}
 			>
 				<IconSolidTerminal />
-				<p>Dev tools</p>
+				<Text color="secondaryContentText">Dev tools</Text>
 				<ShortcutTextGuide
 					shortcut={DevToolsShortcut}
 					className={style.moveRight}
@@ -461,7 +483,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setShowPlayerMouseTail(!showPlayerMouseTail)}
 			>
 				<CursorClickIcon />
-				<p>Mouse trail</p>
+				<Text color="secondaryContentText">Mouse trail</Text>
 				<Switch
 					trackingId="MouseTrailMenuToggle"
 					checked={showPlayerMouseTail}
@@ -477,7 +499,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setSkipInactive(!skipInactive)}
 			>
 				<FastForwardIcon />
-				<p>Skip inactive</p>
+				<Text color="secondaryContentText">Skip inactive</Text>
 				<Switch
 					trackingId="SkipInactiveMenuToggle"
 					checked={!isLiveMode && skipInactive}
@@ -494,7 +516,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setAutoPlayVideo(!autoPlayVideo)}
 			>
 				<PlayCircleIcon />
-				<p>Autoplay</p>
+				<Text color="secondaryContentText">Autoplay</Text>
 				<Switch
 					trackingId="AutoplayVideoMenuToggle"
 					checked={autoPlayVideo}
@@ -512,7 +534,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				}
 			>
 				<IconSolidClock />
-				<p>Absolute time</p>
+				<Text color="secondaryContentText">Absolute time</Text>
 				<Switch
 					trackingId="PlayerAbsoluteTimeMenuToggle"
 					checked={showPlayerAbsoluteTime}
@@ -528,8 +550,31 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				onClick={() => setShowSessionSettings(false)}
 			>
 				<AnnotationIcon />
-				<p>Annotations</p>
+				<Text color="secondaryContentText">Annotations</Text>
 				<ChevronRightIcon className={style.moveRight} />
+			</button>
+
+			<button
+				className={clsx(style.settingsButton, style.downloadButton)}
+				onClick={exportSession}
+			>
+				<Box
+					color="secondaryContentText"
+					display="inline-flex"
+					alignItems="center"
+					gap="6"
+				>
+					<IconSolidDownload />
+					<Text>Download</Text>
+				</Box>
+				<Box
+					width="full"
+					display="flex"
+					alignItems="center"
+					justifyContent="flex-end"
+				>
+					<Badge size="small" label="Enterprise" />
+				</Box>
 			</button>
 		</>
 	)

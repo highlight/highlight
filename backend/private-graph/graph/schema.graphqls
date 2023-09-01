@@ -1955,6 +1955,7 @@ type Mutation {
 		ai_application: Boolean
 		ai_insights: Boolean
 	): AllWorkspaceSettings
+	exportSession(session_secure_id: String!): Boolean!
 	markErrorGroupAsViewed(
 		error_secure_id: String!
 		viewed: Boolean

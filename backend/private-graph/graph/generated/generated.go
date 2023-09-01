@@ -733,6 +733,7 @@ type ComplexityRoot struct {
 		EditWorkspace                    func(childComplexity int, id int, name *string) int
 		EditWorkspaceSettings            func(childComplexity int, workspaceID int, aiApplication *bool, aiInsights *bool) int
 		EmailSignup                      func(childComplexity int, email string) int
+		ExportSession                    func(childComplexity int, sessionSecureID string) int
 		JoinWorkspace                    func(childComplexity int, workspaceID int) int
 		MarkErrorGroupAsViewed           func(childComplexity int, errorSecureID string, viewed *bool) int
 		MarkSessionAsViewed              func(childComplexity int, secureID string, viewed *bool) int
@@ -1463,6 +1464,7 @@ type MutationResolver interface {
 	EditProjectSettings(ctx context.Context, projectID int, name *string, billingEmail *string, excludedUsers pq.StringArray, errorFilters pq.StringArray, errorJSONPaths pq.StringArray, rageClickWindowSeconds *int, rageClickRadiusPixels *int, rageClickCount *int, backendDomains pq.StringArray, filterChromeExtension *bool, filterSessionsWithoutError *bool, autoResolveStaleErrorsDayInterval *int) (*model.AllProjectSettings, error)
 	EditWorkspace(ctx context.Context, id int, name *string) (*model1.Workspace, error)
 	EditWorkspaceSettings(ctx context.Context, workspaceID int, aiApplication *bool, aiInsights *bool) (*model1.AllWorkspaceSettings, error)
+	ExportSession(ctx context.Context, sessionSecureID string) (bool, error)
 	MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model1.ErrorGroup, error)
 	MarkSessionAsViewed(ctx context.Context, secureID string, viewed *bool) (*model1.Session, error)
 	UpdateErrorGroupState(ctx context.Context, secureID string, state model.ErrorState, snoozedUntil *time.Time) (*model1.ErrorGroup, error)
@@ -5064,6 +5066,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EmailSignup(childComplexity, args["email"].(string)), true
+
+	case "Mutation.exportSession":
+		if e.complexity.Mutation.ExportSession == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_exportSession_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ExportSession(childComplexity, args["session_secure_id"].(string)), true
 
 	case "Mutation.joinWorkspace":
 		if e.complexity.Mutation.JoinWorkspace == nil {
@@ -11567,6 +11581,7 @@ type Mutation {
 		ai_application: Boolean
 		ai_insights: Boolean
 	): AllWorkspaceSettings
+	exportSession(session_secure_id: String!): Boolean!
 	markErrorGroupAsViewed(
 		error_secure_id: String!
 		viewed: Boolean
@@ -13671,6 +13686,21 @@ func (ec *executionContext) field_Mutation_emailSignup_args(ctx context.Context,
 		}
 	}
 	args["email"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_exportSession_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["session_secure_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_secure_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_secure_id"] = arg0
 	return args, nil
 }
 
@@ -37125,6 +37155,60 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspaceSettings(ctx cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_editWorkspaceSettings_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_exportSession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_exportSession(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ExportSession(rctx, fc.Args["session_secure_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_exportSession(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_exportSession_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -74141,6 +74225,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_editWorkspaceSettings(ctx, field)
+			})
+
+		case "exportSession":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_exportSession(ctx, field)
 			})
 
 		case "markErrorGroupAsViewed":

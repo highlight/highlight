@@ -1013,6 +1013,7 @@ export type Mutation = {
 	editWorkspace?: Maybe<Workspace>
 	editWorkspaceSettings?: Maybe<AllWorkspaceSettings>
 	emailSignup: Scalars['String']
+	exportSession: Scalars['Boolean']
 	joinWorkspace?: Maybe<Scalars['ID']>
 	markErrorGroupAsViewed?: Maybe<ErrorGroup>
 	markSessionAsViewed?: Maybe<Session>
@@ -1341,6 +1342,10 @@ export type MutationEditWorkspaceSettingsArgs = {
 
 export type MutationEmailSignupArgs = {
 	email: Scalars['String']
+}
+
+export type MutationExportSessionArgs = {
+	session_id: Scalars['ID']
 }
 
 export type MutationJoinWorkspaceArgs = {

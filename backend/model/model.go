@@ -697,6 +697,24 @@ type SessionInsight struct {
 	Insight   string
 }
 
+type SessionExportFormat = string
+
+const (
+	SessionExportFormatMP4 SessionExportFormat = "video/mp4"
+	SessionExportFormatGif SessionExportFormat = "image/gif"
+	SessionExportFormatPng SessionExportFormat = "image/png"
+)
+
+type SessionExport struct {
+	Model
+	SessionID int                 `gorm:"uniqueIndex:idx_session_exports"`
+	Type      SessionExportFormat `gorm:"uniqueIndex:idx_session_exports"`
+	URL       string
+	FPS       *int       `gorm:"uniqueIndex:idx_session_exports"`
+	Start     *time.Time `gorm:"uniqueIndex:idx_session_exports"`
+	End       *time.Time `gorm:"uniqueIndex:idx_session_exports"`
+}
+
 type EventChunk struct {
 	Model
 	SessionID  int `gorm:"index"`

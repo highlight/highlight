@@ -213,3 +213,7 @@
 .liveUserStatus {
 	user-select: none;
 }
+
+.downloadButton {
+	border-top: 1px solid var(--color-neutral-200);
+}
