@@ -422,35 +422,7 @@ func (client *Client) QueryErrorFieldValues(ctx context.Context, projectId int, 
 }
 
 func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, query modelInputs.ClickhouseQuery, retentionDate time.Time, options modelInputs.DateHistogramOptions) ([]time.Time, []int64, error) {
-	var aggFn string
-	var addFn string
-	switch options.BucketSize.CalendarInterval {
-	case modelInputs.OpenSearchCalendarIntervalMinute:
-		aggFn = "toRelativeMinuteNum"
-		addFn = "addMinutes"
-	case modelInputs.OpenSearchCalendarIntervalHour:
-		aggFn = "toRelativeHourNum"
-		addFn = "addHours"
-	case modelInputs.OpenSearchCalendarIntervalDay:
-		aggFn = "toRelativeDayNum"
-		addFn = "addDays"
-	case modelInputs.OpenSearchCalendarIntervalWeek:
-		aggFn = "toRelativeWeekNum"
-		addFn = "addWeeks"
-	case modelInputs.OpenSearchCalendarIntervalMonth:
-		aggFn = "toRelativeMonthNum"
-		addFn = "addMonths"
-	case modelInputs.OpenSearchCalendarIntervalQuarter:
-		aggFn = "toRelativeQuarterNum"
-		addFn = "addQuarters"
-	case modelInputs.OpenSearchCalendarIntervalYear:
-		aggFn = "toRelativeYearNum"
-		addFn = "addYears"
-	default:
-		return nil, nil, fmt.Errorf("invalid calendar interval: %s", options.BucketSize.CalendarInterval)
-	}
-
-	location, err := time.LoadLocation(options.TimeZone)
+	aggFn, addFn, location, err := getClickhouseHistogramSettings(options)
 	if err != nil {
 		return nil, nil, err
 	}

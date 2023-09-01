@@ -15,7 +15,7 @@ import {
 	GetErrorGroupsOpenSearchQuery,
 	GetErrorGroupsOpenSearchQueryVariables,
 } from '@graph/operations'
-import { ErrorGroup, Maybe, ProductType } from '@graph/schemas'
+import { ClickhouseQuery, ErrorGroup, Maybe, ProductType } from '@graph/schemas'
 import { Box, getNow } from '@highlight-run/ui'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
@@ -143,13 +143,32 @@ const SearchPanel = () => {
 					],
 				},
 			}
+			const clickhouseQuery: ClickhouseQuery = JSON.parse(searchQuery)
+			const newRules = clickhouseQuery.rules.filter(
+				(r) => r[0] !== 'error-field_timestamp',
+			)
+			newRules.push([
+				'error-field_timestamp',
+				'between_date',
+				new Date(Date.parse(lte)).toISOString() +
+					'_' +
+					new Date('2050-01-01').toISOString(),
+			])
+			clickhouseQuery.rules = newRules
+
 			return {
 				query: JSON.stringify(query),
 				count: PAGE_SIZE,
 				page: 1,
 				project_id: projectId!,
+				clickhouse_query: useClickhouse ? clickhouseQuery : undefined,
 			}
-		}, [backendSearchQuery?.searchQuery, projectId]),
+		}, [
+			backendSearchQuery?.searchQuery,
+			projectId,
+			searchQuery,
+			useClickhouse,
+		]),
 		moreDataQuery,
 		getResultCount: useCallback(
 			(result) => result?.data?.error_groups_opensearch.totalCount,
