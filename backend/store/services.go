@@ -38,7 +38,15 @@ func (store *Store) UpsertService(ctx context.Context, project model.Project, na
 		err := store.db.Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "name"}, {Name: "project_id"}},
 			DoUpdates: clause.AssignmentColumns([]string{"process_name", "process_version", "process_description"}),
-		}).FirstOrCreate(&service).Error
+		}).Create(&service).Error
+		if err != nil {
+			return nil, err
+		}
+
+		err = store.db.Model(&model.Service{}).Where(model.Service{
+			Name:      name,
+			ProjectID: project.ID,
+		}).Take(&service).Error
 
 		return &service, err
 	})
