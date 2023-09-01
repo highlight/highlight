@@ -87,9 +87,7 @@ const SearchForm = ({
 	})
 
 	const handleDatesChange = (dates: Date[]) => {
-		if (dates.length == 2) {
-			onDatesChange(dates[0], dates[1])
-		}
+			onDatesChange(dates[0] || startDate, dates[1] || endDate)
 	}
 
 	return (
