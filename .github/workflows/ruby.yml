@@ -30,9 +30,9 @@ jobs:
             - name: Rubocop
               run: bundle exec rubocop
             - name: Publish to RubyGems
-              - uses: dorny/paths-filter@v2
-                id: filter
-                with:
+              uses: dorny/paths-filter@v2
+              id: filter
+              with:
                   filters: |
                       version-file-changed:
                         - lib/highlight/version.rb
