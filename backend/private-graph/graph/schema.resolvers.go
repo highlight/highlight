@@ -668,22 +668,11 @@ func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID st
 	}
 
 	go func() {
-		_, err := r.getSessionScreenshot(context.Background(), session.ProjectID, session.ID, model.SessionExportFormatMP4, nil, nil)
+		_, err := r.getSessionScreenshot(context.Background(), session.ProjectID, session.ID, model.SessionExportFormatMP4, nil, nil, []string{*admin.Email})
 		if err != nil {
 			log.WithContext(context.Background()).WithError(err).Error("failed to export session video")
 		}
-
-		// TODO(vkorolik) what if ^ times out of the lambda dies?
-
-		user := session.Identifier
-		if session.Email != nil {
-			user = *session.Email
-		}
-
-		err = Email.SendSessionExportEmail(ctx, r.MailClient, session.ProjectID, session.SecureID, user, *admin.Email)
-		if err != nil {
-			log.WithContext(context.Background()).WithError(err).Error("failed to export session video")
-		}
+		// TODO(vkorolik) if it already existed, send email from here
 	}()
 	return true, nil
 }
@@ -1507,7 +1496,8 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		ctx := context.Background()
 		chunkIdx, chunkTs := r.GetSessionChunk(ctx, session.ID, sessionTimestamp)
 		log.WithContext(ctx).Infof("got chunk %d ts %d for session %d ts %d", chunkIdx, chunkTs, session.ID, sessionTimestamp)
-		resp, err := r.getSessionScreenshot(ctx, projectID, session.ID, model.SessionExportFormatPng, pointy.Int(chunkTs), pointy.Int(chunkIdx))
+		format := model.SessionExportFormatPng
+		resp, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, session.ID, pointy.Int(chunkTs), pointy.Int(chunkIdx), &format)
 		if err != nil {
 			log.WithContext(ctx).Errorf("failed to render screenshot for %d %d %d %s", projectID, session.ID, sessionTimestamp, err)
 		} else {

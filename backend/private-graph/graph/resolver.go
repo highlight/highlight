@@ -1323,14 +1323,12 @@ func (r *Resolver) GetSessionChunk(ctx context.Context, sessionID int, ts int) (
 	return
 }
 
-func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sessionID int, format model.SessionExportFormat, ts *int, chunk *int) (*lambda.SessionScreenshotResponse, error) {
+// TODO(vkorolik) should this be inlined
+func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sessionID int, format model.SessionExportFormat, ts *int, chunk *int, targetEmails []string) (*lambda.SessionScreenshotResponse, error) {
 	export := model.SessionExport{
-		SessionID: sessionID,
-		Type:      format,
-	}
-	if ts != nil {
-		t := time.UnixMilli(int64(*ts))
-		export.Start = &t
+		SessionID:    sessionID,
+		Type:         format,
+		TargetEmails: targetEmails,
 	}
 
 	tx := r.DB.Model(&export).Clauses(clause.OnConflict{
@@ -1346,6 +1344,7 @@ func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sess
 		}, nil
 	}
 
+	// TODO(vkorolik) will this need to be a stepfunction http trigger?
 	res, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, sessionID, ts, chunk, &format)
 	if err != nil {
 		return nil, e.Wrap(err, "failed to make screenshot render request")

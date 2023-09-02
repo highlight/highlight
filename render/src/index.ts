@@ -46,32 +46,26 @@ const media = async (event?: APIGatewayEvent) => {
 	}
 	let key = await getRenderExport(project, session, format, ts, tsEnd)
 	if (key === undefined) {
-		try {
-			const { dir, files } = await serialRender(project, session, {
-				ts,
-				tsEnd,
-				fps: 60,
-				video: args?.format === 'video/mp4',
-			})
-			let path = ''
-			if (args?.format === 'image/gif') {
-				path = await encodeGIF(dir)
-			} else {
-				path = files[0]
-			}
-			key = await uploadRenderExport(
-				project,
-				session,
-				format,
-				path,
-				ts,
-				tsEnd,
-			)
-			await saveSessionScreenshot(session, key)
-		} catch (e) {
-			// TODO(vkorolik) save error
-			await saveSessionScreenshotError(session, e)
+		const { dir, files } = await serialRender(project, session, {
+			ts,
+			tsEnd,
+			fps: 60,
+			video: args?.format === 'video/mp4',
+		})
+		let path = ''
+		if (args?.format === 'image/gif') {
+			path = await encodeGIF(dir)
+		} else {
+			path = files[0]
 		}
+		key = await uploadRenderExport(
+			project,
+			session,
+			format,
+			path,
+			ts,
+			tsEnd,
+		)
 	}
 
 	return {

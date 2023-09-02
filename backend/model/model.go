@@ -707,12 +707,11 @@ const (
 
 type SessionExport struct {
 	Model
-	SessionID int                 `gorm:"uniqueIndex:idx_session_exports"`
-	Type      SessionExportFormat `gorm:"uniqueIndex:idx_session_exports"`
-	URL       string
-	FPS       *int       `gorm:"uniqueIndex:idx_session_exports"`
-	Start     *time.Time `gorm:"uniqueIndex:idx_session_exports"`
-	End       *time.Time `gorm:"uniqueIndex:idx_session_exports"`
+	SessionID    int                 `gorm:"uniqueIndex:idx_session_exports"`
+	Type         SessionExportFormat `gorm:"uniqueIndex:idx_session_exports"`
+	URL          string
+	Error        string
+	TargetEmails pq.StringArray
 }
 
 type EventChunk struct {

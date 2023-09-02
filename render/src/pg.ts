@@ -41,14 +41,3 @@ export async function getSessionIntervals(_: number, session: number) {
 		end_time: r.end_time.getTime(),
 	})) as SessionInterval[]
 }
-
-export async function saveSessionScreenshot(session: number, key: string) {
-	const client = await getClient()
-	const res = await client.query(
-		`UPDATE session_exports
-			SET url = $2
-			WHERE session_id = $1`,
-		[session, key],
-	)
-	await client.end()
-}
