@@ -3,19 +3,17 @@ import { serialRender } from './serial'
 import { readFileSync } from 'fs'
 import { encodeGIF } from './ffmpeg'
 import { getRenderExport, uploadRenderExport } from './s3'
-import { saveSessionScreenshot } from './pg'
 
 interface Args {
 	project?: string
 	session?: string
+	format?: string
+	chunk?: string
 	ts?: string
 	tsEnd?: string
-	chunk?: string
-	format?: string
 }
 
-const screenshot = async (event?: APIGatewayEvent) => {
-	const args = event?.queryStringParameters as unknown as Args | undefined
+const screenshot = async (args?: Args) => {
 	const { files } = await serialRender(
 		Number(args?.project),
 		Number(args?.session),
@@ -35,8 +33,7 @@ const screenshot = async (event?: APIGatewayEvent) => {
 	}
 }
 
-const media = async (event?: APIGatewayEvent) => {
-	const args = event?.queryStringParameters as unknown as Args | undefined
+const media = async (args?: Args) => {
 	const { project, session, format, ts, tsEnd } = {
 		project: Number(args?.project),
 		session: Number(args?.session),
@@ -75,11 +72,14 @@ const media = async (event?: APIGatewayEvent) => {
 }
 
 export const handler = (event?: APIGatewayEvent) => {
-	const args = event?.queryStringParameters as unknown as Args | undefined
-	if (args?.format === 'image/gif' || args?.format === 'video/mp4') {
-		return media(event)
+	let args = event?.queryStringParameters as unknown as Args | undefined
+	if (args?.session === undefined) {
+		args = event as unknown as Args | undefined
 	}
-	return screenshot(event)
+	if (args?.format === 'image/gif' || args?.format === 'video/mp4') {
+		return media(args)
+	}
+	return screenshot(args)
 }
 
 if (process.env.DEV?.length) {

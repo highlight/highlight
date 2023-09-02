@@ -711,7 +711,7 @@ type SessionExport struct {
 	Type         SessionExportFormat `gorm:"uniqueIndex:idx_session_exports"`
 	URL          string
 	Error        string
-	TargetEmails pq.StringArray
+	TargetEmails pq.StringArray `gorm:"type:text[];"`
 }
 
 type EventChunk struct {
