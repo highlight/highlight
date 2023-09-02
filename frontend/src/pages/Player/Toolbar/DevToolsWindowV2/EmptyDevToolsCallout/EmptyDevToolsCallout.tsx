@@ -39,6 +39,9 @@ export const EmptyDevToolsCallout = ({
 }: Props) => {
 	return (
 		<Box
+			style={{
+				maxWidth: '340px',
+			}}
 			height="full"
 			width="full"
 			display="flex"
