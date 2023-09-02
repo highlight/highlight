@@ -50,13 +50,17 @@ export const EmptyDevToolsCallout = ({
 		>
 			<Callout
 				border
-				title={`Couldn't find any recorded ${
-					kind === Tab.Console
-						? 'console messages'
-						: kind === Tab.Network
-						? 'network requests'
-						: kind.toLocaleLowerCase()
-				}.`}
+				title={
+					!requestTypes.length && filter?.length
+						? `Only see one app version?`
+						: `Couldn't find any recorded ${
+								kind === Tab.Console
+									? 'console messages'
+									: kind === Tab.Network
+									? 'network requests'
+									: kind.toLocaleLowerCase()
+						  }.`
+				}
 				icon={() => (
 					<Box
 						borderRadius="5"
@@ -99,11 +103,8 @@ export const EmptyDevToolsCallout = ({
 				) : filter?.length ? (
 					<>
 						<Text color="n11">
-							Nothing matched filter '{filter}'
-						</Text>
-						<Text color="n11">
-							If you think something's wrong, feel free to reach
-							out to us!
+							Seems like there are no results for your search
+							entry. Try again with another retry!
 						</Text>
 					</>
 				) : (
@@ -115,24 +116,26 @@ export const EmptyDevToolsCallout = ({
 						</Text>
 					</>
 				)}
-				<Button
-					style={{
-						maxWidth: 'max-content',
-					}}
-					kind="secondary"
-					emphasis="high"
-					onClick={() => {
-						window.open(
-							kind === Tab.Console
-								? 'https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/console-messages'
-								: 'https://www.highlight.io/docs/general/product-features/error-monitoring/grouping-errors',
-							'_blank',
-						)
-					}}
-					trackingId="emptyDevToolsLearnMore"
-				>
-					Learn more
-				</Button>
+				{!requestTypes.length && filter?.length ? null : (
+					<Button
+						style={{
+							maxWidth: 'max-content',
+						}}
+						kind="secondary"
+						emphasis="high"
+						onClick={() => {
+							window.open(
+								kind === Tab.Console
+									? 'https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/console-messages'
+									: 'https://www.highlight.io/docs/general/product-features/error-monitoring/grouping-errors',
+								'_blank',
+							)
+						}}
+						trackingId="emptyDevToolsLearnMore"
+					>
+						Learn more
+					</Button>
+				)}
 			</Callout>
 		</Box>
 	)
