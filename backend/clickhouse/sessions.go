@@ -481,9 +481,6 @@ func parseGroup(admin *model.Admin, isAnd bool, rules []Rule, projectId int, sta
 	}
 
 	separator := " AND "
-	if !isAnd {
-		separator = " OR "
-	}
 
 	var valueBuilder strings.Builder
 	for idx, r := range rules {
