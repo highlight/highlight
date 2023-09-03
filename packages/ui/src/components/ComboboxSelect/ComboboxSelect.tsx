@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import {
 	useComboboxStore,
 	useSelectStore,
@@ -27,9 +27,9 @@ type Option = {
 type Props<T extends string | string[]> = {
 	label: string
 	icon?: React.ReactNode
-	value: T
+	value: T | undefined
 	valueRender: React.ReactNode
-	options: Option[]
+	options: Option[] | undefined
 	onChange: (value: T) => void
 	onChangeQuery?: (value: string) => void
 	queryPlaceholder?: string
@@ -37,6 +37,7 @@ type Props<T extends string | string[]> = {
 	creatableRender?: (key: string) => React.ReactNode | undefined
 	defaultOpen?: boolean
 	disabled?: boolean
+	loadingRender?: React.ReactNode
 }
 
 export const ComboboxSelect = <T extends string | string[]>({
@@ -52,6 +53,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 	creatableRender,
 	defaultOpen,
 	disabled,
+	loadingRender,
 }: Props<T>) => {
 	const isMultiselect = typeof value === 'object'
 
@@ -72,11 +74,17 @@ export const ComboboxSelect = <T extends string | string[]>({
 			}
 		},
 		value,
+		// setOpen: (open) => {
+		// 	// if (open && ) {
+		// 	// }
+		// },
 	})
 
 	const valueSet = new Set(value)
 
 	const query = combobox.getState().value
+
+	const isLoading = options === undefined
 
 	const queryOptions: Option[] =
 		query !== undefined && query !== '' && creatableRender !== undefined
@@ -89,7 +97,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 					.map((v) => ({ key: v, render: creatableRender(v) }))
 			: []
 
-	const allOptions = queryOptions.concat(createdOptions).concat(options)
+	const allOptions = queryOptions.concat(createdOptions).concat(options ?? [])
 
 	return (
 		<div>
@@ -112,10 +120,6 @@ export const ComboboxSelect = <T extends string | string[]>({
 				store={select}
 				className={styles.selectPopover}
 				gutter={4}
-				hideOnInteractOutside={(event) => {
-					console.log('hideOnInteractOutside', event)
-					return true
-				}}
 				autoFocusOnHide={false}
 			>
 				<PopoverArrow size={0} />
@@ -134,8 +138,12 @@ export const ComboboxSelect = <T extends string | string[]>({
 					store={combobox}
 					className={clsx([styles.comboboxList, 'hide-scrollbar'])}
 				>
+					{isLoading && (
+						<div className={styles.selectItem}>{loadingRender}</div>
+					)}
 					{allOptions.map((option: Option) => (
 						<ComboboxItem
+							focusOnHover
 							key={option.key}
 							className={styles.selectItem}
 							render={

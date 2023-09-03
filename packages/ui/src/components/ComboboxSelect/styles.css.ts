@@ -30,7 +30,6 @@ export const selectButton = style({
 export const combobox = style({
 	width: '100%',
 	border: 'none',
-	borderRadius: '6px 6px 0 0',
 	fontSize: '13px',
 	fontWeight: '500 !important',
 	selectors: {

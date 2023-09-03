@@ -550,7 +550,7 @@ const SelectPopout = ({
 		<ComboboxSelect
 			label=""
 			icon={icon}
-			value={value?.label ?? ''}
+			value={value?.label}
 			valueRender={valueRender !== undefined ? valueRender : label}
 			options={options.map((o) => ({
 				key: o.value,
