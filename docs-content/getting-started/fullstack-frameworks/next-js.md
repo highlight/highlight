@@ -271,7 +271,7 @@ export { register } from '../instrumentation'
 
 `instrumentation.ts` does not catch SSR errors from the App Router. App Router instead uses [error.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/error) to send server-side rendering errors to the client. We can catch and consume those error with a custom error page.
 
-These error will display as client errors, even though we know that they're 
+These errors will display as client errors, even though we know that they're server errors.
 
 ```javascript
 // src/app/error.tsx

@@ -15,10 +15,15 @@ import { Box } from '../Box/Box'
 
 type Props = {
 	children: React.ReactNode
+	className?: string
 }
 
-const TableComponent: React.FC<Props> = ({ children }) => {
-	return <Box width="full">{children}</Box>
+const TableComponent: React.FC<Props> = ({ children, className }) => {
+	return (
+		<Box className={className} width="full">
+			{children}
+		</Box>
+	)
 }
 
 type TableWithComponents = React.FC<Props> & {
