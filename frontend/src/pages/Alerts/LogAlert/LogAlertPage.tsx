@@ -8,13 +8,13 @@ import {
 	useUpdateLogAlertMutation,
 } from '@graph/hooks'
 import {
+	Ariakit,
 	Badge,
 	Box,
 	Column,
 	Container,
 	defaultPresets,
 	Form,
-	FormState,
 	getNow,
 	IconSolidCheveronDown,
 	IconSolidCheveronRight,
@@ -37,6 +37,7 @@ import {
 } from '@pages/Alerts/AlertConfigurationCard/AlertConfigurationConstants'
 import { useLogAlertsContext } from '@pages/Alerts/LogAlert/context'
 import {
+	AlertForm,
 	dedupeEnvironments,
 	EnvironmentSuggestion,
 } from '@pages/Alerts/utils/AlertsUtils'
@@ -54,11 +55,8 @@ import { DateTimeParam, StringParam, useQueryParam } from 'use-query-params'
 import { getSlackUrl } from '@/components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LoadingBox from '@/components/LoadingBox'
 import { namedOperations } from '@/graph/generated/operations'
-import {
-	DiscordChannelInput,
-	SanitizedSlackChannelInput,
-} from '@/graph/generated/schemas'
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
+import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
 
 import * as styles from './styles.css'
 
@@ -125,6 +123,7 @@ export const LogAlertPage = () => {
 			webhookDestinations: [],
 			emails: [],
 			threshold: undefined,
+			threshold_window: Number(DEFAULT_FREQUENCY),
 			frequency: Number(DEFAULT_FREQUENCY),
 			loaded: false,
 		},
@@ -169,6 +168,7 @@ export const LogAlertPage = () => {
 				),
 				emails: data?.log_alert.EmailsToNotify,
 				threshold: data?.log_alert.CountThreshold,
+				threshold_window: Number(DEFAULT_FREQUENCY),
 				frequency: data?.log_alert.ThresholdWindow,
 				loaded: true,
 			})
@@ -371,106 +371,114 @@ export const LogAlertPage = () => {
 				{isLoading && <LoadingBox />}
 				{!isLoading && (
 					<>
-						<Form store={formStore} resetOnSubmit={false}>
-							{header}
-							<Container
-								display="flex"
-								flexDirection="column"
-								py="24"
-								gap="40"
-							>
-								<Box
-									display="flex"
-									flexDirection="column"
-									width="full"
-									height="full"
-									gap="12"
-								>
+						{header}
+						<Container
+							display="flex"
+							flexDirection="column"
+							py="24"
+							gap="40"
+						>
+							<Form store={formStore} resetOnSubmit={false}>
+								<Stack gap="40">
 									<Box
 										display="flex"
-										alignItems="center"
+										flexDirection="column"
 										width="full"
-										justifyContent="space-between"
+										height="full"
+										gap="12"
 									>
 										<Box
 											display="flex"
 											alignItems="center"
-											gap="4"
-											color="weak"
+											width="full"
+											justifyContent="space-between"
 										>
-											<Tag
+											<Box
+												display="flex"
+												alignItems="center"
+												gap="4"
+												color="weak"
+											>
+												<Tag
+													kind="secondary"
+													size="medium"
+													shape="basic"
+													emphasis="high"
+													iconLeft={
+														<IconSolidSpeakerphone />
+													}
+													onClick={() => {
+														navigate(
+															`/${project_id}/alerts`,
+														)
+													}}
+												>
+													Alerts
+												</Tag>
+												<IconSolidCheveronRight />
+												<Text
+													color="moderate"
+													size="small"
+													weight="medium"
+													userSelect="none"
+												>
+													Log monitor
+												</Text>
+											</Box>
+											<PreviousDateRangePicker
+												selectedDates={selectedDates}
+												onDatesChange={setSelectedDates}
+												presets={defaultPresets}
+												minDate={
+													defaultPresets[5].startDate
+												}
 												kind="secondary"
 												size="medium"
-												shape="basic"
-												emphasis="high"
-												iconLeft={
-													<IconSolidSpeakerphone />
-												}
-												onClick={() => {
-													navigate(
-														`/${project_id}/alerts`,
-													)
-												}}
-											>
-												Alerts
-											</Tag>
-											<IconSolidCheveronRight />
-											<Text
-												color="moderate"
-												size="small"
-												weight="medium"
-												userSelect="none"
-											>
-												Log monitor
-											</Text>
+												emphasis="low"
+											/>
 										</Box>
-										<PreviousDateRangePicker
-											selectedDates={selectedDates}
-											onDatesChange={setSelectedDates}
-											presets={defaultPresets}
-											minDate={
-												defaultPresets[5].startDate
-											}
-											kind="secondary"
-											size="medium"
-											emphasis="low"
-										/>
-									</Box>
-									<Box cssClass={styles.queryContainer}>
-										<Search
-											initialQuery={initialQuery}
-											keys={keysData?.logs_keys ?? []}
+										<AlertTitleField />
+										<Box cssClass={styles.queryContainer}>
+											<Search
+												initialQuery={initialQuery}
+												keys={keysData?.logs_keys ?? []}
+												startDate={startDate}
+												endDate={endDate}
+												hideIcon
+												className={styles.combobox}
+												keysLoading={keysLoading}
+												placeholder="Define query..."
+												query={query}
+												setQuery={setQuery}
+												onFormSubmit={
+													handleSearchSubmit
+												}
+											/>
+										</Box>
+										<LogsHistogram
+											query={submittedQuery}
 											startDate={startDate}
 											endDate={endDate}
-											hideIcon
-											className={styles.combobox}
-											keysLoading={keysLoading}
-											placeholder="Define query..."
-											query={query}
-											setQuery={setQuery}
-											onFormSubmit={handleSearchSubmit}
-										/>
-									</Box>
-									<LogsHistogram
-										query={submittedQuery}
-										startDate={startDate}
-										endDate={endDate}
-										onDatesChange={(startDate, endDate) => {
-											setSelectedDates([
+											onDatesChange={(
 												startDate,
 												endDate,
-											])
-										}}
-										onLevelChange={() => {}}
-										outline
-										threshold={threshold}
-										belowThreshold={belowThreshold}
-										frequencySeconds={frequency}
-									/>
-								</Box>
-								<LogAlertForm />
-							</Container>
-						</Form>
+											) => {
+												setSelectedDates([
+													startDate,
+													endDate,
+												])
+											}}
+											onLevelChange={() => {}}
+											outline
+											threshold={threshold}
+											belowThreshold={belowThreshold}
+											frequencySeconds={frequency}
+										/>
+									</Box>
+									<LogAlertForm />
+								</Stack>
+							</Form>
+						</Container>
 					</>
 				)}
 			</Box>
@@ -480,8 +488,8 @@ export const LogAlertPage = () => {
 
 const LogAlertForm = () => {
 	const { projectId } = useProjectId()
-	const form = useForm() as FormState<LogMonitorForm>
-	const formState = form.getState()
+	const formStore = useForm() as Ariakit.FormStore<LogMonitorForm>
+	const formState = formStore.getState()
 
 	const { alertsPayload } = useLogAlertsContext()
 	const { slackLoading, syncSlack } = useSlackSync()
@@ -539,7 +547,8 @@ const LogAlertForm = () => {
 					<Column.Container gap="12">
 						<Column>
 							<Form.Input
-								name={form.names.threshold}
+								name={formStore.names.threshold}
+								value={formState.values.threshold}
 								type="number"
 								label="Alert threshold"
 								tag={
@@ -561,11 +570,11 @@ const LogAlertForm = () => {
 						<Column>
 							<Form.Select
 								label="Alert frequency"
-								name={form.names.frequency.toString()}
+								name={formStore.names.frequency.toString()}
 								value={formState.values.frequency}
 								onChange={(e) =>
-									form.setValue(
-										form.names.frequency,
+									formStore.setValue(
+										formStore.names.frequency,
 										e.target.value,
 									)
 								}
@@ -599,29 +608,17 @@ const LogAlertForm = () => {
 
 					<Box borderTop="dividerWeak" width="full" />
 
-					<Form.Input
-						name={form.names.name}
-						type="text"
-						placeholder="Alert name"
-						label="Name"
-						style={{
-							borderColor: formState.errors.name
-								? 'var(--color-red-500)'
-								: undefined,
-						}}
-					/>
-
 					<Form.NamedSection
 						label="Excluded environments"
-						name={form.names.excludedEnvironments}
+						name={formStore.names.excludedEnvironments}
 					>
 						<Select
 							aria-label="Excluded environments list"
 							placeholder="Select excluded environments"
 							options={environments}
 							onChange={(values: any): any =>
-								form.setValue(
-									form.names.excludedEnvironments,
+								formStore.setValue(
+									formStore.names.excludedEnvironments,
 									values,
 								)
 							}
@@ -644,7 +641,7 @@ const LogAlertForm = () => {
 					<Box borderTop="dividerWeak" width="full" />
 					<Form.NamedSection
 						label="Slack channels to notify"
-						name={form.names.slackChannels}
+						name={formStore.names.slackChannels}
 					>
 						<Select
 							aria-label="Slack channels to notify"
@@ -656,8 +653,8 @@ const LogAlertForm = () => {
 								setSlackSearchQuery(value)
 							}}
 							onChange={(values) => {
-								form.setValue(
-									form.names.slackChannels,
+								formStore.setValue(
+									formStore.names.slackChannels,
 									values.map((v: any) => ({
 										webhook_channel_name: v.label,
 										webhook_channel_id: v.value,
@@ -685,7 +682,7 @@ const LogAlertForm = () => {
 
 					<Form.NamedSection
 						label="Discord channels to notify"
-						name={form.names.discordChannels}
+						name={formStore.names.discordChannels}
 					>
 						<Select
 							aria-label="Discord channels to notify"
@@ -693,8 +690,8 @@ const LogAlertForm = () => {
 							options={discordChannels}
 							optionFilterProp="label"
 							onChange={(values) => {
-								form.setValue(
-									form.names.discordChannels,
+								formStore.setValue(
+									formStore.names.discordChannels,
 									values.map((v: any) => ({
 										name: v.label,
 										id: v.value,
@@ -720,14 +717,17 @@ const LogAlertForm = () => {
 
 					<Form.NamedSection
 						label="Emails to notify"
-						name={form.names.emails}
+						name={formStore.names.emails}
 					>
 						<Select
 							aria-label="Emails to notify"
 							placeholder="Select emails"
 							options={emails}
 							onChange={(values: any): any =>
-								form.setValue(form.names.emails, values)
+								formStore.setValue(
+									formStore.names.emails,
+									values,
+								)
 							}
 							value={formState.values.emails}
 							notFoundContent={<p>No email suggestions</p>}
@@ -738,14 +738,14 @@ const LogAlertForm = () => {
 
 					<Form.NamedSection
 						label="Webhooks to notify"
-						name={form.names.emails}
+						name={formStore.names.emails}
 					>
 						<Select
 							aria-label="Webhooks to notify"
 							placeholder="Enter webhook addresses"
 							onChange={(values: any): any =>
-								form.setValue(
-									form.names.webhookDestinations,
+								formStore.setValue(
+									formStore.names.webhookDestinations,
 									values,
 								)
 							}
@@ -803,18 +803,8 @@ const ThresholdTypeConfiguration = () => {
 	)
 }
 
-interface LogMonitorForm {
+interface LogMonitorForm extends AlertForm {
 	query: string
-	name: string
-	belowThreshold: boolean
-	threshold: number | undefined
-	frequency: number
-	excludedEnvironments: string[]
-	slackChannels: SanitizedSlackChannelInput[]
-	discordChannels: DiscordChannelInput[]
-	emails: string[]
-	webhookDestinations: string[]
-	loaded: boolean
 }
 
 export default LogAlertPage

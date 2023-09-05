@@ -1,0 +1,98 @@
+.narrowWrapper {
+	align-self: center;
+	width: 420px;
+}
+
+.headerIcon {
+	background: gold;
+	border-radius: 4rem;
+}
+
+.headerText,
+.tableHeaderText {
+	color: #1A1523;
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+.tableHeaderText {
+	margin-bottom: 0.75rem;
+}
+
+.subtitle {
+	font-size: 0.75rem;
+	font-style: normal;
+	font-weight: 500;
+	margin-bottom: 0.5rem;
+}
+
+.table {
+	border-radius: 6px;
+	border-top: 1px solid #ebe9eb;
+	overflow: hidden;
+
+}
+
+.goBackButton {
+	background: none;
+	box-shadow: none;
+	border: none;
+}
+
+.shareButton {
+	background: none;
+	border: 1px solid var(--interactive-outline-secondary-enabled, #DCDBDD);
+	box-shadow: none;
+}
+
+.bordered {
+	border: 1px solid var(--interactive-outline-secondary-enabled, #DCDBDD);
+	border-radius: 6px;
+	padding: 0.75rem 1rem;
+}
+
+
+.titleText {
+	color: var(--static-content-strong, #1A1523);
+	font-size: 0.8125rem;
+	font-weight: 600;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	line-height: 2rem;
+}
+
+.titleDescription {
+	font-size: 0.8125rem;
+}
+
+.searchTableHead {
+	font-size: 0.75rem;
+}
+
+.noResults {
+	border: 1px solid var(--interactive-outline-secondary-enabled, #DCDBDD);
+	border-width: 0 1px 1px 1px;
+	border-radius: 0 0 6px 6px;
+	padding: 0.75rem 1rem;
+
+	text-align: center;
+	font-weight: 600;
+	padding: 2rem;
+}
+
+.alert {
+	position: absolute;
+	top: 5rem;
+	left: 0;
+	right: 0;
+
+	display: flex;
+	justify-content: center;
+}
+
+.alert>div {
+	padding: 0.25rem 0.5rem;
+	background: #DCDBDD;
+	border-radius: 6px;
+}

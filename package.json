@@ -47,7 +47,7 @@
 		"docker:frontend": "yarn turbo run dev --filter frontend --filter highlight.run --filter @highlight-run/client",
 		"e2e:cloudflare": "yarn turbo run dev --filter cloudflare-worker...",
 		"e2e:nestjs": "yarn turbo run dev --filter nestjs",
-		"e2e:nextjs": "yarn turbo run dev --filter nextjs...",
+		"e2e:nextjs": "yarn turbo run dev --filter nextjs... --filter=!@highlight-run/client",
 		"e2e:remix": "yarn turbo run dev --filter remix...",
 		"enforce-size": "yarn turbo run enforce-size --filter frontend...",
 		"format-check": "prettier --check --ignore-unknown .",

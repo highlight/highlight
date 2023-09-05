@@ -615,3 +615,30 @@ func Test_WithinQuota_CommittedPricing(t *testing.T) {
 		assert.False(t, usageBasedWithinBillingQuota)
 	})
 }
+
+func TestInitializeSessionImpl(t *testing.T) {
+	ctx := context.TODO()
+
+	util.RunTestWithDBWipe(t, resolver.DB, func(t *testing.T) {
+		workspace := model.Workspace{}
+		resolver.DB.Create(&workspace)
+
+		project := model.Project{
+			WorkspaceID: workspace.ID,
+		}
+
+		resolver.DB.Create(&project)
+
+		session, err := resolver.InitializeSessionImpl(ctx, &kafka_queue.InitializeSessionArgs{
+			ProjectVerboseID: project.VerboseID(),
+			ServiceName:      "my-frontend-app",
+		})
+		assert.NoError(t, err)
+		assert.NotNil(t, session.ID)
+
+		service, err := resolver.Store.FindService(ctx, project.ID, "my-frontend-app")
+
+		assert.NoError(t, err)
+		assert.NotNil(t, service.ID)
+	})
+}
