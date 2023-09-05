@@ -158,6 +158,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 		<>
 			<HighlightInit
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
+				serviceName="my-nextjs-frontend"
 				tracingOrigins
 				networkRecording={{
 					enabled: true,
@@ -191,6 +192,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 		<>
 			<HighlightInit
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
+				serviceName="my-nextjs-frontend"
 				tracingOrigins
 				networkRecording={{
 					enabled: true,

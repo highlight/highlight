@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/integrations/github"
@@ -85,26 +86,25 @@ func (store *Store) FetchFileFromGitHub(ctx context.Context, trace *privateModel
 		return nil, err
 	}
 
-	if fileContent == nil {
-		return nil, fmt.Errorf("GitHub returned empty content for %s in %s", fileName, *service.GithubRepoPath)
-	}
+	var encodedFileContent *string
+	if fileContent != nil {
+		encodedFileContent = fileContent.Content
+		// some files are too large to fetch from the GitHub API so we fetch via a separate API request
+		if *encodedFileContent == "" && fileContent.SHA != nil {
+			blobContent, _, err := gitHubClient.GetRepoBlob(ctx, *service.GithubRepoPath, *fileContent.SHA)
+			if err != nil {
+				return nil, err
+			}
 
-	encodedFileContent := fileContent.Content
-	// some files are too large to fetch from the GitHub API so we fetch via a separate API request
-	if *encodedFileContent == "" && fileContent.SHA != nil {
-		blobContent, _, err := gitHubClient.GetRepoBlob(ctx, *service.GithubRepoPath, *fileContent.SHA)
-		if err != nil {
-			return nil, err
+			encodedFileContent = blobContent.Content
 		}
-
-		encodedFileContent = blobContent.Content
 	}
 
 	return encodedFileContent, nil
 }
 
 func (store *Store) GitHubGitSHA(ctx context.Context, gitHubRepoPath string, serviceVersion string, gitHubClient github.ClientInterface) (*string, error) {
-	if regexp.MustCompile(`\b[0-9a-f]{5,40}\b`).MatchString(serviceVersion) {
+	if regexp.MustCompile(`^[0-9a-f]{5,40}$`).MatchString(serviceVersion) {
 		return &serviceVersion, nil
 	}
 
@@ -124,31 +124,32 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 	if err != nil || gitHubFileBytes == nil {
 		encodedFileContent, err := store.FetchFileFromGitHub(ctx, trace, service, fileName, serviceVersion, gitHubClient)
 		if err != nil {
-			return trace, err
-		}
-
-		if encodedFileContent == nil {
-			return trace, fmt.Errorf("Unable to fetch %s in %s", fileName, *service.GithubRepoPath)
+			return nil, err
+		} else if encodedFileContent == nil {
+			return nil, errors.New("Unable to fetch valid content from GitHub")
 		}
 
 		gitHubFileBytes = []byte(*encodedFileContent)
 
 		_, err = store.storageClient.PushGitHubFile(ctx, *service.GithubRepoPath, fileName, serviceVersion, gitHubFileBytes)
 		if err != nil {
-			log.WithContext(ctx).Error(err)
+			log.WithContext(ctx).Error(errors.Wrap(err, "Error uploading to storage"))
 		}
 	}
 
 	gitHubFileString := string(gitHubFileBytes)
 	rawDecodedText, err := base64.StdEncoding.DecodeString(gitHubFileString)
-	if err != nil || len(rawDecodedText) == 0 {
-		return trace, err
+	if err != nil {
+		return nil, err
+	}
+	if len(rawDecodedText) == 0 {
+		return nil, errors.New("Empty content decoded from base64")
 	}
 
 	lines := strings.Split(string(rawDecodedText), "\n")
 	lineContent, beforeContent, afterContent, err := store.ExpandedStackTrace(ctx, lines, *lineNumber)
 	if err != nil {
-		return trace, err
+		return nil, err
 	}
 
 	newStackTraceInput := privateModel.ErrorTrace{
@@ -164,19 +165,29 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 	return &newStackTraceInput, nil
 }
 
-func (store *Store) GitHubEnhancedStakeTrace(ctx context.Context, stackTrace []*privateModel.ErrorTrace, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject, serviceName string, serviceVersion string) ([]*privateModel.ErrorTrace, error) {
-	if serviceName == "" {
+func (store *Store) GitHubEnhancedStackTrace(ctx context.Context, stackTrace []*privateModel.ErrorTrace, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject) ([]*privateModel.ErrorTrace, error) {
+	if errorObj.ServiceName == "" {
+		log.WithContext(ctx).WithField("error_object", errorObj).Info("Cannot enhance stacktrace for error without service name.")
 		return nil, nil
 	}
 
-	service, err := store.FindService(ctx, project.ID, serviceName)
-	if err != nil || service == nil || service.GithubRepoPath == nil || service.Status != "healthy" {
+	service, err := store.FindService(ctx, project.ID, errorObj.ServiceName)
+	if err != nil {
 		return nil, err
+	} else if service == nil {
+		log.WithContext(ctx).WithField("error_object", errorObj).Info("No service found for error.")
+		return nil, nil
+	} else if service.GithubRepoPath == nil || service.Status != "healthy" {
+		log.WithContext(ctx).WithFields(log.Fields{"error_object": errorObj, "service": service}).Info("Cannot enhance errors for service.")
+		return nil, nil
 	}
 
 	gitHubAccessToken, err := store.integrationsClient.GetWorkspaceAccessToken(ctx, workspace, privateModel.IntegrationTypeGitHub)
-	if err != nil || gitHubAccessToken == nil {
+	if err != nil {
 		return nil, err
+	} else if gitHubAccessToken == nil {
+		log.WithContext(ctx).WithField("error_object", errorObj).Info("No GitHub token found for error workspace.")
+		return nil, nil
 	}
 
 	client, err := github.NewClient(ctx, *gitHubAccessToken)
@@ -184,7 +195,7 @@ func (store *Store) GitHubEnhancedStakeTrace(ctx context.Context, stackTrace []*
 		return nil, err
 	}
 
-	validServiceVersion, err := store.GitHubGitSHA(ctx, *service.GithubRepoPath, serviceVersion, client)
+	validServiceVersion, err := store.GitHubGitSHA(ctx, *service.GithubRepoPath, errorObj.ServiceVersion, client)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +215,7 @@ func (store *Store) GitHubEnhancedStakeTrace(ctx context.Context, stackTrace []*
 		}
 
 		if trace.FileName == nil || trace.LineNumber == nil {
-			log.WithContext(ctx).Error(fmt.Errorf("Cannot enhance trace with GitHub with invalid values: %+v", trace))
+			log.WithContext(ctx).WithField("frame", trace).Info(fmt.Errorf("Cannot enhance trace frame with GitHub with invalid values"))
 			newMappedStackTrace = append(newMappedStackTrace, trace)
 			continue
 		}
@@ -222,13 +233,17 @@ func (store *Store) GitHubEnhancedStakeTrace(ctx context.Context, stackTrace []*
 			continue
 		}
 
+		filesEnhanced += 1
 		enhancedTrace, err := store.EnhanceTraceWithGitHub(ctx, trace, service, *validServiceVersion, fileName, client)
 		if err != nil {
-			log.WithContext(ctx).Error(err)
+			log.WithContext(ctx).WithField("frame", trace).Error(errors.Wrap(err, "Error enhancing stacktrace frame from GitHub"))
 		}
 
-		filesEnhanced += 1
-		newMappedStackTrace = append(newMappedStackTrace, enhancedTrace)
+		if enhancedTrace == nil {
+			newMappedStackTrace = append(newMappedStackTrace, trace)
+		} else {
+			newMappedStackTrace = append(newMappedStackTrace, enhancedTrace)
+		}
 	}
 
 	return newMappedStackTrace, nil
@@ -245,21 +260,25 @@ func (store *Store) StructuredStackTrace(ctx context.Context, stackTrace string)
 	return structuredStackTrace, err
 }
 
-func (store *Store) EnhancedStackTrace(ctx context.Context, stackTrace string, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject, serviceName string, serviceVersion string) (*string, []*privateModel.ErrorTrace, error) {
+// should always return error stacktrace, returned error will be logged, return enhanced stacktrace string when successfully enhanced
+func (store *Store) EnhancedStackTrace(ctx context.Context, stackTrace string, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject) (*string, []*privateModel.ErrorTrace, error) {
 	structuredStackTrace, err := store.StructuredStackTrace(ctx, stackTrace)
 	if err != nil {
-		return nil, structuredStackTrace, err
+		return nil, structuredStackTrace, errors.Wrap(err, "Error parsing stacktrace to enhance")
 	}
 
 	var newMappedStackTraceString *string
-	mappedStackTrace, err := store.GitHubEnhancedStakeTrace(ctx, structuredStackTrace, workspace, project, errorObj, serviceName, serviceVersion)
-	if err != nil || mappedStackTrace == nil {
-		return nil, structuredStackTrace, err
+	mappedStackTrace, err := store.GitHubEnhancedStackTrace(ctx, structuredStackTrace, workspace, project, errorObj)
+	if err != nil {
+		return nil, structuredStackTrace, errors.Wrap(err, "Error enhancing stacktrace")
+	}
+	if mappedStackTrace == nil {
+		return nil, structuredStackTrace, nil
 	}
 
 	mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
 	if err != nil {
-		return nil, structuredStackTrace, err
+		return nil, structuredStackTrace, errors.Wrap(err, "Error parsing enhanced stacktrace")
 	}
 
 	mappedStackTraceString := string(mappedStackTraceBytes)

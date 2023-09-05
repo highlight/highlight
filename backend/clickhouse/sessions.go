@@ -480,24 +480,21 @@ func parseGroup(admin *model.Admin, isAnd bool, rules []Rule, projectId int, sta
 		return "", errors.New("unexpected 0 rules")
 	}
 
-	separator := " AND "
+	joinFn := sb.And
 	if !isAnd {
-		separator = " OR "
+		joinFn = sb.Or
 	}
 
-	var valueBuilder strings.Builder
-	for idx, r := range rules {
-		if idx > 0 {
-			valueBuilder.WriteString(separator)
-		}
+	exprs := []string{}
+	for _, r := range rules {
 		str, err := parseRule(admin, r, projectId, start, end, sb)
 		if err != nil {
 			return "", err
 		}
-		valueBuilder.WriteString(str)
+		exprs = append(exprs, str)
 	}
 
-	return valueBuilder.String(), nil
+	return joinFn(exprs...), nil
 }
 
 func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {

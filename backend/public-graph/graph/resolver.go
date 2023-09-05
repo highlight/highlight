@@ -2202,7 +2202,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		var structuredStackTrace []*privateModel.ErrorTrace
 
 		if settings.EnableEnhancedErrors {
-			mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, v.Service.Name, v.Service.Version)
+			mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert)
 		} else {
 			structuredStackTrace, err = r.Store.StructuredStackTrace(ctx, v.StackTrace)
 		}

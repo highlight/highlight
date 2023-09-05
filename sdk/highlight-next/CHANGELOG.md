@@ -50,3 +50,15 @@
 
 - Removing exports for `@highlight-run/next` and `@highlight-run/next/highlight-init`. Import from `@highlight-run/next/server` and `@highlight-run/next/client` instead.
 - Adding `excludedHostnames?: string[]` to `HighlightInit` props. Pass in a list of full or partial hostnames to prevent tracking: `excludedHostnames={['localhost', 'staging']}`.
+
+### 4.1.0
+
+### Minor changes
+
+- Added support for setting metadata on `consumeError`
+
+### 4.2.0
+
+### Minor changes
+
+- Added support for setting `serviceName`
