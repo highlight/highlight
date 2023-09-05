@@ -3,8 +3,8 @@ package io.highlight.log.java;
 import java.util.Objects;
 import java.util.logging.Logger;
 
+import io.highlight.log.api.HighlightExtension;
 import io.highlight.sdk.Highlight;
-import io.highlight.sdk.api.HighlightExtension;
 
 public class HighlightJavaExtension implements HighlightExtension {
 

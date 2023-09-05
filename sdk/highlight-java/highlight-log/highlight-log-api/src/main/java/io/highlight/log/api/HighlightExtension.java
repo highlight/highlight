@@ -1,4 +1,4 @@
-package io.highlight.sdk.api;
+package io.highlight.log.api;
 
 public interface HighlightExtension {
 

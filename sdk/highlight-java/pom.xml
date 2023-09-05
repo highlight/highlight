@@ -59,6 +59,7 @@
 		<plugin.source.version>3.2.1</plugin.source.version>
 		<plugin.gpg.version>3.0.1</plugin.gpg.version>
 		<plugin.staging-maven.version>1.6.13</plugin.staging-maven.version>
+		<plugin.flatten.version>1.5.0</plugin.flatten.version>
 	</properties>
 
 	<repositories>
@@ -132,6 +133,10 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${plugin.surefire.version}</version>
+				<configuration>
+					<junitArtifactName>org.junit.jupiter:junit-jupiter</junitArtifactName>
+					<trimStackTrace>false</trimStackTrace>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -188,7 +193,40 @@
 								<include>*</include>
 							</includes>
 						</filter>
+						<filter>
+							<artifact>*:*</artifact>
+							<excludes>
+								<exclude>META-INF/*.SF</exclude>
+								<exclude>META-INF/*.DSA</exclude>
+								<exclude>META-INF/*.RSA</exclude>
+							</excludes>
+						</filter>
 					</filters>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>flatten-maven-plugin</artifactId>
+				<version>${plugin.flatten.version}</version>
+				<executions>
+					<execution>
+						<id>flatten</id>
+						<phase>package</phase>
+						<goals>
+							<goal>flatten</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>flatten.clean</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<updatePomFile>true</updatePomFile>
+					<flattenMode>clean</flattenMode>
 				</configuration>
 			</plugin>
 			<plugin>
