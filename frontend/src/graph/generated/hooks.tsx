@@ -4522,8 +4522,8 @@ export type DeleteSessionsMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteSessionsMutationVariables
 >
 export const ExportSessionDocument = gql`
-	mutation ExportSession($session_id: ID!) {
-		exportSession(session_id: $session_id)
+	mutation ExportSession($session_secure_id: String!) {
+		exportSession(session_secure_id: $session_secure_id)
 	}
 `
 export type ExportSessionMutationFn = Apollo.MutationFunction<
@@ -4544,7 +4544,7 @@ export type ExportSessionMutationFn = Apollo.MutationFunction<
  * @example
  * const [exportSessionMutation, { data, loading, error }] = useExportSessionMutation({
  *   variables: {
- *      session_id: // value for 'session_id'
+ *      session_secure_id: // value for 'session_secure_id'
  *   },
  * });
  */
@@ -5859,6 +5859,66 @@ export type GetSessionInsightLazyQueryHookResult = ReturnType<
 export type GetSessionInsightQueryResult = Apollo.QueryResult<
 	Types.GetSessionInsightQuery,
 	Types.GetSessionInsightQueryVariables
+>
+export const GetSessionExportsDocument = gql`
+	query GetSessionExports {
+		session_exports {
+			id
+			session_id
+			type
+			url
+			error
+			target_emails
+		}
+	}
+`
+
+/**
+ * __useGetSessionExportsQuery__
+ *
+ * To run a query within a React component, call `useGetSessionExportsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionExportsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionExportsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetSessionExportsQuery(
+	baseOptions?: Apollo.QueryHookOptions<
+		Types.GetSessionExportsQuery,
+		Types.GetSessionExportsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetSessionExportsQuery,
+		Types.GetSessionExportsQueryVariables
+	>(GetSessionExportsDocument, baseOptions)
+}
+export function useGetSessionExportsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetSessionExportsQuery,
+		Types.GetSessionExportsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetSessionExportsQuery,
+		Types.GetSessionExportsQueryVariables
+	>(GetSessionExportsDocument, baseOptions)
+}
+export type GetSessionExportsQueryHookResult = ReturnType<
+	typeof useGetSessionExportsQuery
+>
+export type GetSessionExportsLazyQueryHookResult = ReturnType<
+	typeof useGetSessionExportsLazyQuery
+>
+export type GetSessionExportsQueryResult = Apollo.QueryResult<
+	Types.GetSessionExportsQuery,
+	Types.GetSessionExportsQueryVariables
 >
 export const GetSessionCommentsDocument = gql`
 	query GetSessionComments($session_secure_id: String!) {

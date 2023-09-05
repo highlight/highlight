@@ -8,6 +8,7 @@ import { FilterExtensionForm } from '@pages/ProjectSettings/FilterExtensionForm/
 import { NetworkRecordingForm } from '@pages/ProjectSettings/NetworkRecordingForm/NetworkRecordingForm'
 import { RageClicksForm } from '@pages/ProjectSettings/RageClicksForm/RageClicksForm'
 import { ServicesTable } from '@pages/ProjectSettings/ServicesTable/ServicesTable'
+import { SessionExportForm } from '@pages/ProjectSettings/SessionExportForm/SessionExportForm'
 import SourcemapSettings from '@pages/WorkspaceSettings/SourcemapSettings/SourcemapSettings'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
@@ -157,6 +158,7 @@ const ProjectSettings = () => {
 											<FilterSessionsWithoutErrorForm />
 											<RageClicksForm />
 											<NetworkRecordingForm />
+											<SessionExportForm />
 										</Stack>
 									),
 								},

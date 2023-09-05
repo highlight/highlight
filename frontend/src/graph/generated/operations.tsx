@@ -1285,7 +1285,7 @@ export type DeleteSessionsMutation = { __typename?: 'Mutation' } & Pick<
 >
 
 export type ExportSessionMutationVariables = Types.Exact<{
-	session_id: Types.Scalars['ID']
+	session_secure_id: Types.Scalars['String']
 }>
 
 export type ExportSessionMutation = { __typename?: 'Mutation' } & Pick<
@@ -1844,6 +1844,19 @@ export type GetSessionInsightQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'SessionInsight' } & Pick<
 			Types.SessionInsight,
 			'id' | 'insight'
+		>
+	>
+}
+
+export type GetSessionExportsQueryVariables = Types.Exact<{
+	[key: string]: never
+}>
+
+export type GetSessionExportsQuery = { __typename?: 'Query' } & {
+	session_exports: Array<
+		{ __typename?: 'SessionExport' } & Pick<
+			Types.SessionExport,
+			'id' | 'session_id' | 'type' | 'url' | 'error' | 'target_emails'
 		>
 	>
 }
@@ -4642,6 +4655,7 @@ export const namedOperations = {
 		GetWorkspaceAdminsByProjectId: 'GetWorkspaceAdminsByProjectId' as const,
 		GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,
 		GetSessionInsight: 'GetSessionInsight' as const,
+		GetSessionExports: 'GetSessionExports' as const,
 		GetSessionComments: 'GetSessionComments' as const,
 		GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
 		isSessionPending: 'isSessionPending' as const,

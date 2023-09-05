@@ -668,11 +668,37 @@ func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID st
 	}
 
 	go func() {
-		_, err := r.getSessionScreenshot(context.Background(), session.ProjectID, session.ID, model.SessionExportFormatMP4, nil, nil, []string{*admin.Email})
+		export := model.SessionExport{
+			SessionID:    session.ID,
+			Type:         model.SessionExportFormatMP4,
+			TargetEmails: []string{*admin.Email},
+		}
+
+		tx := r.DB.Model(&export).Clauses(clause.OnConflict{
+			Columns: []clause.Column{{Name: "session_id"}, {Name: "type"}, {Name: "fps"}, {Name: "start"}, {Name: "end"}},
+		}).FirstOrCreate(&export)
+		if tx.Error != nil {
+			log.WithContext(context.Background()).WithError(err).Error("failed to create session export record")
+			return
+		}
+
+		if tx.RowsAffected == 0 {
+			user := session.ClientID
+			if session.Email != nil {
+				user = *session.Email
+			}
+			err := Email.SendSessionExportEmail(context.Background(), r.MailClient, session.ProjectID, session.SecureID, user, *admin.Email)
+			if err != nil {
+				log.WithContext(context.Background()).WithError(err).Error("failed to send email for existing export")
+			}
+			return
+		}
+
+		// TODO(vkorolik) will this need to be a stepfunction http trigger?
+		_, err := r.LambdaClient.GetSessionScreenshot(context.Background(), session.ProjectID, session.ID, nil, nil, &export.Type)
 		if err != nil {
 			log.WithContext(context.Background()).WithError(err).Error("failed to export session video")
 		}
-		// TODO(vkorolik) if it already existed, send email from here
 	}()
 	return true, nil
 }
@@ -7824,6 +7850,15 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 	return insight, nil
 }
 
+// SessionExports is the resolver for the session_exports field.
+func (r *queryResolver) SessionExports(ctx context.Context) ([]*model.SessionExport, error) {
+	var sessionExports []*model.SessionExport
+	if err := r.DB.Model(&model.SessionExport{}).Order("id DESC").Scan(&sessionExports).Error; err != nil {
+		return nil, err
+	}
+	return sessionExports, nil
+}
+
 // SystemConfiguration is the resolver for the system_configuration field.
 func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemConfiguration, error) {
 	return r.Store.GetSystemConfiguration(ctx)
@@ -8125,6 +8160,11 @@ GROUP BY
 	return tagsResponse, nil
 }
 
+// TargetEmails is the resolver for the target_emails field.
+func (r *sessionExportResolver) TargetEmails(ctx context.Context, obj *model.SessionExport) ([]string, error) {
+	panic(fmt.Errorf("not implemented: TargetEmails - target_emails"))
+}
+
 // SessionPayloadAppended is the resolver for the session_payload_appended field.
 func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
 	ch := make(chan *model.SessionPayload)
@@ -8229,6 +8269,9 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
 }
 
+// SessionExport returns generated.SessionExportResolver implementation.
+func (r *Resolver) SessionExport() generated.SessionExportResolver { return &sessionExportResolver{r} }
+
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
@@ -8253,5 +8296,6 @@ type serviceResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+type sessionExportResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }

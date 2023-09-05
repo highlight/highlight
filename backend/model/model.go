@@ -135,6 +135,7 @@ var Models = []interface{}{
 	&Admin{},
 	&Session{},
 	&SessionInterval{},
+	&SessionExport{},
 	&TimelineIndicatorEvent{},
 	&DailySessionCount{},
 	&DailyErrorCount{},

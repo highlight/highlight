@@ -71,7 +71,6 @@ type SessionScreenshotResponse struct {
 	Image []byte
 }
 
-// TODO(vkorolik) audit usage
 func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts *int, chunk *int, format *model.SessionExportFormat) (*SessionScreenshotResponse, error) {
 	host := "https://ygh5bj5f646ix4pixknhvysrje0haeoi.lambda-url.us-east-2.on.aws"
 	url := fmt.Sprintf("%s/session-screenshots?project=%d&session=%d", host, projectID, sessionID)

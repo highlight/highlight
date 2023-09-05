@@ -427,8 +427,9 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 						session_id: session.id,
 					},
 				})
+				// TODO(vkorolik) link to a tracking page in the settings
 				message.info(
-					'You will receive an email once the session is ready. Track here.',
+					'You will receive an email once the session is ready.',
 				)
 			} catch (e) {
 				message.error(`An error occurred exporting the session: ${e}`)

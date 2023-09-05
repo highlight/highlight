@@ -1564,6 +1564,15 @@ type SystemConfiguration {
 	maintenance_end: Timestamp
 }
 
+type SessionExport {
+	id: ID!
+	session_id: ID!
+	type: String!
+	url: String!
+	error: String!
+	target_emails: [String!]!
+}
+
 enum EmailOptOutCategory {
 	All
 	Digests
@@ -1899,6 +1908,7 @@ type Query {
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
+	session_exports: [SessionExport!]!
 	system_configuration: SystemConfiguration!
 
 	services(

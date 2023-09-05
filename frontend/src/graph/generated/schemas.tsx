@@ -1345,7 +1345,7 @@ export type MutationEmailSignupArgs = {
 }
 
 export type MutationExportSessionArgs = {
-	session_id: Scalars['ID']
+	session_secure_id: Scalars['String']
 }
 
 export type MutationJoinWorkspaceArgs = {
@@ -1805,6 +1805,7 @@ export type Query = {
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
 	session_comments_for_project: Array<Maybe<SessionComment>>
+	session_exports: Array<SessionExport>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
 	sessions_clickhouse: SessionResults
@@ -2843,6 +2844,16 @@ export enum SessionExcludedReason {
 	NoUserEvents = 'NoUserEvents',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
 	RetentionPeriodExceeded = 'RetentionPeriodExceeded',
+}
+
+export type SessionExport = {
+	__typename?: 'SessionExport'
+	error: Scalars['String']
+	id: Scalars['ID']
+	session_id: Scalars['ID']
+	target_emails: Array<Scalars['String']>
+	type: Scalars['String']
+	url: Scalars['String']
 }
 
 export type SessionInsight = {

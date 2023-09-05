@@ -1323,35 +1323,6 @@ func (r *Resolver) GetSessionChunk(ctx context.Context, sessionID int, ts int) (
 	return
 }
 
-// TODO(vkorolik) should this be inlined
-func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sessionID int, format model.SessionExportFormat, ts *int, chunk *int, targetEmails []string) (*lambda.SessionScreenshotResponse, error) {
-	export := model.SessionExport{
-		SessionID:    sessionID,
-		Type:         format,
-		TargetEmails: targetEmails,
-	}
-
-	tx := r.DB.Model(&export).Clauses(clause.OnConflict{
-		Columns: []clause.Column{{Name: "session_id"}, {Name: "type"}, {Name: "fps"}, {Name: "start"}, {Name: "end"}},
-	}).FirstOrCreate(&export)
-	if tx.Error != nil {
-		return nil, tx.Error
-	}
-
-	if tx.RowsAffected == 0 {
-		return &lambda.SessionScreenshotResponse{
-			URL: export.URL,
-		}, nil
-	}
-
-	// TODO(vkorolik) will this need to be a stepfunction http trigger?
-	res, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, sessionID, ts, chunk, &format)
-	if err != nil {
-		return nil, e.Wrap(err, "failed to make screenshot render request")
-	}
-	return res, nil
-}
-
 func (r *Resolver) getSessionInsightPrompt(ctx context.Context, events []interface{}) (string, error) {
 	parsedEvents, err := parse.FilterEventsForInsights(events)
 	if err != nil {
