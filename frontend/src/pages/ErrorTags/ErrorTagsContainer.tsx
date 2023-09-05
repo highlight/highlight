@@ -4,7 +4,6 @@ import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { Outlet } from 'react-router-dom'
 
 import headerStyles from '../../components/Header/Header.module.css'
-import { containerContentStyles } from './style.css'
 
 export function ErrorTagsContainer() {
 	return (
