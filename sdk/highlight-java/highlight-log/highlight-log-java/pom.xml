@@ -30,7 +30,7 @@
 
 	<properties>
 		<maven.install.skip>false</maven.install.skip>
-        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.deploy.skip>false</maven.deploy.skip>
 		<skipStaging>false</skipStaging>
 	</properties>
 
