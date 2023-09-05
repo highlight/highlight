@@ -11,7 +11,7 @@ jobs:
     yarn-monorepo:
         name: Build Yarn Turborepo
         timeout-minutes: 30
-        runs-on: ubuntu-latest
+        runs-on: buildjet-4vcpu-ubuntu-2204
         # configures turborepo Remote Caching
         env:
             TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
