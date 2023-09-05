@@ -263,15 +263,16 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 		}
 	}
 
+	var err error
+	fields.projectIDInt, err = projectToInt(fields.projectID)
+
 	if fields.projectIDInt == 1 && util.IsProduction() {
 		if fields.serviceName == "all" || fields.serviceName == "" {
 			fields.external = true
 			fields.attrs["service.external"] = "true"
 		}
 	}
-
-	var err error
-	fields.projectIDInt, err = projectToInt(fields.projectID)
+	
 	return fields, err
 }
 
