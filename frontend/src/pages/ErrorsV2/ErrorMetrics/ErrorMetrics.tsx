@@ -8,6 +8,7 @@ import useDataTimeRange from '@hooks/useDataTimeRange'
 import { ErrorDistributions } from '@pages/ErrorsV2/ErrorMetrics/ErrorDistributions'
 import moment from 'moment'
 import React, { useEffect, useState } from 'react'
+import { useLocalStorage } from 'react-use'
 
 import styles from './ErrorMetrics.module.css'
 
@@ -48,6 +49,10 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 		start: string
 		end: string
 	}>({ start: '', end: '' })
+	const [useClickhouse] = useLocalStorage(
+		'highlight-clickhouse-errors',
+		false,
+	)
 
 	const { data: frequencies } = useGetErrorGroupFrequenciesQuery({
 		variables: {
@@ -63,6 +68,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 				),
 			} as ErrorGroupFrequenciesParamsInput,
 			metric: 'count',
+			use_clickhouse: useClickhouse,
 		},
 		skip: !errorGroup?.secure_id,
 	})
