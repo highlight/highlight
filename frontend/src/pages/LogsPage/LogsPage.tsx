@@ -6,7 +6,6 @@ import { IntegrationCta } from '@pages/LogsPage/IntegrationCta'
 import LogsCount from '@pages/LogsPage/LogsCount/LogsCount'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
 import { LogsTable } from '@pages/LogsPage/LogsTable/LogsTable'
-import { SearchForm } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useGetLogs } from '@pages/LogsPage/useGetLogs'
 import { useParams } from '@util/react-router/useParams'
 import React, { useRef } from 'react'
@@ -19,6 +18,7 @@ import {
 	withDefault,
 } from 'use-query-params'
 
+import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import { OverageCard } from '@/pages/LogsPage/OverageCard/OverageCard'
 
 export const QueryParam = withDefault(StringParam, '')

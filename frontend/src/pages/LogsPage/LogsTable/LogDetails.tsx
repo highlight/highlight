@@ -26,7 +26,7 @@ import {
 	LogsSearchParam,
 	quoteQueryValue,
 	stringifyLogsQuery,
-} from '@pages/LogsPage/SearchForm/utils'
+} from '@/components/Search/SearchForm/utils'
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { Row } from '@tanstack/react-table'

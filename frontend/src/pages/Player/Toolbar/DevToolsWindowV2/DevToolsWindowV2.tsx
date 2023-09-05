@@ -14,7 +14,7 @@ import {
 import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import { useProjectId } from '@hooks/useProjectId'
 import { useWindowSize } from '@hooks/useWindowSize'
-import { getLogsURLForSession } from '@pages/LogsPage/SearchForm/utils'
+import { getLogsURLForSession } from '@/components/Search/SearchForm/utils'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'

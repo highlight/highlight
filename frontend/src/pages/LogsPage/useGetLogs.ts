@@ -10,7 +10,7 @@ import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import {
 	buildLogsQueryForServer,
 	parseLogsQuery,
-} from '@pages/LogsPage/SearchForm/utils'
+} from '@/components/Search/SearchForm/utils'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'

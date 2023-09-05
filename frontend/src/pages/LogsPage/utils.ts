@@ -2,7 +2,7 @@ import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import moment from 'moment'
 
 import { ReservedLogKey } from '@/graph/generated/schemas'
-import { LogsSearchParam } from '@/pages/LogsPage/SearchForm/utils'
+import { LogsSearchParam } from '@/components/Search/SearchForm/utils'
 
 export const formatDate = (date: Date) => {
 	return moment(date).format('M/D/YY h:mm:ss A')

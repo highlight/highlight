@@ -10,7 +10,7 @@ import {
 	DEFAULT_LOGS_OPERATOR,
 	LogsSearchParam,
 	stringifyLogsQuery,
-} from '@/pages/LogsPage/SearchForm/utils'
+} from '@/components/Search/SearchForm/utils'
 
 const getLogsLink = (data: GetErrorInstanceQuery | undefined): string => {
 	const errorObject = data?.error_instance?.error_object

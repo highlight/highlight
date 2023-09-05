@@ -9,7 +9,7 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { COLOR_MAPPING, LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
-import { buildSessionParams } from '@pages/LogsPage/SearchForm/utils'
+import { buildSessionParams } from '@/components/Search/SearchForm/utils'
 import { ReplayerState } from '@pages/Player/ReplayerContext'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'

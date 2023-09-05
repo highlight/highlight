@@ -4,11 +4,11 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { LinkButton } from '@/components/LinkButton'
 import { FullScreenContainer } from '@/pages/LogsPage/LogsTable/FullScreenContainer'
 import { LogsTable } from '@/pages/LogsPage/LogsTable/LogsTable'
-import { SearchForm } from '@/pages/LogsPage/SearchForm/SearchForm'
+import { SearchForm } from '@/components/Search/SearchForm/SearchForm'
 import {
 	DEFAULT_LOGS_OPERATOR,
 	stringifyLogsQuery,
-} from '@/pages/LogsPage/SearchForm/utils'
+} from '@/components/Search/SearchForm/utils'
 import { useGetLogs } from '@/pages/LogsPage/useGetLogs'
 import { NetworkResource } from '@/pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { useParams } from '@/util/react-router/useParams'

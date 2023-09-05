@@ -20,13 +20,6 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { LOG_TIME_FORMAT, TIME_MODE } from '@pages/LogsPage/constants'
-import {
-	BODY_KEY,
-	LogsSearchParam,
-	parseLogsQuery,
-	quoteQueryValue,
-	stringifyLogsQuery,
-} from '@pages/LogsPage/SearchForm/utils'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import { stringify } from 'query-string'
@@ -35,6 +28,13 @@ import { useNavigate } from 'react-router-dom'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
 import { Button } from '@/components/Button'
+import {
+	BODY_KEY,
+	LogsSearchParam,
+	parseLogsQuery,
+	quoteQueryValue,
+	stringifyLogsQuery,
+} from '@/components/Search/SearchForm/utils'
 
 import * as styles from './SearchForm.css'
 
@@ -55,7 +55,7 @@ type Props = {
 
 const MAX_ITEMS = 10
 
-const SearchForm = ({
+const SearchForm: React.FC<Props> = ({
 	initialQuery,
 	startDate,
 	endDate,
@@ -68,10 +68,11 @@ const SearchForm = ({
 	addLinkToViewInLogViewer,
 	hideDatePicker,
 	hideCreateAlert,
-}: Props) => {
+}) => {
 	const navigate = useNavigate()
 	const formState = useFormState({ defaultValues: { query: initialQuery } })
 	const { projectId } = useProjectId()
+	// TODO: Pass in fetch method so you can get logs or traces keys
 	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
 		variables: {
 			project_id: projectId,
@@ -218,6 +219,7 @@ export const Search: React.FC<{
 		sameWidth: true,
 		defaultValue: initialQuery ?? '',
 	})
+	// TODO: Pass in query method so we can fetch logs or traces values
 	const [getLogsKeyValues, { data, loading: valuesLoading }] =
 		useGetLogsKeyValuesLazyQuery()
 
@@ -527,6 +529,7 @@ const getActiveTermIndex = (
 
 const getVisibleKeys = (
 	queryText: string,
+	// TODO: Update logs attributes
 	queryTerms: LogsSearchParam[],
 	activeQueryTerm: LogsSearchParam,
 	keys?: GetLogsKeysQuery['logs_keys'],
