@@ -28,7 +28,7 @@ public record HighlightOptions(String projectId, String backendUrl, String envir
 	 */
 	public static class Builder {
 
-		private static final String DEFAULT_ENVIROMENT = "development";
+		private static final String DEFAULT_ENVIRONMENT = "development";
 		private static final String DEFAULT_VERSION = "unknown";
 
 		private final String projectId;
@@ -134,7 +134,7 @@ public record HighlightOptions(String projectId, String backendUrl, String envir
 		 */
 		public HighlightOptions build() {
 			if (this.environment == null) {
-				this.environment = DEFAULT_ENVIROMENT;
+				this.environment = DEFAULT_ENVIRONMENT;
 			}
 			if (this.version == null) {
 				this.version = DEFAULT_VERSION;
