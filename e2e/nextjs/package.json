@@ -9,6 +9,9 @@
 		"start": "next start",
 		"lint": "next lint"
 	},
+	"installConfig": {
+		"hoistingLimits": "dependencies"
+	},
 	"dependencies": {
 		"@highlight-run/cloudflare": "workspace:*",
 		"@highlight-run/next": "workspace:*",
