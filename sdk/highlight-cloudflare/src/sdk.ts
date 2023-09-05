@@ -90,7 +90,7 @@ export const H: HighlightInterface = {
 			)
 			return
 		}
-		console.log('H.consumeError', error)
+
 		sdk.captureException(error)
 	},
 

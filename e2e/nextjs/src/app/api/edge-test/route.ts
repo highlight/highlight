@@ -5,9 +5,11 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 const env: HighlightEnv = {
-	HIGHLIGHT_PROJECT_ID: process.env.HIGHLIGHT_PROJECT_ID || '2',
+	HIGHLIGHT_PROJECT_ID: process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID || '2',
 	HIGHLIGHT_OTLP_ENDPOINT: process.env.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
 }
+
+console.log('api/edge-test/route.ts env', JSON.stringify(env, null, 2))
 
 const withHighlight = Highlight(env)
 
