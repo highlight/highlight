@@ -31,6 +31,8 @@ var (
 	Password        = os.Getenv("CLICKHOUSE_PASSWORD")
 )
 
+// TODO(vkorolik) distinct uuid mv
+
 func NewClient(dbName string) (*Client, error) {
 	opts := getClickhouseOptions(dbName)
 	opts.MaxIdleConns = 10
