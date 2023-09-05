@@ -64,7 +64,18 @@
 
 .titleDescription {
 	font-size: 0.8125rem;
+	word-break: break-all;
+	max-height: 10.5rem;
+	overflow: auto;
+
+	/* -ms-overflow-style: none;
+	scrollbar-width: none; */
 }
+
+/* 
+.titleDescription::-webkit-scrollbar {
+	display: none;
+} */
 
 .searchTableHead {
 	font-size: 0.75rem;

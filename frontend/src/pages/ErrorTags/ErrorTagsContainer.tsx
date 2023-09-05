@@ -1,10 +1,10 @@
 import { LinkButton } from '@components/LinkButton'
 import { Box, IconSolidArrowSmLeft } from '@highlight-run/ui'
-import { content as containerContentStyles } from '@highlight-run/ui/src/components/Container/styles.css'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { Outlet } from 'react-router-dom'
 
 import headerStyles from '../../components/Header/Header.module.css'
+import { containerContentStyles } from './style.css'
 
 export function ErrorTagsContainer() {
 	return (
