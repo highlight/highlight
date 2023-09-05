@@ -254,12 +254,12 @@ export const SessionFeedV3 = React.memo(() => {
 			const newRules = clickhouseQuery.rules.filter(
 				(r) => r[0] !== 'custom_created_at',
 			)
+			const startDate = new Date(Date.parse(lte))
+			const endDate = new Date(Date.parse(lte) + 7 * 24 * 60 * 60 * 1000)
 			newRules.push([
 				'custom_created_at',
 				'between_date',
-				new Date(Date.parse(lte)).toISOString() +
-					'_' +
-					new Date('2050-01-01').toISOString(),
+				startDate.toISOString() + '_' + endDate.toISOString(),
 			])
 			clickhouseQuery.rules = newRules
 			return {

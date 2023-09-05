@@ -147,12 +147,12 @@ const SearchPanel = () => {
 			const newRules = clickhouseQuery.rules.filter(
 				(r) => r[0] !== 'error-field_timestamp',
 			)
+			const startDate = new Date(Date.parse(lte))
+			const endDate = new Date(Date.parse(lte) + 7 * 24 * 60 * 60 * 1000)
 			newRules.push([
 				'error-field_timestamp',
 				'between_date',
-				new Date(Date.parse(lte)).toISOString() +
-					'_' +
-					new Date('2050-01-01').toISOString(),
+				startDate.toISOString() + '_' + endDate.toISOString(),
 			])
 			clickhouseQuery.rules = newRules
 
