@@ -13346,6 +13346,7 @@ export const GetErrorObjectsDocument = gql`
 						email
 						appVersion
 						fingerprint
+						excluded
 					}
 				}
 			}

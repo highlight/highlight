@@ -336,6 +336,7 @@ type ErrorObjectNodeSession struct {
 	AppVersion  *string `json:"appVersion"`
 	Email       *string `json:"email"`
 	Fingerprint *int    `json:"fingerprint"`
+	Excluded    bool    `json:"excluded"`
 }
 
 type ErrorSearchParamsInput struct {

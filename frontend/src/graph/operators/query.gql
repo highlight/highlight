@@ -2147,6 +2147,7 @@ query GetErrorObjects(
 					email
 					appVersion
 					fingerprint
+					excluded
 				}
 			}
 		}

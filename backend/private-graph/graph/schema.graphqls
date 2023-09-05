@@ -687,6 +687,7 @@ type ErrorObjectNodeSession {
 	appVersion: String
 	email: String
 	fingerprint: Int
+	excluded: Boolean!
 }
 
 type ErrorObjectNode {
