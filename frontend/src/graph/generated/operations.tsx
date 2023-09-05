@@ -2866,6 +2866,7 @@ export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
 
 export type GetErrorGroupQueryVariables = Types.Exact<{
 	secure_id: Types.Scalars['String']
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorGroupQuery = { __typename?: 'Query' } & {
@@ -4222,6 +4223,7 @@ export type GetErrorGroupFrequenciesQueryVariables = Types.Exact<{
 		| Types.Scalars['String']
 	params: Types.ErrorGroupFrequenciesParamsInput
 	metric: Types.Scalars['String']
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
@@ -4237,6 +4239,7 @@ export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
 
 export type GetErrorGroupTagsQueryVariables = Types.Exact<{
 	error_group_secure_id: Types.Scalars['String']
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorGroupTagsQuery = { __typename?: 'Query' } & {

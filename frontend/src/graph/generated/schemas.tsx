@@ -1939,10 +1939,12 @@ export type QueryErrorGroupFrequenciesArgs = {
 	metric?: InputMaybe<Scalars['String']>
 	params: ErrorGroupFrequenciesParamsInput
 	project_id: Scalars['ID']
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryErrorGroupTagsArgs = {
 	error_group_secure_id: Scalars['String']
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryError_AlertsArgs = {
@@ -1986,6 +1988,7 @@ export type QueryError_Fields_OpensearchArgs = {
 
 export type QueryError_GroupArgs = {
 	secure_id: Scalars['String']
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryError_Groups_ClickhouseArgs = {

@@ -290,7 +290,7 @@ func (client *Client) QueryErrorGroupFrequencies(ctx context.Context, errorGroup
 	return items, err
 }
 
-func (client *Client) QueryErrorGroupAggregateFrequency(ctx context.Context, errorGroupIds []int) ([]*modelInputs.ErrorDistributionItem, error) {
+func (client *Client) QueryErrorGroupAggregateFrequency(ctx context.Context, projectId int, errorGroupIds []int) ([]*modelInputs.ErrorDistributionItem, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sql, args := sb.Select(`ErrorGroupID,
 		countIf(CreatedAt >= now() - INTERVAL 30 DAY) as monthCount,
@@ -300,6 +300,7 @@ func (client *Client) QueryErrorGroupAggregateFrequency(ctx context.Context, err
 		countIf(CreatedAt BETWEEN now() - INTERVAL 14 DAY AND now() - INTERVAL 7 DAY) as prevWeekCount,
 		uniqIf(ClientID, CreatedAt BETWEEN now() - INTERVAL 14 DAY AND now() - INTERVAL 7 DAY) as prevWeekIdentifierCount`).
 		From("error_objects FINAL").
+		Where(sb.Equal("ProjectID", projectId)).
 		Where(sb.In("ErrorGroupID", errorGroupIds)).
 		GroupBy("1").
 		BuildWithFlavor(sqlbuilder.ClickHouse)
@@ -370,6 +371,95 @@ func (client *Client) QueryErrorGroupAggregateFrequency(ctx context.Context, err
 	}
 
 	return items, err
+}
+
+func (client *Client) QueryErrorGroupOccurrences(ctx context.Context, projectId int, errorGroupId int) (*time.Time, *time.Time, error) {
+	sb := sqlbuilder.NewSelectBuilder()
+	sql, args := sb.Select(`
+		min(Timestamp) as firstOccurrence,
+		max(Timestamp) as lastOccurrence`).
+		From("error_objects FINAL").
+		Where(sb.Equal("ProjectID", projectId)).
+		Where(sb.Equal("ErrorGroupID", errorGroupId)).
+		BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var firstOccurrence time.Time
+	var lastOccurrence time.Time
+	for rows.Next() {
+		if err := rows.Scan(&firstOccurrence, &lastOccurrence); err != nil {
+			return nil, nil, err
+		}
+	}
+
+	return &firstOccurrence, &lastOccurrence, nil
+}
+
+func (client *Client) QueryErrorGroupTags(ctx context.Context, projectId int, errorGroupId int) ([]*modelInputs.ErrorGroupTagAggregation, error) {
+	tags := map[string]string{
+		"browser":     "Browser",
+		"environment": "Environment",
+		"os_name":     "OSName",
+	}
+
+	builders := []sqlbuilder.Builder{}
+	sb := sqlbuilder.NewSelectBuilder()
+	sb.Select("'total', 'total', count(*)").
+		From("error_objects FINAL").
+		Where(sb.Equal("ProjectID", projectId)).
+		Where(sb.Equal("ErrorGroupID", errorGroupId))
+	builders = append(builders, sb)
+
+	for key, bucket := range tags {
+		sb := sqlbuilder.NewSelectBuilder()
+		sb.Select(fmt.Sprintf("'%s', %s, count(*)", key, bucket)).
+			From("error_objects FINAL").
+			Where(sb.Equal("ProjectID", projectId)).
+			Where(sb.Equal("ErrorGroupID", errorGroupId)).
+			GroupBy(bucket)
+		builders = append(builders, sb)
+	}
+
+	sql, args := sqlbuilder.UnionAll(builders...).
+		BuildWithFlavor(sqlbuilder.ClickHouse)
+
+	rows, err := client.conn.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	aggs := map[string]*modelInputs.ErrorGroupTagAggregation{}
+	for key := range tags {
+		aggs[key] = &modelInputs.ErrorGroupTagAggregation{
+			Key:     key,
+			Buckets: []*modelInputs.ErrorGroupTagAggregationBucket{},
+		}
+	}
+
+	var total uint64
+	for rows.Next() {
+		var key string
+		var bucket string
+		var count uint64
+		if err := rows.Scan(&key, &bucket, &count); err != nil {
+			return nil, err
+		}
+		if key == "total" {
+			total = count
+		} else {
+			aggs[key].Buckets = append(aggs[key].Buckets, &modelInputs.ErrorGroupTagAggregationBucket{
+				Key:      bucket,
+				DocCount: int64(count),
+				Percent:  float64(count) / float64(total),
+			})
+		}
+	}
+
+	return lo.Values(aggs), nil
 }
 
 func (client *Client) QueryErrorFieldValues(ctx context.Context, projectId int, count int, fieldType string, fieldName string, query string, start time.Time, end time.Time) ([]string, error) {

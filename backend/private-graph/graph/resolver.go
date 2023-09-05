@@ -934,6 +934,17 @@ func (r *Resolver) loadErrorGroupFrequencies(ctx context.Context, eg *model.Erro
 	return nil
 }
 
+func (r *Resolver) loadErrorGroupFrequenciesClickhouse(ctx context.Context, eg *model.ErrorGroup) error {
+	var err error
+	if eg.FirstOccurrence, eg.LastOccurrence, err = r.ClickhouseClient.QueryErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
+		return e.Wrap(err, "error querying error group occurrences")
+	}
+	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+		return e.Wrap(err, "error querying error group frequencies")
+	}
+	return nil
+}
+
 func (r *Resolver) canAdminViewErrorObject(ctx context.Context, errorObjectID int) (*model.ErrorObject, error) {
 	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorObject"))
 	defer authSpan.Finish()

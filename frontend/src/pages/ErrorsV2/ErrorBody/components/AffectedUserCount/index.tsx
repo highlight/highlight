@@ -21,7 +21,6 @@ const AffectedUserCount = ({ errorGroup }: Props) => {
 	if (!errorGroup) return <LoadingBox />
 
 	const { startDate, weekly, userCount } = getErrorGroupStats(errorGroup)
-	console.log('AffectedUserCount', startDate, weekly, userCount)
 
 	const usersChange = weekly.users[0]
 		? ((weekly.users[1] - weekly.users[0]) / weekly.users[0]) * 100

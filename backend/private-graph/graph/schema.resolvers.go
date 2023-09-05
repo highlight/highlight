@@ -4258,13 +4258,19 @@ func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID
 }
 
 // ErrorGroup is the resolver for the error_group field.
-func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
+func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string, useClickhouse *bool) (*model.ErrorGroup, error) {
 	eg, err := r.canAdminViewErrorGroup(ctx, secureID)
 	if err != nil {
 		return nil, err
 	}
-	if err := r.loadErrorGroupFrequencies(ctx, eg); err != nil {
-		return nil, err
+	if useClickhouse != nil && *useClickhouse {
+		if err := r.loadErrorGroupFrequenciesClickhouse(ctx, eg); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := r.loadErrorGroupFrequencies(ctx, eg); err != nil {
+			return nil, err
+		}
 	}
 	retentionDate, err := r.GetProjectRetentionDate(eg.ProjectID)
 	if err != nil {
@@ -5018,7 +5024,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 }
 
 // ErrorGroupFrequencies is the resolver for the errorGroupFrequencies field.
-func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params modelInputs.ErrorGroupFrequenciesParamsInput, metric *string) ([]*modelInputs.ErrorDistributionItem, error) {
+func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params modelInputs.ErrorGroupFrequenciesParamsInput, metric *string, useClickhouse *bool) ([]*modelInputs.ErrorDistributionItem, error) {
 	var errorGroupIDs []int
 	for _, errorGroupSecureID := range errorGroupSecureIds {
 		errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
@@ -5030,14 +5036,25 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 	if metric == nil {
 		metric = pointy.String("")
 	}
+	if useClickhouse != nil && *useClickhouse {
+		results, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, errorGroupIDs, params)
+		if err != nil {
+			return nil, err
+		}
+		return results, nil
+	}
 	return r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, *metric)
 }
 
 // ErrorGroupTags is the resolver for the errorGroupTags field.
-func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID string) ([]*modelInputs.ErrorGroupTagAggregation, error) {
+func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID string, useClickhouse *bool) ([]*modelInputs.ErrorGroupTagAggregation, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, err
+	}
+
+	if useClickhouse != nil && *useClickhouse {
+		return r.ClickhouseClient.QueryErrorGroupTags(ctx, errorGroup.ProjectID, errorGroup.ID)
 	}
 
 	query := fmt.Sprintf(`
