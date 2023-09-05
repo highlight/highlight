@@ -255,11 +255,11 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 	for _, logRow := range logRows {
 		// create service record for any services found in ingested logs
 		if logRow.ServiceName != "" {
-			spanX, ctxX := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.findOrCreateService", k.Name)))
+			spanX, ctxX := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.UpsertService", k.Name)))
 
 			project, err := k.Worker.Resolver.Store.GetProject(ctx, int(logRow.ProjectId))
 			if err == nil && project != nil {
-				_, err := k.Worker.Resolver.Store.FindOrCreateService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
+				_, err := k.Worker.Resolver.Store.UpsertService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
 
 				if err != nil {
 					log.WithContext(ctxX).Error(e.Wrap(err, "failed to create service"))

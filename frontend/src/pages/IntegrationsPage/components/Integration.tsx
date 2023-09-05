@@ -1,12 +1,13 @@
 import Button from '@components/Button/Button/Button'
 import Card from '@components/Card/Card'
 import LoadingBox from '@components/LoadingBox'
-import Modal from '@components/Modal/Modal'
 import Switch from '@components/Switch/Switch'
 import SettingsIcon from '@icons/SettingsIcon'
 import { Integration as IntegrationType } from '@pages/IntegrationsPage/Integrations'
 import clsx from 'clsx'
 import React, { useEffect, useState } from 'react'
+
+import { IntegrationModal } from '@/pages/IntegrationsPage/components/IntegrationModal/IntegrationModal'
 
 import styles from './Integration.module.css'
 
@@ -131,7 +132,8 @@ const Integration = ({
 				</div>
 			</Card>
 
-			<Modal
+			<IntegrationModal
+				width={modalWidth}
 				visible={
 					showConfiguration ||
 					showDeleteConfirmation ||
@@ -153,29 +155,30 @@ const Integration = ({
 						? 'Are you sure?'
 						: `Configuring ${name} Integration`
 				}
-				destroyOnClose
-				className={styles.modal}
-				width={modalWidth}
-			>
-				{showConfiguration &&
-					configurationPage({
-						setModalOpen: setShowConfiguration,
-						setIntegrationEnabled,
-						action: IntegrationAction.Setup,
-					})}
-				{showDeleteConfirmation &&
-					configurationPage({
-						setModalOpen: setShowDeleteConfirmation,
-						setIntegrationEnabled,
-						action: IntegrationAction.Disconnect,
-					})}
-				{showUpdateSettings &&
-					configurationPage({
-						setModalOpen: setShowUpdateSettings,
-						setIntegrationEnabled,
-						action: IntegrationAction.Settings,
-					})}
-			</Modal>
+				configurationPage={() => {
+					if (showConfiguration) {
+						return configurationPage({
+							setModalOpen: setShowConfiguration,
+							setIntegrationEnabled,
+							action: IntegrationAction.Setup,
+						})
+					}
+					if (showDeleteConfirmation) {
+						return configurationPage({
+							setModalOpen: setShowDeleteConfirmation,
+							setIntegrationEnabled,
+							action: IntegrationAction.Disconnect,
+						})
+					}
+					if (showUpdateSettings) {
+						configurationPage({
+							setModalOpen: setShowUpdateSettings,
+							setIntegrationEnabled,
+							action: IntegrationAction.Settings,
+						})
+					}
+				}}
+			/>
 		</>
 	)
 }

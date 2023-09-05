@@ -31,6 +31,7 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
@@ -1263,6 +1264,18 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		}
 	}()
 
+	if session.ServiceName != "" {
+		// See: https://opentelemetry.io/docs/specs/otel/resource/semantic_conventions/process/#javascript-runtimes
+		// We don't set `process.runtime.version` since it would change on the user
+		attributes := map[string]string{
+			string(semconv.ProcessRuntimeNameKey): "browser",
+		}
+		_, err := r.Store.UpsertService(ctx, *project, session.ServiceName, attributes)
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "failed to create service"))
+		}
+	}
+
 	return session, nil
 }
 
@@ -2189,7 +2202,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		var structuredStackTrace []*privateModel.ErrorTrace
 
 		if settings.EnableEnhancedErrors {
-			mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, v.Service.Name, v.Service.Version)
+			mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert)
 		} else {
 			structuredStackTrace, err = r.Store.StructuredStackTrace(ctx, v.StackTrace)
 		}
