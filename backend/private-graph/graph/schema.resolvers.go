@@ -4173,7 +4173,11 @@ func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int
 	}
 
 	var results []*model.ErrorGroup
-	if err := r.DB.Model(&model.ErrorGroup{}).Where("id in ?", ids).Order("updated_at DESC").Find(&results).Error; err != nil {
+	if err := r.DB.Model(&model.ErrorGroup{}).
+		Where("id in ?", ids).
+		Where("project_id = ?", projectID).
+		Order("updated_at DESC").
+		Find(&results).Error; err != nil {
 		return nil, err
 	}
 
@@ -5358,6 +5362,7 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 	var results []model.Session
 	if err := r.DB.Model(&model.Session{}).
 		Where("id in ?", ids).
+		Where("project_id = ?", projectID).
 		Order(pgSortStr).
 		Find(&results).Error; err != nil {
 		return nil, err
