@@ -129,7 +129,7 @@ export function ErrorTagsSearch() {
 						<Table.Head className={styles.searchTableHead}>
 							<Table.Row gridColumns={GRID_COLUMNS}>
 								<Table.Cell>Title</Table.Cell>
-								<Table.Cell>Description</Table.Cell>
+								<Table.Cell>Stack Trace</Table.Cell>
 								<Table.Cell>Score</Table.Cell>
 							</Table.Row>
 						</Table.Head>
@@ -168,7 +168,7 @@ export function ErrorTagsSearch() {
 }
 
 function Score({ score }: { score?: number }) {
-	const normalizedScore = score ? Math.round(score * 10) / 10 : 0
+	const normalizedScore = score ? 1 - Math.round(score * 10) / 10 : 0
 	const { backgroundColor, color } = useMemo(() => {
 		switch (true) {
 			case normalizedScore < 0.3:

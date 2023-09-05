@@ -64,6 +64,7 @@
 
 .titleDescription {
 	font-size: 0.8125rem;
+	word-break: break-all;
 }
 
 .searchTableHead {
