@@ -9,9 +9,6 @@
 		"start": "next start",
 		"lint": "next lint"
 	},
-	"installConfig": {
-		"hoistingLimits": "workspaces"
-	},
 	"dependencies": {
 		"@highlight-run/cloudflare": "workspace:*",
 		"@highlight-run/next": "workspace:*",
@@ -34,8 +31,10 @@
 		"react": "18.2.0",
 		"react-dom": "18.2.0",
 		"typescript": "5.0.4",
-		"vercel": "^31.0.2",
 		"winston": "^3.8.2",
 		"zod": "^3.21.4"
+	},
+	"devDependencies": {
+		"vercel": "^31.0.2"
 	}
 }
