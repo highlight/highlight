@@ -263,14 +263,6 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 		}
 	}
 
-	projectIDInt, err := projectToInt(fields.projectID)
-
-	if err != nil {
-		return nil, err
-	}
-
-	fields.projectIDInt = projectIDInt
-
 	if fields.projectIDInt == 1 && util.IsProduction() {
 		if fields.serviceName == "all" || fields.serviceName == "" {
 			fields.external = true
@@ -278,7 +270,9 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 		}
 	}
 
-	return fields, nil
+	var err error
+	fields.projectIDInt, err = projectToInt(fields.projectID)
+	return fields, err
 }
 
 func mergeMaps(maps ...map[string]any) map[string]any {
