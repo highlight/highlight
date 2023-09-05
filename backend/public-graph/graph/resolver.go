@@ -2123,11 +2123,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 	}
 
-	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
-	if err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "error querying all_workspace_settings"))
-	}
-
 	// Filter out empty errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
