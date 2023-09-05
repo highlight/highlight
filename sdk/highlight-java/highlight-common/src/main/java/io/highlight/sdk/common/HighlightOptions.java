@@ -7,9 +7,9 @@ import io.opentelemetry.api.common.AttributesBuilder;
 
 /**
  * Represents the options for highlighting in a project, including project ID,
- * backend URL, environment, version, and default attributes.
+ * backend URL, environment, serviceName, version, and default attributes.
  */
-public record HighlightOptions(String projectId, String backendUrl, String enviroment, String version, boolean metric,
+public record HighlightOptions(String projectId, String backendUrl, String environment, String serviceName, String version, boolean metric,
 		Attributes defaultAttributes) {
 
 	/**
@@ -37,6 +37,7 @@ public record HighlightOptions(String projectId, String backendUrl, String envir
 
 		private String environment = null;
 		private String version = null;
+		private String serviceName = null;
 
 		private boolean metric = true;
 
@@ -73,6 +74,17 @@ public record HighlightOptions(String projectId, String backendUrl, String envir
 		 */
 		public Builder environment(String environment) {
 			this.environment = environment;
+			return this;
+		}
+
+		/**
+		 * Sets the service name for the highlight options being constructed. <br>
+		 *
+		 * @param serviceName the serviceName to set
+		 * @return this builder
+		 */
+		public Builder serviceName(String serviceName) {
+			this.serviceName = serviceName;
 			return this;
 		}
 
@@ -128,7 +140,7 @@ public record HighlightOptions(String projectId, String backendUrl, String envir
 				this.version = DEFAULT_VERSION;
 			}
 
-			return new HighlightOptions(this.projectId, this.backendUrl, this.environment, this.version, this.metric,
+			return new HighlightOptions(this.projectId, this.backendUrl, this.environment, this.serviceName, this.version, this.metric,
 					this.defaultAttributes.build());
 		}
 	}

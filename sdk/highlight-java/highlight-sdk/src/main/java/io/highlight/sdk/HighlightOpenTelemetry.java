@@ -46,8 +46,9 @@ public class HighlightOpenTelemetry implements OpenTelemetry {
 
 		AttributesBuilder attributesBuilder = Attributes.builder()
 				.put(HighlightAttributes.HIGHLIGHT_PROJECT_ID, options.projectId())
-				.put(ResourceAttributes.DEPLOYMENT_ENVIRONMENT, options.enviroment())
+				.put(ResourceAttributes.DEPLOYMENT_ENVIRONMENT, options.environment())
 				.put(ResourceAttributes.SERVICE_INSTANCE_ID, SessionId.get().toString())
+				.put(ResourceAttributes.SERVICE_NAME, options.serviceName())
 				.put(ResourceAttributes.SERVICE_VERSION, options.version());
 
 		if (options.metric()) {
