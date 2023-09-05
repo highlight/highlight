@@ -44,7 +44,7 @@ public class HighlightOptionsTest {
 
 	@Test
 	@DisplayName("Environment was correctly set")
-	void testEnviroment() {
+	void testEnvironment() {
 		assertEquals(PROJECT_ENVIRONMENT, this.options.environment());
 	}
 
