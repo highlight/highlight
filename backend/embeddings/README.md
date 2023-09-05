@@ -13,6 +13,8 @@ We then store that vector using pgvector. To compare any two sets for similarity
 we simply look at the Euclidian distance between their respective embeddings 
 using the ivfflat index implemented by pgvector.
 
+See the full post [on hacker news here](https://dub.sh/k15UyXW).
+
 # Demo
 
 Visit https://app.highlight.io/error-tags
