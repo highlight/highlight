@@ -1,6 +1,5 @@
 import { LinkButton } from '@components/LinkButton'
 import { Box, IconSolidArrowSmLeft } from '@highlight-run/ui'
-import { content as containerContentStyles } from '@highlight-run/ui/src/components/Container/styles.css'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { Outlet } from 'react-router-dom'
 
@@ -59,7 +58,6 @@ export function ErrorTagsContainer() {
 						minHeight: '100%',
 						width: '100%',
 					}}
-					className={containerContentStyles}
 				>
 					<Box style={{ width: 720 }}>
 						<Box
