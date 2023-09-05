@@ -65,7 +65,7 @@ import clsx, { ClassValue } from 'clsx'
 import moment, { unitOfTime } from 'moment'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useToggle } from 'react-use'
+import { useLocalStorage, useToggle } from 'react-use'
 
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
@@ -1371,6 +1371,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}
 
+	const [chLocalStorage] = useLocalStorage(
+		'highlight-clickhouse-errors',
+		false,
+	)
+
 	const getValueOptionsCallback = useCallback(
 		(field: SelectOption | undefined) => {
 			return async (input: string): Promise<Option[] | undefined> => {
@@ -1425,15 +1430,22 @@ function QueryBuilder(props: QueryBuilderProps) {
 					label = 'event'
 				}
 
+				const fieldType = getType(field.value)
+				// Use clickhouse for error fields only if local storage flag is on
+				const useClickhouse =
+					fieldType === 'error' || fieldType === 'error-field'
+						? chLocalStorage
+						: true
+
 				return await fetchFields({
 					project_id: projectId,
 					count: 10,
-					field_type: getType(field.value),
+					field_type: fieldType,
 					field_name: label,
 					query: input,
 					start_date: moment(dateRange[0]).toISOString(),
 					end_date: moment(dateRange[1]).toISOString(),
-					use_clickhouse: true,
+					use_clickhouse: useClickhouse,
 				}).then((res) => {
 					return res.map((val) => ({
 						label: val,
@@ -1443,11 +1455,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 			}
 		},
 		[
-			appVersionData?.app_version_suggestion,
-			fetchFields,
 			getCustomFieldOptions,
+			chLocalStorage,
+			fetchFields,
 			projectId,
 			dateRange,
+			appVersionData?.app_version_suggestion,
 		],
 	)
 
