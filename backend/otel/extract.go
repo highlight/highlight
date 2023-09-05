@@ -272,7 +272,7 @@ func extractFields(ctx context.Context, params extractFieldsParams) (*extractedF
 			fields.attrs["service.external"] = "true"
 		}
 	}
-	
+
 	return fields, err
 }
 
