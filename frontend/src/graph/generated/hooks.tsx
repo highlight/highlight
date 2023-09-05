@@ -13211,7 +13211,6 @@ export const GetWorkspaceSettingsDocument = gql`
 			workspace_id
 			ai_application
 			ai_insights
-			enable_enhanced_errors
 		}
 	}
 `

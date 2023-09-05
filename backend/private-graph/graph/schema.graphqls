@@ -393,7 +393,6 @@ type AllWorkspaceSettings {
 	workspace_id: ID!
 	ai_application: Boolean!
 	ai_insights: Boolean!
-	enable_enhanced_errors: Boolean!
 }
 
 type Account {
