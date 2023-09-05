@@ -6940,3 +6940,18 @@ body {
 ._1q3ayoh6 {
   height: 20px;
 }
+@media (min-width: 1200px) {
+  .o0ualh0 {
+    width: 980px;
+  }
+}
+@container (min-width: 980px) {
+  .o0ualh0 {
+    width: 980px;
+  }
+}
+@container (max-width: 979px) {
+  .o0ualh0 {
+    width: auto;
+  }
+}
