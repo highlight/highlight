@@ -1,5 +1,4 @@
 import React from 'react'
-import clsx from 'clsx'
 
 import { Body, Props as BodyProps } from './Body/Body'
 import { Cell, Props as CellProps } from './Cell/Cell'
@@ -14,15 +13,17 @@ import { Row, Props as RowProps } from './Row/Row'
 
 import { Box } from '../Box/Box'
 
-import * as styles from './styles.css'
-
 type Props = {
 	children: React.ReactNode
 	className?: string
 }
 
 const TableComponent: React.FC<Props> = ({ children, className }) => {
-	return <Box className={clsx(className, styles.table)}>{children}</Box>
+	return (
+		<Box cssClass={className} width="full">
+			{children}
+		</Box>
+	)
 }
 
 type TableWithComponents = React.FC<Props> & {
