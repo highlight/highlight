@@ -113,6 +113,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 				CreatedAt:          errorObject.CreatedAt,
 				Event:              errorObject.Event,
 				Timestamp:          errorObject.Timestamp,
+				ServiceVersion:     errorObject.ServiceVersion,
 				ErrorGroupSecureID: errorGroup.SecureID,
 			},
 		}
@@ -124,7 +125,6 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 				edge.Node.Session = &privateModel.ErrorObjectNodeSession{
 					SecureID:    session.SecureID,
 					Email:       session.Email,
-					AppVersion:  session.AppVersion,
 					Fingerprint: &session.Fingerprint,
 					Excluded:    session.Excluded,
 				}
