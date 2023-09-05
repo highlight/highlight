@@ -3,10 +3,11 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	e "github.com/pkg/errors"
 	"math"
 	"strings"
 	"time"
+
+	e "github.com/pkg/errors"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
@@ -539,6 +540,13 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 			preWheres = append(preWheres, "hasTokenCaseInsensitive(Body, "+sb.Var(body)+")")
 		}
 	}
+	for _, message := range filters.message {
+		if strings.Contains(message, "%") {
+			sb.Where("Body ILIKE" + sb.Var(message))
+		} else {
+			preWheres = append(preWheres, "hasTokenCaseInsensitive(Body, "+sb.Var(message)+")")
+		}
+	}
 
 	if len(preWheres) > 0 {
 		sb.SQL("PREWHERE " + strings.Join(preWheres, " AND "))
@@ -629,7 +637,14 @@ func makeSelectBuilder(selectStr string, projectID int, params modelInputs.LogsP
 }
 
 type filtersWithReservedKeys struct {
-	body              []string
+	// Free form text, not required to be delimited by a colon `:`
+	// Will be a case insensitive, wildcard search by default for convenience.
+	body []string
+
+	// Equivalent to body except that it must be delimited (e.g. message:foo)
+	// Similar to the keys below, it's case sensitive and only uses a wildcard if one is provided.
+	message []string
+
 	level             []string
 	trace_id          []string
 	span_id           []string
@@ -647,6 +662,11 @@ func makeFilters(query string) filtersWithReservedKeys {
 	}
 
 	filtersWithReservedKeys.body = filters.Body
+
+	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyMessage.String()]; ok {
+		filtersWithReservedKeys.message = val
+		delete(filters.Attributes, modelInputs.ReservedLogKeyMessage.String())
+	}
 
 	if val, ok := filters.Attributes[modelInputs.ReservedLogKeyLevel.String()]; ok {
 		filtersWithReservedKeys.level = val
