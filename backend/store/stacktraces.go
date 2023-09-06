@@ -167,27 +167,17 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 
 func (store *Store) GitHubEnhancedStackTrace(ctx context.Context, stackTrace []*privateModel.ErrorTrace, workspace *model.Workspace, project *model.Project, errorObj *model.ErrorObject) ([]*privateModel.ErrorTrace, error) {
 	if errorObj.ServiceName == "" {
-		log.WithContext(ctx).WithField("error_object", errorObj).Info("Cannot enhance stacktrace for error without service name.")
 		return nil, nil
 	}
 
 	service, err := store.FindService(ctx, project.ID, errorObj.ServiceName)
-	if err != nil {
+	if err != nil || service == nil || service.GithubRepoPath == nil || service.Status != "healthy" {
 		return nil, err
-	} else if service == nil {
-		log.WithContext(ctx).WithField("error_object", errorObj).Info("No service found for error.")
-		return nil, nil
-	} else if service.GithubRepoPath == nil || service.Status != "healthy" {
-		log.WithContext(ctx).WithFields(log.Fields{"error_object": errorObj, "service": service}).Info("Cannot enhance errors for service.")
-		return nil, nil
 	}
 
 	gitHubAccessToken, err := store.integrationsClient.GetWorkspaceAccessToken(ctx, workspace, privateModel.IntegrationTypeGitHub)
-	if err != nil {
+	if err != nil || gitHubAccessToken == nil {
 		return nil, err
-	} else if gitHubAccessToken == nil {
-		log.WithContext(ctx).WithField("error_object", errorObj).Info("No GitHub token found for error workspace.")
-		return nil, nil
 	}
 
 	client, err := github.NewClient(ctx, *gitHubAccessToken)
