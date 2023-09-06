@@ -32,7 +32,7 @@ spec:
             - name: KAFKA_BROKER_ID
               value: {{ .Values.kafka.config.brokerID | quote }}
             - name: KAFKA_ADVERTISED_LISTENERS
-              value: PLAINTEXT://kafka:{{ .Values.kafka.config.port }}
+              value: PLAINTEXT://{{ include "highlight.fullname" . }}-kafka:{{ .Values.kafka.config.port }}
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
               value: PLAINTEXT:PLAINTEXT
             - name: KAFKA_ZOOKEEPER_CONNECT

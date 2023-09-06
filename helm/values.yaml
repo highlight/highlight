@@ -82,3 +82,9 @@ influxdb:
 
   config:
     storageSize: 5Gi
+
+collector:
+  image:
+    repository: otel/opentelemetry-collector-contrib
+    tag: 0.84.0
+    pullPolicy: IfNotPresent
