@@ -680,7 +680,7 @@ func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID st
 			TargetEmails: []string{*admin.Email},
 		}
 
-		tx := r.DB.Debug().Model(&export).Clauses(clause.OnConflict{
+		tx := r.DB.Model(&export).Clauses(clause.OnConflict{
 			Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
 			DoUpdates: clause.AssignmentColumns([]string{"target_emails"}),
 		}).FirstOrCreate(&export)
