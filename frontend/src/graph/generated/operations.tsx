@@ -2211,6 +2211,9 @@ export type GetErrorFieldsOpensearchQueryVariables = Types.Exact<{
 	field_type: Types.Scalars['String']
 	field_name: Types.Scalars['String']
 	query: Types.Scalars['String']
+	start_date?: Types.Maybe<Types.Scalars['Timestamp']>
+	end_date?: Types.Maybe<Types.Scalars['Timestamp']>
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorFieldsOpensearchQuery = { __typename?: 'Query' } & Pick<
@@ -2304,6 +2307,7 @@ export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
 	query: Types.Scalars['String']
+	clickhouse_query?: Types.Maybe<Types.ClickhouseQuery>
 	page?: Types.Maybe<Types.Scalars['Int']>
 }>
 
@@ -2354,6 +2358,7 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 export type GetErrorsHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	query: Types.Scalars['String']
+	clickhouse_query?: Types.Maybe<Types.ClickhouseQuery>
 	histogram_options: Types.DateHistogramOptions
 }>
 
@@ -2861,6 +2866,7 @@ export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
 
 export type GetErrorGroupQueryVariables = Types.Exact<{
 	secure_id: Types.Scalars['String']
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorGroupQuery = { __typename?: 'Query' } & {
@@ -4217,6 +4223,7 @@ export type GetErrorGroupFrequenciesQueryVariables = Types.Exact<{
 		| Types.Scalars['String']
 	params: Types.ErrorGroupFrequenciesParamsInput
 	metric: Types.Scalars['String']
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
@@ -4232,6 +4239,7 @@ export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
 
 export type GetErrorGroupTagsQueryVariables = Types.Exact<{
 	error_group_secure_id: Types.Scalars['String']
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorGroupTagsQuery = { __typename?: 'Query' } & {

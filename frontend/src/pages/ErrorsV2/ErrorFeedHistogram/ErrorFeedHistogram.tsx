@@ -6,6 +6,7 @@ import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSea
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import React, { useCallback } from 'react'
+import { useLocalStorage } from 'react-use'
 
 import { updateQueriedTimeRange } from '@/components/QueryBuilder/QueryBuilder'
 
@@ -13,10 +14,18 @@ import { TIME_RANGE_FIELD } from '../ErrorQueryBuilder/ErrorQueryBuilder'
 
 const ErrorFeedHistogram = React.memo(() => {
 	const { project_id } = useParams<{ project_id: string }>()
-	const { backendSearchQuery, setSearchQuery } = useErrorSearchContext()
+	const { searchQuery, backendSearchQuery, setSearchQuery } =
+		useErrorSearchContext()
+	const [useClickhouse] = useLocalStorage(
+		'highlight-clickhouse-errors',
+		false,
+	)
 	const { loading, data } = useGetErrorsHistogramQuery({
 		variables: {
 			query: backendSearchQuery?.childSearchQuery as string,
+			clickhouse_query: useClickhouse
+				? JSON.parse(searchQuery)
+				: undefined,
 			project_id: project_id!,
 			histogram_options: {
 				bucket_size:

@@ -6899,6 +6899,9 @@ export const GetErrorFieldsOpensearchDocument = gql`
 		$field_type: String!
 		$field_name: String!
 		$query: String!
+		$start_date: Timestamp
+		$end_date: Timestamp
+		$use_clickhouse: Boolean
 	) {
 		error_fields_opensearch(
 			project_id: $project_id
@@ -6906,6 +6909,9 @@ export const GetErrorFieldsOpensearchDocument = gql`
 			field_type: $field_type
 			field_name: $field_name
 			query: $query
+			start_date: $start_date
+			end_date: $end_date
+			use_clickhouse: $use_clickhouse
 		)
 	}
 `
@@ -6927,6 +6933,9 @@ export const GetErrorFieldsOpensearchDocument = gql`
  *      field_type: // value for 'field_type'
  *      field_name: // value for 'field_name'
  *      query: // value for 'query'
+ *      start_date: // value for 'start_date'
+ *      end_date: // value for 'end_date'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -7156,12 +7165,14 @@ export const GetErrorGroupsOpenSearchDocument = gql`
 		$project_id: ID!
 		$count: Int!
 		$query: String!
+		$clickhouse_query: ClickhouseQuery
 		$page: Int
 	) {
 		error_groups_opensearch(
 			project_id: $project_id
 			count: $count
 			query: $query
+			clickhouse_query: $clickhouse_query
 			page: $page
 		) {
 			error_groups {
@@ -7212,6 +7223,7 @@ export const GetErrorGroupsOpenSearchDocument = gql`
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
  *      query: // value for 'query'
+ *      clickhouse_query: // value for 'clickhouse_query'
  *      page: // value for 'page'
  *   },
  * });
@@ -7252,11 +7264,13 @@ export const GetErrorsHistogramDocument = gql`
 	query GetErrorsHistogram(
 		$project_id: ID!
 		$query: String!
+		$clickhouse_query: ClickhouseQuery
 		$histogram_options: DateHistogramOptions!
 	) {
 		errors_histogram(
 			project_id: $project_id
 			query: $query
+			clickhouse_query: $clickhouse_query
 			histogram_options: $histogram_options
 		) {
 			bucket_times
@@ -7279,6 +7293,7 @@ export const GetErrorsHistogramDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      query: // value for 'query'
+ *      clickhouse_query: // value for 'clickhouse_query'
  *      histogram_options: // value for 'histogram_options'
  *   },
  * });
@@ -8464,8 +8479,8 @@ export type GetSubscriptionDetailsQueryResult = Apollo.QueryResult<
 	Types.GetSubscriptionDetailsQueryVariables
 >
 export const GetErrorGroupDocument = gql`
-	query GetErrorGroup($secure_id: String!) {
-		error_group(secure_id: $secure_id) {
+	query GetErrorGroup($secure_id: String!, $use_clickhouse: Boolean) {
+		error_group(secure_id: $secure_id, use_clickhouse: $use_clickhouse) {
 			created_at
 			updated_at
 			id
@@ -8519,6 +8534,7 @@ export const GetErrorGroupDocument = gql`
  * const { data, loading, error } = useGetErrorGroupQuery({
  *   variables: {
  *      secure_id: // value for 'secure_id'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -12391,12 +12407,14 @@ export const GetErrorGroupFrequenciesDocument = gql`
 		$error_group_secure_ids: [String!]!
 		$params: ErrorGroupFrequenciesParamsInput!
 		$metric: String!
+		$use_clickhouse: Boolean
 	) {
 		errorGroupFrequencies(
 			project_id: $project_id
 			error_group_secure_ids: $error_group_secure_ids
 			params: $params
 			metric: $metric
+			use_clickhouse: $use_clickhouse
 		) {
 			error_group_id
 			date
@@ -12422,6 +12440,7 @@ export const GetErrorGroupFrequenciesDocument = gql`
  *      error_group_secure_ids: // value for 'error_group_secure_ids'
  *      params: // value for 'params'
  *      metric: // value for 'metric'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -12458,8 +12477,14 @@ export type GetErrorGroupFrequenciesQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupFrequenciesQueryVariables
 >
 export const GetErrorGroupTagsDocument = gql`
-	query GetErrorGroupTags($error_group_secure_id: String!) {
-		errorGroupTags(error_group_secure_id: $error_group_secure_id) {
+	query GetErrorGroupTags(
+		$error_group_secure_id: String!
+		$use_clickhouse: Boolean
+	) {
+		errorGroupTags(
+			error_group_secure_id: $error_group_secure_id
+			use_clickhouse: $use_clickhouse
+		) {
 			key
 			buckets {
 				key
@@ -12483,6 +12508,7 @@ export const GetErrorGroupTagsDocument = gql`
  * const { data, loading, error } = useGetErrorGroupTagsQuery({
  *   variables: {
  *      error_group_secure_id: // value for 'error_group_secure_id'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
