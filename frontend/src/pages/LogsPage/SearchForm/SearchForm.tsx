@@ -331,6 +331,7 @@ export const Search: React.FC<{
 				color="weak"
 			>
 				<Combobox
+					gutter={4}
 					ref={inputRef}
 					disabled={disableSearch}
 					autoSelect

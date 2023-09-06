@@ -11,7 +11,6 @@ const AlertTitleField = () => {
 	return (
 		<Form.Input
 			name={formStore.names.name}
-			value={formState.values.name}
 			placeholder="Type name..."
 			style={{
 				borderColor: formState.errors.name

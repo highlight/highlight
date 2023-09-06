@@ -548,7 +548,6 @@ const LogAlertForm = () => {
 						<Column>
 							<Form.Input
 								name={formStore.names.threshold}
-								value={formState.values.threshold}
 								type="number"
 								label="Alert threshold"
 								tag={
@@ -571,7 +570,6 @@ const LogAlertForm = () => {
 							<Form.Select
 								label="Alert frequency"
 								name={formStore.names.frequency.toString()}
-								value={formState.values.frequency}
 								onChange={(e) =>
 									formStore.setValue(
 										formStore.names.frequency,
@@ -622,7 +620,6 @@ const LogAlertForm = () => {
 									values,
 								)
 							}
-							value={formState.values.excludedEnvironments}
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
@@ -662,7 +659,6 @@ const LogAlertForm = () => {
 									})),
 								)
 							}}
-							value={formState.values.slackChannels}
 							notFoundContent={
 								<SlackLoadOrConnect
 									isLoading={slackLoading}
@@ -699,7 +695,6 @@ const LogAlertForm = () => {
 									})),
 								)
 							}}
-							value={formState.values.discordChannels}
 							notFoundContent={
 								discordChannels.length === 0 ? (
 									<Link to="/integrations">
@@ -729,7 +724,6 @@ const LogAlertForm = () => {
 									values,
 								)
 							}
-							value={formState.values.emails}
 							notFoundContent={<p>No email suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
@@ -749,7 +743,6 @@ const LogAlertForm = () => {
 									values,
 								)
 							}
-							value={formState.values.webhookDestinations}
 							notFoundContent={null}
 							className={styles.selectContainer}
 							mode="tags"
