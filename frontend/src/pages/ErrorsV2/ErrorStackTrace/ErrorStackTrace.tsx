@@ -13,7 +13,6 @@ import {
 	Popover,
 	Stack,
 	Text,
-	usePopover,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
@@ -334,7 +333,7 @@ const SourcemapError: React.FC<{
 	errorObjectId: string
 	metadata?: Maybe<SourceMappingError>
 }> = ({ errorObjectId, metadata }) => {
-	const popoverStore = usePopover()
+	const popoverStore = Popover.usePopoverStore({ placement: 'bottom-start' })
 
 	// Ensures the popover is closed when the error instance changes.
 	React.useEffect(() => {
@@ -353,7 +352,7 @@ const SourcemapError: React.FC<{
 			onClick={(e) => e.stopPropagation()}
 			display="flex"
 		>
-			<Popover placement="bottom-start">
+			<Popover store={popoverStore}>
 				<Popover.TagTrigger
 					kind="secondary"
 					shape="basic"

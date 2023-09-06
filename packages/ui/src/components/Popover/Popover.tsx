@@ -10,7 +10,9 @@ const PopoverContext = React.createContext<Ariakit.PopoverStore>(
 export const usePopover = () => React.useContext(PopoverContext)
 
 export type PopoverProps = React.PropsWithChildren<
-	Partial<Ariakit.PopoverStoreProps>
+	Partial<Ariakit.PopoverStoreProps> & {
+		store?: Ariakit.PopoverStore
+	}
 >
 
 type PopoverComponent = React.FC<PopoverProps> & {
@@ -18,16 +20,19 @@ type PopoverComponent = React.FC<PopoverProps> & {
 	TagTrigger: typeof TagTrigger
 	BoxTrigger: typeof BoxTrigger
 	Content: typeof Content
+	usePopoverStore: typeof Ariakit.usePopoverStore
 }
 
 export const Popover: PopoverComponent = ({
 	children,
 	...props
 }: PopoverProps) => {
-	const popoverStore = Ariakit.usePopoverStore({
-		placement: 'bottom',
-		...props,
-	})
+	const popoverStore =
+		props.store ??
+		Ariakit.usePopoverStore({
+			placement: 'bottom',
+			...props,
+		})
 
 	return (
 		<PopoverContext.Provider value={popoverStore}>
@@ -36,9 +41,9 @@ export const Popover: PopoverComponent = ({
 	)
 }
 
-// TODO: See if we can come up with a generic component that can accommodate as
-// `as` prop that preserves types. Separating to separate tag/button components
-// for now.
+// TODO: See if we can come up with a generic component that can accommodate an
+// `as` prop that preserves types. Creating separate tag/button components as
+// a workaround for now.
 const ButtonTrigger: React.FC<React.PropsWithChildren<ButtonProps>> = ({
 	children,
 	...props
@@ -101,3 +106,4 @@ Popover.ButtonTrigger = ButtonTrigger
 Popover.TagTrigger = TagTrigger
 Popover.BoxTrigger = BoxTrigger
 Popover.Content = Content
+Popover.usePopoverStore = Ariakit.usePopoverStore
