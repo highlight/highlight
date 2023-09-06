@@ -1593,14 +1593,27 @@ type Query {
 		project_id: ID!
 		count: Int!
 		query: String!
+		clickhouse_query: ClickhouseQuery
+		page: Int
+	): ErrorResults!
+	error_groups_clickhouse(
+		project_id: ID!
+		count: Int!
+		query: ClickhouseQuery!
 		page: Int
 	): ErrorResults!
 	errors_histogram(
 		project_id: ID!
 		query: String!
 		histogram_options: DateHistogramOptions!
+		clickhouse_query: ClickhouseQuery
 	): ErrorsHistogram!
-	error_group(secure_id: String!): ErrorGroup
+	errors_histogram_clickhouse(
+		project_id: ID!
+		query: ClickhouseQuery!
+		histogram_options: DateHistogramOptions!
+	): ErrorsHistogram!
+	error_group(secure_id: String!, use_clickhouse: Boolean): ErrorGroup
 	error_object(id: ID!): ErrorObject
 	error_objects(
 		error_group_secure_id: String!
@@ -1655,8 +1668,12 @@ type Query {
 		error_group_secure_ids: [String!]
 		params: ErrorGroupFrequenciesParamsInput!
 		metric: String
+		use_clickhouse: Boolean
 	): [ErrorDistributionItem]!
-	errorGroupTags(error_group_secure_id: String!): [ErrorGroupTagAggregation!]!
+	errorGroupTags(
+		error_group_secure_id: String!
+		use_clickhouse: Boolean
+	): [ErrorGroupTagAggregation!]!
 
 	referrers(project_id: ID!, lookBackPeriod: Int!): [ReferrerTablePayload]!
 	newUsersCount(project_id: ID!, lookBackPeriod: Int!): NewUsersCount
@@ -1733,11 +1750,33 @@ type Query {
 		field_type: String!
 		field_name: String!
 		query: String!
+		start_date: Timestamp
+		end_date: Timestamp
+		use_clickhouse: Boolean
+	): [String!]!
+	error_fields_clickhouse(
+		project_id: ID!
+		count: Int!
+		field_type: String!
+		field_name: String!
+		query: String!
+		start_date: Timestamp!
+		end_date: Timestamp!
 	): [String!]!
 	quickFields_opensearch(
 		project_id: ID!
 		count: Int!
 		query: String!
+		start_date: Timestamp
+		end_date: Timestamp
+		use_clickhouse: Boolean
+	): [Field]!
+	quickFields_clickhouse(
+		project_id: ID!
+		count: Int!
+		query: String!
+		start_date: Timestamp!
+		end_date: Timestamp!
 	): [Field]!
 	billingDetailsForProject(project_id: ID!): BillingDetails
 	billingDetails(workspace_id: ID!): BillingDetails!
