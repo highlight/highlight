@@ -13,11 +13,15 @@ import (
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/samber/lo"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"gorm.io/gorm/clause"
 )
 
-func (store *Store) FindOrCreateService(ctx context.Context, project model.Project, name string, attributes map[string]string) (*model.Service, error) {
+func (store *Store) UpsertService(ctx context.Context, project model.Project, name string, attributes map[string]string) (*model.Service, error) {
 	return redis.CachedEval(ctx, store.redis, CacheServiceKey(name, project.ID), 150*time.Millisecond, time.Minute, func() (*model.Service, error) {
-		var service model.Service
+		service := model.Service{
+			Name:      name,
+			ProjectID: project.ID,
+		}
 
 		if val, ok := attributes[string(semconv.ProcessRuntimeNameKey)]; ok {
 			service.ProcessName = &val
@@ -31,10 +35,18 @@ func (store *Store) FindOrCreateService(ctx context.Context, project model.Proje
 			service.ProcessDescription = &val
 		}
 
-		err := store.db.Where(&model.Service{
-			ProjectID: project.ID,
+		err := store.db.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "name"}, {Name: "project_id"}},
+			DoUpdates: clause.AssignmentColumns([]string{"process_name", "process_version", "process_description"}),
+		}).Create(&service).Error
+		if err != nil {
+			return nil, err
+		}
+
+		err = store.db.Model(&model.Service{}).Where(model.Service{
 			Name:      name,
-		}).FirstOrCreate(&service).Error
+			ProjectID: project.ID,
+		}).Take(&service).Error
 
 		return &service, err
 	})
@@ -42,15 +54,14 @@ func (store *Store) FindOrCreateService(ctx context.Context, project model.Proje
 
 func (store *Store) FindService(ctx context.Context, projectID int, name string) (*model.Service, error) {
 	return redis.CachedEval(ctx, store.redis, CacheServiceKey(name, projectID), 150*time.Millisecond, time.Minute, func() (*model.Service, error) {
-
-		service := &model.Service{}
+		service := model.Service{}
 
 		err := store.db.Where(&model.Service{
 			ProjectID: projectID,
 			Name:      name,
 		}).Take(&service).Error
 
-		return service, err
+		return &service, err
 	})
 }
 

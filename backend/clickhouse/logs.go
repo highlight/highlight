@@ -3,13 +3,13 @@ package clickhouse
 import (
 	"context"
 	"fmt"
+	e "github.com/pkg/errors"
 	"math"
 	"strings"
 	"time"
 
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
-	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/queryparser"
@@ -31,14 +31,20 @@ func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) 
 		}
 		return l
 	})
-	ib := sqlbuilder.NewStruct(new(LogRow)).InsertInto(LogsTable, rows...)
-	sql, args := ib.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	chCtx := clickhouse.Context(ctx, clickhouse.WithSettings(clickhouse.Settings{
-		"async_insert":          1,
-		"wait_for_async_insert": 1,
-	}))
-	return client.conn.Exec(chCtx, sql, args...)
+	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", LogsTable))
+	if err != nil {
+		return e.Wrap(err, "failed to create logs batch")
+	}
+
+	for _, logRow := range rows {
+		err = batch.AppendStruct(logRow)
+		if err != nil {
+			return err
+		}
+	}
+
+	return batch.Send()
 }
 
 const LogsLimit int = 50

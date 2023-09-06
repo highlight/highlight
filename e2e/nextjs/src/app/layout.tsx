@@ -19,6 +19,7 @@ export default function RootLayout({
 			<HighlightInit
 				debug={{ clientInteractions: true, domRecording: true }}
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
+				serviceName="my-nextjs-frontend"
 				tracingOrigins
 				networkRecording={{
 					enabled: true,

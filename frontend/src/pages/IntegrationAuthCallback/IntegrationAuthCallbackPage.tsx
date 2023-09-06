@@ -256,6 +256,7 @@ const WorkspaceIntegrationCallback = ({
 	name,
 	type,
 	addIntegration,
+	next,
 }: Props & {
 	name: string
 	type: string
@@ -266,7 +267,7 @@ const WorkspaceIntegrationCallback = ({
 
 	useEffect(() => {
 		if (!addIntegration || !code) return
-		const next = `/${projectId}/integrations/${type}`
+		const redirectUrl = next || `/${projectId}/integrations/${type}`
 		;(async () => {
 			try {
 				await addIntegration(code)
@@ -278,11 +279,20 @@ const WorkspaceIntegrationCallback = ({
 					'Failed to add integration to project. Please try again.',
 				)
 			} finally {
-				navigate(next)
+				navigate(redirectUrl)
 				setLoadingState(AppLoadingState.LOADED)
 			}
 		})()
-	}, [setLoadingState, code, projectId, addIntegration, name, type, navigate])
+	}, [
+		setLoadingState,
+		code,
+		projectId,
+		addIntegration,
+		name,
+		type,
+		navigate,
+		next,
+	])
 
 	return null
 }
@@ -399,6 +409,7 @@ const IntegrationAuthCallbackPage = () => {
 						projectId={projectId}
 						installationId={installationId}
 						setupAction={setupAction}
+						next={next}
 					/>
 				)
 				break

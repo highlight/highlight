@@ -15,7 +15,7 @@ import {
 	GetErrorGroupsOpenSearchQuery,
 	GetErrorGroupsOpenSearchQueryVariables,
 } from '@graph/operations'
-import { ErrorGroup, Maybe, ProductType } from '@graph/schemas'
+import { ClickhouseQuery, ErrorGroup, Maybe, ProductType } from '@graph/schemas'
 import { Box, getNow } from '@highlight-run/ui'
 import { useErrorSearchContext } from '@pages/Errors/ErrorSearchContext/ErrorSearchContext'
 import { ErrorFeedCard } from '@pages/ErrorsV2/ErrorFeedCard/ErrorFeedCard'
@@ -29,6 +29,7 @@ import { usePollQuery } from '@util/search'
 import clsx from 'clsx'
 import moment from 'moment/moment'
 import React, { useCallback, useEffect, useState } from 'react'
+import { useLocalStorage } from 'react-use'
 
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -39,6 +40,7 @@ const SearchPanel = () => {
 	const { showLeftPanel } = useErrorPageConfiguration()
 	const { showBanner } = useGlobalContext()
 	const {
+		searchQuery,
 		backendSearchQuery,
 		page,
 		setPage,
@@ -49,9 +51,17 @@ const SearchPanel = () => {
 	} = useErrorSearchContext()
 	const { project_id: projectId } = useParams<{ project_id: string }>()
 
+	const [useClickhouse] = useLocalStorage(
+		'highlight-clickhouse-errors',
+		false,
+	)
+
 	const { data: fetchedData, loading } = useGetErrorGroupsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
+			clickhouse_query: useClickhouse
+				? JSON.parse(searchQuery)
+				: undefined,
 			count: PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: projectId!,
@@ -133,13 +143,32 @@ const SearchPanel = () => {
 					],
 				},
 			}
+			const clickhouseQuery: ClickhouseQuery = JSON.parse(searchQuery)
+			const newRules = clickhouseQuery.rules.filter(
+				(r) => r[0] !== 'error-field_timestamp',
+			)
+			const startDate = new Date(Date.parse(lte))
+			const endDate = new Date(Date.parse(lte) + 7 * 24 * 60 * 60 * 1000)
+			newRules.push([
+				'error-field_timestamp',
+				'between_date',
+				startDate.toISOString() + '_' + endDate.toISOString(),
+			])
+			clickhouseQuery.rules = newRules
+
 			return {
 				query: JSON.stringify(query),
 				count: PAGE_SIZE,
 				page: 1,
 				project_id: projectId!,
+				clickhouse_query: useClickhouse ? clickhouseQuery : undefined,
 			}
-		}, [backendSearchQuery?.searchQuery, projectId]),
+		}, [
+			backendSearchQuery?.searchQuery,
+			projectId,
+			searchQuery,
+			useClickhouse,
+		]),
 		moreDataQuery,
 		getResultCount: useCallback(
 			(result) => result?.data?.error_groups_opensearch.totalCount,

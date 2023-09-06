@@ -630,8 +630,9 @@ type Session struct {
 	Fields         []*Field `json:"fields" gorm:"many2many:session_fields;"`
 	Environment    string   `json:"environment"`
 	AppVersion     *string  `json:"app_version"`
-	UserObject     JSONB    `json:"user_object" sql:"type:jsonb"`
-	UserProperties string   `json:"user_properties"`
+	ServiceName    string
+	UserObject     JSONB  `json:"user_object" sql:"type:jsonb"`
+	UserProperties string `json:"user_properties"`
 	// Whether this is the first session created by this user.
 	FirstTime               *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt        *time.Time `json:"payload_updated_at"`
@@ -1267,13 +1268,21 @@ type UserJourneyStep struct {
 }
 
 type SystemConfiguration struct {
-	Active           bool `gorm:"primary_key;default:true"`
-	MaintenanceStart time.Time
-	MaintenanceEnd   time.Time
-	ErrorFilters     pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
-	IgnoredFiles     pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\"}'"`
-	TraceWorkers     int            `gorm:"default:1"`
-	TraceFlushSize   int            `gorm:"type:bigint;default:10000"`
+	Active            bool `gorm:"primary_key;default:true"`
+	MaintenanceStart  time.Time
+	MaintenanceEnd    time.Time
+	ErrorFilters      pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
+	IgnoredFiles      pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\", \".*\\/site-packages\\/.*\"}'"`
+	MainWorkers       int            `gorm:"default:64"`
+	LogsWorkers       int            `gorm:"default:1"`
+	LogsFlushSize     int            `gorm:"type:bigint;default:10000"`
+	LogsFlushTimeout  time.Duration  `gorm:"type:bigint;default:5000000000"`
+	DataSyncWorkers   int            `gorm:"default:1"`
+	DataSyncFlushSize int            `gorm:"type:bigint;default:10000"`
+	DataSyncTimeout   time.Duration  `gorm:"type:bigint;default:5000000000"`
+	TraceWorkers      int            `gorm:"default:1"`
+	TraceFlushSize    int            `gorm:"type:bigint;default:10000"`
+	TraceFlushTimeout time.Duration  `gorm:"type:bigint;default:5000000000"`
 }
 
 type RetryableType string

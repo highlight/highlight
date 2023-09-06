@@ -31,6 +31,7 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
@@ -454,6 +455,10 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorGroup.ID), &kafka_queue.Message{Type: kafka_queue.ErrorGroupDataSync, ErrorGroupDataSync: &kafka_queue.ErrorGroupDataSyncArgs{ErrorGroupID: errorGroup.ID}}); err != nil {
+		return nil, err
+	}
+
 	return errorGroup, nil
 }
 
@@ -823,6 +828,9 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 	}); err != nil {
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorObj.ID), &kafka_queue.Message{Type: kafka_queue.ErrorObjectDataSync, ErrorObjectDataSync: &kafka_queue.ErrorObjectDataSyncArgs{ErrorObjectID: errorObj.ID}}); err != nil {
+		return nil, err
+	}
 
 	if err := r.AppendErrorFields(ctx, fields, errorGroup); err != nil {
 		return nil, e.Wrap(err, "error appending error fields")
@@ -1120,6 +1128,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ClientConfig:                   &input.ClientConfig,
 		Environment:                    input.Environment,
 		AppVersion:                     input.AppVersion,
+		ServiceName:                    input.ServiceName,
 		VerboseID:                      input.ProjectVerboseID,
 		Fields:                         []*model.Field{},
 		ViewedByAdmins:                 []model.Admin{},
@@ -1254,6 +1263,18 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 			}
 		}
 	}()
+
+	if session.ServiceName != "" {
+		// See: https://opentelemetry.io/docs/specs/otel/resource/semantic_conventions/process/#javascript-runtimes
+		// We don't set `process.runtime.version` since it would change on the user
+		attributes := map[string]string{
+			string(semconv.ProcessRuntimeNameKey): "browser",
+		}
+		_, err := r.Store.UpsertService(ctx, *project, session.ServiceName, attributes)
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "failed to create service"))
+		}
+	}
 
 	return session, nil
 }
@@ -2181,7 +2202,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		var structuredStackTrace []*privateModel.ErrorTrace
 
 		if settings.EnableEnhancedErrors {
-			mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, v.Service.Name, v.Service.Version)
+			mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert)
 		} else {
 			structuredStackTrace, err = r.Store.StructuredStackTrace(ctx, v.StackTrace)
 		}
@@ -2680,23 +2701,30 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 			traceString := string(traceBytes)
 
+			serviceVersion := ""
+			if sessionObj.AppVersion != nil {
+				serviceVersion = *sessionObj.AppVersion
+			}
+
 			errorToInsert := &model.ErrorObject{
-				ProjectID:    projectID,
-				SessionID:    &sessionID,
-				Environment:  sessionObj.Environment,
-				Event:        v.Event,
-				Type:         v.Type,
-				URL:          v.URL,
-				Source:       v.Source,
-				LineNumber:   v.LineNumber,
-				ColumnNumber: v.ColumnNumber,
-				OS:           sessionObj.OSName,
-				Browser:      sessionObj.BrowserName,
-				StackTrace:   &traceString,
-				Timestamp:    v.Timestamp,
-				Payload:      v.Payload,
-				RequestID:    nil,
-				IsBeacon:     isBeacon,
+				ProjectID:      projectID,
+				SessionID:      &sessionID,
+				Environment:    sessionObj.Environment,
+				Event:          v.Event,
+				Type:           v.Type,
+				URL:            v.URL,
+				Source:         v.Source,
+				LineNumber:     v.LineNumber,
+				ColumnNumber:   v.ColumnNumber,
+				OS:             sessionObj.OSName,
+				Browser:        sessionObj.BrowserName,
+				StackTrace:     &traceString,
+				Timestamp:      v.Timestamp,
+				Payload:        v.Payload,
+				RequestID:      nil,
+				IsBeacon:       isBeacon,
+				ServiceVersion: serviceVersion,
+				ServiceName:    sessionObj.ServiceName,
 			}
 
 			mappedStackTrace, structuredStackTrace, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)

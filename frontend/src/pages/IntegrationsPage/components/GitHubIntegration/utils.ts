@@ -38,14 +38,8 @@ export const getGitHubInstallationOAuthUrl = (
 	projectId: string,
 	workspaceId: string,
 ) => {
-	let redirectPath = window.location.pathname
-	if (redirectPath.length > 3) {
-		// remove project_id and prepended slash
-		redirectPath = redirectPath.substring(redirectPath.indexOf('/', 1) + 1)
-	}
-
 	const state = {
-		next: redirectPath,
+		next: window.location.pathname,
 		project_id: projectId,
 		workspace_id: workspaceId,
 	}

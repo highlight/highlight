@@ -56,7 +56,6 @@ import { Styles } from 'react-select/src/styles'
 import { OptionTypeBase } from 'react-select/src/types'
 import { useLocalStorage, useToggle } from 'react-use'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
 import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
@@ -1266,13 +1265,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const location = useLocation()
 	const isOnErrorsPage = location.pathname.includes('errors')
 
-	const { isHighlightAdmin } = useAuthContext()
-
-	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse-v2',
-		isHighlightAdmin || Number(projectId) % 2 == 0,
-	)
-
 	const { loading: segmentsLoading, data: segmentData } =
 		useGetAnySegmentsQuery({
 			variables: { project_id: projectId! },
@@ -1503,6 +1495,11 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}
 
+	const [chLocalStorage] = useLocalStorage(
+		'highlight-clickhouse-errors',
+		false,
+	)
+
 	const getValueOptionsCallback = useCallback(
 		(field: SelectOption | undefined) => {
 			return async (input: string) => {
@@ -1557,10 +1554,17 @@ function QueryBuilder(props: QueryBuilderProps) {
 					label = 'event'
 				}
 
+				const fieldType = getType(field.value)
+				// Use clickhouse for error fields only if local storage flag is on
+				const useClickhouse =
+					fieldType === 'error' || fieldType === 'error-field'
+						? chLocalStorage
+						: true
+
 				return await fetchFields({
 					project_id: projectId,
 					count: 10,
-					field_type: getType(field.value),
+					field_type: fieldType,
 					field_name: label,
 					query: input,
 					start_date: moment(dateRange[0]).toISOString(),
@@ -1575,12 +1579,12 @@ function QueryBuilder(props: QueryBuilderProps) {
 			}
 		},
 		[
-			appVersionData?.app_version_suggestion,
-			fetchFields,
 			getCustomFieldOptions,
+			chLocalStorage,
+			fetchFields,
 			projectId,
 			dateRange,
-			useClickhouse,
+			appVersionData?.app_version_suggestion,
 		],
 	)
 
