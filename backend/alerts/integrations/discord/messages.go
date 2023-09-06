@@ -47,6 +47,11 @@ func (bot *Bot) SendErrorAlert(channelId string, payload integrations.ErrorAlert
 	embed.Description = payload.UserIdentifier
 	embed.Fields = fields
 
+	sessionLabel := "View Session"
+	if payload.SessionExcluded {
+		sessionLabel = "No recorded session"
+	}
+
 	messageSend := discordgo.MessageSend{
 		Embeds: []*discordgo.MessageEmbed{
 			embed,
@@ -55,9 +60,9 @@ func (bot *Bot) SendErrorAlert(channelId string, payload integrations.ErrorAlert
 			discordgo.ActionsRow{
 				Components: []discordgo.MessageComponent{
 					discordgo.Button{
-						Label:    "View Session",
+						Label:    sessionLabel,
 						Style:    discordgo.LinkButton,
-						Disabled: false,
+						Disabled: payload.SessionExcluded,
 						URL:      payload.SessionURL,
 					},
 					discordgo.Button{
