@@ -430,7 +430,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 	const [exportSessionMutation] = useExportSessionMutation()
 
 	const exportSession = useCallback(async () => {
-		if (!workspaceSettingsData?.workspaceSettings?.enable_enhanced_errors) {
+		if (!workspaceSettingsData?.workspaceSettings?.enable_session_export) {
 			analytics.track('Session Export Requested', {
 				sessionSecureId: session?.secure_id,
 			})

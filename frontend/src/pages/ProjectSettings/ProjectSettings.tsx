@@ -10,6 +10,7 @@ import { RageClicksForm } from '@pages/ProjectSettings/RageClicksForm/RageClicks
 import { ServicesTable } from '@pages/ProjectSettings/ServicesTable/ServicesTable'
 import { SessionExportForm } from '@pages/ProjectSettings/SessionExportForm/SessionExportForm'
 import SourcemapSettings from '@pages/WorkspaceSettings/SourcemapSettings/SourcemapSettings'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { useEffect, useState } from 'react'
@@ -26,6 +27,7 @@ import {
 	useEditProjectSettingsMutation,
 	useGetProjectQuery,
 	useGetProjectSettingsQuery,
+	useGetWorkspaceSettingsQuery,
 } from '@/graph/generated/hooks'
 import {
 	GetProjectSettingsQuery,
@@ -42,6 +44,11 @@ const ProjectSettings = () => {
 	const { project_id, ...params } = useParams()
 	const [allProjectSettings, setAllProjectSettings] =
 		useState<GetProjectSettingsQuery>()
+	const { currentWorkspace } = useApplicationContext()
+	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
 
 	const { data: projectData } = useGetProjectQuery({
 		variables: {
@@ -160,7 +167,7 @@ const ProjectSettings = () => {
 											<NetworkRecordingForm />
 											{workspaceSettingsData
 												?.workspaceSettings
-												?.enable_enhanced_errors ? (
+												?.enable_session_export ? (
 												<SessionExportForm />
 											) : null}
 										</Stack>

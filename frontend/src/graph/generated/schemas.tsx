@@ -131,6 +131,7 @@ export type AllWorkspaceSettings = {
 	__typename?: 'AllWorkspaceSettings'
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
+	enable_session_export: Scalars['Boolean']
 	workspace_id: Scalars['ID']
 }
 

@@ -13344,6 +13344,7 @@ export const GetWorkspaceSettingsDocument = gql`
 			workspace_id
 			ai_application
 			ai_insights
+			enable_session_export
 		}
 	}
 `
