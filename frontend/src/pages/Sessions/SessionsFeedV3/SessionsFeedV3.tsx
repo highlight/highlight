@@ -26,6 +26,7 @@ import {
 	GetSessionsOpenSearchQueryVariables,
 } from '@graph/operations'
 import {
+	ClickhouseQuery,
 	DateHistogramBucketSize,
 	Maybe,
 	PlanType,
@@ -249,17 +250,31 @@ export const SessionFeedV3 = React.memo(() => {
 					],
 				},
 			}
+			const clickhouseQuery: ClickhouseQuery = JSON.parse(searchQuery)
+			const newRules = clickhouseQuery.rules.filter(
+				(r) => r[0] !== 'custom_created_at',
+			)
+			const startDate = new Date(Date.parse(lte))
+			const endDate = new Date(Date.parse(lte) + 7 * 24 * 60 * 60 * 1000)
+			newRules.push([
+				'custom_created_at',
+				'between_date',
+				startDate.toISOString() + '_' + endDate.toISOString(),
+			])
+			clickhouseQuery.rules = newRules
 			return {
 				query: JSON.stringify(query),
 				count: DEFAULT_PAGE_SIZE,
 				page: 1,
 				project_id: project_id!,
 				sort_desc: sessionFeedConfiguration.sortOrder === 'Descending',
+				clickhouse_query: clickhouseQuery,
 			}
 		}, [
 			backendSearchQuery?.searchQuery,
 			project_id,
 			sessionFeedConfiguration.sortOrder,
+			searchQuery,
 		]),
 		moreDataQuery,
 		getResultCount: useCallback(

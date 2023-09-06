@@ -39,6 +39,14 @@ func (store *Store) UpsertService(ctx context.Context, project model.Project, na
 			Columns:   []clause.Column{{Name: "name"}, {Name: "project_id"}},
 			DoUpdates: clause.AssignmentColumns([]string{"process_name", "process_version", "process_description"}),
 		}).Create(&service).Error
+		if err != nil {
+			return nil, err
+		}
+
+		err = store.db.Model(&model.Service{}).Where(model.Service{
+			Name:      name,
+			ProjectID: project.ID,
+		}).Take(&service).Error
 
 		return &service, err
 	})
@@ -46,15 +54,14 @@ func (store *Store) UpsertService(ctx context.Context, project model.Project, na
 
 func (store *Store) FindService(ctx context.Context, projectID int, name string) (*model.Service, error) {
 	return redis.CachedEval(ctx, store.redis, CacheServiceKey(name, projectID), 150*time.Millisecond, time.Minute, func() (*model.Service, error) {
-
-		service := &model.Service{}
+		service := model.Service{}
 
 		err := store.db.Where(&model.Service{
 			ProjectID: projectID,
 			Name:      name,
 		}).Take(&service).Error
 
-		return service, err
+		return &service, err
 	})
 }
 
