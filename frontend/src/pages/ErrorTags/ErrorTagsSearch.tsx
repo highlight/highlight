@@ -34,8 +34,6 @@ export function ErrorTagsSearch() {
 			skip: !query,
 		})
 
-	console.log(tagData?.match_error_tag)
-
 	return (
 		<Stack py="32" gap="32">
 			<Box style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -129,7 +127,7 @@ export function ErrorTagsSearch() {
 						<Table.Head className={styles.searchTableHead}>
 							<Table.Row gridColumns={GRID_COLUMNS}>
 								<Table.Cell>Title</Table.Cell>
-								<Table.Cell>Description</Table.Cell>
+								<Table.Cell>Stack Trace</Table.Cell>
 								<Table.Cell>Score</Table.Cell>
 							</Table.Row>
 						</Table.Head>
@@ -167,8 +165,8 @@ export function ErrorTagsSearch() {
 	)
 }
 
-function Score({ score }: { score?: number }) {
-	const normalizedScore = score ? Math.round(score * 10) / 10 : 0
+function Score({ score = 0 }: { score?: number }) {
+	const normalizedScore = roundScore(score)
 	const { backgroundColor, color } = useMemo(() => {
 		switch (true) {
 			case normalizedScore < 0.3:
@@ -204,9 +202,13 @@ function Score({ score }: { score?: number }) {
 				padding: '0.13rem 0.25rem',
 			}}
 		>
-			{normalizedScore}
+			{roundScore(1 - score)}
 		</Box>
 	)
+}
+
+function roundScore(score: number) {
+	return score ? Math.round(score * 10) / 10 : 0
 }
 
 function NoResults() {

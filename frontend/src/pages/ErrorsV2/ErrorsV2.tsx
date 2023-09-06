@@ -41,6 +41,7 @@ import { useCallback, useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocalStorage } from 'react-use'
 import { apiObject } from 'rudder-sdk-js'
 import { StringParam, useQueryParams } from 'use-query-params'
 
@@ -393,12 +394,19 @@ function useErrorGroup() {
 	})
 	const [markErrorGroupAsViewed] = useMarkErrorGroupAsViewedMutation()
 	const { isLoggedIn } = useAuthContext()
+	const [useClickhouse] = useLocalStorage(
+		'highlight-clickhouse-errors',
+		false,
+	)
 	const {
 		data,
 		loading,
 		error: errorQueryingErrorGroup,
 	} = useGetErrorGroupQuery({
-		variables: { secure_id: error_secure_id! },
+		variables: {
+			secure_id: error_secure_id!,
+			use_clickhouse: useClickhouse,
+		},
 		skip: !error_secure_id,
 		onCompleted: () => {
 			if (error_secure_id) {
