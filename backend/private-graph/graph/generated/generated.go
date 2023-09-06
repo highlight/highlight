@@ -136,10 +136,9 @@ type ComplexityRoot struct {
 	}
 
 	AllWorkspaceSettings struct {
-		AIApplication        func(childComplexity int) int
-		AIInsights           func(childComplexity int) int
-		EnableEnhancedErrors func(childComplexity int) int
-		WorkspaceID          func(childComplexity int) int
+		AIApplication func(childComplexity int) int
+		AIInsights    func(childComplexity int) int
+		WorkspaceID   func(childComplexity int) int
 	}
 
 	AverageSessionLength struct {
@@ -2149,13 +2148,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AllWorkspaceSettings.AIInsights(childComplexity), true
-
-	case "AllWorkspaceSettings.enable_enhanced_errors":
-		if e.complexity.AllWorkspaceSettings.EnableEnhancedErrors == nil {
-			break
-		}
-
-		return e.complexity.AllWorkspaceSettings.EnableEnhancedErrors(childComplexity), true
 
 	case "AllWorkspaceSettings.workspace_id":
 		if e.complexity.AllWorkspaceSettings.WorkspaceID == nil {
@@ -10013,7 +10005,6 @@ type AllWorkspaceSettings {
 	workspace_id: ID!
 	ai_application: Boolean!
 	ai_insights: Boolean!
-	enable_enhanced_errors: Boolean!
 }
 
 type Account {
@@ -20908,50 +20899,6 @@ func (ec *executionContext) _AllWorkspaceSettings_ai_insights(ctx context.Contex
 }
 
 func (ec *executionContext) fieldContext_AllWorkspaceSettings_ai_insights(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "AllWorkspaceSettings",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _AllWorkspaceSettings_enable_enhanced_errors(ctx context.Context, field graphql.CollectedField, obj *model1.AllWorkspaceSettings) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AllWorkspaceSettings_enable_enhanced_errors(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.EnableEnhancedErrors, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	fc.Result = res
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_AllWorkspaceSettings_enable_enhanced_errors(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AllWorkspaceSettings",
 		Field:      field,
@@ -37166,8 +37113,6 @@ func (ec *executionContext) fieldContext_Mutation_editWorkspaceSettings(ctx cont
 				return ec.fieldContext_AllWorkspaceSettings_ai_application(ctx, field)
 			case "ai_insights":
 				return ec.fieldContext_AllWorkspaceSettings_ai_insights(ctx, field)
-			case "enable_enhanced_errors":
-				return ec.fieldContext_AllWorkspaceSettings_enable_enhanced_errors(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllWorkspaceSettings", field.Name)
 		},
@@ -50761,8 +50706,6 @@ func (ec *executionContext) fieldContext_Query_workspaceSettings(ctx context.Con
 				return ec.fieldContext_AllWorkspaceSettings_ai_application(ctx, field)
 			case "ai_insights":
 				return ec.fieldContext_AllWorkspaceSettings_ai_insights(ctx, field)
-			case "enable_enhanced_errors":
-				return ec.fieldContext_AllWorkspaceSettings_enable_enhanced_errors(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type AllWorkspaceSettings", field.Name)
 		},
@@ -70228,13 +70171,6 @@ func (ec *executionContext) _AllWorkspaceSettings(ctx context.Context, sel ast.S
 		case "ai_insights":
 
 			out.Values[i] = ec._AllWorkspaceSettings_ai_insights(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "enable_enhanced_errors":
-
-			out.Values[i] = ec._AllWorkspaceSettings_enable_enhanced_errors(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

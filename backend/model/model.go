@@ -391,7 +391,6 @@ type AllWorkspaceSettings struct {
 	ErrorEmbeddingsThreshold float64 `gorm:"default:0.2"`
 	ReplaceAssets            bool    `gorm:"default:false"`
 	StoreIP                  bool    `gorm:"default:false"`
-	EnableEnhancedErrors     bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {
