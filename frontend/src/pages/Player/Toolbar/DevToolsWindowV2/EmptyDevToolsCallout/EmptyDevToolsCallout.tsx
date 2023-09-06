@@ -104,7 +104,7 @@ export const EmptyDevToolsCallout = ({
 					<>
 						<Text color="n11">
 							Seems like there are no results for your search
-							entry. Try again with another retry!
+							entry. Try search for something else!
 						</Text>
 					</>
 				) : (
