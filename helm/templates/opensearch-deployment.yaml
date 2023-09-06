@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "highlight.fullname" . }}-opensearch
+  labels:
+    app.kubernetes.io/component: opensearch
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: opensearch
+      app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+      {{- include "highlight.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: opensearch
+        app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+        {{- include "highlight.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: opensearch
+          image: "{{ .Values.opensearch.image.repository }}:{{ .Values.opensearch.image.tag }}"
+          imagePullPolicy: {{ .Values.opensearch.image.pullPolicy }}
+          volumeMounts:
+            - name: opensearch-data
+              mountPath: /usr/share/opensearch/data
+          env:
+            - name: discovery.type
+              value: {{ .Values.opensearch.config.discoveryType | quote }}
+            - name: ES_JAVA_OPTS
+              value: {{ .Values.opensearch.config.javaOpts }}
+            - name: DISABLE_INSTALL_DEMO_CONFIG
+              value: {{ .Values.opensearch.config.disableInstallDemoConfig | quote }}
+            - name: DISABLE_SECURITY_PLUGIN
+              value: {{ .Values.opensearch.config.disableSecurityPlugin | quote }}
+          ports:
+            - containerPort: 9200
+              protocol: TCP
+            - containerPort: 9600
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9200
+              httpHeaders:
+                - name: Authorization
+                  value: {{ "admin:admin" | b64enc }}
+            initialDelaySeconds: 180
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 5
+      volumes:
+        - name: opensearch-data
+          persistentVolumeClaim:
+            claimName: {{ include "highlight.fullname" . }}-opensearch-pvc
