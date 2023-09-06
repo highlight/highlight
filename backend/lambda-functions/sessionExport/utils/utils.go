@@ -4,6 +4,13 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 )
 
+type SessionExportInput struct {
+	Project      int      `json:"project"`
+	Session      int      `json:"session"`
+	Format       string   `json:"format"`
+	TargetEmails []string `json:"targetEmails"`
+}
+
 type SaveSessionExportInput struct {
 	SessionID    int                       `json:"sessionId"`
 	Type         model.SessionExportFormat `json:"type"`

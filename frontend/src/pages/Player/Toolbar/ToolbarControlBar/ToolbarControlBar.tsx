@@ -427,9 +427,8 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 						session_secure_id: session.secure_id,
 					},
 				})
-				// TODO(vkorolik) link to a tracking page in the settings
 				message.info(
-					'You will receive an email once the session is ready.',
+					'You will receive an email once the session is ready. Check the settings page.',
 				)
 			} catch (e) {
 				message.error(`An error occurred exporting the session: ${e}`)
@@ -555,6 +554,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				<ChevronRightIcon className={style.moveRight} />
 			</button>
 
+			{/*TODO(vkorolik) gate based on feature flag*/}
 			<button
 				className={clsx(style.settingsButton, style.downloadButton)}
 				onClick={exportSession}

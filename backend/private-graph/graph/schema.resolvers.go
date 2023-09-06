@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"math"
 	"math/rand"
 	"net/url"
@@ -674,28 +675,21 @@ func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID st
 			TargetEmails: []string{*admin.Email},
 		}
 
-		tx := r.DB.Model(&export).Clauses(clause.OnConflict{
-			Columns: []clause.Column{{Name: "session_id"}, {Name: "type"}, {Name: "fps"}, {Name: "start"}, {Name: "end"}},
+		tx := r.DB.Debug().Model(&export).Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
+			DoUpdates: clause.AssignmentColumns([]string{"target_emails"}),
 		}).FirstOrCreate(&export)
 		if tx.Error != nil {
-			log.WithContext(context.Background()).WithError(err).Error("failed to create session export record")
+			log.WithContext(context.Background()).WithError(tx.Error).Error("failed to create session export record")
 			return
 		}
 
-		if tx.RowsAffected == 0 {
-			user := session.ClientID
-			if session.Email != nil {
-				user = *session.Email
-			}
-			err := Email.SendSessionExportEmail(context.Background(), r.MailClient, session.SecureID, export.URL, user, *admin.Email)
-			if err != nil {
-				log.WithContext(context.Background()).WithError(err).Error("failed to send email for existing export")
-			}
-			return
-		}
-
-		// TODO(vkorolik) will this need to be a stepfunction http trigger?
-		_, err := r.LambdaClient.GetSessionScreenshot(context.Background(), session.ProjectID, session.ID, nil, nil, &export.Type)
+		_, err := r.StepFunctions.SessionExport(ctx, utils2.SessionExportInput{
+			Project:      session.ProjectID,
+			Session:      session.ID,
+			Format:       export.Type,
+			TargetEmails: export.TargetEmails,
+		})
 		if err != nil {
 			log.WithContext(context.Background()).WithError(err).Error("failed to export session video")
 		}
@@ -8162,7 +8156,7 @@ GROUP BY
 
 // TargetEmails is the resolver for the target_emails field.
 func (r *sessionExportResolver) TargetEmails(ctx context.Context, obj *model.SessionExport) ([]string, error) {
-	panic(fmt.Errorf("not implemented: TargetEmails - target_emails"))
+	return obj.TargetEmails, nil
 }
 
 // SessionPayloadAppended is the resolver for the session_payload_appended field.
