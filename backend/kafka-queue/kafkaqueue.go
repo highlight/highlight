@@ -208,6 +208,10 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			CommitInterval:        time.Second,
 			MaxAttempts:           10,
 			WatchPartitionChanges: true,
+			GroupBalancers: []kafka.GroupBalancer{
+				kafka.RackAffinityGroupBalancer{Rack: findRack()},
+				kafka.RangeGroupBalancer{},
+			},
 		}
 
 		if configOverride != nil {
