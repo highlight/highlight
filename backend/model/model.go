@@ -1881,10 +1881,16 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 	frontendURL := os.Getenv("FRONTEND_URI")
 	errorURL := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 	errorURL = routing.AttachReferrer(ctx, errorURL, routing.Email)
-	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
+
+	message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>", *obj.Name, input.Group.Event, errorURL)
+	if input.SessionExcluded {
+		message += " (No recorded session)"
+	} else {
+		sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
+		message += fmt.Sprintf(" <a href=\"%s\">View Session</a>", sessionURL)
+	}
 
 	for _, email := range emailsToNotify {
-		message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>  <a href=\"%s\">View Session</a>", *obj.Name, input.Group.Event, errorURL, sessionURL)
 		if err := Email.SendAlertEmail(ctx, mailClient, *email, message, "Errors", fmt.Sprintf("%s: %s", *obj.Name, input.Group.Event)); err != nil {
 			log.WithContext(ctx).Error(err)
 		}
