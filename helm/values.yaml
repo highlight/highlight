@@ -50,3 +50,13 @@ postgres:
     authMethod: trust
     port: "5432"
     storageSize: 1Gi
+
+clickhouse:
+  image:
+    repository: clickhouse/clickhouse-server
+    tag: "23.5.1.3174"
+    pullPolicy: IfNotPresent
+
+  config:
+    clickhouseStorageSize: 5Gi
+    clickhouseLogsStorageSize: 5Gi
