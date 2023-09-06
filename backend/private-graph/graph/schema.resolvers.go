@@ -668,6 +668,11 @@ func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID st
 		return false, err
 	}
 
+	cfg, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, session.ProjectID)
+	if !cfg.EnableSessionExport {
+		return false, e.New("session export is not enabled")
+	}
+
 	go func() {
 		export := model.SessionExport{
 			SessionID:    session.ID,

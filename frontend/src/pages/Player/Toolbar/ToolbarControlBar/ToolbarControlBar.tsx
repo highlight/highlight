@@ -8,7 +8,10 @@ import {
 import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import Switch from '@components/Switch/Switch'
-import { useExportSessionMutation } from '@graph/hooks'
+import {
+	useExportSessionMutation,
+	useGetWorkspaceSettingsQuery,
+} from '@graph/hooks'
 import {
 	Badge,
 	Box,
@@ -52,10 +55,12 @@ import {
 } from '@pages/Player/ReplayerContext'
 import { getAnnotationColor } from '@pages/Player/Toolbar/Toolbar'
 import { getTimelineEventDisplayName } from '@pages/Player/utils/utils'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import analytics from '@util/analytics'
 import { clamp } from '@util/numbers'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { MillisToMinutesAndSeconds } from '@util/time'
+import { showIntercomMessage } from '@util/window'
 import { message } from 'antd'
 import clsx from 'clsx'
 import React, { useCallback } from 'react'
@@ -400,6 +405,11 @@ interface ControlSettingsProps {
 }
 const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 	const [showSessionSettings, setShowSessionSettings] = useState(true)
+	const { currentWorkspace } = useApplicationContext()
+	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
 	const {
 		showHistogram,
 		setShowHistogram,
@@ -420,6 +430,18 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 	const [exportSessionMutation] = useExportSessionMutation()
 
 	const exportSession = useCallback(async () => {
+		if (!workspaceSettingsData?.workspaceSettings?.enable_enhanced_errors) {
+			analytics.track('Session Export Requested', {
+				sessionSecureId: session?.secure_id,
+			})
+			await message.warn(
+				'Downloading sessions is only available on our enterprise plans.',
+			)
+			showIntercomMessage(
+				'Hi! I would like to learn more about your enterprise plans.',
+			)
+			return
+		}
 		if (session?.secure_id) {
 			try {
 				await exportSessionMutation({
@@ -554,7 +576,6 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				<ChevronRightIcon className={style.moveRight} />
 			</button>
 
-			{/*TODO(vkorolik) gate based on feature flag*/}
 			<button
 				className={clsx(style.settingsButton, style.downloadButton)}
 				onClick={exportSession}

@@ -2,7 +2,7 @@ import BorderBox from '@components/BorderBox/BorderBox'
 import BoxLabel from '@components/BoxLabel/BoxLabel'
 import { LoadingBar } from '@components/Loading/Loading'
 import { useGetSessionExportsQuery } from '@graph/hooks'
-import { Box, Stack, Text } from '@highlight-run/ui'
+import { Box, Stack, TextLink } from '@highlight-run/ui'
 
 export const SessionExportForm = () => {
 	const { data, loading } = useGetSessionExportsQuery()
@@ -21,9 +21,10 @@ export const SessionExportForm = () => {
 				<Box>
 					{data?.session_exports?.map((se) => (
 						<Box key={se.session_id}>
-							<Text>
-								{se.session_id}: {se.url}
-							</Text>
+							<TextLink color="none" href={se.url}>
+								{/*TODO(vkorolik) show status of export*/}
+								{se.session_id}
+							</TextLink>
 						</Box>
 					))}
 				</Box>
