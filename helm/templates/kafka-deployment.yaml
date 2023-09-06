@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "highlight.fullname" . }}-kafka
+  labels:
+    app.kubernetes.io/component: kafka
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: kafka
+      app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+      {{- include "highlight.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: kafka
+        app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+        {{- include "highlight.selectorLabels" . | nindent 8 }}
+    spec:
+      initContainers:
+        - name: zookeeper-check
+          image: busybox:1.36.1
+          command: ['sh', '-c', 'until nc -w 3 -v {{ include "highlight.fullname" . }}-zookeeper {{ .Values.zookeeper.config.clientPort }}; do echo waiting for zookeeper; sleep 2; done;']
+      containers:
+        - name: kafka
+          image: "{{ .Values.kafka.image.repository }}:{{ .Values.kafka.image.tag }}"
+          imagePullPolicy: {{ .Values.kafka.image.pullPolicy }}
+          env:
+            - name: KAFKA_BROKER_ID
+              value: {{ .Values.kafka.config.brokerID | quote }}
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: PLAINTEXT://{{ include "highlight.fullname" . }}-kafka:{{ .Values.kafka.config.port }}
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: PLAINTEXT:PLAINTEXT
+            - name: KAFKA_ZOOKEEPER_CONNECT
+              value: {{ include "highlight.fullname" . }}-zookeeper:{{ .Values.zookeeper.config.clientPort }}
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: {{ .Values.kafka.config.offsetsTopicReplicationFactor | quote }}
+            - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+              value: {{ .Values.kafka.config.transactionStateLogMinISR | quote }}
+            - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+              value: {{ .Values.kafka.config.transactionStateLogReplicationFactor | quote }}
+            - name: KAFKA_CONSUMER_MAX_PARTITION_FETCH_BYTES
+              value: {{ .Values.kafka.config.consumerMaxPartitionFetchBytes | quote }}
+            - name: KAFKA_MESSAGE_MAX_BYTES
+              value: {{ .Values.kafka.config.messageMaxBytes | quote }}
+            - name: KAFKA_PRODUCER_MAX_REQUEST_SIZE
+              value: {{ .Values.kafka.config.producerMaxRequestSize | quote }}
+            - name: KAFKA_REPLICA_FETCH_MAX_BYTES
+              value: {{ .Values.kafka.config.replicaFetchMaxBytes | quote }}
+          ports:
+            - containerPort: {{ .Values.kafka.config.port | int }}
+              protocol: TCP

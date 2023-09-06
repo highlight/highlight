@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "highlight.fullname" . }}-influxdb
+  labels:
+    app.kubernetes.io/component: influxdb
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: influxdb
+      app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+      {{- include "highlight.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: influxdb
+        app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+        {{- include "highlight.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: influxdb
+          image: "{{ .Values.influxdb.image.repository }}:{{ .Values.influxdb.image.tag }}"
+          imagePullPolicy: {{ .Values.influxdb.image.pullPolicy }}
+          volumeMounts:
+            - name: influxdb-data
+              mountPath: /var/lib/influxdb
+          ports:
+            - containerPort: 8086
+              protocol: TCP
+          livesnessProbe:
+            httpGet:
+              path: /ping
+              port: 8086
+            initialDelaySeconds: 180
+            timeoutSeconds: 5
+            periodSeconds: 5
+            failureThreshold: 5
+      volumes:
+        - name: influxdb-data
+          persistentVolumeClaim:
+            claimName: {{ include "highlight.fullname" . }}-influxdb-pvc

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "highlight.fullname" . }}-influxdb-pvc
+spec:
+  resources:
+    requests:
+      storage: {{ .Values.influxdb.config.storageSize }}
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
