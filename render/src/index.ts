@@ -19,6 +19,7 @@ const screenshot = async (args?: Args) => {
 		Number(args?.session),
 		{
 			ts: Number(args?.ts),
+			tsEnd: Number(args?.ts),
 			chunk: args?.chunk?.length ? Number(args?.chunk) : undefined,
 		},
 	)

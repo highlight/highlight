@@ -206,14 +206,14 @@ export async function render(
 		await recorder.stop()
 	} else {
 		let interval = 1000
-		let start = ts || meta.startTime
-		let end = tsEnd || ts || meta.endTime
+		let start = ts ?? meta.startTime
+		let end = tsEnd ?? ts ?? meta.endTime
 		if (fps) {
 			interval = Math.round(1000 / fps)
-			start = ts || Math.floor((meta.totalTime / workers) * worker)
+			start = ts ?? Math.floor((meta.totalTime / workers) * worker)
 			end =
-				tsEnd ||
-				ts ||
+				tsEnd ??
+				ts ??
 				Math.floor((meta.totalTime / workers) * (worker + 1))
 		}
 		console.log(`starting screenshotting`, {
