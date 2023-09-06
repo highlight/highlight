@@ -13,6 +13,16 @@ frontend:
     publicGraphUri: "https://localhost:8082/public"
     frontendUri: "https://localhost:3000"
 
+backend:
+  image:
+    repository: ghcr.io/highlight/highlight-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  config:
+    port: 8082
+    storageSize: 5Gi
+
 zookeeper:
   image:
     repository: confluentinc/cp-zookeeper

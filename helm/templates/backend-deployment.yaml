@@ -1,0 +1,200 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "highlight.fullname" . }}-backend
+  labels:
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: backend
+      app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+      {{- include "highlight.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: backend
+        app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+        {{- include "highlight.selectorLabels" . | nindent 8 }}
+    spec:
+      initContainers:
+        - name: backend-setup-opensearch
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          command:
+            - /build/backend
+            - -runtime=worker
+            - -worker-handler=init-opensearch
+          env:
+            - name: CLICKHOUSE_ADDRESS
+              value: {{ include "highlight.fullname" . }}-clickhouse:9000
+            - name: CLICKHOUSE_DATABASE
+              value: default
+            - name: CLICKHOUSE_PASSWORD
+              value: ""
+            - name: CLICKHOUSE_USERNAME
+              value: default
+            - name: DOPPLER_CONFIG
+              value: docker
+            - name: ENVIRONMENT
+              value: dev
+            - name: FRONTEND_URI
+              value: {{ .Values.frontend.config.frontendUri | quote }}
+            - name: INFLUXDB_BUCKET
+              value: dev-bucket
+            - name: INFLUXDB_ORG
+              value: dev-org
+            - name: INFLUXDB_SERVER
+              value: {{ include "highlight.fullname" . }}-influxdb:8086
+            - name: INFLUXDB_TOKEN
+              value: not-a-secure-token
+            - name: KAFKA_SERVERS
+              value: {{ include "highlight.fullname" . }}-kafka:{{ .Values.kafka.config.port }}
+            - name: KAFKA_TOPIC
+              value: dev
+            - name: OPENSEARCH_INDEX_PREFIX
+              value: docker
+            - name: OPENSEARCH_DOMAIN
+              value: http://{{ include "highlight.fullname" . }}-opensearch:9200
+            - name: OPENSEARCH_DOMAIN_READ
+              value: http://{{ include "highlight.fullname" . }}-opensearch:9200
+            - name: OPENSEARCH_PASSWORD
+              value: admin
+            - name: OPENSEARCH_USERNAME
+              value: admin
+            - name: TZ
+              value: America/Los_Angeles
+            - name: PSQL_DB
+              value: postgres
+            - name: PSQL_HOST
+              value: {{ include "highlight.fullname" . }}-postgres
+            - name: PSQL_PASSWORD
+              value: ""
+            - name: PSQL_PORT
+              value: "5432"
+            - name: PSQL_USER
+              value: postgres
+            - name: PRIVATE_GRAPH_URI
+              value: {{ .Values.frontend.config.privateGraphUri | quote }}
+            - name: PUBLIC_GRAPH_URI
+              value: {{ .Values.frontend.config.publicGraphUri | quote }}
+            - name: REACT_APP_FRONTEND_ORG
+              value: "1"
+            - name: REACT_APP_FRONTEND_URI
+              value: {{ .Values.frontend.config.frontendUri | quote }}
+            - name: REACT_APP_IN_DOCKER
+              value: "true"
+            - name: REACT_APP_PRIVATE_GRAPH_URI
+              value: {{ .Values.frontend.config.privateGraphUri | quote }}
+            - name: REACT_APP_PUBLIC_GRAPH_URI
+              value: {{ .Values.frontend.config.publicGraphUri | quote }}
+            - name: REDIS_EVENTS_STAGING_ENDPOINT
+              value: redis:6379 # TODO!
+            - name: RENDER_PREVIEW
+              value: "true"
+            - name: SESSION_FILE_PATH_PREFIX
+              value: /tmp/
+            - name: REACT_APP_AUTH_MODE
+              value: simple
+            - name: IN_DOCKER
+              value: "true"
+            - name: IN_DOCKER_GO
+              value: "true"
+            - name: ENABLE_OBJECT_STORAGE
+              value: "true"
+            - name: OBJECT_STORAGE_FS
+              value: "true"
+      containers:
+        - name: backend
+          image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.backend.config.port }}
+              protocol: TCP
+          volumeMounts:
+            - name: highlight-data
+              mountPath: /highlight-data
+          env:
+            - name: CLICKHOUSE_ADDRESS
+              value: {{ include "highlight.fullname" . }}-clickhouse:9000
+            - name: CLICKHOUSE_DATABASE
+              value: default
+            - name: CLICKHOUSE_PASSWORD
+              value: ""
+            - name: CLICKHOUSE_USERNAME
+              value: default
+            - name: DOPPLER_CONFIG
+              value: docker
+            - name: ENVIRONMENT
+              value: dev
+            - name: FRONTEND_URI
+              value: {{ .Values.frontend.config.frontendUri | quote }}
+            - name: INFLUXDB_BUCKET
+              value: dev-bucket
+            - name: INFLUXDB_ORG
+              value: dev-org
+            - name: INFLUXDB_SERVER
+              value: {{ include "highlight.fullname" . }}-influxdb:8086
+            - name: INFLUXDB_TOKEN
+              value: not-a-secure-token
+            - name: KAFKA_SERVERS
+              value: {{ include "highlight.fullname" . }}-kafka:{{ .Values.kafka.config.port }}
+            - name: KAFKA_TOPIC
+              value: dev
+            - name: OPENSEARCH_INDEX_PREFIX
+              value: docker
+            - name: OPENSEARCH_DOMAIN
+              value: http://{{ include "highlight.fullname" . }}-opensearch:9200
+            - name: OPENSEARCH_DOMAIN_READ
+              value: http://{{ include "highlight.fullname" . }}-opensearch:9200
+            - name: OPENSEARCH_PASSWORD
+              value: admin
+            - name: OPENSEARCH_USERNAME
+              value: admin
+            - name: TZ
+              value: America/Los_Angeles
+            - name: PSQL_DB
+              value: postgres
+            - name: PSQL_HOST
+              value: {{ include "highlight.fullname" . }}-postgres
+            - name: PSQL_PASSWORD
+              value: ""
+            - name: PSQL_PORT
+              value: "5432"
+            - name: PSQL_USER
+              value: postgres
+            - name: PRIVATE_GRAPH_URI
+              value: {{ .Values.frontend.config.privateGraphUri | quote }}
+            - name: PUBLIC_GRAPH_URI
+              value: {{ .Values.frontend.config.publicGraphUri | quote }}
+            - name: REACT_APP_FRONTEND_ORG
+              value: "1"
+            - name: REACT_APP_FRONTEND_URI
+              value: {{ .Values.frontend.config.frontendUri | quote }}
+            - name: REACT_APP_IN_DOCKER
+              value: "true"
+            - name: REACT_APP_PRIVATE_GRAPH_URI
+              value: {{ .Values.frontend.config.privateGraphUri | quote }}
+            - name: REACT_APP_PUBLIC_GRAPH_URI
+              value: {{ .Values.frontend.config.publicGraphUri | quote }}
+            - name: REDIS_EVENTS_STAGING_ENDPOINT
+              value: redis:6379 # TODO!
+            - name: RENDER_PREVIEW
+              value: "true"
+            - name: SESSION_FILE_PATH_PREFIX
+              value: /tmp/
+            - name: REACT_APP_AUTH_MODE
+              value: simple
+            - name: IN_DOCKER
+              value: "true"
+            - name: IN_DOCKER_GO
+              value: "true"
+            - name: ENABLE_OBJECT_STORAGE
+              value: "true"
+            - name: OBJECT_STORAGE_FS
+              value: "true"
+      volumes:
+        - name: highlight-data
+          persistentVolumeClaim:
+            claimName: {{ include "highlight.fullname" . }}-backend-pvc

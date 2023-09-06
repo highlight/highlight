@@ -22,7 +22,7 @@ spec:
       containers:
         - name: collector
           image: "{{ .Values.collector.image.repository }}:{{ .Values.collector.image.tag }}"
-          pullPolicy: {{ .Values.collector.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.collector.image.pullPolicy }}
           args:
             - --config=/etc/otel-collector-config.yaml
           volumeMounts:
