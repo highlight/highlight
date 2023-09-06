@@ -215,7 +215,7 @@ func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Clie
 	return nil
 }
 
-func SendSessionExportEmail(ctx context.Context, mailClient *sendgrid.Client, projectId int, sessionSecureId, exportUrl, sessionUser, toEmail string) error {
+func SendSessionExportEmail(ctx context.Context, mailClient *sendgrid.Client, sessionSecureId, exportUrl, sessionUser, toEmail string) error {
 	to := &mail.Email{Address: toEmail}
 
 	m := mail.NewV3Mail()

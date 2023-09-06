@@ -435,7 +435,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				message.error(`An error occurred exporting the session: ${e}`)
 			}
 		}
-	}, [exportSessionMutation, session?.id])
+	}, [exportSessionMutation, session?.secure_id])
 
 	const { isLiveMode } = useReplayerContext()
 	const options = (
