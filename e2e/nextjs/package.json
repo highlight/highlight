@@ -10,7 +10,7 @@
 		"lint": "next lint"
 	},
 	"installConfig": {
-		"hoistingLimits": "workspaces"
+		"hoistingLimits": "dependencies"
 	},
 	"dependencies": {
 		"@highlight-run/cloudflare": "workspace:*",

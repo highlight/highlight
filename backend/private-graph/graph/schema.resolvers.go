@@ -4095,7 +4095,11 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 }
 
 // ErrorGroupsOpensearch is the resolver for the error_groups_opensearch field.
-func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model.ErrorResults, error) {
+func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, clickhouseQuery *modelInputs.ClickhouseQuery, page *int) (*model.ErrorResults, error) {
+	if clickhouseQuery != nil {
+		return r.ErrorGroupsClickhouse(ctx, projectID, count, *clickhouseQuery, page)
+	}
+
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -4149,8 +4153,52 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 	}, nil
 }
 
+// ErrorGroupsClickhouse is the resolver for the error_groups_clickhouse field.
+func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int, count int, query modelInputs.ClickhouseQuery, page *int) (*model.ErrorResults, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	ids, total, err := r.ClickhouseClient.QueryErrorGroupIds(ctx, projectID, count, query, page, retentionDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*model.ErrorGroup
+	if err := r.DB.Model(&model.ErrorGroup{}).
+		Where("id in ?", ids).
+		Where("project_id = ?", projectID).
+		Order("updated_at DESC").
+		Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	if len(results) > 0 {
+		if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, results, ErrorGroupLookbackDays); err != nil {
+			return nil, err
+		}
+	}
+
+	return &model.ErrorResults{
+		ErrorGroups: lo.Map(results, func(eg *model.ErrorGroup, idx int) model.ErrorGroup { return *eg }),
+		TotalCount:  total,
+	}, nil
+}
+
 // ErrorsHistogram is the resolver for the errors_histogram field.
-func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
+func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions, clickhouseQuery *modelInputs.ClickhouseQuery) (*model.ErrorsHistogram, error) {
+	if clickhouseQuery != nil {
+		return r.ErrorsHistogramClickhouse(ctx, projectID, *clickhouseQuery, histogramOptions)
+	}
+
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -4185,14 +4233,48 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 	}, nil
 }
 
+// ErrorsHistogramClickhouse is the resolver for the errors_histogram_clickhouse field.
+func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogram(ctx, projectID, query, retentionDate, histogramOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(bucketTimes) > 0 {
+		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
+	}
+
+	return &model.ErrorsHistogram{
+		BucketTimes:  MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		ErrorObjects: MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
+	}, nil
+}
+
 // ErrorGroup is the resolver for the error_group field.
-func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
+func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string, useClickhouse *bool) (*model.ErrorGroup, error) {
 	eg, err := r.canAdminViewErrorGroup(ctx, secureID)
 	if err != nil {
 		return nil, err
 	}
-	if err := r.loadErrorGroupFrequencies(ctx, eg); err != nil {
-		return nil, err
+	if useClickhouse != nil && *useClickhouse {
+		if err := r.loadErrorGroupFrequenciesClickhouse(ctx, eg); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := r.loadErrorGroupFrequencies(ctx, eg); err != nil {
+			return nil, err
+		}
 	}
 	retentionDate, err := r.GetProjectRetentionDate(eg.ProjectID)
 	if err != nil {
@@ -4946,7 +5028,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 }
 
 // ErrorGroupFrequencies is the resolver for the errorGroupFrequencies field.
-func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params modelInputs.ErrorGroupFrequenciesParamsInput, metric *string) ([]*modelInputs.ErrorDistributionItem, error) {
+func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params modelInputs.ErrorGroupFrequenciesParamsInput, metric *string, useClickhouse *bool) ([]*modelInputs.ErrorDistributionItem, error) {
 	var errorGroupIDs []int
 	for _, errorGroupSecureID := range errorGroupSecureIds {
 		errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
@@ -4958,14 +5040,25 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 	if metric == nil {
 		metric = pointy.String("")
 	}
+	if useClickhouse != nil && *useClickhouse {
+		results, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, errorGroupIDs, params)
+		if err != nil {
+			return nil, err
+		}
+		return results, nil
+	}
 	return r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, *metric)
 }
 
 // ErrorGroupTags is the resolver for the errorGroupTags field.
-func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID string) ([]*modelInputs.ErrorGroupTagAggregation, error) {
+func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID string, useClickhouse *bool) ([]*modelInputs.ErrorGroupTagAggregation, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, err
+	}
+
+	if useClickhouse != nil && *useClickhouse {
+		return r.ClickhouseClient.QueryErrorGroupTags(ctx, errorGroup.ProjectID, errorGroup.ID)
 	}
 
 	query := fmt.Sprintf(`
@@ -5249,9 +5342,11 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 	}
 	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
-	sortFieldStr := "CreatedAt DESC, ID DESC"
+	chSortStr := "CreatedAt DESC, ID DESC"
+	pgSortStr := "created_at DESC"
 	if !sortDesc {
-		sortFieldStr = "CreatedAt ASC, ID ASC"
+		chSortStr = "CreatedAt ASC, ID ASC"
+		pgSortStr = "created_at ASC"
 	}
 
 	admin, err := r.getCurrentAdmin(ctx)
@@ -5259,13 +5354,17 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 		return nil, err
 	}
 
-	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, sortFieldStr, page, retentionDate)
+	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, chSortStr, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
 
 	var results []model.Session
-	if err := r.DB.Model(&model.Session{}).Where("id in ?", ids).Order("created_at DESC").Find(&results).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).
+		Where("id in ?", ids).
+		Where("project_id = ?", projectID).
+		Order(pgSortStr).
+		Find(&results).Error; err != nil {
 		return nil, err
 	}
 
@@ -5497,7 +5596,14 @@ func (r *queryResolver) FieldsClickhouse(ctx context.Context, projectID int, cou
 }
 
 // ErrorFieldsOpensearch is the resolver for the error_fields_opensearch field.
-func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error) {
+func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]string, error) {
+	if useClickhouse != nil && *useClickhouse {
+		if startDate == nil || endDate == nil {
+			return nil, errors.New("startDate and endDate must not be nil")
+		}
+		return r.ErrorFieldsClickhouse(ctx, projectID, count, fieldType, fieldName, query, *startDate, *endDate)
+	}
+
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -5547,8 +5653,20 @@ func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int
 	return values, nil
 }
 
+// ErrorFieldsClickhouse is the resolver for the error_fields_clickhouse field.
+func (r *queryResolver) ErrorFieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
+	return r.ClickhouseClient.QueryErrorFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
+}
+
 // QuickFieldsOpensearch is the resolver for the quickFields_opensearch field.
-func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int, count int, query string) ([]*model.Field, error) {
+func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int, count int, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]*model.Field, error) {
+	if useClickhouse != nil && *useClickhouse {
+		if startDate == nil || endDate == nil {
+			return nil, errors.New("startDate and endDate must not be nil")
+		}
+		return r.QuickFieldsClickhouse(ctx, projectID, count, query, *startDate, *endDate)
+	}
+
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -5607,6 +5725,11 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 	}
 
 	return results, nil
+}
+
+// QuickFieldsClickhouse is the resolver for the quickFields_clickhouse field.
+func (r *queryResolver) QuickFieldsClickhouse(ctx context.Context, projectID int, count int, query string, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
+	panic(fmt.Errorf("not implemented: QuickFieldsClickhouse - quickFields_clickhouse"))
 }
 
 // BillingDetailsForProject is the resolver for the billingDetailsForProject field.
