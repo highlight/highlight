@@ -39,3 +39,14 @@ kafka:
     messageMaxBytes: "536870912"
     producerMaxRequestSize: "536870912"
     replicaFetchMaxBytes: "536870912"
+
+postgres:
+  image:
+    repository: ankane/pgvector
+    tag: "v0.5.0"
+    pullPolicy: IfNotPresent
+
+  config:
+    authMethod: trust
+    port: "5432"
+    storageSize: 1Gi
