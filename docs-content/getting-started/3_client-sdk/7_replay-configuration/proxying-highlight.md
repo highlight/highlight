@@ -19,7 +19,7 @@ One way we can avoid this is by setting up proxy from your domain to Highlight. 
 
 1.  On your domain, add a `CNAME` record that points `highlight.<YOUR_DOMAIN>` to `pub.highlight.run`.
 
-2.  Send us an email at <sales@highlight.io> so we can send over a cost proposal for your annual usage.
+2.  Send us an email at sales@highlight.io so we can send over a cost proposal for your annual usage.
 
 
 Below is an example email/message that you can send over.
