@@ -15,7 +15,6 @@ const AlertNotifyForm = () => {
 	const { slackLoading, syncSlack } = useSlackSync()
 	const [slackSearchQuery, setSlackSearchQuery] = useState('')
 	const formStore = useForm() as FormState<AlertForm>
-	const formState = formStore.getState()
 
 	const slackChannels = (alertsPayload?.slack_channel_suggestion ?? []).map(
 		({ webhook_channel, webhook_channel_id }) => ({
