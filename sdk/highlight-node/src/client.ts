@@ -35,6 +35,12 @@ export class Highlight {
 			})
 		}
 
+		if (!this._projectID) {
+			console.warn(
+				'Highlight project id was not provided. Data will not be recorded.',
+			)
+		}
+
 		this.tracer = trace.getTracer('highlight-node')
 
 		const exporter = new OTLPTraceExporter({
