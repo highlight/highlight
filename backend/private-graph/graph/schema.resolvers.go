@@ -687,7 +687,7 @@ func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID st
 			if session.Email != nil {
 				user = *session.Email
 			}
-			err := Email.SendSessionExportEmail(context.Background(), r.MailClient, session.ProjectID, session.SecureID, user, *admin.Email)
+			err := Email.SendSessionExportEmail(context.Background(), r.MailClient, session.ProjectID, session.SecureID, export.URL, user, *admin.Email)
 			if err != nil {
 				log.WithContext(context.Background()).WithError(err).Error("failed to send email for existing export")
 			}

@@ -179,7 +179,7 @@ export async function render(
 		// @ts-ignore - complains about the use of puppeteer-core instead of puppeteer
 		const recorder = new PuppeteerScreenRecorder(page, {
 			followNewTab: true,
-			fps,
+			fps: 25,
 			videoFrame: {
 				width,
 				height,
