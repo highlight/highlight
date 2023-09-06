@@ -73,3 +73,12 @@ opensearch:
     disableInstallDemoConfig: true
     disableSecurityPlugin: true
     storageSize: 5Gi
+
+influxdb:
+  image:
+    repository: influxdb
+    tag: "2.7.1"
+    pullPolicy: IfNotPresent
+
+  config:
+    storageSize: 5Gi
