@@ -73,7 +73,6 @@ const AlertNotifyForm = () => {
 							})),
 						)
 					}}
-					value={formState.values.slackChannels}
 					notFoundContent={
 						<SlackLoadOrConnect
 							isLoading={slackLoading}
@@ -109,7 +108,6 @@ const AlertNotifyForm = () => {
 							})),
 						)
 					}}
-					value={formState.values.discordChannels}
 					notFoundContent={
 						discordChannels.length === 0 ? (
 							<Link to="/integrations">
@@ -136,7 +134,6 @@ const AlertNotifyForm = () => {
 					onChange={(values: any): any =>
 						formStore.setValue(formStore.names.emails, values)
 					}
-					value={formState.values.emails}
 					notFoundContent={<p>No email suggestions</p>}
 					className={styles.selectContainer}
 					mode="multiple"
@@ -156,7 +153,6 @@ const AlertNotifyForm = () => {
 							values,
 						)
 					}
-					value={formState.values.webhookDestinations}
 					notFoundContent={null}
 					className={styles.selectContainer}
 					mode="tags"

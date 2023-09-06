@@ -615,7 +615,6 @@ const SessionAlertForm = ({
 								<Column>
 									<Form.Input
 										name={formStore.names.threshold}
-										value={formState.values.threshold}
 										type="number"
 										label="Alert threshold"
 										tag={
@@ -671,7 +670,6 @@ const SessionAlertForm = ({
 							>
 								<Select
 									aria-label="Excluded identifiers list"
-									value={formState.values.excludeRules}
 									notFoundContent={
 										<p>No identifier suggestions</p>
 									}
@@ -700,7 +698,6 @@ const SessionAlertForm = ({
 									onSearch={handleUserPropertiesSearch}
 									options={userPropertiesSuggestions}
 									className={styles.selectContainer}
-									value={formState.values.userProperties}
 									mode="multiple"
 									placeholder="Pick the user properties that you would like to get alerted for."
 									onChange={(values: any): any =>
@@ -721,7 +718,6 @@ const SessionAlertForm = ({
 									onSearch={handleTrackPropertiesSearch}
 									options={trackPropertiesSuggestions}
 									className={styles.selectContainer}
-									value={formState.values.trackProperties}
 									mode="multiple"
 									placeholder="Pick the track properties that you would like to get alerted for."
 									onChange={(values: any): any =>
@@ -759,7 +755,6 @@ const SessionAlertForm = ({
 									values,
 								)
 							}
-							value={formState.values.excludedEnvironments}
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"

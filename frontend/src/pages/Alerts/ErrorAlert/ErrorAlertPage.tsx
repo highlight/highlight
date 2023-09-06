@@ -442,7 +442,6 @@ const ErrorAlertForm = () => {
 									values,
 								)
 							}
-							value={formState.values.regex_groups}
 							className={styles.selectContainer}
 							mode="tags"
 						/>
@@ -451,7 +450,6 @@ const ErrorAlertForm = () => {
 						<Column>
 							<Form.Input
 								name={formStore.names.threshold}
-								value={formState.values.threshold}
 								type="number"
 								label="Alert threshold"
 								tag={
@@ -474,7 +472,6 @@ const ErrorAlertForm = () => {
 							<Form.Select
 								label="Alert threshold window"
 								name={formStore.names.threshold_window.toString()}
-								value={formState.values.threshold_window}
 								onChange={(e) =>
 									formStore.setValue(
 										formStore.names.threshold_window,
@@ -499,7 +496,6 @@ const ErrorAlertForm = () => {
 					<Form.Select
 						label="Alert frequency"
 						name={formStore.names.frequency.toString()}
-						value={formState.values.frequency}
 						onChange={(e) =>
 							formStore.setValue(
 								formStore.names.frequency,
@@ -541,7 +537,6 @@ const ErrorAlertForm = () => {
 									values,
 								)
 							}
-							value={formState.values.excludedEnvironments}
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
