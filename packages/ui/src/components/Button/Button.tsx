@@ -101,7 +101,7 @@ export const ButtonContent: React.FC<ButtonContentProps> = ({
 					as="span"
 					display="inline-flex"
 					disabled={disabled}
-					className={styles.iconVariants({
+					cssClass={styles.iconVariants({
 						size,
 						emphasis,
 						kind,
@@ -125,7 +125,7 @@ export const ButtonContent: React.FC<ButtonContentProps> = ({
 					as="span"
 					display="inline-flex"
 					disabled={disabled}
-					className={styles.iconVariants({
+					cssClass={styles.iconVariants({
 						size,
 						emphasis,
 						kind,

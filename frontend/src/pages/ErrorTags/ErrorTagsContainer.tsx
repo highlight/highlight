@@ -59,7 +59,7 @@ export function ErrorTagsContainer() {
 						minHeight: '100%',
 						width: '100%',
 					}}
-					className={containerContentStyles}
+					cssClass={containerContentStyles}
 				>
 					<Box style={{ width: 720 }}>
 						<Box

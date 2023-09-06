@@ -194,14 +194,14 @@ export const NetworkPage = ({
 	}, [autoScroll, currentResourceIdx, scrollFunction, state, time])
 
 	return (
-		<Box className={styles.container}>
+		<Box cssClass={styles.container}>
 			{resourceLoadingError ? (
 				<ResourceLoadingErrorCallout error={resourceLoadingError} />
 			) : !isPlayerReady || loading || !session ? (
 				<LoadingBox />
 			) : resourcesToRender.length > 0 ? (
-				<Box className={styles.container}>
-					<Box className={styles.networkHeader}>
+				<Box cssClass={styles.container}>
+					<Box cssClass={styles.networkHeader}>
 						<Text color="n11">Status</Text>
 						<Text color="n11">Type</Text>
 						<Text color="n11">Name</Text>
@@ -209,7 +209,7 @@ export const NetworkPage = ({
 						<Text color="n11">Latency</Text>
 						<Text color="n11">Waterfall</Text>
 					</Box>
-					<Box className={styles.networkBox}>
+					<Box cssClass={styles.networkBox}>
 						<Virtuoso
 							ref={virtuoso}
 							overscan={1024}
@@ -397,15 +397,15 @@ const ResourceRow = ({
 						? formatTime(resource.responseEnd - resource.startTime)
 						: 'N/A'}
 				</Text>
-				<Box className={styles.timingBarWrapper}>
+				<Box cssClass={styles.timingBarWrapper}>
 					<Box
 						style={{
 							width: `${leftPaddingPercent}%`,
 						}}
-						className={styles.timingBarEmptySection}
+						cssClass={styles.timingBarEmptySection}
 					/>
 					<Box
-						className={styles.timingBar}
+						cssClass={styles.timingBar}
 						style={{
 							width: `${actualPercent}%`,
 						}}
@@ -414,7 +414,7 @@ const ResourceRow = ({
 						style={{
 							width: `${rightPaddingPercent}%`,
 						}}
-						className={styles.timingBarEmptySection}
+						cssClass={styles.timingBarEmptySection}
 					/>
 				</Box>
 				<Tag

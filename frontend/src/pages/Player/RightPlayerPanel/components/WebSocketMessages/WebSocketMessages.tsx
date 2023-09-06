@@ -29,8 +29,8 @@ export const WebSocketMessages = ({ events, eventsLoading }: any) => {
 	return eventsLoading ? (
 		<LoadingBox />
 	) : (
-		<Box className={styles.container}>
-			<Box className={styles.websocketHeader}>
+		<Box cssClass={styles.container}>
+			<Box cssClass={styles.websocketHeader}>
 				<Box></Box>
 				<Box color="weak" py="6" px="8" borderRight="dividerWeak">
 					<Text size="xxSmall">Data</Text>
@@ -42,7 +42,7 @@ export const WebSocketMessages = ({ events, eventsLoading }: any) => {
 					<Text size="xxSmall">Time</Text>
 				</Box>
 			</Box>
-			<Box className={styles.networkBox}>
+			<Box cssClass={styles.networkBox}>
 				<Virtuoso
 					ref={virtuoso}
 					overscan={1024}

@@ -136,10 +136,7 @@ export const SessionLevelBarV2: React.FC<
 	)
 
 	return (
-		<Box
-			className={styles.sessionLevelBarV2}
-			style={{ width: props.width }}
-		>
+		<Box cssClass={styles.sessionLevelBarV2} style={{ width: props.width }}>
 			<Box
 				p="6"
 				gap="12"
@@ -223,7 +220,7 @@ export const SessionLevelBarV2: React.FC<
 						</Stack>
 					)}
 					<Box
-						className={styles.currentUrl}
+						cssClass={styles.currentUrl}
 						onMouseEnter={() => {
 							if (delayRef.current) {
 								window.clearTimeout(delayRef.current)
@@ -282,7 +279,7 @@ export const SessionLevelBarV2: React.FC<
 						</Box>
 					)}
 				</Box>
-				<Box className={styles.rightButtons}>
+				<Box cssClass={styles.rightButtons}>
 					{session && (
 						<>
 							<SessionShareButtonV2 />

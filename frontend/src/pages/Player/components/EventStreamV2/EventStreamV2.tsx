@@ -124,7 +124,7 @@ const EventStreamV2 = function () {
 		!replayer || state === ReplayerState.Loading || events.length === 0
 
 	return (
-		<Box className={style.container}>
+		<Box cssClass={style.container}>
 			{isLoading ? (
 				<LoadingBox />
 			) : (

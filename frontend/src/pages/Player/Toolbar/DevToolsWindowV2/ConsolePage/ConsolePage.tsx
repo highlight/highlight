@@ -152,7 +152,7 @@ export const ConsolePage = ({
 	])
 
 	return (
-		<Box className={styles.consoleBox}>
+		<Box cssClass={styles.consoleBox}>
 			{loading || !isPlayerReady ? (
 				<LoadingBox />
 			) : messagesToRender?.length ? (
