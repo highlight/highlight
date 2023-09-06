@@ -158,7 +158,11 @@ const ProjectSettings = () => {
 											<FilterSessionsWithoutErrorForm />
 											<RageClicksForm />
 											<NetworkRecordingForm />
-											<SessionExportForm />
+											{workspaceSettingsData
+												?.workspaceSettings
+												?.enable_enhanced_errors ? (
+												<SessionExportForm />
+											) : null}
 										</Stack>
 									),
 								},

@@ -10,7 +10,6 @@ export const SessionExportForm = () => {
 		return <LoadingBar />
 	}
 
-	// TODO(vkorolik)
 	return (
 		<BorderBox>
 			<Stack gap="8">
