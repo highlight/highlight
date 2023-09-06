@@ -52,7 +52,7 @@ export const EmptyDevToolsCallout = ({
 				border
 				title={
 					!requestTypes.length && filter?.length
-						? `Only see one app version?`
+						? `Can't find what you're looking for?`
 						: `Couldn't find any recorded ${
 								kind === Tab.Console
 									? 'console messages'
