@@ -60,3 +60,16 @@ clickhouse:
   config:
     clickhouseStorageSize: 5Gi
     clickhouseLogsStorageSize: 5Gi
+
+opensearch:
+  image:
+    repository: opensearchproject/opensearch
+    tag: "1.1.0"
+    pullPolicy: IfNotPresent
+  
+  config:
+    discoveryType: single-node
+    javaOpts: -Xms128m -Xmx128m
+    disableInstallDemoConfig: true
+    disableSecurityPlugin: true
+    storageSize: 5Gi
