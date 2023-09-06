@@ -69,6 +69,11 @@ export async function render(
 
 	const page = await browser.newPage()
 	await page.goto('about:blank')
+	page.on('console', (message) =>
+		console.log(
+			`${message.type().substr(0, 3).toUpperCase()} ${message.text()}`,
+		),
+	)
 	const finishedPromise = new Promise<void>(
 		async (r) => await page.exposeFunction('onReplayFinish', () => r()),
 	)
@@ -126,17 +131,31 @@ export async function render(
 				}
 			}
 		}
-        window.r.on('resize', (e) => {viewport = e});
-     	window.r.on('event-cast', (e) => {
+        
+     	const skipInactivity = () => {
 		    // skip inactive intervals
 		    const start = window.r.getMetaData().startTime
+		    const intervalsEnd = intervals[intervals.length - 1].end_time
 		    const timestamp = window.r.getCurrentTime() + start
+		    if (timestamp > intervalsEnd) {
+		    	console.log('done at ' + timestamp)
+                window.r.pause()
+                window.onReplayFinish()
+                return
+		    }
      		const end = window.getInactivityEnd(timestamp)
      		if (end !== undefined) {
-                 console.log('skipping from ' + timestamp + ' to ' + end + ' due to inactivity')
-                 window.r.play(end - start)
+            	console.log('skipping from ' + timestamp + ' to ' + end + ' due to inactivity')
+		    	window.r.play(end - start)
      		}
-     	})
+     	}
+     	const inactivityLoop = () => {
+        	skipInactivity()
+        	window.requestAnimationFrame(inactivityLoop)
+        }
+        inactivityLoop();
+        
+        window.r.on('resize', (e) => {viewport = e});
         window.r.on('finish', () => window.onReplayFinish());
         window.r.pause(0);
         
@@ -154,18 +173,16 @@ export async function render(
 	const width = Number(await page.evaluate(`viewport.width`))
 	const height = Number(await page.evaluate(`viewport.height`))
 	console.log(`puppeteer meta`, { meta, width, height })
-	await page.setViewport({ width: width, height: height })
+	await page.setViewport({ width, height })
 
 	if (video) {
-		// force viewport to 16:9 for video
-		await page.setViewport({ width: 1920, height: 1080 })
 		// @ts-ignore - complains about the use of puppeteer-core instead of puppeteer
 		const recorder = new PuppeteerScreenRecorder(page, {
 			followNewTab: true,
 			fps,
 			videoFrame: {
-				width: 1920,
-				height: 1080,
+				width,
+				height,
 			},
 			ffmpeg_Path: process.env.DEV?.length
 				? undefined

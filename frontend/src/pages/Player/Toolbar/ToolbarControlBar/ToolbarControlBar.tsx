@@ -420,11 +420,11 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 	const [exportSessionMutation] = useExportSessionMutation()
 
 	const exportSession = useCallback(async () => {
-		if (session?.id) {
+		if (session?.secure_id) {
 			try {
 				await exportSessionMutation({
 					variables: {
-						session_id: session.id,
+						session_secure_id: session.secure_id,
 					},
 				})
 				// TODO(vkorolik) link to a tracking page in the settings

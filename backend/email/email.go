@@ -215,7 +215,7 @@ func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Clie
 	return nil
 }
 
-func SendSessionExportEmail(ctx context.Context, mailClient *sendgrid.Client, projectId int, sessionSecureId, sessionUser, toEmail string) error {
+func SendSessionExportEmail(ctx context.Context, mailClient *sendgrid.Client, projectId int, sessionSecureId, exportUrl, sessionUser, toEmail string) error {
 	to := &mail.Email{Address: toEmail}
 
 	m := mail.NewV3Mail()
@@ -228,7 +228,7 @@ func SendSessionExportEmail(ctx context.Context, mailClient *sendgrid.Client, pr
 	curData := map[string]interface{}{}
 
 	curData["toEmail"] = toEmail
-	curData["sessionLink"] = fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("FRONTEND_URI"), projectId, sessionSecureId)
+	curData["sessionLink"] = exportUrl
 	curData["sessionUser"] = sessionUser
 	curData["subject"] = "Your highlight.io session export is ready."
 
@@ -236,8 +236,7 @@ func SendSessionExportEmail(ctx context.Context, mailClient *sendgrid.Client, pr
 
 	m.AddPersonalizations(p)
 
-	log.WithContext(ctx).WithFields(log.Fields{"session_secure_id": sessionSecureId, "to_email": toEmail}).
-		Info("session export email")
+	log.WithContext(ctx).WithFields(log.Fields{"session_secure_id": sessionSecureId, "url": exportUrl, "to_email": toEmail}).Info("session export email")
 
 	if resp, sendGridErr := mailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
 		estr := "error sending sendgrid email -> "

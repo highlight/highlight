@@ -15,5 +15,6 @@ type SendEmailInput struct {
 	ProjectId       int      `json:"projectId"`
 	SessionSecureId string   `json:"sessionSecureId"`
 	User            string   `json:"user"`
+	URL             string   `json:"url"`
 	TargetEmails    []string `json:"targetEmails"`
 }

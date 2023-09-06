@@ -71,13 +71,14 @@ func (h *handlers) SaveSessionExport(ctx context.Context, event *utils.SaveSessi
 		ProjectId:       session.ProjectID,
 		SessionSecureId: session.SecureID,
 		User:            user,
+		URL:             event.URL,
 		TargetEmails:    event.TargetEmails,
 	}, nil
 }
 
 func (h *handlers) SendEmail(ctx context.Context, event *utils.SendEmailInput) error {
 	for _, email := range event.TargetEmails {
-		if err := Email.SendSessionExportEmail(ctx, h.sendgridClient, event.ProjectId, event.SessionSecureId, event.User, email); err != nil {
+		if err := Email.SendSessionExportEmail(ctx, h.sendgridClient, event.ProjectId, event.SessionSecureId, event.URL, event.User, email); err != nil {
 			return err
 		}
 	}

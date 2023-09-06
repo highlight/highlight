@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/handlers"
+	"github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/handlers"
 	"github.com/highlight/highlight/sdk/highlight-go"
 	hlog "github.com/highlight/highlight/sdk/highlight-go/log"
 )
