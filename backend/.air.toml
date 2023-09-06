@@ -4,3 +4,5 @@ bin = "tmp/main"
 full_bin = "dlv exec --accept-multiclient --log --headless --continue --listen :2345 --api-version 2 ./tmp/main"
 include_ext = ["go"]
 exclude_dir = ["node_modules", "build", "migrations"]
+#TODO(vkorolik)
+#TODO lewis frontend depending on highlight.io
