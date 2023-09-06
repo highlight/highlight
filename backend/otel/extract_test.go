@@ -92,6 +92,15 @@ func TestExtractFields_ExtractProjectID(t *testing.T) {
 	assert.Equal(t, fields.attrs, map[string]string{})
 }
 
+func TestExtractFields_NoProject(t *testing.T) {
+	resource := newResource(t, map[string]any{
+		highlight.DeprecatedProjectIDAttribute: "asdf",
+	})
+	fields, err := extractFields(context.TODO(), extractFieldsParams{resource: &resource})
+	assert.NotNil(t, fields)
+	assert.Error(t, err)
+}
+
 func TestExtractFields_ExtractSessionID(t *testing.T) {
 	resource := newResource(t, map[string]any{
 		highlight.DeprecatedSessionIDAttribute: "session_abc",
