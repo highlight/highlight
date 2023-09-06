@@ -30,7 +30,7 @@ import {
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import { stringify } from 'query-string'
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
 
@@ -86,7 +86,10 @@ const SearchForm = ({
 		onFormSubmit(formState.values.query)
 	})
 
+	const [dateRange, setDateRange] = useState<Date[]>([startDate, endDate])
+
 	const handleDatesChange = (dates: Date[]) => {
+		setDateRange(dates)
 		if (dates.length == 2) {
 			onDatesChange(dates[0], dates[1])
 		}
@@ -145,7 +148,7 @@ const SearchForm = ({
 					{!hideDatePicker && (
 						<PreviousDateRangePicker
 							emphasis="low"
-							selectedDates={[startDate, endDate]}
+							selectedDates={dateRange}
 							onDatesChange={handleDatesChange}
 							presets={presets}
 							minDate={minDate}
