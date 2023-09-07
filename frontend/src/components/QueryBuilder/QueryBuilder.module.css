@@ -1,28 +1,5 @@
-.optionLabelContainer {
-	align-items: center;
-	display: flex;
-	overflow: hidden;
-	position: relative;
-	text-overflow: ellipsis;
-	width: 100%;
-}
-
 .optionCheckbox {
 	margin-right: 12px;
-}
-
-.optionLabelType {
-	background: var(--color-gray-300);
-	border-radius: 3px;
-	color: var(--text-primary) !important;
-	margin-right: 6px;
-	padding-left: 4px;
-	padding-right: 4px;
-	width: fit-content;
-}
-
-.labelTypeContainer {
-	width: 60px;
 }
 
 .highlighterStyles {
@@ -85,11 +62,9 @@
 }
 
 .optionLabelName {
-	color: var(--text-primary) !important;
 	overflow-x: scroll;
-	padding-bottom: 8px;
-	padding-top: 8px;
 	scrollbar-width: none;
+	font-weight: 500;
 
 	&::-webkit-scrollbar {
 		display: none;
@@ -172,7 +147,7 @@ span:last-child {
 	}
 }
 
-.invalid {
+.invalid:not([aria-expanded=true]) {
 	background-color: var(--color-red-400) !important;
 
 	&:hover {

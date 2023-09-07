@@ -84,12 +84,19 @@ const BoxTrigger: React.FC<React.PropsWithChildren<BoxProps>> = ({
 }
 
 const Content: React.FC<
-	React.PropsWithChildren<Omit<Ariakit.PopoverOptions<'div'>, 'store'>>
-> = ({ children, ...props }) => {
+	React.PropsWithChildren<Omit<Ariakit.PopoverOptions<'div'>, 'store'>> & {
+		className?: string
+	}
+> = ({ children, className, ...props }) => {
 	const popover = usePopover()
 
 	return (
-		<Ariakit.Popover {...props} store={popover} gutter={4}>
+		<Ariakit.Popover
+			{...props}
+			className={className}
+			store={popover}
+			gutter={4}
+		>
 			{/*
 			There is a bug in v0.2.17 of Ariakit where you need to have this arrow
 			rendered or else positioning of the popover breaks. We render it, but hide
