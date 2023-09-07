@@ -58,6 +58,7 @@ const CommandBarBox = () => {
 		<Ariakit.Dialog
 			store={commandBarDialog}
 			className={styles.dialog}
+			backdrop={<Box cssClass={styles.dialogBackdrop} />}
 			onClick={(e) => {
 				if (!isInsideElement(e.nativeEvent, containerRef.current)) {
 					setTouched(false)
