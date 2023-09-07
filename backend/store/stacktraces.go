@@ -152,12 +152,17 @@ func (store *Store) EnhanceTraceWithGitHub(ctx context.Context, trace *privateMo
 		return nil, err
 	}
 
+	gitHubLink := fmt.Sprintf("https://github.com/%s/blob/%s%s#L%d", *service.GithubRepoPath, serviceVersion, fileName, *lineNumber)
+	enhancementSource := privateModel.EnhancementSourceGithub
 	newStackTraceInput := privateModel.ErrorTrace{
 		FileName:                   trace.FileName,
 		LineNumber:                 trace.LineNumber,
 		FunctionName:               trace.FunctionName,
 		Error:                      trace.Error,
 		SourceMappingErrorMetadata: trace.SourceMappingErrorMetadata,
+		EnhancementSource:          &enhancementSource,
+		EnhancementVersion:         &serviceVersion,
+		ExternalLink:               &gitHubLink,
 		LineContent:                lineContent,
 		LinesBefore:                beforeContent,
 		LinesAfter:                 afterContent,

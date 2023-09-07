@@ -2985,6 +2985,7 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 	| 'browser'
 	| 'environment'
 	| 'serviceVersion'
+	| 'serviceName'
 > & {
 		session?: Types.Maybe<
 			{ __typename?: 'Session' } & Pick<
@@ -3013,6 +3014,9 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 					| 'linesBefore'
 					| 'linesAfter'
 					| 'error'
+					| 'enhancementSource'
+					| 'enhancementVersion'
+					| 'externalLink'
 				> & {
 						sourceMappingErrorMetadata?: Types.Maybe<
 							{ __typename?: 'SourceMappingError' } & Pick<

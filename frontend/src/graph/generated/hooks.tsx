@@ -140,6 +140,9 @@ export const ErrorObjectFragmentDoc = gql`
 			linesBefore
 			linesAfter
 			error
+			enhancementSource
+			enhancementVersion
+			externalLink
 			sourceMappingErrorMetadata {
 				errorCode
 				stackTraceFileURL
@@ -163,6 +166,7 @@ export const ErrorObjectFragmentDoc = gql`
 		browser
 		environment
 		serviceVersion
+		serviceName
 	}
 `
 export const ErrorTagFragmentDoc = gql`

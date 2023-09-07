@@ -1161,6 +1161,9 @@ fragment ErrorObject on ErrorObject {
 		linesBefore
 		linesAfter
 		error
+		enhancementSource
+		enhancementVersion
+		externalLink
 		sourceMappingErrorMetadata {
 			errorCode
 			stackTraceFileURL
@@ -1184,6 +1187,7 @@ fragment ErrorObject on ErrorObject {
 	browser
 	environment
 	serviceVersion
+	serviceName
 }
 
 query GetErrorObject($id: ID!) {

@@ -406,6 +406,7 @@ type ComplexityRoot struct {
 		Payload              func(childComplexity int) int
 		ProjectID            func(childComplexity int) int
 		RequestID            func(childComplexity int) int
+		ServiceName          func(childComplexity int) int
 		ServiceVersion       func(childComplexity int) int
 		Session              func(childComplexity int) int
 		SessionID            func(childComplexity int) int
@@ -476,7 +477,10 @@ type ComplexityRoot struct {
 
 	ErrorTrace struct {
 		ColumnNumber               func(childComplexity int) int
+		EnhancementSource          func(childComplexity int) int
+		EnhancementVersion         func(childComplexity int) int
 		Error                      func(childComplexity int) int
+		ExternalLink               func(childComplexity int) int
 		FileName                   func(childComplexity int) int
 		FunctionName               func(childComplexity int) int
 		LineContent                func(childComplexity int) int
@@ -3406,6 +3410,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.RequestID(childComplexity), true
 
+	case "ErrorObject.serviceName":
+		if e.complexity.ErrorObject.ServiceName == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.ServiceName(childComplexity), true
+
 	case "ErrorObject.serviceVersion":
 		if e.complexity.ErrorObject.ServiceVersion == nil {
 			break
@@ -3707,12 +3718,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorTrace.ColumnNumber(childComplexity), true
 
+	case "ErrorTrace.enhancementSource":
+		if e.complexity.ErrorTrace.EnhancementSource == nil {
+			break
+		}
+
+		return e.complexity.ErrorTrace.EnhancementSource(childComplexity), true
+
+	case "ErrorTrace.enhancementVersion":
+		if e.complexity.ErrorTrace.EnhancementVersion == nil {
+			break
+		}
+
+		return e.complexity.ErrorTrace.EnhancementVersion(childComplexity), true
+
 	case "ErrorTrace.error":
 		if e.complexity.ErrorTrace.Error == nil {
 			break
 		}
 
 		return e.complexity.ErrorTrace.Error(childComplexity), true
+
+	case "ErrorTrace.externalLink":
+		if e.complexity.ErrorTrace.ExternalLink == nil {
+			break
+		}
+
+		return e.complexity.ErrorTrace.ExternalLink(childComplexity), true
 
 	case "ErrorTrace.fileName":
 		if e.complexity.ErrorTrace.FileName == nil {
@@ -10200,6 +10232,7 @@ type ErrorObject {
 	environment: String
 	session: Session
 	serviceVersion: String
+	serviceName: String
 }
 
 type ErrorInstance {
@@ -10277,6 +10310,11 @@ type MatchedErrorObject {
 	score: Float!
 }
 
+enum EnhancementSource {
+	github
+	sourcemap
+}
+
 type ErrorTrace {
 	fileName: String
 	lineNumber: Int
@@ -10287,6 +10325,9 @@ type ErrorTrace {
 	lineContent: String
 	linesBefore: String
 	linesAfter: String
+	externalLink: String
+	enhancementSource: EnhancementSource
+	enhancementVersion: String
 }
 
 type SourceMappingError {
@@ -26623,6 +26664,12 @@ func (ec *executionContext) fieldContext_ErrorGroup_structured_stack_trace(ctx c
 				return ec.fieldContext_ErrorTrace_linesBefore(ctx, field)
 			case "linesAfter":
 				return ec.fieldContext_ErrorTrace_linesAfter(ctx, field)
+			case "externalLink":
+				return ec.fieldContext_ErrorTrace_externalLink(ctx, field)
+			case "enhancementSource":
+				return ec.fieldContext_ErrorTrace_enhancementSource(ctx, field)
+			case "enhancementVersion":
+				return ec.fieldContext_ErrorTrace_enhancementVersion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorTrace", field.Name)
 		},
@@ -27584,6 +27631,8 @@ func (ec *executionContext) fieldContext_ErrorInstance_error_object(ctx context.
 				return ec.fieldContext_ErrorObject_session(ctx, field)
 			case "serviceVersion":
 				return ec.fieldContext_ErrorObject_serviceVersion(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_ErrorObject_serviceName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
 		},
@@ -28999,6 +29048,12 @@ func (ec *executionContext) fieldContext_ErrorObject_structured_stack_trace(ctx 
 				return ec.fieldContext_ErrorTrace_linesBefore(ctx, field)
 			case "linesAfter":
 				return ec.fieldContext_ErrorTrace_linesAfter(ctx, field)
+			case "externalLink":
+				return ec.fieldContext_ErrorTrace_externalLink(ctx, field)
+			case "enhancementSource":
+				return ec.fieldContext_ErrorTrace_enhancementSource(ctx, field)
+			case "enhancementVersion":
+				return ec.fieldContext_ErrorTrace_enhancementVersion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorTrace", field.Name)
 		},
@@ -29429,6 +29484,47 @@ func (ec *executionContext) _ErrorObject_serviceVersion(ctx context.Context, fie
 }
 
 func (ec *executionContext) fieldContext_ErrorObject_serviceVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorObject",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorObject_serviceName(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorObject_serviceName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorObject_serviceName(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ErrorObject",
 		Field:      field,
@@ -31259,6 +31355,129 @@ func (ec *executionContext) _ErrorTrace_linesAfter(ctx context.Context, field gr
 }
 
 func (ec *executionContext) fieldContext_ErrorTrace_linesAfter(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorTrace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorTrace_externalLink(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorTrace_externalLink(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExternalLink, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorTrace_externalLink(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorTrace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorTrace_enhancementSource(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorTrace_enhancementSource(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnhancementSource, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.EnhancementSource)
+	fc.Result = res
+	return ec.marshalOEnhancementSource2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐEnhancementSource(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorTrace_enhancementSource(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorTrace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type EnhancementSource does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ErrorTrace_enhancementVersion(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorTrace_enhancementVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnhancementVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorTrace_enhancementVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ErrorTrace",
 		Field:      field,
@@ -44555,6 +44774,8 @@ func (ec *executionContext) fieldContext_Query_error_object(ctx context.Context,
 				return ec.fieldContext_ErrorObject_session(ctx, field)
 			case "serviceVersion":
 				return ec.fieldContext_ErrorObject_serviceVersion(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_ErrorObject_serviceName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
 		},
@@ -44720,6 +44941,8 @@ func (ec *executionContext) fieldContext_Query_error_object_for_log(ctx context.
 				return ec.fieldContext_ErrorObject_session(ctx, field)
 			case "serviceVersion":
 				return ec.fieldContext_ErrorObject_serviceVersion(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_ErrorObject_serviceName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
 		},
@@ -44949,6 +45172,8 @@ func (ec *executionContext) fieldContext_Query_errors(ctx context.Context, field
 				return ec.fieldContext_ErrorObject_session(ctx, field)
 			case "serviceVersion":
 				return ec.fieldContext_ErrorObject_serviceVersion(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_ErrorObject_serviceName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
 		},
@@ -52838,6 +53063,8 @@ func (ec *executionContext) fieldContext_Query_logs_error_objects(ctx context.Co
 				return ec.fieldContext_ErrorObject_session(ctx, field)
 			case "serviceVersion":
 				return ec.fieldContext_ErrorObject_serviceVersion(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_ErrorObject_serviceName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
 		},
@@ -60816,6 +61043,8 @@ func (ec *executionContext) fieldContext_SessionPayload_errors(ctx context.Conte
 				return ec.fieldContext_ErrorObject_session(ctx, field)
 			case "serviceVersion":
 				return ec.fieldContext_ErrorObject_serviceVersion(ctx, field)
+			case "serviceName":
+				return ec.fieldContext_ErrorObject_serviceName(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObject", field.Name)
 		},
@@ -72651,6 +72880,10 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 
 			out.Values[i] = ec._ErrorObject_serviceVersion(ctx, field, obj)
 
+		case "serviceName":
+
+			out.Values[i] = ec._ErrorObject_serviceName(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -73066,6 +73299,18 @@ func (ec *executionContext) _ErrorTrace(ctx context.Context, sel ast.SelectionSe
 		case "linesAfter":
 
 			out.Values[i] = ec._ErrorTrace_linesAfter(ctx, field, obj)
+
+		case "externalLink":
+
+			out.Values[i] = ec._ErrorTrace_externalLink(ctx, field, obj)
+
+		case "enhancementSource":
+
+			out.Values[i] = ec._ErrorTrace_enhancementSource(ctx, field, obj)
+
+		case "enhancementVersion":
+
+			out.Values[i] = ec._ErrorTrace_enhancementVersion(ctx, field, obj)
 
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -87031,6 +87276,22 @@ func (ec *executionContext) marshalOEnhancedUserDetailsResult2ᚖgithubᚗcomᚋ
 		return graphql.Null
 	}
 	return ec._EnhancedUserDetailsResult(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOEnhancementSource2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐEnhancementSource(ctx context.Context, v interface{}) (*model.EnhancementSource, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.EnhancementSource)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOEnhancementSource2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐEnhancementSource(ctx context.Context, sel ast.SelectionSet, v *model.EnhancementSource) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOErrorAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorAlert(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorAlert) graphql.Marshaler {

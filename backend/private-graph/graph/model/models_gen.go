@@ -359,6 +359,9 @@ type ErrorTrace struct {
 	LineContent                *string             `json:"lineContent"`
 	LinesBefore                *string             `json:"linesBefore"`
 	LinesAfter                 *string             `json:"linesAfter"`
+	ExternalLink               *string             `json:"externalLink"`
+	EnhancementSource          *EnhancementSource  `json:"enhancementSource"`
+	EnhancementVersion         *string             `json:"enhancementVersion"`
 }
 
 type GitHubRepo struct {
@@ -916,6 +919,47 @@ func (e *EmailOptOutCategory) UnmarshalGQL(v interface{}) error {
 }
 
 func (e EmailOptOutCategory) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type EnhancementSource string
+
+const (
+	EnhancementSourceGithub    EnhancementSource = "github"
+	EnhancementSourceSourcemap EnhancementSource = "sourcemap"
+)
+
+var AllEnhancementSource = []EnhancementSource{
+	EnhancementSourceGithub,
+	EnhancementSourceSourcemap,
+}
+
+func (e EnhancementSource) IsValid() bool {
+	switch e {
+	case EnhancementSourceGithub, EnhancementSourceSourcemap:
+		return true
+	}
+	return false
+}
+
+func (e EnhancementSource) String() string {
+	return string(e)
+}
+
+func (e *EnhancementSource) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EnhancementSource(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EnhancementSource", str)
+	}
+	return nil
+}
+
+func (e EnhancementSource) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

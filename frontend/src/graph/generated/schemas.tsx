@@ -384,6 +384,11 @@ export type EnhancedUserDetailsResult = {
 	socials?: Maybe<Array<Maybe<SocialLink>>>
 }
 
+export enum EnhancementSource {
+	Github = 'github',
+	Sourcemap = 'sourcemap',
+}
+
 export type ErrorAlert = {
 	__typename?: 'ErrorAlert'
 	ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>
@@ -519,6 +524,7 @@ export type ErrorObject = {
 	payload?: Maybe<Scalars['String']>
 	project_id: Scalars['Int']
 	request_id?: Maybe<Scalars['String']>
+	serviceName?: Maybe<Scalars['String']>
 	serviceVersion?: Maybe<Scalars['String']>
 	session?: Maybe<Session>
 	session_id?: Maybe<Scalars['Int']>
@@ -615,7 +621,10 @@ export type ErrorTag = {
 export type ErrorTrace = {
 	__typename?: 'ErrorTrace'
 	columnNumber?: Maybe<Scalars['Int']>
+	enhancementSource?: Maybe<EnhancementSource>
+	enhancementVersion?: Maybe<Scalars['String']>
 	error?: Maybe<Scalars['String']>
+	externalLink?: Maybe<Scalars['String']>
 	fileName?: Maybe<Scalars['String']>
 	functionName?: Maybe<Scalars['String']>
 	lineContent?: Maybe<Scalars['String']>
