@@ -9,6 +9,22 @@
 
 	<artifactId>highlight-common</artifactId>
 
+	<name>Highlight Java Common</name>
+	<url>https://github.com/highlight/highlight</url>
+	<inceptionYear>2023</inceptionYear>
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
+	<properties>
+		<maven.install.skip>false</maven.install.skip>
+		<skipStaging>false</skipStaging>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>io.opentelemetry</groupId>
