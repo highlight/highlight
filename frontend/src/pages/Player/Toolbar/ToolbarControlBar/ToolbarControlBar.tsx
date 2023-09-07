@@ -462,6 +462,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 			}
 		}
 	}, [
+		currentWorkspace?.id,
 		exportSessionMutation,
 		session?.secure_id,
 		workspaceSettingsData?.workspaceSettings?.enable_session_export,
