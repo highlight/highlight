@@ -91,8 +91,7 @@ const DevToolsWindowV2: React.FC<
 			search: '',
 		},
 	})
-	const formState = formStore.getState()
-	const filter = formState.values.search
+	const filter = formStore.useValue<string>('search')
 	const [autoScroll, setAutoScroll] = useLocalStorage<boolean>(
 		'highlight-devtools-v2-autoscroll',
 		false,
