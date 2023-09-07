@@ -68,16 +68,14 @@ export const ComboboxSelect = <T extends string | string[]>({
 	const select = useSelectStore({
 		combobox,
 		setValue: (value: T) => {
+			// eslint-disable-next-line no-debugger
+			debugger
 			onChange(value)
 			if (isMultiselect && defaultOpen) {
 				combobox.setOpen(false)
 			}
 		},
 		value,
-		// setOpen: (open) => {
-		// 	// if (open && ) {
-		// 	// }
-		// },
 	})
 
 	const valueSet = new Set(value)
@@ -98,6 +96,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 			: []
 
 	const allOptions = queryOptions.concat(createdOptions).concat(options ?? [])
+	console.log('allOptions', allOptions)
 
 	return (
 		<div>

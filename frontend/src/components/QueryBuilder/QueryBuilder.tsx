@@ -556,6 +556,9 @@ const SelectPopout = ({
 				key: o.value,
 				render: getOption(o, query),
 			}))}
+			// options={[
+			// 	{ key: 'custom_app_version', render: 'custom_app_version' },
+			// ]}
 			onChange={(val: string) => {
 				const selected = options.find((o) => o.value === val)!
 				onChange({
@@ -1284,6 +1287,8 @@ function QueryBuilder(props: QueryBuilderProps) {
 	const setRulesImpl = useCallback(
 		(newRules: RuleProps[]) => {
 			setRules(newRules)
+			debugger
+			console.log('newRules', newRules)
 
 			if (readonly || !newRules.every(isComplete)) {
 				return
