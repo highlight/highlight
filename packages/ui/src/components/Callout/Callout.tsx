@@ -15,7 +15,7 @@ import { vars } from '../../css/vars'
 
 export type Props = React.PropsWithChildren &
 	styles.Variants & {
-		style: any
+		style?: any
 		title?: string
 		handleCloseClick?: () => void
 		icon?: false | (() => JSX.Element)
