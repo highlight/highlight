@@ -90,4 +90,4 @@
 
 ### Minor Changes
 
--   Disables node fs instrumentation by default, can by enabled by passing `enableFsInstrumentation: true` to client options
+-   Disables node fs instrumentation by default, can by enabled by passing `enableFsInstrumentation: true` to client option.
