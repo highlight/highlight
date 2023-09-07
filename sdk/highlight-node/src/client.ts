@@ -78,7 +78,7 @@ export class Highlight {
 			instrumentations: [
 				getNodeAutoInstrumentations({
 					'@opentelemetry/instrumentation-fs': {
-						enabled: options.enableFsInstrument ?? false,
+						enabled: options.enableFsInstrumentation ?? false,
 					},
 				}),
 			],
