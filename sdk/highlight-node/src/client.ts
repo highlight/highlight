@@ -14,6 +14,9 @@ import log from './log'
 import { clearInterval } from 'timers'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { Resource, processDetectorSync } from '@opentelemetry/resources'
+import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
+import { ExpressInstrumentation } from "@opentelemetry/instrumentation-express";
+
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -61,6 +64,11 @@ export class Highlight {
 			attributes[SemanticResourceAttributes.SERVICE_VERSION] =
 				options.serviceVersion
 		}
+		const instrumentationConfig = {
+			'@opentelemetry/instrumentation-fs': {
+			  enabled: false,
+			},
+		  };
 
 		this.otel = new NodeSDK({
 			autoDetectResources: true,
@@ -75,7 +83,11 @@ export class Highlight {
 			},
 			spanProcessor: this.processor,
 			traceExporter: exporter,
-			instrumentations: [getNodeAutoInstrumentations()],
+			instrumentations: [
+				new HttpInstrumentation(),
+				new ExpressInstrumentation(),
+				getNodeAutoInstrumentations(instrumentationConfig),
+			  ],
 		})
 		this.otel.start()
 
