@@ -25,10 +25,19 @@ import (
 
 const KafkaBatchWorkerOp = "KafkaBatchWorker"
 
-func (k *KafkaWorker) processWorkerError(ctx context.Context, task *kafkaqueue.Message, err error) {
-	log.WithContext(ctx).WithError(err).WithField("type", task.Type).Errorf("task %+v failed: %s", *task, err)
+func (k *KafkaWorker) processWorkerError(ctx context.Context, task *kafkaqueue.Message, err error, start time.Time) {
+	log.WithContext(ctx).
+		WithError(err).
+		WithField("type", task.Type).
+		WithField("duration", time.Since(start)).
+		Errorf("task %+v failed: %s", *task, err)
 	if task.Failures >= task.MaxRetries {
-		log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("failures", task.Failures).Errorf("task %+v failed after %d retries", *task, task.Failures)
+		log.WithContext(ctx).
+			WithError(err).
+			WithField("type", task.Type).
+			WithField("failures", task.Failures).
+			WithField("duration", time.Since(start)).
+			Errorf("task %+v failed after %d retries", *task, task.Failures)
 	} else {
 		hlog.Histogram("worker.kafka.processed.taskFailures", float64(task.Failures), nil, 1)
 	}
@@ -59,8 +68,9 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 
 			s2 := tracer.StartSpan("worker.kafka.processMessage", tracer.ChildOf(s.Context()))
 			for i := 0; i <= task.MaxRetries; i++ {
+				start := time.Now()
 				if err = k.Worker.processPublicWorkerMessage(tracer.ContextWithSpan(ctx, s), task); err != nil {
-					k.processWorkerError(ctx, task, err)
+					k.processWorkerError(ctx, task, err, start)
 				} else {
 					break
 				}
