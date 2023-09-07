@@ -26,5 +26,5 @@ export interface NodeOptions extends HighlightOptions {
 	 * see .
 	 * {@link https://opentelemetry.io/docs/instrumentation/js/libraries/#registration}
 	 */
-	enableFsInstrument?: boolean
+	enableFsInstrumentation?: boolean
 }
