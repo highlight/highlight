@@ -5,6 +5,7 @@ import { IconSolidCheckCircle, IconSolidMinus } from '../icons'
 
 import * as styles from './styles.css'
 import { Text } from '../Text/Text'
+import { Box } from '../Box/Box'
 
 type Option = {
 	key: string
@@ -36,10 +37,9 @@ export const MultiSelectButton: React.FC<Props> = ({
 		value: value,
 		setValue: (value: string[]) => onChange(value),
 	})
-	const selectState = selectStore.getState()
 
 	return (
-		<>
+		<Box>
 			<Ariakit.SelectLabel
 				store={selectStore}
 				className={styles.selectLabel}
@@ -54,39 +54,37 @@ export const MultiSelectButton: React.FC<Props> = ({
 					</Text>
 				</>
 			</Ariakit.Select>
-			{selectState.mounted && (
-				<Ariakit.SelectPopover
-					store={selectStore}
-					gutter={4}
-					className={styles.selectPopover}
-				>
-					{/*
-					There is a bug in v0.2.17 of Ariakit where you need to have this arrow
-					rendered or else positioning of the popover breaks. We render it, but
-					hide it by setting size={0}. This is an issue with anything using a
-					popover coming from the floating-ui library.
-					*/}
-					<Ariakit.PopoverArrow size={0} />
+			<Ariakit.SelectPopover
+				store={selectStore}
+				gutter={4}
+				className={styles.selectPopover}
+			>
+				{/*
+				There is a bug in v0.2.17 of Ariakit where you need to have this arrow
+				rendered or else positioning of the popover breaks. We render it, but
+				hide it by setting size={0}. This is an issue with anything using a
+				popover coming from the floating-ui library.
+				*/}
+				<Ariakit.PopoverArrow size={0} />
 
-					{options.map((option: Option) => (
-						<Ariakit.SelectItem
-							key={option.key}
-							value={option.key}
-							className={styles.selectItem}
-						>
-							<div className={styles.checkbox}>
-								{option.clearsOnClick &&
-								!value.includes(option.key) ? (
-									<IconSolidMinus color="grey" />
-								) : (
-									<IconSolidCheckCircle color="white" />
-								)}
-							</div>
-							{option.render}
-						</Ariakit.SelectItem>
-					))}
-				</Ariakit.SelectPopover>
-			)}
-		</>
+				{options.map((option: Option) => (
+					<Ariakit.SelectItem
+						key={option.key}
+						value={option.key}
+						className={styles.selectItem}
+					>
+						<div className={styles.checkbox}>
+							{option.clearsOnClick &&
+							!value.includes(option.key) ? (
+								<IconSolidMinus color="grey" />
+							) : (
+								<IconSolidCheckCircle color="white" />
+							)}
+						</div>
+						{option.render}
+					</Ariakit.SelectItem>
+				))}
+			</Ariakit.SelectPopover>
+		</Box>
 	)
 }
