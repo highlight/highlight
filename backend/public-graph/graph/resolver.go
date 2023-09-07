@@ -1344,7 +1344,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	metadata["timestamp"] = input.Timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at").Where(&model.Session{SecureID: input.SessionSecureID}).Take(&session).Error; err != nil {
+	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at", "excluded").Where(&model.Session{SecureID: input.SessionSecureID}).Take(&session).Error; err != nil {
 		return e.Wrap(err, "error querying session by sessionSecureID for adding session feedback")
 	}
 
@@ -1406,6 +1406,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 		errorAlert.SendAlertFeedback(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
+			SessionExcluded: session.Excluded,
 			UserIdentifier:  identifier,
 			CommentID:       &feedbackComment.ID,
 			CommentText:     feedbackComment.Text,
@@ -1877,7 +1878,17 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				log.WithContext(ctx).Error(err)
 			}
 
-			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, ErrorObject: errorObject, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
+			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+				Workspace:       workspace,
+				SessionSecureID: sessionObj.SecureID,
+				SessionExcluded: sessionObj.Excluded,
+				UserIdentifier:  sessionObj.Identifier,
+				Group:           group,
+				ErrorObject:     errorObject,
+				URL:             &visitedUrl,
+				ErrorsCount:     &numErrors,
+				UserObject:      sessionObj.UserObject,
+			})
 		}
 	}()
 }
@@ -3020,7 +3031,15 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending new session alert to zapier", sessionObj.ProjectID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			Workspace:       workspace,
+			SessionSecureID: sessionObj.SecureID,
+			SessionExcluded: sessionObj.Excluded,
+			UserIdentifier:  sessionObj.Identifier,
+			UserObject:      sessionObj.UserObject,
+			UserProperties:  userProperties,
+			URL:             visitedUrl,
+		})
 		if err = alerts.SendNewSessionAlert(alerts.SendNewSessionAlertEvent{
 			Session:      sessionObj,
 			SessionAlert: sessionAlert,
@@ -3123,7 +3142,15 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 			log.WithContext(ctx).Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject})
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			Workspace:       workspace,
+			SessionSecureID: session.SecureID,
+			SessionExcluded: session.Excluded,
+			UserIdentifier:  session.Identifier,
+			MatchedFields:   matchedFields,
+			RelatedFields:   relatedFields,
+			UserObject:      session.UserObject,
+		})
 		if err = alerts.SendTrackPropertiesAlert(alerts.TrackPropertiesAlertEvent{
 			Session:       session,
 			SessionAlert:  sessionAlert,
@@ -3194,7 +3221,14 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending alert to zapier", session.ProjectID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: refetchedSession.SecureID, UserIdentifier: refetchedSession.Identifier, UserProperties: userProperties, UserObject: refetchedSession.UserObject})
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			Workspace:       workspace,
+			SessionSecureID: refetchedSession.SecureID,
+			SessionExcluded: refetchedSession.Excluded,
+			UserIdentifier:  refetchedSession.Identifier,
+			UserProperties:  userProperties,
+			UserObject:      refetchedSession.UserObject,
+		})
 		if err = alerts.SendNewUserAlert(alerts.SendNewUserAlertEvent{
 			Session:      session,
 			SessionAlert: sessionAlert,
@@ -3274,7 +3308,14 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 			log.WithContext(ctx).Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			Workspace:       workspace,
+			SessionSecureID: session.SecureID,
+			SessionExcluded: session.Excluded,
+			UserIdentifier:  session.Identifier,
+			MatchedFields:   matchedFields,
+			UserObject:      session.UserObject,
+		})
 		if err = alerts.SendUserPropertiesAlert(alerts.UserPropertiesAlertEvent{
 			SessionAlert:  sessionAlert,
 			Session:       session,
