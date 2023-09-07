@@ -9,7 +9,7 @@ import {
 } from '../HighlightLogo/HighlightLogo'
 import { Typography } from '../Typography/Typography'
 import styles from './Footer.module.scss'
-
+import x-twitter from '../../public/images/x-twitter.svg'
 export const Footer = ({ light }: { light?: boolean }) => {
 	return (
 		<footer className={light ? 'bg-[#f9f9f9]' : 'bg-dark-background'}>
@@ -243,7 +243,9 @@ export const Footer = ({ light }: { light?: boolean }) => {
 				</div>
 				<div className={styles.socialDiv}>
 					<a href="https://twitter.com/highlightio">
-						<FaTwitter className={styles.socialIcon} />
+						<div className={styles.socialIcon}>
+							<Image src={x-twitter}  alt="" />
+						</div>
 					</a>
 					<a href="https://www.linkedin.com/company/highlightrun">
 						<FaLinkedinIn className={styles.socialIcon} />
