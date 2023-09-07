@@ -103,10 +103,9 @@ export const CommandBarContextProvider: React.FC<React.PropsWithChildren> = ({
 			selectedDates: [last30Days.startDate, moment().toDate()],
 		},
 	})
-	const formState = formStore.getState()
 
-	const query = formState.values.search.trim()
-	const selectedDates = formState.values.selectedDates
+	const query = formStore.useValue('search').trim()
+	const selectedDates = formStore.useValue('selectedDates')
 	const searchAttribute = useAttributeSearch(formStore)
 
 	formStore.useSubmit(() => {
