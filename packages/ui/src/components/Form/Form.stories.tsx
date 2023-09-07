@@ -1,7 +1,7 @@
 import { Meta } from '@storybook/react'
 
-import { Box } from '@components/Box/Box'
-import { Form, useFormStore } from '@components/Form/Form'
+import { Box } from '../Box/Box'
+import { Form, useFormStore } from '../Form/Form'
 
 const meta = {
 	title: 'Components/Form',
