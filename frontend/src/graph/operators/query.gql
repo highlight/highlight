@@ -1176,6 +1176,7 @@ fragment ErrorObject on ErrorObject {
 	browser
 	environment
 	serviceVersion
+	serviceName
 }
 
 query GetErrorObject($id: ID!) {

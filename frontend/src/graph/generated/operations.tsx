@@ -2963,6 +2963,7 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 	| 'browser'
 	| 'environment'
 	| 'serviceVersion'
+	| 'serviceName'
 > & {
 		session?: Types.Maybe<
 			{ __typename?: 'Session' } & Pick<

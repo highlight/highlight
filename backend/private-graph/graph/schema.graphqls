@@ -501,6 +501,7 @@ type ErrorObject {
 	environment: String
 	session: Session
 	serviceVersion: String
+	serviceName: String
 }
 
 type ErrorInstance {

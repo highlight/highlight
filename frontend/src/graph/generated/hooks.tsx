@@ -166,6 +166,7 @@ export const ErrorObjectFragmentDoc = gql`
 		browser
 		environment
 		serviceVersion
+		serviceName
 	}
 `
 export const ErrorTagFragmentDoc = gql`
