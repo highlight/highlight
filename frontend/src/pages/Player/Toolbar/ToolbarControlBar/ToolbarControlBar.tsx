@@ -431,18 +431,23 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 
 	const exportSession = useCallback(async () => {
 		if (!workspaceSettingsData?.workspaceSettings?.enable_session_export) {
-			analytics.track('Session Export Requested', {
+			analytics.track('Session Export Upgrade', {
 				sessionSecureId: session?.secure_id,
+				workspaceId: currentWorkspace?.id,
 			})
 			await message.warn(
-				'Downloading sessions is only available on our enterprise plans.',
+				'Downloading sessions is only available on annual commitment plans.',
 			)
 			showIntercomMessage(
-				'Hi! I would like to learn more about your enterprise plans.',
+				'Hi! I would like to use the session export feature.',
 			)
 			return
 		}
 		if (session?.secure_id) {
+			analytics.track('Session Export Requested', {
+				sessionSecureId: session.secure_id,
+				workspaceId: currentWorkspace?.id,
+			})
 			try {
 				await exportSessionMutation({
 					variables: {
@@ -584,22 +589,22 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 				className={clsx(style.settingsButton, style.downloadButton)}
 				onClick={exportSession}
 			>
+				<IconSolidDownload size={16} />
 				<Box
 					color="secondaryContentText"
 					display="inline-flex"
 					alignItems="center"
 					gap="6"
+					flexGrow={1}
 				>
-					<IconSolidDownload />
-					<Text>Download</Text>
+					<Text lines="1">Download video</Text>
 				</Box>
 				<Box
-					width="full"
 					display="flex"
 					alignItems="center"
 					justifyContent="flex-end"
 				>
-					<Badge size="small" label="Enterprise" />
+					<Badge size="small" label="Annual" />
 				</Box>
 			</button>
 		</>

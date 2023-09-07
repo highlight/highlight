@@ -217,4 +217,5 @@
 .downloadButton {
 	border-top: 1px solid var(--color-neutral-200);
 	padding: 10px 8px;
+	height: 36px;
 }
