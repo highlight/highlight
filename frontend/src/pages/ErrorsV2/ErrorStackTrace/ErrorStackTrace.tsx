@@ -222,7 +222,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 					linesAfter={linesAfter}
 				/>
 			) : (
-				<Text family="monospace" as="div">
+				<Text family="monospace" as="div" display="flex">
 					<Box
 						as="span"
 						cssClass={styles.lineNumber}
