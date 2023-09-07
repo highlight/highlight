@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+metadata:
+  name: {{ include "highlight.fullname" . }}-redis
+  labels:
+    app.kubernetes.io/component: redis
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.labels" . | nindent 4 }}
+spec:
+  selector:
+    app.kubernetes.io/component: redis
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: {{ .Values.redis.config.port | int }}
+      protocol: TCP
