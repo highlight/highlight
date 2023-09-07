@@ -84,8 +84,8 @@ const CommandBarBox = () => {
 	)
 }
 const SearchOptions = () => {
-	const form = useCommandBarForm()
-	const query = form.getValue(form.names.search).trim()
+	const formStore = useCommandBarForm()
+	const query = formStore.useValue(formStore.names.search).trim()
 	if (!query) return null
 	return (
 		<>
@@ -97,15 +97,17 @@ const SearchOptions = () => {
 }
 
 const SearchBar = () => {
-	const form = useCommandBarForm()
-	const query = form.getValue(form.names.search).trim()
-	const selectedDates = form.getValue<Date[]>(form.names.selectedDates)
+	const formStore = useCommandBarForm()
+	const query = formStore.useValue(formStore.names.search).trim()
+	const selectedDates = formStore.useValue<Date[]>(
+		formStore.names.selectedDates,
+	)
 
 	const inputRef = useRef<HTMLInputElement>(null)
 	const isDirty =
 		!!query || selectedDates[0].getTime() !== last30Days.startDate.getTime()
 
-	const searchAttribute = useAttributeSearch(form)
+	const searchAttribute = useAttributeSearch(formStore)
 
 	const currentAttribute = useCurrentAttribute()
 	const { setCurrentAttribute } = useCommandBarAPI()
@@ -133,14 +135,14 @@ const SearchBar = () => {
 						last30Days.startDate.getTime(),
 				})
 			} else {
-				form.submit()
+				formStore.submit()
 			}
 		}
 	})
 
 	return (
 		<Box p="8" display="flex" alignItems="center" width="full">
-			<Form store={form} className={styles.form}>
+			<Form store={formStore} className={styles.form}>
 				<Box
 					display="flex"
 					justifyContent="space-between"
@@ -158,7 +160,7 @@ const SearchBar = () => {
 						alignItems="center"
 					>
 						<Form.Input
-							name={form.names.search}
+							name={formStore.names.search}
 							placeholder="Search..."
 							size="xSmall"
 							outline={false}
@@ -173,16 +175,21 @@ const SearchBar = () => {
 								onClick={(e) => {
 									e.preventDefault()
 									e.stopPropagation()
-									form.reset()
+									formStore.reset()
 									inputRef.current?.focus()
 								}}
 							/>
 						) : null}
 					</Box>
 					<PreviousDateRangePicker
-						selectedDates={form.getValue(form.names.selectedDates)}
+						selectedDates={formStore.useValue(
+							formStore.names.selectedDates,
+						)}
 						onDatesChange={(dates) => {
-							form.setValue(form.names.selectedDates, dates)
+							formStore.setValue(
+								formStore.names.selectedDates,
+								dates,
+							)
 						}}
 						presets={PRESETS}
 						minDate={now.clone().subtract(2, 'years').toDate()}
@@ -215,9 +222,9 @@ const SectionRow = ({
 }) => {
 	const { setCurrentAttribute, setTouched } = useCommandBarAPI()
 	const currentAttribute = useCurrentAttribute()
-	const form = useCommandBarForm()
+	const formStore = useCommandBarForm()
 	const selected = isEqual(currentAttribute, attribute)
-	const searchAttribute = useAttributeSearch(form)
+	const searchAttribute = useAttributeSearch(formStore)
 
 	return (
 		<Box
@@ -241,8 +248,9 @@ const SectionRow = ({
 				setTouched(true)
 				searchAttribute(attribute, {
 					withDate:
-						form.getValue(form.names.selectedDates)[0].getTime() !==
-						last30Days.startDate.getTime(),
+						formStore
+							.useValue(formStore.names.selectedDates)[0]
+							.getTime() !== last30Days.startDate.getTime(),
 					newTab: e.metaKey || e.ctrlKey,
 				})
 			}}
@@ -275,7 +283,7 @@ const SectionRow = ({
 				lines="1"
 				cssClass={styles.query}
 			>
-				{form.getValue(form.names.search).trim()}
+				{formStore.useValue(formStore.names.search).trim()}
 			</Text>
 			{selected ? (
 				<Badge
