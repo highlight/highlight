@@ -5,9 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"io"
-	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -22,13 +20,13 @@ import (
 	"github.com/leonelquinteros/hubspot"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 const PartitionKey = "hubspot"
-const Retries = 5
 
 // ClientSideContactCreationTimeout is the time we will wait for the object to be created by the hubspot client-side snippet
 const ClientSideContactCreationTimeout = time.Minute
@@ -44,8 +42,6 @@ const ClientSideAssociationTimeout = 3 * ClientSideContactCreationTimeout
 
 const ClientSideCreationPollInterval = 5 * time.Second
 
-const DefaultLockTimeout = 15 * time.Second
-
 var (
 	OAuthToken = os.Getenv("HUBSPOT_OAUTH_TOKEN")
 	APIKey     = os.Getenv("HUBSPOT_API_KEY")
@@ -55,19 +51,8 @@ var (
 	CSRFToken = os.Getenv("HUBSPOT_CSRF_TOKEN")
 )
 
-func retry[T any](fn func() (T, error)) (ret T, err error) {
-	for i := 0; i < Retries; i++ {
-		ret, err = fn()
-		if err == nil {
-			return
-		}
-		time.Sleep(16 * time.Millisecond * time.Duration(math.Pow(2, float64(i))))
-	}
-	return
-}
-
 func pollHubspot[T any](fn func() (*T, error), timeout time.Duration) (result *T, err error) {
-	span := tracer.StartSpan("hubspot.pollHubspot")
+	span := tracer.StartSpan("pollHubspot", tracer.ResourceName("hubspot"), tracer.Tag("timeout", timeout))
 	defer span.Finish()
 	start := time.Now()
 	ticker := time.NewTicker(ClientSideCreationPollInterval)
@@ -314,8 +299,8 @@ func (h *Client) mergeContacts(keepID, mergeID int) error {
 }
 
 func (h *Client) getAllCompanies(ctx context.Context) (companies []*CompanyResponse, err error) {
-	span, _ := tracer.StartSpanFromContext(ctx, "hubspot.getAllCompanies")
-	defer span.Finish()
+	span := tracer.StartSpan("getAllCompanies", tracer.ResourceName("hubspot"))
+	defer span.Finish(tracer.WithError(err))
 	if h.redisClient != nil {
 		err = h.redisClient.GetHubspotCompanies(ctx, &companies)
 		if err == nil && len(companies) > 0 {
@@ -342,57 +327,65 @@ func (h *Client) getAllCompanies(ctx context.Context) (companies []*CompanyRespo
 }
 
 func (h *Client) getCompany(ctx context.Context, name, domain string) (*int, error) {
-	r := struct {
-		Results []struct {
-			CompanyId int `json:"companyId"`
-		} `json:"results"`
-	}{}
-	body, _ := json.Marshal(struct {
-		Limit          int `json:"limit"`
-		RequestOptions struct {
+	span := tracer.StartSpan("getCompany", tracer.ResourceName("hubspot"))
+	defer span.Finish()
+	return redis.CachedEval(ctx, h.redisClient, fmt.Sprintf("hubspot-company-%s-%s", name, domain), time.Second, ClientSideContactCreationTimeout/4, func() (*int, error) {
+		r := struct {
+			Results []struct {
+				CompanyId int `json:"companyId"`
+			} `json:"results"`
+		}{}
+		body, _ := json.Marshal(struct {
+			Limit          int `json:"limit"`
+			RequestOptions struct {
+				Properties []string `json:"properties"`
+			} `json:"requestOptions"`
+		}{100, struct {
 			Properties []string `json:"properties"`
-		} `json:"requestOptions"`
-	}{100, struct {
-		Properties []string `json:"properties"`
-	}{[]string{"domain", "name", "createdate", "hs_lastmodifieddate"}}})
-	err := h.doRequest(fmt.Sprintf("/companies/v2/domains/%s/companies", domain), &r, nil, "POST", bytes.NewReader(body))
-	if err == nil && len(r.Results) > 0 {
-		return pointy.Int(r.Results[0].CompanyId), nil
-	}
+		}{[]string{"domain", "name", "createdate", "hs_lastmodifieddate"}}})
+		err := h.doRequest(fmt.Sprintf("/companies/v2/domains/%s/companies", domain), &r, nil, "POST", bytes.NewReader(body))
+		if err == nil && len(r.Results) > 0 {
+			return pointy.Int(r.Results[0].CompanyId), nil
+		}
 
-	if name == "" {
-		return nil, e.New(fmt.Sprintf("failed to find company based on domain alone %s", domain))
-	}
+		if name == "" {
+			return nil, e.New(fmt.Sprintf("failed to find company based on domain alone %s", domain))
+		}
 
-	companies, err := h.getAllCompanies(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var nameCompany *CompanyResponse
-	for _, company := range companies {
-		for prop, data := range company.Properties {
-			if prop == "name" {
-				if strings.EqualFold(data.Value, name) {
-					nameCompany = company
+		companies, err := h.getAllCompanies(ctx)
+		if err != nil {
+			return nil, err
+		}
+		var nameCompany *CompanyResponse
+		for _, company := range companies {
+			for prop, data := range company.Properties {
+				if prop == "name" {
+					if strings.EqualFold(data.Value, name) {
+						nameCompany = company
+					}
 				}
 			}
 		}
-	}
-	if nameCompany != nil {
-		log.WithContext(ctx).WithField("name", name).WithField("domain", "domain").WithField("company_id", nameCompany.CompanyID).Info("hubspot found company based on name")
-		return pointy.Int(nameCompany.CompanyID), nil
-	} else {
-		return nil, e.New(fmt.Sprintf("failed to find company with name %s domain %s", name, domain))
-	}
+		if nameCompany != nil {
+			log.WithContext(ctx).WithField("name", name).WithField("domain", "domain").WithField("company_id", nameCompany.CompanyID).Info("hubspot found company based on name")
+			return pointy.Int(nameCompany.CompanyID), nil
+		} else {
+			return nil, e.New(fmt.Sprintf("failed to find company with name %s domain %s", name, domain))
+		}
+	})
 }
 
-func (h *Client) getContactForAdmin(email string) (contactId *int, err error) {
-	r := CustomContactsResponse{}
-	if err := h.hubspotClient.Contacts().Client.Request("GET", "/contacts/v1/contact/email/"+email+"/profile", nil, &r); err != nil {
-		return nil, err
-	} else {
-		return pointy.Int(r.Vid), nil
-	}
+func (h *Client) getContactForAdmin(ctx context.Context, email string) (contactId *int, err error) {
+	span := tracer.StartSpan("getContactForAdmin", tracer.ResourceName("hubspot"))
+	defer span.Finish(tracer.WithError(err))
+	return redis.CachedEval(ctx, h.redisClient, fmt.Sprintf("hubspot-email-%s", email), time.Second, ClientSideContactCreationTimeout/4, func() (*int, error) {
+		r := CustomContactsResponse{}
+		if err = h.hubspotClient.Contacts().Client.Request("GET", "/contacts/v1/contact/email/"+email+"/profile", nil, &r); err != nil {
+			return nil, err
+		} else {
+			return pointy.Int(r.Vid), nil
+		}
+	})
 }
 
 func (h *Client) createContactForAdmin(ctx context.Context, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first string, last string, phone string, referral string) (contactId *int, err error) {
@@ -442,7 +435,7 @@ func (h *Client) createContactForAdmin(ctx context.Context, email string, userDe
 		},
 	}); err != nil {
 		// If there's an error creating the contact, assume its a conflict and try to get the existing user.
-		if contact, err := h.getContactForAdmin(email); err == nil {
+		if contact, err := h.getContactForAdmin(ctx, email); err == nil {
 			return contact, nil
 		}
 	} else {
@@ -453,47 +446,55 @@ func (h *Client) createContactForAdmin(ctx context.Context, email string, userDe
 	return &hubspotContactId, nil
 }
 
-func (h *Client) updateAdminHubspotContactID(admin *model.Admin, fn func(hubspotContactID *int) error) error {
+func (h *Client) updateAdminHubspotContactID(ctx context.Context, admin *model.Admin, fn func(hubspotContactID *int) error) error {
 	hubspotContactID := admin.HubspotContactID
-	_, err := retry(func() (*int, error) {
-		if ptr.ToInt(hubspotContactID) == 0 {
-			var err error
-			hubspotContactID, err = h.getContactForAdmin(ptr.ToString(admin.Email))
-			if err != nil {
-				return nil, err
-			}
-			err = h.db.Model(&model.Admin{Model: model.Model{ID: admin.ID}}).Updates(&model.Admin{HubspotContactID: hubspotContactID}).Error
-			if err != nil {
-				return nil, err
-			}
+	if ptr.ToInt(hubspotContactID) == 0 {
+		var err error
+		hubspotContactID, err = h.getContactForAdmin(ctx, ptr.ToString(admin.Email))
+		if err != nil {
+			return err
 		}
-		admin.HubspotContactID = hubspotContactID
-		return nil, fn(hubspotContactID)
-	})
+		err = h.db.Model(&model.Admin{Model: model.Model{ID: admin.ID}}).Updates(&model.Admin{HubspotContactID: hubspotContactID}).Error
+		if err != nil {
+			return err
+		}
+	}
+	admin.HubspotContactID = hubspotContactID
+	err := fn(admin.HubspotContactID)
+	// clear the admin hubspot contact id if it is not correct
+	if err != nil {
+		h.db.Model(&model.Admin{Model: model.Model{ID: admin.ID}}).Select("hubspot_contact_id").Updates(&model.Admin{})
+		admin.HubspotContactID = nil
+		return err
+	}
 	return err
 }
 
 func (h *Client) updateWorkspaceHubspotCompanyID(ctx context.Context, workspace *model.Workspace, fn func(hubspotCompanyID *int) error) error {
 	hubspotCompanyId := workspace.HubspotCompanyID
-	_, err := retry(func() (*int, error) {
-		if ptr.ToInt(hubspotCompanyId) == 0 {
-			var err error
-			var domain string
-			if len(workspace.Admins) > 0 {
-				domain = getDomain(ptr.ToString(workspace.Admins[0].Email))
-			}
-			hubspotCompanyId, err = h.getCompany(ctx, ptr.ToString(workspace.Name), domain)
-			if err != nil {
-				return nil, err
-			}
-			err = h.db.Model(&model.Workspace{Model: model.Model{ID: workspace.ID}}).Updates(&model.Workspace{HubspotCompanyID: hubspotCompanyId}).Error
-			if err != nil {
-				return nil, err
-			}
+	if ptr.ToInt(hubspotCompanyId) == 0 {
+		var err error
+		var domain string
+		if len(workspace.Admins) > 0 {
+			domain = getDomain(ptr.ToString(workspace.Admins[0].Email))
 		}
-		workspace.HubspotCompanyID = hubspotCompanyId
-		return nil, fn(hubspotCompanyId)
-	})
+		hubspotCompanyId, err = h.getCompany(ctx, ptr.ToString(workspace.Name), domain)
+		if err != nil {
+			return err
+		}
+		err = h.db.Model(&model.Workspace{Model: model.Model{ID: workspace.ID}}).Updates(&model.Workspace{HubspotCompanyID: hubspotCompanyId}).Error
+		if err != nil {
+			return err
+		}
+	}
+	workspace.HubspotCompanyID = hubspotCompanyId
+	err := fn(workspace.HubspotCompanyID)
+	// clear the workspace hubspot company id if it is not correct
+	if err != nil {
+		h.db.Model(&model.Workspace{Model: model.Model{ID: workspace.ID}}).Select("hubspot_company_id").Updates(&model.Workspace{})
+		workspace.HubspotCompanyID = nil
+		return err
+	}
 	return err
 }
 
@@ -508,22 +509,13 @@ func (h *Client) CreateContactCompanyAssociation(ctx context.Context, adminID in
 }
 
 func (h *Client) CreateContactCompanyAssociationImpl(ctx context.Context, adminID int, workspaceID int) error {
-	key := fmt.Sprintf("hubspot-CreateContactCompanyAssociationImpl-%d-%d", adminID, workspaceID)
-	if mutex, err := h.redisClient.AcquireLock(ctx, key, ClientSideAssociationTimeout); err == nil {
-		defer func() {
-			if _, err := mutex.Unlock(); err != nil {
-				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release hubspot lock")
-			}
-		}()
-	}
-
 	data, err := pollHubspot(func() (*struct{ companyID, contactID int }, error) {
 		admin := &model.Admin{}
 		if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
 			return nil, err
 		}
 
-		if err := h.updateAdminHubspotContactID(admin, func(hubspotContactID *int) error {
+		if err := h.updateAdminHubspotContactID(ctx, admin, func(hubspotContactID *int) error {
 			return h.db.Model(&model.Admin{Model: model.Model{ID: adminID}}).Updates(&model.Admin{HubspotContactID: hubspotContactID}).Error
 		}); err != nil {
 			return nil, e.New("failed to update hubspot contact id")
@@ -592,25 +584,13 @@ func (h *Client) CreateContactForAdmin(ctx context.Context, adminID int, email s
 }
 
 func (h *Client) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first string, last string, phone string, referral string) (contactId *int, err error) {
-	key := fmt.Sprintf("hubspot-CreateContactForAdminImpl-%d", adminID)
-	if mutex, err := h.redisClient.AcquireLock(ctx, key, ClientSideContactCreationTimeout); err == nil {
-		defer func() {
-			if _, err := mutex.Unlock(); err != nil {
-				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release hubspot lock")
-			}
-		}()
-	}
-
 	if contactId, err = pollHubspot(func() (*int, error) {
-		return h.getContactForAdmin(email)
+		return h.getContactForAdmin(ctx, email)
 	}, ClientSideContactCreationTimeout); contactId == nil {
 		log.WithContext(ctx).
 			WithField("email", email).
 			Warnf("failed to get client-side hubspot contact. creating")
-		contactId, err = retry(func() (*int, error) {
-			return h.createContactForAdmin(ctx, email, userDefinedRole, userDefinedPersona, userDefinedTeamSize, first, last, phone, referral)
-		})
-
+		contactId, err = h.createContactForAdmin(ctx, email, userDefinedRole, userDefinedPersona, userDefinedTeamSize, first, last, phone, referral)
 		if err != nil || contactId == nil {
 			return nil, err
 		}
@@ -636,15 +616,6 @@ func (h *Client) CreateCompanyForWorkspace(ctx context.Context, workspaceID int,
 }
 
 func (h *Client) CreateCompanyForWorkspaceImpl(ctx context.Context, workspaceID int, adminEmail, name string) (companyID *int, err error) {
-	key := fmt.Sprintf("hubspot-CreateCompanyForWorkspaceImpl-%d-%s-%s", workspaceID, adminEmail, name)
-	if mutex, err := h.redisClient.AcquireLock(ctx, key, ClientSideCompanyCreationTimeout); err == nil {
-		defer func() {
-			if _, err := mutex.Unlock(); err != nil {
-				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release hubspot lock")
-			}
-		}()
-	}
-
 	// Don't create for Demo account
 	if workspaceID == 0 {
 		return
@@ -716,21 +687,12 @@ func (h *Client) UpdateContactProperty(ctx context.Context, adminID int, propert
 }
 
 func (h *Client) UpdateContactPropertyImpl(ctx context.Context, adminID int, properties []hubspot.Property) error {
-	key := fmt.Sprintf("hubspot-UpdateContactPropertyImpl-%d", adminID)
-	if mutex, err := h.redisClient.AcquireLock(ctx, key, DefaultLockTimeout); err == nil {
-		defer func() {
-			if _, err := mutex.Unlock(); err != nil {
-				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release hubspot lock")
-			}
-		}()
-	}
-
 	admin := &model.Admin{}
 	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
 		return err
 	}
 
-	return h.updateAdminHubspotContactID(admin, func(hubspotContactID *int) error {
+	return h.updateAdminHubspotContactID(ctx, admin, func(hubspotContactID *int) error {
 		return h.hubspotClient.Contacts().Update(ptr.ToInt(hubspotContactID), hubspot.ContactsRequest{
 			Properties: properties,
 		})
@@ -748,15 +710,6 @@ func (h *Client) UpdateCompanyProperty(ctx context.Context, workspaceID int, pro
 }
 
 func (h *Client) UpdateCompanyPropertyImpl(ctx context.Context, workspaceID int, properties []hubspot.Property) error {
-	key := fmt.Sprintf("hubspot-UpdateCompanyPropertyImpl-%d", workspaceID)
-	if mutex, err := h.redisClient.AcquireLock(ctx, key, DefaultLockTimeout); err == nil {
-		defer func() {
-			if _, err := mutex.Unlock(); err != nil {
-				log.WithContext(ctx).WithError(err).WithField("key", key).Error("failed to release hubspot lock")
-			}
-		}()
-	}
-
 	workspace := &model.Workspace{}
 	if err := h.db.Model(&model.Workspace{}).Preload("Admins").Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
 		return err
