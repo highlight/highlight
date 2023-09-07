@@ -148,7 +148,7 @@
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	padding: 4px 0;
+	padding: 0;
 	width: 100%;
 }
 
@@ -212,4 +212,10 @@
 
 .liveUserStatus {
 	user-select: none;
+}
+
+.downloadButton {
+	border-top: 1px solid var(--color-neutral-200);
+	padding: 10px 8px;
+	height: 36px;
 }

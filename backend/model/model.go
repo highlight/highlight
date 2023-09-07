@@ -135,6 +135,7 @@ var Models = []interface{}{
 	&Admin{},
 	&Session{},
 	&SessionInterval{},
+	&SessionExport{},
 	&TimelineIndicatorEvent{},
 	&DailySessionCount{},
 	&DailyErrorCount{},
@@ -391,6 +392,7 @@ type AllWorkspaceSettings struct {
 	ErrorEmbeddingsThreshold float64 `gorm:"default:0.2"`
 	ReplaceAssets            bool    `gorm:"default:false"`
 	StoreIP                  bool    `gorm:"default:false"`
+	EnableSessionExport      bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -695,6 +697,23 @@ type SessionInsight struct {
 	Model
 	SessionID int `gorm:"index"`
 	Insight   string
+}
+
+type SessionExportFormat = string
+
+const (
+	SessionExportFormatMP4 SessionExportFormat = "video/mp4"
+	SessionExportFormatGif SessionExportFormat = "image/gif"
+	SessionExportFormatPng SessionExportFormat = "image/png"
+)
+
+type SessionExport struct {
+	Model
+	SessionID    int                 `gorm:"uniqueIndex:idx_session_exports"`
+	Type         SessionExportFormat `gorm:"uniqueIndex:idx_session_exports"`
+	URL          string
+	Error        string
+	TargetEmails pq.StringArray `gorm:"type:text[];"`
 }
 
 type EventChunk struct {

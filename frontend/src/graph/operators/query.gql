@@ -317,6 +317,17 @@ query GetSessionInsight($secure_id: String!) {
 	}
 }
 
+query GetSessionExports {
+	session_exports {
+		id
+		session_id
+		type
+		url
+		error
+		target_emails
+	}
+}
+
 query GetSessionComments($session_secure_id: String!) {
 	session_comments(session_secure_id: $session_secure_id) {
 		id
@@ -2129,6 +2140,7 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 		workspace_id
 		ai_application
 		ai_insights
+		enable_session_export
 	}
 }
 

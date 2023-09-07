@@ -131,6 +131,7 @@ export type AllWorkspaceSettings = {
 	__typename?: 'AllWorkspaceSettings'
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
+	enable_session_export: Scalars['Boolean']
 	workspace_id: Scalars['ID']
 }
 
@@ -1013,6 +1014,7 @@ export type Mutation = {
 	editWorkspace?: Maybe<Workspace>
 	editWorkspaceSettings?: Maybe<AllWorkspaceSettings>
 	emailSignup: Scalars['String']
+	exportSession: Scalars['Boolean']
 	joinWorkspace?: Maybe<Scalars['ID']>
 	markErrorGroupAsViewed?: Maybe<ErrorGroup>
 	markSessionAsViewed?: Maybe<Session>
@@ -1341,6 +1343,10 @@ export type MutationEditWorkspaceSettingsArgs = {
 
 export type MutationEmailSignupArgs = {
 	email: Scalars['String']
+}
+
+export type MutationExportSessionArgs = {
+	session_secure_id: Scalars['String']
 }
 
 export type MutationJoinWorkspaceArgs = {
@@ -1800,6 +1806,7 @@ export type Query = {
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
 	session_comments_for_project: Array<Maybe<SessionComment>>
+	session_exports: Array<SessionExport>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
 	sessions_clickhouse: SessionResults
@@ -2838,6 +2845,16 @@ export enum SessionExcludedReason {
 	NoUserEvents = 'NoUserEvents',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
 	RetentionPeriodExceeded = 'RetentionPeriodExceeded',
+}
+
+export type SessionExport = {
+	__typename?: 'SessionExport'
+	error: Scalars['String']
+	id: Scalars['ID']
+	session_id: Scalars['ID']
+	target_emails: Array<Scalars['String']>
+	type: Scalars['String']
+	url: Scalars['String']
 }
 
 export type SessionInsight = {

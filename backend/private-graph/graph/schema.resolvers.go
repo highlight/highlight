@@ -37,6 +37,7 @@ import (
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
+	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/phonehome"
@@ -653,6 +654,52 @@ func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceI
 		return nil, err
 	}
 	return workspaceSettings, nil
+}
+
+// ExportSession is the resolver for the exportSession field.
+func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID string) (bool, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	session, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return false, err
+	}
+
+	cfg, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, session.ProjectID)
+	if !cfg.EnableSessionExport {
+		return false, e.New("session export is not enabled")
+	}
+
+	go func() {
+		export := model.SessionExport{
+			SessionID:    session.ID,
+			Type:         model.SessionExportFormatMP4,
+			TargetEmails: []string{*admin.Email},
+		}
+
+		tx := r.DB.Model(&export).Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
+			DoUpdates: clause.AssignmentColumns([]string{"target_emails"}),
+		}).FirstOrCreate(&export)
+		if tx.Error != nil {
+			log.WithContext(context.Background()).WithError(tx.Error).Error("failed to create session export record")
+			return
+		}
+
+		_, err := r.StepFunctions.SessionExport(ctx, utils2.SessionExportInput{
+			Project:      session.ProjectID,
+			Session:      session.ID,
+			Format:       export.Type,
+			TargetEmails: export.TargetEmails,
+		})
+		if err != nil {
+			log.WithContext(context.Background()).WithError(err).Error("failed to export session video")
+		}
+	}()
+	return true, nil
 }
 
 // MarkErrorGroupAsViewed is the resolver for the markErrorGroupAsViewed field.
@@ -1474,11 +1521,12 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		ctx := context.Background()
 		chunkIdx, chunkTs := r.GetSessionChunk(ctx, session.ID, sessionTimestamp)
 		log.WithContext(ctx).Infof("got chunk %d ts %d for session %d ts %d", chunkIdx, chunkTs, session.ID, sessionTimestamp)
-		imageBytes, err := r.getSessionScreenshot(ctx, projectID, session.ID, chunkTs, chunkIdx)
+		format := model.SessionExportFormatPng
+		resp, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, session.ID, pointy.Int(chunkTs), pointy.Int(chunkIdx), &format)
 		if err != nil {
 			log.WithContext(ctx).Errorf("failed to render screenshot for %d %d %d %s", projectID, session.ID, sessionTimestamp, err)
 		} else {
-			sessionImageStr = base64.StdEncoding.EncodeToString(imageBytes)
+			sessionImageStr = base64.StdEncoding.EncodeToString(resp.Image)
 			sessionImage = &sessionImageStr
 			if err := r.DB.Model(&model.SessionComment{}).Where(
 				&model.SessionComment{Model: model.Model{ID: sessionComment.ID}},
@@ -7801,6 +7849,15 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 	return insight, nil
 }
 
+// SessionExports is the resolver for the session_exports field.
+func (r *queryResolver) SessionExports(ctx context.Context) ([]*model.SessionExport, error) {
+	var sessionExports []*model.SessionExport
+	if err := r.DB.Model(&model.SessionExport{}).Order("id DESC").Scan(&sessionExports).Error; err != nil {
+		return nil, err
+	}
+	return sessionExports, nil
+}
+
 // SystemConfiguration is the resolver for the system_configuration field.
 func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemConfiguration, error) {
 	return r.Store.GetSystemConfiguration(ctx)
@@ -8102,6 +8159,11 @@ GROUP BY
 	return tagsResponse, nil
 }
 
+// TargetEmails is the resolver for the target_emails field.
+func (r *sessionExportResolver) TargetEmails(ctx context.Context, obj *model.SessionExport) ([]string, error) {
+	return obj.TargetEmails, nil
+}
+
 // SessionPayloadAppended is the resolver for the session_payload_appended field.
 func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
 	ch := make(chan *model.SessionPayload)
@@ -8206,6 +8268,9 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
 }
 
+// SessionExport returns generated.SessionExportResolver implementation.
+func (r *Resolver) SessionExport() generated.SessionExportResolver { return &sessionExportResolver{r} }
+
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
@@ -8230,5 +8295,6 @@ type serviceResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+type sessionExportResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }
