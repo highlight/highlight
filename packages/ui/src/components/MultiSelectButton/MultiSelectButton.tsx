@@ -1,11 +1,5 @@
 import React from 'react'
-import {
-	useSelectStore,
-	Select,
-	SelectItem,
-	SelectLabel,
-	SelectPopover,
-} from '@ariakit/react'
+import * as Ariakit from '@ariakit/react'
 
 import { IconSolidCheckCircle, IconSolidMinus } from '../icons'
 
@@ -37,7 +31,7 @@ export const MultiSelectButton: React.FC<Props> = ({
 	options,
 	onChange,
 }) => {
-	const selectStore = useSelectStore({
+	const selectStore = Ariakit.useSelectStore({
 		defaultValue: defaultValue ? [defaultValue] : [],
 		value: value,
 		setValue: (value: string[]) => onChange(value),
@@ -46,25 +40,36 @@ export const MultiSelectButton: React.FC<Props> = ({
 
 	return (
 		<>
-			<SelectLabel store={selectStore} className={styles.selectLabel}>
+			<Ariakit.SelectLabel
+				store={selectStore}
+				className={styles.selectLabel}
+			>
 				{label}
-			</SelectLabel>
-			<Select store={selectStore} className={styles.selectButton}>
+			</Ariakit.SelectLabel>
+			<Ariakit.Select store={selectStore} className={styles.selectButton}>
 				<>
 					{icon}
 					<Text size="xSmall" color="secondaryContentText">
 						{valueRender()}
 					</Text>
 				</>
-			</Select>
+			</Ariakit.Select>
 			{selectState.mounted && (
-				<SelectPopover
+				<Ariakit.SelectPopover
 					store={selectStore}
 					gutter={4}
 					className={styles.selectPopover}
 				>
+					{/*
+					There is a bug in v0.2.17 of Ariakit where you need to have this arrow
+					rendered or else positioning of the popover breaks. We render it, but
+					hide it by setting size={0}. This is an issue with anything using a
+					popover coming from the floating-ui library.
+					*/}
+					<Ariakit.PopoverArrow size={0} />
+
 					{options.map((option: Option) => (
-						<SelectItem
+						<Ariakit.SelectItem
 							key={option.key}
 							value={option.key}
 							className={styles.selectItem}
@@ -78,9 +83,9 @@ export const MultiSelectButton: React.FC<Props> = ({
 								)}
 							</div>
 							{option.render}
-						</SelectItem>
+						</Ariakit.SelectItem>
 					))}
-				</SelectPopover>
+				</Ariakit.SelectPopover>
 			)}
 		</>
 	)
