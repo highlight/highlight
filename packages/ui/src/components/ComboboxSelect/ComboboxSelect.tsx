@@ -144,34 +144,36 @@ export const ComboboxSelect = <T extends string | string[]>({
 							{loadingRender}
 						</div>
 					)}
-					{allOptions.map((option: Option) => (
-						<ComboboxItem
-							focusOnHover
-							key={option.key}
-							className={styles.selectItem}
-							render={
-								<SelectItem value={option.key}>
-									{isMultiselect && (
-										<div
-											className={styles.checkbox}
-											style={{
-												backgroundColor: valueSet.has(
-													option.key,
-												)
-													? vars.theme.interactive
-															.fill.primary
-															.enabled
-													: 'white',
-											}}
-										>
-											<IconSolidCheckCircle color="white" />
-										</div>
-									)}
-									{option.render}
-								</SelectItem>
-							}
-						></ComboboxItem>
-					))}
+					{select.useState('open') &&
+						allOptions.map((option: Option) => (
+							<ComboboxItem
+								focusOnHover
+								key={option.key}
+								className={styles.selectItem}
+								render={
+									<SelectItem value={option.key}>
+										{isMultiselect && (
+											<div
+												className={styles.checkbox}
+												style={{
+													backgroundColor:
+														valueSet.has(option.key)
+															? vars.theme
+																	.interactive
+																	.fill
+																	.primary
+																	.enabled
+															: 'white',
+												}}
+											>
+												<IconSolidCheckCircle color="white" />
+											</div>
+										)}
+										{option.render}
+									</SelectItem>
+								}
+							></ComboboxItem>
+						))}
 				</ComboboxList>
 			</SelectPopover>
 		</div>
