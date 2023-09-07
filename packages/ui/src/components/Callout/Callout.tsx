@@ -15,6 +15,7 @@ import { vars } from '../../css/vars'
 
 export type Props = React.PropsWithChildren &
 	styles.Variants & {
+		style: any
 		title?: string
 		handleCloseClick?: () => void
 		icon?: false | (() => JSX.Element)
@@ -27,16 +28,18 @@ export const Callout: React.FC<Props> = ({
 	handleCloseClick,
 	icon,
 	border,
+	style = {},
 }) => {
 	const Icon = icon || kindIconLookup[kind]
 
 	return (
 		<Box
-			border="secondary"
-			borderRadius="8"
-			display="flex"
-			gap="8"
 			p="8"
+			gap="8"
+			display="flex"
+			borderRadius="8"
+			border="secondary"
+			style={style ? style : {}}
 			cssClass={styles.variants({ kind, border })}
 		>
 			{icon !== false ? <Icon /> : null}

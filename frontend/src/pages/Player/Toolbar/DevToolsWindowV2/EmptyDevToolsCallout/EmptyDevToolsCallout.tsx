@@ -39,9 +39,6 @@ export const EmptyDevToolsCallout = ({
 }: Props) => {
 	return (
 		<Box
-			style={{
-				maxWidth: '340px',
-			}}
 			height="full"
 			width="full"
 			display="flex"
@@ -50,6 +47,9 @@ export const EmptyDevToolsCallout = ({
 		>
 			<Callout
 				border
+				style={{
+					maxWidth: '340px',
+				}}
 				title={
 					!requestTypes.length && filter?.length
 						? `Can't find what you're looking for?`

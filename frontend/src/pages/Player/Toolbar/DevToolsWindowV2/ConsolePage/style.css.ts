@@ -5,9 +5,6 @@ import { recipe } from '@vanilla-extract/recipes'
 export const consoleBox = style({
 	paddingLeft: 8,
 	height: '100%',
-	display: 'flex',
-	flexDirection: 'row',
-	justifyContent: 'center',
 })
 
 export const consoleRow = style({
