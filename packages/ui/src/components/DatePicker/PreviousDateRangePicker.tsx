@@ -16,6 +16,8 @@ import { Box } from '../Box/Box'
 import { colors } from '../../css/colors'
 import { TimeInput } from './TimeInput'
 import { DateInput } from './DateInput'
+import { Form } from '../Form/Form'
+import * as Ariakit from '@ariakit/react'
 
 export { defaultPresets, getNow, resetRelativeDates } from './utils'
 
@@ -225,6 +227,7 @@ const PreviousDateRangePickerImpl = ({
 
 	const menu = useMenu()
 	const open = menu.getState().open
+	const formStore = Ariakit.useFormStore({})
 
 	useEffect(() => {
 		if (!open) {
@@ -475,7 +478,7 @@ const PreviousDateRangePickerImpl = ({
 						</Menu.Item>
 					</>
 				) : (
-					<>
+					<Form store={formStore}>
 						<Box
 							borderBottom={'divider'}
 							pb={'4'}
@@ -632,7 +635,7 @@ const PreviousDateRangePickerImpl = ({
 						>
 							<DatePicker hasSelectedRange={hasSelectedRange} />
 						</Menu.Item>
-					</>
+					</Form>
 				)}
 			</Menu.List>
 		</DatePickerStateProvider>
