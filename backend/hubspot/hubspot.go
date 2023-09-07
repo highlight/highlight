@@ -489,7 +489,7 @@ func (h *Client) updateWorkspaceHubspotCompanyID(ctx context.Context, workspace 
 	}
 	workspace.HubspotCompanyID = hubspotCompanyId
 	err := fn(workspace.HubspotCompanyID)
-	// clear the admin hubspot contact id if it is not correct
+	// clear the workspace hubspot company id if it is not correct
 	if err != nil {
 		h.db.Model(&model.Workspace{Model: model.Model{ID: workspace.ID}}).Select("hubspot_company_id").Updates(&model.Workspace{})
 		workspace.HubspotCompanyID = nil
