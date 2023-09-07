@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "highlight.fullname" . }}-redis
+  labels:
+    app.kubernetes.io/component: redis
+    app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+    {{- include "highlight.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: redis
+      app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+      {{- include "highlight.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: redis
+        app.kubernetes.io/part-of: {{ include "highlight.name" . }}
+        {{- include "highlight.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: redis
+          image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+          imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+          command:
+            - redis-server
+            - --save 60 1
+            - --loglevel warning
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          ports:
+            - containerPort: {{ .Values.redis.config.port | int }}
+              protocol: TCP
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: {{ include "highlight.fullname" . }}-redis-pvc

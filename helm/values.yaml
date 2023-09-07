@@ -50,6 +50,16 @@ kafka:
     producerMaxRequestSize: "536870912"
     replicaFetchMaxBytes: "536870912"
 
+redis:
+  image:
+    repository: redis
+    tag: "7.2.1"
+    pullPolicy: IfNotPresent
+
+  config:
+    port: "6379"
+    storageSize: 5Gi
+
 postgres:
   image:
     repository: ankane/pgvector
@@ -59,7 +69,7 @@ postgres:
   config:
     authMethod: trust
     port: "5432"
-    storageSize: 1Gi
+    storageSize: 5Gi
 
 clickhouse:
   image:
