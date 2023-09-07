@@ -81,7 +81,6 @@ export const ComboboxSelect = <T extends string | string[]>({
 	const query = combobox.getState().value
 
 	const isLoading = options === undefined
-	console.log('isLoading', isLoading)
 
 	const queryOptions: Option[] =
 		query !== undefined && query !== '' && creatableRender !== undefined
