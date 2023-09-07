@@ -4990,15 +4990,20 @@ body {
   cursor: pointer;
 }
 .n4pjg87 {
+  font-weight: 500;
+  color: var(--_1pyqka9c);
+  justify-content: center;
+}
+.n4pjg88 {
   border: var(--_1pyqka91o) solid 1px;
   border-radius: 4px;
   display: flex;
   padding: 1px;
 }
-.n4pjg86[aria-selected=true] .n4pjg87 {
+.n4pjg86[aria-selected=true] .n4pjg88 {
   background-color: var(--_1pyqka9l);
 }
-.n4pjg86[aria-selected=false] .n4pjg87 {
+.n4pjg86[aria-selected=false] .n4pjg88 {
   background-color: white;
 }
 ._1nph9oi0 {

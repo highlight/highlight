@@ -81,6 +81,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 	const query = combobox.getState().value
 
 	const isLoading = options === undefined
+	console.log('isLoading', isLoading)
 
 	const queryOptions: Option[] =
 		query !== undefined && query !== '' && creatableRender !== undefined
@@ -135,7 +136,14 @@ export const ComboboxSelect = <T extends string | string[]>({
 					className={clsx([styles.comboboxList, 'hide-scrollbar'])}
 				>
 					{isLoading && (
-						<div className={styles.selectItem}>{loadingRender}</div>
+						<div
+							className={clsx([
+								styles.selectItem,
+								styles.loadingPlaceholder,
+							])}
+						>
+							{loadingRender}
+						</div>
 					)}
 					{allOptions.map((option: Option) => (
 						<ComboboxItem

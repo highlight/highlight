@@ -406,7 +406,7 @@ const MultiselectPopout = ({
 	}) => {
 	const [query, setQuery] = useDebouncedState('', 300)
 	const [lastQuery, setLastQuery] = useState('')
-	const [options, setOptions] = useState<Option[]>([])
+	const [options, setOptions] = useState<Option[] | undefined>(undefined)
 	useMemo(() => {
 		loadOptions(query).then((v) => {
 			setOptions(v ?? [])
@@ -434,7 +434,7 @@ const MultiselectPopout = ({
 					label="value"
 					value={multiValue}
 					valueRender={label}
-					options={options.map((o) => ({
+					options={options?.map((o) => ({
 						key: o.value,
 						render: getOption(o, lastQuery),
 					}))}
@@ -454,6 +454,7 @@ const MultiselectPopout = ({
 					queryPlaceholder="Filter..."
 					defaultOpen={invalid}
 					disabled={disabled}
+					loadingRender="Loading..."
 				/>
 			)
 		case 'creatable':
@@ -483,6 +484,7 @@ const MultiselectPopout = ({
 					}
 					defaultOpen={invalid}
 					disabled={disabled}
+					loadingRender="Loading..."
 				/>
 			)
 		case 'date_range':

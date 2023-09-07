@@ -80,6 +80,12 @@ export const selectItem = style({
 	},
 })
 
+export const loadingPlaceholder = style({
+	fontWeight: 500,
+	color: vars.theme.static.content.moderate,
+	justifyContent: 'center',
+})
+
 export const checkbox = style({
 	border: vars.border.secondary,
 	borderRadius: 4,
