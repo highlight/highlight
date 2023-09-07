@@ -460,7 +460,14 @@ func (h *Client) updateAdminHubspotContactID(ctx context.Context, admin *model.A
 		}
 	}
 	admin.HubspotContactID = hubspotContactID
-	return fn(hubspotContactID)
+	err := fn(admin.HubspotContactID)
+	// clear the admin hubspot contact id if it is not correct
+	if err != nil {
+		h.db.Model(&model.Admin{Model: model.Model{ID: admin.ID}}).Select("hubspot_contact_id").Updates(&model.Admin{})
+		admin.HubspotContactID = nil
+		return err
+	}
+	return err
 }
 
 func (h *Client) updateWorkspaceHubspotCompanyID(ctx context.Context, workspace *model.Workspace, fn func(hubspotCompanyID *int) error) error {
@@ -481,7 +488,14 @@ func (h *Client) updateWorkspaceHubspotCompanyID(ctx context.Context, workspace 
 		}
 	}
 	workspace.HubspotCompanyID = hubspotCompanyId
-	return fn(hubspotCompanyId)
+	err := fn(workspace.HubspotCompanyID)
+	// clear the admin hubspot contact id if it is not correct
+	if err != nil {
+		h.db.Model(&model.Workspace{Model: model.Model{ID: workspace.ID}}).Select("hubspot_company_id").Updates(&model.Workspace{})
+		workspace.HubspotCompanyID = nil
+		return err
+	}
+	return err
 }
 
 func (h *Client) CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error {
