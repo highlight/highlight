@@ -56,6 +56,12 @@ export class Highlight {
 				options.serviceVersion
 		}
 
+		 instrumentations = [
+			getNodeAutoInstrumentations(),
+			(options.enableFsInstrument ? [require('@opentelemetry/instrumentation-fs')] : []),
+			
+		  ];
+
 		this.otel = new NodeSDK({
 			autoDetectResources: true,
 			resource: {
