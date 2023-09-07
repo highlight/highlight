@@ -37,6 +37,6 @@ jobs:
                   chmod 0600 $HOME/.gem/credentials
                   printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
                   gem build *.gemspec
-                  gem push *.gem
+                  gem push *.gem || exit 0
               env:
                   RUBYGEMS_API_KEY: '${{secrets.RUBYGEMS_API_KEY}}'
