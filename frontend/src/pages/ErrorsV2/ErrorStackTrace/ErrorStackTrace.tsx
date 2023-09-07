@@ -1,18 +1,21 @@
 import { Button } from '@components/Button'
 import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
 import { LinkButton } from '@components/LinkButton'
-import Tooltip from '@components/Tooltip/Tooltip'
 import { Maybe, SourceMappingError } from '@graph/schemas'
 import {
+	Badge,
 	Box,
 	ButtonIcon,
 	Callout,
 	IconSolidCheveronDown,
 	IconSolidCheveronUp,
 	IconSolidExclamation,
+	IconSolidExternalLink,
+	IconSolidGithub,
 	Popover,
 	Stack,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import ErrorSourcePreview from '@pages/ErrorsV2/ErrorSourcePreview/ErrorSourcePreview'
@@ -25,6 +28,8 @@ import ReactCollapsible from 'react-collapsible'
 import { ErrorObjectFragment } from '@/graph/generated/operations'
 
 import * as styles from './ErrorStackTrace.css'
+
+const MAX_GIT_SHA_LENGTH = 7
 
 interface Props {
 	errorObject?: ErrorObjectFragment
@@ -112,6 +117,9 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 							longestLineNumberCharacterLength={
 								longestLineNumberCharacterLength
 							}
+							enhancementSource={e?.enhancementSource}
+							enhancementVersion={e?.enhancementVersion}
+							externalLink={e?.externalLink}
 							lineContent={e?.lineContent}
 							linesBefore={e?.linesBefore}
 							linesAfter={e?.linesAfter}
@@ -142,6 +150,9 @@ export type StackSectionProps = {
 	lineNumber?: number
 	columnNumber?: number
 	longestLineNumberCharacterLength?: number
+	enhancementSource?: Maybe<string>
+	externalLink?: Maybe<string>
+	enhancementVersion?: Maybe<string>
 	lineContent?: Maybe<string>
 	linesBefore?: Maybe<string>
 	linesAfter?: Maybe<string>
@@ -182,6 +193,9 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 	lineNumber,
 	columnNumber,
 	longestLineNumberCharacterLength = 5,
+	enhancementSource,
+	enhancementVersion,
+	externalLink,
 	lineContent,
 	linesBefore,
 	linesAfter,
@@ -219,8 +233,8 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 					>
 						{lineNumber}
 					</Box>
-					<Tooltip title={functionName}>
-						<span>{functionName}</span>
+					<Tooltip trigger={<span>{functionName}</span>}>
+						{functionName}
 					</Tooltip>
 					<span>
 						<InfoTooltip
@@ -232,6 +246,11 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 			)}
 		</Box>
 	)
+
+	const versionString =
+		(enhancementVersion?.length || 0) > MAX_GIT_SHA_LENGTH
+			? enhancementVersion?.slice(0, MAX_GIT_SHA_LENGTH)
+			: enhancementVersion!
 
 	const stackTraceTitle = (
 		<Box
@@ -250,9 +269,36 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 			alignItems="center"
 		>
 			<Box display="flex" gap="4" alignItems="center">
+				{enhancementSource == 'github' && (
+					<Tooltip
+						trigger={
+							<Badge
+								iconStart={<IconSolidGithub size={16} />}
+								label={versionString}
+							/>
+						}
+					>
+						This stacktrace was enhanced using GitHub
+						{enhancementVersion &&
+							` with commit version, ${versionString}`}
+						.
+					</Tooltip>
+				)}
 				<Text cssClass={clsx(styles.name, styles.file)} as="span">
 					{truncateFileName(fileName || '')}
 				</Text>
+				{externalLink && (
+					<LinkButton
+						kind="secondary"
+						emphasis="low"
+						to={externalLink}
+						target="_blank"
+						trackingId="stacktrace-external-link-click"
+						size="small"
+					>
+						<IconSolidExternalLink size={16} />
+					</LinkButton>
+				)}
 				<Text cssClass={styles.name} color="n11" as="span">
 					{functionName ? ' in ' : ''}
 				</Text>
@@ -357,7 +403,11 @@ const SourcemapError: React.FC<{
 const truncateFileName = (fileName: string, numberOfLevelsToGoUp = 5) => {
 	const tokens = fileName.split('/')
 
-	return `${'../'.repeat(
-		Math.max(tokens.length - numberOfLevelsToGoUp, 0),
-	)}${tokens.splice(tokens.length - numberOfLevelsToGoUp).join('/')}`
+	const relativeFileCount = tokens.length - numberOfLevelsToGoUp - 1
+	const relativePrefix =
+		relativeFileCount > 0 ? '/..'.repeat(relativeFileCount) + '/' : ''
+
+	return `${relativePrefix}${tokens
+		.splice(tokens.length - numberOfLevelsToGoUp)
+		.join('/')}`
 }

@@ -578,6 +578,11 @@ type MatchedErrorObject {
 	score: Float!
 }
 
+enum EnhancementSource {
+	github
+	sourcemap
+}
+
 type ErrorTrace {
 	fileName: String
 	lineNumber: Int
@@ -588,6 +593,9 @@ type ErrorTrace {
 	lineContent: String
 	linesBefore: String
 	linesAfter: String
+	externalLink: String
+	enhancementSource: EnhancementSource
+	enhancementVersion: String
 }
 
 type SourceMappingError {

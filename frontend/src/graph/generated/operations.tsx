@@ -2991,6 +2991,9 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 					| 'linesBefore'
 					| 'linesAfter'
 					| 'error'
+					| 'enhancementSource'
+					| 'enhancementVersion'
+					| 'externalLink'
 				> & {
 						sourceMappingErrorMetadata?: Types.Maybe<
 							{ __typename?: 'SourceMappingError' } & Pick<

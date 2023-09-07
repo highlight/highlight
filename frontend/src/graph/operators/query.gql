@@ -1150,6 +1150,9 @@ fragment ErrorObject on ErrorObject {
 		linesBefore
 		linesAfter
 		error
+		enhancementSource
+		enhancementVersion
+		externalLink
 		sourceMappingErrorMetadata {
 			errorCode
 			stackTraceFileURL

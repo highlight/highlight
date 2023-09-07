@@ -140,6 +140,9 @@ export const ErrorObjectFragmentDoc = gql`
 			linesBefore
 			linesAfter
 			error
+			enhancementSource
+			enhancementVersion
+			externalLink
 			sourceMappingErrorMetadata {
 				errorCode
 				stackTraceFileURL
