@@ -22,7 +22,7 @@ export interface NodeOptions extends HighlightOptions {
 	 */
 	serviceVersion?: string
 	/**
-	 * Disables node fs instrumentation @default false
+	 * Enables node fs instrumentation @default false
 	 * see .
 	 * {@link https://opentelemetry.io/docs/instrumentation/js/libraries/#registration}
 	 */
