@@ -1096,6 +1096,10 @@ mutation DeleteSessions(
 	)
 }
 
+mutation ExportSession($session_secure_id: String!) {
+	exportSession(session_secure_id: $session_secure_id)
+}
+
 mutation UpdateVercelSettings(
 	$project_id: ID!
 	$project_mappings: [VercelProjectMappingInput!]!

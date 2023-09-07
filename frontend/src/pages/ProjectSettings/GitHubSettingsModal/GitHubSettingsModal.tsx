@@ -152,20 +152,21 @@ const GithubSettingsForm = ({
 		[githubRepos],
 	)
 
-	const form = Form.useFormState<GithubSettingsFormValues>({
+	const formStore = Form.useFormStore<GithubSettingsFormValues>({
 		defaultValues: {
 			githubRepo: service.githubRepoPath || null,
 			buildPrefix: service.buildPrefix || null,
 			githubPrefix: service.githubPrefix || null,
 		},
 	})
+	const formState = formStore.getState()
 
-	const exampleLink = form.values.githubPrefix
-		? `https://github.com/${form.values.githubRepo}/blob/HEAD${form.values.githubPrefix}/README.md`
-		: `https://github.com/${form.values.githubRepo}/blob/HEAD/README.md`
+	const exampleLink = formState.values.githubPrefix
+		? `https://github.com/${formState.values.githubRepo}/blob/HEAD${formState.values.githubPrefix}/README.md`
+		: `https://github.com/${formState.values.githubRepo}/blob/HEAD/README.md`
 
 	return (
-		<Form state={form} onSubmit={() => handleSubmit(form.values)}>
+		<Form store={formStore} onSubmit={() => handleSubmit(formState.values)}>
 			<Box px="12" py="8" gap="12" display="flex" flexDirection="column">
 				<Form.NamedSection
 					label="Select GitHub repository"
@@ -177,9 +178,14 @@ const GithubSettingsForm = ({
 							className={styles.repoSelect}
 							placeholder="Search repos..."
 							onSelect={(repo: string) =>
-								form.setValue(form.names.githubRepo, repo)
+								formStore.setValue(
+									formStore.names.githubRepo,
+									repo,
+								)
 							}
-							value={form.values.githubRepo?.split('/').pop()}
+							value={formState.values.githubRepo
+								?.split('/')
+								.pop()}
 							options={githubOptions}
 							notFoundContent={<span>No repos found</span>}
 							optionFilterProp="label"
@@ -190,9 +196,12 @@ const GithubSettingsForm = ({
 							kind="secondary"
 							emphasis="medium"
 							size="medium"
-							disabled={!form.values.githubRepo}
+							disabled={!formState.values.githubRepo}
 							onClick={() =>
-								form.setValue(form.names.githubRepo, null)
+								formStore.setValue(
+									formStore.names.githubRepo,
+									null,
+								)
 							}
 							icon={
 								<IconSolidTrash
@@ -206,7 +215,7 @@ const GithubSettingsForm = ({
 						/>
 					</Box>
 				</Form.NamedSection>
-				{form.values.githubRepo && (
+				{formState.values.githubRepo && (
 					<>
 						<Box
 							display="flex"
@@ -215,7 +224,7 @@ const GithubSettingsForm = ({
 							borderTop="dividerWeak"
 						>
 							<Form.Input
-								name={form.names.buildPrefix}
+								name={formStore.names.buildPrefix}
 								label="Build path prefix"
 								placeholder="/build"
 								icon={
@@ -241,7 +250,7 @@ const GithubSettingsForm = ({
 								}
 							/>
 							<Form.Input
-								name={form.names.githubPrefix}
+								name={formStore.names.githubPrefix}
 								label="GitHub path prefix"
 								placeholder="/src"
 								icon={
@@ -287,7 +296,8 @@ const GithubSettingsForm = ({
 								</Box>
 							</Tooltip>
 							<Text break="all">
-								e.g. <i>{form.values.buildPrefix}/README.md</i>{' '}
+								e.g.{' '}
+								<i>{formState.values.buildPrefix}/README.md</i>{' '}
 								→{' '}
 								<TextLink href={exampleLink} target="_blank">
 									{exampleLink}

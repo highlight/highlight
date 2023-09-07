@@ -6,7 +6,7 @@ import {
 	IconSolidCheveronLeft,
 	Stack,
 	Text,
-	useFormState,
+	useFormStore,
 	vars,
 } from '@highlight-run/ui'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
@@ -23,17 +23,18 @@ export const ResetPassword: React.FC = () => {
 	const location = useLocation()
 	const initialEmail: string = location.state?.email ?? ''
 	const [loading, setLoading] = useState(false)
-	const formState = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			email: initialEmail ?? '',
 		},
 	})
+	const formState = formStore.getState()
 
 	useEffect(() => analytics.page(), [])
 
 	return (
 		<Form
-			state={formState}
+			store={formStore}
 			resetOnSubmit={false}
 			onSubmit={() => {
 				analytics.track('Reset password submission')
@@ -93,7 +94,7 @@ export const ResetPassword: React.FC = () => {
 			<AuthBody>
 				<Stack gap="12">
 					<Form.Input
-						name={formState.names.email}
+						name={formStore.names.email}
 						label="Email"
 						type="email"
 						autoFocus

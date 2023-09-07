@@ -29,7 +29,7 @@ With these settings, the canvas is serialized as a 480p video at 2FPS.
 
 `samplingStrategy.canvas` is the frame per second rate used to record the HTML canvas. A value < 5 is recommended to ensure the recording is not too large and does not have issues with playback.
 
-`samplingStrategy.canvasManual` is the frame per second rate used in manual snapshotting mode. See `Manual Snapshotting` below.
+`samplingStrategy.canvasManualSnapshot` is the frame per second rate used in manual snapshotting mode. See `Manual Snapshotting` below.
 
 `samplingStrategy.canvasFactor`: a resolution scaling factor applied to both dimensions of the canvas.
 
@@ -68,7 +68,7 @@ you paint to the WebGL context. To set this up, pass the following options to hi
 H.init('<YOUR_PROJECT_ID>', {
   enableCanvasRecording: true,        // enable canvas recording
   samplingStrategy: {
-    canvasManual: 2,                        // snapshot at 2 fps
+      canvasManualSnapshot: 2,        // snapshot at 2 fps
     canvasMaxSnapshotDimension: 480,  // snapshot at a max 480p resolution
     // any other settings...
   },

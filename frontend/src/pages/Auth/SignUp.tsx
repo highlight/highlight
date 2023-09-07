@@ -12,7 +12,7 @@ import {
 	IconSolidGoogle,
 	Stack,
 	Text,
-	useFormState,
+	useFormStore,
 } from '@highlight-run/ui'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
@@ -36,12 +36,13 @@ export const SignUp: React.FC = () => {
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
-	const formState = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			email: initialEmail,
 			password: '',
 		},
 	})
+	const formState = formStore.getState()
 	const [createAdmin] = useCreateAdminMutation()
 	const { data } = useGetWorkspaceForInviteLinkQuery({
 		variables: {
@@ -53,7 +54,7 @@ export const SignUp: React.FC = () => {
 				data?.workspace_for_invite_link.invitee_email &&
 				!initialEmail
 			) {
-				formState.setValue(
+				formStore.setValue(
 					'email',
 					data?.workspace_for_invite_link.invitee_email,
 				)
@@ -102,7 +103,7 @@ export const SignUp: React.FC = () => {
 
 	return (
 		<Form
-			state={formState}
+			store={formStore}
 			resetOnSubmit={false}
 			onSubmit={() => {
 				setLoading(true)
@@ -145,14 +146,14 @@ export const SignUp: React.FC = () => {
 			<AuthBody>
 				<Stack gap="12">
 					<Form.Input
-						name={formState.names.email}
+						name={formStore.names.email}
 						label="Email"
 						type="email"
 						autoFocus
 						autoComplete="email"
 					/>
 					<Form.Input
-						name={formState.names.password}
+						name={formStore.names.password}
 						label="Password"
 						type="password"
 						autoComplete="new-password"

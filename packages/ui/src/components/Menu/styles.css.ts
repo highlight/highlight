@@ -11,6 +11,7 @@ export const menuList = style({
 	borderRadius: vars.borderRadius[4],
 	paddingBottom: vars.space[4],
 	paddingTop: vars.space[4],
+	position: 'relative',
 	width: 'fit-content',
 	maxWidth: 320,
 	minWidth: 200,

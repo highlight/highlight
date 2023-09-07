@@ -18,7 +18,7 @@ import {
 	IconSolidX,
 	Stack,
 	Text,
-	useFormState,
+	useFormStore,
 } from '@highlight-run/ui'
 import { vars } from '@highlight-run/ui/src/css/vars'
 import {
@@ -52,7 +52,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 	defaultIssueTitle,
 	timestamp,
 }) => {
-	const form = useFormState({
+	const form = useFormStore({
 		defaultValues: {
 			issueTitle: defaultIssueTitle,
 			issueDescription: commentText,
@@ -233,7 +233,7 @@ const NewIssueModal: React.FC<React.PropsWithChildren<NewIssueModalProps>> = ({
 			width="324px"
 		>
 			<ModalBody>
-				<Form aria-labelledBy="newComment" state={form}>
+				<Form aria-labelledBy="newComment" store={form}>
 					<Box
 						px="12"
 						py="8"

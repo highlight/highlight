@@ -162,7 +162,6 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 
 	pool := &Queue{Topic: topic, ConsumerGroup: groupID, Client: client}
 	if mode&1 == 1 {
-		log.WithContext(ctx).Debugf("initializing kafka producer for %s", topic)
 		pool.kafkaP = &kafka.Writer{
 			Addr:         kafka.TCP(brokers...),
 			Transport:    transport,
@@ -188,9 +187,15 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 				pool.kafkaP.Async = *deref.Async
 			}
 		}
+
+		if !util.IsDevOrTestEnv() {
+			log.WithContext(ctx).
+				WithField("topic", topic).
+				Infof("initializing kafka producer %+v", pool.kafkaP)
+		}
 	}
 	if (mode>>1)&1 == 1 {
-		log.WithContext(ctx).Debugf("initializing kafka consumer for %s", topic)
+		rack := findRack()
 		config := kafka.ReaderConfig{
 			Brokers:           brokers,
 			Dialer:            dialer,
@@ -208,6 +213,10 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			CommitInterval:        time.Second,
 			MaxAttempts:           10,
 			WatchPartitionChanges: true,
+			GroupBalancers: []kafka.GroupBalancer{
+				kafka.RackAffinityGroupBalancer{Rack: rack},
+				kafka.RoundRobinGroupBalancer{},
+			},
 		}
 
 		if configOverride != nil {
@@ -221,6 +230,13 @@ func New(ctx context.Context, topic string, mode Mode, configOverride *ConfigOve
 			if deref.MaxWait != nil {
 				config.MaxWait = *deref.MaxWait
 			}
+		}
+
+		if !util.IsDevOrTestEnv() {
+			log.WithContext(ctx).
+				WithField("topic", topic).
+				WithField("rack", rack).
+				Infof("initializing kafka consumer %+v", config)
 		}
 
 		pool.kafkaC = kafka.NewReader(config)

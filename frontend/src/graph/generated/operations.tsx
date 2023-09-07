@@ -1284,6 +1284,15 @@ export type DeleteSessionsMutation = { __typename?: 'Mutation' } & Pick<
 	'deleteSessions'
 >
 
+export type ExportSessionMutationVariables = Types.Exact<{
+	session_secure_id: Types.Scalars['String']
+}>
+
+export type ExportSessionMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'exportSession'
+>
+
 export type UpdateVercelSettingsMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	project_mappings:
@@ -1835,6 +1844,19 @@ export type GetSessionInsightQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'SessionInsight' } & Pick<
 			Types.SessionInsight,
 			'id' | 'insight'
+		>
+	>
+}
+
+export type GetSessionExportsQueryVariables = Types.Exact<{
+	[key: string]: never
+}>
+
+export type GetSessionExportsQuery = { __typename?: 'Query' } & {
+	session_exports: Array<
+		{ __typename?: 'SessionExport' } & Pick<
+			Types.SessionExport,
+			'id' | 'session_id' | 'type' | 'url' | 'error' | 'target_emails'
 		>
 	>
 }
@@ -2963,6 +2985,7 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 	| 'browser'
 	| 'environment'
 	| 'serviceVersion'
+	| 'serviceName'
 > & {
 		session?: Types.Maybe<
 			{ __typename?: 'Session' } & Pick<
@@ -2991,6 +3014,9 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 					| 'linesBefore'
 					| 'linesAfter'
 					| 'error'
+					| 'enhancementSource'
+					| 'enhancementVersion'
+					| 'externalLink'
 				> & {
 						sourceMappingErrorMetadata?: Types.Maybe<
 							{ __typename?: 'SourceMappingError' } & Pick<
@@ -4451,7 +4477,7 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 			| 'workspace_id'
 			| 'ai_application'
 			| 'ai_insights'
-			| 'enable_enhanced_errors'
+			| 'enable_session_export'
 		>
 	>
 }
@@ -4636,6 +4662,7 @@ export const namedOperations = {
 		GetWorkspaceAdminsByProjectId: 'GetWorkspaceAdminsByProjectId' as const,
 		GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,
 		GetSessionInsight: 'GetSessionInsight' as const,
+		GetSessionExports: 'GetSessionExports' as const,
 		GetSessionComments: 'GetSessionComments' as const,
 		GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
 		isSessionPending: 'isSessionPending' as const,
@@ -4835,6 +4862,7 @@ export const namedOperations = {
 		UpsertDashboard: 'UpsertDashboard' as const,
 		DeleteDashboard: 'DeleteDashboard' as const,
 		DeleteSessions: 'DeleteSessions' as const,
+		ExportSession: 'ExportSession' as const,
 		UpdateVercelSettings: 'UpdateVercelSettings' as const,
 		UpdateClickUpSettings: 'UpdateClickUpSettings' as const,
 		UpdateIntegrationProjectSettings:

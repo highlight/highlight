@@ -7,7 +7,7 @@ import {
 	IconSolidSearch,
 	Stack,
 	Text,
-	useFormState,
+	useFormStore,
 } from '@highlight-run/ui'
 import React, { useState } from 'react'
 
@@ -36,11 +36,12 @@ export interface SearchFormState {
 
 export const ErrorInstances = ({ errorGroup }: Props) => {
 	const [currentSearchEmail, setCurrentSearchEmail] = React.useState('')
-	const form = useFormState<SearchFormState>({
+	const formStore = useFormStore<SearchFormState>({
 		defaultValues: {
 			email: '',
 		},
 	})
+	const formState = formStore.getState()
 	const [query, setQuery] = useState('')
 
 	const [pagination, setPagination] = useState<Pagination>({
@@ -59,8 +60,8 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		setQuery(`email:${form.values.email}`)
-		setCurrentSearchEmail(form.values.email)
+		setQuery(`email:${formState.values.email}`)
+		setCurrentSearchEmail(formState.values.email)
 	}
 
 	if (loading) {
@@ -68,7 +69,7 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			<ErrorInstancesContainer
 				canMoveBackward={false}
 				canMoveForward={false}
-				form={form}
+				form={formStore}
 				onSubmit={handleSubmit}
 				verticallyAlign
 			>
@@ -81,7 +82,7 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			<ErrorInstancesContainer
 				canMoveBackward={false}
 				canMoveForward={false}
-				form={form}
+				form={formStore}
 				onSubmit={handleSubmit}
 			>
 				<Box m="auto" style={{ maxWidth: 300 }}>
@@ -121,7 +122,7 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			<ErrorInstancesContainer
 				canMoveBackward={false}
 				canMoveForward={false}
-				form={form}
+				form={formStore}
 				onSubmit={handleSubmit}
 			>
 				<NoErrorInstancesFound />
@@ -137,7 +138,7 @@ export const ErrorInstances = ({ errorGroup }: Props) => {
 			canMoveForward={pageInfo?.hasNextPage ?? false}
 			onPrevious={handlePreviousPage}
 			onNext={handleNextPage}
-			form={form}
+			form={formStore}
 			onSubmit={handleSubmit}
 		>
 			<ErrorInstancesTable
@@ -184,7 +185,7 @@ const ErrorInstancesContainer: React.FC<
 	return (
 		<Stack direction="column">
 			<Box my="8">
-				<Form state={form} onSubmit={onSubmit}>
+				<Form store={form} onSubmit={onSubmit}>
 					<Box
 						position="relative"
 						alignItems="stretch"
