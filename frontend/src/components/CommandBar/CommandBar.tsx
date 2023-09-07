@@ -56,8 +56,9 @@ const CommandBarBox = () => {
 	const { commandBarDialog } = useGlobalContext()
 	return (
 		<Ariakit.Dialog
-			state={commandBarDialog}
+			store={commandBarDialog}
 			className={styles.dialog}
+			backdrop={<Box cssClass={styles.dialogBackdrop} />}
 			onClick={(e) => {
 				if (!isInsideElement(e.nativeEvent, containerRef.current)) {
 					setTouched(false)
@@ -139,7 +140,7 @@ const SearchBar = () => {
 
 	return (
 		<Box p="8" display="flex" alignItems="center" width="full">
-			<Form state={form} className={styles.form}>
+			<Form store={form} className={styles.form}>
 				<Box
 					display="flex"
 					justifyContent="space-between"

@@ -129,6 +129,7 @@ const ErrorStackTrace = ({ errorObject }: Props) => {
 							sourceMappingErrorMetadata={
 								e?.sourceMappingErrorMetadata
 							}
+							errorObjectId={errorObject?.id ?? ''}
 							compact={false}
 						/>
 					))
@@ -158,6 +159,7 @@ export type StackSectionProps = {
 	linesAfter?: Maybe<string>
 	sourceMappingErrorMetadata?: Maybe<SourceMappingError>
 	error?: Maybe<string>
+	errorObjectId: string
 	compact: boolean
 	isFirst: boolean
 	isLast: boolean
@@ -201,6 +203,7 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 	linesAfter,
 	sourceMappingErrorMetadata,
 	error,
+	errorObjectId,
 	isFirst,
 	isLast,
 }) => {
@@ -314,7 +317,10 @@ const StackSection: React.FC<React.PropsWithChildren<StackSectionProps>> = ({
 			</Box>
 
 			<Box display="flex" gap="4" alignItems="center">
-				<SourcemapError metadata={sourceMappingErrorMetadata} />
+				<SourcemapError
+					errorObjectId={errorObjectId}
+					metadata={sourceMappingErrorMetadata}
+				/>
 
 				<ButtonIcon
 					icon={
@@ -370,8 +376,17 @@ const StackTraceSectionCollapsible: React.FC<
 }
 
 const SourcemapError: React.FC<{
+	errorObjectId: string
 	metadata?: Maybe<SourceMappingError>
-}> = ({ metadata }) => {
+}> = ({ errorObjectId, metadata }) => {
+	const popoverStore = Popover.usePopoverStore({ placement: 'bottom-start' })
+
+	// Ensures the popover is closed when the error instance changes.
+	React.useEffect(() => {
+		popoverStore.setOpen(false)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [errorObjectId])
+
 	if (!metadata) {
 		return null
 	}
@@ -383,7 +398,7 @@ const SourcemapError: React.FC<{
 			onClick={(e) => e.stopPropagation()}
 			display="flex"
 		>
-			<Popover placement="bottom-start">
+			<Popover store={popoverStore}>
 				<Popover.TagTrigger
 					kind="secondary"
 					shape="basic"

@@ -4610,6 +4610,7 @@ body {
   border-radius: 4px;
   padding-bottom: 4px;
   padding-top: 4px;
+  position: relative;
   width: fit-content;
   max-width: 320px;
   min-width: 200px;
@@ -5335,37 +5336,43 @@ body {
 }
 ._1ek953u0 {
   z-index: 99999;
-  background-color: rgba(111, 110, 119, 0.48);
   height: 100vh;
   width: 100vw;
   display: flex;
   justify-content: center;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 ._1ek953u1 {
+  background-color: rgba(111, 110, 119, 0.48);
+  z-index: 99999;
+}
+._1ek953u2 {
   width: 580px;
   top: 25vh;
 }
-._1ek953u2 {
-  width: 100%;
-}
 ._1ek953u3 {
-  flex-shrink: 0;
+  width: 100%;
 }
 ._1ek953u4 {
   flex-shrink: 0;
 }
 ._1ek953u5 {
+  flex-shrink: 0;
+}
+._1ek953u6 {
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
 }
-._1ek953u6 {
+._1ek953u7 {
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
 }
-._1ek953u7 {
+._1ek953u8 {
   flex: 1;
 }
-._1ek953u8:hover {
+._1ek953u9:hover {
   cursor: pointer;
 }
 .bsyaa20 {

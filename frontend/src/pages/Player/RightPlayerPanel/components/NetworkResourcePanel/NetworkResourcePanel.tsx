@@ -43,7 +43,8 @@ enum WebSocketTabs {
 }
 
 export const NetworkResourcePanel = () => {
-	const networkResourceDialog = Ariakit.useDialogState()
+	const networkResourceDialog = Ariakit.useDialogStore()
+	const networkResourceDialogState = networkResourceDialog.getState()
 	const { activeNetworkResourceId, setActiveNetworkResourceId } =
 		useActiveNetworkResourceId()
 
@@ -75,21 +76,21 @@ export const NetworkResourcePanel = () => {
 
 	// Close the dialog and reset the active resource when the user interacts with
 	// the page outside the dialog.
-	const previousVisibleRef = React.useRef(networkResourceDialog.open)
+	const previousVisibleRef = React.useRef(networkResourceDialogState.open)
 	useEffect(() => {
 		if (
-			previousVisibleRef.current !== networkResourceDialog.open &&
-			!networkResourceDialog.open
+			previousVisibleRef.current !== networkResourceDialogState.open &&
+			!networkResourceDialogState.open
 		) {
 			hide()
 		}
 
-		previousVisibleRef.current = networkResourceDialog.open
-	}, [hide, networkResourceDialog.open])
+		previousVisibleRef.current = networkResourceDialogState.open
+	}, [hide, networkResourceDialogState.open])
 
 	return (
 		<Ariakit.Dialog
-			state={networkResourceDialog}
+			store={networkResourceDialog}
 			modal={false}
 			autoFocusOnShow={false}
 			className={sprinkles({

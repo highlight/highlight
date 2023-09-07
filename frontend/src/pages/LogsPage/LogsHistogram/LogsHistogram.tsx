@@ -568,12 +568,7 @@ const LogBucketBar = ({
 	])
 
 	return (
-		<Popover
-			placement="bottom-start"
-			open={open}
-			setOpen={setOpen}
-			gutter={6}
-		>
+		<Popover placement="bottom-start" open={open} setOpen={setOpen}>
 			{trigger}
 			{content}
 		</Popover>

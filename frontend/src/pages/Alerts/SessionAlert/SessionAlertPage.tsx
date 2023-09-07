@@ -25,7 +25,7 @@ import {
 	Tag,
 	Text,
 	useForm,
-	useFormState,
+	useFormStore,
 	useMenu,
 } from '@highlight-run/ui'
 import {
@@ -102,17 +102,18 @@ export const SessionAlertPage = () => {
 		return ALERT_CONFIGURATIONS[alertType]
 	}, [alertType])
 
-	const form = useFormState<SessionAlertFormItem>({
+	const formStore = useFormStore<SessionAlertFormItem>({
 		defaultValues: {
 			...SessionAlertDefaultValues,
 			type: alertType,
 			loaded: false,
 		},
 	})
+	const formState = formStore.getState()
 
 	useEffect(() => {
 		if (alert) {
-			form.setValues({
+			formStore.setValues({
 				name: alert.Name ?? '',
 				belowThreshold: false,
 				excludedEnvironments: alert.ExcludedEnvironments,
@@ -151,7 +152,7 @@ export const SessionAlertPage = () => {
 				loaded: true,
 			})
 		} else {
-			form.setValues((prevValue) => ({
+			formStore.setValues((prevValue) => ({
 				...prevValue,
 				...SessionAlertDefaultValues,
 				type: alertType,
@@ -233,39 +234,42 @@ export const SessionAlertPage = () => {
 					trackingId="saveErrorMonitoringAlert"
 					onClick={() => {
 						const input: SessionAlertInput = {
-							count_threshold: form.getValue(
-								form.names.threshold,
+							count_threshold: formStore.getValue(
+								formStore.names.threshold,
 							),
 							disabled: false,
-							discord_channels: form.values.discordChannels.map(
-								(c) => ({
+							discord_channels:
+								formState.values.discordChannels.map((c) => ({
 									name: c.name,
 									id: c.id,
-								}),
+								})),
+							emails: formStore.getValue(formStore.names.emails),
+							environments: formStore.getValue(
+								formStore.names.excludedEnvironments,
 							),
-							emails: form.getValue(form.names.emails),
-							environments: form.getValue(
-								form.names.excludedEnvironments,
-							),
-							name: form.getValue(form.names.name),
+							name: formStore.getValue(formStore.names.name),
 							project_id: project_id || '0',
-							slack_channels: form.values.slackChannels.map(
+							slack_channels: formState.values.slackChannels.map(
 								(c) => ({
 									webhook_channel_id: c.webhook_channel_id,
 									webhook_channel_name:
 										c.webhook_channel_name,
 								}),
 							),
-							webhook_destinations: form
-								.getValue(form.names.webhookDestinations)
+							webhook_destinations: formStore
+								.getValue(formStore.names.webhookDestinations)
 								.map((d: string) => ({ url: d })),
-							threshold_window: form.getValue(
-								form.names.threshold_window,
+							threshold_window: formStore.getValue(
+								formStore.names.threshold_window,
 							),
 							exclude_rules:
-								form.getValue(form.names.excludeRules) || [],
+								formStore.getValue(
+									formStore.names.excludeRules,
+								) || [],
 							user_properties: (
-								form.getValue(form.names.userProperties) || []
+								formStore.getValue(
+									formStore.names.userProperties,
+								) || []
 							).map((userProperty: any) => {
 								const [id, name, value] = userProperty.split(
 									SEPARATOR,
@@ -279,8 +283,9 @@ export const SessionAlertPage = () => {
 							}),
 							track_properties:
 								(
-									form.getValue(form.names.trackProperties) ||
-									[]
+									formStore.getValue(
+										formStore.names.trackProperties,
+									) || []
 								).map((trackProperty: any) => {
 									const [id, name, value] =
 										trackProperty.split(SEPARATOR, 3)
@@ -300,16 +305,16 @@ export const SessionAlertPage = () => {
 						if (nameErr || thresholdErr) {
 							const errs = []
 							if (nameErr) {
-								form.setError(
-									form.names.name,
+								formStore.setError(
+									formStore.names.name,
 									'Name is required',
 								)
 								errs.push('name')
 							}
 
 							if (thresholdErr) {
-								form.setError(
-									form.names.threshold,
+								formStore.setError(
+									formStore.names.threshold,
 									'Threshold is required',
 								)
 								errs.push('threshold')
@@ -376,7 +381,7 @@ export const SessionAlertPage = () => {
 		</Box>
 	)
 
-	const isLoading = !isCreate && !form.values.loaded
+	const isLoading = !isCreate && !formState.values.loaded
 
 	return (
 		<Box width="full" background="raised" p="8">
@@ -445,7 +450,7 @@ export const SessionAlertPage = () => {
 								</Box>
 							</Box>
 
-							<Form state={form} resetOnSubmit={false}>
+							<Form store={formStore} resetOnSubmit={false}>
 								<Stack gap="24">
 									<Box
 										display="flex"
@@ -496,7 +501,8 @@ const SessionAlertForm = ({
 	type: SessionAlertType
 	configuration: AlertConfiguration
 }) => {
-	const form = useForm() as FormState<SessionAlertFormItem>
+	const formStore = useForm() as FormState<SessionAlertFormItem>
+	const formState = formStore.getState()
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -608,8 +614,7 @@ const SessionAlertForm = ({
 							<Column.Container gap="12">
 								<Column>
 									<Form.Input
-										name={form.names.threshold}
-										value={form.values.threshold}
+										name={formStore.names.threshold}
 										type="number"
 										label="Alert threshold"
 										tag={
@@ -621,7 +626,8 @@ const SessionAlertForm = ({
 											/>
 										}
 										style={{
-											borderColor: form.errors.threshold
+											borderColor: formState.errors
+												.threshold
 												? 'var(--color-red-500)'
 												: undefined,
 										}}
@@ -630,11 +636,14 @@ const SessionAlertForm = ({
 								<Column>
 									<Form.Select
 										label="Alert threshold window"
-										name={form.names.threshold_window.toString()}
-										value={form.values.threshold_window}
+										name={formStore.names.threshold_window.toString()}
+										value={
+											formState.values.threshold_window
+										}
 										onChange={(e) =>
-											form.setValue(
-												form.names.threshold_window,
+											formStore.setValue(
+												formStore.names
+													.threshold_window,
 												e.target.value,
 											)
 										}
@@ -657,11 +666,10 @@ const SessionAlertForm = ({
 						{configuration.supportsExcludeRules && (
 							<Form.NamedSection
 								label="Excluded identifiers"
-								name={form.names.excludeRules}
+								name={formStore.names.excludeRules}
 							>
 								<Select
 									aria-label="Excluded identifiers list"
-									value={form.values.excludeRules}
 									notFoundContent={
 										<p>No identifier suggestions</p>
 									}
@@ -671,8 +679,8 @@ const SessionAlertForm = ({
 									placeholder="Select a identifier(s) that should not trigger alerts."
 									onChange={(values: any): any => {
 										handleIdentifierSearch('')
-										form.setValue(
-											form.names.excludeRules,
+										formStore.setValue(
+											formStore.names.excludeRules,
 											values,
 										)
 									}}
@@ -684,18 +692,17 @@ const SessionAlertForm = ({
 						{type === SessionAlertType.UserPropertiesAlert && (
 							<Form.NamedSection
 								label="User Properties"
-								name={form.names.userProperties}
+								name={formStore.names.userProperties}
 							>
 								<Select
 									onSearch={handleUserPropertiesSearch}
 									options={userPropertiesSuggestions}
 									className={styles.selectContainer}
-									value={form.values.userProperties}
 									mode="multiple"
 									placeholder="Pick the user properties that you would like to get alerted for."
 									onChange={(values: any): any =>
-										form.setValue(
-											form.names.userProperties,
+										formStore.setValue(
+											formStore.names.userProperties,
 											values,
 										)
 									}
@@ -705,18 +712,17 @@ const SessionAlertForm = ({
 						{type === SessionAlertType.TrackPropertiesAlert && (
 							<Form.NamedSection
 								label="Track Properties"
-								name={form.names.trackProperties}
+								name={formStore.names.trackProperties}
 							>
 								<Select
 									onSearch={handleTrackPropertiesSearch}
 									options={trackPropertiesSuggestions}
 									className={styles.selectContainer}
-									value={form.values.trackProperties}
 									mode="multiple"
 									placeholder="Pick the track properties that you would like to get alerted for."
 									onChange={(values: any): any =>
-										form.setValue(
-											form.names.trackProperties,
+										formStore.setValue(
+											formStore.names.trackProperties,
 											values,
 										)
 									}
@@ -737,19 +743,18 @@ const SessionAlertForm = ({
 
 					<Form.NamedSection
 						label="Excluded environments"
-						name={form.names.excludedEnvironments}
+						name={formStore.names.excludedEnvironments}
 					>
 						<Select
 							aria-label="Excluded environments list"
 							placeholder="Select excluded environments"
 							options={environments}
 							onChange={(values: any): any =>
-								form.setValue(
-									form.names.excludedEnvironments,
+								formStore.setValue(
+									formStore.names.excludedEnvironments,
 									values,
 								)
 							}
-							value={form.values.excludedEnvironments}
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
@@ -763,9 +768,11 @@ const SessionAlertForm = ({
 }
 
 const ThresholdTypeConfiguration = () => {
-	const form = useForm()
-	const menu = useMenu()
-	const belowThreshold = form.values.belowThreshold
+	const formStore = useForm()
+	const formState = formStore.getState()
+	const menuStore = useMenu()
+	const menuState = menuStore.getState()
+	const belowThreshold = formState.values.belowThreshold
 	return (
 		<>
 			<Menu.Button
@@ -774,7 +781,7 @@ const ThresholdTypeConfiguration = () => {
 				emphasis="high"
 				cssClass={styles.thresholdTypeButton}
 				iconRight={
-					menu.open ? (
+					menuState.open ? (
 						<IconSolidCheveronUp />
 					) : (
 						<IconSolidCheveronDown />
@@ -786,14 +793,14 @@ const ThresholdTypeConfiguration = () => {
 			<Menu.List>
 				<Menu.Item
 					onClick={() => {
-						form.setValue('belowThreshold', false)
+						formStore.setValue('belowThreshold', false)
 					}}
 				>
 					Above threshold
 				</Menu.Item>
 				<Menu.Item
 					onClick={() => {
-						form.setValue('belowThreshold', true)
+						formStore.setValue('belowThreshold', true)
 					}}
 				>
 					Below threshold
