@@ -68,7 +68,7 @@ you paint to the WebGL context. To set this up, pass the following options to hi
 H.init('<YOUR_PROJECT_ID>', {
   enableCanvasRecording: true,        // enable canvas recording
   samplingStrategy: {
-      canvasManualSnapshot: 2,                        // snapshot at 2 fps
+      canvasManualSnapshot: 2,        // snapshot at 2 fps
     canvasMaxSnapshotDimension: 480,  // snapshot at a max 480p resolution
     // any other settings...
   },
