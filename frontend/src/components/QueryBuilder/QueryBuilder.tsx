@@ -1420,9 +1420,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 				}
 
 				if (options.length > 0) {
-					return options.filter((opt) =>
-						opt.label?.toLowerCase().includes(input.toLowerCase()),
-					)
+					return options
+						.filter((opt) =>
+							opt.label
+								?.toLowerCase()
+								.includes(input.toLowerCase()),
+						)
+						.slice(0, 10)
 				}
 
 				let label = field.label
