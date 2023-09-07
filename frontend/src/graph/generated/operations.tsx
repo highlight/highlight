@@ -4524,6 +4524,7 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 									| 'email'
 									| 'appVersion'
 									| 'fingerprint'
+									| 'excluded'
 								>
 							>
 						}
