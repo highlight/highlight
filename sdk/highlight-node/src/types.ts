@@ -21,4 +21,6 @@ export interface NodeOptions extends HighlightOptions {
 	 * This app's version ideally set to the latest deployed git SHA.
 	 */
 	serviceVersion?: string
+
+	instrumentationConfig?: boolean
 }

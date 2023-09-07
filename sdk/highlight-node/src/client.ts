@@ -14,8 +14,6 @@ import log from './log'
 import { clearInterval } from 'timers'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { Resource, processDetectorSync } from '@opentelemetry/resources'
-import { HttpInstrumentation } from "@opentelemetry/instrumentation-http";
-import { ExpressInstrumentation } from "@opentelemetry/instrumentation-express";
 
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
@@ -84,8 +82,6 @@ export class Highlight {
 			spanProcessor: this.processor,
 			traceExporter: exporter,
 			instrumentations: [
-				new HttpInstrumentation(),
-				new ExpressInstrumentation(),
 				getNodeAutoInstrumentations(instrumentationConfig),
 			  ],
 		})
