@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -14,17 +15,21 @@ import (
 type ErrorScorer struct {
 	store *store.Store
 	db    *gorm.DB
+	redis *redis.Client
 }
 
-func NewErrorScorer(store *store.Store, db *gorm.DB) *ErrorScorer {
+func NewErrorScorer(store *store.Store, db *gorm.DB, redis *redis.Client) *ErrorScorer {
 	return &ErrorScorer{
 		store: store,
 		db:    db,
+		redis: redis,
 	}
 }
 
 func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) error {
 	var errorGroups []model.ErrorGroup
+
+	lastComputedErrorInstanceId, _ := errorScorer.redis.GetLastComputedImpactfulErrorObjectId(ctx)
 
 	// TODO(spenny): should we cache the last processed error object id to prevent duplicates
 	if err := errorScorer.db.Raw(`
@@ -33,8 +38,9 @@ func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) error 
 		INNER JOIN error_groups grp
 			ON grp.id = obj.error_group_id
 		WHERE obj.created_at >= now() - INTERVAL '10 minutes'
+			AND obj.id > ?
 		GROUP BY grp.id
-		ORDER BY MAX(obj.id) ASC`).
+		ORDER BY MAX(obj.id) ASC`, lastComputedErrorInstanceId).
 		Scan(&errorGroups).Error; err != nil {
 		return errors.Wrap(err, "error querying for error objects")
 	}
@@ -52,6 +58,7 @@ func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) error 
 			}).Info("Scoring error group")
 
 		err := errorScorer.scoreErrorGroup(ctx, &errorGroup)
+		// TODO: r.redis.SetLastComputedImpactfulErrorObjectId(ctx, errorGroup.?)
 
 		if err != nil {
 			log.WithContext(ctx).WithField("error_group_id", errorGroup.ID).Error(err)
@@ -65,8 +72,9 @@ func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) error 
 func (ErrorScorer *ErrorScorer) scoreErrorGroup(ctx context.Context, errorGroup *model.ErrorGroup) error {
 	newLimitedDataError := errorGroup.CreatedAt.After(time.Now().Add(-time.Hour * 24 * 7))
 
-	// number of occurances
 	if newLimitedDataError {
+		// number of occurances
+
 		// convert to raw sql with project id
 		// SELECT STDDEV_POP(count), avg(count)
 		// FROM (
@@ -79,7 +87,11 @@ func (ErrorScorer *ErrorScorer) scoreErrorGroup(ctx context.Context, errorGroup 
 		// 	ORDER BY 2 DESC
 		// 	LIMIT 5
 		// ) e
+
+		// number of users affected
 	} else {
+		// number of occurances
+
 		// SELECT STDDEV_POP(count), avg(count)
 		// FROM (
 		// 	SELECT extract(hour from created_at), extract(day from created_at), COUNT(*)
@@ -105,8 +117,9 @@ func (ErrorScorer *ErrorScorer) scoreErrorGroup(ctx context.Context, errorGroup 
 		// 	SELECT avg(count) from trailing_vals
 		// )
 		// SELECT day, hour, count - avg / stddev from trailing_vals
+
+		// number of users affected
 	}
 
-	// number of users affected
 	return nil
 }

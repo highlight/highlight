@@ -23,6 +23,7 @@ import (
 )
 
 const CacheKeyHubspotCompanies = "hubspot-companies"
+const LastComputedImpactfulErrorObjectIdKey = "last-computed-impactful-error-object-id"
 
 type Client struct {
 	redisClient redis.Cmdable
@@ -513,6 +514,19 @@ func (r *Client) IncrementServiceErrorCount(ctx context.Context, projectId int) 
 func (r *Client) ResetServiceErrorCount(ctx context.Context, projectId int) (int64, error) {
 	serviceKey := ServiceGithubErrorCountKey(projectId)
 	return r.redisClient.Del(ctx, serviceKey).Result()
+}
+
+func (r *Client) GetLastComputedImpactfulErrorObjectId(ctx context.Context) (int, error) {
+	idStr, err := r.getString(ctx, LastComputedImpactfulErrorObjectIdKey)
+	if err != nil || idStr == "" {
+		return 0, err
+	}
+
+	return strconv.Atoi(idStr)
+}
+
+func (r *Client) SetLastComputedImpactfulErrorObjectId(ctx context.Context, id int) error {
+	return r.redisClient.Set(ctx, LastComputedImpactfulErrorObjectIdKey, id, 24*time.Hour).Err()
 }
 
 func (r *Client) AcquireLock(_ context.Context, key string, timeout time.Duration) (*redsync.Mutex, error) {

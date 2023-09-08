@@ -564,7 +564,7 @@ func (w *Worker) AutoResolveStaleErrors(ctx context.Context) {
 }
 
 func (w *Worker) ScoreImpactfulErrors(ctx context.Context) {
-	errorScorer := NewErrorScorer(w.PublicResolver.Store, w.PublicResolver.DB)
+	errorScorer := NewErrorScorer(w.PublicResolver.Store, w.PublicResolver.DB, w.PublicResolver.Redis)
 	errorScorer.ScoreImpactfulErrors(ctx)
 }
 
