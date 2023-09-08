@@ -37,6 +37,7 @@ export const TracesSearch: React.FC<Props> = ({
 				presets={defaultPresets}
 				minDate={minDate}
 				timeMode={timeMode}
+				hideCreateAlert
 				onFormSubmit={onFormSubmit}
 				onDatesChange={onDatesChange}
 				fetchKeys={useGetLogsKeysQuery}
