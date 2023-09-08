@@ -13,13 +13,24 @@ exporters:
     otlphttp:
         endpoint: 'https://pub.highlight.run/otel'
         compression: gzip
+        sending_queue:
+            num_consumers: 16
+            queue_size: 10000
+        retry_on_failure:
+            initial_interval: 1s
 processors:
     memory_limiter:
         check_interval: 0.1s
         limit_mib: 6144
         spike_limit_mib: 256
     batch:
+        send_batch_size: 10000
+        timeout: 1s
 service:
+    telemetry:
+        metrics:
+            address: '0.0.0.0:8888'
+            level: detailed
     extensions: [health_check, memory_ballast]
     pipelines:
         traces:
