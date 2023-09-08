@@ -35,6 +35,8 @@ defer highlight.Stop()
 
 <b>Note:</b> There is also a service version that is provided in the example above. It is not necessary to enable GitHub enhancements, but is recommended that this be the current GIT SHA of the deployed code to use the most accurate files. If not provided, Highlight will fallback to your current default branch (e.g. main) GIT SHA.
 
+![Service's page](/images/features/enhancingErrorsWithGithub1.png)
+
 ## Add the GitHub Integration to Highlight
 Enable GitHub on Highlight by going to the [integrations](https://app.highlight.io/integrations) and click the "Connect" button in the GitHub section.
 
@@ -47,6 +49,8 @@ path mappings from your deployment process to the correct file in GitHub.
 1. <b>Build path prefix</b> - This path prefix represents a path added in your deployment process, and is also the path in your server that contains your files.
 After removing this path (and possibly adding something else), you should be able to point this string to a GitHub file.
 2. <b>GitHub path prefix</b> - This path prefix is a string that can be appended to the front of the stacktracepath, and will be prepended to your files in order to correctly find the file in GitHub.
+
+![Service Configuration Form](/images/features/enhancingErrorsWithGithub2.png)
 
 An example:
 <ol>
