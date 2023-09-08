@@ -140,6 +140,9 @@ export const ErrorObjectFragmentDoc = gql`
 			linesBefore
 			linesAfter
 			error
+			enhancementSource
+			enhancementVersion
+			externalLink
 			sourceMappingErrorMetadata {
 				errorCode
 				stackTraceFileURL
@@ -163,6 +166,7 @@ export const ErrorObjectFragmentDoc = gql`
 		browser
 		environment
 		serviceVersion
+		serviceName
 	}
 `
 export const ErrorTagFragmentDoc = gql`
@@ -4521,6 +4525,53 @@ export type DeleteSessionsMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteSessionsMutation,
 	Types.DeleteSessionsMutationVariables
 >
+export const ExportSessionDocument = gql`
+	mutation ExportSession($session_secure_id: String!) {
+		exportSession(session_secure_id: $session_secure_id)
+	}
+`
+export type ExportSessionMutationFn = Apollo.MutationFunction<
+	Types.ExportSessionMutation,
+	Types.ExportSessionMutationVariables
+>
+
+/**
+ * __useExportSessionMutation__
+ *
+ * To run a mutation, you first call `useExportSessionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useExportSessionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [exportSessionMutation, { data, loading, error }] = useExportSessionMutation({
+ *   variables: {
+ *      session_secure_id: // value for 'session_secure_id'
+ *   },
+ * });
+ */
+export function useExportSessionMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.ExportSessionMutation,
+		Types.ExportSessionMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.ExportSessionMutation,
+		Types.ExportSessionMutationVariables
+	>(ExportSessionDocument, baseOptions)
+}
+export type ExportSessionMutationHookResult = ReturnType<
+	typeof useExportSessionMutation
+>
+export type ExportSessionMutationResult =
+	Apollo.MutationResult<Types.ExportSessionMutation>
+export type ExportSessionMutationOptions = Apollo.BaseMutationOptions<
+	Types.ExportSessionMutation,
+	Types.ExportSessionMutationVariables
+>
 export const UpdateVercelSettingsDocument = gql`
 	mutation UpdateVercelSettings(
 		$project_id: ID!
@@ -5813,6 +5864,66 @@ export type GetSessionInsightQueryResult = Apollo.QueryResult<
 	Types.GetSessionInsightQuery,
 	Types.GetSessionInsightQueryVariables
 >
+export const GetSessionExportsDocument = gql`
+	query GetSessionExports {
+		session_exports {
+			id
+			session_id
+			type
+			url
+			error
+			target_emails
+		}
+	}
+`
+
+/**
+ * __useGetSessionExportsQuery__
+ *
+ * To run a query within a React component, call `useGetSessionExportsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionExportsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionExportsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetSessionExportsQuery(
+	baseOptions?: Apollo.QueryHookOptions<
+		Types.GetSessionExportsQuery,
+		Types.GetSessionExportsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetSessionExportsQuery,
+		Types.GetSessionExportsQueryVariables
+	>(GetSessionExportsDocument, baseOptions)
+}
+export function useGetSessionExportsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetSessionExportsQuery,
+		Types.GetSessionExportsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetSessionExportsQuery,
+		Types.GetSessionExportsQueryVariables
+	>(GetSessionExportsDocument, baseOptions)
+}
+export type GetSessionExportsQueryHookResult = ReturnType<
+	typeof useGetSessionExportsQuery
+>
+export type GetSessionExportsLazyQueryHookResult = ReturnType<
+	typeof useGetSessionExportsLazyQuery
+>
+export type GetSessionExportsQueryResult = Apollo.QueryResult<
+	Types.GetSessionExportsQuery,
+	Types.GetSessionExportsQueryVariables
+>
 export const GetSessionCommentsDocument = gql`
 	query GetSessionComments($session_secure_id: String!) {
 		session_comments(session_secure_id: $session_secure_id) {
@@ -6899,6 +7010,9 @@ export const GetErrorFieldsOpensearchDocument = gql`
 		$field_type: String!
 		$field_name: String!
 		$query: String!
+		$start_date: Timestamp
+		$end_date: Timestamp
+		$use_clickhouse: Boolean
 	) {
 		error_fields_opensearch(
 			project_id: $project_id
@@ -6906,6 +7020,9 @@ export const GetErrorFieldsOpensearchDocument = gql`
 			field_type: $field_type
 			field_name: $field_name
 			query: $query
+			start_date: $start_date
+			end_date: $end_date
+			use_clickhouse: $use_clickhouse
 		)
 	}
 `
@@ -6927,6 +7044,9 @@ export const GetErrorFieldsOpensearchDocument = gql`
  *      field_type: // value for 'field_type'
  *      field_name: // value for 'field_name'
  *      query: // value for 'query'
+ *      start_date: // value for 'start_date'
+ *      end_date: // value for 'end_date'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -7156,12 +7276,14 @@ export const GetErrorGroupsOpenSearchDocument = gql`
 		$project_id: ID!
 		$count: Int!
 		$query: String!
+		$clickhouse_query: ClickhouseQuery
 		$page: Int
 	) {
 		error_groups_opensearch(
 			project_id: $project_id
 			count: $count
 			query: $query
+			clickhouse_query: $clickhouse_query
 			page: $page
 		) {
 			error_groups {
@@ -7212,6 +7334,7 @@ export const GetErrorGroupsOpenSearchDocument = gql`
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
  *      query: // value for 'query'
+ *      clickhouse_query: // value for 'clickhouse_query'
  *      page: // value for 'page'
  *   },
  * });
@@ -7252,11 +7375,13 @@ export const GetErrorsHistogramDocument = gql`
 	query GetErrorsHistogram(
 		$project_id: ID!
 		$query: String!
+		$clickhouse_query: ClickhouseQuery
 		$histogram_options: DateHistogramOptions!
 	) {
 		errors_histogram(
 			project_id: $project_id
 			query: $query
+			clickhouse_query: $clickhouse_query
 			histogram_options: $histogram_options
 		) {
 			bucket_times
@@ -7279,6 +7404,7 @@ export const GetErrorsHistogramDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      query: // value for 'query'
+ *      clickhouse_query: // value for 'clickhouse_query'
  *      histogram_options: // value for 'histogram_options'
  *   },
  * });
@@ -8464,8 +8590,8 @@ export type GetSubscriptionDetailsQueryResult = Apollo.QueryResult<
 	Types.GetSubscriptionDetailsQueryVariables
 >
 export const GetErrorGroupDocument = gql`
-	query GetErrorGroup($secure_id: String!) {
-		error_group(secure_id: $secure_id) {
+	query GetErrorGroup($secure_id: String!, $use_clickhouse: Boolean) {
+		error_group(secure_id: $secure_id, use_clickhouse: $use_clickhouse) {
 			created_at
 			updated_at
 			id
@@ -8519,6 +8645,7 @@ export const GetErrorGroupDocument = gql`
  * const { data, loading, error } = useGetErrorGroupQuery({
  *   variables: {
  *      secure_id: // value for 'secure_id'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -12391,12 +12518,14 @@ export const GetErrorGroupFrequenciesDocument = gql`
 		$error_group_secure_ids: [String!]!
 		$params: ErrorGroupFrequenciesParamsInput!
 		$metric: String!
+		$use_clickhouse: Boolean
 	) {
 		errorGroupFrequencies(
 			project_id: $project_id
 			error_group_secure_ids: $error_group_secure_ids
 			params: $params
 			metric: $metric
+			use_clickhouse: $use_clickhouse
 		) {
 			error_group_id
 			date
@@ -12422,6 +12551,7 @@ export const GetErrorGroupFrequenciesDocument = gql`
  *      error_group_secure_ids: // value for 'error_group_secure_ids'
  *      params: // value for 'params'
  *      metric: // value for 'metric'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -12458,8 +12588,14 @@ export type GetErrorGroupFrequenciesQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupFrequenciesQueryVariables
 >
 export const GetErrorGroupTagsDocument = gql`
-	query GetErrorGroupTags($error_group_secure_id: String!) {
-		errorGroupTags(error_group_secure_id: $error_group_secure_id) {
+	query GetErrorGroupTags(
+		$error_group_secure_id: String!
+		$use_clickhouse: Boolean
+	) {
+		errorGroupTags(
+			error_group_secure_id: $error_group_secure_id
+			use_clickhouse: $use_clickhouse
+		) {
 			key
 			buckets {
 				key
@@ -12483,6 +12619,7 @@ export const GetErrorGroupTagsDocument = gql`
  * const { data, loading, error } = useGetErrorGroupTagsQuery({
  *   variables: {
  *      error_group_secure_id: // value for 'error_group_secure_id'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -13211,6 +13348,7 @@ export const GetWorkspaceSettingsDocument = gql`
 			workspace_id
 			ai_application
 			ai_insights
+			enable_session_export
 		}
 	}
 `
@@ -13345,6 +13483,7 @@ export const GetErrorObjectsDocument = gql`
 						email
 						appVersion
 						fingerprint
+						excluded
 					}
 				}
 			}

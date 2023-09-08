@@ -31,6 +31,7 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
@@ -1127,6 +1128,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ClientConfig:                   &input.ClientConfig,
 		Environment:                    input.Environment,
 		AppVersion:                     input.AppVersion,
+		ServiceName:                    input.ServiceName,
 		VerboseID:                      input.ProjectVerboseID,
 		Fields:                         []*model.Field{},
 		ViewedByAdmins:                 []model.Admin{},
@@ -1262,6 +1264,18 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		}
 	}()
 
+	if session.ServiceName != "" {
+		// See: https://opentelemetry.io/docs/specs/otel/resource/semantic_conventions/process/#javascript-runtimes
+		// We don't set `process.runtime.version` since it would change on the user
+		attributes := map[string]string{
+			string(semconv.ProcessRuntimeNameKey): "browser",
+		}
+		_, err := r.Store.UpsertService(ctx, *project, session.ServiceName, attributes)
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "failed to create service"))
+		}
+	}
+
 	return session, nil
 }
 
@@ -1330,7 +1344,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	metadata["timestamp"] = input.Timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at").Where(&model.Session{SecureID: input.SessionSecureID}).Take(&session).Error; err != nil {
+	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at", "excluded").Where(&model.Session{SecureID: input.SessionSecureID}).Take(&session).Error; err != nil {
 		return e.Wrap(err, "error querying session by sessionSecureID for adding session feedback")
 	}
 
@@ -1392,6 +1406,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 		errorAlert.SendAlertFeedback(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
+			SessionExcluded: session.Excluded,
 			UserIdentifier:  identifier,
 			CommentID:       &feedbackComment.ID,
 			CommentText:     feedbackComment.Text,
@@ -1863,7 +1878,17 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				log.WithContext(ctx).Error(err)
 			}
 
-			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, ErrorObject: errorObject, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
+			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+				Workspace:       workspace,
+				SessionSecureID: sessionObj.SecureID,
+				SessionExcluded: sessionObj.Excluded,
+				UserIdentifier:  sessionObj.Identifier,
+				Group:           group,
+				ErrorObject:     errorObject,
+				URL:             &visitedUrl,
+				ErrorsCount:     &numErrors,
+				UserObject:      sessionObj.UserObject,
+			})
 		}
 	}()
 }
@@ -2109,11 +2134,6 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 	}
 
-	settings, err := r.Store.GetAllWorkspaceSettings(ctx, workspace.ID)
-	if err != nil {
-		log.WithContext(ctx).Error(e.Wrap(err, "error querying all_workspace_settings"))
-	}
-
 	// Filter out empty errors
 	var filteredErrors []*publicModel.BackendErrorObjectInput
 	for _, errorObject := range errorObjects {
@@ -2186,12 +2206,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 
 		var mappedStackTrace *string
 		var structuredStackTrace []*privateModel.ErrorTrace
-
-		if settings.EnableEnhancedErrors {
-			mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert, v.Service.Name, v.Service.Version)
-		} else {
-			structuredStackTrace, err = r.Store.StructuredStackTrace(ctx, v.StackTrace)
-		}
+		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert)
 
 		if err != nil {
 			log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
@@ -2687,23 +2702,30 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 			traceString := string(traceBytes)
 
+			serviceVersion := ""
+			if sessionObj.AppVersion != nil {
+				serviceVersion = *sessionObj.AppVersion
+			}
+
 			errorToInsert := &model.ErrorObject{
-				ProjectID:    projectID,
-				SessionID:    &sessionID,
-				Environment:  sessionObj.Environment,
-				Event:        v.Event,
-				Type:         v.Type,
-				URL:          v.URL,
-				Source:       v.Source,
-				LineNumber:   v.LineNumber,
-				ColumnNumber: v.ColumnNumber,
-				OS:           sessionObj.OSName,
-				Browser:      sessionObj.BrowserName,
-				StackTrace:   &traceString,
-				Timestamp:    v.Timestamp,
-				Payload:      v.Payload,
-				RequestID:    nil,
-				IsBeacon:     isBeacon,
+				ProjectID:      projectID,
+				SessionID:      &sessionID,
+				Environment:    sessionObj.Environment,
+				Event:          v.Event,
+				Type:           v.Type,
+				URL:            v.URL,
+				Source:         v.Source,
+				LineNumber:     v.LineNumber,
+				ColumnNumber:   v.ColumnNumber,
+				OS:             sessionObj.OSName,
+				Browser:        sessionObj.BrowserName,
+				StackTrace:     &traceString,
+				Timestamp:      v.Timestamp,
+				Payload:        v.Payload,
+				RequestID:      nil,
+				IsBeacon:       isBeacon,
+				ServiceVersion: serviceVersion,
+				ServiceName:    sessionObj.ServiceName,
 			}
 
 			mappedStackTrace, structuredStackTrace, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)
@@ -3009,7 +3031,15 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending new session alert to zapier", sessionObj.ProjectID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			Workspace:       workspace,
+			SessionSecureID: sessionObj.SecureID,
+			SessionExcluded: sessionObj.Excluded,
+			UserIdentifier:  sessionObj.Identifier,
+			UserObject:      sessionObj.UserObject,
+			UserProperties:  userProperties,
+			URL:             visitedUrl,
+		})
 		if err = alerts.SendNewSessionAlert(alerts.SendNewSessionAlertEvent{
 			Session:      sessionObj,
 			SessionAlert: sessionAlert,
@@ -3112,7 +3142,15 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 			log.WithContext(ctx).Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject})
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			Workspace:       workspace,
+			SessionSecureID: session.SecureID,
+			SessionExcluded: session.Excluded,
+			UserIdentifier:  session.Identifier,
+			MatchedFields:   matchedFields,
+			RelatedFields:   relatedFields,
+			UserObject:      session.UserObject,
+		})
 		if err = alerts.SendTrackPropertiesAlert(alerts.TrackPropertiesAlertEvent{
 			Session:       session,
 			SessionAlert:  sessionAlert,
@@ -3183,7 +3221,14 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending alert to zapier", session.ProjectID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: refetchedSession.SecureID, UserIdentifier: refetchedSession.Identifier, UserProperties: userProperties, UserObject: refetchedSession.UserObject})
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			Workspace:       workspace,
+			SessionSecureID: refetchedSession.SecureID,
+			SessionExcluded: refetchedSession.Excluded,
+			UserIdentifier:  refetchedSession.Identifier,
+			UserProperties:  userProperties,
+			UserObject:      refetchedSession.UserObject,
+		})
 		if err = alerts.SendNewUserAlert(alerts.SendNewUserAlertEvent{
 			Session:      session,
 			SessionAlert: sessionAlert,
@@ -3263,7 +3308,14 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 			log.WithContext(ctx).Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			Workspace:       workspace,
+			SessionSecureID: session.SecureID,
+			SessionExcluded: session.Excluded,
+			UserIdentifier:  session.Identifier,
+			MatchedFields:   matchedFields,
+			UserObject:      session.UserObject,
+		})
 		if err = alerts.SendUserPropertiesAlert(alerts.UserPropertiesAlertEvent{
 			SessionAlert:  sessionAlert,
 			Session:       session,

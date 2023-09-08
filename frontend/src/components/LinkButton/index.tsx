@@ -53,7 +53,8 @@ export const LinkButton: React.FC<Props> = ({
 					emphasis,
 				}),
 			)}
-			onClick={() => {
+			onClick={(e) => {
+				e.stopPropagation()
 				analytics.track(trackingId, trackingProperties)
 			}}
 		>

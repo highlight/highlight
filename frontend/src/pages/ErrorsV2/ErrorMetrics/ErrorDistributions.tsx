@@ -10,6 +10,7 @@ import { Badge, Box, Stack, Text } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { Progress } from 'antd'
 import React, { useEffect, useState } from 'react'
+import { useLocalStorage } from 'react-use'
 
 type Props = {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -25,10 +26,14 @@ const ErrorDistributions = ({ errorGroup }: Props) => {
 	const [operatingSystems, setOperatingSystems] = useState<
 		ErrorGroupTagAggregation | undefined
 	>()
-
+	const [useClickhouse] = useLocalStorage(
+		'highlight-clickhouse-errors',
+		false,
+	)
 	const { loading, data } = useGetErrorGroupTagsQuery({
 		variables: {
 			error_group_secure_id: `${errorGroup?.secure_id}`,
+			use_clickhouse: useClickhouse,
 		},
 		skip: !errorGroup?.secure_id,
 	})

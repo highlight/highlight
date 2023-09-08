@@ -135,6 +135,7 @@ var Models = []interface{}{
 	&Admin{},
 	&Session{},
 	&SessionInterval{},
+	&SessionExport{},
 	&TimelineIndicatorEvent{},
 	&DailySessionCount{},
 	&DailyErrorCount{},
@@ -391,7 +392,7 @@ type AllWorkspaceSettings struct {
 	ErrorEmbeddingsThreshold float64 `gorm:"default:0.2"`
 	ReplaceAssets            bool    `gorm:"default:false"`
 	StoreIP                  bool    `gorm:"default:false"`
-	EnableEnhancedErrors     bool    `gorm:"default:false"`
+	EnableSessionExport      bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -630,8 +631,9 @@ type Session struct {
 	Fields         []*Field `json:"fields" gorm:"many2many:session_fields;"`
 	Environment    string   `json:"environment"`
 	AppVersion     *string  `json:"app_version"`
-	UserObject     JSONB    `json:"user_object" sql:"type:jsonb"`
-	UserProperties string   `json:"user_properties"`
+	ServiceName    string
+	UserObject     JSONB  `json:"user_object" sql:"type:jsonb"`
+	UserProperties string `json:"user_properties"`
 	// Whether this is the first session created by this user.
 	FirstTime               *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt        *time.Time `json:"payload_updated_at"`
@@ -695,6 +697,23 @@ type SessionInsight struct {
 	Model
 	SessionID int `gorm:"index"`
 	Insight   string
+}
+
+type SessionExportFormat = string
+
+const (
+	SessionExportFormatMP4 SessionExportFormat = "video/mp4"
+	SessionExportFormatGif SessionExportFormat = "image/gif"
+	SessionExportFormatPng SessionExportFormat = "image/png"
+)
+
+type SessionExport struct {
+	Model
+	SessionID    int                 `gorm:"uniqueIndex:idx_session_exports"`
+	Type         SessionExportFormat `gorm:"uniqueIndex:idx_session_exports"`
+	URL          string
+	Error        string
+	TargetEmails pq.StringArray `gorm:"type:text[];"`
 }
 
 type EventChunk struct {
@@ -1271,7 +1290,7 @@ type SystemConfiguration struct {
 	MaintenanceStart  time.Time
 	MaintenanceEnd    time.Time
 	ErrorFilters      pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
-	IgnoredFiles      pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\"}'"`
+	IgnoredFiles      pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\", \".*\\/site-packages\\/.*\"}'"`
 	MainWorkers       int            `gorm:"default:64"`
 	LogsWorkers       int            `gorm:"default:1"`
 	LogsFlushSize     int            `gorm:"type:bigint;default:10000"`
@@ -1880,10 +1899,16 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 	frontendURL := os.Getenv("FRONTEND_URI")
 	errorURL := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 	errorURL = routing.AttachReferrer(ctx, errorURL, routing.Email)
-	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
+
+	message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>", *obj.Name, input.Group.Event, errorURL)
+	if input.SessionExcluded {
+		message += " (No recorded session)"
+	} else {
+		sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
+		message += fmt.Sprintf(" <a href=\"%s\">View Session</a>", sessionURL)
+	}
 
 	for _, email := range emailsToNotify {
-		message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>  <a href=\"%s\">View Session</a>", *obj.Name, input.Group.Event, errorURL, sessionURL)
 		if err := Email.SendAlertEmail(ctx, mailClient, *email, message, "Errors", fmt.Sprintf("%s: %s", *obj.Name, input.Group.Event)); err != nil {
 			log.WithContext(ctx).Error(err)
 		}
@@ -2675,6 +2700,8 @@ type SendSlackAlertInput struct {
 	Workspace *Workspace
 	// SessionSecureID is a required parameter
 	SessionSecureID string
+	// SessionExluded is a required parameter to tell if the session is playable
+	SessionExcluded bool
 	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
 	UserIdentifier string
 	// UserObject is a required parameter for alerts that relate to a session
@@ -2785,8 +2812,13 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 			suffix += fmt.Sprintf("%s=%s", k, v)
 		}
 	}
-	sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s|View>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
-	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
+
+	if input.SessionSecureID == "" || input.SessionExcluded {
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\nNo recorded session", false, false))
+	} else {
+		sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s|View>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
+	}
 
 	identifier := input.UserIdentifier
 	if val, ok := input.UserObject["email"].(string); ok && len(val) > 0 {

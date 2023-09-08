@@ -994,9 +994,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			}
 
 			count64 := int64(count)
-			slackAlertPayload := model.SendSlackAlertInput{Workspace: workspace,
-				SessionSecureID: s.SecureID, UserIdentifier: s.Identifier, UserObject: s.UserObject, RageClicksCount: &count64,
-				QueryParams: map[string]string{"tsAbs": fmt.Sprintf("%d", accumulator.RageClickSets[0].StartTimestamp.UnixNano()/int64(time.Millisecond))}}
+			slackAlertPayload := model.SendSlackAlertInput{
+				Workspace:       workspace,
+				SessionSecureID: s.SecureID,
+				SessionExcluded: s.Excluded,
+				UserIdentifier:  s.Identifier,
+				UserObject:      s.UserObject,
+				RageClicksCount: &count64,
+				QueryParams:     map[string]string{"tsAbs": fmt.Sprintf("%d", accumulator.RageClickSets[0].StartTimestamp.UnixNano()/int64(time.Millisecond))},
+			}
 
 			hookPayload := zapier.HookPayload{
 				UserIdentifier: s.Identifier, UserObject: s.UserObject, RageClicksCount: &count64,

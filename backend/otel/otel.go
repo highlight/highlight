@@ -36,6 +36,9 @@ type Handler struct {
 var IgnoredSpanNamePrefixes = []string{"fs "}
 
 func lg(ctx context.Context, fields *extractedFields) *log.Entry {
+	if fields == nil {
+		return log.WithContext(ctx)
+	}
 	return log.WithContext(ctx).
 		WithField("project_id", fields.projectID).
 		WithField("session_id", fields.sessionID).
@@ -185,7 +188,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						span:     &span,
 					})
 					if err != nil {
-						lg(ctx, fields).WithError(err).Error("failed to extract fields from span")
+						lg(ctx, fields).WithError(err).Info("failed to extract fields from span")
 						continue
 					}
 
@@ -218,7 +221,7 @@ func (o *Handler) HandleTrace(w http.ResponseWriter, r *http.Request) {
 						event:    &event,
 					})
 					if err != nil {
-						lg(ctx, fields).WithError(err).Error("failed to extract fields from span")
+						lg(ctx, fields).WithError(err).Info("failed to extract fields from span")
 						continue
 					}
 
@@ -402,7 +405,7 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					logRecord: &logRecord,
 				})
 				if err != nil {
-					lg(ctx, fields).WithError(err).Error("failed to extract fields from log")
+					lg(ctx, fields).WithError(err).Info("failed to extract fields from log")
 					continue
 				}
 

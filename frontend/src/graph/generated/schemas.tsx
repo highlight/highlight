@@ -131,7 +131,7 @@ export type AllWorkspaceSettings = {
 	__typename?: 'AllWorkspaceSettings'
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
-	enable_enhanced_errors: Scalars['Boolean']
+	enable_session_export: Scalars['Boolean']
 	workspace_id: Scalars['ID']
 }
 
@@ -384,6 +384,11 @@ export type EnhancedUserDetailsResult = {
 	socials?: Maybe<Array<Maybe<SocialLink>>>
 }
 
+export enum EnhancementSource {
+	Github = 'github',
+	Sourcemap = 'sourcemap',
+}
+
 export type ErrorAlert = {
 	__typename?: 'ErrorAlert'
 	ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>
@@ -519,6 +524,7 @@ export type ErrorObject = {
 	payload?: Maybe<Scalars['String']>
 	project_id: Scalars['Int']
 	request_id?: Maybe<Scalars['String']>
+	serviceName?: Maybe<Scalars['String']>
 	serviceVersion?: Maybe<Scalars['String']>
 	session?: Maybe<Session>
 	session_id?: Maybe<Scalars['Int']>
@@ -558,6 +564,7 @@ export type ErrorObjectNodeSession = {
 	__typename?: 'ErrorObjectNodeSession'
 	appVersion?: Maybe<Scalars['String']>
 	email?: Maybe<Scalars['String']>
+	excluded: Scalars['Boolean']
 	fingerprint?: Maybe<Scalars['Int']>
 	secureID: Scalars['String']
 }
@@ -615,7 +622,10 @@ export type ErrorTag = {
 export type ErrorTrace = {
 	__typename?: 'ErrorTrace'
 	columnNumber?: Maybe<Scalars['Int']>
+	enhancementSource?: Maybe<EnhancementSource>
+	enhancementVersion?: Maybe<Scalars['String']>
 	error?: Maybe<Scalars['String']>
+	externalLink?: Maybe<Scalars['String']>
 	fileName?: Maybe<Scalars['String']>
 	functionName?: Maybe<Scalars['String']>
 	lineContent?: Maybe<Scalars['String']>
@@ -1014,6 +1024,7 @@ export type Mutation = {
 	editWorkspace?: Maybe<Workspace>
 	editWorkspaceSettings?: Maybe<AllWorkspaceSettings>
 	emailSignup: Scalars['String']
+	exportSession: Scalars['Boolean']
 	joinWorkspace?: Maybe<Scalars['ID']>
 	markErrorGroupAsViewed?: Maybe<ErrorGroup>
 	markSessionAsViewed?: Maybe<Session>
@@ -1342,6 +1353,10 @@ export type MutationEditWorkspaceSettingsArgs = {
 
 export type MutationEmailSignupArgs = {
 	email: Scalars['String']
+}
+
+export type MutationExportSessionArgs = {
+	session_secure_id: Scalars['String']
 }
 
 export type MutationJoinWorkspaceArgs = {
@@ -1717,8 +1732,10 @@ export type Query = {
 	error_comments_for_admin: Array<Maybe<ErrorComment>>
 	error_comments_for_project: Array<Maybe<ErrorComment>>
 	error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>
+	error_fields_clickhouse: Array<Scalars['String']>
 	error_fields_opensearch: Array<Scalars['String']>
 	error_group?: Maybe<ErrorGroup>
+	error_groups_clickhouse: ErrorResults
 	error_groups_opensearch: ErrorResults
 	error_instance?: Maybe<ErrorInstance>
 	error_issue: Array<Maybe<ExternalAttachment>>
@@ -1730,6 +1747,7 @@ export type Query = {
 	error_tags?: Maybe<Array<Maybe<ErrorTag>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram: ErrorsHistogram
+	errors_histogram_clickhouse: ErrorsHistogram
 	event_chunk_url: Scalars['String']
 	event_chunks: Array<EventChunk>
 	events?: Maybe<Array<Maybe<Scalars['Any']>>>
@@ -1782,6 +1800,7 @@ export type Query = {
 	projectSuggestion: Array<Maybe<Project>>
 	projects?: Maybe<Array<Maybe<Project>>>
 	property_suggestion?: Maybe<Array<Maybe<Field>>>
+	quickFields_clickhouse: Array<Maybe<Field>>
 	quickFields_opensearch: Array<Maybe<Field>>
 	rageClicksForProject: Array<RageClickEventForProject>
 	rage_click_alerts: Array<Maybe<SessionAlert>>
@@ -1797,6 +1816,7 @@ export type Query = {
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
 	session_comments_for_project: Array<Maybe<SessionComment>>
+	session_exports: Array<SessionExport>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
 	sessions_clickhouse: SessionResults
@@ -1935,10 +1955,12 @@ export type QueryErrorGroupFrequenciesArgs = {
 	metric?: InputMaybe<Scalars['String']>
 	params: ErrorGroupFrequenciesParamsInput
 	project_id: Scalars['ID']
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryErrorGroupTagsArgs = {
 	error_group_secure_id: Scalars['String']
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryError_AlertsArgs = {
@@ -1959,19 +1981,41 @@ export type QueryError_Field_SuggestionArgs = {
 	query: Scalars['String']
 }
 
-export type QueryError_Fields_OpensearchArgs = {
+export type QueryError_Fields_ClickhouseArgs = {
 	count: Scalars['Int']
+	end_date: Scalars['Timestamp']
 	field_name: Scalars['String']
 	field_type: Scalars['String']
 	project_id: Scalars['ID']
 	query: Scalars['String']
+	start_date: Scalars['Timestamp']
+}
+
+export type QueryError_Fields_OpensearchArgs = {
+	count: Scalars['Int']
+	end_date?: InputMaybe<Scalars['Timestamp']>
+	field_name: Scalars['String']
+	field_type: Scalars['String']
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	start_date?: InputMaybe<Scalars['Timestamp']>
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryError_GroupArgs = {
 	secure_id: Scalars['String']
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
+}
+
+export type QueryError_Groups_ClickhouseArgs = {
+	count: Scalars['Int']
+	page?: InputMaybe<Scalars['Int']>
+	project_id: Scalars['ID']
+	query: ClickhouseQuery
 }
 
 export type QueryError_Groups_OpensearchArgs = {
+	clickhouse_query?: InputMaybe<ClickhouseQuery>
 	count: Scalars['Int']
 	page?: InputMaybe<Scalars['Int']>
 	project_id: Scalars['ID']
@@ -2015,9 +2059,16 @@ export type QueryErrorsArgs = {
 }
 
 export type QueryErrors_HistogramArgs = {
+	clickhouse_query?: InputMaybe<ClickhouseQuery>
 	histogram_options: DateHistogramOptions
 	project_id: Scalars['ID']
 	query: Scalars['String']
+}
+
+export type QueryErrors_Histogram_ClickhouseArgs = {
+	histogram_options: DateHistogramOptions
+	project_id: Scalars['ID']
+	query: ClickhouseQuery
 }
 
 export type QueryEvent_Chunk_UrlArgs = {
@@ -2270,10 +2321,21 @@ export type QueryProperty_SuggestionArgs = {
 	type: Scalars['String']
 }
 
-export type QueryQuickFields_OpensearchArgs = {
+export type QueryQuickFields_ClickhouseArgs = {
 	count: Scalars['Int']
+	end_date: Scalars['Timestamp']
 	project_id: Scalars['ID']
 	query: Scalars['String']
+	start_date: Scalars['Timestamp']
+}
+
+export type QueryQuickFields_OpensearchArgs = {
+	count: Scalars['Int']
+	end_date?: InputMaybe<Scalars['Timestamp']>
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	start_date?: InputMaybe<Scalars['Timestamp']>
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryRageClicksForProjectArgs = {
@@ -2793,6 +2855,16 @@ export enum SessionExcludedReason {
 	NoUserEvents = 'NoUserEvents',
 	NoUserInteractionEvents = 'NoUserInteractionEvents',
 	RetentionPeriodExceeded = 'RetentionPeriodExceeded',
+}
+
+export type SessionExport = {
+	__typename?: 'SessionExport'
+	error: Scalars['String']
+	id: Scalars['ID']
+	session_id: Scalars['ID']
+	target_emails: Array<Scalars['String']>
+	type: Scalars['String']
+	url: Scalars['String']
 }
 
 export type SessionInsight = {

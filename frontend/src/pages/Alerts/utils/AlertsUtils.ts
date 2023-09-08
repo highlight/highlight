@@ -33,29 +33,6 @@ export const DEFAULT_HIGHLIGHT_ENVIRONMENTS = [
 	'development',
 ]
 
-export const getAlertTypeColor = (type: string) => {
-	switch (type) {
-		case 'Errors':
-			return '#eb5757'
-		case 'Feedback':
-			return '#6fcf97'
-		case 'Track Events':
-			return '#56ccf2'
-		case 'User Properties':
-			return '#ffb038'
-		case 'New Users':
-			return '#937ccc'
-		case 'New Sessions':
-			return '#f95d6a'
-		case 'Rage Clicks':
-			return 'var(--color-red-400)'
-		case 'Metric Monitor':
-			return 'var(--color-orange-500)'
-		default:
-			return '#bdbdbd'
-	}
-}
-
 /**
  * All form fields for alerts
  */

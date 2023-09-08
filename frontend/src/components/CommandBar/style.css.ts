@@ -1,13 +1,22 @@
 import { sprinkles } from '@highlight-run/ui/src/css/sprinkles.css'
 import { style } from '@vanilla-extract/css'
 
+const DIALOG_Z_INDEX = 99999
+
 export const dialog = style({
-	zIndex: 99999,
-	backgroundColor: 'rgba(111, 110, 119, 0.48)',
+	zIndex: DIALOG_Z_INDEX,
 	height: '100vh',
 	width: '100vw',
 	display: 'flex',
 	justifyContent: 'center',
+	position: 'fixed',
+	top: 0,
+	left: 0,
+})
+
+export const dialogBackdrop = style({
+	backgroundColor: 'rgba(111, 110, 119, 0.48)',
+	zIndex: DIALOG_Z_INDEX,
 })
 
 export const container = style({

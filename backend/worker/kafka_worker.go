@@ -25,10 +25,19 @@ import (
 
 const KafkaBatchWorkerOp = "KafkaBatchWorker"
 
-func (k *KafkaWorker) processWorkerError(ctx context.Context, task *kafkaqueue.Message, err error) {
-	log.WithContext(ctx).WithError(err).WithField("type", task.Type).Errorf("task %+v failed: %s", *task, err)
+func (k *KafkaWorker) processWorkerError(ctx context.Context, task *kafkaqueue.Message, err error, start time.Time) {
+	log.WithContext(ctx).
+		WithError(err).
+		WithField("type", task.Type).
+		WithField("duration", time.Since(start)).
+		Errorf("task %+v failed: %s", *task, err)
 	if task.Failures >= task.MaxRetries {
-		log.WithContext(ctx).WithError(err).WithField("type", task.Type).WithField("failures", task.Failures).Errorf("task %+v failed after %d retries", *task, task.Failures)
+		log.WithContext(ctx).
+			WithError(err).
+			WithField("type", task.Type).
+			WithField("failures", task.Failures).
+			WithField("duration", time.Since(start)).
+			Errorf("task %+v failed after %d retries", *task, task.Failures)
 	} else {
 		hlog.Histogram("worker.kafka.processed.taskFailures", float64(task.Failures), nil, 1)
 	}
@@ -59,8 +68,9 @@ func (k *KafkaWorker) ProcessMessages(ctx context.Context) {
 
 			s2 := tracer.StartSpan("worker.kafka.processMessage", tracer.ChildOf(s.Context()))
 			for i := 0; i <= task.MaxRetries; i++ {
+				start := time.Now()
 				if err = k.Worker.processPublicWorkerMessage(tracer.ContextWithSpan(ctx, s), task); err != nil {
-					k.processWorkerError(ctx, task, err)
+					k.processWorkerError(ctx, task, err, start)
 				} else {
 					break
 				}
@@ -255,11 +265,11 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 	for _, logRow := range logRows {
 		// create service record for any services found in ingested logs
 		if logRow.ServiceName != "" {
-			spanX, ctxX := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.findOrCreateService", k.Name)))
+			spanX, ctxX := tracer.StartSpanFromContext(ctx, KafkaBatchWorkerOp, tracer.ResourceName(fmt.Sprintf("worker.kafka.%s.UpsertService", k.Name)))
 
 			project, err := k.Worker.Resolver.Store.GetProject(ctx, int(logRow.ProjectId))
 			if err == nil && project != nil {
-				_, err := k.Worker.Resolver.Store.FindOrCreateService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
+				_, err := k.Worker.Resolver.Store.UpsertService(ctx, *project, logRow.ServiceName, logRow.LogAttributes)
 
 				if err != nil {
 					log.WithContext(ctxX).Error(e.Wrap(err, "failed to create service"))

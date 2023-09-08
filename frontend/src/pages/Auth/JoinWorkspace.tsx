@@ -1,4 +1,4 @@
-import { Form, Stack, Text, useFormState } from '@highlight-run/ui'
+import { Form, Stack, Text, useFormStore } from '@highlight-run/ui'
 import { message } from 'antd'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -37,16 +37,17 @@ export const JoinWorkspace = () => {
 		false,
 	)
 
-	const form = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			workspaceId: '',
 		},
 	})
+	const formState = formStore.getState()
 
-	form.useSubmit(async () => {
+	formStore.useSubmit(async () => {
 		const response = await joinWorkspace({
 			variables: {
-				workspace_id: form.values.workspaceId,
+				workspace_id: formState.values.workspaceId,
 			},
 		})
 
@@ -84,7 +85,7 @@ export const JoinWorkspace = () => {
 
 	return (
 		<Landing>
-			<Form className={authRouterStyles.container} state={form}>
+			<Form className={authRouterStyles.container} store={formStore}>
 				<AuthHeader>
 					<Text color="moderate">Join Workspace</Text>
 				</AuthHeader>
@@ -97,7 +98,7 @@ export const JoinWorkspace = () => {
 
 						<select
 							className={styles.select}
-							value={form.values.workspaceId}
+							value={formState.values.workspaceId}
 							onChange={(e) => {
 								const selectedWorkspace =
 									data?.joinable_workspaces?.find(
@@ -105,8 +106,8 @@ export const JoinWorkspace = () => {
 											workspace?.id === e.target.value,
 									)
 
-								form.setValue(
-									form.names.workspaceId,
+								formStore.setValue(
+									formStore.names.workspaceId,
 									selectedWorkspace?.id,
 								)
 							}}
@@ -130,7 +131,7 @@ export const JoinWorkspace = () => {
 					<Button
 						type="submit"
 						kind="primary"
-						disabled={!form.values.workspaceId}
+						disabled={!formState.values.workspaceId}
 						onClick={() => null}
 						trackingId="join-workspace_submit"
 						loading={joinLoading}

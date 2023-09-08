@@ -66,15 +66,12 @@ func NewLambdaClient() (*Client, error) {
 	}, nil
 }
 
-type Format = string
+type SessionScreenshotResponse struct {
+	URL   string `json:"url"`
+	Image []byte
+}
 
-var (
-	FormatImage = "image/png"
-	FormatGIF   = "image/gif"
-	FormatMP4   = "video/mp4"
-)
-
-func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts *int, chunk *int, format *Format) (*http.Response, error) {
+func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts *int, chunk *int, format *model.SessionExportFormat) (*SessionScreenshotResponse, error) {
 	host := "https://ygh5bj5f646ix4pixknhvysrje0haeoi.lambda-url.us-east-2.on.aws"
 	url := fmt.Sprintf("%s/session-screenshots?project=%d&session=%d", host, projectID, sessionID)
 	if ts != nil {
@@ -95,7 +92,28 @@ func (s *Client) GetSessionScreenshot(ctx context.Context, projectID int, sessio
 	if err := signer.SignHTTP(ctx, *s.Credentials, req.Request, NilPayloadHash, string(LambdaAPI), "us-east-2", time.Now()); err != nil {
 		return nil, err
 	}
-	return s.RetryableHTTPClient.Do(req)
+	resp, err := s.RetryableHTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, errors.New(fmt.Sprintf("screenshot render returned %d", resp.StatusCode))
+	}
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if format != nil && (*format == model.SessionExportFormatMP4 || *format == model.SessionExportFormatGif) {
+		return &SessionScreenshotResponse{
+			URL: string(b),
+		}, nil
+	} else {
+		return &SessionScreenshotResponse{
+			Image: b,
+		}, nil
+	}
 }
 
 func (s *Client) GetActivityGraph(ctx context.Context, eventCounts string) (*http.Response, error) {

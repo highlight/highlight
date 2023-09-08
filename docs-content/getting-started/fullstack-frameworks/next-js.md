@@ -88,6 +88,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 			<HighlightInit
 				excludedHostnames={['localhost']}
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
+				serviceName="my-nextjs-frontend"
 				tracingOrigins
 				networkRecording={{
 					enabled: true,
@@ -116,6 +117,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 			<HighlightInit
 				excludedHostnames={['localhost']}
 				projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
+				serviceName="my-nextjs-frontend"
 				tracingOrigins
 				networkRecording={{
 					enabled: true,
@@ -166,6 +168,7 @@ Alternatively, you could manually call `H.start()` and `H.stop()` to manage invo
 <HighlightInit
 	manualStart
 	projectId={CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID}
+	serviceName="my-nextjs-frontend"
 />
 <CustomHighlightStart />
 
@@ -271,7 +274,7 @@ export { register } from '../instrumentation'
 
 `instrumentation.ts` does not catch SSR errors from the App Router. App Router instead uses [error.tsx](https://nextjs.org/docs/app/api-reference/file-conventions/error) to send server-side rendering errors to the client. We can catch and consume those error with a custom error page.
 
-These error will display as client errors, even though we know that they're 
+These errors will display as client errors, even though we know that they're server errors.
 
 ```javascript
 // src/app/error.tsx

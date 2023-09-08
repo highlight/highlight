@@ -1284,6 +1284,15 @@ export type DeleteSessionsMutation = { __typename?: 'Mutation' } & Pick<
 	'deleteSessions'
 >
 
+export type ExportSessionMutationVariables = Types.Exact<{
+	session_secure_id: Types.Scalars['String']
+}>
+
+export type ExportSessionMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'exportSession'
+>
+
 export type UpdateVercelSettingsMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	project_mappings:
@@ -1839,6 +1848,19 @@ export type GetSessionInsightQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type GetSessionExportsQueryVariables = Types.Exact<{
+	[key: string]: never
+}>
+
+export type GetSessionExportsQuery = { __typename?: 'Query' } & {
+	session_exports: Array<
+		{ __typename?: 'SessionExport' } & Pick<
+			Types.SessionExport,
+			'id' | 'session_id' | 'type' | 'url' | 'error' | 'target_emails'
+		>
+	>
+}
+
 export type GetSessionCommentsQueryVariables = Types.Exact<{
 	session_secure_id: Types.Scalars['String']
 }>
@@ -2211,6 +2233,9 @@ export type GetErrorFieldsOpensearchQueryVariables = Types.Exact<{
 	field_type: Types.Scalars['String']
 	field_name: Types.Scalars['String']
 	query: Types.Scalars['String']
+	start_date?: Types.Maybe<Types.Scalars['Timestamp']>
+	end_date?: Types.Maybe<Types.Scalars['Timestamp']>
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorFieldsOpensearchQuery = { __typename?: 'Query' } & Pick<
@@ -2304,6 +2329,7 @@ export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
 	query: Types.Scalars['String']
+	clickhouse_query?: Types.Maybe<Types.ClickhouseQuery>
 	page?: Types.Maybe<Types.Scalars['Int']>
 }>
 
@@ -2354,6 +2380,7 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 export type GetErrorsHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	query: Types.Scalars['String']
+	clickhouse_query?: Types.Maybe<Types.ClickhouseQuery>
 	histogram_options: Types.DateHistogramOptions
 }>
 
@@ -2861,6 +2888,7 @@ export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
 
 export type GetErrorGroupQueryVariables = Types.Exact<{
 	secure_id: Types.Scalars['String']
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorGroupQuery = { __typename?: 'Query' } & {
@@ -2957,6 +2985,7 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 	| 'browser'
 	| 'environment'
 	| 'serviceVersion'
+	| 'serviceName'
 > & {
 		session?: Types.Maybe<
 			{ __typename?: 'Session' } & Pick<
@@ -2985,6 +3014,9 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 					| 'linesBefore'
 					| 'linesAfter'
 					| 'error'
+					| 'enhancementSource'
+					| 'enhancementVersion'
+					| 'externalLink'
 				> & {
 						sourceMappingErrorMetadata?: Types.Maybe<
 							{ __typename?: 'SourceMappingError' } & Pick<
@@ -4217,6 +4249,7 @@ export type GetErrorGroupFrequenciesQueryVariables = Types.Exact<{
 		| Types.Scalars['String']
 	params: Types.ErrorGroupFrequenciesParamsInput
 	metric: Types.Scalars['String']
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
@@ -4232,6 +4265,7 @@ export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
 
 export type GetErrorGroupTagsQueryVariables = Types.Exact<{
 	error_group_secure_id: Types.Scalars['String']
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorGroupTagsQuery = { __typename?: 'Query' } & {
@@ -4440,7 +4474,10 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 	workspaceSettings?: Types.Maybe<
 		{ __typename?: 'AllWorkspaceSettings' } & Pick<
 			Types.AllWorkspaceSettings,
-			'workspace_id' | 'ai_application' | 'ai_insights'
+			| 'workspace_id'
+			| 'ai_application'
+			| 'ai_insights'
+			| 'enable_session_export'
 		>
 	>
 }
@@ -4487,6 +4524,7 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 									| 'email'
 									| 'appVersion'
 									| 'fingerprint'
+									| 'excluded'
 								>
 							>
 						}
@@ -4625,6 +4663,7 @@ export const namedOperations = {
 		GetWorkspaceAdminsByProjectId: 'GetWorkspaceAdminsByProjectId' as const,
 		GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,
 		GetSessionInsight: 'GetSessionInsight' as const,
+		GetSessionExports: 'GetSessionExports' as const,
 		GetSessionComments: 'GetSessionComments' as const,
 		GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
 		isSessionPending: 'isSessionPending' as const,
@@ -4824,6 +4863,7 @@ export const namedOperations = {
 		UpsertDashboard: 'UpsertDashboard' as const,
 		DeleteDashboard: 'DeleteDashboard' as const,
 		DeleteSessions: 'DeleteSessions' as const,
+		ExportSession: 'ExportSession' as const,
 		UpdateVercelSettings: 'UpdateVercelSettings' as const,
 		UpdateClickUpSettings: 'UpdateClickUpSettings' as const,
 		UpdateIntegrationProjectSettings:

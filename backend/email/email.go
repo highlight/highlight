@@ -25,6 +25,7 @@ var (
 	SessionsDeletedEmailTemplateID       = "d-d9e10ce22c774fc9850dd0b36ccde339"
 	DigestEmailTemplateID                = "d-5bb29dabe298425ab9422b74636516bd"
 	BillingNotificationTemplateID        = "d-9fa375187c114dc1a5b561e81fbee794"
+	SessionExportTemplateID              = "d-b359ae6783bd4e3e95d168ffcee4728d"
 	SendGridOutboundEmail                = "notifications@notify.highlight.io"
 	SessionCommentMentionsAsmId          = 20950
 	ErrorCommentMentionsAsmId            = 20994
@@ -201,6 +202,41 @@ func SendBillingNotificationEmail(ctx context.Context, mailClient *sendgrid.Clie
 
 	log.WithContext(ctx).WithFields(log.Fields{"workspace_id": workspaceId, "to_email": toEmail, "email_type": emailType}).
 		Info("BILLING_NOTIFICATION email")
+
+	if resp, sendGridErr := mailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
+		estr := "error sending sendgrid email -> "
+		estr += fmt.Sprintf("resp-code: %v; ", resp)
+		if sendGridErr != nil {
+			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
+		}
+		return e.New(estr)
+	}
+
+	return nil
+}
+
+func SendSessionExportEmail(ctx context.Context, mailClient *sendgrid.Client, sessionSecureId, exportUrl, sessionUser, toEmail string) error {
+	to := &mail.Email{Address: toEmail}
+
+	m := mail.NewV3Mail()
+	from := mail.NewEmail("Highlight", SendGridOutboundEmail)
+	m.SetFrom(from)
+	m.SetTemplateID(SessionExportTemplateID)
+
+	p := mail.NewPersonalization()
+	p.AddTos(to)
+	curData := map[string]interface{}{}
+
+	curData["toEmail"] = toEmail
+	curData["sessionLink"] = exportUrl
+	curData["sessionUser"] = sessionUser
+	curData["subject"] = "Your highlight.io session export is ready."
+
+	p.DynamicTemplateData = curData
+
+	m.AddPersonalizations(p)
+
+	log.WithContext(ctx).WithFields(log.Fields{"session_secure_id": sessionSecureId, "url": exportUrl, "to_email": toEmail}).Info("session export email")
 
 	if resp, sendGridErr := mailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
 		estr := "error sending sendgrid email -> "

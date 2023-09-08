@@ -34,8 +34,9 @@ export default function App() {
 	return (
 		<html lang="en">
 			<HighlightInit
-				excludedHostnames={['localhost']}
 				projectId={ENV.HIGHLIGHT_PROJECT_ID}
+				backendUrl="https://localhost:8082/public"
+				serviceName="my-remix-frontend"
 				tracingOrigins
 				networkRecording={{ enabled: true, recordHeadersAndBody: true }}
 				// scriptUrl="http://localhost:8080/dist/index.js"
