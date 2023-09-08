@@ -4,6 +4,7 @@ package highlight
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/pkg/errors"
@@ -11,6 +12,7 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"time"
 )
 
 type GraphqlTracer interface {
@@ -51,11 +53,19 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 		return next(ctx)
 	}
 
+	start := time.Now()
 	fc := graphql.GetFieldContext(ctx)
 	name := fmt.Sprintf("operation.field.%s", fc.Field.Name)
-
 	span, ctx := StartTrace(ctx, name)
-	start := graphql.Now()
+	span.SetAttributes(
+		attribute.String("backend", t.graphName),
+		attribute.String("field.type", fc.Field.Definition.Type.String()),
+	)
+	if b, err := json.MarshalIndent(fc.Args, "", ""); err == nil {
+		if bs := string(b); len(bs) < 2048 {
+			span.SetAttributes(attribute.String("field.arguments", bs))
+		}
+	}
 	res, err := next(ctx)
 	end := graphql.Now()
 	RecordSpanError(
@@ -89,9 +99,18 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	name := fmt.Sprintf("graphql.operation.%s", opName)
 
 	span, ctx := StartTrace(ctx, name)
+	span.SetAttributes(attribute.String("backend", t.graphName))
 	start := graphql.Now()
 	resp := next(ctx)
 	end := graphql.Now()
+
+	if resp != nil {
+		RecordSpanError(
+			span, resp.Errors,
+			attribute.String(SourceAttribute, "InterceptResponse"),
+			semconv.GraphqlOperationNameKey.String(name),
+		)
+	}
 	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
