@@ -6,15 +6,28 @@ import { FEATURES, iFeature } from '../../components/Features/features'
 import { iProduct, PRODUCTS } from '../../components/Products/products'
 import { getBlogPaths } from '../blog'
 import { getGithubDocsPaths } from './docs/github'
-import { createWriteStream } from 'pino-http-send'
 import pino from 'pino'
 import { GraphQLRequest } from '../../utils/graphql'
 
-const stream = createWriteStream({
-	url: 'https://pub.highlight.io/v1/logs/json?project=4d7k1xeo&service=highlight-io-next-frontend',
+const logger = pino({
+	level: 'trace',
+	transport: {
+		targets: [
+			{
+				target: '@highlight-run/pino',
+				options: {
+					projectID: '4d7k1xeo',
+				},
+				level: 'trace',
+			},
+			{
+				target: 'pino-pretty',
+				options: {},
+				level: 'trace',
+			},
+		],
+	},
 })
-
-const logger = pino({ level: 'debug' }, stream)
 
 async function generateXML(): Promise<string> {
 	logger.info('generating sitemap')

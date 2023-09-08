@@ -1,0 +1,35 @@
+{
+	"name": "@highlight-run/pino",
+	"version": "0.1.0",
+	"packageManager": "yarn@3.5.0",
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"dist"
+	],
+	"main": "./dist/index.js",
+	"types": "./dist/src/index.d.ts",
+	"scripts": {
+		"typegen": "tsup --dts-only",
+		"dev": "tsup --watch",
+		"build": "tsup"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/highlight-run/highlight.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "Apache 2.0",
+	"bugs": {
+		"url": "https://github.com/highlight-run/highlight/issues"
+	},
+	"homepage": "https://github.com/highlight-run/highlight#readme",
+	"dependencies": {
+		"@highlight-run/node": "workspace: *"
+	},
+	"devDependencies": {
+		"tsup": "^7.2.0"
+	}
+}
