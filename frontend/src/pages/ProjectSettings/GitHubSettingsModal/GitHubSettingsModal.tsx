@@ -160,7 +160,7 @@ const GithubSettingsForm = ({
 			githubPrefix: service.githubPrefix || null,
 		},
 	})
-	const formState = formStore.getState()
+	const formState = formStore.useState()
 
 	const exampleLink = formState.values.githubPrefix
 		? `https://github.com/${formState.values.githubRepo}/blob/HEAD${formState.values.githubPrefix}/README.md`
