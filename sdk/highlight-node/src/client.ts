@@ -75,7 +75,13 @@ export class Highlight {
 			},
 			spanProcessor: this.processor,
 			traceExporter: exporter,
-			instrumentations: [getNodeAutoInstrumentations()],
+			instrumentations: [
+				getNodeAutoInstrumentations({
+					'@opentelemetry/instrumentation-fs': {
+						enabled: options.enableFsInstrumentation ?? false,
+					},
+				}),
+			],
 		})
 		this.otel.start()
 
