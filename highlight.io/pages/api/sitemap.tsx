@@ -20,11 +20,6 @@ const logger = pino({
 				},
 				level: 'trace',
 			},
-			{
-				target: 'pino-pretty',
-				options: {},
-				level: 'trace',
-			},
 		],
 	},
 })

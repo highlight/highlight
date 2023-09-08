@@ -9,7 +9,7 @@
 		"dist"
 	],
 	"main": "./dist/index.js",
-	"types": "./dist/src/index.d.ts",
+	"types": "./dist/index.d.ts",
 	"scripts": {
 		"typegen": "tsup --dts-only",
 		"dev": "tsup --watch",
