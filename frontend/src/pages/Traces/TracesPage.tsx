@@ -71,6 +71,7 @@ export const TracesPage: React.FC = () => {
 					overflow="hidden"
 				>
 					<TracesSearch
+						query={query}
 						startDate={startDate}
 						endDate={endDate}
 						onFormSubmit={setQuery}

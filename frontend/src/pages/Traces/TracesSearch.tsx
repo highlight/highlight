@@ -31,7 +31,7 @@ export const TracesSearch: React.FC<Props> = ({
 	return (
 		<Box cssClass={styles.container}>
 			<SearchForm
-				initialQuery={query}
+				initialQuery={query ?? ''}
 				startDate={startDate}
 				endDate={endDate}
 				presets={defaultPresets}
