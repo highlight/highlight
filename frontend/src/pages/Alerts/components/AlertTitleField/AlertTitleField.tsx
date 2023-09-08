@@ -5,14 +5,15 @@ import { AlertForm } from '@/pages/Alerts/utils/AlertsUtils'
 import * as styles from './styles.css'
 
 const AlertTitleField = () => {
-	const form = useForm() as FormState<AlertForm>
+	const formStore = useForm() as FormState<AlertForm>
+	const formState = formStore.getState()
+
 	return (
 		<Form.Input
-			name={form.names.name}
-			value={form.values.name}
+			name={formStore.names.name}
 			placeholder="Type name..."
 			style={{
-				borderColor: form.errors.name
+				borderColor: formState.errors.name
 					? 'var(--color-red-500)'
 					: 'transparent',
 			}}

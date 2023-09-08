@@ -6,7 +6,7 @@ interface GlobalContext {
 	toggleShowKeyboardShortcutsGuide: (nextValue?: boolean) => void
 	showBanner: boolean
 	toggleShowBanner: (nextValue?: boolean) => void
-	commandBarDialog: Ariakit.DialogState
+	commandBarDialog: Ariakit.DialogStore
 }
 
 export const [useGlobalContext, GlobalContextProvider] =

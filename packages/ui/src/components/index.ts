@@ -23,6 +23,7 @@ export { Heading } from './Heading/Heading'
 export { Menu, useMenu } from './Menu/Menu'
 export { MenuButton } from './MenuButton/MenuButton'
 export { MultiSelectButton } from './MultiSelectButton/MultiSelectButton'
+export { ComboboxSelect } from './ComboboxSelect/ComboboxSelect'
 export { Popover, usePopover } from './Popover/Popover'
 export { Stack } from './Stack/Stack'
 export { SwitchButton } from './SwitchButton/SwitchButton'
@@ -37,4 +38,4 @@ export * from './icons'
 // Expose Ariakit so you can access the building blocks if needed. Shouldn't be
 // necessary in the future once we create our own versions of the components.
 // Originally exported for dialogs.
-export * as Ariakit from 'ariakit'
+export * as Ariakit from '@ariakit/react'

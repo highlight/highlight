@@ -1,8 +1,8 @@
 import React from 'react'
 import { Box } from '../../Box/Box'
-import clsx from 'clsx'
 
 import * as styles from './styles.css'
+import clsx from 'clsx'
 
 export type Props = {
 	children: React.ReactNode

@@ -20,7 +20,7 @@ type Props = {
 
 const TableComponent: React.FC<Props> = ({ children, className }) => {
 	return (
-		<Box className={className} width="full">
+		<Box cssClass={className} width="full">
 			{children}
 		</Box>
 	)

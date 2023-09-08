@@ -1,9 +1,5 @@
-import { Button } from '@components/Button'
-import InfoTooltip from '@components/InfoTooltip/InfoTooltip'
-import Popover from '@components/Popover/Popover'
 import { Skeleton } from '@components/Skeleton/Skeleton'
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
-import Tooltip from '@components/Tooltip/Tooltip'
 import { BaseSearchContext } from '@context/BaseSearchContext'
 import {
 	useEditErrorSegmentMutation,
@@ -17,47 +13,63 @@ import { ErrorSegment, Exact, Field, Segment } from '@graph/schemas'
 import {
 	Box,
 	ButtonIcon,
+	ComboboxSelect,
 	defaultPresets,
 	getNow,
+	IconSolidCalendar,
+	IconSolidChat,
 	IconSolidCheveronDown,
+	IconSolidClock,
 	IconSolidCloudUpload,
+	IconSolidCube,
+	IconSolidCursorClick,
+	IconSolidDesktopComputer,
+	IconSolidDocumentAdd,
 	IconSolidDocumentDuplicate,
+	IconSolidDocumentRemove,
+	IconSolidDocumentText,
+	IconSolidEye,
+	IconSolidGlobe,
+	IconSolidGlobeAlt,
+	IconSolidLightningBolt,
+	IconSolidLink,
 	IconSolidLogout,
 	IconSolidPencil,
 	IconSolidPlusCircle,
 	IconSolidPlusSm,
+	IconSolidQuestionMarkCircle,
 	IconSolidRefresh,
 	IconSolidSave,
 	IconSolidSegment,
+	IconSolidTag,
+	IconSolidTerminal,
 	IconSolidTrash,
+	IconSolidUser,
+	IconSolidUserAdd,
 	IconSolidX,
 	Menu,
+	Popover,
 	PreviousDateRangePicker,
 	Tag,
 	Text,
+	Tooltip,
 } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
-import { SharedSelectStyleProps } from '@pages/Sessions/SearchInputs/SearchInputUtil'
 import { DateInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/DateInput/DateInput'
 import { LengthInput } from '@pages/Sessions/SessionsFeedV3/SessionQueryBuilder/components/LengthInput/LengthInput'
 import { formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
 import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
-import { Checkbox, message } from 'antd'
+import { message } from 'antd'
 import clsx, { ClassValue } from 'clsx'
-import { isEqual } from 'lodash'
 import moment, { unitOfTime } from 'moment'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { components } from 'react-select'
-import AsyncSelect from 'react-select/async'
-import Creatable from 'react-select/creatable'
-import { Styles } from 'react-select/src/styles'
-import { OptionTypeBase } from 'react-select/src/types'
 import { useLocalStorage, useToggle } from 'react-use'
 
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
+import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
 import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
 
@@ -77,24 +89,29 @@ export interface SelectOption {
 }
 export interface MultiselectOption {
 	kind: 'multi'
-	options: readonly {
-		label: string
-		value: string
-	}[]
+	options: readonly Option[]
 }
 
-type OnChangeInput = SelectOption | MultiselectOption | undefined
-type OnChange = (val: OnChangeInput) => void
-type LoadOptions = (input: string, callback: any) => Promise<any>
+type Option = { label: string; value: string }
+type OnSelectChange = (val: SelectOption) => void
+type OnMultiselectChange = (val: MultiselectOption) => void
+type LoadOptions = (input: string) => Promise<Option[] | undefined>
+type UpdateRule = (targetRule: RuleProps, newProps: any) => void
+type RemoveRule = (targetRule: RuleProps) => void
 
 interface RuleSettings {
-	onChangeKey: OnChange
 	getKeyOptions: LoadOptions
-	onChangeOperator: OnChange
-	getOperatorOptions: LoadOptions
-	onChangeValue: OnChange
-	getValueOptions: LoadOptions
-	onRemove: () => void
+	getOperatorOptionsCallback: (
+		options: FieldOptions | undefined,
+		val: MultiselectOption | undefined,
+	) => LoadOptions
+	getValueOptionsCallback: (field: SelectOption | undefined) => LoadOptions
+	getCustomFieldOptions: (
+		field: SelectOption | undefined,
+	) => FieldOptions | undefined
+	getDefaultOperator: (field: SelectOption | undefined) => Operator
+	updateRule: UpdateRule
+	removeRule: RemoveRule
 	readonly: boolean
 }
 
@@ -105,170 +122,31 @@ type PopoutType =
 	| 'date_range'
 	| 'time_range'
 	| 'range'
-interface PopoutContentProps {
+
+interface MultiselectPopoutContentProps {
 	type: PopoutType
-	value: OnChangeInput
-	onChange: OnChange
+	value: MultiselectOption | undefined
+	onChange: OnMultiselectChange
 	loadOptions: LoadOptions
+}
+
+interface SelectPopoutContentProps {
+	type: PopoutType
+	value: SelectOption | undefined
+	icon?: React.ReactNode
+	valueRender?: React.ReactNode
+	onChange: OnSelectChange
+	loadOptions: LoadOptions
+	defaultOpen?: boolean
 }
 
 interface PopoutProps {
 	disabled: boolean
 }
 
-interface SetVisible {
-	setVisible: (val: boolean) => void
-}
-
 export const TIME_MAX_LENGTH = 60
 export const RANGE_MAX_LENGTH = 200
 
-const TOOLTIP_MESSAGE = 'This property was automatically collected by Highlight'
-
-const styleProps: Styles<{ label: string; value: string }, false> = {
-	...SharedSelectStyleProps,
-	option: (provided, { isFocused }) => ({
-		...provided,
-		whiteSpace: 'nowrap',
-		overflow: 'hidden',
-		textOverflow: 'ellipsis',
-		direction: 'ltr',
-		textAlign: 'left',
-		padding: '0 0 0 12px',
-		marginRight: '12px',
-		fontSize: '12px',
-		color: 'var(--color-text-primary)',
-		backgroundColor: isFocused ? 'var(--color-gray-200)' : 'none',
-		'&:active': {
-			backgroundColor: 'var(--color-gray-200)',
-		},
-	}),
-	menuList: (provided) => ({
-		...provided,
-		scrollbarWidth: 'none',
-		padding: '0',
-		'&::-webkit-scrollbar': {
-			display: 'none',
-		},
-		maxHeight: '400px',
-	}),
-	control: (provided) => ({
-		...provided,
-		border: '0',
-		boxShadow: '0',
-		fontSize: '12px',
-		background: 'none',
-		'border-radius': '0',
-		'border-bottom': '1px solid var(--color-gray-300)',
-		'&:hover': {
-			'border-bottom': '1px solid var(--color-gray-300)',
-		},
-	}),
-	valueContainer: (provided) => ({
-		...provided,
-		padding: '8px 12px',
-	}),
-	noOptionsMessage: (provided) => ({
-		...provided,
-		fontSize: '12px',
-	}),
-	loadingMessage: (provided) => ({
-		...provided,
-		fontSize: '12px',
-	}),
-}
-
-function useScroll<T extends HTMLElement>(): [() => void, React.RefObject<T>] {
-	const ref = useRef<T>(null)
-	const doScroll = useCallback(() => {
-		ref?.current?.scrollIntoView({ inline: 'center' })
-	}, [])
-
-	return [doScroll, ref]
-}
-
-const OptionLabelName: React.FC<React.PropsWithChildren> = (props) => {
-	const ref = useRef<HTMLDivElement>(null)
-
-	const [className, setClassName] = useState<string>(styles.shadowContainer)
-
-	const setScrollShadow = (target: any) => {
-		const { scrollLeft, offsetWidth, scrollWidth } = target
-		const showRightShadow = scrollLeft + offsetWidth < scrollWidth
-		const showLeftShadow = scrollLeft > 0
-		setClassName(
-			clsx(styles.shadowContainer, {
-				[styles.shadowRight]: showRightShadow && !showLeftShadow,
-				[styles.shadowLeft]: showLeftShadow && !showRightShadow,
-				[styles.shadowBoth]: showLeftShadow && showRightShadow,
-			}),
-		)
-	}
-
-	useEffect(() => {
-		if (!!ref?.current) {
-			setScrollShadow(ref.current)
-			const onScroll = (ev: any) => {
-				setScrollShadow(ev.target)
-			}
-			ref.current.removeEventListener('scroll', onScroll)
-			ref.current.addEventListener('scroll', onScroll, { passive: true })
-			return () => window.removeEventListener('scroll', onScroll)
-		}
-	}, [ref])
-
-	return (
-		<div className={styles.shadowParent}>
-			<div className={className} />
-			<div className={styles.optionLabelName} ref={ref}>
-				{props.children}
-			</div>
-		</div>
-	)
-}
-
-const ScrolledTextHighlighter = ({
-	searchWords,
-	textToHighlight,
-}: {
-	searchWords: string[]
-	textToHighlight: string
-}) => {
-	const [memoText, setMemoText] = useState<string>(textToHighlight)
-	if (!isEqual(memoText, textToHighlight)) {
-		setMemoText(textToHighlight)
-	}
-	const [doScroll, ref] = useScroll()
-
-	useEffect(() => {
-		doScroll()
-	}, [doScroll, textToHighlight])
-
-	const ScrolledMark = (props: any) => {
-		if (props.highlightIndex === 0) {
-			// Attach the ref to the first matching instance
-			return (
-				<mark className={styles.highlighterStyles} ref={ref}>
-					{props.children}
-				</mark>
-			)
-		} else {
-			return (
-				<mark className={styles.highlighterStyles}>
-					{props.children}
-				</mark>
-			)
-		}
-	}
-
-	return (
-		<TextHighlighter
-			highlightTag={ScrolledMark}
-			searchWords={searchWords}
-			textToHighlight={textToHighlight}
-		/>
-	)
-}
 const getDateLabel = (value: string): string => {
 	if (!value.includes('_')) {
 		// Value is a duration such as '7 days'
@@ -359,96 +237,33 @@ const getStateLabel = (value: string): string => {
 	}
 }
 
-const getMultiselectOption = (props: any) => {
-	const {
-		label,
-		value,
-		isSelected,
-		selectOption,
-		data: { __isNew__: isNew },
-		selectProps: { inputValue },
-	} = props
-
-	return (
-		<div>
-			<components.Option {...props}>
-				<div className={styles.optionLabelContainer}>
-					<Checkbox
-						className={styles.optionCheckbox}
-						checked={isSelected}
-						onChange={() => {
-							selectOption({
-								label: label,
-								value: value,
-								data: { fromCheckbox: true },
-							})
-						}}
-					></Checkbox>
-
-					<OptionLabelName>
-						{isNew ? ( // Don't highlight user provided values (e.g. contains/matches input)
-							label
-						) : (
-							<ScrolledTextHighlighter
-								searchWords={inputValue.split(' ')}
-								textToHighlight={label}
-							/>
-						)}
-					</OptionLabelName>
-				</div>
-			</components.Option>
-		</div>
-	)
-}
-
-const getOption = (props: any) => {
-	const {
-		label,
-		value,
-		selectProps: { inputValue },
-	} = props
-	const type = getType(value)
+const getOption = (option: Option, query: string) => {
+	const { label, value } = option
 	const nameLabel = getNameLabel(label)
-	const typeLabel = getTypeLabel(value)
+	const icon = getIcon(value)
 	const tooltipMessage = TOOLTIP_MESSAGES[value]
-	const searchWords = [inputValue]
 
 	return (
-		<div>
-			<components.Option {...props}>
-				<div className={styles.optionLabelContainer}>
-					{!!typeLabel && (
-						<div className={styles.labelTypeContainer}>
-							<div className={styles.optionLabelType}>
-								<TextHighlighter
-									searchWords={searchWords}
-									textToHighlight={typeLabel}
-								/>
-							</div>
-						</div>
-					)}
-					<div className={styles.optionLabelName}>
-						<TextHighlighter
-							searchWords={searchWords}
-							textToHighlight={nameLabel}
-						/>
-					</div>
-					{(!!tooltipMessage ||
-						type === SESSION_TYPE ||
-						type === CUSTOM_TYPE ||
-						type === ERROR_TYPE ||
-						type === ERROR_FIELD_TYPE ||
-						value === 'user_identifier') && (
-						<InfoTooltip
-							title={tooltipMessage ?? TOOLTIP_MESSAGE}
-							size="medium"
-							hideArrow
-							placement="right"
-							className={styles.optionTooltip}
-						/>
-					)}
-				</div>
-			</components.Option>
+		<div className={newStyle.optionLabelContainer}>
+			{icon}
+			<TextHighlighter
+				searchWords={[query]}
+				textToHighlight={nameLabel}
+			/>
+			{!!tooltipMessage && (
+				<Tooltip
+					placement="right"
+					trigger={
+						<Box display="flex">
+							<IconSolidQuestionMarkCircle size={18} />
+						</Box>
+					}
+				>
+					<Text color="moderate" size="xSmall">
+						{tooltipMessage}
+					</Text>
+				</Tooltip>
+			)}
 		</div>
 	)
 }
@@ -456,168 +271,9 @@ const getOption = (props: any) => {
 const PopoutContent = ({
 	value,
 	onChange,
-	loadOptions,
-	setVisible,
 	type,
-	...props
-}: PopoutContentProps & SetVisible & OptionTypeBase) => {
+}: MultiselectPopoutContentProps) => {
 	switch (type) {
-		case 'select':
-			return (
-				<AsyncSelect
-					autoFocus
-					openMenuOnFocus
-					value={value?.kind === 'single' ? value : null}
-					styles={styleProps}
-					loadOptions={loadOptions}
-					defaultOptions
-					menuIsOpen
-					controlShouldRenderValue={false}
-					hideSelectedOptions={false}
-					isClearable={false}
-					components={{
-						DropdownIndicator: () => null,
-						IndicatorSeparator: () => null,
-						Menu: (props) => {
-							return (
-								<components.MenuList
-									className={styles.menuListContainer}
-									maxHeight={400}
-									{...props}
-								></components.MenuList>
-							)
-						},
-						Option: getOption,
-					}}
-					noOptionsMessage={({ inputValue }) =>
-						`No results for "${inputValue}"`
-					}
-					onChange={(item) => {
-						onChange(
-							!!item ? { kind: 'single', ...item } : undefined,
-						)
-						setVisible(false)
-					}}
-					{...props}
-				/>
-			)
-		case 'multiselect':
-			const selected =
-				(value?.kind === 'multi' ? value.options : null) ?? []
-			return (
-				<AsyncSelect
-					autoFocus
-					openMenuOnFocus
-					isMulti
-					value={selected}
-					styles={styleProps}
-					loadOptions={(input, callback) => {
-						const selectedSet = new Set(
-							selected.map((s) => s.value),
-						)
-						return loadOptions(input, callback).then((results) => [
-							...selected,
-							...results.filter(
-								(r: any) => !selectedSet.has(r.value),
-							),
-						])
-					}}
-					defaultOptions
-					menuIsOpen
-					controlShouldRenderValue={false}
-					hideSelectedOptions={false}
-					isClearable={false}
-					components={{
-						DropdownIndicator: () => null,
-						IndicatorSeparator: () => null,
-						Menu: (props) => {
-							return (
-								<components.MenuList
-									className={styles.menuListContainer}
-									maxHeight={400}
-									{...props}
-								></components.MenuList>
-							)
-						},
-						Option: getMultiselectOption,
-						LoadingIndicator: () => {
-							return <></>
-						},
-					}}
-					noOptionsMessage={({ inputValue }) =>
-						`No results for "${inputValue}"`
-					}
-					onChange={(item) => {
-						onChange(
-							!!item
-								? {
-										kind: 'multi',
-										options: item as readonly {
-											label: string
-											value: string
-										}[],
-								  }
-								: undefined,
-						)
-						if (value === undefined) {
-							setVisible(false)
-						}
-					}}
-					{...props}
-				/>
-			)
-		case 'creatable':
-			const created =
-				(value?.kind === 'multi' ? value.options : null) ?? []
-			return (
-				<Creatable
-					autoFocus
-					openMenuOnFocus
-					isMulti
-					value={created}
-					styles={styleProps}
-					options={created}
-					defaultOptions
-					menuIsOpen
-					controlShouldRenderValue={false}
-					hideSelectedOptions={false}
-					isClearable={false}
-					filterOption={() => true}
-					components={{
-						DropdownIndicator: () => null,
-						IndicatorSeparator: () => null,
-						Menu: (props) => {
-							return (
-								<components.MenuList
-									className={styles.menuListContainer}
-									maxHeight={400}
-									{...props}
-								></components.MenuList>
-							)
-						},
-						Option: getMultiselectOption,
-					}}
-					noOptionsMessage={() => null}
-					onChange={(item) => {
-						onChange(
-							!!item
-								? {
-										kind: 'multi',
-										options: item as readonly {
-											label: string
-											value: string
-										}[],
-								  }
-								: undefined,
-						)
-						setVisible(false)
-					}}
-					formatCreateLabel={(label) => label}
-					createOptionPosition="first"
-					allowCreateWhileLoading={false}
-					{...props}
-				/>
-			)
 		case 'date_range':
 			return (
 				<DateInput
@@ -651,7 +307,6 @@ const PopoutContent = ({
 								},
 							],
 						})
-						setVisible(false)
 					}}
 				/>
 			)
@@ -682,7 +337,6 @@ const PopoutContent = ({
 								},
 							],
 						})
-						setVisible(false)
 					}}
 				/>
 			)
@@ -713,95 +367,212 @@ const PopoutContent = ({
 								},
 							],
 						})
-						setVisible(false)
 					}}
 				/>
 			)
 	}
+	return null
+}
+
+function useDebouncedState<T>(
+	initialState: T,
+	delay: number,
+): [T, React.Dispatch<React.SetStateAction<T>>] {
+	const [value, setValue] = useState<T>(initialState)
+	const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+	useEffect(() => {
+		const timer = setTimeout(() => setDebouncedValue(value), delay)
+
+		return () => {
+			clearTimeout(timer)
+		}
+	}, [value, delay])
+
+	return [debouncedValue, setValue]
+}
+
+const MultiselectPopout = ({
+	value,
+	cssClass,
+	loadOptions,
+	type,
+	onChange,
+	disabled,
+}: PopoutProps &
+	MultiselectPopoutContentProps & {
+		cssClass?: ClassValue | ClassValue[]
+		limitWidth?: boolean
+	}) => {
+	const [query, setQuery] = useDebouncedState('', 300)
+	const [lastQuery, setLastQuery] = useState('')
+	const [options, setOptions] = useState<Option[] | undefined>(undefined)
+	useMemo(() => {
+		loadOptions(query).then((v) => {
+			setOptions(v ?? [])
+			setLastQuery(query)
+		})
+	}, [loadOptions, query])
+
+	const invalid = value === undefined || value.options.length === 0
+
+	let label = '--'
+	if (invalid) {
+		label = '--'
+	} else if (value.options.length > 1) {
+		label = `${value.options.length} selections`
+	} else if (value.options.length === 1) {
+		label = value.options[0].label
+	}
+
+	let multiValue: string[] = []
+	switch (type) {
+		case 'multiselect':
+			multiValue = value?.options.map((o) => o.value) ?? []
+			return (
+				<ComboboxSelect
+					label="value"
+					value={multiValue}
+					valueRender={label}
+					options={options?.map((o) => ({
+						key: o.value,
+						render: getOption(o, lastQuery),
+					}))}
+					onChange={(val: string[]) => {
+						onChange({
+							kind: 'multi',
+							options: val.map((i) => ({
+								label: i,
+								value: i,
+							})),
+						})
+					}}
+					onChangeQuery={(val: string) => {
+						setQuery(val)
+					}}
+					cssClass={cssClass}
+					queryPlaceholder="Filter..."
+					defaultOpen={invalid}
+					disabled={disabled}
+					loadingRender="Loading..."
+				/>
+			)
+		case 'creatable':
+			multiValue = value?.options.map((o) => o.value) ?? []
+			return (
+				<ComboboxSelect
+					label="value"
+					value={multiValue}
+					valueRender={label}
+					options={[]}
+					onChange={(val: string[]) => {
+						onChange({
+							kind: 'multi',
+							options: val.map((i) => ({
+								label: i,
+								value: i,
+							})),
+						})
+					}}
+					onChangeQuery={(val: string) => {
+						setQuery(val)
+					}}
+					cssClass={cssClass}
+					queryPlaceholder="Filter..."
+					creatableRender={(query) =>
+						getOption({ label: query, value: query }, '')
+					}
+					defaultOpen={invalid}
+					disabled={disabled}
+					loadingRender="Loading..."
+				/>
+			)
+		case 'date_range':
+		case 'time_range':
+		case 'range':
+			return (
+				<Popover placement="bottom-start">
+					<span className={newStyle.tagPopoverAnchor}>
+						<Popover.TagTrigger
+							kind="secondary"
+							shape="basic"
+							size="medium"
+							lines="1"
+							className={clsx([
+								newStyle.flatLeft,
+								newStyle.flatRight,
+							])}
+						>
+							{label}
+						</Popover.TagTrigger>
+					</span>
+					<Popover.Content
+						disabled={disabled}
+						className={newStyle.selectPopover}
+					>
+						<PopoutContent
+							value={value}
+							type={type}
+							onChange={onChange}
+							loadOptions={loadOptions}
+						/>
+					</Popover.Content>
+				</Popover>
+			)
+	}
+	return null
 }
 
 const SelectPopout = ({
 	value,
-	disabled,
+	valueRender,
+	icon,
 	cssClass,
-	limitWidth,
-	...props
+	loadOptions,
+	onChange,
+	defaultOpen,
+	disabled,
 }: PopoutProps &
-	PopoutContentProps & {
+	SelectPopoutContentProps & {
 		cssClass?: ClassValue | ClassValue[]
 		limitWidth?: boolean
 	}) => {
-	// Visible by default if no value yet
-	const [visible, setVisible] = useState(!value)
-	const onSetVisible = (val: boolean) => {
-		setVisible(val)
-	}
+	const [query, setQuery] = useState('')
+	const [options, setOptions] = useState<Option[]>([])
+	useMemo(() => {
+		loadOptions(query).then((v) => setOptions(v ?? []))
+	}, [loadOptions, query])
 
-	const invalid =
-		value === undefined ||
-		(value?.kind === 'multi' && value.options.length === 0)
-
-	const tooltipMessage =
-		(value?.kind === 'multi' &&
-			value.options.map((o) => o.label).join(', ')) ||
-		undefined
-
-	const inner = (
-		<Tooltip
-			title={tooltipMessage}
-			mouseEnterDelay={1.5}
-			overlayStyle={{ maxWidth: '50vw', fontSize: '12px' }}
-		>
-			<span className={newStyle.tagPopoverAnchor}>
-				<Tag
-					kind="secondary"
-					size="medium"
-					shape="basic"
-					className={clsx(cssClass, {
-						[styles.invalid]: invalid && !visible,
-					})}
-					lines={limitWidth ? '1' : undefined}
-					disabled={disabled}
-				>
-					{invalid && '--'}
-					{value?.kind === 'single' && getNameLabel(value.label)}
-					{value?.kind === 'multi' &&
-						value.options.length > 1 &&
-						`${value.options.length} selections`}
-					{value?.kind === 'multi' &&
-						value.options.length === 1 &&
-						value.options[0].label}
-				</Tag>
-			</span>
-		</Tooltip>
-	)
-
-	if (disabled) {
-		return inner
+	let label = '--'
+	if (value !== undefined) {
+		label = getNameLabel(value.label)
 	}
 
 	return (
-		<Popover
-			showArrow={false}
-			trigger="click"
-			content={
-				<PopoutContent
-					value={value}
-					setVisible={onSetVisible}
-					{...props}
-				/>
-			}
-			placement="bottomLeft"
-			contentContainerClassName={styles.contentContainer}
-			popoverClassName={styles.popoverContainer}
-			onVisibleChange={(isVisible) => {
-				setVisible(isVisible)
+		<ComboboxSelect
+			label="key"
+			icon={icon}
+			value={value?.value ?? ''}
+			valueRender={valueRender !== undefined ? valueRender : label}
+			options={options.map((o) => ({
+				key: o.value,
+				render: getOption(o, query),
+			}))}
+			onChange={(val: string) => {
+				const selected = options.find((o) => o.value === val)!
+				onChange({
+					kind: 'single',
+					...selected,
+				})
 			}}
-			visible={visible}
-			destroyTooltipOnHide
-		>
-			{inner}
-		</Popover>
+			onChangeQuery={(val: string) => {
+				setQuery(val)
+			}}
+			cssClass={cssClass}
+			queryPlaceholder="Filter..."
+			defaultOpen={defaultOpen}
+			disabled={disabled}
+		/>
 	)
 }
 
@@ -825,15 +596,60 @@ const getPopoutType = (op: Operator | undefined): PopoutType => {
 
 const QueryRule = ({
 	rule,
-	onChangeKey,
 	getKeyOptions,
-	onChangeOperator,
-	getOperatorOptions,
-	onChangeValue,
-	getValueOptions,
-	onRemove,
+	getOperatorOptionsCallback,
+	getValueOptionsCallback,
+	removeRule,
+	updateRule,
 	readonly,
+	getCustomFieldOptions,
+	getDefaultOperator,
 }: { rule: RuleProps } & RuleSettings) => {
+	const onChangeKey = useCallback(
+		(val: SelectOption) => {
+			// Default to 'is' when rule is not defined yet
+			if (rule.op === undefined) {
+				updateRule(rule, {
+					field: val,
+					op: getDefaultOperator(rule.field),
+					val: undefined,
+				})
+			} else {
+				updateRule(rule, {
+					field: val,
+					val: undefined,
+				})
+			}
+		},
+		[getDefaultOperator, rule, updateRule],
+	)
+
+	const onChangeOperator = useCallback(
+		(val: SelectOption) => {
+			if (val?.kind === 'single') {
+				updateRule(rule, { op: val.value })
+			}
+		},
+		[rule, updateRule],
+	)
+
+	const onChangeValue = useCallback(
+		(val: MultiselectOption) => {
+			updateRule(rule, { val: val })
+		},
+		[rule, updateRule],
+	)
+
+	const getOperatorOptions = getOperatorOptionsCallback(
+		getCustomFieldOptions(rule.field),
+		rule.val,
+	)
+
+	const getValueOptions = useCallback(
+		(input: string) => getValueOptionsCallback(rule.field)(input),
+		[getValueOptionsCallback, rule.field],
+	)
+
 	return (
 		<Box display="inline-flex" gap="1">
 			<SelectPopout
@@ -842,7 +658,7 @@ const QueryRule = ({
 				loadOptions={getKeyOptions}
 				type="select"
 				disabled={readonly}
-				cssClass={[newStyle.flatRight, newStyle.tagKey]}
+				cssClass={[newStyle.tag, newStyle.flatRight, newStyle.tagKey]}
 			/>
 			<SelectPopout
 				value={getOperator(rule.op, rule.val)}
@@ -851,6 +667,7 @@ const QueryRule = ({
 				type="select"
 				disabled={readonly}
 				cssClass={[
+					newStyle.tag,
 					newStyle.tagKey,
 					newStyle.flatLeft,
 					{
@@ -858,9 +675,10 @@ const QueryRule = ({
 							(!!rule.op && hasArguments(rule.op)) || !readonly,
 					},
 				]}
+				defaultOpen={rule.op === undefined}
 			/>
 			{!!rule.op && hasArguments(rule.op) && (
-				<SelectPopout
+				<MultiselectPopout
 					value={rule.val}
 					onChange={onChangeValue}
 					loadOptions={getValueOptions}
@@ -868,7 +686,7 @@ const QueryRule = ({
 					disabled={readonly}
 					limitWidth
 					cssClass={[
-						newStyle.tagValue,
+						newStyle.tag,
 						newStyle.flatLeft,
 						{ [newStyle.flatRight]: !readonly },
 					]}
@@ -881,7 +699,7 @@ const QueryRule = ({
 					shape="basic"
 					className={newStyle.flatLeft}
 					onClick={() => {
-						onRemove()
+						removeRule(rule)
 					}}
 					iconRight={<IconSolidX size={12} />}
 				/>
@@ -1012,7 +830,7 @@ const LABEL_MAP: { [key: string]: string } = {
 
 const getOperator = (
 	op: Operator | undefined,
-	val: OnChangeInput,
+	val: MultiselectOption | undefined,
 ): SelectOption | undefined => {
 	if (!op) {
 		return undefined
@@ -1026,8 +844,8 @@ const getOperator = (
 	}
 }
 
-const isSingle = (val: OnChangeInput) =>
-	!(val?.kind === 'multi' && val.options.length > 1)
+const isSingle = (val: MultiselectOption | undefined) =>
+	!(val !== undefined && val.options.length > 1)
 
 interface FieldOptions {
 	operators?: Operator[]
@@ -1125,15 +943,87 @@ const isComplete = (rule: RuleProps) =>
 	rule.field !== undefined &&
 	rule.op !== undefined &&
 	(!hasArguments(rule.op) ||
-		(rule.val !== undefined && rule.val.options.length !== 0))
+		(rule.val !== undefined && rule.val?.options?.length !== 0))
 
 const getNameLabel = (label: string) => LABEL_MAP[label] ?? label
 
-const getTypeLabel = (value: string) => {
+const getIcon = (value: string): JSX.Element | undefined => {
+	switch (value) {
+		case 'custom_app_version':
+			return <IconSolidDesktopComputer />
+		case 'session_browser_name':
+			return <IconSolidGlobeAlt />
+		case 'session_browser_version':
+			return <IconSolidGlobeAlt />
+		case 'session_city':
+			return <IconSolidGlobe />
+		case 'session_clickSelector':
+			return <IconSolidCursorClick />
+		case 'session_clickTextContent':
+			return <IconSolidDocumentText />
+		case 'session_country':
+			return <IconSolidGlobe />
+		case 'session_device_id':
+			return <IconSolidUser />
+		case 'session_environment':
+			return <IconSolidTerminal />
+		case 'track_event':
+			return <IconSolidCalendar />
+		case 'session_exit_page':
+			return <IconSolidDocumentRemove />
+		case 'custom_first_time':
+			return <IconSolidUserAdd />
+		case 'custom_has_comments':
+			return <IconSolidChat />
+		case 'custom_has_errors':
+			return <IconSolidLightningBolt />
+		case 'custom_has_rage_clicks':
+			return <IconSolidCursorClick />
+		case 'session_landing_page':
+			return <IconSolidDocumentAdd />
+		case 'custom_active_length':
+			return <IconSolidClock />
+		case 'session_os_name':
+			return <IconSolidDesktopComputer />
+		case 'session_os_version':
+			return <IconSolidDesktopComputer />
+		case 'session_reload':
+			return <IconSolidRefresh />
+		case 'custom_processed':
+			return <IconSolidTag />
+		case 'custom_viewed':
+			return <IconSolidEye />
+		case 'custom_viewed_by_me':
+			return <IconSolidEye />
+		case 'session_visited-url':
+			return <IconSolidLink />
+		case 'error-field_browser':
+			return <IconSolidGlobeAlt />
+		case 'error-field_environment':
+			return <IconSolidTerminal />
+		case 'error_Event':
+			return <IconSolidCalendar />
+		case 'error-field_os_name':
+			return <IconSolidDesktopComputer />
+		case 'error_state':
+			return <IconSolidTag />
+		case 'error_Type':
+			return <IconSolidCube />
+		case 'error-field_visited_url':
+			return <IconSolidLink />
+	}
 	const type = getType(value)
 	const mapped = type === CUSTOM_TYPE ? 'session' : type
+	switch (type) {
+		case 'session':
+			return <IconSolidDesktopComputer />
+		case 'user':
+			return <IconSolidUser />
+		case 'track':
+			return <IconSolidDesktopComputer />
+	}
 	if (!!mapped && ['track', 'user', 'session'].includes(mapped)) {
-		return mapped
+		return <IconSolidUser />
 	}
 	return undefined
 }
@@ -1201,7 +1091,6 @@ interface QueryBuilderProps {
 	fetchFields: (variables?: FetchFieldVariables) => Promise<string[]>
 	fieldData?: GetFieldTypesQuery
 	readonly?: boolean
-	setShowLeftPanel: (value: boolean) => void
 	useEditAnySegmentMutation:
 		| typeof useEditSegmentMutation
 		| typeof useEditErrorSegmentMutation
@@ -1217,7 +1106,6 @@ interface QueryBuilderProps {
 }
 
 enum QueryBuilderMode {
-	EMPTY = 'EMPTY',
 	CUSTOM = 'CUSTOM',
 	SEGMENT = 'SEGMENT',
 	SEGMENT_UPDATE = 'SEGMENT_UPDATE',
@@ -1240,7 +1128,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		fetchFields,
 		fieldData,
 		readonly,
-		setShowLeftPanel,
 		useEditAnySegmentMutation,
 		useGetAnySegmentsQuery,
 		CreateAnySegmentModal,
@@ -1413,14 +1300,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 		[isAnd, readonly, setSearchQuery],
 	)
 
-	const addNewRule = () => {
-		setCurrentRule({
-			field: undefined,
-			op: undefined,
-			val: undefined,
-		})
-		setCurrentStep(1)
-	}
 	const addRule = useCallback(
 		(rule: RuleProps) => {
 			setRulesImpl([...rules, rule])
@@ -1461,11 +1340,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 					value: ft.type + '_' + ft.name,
 				}))
 				.filter((ft) =>
-					(
-						getTypeLabel(ft.value)?.toLowerCase() +
-						':' +
-						getNameLabel(ft.label).toLowerCase()
-					).includes(input.toLowerCase()),
+					getNameLabel(ft.label)
+						.toLowerCase()
+						.includes(input.toLowerCase()),
 				)
 				.sort((a, b) => {
 					const aLower = getNameLabel(a.label).toLowerCase()
@@ -1484,14 +1361,15 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const getOperatorOptionsCallback = (
 		options: FieldOptions | undefined,
-		val: OnChangeInput,
+		val: MultiselectOption | undefined,
 	) => {
 		return async (input: string) => {
 			return (options?.operators ?? OPERATORS)
 				.map((op) => getOperator(op, val))
+				.filter((op) => op !== undefined)
 				.filter((op) =>
 					op?.label.toLowerCase().includes(input.toLowerCase()),
-				)
+				) as Option[]
 		}
 	}
 
@@ -1502,7 +1380,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const getValueOptionsCallback = useCallback(
 		(field: SelectOption | undefined) => {
-			return async (input: string) => {
+			return async (input: string): Promise<Option[] | undefined> => {
 				if (field === undefined) {
 					return
 				}
@@ -1544,9 +1422,13 @@ function QueryBuilder(props: QueryBuilderProps) {
 				}
 
 				if (options.length > 0) {
-					return options.filter((opt) =>
-						opt.label?.toLowerCase().includes(input.toLowerCase()),
-					)
+					return options
+						.filter((opt) =>
+							opt.label
+								?.toLowerCase()
+								.includes(input.toLowerCase()),
+						)
+						.slice(0, 10)
 				}
 
 				let label = field.label
@@ -1621,14 +1503,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}, [removeSelectedSegment])
 
-	const [currentStep, setCurrentStep] = useState<number | undefined>(
-		undefined,
-	)
+	const { setShowLeftPanel } = usePlayerConfiguration()
 
-	const mode = useMemo(() => {
-		if (filterRules.length === 0 && !selectedSegment) {
-			return QueryBuilderMode.EMPTY
-		} else if (selectedSegment !== undefined) {
+	const mode = (() => {
+		if (selectedSegment !== undefined) {
 			if (searchQuery !== existingQuery) {
 				return QueryBuilderMode.SEGMENT_UPDATE
 			} else {
@@ -1636,7 +1514,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 			}
 		}
 		return QueryBuilderMode.CUSTOM
-	}, [existingQuery, filterRules.length, searchQuery, selectedSegment])
+	})()
 
 	const addFilterButton = useMemo(() => {
 		if (readonly) {
@@ -1644,134 +1522,31 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 
 		return (
-			<Popover
-				showArrow={false}
-				trigger="click"
-				content={
-					currentRule?.field === undefined ? (
-						<PopoutContent
-							key="popover-step-1"
-							value={undefined}
-							setVisible={() => {
-								setCurrentStep(undefined)
-							}}
-							onChange={(val) => {
-								const field = val as SelectOption | undefined
-								const operators =
-									field &&
-									getCustomFieldOptions(field)?.operators
-								addRule({
-									field: field,
-									op:
-										operators && operators.length === 1
-											? operators[0]
-											: undefined,
-									val: undefined,
-								})
-							}}
-							loadOptions={getKeyOptions}
-							type="select"
-							placeholder="Filter..."
-						/>
-					) : currentRule?.op === undefined ? (
-						<PopoutContent
-							key="popover-step-2"
-							value={undefined}
-							setVisible={() => {
-								setCurrentStep(3)
-							}}
-							onChange={(val) => {
-								const op = (val as SelectOption)
-									.value as Operator
-								if (!hasArguments(op)) {
-									setCurrentStep(undefined)
-									addRule({
-										...currentRule,
-										op,
-									})
-								} else {
-									setCurrentRule({
-										...currentRule,
-										op,
-									})
-								}
-							}}
-							loadOptions={getOperatorOptionsCallback(
-								getCustomFieldOptions(currentRule.field),
-								currentRule.val,
-							)}
-							type="select"
-							placeholder="Select..."
-						/>
-					) : (
-						<PopoutContent
-							key="popover-step-3"
-							value={undefined}
-							setVisible={() => {
-								setCurrentStep(undefined)
-							}}
-							onChange={(val) => {
-								addRule({
-									...currentRule,
-									val: val as MultiselectOption | undefined,
-								})
-							}}
-							loadOptions={getValueOptionsCallback(
-								currentRule.field,
-							)}
-							type={getPopoutType(currentRule.op)}
-							placeholder="Select..."
-						/>
-					)
-				}
-				placement="bottomLeft"
-				contentContainerClassName={styles.contentContainer}
-				popoverClassName={styles.popoverContainer}
-				destroyTooltipOnHide
-				onVisibleChange={(isVisible) => {
-					if (!isVisible) {
-						setCurrentStep(undefined)
-					}
+			<SelectPopout
+				value={undefined}
+				icon={<IconSolidPlusSm size={12} />}
+				onChange={(val) => {
+					const field = val as SelectOption | undefined
+					const operators =
+						field && getCustomFieldOptions(field)?.operators
+					addRule({
+						field: field,
+						op:
+							operators && operators.length === 1
+								? operators[0]
+								: undefined,
+						val: undefined,
+					})
 				}}
-				visible={
-					currentStep === 1 ||
-					(currentStep === 2 && !!currentRule?.field) ||
-					(currentStep === 3 && !!currentRule?.op)
-				}
-			>
-				{mode === QueryBuilderMode.EMPTY ? (
-					<Button
-						kind="secondary"
-						size="xSmall"
-						emphasis="low"
-						iconLeft={<IconSolidPlusSm size={12} />}
-						onClick={addNewRule}
-						trackingId="queryBuilderAddFilter"
-					>
-						Add filter
-					</Button>
-				) : (
-					<ButtonIcon
-						kind="secondary"
-						size="xSmall"
-						emphasis="low"
-						icon={<IconSolidPlusSm size={12} />}
-						onClick={addNewRule}
-						cssClass={newStyle.addButton}
-					/>
-				)}
-			</Popover>
+				valueRender={null}
+				loadOptions={getKeyOptions}
+				type="select"
+				cssClass={[newStyle.addButton]}
+				disabled={false}
+			/>
 		)
-	}, [
-		addRule,
-		currentRule,
-		currentStep,
-		getCustomFieldOptions,
-		getKeyOptions,
-		getValueOptionsCallback,
-		mode,
-		readonly,
-	])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [addRule, currentRule, getKeyOptions, readonly])
 
 	const canUpdateSegment =
 		!!selectedSegment && filterRules.length > 0 && areRulesValid
@@ -1814,8 +1589,6 @@ function QueryBuilder(props: QueryBuilderProps) {
 
 	const actionButton = useMemo(() => {
 		switch (mode) {
-			case QueryBuilderMode.EMPTY:
-				return addFilterButton
 			case QueryBuilderMode.CUSTOM:
 				return (
 					<Menu.Button
@@ -1858,7 +1631,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 					</Menu.Button>
 				)
 		}
-	}, [addFilterButton, areRulesValid, mode, selectedSegment?.name])
+	}, [areRulesValid, mode, selectedSegment?.name])
 
 	const controlBar = useMemo(() => {
 		return (
@@ -2036,69 +1809,48 @@ function QueryBuilder(props: QueryBuilderProps) {
 				m={readonly ? undefined : '8'}
 				shadow="medium"
 			>
-				{mode !== QueryBuilderMode.EMPTY && (
-					<Box
-						p="4"
-						paddingBottom="8"
-						background="white"
-						borderBottom={readonly ? undefined : 'secondary'}
-						display="flex"
-						alignItems="center"
-						flexWrap="wrap"
-						gap="4"
-					>
-						{filterRules.flatMap((rule, index) => [
-							...(index != 0
-								? [
-										<Tag
-											shape="basic"
-											kind="secondary"
-											emphasis="low"
-											onClick={toggleIsAnd}
-											key={`separator-${index}`}
-											disabled={readonly}
-										>
-											{isAnd ? 'and' : 'or'}
-										</Tag>,
-								  ]
-								: []),
-							<QueryRule
-								key={`rule-${index}`}
-								rule={rule}
-								onChangeKey={(val) => {
-									// Default to 'is' when rule is not defined yet
-									if (rule.op === undefined) {
-										updateRule(rule, {
-											field: val,
-											op: getDefaultOperator(rule.field),
-										})
-									} else {
-										updateRule(rule, { field: val })
-									}
-								}}
-								getKeyOptions={getKeyOptions}
-								onChangeOperator={(val) => {
-									if (val?.kind === 'single') {
-										updateRule(rule, { op: val.value })
-									}
-								}}
-								getOperatorOptions={getOperatorOptionsCallback(
-									getCustomFieldOptions(rule.field),
-									rule.val,
-								)}
-								onChangeValue={(val) => {
-									updateRule(rule, { val: val })
-								}}
-								getValueOptions={getValueOptionsCallback(
-									rule.field,
-								)}
-								onRemove={() => removeRule(rule)}
-								readonly={readonly ?? false}
-							/>,
-						])}
-						{addFilterButton}
-					</Box>
-				)}
+				<Box
+					p="4"
+					paddingBottom="8"
+					background="white"
+					borderBottom={readonly ? undefined : 'secondary'}
+					display="flex"
+					alignItems="center"
+					flexWrap="wrap"
+					gap="4"
+				>
+					{filterRules.flatMap((rule, index) => [
+						...(index != 0
+							? [
+									<Tag
+										shape="basic"
+										kind="secondary"
+										emphasis="low"
+										onClick={toggleIsAnd}
+										key={`separator-${index}`}
+										disabled={readonly}
+									>
+										{isAnd ? 'and' : 'or'}
+									</Tag>,
+							  ]
+							: []),
+						<QueryRule
+							key={`rule-${index}`}
+							rule={rule}
+							getDefaultOperator={getDefaultOperator}
+							getKeyOptions={getKeyOptions}
+							getOperatorOptionsCallback={
+								getOperatorOptionsCallback
+							}
+							getCustomFieldOptions={getCustomFieldOptions}
+							getValueOptionsCallback={getValueOptionsCallback}
+							removeRule={removeRule}
+							readonly={readonly ?? false}
+							updateRule={updateRule}
+						/>,
+					])}
+					{addFilterButton}
+				</Box>
 				{!readonly && (
 					<Box
 						display="flex"

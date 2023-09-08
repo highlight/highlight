@@ -4,7 +4,6 @@ import {
 	Badge,
 	Box,
 	Combobox,
-	Form,
 	IconSolidExternalLink,
 	IconSolidPlus,
 	IconSolidSearch,
@@ -14,9 +13,7 @@ import {
 	PreviousDateRangePicker,
 	Stack,
 	Text,
-	useComboboxState,
-	useForm,
-	useFormState,
+	useComboboxStore,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { LOG_TIME_FORMAT, TIME_MODE } from '@pages/LogsPage/constants'
@@ -70,8 +67,8 @@ const SearchForm = ({
 	hideCreateAlert,
 }: Props) => {
 	const navigate = useNavigate()
-	const formState = useFormState({ defaultValues: { query: initialQuery } })
 	const { projectId } = useProjectId()
+	const [query, setQuery] = React.useState(initialQuery)
 	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
 		variables: {
 			project_id: projectId,
@@ -80,10 +77,6 @@ const SearchForm = ({
 				end_date: moment(endDate).format(LOG_TIME_FORMAT),
 			},
 		},
-	})
-
-	formState.useSubmit(() => {
-		onFormSubmit(formState.values.query)
 	})
 
 	const [dateRange, setDateRange] = useState<Date[]>([startDate, endDate])
@@ -96,11 +89,7 @@ const SearchForm = ({
 	}
 
 	return (
-		<Form
-			resetOnSubmit={false}
-			style={{ position: 'relative' }}
-			state={formState}
-		>
+		<>
 			<Box
 				alignItems="stretch"
 				display="flex"
@@ -115,6 +104,9 @@ const SearchForm = ({
 					keys={keysData?.logs_keys}
 					keysLoading={keysLoading}
 					disableSearch={disableSearch}
+					query={query}
+					setQuery={setQuery}
+					onFormSubmit={onFormSubmit}
 				/>
 				<Box display="flex" pr="8" py="6" gap="6">
 					{addLinkToViewInLogViewer && (
@@ -129,7 +121,7 @@ const SearchForm = ({
 										end_date: DateTimeParam,
 									},
 									{
-										query: formState.values.query,
+										query: query,
 										start_date: startDate,
 										end_date: endDate,
 									},
@@ -167,7 +159,7 @@ const SearchForm = ({
 										end_date: DateTimeParam,
 									},
 									{
-										query: formState.values.query,
+										query: query,
 										start_date: startDate,
 										end_date: endDate,
 									},
@@ -185,7 +177,7 @@ const SearchForm = ({
 					)}
 				</Box>
 			</Box>
-		</Form>
+		</>
 	)
 }
 
@@ -201,6 +193,9 @@ export const Search: React.FC<{
 	keysLoading: boolean
 	disableSearch?: boolean
 	placeholder?: string
+	query: string
+	setQuery: (value: string) => void
+	onFormSubmit: (query: string) => void
 }> = ({
 	initialQuery,
 	startDate,
@@ -211,20 +206,21 @@ export const Search: React.FC<{
 	keysLoading,
 	disableSearch,
 	placeholder,
+	query,
+	setQuery,
+	onFormSubmit,
 }) => {
-	const formState = useForm()
 	const { project_id } = useParams()
 	const containerRef = useRef<HTMLDivElement | null>(null)
 	const inputRef = useRef<HTMLInputElement | null>(null)
-	const state = useComboboxState({
-		gutter: 10,
-		sameWidth: true,
-		defaultValue: initialQuery ?? '',
+	const comboboxStore = useComboboxStore({
+		defaultValue: query ?? '',
 	})
+
 	const [getLogsKeyValues, { data, loading: valuesLoading }] =
 		useGetLogsKeyValuesLazyQuery()
 
-	const queryTerms = parseLogsQuery(state.value)
+	const queryTerms = parseLogsQuery(query)
 	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
@@ -237,17 +233,16 @@ export const Search: React.FC<{
 
 	const visibleItems = showValues
 		? getVisibleValues(activeTerm, data?.logs_key_values)
-		: getVisibleKeys(state.value, queryTerms, activeTerm, keys)
+		: getVisibleKeys(query, queryTerms, activeTerm, keys)
 
 	// Limit number of items shown
 	visibleItems.length = Math.min(MAX_ITEMS, visibleItems.length)
 
 	const showResults = loading || visibleItems.length > 0 || showTermSelect
-	const isDirty = state.value !== ''
+	const isDirty = query !== ''
 
 	const submitQuery = (query: string) => {
-		formState.setValue('query', query)
-		formState.submit()
+		onFormSubmit(query)
 	}
 
 	useEffect(() => {
@@ -276,25 +271,20 @@ export const Search: React.FC<{
 
 	useEffect(() => {
 		// necessary to update the combobox with the URL state
-		state.setValue(initialQuery.trim())
+		setQuery(initialQuery.trim())
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [initialQuery])
 
 	useEffect(() => {
-		// links combobox and form states;
-		// necessary to update the URL when the query changes
-		formState.setValue('query', state.value)
-
-		// Clear the selected item if the combobox is empty. Need to flush execution
-		// queue before clearing the active item.
-		if (state.value === '') {
+		if (query === '') {
 			setTimeout(() => {
-				state.setActiveId(null)
-				state.setMoves(0)
+				comboboxStore.setActiveId(null)
+				comboboxStore.setState('moves', 0)
 			}, 0)
 		}
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [state.value])
+	}, [query])
 
 	const handleItemSelect = (
 		key: GetLogsKeysQuery['logs_keys'][0] | string,
@@ -304,7 +294,7 @@ export const Search: React.FC<{
 
 		// If string, it's a value not a key
 		if (isValueSelect) {
-			queryTerms[activeTermIndex].value = noQuotes
+			queryTerms[activeTermIndex].value = !!noQuotes
 				? key
 				: quoteQueryValue(key)
 		} else {
@@ -313,15 +303,15 @@ export const Search: React.FC<{
 		}
 
 		const newQuery = stringifyLogsQuery(queryTerms)
-		state.setValue(newQuery)
+		setQuery(newQuery)
 
 		if (isValueSelect) {
 			submitQuery(newQuery)
-			state.setOpen(false)
+			comboboxStore.setOpen(false)
 		}
 
-		state.setActiveId(null)
-		state.setMoves(0)
+		comboboxStore.setActiveId(null)
+		comboboxStore.setState('moves', 0)
 	}
 
 	return (
@@ -347,23 +337,29 @@ export const Search: React.FC<{
 					ref={inputRef}
 					disabled={disableSearch}
 					autoSelect
-					state={state}
+					store={comboboxStore}
 					name="search"
 					placeholder={placeholder ?? 'Search your logs...'}
 					className={className ?? styles.combobox}
+					value={query}
 					style={{
 						paddingLeft: hideIcon ? undefined : 40,
 					}}
+					onChange={(e) => {
+						// Need to set this bit of React state to force a re-render of the
+						// component. For some reason the combobox value isn't updated until
+						// after a delay or blurring the input.
+						setQuery(e.target.value)
+					}}
 					onBlur={() => {
-						submitQuery(state.value)
-						formState.setValue('query', state.value)
-						inputRef?.current?.blur()
+						submitQuery(query)
+						inputRef.current?.blur()
 					}}
 					onKeyDown={(e) => {
-						if (e.key === 'Enter' && state.value === '') {
+						if (e.key === 'Enter' && query === '') {
 							e.preventDefault()
-							submitQuery(state.value)
-							state.setOpen(false)
+							submitQuery(query)
+							comboboxStore.setOpen(false)
 						}
 					}}
 				/>
@@ -375,7 +371,7 @@ export const Search: React.FC<{
 							e.preventDefault()
 							e.stopPropagation()
 
-							state.setValue('')
+							setQuery('')
 							submitQuery('')
 						}}
 						style={{ cursor: 'pointer' }}
@@ -389,17 +385,19 @@ export const Search: React.FC<{
 					style={{
 						left: hideIcon ? undefined : 6,
 					}}
-					state={state}
+					store={comboboxStore}
+					gutter={10}
+					sameWidth
 				>
 					<Box pt="4">
-						<Combobox.GroupLabel state={state}>
+						<Combobox.GroupLabel store={comboboxStore}>
 							{activeTerm.value && (
 								<Combobox.Item
 									className={styles.comboboxItem}
 									onClick={() =>
 										handleItemSelect(activeTerm.value, true)
 									}
-									state={state}
+									store={comboboxStore}
 								>
 									<Stack direction="row" gap="8">
 										<Text lines="1">
@@ -420,7 +418,7 @@ export const Search: React.FC<{
 					</Box>
 					<Combobox.Group
 						className={styles.comboboxGroup}
-						state={state}
+						store={comboboxStore}
 					>
 						{loading && (
 							<Combobox.Item
@@ -435,7 +433,7 @@ export const Search: React.FC<{
 								className={styles.comboboxItem}
 								key={index}
 								onClick={() => handleItemSelect(key)}
-								state={state}
+								store={comboboxStore}
 							>
 								{typeof key === 'string' ? (
 									<Text>{key}</Text>

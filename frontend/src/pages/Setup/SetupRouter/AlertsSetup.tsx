@@ -26,7 +26,7 @@ import {
 	Tag,
 	Text,
 	TextLink,
-	useFormState,
+	useFormStore,
 	vars,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
@@ -666,12 +666,13 @@ const EmailPicker = function ({
 	onSubmit: (email: string) => void
 	onCancel: () => void
 }) {
-	const formState = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			email: '',
 		},
 	})
-	formState.useSubmit(async () => {
+	const formState = formStore.getState()
+	formStore.useSubmit(async () => {
 		onSubmit(formState.values.email)
 	})
 	return (
@@ -691,7 +692,7 @@ const EmailPicker = function ({
 						In order to send alerts to an email, please type in your
 						preferred email address.
 					</Text>
-					<Form state={formState}>
+					<Form store={formStore}>
 						<Stack gap="8">
 							<Box
 								display="flex"
@@ -705,7 +706,7 @@ const EmailPicker = function ({
 									autoComplete="email"
 									autoFocus
 									required
-									name={formState.names.email}
+									name={formStore.names.email}
 								/>
 							</Box>
 							<Box display="flex" alignItems="center" gap="8">

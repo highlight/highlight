@@ -77,6 +77,7 @@ var (
 	stripeApiKey        = os.Getenv("STRIPE_API_KEY")
 	stripeWebhookSecret = os.Getenv("STRIPE_WEBHOOK_SECRET")
 	slackSigningSecret  = os.Getenv("SLACK_SIGNING_SECRET")
+	otlpEndpoint        = os.Getenv("OTLP_ENDPOINT")
 	runtimeFlag         = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 	handlerFlag         = flag.String("worker-handler", "", "applies for runtime=worker; if specified, a handler function will be called instead of Start")
 )
@@ -232,9 +233,12 @@ func main() {
 	highlight.SetProjectID("1jdkoe52")
 	if !util.IsOnPrem() && util.IsDevOrTestEnv() {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql / otlp client address...")
-		highlight.SetOTLPEndpoint("http://localhost:4318")
-		if util.IsBackendInDocker() {
+		if otlpEndpoint != "" {
+			highlight.SetOTLPEndpoint(otlpEndpoint)
+		} else if util.IsBackendInDocker() {
 			highlight.SetOTLPEndpoint("http://collector:4318")
+		} else {
+			highlight.SetOTLPEndpoint("http://localhost:4318")
 		}
 	}
 

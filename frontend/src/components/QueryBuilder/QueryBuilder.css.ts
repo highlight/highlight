@@ -1,4 +1,14 @@
+import { borders } from '@highlight-run/ui/src/css/borders'
+import { colors } from '@highlight-run/ui/src/css/colors'
 import { style } from '@vanilla-extract/css'
+
+export const tag = style({
+	padding: '2px 4px',
+	background: colors.n4,
+	boxShadow: 'inset 0 -1px #0000001a',
+	border: 'none',
+	borderRadius: '5px',
+})
 
 export const flatRight = style({
 	borderTopRightRadius: 0,
@@ -16,18 +26,14 @@ export const tagPopoverAnchor = style({
 })
 
 export const addButton = style({
-	height: 20,
-	width: 20,
+	padding: '2px 4px',
+	border: 'none',
+	borderRadius: '5px',
 })
 
 export const tagKey = style({
-	flex: 1,
 	wordBreak: 'normal',
 	whiteSpace: 'nowrap',
-})
-
-export const tagValue = style({
-	flex: 1,
 })
 
 export const noShrink = style({
@@ -36,4 +42,26 @@ export const noShrink = style({
 
 export const maxHalfWidth = style({
 	maxWidth: '50%',
+})
+
+export const optionLabelContainer = style({
+	alignItems: 'center',
+	display: 'flex',
+	overflow: 'hidden',
+	position: 'relative',
+	textOverflow: 'ellipsis',
+	width: '100%',
+	padding: '0',
+	color: colors.n11,
+	gap: 6,
+	fontWeight: 500,
+})
+
+export const selectPopover = style({
+	backgroundColor: colors.white,
+	border: borders.secondary,
+	borderRadius: 6,
+	minWidth: 150,
+	zIndex: 10,
+	maxWidth: '50vw',
 })
