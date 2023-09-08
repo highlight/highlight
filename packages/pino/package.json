@@ -8,8 +8,16 @@
 	"files": [
 		"dist"
 	],
+	"type": "commonjs",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
+	"module": "./dist/index.mjs",
+	"exports": {
+		"import": "./dist/index.mjs",
+		"require": "./dist/index.js",
+		"default": "./dist/index.js",
+		"types": "./dist/index.d.ts"
+	},
 	"scripts": {
 		"typegen": "tsup --dts-only",
 		"dev": "tsup --watch",
@@ -19,9 +27,14 @@
 		"type": "git",
 		"url": "git+https://github.com/highlight-run/highlight.git"
 	},
-	"keywords": [],
+	"keywords": [
+		"pino",
+		"highlight",
+		"transport",
+		"logger"
+	],
 	"author": "",
-	"license": "Apache 2.0",
+	"license": "Apache-2.0",
 	"bugs": {
 		"url": "https://github.com/highlight-run/highlight/issues"
 	},
