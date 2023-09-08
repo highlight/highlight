@@ -17,7 +17,7 @@ import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
-import { parseLogsQuery } from '@/components/Search/SearchForm/utils'
+import { parseSearchQuery } from '@/components/Search/SearchForm/utils'
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import {
 	createColumnHelper,
@@ -116,7 +116,7 @@ const LogsTableInner = ({
 	tableContainerRef,
 	selectedCursor,
 }: LogsTableInnerProps) => {
-	const queryTerms = parseLogsQuery(query)
+	const queryTerms = parseSearchQuery(query)
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const columnHelper = createColumnHelper<LogEdge>()

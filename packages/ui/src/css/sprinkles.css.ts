@@ -119,6 +119,7 @@ const staticProperties = defineProperties({
 		marginLeft: vars.margin,
 		marginRight: vars.margin,
 		height: {
+			fitContent: 'fit-content',
 			full: '100%',
 			screen: '100vh',
 		},

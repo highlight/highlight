@@ -1,10 +1,10 @@
 import {
 	BODY_KEY,
-	buildLogsQueryForServer,
-	parseLogsQuery,
+	buildSearchQueryForServer,
+	parseSearchQuery,
 	quoteQueryValue,
-	stringifyLogsQuery,
-	validateLogsQuery,
+	stringifySearchQuery,
+	validateSearchQuery,
 } from './utils'
 
 const complexQueryString = `name:"Eric Thomas" workspace:'Chilly McWilly' project_id:9 freetext query`
@@ -39,7 +39,7 @@ describe('parseLogsQuery', () => {
 	it('parses a simple query correctly', () => {
 		const query = 'a test query'
 
-		expect(parseLogsQuery(query)).toEqual([
+		expect(parseSearchQuery(query)).toEqual([
 			{
 				key: BODY_KEY,
 				operator: '=',
@@ -50,13 +50,13 @@ describe('parseLogsQuery', () => {
 	})
 
 	it('parses a complex query correctly', () => {
-		expect(parseLogsQuery(complexQueryString)).toEqual(complexQueryParams)
+		expect(parseSearchQuery(complexQueryString)).toEqual(complexQueryParams)
 	})
 
 	it('calculates offsets correctly when text query when not at end of query', () => {
 		const query = 'project_id:18 search query name:"Eric Thomas"'
 
-		expect(parseLogsQuery(query)).toEqual([
+		expect(parseSearchQuery(query)).toEqual([
 			{
 				key: 'project_id',
 				operator: '=',
@@ -80,7 +80,7 @@ describe('parseLogsQuery', () => {
 
 	it('adds a text query when there is a trailing space', () => {
 		const query = 'name:"Eric Thomas" '
-		expect(parseLogsQuery(query)).toEqual([
+		expect(parseSearchQuery(query)).toEqual([
 			{
 				key: 'name',
 				operator: '=',
@@ -99,7 +99,7 @@ describe('parseLogsQuery', () => {
 	it('handles separators in quotes', () => {
 		const query =
 			'"Error updating filter group: Filtering out noisy error" user:"Chilly: McWilly"'
-		expect(parseLogsQuery(query)).toEqual([
+		expect(parseSearchQuery(query)).toEqual([
 			{
 				key: BODY_KEY,
 				operator: '=',
@@ -117,7 +117,7 @@ describe('parseLogsQuery', () => {
 
 	it('handles nested quotes', () => {
 		const query = `'test: "ing' user:'Chilly "McWilly"'`
-		expect(parseLogsQuery(query)).toEqual([
+		expect(parseSearchQuery(query)).toEqual([
 			{
 				key: BODY_KEY,
 				operator: '=',
@@ -137,7 +137,7 @@ describe('parseLogsQuery', () => {
 describe('stringifyLogsQuery', () => {
 	it('parses simple params to a query string', () => {
 		expect(
-			stringifyLogsQuery([
+			stringifySearchQuery([
 				{
 					key: BODY_KEY,
 					operator: '=',
@@ -149,14 +149,14 @@ describe('stringifyLogsQuery', () => {
 	})
 
 	it('parses complex params to a query string', () => {
-		expect(stringifyLogsQuery(complexQueryParams)).toEqual(
+		expect(stringifySearchQuery(complexQueryParams)).toEqual(
 			complexQueryString,
 		)
 	})
 
 	it('includes quotes for the body query', () => {
 		expect(
-			stringifyLogsQuery([
+			stringifySearchQuery([
 				{
 					key: BODY_KEY,
 					operator: '=',
@@ -171,7 +171,7 @@ describe('stringifyLogsQuery', () => {
 describe('buildLogsQueryForServer', () => {
 	it('handles quoted strings correctly', () => {
 		expect(
-			buildLogsQueryForServer([
+			buildSearchQueryForServer([
 				{
 					key: BODY_KEY,
 					operator: '=',
@@ -191,13 +191,13 @@ describe('buildLogsQueryForServer', () => {
 
 describe('validateLogsQuery', () => {
 	it('returns true for an invalid query', () => {
-		expect(validateLogsQuery(complexQueryParams)).toBeTruthy()
+		expect(validateSearchQuery(complexQueryParams)).toBeTruthy()
 	})
 
 	it('returns false for an invalid query', () => {
 		const params = [...complexQueryParams]
 		params[0].value = ''
-		expect(validateLogsQuery(params)).toBeFalsy()
+		expect(validateSearchQuery(params)).toBeFalsy()
 	})
 })
 

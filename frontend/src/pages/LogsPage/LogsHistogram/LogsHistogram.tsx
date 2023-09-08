@@ -1,7 +1,7 @@
 import { useGetLogsHistogramQuery } from '@graph/hooks'
 import { LogLevel as Level } from '@graph/schemas'
 import { Box, BoxProps, Popover, Text } from '@highlight-run/ui'
-import { COLOR_MAPPING, LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
+import { COLOR_MAPPING } from '@pages/LogsPage/constants'
 import { formatDate, isSignificantDateRange } from '@pages/LogsPage/utils'
 import { clamp, formatNumber } from '@util/numbers'
 import { useParams } from '@util/react-router/useParams'
@@ -11,6 +11,7 @@ import { memo, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import LoadingBox from '@/components/LoadingBox'
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
 import * as styles from './LogsHistogram.css'
 
@@ -74,8 +75,8 @@ const LogsHistogram = ({
 			params: {
 				query,
 				date_range: {
-					start_date: moment(startDate).format(LOG_TIME_FORMAT),
-					end_date: moment(endDate).format(LOG_TIME_FORMAT),
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 			},
 		},
