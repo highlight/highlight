@@ -32,13 +32,9 @@ const PartitionKey = "hubspot"
 const ClientSideContactCreationTimeout = time.Minute
 
 // ClientSideCompanyCreationTimeout is double the contact creation time because we expect contact creation to create a company.
-// The company creation backend task can be kicked off at the same time that contact creation is kicked off, so
-// we want to wait (in the worst-case) for the contact creation to time out, manually create a contact, and then
-// wait for the company creation to time out with the same delay.
-const ClientSideCompanyCreationTimeout = 2 * ClientSideContactCreationTimeout
-
-// ClientSideAssociationTimeout gives enough time for backend contact and company creation to run
-const ClientSideAssociationTimeout = 3 * ClientSideContactCreationTimeout
+// The company creation backend task can be kicked off at the same time that contact creation is kicked off,
+// but because the two are queued in the same partition, they will always happen one after the other.
+const ClientSideCompanyCreationTimeout = ClientSideContactCreationTimeout
 
 const ClientSideCreationPollInterval = 5 * time.Second
 
@@ -509,42 +505,35 @@ func (h *Client) CreateContactCompanyAssociation(ctx context.Context, adminID in
 }
 
 func (h *Client) CreateContactCompanyAssociationImpl(ctx context.Context, adminID int, workspaceID int) error {
-	data, err := pollHubspot(func() (*struct{ companyID, contactID int }, error) {
-		admin := &model.Admin{}
-		if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
-			return nil, err
-		}
-
-		if err := h.updateAdminHubspotContactID(ctx, admin, func(hubspotContactID *int) error {
-			return h.db.Model(&model.Admin{Model: model.Model{ID: adminID}}).Updates(&model.Admin{HubspotContactID: hubspotContactID}).Error
-		}); err != nil {
-			return nil, e.New("failed to update hubspot contact id")
-		}
-
-		workspace := &model.Workspace{}
-		if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
-			return nil, err
-		}
-
-		if err := h.updateWorkspaceHubspotCompanyID(ctx, workspace, func(hubspotCompanyID *int) error {
-			return h.db.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Updates(&model.Workspace{HubspotCompanyID: hubspotCompanyID}).Error
-		}); err != nil {
-			return nil, e.New("failed to update hubspot company id")
-		}
-
-		if workspace.HubspotCompanyID == nil {
-			return nil, e.New("hubspot company id is empty")
-		} else if admin.HubspotContactID == nil {
-			return nil, e.New("hubspot contact id is empty")
-		}
-
-		return &struct{ companyID, contactID int }{*workspace.HubspotCompanyID, *admin.HubspotContactID}, nil
-	}, ClientSideAssociationTimeout)
-	if err != nil {
-		log.WithContext(ctx).WithError(err).WithField("adminID", adminID).WithField("workspaceID", workspaceID).WithField("data", data).Error("hubspot association failed")
-		return e.Wrap(err, "hubspot association failed")
+	admin := &model.Admin{}
+	if err := h.db.Model(&model.Admin{}).Where("id = ?", adminID).Take(&admin).Error; err != nil {
+		return err
 	}
 
+	if err := h.updateAdminHubspotContactID(ctx, admin, func(hubspotContactID *int) error {
+		return h.db.Model(&model.Admin{Model: model.Model{ID: adminID}}).Updates(&model.Admin{HubspotContactID: hubspotContactID}).Error
+	}); err != nil {
+		return err
+	}
+
+	workspace := &model.Workspace{}
+	if err := h.db.Model(&model.Workspace{}).Where("id = ?", workspaceID).Take(&workspace).Error; err != nil {
+		return err
+	}
+
+	if err := h.updateWorkspaceHubspotCompanyID(ctx, workspace, func(hubspotCompanyID *int) error {
+		return h.db.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Updates(&model.Workspace{HubspotCompanyID: hubspotCompanyID}).Error
+	}); err != nil {
+		return err
+	}
+
+	if workspace.HubspotCompanyID == nil {
+		return e.New("hubspot company id is empty")
+	} else if admin.HubspotContactID == nil {
+		return e.New("hubspot contact id is empty")
+	}
+
+	data := &struct{ companyID, contactID int }{*workspace.HubspotCompanyID, *admin.HubspotContactID}
 	if err := h.hubspotClient.CRMAssociations().Create(hubspot.CRMAssociationsRequest{
 		DefinitionID: hubspot.CRMAssociationCompanyToContact,
 		FromObjectID: data.companyID,
