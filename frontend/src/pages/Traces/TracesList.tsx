@@ -2,6 +2,7 @@ import { Box, Callout, Stack, Table, Text } from '@highlight-run/ui'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import LoadingBox from '@/components/LoadingBox'
 import { GetTracesQuery } from '@/graph/generated/operations'
 import { useProjectId } from '@/hooks/useProjectId'
 
@@ -17,9 +18,7 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 	return (
 		<Box height="full">
 			{loading ? (
-				<Stack align="center" py="16">
-					<Text>Loading...</Text>
-				</Stack>
+				<LoadingBox />
 			) : traces ? (
 				<Table height="full" noBorder>
 					<Table.Head>
