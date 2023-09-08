@@ -11,7 +11,7 @@ import {
 import * as styles from './TracesSearch.css'
 
 type Props = {
-	// TODO: Use props interface from SearchForm
+	query: string
 	startDate: Date
 	endDate: Date
 	onDatesChange: (startDate: Date, endDate: Date) => void
@@ -19,18 +19,19 @@ type Props = {
 }
 
 export const TracesSearch: React.FC<Props> = ({
+	query,
 	startDate,
 	endDate,
 	onDatesChange,
 	onFormSubmit,
 }) => {
 	const minDate = defaultPresets[5].startDate
-	const timeMode: TIME_MODE = 'fixed-range'
+	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
 
 	return (
 		<Box cssClass={styles.container}>
 			<SearchForm
-				initialQuery=""
+				initialQuery={query}
 				startDate={startDate}
 				endDate={endDate}
 				presets={defaultPresets}

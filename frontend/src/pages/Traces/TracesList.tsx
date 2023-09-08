@@ -1,4 +1,4 @@
-import { Box, Table, Text } from '@highlight-run/ui'
+import { Box, Callout, Stack, Table, Text } from '@highlight-run/ui'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -6,8 +6,8 @@ import { GetTracesQuery } from '@/graph/generated/operations'
 import { useProjectId } from '@/hooks/useProjectId'
 
 type Props = {
-	traces?: GetTracesQuery['traces']
 	loading: boolean
+	traces?: GetTracesQuery['traces']
 }
 
 export const TracesList: React.FC<Props> = ({ loading, traces }) => {
@@ -15,11 +15,13 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 	const navigate = useNavigate()
 
 	return (
-		<Box>
+		<Box height="full">
 			{loading ? (
-				<Text>Loading...</Text>
+				<Stack align="center" py="16">
+					<Text>Loading...</Text>
+				</Stack>
 			) : traces ? (
-				<Table noBorder>
+				<Table height="full" noBorder>
 					<Table.Head>
 						<Table.Row>
 							<Table.Header>Span</Table.Header>
@@ -30,7 +32,7 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 							<Table.Header>Status</Table.Header>
 						</Table.Row>
 					</Table.Head>
-					<Table.Body>
+					<Table.Body height="full" overflowY="scroll">
 						{traces.map((trace, index) => (
 							<Table.Row key={index}>
 								<Table.Cell>{trace.spanName}</Table.Cell>
@@ -66,7 +68,15 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 					</Table.Body>
 				</Table>
 			) : (
-				<Box>No data</Box>
+				<Stack align="center" py="16">
+					<Callout title="No traces found" width={300}>
+						<Box pb="4">
+							<Text color="moderate">
+								TODO: Write a CTA here...
+							</Text>
+						</Box>
+					</Callout>
+				</Stack>
 			)}
 		</Box>
 	)

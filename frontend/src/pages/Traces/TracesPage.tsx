@@ -61,12 +61,14 @@ export const TracesPage: React.FC = () => {
 				justifyContent="stretch"
 				display="flex"
 				flexDirection="column"
-				height="fitContent"
+				height="full"
 			>
 				<Box
 					backgroundColor="white"
 					border="dividerWeak"
 					borderRadius="6"
+					height="full"
+					overflow="hidden"
 				>
 					<TracesSearch
 						startDate={startDate}
