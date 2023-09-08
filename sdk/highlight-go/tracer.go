@@ -55,15 +55,17 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 
 	start := time.Now()
 	fc := graphql.GetFieldContext(ctx)
-	name := fmt.Sprintf("operation.field.%s", fc.Field.Name)
+	fieldName := fc.Field.Name
+	name := fmt.Sprintf("graphql.field.%s", fieldName)
 	span, ctx := StartTrace(ctx, name)
 	span.SetAttributes(
-		attribute.String("backend", t.graphName),
-		attribute.String("field.type", fc.Field.Definition.Type.String()),
+		semconv.ServiceNameKey.String(t.graphName),
+		attribute.String("graphql.field.name", fieldName),
+		attribute.String("graphql.object.type", fc.Object),
 	)
 	if b, err := json.MarshalIndent(fc.Args, "", ""); err == nil {
 		if bs := string(b); len(bs) < 2048 {
-			span.SetAttributes(attribute.String("field.arguments", bs))
+			span.SetAttributes(attribute.String("graphql.field.arguments", bs))
 		}
 	}
 	res, err := next(ctx)
@@ -71,7 +73,6 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	RecordSpanError(
 		span, err,
 		attribute.String(SourceAttribute, "InterceptField"),
-		semconv.GraphqlOperationNameKey.String(name),
 	)
 	EndTrace(span)
 
@@ -93,13 +94,23 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 		oc = graphql.GetOperationContext(ctx)
 	}
 	opName := "undefined"
+	variables := ""
 	if oc != nil {
 		opName = oc.OperationName
+		if b, err := json.MarshalIndent(oc.Variables, "", ""); err == nil {
+			if bs := string(b); len(bs) < 2048 {
+				variables = bs
+			}
+		}
 	}
 	name := fmt.Sprintf("graphql.operation.%s", opName)
 
 	span, ctx := StartTrace(ctx, name)
-	span.SetAttributes(attribute.String("backend", t.graphName))
+	span.SetAttributes(
+		semconv.ServiceNameKey.String(t.graphName),
+		semconv.GraphqlOperationName(opName),
+		attribute.String("graphql.operation.variables", variables),
+	)
 	start := graphql.Now()
 	resp := next(ctx)
 	end := graphql.Now()
@@ -108,7 +119,6 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 		RecordSpanError(
 			span, resp.Errors,
 			attribute.String(SourceAttribute, "InterceptResponse"),
-			semconv.GraphqlOperationNameKey.String(name),
 		)
 	}
 	EndTrace(span)
