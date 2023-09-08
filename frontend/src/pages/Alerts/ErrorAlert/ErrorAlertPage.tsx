@@ -98,7 +98,7 @@ export const ErrorAlertPage = () => {
 			loaded: false,
 		},
 	})
-	const formValues = formStore.getState().values
+	const formValues = formStore.useState().values
 
 	useEffect(() => {
 		if (alert) {

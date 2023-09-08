@@ -128,7 +128,7 @@ export const LogAlertPage = () => {
 			loaded: false,
 		},
 	})
-	const formValues = formStore.getState().values
+	const formValues = formStore.useState().values
 
 	const [query, setQuery] = useState(initialQuery)
 	const handleSearchSubmit = (query: string) => {
@@ -758,7 +758,8 @@ const ThresholdTypeConfiguration = () => {
 	const form = useForm()
 	const menu = useMenu()
 	const menuState = menu.getState()
-	const belowThreshold = form.getState().values.belowThreshold
+	const belowThreshold = form.useValue('belowThreshold')
+
 	return (
 		<>
 			<Menu.Button
