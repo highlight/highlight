@@ -24,6 +24,7 @@ processors:
         limit_mib: 6144
         spike_limit_mib: 256
     batch:
+        send_batch_size: 1024
         send_batch_max_size: 1024
         timeout: 1s
 service:
