@@ -7,6 +7,7 @@ export type Props = {
 	children: React.ReactNode
 	height?: BoxProps['height']
 	overflowY?: BoxProps['overflowY']
+	style?: React.CSSProperties
 }
 
 export const Body: React.FC<Props> = ({ children, ...props }) => {

@@ -16,7 +16,7 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 	const navigate = useNavigate()
 
 	return (
-		<Box height="full">
+		<>
 			{loading ? (
 				<LoadingBox />
 			) : traces ? (
@@ -31,7 +31,14 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 							<Table.Header>Status</Table.Header>
 						</Table.Row>
 					</Table.Head>
-					<Table.Body height="full" overflowY="scroll">
+					<Table.Body
+						height="full"
+						overflowY="scroll"
+						style={{
+							// Subtract height of search filters + table header
+							height: `calc(100% - 67px)`,
+						}}
+					>
 						{traces.map((trace, index) => (
 							<Table.Row key={index}>
 								<Table.Cell>{trace.spanName}</Table.Cell>
@@ -67,7 +74,12 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 					</Table.Body>
 				</Table>
 			) : (
-				<Stack align="center" py="16">
+				<Stack
+					align="center"
+					direction="column"
+					justify="space-around"
+					height="full"
+				>
 					<Callout title="No traces found" width={300}>
 						<Box pb="4">
 							<Text color="moderate">
@@ -77,6 +89,6 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 					</Callout>
 				</Stack>
 			)}
-		</Box>
+		</>
 	)
 }
