@@ -5,22 +5,17 @@ createdAt: 2023-09-07T16:07:50.273Z
 updatedAt: 2023-09-07T16:07:50.273Z
 ---
 
-Highlight has to capability to enhance your backend errors using GitHub. On the frontend, errors are enhanced using sourcemaps uploaded to Highlight. Some backend
-languages will give us context of a stacktrace, but for most compiled languages, there is no access to this. Using GitHub, these stacktraces are able to get this
-context, as well as other enhancements such as link directly to a file in GitHub and attributing errors to file changes.
+Highlight has the capability to enhance your backend errors using GitHub (errors on the frontend are enhanced using [sourcemaps](./sourcemaps.md)). Some backend
+languages will give us context of a stacktrace, but for most compiled languages, Highlight doesn't have no access to this. With our GitHub integration, Highlight
+is able to enhance a stacktrace with context, as well as other enhancements such as "link to a file" and attribution to a code change.
 
 
 In order to turn on GitHub Enhancements, 3 actions need to be completed for your project:
 <ol>
-  <li>1. Add the GitHub Integration to Highlight</li>
-  <li>2. Create a service via the SDK</li>
+  <li>1. Create a service via the SDK</li>
+  <li>2. Add the GitHub Integration to Highlight</li>
   <li>3. Link your service to a GitHub repo</li>
 </ol>
-
-## Add the GitHub Integration to Highlight
-Enable GitHub on Highlight by going to the [integrations](https://app.highlight.io/integrations) and click the "Connect" button in the GitHub section.
-
-More information on the GitHub Integration can be found at [GitHub Integration](../../7_integrations/github-integration.md).
 
 ## Create a service via the SDK
 Services are created to group your logs, errors, and traces by the process that is running the code. Having a service can make it helpful to decipher
@@ -40,19 +35,25 @@ defer highlight.Stop()
 
 <b>Note:</b> There is also a service version that is provided in the example above. It is not necessary to enable GitHub enhancements, but is recommended that this be the current GIT SHA of the deployed code to use the most accurate files. If not provided, Highlight will fallback to your current default branch (e.g. main) GIT SHA.
 
-## Link your service to a GitHub repo
-Once a service is created, it should be visible in your project settings, under the "Services" table. The last step to enable stacktrace enhancements is to link your service to a GitHub repo, the one that should be used to enhance your errors. In addition to linking the repo, there are two fields to set configure any file path mappings from your deployment process that would be needed to correctly find a file on GitHub.
+## Add the GitHub Integration to Highlight
+Enable GitHub on Highlight by going to the [integrations](https://app.highlight.io/integrations) and click the "Connect" button in the GitHub section.
 
-1. <b>Build path prefix</b> - This path prefix was added in your deployment process, and is the path in your server that contains your files. This path is not found in GitHub,
-and should be removed when fetching the file.
-2. <b>GitHub path prefix</b> - This path prefix was removed in your deployment process, and should be prepended to your files in order to correctly find the file on GitHub.
+More information on the GitHub Integration can be found at [GitHub Integration](../../7_integrations/github-integration.md).
+
+## Link your service to a GitHub repo
+Once a service is created, it should be visible in your project settings, under the "Services" table. The last step to enable stacktrace enhancements is to link your service to its respective GitHub repo, the one that should be used to enhance your errors. In addition to linking the repo, there are two fields to configure file
+path mappings from your deployment process to the correct file in GitHub.
+
+1. <b>Build path prefix</b> - This path prefix represents a path added in your deployment process, and is also the path in your server that contains your files.
+After removing this path (and possibly adding something else), you should be able to point this string to a GitHub file.
+2. <b>GitHub path prefix</b> - This path prefix is a string that can be appended to the front of the stacktracepath, and will be prepended to your files in order to correctly find the file in GitHub.
 
 An example:
 <ol>
-    <li>1. An error received has a stacktrace that points to the file `/build/main.go`.</li>
-    <li>2. The GitHub repo was selected to be the Highlight repo.</li>
-    <li>3. Highlight's deployment process, move's all files out of the `/backend` directory and into a `/build` directory.</li>
-    <li>4. We would set "Build prefix path" to `/backend` and GitHub prefix path to `/backend`.</li>
+    <li>1. An error received has a stacktrace path `/build/main.go`.</li>
+    <li>2. The GitHub repo was selected to be the [Highlight repo](https://github.com/highlight/highlight).</li>
+    <li>3. Since Highlight's deployment process moves all files out of the `/backend` directory and into the `/build` directory, we would set "Build prefix path"
+    to `/backend` and GitHub prefix path to `/backend`.</li>
 </ol>
 This will result in the following mapping: 
 `/build/main.go` -> [https://github.com/highlight/highlight/blob/HEAD/backend/main.go](https://github.com/highlight/highlight/blob/HEAD/backend/main.go).
