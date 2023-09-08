@@ -33,7 +33,7 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 					</Table.Head>
 					<Table.Body
 						height="full"
-						overflowY="scroll"
+						overflowY="auto"
 						style={{
 							// Subtract height of search filters + table header
 							height: `calc(100% - 67px)`,

@@ -1,23 +1,30 @@
-import { Box } from '@highlight-run/ui'
+import { Box, defaultPresets } from '@highlight-run/ui'
 import moment from 'moment'
 import React from 'react'
 import { Helmet } from 'react-helmet'
 import { useQueryParam } from 'use-query-params'
 
-import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
+import {
+	TIME_FORMAT,
+	TIME_MODE,
+} from '@/components/Search/SearchForm/constants'
 import {
 	EndDateParam,
 	FixedRangeStartDateParam,
 	QueryParam,
+	SearchForm,
 } from '@/components/Search/SearchForm/SearchForm'
 import {
 	buildSearchQueryForServer,
 	parseSearchQuery,
 } from '@/components/Search/SearchForm/utils'
-import { useGetTracesQuery } from '@/graph/generated/hooks'
+import {
+	useGetLogsKeysQuery,
+	useGetLogsKeyValuesLazyQuery,
+	useGetTracesQuery,
+} from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
 import { TracesList } from '@/pages/Traces/TracesList'
-import { TracesSearch } from '@/pages/Traces/TracesSearch'
 
 export const TracesPage: React.FC = () => {
 	const { projectId } = useProjectId()
@@ -29,6 +36,8 @@ export const TracesPage: React.FC = () => {
 	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
 	const queryTerms = parseSearchQuery(query)
 	const serverQuery = buildSearchQueryForServer(queryTerms)
+	const minDate = defaultPresets[5].startDate
+	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
 
 	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
 		setStartDate(newStartDate)
@@ -68,14 +77,20 @@ export const TracesPage: React.FC = () => {
 					border="dividerWeak"
 					borderRadius="6"
 					height="full"
-					overflow="hidden"
+					shadow="medium"
 				>
-					<TracesSearch
-						query={query}
+					<SearchForm
+						initialQuery={query ?? ''}
 						startDate={startDate}
 						endDate={endDate}
+						presets={defaultPresets}
+						minDate={minDate}
+						timeMode={timeMode}
+						hideCreateAlert
 						onFormSubmit={setQuery}
 						onDatesChange={handleDatesChange}
+						fetchKeys={useGetLogsKeysQuery}
+						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
 					<TracesList traces={data?.traces} loading={loading} />
 				</Box>
