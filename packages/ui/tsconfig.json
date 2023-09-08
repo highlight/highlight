@@ -9,8 +9,7 @@
 		"types": ["vitest/globals"],
 		"baseUrl": "src",
 		"paths": {
-			"@components/*": ["./components/*"],
-			"@css/*": ["./css/*"]
+			"@/*": ["./src/*"],
 		}
 	}
 }

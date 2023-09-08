@@ -10,7 +10,7 @@ import {
 	IconSolidCheveronLeft,
 	Stack,
 	Text,
-	useFormState,
+	useFormStore,
 	vars,
 } from '@highlight-run/ui'
 import { SIGN_IN_ROUTE } from '@pages/Auth/AuthRouter'
@@ -35,11 +35,12 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 	const navigate = useNavigate()
 	const recaptchaVerifier = useRef<firebase.auth.ApplicationVerifier>()
 	const phoneAuthProvider = new firebase.auth.PhoneAuthProvider()
-	const formState = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			code: '',
 		},
 	})
+	const formState = formStore.getState()
 
 	useEffect(() => {
 		recaptchaVerifier.current = new firebase.auth.RecaptchaVerifier(
@@ -123,7 +124,7 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 	}
 
 	return (
-		<Form state={formState} resetOnSubmit={false} onSubmit={handleSubmit}>
+		<Form store={formStore} resetOnSubmit={false} onSubmit={handleSubmit}>
 			<AuthHeader px="10" py="4">
 				<Stack justify="space-between" align="center" direction="row">
 					<Box display="flex" style={{ width: 24 }}>
@@ -148,7 +149,7 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 			<AuthBody>
 				<Stack gap="12">
 					<Form.Input
-						name={formState.names.code}
+						name={formStore.names.code}
 						label="SMS Verification Code"
 						autoFocus
 						autoComplete="one-time-code"

@@ -16,7 +16,7 @@ import {
 	Table,
 	Text,
 	Tooltip,
-	useComboboxState,
+	useComboboxStore,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
@@ -70,7 +70,7 @@ export const ServicesTable: React.FC = () => {
 		})
 	}, [refetchServices, projectId, query, pagination])
 
-	const state = useComboboxState()
+	const comboboxStore = useComboboxStore()
 	const handleQueryChange = useMemo(
 		() =>
 			debounce((e) => {
@@ -264,7 +264,7 @@ export const ServicesTable: React.FC = () => {
 	return (
 		<Stack direction="column" gap="4" align="center" paddingRight="4">
 			<Combobox
-				state={state}
+				store={comboboxStore}
 				name="search"
 				placeholder="Search services..."
 				className={styles.combobox}

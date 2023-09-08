@@ -107,6 +107,7 @@ func TestListErrorObjectsOneObjectWithSession(t *testing.T) {
 		Email:       session.Email,
 		AppVersion:  session.AppVersion,
 		Fingerprint: &session.Fingerprint,
+		Excluded:    session.Excluded,
 	}, edge.Node.Session)
 
 	assert.Equal(t, &privateModel.PageInfo{

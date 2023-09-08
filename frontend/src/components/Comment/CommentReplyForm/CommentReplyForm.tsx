@@ -63,7 +63,7 @@ function CommentReplyForm<T extends CommentReplyAction>({
 	const [commentText, setCommentText] = useState('')
 	const [commentTextForEmail, setCommentTextForEmail] = useState('')
 	const [isReplying, setIsReplying] = React.useState(false)
-	const formState = Form.useFormState({ defaultValues: { commentText: '' } })
+	const formState = Form.useFormStore({ defaultValues: { commentText: '' } })
 
 	const { project_id } = useParams<{ project_id: string }>()
 	const { admin } = useAuthContext()
@@ -181,7 +181,7 @@ function CommentReplyForm<T extends CommentReplyAction>({
 		>
 			<Form
 				onSubmit={submitReply}
-				state={formState}
+				store={formState}
 				onKeyDown={onFormChangeHandler}
 			>
 				<Box mb="4">
