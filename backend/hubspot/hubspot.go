@@ -513,7 +513,7 @@ func (h *Client) CreateContactCompanyAssociationImpl(ctx context.Context, adminI
 	if err := h.updateAdminHubspotContactID(ctx, admin, func(hubspotContactID *int) error {
 		return h.db.Model(&model.Admin{Model: model.Model{ID: adminID}}).Updates(&model.Admin{HubspotContactID: hubspotContactID}).Error
 	}); err != nil {
-		return e.Wrap(err, "failed to update hubspot contact id")
+		return err
 	}
 
 	workspace := &model.Workspace{}
@@ -524,7 +524,7 @@ func (h *Client) CreateContactCompanyAssociationImpl(ctx context.Context, adminI
 	if err := h.updateWorkspaceHubspotCompanyID(ctx, workspace, func(hubspotCompanyID *int) error {
 		return h.db.Model(&model.Workspace{Model: model.Model{ID: workspaceID}}).Updates(&model.Workspace{HubspotCompanyID: hubspotCompanyID}).Error
 	}); err != nil {
-		return e.Wrap(err, "failed to update hubspot company id")
+		return err
 	}
 
 	if workspace.HubspotCompanyID == nil {
