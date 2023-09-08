@@ -14,8 +14,8 @@ exporters:
         endpoint: 'https://pub.highlight.run/otel'
         compression: gzip
         sending_queue:
-            num_consumers: 32
-            queue_size: 10000
+            num_consumers: 64
+            queue_size: 8192
         retry_on_failure:
             initial_interval: 1s
 processors:
@@ -24,7 +24,7 @@ processors:
         limit_mib: 6144
         spike_limit_mib: 256
     batch:
-        send_batch_size: 1000
+        send_batch_max_size: 1024
         timeout: 1s
 service:
     telemetry:
