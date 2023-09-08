@@ -1,7 +1,7 @@
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { Text } from '@highlight-run/ui'
+
 import { BODY_KEY, SearchParam } from '@/components/Search/SearchForm/utils'
-import React from 'react'
 
 import * as styles from './LogsTable.css'
 
