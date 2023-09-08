@@ -13,16 +13,22 @@ export const JSPinoHTTPJSONLogContent: QuickStartContent = {
 				'Make sure to set the `project` and `service` query string parameters.',
 			code: [
 				{
-					text: `import { createWriteStream } from 'pino-http-send'
-import pino from 'pino'
+					text: `import pino from 'pino'
 
-
-const stream = createWriteStream({
-  // set your project ID and service name in the query string
-  url: 'https://pub.highlight.io/v1/logs/json?project=<YOUR_PROJECT_ID>&service=EXAMPLE_NODEJS_PINO_SERVICE',
+const logger = pino({
+    level: 'info',
+    transport: {
+        targets: [
+            {
+                target: '@highlight-run/pino',
+                options: {
+                    projectID: '<YOUR_PROJECT_ID>',
+                },
+                level: 'info',
+            },
+        ],
+    },
 })
-
-const logger = pino({ level: 'info' }, stream)
 
 logger.info({ key: 'my-value' }, 'hello, highlight.io!')`,
 					language: 'js',

@@ -6,20 +6,15 @@
 import pino from 'pino'
 
 const logger = pino({
-    level: 'trace',
+    level: 'info',
     transport: {
         targets: [
             {
                 target: '@highlight-run/pino',
                 options: {
-                    projectID: '4d7k1xeo',
+                    projectID: '<YOUR_PROJECT_ID>',
                 },
-                level: 'trace',
-            },
-            {
-                target: 'pino-pretty',
-                options: {},
-                level: 'trace',
+                level: 'info',
             },
         ],
     },
