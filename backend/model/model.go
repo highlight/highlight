@@ -1009,6 +1009,10 @@ type ErrorGroup struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
 	Viewed         *bool   `json:"viewed"`
+
+	// impactful scoring
+	ImpactfulScore     *float64   `json:"impactful_score"`
+	ImpactfulScoreDate *time.Time `json:"impactful_score_date"`
 }
 
 type ErrorTag struct {

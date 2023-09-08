@@ -563,6 +563,11 @@ func (w *Worker) AutoResolveStaleErrors(ctx context.Context) {
 	autoResolver.AutoResolveStaleErrors(ctx)
 }
 
+func (w *Worker) ScoreImpactfulErrors(ctx context.Context) {
+	errorScorer := NewErrorScorer(w.PublicResolver.Store, w.PublicResolver.DB)
+	errorScorer.ScoreImpactfulErrors(ctx)
+}
+
 func (w *Worker) excludeSession(ctx context.Context, s *model.Session, reason backend.SessionExcludedReason) error {
 	s.Excluded = true
 	s.ExcludedReason = &reason
@@ -1565,6 +1570,8 @@ func (w *Worker) GetHandler(ctx context.Context, handlerFlag string) func(ctx co
 		return w.PublicWorker
 	case "auto-resolve-stale-errors":
 		return w.AutoResolveStaleErrors
+	case "score-impactful-errors":
+		return w.ScoreImpactfulErrors
 	default:
 		log.WithContext(ctx).Fatalf("unrecognized worker-handler [%s]", handlerFlag)
 		return nil
