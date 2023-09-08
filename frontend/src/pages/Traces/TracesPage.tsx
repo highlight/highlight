@@ -92,6 +92,7 @@ export const TracesPage: React.FC = () => {
 						fetchKeys={useGetLogsKeysQuery}
 						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
 					/>
+
 					<TracesList traces={data?.traces} loading={loading} />
 				</Box>
 			</Box>
