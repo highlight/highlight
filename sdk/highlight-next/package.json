@@ -44,6 +44,9 @@
 	},
 	"author": "",
 	"license": "Apache-2.0",
+	"installConfig": {
+		"hoistingLimits": "workspaces"
+	},
 	"peerDependencies": {
 		"@highlight-run/node": "workspace:^",
 		"highlight.run": "workspace:^",
@@ -53,8 +56,10 @@
 	"dependencies": {
 		"@highlight-run/cloudflare": "workspace:^",
 		"@highlight-run/node": "workspace:*",
+		"@highlight-run/opentelemetry-sdk-workers": "workspace:^",
 		"@highlight-run/react": "workspace:*",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
+		"@opentelemetry/resources": "1.15.1",
 		"highlight.run": "workspace:*"
 	},
 	"devDependencies": {

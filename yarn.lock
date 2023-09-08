@@ -12525,8 +12525,10 @@ __metadata:
   dependencies:
     "@highlight-run/cloudflare": "workspace:^"
     "@highlight-run/node": "workspace:*"
+    "@highlight-run/opentelemetry-sdk-workers": "workspace:^"
     "@highlight-run/react": "workspace:*"
     "@highlight-run/sourcemap-uploader": "workspace:*"
+    "@opentelemetry/resources": 1.15.1
     "@trpc/server": ^9.27.4
     "@types/jest": 27.4.1
     chokidar-cli: ^3.0.0
@@ -48262,7 +48264,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:18.2.0, react-dom@npm:^18.2.0":
+"react-dom@npm:18.2.0":
   version: 18.2.0
   resolution: "react-dom@npm:18.2.0"
   dependencies:
@@ -49190,7 +49192,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:18.2.0, react@npm:^18.2.0":
+"react@npm:18.2.0":
   version: 18.2.0
   resolution: "react@npm:18.2.0"
   dependencies:

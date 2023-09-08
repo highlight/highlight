@@ -13,6 +13,9 @@
 	"publishConfig": {
 		"access": "public"
 	},
+	"installConfig": {
+		"hoistingLimits": "workspaces"
+	},
 	"dependencies": {
 		"@highlight-run/opentelemetry-sdk-workers": "workspace:^",
 		"@opentelemetry/resources": "1.15.1"

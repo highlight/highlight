@@ -9,7 +9,7 @@ import { WorkersSDK } from '@highlight-run/opentelemetry-sdk-workers'
 
 const HIGHLIGHT_PROJECT_ENV = 'HIGHLIGHT_PROJECT_ID'
 const HIGHLIGHT_REQUEST_HEADER = 'X-Highlight-Request'
-const HIGHLIGHT_OTLP_BASE = 'https://otel.highlight.io'
+const HIGHLIGHT_OTLP_BASE = 'https://otel.highlight.io:4318'
 
 export const RECORDED_CONSOLE_METHODS = [
 	'debug',
@@ -52,6 +52,10 @@ export const H: HighlightInterface = {
 			request.headers.get(HIGHLIGHT_REQUEST_HEADER) || ''
 		).split('/')
 		const endpoints = { default: otlpEndpoint || HIGHLIGHT_OTLP_BASE }
+		console.log(
+			'cloudflare sdk',
+			JSON.stringify({ endpoints, projectID, sessionID, requestID }),
+		)
 		sdk = new WorkersSDK(request, ctx, {
 			service: service || 'cloudflare-worker',
 			consoleLogEnabled: false,
