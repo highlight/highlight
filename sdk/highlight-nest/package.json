@@ -17,7 +17,7 @@
 		"build": "tsup src/index.ts --format cjs,esm --dts"
 	},
 	"author": "",
-	"license": "MIT",
+	"license": "Apache-2.0",
 	"peerDependencies": {
 		"@nestjs/core": ">=8",
 		"rxjs": ">=7"
