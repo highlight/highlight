@@ -9,6 +9,12 @@ import (
 	"time"
 )
 
+var availabilityZoneMap = map[string]string{
+	"us-east-2a": "use2-az1",
+	"us-east-2b": "use2-az2",
+	"us-east-2c": "use2-az3",
+}
+
 // findRack is the basic rack resolver strategy for use in AWS.  It supports
 //   - ECS with the task metadata endpoint enabled (returns the container
 //     instance's availability zone)
@@ -55,5 +61,6 @@ func ecsAvailabilityZone() string {
 	if err := json.NewDecoder(r.Body).Decode(&md); err != nil {
 		return ""
 	}
-	return md.AvailabilityZone
+	// AWS MSK sets the `broker.rack` to AZ IDs rather than AZ names
+	return availabilityZoneMap[md.AvailabilityZone]
 }
