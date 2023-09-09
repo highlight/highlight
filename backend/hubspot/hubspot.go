@@ -41,10 +41,10 @@ const ClientSideCreationPollInterval = 5 * time.Second
 var (
 	OAuthToken = os.Getenv("HUBSPOT_OAUTH_TOKEN")
 	APIKey     = os.Getenv("HUBSPOT_API_KEY")
-	// APICookie and CSRFToken are reverse engineered from the frontend request flow.
+	// CookieString and CSRFToken are reverse engineered from the frontend request flow.
 	// they only need to be set for the doppelgänger functionality.
-	APICookie = os.Getenv("HUBSPOT_API_COOKIE")
-	CSRFToken = os.Getenv("HUBSPOT_CSRF_TOKEN")
+	CookieString = os.Getenv("HUBSPOT_COOKIE_STRING")
+	CSRFToken    = os.Getenv("HUBSPOT_CSRF_TOKEN")
 )
 
 func pollHubspot[T any](fn func() (*T, error), timeout time.Duration) (result *T, err error) {
@@ -205,13 +205,17 @@ func (h *Client) doRequest(ctx context.Context, url string, result interface{}, 
 		for _, p := range params {
 			q.Add(p.key, p.value)
 		}
-		if APICookie != "" {
-			req.AddCookie(&http.Cookie{Name: "hubspotapi", Value: APICookie})
+		// for doppelgänger requests
+		if CookieString != "" {
+			for _, s := range strings.Split(CookieString, "; ") {
+				val := strings.Split(s, "=")
+				k, v := val[0], val[1]
+				req.AddCookie(&http.Cookie{Name: k, Value: v})
+			}
 		}
+		// for doppelgänger requests
 		if CSRFToken != "" {
 			req.Header.Add("X-Hubspot-Csrf-Hubspotapi", CSRFToken)
-			req.AddCookie(&http.Cookie{Name: "hubspotapi-csrf", Value: CSRFToken})
-			req.AddCookie(&http.Cookie{Name: "csrf.app", Value: CSRFToken})
 		}
 		req.URL.RawQuery = q.Encode()
 
@@ -255,7 +259,13 @@ func (h *Client) getDoppelgangers(ctx context.Context) (results []*Doppelgangers
 		if err = h.doRequest(ctx, "/doppelganger/v1/similar/company/resultPage", &r, []QSParam{
 			{key: "pageSize", value: "50"},
 			{key: "offset", value: strconv.Itoa(len(results))},
-			{key: "properties", value: "name,domain,hs_num_child_companies,hs_parent_company_id,hs_last_sales_activity_timestamp,createdate,hs_lastmodifieddate"},
+			{key: "properties", value: "name"},
+			{key: "properties", value: "domain"},
+			{key: "properties", value: "hs_num_child_companies"},
+			{key: "properties", value: "hs_parent_company_id"},
+			{key: "properties", value: "hs_last_sales_activity_timestamp"},
+			{key: "properties", value: "createdate"},
+			{key: "properties", value: "hs_lastmodifieddate"},
 			{key: "portalId", value: "20473940"},
 		}, "GET", nil); err != nil {
 			return
@@ -275,7 +285,14 @@ func (h *Client) getDoppelgangers(ctx context.Context) (results []*Doppelgangers
 		if err = h.doRequest(ctx, "/doppelganger/v1/similar/contact/resultPage", &r, []QSParam{
 			{key: "pageSize", value: "50"},
 			{key: "offset", value: strconv.Itoa(len(results))},
-			{key: "properties", value: "firstname,lastname,email,jobtitle,hs_sequences_is_enrolled,hs_last_sales_activity_timestamp,createdate,lastmodifieddate"},
+			{key: "properties", value: "firstname"},
+			{key: "properties", value: "lastname"},
+			{key: "properties", value: "email"},
+			{key: "properties", value: "jobtitle"},
+			{key: "properties", value: "hs_sequences_is_enrolled"},
+			{key: "properties", value: "hs_last_sales_activity_timestamp"},
+			{key: "properties", value: "createdate"},
+			{key: "properties", value: "lastmodifieddate"},
 			{key: "portalId", value: "20473940"},
 		}, "GET", nil); err != nil {
 			return
