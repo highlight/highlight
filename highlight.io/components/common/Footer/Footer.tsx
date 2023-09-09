@@ -1,6 +1,7 @@
 import classNames from 'classnames'
 import Link from 'next/link'
-import { FaGithub, FaLinkedinIn, FaTwitter } from 'react-icons/fa'
+import { FaGithub, FaLinkedinIn } from 'react-icons/fa'
+import { FaXTwitter } from "react-icons/fa6";
 import { COMPETITORS } from '../../Competitors/competitors'
 import { PRODUCTS } from '../../Products/products'
 import {
@@ -9,7 +10,7 @@ import {
 } from '../HighlightLogo/HighlightLogo'
 import { Typography } from '../Typography/Typography'
 import styles from './Footer.module.scss'
-import x-twitter from '../../public/images/x-twitter.svg'
+
 export const Footer = ({ light }: { light?: boolean }) => {
 	return (
 		<footer className={light ? 'bg-[#f9f9f9]' : 'bg-dark-background'}>
@@ -32,7 +33,7 @@ export const Footer = ({ light }: { light?: boolean }) => {
 							}
 							href="https://twitter.com/highlightio"
 						>
-							<FaTwitter className="w-[24px] h-[24px]" />
+							<FaXTwitter className="w-[24px] h-[24px]" />
 						</a>
 						<a
 							className={
