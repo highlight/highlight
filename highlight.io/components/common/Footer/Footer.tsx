@@ -244,9 +244,7 @@ export const Footer = ({ light }: { light?: boolean }) => {
 				</div>
 				<div className={styles.socialDiv}>
 					<a href="https://twitter.com/highlightio">
-						<div className={styles.socialIcon}>
-							<Image src={x-twitter}  alt="" />
-						</div>
+						<FaXTwitter className={styles.socialIcon} />
 					</a>
 					<a href="https://www.linkedin.com/company/highlightrun">
 						<FaLinkedinIn className={styles.socialIcon} />
