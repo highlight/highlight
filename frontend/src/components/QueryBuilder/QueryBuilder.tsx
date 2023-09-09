@@ -67,6 +67,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useLocalStorage, useToggle } from 'react-use'
 
+import LoadingBox from '@/components/LoadingBox'
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
 import usePlayerConfiguration from '@/pages/Player/PlayerHook/utils/usePlayerConfiguration'
@@ -425,6 +426,12 @@ const MultiselectPopout = ({
 		label = value.options[0].label
 	}
 
+	const loadingBox = (
+		<div className={newStyle.loadingBox}>
+			<LoadingBox />
+		</div>
+	)
+
 	let multiValue: string[] = []
 	switch (type) {
 		case 'multiselect':
@@ -454,7 +461,7 @@ const MultiselectPopout = ({
 					queryPlaceholder="Filter..."
 					defaultOpen={invalid}
 					disabled={disabled}
-					loadingRender="Loading..."
+					loadingRender={loadingBox}
 				/>
 			)
 		case 'creatable':
@@ -484,7 +491,7 @@ const MultiselectPopout = ({
 					}
 					defaultOpen={invalid}
 					disabled={disabled}
-					loadingRender="Loading..."
+					loadingRender={loadingBox}
 				/>
 			)
 		case 'date_range':
@@ -1284,8 +1291,9 @@ function QueryBuilder(props: QueryBuilderProps) {
 	)
 
 	const setRulesImpl = useCallback(
-		(newRules: RuleProps[]) => {
+		(newRules: RuleProps[], isAnd: boolean) => {
 			setRules(newRules)
+			toggleIsAnd(isAnd)
 
 			if (readonly || !newRules.every(isComplete)) {
 				return
@@ -1297,20 +1305,23 @@ function QueryBuilder(props: QueryBuilderProps) {
 			})
 			setSearchQuery(newState)
 		},
-		[isAnd, readonly, setSearchQuery],
+		[readonly, setSearchQuery, toggleIsAnd],
 	)
 
 	const addRule = useCallback(
 		(rule: RuleProps) => {
-			setRulesImpl([...rules, rule])
+			setRulesImpl([...rules, rule], isAnd)
 			setCurrentRule(undefined)
 		},
-		[rules, setRulesImpl],
+		[rules, setRulesImpl, isAnd],
 	)
 	const removeRule = useCallback(
 		(targetRule: RuleProps) =>
-			setRulesImpl(rules.filter((rule) => rule !== targetRule)),
-		[rules, setRulesImpl],
+			setRulesImpl(
+				rules.filter((rule) => rule !== targetRule),
+				isAnd,
+			),
+		[rules, setRulesImpl, isAnd],
 	)
 	const updateRule = useCallback(
 		(targetRule: RuleProps, newProps: any) => {
@@ -1318,10 +1329,14 @@ function QueryBuilder(props: QueryBuilderProps) {
 				rules.map((rule) =>
 					rule !== targetRule ? rule : { ...rule, ...newProps },
 				),
+				isAnd,
 			)
 		},
-		[rules, setRulesImpl],
+		[rules, setRulesImpl, isAnd],
 	)
+	const toggleIsAndImpl = useCallback(() => {
+		setRulesImpl(rules, !isAnd)
+	}, [isAnd, rules, setRulesImpl])
 
 	const timeRangeRule = useMemo<RuleProps>(() => {
 		const timeRange = rules.find(
@@ -1826,7 +1841,7 @@ function QueryBuilder(props: QueryBuilderProps) {
 										shape="basic"
 										kind="secondary"
 										emphasis="low"
-										onClick={toggleIsAnd}
+										onClick={toggleIsAndImpl}
 										key={`separator-${index}`}
 										disabled={readonly}
 									>
