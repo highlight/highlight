@@ -20,6 +20,7 @@
 		"sdk/highlight-node",
 		"sdk/highlight-react",
 		"sdk/highlight-remix",
+		"sdk/pino",
 		"render",
 		"rrweb/packages/*",
 		"scripts",

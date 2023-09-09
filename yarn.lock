@@ -12566,9 +12566,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/pino@workspace:*, @highlight-run/pino@workspace:packages/pino":
+"@highlight-run/pino@workspace:*, @highlight-run/pino@workspace:sdk/pino":
   version: 0.0.0-use.local
-  resolution: "@highlight-run/pino@workspace:packages/pino"
+  resolution: "@highlight-run/pino@workspace:sdk/pino"
   dependencies:
     "@highlight-run/node": "workspace: *"
     tsup: ^7.2.0
