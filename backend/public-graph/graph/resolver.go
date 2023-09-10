@@ -165,7 +165,7 @@ type LoginCredentials struct {
 }
 
 var JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
-var ADMIN_PASSWORD = "GROOT"
+var ADMIN_PASSWORD = os.Getenv("ADMIN_PASSWORD")
 
 const ERROR_EVENT_MAX_LENGTH = 10000
 
