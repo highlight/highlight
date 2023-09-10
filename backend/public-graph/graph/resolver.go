@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -3463,9 +3464,9 @@ func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fmt.Println(credentials)
+	credentialsByte := []byte(credentials.Password)
 
-	if credentials.Password != ADMIN_PASSWORD {
+	if subtle.ConstantTimeCompare(credentialsByte, []byte(ADMIN_PASSWORD)) != 0 {
 		http.Error(w, "invalid password", http.StatusBadRequest)
 		return
 	}

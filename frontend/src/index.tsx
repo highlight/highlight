@@ -275,6 +275,20 @@ const AuthenticationRoleRouter = () => {
 	const isAuthLoading = authRole === AuthRole.LOADING
 	const isLoggedIn = authRole === AuthRole.AUTHENTICATED
 
+	const authMode = import.meta.env.REACT_APP_AUTH_MODE
+
+	useEffect(() => {
+		// TODO: refactor
+		const hasPasswordAuthorization =
+			document.cookie.includes('authorization')
+		if (authMode === 'password' && !hasPasswordAuthorization) {
+			auth.signOut()
+			if (!window.location.href.endsWith('/sign_in')) {
+				window.location.href = '/sign_in'
+			}
+		}
+	}, [authMode])
+
 	useEffect(() => {
 		if (adminData && user) {
 			setAuthRole(AuthRole.AUTHENTICATED)
