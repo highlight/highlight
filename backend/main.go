@@ -520,6 +520,8 @@ func main() {
 			r.Use(public.PublicMiddleware)
 			r.Use(highlightChi.Middleware)
 
+			r.Post("/login", publicResolver.Login)
+
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: publicResolver,

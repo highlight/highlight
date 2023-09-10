@@ -9,9 +9,11 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2/google"
@@ -39,11 +41,15 @@ type AuthMode = string
 const (
 	Simple   AuthMode = "Simple"
 	Firebase AuthMode = "Firebase"
+	Password AuthMode = "Password"
 )
 
 func GetEnvAuthMode() AuthMode {
 	if strings.EqualFold(os.Getenv("REACT_APP_AUTH_MODE"), Simple) {
 		return Simple
+	}
+	if strings.EqualFold(os.Getenv("REACT_APP_AUTH_MODE"), Password) {
+		return Password
 	}
 	return Firebase
 }
@@ -54,6 +60,8 @@ type Client interface {
 }
 
 type SimpleAuthClient struct{}
+
+type PasswordAuthClient struct{}
 
 type FirebaseAuthClient struct {
 	AuthClient *auth.Client
@@ -90,6 +98,8 @@ func SetupAuthClient(ctx context.Context, authMode AuthMode, oauthServer *oauth.
 		AuthClient = &FirebaseAuthClient{AuthClient: client}
 	} else if authMode == Simple {
 		AuthClient = &SimpleAuthClient{}
+	} else if authMode == Password {
+		AuthClient = &PasswordAuthClient{}
 	} else {
 		log.WithContext(ctx).Fatalf("private graph auth client configured with unknown auth mode")
 	}
@@ -107,6 +117,60 @@ func (c *SimpleAuthClient) GetUser(_ context.Context, _ string) (*auth.UserRecor
 		},
 		EmailVerified: true,
 	}, nil
+}
+
+func authenticateToken(tokenString string) error {
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(JwtAccessSecret), nil
+	})
+	if err != nil {
+		return e.Wrap(err, "invalid id token")
+	}
+
+	exp, ok := claims["exp"].(float64)
+	if !ok {
+		return e.Wrap(err, "invalid exp claim")
+	}
+
+	// Check if the current time is after the expiration
+	if time.Now().After(time.Unix(int64(exp), 0)) {
+		return e.Wrap(err, "token expired")
+	}
+
+	return nil
+}
+
+func (c *PasswordAuthClient) GetUser(_ context.Context, _ string) (*auth.UserRecord, error) {
+	return &auth.UserRecord{
+		UserInfo: &auth.UserInfo{
+			DisplayName: "Hobby Highlighter",
+			Email:       "demo@example.com",
+			PhoneNumber: "+14081234567",
+			PhotoURL:    "https://picsum.photos/200",
+			ProviderID:  "",
+			UID:         "12345abcdef09876a1b2c3d4e5f",
+		},
+		EmailVerified: true,
+	}, nil
+}
+
+func (c *PasswordAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
+	var uid string
+	email := ""
+
+	if token != "" {
+		err := authenticateToken(token)
+
+		if err == nil {
+			email = "demo@email.com"
+			uid = "12345abcdef09876a1b2c3d4e5f"
+		}
+	}
+
+	ctx = context.WithValue(ctx, model.ContextKeys.UID, uid)
+	ctx = context.WithValue(ctx, model.ContextKeys.Email, email)
+	return ctx, nil
 }
 
 func (c *SimpleAuthClient) updateContextWithAuthenticatedUser(ctx context.Context, token string) (context.Context, error) {
@@ -164,8 +228,18 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 		ctx := r.Context()
 		span, _ := tracer.StartSpanFromContext(ctx, "middleware.private")
 		defer span.Finish()
-		var err error
-		if token := r.Header.Get("token"); token != "" {
+		// var err error
+		if token, err := r.Cookie("authorization"); err == nil {
+			fmt.Println("TOKEN", token.Value)
+			if token.Value == "" {
+				span.SetOperationName("authorizationCookie")
+				ctx, err = AuthClient.updateContextWithAuthenticatedUser(ctx, token.Value)
+				if err != nil {
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+			}
+		} else if token := r.Header.Get("token"); token != "" {
 			span.SetOperationName("tokenHeader")
 			ctx, err = AuthClient.updateContextWithAuthenticatedUser(ctx, token)
 			if err != nil {

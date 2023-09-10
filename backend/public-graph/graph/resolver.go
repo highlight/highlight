@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/mail"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
+	"github.com/golang-jwt/jwt"
 	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/errorgroups"
@@ -156,6 +158,14 @@ type NetworkResource struct {
 	Name                 string               `json:"name"`
 	RequestResponsePairs RequestResponsePairs `json:"requestResponsePairs"`
 }
+
+type LoginCredentials struct {
+	Email    string `json:"email,omitempty"`
+	Password string `json:"password"`
+}
+
+var JwtAccessSecret = os.Getenv("JWT_ACCESS_SECRET")
+var ADMIN_PASSWORD = "GROOT"
 
 const ERROR_EVENT_MAX_LENGTH = 10000
 
@@ -3433,4 +3443,52 @@ func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, e
 		}
 	}
 	return false
+}
+
+func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
+
+	var credentials LoginCredentials
+
+	if ADMIN_PASSWORD == "" {
+		http.Error(w, "", http.StatusInternalServerError)
+		return
+	}
+
+	ctx := req.Context()
+
+	err := json.NewDecoder(req.Body).Decode(&credentials)
+
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+		return
+	}
+
+	fmt.Println(credentials)
+
+	if credentials.Password != ADMIN_PASSWORD {
+		http.Error(w, "invalid password", http.StatusBadRequest)
+		return
+	}
+
+	atClaims := jwt.MapClaims{}
+	atClaims["authorized"] = true
+	atClaims["claim"] = time.Now().Add(time.Hour * 24).Unix()
+	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
+
+	token, err := at.SignedString([]byte(JwtAccessSecret))
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+		http.Error(w, "", http.StatusInternalServerError)
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "authorization",
+		Value:    token,
+		MaxAge:   int(time.Hour.Seconds()),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+		Path:     "/",
+	})
+	w.WriteHeader(http.StatusOK)
 }

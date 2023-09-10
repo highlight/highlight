@@ -5,6 +5,8 @@ import 'firebase/compat/auth'
 
 import Firebase from 'firebase/compat/app'
 
+import { PUBLIC_GRAPH_URI } from '@/constants'
+
 interface User {
 	email: string | null
 
@@ -77,9 +79,71 @@ class SimpleAuth {
 	}
 }
 
+class PasswordAuth {
+	currentUser: User | null = fakeFirebaseUser
+	googleProvider?: Firebase.auth.GoogleAuthProvider
+	githubProvider?: Firebase.auth.GithubAuthProvider
+
+	async createUserWithEmailAndPassword(
+		email: string,
+		password: string,
+	): Promise<Firebase.auth.UserCredential> {
+		return await getFakeFirebaseCredentials()
+	}
+
+	onAuthStateChanged(
+		onSignedIn: (user: Firebase.User | null) => void,
+		onError: (error: Firebase.auth.Error) => any,
+	): () => void {
+		onSignedIn(this.currentUser as Firebase.User)
+		return function () {}
+	}
+
+	sendPasswordResetEmail(email: string): Promise<void> {
+		return Promise.resolve(undefined)
+	}
+
+	async signInWithEmailAndPassword(
+		email: string,
+		password: string,
+	): Promise<Firebase.auth.UserCredential> {
+		// TODO: work out token issue, whether it'd be left as cookie or managed
+		// endpoint should return JSON with Firebase.auth.UserCredentials body
+		const response = await fetch(`${PUBLIC_GRAPH_URI}/login`, {
+			method: 'POST',
+			body: JSON.stringify({
+				email,
+				password,
+			}),
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+		})
+		if (response.status === 200) {
+			const authResponse = await getFakeFirebaseCredentials()
+			return authResponse
+		}
+		throw new Error('Invalid credentials')
+	}
+
+	async signInWithPopup(
+		provider: Firebase.auth.AuthProvider,
+	): Promise<Firebase.auth.UserCredential> {
+		return await getFakeFirebaseCredentials()
+	}
+
+	signOut(): Promise<void> {
+		// TODO: invalidate authorization cookie/jwt token?
+		return Promise.resolve(undefined)
+	}
+}
+
 export let auth: SimpleAuth
 if (import.meta.env.REACT_APP_AUTH_MODE === 'simple') {
 	auth = new SimpleAuth()
+} else if (import.meta.env.REACT_APP_AUTH_MODE === 'password') {
+	auth = new PasswordAuth()
 } else {
 	let firebaseConfig: any
 	let firebaseConfigString: string
