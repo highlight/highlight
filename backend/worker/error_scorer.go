@@ -52,7 +52,7 @@ func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) error 
 	}
 
 	if len(errorGroups) == 0 {
-		log.WithContext(ctx).WithField("last_error_object_id", lastComputedErrorInstanceId).Info("No errors to score")
+		log.WithContext(ctx).WithField("lastErrorObjectId", lastComputedErrorInstanceId).Info("No errors to score")
 		return nil
 	}
 
@@ -62,15 +62,17 @@ func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) error 
 		_ = errorScorer.redis.SetLastComputedImpactfulErrorObjectId(ctx, errorGroup.LastErrorObjectId)
 
 		if err != nil {
-			log.WithContext(ctx).WithField("error_group_id", errorGroup.ID).Error(err)
+			log.WithContext(ctx).WithField("errorGroupId", errorGroup.ID).Error(err)
 			continue
 		}
+
+		log.WithContext(ctx).WithFields(log.Fields{"errorGroupId": errorGroup.ID, "occurranceScore": occurranceScore, "affectedUsersScore": affectedUsersScore}).Info("Scored error group")
 	}
 
 	return nil
 }
 
-func (ErrorScorer *ErrorScorer) scoreErrorGroup(ctx context.Context, errorGroup *ErrorGroupWithLastObjectId) float64, float64, error {
+func (errorScorer *ErrorScorer) scoreErrorGroup(ctx context.Context, errorGroup *ErrorGroupWithLastObjectId) (float64, float64, error) {
 	newLimitedDataError := errorGroup.CreatedAt.After(time.Now().Add(-time.Hour * 24 * 7))
 
 	occuranceScore := 1.0
