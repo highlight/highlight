@@ -321,26 +321,25 @@ export const usePlayer = (): ReplayerContextInterface => {
 				log('PlayerHook.tsx', 'chunk data', {
 					chunkResponse,
 				})
-				chunkEventsSet(
-					_i,
-					toHighlightEvents(await chunkResponse.json()),
-				)
 				log(
 					'PlayerHook.tsx:ensureChunksLoaded',
 					'set data for chunk',
 					_i,
 				)
-				return _i
+				return {
+					idx: _i,
+					events: toHighlightEvents(await chunkResponse.json()),
+				}
 			} catch (e: any) {
 				log(e, 'Error direct downloading session payload', {
 					chunk: `${_i}`,
 				})
-				return -1
 			} finally {
 				loadingChunks.current.delete(_i)
 			}
+			return { idx: -1, events: [] }
 		},
-		[chunkEventsSet, fetchEventChunkURL, session_secure_id],
+		[fetchEventChunkURL, session_secure_id],
 	)
 
 	// Ensure all chunks between startTs and endTs are loaded.
@@ -435,9 +434,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 					time: startTime,
 					state: action ?? target.current.state,
 				}
-				const loadedChunks = new Set<number>(
-					await Promise.all(promises),
-				)
+				const loadedChunkIds = new Set<number>()
+				const loadedChunks = await Promise.all(promises)
 				if (
 					target.current.time !== startTime ||
 					target.current.state !== (action ?? target.current.state)
@@ -445,15 +443,23 @@ export const usePlayer = (): ReplayerContextInterface => {
 					log(
 						'PlayerHook.tsx:ensureChunksLoaded',
 						'someone else has taken the chunk loading lock',
-						{ startTime, action, target, loadedChunks },
+						{
+							startTime,
+							action,
+							target,
+							loadedChunks: loadedChunkIds,
+						},
 					)
 					return
+				}
+				for (const { idx, events } of loadedChunks) {
+					chunkEventsSet(idx, events)
 				}
 				// update the replayer events
 				log(
 					'PlayerHook.tsx:ensureChunksLoaded',
 					'promises done, updating events',
-					{ loadedChunks, target },
+					{ loadedChunks: loadedChunkIds, target },
 				)
 				dispatch({ type: PlayerActionType.updateEvents })
 			}
@@ -482,6 +488,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			loadEventChunk,
 			getChunksToRemove,
 			chunkEventsRemove,
+			chunkEventsSet,
 		],
 	)
 
@@ -658,18 +665,25 @@ export const usePlayer = (): ReplayerContextInterface => {
 	useEffect(() => {
 		resetPlayer()
 		if (session_secure_id && eventChunksData?.event_chunks?.length) {
-			Promise.all(
-				eventChunksData.event_chunks
-					.slice(0, 3)
-					.map((c) => loadEventChunk(c.chunk_index)),
-			).then(() => {
+			loadEventChunk(0).then(({ events }) => {
+				chunkEventsSet(0, events)
 				dispatch({
 					type: PlayerActionType.onChunksLoad,
 					showPlayerMouseTail,
 					time: 0,
 					action: ReplayerState.Paused,
 				})
-				log('PlayerHook.tsx', 'initial load complete')
+				log('PlayerHook.tsx', 'initial chunk complete')
+			})
+			Promise.all(
+				eventChunksData.event_chunks
+					.slice(1, 3)
+					.map((c) => loadEventChunk(c.chunk_index)),
+			).then((chunks) => {
+				for (const { idx, events } of chunks) {
+					chunkEventsSet(idx, events)
+				}
+				log('PlayerHook.tsx', 'next chunk load complete')
 			})
 		}
 	}, [
@@ -679,6 +693,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 		loadEventChunk,
 		eventChunksData?.event_chunks,
 		showPlayerMouseTail,
+		chunkEventsSet,
 	])
 
 	useEffect(() => {
