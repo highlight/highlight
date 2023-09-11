@@ -46,7 +46,7 @@ import {
 import { QueryParamProvider } from 'use-query-params'
 import { ReactRouter6Adapter } from 'use-query-params/adapters/react-router-6'
 
-import { PUBLIC_GRAPH_URI } from '@/constants'
+import { PUBLIC_GRAPH_URI, AUTH_MODE } from '@/constants'
 import { SIGN_IN_ROUTE } from '@/pages/Auth/AuthRouter'
 import { onlyAllowHighlightStaff } from '@/util/authorization/authorizationUtils'
 
@@ -275,17 +275,13 @@ const AuthenticationRoleRouter = () => {
 	const isAuthLoading = authRole === AuthRole.LOADING
 	const isLoggedIn = authRole === AuthRole.AUTHENTICATED
 
-	const authMode = import.meta.env.REACT_APP_AUTH_MODE
-
 	useEffect(() => {
 		const hasPasswordAuthorization = sessionStorage.getItem('passwordToken')
-		if (authMode === 'password' && !hasPasswordAuthorization) {
+		if (AUTH_MODE === 'password' && !hasPasswordAuthorization) {
 			auth.signOut()
-			if (!window.location.href.endsWith('/sign_in')) {
-				window.location.href = '/sign_in'
-			}
+			navigate('/sign_in')
 		}
-	}, [authMode])
+	}, [navigate])
 
 	useEffect(() => {
 		if (adminData && user) {
@@ -342,15 +338,6 @@ const AuthenticationRoleRouter = () => {
 						setAuthRole(AuthRole.UNAUTHENTICATED)
 						setLoadingState(AppLoadingState.LOADED)
 					}
-				}
-
-				const authMode = import.meta.env.REACT_APP_AUTH_MODE
-				if (
-					authMode === 'password' &&
-					!sessionStorage.getItem('passwordToken')
-				) {
-					setAuthRole(AuthRole.UNAUTHENTICATED)
-					setLoadingState(AppLoadingState.LOADED)
 				}
 
 				firebaseInitialized.current = true
