@@ -162,10 +162,12 @@ func (c *PasswordAuthClient) updateContextWithAuthenticatedUser(ctx context.Cont
 	if token != "" {
 		err := authenticateToken(token)
 
-		if err == nil {
-			email = "demo@email.com"
-			uid = "12345abcdef09876a1b2c3d4e5f"
+		if err != nil {
+			return ctx, err
 		}
+
+		email = "demo@email.com"
+		uid = "12345abcdef09876a1b2c3d4e5f"
 	}
 
 	ctx = context.WithValue(ctx, model.ContextKeys.UID, uid)
@@ -228,18 +230,8 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 		ctx := r.Context()
 		span, _ := tracer.StartSpanFromContext(ctx, "middleware.private")
 		defer span.Finish()
-		// var err error
-		if token, err := r.Cookie("authorization"); err == nil {
-			fmt.Println("TOKEN", token.Value)
-			if token.Value == "" {
-				span.SetOperationName("authorizationCookie")
-				ctx, err = AuthClient.updateContextWithAuthenticatedUser(ctx, token.Value)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
-					return
-				}
-			}
-		} else if token := r.Header.Get("token"); token != "" {
+		var err error
+		if token := r.Header.Get("token"); token != "" {
 			span.SetOperationName("tokenHeader")
 			ctx, err = AuthClient.updateContextWithAuthenticatedUser(ctx, token)
 			if err != nil {

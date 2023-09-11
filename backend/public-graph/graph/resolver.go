@@ -2,7 +2,6 @@ package graph
 
 import (
 	"context"
-	"crypto/subtle"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -3447,7 +3446,6 @@ func (r *Resolver) isExcludedError(ctx context.Context, errorFilters []string, e
 }
 
 func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
-
 	var credentials LoginCredentials
 
 	if ADMIN_PASSWORD == "" {
@@ -3464,9 +3462,7 @@ func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	credentialsByte := []byte(credentials.Password)
-
-	if subtle.ConstantTimeCompare(credentialsByte, []byte(ADMIN_PASSWORD)) != 0 {
+	if ADMIN_PASSWORD != credentials.Password {
 		http.Error(w, "invalid password", http.StatusBadRequest)
 		return
 	}
@@ -3482,14 +3478,16 @@ func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "", http.StatusInternalServerError)
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "authorization",
-		Value:    token,
-		MaxAge:   int(time.Hour.Seconds()),
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteNoneMode,
-		Path:     "/",
-	})
+	response := make(map[string]string)
+	response["token"] = token
+
+	jsonResponse, err := json.Marshal((response))
+	if err != nil {
+		log.WithContext(ctx).Error(err)
+		http.Error(w, "", http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
 }

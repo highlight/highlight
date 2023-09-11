@@ -5,7 +5,7 @@ import 'firebase/compat/auth'
 
 import Firebase from 'firebase/compat/app'
 
-import { PUBLIC_GRAPH_URI } from '@/constants'
+import { AUTH_MODE, PUBLIC_GRAPH_URI } from '@/constants'
 
 interface User {
 	email: string | null
@@ -17,6 +17,9 @@ interface User {
 
 const fakeFirebaseUser: User = {
 	async getIdToken(): Promise<string> {
+		if (AUTH_MODE === 'password') {
+			return sessionStorage.getItem('passwordToken') || ''
+		}
 		return Promise.resolve('a1b2c3')
 	},
 	email: 'demo@example.com',
@@ -80,9 +83,16 @@ class SimpleAuth {
 }
 
 class PasswordAuth {
-	currentUser: User | null = fakeFirebaseUser
+	currentUser: User | null = null
 	googleProvider?: Firebase.auth.GoogleAuthProvider
 	githubProvider?: Firebase.auth.GithubAuthProvider
+
+	constructor() {
+		const token = sessionStorage.getItem('passwordToken')
+		if (token) {
+			this.currentUser = fakeFirebaseUser as any
+		}
+	}
 
 	async createUserWithEmailAndPassword(
 		email: string,
@@ -107,8 +117,6 @@ class PasswordAuth {
 		email: string,
 		password: string,
 	): Promise<Firebase.auth.UserCredential> {
-		// TODO: work out token issue, whether it'd be left as cookie or managed
-		// endpoint should return JSON with Firebase.auth.UserCredentials body
 		const response = await fetch(`${PUBLIC_GRAPH_URI}/login`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -120,7 +128,13 @@ class PasswordAuth {
 				'Content-Type': 'application/json',
 			},
 		})
+
 		if (response.status === 200) {
+			const jsonResponse = await response.json()
+			sessionStorage.setItem('passwordToken', jsonResponse.token)
+
+			this.currentUser = fakeFirebaseUser as any
+
 			const authResponse = await getFakeFirebaseCredentials()
 			return authResponse
 		}
@@ -134,7 +148,7 @@ class PasswordAuth {
 	}
 
 	signOut(): Promise<void> {
-		// TODO: invalidate authorization cookie/jwt token?
+		sessionStorage.removeItem('passwordToken')
 		return Promise.resolve(undefined)
 	}
 }

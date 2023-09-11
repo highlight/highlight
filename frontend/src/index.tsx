@@ -278,9 +278,7 @@ const AuthenticationRoleRouter = () => {
 	const authMode = import.meta.env.REACT_APP_AUTH_MODE
 
 	useEffect(() => {
-		// TODO: refactor
-		const hasPasswordAuthorization =
-			document.cookie.includes('authorization')
+		const hasPasswordAuthorization = sessionStorage.getItem('passwordToken')
 		if (authMode === 'password' && !hasPasswordAuthorization) {
 			auth.signOut()
 			if (!window.location.href.endsWith('/sign_in')) {
@@ -344,6 +342,15 @@ const AuthenticationRoleRouter = () => {
 						setAuthRole(AuthRole.UNAUTHENTICATED)
 						setLoadingState(AppLoadingState.LOADED)
 					}
+				}
+
+				const authMode = import.meta.env.REACT_APP_AUTH_MODE
+				if (
+					authMode === 'password' &&
+					!sessionStorage.getItem('passwordToken')
+				) {
+					setAuthRole(AuthRole.UNAUTHENTICATED)
+					setLoadingState(AppLoadingState.LOADED)
 				}
 
 				firebaseInitialized.current = true
