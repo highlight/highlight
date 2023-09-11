@@ -33,7 +33,7 @@ func NewErrorScorer(store *store.Store, db *gorm.DB, redis *redis.Client) *Error
 	}
 }
 
-func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) error {
+func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) {
 	var errorGroups []*ErrorGroupWithLastObjectId
 
 	lastComputedErrorInstanceId, _ := errorScorer.redis.GetLastComputedImpactfulErrorObjectId(ctx)
@@ -47,14 +47,15 @@ func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) error 
 		WHERE obj.created_at >= now() - INTERVAL '10 minutes'
 			AND obj.id > ?
 		GROUP BY grp.id
-		ORDER BY last_error_object_id ASC`, lastComputedErrorInstanceId).
-		Scan(&errorGroups).Error; err != nil {
-		return errors.Wrap(err, "error querying for error objects")
+		ORDER BY last_error_object_id ASC
+	`, lastComputedErrorInstanceId).Scan(&errorGroups).Error; err != nil {
+		log.WithContext(ctx).Error(errors.Wrap(err, "error querying for error objects"))
+		return
 	}
 
 	if len(errorGroups) == 0 {
 		log.WithContext(ctx).WithField("lastErrorObjectId", lastComputedErrorInstanceId).Info("No errors to score")
-		return nil
+		return
 	}
 
 	// TODO(spenny): currently N+1 query
@@ -76,8 +77,6 @@ func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) error 
 
 		log.WithContext(ctx).WithFields(log.Fields{"errorGroupId": errorGroup.ID, "occurranceScore": occurranceScore, "affectedUsersScore": affectedUsersScore}).Info("Scored error group")
 	}
-
-	return nil
 }
 
 func (errorScorer *ErrorScorer) scoreErrorGroup(ctx context.Context, errorGroup *ErrorGroupWithLastObjectId) (float64, float64, error) {
