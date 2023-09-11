@@ -1,14 +1,14 @@
 import TextHighlighter from '@components/TextHighlighter/TextHighlighter'
 import { Text } from '@highlight-run/ui'
-import { BODY_KEY, LogsSearchParam } from '@pages/LogsPage/SearchForm/utils'
-import React from 'react'
+
+import { BODY_KEY, SearchParam } from '@/components/Search/SearchForm/utils'
 
 import * as styles from './LogsTable.css'
 
 type Props = {
 	message: string
 	expanded: boolean
-	queryTerms: LogsSearchParam[]
+	queryTerms: SearchParam[]
 }
 
 const LogMessage = ({ message, expanded, queryTerms }: Props) => {

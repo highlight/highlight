@@ -4,7 +4,8 @@ import {
 	Badge,
 	Box,
 	Combobox,
-	IconSolidExternalLink,
+	defaultPresets,
+	getNow,
 	IconSolidPlus,
 	IconSolidSearch,
 	IconSolidSwitchVertical,
@@ -16,26 +17,52 @@ import {
 	useComboboxStore,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { LOG_TIME_FORMAT, TIME_MODE } from '@pages/LogsPage/constants'
-import {
-	BODY_KEY,
-	LogsSearchParam,
-	parseLogsQuery,
-	quoteQueryValue,
-	stringifyLogsQuery,
-} from '@pages/LogsPage/SearchForm/utils'
 import { useParams } from '@util/react-router/useParams'
 import moment from 'moment'
 import { stringify } from 'query-string'
 import React, { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
+import {
+	DateTimeParam,
+	encodeQueryParams,
+	StringParam,
+	withDefault,
+} from 'use-query-params'
 
 import { Button } from '@/components/Button'
+import {
+	TIME_FORMAT,
+	TIME_MODE,
+} from '@/components/Search/SearchForm/constants'
+import {
+	BODY_KEY,
+	parseSearchQuery,
+	quoteQueryValue,
+	SearchParam,
+	stringifySearchQuery,
+} from '@/components/Search/SearchForm/utils'
 
 import * as styles from './SearchForm.css'
 
-type Props = {
+export const QueryParam = withDefault(StringParam, '')
+export const FixedRangeStartDateParam = withDefault(
+	DateTimeParam,
+	defaultPresets[0].startDate,
+)
+export const PermalinkStartDateParam = withDefault(
+	DateTimeParam,
+	defaultPresets[5].startDate,
+)
+export const EndDateParam = withDefault(DateTimeParam, getNow().toDate())
+
+// Update to be logs OR traces
+type FetchKeys = typeof useGetLogsKeysQuery
+type FetchValues = typeof useGetLogsKeyValuesLazyQuery
+type Keys = GetLogsKeysQuery['logs_keys']
+
+const MAX_ITEMS = 10
+
+export type SearchFormProps = {
 	onFormSubmit: (query: string) => void
 	initialQuery: string
 	startDate: Date
@@ -44,37 +71,44 @@ type Props = {
 	presets: Preset[]
 	minDate: Date
 	timeMode: TIME_MODE
+	fetchKeys: FetchKeys
+	fetchValuesLazyQuery: FetchValues
 	disableSearch?: boolean
-	addLinkToViewInLogViewer?: boolean
+	actions?: React.FC<{
+		query: string
+		startDate: Date
+		endDate: Date
+	}>
 	hideDatePicker?: boolean
 	hideCreateAlert?: boolean
 }
 
-const MAX_ITEMS = 10
-
-const SearchForm = ({
+const SearchForm: React.FC<SearchFormProps> = ({
 	initialQuery,
 	startDate,
 	endDate,
+	fetchKeys,
+	fetchValuesLazyQuery,
 	onDatesChange,
 	onFormSubmit,
 	presets,
 	minDate,
 	timeMode,
 	disableSearch,
-	addLinkToViewInLogViewer,
+	actions,
 	hideDatePicker,
 	hideCreateAlert,
-}: Props) => {
+}) => {
 	const navigate = useNavigate()
 	const { projectId } = useProjectId()
 	const [query, setQuery] = React.useState(initialQuery)
-	const { data: keysData, loading: keysLoading } = useGetLogsKeysQuery({
+
+	const { data: keysData, loading: keysLoading } = fetchKeys({
 		variables: {
 			project_id: projectId,
 			date_range: {
-				start_date: moment(startDate).format(LOG_TIME_FORMAT),
-				end_date: moment(endDate).format(LOG_TIME_FORMAT),
+				start_date: moment(startDate).format(TIME_FORMAT),
+				end_date: moment(endDate).format(TIME_FORMAT),
 			},
 		},
 	})
@@ -98,42 +132,17 @@ const SearchForm = ({
 					initialQuery={initialQuery}
 					startDate={startDate}
 					endDate={endDate}
+					// TODO: Update so it's not just logs_keys
 					keys={keysData?.logs_keys}
 					keysLoading={keysLoading}
 					disableSearch={disableSearch}
 					query={query}
+					fetchValuesLazyQuery={fetchValuesLazyQuery}
 					setQuery={setQuery}
 					onFormSubmit={onFormSubmit}
 				/>
 				<Box display="flex" pr="8" py="6" gap="6">
-					{addLinkToViewInLogViewer && (
-						<Button
-							kind="secondary"
-							trackingId="view-in-log-viewer"
-							onClick={() => {
-								const encodedQuery = encodeQueryParams(
-									{
-										query: StringParam,
-										start_date: DateTimeParam,
-										end_date: DateTimeParam,
-									},
-									{
-										query: query,
-										start_date: startDate,
-										end_date: endDate,
-									},
-								)
-								navigate({
-									pathname: `/${projectId}/logs`,
-									search: stringify(encodedQuery),
-								})
-							}}
-							emphasis="medium"
-							iconLeft={<IconSolidExternalLink />}
-						>
-							View in log viewer
-						</Button>
-					)}
+					{actions && actions({ query, startDate, endDate })}
 					{!hideDatePicker && (
 						<PreviousDateRangePicker
 							emphasis="low"
@@ -161,7 +170,9 @@ const SearchForm = ({
 										end_date: endDate,
 									},
 								)
+
 								navigate({
+									// TODO: Handle traces
 									pathname: `/${projectId}/alerts/logs/new`,
 									search: stringify(encodedQuery),
 								})
@@ -184,13 +195,14 @@ export const Search: React.FC<{
 	initialQuery: string
 	startDate: Date
 	endDate: Date
-	keys?: GetLogsKeysQuery['logs_keys']
+	keys?: Keys
 	hideIcon?: boolean
 	className?: string
 	keysLoading: boolean
 	disableSearch?: boolean
 	placeholder?: string
 	query: string
+	fetchValuesLazyQuery: FetchValues
 	setQuery: (value: string) => void
 	onFormSubmit: (query: string) => void
 }> = ({
@@ -204,6 +216,7 @@ export const Search: React.FC<{
 	disableSearch,
 	placeholder,
 	query,
+	fetchValuesLazyQuery,
 	setQuery,
 	onFormSubmit,
 }) => {
@@ -213,11 +226,10 @@ export const Search: React.FC<{
 	const comboboxStore = useComboboxStore({
 		defaultValue: query ?? '',
 	})
+	const [getKeyValues, { data, loading: valuesLoading }] =
+		fetchValuesLazyQuery()
 
-	const [getLogsKeyValues, { data, loading: valuesLoading }] =
-		useGetLogsKeyValuesLazyQuery()
-
-	const queryTerms = parseLogsQuery(query)
+	const queryTerms = parseSearchQuery(query)
 	const cursorIndex = inputRef.current?.selectionStart || 0
 	const activeTermIndex = getActiveTermIndex(cursorIndex, queryTerms)
 	const activeTerm = queryTerms[activeTermIndex]
@@ -228,8 +240,11 @@ export const Search: React.FC<{
 	const loading = showValues ? valuesLoading : keysLoading
 	const showTermSelect = !!activeTerm.value.length
 
+	// TODO: Update so it's not just logs_key_values
+	const values = data?.logs_key_values
+
 	const visibleItems = showValues
-		? getVisibleValues(activeTerm, data?.logs_key_values)
+		? getVisibleValues(activeTerm, values)
 		: getVisibleKeys(query, queryTerms, activeTerm, keys)
 
 	// Limit number of items shown
@@ -247,20 +262,20 @@ export const Search: React.FC<{
 			return
 		}
 
-		getLogsKeyValues({
+		getKeyValues({
 			variables: {
 				project_id: project_id!,
 				key_name: activeTerm.key,
 				date_range: {
-					start_date: moment(startDate).format(LOG_TIME_FORMAT),
-					end_date: moment(endDate).format(LOG_TIME_FORMAT),
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 			},
 		})
 	}, [
 		activeTerm.key,
 		endDate,
-		getLogsKeyValues,
+		getKeyValues,
 		project_id,
 		showValues,
 		startDate,
@@ -283,10 +298,7 @@ export const Search: React.FC<{
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [query])
 
-	const handleItemSelect = (
-		key: GetLogsKeysQuery['logs_keys'][0] | string,
-		noQuotes?: boolean,
-	) => {
+	const handleItemSelect = (key: Keys[0] | string, noQuotes?: boolean) => {
 		const isValueSelect = typeof key === 'string'
 
 		// If string, it's a value not a key
@@ -299,7 +311,7 @@ export const Search: React.FC<{
 			queryTerms[activeTermIndex].value = ''
 		}
 
-		const newQuery = stringifyLogsQuery(queryTerms)
+		const newQuery = stringifySearchQuery(queryTerms)
 		setQuery(newQuery)
 
 		if (isValueSelect) {
@@ -336,7 +348,7 @@ export const Search: React.FC<{
 					autoSelect
 					store={comboboxStore}
 					name="search"
-					placeholder={placeholder ?? 'Search your logs...'}
+					placeholder={placeholder ?? 'Search...'}
 					className={className ?? styles.combobox}
 					value={query}
 					style={{
@@ -507,7 +519,7 @@ export const Search: React.FC<{
 
 const getActiveTermIndex = (
 	cursorIndex: number,
-	params: LogsSearchParam[],
+	params: SearchParam[],
 ): number => {
 	let activeTermIndex
 
@@ -525,9 +537,9 @@ const getActiveTermIndex = (
 
 const getVisibleKeys = (
 	queryText: string,
-	queryTerms: LogsSearchParam[],
-	activeQueryTerm: LogsSearchParam,
-	keys?: GetLogsKeysQuery['logs_keys'],
+	queryTerms: SearchParam[],
+	activeQueryTerm: SearchParam,
+	keys?: Keys,
 ) => {
 	const startingNewTerm = queryText.endsWith(' ')
 	const activeTermKeys = queryTerms.map((term) => term.key)
@@ -551,10 +563,7 @@ const getVisibleKeys = (
 	)
 }
 
-const getVisibleValues = (
-	activeQueryTerm: LogsSearchParam,
-	values?: string[],
-) => {
+const getVisibleValues = (activeQueryTerm: SearchParam, values?: string[]) => {
 	return (
 		values?.filter(
 			(v) =>
