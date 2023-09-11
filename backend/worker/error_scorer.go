@@ -4,13 +4,19 @@ import (
 	"context"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
+
+type ErrorGroupWithLastObjectId struct {
+	ID                int
+	ProjectID         int
+	CreatedAt         time.Time
+	LastErrorObjectId int
+}
 
 type ErrorScorer struct {
 	store *store.Store
@@ -27,38 +33,33 @@ func NewErrorScorer(store *store.Store, db *gorm.DB, redis *redis.Client) *Error
 }
 
 func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) error {
-	var errorGroups []model.ErrorGroup
+	var errorGroups []*ErrorGroupWithLastObjectId
 
 	lastComputedErrorInstanceId, _ := errorScorer.redis.GetLastComputedImpactfulErrorObjectId(ctx)
 
 	// TODO(spenny): should we cache the last processed error object id to prevent duplicates
 	if err := errorScorer.db.Raw(`
-		SELECT DISTINCT(grp.id), grp.created_at, grp.project_id, MAX(obj.id)
+		SELECT grp.id, grp.created_at, grp.project_id, MAX(obj.id) as last_error_object_id
 		FROM error_objects obj
 		INNER JOIN error_groups grp
 			ON grp.id = obj.error_group_id
 		WHERE obj.created_at >= now() - INTERVAL '10 minutes'
 			AND obj.id > ?
 		GROUP BY grp.id
-		ORDER BY MAX(obj.id) ASC`, lastComputedErrorInstanceId).
+		ORDER BY last_error_object_id ASC`, lastComputedErrorInstanceId).
 		Scan(&errorGroups).Error; err != nil {
 		return errors.Wrap(err, "error querying for error objects")
 	}
 
 	if len(errorGroups) == 0 {
+		log.WithContext(ctx).WithField("last_error_object_id", lastComputedErrorInstanceId).Info("No errors to score")
 		return nil
 	}
 
 	// TODO(spenny): currently N+1 query
 	for _, errorGroup := range errorGroups {
-		log.WithContext(ctx).WithFields(
-			log.Fields{
-				"error_group_id": errorGroup.ID,
-				"worker":         "errorscorer",
-			}).Info("Scoring error group")
-
-		err := errorScorer.scoreErrorGroup(ctx, &errorGroup)
-		// TODO: r.redis.SetLastComputedImpactfulErrorObjectId(ctx, errorGroup.?)
+		occurranceScore, affectedUsersScore, err := errorScorer.scoreErrorGroup(ctx, errorGroup)
+		_ = errorScorer.redis.SetLastComputedImpactfulErrorObjectId(ctx, errorGroup.LastErrorObjectId)
 
 		if err != nil {
 			log.WithContext(ctx).WithField("error_group_id", errorGroup.ID).Error(err)
@@ -69,57 +70,81 @@ func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) error 
 	return nil
 }
 
-func (ErrorScorer *ErrorScorer) scoreErrorGroup(ctx context.Context, errorGroup *model.ErrorGroup) error {
+func (ErrorScorer *ErrorScorer) scoreErrorGroup(ctx context.Context, errorGroup *ErrorGroupWithLastObjectId) float64, float64, error {
 	newLimitedDataError := errorGroup.CreatedAt.After(time.Now().Add(-time.Hour * 24 * 7))
+
+	occuranceScore := 1.0
+	affectedUsersScore := 1.0
 
 	if newLimitedDataError {
 		// number of occurances
-
-		// convert to raw sql with project id
-		// SELECT STDDEV_POP(count), avg(count)
-		// FROM (
-		// 	SELECT error_group_id, COUNT(*)
-		// 	FROM error_objects
-		// 	WHERE project_id = 1
-		// 		AND created_at > now() - Interval '2 day'
-		// 		AND created_at < now() - INTERVAL '1 day'
-		// 	GROUP BY 1
-		// 	ORDER BY 2 DESC
-		// 	LIMIT 5
-		// ) e
+		if err := errorScorer.db.Raw(`
+			WITH most_occurring_errors AS (
+				SELECT error_group_id, COUNT(*) as errorCount
+				FROM error_objects
+				WHERE project_id = ?
+					AND created_at > NOW() - INTERVAL '7 day'
+				GROUP BY error_group_id
+				ORDER BY errorCount DESC
+				LIMIT 5
+			),
+			current_error AS (
+				SELECT COUNT(*) as current_error_count
+				FROM error_objects
+				WHERE error_group_id = ?
+					AND created_at > NOW() - INTERVAL '1 hour'
+			),
+			trailing_vals AS (
+				SELECT error_objects.error_group_id, extract(day from created_at) AS day, EXTRACT(hour from created_at) AS hour, COUNT(*) AS count
+				FROM error_objects
+				INNER JOIN most_occurring_errors
+					ON most_occurring_errors.error_group_id = error_objects.error_group_id
+				WHERE created_at > NOW() - INTERVAL '7 days'
+				GROUP BY error_objects.error_group_id, day, hour
+				ORDER BY day DESC, hour DESC
+			),
+			stddev AS (
+				SELECT STDDEV_POP(count) FROM trailing_vals
+			),
+			avg AS (
+				SELECT AVG(count) FROM trailing_vals
+			)
+			SELECT current_error_count - avg / stddev_pop AS score
+			FROM trailing_vals, stddev, avg, current_error
+			ORDER BY day DESC, hour DESC
+			LIMIT 1`, errorGroup.ProjectID, errorGroup.ID).
+			Find(&occuranceScore).Error; err != nil {
+			return 0, 0, errors.Wrap(err, "error querying calculating number of occurrance score")
+		}
 
 		// number of users affected
 	} else {
 		// number of occurances
-
-		// SELECT STDDEV_POP(count), avg(count)
-		// FROM (
-		// 	SELECT extract(hour from created_at), extract(day from created_at), COUNT(*)
-		// 	FROM error_objects
-		// 	WHERE error_group_id = [error_id]
-		// 		AND created_at > now() - Interval '169 hours'
-		// 	GROUP BY 2,1
-		// 	ORDER BY 2,1
-		// ) e
-
-		// with trailing_vals as (
-		// 	SELECT extract(day from created_at) as day, extract(hour from created_at) as hour, COUNT(*)
-		// 	FROM error_objects
-		// 	WHERE error_group_id = ‘35490166’
-		// 		AND created_at > now() - Interval ‘7 days’
-		// 	GROUP BY 1,2
-		// 	ORDER BY 1,2
-		// ),
-		// stddev as (
-		// 	SELECT STDDEV_POP(count) from trailing_vals
-		// ),
-		// avg as (
-		// 	SELECT avg(count) from trailing_vals
-		// )
-		// SELECT day, hour, count - avg / stddev from trailing_vals
+		if err := errorScorer.db.Raw(`
+			WITH trailing_vals AS (
+				SELECT extract(day from created_at) AS day, EXTRACT(hour from created_at) AS hour, COUNT(*) AS count
+				FROM error_objects
+				WHERE error_group_id = ?
+					AND created_at > NOW() - INTERVAL '7 days'
+				GROUP BY day, hour
+				ORDER BY day DESC, hour DESC
+			),
+			stddev AS (
+				SELECT STDDEV_POP(count) FROM trailing_vals
+			),
+			avg AS (
+				SELECT AVG(count) FROM trailing_vals
+			)
+			SELECT count - avg / stddev_pop AS score
+			FROM trailing_vals, stddev, avg
+			ORDER BY day DESC, hour DESC
+			LIMIT 1`, errorGroup.ID).
+			Find(&occuranceScore).Error; err != nil {
+			return 0, 0, errors.Wrap(err, "error querying calculating number of occurrance score")
+		}
 
 		// number of users affected
 	}
 
-	return nil
+	return occuranceScore, affectedUsersScore, nil
 }
