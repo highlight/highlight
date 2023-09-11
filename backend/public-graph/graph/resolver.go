@@ -3459,11 +3459,12 @@ func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
 
 	if err != nil {
 		log.WithContext(ctx).Error(err)
+		http.Error(w, "invalid credentials", http.StatusBadRequest)
 		return
 	}
 
 	if ADMIN_PASSWORD != credentials.Password {
-		http.Error(w, "invalid password", http.StatusBadRequest)
+		http.Error(w, "invalid credentials", http.StatusBadRequest)
 		return
 	}
 
