@@ -19,7 +19,7 @@ It seems like a tiny feature at first, but it’ll spoil you. You’ll question 
   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 />
 
-## Session search moves to Clickhouse
+## Session search moves to ClickHouse
 
 We’ve shipped a new UI for searching sessions, and session search is now fully powered by ClickHouse. That means you get a snappy search experience with real-time previews of the keys you can use to search.
 
