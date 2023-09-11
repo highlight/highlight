@@ -2,11 +2,12 @@ import LoadingBox from '@components/LoadingBox'
 import { useGetLogsTotalCountQuery } from '@graph/hooks'
 import { Box, Preset, Stack, Text } from '@highlight-run/ui'
 import { useNumericProjectId } from '@hooks/useProjectId'
-import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import { formatDate } from '@pages/LogsPage/utils'
 import { formatNumber } from '@util/numbers'
 import moment from 'moment'
 import { useMemo } from 'react'
+
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 
 import * as styles from './LogsCount.css'
 
@@ -29,8 +30,8 @@ const LogsCount = ({
 				params: {
 					query,
 					date_range: {
-						start_date: moment(startDate).format(LOG_TIME_FORMAT),
-						end_date: moment(endDate).format(LOG_TIME_FORMAT),
+						start_date: moment(startDate).format(TIME_FORMAT),
+						end_date: moment(endDate).format(TIME_FORMAT),
 					},
 				},
 			},

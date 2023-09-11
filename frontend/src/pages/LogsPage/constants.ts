@@ -1,7 +1,5 @@
 import { LogLevel } from '@graph/schemas'
 
-export const LOG_TIME_FORMAT = 'YYYY-MM-DDTHH:mm:ss.000000000Z'
-
 export const COLOR_MAPPING: {
 	[key in LogLevel]: string
 } = {
@@ -13,5 +11,3 @@ export const COLOR_MAPPING: {
 	[LogLevel.Fatal]: '#CD2B31',
 	[LogLevel.Trace]: '#1a1523',
 }
-
-export type TIME_MODE = 'fixed-range' | 'permalink'

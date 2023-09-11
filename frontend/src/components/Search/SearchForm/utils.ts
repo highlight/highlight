@@ -1,9 +1,4 @@
-import { LogLevel, LogSource, ReservedLogKey, Session } from '@graph/schemas'
-import moment from 'moment'
-import { stringify } from 'query-string'
-import { DateTimeParam, encodeQueryParams, StringParam } from 'use-query-params'
-
-export type LogsSearchParam = {
+export type SearchParam = {
 	key: string
 	operator: string
 	value: string
@@ -11,7 +6,7 @@ export type LogsSearchParam = {
 }
 
 const SEPARATOR = ':'
-export const DEFAULT_LOGS_OPERATOR = '='
+export const DEFAULT_OPERATOR = '='
 export const BODY_KEY = 'body'
 
 // Inspired by search-query-parser:
@@ -19,12 +14,12 @@ export const BODY_KEY = 'body'
 const PARSE_REGEX =
 	/(\S+:'(?:[^'\\]|\\.)*')|(\S+:"(?:[^"\\]|\\.)*")|(-?"(?:[^"\\]|\\.)*")|(-?'(?:[^'\\]|\\.)*')|\S+|\S+:\S+|\s$/g
 
-export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
+export const parseSearchQuery = (query = ''): SearchParam[] => {
 	if (query.indexOf(SEPARATOR) === -1) {
 		return [
 			{
 				key: BODY_KEY,
-				operator: DEFAULT_LOGS_OPERATOR,
+				operator: DEFAULT_OPERATOR,
 				value: query,
 				offsetStart: 0,
 			},
@@ -45,7 +40,7 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 			terms.push({
 				key,
 				value,
-				operator: DEFAULT_LOGS_OPERATOR,
+				operator: DEFAULT_OPERATOR,
 				offsetStart: match.index,
 			})
 		} else {
@@ -61,7 +56,7 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 
 				terms.push({
 					key: BODY_KEY,
-					operator: DEFAULT_LOGS_OPERATOR,
+					operator: DEFAULT_OPERATOR,
 					value: isEmptyString ? '' : term,
 					offsetStart: isEmptyString ? match.index + 1 : match.index,
 				})
@@ -72,7 +67,7 @@ export const parseLogsQuery = (query = ''): LogsSearchParam[] => {
 	return terms
 }
 
-export const stringifyLogsQuery = (params: LogsSearchParam[]) => {
+export const stringifySearchQuery = (params: SearchParam[]) => {
 	const querySegments: string[] = []
 
 	params.forEach(({ key, value }) => {
@@ -88,7 +83,7 @@ export const stringifyLogsQuery = (params: LogsSearchParam[]) => {
 
 // Same as the method above, but only used for building a query string to send
 // to the server which requires that all strings are wrapped in double quotes.
-export const buildLogsQueryForServer = (params: LogsSearchParam[]) => {
+export const buildSearchQueryForServer = (params: SearchParam[]) => {
 	const querySegments: string[] = []
 
 	params.forEach(({ key, value }) => {
@@ -108,84 +103,8 @@ export const buildLogsQueryForServer = (params: LogsSearchParam[]) => {
 	return querySegments.join(' ')
 }
 
-export const validateLogsQuery = (params: LogsSearchParam[]): boolean => {
+export const validateSearchQuery = (params: SearchParam[]): boolean => {
 	return !params.some((param) => !param.value)
-}
-
-export const buildSessionParams = ({
-	session,
-	levels,
-	sources,
-}: {
-	session: Session | undefined
-	levels: LogLevel[]
-	sources: LogSource[]
-}) => {
-	const queryParams: LogsSearchParam[] = []
-	let offsetStart = 1
-
-	if (session?.secure_id) {
-		queryParams.push({
-			key: ReservedLogKey.SecureSessionId,
-			operator: DEFAULT_LOGS_OPERATOR,
-			value: session.secure_id,
-			offsetStart: offsetStart++,
-		})
-	}
-
-	levels.forEach((level) => {
-		queryParams.push({
-			key: ReservedLogKey.Level,
-			operator: DEFAULT_LOGS_OPERATOR,
-			value: level,
-			offsetStart: offsetStart++,
-		})
-	})
-
-	sources.forEach((source) => {
-		queryParams.push({
-			key: ReservedLogKey.Source,
-			operator: DEFAULT_LOGS_OPERATOR,
-			value: source,
-			offsetStart: offsetStart++,
-		})
-	})
-
-	return {
-		query: stringifyLogsQuery(queryParams),
-		date_range: {
-			start_date: moment(session?.created_at),
-			end_date: moment(session?.created_at).add(4, 'hours'),
-		},
-	}
-}
-
-export const getLogsURLForSession = ({
-	projectId,
-	session,
-	levels,
-	sources,
-}: {
-	projectId: string
-	session: Session
-	levels: LogLevel[]
-	sources: LogSource[]
-}) => {
-	const params = buildSessionParams({ session, levels, sources })
-
-	const encodedQuery = encodeQueryParams(
-		{
-			query: StringParam,
-			start_date: DateTimeParam,
-			end_date: DateTimeParam,
-		},
-		{
-			query: params.query,
-			start_date: params.date_range.start_date.toDate(),
-			end_date: params.date_range.end_date.toDate(),
-		},
-	)
-	return `/${projectId}/logs?${stringify(encodedQuery)}`
 }
 
 export const quoteQueryValue = (value: string | number) => {
