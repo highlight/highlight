@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/pkg/errors"
@@ -60,8 +61,15 @@ func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) error 
 	for _, errorGroup := range errorGroups {
 		occurranceScore, affectedUsersScore, err := errorScorer.scoreErrorGroup(ctx, errorGroup)
 		_ = errorScorer.redis.SetLastComputedImpactfulErrorObjectId(ctx, errorGroup.LastErrorObjectId)
-
 		if err != nil {
+			log.WithContext(ctx).WithField("errorGroupId", errorGroup.ID).Error(err)
+			continue
+		}
+
+		totalScore := occurranceScore + affectedUsersScore
+		currentTime := time.Now()
+
+		if err := errorScorer.db.Model(&model.ErrorGroup{Model: model.Model{ID: errorGroup.ID}}).Updates(&model.ErrorGroup{ImpactfulScore: &totalScore, ImpactfulScoreDate: &currentTime}).Error; err != nil {
 			log.WithContext(ctx).WithField("errorGroupId", errorGroup.ID).Error(err)
 			continue
 		}
