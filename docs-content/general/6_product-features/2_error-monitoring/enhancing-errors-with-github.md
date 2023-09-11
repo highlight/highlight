@@ -5,9 +5,8 @@ createdAt: 2023-09-07T16:07:50.273Z
 updatedAt: 2023-09-07T16:07:50.273Z
 ---
 
-Highlight has the capability to enhance your backend errors using GitHub (errors on the frontend are enhanced using [sourcemaps](./sourcemaps.md)). Some backend
-languages will give us context of a stacktrace, but for most compiled languages, Highlight doesn't have no access to this. With our GitHub integration, Highlight
-is able to enhance a stacktrace with context, as well as other enhancements such as "link to a file" and attribution to a code change.
+Highlight has the capability to enhance your backend errors using GitHub (errors on the frontend are enhanced using [sourcemaps](./sourcemaps.md)). With our GitHub
+integration, Highlight is able to enhance a stacktrace with context, as well as other enhancements such as "link to a file" and attribution to a code change.
 
 
 In order to turn on GitHub Enhancements, 3 actions need to be completed for your project:
@@ -18,8 +17,8 @@ In order to turn on GitHub Enhancements, 3 actions need to be completed for your
 </ol>
 
 ## Create a service via the SDK
-Services are created to group your logs, errors, and traces by the process that is running the code. Having a service can make it helpful to decipher
-which process caused an error, especially in code paths shared by multuple processes. They can also be used also filters for logs and traces.
+Services are created to group your logs, errors, and traces by the application that is running the code. Having a service can make it helpful to decipher
+which application caused an error, especially in code paths shared by multiple applications. They can also be used also filters for logs and traces.
 
 In order to create a new service, a service name must be added to your SDK. Reference the [SDK start up guides](../../../getting-started/1_overview.md) for more help.
 
@@ -33,7 +32,8 @@ highlight.Start(
 defer highlight.Stop()
 ```
 
-<b>Note:</b> There is also a service version that is provided in the example above. It is not necessary to enable GitHub enhancements, but is recommended that this be the current GIT SHA of the deployed code to use the most accurate files. If not provided, Highlight will fallback to your current default branch (e.g. main) GIT SHA.
+<b>Note:</b> There is also a service version that is provided in the example above. This is not necessary to enable GitHub enhancements, but is recommended that this be the
+current GIT SHA of the deployed code to use the most accurate files. If not provided, Highlight will fallback to your current default branch (e.g. main) GIT SHA.
 
 ![Service's page](/images/features/enhancingErrorsWithGithub1.png)
 
@@ -43,8 +43,9 @@ Enable GitHub on Highlight by going to the [integrations](https://app.highlight.
 More information on the GitHub Integration can be found at [GitHub Integration](../../7_integrations/github-integration.md).
 
 ## Link your service to a GitHub repo
-Once a service is created, it should be visible in your project settings, under the "Services" table. The last step to enable stacktrace enhancements is to link your service to its respective GitHub repo, the one that should be used to enhance your errors. In addition to linking the repo, there are two fields to configure file
-path mappings from your deployment process to the correct file in GitHub.
+Once a service is created, it should be visible in your project settings, under the "Services" table. The last step to enable stacktrace enhancements is to link your service to
+its respective GitHub repo, the one that should be used to enhance your errors. In addition to linking the repo, there are two fields to configure file path mappings from your
+deployment process to the correct file in GitHub.
 
 1. <b>Build path prefix</b> - This path prefix represents a path added in your deployment process, and is also the path in your server that contains your files.
 After removing this path (and possibly adding something else), you should be able to point this string to a GitHub file.
