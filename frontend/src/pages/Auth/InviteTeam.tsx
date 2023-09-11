@@ -67,6 +67,8 @@ export const InviteTeamForm: React.FC = () => {
 		},
 	})
 	const formState = formStore.getState()
+	const autoJoinDomain = formStore.useValue(formStore.names.autoJoinDomain)
+	const numTeamEmails = formStore.useValue(formStore.names.numTeamEmails)
 
 	const disableForm = loading || formState.submitSucceed > 0
 
@@ -190,7 +192,7 @@ export const InviteTeamForm: React.FC = () => {
 								autoFocus
 								autoComplete="email"
 							/>
-							{Array(formState.values.numTeamEmails - 1)
+							{Array(numTeamEmails - 1)
 								.fill(0)
 								.map((_, idx) => (
 									<Form.Input
@@ -244,16 +246,12 @@ export const InviteTeamForm: React.FC = () => {
 															size={12}
 														/>
 													}
-													checked={
-														formState.values
-															.autoJoinDomain
-													}
+													checked={autoJoinDomain}
 													onChange={() => {
 														formStore.setValue(
 															formStore.names
 																.autoJoinDomain,
-															!formState.values
-																.autoJoinDomain,
+															!autoJoinDomain,
 														)
 													}}
 												/>
