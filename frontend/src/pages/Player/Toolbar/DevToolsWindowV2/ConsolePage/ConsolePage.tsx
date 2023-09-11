@@ -13,7 +13,8 @@ import { ReplayerState } from '@pages/Player/ReplayerContext'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import clsx from 'clsx'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import _ from 'lodash'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
@@ -42,8 +43,7 @@ export const ConsolePage = ({
 }) => {
 	const { projectId } = useProjectId()
 	const [selectedCursor, setSelectedCursor] = useState(logCursor)
-	const { session, setTime, time, isPlayerReady, sessionMetadata, state } =
-		useReplayerContext()
+	const { session, time, isPlayerReady, state } = useReplayerContext()
 
 	const params = buildSessionParams({ session, levels, sources })
 
@@ -113,6 +113,24 @@ export const ConsolePage = ({
 		)
 	}, [messagesToRender, selectedCursor])
 
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const scrollFunction = useCallback(
+		_.debounce((index: number) => {
+			requestAnimationFrame(() => {
+				if (virtuoso.current) {
+					virtuoso.current.scrollToIndex({
+						index,
+						align: 'center',
+						// Using smooth has performance issues with large lists
+						// See: https://virtuoso.dev/scroll-to-index/
+						// behavior: 'smooth'
+					})
+				}
+			})
+		}, 1000 / 60),
+		[],
+	)
+
 	useEffect(() => {
 		if (
 			isPlayerReady && // ensure Virtuoso component is actually rendered
@@ -120,36 +138,10 @@ export const ConsolePage = ({
 			messagesToRender
 		) {
 			if (foundIndex >= 0) {
-				virtuoso.current.scrollToIndex({
-					index: foundIndex,
-					align: 'center',
-					// Using smooth has performance issues with large lists
-					// See: https://virtuoso.dev/scroll-to-index/
-					// behavior: 'smooth'
-				})
-
-				if (state === ReplayerState.Paused) {
-					// We really only want this run when the component is mounted
-					// and we are trying to set the player time based on what the log cursor
-					// query param is.
-					const timestamp =
-						new Date(
-							messagesToRender[foundIndex].node.timestamp,
-						).getTime() - sessionMetadata.startTime
-					setTime(timestamp)
-				}
+				scrollFunction(foundIndex)
 			}
 		}
-	}, [
-		autoScroll,
-		foundIndex,
-		isPlayerReady,
-		messagesToRender,
-		selectedCursor,
-		sessionMetadata.startTime,
-		setTime,
-		state,
-	])
+	}, [foundIndex, isPlayerReady, messagesToRender, scrollFunction])
 
 	return (
 		<Box className={styles.consoleBox}>
