@@ -37,7 +37,7 @@ If this program keeps growing, will we even need a core team???
 
 ![Algora dashboard](/images/changelog/24/algora.jpg)
 
-## Error Tag Embeddings
+## Error tag embeddings
 
 We’ve been playing around with Large Language Model (LLM) embeddings and applying them to our error data.
 
