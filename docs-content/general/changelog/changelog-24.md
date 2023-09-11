@@ -14,7 +14,7 @@ It seems like a tiny feature at first, but it’ll spoil you. You’ll question 
 [GitHub Integration Docs](https://www.highlight.io/docs/general/product-features/error-monitoring/enhancing-errors-with-github)
 
 <EmbeddedVideo 
-  src="https://www.loom.com/embed/65b655146ce8441d9769a8d4dc389dcc?sid=d0d3fa30-071f-418f-b35f-9d6cccdfcad1"
+  src="https://www.loom.com/embed/5b362125ffd94e8cba1f442b5fc56ded?sid=462a9bbd-5bd4-436e-8ddf-6940a8cd79e4"
   title="Loom"
   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 />
