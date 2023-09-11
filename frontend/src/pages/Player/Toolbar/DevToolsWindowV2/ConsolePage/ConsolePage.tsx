@@ -9,7 +9,6 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { COLOR_MAPPING } from '@pages/LogsPage/constants'
-import { ReplayerState } from '@pages/Player/ReplayerContext'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import clsx from 'clsx'
@@ -43,7 +42,7 @@ export const ConsolePage = ({
 }) => {
 	const { projectId } = useProjectId()
 	const [selectedCursor, setSelectedCursor] = useState(logCursor)
-	const { session, time, isPlayerReady, state } = useReplayerContext()
+	const { session, time, isPlayerReady } = useReplayerContext()
 
 	const params = buildSessionParams({ session, levels, sources })
 
@@ -84,7 +83,7 @@ export const ConsolePage = ({
 
 	// Logic for scrolling to current entry.
 	useEffect(() => {
-		if (state !== ReplayerState.Playing || !autoScroll) {
+		if (!autoScroll) {
 			return
 		}
 		if (messagesToRender.length) {
@@ -103,7 +102,7 @@ export const ConsolePage = ({
 			}
 			setSelectedCursor(cursor)
 		}
-	}, [state, time, messagesToRender, autoScroll])
+	}, [time, messagesToRender, autoScroll])
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
 
