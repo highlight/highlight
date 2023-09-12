@@ -671,8 +671,7 @@ const EmailPicker = function ({
 			email: '',
 		},
 	})
-	const formState = formStore.getState()
-	formStore.useSubmit(async () => {
+	formStore.useSubmit(async (formState) => {
 		onSubmit(formState.values.email)
 	})
 	return (

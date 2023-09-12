@@ -78,7 +78,7 @@ export const ComboboxSelect = <T extends string | string[]>({
 
 	const valueSet = new Set(value)
 
-	const query = combobox.getState().value
+	const query = combobox.useState('value')
 
 	const isLoading = options === undefined
 
