@@ -10,13 +10,14 @@ import {
 	FormInputProps as AriaKitFormInputProps,
 	FormField as AriaKitFormField,
 	FormFieldProps as AriaKitFormFieldProps,
-	FormState as AriaKitFormState,
-	useFormState as useAriaKitFormState,
-} from 'ariakit/form'
+	FormStore as AriaKitFormStore,
+	useFormStore as useAriaKitFormStore,
+} from '@ariakit/react'
 
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'
 import { Text } from '../Text/Text'
+import { Stack } from '../Stack/Stack'
 import { Button, ButtonProps } from '../Button/Button'
 import clsx, { ClassValue } from 'clsx'
 import { Variants } from './styles.css'
@@ -29,29 +30,41 @@ type FormComponent = React.FC<Props> & {
 	Field: typeof Field
 	Select: typeof Select
 	NamedSection: typeof NamedSection
-	useFormState: typeof useAriaKitFormState
+	Label: typeof Label
+	useFormStore: typeof useAriaKitFormStore
 }
 
 interface LabelProps {
 	label: string
 	name: AriaKitFormInputProps['name']
 	tag?: ReactNode
+	optional?: boolean
 }
 
-export const Label = ({ label, name, tag }: LabelProps) => {
+export const Label: React.FC<LabelProps> = ({ label, name, tag, optional }) => {
 	return (
-		<Box display="flex" alignItems="center" gap="6" style={{ height: 16 }}>
-			<AriaKitFormLabel name={name}>
-				<Text
-					userSelect="none"
-					size="xSmall"
-					weight="medium"
-					color="weak"
+		<Box display="flex" flexDirection="row" gap="6">
+			{label && (
+				<Box
+					display="flex"
+					alignItems="center"
+					gap="6"
+					style={{ height: 16 }}
 				>
-					{label}
-				</Text>
-			</AriaKitFormLabel>
-			{tag}
+					<AriaKitFormLabel name={name}>
+						<Text
+							userSelect="none"
+							size="xSmall"
+							weight="medium"
+							color="weak"
+						>
+							{label}
+						</Text>
+					</AriaKitFormLabel>
+					{tag}
+				</Box>
+			)}
+			{optional && <Badge shape="basic" size="small" label="Optional" />}
 		</Box>
 	)
 }
@@ -87,15 +100,15 @@ export const NamedSection = ({
 	)
 }
 
-const FormContext = React.createContext<AriaKitFormState>(
-	{} as AriaKitFormState,
+const FormContext = React.createContext<AriaKitFormStore>(
+	{} as AriaKitFormStore,
 )
 export const useForm = () => React.useContext(FormContext)
 
 type Props = AriaKitFormProps
 export const Form: FormComponent = ({ children, ...props }: Props) => {
 	return (
-		<FormContext.Provider value={props.state}>
+		<FormContext.Provider value={props.store}>
 			<AriaKitForm {...props}>{children}</AriaKitForm>
 		</FormContext.Provider>
 	)
@@ -201,19 +214,27 @@ export const Field = ({
 	)
 }
 
-type FormSelectProps = React.DetailedHTMLProps<
-	React.SelectHTMLAttributes<HTMLSelectElement>,
-	HTMLSelectElement
-> &
-	React.PropsWithChildren<HasLabel>
+type FormSelectProps = AriaKitFormInputProps & React.PropsWithChildren<HasLabel>
 
-export const Select = ({ children, label, ...props }: FormSelectProps) => {
+export const Select = ({
+	children,
+	label = '',
+	tag,
+	optional,
+	...props
+}: FormSelectProps) => {
 	return (
-		<NamedSection label={label} name={props.name}>
-			<select className={styles.select} {...props}>
+		<Stack direction="column" gap="4">
+			<Label
+				label={label}
+				name={props.name}
+				tag={tag}
+				optional={optional}
+			/>
+			<AriaKitFormInput as="select" className={styles.select} {...props}>
 				{children}
-			</select>
-		</NamedSection>
+			</AriaKitFormInput>
+		</Stack>
 	)
 }
 
@@ -221,9 +242,13 @@ Form.Input = Input
 Form.Error = Error
 Form.Submit = Submit
 Form.Field = Field
+Form.Label = Label
 Form.Select = Select
 Form.NamedSection = NamedSection
 
-export declare type FormState<T> = AriaKitFormState<T>
-export const useFormState = useAriaKitFormState
-Form.useFormState = useFormState
+export const useFormStore = useAriaKitFormStore
+Form.useFormStore = useFormStore
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export declare type FormState<T extends Record<string, any>> =
+	AriaKitFormStore<T>

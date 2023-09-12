@@ -19,7 +19,7 @@ import {
 	Stack,
 	SwitchButton,
 	Text,
-	useFormState,
+	useFormStore,
 } from '@highlight-run/ui'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
@@ -59,24 +59,25 @@ export const InviteTeamForm: React.FC = () => {
 	const workspace = workspacesData?.workspaces && workspacesData.workspaces[0]
 	const inWorkspace = !!workspace
 
-	const formState = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			autoJoinDomain: true,
 			inviteEmails: '',
 			numTeamEmails: 1,
 		},
 	})
+	const formState = formStore.getState()
 
 	const disableForm = loading || formState.submitSucceed > 0
 
-	formState.useSubmit(async () => {
+	formStore.useSubmit(async () => {
 		if (disableForm) {
 			return
 		}
 
 		if (!formState.valid) {
 			analytics.track('Invite team submission failed')
-			formState.setError(
+			formStore.setError(
 				'__error',
 				'Please fill out all form fields correctly.',
 			)
@@ -91,7 +92,7 @@ export const InviteTeamForm: React.FC = () => {
 				for (let i = 0; i < formState.values.numTeamEmails; i++) {
 					emails.push(
 						(formState.values as any)[
-							`${formState.names.inviteEmails}-${i}`
+							`${formStore.names.inviteEmails}-${i}`
 						] as string,
 					)
 				}
@@ -147,7 +148,7 @@ export const InviteTeamForm: React.FC = () => {
 				errorMessage = 'Something went wrong. Please try again.'
 			}
 
-			formState.setError('__error', errorMessage)
+			formStore.setError('__error', errorMessage)
 		}
 	})
 
@@ -165,7 +166,7 @@ export const InviteTeamForm: React.FC = () => {
 		<Landing>
 			<Form
 				className={authRouterStyles.container}
-				state={formState}
+				store={formStore}
 				resetOnSubmit={false}
 			>
 				<AuthHeader>
@@ -183,7 +184,7 @@ export const InviteTeamForm: React.FC = () => {
 						</Text>
 						<Stack gap="6">
 							<Form.Input
-								name={formState.names.inviteEmails}
+								name={formStore.names.inviteEmails}
 								placeholder="name@example.com"
 								type="email"
 								autoFocus
@@ -194,7 +195,7 @@ export const InviteTeamForm: React.FC = () => {
 								.map((_, idx) => (
 									<Form.Input
 										key={idx}
-										name={`${formState.names.inviteEmails}-${idx}`}
+										name={`${formStore.names.inviteEmails}-${idx}`}
 										placeholder="name@example.com"
 										autoComplete="email"
 									/>
@@ -207,8 +208,8 @@ export const InviteTeamForm: React.FC = () => {
 								trackingId="about-you-team-add-another"
 								iconLeft={<IconSolidPlusSm />}
 								onClick={() =>
-									formState.setValue(
-										formState.names.numTeamEmails,
+									formStore.setValue(
+										formStore.names.numTeamEmails,
 										(n: number) => n + 1,
 									)
 								}
@@ -248,8 +249,8 @@ export const InviteTeamForm: React.FC = () => {
 															.autoJoinDomain
 													}
 													onChange={() => {
-														formState.setValue(
-															formState.names
+														formStore.setValue(
+															formStore.names
 																.autoJoinDomain,
 															!formState.values
 																.autoJoinDomain,

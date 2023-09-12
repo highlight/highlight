@@ -378,3 +378,9 @@ Reserved for the Boeing 737
 ### Minor Changes
 
 - Added support to specify `serviceName`.
+
+## 7.5.1
+
+### Patch Changes
+
+- Remove canvas recording logging (not only enabled if the `debug` setting is provided).

@@ -317,6 +317,17 @@ query GetSessionInsight($secure_id: String!) {
 	}
 }
 
+query GetSessionExports {
+	session_exports {
+		id
+		session_id
+		type
+		url
+		error
+		target_emails
+	}
+}
+
 query GetSessionComments($session_secure_id: String!) {
 	session_comments(session_secure_id: $session_secure_id) {
 		id
@@ -1150,6 +1161,9 @@ fragment ErrorObject on ErrorObject {
 		linesBefore
 		linesAfter
 		error
+		enhancementSource
+		enhancementVersion
+		externalLink
 		sourceMappingErrorMetadata {
 			errorCode
 			stackTraceFileURL
@@ -1173,6 +1187,7 @@ fragment ErrorObject on ErrorObject {
 	browser
 	environment
 	serviceVersion
+	serviceName
 }
 
 query GetErrorObject($id: ID!) {
@@ -2129,7 +2144,7 @@ query GetWorkspaceSettings($workspace_id: ID!) {
 		workspace_id
 		ai_application
 		ai_insights
-		enable_enhanced_errors
+		enable_session_export
 	}
 }
 
@@ -2165,6 +2180,7 @@ query GetErrorObjects(
 					email
 					appVersion
 					fingerprint
+					excluded
 				}
 			}
 		}

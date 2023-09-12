@@ -1,39 +1,56 @@
-import { Box, Table, Text } from '@highlight-run/ui'
+import { Box, defaultPresets } from '@highlight-run/ui'
 import moment from 'moment'
 import React from 'react'
 import { Helmet } from 'react-helmet'
-import { useNavigate } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
-import { useGetTracesQuery } from '@/graph/generated/hooks'
-import { useProjectId } from '@/hooks/useProjectId'
-import { LOG_TIME_FORMAT } from '@/pages/LogsPage/constants'
+import {
+	TIME_FORMAT,
+	TIME_MODE,
+} from '@/components/Search/SearchForm/constants'
 import {
 	EndDateParam,
 	FixedRangeStartDateParam,
 	QueryParam,
-} from '@/pages/LogsPage/LogsPage'
+	SearchForm,
+} from '@/components/Search/SearchForm/SearchForm'
 import {
-	buildLogsQueryForServer,
-	parseLogsQuery,
-} from '@/pages/LogsPage/SearchForm/utils'
+	buildSearchQueryForServer,
+	parseSearchQuery,
+} from '@/components/Search/SearchForm/utils'
+import {
+	useGetLogsKeysQuery,
+	useGetLogsKeyValuesLazyQuery,
+	useGetTracesQuery,
+} from '@/graph/generated/hooks'
+import { useProjectId } from '@/hooks/useProjectId'
+import { TracesList } from '@/pages/Traces/TracesList'
 
 export const TracesPage: React.FC = () => {
 	const { projectId } = useProjectId()
-	const navigate = useNavigate()
-	const [query] = useQueryParam('query', QueryParam)
-	const [startDate] = useQueryParam('start_date', FixedRangeStartDateParam)
-	const [endDate] = useQueryParam('end_date', EndDateParam)
-	const queryTerms = parseLogsQuery(query)
-	const serverQuery = buildLogsQueryForServer(queryTerms)
+	const [query, setQuery] = useQueryParam('query', QueryParam)
+	const [startDate, setStartDate] = useQueryParam(
+		'start_date',
+		FixedRangeStartDateParam,
+	)
+	const [endDate, setEndDate] = useQueryParam('end_date', EndDateParam)
+	const queryTerms = parseSearchQuery(query)
+	const serverQuery = buildSearchQueryForServer(queryTerms)
+	const minDate = defaultPresets[5].startDate
+	const timeMode: TIME_MODE = 'fixed-range' // TODO: Support permalink mode
+
+	const handleDatesChange = (newStartDate: Date, newEndDate: Date) => {
+		setStartDate(newStartDate)
+		setEndDate(newEndDate)
+	}
 
 	const { data, loading } = useGetTracesQuery({
 		variables: {
 			project_id: projectId,
 			params: {
 				date_range: {
-					start_date: moment(startDate).format(LOG_TIME_FORMAT),
-					end_date: moment(endDate).format(LOG_TIME_FORMAT),
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 				query: serverQuery,
 			},
@@ -52,55 +69,32 @@ export const TracesPage: React.FC = () => {
 				flex="stretch"
 				justifyContent="stretch"
 				display="flex"
+				flexDirection="column"
+				height="full"
 			>
-				{loading ? (
-					<Text>Loading...</Text>
-				) : (
-					<Table>
-						<Table.Head>
-							<Table.Row>
-								<Table.Header>Span</Table.Header>
-								<Table.Header>Service</Table.Header>
-								<Table.Header>Span ID</Table.Header>
-								<Table.Header>Parent Span ID</Table.Header>
-								<Table.Header>Secure Session ID</Table.Header>
-								<Table.Header>Status</Table.Header>
-							</Table.Row>
-						</Table.Head>
-						{data?.traces.map((trace, index) => (
-							<Table.Row key={index}>
-								<Table.Cell>{trace.spanName}</Table.Cell>
-								<Table.Cell>{trace.serviceName}</Table.Cell>
-								<Table.Cell>{trace.spanID}</Table.Cell>
-								<Table.Cell
-									onClick={
-										trace.parentSpanID
-											? () => {
-													navigate(
-														`/${projectId}/traces?query=${window.encodeURIComponent(
-															`ParentSpanId:${trace.parentSpanID}`,
-														)}`,
-													)
-											  }
-											: undefined
-									}
-								>
-									{trace.parentSpanID}
-								</Table.Cell>
-								<Table.Cell
-									onClick={() => {
-										navigate(
-											`/${projectId}/sessions/${trace.secureSessionID}`,
-										)
-									}}
-								>
-									{trace.secureSessionID}
-								</Table.Cell>
-								<Table.Cell>{trace.statusMessage}</Table.Cell>
-							</Table.Row>
-						))}
-					</Table>
-				)}
+				<Box
+					backgroundColor="white"
+					border="dividerWeak"
+					borderRadius="6"
+					height="full"
+					shadow="medium"
+				>
+					<SearchForm
+						initialQuery={query ?? ''}
+						startDate={startDate}
+						endDate={endDate}
+						presets={defaultPresets}
+						minDate={minDate}
+						timeMode={timeMode}
+						hideCreateAlert
+						onFormSubmit={setQuery}
+						onDatesChange={handleDatesChange}
+						fetchKeys={useGetLogsKeysQuery}
+						fetchValuesLazyQuery={useGetLogsKeyValuesLazyQuery}
+					/>
+
+					<TracesList traces={data?.traces} loading={loading} />
+				</Box>
 			</Box>
 		</>
 	)

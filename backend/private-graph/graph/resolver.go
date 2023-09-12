@@ -1323,21 +1323,6 @@ func (r *Resolver) GetSessionChunk(ctx context.Context, sessionID int, ts int) (
 	return
 }
 
-func (r *Resolver) getSessionScreenshot(ctx context.Context, projectID int, sessionID int, ts int, chunk int) ([]byte, error) {
-	res, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, sessionID, pointy.Int(ts), pointy.Int(chunk), nil)
-	if err != nil {
-		return nil, e.Wrap(err, "failed to make screenshot render request")
-	}
-	if res.StatusCode != 200 {
-		return nil, errors.New(fmt.Sprintf("screenshot render returned %d", res.StatusCode))
-	}
-	b, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, e.Wrap(err, "failed to read body of screenshot render response")
-	}
-	return b, nil
-}
-
 func (r *Resolver) getSessionInsightPrompt(ctx context.Context, events []interface{}) (string, error) {
 	parsedEvents, err := parse.FilterEventsForInsights(events)
 	if err != nil {

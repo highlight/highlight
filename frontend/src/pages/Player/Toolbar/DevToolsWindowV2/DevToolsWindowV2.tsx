@@ -9,12 +9,11 @@ import {
 	IconSolidSwitchHorizontal,
 	Tabs,
 	Text,
-	useFormState,
+	useFormStore,
 } from '@highlight-run/ui'
 import { themeVars } from '@highlight-run/ui/src/css/theme.css'
 import { useProjectId } from '@hooks/useProjectId'
 import { useWindowSize } from '@hooks/useWindowSize'
-import { getLogsURLForSession } from '@pages/LogsPage/SearchForm/utils'
 import { usePlayerUIContext } from '@pages/Player/context/PlayerUIContext'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useReplayerContext } from '@pages/Player/ReplayerContext'
@@ -36,6 +35,7 @@ import clsx from 'clsx'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
+import { getLogsURLForSession } from '@/pages/LogsPage/utils'
 import { useLinkLogCursor } from '@/pages/Player/PlayerHook/utils'
 import { LogSourceFilter } from '@/pages/Player/Toolbar/DevToolsWindowV2/LogSourceFilter/LogSourceFilter'
 import { styledVerticalScrollbar } from '@/style/common.css'
@@ -86,12 +86,12 @@ const DevToolsWindowV2: React.FC<
 		(level) => level !== LogSourceValue.All,
 	) as unknown as LogSource[]
 
-	const form = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			search: '',
 		},
 	})
-	const filter = form.getValue(form.names.search)
+	const filter = formStore.useValue<string>('search')
 	const [autoScroll, setAutoScroll] = useLocalStorage<boolean>(
 		'highlight-devtools-v2-autoscroll',
 		false,
@@ -188,7 +188,7 @@ const DevToolsWindowV2: React.FC<
 							tab={selectedDevToolsTab}
 							setTab={(t: Tab) => {
 								setSelectedDevToolsTab(t)
-								form.reset()
+								formStore.reset()
 							}}
 							pages={{
 								[Tab.Console]: {
@@ -236,7 +236,7 @@ const DevToolsWindowV2: React.FC<
 										gap="4"
 										align="center"
 									>
-										<Form state={form}>
+										<Form store={formStore}>
 											<Box
 												display="flex"
 												justifyContent="space-between"
@@ -259,7 +259,9 @@ const DevToolsWindowV2: React.FC<
 													/>
 												</Box>
 												<Form.Input
-													name={form.names.search}
+													name={
+														formStore.names.search
+													}
 													placeholder="Search"
 													size="xSmall"
 													outline={false}
