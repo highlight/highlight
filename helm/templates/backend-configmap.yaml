@@ -39,7 +39,7 @@ data:
   REACT_APP_IN_DOCKER: "true"
   REACT_APP_PRIVATE_GRAPH_URI: {{ .Values.frontend.config.privateGraphUri | quote }}
   REACT_APP_PUBLIC_GRAPH_URI: {{ .Values.frontend.config.publicGraphUri | quote }}
-  REDIS_EVENTS_STAGING_ENDPOINT: redis:6379 # TODO!
+  REDIS_EVENTS_STAGING_ENDPOINT: {{ include "highlight.fullname" . }}-redis:6379
   RENDER_PREVIEW: "true"
   SESSION_FILE_PATH_PREFIX: /tmp/
   REACT_APP_AUTH_MODE: simple
