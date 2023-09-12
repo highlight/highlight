@@ -401,7 +401,7 @@ export const ErrorAlertPage = () => {
 
 const ErrorAlertForm = () => {
 	const formStore = useForm() as FormState<ErrorAlertFormItem>
-	const formState = formStore.getState()
+	const errors = formStore.useState('errors')
 
 	const { alertsPayload } = useAlertsContext()
 	const environments = dedupeEnvironments(
@@ -461,7 +461,7 @@ const ErrorAlertForm = () => {
 									/>
 								}
 								style={{
-									borderColor: formState.errors.threshold
+									borderColor: errors.threshold
 										? 'var(--color-red-500)'
 										: undefined,
 								}}
@@ -550,11 +550,10 @@ const ErrorAlertForm = () => {
 }
 
 const ThresholdTypeConfiguration = () => {
-	const form = useForm() as FormState<ErrorAlertFormItem>
-	const formState = form.getState()
+	const formStore = useForm() as FormState<ErrorAlertFormItem>
+	const belowThreshold = formStore.useValue('belowThreshold')
 	const menu = useMenu()
 	const menuState = menu.getState()
-	const belowThreshold = formState.values.belowThreshold
 	return (
 		<>
 			<Menu.Button
@@ -575,14 +574,14 @@ const ThresholdTypeConfiguration = () => {
 			<Menu.List>
 				<Menu.Item
 					onClick={() => {
-						form.setValue('belowThreshold', false)
+						formStore.setValue('belowThreshold', false)
 					}}
 				>
 					Above threshold
 				</Menu.Item>
 				<Menu.Item
 					onClick={() => {
-						form.setValue('belowThreshold', true)
+						formStore.setValue('belowThreshold', true)
 					}}
 				>
 					Below threshold
