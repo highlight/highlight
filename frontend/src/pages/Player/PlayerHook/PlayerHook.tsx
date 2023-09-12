@@ -691,26 +691,31 @@ export const usePlayer = (): ReplayerContextInterface => {
 	useEffect(() => {
 		resetPlayer()
 		if (session_secure_id && eventChunksData?.event_chunks?.length) {
-			loadEventChunk(0).then(({ events }) => {
-				chunkEventsSet(0, events)
-				dispatch({
-					type: PlayerActionType.onChunksLoad,
-					showPlayerMouseTail,
-					time: 0,
-					action: ReplayerState.Paused,
+			loadEventChunk(0)
+				.then(({ events }) => {
+					chunkEventsSet(0, events)
+					dispatch({
+						type: PlayerActionType.onChunksLoad,
+						showPlayerMouseTail,
+						time: 0,
+						action: ReplayerState.Paused,
+					})
+					log('PlayerHook.tsx', 'initial chunk complete')
 				})
-				log('PlayerHook.tsx', 'initial chunk complete')
-			})
-			Promise.all(
-				eventChunksData.event_chunks
-					.slice(1, 2)
-					.map((c) => loadEventChunk(c.chunk_index)),
-			).then((chunks) => {
-				for (const { idx, events } of chunks) {
-					chunkEventsSet(idx, events)
-				}
-				log('PlayerHook.tsx', 'next chunk load complete')
-			})
+				.then(() => {
+					const nextChunk = eventChunksData.event_chunks.at(1)
+					if (nextChunk) {
+						loadEventChunk(nextChunk.chunk_index).then(
+							({ idx, events }) => {
+								chunkEventsSet(idx, events)
+								log(
+									'PlayerHook.tsx',
+									'next chunk load complete',
+								)
+							},
+						)
+					}
+				})
 		}
 	}, [
 		project_id,
