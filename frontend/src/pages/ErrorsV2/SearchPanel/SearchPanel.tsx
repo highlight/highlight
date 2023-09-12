@@ -31,6 +31,7 @@ import moment from 'moment/moment'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useLocalStorage } from 'react-use'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
@@ -51,9 +52,10 @@ const SearchPanel = () => {
 	} = useErrorSearchContext()
 	const { project_id: projectId } = useParams<{ project_id: string }>()
 
+	const { isHighlightAdmin } = useAuthContext()
 	const [useClickhouse] = useLocalStorage(
 		'highlight-clickhouse-errors',
-		false,
+		isHighlightAdmin,
 	)
 
 	const { data: fetchedData, loading } = useGetErrorGroupsOpenSearchQuery({
