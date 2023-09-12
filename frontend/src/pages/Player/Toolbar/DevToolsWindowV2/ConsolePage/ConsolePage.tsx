@@ -89,51 +89,15 @@ export const ConsolePage = ({
 		return message.node
 	})
 
-	const hasTimestamp =
-		!loading &&
-		messagesToRender?.every((message) => !!message.node.timestamp)
-
 	const lastActiveLogIndex = useMemo(() => {
-		if (hasTimestamp) {
-			return findLastActiveEventIndex(
-				time,
-				sessionMetadata.startTime,
-				messageNodes,
-			)
-		}
-		return -1
-	}, [messageNodes, hasTimestamp, sessionMetadata.startTime, time])
-
-	// Logic for scrolling to current entry.
-	useEffect(() => {
-		if (state !== ReplayerState.Playing || !autoScroll) {
-			return
-		}
-		if (messagesToRender.length) {
-			let cursor = ''
-			let msgDiff: number = Number.MAX_VALUE
-			for (let i = 0; i < messagesToRender.length; i++) {
-				const currentDiff: number =
-					time -
-					(new Date(messagesToRender[i].node.timestamp).getTime() -
-						new Date(messagesToRender[0].node.timestamp).getTime())
-				if (currentDiff < 0) break
-				if (currentDiff < msgDiff) {
-					cursor = messagesToRender[i].cursor
-					msgDiff = currentDiff
-				}
-			}
-			setSelectedCursor(cursor)
-		}
-	}, [state, time, messagesToRender, autoScroll])
+		return findLastActiveEventIndex(
+			time,
+			sessionMetadata.startTime,
+			messageNodes,
+		)
+	}, [messageNodes, sessionMetadata.startTime, time])
 
 	const virtuoso = useRef<VirtuosoHandle>(null)
-
-	const foundIndex = useMemo(() => {
-		return messagesToRender.findIndex(
-			(logEdge) => logEdge.cursor === selectedCursor,
-		)
-	}, [messagesToRender, selectedCursor])
 
 	useEffect(() => {
 		if (
@@ -141,9 +105,9 @@ export const ConsolePage = ({
 			virtuoso.current &&
 			messagesToRender
 		) {
-			if (foundIndex >= 0) {
+			if (lastActiveLogIndex >= 0) {
 				virtuoso.current.scrollToIndex({
-					index: foundIndex,
+					index: lastActiveLogIndex,
 					align: 'center',
 					// Using smooth has performance issues with large lists
 					// See: https://virtuoso.dev/scroll-to-index/
@@ -156,7 +120,7 @@ export const ConsolePage = ({
 					// query param is.
 					const timestamp =
 						new Date(
-							messagesToRender[foundIndex].node.timestamp,
+							messagesToRender[lastActiveLogIndex].node.timestamp,
 						).getTime() - sessionMetadata.startTime
 					setTime(timestamp)
 				}
@@ -164,7 +128,6 @@ export const ConsolePage = ({
 		}
 	}, [
 		autoScroll,
-		foundIndex,
 		isPlayerReady,
 		messagesToRender,
 		selectedCursor,
@@ -189,7 +152,7 @@ export const ConsolePage = ({
 						<MessageRow
 							key={logEdge.cursor}
 							logEdge={logEdge}
-							current={selectedCursor === logEdge.cursor}
+							current={_index === lastActiveLogIndex}
 							onSelect={() => {
 								setSelectedCursor(logEdge.cursor)
 							}}
