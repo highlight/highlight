@@ -167,7 +167,7 @@ export const inactivityPeriodMask = style({
 })
 
 export const moveIndicator = style({
-	transition: 'transform 0.25s linear',
+	transition: 'transform 0.20s linear',
 })
 
 export const timeIndicatorContainerWrapper = style({
