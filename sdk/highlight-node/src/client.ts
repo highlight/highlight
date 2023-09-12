@@ -1,7 +1,5 @@
-import {
-	BatchSpanProcessor,
-	SpanProcessor,
-} from '@opentelemetry/sdk-trace-base'
+import { BufferConfig, Span } from '@opentelemetry/sdk-trace-base'
+import { BatchSpanProcessorBase } from '@opentelemetry/sdk-trace-base/build/src/export/BatchSpanProcessorBase'
 import { trace } from '@opentelemetry/api'
 import type { Attributes, Tracer } from '@opentelemetry/api'
 
@@ -17,6 +15,59 @@ import { Resource, processDetectorSync } from '@opentelemetry/resources'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
+// @ts-ignore
+class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
+	private _listeners: Map<Symbol, () => void>
+	public id: string
+
+	constructor(config: any) {
+		super(config)
+
+		this._listeners = new Map()
+		this.id = Math.random().toString(36).substring(7)
+	}
+
+	onShutdown(): void {}
+
+	async forceFlush(): Promise<void> {
+		// @ts-ignore
+		const finishedSpansCount = this._finishedSpans.length
+
+		// @ts-ignore
+		await super.forceFlush()
+
+		// @ts-ignore
+		if (finishedSpansCount > 0) {
+			console.log(
+				this.id,
+				'🌑 4. Processing listeners',
+				this._listeners.size,
+			)
+
+			Array.from(this._listeners.values()).forEach((listener) => {
+				console.log(this.id, '🌑 5. Calling listeners')
+				listener()
+			})
+		}
+	}
+
+	registerListener(listener: () => void) {
+		const id = Symbol()
+		this._listeners.set(id, listener)
+
+		console.log(
+			this.id,
+			'🌑 1.5. registered listener',
+			this._listeners.size,
+		)
+
+		return () => {
+			this._listeners.delete(id)
+			console.log(this.id, '🌑 7. deleted listener')
+		}
+	}
+}
+
 export class Highlight {
 	readonly FLUSH_TIMEOUT = 10
 	_intervalFunction: ReturnType<typeof setInterval>
@@ -24,7 +75,7 @@ export class Highlight {
 	_debug: boolean
 	otel: NodeSDK
 	private tracer: Tracer
-	private processor: SpanProcessor
+	private processor: CustomSpanProcessor
 
 	constructor(options: NodeOptions) {
 		this._debug = !!options.debug
@@ -47,7 +98,7 @@ export class Highlight {
 			url: `${options.otlpEndpoint ?? OTLP_HTTP}/v1/traces`,
 		})
 
-		this.processor = new BatchSpanProcessor(exporter, {})
+		this.processor = new CustomSpanProcessor(exporter)
 
 		const attributes: Attributes = {}
 		attributes['highlight.project_id'] = this._projectID
@@ -103,6 +154,25 @@ export class Highlight {
 		}
 
 		this._log(`Initialized SDK for project ${this._projectID}`)
+	}
+
+	get id() {
+		return this.processor.id
+	}
+
+	get activeSpanProcessor(): CustomSpanProcessor {
+		// @ts-ignore
+		return trace.getTracerProvider()?._delegate.activeSpanProcessor
+			._spanProcessors[0]
+	}
+
+	get finishedSpans(): Span[] {
+		const processor = this.activeSpanProcessor
+		const finishedSpans: CustomSpanProcessor['_finishedSpans'] =
+			// @ts-ignore
+			processor?._finishedSpans ?? []
+
+		return finishedSpans
 	}
 
 	async stop() {
@@ -192,6 +262,7 @@ export class Highlight {
 		requestId: string | undefined,
 		metadata?: Attributes,
 	) {
+		console.log(this.id, '🌑 1.25. started span')
 		const span = this.tracer.startSpan('highlight-ctx')
 		span.recordException(error)
 		if (metadata != undefined) {
@@ -211,5 +282,42 @@ export class Highlight {
 		await this.processor
 			.forceFlush()
 			.catch((e) => console.warn('highlight-node failed to flush: ', e))
+	}
+
+	async waitForFlush() {
+		return new Promise<void>(async (resolve) => {
+			let resolved = false
+			let waitingForFinishedSpans = false
+
+			await this.flush()
+
+			let intervalTimer = setInterval(async () => {
+				const finishedSpansCount = this.finishedSpans.length
+
+				if (finishedSpansCount) {
+					waitingForFinishedSpans = true
+				} else if (waitingForFinishedSpans) {
+					console.log('🌑 5. waitForFlush finish')
+
+					finish()
+				}
+			}, 100)
+			let timer = setTimeout(finish, 10000)
+			function finish() {
+				console.log('unlistening')
+
+				intervalTimer && clearInterval(intervalTimer)
+				timer && clearTimeout(timer)
+				unlisten()
+
+				if (!resolved) {
+					resolved = true
+					resolve()
+				}
+			}
+			console.log('🌑 1. Wait for flush')
+
+			const unlisten = this.processor.registerListener(finish)
+		})
 	}
 }

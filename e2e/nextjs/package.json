@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "next dev -p 3005",
+		"dev": "rm -rf .next && next dev -p 3005",
 		"build": "rm -rf .next && next build",
 		"deploy": "yarn build && vercel build && vercel deploy --prebuilt",
 		"start": "next start",

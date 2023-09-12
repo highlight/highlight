@@ -5,7 +5,6 @@ import {
 } from '@highlight-run/node'
 
 import { IncomingHttpHeaders } from 'http'
-import { NextApiHandler } from 'next'
 
 interface RequestMetadata {
 	secureSessionId: string
@@ -96,8 +95,7 @@ export const Highlight =
 				return await origHandler(req, res)
 			} catch (e) {
 				if (e instanceof Error) {
-					NodeH.consumeError(e, secureSessionId, requestId)
-					await NodeH.flush()
+					await NodeH.consumeAndFlush(e, secureSessionId, requestId)
 				}
 				// Because we're going to finish and send the transaction before passing the error onto nextjs, it won't yet
 				// have had a chance to set the status to 500, so unless we do it ourselves now, we'll incorrectly report that
@@ -108,6 +106,7 @@ export const Highlight =
 				// We rethrow here so that nextjs can do with the error whatever it would normally do. (Sometimes "whatever it
 				// would normally do" is to allow the error to bubble up to the global handlers - another reason we need to mark
 				// the error as already having been captured.)
+				await NodeH.stop()
 				throw e
 			} finally {
 				// convert ms to ns
