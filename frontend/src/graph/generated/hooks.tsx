@@ -12713,11 +12713,11 @@ export type GetEmailOptOutsQueryResult = Apollo.QueryResult<
 export const GetLogsDocument = gql`
 	query GetLogs(
 		$project_id: ID!
-		$params: LogsParamsInput!
+		$params: QueryInput!
 		$after: String
 		$before: String
 		$at: String
-		$direction: LogDirection!
+		$direction: SortDirection!
 	) {
 		logs(
 			project_id: $project_id
@@ -12802,7 +12802,7 @@ export type GetLogsQueryResult = Apollo.QueryResult<
 	Types.GetLogsQueryVariables
 >
 export const GetSessionLogsDocument = gql`
-	query GetSessionLogs($project_id: ID!, $params: LogsParamsInput!) {
+	query GetSessionLogs($project_id: ID!, $params: QueryInput!) {
 		sessionLogs(project_id: $project_id, params: $params) {
 			cursor
 			node {
@@ -12864,7 +12864,7 @@ export type GetSessionLogsQueryResult = Apollo.QueryResult<
 	Types.GetSessionLogsQueryVariables
 >
 export const GetLogsTotalCountDocument = gql`
-	query GetLogsTotalCount($project_id: ID!, $params: LogsParamsInput!) {
+	query GetLogsTotalCount($project_id: ID!, $params: QueryInput!) {
 		logs_total_count(project_id: $project_id, params: $params)
 	}
 `
@@ -12919,7 +12919,7 @@ export type GetLogsTotalCountQueryResult = Apollo.QueryResult<
 	Types.GetLogsTotalCountQueryVariables
 >
 export const GetLogsHistogramDocument = gql`
-	query GetLogsHistogram($project_id: ID!, $params: LogsParamsInput!) {
+	query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 		logs_histogram(project_id: $project_id, params: $params) {
 			totalCount
 			buckets {
@@ -13809,23 +13809,48 @@ export type FindSimilarErrorsQueryResult = Apollo.QueryResult<
 	Types.FindSimilarErrorsQueryVariables
 >
 export const GetTracesDocument = gql`
-	query GetTraces($project_id: ID!, $params: TracesParamsInput!) {
-		traces(project_id: $project_id, params: $params) {
-			timestamp
-			traceID
-			spanID
-			parentSpanID
-			projectID
-			secureSessionID
-			traceState
-			spanName
-			spanKind
-			duration
-			serviceName
-			serviceVersion
-			traceAttributes
-			statusCode
-			statusMessage
+	query GetTraces(
+		$project_id: ID!
+		$params: QueryInput!
+		$after: String
+		$before: String
+		$at: String
+		$direction: SortDirection!
+	) {
+		traces(
+			project_id: $project_id
+			params: $params
+			after: $after
+			before: $before
+			at: $at
+			direction: $direction
+		) {
+			edges {
+				cursor
+				node {
+					timestamp
+					traceID
+					spanID
+					parentSpanID
+					projectID
+					secureSessionID
+					traceState
+					spanName
+					spanKind
+					duration
+					serviceName
+					serviceVersion
+					traceAttributes
+					statusCode
+					statusMessage
+				}
+			}
+			pageInfo {
+				hasNextPage
+				hasPreviousPage
+				startCursor
+				endCursor
+			}
 		}
 	}
 `
@@ -13844,6 +13869,10 @@ export const GetTracesDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      params: // value for 'params'
+ *      after: // value for 'after'
+ *      before: // value for 'before'
+ *      at: // value for 'at'
+ *      direction: // value for 'direction'
  *   },
  * });
  */
