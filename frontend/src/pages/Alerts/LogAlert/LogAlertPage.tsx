@@ -442,7 +442,7 @@ export const LogAlertPage = () => {
 										<Box cssClass={styles.queryContainer}>
 											<Search
 												initialQuery={initialQuery}
-												keys={keysData?.logs_keys ?? []}
+												keys={keysData?.keys ?? []}
 												startDate={startDate}
 												endDate={endDate}
 												hideIcon

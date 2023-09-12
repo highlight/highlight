@@ -30,6 +30,7 @@ var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 		modelInputs.ReservedTraceKeyServiceName:     "ServiceName",
 		modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
 	},
+	reservedKeys:     modelInputs.AllReservedTraceKey,
 	attributesColumn: "TraceAttributes",
 	selectColumns: []string{
 		"Timestamp",

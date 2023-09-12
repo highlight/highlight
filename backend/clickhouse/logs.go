@@ -30,6 +30,7 @@ var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 		modelInputs.ReservedLogKeyServiceName:     "ServiceName",
 		modelInputs.ReservedLogKeyServiceVersion:  "ServiceVersion",
 	},
+	reservedKeys:     modelInputs.AllReservedLogKey,
 	attributesColumn: "LogAttributes",
 	selectColumns: []string{
 		"Timestamp",

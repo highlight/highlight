@@ -19,6 +19,7 @@ type tableConfig[TReservedKey ~string] struct {
 	tableName        string
 	attributesColumn string
 	keysToColumns    map[TReservedKey]string
+	reservedKeys     []TReservedKey
 	selectColumns    []string
 }
 
@@ -326,7 +327,7 @@ func Keys[T ~string](ctx context.Context, client *Client, config tableConfig[T],
 		})
 	}
 
-	reservedKeys := lo.Keys(config.keysToColumns)
+	reservedKeys := config.reservedKeys
 	for _, key := range reservedKeys {
 		keys = append(keys, &modelInputs.QueryKey{
 			Name: string(key),
