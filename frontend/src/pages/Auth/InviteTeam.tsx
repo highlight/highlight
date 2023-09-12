@@ -19,7 +19,7 @@ import {
 	Stack,
 	SwitchButton,
 	Text,
-	useFormState,
+	useFormStore,
 } from '@highlight-run/ui'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
@@ -45,6 +45,7 @@ export const InviteTeamForm: React.FC = () => {
 	const { setLoadingState } = useAppLoadingContext()
 	const { admin, role } = useAuthContext()
 	const navigate = useNavigate()
+	const [error, setError] = React.useState<string>()
 
 	const { data: workspacesData, loading: workspacesLoading } =
 		useGetWorkspacesQuery({ fetchPolicy: 'network-only' })
@@ -59,27 +60,26 @@ export const InviteTeamForm: React.FC = () => {
 	const workspace = workspacesData?.workspaces && workspacesData.workspaces[0]
 	const inWorkspace = !!workspace
 
-	const formState = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			autoJoinDomain: true,
 			inviteEmails: '',
 			numTeamEmails: 1,
 		},
 	})
+	const autoJoinDomain = formStore.useValue(formStore.names.autoJoinDomain)
+	const numTeamEmails = formStore.useValue(formStore.names.numTeamEmails)
+	const submitSucceed = formStore.useState('submitSucceed')
+	const disableForm = loading || submitSucceed > 0
 
-	const disableForm = loading || formState.submitSucceed > 0
-
-	formState.useSubmit(async () => {
+	formStore.useSubmit(async (formState) => {
 		if (disableForm) {
 			return
 		}
 
 		if (!formState.valid) {
 			analytics.track('Invite team submission failed')
-			formState.setError(
-				'__error',
-				'Please fill out all form fields correctly.',
-			)
+			setError('Please fill out all form fields correctly.')
 			return
 		}
 
@@ -91,7 +91,7 @@ export const InviteTeamForm: React.FC = () => {
 				for (let i = 0; i < formState.values.numTeamEmails; i++) {
 					emails.push(
 						(formState.values as any)[
-							`${formState.names.inviteEmails}-${i}`
+							`${formStore.names.inviteEmails}-${i}`
 						] as string,
 					)
 				}
@@ -147,7 +147,7 @@ export const InviteTeamForm: React.FC = () => {
 				errorMessage = 'Something went wrong. Please try again.'
 			}
 
-			formState.setError('__error', errorMessage)
+			setError(errorMessage)
 		}
 	})
 
@@ -165,7 +165,7 @@ export const InviteTeamForm: React.FC = () => {
 		<Landing>
 			<Form
 				className={authRouterStyles.container}
-				state={formState}
+				store={formStore}
 				resetOnSubmit={false}
 			>
 				<AuthHeader>
@@ -183,18 +183,18 @@ export const InviteTeamForm: React.FC = () => {
 						</Text>
 						<Stack gap="6">
 							<Form.Input
-								name={formState.names.inviteEmails}
+								name={formStore.names.inviteEmails}
 								placeholder="name@example.com"
 								type="email"
 								autoFocus
 								autoComplete="email"
 							/>
-							{Array(formState.values.numTeamEmails - 1)
+							{Array(numTeamEmails - 1)
 								.fill(0)
 								.map((_, idx) => (
 									<Form.Input
 										key={idx}
-										name={`${formState.names.inviteEmails}-${idx}`}
+										name={`${formStore.names.inviteEmails}-${idx}`}
 										placeholder="name@example.com"
 										autoComplete="email"
 									/>
@@ -207,8 +207,8 @@ export const InviteTeamForm: React.FC = () => {
 								trackingId="about-you-team-add-another"
 								iconLeft={<IconSolidPlusSm />}
 								onClick={() =>
-									formState.setValue(
-										formState.names.numTeamEmails,
+									formStore.setValue(
+										formStore.names.numTeamEmails,
 										(n: number) => n + 1,
 									)
 								}
@@ -216,11 +216,7 @@ export const InviteTeamForm: React.FC = () => {
 								Add another
 							</Button>
 						</Box>
-						{(formState.errors as any).__error && (
-							<Callout kind="error">
-								{(formState.errors as any).__error}
-							</Callout>
-						)}
+						{error && <Callout kind="error">{error}</Callout>}
 					</Stack>
 				</AuthBody>
 				<AuthFooter>
@@ -243,16 +239,12 @@ export const InviteTeamForm: React.FC = () => {
 															size={12}
 														/>
 													}
-													checked={
-														formState.values
-															.autoJoinDomain
-													}
+													checked={autoJoinDomain}
 													onChange={() => {
-														formState.setValue(
-															formState.names
+														formStore.setValue(
+															formStore.names
 																.autoJoinDomain,
-															!formState.values
-																.autoJoinDomain,
+															!autoJoinDomain,
 														)
 													}}
 												/>

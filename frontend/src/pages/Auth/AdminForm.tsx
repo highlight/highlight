@@ -16,7 +16,7 @@ import {
 	Form,
 	Stack,
 	Text,
-	useFormState,
+	useFormStore,
 } from '@highlight-run/ui'
 import { AuthBody, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
 import { Landing } from '@pages/Landing/Landing'
@@ -47,6 +47,7 @@ enum TeamSize {
 
 export const AdminForm: React.FC = () => {
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
+	const [error, setError] = useState('')
 	const { setLoadingState } = useAppLoadingContext()
 	const { admin, fetchAdmin } = useAuthContext()
 	const navigate = useNavigate()
@@ -75,7 +76,7 @@ export const AdminForm: React.FC = () => {
 	const workspace = workspacesData?.workspaces && workspacesData.workspaces[0]
 	const inWorkspace = !!workspace
 
-	const formState = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			firstName: '',
 			lastName: '',
@@ -86,19 +87,17 @@ export const AdminForm: React.FC = () => {
 		},
 	})
 
-	const disableForm = loading || formState.submitSucceed > 0
+	const submitSucceeded = formStore.useState('submitSucceed')
+	const disableForm = loading || submitSucceeded > 0
 
-	formState.useSubmit(async () => {
+	formStore.useSubmit(async (formState) => {
 		if (disableForm) {
 			return
 		}
 
 		if (!formState.valid) {
 			analytics.track('About you submission failed')
-			formState.setError(
-				'__error',
-				'Please fill out all form fields correctly.',
-			)
+			setError('Please fill out all form fields correctly.')
 			return
 		}
 
@@ -164,7 +163,7 @@ export const AdminForm: React.FC = () => {
 				errorMessage = 'Something went wrong. Please try again.'
 			}
 
-			formState.setError('__error', errorMessage)
+			setError(errorMessage)
 		}
 	})
 
@@ -173,7 +172,7 @@ export const AdminForm: React.FC = () => {
 			setLoadingState(AppLoadingState.LOADED)
 
 			if (inWorkspace) {
-				formState.setValue('companyName', workspace.name)
+				formStore.setValue('companyName', workspace.name)
 			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -187,7 +186,7 @@ export const AdminForm: React.FC = () => {
 		<Landing>
 			<Form
 				className={authRouterStyles.container}
-				state={formState}
+				store={formStore}
 				resetOnSubmit={false}
 			>
 				<AuthHeader>
@@ -195,83 +194,66 @@ export const AdminForm: React.FC = () => {
 				</AuthHeader>
 				<AuthBody>
 					<Stack gap="12">
-						<Form.NamedSection
-							label="Your Name"
-							name={formState.names.role}
-						>
+						<Stack direction="column" gap="4">
+							<Form.Label
+								label="Your Name"
+								name={formStore.names.firstName}
+							/>
 							<Stack gap="0">
 								<Form.Input
-									name={formState.names.firstName}
+									name={formStore.names.firstName}
 									placeholder="First Name"
 									autoFocus
 									required
 									rounded="first"
 								/>
 								<Form.Input
-									name={formState.names.lastName}
+									name={formStore.names.lastName}
 									placeholder="Last Name"
 									required
 									rounded="last"
 								/>
 							</Stack>
-						</Form.NamedSection>
+						</Stack>
 						<Form.Input
-							name={formState.names.companyName}
+							name={formStore.names.companyName}
 							label="Company"
 							disabled={inWorkspace}
 							required
 						/>
-						<Form.NamedSection
+
+						<Form.Select
+							className={styles.select}
+							name={formStore.names.role}
 							label="Role"
-							name={formState.names.role}
 							optional
 						>
-							<Form.Select
-								className={styles.select}
-								name={formState.names.role.toString()}
-								value={formState.values.role}
-								onChange={(e) =>
-									formState.setValue(
-										formState.names.role,
-										e.target.value,
-									)
-								}
-							>
-								<option value="" disabled>
-									Select your role
-								</option>
-								<option value="Product">Product</option>
-								<option value="Engineer">Engineering</option>
-								<option value="Founder">Founder</option>
-							</Form.Select>
-						</Form.NamedSection>
-						<Form.NamedSection
+							<option value="" disabled>
+								Select your role
+							</option>
+							<option value="Product">Product</option>
+							<option value="Engineer">Engineering</option>
+							<option value="Founder">Founder</option>
+						</Form.Select>
+						<Form.Select
+							className={styles.select}
+							name={formStore.names.teamSize}
 							label="Team Size"
-							name={formState.names.teamSize}
 							optional
 						>
-							<Form.Select
-								className={styles.select}
-								name={formState.names.teamSize.toString()}
-								value={formState.values.teamSize}
-								onChange={(e) =>
-									formState.setValue(
-										formState.names.teamSize,
-										e.target.value,
-									)
-								}
-							>
-								{Object.entries(TeamSize).map(([k, v]) => (
-									<option value={k} key={k}>
-										{v}
-									</option>
-								))}
-							</Form.Select>
-						</Form.NamedSection>
+							<option value="" disabled>
+								Select your team size
+							</option>
+							{Object.entries(TeamSize).map(([k, v]) => (
+								<option value={k} key={k}>
+									{v}
+								</option>
+							))}
+						</Form.Select>
 						{!inWorkspace &&
 							(showPromoCodeField ? (
 								<Form.Input
-									name={formState.names.promoCode}
+									name={formStore.names.promoCode}
 									label="Promo Code"
 								/>
 							) : (
@@ -285,11 +267,7 @@ export const AdminForm: React.FC = () => {
 									</ButtonLink>
 								</Box>
 							))}
-						{(formState.errors as any).__error && (
-							<Callout kind="error">
-								{(formState.errors as any).__error}
-							</Callout>
-						)}
+						{error && <Callout kind="error">{error}</Callout>}
 					</Stack>
 				</AuthBody>
 				<AuthFooter>

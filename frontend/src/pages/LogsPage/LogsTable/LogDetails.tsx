@@ -16,17 +16,10 @@ import {
 	Tooltip,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { QueryParam } from '@pages/LogsPage/LogsPage'
 import {
 	IconCollapsed,
 	IconExpanded,
 } from '@pages/LogsPage/LogsTable/LogsTable'
-import {
-	DEFAULT_LOGS_OPERATOR,
-	LogsSearchParam,
-	quoteQueryValue,
-	stringifyLogsQuery,
-} from '@pages/LogsPage/SearchForm/utils'
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { Row } from '@tanstack/react-table'
@@ -35,13 +28,20 @@ import React, { Fragment, useEffect, useState } from 'react'
 import { createSearchParams, generatePath } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
+import { QueryParam } from '@/components/Search/SearchForm/SearchForm'
+import {
+	DEFAULT_OPERATOR,
+	quoteQueryValue,
+	SearchParam,
+	stringifySearchQuery,
+} from '@/components/Search/SearchForm/utils'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 
 import * as styles from './LogDetails.css'
 
 type Props = {
 	row: Row<LogEdgeWithError>
-	queryTerms: LogsSearchParam[]
+	queryTerms: SearchParam[]
 	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
 }
 
@@ -306,7 +306,7 @@ const LogDetailsObject: React.FC<{
 	attribute: string | object | number
 	label: string
 	queryBaseKeys: string[]
-	queryTerms: LogsSearchParam[]
+	queryTerms: SearchParam[]
 	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
 }> = ({
 	allExpanded,
@@ -377,7 +377,7 @@ const LogDetailsObject: React.FC<{
 export const LogValue: React.FC<{
 	label: string
 	value: string
-	queryTerms: LogsSearchParam[]
+	queryTerms: SearchParam[]
 	queryKey: string
 	queryMatch?: string
 }> = ({ label, queryKey, queryTerms, value, queryMatch }) => {
@@ -450,12 +450,13 @@ export const LogValue: React.FC<{
 													value: quoteQueryValue(
 														value,
 													),
-													operator:
-														DEFAULT_LOGS_OPERATOR,
+													operator: DEFAULT_OPERATOR,
 													offsetStart: 0, // not actually used
 											  })
 
-										setQuery(stringifyLogsQuery(queryTerms))
+										setQuery(
+											stringifySearchQuery(queryTerms),
+										)
 									}}
 								/>
 							}

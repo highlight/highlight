@@ -4,7 +4,7 @@
 	"version": "1.0.0",
 	"repository": "git@github.com:highlight-run/highlight.git",
 	"author": "Highlight",
-	"license": "MIT",
+	"license": "Apache-2.0",
 	"workspaces": [
 		"docs-content",
 		"e2e/*",

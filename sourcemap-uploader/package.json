@@ -4,7 +4,7 @@
   "description": "Command line tool to upload source maps to Highlight",
   "bin": "./dist/index.js",
   "author": "Highlight",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",

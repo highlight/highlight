@@ -8,8 +8,7 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { COLOR_MAPPING, LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
-import { buildSessionParams } from '@pages/LogsPage/SearchForm/utils'
+import { COLOR_MAPPING } from '@pages/LogsPage/constants'
 import { ReplayerState } from '@pages/Player/ReplayerContext'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
@@ -17,7 +16,9 @@ import clsx from 'clsx'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
 import { useGetSessionLogsQuery } from '@/graph/generated/hooks'
+import { buildSessionParams } from '@/pages/LogsPage/utils'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
 import { useReplayerContext } from '../../../ReplayerContext'
@@ -52,9 +53,8 @@ export const ConsolePage = ({
 				query: params.query,
 				date_range: {
 					start_date:
-						params.date_range.start_date.format(LOG_TIME_FORMAT),
-					end_date:
-						params.date_range.end_date.format(LOG_TIME_FORMAT),
+						params.date_range.start_date.format(TIME_FORMAT),
+					end_date: params.date_range.end_date.format(TIME_FORMAT),
 				},
 			},
 			project_id: projectId,

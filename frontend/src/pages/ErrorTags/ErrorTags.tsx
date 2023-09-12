@@ -9,7 +9,6 @@ import {
 	Text,
 	Tooltip,
 } from '@highlight-run/ui'
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
@@ -24,7 +23,12 @@ const DEFAULT_QUERIES = [
 ]
 
 export function ErrorTags() {
-	const [inputValue, setInputValue] = useState('')
+	const formStore = Form.useFormStore({
+		defaultValues: {
+			query: '',
+		},
+	})
+	const inputValue = formStore.useValue('query')
 	const navigate = useNavigate()
 	function navigateToSearch(q: string) {
 		const encodedQuery = btoa(q)
@@ -53,13 +57,11 @@ export function ErrorTags() {
 					Highlight.io Error Embeddings
 				</Text>
 			</Box>
-			<form onSubmit={onSubmit}>
+			<Form store={formStore} onSubmit={onSubmit}>
 				<Stack gap="8">
 					<Form.Input
-						name="query"
+						name={formStore.names.query}
 						placeholder="Input error text"
-						value={inputValue}
-						onChange={(e) => setInputValue(e.target.value)}
 					/>
 					<Box
 						style={{
@@ -95,7 +97,7 @@ export function ErrorTags() {
 						</Form.Submit>
 					</Box>
 				</Stack>
-			</form>
+			</Form>
 
 			<Box>
 				<Text cssClass={styles.subtitle}>Error examples</Text>

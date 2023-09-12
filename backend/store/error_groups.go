@@ -126,6 +126,7 @@ func (store *Store) ListErrorObjects(errorGroup model.ErrorGroup, params ListErr
 					Email:       session.Email,
 					AppVersion:  session.AppVersion,
 					Fingerprint: &session.Fingerprint,
+					Excluded:    session.Excluded,
 				}
 			}
 		}
