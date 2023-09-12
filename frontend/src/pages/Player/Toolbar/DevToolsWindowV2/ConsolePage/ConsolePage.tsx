@@ -9,6 +9,7 @@ import {
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
 import { COLOR_MAPPING } from '@pages/LogsPage/constants'
+import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import { Tab } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import clsx from 'clsx'
@@ -120,13 +121,10 @@ export const ConsolePage = ({
 					virtuoso.current.scrollToIndex({
 						index,
 						align: 'center',
-						// Using smooth has performance issues with large lists
-						// See: https://virtuoso.dev/scroll-to-index/
-						// behavior: 'smooth'
 					})
 				}
 			})
-		}, 1000 / 60),
+		}, THROTTLED_UPDATE_MS),
 		[],
 	)
 
