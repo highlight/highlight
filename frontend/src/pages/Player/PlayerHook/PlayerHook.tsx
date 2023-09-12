@@ -893,8 +893,8 @@ export const usePlayer = (): ReplayerContextInterface => {
 				dispatch({
 					type: PlayerActionType.onFrame,
 				})
-			}, FRAME_MS * 100),
-		[getLastLoadedEventTimestamp, play, state.time],
+			}, 200),
+		[],
 	)
 
 	const frameAction = useCallback(() => {
