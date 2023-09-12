@@ -15,11 +15,11 @@ import { vars } from '../../css/vars'
 
 export type Props = React.PropsWithChildren &
 	styles.Variants & {
-		style?: any
 		title?: string
-		icon?: false | (() => JSX.Element)
 		width?: number
+		style?: { [k: string]: any }
 		handleCloseClick?: () => void
+		icon?: false | (() => JSX.Element)
 	}
 
 export const Callout: React.FC<Props> = ({
@@ -41,9 +41,9 @@ export const Callout: React.FC<Props> = ({
 			display="flex"
 			borderRadius="8"
 			border="secondary"
-			style={style ? style : {}}
 			cssClass={styles.variants({ kind, border })}
 			style={{
+				...style,
 				width: width || 'auto',
 			}}
 		>
