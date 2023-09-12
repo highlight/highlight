@@ -26,6 +26,7 @@ import {
 	PlayerInitialState,
 	PlayerReducer,
 	SessionViewability,
+	THROTTLED_UPDATE_MS,
 } from '@pages/Player/PlayerHook/PlayerState'
 import { useTimelineIndicators } from '@pages/Player/TimelineIndicatorsContext/TimelineIndicatorsContext'
 import analytics from '@util/analytics'
@@ -606,14 +607,39 @@ export const usePlayer = (): ReplayerContextInterface => {
 		],
 	)
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	const processUsefulEvent = useCallback(
-		_.throttle((event: HighlightEvent) => {
-			dispatch({
-				type: PlayerActionType.onEvent,
-				event: event,
-			})
-		}, 60 * FRAME_MS),
+	const onFrameOrEvent = useMemo(
+		() =>
+			_.throttle(
+				(event?: HighlightEvent) => {
+					if (event) {
+						dispatch({
+							type: PlayerActionType.onEvent,
+							event: event,
+						})
+						return
+					}
+					const lastLoadedEventTimestamp =
+						getLastLoadedEventTimestamp()
+					if (state.time > lastLoadedEventTimestamp) {
+						log(
+							'PlayerHook.tsx::onFrame',
+							'playing outside loaded data',
+							{
+								time: state.time,
+								lastLoadedEventTimestamp,
+							},
+						)
+						play(state.time).then()
+					}
+					dispatch({
+						type: PlayerActionType.onFrame,
+					})
+				},
+				THROTTLED_UPDATE_MS,
+				{ leading: true, trailing: false },
+			),
+		// we want to keep this throttled fn reference stable
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[],
 	)
 
@@ -630,10 +656,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 					event: event,
 				})
 			} else if (usefulEvent(event)) {
-				processUsefulEvent(event)
+				onFrameOrEvent(event)
 			}
 		},
-		[processUsefulEvent],
+		[onFrameOrEvent],
 	)
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -875,32 +901,10 @@ export const usePlayer = (): ReplayerContextInterface => {
 		}
 	}, [state.replayer, showPlayerMouseTail])
 
-	const onFrame = useMemo(
-		() =>
-			_.throttle(() => {
-				const lastLoadedEventTimestamp = getLastLoadedEventTimestamp()
-				if (state.time > lastLoadedEventTimestamp) {
-					log(
-						'PlayerHook.tsx::onFrame',
-						'playing outside loaded data',
-						{
-							time: state.time,
-							lastLoadedEventTimestamp,
-						},
-					)
-					play(state.time).then()
-				}
-				dispatch({
-					type: PlayerActionType.onFrame,
-				})
-			}, 200),
-		[],
-	)
-
 	const frameAction = useCallback(() => {
 		animationFrameID.current = requestAnimationFrame(frameAction)
-		onFrame()
-	}, [onFrame])
+		onFrameOrEvent()
+	}, [onFrameOrEvent])
 
 	// "Subscribes" the time with the Replayer when the Player is playing.
 	useEffect(() => {
@@ -1028,47 +1032,58 @@ export const usePlayer = (): ReplayerContextInterface => {
 
 	return {
 		...state,
-		setScale: (scale) =>
-			dispatch({ type: PlayerActionType.setScale, scale }),
+		setScale: useCallback(
+			(scale) => dispatch({ type: PlayerActionType.setScale, scale }),
+			[],
+		),
 		setTime: seek,
 		state: state.replayerState,
 		play,
 		pause,
 		canViewSession:
 			state.sessionViewability === SessionViewability.VIEWABLE,
-		setSessionResults: (sessionResults) =>
-			dispatch({
-				type: PlayerActionType.setSessionResults,
-				sessionResults,
-			}),
+		setSessionResults: useCallback(
+			(sessionResults) =>
+				dispatch({
+					type: PlayerActionType.setSessionResults,
+					sessionResults,
+				}),
+			[],
+		),
 		isPlayerReady:
 			state.replayerState !== ReplayerState.Loading &&
 			state.replayerState !== ReplayerState.Empty &&
 			state.scale !== 1 &&
 			state.sessionViewability === SessionViewability.VIEWABLE,
-		setIsLiveMode: (isLiveMode) => {
-			if (state.isLiveMode) {
-				// TODO: This probably takes a while, add a loading state or break this
-				// into a separate action. Also, not positive this is working as it
-				// doesn't seem to be adding the latest events to the player.
-				const events = getEvents(chunkEventsRef.current)
+		setIsLiveMode: useCallback(
+			(isLiveMode) => {
+				if (state.isLiveMode) {
+					// TODO: This probably takes a while, add a loading state or break this
+					// into a separate action. Also, not positive this is working as it
+					// doesn't seem to be adding the latest events to the player.
+					const events = getEvents(chunkEventsRef.current)
 
-				dispatch({
-					type: PlayerActionType.addLiveEvents,
-					lastActiveTimestamp: state.lastActiveTimestamp,
-					firstNewTimestamp: events[events.length - 1].timestamp,
-				})
-			}
-			dispatch({ type: PlayerActionType.setIsLiveMode, isLiveMode })
-		},
+					dispatch({
+						type: PlayerActionType.addLiveEvents,
+						lastActiveTimestamp: state.lastActiveTimestamp,
+						firstNewTimestamp: events[events.length - 1].timestamp,
+					})
+				}
+				dispatch({ type: PlayerActionType.setIsLiveMode, isLiveMode })
+			},
+			[chunkEventsRef, state.isLiveMode, state.lastActiveTimestamp],
+		),
 		playerProgress: state.replayer
 			? state.time / state.sessionMetadata.totalTime
 			: null,
 		sessionStartDateTime: state.sessionMetadata.startTime,
-		setCurrentEvent: (currentEvent) =>
-			dispatch({
-				type: PlayerActionType.setCurrentEvent,
-				currentEvent,
-			}),
+		setCurrentEvent: useCallback(
+			(currentEvent) =>
+				dispatch({
+					type: PlayerActionType.setCurrentEvent,
+					currentEvent,
+				}),
+			[],
+		),
 	}
 }
