@@ -19,8 +19,6 @@ const TracesTable = "traces"
 var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 	tableName: TracesTable,
 	keysToColumns: map[modelInputs.ReservedTraceKey]string{
-		// modelInputs.ReservedTraceKeyLevel:           "",
-		// modelInputs.ReservedTraceKeyMessage:         "",
 		modelInputs.ReservedTraceKeySecureSessionID: "SecureSessionId",
 		modelInputs.ReservedTraceKeySpanID:          "SpanId",
 		modelInputs.ReservedTraceKeyTraceID:         "TraceId",
