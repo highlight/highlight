@@ -33,6 +33,24 @@ var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
 		modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
 	},
 	attributesColumn: "TraceAttributes",
+	selectColumns: []string{
+		"Timestamp",
+		"UUID",
+		"TraceId",
+		"SpanId",
+		"ParentSpanId",
+		"ProjectId",
+		"SecureSessionId",
+		"TraceState",
+		"SpanName",
+		"SpanKind",
+		"Duration",
+		"ServiceName",
+		"ServiceVersion",
+		"TraceAttributes",
+		"StatusCode",
+		"StatusMessage",
+	},
 }
 
 type ClickhouseTraceRow struct {
@@ -151,8 +169,6 @@ func convertLinks(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet,
 }
 
 func (client *Client) ReadTraces(ctx context.Context, projectID int, params modelInputs.QueryInput, pagination Pagination) (*modelInputs.TraceConnection, error) {
-	selectStr := "Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId, Source, ServiceName, ServiceVersion"
-
 	scanTrace := func(rows driver.Rows) (*Edge[modelInputs.Trace], error) {
 		var result ClickhouseTraceRow
 		if err := rows.ScanStruct(&result); err != nil {
@@ -181,7 +197,7 @@ func (client *Client) ReadTraces(ctx context.Context, projectID int, params mode
 		}, nil
 	}
 
-	conn, err := readObjects(ctx, client, tracesTableConfig, selectStr, projectID, params, pagination, scanTrace)
+	conn, err := readObjects(ctx, client, tracesTableConfig, projectID, params, pagination, scanTrace)
 	if err != nil {
 		return nil, err
 	}

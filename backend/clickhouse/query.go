@@ -19,9 +19,10 @@ type tableConfig[TReservedKey ~string] struct {
 	tableName        string
 	attributesColumn string
 	keysToColumns    map[TReservedKey]string
+	selectColumns    []string
 }
 
-func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, client *Client, config tableConfig[TReservedKey], selectStr string, projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
+func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, client *Client, config tableConfig[TReservedKey], projectID int, params modelInputs.QueryInput, pagination Pagination, scanObject func(driver.Rows) (*Edge[TObj], error)) (*Connection[TObj], error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	var err error
 	var args []interface{}
@@ -32,6 +33,8 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		orderForward = OrderForwardInverted
 		orderBackward = OrderBackwardInverted
 	}
+
+	selectStr := strings.Join(config.selectColumns, ", ")
 
 	if pagination.At != nil && len(*pagination.At) > 1 {
 		// Create a "window" around the cursor

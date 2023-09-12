@@ -31,6 +31,19 @@ var logsTableConfig = tableConfig[modelInputs.ReservedLogKey]{
 		modelInputs.ReservedLogKeyServiceVersion:  "ServiceVersion",
 	},
 	attributesColumn: "LogAttributes",
+	selectColumns: []string{
+		"Timestamp",
+		"UUID",
+		"SeverityText",
+		"Body",
+		"LogAttributes",
+		"TraceId",
+		"SpanId",
+		"SecureSessionId",
+		"Source",
+		"ServiceName",
+		"ServiceVersion",
+	},
 }
 
 func (client *Client) BatchWriteLogRows(ctx context.Context, logRows []*LogRow) error {
@@ -78,8 +91,6 @@ type Pagination struct {
 }
 
 func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelInputs.QueryInput, pagination Pagination) (*modelInputs.LogConnection, error) {
-	selectStr := "Timestamp, UUID, SeverityText, Body, LogAttributes, TraceId, SpanId, SecureSessionId, Source, ServiceName, ServiceVersion"
-
 	scanLog := func(rows driver.Rows) (*Edge[modelInputs.Log], error) {
 		var result struct {
 			Timestamp       time.Time
@@ -115,7 +126,7 @@ func (client *Client) ReadLogs(ctx context.Context, projectID int, params modelI
 		}, nil
 	}
 
-	conn, err := readObjects(ctx, client, logsTableConfig, selectStr, projectID, params, pagination, scanLog)
+	conn, err := readObjects(ctx, client, logsTableConfig, projectID, params, pagination, scanLog)
 	if err != nil {
 		return nil, err
 	}

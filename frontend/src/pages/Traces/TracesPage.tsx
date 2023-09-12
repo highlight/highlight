@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
 import { useGetTracesQuery } from '@/graph/generated/hooks'
+import { SortDirection } from '@/graph/generated/schemas'
 import { useProjectId } from '@/hooks/useProjectId'
 import { LOG_TIME_FORMAT } from '@/pages/LogsPage/constants'
 import {
@@ -37,6 +38,7 @@ export const TracesPage: React.FC = () => {
 				},
 				query: serverQuery,
 			},
+			direction: SortDirection.Desc,
 		},
 	})
 
@@ -67,38 +69,42 @@ export const TracesPage: React.FC = () => {
 								<Table.Header>Status</Table.Header>
 							</Table.Row>
 						</Table.Head>
-						{data?.traces.map((trace, index) => (
-							<Table.Row key={index}>
-								<Table.Cell>{trace.spanName}</Table.Cell>
-								<Table.Cell>{trace.serviceName}</Table.Cell>
-								<Table.Cell>{trace.spanID}</Table.Cell>
-								<Table.Cell
-									onClick={
-										trace.parentSpanID
-											? () => {
-													navigate(
-														`/${projectId}/traces?query=${window.encodeURIComponent(
-															`ParentSpanId:${trace.parentSpanID}`,
-														)}`,
-													)
-											  }
-											: undefined
-									}
-								>
-									{trace.parentSpanID}
-								</Table.Cell>
-								<Table.Cell
-									onClick={() => {
-										navigate(
-											`/${projectId}/sessions/${trace.secureSessionID}`,
-										)
-									}}
-								>
-									{trace.secureSessionID}
-								</Table.Cell>
-								<Table.Cell>{trace.statusMessage}</Table.Cell>
-							</Table.Row>
-						))}
+						{data?.traces.edges
+							.map((edge) => edge.node)
+							.map((trace, index) => (
+								<Table.Row key={index}>
+									<Table.Cell>{trace.spanName}</Table.Cell>
+									<Table.Cell>{trace.serviceName}</Table.Cell>
+									<Table.Cell>{trace.spanID}</Table.Cell>
+									<Table.Cell
+										onClick={
+											trace.parentSpanID
+												? () => {
+														navigate(
+															`/${projectId}/traces?query=${window.encodeURIComponent(
+																`ParentSpanId:${trace.parentSpanID}`,
+															)}`,
+														)
+												  }
+												: undefined
+										}
+									>
+										{trace.parentSpanID}
+									</Table.Cell>
+									<Table.Cell
+										onClick={() => {
+											navigate(
+												`/${projectId}/sessions/${trace.secureSessionID}`,
+											)
+										}}
+									>
+										{trace.secureSessionID}
+									</Table.Cell>
+									<Table.Cell>
+										{trace.statusMessage}
+									</Table.Cell>
+								</Table.Row>
+							))}
 					</Table>
 				)}
 			</Box>
