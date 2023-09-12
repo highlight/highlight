@@ -6854,6 +6854,9 @@ body {
 ._1gpgayie {
   grid-template-columns: 1fr 300px;
 }
+._1gpgayif {
+  filter: blur(4px);
+}
 ._1t72qig0 {
   position: absolute;
   right: 0;

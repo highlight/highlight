@@ -52,8 +52,7 @@ const PlayerCommentCanvas = ({
 		enableInspectElement,
 	} = usePlayerConfiguration()
 
-	const { isPlayerReady, pause, isLoadingEvents, replayer } =
-		useReplayerContext()
+	const { isPlayerReady, pause, replayer } = useReplayerContext()
 
 	const location = useLocation()
 	const navigate = useNavigate()
@@ -131,7 +130,6 @@ const PlayerCommentCanvas = ({
 		<button
 			className={clsx({
 				[styles.commentButton]: isPlayerReady,
-				[styles.blurBackground]: isLoadingEvents,
 			})}
 			onClick={(e) => {
 				if (buttonRef?.current) {
