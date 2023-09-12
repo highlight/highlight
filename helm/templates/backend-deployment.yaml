@@ -24,6 +24,19 @@ spec:
         {{- include "highlight.selectorLabels" . | nindent 8 }}
     spec:
       initContainers:
+        - name: prerequisites-check
+          image: busybox:1.36.1
+          command: 
+            - sh
+            - -c
+            - >-
+              until nc -w 3 -v {{ include "highlight.fullname" . }}-kafka {{ .Values.kafka.config.port }}; do echo waiting for kafka; sleep 2; done;
+              until nc -w 3 -v {{ include "highlight.fullname" . }}-redis {{ .Values.redis.config.port }}; do echo waiting for redis; sleep 2; done;
+              until nc -w 3 -v {{ include "highlight.fullname" . }}-postgres {{ .Values.postgres.config.port }}; do echo waiting for postgres; sleep 2; done;
+              until nc -w 3 -v {{ include "highlight.fullname" . }}-clickhouse 9000; do echo waiting for clickhouse; sleep 2; done;
+              until nc -w 3 -v {{ include "highlight.fullname" . }}-opensearch 9200; do echo waiting for opensearch; sleep 2; done;
+              until nc -w 3 -v {{ include "highlight.fullname" . }}-influxdb 8086; do echo waiting for influxdb; sleep 2; done;
+              until nc -w 3 -v {{ include "highlight.fullname" . }}-collector 4319; do echo waiting for collector; sleep 2; done;
         - name: backend-setup-opensearch
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
           command:
@@ -67,6 +80,8 @@ spec:
               value: admin
             - name: OPENSEARCH_USERNAME
               value: admin
+            - name: OTLP_ENDPOINT
+              value: {{ include "highlight.fullname" . }}-collector:4319
             - name: TZ
               value: America/Los_Angeles
             - name: PSQL_DB
@@ -156,6 +171,8 @@ spec:
               value: admin
             - name: OPENSEARCH_USERNAME
               value: admin
+            - name: OTLP_ENDPOINT
+              value: {{ include "highlight.fullname" . }}-collector:4319
             - name: TZ
               value: America/Los_Angeles
             - name: PSQL_DB
