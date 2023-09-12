@@ -703,7 +703,7 @@ export const usePlayer = (): ReplayerContextInterface => {
 			})
 			Promise.all(
 				eventChunksData.event_chunks
-					.slice(1, 3)
+					.slice(1, 2)
 					.map((c) => loadEventChunk(c.chunk_index)),
 			).then((chunks) => {
 				for (const { idx, events } of chunks) {
