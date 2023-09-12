@@ -7916,12 +7916,22 @@ func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelI
 
 // TracesKeys is the resolver for the traces_keys field.
 func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.QueryKey, error) {
-	panic(fmt.Errorf("not implemented: TracesKeys - traces_keys"))
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.TracesKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate)
 }
 
 // TracesKeyValues is the resolver for the traces_key_values field.
 func (r *queryResolver) TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
-	panic(fmt.Errorf("not implemented: TracesKeyValues - traces_key_values"))
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.TracesKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
 // Params is the resolver for the params field.

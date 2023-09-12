@@ -17,7 +17,6 @@ import { LogLevel } from '@pages/LogsPage/LogsTable/LogLevel'
 import { LogMessage } from '@pages/LogsPage/LogsTable/LogMessage'
 import { LogTimestamp } from '@pages/LogsPage/LogsTable/LogTimestamp'
 import { NoLogsFound } from '@pages/LogsPage/LogsTable/NoLogsFound'
-import { parseLogsQuery } from '@pages/LogsPage/SearchForm/utils'
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import {
 	createColumnHelper,
@@ -31,6 +30,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import clsx from 'clsx'
 import React, { Fragment, useEffect, useState } from 'react'
 
+import { parseSearchQuery } from '@/components/Search/SearchForm/utils'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 
 import * as styles from './LogsTable.css'
@@ -116,7 +116,7 @@ const LogsTableInner = ({
 	tableContainerRef,
 	selectedCursor,
 }: LogsTableInnerProps) => {
-	const queryTerms = parseLogsQuery(query)
+	const queryTerms = parseSearchQuery(query)
 	const [expanded, setExpanded] = useState<ExpandedState>({})
 
 	const columnHelper = createColumnHelper<LogEdge>()

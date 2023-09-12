@@ -4387,7 +4387,7 @@ export type GetLogsKeysQueryVariables = Types.Exact<{
 }>
 
 export type GetLogsKeysQuery = { __typename?: 'Query' } & {
-	logs_keys: Array<
+	keys: Array<
 		{ __typename?: 'QueryKey' } & Pick<Types.QueryKey, 'name' | 'type'>
 	>
 }
@@ -4398,10 +4398,9 @@ export type GetLogsKeyValuesQueryVariables = Types.Exact<{
 	date_range: Types.DateRangeRequiredInput
 }>
 
-export type GetLogsKeyValuesQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'logs_key_values'
->
+export type GetLogsKeyValuesQuery = { __typename?: 'Query' } & {
+	key_values: Types.Query['logs_key_values']
+}
 
 export type GetLogsErrorObjectsQueryVariables = Types.Exact<{
 	log_cursors: Array<Types.Scalars['String']> | Types.Scalars['String']
@@ -4662,6 +4661,27 @@ export type GetTracesQuery = { __typename?: 'Query' } & {
 	}
 }
 
+export type GetTracesKeysQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	date_range: Types.DateRangeRequiredInput
+}>
+
+export type GetTracesKeysQuery = { __typename?: 'Query' } & {
+	keys: Array<
+		{ __typename?: 'QueryKey' } & Pick<Types.QueryKey, 'name' | 'type'>
+	>
+}
+
+export type GetTracesKeyValuesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	key_name: Types.Scalars['String']
+	date_range: Types.DateRangeRequiredInput
+}>
+
+export type GetTracesKeyValuesQuery = { __typename?: 'Query' } & {
+	key_values: Types.Query['traces_key_values']
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4801,6 +4821,8 @@ export const namedOperations = {
 		MatchErrorTag: 'MatchErrorTag' as const,
 		FindSimilarErrors: 'FindSimilarErrors' as const,
 		GetTraces: 'GetTraces' as const,
+		GetTracesKeys: 'GetTracesKeys' as const,
+		GetTracesKeyValues: 'GetTracesKeyValues' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,

@@ -5,6 +5,7 @@ import {
 	useDeleteLogAlertMutation,
 	useGetLogAlertQuery,
 	useGetLogsKeysQuery,
+	useGetLogsKeyValuesLazyQuery,
 	useUpdateLogAlertMutation,
 } from '@graph/hooks'
 import {
@@ -41,9 +42,7 @@ import {
 	dedupeEnvironments,
 	EnvironmentSuggestion,
 } from '@pages/Alerts/utils/AlertsUtils'
-import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
 import LogsHistogram from '@pages/LogsPage/LogsHistogram/LogsHistogram'
-import { Search } from '@pages/LogsPage/SearchForm/SearchForm'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { capitalize } from 'lodash'
@@ -54,6 +53,8 @@ import { DateTimeParam, StringParam, useQueryParam } from 'use-query-params'
 
 import { getSlackUrl } from '@/components/Header/components/ConnectHighlightWithSlackButton/utils/utils'
 import LoadingBox from '@/components/LoadingBox'
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
+import { Search } from '@/components/Search/SearchForm/SearchForm'
 import { namedOperations } from '@/graph/generated/operations'
 import SlackLoadOrConnect from '@/pages/Alerts/AlertConfigurationCard/SlackLoadOrConnect'
 import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
@@ -81,8 +82,8 @@ export const LogAlertPage = () => {
 		variables: {
 			project_id: projectId,
 			date_range: {
-				start_date: moment(startDate).format(LOG_TIME_FORMAT),
-				end_date: moment(endDate).format(LOG_TIME_FORMAT),
+				start_date: moment(startDate).format(TIME_FORMAT),
+				end_date: moment(endDate).format(TIME_FORMAT),
 			},
 		},
 	})
@@ -452,6 +453,9 @@ export const LogAlertPage = () => {
 												setQuery={setQuery}
 												onFormSubmit={
 													handleSearchSubmit
+												}
+												fetchValuesLazyQuery={
+													useGetLogsKeyValuesLazyQuery
 												}
 											/>
 										</Box>
