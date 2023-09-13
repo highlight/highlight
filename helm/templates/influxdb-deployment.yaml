@@ -30,7 +30,7 @@ spec:
           ports:
             - containerPort: 8086
               protocol: TCP
-          livesnessProbe:
+          livenessProbe:
             httpGet:
               path: /ping
               port: 8086
