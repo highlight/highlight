@@ -10,7 +10,7 @@
 		"lint": "next lint"
 	},
 	"installConfig": {
-		"hoistingLimits": "dependencies"
+		"hoistingLimits": "workspace"
 	},
 	"dependencies": {
 		"@highlight-run/next": "workspace:*",

@@ -17,6 +17,7 @@ type EdgeHandler = (
 type ExtendedExecutionContext = ExecutionContext & {
 	__waitUntilTimer?: ReturnType<typeof setInterval>
 	__waitUntilPromises?: Promise<void>[]
+	waitUntilFinished?: () => Promise<void>
 }
 
 interface HighlightInterface {
@@ -61,11 +62,20 @@ function polyfillWaitUntil(ctx: ExtendedExecutionContext) {
 			}, 200)
 		}
 	}
+
+	ctx.waitUntilFinished = async function waitUntilFinished() {
+		if (ctx.__waitUntilPromises) {
+			await Promise.allSettled(ctx.__waitUntilPromises)
+		}
+	}
 }
 
 export function Highlight(env: HighlightEnv) {
 	return function withHighlight(handler: EdgeHandler) {
-		return async function (request: NextRequest, event: NextFetchEvent) {
+		return async function (
+			request: NextRequest,
+			event: NextFetchEvent & ExtendedExecutionContext,
+		) {
 			H.init(request, env, event)
 
 			try {
@@ -77,6 +87,16 @@ export function Highlight(env: HighlightEnv) {
 			} catch (error) {
 				if (error instanceof Error) {
 					H.consumeError(error)
+				}
+
+				/**
+				 * H.consumeError is completely async, so if we throw the error too quickly after
+				 * calling H.consumeError, we're effectively short-circuiting ctx.waitUntil.
+				 *
+				 * ctx.waitUntilFinished will wait for the promises to settle before throwing.
+				 */
+				if (event.waitUntilFinished) {
+					await event.waitUntilFinished()
 				}
 
 				throw error
