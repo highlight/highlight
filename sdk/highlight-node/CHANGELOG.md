@@ -91,3 +91,9 @@
 ### Minor Changes
 
 -   Disables node fs instrumentation by default, can by enabled by passing `enableFsInstrumentation: true` to client option.
+
+## 3.3.0
+
+### Minor Changes
+
+- Added `Highlight.waitForFlush` and `H.consumeAndFlush` to keep serverless functions alive while flushing
