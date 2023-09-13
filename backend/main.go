@@ -238,14 +238,6 @@ func main() {
 		highlight.SetOTLPEndpoint(otlpEndpoint)
 	}
 
-	if !util.IsOnPrem() && util.IsDevOrTestEnv() {
-		if util.IsBackendInDocker() {
-			highlight.SetOTLPEndpoint("http://collector:4318")
-		} else {
-			highlight.SetOTLPEndpoint("http://localhost:4318")
-		}
-	}
-
 	serviceName := string(runtimeParsed)
 	if runtimeParsed == util.Worker {
 		if handlerFlag != nil {
