@@ -46,6 +46,33 @@ export const SetupDocs: React.FC<Props> = ({
 		['<YOUR_BACKEND_URL>', backendUrl],
 	]
 
+	if (backendUrl !== 'https://pub.highlight.io') {
+		// Remove last element since we need to remove the entire line
+		replacements.pop()
+
+		// For Angular, Vue, SvelteKit, React, HTML/JS
+		replacements.push([
+			"[\r\n]+[ \t]*backendUrl: '<YOUR_BACKEND_URL>',",
+			'',
+		])
+
+		// For Next
+		replacements.push([
+			"[\r\n]+[ \t]*backendUrl={'<YOUR_BACKEND_URL>'}",
+			'',
+		])
+
+		// For Remix
+		replacements.push([
+			'[\r\n]+[ \t]*HIGHLIGHT_BACKEND_URL: process.env.HIGHLIGHT_BACKEND_URL,',
+			'',
+		])
+		replacements.push([
+			'[\r\n]+[ \t]*backendUrl={ENV.HIGHLIGHT_BACKEND_URL}',
+			'',
+		])
+	}
+
 	return (
 		<Box>
 			<Box style={{ maxWidth: 560 }} my="40" mx="auto">
@@ -77,8 +104,8 @@ export const SetupDocs: React.FC<Props> = ({
 											}}
 											text={replacements.reduce(
 												(acc, [search, replace]) => {
-													return acc.replaceAll(
-														search,
+													return acc.replace(
+														new RegExp(search, 'g'),
 														replace,
 													)
 												},
