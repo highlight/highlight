@@ -96,8 +96,6 @@ services:
         volumes:
             - highlight-data:/highlight-data
         <<: *backend-env
-        environment:
-          - OTLP_ENDPOINT=http://collector:4318
         depends_on:
             backend-setup-opensearch:
                 condition: service_completed_successfully
