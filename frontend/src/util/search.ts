@@ -39,10 +39,11 @@ export function usePollQuery<T, U>({
 				) as unknown as number
 				return
 			}
+			const currentTimeout = pollTimeout.current
 			const result = await moreDataQuery({ variables })
-			if (pollTimeout.current !== undefined) {
+			if (pollTimeout.current === currentTimeout) {
 				const count = getResultCount(result)
-				if (count) {
+				if (count !== undefined) {
 					setNumMore(count)
 				}
 				pollTimeout.current = setTimeout(
@@ -56,6 +57,7 @@ export function usePollQuery<T, U>({
 			POLL_INTERVAL,
 		) as unknown as number
 		return () => {
+			setNumMore(0)
 			clearTimeout(pollTimeout.current)
 			pollTimeout.current = undefined
 		}

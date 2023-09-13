@@ -6,7 +6,7 @@ updatedAt: 2022-01-27T19:51:23.000Z
 ---
 
 ```hint
-Proxying is only available starting on our [Startup tier](https://www.highlight.io/pricing). If you would like use this, you will need to reach out to <support@highlight.run>.
+Proxying is only available on an Annual Plan. If you would like use this, you will need to reach out to sales@highlight.io.
 
 
 ```
@@ -17,17 +17,16 @@ One way we can avoid this is by setting up proxy from your domain to Highlight. 
 
 ## Setting up the proxy
 
-1.  Upgrade to the Startup Tier [https://www.highlight.io/pricing](https://www.highlight.io/pricing)
+1.  On your domain, add a `CNAME` record that points `highlight.<YOUR_DOMAIN>` to `pub.highlight.run`.
 
-2.  On your domain, add a `CNAME` record that points `highlight.<YOUR_DOMAIN>` to `pub.highlight.run`
+2.  Send us an email at sales@highlight.io so we can send over a cost proposal for your annual usage.
 
-3.  Send us an email (support\@highlight.run) or intercom ticket with your domain
 
 Below is an example email/message that you can send over.
 
 > Hello!
 >
-> I'd like to use the Highlight Proxy and I've upgraded to the Startup Tier. I've set up an CNAME record for: highlight.piedpiper.com
+> I'd like to use the Highlight Proxy and I'm interested in an annual plan. I've set up an CNAME record for: highlight.piedpiper.com
 
 ### Example
 

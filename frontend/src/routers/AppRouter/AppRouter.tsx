@@ -10,6 +10,7 @@ import {
 	SIGN_IN_ROUTE,
 	SIGN_UP_ROUTE,
 } from '@pages/Auth/AuthRouter'
+import { InviteTeamForm } from '@pages/Auth/InviteTeam'
 import { VerifyEmail } from '@pages/Auth/VerifyEmail'
 import { EmailOptOutPage } from '@pages/EmailOptOut/EmailOptOut'
 import IntegrationAuthCallbackPage from '@pages/IntegrationAuthCallback/IntegrationAuthCallbackPage'
@@ -52,11 +53,19 @@ import {
 } from '@/graph/generated/operations'
 import { JoinWorkspace } from '@/pages/Auth/JoinWorkspace'
 import { WorkspaceInvitation } from '@/pages/Auth/WorkspaceInvitation'
+import {
+	ErrorTags,
+	ErrorTagsAdmin,
+	ErrorTagsContainer,
+	ErrorTagsSearch,
+} from '@/pages/ErrorTags'
 import WithErrorSearchContext from '@/routers/ProjectRouter/WithErrorSearchContext'
 import WithSessionSearchContext from '@/routers/ProjectRouter/WithSessionSearchContext'
 
 export const VERIFY_EMAIL_ROUTE = '/verify_email'
 export const ABOUT_YOU_ROUTE = '/about_you'
+export const INVITE_TEAM_ROUTE = '/invite_team'
+export const SETUP_ROUTE = '/setup'
 
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
@@ -209,6 +218,25 @@ export const AppRouter = () => {
 					<WithErrorSearchContext>
 						<Routes>
 							<Route
+								path="/error-tags"
+								element={<ErrorTagsContainer />}
+							>
+								<Route index element={<ErrorTags />} />
+
+								{isHighlightAdmin && (
+									<Route
+										path="/error-tags/admin"
+										element={<ErrorTagsAdmin />}
+									/>
+								)}
+
+								<Route
+									path="/error-tags/search"
+									element={<ErrorTagsSearch />}
+								/>
+							</Route>
+
+							<Route
 								path="/join_workspace"
 								element={<JoinWorkspace />}
 							/>
@@ -222,6 +250,10 @@ export const AppRouter = () => {
 							<Route
 								path={ABOUT_YOU_ROUTE}
 								element={<AdminForm />}
+							/>
+							<Route
+								path={INVITE_TEAM_ROUTE}
+								element={<InviteTeamForm />}
 							/>
 
 							<Route

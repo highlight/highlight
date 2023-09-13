@@ -21,3 +21,6 @@ The highlight.io snippet supports recording within an iframe, but given the secu
 ## Recording Cross-origin `iframe`s
 
 To support recording a cross-origin iframe that you own, we've added functionality into our recording client that allows the iframe to forward its events to the parent session. Read more about this in our [sdk configuration docs](../../../getting-started/3_client-sdk/7_replay-configuration/iframes.md#recording-a-cross-origin-iframe-element).
+
+If you do not own the parent page that is embedding your iframe cross-origin but you still want to record the iframe contents, pass `recordCrossOriginIframe: false` to the `H.init` options to force the iframe to record as a standalone app.
+Otherwise, the iframe will wait for the parent page to start recording.

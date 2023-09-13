@@ -135,6 +135,7 @@ var Models = []interface{}{
 	&Admin{},
 	&Session{},
 	&SessionInterval{},
+	&SessionExport{},
 	&TimelineIndicatorEvent{},
 	&DailySessionCount{},
 	&DailyErrorCount{},
@@ -191,6 +192,7 @@ var Models = []interface{}{
 	&UserJourneyStep{},
 	&SystemConfiguration{},
 	&SessionInsight{},
+	&ErrorTag{},
 }
 
 func init() {
@@ -390,6 +392,7 @@ type AllWorkspaceSettings struct {
 	ErrorEmbeddingsThreshold float64 `gorm:"default:0.2"`
 	ReplaceAssets            bool    `gorm:"default:false"`
 	StoreIP                  bool    `gorm:"default:false"`
+	EnableSessionExport      bool    `gorm:"default:false"`
 }
 
 type HasSecret interface {
@@ -561,8 +564,9 @@ type Admin struct {
 	// How/where this user was referred from to sign up to Highlight.
 	Referral *string `json:"referral"`
 	// This is the role the Admin has specified. This is their role in their organization, not within Highlight. This should not be used for authorization checks.
-	UserDefinedRole    *string `json:"user_defined_role"`
-	UserDefinedPersona *string `json:"user_defined_persona"`
+	UserDefinedRole     *string `json:"user_defined_role"`
+	UserDefinedTeamSize *string `json:"user_defined_team_size"`
+	UserDefinedPersona  *string `json:"user_defined_persona"`
 }
 
 type EmailSignup struct {
@@ -627,8 +631,9 @@ type Session struct {
 	Fields         []*Field `json:"fields" gorm:"many2many:session_fields;"`
 	Environment    string   `json:"environment"`
 	AppVersion     *string  `json:"app_version"`
-	UserObject     JSONB    `json:"user_object" sql:"type:jsonb"`
-	UserProperties string   `json:"user_properties"`
+	ServiceName    string
+	UserObject     JSONB  `json:"user_object" sql:"type:jsonb"`
+	UserProperties string `json:"user_properties"`
 	// Whether this is the first session created by this user.
 	FirstTime               *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt        *time.Time `json:"payload_updated_at"`
@@ -692,6 +697,23 @@ type SessionInsight struct {
 	Model
 	SessionID int `gorm:"index"`
 	Insight   string
+}
+
+type SessionExportFormat = string
+
+const (
+	SessionExportFormatMP4 SessionExportFormat = "video/mp4"
+	SessionExportFormatGif SessionExportFormat = "image/gif"
+	SessionExportFormatPng SessionExportFormat = "image/png"
+)
+
+type SessionExport struct {
+	Model
+	SessionID    int                 `gorm:"uniqueIndex:idx_session_exports"`
+	Type         SessionExportFormat `gorm:"uniqueIndex:idx_session_exports"`
+	URL          string
+	Error        string
+	TargetEmails pq.StringArray `gorm:"type:text[];"`
 }
 
 type EventChunk struct {
@@ -912,8 +934,9 @@ type ErrorSegment struct {
 type ErrorGroupingMethod string
 
 const (
-	ErrorGroupingMethodClassic        ErrorGroupingMethod = "Classic"
-	ErrorGroupingMethodAdaEmbeddingV2 ErrorGroupingMethod = "AdaV2"
+	ErrorGroupingMethodClassic             ErrorGroupingMethod = "Classic"
+	ErrorGroupingMethodAdaEmbeddingV2      ErrorGroupingMethod = "AdaV2"
+	ErrorGroupingMethodGteLargeEmbeddingV2 ErrorGroupingMethod = "thenlper/gte-large"
 )
 
 type ErrorObject struct {
@@ -947,15 +970,15 @@ type ErrorObject struct {
 	IsBeacon                bool    `gorm:"default:false"`
 	ServiceName             string
 	ServiceVersion          string
+	ErrorTagID              *string
 }
 
 type ErrorObjectEmbeddings struct {
 	Model
-	ErrorObjectID       int
-	CombinedEmbedding   Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
-	EventEmbedding      Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
-	StackTraceEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
-	PayloadEmbedding    Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	ProjectID         int
+	ErrorObjectID     int
+	CombinedEmbedding Vector `gorm:"type:vector(1536)"` // 1536 dimensions in the AdaEmbeddingV2 model
+	GteLargeEmbedding Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large model
 }
 
 type ErrorGroup struct {
@@ -986,6 +1009,18 @@ type ErrorGroup struct {
 	// Represents the admins that have viewed this session.
 	ViewedByAdmins []Admin `json:"viewed_by_admins" gorm:"many2many:error_group_admins_views;"`
 	Viewed         *bool   `json:"viewed"`
+}
+
+type ErrorTag struct {
+	Model
+	Title       string
+	Description string
+	Embedding   Vector `gorm:"type:vector(1024)"` // 1024 dimensions in the thenlper/gte-large
+}
+
+type MatchedErrorObject struct {
+	ErrorObject
+	Score float64 `json:"score"`
 }
 
 type ErrorGroupEventType string
@@ -1251,10 +1286,21 @@ type UserJourneyStep struct {
 }
 
 type SystemConfiguration struct {
-	Active           bool `gorm:"primary_key;default:true"`
-	MaintenanceStart time.Time
-	MaintenanceEnd   time.Time
-	ErrorFilters     pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
+	Active            bool `gorm:"primary_key;default:true"`
+	MaintenanceStart  time.Time
+	MaintenanceEnd    time.Time
+	ErrorFilters      pq.StringArray `gorm:"type:text[];default:'{\"ENOENT.*\", \"connect ECONNREFUSED.*\"}'"`
+	IgnoredFiles      pq.StringArray `gorm:"type:text[];default:'{\".*\\/node_modules\\/.*\", \".*\\/go\\/pkg\\/mod\\/.*\", \".*\\/site-packages\\/.*\"}'"`
+	MainWorkers       int            `gorm:"default:64"`
+	LogsWorkers       int            `gorm:"default:1"`
+	LogsFlushSize     int            `gorm:"type:bigint;default:10000"`
+	LogsFlushTimeout  time.Duration  `gorm:"type:bigint;default:5000000000"`
+	DataSyncWorkers   int            `gorm:"default:1"`
+	DataSyncFlushSize int            `gorm:"type:bigint;default:10000"`
+	DataSyncTimeout   time.Duration  `gorm:"type:bigint;default:5000000000"`
+	TraceWorkers      int            `gorm:"default:1"`
+	TraceFlushSize    int            `gorm:"type:bigint;default:10000"`
+	TraceFlushTimeout time.Duration  `gorm:"type:bigint;default:5000000000"`
 }
 
 type RetryableType string
@@ -1521,6 +1567,32 @@ func MigrateDB(ctx context.Context, DB *gorm.DB) (bool, error) {
 		END;
 	`, PARTITION_SESSION_ID, PARTITION_SESSION_ID).Error; err != nil {
 		return false, e.Wrap(err, "Error setting session id sequence to 30000000")
+	}
+
+	if err := DB.Exec(`
+		CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned
+		(LIKE error_object_embeddings INCLUDING DEFAULTS INCLUDING IDENTITY)
+		PARTITION BY LIST (project_id);
+	`).Error; err != nil {
+		return false, e.Wrap(err, "Error creating error_object_embeddings_partitioned")
+	}
+
+	var lastVal int
+	if err := DB.Raw("SELECT coalesce(max(id), 1) FROM projects").Scan(&lastVal).Error; err != nil {
+		return false, e.Wrap(err, "Error selecting max project id")
+	}
+
+	// Make sure partitions are created for the next 1k projects
+	for i := 0; i < lastVal+1000; i++ {
+		sql := fmt.Sprintf(`
+			CREATE TABLE IF NOT EXISTS error_object_embeddings_partitioned_%d
+			PARTITION OF error_object_embeddings_partitioned
+			FOR VALUES IN ('%d');
+		`, i, i)
+
+		if err := DB.Exec(sql).Error; err != nil {
+			return false, e.Wrapf(err, "Error creating partitioned error_object_embeddings for index %d", i)
+		}
 	}
 
 	// Create sequence for session_fields.id manually. This started as a join
@@ -1790,6 +1862,7 @@ type Alert struct {
 	LastAdminToEditID    int     `gorm:"last_admin_to_edit_id"`
 	Frequency            int     `gorm:"default:15"` // time in seconds
 	Disabled             *bool   `gorm:"default:false"`
+	Default              bool    `gorm:"default:false"` // alert created during setup flow
 }
 
 type ErrorAlert struct {
@@ -1826,10 +1899,16 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 	frontendURL := os.Getenv("FRONTEND_URI")
 	errorURL := fmt.Sprintf("%s/%d/errors/%s/instances/%d", frontendURL, obj.ProjectID, input.Group.SecureID, input.ErrorObject.ID)
 	errorURL = routing.AttachReferrer(ctx, errorURL, routing.Email)
-	sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
+
+	message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>", *obj.Name, input.Group.Event, errorURL)
+	if input.SessionExcluded {
+		message += " (No recorded session)"
+	} else {
+		sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
+		message += fmt.Sprintf(" <a href=\"%s\">View Session</a>", sessionURL)
+	}
 
 	for _, email := range emailsToNotify {
-		message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>  <a href=\"%s\">View Session</a>", *obj.Name, input.Group.Event, errorURL, sessionURL)
 		if err := Email.SendAlertEmail(ctx, mailClient, *email, message, "Errors", fmt.Sprintf("%s: %s", *obj.Name, input.Group.Event)); err != nil {
 			log.WithContext(ctx).Error(err)
 		}
@@ -2019,7 +2098,6 @@ type Service struct {
 	GithubRepoPath     *string
 	BuildPrefix        *string
 	GithubPrefix       *string
-	LastSeenVersion    *string
 	ErrorDetails       pq.StringArray `gorm:"type:text[]"`
 	ProcessName        *string
 	ProcessVersion     *string
@@ -2622,6 +2700,8 @@ type SendSlackAlertInput struct {
 	Workspace *Workspace
 	// SessionSecureID is a required parameter
 	SessionSecureID string
+	// SessionExluded is a required parameter to tell if the session is playable
+	SessionExcluded bool
 	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
 	UserIdentifier string
 	// UserObject is a required parameter for alerts that relate to a session
@@ -2732,8 +2812,13 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 			suffix += fmt.Sprintf("%s=%s", k, v)
 		}
 	}
-	sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s|View>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
-	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
+
+	if input.SessionSecureID == "" || input.SessionExcluded {
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\nNo recorded session", false, false))
+	} else {
+		sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s|View>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
+	}
 
 	identifier := input.UserIdentifier
 	if val, ok := input.UserObject["email"].(string); ok && len(val) > 0 {

@@ -262,21 +262,14 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 
 	images := map[string]string{}
 	for idx, session := range input.InterestingSessions {
-		res, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, pointy.Int(1000000), pointy.Int(session.ChunkIndex), nil)
-		if err != nil {
-			return err
-		}
-		if res.StatusCode != 200 {
-			return errors.New(fmt.Sprintf("session screenshot lambda returned %d", res.StatusCode))
-		}
-		imageBytes, err := io.ReadAll(res.Body)
+		img, err := h.lambdaClient.GetSessionScreenshot(ctx, input.ProjectId, session.Id, pointy.Int(1000000), pointy.Int(session.ChunkIndex), nil)
 		if err != nil {
 			return err
 		}
 
 		// Resize the image to 2x what's shown in the email,
 		// preserving aspect ratio and cropping centered at the top
-		src, _ := png.Decode(bytes.NewReader(imageBytes))
+		src, _ := png.Decode(bytes.NewReader(img.Image))
 		dstImageFill := imaging.Fill(src, 852, 465, imaging.Top, imaging.Lanczos)
 		var b bytes.Buffer
 		output := bufio.NewWriter(&b)
@@ -287,14 +280,14 @@ func (h *handlers) SendSessionInsightsEmails(ctx context.Context, input utils.Se
 		images["session"+strconv.Itoa(session.Id)] = base64.StdEncoding.EncodeToString(b.Bytes())
 		input.InterestingSessions[idx].ScreenshotUrl = fmt.Sprintf("cid:session%d", session.Id)
 
-		res, err = h.lambdaClient.GetActivityGraph(ctx, session.EventCounts)
+		res, err := h.lambdaClient.GetActivityGraph(ctx, session.EventCounts)
 		if err != nil {
 			return err
 		}
 		if res.StatusCode != 200 {
 			return errors.New(fmt.Sprintf("activity graph lambda returned %d", res.StatusCode))
 		}
-		imageBytes, err = io.ReadAll(res.Body)
+		imageBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}

@@ -2,7 +2,8 @@ import {
 	BatchSpanProcessor,
 	SpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
-import { Attributes, Tracer, trace } from '@opentelemetry/api'
+import { trace } from '@opentelemetry/api'
+import type { Attributes, Tracer } from '@opentelemetry/api'
 
 import { NodeOptions } from './types.js'
 import { NodeSDK } from '@opentelemetry/sdk-node'
@@ -12,7 +13,7 @@ import { hookConsole } from './hooks'
 import log from './log'
 import { clearInterval } from 'timers'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
-import { Resource } from '@opentelemetry/resources'
+import { Resource, processDetectorSync } from '@opentelemetry/resources'
 
 const OTLP_HTTP = 'https://otel.highlight.io:4318'
 
@@ -21,7 +22,7 @@ export class Highlight {
 	_intervalFunction: ReturnType<typeof setInterval>
 	_projectID: string
 	_debug: boolean
-	private otel: NodeSDK
+	otel: NodeSDK
 	private tracer: Tracer
 	private processor: SpanProcessor
 
@@ -32,6 +33,12 @@ export class Highlight {
 			hookConsole(options.consoleMethodsToRecord, (c) => {
 				this.log(c.date, c.message, c.level, c.stack)
 			})
+		}
+
+		if (!this._projectID) {
+			console.warn(
+				'Highlight project id was not provided. Data will not be recorded.',
+			)
 		}
 
 		this.tracer = trace.getTracer('highlight-node')
@@ -57,6 +64,7 @@ export class Highlight {
 
 		this.otel = new NodeSDK({
 			autoDetectResources: true,
+			resourceDetectors: [processDetectorSync],
 			resource: {
 				attributes,
 				merge: (resource) =>
@@ -67,7 +75,13 @@ export class Highlight {
 			},
 			spanProcessor: this.processor,
 			traceExporter: exporter,
-			instrumentations: [getNodeAutoInstrumentations()],
+			instrumentations: [
+				getNodeAutoInstrumentations({
+					'@opentelemetry/instrumentation-fs': {
+						enabled: options.enableFsInstrumentation ?? false,
+					},
+				}),
+			],
 		})
 		this.otel.start()
 
@@ -142,6 +156,7 @@ export class Highlight {
 		stack: object,
 		secureSessionId?: string,
 		requestId?: string,
+		metadata?: Attributes,
 	) {
 		if (!this.tracer) return
 		const span = this.tracer.startSpan('highlight-ctx')
@@ -149,6 +164,7 @@ export class Highlight {
 		span.addEvent(
 			'log',
 			{
+				...(metadata ?? {}),
 				// pass stack so that error creation on our end can show a structured stacktrace for errors
 				['exception.stacktrace']: JSON.stringify(stack),
 				['highlight.project_id']: this._projectID,
@@ -174,10 +190,13 @@ export class Highlight {
 		error: Error,
 		secureSessionId: string | undefined,
 		requestId: string | undefined,
+		metadata?: Attributes,
 	) {
 		const span = this.tracer.startSpan('highlight-ctx')
 		span.recordException(error)
-		span.setAttributes({ ['highlight.project_id']: this._projectID })
+		if (metadata != undefined) {
+			span.setAttributes(metadata)
+		}
 		if (secureSessionId) {
 			span.setAttributes({ ['highlight.session_id']: secureSessionId })
 		}

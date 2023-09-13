@@ -1,21 +1,9 @@
 import React from 'react'
-import {
-	useComboboxState as ariakitUseComboboxState,
-	Combobox as AriakitCombobox,
-	ComboboxProps as AriakitComboboxProps,
-	ComboboxItem as AriakitComboboxItem,
-	ComboboxItemProps as AriakitComboboxItemProps,
-	ComboboxGroup as AriakitComboboxGroup,
-	ComboboxGroupProps as AriakitComboboxGroupProps,
-	ComboboxGroupLabel as AriakitComboboxGroupLabel,
-	ComboboxGroupLabelProps as AriakitComboboxGroupLabelProps,
-	ComboboxPopover as AriakitComboboxPopover,
-	ComboboxPopoverProps as AriakitComboboxPopoverProps,
-} from 'ariakit/combobox'
+import * as Ariakit from '@ariakit/react'
 
-export const useComboboxState = ariakitUseComboboxState
+export const useComboboxStore = Ariakit.useComboboxStore
 
-type Props = React.PropsWithChildren & AriakitComboboxProps
+type Props = React.PropsWithChildren & Ariakit.ComboboxProps
 
 type ComboboxComponent = React.ForwardRefExoticComponent<Props> & {
 	Popover: typeof Popover
@@ -29,39 +17,50 @@ export const Combobox = React.forwardRef<
 	React.PropsWithoutRef<Props>
 >(({ children, ...props }, ref) => {
 	return (
-		<AriakitCombobox ref={ref} {...props}>
+		<Ariakit.Combobox ref={ref} {...props}>
 			{children}
-		</AriakitCombobox>
+		</Ariakit.Combobox>
 	)
 }) as ComboboxComponent
 
 export const Popover: React.FC<
-	React.PropsWithChildren & AriakitComboboxPopoverProps
+	React.PropsWithChildren & Ariakit.ComboboxPopoverProps
 > = ({ children, ...props }) => {
+	props.gutter = props.gutter ?? 4
+
 	return (
-		<AriakitComboboxPopover {...props}>{children}</AriakitComboboxPopover>
+		<Ariakit.ComboboxPopover {...props}>
+			{/*
+			There is a bug in v0.2.17 of Ariakit where you need to have this arrow
+			rendered or else positioning of the popover breaks. We render it, but hide
+			it by setting size={0}. This is an issue with anything using a popover
+			coming from the floating-ui library.
+			*/}
+			<Ariakit.PopoverArrow size={0} />
+			{children}
+		</Ariakit.ComboboxPopover>
 	)
 }
 
 export const Item: React.FC<
-	React.PropsWithChildren & AriakitComboboxItemProps
+	React.PropsWithChildren & Ariakit.ComboboxItemProps
 > = ({ children, ...props }) => {
-	return <AriakitComboboxItem {...props}>{children}</AriakitComboboxItem>
+	return <Ariakit.ComboboxItem {...props}>{children}</Ariakit.ComboboxItem>
 }
 
 export const Group: React.FC<
-	React.PropsWithChildren & AriakitComboboxGroupProps
+	React.PropsWithChildren & Ariakit.ComboboxGroupProps
 > = ({ children, ...props }) => {
-	return <AriakitComboboxGroup {...props}>{children}</AriakitComboboxGroup>
+	return <Ariakit.ComboboxGroup {...props}>{children}</Ariakit.ComboboxGroup>
 }
 
 export const GroupLabel: React.FC<
-	React.PropsWithChildren & AriakitComboboxGroupLabelProps
+	React.PropsWithChildren & Ariakit.ComboboxGroupLabelProps
 > = ({ children, ...props }) => {
 	return (
-		<AriakitComboboxGroupLabel {...props}>
+		<Ariakit.ComboboxGroupLabel {...props}>
 			{children}
-		</AriakitComboboxGroupLabel>
+		</Ariakit.ComboboxGroupLabel>
 	)
 }
 

@@ -754,6 +754,7 @@ export type CreateErrorAlertMutationVariables = Types.Exact<{
 		| Array<Types.Maybe<Types.Scalars['String']>>
 		| Types.Maybe<Types.Scalars['String']>
 	frequency: Types.Scalars['Int']
+	default?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type CreateErrorAlertMutation = { __typename?: 'Mutation' } & {
@@ -1283,6 +1284,15 @@ export type DeleteSessionsMutation = { __typename?: 'Mutation' } & Pick<
 	'deleteSessions'
 >
 
+export type ExportSessionMutationVariables = Types.Exact<{
+	session_secure_id: Types.Scalars['String']
+}>
+
+export type ExportSessionMutation = { __typename?: 'Mutation' } & Pick<
+	Types.Mutation,
+	'exportSession'
+>
+
 export type UpdateVercelSettingsMutationVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	project_mappings:
@@ -1361,6 +1371,42 @@ export type EditServiceGithubSettingsMutation = { __typename?: 'Mutation' } & {
 			| 'githubPrefix'
 			| 'errorDetails'
 		>
+	>
+}
+
+export type CreateErrorTagMutationVariables = Types.Exact<{
+	title: Types.Scalars['String']
+	description: Types.Scalars['String']
+}>
+
+export type CreateErrorTagMutation = { __typename?: 'Mutation' } & {
+	createErrorTag: { __typename?: 'ErrorTag' } & Pick<
+		Types.ErrorTag,
+		'id' | 'created_at' | 'title' | 'description'
+	>
+}
+
+export type UpsertSlackChannelMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	name: Types.Scalars['String']
+}>
+
+export type UpsertSlackChannelMutation = { __typename?: 'Mutation' } & {
+	upsertSlackChannel: { __typename?: 'SanitizedSlackChannel' } & Pick<
+		Types.SanitizedSlackChannel,
+		'webhook_channel' | 'webhook_channel_id'
+	>
+}
+
+export type UpsertDiscordChannelMutationVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	name: Types.Scalars['String']
+}>
+
+export type UpsertDiscordChannelMutation = { __typename?: 'Mutation' } & {
+	upsertDiscordChannel: { __typename?: 'DiscordChannel' } & Pick<
+		Types.DiscordChannel,
+		'id' | 'name'
 	>
 }
 
@@ -1445,6 +1491,7 @@ export type SessionAlertFragmentFragment = {
 	| 'CountThreshold'
 	| 'DailyFrequency'
 	| 'disabled'
+	| 'default'
 	| 'EmailsToNotify'
 	| 'ExcludedEnvironments'
 	| 'ExcludeRules'
@@ -1797,6 +1844,19 @@ export type GetSessionInsightQuery = { __typename?: 'Query' } & {
 		{ __typename?: 'SessionInsight' } & Pick<
 			Types.SessionInsight,
 			'id' | 'insight'
+		>
+	>
+}
+
+export type GetSessionExportsQueryVariables = Types.Exact<{
+	[key: string]: never
+}>
+
+export type GetSessionExportsQuery = { __typename?: 'Query' } & {
+	session_exports: Array<
+		{ __typename?: 'SessionExport' } & Pick<
+			Types.SessionExport,
+			'id' | 'session_id' | 'type' | 'url' | 'error' | 'target_emails'
 		>
 	>
 }
@@ -2173,6 +2233,9 @@ export type GetErrorFieldsOpensearchQueryVariables = Types.Exact<{
 	field_type: Types.Scalars['String']
 	field_name: Types.Scalars['String']
 	query: Types.Scalars['String']
+	start_date?: Types.Maybe<Types.Scalars['Timestamp']>
+	end_date?: Types.Maybe<Types.Scalars['Timestamp']>
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorFieldsOpensearchQuery = { __typename?: 'Query' } & Pick<
@@ -2249,6 +2312,7 @@ export type GetSessionsHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	query: Types.Scalars['String']
 	histogram_options: Types.DateHistogramOptions
+	clickhouse_query?: Types.Maybe<Types.ClickhouseQuery>
 }>
 
 export type GetSessionsHistogramQuery = { __typename?: 'Query' } & {
@@ -2265,6 +2329,7 @@ export type GetErrorGroupsOpenSearchQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	count: Types.Scalars['Int']
 	query: Types.Scalars['String']
+	clickhouse_query?: Types.Maybe<Types.ClickhouseQuery>
 	page?: Types.Maybe<Types.Scalars['Int']>
 }>
 
@@ -2315,6 +2380,7 @@ export type GetErrorGroupsOpenSearchQuery = { __typename?: 'Query' } & {
 export type GetErrorsHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
 	query: Types.Scalars['String']
+	clickhouse_query?: Types.Maybe<Types.ClickhouseQuery>
 	histogram_options: Types.DateHistogramOptions
 }>
 
@@ -2822,6 +2888,7 @@ export type GetSubscriptionDetailsQuery = { __typename?: 'Query' } & {
 
 export type GetErrorGroupQueryVariables = Types.Exact<{
 	secure_id: Types.Scalars['String']
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorGroupQuery = { __typename?: 'Query' } & {
@@ -2918,6 +2985,7 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 	| 'browser'
 	| 'environment'
 	| 'serviceVersion'
+	| 'serviceName'
 > & {
 		session?: Types.Maybe<
 			{ __typename?: 'Session' } & Pick<
@@ -2946,6 +3014,9 @@ export type ErrorObjectFragment = { __typename?: 'ErrorObject' } & Pick<
 					| 'linesBefore'
 					| 'linesAfter'
 					| 'error'
+					| 'enhancementSource'
+					| 'enhancementVersion'
+					| 'externalLink'
 				> & {
 						sourceMappingErrorMetadata?: Types.Maybe<
 							{ __typename?: 'SourceMappingError' } & Pick<
@@ -3853,6 +3924,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				| 'Name'
 				| 'DailyFrequency'
 				| 'disabled'
+				| 'default'
 			> & {
 					ChannelsToNotify: Array<
 						Types.Maybe<
@@ -3957,6 +4029,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
 				| 'CountThreshold'
 				| 'DailyFrequency'
 				| 'disabled'
+				| 'default'
 				| 'EmailsToNotify'
 				| 'ExcludedEnvironments'
 				| 'id'
@@ -4176,6 +4249,7 @@ export type GetErrorGroupFrequenciesQueryVariables = Types.Exact<{
 		| Types.Scalars['String']
 	params: Types.ErrorGroupFrequenciesParamsInput
 	metric: Types.Scalars['String']
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
@@ -4191,6 +4265,7 @@ export type GetErrorGroupFrequenciesQuery = { __typename?: 'Query' } & {
 
 export type GetErrorGroupTagsQueryVariables = Types.Exact<{
 	error_group_secure_id: Types.Scalars['String']
+	use_clickhouse?: Types.Maybe<Types.Scalars['Boolean']>
 }>
 
 export type GetErrorGroupTagsQuery = { __typename?: 'Query' } & {
@@ -4221,11 +4296,11 @@ export type GetEmailOptOutsQuery = { __typename?: 'Query' } & Pick<
 
 export type GetLogsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	params: Types.LogsParamsInput
+	params: Types.QueryInput
 	after?: Types.Maybe<Types.Scalars['String']>
 	before?: Types.Maybe<Types.Scalars['String']>
 	at?: Types.Maybe<Types.Scalars['String']>
-	direction: Types.LogDirection
+	direction: Types.SortDirection
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
@@ -4256,7 +4331,7 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 
 export type GetSessionLogsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	params: Types.LogsParamsInput
+	params: Types.QueryInput
 }>
 
 export type GetSessionLogsQuery = { __typename?: 'Query' } & {
@@ -4272,7 +4347,7 @@ export type GetSessionLogsQuery = { __typename?: 'Query' } & {
 
 export type GetLogsTotalCountQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	params: Types.LogsParamsInput
+	params: Types.QueryInput
 }>
 
 export type GetLogsTotalCountQuery = { __typename?: 'Query' } & Pick<
@@ -4282,7 +4357,7 @@ export type GetLogsTotalCountQuery = { __typename?: 'Query' } & Pick<
 
 export type GetLogsHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	params: Types.LogsParamsInput
+	params: Types.QueryInput
 }>
 
 export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
@@ -4312,8 +4387,8 @@ export type GetLogsKeysQueryVariables = Types.Exact<{
 }>
 
 export type GetLogsKeysQuery = { __typename?: 'Query' } & {
-	logs_keys: Array<
-		{ __typename?: 'LogKey' } & Pick<Types.LogKey, 'name' | 'type'>
+	keys: Array<
+		{ __typename?: 'QueryKey' } & Pick<Types.QueryKey, 'name' | 'type'>
 	>
 }
 
@@ -4323,10 +4398,9 @@ export type GetLogsKeyValuesQueryVariables = Types.Exact<{
 	date_range: Types.DateRangeRequiredInput
 }>
 
-export type GetLogsKeyValuesQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'logs_key_values'
->
+export type GetLogsKeyValuesQuery = { __typename?: 'Query' } & {
+	key_values: Types.Query['logs_key_values']
+}
 
 export type GetLogsErrorObjectsQueryVariables = Types.Exact<{
 	log_cursors: Array<Types.Scalars['String']> | Types.Scalars['String']
@@ -4399,7 +4473,10 @@ export type GetWorkspaceSettingsQuery = { __typename?: 'Query' } & {
 	workspaceSettings?: Types.Maybe<
 		{ __typename?: 'AllWorkspaceSettings' } & Pick<
 			Types.AllWorkspaceSettings,
-			'workspace_id' | 'ai_application' | 'ai_insights'
+			| 'workspace_id'
+			| 'ai_application'
+			| 'ai_insights'
+			| 'enable_session_export'
 		>
 	>
 }
@@ -4446,6 +4523,7 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 									| 'email'
 									| 'appVersion'
 									| 'fingerprint'
+									| 'excluded'
 								>
 							>
 						}
@@ -4496,6 +4574,114 @@ export type GetServicesQuery = { __typename?: 'Query' } & {
 	>
 }
 
+export type ErrorTagFragment = { __typename?: 'ErrorTag' } & Pick<
+	Types.ErrorTag,
+	'id' | 'created_at' | 'title' | 'description'
+>
+
+export type GetErrorTagsQueryVariables = Types.Exact<{ [key: string]: never }>
+
+export type GetErrorTagsQuery = { __typename?: 'Query' } & {
+	error_tags?: Types.Maybe<
+		Array<Types.Maybe<{ __typename?: 'ErrorTag' } & ErrorTagFragment>>
+	>
+}
+
+export type MatchErrorTagQueryVariables = Types.Exact<{
+	query: Types.Scalars['String']
+}>
+
+export type MatchErrorTagQuery = { __typename?: 'Query' } & {
+	match_error_tag?: Types.Maybe<
+		Array<
+			Types.Maybe<
+				{ __typename?: 'MatchedErrorTag' } & Pick<
+					Types.MatchedErrorTag,
+					'id' | 'title' | 'description' | 'score'
+				>
+			>
+		>
+	>
+}
+
+export type FindSimilarErrorsQueryVariables = Types.Exact<{
+	query: Types.Scalars['String']
+}>
+
+export type FindSimilarErrorsQuery = { __typename?: 'Query' } & {
+	find_similar_errors?: Types.Maybe<
+		Array<
+			Types.Maybe<
+				{ __typename?: 'MatchedErrorObject' } & Pick<
+					Types.MatchedErrorObject,
+					'id' | 'type' | 'event' | 'stack_trace' | 'score'
+				>
+			>
+		>
+	>
+}
+
+export type GetTracesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	params: Types.QueryInput
+	after?: Types.Maybe<Types.Scalars['String']>
+	before?: Types.Maybe<Types.Scalars['String']>
+	at?: Types.Maybe<Types.Scalars['String']>
+	direction: Types.SortDirection
+}>
+
+export type GetTracesQuery = { __typename?: 'Query' } & {
+	traces: { __typename?: 'TraceConnection' } & {
+		edges: Array<
+			{ __typename?: 'TraceEdge' } & Pick<Types.TraceEdge, 'cursor'> & {
+					node: { __typename?: 'Trace' } & Pick<
+						Types.Trace,
+						| 'timestamp'
+						| 'traceID'
+						| 'spanID'
+						| 'parentSpanID'
+						| 'projectID'
+						| 'secureSessionID'
+						| 'traceState'
+						| 'spanName'
+						| 'spanKind'
+						| 'duration'
+						| 'serviceName'
+						| 'serviceVersion'
+						| 'traceAttributes'
+						| 'statusCode'
+						| 'statusMessage'
+					>
+				}
+		>
+		pageInfo: { __typename?: 'PageInfo' } & Pick<
+			Types.PageInfo,
+			'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
+		>
+	}
+}
+
+export type GetTracesKeysQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	date_range: Types.DateRangeRequiredInput
+}>
+
+export type GetTracesKeysQuery = { __typename?: 'Query' } & {
+	keys: Array<
+		{ __typename?: 'QueryKey' } & Pick<Types.QueryKey, 'name' | 'type'>
+	>
+}
+
+export type GetTracesKeyValuesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	key_name: Types.Scalars['String']
+	date_range: Types.DateRangeRequiredInput
+}>
+
+export type GetTracesKeyValuesQuery = { __typename?: 'Query' } & {
+	key_values: Types.Query['traces_key_values']
+}
+
 export const namedOperations = {
 	Query: {
 		GetMetricsTimeline: 'GetMetricsTimeline' as const,
@@ -4509,6 +4695,7 @@ export const namedOperations = {
 		GetWorkspaceAdminsByProjectId: 'GetWorkspaceAdminsByProjectId' as const,
 		GetWorkspaceAdmins: 'GetWorkspaceAdmins' as const,
 		GetSessionInsight: 'GetSessionInsight' as const,
+		GetSessionExports: 'GetSessionExports' as const,
 		GetSessionComments: 'GetSessionComments' as const,
 		GetSessionCommentsForAdmin: 'GetSessionCommentsForAdmin' as const,
 		isSessionPending: 'isSessionPending' as const,
@@ -4630,6 +4817,12 @@ export const namedOperations = {
 		GetSystemConfiguration: 'GetSystemConfiguration' as const,
 		GetErrorObjects: 'GetErrorObjects' as const,
 		GetServices: 'GetServices' as const,
+		GetErrorTags: 'GetErrorTags' as const,
+		MatchErrorTag: 'MatchErrorTag' as const,
+		FindSimilarErrors: 'FindSimilarErrors' as const,
+		GetTraces: 'GetTraces' as const,
+		GetTracesKeys: 'GetTracesKeys' as const,
+		GetTracesKeyValues: 'GetTracesKeyValues' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,
@@ -4704,6 +4897,7 @@ export const namedOperations = {
 		UpsertDashboard: 'UpsertDashboard' as const,
 		DeleteDashboard: 'DeleteDashboard' as const,
 		DeleteSessions: 'DeleteSessions' as const,
+		ExportSession: 'ExportSession' as const,
 		UpdateVercelSettings: 'UpdateVercelSettings' as const,
 		UpdateClickUpSettings: 'UpdateClickUpSettings' as const,
 		UpdateIntegrationProjectSettings:
@@ -4711,6 +4905,9 @@ export const namedOperations = {
 		UpdateEmailOptOut: 'UpdateEmailOptOut' as const,
 		DeleteInviteLinkFromWorkspace: 'DeleteInviteLinkFromWorkspace' as const,
 		EditServiceGithubSettings: 'EditServiceGithubSettings' as const,
+		CreateErrorTag: 'CreateErrorTag' as const,
+		UpsertSlackChannel: 'UpsertSlackChannel' as const,
+		UpsertDiscordChannel: 'UpsertDiscordChannel' as const,
 		SendAdminWorkspaceInvite: 'SendAdminWorkspaceInvite' as const,
 	},
 	Subscription: {
@@ -4721,5 +4918,6 @@ export const namedOperations = {
 		SessionAlertFragment: 'SessionAlertFragment' as const,
 		DiscordChannelFragment: 'DiscordChannelFragment' as const,
 		ErrorObject: 'ErrorObject' as const,
+		ErrorTag: 'ErrorTag' as const,
 	},
 }

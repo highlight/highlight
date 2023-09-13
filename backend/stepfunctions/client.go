@@ -9,14 +9,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sfn"
 	"github.com/google/uuid"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
+	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 )
 
 var (
 	deleteSessionsArn = os.Getenv("DELETE_SESSIONS_ARN")
+	sessionExportArn  = "arn:aws:states:us-east-2:173971919437:stateMachine:SessionExport"
 )
 
 type Client struct {
@@ -24,10 +25,6 @@ type Client struct {
 }
 
 func NewClient() *Client {
-	if util.IsDevOrTestEnv() {
-		return nil
-	}
-
 	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(model.AWS_REGION_US_EAST_2))
 	if err != nil {
 		return nil
@@ -49,6 +46,20 @@ func (c *Client) DeleteSessionsByQuery(ctx context.Context, input utils.QuerySes
 
 	output, err := c.client.StartExecution(context.Background(), &sfn.StartExecutionInput{
 		StateMachineArn: &deleteSessionsArn,
+		Input:           pointy.String(string(marshaled)),
+		Name:            pointy.String(uuid.New().String()),
+	})
+	return output.ExecutionArn, err
+}
+
+func (c *Client) SessionExport(ctx context.Context, input utils2.SessionExportInput) (*string, error) {
+	marshaled, err := json.Marshal(input)
+	if err != nil {
+		return nil, errors.Wrap(err, "error marshaling SessionExport input")
+	}
+
+	output, err := c.client.StartExecution(context.Background(), &sfn.StartExecutionInput{
+		StateMachineArn: &sessionExportArn,
 		Input:           pointy.String(string(marshaled)),
 		Name:            pointy.String(uuid.New().String()),
 	})

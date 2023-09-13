@@ -14,39 +14,78 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFindOrCreateService(t *testing.T) {
+func TestUpsertService(t *testing.T) {
 	defer teardown(t)
 	ctx := context.Background()
 	project := model.Project{}
 	store.db.Create(&project)
 
-	service, err := store.FindOrCreateService(ctx, project, "public-graph", map[string]string{})
+	service, err := store.UpsertService(ctx, project, "public-graph", map[string]string{})
 	assert.NoError(t, err)
 
 	assert.NotNil(t, service.ID)
 
-	foundService, err := store.FindOrCreateService(ctx, project, "public-graph", map[string]string{})
+	foundService, err := store.UpsertService(ctx, project, "public-graph", map[string]string{})
 	assert.NoError(t, err)
 	assert.Equal(t, service.ID, foundService.ID)
 }
 
-func TestFindOrCreateServiceWithAttributes(t *testing.T) {
+func TestUpsertServiceWithAttributes(t *testing.T) {
 	ctx := context.Background()
 
 	util.RunTestWithDBWipe(t, store.db, func(t *testing.T) {
+		serviceName := "public-graph"
 		project := model.Project{}
 		store.db.Create(&project)
 
-		service, err := store.FindOrCreateService(ctx, project, "public-graph", map[string]string{
+		cacheKey := fmt.Sprintf("service-public-graph-%d", project.ID)
+		err := store.redis.Del(context.TODO(), cacheKey)
+		assert.NoError(t, err)
+
+		createdService, err := store.UpsertService(ctx, project, serviceName, map[string]string{
 			"process.runtime.name":        "go",
 			"process.runtime.version":     "go1.20.5",
 			"process.runtime.description": "go version go1.20.5 darwin/arm64",
 		})
 		assert.NoError(t, err)
-		assert.NotNil(t, service.ID)
-		assert.Equal(t, ptr.String("go"), service.ProcessName)
-		assert.Equal(t, ptr.String("go1.20.5"), service.ProcessVersion)
-		assert.Equal(t, ptr.String("go version go1.20.5 darwin/arm64"), service.ProcessDescription)
+		assert.NotNil(t, createdService.ID)
+		assert.Equal(t, "go", *createdService.ProcessName)
+		assert.Equal(t, "go1.20.5", *createdService.ProcessVersion)
+		assert.Equal(t, "go version go1.20.5 darwin/arm64", *createdService.ProcessDescription)
+		assert.Nil(t, createdService.GithubRepoPath)
+
+		err = store.redis.Del(context.TODO(), cacheKey)
+		assert.NoError(t, err)
+
+		err = store.db.Model(&createdService).Update("GithubRepoPath", "highlight/highlight").Error
+		assert.NoError(t, err)
+
+		updatedService, err := store.UpsertService(ctx, project, serviceName, map[string]string{
+			"process.runtime.name":        "ruby",
+			"process.runtime.version":     "2.6.10",
+			"process.runtime.description": "ruby 2.6.10p210 (2022-04-12 revision 67958) [x86_64-linux]",
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(t, createdService.ID, updatedService.ID)
+		assert.Equal(t, "ruby", *updatedService.ProcessName)
+		assert.Equal(t, "2.6.10", *updatedService.ProcessVersion)
+		assert.Equal(t, "ruby 2.6.10p210 (2022-04-12 revision 67958) [x86_64-linux]", *updatedService.ProcessDescription)
+		assert.Equal(t, "highlight/highlight", *updatedService.GithubRepoPath)
+
+		// hits cache
+		cachedService, err := store.UpsertService(ctx, project, serviceName, map[string]string{
+			"process.runtime.name":        *createdService.ProcessName,
+			"process.runtime.version":     *createdService.ProcessVersion,
+			"process.runtime.description": *createdService.ProcessDescription,
+		})
+
+		assert.NoError(t, err)
+		assert.Equal(t, createdService.ID, cachedService.ID)
+		assert.Equal(t, *updatedService.ProcessName, *cachedService.ProcessName)
+		assert.Equal(t, *updatedService.ProcessVersion, *cachedService.ProcessVersion)
+		assert.Equal(t, *updatedService.ProcessDescription, *cachedService.ProcessDescription)
+		assert.Equal(t, *updatedService.GithubRepoPath, *cachedService.GithubRepoPath)
 	})
 }
 

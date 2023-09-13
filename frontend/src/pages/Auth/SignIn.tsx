@@ -11,7 +11,7 @@ import {
 	IconSolidGoogle,
 	Stack,
 	Text,
-	useFormState,
+	useFormStore,
 } from '@highlight-run/ui'
 import SvgHighlightLogoOnLight from '@icons/HighlightLogoOnLight'
 import { AuthBody, AuthError, AuthFooter, AuthHeader } from '@pages/Auth/Layout'
@@ -38,13 +38,26 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
 	const location = useLocation()
+
 	const initialEmail: string = location.state?.email ?? ''
-	const formState = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			email: initialEmail,
 			password: '',
 		},
 	})
+	const email = formStore.useValue('email')
+	formStore.useSubmit(async (formState) => {
+		setLoading(true)
+
+		auth.signInWithEmailAndPassword(
+			formState.values.email,
+			formState.values.password,
+		)
+			.then(handleAuth)
+			.catch(handleAuthError)
+	})
+
 	const [createAdmin] = useCreateAdminMutation()
 	const { data } = useGetWorkspaceForInviteLinkQuery({
 		variables: {
@@ -103,20 +116,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 	useEffect(() => analytics.page(), [])
 
 	return (
-		<Form
-			state={formState}
-			resetOnSubmit={false}
-			onSubmit={() => {
-				setLoading(true)
-
-				auth.signInWithEmailAndPassword(
-					formState.values.email,
-					formState.values.password,
-				)
-					.then(handleAuth)
-					.catch(handleAuthError)
-			}}
-		>
+		<Form store={formStore} resetOnSubmit={false}>
 			<AuthHeader>
 				<Box mb="4">
 					<Stack direction="column" gap="16" align="center">
@@ -128,10 +128,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						</Heading>
 						<Text>
 							New here?{' '}
-							<Link
-								to={SIGN_UP_ROUTE}
-								state={{ email: formState.values.email }}
-							>
+							<Link to={SIGN_UP_ROUTE} state={{ email }}>
 								Create an account
 							</Link>
 							.
@@ -142,22 +139,19 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			<AuthBody>
 				<Stack gap="12">
 					<Form.Input
-						name={formState.names.email}
+						name={formStore.names.email}
 						label="Email"
 						type="email"
 						autoFocus
 						autoComplete="email"
 					/>
 					<Form.Input
-						name={formState.names.password}
+						name={formStore.names.password}
 						label="Password"
 						type="password"
 						autoComplete="current-password"
 					/>
-					<Link
-						to="/reset_password"
-						state={{ email: formState.values.email }}
-					>
+					<Link to="/reset_password" state={{ email }}>
 						<Text size="xSmall">Forgot your password?</Text>
 					</Link>
 					{error && <AuthError>{error}</AuthError>}

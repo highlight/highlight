@@ -77,6 +77,7 @@ import {
 	IFRAME_PARENT_READY,
 	IFRAME_PARENT_RESPONSE,
 } from './types/iframe'
+import { getItem, setItem, setStorageMode } from './utils/storage'
 
 export const HighlightWarning = (context: string, msg: any) => {
 	console.warn(`Highlight Warning: (${context}): `, { output: msg })
@@ -109,8 +110,10 @@ export type HighlightClassOptions = {
 	firstloadVersion?: string
 	environment?: 'development' | 'production' | 'staging' | string
 	appVersion?: string
+	serviceName?: string
 	sessionShortcut?: SessionShortcutOptions
 	sessionSecureID: string // Introduced in firstLoad 3.0.1
+	storageMode?: 'sessionStorage' | 'localStorage'
 }
 
 /**
@@ -185,6 +188,7 @@ export class Highlight {
 	sessionShortcut!: SessionShortcutOptions
 	/** The end-user's app version. This isn't Highlight's version. */
 	appVersion!: string | undefined
+	serviceName!: string
 	_worker!: HighlightClientRequestWorker
 	_optionsInternal!: HighlightClassOptionsInternal
 	_backendUrl!: string
@@ -225,6 +229,12 @@ export class Highlight {
 			this.debugOptions = this.options?.debug ?? {}
 		}
 		this.logger = new Logger(this.debugOptions.clientInteractions)
+		if (options.storageMode === 'sessionStorage') {
+			this.logger.log(
+				'initializing in sessionStorage non-persistent session mode',
+			)
+			setStorageMode('sessionStorage')
+		}
 
 		this._worker =
 			new HighlightClientWorker() as HighlightClientRequestWorker
@@ -283,7 +293,10 @@ export class Highlight {
 				this._isCrossOriginIframe = false
 			}
 		} catch (e) {
-			this._isCrossOriginIframe = true
+			// if recordCrossOriginIframe is set to false, operate as if highlight is only recording the iframe as a dedicated web app.
+			// this is useful if you are running highlight on your app that is used in a cross-origin iframe with no access to the parent page.
+			this._isCrossOriginIframe =
+				this.options.recordCrossOriginIframe ?? true
 		}
 		this._initMembers(this.options)
 	}
@@ -367,6 +380,7 @@ export class Highlight {
 		)
 		this.environment = options.environment ?? 'production'
 		this.appVersion = options.appVersion
+		this.serviceName = options.serviceName ?? ''
 
 		if (typeof options.organizationID === 'string') {
 			this.organizationID = options.organizationID
@@ -459,14 +473,7 @@ export class Highlight {
 	}
 
 	async consumeCustomError(error: Error, message?: string, payload?: string) {
-		let res: ErrorStackParser.StackFrame[] = []
-		try {
-			res = ErrorStackParser.parse(error)
-		} catch (e) {
-			if (this._isOnLocalHost) {
-				console.error(e)
-			}
-		}
+		const res = ErrorStackParser.parse(error)
 		this._firstLoadListeners.errors.push({
 			event: message ? message + ':' + error.message : error.message,
 			type: 'custom',
@@ -539,16 +546,11 @@ export class Highlight {
 				this._recordingStartTime = parseInt(recordingStartTime, 10)
 			}
 
-			let clientID = window.localStorage.getItem(
-				LOCAL_STORAGE_KEYS['CLIENT_ID'],
-			)
+			let clientID = getItem(LOCAL_STORAGE_KEYS['CLIENT_ID'])
 
 			if (!clientID) {
 				clientID = GenerateSecureID()
-				window.localStorage.setItem(
-					LOCAL_STORAGE_KEYS['CLIENT_ID'],
-					clientID,
-				)
+				setItem(LOCAL_STORAGE_KEYS['CLIENT_ID'], clientID)
 			}
 
 			// To handle the 'Duplicate Tab' function, remove id from storage until page unload
@@ -590,6 +592,7 @@ export class Highlight {
 					environment: this.environment,
 					id: clientID,
 					appVersion: this.appVersion,
+					serviceName: this.serviceName,
 					session_secure_id: this.sessionData.sessionSecureID,
 					client_id: clientID,
 					network_recording_domains: destinationDomains,

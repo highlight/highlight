@@ -142,7 +142,7 @@ if (process.env.DEV?.length) {
 		} as unknown as APIGatewayEvent),
 	]).then((res) => {
 		for (const r of res) {
-			console.log(r.body)
+			console.log('activity lambda', r.body)
 		}
 	})
 }

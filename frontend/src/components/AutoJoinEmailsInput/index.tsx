@@ -55,7 +55,12 @@ export const AutoJoinEmailsInput: React.FC<Props> = ({ onChange }) => {
 							align="center"
 							paddingRight="4"
 						>
-							<Text color="weak" weight="bold">
+							<Text
+								userSelect="none"
+								size="xSmall"
+								weight="bold"
+								color="weak"
+							>
 								Auto join
 							</Text>
 							<Tooltip

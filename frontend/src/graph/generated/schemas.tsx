@@ -78,6 +78,7 @@ export type Admin = {
 	uid: Scalars['String']
 	user_defined_persona?: Maybe<Scalars['String']>
 	user_defined_role?: Maybe<Scalars['String']>
+	user_defined_team_size?: Maybe<Scalars['String']>
 }
 
 export type AdminAboutYouDetails = {
@@ -87,6 +88,7 @@ export type AdminAboutYouDetails = {
 	referral: Scalars['String']
 	user_defined_persona: Scalars['String']
 	user_defined_role: Scalars['String']
+	user_defined_team_size: Scalars['String']
 }
 
 export type AdminAndWorkspaceDetails = {
@@ -96,6 +98,7 @@ export type AdminAndWorkspaceDetails = {
 	promo_code?: InputMaybe<Scalars['String']>
 	referral: Scalars['String']
 	user_defined_role: Scalars['String']
+	user_defined_team_size: Scalars['String']
 	workspace_name: Scalars['String']
 }
 
@@ -128,6 +131,7 @@ export type AllWorkspaceSettings = {
 	__typename?: 'AllWorkspaceSettings'
 	ai_application: Scalars['Boolean']
 	ai_insights: Scalars['Boolean']
+	enable_session_export: Scalars['Boolean']
 	workspace_id: Scalars['ID']
 }
 
@@ -380,6 +384,11 @@ export type EnhancedUserDetailsResult = {
 	socials?: Maybe<Array<Maybe<SocialLink>>>
 }
 
+export enum EnhancementSource {
+	Github = 'github',
+	Sourcemap = 'sourcemap',
+}
+
 export type ErrorAlert = {
 	__typename?: 'ErrorAlert'
 	ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>
@@ -395,6 +404,7 @@ export type ErrorAlert = {
 	ThresholdWindow?: Maybe<Scalars['Int']>
 	Type: Scalars['String']
 	WebhookDestinations: Array<WebhookDestination>
+	default: Scalars['Boolean']
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	updated_at: Scalars['Timestamp']
@@ -505,6 +515,7 @@ export type ErrorObject = {
 	environment?: Maybe<Scalars['String']>
 	error_group_id: Scalars['Int']
 	error_group_secure_id: Scalars['String']
+	error_tag_id?: Maybe<Scalars['String']>
 	event: Array<Maybe<Scalars['String']>>
 	id: Scalars['ID']
 	lineNumber?: Maybe<Scalars['Int']>
@@ -513,6 +524,7 @@ export type ErrorObject = {
 	payload?: Maybe<Scalars['String']>
 	project_id: Scalars['Int']
 	request_id?: Maybe<Scalars['String']>
+	serviceName?: Maybe<Scalars['String']>
 	serviceVersion?: Maybe<Scalars['String']>
 	session?: Maybe<Session>
 	session_id?: Maybe<Scalars['Int']>
@@ -552,6 +564,7 @@ export type ErrorObjectNodeSession = {
 	__typename?: 'ErrorObjectNodeSession'
 	appVersion?: Maybe<Scalars['String']>
 	email?: Maybe<Scalars['String']>
+	excluded: Scalars['Boolean']
 	fingerprint?: Maybe<Scalars['Int']>
 	secureID: Scalars['String']
 }
@@ -598,10 +611,21 @@ export enum ErrorState {
 	Resolved = 'RESOLVED',
 }
 
+export type ErrorTag = {
+	__typename?: 'ErrorTag'
+	created_at: Scalars['Timestamp']
+	description?: Maybe<Scalars['String']>
+	id: Scalars['ID']
+	title?: Maybe<Scalars['String']>
+}
+
 export type ErrorTrace = {
 	__typename?: 'ErrorTrace'
 	columnNumber?: Maybe<Scalars['Int']>
+	enhancementSource?: Maybe<EnhancementSource>
+	enhancementVersion?: Maybe<Scalars['String']>
 	error?: Maybe<Scalars['String']>
+	externalLink?: Maybe<Scalars['String']>
 	fileName?: Maybe<Scalars['String']>
 	functionName?: Maybe<Scalars['String']>
 	lineContent?: Maybe<Scalars['String']>
@@ -736,6 +760,10 @@ export type Invoice = {
 	url?: Maybe<Scalars['String']>
 }
 
+export enum KeyType {
+	String = 'String',
+}
+
 export type LengthRange = {
 	__typename?: 'LengthRange'
 	max?: Maybe<Scalars['Float']>
@@ -782,6 +810,7 @@ export type LogAlert = {
 	ThresholdWindow: Scalars['Int']
 	Type: Scalars['String']
 	WebhookDestinations: Array<WebhookDestination>
+	default: Scalars['Boolean']
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	query: Scalars['String']
@@ -791,6 +820,7 @@ export type LogAlert = {
 export type LogAlertInput = {
 	below_threshold: Scalars['Boolean']
 	count_threshold: Scalars['Int']
+	default?: InputMaybe<Scalars['Boolean']>
 	disabled: Scalars['Boolean']
 	discord_channels: Array<DiscordChannelInput>
 	emails: Array<Scalars['String']>
@@ -809,25 +839,10 @@ export type LogConnection = Connection & {
 	pageInfo: PageInfo
 }
 
-export enum LogDirection {
-	Asc = 'ASC',
-	Desc = 'DESC',
-}
-
 export type LogEdge = Edge & {
 	__typename?: 'LogEdge'
 	cursor: Scalars['String']
 	node: Log
-}
-
-export type LogKey = {
-	__typename?: 'LogKey'
-	name: Scalars['String']
-	type: LogKeyType
-}
-
-export enum LogKeyType {
-	String = 'String',
 }
 
 export enum LogLevel {
@@ -862,9 +877,21 @@ export type LogsHistogramBucketCount = {
 	level: LogLevel
 }
 
-export type LogsParamsInput = {
-	date_range: DateRangeRequiredInput
-	query: Scalars['String']
+export type MatchedErrorObject = {
+	__typename?: 'MatchedErrorObject'
+	event: Array<Maybe<Scalars['String']>>
+	id: Scalars['ID']
+	score: Scalars['Float']
+	stack_trace: Scalars['String']
+	type: Scalars['String']
+}
+
+export type MatchedErrorTag = {
+	__typename?: 'MatchedErrorTag'
+	description: Scalars['String']
+	id: Scalars['ID']
+	score: Scalars['Float']
+	title: Scalars['String']
 }
 
 export type Metric = {
@@ -948,6 +975,7 @@ export type Mutation = {
 	createErrorAlert?: Maybe<ErrorAlert>
 	createErrorComment?: Maybe<ErrorComment>
 	createErrorSegment?: Maybe<ErrorSegment>
+	createErrorTag: ErrorTag
 	createIssueForErrorComment?: Maybe<ErrorComment>
 	createIssueForSessionComment?: Maybe<SessionComment>
 	createLogAlert?: Maybe<LogAlert>
@@ -980,6 +1008,7 @@ export type Mutation = {
 	editWorkspace?: Maybe<Workspace>
 	editWorkspaceSettings?: Maybe<AllWorkspaceSettings>
 	emailSignup: Scalars['String']
+	exportSession: Scalars['Boolean']
 	joinWorkspace?: Maybe<Scalars['ID']>
 	markErrorGroupAsViewed?: Maybe<ErrorGroup>
 	markSessionAsViewed?: Maybe<Session>
@@ -1017,6 +1046,8 @@ export type Mutation = {
 	updateSessionIsPublic?: Maybe<Session>
 	updateVercelProjectMappings: Scalars['Boolean']
 	upsertDashboard: Scalars['ID']
+	upsertDiscordChannel: DiscordChannel
+	upsertSlackChannel: SanitizedSlackChannel
 }
 
 export type MutationAddAdminToWorkspaceArgs = {
@@ -1044,6 +1075,7 @@ export type MutationChangeAdminRoleArgs = {
 
 export type MutationCreateErrorAlertArgs = {
 	count_threshold: Scalars['Int']
+	default?: InputMaybe<Scalars['Boolean']>
 	discord_channels: Array<DiscordChannelInput>
 	emails: Array<InputMaybe<Scalars['String']>>
 	environments: Array<InputMaybe<Scalars['String']>>
@@ -1075,6 +1107,11 @@ export type MutationCreateErrorSegmentArgs = {
 	name: Scalars['String']
 	params: ErrorSearchParamsInput
 	project_id: Scalars['ID']
+}
+
+export type MutationCreateErrorTagArgs = {
+	description: Scalars['String']
+	title: Scalars['String']
 }
 
 export type MutationCreateIssueForErrorCommentArgs = {
@@ -1300,6 +1337,10 @@ export type MutationEditWorkspaceSettingsArgs = {
 
 export type MutationEmailSignupArgs = {
 	email: Scalars['String']
+}
+
+export type MutationExportSessionArgs = {
+	session_secure_id: Scalars['String']
 }
 
 export type MutationJoinWorkspaceArgs = {
@@ -1535,6 +1576,16 @@ export type MutationUpsertDashboardArgs = {
 	project_id: Scalars['ID']
 }
 
+export type MutationUpsertDiscordChannelArgs = {
+	name: Scalars['String']
+	project_id: Scalars['ID']
+}
+
+export type MutationUpsertSlackChannelArgs = {
+	name: Scalars['String']
+	project_id: Scalars['ID']
+}
+
 export type NamedCount = {
 	__typename?: 'NamedCount'
 	count: Scalars['Int']
@@ -1665,8 +1716,10 @@ export type Query = {
 	error_comments_for_admin: Array<Maybe<ErrorComment>>
 	error_comments_for_project: Array<Maybe<ErrorComment>>
 	error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>
+	error_fields_clickhouse: Array<Scalars['String']>
 	error_fields_opensearch: Array<Scalars['String']>
 	error_group?: Maybe<ErrorGroup>
+	error_groups_clickhouse: ErrorResults
 	error_groups_opensearch: ErrorResults
 	error_instance?: Maybe<ErrorInstance>
 	error_issue: Array<Maybe<ExternalAttachment>>
@@ -1675,8 +1728,10 @@ export type Query = {
 	error_objects: ErrorObjectConnection
 	error_resolution_suggestion: Scalars['String']
 	error_segments?: Maybe<Array<Maybe<ErrorSegment>>>
+	error_tags?: Maybe<Array<Maybe<ErrorTag>>>
 	errors?: Maybe<Array<Maybe<ErrorObject>>>
 	errors_histogram: ErrorsHistogram
+	errors_histogram_clickhouse: ErrorsHistogram
 	event_chunk_url: Scalars['String']
 	event_chunks: Array<EventChunk>
 	events?: Maybe<Array<Maybe<Scalars['Any']>>>
@@ -1685,6 +1740,7 @@ export type Query = {
 	field_types_clickhouse: Array<Field>
 	fields_clickhouse: Array<Scalars['String']>
 	fields_opensearch: Array<Scalars['String']>
+	find_similar_errors?: Maybe<Array<Maybe<MatchedErrorObject>>>
 	generate_zapier_access_token: Scalars['String']
 	get_source_map_upload_urls: Array<Scalars['String']>
 	github_issue_labels: Array<Scalars['String']>
@@ -1709,8 +1765,9 @@ export type Query = {
 	logs_error_objects: Array<ErrorObject>
 	logs_histogram: LogsHistogram
 	logs_key_values: Array<Scalars['String']>
-	logs_keys: Array<LogKey>
+	logs_keys: Array<QueryKey>
 	logs_total_count: Scalars['UInt64']
+	match_error_tag?: Maybe<Array<Maybe<MatchedErrorTag>>>
 	metric_monitors: Array<Maybe<MetricMonitor>>
 	metric_tag_values: Array<Scalars['String']>
 	metric_tags: Array<Scalars['String']>
@@ -1727,6 +1784,7 @@ export type Query = {
 	projectSuggestion: Array<Maybe<Project>>
 	projects?: Maybe<Array<Maybe<Project>>>
 	property_suggestion?: Maybe<Array<Maybe<Field>>>
+	quickFields_clickhouse: Array<Maybe<Field>>
 	quickFields_opensearch: Array<Maybe<Field>>
 	rageClicksForProject: Array<RageClickEventForProject>
 	rage_click_alerts: Array<Maybe<SessionAlert>>
@@ -1742,10 +1800,12 @@ export type Query = {
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
 	session_comments_for_project: Array<Maybe<SessionComment>>
+	session_exports: Array<SessionExport>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
 	sessions_clickhouse: SessionResults
 	sessions_histogram: SessionsHistogram
+	sessions_histogram_clickhouse: SessionsHistogram
 	sessions_opensearch: SessionResults
 	slack_channel_suggestion: Array<SanitizedSlackChannel>
 	sourcemap_files: Array<S3File>
@@ -1755,6 +1815,9 @@ export type Query = {
 	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
 	topUsers: Array<Maybe<TopUsersPayload>>
+	traces: TraceConnection
+	traces_key_values: Array<Scalars['String']>
+	traces_keys: Array<QueryKey>
 	track_properties_alerts: Array<Maybe<SessionAlert>>
 	unprocessedSessionsCount?: Maybe<Scalars['Int64']>
 	userFingerprintCount?: Maybe<UserFingerprintCount>
@@ -1878,10 +1941,12 @@ export type QueryErrorGroupFrequenciesArgs = {
 	metric?: InputMaybe<Scalars['String']>
 	params: ErrorGroupFrequenciesParamsInput
 	project_id: Scalars['ID']
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryErrorGroupTagsArgs = {
 	error_group_secure_id: Scalars['String']
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryError_AlertsArgs = {
@@ -1902,19 +1967,41 @@ export type QueryError_Field_SuggestionArgs = {
 	query: Scalars['String']
 }
 
-export type QueryError_Fields_OpensearchArgs = {
+export type QueryError_Fields_ClickhouseArgs = {
 	count: Scalars['Int']
+	end_date: Scalars['Timestamp']
 	field_name: Scalars['String']
 	field_type: Scalars['String']
 	project_id: Scalars['ID']
 	query: Scalars['String']
+	start_date: Scalars['Timestamp']
+}
+
+export type QueryError_Fields_OpensearchArgs = {
+	count: Scalars['Int']
+	end_date?: InputMaybe<Scalars['Timestamp']>
+	field_name: Scalars['String']
+	field_type: Scalars['String']
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	start_date?: InputMaybe<Scalars['Timestamp']>
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryError_GroupArgs = {
 	secure_id: Scalars['String']
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
+}
+
+export type QueryError_Groups_ClickhouseArgs = {
+	count: Scalars['Int']
+	page?: InputMaybe<Scalars['Int']>
+	project_id: Scalars['ID']
+	query: ClickhouseQuery
 }
 
 export type QueryError_Groups_OpensearchArgs = {
+	clickhouse_query?: InputMaybe<ClickhouseQuery>
 	count: Scalars['Int']
 	page?: InputMaybe<Scalars['Int']>
 	project_id: Scalars['ID']
@@ -1958,9 +2045,16 @@ export type QueryErrorsArgs = {
 }
 
 export type QueryErrors_HistogramArgs = {
+	clickhouse_query?: InputMaybe<ClickhouseQuery>
 	histogram_options: DateHistogramOptions
 	project_id: Scalars['ID']
 	query: Scalars['String']
+}
+
+export type QueryErrors_Histogram_ClickhouseArgs = {
+	histogram_options: DateHistogramOptions
+	project_id: Scalars['ID']
+	query: ClickhouseQuery
 }
 
 export type QueryEvent_Chunk_UrlArgs = {
@@ -2014,6 +2108,10 @@ export type QueryFields_OpensearchArgs = {
 	query: Scalars['String']
 	start_date?: InputMaybe<Scalars['Timestamp']>
 	use_clickhouse?: InputMaybe<Scalars['Boolean']>
+}
+
+export type QueryFind_Similar_ErrorsArgs = {
+	query: Scalars['String']
 }
 
 export type QueryGenerate_Zapier_Access_TokenArgs = {
@@ -2099,8 +2197,8 @@ export type QueryLogsArgs = {
 	after?: InputMaybe<Scalars['String']>
 	at?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
-	direction: LogDirection
-	params: LogsParamsInput
+	direction: SortDirection
+	params: QueryInput
 	project_id: Scalars['ID']
 }
 
@@ -2113,7 +2211,7 @@ export type QueryLogs_Error_ObjectsArgs = {
 }
 
 export type QueryLogs_HistogramArgs = {
-	params: LogsParamsInput
+	params: QueryInput
 	project_id: Scalars['ID']
 }
 
@@ -2129,8 +2227,12 @@ export type QueryLogs_KeysArgs = {
 }
 
 export type QueryLogs_Total_CountArgs = {
-	params: LogsParamsInput
+	params: QueryInput
 	project_id: Scalars['ID']
+}
+
+export type QueryMatch_Error_TagArgs = {
+	query: Scalars['String']
 }
 
 export type QueryMetric_MonitorsArgs = {
@@ -2205,10 +2307,21 @@ export type QueryProperty_SuggestionArgs = {
 	type: Scalars['String']
 }
 
-export type QueryQuickFields_OpensearchArgs = {
+export type QueryQuickFields_ClickhouseArgs = {
 	count: Scalars['Int']
+	end_date: Scalars['Timestamp']
 	project_id: Scalars['ID']
 	query: Scalars['String']
+	start_date: Scalars['Timestamp']
+}
+
+export type QueryQuickFields_OpensearchArgs = {
+	count: Scalars['Int']
+	end_date?: InputMaybe<Scalars['Timestamp']>
+	project_id: Scalars['ID']
+	query: Scalars['String']
+	start_date?: InputMaybe<Scalars['Timestamp']>
+	use_clickhouse?: InputMaybe<Scalars['Boolean']>
 }
 
 export type QueryRageClicksForProjectArgs = {
@@ -2253,7 +2366,7 @@ export type QuerySessionArgs = {
 }
 
 export type QuerySessionLogsArgs = {
-	params: LogsParamsInput
+	params: QueryInput
 	project_id: Scalars['ID']
 }
 
@@ -2287,9 +2400,16 @@ export type QuerySessions_ClickhouseArgs = {
 }
 
 export type QuerySessions_HistogramArgs = {
+	clickhouse_query?: InputMaybe<ClickhouseQuery>
 	histogram_options: DateHistogramOptions
 	project_id: Scalars['ID']
 	query: Scalars['String']
+}
+
+export type QuerySessions_Histogram_ClickhouseArgs = {
+	histogram_options: DateHistogramOptions
+	project_id: Scalars['ID']
+	query: ClickhouseQuery
 }
 
 export type QuerySessions_OpensearchArgs = {
@@ -2330,6 +2450,26 @@ export type QueryTimeline_Indicator_EventsArgs = {
 
 export type QueryTopUsersArgs = {
 	lookBackPeriod: Scalars['Int']
+	project_id: Scalars['ID']
+}
+
+export type QueryTracesArgs = {
+	after?: InputMaybe<Scalars['String']>
+	at?: InputMaybe<Scalars['String']>
+	before?: InputMaybe<Scalars['String']>
+	direction: SortDirection
+	params: QueryInput
+	project_id: Scalars['ID']
+}
+
+export type QueryTraces_Key_ValuesArgs = {
+	date_range: DateRangeRequiredInput
+	key_name: Scalars['String']
+	project_id: Scalars['ID']
+}
+
+export type QueryTraces_KeysArgs = {
+	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
 }
 
@@ -2398,6 +2538,17 @@ export type QueryWorkspace_Invite_LinksArgs = {
 	workspace_id: Scalars['ID']
 }
 
+export type QueryInput = {
+	date_range: DateRangeRequiredInput
+	query: Scalars['String']
+}
+
+export type QueryKey = {
+	__typename?: 'QueryKey'
+	name: Scalars['String']
+	type: KeyType
+}
+
 export type RageClickEvent = {
 	__typename?: 'RageClickEvent'
 	end_timestamp: Scalars['Timestamp']
@@ -2433,6 +2584,21 @@ export enum ReservedLogKey {
 	Source = 'source',
 	SpanId = 'span_id',
 	TraceId = 'trace_id',
+}
+
+export enum ReservedTraceKey {
+	Duration = 'duration',
+	Level = 'level',
+	Message = 'message',
+	ParentSpanId = 'parent_span_id',
+	SecureSessionId = 'secure_session_id',
+	ServiceName = 'service_name',
+	ServiceVersion = 'service_version',
+	SpanId = 'span_id',
+	SpanKind = 'span_kind',
+	SpanName = 'span_name',
+	TraceId = 'trace_id',
+	TraceState = 'trace_state',
 }
 
 export enum RetentionPeriod {
@@ -2531,7 +2697,6 @@ export type Service = {
 	githubPrefix?: Maybe<Scalars['String']>
 	githubRepoPath?: Maybe<Scalars['String']>
 	id: Scalars['ID']
-	lastSeenVersion?: Maybe<Scalars['String']>
 	name: Scalars['String']
 	projectID: Scalars['ID']
 	status: ServiceStatus
@@ -2556,7 +2721,6 @@ export type ServiceNode = {
 	githubPrefix?: Maybe<Scalars['String']>
 	githubRepoPath?: Maybe<Scalars['String']>
 	id: Scalars['ID']
-	lastSeenVersion?: Maybe<Scalars['String']>
 	name: Scalars['String']
 	projectID: Scalars['ID']
 	status: ServiceStatus
@@ -2639,6 +2803,7 @@ export type SessionAlert = {
 	Type: Scalars['String']
 	UserProperties: Array<Maybe<UserProperty>>
 	WebhookDestinations: Array<WebhookDestination>
+	default: Scalars['Boolean']
 	disabled: Scalars['Boolean']
 	id: Scalars['ID']
 	updated_at: Scalars['Timestamp']
@@ -2646,6 +2811,7 @@ export type SessionAlert = {
 
 export type SessionAlertInput = {
 	count_threshold: Scalars['Int']
+	default?: InputMaybe<Scalars['Boolean']>
 	disabled: Scalars['Boolean']
 	discord_channels: Array<DiscordChannelInput>
 	emails: Array<Scalars['String']>
@@ -2718,6 +2884,16 @@ export enum SessionExcludedReason {
 	RetentionPeriodExceeded = 'RetentionPeriodExceeded',
 }
 
+export type SessionExport = {
+	__typename?: 'SessionExport'
+	error: Scalars['String']
+	id: Scalars['ID']
+	session_id: Scalars['ID']
+	target_emails: Array<Scalars['String']>
+	type: Scalars['String']
+	url: Scalars['String']
+}
+
 export type SessionInsight = {
 	__typename?: 'SessionInsight'
 	id: Scalars['ID']
@@ -2787,6 +2963,11 @@ export enum SocialType {
 	LinkedIn = 'LinkedIn',
 	Site = 'Site',
 	Twitter = 'Twitter',
+}
+
+export enum SortDirection {
+	Asc = 'ASC',
+	Desc = 'DESC',
 }
 
 export type SourceMappingError = {
@@ -2865,6 +3046,54 @@ export type TopUsersPayload = {
 	identifier: Scalars['String']
 	total_active_time: Scalars['Int']
 	user_properties: Scalars['String']
+}
+
+export type Trace = {
+	__typename?: 'Trace'
+	duration: Scalars['Int']
+	events?: Maybe<Array<Maybe<TraceEvent>>>
+	links?: Maybe<Array<Maybe<TraceLink>>>
+	parentSpanID: Scalars['String']
+	projectID: Scalars['Int']
+	secureSessionID: Scalars['String']
+	serviceName: Scalars['String']
+	serviceVersion: Scalars['String']
+	spanID: Scalars['String']
+	spanKind: Scalars['String']
+	spanName: Scalars['String']
+	statusCode: Scalars['String']
+	statusMessage: Scalars['String']
+	timestamp: Scalars['Timestamp']
+	traceAttributes: Scalars['Map']
+	traceID: Scalars['String']
+	traceState: Scalars['String']
+}
+
+export type TraceConnection = Connection & {
+	__typename?: 'TraceConnection'
+	edges: Array<TraceEdge>
+	pageInfo: PageInfo
+}
+
+export type TraceEdge = Edge & {
+	__typename?: 'TraceEdge'
+	cursor: Scalars['String']
+	node: Trace
+}
+
+export type TraceEvent = {
+	__typename?: 'TraceEvent'
+	attributes: Scalars['Map']
+	name: Scalars['String']
+	timestamp: Scalars['Timestamp']
+}
+
+export type TraceLink = {
+	__typename?: 'TraceLink'
+	attributes: Scalars['Map']
+	spanID: Scalars['String']
+	traceID: Scalars['String']
+	traceState: Scalars['String']
 }
 
 export type TrackProperty = {

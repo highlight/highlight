@@ -17,7 +17,7 @@ import {
 	useGetWorkspaceSettingsQuery,
 } from '@/graph/generated/hooks'
 import { namedOperations } from '@/graph/generated/operations'
-import { useParams } from '@/util/react-router/useParams'
+import { useApplicationContext } from '@/routers/AppRouter/context/ApplicationContext'
 
 type AiSetting = {
 	label: string
@@ -42,14 +42,14 @@ const AI_FEATURES: AiSetting[] = [
 ]
 
 export const HaroldAISettings = () => {
-	const { workspace_id } = useParams<{ workspace_id: string }>()
+	const { currentWorkspace } = useApplicationContext()
 
 	const [editWorkspaceSettings] = useEditWorkspaceSettingsMutation({
 		refetchQueries: [namedOperations.Query.GetWorkspaceSettings],
 	})
 	const { data, loading } = useGetWorkspaceSettingsQuery({
-		variables: { workspace_id: workspace_id! },
-		skip: !workspace_id,
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
 	})
 
 	const { checkPolicyAccess } = useAuthorization()
@@ -58,13 +58,13 @@ export const HaroldAISettings = () => {
 	})
 
 	const handleSwitch = (setting: AiSetting) => (isOptIn: boolean) => {
-		if (!workspace_id) {
+		if (!currentWorkspace?.id) {
 			return
 		}
 		editWorkspaceSettings({
 			variables: {
 				...data?.workspaceSettings,
-				workspace_id: workspace_id,
+				workspace_id: currentWorkspace?.id,
 				[setting.key]: isOptIn,
 			},
 		})

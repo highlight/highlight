@@ -3,9 +3,7 @@ import { useGetAlertsPagePayloadQuery } from '@graph/hooks'
 import { GetAlertsPagePayloadQuery } from '@graph/operations'
 import AlertsPage from '@pages/Alerts/Alerts'
 import { AlertsContextProvider } from '@pages/Alerts/AlertsContext/AlertsContext'
-import EditAlertsPage from '@pages/Alerts/EditAlertsPage'
 import EditMonitorPage from '@pages/Alerts/EditMonitorPage'
-import NewAlertPage from '@pages/Alerts/NewAlertPage'
 import NewMonitorPage from '@pages/Alerts/NewMonitorPage'
 import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
@@ -14,6 +12,7 @@ import { Helmet } from 'react-helmet'
 import { Navigate, Route, Routes } from 'react-router-dom'
 
 import ErrorAlertPage from '@/pages/Alerts/ErrorAlert/ErrorAlertPage'
+import SessionAlertPage from '@/pages/Alerts/SessionAlert/SessionAlertPage'
 
 const AlertsRouter = () => {
 	const { project_id } = useParams<{ project_id: string }>()
@@ -49,7 +48,6 @@ const AlertsRouter = () => {
 			</Helmet>
 			<Routes>
 				<Route path="*" element={<AlertsPage />} />
-				<Route path="new" element={<NewAlertPage />} />
 				<Route
 					path="monitor"
 					element={<Navigate to={`/${project_id}/alerts`} replace />}
@@ -107,10 +105,23 @@ const AlertsRouter = () => {
 						/>
 					}
 				/>
-				<Route path="new/errors" element={<ErrorAlertPage />} />
+
+				<Route
+					path="new/errors"
+					element={
+						<Navigate
+							to={`/${projectId}/alerts/errors/new`}
+							replace
+						/>
+					}
+				/>
+				<Route path="session/new" element={<SessionAlertPage />} />
+				<Route
+					path="session/:alert_id"
+					element={<SessionAlertPage />}
+				/>
+				<Route path="errors/new" element={<ErrorAlertPage />} />
 				<Route path="errors/:alert_id" element={<ErrorAlertPage />} />
-				<Route path="new/:type" element={<NewAlertPage />} />
-				<Route path=":id" element={<EditAlertsPage />} />
 			</Routes>
 		</AlertsContextProvider>
 	)

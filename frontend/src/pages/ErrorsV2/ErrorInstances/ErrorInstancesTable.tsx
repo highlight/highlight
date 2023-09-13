@@ -78,7 +78,7 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 				let content = <>no session</>
 				let sessionLink = ''
 
-				if (session) {
+				if (session && !session.excluded) {
 					if (session.email) {
 						content = (
 							<TextHighlighter

@@ -141,6 +141,10 @@ export declare type HighlightOptions = {
 	 */
 	version?: string
 	/**
+	 * Specifies the name of your app.
+	 */
+	serviceName?: string
+	/**
 	 * Specifies whether Highlight should redact data during recording.
 	 * Enabling this will disable recording of text data on the page. This is useful if you do not want to record personally identifiable information and don't want to manually annotate your code with the class name "highlight-block".
 	 * @example
@@ -196,6 +200,13 @@ export declare type HighlightOptions = {
 	 * @see {@link https://docs.highlight.run/session-shortcut} for more information.
 	 */
 	sessionShortcut?: SessionShortcutOptions
+	/**
+	 * Set to `sessionStorage` to bypass all `window.localStorage` usage.
+	 * This can help with compliance for cookie-consent regulation.
+	 * Using `sessionStorage` will cause app close+reopens to start a new highlight session,
+	 * as the session ID will not persist.
+	 */
+	storageMode?: 'sessionStorage' | 'localStorage'
 }
 
 export declare interface HighlightPublicInterface {

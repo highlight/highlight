@@ -133,8 +133,10 @@ const H: HighlightPublicInterface = {
 				firstloadVersion,
 				environment: options?.environment || 'production',
 				appVersion: options?.version,
+				serviceName: options?.serviceName,
 				sessionShortcut: options?.sessionShortcut,
 				sessionSecureID: sessionSecureID,
+				storageMode: options?.storageMode,
 			}
 			first_load_listeners = new FirstLoadListeners(client_options)
 			if (!options?.manualStart) {

@@ -23,7 +23,7 @@ import {
 	Tag,
 	Text,
 	useForm,
-	useFormState,
+	useFormStore,
 	useMenu,
 } from '@highlight-run/ui'
 import {
@@ -48,6 +48,7 @@ import LoadingBox from '@/components/LoadingBox'
 import { namedOperations } from '@/graph/generated/operations'
 import { useAlertsContext } from '@/pages/Alerts/AlertsContext/AlertsContext'
 import AlertNotifyForm from '@/pages/Alerts/components/AlertNotifyForm/AlertNotifyForm'
+import AlertTitleField from '@/pages/Alerts/components/AlertTitleField/AlertTitleField'
 
 import * as styles from './styles.css'
 
@@ -81,7 +82,7 @@ export const ErrorAlertPage = () => {
 		? (findAlert(alert_id, alertsPayload) as any)
 		: undefined
 
-	const form = useFormState<ErrorAlertFormItem>({
+	const formStore = useFormStore<ErrorAlertFormItem>({
 		defaultValues: {
 			name: '',
 			belowThreshold: false,
@@ -97,12 +98,11 @@ export const ErrorAlertPage = () => {
 			loaded: false,
 		},
 	})
-
-	console.log(alert)
+	const formValues = formStore.useState().values
 
 	useEffect(() => {
 		if (alert) {
-			form.setValues({
+			formStore.setValues({
 				name: alert.Name ?? 'Error',
 				belowThreshold: false,
 				excludedEnvironments: alert.ExcludedEnvironments,
@@ -133,7 +133,7 @@ export const ErrorAlertPage = () => {
 			})
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [])
+	}, [alert])
 
 	const [updateErrorAlertMutation] = useUpdateErrorAlertMutation({
 		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
@@ -168,7 +168,7 @@ export const ErrorAlertPage = () => {
 					emphasis="low"
 					trackingId="closeErrorAlert"
 					onClick={() => {
-						navigate(`/${project_id}/alerts`)
+						navigate(-1)
 					}}
 				>
 					Cancel
@@ -207,39 +207,41 @@ export const ErrorAlertPage = () => {
 					trackingId="saveErrorMonitoringAlert"
 					onClick={() => {
 						const input = {
-							count_threshold: form.getValue(
-								form.names.threshold,
+							count_threshold: formStore.getValue(
+								formStore.names.threshold,
 							),
 							disabled: false,
-							discord_channels: form.values.discordChannels.map(
+							discord_channels: formValues.discordChannels.map(
 								(c) => ({
 									name: c.name,
 									id: c.id,
 								}),
 							),
-							emails: form.getValue(form.names.emails),
-							environments: form.getValue(
-								form.names.excludedEnvironments,
+							emails: formStore.getValue(formStore.names.emails),
+							environments: formStore.getValue(
+								formStore.names.excludedEnvironments,
 							),
-							name: form.getValue(form.names.name),
+							name: formStore.getValue(formStore.names.name),
 							project_id: project_id || '0',
-							slack_channels: form.values.slackChannels.map(
+							slack_channels: formValues.slackChannels.map(
 								(c) => ({
 									webhook_channel_id: c.webhook_channel_id,
 									webhook_channel_name:
 										c.webhook_channel_name,
 								}),
 							),
-							webhook_destinations: form
-								.getValue(form.names.webhookDestinations)
+							webhook_destinations: formStore
+								.getValue(formStore.names.webhookDestinations)
 								.map((d: string) => ({ url: d })),
-							threshold_window: form.getValue(
-								form.names.threshold_window,
+							threshold_window: formStore.getValue(
+								formStore.names.threshold_window,
 							),
-							regex_groups: form.getValue(
-								form.names.regex_groups,
+							regex_groups: formStore.getValue(
+								formStore.names.regex_groups,
 							),
-							frequency: form.getValue(form.names.frequency),
+							frequency: formStore.getValue(
+								formStore.names.frequency,
+							),
 						}
 
 						const nameErr = !input.name
@@ -247,16 +249,16 @@ export const ErrorAlertPage = () => {
 						if (nameErr || thresholdErr) {
 							const errs = []
 							if (nameErr) {
-								form.setError(
-									form.names.name,
+								formStore.setError(
+									formStore.names.name,
 									'Name is required',
 								)
 								errs.push('name')
 							}
 
 							if (thresholdErr) {
-								form.setError(
-									form.names.threshold,
+								formStore.setError(
+									formStore.names.threshold,
 									'Threshold is required',
 								)
 								errs.push('threshold')
@@ -313,7 +315,7 @@ export const ErrorAlertPage = () => {
 		</Box>
 	)
 
-	const isLoading = !isCreate && !form.values.loaded
+	const isLoading = !isCreate && !formValues.loaded
 
 	return (
 		<Box width="full" background="raised" p="8">
@@ -383,8 +385,11 @@ export const ErrorAlertPage = () => {
 								</Box>
 							</Box>
 
-							<Form state={form} resetOnSubmit={false}>
-								<ErrorAlertForm />
+							<Form store={formStore} resetOnSubmit={false}>
+								<Stack gap="40">
+									<AlertTitleField />
+									<ErrorAlertForm />
+								</Stack>
 							</Form>
 						</Container>
 					</>
@@ -395,7 +400,8 @@ export const ErrorAlertPage = () => {
 }
 
 const ErrorAlertForm = () => {
-	const form = useForm() as FormState<ErrorAlertFormItem>
+	const formStore = useForm() as FormState<ErrorAlertFormItem>
+	const errors = formStore.useState('errors')
 
 	const { alertsPayload } = useAlertsContext()
 	const environments = dedupeEnvironments(
@@ -425,15 +431,17 @@ const ErrorAlertForm = () => {
 					<Box borderTop="dividerWeak" width="full" />
 					<Form.NamedSection
 						label="Regex Patterns to Ignore"
-						name={form.names.regex_groups}
+						name={formStore.names.regex_groups}
 					>
 						<Select
 							aria-label="Regex Patterns to Ignore list"
 							placeholder={`Input any valid regex, like: \\d{5}(-\\d{4})?, Hello\\nworld, [b-chm-pP]at|ot`}
 							onChange={(values: any): any =>
-								form.setValue(form.names.regex_groups, values)
+								formStore.setValue(
+									formStore.names.regex_groups,
+									values,
+								)
 							}
-							value={form.values.regex_groups}
 							className={styles.selectContainer}
 							mode="tags"
 						/>
@@ -441,7 +449,7 @@ const ErrorAlertForm = () => {
 					<Column.Container gap="12">
 						<Column>
 							<Form.Input
-								name={form.names.threshold}
+								name={formStore.names.threshold}
 								type="number"
 								label="Alert threshold"
 								tag={
@@ -453,7 +461,7 @@ const ErrorAlertForm = () => {
 									/>
 								}
 								style={{
-									borderColor: form.errors.threshold
+									borderColor: errors.threshold
 										? 'var(--color-red-500)'
 										: undefined,
 								}}
@@ -463,11 +471,10 @@ const ErrorAlertForm = () => {
 						<Column>
 							<Form.Select
 								label="Alert threshold window"
-								name={form.names.threshold_window.toString()}
-								value={form.values.threshold_window}
+								name={formStore.names.threshold_window.toString()}
 								onChange={(e) =>
-									form.setValue(
-										form.names.threshold_window,
+									formStore.setValue(
+										formStore.names.threshold_window,
 										e.target.value,
 									)
 								}
@@ -488,10 +495,12 @@ const ErrorAlertForm = () => {
 					</Column.Container>
 					<Form.Select
 						label="Alert frequency"
-						name={form.names.frequency.toString()}
-						value={form.values.frequency}
+						name={formStore.names.frequency.toString()}
 						onChange={(e) =>
-							form.setValue(form.names.frequency, e.target.value)
+							formStore.setValue(
+								formStore.names.frequency,
+								e.target.value,
+							)
 						}
 					>
 						<option value="" disabled>
@@ -514,33 +523,20 @@ const ErrorAlertForm = () => {
 
 					<Box borderTop="dividerWeak" width="full" />
 
-					<Form.Input
-						name={form.names.name}
-						type="text"
-						placeholder="Alert name"
-						label="Name"
-						style={{
-							borderColor: form.errors.name
-								? 'var(--color-red-500)'
-								: undefined,
-						}}
-					/>
-
 					<Form.NamedSection
 						label="Excluded environments"
-						name={form.names.excludedEnvironments}
+						name={formStore.names.excludedEnvironments}
 					>
 						<Select
 							aria-label="Excluded environments list"
 							placeholder="Select excluded environments"
 							options={environments}
 							onChange={(values: any): any =>
-								form.setValue(
-									form.names.excludedEnvironments,
+								formStore.setValue(
+									formStore.names.excludedEnvironments,
 									values,
 								)
 							}
-							value={form.values.excludedEnvironments}
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
@@ -554,9 +550,10 @@ const ErrorAlertForm = () => {
 }
 
 const ThresholdTypeConfiguration = () => {
-	const form = useForm()
+	const formStore = useForm() as FormState<ErrorAlertFormItem>
+	const belowThreshold = formStore.useValue('belowThreshold')
 	const menu = useMenu()
-	const belowThreshold = form.values.belowThreshold
+	const menuState = menu.getState()
 	return (
 		<>
 			<Menu.Button
@@ -565,7 +562,7 @@ const ThresholdTypeConfiguration = () => {
 				emphasis="high"
 				cssClass={styles.thresholdTypeButton}
 				iconRight={
-					menu.open ? (
+					menuState.open ? (
 						<IconSolidCheveronUp />
 					) : (
 						<IconSolidCheveronDown />
@@ -577,14 +574,14 @@ const ThresholdTypeConfiguration = () => {
 			<Menu.List>
 				<Menu.Item
 					onClick={() => {
-						form.setValue('belowThreshold', false)
+						formStore.setValue('belowThreshold', false)
 					}}
 				>
 					Above threshold
 				</Menu.Item>
 				<Menu.Item
 					onClick={() => {
-						form.setValue('belowThreshold', true)
+						formStore.setValue('belowThreshold', true)
 					}}
 				>
 					Below threshold

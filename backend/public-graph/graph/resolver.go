@@ -15,16 +15,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PaesslerAG/jsonpath"
 	"github.com/aws/smithy-go/ptr"
+	"github.com/highlight-run/go-resthooks"
 	"github.com/highlight-run/highlight/backend/embeddings"
 	"github.com/highlight-run/highlight/backend/errorgroups"
 	"github.com/highlight-run/highlight/backend/phonehome"
 	"github.com/highlight-run/highlight/backend/stacktraces"
 	"github.com/highlight-run/highlight/backend/store"
-	"go.opentelemetry.io/otel/attribute"
-
-	"github.com/PaesslerAG/jsonpath"
-	"github.com/highlight-run/go-resthooks"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/mssola/user_agent"
 	"github.com/openlyinc/pointy"
@@ -32,6 +30,8 @@ import (
 	"github.com/samber/lo"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
@@ -172,11 +172,11 @@ var MetricCategoriesForDB = map[string]bool{"Device": true, "WebVital": true}
 
 // Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properties map[string]string, propType Property) error {
-	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
+	outerSpan, ctx := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
 		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", sessionID))
 	defer outerSpan.Finish()
 
-	loadSessionSpan, _ := tracer.StartSpanFromContext(outerCtx, "public-graph.AppendProperties",
+	loadSessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
 		tracer.ResourceName("go.sessions.AppendProperties.loadSessions"), tracer.Tag("sessionID", sessionID))
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).Take(&session)
@@ -185,7 +185,9 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 	}
 	loadSessionSpan.Finish()
 
-	modelFields := []*model.Field{}
+	propsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
+		tracer.ResourceName("processProperties"), tracer.Tag("num_properties", len(properties)))
+	var modelFields []*model.Field
 	projectID := session.ProjectID
 	for k, fv := range properties {
 		if len(fv) > SESSION_FIELD_MAX_LENGTH {
@@ -204,20 +206,22 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 		modelFields = modelFields[:1000]
 		log.WithContext(ctx).WithField("session_id", sessionID).Warnf("attempted to append more than 1000 fields - truncating")
 	}
+	propsSpan.Finish()
 
 	if len(modelFields) > 0 {
-		err := r.AppendFields(outerCtx, modelFields, session)
+		err := r.AppendFields(ctx, modelFields, session)
 		if err != nil {
 			return e.Wrap(err, "error appending fields")
 		}
 	}
 
-	project := &model.Project{}
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).Take(&project).Error; err != nil {
+	project, err := r.Store.GetProject(ctx, session.ProjectID)
+	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
 		return err
 	}
-	workspace, err := r.getWorkspace(project.WorkspaceID)
+
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 		return err
@@ -233,7 +237,7 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 
 func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, session *model.Session) error {
 	outerSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.AppendFields",
-		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", session.ID))
+		tracer.ResourceName("go.sessions.AppendFields"), tracer.Tag("sessionID", session.ID))
 	defer outerSpan.Finish()
 
 	result := r.DB.
@@ -455,10 +459,14 @@ func (r *Resolver) GetOrCreateErrorGroup(ctx context.Context, errorObj *model.Er
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
 	}
 
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorGroup.ID), &kafka_queue.Message{Type: kafka_queue.ErrorGroupDataSync, ErrorGroupDataSync: &kafka_queue.ErrorGroupDataSyncArgs{ErrorGroupID: errorGroup.ID}}); err != nil {
+		return nil, err
+	}
+
 	return errorGroup, nil
 }
 
-func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, combinedEmbedding, eventEmbedding, stackTraceEmbedding, payloadEmbedding model.Vector, threshold float64) (*int, error) {
+func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, projectID int, method model.ErrorGroupingMethod, embedding model.Vector, threshold float64) (*int, error) {
 	span, _ := tracer.StartSpanFromContext(ctx, "public-resolver", tracer.ResourceName("GetTopErrorGroupMatchByEmbedding"))
 	defer span.Finish()
 
@@ -470,23 +478,24 @@ func (r *Resolver) GetTopErrorGroupMatchByEmbedding(ctx context.Context, combine
 	// an alternative query to consider: for M error objects of every error group,
 	// find the average score. then pick the error group
 	// with the lowest average score.
-	if err := r.DB.Raw(`
-select eoe.combined_embedding <=> @combined_embedding as score,
-       @event_weight * (eoe.event_embedding <=> @event_embedding)
-		   + @trace_weight * (eoe.stack_trace_embedding <=> @stack_trace_embedding)
-		   + @meta_weight * (eoe.payload_embedding <=> @payload_embedding) as combined_score,
+	var column string
+	switch method {
+	case model.ErrorGroupingMethodAdaEmbeddingV2:
+		column = "combined_embedding"
+	case model.ErrorGroupingMethodGteLargeEmbeddingV2:
+		column = "gte_large_embedding"
+	}
+	if err := r.DB.Raw(fmt.Sprintf(`
+select eoe.%s <-> @embedding as score,
        eo.error_group_id                              as error_group_id
-from error_object_embeddings eoe
+from error_object_embeddings_partitioned eoe
          inner join error_objects eo on eo.id = eoe.error_object_id
+where eoe.project_id = @projectID
+    and eoe.%s is not null
 order by 1
-limit 1;`, map[string]interface{}{
-		"combined_embedding":    combinedEmbedding,
-		"event_embedding":       eventEmbedding,
-		"stack_trace_embedding": stackTraceEmbedding,
-		"payload_embedding":     payloadEmbedding,
-		"event_weight":          1,
-		"trace_weight":          0.4,
-		"meta_weight":           0.2,
+limit 1;`, column, column), map[string]interface{}{
+		"embedding": embedding,
+		"projectID": projectID,
 	}).
 		Scan(&result).Error; err != nil {
 		return nil, e.Wrap(err, "error querying top error group match")
@@ -771,23 +780,26 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		// keep the classic match as the alternative error group
 		errorGroup, errorGroupAlt = nil, errorGroup
 		emb, err := r.EmbeddingsClient.GetEmbeddings(ctx, []*model.ErrorObject{errorObj})
-		if err != nil {
+		if err != nil || len(emb) == 0 {
 			log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to get embeddings")
-		}
-		embedding = emb[0]
-		errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
-			match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, embedding.CombinedEmbedding, embedding.EventEmbedding, embedding.StackTraceEmbedding, embedding.PayloadEmbedding, settings.ErrorEmbeddingsThreshold)
+			errorObj.ErrorGroupID = errorGroupAlt.ID
+			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
+		} else {
+			embedding = emb[0]
+			errorGroup, err = r.GetOrCreateErrorGroup(ctx, errorObj, func() (*int, error) {
+				match, err := r.GetTopErrorGroupMatchByEmbedding(ctx, errorObj.ProjectID, model.ErrorGroupingMethodGteLargeEmbeddingV2, embedding.GteLargeEmbedding, settings.ErrorEmbeddingsThreshold)
+				if err != nil {
+					log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
+				}
+				return match, err
+			})
 			if err != nil {
-				log.WithContext(ctx).WithError(err).WithField("error_object_id", errorObj.ID).Error("failed to group error using embeddings")
+				return nil, e.Wrap(err, "Error getting or creating error group")
 			}
-			return match, err
-		})
-		if err != nil {
-			return nil, e.Wrap(err, "Error getting or creating error group")
+			errorObj.ErrorGroupID = errorGroup.ID
+			errorObj.ErrorGroupIDAlternative = errorGroupAlt.ID
+			errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodGteLargeEmbeddingV2
 		}
-		errorObj.ErrorGroupID = errorGroup.ID
-		errorObj.ErrorGroupIDAlternative = errorGroupAlt.ID
-		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodAdaEmbeddingV2
 	} else {
 		errorObj.ErrorGroupID = errorGroup.ID
 		errorObj.ErrorGroupingMethod = model.ErrorGroupingMethodClassic
@@ -819,6 +831,9 @@ func (r *Resolver) HandleErrorAndGroup(ctx context.Context, errorObj *model.Erro
 		Object:   opensearchErrorObject,
 	}); err != nil {
 		return nil, e.Wrap(err, "error indexing error group (combined index) in opensearch")
+	}
+	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(errorObj.ID), &kafka_queue.Message{Type: kafka_queue.ErrorObjectDataSync, ErrorObjectDataSync: &kafka_queue.ErrorObjectDataSyncArgs{ErrorObjectID: errorObj.ID}}); err != nil {
+		return nil, err
 	}
 
 	if err := r.AppendErrorFields(ctx, fields, errorGroup); err != nil {
@@ -1082,7 +1097,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 		return nil, e.Wrapf(err, "project doesn't exist project_id:%d", projectID)
 	}
-	workspace, err := r.getWorkspace(project.WorkspaceID)
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving workspace")
 	}
@@ -1117,6 +1132,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		ClientConfig:                   &input.ClientConfig,
 		Environment:                    input.Environment,
 		AppVersion:                     input.AppVersion,
+		ServiceName:                    input.ServiceName,
 		VerboseID:                      input.ProjectVerboseID,
 		Fields:                         []*model.Field{},
 		ViewedByAdmins:                 []model.Admin{},
@@ -1252,6 +1268,18 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		}
 	}()
 
+	if session.ServiceName != "" {
+		// See: https://opentelemetry.io/docs/specs/otel/resource/semantic_conventions/process/#javascript-runtimes
+		// We don't set `process.runtime.version` since it would change on the user
+		attributes := map[string]string{
+			string(semconv.ProcessRuntimeNameKey): "browser",
+		}
+		_, err := r.Store.UpsertService(ctx, *project, session.ServiceName, attributes)
+		if err != nil {
+			log.WithContext(ctx).Error(e.Wrap(err, "failed to create service"))
+		}
+	}
+
 	return session, nil
 }
 
@@ -1264,7 +1292,7 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectID int, setu
 				return nil, e.Wrap(err, "error querying backend_setup flag")
 			}
 			if backendSetupCount < 1 {
-				project, err := r.getProject(projectID)
+				project, err := r.Store.GetProject(ctx, projectID)
 				if err != nil {
 					log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
 				} else {
@@ -1320,7 +1348,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	metadata["timestamp"] = input.Timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at").Where(&model.Session{SecureID: input.SessionSecureID}).Take(&session).Error; err != nil {
+	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at", "excluded").Where(&model.Session{SecureID: input.SessionSecureID}).Take(&session).Error; err != nil {
 		return e.Wrap(err, "error querying session by sessionSecureID for adding session feedback")
 	}
 
@@ -1372,7 +1400,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 			identifier = *input.UserEmail
 		}
 
-		workspace, err := r.getWorkspace(project.WorkspaceID)
+		workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).
 				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
@@ -1382,6 +1410,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 		errorAlert.SendAlertFeedback(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
+			SessionExcluded: session.Excluded,
 			UserIdentifier:  identifier,
 			CommentID:       &feedbackComment.ID,
 			CommentText:     feedbackComment.Text,
@@ -1586,22 +1615,6 @@ func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionID int, 
 		return e.Wrap(err, "error adding set of properties to db")
 	}
 	return nil
-}
-
-func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
-	var workspace model.Workspace
-	if err := r.DB.Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).Take(&workspace).Error; err != nil {
-		return nil, e.Wrap(err, "error querying workspace")
-	}
-	return &workspace, nil
-}
-
-func (r *Resolver) getProject(projectID int) (*model.Project, error) {
-	var project model.Project
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
-		return nil, e.Wrap(err, "error querying project")
-	}
-	return &project, nil
 }
 
 var productTypeToQuotaConfig = map[model.PricingProductType]struct {
@@ -1827,7 +1840,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				continue
 			}
 
-			workspace, err := r.getWorkspace(project.WorkspaceID)
+			workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 			if err != nil {
 				log.WithContext(ctx).Error(err)
 			}
@@ -1853,7 +1866,17 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				log.WithContext(ctx).Error(err)
 			}
 
-			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, Group: group, ErrorObject: errorObject, URL: &visitedUrl, ErrorsCount: &numErrors, UserObject: sessionObj.UserObject})
+			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+				Workspace:       workspace,
+				SessionSecureID: sessionObj.SecureID,
+				SessionExcluded: sessionObj.Excluded,
+				UserIdentifier:  sessionObj.Identifier,
+				Group:           group,
+				ErrorObject:     errorObject,
+				URL:             &visitedUrl,
+				ErrorsCount:     &numErrors,
+				UserObject:      sessionObj.UserObject,
+			})
 		}
 	}()
 }
@@ -2094,7 +2117,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).WithError(err).WithField("project", project).WithField("projectVerboseID", projectVerboseID).Error("failed to find project")
 	}
 
-	workspace, err := r.getWorkspace(project.WorkspaceID)
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 	}
@@ -2169,14 +2192,14 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 			ServiceVersion: v.Service.Version,
 		}
 
+		var mappedStackTrace *string
 		var structuredStackTrace []*privateModel.ErrorTrace
+		mappedStackTrace, structuredStackTrace, err = r.Store.EnhancedStackTrace(ctx, v.StackTrace, workspace, &project, errorToInsert)
 
-		err = json.Unmarshal([]byte(v.StackTrace), &structuredStackTrace)
 		if err != nil {
-			structuredStackTrace, err = stacktraces.StructureOTELStackTrace(v.StackTrace)
-			if err != nil {
-				log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
-			}
+			log.WithContext(ctx).Errorf("Failed to generate structured stacktrace %v", v.StackTrace)
+		} else if mappedStackTrace != nil {
+			errorToInsert.MappedStackTrace = mappedStackTrace
 		}
 
 		group, err := r.HandleErrorAndGroup(ctx, errorToInsert, structuredStackTrace, extractErrorFields(session, errorToInsert), projectID, workspace)
@@ -2627,7 +2650,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 			return e.Wrap(err, "error querying project")
 		}
-		workspace, err := r.getWorkspace(project.WorkspaceID)
+		workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 		if err != nil {
 			return e.Wrap(err, "error querying workspace")
 		}
@@ -2667,23 +2690,30 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 
 			traceString := string(traceBytes)
 
+			serviceVersion := ""
+			if sessionObj.AppVersion != nil {
+				serviceVersion = *sessionObj.AppVersion
+			}
+
 			errorToInsert := &model.ErrorObject{
-				ProjectID:    projectID,
-				SessionID:    &sessionID,
-				Environment:  sessionObj.Environment,
-				Event:        v.Event,
-				Type:         v.Type,
-				URL:          v.URL,
-				Source:       v.Source,
-				LineNumber:   v.LineNumber,
-				ColumnNumber: v.ColumnNumber,
-				OS:           sessionObj.OSName,
-				Browser:      sessionObj.BrowserName,
-				StackTrace:   &traceString,
-				Timestamp:    v.Timestamp,
-				Payload:      v.Payload,
-				RequestID:    nil,
-				IsBeacon:     isBeacon,
+				ProjectID:      projectID,
+				SessionID:      &sessionID,
+				Environment:    sessionObj.Environment,
+				Event:          v.Event,
+				Type:           v.Type,
+				URL:            v.URL,
+				Source:         v.Source,
+				LineNumber:     v.LineNumber,
+				ColumnNumber:   v.ColumnNumber,
+				OS:             sessionObj.OSName,
+				Browser:        sessionObj.BrowserName,
+				StackTrace:     &traceString,
+				Timestamp:      v.Timestamp,
+				Payload:        v.Payload,
+				RequestID:      nil,
+				IsBeacon:       isBeacon,
+				ServiceVersion: serviceVersion,
+				ServiceName:    sessionObj.ServiceName,
 			}
 
 			mappedStackTrace, structuredStackTrace, err := r.getMappedStackTraceString(ctx, v.StackTrace, projectID, errorToInsert)
@@ -2880,12 +2910,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 // HandleSessionViewable is called after the first events to a session are written.
 // It handles any alerts that must be sent for this session after it is able to be played.
 func (r *Resolver) HandleSessionViewable(ctx context.Context, projectID int, session *model.Session) error {
-	project, err := r.getProject(projectID)
+	project, err := r.Store.GetProject(ctx, projectID)
 	if err != nil {
 		return err
 	}
 
-	workspace, err := r.getWorkspace(project.WorkspaceID)
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 	if err != nil {
 		return err
 	}
@@ -2989,7 +3019,15 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending new session alert to zapier", sessionObj.ProjectID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: sessionObj.SecureID, UserIdentifier: sessionObj.Identifier, UserObject: sessionObj.UserObject, UserProperties: userProperties, URL: visitedUrl})
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			Workspace:       workspace,
+			SessionSecureID: sessionObj.SecureID,
+			SessionExcluded: sessionObj.Excluded,
+			UserIdentifier:  sessionObj.Identifier,
+			UserObject:      sessionObj.UserObject,
+			UserProperties:  userProperties,
+			URL:             visitedUrl,
+		})
 		if err = alerts.SendNewSessionAlert(alerts.SendNewSessionAlertEvent{
 			Session:      sessionObj,
 			SessionAlert: sessionAlert,
@@ -3092,7 +3130,15 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 			log.WithContext(ctx).Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, RelatedFields: relatedFields, UserObject: session.UserObject})
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			Workspace:       workspace,
+			SessionSecureID: session.SecureID,
+			SessionExcluded: session.Excluded,
+			UserIdentifier:  session.Identifier,
+			MatchedFields:   matchedFields,
+			RelatedFields:   relatedFields,
+			UserObject:      session.UserObject,
+		})
 		if err = alerts.SendTrackPropertiesAlert(alerts.TrackPropertiesAlertEvent{
 			Session:       session,
 			SessionAlert:  sessionAlert,
@@ -3163,7 +3209,14 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 			log.WithContext(ctx).Error(e.Wrapf(err, "[project_id: %d] error sending alert to zapier", session.ProjectID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: refetchedSession.SecureID, UserIdentifier: refetchedSession.Identifier, UserProperties: userProperties, UserObject: refetchedSession.UserObject})
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			Workspace:       workspace,
+			SessionSecureID: refetchedSession.SecureID,
+			SessionExcluded: refetchedSession.Excluded,
+			UserIdentifier:  refetchedSession.Identifier,
+			UserProperties:  userProperties,
+			UserObject:      refetchedSession.UserObject,
+		})
 		if err = alerts.SendNewUserAlert(alerts.SendNewUserAlertEvent{
 			Session:      session,
 			SessionAlert: sessionAlert,
@@ -3177,6 +3230,8 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 }
 
 func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace *model.Workspace, session *model.Session) error {
+	alertSpan, _ := tracer.StartSpanFromContext(ctx, "SendSessionUserPropertiesAlert")
+	defer alertSpan.Finish()
 	// Sending User Properties Alert
 	var sessionAlerts []*model.SessionAlert
 	if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {
@@ -3243,7 +3298,14 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 			log.WithContext(ctx).Error(e.Wrapf(err, "error notifying zapier (session alert id: %d)", sessionAlert.ID))
 		}
 
-		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{Workspace: workspace, SessionSecureID: session.SecureID, UserIdentifier: session.Identifier, MatchedFields: matchedFields, UserObject: session.UserObject})
+		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
+			Workspace:       workspace,
+			SessionSecureID: session.SecureID,
+			SessionExcluded: session.Excluded,
+			UserIdentifier:  session.Identifier,
+			MatchedFields:   matchedFields,
+			UserObject:      session.UserObject,
+		})
 		if err = alerts.SendUserPropertiesAlert(alerts.UserPropertiesAlertEvent{
 			SessionAlert:  sessionAlert,
 			Session:       session,

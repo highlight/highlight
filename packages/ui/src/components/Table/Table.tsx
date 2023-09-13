@@ -11,14 +11,35 @@ import { Head, Props as HeadProps } from './Head/Head'
 import { Header, Props as HeaderProps } from './Header/Header'
 import { Row, Props as RowProps } from './Row/Row'
 
-import { Box } from '../Box/Box'
+import { Box, BoxProps } from '../Box/Box'
+import clsx from 'clsx'
+
+import * as styles from './styles.css'
 
 type Props = {
 	children: React.ReactNode
+	className?: string
+	height?: BoxProps['height']
+	noBorder?: boolean
 }
 
-const TableComponent: React.FC<Props> = ({ children }) => {
-	return <Box width="full">{children}</Box>
+const TableComponent: React.FC<Props> = ({
+	children,
+	className,
+	height,
+	noBorder,
+}) => {
+	return (
+		<Box
+			cssClass={clsx(styles.table, className, {
+				[styles.noBorder]: noBorder,
+			})}
+			height={height}
+			width="full"
+		>
+			{children}
+		</Box>
+	)
 }
 
 type TableWithComponents = React.FC<Props> & {

@@ -4,10 +4,9 @@ import {
 	useGetFieldTypesQuery,
 	useGetSegmentsQuery,
 } from '@graph/hooks'
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
-import React from 'react'
+import React, { useCallback } from 'react'
 import { useLocalStorage } from 'react-use'
 
 import QueryBuilder, {
@@ -21,7 +20,6 @@ import QueryBuilder, {
 	RANGE_OPERATORS,
 	SelectOption,
 	TIME_OPERATORS,
-	VIEWED_BY_OPERATORS,
 } from '@/components/QueryBuilder/QueryBuilder'
 import CreateSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal'
 import DeleteSessionSegmentModal from '@/pages/Sessions/SearchSidebar/SegmentPicker/DeleteSessionSegmentModal/DeleteSessionSegmentModal'
@@ -81,6 +79,7 @@ export const CUSTOM_FIELDS: CustomField[] = [
 		name: 'viewed',
 		options: {
 			type: 'boolean',
+			operators: BOOLEAN_OPERATORS,
 		},
 	},
 	{
@@ -88,7 +87,7 @@ export const CUSTOM_FIELDS: CustomField[] = [
 		name: 'viewed_by_me',
 		options: {
 			type: 'boolean',
-			operators: VIEWED_BY_OPERATORS,
+			operators: BOOLEAN_OPERATORS,
 		},
 	},
 	{
@@ -137,8 +136,11 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 	const { refetch } = useGetFieldsOpensearchQuery({
 		skip: true,
 	})
-	const fetchFields = (variables: FetchFieldVariables) =>
-		refetch(variables).then((r) => r.data.fields_opensearch)
+	const fetchFields = useCallback(
+		(variables: FetchFieldVariables) =>
+			refetch(variables).then((r) => r.data.fields_opensearch),
+		[refetch],
+	)
 
 	const { project_id } = useParams<{
 		project_id: string
@@ -155,7 +157,7 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 	)
 
 	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse',
+		'highlight-session-search-use-clickhouse-v2',
 		false,
 	)
 
@@ -170,7 +172,6 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 		},
 		skip: !project_id,
 	})
-	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	return (
 		<QueryBuilder
@@ -179,7 +180,6 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 			customFields={CUSTOM_FIELDS}
 			fetchFields={fetchFields}
 			fieldData={fieldData}
-			setShowLeftPanel={setShowLeftPanel}
 			useEditAnySegmentMutation={useEditSegmentMutation}
 			useGetAnySegmentsQuery={useGetSegmentsQuery}
 			CreateAnySegmentModal={CreateSegmentModal}

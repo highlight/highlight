@@ -60,6 +60,14 @@ func LastLogTimestampKey(projectId int) string {
 	return fmt.Sprintf("last-log-timestamp-%d", projectId)
 }
 
+func ServiceGithubErrorCountKey(serviceId int) string {
+	return fmt.Sprintf("service-github-errors-%d", serviceId)
+}
+
+func GithubRateLimitKey(gitHubRepo string) string {
+	return fmt.Sprintf("github-rate-limit-exceeded-%s", gitHubRepo)
+}
+
 func NewClient() *Client {
 	var lfu cache.LocalCache
 	// disable lfu cache locally to allow flushing cache between test-cases
@@ -483,6 +491,30 @@ func (r *Client) GetHubspotCompanies(ctx context.Context, companies interface{})
 	return
 }
 
+func (r *Client) SetGithubRateLimitExceeded(ctx context.Context, gitHubRepo string, expirationTime time.Time) error {
+	return r.setFlag(ctx, GithubRateLimitKey(gitHubRepo), true, time.Until(expirationTime))
+}
+
+func (r *Client) GetGithubRateLimitExceeded(ctx context.Context, gitHubRepo string) (bool, error) {
+	return r.getFlag(ctx, GithubRateLimitKey(gitHubRepo))
+}
+
+func (r *Client) IncrementServiceErrorCount(ctx context.Context, projectId int) (int64, error) {
+	serviceKey := ServiceGithubErrorCountKey(projectId)
+	count, err := r.redisClient.Incr(ctx, serviceKey).Result()
+
+	if count == 1 {
+		r.redisClient.Expire(ctx, serviceKey, time.Hour)
+	}
+
+	return count, err
+}
+
+func (r *Client) ResetServiceErrorCount(ctx context.Context, projectId int) (int64, error) {
+	serviceKey := ServiceGithubErrorCountKey(projectId)
+	return r.redisClient.Del(ctx, serviceKey).Result()
+}
+
 func (r *Client) AcquireLock(_ context.Context, key string, timeout time.Duration) (*redsync.Mutex, error) {
 	mutex := r.Redsync.NewMutex(
 		key,
@@ -497,6 +529,13 @@ func (r *Client) AcquireLock(_ context.Context, key string, timeout time.Duratio
 func (r *Client) FlushDB(ctx context.Context) error {
 	if util.IsDevOrTestEnv() {
 		return r.redisClient.FlushAll(ctx).Err()
+	}
+	return nil
+}
+
+func (r *Client) Del(ctx context.Context, key string) error {
+	if util.IsDevOrTestEnv() {
+		return r.redisClient.Del(ctx, key).Err()
 	}
 	return nil
 }

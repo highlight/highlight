@@ -2,10 +2,14 @@ package worker
 
 import (
 	"context"
-	"github.com/highlight-run/highlight/backend/redis"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/highlight-run/highlight/backend/integrations"
+	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/storage"
 
 	"github.com/aws/smithy-go/ptr"
 	"github.com/highlight-run/highlight/backend/model"
@@ -27,7 +31,7 @@ func createAutoResolver() *AutoResolver {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 
-	store := store.NewStore(db, &opensearch.Client{}, redis.NewClient())
+	store := store.NewStore(db, &opensearch.Client{}, redis.NewClient(), integrations.NewIntegrationsClient(db), &storage.FilesystemClient{}, &kafka_queue.MockMessageQueue{})
 	return NewAutoResolver(store, db)
 }
 

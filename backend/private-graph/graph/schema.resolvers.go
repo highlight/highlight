@@ -37,6 +37,7 @@ import (
 	"github.com/highlight-run/highlight/backend/integrations/height"
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/lambda-functions/deleteSessions/utils"
+	utils2 "github.com/highlight-run/highlight/backend/lambda-functions/sessionExport/utils"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/opensearch"
 	"github.com/highlight-run/highlight/backend/phonehome"
@@ -284,6 +285,11 @@ func (r *logAlertResolver) DailyFrequency(ctx context.Context, obj *model.LogAle
 	return obj.GetDailyLogEventFrequency(r.DB, obj.ID)
 }
 
+// Event is the resolver for the event field.
+func (r *matchedErrorObjectResolver) Event(ctx context.Context, obj *model.MatchedErrorObject) ([]*string, error) {
+	return util.JsonStringToStringArray(obj.Event), nil
+}
+
 // ChannelsToNotify is the resolver for the channels_to_notify field.
 func (r *metricMonitorResolver) ChannelsToNotify(ctx context.Context, obj *model.MetricMonitor) ([]*modelInputs.SanitizedSlackChannel, error) {
 	if obj == nil {
@@ -349,11 +355,12 @@ func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, ad
 	if err := r.Transaction(func(transactionR *mutationResolver) error {
 		// Update admin details
 		if _, err := transactionR.UpdateAdminAboutYouDetails(ctx, modelInputs.AdminAboutYouDetails{
-			FirstName:          adminAndWorkspaceDetails.FirstName,
-			LastName:           adminAndWorkspaceDetails.LastName,
-			UserDefinedRole:    adminAndWorkspaceDetails.UserDefinedRole,
-			UserDefinedPersona: "",
-			Referral:           adminAndWorkspaceDetails.Referral,
+			FirstName:           adminAndWorkspaceDetails.FirstName,
+			LastName:            adminAndWorkspaceDetails.LastName,
+			UserDefinedRole:     adminAndWorkspaceDetails.UserDefinedRole,
+			UserDefinedPersona:  "",
+			UserDefinedTeamSize: adminAndWorkspaceDetails.UserDefinedTeamSize,
+			Referral:            adminAndWorkspaceDetails.Referral,
 		}); err != nil {
 			return e.Wrap(err, "error updating admin details")
 		}
@@ -365,7 +372,7 @@ func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, ad
 		}
 
 		// Assign auto joinable domains for workspace
-		if *adminAndWorkspaceDetails.AllowedAutoJoinEmailOrigins != "" {
+		if ptr.ToString(adminAndWorkspaceDetails.AllowedAutoJoinEmailOrigins) != "" {
 			if _, err := transactionR.UpdateAllowedEmailOrigins(ctx, workspace.ID, *adminAndWorkspaceDetails.AllowedAutoJoinEmailOrigins); err != nil {
 				return e.Wrap(err, "error assigning auto joinable email origins")
 			}
@@ -403,6 +410,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.LastName = &adminDetails.LastName
 	admin.Name = &fullName
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
+	admin.UserDefinedTeamSize = &adminDetails.UserDefinedTeamSize
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
 	admin.Phone = pointy.String("")
@@ -415,6 +423,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 			*admin.Email,
 			*admin.UserDefinedRole,
 			*admin.UserDefinedPersona,
+			*admin.UserDefinedTeamSize,
 			*admin.FirstName,
 			*admin.LastName,
 			*admin.Phone,
@@ -647,6 +656,52 @@ func (r *mutationResolver) EditWorkspaceSettings(ctx context.Context, workspaceI
 	return workspaceSettings, nil
 }
 
+// ExportSession is the resolver for the exportSession field.
+func (r *mutationResolver) ExportSession(ctx context.Context, sessionSecureID string) (bool, error) {
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	session, err := r.canAdminViewSession(ctx, sessionSecureID)
+	if err != nil {
+		return false, err
+	}
+
+	cfg, err := r.Store.GetAllWorkspaceSettingsByProject(ctx, session.ProjectID)
+	if !cfg.EnableSessionExport {
+		return false, e.New("session export is not enabled")
+	}
+
+	go func() {
+		export := model.SessionExport{
+			SessionID:    session.ID,
+			Type:         model.SessionExportFormatMP4,
+			TargetEmails: []string{*admin.Email},
+		}
+
+		tx := r.DB.Model(&export).Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
+			DoUpdates: clause.AssignmentColumns([]string{"target_emails"}),
+		}).FirstOrCreate(&export)
+		if tx.Error != nil {
+			log.WithContext(context.Background()).WithError(tx.Error).Error("failed to create session export record")
+			return
+		}
+
+		_, err := r.StepFunctions.SessionExport(ctx, utils2.SessionExportInput{
+			Project:      session.ProjectID,
+			Session:      session.ID,
+			Format:       export.Type,
+			TargetEmails: export.TargetEmails,
+		})
+		if err != nil {
+			log.WithContext(context.Background()).WithError(err).Error("failed to export session video")
+		}
+	}()
+	return true, nil
+}
+
 // MarkErrorGroupAsViewed is the resolver for the markErrorGroupAsViewed field.
 func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecureID string, viewed *bool) (*model.ErrorGroup, error) {
 	eg, err := r.canAdminModifyErrorGroup(ctx, errorSecureID)
@@ -660,6 +715,7 @@ func (r *mutationResolver) MarkErrorGroupAsViewed(ctx context.Context, errorSecu
 
 	// Update the the number of error groups viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		// Check if this admin has already viewed
 		if _, err := r.isAdminInProject(ctx, eg.ProjectID); err != nil {
 			log.WithContext(ctx).Infof("not adding error groups count to admin in hubspot; this is probably a demo project, with id [%v]", eg.ProjectID)
@@ -754,6 +810,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, secureID str
 
 	// Update the the number of sessions viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		// Check if this admin has already viewed
 		if _, err := r.isAdminInProject(ctx, s.ProjectID); err != nil {
 			log.WithContext(ctx).Infof("not adding session count to admin in hubspot; this is probably a demo project, with id [%v]", s.ProjectID)
@@ -896,10 +953,7 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 		log.WithContext(ctx).Error(e.Wrap(err, "failed to add admin to workspace"))
 		return adminID, err
 	}
-	r.PrivateWorkerPool.SubmitRecover(func() {
-		if adminID == nil {
-			return
-		}
+	if adminID != nil {
 		if err := r.HubspotApi.CreateContactCompanyAssociation(ctx, *adminID, workspaceID); err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(
 				err,
@@ -908,7 +962,7 @@ func (r *mutationResolver) AddAdminToWorkspace(ctx context.Context, workspaceID 
 				workspaceID,
 			))
 		}
-	})
+	}
 
 	return adminID, nil
 }
@@ -1077,6 +1131,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 	})
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		if contact, err := apolloio.CreateContact(email); err != nil {
 			log.WithContext(ctx).Errorf("error creating apollo contact: %v", err)
 		} else {
@@ -1463,14 +1518,15 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 	muteLink := fmt.Sprintf("%v?commentId=%v&ts=%v&muted=1", sessionURL, sessionComment.ID, time)
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
-		c := context.Background()
+		ctx := context.Background()
 		chunkIdx, chunkTs := r.GetSessionChunk(ctx, session.ID, sessionTimestamp)
 		log.WithContext(ctx).Infof("got chunk %d ts %d for session %d ts %d", chunkIdx, chunkTs, session.ID, sessionTimestamp)
-		imageBytes, err := r.getSessionScreenshot(c, projectID, session.ID, chunkTs, chunkIdx)
+		format := model.SessionExportFormatPng
+		resp, err := r.LambdaClient.GetSessionScreenshot(ctx, projectID, session.ID, pointy.Int(chunkTs), pointy.Int(chunkIdx), &format)
 		if err != nil {
 			log.WithContext(ctx).Errorf("failed to render screenshot for %d %d %d %s", projectID, session.ID, sessionTimestamp, err)
 		} else {
-			sessionImageStr = base64.StdEncoding.EncodeToString(imageBytes)
+			sessionImageStr = base64.StdEncoding.EncodeToString(resp.Image)
 			sessionImage = &sessionImageStr
 			if err := r.DB.Model(&model.SessionComment{}).Where(
 				&model.SessionComment{Model: model.Model{ID: sessionComment.ID}},
@@ -1484,7 +1540,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 		if len(taggedAdmins) > 0 && !isGuest {
 			r.sendCommentPrimaryNotification(
-				c,
+				ctx,
 				admin,
 				*admin.Name,
 				taggedAdmins,
@@ -1504,7 +1560,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 		}
 		if len(taggedSlackUsers) > 0 && !isGuest {
 			r.sendCommentMentionNotification(
-				c,
+				ctx,
 				admin,
 				taggedSlackUsers,
 				workspace,
@@ -1526,8 +1582,8 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			IntegrationType:  *s,
 			SessionCommentID: sessionComment.ID,
 		}
-		desc := *issueDescription
-		desc += "\n\nSee the error page on Highlight:\n"
+		title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
+		desc += "See the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear &&
@@ -1553,7 +1609,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 			if err := r.CreateClickUpTaskAndAttachment(
 				workspace,
 				attachment,
-				*issueTitle,
+				title,
 				desc,
 				issueTeamID,
 			); err != nil {
@@ -1566,7 +1622,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 				ctx,
 				workspace,
 				attachment,
-				*issueTitle,
+				title,
 				desc,
 				issueTeamID,
 			); err != nil {
@@ -1579,7 +1635,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, projectID i
 				ctx,
 				workspace,
 				attachment,
-				*issueTitle,
+				title,
 				desc,
 				issueTeamID,
 				tags,
@@ -1634,8 +1690,8 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 			SessionCommentID: sessionComment.ID,
 		}
 
-		desc := *issueDescription
-		desc += "\n\nSee the error page on Highlight:\n"
+		title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
+		desc += "See the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/sessions/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, sessionComment.SessionSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
@@ -1645,19 +1701,19 @@ func (r *mutationResolver) CreateIssueForSessionComment(ctx context.Context, pro
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeClickUp && workspace.ClickupAccessToken != nil && *workspace.ClickupAccessToken != "" {
-			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
+			if err := r.CreateClickUpTaskAndAttachment(workspace, attachment, title, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating ClickUp task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 
 			sessionComment.Attachments = append(sessionComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeGitHub {
-			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID, nil); err != nil {
+			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID, nil); err != nil {
 				return nil, e.Wrap(err, "error creating GitHub task")
 			}
 
@@ -1945,8 +2001,8 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			ErrorCommentID:  errorComment.ID,
 		}
 
-		desc := *issueDescription
-		desc += "\n\nSee the error page on Highlight:\n"
+		title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
+		desc += "See the error page on Highlight:\n"
 		desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 
 		if *s == modelInputs.IntegrationTypeLinear && workspace.LinearAccessToken != nil && *workspace.LinearAccessToken != "" {
@@ -1968,7 +2024,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 			if err := r.CreateClickUpTaskAndAttachment(
 				workspace,
 				attachment,
-				*issueTitle,
+				title,
 				desc,
 				issueTeamID,
 			); err != nil {
@@ -1977,13 +2033,13 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, projectID int
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeGitHub {
-			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID, nil); err != nil {
+			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID, nil); err != nil {
 				return nil, e.Wrap(err, "error creating GitHub task")
 			}
 
@@ -2110,8 +2166,8 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 		return nil, e.New("issue description cannot be nil")
 	}
 
-	desc := *issueDescription
-	desc += "\n\nSee the error page on Highlight:\n"
+	title, desc := r.Store.BuildIssueTitleAndDescription(*issueTitle, issueDescription)
+	desc += "See the error page on Highlight:\n"
 	desc += fmt.Sprintf("%s/%d/errors/%s", os.Getenv("REACT_APP_FRONTEND_URI"), projectID, errorComment.ErrorSecureId)
 
 	for _, s := range integrations {
@@ -2139,7 +2195,7 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 			if err := r.CreateClickUpTaskAndAttachment(
 				workspace,
 				attachment,
-				*issueTitle,
+				title,
 				desc,
 				issueTeamID,
 			); err != nil {
@@ -2148,13 +2204,13 @@ func (r *mutationResolver) CreateIssueForErrorComment(ctx context.Context, proje
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeHeight {
-			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID); err != nil {
+			if err := r.CreateHeightTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID); err != nil {
 				return nil, e.Wrap(err, "error creating Height task")
 			}
 
 			errorComment.Attachments = append(errorComment.Attachments, attachment)
 		} else if *s == modelInputs.IntegrationTypeGitHub {
-			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, *issueTitle, desc, issueTeamID, nil); err != nil {
+			if err := r.CreateGitHubTaskAndAttachment(ctx, workspace, attachment, title, desc, issueTeamID, nil); err != nil {
 				return nil, e.Wrap(err, "error creating GitHub task")
 			}
 
@@ -2604,7 +2660,7 @@ func (r *mutationResolver) UpdateMetricMonitor(ctx context.Context, metricMonito
 }
 
 // CreateErrorAlert is the resolver for the createErrorAlert field.
-func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int) (*model.ErrorAlert, error) {
+func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, name string, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, discordChannels []*modelInputs.DiscordChannelInput, webhookDestinations []*modelInputs.WebhookDestinationInput, emails []*string, environments []*string, regexGroups []*string, frequency int, defaultArg *bool) (*model.ErrorAlert, error) {
 	project, err := r.isAdminInProject(ctx, projectID)
 	admin, _ := r.getCurrentAdmin(ctx)
 	workspace, _ := r.GetWorkspace(project.WorkspaceID)
@@ -2633,6 +2689,10 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 		return nil, err
 	}
 
+	if defaultArg == nil {
+		defaultArg = pointy.Bool(false)
+	}
+
 	newAlert := &model.ErrorAlert{
 		Alert: model.Alert{
 			ProjectID:            projectID,
@@ -2646,6 +2706,7 @@ func (r *mutationResolver) CreateErrorAlert(ctx context.Context, projectID int, 
 			Name:                 &name,
 			LastAdminToEditID:    admin.ID,
 			Frequency:            frequency,
+			Default:              *defaultArg,
 		},
 		RegexGroups: &regexGroupsString,
 		AlertIntegrations: model.AlertIntegrations{
@@ -3644,7 +3705,60 @@ func (r *mutationResolver) EditServiceGithubSettings(ctx context.Context, id int
 	if updateErr != nil {
 		return nil, updateErr
 	}
+
+	_, _ = r.Redis.ResetServiceErrorCount(ctx, projectID)
 	return service, nil
+}
+
+// CreateErrorTag is the resolver for the createErrorTag field.
+func (r *mutationResolver) CreateErrorTag(ctx context.Context, title string, description string) (*model.ErrorTag, error) {
+	return r.Resolver.CreateErrorTag(ctx, title, description)
+}
+
+// UpsertSlackChannel is the resolver for the upsertSlackChannel field.
+func (r *mutationResolver) UpsertSlackChannel(ctx context.Context, projectID int, name string) (*modelInputs.SanitizedSlackChannel, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	channel, err := r.CreateSlackChannel(project.WorkspaceID, name)
+	if err == nil {
+		return &modelInputs.SanitizedSlackChannel{
+			WebhookChannel:   &channel.WebhookChannel,
+			WebhookChannelID: &channel.WebhookChannelID,
+		}, nil
+	}
+
+	if err.Error() != "name_taken" {
+		return nil, err
+	}
+
+	channels, _, err := r.GetSlackChannelsFromSlack(ctx, project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	ch, ok := lo.Find(*channels, func(channel model.SlackChannel) bool {
+		return strings.EqualFold(channel.WebhookChannel, "#"+name)
+	})
+	if !ok {
+		return nil, e.New("failed to find conflicting slack channel")
+	}
+
+	return &modelInputs.SanitizedSlackChannel{
+		WebhookChannel:   &ch.WebhookChannel,
+		WebhookChannelID: &ch.WebhookChannelID,
+	}, nil
+}
+
+// UpsertDiscordChannel is the resolver for the upsertDiscordChannel field.
+func (r *mutationResolver) UpsertDiscordChannel(ctx context.Context, projectID int, name string) (*model.DiscordChannel, error) {
+	project, err := r.isAdminInProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.Resolver.UpsertDiscordChannel(project.WorkspaceID, name)
 }
 
 // Accounts is the resolver for the accounts field.
@@ -4029,7 +4143,11 @@ func (r *queryResolver) RageClicksForProject(ctx context.Context, projectID int,
 }
 
 // ErrorGroupsOpensearch is the resolver for the error_groups_opensearch field.
-func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, page *int) (*model.ErrorResults, error) {
+func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int, count int, query string, clickhouseQuery *modelInputs.ClickhouseQuery, page *int) (*model.ErrorResults, error) {
+	if clickhouseQuery != nil {
+		return r.ErrorGroupsClickhouse(ctx, projectID, count, *clickhouseQuery, page)
+	}
+
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -4083,8 +4201,52 @@ func (r *queryResolver) ErrorGroupsOpensearch(ctx context.Context, projectID int
 	}, nil
 }
 
+// ErrorGroupsClickhouse is the resolver for the error_groups_clickhouse field.
+func (r *queryResolver) ErrorGroupsClickhouse(ctx context.Context, projectID int, count int, query modelInputs.ClickhouseQuery, page *int) (*model.ErrorResults, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	ids, total, err := r.ClickhouseClient.QueryErrorGroupIds(ctx, projectID, count, query, page, retentionDate)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*model.ErrorGroup
+	if err := r.DB.Model(&model.ErrorGroup{}).
+		Where("id in ?", ids).
+		Where("project_id = ?", projectID).
+		Order("updated_at DESC").
+		Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	if len(results) > 0 {
+		if err := r.SetErrorFrequenciesClickhouse(ctx, projectID, results, ErrorGroupLookbackDays); err != nil {
+			return nil, err
+		}
+	}
+
+	return &model.ErrorResults{
+		ErrorGroups: lo.Map(results, func(eg *model.ErrorGroup, idx int) model.ErrorGroup { return *eg }),
+		TotalCount:  total,
+	}, nil
+}
+
 // ErrorsHistogram is the resolver for the errors_histogram field.
-func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
+func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions, clickhouseQuery *modelInputs.ClickhouseQuery) (*model.ErrorsHistogram, error) {
+	if clickhouseQuery != nil {
+		return r.ErrorsHistogramClickhouse(ctx, projectID, *clickhouseQuery, histogramOptions)
+	}
+
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -4119,14 +4281,48 @@ func (r *queryResolver) ErrorsHistogram(ctx context.Context, projectID int, quer
 	}, nil
 }
 
+// ErrorsHistogramClickhouse is the resolver for the errors_histogram_clickhouse field.
+func (r *queryResolver) ErrorsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.ErrorsHistogram, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	bucketTimes, totals, err := r.ClickhouseClient.QueryErrorHistogram(ctx, projectID, query, retentionDate, histogramOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(bucketTimes) > 0 {
+		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
+	}
+
+	return &model.ErrorsHistogram{
+		BucketTimes:  MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		ErrorObjects: MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
+	}, nil
+}
+
 // ErrorGroup is the resolver for the error_group field.
-func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string) (*model.ErrorGroup, error) {
+func (r *queryResolver) ErrorGroup(ctx context.Context, secureID string, useClickhouse *bool) (*model.ErrorGroup, error) {
 	eg, err := r.canAdminViewErrorGroup(ctx, secureID)
 	if err != nil {
 		return nil, err
 	}
-	if err := r.loadErrorGroupFrequencies(ctx, eg); err != nil {
-		return nil, err
+	if useClickhouse != nil && *useClickhouse {
+		if err := r.loadErrorGroupFrequenciesClickhouse(ctx, eg); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := r.loadErrorGroupFrequencies(ctx, eg); err != nil {
+			return nil, err
+		}
 	}
 	retentionDate, err := r.GetProjectRetentionDate(eg.ProjectID)
 	if err != nil {
@@ -4295,6 +4491,7 @@ func (r *queryResolver) EnhancedUserDetails(ctx context.Context, sessionSecureID
 			} else if len(p.ID) > 0 {
 				// Store the data for this email in the DB.
 				r.PrivateWorkerPool.SubmitRecover(func() {
+					ctx := context.Background()
 					log.WithContext(ctx).Infof("caching response data in the db")
 					modelToSave := &model.EnhancedUserDetails{}
 					modelToSave.Email = &email
@@ -4879,7 +5076,7 @@ func (r *queryResolver) DailyErrorFrequency(ctx context.Context, projectID int, 
 }
 
 // ErrorGroupFrequencies is the resolver for the errorGroupFrequencies field.
-func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params modelInputs.ErrorGroupFrequenciesParamsInput, metric *string) ([]*modelInputs.ErrorDistributionItem, error) {
+func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int, errorGroupSecureIds []string, params modelInputs.ErrorGroupFrequenciesParamsInput, metric *string, useClickhouse *bool) ([]*modelInputs.ErrorDistributionItem, error) {
 	var errorGroupIDs []int
 	for _, errorGroupSecureID := range errorGroupSecureIds {
 		errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
@@ -4891,14 +5088,25 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 	if metric == nil {
 		metric = pointy.String("")
 	}
+	if useClickhouse != nil && *useClickhouse {
+		results, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, errorGroupIDs, params)
+		if err != nil {
+			return nil, err
+		}
+		return results, nil
+	}
 	return r.GetErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params, *metric)
 }
 
 // ErrorGroupTags is the resolver for the errorGroupTags field.
-func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID string) ([]*modelInputs.ErrorGroupTagAggregation, error) {
+func (r *queryResolver) ErrorGroupTags(ctx context.Context, errorGroupSecureID string, useClickhouse *bool) ([]*modelInputs.ErrorGroupTagAggregation, error) {
 	errorGroup, err := r.canAdminViewErrorGroup(ctx, errorGroupSecureID)
 	if err != nil {
 		return nil, err
+	}
+
+	if useClickhouse != nil && *useClickhouse {
+		return r.ClickhouseClient.QueryErrorGroupTags(ctx, errorGroup.ProjectID, errorGroup.ID)
 	}
 
 	query := fmt.Sprintf(`
@@ -5182,17 +5390,29 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 	}
 	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
 
-	sortFieldStr := "CreatedAt DESC, ID DESC"
+	chSortStr := "CreatedAt DESC, ID DESC"
+	pgSortStr := "created_at DESC"
 	if !sortDesc {
-		sortFieldStr = "CreatedAt ASC, ID ASC"
+		chSortStr = "CreatedAt ASC, ID ASC"
+		pgSortStr = "created_at ASC"
 	}
-	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, projectID, count, query, sortFieldStr, page, retentionDate)
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	ids, total, err := r.ClickhouseClient.QuerySessionIds(ctx, admin, projectID, count, query, chSortStr, page, retentionDate)
 	if err != nil {
 		return nil, err
 	}
 
 	var results []model.Session
-	if err := r.DB.Model(&model.Session{}).Where("id in ?", ids).Order("created_at DESC").Find(&results).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).
+		Where("id in ?", ids).
+		Where("project_id = ?", projectID).
+		Order(pgSortStr).
+		Find(&results).Error; err != nil {
 		return nil, err
 	}
 
@@ -5203,7 +5423,10 @@ func (r *queryResolver) SessionsClickhouse(ctx context.Context, projectID int, c
 }
 
 // SessionsHistogram is the resolver for the sessions_histogram field.
-func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
+func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, query string, histogramOptions modelInputs.DateHistogramOptions, clickhouseQuery *modelInputs.ClickhouseQuery) (*model.SessionsHistogram, error) {
+	if clickhouseQuery != nil {
+		return r.SessionsHistogramClickhouse(ctx, projectID, *clickhouseQuery, histogramOptions)
+	}
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -5251,6 +5474,41 @@ func (r *queryResolver) SessionsHistogram(ctx context.Context, projectID int, qu
 		SessionsWithoutErrors: MergeHistogramBucketCounts(noErrorsCounts, histogramOptions.BucketSize.Multiple),
 		SessionsWithErrors:    MergeHistogramBucketCounts(withErrorsCounts, histogramOptions.BucketSize.Multiple),
 		TotalSessions:         MergeHistogramBucketCounts(totalCounts, histogramOptions.BucketSize.Multiple),
+	}, nil
+}
+
+// SessionsHistogramClickhouse is the resolver for the sessions_histogram_clickhouse field.
+func (r *queryResolver) SessionsHistogramClickhouse(ctx context.Context, projectID int, query modelInputs.ClickhouseQuery, histogramOptions modelInputs.DateHistogramOptions) (*model.SessionsHistogram, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+	workspace, err := r.GetWorkspace(project.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+	retentionDate := GetRetentionDate(workspace.RetentionPeriod)
+
+	admin, err := r.getCurrentAdmin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketTimes, totals, withErrors, withoutErrors, err := r.ClickhouseClient.QuerySessionHistogram(ctx, admin, projectID, query, retentionDate, histogramOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(bucketTimes) > 0 {
+		bucketTimes[0] = *histogramOptions.Bounds.StartDate // OpenSearch rounds the first bucket to a calendar interval by default
+		bucketTimes = append(bucketTimes, *histogramOptions.Bounds.EndDate)
+	}
+
+	return &model.SessionsHistogram{
+		BucketTimes:           MergeHistogramBucketTimes(bucketTimes, histogramOptions.BucketSize.Multiple),
+		SessionsWithoutErrors: MergeHistogramBucketCounts(withoutErrors, histogramOptions.BucketSize.Multiple),
+		SessionsWithErrors:    MergeHistogramBucketCounts(withErrors, histogramOptions.BucketSize.Multiple),
+		TotalSessions:         MergeHistogramBucketCounts(totals, histogramOptions.BucketSize.Multiple),
 	}, nil
 }
 
@@ -5386,7 +5644,14 @@ func (r *queryResolver) FieldsClickhouse(ctx context.Context, projectID int, cou
 }
 
 // ErrorFieldsOpensearch is the resolver for the error_fields_opensearch field.
-func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string) ([]string, error) {
+func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]string, error) {
+	if useClickhouse != nil && *useClickhouse {
+		if startDate == nil || endDate == nil {
+			return nil, errors.New("startDate and endDate must not be nil")
+		}
+		return r.ErrorFieldsClickhouse(ctx, projectID, count, fieldType, fieldName, query, *startDate, *endDate)
+	}
+
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -5436,8 +5701,20 @@ func (r *queryResolver) ErrorFieldsOpensearch(ctx context.Context, projectID int
 	return values, nil
 }
 
+// ErrorFieldsClickhouse is the resolver for the error_fields_clickhouse field.
+func (r *queryResolver) ErrorFieldsClickhouse(ctx context.Context, projectID int, count int, fieldType string, fieldName string, query string, startDate time.Time, endDate time.Time) ([]string, error) {
+	return r.ClickhouseClient.QueryErrorFieldValues(ctx, projectID, count, fieldType, fieldName, query, startDate, endDate)
+}
+
 // QuickFieldsOpensearch is the resolver for the quickFields_opensearch field.
-func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int, count int, query string) ([]*model.Field, error) {
+func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int, count int, query string, startDate *time.Time, endDate *time.Time, useClickhouse *bool) ([]*model.Field, error) {
+	if useClickhouse != nil && *useClickhouse {
+		if startDate == nil || endDate == nil {
+			return nil, errors.New("startDate and endDate must not be nil")
+		}
+		return r.QuickFieldsClickhouse(ctx, projectID, count, query, *startDate, *endDate)
+	}
+
 	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, nil
@@ -5496,6 +5773,11 @@ func (r *queryResolver) QuickFieldsOpensearch(ctx context.Context, projectID int
 	}
 
 	return results, nil
+}
+
+// QuickFieldsClickhouse is the resolver for the quickFields_clickhouse field.
+func (r *queryResolver) QuickFieldsClickhouse(ctx context.Context, projectID int, count int, query string, startDate time.Time, endDate time.Time) ([]*model.Field, error) {
+	panic(fmt.Errorf("not implemented: QuickFieldsClickhouse - quickFields_clickhouse"))
 }
 
 // BillingDetailsForProject is the resolver for the billingDetailsForProject field.
@@ -7339,7 +7621,7 @@ func (r *queryResolver) EmailOptOuts(ctx context.Context, token *string, adminID
 }
 
 // Logs is the resolver for the logs field.
-func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput, after *string, before *string, at *string, direction modelInputs.LogDirection) (*modelInputs.LogConnection, error) {
+func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.LogConnection, error) {
 	admin, err := r.getCurrentAdmin(ctx)
 	if err != nil {
 		return nil, err
@@ -7351,6 +7633,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 
 	// Update the the number of logs viewed for the current admin.
 	r.PrivateWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		var totalLogCount int64
 		if err := r.DB.Raw(`
 			select count(*)
@@ -7403,7 +7686,7 @@ func (r *queryResolver) Logs(ctx context.Context, projectID int, params modelInp
 }
 
 // SessionLogs is the resolver for the sessionLogs field.
-func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) ([]*modelInputs.LogEdge, error) {
+func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params modelInputs.QueryInput) ([]*modelInputs.LogEdge, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7413,7 +7696,7 @@ func (r *queryResolver) SessionLogs(ctx context.Context, projectID int, params m
 }
 
 // LogsTotalCount is the resolver for the logs_total_count field.
-func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (uint64, error) {
+func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, params modelInputs.QueryInput) (uint64, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return 0, err
@@ -7423,7 +7706,7 @@ func (r *queryResolver) LogsTotalCount(ctx context.Context, projectID int, param
 }
 
 // LogsHistogram is the resolver for the logs_histogram field.
-func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.LogsParamsInput) (*modelInputs.LogsHistogram, error) {
+func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params modelInputs.QueryInput) (*modelInputs.LogsHistogram, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7433,7 +7716,7 @@ func (r *queryResolver) LogsHistogram(ctx context.Context, projectID int, params
 }
 
 // LogsKeys is the resolver for the logs_keys field.
-func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.LogKey, error) {
+func (r *queryResolver) LogsKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.QueryKey, error) {
 	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
 	if err != nil {
 		return nil, err
@@ -7566,6 +7849,15 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 	return insight, nil
 }
 
+// SessionExports is the resolver for the session_exports field.
+func (r *queryResolver) SessionExports(ctx context.Context) ([]*model.SessionExport, error) {
+	var sessionExports []*model.SessionExport
+	if err := r.DB.Model(&model.SessionExport{}).Order("id DESC").Scan(&sessionExports).Error; err != nil {
+		return nil, err
+	}
+	return sessionExports, nil
+}
+
 // SystemConfiguration is the resolver for the system_configuration field.
 func (r *queryResolver) SystemConfiguration(ctx context.Context) (*model.SystemConfiguration, error) {
 	return r.Store.GetSystemConfiguration(ctx)
@@ -7590,6 +7882,56 @@ func (r *queryResolver) Services(ctx context.Context, projectID int, after *stri
 	})
 
 	return &connection, err
+}
+
+// ErrorTags is the resolver for the error_tags field.
+func (r *queryResolver) ErrorTags(ctx context.Context) ([]*model.ErrorTag, error) {
+	return r.GetErrorTags()
+}
+
+// MatchErrorTag is the resolver for the match_error_tag field.
+func (r *queryResolver) MatchErrorTag(ctx context.Context, query string) ([]*modelInputs.MatchedErrorTag, error) {
+	return r.Resolver.MatchErrorTag(ctx, query)
+}
+
+// FindSimilarErrors is the resolver for the find_similar_errors field.
+func (r *queryResolver) FindSimilarErrors(ctx context.Context, query string) ([]*model.MatchedErrorObject, error) {
+	return r.Resolver.FindSimilarErrors(ctx, query)
+}
+
+// Traces is the resolver for the traces field.
+func (r *queryResolver) Traces(ctx context.Context, projectID int, params modelInputs.QueryInput, after *string, before *string, at *string, direction modelInputs.SortDirection) (*modelInputs.TraceConnection, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.ReadTraces(ctx, project.ID, params, clickhouse.Pagination{
+		After:     after,
+		Before:    before,
+		At:        at,
+		Direction: direction,
+	})
+}
+
+// TracesKeys is the resolver for the traces_keys field.
+func (r *queryResolver) TracesKeys(ctx context.Context, projectID int, dateRange modelInputs.DateRangeRequiredInput) ([]*modelInputs.QueryKey, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.TracesKeys(ctx, project.ID, dateRange.StartDate, dateRange.EndDate)
+}
+
+// TracesKeyValues is the resolver for the traces_key_values field.
+func (r *queryResolver) TracesKeyValues(ctx context.Context, projectID int, keyName string, dateRange modelInputs.DateRangeRequiredInput) ([]string, error) {
+	project, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ClickhouseClient.TracesKeyValues(ctx, project.ID, keyName, dateRange.StartDate, dateRange.EndDate)
 }
 
 // Params is the resolver for the params field.
@@ -7842,10 +8184,16 @@ GROUP BY
 	return tagsResponse, nil
 }
 
+// TargetEmails is the resolver for the target_emails field.
+func (r *sessionExportResolver) TargetEmails(ctx context.Context, obj *model.SessionExport) ([]string, error) {
+	return obj.TargetEmails, nil
+}
+
 // SessionPayloadAppended is the resolver for the session_payload_appended field.
 func (r *subscriptionResolver) SessionPayloadAppended(ctx context.Context, sessionSecureID string, initialEventsCount int) (<-chan *model.SessionPayload, error) {
 	ch := make(chan *model.SessionPayload)
 	r.SubscriptionWorkerPool.SubmitRecover(func() {
+		ctx := context.Background()
 		defer close(ch)
 		log.WithContext(ctx).Infof("Polling for events on %s starting from index %d, number of waiting tasks %d",
 			sessionSecureID,
@@ -7914,6 +8262,11 @@ func (r *Resolver) ErrorSegment() generated.ErrorSegmentResolver { return &error
 // LogAlert returns generated.LogAlertResolver implementation.
 func (r *Resolver) LogAlert() generated.LogAlertResolver { return &logAlertResolver{r} }
 
+// MatchedErrorObject returns generated.MatchedErrorObjectResolver implementation.
+func (r *Resolver) MatchedErrorObject() generated.MatchedErrorObjectResolver {
+	return &matchedErrorObjectResolver{r}
+}
+
 // MetricMonitor returns generated.MetricMonitorResolver implementation.
 func (r *Resolver) MetricMonitor() generated.MetricMonitorResolver { return &metricMonitorResolver{r} }
 
@@ -7940,6 +8293,9 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
 }
 
+// SessionExport returns generated.SessionExportResolver implementation.
+func (r *Resolver) SessionExport() generated.SessionExportResolver { return &sessionExportResolver{r} }
+
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
 
@@ -7955,6 +8311,7 @@ type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
 type logAlertResolver struct{ *Resolver }
+type matchedErrorObjectResolver struct{ *Resolver }
 type metricMonitorResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
@@ -7963,5 +8320,6 @@ type serviceResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+type sessionExportResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
 type timelineIndicatorEventResolver struct{ *Resolver }

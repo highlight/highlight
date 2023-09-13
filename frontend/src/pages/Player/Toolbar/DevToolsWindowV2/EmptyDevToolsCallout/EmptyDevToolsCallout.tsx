@@ -1,5 +1,10 @@
 import { Button } from '@components/Button'
-import { Box, Callout, IconSolidCubeTransparent, Text } from '@highlight-run/ui'
+import {
+	Box,
+	Callout,
+	IconSolidInformationCircle,
+	Text,
+} from '@highlight-run/ui'
 import {
 	RequestStatus,
 	RequestType,
@@ -42,13 +47,20 @@ export const EmptyDevToolsCallout = ({
 		>
 			<Callout
 				border
-				title={`Couldn't find any recorded ${
-					kind === Tab.Console
-						? 'console messages'
-						: kind === Tab.Network
-						? 'network requests'
-						: kind.toLocaleLowerCase()
-				}.`}
+				style={{
+					maxWidth: '340px',
+				}}
+				title={
+					!requestTypes.length && filter?.length
+						? `Can't find what you're looking for?`
+						: `Couldn't find any recorded ${
+								kind === Tab.Console
+									? 'console messages'
+									: kind === Tab.Network
+									? 'network requests'
+									: kind.toLocaleLowerCase()
+						  }.`
+				}
 				icon={() => (
 					<Box
 						borderRadius="5"
@@ -62,7 +74,7 @@ export const EmptyDevToolsCallout = ({
 							width: 22,
 						}}
 					>
-						<IconSolidCubeTransparent size={14} color="#777777" />
+						<IconSolidInformationCircle size={14} color="#777777" />
 					</Box>
 				)}
 			>
@@ -91,40 +103,39 @@ export const EmptyDevToolsCallout = ({
 				) : filter?.length ? (
 					<>
 						<Text color="n11">
-							Nothing matched filter '{filter}'
-						</Text>
-						<Text color="n11">
-							If you think something's wrong, feel free to reach
-							out to us!
+							Seems like there are no results for your search
+							entry. Try search for something else!
 						</Text>
 					</>
 				) : (
 					<>
 						<Text color="n11">
 							Double check your <code>H.init</code> settings to
-							ensure this is recorded.
-						</Text>
-						<Text color="n11">
-							If you think something's wrong, feel free to reach
-							out to us!
+							ensure this is recorded. If you think something's
+							wrong, feel free to reach out to us!
 						</Text>
 					</>
 				)}
-				<Button
-					kind="secondary"
-					emphasis="low"
-					onClick={() => {
-						window.open(
-							kind === Tab.Console
-								? 'https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/console-messages'
-								: 'https://www.highlight.io/docs/general/product-features/error-monitoring/grouping-errors',
-							'_blank',
-						)
-					}}
-					trackingId="emptyDevToolsLearnMore"
-				>
-					Learn more
-				</Button>
+				{!requestTypes.length && filter?.length ? null : (
+					<Button
+						style={{
+							maxWidth: 'max-content',
+						}}
+						kind="secondary"
+						emphasis="high"
+						onClick={() => {
+							window.open(
+								kind === Tab.Console
+									? 'https://www.highlight.io/docs/getting-started/client-sdk/replay-configuration/console-messages'
+									: 'https://www.highlight.io/docs/general/product-features/error-monitoring/grouping-errors',
+								'_blank',
+							)
+						}}
+						trackingId="emptyDevToolsLearnMore"
+					>
+						Learn more
+					</Button>
+				)}
 			</Callout>
 		</Box>
 	)

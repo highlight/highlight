@@ -16,17 +16,10 @@ import {
 	Tooltip,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { QueryParam } from '@pages/LogsPage/LogsPage'
 import {
 	IconCollapsed,
 	IconExpanded,
 } from '@pages/LogsPage/LogsTable/LogsTable'
-import {
-	DEFAULT_LOGS_OPERATOR,
-	LogsSearchParam,
-	quoteQueryValue,
-	stringifyLogsQuery,
-} from '@pages/LogsPage/SearchForm/utils'
 import { LogEdgeWithError } from '@pages/LogsPage/useGetLogs'
 import { PlayerSearchParameters } from '@pages/Player/PlayerHook/utils'
 import { Row } from '@tanstack/react-table'
@@ -35,13 +28,22 @@ import React, { Fragment, useEffect, useState } from 'react'
 import { createSearchParams, generatePath } from 'react-router-dom'
 import { useQueryParam } from 'use-query-params'
 
+import { QueryParam } from '@/components/Search/SearchForm/SearchForm'
+import {
+	DEFAULT_OPERATOR,
+	quoteQueryValue,
+	SearchParam,
+	stringifySearchQuery,
+} from '@/components/Search/SearchForm/utils'
+import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 
 import * as styles from './LogDetails.css'
+import * as logsTableStyles from './LogsTable.css'
 
 type Props = {
 	row: Row<LogEdgeWithError>
-	queryTerms: LogsSearchParam[]
+	queryTerms: SearchParam[]
 	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
 }
 
@@ -133,7 +135,7 @@ export const LogDetails: React.FC<Props> = ({
 						) : (
 							<LogValue
 								label={key}
-								value={value as string}
+								value={String(value)}
 								queryKey={key}
 								queryTerms={queryTerms}
 							/>
@@ -303,10 +305,10 @@ export const LogDetails: React.FC<Props> = ({
 
 const LogDetailsObject: React.FC<{
 	allExpanded: boolean
-	attribute: string | object
+	attribute: string | object | number
 	label: string
 	queryBaseKeys: string[]
-	queryTerms: LogsSearchParam[]
+	queryTerms: SearchParam[]
 	matchedAttributes: ReturnType<typeof findMatchingLogAttributes>
 }> = ({
 	allExpanded,
@@ -365,7 +367,7 @@ const LogDetailsObject: React.FC<{
 		<Box cssClass={styles.line}>
 			<LogValue
 				label={label}
-				value={attribute}
+				value={String(attribute)}
 				queryKey={queryKey}
 				queryTerms={queryTerms}
 				queryMatch={queryMatch?.match}
@@ -377,15 +379,14 @@ const LogDetailsObject: React.FC<{
 export const LogValue: React.FC<{
 	label: string
 	value: string
-	queryTerms: LogsSearchParam[]
+	queryTerms: SearchParam[]
 	queryKey: string
 	queryMatch?: string
 }> = ({ label, queryKey, queryTerms, value, queryMatch }) => {
 	const [_, setQuery] = useQueryParam('query', QueryParam)
 
 	// replace wildcards for highlighting.
-	const matchPattern = queryMatch?.replace('*', '')
-	const stringParts = matchPattern ? value.split(matchPattern) : [value]
+	const matchPattern = queryMatch?.replaceAll('*', '')
 
 	return (
 		<LogAttributeLine>
@@ -406,22 +407,13 @@ export const LogValue: React.FC<{
 				<Box borderRadius="4" p="6">
 					<Text family="monospace" color="caution" break="word">
 						{matchPattern ? (
-							stringParts.map((part, index) => (
-								<React.Fragment key={index}>
-									{!!part && <Box as="span">{part}</Box>}
-									{index < stringParts.length - 1 && (
-										<Box
-											as="span"
-											display="inline-block"
-											backgroundColor="caution"
-											px="4"
-											borderRadius="4"
-										>
-											{matchPattern}
-										</Box>
-									)}
-								</React.Fragment>
-							))
+							<TextHighlighter
+								highlightClassName={
+									logsTableStyles.textHighlight
+								}
+								searchWords={[matchPattern]}
+								textToHighlight={value}
+							/>
 						) : (
 							<>{value ? value : '""'}</>
 						)}
@@ -450,12 +442,13 @@ export const LogValue: React.FC<{
 													value: quoteQueryValue(
 														value,
 													),
-													operator:
-														DEFAULT_LOGS_OPERATOR,
+													operator: DEFAULT_OPERATOR,
 													offsetStart: 0, // not actually used
 											  })
 
-										setQuery(stringifyLogsQuery(queryTerms))
+										setQuery(
+											stringifySearchQuery(queryTerms),
+										)
 									}}
 								/>
 							}
@@ -504,7 +497,7 @@ const LogAttributeLine: React.FC<React.PropsWithChildren> = ({ children }) => {
 		<Box
 			cssClass={styles.logAttributeLine}
 			display="flex"
-			alignItems="center"
+			alignItems="flex-start"
 			flexDirection="row"
 			gap="4"
 			flexShrink={0}

@@ -68,6 +68,10 @@ slug: client
           <p>Specifies the version of your application. See [Versioning Sessions](../getting-started/3_client-sdk/7_replay-configuration/versioning-sessions-and-errors.md) and [Versioning Errors](../getting-started/3_client-sdk/7_replay-configuration/versioning-sessions-and-errors.md) to see how setting the version can help you move faster.</p>
         </aside>
         <aside className="parameter">
+          <h5>serviceName <code>string</code> <code>optional</code></h5>
+          <p>Specifies the name of your application.</p>
+        </aside>
+        <aside className="parameter">
           <h5>enableStrictPrivacy <code>boolean</code> <code>optional</code></h5>
           <p>Specifies whether Highlight should redact all text and image data during recording. This is useful to make sure you are not recording any personally identifiable information without having to manually add annotations to elements you don't want to be recorded. See [Privacy](../general/6_product-features/1_session-replay/privacy.md) to learn more about the privacy options. The default value is false.</p>
         </aside>

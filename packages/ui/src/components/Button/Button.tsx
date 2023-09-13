@@ -2,7 +2,7 @@ import React from 'react'
 import {
 	Button as AriakitButton,
 	ButtonProps as AriakitButtonProps,
-} from 'ariakit/button'
+} from '@ariakit/react'
 import { Props as TextProps, Text } from '../Text/Text'
 
 import * as styles from './styles.css'

@@ -6,14 +6,15 @@ import {
 import { GetLogsQuery, GetLogsQueryVariables } from '@graph/operations'
 import { LogEdge, PageInfo } from '@graph/schemas'
 import * as Types from '@graph/schemas'
-import { LOG_TIME_FORMAT } from '@pages/LogsPage/constants'
-import {
-	buildLogsQueryForServer,
-	parseLogsQuery,
-} from '@pages/LogsPage/SearchForm/utils'
 import { usePollQuery } from '@util/search'
 import moment from 'moment'
 import { useCallback, useEffect, useState } from 'react'
+
+import { TIME_FORMAT } from '@/components/Search/SearchForm/constants'
+import {
+	buildSearchQueryForServer,
+	parseSearchQuery,
+} from '@/components/Search/SearchForm/utils'
 
 export type LogEdgeWithError = LogEdge & {
 	error_object?: Pick<
@@ -53,8 +54,8 @@ export const useGetLogs = ({
 	const [windowInfo, setWindowInfo] = useState<PageInfo>(initialWindowInfo)
 	const [loadingAfter, setLoadingAfter] = useState(false)
 	const [loadingBefore, setLoadingBefore] = useState(false)
-	const queryTerms = parseLogsQuery(query)
-	const serverQuery = buildLogsQueryForServer(queryTerms)
+	const queryTerms = parseSearchQuery(query)
+	const serverQuery = buildSearchQueryForServer(queryTerms)
 
 	useEffect(() => {
 		setWindowInfo(initialWindowInfo)
@@ -64,12 +65,12 @@ export const useGetLogs = ({
 		variables: {
 			project_id: project_id!,
 			at: logCursor,
-			direction: Types.LogDirection.Desc,
+			direction: Types.SortDirection.Desc,
 			params: {
 				query: serverQuery,
 				date_range: {
-					start_date: moment(startDate).format(LOG_TIME_FORMAT),
-					end_date: moment(endDate).format(LOG_TIME_FORMAT),
+					start_date: moment(startDate).format(TIME_FORMAT),
+					end_date: moment(endDate).format(TIME_FORMAT),
 				},
 			},
 		},
@@ -84,26 +85,29 @@ export const useGetLogs = ({
 		GetLogsQuery,
 		GetLogsQueryVariables
 	>({
-		variableFn: () => ({
-			project_id: project_id!,
-			at: logCursor,
-			direction: Types.LogDirection.Desc,
-			params: {
-				query: serverQuery,
-				date_range: {
-					start_date: moment(endDate).format(LOG_TIME_FORMAT),
-					end_date: moment(endDate)
-						.add(1, 'hour')
-						.format(LOG_TIME_FORMAT),
+		variableFn: useCallback(
+			() => ({
+				project_id: project_id!,
+				at: logCursor,
+				direction: Types.SortDirection.Desc,
+				params: {
+					query: serverQuery,
+					date_range: {
+						start_date: moment(endDate).format(TIME_FORMAT),
+						end_date: moment(endDate)
+							.add(1, 'hour')
+							.format(TIME_FORMAT),
+					},
 				},
-			},
-		}),
+			}),
+			[endDate, logCursor, project_id, serverQuery],
+		),
 		moreDataQuery,
-		getResultCount: (result) => {
+		getResultCount: useCallback((result) => {
 			if (result?.data?.logs.edges.length !== undefined) {
 				return result?.data?.logs.edges.length
 			}
-		},
+		}, []),
 	})
 
 	const { data: logErrorObjects } = useGetLogsErrorObjectsQuery({

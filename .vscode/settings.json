@@ -87,9 +87,12 @@
 		"**/yarn-error.log": true
 	},
 	"cSpell.words": [
+		"Algora",
 		"autoinject",
 		"Autoinjected",
 		"Blocklist",
+		"Clickhouse",
+		"incentivizing",
 		"interactable",
 		"munge",
 		"snapshotting",
@@ -141,5 +144,6 @@
 			"driver": "ClickHouse",
 			"name": "clickhouse-dev"
 		}
-	]
+	],
+	"sort-imports.on-save": false
 }

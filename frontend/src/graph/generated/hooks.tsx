@@ -78,6 +78,7 @@ export const SessionAlertFragmentFragmentDoc = gql`
 		CountThreshold
 		DailyFrequency
 		disabled
+		default
 		EmailsToNotify
 		ExcludedEnvironments
 		ExcludeRules
@@ -139,6 +140,9 @@ export const ErrorObjectFragmentDoc = gql`
 			linesBefore
 			linesAfter
 			error
+			enhancementSource
+			enhancementVersion
+			externalLink
 			sourceMappingErrorMetadata {
 				errorCode
 				stackTraceFileURL
@@ -162,6 +166,15 @@ export const ErrorObjectFragmentDoc = gql`
 		browser
 		environment
 		serviceVersion
+		serviceName
+	}
+`
+export const ErrorTagFragmentDoc = gql`
+	fragment ErrorTag on ErrorTag {
+		id
+		created_at
+		title
+		description
 	}
 `
 export const MarkErrorGroupAsViewedDocument = gql`
@@ -2840,6 +2853,7 @@ export const CreateErrorAlertDocument = gql`
 		$environments: [String]!
 		$regex_groups: [String]!
 		$frequency: Int!
+		$default: Boolean
 	) {
 		createErrorAlert(
 			project_id: $project_id
@@ -2853,6 +2867,7 @@ export const CreateErrorAlertDocument = gql`
 			threshold_window: $threshold_window
 			regex_groups: $regex_groups
 			frequency: $frequency
+			default: $default
 		) {
 			id
 			ChannelsToNotify {
@@ -2900,6 +2915,7 @@ export type CreateErrorAlertMutationFn = Apollo.MutationFunction<
  *      environments: // value for 'environments'
  *      regex_groups: // value for 'regex_groups'
  *      frequency: // value for 'frequency'
+ *      default: // value for 'default'
  *   },
  * });
  */
@@ -4509,6 +4525,53 @@ export type DeleteSessionsMutationOptions = Apollo.BaseMutationOptions<
 	Types.DeleteSessionsMutation,
 	Types.DeleteSessionsMutationVariables
 >
+export const ExportSessionDocument = gql`
+	mutation ExportSession($session_secure_id: String!) {
+		exportSession(session_secure_id: $session_secure_id)
+	}
+`
+export type ExportSessionMutationFn = Apollo.MutationFunction<
+	Types.ExportSessionMutation,
+	Types.ExportSessionMutationVariables
+>
+
+/**
+ * __useExportSessionMutation__
+ *
+ * To run a mutation, you first call `useExportSessionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useExportSessionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [exportSessionMutation, { data, loading, error }] = useExportSessionMutation({
+ *   variables: {
+ *      session_secure_id: // value for 'session_secure_id'
+ *   },
+ * });
+ */
+export function useExportSessionMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.ExportSessionMutation,
+		Types.ExportSessionMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.ExportSessionMutation,
+		Types.ExportSessionMutationVariables
+	>(ExportSessionDocument, baseOptions)
+}
+export type ExportSessionMutationHookResult = ReturnType<
+	typeof useExportSessionMutation
+>
+export type ExportSessionMutationResult =
+	Apollo.MutationResult<Types.ExportSessionMutation>
+export type ExportSessionMutationOptions = Apollo.BaseMutationOptions<
+	Types.ExportSessionMutation,
+	Types.ExportSessionMutationVariables
+>
 export const UpdateVercelSettingsDocument = gql`
 	mutation UpdateVercelSettings(
 		$project_id: ID!
@@ -4864,6 +4927,161 @@ export type EditServiceGithubSettingsMutationOptions =
 		Types.EditServiceGithubSettingsMutation,
 		Types.EditServiceGithubSettingsMutationVariables
 	>
+export const CreateErrorTagDocument = gql`
+	mutation CreateErrorTag($title: String!, $description: String!) {
+		createErrorTag(title: $title, description: $description) {
+			id
+			created_at
+			title
+			description
+		}
+	}
+`
+export type CreateErrorTagMutationFn = Apollo.MutationFunction<
+	Types.CreateErrorTagMutation,
+	Types.CreateErrorTagMutationVariables
+>
+
+/**
+ * __useCreateErrorTagMutation__
+ *
+ * To run a mutation, you first call `useCreateErrorTagMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateErrorTagMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createErrorTagMutation, { data, loading, error }] = useCreateErrorTagMutation({
+ *   variables: {
+ *      title: // value for 'title'
+ *      description: // value for 'description'
+ *   },
+ * });
+ */
+export function useCreateErrorTagMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.CreateErrorTagMutation,
+		Types.CreateErrorTagMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.CreateErrorTagMutation,
+		Types.CreateErrorTagMutationVariables
+	>(CreateErrorTagDocument, baseOptions)
+}
+export type CreateErrorTagMutationHookResult = ReturnType<
+	typeof useCreateErrorTagMutation
+>
+export type CreateErrorTagMutationResult =
+	Apollo.MutationResult<Types.CreateErrorTagMutation>
+export type CreateErrorTagMutationOptions = Apollo.BaseMutationOptions<
+	Types.CreateErrorTagMutation,
+	Types.CreateErrorTagMutationVariables
+>
+export const UpsertSlackChannelDocument = gql`
+	mutation UpsertSlackChannel($project_id: ID!, $name: String!) {
+		upsertSlackChannel(project_id: $project_id, name: $name) {
+			webhook_channel
+			webhook_channel_id
+		}
+	}
+`
+export type UpsertSlackChannelMutationFn = Apollo.MutationFunction<
+	Types.UpsertSlackChannelMutation,
+	Types.UpsertSlackChannelMutationVariables
+>
+
+/**
+ * __useUpsertSlackChannelMutation__
+ *
+ * To run a mutation, you first call `useUpsertSlackChannelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpsertSlackChannelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [upsertSlackChannelMutation, { data, loading, error }] = useUpsertSlackChannelMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useUpsertSlackChannelMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpsertSlackChannelMutation,
+		Types.UpsertSlackChannelMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpsertSlackChannelMutation,
+		Types.UpsertSlackChannelMutationVariables
+	>(UpsertSlackChannelDocument, baseOptions)
+}
+export type UpsertSlackChannelMutationHookResult = ReturnType<
+	typeof useUpsertSlackChannelMutation
+>
+export type UpsertSlackChannelMutationResult =
+	Apollo.MutationResult<Types.UpsertSlackChannelMutation>
+export type UpsertSlackChannelMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpsertSlackChannelMutation,
+	Types.UpsertSlackChannelMutationVariables
+>
+export const UpsertDiscordChannelDocument = gql`
+	mutation UpsertDiscordChannel($project_id: ID!, $name: String!) {
+		upsertDiscordChannel(project_id: $project_id, name: $name) {
+			id
+			name
+		}
+	}
+`
+export type UpsertDiscordChannelMutationFn = Apollo.MutationFunction<
+	Types.UpsertDiscordChannelMutation,
+	Types.UpsertDiscordChannelMutationVariables
+>
+
+/**
+ * __useUpsertDiscordChannelMutation__
+ *
+ * To run a mutation, you first call `useUpsertDiscordChannelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpsertDiscordChannelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [upsertDiscordChannelMutation, { data, loading, error }] = useUpsertDiscordChannelMutation({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      name: // value for 'name'
+ *   },
+ * });
+ */
+export function useUpsertDiscordChannelMutation(
+	baseOptions?: Apollo.MutationHookOptions<
+		Types.UpsertDiscordChannelMutation,
+		Types.UpsertDiscordChannelMutationVariables
+	>,
+) {
+	return Apollo.useMutation<
+		Types.UpsertDiscordChannelMutation,
+		Types.UpsertDiscordChannelMutationVariables
+	>(UpsertDiscordChannelDocument, baseOptions)
+}
+export type UpsertDiscordChannelMutationHookResult = ReturnType<
+	typeof useUpsertDiscordChannelMutation
+>
+export type UpsertDiscordChannelMutationResult =
+	Apollo.MutationResult<Types.UpsertDiscordChannelMutation>
+export type UpsertDiscordChannelMutationOptions = Apollo.BaseMutationOptions<
+	Types.UpsertDiscordChannelMutation,
+	Types.UpsertDiscordChannelMutationVariables
+>
 export const GetMetricsTimelineDocument = gql`
 	query GetMetricsTimeline(
 		$project_id: ID!
@@ -5645,6 +5863,66 @@ export type GetSessionInsightLazyQueryHookResult = ReturnType<
 export type GetSessionInsightQueryResult = Apollo.QueryResult<
 	Types.GetSessionInsightQuery,
 	Types.GetSessionInsightQueryVariables
+>
+export const GetSessionExportsDocument = gql`
+	query GetSessionExports {
+		session_exports {
+			id
+			session_id
+			type
+			url
+			error
+			target_emails
+		}
+	}
+`
+
+/**
+ * __useGetSessionExportsQuery__
+ *
+ * To run a query within a React component, call `useGetSessionExportsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionExportsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionExportsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetSessionExportsQuery(
+	baseOptions?: Apollo.QueryHookOptions<
+		Types.GetSessionExportsQuery,
+		Types.GetSessionExportsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetSessionExportsQuery,
+		Types.GetSessionExportsQueryVariables
+	>(GetSessionExportsDocument, baseOptions)
+}
+export function useGetSessionExportsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetSessionExportsQuery,
+		Types.GetSessionExportsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetSessionExportsQuery,
+		Types.GetSessionExportsQueryVariables
+	>(GetSessionExportsDocument, baseOptions)
+}
+export type GetSessionExportsQueryHookResult = ReturnType<
+	typeof useGetSessionExportsQuery
+>
+export type GetSessionExportsLazyQueryHookResult = ReturnType<
+	typeof useGetSessionExportsLazyQuery
+>
+export type GetSessionExportsQueryResult = Apollo.QueryResult<
+	Types.GetSessionExportsQuery,
+	Types.GetSessionExportsQueryVariables
 >
 export const GetSessionCommentsDocument = gql`
 	query GetSessionComments($session_secure_id: String!) {
@@ -6732,6 +7010,9 @@ export const GetErrorFieldsOpensearchDocument = gql`
 		$field_type: String!
 		$field_name: String!
 		$query: String!
+		$start_date: Timestamp
+		$end_date: Timestamp
+		$use_clickhouse: Boolean
 	) {
 		error_fields_opensearch(
 			project_id: $project_id
@@ -6739,6 +7020,9 @@ export const GetErrorFieldsOpensearchDocument = gql`
 			field_type: $field_type
 			field_name: $field_name
 			query: $query
+			start_date: $start_date
+			end_date: $end_date
+			use_clickhouse: $use_clickhouse
 		)
 	}
 `
@@ -6760,6 +7044,9 @@ export const GetErrorFieldsOpensearchDocument = gql`
  *      field_type: // value for 'field_type'
  *      field_name: // value for 'field_name'
  *      query: // value for 'query'
+ *      start_date: // value for 'start_date'
+ *      end_date: // value for 'end_date'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -6917,11 +7204,13 @@ export const GetSessionsHistogramDocument = gql`
 		$project_id: ID!
 		$query: String!
 		$histogram_options: DateHistogramOptions!
+		$clickhouse_query: ClickhouseQuery
 	) {
 		sessions_histogram(
 			project_id: $project_id
 			query: $query
 			histogram_options: $histogram_options
+			clickhouse_query: $clickhouse_query
 		) {
 			bucket_times
 			sessions_without_errors
@@ -6946,6 +7235,7 @@ export const GetSessionsHistogramDocument = gql`
  *      project_id: // value for 'project_id'
  *      query: // value for 'query'
  *      histogram_options: // value for 'histogram_options'
+ *      clickhouse_query: // value for 'clickhouse_query'
  *   },
  * });
  */
@@ -6986,12 +7276,14 @@ export const GetErrorGroupsOpenSearchDocument = gql`
 		$project_id: ID!
 		$count: Int!
 		$query: String!
+		$clickhouse_query: ClickhouseQuery
 		$page: Int
 	) {
 		error_groups_opensearch(
 			project_id: $project_id
 			count: $count
 			query: $query
+			clickhouse_query: $clickhouse_query
 			page: $page
 		) {
 			error_groups {
@@ -7042,6 +7334,7 @@ export const GetErrorGroupsOpenSearchDocument = gql`
  *      project_id: // value for 'project_id'
  *      count: // value for 'count'
  *      query: // value for 'query'
+ *      clickhouse_query: // value for 'clickhouse_query'
  *      page: // value for 'page'
  *   },
  * });
@@ -7082,11 +7375,13 @@ export const GetErrorsHistogramDocument = gql`
 	query GetErrorsHistogram(
 		$project_id: ID!
 		$query: String!
+		$clickhouse_query: ClickhouseQuery
 		$histogram_options: DateHistogramOptions!
 	) {
 		errors_histogram(
 			project_id: $project_id
 			query: $query
+			clickhouse_query: $clickhouse_query
 			histogram_options: $histogram_options
 		) {
 			bucket_times
@@ -7109,6 +7404,7 @@ export const GetErrorsHistogramDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      query: // value for 'query'
+ *      clickhouse_query: // value for 'clickhouse_query'
  *      histogram_options: // value for 'histogram_options'
  *   },
  * });
@@ -8294,8 +8590,8 @@ export type GetSubscriptionDetailsQueryResult = Apollo.QueryResult<
 	Types.GetSubscriptionDetailsQueryVariables
 >
 export const GetErrorGroupDocument = gql`
-	query GetErrorGroup($secure_id: String!) {
-		error_group(secure_id: $secure_id) {
+	query GetErrorGroup($secure_id: String!, $use_clickhouse: Boolean) {
+		error_group(secure_id: $secure_id, use_clickhouse: $use_clickhouse) {
 			created_at
 			updated_at
 			id
@@ -8349,6 +8645,7 @@ export const GetErrorGroupDocument = gql`
  * const { data, loading, error } = useGetErrorGroupQuery({
  *   variables: {
  *      secure_id: // value for 'secure_id'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -11382,6 +11679,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			Name
 			DailyFrequency
 			disabled
+			default
 		}
 		new_session_alerts(project_id: $project_id) {
 			...SessionAlertFragment
@@ -11439,6 +11737,7 @@ export const GetAlertsPagePayloadDocument = gql`
 			CountThreshold
 			DailyFrequency
 			disabled
+			default
 			EmailsToNotify
 			ExcludedEnvironments
 			id
@@ -12219,12 +12518,14 @@ export const GetErrorGroupFrequenciesDocument = gql`
 		$error_group_secure_ids: [String!]!
 		$params: ErrorGroupFrequenciesParamsInput!
 		$metric: String!
+		$use_clickhouse: Boolean
 	) {
 		errorGroupFrequencies(
 			project_id: $project_id
 			error_group_secure_ids: $error_group_secure_ids
 			params: $params
 			metric: $metric
+			use_clickhouse: $use_clickhouse
 		) {
 			error_group_id
 			date
@@ -12250,6 +12551,7 @@ export const GetErrorGroupFrequenciesDocument = gql`
  *      error_group_secure_ids: // value for 'error_group_secure_ids'
  *      params: // value for 'params'
  *      metric: // value for 'metric'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -12286,8 +12588,14 @@ export type GetErrorGroupFrequenciesQueryResult = Apollo.QueryResult<
 	Types.GetErrorGroupFrequenciesQueryVariables
 >
 export const GetErrorGroupTagsDocument = gql`
-	query GetErrorGroupTags($error_group_secure_id: String!) {
-		errorGroupTags(error_group_secure_id: $error_group_secure_id) {
+	query GetErrorGroupTags(
+		$error_group_secure_id: String!
+		$use_clickhouse: Boolean
+	) {
+		errorGroupTags(
+			error_group_secure_id: $error_group_secure_id
+			use_clickhouse: $use_clickhouse
+		) {
 			key
 			buckets {
 				key
@@ -12311,6 +12619,7 @@ export const GetErrorGroupTagsDocument = gql`
  * const { data, loading, error } = useGetErrorGroupTagsQuery({
  *   variables: {
  *      error_group_secure_id: // value for 'error_group_secure_id'
+ *      use_clickhouse: // value for 'use_clickhouse'
  *   },
  * });
  */
@@ -12404,11 +12713,11 @@ export type GetEmailOptOutsQueryResult = Apollo.QueryResult<
 export const GetLogsDocument = gql`
 	query GetLogs(
 		$project_id: ID!
-		$params: LogsParamsInput!
+		$params: QueryInput!
 		$after: String
 		$before: String
 		$at: String
-		$direction: LogDirection!
+		$direction: SortDirection!
 	) {
 		logs(
 			project_id: $project_id
@@ -12493,7 +12802,7 @@ export type GetLogsQueryResult = Apollo.QueryResult<
 	Types.GetLogsQueryVariables
 >
 export const GetSessionLogsDocument = gql`
-	query GetSessionLogs($project_id: ID!, $params: LogsParamsInput!) {
+	query GetSessionLogs($project_id: ID!, $params: QueryInput!) {
 		sessionLogs(project_id: $project_id, params: $params) {
 			cursor
 			node {
@@ -12555,7 +12864,7 @@ export type GetSessionLogsQueryResult = Apollo.QueryResult<
 	Types.GetSessionLogsQueryVariables
 >
 export const GetLogsTotalCountDocument = gql`
-	query GetLogsTotalCount($project_id: ID!, $params: LogsParamsInput!) {
+	query GetLogsTotalCount($project_id: ID!, $params: QueryInput!) {
 		logs_total_count(project_id: $project_id, params: $params)
 	}
 `
@@ -12610,7 +12919,7 @@ export type GetLogsTotalCountQueryResult = Apollo.QueryResult<
 	Types.GetLogsTotalCountQueryVariables
 >
 export const GetLogsHistogramDocument = gql`
-	query GetLogsHistogram($project_id: ID!, $params: LogsParamsInput!) {
+	query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 		logs_histogram(project_id: $project_id, params: $params) {
 			totalCount
 			buckets {
@@ -12675,7 +12984,7 @@ export type GetLogsHistogramQueryResult = Apollo.QueryResult<
 >
 export const GetLogsKeysDocument = gql`
 	query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-		logs_keys(project_id: $project_id, date_range: $date_range) {
+		keys: logs_keys(project_id: $project_id, date_range: $date_range) {
 			name
 			type
 		}
@@ -12735,7 +13044,7 @@ export const GetLogsKeyValuesDocument = gql`
 		$key_name: String!
 		$date_range: DateRangeRequiredInput!
 	) {
-		logs_key_values(
+		key_values: logs_key_values(
 			project_id: $project_id
 			key_name: $key_name
 			date_range: $date_range
@@ -13039,6 +13348,7 @@ export const GetWorkspaceSettingsDocument = gql`
 			workspace_id
 			ai_application
 			ai_insights
+			enable_session_export
 		}
 	}
 `
@@ -13173,6 +13483,7 @@ export const GetErrorObjectsDocument = gql`
 						email
 						appVersion
 						fingerprint
+						excluded
 					}
 				}
 			}
@@ -13321,4 +13632,402 @@ export type GetServicesLazyQueryHookResult = ReturnType<
 export type GetServicesQueryResult = Apollo.QueryResult<
 	Types.GetServicesQuery,
 	Types.GetServicesQueryVariables
+>
+export const GetErrorTagsDocument = gql`
+	query GetErrorTags {
+		error_tags {
+			...ErrorTag
+		}
+	}
+	${ErrorTagFragmentDoc}
+`
+
+/**
+ * __useGetErrorTagsQuery__
+ *
+ * To run a query within a React component, call `useGetErrorTagsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorTagsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorTagsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetErrorTagsQuery(
+	baseOptions?: Apollo.QueryHookOptions<
+		Types.GetErrorTagsQuery,
+		Types.GetErrorTagsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetErrorTagsQuery,
+		Types.GetErrorTagsQueryVariables
+	>(GetErrorTagsDocument, baseOptions)
+}
+export function useGetErrorTagsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetErrorTagsQuery,
+		Types.GetErrorTagsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetErrorTagsQuery,
+		Types.GetErrorTagsQueryVariables
+	>(GetErrorTagsDocument, baseOptions)
+}
+export type GetErrorTagsQueryHookResult = ReturnType<
+	typeof useGetErrorTagsQuery
+>
+export type GetErrorTagsLazyQueryHookResult = ReturnType<
+	typeof useGetErrorTagsLazyQuery
+>
+export type GetErrorTagsQueryResult = Apollo.QueryResult<
+	Types.GetErrorTagsQuery,
+	Types.GetErrorTagsQueryVariables
+>
+export const MatchErrorTagDocument = gql`
+	query MatchErrorTag($query: String!) {
+		match_error_tag(query: $query) {
+			id
+			title
+			description
+			score
+		}
+	}
+`
+
+/**
+ * __useMatchErrorTagQuery__
+ *
+ * To run a query within a React component, call `useMatchErrorTagQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMatchErrorTagQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMatchErrorTagQuery({
+ *   variables: {
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useMatchErrorTagQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.MatchErrorTagQuery,
+		Types.MatchErrorTagQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.MatchErrorTagQuery,
+		Types.MatchErrorTagQueryVariables
+	>(MatchErrorTagDocument, baseOptions)
+}
+export function useMatchErrorTagLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.MatchErrorTagQuery,
+		Types.MatchErrorTagQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.MatchErrorTagQuery,
+		Types.MatchErrorTagQueryVariables
+	>(MatchErrorTagDocument, baseOptions)
+}
+export type MatchErrorTagQueryHookResult = ReturnType<
+	typeof useMatchErrorTagQuery
+>
+export type MatchErrorTagLazyQueryHookResult = ReturnType<
+	typeof useMatchErrorTagLazyQuery
+>
+export type MatchErrorTagQueryResult = Apollo.QueryResult<
+	Types.MatchErrorTagQuery,
+	Types.MatchErrorTagQueryVariables
+>
+export const FindSimilarErrorsDocument = gql`
+	query FindSimilarErrors($query: String!) {
+		find_similar_errors(query: $query) {
+			id
+			type
+			event
+			stack_trace
+			score
+		}
+	}
+`
+
+/**
+ * __useFindSimilarErrorsQuery__
+ *
+ * To run a query within a React component, call `useFindSimilarErrorsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFindSimilarErrorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFindSimilarErrorsQuery({
+ *   variables: {
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useFindSimilarErrorsQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.FindSimilarErrorsQuery,
+		Types.FindSimilarErrorsQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.FindSimilarErrorsQuery,
+		Types.FindSimilarErrorsQueryVariables
+	>(FindSimilarErrorsDocument, baseOptions)
+}
+export function useFindSimilarErrorsLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.FindSimilarErrorsQuery,
+		Types.FindSimilarErrorsQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.FindSimilarErrorsQuery,
+		Types.FindSimilarErrorsQueryVariables
+	>(FindSimilarErrorsDocument, baseOptions)
+}
+export type FindSimilarErrorsQueryHookResult = ReturnType<
+	typeof useFindSimilarErrorsQuery
+>
+export type FindSimilarErrorsLazyQueryHookResult = ReturnType<
+	typeof useFindSimilarErrorsLazyQuery
+>
+export type FindSimilarErrorsQueryResult = Apollo.QueryResult<
+	Types.FindSimilarErrorsQuery,
+	Types.FindSimilarErrorsQueryVariables
+>
+export const GetTracesDocument = gql`
+	query GetTraces(
+		$project_id: ID!
+		$params: QueryInput!
+		$after: String
+		$before: String
+		$at: String
+		$direction: SortDirection!
+	) {
+		traces(
+			project_id: $project_id
+			params: $params
+			after: $after
+			before: $before
+			at: $at
+			direction: $direction
+		) {
+			edges {
+				cursor
+				node {
+					timestamp
+					traceID
+					spanID
+					parentSpanID
+					projectID
+					secureSessionID
+					traceState
+					spanName
+					spanKind
+					duration
+					serviceName
+					serviceVersion
+					traceAttributes
+					statusCode
+					statusMessage
+				}
+			}
+			pageInfo {
+				hasNextPage
+				hasPreviousPage
+				startCursor
+				endCursor
+			}
+		}
+	}
+`
+
+/**
+ * __useGetTracesQuery__
+ *
+ * To run a query within a React component, call `useGetTracesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTracesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTracesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      params: // value for 'params'
+ *      after: // value for 'after'
+ *      before: // value for 'before'
+ *      at: // value for 'at'
+ *      direction: // value for 'direction'
+ *   },
+ * });
+ */
+export function useGetTracesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTracesQuery,
+		Types.GetTracesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<Types.GetTracesQuery, Types.GetTracesQueryVariables>(
+		GetTracesDocument,
+		baseOptions,
+	)
+}
+export function useGetTracesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTracesQuery,
+		Types.GetTracesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTracesQuery,
+		Types.GetTracesQueryVariables
+	>(GetTracesDocument, baseOptions)
+}
+export type GetTracesQueryHookResult = ReturnType<typeof useGetTracesQuery>
+export type GetTracesLazyQueryHookResult = ReturnType<
+	typeof useGetTracesLazyQuery
+>
+export type GetTracesQueryResult = Apollo.QueryResult<
+	Types.GetTracesQuery,
+	Types.GetTracesQueryVariables
+>
+export const GetTracesKeysDocument = gql`
+	query GetTracesKeys(
+		$project_id: ID!
+		$date_range: DateRangeRequiredInput!
+	) {
+		keys: traces_keys(project_id: $project_id, date_range: $date_range) {
+			name
+			type
+		}
+	}
+`
+
+/**
+ * __useGetTracesKeysQuery__
+ *
+ * To run a query within a React component, call `useGetTracesKeysQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTracesKeysQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTracesKeysQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      date_range: // value for 'date_range'
+ *   },
+ * });
+ */
+export function useGetTracesKeysQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTracesKeysQuery,
+		Types.GetTracesKeysQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetTracesKeysQuery,
+		Types.GetTracesKeysQueryVariables
+	>(GetTracesKeysDocument, baseOptions)
+}
+export function useGetTracesKeysLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTracesKeysQuery,
+		Types.GetTracesKeysQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTracesKeysQuery,
+		Types.GetTracesKeysQueryVariables
+	>(GetTracesKeysDocument, baseOptions)
+}
+export type GetTracesKeysQueryHookResult = ReturnType<
+	typeof useGetTracesKeysQuery
+>
+export type GetTracesKeysLazyQueryHookResult = ReturnType<
+	typeof useGetTracesKeysLazyQuery
+>
+export type GetTracesKeysQueryResult = Apollo.QueryResult<
+	Types.GetTracesKeysQuery,
+	Types.GetTracesKeysQueryVariables
+>
+export const GetTracesKeyValuesDocument = gql`
+	query GetTracesKeyValues(
+		$project_id: ID!
+		$key_name: String!
+		$date_range: DateRangeRequiredInput!
+	) {
+		key_values: traces_key_values(
+			project_id: $project_id
+			key_name: $key_name
+			date_range: $date_range
+		)
+	}
+`
+
+/**
+ * __useGetTracesKeyValuesQuery__
+ *
+ * To run a query within a React component, call `useGetTracesKeyValuesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTracesKeyValuesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTracesKeyValuesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      key_name: // value for 'key_name'
+ *      date_range: // value for 'date_range'
+ *   },
+ * });
+ */
+export function useGetTracesKeyValuesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTracesKeyValuesQuery,
+		Types.GetTracesKeyValuesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetTracesKeyValuesQuery,
+		Types.GetTracesKeyValuesQueryVariables
+	>(GetTracesKeyValuesDocument, baseOptions)
+}
+export function useGetTracesKeyValuesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTracesKeyValuesQuery,
+		Types.GetTracesKeyValuesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTracesKeyValuesQuery,
+		Types.GetTracesKeyValuesQueryVariables
+	>(GetTracesKeyValuesDocument, baseOptions)
+}
+export type GetTracesKeyValuesQueryHookResult = ReturnType<
+	typeof useGetTracesKeyValuesQuery
+>
+export type GetTracesKeyValuesLazyQueryHookResult = ReturnType<
+	typeof useGetTracesKeyValuesLazyQuery
+>
+export type GetTracesKeyValuesQueryResult = Apollo.QueryResult<
+	Types.GetTracesKeyValuesQuery,
+	Types.GetTracesKeyValuesQueryVariables
 >

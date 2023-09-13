@@ -50,6 +50,7 @@ func (suite *DiscordChannelsTestSuite) TestSendErrorAlert() {
 		ErrorCount:      12,
 		ErrorTitle:      "something bad happened",
 		SessionURL:      "https://localhost:3000/1/sessions/uJgf8EvTHPbwCfnFMcWx3tnjW7sc?page=1&query=and%7C%7Ccustom_processed%2Cis%2Ctrue%2Cfalse%7C%7Ccustom_created_at%2Cbetween_date%2C30%20days",
+		SessionExcluded: false,
 		ErrorURL:        "https://localhost:3000/1/errors/8y4uezKfrGgvMZNAMt1Z4lpJq2bt?page=1",
 		ErrorResolveURL: "https://localhost:3000/1/errors/8y4uezKfrGgvMZNAMt1Z4lpJq2bt?action=resolved",
 		ErrorIgnoreURL:  "https://localhost:3000/1/errors/8y4uezKfrGgvMZNAMt1Z4lpJq2bt?action=ignore",

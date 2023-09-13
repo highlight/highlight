@@ -138,6 +138,10 @@ export const ProjectRouter = () => {
 		undefined,
 	)
 
+	const [activeEventIndex, setActiveEventIndex] = useState<number>(0)
+
+	const [searchItem, setSearchItem] = useState<string | undefined>('')
+
 	const [activeError, setActiveError] = useState<ErrorObject | undefined>(
 		undefined,
 	)
@@ -151,7 +155,7 @@ export const ProjectRouter = () => {
 	const { isPlayerFullscreen, setIsPlayerFullscreen, playerCenterPanelRef } =
 		usePlayerFullscreen()
 
-	const commandBarDialog = Ariakit.useDialogState()
+	const commandBarDialog = Ariakit.useDialogStore()
 
 	const playerUIContext = {
 		isPlayerFullscreen,
@@ -161,6 +165,10 @@ export const ProjectRouter = () => {
 		setSelectedRightPanelTab,
 		activeEvent,
 		setActiveEvent,
+		activeEventIndex,
+		setActiveEventIndex,
+		searchItem,
+		setSearchItem,
 		activeError,
 		setActiveError,
 		rightPanelView,

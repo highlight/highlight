@@ -1,6 +1,7 @@
 package kafka_queue
 
 import (
+	"context"
 	"math"
 	"time"
 
@@ -32,6 +33,8 @@ const (
 	HubSpotUpdateCompanyProperty           PayloadType = iota
 	HubSpotCreateContactCompanyAssociation PayloadType = iota
 	SessionDataSync                        PayloadType = iota
+	ErrorGroupDataSync                     PayloadType = iota
+	ErrorObjectDataSync                    PayloadType = iota
 	HealthCheck                            PayloadType = math.MaxInt
 )
 
@@ -66,6 +69,7 @@ type InitializeSessionArgs struct {
 	ClientID                       string
 	NetworkRecordingDomains        []string
 	DisableSessionRecording        *bool
+	ServiceName                    string
 }
 
 type IdentifySessionArgs struct {
@@ -112,14 +116,15 @@ type PushTracesArgs struct {
 }
 
 type HubSpotCreateContactForAdminArgs struct {
-	AdminID            int
-	Email              string
-	UserDefinedRole    string
-	UserDefinedPersona string
-	First              string
-	Last               string
-	Phone              string
-	Referral           string
+	AdminID             int
+	Email               string
+	UserDefinedRole     string
+	UserDefinedPersona  string
+	UserDefinedTeamSize string
+	First               string
+	Last                string
+	Phone               string
+	Referral            string
 }
 
 type HubSpotCreateCompanyForWorkspaceArgs struct {
@@ -147,6 +152,14 @@ type SessionDataSyncArgs struct {
 	SessionID int
 }
 
+type ErrorGroupDataSyncArgs struct {
+	ErrorGroupID int
+}
+
+type ErrorObjectDataSyncArgs struct {
+	ErrorObjectID int
+}
+
 type Message struct {
 	Type                                   PayloadType
 	Failures                               int
@@ -168,9 +181,29 @@ type Message struct {
 	HubSpotUpdateCompanyProperty           *HubSpotUpdateCompanyPropertyArgs           `json:",omitempty"`
 	HubSpotCreateContactCompanyAssociation *HubSpotCreateContactCompanyAssociationArgs `json:",omitempty"`
 	SessionDataSync                        *SessionDataSyncArgs                        `json:",omitempty"`
+	ErrorGroupDataSync                     *ErrorGroupDataSyncArgs                     `json:",omitempty"`
+	ErrorObjectDataSync                    *ErrorObjectDataSyncArgs                    `json:",omitempty"`
 }
 
 type PartitionMessage struct {
 	Message   *Message
 	Partition int32
+}
+
+type MockMessageQueue struct{}
+
+func (k *MockMessageQueue) Stop(context.Context) {
+
+}
+
+func (k *MockMessageQueue) Receive(context.Context) *Message {
+	return nil
+}
+
+func (k *MockMessageQueue) Submit(context.Context, string, ...*Message) error {
+	return nil
+}
+
+func (k *MockMessageQueue) LogStats() {
+
 }

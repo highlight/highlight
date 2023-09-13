@@ -1,4 +1,3 @@
-import { useAuthContext } from '@authentication/AuthContext'
 import Tabs from '@components/Tabs/Tabs'
 import { Box, Heading, Stack, Text } from '@highlight-run/ui'
 import { DangerForm } from '@pages/ProjectSettings/DangerForm/DangerForm'
@@ -9,7 +8,9 @@ import { FilterExtensionForm } from '@pages/ProjectSettings/FilterExtensionForm/
 import { NetworkRecordingForm } from '@pages/ProjectSettings/NetworkRecordingForm/NetworkRecordingForm'
 import { RageClicksForm } from '@pages/ProjectSettings/RageClicksForm/RageClicksForm'
 import { ServicesTable } from '@pages/ProjectSettings/ServicesTable/ServicesTable'
+import { SessionExportForm } from '@pages/ProjectSettings/SessionExportForm/SessionExportForm'
 import SourcemapSettings from '@pages/WorkspaceSettings/SourcemapSettings/SourcemapSettings'
+import { useApplicationContext } from '@routers/AppRouter/context/ApplicationContext'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import { useEffect, useState } from 'react'
@@ -26,6 +27,7 @@ import {
 	useEditProjectSettingsMutation,
 	useGetProjectQuery,
 	useGetProjectSettingsQuery,
+	useGetWorkspaceSettingsQuery,
 } from '@/graph/generated/hooks'
 import {
 	GetProjectSettingsQuery,
@@ -38,11 +40,15 @@ import { ProjectSettingsContextProvider } from '@/pages/ProjectSettings/ProjectS
 import styles from './ProjectSettings.module.css'
 
 const ProjectSettings = () => {
-	const { isHighlightAdmin } = useAuthContext()
 	const navigate = useNavigate()
 	const { project_id, ...params } = useParams()
 	const [allProjectSettings, setAllProjectSettings] =
 		useState<GetProjectSettingsQuery>()
+	const { currentWorkspace } = useApplicationContext()
+	const { data: workspaceSettingsData } = useGetWorkspaceSettingsQuery({
+		variables: { workspace_id: String(currentWorkspace?.id) },
+		skip: !currentWorkspace?.id,
+	})
 
 	const { data: projectData } = useGetProjectQuery({
 		variables: {
@@ -159,6 +165,11 @@ const ProjectSettings = () => {
 											<FilterSessionsWithoutErrorForm />
 											<RageClicksForm />
 											<NetworkRecordingForm />
+											{workspaceSettingsData
+												?.workspaceSettings
+												?.enable_session_export ? (
+												<SessionExportForm />
+											) : null}
 										</Stack>
 									),
 								},
@@ -214,8 +225,6 @@ const ProjectSettings = () => {
 									key: 'services',
 									title: 'Services',
 									panelContent: <ServicesTable />,
-									// TODO: remove when ready to enable to customers
-									hidden: !isHighlightAdmin,
 								},
 							]}
 						/>

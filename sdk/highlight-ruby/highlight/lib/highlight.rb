@@ -43,12 +43,12 @@ module Highlight
       @tracer_provider.force_flush
     end
 
-    def trace(session_id, request_id)
+    def trace(session_id, request_id, attrs = {})
       @tracer.in_span('highlight-ctx', attributes: {
         HIGHLIGHT_PROJECT_ATTRIBUTE => @project_id,
         HIGHLIGHT_SESSION_ATTRIBUTE => session_id,
         HIGHLIGHT_TRACE_ATTRIBUTE => request_id
-      }.compact) do |_span|
+      }.merge(attrs).compact) do |_span|
         yield
       rescue StandardError => e
         record_exception(e)
@@ -56,11 +56,11 @@ module Highlight
       end
     end
 
-    def record_exception(e)
+    def record_exception(e, attrs = {})
       span = OpenTelemetry::Trace.current_span
       return unless span
 
-      span.record_exception(e)
+      span.record_exception(e, attributes: attrs)
     end
 
     def record_log(session_id, request_id, level, message, attrs = {})
