@@ -94,7 +94,7 @@
 	"compatibilities": ["EC2", "FARGATE"],
 	"requiresCompatibilities": ["FARGATE"],
 	"cpu": "1024",
-	"memory": "8192",
+	"memory": "2048",
 	"runtimePlatform": {
 		"cpuArchitecture": "ARM64"
 	},

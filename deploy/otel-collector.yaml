@@ -14,15 +14,17 @@ exporters:
         endpoint: 'https://pub.highlight.run/otel'
         compression: gzip
         sending_queue:
-            num_consumers: 64
-            queue_size: 8192
+            num_consumers: 16
+            queue_size: 1024
         retry_on_failure:
-            initial_interval: 1s
+            initial_interval: 0.1s
+            max_interval: 1s
+            max_elapsed_time: 30s
 processors:
     memory_limiter:
         check_interval: 0.1s
-        limit_mib: 6144
-        spike_limit_mib: 256
+        limit_mib: 1536
+        spike_limit_mib: 128
     batch:
         send_batch_size: 1024
         send_batch_max_size: 1024
@@ -51,4 +53,4 @@ extensions:
         endpoint: '0.0.0.0:4319'
         path: '/health/status'
     memory_ballast:
-        size_mib: 1024
+        size_mib: 256
