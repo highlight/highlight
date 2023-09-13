@@ -1,16 +1,9 @@
-import { H, Highlight, HighlightEnv } from '@highlight-run/next/edge'
+import { H } from '@highlight-run/next/edge'
 import type { NextFetchEvent, NextRequest } from 'next/server'
+import { withHighlight } from '@/app/utils/edge-highlight.config'
 
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-
-const env: HighlightEnv = {
-	projectId: process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID || '2',
-	otlpEndpoint: process.env.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
-	serviceName: 'vercel-edge',
-}
-
-const withHighlight = Highlight(env)
 
 export const GET = withHighlight(async function GET(request: NextRequest) {
 	const { searchParams } = new URL(request.url)
@@ -31,8 +24,6 @@ export const POST = withHighlight(async function POST(
 	request: NextRequest,
 	context: NextFetchEvent,
 ) {
-	H.init(request, env, context)
-
 	const headers = Object.fromEntries(request.headers.entries())
 
 	return NextResponse.json({

@@ -18,15 +18,16 @@ Our Next.js SDK gives you access to frontend session replays and server-side mon
 all-in-one. 
 
 1. On the frontend, the `<HighlightInit/>` component sets up client-side session replays.
-2. On the backend, the `withHighlight` wrapper captures server-side errors and logs from Page Router API endpoints.
-3. On the backend, `instrumentation.ts` and `registerHighlight` capture Page Router SSR errors and App Router API endpoint errors.
+2. On the backend, the `withHighlight` wrapper exported from `@highlight-run/next/server` captures server-side errors and logs from Page Router API endpoints.
+3. On the backend, the `withHighlight` wrapper exported from `@highlight-run/next/app-router` captures error and logs from App Router API endpoints.
+3. On the backend, `instrumentation.ts` and `registerHighlight` capture Page Router SSR errors.
 4. The `withHighlightConfig` configuration wrapper automatically proxies Highlight data to bypass ad-blockers and uploads source maps so your frontend errors include stack traces to your source code.
 
 ### How Highlight captures Next.js errors
 
 |              | Page Router         | App Router          |
 |--------------|---------------------|---------------------|
-| API Errors   | `withHighlight`     | `instrumentation.ts`|
+| API Errors   | `withHighlight`     | `withHighlight`		 |
 | SSR Errors   | `instrumentation.ts`| `error.tsx`         |
 | Client       | `<HighlightInit />` | `<HighlightInit />` |
 
@@ -196,7 +197,7 @@ export function CustomHighlightStart() {
 ## API Route Instrumentation (Page Router)
 
 ```hint
-This section applies to Next.js Page Router routes only. Each Page Router route must be wrapped individually. We'll address App Router routes later in this walkthrough. Look for `instrumentation.ts`
+This section applies to Next.js Page Router routes only. Each Page Router route must be wrapped individually.
 ```
 
 1. Create a file to export your `Highlight` wrapper function:
@@ -223,7 +224,7 @@ export default withHighlight(function handler(
 	req: NextApiRequest,
 	res: NextApiResponse,
 ) {
-	console.info('Here: /api/app-directory-test', { success })
+	console.info('Here: /api/app-directory-test')
 
 	if (Math.random() < 0.8) {
 		res.send('Success: /api/app-directory-test')
@@ -233,18 +234,112 @@ export default withHighlight(function handler(
 })
 ```
 
-## Server Instrumentation (App Router)
+## API Route Instrumentation (App Router)
 
 ```hint
-This section applies to Next.js App Router routes only (Next 13+). Excluding the Vercel edge runtime (which is a work in progress) and edge function logs, this section will cover all of your error monitoring and logging needs for NextJS. If you do require those logs, we recommend the [Vercel Log Drain](../backend-logging/5_hosting/vercel.md).
+This section applies to Next.js Page Router routes only. Each Page Router route must be wrapped individually.
 ```
 
-This section adds server-side error monitoring and log capture to Highlight. 
+1. Create a file to export your `Highlight` wrapper function:
 
-Next.js comes out of the box instrumented for Open Telemetry. Our example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on our Next.js server. There are probably other ways to configure Open Telemetry with Next, but this is our favorite.
+```typescript
+// src/app/utils/app-router-highlight.config.ts:
+import { HighlightEnv, Highlight } from '@highlight-run/next/app-router'
+import CONSTANTS from '@/app/constants'
+
+const env: HighlightEnv = {
+	projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+	otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
+	serviceName: 'vercel-app-directory',
+}
+
+export const withHighlight = Highlight(env)
+
+```
+
+2. Wrap your `/app` functions with `withHighlight`: 
+
+```typescript
+import { NextRequest } from 'next/server'
+import { withHighlight } from '@/app/utils/app-router-highlight.config'
+
+export const GET = withHighlight(async function GET(request: NextRequest) {
+	console.info('Here: /api/app-directory-test/route.ts')
+
+	if (Math.random() < 0.8) {
+		return new Response('Success: /api/app-directory-test')
+	} else {
+		throw new Error('Error: /api/app-directory-test (App Router)')
+	}
+})
+```
+
+## Vercel Edge Runtime Instrumentation
+
+1. Create a file to export you `Highlight` wrapper function:
+
+```typescript
+// src/app/utils/edge-highlight.config.ts:
+import { Highlight, HighlightEnv } from '@highlight-run/next/edge'
+
+const env: HighlightEnv = {
+	projectId: process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
+	otlpEndpoint: process.env.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
+	serviceName: 'vercel-edge',
+}
+
+export const withHighlight = Highlight(env)
+```
+
+2. Wrap you edge function with `withHighlight`
+
+```typescript
+import type {  NextRequest } from 'next/server'
+import { withHighlight } from '@/app/utils/edge-highlight.config'
+
+import { NextResponse } from 'next/server'
+
+export const GET = withHighlight(async function GET(request: NextRequest) {
+	console.info('Here: /api/edge-test/route.ts')
+
+	if (Math.random() < 0.8) {
+		return new Response('Success: /api/edge-test')
+	} else {
+		throw new Error('Error: /api/edge-test (Edge Runtime)')
+	}
+})
+
+export const runtime = 'edge'
+```
+## Server Instrumentation
+
+```hint
+We recommend configuring [Vercel Log Drain](../backend-logging/5_hosting/vercel.md) to capture Vercel logs.
+```
+`instrumentation.ts` can be used to capture Page Router SSR errors. It may capture other errors as well if you are NOT using Vercel or serverless functions.
+
+If you use Next.js with Vercel, all of your API functions are serverless, and must be wrapped with `withHighlight` wrappers as described above. OpenTelemetry does not block serverless functions from shutting down before all of their errors have been sent to Highlight's servers. Our `withHighlight` wrappers keep serverless functions alive until OpenTelemetry has sent all of its messages to Highlight's servers.
+
+Next.js is instrumented for Open Telemetry out of the box. Our example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on our Next.js server.
+
+1. Set `experimental.instrumentationHook` to `true` in your `next.config.js`:
+
+```typescript
+// next.config.mjs
+const nextConfig = {
+	experimental: {
+		appDir: true,
+		instrumentationHook: true,
+	},
+	productionBrowserSourceMaps: true,
+	images: { domains: ['i.travelapi.com'] },
+}
+
+export default nextConfig
+```
 
 
-1. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function.
+2. Create `instrumentation.ts` at the root of your project as explained in the [instrumentation guide](https://nextjs.org/docs/advanced-features/instrumentation). Call `registerHighlight` from within the exported `register` function.
 
 ```javascript
 // instrumentation.ts
@@ -263,7 +358,7 @@ export async function register() {
 }
 ```
 
-2. If you're using the App Router, copy `instrumentation.ts` to `src/instrumentation.ts`. See this [Next.js discussion](https://github.com/vercel/next.js/discussions/48273#discussioncomment-5587441) regarding `instrumentation.ts` with App Router. You could also simply export the `register` function from `instrumentation.ts` in `src/instrumentation.ts` like so:
+3. If you're using the App Router, copy `instrumentation.ts` to `src/instrumentation.ts`. See this [Next.js discussion](https://github.com/vercel/next.js/discussions/48273#discussioncomment-5587441) regarding `instrumentation.ts` with App Router. You could also simply export the `register` function from `instrumentation.ts` in `src/instrumentation.ts` like so:
 
 ```javascript
 // src/instrumentation.ts:
@@ -310,9 +405,6 @@ export default function Error({
 	)
 }
 ```
-
-
-
 ## Private Sourcemaps and Request Proxying (optional)
 
 Adding the `withHighlightConfig` to your next config will configure highlight frontend proxying. This means that frontend session recording and error capture data will be piped through your domain on `/highlight-events` to avoid ad-blockers from stopping this traffic.
