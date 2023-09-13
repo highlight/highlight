@@ -163,6 +163,7 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 						trackingId="sign-up-submit"
 						loading={loading}
 						type="submit"
+						id="email-password-signin"
 					>
 						Sign in
 					</Button>
