@@ -29,7 +29,7 @@ func (r *Resolver) Login(w http.ResponseWriter, req *http.Request) {
 
 	if ADMIN_PASSWORD == "" {
 		http.Error(w, "", http.StatusInternalServerError)
-		log.WithContext(ctx).Error(errors.New("No ADMIN_PASSWORD found"))
+		log.WithContext(ctx).Error(errors.New("Password auth mode not properly configured."))
 		return
 	}
 
