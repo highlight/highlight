@@ -35,14 +35,15 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		orderBackward = OrderBackwardInverted
 	}
 
-	selectStr := strings.Join(config.selectColumns, ", ")
+	outerSelect := strings.Join(config.selectColumns, ", ")
+	innerSelect := "Timestamp, UUID"
 
 	if pagination.At != nil && len(*pagination.At) > 1 {
 		// Create a "window" around the cursor
 		// https://stackoverflow.com/a/71738696
 		beforeSb, err := makeSelectBuilder(
 			config,
-			selectStr,
+			innerSelect,
 			projectID,
 			params,
 			Pagination{
@@ -57,7 +58,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 
 		atSb, err := makeSelectBuilder(
 			config,
-			selectStr,
+			innerSelect,
 			projectID,
 			params,
 			Pagination{
@@ -71,7 +72,7 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 
 		afterSb, err := makeSelectBuilder(
 			config,
-			selectStr,
+			innerSelect,
 			projectID,
 			params,
 			Pagination{
@@ -85,11 +86,15 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		afterSb.Limit(LogsLimit/2 + 1)
 
 		ub := sqlbuilder.UnionAll(beforeSb, atSb, afterSb)
-		sb.Select(selectStr).From(sb.BuilderAs(ub, "window")).OrderBy(orderForward)
+		sb.Select(outerSelect).
+			From(config.tableName).
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.In(fmt.Sprintf("(%s)", innerSelect), ub)).
+			OrderBy(orderForward)
 	} else {
 		fromSb, err := makeSelectBuilder(
 			config,
-			selectStr,
+			innerSelect,
 			projectID,
 			params,
 			pagination,
@@ -100,7 +105,11 @@ func readObjects[TObj interface{}, TReservedKey ~string](ctx context.Context, cl
 		}
 
 		fromSb.Limit(LogsLimit + 1)
-		sb.Select(selectStr).From(sb.BuilderAs(fromSb, "window")).OrderBy(orderForward)
+		sb.Select(outerSelect).
+			From(config.tableName).
+			Where(sb.Equal("ProjectId", projectID)).
+			Where(sb.In(fmt.Sprintf("(%s)", innerSelect), fromSb)).
+			OrderBy(orderForward)
 	}
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
@@ -163,11 +172,11 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, proje
 		}
 
 		// See https://dba.stackexchange.com/a/206811
-		sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
-			Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.StartDate.Unix()))).
+		sb.Where(sb.LessEqualThan("Timestamp", timestamp)).
+			Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate)).
 			Where(
 				sb.Or(
-					sb.LessThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix())),
+					sb.LessThan("Timestamp", timestamp),
 					sb.LessThan("UUID", uuid),
 				),
 			).OrderBy(orderForward)
@@ -176,7 +185,7 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, proje
 		if err != nil {
 			return nil, err
 		}
-		sb.Where(sb.Equal("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
+		sb.Where(sb.Equal("Timestamp", timestamp)).
 			Where(sb.Equal("UUID", uuid))
 	} else if pagination.Before != nil && len(*pagination.Before) > 1 {
 		timestamp, uuid, err := decodeCursor(*pagination.Before)
@@ -184,18 +193,18 @@ func makeSelectBuilder[T ~string](config tableConfig[T], selectStr string, proje
 			return nil, err
 		}
 
-		sb.Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix()))).
-			Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.EndDate.Unix()))).
+		sb.Where(sb.GreaterEqualThan("Timestamp", timestamp)).
+			Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
 			Where(
 				sb.Or(
-					sb.GreaterThan("toUInt64(toDateTime(Timestamp))", uint64(timestamp.Unix())),
+					sb.GreaterThan("Timestamp", timestamp),
 					sb.GreaterThan("UUID", uuid),
 				),
 			).
 			OrderBy(orderBackward)
 	} else {
-		sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.EndDate.Unix()))).
-			Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(params.DateRange.StartDate.Unix())))
+		sb.Where(sb.LessEqualThan("Timestamp", params.DateRange.EndDate)).
+			Where(sb.GreaterEqualThan("Timestamp", params.DateRange.StartDate))
 
 		if !pagination.CountOnly { // count queries can't be ordered because we don't include Timestamp in the select
 			sb.OrderBy(orderForward)
@@ -297,8 +306,8 @@ func Keys[T ~string](ctx context.Context, client *Client, config tableConfig[T],
 		Where(sb.Equal("ProjectId", projectID)).
 		GroupBy("key").
 		OrderBy("cnt DESC").
-		Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(endDate.Unix()))).
-		Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(startDate.Unix())))
+		Where(sb.LessEqualThan("Timestamp", endDate)).
+		Where(sb.GreaterEqualThan("Timestamp", startDate))
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
@@ -366,8 +375,8 @@ func KeyValues[T ~string](ctx context.Context, client *Client, config tableConfi
 			Limit(KeyValuesLimit)
 	}
 
-	sb.Where(sb.LessEqualThan("toUInt64(toDateTime(Timestamp))", uint64(endDate.Unix()))).
-		Where(sb.GreaterEqualThan("toUInt64(toDateTime(Timestamp))", uint64(startDate.Unix())))
+	sb.Where(sb.LessEqualThan("Timestamp", endDate)).
+		Where(sb.GreaterEqualThan("Timestamp", startDate))
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
