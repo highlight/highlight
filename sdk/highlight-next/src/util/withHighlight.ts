@@ -11,6 +11,8 @@ interface RequestMetadata {
 	requestId: string
 }
 
+export type HighlightEnv = NodeOptions
+
 export declare interface Metric {
 	name: string
 	value: number

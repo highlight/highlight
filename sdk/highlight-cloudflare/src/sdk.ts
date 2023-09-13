@@ -29,6 +29,7 @@ export interface HighlightInterface {
 		request: Request,
 		env: HighlightEnv,
 		ctx: ExecutionContext,
+		service?: string,
 	) => WorkersSDK
 	consumeError: (error: Error) => void
 	sendResponse: (response: Response) => void
@@ -52,10 +53,6 @@ export const H: HighlightInterface = {
 			request.headers.get(HIGHLIGHT_REQUEST_HEADER) || ''
 		).split('/')
 		const endpoints = { default: otlpEndpoint || HIGHLIGHT_OTLP_BASE }
-		console.log(
-			'cloudflare sdk',
-			JSON.stringify({ endpoints, projectID, sessionID, requestID }),
-		)
 		sdk = new WorkersSDK(request, ctx, {
 			service: service || 'cloudflare-worker',
 			consoleLogEnabled: false,

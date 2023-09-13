@@ -5,6 +5,7 @@ export default defineConfig({
 		'src/edge.ts',
 		'src/server.edge.ts',
 		'src/server.ts',
+		'src/app-router.ts',
 		'src/next-client.tsx',
 	],
 	format: ['cjs', 'esm'],

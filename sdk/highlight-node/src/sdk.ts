@@ -144,15 +144,12 @@ export const H: HighlightInterface = {
 		return undefined
 	},
 	consumeAndFlush: async function (...args) {
-		console.log(highlight_obj.id, '🌑 0. waiting for flush...')
 		const waitPromise = highlight_obj.waitForFlush()
-		this.consumeError(...args)
-		console.log(highlight_obj.id, '🌑 2. flushing...')
 
+		this.consumeError(...args)
 		const flushPromise = this.flush()
 
 		await Promise.allSettled([waitPromise, flushPromise])
-		console.log(highlight_obj.id, '💗💗💗 flush complete')
 	},
 
 	_debug: (...data: any[]) => {

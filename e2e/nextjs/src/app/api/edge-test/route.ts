@@ -5,11 +5,10 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
 const env: HighlightEnv = {
-	HIGHLIGHT_PROJECT_ID: process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID || '2',
-	HIGHLIGHT_OTLP_ENDPOINT: process.env.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
+	projectId: process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID || '2',
+	otlpEndpoint: process.env.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
+	serviceName: 'vercel-edge',
 }
-
-console.log('api/edge-test/route.ts env', JSON.stringify(env, null, 2))
 
 const withHighlight = Highlight(env)
 
@@ -24,9 +23,7 @@ export const GET = withHighlight(async function GET(request: NextRequest) {
 	if (success === 'true') {
 		return new Response('Success: /api/edge-test')
 	} else {
-		throw new Error(
-			'Error: /api/edge-test using new @highlight-run/next/edge import',
-		)
+		throw new Error('Error: /api/edge-test (Edge Runtime)')
 	}
 })
 

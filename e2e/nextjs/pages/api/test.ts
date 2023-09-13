@@ -15,6 +15,6 @@ export default withHighlight(function handler(
 	if (success === 'true') {
 		res.send('Success: /pages/api/test.ts')
 	} else {
-		throw new Error('Error: /pages/api/test.ts')
+		throw new Error('Error: /pages/api/test.ts (Page Router)')
 	}
 })

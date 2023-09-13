@@ -7,7 +7,11 @@ import type { ExecutionContext } from '@cloudflare/workers-types'
 import type { ResourceAttributes } from '@opentelemetry/resources/build/src/types'
 import type { NextFetchEvent, NextRequest } from 'next/server'
 
-export type HighlightEnv = CloudflareHighlightEnv
+export type HighlightEnv = {
+	projectId: string
+	otlpEndpoint?: string
+	serviceName?: string
+}
 
 type EdgeHandler = (
 	request: NextRequest,
@@ -25,6 +29,7 @@ interface HighlightInterface {
 		request: Request,
 		env: HighlightEnv,
 		ctx: ExtendedExecutionContext,
+		serviceName?: string,
 	) => WorkersSDK
 	consumeError: (error: Error) => void
 	sendResponse: (response: Response) => void
@@ -40,7 +45,12 @@ export const H: HighlightInterface = {
 	) {
 		polyfillWaitUntil(ctx)
 
-		return CloudflareH.init(request, env, ctx)
+		const cloudflareEnv: CloudflareHighlightEnv = {
+			HIGHLIGHT_PROJECT_ID: env.projectId,
+			HIGHLIGHT_OTLP_ENDPOINT: env.otlpEndpoint,
+		}
+
+		return CloudflareH.init(request, cloudflareEnv, ctx, env.serviceName)
 	},
 }
 

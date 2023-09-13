@@ -18,13 +18,11 @@ const OTLP_HTTP = 'https://otel.highlight.io:4318'
 // @ts-ignore
 class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 	private _listeners: Map<Symbol, () => void>
-	public id: string
 
 	constructor(config: any) {
 		super(config)
 
 		this._listeners = new Map()
-		this.id = Math.random().toString(36).substring(7)
 	}
 
 	onShutdown(): void {}
@@ -33,21 +31,12 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 		// @ts-ignore
 		const finishedSpansCount = this._finishedSpans.length
 
-		// @ts-ignore
 		await super.forceFlush()
 
-		// @ts-ignore
 		if (finishedSpansCount > 0) {
-			console.log(
-				this.id,
-				'🌑 4. Processing listeners',
-				this._listeners.size,
+			Array.from(this._listeners.values()).forEach((listener) =>
+				listener(),
 			)
-
-			Array.from(this._listeners.values()).forEach((listener) => {
-				console.log(this.id, '🌑 5. Calling listeners')
-				listener()
-			})
 		}
 	}
 
@@ -55,16 +44,7 @@ class CustomSpanProcessor extends BatchSpanProcessorBase<BufferConfig> {
 		const id = Symbol()
 		this._listeners.set(id, listener)
 
-		console.log(
-			this.id,
-			'🌑 1.5. registered listener',
-			this._listeners.size,
-		)
-
-		return () => {
-			this._listeners.delete(id)
-			console.log(this.id, '🌑 7. deleted listener')
-		}
+		return () => this._listeners.delete(id)
 	}
 }
 
@@ -154,10 +134,6 @@ export class Highlight {
 		}
 
 		this._log(`Initialized SDK for project ${this._projectID}`)
-	}
-
-	get id() {
-		return this.processor.id
 	}
 
 	get activeSpanProcessor(): CustomSpanProcessor {
@@ -262,7 +238,6 @@ export class Highlight {
 		requestId: string | undefined,
 		metadata?: Attributes,
 	) {
-		console.log(this.id, '🌑 1.25. started span')
 		const span = this.tracer.startSpan('highlight-ctx')
 		span.recordException(error)
 		if (metadata != undefined) {
@@ -297,15 +272,11 @@ export class Highlight {
 				if (finishedSpansCount) {
 					waitingForFinishedSpans = true
 				} else if (waitingForFinishedSpans) {
-					console.log('🌑 5. waitForFlush finish')
-
 					finish()
 				}
 			}, 100)
 			let timer = setTimeout(finish, 10000)
 			function finish() {
-				console.log('unlistening')
-
 				intervalTimer && clearInterval(intervalTimer)
 				timer && clearTimeout(timer)
 				unlisten()
@@ -315,7 +286,6 @@ export class Highlight {
 					resolve()
 				}
 			}
-			console.log('🌑 1. Wait for flush')
 
 			const unlisten = this.processor.registerListener(finish)
 		})

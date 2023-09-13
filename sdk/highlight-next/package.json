@@ -30,6 +30,11 @@
 			"types": "./dist/edge.d.ts",
 			"import": "./dist/edge.mjs",
 			"require": "./dist/edge.js"
+		},
+		"./app-router": {
+			"types": "./dist/app-router.d.ts",
+			"import": "./dist/app-router.mjs",
+			"require": "./dist/app-router.js"
 		}
 	},
 	"publishConfig": {
