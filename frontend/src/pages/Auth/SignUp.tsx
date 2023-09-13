@@ -34,7 +34,6 @@ export const SignUp: React.FC = () => {
 	const { signIn } = useAuthContext()
 	const initialEmail: string = location.state?.email ?? ''
 	const [inviteCode] = useLocalStorage('highlightInviteCode')
-	const [loading, setLoading] = React.useState(false)
 	const [error, setError] = React.useState('')
 	const formStore = useFormStore({
 		defaultValues: {
@@ -42,7 +41,21 @@ export const SignUp: React.FC = () => {
 			password: '',
 		},
 	})
-	const formState = formStore.getState()
+	const email = formStore.useValue('email')
+	const loading = formStore.useState('submitting')
+	formStore.useSubmit(async (formState) => {
+		auth.createUserWithEmailAndPassword(
+			formState.values.email,
+			formState.values.password,
+		)
+			.then(async (credential) => {
+				handleSubmit(credential)
+			})
+			.catch((error) => {
+				setError(error.message || error.toString())
+			})
+	})
+
 	const [createAdmin] = useCreateAdminMutation()
 	const { data } = useGetWorkspaceForInviteLinkQuery({
 		variables: {
@@ -102,25 +115,7 @@ export const SignUp: React.FC = () => {
 	useEffect(() => analytics.page(), [])
 
 	return (
-		<Form
-			store={formStore}
-			resetOnSubmit={false}
-			onSubmit={() => {
-				setLoading(true)
-
-				auth.createUserWithEmailAndPassword(
-					formState.values.email,
-					formState.values.password,
-				)
-					.then(async (credential) => {
-						handleSubmit(credential)
-					})
-					.catch((error) => {
-						setError(error.message || error.toString())
-						setLoading(false)
-					})
-			}}
-		>
+		<Form store={formStore} resetOnSubmit={false}>
 			<AuthHeader>
 				<Box mb="4">
 					<Stack direction="column" gap="16" align="center">
@@ -132,10 +127,7 @@ export const SignUp: React.FC = () => {
 						</Heading>
 						<Text>
 							Have an account?{' '}
-							<Link
-								to={SIGN_IN_ROUTE}
-								state={{ email: formState.values.email }}
-							>
+							<Link to={SIGN_IN_ROUTE} state={{ email }}>
 								Sign in
 							</Link>
 							.

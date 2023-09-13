@@ -7,6 +7,9 @@ slug: getting-started
 Stay up to date with what we work on week over week:
 
 <DocsCardGroup>
+    <DocsCard title="Changelog 24" href="./changelog-24.md">
+    {"GitHub-enhanced stack traces, Session search on ClickHouse, Algora.io open-source bounties"}
+    </DocsCard>
     <DocsCard title="Changelog 23" href="./changelog-23.md">
     {"Error list visual indicator, Poll for new sessions, Pino.js support, Alerts redesign "}
     </DocsCard>

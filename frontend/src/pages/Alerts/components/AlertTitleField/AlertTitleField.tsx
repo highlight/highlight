@@ -6,14 +6,14 @@ import * as styles from './styles.css'
 
 const AlertTitleField = () => {
 	const formStore = useForm() as FormState<AlertForm>
-	const formState = formStore.getState()
+	const errors = formStore.useState('errors')
 
 	return (
 		<Form.Input
 			name={formStore.names.name}
 			placeholder="Type name..."
 			style={{
-				borderColor: formState.errors.name
+				borderColor: errors.name
 					? 'var(--color-red-500)'
 					: 'transparent',
 			}}

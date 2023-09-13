@@ -53,8 +53,7 @@ const EventStreamV2 = function () {
 			search: searchItem,
 		},
 	})
-	const formState = formStore.getState()
-	const searchQuery = formState.values.search
+	const searchQuery = formStore.useValue('search')
 	const eventTypeFilters = useEventTypeFilters()
 	const virtuoso = useRef<VirtuosoHandle>(null)
 	const { data } = useGetWebVitalsQuery({
