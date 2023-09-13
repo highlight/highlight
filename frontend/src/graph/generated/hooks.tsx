@@ -12713,11 +12713,11 @@ export type GetEmailOptOutsQueryResult = Apollo.QueryResult<
 export const GetLogsDocument = gql`
 	query GetLogs(
 		$project_id: ID!
-		$params: LogsParamsInput!
+		$params: QueryInput!
 		$after: String
 		$before: String
 		$at: String
-		$direction: LogDirection!
+		$direction: SortDirection!
 	) {
 		logs(
 			project_id: $project_id
@@ -12802,7 +12802,7 @@ export type GetLogsQueryResult = Apollo.QueryResult<
 	Types.GetLogsQueryVariables
 >
 export const GetSessionLogsDocument = gql`
-	query GetSessionLogs($project_id: ID!, $params: LogsParamsInput!) {
+	query GetSessionLogs($project_id: ID!, $params: QueryInput!) {
 		sessionLogs(project_id: $project_id, params: $params) {
 			cursor
 			node {
@@ -12864,7 +12864,7 @@ export type GetSessionLogsQueryResult = Apollo.QueryResult<
 	Types.GetSessionLogsQueryVariables
 >
 export const GetLogsTotalCountDocument = gql`
-	query GetLogsTotalCount($project_id: ID!, $params: LogsParamsInput!) {
+	query GetLogsTotalCount($project_id: ID!, $params: QueryInput!) {
 		logs_total_count(project_id: $project_id, params: $params)
 	}
 `
@@ -12919,7 +12919,7 @@ export type GetLogsTotalCountQueryResult = Apollo.QueryResult<
 	Types.GetLogsTotalCountQueryVariables
 >
 export const GetLogsHistogramDocument = gql`
-	query GetLogsHistogram($project_id: ID!, $params: LogsParamsInput!) {
+	query GetLogsHistogram($project_id: ID!, $params: QueryInput!) {
 		logs_histogram(project_id: $project_id, params: $params) {
 			totalCount
 			buckets {
@@ -12984,7 +12984,7 @@ export type GetLogsHistogramQueryResult = Apollo.QueryResult<
 >
 export const GetLogsKeysDocument = gql`
 	query GetLogsKeys($project_id: ID!, $date_range: DateRangeRequiredInput!) {
-		logs_keys(project_id: $project_id, date_range: $date_range) {
+		keys: logs_keys(project_id: $project_id, date_range: $date_range) {
 			name
 			type
 		}
@@ -13044,7 +13044,7 @@ export const GetLogsKeyValuesDocument = gql`
 		$key_name: String!
 		$date_range: DateRangeRequiredInput!
 	) {
-		logs_key_values(
+		key_values: logs_key_values(
 			project_id: $project_id
 			key_name: $key_name
 			date_range: $date_range
@@ -13809,23 +13809,48 @@ export type FindSimilarErrorsQueryResult = Apollo.QueryResult<
 	Types.FindSimilarErrorsQueryVariables
 >
 export const GetTracesDocument = gql`
-	query GetTraces($project_id: ID!, $params: TracesParamsInput!) {
-		traces(project_id: $project_id, params: $params) {
-			timestamp
-			traceID
-			spanID
-			parentSpanID
-			projectID
-			secureSessionID
-			traceState
-			spanName
-			spanKind
-			duration
-			serviceName
-			serviceVersion
-			traceAttributes
-			statusCode
-			statusMessage
+	query GetTraces(
+		$project_id: ID!
+		$params: QueryInput!
+		$after: String
+		$before: String
+		$at: String
+		$direction: SortDirection!
+	) {
+		traces(
+			project_id: $project_id
+			params: $params
+			after: $after
+			before: $before
+			at: $at
+			direction: $direction
+		) {
+			edges {
+				cursor
+				node {
+					timestamp
+					traceID
+					spanID
+					parentSpanID
+					projectID
+					secureSessionID
+					traceState
+					spanName
+					spanKind
+					duration
+					serviceName
+					serviceVersion
+					traceAttributes
+					statusCode
+					statusMessage
+				}
+			}
+			pageInfo {
+				hasNextPage
+				hasPreviousPage
+				startCursor
+				endCursor
+			}
 		}
 	}
 `
@@ -13844,6 +13869,10 @@ export const GetTracesDocument = gql`
  *   variables: {
  *      project_id: // value for 'project_id'
  *      params: // value for 'params'
+ *      after: // value for 'after'
+ *      before: // value for 'before'
+ *      at: // value for 'at'
+ *      direction: // value for 'direction'
  *   },
  * });
  */
@@ -13876,4 +13905,129 @@ export type GetTracesLazyQueryHookResult = ReturnType<
 export type GetTracesQueryResult = Apollo.QueryResult<
 	Types.GetTracesQuery,
 	Types.GetTracesQueryVariables
+>
+export const GetTracesKeysDocument = gql`
+	query GetTracesKeys(
+		$project_id: ID!
+		$date_range: DateRangeRequiredInput!
+	) {
+		keys: traces_keys(project_id: $project_id, date_range: $date_range) {
+			name
+			type
+		}
+	}
+`
+
+/**
+ * __useGetTracesKeysQuery__
+ *
+ * To run a query within a React component, call `useGetTracesKeysQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTracesKeysQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTracesKeysQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      date_range: // value for 'date_range'
+ *   },
+ * });
+ */
+export function useGetTracesKeysQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTracesKeysQuery,
+		Types.GetTracesKeysQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetTracesKeysQuery,
+		Types.GetTracesKeysQueryVariables
+	>(GetTracesKeysDocument, baseOptions)
+}
+export function useGetTracesKeysLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTracesKeysQuery,
+		Types.GetTracesKeysQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTracesKeysQuery,
+		Types.GetTracesKeysQueryVariables
+	>(GetTracesKeysDocument, baseOptions)
+}
+export type GetTracesKeysQueryHookResult = ReturnType<
+	typeof useGetTracesKeysQuery
+>
+export type GetTracesKeysLazyQueryHookResult = ReturnType<
+	typeof useGetTracesKeysLazyQuery
+>
+export type GetTracesKeysQueryResult = Apollo.QueryResult<
+	Types.GetTracesKeysQuery,
+	Types.GetTracesKeysQueryVariables
+>
+export const GetTracesKeyValuesDocument = gql`
+	query GetTracesKeyValues(
+		$project_id: ID!
+		$key_name: String!
+		$date_range: DateRangeRequiredInput!
+	) {
+		key_values: traces_key_values(
+			project_id: $project_id
+			key_name: $key_name
+			date_range: $date_range
+		)
+	}
+`
+
+/**
+ * __useGetTracesKeyValuesQuery__
+ *
+ * To run a query within a React component, call `useGetTracesKeyValuesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTracesKeyValuesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTracesKeyValuesQuery({
+ *   variables: {
+ *      project_id: // value for 'project_id'
+ *      key_name: // value for 'key_name'
+ *      date_range: // value for 'date_range'
+ *   },
+ * });
+ */
+export function useGetTracesKeyValuesQuery(
+	baseOptions: Apollo.QueryHookOptions<
+		Types.GetTracesKeyValuesQuery,
+		Types.GetTracesKeyValuesQueryVariables
+	>,
+) {
+	return Apollo.useQuery<
+		Types.GetTracesKeyValuesQuery,
+		Types.GetTracesKeyValuesQueryVariables
+	>(GetTracesKeyValuesDocument, baseOptions)
+}
+export function useGetTracesKeyValuesLazyQuery(
+	baseOptions?: Apollo.LazyQueryHookOptions<
+		Types.GetTracesKeyValuesQuery,
+		Types.GetTracesKeyValuesQueryVariables
+	>,
+) {
+	return Apollo.useLazyQuery<
+		Types.GetTracesKeyValuesQuery,
+		Types.GetTracesKeyValuesQueryVariables
+	>(GetTracesKeyValuesDocument, baseOptions)
+}
+export type GetTracesKeyValuesQueryHookResult = ReturnType<
+	typeof useGetTracesKeyValuesQuery
+>
+export type GetTracesKeyValuesLazyQueryHookResult = ReturnType<
+	typeof useGetTracesKeyValuesLazyQuery
+>
+export type GetTracesKeyValuesQueryResult = Apollo.QueryResult<
+	Types.GetTracesKeyValuesQuery,
+	Types.GetTracesKeyValuesQueryVariables
 >

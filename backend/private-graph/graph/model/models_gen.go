@@ -489,11 +489,6 @@ type LogEdge struct {
 func (LogEdge) IsEdge()                {}
 func (this LogEdge) GetCursor() string { return this.Cursor }
 
-type LogKey struct {
-	Name string     `json:"name"`
-	Type LogKeyType `json:"type"`
-}
-
 type LogsHistogram struct {
 	Buckets    []*LogsHistogramBucket `json:"buckets"`
 	TotalCount uint64                 `json:"totalCount"`
@@ -507,11 +502,6 @@ type LogsHistogramBucket struct {
 type LogsHistogramBucketCount struct {
 	Count uint64   `json:"count"`
 	Level LogLevel `json:"level"`
-}
-
-type LogsParamsInput struct {
-	Query     string                  `json:"query"`
-	DateRange *DateRangeRequiredInput `json:"date_range"`
 }
 
 type MatchedErrorTag struct {
@@ -572,6 +562,16 @@ type Plan struct {
 	MembersLimit *int                 `json:"membersLimit"`
 	ErrorsLimit  int                  `json:"errorsLimit"`
 	LogsLimit    int                  `json:"logsLimit"`
+}
+
+type QueryInput struct {
+	Query     string                  `json:"query"`
+	DateRange *DateRangeRequiredInput `json:"date_range"`
+}
+
+type QueryKey struct {
+	Name string  `json:"name"`
+	Type KeyType `json:"type"`
 }
 
 type RageClickEventForProject struct {
@@ -751,6 +751,22 @@ type Trace struct {
 	Links           []*TraceLink           `json:"links"`
 }
 
+type TraceConnection struct {
+	Edges    []*TraceEdge `json:"edges"`
+	PageInfo *PageInfo    `json:"pageInfo"`
+}
+
+func (TraceConnection) IsConnection()               {}
+func (this TraceConnection) GetPageInfo() *PageInfo { return this.PageInfo }
+
+type TraceEdge struct {
+	Cursor string `json:"cursor"`
+	Node   *Trace `json:"node"`
+}
+
+func (TraceEdge) IsEdge()                {}
+func (this TraceEdge) GetCursor() string { return this.Cursor }
+
 type TraceEvent struct {
 	Timestamp  time.Time              `json:"timestamp"`
 	Name       string                 `json:"name"`
@@ -762,11 +778,6 @@ type TraceLink struct {
 	SpanID     string                 `json:"spanID"`
 	TraceState string                 `json:"traceState"`
 	Attributes map[string]interface{} `json:"attributes"`
-}
-
-type TracesParamsInput struct {
-	Query     string                  `json:"query"`
-	DateRange *DateRangeRequiredInput `json:"date_range"`
 }
 
 type TrackPropertyInput struct {
@@ -1062,83 +1073,42 @@ func (e IntegrationType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type LogDirection string
+type KeyType string
 
 const (
-	LogDirectionAsc  LogDirection = "ASC"
-	LogDirectionDesc LogDirection = "DESC"
+	KeyTypeString KeyType = "String"
 )
 
-var AllLogDirection = []LogDirection{
-	LogDirectionAsc,
-	LogDirectionDesc,
+var AllKeyType = []KeyType{
+	KeyTypeString,
 }
 
-func (e LogDirection) IsValid() bool {
+func (e KeyType) IsValid() bool {
 	switch e {
-	case LogDirectionAsc, LogDirectionDesc:
+	case KeyTypeString:
 		return true
 	}
 	return false
 }
 
-func (e LogDirection) String() string {
+func (e KeyType) String() string {
 	return string(e)
 }
 
-func (e *LogDirection) UnmarshalGQL(v interface{}) error {
+func (e *KeyType) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = LogDirection(str)
+	*e = KeyType(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid LogDirection", str)
+		return fmt.Errorf("%s is not a valid KeyType", str)
 	}
 	return nil
 }
 
-func (e LogDirection) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type LogKeyType string
-
-const (
-	LogKeyTypeString LogKeyType = "String"
-)
-
-var AllLogKeyType = []LogKeyType{
-	LogKeyTypeString,
-}
-
-func (e LogKeyType) IsValid() bool {
-	switch e {
-	case LogKeyTypeString:
-		return true
-	}
-	return false
-}
-
-func (e LogKeyType) String() string {
-	return string(e)
-}
-
-func (e *LogKeyType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = LogKeyType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid LogKeyType", str)
-	}
-	return nil
-}
-
-func (e LogKeyType) MarshalGQL(w io.Writer) {
+func (e KeyType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1631,6 +1601,67 @@ func (e ReservedLogKey) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type ReservedTraceKey string
+
+const (
+	ReservedTraceKeyLevel           ReservedTraceKey = "level"
+	ReservedTraceKeyMessage         ReservedTraceKey = "message"
+	ReservedTraceKeySecureSessionID ReservedTraceKey = "secure_session_id"
+	ReservedTraceKeySpanID          ReservedTraceKey = "span_id"
+	ReservedTraceKeyTraceID         ReservedTraceKey = "trace_id"
+	ReservedTraceKeyParentSpanID    ReservedTraceKey = "parent_span_id"
+	ReservedTraceKeyTraceState      ReservedTraceKey = "trace_state"
+	ReservedTraceKeySpanName        ReservedTraceKey = "span_name"
+	ReservedTraceKeySpanKind        ReservedTraceKey = "span_kind"
+	ReservedTraceKeyDuration        ReservedTraceKey = "duration"
+	ReservedTraceKeyServiceName     ReservedTraceKey = "service_name"
+	ReservedTraceKeyServiceVersion  ReservedTraceKey = "service_version"
+)
+
+var AllReservedTraceKey = []ReservedTraceKey{
+	ReservedTraceKeyLevel,
+	ReservedTraceKeyMessage,
+	ReservedTraceKeySecureSessionID,
+	ReservedTraceKeySpanID,
+	ReservedTraceKeyTraceID,
+	ReservedTraceKeyParentSpanID,
+	ReservedTraceKeyTraceState,
+	ReservedTraceKeySpanName,
+	ReservedTraceKeySpanKind,
+	ReservedTraceKeyDuration,
+	ReservedTraceKeyServiceName,
+	ReservedTraceKeyServiceVersion,
+}
+
+func (e ReservedTraceKey) IsValid() bool {
+	switch e {
+	case ReservedTraceKeyLevel, ReservedTraceKeyMessage, ReservedTraceKeySecureSessionID, ReservedTraceKeySpanID, ReservedTraceKeyTraceID, ReservedTraceKeyParentSpanID, ReservedTraceKeyTraceState, ReservedTraceKeySpanName, ReservedTraceKeySpanKind, ReservedTraceKeyDuration, ReservedTraceKeyServiceName, ReservedTraceKeyServiceVersion:
+		return true
+	}
+	return false
+}
+
+func (e ReservedTraceKey) String() string {
+	return string(e)
+}
+
+func (e *ReservedTraceKey) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ReservedTraceKey(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ReservedTraceKey", str)
+	}
+	return nil
+}
+
+func (e ReservedTraceKey) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type RetentionPeriod string
 
 const (
@@ -1953,6 +1984,47 @@ func (e *SocialType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SocialType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SortDirection string
+
+const (
+	SortDirectionAsc  SortDirection = "ASC"
+	SortDirectionDesc SortDirection = "DESC"
+)
+
+var AllSortDirection = []SortDirection{
+	SortDirectionAsc,
+	SortDirectionDesc,
+}
+
+func (e SortDirection) IsValid() bool {
+	switch e {
+	case SortDirectionAsc, SortDirectionDesc:
+		return true
+	}
+	return false
+}
+
+func (e SortDirection) String() string {
+	return string(e)
+}
+
+func (e *SortDirection) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SortDirection(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SortDirection", str)
+	}
+	return nil
+}
+
+func (e SortDirection) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

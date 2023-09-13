@@ -39,38 +39,42 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 							height: `calc(100% - 67px)`,
 						}}
 					>
-						{traces.map((trace, index) => (
-							<Table.Row key={index}>
-								<Table.Cell>{trace.spanName}</Table.Cell>
-								<Table.Cell>{trace.serviceName}</Table.Cell>
-								<Table.Cell>{trace.spanID}</Table.Cell>
-								<Table.Cell
-									onClick={
-										trace.parentSpanID
-											? () => {
-													navigate(
-														`/${projectId}/traces?query=${window.encodeURIComponent(
-															`ParentSpanId:${trace.parentSpanID}`,
-														)}`,
-													)
-											  }
-											: undefined
-									}
-								>
-									{trace.parentSpanID}
-								</Table.Cell>
-								<Table.Cell
-									onClick={() => {
-										navigate(
-											`/${projectId}/sessions/${trace.secureSessionID}`,
-										)
-									}}
-								>
-									{trace.secureSessionID}
-								</Table.Cell>
-								<Table.Cell>{trace.statusMessage}</Table.Cell>
-							</Table.Row>
-						))}
+						{traces.edges
+							.map((edge) => edge.node)
+							.map((trace, index) => (
+								<Table.Row key={index}>
+									<Table.Cell>{trace.spanName}</Table.Cell>
+									<Table.Cell>{trace.serviceName}</Table.Cell>
+									<Table.Cell>{trace.spanID}</Table.Cell>
+									<Table.Cell
+										onClick={
+											trace.parentSpanID
+												? () => {
+														navigate(
+															`/${projectId}/traces?query=${window.encodeURIComponent(
+																`ParentSpanId:${trace.parentSpanID}`,
+															)}`,
+														)
+												  }
+												: undefined
+										}
+									>
+										{trace.parentSpanID}
+									</Table.Cell>
+									<Table.Cell
+										onClick={() => {
+											navigate(
+												`/${projectId}/sessions/${trace.secureSessionID}`,
+											)
+										}}
+									>
+										{trace.secureSessionID}
+									</Table.Cell>
+									<Table.Cell>
+										{trace.statusMessage}
+									</Table.Cell>
+								</Table.Row>
+							))}
 					</Table.Body>
 				</Table>
 			) : (

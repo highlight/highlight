@@ -65,7 +65,7 @@ export const useGetLogs = ({
 		variables: {
 			project_id: project_id!,
 			at: logCursor,
-			direction: Types.LogDirection.Desc,
+			direction: Types.SortDirection.Desc,
 			params: {
 				query: serverQuery,
 				date_range: {
@@ -89,7 +89,7 @@ export const useGetLogs = ({
 			() => ({
 				project_id: project_id!,
 				at: logCursor,
-				direction: Types.LogDirection.Desc,
+				direction: Types.SortDirection.Desc,
 				params: {
 					query: serverQuery,
 					date_range: {
