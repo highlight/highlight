@@ -119,26 +119,26 @@ func (c *SimpleAuthClient) GetUser(_ context.Context, _ string) (*auth.UserRecor
 	}, nil
 }
 
-func authenticateToken(tokenString string) error {
+func authenticateToken(tokenString string) (jwt.MapClaims, error) {
 	claims := jwt.MapClaims{}
 	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return []byte(JwtAccessSecret), nil
 	})
 	if err != nil {
-		return e.Wrap(err, "invalid id token")
+		return claims, e.Wrap(err, "invalid id token")
 	}
 
 	exp, ok := claims["exp"].(float64)
 	if !ok {
-		return e.Wrap(err, "invalid exp claim")
+		return claims, e.Wrap(err, "invalid exp claim")
 	}
 
 	// Check if the current time is after the expiration
 	if time.Now().After(time.Unix(int64(exp), 0)) {
-		return e.Wrap(err, "token expired")
+		return claims, e.Wrap(err, "token expired")
 	}
 
-	return nil
+	return claims, nil
 }
 
 func (c *PasswordAuthClient) GetUser(_ context.Context, _ string) (*auth.UserRecord, error) {
@@ -160,14 +160,14 @@ func (c *PasswordAuthClient) updateContextWithAuthenticatedUser(ctx context.Cont
 	email := ""
 
 	if token != "" {
-		err := authenticateToken(token)
+		claims, err := authenticateToken(token)
 
 		if err != nil {
 			return ctx, err
 		}
 
-		email = "demo@email.com"
-		uid = "12345abcdef09876a1b2c3d4e5f"
+		email = claims["email"].(string)
+		uid = claims["uid"].(string)
 	}
 
 	ctx = context.WithValue(ctx, model.ContextKeys.UID, uid)

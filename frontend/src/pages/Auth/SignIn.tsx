@@ -110,6 +110,8 @@ export const SignIn: React.FC<Props> = ({ setResolver }) => {
 			onSubmit={() => {
 				setLoading(true)
 
+				const formState = formStore.getState()
+
 				auth.signInWithEmailAndPassword(
 					formState.values.email,
 					formState.values.password,

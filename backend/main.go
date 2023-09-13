@@ -441,6 +441,7 @@ func main() {
 			zapier.CreateZapierRoutes(r, db, &zapierStore, &rh)
 		})
 		r.HandleFunc("/slack-events", privateResolver.SlackEventsWebhook(ctx, slackSigningSecret))
+		r.Post(fmt.Sprintf("%s/%s", privateEndpoint, "login"), privateResolver.Login)
 		r.Route(privateEndpoint, func(r chi.Router) {
 			r.Use(private.PrivateMiddleware)
 			r.Use(highlightChi.Middleware)
@@ -449,6 +450,8 @@ func main() {
 			}
 			r.Get("/assets/{project_id}/{hash_val}", privateResolver.AssetHandler)
 			r.Get("/project-token/{project_id}", privateResolver.ProjectJWTHandler)
+
+			r.Get("/validate-token", privateResolver.ValidateAuthToken)
 
 			privateServer := ghandler.New(privategen.NewExecutableSchema(
 				privategen.Config{
@@ -519,8 +522,6 @@ func main() {
 		r.Route(publicEndpoint, func(r chi.Router) {
 			r.Use(public.PublicMiddleware)
 			r.Use(highlightChi.Middleware)
-
-			r.Post("/login", publicResolver.Login)
 
 			publicServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
