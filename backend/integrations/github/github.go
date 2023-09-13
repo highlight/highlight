@@ -2,16 +2,18 @@ package github
 
 import (
 	"context"
+	"fmt"
+	"github.com/bradleyfalzon/ghinstallation/v2"
+	"github.com/google/go-github/v50/github"
+	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/openlyinc/pointy"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/bradleyfalzon/ghinstallation/v2"
-	"github.com/google/go-github/v50/github"
-	"github.com/openlyinc/pointy"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	"time"
 )
 
 type Config struct {
@@ -73,7 +75,7 @@ type Client struct {
 // installation corresponds to the numeric installation ID provided by the installation setup workflow.
 // On its own, the installation ID does not provide access to any GitHub resources, but when
 // paired with the app ID and private key, allows us to access a particular organization's entities.
-func NewClient(ctx context.Context, installation string) (*Client, error) {
+func NewClient(ctx context.Context, r *redis.Client, installation string) (*Client, error) {
 	installationID, err := parseInstallation(installation)
 	if err != nil {
 		return nil, err
@@ -104,12 +106,18 @@ func NewClient(ctx context.Context, installation string) (*Client, error) {
 	client := github.NewClient(&http.Client{Transport: itt})
 	jwtClient := github.NewClient(&http.Client{Transport: jwtTransport})
 
-	install, _, err := jwtClient.Apps.GetInstallation(ctx, installationID)
+	login, err := redis.CachedEval(ctx, r, fmt.Sprintf("github-client-login-%s", installation), 5*time.Second, 5*time.Minute, func() (*string, error) {
+		install, _, err := jwtClient.Apps.GetInstallation(ctx, installationID)
+		if err != nil {
+			return nil, err
+		}
+		return pointy.String(install.Account.GetLogin()), nil
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &Client{client, jwtClient, install.Account.GetLogin()}, nil
+	return &Client{client, jwtClient, *login}, nil
 }
 
 func getPaginated[T any](fn func(int) ([]T, *int, *bool, error)) (data []T, err error) {
