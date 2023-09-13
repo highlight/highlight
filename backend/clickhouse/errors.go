@@ -13,6 +13,7 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/openlyinc/pointy"
 	"github.com/samber/lo"
+	"github.com/sirupsen/logrus"
 )
 
 type ClickhouseErrorGroup struct {
@@ -229,7 +230,7 @@ func (client *Client) QueryErrorGroupIds(ctx context.Context, projectId int, cou
 	return ids, int64(total), nil
 }
 
-func (client *Client) QueryErrorGroupFrequencies(ctx context.Context, errorGroupIds []int, params modelInputs.ErrorGroupFrequenciesParamsInput) ([]*modelInputs.ErrorDistributionItem, error) {
+func (client *Client) QueryErrorGroupFrequencies(ctx context.Context, projectId int, errorGroupIds []int, params modelInputs.ErrorGroupFrequenciesParamsInput) ([]*modelInputs.ErrorDistributionItem, error) {
 	if params.DateRange == nil {
 		return nil, errors.New("params.DateRange must not be nil")
 	}
@@ -242,6 +243,7 @@ func (client *Client) QueryErrorGroupFrequencies(ctx context.Context, errorGroup
 	sbInner := sqlbuilder.NewSelectBuilder()
 	sbInner.Select(fmt.Sprintf("ErrorGroupID, intDiv(toRelativeMinuteNum(Timestamp), %s) AS index, count(*) AS count", sbInner.Var(mins))).
 		From("error_objects FINAL").
+		Where(sb.Equal("ProjectID", projectId)).
 		Where(sbInner.In("ErrorGroupID", errorGroupIds)).
 		Where(sbInner.Between("Timestamp", params.DateRange.StartDate, params.DateRange.EndDate)).
 		GroupBy("1, 2")
@@ -293,12 +295,13 @@ func (client *Client) QueryErrorGroupFrequencies(ctx context.Context, errorGroup
 func (client *Client) QueryErrorGroupAggregateFrequency(ctx context.Context, projectId int, errorGroupIds []int) ([]*modelInputs.ErrorDistributionItem, error) {
 	sb := sqlbuilder.NewSelectBuilder()
 	sql, args := sb.Select(`ErrorGroupID,
-		countIf(CreatedAt >= now() - INTERVAL 30 DAY) as monthCount,
-		uniqIf(ClientID, CreatedAt >= now() - INTERVAL 30 DAY) as monthIdentifierCount,
-		countIf(CreatedAt >= now() - INTERVAL 7 DAY) as weekCount,
-		uniqIf(ClientID, CreatedAt >= now() - INTERVAL 7 DAY) as weekIdentifierCount,
-		countIf(CreatedAt BETWEEN now() - INTERVAL 14 DAY AND now() - INTERVAL 7 DAY) as prevWeekCount,
-		uniqIf(ClientID, CreatedAt BETWEEN now() - INTERVAL 14 DAY AND now() - INTERVAL 7 DAY) as prevWeekIdentifierCount`).
+		now(),
+		countIf(Timestamp >= now() - INTERVAL 30 DAY) as monthCount,
+		uniqIf(ClientID, Timestamp >= now() - INTERVAL 30 DAY) as monthIdentifierCount,
+		countIf(Timestamp >= now() - INTERVAL 7 DAY) as weekCount,
+		uniqIf(ClientID, Timestamp >= now() - INTERVAL 7 DAY) as weekIdentifierCount,
+		countIf(Timestamp BETWEEN now() - INTERVAL 14 DAY AND now() - INTERVAL 7 DAY) as prevWeekCount,
+		uniqIf(ClientID, Timestamp BETWEEN now() - INTERVAL 14 DAY AND now() - INTERVAL 7 DAY) as prevWeekIdentifierCount`).
 		From("error_objects FINAL").
 		Where(sb.Equal("ProjectID", projectId)).
 		Where(sb.In("ErrorGroupID", errorGroupIds)).
@@ -313,14 +316,14 @@ func (client *Client) QueryErrorGroupAggregateFrequency(ctx context.Context, pro
 	items := []*modelInputs.ErrorDistributionItem{}
 
 	for rows.Next() {
-		var errorGroupId int
+		var errorGroupId int64
 		var now time.Time
-		var monthCount int64
-		var monthIdentifierCount int64
-		var weekCount int64
-		var weekIdentifierCount int64
-		var prevWeekCount int64
-		var prevWeekIdentifierCount int64
+		var monthCount uint64
+		var monthIdentifierCount uint64
+		var weekCount uint64
+		var weekIdentifierCount uint64
+		var prevWeekCount uint64
+		var prevWeekIdentifierCount uint64
 
 		if err := rows.Scan(&errorGroupId, &now, &monthCount, &monthIdentifierCount,
 			&weekCount, &weekIdentifierCount, &prevWeekCount, &prevWeekIdentifierCount); err != nil {
@@ -328,45 +331,45 @@ func (client *Client) QueryErrorGroupAggregateFrequency(ctx context.Context, pro
 		}
 
 		items = append(items, &modelInputs.ErrorDistributionItem{
-			ErrorGroupID: errorGroupId,
+			ErrorGroupID: int(errorGroupId),
 			Date:         now.AddDate(0, 0, -30),
 			Name:         "monthCount",
-			Value:        monthCount,
+			Value:        int64(monthCount),
 		})
 
 		items = append(items, &modelInputs.ErrorDistributionItem{
-			ErrorGroupID: errorGroupId,
+			ErrorGroupID: int(errorGroupId),
 			Date:         now.AddDate(0, 0, -30),
 			Name:         "monthIdentifierCount",
-			Value:        monthIdentifierCount,
+			Value:        int64(monthIdentifierCount),
 		})
 
 		items = append(items, &modelInputs.ErrorDistributionItem{
-			ErrorGroupID: errorGroupId,
+			ErrorGroupID: int(errorGroupId),
 			Date:         now.AddDate(0, 0, -7),
 			Name:         "weekCount",
-			Value:        weekCount,
+			Value:        int64(weekCount),
 		})
 
 		items = append(items, &modelInputs.ErrorDistributionItem{
-			ErrorGroupID: errorGroupId,
+			ErrorGroupID: int(errorGroupId),
 			Date:         now.AddDate(0, 0, -7),
 			Name:         "weekIdentifierCount",
-			Value:        weekIdentifierCount,
+			Value:        int64(weekIdentifierCount),
 		})
 
 		items = append(items, &modelInputs.ErrorDistributionItem{
-			ErrorGroupID: errorGroupId,
+			ErrorGroupID: int(errorGroupId),
 			Date:         now.AddDate(0, 0, -14),
 			Name:         "weekCount",
-			Value:        prevWeekCount,
+			Value:        int64(prevWeekCount),
 		})
 
 		items = append(items, &modelInputs.ErrorDistributionItem{
-			ErrorGroupID: errorGroupId,
+			ErrorGroupID: int(errorGroupId),
 			Date:         now.AddDate(0, 0, -14),
 			Name:         "weekIdentifierCount",
-			Value:        prevWeekIdentifierCount,
+			Value:        int64(prevWeekIdentifierCount),
 		})
 	}
 
@@ -527,6 +530,9 @@ func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, qu
 	}
 	args = append(args, *options.Bounds.StartDate, *options.Bounds.EndDate)
 	sql = fmt.Sprintf("SELECT %s(makeDate(0, 0), time), count from (%s)", addFn, sql)
+
+	str, _ := sqlbuilder.ClickHouse.Interpolate(sql, args)
+	logrus.WithContext(ctx).Info(str)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 	if err != nil {

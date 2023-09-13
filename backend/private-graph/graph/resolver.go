@@ -794,12 +794,19 @@ func (r *Resolver) SetErrorFrequenciesClickhouse(ctx context.Context, projectID 
 		errorGroupsById[errorGroup.ID] = errorGroup
 	}
 
-	results, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, lo.Keys(errorGroupsById), params)
+	frequencies, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, projectID, lo.Keys(errorGroupsById), params)
 	if err != nil {
 		return err
 	}
 
-	for _, r := range results {
+	aggregates, err := r.ClickhouseClient.QueryErrorGroupAggregateFrequency(ctx, projectID, lo.Keys(errorGroupsById))
+	if err != nil {
+		return err
+	}
+
+	allMetrics := append(frequencies, aggregates...)
+
+	for _, r := range allMetrics {
 		eg := errorGroupsById[r.ErrorGroupID]
 		if eg == nil {
 			continue
