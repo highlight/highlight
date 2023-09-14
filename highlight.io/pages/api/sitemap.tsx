@@ -8,25 +8,25 @@ import { getBlogPaths } from '../blog'
 import { getGithubDocsPaths } from './docs/github'
 import pino from 'pino'
 import { GraphQLRequest } from '../../utils/graphql'
+import { createWriteStream } from 'pino-http-send'
 
-const logger = pino({
-	level: 'trace',
-	transport: {
-		targets: [],
-	},
+const stream = createWriteStream({
+	url: 'https://pub.highlight.io/v1/logs/json?project=4d7k1xeo&service=highlight-io-next-frontend',
 })
+
+const logger = pino({ level: 'trace' }, stream)
 
 async function generateXML(): Promise<string> {
 	logger.info('generating sitemap')
 
 	const [{ customers }, docs, githubBlogPosts] = await Promise.all([
 		await GraphQLRequest<{ customers: { slug: string }[] }>(gql`
-	      query GetCustomers() {
-	        customers() {
-	          slug
-	        }
-	      }
-	    `),
+            query GetCustomers() {
+                customers() {
+                    slug
+                }
+            }
+        `),
 		await getGithubDocsPaths(),
 		await getBlogPaths(fsp, ''),
 	])
