@@ -12566,7 +12566,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/pino@workspace:*, @highlight-run/pino@workspace:sdk/pino":
+"@highlight-run/pino@workspace:sdk/pino":
   version: 0.0.0-use.local
   resolution: "@highlight-run/pino@workspace:sdk/pino"
   dependencies:
@@ -36045,7 +36045,6 @@ __metadata:
     "@headlessui/react": ^1.7.4
     "@heroicons/react": ^2.0.13
     "@highlight-run/next": "workspace:*"
-    "@highlight-run/pino": "workspace:*"
     "@radix-ui/react-slider": ^1.1.0
     "@supabase/supabase-js": ^2.7.1
     "@svgr/webpack": ^6.5.1
