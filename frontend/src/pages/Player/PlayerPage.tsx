@@ -75,6 +75,7 @@ const PlayerPage = () => {
 	const playerContext = usePlayer()
 	const {
 		state: replayerState,
+		isLoadingEvents,
 		setScale,
 		replayer,
 		time,
@@ -308,7 +309,9 @@ const PlayerPage = () => {
 							{centerColumnResizeListener}
 							<div className={style.playerWrapperV2}>
 								<div
-									className={style.rrwebPlayerWrapper}
+									className={clsx(style.rrwebPlayerWrapper, {
+										[style.blurBackground]: isLoadingEvents,
+									})}
 									ref={playerWrapperRef}
 								>
 									{resizeListener}

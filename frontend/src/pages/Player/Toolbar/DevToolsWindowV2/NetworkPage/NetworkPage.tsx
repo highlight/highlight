@@ -8,6 +8,7 @@ import {
 	Text,
 } from '@highlight-run/ui'
 import { getResponseStatusCode } from '@pages/Player/helpers'
+import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import {
 	LoadingError,
@@ -27,7 +28,13 @@ import { useParams } from '@util/react-router/useParams'
 import { playerTimeToSessionAbsoluteTime } from '@util/session/utils'
 import { formatTime, MillisToMinutesAndSeconds } from '@util/time'
 import _ from 'lodash'
-import React, { useCallback, useEffect, useMemo, useRef } from 'react'
+import React, {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+} from 'react'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
 import { ErrorObject } from '@/graph/generated/schemas'
@@ -172,21 +179,20 @@ export const NetworkPage = ({
 					virtuoso.current.scrollToIndex({
 						index,
 						align: 'center',
-						behavior: 'smooth',
 					})
 				}
 			})
-		}, 1000 / 60),
+		}, THROTTLED_UPDATE_MS),
 		[],
 	)
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (autoScroll && state === ReplayerState.Playing) {
 			scrollFunction(currentResourceIdx)
 		}
 	}, [currentResourceIdx, scrollFunction, autoScroll, state])
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		// scroll network events on player timeline click
 		if (autoScroll && state === ReplayerState.Paused) {
 			scrollFunction(currentResourceIdx)
