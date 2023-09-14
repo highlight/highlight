@@ -4296,11 +4296,11 @@ export type GetEmailOptOutsQuery = { __typename?: 'Query' } & Pick<
 
 export type GetLogsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	params: Types.LogsParamsInput
+	params: Types.QueryInput
 	after?: Types.Maybe<Types.Scalars['String']>
 	before?: Types.Maybe<Types.Scalars['String']>
 	at?: Types.Maybe<Types.Scalars['String']>
-	direction: Types.LogDirection
+	direction: Types.SortDirection
 }>
 
 export type GetLogsQuery = { __typename?: 'Query' } & {
@@ -4331,7 +4331,7 @@ export type GetLogsQuery = { __typename?: 'Query' } & {
 
 export type GetSessionLogsQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	params: Types.LogsParamsInput
+	params: Types.QueryInput
 }>
 
 export type GetSessionLogsQuery = { __typename?: 'Query' } & {
@@ -4347,7 +4347,7 @@ export type GetSessionLogsQuery = { __typename?: 'Query' } & {
 
 export type GetLogsTotalCountQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	params: Types.LogsParamsInput
+	params: Types.QueryInput
 }>
 
 export type GetLogsTotalCountQuery = { __typename?: 'Query' } & Pick<
@@ -4357,7 +4357,7 @@ export type GetLogsTotalCountQuery = { __typename?: 'Query' } & Pick<
 
 export type GetLogsHistogramQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	params: Types.LogsParamsInput
+	params: Types.QueryInput
 }>
 
 export type GetLogsHistogramQuery = { __typename?: 'Query' } & {
@@ -4387,8 +4387,8 @@ export type GetLogsKeysQueryVariables = Types.Exact<{
 }>
 
 export type GetLogsKeysQuery = { __typename?: 'Query' } & {
-	logs_keys: Array<
-		{ __typename?: 'LogKey' } & Pick<Types.LogKey, 'name' | 'type'>
+	keys: Array<
+		{ __typename?: 'QueryKey' } & Pick<Types.QueryKey, 'name' | 'type'>
 	>
 }
 
@@ -4398,10 +4398,9 @@ export type GetLogsKeyValuesQueryVariables = Types.Exact<{
 	date_range: Types.DateRangeRequiredInput
 }>
 
-export type GetLogsKeyValuesQuery = { __typename?: 'Query' } & Pick<
-	Types.Query,
-	'logs_key_values'
->
+export type GetLogsKeyValuesQuery = { __typename?: 'Query' } & {
+	key_values: Types.Query['logs_key_values']
+}
 
 export type GetLogsErrorObjectsQueryVariables = Types.Exact<{
 	log_cursors: Array<Types.Scalars['String']> | Types.Scalars['String']
@@ -4624,30 +4623,63 @@ export type FindSimilarErrorsQuery = { __typename?: 'Query' } & {
 
 export type GetTracesQueryVariables = Types.Exact<{
 	project_id: Types.Scalars['ID']
-	params: Types.TracesParamsInput
+	params: Types.QueryInput
+	after?: Types.Maybe<Types.Scalars['String']>
+	before?: Types.Maybe<Types.Scalars['String']>
+	at?: Types.Maybe<Types.Scalars['String']>
+	direction: Types.SortDirection
 }>
 
 export type GetTracesQuery = { __typename?: 'Query' } & {
-	traces: Array<
-		{ __typename?: 'Trace' } & Pick<
-			Types.Trace,
-			| 'timestamp'
-			| 'traceID'
-			| 'spanID'
-			| 'parentSpanID'
-			| 'projectID'
-			| 'secureSessionID'
-			| 'traceState'
-			| 'spanName'
-			| 'spanKind'
-			| 'duration'
-			| 'serviceName'
-			| 'serviceVersion'
-			| 'traceAttributes'
-			| 'statusCode'
-			| 'statusMessage'
+	traces: { __typename?: 'TraceConnection' } & {
+		edges: Array<
+			{ __typename?: 'TraceEdge' } & Pick<Types.TraceEdge, 'cursor'> & {
+					node: { __typename?: 'Trace' } & Pick<
+						Types.Trace,
+						| 'timestamp'
+						| 'traceID'
+						| 'spanID'
+						| 'parentSpanID'
+						| 'projectID'
+						| 'secureSessionID'
+						| 'traceState'
+						| 'spanName'
+						| 'spanKind'
+						| 'duration'
+						| 'serviceName'
+						| 'serviceVersion'
+						| 'traceAttributes'
+						| 'statusCode'
+						| 'statusMessage'
+					>
+				}
 		>
+		pageInfo: { __typename?: 'PageInfo' } & Pick<
+			Types.PageInfo,
+			'hasNextPage' | 'hasPreviousPage' | 'startCursor' | 'endCursor'
+		>
+	}
+}
+
+export type GetTracesKeysQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	date_range: Types.DateRangeRequiredInput
+}>
+
+export type GetTracesKeysQuery = { __typename?: 'Query' } & {
+	keys: Array<
+		{ __typename?: 'QueryKey' } & Pick<Types.QueryKey, 'name' | 'type'>
 	>
+}
+
+export type GetTracesKeyValuesQueryVariables = Types.Exact<{
+	project_id: Types.Scalars['ID']
+	key_name: Types.Scalars['String']
+	date_range: Types.DateRangeRequiredInput
+}>
+
+export type GetTracesKeyValuesQuery = { __typename?: 'Query' } & {
+	key_values: Types.Query['traces_key_values']
 }
 
 export const namedOperations = {
@@ -4789,6 +4821,8 @@ export const namedOperations = {
 		MatchErrorTag: 'MatchErrorTag' as const,
 		FindSimilarErrors: 'FindSimilarErrors' as const,
 		GetTraces: 'GetTraces' as const,
+		GetTracesKeys: 'GetTracesKeys' as const,
+		GetTracesKeyValues: 'GetTracesKeyValues' as const,
 	},
 	Mutation: {
 		MarkErrorGroupAsViewed: 'MarkErrorGroupAsViewed' as const,

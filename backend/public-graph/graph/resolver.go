@@ -172,11 +172,11 @@ var MetricCategoriesForDB = map[string]bool{"Device": true, "WebVital": true}
 
 // Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properties map[string]string, propType Property) error {
-	outerSpan, outerCtx := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
+	outerSpan, ctx := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
 		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", sessionID))
 	defer outerSpan.Finish()
 
-	loadSessionSpan, _ := tracer.StartSpanFromContext(outerCtx, "public-graph.AppendProperties",
+	loadSessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
 		tracer.ResourceName("go.sessions.AppendProperties.loadSessions"), tracer.Tag("sessionID", sessionID))
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).Take(&session)
@@ -185,7 +185,9 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 	}
 	loadSessionSpan.Finish()
 
-	modelFields := []*model.Field{}
+	propsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.AppendProperties",
+		tracer.ResourceName("processProperties"), tracer.Tag("num_properties", len(properties)))
+	var modelFields []*model.Field
 	projectID := session.ProjectID
 	for k, fv := range properties {
 		if len(fv) > SESSION_FIELD_MAX_LENGTH {
@@ -204,20 +206,22 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 		modelFields = modelFields[:1000]
 		log.WithContext(ctx).WithField("session_id", sessionID).Warnf("attempted to append more than 1000 fields - truncating")
 	}
+	propsSpan.Finish()
 
 	if len(modelFields) > 0 {
-		err := r.AppendFields(outerCtx, modelFields, session)
+		err := r.AppendFields(ctx, modelFields, session)
 		if err != nil {
 			return e.Wrap(err, "error appending fields")
 		}
 	}
 
-	project := &model.Project{}
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: session.ProjectID}}).Take(&project).Error; err != nil {
+	project, err := r.Store.GetProject(ctx, session.ProjectID)
+	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying project"))
 		return err
 	}
-	workspace, err := r.getWorkspace(project.WorkspaceID)
+
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 		return err
@@ -233,7 +237,7 @@ func (r *Resolver) AppendProperties(ctx context.Context, sessionID int, properti
 
 func (r *Resolver) AppendFields(ctx context.Context, fields []*model.Field, session *model.Session) error {
 	outerSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.AppendFields",
-		tracer.ResourceName("go.sessions.AppendProperties"), tracer.Tag("sessionID", session.ID))
+		tracer.ResourceName("go.sessions.AppendFields"), tracer.Tag("sessionID", session.ID))
 	defer outerSpan.Finish()
 
 	result := r.DB.
@@ -1093,7 +1097,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 		return nil, e.Wrapf(err, "project doesn't exist project_id:%d", projectID)
 	}
-	workspace, err := r.getWorkspace(project.WorkspaceID)
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving workspace")
 	}
@@ -1288,7 +1292,7 @@ func (r *Resolver) MarkBackendSetupImpl(ctx context.Context, projectID int, setu
 				return nil, e.Wrap(err, "error querying backend_setup flag")
 			}
 			if backendSetupCount < 1 {
-				project, err := r.getProject(projectID)
+				project, err := r.Store.GetProject(ctx, projectID)
 				if err != nil {
 					log.WithContext(ctx).Errorf("failed to query project %d: %s", projectID, err)
 				} else {
@@ -1396,7 +1400,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 			identifier = *input.UserEmail
 		}
 
-		workspace, err := r.getWorkspace(project.WorkspaceID)
+		workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 		if err != nil {
 			log.WithContext(ctx).WithError(err).
 				WithFields(log.Fields{"project_id": session.ProjectID, "session_id": session.ID, "comment_id": feedbackComment.ID}).
@@ -1611,22 +1615,6 @@ func (r *Resolver) AddSessionPropertiesImpl(ctx context.Context, sessionID int, 
 		return e.Wrap(err, "error adding set of properties to db")
 	}
 	return nil
-}
-
-func (r *Resolver) getWorkspace(workspaceID int) (*model.Workspace, error) {
-	var workspace model.Workspace
-	if err := r.DB.Where(&model.Workspace{Model: model.Model{ID: workspaceID}}).Take(&workspace).Error; err != nil {
-		return nil, e.Wrap(err, "error querying workspace")
-	}
-	return &workspace, nil
-}
-
-func (r *Resolver) getProject(projectID int) (*model.Project, error) {
-	var project model.Project
-	if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
-		return nil, e.Wrap(err, "error querying project")
-	}
-	return &project, nil
 }
 
 var productTypeToQuotaConfig = map[model.PricingProductType]struct {
@@ -1852,7 +1840,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 				continue
 			}
 
-			workspace, err := r.getWorkspace(project.WorkspaceID)
+			workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 			if err != nil {
 				log.WithContext(ctx).Error(err)
 			}
@@ -2129,7 +2117,7 @@ func (r *Resolver) ProcessBackendPayloadImpl(ctx context.Context, sessionSecureI
 		log.WithContext(ctx).WithError(err).WithField("project", project).WithField("projectVerboseID", projectVerboseID).Error("failed to find project")
 	}
 
-	workspace, err := r.getWorkspace(project.WorkspaceID)
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 	if err != nil {
 		log.WithContext(ctx).Error(e.Wrap(err, "error querying workspace"))
 	}
@@ -2662,7 +2650,7 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 		if err := r.DB.Where(&model.Project{Model: model.Model{ID: projectID}}).Take(&project).Error; err != nil {
 			return e.Wrap(err, "error querying project")
 		}
-		workspace, err := r.getWorkspace(project.WorkspaceID)
+		workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 		if err != nil {
 			return e.Wrap(err, "error querying workspace")
 		}
@@ -2922,12 +2910,12 @@ func (r *Resolver) ProcessPayload(ctx context.Context, sessionSecureID string, e
 // HandleSessionViewable is called after the first events to a session are written.
 // It handles any alerts that must be sent for this session after it is able to be played.
 func (r *Resolver) HandleSessionViewable(ctx context.Context, projectID int, session *model.Session) error {
-	project, err := r.getProject(projectID)
+	project, err := r.Store.GetProject(ctx, projectID)
 	if err != nil {
 		return err
 	}
 
-	workspace, err := r.getWorkspace(project.WorkspaceID)
+	workspace, err := r.Store.GetWorkspace(ctx, project.WorkspaceID)
 	if err != nil {
 		return err
 	}
@@ -3242,6 +3230,8 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 }
 
 func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace *model.Workspace, session *model.Session) error {
+	alertSpan, _ := tracer.StartSpanFromContext(ctx, "SendSessionUserPropertiesAlert")
+	defer alertSpan.Finish()
 	// Sending User Properties Alert
 	var sessionAlerts []*model.SessionAlert
 	if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{ProjectID: session.ProjectID, Disabled: &model.F}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&sessionAlerts).Error; err != nil {

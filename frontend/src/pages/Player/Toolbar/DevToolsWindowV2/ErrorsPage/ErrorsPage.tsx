@@ -7,6 +7,7 @@ import {
 	RightPanelView,
 	usePlayerUIContext,
 } from '@pages/Player/context/PlayerUIContext'
+import { THROTTLED_UPDATE_MS } from '@pages/Player/PlayerHook/PlayerState'
 import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { EmptyDevToolsCallout } from '@pages/Player/Toolbar/DevToolsWindowV2/EmptyDevToolsCallout/EmptyDevToolsCallout'
 import {
@@ -15,7 +16,8 @@ import {
 } from '@pages/Player/Toolbar/DevToolsWindowV2/utils'
 import { getErrorBody } from '@util/errors/errorUtils'
 import { parseOptionalJSON } from '@util/string'
-import React, { useLayoutEffect, useMemo, useRef } from 'react'
+import _ from 'lodash'
+import React, { useCallback, useLayoutEffect, useMemo, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'
 
@@ -58,15 +60,35 @@ const ErrorsPage = ({
 		return -1
 	}, [errors, hasTimestamp, sessionMetadata.startTime, time])
 
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	const scrollFunction = useCallback(
+		_.debounce((index: number) => {
+			requestAnimationFrame(() => {
+				if (virtuoso.current) {
+					virtuoso.current.scrollToIndex({
+						index,
+						align: 'center',
+					})
+				}
+			})
+		}, THROTTLED_UPDATE_MS),
+		[],
+	)
+
 	useLayoutEffect(() => {
-		if (virtuoso.current && autoScroll) {
+		if (autoScroll) {
 			if (location.state?.errorCardIndex !== undefined) {
-				virtuoso.current.scrollToIndex(location.state.errorCardIndex)
+				scrollFunction(location.state.errorCardIndex)
 			} else {
-				virtuoso.current.scrollToIndex(lastActiveErrorIndex)
+				scrollFunction(lastActiveErrorIndex)
 			}
 		}
-	}, [autoScroll, location.state?.errorCardIndex, lastActiveErrorIndex])
+	}, [
+		autoScroll,
+		location.state?.errorCardIndex,
+		lastActiveErrorIndex,
+		scrollFunction,
+	])
 
 	const errorsToRender = useMemo(() => {
 		if (!filter.length) {

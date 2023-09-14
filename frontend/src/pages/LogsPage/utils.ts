@@ -55,15 +55,15 @@ export const findMatchingLogAttributes = (
 		if (
 			bodyQueryValue &&
 			key === bodyKey &&
-			value.indexOf(bodyQueryValue) !== -1
+			value.toLowerCase().indexOf(bodyQueryValue.toLowerCase()) !== -1
 		) {
 			matchingAttribute = bodyQueryValue
 		} else {
 			const fullKey = [...attributeKeyBase, key].join('.')
 
 			queryTerms.some((term) => {
-				const queryKey = term.key
-				const queryValue = term.value
+				const queryKey = term.key.toLowerCase()
+				const queryValue = term.value.toLowerCase()
 
 				if (queryKey === fullKey) {
 					matchingAttribute = queryValue

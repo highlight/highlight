@@ -2384,7 +2384,7 @@ func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(ctx context.Context
 	}
 
 	// uninstall the app in github
-	if c, err := github.NewClient(ctx, workspaceMapping.AccessToken); err == nil {
+	if c, err := github.NewClient(ctx, workspaceMapping.AccessToken, r.Redis); err == nil {
 		if err := c.DeleteInstallation(ctx, workspaceMapping.AccessToken); err != nil {
 			return e.Wrap(err, "failed to delete github app installation")
 		}
@@ -2785,7 +2785,7 @@ func (r *Resolver) CreateGitHubTaskAndAttachment(
 		return errors.New("No GitHub integration access token found.")
 	}
 	var task *github2.Issue
-	if c, err := github.NewClient(ctx, *accessToken); err == nil {
+	if c, err := github.NewClient(ctx, *accessToken, r.Redis); err == nil {
 		task, err = c.CreateIssue(ctx, *repo, &github2.IssueRequest{
 			Title:  pointy.String(issueTitle),
 			Body:   pointy.String(issueDescription),
@@ -2819,7 +2819,7 @@ func (r *Resolver) GetGitHubRepos(
 		return nil, nil
 	}
 	var repos []*github2.Repository
-	if c, err := github.NewClient(ctx, *accessToken); err == nil {
+	if c, err := github.NewClient(ctx, *accessToken, r.Redis); err == nil {
 		repos, err = c.ListRepos(ctx)
 		if err != nil {
 			return nil, err
@@ -2851,7 +2851,7 @@ func (r *Resolver) GetGitHubIssueLabels(
 		return nil, nil
 	}
 	var labels []*github2.Label
-	if c, err := github.NewClient(ctx, *accessToken); err == nil {
+	if c, err := github.NewClient(ctx, *accessToken, r.Redis); err == nil {
 		labels, err = c.ListLabels(ctx, repository)
 		if err != nil {
 			return nil, err

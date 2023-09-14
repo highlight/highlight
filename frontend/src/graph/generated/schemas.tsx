@@ -760,6 +760,10 @@ export type Invoice = {
 	url?: Maybe<Scalars['String']>
 }
 
+export enum KeyType {
+	String = 'String',
+}
+
 export type LengthRange = {
 	__typename?: 'LengthRange'
 	max?: Maybe<Scalars['Float']>
@@ -835,25 +839,10 @@ export type LogConnection = Connection & {
 	pageInfo: PageInfo
 }
 
-export enum LogDirection {
-	Asc = 'ASC',
-	Desc = 'DESC',
-}
-
 export type LogEdge = Edge & {
 	__typename?: 'LogEdge'
 	cursor: Scalars['String']
 	node: Log
-}
-
-export type LogKey = {
-	__typename?: 'LogKey'
-	name: Scalars['String']
-	type: LogKeyType
-}
-
-export enum LogKeyType {
-	String = 'String',
 }
 
 export enum LogLevel {
@@ -886,11 +875,6 @@ export type LogsHistogramBucketCount = {
 	__typename?: 'LogsHistogramBucketCount'
 	count: Scalars['UInt64']
 	level: LogLevel
-}
-
-export type LogsParamsInput = {
-	date_range: DateRangeRequiredInput
-	query: Scalars['String']
 }
 
 export type MatchedErrorObject = {
@@ -1781,7 +1765,7 @@ export type Query = {
 	logs_error_objects: Array<ErrorObject>
 	logs_histogram: LogsHistogram
 	logs_key_values: Array<Scalars['String']>
-	logs_keys: Array<LogKey>
+	logs_keys: Array<QueryKey>
 	logs_total_count: Scalars['UInt64']
 	match_error_tag?: Maybe<Array<Maybe<MatchedErrorTag>>>
 	metric_monitors: Array<Maybe<MetricMonitor>>
@@ -1831,7 +1815,9 @@ export type Query = {
 	system_configuration: SystemConfiguration
 	timeline_indicator_events: Array<TimelineIndicatorEvent>
 	topUsers: Array<Maybe<TopUsersPayload>>
-	traces: Array<Trace>
+	traces: TraceConnection
+	traces_key_values: Array<Scalars['String']>
+	traces_keys: Array<QueryKey>
 	track_properties_alerts: Array<Maybe<SessionAlert>>
 	unprocessedSessionsCount?: Maybe<Scalars['Int64']>
 	userFingerprintCount?: Maybe<UserFingerprintCount>
@@ -2211,8 +2197,8 @@ export type QueryLogsArgs = {
 	after?: InputMaybe<Scalars['String']>
 	at?: InputMaybe<Scalars['String']>
 	before?: InputMaybe<Scalars['String']>
-	direction: LogDirection
-	params: LogsParamsInput
+	direction: SortDirection
+	params: QueryInput
 	project_id: Scalars['ID']
 }
 
@@ -2225,7 +2211,7 @@ export type QueryLogs_Error_ObjectsArgs = {
 }
 
 export type QueryLogs_HistogramArgs = {
-	params: LogsParamsInput
+	params: QueryInput
 	project_id: Scalars['ID']
 }
 
@@ -2241,7 +2227,7 @@ export type QueryLogs_KeysArgs = {
 }
 
 export type QueryLogs_Total_CountArgs = {
-	params: LogsParamsInput
+	params: QueryInput
 	project_id: Scalars['ID']
 }
 
@@ -2380,7 +2366,7 @@ export type QuerySessionArgs = {
 }
 
 export type QuerySessionLogsArgs = {
-	params: LogsParamsInput
+	params: QueryInput
 	project_id: Scalars['ID']
 }
 
@@ -2468,7 +2454,22 @@ export type QueryTopUsersArgs = {
 }
 
 export type QueryTracesArgs = {
-	params: TracesParamsInput
+	after?: InputMaybe<Scalars['String']>
+	at?: InputMaybe<Scalars['String']>
+	before?: InputMaybe<Scalars['String']>
+	direction: SortDirection
+	params: QueryInput
+	project_id: Scalars['ID']
+}
+
+export type QueryTraces_Key_ValuesArgs = {
+	date_range: DateRangeRequiredInput
+	key_name: Scalars['String']
+	project_id: Scalars['ID']
+}
+
+export type QueryTraces_KeysArgs = {
+	date_range: DateRangeRequiredInput
 	project_id: Scalars['ID']
 }
 
@@ -2537,6 +2538,17 @@ export type QueryWorkspace_Invite_LinksArgs = {
 	workspace_id: Scalars['ID']
 }
 
+export type QueryInput = {
+	date_range: DateRangeRequiredInput
+	query: Scalars['String']
+}
+
+export type QueryKey = {
+	__typename?: 'QueryKey'
+	name: Scalars['String']
+	type: KeyType
+}
+
 export type RageClickEvent = {
 	__typename?: 'RageClickEvent'
 	end_timestamp: Scalars['Timestamp']
@@ -2572,6 +2584,21 @@ export enum ReservedLogKey {
 	Source = 'source',
 	SpanId = 'span_id',
 	TraceId = 'trace_id',
+}
+
+export enum ReservedTraceKey {
+	Duration = 'duration',
+	Level = 'level',
+	Message = 'message',
+	ParentSpanId = 'parent_span_id',
+	SecureSessionId = 'secure_session_id',
+	ServiceName = 'service_name',
+	ServiceVersion = 'service_version',
+	SpanId = 'span_id',
+	SpanKind = 'span_kind',
+	SpanName = 'span_name',
+	TraceId = 'trace_id',
+	TraceState = 'trace_state',
 }
 
 export enum RetentionPeriod {
@@ -2938,6 +2965,11 @@ export enum SocialType {
 	Twitter = 'Twitter',
 }
 
+export enum SortDirection {
+	Asc = 'ASC',
+	Desc = 'DESC',
+}
+
 export type SourceMappingError = {
 	__typename?: 'SourceMappingError'
 	actualMinifiedFetchedPath?: Maybe<Scalars['String']>
@@ -3037,6 +3069,18 @@ export type Trace = {
 	traceState: Scalars['String']
 }
 
+export type TraceConnection = Connection & {
+	__typename?: 'TraceConnection'
+	edges: Array<TraceEdge>
+	pageInfo: PageInfo
+}
+
+export type TraceEdge = Edge & {
+	__typename?: 'TraceEdge'
+	cursor: Scalars['String']
+	node: Trace
+}
+
 export type TraceEvent = {
 	__typename?: 'TraceEvent'
 	attributes: Scalars['Map']
@@ -3050,11 +3094,6 @@ export type TraceLink = {
 	spanID: Scalars['String']
 	traceID: Scalars['String']
 	traceState: Scalars['String']
-}
-
-export type TracesParamsInput = {
-	date_range: DateRangeRequiredInput
-	query: Scalars['String']
 }
 
 export type TrackProperty = {

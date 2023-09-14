@@ -348,7 +348,7 @@ enum LogLevel {
 	fatal
 }
 
-enum LogDirection {
+enum SortDirection {
 	ASC
 	DESC
 }
@@ -691,6 +691,16 @@ type TraceLink {
 	attributes: Map!
 }
 
+type TraceEdge implements Edge {
+	cursor: String!
+	node: Trace!
+}
+
+type TraceConnection implements Connection {
+	edges: [TraceEdge!]!
+	pageInfo: PageInfo!
+}
+
 type ErrorObjectNodeSession {
 	secureID: String!
 	appVersion: String
@@ -770,12 +780,27 @@ enum ReservedLogKey {
 	service_version
 }
 
+enum ReservedTraceKey {
+	level
+	message
+	secure_session_id
+	span_id
+	trace_id
+	parent_span_id
+	trace_state
+	span_name
+	span_kind
+	duration
+	service_name
+	service_version
+}
+
 enum LogSource {
 	frontend
 	backend
 }
 
-enum LogKeyType {
+enum KeyType {
 	String
 }
 
@@ -794,9 +819,9 @@ type LogsHistogram {
 	totalCount: UInt64!
 }
 
-type LogKey {
+type QueryKey {
 	name: String!
-	type: LogKeyType!
+	type: KeyType!
 }
 
 type ReferrerTablePayload {
@@ -874,12 +899,7 @@ input ErrorGroupFrequenciesParamsInput {
 	resolution_minutes: Int!
 }
 
-input LogsParamsInput {
-	query: String!
-	date_range: DateRangeRequiredInput!
-}
-
-input TracesParamsInput {
+input QueryInput {
 	query: String!
 	date_range: DateRangeRequiredInput!
 }
@@ -1901,16 +1921,19 @@ type Query {
 	email_opt_outs(token: String, admin_id: ID): [EmailOptOutCategory!]!
 	logs(
 		project_id: ID!
-		params: LogsParamsInput!
+		params: QueryInput!
 		after: String
 		before: String
 		at: String
-		direction: LogDirection!
+		direction: SortDirection!
 	): LogConnection!
-	sessionLogs(project_id: ID!, params: LogsParamsInput!): [LogEdge!]!
-	logs_total_count(project_id: ID!, params: LogsParamsInput!): UInt64!
-	logs_histogram(project_id: ID!, params: LogsParamsInput!): LogsHistogram!
-	logs_keys(project_id: ID!, date_range: DateRangeRequiredInput!): [LogKey!]!
+	sessionLogs(project_id: ID!, params: QueryInput!): [LogEdge!]!
+	logs_total_count(project_id: ID!, params: QueryInput!): UInt64!
+	logs_histogram(project_id: ID!, params: QueryInput!): LogsHistogram!
+	logs_keys(
+		project_id: ID!
+		date_range: DateRangeRequiredInput!
+	): [QueryKey!]!
 	logs_key_values(
 		project_id: ID!
 		key_name: String!
@@ -1931,7 +1954,23 @@ type Query {
 	error_tags: [ErrorTag]
 	match_error_tag(query: String!): [MatchedErrorTag]
 	find_similar_errors(query: String!): [MatchedErrorObject]
-	traces(project_id: ID!, params: TracesParamsInput!): [Trace!]!
+	traces(
+		project_id: ID!
+		params: QueryInput!
+		after: String
+		before: String
+		at: String
+		direction: SortDirection!
+	): TraceConnection!
+	traces_keys(
+		project_id: ID!
+		date_range: DateRangeRequiredInput!
+	): [QueryKey!]!
+	traces_key_values(
+		project_id: ID!
+		key_name: String!
+		date_range: DateRangeRequiredInput!
+	): [String!]!
 }
 
 type Mutation {
