@@ -23,3 +23,9 @@
 ### Minor changes
 
 - Added support for setting `serviceName`
+
+## 3.3.1
+
+### Minor Changes
+
+-   Ensure console serialization works with `BigInteger` and other unserializeable types.

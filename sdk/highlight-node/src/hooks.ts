@@ -39,6 +39,32 @@ type ConsoleFn = (...data: any) => void
 
 let consoleHooked = false
 
+export function safeStringify(obj: any): string {
+	function replacer(input: any): any {
+		if (input && typeof input === 'object') {
+			for (let k in input) {
+				if (typeof input[k] === 'object') {
+					replacer(input[k])
+				} else if (!canStringify(input[k])) {
+					input[k] = input[k].toString()
+				}
+			}
+		}
+		return input
+	}
+
+	function canStringify(value: any): boolean {
+		try {
+			JSON.stringify(value)
+			return true
+		} catch (e) {
+			return false
+		}
+	}
+
+	return JSON.stringify(replacer(obj))
+}
+
 export function hookConsole(
 	methodsToRecord: string[] | undefined,
 	cb: (cb: ConsolePayload) => void,
@@ -64,7 +90,7 @@ export function hookConsole(
 					level: highlightLevel,
 					message: data
 						.map((o) =>
-							typeof o === 'object' ? JSON.stringify(o) : o,
+							typeof o === 'object' ? safeStringify(o) : o,
 						)
 						.join(' '),
 					stack: o.stack,
