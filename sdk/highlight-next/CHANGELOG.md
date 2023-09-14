@@ -63,7 +63,7 @@
 
 - Added support for setting `serviceName`
 
-## 3.3.1
+## 4.3.1
 
 ### Minor Changes
 
