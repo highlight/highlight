@@ -13478,10 +13478,10 @@ export const GetErrorObjectsDocument = gql`
 					event
 					timestamp
 					errorGroupSecureID
+					serviceVersion
 					session {
 						secureID
 						email
-						appVersion
 						fingerprint
 						excluded
 					}

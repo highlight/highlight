@@ -435,12 +435,12 @@ type ComplexityRoot struct {
 		ErrorGroupSecureID func(childComplexity int) int
 		Event              func(childComplexity int) int
 		ID                 func(childComplexity int) int
+		ServiceVersion     func(childComplexity int) int
 		Session            func(childComplexity int) int
 		Timestamp          func(childComplexity int) int
 	}
 
 	ErrorObjectNodeSession struct {
-		AppVersion  func(childComplexity int) int
 		Email       func(childComplexity int) int
 		Excluded    func(childComplexity int) int
 		Fingerprint func(childComplexity int) int
@@ -3565,6 +3565,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObjectNode.ID(childComplexity), true
 
+	case "ErrorObjectNode.serviceVersion":
+		if e.complexity.ErrorObjectNode.ServiceVersion == nil {
+			break
+		}
+
+		return e.complexity.ErrorObjectNode.ServiceVersion(childComplexity), true
+
 	case "ErrorObjectNode.session":
 		if e.complexity.ErrorObjectNode.Session == nil {
 			break
@@ -3578,13 +3585,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObjectNode.Timestamp(childComplexity), true
-
-	case "ErrorObjectNodeSession.appVersion":
-		if e.complexity.ErrorObjectNodeSession.AppVersion == nil {
-			break
-		}
-
-		return e.complexity.ErrorObjectNodeSession.AppVersion(childComplexity), true
 
 	case "ErrorObjectNodeSession.email":
 		if e.complexity.ErrorObjectNodeSession.Email == nil {
@@ -10506,7 +10506,6 @@ type TraceConnection implements Connection {
 
 type ErrorObjectNodeSession {
 	secureID: String!
-	appVersion: String
 	email: String
 	fingerprint: Int
 	excluded: Boolean!
@@ -10519,6 +10518,7 @@ type ErrorObjectNode {
 	timestamp: Timestamp!
 	session: ErrorObjectNodeSession
 	errorGroupSecureID: String!
+	serviceVersion: String!
 }
 
 type ErrorObjectEdge implements Edge {
@@ -29942,6 +29942,8 @@ func (ec *executionContext) fieldContext_ErrorObjectEdge_node(ctx context.Contex
 				return ec.fieldContext_ErrorObjectNode_session(ctx, field)
 			case "errorGroupSecureID":
 				return ec.fieldContext_ErrorObjectNode_errorGroupSecureID(ctx, field)
+			case "serviceVersion":
+				return ec.fieldContext_ErrorObjectNode_serviceVersion(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ErrorObjectNode", field.Name)
 		},
@@ -30163,8 +30165,6 @@ func (ec *executionContext) fieldContext_ErrorObjectNode_session(ctx context.Con
 			switch field.Name {
 			case "secureID":
 				return ec.fieldContext_ErrorObjectNodeSession_secureID(ctx, field)
-			case "appVersion":
-				return ec.fieldContext_ErrorObjectNodeSession_appVersion(ctx, field)
 			case "email":
 				return ec.fieldContext_ErrorObjectNodeSession_email(ctx, field)
 			case "fingerprint":
@@ -30222,6 +30222,50 @@ func (ec *executionContext) fieldContext_ErrorObjectNode_errorGroupSecureID(ctx 
 	return fc, nil
 }
 
+func (ec *executionContext) _ErrorObjectNode_serviceVersion(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectNode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ErrorObjectNode_serviceVersion(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ServiceVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ErrorObjectNode_serviceVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ErrorObjectNode",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ErrorObjectNodeSession_secureID(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectNodeSession) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ErrorObjectNodeSession_secureID(ctx, field)
 	if err != nil {
@@ -30254,47 +30298,6 @@ func (ec *executionContext) _ErrorObjectNodeSession_secureID(ctx context.Context
 }
 
 func (ec *executionContext) fieldContext_ErrorObjectNodeSession_secureID(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ErrorObjectNodeSession",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ErrorObjectNodeSession_appVersion(ctx context.Context, field graphql.CollectedField, obj *model.ErrorObjectNodeSession) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_ErrorObjectNodeSession_appVersion(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AppVersion, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_ErrorObjectNodeSession_appVersion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "ErrorObjectNodeSession",
 		Field:      field,
@@ -73556,6 +73559,13 @@ func (ec *executionContext) _ErrorObjectNode(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "serviceVersion":
+
+			out.Values[i] = ec._ErrorObjectNode_serviceVersion(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -73584,10 +73594,6 @@ func (ec *executionContext) _ErrorObjectNodeSession(ctx context.Context, sel ast
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "appVersion":
-
-			out.Values[i] = ec._ErrorObjectNodeSession_appVersion(ctx, field, obj)
-
 		case "email":
 
 			out.Values[i] = ec._ErrorObjectNodeSession_email(ctx, field, obj)

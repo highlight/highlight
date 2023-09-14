@@ -4513,6 +4513,7 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 						| 'event'
 						| 'timestamp'
 						| 'errorGroupSecureID'
+						| 'serviceVersion'
 					> & {
 							session?: Types.Maybe<
 								{
@@ -4521,7 +4522,6 @@ export type GetErrorObjectsQuery = { __typename?: 'Query' } & {
 									Types.ErrorObjectNodeSession,
 									| 'secureID'
 									| 'email'
-									| 'appVersion'
 									| 'fingerprint'
 									| 'excluded'
 								>
