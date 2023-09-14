@@ -10,6 +10,7 @@ import (
 	"github.com/highlight-run/highlight/backend/store"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
 
@@ -35,9 +36,14 @@ func NewErrorScorer(store *store.Store, db *gorm.DB, redis *redis.Client) *Error
 }
 
 func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) {
+	span, _ := tracer.StartSpanFromContext(ctx, "scoreErrors", tracer.ResourceName("scoreImpactfulErrors"))
+	defer span.Finish()
+
 	var errorGroups []*ErrorGroupWithLastObjectId
 
 	lastComputedErrorInstanceId, _ := errorScorer.redis.GetLastComputedImpactfulErrorObjectId(ctx)
+
+	fetchSpan, _ := tracer.StartSpanFromContext(ctx, "scoreErrors", tracer.ResourceName("fetchErrors"))
 
 	if err := errorScorer.db.Raw(`
 		SELECT grp.id, grp.created_at, grp.project_id, MAX(obj.id) as last_error_object_id
@@ -45,13 +51,16 @@ func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) {
 		INNER JOIN error_groups grp
 			ON grp.id = obj.error_group_id
 		WHERE obj.created_at >= now() - INTERVAL '10 minutes'
-			AND obj.id > ?
+			AND obj.id > 0
 		GROUP BY grp.id
 		ORDER BY last_error_object_id ASC
 	`, lastComputedErrorInstanceId).Scan(&errorGroups).Error; err != nil {
 		log.WithContext(ctx).Error(errors.Wrap(err, "error querying for error objects"))
+		fetchSpan.Finish(tracer.WithError(err))
 		return
 	}
+
+	fetchSpan.Finish()
 
 	if len(errorGroups) == 0 {
 		log.WithContext(ctx).WithField("lastErrorObjectId", lastComputedErrorInstanceId).Info("No errors to score")
@@ -60,10 +69,13 @@ func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) {
 
 	// TODO(spenny): currently N+1 query
 	for _, errorGroup := range errorGroups {
+		errorGroupSpan, _ := tracer.StartSpanFromContext(ctx, "scoreErrors", tracer.ResourceName("scoreErrorGroup"))
+
 		occurranceScore, affectedUsersScore, err := errorScorer.scoreErrorGroup(ctx, errorGroup)
 		_ = errorScorer.redis.SetLastComputedImpactfulErrorObjectId(ctx, errorGroup.LastErrorObjectId)
 		if err != nil {
 			log.WithContext(ctx).WithField("errorGroupId", errorGroup.ID).Error(err)
+			errorGroupSpan.Finish(tracer.WithError(err))
 			continue
 		}
 
@@ -72,10 +84,12 @@ func (errorScorer *ErrorScorer) ScoreImpactfulErrors(ctx context.Context) {
 
 		if err := errorScorer.db.Model(&model.ErrorGroup{Model: model.Model{ID: errorGroup.ID}}).Updates(&model.ErrorGroup{ImpactfulScore: &totalScore, ImpactfulScoreDate: &currentTime}).Error; err != nil {
 			log.WithContext(ctx).WithField("errorGroupId", errorGroup.ID).Error(err)
+			errorGroupSpan.Finish(tracer.WithError(err))
 			continue
 		}
 
 		log.WithContext(ctx).WithFields(log.Fields{"errorGroupId": errorGroup.ID, "occurranceScore": occurranceScore, "affectedUsersScore": affectedUsersScore}).Info("Scored error group")
+		errorGroupSpan.Finish()
 	}
 }
 
@@ -86,6 +100,7 @@ func (errorScorer *ErrorScorer) scoreErrorGroup(ctx context.Context, errorGroup 
 	var affectedUsersScore sql.NullFloat64
 
 	if newLimitedDataError {
+		occuranceSpan, _ := tracer.StartSpanFromContext(ctx, "scoreErrors", tracer.ResourceName("newErrorOccuranceScore"))
 		// number of occurances
 		if err := errorScorer.db.Raw(`
 			WITH most_occurring_errors AS (
@@ -123,9 +138,12 @@ func (errorScorer *ErrorScorer) scoreErrorGroup(ctx context.Context, errorGroup 
 			ORDER BY day DESC, hour DESC
 			LIMIT 1
 		`, errorGroup.ProjectID, errorGroup.ID).Find(&occuranceScore).Error; err != nil {
+			occuranceSpan.Finish(tracer.WithError(err))
 			return 0, 0, errors.Wrap(err, "error calculating occurance score")
 		}
+		occuranceSpan.Finish()
 
+		affectedUsersSpan, _ := tracer.StartSpanFromContext(ctx, "scoreErrors", tracer.ResourceName("newErrorAffectedUsersScore"))
 		// number of users affected
 		if err := errorScorer.db.Raw(`
 			WITH most_occurring_errors AS (
@@ -189,9 +207,12 @@ func (errorScorer *ErrorScorer) scoreErrorGroup(ctx context.Context, errorGroup 
 			ORDER BY day DESC, hour DESC
 			LIMIT 1
 		`, errorGroup.ProjectID, errorGroup.ID, errorGroup.ProjectID, errorGroup.ProjectID).Find(&affectedUsersScore).Error; err != nil {
+			affectedUsersSpan.Finish(tracer.WithError(err))
 			return 0, 0, errors.Wrap(err, "error calculating affected user score")
 		}
+		affectedUsersSpan.Finish()
 	} else {
+		occuranceSpan, _ := tracer.StartSpanFromContext(ctx, "scoreErrors", tracer.ResourceName("existingErrorOccuranceScore"))
 		// number of occurances
 		if err := errorScorer.db.Raw(`
 			WITH current_error AS (
@@ -219,9 +240,12 @@ func (errorScorer *ErrorScorer) scoreErrorGroup(ctx context.Context, errorGroup 
 			ORDER BY day DESC, hour DESC
 			LIMIT 1
 		`, errorGroup.ID, errorGroup.ID).Find(&occuranceScore).Error; err != nil {
+			occuranceSpan.Finish(tracer.WithError(err))
 			return 0, 0, errors.Wrap(err, "error calculating occurrance score")
 		}
+		occuranceSpan.Finish()
 
+		affectedUsersSpan, _ := tracer.StartSpanFromContext(ctx, "scoreErrors", tracer.ResourceName("existingErrorAffectedUsersScore"))
 		// number of users affected
 		if err := errorScorer.db.Raw(`
 			WITH current_error AS (
@@ -275,8 +299,10 @@ func (errorScorer *ErrorScorer) scoreErrorGroup(ctx context.Context, errorGroup 
 			ORDER BY day DESC, hour DESC
 			LIMIT 1
 		`, errorGroup.ID, errorGroup.ProjectID, errorGroup.ID, errorGroup.ProjectID).Find(&affectedUsersScore).Error; err != nil {
+			affectedUsersSpan.Finish(tracer.WithError(err))
 			return 0, 0, errors.Wrap(err, "error calculating affected user score")
 		}
+		affectedUsersSpan.Finish()
 	}
 
 	return occuranceScore.Float64, affectedUsersScore.Float64, nil
