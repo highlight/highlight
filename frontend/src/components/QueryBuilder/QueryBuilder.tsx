@@ -22,6 +22,7 @@ import {
 	IconSolidClock,
 	IconSolidCloudUpload,
 	IconSolidCube,
+	IconSolidCubeTransparent,
 	IconSolidCursorClick,
 	IconSolidDesktopComputer,
 	IconSolidDocumentAdd,
@@ -833,6 +834,7 @@ const LABEL_MAP: { [key: string]: string } = {
 	landing_page: 'Landing Page',
 	exit_page: 'Exit Page',
 	has_comments: 'Has Comments',
+	service_name: 'Service',
 }
 
 const getOperator = (
@@ -1018,6 +1020,8 @@ const getIcon = (value: string): JSX.Element | undefined => {
 			return <IconSolidCube />
 		case 'error-field_visited_url':
 			return <IconSolidLink />
+		case 'error-field_service_name':
+			return <IconSolidCubeTransparent />
 	}
 	const type = getType(value)
 	const mapped = type === CUSTOM_TYPE ? 'session' : type

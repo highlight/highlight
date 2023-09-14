@@ -72,6 +72,13 @@ export const CUSTOM_FIELDS: CustomField[] = [
 			type: 'text',
 		},
 	},
+	{
+		type: ERROR_FIELD_TYPE,
+		name: 'service_name',
+		options: {
+			type: 'text',
+		},
+	},
 ]
 
 const ErrorQueryBuilder = (props: { readonly?: boolean }) => {
