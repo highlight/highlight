@@ -2,6 +2,7 @@ package util
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
@@ -28,7 +29,7 @@ func (s *MultiSpan) Finish(err ...error) {
 
 func (s *MultiSpan) SetAttribute(key string, value interface{}) {
 	s.ddSpan.SetTag(key, value)
-	s.hSpan.SetAttributes(attribute.String(key, value.(string)))
+	s.hSpan.SetAttributes(attribute.String(key, fmt.Sprintf("%v", value)))
 }
 
 func (s *MultiSpan) SetOperationName(name string) {
