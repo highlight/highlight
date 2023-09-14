@@ -10,9 +10,8 @@ import (
 )
 
 type MultiSpan struct {
-	ddSpan  tracer.Span
-	hSpan   trace.Span
-	context context.Context
+	ddSpan tracer.Span
+	hSpan  trace.Span
 }
 
 func (s *MultiSpan) Finish(err ...error) {
@@ -32,8 +31,9 @@ func (s *MultiSpan) SetAttribute(key string, value interface{}) {
 	s.hSpan.SetAttributes(attribute.String(key, value.(string)))
 }
 
-func (s *MultiSpan) Context() context.Context {
-	return s.context
+func (s *MultiSpan) SetOperationName(name string) {
+	s.ddSpan.SetOperationName(name)
+	s.hSpan.SetName(name)
 }
 
 func StartSpanFromContext(ctx context.Context, operationName string, tags ...attribute.KeyValue) (MultiSpan, context.Context) {
@@ -48,9 +48,8 @@ func StartSpanFromContext(ctx context.Context, operationName string, tags ...att
 	mergedCtx := trace.ContextWithSpan(ddCtx, hSpan)
 
 	return MultiSpan{
-		ddSpan:  ddSpan,
-		hSpan:   hSpan,
-		context: mergedCtx,
+		ddSpan: ddSpan,
+		hSpan:  hSpan,
 	}, mergedCtx
 }
 
