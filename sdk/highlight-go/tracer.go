@@ -114,13 +114,8 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	start := graphql.Now()
 	resp := next(ctx)
 	end := graphql.Now()
-
-	if resp != nil {
-		RecordSpanError(
-			span, resp.Errors,
-			attribute.String(SourceAttribute, "InterceptResponse"),
-		)
-	}
+	// though there is a resp.Errors, we should not record it because it will
+	// be a duplicate of errors on individual fields.
 	EndTrace(span)
 
 	RecordMetric(ctx, name+".duration", end.Sub(start).Seconds())
