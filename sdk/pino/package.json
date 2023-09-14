@@ -1,6 +1,6 @@
 {
 	"name": "@highlight-run/pino",
-	"version": "0.1.0",
+	"version": "0.1.2",
 	"packageManager": "yarn@3.5.0",
 	"publishConfig": {
 		"access": "public"
@@ -9,19 +9,12 @@
 		"dist"
 	],
 	"type": "commonjs",
-	"main": "./dist/index.js",
-	"types": "./dist/index.d.ts",
-	"module": "./dist/index.mjs",
-	"exports": {
-		"import": "./dist/index.mjs",
-		"require": "./dist/index.js",
-		"default": "./dist/index.js",
-		"types": "./dist/index.d.ts"
-	},
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
 	"scripts": {
-		"typegen": "tsup --dts-only",
-		"dev": "tsup --watch",
-		"build": "tsup"
+		"typegen": "tsup src/index.ts --dts-only ",
+		"dev": "tsup src/index.ts --watch",
+		"build": "tsup src/index.ts"
 	},
 	"repository": {
 		"type": "git",

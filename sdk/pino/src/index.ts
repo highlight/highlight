@@ -3,7 +3,7 @@ import { H as NodeH } from '@highlight-run/node'
 import type { NodeOptions } from '@highlight-run/node'
 
 export type { NodeOptions }
-export default async function highlightTransport(options: NodeOptions) {
+export default async function (options: NodeOptions) {
 	if (!NodeH.isInitialized()) {
 		NodeH.init(options)
 	}
@@ -13,12 +13,11 @@ export default async function highlightTransport(options: NodeOptions) {
 	}
 
 	return build(
-		async (source) => {
+		async function (source) {
 			for await (const obj of source) {
-				const { level, msg, ...rest } = obj
-
+				const { msg, level, ...rest } = obj
 				try {
-					NodeH.log(msg, level, rest)
+					NodeH.log(msg, level, undefined, undefined, rest)
 				} catch (error) {
 					console.error(
 						`Failed to ingest logs to highlight: ${error}`,
@@ -27,7 +26,7 @@ export default async function highlightTransport(options: NodeOptions) {
 			}
 		},
 		{
-			close: async () => {
+			async close(err) {
 				try {
 					await NodeH.flush()
 				} catch (error) {

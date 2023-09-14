@@ -12,15 +12,7 @@ import { GraphQLRequest } from '../../utils/graphql'
 const logger = pino({
 	level: 'trace',
 	transport: {
-		targets: [
-			{
-				target: '@highlight-run/pino',
-				options: {
-					projectID: '4d7k1xeo',
-				},
-				level: 'trace',
-			},
-		],
+		targets: [],
 	},
 })
 

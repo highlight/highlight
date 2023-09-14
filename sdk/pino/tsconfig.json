@@ -6,7 +6,7 @@
 		"emitDeclarationOnly": true,
 		"forceConsistentCasingInFileNames": true,
 		"jsx": "react",
-		"module": "ESNext",
+		"module": "CommonJS",
 		"moduleResolution": "node",
 		"outDir": "dist",
 		"removeComments": true,
