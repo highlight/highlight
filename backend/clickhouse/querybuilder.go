@@ -62,96 +62,16 @@ func deserializeRules(rules [][]string) ([]Rule, error) {
 	return ret, nil
 }
 
-func parseRule(admin *model.Admin, rule Rule, projectId int, start time.Time, end time.Time, sb *sqlbuilder.SelectBuilder) (string, error) {
+func parseSessionRule(admin *model.Admin, rule Rule, projectId int, start time.Time, end time.Time, sb *sqlbuilder.SelectBuilder) (string, error) {
 	typ, _, found := strings.Cut(rule.Field, "_")
 	if !found {
 		return "", fmt.Errorf("separator not found for field %s", rule.Field)
 	}
-	if typ == "custom" || typ == "error" {
+	if typ == "custom" {
 		return parseColumnRule(admin, rule, projectId, sb)
-	} else if typ == "error-field" {
-		return parseErrorFieldRule(rule, projectId, start, end, sb)
 	} else {
 		return parseFieldRule(rule, projectId, start, end, sb)
 	}
-}
-
-// parseErrorFieldRule applies a filter using the `fields` table
-func parseErrorFieldRule(rule Rule, projectId int, start time.Time, end time.Time, sb *sqlbuilder.SelectBuilder) (string, error) {
-	negatedOp, isNegative := negationMap[rule.Op]
-	if isNegative {
-		child, err := parseFieldRule(Rule{
-			Field: rule.Field,
-			Op:    negatedOp,
-			Val:   rule.Val,
-		}, projectId, start, end, sb)
-		if err != nil {
-			return "", err
-		}
-		return fmt.Sprintf("NOT %s", child), nil
-	}
-
-	_, name, found := strings.Cut(rule.Field, "_")
-	if !found {
-		return "", fmt.Errorf("separator not found for field %s", rule.Field)
-	}
-
-	mappedName, found := fieldMap[name]
-	if !found {
-		return "", fmt.Errorf("unknown column %s", name)
-	}
-
-	str := fmt.Sprintf(`ID IN (
-		SELECT ErrorGroupID
-		FROM error_objects
-		WHERE ProjectID = %s
-		AND Timestamp BETWEEN %s AND %s`,
-		sb.Var(projectId),
-		sb.Var(start),
-		sb.Var(end))
-
-	var valueBuilder strings.Builder
-	for idx, v := range rule.Val {
-		if idx == 0 {
-			valueBuilder.WriteString("AND (")
-		}
-		if idx > 0 {
-			valueBuilder.WriteString(" OR ")
-		}
-		switch rule.Op {
-		case Is:
-			valueBuilder.WriteString(fmt.Sprintf(`"%s" ILIKE %s`, mappedName, sb.Var(v)))
-		case Contains:
-			valueBuilder.WriteString(fmt.Sprintf(`"%s" ILIKE %s`, mappedName, sb.Var("%"+v+"%")))
-		case Exists:
-			valueBuilder.WriteString(sb.IsNotNull(mappedName))
-		case BetweenDate:
-			before, after, found := strings.Cut(v, "_")
-			if !found {
-				return "", fmt.Errorf("separator not found for between query %s", v)
-			}
-			startTime, err := time.Parse(timeFormat, before)
-			if err != nil {
-				return "", err
-			}
-			endTime, err := time.Parse(timeFormat, after)
-			if err != nil {
-				return "", err
-			}
-			valueBuilder.WriteString(sb.Between(mappedName, startTime, endTime))
-		case Matches:
-			valueBuilder.WriteString(fmt.Sprintf(`"%s" REGEXP %s`, sb.Var(mappedName), sb.Var(v)))
-		default:
-			return "", fmt.Errorf("unsupported operator %s", rule.Op)
-		}
-		if idx == len(rule.Val)-1 {
-			valueBuilder.WriteString(")")
-		}
-	}
-
-	valueBuilder.WriteString(")")
-
-	return str + valueBuilder.String(), nil
 }
 
 // parseFieldRule applies a filter using the `fields` table
@@ -174,44 +94,32 @@ func parseFieldRule(rule Rule, projectId int, start time.Time, end time.Time, sb
 		return "", fmt.Errorf("separator not found for field %s", rule.Field)
 	}
 
-	str := fmt.Sprintf(`ID IN (
-		SELECT SessionID
-		FROM fields
-		WHERE ProjectID = %s
-		AND Type = %s
-		AND Name = %s
-		AND SessionCreatedAt BETWEEN %s AND %s`,
-		sb.Var(projectId),
-		sb.Var(typ),
-		sb.Var(name),
-		sb.Var(start),
-		sb.Var(end))
+	sbInner := sqlbuilder.NewSelectBuilder()
+	sbInner.Select("SessionID").
+		From("fields").
+		Where(sbInner.Equal("ProjectID", projectId)).
+		Where(sbInner.Equal("Type", typ)).
+		Where(sbInner.Equal("Name", name)).
+		Where(sbInner.Between("SessionCreatedAt", start, end))
 
-	var valueBuilder strings.Builder
-	for idx, v := range rule.Val {
-		if idx == 0 {
-			valueBuilder.WriteString("AND (")
-		}
-		if idx > 0 {
-			valueBuilder.WriteString(" OR ")
-		}
+	conditions := []string{}
+	for _, v := range rule.Val {
 		switch rule.Op {
 		case Is:
-			valueBuilder.WriteString(fmt.Sprintf("Value ILIKE %s", sb.Var(v)))
+			conditions = append(conditions, fmt.Sprintf("Value ILIKE %s", sbInner.Var(v)))
 		case Contains:
-			valueBuilder.WriteString(fmt.Sprintf("Value ILIKE %s", sb.Var("%"+v+"%")))
+			conditions = append(conditions, fmt.Sprintf("Value ILIKE %s", sbInner.Var("%"+v+"%")))
 		case Matches:
-			valueBuilder.WriteString(fmt.Sprintf("Value REGEXP %s", sb.Var(v)))
+			conditions = append(conditions, fmt.Sprintf("Value REGEXP %s", sbInner.Var(v)))
+		case Exists:
+			conditions = append(conditions, sbInner.IsNotNull("Value"))
 		default:
 			return "", fmt.Errorf("unsupported operator %s", rule.Op)
 		}
-		if idx == len(rule.Val)-1 {
-			valueBuilder.WriteString(")")
-		}
 	}
-	valueBuilder.WriteString(")")
 
-	return str + valueBuilder.String(), nil
+	sbInner.Where(sbInner.Or(conditions...))
+	return sb.In("ID", sbInner), nil
 }
 
 type FieldType string
@@ -266,37 +174,31 @@ func parseColumnRule(admin *model.Admin, rule Rule, projectId int, sb *sqlbuilde
 		return "", fmt.Errorf("unknown column %s", name)
 	}
 
-	var valueBuilder strings.Builder
-	for idx, v := range rule.Val {
-		if idx == 0 {
-			valueBuilder.WriteString("(")
-		}
-		if idx > 0 {
-			valueBuilder.WriteString(" OR ")
-		}
+	conditions := []string{}
+	for _, v := range rule.Val {
 		switch rule.Op {
 		case Is:
 			switch customFieldType {
 			case text:
-				valueBuilder.WriteString(fmt.Sprintf(`"%s" ILIKE %s`, mappedName, sb.Var(v)))
+				conditions = append(conditions, fmt.Sprintf(`"%s" ILIKE %s`, mappedName, sb.Var(v)))
 			case boolean:
 				val, err := strconv.ParseBool(v)
 				if err != nil {
 					return "", err
 				}
-				valueBuilder.WriteString(sb.Equal(mappedName, val))
+				conditions = append(conditions, sb.Equal(mappedName, val))
 			case long:
 				val, err := strconv.ParseInt(v, 10, 64)
 				if err != nil {
 					return "", err
 				}
-				valueBuilder.WriteString(sb.Equal(mappedName, val))
+				conditions = append(conditions, sb.Equal(mappedName, val))
 			case viewedByMe:
 				switch v {
 				case "true":
-					valueBuilder.WriteString(fmt.Sprintf(`has("%s", %d)`, mappedName, admin.ID))
+					conditions = append(conditions, fmt.Sprintf(`has("%s", %d)`, mappedName, admin.ID))
 				case "false":
-					valueBuilder.WriteString(fmt.Sprintf(`NOT has("%s", %d)`, mappedName, admin.ID))
+					conditions = append(conditions, fmt.Sprintf(`NOT has("%s", %d)`, mappedName, admin.ID))
 				default:
 					return "", fmt.Errorf("unsupported value for viewed_by_me: %s", v)
 				}
@@ -304,9 +206,9 @@ func parseColumnRule(admin *model.Admin, rule Rule, projectId int, sb *sqlbuilde
 				return "", fmt.Errorf("unsupported custom field type %s", customFieldType)
 			}
 		case Contains:
-			valueBuilder.WriteString(fmt.Sprintf(`"%s" ILIKE %s`, mappedName, sb.Var("%"+v+"%")))
+			conditions = append(conditions, fmt.Sprintf(`"%s" ILIKE %s`, mappedName, sb.Var("%"+v+"%")))
 		case Exists:
-			valueBuilder.WriteString(sb.IsNotNull(mappedName))
+			conditions = append(conditions, sb.IsNotNull(mappedName))
 		case Between:
 			before, after, found := strings.Cut(v, "_")
 			if !found {
@@ -320,7 +222,7 @@ func parseColumnRule(admin *model.Admin, rule Rule, projectId int, sb *sqlbuilde
 			if err != nil {
 				return "", err
 			}
-			valueBuilder.WriteString(sb.Between(mappedName, start, end))
+			conditions = append(conditions, sb.Between(mappedName, start, end))
 		case BetweenTime:
 			before, after, found := strings.Cut(v, "_")
 			if !found {
@@ -334,7 +236,7 @@ func parseColumnRule(admin *model.Admin, rule Rule, projectId int, sb *sqlbuilde
 			if err != nil {
 				return "", err
 			}
-			valueBuilder.WriteString(sb.Between(mappedName, start, end))
+			conditions = append(conditions, sb.Between(mappedName, start, end))
 		case BetweenDate:
 			before, after, found := strings.Cut(v, "_")
 			if !found {
@@ -348,21 +250,18 @@ func parseColumnRule(admin *model.Admin, rule Rule, projectId int, sb *sqlbuilde
 			if err != nil {
 				return "", err
 			}
-			valueBuilder.WriteString(sb.Between(mappedName, startTime, endTime))
+			conditions = append(conditions, sb.Between(mappedName, startTime, endTime))
 		case Matches:
-			valueBuilder.WriteString(fmt.Sprintf(`"%s" REGEXP %s`, sb.Var(mappedName), sb.Var(v)))
+			conditions = append(conditions, fmt.Sprintf(`"%s" REGEXP %s`, sb.Var(mappedName), sb.Var(v)))
 		default:
 			return "", fmt.Errorf("unsupported operator %s", rule.Op)
 		}
-		if idx == len(rule.Val)-1 {
-			valueBuilder.WriteString(")")
-		}
 	}
 
-	return valueBuilder.String(), nil
+	return sb.Or(conditions...), nil
 }
 
-func parseGroup(admin *model.Admin, isAnd bool, rules []Rule, projectId int, start time.Time, end time.Time, sb *sqlbuilder.SelectBuilder) (string, error) {
+func parseSessionRules(admin *model.Admin, isAnd bool, rules []Rule, projectId int, start time.Time, end time.Time, sb *sqlbuilder.SelectBuilder) (string, error) {
 	if len(rules) == 0 {
 		return "", errors.New("unexpected 0 rules")
 	}
@@ -374,7 +273,7 @@ func parseGroup(admin *model.Admin, isAnd bool, rules []Rule, projectId int, sta
 
 	exprs := []string{}
 	for _, r := range rules {
-		str, err := parseRule(admin, r, projectId, start, end, sb)
+		str, err := parseSessionRule(admin, r, projectId, start, end, sb)
 		if err != nil {
 			return "", err
 		}
@@ -382,6 +281,94 @@ func parseGroup(admin *model.Admin, isAnd bool, rules []Rule, projectId int, sta
 	}
 
 	return joinFn(exprs...), nil
+}
+
+func parseErrorRules(tableName string, selectColumns string, isAnd bool, rules []Rule, projectId int, start time.Time, end time.Time) (*sqlbuilder.SelectBuilder, error) {
+	if len(rules) == 0 {
+		return nil, errors.New("unexpected 0 rules")
+	}
+
+	groupRules := []Rule{}
+	objectRules := []Rule{}
+	for _, rule := range rules {
+		typ, _, found := strings.Cut(rule.Field, "_")
+		if !found {
+			return nil, fmt.Errorf("separator not found for field %s", rule.Field)
+		}
+
+		if typ == "error" {
+			groupRules = append(groupRules, rule)
+		} else if typ == "error-field" {
+			objectRules = append(objectRules, rule)
+		} else {
+			return nil, fmt.Errorf("invalid field type %s", typ)
+		}
+	}
+
+	sb := sqlbuilder.NewSelectBuilder()
+	joinFn := sb.And
+	if !isAnd {
+		joinFn = sb.Or
+	}
+
+	innerTableName := ErrorObjectsTable
+	outerRules := groupRules
+	innerRules := objectRules
+	outerSelect := "ID"
+	innerSelect := "ErrorGroupID"
+	if tableName == ErrorObjectsTable {
+		innerTableName = ErrorGroupsTable
+		outerRules = objectRules
+		innerRules = groupRules
+		outerSelect = "ErrorGroupID"
+		innerSelect = "ID"
+	} else if tableName != ErrorGroupsTable {
+		return nil, fmt.Errorf("invalid table name %s", tableName)
+	}
+
+	sb.Select(selectColumns).
+		From(fmt.Sprintf("%s FINAL", tableName)).
+		Where(sb.Equal("ProjectID", projectId))
+
+	if tableName == ErrorObjectsTable {
+		sb.Where(sb.Between("Timestamp", start, end))
+	}
+
+	conditions := []string{}
+	for _, rule := range outerRules {
+		str, err := parseColumnRule(nil, rule, projectId, sb)
+		if err != nil {
+			return nil, err
+		}
+		conditions = append(conditions, str)
+	}
+
+	sb.Where(joinFn(conditions...))
+
+	if len(innerRules) > 0 {
+		sbInner := sqlbuilder.NewSelectBuilder()
+		sbInner.Select(innerSelect).
+			From(fmt.Sprintf("%s FINAL", innerTableName)).
+			Where(sbInner.Equal("ProjectID", projectId))
+
+		if innerTableName == ErrorObjectsTable {
+			sbInner.Where(sbInner.Between("Timestamp", start, end))
+		}
+
+		conditions := []string{}
+		for _, rule := range innerRules {
+			str, err := parseColumnRule(nil, rule, projectId, sbInner)
+			if err != nil {
+				return nil, err
+			}
+			conditions = append(conditions, str)
+		}
+
+		sbInner.Where(joinFn(conditions...))
+		sb.Where(sb.In(outerSelect, sbInner))
+	}
+
+	return sb, nil
 }
 
 func getClickhouseHistogramSettings(options modelInputs.DateHistogramOptions) (string, string, *time.Location, error) {

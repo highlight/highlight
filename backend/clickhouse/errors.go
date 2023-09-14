@@ -13,7 +13,6 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/openlyinc/pointy"
 	"github.com/samber/lo"
-	"github.com/sirupsen/logrus"
 )
 
 type ClickhouseErrorGroup struct {
@@ -134,7 +133,7 @@ func (client *Client) WriteErrorObjects(ctx context.Context, objects []*model.Er
 	return nil
 }
 
-func getErrorGroupsQueryImpl(query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, selectColumns string, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
+func getErrorQueryImpl(tableName string, selectColumns string, query modelInputs.ClickhouseQuery, projectId int, retentionDate time.Time, groupBy *string, orderBy *string, limit *int, offset *int) (string, []interface{}, error) {
 	rules, err := deserializeRules(query.Rules)
 	if err != nil {
 		return "", nil, err
@@ -169,30 +168,22 @@ func getErrorGroupsQueryImpl(query modelInputs.ClickhouseQuery, projectId int, r
 		return "", nil, err
 	}
 
-	sb := sqlbuilder.NewSelectBuilder()
-	sb.Select(selectColumns).
-		From("error_groups FINAL").
-		Where(sb.And(
-			sb.Equal("ProjectID", projectId),
-			sb.GreaterThan("UpdatedAt", retentionDate)))
-
-	conditions, err := parseGroup(nil, query.IsAnd, rules, projectId, startTime, endTime, sb)
+	sb, err := parseErrorRules(tableName, selectColumns, query.IsAnd, rules, projectId, startTime, endTime)
 	if err != nil {
 		return "", nil, err
 	}
 
-	sb = sb.Where(conditions)
 	if groupBy != nil {
-		sb = sb.GroupBy(*groupBy)
+		sb.GroupBy(*groupBy)
 	}
 	if orderBy != nil {
-		sb = sb.OrderBy(*orderBy)
+		sb.OrderBy(*orderBy)
 	}
 	if limit != nil {
-		sb = sb.Limit(*limit)
+		sb.Limit(*limit)
 	}
 	if offset != nil {
-		sb = sb.Offset(*offset)
+		sb.Offset(*offset)
 	}
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
@@ -207,7 +198,7 @@ func (client *Client) QueryErrorGroupIds(ctx context.Context, projectId int, cou
 	}
 	offset := (pageInt - 1) * count
 
-	sql, args, err := getErrorGroupsQueryImpl(query, projectId, retentionDate, "ID, count() OVER() AS total", nil, pointy.String("UpdatedAt DESC, ID DESC"), pointy.Int(count), pointy.Int(offset))
+	sql, args, err := getErrorQueryImpl(ErrorGroupsTable, "ID, count() OVER() AS total", query, projectId, retentionDate, nil, pointy.String("UpdatedAt DESC, ID DESC"), pointy.Int(count), pointy.Int(offset))
 	if err != nil {
 		return nil, 0, err
 	}
@@ -243,7 +234,7 @@ func (client *Client) QueryErrorGroupFrequencies(ctx context.Context, projectId 
 	sbInner := sqlbuilder.NewSelectBuilder()
 	sbInner.Select(fmt.Sprintf("ErrorGroupID, intDiv(toRelativeMinuteNum(Timestamp), %s) AS index, count(*) AS count", sbInner.Var(mins))).
 		From("error_objects FINAL").
-		Where(sb.Equal("ProjectID", projectId)).
+		Where(sbInner.Equal("ProjectID", projectId)).
 		Where(sbInner.In("ErrorGroupID", errorGroupIds)).
 		Where(sbInner.Between("Timestamp", params.DateRange.StartDate, params.DateRange.EndDate)).
 		GroupBy("1, 2")
@@ -346,20 +337,6 @@ func (client *Client) QueryErrorGroupAggregateFrequency(ctx context.Context, pro
 
 		items = append(items, &modelInputs.ErrorDistributionItem{
 			ErrorGroupID: int(errorGroupId),
-			Date:         now.AddDate(0, 0, -7),
-			Name:         "weekCount",
-			Value:        int64(weekCount),
-		})
-
-		items = append(items, &modelInputs.ErrorDistributionItem{
-			ErrorGroupID: int(errorGroupId),
-			Date:         now.AddDate(0, 0, -7),
-			Name:         "weekIdentifierCount",
-			Value:        int64(weekIdentifierCount),
-		})
-
-		items = append(items, &modelInputs.ErrorDistributionItem{
-			ErrorGroupID: int(errorGroupId),
 			Date:         now.AddDate(0, 0, -14),
 			Name:         "weekCount",
 			Value:        int64(prevWeekCount),
@@ -370,6 +347,20 @@ func (client *Client) QueryErrorGroupAggregateFrequency(ctx context.Context, pro
 			Date:         now.AddDate(0, 0, -14),
 			Name:         "weekIdentifierCount",
 			Value:        int64(prevWeekIdentifierCount),
+		})
+
+		items = append(items, &modelInputs.ErrorDistributionItem{
+			ErrorGroupID: int(errorGroupId),
+			Date:         now.AddDate(0, 0, -7),
+			Name:         "weekCount",
+			Value:        int64(weekCount),
+		})
+
+		items = append(items, &modelInputs.ErrorDistributionItem{
+			ErrorGroupID: int(errorGroupId),
+			Date:         now.AddDate(0, 0, -7),
+			Name:         "weekIdentifierCount",
+			Value:        int64(weekIdentifierCount),
 		})
 	}
 
@@ -520,19 +511,16 @@ func (client *Client) QueryErrorHistogram(ctx context.Context, projectId int, qu
 		return nil, nil, err
 	}
 
-	selectCols := fmt.Sprintf("%s(CreatedAt, '%s') as time, count() as count", aggFn, location.String())
+	selectCols := fmt.Sprintf("%s(Timestamp, '%s') as time, count() as count", aggFn, location.String())
 
 	orderBy := fmt.Sprintf("1 WITH FILL FROM %s(?, '%s') TO %s(?, '%s') STEP 1", aggFn, location.String(), aggFn, location.String())
 
-	sql, args, err := getErrorGroupsQueryImpl(query, projectId, retentionDate, selectCols, pointy.String("1"), &orderBy, nil, nil)
+	sql, args, err := getErrorQueryImpl(ErrorObjectsTable, selectCols, query, projectId, retentionDate, pointy.String("1"), &orderBy, nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 	args = append(args, *options.Bounds.StartDate, *options.Bounds.EndDate)
 	sql = fmt.Sprintf("SELECT %s(makeDate(0, 0), time), count from (%s)", addFn, sql)
-
-	str, _ := sqlbuilder.ClickHouse.Interpolate(sql, args)
-	logrus.WithContext(ctx).Info(str)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 	if err != nil {
