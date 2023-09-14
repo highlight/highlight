@@ -1901,7 +1901,7 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 	errorURL = routing.AttachReferrer(ctx, errorURL, routing.Email)
 
 	message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>", *obj.Name, input.Group.Event, errorURL)
-	if input.SessionSecureID == "" {
+	if input.SessionSecureID == "" || input.SessionExcluded {
 		message += " (No recorded session)"
 	} else {
 		sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
@@ -2700,6 +2700,8 @@ type SendSlackAlertInput struct {
 	Workspace *Workspace
 	// SessionSecureID is a required parameter
 	SessionSecureID string
+	// SessionExluded is a required parameter to tell if the session is playable
+	SessionExcluded bool
 	// UserIdentifier is a required parameter for New User, Error, and SessionFeedback alerts
 	UserIdentifier string
 	// UserObject is a required parameter for alerts that relate to a session
@@ -2811,7 +2813,7 @@ func (obj *Alert) sendSlackAlert(ctx context.Context, db *gorm.DB, alertID int, 
 		}
 	}
 
-	if input.SessionSecureID == "" {
+	if input.SessionSecureID == "" || input.SessionExcluded {
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\nNo recorded session", false, false))
 	} else {
 		sessionLink := fmt.Sprintf("<%s/%d/sessions/%s%s|View>", frontendURL, obj.ProjectID, input.SessionSecureID, suffix)

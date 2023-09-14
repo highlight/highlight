@@ -11,6 +11,7 @@ type ErrorAlertPayload struct {
 	ErrorTitle      string
 	SessionSecureID string
 	SessionURL      string
+	SessionExcluded bool
 	ErrorURL        string
 	ErrorResolveURL string
 	ErrorIgnoreURL  string
