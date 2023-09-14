@@ -24,7 +24,7 @@
 
 - Added support for setting `serviceName`
 
-## 3.3.1
+## 0.4.1
 
 ### Minor Changes
 
