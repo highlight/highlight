@@ -1,103 +1,78 @@
 package util
 
-// This schema/arch is taken from: https://github.com/99designs/gqlgen/blob/master/graphql/handler/apollotracing/tracer.go
-
 import (
 	"context"
-	"encoding/json"
-	"time"
 
-	"github.com/99designs/gqlgen/graphql"
-	log "github.com/sirupsen/logrus"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
+	"github.com/highlight/highlight/sdk/highlight-go"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-type Tracer struct {
-	graphql.HandlerExtension
-	graphql.ResponseInterceptor
-	graphql.FieldInterceptor
-
-	serverType Runtime
+type MultiSpan struct {
+	ddSpan  tracer.Span
+	hSpan   trace.Span
+	context context.Context
 }
 
-func NewTracer(backend Runtime) Tracer {
-	return Tracer{serverType: backend}
+func (s *MultiSpan) Finish(err ...error) {
+	// TODO: Clean this up
+	if len(err) > 0 && err[0] != nil {
+		s.ddSpan.Finish(tracer.WithError(err[0]))
+		highlight.RecordSpanError(s.hSpan, err[0])
+	} else {
+		s.ddSpan.Finish()
+	}
+
+	highlight.EndTrace(s.hSpan)
 }
 
-func (t Tracer) ExtensionName() string {
-	return "HighlightTracer"
+func (s *MultiSpan) SetAttribute(key string, value interface{}) {
+	s.ddSpan.SetTag(key, value)
+	s.hSpan.SetAttributes(attribute.String(key, value.(string)))
 }
 
-func (t Tracer) Validate(graphql.ExecutableSchema) error {
-	return nil
+func (s *MultiSpan) Context() context.Context {
+	return s.context
 }
 
-func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (interface{}, error) {
-	start := time.Now()
-	// taken from: https://docs.datadoghq.com/tracing/setup_overview/custom_instrumentation/go/#manually-creating-a-new-span
-	fc := graphql.GetFieldContext(ctx)
-	fieldSpan, ctx := tracer.StartSpanFromContext(ctx, "operation.field", tracer.ResourceName(fc.Field.Name))
-	fieldSpan.SetTag("field.type", fc.Field.Definition.Type.String())
-	if b, err := json.MarshalIndent(fc.Args, "", ""); err == nil {
-		if bs := string(b); len(bs) <= 1000 {
-			fieldSpan.SetTag("field.arguments", bs)
-		}
+func StartSpanFromContext(ctx context.Context, operationName string, tags ...attribute.KeyValue) (MultiSpan, context.Context) {
+	ddOptions := []tracer.StartSpanOption{}
+	for _, tag := range tags {
+		ddOptions = append(ddOptions, tracer.Tag(string(tag.Key), tag.Value))
 	}
-	res, err := next(ctx)
-	fieldSpan.Finish(tracer.WithError(err))
 
-	if t.serverType == PrivateGraph {
-		fields := log.Fields{
-			"duration":        time.Since(start),
-			"operation.field": fc.Field.Name,
-			"graph":           t.serverType,
-		}
-		if err != nil {
-			fields["error"] = err
-		}
-		log.WithContext(ctx).
-			WithFields(fields).
-			Debugf("graphql field")
-	}
-	return res, err
+	ddSpan, ddCtx := tracer.StartSpanFromContext(ctx, operationName, ddOptions...)
+	hSpan, _ := highlight.StartTrace(ctx, operationName, tags...)
+
+	mergedCtx := trace.ContextWithSpan(ddCtx, hSpan)
+
+	return MultiSpan{
+		ddSpan:  ddSpan,
+		hSpan:   hSpan,
+		context: mergedCtx,
+	}, mergedCtx
 }
 
-func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandler) *graphql.Response {
-	start := time.Now()
-	var oc *graphql.OperationContext
-	if graphql.HasOperationContext(ctx) {
-		oc = graphql.GetOperationContext(ctx)
+func StartSpan(operationName string, tags ...attribute.KeyValue) MultiSpan {
+	ddOptions := []tracer.StartSpanOption{}
+	for _, tag := range tags {
+		ddOptions = append(ddOptions, tracer.Tag(string(tag.Key), tag.Value))
 	}
-	// NOTE: This gets called for the first time at the highest level. Creates the 'tracing' value, calls the next handler
-	// and returns the response.
-	opName := "undefined"
-	if oc != nil {
-		opName = oc.OperationName
+
+	ddSpan := tracer.StartSpan(operationName, ddOptions...)
+	hSpan, _ := highlight.StartTrace(context.Background(), operationName, tags...)
+
+	return MultiSpan{
+		ddSpan: ddSpan,
+		hSpan:  hSpan,
 	}
-	span, ctx := tracer.StartSpanFromContext(ctx, "graphql.operation", tracer.ResourceName(opName))
-	span.SetTag("backend", t.serverType)
-	defer span.Finish()
-	resp := next(ctx)
-	if resp != nil {
-		var errs []ddtrace.FinishOption
-		for _, err := range resp.Errors {
-			errs = append(errs, tracer.WithError(err))
-		}
-		span.Finish(errs...)
-	}
-	if t.serverType == PrivateGraph {
-		fields := log.Fields{
-			"duration":          time.Since(start),
-			"graphql.operation": opName,
-			"graph":             t.serverType,
-		}
-		if resp != nil && len(resp.Errors) > 0 {
-			fields["errors"] = resp.Errors
-		}
-		log.WithContext(ctx).
-			WithFields(fields).
-			Infof("graphql request")
-	}
-	return resp
+}
+
+func Tag(key string, name interface{}) attribute.KeyValue {
+	return attribute.String(key, name.(string))
+}
+
+func ResourceName(name string) attribute.KeyValue {
+	return attribute.String("resource_name", name)
 }

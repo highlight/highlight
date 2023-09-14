@@ -29,6 +29,7 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 							<Table.Header>Parent Span ID</Table.Header>
 							<Table.Header>Secure Session ID</Table.Header>
 							<Table.Header>Status</Table.Header>
+							<Table.Header>Timestamp</Table.Header>
 						</Table.Row>
 					</Table.Head>
 					<Table.Body
@@ -72,6 +73,18 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 									</Table.Cell>
 									<Table.Cell>
 										{trace.statusMessage}
+									</Table.Cell>
+									<Table.Cell>
+										{new Date(
+											trace.timestamp,
+										).toLocaleDateString('en-US', {
+											month: 'short',
+											day: 'numeric',
+											year: 'numeric',
+											hour: 'numeric',
+											minute: 'numeric',
+											second: 'numeric',
+										})}
 									</Table.Cell>
 								</Table.Row>
 							))}

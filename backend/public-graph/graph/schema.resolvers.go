@@ -17,18 +17,18 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	generated1 "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 // InitializeSession is the resolver for the initializeSession field.
 func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureID string, organizationVerboseID string, enableStrictPrivacy bool, enableRecordingNetworkContents bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, serviceName *string, fingerprint string, clientID string, networkRecordingDomains []string, disableSessionRecording *bool) (*customModels.InitializeSessionResponse, error) {
-	s, _ := tracer.StartSpanFromContext(ctx, "InitializeSession", tracer.ResourceName("gql.initializeSession"))
-	s.SetTag("secure_id", sessionSecureID)
-	s.SetTag("client_version", clientVersion)
-	s.SetTag("firstload_version", firstloadVersion)
+	s, _ := util.StartSpanFromContext(ctx, "InitializeSession", util.ResourceName("gql.initializeSession"))
+	s.SetAttribute("secure_id", sessionSecureID)
+	s.SetAttribute("client_version", clientVersion)
+	s.SetAttribute("firstload_version", firstloadVersion)
 	defer s.Finish()
 	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
 	userAgentString := ctx.Value(model.ContextKeys.UserAgent).(string)
@@ -73,7 +73,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, sessionSecureI
 	}
 
 	hlog.Incr("gql.initializeSession.count", []string{fmt.Sprintf("success:%t", err == nil), fmt.Sprintf("project_verbose_id:%q", organizationVerboseID), fmt.Sprintf("project_id:%d", projectID), fmt.Sprintf("secure_id:%s", sessionSecureID), fmt.Sprintf("firstload_version:%s", firstloadVersion), fmt.Sprintf("client_version:%s", clientVersion)}, 1)
-	s.SetTag("success", err == nil)
+	s.SetAttribute("success", err == nil)
 
 	return &customModels.InitializeSessionResponse{
 		SecureID:  sessionSecureID,

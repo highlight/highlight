@@ -27,7 +27,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/tdewolff/parse/css"
 	"golang.org/x/sync/errgroup"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -638,10 +637,10 @@ lexerLoop:
 
 func (s *Snapshot) ReplaceAssets(ctx context.Context, projectId int, s3 storage.Client, db *gorm.DB, redis *redis.Client) error {
 	urls := getAssetUrlsFromTree(ctx, projectId, s.data, map[string]string{})
-	span, _ := tracer.StartSpanFromContext(ctx, "event-parse.parse.ReplaceAssets", tracer.ResourceName("getOrCreateUrls"), tracer.Tag("project_id", projectId))
-	span.SetTag("numberOfURLs", len(urls))
+	span, _ := util.StartSpanFromContext(ctx, "event-parse.parse.ReplaceAssets", util.ResourceName("getOrCreateUrls"), util.Tag("project_id", projectId))
+	span.SetAttribute("numberOfURLs", len(urls))
 	replacements, err := getOrCreateUrls(ctx, projectId, urls, s3, db, redis)
-	span.Finish(tracer.WithError(err))
+	span.Finish(err)
 	if err != nil {
 		return errors.Wrap(err, "error creating replacement urls")
 	}

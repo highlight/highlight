@@ -10,8 +10,8 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/samber/lo"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 const TracesTable = "traces"
@@ -83,8 +83,8 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 		return nil
 	}
 
-	span, _ := tracer.StartSpanFromContext(ctx, "kafkaBatchWorker", tracer.ResourceName("worker.kafka.batched.flushTraces.prepareRows"))
-	span.SetTag("BatchSize", len(traceRows))
+	span, _ := util.StartSpanFromContext(ctx, "kafkaBatchWorker", util.ResourceName("worker.kafka.batched.flushTraces.prepareRows"))
+	span.SetAttribute("BatchSize", len(traceRows))
 	rows := lo.Map(traceRows, func(traceRow *TraceRow, _ int) *ClickhouseTraceRow {
 		traceTimes, traceNames, traceAttrs := convertEvents(traceRow)
 		linkTraceIds, linkSpanIds, linkStates, linkAttrs := convertLinks(traceRow)
@@ -118,14 +118,14 @@ func (client *Client) BatchWriteTraceRows(ctx context.Context, traceRows []*Trac
 
 	batch, err := client.conn.PrepareBatch(ctx, fmt.Sprintf("INSERT INTO %s", TracesTable))
 	if err != nil {
-		span.Finish(tracer.WithError(err))
+		span.Finish(err)
 		return e.Wrap(err, "failed to create traces batch")
 	}
 
 	for _, traceRow := range rows {
 		err = batch.AppendStruct(traceRow)
 		if err != nil {
-			span.Finish(tracer.WithError(err))
+			span.Finish(err)
 			return err
 		}
 	}

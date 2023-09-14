@@ -44,7 +44,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
 	"golang.org/x/sync/errgroup"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
 
@@ -271,8 +270,8 @@ func (w *Worker) scanSessionPayload(ctx context.Context, manager *payload.Payloa
 }
 
 func (w *Worker) getSessionID(ctx context.Context, sessionSecureID string) (id int, err error) {
-	s, _ := tracer.StartSpanFromContext(ctx, "getSessionID", tracer.ResourceName("worker.getSessionID"))
-	s.SetTag("secure_id", sessionSecureID)
+	s, _ := util.StartSpanFromContext(ctx, "getSessionID", util.ResourceName("worker.getSessionID"))
+	s.SetAttribute("secure_id", sessionSecureID)
 	defer s.Finish()
 	if sessionSecureID == "" {
 		return 0, e.New("getSessionID called with no secure id")
@@ -548,8 +547,8 @@ func (w *Worker) DeleteCompletedSessions(ctx context.Context) {
 				AND s.created_at > NOW() - INTERVAL '1 WEEK'`
 
 	for _, table := range []string{"resources_objects", "messages_objects"} {
-		deleteSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.deleteObjects",
-			tracer.ResourceName("worker.deleteObjects"), tracer.Tag("table", table))
+		deleteSpan, ctx := util.StartSpanFromContext(ctx, "worker.deleteObjects",
+			util.ResourceName("worker.deleteObjects"), util.Tag("table", table))
 		if err := w.Resolver.DB.Exec(fmt.Sprintf(baseQuery, table), lookbackPeriod).Error; err != nil {
 			log.WithContext(ctx).Error(e.Wrapf(err, "error deleting expired objects from %s", table))
 		}
@@ -1058,7 +1057,7 @@ func (w *Worker) Start(ctx context.Context) {
 	for {
 		time.Sleep(1 * time.Second)
 		sessions := []*model.Session{}
-		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName("worker.sessionsQuery"))
+		sessionsSpan, ctx := util.StartSpanFromContext(ctx, "worker.sessionsQuery", util.ResourceName("worker.sessionsQuery"))
 		sessionLimitJitter := rand.Intn(100)
 		limit := processSessionLimit + sessionLimitJitter
 		txStart := time.Now()
@@ -1151,7 +1150,7 @@ func (w *Worker) Start(ctx context.Context) {
 					vmStat, _ = mem.VirtualMemory()
 				}
 
-				span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.processSession"), tracer.Tag("project_id", session.ProjectID), tracer.Tag("session_secure_id", session.SecureID))
+				span, ctx := util.StartSpanFromContext(ctx, "worker.operation", util.ResourceName("worker.processSession"), util.Tag("project_id", session.ProjectID), util.Tag("session_secure_id", session.SecureID))
 				if err := w.processSession(ctx, session); err != nil {
 					nextCount := session.RetryCount + 1
 					var excluded bool
@@ -1178,7 +1177,7 @@ func (w *Worker) Start(ctx context.Context) {
 						span.Finish()
 					} else {
 						log.WithContext(ctx).WithField("session_secure_id", session.SecureID).Error(e.Wrap(err, "error processing main session"))
-						span.Finish(tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID)))
+						span.Finish(e.Wrapf(err, "error processing session: %v", session.ID))
 					}
 
 					return
@@ -1277,8 +1276,8 @@ func (w *Worker) StartLogAlertWatcher(ctx context.Context) {
 }
 
 func (w *Worker) RefreshMaterializedViews(ctx context.Context) {
-	span, _ := tracer.StartSpanFromContext(ctx, "worker.refreshMaterializedViews",
-		tracer.ResourceName("worker.refreshMaterializedViews"))
+	span, _ := util.StartSpanFromContext(ctx, "worker.refreshMaterializedViews",
+		util.ResourceName("worker.refreshMaterializedViews"))
 	defer span.Finish()
 
 	if err := w.Resolver.DB.Transaction(func(tx *gorm.DB) error {

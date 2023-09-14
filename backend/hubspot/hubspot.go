@@ -17,10 +17,10 @@ import (
 	kafka_queue "github.com/highlight-run/highlight/backend/kafka-queue"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/leonelquinteros/hubspot"
 	"github.com/openlyinc/pointy"
 	e "github.com/pkg/errors"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -48,7 +48,7 @@ var (
 )
 
 func pollHubspot[T any](fn func() (*T, error), timeout time.Duration) (result *T, err error) {
-	span := tracer.StartSpan("pollHubspot", tracer.ResourceName("hubspot"), tracer.Tag("timeout", timeout))
+	span := util.StartSpan("pollHubspot", util.ResourceName("hubspot"), util.Tag("timeout", timeout))
 	defer span.Finish()
 	start := time.Now()
 	ticker := time.NewTicker(ClientSideCreationPollInterval)
@@ -322,8 +322,8 @@ func (h *Client) mergeContacts(keepID, mergeID int) error {
 }
 
 func (h *Client) getAllCompanies(ctx context.Context) (companies []*CompanyResponse, err error) {
-	span := tracer.StartSpan("getAllCompanies", tracer.ResourceName("hubspot"))
-	defer span.Finish(tracer.WithError(err))
+	span := util.StartSpan("getAllCompanies", util.ResourceName("hubspot"))
+	defer span.Finish(err)
 	if h.redisClient != nil {
 		err = h.redisClient.GetHubspotCompanies(ctx, &companies)
 		if err == nil && len(companies) > 0 {
@@ -357,7 +357,7 @@ func (h *Client) getAllCompanies(ctx context.Context) (companies []*CompanyRespo
 }
 
 func (h *Client) getCompany(ctx context.Context, name, domain string) (*int, error) {
-	span := tracer.StartSpan("getCompany", tracer.ResourceName("hubspot"))
+	span := util.StartSpan("getCompany", util.ResourceName("hubspot"))
 	defer span.Finish()
 	return redis.CachedEval(ctx, h.redisClient, fmt.Sprintf("hubspot-company-%s-%s", name, domain), time.Second, ClientSideContactCreationTimeout/4, func() (*int, error) {
 		r := struct {
@@ -406,8 +406,8 @@ func (h *Client) getCompany(ctx context.Context, name, domain string) (*int, err
 }
 
 func (h *Client) getContactForAdmin(ctx context.Context, email string) (contactId *int, err error) {
-	span := tracer.StartSpan("getContactForAdmin", tracer.ResourceName("hubspot"))
-	defer span.Finish(tracer.WithError(err))
+	span := util.StartSpan("getContactForAdmin", util.ResourceName("hubspot"))
+	defer span.Finish(err)
 	return redis.CachedEval(ctx, h.redisClient, fmt.Sprintf("hubspot-email-%s", email), time.Second, ClientSideContactCreationTimeout/4, func() (*int, error) {
 		r := CustomContactsResponse{}
 		if err = h.hubspotClient.Contacts().Client.Request("GET", "/contacts/v1/contact/email/"+email+"/profile", nil, &r); err != nil {
