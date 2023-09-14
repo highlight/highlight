@@ -27,7 +27,13 @@ export interface HighlightInterface {
 		tags?: { name: string; value: string }[],
 	) => void
 	flush: () => Promise<void>
-	log: (message: any, level: string, ...optionalParams: any[]) => void
+	log: (
+		message: any,
+		level: string,
+		secureSessionId?: string | undefined,
+		requestId?: string | undefined,
+		metadata?: Attributes,
+	) => void
 	_debug: (...data: any[]) => void
 }
 
