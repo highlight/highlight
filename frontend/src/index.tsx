@@ -115,7 +115,7 @@ if (dev) {
 	options.scriptUrl = 'http://localhost:8080/dist/index.js'
 
 	options.integrations = undefined
-
+	options.disableSessionRecording = true
 	const sampleEnvironmentNames = ['john', 'jay', 'anthony', 'cameron', 'boba']
 	options.environment = `${
 		sampleEnvironmentNames[
