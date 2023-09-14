@@ -36,8 +36,8 @@ func SendErrorAlert(ctx context.Context, event SendErrorAlertEvent) error {
 		ErrorResolveURL: getErrorResolveURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),
 		ErrorIgnoreURL:  getErrorIgnoreURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),
 		ErrorSnoozeURL:  getErrorSnoozeURL(event.ErrorAlert, event.ErrorGroup, event.ErrorObject),
+		SessionSecureID: event.Session.SecureID,
 		SessionURL:      getSessionURL(event.ErrorAlert.ProjectID, event.Session),
-		SessionExcluded: event.Session.Excluded,
 		VisitedURL:      event.VisitedURL,
 	}
 
