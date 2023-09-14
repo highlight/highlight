@@ -70,7 +70,7 @@ func StartSpan(operationName string, tags ...attribute.KeyValue) MultiSpan {
 }
 
 func Tag(key string, name interface{}) attribute.KeyValue {
-	return attribute.String(key, name.(string))
+	return attribute.String(key, fmt.Sprintf("%v", name))
 }
 
 func ResourceName(name string) attribute.KeyValue {
