@@ -109,7 +109,7 @@ export const SessionAlertPage = () => {
 			loaded: false,
 		},
 	})
-	const formState = formStore.getState()
+	const values = formStore.useState('values')
 
 	useEffect(() => {
 		if (alert) {
@@ -238,24 +238,22 @@ export const SessionAlertPage = () => {
 								formStore.names.threshold,
 							),
 							disabled: false,
-							discord_channels:
-								formState.values.discordChannels.map((c) => ({
+							discord_channels: values.discordChannels.map(
+								(c) => ({
 									name: c.name,
 									id: c.id,
-								})),
+								}),
+							),
 							emails: formStore.getValue(formStore.names.emails),
 							environments: formStore.getValue(
 								formStore.names.excludedEnvironments,
 							),
 							name: formStore.getValue(formStore.names.name),
 							project_id: project_id || '0',
-							slack_channels: formState.values.slackChannels.map(
-								(c) => ({
-									webhook_channel_id: c.webhook_channel_id,
-									webhook_channel_name:
-										c.webhook_channel_name,
-								}),
-							),
+							slack_channels: values.slackChannels.map((c) => ({
+								webhook_channel_id: c.webhook_channel_id,
+								webhook_channel_name: c.webhook_channel_name,
+							})),
 							webhook_destinations: formStore
 								.getValue(formStore.names.webhookDestinations)
 								.map((d: string) => ({ url: d })),
@@ -381,7 +379,7 @@ export const SessionAlertPage = () => {
 		</Box>
 	)
 
-	const isLoading = !isCreate && !formState.values.loaded
+	const isLoading = !isCreate && !values.loaded
 
 	return (
 		<Box width="full" background="raised" p="8">
@@ -502,7 +500,7 @@ const SessionAlertForm = ({
 	configuration: AlertConfiguration
 }) => {
 	const formStore = useForm() as FormState<SessionAlertFormItem>
-	const formState = formStore.getState()
+	const errors = formStore.useState('errors')
 	const { project_id } = useParams<{
 		project_id: string
 	}>()
@@ -626,8 +624,7 @@ const SessionAlertForm = ({
 											/>
 										}
 										style={{
-											borderColor: formState.errors
-												.threshold
+											borderColor: errors.threshold
 												? 'var(--color-red-500)'
 												: undefined,
 										}}
@@ -636,17 +633,7 @@ const SessionAlertForm = ({
 								<Column>
 									<Form.Select
 										label="Alert threshold window"
-										name={formStore.names.threshold_window.toString()}
-										value={
-											formState.values.threshold_window
-										}
-										onChange={(e) =>
-											formStore.setValue(
-												formStore.names
-													.threshold_window,
-												e.target.value,
-											)
-										}
+										name={formStore.names.threshold_window}
 									>
 										<option value="" disabled>
 											Select alert threshold window
@@ -769,10 +756,9 @@ const SessionAlertForm = ({
 
 const ThresholdTypeConfiguration = () => {
 	const formStore = useForm()
-	const formState = formStore.getState()
+	const belowThreshold = formStore.useValue('belowThreshold')
 	const menuStore = useMenu()
 	const menuState = menuStore.getState()
-	const belowThreshold = formState.values.belowThreshold
 	return (
 		<>
 			<Menu.Button

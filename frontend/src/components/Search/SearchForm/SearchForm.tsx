@@ -1,5 +1,10 @@
-import { useGetLogsKeysQuery, useGetLogsKeyValuesLazyQuery } from '@graph/hooks'
-import { GetLogsKeysQuery } from '@graph/operations'
+import {
+	useGetLogsKeysQuery,
+	useGetLogsKeyValuesLazyQuery,
+	useGetTracesKeysQuery,
+	useGetTracesKeyValuesLazyQuery,
+} from '@graph/hooks'
+import { GetLogsKeysQuery, GetTracesKeysQuery } from '@graph/operations'
 import {
 	Badge,
 	Box,
@@ -55,10 +60,11 @@ export const PermalinkStartDateParam = withDefault(
 )
 export const EndDateParam = withDefault(DateTimeParam, getNow().toDate())
 
-// Update to be logs OR traces
-type FetchKeys = typeof useGetLogsKeysQuery
-type FetchValues = typeof useGetLogsKeyValuesLazyQuery
-type Keys = GetLogsKeysQuery['logs_keys']
+type FetchKeys = typeof useGetLogsKeysQuery | typeof useGetTracesKeysQuery
+type FetchValues =
+	| typeof useGetLogsKeyValuesLazyQuery
+	| typeof useGetTracesKeyValuesLazyQuery
+type Keys = GetLogsKeysQuery['keys'] | GetTracesKeysQuery['keys']
 
 const MAX_ITEMS = 10
 
@@ -132,8 +138,7 @@ const SearchForm: React.FC<SearchFormProps> = ({
 					initialQuery={initialQuery}
 					startDate={startDate}
 					endDate={endDate}
-					// TODO: Update so it's not just logs_keys
-					keys={keysData?.logs_keys}
+					keys={keysData?.keys}
 					keysLoading={keysLoading}
 					disableSearch={disableSearch}
 					query={query}
@@ -240,8 +245,7 @@ export const Search: React.FC<{
 	const loading = showValues ? valuesLoading : keysLoading
 	const showTermSelect = !!activeTerm.value.length
 
-	// TODO: Update so it's not just logs_key_values
-	const values = data?.logs_key_values
+	const values = data?.key_values
 
 	const visibleItems = showValues
 		? getVisibleValues(activeTerm, values)

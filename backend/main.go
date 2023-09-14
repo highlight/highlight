@@ -231,15 +231,11 @@ func main() {
 
 	// setup highlight
 	highlight.SetProjectID("1jdkoe52")
-	if !util.IsOnPrem() && util.IsDevOrTestEnv() {
+
+	// change OTLP endpoint when set in env
+	if otlpEndpoint != "" {
 		log.WithContext(ctx).Info("overwriting highlight-go graphql / otlp client address...")
-		if otlpEndpoint != "" {
-			highlight.SetOTLPEndpoint(otlpEndpoint)
-		} else if util.IsBackendInDocker() {
-			highlight.SetOTLPEndpoint("http://collector:4318")
-		} else {
-			highlight.SetOTLPEndpoint("http://localhost:4318")
-		}
+		highlight.SetOTLPEndpoint(otlpEndpoint)
 	}
 
 	serviceName := string(runtimeParsed)

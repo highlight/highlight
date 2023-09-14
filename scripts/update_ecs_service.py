@@ -20,9 +20,14 @@ def main():
             "containerPort": 24224
         },
         {
-            "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:173971919437:targetgroup/opentelemetry-group-syslog/e610cdefccf1ec24",
+            "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:173971919437:targetgroup/opentelemetry-group-tcp/6eeee22ac85df260",
             "containerName": "highlight-collector",
             "containerPort": 34302
+        },
+        {
+            "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-2:173971919437:targetgroup/opentelemetry-metrics/a8eb9f015df49734",
+            "containerName": "highlight-collector",
+            "containerPort": 8888
         }
     ])
 

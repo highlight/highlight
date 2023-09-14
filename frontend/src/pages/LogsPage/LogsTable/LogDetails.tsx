@@ -35,9 +35,11 @@ import {
 	SearchParam,
 	stringifySearchQuery,
 } from '@/components/Search/SearchForm/utils'
+import TextHighlighter from '@/components/TextHighlighter/TextHighlighter'
 import { findMatchingLogAttributes } from '@/pages/LogsPage/utils'
 
 import * as styles from './LogDetails.css'
+import * as logsTableStyles from './LogsTable.css'
 
 type Props = {
 	row: Row<LogEdgeWithError>
@@ -384,8 +386,7 @@ export const LogValue: React.FC<{
 	const [_, setQuery] = useQueryParam('query', QueryParam)
 
 	// replace wildcards for highlighting.
-	const matchPattern = queryMatch?.replace('*', '')
-	const stringParts = matchPattern ? value.split(matchPattern) : [value]
+	const matchPattern = queryMatch?.replaceAll('*', '')
 
 	return (
 		<LogAttributeLine>
@@ -406,22 +407,13 @@ export const LogValue: React.FC<{
 				<Box borderRadius="4" p="6">
 					<Text family="monospace" color="caution" break="word">
 						{matchPattern ? (
-							stringParts.map((part, index) => (
-								<React.Fragment key={index}>
-									{!!part && <Box as="span">{part}</Box>}
-									{index < stringParts.length - 1 && (
-										<Box
-											as="span"
-											display="inline-block"
-											backgroundColor="caution"
-											px="4"
-											borderRadius="4"
-										>
-											{matchPattern}
-										</Box>
-									)}
-								</React.Fragment>
-							))
+							<TextHighlighter
+								highlightClassName={
+									logsTableStyles.textHighlight
+								}
+								searchWords={[matchPattern]}
+								textToHighlight={value}
+							/>
 						) : (
 							<>{value ? value : '""'}</>
 						)}

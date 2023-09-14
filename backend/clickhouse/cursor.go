@@ -12,7 +12,17 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
-func getLogsConnection(edges []*modelInputs.LogEdge, pagination Pagination) *modelInputs.LogConnection {
+type Edge[T interface{}] struct {
+	Cursor string
+	Node   *T
+}
+
+type Connection[T interface{}] struct {
+	Edges    []*Edge[T]
+	PageInfo *modelInputs.PageInfo
+}
+
+func getConnection[T interface{}](edges []*Edge[T], pagination Pagination) *Connection[T] {
 	var (
 		endCursor       string
 		startCursor     string
@@ -59,7 +69,7 @@ func getLogsConnection(edges []*modelInputs.LogEdge, pagination Pagination) *mod
 		endCursor = edges[len(edges)-1].Cursor
 	}
 
-	return &modelInputs.LogConnection{
+	return &Connection[T]{
 		Edges: edges,
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     hasNextPage,
@@ -70,7 +80,7 @@ func getLogsConnection(edges []*modelInputs.LogEdge, pagination Pagination) *mod
 	}
 }
 
-func getCursorIdx(edges []*modelInputs.LogEdge, cursor string) int {
+func getCursorIdx[T interface{}](edges []*Edge[T], cursor string) int {
 	for idx, edge := range edges {
 		if edge.Cursor == cursor {
 			return idx

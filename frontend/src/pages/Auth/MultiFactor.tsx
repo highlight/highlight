@@ -40,7 +40,7 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 			code: '',
 		},
 	})
-	const formState = formStore.getState()
+	const code = formStore.useValue('code')
 
 	useEffect(() => {
 		recaptchaVerifier.current = new firebase.auth.RecaptchaVerifier(
@@ -88,7 +88,7 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 			try {
 				const cred = firebase.auth.PhoneAuthProvider.credential(
 					verificationId,
-					formState.values.code,
+					code,
 				)
 				const multiFactorAssertion =
 					firebase.auth.PhoneMultiFactorGenerator.assertion(cred)
@@ -104,14 +104,14 @@ export const MultiFactor: React.FC<Props> = ({ resolver }) => {
 				setLoading(false)
 			}
 		},
-		[resolver, verificationId, formState.values.code, signIn],
+		[resolver, verificationId, code, signIn],
 	)
 
 	useEffect(() => {
-		if (formState.values.code.length >= 6) {
+		if (code.length >= 6) {
 			handleSubmit()
 		}
-	}, [handleSubmit, formState.values.code])
+	}, [handleSubmit, code])
 
 	useEffect(() => {
 		setLoadingState(AppLoadingState.LOADED)

@@ -442,7 +442,7 @@ export const LogAlertPage = () => {
 										<Box cssClass={styles.queryContainer}>
 											<Search
 												initialQuery={initialQuery}
-												keys={keysData?.logs_keys ?? []}
+												keys={keysData?.keys ?? []}
 												startDate={startDate}
 												endDate={endDate}
 												hideIcon
@@ -493,7 +493,7 @@ export const LogAlertPage = () => {
 const LogAlertForm = () => {
 	const { projectId } = useProjectId()
 	const formStore = useForm() as Ariakit.FormStore<LogMonitorForm>
-	const formState = formStore.getState()
+	const errors = formStore.useState('errors')
 
 	const { alertsPayload } = useLogAlertsContext()
 	const { slackLoading, syncSlack } = useSlackSync()
@@ -563,7 +563,7 @@ const LogAlertForm = () => {
 									/>
 								}
 								style={{
-									borderColor: formState.errors.threshold
+									borderColor: errors.threshold
 										? 'var(--color-red-500)'
 										: undefined,
 								}}

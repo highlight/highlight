@@ -118,7 +118,7 @@ export const NewCommentForm = ({
 			issueDescription: '',
 		},
 	})
-	const formState = formStore.getState()
+	const formValues = formStore.useState('values')
 
 	const integrationMap = useMemo(() => {
 		const ret: { [key: string]: IssueTrackerIntegration } = {}
@@ -173,7 +173,7 @@ export const NewCommentForm = ({
 		})
 		setIsCreatingComment(true)
 
-		const { issueTitle, issueDescription } = formState.values
+		const { issueTitle, issueDescription } = formValues
 
 		try {
 			await createErrorComment({
@@ -217,7 +217,7 @@ export const NewCommentForm = ({
 		})
 		setIsCreatingComment(true)
 
-		const { issueTitle, issueDescription } = formState.values
+		const { issueTitle, issueDescription } = formValues
 
 		try {
 			await createComment({
@@ -501,7 +501,7 @@ export const NewCommentForm = ({
 								trackingId="new-comment-attach-issue_cancel"
 								onClick={() => {
 									formStore.setValues({
-										...formState.values,
+										...formValues,
 										issueTitle: '',
 										issueDescription: '',
 									})

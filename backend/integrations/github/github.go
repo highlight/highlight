@@ -2,13 +2,16 @@ package github
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v50/github"
+	"github.com/highlight-run/highlight/backend/redis"
 	"github.com/openlyinc/pointy"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -65,15 +68,17 @@ type Client struct {
 	// the regular client can authenticate all calls except `Apps.Get()` and `Apps.GetInstallation()`
 	// for those two methods, use the jwtClient
 	jwtClient *github.Client
-	// owner is the login of the organization where the app is installed
-	owner string
+	// unique identifier of the GitHub app installation
+	installationID int64
+	redis          *redis.Client
 }
 
 // NewClient creates a GitHub client using the installation workflow (https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation).
 // installation corresponds to the numeric installation ID provided by the installation setup workflow.
 // On its own, the installation ID does not provide access to any GitHub resources, but when
 // paired with the app ID and private key, allows us to access a particular organization's entities.
-func NewClient(ctx context.Context, installation string) (*Client, error) {
+func NewClient(ctx context.Context, installation string, redis *redis.Client) (*Client, error) {
+
 	installationID, err := parseInstallation(installation)
 	if err != nil {
 		return nil, err
@@ -104,12 +109,7 @@ func NewClient(ctx context.Context, installation string) (*Client, error) {
 	client := github.NewClient(&http.Client{Transport: itt})
 	jwtClient := github.NewClient(&http.Client{Transport: jwtTransport})
 
-	install, _, err := jwtClient.Apps.GetInstallation(ctx, installationID)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Client{client, jwtClient, install.Account.GetLogin()}, nil
+	return &Client{client, jwtClient, installationID, redis}, nil
 }
 
 func getPaginated[T any](fn func(int) ([]T, *int, *bool, error)) (data []T, err error) {
@@ -131,14 +131,38 @@ func getPaginated[T any](fn func(int) ([]T, *int, *bool, error)) (data []T, err 
 	return
 }
 
+func (c *Client) GetInstallationOwner(ctx context.Context) (*string, error) {
+	// TODO: this should never change for an installation, so we can look into moving this into postgres
+	return redis.CachedEval(ctx, c.redis, fmt.Sprintf("github-installation-owner-%d", c.installationID), 5*time.Second, 24*time.Hour, func() (*string, error) {
+		install, _, err := c.jwtClient.Apps.GetInstallation(ctx, c.installationID)
+		if err != nil {
+			return nil, err
+		}
+
+		owner := install.GetAccount().GetLogin()
+
+		return &owner, nil
+	})
+}
+
 func (c *Client) CreateIssue(ctx context.Context, repo string, issueRequest *github.IssueRequest) (*github.Issue, error) {
-	issue, _, err := c.client.Issues.Create(ctx, c.owner, repo, issueRequest)
+	owner, err := c.GetInstallationOwner(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	issue, _, err := c.client.Issues.Create(ctx, *owner, repo, issueRequest)
 	return issue, err
 }
 
 func (c *Client) ListLabels(ctx context.Context, repo string) ([]*github.Label, error) {
 	return getPaginated(func(page int) ([]*github.Label, *int, *bool, error) {
-		list, _, err := c.client.Issues.ListLabels(ctx, c.owner, repo, &github.ListOptions{Page: page})
+		owner, err := c.GetInstallationOwner(ctx)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+
+		list, _, err := c.client.Issues.ListLabels(ctx, *owner, repo, &github.ListOptions{Page: page})
 		if err != nil {
 			return nil, nil, nil, err
 		}

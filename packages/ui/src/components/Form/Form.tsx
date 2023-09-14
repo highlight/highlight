@@ -1,18 +1,6 @@
 import React, { forwardRef, ReactNode, useRef } from 'react'
 
-import {
-	Form as AriaKitForm,
-	FormProps as AriaKitFormProps,
-	FormInput as AriaKitFormInput,
-	FormLabel as AriaKitFormLabel,
-	FormError as AriaKitFormError,
-	FormErrorProps as AriaKitFormErrorProps,
-	FormInputProps as AriaKitFormInputProps,
-	FormField as AriaKitFormField,
-	FormFieldProps as AriaKitFormFieldProps,
-	FormStore as AriaKitFormStore,
-	useFormStore as useAriaKitFormStore,
-} from '@ariakit/react'
+import * as Ariakit from '@ariakit/react'
 
 import * as styles from './styles.css'
 import { Box } from '../Box/Box'
@@ -22,6 +10,7 @@ import { Button, ButtonProps } from '../Button/Button'
 import clsx, { ClassValue } from 'clsx'
 import { Variants } from './styles.css'
 import { Badge } from '../Badge/Badge'
+import { Callout } from '../Callout/Callout'
 
 type FormComponent = React.FC<Props> & {
 	Input: typeof Input
@@ -31,12 +20,12 @@ type FormComponent = React.FC<Props> & {
 	Select: typeof Select
 	NamedSection: typeof NamedSection
 	Label: typeof Label
-	useFormStore: typeof useAriaKitFormStore
+	useFormStore: typeof Ariakit.useFormStore
 }
 
 interface LabelProps {
 	label: string
-	name: AriaKitFormInputProps['name']
+	name: Ariakit.FormInputProps['name']
 	tag?: ReactNode
 	optional?: boolean
 }
@@ -51,7 +40,7 @@ export const Label: React.FC<LabelProps> = ({ label, name, tag, optional }) => {
 					gap="6"
 					style={{ height: 16 }}
 				>
-					<AriaKitFormLabel name={name}>
+					<Ariakit.FormLabel name={name}>
 						<Text
 							userSelect="none"
 							size="xSmall"
@@ -60,7 +49,7 @@ export const Label: React.FC<LabelProps> = ({ label, name, tag, optional }) => {
 						>
 							{label}
 						</Text>
-					</AriaKitFormLabel>
+					</Ariakit.FormLabel>
 					{tag}
 				</Box>
 			)}
@@ -70,7 +59,7 @@ export const Label: React.FC<LabelProps> = ({ label, name, tag, optional }) => {
 }
 
 type HasLabel = {
-	name: AriaKitFormInputProps['name']
+	name: Ariakit.FormInputProps['name']
 	label?: string
 	optional?: boolean
 	tag?: ReactNode
@@ -100,29 +89,29 @@ export const NamedSection = ({
 	)
 }
 
-const FormContext = React.createContext<AriaKitFormStore>(
-	{} as AriaKitFormStore,
+const FormContext = React.createContext<Ariakit.FormStore>(
+	{} as Ariakit.FormStore,
 )
 export const useForm = () => React.useContext(FormContext)
 
-type Props = AriaKitFormProps
+type Props = Ariakit.FormProps
 export const Form: FormComponent = ({ children, ...props }: Props) => {
 	return (
 		<FormContext.Provider value={props.store}>
-			<AriaKitForm {...props}>{children}</AriaKitForm>
+			<Ariakit.Form {...props}>{children}</Ariakit.Form>
 		</FormContext.Provider>
 	)
 }
 
-export const Error = ({ ...props }: AriaKitFormErrorProps) => {
-	return <AriaKitFormError {...props} />
+export const Error = ({ ...props }: Ariakit.FormErrorProps) => {
+	return <Ariakit.FormError {...props} render={<Box color="bad" />} />
 }
 
 export const Submit = ({ ...props }: ButtonProps) => {
 	return <Button type="submit" {...props} />
 }
 
-export type InputProps = Omit<AriaKitFormInputProps, 'size'> &
+export type InputProps = Omit<Ariakit.FormInputProps, 'size'> &
 	Variants &
 	HasLabel & {
 		cssClass?: ClassValue | ClassValue[]
@@ -157,7 +146,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 		}
 		return (
 			<NamedSection label={label} name={name} icon={icon}>
-				<AriaKitFormInput
+				<Ariakit.FormInput
 					ref={ref}
 					name={name}
 					className={clsx(
@@ -172,12 +161,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 					)}
 					{...props}
 				/>
+				{/* TODO: Consider adding <Error /> here. */}
 			</NamedSection>
 		)
 	},
 )
 
-type FormFieldProps = AriaKitFormFieldProps &
+type FormFieldProps = Ariakit.FormFieldProps &
 	React.PropsWithChildren &
 	Variants &
 	HasLabel & {
@@ -196,7 +186,7 @@ export const Field = ({
 }: FormFieldProps) => {
 	return (
 		<NamedSection label={label} name={props.name}>
-			<AriaKitFormField
+			<Ariakit.FormField
 				className={clsx(
 					styles.inputVariants({
 						size,
@@ -209,12 +199,13 @@ export const Field = ({
 				{...props}
 			>
 				{children}
-			</AriaKitFormField>
+			</Ariakit.FormField>
 		</NamedSection>
 	)
 }
 
-type FormSelectProps = AriaKitFormInputProps & React.PropsWithChildren<HasLabel>
+type FormSelectProps = Ariakit.FormInputProps &
+	React.PropsWithChildren<HasLabel>
 
 export const Select = ({
 	children,
@@ -231,9 +222,9 @@ export const Select = ({
 				tag={tag}
 				optional={optional}
 			/>
-			<AriaKitFormInput as="select" className={styles.select} {...props}>
+			<Ariakit.FormInput as="select" className={styles.select} {...props}>
 				{children}
-			</AriaKitFormInput>
+			</Ariakit.FormInput>
 		</Stack>
 	)
 }
@@ -246,9 +237,9 @@ Form.Label = Label
 Form.Select = Select
 Form.NamedSection = NamedSection
 
-export const useFormStore = useAriaKitFormStore
+export const useFormStore = Ariakit.useFormStore
 Form.useFormStore = useFormStore
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export declare type FormState<T extends Record<string, any>> =
-	AriaKitFormStore<T>
+	Ariakit.FormStore<T>
