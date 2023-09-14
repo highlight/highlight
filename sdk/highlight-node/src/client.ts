@@ -274,7 +274,7 @@ export class Highlight {
 				} else if (waitingForFinishedSpans) {
 					finish()
 				}
-			}, 100)
+			}, 10)
 			let timer = setTimeout(finish, 10000)
 			function finish() {
 				intervalTimer && clearInterval(intervalTimer)

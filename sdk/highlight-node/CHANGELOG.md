@@ -92,7 +92,7 @@
 
 -   Disables node fs instrumentation by default, can by enabled by passing `enableFsInstrumentation: true` to client option.
 
-## 3.3.0
+## 3.4.0
 
 ### Minor Changes
 

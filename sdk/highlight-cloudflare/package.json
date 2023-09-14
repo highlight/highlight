@@ -17,7 +17,7 @@
 		"hoistingLimits": "workspaces"
 	},
 	"dependencies": {
-		"@highlight-run/opentelemetry-sdk-workers": "workspace:^",
+		"@highlight-run/opentelemetry-sdk-workers": "workspace:*",
 		"@opentelemetry/resources": "1.15.1"
 	},
 	"devDependencies": {
