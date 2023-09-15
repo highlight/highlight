@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"math"
 	"math/rand"
 	"os"
@@ -892,6 +893,18 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 	}
 
+	highlight.RecordMetric(
+		ctx, mgraph.SessionActiveMetricName, float64(accumulator.ActiveDuration),
+		attribute.Bool("Excluded", false),
+		attribute.Bool("Processed", true),
+		attribute.String(highlight.SessionIDAttribute, s.SecureID),
+	)
+	highlight.RecordMetric(
+		ctx, mgraph.SessionProcessedMetricName, float64(s.ID),
+		attribute.Bool("Excluded", false),
+		attribute.Bool("Processed", true),
+		attribute.String(highlight.SessionIDAttribute, s.SecureID),
+	)
 	if err := w.PublicResolver.PushMetricsImpl(ctx, s.SecureID, []*publicModel.MetricInput{
 		{
 			SessionSecureID: s.SecureID,

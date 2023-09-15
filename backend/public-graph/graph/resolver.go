@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/highlight/highlight/sdk/highlight-go"
 	"hash/fnv"
 	"io"
 	"net/http"
@@ -1217,6 +1218,23 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 	log.WithContext(ctx).WithFields(log.Fields{"session_id": session.ID, "project_id": session.ProjectID, "identifier": session.Identifier}).
 		Infof("initialized session %d: %s", session.ID, session.Identifier)
 
+	highlight.RecordMetric(
+		ctx, "sessions", float64(session.ID),
+		attribute.String("Bot", fmt.Sprintf("%v", deviceDetails.IsBot)),
+		attribute.String("Browser", deviceDetails.BrowserName),
+		attribute.String("BrowserVersion", deviceDetails.BrowserVersion),
+		attribute.String("IP", session.IP),
+		attribute.String("City", session.City),
+		attribute.String("ClientID", session.ClientID),
+		attribute.String("Country", session.Country),
+		attribute.String("Identifier", session.Identifier),
+		attribute.String("Language", session.Language),
+		attribute.String("OS", session.OSName),
+		attribute.String("OSVersion", session.OSVersion),
+		attribute.String("Postal", session.Postal),
+		attribute.String("State", session.State),
+		attribute.String(highlight.SessionIDAttribute, session.SecureID)
+	)
 	if err := r.PushMetricsImpl(initCtx, session.SecureID, []*publicModel.MetricInput{
 		{
 			SessionSecureID: session.SecureID,
@@ -1548,6 +1566,17 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 	if err := r.DataSyncQueue.Submit(ctx, strconv.Itoa(sessionID), &kafka_queue.Message{Type: kafka_queue.SessionDataSync, SessionDataSync: &kafka_queue.SessionDataSyncArgs{SessionID: sessionID}}); err != nil {
 		return err
 	}
+
+	hTags := []attribute.KeyValue{
+		attribute.String("Identifier", session.Identifier),
+		attribute.Bool("Identified", session.Identified),
+		attribute.Bool("FirstTime", *session.FirstTime),
+		attribute.String(highlight.SessionIDAttribute, session.SecureID)
+	}
+	for k, v := range allUserProperties {
+		hTags = append(hTags, attribute.String(k, v))
+	}
+	highlight.RecordMetric(ctx, "users", 1, hTags...)
 
 	tags := []*publicModel.MetricTag{
 		{Name: "Identifier", Value: session.Identifier},
@@ -2069,6 +2098,7 @@ func (r *Resolver) updateErrorsCount(ctx context.Context, errorsBySession map[st
 	defer dailyErrorCountSpan.Finish()
 
 	for sessionSecureId, count := range errorsBySession {
+		highlight.RecordMetric(ctx, "errors", float64(count), attribute.String(highlight.SessionIDAttribute, sessionSecureId))
 		if err := r.PushMetricsImpl(context.Background(), sessionSecureId, []*publicModel.MetricInput{
 			{
 				SessionSecureID: sessionSecureId,
