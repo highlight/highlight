@@ -8,7 +8,9 @@ import React, { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
 export const ProjectRedirectionRouter = () => {
-	const { loading, error, data } = useGetProjectsAndWorkspacesQuery()
+	const { loading, error, data } = useGetProjectsAndWorkspacesQuery({
+		fetchPolicy: 'network-only',
+	})
 	const { admin } = useAuthContext()
 	const { setLoadingState } = useAppLoadingContext()
 	const location = useLocation()
