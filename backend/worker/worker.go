@@ -444,10 +444,11 @@ func (w *Worker) processPublicWorkerMessage(ctx context.Context, task *kafkaqueu
 }
 
 type WorkerConfig struct {
-	Workers      int
-	FlushSize    int
-	FlushTimeout time.Duration
-	Topic        kafkaqueue.TopicType
+	Workers         int
+	FlushSize       int
+	FlushTimeout    time.Duration
+	Topic           kafkaqueue.TopicType
+	TracingDisabled bool
 }
 
 func (w *Worker) PublicWorker(ctx context.Context) {
@@ -470,10 +471,11 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 	}
 
 	tracesConfig := WorkerConfig{
-		Topic:        kafkaqueue.TopicTypeTraces,
-		Workers:      sys.TraceWorkers,
-		FlushSize:    sys.TraceFlushSize,
-		FlushTimeout: sys.TraceFlushTimeout,
+		Topic:           kafkaqueue.TopicTypeTraces,
+		Workers:         sys.TraceWorkers,
+		FlushSize:       sys.TraceFlushSize,
+		FlushTimeout:    sys.TraceFlushTimeout,
+		TracingDisabled: true,
 	}
 
 	dataSyncConfig := WorkerConfig{
@@ -521,6 +523,7 @@ func (w *Worker) PublicWorker(ctx context.Context) {
 					BatchFlushSize:      config.FlushSize,
 					BatchedFlushTimeout: config.FlushTimeout,
 					Name:                string(config.Topic),
+					TracingDisabled:     config.TracingDisabled,
 				}
 				k.ProcessMessages(ctx)
 				wg.Done()

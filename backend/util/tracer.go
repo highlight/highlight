@@ -3,7 +3,6 @@ package util
 import (
 	"context"
 	"fmt"
-
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -19,32 +18,53 @@ func (s *MultiSpan) Finish(err ...error) {
 	// TODO: Clean this up
 	if len(err) > 0 && err[0] != nil {
 		s.ddSpan.Finish(tracer.WithError(err[0]))
-		highlight.RecordSpanError(s.hSpan, err[0])
+		if s.hSpan != nil {
+			highlight.RecordSpanError(s.hSpan, err[0])
+		}
 	} else {
 		s.ddSpan.Finish()
 	}
-
-	highlight.EndTrace(s.hSpan)
+	if s.hSpan != nil {
+		highlight.EndTrace(s.hSpan)
+	}
 }
 
 func (s *MultiSpan) SetAttribute(key string, value interface{}) {
 	s.ddSpan.SetTag(key, value)
-	s.hSpan.SetAttributes(attribute.String(key, fmt.Sprintf("%v", value)))
+	if s.hSpan != nil {
+		s.hSpan.SetAttributes(attribute.String(key, fmt.Sprintf("%v", value)))
+	}
 }
 
 func (s *MultiSpan) SetOperationName(name string) {
 	s.ddSpan.SetOperationName(name)
-	s.hSpan.SetName(name)
+	if s.hSpan != nil {
+		s.hSpan.SetName(name)
+	}
 }
 
-func StartSpanFromContext(ctx context.Context, operationName string, tags ...attribute.KeyValue) (MultiSpan, context.Context) {
-	ddOptions := []tracer.StartSpanOption{}
-	for _, tag := range tags {
+const ContextKeyHighlightTracingDisabled = "HighlightTracingDisabled"
+
+func StartSpanFromContext(ctx context.Context, operationName string, options ...SpanOption) (MultiSpan, context.Context) {
+	var cfg SpanConfig
+	var ddOptions []tracer.StartSpanOption
+	for _, opt := range options {
+		opt(&cfg)
+	}
+
+	hTracingDisabled, _ := ctx.Value(ContextKeyHighlightTracingDisabled).(bool)
+	hTracingDisabled = hTracingDisabled || cfg.HighlightTracingDisabled
+	ctx = context.WithValue(ctx, ContextKeyHighlightTracingDisabled, hTracingDisabled)
+
+	for _, tag := range cfg.Tags {
 		ddOptions = append(ddOptions, tracer.Tag(string(tag.Key), tag.Value))
 	}
 
 	ddSpan, ddCtx := tracer.StartSpanFromContext(ctx, operationName, ddOptions...)
-	hSpan, _ := highlight.StartTrace(ctx, operationName, tags...)
+	var hSpan trace.Span
+	if !hTracingDisabled {
+		hSpan, _ = highlight.StartTrace(ctx, operationName, cfg.Tags...)
+	}
 
 	mergedCtx := trace.ContextWithSpan(ddCtx, hSpan)
 
@@ -54,14 +74,21 @@ func StartSpanFromContext(ctx context.Context, operationName string, tags ...att
 	}, mergedCtx
 }
 
-func StartSpan(operationName string, tags ...attribute.KeyValue) MultiSpan {
-	ddOptions := []tracer.StartSpanOption{}
-	for _, tag := range tags {
+func StartSpan(operationName string, options ...SpanOption) MultiSpan {
+	var cfg SpanConfig
+	var ddOptions []tracer.StartSpanOption
+	for _, opt := range options {
+		opt(&cfg)
+	}
+	for _, tag := range cfg.Tags {
 		ddOptions = append(ddOptions, tracer.Tag(string(tag.Key), tag.Value))
 	}
 
 	ddSpan := tracer.StartSpan(operationName, ddOptions...)
-	hSpan, _ := highlight.StartTrace(context.Background(), operationName, tags...)
+	var hSpan trace.Span
+	if !cfg.HighlightTracingDisabled {
+		hSpan, _ = highlight.StartTrace(context.Background(), operationName, cfg.Tags...)
+	}
 
 	return MultiSpan{
 		ddSpan: ddSpan,
@@ -69,10 +96,28 @@ func StartSpan(operationName string, tags ...attribute.KeyValue) MultiSpan {
 	}
 }
 
-func Tag(key string, name interface{}) attribute.KeyValue {
-	return attribute.String(key, fmt.Sprintf("%v", name))
+type SpanConfig struct {
+	Tags                     []attribute.KeyValue
+	HighlightTracingDisabled bool
 }
 
-func ResourceName(name string) attribute.KeyValue {
-	return attribute.String("resource_name", name)
+type SpanOption func(cfg *SpanConfig)
+
+func Tag(key string, name interface{}) SpanOption {
+	return func(cfg *SpanConfig) {
+		if cfg.Tags == nil {
+			cfg.Tags = []attribute.KeyValue{}
+		}
+		cfg.Tags = append(cfg.Tags, attribute.String(key, fmt.Sprintf("%v", name)))
+	}
+}
+
+func ResourceName(name string) SpanOption {
+	return Tag("resource_name", name)
+}
+
+func WithHighlightTracingDisabled(disabled bool) SpanOption {
+	return func(cfg *SpanConfig) {
+		cfg.HighlightTracingDisabled = disabled
+	}
 }

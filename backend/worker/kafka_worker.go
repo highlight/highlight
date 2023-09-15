@@ -319,7 +319,7 @@ func (k *KafkaBatchWorker) flushLogs(ctx context.Context, logRows []*clickhouse.
 }
 
 func (k *KafkaBatchWorker) flushTraces(ctx context.Context, traceRows []*clickhouse.TraceRow) error {
-	span, ctxT := util.StartSpanFromContext(ctx, KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.clickhouse", k.Name)))
+	span, ctxT := util.StartSpanFromContext(ctx, KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.flush.clickhouse", k.Name)), util.WithHighlightTracingDisabled(true))
 	span.SetAttribute("NumTraceRows", len(traceRows))
 	span.SetAttribute("PayloadSizeBytes", binary.Size(traceRows))
 	err := k.Worker.PublicResolver.Clickhouse.BatchWriteTraceRows(ctxT, traceRows)
@@ -394,7 +394,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 		allErrorGroups := []*model.ErrorGroup{}
 		for _, chunk := range errorGroupIdChunks {
 			errorGroups := []*model.ErrorGroup{}
-			errorGroupSpan, _ := util.StartSpanFromContext(ctx, "kafkaBatchWorker", util.ResourceName("worker.kafka.datasync.readErrorGroups"))
+			errorGroupSpan, _ := util.StartSpanFromContext(ctx, KafkaBatchWorkerOp, util.ResourceName("worker.kafka.datasync.readErrorGroups"))
 			if err := k.Worker.PublicResolver.DB.Model(&model.ErrorGroup{}).Where("id in ?", chunk).Find(&errorGroups).Error; err != nil {
 				log.WithContext(ctx).Error(err)
 				return err
@@ -404,7 +404,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 			allErrorGroups = append(allErrorGroups, errorGroups...)
 		}
 
-		chSpan, _ := util.StartSpanFromContext(ctx, "kafkaBatchWorker", util.ResourceName("worker.kafka.datasync.writeClickhouse.errorGroups"))
+		chSpan, _ := util.StartSpanFromContext(ctx, KafkaBatchWorkerOp, util.ResourceName("worker.kafka.datasync.writeClickhouse.errorGroups"))
 		if err := k.Worker.PublicResolver.Clickhouse.WriteErrorGroups(ctx, allErrorGroups); err != nil {
 			log.WithContext(ctx).Error(err)
 			return err
@@ -417,7 +417,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 		allErrorObjects := []*model.ErrorObject{}
 		for _, chunk := range errorObjectIdChunks {
 			errorObjects := []*model.ErrorObject{}
-			errorObjectSpan, _ := util.StartSpanFromContext(ctx, "kafkaBatchWorker", util.ResourceName("worker.kafka.datasync.readErrorObjects"))
+			errorObjectSpan, _ := util.StartSpanFromContext(ctx, KafkaBatchWorkerOp, util.ResourceName("worker.kafka.datasync.readErrorObjects"))
 			if err := k.Worker.PublicResolver.DB.Model(&model.ErrorObject{}).Where("id in ?", chunk).Find(&errorObjects).Error; err != nil {
 				log.WithContext(ctx).Error(err)
 				return err
@@ -436,7 +436,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 		allSessions := []*model.Session{}
 		for _, chunk := range sessionIdChunks {
 			sessions := []*model.Session{}
-			sessionSpan, _ := util.StartSpanFromContext(ctx, "kafkaBatchWorker", util.ResourceName("worker.kafka.datasync.readErrorObjectSessions"))
+			sessionSpan, _ := util.StartSpanFromContext(ctx, KafkaBatchWorkerOp, util.ResourceName("worker.kafka.datasync.readErrorObjectSessions"))
 			if err := k.Worker.PublicResolver.DB.Model(&model.Session{}).Where("id in ?", chunk).Find(&sessions).Error; err != nil {
 				log.WithContext(ctx).Error(err)
 				return err
@@ -446,7 +446,7 @@ func (k *KafkaBatchWorker) flushDataSync(ctx context.Context, sessionIds []int, 
 			allSessions = append(allSessions, sessions...)
 		}
 
-		chSpan, _ := util.StartSpanFromContext(ctx, "kafkaBatchWorker", util.ResourceName("worker.kafka.datasync.writeClickhouse.errorObjects"))
+		chSpan, _ := util.StartSpanFromContext(ctx, KafkaBatchWorkerOp, util.ResourceName("worker.kafka.datasync.writeClickhouse.errorObjects"))
 		if err := k.Worker.PublicResolver.Clickhouse.WriteErrorObjects(ctx, allErrorObjects, allSessions); err != nil {
 			log.WithContext(ctx).Error(err)
 			return err
@@ -467,12 +467,12 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 	for {
 		func() {
 			defer util.Recover()
-			s, ctx := util.StartSpanFromContext(ctx, "kafkaWorker", util.ResourceName(fmt.Sprintf("worker.kafka.%s.process", k.Name)))
+			s, ctx := util.StartSpanFromContext(ctx, KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.process", k.Name)), util.WithHighlightTracingDisabled(k.TracingDisabled))
 			s.SetAttribute("worker.goroutine", k.WorkerThread)
 			s.SetAttribute("BatchSize", len(k.messages))
 			defer s.Finish()
 
-			s1, _ := util.StartSpanFromContext(ctx, "kafkaWorker", util.ResourceName(fmt.Sprintf("worker.kafka.%s.receive", k.Name)))
+			s1, _ := util.StartSpanFromContext(ctx, KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.receive", k.Name)))
 			task := k.KafkaQueue.Receive(ctx)
 			s1.Finish()
 			if task == nil {
@@ -506,6 +506,7 @@ type KafkaBatchWorker struct {
 	BatchFlushSize      int
 	BatchedFlushTimeout time.Duration
 	Name                string
+	TracingDisabled     bool
 
 	lastFlush time.Time
 	messages  []*kafkaqueue.Message
