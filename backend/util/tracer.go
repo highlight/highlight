@@ -43,7 +43,9 @@ func (s *MultiSpan) SetOperationName(name string) {
 	}
 }
 
-const ContextKeyHighlightTracingDisabled = "HighlightTracingDisabled"
+type contextKeyType int
+
+const highlightTracingDisabled contextKeyType = iota
 
 func StartSpanFromContext(ctx context.Context, operationName string, options ...SpanOption) (MultiSpan, context.Context) {
 	var cfg SpanConfig
@@ -52,9 +54,9 @@ func StartSpanFromContext(ctx context.Context, operationName string, options ...
 		opt(&cfg)
 	}
 
-	hTracingDisabled, _ := ctx.Value(ContextKeyHighlightTracingDisabled).(bool)
+	hTracingDisabled, _ := ctx.Value(highlightTracingDisabled).(bool)
 	hTracingDisabled = hTracingDisabled || cfg.HighlightTracingDisabled
-	ctx = context.WithValue(ctx, ContextKeyHighlightTracingDisabled, hTracingDisabled)
+	ctx = context.WithValue(ctx, highlightTracingDisabled, hTracingDisabled)
 
 	for _, tag := range cfg.Tags {
 		ddOptions = append(ddOptions, tracer.Tag(string(tag.Key), tag.Value))
