@@ -60,7 +60,6 @@ export const VERIFY_EMAIL_ROUTE = '/verify_email'
 export const ABOUT_YOU_ROUTE = '/about_you'
 export const INVITE_TEAM_ROUTE = '/invite_team'
 export const SETUP_ROUTE = '/setup'
-
 export const AppRouter = () => {
 	const { admin, isLoggedIn, isAuthLoading, isHighlightAdmin } =
 		useAuthContext()
