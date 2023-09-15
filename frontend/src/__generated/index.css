@@ -5800,6 +5800,11 @@ body {
   display: flex;
   align-items: center;
 }
+.xaifbz0 {
+  border-right: var(--_1pyqka9j) solid 1px;
+  height: 16px;
+  width: 1px;
+}
 ._10haslo0 {
   display: flex;
   flex-direction: column;

@@ -8,6 +8,7 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	e "github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
@@ -161,7 +162,7 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 		return nil, err
 	}
 
-	sql, args := sb.Build()
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	span, _ := util.StartSpanFromContext(ctx, "logs", util.ResourceName("ReadSessionLogs"))
 	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
@@ -219,7 +220,7 @@ func (client *Client) ReadLogsTotalCount(ctx context.Context, projectID int, par
 		return 0, err
 	}
 
-	sql, args := sb.Build()
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	var count uint64
 	err = client.conn.QueryRow(
@@ -251,7 +252,7 @@ func readLogsDailyImpl[N number](ctx context.Context, client *Client, aggFn stri
 		Where(sb.LessThan("toUInt64(Day)", uint64(dateRange.EndDate.Unix()))).
 		Where(sb.GreaterEqualThan("toUInt64(Day)", uint64(dateRange.StartDate.Unix())))
 
-	sql, args := sb.Build()
+	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	var out N
 	err := client.conn.QueryRow(
@@ -277,7 +278,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	fromSb, err := makeSelectBuilder(
 		logsTableConfig,
 		fmt.Sprintf(
-			"toUInt64(floor(%d * (toUInt64(Timestamp) - %d) / (%d - %d))) AS bucketId, SeverityText AS level",
+			"intDiv(%d * (toRelativeSecondNum(Timestamp) - %d), (%d - %d)) * 8 + SeverityNumber, count()",
 			nBuckets,
 			startTimestamp,
 			endTimestamp,
@@ -285,7 +286,7 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		),
 		projectID,
 		params,
-		Pagination{},
+		Pagination{CountOnly: true},
 		OrderBackwardNatural,
 		OrderForwardNatural,
 	)
@@ -294,15 +295,9 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		return nil, err
 	}
 
-	sb := sqlbuilder.NewSelectBuilder()
+	fromSb.GroupBy("1")
 
-	sb.
-		Select("bucketId, level, count()").
-		From(sb.BuilderAs(fromSb, LogsTable)).
-		GroupBy("bucketId, level").
-		OrderBy("bucketId, level")
-
-	sql, args := sb.Build()
+	sql, args := fromSb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
 	histogram := &modelInputs.LogsHistogram{
 		Buckets:    make([]*modelInputs.LogsHistogramBucket, 0, nBuckets),
@@ -320,17 +315,20 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 	}
 
 	var (
-		bucketId uint64
-		level    string
+		groupKey int64
 		count    uint64
 	)
 
 	buckets := make(map[uint64]map[modelInputs.LogLevel]uint64)
 
 	for rows.Next() {
-		if err := rows.Scan(&bucketId, &level, &count); err != nil {
+		if err := rows.Scan(&groupKey, &count); err != nil {
 			return nil, err
 		}
+
+		bucketId := uint64(groupKey / 8)
+		level := logrus.Level(groupKey % 8)
+
 		// clamp bucket to [0, nBuckets)
 		if bucketId >= uint64(nBuckets) {
 			bucketId = uint64(nBuckets - 1)
@@ -342,10 +340,10 @@ func (client *Client) ReadLogsHistogram(ctx context.Context, projectID int, para
 		}
 
 		// add count to bucket
-		buckets[bucketId][makeLogLevel(level)] = count
+		buckets[bucketId][getLogLevel(level)] = count
 	}
 
-	for bucketId = uint64(0); bucketId < uint64(nBuckets); bucketId++ {
+	for bucketId := uint64(0); bucketId < uint64(nBuckets); bucketId++ {
 		if _, ok := buckets[bucketId]; !ok {
 			continue
 		}

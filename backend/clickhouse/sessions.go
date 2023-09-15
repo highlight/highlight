@@ -257,7 +257,7 @@ func getSessionsQueryImpl(admin *model.Admin, query modelInputs.ClickhouseQuery,
 			sb.GreaterThan("CreatedAt", retentionDate),
 		)
 
-	conditions, err := parseGroup(admin, query.IsAnd, rules, projectId, startTime, endTime, sb)
+	conditions, err := parseSessionRules(admin, query.IsAnd, rules, projectId, startTime, endTime, sb)
 	if err != nil {
 		return "", nil, err
 	}

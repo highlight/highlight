@@ -68,6 +68,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useLocalStorage, useToggle } from 'react-use'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import LoadingBox from '@/components/LoadingBox'
 import CreateErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentButtons/CreateErrorSegmentModal'
 import DeleteErrorSegmentModal from '@/pages/Errors/ErrorSegmentSidebar/SegmentPicker/DeleteErrorSegmentModal/DeleteErrorSegmentModal'
@@ -1392,9 +1393,10 @@ function QueryBuilder(props: QueryBuilderProps) {
 		}
 	}
 
+	const { isHighlightAdmin } = useAuthContext()
 	const [chLocalStorage] = useLocalStorage(
 		'highlight-clickhouse-errors',
-		false,
+		isHighlightAdmin,
 	)
 
 	const getValueOptionsCallback = useCallback(

@@ -7,7 +7,6 @@ import {
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
 import React, { useCallback } from 'react'
-import { useLocalStorage } from 'react-use'
 
 import QueryBuilder, {
 	BOOLEAN_OPERATORS,
@@ -156,11 +155,6 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 		(rule) => rule.field?.value === TIME_RANGE_FIELD.value,
 	)
 
-	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse-v2',
-		false,
-	)
-
 	const startDate = getAbsoluteStartTime(timeRange?.val?.options[0].value)
 	const endDate = getAbsoluteEndTime(timeRange?.val?.options[0].value)
 	const { data: fieldData } = useGetFieldTypesQuery({
@@ -168,7 +162,7 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 			project_id: project_id!,
 			start_date: startDate,
 			end_date: endDate,
-			use_clickhouse: useClickhouse,
+			use_clickhouse: true,
 		},
 		skip: !project_id,
 	})
