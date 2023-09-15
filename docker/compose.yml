@@ -11,6 +11,9 @@ services:
         logging: *highlight-logging
         image: confluentinc/cp-zookeeper:7.3.0
         container_name: zookeeper
+        volumes:
+            - zoo-data:/var/lib/zookeeper/data
+            - zoo-log:/var/lib/zookeeper/log
         environment:
             ZOOKEEPER_CLIENT_PORT: 2181
             ZOOKEEPER_TICK_TIME: 2000
@@ -19,6 +22,8 @@ services:
         logging: *highlight-logging
         image: confluentinc/cp-kafka:7.3.0
         container_name: kafka
+        volumes:
+            - kafka-data:/var/lib/kafka/data
         ports:
             - 9092:9092
         depends_on:
@@ -147,3 +152,6 @@ volumes:
     redis-data:
     opensearch-data:
     influxdb-data:
+    kafka-data:
+    zoo-log:
+    zoo-data:
