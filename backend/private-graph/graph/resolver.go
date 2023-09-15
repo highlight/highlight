@@ -791,15 +791,23 @@ func (r *Resolver) SetErrorFrequenciesClickhouse(ctx context.Context, projectID 
 	errorGroupsById := map[int]*model.ErrorGroup{}
 	for _, errorGroup := range errorGroups {
 		errorGroup.ErrorMetrics = []*modelInputs.ErrorDistributionItem{}
+		errorGroup.ErrorFrequency = []int64{}
 		errorGroupsById[errorGroup.ID] = errorGroup
 	}
 
-	results, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, lo.Keys(errorGroupsById), params)
+	frequencies, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, projectID, lo.Keys(errorGroupsById), params)
 	if err != nil {
 		return err
 	}
 
-	for _, r := range results {
+	aggregates, err := r.ClickhouseClient.QueryErrorGroupAggregateFrequency(ctx, projectID, lo.Keys(errorGroupsById))
+	if err != nil {
+		return err
+	}
+
+	allMetrics := append(frequencies, aggregates...)
+
+	for _, r := range allMetrics {
 		eg := errorGroupsById[r.ErrorGroupID]
 		if eg == nil {
 			continue
@@ -939,7 +947,7 @@ func (r *Resolver) loadErrorGroupFrequenciesClickhouse(ctx context.Context, eg *
 	if eg.FirstOccurrence, eg.LastOccurrence, err = r.ClickhouseClient.QueryErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
 		return e.Wrap(err, "error querying error group occurrences")
 	}
-	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, 30); err != nil {
 		return e.Wrap(err, "error querying error group frequencies")
 	}
 	return nil
