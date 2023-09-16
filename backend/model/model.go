@@ -1901,7 +1901,7 @@ func (obj *ErrorAlert) SendAlerts(ctx context.Context, db *gorm.DB, mailClient *
 	errorURL = routing.AttachReferrer(ctx, errorURL, routing.Email)
 
 	message := fmt.Sprintf("<b>%s</b><br>The following error is being thrown on your app<br>%s<br><br><a href=\"%s\">View Error</a>", *obj.Name, input.Group.Event, errorURL)
-	if input.SessionExcluded {
+	if input.SessionSecureID == "" || input.SessionExcluded {
 		message += " (No recorded session)"
 	} else {
 		sessionURL := fmt.Sprintf("%s/%d/sessions/%s", frontendURL, obj.ProjectID, input.SessionSecureID)
