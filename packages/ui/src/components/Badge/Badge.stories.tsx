@@ -24,8 +24,6 @@ export const Sizes = () => {
 	)
 }
 
-export const Sizes_test = <Sizes />
-
 export const Themes = () => {
 	return (
 		<>
@@ -39,5 +37,3 @@ export const Themes = () => {
 		</>
 	)
 }
-
-export const Themes_test = <Themes />

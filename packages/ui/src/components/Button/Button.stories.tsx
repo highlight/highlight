@@ -72,5 +72,3 @@ export const ButtonVariants = () => {
 		</Box>
 	)
 }
-
-export const ButtonVariants_test = <ButtonVariants />
