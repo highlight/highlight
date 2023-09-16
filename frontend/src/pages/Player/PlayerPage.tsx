@@ -310,7 +310,8 @@ const PlayerPage = () => {
 							<div className={style.playerWrapperV2}>
 								<div
 									className={clsx(style.rrwebPlayerWrapper, {
-										[style.blurBackground]: isLoadingEvents,
+										[style.blurBackground]:
+											isLoadingEvents && isPlayerReady,
 									})}
 									ref={playerWrapperRef}
 								>
