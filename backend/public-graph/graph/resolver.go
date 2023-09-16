@@ -1232,7 +1232,7 @@ func (r *Resolver) InitializeSessionImpl(ctx context.Context, input *kafka_queue
 		attribute.String("OSVersion", session.OSVersion),
 		attribute.String("Postal", session.Postal),
 		attribute.String("State", session.State),
-		attribute.String(highlight.SessionIDAttribute, session.SecureID)
+		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 	)
 	if err := r.PushMetricsImpl(initCtx, session.SecureID, []*publicModel.MetricInput{
 		{
@@ -1570,7 +1570,7 @@ func (r *Resolver) IdentifySessionImpl(ctx context.Context, sessionSecureID stri
 		attribute.String("Identifier", session.Identifier),
 		attribute.Bool("Identified", session.Identified),
 		attribute.Bool("FirstTime", *session.FirstTime),
-		attribute.String(highlight.SessionIDAttribute, session.SecureID)
+		attribute.String(highlight.SessionIDAttribute, session.SecureID),
 	}
 	for k, v := range allUserProperties {
 		hTags = append(hTags, attribute.String(k, v))
