@@ -703,7 +703,6 @@ type TraceConnection implements Connection {
 
 type ErrorObjectNodeSession {
 	secureID: String!
-	appVersion: String
 	email: String
 	fingerprint: Int
 	excluded: Boolean!
@@ -716,6 +715,7 @@ type ErrorObjectNode {
 	timestamp: Timestamp!
 	session: ErrorObjectNodeSession
 	errorGroupSecureID: String!
+	serviceVersion: String!
 }
 
 type ErrorObjectEdge implements Edge {

@@ -5089,7 +5089,7 @@ func (r *queryResolver) ErrorGroupFrequencies(ctx context.Context, projectID int
 		metric = pointy.String("")
 	}
 	if useClickhouse != nil && *useClickhouse {
-		results, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, errorGroupIDs, params)
+		results, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, projectID, errorGroupIDs, params)
 		if err != nil {
 			return nil, err
 		}

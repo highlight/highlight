@@ -12,6 +12,8 @@ import { Progress } from 'antd'
 import React, { useEffect, useState } from 'react'
 import { useLocalStorage } from 'react-use'
 
+import { useAuthContext } from '@/authentication/AuthContext'
+
 type Props = {
 	errorGroup: GetErrorGroupQuery['error_group']
 }
@@ -26,9 +28,10 @@ const ErrorDistributions = ({ errorGroup }: Props) => {
 	const [operatingSystems, setOperatingSystems] = useState<
 		ErrorGroupTagAggregation | undefined
 	>()
+	const { isHighlightAdmin } = useAuthContext()
 	const [useClickhouse] = useLocalStorage(
 		'highlight-clickhouse-errors',
-		false,
+		isHighlightAdmin,
 	)
 	const { loading, data } = useGetErrorGroupTagsQuery({
 		variables: {

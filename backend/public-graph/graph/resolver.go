@@ -1348,7 +1348,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 	metadata["timestamp"] = input.Timestamp
 
 	session := &model.Session{}
-	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at", "excluded").Where(&model.Session{SecureID: input.SessionSecureID}).Take(&session).Error; err != nil {
+	if err := r.DB.Select("project_id", "environment", "id", "secure_id", "created_at", "excluded", "processed").Where(&model.Session{SecureID: input.SessionSecureID}).Take(&session).Error; err != nil {
 		return e.Wrap(err, "error querying session by sessionSecureID for adding session feedback")
 	}
 
@@ -1410,7 +1410,7 @@ func (r *Resolver) AddSessionFeedbackImpl(ctx context.Context, input *kafka_queu
 		errorAlert.SendAlertFeedback(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
-			SessionExcluded: session.Excluded,
+			SessionExcluded: session.Excluded && *session.Processed,
 			UserIdentifier:  identifier,
 			CommentID:       &feedbackComment.ID,
 			CommentText:     feedbackComment.Text,
@@ -1869,7 +1869,7 @@ func (r *Resolver) sendErrorAlert(ctx context.Context, projectID int, sessionObj
 			errorAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 				Workspace:       workspace,
 				SessionSecureID: sessionObj.SecureID,
-				SessionExcluded: sessionObj.Excluded,
+				SessionExcluded: sessionObj.Excluded && *sessionObj.Processed,
 				UserIdentifier:  sessionObj.Identifier,
 				Group:           group,
 				ErrorObject:     errorObject,
@@ -3022,7 +3022,7 @@ func (r *Resolver) SendSessionInitAlert(ctx context.Context, workspace *model.Wo
 		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: sessionObj.SecureID,
-			SessionExcluded: sessionObj.Excluded,
+			SessionExcluded: sessionObj.Excluded && *sessionObj.Processed,
 			UserIdentifier:  sessionObj.Identifier,
 			UserObject:      sessionObj.UserObject,
 			UserProperties:  userProperties,
@@ -3133,7 +3133,7 @@ func (r *Resolver) SendSessionTrackPropertiesAlert(ctx context.Context, workspac
 		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
-			SessionExcluded: session.Excluded,
+			SessionExcluded: session.Excluded && *session.Processed,
 			UserIdentifier:  session.Identifier,
 			MatchedFields:   matchedFields,
 			RelatedFields:   relatedFields,
@@ -3212,7 +3212,7 @@ func (r *Resolver) SendSessionIdentifiedAlert(ctx context.Context, workspace *mo
 		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: refetchedSession.SecureID,
-			SessionExcluded: refetchedSession.Excluded,
+			SessionExcluded: refetchedSession.Excluded && *refetchedSession.Processed,
 			UserIdentifier:  refetchedSession.Identifier,
 			UserProperties:  userProperties,
 			UserObject:      refetchedSession.UserObject,
@@ -3301,7 +3301,7 @@ func (r *Resolver) SendSessionUserPropertiesAlert(ctx context.Context, workspace
 		sessionAlert.SendAlerts(ctx, r.DB, r.MailClient, &model.SendSlackAlertInput{
 			Workspace:       workspace,
 			SessionSecureID: session.SecureID,
-			SessionExcluded: session.Excluded,
+			SessionExcluded: session.Excluded && *session.Processed,
 			UserIdentifier:  session.Identifier,
 			MatchedFields:   matchedFields,
 			UserObject:      session.UserObject,

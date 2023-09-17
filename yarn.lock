@@ -12543,7 +12543,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@highlight-run/node@workspace:*, @highlight-run/node@workspace:sdk/highlight-node":
+"@highlight-run/node@workspace: *, @highlight-run/node@workspace:*, @highlight-run/node@workspace:sdk/highlight-node":
   version: 0.0.0-use.local
   resolution: "@highlight-run/node@workspace:sdk/highlight-node"
   dependencies:
@@ -12563,6 +12563,15 @@ __metadata:
     ts-jest: ^29.0.3
     tsup: ^6.2.3
     typescript: ^5.0.4
+  languageName: unknown
+  linkType: soft
+
+"@highlight-run/pino@workspace:sdk/pino":
+  version: 0.0.0-use.local
+  resolution: "@highlight-run/pino@workspace:sdk/pino"
+  dependencies:
+    "@highlight-run/node": "workspace: *"
+    tsup: ^7.2.0
   languageName: unknown
   linkType: soft
 
@@ -36162,7 +36171,7 @@ __metadata:
     prettier: ^2.7.1
     pretty-quick: ^3.1.3
     readdirp: ^3.6.0
-    turbo: ^1.10.9
+    turbo: ^1.10.13
     typescript: ^5.1.6
   languageName: unknown
   linkType: soft
@@ -54454,58 +54463,58 @@ __metadata:
   languageName: node
   linkType: hard
 
-"turbo-darwin-64@npm:1.10.9":
-  version: 1.10.9
-  resolution: "turbo-darwin-64@npm:1.10.9"
+"turbo-darwin-64@npm:1.10.13":
+  version: 1.10.13
+  resolution: "turbo-darwin-64@npm:1.10.13"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-darwin-arm64@npm:1.10.9":
-  version: 1.10.9
-  resolution: "turbo-darwin-arm64@npm:1.10.9"
+"turbo-darwin-arm64@npm:1.10.13":
+  version: 1.10.13
+  resolution: "turbo-darwin-arm64@npm:1.10.13"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"turbo-linux-64@npm:1.10.9":
-  version: 1.10.9
-  resolution: "turbo-linux-64@npm:1.10.9"
+"turbo-linux-64@npm:1.10.13":
+  version: 1.10.13
+  resolution: "turbo-linux-64@npm:1.10.13"
   conditions: os=linux & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-linux-arm64@npm:1.10.9":
-  version: 1.10.9
-  resolution: "turbo-linux-arm64@npm:1.10.9"
+"turbo-linux-arm64@npm:1.10.13":
+  version: 1.10.13
+  resolution: "turbo-linux-arm64@npm:1.10.13"
   conditions: os=linux & cpu=arm64
   languageName: node
   linkType: hard
 
-"turbo-windows-64@npm:1.10.9":
-  version: 1.10.9
-  resolution: "turbo-windows-64@npm:1.10.9"
+"turbo-windows-64@npm:1.10.13":
+  version: 1.10.13
+  resolution: "turbo-windows-64@npm:1.10.13"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"turbo-windows-arm64@npm:1.10.9":
-  version: 1.10.9
-  resolution: "turbo-windows-arm64@npm:1.10.9"
+"turbo-windows-arm64@npm:1.10.13":
+  version: 1.10.13
+  resolution: "turbo-windows-arm64@npm:1.10.13"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"turbo@npm:^1.10.9":
-  version: 1.10.9
-  resolution: "turbo@npm:1.10.9"
+"turbo@npm:^1.10.13":
+  version: 1.10.13
+  resolution: "turbo@npm:1.10.13"
   dependencies:
-    turbo-darwin-64: 1.10.9
-    turbo-darwin-arm64: 1.10.9
-    turbo-linux-64: 1.10.9
-    turbo-linux-arm64: 1.10.9
-    turbo-windows-64: 1.10.9
-    turbo-windows-arm64: 1.10.9
+    turbo-darwin-64: 1.10.13
+    turbo-darwin-arm64: 1.10.13
+    turbo-linux-64: 1.10.13
+    turbo-linux-arm64: 1.10.13
+    turbo-windows-64: 1.10.13
+    turbo-windows-arm64: 1.10.13
   dependenciesMeta:
     turbo-darwin-64:
       optional: true
@@ -54521,7 +54530,7 @@ __metadata:
       optional: true
   bin:
     turbo: bin/turbo
-  checksum: 667867c3ea6ecf59cafe494e1bd4da8564bdae4ea735a14813656b2784a909fb69f12f8c6cdb140ca490c602fd11dc186b5d426af6a451ba51a487e73b742731
+  checksum: 0c000c671534c8c80270c6d1fc77646df0e44164c0db561a85b3fefadd4bda6d5920626d067abb09af38613024e3984fb8d8bc5be922dae6236eda6aab9447a2
   languageName: node
   linkType: hard
 

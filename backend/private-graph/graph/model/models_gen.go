@@ -329,11 +329,11 @@ type ErrorObjectNode struct {
 	Timestamp          time.Time               `json:"timestamp"`
 	Session            *ErrorObjectNodeSession `json:"session"`
 	ErrorGroupSecureID string                  `json:"errorGroupSecureID"`
+	ServiceVersion     string                  `json:"serviceVersion"`
 }
 
 type ErrorObjectNodeSession struct {
 	SecureID    string  `json:"secureID"`
-	AppVersion  *string `json:"appVersion"`
 	Email       *string `json:"email"`
 	Fingerprint *int    `json:"fingerprint"`
 	Excluded    bool    `json:"excluded"`

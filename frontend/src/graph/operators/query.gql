@@ -2175,10 +2175,10 @@ query GetErrorObjects(
 				event
 				timestamp
 				errorGroupSecureID
+				serviceVersion
 				session {
 					secureID
 					email
-					appVersion
 					fingerprint
 					excluded
 				}

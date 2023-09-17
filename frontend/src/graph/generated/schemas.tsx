@@ -556,13 +556,13 @@ export type ErrorObjectNode = {
 	errorGroupSecureID: Scalars['String']
 	event: Scalars['String']
 	id: Scalars['ID']
+	serviceVersion: Scalars['String']
 	session?: Maybe<ErrorObjectNodeSession>
 	timestamp: Scalars['Timestamp']
 }
 
 export type ErrorObjectNodeSession = {
 	__typename?: 'ErrorObjectNodeSession'
-	appVersion?: Maybe<Scalars['String']>
 	email?: Maybe<Scalars['String']>
 	excluded: Scalars['Boolean']
 	fingerprint?: Maybe<Scalars['Int']>

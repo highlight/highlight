@@ -997,7 +997,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			slackAlertPayload := model.SendSlackAlertInput{
 				Workspace:       workspace,
 				SessionSecureID: s.SecureID,
-				SessionExcluded: s.Excluded,
+				SessionExcluded: s.Excluded && *s.Processed,
 				UserIdentifier:  s.Identifier,
 				UserObject:      s.UserObject,
 				RageClicksCount: &count64,

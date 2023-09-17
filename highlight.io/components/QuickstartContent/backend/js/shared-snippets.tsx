@@ -10,7 +10,7 @@ export const jsGetSnippet: (slugs: string[]) => QuickStartStep = (slugs) => {
 		)
 		.join(', ')
 	return {
-		title: 'Install the Highlight JS SDK.',
+		title: 'Install the relevant Highlight SDK(s).',
 		content: `Install ${linkedPackages} with your package manager.`,
 		code: [
 			{
