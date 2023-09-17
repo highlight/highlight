@@ -232,7 +232,7 @@ const Faqs: { question: string; answer: string; icon: string }[] = [
 ]
 
 const billingPeriodOptions = ['Monthly', 'Annual'] as const
-type BillingPeriod = typeof billingPeriodOptions[number]
+type BillingPeriod = (typeof billingPeriodOptions)[number]
 
 const retentionOptions = [
 	'30 days',
@@ -241,7 +241,7 @@ const retentionOptions = [
 	'1 year',
 	'2 years',
 ] as const
-type Retention = typeof retentionOptions[number]
+type Retention = (typeof retentionOptions)[number]
 const retentionMultipliers: Record<Retention, number> = {
 	'30 days': 1,
 	'3 months': 1,
@@ -250,34 +250,47 @@ const retentionMultipliers: Record<Retention, number> = {
 	'2 years': 2.5,
 } as const
 
-const tierOptions = ['Free', 'UsageBased'] as const
-type TierName = typeof tierOptions[number]
+const tierOptions = ['Free', 'UsageBased', 'Enterprise'] as const
+type TierName = (typeof tierOptions)[number]
 
 type PricingTier = {
 	label: string
-	basePrice: number
-	sessions: number
-	errors: number
-	logs: number
-	isMostPopular: boolean
+	features: string[]
+	badgeText?: string
+	calculateUsage?: boolean
 }
 
 const priceTiers: Record<TierName, PricingTier> = {
 	Free: {
 		label: 'Free forever',
-		basePrice: 0,
-		sessions: 500,
-		errors: 1_000,
-		logs: 1_000_000,
-		isMostPopular: false,
+		features: [
+			'500 monthly sessions',
+			'1,000 monthly errors',
+			'1,000,000 monthly logs',
+			'Unlimited seats',
+		],
 	},
 	UsageBased: {
 		label: 'Pay as you go',
-		basePrice: 0,
-		sessions: 500,
-		errors: 1_000,
-		logs: 1_000_000,
-		isMostPopular: true,
+		features: [
+			'500 monthly sessions',
+			'1,000 monthly errors',
+			'1,000,000 monthly logs',
+			'Unlimited seats',
+		],
+		badgeText: 'Most popular',
+		calculateUsage: true,
+	},
+	Enterprise: {
+		label: 'Enterprise',
+		features: [
+			'Custom pricing',
+			'SAML & SSO',
+			'RBAC & Audit Logs',
+			'Data Export',
+			'Grafana Integration',
+		],
+		badgeText: 'Contact us',
 	},
 }
 
@@ -285,7 +298,7 @@ const PlanTable = () => {
 	return (
 		<div className="flex flex-col-reverse items-center w-full gap-6 mx-auto mt-16">
 			{/* Pricing */}
-			<div className="flex flex-col-reverse items-stretch max-w-[600px] w-full sm:flex-row gap-7">
+			<div className="flex flex-col-reverse items-stretch w-full sm:flex-row gap-7 justify-center">
 				{Object.entries(priceTiers).map(([name, tier]) => (
 					<PlanTier name={name} tier={tier} key={name} />
 				))}
@@ -296,26 +309,24 @@ const PlanTable = () => {
 }
 
 const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
-	const { sessions, errors, logs, isMostPopular } = tier
+	const { features, badgeText, calculateUsage } = tier
 
 	return (
 		<div
 			className={classNames(
-				'flex flex-col flex-grow border rounded-md min-[1190px]:min-w-[255px] basis-64 border-divider-on-dark h-fit',
-				isMostPopular
-					? 'shadow-[-8px_8px_0_0] shadow-purple-primary'
-					: '',
+				'flex flex-col flex-grow border rounded-md min-[1190px]:min-w-[255px] sm:max-w-[284px] basis-64 border-divider-on-dark h-fit',
+				badgeText ? 'shadow-[-8px_8px_0_0] shadow-purple-primary' : '',
 			)}
 		>
 			<div className="p-5 border-b border-divider-on-dark">
-				{isMostPopular && (
+				{badgeText && (
 					<div className="bg-highlight-yellow w-fit py-0.5 px-3 rounded-full">
 						<Typography
 							type="copy4"
 							emphasis
 							className="text-dark-background"
 						>
-							Most popular
+							{badgeText}
 						</Typography>
 					</div>
 				)}
@@ -331,19 +342,14 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 						Included
 					</Typography>
 					<OverageLink className="text-white transition-colors hover:text-blue-cta">
-						<InformationCircleIcon className="inline w-5 h-5" />
+						<InformationCircleIcon className="inline w-5 h-5 mb-[1px]" />
 					</OverageLink>
 				</div>
-				<Typography type="copy3">
-					{formatNumber(sessions)} monthly sessions
-				</Typography>
-				<Typography type="copy3">
-					{formatNumber(errors)} monthly errors
-				</Typography>
-				<Typography type="copy3">
-					{formatNumber(logs)} monthly logs
-				</Typography>
-				<Typography type="copy3">Unlimited seats</Typography>
+				{features.map((feature, index) => (
+					<Typography key={index} type="copy3">
+						{feature}
+					</Typography>
+				))}
 			</div>
 			<div className="px-5 pb-5 flex flex-col gap-2.5">
 				<PrimaryButton
@@ -352,7 +358,7 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 				>
 					Start free trial
 				</PrimaryButton>
-				{isMostPopular && (
+				{calculateUsage && (
 					<div
 						onClick={(e) => {
 							e.preventDefault()
@@ -364,7 +370,7 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 					>
 						<PrimaryButton
 							href="#overage"
-							className="flex justify-center border border-copy-on-light text-copy-on-dark bg-transparent"
+							className="flex justify-center border border-copy-on-light text-copy-on-dark bg-transparent text-center"
 						>
 							Calculate Usage
 						</PrimaryButton>
@@ -390,11 +396,13 @@ const formatPrice = (price: number) =>
 		.replace('+', '+ ')
 
 const PriceCalculator = () => {
-	const tier = priceTiers['UsageBased']
+	const defaultErrors = 1_000
+	const defaultLogs = 1000000
+	const defaultSessions = 500
 
-	const [errorUsage, setErrorUsage] = useState(tier.errors)
-	const [sessionUsage, setSessionUsage] = useState(tier.sessions)
-	const [loggingUsage, setLoggingUsage] = useState(tier.logs)
+	const [errorUsage, setErrorUsage] = useState(defaultErrors)
+	const [sessionUsage, setSessionUsage] = useState(defaultSessions)
+	const [loggingUsage, setLoggingUsage] = useState(defaultLogs)
 
 	const [errorRetention, setErrorRetention] = useState<Retention>('3 months')
 	const [sessionRetention, setSessionRetention] =
@@ -413,19 +421,19 @@ const PriceCalculator = () => {
 		) / 100
 
 	const errorsCost = getUsagePrice(
-		errorUsage - tier.errors,
+		errorUsage - defaultErrors,
 		0.2,
 		1_000,
 		errorRetention,
 	)
 	const sessionsCost = getUsagePrice(
-		sessionUsage - tier.sessions,
+		sessionUsage - defaultSessions,
 		20.0,
 		1_000,
 		sessionRetention,
 	)
 	const loggingCost = getUsagePrice(
-		loggingUsage - tier.logs,
+		loggingUsage - defaultLogs,
 		1.5,
 		1_000_000,
 		'30 days',
@@ -453,7 +461,7 @@ const PriceCalculator = () => {
 						description="Error monitoring usage is defined by the number of errors collected by Highlight per month. Our frontend/server SDKs send errors, but you can also send custom errors."
 						value={errorUsage}
 						cost={errorsCost}
-						includedRange={tier.errors}
+						includedRange={defaultErrors}
 						retention={errorRetention}
 						onChange={setErrorUsage}
 						onChangeRetention={setErrorRetention}
@@ -463,7 +471,7 @@ const PriceCalculator = () => {
 						description="Session replay usage is defined by the number of sessions collected per month. A session is defined by an instance of a user’s tab on your application. "
 						value={sessionUsage}
 						cost={sessionsCost}
-						includedRange={tier.sessions}
+						includedRange={defaultSessions}
 						retention={sessionRetention}
 						onChange={setSessionUsage}
 						onChangeRetention={setSessionRetention}
@@ -473,7 +481,7 @@ const PriceCalculator = () => {
 						description="Log usage is defined by the number of logs collected by highlight.io per month. A log is defined by a text field with attributes."
 						value={loggingUsage}
 						cost={loggingCost}
-						includedRange={tier.logs}
+						includedRange={defaultLogs}
 						rangeMultiplier={100}
 						retention="30 days"
 						onChange={setLoggingUsage}
