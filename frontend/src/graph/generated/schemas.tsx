@@ -1805,7 +1805,7 @@ export type Query = {
 	session_comments: Array<Maybe<SessionComment>>
 	session_comments_for_admin: Array<Maybe<SessionComment>>
 	session_comments_for_project: Array<Maybe<SessionComment>>
-	session_exports: Array<SessionExport>
+	session_exports: Array<SessionExportWithSession>
 	session_insight?: Maybe<SessionInsight>
 	session_intervals: Array<SessionInterval>
 	sessions_clickhouse: SessionResults
@@ -2387,6 +2387,10 @@ export type QuerySession_Comments_For_ProjectArgs = {
 	project_id: Scalars['ID']
 }
 
+export type QuerySession_ExportsArgs = {
+	project_id: Scalars['ID']
+}
+
 export type QuerySession_InsightArgs = {
 	secure_id: Scalars['String']
 }
@@ -2889,12 +2893,13 @@ export enum SessionExcludedReason {
 	RetentionPeriodExceeded = 'RetentionPeriodExceeded',
 }
 
-export type SessionExport = {
-	__typename?: 'SessionExport'
+export type SessionExportWithSession = {
+	__typename?: 'SessionExportWithSession'
+	active_length?: Maybe<Scalars['Int']>
+	created_at: Scalars['Timestamp']
 	error: Scalars['String']
-	id: Scalars['ID']
-	session_id: Scalars['ID']
-	target_emails: Array<Scalars['String']>
+	identifier: Scalars['String']
+	secure_id: Scalars['String']
 	type: Scalars['String']
 	url: Scalars['String']
 }

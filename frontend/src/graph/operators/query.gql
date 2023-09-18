@@ -317,14 +317,16 @@ query GetSessionInsight($secure_id: String!) {
 	}
 }
 
-query GetSessionExports {
-	session_exports {
-		id
-		session_id
+query GetSessionExports($project_id: ID!) {
+	session_exports(project_id: $project_id) {
+		created_at
 		type
 		url
 		error
-		target_emails
+		# session details
+		secure_id
+		identifier
+		active_length
 	}
 }
 

@@ -5865,14 +5865,15 @@ export type GetSessionInsightQueryResult = Apollo.QueryResult<
 	Types.GetSessionInsightQueryVariables
 >
 export const GetSessionExportsDocument = gql`
-	query GetSessionExports {
-		session_exports {
-			id
-			session_id
+	query GetSessionExports($project_id: ID!) {
+		session_exports(project_id: $project_id) {
+			created_at
 			type
 			url
 			error
-			target_emails
+			secure_id
+			identifier
+			active_length
 		}
 	}
 `
@@ -5889,11 +5890,12 @@ export const GetSessionExportsDocument = gql`
  * @example
  * const { data, loading, error } = useGetSessionExportsQuery({
  *   variables: {
+ *      project_id: // value for 'project_id'
  *   },
  * });
  */
 export function useGetSessionExportsQuery(
-	baseOptions?: Apollo.QueryHookOptions<
+	baseOptions: Apollo.QueryHookOptions<
 		Types.GetSessionExportsQuery,
 		Types.GetSessionExportsQueryVariables
 	>,

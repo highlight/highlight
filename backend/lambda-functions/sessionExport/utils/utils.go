@@ -15,6 +15,7 @@ type SaveSessionExportInput struct {
 	SessionID    int                       `json:"sessionId"`
 	Type         model.SessionExportFormat `json:"type"`
 	URL          string                    `json:"url"`
+	Error        string                    `json:"error"`
 	TargetEmails []string                  `json:"targetEmails"`
 }
 
@@ -23,5 +24,6 @@ type SendEmailInput struct {
 	SessionSecureId string   `json:"sessionSecureId"`
 	User            string   `json:"user"`
 	URL             string   `json:"url"`
+	Error           string   `json:"error"`
 	TargetEmails    []string `json:"targetEmails"`
 }

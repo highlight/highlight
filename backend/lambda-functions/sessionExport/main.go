@@ -25,9 +25,10 @@ func main() {
 
 	h := handlers.NewHandlers()
 	input := utils.SaveSessionExportInput{
-		SessionID:    311983171,
+		SessionID:    30000031,
 		Type:         model.SessionExportFormatMP4,
 		URL:          "https://highlight-session-render.s3.us-east-2.amazonaws.com/1/311983171.mp4",
+		Error:        "test",
 		TargetEmails: []string{"vadim@highlight.io"},
 	}
 	ctx := context.Background()

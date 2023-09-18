@@ -12,6 +12,7 @@ import {
 	useExportSessionMutation,
 	useGetWorkspaceSettingsQuery,
 } from '@graph/hooks'
+import { namedOperations } from '@graph/operations'
 import {
 	Badge,
 	Box,
@@ -458,6 +459,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 					variables: {
 						session_secure_id: session.secure_id,
 					},
+					refetchQueries: [namedOperations.Query.GetSessionExports],
 				})
 				message.open({
 					content: (

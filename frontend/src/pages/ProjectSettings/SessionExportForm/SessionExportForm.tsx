@@ -2,10 +2,17 @@ import BorderBox from '@components/BorderBox/BorderBox'
 import BoxLabel from '@components/BoxLabel/BoxLabel'
 import { LoadingBar } from '@components/Loading/Loading'
 import { useGetSessionExportsQuery } from '@graph/hooks'
-import { Box, Stack, TextLink } from '@highlight-run/ui'
+import { Badge, Box, Stack, Text, TextLink } from '@highlight-run/ui'
+import { useProjectId } from '@hooks/useProjectId'
 
 export const SessionExportForm = () => {
-	const { data, loading } = useGetSessionExportsQuery()
+	const { projectId } = useProjectId()
+	const { data, loading } = useGetSessionExportsQuery({
+		variables: {
+			project_id: projectId,
+		},
+		skip: !projectId,
+	})
 	if (loading) {
 		return <LoadingBar />
 	}
@@ -19,11 +26,30 @@ export const SessionExportForm = () => {
 				/>
 				<Box>
 					{data?.session_exports?.map((se) => (
-						<Box key={se.session_id}>
-							<TextLink color="none" href={se.url}>
-								{/*TODO(vkorolik) show status of export*/}
-								{se.session_id}
-							</TextLink>
+						<Box
+							key={se.secure_id}
+							display="flex"
+							alignItems="center"
+							gap="4"
+						>
+							<Badge
+								variant={
+									se.url ? 'green' : se.error ? 'red' : 'gray'
+								}
+								label={
+									se.url
+										? 'Success'
+										: se.error
+										? 'Failure'
+										: 'In Progress'
+								}
+							/>
+							<Text>{se.secure_id}</Text>
+							{se.url ? (
+								<TextLink color="none" href={se.url}>
+									Download here
+								</TextLink>
+							) : null}
 						</Box>
 					))}
 				</Box>
