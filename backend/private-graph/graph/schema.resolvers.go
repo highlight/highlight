@@ -3070,7 +3070,7 @@ func (r *mutationResolver) DeleteLogAlert(ctx context.Context, projectID int, id
 		return nil, e.Wrap(err, "this log alert does not exist in this project.")
 	}
 
-	if err := r.DB.Delete(alert).Error; err != nil {
+	if err := r.DB.Delete("id = ?", id).Error; err != nil {
 		return nil, e.Wrap(err, "error trying to delete log alert")
 	}
 
