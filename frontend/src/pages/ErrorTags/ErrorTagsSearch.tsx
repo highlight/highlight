@@ -212,7 +212,7 @@ function roundScore(score: number) {
 }
 
 function NoResults() {
-	return <Box className={styles.noResults}>No results</Box>
+	return <Box cssClass={styles.noResults}>No results</Box>
 }
 
 function ShareButton() {
@@ -228,7 +228,7 @@ function ShareButton() {
 	return (
 		<>
 			{isPopoverOpen && (
-				<Box className={styles.alert}>
+				<Box cssClass={styles.alert}>
 					<Box>Copied URL</Box>
 				</Box>
 			)}

@@ -90,7 +90,7 @@ const SessionInsights = () => {
 								return (
 									<Box cursor="pointer" key={idx}>
 										<Box
-											className={style.insight}
+											cssClass={style.insight}
 											onClick={() => {
 												setTime(timeSinceStart)
 											}}
