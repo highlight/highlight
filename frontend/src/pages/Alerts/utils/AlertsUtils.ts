@@ -58,14 +58,18 @@ export interface AlertForm {
  */
 export const findAlert = (
 	id: string,
+	type: 'error' | 'session',
 	alertsPayload?: GetAlertsPagePayloadQuery,
 ) => {
 	if (!alertsPayload) {
 		return undefined
 	}
 
-	const allAlerts = [
-		...alertsPayload.error_alerts,
+	if (type === 'error') {
+		return alertsPayload.error_alerts.find((alert: any) => alert?.id === id)
+	}
+
+	const possibleAlerts = [
 		...alertsPayload.new_session_alerts,
 		...(alertsPayload.new_user_alerts || []),
 		...alertsPayload.track_properties_alerts,
@@ -73,7 +77,7 @@ export const findAlert = (
 		...alertsPayload.rage_click_alerts,
 	]
 
-	return allAlerts.find((alert) => alert?.id === id)
+	return possibleAlerts.find((alert: any) => alert?.id === id)
 }
 
 export const getFrequencyOption = (seconds = DEFAULT_FREQUENCY): any => {
