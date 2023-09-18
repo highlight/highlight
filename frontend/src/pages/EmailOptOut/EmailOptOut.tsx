@@ -171,7 +171,7 @@ export const EmailOptOutPage = () => {
 		token: StringParam,
 	})
 
-	const commandBarDialog = Ariakit.useDialogState()
+	const commandBarDialog = Ariakit.useDialogStore()
 
 	useEffect(() => {
 		// Show the Intercom message after 5 seconds in case the user needs help.

@@ -34,7 +34,7 @@ import {
 	Menu,
 	Stack,
 	Text,
-	useFormState,
+	useFormStore,
 } from '@highlight-run/ui'
 import { useIsProjectIntegratedWith } from '@pages/IntegrationsPage/components/common/useIsProjectIntegratedWith'
 import { useGitHubIntegration } from '@pages/IntegrationsPage/components/GitHubIntegration/utils'
@@ -111,13 +111,14 @@ export const NewCommentForm = ({
 	const [selectedIssueService, setSelectedIssueService] =
 		useState<IntegrationType>()
 	const [containerId, setContainerId] = useState('')
-	const formState = useFormState({
+	const formStore = useFormStore({
 		defaultValues: {
 			commentText: '',
 			issueTitle: '',
 			issueDescription: '',
 		},
 	})
+	const formValues = formStore.useState('values')
 
 	const integrationMap = useMemo(() => {
 		const ret: { [key: string]: IssueTrackerIntegration } = {}
@@ -172,7 +173,7 @@ export const NewCommentForm = ({
 		})
 		setIsCreatingComment(true)
 
-		const { issueTitle, issueDescription } = formState.values
+		const { issueTitle, issueDescription } = formValues
 
 		try {
 			await createErrorComment({
@@ -196,7 +197,7 @@ export const NewCommentForm = ({
 				},
 				refetchQueries: [namedOperations.Query.GetErrorComments],
 			})
-			formState.reset()
+			formStore.reset()
 			setCommentText('')
 			onCloseHandler()
 		} catch (_e) {
@@ -216,7 +217,7 @@ export const NewCommentForm = ({
 		})
 		setIsCreatingComment(true)
 
-		const { issueTitle, issueDescription } = formState.values
+		const { issueTitle, issueDescription } = formValues
 
 		try {
 			await createComment({
@@ -249,7 +250,7 @@ export const NewCommentForm = ({
 				refetchQueries: [namedOperations.Query.GetSessionComments],
 			})
 			onCloseHandler()
-			formState.reset()
+			formStore.reset()
 			if (!selectedTimelineAnnotationTypes.includes('Comments')) {
 				setSelectedTimelineAnnotationTypes([
 					...selectedTimelineAnnotationTypes,
@@ -427,7 +428,7 @@ export const NewCommentForm = ({
 			<Form
 				name="newComment"
 				onSubmit={handleSubmit}
-				state={formState}
+				store={formStore}
 				onKeyDown={onFormChangeHandler}
 			>
 				{section === CommentFormSection.NewIssueForm && (
@@ -499,8 +500,8 @@ export const NewCommentForm = ({
 								size="small"
 								trackingId="new-comment-attach-issue_cancel"
 								onClick={() => {
-									formState.setValues({
-										...formState.values,
+									formStore.setValues({
+										...formValues,
 										issueTitle: '',
 										issueDescription: '',
 									})
@@ -563,17 +564,17 @@ export const NewCommentForm = ({
 												<Menu.Item
 													key={id}
 													onClick={() => {
-														formState.setValue(
+														formStore.setValue(
 															'issueTitle',
 															defaultIssueTitle,
 														)
 
 														if (
-															!formState.getValue(
+															!formStore.getValue(
 																'issueDescription',
 															)
 														) {
-															formState.setValue(
+															formStore.setValue(
 																'issueDescription',
 																commentTextForEmail,
 															)

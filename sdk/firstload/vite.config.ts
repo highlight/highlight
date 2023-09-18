@@ -6,10 +6,10 @@ export default defineConfig({
 	envPrefix: ['REACT_APP_'],
 	server: {
 		host: '0.0.0.0',
-		port: 8888,
+		port: 8877,
 		strictPort: true,
 		hmr: {
-			clientPort: 8888,
+			clientPort: 8877,
 		},
 	},
 	build: {

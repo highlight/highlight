@@ -22,6 +22,7 @@ import React from 'react'
 import { useLocation } from 'react-router-dom'
 import { useLocalStorage } from 'react-use'
 
+import { useAuthContext } from '@/authentication/AuthContext'
 import {
 	useGetAlertsPagePayloadQuery,
 	useGetErrorGroupsOpenSearchQuery,
@@ -77,9 +78,10 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 		fetchPolicy: 'no-cache',
 	})
 
+	const { isHighlightAdmin } = useAuthContext()
 	const [useClickhouse] = useLocalStorage(
 		'highlight-clickhouse-errors',
-		false,
+		isHighlightAdmin,
 	)
 
 	const { data: errorGroupData } = useGetErrorGroupsOpenSearchQuery({

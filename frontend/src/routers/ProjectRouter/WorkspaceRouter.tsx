@@ -56,7 +56,7 @@ export const WorkspaceRouter = () => {
 		}
 	}, [isLoggedIn, setLoadingState])
 
-	const commandBarDialog = Ariakit.useDialogState()
+	const commandBarDialog = Ariakit.useDialogStore()
 
 	if (loading) {
 		return null

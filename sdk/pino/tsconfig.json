@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"declaration": true,
+		"declarationDir": "dist",
+		"emitDeclarationOnly": true,
+		"forceConsistentCasingInFileNames": true,
+		"jsx": "react",
+		"module": "CommonJS",
+		"moduleResolution": "node",
+		"outDir": "dist",
+		"removeComments": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"target": "ESNext",
+	},
+	"include": [
+		"src/**/*"
+	]
+}

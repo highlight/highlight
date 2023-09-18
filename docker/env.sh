@@ -13,6 +13,7 @@ if [[ "$*" == *"--go-docker"* ]]; then
     export IN_DOCKER_GO=true
     echo "Using docker-internal infra."
 else
+    export OTLP_ENDPOINT=http://localhost:4318
     export CLICKHOUSE_ADDRESS=localhost:9000
     export INFLUXDB_SERVER=http://localhost:8086
     export KAFKA_SERVERS=localhost:9092

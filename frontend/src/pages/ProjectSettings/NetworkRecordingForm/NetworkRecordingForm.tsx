@@ -10,6 +10,7 @@ import { useProjectSettingsContext } from '@/pages/ProjectSettings/ProjectSettin
 
 export const NetworkRecordingForm = () => {
 	const { project_id } = useParams<{ project_id: string }>()
+	const formStore = Form.useFormStore({})
 	const {
 		allProjectSettings: data,
 		loading,
@@ -22,7 +23,7 @@ export const NetworkRecordingForm = () => {
 
 	return (
 		<BorderBox>
-			<form key={project_id}>
+			<Form store={formStore} key={project_id}>
 				<Stack gap="8">
 					<BoxLabel
 						label="Network recording settings"
@@ -62,7 +63,7 @@ export const NetworkRecordingForm = () => {
 						/>
 					</Form.NamedSection>
 				</Stack>
-			</form>
+			</Form>
 		</BorderBox>
 	)
 }

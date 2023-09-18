@@ -4,11 +4,9 @@ import {
 	useGetFieldTypesQuery,
 	useGetSegmentsQuery,
 } from '@graph/hooks'
-import usePlayerConfiguration from '@pages/Player/PlayerHook/utils/usePlayerConfiguration'
 import { useSearchContext } from '@pages/Sessions/SearchContext/SearchContext'
 import { useParams } from '@util/react-router/useParams'
-import React from 'react'
-import { useLocalStorage } from 'react-use'
+import React, { useCallback } from 'react'
 
 import QueryBuilder, {
 	BOOLEAN_OPERATORS,
@@ -137,8 +135,11 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 	const { refetch } = useGetFieldsOpensearchQuery({
 		skip: true,
 	})
-	const fetchFields = (variables: FetchFieldVariables) =>
-		refetch(variables).then((r) => r.data.fields_opensearch)
+	const fetchFields = useCallback(
+		(variables: FetchFieldVariables) =>
+			refetch(variables).then((r) => r.data.fields_opensearch),
+		[refetch],
+	)
 
 	const { project_id } = useParams<{
 		project_id: string
@@ -154,11 +155,6 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 		(rule) => rule.field?.value === TIME_RANGE_FIELD.value,
 	)
 
-	const [useClickhouse] = useLocalStorage(
-		'highlight-session-search-use-clickhouse-v2',
-		false,
-	)
-
 	const startDate = getAbsoluteStartTime(timeRange?.val?.options[0].value)
 	const endDate = getAbsoluteEndTime(timeRange?.val?.options[0].value)
 	const { data: fieldData } = useGetFieldTypesQuery({
@@ -166,11 +162,10 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 			project_id: project_id!,
 			start_date: startDate,
 			end_date: endDate,
-			use_clickhouse: useClickhouse,
+			use_clickhouse: true,
 		},
 		skip: !project_id,
 	})
-	const { setShowLeftPanel } = usePlayerConfiguration()
 
 	return (
 		<QueryBuilder
@@ -179,7 +174,6 @@ const SessionQueryBuilder = React.memo((props: { readonly?: boolean }) => {
 			customFields={CUSTOM_FIELDS}
 			fetchFields={fetchFields}
 			fieldData={fieldData}
-			setShowLeftPanel={setShowLeftPanel}
 			useEditAnySegmentMutation={useEditSegmentMutation}
 			useGetAnySegmentsQuery={useGetSegmentsQuery}
 			CreateAnySegmentModal={CreateSegmentModal}

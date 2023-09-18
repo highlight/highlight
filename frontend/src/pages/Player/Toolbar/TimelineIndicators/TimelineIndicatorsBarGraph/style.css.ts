@@ -68,26 +68,6 @@ export const progressBar = style({
 	transformOrigin: 'left',
 })
 
-export const liveProgressBar = style({
-	animationDuration: '2s',
-	animationFillMode: 'forwards',
-	animationIterationCount: 'infinite',
-	animationName: 'liveShimmer',
-	animationTimingFunction: 'linear',
-	background: `linear-gradient(
-		to right,
-		var(--color-red-300) 8%,
-		var(--color-red) 38%,
-		var(--color-red-300) 68%
-	)`,
-	backgroundSize: '800px 5px',
-	display: 'flex',
-	height: PROGRESS_BAR_HEIGHT,
-	position: 'absolute',
-	transition: 'all 0.2s ease-in-out',
-	width: '100%',
-})
-
 export const inactivityPeriod = style({
 	backgroundColor: 'var(--color-white)',
 	height: PROGRESS_BAR_HEIGHT,
@@ -187,7 +167,7 @@ export const inactivityPeriodMask = style({
 })
 
 export const moveIndicator = style({
-	transition: 'transform 0.3s linear',
+	transition: 'transform 0.27s linear',
 })
 
 export const timeIndicatorContainerWrapper = style({

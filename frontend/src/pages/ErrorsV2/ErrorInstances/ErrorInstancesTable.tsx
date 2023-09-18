@@ -55,16 +55,16 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 				</Tag>
 			),
 		}),
-		columnHelper.accessor('node.session', {
+		columnHelper.accessor('node.serviceVersion', {
 			cell: ({ getValue }) => {
-				const session = getValue()
-				if (!session?.appVersion) {
+				const serviceVersion = getValue()
+				if (!serviceVersion) {
 					return null
 				}
 
 				return (
 					<Tag shape="basic" kind="secondary">
-						{truncateVersion(session.appVersion)}
+						{truncateVersion(serviceVersion)}
 					</Tag>
 				)
 			},
@@ -78,7 +78,7 @@ export const ErrorInstancesTable = ({ edges, searchedEmail }: Props) => {
 				let content = <>no session</>
 				let sessionLink = ''
 
-				if (session) {
+				if (session && !session.excluded) {
 					if (session.email) {
 						content = (
 							<TextHighlighter

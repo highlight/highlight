@@ -167,7 +167,8 @@ func RecordSpanError(span trace.Span, err error, tags ...attribute.KeyValue) {
 	}
 	span.SetAttributes(tags...)
 	// if this is an error with true stacktrace, then create the event directly since otel doesn't support saving a custom stacktrace
-	if stackErr, ok := err.(ErrorWithStack); ok {
+	var stackErr ErrorWithStack
+	if errors.As(err, &stackErr) {
 		RecordSpanErrorWithStack(span, stackErr)
 	} else {
 		span.RecordError(err, trace.WithStackTrace(true))

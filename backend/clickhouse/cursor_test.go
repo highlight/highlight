@@ -12,25 +12,27 @@ import (
 )
 
 func TestGetConnectionAfter(t *testing.T) {
-	zeroEdges := []*modelInputs.LogEdge{}
-	oneEdge := []*modelInputs.LogEdge{
+	zeroEdges := []*Edge[modelInputs.Log]{}
+	oneEdge := []*Edge[modelInputs.Log]{
 		{
 			Cursor: "cursor",
 		},
 	}
 
-	manyEdges := []*modelInputs.LogEdge{}
+	manyEdges := []*Edge[modelInputs.Log]{}
 	for i := 1; i <= LogsLimit+1; i++ {
-		manyEdges = append(manyEdges, &modelInputs.LogEdge{
+		manyEdges = append(manyEdges, &Edge[modelInputs.Log]{
 			Cursor: "cursor",
 		})
 	}
 
-	connection := getLogsConnection(zeroEdges, Pagination{
+	type lc = Connection[modelInputs.Log]
+
+	conn := getConnection(zeroEdges, Pagination{
 		After: ptr.String("cursor"),
 	})
 
-	assert.Equal(t, &modelInputs.LogConnection{
+	assert.Equal(t, &lc{
 		Edges: zeroEdges,
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     false,
@@ -38,13 +40,13 @@ func TestGetConnectionAfter(t *testing.T) {
 			StartCursor:     "",
 			EndCursor:       "",
 		},
-	}, connection)
+	}, conn)
 
-	connection = getLogsConnection(oneEdge, Pagination{
+	conn = getConnection(oneEdge, Pagination{
 		After: ptr.String("cursor"),
 	})
 
-	assert.Equal(t, &modelInputs.LogConnection{
+	assert.Equal(t, &lc{
 		Edges: oneEdge,
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     false,
@@ -52,13 +54,13 @@ func TestGetConnectionAfter(t *testing.T) {
 			StartCursor:     "cursor",
 			EndCursor:       "cursor",
 		},
-	}, connection)
+	}, conn)
 
-	connection = getLogsConnection(manyEdges, Pagination{
+	conn = getConnection(manyEdges, Pagination{
 		After: ptr.String("cursor"),
 	})
 
-	assert.Equal(t, &modelInputs.LogConnection{
+	assert.Equal(t, &lc{
 		Edges: manyEdges[:LogsLimit],
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     true,
@@ -66,29 +68,31 @@ func TestGetConnectionAfter(t *testing.T) {
 			StartCursor:     "cursor",
 			EndCursor:       "cursor",
 		},
-	}, connection)
+	}, conn)
 }
 
 func TestGetConnectionBefore(t *testing.T) {
-	zeroEdges := []*modelInputs.LogEdge{}
-	oneEdge := []*modelInputs.LogEdge{
+	zeroEdges := []*Edge[modelInputs.Log]{}
+	oneEdge := []*Edge[modelInputs.Log]{
 		{
 			Cursor: "cursor",
 		},
 	}
 
-	manyEdges := []*modelInputs.LogEdge{}
+	manyEdges := []*Edge[modelInputs.Log]{}
 	for i := 1; i <= LogsLimit+1; i++ {
-		manyEdges = append(manyEdges, &modelInputs.LogEdge{
+		manyEdges = append(manyEdges, &Edge[modelInputs.Log]{
 			Cursor: "cursor",
 		})
 	}
 
-	connection := getLogsConnection(zeroEdges, Pagination{
+	type lc = Connection[modelInputs.Log]
+
+	conn := getConnection(zeroEdges, Pagination{
 		Before: ptr.String("cursor"),
 	})
 
-	assert.Equal(t, &modelInputs.LogConnection{
+	assert.Equal(t, &lc{
 		Edges: zeroEdges,
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     true,
@@ -96,13 +100,13 @@ func TestGetConnectionBefore(t *testing.T) {
 			StartCursor:     "",
 			EndCursor:       "",
 		},
-	}, connection)
+	}, conn)
 
-	connection = getLogsConnection(oneEdge, Pagination{
+	conn = getConnection(oneEdge, Pagination{
 		Before: ptr.String("cursor"),
 	})
 
-	assert.Equal(t, &modelInputs.LogConnection{
+	assert.Equal(t, &lc{
 		Edges: oneEdge,
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     true,
@@ -110,13 +114,13 @@ func TestGetConnectionBefore(t *testing.T) {
 			StartCursor:     "cursor",
 			EndCursor:       "cursor",
 		},
-	}, connection)
+	}, conn)
 
-	connection = getLogsConnection(manyEdges, Pagination{
+	conn = getConnection(manyEdges, Pagination{
 		Before: ptr.String("cursor"),
 	})
 
-	assert.Equal(t, &modelInputs.LogConnection{
+	assert.Equal(t, &lc{
 		Edges: manyEdges[1:LogsLimit],
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     true,
@@ -124,21 +128,23 @@ func TestGetConnectionBefore(t *testing.T) {
 			StartCursor:     "cursor",
 			EndCursor:       "cursor",
 		},
-	}, connection)
+	}, conn)
 }
 
 func TestGetConnectionNoPagination(t *testing.T) {
-	zeroEdges := []*modelInputs.LogEdge{}
-	manyEdges := []*modelInputs.LogEdge{}
+	zeroEdges := []*Edge[modelInputs.Log]{}
+	manyEdges := []*Edge[modelInputs.Log]{}
 	for i := 1; i <= LogsLimit+1; i++ {
-		manyEdges = append(manyEdges, &modelInputs.LogEdge{
+		manyEdges = append(manyEdges, &Edge[modelInputs.Log]{
 			Cursor: "cursor",
 		})
 	}
 
-	connection := getLogsConnection(zeroEdges, Pagination{})
+	type lc = Connection[modelInputs.Log]
 
-	assert.Equal(t, &modelInputs.LogConnection{
+	connection := getConnection(zeroEdges, Pagination{})
+
+	assert.Equal(t, &lc{
 		Edges: zeroEdges,
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     false,
@@ -148,9 +154,9 @@ func TestGetConnectionNoPagination(t *testing.T) {
 		},
 	}, connection)
 
-	connection = getLogsConnection(manyEdges, Pagination{})
+	connection = getConnection(manyEdges, Pagination{})
 
-	assert.Equal(t, &modelInputs.LogConnection{
+	assert.Equal(t, &lc{
 		Edges: manyEdges[:LogsLimit],
 		PageInfo: &modelInputs.PageInfo{
 			HasNextPage:     true,
@@ -190,7 +196,7 @@ func TestClickhouseDecode(t *testing.T) {
 	}
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
-	payload, err := client.ReadLogs(ctx, 1, modelInputs.LogsParamsInput{
+	payload, err := client.ReadLogs(ctx, 1, modelInputs.QueryInput{
 		DateRange: makeDateWithinRange(now),
 	}, Pagination{})
 	assert.NoError(t, err)

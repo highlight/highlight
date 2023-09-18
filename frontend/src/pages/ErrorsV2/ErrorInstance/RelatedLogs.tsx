@@ -4,13 +4,13 @@ import { createSearchParams } from 'react-router-dom'
 
 import { useAuthContext } from '@/authentication/AuthContext'
 import { Link } from '@/components/Link'
+import {
+	DEFAULT_OPERATOR,
+	SearchParam,
+	stringifySearchQuery,
+} from '@/components/Search/SearchForm/utils'
 import { GetErrorInstanceQuery } from '@/graph/generated/operations'
 import { ReservedLogKey } from '@/graph/generated/schemas'
-import {
-	DEFAULT_LOGS_OPERATOR,
-	LogsSearchParam,
-	stringifyLogsQuery,
-} from '@/pages/LogsPage/SearchForm/utils'
 
 const getLogsLink = (data: GetErrorInstanceQuery | undefined): string => {
 	const errorObject = data?.error_instance?.error_object
@@ -19,12 +19,12 @@ const getLogsLink = (data: GetErrorInstanceQuery | undefined): string => {
 		return ''
 	}
 
-	const queryParams: LogsSearchParam[] = []
+	const queryParams: SearchParam[] = []
 	let offsetStart = 1
 	if (errorObject.session?.secure_id) {
 		queryParams.push({
 			key: ReservedLogKey.SecureSessionId,
-			operator: DEFAULT_LOGS_OPERATOR,
+			operator: DEFAULT_OPERATOR,
 			value: errorObject.session?.secure_id,
 			offsetStart: offsetStart++,
 		})
@@ -32,12 +32,12 @@ const getLogsLink = (data: GetErrorInstanceQuery | undefined): string => {
 	if (errorObject.trace_id) {
 		queryParams.push({
 			key: ReservedLogKey.TraceId,
-			operator: DEFAULT_LOGS_OPERATOR,
+			operator: DEFAULT_OPERATOR,
 			value: errorObject.trace_id,
 			offsetStart: offsetStart++,
 		})
 	}
-	const query = stringifyLogsQuery(queryParams)
+	const query = stringifySearchQuery(queryParams)
 	const logCursor = errorObject.log_cursor
 	const params = createSearchParams({
 		query,

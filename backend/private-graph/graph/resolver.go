@@ -791,15 +791,23 @@ func (r *Resolver) SetErrorFrequenciesClickhouse(ctx context.Context, projectID 
 	errorGroupsById := map[int]*model.ErrorGroup{}
 	for _, errorGroup := range errorGroups {
 		errorGroup.ErrorMetrics = []*modelInputs.ErrorDistributionItem{}
+		errorGroup.ErrorFrequency = []int64{}
 		errorGroupsById[errorGroup.ID] = errorGroup
 	}
 
-	results, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, lo.Keys(errorGroupsById), params)
+	frequencies, err := r.ClickhouseClient.QueryErrorGroupFrequencies(ctx, projectID, lo.Keys(errorGroupsById), params)
 	if err != nil {
 		return err
 	}
 
-	for _, r := range results {
+	aggregates, err := r.ClickhouseClient.QueryErrorGroupAggregateFrequency(ctx, projectID, lo.Keys(errorGroupsById))
+	if err != nil {
+		return err
+	}
+
+	allMetrics := append(frequencies, aggregates...)
+
+	for _, r := range allMetrics {
 		eg := errorGroupsById[r.ErrorGroupID]
 		if eg == nil {
 			continue
@@ -939,7 +947,7 @@ func (r *Resolver) loadErrorGroupFrequenciesClickhouse(ctx context.Context, eg *
 	if eg.FirstOccurrence, eg.LastOccurrence, err = r.ClickhouseClient.QueryErrorGroupOccurrences(ctx, eg.ProjectID, eg.ID); err != nil {
 		return e.Wrap(err, "error querying error group occurrences")
 	}
-	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, ErrorGroupLookbackDays); err != nil {
+	if err := r.SetErrorFrequenciesClickhouse(ctx, eg.ProjectID, []*model.ErrorGroup{eg}, 30); err != nil {
 		return e.Wrap(err, "error querying error group frequencies")
 	}
 	return nil
@@ -2377,7 +2385,7 @@ func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(ctx context.Context
 	}
 
 	// uninstall the app in github
-	if c, err := github.NewClient(ctx, workspaceMapping.AccessToken); err == nil {
+	if c, err := github.NewClient(ctx, workspaceMapping.AccessToken, r.Redis); err == nil {
 		if err := c.DeleteInstallation(ctx, workspaceMapping.AccessToken); err != nil {
 			return e.Wrap(err, "failed to delete github app installation")
 		}
@@ -2778,7 +2786,7 @@ func (r *Resolver) CreateGitHubTaskAndAttachment(
 		return errors.New("No GitHub integration access token found.")
 	}
 	var task *github2.Issue
-	if c, err := github.NewClient(ctx, *accessToken); err == nil {
+	if c, err := github.NewClient(ctx, *accessToken, r.Redis); err == nil {
 		task, err = c.CreateIssue(ctx, *repo, &github2.IssueRequest{
 			Title:  pointy.String(issueTitle),
 			Body:   pointy.String(issueDescription),
@@ -2812,7 +2820,7 @@ func (r *Resolver) GetGitHubRepos(
 		return nil, nil
 	}
 	var repos []*github2.Repository
-	if c, err := github.NewClient(ctx, *accessToken); err == nil {
+	if c, err := github.NewClient(ctx, *accessToken, r.Redis); err == nil {
 		repos, err = c.ListRepos(ctx)
 		if err != nil {
 			return nil, err
@@ -2844,7 +2852,7 @@ func (r *Resolver) GetGitHubIssueLabels(
 		return nil, nil
 	}
 	var labels []*github2.Label
-	if c, err := github.NewClient(ctx, *accessToken); err == nil {
+	if c, err := github.NewClient(ctx, *accessToken, r.Redis); err == nil {
 		labels, err = c.ListLabels(ctx, repository)
 		if err != nil {
 			return nil, err

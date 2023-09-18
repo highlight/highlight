@@ -16,6 +16,8 @@ import { Box } from '../Box/Box'
 import { colors } from '../../css/colors'
 import { TimeInput } from './TimeInput'
 import { DateInput } from './DateInput'
+import { Form } from '../Form/Form'
+import * as Ariakit from '@ariakit/react'
 
 export { defaultPresets, getNow, resetRelativeDates } from './utils'
 
@@ -186,11 +188,11 @@ type Props = {
 	onDatesChange: (selectedDates: Date[]) => void
 	presets: Preset[]
 	minDate: Date
-} & Omit<MenuButtonProps, 'ref'>
+} & Omit<MenuButtonProps, 'ref' | 'store'>
 
 export const PreviousDateRangePicker: React.FC<Props> = (props) => (
 	<Menu placement="bottom-end">
-		{/* Rendering inside wrapper so we can work with menu state via useMenu. */}
+		{/* Rendering inside wrapper so we can work with menu store via useMenu. */}
 		<PreviousDateRangePickerImpl {...props} />
 	</Menu>
 )
@@ -224,11 +226,14 @@ const PreviousDateRangePickerImpl = ({
 	const [endTimeIsValid, setEndTimeIsValid] = useState<boolean>(true)
 
 	const menu = useMenu()
+	const open = menu.getState().open
+	const formStore = Ariakit.useFormStore({})
+
 	useEffect(() => {
-		if (!menu.open) {
+		if (!open) {
 			setMenuState(MenuState.Default)
 		}
-	}, [menu.open])
+	}, [open])
 
 	// Close the time picker when the menu is closed
 	useEffect(() => {
@@ -473,7 +478,7 @@ const PreviousDateRangePickerImpl = ({
 						</Menu.Item>
 					</>
 				) : (
-					<>
+					<Form store={formStore}>
 						<Box
 							borderBottom={'divider'}
 							pb={'4'}
@@ -630,7 +635,7 @@ const PreviousDateRangePickerImpl = ({
 						>
 							<DatePicker hasSelectedRange={hasSelectedRange} />
 						</Menu.Item>
-					</>
+					</Form>
 				)}
 			</Menu.List>
 		</DatePickerStateProvider>
