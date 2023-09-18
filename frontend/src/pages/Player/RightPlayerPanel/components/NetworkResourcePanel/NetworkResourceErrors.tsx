@@ -1,7 +1,5 @@
 import { Box, Callout, Text } from '@highlight-run/ui'
-import { useLocalStorage } from 'react-use'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import LoadingBox from '@/components/LoadingBox'
 import { useGetErrorGroupsOpenSearchQuery } from '@/graph/generated/hooks'
 import { useProjectId } from '@/hooks/useProjectId'
@@ -27,11 +25,6 @@ export const NetworkResourceErrors: React.FC<{
 	const requestId = getHighlightRequestId(resource)
 	const errors = sessionErrors.filter((e) => e.request_id === requestId)
 	const errorGroupSecureIds = errors.map((e) => e.error_group_secure_id)
-	const { isHighlightAdmin } = useAuthContext()
-	const [useClickhouse] = useLocalStorage(
-		'highlight-clickhouse-errors',
-		isHighlightAdmin,
-	)
 	const { data, loading } = useGetErrorGroupsOpenSearchQuery({
 		variables: {
 			query: `{
@@ -43,12 +36,10 @@ export const NetworkResourceErrors: React.FC<{
 					}
 				}
 			}`.replace(/\s+/g, ''),
-			clickhouse_query: useClickhouse
-				? {
-						isAnd: true,
-						rules: [['secure_id', 'is', ...errorGroupSecureIds]],
-				  }
-				: undefined,
+			clickhouse_query: {
+				isAnd: true,
+				rules: [['secure_id', 'is', ...errorGroupSecureIds]],
+			},
 			project_id: projectId,
 			count: errorGroupSecureIds.length,
 		},

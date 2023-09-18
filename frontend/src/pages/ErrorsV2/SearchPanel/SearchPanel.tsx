@@ -29,9 +29,7 @@ import { usePollQuery } from '@util/search'
 import clsx from 'clsx'
 import moment from 'moment/moment'
 import React, { useCallback, useEffect, useState } from 'react'
-import { useLocalStorage } from 'react-use'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import { OverageCard } from '@/pages/Sessions/SessionsFeedV3/OverageCard/OverageCard'
 import { styledVerticalScrollbar } from '@/style/common.css'
 
@@ -52,18 +50,10 @@ const SearchPanel = () => {
 	} = useErrorSearchContext()
 	const { project_id: projectId } = useParams<{ project_id: string }>()
 
-	const { isHighlightAdmin } = useAuthContext()
-	const [useClickhouse] = useLocalStorage(
-		'highlight-clickhouse-errors',
-		isHighlightAdmin,
-	)
-
 	const { data: fetchedData, loading } = useGetErrorGroupsOpenSearchQuery({
 		variables: {
 			query: backendSearchQuery?.searchQuery || '',
-			clickhouse_query: useClickhouse
-				? JSON.parse(searchQuery)
-				: undefined,
+			clickhouse_query: JSON.parse(searchQuery),
 			count: PAGE_SIZE,
 			page: page && page > 0 ? page : 1,
 			project_id: projectId!,
@@ -163,14 +153,9 @@ const SearchPanel = () => {
 				count: PAGE_SIZE,
 				page: 1,
 				project_id: projectId!,
-				clickhouse_query: useClickhouse ? clickhouseQuery : undefined,
+				clickhouse_query: clickhouseQuery,
 			}
-		}, [
-			backendSearchQuery?.searchQuery,
-			projectId,
-			searchQuery,
-			useClickhouse,
-		]),
+		}, [backendSearchQuery?.searchQuery, projectId, searchQuery]),
 		moreDataQuery,
 		getResultCount: useCallback(
 			(result) => result?.data?.error_groups_opensearch.totalCount,
