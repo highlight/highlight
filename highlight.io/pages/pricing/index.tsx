@@ -327,7 +327,7 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 		>
 			<div className="p-5 border-b border-divider-on-dark">
 				{badgeText && (
-					<div className="bg-highlight-yellow w-fit py-0.5 px-3 rounded-full">
+					<div className="bg-highlight-yellow w-fit py-0.5 px-3 mb-1 rounded-full">
 						<Typography
 							type="copy4"
 							emphasis
