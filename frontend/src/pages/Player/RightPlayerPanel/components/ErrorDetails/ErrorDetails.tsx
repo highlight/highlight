@@ -42,7 +42,6 @@ import { message } from 'antd'
 import React, { useMemo } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useNavigate } from 'react-router-dom'
-import { useLocalStorage } from 'react-use'
 
 interface Props {
 	error: ErrorObject
@@ -64,13 +63,12 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 	const canMoveForward = !!errors[next]
 
 	const secureId = error.error_group_secure_id
-	const [useClickhouse] = useLocalStorage('highlight-clickhouse-errors', true)
 	const {
 		data,
 		loading,
 		error: errorQueryingErrorGroup,
 	} = useGetErrorGroupQuery({
-		variables: { secure_id: secureId, use_clickhouse: useClickhouse },
+		variables: { secure_id: secureId, use_clickhouse: true },
 		skip: !secureId,
 		onCompleted: () => {
 			analytics.track('Viewed error', { is_guest: !isLoggedIn })

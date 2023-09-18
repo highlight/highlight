@@ -20,7 +20,6 @@ import { useProjectId } from '@hooks/useProjectId'
 import moment from 'moment'
 import React from 'react'
 import { useLocation } from 'react-router-dom'
-import { useLocalStorage } from 'react-use'
 
 import {
 	useGetAlertsPagePayloadQuery,
@@ -77,15 +76,11 @@ export const IntegrationBar: React.FC<Props> = ({ integrationData }) => {
 		fetchPolicy: 'no-cache',
 	})
 
-	const [useClickhouse] = useLocalStorage('highlight-clickhouse-errors', true)
-
 	const { data: errorGroupData } = useGetErrorGroupsOpenSearchQuery({
 		variables: {
 			project_id: projectId,
 			query: '{"match_all": {}}',
-			clickhouse_query: useClickhouse
-				? { isAnd: true, rules: [] }
-				: undefined,
+			clickhouse_query: { isAnd: true, rules: [] },
 			count: 1,
 		},
 		skip: area !== 'backend' || !integrated,
