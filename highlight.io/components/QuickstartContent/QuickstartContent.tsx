@@ -1,5 +1,6 @@
 import { siteUrl } from '../../utils/urls'
 import { GoChiContent } from './backend/go/chi'
+import { GoEchoContent } from './backend/go/echo'
 import { GoFiberContent } from './backend/go/fiber'
 import { GoGinContent } from './backend/go/gin'
 import { GoGqlgenContent } from './backend/go/go-gqlgen'
@@ -103,6 +104,7 @@ export enum QuickStartType {
 	GoGqlgen = 'gqlgen',
 	GoFiber = 'fiber',
 	GoChi = 'chi',
+	GoEcho = 'echo',
 	GoMux = 'mux',
 	GoGin = 'gin',
 	GoLogrus = 'logrus',
@@ -173,6 +175,7 @@ export const quickStartContent = {
 			logoUrl: siteUrl('/images/quickstart/go.svg'),
 			[QuickStartType.GoGqlgen]: GoGqlgenContent,
 			[QuickStartType.GoFiber]: GoFiberContent,
+			[QuickStartType.GoEcho]: GoEchoContent,
 			[QuickStartType.GoChi]: GoChiContent,
 			[QuickStartType.GoMux]: GoMuxContent,
 			[QuickStartType.GoGin]: GoGinContent,
