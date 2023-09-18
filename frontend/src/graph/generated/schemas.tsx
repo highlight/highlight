@@ -745,6 +745,7 @@ export enum IntegrationType {
 	GitHub = 'GitHub',
 	Height = 'Height',
 	Linear = 'Linear',
+	Jira = 'Jira',
 	Slack = 'Slack',
 	Vercel = 'Vercel',
 	Zapier = 'Zapier',

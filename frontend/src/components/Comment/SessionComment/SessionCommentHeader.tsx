@@ -17,6 +17,7 @@ import { useLinearIntegration } from '@pages/IntegrationsPage/components/LinearI
 import {
 	CLICKUP_INTEGRATION,
 	HEIGHT_INTEGRATION,
+	JIRA_INTEGRATION,
 	LINEAR_INTEGRATION,
 } from '@pages/IntegrationsPage/Integrations'
 import { IssueTrackerIntegration } from '@pages/IntegrationsPage/IssueTrackerIntegrations'
@@ -52,6 +53,9 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 	const { isIntegrated: isClickupIntegrated } = useIsProjectIntegratedWith(
 		IntegrationType.ClickUp,
 	)
+	const { isIntegrated: isJiraIntegrated } = useIsProjectIntegratedWith(
+		IntegrationType.Jira,
+	)
 	const { isIntegrated: isHeightIntegrated } = useIsProjectIntegratedWith(
 		IntegrationType.Height,
 	)
@@ -73,6 +77,7 @@ const SessionCommentHeader: React.FC<Props> = ({ comment, isReply }) => {
 	const issueTrackers: [boolean | undefined, IssueTrackerIntegration][] = [
 		[isLinearIntegratedWithProject, LINEAR_INTEGRATION],
 		[isClickupIntegrated, CLICKUP_INTEGRATION],
+		[isJiraIntegrated, JIRA_INTEGRATION],
 		[isHeightIntegrated, HEIGHT_INTEGRATION],
 	]
 
