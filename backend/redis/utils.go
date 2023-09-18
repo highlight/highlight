@@ -492,7 +492,12 @@ func (r *Client) GetHubspotCompanies(ctx context.Context, companies interface{})
 }
 
 func (r *Client) SetGithubRateLimitExceeded(ctx context.Context, gitHubRepo string, expirationTime time.Time) error {
-	return r.setFlag(ctx, GithubRateLimitKey(gitHubRepo), true, time.Until(expirationTime))
+	expirationDuration := time.Until(expirationTime)
+	if expirationDuration < 0 {
+		expirationDuration = time.Hour
+	}
+
+	return r.setFlag(ctx, GithubRateLimitKey(gitHubRepo), true, expirationDuration)
 }
 
 func (r *Client) GetGithubRateLimitExceeded(ctx context.Context, gitHubRepo string) (bool, error) {
