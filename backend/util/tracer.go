@@ -57,7 +57,7 @@ func StartSpanFromContext(ctx context.Context, operationName string, options ...
 		opt(&cfg)
 	}
 
-	hTracingDisabled, _ := ctx.Value(string(ContextKeyHighlightTracingDisabled)).(bool)
+	hTracingDisabled, _ := ctx.Value(ContextKeyHighlightTracingDisabled).(bool)
 	hTracingDisabled = hTracingDisabled || cfg.HighlightTracingDisabled
 	ctx = context.WithValue(ctx, ContextKeyHighlightTracingDisabled, hTracingDisabled)
 

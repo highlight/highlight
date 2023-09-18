@@ -467,12 +467,12 @@ func (k *KafkaBatchWorker) ProcessMessages(ctx context.Context) {
 	for {
 		func() {
 			defer util.Recover()
-			s, ctx := util.StartSpanFromContext(ctx, KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.process", k.Name)), util.WithHighlightTracingDisabled(k.TracingDisabled))
+			s, ctx := util.StartSpanFromContext(ctx, "KafkaWorker", util.ResourceName(fmt.Sprintf("worker.kafka.%s.process", k.Name)), util.WithHighlightTracingDisabled(k.TracingDisabled))
 			s.SetAttribute("worker.goroutine", k.WorkerThread)
 			s.SetAttribute("BatchSize", len(k.messages))
 			defer s.Finish()
 
-			s1, _ := util.StartSpanFromContext(ctx, KafkaBatchWorkerOp, util.ResourceName(fmt.Sprintf("worker.kafka.%s.receive", k.Name)))
+			s1, _ := util.StartSpanFromContext(ctx, "KafkaWorker", util.ResourceName(fmt.Sprintf("worker.kafka.%s.receive", k.Name)))
 			task := k.KafkaQueue.Receive(ctx)
 			s1.Finish()
 			if task == nil {
