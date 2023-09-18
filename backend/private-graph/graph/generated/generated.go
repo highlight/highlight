@@ -944,7 +944,7 @@ type ComplexityRoot struct {
 		SessionComments              func(childComplexity int, sessionSecureID string) int
 		SessionCommentsForAdmin      func(childComplexity int) int
 		SessionCommentsForProject    func(childComplexity int, projectID int) int
-		SessionExports               func(childComplexity int) int
+		SessionExports               func(childComplexity int, projectID int) int
 		SessionInsight               func(childComplexity int, secureID string) int
 		SessionIntervals             func(childComplexity int, sessionSecureID string) int
 		SessionLogs                  func(childComplexity int, projectID int, params model.QueryInput) int
@@ -1713,7 +1713,7 @@ type QueryResolver interface {
 	LogsErrorObjects(ctx context.Context, logCursors []string) ([]*model1.ErrorObject, error)
 	ErrorResolutionSuggestion(ctx context.Context, errorObjectID int) (string, error)
 	SessionInsight(ctx context.Context, secureID string) (*model1.SessionInsight, error)
-	SessionExports(ctx context.Context) ([]*model1.SessionExport, error)
+	SessionExports(ctx context.Context, projectID int) ([]*model1.SessionExport, error)
 	SystemConfiguration(ctx context.Context) (*model1.SystemConfiguration, error)
 	Services(ctx context.Context, projectID int, after *string, before *string, query *string) (*model.ServiceConnection, error)
 	ErrorTags(ctx context.Context) ([]*model1.ErrorTag, error)
@@ -7194,7 +7194,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.SessionExports(childComplexity), true
+		args, err := ec.field_Query_session_exports_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SessionExports(childComplexity, args["project_id"].(int)), true
 
 	case "Query.session_insight":
 		if e.complexity.Query.SessionInsight == nil {
@@ -11774,7 +11779,7 @@ type Query {
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
-	session_exports: [SessionExport!]!
+	session_exports(project_id: ID!): [SessionExport!]!
 	system_configuration: SystemConfiguration!
 
 	services(
@@ -17946,6 +17951,21 @@ func (ec *executionContext) field_Query_session_comments_args(ctx context.Contex
 }
 
 func (ec *executionContext) field_Query_session_comments_for_project_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["project_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("project_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["project_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_session_exports_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -53543,7 +53563,7 @@ func (ec *executionContext) _Query_session_exports(ctx context.Context, field gr
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionExports(rctx)
+		return ec.resolvers.Query().SessionExports(rctx, fc.Args["project_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -53582,6 +53602,17 @@ func (ec *executionContext) fieldContext_Query_session_exports(ctx context.Conte
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SessionExport", field.Name)
 		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_session_exports_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }

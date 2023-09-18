@@ -8004,9 +8004,17 @@ func (r *queryResolver) SessionInsight(ctx context.Context, secureID string) (*m
 }
 
 // SessionExports is the resolver for the session_exports field.
-func (r *queryResolver) SessionExports(ctx context.Context) ([]*model.SessionExport, error) {
+func (r *queryResolver) SessionExports(ctx context.Context, projectID int) ([]*model.SessionExport, error) {
+	_, err := r.isAdminInProjectOrDemoProject(ctx, projectID)
+	if err != nil {
+		return nil, err
+	}
+
 	var sessionExports []*model.SessionExport
-	if err := r.DB.Model(&model.SessionExport{}).Order("id DESC").Scan(&sessionExports).Error; err != nil {
+	if err := r.DB.Model(&model.SessionExport{}).
+		Where("project_id = ?", projectID).
+		Order("id DESC").
+		Scan(&sessionExports).Error; err != nil {
 		return nil, err
 	}
 	return sessionExports, nil

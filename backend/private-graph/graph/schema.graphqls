@@ -1947,7 +1947,7 @@ type Query {
 	logs_error_objects(log_cursors: [String!]!): [ErrorObject!]!
 	error_resolution_suggestion(error_object_id: ID!): String!
 	session_insight(secure_id: String!): SessionInsight
-	session_exports: [SessionExport!]!
+	session_exports(project_id: ID!): [SessionExport!]!
 	system_configuration: SystemConfiguration!
 
 	services(

@@ -50,7 +50,10 @@ func (h *handlers) SaveSessionExport(ctx context.Context, event *utils.SaveSessi
 		URL:          event.URL,
 		TargetEmails: event.TargetEmails,
 	}
-	tx := h.db.Model(&export).Clauses(clause.OnConflict{
+	tx := h.db.Model(&export).Where(&model.SessionExport{
+		SessionID: event.SessionID,
+		Type:      event.Type,
+	}).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "session_id"}, {Name: "type"}},
 		DoUpdates: clause.AssignmentColumns([]string{"url"}),
 	}).FirstOrCreate(&export)

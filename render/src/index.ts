@@ -3,6 +3,7 @@ import { serialRender } from './serial'
 import { readFileSync } from 'fs'
 import { encodeGIF } from './ffmpeg'
 import { getRenderExport, uploadRenderExport } from './s3'
+import { getSessionSecureID } from './pg'
 
 interface Args {
 	project?: string
@@ -42,6 +43,7 @@ const media = async (args?: Args) => {
 		ts: args?.ts ? Number(args.ts) : undefined,
 		tsEnd: args?.tsEnd ? Number(args.tsEnd) : undefined,
 	}
+	let sessionSecureID = await getSessionSecureID(session)
 	let key = await getRenderExport(project, session, format, ts, tsEnd)
 	if (key === undefined) {
 		const { dir, files } = await serialRender(project, session, {
@@ -58,7 +60,7 @@ const media = async (args?: Args) => {
 		}
 		key = await uploadRenderExport(
 			project,
-			session,
+			sessionSecureID,
 			format,
 			path,
 			ts,

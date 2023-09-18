@@ -41,3 +41,21 @@ export async function getSessionIntervals(_: number, session: number) {
 		end_time: r.end_time.getTime(),
 	})) as SessionInterval[]
 }
+
+export async function getSessionSecureID(session: number) {
+	const client = await getClient()
+	const res = await client.query(
+		`SELECT secure_id
+			 FROM sessions
+			 WHERE id = $1
+			 LIMIT 1`,
+		[session],
+	)
+	await client.end()
+	const secureID = (res.rows[0] as { secure_id: string } | undefined)
+		?.secure_id
+	if (!secureID) {
+		throw new Error(`no session secure id found for id ${session}`)
+	}
+	return secureID
+}
