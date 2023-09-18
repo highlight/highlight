@@ -258,6 +258,8 @@ type PricingTier = {
 	features: string[]
 	badgeText?: string
 	calculateUsage?: boolean
+	buttonLabel: string
+	buttonLink: string
 }
 
 const priceTiers: Record<TierName, PricingTier> = {
@@ -269,6 +271,8 @@ const priceTiers: Record<TierName, PricingTier> = {
 			'1,000,000 monthly logs',
 			'Unlimited seats',
 		],
+		buttonLabel: 'Start free trial',
+		buttonLink: 'https://app.highlight.io/sign_up',
 	},
 	UsageBased: {
 		label: 'Pay as you go',
@@ -280,6 +284,8 @@ const priceTiers: Record<TierName, PricingTier> = {
 		],
 		badgeText: 'Most popular',
 		calculateUsage: true,
+		buttonLabel: 'Start free trial',
+		buttonLink: 'https://app.highlight.io/sign_up',
 	},
 	Enterprise: {
 		label: 'Enterprise',
@@ -290,13 +296,14 @@ const priceTiers: Record<TierName, PricingTier> = {
 			'Data Export',
 			'Grafana Integration',
 		],
-		badgeText: 'Contact us',
+		buttonLabel: 'Contact us',
+		buttonLink: 'mailto:sales@highlight.io',
 	},
 }
 
 const PlanTable = () => {
 	return (
-		<div className="flex flex-col-reverse items-center w-full gap-6 mx-auto mt-16">
+		<div className="flex flex-col items-center w-full gap-6 mx-auto mt-16">
 			{/* Pricing */}
 			<div className="flex flex-col-reverse items-stretch w-full sm:flex-row gap-7 justify-center">
 				{Object.entries(priceTiers).map(([name, tier]) => (
@@ -353,10 +360,10 @@ const PlanTier = ({ name, tier }: { name: string; tier: PricingTier }) => {
 			</div>
 			<div className="px-5 pb-5 flex flex-col gap-2.5">
 				<PrimaryButton
-					href="https://app.highlight.io/sign_up"
+					href={tier.buttonLink}
 					className={homeStyles.hollowButton}
 				>
-					Start free trial
+					{tier.buttonLabel}
 				</PrimaryButton>
 				{calculateUsage && (
 					<div
