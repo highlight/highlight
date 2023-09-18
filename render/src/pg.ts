@@ -9,6 +9,11 @@ export type SessionInterval = {
 	active: boolean
 }
 
+export type SessionChunk = {
+	chunk_index: number
+	timestamp: string
+}
+
 async function getClient() {
 	const client = new Client({
 		host: process.env.PSQL_HOST,
@@ -44,7 +49,7 @@ export async function getSessionIntervals(_: number, session: number) {
 
 export async function getSessionSecureID(session: number) {
 	const client = await getClient()
-	const res = await client.query(
+	const res = await client.query<{ secure_id: string }>(
 		`SELECT secure_id
 			 FROM sessions
 			 WHERE id = $1
@@ -52,10 +57,21 @@ export async function getSessionSecureID(session: number) {
 		[session],
 	)
 	await client.end()
-	const secureID = (res.rows[0] as { secure_id: string } | undefined)
-		?.secure_id
+	const secureID = res.rows[0]?.secure_id
 	if (!secureID) {
 		throw new Error(`no session secure id found for id ${session}`)
 	}
 	return secureID
+}
+
+export async function getSessionChunks(session: number) {
+	const client = await getClient()
+	const res = await client.query<SessionChunk>(
+		`SELECT chunk_index, timestamp
+			 FROM event_chunks
+			 WHERE session_id = $1`,
+		[session],
+	)
+	await client.end()
+	return res.rows
 }
