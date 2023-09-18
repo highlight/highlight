@@ -50,7 +50,8 @@ export const FilterExtensionForm = () => {
 									? {
 											projectSettings: {
 												...currentProjectSettings.projectSettings,
-												filter_chrome_extension: isOptIn,
+												filter_chrome_extension:
+													isOptIn,
 											},
 									  }
 									: currentProjectSettings,
