@@ -3,6 +3,7 @@ package util
 import (
 	"context"
 	"fmt"
+
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -43,9 +44,11 @@ func (s *MultiSpan) SetOperationName(name string) {
 	}
 }
 
-type contextKeyType int
+type contextKey string
 
-const highlightTracingDisabled contextKeyType = iota
+const (
+	ContextKeyHighlightTracingDisabled contextKey = "HighlightTracingDisabled"
+)
 
 func StartSpanFromContext(ctx context.Context, operationName string, options ...SpanOption) (MultiSpan, context.Context) {
 	var cfg SpanConfig
@@ -54,9 +57,9 @@ func StartSpanFromContext(ctx context.Context, operationName string, options ...
 		opt(&cfg)
 	}
 
-	hTracingDisabled, _ := ctx.Value(highlightTracingDisabled).(bool)
+	hTracingDisabled, _ := ctx.Value(string(ContextKeyHighlightTracingDisabled)).(bool)
 	hTracingDisabled = hTracingDisabled || cfg.HighlightTracingDisabled
-	ctx = context.WithValue(ctx, highlightTracingDisabled, hTracingDisabled)
+	ctx = context.WithValue(ctx, ContextKeyHighlightTracingDisabled, hTracingDisabled)
 
 	for _, tag := range cfg.Tags {
 		ddOptions = append(ddOptions, tracer.Tag(string(tag.Key), tag.Value))
