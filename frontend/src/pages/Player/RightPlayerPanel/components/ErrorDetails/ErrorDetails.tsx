@@ -55,7 +55,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 		sessionMetadata: { startTime },
 	} = useReplayerContext()
 	const { setActiveError } = usePlayerUIContext()
-	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
+	const { isLoggedIn } = useAuthContext()
 
 	const eventIdx = errors.findIndex((e) => e.id === error.id)
 	const [prev, next] = [eventIdx - 1, eventIdx + 1]
@@ -64,10 +64,7 @@ const ErrorDetails = React.memo(({ error }: Props) => {
 	const canMoveForward = !!errors[next]
 
 	const secureId = error.error_group_secure_id
-	const [useClickhouse] = useLocalStorage(
-		'highlight-clickhouse-errors',
-		isHighlightAdmin,
-	)
+	const [useClickhouse] = useLocalStorage('highlight-clickhouse-errors', true)
 	const {
 		data,
 		loading,

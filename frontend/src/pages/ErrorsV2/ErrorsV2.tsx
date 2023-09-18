@@ -410,11 +410,8 @@ function useErrorGroup() {
 		referrer: StringParam,
 	})
 	const [markErrorGroupAsViewed] = useMarkErrorGroupAsViewedMutation()
-	const { isLoggedIn, isHighlightAdmin } = useAuthContext()
-	const [useClickhouse] = useLocalStorage(
-		'highlight-clickhouse-errors',
-		isHighlightAdmin,
-	)
+	const { isLoggedIn } = useAuthContext()
+	const [useClickhouse] = useLocalStorage('highlight-clickhouse-errors', true)
 	const {
 		data,
 		loading,

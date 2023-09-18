@@ -10,8 +10,6 @@ import moment from 'moment'
 import React, { useEffect, useState } from 'react'
 import { useLocalStorage } from 'react-use'
 
-import { useAuthContext } from '@/authentication/AuthContext'
-
 import styles from './ErrorMetrics.module.css'
 
 type Props = {
@@ -51,11 +49,7 @@ const ErrorMetrics: React.FC<Props> = ({ errorGroup }) => {
 		start: string
 		end: string
 	}>({ start: '', end: '' })
-	const { isHighlightAdmin } = useAuthContext()
-	const [useClickhouse] = useLocalStorage(
-		'highlight-clickhouse-errors',
-		isHighlightAdmin,
-	)
+	const [useClickhouse] = useLocalStorage('highlight-clickhouse-errors', true)
 
 	const { data: frequencies } = useGetErrorGroupFrequenciesQuery({
 		variables: {

@@ -8,7 +8,6 @@ import { roundFeedDate, serializeAbsoluteTimeRange } from '@util/time'
 import React, { useCallback } from 'react'
 import { useLocalStorage } from 'react-use'
 
-import { useAuthContext } from '@/authentication/AuthContext'
 import { updateQueriedTimeRange } from '@/components/QueryBuilder/QueryBuilder'
 
 import { TIME_RANGE_FIELD } from '../ErrorQueryBuilder/ErrorQueryBuilder'
@@ -17,11 +16,7 @@ const ErrorFeedHistogram = React.memo(() => {
 	const { project_id } = useParams<{ project_id: string }>()
 	const { searchQuery, backendSearchQuery, setSearchQuery } =
 		useErrorSearchContext()
-	const { isHighlightAdmin } = useAuthContext()
-	const [useClickhouse] = useLocalStorage(
-		'highlight-clickhouse-errors',
-		isHighlightAdmin,
-	)
+	const [useClickhouse] = useLocalStorage('highlight-clickhouse-errors', true)
 	const { loading, data } = useGetErrorsHistogramQuery({
 		variables: {
 			query: backendSearchQuery?.childSearchQuery as string,

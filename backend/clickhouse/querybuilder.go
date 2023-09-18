@@ -334,16 +334,18 @@ func parseErrorRules(tableName string, selectColumns string, isAnd bool, rules [
 		sb.Where(sb.Between("Timestamp", start, end))
 	}
 
-	conditions := []string{}
-	for _, rule := range outerRules {
-		str, err := parseColumnRule(nil, rule, projectId, sb)
-		if err != nil {
-			return nil, err
+	if len(outerRules) > 0 {
+		conditions := []string{}
+		for _, rule := range outerRules {
+			str, err := parseColumnRule(nil, rule, projectId, sb)
+			if err != nil {
+				return nil, err
+			}
+			conditions = append(conditions, str)
 		}
-		conditions = append(conditions, str)
-	}
 
-	sb.Where(joinFn(conditions...))
+		sb.Where(joinFn(conditions...))
+	}
 
 	if len(innerRules) > 0 {
 		sbInner := sqlbuilder.NewSelectBuilder()
