@@ -24879,8 +24879,8 @@ __metadata:
 
 "ansi-color@file:./forks/ansi-color::locator=highlight%40workspace%3A.":
   version: 0.0.0
-  resolution: "ansi-color@file:./forks/ansi-color#./forks/ansi-color::hash=291f6b&locator=highlight%40workspace%3A."
-  checksum: ebc4eb866ee788f9088fd981ccec71a0aca50f8b7f798a6ab31e628b917e4554f6bc5f4c9f8119622901e59350b9bead56c69076d8b09af812c3e9111a10547a
+  resolution: "ansi-color@file:./forks/ansi-color#./forks/ansi-color::hash=c927b0&locator=highlight%40workspace%3A."
+  checksum: aa289fbc57d65d36be132553179f8f14eb045cf349bd05369da0f5002756210fd2bff49cc249a514de42515e93957a1b041bf8f4fbc2c639ca71588d66adbe3d
   languageName: node
   linkType: hard
 

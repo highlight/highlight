@@ -134,7 +134,7 @@ export const LogAlertPage = () => {
 	const [query, setQuery] = useState(initialQuery)
 	const handleUpdateInputQuery = (query: string) => {
 		setSubmittedQuery(query)
-    formStore.setValue(formStore.names.query, query)
+		formStore.setValue(formStore.names.query, query)
 	}
 
 	formStore.useSubmit(() => {
