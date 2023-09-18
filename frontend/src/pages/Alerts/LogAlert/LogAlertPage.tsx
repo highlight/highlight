@@ -132,8 +132,9 @@ export const LogAlertPage = () => {
 	const formValues = formStore.useState().values
 
 	const [query, setQuery] = useState(initialQuery)
-	const handleSearchSubmit = (query: string) => {
+	const handleUpdateInputQuery = (query: string) => {
 		setSubmittedQuery(query)
+		formStore.setValue(formStore.names.query, query)
 	}
 
 	formStore.useSubmit(() => {
@@ -452,7 +453,7 @@ export const LogAlertPage = () => {
 												query={query}
 												setQuery={setQuery}
 												onFormSubmit={
-													handleSearchSubmit
+													handleUpdateInputQuery
 												}
 												fetchValuesLazyQuery={
 													useGetLogsKeyValuesLazyQuery
