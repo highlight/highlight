@@ -390,6 +390,12 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 
 	var projectLogs = make(map[string][]*clickhouse.LogRow)
 
+	// Allow timestamps +/- 1 hour from the current time.
+	// If the timestamp is outside of this window, set it to the current time.
+	var curTime = time.Now()
+	var minTime = curTime.Add(-1 * time.Hour)
+	var maxTime = curTime.Add(time.Hour)
+
 	resourceLogs := req.Logs().ResourceLogs()
 	for i := 0; i < resourceLogs.Len(); i++ {
 		resource := resourceLogs.At(i).Resource()
@@ -409,8 +415,13 @@ func (o *Handler) HandleLog(w http.ResponseWriter, r *http.Request) {
 					continue
 				}
 
+				timestamp := fields.timestamp
+				if timestamp.Before(minTime) || timestamp.After(maxTime) {
+					timestamp = curTime
+				}
+
 				logRow := clickhouse.NewLogRow(
-					fields.timestamp, uint32(fields.projectIDInt),
+					timestamp, uint32(fields.projectIDInt),
 					clickhouse.WithTraceID(logRecord.TraceID().String()),
 					clickhouse.WithSpanID(logRecord.SpanID().String()),
 					clickhouse.WithSecureSessionID(fields.sessionID),
