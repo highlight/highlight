@@ -475,7 +475,6 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 								ready.
 							</Text>
 							<ButtonLink
-								kind="light"
 								onClick={() => {
 									navigate(`/${projectId}/settings/sessions`)
 								}}
@@ -484,7 +483,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 							</ButtonLink>
 						</Box>
 					),
-					duration: 60,
+					duration: 10,
 				})
 			} catch (e) {
 				message.error(`An error occurred exporting the session: ${e}`)
