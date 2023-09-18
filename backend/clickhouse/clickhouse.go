@@ -67,7 +67,7 @@ func RunMigrations(ctx context.Context, dbName string) {
 		log.WithContext(ctx).Fatalf("Error creating clickhouse db instance for migrations: %v", err)
 	}
 
-	migrationsPath := filepath.Join(projectpath.GetRoot(), "clickhouse/migrations")
+	migrationsPath := filepath.Join(projectpath.GetRoot(), "clickhouse", "migrations")
 	m, err := migrate.NewWithDatabaseInstance(
 		"file://"+migrationsPath,
 		dbName,
