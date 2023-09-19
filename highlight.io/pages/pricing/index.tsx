@@ -459,7 +459,7 @@ const PriceCalculator = () => {
 						</div>
 						<div className="flex items-center justify-center w-[343px] px-7">
 							<Typography type="copy2" emphasis>
-								Cost breakdown
+								Monthy Cost Breakdown
 							</Typography>
 						</div>
 					</div>
@@ -504,7 +504,7 @@ const PriceCalculator = () => {
 				</div>
 				<div className="hidden border border-t-0 rounded-b-lg md:block h-52 border-divider-on-dark">
 					<CalculatorCostDisplay
-						heading="Total"
+						heading="Monthly Total"
 						cost={sessionsCost + errorsCost + loggingCost}
 					/>
 				</div>
