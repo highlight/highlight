@@ -239,6 +239,7 @@ func parseColumnRule(admin *model.Admin, rule Rule, projectId int, sb *sqlbuilde
 				return "", err
 			}
 			end *= 1000
+			// If the slider is at the maximum, allow any length length greater than the min
 			if after == "60" {
 				end = math.Inf(1)
 			}
