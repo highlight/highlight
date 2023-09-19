@@ -52,7 +52,7 @@
 		"@highlight-run/react": "workspace:*",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
 		"@opentelemetry/api": "^1.6.0",
-		"@opentelemetry/resources": "1.15.1",
+		"@opentelemetry/resources": "1.17.0",
 		"highlight.run": "workspace:*"
 	},
 	"devDependencies": {
