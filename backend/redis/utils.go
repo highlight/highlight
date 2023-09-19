@@ -544,3 +544,7 @@ func (r *Client) Del(ctx context.Context, key string) error {
 	}
 	return nil
 }
+
+func (r *Client) TTL(ctx context.Context, key string) time.Duration {
+	return r.redisClient.TTL(ctx, key).Val()
+}
