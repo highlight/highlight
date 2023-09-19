@@ -21,7 +21,7 @@ People may think that we're building multiple products (session replay, error mo
 
 ## We build for today's developer.
 
-If you're building software in today's ecosystem, you probably want to JUST focus on building software. We challenge ourselves to build developer tooling that’s simple, straightforward and opiniated, but powerful if want to customize your setup. highlight.io is built for developers that want to **develop**. Leave the monitoring stuff to us 👍.
+If you're building software in today's ecosystem, you probably want to JUST focus on building software. We challenge ourselves to build developer tooling that’s simple, straightforward and opinionated, but configurable if you want to customize your setup. highlight.io is built for developers that want to **develop**. Leave the monitoring stuff to us 👍.
 
 ## The Vision
 
