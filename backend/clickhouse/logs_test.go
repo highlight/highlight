@@ -210,7 +210,7 @@ func TestReadLogsHistogram(t *testing.T) {
 	assert.NoError(t, client.BatchWriteLogRows(ctx, rows))
 
 	nBuckets := 48
-	payload, _, err := client.ReadLogsHistogram(ctx, 1, modelInputs.QueryInput{
+	payload, err := client.ReadLogsHistogram(ctx, 1, modelInputs.QueryInput{
 		DateRange: &modelInputs.DateRangeRequiredInput{
 			StartDate: now.Add(-time.Hour * 2),
 			EndDate:   now.Add(-time.Hour * 1),
