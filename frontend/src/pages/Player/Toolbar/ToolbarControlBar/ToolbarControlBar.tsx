@@ -468,7 +468,7 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 							alignItems="center"
 							justifyContent="center"
 							gap="2"
-							className={style.toast}
+							cssClass={style.toast}
 						>
 							<Text>
 								You will receive an email once the session is
@@ -492,6 +492,8 @@ const ControlSettings = ({ setShowSettingsPopover }: ControlSettingsProps) => {
 	}, [
 		currentWorkspace?.id,
 		exportSessionMutation,
+		navigate,
+		projectId,
 		session?.secure_id,
 		workspaceSettingsData?.workspaceSettings?.enable_session_export,
 	])
