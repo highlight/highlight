@@ -87,6 +87,7 @@ export type AdminAboutYouDetails = {
 	heard_about: Scalars['String']
 	last_name: Scalars['String']
 	phone?: InputMaybe<Scalars['String']>
+	phone_home_contact_allowed: Scalars['Boolean']
 	referral: Scalars['String']
 	user_defined_persona: Scalars['String']
 	user_defined_role: Scalars['String']
@@ -98,6 +99,7 @@ export type AdminAndWorkspaceDetails = {
 	first_name: Scalars['String']
 	heard_about: Scalars['String']
 	last_name: Scalars['String']
+	phone_home_contact_allowed: Scalars['Boolean']
 	promo_code?: InputMaybe<Scalars['String']>
 	referral: Scalars['String']
 	user_defined_role: Scalars['String']

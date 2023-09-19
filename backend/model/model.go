@@ -568,6 +568,7 @@ type Admin struct {
 	UserDefinedTeamSize *string `json:"user_defined_team_size"`
 	UserDefinedPersona  *string `json:"user_defined_persona"`
 	HeardAbout          *string `json:"heard_about"`
+	PhoneHomeContactAllowed *bool   `json:"phone_home_contact_allowed"`
 }
 
 type EmailSignup struct {
