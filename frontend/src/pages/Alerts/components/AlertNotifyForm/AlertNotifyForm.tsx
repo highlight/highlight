@@ -85,6 +85,7 @@ const AlertNotifyForm = () => {
 					className={styles.selectContainer}
 					mode="multiple"
 					labelInValue
+					value={formStore.getValue(formStore.names.slackChannels)}
 				/>
 			</Form.NamedSection>
 
@@ -119,6 +120,7 @@ const AlertNotifyForm = () => {
 					className={styles.selectContainer}
 					mode="multiple"
 					labelInValue
+					value={formStore.getValue(formStore.names.discordChannels)}
 				/>
 			</Form.NamedSection>
 
@@ -136,12 +138,13 @@ const AlertNotifyForm = () => {
 					notFoundContent={<p>No email suggestions</p>}
 					className={styles.selectContainer}
 					mode="multiple"
+					value={formStore.getValue(formStore.names.emails)}
 				/>
 			</Form.NamedSection>
 
 			<Form.NamedSection
 				label="Webhooks to notify"
-				name={formStore.names.emails}
+				name={formStore.names.webhookDestinations}
 			>
 				<Select
 					aria-label="Webhooks to notify"
@@ -155,6 +158,9 @@ const AlertNotifyForm = () => {
 					notFoundContent={null}
 					className={styles.selectContainer}
 					mode="tags"
+					value={formStore.getValue(
+						formStore.names.webhookDestinations,
+					)}
 				/>
 			</Form.NamedSection>
 		</Stack>

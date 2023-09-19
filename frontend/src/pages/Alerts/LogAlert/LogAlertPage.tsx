@@ -643,6 +643,9 @@ const LogAlertForm = () => {
 							notFoundContent={<p>No environment suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
+							value={formStore.getValue(
+								formStore.names.excludedEnvironments,
+							)}
 						/>
 					</Form.NamedSection>
 				</Stack>
@@ -693,6 +696,9 @@ const LogAlertForm = () => {
 							className={styles.selectContainer}
 							mode="multiple"
 							labelInValue
+							value={formStore.getValue(
+								formStore.names.slackChannels,
+							)}
 						/>
 					</Form.NamedSection>
 
@@ -727,6 +733,9 @@ const LogAlertForm = () => {
 							className={styles.selectContainer}
 							mode="multiple"
 							labelInValue
+							value={formStore.getValue(
+								formStore.names.discordChannels,
+							)}
 						/>
 					</Form.NamedSection>
 
@@ -747,12 +756,13 @@ const LogAlertForm = () => {
 							notFoundContent={<p>No email suggestions</p>}
 							className={styles.selectContainer}
 							mode="multiple"
+							value={formStore.getValue(formStore.names.emails)}
 						/>
 					</Form.NamedSection>
 
 					<Form.NamedSection
 						label="Webhooks to notify"
-						name={formStore.names.emails}
+						name={formStore.names.webhookDestinations}
 					>
 						<Select
 							aria-label="Webhooks to notify"
@@ -766,6 +776,9 @@ const LogAlertForm = () => {
 							notFoundContent={null}
 							className={styles.selectContainer}
 							mode="tags"
+							value={formStore.getValue(
+								formStore.names.webhookDestinations,
+							)}
 						/>
 					</Form.NamedSection>
 				</Stack>
