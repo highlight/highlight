@@ -1,11 +1,14 @@
+'use client'
+
 import { Popover } from '@headlessui/react'
 import { ArrowRightCircleIcon, XMarkIcon } from '@heroicons/react/20/solid'
 import classNames from 'classnames'
 import { InlineWidget } from 'react-calendly'
 import { Typography } from '../common/Typography/Typography'
+import { useSearchParams } from 'next/navigation'
 
 export const CalendlyPopover = () => {
-	const query = new URLSearchParams(window.location.search)
+	const query = useSearchParams()
 
 	return (
 		<Popover className="relative inline-flex flex-col items-center">
