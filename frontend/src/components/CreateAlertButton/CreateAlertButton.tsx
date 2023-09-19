@@ -29,5 +29,5 @@ export const CreateAlertButton = function ({
 	)
 }
 export const Divider: React.FC = () => {
-	return <Box className={styles.divider}></Box>
+	return <Box cssClass={styles.divider}></Box>
 }
