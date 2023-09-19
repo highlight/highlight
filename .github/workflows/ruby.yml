@@ -19,6 +19,12 @@ jobs:
                 working-directory: ./sdk/highlight-ruby/highlight
         steps:
             - uses: actions/checkout@v3
+            - uses: dorny/paths-filter@v2
+              id: filter
+              with:
+                  filters: |
+                      ruby-changed:
+                        - 'sdk/highlight-ruby/**'
             - name: Install Ruby 2.6
               uses: ruby/setup-ruby@v1
               with:
@@ -30,13 +36,13 @@ jobs:
             - name: Rubocop
               run: bundle exec rubocop
             - name: Publish to RubyGems
-              if: github.ref == 'refs/heads/main'
+              if: github.ref == 'refs/heads/main' && steps.filter.outputs.ruby-changed
               run: |
                   mkdir -p $HOME/.gem
                   touch $HOME/.gem/credentials
                   chmod 0600 $HOME/.gem/credentials
                   printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
                   gem build *.gemspec
-                  gem push *.gem || exit 0
+                  gem push *.gem
               env:
                   RUBYGEMS_API_KEY: '${{secrets.RUBYGEMS_API_KEY}}'
