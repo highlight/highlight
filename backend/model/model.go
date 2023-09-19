@@ -567,6 +567,7 @@ type Admin struct {
 	UserDefinedRole     *string `json:"user_defined_role"`
 	UserDefinedTeamSize *string `json:"user_defined_team_size"`
 	UserDefinedPersona  *string `json:"user_defined_persona"`
+	HeardAbout          *string `json:"heard_about"`
 }
 
 type EmailSignup struct {

@@ -360,6 +360,7 @@ func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, ad
 			UserDefinedRole:     adminAndWorkspaceDetails.UserDefinedRole,
 			UserDefinedPersona:  "",
 			UserDefinedTeamSize: adminAndWorkspaceDetails.UserDefinedTeamSize,
+			HeardAbout:          adminAndWorkspaceDetails.HeardAbout,
 			Referral:            adminAndWorkspaceDetails.Referral,
 		}); err != nil {
 			return e.Wrap(err, "error updating admin details")
@@ -411,6 +412,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.Name = &fullName
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
 	admin.UserDefinedTeamSize = &adminDetails.UserDefinedTeamSize
+	admin.HeardAbout = &adminDetails.HeardAbout
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
 	admin.Phone = pointy.String("")
@@ -424,6 +426,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 			*admin.UserDefinedRole,
 			*admin.UserDefinedPersona,
 			*admin.UserDefinedTeamSize,
+			*admin.HeardAbout,
 			*admin.FirstName,
 			*admin.LastName,
 			*admin.Phone,

@@ -76,7 +76,7 @@ func getDomain(adminEmail string) (domain string) {
 }
 
 type Api interface {
-	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first, last string, phone, referral string) error
+	CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize, heardAbout string, first, last string, phone, referral string) error
 	CreateCompanyForWorkspace(ctx context.Context, workspaceID int, adminEmail string, name string) error
 	CreateContactCompanyAssociation(ctx context.Context, adminID int, workspaceID int) error
 	UpdateContactProperty(ctx context.Context, adminID int, properties []hubspot.Property) error
@@ -418,7 +418,7 @@ func (h *Client) getContactForAdmin(ctx context.Context, email string) (contactI
 	})
 }
 
-func (h *Client) createContactForAdmin(ctx context.Context, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first string, last string, phone string, referral string) (contactId *int, err error) {
+func (h *Client) createContactForAdmin(ctx context.Context, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize, heardAbout string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	var hubspotContactId int
 	if resp, err := h.hubspotClient.Contacts().Create(hubspot.ContactsRequest{
 		Properties: []hubspot.Property{
@@ -441,6 +441,11 @@ func (h *Client) createContactForAdmin(ctx context.Context, email string, userDe
 				Property: "user_defined_team_size",
 				Name:     "user_defined_team_size",
 				Value:    userDefinedTeamSize,
+			},
+			{
+				Property: "heard_about",
+				Name:     "heard_about",
+				Value:    heardAbout,
 			},
 			{
 				Property: "firstname",
@@ -589,7 +594,7 @@ func (h *Client) CreateContactCompanyAssociationImpl(ctx context.Context, adminI
 	return nil
 }
 
-func (h *Client) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first string, last string, phone string, referral string) error {
+func (h *Client) CreateContactForAdmin(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize, heardAbout string, first string, last string, phone string, referral string) error {
 	return h.kafkaProducer.Submit(ctx, PartitionKey, &kafka_queue.Message{
 		Type: kafka_queue.HubSpotCreateContactForAdmin,
 		HubSpotCreateContactForAdmin: &kafka_queue.HubSpotCreateContactForAdminArgs{
@@ -598,6 +603,7 @@ func (h *Client) CreateContactForAdmin(ctx context.Context, adminID int, email s
 			UserDefinedRole:     userDefinedRole,
 			UserDefinedPersona:  userDefinedPersona,
 			UserDefinedTeamSize: userDefinedTeamSize,
+			HeardAbout:          heardAbout,
 			First:               first,
 			Last:                last,
 			Phone:               phone,
@@ -606,14 +612,14 @@ func (h *Client) CreateContactForAdmin(ctx context.Context, adminID int, email s
 	})
 }
 
-func (h *Client) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize string, first string, last string, phone string, referral string) (contactId *int, err error) {
+func (h *Client) CreateContactForAdminImpl(ctx context.Context, adminID int, email string, userDefinedRole, userDefinedPersona, userDefinedTeamSize, heardAbout string, first string, last string, phone string, referral string) (contactId *int, err error) {
 	if contactId, err = pollHubspot(func() (*int, error) {
 		return h.getContactForAdmin(ctx, email)
 	}, ClientSideContactCreationTimeout); contactId == nil {
 		log.WithContext(ctx).
 			WithField("email", email).
 			Warnf("failed to get client-side hubspot contact. creating")
-		contactId, err = h.createContactForAdmin(ctx, email, userDefinedRole, userDefinedPersona, userDefinedTeamSize, first, last, phone, referral)
+		contactId, err = h.createContactForAdmin(ctx, email, userDefinedRole, userDefinedPersona, userDefinedTeamSize, heardAbout, first, last, phone, referral)
 		if err != nil || contactId == nil {
 			return nil, err
 		}

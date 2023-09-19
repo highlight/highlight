@@ -981,6 +981,7 @@ input AdminAboutYouDetails {
 	user_defined_role: String!
 	user_defined_persona: String!
 	user_defined_team_size: String!
+	heard_about: String!
 	referral: String!
 	phone: String
 }
@@ -991,6 +992,7 @@ input AdminAndWorkspaceDetails {
 	last_name: String!
 	user_defined_role: String!
 	user_defined_team_size: String!
+	heard_about: String!
 	referral: String!
 
 	# Workspace
@@ -1107,6 +1109,7 @@ type Admin {
 	referral: String
 	user_defined_role: String
 	user_defined_team_size: String
+	heard_about: String
 	about_you_details_filled: Boolean
 	user_defined_persona: String
 }
