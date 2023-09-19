@@ -40,7 +40,6 @@ type Config struct {
 }
 
 type ResolverRoot interface {
-	Admin() AdminResolver
 	CommentReply() CommentReplyResolver
 	ErrorAlert() ErrorAlertResolver
 	ErrorComment() ErrorCommentResolver
@@ -1432,9 +1431,6 @@ type ComplexityRoot struct {
 	}
 }
 
-type AdminResolver interface {
-	HeardAbout(ctx context.Context, obj *model1.Admin) (*string, error)
-}
 type CommentReplyResolver interface {
 	Author(ctx context.Context, obj *model1.CommentReply) (*model.SanitizedAdmin, error)
 }
@@ -20412,7 +20408,7 @@ func (ec *executionContext) _Admin_heard_about(ctx context.Context, field graphq
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Admin().HeardAbout(rctx, obj)
+		return obj.HeardAbout, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -20430,8 +20426,8 @@ func (ec *executionContext) fieldContext_Admin_heard_about(ctx context.Context, 
 	fc = &graphql.FieldContext{
 		Object:     "Admin",
 		Field:      field,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -71359,28 +71355,28 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Admin_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "name":
 
 			out.Values[i] = ec._Admin_name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "uid":
 
 			out.Values[i] = ec._Admin_uid(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "email":
 
 			out.Values[i] = ec._Admin_email(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "phone":
 
@@ -71411,22 +71407,9 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Admin_user_defined_team_size(ctx, field, obj)
 
 		case "heard_about":
-			field := field
 
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Admin_heard_about(ctx, field, obj)
-				return res
-			}
+			out.Values[i] = ec._Admin_heard_about(ctx, field, obj)
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
-
-			})
 		case "about_you_details_filled":
 
 			out.Values[i] = ec._Admin_about_you_details_filled(ctx, field, obj)

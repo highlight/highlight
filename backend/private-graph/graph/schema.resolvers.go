@@ -66,11 +66,6 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-// HeardAbout is the resolver for the heard_about field.
-func (r *adminResolver) HeardAbout(ctx context.Context, obj *model.Admin) (*string, error) {
-	panic(fmt.Errorf("not implemented: HeardAbout - heard_about"))
-}
-
 // Author is the resolver for the author field.
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
@@ -8254,9 +8249,6 @@ func (r *timelineIndicatorEventResolver) Data(ctx context.Context, obj *model.Ti
 	return obj.Data, nil
 }
 
-// Admin returns generated.AdminResolver implementation.
-func (r *Resolver) Admin() generated.AdminResolver { return &adminResolver{r} }
-
 // CommentReply returns generated.CommentReplyResolver implementation.
 func (r *Resolver) CommentReply() generated.CommentReplyResolver { return &commentReplyResolver{r} }
 
@@ -8320,7 +8312,6 @@ func (r *Resolver) TimelineIndicatorEvent() generated.TimelineIndicatorEventReso
 	return &timelineIndicatorEventResolver{r}
 }
 
-type adminResolver struct{ *Resolver }
 type commentReplyResolver struct{ *Resolver }
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
