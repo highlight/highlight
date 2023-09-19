@@ -10,7 +10,6 @@ import { Button, ButtonProps } from '../Button/Button'
 import clsx, { ClassValue } from 'clsx'
 import { Variants } from './styles.css'
 import { Badge } from '../Badge/Badge'
-import { Callout } from '../Callout/Callout'
 
 type FormComponent = React.FC<Props> & {
 	Input: typeof Input

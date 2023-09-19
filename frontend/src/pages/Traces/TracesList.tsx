@@ -25,10 +25,11 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 						<Table.Row>
 							<Table.Header>Span</Table.Header>
 							<Table.Header>Service</Table.Header>
+							<Table.Header>Resource Name</Table.Header>
 							<Table.Header>Span ID</Table.Header>
 							<Table.Header>Parent Span ID</Table.Header>
 							<Table.Header>Secure Session ID</Table.Header>
-							<Table.Header>Status</Table.Header>
+							<Table.Header>Timestamp</Table.Header>
 						</Table.Row>
 					</Table.Head>
 					<Table.Body
@@ -45,6 +46,9 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 								<Table.Row key={index}>
 									<Table.Cell>{trace.spanName}</Table.Cell>
 									<Table.Cell>{trace.serviceName}</Table.Cell>
+									<Table.Cell>
+										{trace.traceAttributes?.resource_name}
+									</Table.Cell>
 									<Table.Cell>{trace.spanID}</Table.Cell>
 									<Table.Cell
 										onClick={
@@ -62,16 +66,29 @@ export const TracesList: React.FC<Props> = ({ loading, traces }) => {
 										{trace.parentSpanID}
 									</Table.Cell>
 									<Table.Cell
-										onClick={() => {
-											navigate(
-												`/${projectId}/sessions/${trace.secureSessionID}`,
-											)
-										}}
+										onClick={
+											trace.secureSessionID
+												? () => {
+														navigate(
+															`/${projectId}/sessions/${trace.secureSessionID}`,
+														)
+												  }
+												: undefined
+										}
 									>
 										{trace.secureSessionID}
 									</Table.Cell>
 									<Table.Cell>
-										{trace.statusMessage}
+										{new Date(
+											trace.timestamp,
+										).toLocaleDateString('en-US', {
+											month: 'short',
+											day: 'numeric',
+											year: 'numeric',
+											hour: 'numeric',
+											minute: 'numeric',
+											second: 'numeric',
+										})}
 									</Table.Cell>
 								</Table.Row>
 							))}

@@ -59,7 +59,6 @@ import (
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
 	"github.com/stripe/stripe-go/v72/webhook"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/workerpool"
@@ -163,17 +162,17 @@ func (r *mutationResolver) Transaction(body func(txnR *mutationResolver) error) 
 
 func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
 	adminUID := pointy.String(fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID)))
-	firebaseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.createAdminFromFirebase"),
-		tracer.Tag("admin_uid", adminUID))
+	firebaseSpan, _ := util.StartSpanFromContext(ctx, "resolver.createAdmin", util.ResourceName("db.createAdminFromFirebase"),
+		util.Tag("admin_uid", adminUID))
 	firebaseUser, err := AuthClient.GetUser(context.Background(), *adminUID)
 	if err != nil {
 		spanError := e.Wrap(err, "error retrieving user from firebase api")
-		firebaseSpan.Finish(tracer.WithError(spanError))
+		firebaseSpan.Finish(spanError)
 		return nil, spanError
 	}
 	firebaseSpan.Finish()
 
-	adminSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createAdmin", tracer.ResourceName("db.admin"))
+	adminSpan, _ := util.StartSpanFromContext(ctx, "resolver.createAdmin", util.ResourceName("db.admin"))
 	admin := &model.Admin{
 		UID:                   adminUID,
 		Name:                  &firebaseUser.DisplayName,
@@ -189,7 +188,7 @@ func (r *Resolver) createAdmin(ctx context.Context) (*model.Admin, error) {
 		Attrs(&admin)
 	if tx.Error != nil {
 		spanError := e.Wrap(tx.Error, "error retrieving user from db")
-		adminSpan.Finish(tracer.WithError(spanError))
+		adminSpan.Finish(spanError)
 		return nil, spanError
 	}
 	adminSpan.Finish()
@@ -312,7 +311,7 @@ func (r *Resolver) demoProjectID(ctx context.Context) int {
 // isAdminInProjectOrDemoProject should be used for actions that you want admins in all projects
 // and laymen in the demo project to have access to.
 func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id int) (*model.Project, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInProjectOrDemoProject"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("isAdminInProjectOrDemoProject"))
 	defer authSpan.Finish()
 	start := time.Now()
 	defer func() {
@@ -336,7 +335,7 @@ func (r *Resolver) isAdminInProjectOrDemoProject(ctx context.Context, project_id
 }
 
 func (r *Resolver) isAdminInWorkspaceOrDemoWorkspace(ctx context.Context, workspace_id int) (*model.Workspace, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInWorkspaceOrDemoWorkspace"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("isAdminInWorkspaceOrDemoWorkspace"))
 	defer authSpan.Finish()
 	start := time.Now()
 	defer func() {
@@ -451,10 +450,10 @@ func (r *Resolver) DeleteAdminAssociation(ctx context.Context, obj interface{}, 
 }
 
 func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*model.Workspace, error) {
-	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInWorkspace"))
+	span, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("isAdminInWorkspace"))
 	defer span.Finish()
 
-	span.SetTag("WorkspaceID", workspaceID)
+	span.SetAttribute("WorkspaceID", workspaceID)
 
 	if r.isWhitelistedAccount(ctx) {
 		return r.GetWorkspace(workspaceID)
@@ -465,7 +464,7 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 		return nil, err
 	}
 
-	span.SetTag("AdminID", admin.ID)
+	span.SetAttribute("AdminID", admin.ID)
 
 	workspace := model.Workspace{}
 	if err := r.DB.Order("name asc").
@@ -484,10 +483,10 @@ func (r *Resolver) isAdminInWorkspace(ctx context.Context, workspaceID int) (*mo
 // isAdminInProject should be used for actions that you only want admins in all projects to have access to.
 // Use this on actions that you don't want laymen in the demo project to have access to.
 func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model.Project, error) {
-	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminInProject"))
+	span, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("isAdminInProject"))
 	defer span.Finish()
 
-	span.SetTag("ProjectID", project_id)
+	span.SetAttribute("ProjectID", project_id)
 
 	if r.isWhitelistedAccount(ctx) {
 		project := &model.Project{}
@@ -506,7 +505,7 @@ func (r *Resolver) isAdminInProject(ctx context.Context, project_id int) (*model
 
 	for _, p := range projects {
 		if p.ID == project_id {
-			span.SetTag("WorkspaceID", p.WorkspaceID)
+			span.SetAttribute("WorkspaceID", p.WorkspaceID)
 			return p, nil
 		}
 	}
@@ -530,9 +529,9 @@ func (r *Resolver) GetErrorGroupOccurrences(ctx context.Context, eg *model.Error
       union(tables:[query() |> first(), query() |> last()])
         |> sort(columns: ["ErrorGroupID", "_field", "_time"])
 	`, bucket, measurement, eg.ID, filter)
-	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupOccurrences")
-	span.SetTag("projectID", eg.ProjectID)
-	span.SetTag("errorGroupID", eg.ID)
+	span, _ := util.StartSpanFromContext(ctx, "tdb.errorGroupOccurrences")
+	span.SetAttribute("projectID", eg.ProjectID)
+	span.SetAttribute("errorGroupID", eg.ID)
 	results, err := r.TDB.Query(ctx, query)
 	if err != nil {
 		log.WithContext(ctx).WithError(err).Error("failed to perform tdb query for error group occurrences")
@@ -618,9 +617,9 @@ func (r *Resolver) GetErrorFrequenciesOpensearch(errorGroups []*model.ErrorGroup
 func (r *Resolver) GetErrorGroupFrequenciesUnsampled(ctx context.Context, projectID int, errorGroupID int) ([]*modelInputs.ErrorDistributionItem, error) {
 	bucket, _ := r.TDB.GetSampledMeasurement(r.TDB.GetBucket(strconv.Itoa(projectID), timeseries.Errors), timeseries.Errors, time.Minute)
 	query := timeseries.GetDownsampleQuery(bucket, timeseries.Error, fmt.Sprintf(`|> filter(fn: (r) => r.ErrorGroupID == "%d")`, errorGroupID), true)
-	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
-	span.SetTag("projectID", projectID)
-	span.SetTag("errorGroupID", errorGroupID)
+	span, _ := util.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
+	span.SetAttribute("projectID", projectID)
+	span.SetAttribute("errorGroupID", errorGroupID)
 	results, err := r.TDB.Query(ctx, query)
 	if err != nil {
 		log.WithContext(ctx).Error(err, "failed to perform tdb query for error group frequencies")
@@ -666,9 +665,9 @@ func (r *Resolver) GetErrorGroupFrequencies(ctx context.Context, projectID int, 
 		|> aggregateWindow(every: %[7]dm, fn: sum, createEmpty: true)
 		|> sort(columns: ["ErrorGroupID", "_field", "_time"])
 	`, bucket, params.DateRange.StartDate.Format(time.RFC3339), params.DateRange.EndDate.Format(time.RFC3339), measurement, errorGroupFilter, extraFilter, params.ResolutionMinutes)
-	span, _ := tracer.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
-	span.SetTag("projectID", projectID)
-	span.SetTag("errorGroupIDs", errorGroupIDs)
+	span, _ := util.StartSpanFromContext(ctx, "tdb.errorGroupFrequencies")
+	span.SetAttribute("projectID", projectID)
+	span.SetAttribute("errorGroupIDs", errorGroupIDs)
 	results, err := r.TDB.Query(ctx, query)
 	if err != nil {
 		log.WithContext(ctx).Error(err, "failed to perform tdb query for error group frequencies")
@@ -954,7 +953,7 @@ func (r *Resolver) loadErrorGroupFrequenciesClickhouse(ctx context.Context, eg *
 }
 
 func (r *Resolver) canAdminViewErrorObject(ctx context.Context, errorObjectID int) (*model.ErrorObject, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorObject"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("canAdminViewErrorObject"))
 	defer authSpan.Finish()
 
 	errorObject := model.ErrorObject{}
@@ -972,7 +971,7 @@ func (r *Resolver) canAdminViewErrorObject(ctx context.Context, errorObjectID in
 }
 
 func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewErrorGroup"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("canAdminViewErrorGroup"))
 	defer authSpan.Finish()
 	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID)
 	if err == nil && isOwner {
@@ -985,7 +984,7 @@ func (r *Resolver) canAdminViewErrorGroup(ctx context.Context, errorGroupSecureI
 }
 
 func (r *Resolver) canAdminModifyErrorGroup(ctx context.Context, errorGroupSecureID string) (*model.ErrorGroup, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifyErrorGroup"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("canAdminModifyErrorGroup"))
 	defer authSpan.Finish()
 	errorGroup, isOwner, err := r.doesAdminOwnErrorGroup(ctx, errorGroupSecureID)
 	if err == nil && isOwner {
@@ -1006,7 +1005,7 @@ func (r *Resolver) _doesAdminOwnSession(ctx context.Context, sessionSecureId str
 }
 
 func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id string) (*model.Session, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminViewSession"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("canAdminViewSession"))
 	defer authSpan.Finish()
 	session, isOwner, err := r._doesAdminOwnSession(ctx, session_secure_id)
 	if err != nil {
@@ -1030,7 +1029,7 @@ func (r *Resolver) canAdminViewSession(ctx context.Context, session_secure_id st
 }
 
 func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id string) (*model.Session, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("canAdminModifySession"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("canAdminModifySession"))
 	defer authSpan.Finish()
 	session, isOwner, err := r._doesAdminOwnSession(ctx, session_secure_id)
 	if err == nil && isOwner {
@@ -1040,7 +1039,7 @@ func (r *Resolver) canAdminModifySession(ctx context.Context, session_secure_id 
 }
 
 func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*model.Segment, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminSegmentOwner"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("isAdminSegmentOwner"))
 	defer authSpan.Finish()
 	segment := &model.Segment{}
 	if err := r.DB.Where(&model.Segment{Model: model.Model{ID: segment_id}}).Take(&segment).Error; err != nil {
@@ -1054,7 +1053,7 @@ func (r *Resolver) isAdminSegmentOwner(ctx context.Context, segment_id int) (*mo
 }
 
 func (r *Resolver) isAdminErrorSegmentOwner(ctx context.Context, error_segment_id int) (*model.ErrorSegment, error) {
-	authSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal.auth", tracer.ResourceName("isAdminErrorSegmentOwner"))
+	authSpan, _ := util.StartSpanFromContext(ctx, "resolver.internal.auth", util.ResourceName("isAdminErrorSegmentOwner"))
 	defer authSpan.Finish()
 	segment := &model.ErrorSegment{}
 	if err := r.DB.Where(&model.ErrorSegment{Model: model.Model{ID: error_segment_id}}).Take(&segment).Error; err != nil {
@@ -1344,7 +1343,7 @@ func (r *Resolver) getSessionInsightPrompt(ctx context.Context, events []interfa
 	}
 
 	userPrompt := fmt.Sprintf(`
-	Input: 
+	Input:
 	%v
 	`, string(b))
 
@@ -1366,7 +1365,7 @@ func (r *Resolver) getSessionInsight(ctx context.Context, session *model.Session
 	- Insights must be different to each other
 	- Do not mention identification or authentication events
 	- Don't mention timestamps in <insight>, insights should be interesting inferences from the input
-	- Output timestamp that best represents the insight in <timestamp> of output	
+	- Output timestamp that best represents the insight in <timestamp> of output
 	- Sort the insights by timestamp
 
 	You must respond ONLY with JSON that looks like this:
@@ -3072,8 +3071,8 @@ func (r *Resolver) sendFollowedCommentNotification(
 	if len(threadIDs) > 0 {
 		r.PrivateWorkerPool.SubmitRecover(func() {
 			ctx := context.Background()
-			commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
-				tracer.ResourceName("slackBot.sendCommentFollowerUpdate"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("subjectScope", subjectScope))
+			commentMentionSlackSpan, _ := util.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
+				util.ResourceName("slackBot.sendCommentFollowerUpdate"), util.Tag("project_id", projectID), util.Tag("count", len(followers)), util.Tag("subjectScope", subjectScope))
 			defer commentMentionSlackSpan.Finish()
 
 			err := r.SendSlackThreadReply(ctx, workspace, admin, viewLink, textForEmail, action, subjectScope, threadIDs)
@@ -3086,8 +3085,8 @@ func (r *Resolver) sendFollowedCommentNotification(
 	if len(tos) > 0 {
 		r.PrivateWorkerPool.SubmitRecover(func() {
 			ctx := context.Background()
-			commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
-				tracer.ResourceName("sendgrid.sendFollowerEmail"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(followers)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
+			commentMentionEmailSpan, _ := util.StartSpanFromContext(ctx, "resolver.sendFollowedCommentNotification",
+				util.ResourceName("sendgrid.sendFollowerEmail"), util.Tag("project_id", projectID), util.Tag("count", len(followers)), util.Tag("action", action), util.Tag("subjectScope", subjectScope))
 			defer commentMentionEmailSpan.Finish()
 
 			err := r.SendEmailAlert(
@@ -3112,8 +3111,8 @@ func (r *Resolver) sendFollowedCommentNotification(
 func (r *Resolver) sendCommentMentionNotification(ctx context.Context, admin *model.Admin, taggedSlackUsers []*modelInputs.SanitizedSlackChannelInput, workspace *model.Workspace, projectID int, sessionCommentID *int, errorCommentID *int, textForEmail string, viewLink string, sessionImage *string, action string, subjectScope string, additionalContext *string) {
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		ctx := context.Background()
-		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentMentionNotification",
-			tracer.ResourceName("slackBot.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedSlackUsers)), tracer.Tag("subjectScope", subjectScope))
+		commentMentionSlackSpan, _ := util.StartSpanFromContext(ctx, "resolver.sendCommentMentionNotification",
+			util.ResourceName("slackBot.sendCommentMention"), util.Tag("project_id", projectID), util.Tag("count", len(taggedSlackUsers)), util.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
 
 		err := r.SendSlackAlertToUser(ctx, workspace, admin, taggedSlackUsers, viewLink, textForEmail, action, subjectScope, sessionImage, sessionCommentID, errorCommentID, additionalContext)
@@ -3173,8 +3172,8 @@ func (r *Resolver) sendCommentPrimaryNotification(
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		ctx := context.Background()
-		commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentPrimaryNotification",
-			tracer.ResourceName("sendgrid.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(taggedAdmins)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
+		commentMentionEmailSpan, _ := util.StartSpanFromContext(ctx, "resolver.sendCommentPrimaryNotification",
+			util.ResourceName("sendgrid.sendCommentMention"), util.Tag("project_id", projectID), util.Tag("count", len(taggedAdmins)), util.Tag("action", action), util.Tag("subjectScope", subjectScope))
 		defer commentMentionEmailSpan.Finish()
 
 		err := r.SendEmailAlert(
@@ -3196,8 +3195,8 @@ func (r *Resolver) sendCommentPrimaryNotification(
 
 	r.PrivateWorkerPool.SubmitRecover(func() {
 		ctx := context.Background()
-		commentMentionSlackSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.sendCommentPrimaryNotification",
-			tracer.ResourceName("slack.sendCommentMention"), tracer.Tag("project_id", projectID), tracer.Tag("count", len(adminIds)), tracer.Tag("action", action), tracer.Tag("subjectScope", subjectScope))
+		commentMentionSlackSpan, _ := util.StartSpanFromContext(ctx, "resolver.sendCommentPrimaryNotification",
+			util.ResourceName("slack.sendCommentMention"), util.Tag("project_id", projectID), util.Tag("count", len(adminIds)), util.Tag("action", action), util.Tag("subjectScope", subjectScope))
 		defer commentMentionSlackSpan.Finish()
 
 		var admins []*model.Admin
@@ -3543,10 +3542,10 @@ func GetMetricTimeline(ctx context.Context, tdb timeseries.DB, projectID int, me
 		agg = *params.Aggregator
 	}
 	query += GetAggregateFluxStatement(ctx, agg, resMins)
-	timelineQuerySpan, _ := tracer.StartSpanFromContext(ctx, "tdb.queryTimeline")
-	timelineQuerySpan.SetTag("projectID", projectID)
-	timelineQuerySpan.SetTag("metricName", metricName)
-	timelineQuerySpan.SetTag("resMins", resMins)
+	timelineQuerySpan, _ := util.StartSpanFromContext(ctx, "tdb.queryTimeline")
+	timelineQuerySpan.SetAttribute("projectID", projectID)
+	timelineQuerySpan.SetAttribute("metricName", metricName)
+	timelineQuerySpan.SetAttribute("resMins", resMins)
 	results, err := tdb.Query(ctx, query)
 	timelineQuerySpan.Finish()
 	if err != nil {

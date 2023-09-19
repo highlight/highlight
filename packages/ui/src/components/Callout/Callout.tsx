@@ -17,7 +17,7 @@ export type Props = React.PropsWithChildren &
 	styles.Variants & {
 		title?: string
 		width?: number
-		style?: { [k: string]: any }
+		style?: React.CSSProperties
 		handleCloseClick?: () => void
 		icon?: false | (() => JSX.Element)
 	}

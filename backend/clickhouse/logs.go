@@ -10,10 +10,9 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/samber/lo"
 )
@@ -165,19 +164,19 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 
 	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
 
-	span, _ := tracer.StartSpanFromContext(ctx, "logs", tracer.ResourceName("ReadSessionLogs"))
+	span, _ := util.StartSpanFromContext(ctx, "logs", util.ResourceName("ReadSessionLogs"))
 	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
 	if err != nil {
-		span.Finish(tracer.WithError(err))
+		span.Finish(err)
 		return nil, err
 	}
-	span.SetTag("Query", query)
-	span.SetTag("Params", params)
+	span.SetAttribute("Query", query)
+	span.SetAttribute("Params", params)
 
 	rows, err := client.conn.Query(ctx, sql, args...)
 
 	if err != nil {
-		span.Finish(tracer.WithError(err))
+		span.Finish(err)
 		return nil, err
 	}
 
@@ -204,7 +203,7 @@ func (client *Client) ReadSessionLogs(ctx context.Context, projectID int, params
 		})
 	}
 	rows.Close()
-	span.Finish(tracer.WithError(rows.Err()))
+	span.Finish(rows.Err())
 	return edges, rows.Err()
 }
 
