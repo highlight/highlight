@@ -3,8 +3,8 @@ package clickhouse
 import (
 	"context"
 	"crypto/tls"
-	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -67,8 +67,9 @@ func RunMigrations(ctx context.Context, dbName string) {
 		log.WithContext(ctx).Fatalf("Error creating clickhouse db instance for migrations: %v", err)
 	}
 
+	migrationsPath := filepath.Join(projectpath.GetRoot(), "clickhouse", "migrations")
 	m, err := migrate.NewWithDatabaseInstance(
-		fmt.Sprintf("file:///%s/clickhouse/migrations", projectpath.GetRoot()),
+		"file://"+migrationsPath,
 		dbName,
 		driver,
 	)

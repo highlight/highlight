@@ -29,7 +29,7 @@ export const SwitchButton: React.FC<React.PropsWithChildren<Props>> = ({
 
 	return (
 		<Checkbox
-			as="button"
+			render={<button />}
 			className={className}
 			store={checkbox}
 			onChange={onChange}

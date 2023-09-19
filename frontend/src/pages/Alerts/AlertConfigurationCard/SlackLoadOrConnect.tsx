@@ -1,6 +1,5 @@
 import { CircularSpinner } from '@components/Loading/Loading'
 import { Box } from '@highlight-run/ui'
-import clsx from 'clsx'
 import { Link } from 'react-router-dom'
 
 import styles from './SlackLoadOrConnect.module.css'
@@ -22,7 +21,7 @@ const SlackLoadOrConnect = ({
 		return <Link to={slackUrl}>Connect Highlight with Slack</Link>
 	}
 	return (
-		<Box className={clsx(styles.selectMessage, styles.notFoundMessage)}>
+		<Box cssClass={[styles.selectMessage, styles.notFoundMessage]}>
 			{!isLoading && searchQuery
 				? `No results for "${searchQuery}"`
 				: null}

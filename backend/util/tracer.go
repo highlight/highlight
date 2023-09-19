@@ -92,7 +92,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 			"graphql.operation": opName,
 			"graph":             t.serverType,
 		}
-		if len(resp.Errors) > 0 {
+		if resp != nil && len(resp.Errors) > 0 {
 			fields["errors"] = resp.Errors
 		}
 		log.WithContext(ctx).

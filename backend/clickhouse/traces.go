@@ -3,18 +3,54 @@ package clickhouse
 import (
 	"context"
 	"fmt"
-	e "github.com/pkg/errors"
 	"time"
 
+	e "github.com/pkg/errors"
+
 	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/queryparser"
-	"github.com/huandu/go-sqlbuilder"
 	"github.com/samber/lo"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 const TracesTable = "traces"
+
+var tracesTableConfig = tableConfig[modelInputs.ReservedTraceKey]{
+	tableName: TracesTable,
+	keysToColumns: map[modelInputs.ReservedTraceKey]string{
+		modelInputs.ReservedTraceKeySecureSessionID: "SecureSessionId",
+		modelInputs.ReservedTraceKeySpanID:          "SpanId",
+		modelInputs.ReservedTraceKeyTraceID:         "TraceId",
+		modelInputs.ReservedTraceKeyParentSpanID:    "ParentSpanId",
+		modelInputs.ReservedTraceKeyTraceState:      "TraceState",
+		modelInputs.ReservedTraceKeySpanName:        "SpanName",
+		modelInputs.ReservedTraceKeySpanKind:        "SpanKind",
+		modelInputs.ReservedTraceKeyDuration:        "Duration",
+		modelInputs.ReservedTraceKeyServiceName:     "ServiceName",
+		modelInputs.ReservedTraceKeyServiceVersion:  "ServiceVersion",
+	},
+	reservedKeys:     modelInputs.AllReservedTraceKey,
+	attributesColumn: "TraceAttributes",
+	selectColumns: []string{
+		"Timestamp",
+		"UUID",
+		"TraceId",
+		"SpanId",
+		"ParentSpanId",
+		"ProjectId",
+		"SecureSessionId",
+		"TraceState",
+		"SpanName",
+		"SpanKind",
+		"Duration",
+		"ServiceName",
+		"ServiceVersion",
+		"TraceAttributes",
+		"StatusCode",
+		"StatusMessage",
+	},
+}
 
 type ClickhouseTraceRow struct {
 	Timestamp        time.Time
@@ -131,66 +167,58 @@ func convertLinks(traceRow *TraceRow) (clickhouse.ArraySet, clickhouse.ArraySet,
 	return traceIDs, spanIDs, states, attrs
 }
 
-func (client *Client) ReadTraces(ctx context.Context, projectID int, params modelInputs.TracesParamsInput) ([]*modelInputs.Trace, error) {
-	sb := sqlbuilder.NewSelectBuilder()
-	var err error
-	var args []interface{}
-
-	sb.From("traces").
-		Select("Timestamp, UUID, TraceId, SpanId, ParentSpanId, ProjectId, SecureSessionId, TraceState, SpanName, SpanKind, Duration, ServiceName, ServiceVersion, TraceAttributes, StatusCode, StatusMessage").
-		Where(sb.Equal("ProjectId", projectID))
-
-	// Very basic filtering for now. Will add better support + pagination later.
-	queryParams := queryparser.Parse(params.Query)
-	for key, value := range queryParams.Attributes {
-		sb.Where(sb.Equal(key, value[0]))
-	}
-
-	sb.OrderBy("Timestamp DESC").Limit(100)
-	sql, args := sb.BuildWithFlavor(sqlbuilder.ClickHouse)
-
-	span, _ := tracer.StartSpanFromContext(ctx, "traces", tracer.ResourceName("ReadTraces"))
-	query, err := sqlbuilder.ClickHouse.Interpolate(sql, args)
-	if err != nil {
-		span.Finish(tracer.WithError(err))
-		return nil, err
-	}
-	span.SetTag("Query", query)
-	span.SetTag("Params", params)
-
-	rows, err := client.conn.Query(ctx, sql, args...)
-	if err != nil {
-		span.Finish(tracer.WithError(err))
-		return nil, err
-	}
-
-	var traces []*modelInputs.Trace
-	for rows.Next() {
+func (client *Client) ReadTraces(ctx context.Context, projectID int, params modelInputs.QueryInput, pagination Pagination) (*modelInputs.TraceConnection, error) {
+	scanTrace := func(rows driver.Rows) (*Edge[modelInputs.Trace], error) {
 		var result ClickhouseTraceRow
 		if err := rows.ScanStruct(&result); err != nil {
 			return nil, err
 		}
 
-		traces = append(traces, &modelInputs.Trace{
-			Timestamp:       result.Timestamp,
-			TraceID:         result.TraceId,
-			SpanID:          result.SpanId,
-			ParentSpanID:    result.ParentSpanId,
-			ProjectID:       int(result.ProjectId),
-			SecureSessionID: result.SecureSessionId,
-			TraceState:      result.TraceState,
-			SpanName:        result.SpanName,
-			SpanKind:        result.SpanKind,
-			Duration:        int(result.Duration),
-			ServiceName:     result.ServiceName,
-			ServiceVersion:  result.ServiceVersion,
-			TraceAttributes: expandJSON(result.TraceAttributes),
-			StatusCode:      result.StatusCode,
-			StatusMessage:   result.StatusMessage,
+		return &Edge[modelInputs.Trace]{
+			Cursor: encodeCursor(result.Timestamp, result.UUID),
+			Node: &modelInputs.Trace{
+				Timestamp:       result.Timestamp,
+				TraceID:         result.TraceId,
+				SpanID:          result.SpanId,
+				ParentSpanID:    result.ParentSpanId,
+				ProjectID:       int(result.ProjectId),
+				SecureSessionID: result.SecureSessionId,
+				TraceState:      result.TraceState,
+				SpanName:        result.SpanName,
+				SpanKind:        result.SpanKind,
+				Duration:        int(result.Duration),
+				ServiceName:     result.ServiceName,
+				ServiceVersion:  result.ServiceVersion,
+				TraceAttributes: expandJSON(result.TraceAttributes),
+				StatusCode:      result.StatusCode,
+				StatusMessage:   result.StatusMessage,
+			},
+		}, nil
+	}
+
+	conn, err := readObjects(ctx, client, tracesTableConfig, projectID, params, pagination, scanTrace)
+	if err != nil {
+		return nil, err
+	}
+
+	mappedEdges := []*modelInputs.TraceEdge{}
+	for _, edge := range conn.Edges {
+		mappedEdges = append(mappedEdges, &modelInputs.TraceEdge{
+			Cursor: edge.Cursor,
+			Node:   edge.Node,
 		})
 	}
-	rows.Close()
 
-	span.Finish(tracer.WithError(rows.Err()))
-	return traces, rows.Err()
+	return &modelInputs.TraceConnection{
+		Edges:    mappedEdges,
+		PageInfo: conn.PageInfo,
+	}, nil
+}
+
+func (client *Client) TracesKeys(ctx context.Context, projectID int, startDate time.Time, endDate time.Time) ([]*modelInputs.QueryKey, error) {
+	return Keys(ctx, client, tracesTableConfig, projectID, startDate, endDate)
+}
+
+func (client *Client) TracesKeyValues(ctx context.Context, projectID int, keyName string, startDate time.Time, endDate time.Time) ([]string, error) {
+	return KeyValues(ctx, client, tracesTableConfig, projectID, keyName, startDate, endDate)
 }

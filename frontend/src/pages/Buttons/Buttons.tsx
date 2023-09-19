@@ -554,7 +554,7 @@ export const Buttons = () => {
 								key={c}
 								display="flex"
 								flexDirection="column"
-								className={c}
+								cssClass={c}
 								id={`video-test-${c}`}
 								data-id={`video-test-${c}`}
 							>

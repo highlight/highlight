@@ -47,6 +47,7 @@ enum TeamSize {
 
 export const AdminForm: React.FC = () => {
 	const [showPromoCodeField, setShowPromoCodeField] = useState(false)
+	const [error, setError] = useState('')
 	const { setLoadingState } = useAppLoadingContext()
 	const { admin, fetchAdmin } = useAuthContext()
 	const navigate = useNavigate()
@@ -85,21 +86,18 @@ export const AdminForm: React.FC = () => {
 			teamSize: '',
 		},
 	})
-	const formState = formStore.getState()
 
-	const disableForm = loading || formState.submitSucceed > 0
+	const submitSucceeded = formStore.useState('submitSucceed')
+	const disableForm = loading || submitSucceeded > 0
 
-	formStore.useSubmit(async () => {
+	formStore.useSubmit(async (formState) => {
 		if (disableForm) {
 			return
 		}
 
 		if (!formState.valid) {
 			analytics.track('About you submission failed')
-			formStore.setError(
-				'__error',
-				'Please fill out all form fields correctly.',
-			)
+			setError('Please fill out all form fields correctly.')
 			return
 		}
 
@@ -165,7 +163,7 @@ export const AdminForm: React.FC = () => {
 				errorMessage = 'Something went wrong. Please try again.'
 			}
 
-			formStore.setError('__error', errorMessage)
+			setError(errorMessage)
 		}
 	})
 
@@ -269,11 +267,7 @@ export const AdminForm: React.FC = () => {
 									</ButtonLink>
 								</Box>
 							))}
-						{(formState.errors as any).__error && (
-							<Callout kind="error">
-								{(formState.errors as any).__error}
-							</Callout>
-						)}
+						{error && <Callout kind="error">{error}</Callout>}
 					</Stack>
 				</AuthBody>
 				<AuthFooter>

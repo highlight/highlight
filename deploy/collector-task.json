@@ -28,6 +28,13 @@
 					"appProtocol": "http"
 				},
 				{
+					"name": "highlight-collector-8888-tcp",
+					"containerPort": 8888,
+					"hostPort": 8888,
+					"protocol": "tcp",
+					"appProtocol": "http"
+				},
+				{
 					"name": "highlight-collector-24224-tcp",
 					"containerPort": 24224,
 					"hostPort": 24224,
@@ -87,7 +94,7 @@
 	"compatibilities": ["EC2", "FARGATE"],
 	"requiresCompatibilities": ["FARGATE"],
 	"cpu": "1024",
-	"memory": "4096",
+	"memory": "2048",
 	"runtimePlatform": {
 		"cpuArchitecture": "ARM64"
 	},

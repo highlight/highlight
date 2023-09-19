@@ -42,9 +42,9 @@ export const JoinWorkspace = () => {
 			workspaceId: '',
 		},
 	})
-	const formState = formStore.getState()
+	const workspaceId = formStore.useValue('workspaceId')
 
-	formStore.useSubmit(async () => {
+	formStore.useSubmit(async (formState) => {
 		const response = await joinWorkspace({
 			variables: {
 				workspace_id: formState.values.workspaceId,
@@ -98,7 +98,6 @@ export const JoinWorkspace = () => {
 
 						<select
 							className={styles.select}
-							value={formState.values.workspaceId}
 							onChange={(e) => {
 								const selectedWorkspace =
 									data?.joinable_workspaces?.find(
@@ -131,7 +130,7 @@ export const JoinWorkspace = () => {
 					<Button
 						type="submit"
 						kind="primary"
-						disabled={!formState.values.workspaceId}
+						disabled={!workspaceId}
 						onClick={() => null}
 						trackingId="join-workspace_submit"
 						loading={joinLoading}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -164,5 +165,23 @@ func getSeverityNumber(logLevel modelInputs.LogLevel) int32 {
 	default:
 		return int32(log.InfoLevel)
 	}
+}
 
+func getLogLevel(level logrus.Level) modelInputs.LogLevel {
+	switch level {
+	case log.TraceLevel:
+		return modelInputs.LogLevelTrace
+	case log.DebugLevel:
+		return modelInputs.LogLevelDebug
+	case log.InfoLevel:
+		return modelInputs.LogLevelInfo
+	case log.WarnLevel:
+		return modelInputs.LogLevelWarn
+	case log.ErrorLevel:
+		return modelInputs.LogLevelError
+	case log.FatalLevel:
+		return modelInputs.LogLevelFatal
+	default:
+		return modelInputs.LogLevelInfo
+	}
 }

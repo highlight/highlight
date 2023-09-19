@@ -1,9 +1,14 @@
 import { useAuthContext } from '@authentication/AuthContext'
+import {
+	CreateAlertButton,
+	Divider,
+} from '@components/CreateAlertButton/CreateAlertButton'
 import { ErrorState } from '@components/ErrorState/ErrorState'
 import { KeyboardShortcut } from '@components/KeyboardShortcut/KeyboardShortcut'
 import LoadingBox from '@components/LoadingBox'
 import { PreviousNextGroup } from '@components/PreviousNextGroup/PreviousNextGroup'
 import {
+	useGetAlertsPagePayloadQuery,
 	useGetErrorGroupQuery,
 	useGetProjectDropdownOptionsQuery,
 	useMarkErrorGroupAsViewedMutation,
@@ -37,11 +42,10 @@ import analytics from '@util/analytics'
 import { useParams } from '@util/react-router/useParams'
 import { message } from 'antd'
 import clsx from 'clsx'
-import { useCallback, useEffect, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { Helmet } from 'react-helmet'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useLocalStorage } from 'react-use'
 import { apiObject } from 'rudder-sdk-js'
 import { StringParam, useQueryParams } from 'use-query-params'
 
@@ -194,6 +198,14 @@ function TopBar({
 	projectId,
 	navigation,
 }: TopBarProps) {
+	const { data: alertsData } = useGetAlertsPagePayloadQuery({
+		variables: {
+			project_id: projectId!,
+		},
+		skip: !projectId,
+	})
+	const showCreateAlertButton = alertsData?.error_alerts?.length === 0
+
 	const {
 		showLeftPanel,
 		setShowLeftPanel,
@@ -242,8 +254,12 @@ function TopBar({
 			</Box>
 			<Box>
 				{errorGroup && (
-					<Box display="flex" gap="8">
+					<Box display="flex" gap="8" alignItems="center">
 						<ErrorShareButton errorGroup={errorGroup} />
+						{showCreateAlertButton ? (
+							<CreateAlertButton type="errors" />
+						) : null}
+						<Divider />
 						<ErrorStateSelect
 							state={errorGroup.state}
 							snoozedUntil={errorGroup.snoozed_until}
@@ -394,10 +410,6 @@ function useErrorGroup() {
 	})
 	const [markErrorGroupAsViewed] = useMarkErrorGroupAsViewedMutation()
 	const { isLoggedIn } = useAuthContext()
-	const [useClickhouse] = useLocalStorage(
-		'highlight-clickhouse-errors',
-		false,
-	)
 	const {
 		data,
 		loading,
@@ -405,7 +417,7 @@ function useErrorGroup() {
 	} = useGetErrorGroupQuery({
 		variables: {
 			secure_id: error_secure_id!,
-			use_clickhouse: useClickhouse,
+			use_clickhouse: true,
 		},
 		skip: !error_secure_id,
 		onCompleted: () => {

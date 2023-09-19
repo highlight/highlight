@@ -49,6 +49,7 @@ func (suite *DiscordChannelsTestSuite) TestSendErrorAlert() {
 	err := suite.bot.SendErrorAlert(suite.ChannelID, integrations.ErrorAlertPayload{
 		ErrorCount:      12,
 		ErrorTitle:      "something bad happened",
+		SessionSecureID: "uJgf8EvTHPbwCfnFMcWx3tnjW7sc",
 		SessionURL:      "https://localhost:3000/1/sessions/uJgf8EvTHPbwCfnFMcWx3tnjW7sc?page=1&query=and%7C%7Ccustom_processed%2Cis%2Ctrue%2Cfalse%7C%7Ccustom_created_at%2Cbetween_date%2C30%20days",
 		SessionExcluded: false,
 		ErrorURL:        "https://localhost:3000/1/errors/8y4uezKfrGgvMZNAMt1Z4lpJq2bt?page=1",
