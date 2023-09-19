@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/highlight/highlight/sdk/highlight-go"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -16,8 +18,9 @@ type MultiSpan struct {
 }
 
 func (s *MultiSpan) Finish(err ...error) {
-	// TODO: Clean this up
-	if len(err) > 0 && err[0] != nil {
+	if len(err) > 1 {
+		log.Warnf("Multiple errors passed to MultiSpan.Finish: %v", err)
+	} else if len(err) > 0 && err[0] != nil {
 		s.ddSpan.Finish(tracer.WithError(err[0]))
 		if s.hSpan != nil {
 			highlight.RecordSpanError(s.hSpan, err[0])
