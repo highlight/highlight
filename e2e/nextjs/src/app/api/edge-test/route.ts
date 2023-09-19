@@ -1,4 +1,4 @@
-import { H } from '@highlight-run/next/edge'
+import { H } from '@highlight-run/next/server'
 import type { NextFetchEvent, NextRequest } from 'next/server'
 import { withHighlight } from '@/app/utils/edge-highlight.config'
 

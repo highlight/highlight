@@ -1,62 +1,8 @@
-import {
-	HIGHLIGHT_REQUEST_HEADER,
-	H as NodeH,
-	NodeOptions,
-} from '@highlight-run/node'
+import { HIGHLIGHT_REQUEST_HEADER, NodeOptions } from '@highlight-run/node'
+import { HighlightInterface, HighlightGlobal, RequestMetadata } from './types'
+import { H } from './highlight-node'
 
 import { IncomingHttpHeaders } from 'http'
-
-interface RequestMetadata {
-	secureSessionId: string
-	requestId: string
-}
-
-export type HighlightEnv = NodeOptions
-
-export declare interface Metric {
-	name: string
-	value: number
-	tags?: { name: string; value: string }[]
-}
-
-export interface HighlightGlobal {
-	__HIGHLIGHT__?: RequestMetadata
-}
-
-export interface HighlightInterface {
-	init: (options: NodeOptions) => void
-	isInitialized: () => boolean
-	metrics: (metrics: Metric[]) => void
-}
-
-export const H: HighlightInterface = {
-	init: (options: NodeOptions) => {
-		if (!NodeH.isInitialized()) {
-			NodeH.init(options)
-		}
-	},
-	isInitialized: () => NodeH.isInitialized(),
-	metrics: (metrics: Metric[], opts?: RequestMetadata) => {
-		const h = (global as typeof globalThis & HighlightGlobal).__HIGHLIGHT__
-		if (h && !opts) {
-			opts = h
-		}
-		if (!opts?.secureSessionId) {
-			return console.warn(
-				'H.metrics session could not be inferred the handler context.',
-			)
-		}
-		for (const m of metrics) {
-			NodeH.recordMetric(
-				opts.secureSessionId,
-				m.name,
-				m.value,
-				opts.requestId,
-				m.tags,
-			)
-		}
-	},
-}
 
 export declare type HasHeaders = { headers: IncomingHttpHeaders }
 export declare type HasStatus = { statusCode: number; statusMessage: string }
@@ -71,8 +17,8 @@ export const Highlight =
 		origHandler: ApiHandler<T, S>,
 	): ApiHandler<T, S> => {
 		return async (req, res) => {
-			if (!NodeH.isInitialized()) {
-				NodeH.init(options)
+			if (!H.isInitialized()) {
+				H.init(options)
 			}
 
 			const processHighlightHeaders = () => {
@@ -97,7 +43,7 @@ export const Highlight =
 				return await origHandler(req, res)
 			} catch (e) {
 				if (e instanceof Error) {
-					await NodeH.consumeAndFlush(e, secureSessionId, requestId)
+					await H.consumeAndFlush(e, secureSessionId, requestId)
 				}
 				// Because we're going to finish and send the transaction before passing the error onto nextjs, it won't yet
 				// have had a chance to set the status to 500, so unless we do it ourselves now, we'll incorrectly report that
@@ -108,20 +54,15 @@ export const Highlight =
 				// We rethrow here so that nextjs can do with the error whatever it would normally do. (Sometimes "whatever it
 				// would normally do" is to allow the error to bubble up to the global handlers - another reason we need to mark
 				// the error as already having been captured.)
-				await NodeH.stop()
+				await H.stop()
 				throw e
 			} finally {
 				// convert ms to ns
 				const delta = (new Date().getTime() - start.getTime()) * 1000000
 				const { secureSessionId, requestId } = processHighlightHeaders()
 				if (secureSessionId) {
-					NodeH.recordMetric(
-						secureSessionId,
-						'latency',
-						delta,
-						requestId,
-					)
-					await NodeH.flush()
+					H.recordMetric(secureSessionId, 'latency', delta, requestId)
+					await H.flush()
 				}
 			}
 		}

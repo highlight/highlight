@@ -1,6 +1,6 @@
 // src/app/utils/highlight.config.ts:
 import CONSTANTS from '@/app/constants'
-import { Highlight, HighlightEnv } from '@highlight-run/next/server'
+import { HighlightEnv, PageRouterHighlight } from '@highlight-run/next/server'
 
 if (process.env.NODE_ENV === 'development') {
 	// Highlight's dev instance expects HTTPS. Disable HTTPS errors in development.
@@ -16,4 +16,4 @@ const env: HighlightEnv = {
 
 console.log('app/utils/highlight.config.ts env', JSON.stringify(env, null, 2))
 
-export const withHighlight = Highlight(env)
+export const withPageRouterHighlight = PageRouterHighlight(env)

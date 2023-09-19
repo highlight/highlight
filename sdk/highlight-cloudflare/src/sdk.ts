@@ -24,6 +24,14 @@ export interface HighlightEnv {
 	HIGHLIGHT_OTLP_ENDPOINT?: string
 }
 
+type Metric = {
+	secureSessionId: string
+	name: string
+	value: number
+	requestId: string
+	tags?: { name: string; value: string }[]
+}
+
 export interface HighlightInterface {
 	init: (
 		request: Request,
@@ -31,27 +39,31 @@ export interface HighlightInterface {
 		ctx: ExecutionContext,
 		service?: string,
 	) => WorkersSDK
+	isInitialized: () => boolean
 	consumeError: (error: Error) => void
 	sendResponse: (response: Response) => void
 	setAttributes: (attributes: ResourceAttributes) => void
+	recordMetric: (metric: Metric) => void
 }
 
 let sdk: WorkersSDK
+let projectID: string
 
 export const H: HighlightInterface = {
 	// Initialize the highlight SDK. This monkeypatches the console methods to start sending console logs to highlight.
 	init: (
 		request: Request,
 		{
-			[HIGHLIGHT_PROJECT_ENV]: projectID,
+			[HIGHLIGHT_PROJECT_ENV]: _projectID,
 			HIGHLIGHT_OTLP_ENDPOINT: otlpEndpoint,
 		}: HighlightEnv,
 		ctx: ExecutionContext,
 		service?: string,
 	) => {
-		const [sessionID, requestID] = (
-			request.headers.get(HIGHLIGHT_REQUEST_HEADER) || ''
-		).split('/')
+		const { secureSessionId, requestId } = extractRequestMetadata(request)
+
+		projectID = _projectID
+
 		const endpoints = { default: otlpEndpoint || HIGHLIGHT_OTLP_BASE }
 		sdk = new WorkersSDK(request, ctx, {
 			service: service || 'cloudflare-worker',
@@ -64,8 +76,8 @@ export const H: HighlightInterface = {
 			}),
 			resource: new Resource({
 				['highlight.project_id']: projectID,
-				['highlight.session_id']: sessionID,
-				['highlight.trace_id']: requestID,
+				['highlight.session_id']: secureSessionId,
+				['highlight.trace_id']: requestId,
 			}),
 		})
 
@@ -82,6 +94,8 @@ export const H: HighlightInterface = {
 		}
 		return sdk
 	},
+
+	isInitialized: () => !!sdk,
 
 	// Capture a javascript exception as an error in highlight.
 	consumeError: (error: Error) => {
@@ -115,9 +129,43 @@ export const H: HighlightInterface = {
 			)
 			return
 		}
+
 		// @ts-ignore
 		sdk.traceProvider.resource = sdk.traceProvider.resource.merge(
 			new Resource(attributes),
 		)
 	},
+
+	recordMetric: ({ secureSessionId, name, value, requestId, tags }) => {
+		console.log({ secureSessionId, name, value, requestId, tags })
+		if (!sdk.requestTracer) return
+		const span = sdk.requestTracer.startSpan('highlight-ctx')
+		span.addEvent('metric', {
+			['highlight.project_id']: projectID,
+			['metric.name']: name,
+			['metric.value']: value,
+			...(secureSessionId
+				? {
+						['highlight.session_id']: secureSessionId,
+				  }
+				: {}),
+			...(requestId
+				? {
+						['highlight.trace_id']: requestId,
+				  }
+				: {}),
+		})
+		for (const t of tags || []) {
+			span.setAttribute(t.name, t.value)
+		}
+		span.end()
+	},
+}
+
+export function extractRequestMetadata(request: Request) {
+	const [secureSessionId, requestId] = (
+		request.headers.get(HIGHLIGHT_REQUEST_HEADER) || ''
+	).split('/')
+
+	return { secureSessionId, requestId }
 }

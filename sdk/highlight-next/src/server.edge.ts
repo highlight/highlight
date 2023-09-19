@@ -1,9 +1,13 @@
-import { ApiHandler, HasHeaders, HasStatus } from './util/withHighlight'
+export {
+	Highlight,
+	EdgeHighlight,
+	AppRouterHighlight,
+	PageRouterHighlight,
+} from './server'
 
-import { NodeOptions } from '@highlight-run/node'
+export type { HighlightEnv } from './util/types'
+export { H } from '@highlight-run/cloudflare' // Imports from server.edge.ts for the edge runtime
 
-export function Highlight(_: NodeOptions) {
-	return <T extends HasHeaders, S extends HasStatus>(
-		origHandler: ApiHandler<T, S>,
-	): ApiHandler<T, S> => origHandler
+export function registerHighlight() {
+	throw new Error('registerHighlight() is not supported in the edge runtime.')
 }

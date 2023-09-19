@@ -4,45 +4,32 @@
 	"description": "Client for interfacing with Highlight in next.js",
 	"files": [
 		"dist",
-		"highlight-init.d.ts",
-		"client.d.ts",
-		"edge.d.ts",
-		"server.d.ts",
-		"index.d.ts"
+		"next-client.d.ts",
+		"server.d.ts"
 	],
 	"exports": {
 		"./server": {
 			"types": "./dist/server.d.ts",
 			"edge": "./dist/server.edge.js",
 			"edge-light": "./dist/server.edge.js",
-			"browser": "./dist/server.edge.js",
 			"worker": "./dist/server.edge.js",
 			"workerd": "./dist/server.edge.js",
-			"require": "./dist/server.js",
-			"import": "./dist/server.mjs"
+			"require": "./dist/server.cjs",
+			"import": "./dist/server.js"
 		},
 		"./client": {
 			"types": "./dist/next-client.d.ts",
-			"import": "./dist/next-client.mjs",
-			"require": "./dist/next-client.js"
-		},
-		"./edge": {
-			"types": "./dist/edge.d.ts",
-			"import": "./dist/edge.mjs",
-			"require": "./dist/edge.js"
-		},
-		"./app-router": {
-			"types": "./dist/app-router.d.ts",
-			"import": "./dist/app-router.mjs",
-			"require": "./dist/app-router.js"
+			"import": "./dist/next-client.js",
+			"require": "./dist/next-client.cjs"
 		}
 	},
+	"type": "module",
 	"publishConfig": {
 		"access": "public"
 	},
 	"scripts": {
 		"typegen": "tsup --dts-only",
-		"dev": "yarn watch:build & tsup --watch",
+		"dev": "rm -rf .next && yarn watch:build & tsup --watch",
 		"watch:build": "chokidar \"dist/next-client.d.ts\" -c \"sh ./bin/clean-dist.sh\"",
 		"build": "tsup && sh ./bin/clean-dist.sh",
 		"test": "jest"
@@ -64,6 +51,7 @@
 		"@highlight-run/opentelemetry-sdk-workers": "workspace:^",
 		"@highlight-run/react": "workspace:*",
 		"@highlight-run/sourcemap-uploader": "workspace:*",
+		"@opentelemetry/api": "^1.6.0",
 		"@opentelemetry/resources": "1.15.1",
 		"highlight.run": "workspace:*"
 	},

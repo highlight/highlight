@@ -1,1 +1,1 @@
-export * from './dist/next-client'
+export * from './dist/client'

@@ -10,6 +10,13 @@
 		"build": "tsup src/index.ts --format cjs,esm --dts",
 		"typegen": "tsup src/index.ts --dts-only"
 	},
+	"type": "module",
+	"exports": {
+		".": {
+			"require": "./dist/index.cjs",
+			"import": "./dist/index.js"
+		}
+	},
 	"publishConfig": {
 		"access": "public"
 	},
@@ -17,7 +24,7 @@
 		"hoistingLimits": "workspaces"
 	},
 	"dependencies": {
-		"@highlight-run/opentelemetry-sdk-workers": "workspace:*",
+		"@highlight-run/opentelemetry-sdk-workers": "workspace:^",
 		"@opentelemetry/resources": "1.15.1"
 	},
 	"devDependencies": {

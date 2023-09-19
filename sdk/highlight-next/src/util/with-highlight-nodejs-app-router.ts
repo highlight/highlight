@@ -1,23 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import {
-	HIGHLIGHT_REQUEST_HEADER,
-	H as NodeH,
-	NodeOptions,
-} from '@highlight-run/node'
-
-type HighlightInterface = typeof NodeH
-type RequestMetadata = {
-	secureSessionId: string
-	requestId: string
-}
-
-export const H: HighlightInterface = NodeH
-export type HighlightEnv = NodeOptions
-
-type HighlightGlobal = {
-	__HIGHLIGHT__?: RequestMetadata
-}
+import { HIGHLIGHT_REQUEST_HEADER, H, NodeOptions } from '@highlight-run/node'
+import { HighlightGlobal } from './types'
 
 type NextContext = { params: Record<string, string> }
 type NextHandler<Body = unknown> = (
@@ -38,14 +22,10 @@ export function Highlight(options: NodeOptions) {
 					processHighlightHeaders(request)
 
 				if (error instanceof Error) {
-					await NodeH.consumeAndFlush(
-						error,
-						secureSessionId,
-						requestId,
-					)
+					await H.consumeAndFlush(error, secureSessionId, requestId)
 				}
 
-				await NodeH.stop()
+				await H.stop()
 
 				throw error
 			}

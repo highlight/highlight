@@ -3,6 +3,7 @@ import { Highlight } from '.'
 import { NodeOptions } from './types.js'
 import log from './log'
 import type { Attributes } from '@opentelemetry/api'
+import { ResourceAttributes } from '@opentelemetry/resources'
 
 export const HIGHLIGHT_REQUEST_HEADER = 'x-highlight-request'
 
@@ -40,6 +41,7 @@ export interface HighlightInterface {
 		requestId?: string,
 		metadata?: Attributes,
 	) => Promise<void>
+	setAttributes: (attributes: ResourceAttributes) => void
 	_debug: (...data: any[]) => void
 }
 
@@ -156,6 +158,9 @@ export const H: HighlightInterface = {
 		const flushPromise = this.flush()
 
 		await Promise.allSettled([waitPromise, flushPromise])
+	},
+	setAttributes: (attributes: ResourceAttributes) => {
+		return highlight_obj.setAttributes(attributes)
 	},
 
 	_debug: (...data: any[]) => {

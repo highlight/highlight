@@ -1,5 +1,5 @@
 // src/app/utils/app-router-highlight.config.ts:
-import { HighlightEnv, Highlight } from '@highlight-run/next/app-router'
+import { HighlightEnv, AppRouterHighlight } from '@highlight-run/next/server'
 import CONSTANTS from '@/app/constants'
 
 const env: HighlightEnv = {
@@ -8,4 +8,4 @@ const env: HighlightEnv = {
 	serviceName: 'vercel-app-directory',
 }
 
-export const withHighlight = Highlight(env)
+export const withHighlight = AppRouterHighlight(env)

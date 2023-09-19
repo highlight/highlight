@@ -290,4 +290,8 @@ export class Highlight {
 			const unlisten = this.processor.registerListener(finish)
 		})
 	}
+
+	setAttributes(attributes: Attributes) {
+		return this.otel.addResource(new Resource(attributes))
+	}
 }

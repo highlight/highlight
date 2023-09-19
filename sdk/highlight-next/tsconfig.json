@@ -13,7 +13,7 @@
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"strict": true,
-		"target": "ESNext",
+		"target": "es6",
 		"types": [
 			"@highlight-run/sourcemap-uploader",
 			"@highlight-run/node",
