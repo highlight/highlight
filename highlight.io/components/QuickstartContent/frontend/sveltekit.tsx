@@ -53,6 +53,25 @@ export const SvelteKitContent: QuickStartContent = {
 				},
 			],
 		},
+		{
+			title: 'Confirm CSS is served by absolute path.',
+			content:
+				'SvelteKit may generate CSS paths that are relative ' +
+				'which may interfere with our logic to fetch stylesheets. ' +
+				'Update your `svelte.config.js` to disable relative paths. ' +
+				'[See the SvelteKit docs here for more details](https://kit.svelte.dev/docs/configuration#paths).',
+			code: [
+				{
+					language: 'js',
+					text: `/** @type {import('@sveltejs/kit').Config} */
+const config = {
+  paths: { relative: false }
+};
+
+export default config;`,
+				},
+			],
+		},
 		identifySnippet,
 		verifySnippet,
 		configureSourcemapsCI(),

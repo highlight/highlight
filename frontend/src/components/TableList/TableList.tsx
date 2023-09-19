@@ -57,7 +57,7 @@ export const TableList = ({
 					return (
 						<Box
 							key={item.keyDisplayValue}
-							className={style.sessionAttributeRow({
+							cssClass={style.sessionAttributeRow({
 								json:
 									(typeof item.valueDisplayValue ===
 										'object' &&

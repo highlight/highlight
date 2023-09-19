@@ -3063,13 +3063,14 @@ func (r *mutationResolver) DeleteLogAlert(ctx context.Context, projectID int, id
 	}
 
 	alert := &model.LogAlert{}
-	if err := r.DB.Model(&model.LogAlert{Model: model.Model{ID: id}}).
+	if err := r.DB.Model(&model.LogAlert{}).
 		Where("project_id = ?", projectID).
+		Where("id = ?", id).
 		Find(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "this log alert does not exist in this project.")
 	}
 
-	if err := r.DB.Delete(alert).Error; err != nil {
+	if err := r.DB.Delete("id = ?", id).Error; err != nil {
 		return nil, e.Wrap(err, "error trying to delete log alert")
 	}
 

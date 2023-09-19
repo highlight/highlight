@@ -10,9 +10,6 @@ import { Badge, Box, Stack, Text } from '@highlight-run/ui'
 import { colors } from '@highlight-run/ui/src/css/colors'
 import { Progress } from 'antd'
 import React, { useEffect, useState } from 'react'
-import { useLocalStorage } from 'react-use'
-
-import { useAuthContext } from '@/authentication/AuthContext'
 
 type Props = {
 	errorGroup: GetErrorGroupQuery['error_group']
@@ -28,15 +25,10 @@ const ErrorDistributions = ({ errorGroup }: Props) => {
 	const [operatingSystems, setOperatingSystems] = useState<
 		ErrorGroupTagAggregation | undefined
 	>()
-	const { isHighlightAdmin } = useAuthContext()
-	const [useClickhouse] = useLocalStorage(
-		'highlight-clickhouse-errors',
-		isHighlightAdmin,
-	)
 	const { loading, data } = useGetErrorGroupTagsQuery({
 		variables: {
 			error_group_secure_id: `${errorGroup?.secure_id}`,
-			use_clickhouse: useClickhouse,
+			use_clickhouse: true,
 		},
 		skip: !errorGroup?.secure_id,
 	})

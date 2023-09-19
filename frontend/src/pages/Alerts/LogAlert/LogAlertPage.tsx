@@ -132,8 +132,9 @@ export const LogAlertPage = () => {
 	const formValues = formStore.useState().values
 
 	const [query, setQuery] = useState(initialQuery)
-	const handleSearchSubmit = (query: string) => {
+	const handleUpdateInputQuery = (query: string) => {
 		setSubmittedQuery(query)
+		formStore.setValue(formStore.names.query, query)
 	}
 
 	formStore.useSubmit(() => {
@@ -190,10 +191,7 @@ export const LogAlertPage = () => {
 		],
 	})
 	const [deleteLogAlertMutation] = useDeleteLogAlertMutation({
-		refetchQueries: [
-			namedOperations.Query.GetLogAlert,
-			namedOperations.Query.GetAlertsPagePayload,
-		],
+		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
 	})
 
 	const { project_id } = useParams<{
@@ -289,7 +287,8 @@ export const LogAlertPage = () => {
 
 						const nameErr = !input.name
 						const thresholdErr = !input.count_threshold
-						if (nameErr || thresholdErr) {
+						const queryErr = !input.query
+						if (nameErr || thresholdErr || queryErr) {
 							const errs = []
 							if (nameErr) {
 								formStore.setError(
@@ -305,6 +304,14 @@ export const LogAlertPage = () => {
 									'Threshold is required',
 								)
 								errs.push('threshold')
+							}
+
+							if (queryErr) {
+								formStore.setError(
+									formStore.names.query,
+									'Query is required',
+								)
+								errs.push('query')
 							}
 
 							message.error(
@@ -439,7 +446,16 @@ export const LogAlertPage = () => {
 											/>
 										</Box>
 										<AlertTitleField />
-										<Box cssClass={styles.queryContainer}>
+										<Box
+											cssClass={styles.queryContainer}
+											style={{
+												borderColor: formStore.getError(
+													'query',
+												)
+													? 'var(--color-red-500)'
+													: undefined,
+											}}
+										>
 											<Search
 												initialQuery={initialQuery}
 												keys={keysData?.keys ?? []}
@@ -452,7 +468,7 @@ export const LogAlertPage = () => {
 												query={query}
 												setQuery={setQuery}
 												onFormSubmit={
-													handleSearchSubmit
+													handleUpdateInputQuery
 												}
 												fetchValuesLazyQuery={
 													useGetLogsKeyValuesLazyQuery
