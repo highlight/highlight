@@ -96,7 +96,8 @@ class H(object):
                     f"{self._otlp_endpoint}/v1/traces", compression=Compression.Gzip
                 ),
                 schedule_delay_millis=1000,
-                export_timeout_millis=5000,
+                max_export_batch_size=128,
+                max_queue_size=1024,
             )
         )
         trace.set_tracer_provider(self._trace_provider)
@@ -111,7 +112,8 @@ class H(object):
                     f"{self._otlp_endpoint}/v1/logs", compression=Compression.Gzip
                 ),
                 schedule_delay_millis=1000,
-                export_timeout_millis=5000,
+                max_export_batch_size=128,
+                max_queue_size=1024,
             )
         )
         _logs.set_logger_provider(self._log_provider)
