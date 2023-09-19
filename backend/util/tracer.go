@@ -13,14 +13,13 @@ import (
 )
 
 type MultiSpan struct {
-	ddSpan  tracer.Span
-	hSpan   trace.Span
-	context context.Context
+	ddSpan tracer.Span
+	hSpan  trace.Span
 }
 
 func (s *MultiSpan) Finish(err ...error) {
 	if len(err) > 1 {
-		log.WithContext(s.Context()).Warnf("multiple errors passed to MultiSpan.Finish: %v", err)
+		log.Warnf("Multiple errors passed to MultiSpan.Finish: %v", err)
 	} else if len(err) > 0 && err[0] != nil {
 		s.ddSpan.Finish(tracer.WithError(err[0]))
 		if s.hSpan != nil {
@@ -46,10 +45,6 @@ func (s *MultiSpan) SetOperationName(name string) {
 	if s.hSpan != nil {
 		s.hSpan.SetName(name)
 	}
-}
-
-func (s *MultiSpan) Context() context.Context {
-	return s.context
 }
 
 type contextKey string
@@ -82,9 +77,8 @@ func StartSpanFromContext(ctx context.Context, operationName string, options ...
 	mergedCtx := trace.ContextWithSpan(ddCtx, hSpan)
 
 	return MultiSpan{
-		ddSpan:  ddSpan,
-		hSpan:   hSpan,
-		context: mergedCtx,
+		ddSpan: ddSpan,
+		hSpan:  hSpan,
 	}, mergedCtx
 }
 
@@ -105,9 +99,8 @@ func StartSpan(operationName string, options ...SpanOption) MultiSpan {
 	}
 
 	return MultiSpan{
-		ddSpan:  ddSpan,
-		hSpan:   hSpan,
-		context: context.Background(),
+		ddSpan: ddSpan,
+		hSpan:  hSpan,
 	}
 }
 
