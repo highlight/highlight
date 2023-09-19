@@ -279,7 +279,7 @@ export const AdminForm: React.FC = () => {
 							required
 						>
 							<option value="" disabled>
-								Select where you heard about us
+								Select how you heard about us
 							</option>
 							{Object.entries(HeardAbout).map(([k, v]) => (
 								<option value={k} key={k}>
@@ -309,7 +309,7 @@ export const AdminForm: React.FC = () => {
 				</AuthBody>
 				<AuthFooter>
 					<Stack gap="12">
-						{isOnPrem || true ? (
+						{isOnPrem ? (
 							<Box width="full">
 								<Callout icon={false}>
 									<Stack gap="8">
