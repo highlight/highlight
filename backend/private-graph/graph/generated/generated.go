@@ -40,6 +40,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Admin() AdminResolver
 	CommentReply() CommentReplyResolver
 	ErrorAlert() ErrorAlertResolver
 	ErrorComment() ErrorCommentResolver
@@ -105,6 +106,7 @@ type ComplexityRoot struct {
 		AboutYouDetailsFilled func(childComplexity int) int
 		Email                 func(childComplexity int) int
 		EmailVerified         func(childComplexity int) int
+		HeardAbout            func(childComplexity int) int
 		ID                    func(childComplexity int) int
 		Name                  func(childComplexity int) int
 		Phone                 func(childComplexity int) int
@@ -1430,6 +1432,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type AdminResolver interface {
+	HeardAbout(ctx context.Context, obj *model1.Admin) (*string, error)
+}
 type CommentReplyResolver interface {
 	Author(ctx context.Context, obj *model1.CommentReply) (*model.SanitizedAdmin, error)
 }
@@ -1989,6 +1994,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.EmailVerified(childComplexity), true
+
+	case "Admin.heard_about":
+		if e.complexity.Admin.HeardAbout == nil {
+			break
+		}
+
+		return e.complexity.Admin.HeardAbout(childComplexity), true
 
 	case "Admin.id":
 		if e.complexity.Admin.ID == nil {
@@ -10784,6 +10796,7 @@ input AdminAboutYouDetails {
 	user_defined_role: String!
 	user_defined_persona: String!
 	user_defined_team_size: String!
+	heard_about: String!
 	referral: String!
 	phone: String
 }
@@ -10794,6 +10807,7 @@ input AdminAndWorkspaceDetails {
 	last_name: String!
 	user_defined_role: String!
 	user_defined_team_size: String!
+	heard_about: String!
 	referral: String!
 
 	# Workspace
@@ -10910,6 +10924,7 @@ type Admin {
 	referral: String
 	user_defined_role: String
 	user_defined_team_size: String
+	heard_about: String
 	about_you_details_filled: Boolean
 	user_defined_persona: String
 }
@@ -20376,6 +20391,47 @@ func (ec *executionContext) fieldContext_Admin_user_defined_team_size(ctx contex
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Admin_heard_about(ctx context.Context, field graphql.CollectedField, obj *model1.Admin) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Admin_heard_about(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Admin().HeardAbout(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Admin_heard_about(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Admin",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -37167,6 +37223,8 @@ func (ec *executionContext) fieldContext_Mutation_createAdmin(ctx context.Contex
 				return ec.fieldContext_Admin_user_defined_role(ctx, field)
 			case "user_defined_team_size":
 				return ec.fieldContext_Admin_user_defined_team_size(ctx, field)
+			case "heard_about":
+				return ec.fieldContext_Admin_heard_about(ctx, field)
 			case "about_you_details_filled":
 				return ec.fieldContext_Admin_about_you_details_filled(ctx, field)
 			case "user_defined_persona":
@@ -51483,6 +51541,8 @@ func (ec *executionContext) fieldContext_Query_admin(ctx context.Context, field 
 				return ec.fieldContext_Admin_user_defined_role(ctx, field)
 			case "user_defined_team_size":
 				return ec.fieldContext_Admin_user_defined_team_size(ctx, field)
+			case "heard_about":
+				return ec.fieldContext_Admin_heard_about(ctx, field)
 			case "about_you_details_filled":
 				return ec.fieldContext_Admin_about_you_details_filled(ctx, field)
 			case "user_defined_persona":
@@ -66852,6 +66912,8 @@ func (ec *executionContext) fieldContext_WorkspaceAdminRole_admin(ctx context.Co
 				return ec.fieldContext_Admin_user_defined_role(ctx, field)
 			case "user_defined_team_size":
 				return ec.fieldContext_Admin_user_defined_team_size(ctx, field)
+			case "heard_about":
+				return ec.fieldContext_Admin_heard_about(ctx, field)
 			case "about_you_details_filled":
 				return ec.fieldContext_Admin_about_you_details_filled(ctx, field)
 			case "user_defined_persona":
@@ -69206,7 +69268,7 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"first_name", "last_name", "user_defined_role", "user_defined_persona", "user_defined_team_size", "referral", "phone"}
+	fieldsInOrder := [...]string{"first_name", "last_name", "user_defined_role", "user_defined_persona", "user_defined_team_size", "heard_about", "referral", "phone"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -69253,6 +69315,14 @@ func (ec *executionContext) unmarshalInputAdminAboutYouDetails(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "heard_about":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("heard_about"))
+			it.HeardAbout, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "referral":
 			var err error
 
@@ -69282,7 +69352,7 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"first_name", "last_name", "user_defined_role", "user_defined_team_size", "referral", "workspace_name", "allowed_auto_join_email_origins", "promo_code"}
+	fieldsInOrder := [...]string{"first_name", "last_name", "user_defined_role", "user_defined_team_size", "heard_about", "referral", "workspace_name", "allowed_auto_join_email_origins", "promo_code"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -69318,6 +69388,14 @@ func (ec *executionContext) unmarshalInputAdminAndWorkspaceDetails(ctx context.C
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_defined_team_size"))
 			it.UserDefinedTeamSize, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "heard_about":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("heard_about"))
+			it.HeardAbout, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -71281,28 +71359,28 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Admin_id(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "name":
 
 			out.Values[i] = ec._Admin_name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "uid":
 
 			out.Values[i] = ec._Admin_uid(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "email":
 
 			out.Values[i] = ec._Admin_email(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "phone":
 
@@ -71332,6 +71410,23 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 
 			out.Values[i] = ec._Admin_user_defined_team_size(ctx, field, obj)
 
+		case "heard_about":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Admin_heard_about(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "about_you_details_filled":
 
 			out.Values[i] = ec._Admin_about_you_details_filled(ctx, field, obj)

@@ -66,6 +66,11 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+// HeardAbout is the resolver for the heard_about field.
+func (r *adminResolver) HeardAbout(ctx context.Context, obj *model.Admin) (*string, error) {
+	panic(fmt.Errorf("not implemented: HeardAbout - heard_about"))
+}
+
 // Author is the resolver for the author field.
 func (r *commentReplyResolver) Author(ctx context.Context, obj *model.CommentReply) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
@@ -360,6 +365,7 @@ func (r *mutationResolver) UpdateAdminAndCreateWorkspace(ctx context.Context, ad
 			UserDefinedRole:     adminAndWorkspaceDetails.UserDefinedRole,
 			UserDefinedPersona:  "",
 			UserDefinedTeamSize: adminAndWorkspaceDetails.UserDefinedTeamSize,
+			HeardAbout:          adminAndWorkspaceDetails.HeardAbout,
 			Referral:            adminAndWorkspaceDetails.Referral,
 		}); err != nil {
 			return e.Wrap(err, "error updating admin details")
@@ -411,6 +417,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 	admin.Name = &fullName
 	admin.UserDefinedRole = &adminDetails.UserDefinedRole
 	admin.UserDefinedTeamSize = &adminDetails.UserDefinedTeamSize
+	admin.HeardAbout = &adminDetails.HeardAbout
 	admin.Referral = &adminDetails.Referral
 	admin.UserDefinedPersona = &adminDetails.UserDefinedPersona
 	admin.Phone = pointy.String("")
@@ -424,6 +431,7 @@ func (r *mutationResolver) UpdateAdminAboutYouDetails(ctx context.Context, admin
 			*admin.UserDefinedRole,
 			*admin.UserDefinedPersona,
 			*admin.UserDefinedTeamSize,
+			*admin.HeardAbout,
 			*admin.FirstName,
 			*admin.LastName,
 			*admin.Phone,
@@ -8246,6 +8254,9 @@ func (r *timelineIndicatorEventResolver) Data(ctx context.Context, obj *model.Ti
 	return obj.Data, nil
 }
 
+// Admin returns generated.AdminResolver implementation.
+func (r *Resolver) Admin() generated.AdminResolver { return &adminResolver{r} }
+
 // CommentReply returns generated.CommentReplyResolver implementation.
 func (r *Resolver) CommentReply() generated.CommentReplyResolver { return &commentReplyResolver{r} }
 
@@ -8309,6 +8320,7 @@ func (r *Resolver) TimelineIndicatorEvent() generated.TimelineIndicatorEventReso
 	return &timelineIndicatorEventResolver{r}
 }
 
+type adminResolver struct{ *Resolver }
 type commentReplyResolver struct{ *Resolver }
 type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }

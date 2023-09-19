@@ -32,6 +32,7 @@ const AboutYouSpanName = "highlight-about-you"
 const AboutYouSpanReferral = "highlight-about-you-referral"
 const AboutYouSpanRole = "highlight-about-you-role"
 const AboutYouSpanTeamSize = "highlight-about-you-team-size"
+const AboutYouSpanHeardAbout = "highlight-about-you-heard-about"
 const HeartbeatInterval = 5 * time.Second
 const HeartbeatSpanName = "highlight-heartbeat"
 const HighlightProjectID = "1"
@@ -107,6 +108,9 @@ func ReportAdminAboutYouDetails(ctx context.Context, admin *model.Admin) {
 	}
 	if admin.UserDefinedTeamSize != nil {
 		tags = append(tags, attribute.String(AboutYouSpanTeamSize, *admin.UserDefinedTeamSize))
+	}
+	if admin.HeardAbout != nil {
+		tags = append(tags, attribute.String(AboutYouSpanHeardAbout, *admin.HeardAbout))
 	}
 	if admin.Referral != nil {
 		tags = append(tags, attribute.String(AboutYouSpanReferral, *admin.Referral))

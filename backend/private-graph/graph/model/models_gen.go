@@ -63,6 +63,7 @@ type AdminAboutYouDetails struct {
 	UserDefinedRole     string  `json:"user_defined_role"`
 	UserDefinedPersona  string  `json:"user_defined_persona"`
 	UserDefinedTeamSize string  `json:"user_defined_team_size"`
+	HeardAbout          string  `json:"heard_about"`
 	Referral            string  `json:"referral"`
 	Phone               *string `json:"phone"`
 }
@@ -72,6 +73,7 @@ type AdminAndWorkspaceDetails struct {
 	LastName                    string  `json:"last_name"`
 	UserDefinedRole             string  `json:"user_defined_role"`
 	UserDefinedTeamSize         string  `json:"user_defined_team_size"`
+	HeardAbout                  string  `json:"heard_about"`
 	Referral                    string  `json:"referral"`
 	WorkspaceName               string  `json:"workspace_name"`
 	AllowedAutoJoinEmailOrigins *string `json:"allowed_auto_join_email_origins"`
