@@ -287,7 +287,8 @@ export const LogAlertPage = () => {
 
 						const nameErr = !input.name
 						const thresholdErr = !input.count_threshold
-						if (nameErr || thresholdErr) {
+						const queryErr = !input.query
+						if (nameErr || thresholdErr || queryErr) {
 							const errs = []
 							if (nameErr) {
 								formStore.setError(
@@ -303,6 +304,14 @@ export const LogAlertPage = () => {
 									'Threshold is required',
 								)
 								errs.push('threshold')
+							}
+
+							if (queryErr) {
+								formStore.setError(
+									formStore.names.query,
+									'Query is required',
+								)
+								errs.push('query')
 							}
 
 							message.error(
@@ -437,7 +446,16 @@ export const LogAlertPage = () => {
 											/>
 										</Box>
 										<AlertTitleField />
-										<Box cssClass={styles.queryContainer}>
+										<Box
+											cssClass={styles.queryContainer}
+											style={{
+												borderColor: formStore.getError(
+													'query',
+												)
+													? 'var(--color-red-500)'
+													: undefined,
+											}}
+										>
 											<Search
 												initialQuery={initialQuery}
 												keys={keysData?.keys ?? []}
