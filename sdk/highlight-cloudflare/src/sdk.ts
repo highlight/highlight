@@ -137,7 +137,6 @@ export const H: HighlightInterface = {
 	},
 
 	recordMetric: ({ secureSessionId, name, value, requestId, tags }) => {
-		console.log({ secureSessionId, name, value, requestId, tags })
 		if (!sdk.requestTracer) return
 		const span = sdk.requestTracer.startSpan('highlight-ctx')
 		span.addEvent('metric', {
