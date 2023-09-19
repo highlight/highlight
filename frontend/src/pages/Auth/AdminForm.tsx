@@ -248,7 +248,7 @@ export const AdminForm: React.FC = () => {
 							className={styles.select}
 							name={formStore.names.role}
 							label="Role"
-							optional
+							required
 						>
 							<option value="" disabled>
 								Select your role
@@ -261,7 +261,7 @@ export const AdminForm: React.FC = () => {
 							className={styles.select}
 							name={formStore.names.teamSize}
 							label="Team Size"
-							optional
+							required
 						>
 							<option value="" disabled>
 								Select your team size
@@ -276,7 +276,7 @@ export const AdminForm: React.FC = () => {
 							className={styles.select}
 							name={formStore.names.heardAbout}
 							label="Where did you hear about us?"
-							optional
+							required
 						>
 							<option value="" disabled>
 								Select where you heard about us
