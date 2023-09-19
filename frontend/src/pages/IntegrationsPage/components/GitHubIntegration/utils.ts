@@ -45,7 +45,7 @@ export const getGitHubInstallationOAuthUrl = (
 	}
 
 	return (
-		`https://github.com/apps/spenny-s-highlight-dev/installations/new` +
+		`https://github.com/apps/highlight-io/installations/new` +
 		`?state=${btoa(JSON.stringify(state))}&`
 	)
 }
