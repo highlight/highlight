@@ -2375,13 +2375,13 @@ func (r *Resolver) RemoveClickUpFromWorkspace(workspace *model.Workspace) error 
 	return nil
 }
 
-func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(ctx context.Context, workspace *model.Workspace, integrationType modelInputs.IntegrationType) error {
+func (r *Resolver) RemoveGitHubFromWorkspace(ctx context.Context, workspace *model.Workspace) error {
 	workspaceMapping := &model.IntegrationWorkspaceMapping{}
 	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
 		WorkspaceID:     workspace.ID,
-		IntegrationType: integrationType,
+		IntegrationType: modelInputs.IntegrationTypeGitHub,
 	}).Take(&workspaceMapping).Error; err != nil {
-		return e.Wrap(err, fmt.Sprintf("workspace does not have a %s integration", integrationType))
+		return e.Wrap(err, "workspace does not have a GitHub integration")
 	}
 
 	// uninstall the app in github
@@ -2391,6 +2391,32 @@ func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(ctx context.Context
 		}
 	} else {
 		return e.Wrap(err, "failed to create github client")
+	}
+
+	if err := r.DB.Exec(`
+		UPDATE services
+		SET github_repo_path = NULL, github_prefix = NULL, build_prefix = NULL, status = 'created', error_details = ARRAY[]::text[]
+		FROM projects
+		WHERE projects.workspace_id = ?
+			AND services.project_id = projects.id
+	`, workspace.ID).Error; err != nil {
+		return e.Wrap(err, "failed to remove GitHub repo from associated project services")
+	}
+
+	if err := r.DB.Delete(workspaceMapping).Error; err != nil {
+		return e.Wrap(err, "error deleting workspace GitHub integration")
+	}
+
+	return nil
+}
+
+func (r *Resolver) RemoveIntegrationFromWorkspaceAndProjects(ctx context.Context, workspace *model.Workspace, integrationType modelInputs.IntegrationType) error {
+	workspaceMapping := &model.IntegrationWorkspaceMapping{}
+	if err := r.DB.Where(&model.IntegrationWorkspaceMapping{
+		WorkspaceID:     workspace.ID,
+		IntegrationType: integrationType,
+	}).Take(&workspaceMapping).Error; err != nil {
+		return e.Wrap(err, fmt.Sprintf("workspace does not have a %s integration", integrationType))
 	}
 
 	if err := r.DB.Raw(`
