@@ -19,7 +19,7 @@ type MultiSpan struct {
 
 func (s *MultiSpan) Finish(err ...error) {
 	if len(err) > 1 {
-		log.Warnf("Multiple errors passed to MultiSpan.Finish: %v", err)
+		log.WithContext(context.TODO()).Warnf("Multiple errors passed to MultiSpan.Finish: %v", err)
 	} else if len(err) > 0 && err[0] != nil {
 		s.ddSpan.Finish(tracer.WithError(err[0]))
 		if s.hSpan != nil {
