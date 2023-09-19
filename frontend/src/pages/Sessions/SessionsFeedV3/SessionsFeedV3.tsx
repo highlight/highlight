@@ -93,6 +93,7 @@ export const SessionsHistogram: React.FC = React.memo(() => {
 			clickhouse_query: JSON.parse(searchQuery),
 		},
 		skip: !backendSearchQuery || !project_id,
+		fetchPolicy: 'network-only',
 	})
 
 	const histogram: {
@@ -206,6 +207,7 @@ export const SessionFeedV3 = React.memo(() => {
 		},
 		onCompleted: addSessions,
 		skip: !backendSearchQuery?.searchQuery || !project_id,
+		fetchPolicy: 'network-only',
 	})
 
 	const [moreDataQuery] = useGetSessionsOpenSearchLazyQuery({
