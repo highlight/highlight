@@ -2,10 +2,10 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { NextRequest, NextFetchEvent } from 'next/server'
 
-import { withHighlight } from '@/app/utils/edge-highlight.config'
+import { withEdgeHighlight } from '@/app/utils/edge-highlight.config'
 import { z } from 'zod'
 
-export default withHighlight(async function handler(request: NextRequest) {
+export default withEdgeHighlight(async function handler(request: NextRequest) {
 	const { searchParams } = new URL(request.url)
 	const success = z.enum(['true', 'false']).parse(searchParams.get('success'))
 

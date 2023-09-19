@@ -5,12 +5,12 @@ import type { NextFetchEvent, NextRequest } from 'next/server'
 
 export type HighlightEnv = NodeOptions
 
-type EdgeHandler = (
+export type EdgeHandler = (
 	request: NextRequest,
 	event: NextFetchEvent,
 ) => Promise<Response>
 
-type ExtendedExecutionContext = ExecutionContext & {
+export type ExtendedExecutionContext = ExecutionContext & {
 	__waitUntilTimer?: ReturnType<typeof setInterval>
 	__waitUntilPromises?: Promise<void>[]
 	waitUntilFinished?: () => Promise<void>

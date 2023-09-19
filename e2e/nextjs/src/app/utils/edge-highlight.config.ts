@@ -7,4 +7,4 @@ const env: HighlightEnv = {
 	serviceName: 'vercel-edge',
 }
 
-export const withHighlight = EdgeHighlight(env)
+export const withEdgeHighlight = EdgeHighlight(env)

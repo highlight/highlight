@@ -1,7 +1,7 @@
 // pages/api/test.ts
 import { NextApiRequest, NextApiResponse } from 'next'
 
-import { withPageRouterHighlight } from '@/app/utils/highlight.config'
+import { withPageRouterHighlight } from '@/app/utils/page-router-highlight.config'
 import { z } from 'zod'
 
 export default withPageRouterHighlight(async function handler(

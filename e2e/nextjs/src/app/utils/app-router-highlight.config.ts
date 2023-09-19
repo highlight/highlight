@@ -8,4 +8,4 @@ const env: HighlightEnv = {
 	serviceName: 'vercel-app-directory',
 }
 
-export const withHighlight = AppRouterHighlight(env)
+export const withAppRouterHighlight = AppRouterHighlight(env)

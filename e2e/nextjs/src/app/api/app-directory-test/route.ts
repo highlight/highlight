@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { withHighlight } from '@/app/utils/app-router-highlight.config'
+import { withAppRouterHighlight } from '@/app/utils/app-router-highlight.config'
 
-export const GET = withHighlight(async function GET(request: NextRequest) {
+export const GET = withAppRouterHighlight(async function GET(
+	request: NextRequest,
+) {
 	const { searchParams } = new URL(request.url)
 	const success = z.enum(['true', 'false']).parse(searchParams.get('success'))
 
@@ -15,7 +17,9 @@ export const GET = withHighlight(async function GET(request: NextRequest) {
 	}
 })
 
-export const POST = withHighlight(async function POST(request: Request) {
+export const POST = withAppRouterHighlight(async function POST(
+	request: Request,
+) {
 	const headers = Object.fromEntries(request.headers.entries())
 
 	return NextResponse.json({

@@ -18,18 +18,20 @@ Our Next.js SDK gives you access to frontend session replays and server-side mon
 all-in-one. 
 
 1. On the frontend, the `<HighlightInit/>` component sets up client-side session replays.
-2. On the backend, the `withHighlight` wrapper exported from `@highlight-run/next/server` captures server-side errors and logs from Page Router API endpoints.
-3. On the backend, the `withHighlight` wrapper exported from `@highlight-run/next/app-router` captures error and logs from App Router API endpoints.
+2. On the backend, the `PageRouterHighlight` wrapper exported from `@highlight-run/next/server` captures server-side errors and logs from Page Router API endpoints.
+3. On the backend, the `AppRouterHighlight` wrapper exported from `@highlight-run/next/app-router` captures error and logs from App Router API endpoints.
 3. On the backend, `instrumentation.ts` and `registerHighlight` capture Page Router SSR errors.
 4. The `withHighlightConfig` configuration wrapper automatically proxies Highlight data to bypass ad-blockers and uploads source maps so your frontend errors include stack traces to your source code.
+5. The `EdgeHighlight` wrapper exported from `@highlight-run/next/server` captures server-side errors and logs from both Page and App Router endpoints using Vercel's Edge runtime.
 
 ### How Highlight captures Next.js errors
 
-|              | Page Router         | App Router          |
-|--------------|---------------------|---------------------|
-| API Errors   | `withHighlight`     | `withHighlight`		 |
-| SSR Errors   | `instrumentation.ts`| `error.tsx`         |
-| Client       | `<HighlightInit />` | `<HighlightInit />` |
+|              | Page Router           | App Router           |
+|--------------|-----------------------|----------------------|
+| API Errors   | `PageRouterHighlight` | `AppRouterHighlight` |
+| SSR Errors   | `instrumentation.ts`  | `error.tsx`          |
+| Client       | `<HighlightInit />`   | `<HighlightInit />`  |
+| Edge runtime | `EdgeHighlight`       | `EdgeHighlight`      |
 
 ## Installation
 
@@ -200,14 +202,14 @@ export function CustomHighlightStart() {
 This section applies to Next.js Page Router routes only. Each Page Router route must be wrapped individually.
 ```
 
-1. Create a file to export your `Highlight` wrapper function:
+1. Create a file to export your `PageRouterHighlight` wrapper function:
 
  ```javascript
-// src/app/utils/highlight.config.ts:
+// src/app/utils/page-router-highlight.config.ts:
 import CONSTANTS from '@/app/constants'
-import { Highlight } from '@highlight-run/next/server'
+import { PageRouterHighlight } from '@highlight-run/next/server'
 
-export const withHighlight = Highlight({
+export const withPageRouterHighlight = PageRouterHighlight({
 	projectID: '<YOUR_PROJECT_ID>',
 })
  ```
@@ -218,18 +220,18 @@ export const withHighlight = Highlight({
 // pages/api/test.ts
 import { NextApiRequest, NextApiResponse } from 'next'
 
-import { withHighlight } from '@/app/utils/highlight.config'
+import { withPageRouterHighlight } from '@/app/utils/page-router-highlight.config'
 
-export default withHighlight(function handler(
+export default withPageRouterHighlight(function handler(
 	req: NextApiRequest,
 	res: NextApiResponse,
 ) {
-	console.info('Here: /api/app-directory-test')
+	console.info('Here: pages/api/test.ts')
 
 	if (Math.random() < 0.8) {
-		res.send('Success: /api/app-directory-test')
+		res.send('Success: pages/api/test.ts')
 	} else {
-		throw new Error('Error: /api/app-directory-test')
+		throw new Error('Error: pages/api/test.ts')
 	}
 })
 ```
@@ -237,33 +239,29 @@ export default withHighlight(function handler(
 ## API Route Instrumentation (App Router)
 
 ```hint
-This section applies to Next.js Page Router routes only. Each Page Router route must be wrapped individually.
+This section applies to Next.js App Router routes only. Each App Router route must be wrapped individually.
 ```
 
-1. Create a file to export your `Highlight` wrapper function:
+1. Create a file to export your `AppRouterHighlight` wrapper function:
 
 ```typescript
 // src/app/utils/app-router-highlight.config.ts:
-import { HighlightEnv, Highlight } from '@highlight-run/next/app-router'
+import { AppRouterHighlight } from '@highlight-run/next/server'
 import CONSTANTS from '@/app/constants'
 
-const env: HighlightEnv = {
-	projectID: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
-	otlpEndpoint: CONSTANTS.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
-	serviceName: 'vercel-app-directory',
-}
-
-export const withHighlight = Highlight(env)
+export const withAppRouterHighlight = AppRouterHighlight({
+	projectID: '<YOUR_PROJECT_ID>',
+})
 
 ```
 
-2. Wrap your `/app` functions with `withHighlight`: 
+2. Wrap your `/app` functions with `withAppRouterHighlight`: 
 
 ```typescript
 import { NextRequest } from 'next/server'
-import { withHighlight } from '@/app/utils/app-router-highlight.config'
+import { withAppRouterHighlight } from '@/app/utils/app-router-highlight.config'
 
-export const GET = withHighlight(async function GET(request: NextRequest) {
+export const GET = withAppRouterHighlight(async function GET(request: NextRequest) {
 	console.info('Here: /api/app-directory-test/route.ts')
 
 	if (Math.random() < 0.8) {
@@ -276,30 +274,26 @@ export const GET = withHighlight(async function GET(request: NextRequest) {
 
 ## Vercel Edge Runtime Instrumentation
 
-1. Create a file to export you `Highlight` wrapper function:
+1. Create a file to export you `EdgeHighlight` wrapper function:
 
 ```typescript
 // src/app/utils/edge-highlight.config.ts:
-import { Highlight, HighlightEnv } from '@highlight-run/next/edge'
+import { EdgeHighlight } from '@highlight-run/next/server'
 
-const env: HighlightEnv = {
-	projectId: process.env.NEXT_PUBLIC_HIGHLIGHT_PROJECT_ID,
-	otlpEndpoint: process.env.NEXT_PUBLIC_HIGHLIGHT_OTLP_ENDPOINT,
-	serviceName: 'vercel-edge',
-}
-
-export const withHighlight = Highlight(env)
+export const withEdgeHighlight = EdgeHighlight({
+	projectID: '<YOUR_PROJECT_ID>',
+})
 ```
 
-2. Wrap you edge function with `withHighlight`
+2. Wrap you edge function with `withEdgeHighlight`
 
 ```typescript
 import type {  NextRequest } from 'next/server'
-import { withHighlight } from '@/app/utils/edge-highlight.config'
+import { withEdgeHighlight } from '@/app/utils/edge-highlight.config'
 
 import { NextResponse } from 'next/server'
 
-export const GET = withHighlight(async function GET(request: NextRequest) {
+export const GET = withEdgeHighlight(async function GET(request: NextRequest) {
 	console.info('Here: /api/edge-test/route.ts')
 
 	if (Math.random() < 0.8) {
@@ -318,7 +312,7 @@ We recommend configuring [Vercel Log Drain](../backend-logging/5_hosting/vercel.
 ```
 `instrumentation.ts` can be used to capture Page Router SSR errors. It may capture other errors as well if you are NOT using Vercel or serverless functions.
 
-If you use Next.js with Vercel, all of your API functions are serverless, and must be wrapped with `withHighlight` wrappers as described above. OpenTelemetry does not block serverless functions from shutting down before all of their errors have been sent to Highlight's servers. Our `withHighlight` wrappers keep serverless functions alive until OpenTelemetry has sent all of its messages to Highlight's servers.
+If you use Next.js with Vercel, all of your API functions are serverless, and must be wrapped with `with*Highlight` wrappers as described above. OpenTelemetry does not block serverless functions from shutting down before all of their errors have been sent to Highlight's servers. Our `with*Highlight` wrappers keep serverless functions alive until OpenTelemetry has sent all of its messages to Highlight's servers.
 
 Next.js is instrumented for Open Telemetry out of the box. Our example Highlight implementation will use Next's [experimental instrumentation feature](https://nextjs.org/docs/advanced-features/instrumentation) to configure Open Telemetry on our Next.js server.
 

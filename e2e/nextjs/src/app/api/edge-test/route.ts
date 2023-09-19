@@ -1,11 +1,11 @@
 import { H } from '@highlight-run/next/server'
 import type { NextFetchEvent, NextRequest } from 'next/server'
-import { withHighlight } from '@/app/utils/edge-highlight.config'
+import { withEdgeHighlight } from '@/app/utils/edge-highlight.config'
 
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
-export const GET = withHighlight(async function GET(request: NextRequest) {
+export const GET = withEdgeHighlight(async function GET(request: NextRequest) {
 	const { searchParams } = new URL(request.url)
 	const success = z.enum(['true', 'false']).parse(searchParams.get('success'))
 
@@ -20,7 +20,7 @@ export const GET = withHighlight(async function GET(request: NextRequest) {
 	}
 })
 
-export const POST = withHighlight(async function POST(
+export const POST = withEdgeHighlight(async function POST(
 	request: NextRequest,
 	context: NextFetchEvent,
 ) {
