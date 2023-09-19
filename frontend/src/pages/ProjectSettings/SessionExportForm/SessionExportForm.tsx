@@ -1,20 +1,18 @@
 import BorderBox from '@components/BorderBox/BorderBox'
 import BoxLabel from '@components/BoxLabel/BoxLabel'
-import { LoadingBar } from '@components/Loading/Loading'
+import { IconAnimatedLoading, LoadingBar } from '@components/Loading/Loading'
 import { useGetSessionExportsQuery } from '@graph/hooks'
 import {
 	Badge,
 	Box,
 	IconSolidDownload,
 	IconSolidExternalLink,
-	IconSolidLoading,
 	Stack,
 	Table,
 	Tag,
 	Text,
 } from '@highlight-run/ui'
 import { useProjectId } from '@hooks/useProjectId'
-import { motion } from 'framer-motion'
 import moment from 'moment/moment'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -60,22 +58,9 @@ export const SessionExportForm = () => {
 									<Badge
 										iconStart={
 											!se.url ? (
-												<motion.div
-													animate={{ rotate: 360 }}
-													transition={{
-														duration: 1,
-														repeat: Infinity,
-														ease: 'linear',
-													}}
-													style={{
-														width: 14,
-														height: 14,
-													}}
-												>
-													<IconSolidLoading
-														size={14}
-													/>
-												</motion.div>
+												<IconAnimatedLoading
+													size={14}
+												/>
 											) : undefined
 										}
 										variant={
