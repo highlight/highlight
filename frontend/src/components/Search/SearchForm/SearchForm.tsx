@@ -327,6 +327,13 @@ export const Search: React.FC<{
 		comboboxStore.setState('moves', 0)
 	}
 
+	const handleItemRemove = (index: number) => {
+		queryTerms.splice(index, 1)
+		const newQuery = stringifySearchQuery(queryTerms)
+		setQuery(newQuery)
+		submitQuery(newQuery)
+	}
+
 	return (
 		<Box
 			alignItems="stretch"
@@ -334,6 +341,9 @@ export const Search: React.FC<{
 			flexGrow={1}
 			ref={containerRef}
 			position="relative"
+			style={{
+				paddingLeft: hideIcon ? undefined : 40,
+			}}
 		>
 			{!hideIcon ? (
 				<IconSolidSearch className={styles.searchIcon} />
@@ -345,7 +355,42 @@ export const Search: React.FC<{
 				gap="6"
 				width="full"
 				color="weak"
+				position="relative"
 			>
+				<Box
+					position="absolute"
+					display="flex"
+					alignItems="center"
+					gap="2"
+					style={{
+						left: 2,
+					}}
+				>
+					{queryTerms.map((term, index) => {
+						if (term.key === BODY_KEY && !term.value.length) {
+							return null
+						}
+
+						return (
+							<Box
+								key={index}
+								cssClass={styles.comboboxTag}
+								py="6"
+								position="relative"
+								onClick={() => {
+									handleItemRemove(index)
+								}}
+							>
+								<IconSolidXCircle
+									className={styles.comboboxTagClose}
+									size={13}
+								/>
+								{term.key === BODY_KEY ? `` : `${term.key}:`}
+								{term.value}
+							</Box>
+						)
+					})}
+				</Box>
 				<Combobox
 					ref={inputRef}
 					disabled={disableSearch}
@@ -355,9 +400,6 @@ export const Search: React.FC<{
 					placeholder={placeholder ?? 'Search...'}
 					className={className ?? styles.combobox}
 					value={query}
-					style={{
-						paddingLeft: hideIcon ? undefined : 40,
-					}}
 					onChange={(e) => {
 						// Need to set this bit of React state to force a re-render of the
 						// component. For some reason the combobox value isn't updated until
