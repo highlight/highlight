@@ -34,13 +34,14 @@ import { getDiscordOauthUrl } from '@pages/IntegrationsPage/components/DiscordIn
 import { Header } from '@pages/Setup/Header'
 import useLocalStorage from '@rehooks/local-storage'
 import analytics from '@util/analytics'
+import { client } from '@util/graph'
 import { message } from 'antd'
 import * as React from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useMatch, useNavigate } from 'react-router-dom'
 
 import Switch from '@/components/Switch/Switch'
-import { LocalStorageIntegrationData } from '@/util/integrated'
+import { useIntegratedLocalStorage } from '@/util/integrated'
 
 interface NotificationOption {
 	name: 'Slack' | 'Discord' | 'Email'
@@ -110,9 +111,7 @@ const alertOptions: AlertOption[] = [
 
 export const AlertsSetup: React.FC = function () {
 	const { projectId } = useProjectId()
-	const [alertsSetup] = useLocalStorage<LocalStorageIntegrationData>(
-		`highlight-${projectId}-alerts-integration`,
-	)
+	const [alertsSetup] = useIntegratedLocalStorage(projectId, 'alerts')
 	const [hidden, setHidden] = useState<boolean>()
 	const platformMatch = useMatch('/:project_id/setup/alerts/:platform')
 	const platform = platformMatch?.params?.platform as
@@ -299,30 +298,24 @@ const AlertPicker = function ({
 		fetchPolicy: 'network-only',
 	})
 
-	const [createSessionAlert] = useCreateSessionAlertMutation({
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
+	const [createSessionAlert] = useCreateSessionAlertMutation()
 
-	const [createErrorAlert] = useCreateErrorAlertMutation({
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
+	const [createErrorAlert] = useCreateErrorAlertMutation()
 
-	const [createLogAlert] = useCreateLogAlertMutation({
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
+	const [createLogAlert] = useCreateLogAlertMutation()
 
-	const [upsertSlackChannel] = useUpsertSlackChannelMutation({
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
-	const [upsertDiscordChannel] = useUpsertDiscordChannelMutation({
-		refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-	})
+	const [upsertSlackChannel] = useUpsertSlackChannelMutation()
+	const [upsertDiscordChannel] = useUpsertDiscordChannelMutation()
 
 	const hasDefaultSessionAlert = data?.new_session_alerts.find(
 		(a) => a?.default,
 	)
 	const hasDefaultErrorAlert = data?.error_alerts.find((a) => a?.default)
 	const hasDefaultLogAlert = data?.log_alerts.find((a) => a?.default)
+	const hasChanges =
+		(alertsSelected.indexOf('Session') === -1) != !hasDefaultSessionAlert ||
+		(alertsSelected.indexOf('Error') === -1) != !hasDefaultErrorAlert ||
+		(alertsSelected.indexOf('Log') === -1) != !hasDefaultLogAlert
 
 	useEffect(() => {
 		onAlertsSelected([
@@ -332,12 +325,8 @@ const AlertPicker = function ({
 		])
 	}, [hasDefaultErrorAlert, hasDefaultLogAlert, hasDefaultSessionAlert])
 
-	const createAlerts = useCallback(async () => {
-		for (const alert of alertsSelected) {
-			if (alertsCreated.current.has(alert)) continue
-			alertsCreated.current.add(alert)
-			const destination =
-				alertOptions.find((a) => a.name === alert)?.destination ?? ''
+	const getChannelID = useCallback(
+		async (destination: string) => {
 			let channelID = ''
 			if (platform === 'slack') {
 				const { data } = await upsertSlackChannel({
@@ -356,123 +345,132 @@ const AlertPicker = function ({
 				})
 				channelID = data?.upsertDiscordChannel.id ?? ''
 			}
-			analytics.track(`setup-alerts-create-${alert}`, {
-				platform,
-				destination,
-				channelID,
-				emailDestination,
-				projectId,
-			})
+			return channelID
+		},
+		[platform, projectId, upsertDiscordChannel, upsertSlackChannel],
+	)
 
-			const requestVariables = {
-				project_id: projectId,
-				count_threshold: 1,
-				slack_channels:
-					platform === 'slack'
-						? [
-								{
-									webhook_channel_id: channelID,
-									webhook_channel_name: destination,
-								},
-						  ]
-						: [],
-				discord_channels:
-					platform === 'discord'
-						? [
-								{
-									id: channelID,
-									name: destination,
-								},
-						  ]
-						: [],
-				emails: emailDestination ? [emailDestination] : [],
-				environments: [],
-				webhook_destinations: [],
-				default: true,
-			}
-			const requestBody = {
-				refetchQueries: [namedOperations.Query.GetAlertsPagePayload],
-			}
+	const createAlerts = useCallback(async () => {
+		const promises: Promise<any>[] = []
+		for (const alert of alertsSelected) {
+			if (alertsCreated.current.has(alert)) continue
+			alertsCreated.current.add(alert)
+			const destination =
+				alertOptions.find((a) => a.name === alert)?.destination ?? ''
 
-			if (alert === 'Session') {
-				if (!hasDefaultSessionAlert) {
-					await createSessionAlert({
-						...requestBody,
-						variables: {
-							input: {
-								...requestVariables,
-								name: 'New Session Alert',
-								threshold_window: 1,
-								exclude_rules: [],
-								user_properties: [],
-								track_properties: [],
-								disabled: false,
-								type: SessionAlertType.NewSessionAlert,
-							},
-						},
+			promises.push(
+				getChannelID(destination).then((channelID) => {
+					analytics.track(`setup-alerts-create-${alert}`, {
+						platform,
+						destination,
+						channelID,
+						emailDestination,
+						projectId,
 					})
-				}
-			} else if (alert === 'Error') {
-				if (!hasDefaultErrorAlert) {
-					await createErrorAlert({
-						...requestBody,
-						variables: {
-							...requestVariables,
-							name: 'Error Alert',
-							threshold_window: 1,
-							regex_groups: [],
-							frequency: 3600,
-						},
-					})
-				}
-			} else if (alert === 'Log') {
-				if (!hasDefaultLogAlert) {
-					await createLogAlert({
-						...requestBody,
-						variables: {
-							input: {
-								...requestVariables,
-								name: 'Error Log Alert',
-								threshold_window: 1,
-								below_threshold: false,
-								disabled: false,
-								query: 'level:error',
-							},
-						},
-					})
-				}
-			}
+
+					const requestVariables = {
+						project_id: projectId,
+						count_threshold: 1,
+						slack_channels:
+							platform === 'slack'
+								? [
+										{
+											webhook_channel_id: channelID,
+											webhook_channel_name: destination,
+										},
+								  ]
+								: [],
+						discord_channels:
+							platform === 'discord'
+								? [
+										{
+											id: channelID,
+											name: destination,
+										},
+								  ]
+								: [],
+						emails: emailDestination ? [emailDestination] : [],
+						environments: [],
+						webhook_destinations: [],
+						default: true,
+					}
+
+					if (alert === 'Session') {
+						if (!hasDefaultSessionAlert) {
+							return createSessionAlert({
+								variables: {
+									input: {
+										...requestVariables,
+										name: 'New Session Alert',
+										threshold_window: 1,
+										exclude_rules: [],
+										user_properties: [],
+										track_properties: [],
+										disabled: false,
+										type: SessionAlertType.NewSessionAlert,
+									},
+								},
+							})
+						}
+					} else if (alert === 'Error') {
+						if (!hasDefaultErrorAlert) {
+							return createErrorAlert({
+								variables: {
+									...requestVariables,
+									name: 'Error Alert',
+									threshold_window: 1,
+									regex_groups: [],
+									frequency: 3600,
+								},
+							})
+						}
+					} else if (alert === 'Log') {
+						if (!hasDefaultLogAlert) {
+							return createLogAlert({
+								variables: {
+									input: {
+										...requestVariables,
+										name: 'Error Log Alert',
+										threshold_window: 1,
+										below_threshold: false,
+										disabled: false,
+										query: 'level:error',
+									},
+								},
+							})
+						}
+					}
+				}),
+			)
 		}
+		await Promise.all(promises)
+		await client.refetchQueries({
+			include: [namedOperations.Query.GetAlertsPagePayload],
+		})
 	}, [
 		alertsSelected,
 		createErrorAlert,
 		createLogAlert,
 		createSessionAlert,
 		emailDestination,
+		getChannelID,
 		hasDefaultErrorAlert,
 		hasDefaultLogAlert,
 		hasDefaultSessionAlert,
 		platform,
 		projectId,
-		upsertDiscordChannel,
-		upsertSlackChannel,
 	])
 
 	const onSave = useCallback(async () => {
 		try {
 			createLoading.current = true
 			await createAlerts()
-			message.success(
-				`${alertsSelected.length} alert${
-					alertsSelected.length > 1 ? 's' : ''
-				} updated!`,
-			)
 		} catch (e) {
 			message.error(`An error occurred creating alerts.`)
 		} finally {
 			createLoading.current = false
 		}
-	}, [alertsSelected.length, createAlerts])
+	}, [createAlerts])
 
 	if (loading) return <LoadingBox width={111} />
 	return (
@@ -500,7 +498,28 @@ const AlertPicker = function ({
 								<Switch
 									trackingId={`setup-alerts-switch-${option.name}`}
 									size="small"
+									disabled={
+										!!(
+											(option.name === 'Session' &&
+												hasDefaultSessionAlert) ||
+											(option.name === 'Error' &&
+												hasDefaultErrorAlert) ||
+											(option.name === 'Log' &&
+												hasDefaultLogAlert)
+										)
+									}
 									onChange={(checked) => {
+										if (
+											!checked &&
+											((option.name === 'Session' &&
+												hasDefaultSessionAlert) ||
+												(option.name === 'Error' &&
+													hasDefaultErrorAlert) ||
+												(option.name === 'Log' &&
+													hasDefaultLogAlert))
+										) {
+											return
+										}
 										if (checked) {
 											onAlertsSelected([
 												...alertsSelected,
@@ -564,12 +583,11 @@ const AlertPicker = function ({
 						kind="primary"
 						size="small"
 						emphasis="high"
-						iconRight={<IconSolidCheveronRight />}
 						loading={createLoading.current}
-						disabled={createLoading.current}
+						disabled={!hasChanges}
 						onClick={onSave}
 					>
-						Save & continue
+						Save
 					</Button>
 				</Box>
 				<Box
